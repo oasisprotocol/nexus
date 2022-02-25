@@ -8,6 +8,7 @@ import (
 
 	"github.com/oasislabs/oasis-block-indexer/go/oasis-indexer/cmd/analyzer"
 	"github.com/oasislabs/oasis-block-indexer/go/oasis-indexer/cmd/api"
+	"github.com/oasislabs/oasis-block-indexer/go/oasis-indexer/cmd/common"
 	"github.com/oasislabs/oasis-block-indexer/go/oasis-indexer/cmd/processor"
 )
 
@@ -24,6 +25,8 @@ func Execute() {
 }
 
 func init() {
+	rootCmd.PersistentFlags().AddFlagSet(common.RootFlags)
+
 	for _, f := range []func(*cobra.Command){
 		processor.Register,
 		analyzer.Register,

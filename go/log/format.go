@@ -1,6 +1,11 @@
 package log
 
-// Format is a logging format.
+import (
+	"fmt"
+	"strings"
+)
+
+// Format is a logging format. It implements the pflag.Value interface.
 type Format uint
 
 const (
@@ -20,4 +25,23 @@ func (f *Format) String() string {
 	default:
 		panic("logging: unsupported format")
 	}
+}
+
+// Set sets the Format to the value specified by the provided string.
+func (f *Format) Set(s string) error {
+	switch strings.ToUpper(s) {
+	case "LOGFMT":
+		*f = FmtLogfmt
+	case "JSON":
+		*f = FmtJSON
+	default:
+		return fmt.Errorf("logging: invalid log format: '%s'", s)
+	}
+
+	return nil
+}
+
+// Type returns the list of supported Formats.
+func (f *Format) Type() string {
+	return "[logfmt,JSON]"
 }

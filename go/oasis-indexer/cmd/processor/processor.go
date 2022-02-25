@@ -2,17 +2,22 @@
 package processor
 
 import (
+	"fmt"
+	"os"
+
+	"github.com/oasislabs/oasis-block-indexer/go/oasis-indexer/cmd/common"
+	"github.com/oasislabs/oasis-block-indexer/go/oasis-indexer/processor"
 	"github.com/spf13/cobra"
 )
 
 const (
-	// CfgEndpointConsensus is the gRPC target of the node from which
+	// CfgAddressConsensus is the gRPC target of the node from which
 	// consensus blocks will be retrieved.
-	CfgEndpointConsensus = "endpoint.consensus"
+	CfgAddressConsensus = "address.consensus"
 )
 
 var (
-	endpointConsensus string
+	cfgAddressConsensus string
 
 	processCmd = &cobra.Command{
 		Use:   "process",
@@ -22,12 +27,22 @@ var (
 )
 
 func runProcessor(cmd *cobra.Command, args []string) {
-	// TODO
+	common.Init()
+
+	processor, err := processor.NewProcessor(cfgAddressConsensus)
+	switch {
+	case err == nil:
+	default:
+		fmt.Printf("aw shucks! %s", err)
+		os.Exit(1)
+	}
+
+	processor.Wait()
 }
 
 // Register registers the process sub-command.
 func Register(parentCmd *cobra.Command) {
-	processCmd.Flags().StringVar(&endpointConsensus, CfgEndpointConsensus, "", "consensus node grpc target")
+	processCmd.Flags().StringVar(&cfgAddressConsensus, CfgAddressConsensus, "unix:internal.sock", "consensus gRPC address")
 
 	parentCmd.AddCommand(processCmd)
 }
