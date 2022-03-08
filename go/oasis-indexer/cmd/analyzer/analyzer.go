@@ -3,6 +3,8 @@ package analyzer
 
 import (
 	"github.com/spf13/cobra"
+
+	"github.com/oasislabs/oasis-block-indexer/go/oasis-indexer/cmd/common"
 )
 
 var analyzeCmd = &cobra.Command{
@@ -12,7 +14,7 @@ var analyzeCmd = &cobra.Command{
 }
 
 func runProcessor(cmd *cobra.Command, args []string) {
-	// TODO
+	common.Init()
 }
 
 // Register registers the process sub-command.

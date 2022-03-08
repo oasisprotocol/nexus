@@ -3,6 +3,8 @@ package api
 
 import (
 	"github.com/spf13/cobra"
+
+	"github.com/oasislabs/oasis-block-indexer/go/oasis-indexer/cmd/common"
 )
 
 var apiCmd = &cobra.Command{
@@ -12,7 +14,7 @@ var apiCmd = &cobra.Command{
 }
 
 func runServer(cmd *cobra.Command, args []string) {
-	// TODO
+	common.Init()
 }
 
 // Register registers the process sub-command.
