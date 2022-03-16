@@ -97,3 +97,13 @@ func (l *Logger) WithPrefix(keyvals ...interface{}) *Logger {
 		logger: log.WithPrefix(l.logger, keyvals...),
 	}
 }
+
+// WithModule returns a clone of the logger with the provided module
+// added as context for all subsequent logs.
+func (l *Logger) WithModule(module string) *Logger {
+	return &Logger{
+		logger: l.logger,
+		level:  l.level,
+		module: module,
+	}
+}

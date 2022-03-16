@@ -15,6 +15,9 @@ var apiCmd = &cobra.Command{
 
 func runServer(cmd *cobra.Command, args []string) {
 	common.Init()
+
+	logger := common.Logger()
+	logger.Info("Starting api layer.")
 }
 
 // Register registers the process sub-command.
