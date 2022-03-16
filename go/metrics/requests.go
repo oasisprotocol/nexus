@@ -23,7 +23,7 @@ type RequestMetrics struct {
 	RequestLatencies *prometheus.SummaryVec
 }
 
-// NewDefaultRequestMetrics creates Prometheus metric instrumentation for 
+// NewDefaultRequestMetrics creates Prometheus metric instrumentation for
 // basic metrics common to serving requests. Default metrics include:
 //
 // 1. Counts of service endpoints hit.
@@ -33,14 +33,14 @@ func NewDefaultRequestMetrics(pkg string) RequestMetrics {
 		RequestCounts: prometheus.NewCounterVec(
 			prometheus.CounterOpts{
 				Name: fmt.Sprintf("%s_requests", pkg),
-				Help: fmt.Sprintf("How many service requests were made, partitioned by request endpoint, status, and cause.")
+				Help: fmt.Sprintf("How many service requests were made, partitioned by request endpoint, status, and cause."),
 			},
 			requestLabels,
 		),
 		RequestLatencies: prometheus.NewSummaryVec(
 			prometheus.SummaryOpts{
 				Name: fmt.Sprintf("%s_request_latencies", pkg),
-				Help: fmt.Sprintf("How long requests take to process, partitioned by request endpoint.")
+				Help: fmt.Sprintf("How long requests take to process, partitioned by request endpoint."),
 			},
 			requestLatencyLabels,
 		),
@@ -61,7 +61,7 @@ func (m *RequestMetrics) RequestCounter(labels ...string) prometheus.Counter {
 }
 
 // RequestTimer creates a new latency timer for the provided request endpoint.
-func (m *RequestMetrics) RequestTimer(labels ...string) prometheus.Timer {
+func (m *RequestMetrics) RequestTimer(labels ...string) *prometheus.Timer {
 	if len(labels) > len(requestLatencyLabels) {
 		labels = labels[:len(requestLatencyLabels)]
 	}

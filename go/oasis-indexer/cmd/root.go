@@ -25,11 +25,11 @@ func rootMain(cmd *cobra.Command, args []string) {
 	if err := common.Init(); err != nil {
 		os.Exit(1)
 	}
-	rootLogger := common.RootLogger
+	rootLogger := common.Logger()
 
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, os.Interrupt)
-	ctx, cancelFn := context.WithCancel(context.Background())
+	_, cancelFn := context.WithCancel(context.Background())
 	go func() {
 		<-sigCh
 		rootLogger.Info("user requested interrupt")

@@ -23,7 +23,7 @@ var (
 	flagLogFormat = log.FmtJSON
 	flagLogLevel  = log.LevelInfo
 
-	RootLogger = log.NewDefaultLogger("oasis-indexer")
+	rootLogger = log.NewDefaultLogger("oasis-indexer")
 
 	// loggingFlags contains common logging flags.
 	loggingFlags = flag.NewFlagSet("", flag.ContinueOnError)
@@ -38,7 +38,7 @@ func Init() error {
 	if err != nil {
 		return err
 	}
-	RootLogger = logger
+	rootLogger = logger
 
 	return nil
 }

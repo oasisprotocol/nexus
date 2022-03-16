@@ -17,10 +17,10 @@ var (
 // Default service metrics for database operations.
 type DatabaseMetrics struct {
 	// Counts of database operations
-	DatabaseOperations prometheus.CounterVec
+	DatabaseOperations *prometheus.CounterVec
 
 	// Latencies of database operations.
-	DatabaseLatencies prometheus.SummaryVec
+	DatabaseLatencies *prometheus.SummaryVec
 }
 
 // NewDefaultDatabaseMetrics creates Prometheus metric instrumentation
@@ -40,7 +40,7 @@ func NewDefaultDatabaseMetrics(pkg string) DatabaseMetrics {
 		DatabaseLatencies: prometheus.NewSummaryVec(
 			prometheus.SummaryOpts{
 				Name: fmt.Sprintf("%s_db_latencies", pkg),
-				Help: fmt.Sprintf("How long database operations take, partitioned by operation.")
+				Help: fmt.Sprintf("How long database operations take, partitioned by operation."),
 			},
 			databaseLatencyLabels,
 		),
@@ -60,13 +60,13 @@ func (m *DatabaseMetrics) DatabaseCounter(labels ...string) prometheus.Counter {
 	return m.DatabaseOperations.WithLabelValues(labels...)
 }
 
-// DatabaseTimer returns a new latency timer for the provided 
-// database operation. 
+// DatabaseTimer returns a new latency timer for the provided
+// database operation.
 // Provided labels should be database and operation.
-func (m *DatabaseMetrics) DatabaseTimer(labels ...string) prometheus.Timer {
+func (m *DatabaseMetrics) DatabaseTimer(labels ...string) *prometheus.Timer {
 	if len(labels) > len(databaseLatencyLabels) {
 		labels = labels[:len(databaseLatencyLabels)]
 	}
-	labels = append(labels, make([]string, len(databaseLatencyLabels) - len(labels))...)
-	return prometheus.NewTimer(m.DatabaseLatencies.WithLabelValues(labels))
+	labels = append(labels, make([]string, len(databaseLatencyLabels)-len(labels))...)
+	return prometheus.NewTimer(m.DatabaseLatencies.WithLabelValues(labels...))
 }

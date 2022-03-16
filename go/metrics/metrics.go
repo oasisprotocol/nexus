@@ -55,8 +55,8 @@ func Register(cmd *cobra.Command) {
 	}
 }
 
-func NewPullService(logger log.Logger) (*pullService, error) {
-	logger = logger.With(logger, "pkg", "metrics")
+func NewPullService(rootLogger *log.Logger) (*pullService, error) {
+	logger := rootLogger.With(rootLogger, "pkg", "metrics")
 	addr := fmt.Sprintf("%s:%s", flagMetricsPullAddr, flagMetricsPullPort)
 
 	return &pullService{
