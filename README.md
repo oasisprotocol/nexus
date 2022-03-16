@@ -8,11 +8,11 @@ You can create and run a Dockerized version of the Oasis Indexer as follows.
 
 **Build**
 ```sh
-$ docker build --tag oasislabs/oasis-indexer --file docker/indexer.Dockerfile .
+$ docker build --tag oasislabs/oasis-indexer:debug --file docker/indexer.Dockerfile .
 ```
 
 **Run**
 ```sh
-$ alias oasis-indexer="docker run oasislabs/oasis-indexer"
+$ alias oasis-indexer="docker run oasislabs/oasis-indexer:debug"
 $ oasis-indexer --help
 ```
