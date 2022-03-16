@@ -8,9 +8,6 @@ import (
 
 	"github.com/spf13/cobra"
 
-<<<<<<< HEAD
-	"github.com/oasislabs/oasis-block-indexer/go/oasis-indexer/cmd/common"
-=======
 	"github.com/oasislabs/oasis-block-indexer/go/log"
 	"github.com/oasislabs/oasis-block-indexer/go/oasis-indexer/cmd/common"
 	"github.com/oasislabs/oasis-block-indexer/go/storage"
@@ -32,7 +29,6 @@ var (
 		Short: "Analyze blocks",
 		Run:   runAnalyzer,
 	}
->>>>>>> b9e9d99 (Remove processor module)
 )
 
 func runAnalyzer(cmd *cobra.Command, args []string) {
