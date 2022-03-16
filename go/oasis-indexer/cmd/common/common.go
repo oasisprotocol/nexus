@@ -1,27 +1,29 @@
-// Package common implements common oasis-indexer command options.package common
+// Package common implements common oasis-indexer command options.
 package common
 
 import (
 	"os"
 
+	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
+	"github.com/spf13/viper"
 
 	"github.com/oasislabs/oasis-block-indexer/go/log"
 )
 
 const (
-	// CfgLogLevel is the flag to set the minimum severity level to log.
-	CfgLogLevel = "log.level"
-
 	// CfgLogFormat is the flag to set the structured logging format.
-	CfgLogFormat = "log.format"
+	cfgLogFormat = "log.format"
+
+	// CfgLogLevel is the flag to set the minimum severity level to log.
+	cfgLogLevel = "log.level"
 )
 
 var (
-	cfgLogFormat = log.FmtJSON
-	cfgLogLevel  = log.LevelInfo
+	flagLogFormat = log.FmtJSON
+	flagLogLevel  = log.LevelInfo
 
-	rootLogger = log.NewDefaultLogger("oasis-indexer")
+	RootLogger = log.NewDefaultLogger("oasis-indexer")
 
 	// loggingFlags contains common logging flags.
 	loggingFlags = flag.NewFlagSet("", flag.ContinueOnError)
@@ -32,11 +34,11 @@ var (
 
 // Init initializes the common environment.
 func Init() error {
-	logger, err := log.NewLogger("oasis-indexer", os.Stdout, cfgLogFormat, cfgLogLevel)
+	logger, err := log.NewLogger("oasis-indexer", os.Stdout, flagLogFormat, flagLogLevel)
 	if err != nil {
 		return err
 	}
-	rootLogger = logger
+	RootLogger = logger
 
 	return nil
 }
@@ -46,9 +48,18 @@ func Logger() *log.Logger {
 	return rootLogger
 }
 
-func init() {
-	loggingFlags.Var(&cfgLogFormat, CfgLogFormat, "structured logging format")
-	loggingFlags.Var(&cfgLogLevel, CfgLogLevel, "minimum logging severity level")
+func RegisterFlags(cmd *cobra.Command) {
+	loggingFlags.Var(&flagLogFormat, cfgLogFormat, "structured logging format")
+	loggingFlags.Var(&flagLogLevel, cfgLogLevel, "minimum logging severity level")
 
-	RootFlags.AddFlagSet(loggingFlags)
+	cmd.PersistentFlags().AddFlagSet(loggingFlags)
+
+	// Add to viper. Although currently unused, we will need viper in the near future
+	// for reading env variables.
+	for _, v := range []string{
+		cfgLogFormat,
+		cfgLogLevel,
+	} {
+		_ = viper.BindPFlag(v, cmd.Flags().Lookup(v))
+	}
 }

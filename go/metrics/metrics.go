@@ -30,7 +30,7 @@ type pullService struct {
 	logger log.Logger
 }
 
-func (s *pullService) startInstrumentation() {
+func (s *pullService) StartInstrumentation() {
 	s.logger.Info("Initializing pull metrics service.")
 	go s.startHandler()
 }
@@ -56,7 +56,7 @@ func Register(cmd *cobra.Command) {
 }
 
 func NewPullService(logger log.Logger) (*pullService, error) {
-	metricsLogger := logger.With(logger, "module", "metrics") // TODO: changeme
+	logger = logger.With(logger, "pkg", "metrics")
 	addr := fmt.Sprintf("%s:%s", flagMetricsPullAddr, flagMetricsPullPort)
 
 	return &pullService{
@@ -67,6 +67,6 @@ func NewPullService(logger log.Logger) (*pullService, error) {
 			WriteTimeout:   10 * time.Second,
 			MaxHeaderBytes: 1 << 20,
 		},
-		logger: metricsLogger,
+		logger: logger,
 	}, nil
 }
