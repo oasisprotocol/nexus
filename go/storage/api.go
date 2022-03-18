@@ -16,30 +16,30 @@ import (
 // SourceStorage defines an interface for retrieving raw block data.
 type SourceStorage interface {
 
-	// GetBlockData gets block data at the specified height. This includes all
+	// BlockData gets block data at the specified height. This includes all
 	// block header information, as well as transactions and events included
 	// within that block.
-	GetBlockData(height int64) (*BlockData, error)
+	BlockData(height int64) (*BlockData, error)
 
-	// GetBeaconData gets beacon data at the specified height. This includes
+	// BeaconData gets beacon data at the specified height. This includes
 	// the epoch number at that height, as well as the beacon state.
-	GetBeaconData(height int64) (*BeaconData, error)
+	BeaconData(height int64) (*BeaconData, error)
 
-	// GetRegistryData gets registry data at the specified height. This includes
+	// RegistryData gets registry data at the specified height. This includes
 	// all registered entities and their controlled nodes and statuses.
-	GetRegistryData(height int64) (*RegistryData, error)
+	RegistryData(height int64) (*RegistryData, error)
 
-	// GetStakingData gets staking data at the specified height. This includes
+	// StakingData gets staking data at the specified height. This includes
 	// staking backend events to be applied to indexed state.
-	GetStakingData(height int64) (*StakingData, error)
+	StakingData(height int64) (*StakingData, error)
 
-	// GetSchedulerData gets scheduler data at the specified height. This
+	// SchedulerData gets scheduler data at the specified height. This
 	// includes all validators and runtime committees.
-	GetSchedulerData(height int64) (*SchedulerData, error)
+	SchedulerData(height int64) (*SchedulerData, error)
 
-	// GetGovernanceData gets governance data at the specified height. This
+	// GovernanceData gets governance data at the specified height. This
 	// includes all proposals, their respective statuses and voting responses.
-	GetGovernanceData(height int64) (*GovernanceData, error)
+	GovernanceData(height int64) (*GovernanceData, error)
 
 	// TODO: Extend this interface to include a GetRoothashData to pull
 	// runtime blocks. This is only relevant when we begin to build runtime
