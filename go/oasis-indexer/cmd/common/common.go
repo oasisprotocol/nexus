@@ -2,26 +2,29 @@
 package common
 
 import (
+	"context"
 	"os"
+	"os/signal"
 
 	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
 	"github.com/spf13/viper"
 
 	"github.com/oasislabs/oasis-block-indexer/go/log"
+	"github.com/oasislabs/oasis-block-indexer/go/metrics"
 )
 
 const (
 	// CfgLogFormat is the flag to set the structured logging format.
-	cfgLogFormat = "log.format"
+	CfgLogFormat = "log.format"
 
 	// CfgLogLevel is the flag to set the minimum severity level to log.
-	cfgLogLevel = "log.level"
+	CfgLogLevel = "log.level"
 )
 
 var (
-	flagLogFormat = log.FmtJSON
-	flagLogLevel  = log.LevelInfo
+	cfgLogFormat = log.FmtJSON
+	cfgLogLevel  = log.LevelInfo
 
 	rootLogger = log.NewDefaultLogger("oasis-indexer")
 
@@ -34,11 +37,30 @@ var (
 
 // Init initializes the common environment.
 func Init() error {
-	logger, err := log.NewLogger("oasis-indexer", os.Stdout, flagLogFormat, flagLogLevel)
+	logger, err := log.NewLogger("oasis-indexer", os.Stdout, cfgLogFormat, cfgLogLevel)
 	if err != nil {
 		return err
 	}
 	rootLogger = logger
+
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, os.Interrupt)
+	_, cancelFn := context.WithCancel(context.Background())
+	go func() {
+		<-sigCh
+		rootLogger.Info("user requested interrupt")
+		cancelFn()
+	}()
+
+	// Initialize Prometheus service
+	promServer, err := metrics.NewPullService(rootLogger)
+	if err != nil {
+		rootLogger.Error("failed to initialize metrics", "err", err)
+		os.Exit(1)
+	}
+	promServer.StartInstrumentation()
+
+	rootLogger.Info("terminating")
 
 	return nil
 }
@@ -49,16 +71,16 @@ func Logger() *log.Logger {
 }
 
 func RegisterFlags(cmd *cobra.Command) {
-	loggingFlags.Var(&flagLogFormat, cfgLogFormat, "structured logging format")
-	loggingFlags.Var(&flagLogLevel, cfgLogLevel, "minimum logging severity level")
+	loggingFlags.Var(&cfgLogFormat, CfgLogFormat, "structured logging format")
+	loggingFlags.Var(&cfgLogLevel, CfgLogLevel, "minimum logging severity level")
 
 	cmd.PersistentFlags().AddFlagSet(loggingFlags)
 
 	// Add to viper. Although currently unused, we will need viper in the near future
 	// for reading env variables.
 	for _, v := range []string{
-		cfgLogFormat,
-		cfgLogLevel,
+		CfgLogFormat,
+		CfgLogLevel,
 	} {
 		_ = viper.BindPFlag(v, cmd.Flags().Lookup(v))
 	}

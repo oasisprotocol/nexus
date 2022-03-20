@@ -1,3 +1,4 @@
+// Package metrics contains the prometheus infrastructure.
 package metrics
 
 import (
@@ -14,13 +15,15 @@ import (
 )
 
 const (
-	cfgMetricsPullAddr = "metrics.pull.addr"
-	cfgMetricsPullPort = "metrics.pull.port"
+	// CfgMetricsPullAddr is the address at which Prometheus metrics will be exposed
+	CfgMetricsPullAddr = "metrics.pull.addr"
+	// CfgMetricsPullPort is the port at which Prometheus metrics will be exposed
+	CfgMetricsPullPort = "metrics.pull.port"
 )
 
 var (
-	flagMetricsPullAddr string
-	flagMetricsPullPort string
+	cfgMetricsPullAddr string
+	cfgMetricsPullPort string
 
 	metricsFlags = flag.NewFlagSet("", flag.ContinueOnError)
 )
@@ -37,27 +40,29 @@ func (s *pullService) StartInstrumentation() {
 
 func (s *pullService) startHandler() {
 	if err := s.server.ListenAndServe(); err != nil {
-		s.logger.Error("Unable to initialize prometheus pull service", "listen_addr", flagMetricsPullAddr, "listen_port", flagMetricsPullPort)
+		s.logger.Error("Unable to initialize prometheus pull service", "listen_addr", cfgMetricsPullAddr, "listen_port", cfgMetricsPullPort)
 	}
 }
 
+// Registers the flags for configuring a metrics service.
 func Register(cmd *cobra.Command) {
-	metricsFlags.StringVar(&flagMetricsPullAddr, cfgMetricsPullAddr, "localhost", "Prometheus metrics address, at which metrics will be exposed")
-	metricsFlags.StringVar(&flagMetricsPullPort, cfgMetricsPullPort, "7000", "Prometheus metrics port, at which metrics will be exposed")
+	metricsFlags.StringVar(&cfgMetricsPullAddr, CfgMetricsPullAddr, "localhost", "Prometheus metrics address, at which metrics will be exposed")
+	metricsFlags.StringVar(&cfgMetricsPullPort, CfgMetricsPullPort, "7000", "Prometheus metrics port, at which metrics will be exposed")
 
 	cmd.PersistentFlags().AddFlagSet(metricsFlags)
 
 	for _, v := range []string{
-		cfgMetricsPullAddr,
-		cfgMetricsPullPort,
+		CfgMetricsPullAddr,
+		CfgMetricsPullPort,
 	} {
 		_ = viper.BindPFlag(v, cmd.Flags().Lookup(v))
 	}
 }
 
+// Creates a new prometheus pull service.
 func NewPullService(rootLogger *log.Logger) (*pullService, error) {
 	logger := rootLogger.With(rootLogger, "pkg", "metrics")
-	addr := fmt.Sprintf("%s:%s", flagMetricsPullAddr, flagMetricsPullPort)
+	addr := fmt.Sprintf("%s:%s", cfgMetricsPullAddr, cfgMetricsPullPort)
 
 	return &pullService{
 		server: &http.Server{
