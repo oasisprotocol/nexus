@@ -8,14 +8,15 @@ import (
 	"github.com/oasislabs/oasis-block-indexer/go/storage"
 	"github.com/oasisprotocol/oasis-core/go/common"
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
+	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
 	"github.com/oasisprotocol/oasis-core/go/consensus/api/transaction"
+	genesisAPI "github.com/oasisprotocol/oasis-core/go/genesis/api"
 	governanceAPI "github.com/oasisprotocol/oasis-core/go/governance/api"
 	registryAPI "github.com/oasisprotocol/oasis-core/go/registry/api"
 	schedulerAPI "github.com/oasisprotocol/oasis-core/go/scheduler/api"
 	stakingAPI "github.com/oasisprotocol/oasis-core/go/staking/api"
 	config "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 	connection "github.com/oasisprotocol/oasis-sdk/client-sdk/go/connection"
-	"github.com/spf13/cobra"
 )
 
 const (
@@ -24,18 +25,39 @@ const (
 
 type OasisNodeClient struct {
 	connection *connection.Connection
+	network    *config.Network
 }
 
 // NewOasisNodeClient creates a new oasis-node client.
-func NewOasisNodeClient(ctx context.Context) (*OasisNodeClient, error) {
-	// Assume default for now
-	network := config.DefaultNetworks.All[config.DefaultNetworks.Default]
+func NewOasisNodeClient(ctx context.Context, network *config.Network) (*OasisNodeClient, error) {
 	connection, err := connection.Connect(ctx, network)
-	cobra.CheckErr(err)
+	if err != nil {
+		return nil, err
+	}
+
+	chainContext, err := connection.Consensus().GetChainContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// Configure chain context for all signatures using chain domain separation.
+	signature.SetChainContext(chainContext)
 
 	return &OasisNodeClient{
 		&connection,
+		network,
 	}, nil
+}
+
+// GenesisDocument returns the original genesis document.
+func (c *OasisNodeClient) GenesisDocument(ctx context.Context) (*genesisAPI.Document, error) {
+	connection := *c.connection
+	doc, err := connection.Consensus().GetGenesisDocument(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return doc, nil
 }
 
 // Name returns the name of the oasis-node client.
@@ -43,18 +65,26 @@ func (c *OasisNodeClient) Name() string {
 	return clientName
 }
 
+// BlockData retrieves data about a block at the provided block height.
 func (c *OasisNodeClient) BlockData(ctx context.Context, height int64) (*storage.BlockData, error) {
 	connection := *c.connection
 	block, err := connection.Consensus().GetBlock(ctx, height)
-	cobra.CheckErr(err)
+	if err != nil {
+		return nil, err
+	}
+
 	transactionsWithResults, err := connection.Consensus().GetTransactionsWithResults(ctx, height)
-	cobra.CheckErr(err)
+	if err != nil {
+		return nil, err
+	}
 
 	var transactions []*transaction.SignedTransaction
 
 	for _, bytes := range transactionsWithResults.Transactions {
 		var transaction transaction.SignedTransaction
-		cbor.Unmarshal(bytes, &transaction)
+		if err := cbor.Unmarshal(bytes, &transaction); err != nil {
+			return nil, err
+		}
 		transactions = append(transactions, &transaction)
 	}
 
@@ -65,13 +95,19 @@ func (c *OasisNodeClient) BlockData(ctx context.Context, height int64) (*storage
 	}, nil
 }
 
+// BeaconData retrieves the beacon for the provided block height.
+// NOTE: The random beacon endpoint is in flux.
 func (c *OasisNodeClient) BeaconData(ctx context.Context, height int64) (*storage.BeaconData, error) {
 	connection := *c.connection
 	beacon, err := connection.Consensus().Beacon().GetBeacon(ctx, height)
-	cobra.CheckErr(err)
+	if err != nil {
+		return nil, err
+	}
 
 	epoch, err := connection.Consensus().Beacon().GetEpoch(ctx, height)
-	cobra.CheckErr(err)
+	if err != nil {
+		return nil, err
+	}
 
 	return &storage.BeaconData{
 		Epoch:  epoch,
@@ -79,10 +115,13 @@ func (c *OasisNodeClient) BeaconData(ctx context.Context, height int64) (*storag
 	}, nil
 }
 
+// RegistryData retrieves registry events at the provided block height.
 func (c *OasisNodeClient) RegistryData(ctx context.Context, height int64) (*storage.RegistryData, error) {
 	connection := *c.connection
 	events, err := connection.Consensus().Registry().GetEvents(ctx, height)
-	cobra.CheckErr(err)
+	if err != nil {
+		return nil, err
+	}
 
 	var runtimeEvents []*registryAPI.RuntimeEvent
 	var entityEvents []*registryAPI.EntityEvent
@@ -109,10 +148,13 @@ func (c *OasisNodeClient) RegistryData(ctx context.Context, height int64) (*stor
 	}, nil
 }
 
+// StakingData retrieves staking events at the provided block height.
 func (c *OasisNodeClient) StakingData(ctx context.Context, height int64) (*storage.StakingData, error) {
 	connection := *c.connection
 	events, err := connection.Consensus().Staking().GetEvents(ctx, height)
-	cobra.CheckErr(err)
+	if err != nil {
+		return nil, err
+	}
 
 	var transfers []*stakingAPI.TransferEvent
 	var burns []*stakingAPI.BurnEvent
@@ -139,27 +181,29 @@ func (c *OasisNodeClient) StakingData(ctx context.Context, height int64) (*stora
 	}, nil
 }
 
-func (c *OasisNodeClient) ChainContext(ctx context.Context) (string, error) {
-	connection := *c.connection
-	return connection.Consensus().GetChainContext(ctx)
-}
-
+// SchedulerData retrieves validators and runtime committees at the provided block height.
 func (c *OasisNodeClient) SchedulerData(ctx context.Context, height int64) (*storage.SchedulerData, error) {
 	connection := *c.connection
 	validators, err := connection.Consensus().Scheduler().GetValidators(ctx, height)
-	cobra.CheckErr(err)
+	if err != nil {
+		return nil, err
+	}
 
-	var committees = make(map[common.Namespace][]*schedulerAPI.Committee)
+	var committees = make(map[common.Namespace][]*schedulerAPI.Committee, len(c.network.ParaTimes.All))
 
-	for k := range config.DefaultNetworks.All[config.DefaultNetworks.Default].ParaTimes.All {
+	for name := range c.network.ParaTimes.All {
 		var runtimeID common.Namespace
-		runtimeID.UnmarshalHex(k)
+		if err := runtimeID.UnmarshalHex(c.network.ParaTimes.All[name].ID); err != nil {
+			return nil, err
+		}
 
 		consensusCommittees, err := connection.Consensus().Scheduler().GetCommittees(ctx, &schedulerAPI.GetCommitteesRequest{
 			Height:    height,
 			RuntimeID: runtimeID,
 		})
-		cobra.CheckErr(err)
+		if err != nil {
+			return nil, err
+		}
 		committees[runtimeID] = consensusCommittees
 	}
 
@@ -169,23 +213,40 @@ func (c *OasisNodeClient) SchedulerData(ctx context.Context, height int64) (*sto
 	}, nil
 }
 
+// GovernanceData retrieves governance events at the provided block height.
 func (c *OasisNodeClient) GovernanceData(ctx context.Context, height int64) (*storage.GovernanceData, error) {
 	connection := *c.connection
 	events, err := connection.Consensus().Governance().GetEvents(ctx, height)
-	cobra.CheckErr(err)
+	if err != nil {
+		return nil, err
+	}
 
-	var submissions []*governanceAPI.ProposalSubmittedEvent
+	var submissions []*governanceAPI.Proposal
 	var executions []*governanceAPI.ProposalExecutedEvent
-	var finalizations []*governanceAPI.ProposalFinalizedEvent
+	var finalizations []*governanceAPI.Proposal
 	var votes []*governanceAPI.VoteEvent
 
 	for _, event := range events {
 		if event.ProposalSubmitted != nil {
-			submissions = append(submissions, event.ProposalSubmitted)
+			proposal, err := connection.Consensus().Governance().Proposal(ctx, &governanceAPI.ProposalQuery{
+				Height:     height,
+				ProposalID: event.ProposalSubmitted.ID,
+			})
+			if err != nil {
+				return nil, err
+			}
+			submissions = append(submissions, proposal)
 		} else if event.ProposalExecuted != nil {
 			executions = append(executions, event.ProposalExecuted)
 		} else if event.ProposalFinalized != nil {
-			finalizations = append(finalizations, event.ProposalFinalized)
+			proposal, err := connection.Consensus().Governance().Proposal(ctx, &governanceAPI.ProposalQuery{
+				Height:     height,
+				ProposalID: event.ProposalFinalized.ID,
+			})
+			if err != nil {
+				return nil, err
+			}
+			finalizations = append(finalizations, proposal)
 		} else if event.Vote != nil {
 			votes = append(votes, event.Vote)
 		}
