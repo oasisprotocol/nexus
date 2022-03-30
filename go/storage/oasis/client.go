@@ -9,6 +9,7 @@ import (
 	"github.com/oasisprotocol/oasis-core/go/common"
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 	"github.com/oasisprotocol/oasis-core/go/consensus/api/transaction"
+	genesisAPI "github.com/oasisprotocol/oasis-core/go/genesis/api"
 	governanceAPI "github.com/oasisprotocol/oasis-core/go/governance/api"
 	registryAPI "github.com/oasisprotocol/oasis-core/go/registry/api"
 	schedulerAPI "github.com/oasisprotocol/oasis-core/go/scheduler/api"
@@ -23,12 +24,11 @@ const (
 
 type OasisNodeClient struct {
 	connection *connection.Connection
+	network    *config.Network
 }
 
 // NewOasisNodeClient creates a new oasis-node client.
-func NewOasisNodeClient(ctx context.Context) (*OasisNodeClient, error) {
-	// Assume default for now
-	network := config.DefaultNetworks.All[config.DefaultNetworks.Default]
+func NewOasisNodeClient(ctx context.Context, network *config.Network) (*OasisNodeClient, error) {
 	connection, err := connection.Connect(ctx, network)
 	if err != nil {
 		return nil, err
@@ -36,7 +36,19 @@ func NewOasisNodeClient(ctx context.Context) (*OasisNodeClient, error) {
 
 	return &OasisNodeClient{
 		&connection,
+		network,
 	}, nil
+}
+
+// GenesisDocument returns the original genesis document.
+func (c *OasisNodeClient) GenesisDocument(ctx context.Context) (*genesisAPI.Document, error) {
+	connection := *c.connection
+	doc, err := connection.Consensus().GetGenesisDocument(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return doc, nil
 }
 
 // Name returns the name of the oasis-node client.
@@ -75,6 +87,7 @@ func (c *OasisNodeClient) BlockData(ctx context.Context, height int64) (*storage
 }
 
 // BeaconData retrieves the beacon for the provided block height.
+// NOTE: The random beacon endpoint is in flux.
 func (c *OasisNodeClient) BeaconData(ctx context.Context, height int64) (*storage.BeaconData, error) {
 	connection := *c.connection
 	beacon, err := connection.Consensus().Beacon().GetBeacon(ctx, height)
@@ -167,11 +180,13 @@ func (c *OasisNodeClient) SchedulerData(ctx context.Context, height int64) (*sto
 		return nil, err
 	}
 
-	var committees = make(map[common.Namespace][]*schedulerAPI.Committee)
+	var committees = make(map[common.Namespace][]*schedulerAPI.Committee, len(c.network.ParaTimes.All))
 
-	for k := range config.DefaultNetworks.All[config.DefaultNetworks.Default].ParaTimes.All {
+	for k := range c.network.ParaTimes.All {
 		var runtimeID common.Namespace
-		runtimeID.UnmarshalHex(k)
+		if err := runtimeID.UnmarshalHex(k); err != nil {
+			return nil, err
+		}
 
 		consensusCommittees, err := connection.Consensus().Scheduler().GetCommittees(ctx, &schedulerAPI.GetCommitteesRequest{
 			Height:    height,
