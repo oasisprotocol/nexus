@@ -1,0 +1,23 @@
+description: "Mainnet"
+chaincontext: 53852332637bacb61b91b6411ab4095168ba02a50be4c3f82448438826f23898
+rpc: unix:/Users/xi/oasis/local-node/data/internal.sock
+denomination:
+  symbol: ROSE
+  decimals: 9
+paratimes:
+  default: emerald
+  all:
+    cipher:
+      description: ""
+      id: 000000000000000000000000000000000000000000000000e199119c992377cb
+      denominations:
+        _:
+          symbol: ROSE
+          decimals: 9
+    emerald:
+      description: ""
+      id: 000000000000000000000000000000000000000000000000e2eaa99fc008f87f
+      denominations:
+        _:
+          symbol: ROSE
+          decimals: 18

@@ -18,7 +18,7 @@ $ oasis-indexer --help
 ```
 
 ```sh
-$ oasis-indexer analyze mainnet 53852332637bacb61b91b6411ab4095168ba02a50be4c3f82448438826f23898 {Unix socket} mainnet ROSE 9
+$ oasis-indexer analyze --network.config=config.yaml
 ```
 
 ## Oasis Node

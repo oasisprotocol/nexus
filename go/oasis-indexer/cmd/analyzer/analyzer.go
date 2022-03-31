@@ -5,11 +5,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"os"
-	"strconv"
 
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v2"
 
 	"github.com/oasislabs/oasis-block-indexer/go/log"
 	"github.com/oasislabs/oasis-block-indexer/go/oasis-indexer/cmd/common"
@@ -21,35 +22,28 @@ const (
 	// CfgStorageEndpoint is the flag for setting the connection string to
 	// the backing storage.
 	CfgStorageEndpoint = "storage.endpoint"
+	CfgNetworkFile     = "network.config"
 
 	moduleName = "analysis"
 )
 
 var (
 	cfgStorageEndpoint string
+	cfgNetworkFile     string
 
 	analyzeCmd = &cobra.Command{
 		Use:   "analyze",
 		Short: "Analyze blocks",
-		Args:  cobra.ExactArgs(6),
 		Run:   runAnalyzer,
 	}
 )
 
 func runAnalyzer(cmd *cobra.Command, args []string) {
-	_, chainContext, rpc, description, symbol, decimals := args[0], args[1], args[2], args[3], args[4], args[5]
-
-	network := config.Network{
-		ChainContext: chainContext,
-		RPC:          rpc,
-	}
-
-	decimalsInt, err := strconv.ParseUint(decimals, 10, 8)
+	rawCfg, err := ioutil.ReadFile(cfgNetworkFile)
 	cobra.CheckErr(err)
 
-	network.Description = description
-	network.Denomination.Symbol = symbol
-	network.Denomination.Decimals = uint8(decimalsInt)
+	var network config.Network
+	yaml.Unmarshal([]byte(rawCfg), &network)
 
 	common.Init()
 
@@ -120,6 +114,6 @@ func (analyzer *Analyzer) Start() {
 // Register registers the process sub-command.
 func Register(parentCmd *cobra.Command) {
 	analyzeCmd.Flags().StringVar(&cfgStorageEndpoint, CfgStorageEndpoint, "", "a postgresql-compliant connection url")
-
+	analyzeCmd.Flags().StringVar(&cfgNetworkFile, CfgNetworkFile, "", "path to a network configuration file")
 	parentCmd.AddCommand(analyzeCmd)
 }
