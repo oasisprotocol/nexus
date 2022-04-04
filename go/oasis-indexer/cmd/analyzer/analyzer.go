@@ -88,7 +88,7 @@ func (analyzer *Analyzer) Start() {
 	document, err := client.GenesisDocument(c)
 	cobra.CheckErr(err)
 	initialHeight := document.Height
-	height := initialHeight
+	height := initialHeight + 1
 
 	for height < (initialHeight + 10) {
 		fmt.Println(height)
