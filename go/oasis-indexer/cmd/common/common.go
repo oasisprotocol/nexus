@@ -1,20 +1,25 @@
-// Package common implements common oasis-indexer command options.package common
+// Package common implements common oasis-indexer command options.
 package common
 
 import (
+	"context"
 	"os"
+	"os/signal"
 
+	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
+	"github.com/spf13/viper"
 
 	"github.com/oasislabs/oasis-block-indexer/go/log"
+	"github.com/oasislabs/oasis-block-indexer/go/metrics"
 )
 
 const (
-	// CfgLogLevel is the flag to set the minimum severity level to log.
-	CfgLogLevel = "log.level"
-
 	// CfgLogFormat is the flag to set the structured logging format.
 	CfgLogFormat = "log.format"
+
+	// CfgLogLevel is the flag to set the minimum severity level to log.
+	CfgLogLevel = "log.level"
 )
 
 var (
@@ -38,6 +43,25 @@ func Init() error {
 	}
 	rootLogger = logger
 
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, os.Interrupt)
+	_, cancelFn := context.WithCancel(context.Background())
+	go func() {
+		<-sigCh
+		rootLogger.Info("user requested interrupt")
+		cancelFn()
+	}()
+
+	// Initialize Prometheus service
+	promServer, err := metrics.NewPullService(rootLogger)
+	if err != nil {
+		rootLogger.Error("failed to initialize metrics", "err", err)
+		os.Exit(1)
+	}
+	promServer.StartInstrumentation()
+
+	rootLogger.Info("terminating")
+
 	return nil
 }
 
@@ -46,9 +70,18 @@ func Logger() *log.Logger {
 	return rootLogger
 }
 
-func init() {
+func RegisterFlags(cmd *cobra.Command) {
 	loggingFlags.Var(&cfgLogFormat, CfgLogFormat, "structured logging format")
 	loggingFlags.Var(&cfgLogLevel, CfgLogLevel, "minimum logging severity level")
 
-	RootFlags.AddFlagSet(loggingFlags)
+	cmd.PersistentFlags().AddFlagSet(loggingFlags)
+
+	// Add to viper. Although currently unused, we will need viper in the near future
+	// for reading env variables.
+	for _, v := range []string{
+		CfgLogFormat,
+		CfgLogLevel,
+	} {
+		_ = viper.BindPFlag(v, cmd.Flags().Lookup(v))
+	}
 }
