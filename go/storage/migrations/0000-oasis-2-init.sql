@@ -6,7 +6,7 @@ CREATE SCHEMA oasis_2;
 
 -- Block Data
 
-CREATE TABLE oasis_2.blocks
+CREATE TABLE IF NOT EXISTS oasis_2.blocks
 (
   height     BIGINT PRIMARY KEY,
   block_hash BYTEA NOT NULL,
@@ -28,7 +28,7 @@ CREATE TABLE oasis_2.blocks
   extra_data JSON
 );
 
-CREATE TABLE oasis_2.transactions
+CREATE TABLE IF NOT EXISTS oasis_2.transactions
 (
   block BIGINT NOT NULL REFERENCES oasis_2.blocks(height),
 
@@ -54,7 +54,7 @@ CREATE TABLE oasis_2.transactions
   extra_data JSON
 );
 
-CREATE TABLE oasis_2.events
+CREATE TABLE IF NOT EXISTS oasis_2.events
 (
   backend TEXT NOT NULL,
   type    TEXT NOT NULL,
@@ -72,7 +72,7 @@ CREATE TABLE oasis_2.events
 
 -- Beacon Backend Data
 
-CREATE TABLE oasis_2.epochs
+CREATE TABLE IF NOT EXISTS oasis_2.epochs
 (
   id           BIGINT PRIMARY KEY,
   start_height BIGINT NOT NULL,
@@ -84,7 +84,7 @@ CREATE TABLE oasis_2.epochs
 );
 
 -- Registry Backend Data
-CREATE TABLE oasis_2.entities
+CREATE TABLE IF NOT EXISTS oasis_2.entities
 (
   id      BYTEA PRIMARY KEY,
   address TEXT,
@@ -93,7 +93,7 @@ CREATE TABLE oasis_2.entities
   extra_data JSON
 );
 
-CREATE TABLE oasis_2.nodes
+CREATE TABLE IF NOT EXISTS oasis_2.nodes
 (
   id         BYTEA PRIMARY KEY,
   entity_id  BYTEA NOT NULL REFERENCES oasis_2.entities(id),
@@ -127,7 +127,7 @@ CREATE TABLE oasis_2.nodes
 
 -- Staking Data
 
-CREATE TABLE oasis_2.accounts
+CREATE TABLE IF NOT EXISTS oasis_2.accounts
 (
   address TEXT PRIMARY KEY,
   
@@ -147,7 +147,7 @@ CREATE TABLE oasis_2.accounts
   extra_data JSON
 );
 
-CREATE TABLE oasis_2.allowances
+CREATE TABLE IF NOT EXISTS oasis_2.allowances
 (
   allower   TEXT NOT NULL REFERENCES oasis_2.accounts(address),
   allowee   TEXT NOT NULL REFERENCES oasis_2.accounts(address),
@@ -156,7 +156,7 @@ CREATE TABLE oasis_2.allowances
   PRIMARY KEY (allower, allowee)
 );
 
-CREATE TABLE oasis_2.delegations
+CREATE TABLE IF NOT EXISTS oasis_2.delegations
 (
   delegatee TEXT NOT NULL REFERENCES oasis_2.accounts(address),
   delegator TEXT NOT NULL REFERENCES oasis_2.accounts(address),
@@ -165,7 +165,7 @@ CREATE TABLE oasis_2.delegations
   PRIMARY KEY (delegatee, delegator)
 );
 
-CREATE TABLE oasis_2.debonding_delegations
+CREATE TABLE IF NOT EXISTS oasis_2.debonding_delegations
 (
   delegatee  TEXT NOT NULL REFERENCES oasis_2.accounts(address),
   delegator  TEXT NOT NULL REFERENCES oasis_2.accounts(address),
@@ -177,7 +177,7 @@ CREATE TABLE oasis_2.debonding_delegations
 
 -- Scheduler Data
 
-CREATE TABLE oasis_2.committee_members
+CREATE TABLE IF NOT EXISTS oasis_2.committee_members
 (
   node      BYTEA NOT NULL REFERENCES oasis_2.nodes(id),
   valid_for BIGINT NOT NULL REFERENCES oasis_2.epochs(id),
@@ -193,7 +193,7 @@ CREATE TABLE oasis_2.committee_members
 
 -- Governance Data
 
-CREATE TABLE oasis_2.proposals
+CREATE TABLE IF NOT EXISTS oasis_2.proposals
 (
   id            BIGINT PRIMARY KEY,
   submitter     TEXT NOT NULL REFERENCES oasis_2.accounts(address),
@@ -218,7 +218,7 @@ CREATE TABLE oasis_2.proposals
   extra_data JSON
 );
 
-CREATE TABLE oasis_2.votes
+CREATE TABLE IF NOT EXISTS oasis_2.votes
 (
   proposal BIGINT NOT NULL REFERENCES oasis_2.proposals(id),
   voter    TEXT NOT NULL REFERENCES oasis_2.accounts(address),
