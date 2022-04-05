@@ -212,18 +212,32 @@ func (c *OasisNodeClient) GovernanceData(ctx context.Context, height int64) (*st
 		return nil, err
 	}
 
-	var submissions []*governanceAPI.ProposalSubmittedEvent
+	var submissions []*governanceAPI.Proposal
 	var executions []*governanceAPI.ProposalExecutedEvent
-	var finalizations []*governanceAPI.ProposalFinalizedEvent
+	var finalizations []*governanceAPI.Proposal
 	var votes []*governanceAPI.VoteEvent
 
 	for _, event := range events {
 		if event.ProposalSubmitted != nil {
-			submissions = append(submissions, event.ProposalSubmitted)
+			proposal, err := connection.Consensus().Governance().Proposal(ctx, &governanceAPI.ProposalQuery{
+				Height:     height,
+				ProposalID: event.ProposalSubmitted.ID,
+			})
+			if err != nil {
+				return nil, err
+			}
+			submissions = append(submissions, proposal)
 		} else if event.ProposalExecuted != nil {
 			executions = append(executions, event.ProposalExecuted)
 		} else if event.ProposalFinalized != nil {
-			finalizations = append(finalizations, event.ProposalFinalized)
+			proposal, err := connection.Consensus().Governance().Proposal(ctx, &governanceAPI.ProposalQuery{
+				Height:     height,
+				ProposalID: event.ProposalFinalized.ID,
+			})
+			if err != nil {
+				return nil, err
+			}
+			finalizations = append(finalizations, proposal)
 		} else if event.Vote != nil {
 			votes = append(votes, event.Vote)
 		}
