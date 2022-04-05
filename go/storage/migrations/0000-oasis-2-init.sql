@@ -6,7 +6,7 @@ CREATE SCHEMA oasis_2;
 
 -- Block Data
 
-CREATE TABLE oasis_2.blocks
+CREATE TABLE IF NOT EXISTS oasis_2.blocks
 (
   height     BIGINT PRIMARY KEY,
   block_hash BYTEA NOT NULL,
@@ -28,22 +28,22 @@ CREATE TABLE oasis_2.blocks
   extra_data JSON
 );
 
-CREATE TABLE oasis_2.transactions
+CREATE TABLE IF NOT EXISTS oasis_2.transactions
 (
   block BIGINT NOT NULL REFERENCES oasis_2.blocks(height),
 
   txn_hash   BYTEA NOT NULL,
   txn_index  INTEGER,
-  nonce      BIGINT NOT NULL,
+  nonce      NUMERIC NOT NULL,
   fee_amount NUMERIC,
-  max_gas    BIGINT,
+  max_gas    NUMERIC,
   method     TEXT NOT NULL,
   body       BYTEA,
 
   -- Error Fields
   -- This includes an encoding of no error.
   module  TEXT,
-  code    INTEGER,
+  code    BIGINT,
   message TEXT,
 
   -- We require a composite primary key since duplicate transactions can
@@ -54,7 +54,7 @@ CREATE TABLE oasis_2.transactions
   extra_data JSON
 );
 
-CREATE TABLE oasis_2.events
+CREATE TABLE IF NOT EXISTS oasis_2.events
 (
   backend TEXT NOT NULL,
   type    TEXT NOT NULL,
@@ -72,7 +72,7 @@ CREATE TABLE oasis_2.events
 
 -- Beacon Backend Data
 
-CREATE TABLE oasis_2.epochs
+CREATE TABLE IF NOT EXISTS oasis_2.epochs
 (
   id           BIGINT PRIMARY KEY,
   start_height BIGINT NOT NULL,
@@ -84,7 +84,15 @@ CREATE TABLE oasis_2.epochs
 );
 
 -- Registry Backend Data
-CREATE TABLE oasis_2.entities
+CREATE TABLE IF NOT EXISTS oasis_2.runtimes
+(
+  id TEXT PRIMARY KEY,
+
+  -- Arbitrary additional data.
+  extra_data JSON
+);
+
+CREATE TABLE IF NOT EXISTS oasis_2.entities
 (
   id      BYTEA PRIMARY KEY,
   address TEXT,
@@ -93,7 +101,7 @@ CREATE TABLE oasis_2.entities
   extra_data JSON
 );
 
-CREATE TABLE oasis_2.nodes
+CREATE TABLE IF NOT EXISTS oasis_2.nodes
 (
   id         BYTEA PRIMARY KEY,
   entity_id  BYTEA NOT NULL REFERENCES oasis_2.entities(id),
@@ -117,7 +125,9 @@ CREATE TABLE oasis_2.nodes
 
   roles            INTEGER,
   software_version TEXT,
-  is_validator     BOOLEAN,
+
+  -- Voting power should only be nonzero for consensus validator nodes.
+  voting_power     BIGINT DEFAULT 0,
 
   -- TODO: Track node status.
 
@@ -125,21 +135,21 @@ CREATE TABLE oasis_2.nodes
   extra_data JSON
 );
 
--- Staking Data
+-- Staking Backend Data
 
-CREATE TABLE oasis_2.accounts
+CREATE TABLE IF NOT EXISTS oasis_2.accounts
 (
   address TEXT PRIMARY KEY,
   
   -- General Account
-  general_balance NUMERIC,
-  nonce           BIGINT,
+  general_balance NUMERIC DEFAULT 0,
+  nonce           BIGINT DEFAULT 0,
 
   -- Escrow Account
-  escrow_balance_active         NUMERIC,
-  escrow_total_shares_active    NUMERIC,
-  escrow_balance_debonding      NUMERIC,
-  escrow_total_shares_debonding NUMERIC,
+  escrow_balance_active         NUMERIC DEFAULT 0,
+  escrow_total_shares_active    NUMERIC DEFAULT 0,
+  escrow_balance_debonding      NUMERIC DEFAULT 0,
+  escrow_total_shares_debonding NUMERIC DEFAULT 0,
 
   -- TODO: Track commission schedule and staking accumulator.
 
@@ -147,16 +157,16 @@ CREATE TABLE oasis_2.accounts
   extra_data JSON
 );
 
-CREATE TABLE oasis_2.allowances
+CREATE TABLE IF NOT EXISTS oasis_2.allowances
 (
-  allower   TEXT NOT NULL REFERENCES oasis_2.accounts(address),
-  allowee   TEXT NOT NULL REFERENCES oasis_2.accounts(address),
-  allowance NUMERIC,
+  owner       TEXT NOT NULL REFERENCES oasis_2.accounts(address),
+  beneficiary TEXT NOT NULL REFERENCES oasis_2.accounts(address),
+  allowance   NUMERIC,
 
-  PRIMARY KEY (allower, allowee)
+  PRIMARY KEY (owner, beneficiary)
 );
 
-CREATE TABLE oasis_2.delegations
+CREATE TABLE IF NOT EXISTS oasis_2.delegations
 (
   delegatee TEXT NOT NULL REFERENCES oasis_2.accounts(address),
   delegator TEXT NOT NULL REFERENCES oasis_2.accounts(address),
@@ -165,7 +175,7 @@ CREATE TABLE oasis_2.delegations
   PRIMARY KEY (delegatee, delegator)
 );
 
-CREATE TABLE oasis_2.debonding_delegations
+CREATE TABLE IF NOT EXISTS oasis_2.debonding_delegations
 (
   delegatee  TEXT NOT NULL REFERENCES oasis_2.accounts(address),
   delegator  TEXT NOT NULL REFERENCES oasis_2.accounts(address),
@@ -175,13 +185,13 @@ CREATE TABLE oasis_2.debonding_delegations
   PRIMARY KEY (delegatee, delegator)
 );
 
--- Scheduler Data
+-- Scheduler Backend Data
 
-CREATE TABLE oasis_2.committee_members
+CREATE TABLE IF NOT EXISTS oasis_2.committee_members
 (
   node      BYTEA NOT NULL REFERENCES oasis_2.nodes(id),
   valid_for BIGINT NOT NULL REFERENCES oasis_2.epochs(id),
-  runtime   TEXT NOT NULL,
+  runtime   TEXT NOT NULL REFERENCES oasis_2.runtimes(id),
   kind      TEXT NOT NULL,
   role      TEXT NOT NULL,
 
@@ -191,13 +201,14 @@ CREATE TABLE oasis_2.committee_members
   extra_data JSON
 );
 
--- Governance Data
+-- Governance Backend Data
 
-CREATE TABLE oasis_2.proposals
+CREATE TABLE IF NOT EXISTS oasis_2.proposals
 (
   id            BIGINT PRIMARY KEY,
   submitter     TEXT NOT NULL REFERENCES oasis_2.accounts(address),
-  state         SMALLINT NOT NULL,
+  state         SMALLINT NOT NULL DEFAULT "active",
+  executed      BOOLEAN NOT NULL DEFAULT false,
   deposit       NUMERIC NOT NULL,
 
   -- If this proposal is a new proposal.
@@ -212,13 +223,13 @@ CREATE TABLE oasis_2.proposals
 
   created_at    BIGINT NOT NULL,
   closes_at     BIGINT NOT NULL,
-  invalid_votes BIGINT,
+  invalid_votes NUMERIC NOT NULL DEFAULT 0,
 
   -- Arbitrary additional data.
   extra_data JSON
 );
 
-CREATE TABLE oasis_2.votes
+CREATE TABLE IF NOT EXISTS oasis_2.votes
 (
   proposal BIGINT NOT NULL REFERENCES oasis_2.proposals(id),
   voter    TEXT NOT NULL REFERENCES oasis_2.accounts(address),
