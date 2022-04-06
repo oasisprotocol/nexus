@@ -1,6 +1,6 @@
 description: "Mainnet"
 chaincontext: 53852332637bacb61b91b6411ab4095168ba02a50be4c3f82448438826f23898
-rpc: unix:/Users/xi/oasis/local-node/data/internal.sock
+rpc: unix:/Users/nikhilsharma/node/data/internal.sock
 denomination:
   symbol: ROSE
   decimals: 9

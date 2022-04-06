@@ -2,16 +2,13 @@
 package common
 
 import (
-	"context"
 	"os"
-	"os/signal"
 
 	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
 	"github.com/spf13/viper"
 
 	"github.com/oasislabs/oasis-block-indexer/go/log"
-	"github.com/oasislabs/oasis-block-indexer/go/metrics"
 )
 
 const (
@@ -43,24 +40,24 @@ func Init() error {
 	}
 	rootLogger = logger
 
-	sigCh := make(chan os.Signal, 1)
-	signal.Notify(sigCh, os.Interrupt)
-	_, cancelFn := context.WithCancel(context.Background())
-	go func() {
-		<-sigCh
-		rootLogger.Info("user requested interrupt")
-		cancelFn()
-	}()
+	// sigCh := make(chan os.Signal, 1)
+	// signal.Notify(sigCh, os.Interrupt)
+	// _, cancelFn := context.WithCancel(context.Background())
+	// go func() {
+	// 	<-sigCh
+	// 	rootLogger.Info("user requested interrupt")
+	// 	cancelFn()
+	// }()
 
 	// Initialize Prometheus service
-	promServer, err := metrics.NewPullService(rootLogger)
-	if err != nil {
-		rootLogger.Error("failed to initialize metrics", "err", err)
-		os.Exit(1)
-	}
-	promServer.StartInstrumentation()
+	// promServer, err := metrics.NewPullService(rootLogger)
+	// if err != nil {
+	// 	rootLogger.Error("failed to initialize metrics", "err", err)
+	// 	os.Exit(1)
+	// }
+	// promServer.StartInstrumentation()
 
-	rootLogger.Info("terminating")
+	// rootLogger.Info("terminating")
 
 	return nil
 }

@@ -4,7 +4,6 @@ package analyzer
 import (
 	"context"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"os"
 
@@ -16,7 +15,6 @@ import (
 	"github.com/oasislabs/oasis-block-indexer/go/oasis-indexer/cmd/common"
 	"github.com/oasislabs/oasis-block-indexer/go/storage"
 	target "github.com/oasislabs/oasis-block-indexer/go/storage/cockroach"
-	"github.com/oasislabs/oasis-block-indexer/go/storage/oasis"
 	source "github.com/oasislabs/oasis-block-indexer/go/storage/oasis"
 )
 
@@ -45,18 +43,10 @@ func runAnalyzer(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	rawCfg, err := ioutil.ReadFile(cfgNetworkFile)
-	cobra.CheckErr(err)
-
-	var network config.Network
-	yaml.Unmarshal([]byte(rawCfg), &network)
-
-	analyzer, err := NewAnalyzer(network)
-	cobra.CheckErr(err)
-
+	analyzer, err := NewAnalyzer()
 	switch {
 	case err == nil:
-		analyzer.Start()
+		analyzer.Run()
 	case errors.Is(err, context.Canceled):
 		// Shutdown requested during startup.
 		return
@@ -69,70 +59,74 @@ func runAnalyzer(cmd *cobra.Command, args []string) {
 type Analyzer struct {
 	SourceStorage storage.SourceStorage
 	TargetStorage storage.TargetStorage
-	Network       config.Network
 	logger        *log.Logger
 }
 
 // NewAnalyzer creates and starts a new Analyzer
-func NewAnalyzer(net config.Network) (*Analyzer, error) {
+func NewAnalyzer() (*Analyzer, error) {
 	ctx := context.Background()
 	logger := common.Logger().WithModule(moduleName)
 
-	var network config.Network
-	oasisNodeClient, err := source.NewOasisNodeClient(ctx, &network)
+	// Initialize source storage.
+	rawCfg, err := ioutil.ReadFile(cfgNetworkFile)
+	if err != nil {
+		return nil, err
+	}
+	var networkCfg config.Network
+	if err := yaml.Unmarshal([]byte(rawCfg), &networkCfg); err != nil {
+		return nil, err
+	}
+	oasisNodeClient, err := source.NewOasisNodeClient(ctx, &networkCfg)
 	if err != nil {
 		return nil, err
 	}
 
-	cockroachClient, err := target.NewCockroachClient("connstring")
+	// Initialize target storage.
+	cockroachClient, err := target.NewCockroachClient(cfgStorageEndpoint)
 	if err != nil {
 		return nil, err
 	}
 
-	analyzer := &Analyzer{
+	return &Analyzer{
 		SourceStorage: oasisNodeClient,
 		TargetStorage: cockroachClient,
-		logger:        logger,
-		Network:       net,
-	}
 
-	logger.Info("Starting oasis-indexer analysis layer.")
-
-	return analyzer, nil
+		logger: logger,
+	}, nil
 }
 
-func (analyzer *Analyzer) Start() {
-	c := context.Background()
-	client, err := oasis.NewOasisNodeClient(c, &analyzer.Network)
-	document, err := client.GenesisDocument(c)
-	cobra.CheckErr(err)
-	initialHeight := document.Height
+func (a *Analyzer) Run() {
+	ctx := context.Background()
+
+	initialHeight := int64(3027601)
 	height := initialHeight + 1
 
-	for height < (initialHeight + 10) {
-		fmt.Println(height)
-		blockData, err := client.BlockData(c, height)
-		cobra.CheckErr(err)
-		fmt.Println(blockData)
-		registryData, err := client.RegistryData(c, height)
-		cobra.CheckErr(err)
-		fmt.Println(registryData)
-		stakingData, err := client.StakingData(c, height)
-		cobra.CheckErr(err)
-		fmt.Println(stakingData)
-		schedulerData, err := client.SchedulerData(c, height)
-		cobra.CheckErr(err)
-		fmt.Println(schedulerData)
-		governanceData, err := client.GovernanceData(c, height)
-		cobra.CheckErr(err)
-		fmt.Println(governanceData)
+	for height < initialHeight+10 {
+		if err := a.processBlock(ctx, height); err != nil {
+			a.logger.Warn("failed to process block", "height", height, "err", err)
+			continue
+		}
+
 		height += 1
 	}
+}
+
+func (a *Analyzer) processBlock(ctx context.Context, height int64) error {
+	blockData, err := a.SourceStorage.BlockData(ctx, height)
+	if err != nil {
+		return err
+	}
+	if err := a.TargetStorage.SetBlockData(ctx, blockData); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // Register registers the process sub-command.
 func Register(parentCmd *cobra.Command) {
 	analyzeCmd.Flags().StringVar(&cfgStorageEndpoint, CfgStorageEndpoint, "", "a postgresql-compliant connection url")
 	analyzeCmd.Flags().StringVar(&cfgNetworkFile, CfgNetworkFile, "", "path to a network configuration file")
+
 	parentCmd.AddCommand(analyzeCmd)
 }

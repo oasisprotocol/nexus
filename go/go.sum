@@ -1069,6 +1069,8 @@ github.com/oasisprotocol/deoxysii v0.0.0-20200527154044-851aec403956/go.mod h1:c
 github.com/oasisprotocol/deoxysii v0.0.0-20220228165953-2091330c22b7 h1:1102pQc2SEPp5+xrS26wEaeb26sZy6k9/ZXlZN+eXE4=
 github.com/oasisprotocol/deoxysii v0.0.0-20220228165953-2091330c22b7/go.mod h1:UqoUn6cHESlliMhOnKLWr+CBH+e3bazUPvFj1XZwAjs=
 github.com/oasisprotocol/oasis-core/go v0.2103.10/go.mod h1:t3VP2KjCwlmUCEKywFLZIBdBHNzHhVUjwIPjUqD+urk=
+github.com/oasisprotocol/oasis-core/go v0.2103.12 h1:R8dwPhv0e/ZucLkqi/mYg21veUDiVT5l4q0aeyyx7n4=
+github.com/oasisprotocol/oasis-core/go v0.2103.12/go.mod h1:t3VP2KjCwlmUCEKywFLZIBdBHNzHhVUjwIPjUqD+urk=
 github.com/oasisprotocol/oasis-core/go v0.2201.2 h1:KAglmFNKP17WRKdTZ7H7UzXG2GRmxVu5ZYGWZsO90SE=
 github.com/oasisprotocol/oasis-core/go v0.2201.2/go.mod h1:9n/UonHFlJP3Ggven2P1+uBnKl5WJe3PEQPKJVmG/Fw=
 github.com/oasisprotocol/oasis-sdk/client-sdk/go v0.2.0 h1:o2ImwTBsXZoUmth1f6LM6lRZL8JqzGN9ZK0qMe5gyUM=
@@ -1345,6 +1347,7 @@ github.com/vishvananda/netlink v1.1.0/go.mod h1:cTgwzPIzzgDAYoQrMm0EdrjRUBkTqKYp
 github.com/vishvananda/netns v0.0.0-20191106174202-0a2b9b5464df/go.mod h1:JP3t17pCcGlemwknint6hfoeCVQrEMVwxRLRjXpq+BU=
 github.com/whyrusleeping/go-keyspace v0.0.0-20160322163242-5b898ac5add1/go.mod h1:8UvriyWtv5Q5EOgjHaSseUEdkQfvwFv1I/In/O2M9gc=
 github.com/whyrusleeping/go-logging v0.0.0-20170515211332-0457bb6b88fc/go.mod h1:bopw91TMyo8J3tvftk8xmU2kPmlrt4nScJQZU2hE5EM=
+github.com/whyrusleeping/go-logging v0.0.1 h1:fwpzlmT0kRC/Fmd0MdmGgJG/CXIZ6gFq46FQZjprUcc=
 github.com/whyrusleeping/go-logging v0.0.1/go.mod h1:lDPYj54zutzG1XYfHAhcc7oNXEburHQBn+Iqd4yS4vE=
 github.com/whyrusleeping/mafmt v1.2.8/go.mod h1:faQJFPbLSxzD9xpA02ttW/tS9vZykNvXwGvqIpk20FA=
 github.com/whyrusleeping/mdns v0.0.0-20190826153040-b9b60ed33aa9/go.mod h1:j4l84WPFclQPj320J9gp0XwNKBb3U0zt5CBqjPp22G4=
@@ -1364,9 +1367,11 @@ github.com/zenazn/goji v0.9.0/go.mod h1:7S9M489iMyHBNxwZnk9/EHS098H4/F6TATF2mIxt
 gitlab.com/yawning/bsaes.git v0.0.0-20190805113838-0a714cd429ec/go.mod h1:BZ1RAoRPbCxum9Grlv5aeksu2H8BiKehBYooU2LFiOQ=
 gitlab.com/yawning/dynlib.git v0.0.0-20210614104444-f6a90d03b144/go.mod h1:U41r+zgpFRTlkSzMhBjUqbupvVBafgokFFkKn0j+874=
 gitlab.com/yawning/slice.git v0.0.0-20190714152416-bc4ae2510529/go.mod h1:sgaKGjNNjAAVrZvQQhE3oYIbnFZVaCBE2T7PmbpKJ4U=
+go.dedis.ch/fixbuf v1.0.3 h1:hGcV9Cd/znUxlusJ64eAlExS+5cJDIyTyEG+otu5wQs=
 go.dedis.ch/fixbuf v1.0.3/go.mod h1:yzJMt34Wa5xD37V5RTdmp38cz3QhMagdGoem9anUalw=
 go.dedis.ch/kyber/v3 v3.0.4/go.mod h1:OzvaEnPvKlyrWyp3kGXlFdp7ap1VC6RkZDTaPikqhsQ=
 go.dedis.ch/kyber/v3 v3.0.9/go.mod h1:rhNjUUg6ahf8HEg5HUvVBYoWY4boAafX8tYxX+PS+qg=
+go.dedis.ch/kyber/v3 v3.0.13 h1:s5Lm8p2/CsTMueQHCN24gPpZ4couBBeKU7r2Yl6r32o=
 go.dedis.ch/kyber/v3 v3.0.13/go.mod h1:kXy7p3STAurkADD+/aZcsznZGKVHEqbtmdIzvPfrs1U=
 go.dedis.ch/protobuf v1.0.5/go.mod h1:eIV4wicvi6JK0q/QnfIEGeSFNG0ZeB24kzut5+HaRLo=
 go.dedis.ch/protobuf v1.0.7/go.mod h1:pv5ysfkDX/EawiPqcW3ikOxsL5t+BqnV6xHSmE79KI4=

@@ -1,22 +1,24 @@
 -- Indexer state initialization for the Cobalt Upgrade.
 -- https://docs.oasis.dev/general/mainnet/cobalt-upgrade/
 
+BEGIN;
+
 -- Create Cobalt Upgrade Schema with `chain-id`.
-CREATE SCHEMA oasis_2;
+CREATE SCHEMA IF NOT EXISTS oasis_2;
 
 -- Block Data
 
 CREATE TABLE IF NOT EXISTS oasis_2.blocks
 (
   height     BIGINT PRIMARY KEY,
-  block_hash BYTEA NOT NULL,
+  block_hash TEXT NOT NULL,
   time       TIMESTAMP NOT NULL,
   
   -- State Root Info
   namespace TEXT NOT NULL,
   version   BIGINT NOT NULL,
   type      TEXT NOT NULL,
-  root_hash BYTEA NOT NULL,
+  root_hash TEXT NOT NULL,
 
   beacon     BYTEA,
   metadata   JSON,
@@ -32,7 +34,7 @@ CREATE TABLE IF NOT EXISTS oasis_2.transactions
 (
   block BIGINT NOT NULL REFERENCES oasis_2.blocks(height),
 
-  txn_hash   BYTEA NOT NULL,
+  txn_hash   TEXT NOT NULL,
   txn_index  INTEGER,
   nonce      NUMERIC NOT NULL,
   fee_amount NUMERIC,
@@ -61,7 +63,7 @@ CREATE TABLE IF NOT EXISTS oasis_2.events
   body    JSON,
 
   txn_block  BIGINT NOT NULL,
-  txn_hash   BYTEA NOT NULL,
+  txn_hash   TEXT NOT NULL,
   txn_index  INTEGER,
 
   FOREIGN KEY (txn_block, txn_hash, txn_index) REFERENCES oasis_2.transactions(block, txn_hash, txn_index),
@@ -207,7 +209,7 @@ CREATE TABLE IF NOT EXISTS oasis_2.proposals
 (
   id            BIGINT PRIMARY KEY,
   submitter     TEXT NOT NULL REFERENCES oasis_2.accounts(address),
-  state         SMALLINT NOT NULL DEFAULT "active",
+  state         TEXT NOT NULL DEFAULT 'active',
   executed      BOOLEAN NOT NULL DEFAULT false,
   deposit       NUMERIC NOT NULL,
 
@@ -240,3 +242,5 @@ CREATE TABLE IF NOT EXISTS oasis_2.votes
   -- Arbitrary additional data.
   extra_data JSON
 );
+
+COMMIT;

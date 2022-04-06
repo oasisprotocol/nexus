@@ -10,8 +10,8 @@ const (
 var (
 	// Block Data Queries
 	blocksInsertQuery = fmt.Sprintf(`
-		INSERT INTO %s.blocks (height, block_hash, time, namespace, version, type)
-			VALUES ($1, $2, $3, $4, $5, $6);
+		INSERT INTO %s.blocks (height, block_hash, time, namespace, version, type, root_hash)
+			VALUES ($1, $2, $3, $4, $5, $6, $7);
 	`, chainID)
 
 	transactionsInsertQuery = fmt.Sprintf(`

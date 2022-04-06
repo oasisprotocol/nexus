@@ -32,20 +32,15 @@ func NewCockroachClient(connstring string) (*CockroachClient, error) {
 	return &CockroachClient{pool}, nil
 }
 
-// Connection returns a new pgx connection from the connection pool.
-func (c *CockroachClient) connection(ctx context.Context) (*pgxpool.Conn, error) {
-	return c.pool.Acquire(ctx)
-}
-
 // SetBlockData applies the block data as an update at the provided block height.
 func (c *CockroachClient) SetBlockData(ctx context.Context, data *storage.BlockData) error {
-	conn, err := c.connection(ctx)
+	conn, err := c.pool.Acquire(ctx)
 	if err != nil {
 		return err
 	}
 
 	if err := crdbpgx.ExecuteTx(ctx, conn, pgx.TxOptions{}, func(tx pgx.Tx) error {
-		return doSetBlockData(ctx, tx, data)
+		return c.doSetBlockData(ctx, tx, data)
 	}); err != nil {
 		return err
 	}
@@ -53,13 +48,13 @@ func (c *CockroachClient) SetBlockData(ctx context.Context, data *storage.BlockD
 	return nil
 }
 
-func doSetBlockData(ctx context.Context, tx pgx.Tx, data *storage.BlockData) error {
+func (c *CockroachClient) doSetBlockData(ctx context.Context, tx pgx.Tx, data *storage.BlockData) error {
 	batch := &pgx.Batch{}
 
 	for _, f := range []func(*pgx.Batch, *storage.BlockData) error{
-		queueBlockInserts,
-		queueTransactionInserts,
-		queueEventInserts,
+		c.queueBlockInserts,
+		c.queueTransactionInserts,
+		c.queueEventInserts,
 	} {
 		if err := f(batch, data); err != nil {
 			return err
@@ -69,31 +64,33 @@ func doSetBlockData(ctx context.Context, tx pgx.Tx, data *storage.BlockData) err
 	return sendAndVerifyBatch(ctx, tx, batch)
 }
 
-func queueBlockInserts(batch *pgx.Batch, data *storage.BlockData) error {
+func (c *CockroachClient) queueBlockInserts(batch *pgx.Batch, data *storage.BlockData) error {
 	batch.Queue(blocksInsertQuery,
 		data.BlockHeader.Height,
-		data.BlockHeader.Hash,
+		data.BlockHeader.Hash.Hex(),
 		data.BlockHeader.Time,
 		data.BlockHeader.StateRoot.Namespace.Hex(),
 		int64(data.BlockHeader.StateRoot.Version),
 		data.BlockHeader.StateRoot.Type.String(),
-		data.BlockHeader.StateRoot.Hash,
+		data.BlockHeader.StateRoot.Hash.Hex(),
 	)
 
 	return nil
 }
 
-func queueTransactionInserts(batch *pgx.Batch, data *storage.BlockData) error {
+func (c *CockroachClient) queueTransactionInserts(batch *pgx.Batch, data *storage.BlockData) error {
 	for i := 0; i < len(data.Transactions); i++ {
 		signedTransaction := data.Transactions[i]
 		result := data.Results[i]
 
 		var transaction transaction.Transaction
-		data.Transactions[i].Open(&transaction)
+		if err := signedTransaction.Open(&transaction); err != nil {
+			return err
+		}
 
 		batch.Queue(transactionsInsertQuery,
 			data.BlockHeader.Height,
-			signedTransaction.Hash(),
+			signedTransaction.Hash().Hex(),
 			i,
 			transaction.Nonce,
 			transaction.Fee.Amount.ToBigInt(),
@@ -109,7 +106,7 @@ func queueTransactionInserts(batch *pgx.Batch, data *storage.BlockData) error {
 	return nil
 }
 
-func queueEventInserts(batch *pgx.Batch, data *storage.BlockData) error {
+func (c *CockroachClient) queueEventInserts(batch *pgx.Batch, data *storage.BlockData) error {
 	for i := 0; i < len(data.Results); i++ {
 		for j := 0; j < len(data.Results[i].Events); j++ {
 			backend, ty, body, err := extractEventData(data.Results[i].Events[j])
@@ -122,7 +119,7 @@ func queueEventInserts(batch *pgx.Batch, data *storage.BlockData) error {
 				ty,
 				string(body),
 				data.BlockHeader.Height,
-				data.Transactions[i].Hash(),
+				data.Transactions[i].Hash().Hex(),
 				i,
 			)
 		}
@@ -133,13 +130,13 @@ func queueEventInserts(batch *pgx.Batch, data *storage.BlockData) error {
 
 // SetBeaconData applies the beacon data as an update at the provided block height.
 func (c *CockroachClient) SetBeaconData(ctx context.Context, data *storage.BeaconData) error {
-	conn, err := c.connection(ctx)
+	conn, err := c.pool.Acquire(ctx)
 	if err != nil {
 		return err
 	}
 
 	if err := crdbpgx.ExecuteTx(ctx, conn, pgx.TxOptions{}, func(tx pgx.Tx) error {
-		return doSetBeaconData(ctx, tx, data)
+		return c.doSetBeaconData(ctx, tx, data)
 	}); err != nil {
 		return err
 	}
@@ -147,7 +144,7 @@ func (c *CockroachClient) SetBeaconData(ctx context.Context, data *storage.Beaco
 	return nil
 }
 
-func doSetBeaconData(ctx context.Context, tx pgx.Tx, _data *storage.BeaconData) error {
+func (c *CockroachClient) doSetBeaconData(ctx context.Context, tx pgx.Tx, _data *storage.BeaconData) error {
 	batch := &pgx.Batch{}
 
 	// No beacon data, for now.
@@ -157,13 +154,13 @@ func doSetBeaconData(ctx context.Context, tx pgx.Tx, _data *storage.BeaconData) 
 
 // SetRegistryData applies the registry data as an update at the provided block height.
 func (c *CockroachClient) SetRegistryData(ctx context.Context, data *storage.RegistryData) error {
-	conn, err := c.connection(ctx)
+	conn, err := c.pool.Acquire(ctx)
 	if err != nil {
 		return err
 	}
 
 	if err := crdbpgx.ExecuteTx(ctx, conn, pgx.TxOptions{}, func(tx pgx.Tx) error {
-		return doSetRegistryData(ctx, tx, data)
+		return c.doSetRegistryData(ctx, tx, data)
 	}); err != nil {
 		return err
 	}
@@ -171,14 +168,14 @@ func (c *CockroachClient) SetRegistryData(ctx context.Context, data *storage.Reg
 	return nil
 }
 
-func doSetRegistryData(ctx context.Context, tx pgx.Tx, data *storage.RegistryData) error {
+func (c *CockroachClient) doSetRegistryData(ctx context.Context, tx pgx.Tx, data *storage.RegistryData) error {
 	batch := &pgx.Batch{}
 
 	for _, f := range []func(*pgx.Batch, *storage.RegistryData) error{
-		queueRuntimeRegistrations,
-		queueEntityRegistrations,
-		queueNodeRegistrations,
-		queueNodeUnfreezes,
+		c.queueRuntimeRegistrations,
+		c.queueEntityRegistrations,
+		c.queueNodeRegistrations,
+		c.queueNodeUnfreezes,
 	} {
 		if err := f(batch, data); err != nil {
 			return err
@@ -188,7 +185,7 @@ func doSetRegistryData(ctx context.Context, tx pgx.Tx, data *storage.RegistryDat
 	return sendAndVerifyBatch(ctx, tx, batch)
 }
 
-func queueRuntimeRegistrations(batch *pgx.Batch, data *storage.RegistryData) error {
+func (c *CockroachClient) queueRuntimeRegistrations(batch *pgx.Batch, data *storage.RegistryData) error {
 	for _, runtimeEvent := range data.RuntimeEvents {
 		if runtimeEvent.Runtime != nil {
 			extraData, err := json.Marshal(runtimeEvent.Runtime)
@@ -205,30 +202,30 @@ func queueRuntimeRegistrations(batch *pgx.Batch, data *storage.RegistryData) err
 	return nil
 }
 
-func queueEntityRegistrations(batch *pgx.Batch, data *storage.RegistryData) error {
+func (c *CockroachClient) queueEntityRegistrations(batch *pgx.Batch, data *storage.RegistryData) error {
 	// TODO
 	return nil
 }
 
-func queueNodeRegistrations(batch *pgx.Batch, data *storage.RegistryData) error {
+func (c *CockroachClient) queueNodeRegistrations(batch *pgx.Batch, data *storage.RegistryData) error {
 	// TODO
 	return nil
 }
 
-func queueNodeUnfreezes(batch *pgx.Batch, data *storage.RegistryData) error {
+func (c *CockroachClient) queueNodeUnfreezes(batch *pgx.Batch, data *storage.RegistryData) error {
 	// TODO
 	return nil
 }
 
 // SetStakingData applies the staking data as an update at the provided block height.
 func (c *CockroachClient) SetStakingData(ctx context.Context, data *storage.StakingData) error {
-	conn, err := c.connection(ctx)
+	conn, err := c.pool.Acquire(ctx)
 	if err != nil {
 		return err
 	}
 
 	if err := crdbpgx.ExecuteTx(ctx, conn, pgx.TxOptions{}, func(tx pgx.Tx) error {
-		return doSetStakingData(ctx, tx, data)
+		return c.doSetStakingData(ctx, tx, data)
 	}); err != nil {
 		return err
 	}
@@ -236,14 +233,14 @@ func (c *CockroachClient) SetStakingData(ctx context.Context, data *storage.Stak
 	return nil
 }
 
-func doSetStakingData(ctx context.Context, tx pgx.Tx, data *storage.StakingData) error {
+func (c *CockroachClient) doSetStakingData(ctx context.Context, tx pgx.Tx, data *storage.StakingData) error {
 	batch := &pgx.Batch{}
 
 	for _, f := range []func(*pgx.Batch, *storage.StakingData) error{
-		queueTransfers,
-		queueBurns,
-		queueEscrows,
-		queueAllowanceChanges,
+		c.queueTransfers,
+		c.queueBurns,
+		c.queueEscrows,
+		c.queueAllowanceChanges,
 	} {
 		if err := f(batch, data); err != nil {
 			return err
@@ -253,7 +250,7 @@ func doSetStakingData(ctx context.Context, tx pgx.Tx, data *storage.StakingData)
 	return sendAndVerifyBatch(ctx, tx, batch)
 }
 
-func queueTransfers(batch *pgx.Batch, data *storage.StakingData) error {
+func (c *CockroachClient) queueTransfers(batch *pgx.Batch, data *storage.StakingData) error {
 	for _, transfer := range data.Transfers {
 		from := transfer.From.String()
 		to := transfer.To.String()
@@ -271,7 +268,7 @@ func queueTransfers(batch *pgx.Batch, data *storage.StakingData) error {
 	return nil
 }
 
-func queueBurns(batch *pgx.Batch, data *storage.StakingData) error {
+func (c *CockroachClient) queueBurns(batch *pgx.Batch, data *storage.StakingData) error {
 	for _, burn := range data.Burns {
 		batch.Queue(burnQuery,
 			burn.Owner.String(),
@@ -282,57 +279,57 @@ func queueBurns(batch *pgx.Batch, data *storage.StakingData) error {
 	return nil
 }
 
-func queueEscrows(batch *pgx.Batch, data *storage.StakingData) error {
-	for _, escrow := range data.Escrows {
-		if escrow.Add != nil {
-			owner := escrow.Add.Owner.String()
-			escrower := escrow.Add.Escrow.String()
-			amount := escrow.Add.Amount.ToBigInt()
-			newShares := escrow.Add.NewShares.ToBigInt()
-			batch.Queue(ownerBalanceQuery,
-				owner,
-				amount,
-			)
-			batch.Queue(escrowBalanceQuery,
-				escrower,
-				amount,
-				newShares,
-			)
-			batch.Queue(delegationsQuery,
-				owner,
-				escrower,
-				newShares,
-			)
-		} else if escrow.Take != nil {
-			batch.Queue(takeEscrowQuery,
-				escrow.Take.Owner.String(),
-				escrow.Take.Amount.ToBigInt(),
-			)
-		} else if escrow.DebondingStart != nil {
-			batch.Queue(debondingStartRemoveDelegationQuery,
-				escrow.DebondingStart.Owner.String(),
-				escrow.DebondingStart.Escrow.String(),
-			)
-			batch.Queue(debondingStartAddDebondingDelegationQuery,
-				escrow.DebondingStart.Owner.String(),
-				escrow.DebondingStart.Escrow.String(),
-				escrow.DebondingStart.DebondingShares.ToBigInt(),
-				escrow.DebondingStart.DebondEndTime,
-			)
-		} else if escrow.Reclaim != nil {
-			batch.Queue(reclaimEscrowQuery,
-				escrow.Reclaim.Owner.String(),
-				escrow.Reclaim.Escrow.String(),
-				escrow.Reclaim.Amount.ToBigInt(),
-				escrow.Reclaim.Shares.ToBigInt(),
-			)
-		}
-	}
+func (c *CockroachClient) queueEscrows(batch *pgx.Batch, data *storage.StakingData) error {
+	// for _, escrow := range data.Escrows {
+	// 	if escrow.Add != nil {
+	// 		owner := escrow.Add.Owner.String()
+	// 		escrower := escrow.Add.Escrow.String()
+	// 		amount := escrow.Add.Amount.ToBigInt()
+	// 		newShares := escrow.Add.NewShares.ToBigInt()
+	// 		batch.Queue(ownerBalanceQuery,
+	// 			owner,
+	// 			amount,
+	// 		)
+	// 		batch.Queue(escrowBalanceQuery,
+	// 			escrower,
+	// 			amount,
+	// 			newShares,
+	// 		)
+	// 		batch.Queue(delegationsQuery,
+	// 			owner,
+	// 			escrower,
+	// 			newShares,
+	// 		)
+	// 	} else if escrow.Take != nil {
+	// 		batch.Queue(takeEscrowQuery,
+	// 			escrow.Take.Owner.String(),
+	// 			escrow.Take.Amount.ToBigInt(),
+	// 		)
+	// 	} else if escrow.DebondingStart != nil {
+	// 		batch.Queue(debondingStartRemoveDelegationQuery,
+	// 			escrow.DebondingStart.Owner.String(),
+	// 			escrow.DebondingStart.Escrow.String(),
+	// 		)
+	// 		batch.Queue(debondingStartAddDebondingDelegationQuery,
+	// 			escrow.DebondingStart.Owner.String(),
+	// 			escrow.DebondingStart.Escrow.String(),
+	// 			escrow.DebondingStart.DebondingShares.ToBigInt(),
+	// 			escrow.DebondingStart.DebondEndTime,
+	// 		)
+	// 	} else if escrow.Reclaim != nil {
+	// 		batch.Queue(reclaimEscrowQuery,
+	// 			escrow.Reclaim.Owner.String(),
+	// 			escrow.Reclaim.Escrow.String(),
+	// 			escrow.Reclaim.Amount.ToBigInt(),
+	// 			escrow.Reclaim.Shares.ToBigInt(),
+	// 		)
+	// 	}
+	// }
 
 	return nil
 }
 
-func queueAllowanceChanges(batch *pgx.Batch, data *storage.StakingData) error {
+func (c *CockroachClient) queueAllowanceChanges(batch *pgx.Batch, data *storage.StakingData) error {
 	for _, allowanceChange := range data.AllowanceChanges {
 		batch.Queue(allowanceChangeQuery,
 			allowanceChange.Owner.String(),
@@ -346,13 +343,13 @@ func queueAllowanceChanges(batch *pgx.Batch, data *storage.StakingData) error {
 
 // SetSchedulerData applies the scheduler data as an update at the provided block height.
 func (c *CockroachClient) SetSchedulerData(ctx context.Context, data *storage.SchedulerData) error {
-	conn, err := c.connection(ctx)
+	conn, err := c.pool.Acquire(ctx)
 	if err != nil {
 		return err
 	}
 
 	if err := crdbpgx.ExecuteTx(ctx, conn, pgx.TxOptions{}, func(tx pgx.Tx) error {
-		return doSetSchedulerData(ctx, tx, data)
+		return c.doSetSchedulerData(ctx, tx, data)
 	}); err != nil {
 		return err
 	}
@@ -360,12 +357,12 @@ func (c *CockroachClient) SetSchedulerData(ctx context.Context, data *storage.Sc
 	return nil
 }
 
-func doSetSchedulerData(ctx context.Context, tx pgx.Tx, data *storage.SchedulerData) error {
+func (c *CockroachClient) doSetSchedulerData(ctx context.Context, tx pgx.Tx, data *storage.SchedulerData) error {
 	batch := &pgx.Batch{}
 
 	for _, f := range []func(*pgx.Batch, *storage.SchedulerData) error{
-		queueValidatorUpdates,
-		queueCommitteeUpdates,
+		c.queueValidatorUpdates,
+		c.queueCommitteeUpdates,
 	} {
 		if err := f(batch, data); err != nil {
 			return err
@@ -375,7 +372,7 @@ func doSetSchedulerData(ctx context.Context, tx pgx.Tx, data *storage.SchedulerD
 	return sendAndVerifyBatch(ctx, tx, batch)
 }
 
-func queueValidatorUpdates(batch *pgx.Batch, data *storage.SchedulerData) error {
+func (c *CockroachClient) queueValidatorUpdates(batch *pgx.Batch, data *storage.SchedulerData) error {
 	for _, validator := range data.Validators {
 		batch.Queue(updateVotingPowerQuery,
 			validator.ID,
@@ -386,7 +383,7 @@ func queueValidatorUpdates(batch *pgx.Batch, data *storage.SchedulerData) error 
 	return nil
 }
 
-func queueCommitteeUpdates(batch *pgx.Batch, data *storage.SchedulerData) error {
+func (c *CockroachClient) queueCommitteeUpdates(batch *pgx.Batch, data *storage.SchedulerData) error {
 	batch.Queue(truncateCommitteesQuery)
 	for namespace, committees := range data.Committees {
 		runtime := namespace.String()
@@ -410,13 +407,13 @@ func queueCommitteeUpdates(batch *pgx.Batch, data *storage.SchedulerData) error 
 
 // SetGovernanceData applies the governance data as an update at the provided block height.
 func (c *CockroachClient) SetGovernanceData(ctx context.Context, data *storage.GovernanceData) error {
-	conn, err := c.connection(ctx)
+	conn, err := c.pool.Acquire(ctx)
 	if err != nil {
 		return err
 	}
 
 	if err := crdbpgx.ExecuteTx(ctx, conn, pgx.TxOptions{}, func(tx pgx.Tx) error {
-		return doSetGovernanceData(ctx, tx, data)
+		return c.doSetGovernanceData(ctx, tx, data)
 	}); err != nil {
 		return err
 	}
@@ -424,14 +421,14 @@ func (c *CockroachClient) SetGovernanceData(ctx context.Context, data *storage.G
 	return nil
 }
 
-func doSetGovernanceData(ctx context.Context, tx pgx.Tx, data *storage.GovernanceData) error {
+func (c *CockroachClient) doSetGovernanceData(ctx context.Context, tx pgx.Tx, data *storage.GovernanceData) error {
 	batch := &pgx.Batch{}
 
 	for _, f := range []func(*pgx.Batch, *storage.GovernanceData) error{
-		queueSubmissions,
-		queueExecutions,
-		queueFinalizations,
-		queueVotes,
+		c.queueSubmissions,
+		c.queueExecutions,
+		c.queueFinalizations,
+		c.queueVotes,
 	} {
 		if err := f(batch, data); err != nil {
 			return err
@@ -441,7 +438,7 @@ func doSetGovernanceData(ctx context.Context, tx pgx.Tx, data *storage.Governanc
 	return sendAndVerifyBatch(ctx, tx, batch)
 }
 
-func queueSubmissions(batch *pgx.Batch, data *storage.GovernanceData) error {
+func (c *CockroachClient) queueSubmissions(batch *pgx.Batch, data *storage.GovernanceData) error {
 	for _, submission := range data.ProposalSubmissions {
 		if submission.Content.Upgrade != nil {
 			batch.Queue(submissionUpgradeQuery,
@@ -473,7 +470,7 @@ func queueSubmissions(batch *pgx.Batch, data *storage.GovernanceData) error {
 	return nil
 }
 
-func queueExecutions(batch *pgx.Batch, data *storage.GovernanceData) error {
+func (c *CockroachClient) queueExecutions(batch *pgx.Batch, data *storage.GovernanceData) error {
 	for _, execution := range data.ProposalExecutions {
 		batch.Queue(executionQuery,
 			execution.ID,
@@ -483,7 +480,7 @@ func queueExecutions(batch *pgx.Batch, data *storage.GovernanceData) error {
 	return nil
 }
 
-func queueFinalizations(batch *pgx.Batch, data *storage.GovernanceData) error {
+func (c *CockroachClient) queueFinalizations(batch *pgx.Batch, data *storage.GovernanceData) error {
 	for _, finalization := range data.ProposalFinalizations {
 		batch.Queue(finalizationQuery,
 			finalization.ID,
@@ -498,7 +495,7 @@ func queueFinalizations(batch *pgx.Batch, data *storage.GovernanceData) error {
 	return nil
 }
 
-func queueVotes(batch *pgx.Batch, data *storage.GovernanceData) error {
+func (c *CockroachClient) queueVotes(batch *pgx.Batch, data *storage.GovernanceData) error {
 	for _, vote := range data.Votes {
 		batch.Queue(voteQuery,
 			vote.ID,
