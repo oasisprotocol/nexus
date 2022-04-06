@@ -2,6 +2,11 @@ package cockroach
 
 import "fmt"
 
+const (
+	// TODO: Make this config somehow
+	chainID = "oasis_2"
+)
+
 var (
 	// Block Data Queries
 	blocksInsertQuery = fmt.Sprintf(`

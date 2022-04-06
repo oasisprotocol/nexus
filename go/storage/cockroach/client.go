@@ -16,9 +16,6 @@ import (
 
 const (
 	clientName = "cockroach"
-
-	// TODO: Make this config somehow
-	chainID = "oasis_2"
 )
 
 type CockroachClient struct {
