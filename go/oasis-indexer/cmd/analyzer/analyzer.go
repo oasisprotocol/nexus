@@ -6,11 +6,14 @@ import (
 	"errors"
 	"os"
 
+	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 	"github.com/spf13/cobra"
 
 	"github.com/oasislabs/oasis-block-indexer/go/log"
 	"github.com/oasislabs/oasis-block-indexer/go/oasis-indexer/cmd/common"
 	"github.com/oasislabs/oasis-block-indexer/go/storage"
+	target "github.com/oasislabs/oasis-block-indexer/go/storage/cockroach"
+	source "github.com/oasislabs/oasis-block-indexer/go/storage/oasis"
 )
 
 const (
@@ -32,7 +35,9 @@ var (
 )
 
 func runAnalyzer(cmd *cobra.Command, args []string) {
-	common.Init()
+	if err := common.Init(); err != nil {
+		os.Exit(1)
+	}
 
 	_, err := NewAnalyzer()
 	switch {
@@ -47,6 +52,7 @@ func runAnalyzer(cmd *cobra.Command, args []string) {
 
 // Analyzer is the Oasis Indexer's analysis service.
 type Analyzer struct {
+	SourceStorage storage.SourceStorage
 	TargetStorage storage.TargetStorage
 
 	logger *log.Logger
@@ -54,10 +60,24 @@ type Analyzer struct {
 
 // NewAnalyzer creates and starts a new Analyzer
 func NewAnalyzer() (*Analyzer, error) {
+	ctx := context.Background()
 	logger := common.Logger().WithModule(moduleName)
 
+	var network config.Network
+	oasisNodeClient, err := source.NewOasisNodeClient(ctx, &network)
+	if err != nil {
+		return nil, err
+	}
+
+	cockroachClient, err := target.NewCockroachClient("connstring")
+	if err != nil {
+		return nil, err
+	}
+
 	analyzer := &Analyzer{
-		logger: logger,
+		SourceStorage: oasisNodeClient,
+		TargetStorage: cockroachClient,
+		logger:        logger,
 	}
 
 	logger.Info("Starting oasis-indexer analysis layer.")

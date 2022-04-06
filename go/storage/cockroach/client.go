@@ -5,13 +5,14 @@ package cockroach
 import (
 	"context"
 	"encoding/json"
+	"errors"
 
 	"github.com/cockroachdb/cockroach-go/v2/crdb/crdbpgx"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
-	"github.com/oasisprotocol/oasis-core/go/consensus/api/transaction"
-
 	"github.com/oasislabs/oasis-block-indexer/go/storage"
+	"github.com/oasisprotocol/oasis-core/go/consensus/api/transaction"
+	"github.com/oasisprotocol/oasis-core/go/consensus/api/transaction/results"
 )
 
 const (
@@ -32,15 +33,13 @@ func NewCockroachClient(connstring string) (*CockroachClient, error) {
 }
 
 // Connection returns a new pgx connection from the connection pool.
-func (c *CockroachClient) Connection(ctx context.Context) (*pgxpool.Conn, error) {
+func (c *CockroachClient) connection(ctx context.Context) (*pgxpool.Conn, error) {
 	return c.pool.Acquire(ctx)
 }
 
 // SetBlockData applies the block data as an update at the provided block height.
-func (c *CockroachClient) SetBlockData(data *storage.BlockData) error {
-	ctx := context.Background()
-
-	conn, err := c.Connection(ctx)
+func (c *CockroachClient) SetBlockData(ctx context.Context, data *storage.BlockData) error {
+	conn, err := c.connection(ctx)
 	if err != nil {
 		return err
 	}
@@ -57,6 +56,20 @@ func (c *CockroachClient) SetBlockData(data *storage.BlockData) error {
 func doSetBlockData(ctx context.Context, tx pgx.Tx, data *storage.BlockData) error {
 	batch := &pgx.Batch{}
 
+	for _, f := range []func(*pgx.Batch, *storage.BlockData) error{
+		queueBlockInserts,
+		queueTransactionInserts,
+		queueEventInserts,
+	} {
+		if err := f(batch, data); err != nil {
+			return err
+		}
+	}
+
+	return sendAndVerifyBatch(ctx, tx, batch)
+}
+
+func queueBlockInserts(batch *pgx.Batch, data *storage.BlockData) error {
 	batch.Queue(blocksInsertQuery,
 		data.BlockHeader.Height,
 		data.BlockHeader.Hash,
@@ -67,9 +80,10 @@ func doSetBlockData(ctx context.Context, tx pgx.Tx, data *storage.BlockData) err
 		data.BlockHeader.StateRoot.Hash,
 	)
 
-	// TODO: Investigate bulk insert performance. This may be better,
-	// because you'll insert all rows in a single statement. But it
-	// will lose out on optimization via cached/prepared statements, probably.
+	return nil
+}
+
+func queueTransactionInserts(batch *pgx.Batch, data *storage.BlockData) error {
 	for i := 0; i < len(data.Transactions); i++ {
 		signedTransaction := data.Transactions[i]
 		result := data.Results[i]
@@ -90,18 +104,36 @@ func doSetBlockData(ctx context.Context, tx pgx.Tx, data *storage.BlockData) err
 			result.Error.Code,
 			result.Error.Message,
 		)
-
-		// TODO: Event unrolling
 	}
 
-	return sendAndVerifyBatch(ctx, tx, batch)
+	return nil
+}
+
+func queueEventInserts(batch *pgx.Batch, data *storage.BlockData) error {
+	for i := 0; i < len(data.Results); i++ {
+		for j := 0; j < len(data.Results[i].Events); j++ {
+			backend, ty, body, err := extractEventData(data.Results[i].Events[j])
+			if err != nil {
+				return err
+			}
+
+			batch.Queue(eventsInsertQuery,
+				backend,
+				ty,
+				string(body),
+				data.BlockHeader.Height,
+				data.Transactions[i].Hash(),
+				i,
+			)
+		}
+	}
+
+	return nil
 }
 
 // SetBeaconData applies the beacon data as an update at the provided block height.
-func (c *CockroachClient) SetBeaconData(data *storage.BeaconData) error {
-	ctx := context.Background()
-
-	conn, err := c.Connection(ctx)
+func (c *CockroachClient) SetBeaconData(ctx context.Context, data *storage.BeaconData) error {
+	conn, err := c.connection(ctx)
 	if err != nil {
 		return err
 	}
@@ -124,10 +156,8 @@ func doSetBeaconData(ctx context.Context, tx pgx.Tx, _data *storage.BeaconData) 
 }
 
 // SetRegistryData applies the registry data as an update at the provided block height.
-func (c *CockroachClient) SetRegistryData(data *storage.RegistryData) error {
-	ctx := context.Background()
-
-	conn, err := c.Connection(ctx)
+func (c *CockroachClient) SetRegistryData(ctx context.Context, data *storage.RegistryData) error {
+	conn, err := c.connection(ctx)
 	if err != nil {
 		return err
 	}
@@ -191,10 +221,8 @@ func queueNodeUnfreezes(batch *pgx.Batch, data *storage.RegistryData) error {
 }
 
 // SetStakingData applies the staking data as an update at the provided block height.
-func (c *CockroachClient) SetStakingData(data *storage.StakingData) error {
-	ctx := context.Background()
-
-	conn, err := c.Connection(ctx)
+func (c *CockroachClient) SetStakingData(ctx context.Context, data *storage.StakingData) error {
+	conn, err := c.connection(ctx)
 	if err != nil {
 		return err
 	}
@@ -309,10 +337,8 @@ func queueAllowanceChanges(batch *pgx.Batch, data *storage.StakingData) error {
 }
 
 // SetSchedulerData applies the scheduler data as an update at the provided block height.
-func (c *CockroachClient) SetSchedulerData(data *storage.SchedulerData) error {
-	ctx := context.Background()
-
-	conn, err := c.Connection(ctx)
+func (c *CockroachClient) SetSchedulerData(ctx context.Context, data *storage.SchedulerData) error {
+	conn, err := c.connection(ctx)
 	if err != nil {
 		return err
 	}
@@ -375,10 +401,8 @@ func queueCommitteeUpdates(batch *pgx.Batch, data *storage.SchedulerData) error 
 }
 
 // SetGovernanceData applies the governance data as an update at the provided block height.
-func (c *CockroachClient) SetGovernanceData(data *storage.GovernanceData) error {
-	ctx := context.Background()
-
-	conn, err := c.Connection(ctx)
+func (c *CockroachClient) SetGovernanceData(ctx context.Context, data *storage.GovernanceData) error {
+	conn, err := c.connection(ctx)
 	if err != nil {
 		return err
 	}
@@ -495,6 +519,98 @@ func sendAndVerifyBatch(ctx context.Context, tx pgx.Tx, batch *pgx.Batch) error 
 	}
 
 	return nil
+}
+
+func extractEventData(event *results.Event) (backend string, ty string, body []byte, err error) {
+	if event.Staking != nil {
+		backend = "staking"
+		if event.Staking.Transfer != nil {
+			ty = "transfer"
+			body, err = json.Marshal(event.Staking.Transfer)
+			return
+		} else if event.Staking.Burn != nil {
+			ty = "burn"
+			body, err = json.Marshal(event.Staking.Burn)
+			return
+		} else if event.Staking.Escrow != nil {
+			if event.Staking.Escrow.Add != nil {
+				ty = "add"
+				body, err = json.Marshal(event.Staking.Escrow.Add)
+				return
+			} else if event.Staking.Escrow.Take != nil {
+				ty = "take"
+				body, err = json.Marshal(event.Staking.Escrow.Take)
+				return
+			} else if event.Staking.Escrow.DebondingStart != nil {
+				ty = "debonding_start"
+				body, err = json.Marshal(event.Staking.Escrow.DebondingStart)
+				return
+			} else if event.Staking.Escrow.Reclaim != nil {
+				ty = "reclaim"
+				body, err = json.Marshal(event.Staking.Escrow.Reclaim)
+				return
+			}
+		} else if event.Staking.AllowanceChange != nil {
+			ty = "allowance_change"
+			body, err = json.Marshal(event.Staking.AllowanceChange)
+			return
+		}
+	} else if event.Registry != nil {
+		backend = "registry"
+		if event.Registry.RuntimeEvent != nil {
+			ty = "runtime"
+			body, err = json.Marshal(event.Registry.RuntimeEvent)
+			return
+		} else if event.Registry.EntityEvent != nil {
+			ty = "entity"
+			body, err = json.Marshal(event.Registry.EntityEvent)
+			return
+		} else if event.Registry.NodeEvent != nil {
+			ty = "node"
+			body, err = json.Marshal(event.Registry.NodeEvent)
+			return
+		} else if event.Registry.NodeUnfrozenEvent != nil {
+			ty = "node_unfrozen"
+			body, err = json.Marshal(event.Registry.NodeUnfrozenEvent)
+			return
+		}
+	} else if event.RootHash != nil {
+		backend = "roothash"
+		if event.RootHash.ExecutorCommitted != nil {
+			ty = "executor_committed"
+			body, err = json.Marshal(event.RootHash.ExecutorCommitted)
+			return
+		} else if event.RootHash.ExecutionDiscrepancyDetected != nil {
+			ty = "execution_discrepancy_detected"
+			body, err = json.Marshal(event.RootHash.ExecutionDiscrepancyDetected)
+			return
+		} else if event.RootHash.Finalized != nil {
+			ty = "finalized"
+			body, err = json.Marshal(event.RootHash.Finalized)
+			return
+		}
+	} else if event.Governance != nil {
+		backend = "governance"
+		if event.Governance.ProposalSubmitted != nil {
+			ty = "proposal_submitted"
+			body, err = json.Marshal(event.Governance.ProposalSubmitted)
+			return
+		} else if event.Governance.ProposalExecuted != nil {
+			ty = "proposal_executed"
+			body, err = json.Marshal(event.Governance.ProposalExecuted)
+			return
+		} else if event.Governance.ProposalFinalized != nil {
+			ty = "proposal_finalized"
+			body, err = json.Marshal(event.Governance.ProposalFinalized)
+			return
+		} else if event.Governance.Vote != nil {
+			ty = "vote"
+			body, err = json.Marshal(event.Governance.Vote)
+			return
+		}
+	}
+
+	return "", "", []byte{}, errors.New("cockroach: unknown event type")
 }
 
 // TODO: Cleanup method to gracefully shut down client.
