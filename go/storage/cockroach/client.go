@@ -309,11 +309,13 @@ func queueEscrows(batch *pgx.Batch, data *storage.StakingData) error {
 				escrow.Take.Amount.ToBigInt(),
 			)
 		} else if escrow.DebondingStart != nil {
-			batch.Queue(debondingStartEscrowQuery,
+			batch.Queue(debondingStartRemoveDelegationQuery,
 				escrow.DebondingStart.Owner.String(),
 				escrow.DebondingStart.Escrow.String(),
-				escrow.DebondingStart.Amount.ToBigInt(),
-				escrow.DebondingStart.ActiveShares.ToBigInt(),
+			)
+			batch.Queue(debondingStartAddDebondingDelegationQuery,
+				escrow.DebondingStart.Owner.String(),
+				escrow.DebondingStart.Escrow.String(),
 				escrow.DebondingStart.DebondingShares.ToBigInt(),
 				escrow.DebondingStart.DebondEndTime,
 			)
