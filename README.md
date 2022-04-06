@@ -16,3 +16,11 @@ $ docker build --tag oasislabs/oasis-indexer:dev --file docker/indexer.Dockerfil
 $ alias oasis-indexer="docker run oasislabs/oasis-indexer:dev"
 $ oasis-indexer --help
 ```
+
+```sh
+$ oasis-indexer analyze --network.config=config.yaml
+```
+
+## Oasis Node
+
+You should run a local [node](https://docs.oasis.dev/general/run-a-node/set-up-your-node/run-non-validator) for development purposes. You will need the Unix socket.
