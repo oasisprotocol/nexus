@@ -45,12 +45,31 @@ type SourceStorage interface {
 	// runtime blocks. This is only relevant when we begin to build runtime
 	// analyzers.
 
-	// Name returns the name of this source storage.
+	// Name returns the name of the source storage.
+	Name() string
+}
+
+// TargetStorage defines an interface for reading and writing
+// processed block data.
+type TargetStorage interface {
+
+	// The following setters apply data from various consensus
+	// backends to target storage.
+	SetBlockData(data *BlockData) error
+	SetBeaconData(data *BeaconData) error
+	SetRegistryData(data *RegistryData) error
+	SetStakingData(data *StakingData) error
+	SetSchedulerData(data *SchedulerData) error
+	SetGovernanceData(data *GovernanceData) error
+
+	// Name returns the name of the target storage.
 	Name() string
 }
 
 // BlockData represents data for a block at a given height.
 type BlockData struct {
+	Height int64
+
 	BlockHeader  *consensus.Block
 	Transactions []*transaction.SignedTransaction
 	Results      []*results.Result
@@ -58,6 +77,8 @@ type BlockData struct {
 
 // BeaconData represents data for the random beacon at a given height.
 type BeaconData struct {
+	Height int64
+
 	Epoch  beacon.EpochTime
 	Beacon []byte
 }
@@ -67,6 +88,8 @@ type BeaconData struct {
 // Note: The registry backend supports getting events directly. We support
 // retrieving events as updates to apply when getting data at specific height.
 type RegistryData struct {
+	Height int64
+
 	RuntimeEvents     []*registry.RuntimeEvent
 	EntityEvents      []*registry.EntityEvent
 	NodeEvent         []*registry.NodeEvent
@@ -78,6 +101,8 @@ type RegistryData struct {
 // Note: The staking backend supports getting events directly. We support
 // retrieving events as updates to apply when getting data at specific height.
 type StakingData struct {
+	Height int64
+
 	Transfers        []*staking.TransferEvent
 	Burns            []*staking.BurnEvent
 	Escrows          []*staking.EscrowEvent
@@ -86,6 +111,8 @@ type StakingData struct {
 
 // SchedulerData represents data for elected committees and validators at a given height.
 type SchedulerData struct {
+	Height int64
+
 	Validators []*scheduler.Validator
 	Committees map[common.Namespace][]*scheduler.Committee
 }
@@ -95,17 +122,10 @@ type SchedulerData struct {
 // Note: The governance backend supports getting events directly. We support
 // retrieving events as updates to apply when getting data at a specific height.
 type GovernanceData struct {
+	Height int64
+
 	ProposalSubmissions   []*governance.ProposalSubmittedEvent
 	ProposalExecutions    []*governance.ProposalExecutedEvent
 	ProposalFinalizations []*governance.ProposalFinalizedEvent
 	Votes                 []*governance.VoteEvent
-}
-
-// TargetStorage defines an interface for reading and writing
-// processed block data.
-type TargetStorage interface {
-	// TODO: Define the rest of this interface.
-
-	// Name returns the name of this target storage.
-	Name() string
 }
