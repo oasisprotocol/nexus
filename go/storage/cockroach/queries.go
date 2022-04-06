@@ -11,16 +11,17 @@ var (
 	// Block Data Queries
 	blocksInsertQuery = fmt.Sprintf(`
 		INSERT INTO %s.blocks (height, block_hash, time, namespace, version, type)
-		VALUES ($1, $2, $3, $4, $5, $6);
+			VALUES ($1, $2, $3, $4, $5, $6);
 	`, chainID)
 
 	transactionsInsertQuery = fmt.Sprintf(`
 		INSERT INTO %s.transactions (block, txn_hash, txn_index, nonce, fee_amount, max_gas, method, body, module, code, message)
-		VALUES
-			($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11);
+			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11);
 	`, chainID)
 
 	eventsInsertQuery = fmt.Sprintf(`
+		INSERT INTO %s.events (backend, type, body, txn_block, txn_hash, txn_index)
+			VALUES ($1, $2, $3, $4, $5, $6);
 	`, chainID)
 
 	// Beacon Data Queries
@@ -53,24 +54,24 @@ var (
 
 	ownerBalanceQuery = fmt.Sprintf(`
 		UPDATE %s.accounts
-		SET general_balance = general_balance - $3
+		SET general_balance = general_balance - $2
 			WHERE address = $1;
 	`, chainID)
 	escrowBalanceQuery = fmt.Sprintf(`
 		INSERT INTO %s.accounts (address, escrow_balance_active, escrow_total_shares_active)
-			VALUES ($2, $3, $4)
+			VALUES ($1, $2, $3)
 		ON CONFLICT (address) DO
 			UPDATE %s.accounts
 			SET
-				escrow_balance_active = escrow_balance_active + $3,
-				escrow_total_shares_active = escrow_total_shares_active + $4;
+				escrow_balance_active = escrow_balance_active + $2,
+				escrow_total_shares_active = escrow_total_shares_active + $3;
 	`, chainID)
 	delegationsQuery = fmt.Sprintf(`
 		INSERT INTO %s.delegations (delegatee, delegator, shares)
-			VALUES ($1, $2, $4)
+			VALUES ($1, $2, $3)
 		ON CONFLICT (delegatee, delegator) DO
 			UPDATE %s.delegations
-			SET shares = shares + $4;
+			SET shares = shares + $3;
 	`, chainID)
 
 	takeEscrowQuery = fmt.Sprintf(`
@@ -79,7 +80,18 @@ var (
 			WHERE address = $1;
 	`, chainID)
 
+	debondingStartRemoveDelegationQuery = fmt.Sprintf(`
+		UPDATE %s.delegations
+		SET shares = shares - $3
+			WHERE delegatee = $1 AND delegator = $2;
+	`, chainID)
+	debondingStartAddDebondingDelegationQuery = fmt.Sprintf(`
+		INSERT INTO %s.debonding_delegations (delegatee, delegator, shares, debond_end)
+			VALUES ($1, $2, $3, $4);
+	`, chainID)
+
 	reclaimEscrowQuery = fmt.Sprintf(`
+		
 	`, chainID)
 
 	allowanceChangeQuery = fmt.Sprintf(`

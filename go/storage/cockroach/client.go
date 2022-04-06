@@ -23,7 +23,7 @@ type CockroachClient struct {
 	pool *pgxpool.Pool
 }
 
-// NewCockroachClient creates a new Coc kroachDB client.
+// NewCockroachClient creates a new CockroachDB client.
 func NewCockroachClient(connstring string) (*CockroachClient, error) {
 	pool, err := pgxpool.Connect(context.Background(), connstring)
 	if err != nil {
@@ -308,10 +308,16 @@ func queueEscrows(batch *pgx.Batch, data *storage.StakingData) error {
 				escrow.Take.Owner.String(),
 				escrow.Take.Amount.ToBigInt(),
 			)
+		} else if escrow.DebondingStart != nil {
+			batch.Queue(debondingStartEscrowQuery,
+				escrow.DebondingStart.Owner.String(),
+				escrow.DebondingStart.Escrow.String(),
+				escrow.DebondingStart.Amount.ToBigInt(),
+				escrow.DebondingStart.ActiveShares.ToBigInt(),
+				escrow.DebondingStart.DebondingShares.ToBigInt(),
+				escrow.DebondingStart.DebondEndTime,
+			)
 		} else if escrow.Reclaim != nil {
-			// TODO: Reclaiming escrow is tricky. This event is emitted
-			// after the debonding period ends. But you probably need to parse
-			// the actual transaction to decide when the debonding period begins.
 			batch.Queue(reclaimEscrowQuery,
 				escrow.Reclaim.Owner.String(),
 				escrow.Reclaim.Escrow.String(),
@@ -434,34 +440,33 @@ func doSetGovernanceData(ctx context.Context, tx pgx.Tx, data *storage.Governanc
 }
 
 func queueSubmissions(batch *pgx.Batch, data *storage.GovernanceData) error {
-	// TODO: Pending storage interface update
-	// for _, submission := range data.ProposalSubmissions {
-	// 	if submission.Content.Upgrade != nil {
-	// 		batch.Queue(submissionUpgradeQuery,
-	// 			submission.ID,
-	// 			submission.Submitter.String(),
-	// 			submission.State.String(),
-	// 			submission.Deposit.ToBigInt(),
-	// 			submission.Content.Upgrade.Handler,
-	// 			submission.Content.Upgrade.Target.ConsensusProtocol.String(),
-	// 			submission.Content.Upgrade.Target.RuntimeHostProtocol.String(),
-	// 			submission.Content.Upgrade.Target.RuntimeCommitteeProtocol.String(),
-	// 			submission.Content.Upgrade.Epoch,
-	// 			submission.CreatedAt,
-	// 			submission.ClosesAt,
-	// 		)
-	// 	} else if submission.Content.CancelUpgrade != nil {
-	// 		batch.Queue(submissionCancelUpgradeQuery,
-	// 			submission.ID,
-	// 			submission.Submitter.String(),
-	// 			submission.State.String(),
-	// 			submission.Deposit.ToBigInt(),
-	// 			submission.Content.CancelUpgrade.ProposalID,
-	// 			submission.CreatedAt,
-	// 			submission.ClosesAt,
-	// 		)
-	// 	}
-	// }
+	for _, submission := range data.ProposalSubmissions {
+		if submission.Content.Upgrade != nil {
+			batch.Queue(submissionUpgradeQuery,
+				submission.ID,
+				submission.Submitter.String(),
+				submission.State.String(),
+				submission.Deposit.ToBigInt(),
+				submission.Content.Upgrade.Handler,
+				submission.Content.Upgrade.Target.ConsensusProtocol.String(),
+				submission.Content.Upgrade.Target.RuntimeHostProtocol.String(),
+				submission.Content.Upgrade.Target.RuntimeCommitteeProtocol.String(),
+				submission.Content.Upgrade.Epoch,
+				submission.CreatedAt,
+				submission.ClosesAt,
+			)
+		} else if submission.Content.CancelUpgrade != nil {
+			batch.Queue(submissionCancelUpgradeQuery,
+				submission.ID,
+				submission.Submitter.String(),
+				submission.State.String(),
+				submission.Deposit.ToBigInt(),
+				submission.Content.CancelUpgrade.ProposalID,
+				submission.CreatedAt,
+				submission.ClosesAt,
+			)
+		}
+	}
 
 	return nil
 }
@@ -482,11 +487,10 @@ func queueFinalizations(batch *pgx.Batch, data *storage.GovernanceData) error {
 			finalization.ID,
 			finalization.State.String(),
 		)
-		// TODO: Pending storage interface update
-		// batch.Queue(invalidVotesQuery,
-		// 	finalization.ID,
-		// 	finalization.InvalidVotes,
-		// )
+		batch.Queue(invalidVotesQuery,
+			finalization.ID,
+			finalization.InvalidVotes,
+		)
 	}
 
 	return nil

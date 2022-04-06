@@ -126,8 +126,8 @@ type SchedulerData struct {
 type GovernanceData struct {
 	Height int64
 
-	ProposalSubmissions   []*governance.ProposalSubmittedEvent
+	ProposalSubmissions   []*governance.Proposal
 	ProposalExecutions    []*governance.ProposalExecutedEvent
-	ProposalFinalizations []*governance.ProposalFinalizedEvent
+	ProposalFinalizations []*governance.Proposal
 	Votes                 []*governance.VoteEvent
 }
