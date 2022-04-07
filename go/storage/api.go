@@ -4,6 +4,7 @@ package storage
 import (
 	"context"
 
+	"github.com/jackc/pgx/v4"
 	beacon "github.com/oasisprotocol/oasis-core/go/beacon/api"
 	"github.com/oasisprotocol/oasis-core/go/common"
 	consensus "github.com/oasisprotocol/oasis-core/go/consensus/api"
@@ -14,6 +15,9 @@ import (
 	scheduler "github.com/oasisprotocol/oasis-core/go/scheduler/api"
 	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
 )
+
+// QueryBatch represents a batch of queries to be executed atomically.
+type QueryBatch = pgx.Batch
 
 // SourceStorage defines an interface for retrieving raw block data.
 type SourceStorage interface {
@@ -57,12 +61,7 @@ type TargetStorage interface {
 
 	// The following setters apply data from various consensus
 	// backends to target storage.
-	SetBlockData(ctx context.Context, data *BlockData) error
-	SetBeaconData(ctx context.Context, data *BeaconData) error
-	SetRegistryData(ctx context.Context, data *RegistryData) error
-	SetStakingData(ctx context.Context, data *StakingData) error
-	SetSchedulerData(ctx context.Context, data *SchedulerData) error
-	SetGovernanceData(ctx context.Context, data *GovernanceData) error
+	SendBatch(ctx context.Context, batch *QueryBatch) error
 
 	// Name returns the name of the target storage.
 	Name() string

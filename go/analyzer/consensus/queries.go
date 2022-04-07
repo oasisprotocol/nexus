@@ -1,6 +1,8 @@
-package cockroach
+package consensus
 
-import "fmt"
+import (
+	"fmt"
+)
 
 const (
 	// TODO: Make this config somehow

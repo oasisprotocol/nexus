@@ -107,7 +107,7 @@ CREATE TABLE IF NOT EXISTS oasis_2.nodes
 (
   id         BYTEA PRIMARY KEY,
   entity_id  BYTEA NOT NULL REFERENCES oasis_2.entities(id),
-  expiration BIGINT NOT NULL REFERENCES oasis_2.epochs(id),
+  expiration BIGINT NOT NULL,
 
   -- TLS Info
   tls_pubkey      BYTEA NOT NULL,
@@ -191,9 +191,9 @@ CREATE TABLE IF NOT EXISTS oasis_2.debonding_delegations
 
 CREATE TABLE IF NOT EXISTS oasis_2.committee_members
 (
-  node      BYTEA NOT NULL REFERENCES oasis_2.nodes(id),
-  valid_for BIGINT NOT NULL REFERENCES oasis_2.epochs(id),
-  runtime   TEXT NOT NULL REFERENCES oasis_2.runtimes(id),
+  node      BYTEA NOT NULL,
+  valid_for BIGINT NOT NULL,
+  runtime   TEXT NOT NULL,
   kind      TEXT NOT NULL,
   role      TEXT NOT NULL,
 
@@ -208,7 +208,7 @@ CREATE TABLE IF NOT EXISTS oasis_2.committee_members
 CREATE TABLE IF NOT EXISTS oasis_2.proposals
 (
   id            BIGINT PRIMARY KEY,
-  submitter     TEXT NOT NULL REFERENCES oasis_2.accounts(address),
+  submitter     TEXT NOT NULL,
   state         TEXT NOT NULL DEFAULT 'active',
   executed      BOOLEAN NOT NULL DEFAULT false,
   deposit       NUMERIC NOT NULL,
@@ -234,7 +234,7 @@ CREATE TABLE IF NOT EXISTS oasis_2.proposals
 CREATE TABLE IF NOT EXISTS oasis_2.votes
 (
   proposal BIGINT NOT NULL REFERENCES oasis_2.proposals(id),
-  voter    TEXT NOT NULL REFERENCES oasis_2.accounts(address),
+  voter    TEXT NOT NULL,
   vote     TEXT,
 
   PRIMARY KEY (proposal, voter),

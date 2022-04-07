@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/oasislabs/oasis-block-indexer/go/log"
+	"github.com/oasislabs/oasis-block-indexer/go/metrics"
 )
 
 const (
@@ -34,30 +35,20 @@ var (
 
 // Init initializes the common environment.
 func Init() error {
+	// Initialize structured logger.
 	logger, err := log.NewLogger("oasis-indexer", os.Stdout, cfgLogFormat, cfgLogLevel)
 	if err != nil {
 		return err
 	}
 	rootLogger = logger
 
-	// sigCh := make(chan os.Signal, 1)
-	// signal.Notify(sigCh, os.Interrupt)
-	// _, cancelFn := context.WithCancel(context.Background())
-	// go func() {
-	// 	<-sigCh
-	// 	rootLogger.Info("user requested interrupt")
-	// 	cancelFn()
-	// }()
-
 	// Initialize Prometheus service
-	// promServer, err := metrics.NewPullService(rootLogger)
-	// if err != nil {
-	// 	rootLogger.Error("failed to initialize metrics", "err", err)
-	// 	os.Exit(1)
-	// }
-	// promServer.StartInstrumentation()
-
-	// rootLogger.Info("terminating")
+	promServer, err := metrics.NewPullService(rootLogger)
+	if err != nil {
+		rootLogger.Error("failed to initialize metrics", "err", err)
+		os.Exit(1)
+	}
+	promServer.StartInstrumentation()
 
 	return nil
 }

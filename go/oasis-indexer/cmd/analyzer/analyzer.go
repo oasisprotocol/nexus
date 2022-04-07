@@ -6,11 +6,14 @@ import (
 	"errors"
 	"io/ioutil"
 	"os"
+	"sync"
 
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
 
+	"github.com/oasislabs/oasis-block-indexer/go/analyzer"
+	"github.com/oasislabs/oasis-block-indexer/go/analyzer/consensus"
 	"github.com/oasislabs/oasis-block-indexer/go/log"
 	"github.com/oasislabs/oasis-block-indexer/go/oasis-indexer/cmd/common"
 	"github.com/oasislabs/oasis-block-indexer/go/storage"
@@ -43,10 +46,10 @@ func runAnalyzer(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	analyzer, err := NewAnalyzer()
+	service, err := NewAnalysisService()
 	switch {
 	case err == nil:
-		analyzer.Run()
+		service.Start()
 	case errors.Is(err, context.Canceled):
 		// Shutdown requested during startup.
 		return
@@ -55,15 +58,17 @@ func runAnalyzer(cmd *cobra.Command, args []string) {
 	}
 }
 
-// Analyzer is the Oasis Indexer's analysis service.
-type Analyzer struct {
-	SourceStorage storage.SourceStorage
-	TargetStorage storage.TargetStorage
-	logger        *log.Logger
+// AnalysisService is the Oasis Indexer's analysis service.
+type AnalysisService struct {
+	Analyzers map[string]analyzer.Analyzer
+
+	source storage.SourceStorage
+	target storage.TargetStorage
+	logger *log.Logger
 }
 
-// NewAnalyzer creates and starts a new Analyzer
-func NewAnalyzer() (*Analyzer, error) {
+// NewAnalysisService creates and starts a new AnalysisService
+func NewAnalysisService() (*AnalysisService, error) {
 	ctx := context.Background()
 	logger := common.Logger().WithModule(moduleName)
 
@@ -87,40 +92,32 @@ func NewAnalyzer() (*Analyzer, error) {
 		return nil, err
 	}
 
-	return &Analyzer{
-		SourceStorage: oasisNodeClient,
-		TargetStorage: cockroachClient,
+	// Initialize analyzers.
+	consensusAnalyzer := consensus.NewConsensusAnalyzer(oasisNodeClient, cockroachClient, logger)
 
+	return &AnalysisService{
+		Analyzers: map[string]analyzer.Analyzer{
+			consensusAnalyzer.Name(): consensusAnalyzer,
+		},
+		source: oasisNodeClient,
+		target: cockroachClient,
 		logger: logger,
 	}, nil
 }
 
-func (a *Analyzer) Run() {
-	ctx := context.Background()
+// Start starts the analysis service.
+func (a *AnalysisService) Start() {
+	var wg sync.WaitGroup
 
-	initialHeight := int64(3027601)
-	height := initialHeight + 1
-
-	for height < initialHeight+10 {
-		if err := a.processBlock(ctx, height); err != nil {
-			a.logger.Warn("failed to process block", "height", height, "err", err)
-			continue
-		}
-
-		height += 1
-	}
-}
-
-func (a *Analyzer) processBlock(ctx context.Context, height int64) error {
-	blockData, err := a.SourceStorage.BlockData(ctx, height)
-	if err != nil {
-		return err
-	}
-	if err := a.TargetStorage.SetBlockData(ctx, blockData); err != nil {
-		return err
+	for _, an := range a.Analyzers {
+		wg.Add(1)
+		go func(an analyzer.Analyzer) {
+			defer wg.Done()
+			an.Start()
+		}(an)
 	}
 
-	return nil
+	wg.Wait()
 }
 
 // Register registers the process sub-command.

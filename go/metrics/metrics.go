@@ -30,7 +30,7 @@ var (
 
 type pullService struct {
 	server *http.Server
-	logger log.Logger
+	logger *log.Logger
 }
 
 func (s *pullService) StartInstrumentation() {
