@@ -6,11 +6,12 @@ import (
 	"encoding/json"
 	"errors"
 
-	"github.com/oasislabs/oasis-block-indexer/go/log"
-	"github.com/oasislabs/oasis-block-indexer/go/storage"
 	"github.com/oasisprotocol/oasis-core/go/consensus/api/transaction"
 	"github.com/oasisprotocol/oasis-core/go/consensus/api/transaction/results"
 	"golang.org/x/sync/errgroup"
+
+	"github.com/oasislabs/oasis-block-indexer/go/log"
+	"github.com/oasislabs/oasis-block-indexer/go/storage"
 )
 
 const (
@@ -41,7 +42,6 @@ func (c *ConsensusAnalyzer) Start() {
 	for {
 		c.logger.Info("processing block", "height", height)
 		if err := c.processBlock(ctx, height); err != nil {
-			c.logger.Warn(err.Error())
 			continue
 		}
 
@@ -56,7 +56,7 @@ func (c *ConsensusAnalyzer) Name() string {
 
 // processBlock processes the block at the provided block height.
 func (c *ConsensusAnalyzer) processBlock(ctx context.Context, height int64) error {
-	g, ctx := errgroup.WithContext(ctx)
+	group, groupCtx := errgroup.WithContext(ctx)
 
 	batch := &storage.QueryBatch{}
 	for _, f := range []func(context.Context, int64, *storage.QueryBatch) error{
@@ -67,17 +67,20 @@ func (c *ConsensusAnalyzer) processBlock(ctx context.Context, height int64) erro
 		c.prepareSchedulerData,
 		c.prepareGovernanceData,
 	} {
-		g.Go(func() error {
-			if err := f(ctx, height, batch); err != nil {
+		group.Go(func() error {
+			if err := f(groupCtx, height, batch); err != nil {
 				return err
 			}
 			return nil
 		})
 	}
 
-	if err := g.Wait(); err != nil {
+	if err := group.Wait(); err != nil {
+		c.logger.Warn(err.Error())
 		return err
 	}
+
+	c.logger.Info("prepared batch. sending.")
 
 	return c.target.SendBatch(ctx, batch)
 }

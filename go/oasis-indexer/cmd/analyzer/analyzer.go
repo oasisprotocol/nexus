@@ -18,6 +18,7 @@ import (
 	"github.com/oasislabs/oasis-block-indexer/go/oasis-indexer/cmd/common"
 	"github.com/oasislabs/oasis-block-indexer/go/storage"
 	target "github.com/oasislabs/oasis-block-indexer/go/storage/cockroach"
+	"github.com/oasislabs/oasis-block-indexer/go/storage/migrations/generator"
 	source "github.com/oasislabs/oasis-block-indexer/go/storage/oasis"
 )
 
@@ -83,6 +84,16 @@ func NewAnalysisService() (*AnalysisService, error) {
 	}
 	oasisNodeClient, err := source.NewOasisNodeClient(ctx, &networkCfg)
 	if err != nil {
+		return nil, err
+	}
+
+	// TODO: This is just for quick-and-dirty validation
+	document, err := oasisNodeClient.GenesisDocument(ctx)
+	if err != nil {
+		return nil, err
+	}
+	g := generator.NewMigrationGenerator(logger)
+	if err := g.WriteGenesisDocumentMigration("/Users/nikhilsharma/oasis-block-indexer/go/storage/migrations/0001-state-init.sql", document); err != nil {
 		return nil, err
 	}
 

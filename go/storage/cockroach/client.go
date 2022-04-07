@@ -14,13 +14,14 @@ const (
 	clientName = "cockroach"
 )
 
+// CockroachClient is a client for connecting to a CockroachDB cluster.
 type CockroachClient struct {
 	pool *pgxpool.Pool
 }
 
 // NewCockroachClient creates a new CockroachDB client.
-func NewCockroachClient(connstring string) (*CockroachClient, error) {
-	pool, err := pgxpool.Connect(context.Background(), connstring)
+func NewCockroachClient(connString string) (*CockroachClient, error) {
+	pool, err := pgxpool.Connect(context.Background(), connString)
 	if err != nil {
 		return nil, err
 	}

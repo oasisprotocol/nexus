@@ -42,13 +42,12 @@ func NewOasisNodeClient(ctx context.Context, network *config.Network) (*OasisNod
 
 // GenesisDocument returns the original genesis document.
 func (c *OasisNodeClient) GenesisDocument(ctx context.Context) (*genesisAPI.Document, error) {
-	connection := *c.connection
-	doc, err := connection.Consensus().GetGenesisDocument(ctx)
-	if err != nil {
-		return nil, err
-	}
+	return (*c.connection).Consensus().GetGenesisDocument(ctx)
+}
 
-	return doc, nil
+// StateToGenesis returns the genesis state at the specified block height.
+func (c *OasisNodeClient) StateToGenesis(ctx context.Context, height int64) (*genesisAPI.Document, error) {
+	return (*c.connection).Consensus().StateToGenesis(ctx, height)
 }
 
 // Name returns the name of the oasis-node client.
