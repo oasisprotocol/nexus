@@ -7,7 +7,14 @@ import (
 	"os"
 	"strings"
 
+	beacon "github.com/oasisprotocol/oasis-core/go/beacon/api"
+	consensus "github.com/oasisprotocol/oasis-core/go/consensus/genesis"
 	genesis "github.com/oasisprotocol/oasis-core/go/genesis/api"
+	governance "github.com/oasisprotocol/oasis-core/go/governance/api"
+	keymanager "github.com/oasisprotocol/oasis-core/go/keymanager/api"
+	registry "github.com/oasisprotocol/oasis-core/go/registry/api"
+	roothash "github.com/oasisprotocol/oasis-core/go/roothash/api"
+	scheduler "github.com/oasisprotocol/oasis-core/go/scheduler/api"
 	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
 
 	"github.com/oasislabs/oasis-block-indexer/go/log"
@@ -60,13 +67,42 @@ func (mg *MigrationGenerator) GenesisDocumentMigration(document *genesis.Documen
 BEGIN;
 `)
 
+	if err := mg.addRegistryBackendMigrations(&b, document.Registry); err != nil {
+		return "", err
+	}
+	if err := mg.addRootHashBackendMigrations(&b, document.RootHash); err != nil {
+		return "", err
+	}
 	if err := mg.addStakingBackendMigrations(&b, document.Staking); err != nil {
+		return "", err
+	}
+	if err := mg.addKeyManagerBackendMigrations(&b, document.KeyManager); err != nil {
+		return "", err
+	}
+	if err := mg.addSchedulerBackendMigrations(&b, document.Scheduler); err != nil {
+		return "", err
+	}
+	if err := mg.addBeaconBackendMigrations(&b, document.Beacon); err != nil {
+		return "", err
+	}
+	if err := mg.addGovernanceBackendMigrations(&b, document.Governance); err != nil {
+		return "", err
+	}
+	if err := mg.addConsensusBackendMigrations(&b, document.Consensus); err != nil {
 		return "", err
 	}
 
 	b.WriteString("\nCOMMIT;\n")
 
 	return b.String(), nil
+}
+
+func (mg *MigrationGenerator) addRegistryBackendMigrations(b *strings.Builder, document registry.Genesis) error {
+	return nil
+}
+
+func (mg *MigrationGenerator) addRootHashBackendMigrations(b *strings.Builder, document roothash.Genesis) error {
+	return nil
 }
 
 func (mg *MigrationGenerator) addStakingBackendMigrations(b *strings.Builder, document staking.Genesis) error {
@@ -116,10 +152,10 @@ VALUES
 			foundAllowances = true
 		}
 
-		rows := make([]string, 0, len(account.General.Allowances))
+		ownerAllowances := make([]string, len(account.General.Allowances))
 		j := 0
 		for beneficiary, allowance := range account.General.Allowances {
-			rows[j] = fmt.Sprintf(
+			ownerAllowances[j] = fmt.Sprintf(
 				"\t('%s', '%s', %d)",
 				owner.String(),
 				beneficiary.String(),
@@ -127,10 +163,10 @@ VALUES
 			)
 			j++
 		}
-		b.WriteString(strings.Join(rows, ",\n"))
+		b.WriteString(strings.Join(ownerAllowances, ",\n"))
 		i++
 
-		if i != len(document.Ledger) {
+		if i != len(document.Ledger) && len(account.General.Allowances) > 0 {
 			b.WriteString(",\n")
 		}
 	}
@@ -161,7 +197,7 @@ VALUES
 		b.WriteString(strings.Join(delegateeDelegations, ",\n"))
 		i++
 
-		if i != len(document.Delegations) {
+		if i != len(document.Delegations) && len(escrows) > 0 {
 			b.WriteString(",\n")
 		}
 	}
@@ -195,11 +231,31 @@ VALUES
 		b.WriteString(strings.Join(delegateeDebondingDelegations, ",\n"))
 		i++
 
-		if i != len(document.DebondingDelegations) {
+		if i != len(document.DebondingDelegations) && len(escrows) > 0 {
 			b.WriteString(",\n")
 		}
 	}
 	b.WriteString(";\n")
 
+	return nil
+}
+
+func (mg *MigrationGenerator) addKeyManagerBackendMigrations(b *strings.Builder, document keymanager.Genesis) error {
+	return nil
+}
+
+func (mg *MigrationGenerator) addSchedulerBackendMigrations(b *strings.Builder, document scheduler.Genesis) error {
+	return nil
+}
+
+func (mg *MigrationGenerator) addBeaconBackendMigrations(b *strings.Builder, document beacon.Genesis) error {
+	return nil
+}
+
+func (mg *MigrationGenerator) addGovernanceBackendMigrations(b *strings.Builder, document governance.Genesis) error {
+	return nil
+}
+
+func (mg *MigrationGenerator) addConsensusBackendMigrations(b *strings.Builder, document consensus.Genesis) error {
 	return nil
 }

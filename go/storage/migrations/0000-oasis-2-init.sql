@@ -182,9 +182,7 @@ CREATE TABLE IF NOT EXISTS oasis_2.debonding_delegations
   delegatee  TEXT NOT NULL REFERENCES oasis_2.accounts(address),
   delegator  TEXT NOT NULL REFERENCES oasis_2.accounts(address),
   shares     NUMERIC NOT NULL,
-  debond_end BIGINT NOT NULL,
-
-  PRIMARY KEY (delegatee, delegator)
+  debond_end BIGINT NOT NULL
 );
 
 -- Scheduler Backend Data
