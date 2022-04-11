@@ -10,7 +10,7 @@ require (
 	github.com/libp2p/go-libp2p v0.18.0 // indirect
 	github.com/libp2p/go-libp2p-pubsub v0.6.1 // indirect
 	github.com/oasisprotocol/deoxysii v0.0.0-20220228165953-2091330c22b7 // indirect
-	github.com/oasisprotocol/oasis-core/go v0.2103.11-0.20220327202117-989fa9b7e3aa
+	github.com/oasisprotocol/oasis-core/go v0.2201.3
 	github.com/oasisprotocol/oasis-sdk/client-sdk/go v0.2.0
 	github.com/prometheus/client_golang v1.12.1
 	github.com/prometheus/procfs v0.7.3 // indirect
