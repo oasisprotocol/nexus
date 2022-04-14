@@ -8,6 +8,7 @@ import (
 	"github.com/oasislabs/oasis-block-indexer/go/storage"
 	"github.com/oasisprotocol/oasis-core/go/common"
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
+	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
 	"github.com/oasisprotocol/oasis-core/go/consensus/api/transaction"
 	genesisAPI "github.com/oasisprotocol/oasis-core/go/genesis/api"
 	governanceAPI "github.com/oasisprotocol/oasis-core/go/governance/api"
@@ -34,6 +35,14 @@ func NewOasisNodeClient(ctx context.Context, network *config.Network) (*OasisNod
 		return nil, err
 	}
 
+	chainContext, err := connection.Consensus().GetChainContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// Configure chain context for all signatures using chain domain separation.
+	signature.SetChainContext(chainContext)
+
 	return &OasisNodeClient{
 		&connection,
 		network,
@@ -42,12 +51,13 @@ func NewOasisNodeClient(ctx context.Context, network *config.Network) (*OasisNod
 
 // GenesisDocument returns the original genesis document.
 func (c *OasisNodeClient) GenesisDocument(ctx context.Context) (*genesisAPI.Document, error) {
-	return (*c.connection).Consensus().GetGenesisDocument(ctx)
-}
+	connection := *c.connection
+	doc, err := connection.Consensus().GetGenesisDocument(ctx)
+	if err != nil {
+		return nil, err
+	}
 
-// StateToGenesis returns the genesis state at the specified block height.
-func (c *OasisNodeClient) StateToGenesis(ctx context.Context, height int64) (*genesisAPI.Document, error) {
-	return (*c.connection).Consensus().StateToGenesis(ctx, height)
+	return doc, nil
 }
 
 // Name returns the name of the oasis-node client.

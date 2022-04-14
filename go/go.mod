@@ -9,6 +9,7 @@ require (
 	github.com/go-kit/log v0.2.0
 	github.com/hashicorp/go-hclog v1.1.0 // indirect
 	github.com/hashicorp/go-plugin v1.4.3 // indirect
+	github.com/iancoleman/strcase v0.2.0
 	github.com/jackc/pgx v3.6.2+incompatible
 	github.com/jackc/pgx/v4 v4.10.1
 	github.com/libp2p/go-libp2p v0.18.0 // indirect

@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 
 	"github.com/oasisprotocol/oasis-core/go/consensus/api/transaction"
 	"github.com/oasisprotocol/oasis-core/go/consensus/api/transaction/results"
@@ -125,18 +124,14 @@ func (c *ConsensusAnalyzer) queueBlockInserts(batch *storage.QueryBatch, data *s
 }
 
 func (c *ConsensusAnalyzer) queueTransactionInserts(batch *storage.QueryBatch, data *storage.BlockData) error {
-	c.logger.Info("transaction inserts")
-	c.logger.Debug("length of stuff", "num_tx", len(data.Transactions))
 	for _, signedTx := range data.Transactions {
 		// signedTx := data.Transactions[i]
 		// result := data.Results[i]
 
 		var tx transaction.Transaction
 		if err := signedTx.Open(&tx); err != nil {
-			fmt.Println(err)
 			continue
 		}
-		fmt.Println(tx.Method)
 
 		// batch.Queue(transactionsInsertQuery,
 		// 	data.BlockHeader.Height,
