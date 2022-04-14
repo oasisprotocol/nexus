@@ -4,6 +4,7 @@ package analyzer
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"sync"
@@ -48,6 +49,7 @@ func runAnalyzer(cmd *cobra.Command, args []string) {
 	}
 
 	service, err := NewAnalysisService()
+	fmt.Println(err)
 	switch {
 	case err == nil:
 		service.Start()
@@ -55,12 +57,17 @@ func runAnalyzer(cmd *cobra.Command, args []string) {
 		// Shutdown requested during startup.
 		return
 	default:
+		common.Logger().Error(
+			"service failed to start",
+			"error", err,
+		)
 		os.Exit(1)
 	}
 }
 
 // AnalysisService is the Oasis Indexer's analysis service.
 type AnalysisService struct {
+	ChainID   string
 	Analyzers map[string]analyzer.Analyzer
 
 	source storage.SourceStorage
@@ -88,12 +95,12 @@ func NewAnalysisService() (*AnalysisService, error) {
 	}
 
 	// TODO: This is just for quick-and-dirty validation
-	document, err := oasisNodeClient.GenesisDocument(ctx)
+	genesisDocument, err := oasisNodeClient.GenesisDocument(ctx)
 	if err != nil {
 		return nil, err
 	}
 	g := generator.NewMigrationGenerator(logger)
-	if err := g.WriteGenesisDocumentMigration("/Users/nikhilsharma/oasis-block-indexer/go/storage/migrations/0001-state-init.sql", document); err != nil {
+	if err := g.WriteGenesisDocumentMigration("/Users/nikhilsharma/oasis-block-indexer/go/storage/migrations/0001-state-init.sql", genesisDocument); err != nil {
 		return nil, err
 	}
 
@@ -107,6 +114,7 @@ func NewAnalysisService() (*AnalysisService, error) {
 	consensusAnalyzer := consensus.NewConsensusAnalyzer(oasisNodeClient, cockroachClient, logger)
 
 	return &AnalysisService{
+		ChainID: genesisDocument.ChainID,
 		Analyzers: map[string]analyzer.Analyzer{
 			consensusAnalyzer.Name(): consensusAnalyzer,
 		},

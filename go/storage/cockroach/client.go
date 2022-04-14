@@ -4,6 +4,7 @@ package cockroach
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/cockroachdb/cockroach-go/v2/crdb/crdbpgx"
 	"github.com/jackc/pgx/v4"
@@ -30,10 +31,12 @@ func NewCockroachClient(connString string) (*CockroachClient, error) {
 
 // SendBatch submits a new transaction batch to CockroachDB.
 func (c *CockroachClient) SendBatch(ctx context.Context, batch *pgx.Batch) error {
+	fmt.Println("sending batch")
 	conn, err := c.pool.Acquire(ctx)
 	if err != nil {
 		return err
 	}
+	defer conn.Release()
 
 	if err := crdbpgx.ExecuteTx(ctx, conn, pgx.TxOptions{}, func(tx pgx.Tx) error {
 		batchResults := tx.SendBatch(ctx, batch)

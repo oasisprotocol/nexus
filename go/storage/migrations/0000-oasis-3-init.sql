@@ -4,11 +4,11 @@
 BEGIN;
 
 -- Create Cobalt Upgrade Schema with `chain-id`.
-CREATE SCHEMA IF NOT EXISTS oasis_2;
+CREATE SCHEMA IF NOT EXISTS oasis_3;
 
 -- Block Data
 
-CREATE TABLE IF NOT EXISTS oasis_2.blocks
+CREATE TABLE IF NOT EXISTS oasis_3.blocks
 (
   height     BIGINT PRIMARY KEY,
   block_hash TEXT NOT NULL,
@@ -30,9 +30,9 @@ CREATE TABLE IF NOT EXISTS oasis_2.blocks
   extra_data JSON
 );
 
-CREATE TABLE IF NOT EXISTS oasis_2.transactions
+CREATE TABLE IF NOT EXISTS oasis_3.transactions
 (
-  block BIGINT NOT NULL REFERENCES oasis_2.blocks(height),
+  block BIGINT NOT NULL REFERENCES oasis_3.blocks(height),
 
   txn_hash   TEXT NOT NULL,
   txn_index  INTEGER,
@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS oasis_2.transactions
   extra_data JSON
 );
 
-CREATE TABLE IF NOT EXISTS oasis_2.events
+CREATE TABLE IF NOT EXISTS oasis_3.events
 (
   backend TEXT NOT NULL,
   type    TEXT NOT NULL,
@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS oasis_2.events
   txn_hash   TEXT NOT NULL,
   txn_index  INTEGER,
 
-  FOREIGN KEY (txn_block, txn_hash, txn_index) REFERENCES oasis_2.transactions(block, txn_hash, txn_index),
+  FOREIGN KEY (txn_block, txn_hash, txn_index) REFERENCES oasis_3.transactions(block, txn_hash, txn_index),
 
   -- Arbitrary additional data.
   extra_data JSON
@@ -74,7 +74,7 @@ CREATE TABLE IF NOT EXISTS oasis_2.events
 
 -- Beacon Backend Data
 
-CREATE TABLE IF NOT EXISTS oasis_2.epochs
+CREATE TABLE IF NOT EXISTS oasis_3.epochs
 (
   id           BIGINT PRIMARY KEY,
   start_height BIGINT NOT NULL,
@@ -86,46 +86,38 @@ CREATE TABLE IF NOT EXISTS oasis_2.epochs
 );
 
 -- Registry Backend Data
-CREATE TABLE IF NOT EXISTS oasis_2.runtimes
+CREATE TABLE IF NOT EXISTS oasis_3.entities
 (
-  id TEXT PRIMARY KEY,
-
-  -- Arbitrary additional data.
-  extra_data JSON
-);
-
-CREATE TABLE IF NOT EXISTS oasis_2.entities
-(
-  id      BYTEA PRIMARY KEY,
+  id      TEXT PRIMARY KEY,
   address TEXT,
 
   -- Arbitrary additional data.
   extra_data JSON
 );
 
-CREATE TABLE IF NOT EXISTS oasis_2.nodes
+CREATE TABLE IF NOT EXISTS oasis_3.nodes
 (
-  id         BYTEA PRIMARY KEY,
-  entity_id  BYTEA NOT NULL REFERENCES oasis_2.entities(id),
+  id         TEXT PRIMARY KEY,
+  entity_id  TEXT NOT NULL REFERENCES oasis_3.entities(id),
   expiration BIGINT NOT NULL,
 
   -- TLS Info
-  tls_pubkey      BYTEA NOT NULL,
-  tls_next_pubkey BYTEA,
-  tls_addresses   TEXT[],
+  tls_pubkey      TEXT NOT NULL,
+  tls_next_pubkey TEXT,
+  tls_addresses   TEXT ARRAY,
 
   -- P2P Info
-  p2p_pubkey    BYTEA NOT NULL,
+  p2p_pubkey    TEXT NOT NULL,
   p2p_addresses TEXT ARRAY,
 
   -- Consensus Info
-  consensus_pubkey  BYTEA NOT NULL,
+  consensus_pubkey  TEXT NOT NULL,
   consensus_address TEXT,
 
   -- VRF Info
-  vrf_pubkey BYTEA,
+  vrf_pubkey TEXT,
 
-  roles            INTEGER,
+  roles            TEXT,
   software_version TEXT,
 
   -- Voting power should only be nonzero for consensus validator nodes.
@@ -137,9 +129,21 @@ CREATE TABLE IF NOT EXISTS oasis_2.nodes
   extra_data JSON
 );
 
+CREATE TABLE IF NOT EXISTS oasis_3.runtimes
+(
+  id           TEXT PRIMARY KEY,
+  suspended    BOOLEAN NOT NULL false,
+  kind         TEXT NOT NULL,
+  tee_hardware TEXT NOT NULL,
+  key_manager  TEXT,
+
+  -- Arbitrary additional data.
+  extra_data JSON
+);
+
 -- Staking Backend Data
 
-CREATE TABLE IF NOT EXISTS oasis_2.accounts
+CREATE TABLE IF NOT EXISTS oasis_3.accounts
 (
   address TEXT PRIMARY KEY,
   
@@ -159,37 +163,37 @@ CREATE TABLE IF NOT EXISTS oasis_2.accounts
   extra_data JSON
 );
 
-CREATE TABLE IF NOT EXISTS oasis_2.allowances
+CREATE TABLE IF NOT EXISTS oasis_3.allowances
 (
-  owner       TEXT NOT NULL REFERENCES oasis_2.accounts(address),
-  beneficiary TEXT NOT NULL REFERENCES oasis_2.accounts(address),
+  owner       TEXT NOT NULL REFERENCES oasis_3.accounts(address),
+  beneficiary TEXT NOT NULL REFERENCES oasis_3.accounts(address),
   allowance   NUMERIC,
 
   PRIMARY KEY (owner, beneficiary)
 );
 
-CREATE TABLE IF NOT EXISTS oasis_2.delegations
+CREATE TABLE IF NOT EXISTS oasis_3.delegations
 (
-  delegatee TEXT NOT NULL REFERENCES oasis_2.accounts(address),
-  delegator TEXT NOT NULL REFERENCES oasis_2.accounts(address),
+  delegatee TEXT NOT NULL REFERENCES oasis_3.accounts(address),
+  delegator TEXT NOT NULL REFERENCES oasis_3.accounts(address),
   shares    NUMERIC NOT NULL,
 
   PRIMARY KEY (delegatee, delegator)
 );
 
-CREATE TABLE IF NOT EXISTS oasis_2.debonding_delegations
+CREATE TABLE IF NOT EXISTS oasis_3.debonding_delegations
 (
-  delegatee  TEXT NOT NULL REFERENCES oasis_2.accounts(address),
-  delegator  TEXT NOT NULL REFERENCES oasis_2.accounts(address),
+  delegatee  TEXT NOT NULL REFERENCES oasis_3.accounts(address),
+  delegator  TEXT NOT NULL REFERENCES oasis_3.accounts(address),
   shares     NUMERIC NOT NULL,
   debond_end BIGINT NOT NULL
 );
 
 -- Scheduler Backend Data
 
-CREATE TABLE IF NOT EXISTS oasis_2.committee_members
+CREATE TABLE IF NOT EXISTS oasis_3.committee_members
 (
-  node      BYTEA NOT NULL,
+  node      TEXT NOT NULL,
   valid_for BIGINT NOT NULL,
   runtime   TEXT NOT NULL,
   kind      TEXT NOT NULL,
@@ -203,7 +207,7 @@ CREATE TABLE IF NOT EXISTS oasis_2.committee_members
 
 -- Governance Backend Data
 
-CREATE TABLE IF NOT EXISTS oasis_2.proposals
+CREATE TABLE IF NOT EXISTS oasis_3.proposals
 (
   id            BIGINT PRIMARY KEY,
   submitter     TEXT NOT NULL,
@@ -219,7 +223,7 @@ CREATE TABLE IF NOT EXISTS oasis_2.proposals
   upgrade_epoch      BIGINT,
 
   -- If this proposal cancels an existing proposal.
-  cancels BIGINT REFERENCES oasis_2.proposals(id),
+  cancels BIGINT REFERENCES oasis_3.proposals(id),
 
   created_at    BIGINT NOT NULL,
   closes_at     BIGINT NOT NULL,
@@ -229,9 +233,9 @@ CREATE TABLE IF NOT EXISTS oasis_2.proposals
   extra_data JSON
 );
 
-CREATE TABLE IF NOT EXISTS oasis_2.votes
+CREATE TABLE IF NOT EXISTS oasis_3.votes
 (
-  proposal BIGINT NOT NULL REFERENCES oasis_2.proposals(id),
+  proposal BIGINT NOT NULL REFERENCES oasis_3.proposals(id),
   voter    TEXT NOT NULL,
   vote     TEXT,
 

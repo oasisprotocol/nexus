@@ -14,7 +14,7 @@ require (
 	github.com/libp2p/go-libp2p v0.18.0 // indirect
 	github.com/libp2p/go-libp2p-pubsub v0.6.1 // indirect
 	github.com/oasisprotocol/deoxysii v0.0.0-20220228165953-2091330c22b7 // indirect
-	github.com/oasisprotocol/oasis-core/go v0.2103.12
+	github.com/oasisprotocol/oasis-core/go v0.2201.3
 	github.com/oasisprotocol/oasis-sdk/client-sdk/go v0.2.0
 	github.com/opencontainers/image-spec v1.0.2 // indirect
 	github.com/opencontainers/runc v1.0.3 // indirect

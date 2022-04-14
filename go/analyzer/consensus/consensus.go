@@ -38,12 +38,15 @@ func NewConsensusAnalyzer(source storage.SourceStorage, target storage.TargetSto
 func (c *ConsensusAnalyzer) Start() {
 	ctx := context.Background()
 
-	height := int64(3027601)
+	height := int64(8048956)
 	for {
 		c.logger.Info("processing block", "height", height)
 		if err := c.processBlock(ctx, height); err != nil {
+			c.logger.Warn("got error", "err", err.Error())
 			continue
 		}
+
+		c.logger.Info("finished processing block")
 
 		height += 1
 	}
@@ -80,8 +83,6 @@ func (c *ConsensusAnalyzer) processBlock(ctx context.Context, height int64) erro
 		return err
 	}
 
-	c.logger.Info("prepared batch. sending.")
-
 	return c.target.SendBatch(ctx, batch)
 }
 
@@ -110,7 +111,7 @@ func (c *ConsensusAnalyzer) queueBlockInserts(batch *storage.QueryBatch, data *s
 		data.BlockHeader.Height,
 		data.BlockHeader.Hash.Hex(),
 		data.BlockHeader.Time,
-		data.BlockHeader.StateRoot.Namespace.Hex(),
+		data.BlockHeader.StateRoot.Namespace.String(),
 		int64(data.BlockHeader.StateRoot.Version),
 		data.BlockHeader.StateRoot.Type.String(),
 		data.BlockHeader.StateRoot.Hash.Hex(),
