@@ -4,7 +4,6 @@ package analyzer
 import (
 	"context"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"sync"
@@ -19,7 +18,6 @@ import (
 	"github.com/oasislabs/oasis-block-indexer/go/oasis-indexer/cmd/common"
 	"github.com/oasislabs/oasis-block-indexer/go/storage"
 	target "github.com/oasislabs/oasis-block-indexer/go/storage/cockroach"
-	"github.com/oasislabs/oasis-block-indexer/go/storage/migrations/generator"
 	source "github.com/oasislabs/oasis-block-indexer/go/storage/oasis"
 )
 
@@ -49,7 +47,6 @@ func runAnalyzer(cmd *cobra.Command, args []string) {
 	}
 
 	service, err := NewAnalysisService()
-	fmt.Println(err)
 	switch {
 	case err == nil:
 		service.Start()
@@ -95,14 +92,14 @@ func NewAnalysisService() (*AnalysisService, error) {
 	}
 
 	// TODO: This is just for quick-and-dirty validation
-	genesisDocument, err := oasisNodeClient.GenesisDocument(ctx)
-	if err != nil {
-		return nil, err
-	}
-	g := generator.NewMigrationGenerator(logger)
-	if err := g.WriteGenesisDocumentMigration("/Users/nikhilsharma/oasis-block-indexer/go/storage/migrations/0001-state-init.sql", genesisDocument); err != nil {
-		return nil, err
-	}
+	// genesisDocument, err := oasisNodeClient.GenesisDocument(ctx)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// g := generator.NewMigrationGenerator(logger)
+	// if err := g.WriteGenesisDocumentMigration("/Users/nikhilsharma/oasis-block-indexer/go/storage/migrations/0001-state-init.sql", genesisDocument); err != nil {
+	// 	return nil, err
+	// }
 
 	// Initialize target storage.
 	cockroachClient, err := target.NewCockroachClient(cfgStorageEndpoint)
@@ -114,7 +111,7 @@ func NewAnalysisService() (*AnalysisService, error) {
 	consensusAnalyzer := consensus.NewConsensusAnalyzer(oasisNodeClient, cockroachClient, logger)
 
 	return &AnalysisService{
-		ChainID: genesisDocument.ChainID,
+		ChainID: "oasis-3",
 		Analyzers: map[string]analyzer.Analyzer{
 			consensusAnalyzer.Name(): consensusAnalyzer,
 		},

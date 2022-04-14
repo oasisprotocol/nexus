@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 
 	"github.com/oasisprotocol/oasis-core/go/consensus/api/transaction"
 	"github.com/oasisprotocol/oasis-core/go/consensus/api/transaction/results"
@@ -38,7 +39,7 @@ func NewConsensusAnalyzer(source storage.SourceStorage, target storage.TargetSto
 func (c *ConsensusAnalyzer) Start() {
 	ctx := context.Background()
 
-	height := int64(8048956)
+	height := int64(8049957)
 	for {
 		c.logger.Info("processing block", "height", height)
 		if err := c.processBlock(ctx, height); err != nil {
@@ -62,7 +63,9 @@ func (c *ConsensusAnalyzer) processBlock(ctx context.Context, height int64) erro
 	group, groupCtx := errgroup.WithContext(ctx)
 
 	batch := &storage.QueryBatch{}
-	for _, f := range []func(context.Context, int64, *storage.QueryBatch) error{
+
+	type prepareFunc = func(context.Context, int64, *storage.QueryBatch) error
+	for _, f := range []prepareFunc{
 		c.prepareBlockData,
 		c.prepareBeaconData,
 		c.prepareRegistryData,
@@ -70,16 +73,17 @@ func (c *ConsensusAnalyzer) processBlock(ctx context.Context, height int64) erro
 		c.prepareSchedulerData,
 		c.prepareGovernanceData,
 	} {
-		group.Go(func() error {
-			if err := f(groupCtx, height, batch); err != nil {
-				return err
-			}
-			return nil
-		})
+		func(f prepareFunc) {
+			group.Go(func() error {
+				if err := f(groupCtx, height, batch); err != nil {
+					return err
+				}
+				return nil
+			})
+		}(f)
 	}
 
 	if err := group.Wait(); err != nil {
-		c.logger.Warn(err.Error())
 		return err
 	}
 
@@ -121,28 +125,32 @@ func (c *ConsensusAnalyzer) queueBlockInserts(batch *storage.QueryBatch, data *s
 }
 
 func (c *ConsensusAnalyzer) queueTransactionInserts(batch *storage.QueryBatch, data *storage.BlockData) error {
-	for i := 0; i < len(data.Transactions); i++ {
-		signedTransaction := data.Transactions[i]
-		result := data.Results[i]
+	c.logger.Info("transaction inserts")
+	c.logger.Debug("length of stuff", "num_tx", len(data.Transactions))
+	for _, signedTx := range data.Transactions {
+		// signedTx := data.Transactions[i]
+		// result := data.Results[i]
 
-		var transaction transaction.Transaction
-		if err := signedTransaction.Open(&transaction); err != nil {
-			return err
+		var tx transaction.Transaction
+		if err := signedTx.Open(&tx); err != nil {
+			fmt.Println(err)
+			continue
 		}
+		fmt.Println(tx.Method)
 
-		batch.Queue(transactionsInsertQuery,
-			data.BlockHeader.Height,
-			signedTransaction.Hash().Hex(),
-			i,
-			transaction.Nonce,
-			transaction.Fee.Amount.ToBigInt(),
-			transaction.Fee.Gas,
-			transaction.Method,
-			transaction.Body,
-			result.Error.Module,
-			result.Error.Code,
-			result.Error.Message,
-		)
+		// batch.Queue(transactionsInsertQuery,
+		// 	data.BlockHeader.Height,
+		// 	signedTx.Hash().Hex(),
+		// 	i,
+		// 	tx.Nonce,
+		// 	tx.Fee.Amount.ToBigInt(),
+		// 	tx.Fee.Gas,
+		// 	tx.Method,
+		// 	tx.Body,
+		// 	result.Error.Module,
+		// 	result.Error.Code,
+		// 	result.Error.Message,
+		// )
 	}
 
 	return nil
