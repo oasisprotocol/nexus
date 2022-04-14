@@ -1001,6 +1001,8 @@ github.com/oasisprotocol/oasis-core/go v0.2103.11-0.20220327202117-989fa9b7e3aa 
 github.com/oasisprotocol/oasis-core/go v0.2103.11-0.20220327202117-989fa9b7e3aa/go.mod h1:t3VP2KjCwlmUCEKywFLZIBdBHNzHhVUjwIPjUqD+urk=
 github.com/oasisprotocol/oasis-core/go v0.2200.3 h1:lI0VP7aybRvh80LCSBg/b4zXC+v/zuYzvDHvW3hXnU8=
 github.com/oasisprotocol/oasis-core/go v0.2200.3/go.mod h1:5j0o8vu87SRgO0QM4YZpiOEqLpWdOGHF+7hgOrbQRro=
+github.com/oasisprotocol/oasis-core/go v0.2201.3 h1:uybCt9s3X8a+mNpp+CdnlqYeVl1N392RK0NsedtBQlk=
+github.com/oasisprotocol/oasis-core/go v0.2201.3/go.mod h1:9n/UonHFlJP3Ggven2P1+uBnKl5WJe3PEQPKJVmG/Fw=
 github.com/oasisprotocol/oasis-sdk/client-sdk/go v0.2.0 h1:o2ImwTBsXZoUmth1f6LM6lRZL8JqzGN9ZK0qMe5gyUM=
 github.com/oasisprotocol/oasis-sdk/client-sdk/go v0.2.0/go.mod h1:nxZXlyV9R9fwm7OXohtdiGPernaICKPPgQJgp5hZSBY=
 github.com/oasisprotocol/safeopen v0.0.0-20200528085122-e01cfdfc7661/go.mod h1:SwBxaVibf6Sr2IZ6M3WnUue0yp8dPLAo1riQRNQ60+g=
@@ -1027,7 +1029,9 @@ github.com/onsi/gomega v1.13.0/go.mod h1:lRk9szgn8TxENtWd0Tp4c3wjlRfMTMH27I+3Je4
 github.com/op/go-logging v0.0.0-20160315200505-970db520ece7/go.mod h1:HzydrMdWErDVzsI23lYNej1Htcns9BCg93Dk0bBINWk=
 github.com/opencontainers/go-digest v1.0.0/go.mod h1:0JzlMkj0TRzQZfJkVvzbP0HBR3IKzErnv2BNG4W4MAM=
 github.com/opencontainers/image-spec v1.0.1/go.mod h1:BtxoFyWECRxE4U/7sNtV5W15zMzWCbyJoFRP3s7yZA0=
+github.com/opencontainers/image-spec v1.0.2/go.mod h1:BtxoFyWECRxE4U/7sNtV5W15zMzWCbyJoFRP3s7yZA0=
 github.com/opencontainers/runc v1.0.2/go.mod h1:aTaHFFwQXuA71CiyxOdFFIorAoemI04suvGRQFzWTD0=
+github.com/opencontainers/runc v1.0.3/go.mod h1:aTaHFFwQXuA71CiyxOdFFIorAoemI04suvGRQFzWTD0=
 github.com/opencontainers/runtime-spec v1.0.2/go.mod h1:jwyrGlmzljRJv/Fgzds9SsS/C5hL+LL3ko9hs6T5lQ0=
 github.com/opencontainers/runtime-spec v1.0.3-0.20210326190908-1c3f411f0417/go.mod h1:jwyrGlmzljRJv/Fgzds9SsS/C5hL+LL3ko9hs6T5lQ0=
 github.com/opencontainers/selinux v1.8.2/go.mod h1:MUIHuUEvKB1wtJjQdOyYRgOnLD2xAPP8dBsCoU0KuF8=
