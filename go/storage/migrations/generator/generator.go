@@ -69,7 +69,7 @@ BEGIN;
 		}
 	}
 
-	b.WriteString("\n\nCOMMIT;\n")
+	b.WriteString("\nCOMMIT;\n")
 
 	return b.String(), nil
 }
@@ -163,7 +163,7 @@ VALUES
 	b.WriteString(";\n")
 
 	b.WriteString(fmt.Sprintf(`
-INSERT INTO %s.runtimes (id, suspended, kind, tee_hardware, key_manager, extra_data)
+INSERT INTO %s.runtimes (id, suspended, kind, tee_hardware, key_manager)
 VALUES
 `, chainID))
 
@@ -381,7 +381,7 @@ VALUES
 				))
 			}
 
-			if i != len(document.Governance.Proposals) {
+			if i != len(document.Governance.Proposals)-1 {
 				b.WriteString(",\n")
 			}
 		}

@@ -40,13 +40,9 @@ func (c *ConsensusAnalyzer) Start() {
 
 	height := int64(8049957)
 	for {
-		c.logger.Info("processing block", "height", height)
 		if err := c.processBlock(ctx, height); err != nil {
-			c.logger.Warn("got error", "err", err.Error())
 			continue
 		}
-
-		c.logger.Info("finished processing block")
 
 		height += 1
 	}

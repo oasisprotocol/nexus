@@ -132,7 +132,7 @@ CREATE TABLE IF NOT EXISTS oasis_3.nodes
 CREATE TABLE IF NOT EXISTS oasis_3.runtimes
 (
   id           TEXT PRIMARY KEY,
-  suspended    BOOLEAN NOT NULL false,
+  suspended    BOOLEAN NOT NULL DEFAULT false,
   kind         TEXT NOT NULL,
   tee_hardware TEXT NOT NULL,
   key_manager  TEXT,
