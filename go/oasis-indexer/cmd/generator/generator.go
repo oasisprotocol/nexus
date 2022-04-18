@@ -51,6 +51,7 @@ func runGenerator(cmd *cobra.Command, args []string) {
 	logger := common.Logger().WithModule(moduleName)
 	g := generator.NewMigrationGenerator(logger)
 
+	// Get output file.
 	w := os.Stdout
 	if cfgOutputFilename != "" {
 		f, err := os.Create(cfgOutputFilename)
@@ -65,6 +66,7 @@ func runGenerator(cmd *cobra.Command, args []string) {
 		w = f
 	}
 
+	// Connect to oasis-node.
 	rawCfg, err := ioutil.ReadFile(cfgNetworkConfig)
 	if err != nil {
 		logger.Error("failed to parse network config",
@@ -85,6 +87,7 @@ func runGenerator(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
+	// Fetch genesis document for migration.
 	d, err := client.GenesisDocument(ctx)
 	if err != nil {
 		logger.Error("failed to fetch genesis document",
@@ -97,6 +100,7 @@ func runGenerator(cmd *cobra.Command, args []string) {
 		cfgChainID = d.ChainID
 	}
 
+	// Generate migration.
 	switch cfgChainID {
 	case "oasis-3":
 		if err := g.WriteGenesisDocumentMigrationOasis3(w, d); err != nil {
