@@ -17,8 +17,11 @@ import (
 const (
 	// CfgMetricsPullAddr is the address at which Prometheus metrics will be exposed
 	CfgMetricsPullAddr = "metrics.pull.addr"
+
 	// CfgMetricsPullPort is the port at which Prometheus metrics will be exposed
 	CfgMetricsPullPort = "metrics.pull.port"
+
+	moduleName = "metrics"
 )
 
 var (
@@ -30,7 +33,7 @@ var (
 
 type pullService struct {
 	server *http.Server
-	logger log.Logger
+	logger *log.Logger
 }
 
 func (s *pullService) StartInstrumentation() {
