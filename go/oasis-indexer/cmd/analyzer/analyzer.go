@@ -84,7 +84,7 @@ type Analyzer struct {
 	logger        *log.Logger
 }
 
-// NewAnalyzer creates and starts a new Analyzer
+// NewAnalyzer creates and starts a new Analyzer.
 func NewAnalyzer(net config.Network) (*Analyzer, error) {
 	logger := common.Logger().WithModule(moduleName)
 
