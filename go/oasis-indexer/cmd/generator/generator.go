@@ -104,14 +104,16 @@ func runGenerator(cmd *cobra.Command, args []string) {
 				"error", err,
 			)
 		}
-		logger.Info("successfully wrote migration",
-			"output_file", cfgOutputFilename,
-		)
-		os.Exit(0)
+		break
 	default:
 		logger.Error("unsupported chain id")
 		os.Exit(1)
 	}
+
+	logger.Info("successfully wrote migration",
+		"output_file", cfgOutputFilename,
+	)
+	os.Exit(0)
 }
 
 // Register registers the process sub-command.
