@@ -101,8 +101,13 @@ func NewAnalysisService() (*AnalysisService, error) {
 	// Initialize analyzers.
 	consensusAnalyzer := consensus.NewConsensusAnalyzer(oasisNodeClient, cockroachClient, logger)
 
+	d, err := oasisNodeClient.GenesisDocument(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	return &AnalysisService{
-		ChainID: "oasis-3", // TODO
+		ChainID: d.ChainID,
 		Analyzers: map[string]analyzer.Analyzer{
 			consensusAnalyzer.Name(): consensusAnalyzer,
 		},

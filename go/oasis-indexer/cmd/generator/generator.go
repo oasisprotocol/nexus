@@ -5,9 +5,11 @@ package generator
 
 import (
 	"context"
+	"errors"
 	"io/ioutil"
 	"os"
 
+	"github.com/oasislabs/oasis-block-indexer/go/log"
 	"github.com/oasislabs/oasis-block-indexer/go/oasis-indexer/cmd/common"
 	"github.com/oasislabs/oasis-block-indexer/go/storage/migrations/generator"
 	"github.com/oasislabs/oasis-block-indexer/go/storage/oasis"
@@ -48,31 +50,42 @@ func runGenerator(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	logger := common.Logger().WithModule(moduleName)
-	g := generator.NewMigrationGenerator(logger)
-
-	// Get output file.
-	w := os.Stdout
-	if cfgOutputFilename != "" {
-		f, err := os.Create(cfgOutputFilename)
-		if err != nil {
-			logger.Error("failed to create migrations file",
+	g, err := NewGenerator()
+	switch {
+	case err == nil:
+		if err := g.WriteMigration(); err != nil {
+			common.Logger().Error("migration failed to run",
 				"error", err,
 			)
 			os.Exit(1)
 		}
-		defer f.Close()
-
-		w = f
+		return
+	case errors.Is(err, context.Canceled):
+		// Shutdown requested during startup.
+		return
+	default:
+		common.Logger().Error("generator failed to initialize",
+			"error", err,
+		)
+		os.Exit(1)
 	}
+}
+
+// Generator is the Oasis Indexer's migration generator.
+type Generator struct {
+	gen    *generator.MigrationGenerator
+	client *oasis.OasisNodeClient
+	logger *log.Logger
+}
+
+// NewGenerator creates a new Generator.
+func NewGenerator() (*Generator, error) {
+	logger := common.Logger().WithModule(moduleName)
 
 	// Connect to oasis-node.
 	rawCfg, err := ioutil.ReadFile(cfgNetworkConfig)
 	if err != nil {
-		logger.Error("failed to parse network config",
-			"error", err,
-		)
-		os.Exit(1)
+		return nil, err
 	}
 
 	var network config.Network
@@ -81,42 +94,52 @@ func runGenerator(cmd *cobra.Command, args []string) {
 	ctx := context.Background()
 	client, err := oasis.NewOasisNodeClient(ctx, &network)
 	if err != nil {
-		logger.Error("failed to create oasis-node client",
-			"error", err,
-		)
-		os.Exit(1)
+		return nil, err
 	}
+
+	return &Generator{
+		gen:    generator.NewMigrationGenerator(logger),
+		client: client,
+		logger: logger,
+	}, nil
+}
+
+// WriteMigration writes the state migration.
+func (g *Generator) WriteMigration() error {
+	ctx := context.Background()
 
 	// Fetch genesis document for migration.
-	d, err := client.GenesisDocument(ctx)
+	d, err := g.client.GenesisDocument(ctx)
 	if err != nil {
-		logger.Error("failed to fetch genesis document",
-			"error", err,
-		)
-		os.Exit(1)
+		return err
 	}
 
-	if cfgChainID == "" {
-		cfgChainID = d.ChainID
+	// Create output file.
+	w := os.Stdout
+	if cfgOutputFilename != "" {
+		f, err := os.Create(cfgOutputFilename)
+		if err != nil {
+			return err
+		}
+		defer f.Close()
+
+		w = f
 	}
 
 	// Generate migration.
-	switch cfgChainID {
+	switch d.ChainID {
 	case "oasis-3":
-		if err := g.WriteGenesisDocumentMigrationOasis3(w, d); err != nil {
-			logger.Error("failed to write migration",
-				"error", err,
-			)
+		if err := g.gen.WriteGenesisDocumentMigrationOasis3(w, d); err != nil {
+			return err
 		}
 		break
 	default:
-		logger.Error("unsupported chain id")
-		os.Exit(1)
+		g.logger.Error("unsupported chain id")
+		return errors.New("unsupported chain id")
 	}
 
-	logger.Info("successfully wrote migration",
-		"output_file", cfgOutputFilename,
-	)
+	g.logger.Info("successfully wrote migration")
+	return nil
 }
 
 // Register registers the process sub-command.
