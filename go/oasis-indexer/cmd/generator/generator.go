@@ -113,7 +113,6 @@ func runGenerator(cmd *cobra.Command, args []string) {
 	logger.Info("successfully wrote migration",
 		"output_file", cfgOutputFilename,
 	)
-	os.Exit(0)
 }
 
 // Register registers the process sub-command.
