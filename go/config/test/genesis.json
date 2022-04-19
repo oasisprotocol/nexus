@@ -1,0 +1,311 @@
+{
+  "height": 8048956,
+  "chain_id": "test",
+  "registry": {
+    "entities": [
+      {
+        "untrusted_raw_value": "o2F2AWJpZFgggb8SHLeDc69Elk7OTfqhtVgE2sqxrBCDQI84xKR+Bjhlbm9kZXOBWCDlEgxWCew3UP8d283FcKkT6VYflT9IZhStiy+GxMxvIA==",
+        "signature": {
+          "public_key": "gb8SHLeDc69Elk7OTfqhtVgE2sqxrBCDQI84xKR+Bjg=",
+          "signature": "kqCB+O1EJGMkDqOipDE0MeYTIbuAnIxHf4jbrLXh+2Pi33QFI2m70u+dChjGSIXHalsrXA8BhDq6mr2kx5tFBg=="
+        }
+      },
+      {
+        "untrusted_raw_value": "o2F2AWJpZFggLaKJUKndAqH57DVExspTjdRTRNGJOSqArzM0pm8REZxlbm9kZXOCWCCNnb8Q6emY8LEJ93nCussg011lI9bKEjH1SomBnywdiVggMDRdg2CAm8zmal3EJgzZJAJcj5ouKiSxu17o2pUuog0=",
+        "signature": {
+          "public_key": "LaKJUKndAqH57DVExspTjdRTRNGJOSqArzM0pm8REZw=",
+          "signature": "6VHn1nB26MNUgRxaS1AF8hURxYmF+swozTdhA688VnLFHokh3kVbVro7mU5zrH5joQ8n3ZHwJan5lBHKzpJCCg=="
+        }
+      },
+      {
+        "untrusted_raw_value": "o2F2AWJpZFggDcplOZzEDthLHtPyjbtn9nldfzZ5b9r8EJFnD3JTGMJlbm9kZXOBWCDZ0b7qSTyAFN5IFv4QoHScbqnomehOCOVy5UNzSJW3pQ==",
+        "signature": {
+          "public_key": "DcplOZzEDthLHtPyjbtn9nldfzZ5b9r8EJFnD3JTGMI=",
+          "signature": "6nryl1yn+PGPPrlZ0fcyRy/onjF2fTxRNve9LdzuWnfkxwl3pQQdwrGFjgkXjTP+ScJrjGrGJQDjd4RJGNa6Cw=="
+        }
+      }
+    ],
+    "nodes": [
+      {
+        "untrusted_raw_value": "qmF2AWJpZFgg5RIMVgnsN1D/HdvNxXCpE+lWH5U/SGYUrYsvhsTMbyBjcDJwomJpZFggZjerSSlcR3yrd4dff3ZjoPI6TvMivoiwyvNWSXsYzWBpYWRkcmVzc2Vz9mN0bHOjZ3B1Yl9rZXlYIFCy4KCEDRYsx+Zejt2KSuvqQ+iWIif9GxI9DrFz+Me5aWFkZHJlc3Nlc/ZsbmV4dF9wdWJfa2V5WCB2uMGCCgaW6O7N+gJX9qqEgqvAJpB1yUT49z9cvHtrYmVyb2xlcwhmYmVhY29uoWVwb2ludFhBBO8iTGREeVyOW/yUzhtLc4kLg4BncrwE1UMqbfUgwDN8Ee8D2s0lRBy674fEuITqPXfc1I3xBnDw8Awjht5lGexocnVudGltZXP2aWNvbnNlbnN1c6JiaWRYILO6Xsgu3SXKqOfCiDCVzUE8CIr0T1+zkF9If3jlLP3FaWFkZHJlc3Nlc4GiYmlkWCBmN6tJKVxHfKt3h19/dmOg8jpO8yK+iLDK81ZJexjNYGdhZGRyZXNzo2JJUFAAAAAAAAAAAAAA//+fipMPZFBvcnQZVJhkWm9uZWBpZW50aXR5X2lkWCCBvxIct4Nzr0SWTs5N+qG1WATayrGsEINAjzjEpH4GOGpleHBpcmF0aW9uGTRb",
+        "signatures": [
+          {
+            "public_key": "5RIMVgnsN1D/HdvNxXCpE+lWH5U/SGYUrYsvhsTMbyA=",
+            "signature": "SHIIr4Uivy6z5B9+ZmXk3O/HDJmcEr2Z+CUncMdOR3zBpCMgsO6MNtmpr6BYA57qbyhMmjICUTJu2R2O2807Dg=="
+          },
+          {
+            "public_key": "ZjerSSlcR3yrd4dff3ZjoPI6TvMivoiwyvNWSXsYzWA=",
+            "signature": "Jaac3Kc6I0d/2TcQxQtL4O/I1Ij0TkX3gcvKnCwHcB4BWwvouU4wQj6nCGmvZ+MMqfakS5MWbWTXFR1zjQAdDQ=="
+          },
+          {
+            "public_key": "s7peyC7dJcqo58KIMJXNQTwIivRPX7OQX0h/eOUs/cU=",
+            "signature": "j2Eq26W6GZYSDTHssz73kqss/QrNvAiscf8YeaR/+HeUlthAMIU0Z/CkbgFepui58ezbIbK+UE5xupGTE/cLBw=="
+          },
+          {
+            "public_key": "ULLgoIQNFizH5l6O3YpK6+pD6JYiJ/0bEj0OsXP4x7k=",
+            "signature": "yBtn16m/+EFXlGf1wAHF6XsKw7oJ3hcdK9P0n3quH9OBLdhuLRFzQ21DzwzseApl9k5UGHNZmbqj2QkzN6IJBg=="
+          }
+        ]
+      },
+      {
+        "untrusted_raw_value": "qmF2AWJpZFggjZ2/EOnpmPCxCfd5wrrLINNdZSPWyhIx9UqJgZ8sHYljcDJwomJpZFggbpiX0+kFMBa67VBoACbNu4iGuLWm2NBnDTP31Ia7COxpYWRkcmVzc2Vz9mN0bHOjZ3B1Yl9rZXlYIEikaLik0jL3QZF6nifaKJGpKAiwVseOM2BSSDdE8+5LaWFkZHJlc3Nlc/ZsbmV4dF9wdWJfa2V5WCBm1n4bGW0hCzpfdpBKK26J7HwYV25EcCxkWfmRQgPtWGVyb2xlcwhmYmVhY29uoWVwb2ludFhBBNAG2uGJCLWd69NG8FOyMC2z3DAZYflbUqrn8XqFY5KqHo2p2bXqDklA7FdNWk9juQZqJyuK2gPty7xR61HdO8tocnVudGltZXP2aWNvbnNlbnN1c6JiaWRYIE9q1dFvHE2t7TLlrTu4RLUrlGsbSFUgH2bogeoZZbbfaWFkZHJlc3Nlc4GiYmlkWCBumJfT6QUwFrrtUGgAJs27iIa4tabY0GcNM/fUhrsI7GdhZGRyZXNzo2JJUFAAAAAAAAAAAAAA//+fRTs8ZFBvcnQZaCBkWm9uZWBpZW50aXR5X2lkWCAtoolQqd0CofnsNUTGylON1FNE0Yk5KoCvMzSmbxERnGpleHBpcmF0aW9uGTRb",
+        "signatures": [
+          {
+            "public_key": "jZ2/EOnpmPCxCfd5wrrLINNdZSPWyhIx9UqJgZ8sHYk=",
+            "signature": "Vjx+QQtbDPPgcRsNnJw0SmlRrsQ42jZpZBhIiGe7oYdo8o6EzLId22I6sa6RYCsc1aWsbkkhGqWLplJmL1QpBQ=="
+          },
+          {
+            "public_key": "bpiX0+kFMBa67VBoACbNu4iGuLWm2NBnDTP31Ia7COw=",
+            "signature": "oy/ZRRR6S0ffTObBgLYZRthcXZNoO19rPmW9lwClZoz1ujvgoYj0wibVvH6ODrUeKYKBlIQM4rE9USHLUgsbCA=="
+          },
+          {
+            "public_key": "T2rV0W8cTa3tMuWtO7hEtSuUaxtIVSAfZuiB6hlltt8=",
+            "signature": "RpLN2WCzdpajP/xoWe3LJe3/Ej6v7fvnnl/Dq9Kf5k7otPw1aX5JswHsXrPVhnx8b1+E3vP8n7/2V2ziGV4VDw=="
+          },
+          {
+            "public_key": "SKRouKTSMvdBkXqeJ9ookakoCLBWx44zYFJIN0Tz7ks=",
+            "signature": "XyKUJQHm/a1hhT85k+Euwwpx+J2kG6p0TbM1ZK9FQ/0cV/qTOnj9F7GvdTD7Kc3VWyEynPGXeDairMOfeFTiBQ=="
+          }
+        ]
+      }
+    ],
+    "runtimes": [
+      {
+        "v": 3,
+        "id": "000000000000000000000000000000000000000000000000e2eaa99fc008f87f",
+        "entity_id": "TAv9qXjV4yBphnKLJcNkzois1TLoYUjaRPrMfY58Apo=",
+        "genesis": {
+          "state_root": "c672b8d1ef56ed28ab87c3622c5114069bdd3ad7b8f9737498d0c01ecef0967a",
+          "round": 0
+        },
+        "kind": 1,
+        "tee_hardware": 0,
+        "executor": {
+          "group_size": 10,
+          "group_backup_size": 30,
+          "allowed_stragglers": 1,
+          "round_timeout": 5,
+          "max_messages": 256
+        },
+        "txn_scheduler": {
+          "batch_flush_timeout": 1000000000,
+          "max_batch_size": 1000,
+          "max_batch_size_bytes": 1048576,
+          "propose_batch_timeout": 2
+        },
+        "storage": {
+          "checkpoint_interval": 10000,
+          "checkpoint_num_kept": 2,
+          "checkpoint_chunk_size": 8388608
+        },
+        "admission_policy": {
+          "any_node": {}
+        },
+        "constraints": {
+          "executor": {
+            "backup-worker": {
+              "validator_set": {},
+              "max_nodes": {
+                "limit": 1
+              },
+              "min_pool_size": {
+                "limit": 30
+              }
+            },
+            "worker": {
+              "validator_set": {},
+              "max_nodes": {
+                "limit": 1
+              },
+              "min_pool_size": {
+                "limit": 30
+              }
+            }
+          }
+        },
+        "staking": {
+          "thresholds": {
+            "node-compute": "1000000000000000"
+          },
+          "min_in_message_fee": "0"
+        },
+        "governance_model": "entity",
+        "deployments": [
+          {
+            "version": {
+              "major": 8,
+              "minor": 2
+            },
+            "valid_from": 0
+          }
+        ]
+      }
+    ]
+  },
+  "staking": {
+    "ledger": {
+      "oasis1qp000hx7p3elxrglmg6r98zkenk0sjt4ks986dc3": {
+        "general": {
+          "balance": "100",
+          "nonce": 3,
+          "allowances": {
+            "oasis1qp008f6fg9kqk6gt9vxf5yk2d5wv7vm2x5tkc88y": "50"
+          }
+        },
+        "escrow": {
+          "active": {
+            "balance": "600",
+            "total_shares": "600"
+          },
+          "debonding": {
+            "balance": "400",
+            "total_shares": "400"
+          },
+          "commission_schedule": {
+            "rates": [
+              {
+                "start": 5369,
+                "rate": "5000"
+              },
+              {
+                "start": 9968,
+                "rate": "20000"
+              }
+            ],
+            "bounds": [
+              {
+                "start": 5369,
+                "rate_min": "0",
+                "rate_max": "20000"
+              }
+            ]
+          },
+          "stake_accumulator": {}
+        }
+      },
+      "oasis1qp008f6fg9kqk6gt9vxf5yk2d5wv7vm2x5tkc88y": {
+        "general": {
+          "balance": "200",
+          "nonce": 4
+        },
+        "escrow": {
+          "active": {
+            "balance": "0",
+            "total_shares": "0"
+          },
+          "debonding": {
+            "balance": "0",
+            "total_shares": "0"
+          },
+          "commission_schedule": {},
+          "stake_accumulator": {}
+        }
+      },
+      "oasis1qp000kj5dj5tf48x0rhzf8298dw78w2yzvza727z": {
+        "general": {
+          "balance": "300",
+          "nonce": 1
+        },
+        "escrow": {
+          "active": {
+            "balance": "0",
+            "total_shares": "0"
+          },
+          "debonding": {
+            "balance": "0",
+            "total_shares": "0"
+          },
+          "commission_schedule": {},
+          "stake_accumulator": {}
+        }
+      },
+      "oasis1qp002d6rv8r0zmhfe69th39rm0uaz4j6rsm5glcy": {
+        "general": {
+          "balance": "400",
+          "nonce": 5
+        },
+        "escrow": {
+          "active": {
+            "balance": "0",
+            "total_shares": "0"
+          },
+          "debonding": {
+            "balance": "0",
+            "total_shares": "0"
+          },
+          "commission_schedule": {},
+          "stake_accumulator": {}
+        }
+      }
+    },
+    "delegations": {
+      "oasis1qp000hx7p3elxrglmg6r98zkenk0sjt4ks986dc3": {
+        "oasis1qp000hx7p3elxrglmg6r98zkenk0sjt4ks986dc3": {
+          "shares": "100"
+        },
+        "oasis1qp008f6fg9kqk6gt9vxf5yk2d5wv7vm2x5tkc88y": {
+          "shares": "200"
+        },
+        "oasis1qp000kj5dj5tf48x0rhzf8298dw78w2yzvza727z": {
+          "shares": "300"
+        }
+      }
+    },
+    "debonding_delegations": {
+      "oasis1qp000hx7p3elxrglmg6r98zkenk0sjt4ks986dc3": {
+        "oasis1qp002d6rv8r0zmhfe69th39rm0uaz4j6rsm5glcy": [
+          {
+            "shares": "400",
+            "debond_end": 13567
+          }
+        ]
+      }
+    }
+  },
+  "governance": {
+    "proposals": [
+      {
+        "id": 1,
+        "submitter": "oasis1qp000kj5dj5tf48x0rhzf8298dw78w2yzvza727z",
+        "state": "passed",
+        "deposit": "10",
+        "content": {
+          "upgrade": {
+            "v": 1,
+            "handler": "test-handler",
+            "target": {
+              "consensus_protocol": {
+                "major": 4
+              },
+              "runtime_host_protocol": {
+                "major": 3
+              },
+              "runtime_committee_protocol": {
+                "major": 2
+              }
+            },
+            "epoch": 8049
+          }
+        },
+        "created_at": 7708,
+        "closes_at": 7876,
+        "results": {
+          "yes": "300"
+        },
+        "invalid_votes": 0
+      }
+    ],
+    "vote_entries": {
+      "1": [
+        {
+          "voter": "oasis1qp000hx7p3elxrglmg6r98zkenk0sjt4ks986dc3",
+          "vote": "yes"
+        },
+        {
+          "voter": "oasis1qp008f6fg9kqk6gt9vxf5yk2d5wv7vm2x5tkc88y",
+          "vote": "yes"
+        }
+      ]
+    }
+  }
+}
