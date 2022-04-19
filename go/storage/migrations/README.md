@@ -17,7 +17,6 @@ The Oasis Indexer supports a migration generator for truncating existing state t
 
 ```sh
 oasis-indexer generate \
-  --generator.network_config config/network.yaml \
-  --generator.output_filename ./storage/migrations/0000-example-migration.sql \
-  --generator.chain_id oasis-3
+  --generator.genesis_file config/genesis.json \
+  --generator.migration_file ./storage/migrations/0000-example-migration.sql
 ```
