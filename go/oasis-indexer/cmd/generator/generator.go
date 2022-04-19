@@ -5,27 +5,30 @@ package generator
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"io/ioutil"
 	"os"
+
+	genesis "github.com/oasisprotocol/oasis-core/go/genesis/api"
+	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v2"
 
 	"github.com/oasislabs/oasis-block-indexer/go/log"
 	"github.com/oasislabs/oasis-block-indexer/go/oasis-indexer/cmd/common"
 	"github.com/oasislabs/oasis-block-indexer/go/storage/migrations/generator"
 	"github.com/oasislabs/oasis-block-indexer/go/storage/oasis"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
-	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v2"
 )
 
 const (
-	// CfgOutputFilename is the file to which generated migrations should
+	// CfgMigrationFile is the file to which generated migrations should
 	// be written.
-	CfgOutputFilename = "generator.output_filename"
+	CfgMigrationFile = "generator.migration_file"
 
-	// CfgChainID is the target chain ID for which the migration should
-	// be generated.
-	CfgChainID = "generator.chain_id"
+	// CfgGenesisFile is the file from which the genesis document used
+	// to generate migrations should be loaded.
+	CfgGenesisFile = "generator.genesis_file"
 
 	// CfgNetworkConfig is the config file for connecting to an oasis-node.
 	CfgNetworkConfig = "generator.network_config"
@@ -34,9 +37,9 @@ const (
 )
 
 var (
-	cfgOutputFilename string
-	cfgChainID        string
-	cfgNetworkConfig  string
+	cfgMigrationFile string
+	cfgGenesisFile   string
+	cfgNetworkConfig string
 
 	generateCmd = &cobra.Command{
 		Use:   "generate",
@@ -74,7 +77,6 @@ func runGenerator(cmd *cobra.Command, args []string) {
 // Generator is the Oasis Indexer's migration generator.
 type Generator struct {
 	gen    *generator.MigrationGenerator
-	client *oasis.OasisNodeClient
 	logger *log.Logger
 }
 
@@ -82,42 +84,35 @@ type Generator struct {
 func NewGenerator() (*Generator, error) {
 	logger := common.Logger().WithModule(moduleName)
 
-	// Connect to oasis-node.
-	rawCfg, err := ioutil.ReadFile(cfgNetworkConfig)
-	if err != nil {
-		return nil, err
-	}
-
-	var network config.Network
-	yaml.Unmarshal([]byte(rawCfg), &network)
-
-	ctx := context.Background()
-	client, err := oasis.NewOasisNodeClient(ctx, &network)
-	if err != nil {
-		return nil, err
-	}
-
 	return &Generator{
 		gen:    generator.NewMigrationGenerator(logger),
-		client: client,
 		logger: logger,
 	}, nil
 }
 
 // WriteMigration writes the state migration.
 func (g *Generator) WriteMigration() error {
-	ctx := context.Background()
-
-	// Fetch genesis document for migration.
-	d, err := g.client.GenesisDocument(ctx)
-	if err != nil {
-		return err
+	var d *genesis.Document
+	if cfgGenesisFile != "" {
+		if doc, err := g.genesisDocFromFile(); err != nil {
+			return err
+		} else {
+			d = doc
+		}
+	} else if cfgNetworkConfig != "" {
+		if doc, err := g.genesisDocFromClient(); err != nil {
+			return err
+		} else {
+			d = doc
+		}
+	} else {
+		return errors.New("neither genesis file nor network config provided")
 	}
 
 	// Create output file.
 	w := os.Stdout
-	if cfgOutputFilename != "" {
-		f, err := os.Create(cfgOutputFilename)
+	if cfgMigrationFile != "" {
+		f, err := os.Create(cfgMigrationFile)
 		if err != nil {
 			return err
 		}
@@ -133,6 +128,11 @@ func (g *Generator) WriteMigration() error {
 			return err
 		}
 		break
+	case "test":
+		if err := g.gen.WriteGenesisDocumentMigrationOasis3(w, d); err != nil {
+			return err
+		}
+		break
 	default:
 		g.logger.Error("unsupported chain id")
 		return errors.New("unsupported chain id")
@@ -142,10 +142,48 @@ func (g *Generator) WriteMigration() error {
 	return nil
 }
 
+func (g *Generator) genesisDocFromFile() (*genesis.Document, error) {
+	rawDoc, err := ioutil.ReadFile(cfgGenesisFile)
+	if err != nil {
+		return nil, err
+	}
+
+	var d genesis.Document
+	if err := json.Unmarshal(rawDoc, &d); err != nil {
+		return nil, err
+	}
+	return &d, nil
+}
+
+func (g *Generator) genesisDocFromClient() (*genesis.Document, error) {
+	ctx := context.Background()
+
+	// Connect to oasis-node.
+	rawCfg, err := ioutil.ReadFile(cfgNetworkConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	var network config.Network
+	yaml.Unmarshal([]byte(rawCfg), &network)
+
+	client, err := oasis.NewOasisNodeClient(ctx, &network)
+	if err != nil {
+		return nil, err
+	}
+
+	// Fetch genesis document for migration.
+	d, err := client.GenesisDocument(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return d, nil
+}
+
 // Register registers the process sub-command.
 func Register(parentCmd *cobra.Command) {
-	generateCmd.Flags().StringVar(&cfgOutputFilename, CfgOutputFilename, "", "path to output migration file")
-	generateCmd.Flags().StringVar(&cfgChainID, CfgChainID, "", "chain id to target for migration generation")
+	generateCmd.Flags().StringVar(&cfgMigrationFile, CfgMigrationFile, "", "path to output migration file")
+	generateCmd.Flags().StringVar(&cfgGenesisFile, CfgGenesisFile, "", "path to input genesis file")
 	generateCmd.Flags().StringVar(&cfgNetworkConfig, CfgNetworkConfig, "", "path to a network configuration file")
 	parentCmd.AddCommand(generateCmd)
 }

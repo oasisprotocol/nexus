@@ -112,58 +112,63 @@ VALUES
 	// Populate runtimes.
 	io.WriteString(w, fmt.Sprintf(`
 TRUNCATE %s.runtimes CASCADE;`, chainID))
-	io.WriteString(w, fmt.Sprintf(`
+
+	if len(document.Registry.Runtimes) > 0 {
+		io.WriteString(w, fmt.Sprintf(`
 INSERT INTO %s.runtimes (id, suspended, kind, tee_hardware, key_manager)
 VALUES
-`, chainID))
-	for i, runtime := range document.Registry.Runtimes {
-		keyManager := "none"
-		if runtime.KeyManager != nil {
-			keyManager = runtime.KeyManager.String()
-		}
-		io.WriteString(w, fmt.Sprintf(
-			"\t('%s', %t, '%s', '%s', '%s')",
-			runtime.ID.String(),
-			false,
-			runtime.Kind.String(),
-			runtime.TEEHardware.String(),
-			keyManager,
+	`, chainID))
+		for i, runtime := range document.Registry.Runtimes {
+			keyManager := "none"
+			if runtime.KeyManager != nil {
+				keyManager = runtime.KeyManager.String()
+			}
+			io.WriteString(w, fmt.Sprintf(
+				"\t('%s', %t, '%s', '%s', '%s')",
+				runtime.ID.String(),
+				false,
+				runtime.Kind.String(),
+				runtime.TEEHardware.String(),
+				keyManager,
 
-			// TODO(ennsharma): Add extra_data.
-		))
+				// TODO(ennsharma): Add extra_data.
+			))
 
-		if i != len(document.Registry.Runtimes)-1 {
-			io.WriteString(w, ",\n")
+			if i != len(document.Registry.Runtimes)-1 {
+				io.WriteString(w, ",\n")
+			}
 		}
+		io.WriteString(w, ";\n")
 	}
-	io.WriteString(w, ";\n")
 
-	io.WriteString(w, fmt.Sprintf(`
+	if len(document.Registry.SuspendedRuntimes) > 0 {
+		io.WriteString(w, fmt.Sprintf(`
 INSERT INTO %s.runtimes (id, suspended, kind, tee_hardware, key_manager)
 VALUES
-`, chainID))
+	`, chainID))
 
-	for i, runtime := range document.Registry.SuspendedRuntimes {
-		keyManager := "none"
-		if runtime.KeyManager != nil {
-			keyManager = runtime.KeyManager.Hex()
+		for i, runtime := range document.Registry.SuspendedRuntimes {
+			keyManager := "none"
+			if runtime.KeyManager != nil {
+				keyManager = runtime.KeyManager.Hex()
+			}
+			io.WriteString(w, fmt.Sprintf(
+				"\t('%s', %t, '%s', '%s', '%s')",
+				runtime.ID.String(),
+				true,
+				runtime.Kind.String(),
+				runtime.TEEHardware.String(),
+				keyManager,
+
+				// TODO(ennsharma): Add extra_data.
+			))
+
+			if i != len(document.Registry.SuspendedRuntimes)-1 {
+				io.WriteString(w, ",\n")
+			}
 		}
-		io.WriteString(w, fmt.Sprintf(
-			"\t('%s', %t, '%s', '%s', '%s')",
-			runtime.ID.String(),
-			true,
-			runtime.Kind.String(),
-			runtime.TEEHardware.String(),
-			keyManager,
-
-			// TODO(ennsharma): Add extra_data.
-		))
-
-		if i != len(document.Registry.SuspendedRuntimes)-1 {
-			io.WriteString(w, ",\n")
-		}
+		io.WriteString(w, ";\n")
 	}
-	io.WriteString(w, ";\n")
 
 	return nil
 }
@@ -208,12 +213,8 @@ TRUNCATE %s.allowances CASCADE;`, chainID))
 
 	i = 0
 	for owner, account := range document.Staking.Ledger {
-		if len(account.General.Allowances) > 0 && !foundAllowances {
-			io.WriteString(w, fmt.Sprintf(`
-INSERT INTO %s.allowances (owner, beneficiary, allowance)
-VALUES
-`, chainID))
-			foundAllowances = true
+		if len(account.General.Allowances) > 0 && foundAllowances {
+			io.WriteString(w, ",\n")
 		}
 
 		ownerAllowances := make([]string, len(account.General.Allowances))
@@ -227,12 +228,16 @@ VALUES
 			)
 			j++
 		}
+		if len(account.General.Allowances) > 0 && !foundAllowances {
+			io.WriteString(w, fmt.Sprintf(`
+INSERT INTO %s.allowances (owner, beneficiary, allowance)
+VALUES
+`, chainID))
+			foundAllowances = true
+		}
+
 		io.WriteString(w, strings.Join(ownerAllowances, ",\n"))
 		i++
-
-		if i != len(document.Staking.Ledger) && len(account.General.Allowances) > 0 {
-			io.WriteString(w, ",\n")
-		}
 	}
 	if foundAllowances {
 		io.WriteString(w, ";\n")
