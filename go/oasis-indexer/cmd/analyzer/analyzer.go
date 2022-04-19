@@ -119,8 +119,9 @@ func NewAnalysisService() (*AnalysisService, error) {
 
 // Start starts the analysis service
 func (a *AnalysisService) Start() {
-	var wg sync.WaitGroup
+	a.logger.Info("starting analysis service")
 
+	var wg sync.WaitGroup
 	for _, an := range a.Analyzers {
 		wg.Add(1)
 		go func(an analyzer.Analyzer) {
