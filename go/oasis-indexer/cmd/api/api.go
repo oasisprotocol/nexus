@@ -69,34 +69,60 @@ func NewAPIService() (*APIService, error) {
 	baseRouter := mux.NewRouter()
 	apiRouter := baseRouter.PathPrefix("/api").Subrouter()
 
-	// Register endpoints.
-	apiRouter.HandleFunc("/", api.GetMetadata).Methods("GET")
-	apiRouter.HandleFunc("/consensus/blocks", consensusApi.GetBlocks).Methods("GET")
-	apiRouter.HandleFunc("/consensus/blocks/{height}", consensusApi.GetBlock).Methods("GET")
-	apiRouter.HandleFunc("/consensus/blocks/{height}/beacon", consensusApi.GetBeacon).Methods("GET")
-	apiRouter.HandleFunc("/consensus/blocks/{height}/events", consensusApi.GetBlockEvents).Methods("GET")
-	apiRouter.HandleFunc("/consensus/transactions", consensusApi.GetTransactions).Methods("GET")
-	apiRouter.HandleFunc("/consensus/transactions/{tx_hash}", consensusApi.GetTransaction).Methods("GET")
-	apiRouter.HandleFunc("/consensus/transactions/{tx_hash}/events", consensusApi.GetTransactionEvents).Methods("GET")
-	apiRouter.HandleFunc("/consensus/epochs", consensusApi.GetEpochs).Methods("GET")
-	apiRouter.HandleFunc("/consensus/epochs/{epoch}", consensusApi.GetEpoch).Methods("GET")
-	apiRouter.HandleFunc("/consensus/epochs/{epoch}/validators", consensusApi.GetValidators).Methods("GET")
-	apiRouter.HandleFunc("/consensus/epochs/{epoch}/committees/{runtime_id}", consensusApi.GetCommittees).Methods("GET")
-	apiRouter.HandleFunc("/consensus/proposals", consensusApi.GetProposals).Methods("GET")
-	apiRouter.HandleFunc("/consensus/proposals/{proposal_id}", consensusApi.GetProposal).Methods("GET")
-	apiRouter.HandleFunc("/consensus/entities", consensusApi.GetEntities).Methods("GET")
-	apiRouter.HandleFunc("/consensus/entities/{entity_id}", consensusApi.GetEntity).Methods("GET")
-	apiRouter.HandleFunc("/consensus/entities/{entity_id}/nodes", consensusApi.GetEntityNodes).Methods("GET")
-	apiRouter.HandleFunc("/consensus/entities/{entity_id}/nodes/{node_id}", consensusApi.GetEntityNode).Methods("GET")
-	apiRouter.HandleFunc("/consensus/accounts", consensusApi.GetAccounts).Methods("GET")
-	apiRouter.HandleFunc("/consensus/accounts/{address}", consensusApi.GetAccount).Methods("GET")
-	apiRouter.HandleFunc("/status", consensusApi.GetStatus).Methods("GET")
-
-	return &APIService{
+	apiService := &APIService{
 		server: cfgServiceEndpoint,
 		router: apiRouter,
 		logger: logger,
-	}, nil
+	}
+
+	// Register endpoints.
+	for _, f := range []func(*mux.Router){
+		apiService.registerBlockEndpoints,
+		apiService.registerRegistryEndpoints,
+		apiService.registerStakingEndpoints,
+		apiService.registerSchedulerEndpoints,
+		apiService.registerGovernanceEndpoints,
+	} {
+		f(apiRouter)
+	}
+	apiRouter.HandleFunc("/", api.GetMetadata).Methods("GET")
+	apiRouter.HandleFunc("/status", consensusApi.GetStatus).Methods("GET")
+
+	return apiService, nil
+}
+
+func (s *APIService) registerBlockEndpoints(r *mux.Router) {
+	r.HandleFunc("/consensus/blocks", consensusApi.GetBlocks).Methods("GET")
+	r.HandleFunc("/consensus/blocks/{height}", consensusApi.GetBlock).Methods("GET")
+	r.HandleFunc("/consensus/blocks/{height}/beacon", consensusApi.GetBeacon).Methods("GET")
+	r.HandleFunc("/consensus/blocks/{height}/events", consensusApi.GetBlockEvents).Methods("GET")
+	r.HandleFunc("/consensus/transactions", consensusApi.GetTransactions).Methods("GET")
+	r.HandleFunc("/consensus/transactions/{tx_hash}", consensusApi.GetTransaction).Methods("GET")
+	r.HandleFunc("/consensus/transactions/{tx_hash}/events", consensusApi.GetTransactionEvents).Methods("GET")
+}
+
+func (s *APIService) registerRegistryEndpoints(r *mux.Router) {
+	r.HandleFunc("/consensus/entities", consensusApi.GetEntities).Methods("GET")
+	r.HandleFunc("/consensus/entities/{entity_id}", consensusApi.GetEntity).Methods("GET")
+	r.HandleFunc("/consensus/entities/{entity_id}/nodes", consensusApi.GetEntityNodes).Methods("GET")
+	r.HandleFunc("/consensus/entities/{entity_id}/nodes/{node_id}", consensusApi.GetEntityNode).Methods("GET")
+}
+
+func (s *APIService) registerStakingEndpoints(r *mux.Router) {
+	r.HandleFunc("/consensus/accounts", consensusApi.GetAccounts).Methods("GET")
+	r.HandleFunc("/consensus/accounts/{address}", consensusApi.GetAccount).Methods("GET")
+}
+
+func (s *APIService) registerSchedulerEndpoints(r *mux.Router) {
+	r.HandleFunc("/consensus/epochs", consensusApi.GetEpochs).Methods("GET")
+	r.HandleFunc("/consensus/epochs/{epoch}", consensusApi.GetEpoch).Methods("GET")
+	r.HandleFunc("/consensus/epochs/{epoch}/validators", consensusApi.GetValidators).Methods("GET")
+	r.HandleFunc("/consensus/epochs/{epoch}/committees/{runtime_id}", consensusApi.GetCommittees).Methods("GET")
+}
+
+func (s *APIService) registerGovernanceEndpoints(r *mux.Router) {
+	r.HandleFunc("/consensus/proposals", consensusApi.GetProposals).Methods("GET")
+	r.HandleFunc("/consensus/proposals/{proposal_id}", consensusApi.GetProposal).Methods("GET")
 }
 
 // Start starts the API service.
@@ -118,6 +144,6 @@ func (s *APIService) Start() {
 
 // Register registers the process sub-command.
 func Register(parentCmd *cobra.Command) {
-	apiCmd.Flags().StringVar(&cfgServiceEndpoint, CfgServiceEndpoint, "", "service endpoint from which to serve indexer api")
+	apiCmd.Flags().StringVar(&cfgServiceEndpoint, CfgServiceEndpoint, "localhost:8008", "service endpoint from which to serve indexer api")
 	parentCmd.AddCommand(apiCmd)
 }

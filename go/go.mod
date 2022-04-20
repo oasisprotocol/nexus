@@ -3,6 +3,7 @@ module github.com/oasislabs/oasis-block-indexer/go
 go 1.15
 
 require (
+	github.com/cockroachdb/cockroach-go/v2 v2.2.8
 	github.com/fxamacker/cbor/v2 v2.4.0 // indirect
 	github.com/go-kit/log v0.2.0
 	github.com/gorilla/mux v1.7.3

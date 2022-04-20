@@ -2,8 +2,13 @@
 package api
 
 import (
-	"encoding/json"
-	"net/http"
+	"github.com/oasislabs/oasis-block-indexer/go/log"
+	"github.com/oasislabs/oasis-block-indexer/go/oasis-indexer/cmd/common"
+	"github.com/oasislabs/oasis-block-indexer/go/storage"
+)
+
+const (
+	moduleName = "api.handler"
 )
 
 var (
@@ -14,22 +19,17 @@ var (
 	}
 )
 
-// APIMetadata is the Oasis Indexer API metadata.
-type APIMetadata struct {
-	Major uint16
-	Minor uint16
-	Patch uint16
+// APIHandler handles API requests.
+type APIHandler struct {
+	client storage.TargetStorage
+	logger *log.Logger
 }
 
-// GetMetadata gets metadata for the Oasis Indexer API.
-func GetMetadata(w http.ResponseWriter, r *http.Request) {
-	var resp []byte
-	resp, err := json.Marshal(latestMetadata)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+// NewAPIHandler creates a new API handler.
+func NewAPIHandler(c storage.TargetStorage) *APIHandler {
+	logger := common.Logger().WithModule(moduleName)
+	return &APIHandler{
+		client: c,
+		logger: logger,
 	}
-
-	w.Header().Set("content-type", "application/json")
-	w.Write(resp)
 }
