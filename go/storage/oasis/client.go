@@ -5,7 +5,6 @@ package oasis
 import (
 	"context"
 
-	"github.com/oasislabs/oasis-block-indexer/go/storage"
 	"github.com/oasisprotocol/oasis-core/go/common"
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
@@ -17,10 +16,12 @@ import (
 	stakingAPI "github.com/oasisprotocol/oasis-core/go/staking/api"
 	config "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 	connection "github.com/oasisprotocol/oasis-sdk/client-sdk/go/connection"
+
+	"github.com/oasislabs/oasis-block-indexer/go/storage"
 )
 
 const (
-	clientName = "oasis-node"
+	moduleName = "storage.oasis"
 )
 
 type OasisNodeClient struct {
@@ -62,7 +63,7 @@ func (c *OasisNodeClient) GenesisDocument(ctx context.Context) (*genesisAPI.Docu
 
 // Name returns the name of the oasis-node client.
 func (c *OasisNodeClient) Name() string {
-	return clientName
+	return moduleName
 }
 
 // BlockData retrieves data about a block at the provided block height.

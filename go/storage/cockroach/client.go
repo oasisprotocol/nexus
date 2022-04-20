@@ -8,9 +8,6 @@ import (
 	"github.com/cockroachdb/cockroach-go/v2/crdb/crdbpgx"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
-
-	"github.com/oasislabs/oasis-block-indexer/go/log"
-	"github.com/oasislabs/oasis-block-indexer/go/oasis-indexer/cmd/common"
 )
 
 const (
@@ -18,19 +15,16 @@ const (
 )
 
 type CockroachClient struct {
-	pool   *pgxpool.Pool
-	logger *log.Logger
+	pool *pgxpool.Pool
 }
 
 // NewCockroachClient creates a new CockroachDB client.
 func NewCockroachClient(connString string) (*CockroachClient, error) {
-	logger := common.Logger().WithModule(moduleName)
-
 	pool, err := pgxpool.Connect(context.Background(), connString)
 	if err != nil {
 		return nil, err
 	}
-	return &CockroachClient{pool, logger}, nil
+	return &CockroachClient{pool}, nil
 }
 
 // SendBatch submits a new transaction batch to CockroachDB.
@@ -56,6 +50,21 @@ func (c *CockroachClient) SendBatch(ctx context.Context, batch *pgx.Batch) error
 	}
 
 	return nil
+}
+
+// Query submits a new query to CockroachDB.
+func (c *CockroachClient) Query(ctx context.Context, sql string, args ...interface{}) (*pgx.Rows, error) {
+	conn, err := c.pool.Acquire(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer conn.Release()
+
+	rows, err := conn.Query(ctx, sql, args)
+	if err != nil {
+		return nil, err
+	}
+	return &rows, nil
 }
 
 // Name returns the name of the CockroachDB client.

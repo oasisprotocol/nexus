@@ -2,8 +2,8 @@
 package api
 
 import (
-	"github.com/oasislabs/oasis-block-indexer/go/log"
-	"github.com/oasislabs/oasis-block-indexer/go/oasis-indexer/cmd/common"
+	"github.com/gorilla/mux"
+
 	"github.com/oasislabs/oasis-block-indexer/go/storage"
 )
 
@@ -19,17 +19,83 @@ var (
 	}
 )
 
-// APIHandler handles API requests.
-type APIHandler struct {
-	client storage.TargetStorage
-	logger *log.Logger
+// Handler handles API requests.
+type Handler struct {
+	db     storage.TargetStorage
+	router *mux.Router
 }
 
-// NewAPIHandler creates a new API handler.
-func NewAPIHandler(c storage.TargetStorage) *APIHandler {
-	logger := common.Logger().WithModule(moduleName)
-	return &APIHandler{
-		client: c,
-		logger: logger,
+// NewHandler creates a new API handler.
+func NewHandler(db storage.TargetStorage) *Handler {
+	baseRouter := mux.NewRouter()
+	apiRouter := baseRouter.PathPrefix("/api").Subrouter()
+
+	h := &Handler{
+		db:     db,
+		router: apiRouter,
 	}
+	h.registerEndpoints()
+
+	return h
+}
+
+// Router gets the router for this Handler.
+func (h *Handler) Router() *mux.Router {
+	return h.router
+}
+
+func (h *Handler) registerEndpoints() {
+	for _, f := range []func(){
+		h.registerBlockEndpoints,
+		h.registerRegistryEndpoints,
+		h.registerStakingEndpoints,
+		h.registerSchedulerEndpoints,
+		h.registerGovernanceEndpoints,
+	} {
+		f()
+	}
+}
+
+func (h *Handler) registerBlockEndpoints() {
+	r := h.router
+
+	r.HandleFunc("/consensus/blocks", h.GetBlocks).Methods("GET")
+	r.HandleFunc("/consensus/blocks/{height}", h.GetBlock).Methods("GET")
+	r.HandleFunc("/consensus/blocks/{height}/beacon", h.GetBeacon).Methods("GET")
+	r.HandleFunc("/consensus/blocks/{height}/events", h.GetBlockEvents).Methods("GET")
+	r.HandleFunc("/consensus/transactions", h.GetTransactions).Methods("GET")
+	r.HandleFunc("/consensus/transactions/{tx_hash}", h.GetTransaction).Methods("GET")
+	r.HandleFunc("/consensus/transactions/{tx_hash}/events", h.GetTransactionEvents).Methods("GET")
+}
+
+func (h *Handler) registerRegistryEndpoints() {
+	r := h.router
+
+	r.HandleFunc("/consensus/entities", h.GetEntities).Methods("GET")
+	r.HandleFunc("/consensus/entities/{entity_id}", h.GetEntity).Methods("GET")
+	r.HandleFunc("/consensus/entities/{entity_id}/nodes", h.GetEntityNodes).Methods("GET")
+	r.HandleFunc("/consensus/entities/{entity_id}/nodes/{node_id}", h.GetEntityNode).Methods("GET")
+}
+
+func (h *Handler) registerStakingEndpoints() {
+	r := h.router
+
+	r.HandleFunc("/consensus/accounts", h.GetAccounts).Methods("GET")
+	r.HandleFunc("/consensus/accounts/{address}", h.GetAccount).Methods("GET")
+}
+
+func (h *Handler) registerSchedulerEndpoints() {
+	r := h.router
+
+	r.HandleFunc("/consensus/epochs", h.GetEpochs).Methods("GET")
+	r.HandleFunc("/consensus/epochs/{epoch}", h.GetEpoch).Methods("GET")
+	r.HandleFunc("/consensus/epochs/{epoch}/validators", h.GetValidators).Methods("GET")
+	r.HandleFunc("/consensus/epochs/{epoch}/committees/{runtime_id}", h.GetCommittees).Methods("GET")
+}
+
+func (h *Handler) registerGovernanceEndpoints() {
+	r := h.router
+
+	r.HandleFunc("/consensus/proposals", h.GetProposals).Methods("GET")
+	r.HandleFunc("/consensus/proposals/{proposal_id}", h.GetProposal).Methods("GET")
 }
