@@ -1,0 +1,39 @@
+services:
+  crdb:
+    image: cockroachdb/cockroach:v21.2.7
+    ports:
+     - 26257:26257
+     - 8080:8080
+    command: start-single-node --insecure
+  oasis-node:
+    build:
+      context: oasis-node
+      dockerfile: ./oasis-node.Dockerfile
+    user: oasis
+    command:
+      - /bin/sh
+      - -c
+      - oasis-node --config /node/etc/config.yml
+    volumes:
+      - type: bind
+        source: ./node
+        target: /node
+  indexer:
+    build:
+      context: ../
+      dockerfile: ./docker/indexer/indexer.Dockerfile
+    depends_on:
+      - oasis-node
+    command:
+      - /bin/sh
+      - -c
+      - | # TODO use a real wait for with `docker exec oasis-node oasis-node control status -a unix:./data/internal.sock`
+          echo "sleep for 60sec while Oasis node starts up"
+          sleep 60
+          oasis-block-indexer analyze --analyzer.network_config=/config/network.yaml
+    volumes:
+      - type: bind
+        source: ./node
+        target: /node
+volumes:
+  node: {}
