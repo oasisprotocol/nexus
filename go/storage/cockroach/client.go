@@ -5,9 +5,9 @@ package cockroach
 import (
 	"context"
 
+	"github.com/cockroachdb/cockroach-go/v2/crdb/crdbpgx"
+	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
-
-	"github.com/oasislabs/oasis-block-indexer/go/storage"
 )
 
 const (
@@ -15,80 +15,39 @@ const (
 )
 
 type CockroachClient struct {
-	pool *pgx.ConnPool
+	pool *pgxpool.Pool
 }
 
 // NewCockroachClient creates a new CockroachDB client.
-func NewCockroachClient(connstring string) (*CockroachClient, error) {
-	pool, err := pgxpool.Connect(context.Background(), connstring)
+func NewCockroachClient(connString string) (*CockroachClient, error) {
+	pool, err := pgxpool.Connect(context.Background(), connString)
 	if err != nil {
 		return nil, err
 	}
 	return &CockroachClient{pool}, nil
 }
 
-// SetBlockData applies the block data as an update at the provided block height.
-func (c *CockroachClient) SetBlockData(data *storage.BlockData) error {
-	conn, err = c.pool.Acquire(context.Background())
+// SendBatch submits a new transaction batch to CockroachDB.
+func (c *CockroachClient) SendBatch(ctx context.Context, batch *pgx.Batch) error {
+	conn, err := c.pool.Acquire(ctx)
 	if err != nil {
 		return err
 	}
-	defer c.pool.Release(conn)
+	defer conn.Release()
 
-	return nil
-}
+	if err := crdbpgx.ExecuteTx(ctx, conn, pgx.TxOptions{}, func(tx pgx.Tx) error {
+		batchResults := tx.SendBatch(ctx, batch)
+		defer batchResults.Close()
+		for i := 0; i < batch.Len(); i++ {
+			if _, err := batchResults.Exec(); err != nil {
+				return err
+			}
+		}
 
-// SetBeaconData applies the beacon data as an update at the provided block height.
-func (c *CockroachClient) SetBeaconData(data *storage.BeaconData) error {
-	conn, err = c.pool.Acquire(context.Background())
-	if err != nil {
+		return nil
+	}); err != nil {
 		return err
 	}
-	defer c.pool.Release(conn)
-
-	return nil
-}
-
-// SetRegistryData applies the registry data as an update at the provided block height.
-func (c *CockroachClient) SetRegistryData(data *storage.RegistryData) error {
-	conn, err = c.pool.Acquire(context.Background())
-	if err != nil {
-		return err
-	}
-	defer c.pool.Release(conn)
-
-	return nil
-}
-
-// SetStakingData applies the staking data as an update at the provided block height.
-func (c *CockroachClient) SetStakingData(data *storage.StakingData) error {
-	conn, err = c.pool.Acquire(context.Background())
-	if err != nil {
-		return err
-	}
-	defer c.pool.Release(conn)
-
-	return nil
-}
-
-// SetSchedulerData applies the scheduler data as an update at the provided block height.
-func (c *CockroachClient) SetSchedulerData(data *storage.SchedulerData) error {
-	conn, err = c.pool.Acquire(context.Background())
-	if err != nil {
-		return err
-	}
-	defer c.pool.Release(conn)
-
-	return nil
-}
-
-// SetGovernanceData applies the governance data as an update at the provided block height.
-func (c *CockroachClient) SetGovernanceData(data *storage.BeaconData) error {
-	conn, err = c.pool.Acquire(context.Background())
-	if err != nil {
-		return err
-	}
-	defer c.pool.Release(conn)
 
 	return nil
 }
@@ -97,5 +56,3 @@ func (c *CockroachClient) SetGovernanceData(data *storage.BeaconData) error {
 func (c *CockroachClient) Name() string {
 	return clientName
 }
-
-// TODO: Cleanup method to gracefully shut down client.

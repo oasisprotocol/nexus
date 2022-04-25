@@ -2,6 +2,9 @@
 package storage
 
 import (
+	"context"
+
+	"github.com/jackc/pgx/v4"
 	beacon "github.com/oasisprotocol/oasis-core/go/beacon/api"
 	"github.com/oasisprotocol/oasis-core/go/common"
 	consensus "github.com/oasisprotocol/oasis-core/go/consensus/api"
@@ -13,33 +16,36 @@ import (
 	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
 )
 
+// QueryBatch represents a batch of queries to be executed atomically.
+type QueryBatch = pgx.Batch
+
 // SourceStorage defines an interface for retrieving raw block data.
 type SourceStorage interface {
 
 	// BlockData gets block data at the specified height. This includes all
 	// block header information, as well as transactions and events included
 	// within that block.
-	BlockData(height int64) (*BlockData, error)
+	BlockData(ctx context.Context, height int64) (*BlockData, error)
 
 	// BeaconData gets beacon data at the specified height. This includes
 	// the epoch number at that height, as well as the beacon state.
-	BeaconData(height int64) (*BeaconData, error)
+	BeaconData(ctx context.Context, height int64) (*BeaconData, error)
 
 	// RegistryData gets registry data at the specified height. This includes
 	// all registered entities and their controlled nodes and statuses.
-	RegistryData(height int64) (*RegistryData, error)
+	RegistryData(ctx context.Context, height int64) (*RegistryData, error)
 
 	// StakingData gets staking data at the specified height. This includes
 	// staking backend events to be applied to indexed state.
-	StakingData(height int64) (*StakingData, error)
+	StakingData(ctx context.Context, height int64) (*StakingData, error)
 
 	// SchedulerData gets scheduler data at the specified height. This
 	// includes all validators and runtime committees.
-	SchedulerData(height int64) (*SchedulerData, error)
+	SchedulerData(ctx context.Context, height int64) (*SchedulerData, error)
 
 	// GovernanceData gets governance data at the specified height. This
 	// includes all proposals, their respective statuses and voting responses.
-	GovernanceData(height int64) (*GovernanceData, error)
+	GovernanceData(ctx context.Context, height int64) (*GovernanceData, error)
 
 	// TODO: Extend this interface to include a GetRoothashData to pull
 	// runtime blocks. This is only relevant when we begin to build runtime
@@ -53,14 +59,8 @@ type SourceStorage interface {
 // processed block data.
 type TargetStorage interface {
 
-	// The following setters apply data from various consensus
-	// backends to target storage.
-	SetBlockData(data *BlockData) error
-	SetBeaconData(data *BeaconData) error
-	SetRegistryData(data *RegistryData) error
-	SetStakingData(data *StakingData) error
-	SetSchedulerData(data *SchedulerData) error
-	SetGovernanceData(data *GovernanceData) error
+	// SendBatch sends a batch of queries to be applied to target storage.
+	SendBatch(ctx context.Context, batch *QueryBatch) error
 
 	// Name returns the name of the target storage.
 	Name() string
