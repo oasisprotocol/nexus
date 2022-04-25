@@ -1,4 +1,4 @@
-// Package analyzer implements the analyzer sub-command.
+// Package analyzer implements the `analyze` sub-command.
 package analyzer
 
 import (
@@ -21,15 +21,17 @@ import (
 const (
 	// CfgStorageEndpoint is the flag for setting the connection string to
 	// the backing storage.
-	CfgStorageEndpoint = "storage.endpoint"
-	CfgNetworkFile     = "network.config"
+	CfgStorageEndpoint = "analyzer.storage_endpoint"
 
-	moduleName = "analysis"
+	// CfgNetworkConfig is the config file for connecting to an oasis-node.
+	CfgNetworkConfig = "analyzer.network_config"
+
+	moduleName = "analysis_service"
 )
 
 var (
 	cfgStorageEndpoint string
-	cfgNetworkFile     string
+	cfgNetworkConfig   string
 
 	analyzeCmd = &cobra.Command{
 		Use:   "analyze",
@@ -43,10 +45,12 @@ func runAnalyzer(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	rawCfg, err := ioutil.ReadFile(cfgNetworkFile)
-
+	rawCfg, err := ioutil.ReadFile(cfgNetworkConfig)
 	if err != nil {
-		common.Logger().Error("Could not parse network config file")
+		common.Logger().Error(
+			"failed to parse network config",
+			"error", err,
+		)
 		os.Exit(1)
 	}
 
@@ -54,9 +58,11 @@ func runAnalyzer(cmd *cobra.Command, args []string) {
 	yaml.Unmarshal([]byte(rawCfg), &network)
 
 	analyzer, err := NewAnalyzer(network)
-
 	if err != nil {
-		common.Logger().Error("Could not create analyzer")
+		common.Logger().Error(
+			"failed to create analyzer",
+			"error", err,
+		)
 		os.Exit(1)
 	}
 
@@ -78,7 +84,7 @@ type Analyzer struct {
 	logger        *log.Logger
 }
 
-// NewAnalyzer creates and starts a new Analyzer
+// NewAnalyzer creates and starts a new Analyzer.
 func NewAnalyzer(net config.Network) (*Analyzer, error) {
 	logger := common.Logger().WithModule(moduleName)
 
@@ -150,6 +156,6 @@ func (analyzer *Analyzer) Start() {
 // Register registers the process sub-command.
 func Register(parentCmd *cobra.Command) {
 	analyzeCmd.Flags().StringVar(&cfgStorageEndpoint, CfgStorageEndpoint, "", "a postgresql-compliant connection url")
-	analyzeCmd.Flags().StringVar(&cfgNetworkFile, CfgNetworkFile, "", "path to a network configuration file")
+	analyzeCmd.Flags().StringVar(&cfgNetworkConfig, CfgNetworkConfig, "", "path to a network configuration file")
 	parentCmd.AddCommand(analyzeCmd)
 }

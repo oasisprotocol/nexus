@@ -23,6 +23,7 @@ const (
 	clientName = "oasis-node"
 )
 
+// OasisNodeClient supports connections to an oasis-node instance.
 type OasisNodeClient struct {
 	connection *connection.Connection
 	network    *config.Network
