@@ -7,7 +7,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"os"
 
@@ -55,19 +54,13 @@ func runGenerator(cmd *cobra.Command, args []string) {
 	}
 
 	g, err := NewGenerator()
-	switch {
-	case err == nil:
-		if err := g.WriteMigration(); err != nil {
-			common.Logger().Error("migration failed to run",
-				"error", err,
-			)
-			os.Exit(1)
-		}
-		return
-	case errors.Is(err, context.Canceled):
-		// Shutdown requested during startup.
-		return
-	default:
+	if err != nil {
+		common.Logger().Error("migration failed to run",
+			"error", err,
+		)
+		os.Exit(1)
+	}
+	if err := g.WriteMigration(); err != nil {
 		common.Logger().Error("generator failed to initialize",
 			"error", err,
 		)
@@ -119,7 +112,6 @@ func (g *Generator) WriteMigration() error {
 		}
 		defer w.Close()
 	}
-	fmt.Printf("%+v", w)
 
 	// Generate migration.
 	switch d.ChainID {
