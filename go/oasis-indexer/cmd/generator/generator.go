@@ -106,7 +106,8 @@ func (g *Generator) WriteMigration() error {
 	// Create output file.
 	w := os.Stdout
 	if cfgMigrationFile != "" {
-		w, err := os.Create(cfgMigrationFile)
+		var err error
+		w, err = os.Create(cfgMigrationFile)
 		if err != nil {
 			return err
 		}
