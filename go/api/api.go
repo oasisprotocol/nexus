@@ -2,8 +2,10 @@
 package api
 
 import (
-	"github.com/gorilla/mux"
+	"encoding/json"
+	"net/http"
 
+	"github.com/gorilla/mux"
 	"github.com/oasislabs/oasis-block-indexer/go/storage"
 )
 
@@ -21,7 +23,7 @@ var (
 
 // Handler handles API requests.
 type Handler struct {
-	db     storage.TargetStorage
+	db     *stateClient
 	router *mux.Router
 }
 
@@ -31,7 +33,7 @@ func NewHandler(db storage.TargetStorage) *Handler {
 	apiRouter := baseRouter.PathPrefix("/api").Subrouter()
 
 	h := &Handler{
-		db:     db,
+		db:     makeStateClient(db),
 		router: apiRouter,
 	}
 	h.registerEndpoints()
@@ -98,4 +100,34 @@ func (h *Handler) registerGovernanceEndpoints() {
 
 	r.HandleFunc("/consensus/proposals", h.GetProposals).Methods("GET")
 	r.HandleFunc("/consensus/proposals/{proposal_id}", h.GetProposal).Methods("GET")
+}
+
+// GetStatus gets the latest indexing status of the Oasis Indexer.
+func (h *Handler) GetStatus(w http.ResponseWriter, r *http.Request) {
+	status := APIStatus{
+		CurrentHeight: 8048956,
+	}
+
+	var resp []byte
+	resp, err := json.Marshal(status)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("content-type", "application/json")
+	w.Write(resp)
+}
+
+// GetMetadata gets metadata for the Oasis Indexer API.
+func (h *Handler) GetMetadata(w http.ResponseWriter, r *http.Request) {
+	var resp []byte
+	resp, err := json.Marshal(latestMetadata)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("content-type", "application/json")
+	w.Write(resp)
 }

@@ -53,7 +53,7 @@ func (c *CockroachClient) SendBatch(ctx context.Context, batch *pgx.Batch) error
 }
 
 // Query submits a new query to CockroachDB.
-func (c *CockroachClient) Query(ctx context.Context, sql string, args ...interface{}) (*pgx.Rows, error) {
+func (c *CockroachClient) Query(ctx context.Context, sql string, args ...interface{}) (pgx.Rows, error) {
 	conn, err := c.pool.Acquire(ctx)
 	if err != nil {
 		return nil, err
@@ -64,7 +64,7 @@ func (c *CockroachClient) Query(ctx context.Context, sql string, args ...interfa
 	if err != nil {
 		return nil, err
 	}
-	return &rows, nil
+	return rows, nil
 }
 
 // Name returns the name of the CockroachDB client.
