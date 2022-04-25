@@ -10,6 +10,7 @@ import (
 	"github.com/oasislabs/oasis-block-indexer/go/oasis-indexer/cmd/analyzer"
 	"github.com/oasislabs/oasis-block-indexer/go/oasis-indexer/cmd/api"
 	"github.com/oasislabs/oasis-block-indexer/go/oasis-indexer/cmd/common"
+	"github.com/oasislabs/oasis-block-indexer/go/oasis-indexer/cmd/generator"
 )
 
 var rootCmd = &cobra.Command{
@@ -40,6 +41,7 @@ func init() {
 	for _, f := range []func(*cobra.Command){
 		analyzer.Register,
 		api.Register,
+		generator.Register,
 	} {
 		f(rootCmd)
 	}

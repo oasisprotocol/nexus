@@ -9,6 +9,7 @@ require (
 	github.com/gorilla/mux v1.7.3
 	github.com/hashicorp/go-hclog v1.1.0 // indirect
 	github.com/hashicorp/go-plugin v1.4.3 // indirect
+	github.com/iancoleman/strcase v0.2.0
 	github.com/jackc/pgx/v4 v4.15.0
 	github.com/libp2p/go-libp2p v0.18.0 // indirect
 	github.com/libp2p/go-libp2p-pubsub v0.6.1 // indirect
