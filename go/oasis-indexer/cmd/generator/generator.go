@@ -30,16 +30,16 @@ const (
 	// to generate migrations should be loaded.
 	CfgGenesisFile = "generator.genesis_file"
 
-	// CfgNetworkConfig is the config file for connecting to an oasis-node.
-	CfgNetworkConfig = "generator.network_config"
+	// CfgNetworkConfigFile is the config file for connecting to an oasis-node.
+	CfgNetworkConfigFile = "generator.network_config_file"
 
 	moduleName = "generator"
 )
 
 var (
-	cfgMigrationFile string
-	cfgGenesisFile   string
-	cfgNetworkConfig string
+	cfgMigrationFile     string
+	cfgGenesisFile       string
+	cfgNetworkConfigFile string
 
 	generateCmd = &cobra.Command{
 		Use:   "generate",
@@ -54,19 +54,13 @@ func runGenerator(cmd *cobra.Command, args []string) {
 	}
 
 	g, err := NewGenerator()
-	switch {
-	case err == nil:
-		if err := g.WriteMigration(); err != nil {
-			common.Logger().Error("migration failed to run",
-				"error", err,
-			)
-			os.Exit(1)
-		}
-		return
-	case errors.Is(err, context.Canceled):
-		// Shutdown requested during startup.
-		return
-	default:
+	if err != nil {
+		common.Logger().Error("migration failed to run",
+			"error", err,
+		)
+		os.Exit(1)
+	}
+	if err := g.WriteMigration(); err != nil {
 		common.Logger().Error("generator failed to initialize",
 			"error", err,
 		)
@@ -94,17 +88,17 @@ func NewGenerator() (*Generator, error) {
 func (g *Generator) WriteMigration() error {
 	var d *genesis.Document
 	if cfgGenesisFile != "" {
-		if doc, err := g.genesisDocFromFile(); err != nil {
+		doc, err := g.genesisDocFromFile()
+		if err != nil {
 			return err
-		} else {
-			d = doc
 		}
-	} else if cfgNetworkConfig != "" {
-		if doc, err := g.genesisDocFromClient(); err != nil {
+		d = doc
+	} else if cfgNetworkConfigFile != "" {
+		doc, err := g.genesisDocFromClient()
+		if err != nil {
 			return err
-		} else {
-			d = doc
 		}
+		d = doc
 	} else {
 		return errors.New("neither genesis file nor network config provided")
 	}
@@ -112,13 +106,12 @@ func (g *Generator) WriteMigration() error {
 	// Create output file.
 	w := os.Stdout
 	if cfgMigrationFile != "" {
-		f, err := os.Create(cfgMigrationFile)
+		var err error
+		w, err = os.Create(cfgMigrationFile)
 		if err != nil {
 			return err
 		}
-		defer f.Close()
-
-		w = f
+		defer w.Close()
 	}
 
 	// Generate migration.
@@ -159,7 +152,7 @@ func (g *Generator) genesisDocFromClient() (*genesis.Document, error) {
 	ctx := context.Background()
 
 	// Connect to oasis-node.
-	rawCfg, err := ioutil.ReadFile(cfgNetworkConfig)
+	rawCfg, err := ioutil.ReadFile(cfgNetworkConfigFile)
 	if err != nil {
 		return nil, err
 	}
@@ -184,6 +177,6 @@ func (g *Generator) genesisDocFromClient() (*genesis.Document, error) {
 func Register(parentCmd *cobra.Command) {
 	generateCmd.Flags().StringVar(&cfgMigrationFile, CfgMigrationFile, "", "path to output migration file")
 	generateCmd.Flags().StringVar(&cfgGenesisFile, CfgGenesisFile, "", "path to input genesis file")
-	generateCmd.Flags().StringVar(&cfgNetworkConfig, CfgNetworkConfig, "", "path to a network configuration file")
+	generateCmd.Flags().StringVar(&cfgNetworkConfigFile, CfgNetworkConfigFile, "", "path to a network configuration file")
 	parentCmd.AddCommand(generateCmd)
 }
