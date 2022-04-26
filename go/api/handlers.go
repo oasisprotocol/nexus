@@ -1,7 +1,6 @@
 package api
 
 import (
-	"context"
 	"encoding/json"
 	"net/http"
 	"strconv"
@@ -25,7 +24,7 @@ func (h *Handler) ListBlocks(w http.ResponseWriter, r *http.Request) {
 	}
 
 	rows, err := h.db.Query(
-		context.Background(),
+		r.Context(),
 		withPagination(`SELECT height, block_hash, time
 			FROM test.blocks
 		`, pagination),
@@ -67,7 +66,7 @@ type Block struct {
 // GetBlock gets a consensus block.
 func (h *Handler) GetBlock(w http.ResponseWriter, r *http.Request) {
 	rows, err := h.db.Query(
-		context.Background(),
+		r.Context(),
 		`SELECT height, block_hash, time
 			FROM test.blocks
 			WHERE height = $1::bigint`,
@@ -114,7 +113,7 @@ func (h *Handler) ListTransactions(w http.ResponseWriter, r *http.Request) {
 	}
 
 	rows, err := h.db.Query(
-		context.Background(),
+		r.Context(),
 		withPagination(`SELECT block, txn_hash, nonce, fee_amount, method, body, code
 			FROM test.transactions
 			WHERE txn_hash = $1::hash`, pagination),
@@ -173,7 +172,7 @@ type Transaction struct {
 // GetTransaction gets a consensus transaction.
 func (h *Handler) GetTransaction(w http.ResponseWriter, r *http.Request) {
 	rows, err := h.db.Query(
-		context.Background(),
+		r.Context(),
 		`SELECT block, txn_hash, nonce, fee_amount, method, body, code
 			FROM test.transactions
 			WHERE txn_hash = $1::hash`,
@@ -232,7 +231,7 @@ func (h *Handler) ListEntities(w http.ResponseWriter, r *http.Request) {
 	}
 
 	rows, err := h.db.Query(
-		context.Background(),
+		r.Context(),
 		withPagination(`SELECT id, address
 			FROM test.entities`, pagination),
 	)
@@ -274,7 +273,7 @@ type Entity struct {
 // GetEntity gets a registered entity.
 func (h *Handler) GetEntity(w http.ResponseWriter, r *http.Request) {
 	entityRows, err := h.db.Query(
-		context.Background(),
+		r.Context(),
 		`SELECT id, address
 			FROM test.entities
 			WHERE id = $1::text`,
@@ -298,7 +297,7 @@ func (h *Handler) GetEntity(w http.ResponseWriter, r *http.Request) {
 	}
 
 	nodeRows, err := h.db.Query(
-		context.Background(),
+		r.Context(),
 		`SELECT id
 			FROM test.nodes
 			WHERE entity_id = $1::text`,
@@ -346,7 +345,7 @@ func (h *Handler) GetEntityNodes(w http.ResponseWriter, r *http.Request) {
 
 	id := chi.URLParam(r, "entity_id")
 	rows, err := h.db.Query(
-		context.Background(),
+		r.Context(),
 		withPagination(`SELECT id, entity_id, expiration, tls_pubkey, tls_next_pubkey, p2p_pubkey, consensus_pubkey, roles
 			FROM test.nodes
 			WHERE entity_id = $1::text`, pagination),
@@ -404,7 +403,7 @@ type Node struct {
 // GetEntityNode gets a node controlled by the provided entity.
 func (h *Handler) GetEntityNode(w http.ResponseWriter, r *http.Request) {
 	rows, err := h.db.Query(
-		context.Background(),
+		r.Context(),
 		`SELECT id, entity_id, expiration, tls_pubkey, tls_next_pubkey, p2p_pubkey, consensus_pubkey, roles
 			FROM test.nodes
 			WHERE entity_id = $1::text AND id = $2::text`,
@@ -461,7 +460,7 @@ func (h *Handler) ListAccounts(w http.ResponseWriter, r *http.Request) {
 	}
 
 	rows, err := h.db.Query(
-		context.Background(),
+		r.Context(),
 		withPagination(
 			`SELECT address, nonce, general_balance, escrow_balance_active, escrow_balance_debonding
 				FROM test.accounts`, pagination),
@@ -520,7 +519,7 @@ type Allowance struct {
 // GetAccount gets a consensus account.
 func (h *Handler) GetAccount(w http.ResponseWriter, r *http.Request) {
 	accountRows, err := h.db.Query(
-		context.Background(),
+		r.Context(),
 		`SELECT address, nonce, general_balance, escrow_balance_active, escrow_balance_debonding
 			FROM test.accounts
 			WHERE address = $1::text`,
@@ -551,7 +550,7 @@ func (h *Handler) GetAccount(w http.ResponseWriter, r *http.Request) {
 	a.Total = a.Available + a.Escrow + a.Debonding
 
 	allowanceRows, err := h.db.Query(
-		context.Background(),
+		r.Context(),
 		`SELECT beneficiary, allowance
 			FROM test.allowances
 			WHERE owner = $1::text`,
@@ -626,7 +625,7 @@ func (h *Handler) ListProposals(w http.ResponseWriter, r *http.Request) {
 	}
 
 	rows, err := h.db.Query(
-		context.Background(),
+		r.Context(),
 		withPagination(`SELECT id, submitter, state, deposit, handler, cp_target_version, rhp_target_version, rcp_target_version,
 				upgrade_epoch, cancels, created_at, closes_at, invalid_votes
 			FROM test.proposals`, pagination),
@@ -702,7 +701,7 @@ func (h *Handler) GetProposal(w http.ResponseWriter, r *http.Request) {
 	}
 
 	rows, err := h.db.Query(
-		context.Background(),
+		r.Context(),
 		`SELECT id, submitter, state, deposit, handler, cp_target_version, rhp_target_version, rcp_target_version,
 						upgrade_epoch, cancels, created_at, closes_at, invalid_votes
 			FROM test.proposals
@@ -776,7 +775,7 @@ func (h *Handler) GetProposalVotes(w http.ResponseWriter, r *http.Request) {
 	}
 
 	rows, err := h.db.Query(
-		context.Background(),
+		r.Context(),
 		withPagination(`SELECT voter, vote
 			FROM test.votes
 			WHERE proposal = $1::bigint`, pagination),
