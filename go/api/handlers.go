@@ -2,8 +2,10 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/go-chi/chi"
@@ -17,17 +19,35 @@ type BlockList struct {
 
 // ListBlocks gets a list of consensus blocks.
 func (h *Handler) ListBlocks(w http.ResponseWriter, r *http.Request) {
+	query :=
+		`SELECT height, block_hash, time
+			FROM test.blocks`
+
+	var filters []string
+	params := r.URL.Query()
+	for param, condition := range map[string]string{
+		"from":   "height >= %s",
+		"to":     "height <= %s",
+		"after":  "time >= TIMESTAMP %s",
+		"before": "time <= TIMESTAMP %s",
+	} {
+		if v := params.Get(param); v != "" {
+			filters = append(filters, fmt.Sprintf(condition, v))
+		}
+	}
+	if len(filters) > 0 {
+		query = fmt.Sprintf("%s WHERE %s", query, strings.Join(filters, " AND "))
+	}
 	pagination, err := unpackPagination(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	query = withPagination(query, pagination)
 
 	rows, err := h.db.Query(
 		r.Context(),
-		withPagination(`SELECT height, block_hash, time
-			FROM test.blocks
-		`, pagination),
+		query,
 	)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -106,18 +126,36 @@ type TransactionList struct {
 
 // ListTransactions gets a list of consensus transactions.
 func (h *Handler) ListTransactions(w http.ResponseWriter, r *http.Request) {
+	query :=
+		`SELECT block, txn_hash, nonce, fee_amount, method, body, code
+			FROM test.transactions`
+
+	var filters []string
+	params := r.URL.Query()
+	for param, condition := range map[string]string{
+		"block":  "block = %s",
+		"method": "method = %s",
+		"minFee": "fee_amount >= %s",
+		"maxFee": "fee_amount <= %s",
+		"code":   "code = %s",
+	} {
+		if v := params.Get(param); v != "" {
+			filters = append(filters, fmt.Sprintf(condition, v))
+		}
+	}
+	if len(filters) > 0 {
+		query = fmt.Sprintf("%s WHERE %s", query, strings.Join(filters, " AND "))
+	}
 	pagination, err := unpackPagination(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	query = withPagination(query, pagination)
 
 	rows, err := h.db.Query(
 		r.Context(),
-		withPagination(`SELECT block, txn_hash, nonce, fee_amount, method, body, code
-			FROM test.transactions
-			WHERE txn_hash = $1::hash`, pagination),
-		chi.URLParam(r, "txn_hash"),
+		query,
 	)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -171,11 +209,14 @@ type Transaction struct {
 
 // GetTransaction gets a consensus transaction.
 func (h *Handler) GetTransaction(w http.ResponseWriter, r *http.Request) {
-	rows, err := h.db.Query(
-		r.Context(),
+	query :=
 		`SELECT block, txn_hash, nonce, fee_amount, method, body, code
 			FROM test.transactions
-			WHERE txn_hash = $1::hash`,
+			WHERE txn_hash = $1::hash`
+
+	rows, err := h.db.Query(
+		r.Context(),
+		query,
 		chi.URLParam(r, "txn_hash"),
 	)
 	if err != nil {
@@ -224,16 +265,17 @@ type EntityList struct {
 
 // ListEntities gets a list of registered entities.
 func (h *Handler) ListEntities(w http.ResponseWriter, r *http.Request) {
+	query := `SELECT id, address FROM test.entities`
 	pagination, err := unpackPagination(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	query = withPagination(query, pagination)
 
 	rows, err := h.db.Query(
 		r.Context(),
-		withPagination(`SELECT id, address
-			FROM test.entities`, pagination),
+		query,
 	)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -337,18 +379,22 @@ type NodeList struct {
 
 // GetEntityNodes gets a list of nodes controlled by the provided entity.
 func (h *Handler) GetEntityNodes(w http.ResponseWriter, r *http.Request) {
+	query :=
+		`SELECT id, entity_id, expiration, tls_pubkey, tls_next_pubkey, p2p_pubkey, consensus_pubkey, roles
+			FROM test.nodes
+			WHERE entity_id = $1::text`
+
 	pagination, err := unpackPagination(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	query = withPagination(query, pagination)
 
 	id := chi.URLParam(r, "entity_id")
 	rows, err := h.db.Query(
 		r.Context(),
-		withPagination(`SELECT id, entity_id, expiration, tls_pubkey, tls_next_pubkey, p2p_pubkey, consensus_pubkey, roles
-			FROM test.nodes
-			WHERE entity_id = $1::text`, pagination),
+		query,
 		id,
 	)
 	if err != nil {
@@ -453,17 +499,38 @@ type AccountList struct {
 
 // ListAccounts gets a list of consensus accounts.
 func (h *Handler) ListAccounts(w http.ResponseWriter, r *http.Request) {
+	query :=
+		`SELECT address, nonce, general_balance, escrow_balance_active, escrow_balance_debonding
+				FROM test.accounts`
+
+	var filters []string
+	params := r.URL.Query()
+	for param, condition := range map[string]string{
+		"minBalance":   "general_balance >= %s",
+		"maxBalance":   "general_balance <= %s",
+		"minEscrow":    "escrow_balance_active >= %s",
+		"maxEscrow":    "escrow_balance_active <= %s",
+		"minDebonding": "escrow_balance_debonding >= %s",
+		"maxDebonding": "escrow_balance_debonding <= %s",
+	} {
+		if v := params.Get(param); v != "" {
+			filters = append(filters, fmt.Sprintf(condition, v))
+		}
+	}
+	if len(filters) > 0 {
+		query = fmt.Sprintf("%s WHERE %s", query, strings.Join(filters, " AND "))
+	}
+
 	pagination, err := unpackPagination(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	query = withPagination(query, pagination)
 
 	rows, err := h.db.Query(
 		r.Context(),
-		withPagination(
-			`SELECT address, nonce, general_balance, escrow_balance_active, escrow_balance_debonding
-				FROM test.accounts`, pagination),
+		query,
 	)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -618,17 +685,35 @@ type ProposalList struct {
 
 // ListProposals gets a list of governance proposals.
 func (h *Handler) ListProposals(w http.ResponseWriter, r *http.Request) {
+	query :=
+		`SELECT id, submitter, state, deposit, handler, cp_target_version, rhp_target_version, rcp_target_version,
+				upgrade_epoch, cancels, created_at, closes_at, invalid_votes
+			FROM test.proposals`
+
+	var filters []string
+	params := r.URL.Query()
+	for param, condition := range map[string]string{
+		"submitter": "submitter = %s",
+		"state":     "state = %s",
+	} {
+		if v := params.Get(param); v != "" {
+			filters = append(filters, fmt.Sprintf(condition, v))
+		}
+	}
+	if len(filters) > 0 {
+		query = fmt.Sprintf("%s WHERE %s", query, strings.Join(filters, " AND "))
+	}
+
 	pagination, err := unpackPagination(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	query = withPagination(query, pagination)
 
 	rows, err := h.db.Query(
 		r.Context(),
-		withPagination(`SELECT id, submitter, state, deposit, handler, cp_target_version, rhp_target_version, rcp_target_version,
-				upgrade_epoch, cancels, created_at, closes_at, invalid_votes
-			FROM test.proposals`, pagination),
+		query,
 	)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -694,19 +779,13 @@ type Target struct {
 
 // GetProposal gets a governance proposal.
 func (h *Handler) GetProposal(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.ParseUint(chi.URLParam(r, "proposal_id"), 10, 64)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
 	rows, err := h.db.Query(
 		r.Context(),
 		`SELECT id, submitter, state, deposit, handler, cp_target_version, rhp_target_version, rcp_target_version,
 						upgrade_epoch, cancels, created_at, closes_at, invalid_votes
 			FROM test.proposals
 			WHERE id = $1::bigint`,
-		id,
+		chi.URLParam(r, "proposal_id"),
 	)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -762,11 +841,17 @@ type ProposalVote struct {
 
 // GetProposalVotes gets votes for a governance proposal.
 func (h *Handler) GetProposalVotes(w http.ResponseWriter, r *http.Request) {
+	query :=
+		`SELECT voter, vote
+			FROM test.votes
+			WHERE proposal = $1::bigint`
+
 	pagination, err := unpackPagination(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	query = withPagination(query, pagination)
 
 	id, err := strconv.ParseUint(chi.URLParam(r, "proposal_id"), 10, 64)
 	if err != nil {
@@ -776,9 +861,7 @@ func (h *Handler) GetProposalVotes(w http.ResponseWriter, r *http.Request) {
 
 	rows, err := h.db.Query(
 		r.Context(),
-		withPagination(`SELECT voter, vote
-			FROM test.votes
-			WHERE proposal = $1::bigint`, pagination),
+		query,
 		id,
 	)
 	if err != nil {
