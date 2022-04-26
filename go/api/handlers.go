@@ -8,18 +8,46 @@ import (
 	"time"
 
 	"github.com/go-chi/chi"
+	oasisErrors "github.com/oasisprotocol/oasis-core/go/common/errors"
 )
 
-// BlockList is API response for ListBlocks.
+// BlockList is the API response for ListBlocks.
 type BlockList struct {
 	Blocks []Block `json:"blocks"`
 }
 
 // ListBlocks gets a list of consensus blocks.
 func (h *Handler) ListBlocks(w http.ResponseWriter, r *http.Request) {
+	pagination, err := unpackPagination(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 
-	var resp []byte
-	resp, err := json.Marshal(BlockList{})
+	rows, err := h.db.Query(
+		context.Background(),
+		withPagination(`SELECT height, block_hash, time
+			FROM test.blocks
+		`, pagination),
+	)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	var bs BlockList
+	for rows.Next() {
+		var b Block
+		if err := rows.Scan(&b.Height, b.Hash, b.Timestamp); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		bs.Blocks = append(bs.Blocks, b)
+	}
+
+	resp, err := json.Marshal(bs)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -38,8 +66,31 @@ type Block struct {
 
 // GetBlock gets a consensus block.
 func (h *Handler) GetBlock(w http.ResponseWriter, r *http.Request) {
-	var resp []byte
-	resp, err := json.Marshal(Block{})
+	rows, err := h.db.Query(
+		context.Background(),
+		`SELECT height, block_hash, time
+			FROM test.blocks
+			WHERE height = $1::bigint`,
+		chi.URLParam(r, "height"),
+	)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	var b Block
+	if rows.Next() {
+		if err := rows.Scan(&b.Height, &b.Hash, &b.Timestamp); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	} else {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	resp, err := json.Marshal(b)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -47,12 +98,58 @@ func (h *Handler) GetBlock(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("content-type", "application/json")
 	w.Write(resp)
+}
+
+// TransactionList is the API response for ListTransactions.
+type TransactionList struct {
+	Transactions []Transaction `json:"transactions"`
 }
 
 // ListTransactions gets a list of consensus transactions.
 func (h *Handler) ListTransactions(w http.ResponseWriter, r *http.Request) {
-	var resp []byte
-	resp, err := json.Marshal(Block{})
+	pagination, err := unpackPagination(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	rows, err := h.db.Query(
+		context.Background(),
+		withPagination(`SELECT block, txn_hash, nonce, fee_amount, method, body, code
+			FROM test.transactions
+			WHERE txn_hash = $1::hash`, pagination),
+		chi.URLParam(r, "txn_hash"),
+	)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	var ts TransactionList
+	for rows.Next() {
+		var t Transaction
+		var code uint64
+		if err := rows.Scan(
+			&t.Height,
+			&t.Hash,
+			&t.Nonce,
+			&t.Fee,
+			&t.Method,
+			&t.Body,
+			&code,
+		); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		if code == oasisErrors.CodeNoError {
+			t.Success = true
+		}
+
+		ts.Transactions = append(ts.Transactions, t)
+	}
+
+	resp, err := json.Marshal(ts)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -62,10 +159,56 @@ func (h *Handler) ListTransactions(w http.ResponseWriter, r *http.Request) {
 	w.Write(resp)
 }
 
+// Transaction is the API response for GetTransaction.
+type Transaction struct {
+	Height  uint64 `json:"height"`
+	Hash    string `json:"hash"`
+	Nonce   uint64 `json:"nonce"`
+	Fee     uint64 `json:"fee"`
+	Method  string `json:"method"`
+	Body    []byte `json:"body"`
+	Success bool   `json:"success"`
+}
+
 // GetTransaction gets a consensus transaction.
 func (h *Handler) GetTransaction(w http.ResponseWriter, r *http.Request) {
-	var resp []byte
-	resp, err := json.Marshal(Block{})
+	rows, err := h.db.Query(
+		context.Background(),
+		`SELECT block, txn_hash, nonce, fee_amount, method, body, code
+			FROM test.transactions
+			WHERE txn_hash = $1::hash`,
+		chi.URLParam(r, "txn_hash"),
+	)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	var t Transaction
+	if rows.Next() {
+		var code uint64
+		if err := rows.Scan(
+			&t.Height,
+			&t.Hash,
+			&t.Nonce,
+			&t.Fee,
+			&t.Method,
+			&t.Body,
+			&code,
+		); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		if code == oasisErrors.CodeNoError {
+			t.Success = true
+		}
+	} else {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	resp, err := json.Marshal(t)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
