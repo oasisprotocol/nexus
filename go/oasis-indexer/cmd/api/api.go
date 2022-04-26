@@ -2,8 +2,6 @@
 package api
 
 import (
-	"context"
-	"errors"
 	"net/http"
 	"os"
 	"time"
@@ -45,18 +43,14 @@ func runServer(cmd *cobra.Command, args []string) {
 	}
 
 	service, err := NewAPIService()
-	switch {
-	case err == nil:
-		service.Start()
-	case errors.Is(err, context.Canceled):
-		// Shutdown requested during startup.
-		return
-	default:
+	if err != nil {
 		common.Logger().Error("service failed to start",
 			"error", err,
 		)
 		os.Exit(1)
 	}
+
+	service.Start()
 }
 
 // APIService is the Oasis Indexer's API service.

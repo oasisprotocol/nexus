@@ -223,7 +223,7 @@ CREATE TABLE IF NOT EXISTS oasis_3.proposals
   upgrade_epoch      BIGINT,
 
   -- If this proposal cancels an existing proposal.
-  cancels BIGINT REFERENCES oasis_3.proposals(id),
+  cancels BIGINT REFERENCES oasis_3.proposals(id) DEFAULT NULL,
 
   created_at    BIGINT NOT NULL,
   closes_at     BIGINT NOT NULL,

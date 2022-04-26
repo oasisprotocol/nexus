@@ -20,7 +20,12 @@ type CockroachClient struct {
 
 // NewCockroachClient creates a new CockroachDB client.
 func NewCockroachClient(connString string) (*CockroachClient, error) {
-	pool, err := pgxpool.Connect(context.Background(), connString)
+	config, err := pgxpool.ParseConfig(connString)
+	if err != nil {
+		return nil, err
+	}
+
+	pool, err := pgxpool.ConnectConfig(context.Background(), config)
 	if err != nil {
 		return nil, err
 	}
@@ -60,7 +65,7 @@ func (c *CockroachClient) Query(ctx context.Context, sql string, args ...interfa
 	}
 	defer conn.Release()
 
-	rows, err := conn.Query(ctx, sql, args)
+	rows, err := conn.Query(ctx, sql, args...)
 	if err != nil {
 		return nil, err
 	}

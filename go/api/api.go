@@ -2,10 +2,11 @@
 package api
 
 import (
-	"encoding/json"
 	"net/http"
 
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/middleware"
+
 	"github.com/oasislabs/oasis-block-indexer/go/storage"
 )
 
@@ -13,37 +14,27 @@ const (
 	moduleName = "api.handler"
 )
 
-var (
-	latestMetadata = APIMetadata{
-		Major: 0,
-		Minor: 1,
-		Patch: 0,
-	}
-)
-
 // Handler handles API requests.
 type Handler struct {
-	db     *stateClient
-	router *mux.Router
+	db     storage.TargetStorage
+	router *chi.Mux
 }
 
 // NewHandler creates a new API handler.
 func NewHandler(db storage.TargetStorage) *Handler {
-	baseRouter := mux.NewRouter()
-	apiRouter := baseRouter.PathPrefix("/api").Subrouter()
+	r := chi.NewRouter()
+
+	// TODO: Replace with one of our structured loggers.
+	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
 
 	h := &Handler{
-		db:     makeStateClient(db),
-		router: apiRouter,
+		db:     db,
+		router: r,
 	}
 	h.registerEndpoints()
 
 	return h
-}
-
-// Router gets the router for this Handler.
-func (h *Handler) Router() *mux.Router {
-	return h.router
 }
 
 func (h *Handler) registerEndpoints() {
@@ -61,73 +52,49 @@ func (h *Handler) registerEndpoints() {
 func (h *Handler) registerBlockEndpoints() {
 	r := h.router
 
-	r.HandleFunc("/consensus/blocks", h.GetBlocks).Methods("GET")
-	r.HandleFunc("/consensus/blocks/{height}", h.GetBlock).Methods("GET")
-	r.HandleFunc("/consensus/blocks/{height}/beacon", h.GetBeacon).Methods("GET")
-	r.HandleFunc("/consensus/blocks/{height}/events", h.GetBlockEvents).Methods("GET")
-	r.HandleFunc("/consensus/transactions", h.GetTransactions).Methods("GET")
-	r.HandleFunc("/consensus/transactions/{tx_hash}", h.GetTransaction).Methods("GET")
-	r.HandleFunc("/consensus/transactions/{tx_hash}/events", h.GetTransactionEvents).Methods("GET")
+	r.Get("/consensus/blocks", h.TODO)
+	r.Get("/consensus/blocks/{height}", h.TODO)
+	r.Get("/consensus/transactions", h.TODO)
+	r.Get("/consensus/transactions/{tx_hash}", h.TODO)
 }
 
 func (h *Handler) registerRegistryEndpoints() {
 	r := h.router
 
-	r.HandleFunc("/consensus/entities", h.GetEntities).Methods("GET")
-	r.HandleFunc("/consensus/entities/{entity_id}", h.GetEntity).Methods("GET")
-	r.HandleFunc("/consensus/entities/{entity_id}/nodes", h.GetEntityNodes).Methods("GET")
-	r.HandleFunc("/consensus/entities/{entity_id}/nodes/{node_id}", h.GetEntityNode).Methods("GET")
+	r.Get("/consensus/entities", h.ListEntities)
+	r.Get("/consensus/entities/{entity_id}", h.GetEntity)
+	r.Get("/consensus/entities/{entity_id}/nodes", h.GetEntityNodes)
+	r.Get("/consensus/entities/{entity_id}/nodes/{node_id}", h.GetEntityNode)
 }
 
 func (h *Handler) registerStakingEndpoints() {
 	r := h.router
 
-	r.HandleFunc("/consensus/accounts", h.GetAccounts).Methods("GET")
-	r.HandleFunc("/consensus/accounts/{address}", h.GetAccount).Methods("GET")
+	r.Get("/consensus/accounts", h.ListAccounts)
+	r.Get("/consensus/accounts/{address}", h.GetAccount)
 }
 
 func (h *Handler) registerSchedulerEndpoints() {
 	r := h.router
 
-	r.HandleFunc("/consensus/epochs", h.GetEpochs).Methods("GET")
-	r.HandleFunc("/consensus/epochs/{epoch}", h.GetEpoch).Methods("GET")
-	r.HandleFunc("/consensus/epochs/{epoch}/validators", h.GetValidators).Methods("GET")
-	r.HandleFunc("/consensus/epochs/{epoch}/committees/{runtime_id}", h.GetCommittees).Methods("GET")
+	r.Get("/consensus/epochs", h.TODO)
+	r.Get("/consensus/epochs/{epoch}", h.TODO)
 }
 
 func (h *Handler) registerGovernanceEndpoints() {
 	r := h.router
 
-	r.HandleFunc("/consensus/proposals", h.GetProposals).Methods("GET")
-	r.HandleFunc("/consensus/proposals/{proposal_id}", h.GetProposal).Methods("GET")
+	r.Get("/consensus/proposals", h.ListProposals)
+	r.Get("/consensus/proposals/{proposal_id}", h.GetProposal)
+	r.Get("/consensus/proposals/{proposal_id}/votes", h.GetProposalVotes)
 }
 
-// GetStatus gets the latest indexing status of the Oasis Indexer.
-func (h *Handler) GetStatus(w http.ResponseWriter, r *http.Request) {
-	status := APIStatus{
-		CurrentHeight: 8048956,
-	}
-
-	var resp []byte
-	resp, err := json.Marshal(status)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("content-type", "application/json")
-	w.Write(resp)
+// TODO is a default request handler that can be used for unimplemented endpoints.
+func (h *Handler) TODO(w http.ResponseWriter, r *http.Request) {
+	http.Error(w, "endpoint unimplemented. stay tuned!", http.StatusNotImplemented)
 }
 
-// GetMetadata gets metadata for the Oasis Indexer API.
-func (h *Handler) GetMetadata(w http.ResponseWriter, r *http.Request) {
-	var resp []byte
-	resp, err := json.Marshal(latestMetadata)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("content-type", "application/json")
-	w.Write(resp)
+// Router gets the router for this Handler.
+func (h *Handler) Router() *chi.Mux {
+	return h.router
 }
