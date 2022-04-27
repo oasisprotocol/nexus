@@ -72,6 +72,21 @@ func (c *CockroachClient) Query(ctx context.Context, sql string, args ...interfa
 	return rows, nil
 }
 
+// QueryRow submits a new query for a single row to CockroachDB.
+func (c *CockroachClient) Query(ctx context.Context, sql string, args ...interface{}) (pgx.Row, error) {
+	conn, err := c.pool.Acquire(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer conn.Release()
+
+	row, err := conn.QueryRow(ctx, sql, args...)
+	if err != nil {
+		return nil, err
+	}
+	return row, err
+}
+
 // Name returns the name of the CockroachDB client.
 func (c *CockroachClient) Name() string {
 	return moduleName

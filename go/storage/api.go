@@ -22,6 +22,9 @@ type QueryBatch = pgx.Batch
 // QueryResults represents the results from a read query.
 type QueryResults = pgx.Rows
 
+// QueryResult represents the result from a read query.
+type QueryResult = pgx.Row
+
 // SourceStorage defines an interface for retrieving raw block data.
 type SourceStorage interface {
 
@@ -67,6 +70,9 @@ type TargetStorage interface {
 
 	// Query submits a query to fetch data from target storage.
 	Query(ctx context.Context, sql string, args ...interface{}) (QueryResults, error)
+
+	// QueryRow submits a query to fetch a single row of data from target storage.
+	QueryRow(ctx context.Context, sql string, args ...interface{}) (QueryResult, error)
 
 	// Name returns the name of the target storage.
 	Name() string

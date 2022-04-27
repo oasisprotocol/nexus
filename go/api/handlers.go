@@ -85,7 +85,7 @@ type Block struct {
 
 // GetBlock gets a consensus block.
 func (h *Handler) GetBlock(w http.ResponseWriter, r *http.Request) {
-	rows, err := h.db.Query(
+	row, err := h.db.QueryRow(
 		r.Context(),
 		`SELECT height, block_hash, time
 			FROM test.blocks
@@ -96,16 +96,10 @@ func (h *Handler) GetBlock(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	defer rows.Close()
 
 	var b Block
-	if rows.Next() {
-		if err := rows.Scan(&b.Height, &b.Hash, &b.Timestamp); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-	} else {
-		http.Error(w, err.Error(), http.StatusNotFound)
+	if err := row.Scan(&b.Height, &b.Hash, &b.Timestamp); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -214,7 +208,7 @@ func (h *Handler) GetTransaction(w http.ResponseWriter, r *http.Request) {
 			FROM test.transactions
 			WHERE txn_hash = $1::hash`
 
-	rows, err := h.db.Query(
+	row, err := h.db.QueryRow(
 		r.Context(),
 		query,
 		chi.URLParam(r, "txn_hash"),
@@ -223,29 +217,23 @@ func (h *Handler) GetTransaction(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	defer rows.Close()
 
 	var t Transaction
-	if rows.Next() {
-		var code uint64
-		if err := rows.Scan(
-			&t.Height,
-			&t.Hash,
-			&t.Nonce,
-			&t.Fee,
-			&t.Method,
-			&t.Body,
-			&code,
-		); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		if code == oasisErrors.CodeNoError {
-			t.Success = true
-		}
-	} else {
-		http.Error(w, err.Error(), http.StatusNotFound)
+	var code uint64
+	if err := row.Scan(
+		&t.Height,
+		&t.Hash,
+		&t.Nonce,
+		&t.Fee,
+		&t.Method,
+		&t.Body,
+		&code,
+	); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
+	}
+	if code == oasisErrors.CodeNoError {
+		t.Success = true
 	}
 
 	resp, err := json.Marshal(t)
@@ -314,7 +302,7 @@ type Entity struct {
 
 // GetEntity gets a registered entity.
 func (h *Handler) GetEntity(w http.ResponseWriter, r *http.Request) {
-	entityRows, err := h.db.Query(
+	entityRow, err := h.db.QueryRow(
 		r.Context(),
 		`SELECT id, address
 			FROM test.entities
@@ -325,16 +313,10 @@ func (h *Handler) GetEntity(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	defer entityRows.Close()
 
 	var e Entity
-	if entityRows.Next() {
-		if err := entityRows.Scan(&e.ID, &e.Address); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-	} else {
-		http.Error(w, err.Error(), http.StatusNotFound)
+	if err := entityRow.Scan(&e.ID, &e.Address); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -448,7 +430,7 @@ type Node struct {
 
 // GetEntityNode gets a node controlled by the provided entity.
 func (h *Handler) GetEntityNode(w http.ResponseWriter, r *http.Request) {
-	rows, err := h.db.Query(
+	row, err := h.db.QueryRow(
 		r.Context(),
 		`SELECT id, entity_id, expiration, tls_pubkey, tls_next_pubkey, p2p_pubkey, consensus_pubkey, roles
 			FROM test.nodes
@@ -460,25 +442,19 @@ func (h *Handler) GetEntityNode(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	defer rows.Close()
 
 	var n Node
-	if rows.Next() {
-		if err := rows.Scan(
-			&n.ID,
-			&n.EntityID,
-			&n.Expiration,
-			&n.TLSPubkey,
-			&n.TLSNextPubkey,
-			&n.P2PPubkey,
-			&n.ConsensusPubkey,
-			&n.Roles,
-		); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-	} else {
-		http.Error(w, err.Error(), http.StatusNotFound)
+	if err := row.Scan(
+		&n.ID,
+		&n.EntityID,
+		&n.Expiration,
+		&n.TLSPubkey,
+		&n.TLSNextPubkey,
+		&n.P2PPubkey,
+		&n.ConsensusPubkey,
+		&n.Roles,
+	); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -585,7 +561,7 @@ type Allowance struct {
 
 // GetAccount gets a consensus account.
 func (h *Handler) GetAccount(w http.ResponseWriter, r *http.Request) {
-	accountRows, err := h.db.Query(
+	accountRow, err := h.db.QueryRow(
 		r.Context(),
 		`SELECT address, nonce, general_balance, escrow_balance_active, escrow_balance_debonding
 			FROM test.accounts
@@ -596,22 +572,16 @@ func (h *Handler) GetAccount(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	defer accountRows.Close()
 
 	var a Account
-	if accountRows.Next() {
-		if err := accountRows.Scan(
-			&a.Address,
-			&a.Nonce,
-			&a.Available,
-			&a.Escrow,
-			&a.Debonding,
-		); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-	} else {
-		http.Error(w, err.Error(), http.StatusNotFound)
+	if err := accountRow.Scan(
+		&a.Address,
+		&a.Nonce,
+		&a.Available,
+		&a.Escrow,
+		&a.Debonding,
+	); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	a.Total = a.Available + a.Escrow + a.Debonding
@@ -779,7 +749,7 @@ type Target struct {
 
 // GetProposal gets a governance proposal.
 func (h *Handler) GetProposal(w http.ResponseWriter, r *http.Request) {
-	rows, err := h.db.Query(
+	row, err := h.db.QueryRow(
 		r.Context(),
 		`SELECT id, submitter, state, deposit, handler, cp_target_version, rhp_target_version, rcp_target_version,
 						upgrade_epoch, cancels, created_at, closes_at, invalid_votes
@@ -791,30 +761,24 @@ func (h *Handler) GetProposal(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	defer rows.Close()
 
 	var p Proposal
-	if rows.Next() {
-		if err := rows.Scan(
-			&p.ID,
-			&p.Submitter,
-			&p.State,
-			&p.Deposit,
-			&p.Handler,
-			&p.Target.ConsensusProtocol,
-			&p.Target.RuntimeHostProtocol,
-			&p.Target.RuntimeCommitteeProtocol,
-			&p.Epoch,
-			&p.Cancels,
-			&p.CreatedAt,
-			&p.ClosesAt,
-			&p.InvalidVotes,
-		); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-	} else {
-		http.Error(w, err.Error(), http.StatusNotFound)
+	if err := row.Scan(
+		&p.ID,
+		&p.Submitter,
+		&p.State,
+		&p.Deposit,
+		&p.Handler,
+		&p.Target.ConsensusProtocol,
+		&p.Target.RuntimeHostProtocol,
+		&p.Target.RuntimeCommitteeProtocol,
+		&p.Epoch,
+		&p.Cancels,
+		&p.CreatedAt,
+		&p.ClosesAt,
+		&p.InvalidVotes,
+	); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
