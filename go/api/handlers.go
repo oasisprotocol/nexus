@@ -21,7 +21,7 @@ type BlockList struct {
 func (h *Handler) ListBlocks(w http.ResponseWriter, r *http.Request) {
 	query :=
 		`SELECT height, block_hash, time
-			FROM test.blocks`
+			FROM oasis_3.blocks`
 
 	var filters []string
 	params := r.URL.Query()
@@ -88,7 +88,7 @@ func (h *Handler) GetBlock(w http.ResponseWriter, r *http.Request) {
 	row, err := h.db.QueryRow(
 		r.Context(),
 		`SELECT height, block_hash, time
-			FROM test.blocks
+			FROM oasis_3.blocks
 			WHERE height = $1::bigint`,
 		chi.URLParam(r, "height"),
 	)
@@ -122,7 +122,7 @@ type TransactionList struct {
 func (h *Handler) ListTransactions(w http.ResponseWriter, r *http.Request) {
 	query :=
 		`SELECT block, txn_hash, nonce, fee_amount, method, body, code
-			FROM test.transactions`
+			FROM oasis_3.transactions`
 
 	var filters []string
 	params := r.URL.Query()
@@ -205,7 +205,7 @@ type Transaction struct {
 func (h *Handler) GetTransaction(w http.ResponseWriter, r *http.Request) {
 	query :=
 		`SELECT block, txn_hash, nonce, fee_amount, method, body, code
-			FROM test.transactions
+			FROM oasis_3.transactions
 			WHERE txn_hash = $1::hash`
 
 	row, err := h.db.QueryRow(
@@ -253,7 +253,7 @@ type EntityList struct {
 
 // ListEntities gets a list of registered entities.
 func (h *Handler) ListEntities(w http.ResponseWriter, r *http.Request) {
-	query := `SELECT id, address FROM test.entities`
+	query := `SELECT id, address FROM oasis_3.entities`
 	pagination, err := unpackPagination(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -305,7 +305,7 @@ func (h *Handler) GetEntity(w http.ResponseWriter, r *http.Request) {
 	entityRow, err := h.db.QueryRow(
 		r.Context(),
 		`SELECT id, address
-			FROM test.entities
+			FROM oasis_3.entities
 			WHERE id = $1::text`,
 		chi.URLParam(r, "entity_id"),
 	)
@@ -323,7 +323,7 @@ func (h *Handler) GetEntity(w http.ResponseWriter, r *http.Request) {
 	nodeRows, err := h.db.Query(
 		r.Context(),
 		`SELECT id
-			FROM test.nodes
+			FROM oasis_3.nodes
 			WHERE entity_id = $1::text`,
 		chi.URLParam(r, "entity_id"),
 	)
@@ -363,7 +363,7 @@ type NodeList struct {
 func (h *Handler) GetEntityNodes(w http.ResponseWriter, r *http.Request) {
 	query :=
 		`SELECT id, entity_id, expiration, tls_pubkey, tls_next_pubkey, p2p_pubkey, consensus_pubkey, roles
-			FROM test.nodes
+			FROM oasis_3.nodes
 			WHERE entity_id = $1::text`
 
 	pagination, err := unpackPagination(r)
@@ -433,7 +433,7 @@ func (h *Handler) GetEntityNode(w http.ResponseWriter, r *http.Request) {
 	row, err := h.db.QueryRow(
 		r.Context(),
 		`SELECT id, entity_id, expiration, tls_pubkey, tls_next_pubkey, p2p_pubkey, consensus_pubkey, roles
-			FROM test.nodes
+			FROM oasis_3.nodes
 			WHERE entity_id = $1::text AND id = $2::text`,
 		chi.URLParam(r, "entity_id"),
 		chi.URLParam(r, "node_id"),
@@ -477,7 +477,7 @@ type AccountList struct {
 func (h *Handler) ListAccounts(w http.ResponseWriter, r *http.Request) {
 	query :=
 		`SELECT address, nonce, general_balance, escrow_balance_active, escrow_balance_debonding
-				FROM test.accounts`
+				FROM oasis_3.accounts`
 
 	var filters []string
 	params := r.URL.Query()
@@ -564,7 +564,7 @@ func (h *Handler) GetAccount(w http.ResponseWriter, r *http.Request) {
 	accountRow, err := h.db.QueryRow(
 		r.Context(),
 		`SELECT address, nonce, general_balance, escrow_balance_active, escrow_balance_debonding
-			FROM test.accounts
+			FROM oasis_3.accounts
 			WHERE address = $1::text`,
 		chi.URLParam(r, "address"),
 	)
@@ -589,7 +589,7 @@ func (h *Handler) GetAccount(w http.ResponseWriter, r *http.Request) {
 	allowanceRows, err := h.db.Query(
 		r.Context(),
 		`SELECT beneficiary, allowance
-			FROM test.allowances
+			FROM oasis_3.allowances
 			WHERE owner = $1::text`,
 		chi.URLParam(r, "address"),
 	)
@@ -658,7 +658,7 @@ func (h *Handler) ListProposals(w http.ResponseWriter, r *http.Request) {
 	query :=
 		`SELECT id, submitter, state, deposit, handler, cp_target_version, rhp_target_version, rcp_target_version,
 				upgrade_epoch, cancels, created_at, closes_at, invalid_votes
-			FROM test.proposals`
+			FROM oasis_3.proposals`
 
 	var filters []string
 	params := r.URL.Query()
@@ -753,7 +753,7 @@ func (h *Handler) GetProposal(w http.ResponseWriter, r *http.Request) {
 		r.Context(),
 		`SELECT id, submitter, state, deposit, handler, cp_target_version, rhp_target_version, rcp_target_version,
 						upgrade_epoch, cancels, created_at, closes_at, invalid_votes
-			FROM test.proposals
+			FROM oasis_3.proposals
 			WHERE id = $1::bigint`,
 		chi.URLParam(r, "proposal_id"),
 	)
@@ -807,7 +807,7 @@ type ProposalVote struct {
 func (h *Handler) GetProposalVotes(w http.ResponseWriter, r *http.Request) {
 	query :=
 		`SELECT voter, vote
-			FROM test.votes
+			FROM oasis_3.votes
 			WHERE proposal = $1::bigint`
 
 	pagination, err := unpackPagination(r)

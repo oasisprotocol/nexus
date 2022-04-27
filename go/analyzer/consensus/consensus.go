@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 
 	"github.com/oasisprotocol/oasis-core/go/consensus/api/transaction"
 	"github.com/oasisprotocol/oasis-core/go/consensus/api/transaction/results"
@@ -65,27 +64,26 @@ func (c *ConsensusAnalyzer) processBlock(ctx context.Context, height int64) erro
 	group, groupCtx := errgroup.WithContext(ctx)
 
 	type prepareFunc = func(context.Context, int64, *storage.QueryBatch) error
-	for name, f := range map[string]prepareFunc{
-		"block": c.prepareBlockData,
-		// "beacon":     c.prepareBeaconData,
-		// "registry":   c.prepareRegistryData,
-		// "staking":    c.prepareStakingData,
-		// "scheduler":  c.prepareSchedulerData,
-		// "governance": c.prepareGovernanceData,
+	for _, f := range []prepareFunc{
+		c.prepareBlockData,
+		c.prepareBeaconData,
+		c.prepareRegistryData,
+		c.prepareStakingData,
+		c.prepareSchedulerData,
+		c.prepareGovernanceData,
 	} {
-		func(name string, f prepareFunc) {
+		func(f prepareFunc) {
 			group.Go(func() error {
 				batch := &storage.QueryBatch{}
 				if err := f(groupCtx, height, batch); err != nil {
 					return err
 				}
 				if err := c.target.SendBatch(ctx, batch); err != nil {
-					fmt.Println(name)
 					return err
 				}
 				return nil
 			})
-		}(name, f)
+		}(f)
 	}
 
 	if err := group.Wait(); err != nil {
