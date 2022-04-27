@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 
 	"github.com/oasisprotocol/oasis-core/go/consensus/api/transaction"
 	"github.com/oasisprotocol/oasis-core/go/consensus/api/transaction/results"
@@ -44,6 +45,9 @@ func (c *ConsensusAnalyzer) Start() {
 			"height", height,
 		)
 		if err := c.processBlock(ctx, height); err != nil {
+			c.logger.Error("error processing block",
+				"err", err.Error(),
+			)
 			continue
 		}
 
@@ -60,32 +64,35 @@ func (c *ConsensusAnalyzer) Name() string {
 func (c *ConsensusAnalyzer) processBlock(ctx context.Context, height int64) error {
 	group, groupCtx := errgroup.WithContext(ctx)
 
-	batch := &storage.QueryBatch{}
-
 	type prepareFunc = func(context.Context, int64, *storage.QueryBatch) error
-	for _, f := range []prepareFunc{
-		c.prepareBlockData,
-		c.prepareBeaconData,
-		c.prepareRegistryData,
-		c.prepareStakingData,
-		c.prepareSchedulerData,
-		c.prepareGovernanceData,
+	for name, f := range map[string]prepareFunc{
+		"block": c.prepareBlockData,
+		// "beacon":     c.prepareBeaconData,
+		// "registry":   c.prepareRegistryData,
+		// "staking":    c.prepareStakingData,
+		// "scheduler":  c.prepareSchedulerData,
+		// "governance": c.prepareGovernanceData,
 	} {
-		func(f prepareFunc) {
+		func(name string, f prepareFunc) {
 			group.Go(func() error {
+				batch := &storage.QueryBatch{}
 				if err := f(groupCtx, height, batch); err != nil {
+					return err
+				}
+				if err := c.target.SendBatch(ctx, batch); err != nil {
+					fmt.Println(name)
 					return err
 				}
 				return nil
 			})
-		}(f)
+		}(name, f)
 	}
 
 	if err := group.Wait(); err != nil {
 		return err
 	}
 
-	return c.target.SendBatch(ctx, batch)
+	return nil
 }
 
 // prepareBlockData adds block data queries to the batch.
@@ -137,7 +144,7 @@ func (c *ConsensusAnalyzer) queueTransactionInserts(batch *storage.QueryBatch, d
 			signedTx.Hash().Hex(),
 			i,
 			tx.Nonce,
-			tx.Fee.Amount.ToBigInt(),
+			tx.Fee.Amount.ToBigInt().Uint64(),
 			tx.Fee.Gas,
 			tx.Method,
 			tx.Body,
@@ -256,7 +263,7 @@ func (c *ConsensusAnalyzer) queueTransfers(batch *storage.QueryBatch, data *stor
 	for _, transfer := range data.Transfers {
 		from := transfer.From.String()
 		to := transfer.To.String()
-		amount := transfer.Amount.ToBigInt()
+		amount := transfer.Amount.ToBigInt().Uint64()
 		batch.Queue(transferFromQuery,
 			from,
 			amount,
@@ -274,7 +281,7 @@ func (c *ConsensusAnalyzer) queueBurns(batch *storage.QueryBatch, data *storage.
 	for _, burn := range data.Burns {
 		batch.Queue(burnQuery,
 			burn.Owner.String(),
-			burn.Amount.ToBigInt(),
+			burn.Amount.ToBigInt().Uint64(),
 		)
 	}
 
@@ -286,8 +293,8 @@ func (c *ConsensusAnalyzer) queueEscrows(batch *storage.QueryBatch, data *storag
 	// 	if escrow.Add != nil {
 	// 		owner := escrow.Add.Owner.String()
 	// 		escrower := escrow.Add.Escrow.String()
-	// 		amount := escrow.Add.Amount.ToBigInt()
-	// 		newShares := escrow.Add.NewShares.ToBigInt()
+	// 		amount := escrow.Add.Amount.ToBigInt().Uint64()
+	// 		newShares := escrow.Add.NewShares.ToBigInt().Uint64()
 	// 		batch.Queue(ownerBalanceQuery,
 	// 			owner,
 	// 			amount,
@@ -305,7 +312,7 @@ func (c *ConsensusAnalyzer) queueEscrows(batch *storage.QueryBatch, data *storag
 	// 	} else if escrow.Take != nil {
 	// 		batch.Queue(takeEscrowQuery,
 	// 			escrow.Take.Owner.String(),
-	// 			escrow.Take.Amount.ToBigInt(),
+	// 			escrow.Take.Amount.ToBigInt().Uint64(),
 	// 		)
 	// 	} else if escrow.DebondingStart != nil {
 	// 		batch.Queue(debondingStartRemoveDelegationQuery,
@@ -315,15 +322,15 @@ func (c *ConsensusAnalyzer) queueEscrows(batch *storage.QueryBatch, data *storag
 	// 		batch.Queue(debondingStartAddDebondingDelegationQuery,
 	// 			escrow.DebondingStart.Owner.String(),
 	// 			escrow.DebondingStart.Escrow.String(),
-	// 			escrow.DebondingStart.DebondingShares.ToBigInt(),
+	// 			escrow.DebondingStart.DebondingShares.ToBigInt().Uint64(),
 	// 			escrow.DebondingStart.DebondEndTime,
 	// 		)
 	// 	} else if escrow.Reclaim != nil {
 	// 		batch.Queue(reclaimEscrowQuery,
 	// 			escrow.Reclaim.Owner.String(),
 	// 			escrow.Reclaim.Escrow.String(),
-	// 			escrow.Reclaim.Amount.ToBigInt(),
-	// 			escrow.Reclaim.Shares.ToBigInt(),
+	// 			escrow.Reclaim.Amount.ToBigInt().Uint64(),
+	// 			escrow.Reclaim.Shares.ToBigInt().Uint64(),
 	// 		)
 	// 	}
 	// }
@@ -336,7 +343,7 @@ func (c *ConsensusAnalyzer) queueAllowanceChanges(batch *storage.QueryBatch, dat
 		batch.Queue(allowanceChangeQuery,
 			allowanceChange.Owner.String(),
 			allowanceChange.Beneficiary.String(),
-			allowanceChange.Allowance.ToBigInt(),
+			allowanceChange.Allowance.ToBigInt().Uint64(),
 		)
 	}
 
@@ -423,7 +430,7 @@ func (c *ConsensusAnalyzer) queueSubmissions(batch *storage.QueryBatch, data *st
 				submission.ID,
 				submission.Submitter.String(),
 				submission.State.String(),
-				submission.Deposit.ToBigInt(),
+				submission.Deposit.ToBigInt().Uint64(),
 				submission.Content.Upgrade.Handler,
 				submission.Content.Upgrade.Target.ConsensusProtocol.String(),
 				submission.Content.Upgrade.Target.RuntimeHostProtocol.String(),
@@ -437,7 +444,7 @@ func (c *ConsensusAnalyzer) queueSubmissions(batch *storage.QueryBatch, data *st
 				submission.ID,
 				submission.Submitter.String(),
 				submission.State.String(),
-				submission.Deposit.ToBigInt(),
+				submission.Deposit.ToBigInt().Uint64(),
 				submission.Content.CancelUpgrade.ProposalID,
 				submission.CreatedAt,
 				submission.ClosesAt,

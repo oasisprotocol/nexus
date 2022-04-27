@@ -2,9 +2,7 @@
 package common
 
 import (
-	"context"
 	"os"
-	"os/signal"
 
 	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
@@ -42,15 +40,6 @@ func Init() error {
 		return err
 	}
 	rootLogger = logger
-
-	sigCh := make(chan os.Signal, 1)
-	signal.Notify(sigCh, os.Interrupt)
-	_, cancelFn := context.WithCancel(context.Background())
-	go func() {
-		<-sigCh
-		rootLogger.Info("user requested interrupt")
-		cancelFn()
-	}()
 
 	// Initialize Prometheus service.
 	promServer, err := metrics.NewPullService(rootLogger)

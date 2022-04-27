@@ -2,7 +2,7 @@ description: "Mainnet"
 chaincontext: b11b369e0da5bb230b220127f5e7b242d385ef8c6f54906243f30af63c815535
 # Replace with Unix socket of a local Oasis Node
 # Ex. rpc: unix:/Users/oasis/local-node/data/internal.sock
-rpc: unix:/not/a/real/path
+rpc: unix:/Users/nikhilsharma/node/data/internal.sock
 denomination:
   symbol: ROSE
   decimals: 9

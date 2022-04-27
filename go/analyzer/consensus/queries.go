@@ -5,8 +5,7 @@ import (
 )
 
 const (
-	// TODO: Make this config somehow
-	chainID = "oasis_2"
+	chainID = "oasis_3"
 )
 
 var (
