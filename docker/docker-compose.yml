@@ -10,6 +10,12 @@ services:
       context: oasis-node
       dockerfile: ./oasis-node.Dockerfile
     user: oasis
+    healthcheck:
+      test: oasis-node control status -a unix:/node/data/internal.sock || exit 1
+      interval: 5s
+      retries: 10
+      timeout: 5s
+      start_period: 20s
     command:
       - /bin/sh
       - -c
@@ -23,14 +29,12 @@ services:
       context: ../
       dockerfile: ./docker/indexer/indexer.Dockerfile
     depends_on:
-      - oasis-node
+      oasis-node:
+        condition: service_healthy
     command:
       - /bin/sh
       - -c
-      - | # TODO use a real wait for with `docker exec oasis-node oasis-node control status -a unix:./data/internal.sock`
-          echo "sleep for 60sec while Oasis node starts up"
-          sleep 60
-          oasis-block-indexer analyze --analyzer.network_config=/config/network.yaml
+      - oasis-block-indexer analyze --analyzer.network_config=/config/network.yaml
     volumes:
       - type: bind
         source: ./node
