@@ -42,5 +42,6 @@ func unpackPagination(r *http.Request) (p Pagination, err error) {
 }
 
 func withPagination(sql string, p Pagination) string {
-	return fmt.Sprintf("%s ORDER BY PRIMARY KEY LIMIT %d OFFSET %d", sql, p.Limit, p.Offset)
+	// TODO: Add a sane ORDER BY
+	return fmt.Sprintf("%s LIMIT %d OFFSET %d", sql, p.Limit, p.Offset)
 }

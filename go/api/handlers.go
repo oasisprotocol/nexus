@@ -58,7 +58,7 @@ func (h *Handler) ListBlocks(w http.ResponseWriter, r *http.Request) {
 	var bs BlockList
 	for rows.Next() {
 		var b Block
-		if err := rows.Scan(&b.Height, b.Hash, b.Timestamp); err != nil {
+		if err := rows.Scan(&b.Height, &b.Hash, &b.Timestamp); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
