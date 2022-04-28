@@ -1,0 +1,43 @@
+services:
+  crdb:
+    image: cockroachdb/cockroach:v21.2.7
+    ports:
+     - 26257:26257
+     - 8080:8080
+    command: start-single-node --insecure
+  oasis-node:
+    build:
+      context: oasis-node
+      dockerfile: ./oasis-node.Dockerfile
+    user: oasis
+    healthcheck:
+      test: oasis-node control status -a unix:/node/data/internal.sock || exit 1
+      interval: 5s
+      retries: 10
+      timeout: 5s
+      start_period: 20s
+    command:
+      - /bin/sh
+      - -c
+      - oasis-node --config /node/etc/config.yml
+    volumes:
+      - type: bind
+        source: ./node
+        target: /node
+  indexer:
+    build:
+      context: ../
+      dockerfile: ./docker/indexer/indexer.Dockerfile
+    depends_on:
+      oasis-node:
+        condition: service_healthy
+    command:
+      - /bin/sh
+      - -c
+      - oasis-block-indexer analyze --analyzer.network_config=/config/network.yaml
+    volumes:
+      - type: bind
+        source: ./node
+        target: /node
+volumes:
+  node: {}
