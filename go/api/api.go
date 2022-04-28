@@ -11,6 +11,8 @@ import (
 )
 
 const (
+	LatestChainID = "oasis-3"
+
 	moduleName = "api.handler"
 )
 
@@ -27,6 +29,7 @@ func NewHandler(db storage.TargetStorage) *Handler {
 	// TODO: Replace with one of our structured loggers.
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
+	r.Use(chainMiddleware)
 
 	h := &Handler{
 		db:     db,
@@ -38,55 +41,53 @@ func NewHandler(db storage.TargetStorage) *Handler {
 }
 
 func (h *Handler) registerEndpoints() {
-	for _, f := range []func(){
-		h.registerBlockEndpoints,
-		h.registerRegistryEndpoints,
-		h.registerStakingEndpoints,
-		h.registerSchedulerEndpoints,
-		h.registerGovernanceEndpoints,
-	} {
-		f()
-	}
-}
-
-func (h *Handler) registerBlockEndpoints() {
 	r := h.router
 
-	r.Get("/consensus/blocks", h.ListBlocks)
-	r.Get("/consensus/blocks/{height}", h.GetBlock)
-	r.Get("/consensus/transactions", h.ListTransactions)
-	r.Get("/consensus/transactions/{tx_hash}", h.GetTransaction)
-}
+	// Status endpoints.
+	r.Get("/", h.GetStatus)
 
-func (h *Handler) registerRegistryEndpoints() {
-	r := h.router
+	// Consensus Endpoints.
+	r.Route("/consensus", func(r chi.Router) {
 
-	r.Get("/consensus/entities", h.ListEntities)
-	r.Get("/consensus/entities/{entity_id}", h.GetEntity)
-	r.Get("/consensus/entities/{entity_id}/nodes", h.GetEntityNodes)
-	r.Get("/consensus/entities/{entity_id}/nodes/{node_id}", h.GetEntityNode)
-}
+		// Block Endpoints.
+		r.Route("/blocks", func(r chi.Router) {
+			r.Get("/", h.ListBlocks)
+			r.Get("/{height}", h.GetBlock)
+		})
+		r.Route("/transactions", func(r chi.Router) {
+			r.Get("/", h.ListTransactions)
+			r.Get("/{tx_hash}", h.GetTransaction)
+		})
 
-func (h *Handler) registerStakingEndpoints() {
-	r := h.router
+		// Registry Endpoints.
+		r.Route("/entities", func(r chi.Router) {
+			r.Get("/", h.ListEntities)
+			r.Get("/{entity_id}", h.GetEntity)
+			r.Get("/{entity_id}/nodes", h.ListEntityNodes)
+			r.Get("/{entity_id}/nodes/{node_id}", h.GetEntityNode)
+		})
 
-	r.Get("/consensus/accounts", h.ListAccounts)
-	r.Get("/consensus/accounts/{address}", h.GetAccount)
-}
+		// Staking Endpoints.
+		r.Route("/accounts", func(r chi.Router) {
+			r.Get("/", h.ListAccounts)
+			r.Get("/{address}", h.GetAccount)
+		})
 
-func (h *Handler) registerSchedulerEndpoints() {
-	r := h.router
+		// Scheduler Endpoints.
+		r.Route("/epochs", func(r chi.Router) {
+			r.Get("/", h.TODO)
+			r.Get("/{epoch}", h.TODO)
+		})
 
-	r.Get("/consensus/epochs", h.TODO)
-	r.Get("/consensus/epochs/{epoch}", h.TODO)
-}
+		// Governance Endpoints.
+		r.Route("/proposals", func(r chi.Router) {
+			r.Get("/", h.ListProposals)
+			r.Get("/{proposal_id}", h.GetProposal)
+			r.Get("/{proposal_id}/votes", h.GetProposalVotes)
+		})
+	})
 
-func (h *Handler) registerGovernanceEndpoints() {
-	r := h.router
-
-	r.Get("/consensus/proposals", h.ListProposals)
-	r.Get("/consensus/proposals/{proposal_id}", h.GetProposal)
-	r.Get("/consensus/proposals/{proposal_id}/votes", h.GetProposalVotes)
+	// ... ParaTime Endpoint Registration.
 }
 
 // TODO is a default request handler that can be used for unimplemented endpoints.
