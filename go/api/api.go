@@ -52,10 +52,10 @@ func (h *Handler) registerEndpoints() {
 func (h *Handler) registerBlockEndpoints() {
 	r := h.router
 
-	r.Get("/consensus/blocks", h.TODO)
-	r.Get("/consensus/blocks/{height}", h.TODO)
-	r.Get("/consensus/transactions", h.TODO)
-	r.Get("/consensus/transactions/{tx_hash}", h.TODO)
+	r.Get("/consensus/blocks", h.ListBlocks)
+	r.Get("/consensus/blocks/{height}", h.GetBlock)
+	r.Get("/consensus/transactions", h.ListTransactions)
+	r.Get("/consensus/transactions/{tx_hash}", h.GetTransaction)
 }
 
 func (h *Handler) registerRegistryEndpoints() {
