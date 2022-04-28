@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS oasis_3.blocks
 (
   height     BIGINT PRIMARY KEY,
   block_hash TEXT NOT NULL,
-  time       TIMESTAMP NOT NULL,
+  time       TIMESTAMP WITH TIME ZONE NOT NULL,
 
   -- State Root Info
   namespace TEXT NOT NULL,
@@ -22,9 +22,6 @@ CREATE TABLE IF NOT EXISTS oasis_3.blocks
 
   beacon     BYTEA,
   metadata   JSON,
-
-  -- Checkpoint data.
-  time_indexed TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
 
   -- Arbitrary additional data.
   extra_data JSON
@@ -244,5 +241,17 @@ CREATE TABLE IF NOT EXISTS oasis_3.votes
   -- Arbitrary additional data.
   extra_data JSON
 );
+
+-- Indexing Progress Management
+CREATE TABLE IF NOT EXISTS oasis_3.processed_blocks
+(
+  height         BIGINT PRIMARY KEY,
+  analyzer       TEXT NOT NULL,
+  processed_time TIMESTAMP WITH TIME ZONE NOT NULL
+);
+
+INSERT INTO oasis_3.processed_blocks (height, processed_time)
+VALUES
+  (8049956, "consensus-main", CURRENT_TIMESTAMP);
 
 COMMIT;

@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 
 	"github.com/oasisprotocol/oasis-core/go/consensus/api/transaction"
 	"github.com/oasisprotocol/oasis-core/go/consensus/api/transaction/results"
@@ -15,7 +16,7 @@ import (
 )
 
 const (
-	analyzerName = "consensus"
+	analyzerName = "consensus-main"
 )
 
 // ConsensusAnalyzer is an Analyzer for the consensus layer.
@@ -38,19 +39,13 @@ func NewConsensusAnalyzer(source storage.SourceStorage, target storage.TargetSto
 func (c *ConsensusAnalyzer) Start() {
 	ctx := context.Background()
 
-	height := int64(8049957)
 	for {
-		c.logger.Info("processing block",
-			"height", height,
-		)
-		if err := c.processBlock(ctx, height); err != nil {
+		if err := c.processNextBlock(ctx); err != nil {
 			c.logger.Error("error processing block",
 				"err", err.Error(),
 			)
 			continue
 		}
-
-		height += 1
 	}
 }
 
@@ -59,10 +54,45 @@ func (c *ConsensusAnalyzer) Name() string {
 	return analyzerName
 }
 
-// processBlock processes the block at the provided block height.
-func (c *ConsensusAnalyzer) processBlock(ctx context.Context, height int64) error {
+// LatestBlock returns the latest block processed by the consensus analyzer.
+func (c *ConsensusAnalyzer) LatestBlock(ctx context.Context) (int64, error) {
+	row, err := c.target.QueryRow(
+		ctx,
+		fmt.Sprintf(`
+			SELECT height FROM %s.processed_blocks
+				ORDER BY height DESC
+				LIMIT 1
+		`, chainID),
+	)
+	if err != nil {
+		return 0, err
+	}
+
+	var latest int64
+	if err := row.Scan(
+		&latest,
+	); err != nil {
+		return 0, err
+	}
+	return latest, nil
+}
+
+// processNextBlock processes the block at the provided block height.
+func (c *ConsensusAnalyzer) processNextBlock(ctx context.Context) error {
+	// Get block to index.
+	latest, err := c.LatestBlock(ctx)
+	if err != nil {
+		return err
+	}
+	height := latest + 1
+
+	c.logger.Info("processing block",
+		"height", height,
+	)
+
 	group, groupCtx := errgroup.WithContext(ctx)
 
+	// Prepare and perform updates.
 	type prepareFunc = func(context.Context, int64, *storage.QueryBatch) error
 	for _, f := range []prepareFunc{
 		c.prepareBlockData,
@@ -85,6 +115,24 @@ func (c *ConsensusAnalyzer) processBlock(ctx context.Context, height int64) erro
 			})
 		}(f)
 	}
+
+	// Update indexing progress.
+	group.Go(func() error {
+		batch := &storage.QueryBatch{}
+		batch.Queue(
+			fmt.Sprintf(`
+				INSERT INTO %s.processed_blocks (height, analyzer, processed_time)
+				VALUES
+					($1, $2, CURRENT_TIMESTAMP);
+			`, chainID),
+			height,
+			analyzerName,
+		)
+		if err := c.target.SendBatch(ctx, batch); err != nil {
+			return err
+		}
+		return nil
+	})
 
 	if err := group.Wait(); err != nil {
 		return err
