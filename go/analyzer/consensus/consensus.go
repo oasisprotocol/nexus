@@ -122,12 +122,12 @@ func (c *ConsensusAnalyzer) processNextBlock(ctx context.Context) error {
 	group.Go(func() error {
 		batch := &storage.QueryBatch{}
 		batch.Queue(fmt.Sprintf(`
-			INSERT INTO %s.processed_blocks (height, analyzer, processed_time)
+			INSERT INTO %s.processed_blocks (height, processed_time)
 			VALUES
-				($1, $2, CURRENT_TIMESTAMP);
+				($1, CURRENT_TIMESTAMP);
 		`, chainID),
 			height,
-			analyzerName,
+			// analyzerName,
 		)
 		if err := c.target.SendBatch(ctx, batch); err != nil {
 			return err

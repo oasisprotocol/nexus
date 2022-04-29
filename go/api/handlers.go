@@ -9,8 +9,50 @@ import (
 	"time"
 
 	"github.com/go-chi/chi"
+	"github.com/iancoleman/strcase"
 	oasisErrors "github.com/oasisprotocol/oasis-core/go/common/errors"
 )
+
+// Status is the API response for GetStatus.
+type Status struct {
+	LatestChainID string    `json:"latest_chain_id"`
+	LatestBlock   int64     `json:"latest_block"`
+	LatestUpdate  time.Time `json:"latest_update"`
+}
+
+// GetStatus gets the indexer status.
+func (h *Handler) GetStatus(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	row, err := h.db.QueryRow(
+		ctx,
+		fmt.Sprintf(`SELECT height, processed_time
+			FROM %s.processed_blocks
+			ORDER BY processed_time DESC
+			LIMIT 1`, strcase.ToSnake(LatestChainID)),
+	)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	s := Status{
+		LatestChainID: LatestChainID,
+	}
+	if err := row.Scan(&s.LatestBlock, &s.LatestUpdate); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	resp, err := json.Marshal(s)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("content-type", "application/json")
+	w.Write(resp)
+}
 
 // BlockList is the API response for ListBlocks.
 type BlockList struct {
@@ -19,9 +61,16 @@ type BlockList struct {
 
 // ListBlocks gets a list of consensus blocks.
 func (h *Handler) ListBlocks(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	chainID, ok := ctx.Value(ChainIDContextKey).(string)
+	if !ok {
+		http.Error(w, "unable to resolve chain ID", http.StatusBadRequest)
+	}
+
 	query :=
-		`SELECT height, block_hash, time
-			FROM oasis_3.blocks`
+		fmt.Sprintf(`SELECT height, block_hash, time
+			FROM %s.blocks`, chainID)
 
 	var filters []string
 	params := r.URL.Query()
@@ -45,10 +94,7 @@ func (h *Handler) ListBlocks(w http.ResponseWriter, r *http.Request) {
 	}
 	query = withPagination(query, pagination)
 
-	rows, err := h.db.Query(
-		r.Context(),
-		query,
-	)
+	rows, err := h.db.Query(ctx, query)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -58,7 +104,7 @@ func (h *Handler) ListBlocks(w http.ResponseWriter, r *http.Request) {
 	var bs BlockList
 	for rows.Next() {
 		var b Block
-		if err := rows.Scan(&b.Height, b.Hash, b.Timestamp); err != nil {
+		if err := rows.Scan(&b.Height, &b.Hash, &b.Timestamp); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -85,11 +131,18 @@ type Block struct {
 
 // GetBlock gets a consensus block.
 func (h *Handler) GetBlock(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	chainID, ok := ctx.Value(ChainIDContextKey).(string)
+	if !ok {
+		http.Error(w, "unable to resolve chain ID", http.StatusBadRequest)
+	}
+
 	row, err := h.db.QueryRow(
-		r.Context(),
-		`SELECT height, block_hash, time
-			FROM oasis_3.blocks
-			WHERE height = $1::bigint`,
+		ctx,
+		fmt.Sprintf(`SELECT height, block_hash, time
+			FROM %s.blocks
+			WHERE height = $1::bigint`, chainID),
 		chi.URLParam(r, "height"),
 	)
 	if err != nil {
@@ -120,9 +173,16 @@ type TransactionList struct {
 
 // ListTransactions gets a list of consensus transactions.
 func (h *Handler) ListTransactions(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	chainID, ok := ctx.Value(ChainIDContextKey).(string)
+	if !ok {
+		http.Error(w, "unable to resolve chain ID", http.StatusBadRequest)
+	}
+
 	query :=
-		`SELECT block, txn_hash, nonce, fee_amount, method, body, code
-			FROM oasis_3.transactions`
+		fmt.Sprintf(`SELECT block, txn_hash, nonce, fee_amount, method, body, code
+			FROM %s.transactions`, chainID)
 
 	var filters []string
 	params := r.URL.Query()
@@ -147,10 +207,7 @@ func (h *Handler) ListTransactions(w http.ResponseWriter, r *http.Request) {
 	}
 	query = withPagination(query, pagination)
 
-	rows, err := h.db.Query(
-		r.Context(),
-		query,
-	)
+	rows, err := h.db.Query(ctx, query)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -203,13 +260,20 @@ type Transaction struct {
 
 // GetTransaction gets a consensus transaction.
 func (h *Handler) GetTransaction(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	chainID, ok := ctx.Value(ChainIDContextKey).(string)
+	if !ok {
+		http.Error(w, "unable to resolve chain ID", http.StatusBadRequest)
+	}
+
 	query :=
-		`SELECT block, txn_hash, nonce, fee_amount, method, body, code
-			FROM oasis_3.transactions
-			WHERE txn_hash = $1::hash`
+		fmt.Sprintf(`SELECT block, txn_hash, nonce, fee_amount, method, body, code
+			FROM %s.transactions
+			WHERE txn_hash = $1::hash`, chainID)
 
 	row, err := h.db.QueryRow(
-		r.Context(),
+		ctx,
 		query,
 		chi.URLParam(r, "txn_hash"),
 	)
@@ -253,7 +317,14 @@ type EntityList struct {
 
 // ListEntities gets a list of registered entities.
 func (h *Handler) ListEntities(w http.ResponseWriter, r *http.Request) {
-	query := `SELECT id, address FROM oasis_3.entities`
+	ctx := r.Context()
+
+	chainID, ok := ctx.Value(ChainIDContextKey).(string)
+	if !ok {
+		http.Error(w, "unable to resolve chain ID", http.StatusBadRequest)
+	}
+
+	query := fmt.Sprintf(`SELECT id, address FROM %s.entities`, chainID)
 	pagination, err := unpackPagination(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -261,10 +332,7 @@ func (h *Handler) ListEntities(w http.ResponseWriter, r *http.Request) {
 	}
 	query = withPagination(query, pagination)
 
-	rows, err := h.db.Query(
-		r.Context(),
-		query,
-	)
+	rows, err := h.db.Query(ctx, query)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -302,11 +370,18 @@ type Entity struct {
 
 // GetEntity gets a registered entity.
 func (h *Handler) GetEntity(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	chainID, ok := ctx.Value(ChainIDContextKey).(string)
+	if !ok {
+		http.Error(w, "unable to resolve chain ID", http.StatusBadRequest)
+	}
+
 	entityRow, err := h.db.QueryRow(
-		r.Context(),
-		`SELECT id, address
-			FROM oasis_3.entities
-			WHERE id = $1::text`,
+		ctx,
+		fmt.Sprintf(`SELECT id, address
+			FROM %s.entities
+			WHERE id = $1::text`, chainID),
 		chi.URLParam(r, "entity_id"),
 	)
 	if err != nil {
@@ -321,10 +396,10 @@ func (h *Handler) GetEntity(w http.ResponseWriter, r *http.Request) {
 	}
 
 	nodeRows, err := h.db.Query(
-		r.Context(),
-		`SELECT id
-			FROM oasis_3.nodes
-			WHERE entity_id = $1::text`,
+		ctx,
+		fmt.Sprintf(`SELECT id
+			FROM %s.nodes
+			WHERE entity_id = $1::text`, chainID),
 		chi.URLParam(r, "entity_id"),
 	)
 	if err != nil {
@@ -359,12 +434,19 @@ type NodeList struct {
 	Nodes    []Node `json:"nodes"`
 }
 
-// GetEntityNodes gets a list of nodes controlled by the provided entity.
-func (h *Handler) GetEntityNodes(w http.ResponseWriter, r *http.Request) {
+// ListEntityNodes gets a list of nodes controlled by the provided entity.
+func (h *Handler) ListEntityNodes(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	chainID, ok := ctx.Value(ChainIDContextKey).(string)
+	if !ok {
+		http.Error(w, "unable to resolve chain ID", http.StatusBadRequest)
+	}
+
 	query :=
-		`SELECT id, entity_id, expiration, tls_pubkey, tls_next_pubkey, p2p_pubkey, consensus_pubkey, roles
-			FROM oasis_3.nodes
-			WHERE entity_id = $1::text`
+		fmt.Sprintf(`SELECT id, entity_id, expiration, tls_pubkey, tls_next_pubkey, p2p_pubkey, consensus_pubkey, roles
+			FROM %s.nodes
+			WHERE entity_id = $1::text`, chainID)
 
 	pagination, err := unpackPagination(r)
 	if err != nil {
@@ -374,11 +456,7 @@ func (h *Handler) GetEntityNodes(w http.ResponseWriter, r *http.Request) {
 	query = withPagination(query, pagination)
 
 	id := chi.URLParam(r, "entity_id")
-	rows, err := h.db.Query(
-		r.Context(),
-		query,
-		id,
-	)
+	rows, err := h.db.Query(ctx, query, id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -430,11 +508,18 @@ type Node struct {
 
 // GetEntityNode gets a node controlled by the provided entity.
 func (h *Handler) GetEntityNode(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	chainID, ok := ctx.Value(ChainIDContextKey).(string)
+	if !ok {
+		http.Error(w, "unable to resolve chain ID", http.StatusBadRequest)
+	}
+
 	row, err := h.db.QueryRow(
-		r.Context(),
-		`SELECT id, entity_id, expiration, tls_pubkey, tls_next_pubkey, p2p_pubkey, consensus_pubkey, roles
-			FROM oasis_3.nodes
-			WHERE entity_id = $1::text AND id = $2::text`,
+		ctx,
+		fmt.Sprintf(`SELECT id, entity_id, expiration, tls_pubkey, tls_next_pubkey, p2p_pubkey, consensus_pubkey, roles
+			FROM %s.nodes
+			WHERE entity_id = $1::text AND id = $2::text`, chainID),
 		chi.URLParam(r, "entity_id"),
 		chi.URLParam(r, "node_id"),
 	)
@@ -475,9 +560,16 @@ type AccountList struct {
 
 // ListAccounts gets a list of consensus accounts.
 func (h *Handler) ListAccounts(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	chainID, ok := ctx.Value(ChainIDContextKey).(string)
+	if !ok {
+		http.Error(w, "unable to resolve chain ID", http.StatusBadRequest)
+	}
+
 	query :=
-		`SELECT address, nonce, general_balance, escrow_balance_active, escrow_balance_debonding
-				FROM oasis_3.accounts`
+		fmt.Sprintf(`SELECT address, nonce, general_balance, escrow_balance_active, escrow_balance_debonding
+				FROM %s.accounts`, chainID)
 
 	var filters []string
 	params := r.URL.Query()
@@ -504,10 +596,7 @@ func (h *Handler) ListAccounts(w http.ResponseWriter, r *http.Request) {
 	}
 	query = withPagination(query, pagination)
 
-	rows, err := h.db.Query(
-		r.Context(),
-		query,
-	)
+	rows, err := h.db.Query(ctx, query)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -561,11 +650,18 @@ type Allowance struct {
 
 // GetAccount gets a consensus account.
 func (h *Handler) GetAccount(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	chainID, ok := ctx.Value(ChainIDContextKey).(string)
+	if !ok {
+		http.Error(w, "unable to resolve chain ID", http.StatusBadRequest)
+	}
+
 	accountRow, err := h.db.QueryRow(
-		r.Context(),
-		`SELECT address, nonce, general_balance, escrow_balance_active, escrow_balance_debonding
-			FROM oasis_3.accounts
-			WHERE address = $1::text`,
+		ctx,
+		fmt.Sprintf(`SELECT address, nonce, general_balance, escrow_balance_active, escrow_balance_debonding
+			FROM %s.accounts
+			WHERE address = $1::text`, chainID),
 		chi.URLParam(r, "address"),
 	)
 	if err != nil {
@@ -587,10 +683,10 @@ func (h *Handler) GetAccount(w http.ResponseWriter, r *http.Request) {
 	a.Total = a.Available + a.Escrow + a.Debonding
 
 	allowanceRows, err := h.db.Query(
-		r.Context(),
-		`SELECT beneficiary, allowance
-			FROM oasis_3.allowances
-			WHERE owner = $1::text`,
+		ctx,
+		fmt.Sprintf(`SELECT beneficiary, allowance
+			FROM %s.allowances
+			WHERE owner = $1::text`, chainID),
 		chi.URLParam(r, "address"),
 	)
 	if err != nil {
@@ -655,10 +751,17 @@ type ProposalList struct {
 
 // ListProposals gets a list of governance proposals.
 func (h *Handler) ListProposals(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	chainID, ok := ctx.Value(ChainIDContextKey).(string)
+	if !ok {
+		http.Error(w, "unable to resolve chain ID", http.StatusBadRequest)
+	}
+
 	query :=
-		`SELECT id, submitter, state, deposit, handler, cp_target_version, rhp_target_version, rcp_target_version,
+		fmt.Sprintf(`SELECT id, submitter, state, deposit, handler, cp_target_version, rhp_target_version, rcp_target_version,
 				upgrade_epoch, cancels, created_at, closes_at, invalid_votes
-			FROM oasis_3.proposals`
+			FROM %s.proposals`, chainID)
 
 	var filters []string
 	params := r.URL.Query()
@@ -681,10 +784,7 @@ func (h *Handler) ListProposals(w http.ResponseWriter, r *http.Request) {
 	}
 	query = withPagination(query, pagination)
 
-	rows, err := h.db.Query(
-		r.Context(),
-		query,
-	)
+	rows, err := h.db.Query(ctx, query)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -749,12 +849,19 @@ type Target struct {
 
 // GetProposal gets a governance proposal.
 func (h *Handler) GetProposal(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	chainID, ok := ctx.Value(ChainIDContextKey).(string)
+	if !ok {
+		http.Error(w, "unable to resolve chain ID", http.StatusBadRequest)
+	}
+
 	row, err := h.db.QueryRow(
-		r.Context(),
-		`SELECT id, submitter, state, deposit, handler, cp_target_version, rhp_target_version, rcp_target_version,
+		ctx,
+		fmt.Sprintf(`SELECT id, submitter, state, deposit, handler, cp_target_version, rhp_target_version, rcp_target_version,
 						upgrade_epoch, cancels, created_at, closes_at, invalid_votes
-			FROM oasis_3.proposals
-			WHERE id = $1::bigint`,
+			FROM %s.proposals
+			WHERE id = $1::bigint`, chainID),
 		chi.URLParam(r, "proposal_id"),
 	)
 	if err != nil {
@@ -805,10 +912,17 @@ type ProposalVote struct {
 
 // GetProposalVotes gets votes for a governance proposal.
 func (h *Handler) GetProposalVotes(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	chainID, ok := ctx.Value(ChainIDContextKey).(string)
+	if !ok {
+		http.Error(w, "unable to resolve chain ID", http.StatusBadRequest)
+	}
+
 	query :=
-		`SELECT voter, vote
-			FROM oasis_3.votes
-			WHERE proposal = $1::bigint`
+		fmt.Sprintf(`SELECT voter, vote
+			FROM %s.votes
+			WHERE proposal = $1::bigint`, chainID)
 
 	pagination, err := unpackPagination(r)
 	if err != nil {
@@ -823,11 +937,7 @@ func (h *Handler) GetProposalVotes(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rows, err := h.db.Query(
-		r.Context(),
-		query,
-		id,
-	)
+	rows, err := h.db.Query(ctx, query, id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
