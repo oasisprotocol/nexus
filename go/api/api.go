@@ -31,7 +31,7 @@ func NewHandler(db storage.TargetStorage, l *log.Logger) *Handler {
 	h := &Handler{
 		client: newStorageClient(db),
 		router: r,
-		logger: l,
+		logger: l.WithModule(moduleName),
 	}
 	r.Use(h.loggerMiddleware)
 	r.Use(h.chainMiddleware)
