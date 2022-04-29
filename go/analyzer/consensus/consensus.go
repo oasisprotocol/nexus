@@ -56,8 +56,8 @@ func (c *ConsensusAnalyzer) Name() string {
 	return analyzerName
 }
 
-// LatestBlock returns the latest block processed by the consensus analyzer.
-func (c *ConsensusAnalyzer) LatestBlock(ctx context.Context) (int64, error) {
+// latestBlock returns the latest block processed by the consensus analyzer.
+func (c *ConsensusAnalyzer) latestBlock(ctx context.Context) (int64, error) {
 	row, err := c.target.QueryRow(
 		ctx,
 		fmt.Sprintf(`
@@ -65,6 +65,7 @@ func (c *ConsensusAnalyzer) LatestBlock(ctx context.Context) (int64, error) {
 				ORDER BY height DESC
 				LIMIT 1
 		`, chainID),
+		// analyzerName,
 	)
 	if err != nil {
 		return 0, err
@@ -81,8 +82,8 @@ func (c *ConsensusAnalyzer) LatestBlock(ctx context.Context) (int64, error) {
 
 // processNextBlock processes the block at the provided block height.
 func (c *ConsensusAnalyzer) processNextBlock(ctx context.Context) error {
-	// Get block to index.
-	latest, err := c.LatestBlock(ctx)
+	// Get block to be indexed.
+	latest, err := c.latestBlock(ctx)
 	if err != nil {
 		return err
 	}
@@ -95,22 +96,20 @@ func (c *ConsensusAnalyzer) processNextBlock(ctx context.Context) error {
 	group, groupCtx := errgroup.WithContext(ctx)
 
 	// Prepare and perform updates.
+	batch := &storage.QueryBatch{}
+
 	type prepareFunc = func(context.Context, int64, *storage.QueryBatch) error
 	for _, f := range []prepareFunc{
 		c.prepareBlockData,
 		c.prepareBeaconData,
 		c.prepareRegistryData,
 		c.prepareStakingData,
-		c.prepareSchedulerData,
-		c.prepareGovernanceData,
+		// c.prepareSchedulerData,
+		// c.prepareGovernanceData,
 	} {
 		func(f prepareFunc) {
 			group.Go(func() error {
-				batch := &storage.QueryBatch{}
 				if err := f(groupCtx, height, batch); err != nil {
-					return err
-				}
-				if err := c.target.SendBatch(ctx, batch); err != nil {
 					return err
 				}
 				return nil
@@ -120,7 +119,6 @@ func (c *ConsensusAnalyzer) processNextBlock(ctx context.Context) error {
 
 	// Update indexing progress.
 	group.Go(func() error {
-		batch := &storage.QueryBatch{}
 		batch.Queue(fmt.Sprintf(`
 			INSERT INTO %s.processed_blocks (height, processed_time)
 			VALUES
@@ -129,9 +127,6 @@ func (c *ConsensusAnalyzer) processNextBlock(ctx context.Context) error {
 			height,
 			// analyzerName,
 		)
-		if err := c.target.SendBatch(ctx, batch); err != nil {
-			return err
-		}
 		return nil
 	})
 
@@ -139,7 +134,7 @@ func (c *ConsensusAnalyzer) processNextBlock(ctx context.Context) error {
 		return err
 	}
 
-	return nil
+	return c.target.SendBatch(ctx, batch)
 }
 
 // prepareBlockData adds block data queries to the batch.
@@ -305,8 +300,8 @@ func (c *ConsensusAnalyzer) prepareStakingData(ctx context.Context, height int64
 	}
 
 	for _, f := range []func(*storage.QueryBatch, *storage.StakingData) error{
-		c.queueTransfers,
-		c.queueBurns,
+		// c.queueTransfers,
+		// c.queueBurns,
 		c.queueEscrows,
 		c.queueAllowanceChanges,
 	} {
@@ -335,8 +330,8 @@ func (c *ConsensusAnalyzer) queueTransfers(batch *storage.QueryBatch, data *stor
 			INSERT INTO %s.accounts (address, general_balance)
 				VALUES ($1, $2)
 			ON CONFLICT (address) DO
-				UPDATE SET general_balance = general_balance - $2;
-		`, chainID),
+				UPDATE SET general_balance = %s.accounts.general_balance - $2;
+		`, chainID, chainID),
 			to,
 			amount,
 		)
@@ -381,9 +376,9 @@ func (c *ConsensusAnalyzer) queueEscrows(batch *storage.QueryBatch, data *storag
 				ON CONFLICT (address) DO
 					UPDATE %s.accounts
 					SET
-						escrow_balance_active = escrow_balance_active + $2,
-						escrow_total_shares_active = escrow_total_shares_active + $3;
-			`, chainID, chainID),
+						escrow_balance_active = %s.accounts.escrow_balance_active + $2,
+						escrow_total_shares_active = %s.accounts.escrow_total_shares_active + $3;
+			`, chainID, chainID, chainID, chainID),
 				escrower,
 				amount,
 				newShares,
@@ -393,8 +388,8 @@ func (c *ConsensusAnalyzer) queueEscrows(batch *storage.QueryBatch, data *storag
 					VALUES ($1, $2, $3)
 				ON CONFLICT (delegatee, delegator) DO
 					UPDATE %s.delegations
-					SET shares = shares + $3;
-			`, chainID, chainID),
+					SET shares = %s.delegations.shares + $3;
+			`, chainID, chainID, chainID),
 				owner,
 				escrower,
 				newShares,
@@ -448,7 +443,7 @@ func (c *ConsensusAnalyzer) queueAllowanceChanges(batch *storage.QueryBatch, dat
 			ON CONFLICT (owner, beneficiary) DO
 				UPDATE %s.allowances
 				SET allowance = EXCLUDED.allowance;
-		`, chainID),
+		`, chainID, chainID),
 			allowanceChange.Owner.String(),
 			allowanceChange.Beneficiary.String(),
 			allowanceChange.Allowance.ToBigInt().Uint64(),
