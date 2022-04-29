@@ -7,6 +7,7 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 
+	"github.com/oasislabs/oasis-block-indexer/go/log"
 	"github.com/oasislabs/oasis-block-indexer/go/storage"
 )
 
@@ -18,30 +19,23 @@ const (
 
 // Handler handles API requests.
 type Handler struct {
-	db     storage.TargetStorage
+	client *storageClient
 	router *chi.Mux
+	logger *log.Logger
 }
 
 // NewHandler creates a new API handler.
-func NewHandler(db storage.TargetStorage) *Handler {
+func NewHandler(db storage.TargetStorage, l *log.Logger) *Handler {
 	r := chi.NewRouter()
 
-	// TODO: Replace with one of our structured loggers.
-	r.Use(middleware.Logger)
-	r.Use(middleware.Recoverer)
-	r.Use(chainMiddleware)
-
 	h := &Handler{
-		db:     db,
+		client: newStorageClient(db),
 		router: r,
+		logger: l,
 	}
-	h.registerEndpoints()
-
-	return h
-}
-
-func (h *Handler) registerEndpoints() {
-	r := h.router
+	r.Use(h.loggerMiddleware)
+	r.Use(h.chainMiddleware)
+	r.Use(middleware.Recoverer)
 
 	// Status endpoints.
 	r.Get("/", h.GetStatus)
@@ -88,6 +82,8 @@ func (h *Handler) registerEndpoints() {
 	})
 
 	// ... ParaTime Endpoint Registration.
+
+	return h
 }
 
 // TODO is a default request handler that can be used for unimplemented endpoints.
