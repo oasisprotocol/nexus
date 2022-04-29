@@ -64,7 +64,7 @@ type APIService struct {
 func NewAPIService() (*APIService, error) {
 	logger := common.Logger().WithModule(moduleName)
 
-	cockroachClient, err := target.NewCockroachClient(cfgStorageEndpoint)
+	cockroachClient, err := target.NewCockroachClient(cfgStorageEndpoint, logger)
 	if err != nil {
 		return nil, err
 	}
