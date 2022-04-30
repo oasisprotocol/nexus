@@ -61,7 +61,7 @@ func TestQueryBuilderPagination(t *testing.T) {
 
 	err = qb.AddPagination(ctx, p)
 	assert.Nil(t, err)
-	assert.Equal(t, fmt.Sprintf("%s\n\tLIMIT %d\n\tOFFSET %d", base, p.Limit, p.Offset), qb.String())
+	assert.Equal(t, fmt.Sprintf("%s\n\tORDER BY 1\n\tLIMIT 100\n\tOFFSET 0", base), qb.String())
 }
 
 // TestQueryBuilderTimestamp tests adding a timestamp

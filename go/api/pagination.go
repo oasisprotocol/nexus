@@ -10,6 +10,9 @@ const (
 	LimitKey  = "limit"
 	OffsetKey = "offset"
 
+	// By default, just order by the first returned column so
+	// we always have a deterministic ordering.
+	DefaultOrder  = "1"
 	DefaultLimit  = uint64(100)
 	DefaultOffset = uint64(0)
 )
@@ -38,6 +41,7 @@ func NewPagination(r *http.Request) (p Pagination, err error) {
 	p = Pagination{
 		Limit:  limit,
 		Offset: offset,
+		Order:  DefaultOrder,
 	}
 	return
 }

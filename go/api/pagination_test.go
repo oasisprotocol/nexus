@@ -17,6 +17,7 @@ func TestPaginationWithNoParams(t *testing.T) {
 	p, err := NewPagination(r)
 	assert.Nil(t, err)
 
+	assert.Equal(t, p.Order, DefaultOrder)
 	assert.Equal(t, p.Limit, DefaultLimit)
 	assert.Equal(t, p.Offset, DefaultOffset)
 }
@@ -33,6 +34,7 @@ func TestPaginationWithValidParams(t *testing.T) {
 	p, err := NewPagination(r)
 	assert.Nil(t, err)
 
+	assert.Equal(t, p.Order, DefaultOrder)
 	assert.Equal(t, p.Limit, limit)
 	assert.Equal(t, p.Offset, offset)
 }

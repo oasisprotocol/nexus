@@ -38,7 +38,7 @@ func NewQueryBuilder(sql string, db storage.TargetStorage) *QueryBuilder {
 // AddPagination adds pagination to the query builder.
 func (q *QueryBuilder) AddPagination(_ctx context.Context, p Pagination) error {
 	_, err := q.inner.WriteString(
-		fmt.Sprintf("\n\tLIMIT %d\n\tOFFSET %d", p.Limit, p.Offset),
+		fmt.Sprintf("\n\tORDER BY %s\n\tLIMIT %d\n\tOFFSET %d", p.Order, p.Limit, p.Offset),
 	)
 	return err
 }
