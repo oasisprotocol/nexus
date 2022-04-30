@@ -21,28 +21,30 @@ var (
 	ErrBadChainID = errors.New("unable to resolve chain ID")
 )
 
-type queryBuilder struct {
-	inner strings.Builder
+// QueryBuilder is used for building queries to submit to storage.
+type QueryBuilder struct {
+	inner *strings.Builder
 	db    storage.TargetStorage
 }
 
-// makeQuery creates a new query builder.
-func makeQueryBuilder(sql string, db storage.TargetStorage) queryBuilder {
-	inner := strings.Builder{}
+// NewQueryBuilder creates a new query builder, with the provided SQL query
+// as the base query.
+func NewQueryBuilder(sql string, db storage.TargetStorage) *QueryBuilder {
+	inner := &strings.Builder{}
 	inner.WriteString(sql)
-	return queryBuilder{inner, db}
+	return &QueryBuilder{inner, db}
 }
 
 // AddPagination adds pagination to the query builder.
-func (q *queryBuilder) AddPagination(_ctx context.Context, p Pagination) error {
+func (q *QueryBuilder) AddPagination(_ctx context.Context, p Pagination) error {
 	_, err := q.inner.WriteString(
-		fmt.Sprintf("\nORDER BY %s\nLIMIT %d\nOFFSET %d", p.Order, p.Limit, p.Offset),
+		fmt.Sprintf("\n\tLIMIT %d\n\tOFFSET %d", p.Limit, p.Offset),
 	)
 	return err
 }
 
 // AddTimestamp adds time travel to the query builder, at the time of the provided height.
-func (q *queryBuilder) AddTimestamp(ctx context.Context, height int64) error {
+func (q *QueryBuilder) AddTimestamp(ctx context.Context, height int64) error {
 	row, err := q.db.QueryRow(
 		ctx,
 		fmt.Sprintf(`
@@ -63,21 +65,21 @@ func (q *queryBuilder) AddTimestamp(ctx context.Context, height int64) error {
 		return err
 	}
 
-	_, err = q.inner.WriteString(fmt.Sprintf("\nAS OF SYSTEM TIME %s", processedTime.String()))
+	_, err = q.inner.WriteString(fmt.Sprintf("\n\tAS OF SYSTEM TIME %s", processedTime.String()))
 	return err
 }
 
 // AddFilters adds the provided filters to the query builder.
-func (q *queryBuilder) AddFilters(_ctx context.Context, filters []string) error {
+func (q *QueryBuilder) AddFilters(_ctx context.Context, filters []string) error {
 	if len(filters) > 0 {
-		_, err := q.inner.WriteString(fmt.Sprintf("\nWHERE %s", strings.Join(filters, " AND ")))
+		_, err := q.inner.WriteString(fmt.Sprintf("\n\tWHERE %s", strings.Join(filters, " AND ")))
 		return err
 	}
 	return nil
 }
 
 // String returns the string representation of the query.
-func (q *queryBuilder) String() string {
+func (q *QueryBuilder) String() string {
 	return q.inner.String()
 }
 
@@ -124,7 +126,7 @@ func (c *storageClient) Blocks(ctx context.Context, r *http.Request) (*BlockList
 	}
 
 	qb :=
-		makeQueryBuilder(fmt.Sprintf(`
+		NewQueryBuilder(fmt.Sprintf(`
 			SELECT height, block_hash, time
 				FROM %s.blocks`,
 			chainID), c.db)
@@ -144,7 +146,7 @@ func (c *storageClient) Blocks(ctx context.Context, r *http.Request) (*BlockList
 	}
 	qb.AddFilters(ctx, filters)
 
-	pagination, err := newPagination(r)
+	pagination, err := NewPagination(r)
 	if err != nil {
 		return nil, err
 	}
@@ -205,7 +207,7 @@ func (c *storageClient) Transactions(ctx context.Context, r *http.Request) (*Tra
 	}
 
 	qb :=
-		makeQueryBuilder(fmt.Sprintf(`
+		NewQueryBuilder(fmt.Sprintf(`
 			SELECT block, txn_hash, nonce, fee_amount, method, body, code
 				FROM %s.transactions`,
 			chainID), c.db)
@@ -225,7 +227,7 @@ func (c *storageClient) Transactions(ctx context.Context, r *http.Request) (*Tra
 		}
 	}
 	qb.AddFilters(ctx, filters)
-	pagination, err := newPagination(r)
+	pagination, err := NewPagination(r)
 	if err != nil {
 		return nil, err
 	}
@@ -308,7 +310,7 @@ func (c *storageClient) Entities(ctx context.Context, r *http.Request) (*EntityL
 		return nil, ErrBadChainID
 	}
 
-	qb := makeQueryBuilder(fmt.Sprintf("SELECT id, address FROM %s.entities", chainID), c.db)
+	qb := NewQueryBuilder(fmt.Sprintf("SELECT id, address FROM %s.entities", chainID), c.db)
 
 	params := r.URL.Query()
 	if v := params.Get("height"); v != "" {
@@ -317,7 +319,7 @@ func (c *storageClient) Entities(ctx context.Context, r *http.Request) (*EntityL
 		}
 	}
 
-	pagination, err := newPagination(r)
+	pagination, err := NewPagination(r)
 	if err != nil {
 		return nil, err
 	}
@@ -350,7 +352,7 @@ func (c *storageClient) Entity(ctx context.Context, r *http.Request) (*Entity, e
 	}
 
 	qb :=
-		makeQueryBuilder(fmt.Sprintf("SELECT id, address FROM %s.entities", chainID), c.db)
+		NewQueryBuilder(fmt.Sprintf("SELECT id, address FROM %s.entities", chainID), c.db)
 
 	params := r.URL.Query()
 	if v := params.Get("height"); v != "" {
@@ -374,7 +376,7 @@ func (c *storageClient) Entity(ctx context.Context, r *http.Request) (*Entity, e
 		return nil, err
 	}
 
-	qb = makeQueryBuilder(fmt.Sprintf("SELECT id FROM %s.nodes", chainID), c.db)
+	qb = NewQueryBuilder(fmt.Sprintf("SELECT id FROM %s.nodes", chainID), c.db)
 	if v := params.Get("height"); v != "" {
 		if h, err := strconv.ParseInt(v, 10, 64); err != nil {
 			qb.AddTimestamp(ctx, h)
@@ -412,7 +414,7 @@ func (c *storageClient) EntityNodes(ctx context.Context, r *http.Request) (*Node
 	}
 
 	qb :=
-		makeQueryBuilder(fmt.Sprintf(`
+		NewQueryBuilder(fmt.Sprintf(`
 			SELECT id, entity_id, expiration, tls_pubkey, tls_next_pubkey, p2p_pubkey, consensus_pubkey, roles
 				FROM %s.nodes`,
 			chainID), c.db)
@@ -426,7 +428,7 @@ func (c *storageClient) EntityNodes(ctx context.Context, r *http.Request) (*Node
 
 	qb.AddFilters(ctx, []string{"entity_id = $1::text"})
 
-	pagination, err := newPagination(r)
+	pagination, err := NewPagination(r)
 	if err != nil {
 		return nil, err
 	}
@@ -470,7 +472,7 @@ func (c *storageClient) EntityNode(ctx context.Context, r *http.Request) (*Node,
 	}
 
 	qb :=
-		makeQueryBuilder(fmt.Sprintf(`
+		NewQueryBuilder(fmt.Sprintf(`
 			SELECT id, entity_id, expiration, tls_pubkey, tls_next_pubkey, p2p_pubkey, consensus_pubkey, roles
 				FROM %s.nodes`,
 			chainID), c.db)
@@ -518,7 +520,7 @@ func (c *storageClient) Accounts(ctx context.Context, r *http.Request) (*Account
 	}
 
 	qb :=
-		makeQueryBuilder(fmt.Sprintf(`
+		NewQueryBuilder(fmt.Sprintf(`
 			SELECT address, nonce, general_balance, escrow_balance_active, escrow_balance_debonding
 				FROM %s.accounts`,
 			chainID), c.db)
@@ -545,7 +547,7 @@ func (c *storageClient) Accounts(ctx context.Context, r *http.Request) (*Account
 	}
 	qb.AddFilters(ctx, filters)
 
-	pagination, err := newPagination(r)
+	pagination, err := NewPagination(r)
 	if err != nil {
 		return nil, err
 	}
@@ -585,7 +587,7 @@ func (c *storageClient) Account(ctx context.Context, r *http.Request) (*Account,
 	}
 
 	qb :=
-		makeQueryBuilder(fmt.Sprintf(`
+		NewQueryBuilder(fmt.Sprintf(`
 			SELECT address, nonce, general_balance, escrow_balance_active, escrow_balance_debonding
 				FROM %s.accounts`,
 			chainID), c.db)
@@ -620,7 +622,7 @@ func (c *storageClient) Account(ctx context.Context, r *http.Request) (*Account,
 	a.Total = a.Available + a.Escrow + a.Debonding
 
 	qb =
-		makeQueryBuilder(fmt.Sprintf(`
+		NewQueryBuilder(fmt.Sprintf(`
 			SELECT beneficiary, allowance
 				FROM %s.allowances`,
 			chainID), c.db)
@@ -666,7 +668,7 @@ func (c *storageClient) Proposals(ctx context.Context, r *http.Request) (*Propos
 	}
 
 	qb :=
-		makeQueryBuilder(fmt.Sprintf(`
+		NewQueryBuilder(fmt.Sprintf(`
 			SELECT id, submitter, state, deposit, handler, cp_target_version, rhp_target_version, rcp_target_version,
 					upgrade_epoch, cancels, created_at, closes_at, invalid_votes
 				FROM %s.proposals`,
@@ -685,7 +687,7 @@ func (c *storageClient) Proposals(ctx context.Context, r *http.Request) (*Propos
 	}
 	qb.AddFilters(ctx, filters)
 
-	pagination, err := newPagination(r)
+	pagination, err := NewPagination(r)
 	if err != nil {
 		return nil, err
 	}
@@ -775,13 +777,13 @@ func (c *storageClient) ProposalVotes(ctx context.Context, r *http.Request) (*Pr
 	}
 
 	qb :=
-		makeQueryBuilder(fmt.Sprintf(`
+		NewQueryBuilder(fmt.Sprintf(`
 			SELECT voter, vote
 				FROM %s.votes
 				WHERE proposal = $1::bigint`,
 			chainID), c.db)
 
-	pagination, err := newPagination(r)
+	pagination, err := NewPagination(r)
 	if err != nil {
 		return nil, err
 	}

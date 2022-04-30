@@ -11,12 +11,13 @@ require (
 	github.com/hashicorp/go-hclog v1.1.0 // indirect
 	github.com/hashicorp/go-plugin v1.4.3 // indirect
 	github.com/iancoleman/strcase v0.2.0
-	github.com/jackc/pgx/v4 v4.15.0
+	github.com/jackc/pgx/v4 v4.16.0
 	github.com/libp2p/go-libp2p v0.18.0 // indirect
 	github.com/libp2p/go-libp2p-pubsub v0.6.1 // indirect
 	github.com/oasisprotocol/deoxysii v0.0.0-20220228165953-2091330c22b7 // indirect
 	github.com/oasisprotocol/oasis-core/go v0.2201.3
 	github.com/oasisprotocol/oasis-sdk/client-sdk/go v0.2.0
+	github.com/pashagolub/pgxmock v1.5.0 // indirect
 	github.com/prometheus/client_golang v1.12.1
 	github.com/prometheus/procfs v0.7.3 // indirect
 	github.com/spf13/cobra v1.3.0

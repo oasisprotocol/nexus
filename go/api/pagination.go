@@ -21,8 +21,8 @@ type Pagination struct {
 	Order  string
 }
 
-// newPagination extracts pagination parameters from an http request.
-func newPagination(r *http.Request) (p Pagination, err error) {
+// NewPagination extracts pagination parameters from an http request.
+func NewPagination(r *http.Request) (p Pagination, err error) {
 	values := r.URL.Query()
 
 	limit := DefaultLimit
