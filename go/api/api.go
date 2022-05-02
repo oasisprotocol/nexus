@@ -41,7 +41,7 @@ func NewHandler(db storage.TargetStorage, l *log.Logger) *Handler {
 	r.Get("/", h.GetStatus)
 
 	// Consensus Endpoints.
-	r.Route("/consensus", func(r chi.Router) {
+	r.Route("/v1/consensus", func(r chi.Router) {
 
 		// Block Endpoints.
 		r.Route("/blocks", func(r chi.Router) {
