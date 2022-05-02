@@ -21,7 +21,7 @@ const (
 
 	// CfgStorageEndpoint is the flag for setting the connection string to
 	// the backing storage.
-	CfgStorageEndpoint = "storage.endpoint"
+	CfgStorageEndpoint = "api.storage_endpoint"
 
 	moduleName = "api"
 )
@@ -62,15 +62,17 @@ type APIService struct {
 
 // NewAPIService creates a new API service.
 func NewAPIService() (*APIService, error) {
-	cockroachClient, err := target.NewCockroachClient(cfgStorageEndpoint)
+	logger := common.Logger().WithModule(moduleName)
+
+	cockroachClient, err := target.NewCockroachClient(cfgStorageEndpoint, logger)
 	if err != nil {
 		return nil, err
 	}
 
 	return &APIService{
 		server:  cfgServiceEndpoint,
-		handler: api.NewHandler(cockroachClient),
-		logger:  common.Logger().WithModule(moduleName),
+		handler: api.NewHandler(cockroachClient, logger),
+		logger:  logger,
 	}, nil
 }
 

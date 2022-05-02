@@ -2,7 +2,6 @@
 package api
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 )
@@ -11,6 +10,9 @@ const (
 	LimitKey  = "limit"
 	OffsetKey = "offset"
 
+	// By default, just order by the first returned column so
+	// we always have a deterministic ordering.
+	DefaultOrder  = "1"
 	DefaultLimit  = uint64(100)
 	DefaultOffset = uint64(0)
 )
@@ -19,9 +21,11 @@ const (
 type Pagination struct {
 	Limit  uint64
 	Offset uint64
+	Order  string
 }
 
-func unpackPagination(r *http.Request) (p Pagination, err error) {
+// NewPagination extracts pagination parameters from an http request.
+func NewPagination(r *http.Request) (p Pagination, err error) {
 	values := r.URL.Query()
 
 	limit := DefaultLimit
@@ -37,11 +41,7 @@ func unpackPagination(r *http.Request) (p Pagination, err error) {
 	p = Pagination{
 		Limit:  limit,
 		Offset: offset,
+		Order:  DefaultOrder,
 	}
 	return
-}
-
-func withPagination(sql string, p Pagination) string {
-	// TODO: Add a sane ORDER BY
-	return fmt.Sprintf("%s LIMIT %d OFFSET %d", sql, p.Limit, p.Offset)
 }
