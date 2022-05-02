@@ -69,8 +69,8 @@ func NewHandler(db storage.TargetStorage, l *log.Logger) *Handler {
 
 		// Scheduler Endpoints.
 		r.Route("/epochs", func(r chi.Router) {
-			r.Get("/", h.TODO)
-			r.Get("/{epoch}", h.TODO)
+			r.Get("/", h.GetEpochs)
+			r.Get("/{epoch}", h.GetEpoch)
 		})
 
 		// Governance Endpoints.

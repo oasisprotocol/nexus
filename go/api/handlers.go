@@ -227,8 +227,16 @@ func (h *Handler) GetAccount(w http.ResponseWriter, r *http.Request) {
 
 // ListEpochs gets a list of epochs.
 func (h *Handler) ListEpochs(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	epochs, err := h.client.Epochs(ctx, r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	var resp []byte
-	resp, err := json.Marshal(Block{})
+	resp, err = json.Marshal(epochs)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -240,8 +248,16 @@ func (h *Handler) ListEpochs(w http.ResponseWriter, r *http.Request) {
 
 // GetEpoch gets an epoch.
 func (h *Handler) GetEpoch(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	epoch, err := h.client.Epoch(ctx, r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	var resp []byte
-	resp, err := json.Marshal(Block{})
+	resp, err = json.Marshal(epoch)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

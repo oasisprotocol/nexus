@@ -650,7 +650,71 @@ func (c *storageClient) Account(ctx context.Context, r *http.Request) (*Account,
 	return &a, nil
 }
 
-// TODO: Epoch getters.
+// Epochs returns a list of consensus epochs.
+func (c *storageClient) Epochs(ctx context.Context, r *http.Request) (*EpochList, error) {
+	chainID, ok := ctx.Value(ChainIDContextKey).(string)
+	if !ok {
+		return nil, ErrBadChainID
+	}
+
+	qb := NewQueryBuilder(fmt.Sprintf(`
+			SELECT id, start_height, end_height
+				FROM %s.epochs`,
+		chainID), c.db)
+
+	// TODO: Add filters.
+
+	pagination, err := NewPagination(r)
+	if err != nil {
+		return nil, err
+	}
+	qb.AddPagination(ctx, pagination)
+
+	rows, err := c.db.Query(ctx, qb.String())
+	if err != nil {
+		return nil, err
+	}
+
+	var es EpochList
+	for rows.Next() {
+		var e Epoch
+		if err := rows.Scan(&e.ID, &e.StartHeight, &e.EndHeight); err != nil {
+			return nil, err
+		}
+
+		es.Epochs = append(es.Epochs, e)
+	}
+
+	return &es, nil
+}
+
+// Epoch returns a consensus epoch.
+func (c *storageClient) Epoch(ctx context.Context, r *http.Request) (*Epoch, error) {
+	chainID, ok := ctx.Value(ChainIDContextKey).(string)
+	if !ok {
+		return nil, ErrBadChainID
+	}
+
+	row, err := c.db.QueryRow(
+		ctx,
+		fmt.Sprintf(`
+			SELECT id, start_height, end_height
+				FROM %s.epochs
+				WHERE id = $1::bigint`,
+			chainID),
+		chi.URLParam(r, "epoch"),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	var e Epoch
+	if err := row.Scan(&e.ID, &e.StartHeight, &e.EndHeight); err != nil {
+		return nil, err
+	}
+
+	return &e, nil
+}
 
 // Proposals returns a list of governance proposals.
 func (c *storageClient) Proposals(ctx context.Context, r *http.Request) (*ProposalList, error) {

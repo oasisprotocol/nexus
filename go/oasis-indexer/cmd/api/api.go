@@ -21,7 +21,7 @@ const (
 
 	// CfgStorageEndpoint is the flag for setting the connection string to
 	// the backing storage.
-	CfgStorageEndpoint = "storage.endpoint"
+	CfgStorageEndpoint = "api.storage_endpoint"
 
 	moduleName = "api"
 )

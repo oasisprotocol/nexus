@@ -93,6 +93,18 @@ type Allowance struct {
 	Amount  uint64 `json:"amount"`
 }
 
+// Epoch is the API response for ListEpochs.
+type EpochList struct {
+	Epochs []Epoch `json:"epochs"`
+}
+
+// Epoch is the API response for GetEpoch.
+type Epoch struct {
+	ID          uint64 `json:"id"`
+	StartHeight uint64 `json:"start_height"`
+	EndHeight   uint64 `json:"end_height,omitempty"`
+}
+
 // ProposalList is the API response for ListProposals.
 type ProposalList struct {
 	Proposals []Proposal `json:"proposals"`

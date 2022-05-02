@@ -64,12 +64,6 @@ func TestQueryBuilderPagination(t *testing.T) {
 	assert.Equal(t, fmt.Sprintf("%s\n\tORDER BY 1\n\tLIMIT 100\n\tOFFSET 0", base), qb.String())
 }
 
-// TestQueryBuilderTimestamp tests adding a timestamp
-// to a query.
-func TestQueryBuilderTimestamp(t *testing.T) {
-	// TODO
-}
-
 // TestQueryBuilderFilters tests adding filters
 // to a query.
 func TestQueryBuilderFilters(t *testing.T) {
