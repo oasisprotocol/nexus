@@ -12,7 +12,8 @@ import (
 type ContextKey string
 
 const (
-	ChainIDContextKey = "chain_id"
+	ChainIDContextKey   ContextKey = "chain_id"
+	RequestIDContextKey ContextKey = "request_id"
 )
 
 // loggerMiddleware is a middleware that logs the start and end of each request,
@@ -34,6 +35,10 @@ func (h *Handler) loggerMiddleware(next http.Handler) http.Handler {
 				"time", time.Since(t),
 			)
 		}()
+
+		next.ServeHTTP(w, r.WithContext(
+			context.WithValue(r.Context(), RequestIDContextKey, requestID),
+		))
 	})
 }
 
