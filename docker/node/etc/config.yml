@@ -1,0 +1,31 @@
+datadir: /node/data
+
+log:
+  level:
+    default: info
+    tendermint: info
+    tendermint/context: error
+  format: JSON
+
+genesis:
+  file: /node/etc/genesis.json
+
+consensus:
+  tendermint:
+    p2p:
+      max_num_inbound_peers: 100
+      max_num_outbound_peers: 100
+      # List of seed nodes to connect to.
+      # NOTE: You can add additional seed nodes to this list if you want.
+      seed:
+        - E27F6B7A350B4CC2B48A6CBE94B0A02B0DCB0BF3@35.199.49.168:26656
+
+          # worker:
+          #   storage:
+          #     enabled: true
+          #     checkpoint_sync:
+          #       disabled: true
+          # 
+          #   p2p:
+          #     # External P2P configuration.
+          #     enabled: true
