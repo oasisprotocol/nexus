@@ -72,9 +72,7 @@ func (c *ConsensusAnalyzer) latestBlock(ctx context.Context) (int64, error) {
 	}
 
 	var latest int64
-	if err := row.Scan(
-		&latest,
-	); err != nil {
+	if err := row.Scan(&latest); err != nil {
 		return 0, err
 	}
 	return latest, nil
@@ -101,11 +99,7 @@ func (c *ConsensusAnalyzer) processNextBlock(ctx context.Context) error {
 	type prepareFunc = func(context.Context, int64, *storage.QueryBatch) error
 	for _, f := range []prepareFunc{
 		c.prepareBlockData,
-		c.prepareBeaconData,
-		c.prepareRegistryData,
-		c.prepareStakingData,
-		// c.prepareSchedulerData,
-		// c.prepareGovernanceData,
+		// TODO: Add indexing of other network data.
 	} {
 		func(f prepareFunc) {
 			group.Go(func() error {
@@ -120,12 +114,12 @@ func (c *ConsensusAnalyzer) processNextBlock(ctx context.Context) error {
 	// Update indexing progress.
 	group.Go(func() error {
 		batch.Queue(fmt.Sprintf(`
-			INSERT INTO %s.processed_blocks (height, processed_time)
+			INSERT INTO %s.processed_blocks (height, analyzer, processed_time)
 			VALUES
-				($1, CURRENT_TIMESTAMP);
+				($1, $2, CURRENT_TIMESTAMP);
 		`, chainID),
 			height,
-			// analyzerName,
+			analyzerName,
 		)
 		return nil
 	})
@@ -300,8 +294,8 @@ func (c *ConsensusAnalyzer) prepareStakingData(ctx context.Context, height int64
 	}
 
 	for _, f := range []func(*storage.QueryBatch, *storage.StakingData) error{
-		// c.queueTransfers,
-		// c.queueBurns,
+		c.queueTransfers,
+		c.queueBurns,
 		c.queueEscrows,
 		c.queueAllowanceChanges,
 	} {
@@ -422,13 +416,12 @@ func (c *ConsensusAnalyzer) queueEscrows(batch *storage.QueryBatch, data *storag
 				escrow.DebondingStart.DebondEndTime,
 			)
 		} else if escrow.Reclaim != nil {
-			// TODO
-			// batch.Queue(reclaimEscrowQuery,
-			// 	escrow.Reclaim.Owner.String(),
-			// 	escrow.Reclaim.Escrow.String(),
-			// 	escrow.Reclaim.Amount.ToBigInt().Uint64(),
-			// 	escrow.Reclaim.Shares.ToBigInt().Uint64(),
-			// )
+			batch.Queue(reclaimEscrowQuery,
+				escrow.Reclaim.Owner.String(),
+				escrow.Reclaim.Escrow.String(),
+				escrow.Reclaim.Amount.ToBigInt().Uint64(),
+				escrow.Reclaim.Shares.ToBigInt().Uint64(),
+			)
 		}
 	}
 
@@ -475,9 +468,10 @@ func (c *ConsensusAnalyzer) prepareSchedulerData(ctx context.Context, height int
 func (c *ConsensusAnalyzer) queueValidatorUpdates(batch *storage.QueryBatch, data *storage.SchedulerData) error {
 	for _, validator := range data.Validators {
 		batch.Queue(fmt.Sprintf(`
-			UPDATE %s.nodes
-			SET voting_power = $2
-				WHERE id = $1;
+			INSERT INTO %s.nodes (id, voting_power)
+				VALUES ($1, $2)
+			ON CONFLICT (id) DO
+				UPDATE SET voting_power = $2;
 		`, chainID),
 			validator.ID,
 			validator.VotingPower,
@@ -715,5 +709,5 @@ func extractEventData(event *results.Event) (backend string, ty string, body []b
 		}
 	}
 
-	return "", "", []byte{}, errors.New("cockroach: unknown event type")
+	return "", "", []byte{}, errors.New("unknown event type")
 }

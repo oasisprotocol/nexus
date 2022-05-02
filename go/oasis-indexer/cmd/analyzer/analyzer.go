@@ -93,7 +93,7 @@ func NewAnalysisService() (*AnalysisService, error) {
 	}
 
 	// Initialize target storage.
-	cockroachClient, err := target.NewCockroachClient(cfgStorageEndpoint)
+	cockroachClient, err := target.NewCockroachClient(cfgStorageEndpoint, logger)
 	if err != nil {
 		return nil, err
 	}

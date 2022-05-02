@@ -250,8 +250,8 @@ CREATE TABLE IF NOT EXISTS oasis_3.processed_blocks
   processed_time TIMESTAMP WITH TIME ZONE NOT NULL
 );
 
-INSERT INTO oasis_3.processed_blocks (height, processed_time)
+INSERT INTO oasis_3.processed_blocks (height, analyzer, processed_time)
 VALUES
-  (8049956, "consensus-main", CURRENT_TIMESTAMP);
+  (8049956, 'consensus-main', CURRENT_TIMESTAMP);
 
 COMMIT;
