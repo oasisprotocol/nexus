@@ -1,6 +1,6 @@
 services:
   crdb:
-    image: cockroachdb/cockroach:v21.2.7
+    image: cockroachdb/cockroach:v21.2.10
     ports:
      - 26257:26257
      - 8080:8080
@@ -24,20 +24,32 @@ services:
       - type: bind
         source: ./node
         target: /node
+  migration:
+    image: cockroachdb/cockroach:v21.2.10
+    depends_on:
+      - crdb
+    command: sql --url postgresql://root@crdb:26257/defaultdb?sslmode=disable -f /migrations/0000-oasis-3-init.sql
+    volumes:
+      - type: bind
+        source:  ../go/storage/migrations
+        target: /migrations
   indexer:
     build:
       context: ../
       dockerfile: ./docker/indexer/indexer.Dockerfile
     depends_on:
+      migration:
+        condition: service_started
       oasis-node:
         condition: service_healthy
     command:
       - /bin/sh
       - -c
-      - oasis-block-indexer analyze --analyzer.network_config=/config/network.yaml
+      - oasis-block-indexer analyze --analyzer.network_config=/config/network.yaml --analyzer.storage_endpoint=postgresql://root@crdb:26257/defaultdb?sslmode=disable
     volumes:
       - type: bind
         source: ./node
         target: /node
 volumes:
-  node: {}
+  go: {}
+  migrations: {}
