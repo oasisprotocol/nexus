@@ -3,19 +3,19 @@ package analyzer
 
 import (
 	"context"
-	"errors"
-	"fmt"
 	"io/ioutil"
 	"os"
+	"sync"
 
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
 
+	"github.com/oasislabs/oasis-block-indexer/go/analyzer"
+	"github.com/oasislabs/oasis-block-indexer/go/analyzer/consensus"
 	"github.com/oasislabs/oasis-block-indexer/go/log"
 	"github.com/oasislabs/oasis-block-indexer/go/oasis-indexer/cmd/common"
 	"github.com/oasislabs/oasis-block-indexer/go/storage"
-	"github.com/oasislabs/oasis-block-indexer/go/storage/oasis"
 )
 
 const (
@@ -45,112 +45,87 @@ func runAnalyzer(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	rawCfg, err := ioutil.ReadFile(cfgNetworkConfig)
+	service, err := NewAnalysisService()
 	if err != nil {
-		common.Logger().Error(
-			"failed to parse network config",
+		common.Logger().Error("service failed to start",
 			"error", err,
 		)
 		os.Exit(1)
 	}
 
-	var network config.Network
-	yaml.Unmarshal([]byte(rawCfg), &network)
-
-	analyzer, err := NewAnalyzer(network)
-	if err != nil {
-		common.Logger().Error(
-			"failed to create analyzer",
-			"error", err,
-		)
-		os.Exit(1)
-	}
-
-	switch {
-	case err == nil:
-		analyzer.Start()
-	case errors.Is(err, context.Canceled):
-		// Shutdown requested during startup.
-		return
-	default:
-		os.Exit(1)
-	}
+	service.Start()
 }
 
-// Analyzer is the Oasis Indexer's analysis service.
-type Analyzer struct {
-	Network       config.Network
-	TargetStorage storage.TargetStorage
-	logger        *log.Logger
+// AnalysisService is the Oasis Indexer's analysis service.
+type AnalysisService struct {
+	ChainID   string
+	Analyzers map[string]analyzer.Analyzer
+
+	source storage.SourceStorage
+	target storage.TargetStorage
+	logger *log.Logger
 }
 
-// NewAnalyzer creates and starts a new Analyzer.
-func NewAnalyzer(net config.Network) (*Analyzer, error) {
+// NewAnalysisService creates new AnalysisService
+func NewAnalysisService() (*AnalysisService, error) {
+	ctx := context.Background()
 	logger := common.Logger().WithModule(moduleName)
 
-	analyzer := &Analyzer{
-		logger:  logger,
-		Network: net,
+	// Initialize source storage.
+	rawCfg, err := ioutil.ReadFile(cfgNetworkConfig)
+	if err != nil {
+		return nil, err
+	}
+	var networkCfg config.Network
+	if err := yaml.Unmarshal([]byte(rawCfg), &networkCfg); err != nil {
+		return nil, err
+	}
+	oasisNodeClient, err := source.NewOasisNodeClient(ctx, &networkCfg)
+	if err != nil {
+		return nil, err
+	}
+
+	// Initialize target storage.
+	cockroachClient, err := target.NewCockroachClient(cfgStorageEndpoint, logger)
+	if err != nil {
+		return nil, err
+	}
+
+	// Initialize analyzers.
+	consensusAnalyzer := consensus.NewConsensusMain(oasisNodeClient, cockroachClient, logger)
+
+	d, err := oasisNodeClient.GenesisDocument(ctx)
+	if err != nil {
+		return nil, err
 	}
 
 	logger.Info("Starting oasis-indexer analysis layer.")
 
-	return analyzer, nil
+	return &AnalysisService{
+		ChainID: d.ChainID,
+		Analyzers: map[string]analyzer.Analyzer{
+			consensusAnalyzer.Name(): consensusAnalyzer,
+		},
+		source: oasisNodeClient,
+		target: cockroachClient,
+		logger: logger,
+	}, nil
 }
 
-func (analyzer *Analyzer) Start() {
-	c := context.Background()
-	client, err := oasis.NewOasisNodeClient(c, &analyzer.Network)
+// Start starts the analysis service.
+func (a *AnalysisService) Start() {
+	a.logger.Info("starting analysis service")
 
-	if err != nil {
-		common.Logger().Error("Could not create Oasis node client")
-		os.Exit(1)
+	var wg sync.WaitGroup
+	for _, an := range a.Analyzers {
+		wg.Add(1)
+		go func(an analyzer.Analyzer) {
+			defer wg.Done()
+			an.Start()
+		}(an)
 	}
 
-	document, err := client.GenesisDocument(c)
-
-	if err != nil {
-		common.Logger().Error("Could not retrieve genesis document from client")
-		os.Exit(1)
-	}
-
-	initialHeight := document.Height
-	height := initialHeight + 1
-
-	for height < (initialHeight + 10) {
-		fmt.Println(height)
-		blockData, err := client.BlockData(c, height)
-		if err != nil {
-			os.Exit(1)
-		}
-
-		fmt.Println(blockData)
-		registryData, err := client.RegistryData(c, height)
-		if err != nil {
-			os.Exit(1)
-		}
-
-		fmt.Println(registryData)
-		stakingData, err := client.StakingData(c, height)
-		if err != nil {
-			os.Exit(1)
-		}
-
-		fmt.Println(stakingData)
-		schedulerData, err := client.SchedulerData(c, height)
-		if err != nil {
-			os.Exit(1)
-		}
-
-		fmt.Println(schedulerData)
-		governanceData, err := client.GovernanceData(c, height)
-		if err != nil {
-			os.Exit(1)
-		}
-
-		fmt.Println(governanceData)
-		height += 1
-	}
+	wg.Wait()
 }
 
 // Register registers the process sub-command.
