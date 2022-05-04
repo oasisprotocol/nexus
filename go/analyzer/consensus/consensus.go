@@ -38,7 +38,7 @@ func NewConsensusMain(source storage.SourceStorage, target storage.TargetStorage
 	}
 }
 
-// Start starts the ConsensusMain.
+// Start starts the main consensus analyzer.
 func (c *ConsensusMain) Start() {
 	ctx := context.Background()
 
@@ -64,10 +64,11 @@ func (c *ConsensusMain) latestBlock(ctx context.Context) (int64, error) {
 		ctx,
 		fmt.Sprintf(`
 			SELECT height FROM %s.processed_blocks
+				WHERE analyzer = $1
 				ORDER BY height DESC
 				LIMIT 1
 		`, chainID),
-		// analyzerName,
+		analyzerName,
 	)
 	if err != nil {
 		return 0, err
