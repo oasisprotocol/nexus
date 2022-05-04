@@ -16,6 +16,8 @@ import (
 	"github.com/oasislabs/oasis-block-indexer/go/log"
 	"github.com/oasislabs/oasis-block-indexer/go/oasis-indexer/cmd/common"
 	"github.com/oasislabs/oasis-block-indexer/go/storage"
+	target "github.com/oasislabs/oasis-block-indexer/go/storage/cockroach"
+	source "github.com/oasislabs/oasis-block-indexer/go/storage/oasis"
 )
 
 const (

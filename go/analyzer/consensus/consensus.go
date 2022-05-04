@@ -3,10 +3,13 @@ package consensus
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/oasisprotocol/oasis-core/go/consensus/api/transaction"
+	"github.com/oasisprotocol/oasis-core/go/consensus/api/transaction/results"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/oasislabs/oasis-block-indexer/go/log"
@@ -221,4 +224,99 @@ func (c *ConsensusMain) queueEventInserts(batch *storage.QueryBatch, data *stora
 	}
 
 	return nil
+}
+
+// extractEventData extracts the type of an event.
+//
+// TODO: Eliminate this if possible.
+func extractEventData(event *results.Event) (backend string, ty string, body []byte, err error) {
+	if event.Staking != nil {
+		backend = "staking"
+		if event.Staking.Transfer != nil {
+			ty = "transfer"
+			body, err = json.Marshal(event.Staking.Transfer)
+			return
+		} else if event.Staking.Burn != nil {
+			ty = "burn"
+			body, err = json.Marshal(event.Staking.Burn)
+			return
+		} else if event.Staking.Escrow != nil {
+			if event.Staking.Escrow.Add != nil {
+				ty = "add"
+				body, err = json.Marshal(event.Staking.Escrow.Add)
+				return
+			} else if event.Staking.Escrow.Take != nil {
+				ty = "take"
+				body, err = json.Marshal(event.Staking.Escrow.Take)
+				return
+			} else if event.Staking.Escrow.DebondingStart != nil {
+				ty = "debonding_start"
+				body, err = json.Marshal(event.Staking.Escrow.DebondingStart)
+				return
+			} else if event.Staking.Escrow.Reclaim != nil {
+				ty = "reclaim"
+				body, err = json.Marshal(event.Staking.Escrow.Reclaim)
+				return
+			}
+		} else if event.Staking.AllowanceChange != nil {
+			ty = "allowance_change"
+			body, err = json.Marshal(event.Staking.AllowanceChange)
+			return
+		}
+	} else if event.Registry != nil {
+		backend = "registry"
+		if event.Registry.RuntimeEvent != nil {
+			ty = "runtime"
+			body, err = json.Marshal(event.Registry.RuntimeEvent)
+			return
+		} else if event.Registry.EntityEvent != nil {
+			ty = "entity"
+			body, err = json.Marshal(event.Registry.EntityEvent)
+			return
+		} else if event.Registry.NodeEvent != nil {
+			ty = "node"
+			body, err = json.Marshal(event.Registry.NodeEvent)
+			return
+		} else if event.Registry.NodeUnfrozenEvent != nil {
+			ty = "node_unfrozen"
+			body, err = json.Marshal(event.Registry.NodeUnfrozenEvent)
+			return
+		}
+	} else if event.RootHash != nil {
+		backend = "roothash"
+		if event.RootHash.ExecutorCommitted != nil {
+			ty = "executor_committed"
+			body, err = json.Marshal(event.RootHash.ExecutorCommitted)
+			return
+		} else if event.RootHash.ExecutionDiscrepancyDetected != nil {
+			ty = "execution_discrepancy_detected"
+			body, err = json.Marshal(event.RootHash.ExecutionDiscrepancyDetected)
+			return
+		} else if event.RootHash.Finalized != nil {
+			ty = "finalized"
+			body, err = json.Marshal(event.RootHash.Finalized)
+			return
+		}
+	} else if event.Governance != nil {
+		backend = "governance"
+		if event.Governance.ProposalSubmitted != nil {
+			ty = "proposal_submitted"
+			body, err = json.Marshal(event.Governance.ProposalSubmitted)
+			return
+		} else if event.Governance.ProposalExecuted != nil {
+			ty = "proposal_executed"
+			body, err = json.Marshal(event.Governance.ProposalExecuted)
+			return
+		} else if event.Governance.ProposalFinalized != nil {
+			ty = "proposal_finalized"
+			body, err = json.Marshal(event.Governance.ProposalFinalized)
+			return
+		} else if event.Governance.Vote != nil {
+			ty = "vote"
+			body, err = json.Marshal(event.Governance.Vote)
+			return
+		}
+	}
+
+	return "", "", []byte{}, errors.New("unknown event type")
 }

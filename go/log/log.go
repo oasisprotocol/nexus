@@ -84,7 +84,7 @@ func (l *Logger) Error(msg string, keyvals ...interface{}) {
 
 // With returns a clone of the logger with the provided key/value pairs
 // added as context for all subsequent logs.
-func (l *Logger) With(keyvals ...interface{}) Logger {
+func (l *Logger) With(keyvals ...interface{}) *Logger {
 	return &Logger{
 		logger: log.With(l.logger, keyvals...),
 	}
@@ -92,7 +92,7 @@ func (l *Logger) With(keyvals ...interface{}) Logger {
 
 // WithPrefix returns a clone of the logger with the provided key/value pairs
 // added as context for all subsequent logs.
-func (l *Logger) WithPrefix(keyvals ...interface{}) Logger {
+func (l *Logger) WithPrefix(keyvals ...interface{}) *Logger {
 	return &Logger{
 		logger: log.WithPrefix(l.logger, keyvals...),
 	}
