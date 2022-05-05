@@ -109,7 +109,7 @@ CREATE TABLE IF NOT EXISTS oasis_3.nodes
 
   -- Consensus Info
   consensus_pubkey  TEXT NOT NULL,
-  consensus_address TEXT,
+  consensus_addresses TEXT ARRAY[],
 
   -- VRF Info
   vrf_pubkey TEXT,
@@ -253,6 +253,6 @@ CREATE TABLE IF NOT EXISTS oasis_3.processed_blocks
 INSERT INTO oasis_3.processed_blocks
   (height, analyzer, processed_time)
 VALUES
-  (8049956, 'consensus-main', CURRENT_TIMESTAMP);
+  (8049956, 'consensus_main_oasis_3', CURRENT_TIMESTAMP);
 
 COMMIT;

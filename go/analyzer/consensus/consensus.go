@@ -19,7 +19,7 @@ import (
 const (
 	chainID = "oasis_3"
 
-	analyzerName = "consensus-main"
+	analyzerName = "consensus_main_oasis_3"
 )
 
 // ConsensusMain is the main Analyzer for the consensus layer.

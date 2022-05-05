@@ -21,12 +21,12 @@ import (
 )
 
 const (
+	// CfgAnalysisConfig is the config file for configuration of chain analyzers.
+	CfgAnalysisConfig = "analyzer.analysis_config"
+
 	// CfgStorageEndpoint is the flag for setting the connection string to
 	// the backing storage.
 	CfgStorageEndpoint = "analyzer.storage_endpoint"
-
-	// CfgNetworkConfig is the config file for connecting to an oasis-node.
-	CfgNetworkConfig = "analyzer.network_config"
 
 	moduleName = "analysis_service"
 )
@@ -34,6 +34,7 @@ const (
 var (
 	cfgStorageEndpoint string
 	cfgNetworkConfig   string
+	cfgAnalysisConfig  string
 
 	analyzeCmd = &cobra.Command{
 		Use:   "analyze",
@@ -68,18 +69,38 @@ type AnalysisService struct {
 	logger *log.Logger
 }
 
+// AnalysisServiceConfig contains configuration parameters for network analyzers.
+type AnalysisServiceConfig struct {
+	Spec []struct {
+		From      int64    `yaml:"from"`
+		To        int64    `yaml:"to"`
+		OasisNode string   `yaml:"oasis_node"`
+		Analyzers []string `yaml:"analyzers"`
+	}
+}
+
 // NewAnalysisService creates new AnalysisService
 func NewAnalysisService() (*AnalysisService, error) {
 	ctx := context.Background()
 	logger := common.Logger().WithModule(moduleName)
 
+	// Get analyzer configurations.
+	rawServiceCfg, err := ioutil.ReadFile(cfgAnalysisConfig)
+	if err != nil {
+		return nil, err
+	}
+	var serviceConfig AnalysisServiceConfig
+	if err := yaml.Unmarshal(rawServiceCfg, &serviceConfig); err != nil {
+		return nil, err
+	}
+
 	// Initialize source storage.
-	rawCfg, err := ioutil.ReadFile(cfgNetworkConfig)
+	rawNetworkCfg, err := ioutil.ReadFile(cfgNetworkConfig)
 	if err != nil {
 		return nil, err
 	}
 	var networkCfg config.Network
-	if err := yaml.Unmarshal([]byte(rawCfg), &networkCfg); err != nil {
+	if err := yaml.Unmarshal([]byte(rawNetworkCfg), &networkCfg); err != nil {
 		return nil, err
 	}
 	oasisNodeClient, err := source.NewOasisNodeClient(ctx, &networkCfg)
@@ -132,6 +153,7 @@ func (a *AnalysisService) Start() {
 
 // Register registers the process sub-command.
 func Register(parentCmd *cobra.Command) {
+	analyzeCmd.Flags().StringVar(&cfgAnalysisConfig, CfgAnalysisConfig, "", "path to an analysis service config file")
 	analyzeCmd.Flags().StringVar(&cfgStorageEndpoint, CfgStorageEndpoint, "", "a postgresql-compliant connection url")
 	analyzeCmd.Flags().StringVar(&cfgNetworkConfig, CfgNetworkConfig, "", "path to a network configuration file")
 	parentCmd.AddCommand(analyzeCmd)
