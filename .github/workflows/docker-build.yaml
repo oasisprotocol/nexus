@@ -17,7 +17,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
         with:
-          # We need history to determine emerald-web3-gateway version from git tag.
+          # We need history to determine oasis-indexer version from git tag.
           fetch-depth: 0
 
       - name: Set up Docker Buildx
