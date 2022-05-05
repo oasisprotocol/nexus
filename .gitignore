@@ -1,5 +1,7 @@
 # Built binaries.
+go/oasis-block-indexer
 go/oasis-indexer/oasis-indexer
 
 # Oasis Node data.
 docker/node/data
+docker/node/etc/genesis.json
