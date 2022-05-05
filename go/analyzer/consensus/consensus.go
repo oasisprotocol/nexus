@@ -12,6 +12,7 @@ import (
 	"github.com/oasisprotocol/oasis-core/go/consensus/api/transaction/results"
 	"golang.org/x/sync/errgroup"
 
+	"github.com/oasislabs/oasis-block-indexer/go/analyzer"
 	"github.com/oasislabs/oasis-block-indexer/go/log"
 	"github.com/oasislabs/oasis-block-indexer/go/storage"
 )
@@ -19,23 +20,42 @@ import (
 const (
 	chainID = "oasis_3"
 
-	analyzerName = "consensus_main_oasis_3"
+	analyzerName = "consensus_main_damask_v1"
+)
+
+var (
+	// ErrRangeOverlapError is returned if this analyzer is given a new processing
+	// range that is not disjoint from one of its existing processing ranges.
+	ErrRangeOverlapError = errors.New("invalid range provided. ranges must be disjoint")
+
+	// ErrRangeNotFound is returned if the current block does not fall within any
+	// of the analyzer's known ranges.
+	ErrRangeNotFound = errors.New("range not found. no data source available.")
 )
 
 // ConsensusMain is the main Analyzer for the consensus layer.
 type ConsensusMain struct {
-	source storage.SourceStorage
+	ranges []analyzer.RangeConfig
 	target storage.TargetStorage
 	logger *log.Logger
 }
 
 // NewConsensusMain returns a new analyzer for the consensus layer.
-func NewConsensusMain(source storage.SourceStorage, target storage.TargetStorage, logger *log.Logger) *ConsensusMain {
+func NewConsensusMain(target storage.TargetStorage, logger *log.Logger) *ConsensusMain {
 	return &ConsensusMain{
-		source: source,
+		ranges: make([]analyzer.RangeConfig, 1),
 		target: target,
 		logger: logger.With("analyzer", analyzerName),
 	}
+}
+
+// AddRange adds configuration to process a new range of blocks to
+// this analyzer. It is intended to be called before Start.
+func (c *ConsensusMain) AddRange(cfg analyzer.RangeConfig) error {
+	// TODO: Add support for multiple ranges.
+	c.ranges[0] = cfg
+
+	return nil
 }
 
 // Start starts the main consensus analyzer.
@@ -44,6 +64,11 @@ func (c *ConsensusMain) Start() {
 
 	for {
 		if err := c.processNextBlock(ctx); err != nil {
+			if err == ErrRangeNotFound {
+				c.logger.Info("processing complete for known ranges")
+				return
+			}
+
 			c.logger.Error("error processing block",
 				"err", err.Error(),
 			)
@@ -56,6 +81,16 @@ func (c *ConsensusMain) Start() {
 // Name returns the name of the ConsensusMain.
 func (c *ConsensusMain) Name() string {
 	return analyzerName
+}
+
+// source returns the source storage for the provided block height.
+func (c *ConsensusMain) source(height int64) (storage.SourceStorage, error) {
+	r := c.ranges[0]
+	if height >= r.From && (height <= r.To || r.To == 0) {
+		return r.Source, nil
+	}
+
+	return nil, ErrRangeNotFound
 }
 
 // latestBlock returns the latest block processed by the consensus analyzer.
@@ -136,7 +171,12 @@ func (c *ConsensusMain) processNextBlock(ctx context.Context) error {
 
 // prepareBlockData adds block data queries to the batch.
 func (c *ConsensusMain) prepareBlockData(ctx context.Context, height int64, batch *storage.QueryBatch) error {
-	data, err := c.source.BlockData(ctx, height)
+	source, err := c.source(height)
+	if err != nil {
+		return err
+	}
+
+	data, err := source.BlockData(ctx, height)
 	if err != nil {
 		return err
 	}

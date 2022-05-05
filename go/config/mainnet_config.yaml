@@ -1,0 +1,12 @@
+spec:
+  chaincontext: b11b369e0da5bb230b220127f5e7b242d385ef8c6f54906243f30af63c815535
+  nodes:
+    - from: 3027601
+      to: 8048955
+      rpc: unix:/Users/nikhilsharma/node/data/internal.sock
+      analyzers:
+        - consensus_main_cobalt_v1
+    - from: 8048956
+      rpc: unix:/Users/nikhilsharma/node/data/internal.sock
+      analyzers:
+        - consensus_main_damask_v1

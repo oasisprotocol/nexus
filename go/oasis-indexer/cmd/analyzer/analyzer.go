@@ -33,7 +33,6 @@ const (
 
 var (
 	cfgStorageEndpoint string
-	cfgNetworkConfig   string
 	cfgAnalysisConfig  string
 
 	analyzeCmd = &cobra.Command{
@@ -61,21 +60,22 @@ func runAnalyzer(cmd *cobra.Command, args []string) {
 
 // AnalysisService is the Oasis Indexer's analysis service.
 type AnalysisService struct {
-	ChainID   string
 	Analyzers map[string]analyzer.Analyzer
+	Nodes     map[string]storage.SourceStorage
 
-	source storage.SourceStorage
-	target storage.TargetStorage
 	logger *log.Logger
 }
 
 // AnalysisServiceConfig contains configuration parameters for network analyzers.
 type AnalysisServiceConfig struct {
-	Spec []struct {
-		From      int64    `yaml:"from"`
-		To        int64    `yaml:"to"`
-		OasisNode string   `yaml:"oasis_node"`
-		Analyzers []string `yaml:"analyzers"`
+	Spec struct {
+		ChainContext string `yaml:"chaincontext"`
+		Nodes        []struct {
+			From      int64    `yaml:"from"`
+			To        int64    `yaml:"to"`
+			RPC       string   `yaml:"rpc"`
+			Analyzers []string `yaml:"analyzers"`
+		} `yaml:"nodes"`
 	}
 }
 
@@ -89,24 +89,27 @@ func NewAnalysisService() (*AnalysisService, error) {
 	if err != nil {
 		return nil, err
 	}
-	var serviceConfig AnalysisServiceConfig
-	if err := yaml.Unmarshal(rawServiceCfg, &serviceConfig); err != nil {
+	var serviceCfg AnalysisServiceConfig
+	if err := yaml.Unmarshal(rawServiceCfg, &serviceCfg); err != nil {
 		return nil, err
 	}
 
-	// Initialize source storage.
-	rawNetworkCfg, err := ioutil.ReadFile(cfgNetworkConfig)
-	if err != nil {
-		return nil, err
+	// Initialize sources.
+	nodes := make(map[string]storage.SourceStorage)
+	for _, nodeCfg := range serviceCfg.Spec.Nodes {
+		networkCfg := config.Network{
+			ChainContext: serviceCfg.Spec.ChainContext,
+			RPC:          nodeCfg.RPC,
+		}
+		nodeClient, err := source.NewOasisNodeClient(ctx, &networkCfg)
+		if err != nil {
+			return nil, err
+		}
+
+		nodes[nodeCfg.RPC] = nodeClient
 	}
-	var networkCfg config.Network
-	if err := yaml.Unmarshal([]byte(rawNetworkCfg), &networkCfg); err != nil {
-		return nil, err
-	}
-	oasisNodeClient, err := source.NewOasisNodeClient(ctx, &networkCfg)
-	if err != nil {
-		return nil, err
-	}
+
+	logger.Info("initialized sources")
 
 	// Initialize target storage.
 	cockroachClient, err := target.NewCockroachClient(cfgStorageEndpoint, logger)
@@ -114,24 +117,33 @@ func NewAnalysisService() (*AnalysisService, error) {
 		return nil, err
 	}
 
-	// Initialize analyzers.
-	consensusAnalyzer := consensus.NewConsensusMain(oasisNodeClient, cockroachClient, logger)
+	logger.Info("initialized target")
 
-	d, err := oasisNodeClient.GenesisDocument(ctx)
-	if err != nil {
-		return nil, err
+	// Initialize analyzers.
+	consensusMainDamaskV1 := consensus.NewConsensusMain(cockroachClient, logger)
+
+	analyzers := map[string]analyzer.Analyzer{
+		consensusMainDamaskV1.Name(): consensusMainDamaskV1,
+	}
+	for _, nodeCfg := range serviceCfg.Spec.Nodes {
+		for _, name := range nodeCfg.Analyzers {
+			if a, ok := analyzers[name]; ok {
+				a.AddRange(analyzer.RangeConfig{
+					From:   nodeCfg.From,
+					To:     nodeCfg.To,
+					Source: nodes[nodeCfg.RPC],
+				})
+			}
+		}
 	}
 
-	logger.Info("Starting oasis-indexer analysis layer.")
+	logger.Info("initialized analyzers")
+	logger.Info("starting analysis service")
 
 	return &AnalysisService{
-		ChainID: d.ChainID,
-		Analyzers: map[string]analyzer.Analyzer{
-			consensusAnalyzer.Name(): consensusAnalyzer,
-		},
-		source: oasisNodeClient,
-		target: cockroachClient,
-		logger: logger,
+		Analyzers: analyzers,
+		Nodes:     nodes,
+		logger:    logger,
 	}, nil
 }
 
@@ -155,6 +167,5 @@ func (a *AnalysisService) Start() {
 func Register(parentCmd *cobra.Command) {
 	analyzeCmd.Flags().StringVar(&cfgAnalysisConfig, CfgAnalysisConfig, "", "path to an analysis service config file")
 	analyzeCmd.Flags().StringVar(&cfgStorageEndpoint, CfgStorageEndpoint, "", "a postgresql-compliant connection url")
-	analyzeCmd.Flags().StringVar(&cfgNetworkConfig, CfgNetworkConfig, "", "path to a network configuration file")
 	parentCmd.AddCommand(analyzeCmd)
 }
