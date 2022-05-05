@@ -20,7 +20,13 @@ type Analyzer interface {
 // RangeConfig specifies configuration parameters
 // for processing a range of blocks.
 type RangeConfig struct {
-	From   int64
-	To     int64
+	// From is the first block to process in this range, inclusive.
+	From int64
+
+	// To is the last block to process in this range, inclusive.
+	To int64
+
+	// Source is the storage source from which to fetch block data
+	// when processing blocks in this range.
 	Source storage.SourceStorage
 }
