@@ -3,10 +3,10 @@ spec:
   nodes:
     - from: 3027601
       to: 8048955
-      rpc: unix:/Users/nikhilsharma/node/data/internal.sock
+      rpc: unix:/not/a/real/path
       analyzers:
         - consensus_main_cobalt_v1
     - from: 8048956
-      rpc: unix:/Users/nikhilsharma/node/data/internal.sock
+      rpc: unix:/not/a/real/path
       analyzers:
         - consensus_main_damask_v1
