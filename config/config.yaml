@@ -1,0 +1,10 @@
+spec:
+  - from: 8049957
+    oasis_node: 12.34.56.78:1234
+    analyzers:
+      - consensus_main_oasis_3
+  - from: 3027601
+    to: 8049956
+    oasis_node: 12.34.56.78:1235
+    analyzers:
+      - consensus_main_oasis_2
