@@ -8,7 +8,7 @@ services:
   oasis-node:
     build:
       context: oasis-node
-      dockerfile: ./oasis-node.Dockerfile
+      dockerfile: ./Dockerfile
     user: oasis
     healthcheck:
       test: oasis-node control status -a unix:/node/data/internal.sock || exit 1
@@ -36,7 +36,7 @@ services:
   indexer:
     build:
       context: ../
-      dockerfile: ./docker/indexer/indexer.Dockerfile
+      dockerfile: ./docker/indexer/Dockerfile
     depends_on:
       migration:
         condition: service_started
