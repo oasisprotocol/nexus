@@ -120,15 +120,15 @@ func NewAnalysisService() (*AnalysisService, error) {
 	logger.Info("initialized target")
 
 	// Initialize analyzers.
-	consensusMainDamaskV1 := consensus.NewConsensusMain(cockroachClient, logger)
+	consensusMainDamask := consensus.NewConsensusMain(cockroachClient, logger)
 
 	analyzers := map[string]analyzer.Analyzer{
-		consensusMainDamaskV1.Name(): consensusMainDamaskV1,
+		consensusMainDamask.Name(): consensusMainDamask,
 	}
 	for _, nodeCfg := range serviceCfg.Spec.Nodes {
 		for _, name := range nodeCfg.Analyzers {
 			if a, ok := analyzers[name]; ok {
-				a.AddRange(analyzer.RangeConfig{
+				a.SetRange(analyzer.RangeConfig{
 					From:   nodeCfg.From,
 					To:     nodeCfg.To,
 					Source: nodes[nodeCfg.RPC],

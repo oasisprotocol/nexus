@@ -35,25 +35,23 @@ var (
 
 // ConsensusMain is the main Analyzer for the consensus layer.
 type ConsensusMain struct {
-	ranges []analyzer.RangeConfig
-	target storage.TargetStorage
-	logger *log.Logger
+	rangeCfg analyzer.RangeConfig
+	target   storage.TargetStorage
+	logger   *log.Logger
 }
 
 // NewConsensusMain returns a new analyzer for the consensus layer.
 func NewConsensusMain(target storage.TargetStorage, logger *log.Logger) *ConsensusMain {
 	return &ConsensusMain{
-		ranges: make([]analyzer.RangeConfig, 1),
 		target: target,
 		logger: logger.With("analyzer", analyzerName),
 	}
 }
 
-// AddRange adds configuration to process a new range of blocks to
+// SetRange adds configuration for the range of blocks to process to
 // this analyzer. It is intended to be called before Start.
-func (c *ConsensusMain) AddRange(cfg analyzer.RangeConfig) error {
-	// TODO: Add support for multiple ranges.
-	c.ranges[0] = cfg
+func (c *ConsensusMain) SetRange(cfg analyzer.RangeConfig) error {
+	c.rangeCfg = cfg
 
 	return nil
 }
@@ -85,7 +83,7 @@ func (c *ConsensusMain) Name() string {
 
 // source returns the source storage for the provided block height.
 func (c *ConsensusMain) source(height int64) (storage.SourceStorage, error) {
-	r := c.ranges[0]
+	r := c.rangeCfg
 	if height >= r.From && (height <= r.To || r.To == 0) {
 		return r.Source, nil
 	}

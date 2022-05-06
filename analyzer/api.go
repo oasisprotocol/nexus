@@ -6,9 +6,9 @@ import (
 
 // Analyzer is a worker that analyzes a subset of the Oasis Network.
 type Analyzer interface {
-	// AddRange adds configuration for processing a range of blocks
+	// SetRange sets configuration for the range of blocks to process
 	// to the analyzer.
-	AddRange(RangeConfig) error
+	SetRange(RangeConfig) error
 
 	// Start starts the analyzer.
 	Start()
