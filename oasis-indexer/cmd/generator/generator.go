@@ -14,10 +14,10 @@ import (
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
 
-	"github.com/oasislabs/oasis-block-indexer/go/log"
-	"github.com/oasislabs/oasis-block-indexer/go/oasis-indexer/cmd/common"
-	"github.com/oasislabs/oasis-block-indexer/go/storage/migrations/generator"
-	"github.com/oasislabs/oasis-block-indexer/go/storage/oasis"
+	"github.com/oasislabs/oasis-indexer/generator"
+	"github.com/oasislabs/oasis-indexer/log"
+	"github.com/oasislabs/oasis-indexer/oasis-indexer/cmd/common"
+	"github.com/oasislabs/oasis-indexer/storage/oasis"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 )
 

@@ -12,8 +12,14 @@ import (
 	"github.com/oasisprotocol/oasis-core/go/consensus/api/transaction/results"
 	"golang.org/x/sync/errgroup"
 
+<<<<<<< Updated upstream
 	"github.com/oasislabs/oasis-block-indexer/go/log"
 	"github.com/oasislabs/oasis-block-indexer/go/storage"
+=======
+	"github.com/oasislabs/oasis-indexer/analyzer"
+	"github.com/oasislabs/oasis-indexer/log"
+	"github.com/oasislabs/oasis-indexer/storage"
+>>>>>>> Stashed changes
 )
 
 const (

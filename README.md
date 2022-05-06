@@ -1,6 +1,22 @@
-# Oasis Block Indexer
+# Oasis Indexer
 
-A block indexer for the Oasis Network.
+The Oasis Indexer is an data processing pipeline for extracting and analyzing raw data from the Oasis Network.
+It enables fast, easy, and reliable querying of network state without requiring node setup and maintenance.
+
+See instructions below for running your own indexer [locally](#local-development) or with [docker](#docker-development).
+
+## Code Organization
+
+The code is organized into the following packages:
+
+- `analyzer` contains all network analyzers, as well as interface definitions which  they must support.
+- `api` contains API definitions and implementation for all exposed endpoints by the `oasis-indexer`.
+- `config` contains configuration files for settings tuning.
+- `docker` contains tooling for local development and containerization.
+- `log` contains utilities for structured logging.
+- `metrics` contains utilities for structured instrumentation.
+- `oasis-indexer` contains the indexer entrypoint, including code for all generated binaries and their configuration parameters.
+- `storage` contains the storage interfaces and database logic for source and destination storage within the indexer ETL system.
 
 ## Local Development
 

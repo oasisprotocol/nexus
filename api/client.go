@@ -11,7 +11,7 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/iancoleman/strcase"
-	"github.com/oasislabs/oasis-block-indexer/go/storage"
+	"github.com/oasislabs/oasis-indexer/storage"
 	oasisErrors "github.com/oasisprotocol/oasis-core/go/common/errors"
 )
 

@@ -245,14 +245,16 @@ CREATE TABLE IF NOT EXISTS oasis_3.votes
 -- Indexing Progress Management
 CREATE TABLE IF NOT EXISTS oasis_3.processed_blocks
 (
-  height         BIGINT PRIMARY KEY,
+  height         BIGINT NOT NULL,
   analyzer       TEXT NOT NULL,
-  processed_time TIMESTAMP WITH TIME ZONE NOT NULL
+  processed_time TIMESTAMP WITH TIME ZONE NOT NULL,
+
+  PRIMARY KEY (height, analyzer)
 );
 
 INSERT INTO oasis_3.processed_blocks
   (height, analyzer, processed_time)
 VALUES
-  (8049956, 'consensus-main', CURRENT_TIMESTAMP);
+  (8049956, 'consensus_main_damask', CURRENT_TIMESTAMP);
 
 COMMIT;
