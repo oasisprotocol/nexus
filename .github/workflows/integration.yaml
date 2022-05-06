@@ -22,7 +22,6 @@ jobs:
           go-version: '1.17'
 
       - name: Build indexer
-        working-directory: ./go
         run: |
           go build -v ./...
           go test -v ./...

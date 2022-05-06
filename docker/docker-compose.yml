@@ -31,7 +31,7 @@ services:
     command: sql --url postgresql://root@crdb:26257/defaultdb?sslmode=disable -f /migrations/0000-oasis-3-init.sql
     volumes:
       - type: bind
-        source:  ../go/storage/migrations
+        source:  ../storage/migrations
         target: /migrations
   indexer:
     build:
