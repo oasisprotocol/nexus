@@ -3,7 +3,6 @@ name: ✨ Feature request
 about: Suggest an idea for this project
 ---
 <!--- First, verify that your feature was not already discussed on GitHub -->
-<!--- Complete *all* sections as described, this form is processed automatically -->
 
 ##### SUMMARY
 <!--- Describe the new feature/improvement briefly below -->
