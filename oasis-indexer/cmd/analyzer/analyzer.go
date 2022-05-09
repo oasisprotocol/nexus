@@ -70,12 +70,13 @@ type AnalysisService struct {
 type AnalysisServiceConfig struct {
 	Spec struct {
 		ChainContext string `yaml:"chaincontext"`
-		Nodes        []struct {
-			From      int64    `yaml:"from"`
-			To        int64    `yaml:"to"`
-			RPC       string   `yaml:"rpc"`
-			Analyzers []string `yaml:"analyzers"`
-		} `yaml:"nodes"`
+		Analyzers    []struct {
+			Name      string `yaml:"name"`
+			From      int64  `yaml:"from"`
+			To        int64  `yaml:"to"`
+			RPC       string `yaml:"rpc"`
+			ChainHead bool   `yaml:"chainhead"`
+		} `yaml:"analyers"`
 	}
 }
 
@@ -95,18 +96,18 @@ func NewAnalysisService() (*AnalysisService, error) {
 	}
 
 	// Initialize sources.
-	nodes := make(map[string]storage.SourceStorage)
-	for _, nodeCfg := range serviceCfg.Spec.Nodes {
+	sources := make(map[string]storage.SourceStorage)
+	for _, analyzerCfg := range serviceCfg.Spec.Analyzers {
 		networkCfg := config.Network{
 			ChainContext: serviceCfg.Spec.ChainContext,
-			RPC:          nodeCfg.RPC,
+			RPC:          analyzerCfg.RPC,
 		}
-		nodeClient, err := source.NewOasisNodeClient(ctx, &networkCfg)
+		source, err := source.NewOasisNodeClient(ctx, &networkCfg)
 		if err != nil {
 			return nil, err
 		}
 
-		nodes[nodeCfg.RPC] = nodeClient
+		sources[analyzerCfg.RPC] = source
 	}
 
 	logger.Info("initialized sources")
@@ -125,15 +126,13 @@ func NewAnalysisService() (*AnalysisService, error) {
 	analyzers := map[string]analyzer.Analyzer{
 		consensusMainDamask.Name(): consensusMainDamask,
 	}
-	for _, nodeCfg := range serviceCfg.Spec.Nodes {
-		for _, name := range nodeCfg.Analyzers {
-			if a, ok := analyzers[name]; ok {
-				a.SetRange(analyzer.RangeConfig{
-					From:   nodeCfg.From,
-					To:     nodeCfg.To,
-					Source: nodes[nodeCfg.RPC],
-				})
-			}
+	for _, analyzerCfg := range serviceCfg.Spec.Analyzers {
+		if a, ok := analyzers[analyzerCfg.Name]; ok {
+			a.SetRange(analyzer.RangeConfig{
+				From:   analyzerCfg.From,
+				To:     analyzerCfg.To,
+				Source: sources[analyzerCfg.RPC],
+			})
 		}
 	}
 
