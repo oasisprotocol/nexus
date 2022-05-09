@@ -55,9 +55,9 @@ func runServer(cmd *cobra.Command, args []string) {
 
 // APIService is the Oasis Indexer's API service.
 type APIService struct {
-	server  string
-	handler *api.Handler
-	logger  *log.Logger
+	server string
+	api    *api.IndexerAPI
+	logger *log.Logger
 }
 
 // NewAPIService creates a new API service.
@@ -70,9 +70,9 @@ func NewAPIService() (*APIService, error) {
 	}
 
 	return &APIService{
-		server:  cfgServiceEndpoint,
-		handler: api.NewHandler(cockroachClient, logger),
-		logger:  logger,
+		server: cfgServiceEndpoint,
+		api:    api.NewIndexerAPI(cockroachClient, logger),
+		logger: logger,
 	}, nil
 }
 
@@ -82,7 +82,7 @@ func (s *APIService) Start() {
 
 	server := &http.Server{
 		Addr:           s.server,
-		Handler:        s.handler.Router(),
+		Handler:        s.api.Router(),
 		ReadTimeout:    10 * time.Second,
 		WriteTimeout:   10 * time.Second,
 		MaxHeaderBytes: 1 << 20,
