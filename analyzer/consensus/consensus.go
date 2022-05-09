@@ -20,13 +20,13 @@ import (
 const (
 	chainID = "oasis_3"
 
-	analyzerName = "consensus_main_damask_v1"
+	analyzerName = "consensus_main_damask"
 )
 
 var (
-	// ErrRangeNotFound is returned if the current block does not fall within any
-	// of the analyzer's known ranges.
-	ErrRangeNotFound = errors.New("range not found. no data source available.")
+	// ErrOutOfRange is returned if the current block does not fall within tge
+	// analyzer's analysis range.
+	ErrOutOfRange = errors.New("range not found. no data source available.")
 
 	// ErrLatestBlockNotFound is returned if the analyzer has not indexed any
 	// blocks yet. This indicates to begin from the start of its range.
@@ -76,7 +76,7 @@ func (c *ConsensusMain) Start() {
 
 	for {
 		if err := c.processBlock(ctx, height); err != nil {
-			if err == ErrRangeNotFound {
+			if err == ErrOutOfRange {
 				c.logger.Info("no data source available at this height",
 					"height", height,
 				)
@@ -105,7 +105,7 @@ func (c *ConsensusMain) source(height int64) (storage.SourceStorage, error) {
 		return r.Source, nil
 	}
 
-	return nil, ErrRangeNotFound
+	return nil, ErrOutOfRange
 }
 
 // latestBlock returns the latest block processed by the consensus analyzer.

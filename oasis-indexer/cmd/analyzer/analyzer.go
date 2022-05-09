@@ -71,12 +71,11 @@ type AnalysisServiceConfig struct {
 	Spec struct {
 		ChainContext string `yaml:"chaincontext"`
 		Analyzers    []struct {
-			Name      string `yaml:"name"`
-			From      int64  `yaml:"from"`
-			To        int64  `yaml:"to"`
-			RPC       string `yaml:"rpc"`
-			ChainHead bool   `yaml:"chainhead"`
-		} `yaml:"analyers"`
+			Name string `yaml:"name"`
+			From int64  `yaml:"from"`
+			To   int64  `yaml:"to"`
+			RPC  string `yaml:"rpc"`
+		} `yaml:"analyzers"`
 	}
 }
 
@@ -110,15 +109,11 @@ func NewAnalysisService() (*AnalysisService, error) {
 		sources[analyzerCfg.RPC] = source
 	}
 
-	logger.Info("initialized sources")
-
 	// Initialize target storage.
 	cockroachClient, err := target.NewCockroachClient(cfgStorageEndpoint, logger)
 	if err != nil {
 		return nil, err
 	}
-
-	logger.Info("initialized target")
 
 	// Initialize analyzers.
 	consensusMainDamask := consensus.NewConsensusMain(cockroachClient, logger)
@@ -137,7 +132,6 @@ func NewAnalysisService() (*AnalysisService, error) {
 	}
 
 	logger.Info("initialized analyzers")
-	logger.Info("starting analysis service")
 
 	return &AnalysisService{
 		Analyzers: analyzers,

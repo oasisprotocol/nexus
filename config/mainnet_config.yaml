@@ -4,7 +4,7 @@ spec:
     - name: consensus_main_cobalt
       from: 3027601
       to: 8048955
-      rpc: unix:/node/data/internal.sock
+      rpc: unix:/Users/nikhilsharma/node/data/internal.sock
     - name: consensus_main_damask
       from: 8048956
-      rpc: unix:/node/data/internal.sock
+      rpc: unix:/Users/nikhilsharma/node/data/internal.sock
