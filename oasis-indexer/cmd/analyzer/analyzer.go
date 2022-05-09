@@ -61,7 +61,7 @@ func runAnalyzer(cmd *cobra.Command, args []string) {
 // AnalysisService is the Oasis Indexer's analysis service.
 type AnalysisService struct {
 	Analyzers map[string]analyzer.Analyzer
-	Nodes     map[string]storage.SourceStorage
+	Sources   map[string]storage.SourceStorage
 
 	logger *log.Logger
 }
@@ -141,7 +141,7 @@ func NewAnalysisService() (*AnalysisService, error) {
 
 	return &AnalysisService{
 		Analyzers: analyzers,
-		Nodes:     nodes,
+		Sources:   sources,
 		logger:    logger,
 	}, nil
 }
