@@ -52,6 +52,37 @@ x-err-responses:
       description: A server error occurred.
       <<: *base-error-response
 
+x-examples:
+  chain-id:
+    - &chain_id_1 'oasis-3'
+  block-height:
+    - &block_height_1 8048956
+    - &block_height_2 8049555
+  block-hash:
+    - &block_hash_1 '0a29ac21fa69bb9e43e5cb25d10826ff3946f1ce977e82f99a2614206a50765c'
+  tx-hash:
+    - &tx_hash_1 '0d0531d6b8a468c07440182b1cdda517f5a076d69fb2199126a83082ecfc0f41'
+  tx-method:
+    - &tx_method_1 'staking.Transfer'
+  tx-body:
+    - &tx_body_1 '{"amount":"1000000000","account":"oasis1qpg2xuz46g53737343r20yxeddhlvc2ldqsjh70p"}'
+  epoch:
+    - &epoch_1 8048956
+    - &epoch_2 8048966
+  entity-id:
+    - &entity_id_1 'gb8SHLeDc69Elk7OTfqhtVgE2sqxrBCDQI84xKR+Bjg='
+    - &entity_id_2 'LaKJUKndAqH57DVExspTjdRTRNGJOSqArzM0pm8REZw='
+  node-id:
+    - &node_id_1 'lbxs4hlud9XNloIOdhJPaCahd7HtiY8QATCgGnFfCM0='
+  staking-address:
+    - &staking_address_1 'oasis1qpg2xuz46g53737343r20yxeddhlvc2ldqsjh70p'
+    - &staking_address_2 'oasis1qprtzrg97jk0wxnqkhxwyzy5qys47r7alvfl3fcg'
+  proposal-id:
+    - &proposal_id_1 1
+  iso-timestamp:
+    - &iso_timestamp_1 '2022-03-01T00:00:00Z'
+    - &iso_timestamp_2 '2019-04-01T00:00:00Z'
+
 paths:
   /status:
     get:
@@ -77,24 +108,28 @@ paths:
             type: integer
             format: int64
           description: A filter on minimum block height.
+          example: *block_height_1
         - in: query
           name: to
           schema:
             type: integer
             format: int64
           description: A filter on maximum block height.
+          example: *block_height_2
         - in: query
           name: after
           schema:
             type: string
             format: date-time
           description: A filter on minimum block time.
+          example: *iso_timestamp_1
         - in: query
           name: before
           schema:
             type: string
             format: date-time
           description: A filter on maximum block time.
+          example: *iso_timestamp_2
       responses:
         '200':
           description: A JSON object containing a list of consensus blocks.
@@ -115,6 +150,7 @@ paths:
             type: integer
             format: int64
           description: The block height of the block to return.
+          example: *block_height_1
       responses:
         '200':
           description: A JSON object containing a consensus block.
@@ -136,23 +172,27 @@ paths:
             type: integer
             format: int64
           description: A filter on block height.
+          example: *block_height_1
         - in: query
           name: method
           schema:
             type: string
           description: A filter on transaction method.
+          example: *tx_method_1
         - in: query
           name: minFee
           schema:
             type: integer
             format: int64
           description: A filter on minimum transaction fee.
+          example: 1000
         - in: query
           name: maxFee
           schema:
             type: integer
             format: int64
           description: A filter on maximum transaction fee.
+          example: 10000
         - in: query
           name: code
           schema:
@@ -178,6 +218,7 @@ paths:
           schema:
             type: string
           description: The transaction hash of the transaction to return.
+          example: *tx_hash_1
       responses:
         '200':
           description: A JSON object containing a consensus transaction.
@@ -216,6 +257,7 @@ paths:
           schema:
             type: string
           description: The entity ID of the entity to return.
+          example: *entity_id_1
       responses:
         '200':
           description: |
@@ -241,6 +283,7 @@ paths:
             type: string
           description: |
             The entity ID of the controlling entity of the nodes to return.
+          example: *entity_id_1
       responses:
         '200':
           description: |
@@ -263,12 +306,14 @@ paths:
             type: string
           description: |
             The entity ID of the entity controlling the node to return.
+          example: *entity_id_1
         - in: path
           name: node_id
           required: true
           schema:
             type: string
           description: The node ID of the node to return.
+          example: *entity_id_2
       responses:
         '200':
           description: |
@@ -292,48 +337,56 @@ paths:
             type: integer
             format: int64
           description: A filter on the minimum available account balance.
+          example: 10000000000
         - in: query
           name: maxAvailable
           schema:
             type: integer
             format: int64
           description: A filter on the maximum available account balance.
+          example: 100000000000
         - in: query
           name: minEscrow
           schema:
             type: integer
             format: int64
           description: A filter on the minimum active escrow account balance.
+          example: 10000000000
         - in: query
           name: maxEscrow
           schema:
             type: integer
             format: int64
           description: A filter on the maximum active escrow account balance.
+          example: 100000000000
         - in: query
           name: minDebonding
           schema:
             type: integer
             format: int64
           description: A filter on the minimum debonding account balance.
+          example: 10000000000
         - in: query
           name: maxDebonding
           schema:
             type: integer
             format: int64
           description: A filter on the maximum debonding account balance.
+          example: 100000000000
         - in: query
           name: minTotalBalance
           schema:
             type: integer
             format: int64
           description: A filter on the minimum total account balance.
+          example: 10000000000
         - in: query
           name: maxTotalBalance
           schema:
             type: integer
             format: int64
           description: A filter on the maximum total account balance.
+          example: 100000000000
       responses:
         '200':
           description: |
@@ -355,6 +408,7 @@ paths:
           schema:
             type: string
           description: The staking address of the account to return.
+          example: *staking_address_1
       responses:
         '200':
           description: A JSON object containing a consensus layer account.
@@ -390,6 +444,7 @@ paths:
             type: integer
             format: int64
           description: The epoch number of the epoch to return.
+          example: *epoch_1
       responses:
         '200':
           description: A JSON object containing a consensus epoch.
@@ -425,6 +480,7 @@ paths:
             type: integer
             format: int64
           description: The unique identifier of the proposal to return.
+          example: *proposal_id_1
       responses:
         '200':
           description: A JSON object containing a governance proposal.
@@ -448,6 +504,7 @@ paths:
             format: int64
           description: |
             The unique identifier of the proposal for which votes are returned.
+          example: *proposal_id_1
       responses:
         '200':
           description: |
@@ -466,6 +523,7 @@ components:
         msg:
           type: string
           description: An error message.
+          example: 'internal storage error'
 
     Status:
       type: object
@@ -473,14 +531,17 @@ components:
         latest_chain_id:
           type: string
           description: The latest chain ID at the head of indexing.
+          example: *chain_id_1
         latest_block:
           type: integer
           format: int64
           description: The latest indexed block at the head of indexing.
+          example: *block_height_1
         latest_update:
           type: string
           format: date-time
           description: The RFC 3339 formatted time of latest indexing update.
+          example: *iso_timestamp_1
 
     BlockList:
       type: object
@@ -499,13 +560,16 @@ components:
           type: integer
           format: int64
           description: The block height.
+          example: *block_height_1
         hash:
           type: string
           description: The block header hash.
+          example: *block_hash_1
         timestamp:
           type: string
           format: date-time
           description: The second-granular consensus time.
+          example: *iso_timestamp_1
       description: |
         A consensus block.
 
@@ -526,26 +590,31 @@ components:
           type: integer
           format: int64
           description: The block height at which this transaction was executed.
+          example: *block_height_1
         hash:
           type: string
           description: The cryptographic hash of this transaction's encoding.
+          example: *tx_hash_1
         nonce:
           type: integer
           format: int64
           description: The nonce used with this transaction, to prevent replay.
+          example: 0
         fee:
           type: integer
           format: int64
           description: |
             The fee that this transaction's sendeer committed
             to pay to execute it.
+          example: 1000
         method:
           type: string
           description: The method that was called.
+          example: *tx_method_1
         body:
           type: string
-          format: byte
           description: The method call body.
+          example: *tx_body_1
         success:
           type: boolean
           description: Whether this transaction successfully executed.
@@ -568,6 +637,7 @@ components:
         id:
           type: string
           description: The public key identifying this entity.
+          example: *entity_id_1
         nodes:
           type: array
           items:
@@ -594,10 +664,12 @@ components:
         id:
           type: string
           description: The public key identifying this node.
+          example: *node_id_1
         entity_id:
           type: string
           description: |
             The public key identifying the entity controlling this node.
+          example: *entity_id_1
         expiration:
           type: integer
           format: int64
@@ -638,26 +710,32 @@ components:
         address:
           type: string
           description: The staking address for this account.
+          example: *staking_address_1
         nonce:
           type: integer
           format: int64
           description: A nonce used to prevent replay.
+          example: 0
         available:
           type: integer
           format: int64
           description: The available balance, in base units.
+          example: 10000000000
         escrow:
           type: integer
           format: int64
           description: The active escrow balance, in base units.
+          example: 10000000000
         debonding:
           type: integer
           format: int64
           description: The debonding escrow balance, in base units.
+          example: 10000000000
         total:
           type: integer
           format: int64
           description: The total (available+escrow) balance, in base units.
+          example: 3000000000
         allowances:
           type: array
           items:
@@ -672,10 +750,12 @@ components:
         address:
           type: string
           description: The allowed account.
+          example: *staking_address_2
         amount:
           type: integer
           format: int64
           description: The amount allowed for the allowed account.
+          example: 10000000000
     
     EpochList:
       type: object
@@ -694,14 +774,17 @@ components:
           type: integer
           format: int64
           description: The epoch number.
+          example: *epoch_1
         start_height:
           type: integer
           format: int64
           description: The (inclusive) height at which this epoch started.
+          example: *block_height_1
         end_height:
           type: integer
           format: int64
           description: The (inclusive) height at which this epoch ended.
+          example: *block_height_2
       description: |
         A consensus epoch.
     
@@ -722,16 +805,20 @@ components:
           type: integer
           format: int64
           description: The unique identifier of the proposal.
+          example: *proposal_id_1
         submitter:
           type: string
           description: The staking address of the proposal submitter.
+          example: *staking_address_1
         state:
           type: string
           description: The state of the proposal.
+          example: 'active'
         deposit:
           type: integer
           format: int64
           description: The deposit attached to this proposal.
+          example: 10000000000
         handler:
           type: string
           description: The name of the upgrade handler.
@@ -749,6 +836,7 @@ components:
           type: integer
           format: int64
           description: The epoch at which the proposed upgrade will happen.
+          example: *epoch_1
         cancels:
           type: integer
           format: int64
@@ -759,10 +847,12 @@ components:
           type: integer
           format: int64
           description: The epoch at which this proposal was created.
+          example: *epoch_1
         closes_at:
           type: integer
           format: int64
           description: The epoch at which voting for this proposal will close.
+          example: *epoch_2
         invalid_votes:
           type: integer
           format: int64
@@ -792,6 +882,8 @@ components:
         address:
           type: string
           description: The staking address casting this vote.
+          example: *staking_address_1
         vote:
           type: string
           description: The vote cast.
+          example: 'yes'

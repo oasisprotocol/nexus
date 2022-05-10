@@ -26,33 +26,25 @@ type ErrorResponse struct {
 // ReplyWithError replies to an HTTP request with an error
 // as JSON.
 func ReplyWithError(w http.ResponseWriter, err error) {
-	var errResponse ErrorResponse
+	var response ErrorResponse
 	var code int
 	switch err {
 	case ErrBadRequest:
-		errResponse = ErrorResponse{
-			Msg: err.Error(),
-		}
+		response = ErrorResponse{err.Error()}
 		code = http.StatusBadRequest
 	case ErrBadChainID:
-		errResponse = ErrorResponse{
-			Msg: err.Error(),
-		}
+		response = ErrorResponse{err.Error()}
 		code = http.StatusNotFound
 	case ErrStorageError:
-		errResponse = ErrorResponse{
-			Msg: err.Error(),
-		}
+		response = ErrorResponse{err.Error()}
 		code = http.StatusInternalServerError
 	default:
-		errResponse = ErrorResponse{
-			Msg: err.Error(),
-		}
+		response = ErrorResponse{err.Error()}
 		code = http.StatusInternalServerError
 	}
 
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.Header().Set("X-Content-Type-Options", "nosniff")
 	w.WriteHeader(code)
-	json.NewEncoder(w).Encode(errResponse)
+	json.NewEncoder(w).Encode(response)
 }
