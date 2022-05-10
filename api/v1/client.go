@@ -523,12 +523,14 @@ func (c *storageClient) Accounts(ctx context.Context, r *http.Request) (*Account
 
 	var filters []string
 	for param, condition := range map[string]string{
-		"minBalance":   "general_balance >= %s",
-		"maxBalance":   "general_balance <= %s",
-		"minEscrow":    "escrow_balance_active >= %s",
-		"maxEscrow":    "escrow_balance_active <= %s",
-		"minDebonding": "escrow_balance_debonding >= %s",
-		"maxDebonding": "escrow_balance_debonding <= %s",
+		"minAvailable":    "general_balance >= %s",
+		"maxAvailable":    "general_balance <= %s",
+		"minEscrow":       "escrow_balance_active >= %s",
+		"maxEscrow":       "escrow_balance_active <= %s",
+		"minDebonding":    "escrow_balance_debonding >= %s",
+		"maxDebonding":    "escrow_balance_debonding <= %s",
+		"minTotalBalance": "general_balance + escrow_balance_active + escrow_balance_debonding <= %s",
+		"maxTotalBalance": "general_balance + escrow_balance_active + escrow_balance_debonding <= %s",
 	} {
 		if v := params.Get(param); v != "" {
 			filters = append(filters, fmt.Sprintf(condition, v))

@@ -54,13 +54,11 @@ func NewIndexerAPI(db storage.TargetStorage, l *log.Logger) *IndexerAPI {
 		handler.RegisterRoutes(r)
 	}
 
-	a := &IndexerAPI{
+	return &IndexerAPI{
 		router:   r,
 		handlers: handlers,
 		logger:   l.WithModule(moduleName),
 	}
-
-	return a
 }
 
 // Router gets the router for this Handler.

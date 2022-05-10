@@ -32,8 +32,8 @@ x-query-params:
       type: integer
       format: int64
     description: |
-      The block height from which to query state. The Oasis Indexer does not make any guarantees
-      about availability of historical state data.
+      The block height from which to query state. The Oasis Indexer does not
+      make any guarantees about availability of historical state data.
 
 x-err-responses:
   base-error: &base-error-response
@@ -76,21 +76,25 @@ paths:
           schema:
             type: integer
             format: int64
+          description: A filter on minimum block height.
         - in: query
           name: to
           schema:
             type: integer
             format: int64
+          description: A filter on maximum block height.
         - in: query
           name: after
           schema:
             type: string
             format: date-time
+          description: A filter on minimum block time.
         - in: query
           name: before
           schema:
             type: string
             format: date-time
+          description: A filter on maximum block time.
       responses:
         '200':
           description: A JSON object containing a list of consensus blocks.
@@ -110,6 +114,7 @@ paths:
           schema:
             type: integer
             format: int64
+          description: The block height of the block to return.
       responses:
         '200':
           description: A JSON object containing a consensus block.
@@ -130,27 +135,33 @@ paths:
           schema:
             type: integer
             format: int64
+          description: A filter on block height.
         - in: query
           name: method
           schema:
             type: string
+          description: A filter on transaction method.
         - in: query
           name: minFee
           schema:
             type: integer
             format: int64
+          description: A filter on minimum transaction fee.
         - in: query
           name: maxFee
           schema:
             type: integer
             format: int64
+          description: A filter on maximum transaction fee.
         - in: query
           name: code
           schema:
             type: integer
+          description: A filter on transaction status code.
       responses:
         '200':
-          description: A JSON object containing a list of consensus transactions.
+          description: |
+            A JSON object containing a list of consensus transactions.
           content:
             application/json:
               schema: 
@@ -166,6 +177,7 @@ paths:
           required: true
           schema:
             type: string
+          description: The transaction hash of the transaction to return.
       responses:
         '200':
           description: A JSON object containing a consensus transaction.
@@ -184,7 +196,9 @@ paths:
         - *height
       responses:
         '200':
-          description: A JSON object containing a list of entities registered at the consensus layer.
+          description: |
+            A JSON object containing a list of entities registered
+            at the consensus layer.
           content:
             application/json:
               schema:
@@ -201,9 +215,12 @@ paths:
           required: true
           schema:
             type: string
+          description: The entity ID of the entity to return.
       responses:
         '200':
-          description: A JSON object containing an entity registered at the consensus layer.
+          description: |
+            A JSON object containing an entity registered
+            at the consensus layer.
           content:
             application/json:
               schema: 
@@ -222,9 +239,12 @@ paths:
           required: true
           schema:
             type: string
+          description: |
+            The entity ID of the controlling entity of the nodes to return.
       responses:
         '200':
-          description: A JSON object a list of nodes registered at the consensus layer.
+          description: |
+            A JSON object a list of nodes registered at the consensus layer.
           content:
             application/json:
               schema: 
@@ -241,14 +261,18 @@ paths:
           required: true
           schema:
             type: string
+          description: |
+            The entity ID of the entity controlling the node to return.
         - in: path
           name: node_id
           required: true
           schema:
             type: string
+          description: The node ID of the node to return.
       responses:
         '200':
-          description: A JSON object containing a node registered at the consensus layer.
+          description: |
+            A JSON object containing a node registered at the consensus layer.
           content:
             application/json:
               schema: 
@@ -263,38 +287,57 @@ paths:
         - *offset
         - *height
         - in: query
-          name: minBalance
+          name: minAvailable
           schema:
             type: integer
             format: int64
+          description: A filter on the minimum available account balance.
         - in: query
-          name: maxBalance
+          name: maxAvailable
           schema:
             type: integer
             format: int64
+          description: A filter on the maximum available account balance.
         - in: query
           name: minEscrow
           schema:
             type: integer
             format: int64
+          description: A filter on the minimum active escrow account balance.
         - in: query
           name: maxEscrow
           schema:
             type: integer
             format: int64
+          description: A filter on the maximum active escrow account balance.
         - in: query
           name: minDebonding
           schema:
             type: integer
             format: int64
+          description: A filter on the minimum debonding account balance.
         - in: query
           name: maxDebonding
           schema:
             type: integer
             format: int64
+          description: A filter on the maximum debonding account balance.
+        - in: query
+          name: minTotalBalance
+          schema:
+            type: integer
+            format: int64
+          description: A filter on the minimum total account balance.
+        - in: query
+          name: maxTotalBalance
+          schema:
+            type: integer
+            format: int64
+          description: A filter on the maximum total account balance.
       responses:
         '200':
-          description: A JSON object containing a list of consensus layer accounts.
+          description: |
+            A JSON object containing a list of consensus layer accounts.
           content:
             application/json:
               schema: 
@@ -311,6 +354,7 @@ paths:
           required: true
           schema:
             type: string
+          description: The staking address of the account to return.
       responses:
         '200':
           description: A JSON object containing a consensus layer account.
@@ -345,6 +389,7 @@ paths:
           schema:
             type: integer
             format: int64
+          description: The epoch number of the epoch to return.
       responses:
         '200':
           description: A JSON object containing a consensus epoch.
@@ -379,6 +424,7 @@ paths:
           schema:
             type: integer
             format: int64
+          description: The unique identifier of the proposal to return.
       responses:
         '200':
           description: A JSON object containing a governance proposal.
@@ -400,9 +446,12 @@ paths:
           schema:
             type: integer
             format: int64
+          description: |
+            The unique identifier of the proposal for which votes are returned.
       responses:
         '200':
-          description: A JSON object containing a list of votes for a governance proposal.
+          description: |
+            A JSON object containing a list of votes for a governance proposal.
           content:
             application/json:
               schema: 
@@ -415,20 +464,23 @@ components:
       type: object
       properties:
         msg:
-          description: |
-            An error message.
+          type: string
+          description: An error message.
 
     Status:
       type: object
       properties:
         latest_chain_id:
           type: string
+          description: The latest chain ID at the head of indexing.
         latest_block:
           type: integer
           format: int64
+          description: The latest indexed block at the head of indexing.
         latest_update:
           type: string
           format: date-time
+          description: The RFC 3339 formatted time of latest indexing update.
 
     BlockList:
       type: object
@@ -446,11 +498,14 @@ components:
         height:
           type: integer
           format: int64
+          description: The block height.
         hash:
           type: string
+          description: The block header hash.
         timestamp:
           type: string
           format: date-time
+          description: The second-granular consensus time.
       description: |
         A consensus block.
 
@@ -470,21 +525,30 @@ components:
         height:
           type: integer
           format: int64
+          description: The block height at which this transaction was executed.
         hash:
           type: string
+          description: The cryptographic hash of this transaction's encoding.
         nonce:
           type: integer
           format: int64
+          description: The nonce used with this transaction, to prevent replay.
         fee:
           type: integer
           format: int64
+          description: |
+            The fee that this transaction's sendeer committed
+            to pay to execute it.
         method:
           type: string
+          description: The method that was called.
         body:
           type: string
           format: byte
+          description: The method call body.
         success:
           type: boolean
+          description: Whether this transaction successfully executed.
       description: |
         A consensus transaction.
     
@@ -503,12 +567,12 @@ components:
       properties: 
         id:
           type: string
-        address:
-          type: string
+          description: The public key identifying this entity.
         nodes:
           type: array
           items:
             type: string
+          description: The vector of nodes owned by this entity.
       description: |
         An entity registered at the consensus layer.
     
@@ -529,21 +593,32 @@ components:
       properties: 
         id:
           type: string
+          description: The public key identifying this node.
         entity_id:
           type: string
+          description: |
+            The public key identifying the entity controlling this node.
         expiration:
           type: integer
           format: int64
+          description: The epoch in which this node's commitment expires.
         tls_pubkey:
           type: string
+          description: The public key used for establishing TLS connections.
         tls_next_pubkey:
           type: string
+          description: |
+            The public key that will be used for establishing TLS connections
+            upon rotation.
         p2p_pubkey:
           type: string
+          description: The unique identifier of this node on the P2P transport.
         consensus_pubkey:
           type: string
+          description: The unique identifier of this node as a consensus member
         roles:
           type: string
+          description: A bitmask representing this node's roles.
       description: |
         A node registered at the consensus layer.
 
@@ -562,25 +637,32 @@ components:
       properties: 
         address:
           type: string
+          description: The staking address for this account.
         nonce:
           type: integer
           format: int64
+          description: A nonce used to prevent replay.
         available:
           type: integer
           format: int64
+          description: The available balance, in base units.
         escrow:
           type: integer
           format: int64
+          description: The active escrow balance, in base units.
         debonding:
           type: integer
           format: int64
+          description: The debonding escrow balance, in base units.
         total:
           type: integer
           format: int64
+          description: The total (available+escrow) balance, in base units.
         allowances:
           type: array
           items:
             $ref: '#/components/schemas/Allowance'
+          description: The allowances made by this account.
       description: |
         A consensus layer account.
     
@@ -589,9 +671,11 @@ components:
       properties:
         address:
           type: string
+          description: The allowed account.
         amount:
           type: integer
           format: int64
+          description: The amount allowed for the allowed account.
     
     EpochList:
       type: object
@@ -609,12 +693,15 @@ components:
         id:
           type: integer
           format: int64
+          description: The epoch number.
         start_height:
           type: integer
           format: int64
+          description: The (inclusive) height at which this epoch started.
         end_height:
           type: integer
           format: int64
+          description: The (inclusive) height at which this epoch ended.
       description: |
         A consensus epoch.
     
@@ -634,15 +721,20 @@ components:
         id:
           type: integer
           format: int64
+          description: The unique identifier of the proposal.
         submitter:
           type: string
+          description: The staking address of the proposal submitter.
         state:
           type: string
+          description: The state of the proposal.
         deposit:
           type: integer
           format: int64
+          description: The deposit attached to this proposal.
         handler:
           type: string
+          description: The name of the upgrade handler.
         target:
           type: object
           properties:
@@ -652,21 +744,30 @@ components:
               type: string
             runtime_committee_protocol:
               type: string
+          description: The target propotocol versions for this upgrade proposal.
         epoch:
           type: integer
           format: int64
+          description: The epoch at which the proposed upgrade will happen.
         cancels:
           type: integer
           format: int64
+          description: |
+            The proposal to cancel, if this proposal proposes
+            cancelling an existing proposal. 
         created_at:
           type: integer
           format: int64
+          description: The epoch at which this proposal was created.
         closes_at:
           type: integer
           format: int64
+          description: The epoch at which voting for this proposal will close.
         invalid_votes:
           type: integer
           format: int64
+          description: |
+            The number of invalid votes for this proposal, after tallying.
       description: |
         A governance proposal.
 
@@ -676,10 +777,12 @@ components:
         proposal_id:
           type: integer
           format: int64
+          description: The unique identifier of the proposal.
         votes:
           type: array
           items:
             $ref: '#/components/schemas/ProposalVote'
+          description: The list of votes for the proposal.
       description: |
         A list of votes for a governance proposal.
 
@@ -688,5 +791,7 @@ components:
       properties: 
         address:
           type: string
+          description: The staking address casting this vote.
         vote:
           type: string
+          description: The vote cast.
