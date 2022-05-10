@@ -328,7 +328,7 @@ VALUES
 		for i, proposal := range document.Governance.Proposals {
 			if proposal.Content.Upgrade != nil {
 				io.WriteString(w, fmt.Sprintf(
-					"\t(%d, '%s', '%s', %d, '%s', '%s', '%s', '%s', %d, %d, %d, %d, %d)",
+					"\t(%d, '%s', '%s', %d, '%s', '%s', '%s', '%s', %d, %s, %d, %d, %d)",
 					proposal.ID,
 					proposal.Submitter.String(),
 					proposal.State.String(),
@@ -338,7 +338,7 @@ VALUES
 					proposal.Content.Upgrade.Target.RuntimeHostProtocol.String(),
 					proposal.Content.Upgrade.Target.RuntimeCommitteeProtocol.String(),
 					proposal.Content.Upgrade.Epoch,
-					0,
+					"null",
 					proposal.CreatedAt,
 					proposal.ClosesAt,
 					proposal.InvalidVotes,
