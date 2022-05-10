@@ -86,7 +86,7 @@ paths:
       summary: Returns a consensus block.
       parameters:
         - in: path
-          name: id
+          name: height
           required: true
           schema:
             type: integer
