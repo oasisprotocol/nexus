@@ -18,7 +18,10 @@ const (
 
 // APIHandler is a handler that handles API requests.
 type APIHandler interface {
-	// RegisterRoutes registers routes for this API Handler
+	// RegisterRoutes registers middlewares for this API handler.
+	RegisterMiddlewares(chi.Router)
+
+	// RegisterRoutes registers routes for this API handler.
 	RegisterRoutes(chi.Router)
 
 	// Name returns the name of this API handler.
@@ -36,22 +39,28 @@ type IndexerAPI struct {
 func NewIndexerAPI(db storage.TargetStorage, l *log.Logger) *IndexerAPI {
 	r := chi.NewRouter()
 
+	// Register handlers.
 	v1Handler := v1.NewHandler(db, l)
 	handlers := []APIHandler{
 		v1Handler,
 	}
 	for _, handler := range handlers {
+		handler.RegisterMiddlewares(r)
+	}
+	r.Use(middleware.Recoverer)
+
+	// Register routes.
+	for _, handler := range handlers {
 		handler.RegisterRoutes(r)
 	}
 
-	h := &IndexerAPI{
+	a := &IndexerAPI{
 		router:   r,
 		handlers: handlers,
 		logger:   l.WithModule(moduleName),
 	}
-	r.Use(middleware.Recoverer)
 
-	return h
+	return a
 }
 
 // Router gets the router for this Handler.

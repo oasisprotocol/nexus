@@ -28,12 +28,14 @@ func NewHandler(db storage.TargetStorage, l *log.Logger) *Handler {
 }
 
 // RegisterRoutes implements the APIHandler interface.
+func (h *Handler) RegisterMiddlewares(r chi.Router) {
+	r.Use(h.loggerMiddleware)
+	r.Use(h.chainMiddleware)
+}
+
+// RegisterRoutes implements the APIHandler interface.
 func (h *Handler) RegisterRoutes(r chi.Router) {
 	r.Route("/v1", func(r chi.Router) {
-
-		// Register middlewares.
-		r.Use(h.loggerMiddleware)
-		r.Use(h.chainMiddleware)
 
 		// Status endpoints.
 		r.Get("/", h.GetStatus)
