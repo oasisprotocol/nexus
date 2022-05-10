@@ -24,7 +24,7 @@ x-query-params:
     schema:
       type: integer
     description: |
-      The numbers of items to return.
+      The maximum numbers of items to return.
   - &height
     in: query
     name: height
