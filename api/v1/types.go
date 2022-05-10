@@ -31,7 +31,7 @@ type TransactionList struct {
 
 // Transaction is the API response for GetTransaction.
 type Transaction struct {
-	Height  uint64 `json:"height"`
+	Height  int64  `json:"height"`
 	Hash    string `json:"hash"`
 	Nonce   uint64 `json:"nonce"`
 	Fee     uint64 `json:"fee"`
@@ -40,7 +40,7 @@ type Transaction struct {
 	Success bool   `json:"success"`
 }
 
-// EntityList is the API response for ListEntitys.
+// EntityList is the API response for ListEntities.
 type EntityList struct {
 	Entities []Entity `json:"entities"`
 }
