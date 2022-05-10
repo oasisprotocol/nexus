@@ -163,7 +163,7 @@ CREATE TABLE IF NOT EXISTS oasis_3.accounts
 CREATE TABLE IF NOT EXISTS oasis_3.allowances
 (
   owner       TEXT NOT NULL REFERENCES oasis_3.accounts(address),
-  beneficiary TEXT NOT NULL REFERENCES oasis_3.accounts(address),
+  beneficiary TEXT NOT NULL,
   allowance   NUMERIC,
 
   PRIMARY KEY (owner, beneficiary)
