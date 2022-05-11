@@ -15,25 +15,24 @@ import (
 	"github.com/oasislabs/oasis-block-indexer/go/analyzer/consensus"
 	"github.com/oasislabs/oasis-block-indexer/go/log"
 	"github.com/oasislabs/oasis-block-indexer/go/oasis-indexer/cmd/common"
-	"github.com/oasislabs/oasis-block-indexer/go/storage"
 	target "github.com/oasislabs/oasis-block-indexer/go/storage/cockroach"
 	source "github.com/oasislabs/oasis-block-indexer/go/storage/oasis"
 )
 
 const (
+	// CfgAnalysisConfig is the config file for configuration of chain analyzers.
+	CfgAnalysisConfig = "analyzer.analysis_config"
+
 	// CfgStorageEndpoint is the flag for setting the connection string to
 	// the backing storage.
 	CfgStorageEndpoint = "analyzer.storage_endpoint"
-
-	// CfgNetworkConfig is the config file for connecting to an oasis-node.
-	CfgNetworkConfig = "analyzer.network_config"
 
 	moduleName = "analysis_service"
 )
 
 var (
 	cfgStorageEndpoint string
-	cfgNetworkConfig   string
+	cfgAnalysisConfig  string
 
 	analyzeCmd = &cobra.Command{
 		Use:   "analyze",
@@ -60,12 +59,22 @@ func runAnalyzer(cmd *cobra.Command, args []string) {
 
 // AnalysisService is the Oasis Indexer's analysis service.
 type AnalysisService struct {
-	ChainID   string
 	Analyzers map[string]analyzer.Analyzer
 
-	source storage.SourceStorage
-	target storage.TargetStorage
 	logger *log.Logger
+}
+
+// AnalysisServiceConfig contains configuration parameters for network analyzers.
+type AnalysisServiceConfig struct {
+	Spec struct {
+		Analyzers []struct {
+			Name         string `yaml:"name"`
+			RPC          string `yaml:"rpc"`
+			ChainContext string `yaml:"chaincontext"`
+			From         int64  `yaml:"from"`
+			To           int64  `yaml:"to"`
+		} `yaml:"analyzers"`
+	}
 }
 
 // NewAnalysisService creates new AnalysisService
@@ -73,17 +82,13 @@ func NewAnalysisService() (*AnalysisService, error) {
 	ctx := context.Background()
 	logger := common.Logger().WithModule(moduleName)
 
-	// Initialize source storage.
-	rawCfg, err := ioutil.ReadFile(cfgNetworkConfig)
+	// Get analyzer configurations.
+	rawServiceCfg, err := ioutil.ReadFile(cfgAnalysisConfig)
 	if err != nil {
 		return nil, err
 	}
-	var networkCfg config.Network
-	if err := yaml.Unmarshal([]byte(rawCfg), &networkCfg); err != nil {
-		return nil, err
-	}
-	oasisNodeClient, err := source.NewOasisNodeClient(ctx, &networkCfg)
-	if err != nil {
+	var serviceCfg AnalysisServiceConfig
+	if err := yaml.Unmarshal(rawServiceCfg, &serviceCfg); err != nil {
 		return nil, err
 	}
 
@@ -94,23 +99,38 @@ func NewAnalysisService() (*AnalysisService, error) {
 	}
 
 	// Initialize analyzers.
-	consensusAnalyzer := consensus.NewConsensusMain(oasisNodeClient, cockroachClient, logger)
+	consensusMainDamask := consensus.NewConsensusMain(cockroachClient, logger)
 
-	d, err := oasisNodeClient.GenesisDocument(ctx)
-	if err != nil {
-		return nil, err
+	analyzers := map[string]analyzer.Analyzer{
+		consensusMainDamask.Name(): consensusMainDamask,
 	}
 
-	logger.Info("Starting oasis-indexer analysis layer.")
+	for _, analyzerCfg := range serviceCfg.Spec.Analyzers {
+		if a, ok := analyzers[analyzerCfg.Name]; ok {
+			// Initialize source.
+			networkCfg := config.Network{
+				ChainContext: analyzerCfg.ChainContext,
+				RPC:          analyzerCfg.RPC,
+			}
+			source, err := source.NewOasisNodeClient(ctx, &networkCfg)
+			if err != nil {
+				return nil, err
+			}
+
+			// Configure analyzer.
+			a.SetRange(analyzer.RangeConfig{
+				From:   analyzerCfg.From,
+				To:     analyzerCfg.To,
+				Source: source,
+			})
+		}
+	}
+
+	logger.Info("initialized analyzers")
 
 	return &AnalysisService{
-		ChainID: d.ChainID,
-		Analyzers: map[string]analyzer.Analyzer{
-			consensusAnalyzer.Name(): consensusAnalyzer,
-		},
-		source: oasisNodeClient,
-		target: cockroachClient,
-		logger: logger,
+		Analyzers: analyzers,
+		logger:    logger,
 	}, nil
 }
 
@@ -132,7 +152,7 @@ func (a *AnalysisService) Start() {
 
 // Register registers the process sub-command.
 func Register(parentCmd *cobra.Command) {
+	analyzeCmd.Flags().StringVar(&cfgAnalysisConfig, CfgAnalysisConfig, "", "path to an analysis service config file")
 	analyzeCmd.Flags().StringVar(&cfgStorageEndpoint, CfgStorageEndpoint, "", "a postgresql-compliant connection url")
-	analyzeCmd.Flags().StringVar(&cfgNetworkConfig, CfgNetworkConfig, "", "path to a network configuration file")
 	parentCmd.AddCommand(analyzeCmd)
 }
