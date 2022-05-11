@@ -15,7 +15,6 @@ import (
 	"github.com/oasislabs/oasis-block-indexer/go/analyzer/consensus"
 	"github.com/oasislabs/oasis-block-indexer/go/log"
 	"github.com/oasislabs/oasis-block-indexer/go/oasis-indexer/cmd/common"
-	"github.com/oasislabs/oasis-block-indexer/go/storage"
 	target "github.com/oasislabs/oasis-block-indexer/go/storage/cockroach"
 	source "github.com/oasislabs/oasis-block-indexer/go/storage/oasis"
 )
@@ -61,7 +60,6 @@ func runAnalyzer(cmd *cobra.Command, args []string) {
 // AnalysisService is the Oasis Indexer's analysis service.
 type AnalysisService struct {
 	Analyzers map[string]analyzer.Analyzer
-	Sources   map[string]storage.SourceStorage
 
 	logger *log.Logger
 }
@@ -69,12 +67,12 @@ type AnalysisService struct {
 // AnalysisServiceConfig contains configuration parameters for network analyzers.
 type AnalysisServiceConfig struct {
 	Spec struct {
-		ChainContext string `yaml:"chaincontext"`
-		Analyzers    []struct {
-			Name string `yaml:"name"`
-			From int64  `yaml:"from"`
-			To   int64  `yaml:"to"`
-			RPC  string `yaml:"rpc"`
+		Analyzers []struct {
+			Name         string `yaml:"name"`
+			RPC          string `yaml:"rpc"`
+			ChainContext string `yaml:"chaincontext"`
+			From         int64  `yaml:"from"`
+			To           int64  `yaml:"to"`
 		} `yaml:"analyzers"`
 	}
 }
@@ -94,21 +92,6 @@ func NewAnalysisService() (*AnalysisService, error) {
 		return nil, err
 	}
 
-	// Initialize sources.
-	sources := make(map[string]storage.SourceStorage)
-	for _, analyzerCfg := range serviceCfg.Spec.Analyzers {
-		networkCfg := config.Network{
-			ChainContext: serviceCfg.Spec.ChainContext,
-			RPC:          analyzerCfg.RPC,
-		}
-		source, err := source.NewOasisNodeClient(ctx, &networkCfg)
-		if err != nil {
-			return nil, err
-		}
-
-		sources[analyzerCfg.RPC] = source
-	}
-
 	// Initialize target storage.
 	cockroachClient, err := target.NewCockroachClient(cfgStorageEndpoint, logger)
 	if err != nil {
@@ -121,12 +104,24 @@ func NewAnalysisService() (*AnalysisService, error) {
 	analyzers := map[string]analyzer.Analyzer{
 		consensusMainDamask.Name(): consensusMainDamask,
 	}
+
 	for _, analyzerCfg := range serviceCfg.Spec.Analyzers {
 		if a, ok := analyzers[analyzerCfg.Name]; ok {
+			// Initialize source.
+			networkCfg := config.Network{
+				ChainContext: analyzerCfg.ChainContext,
+				RPC:          analyzerCfg.RPC,
+			}
+			source, err := source.NewOasisNodeClient(ctx, &networkCfg)
+			if err != nil {
+				return nil, err
+			}
+
+			// Configure analyzer.
 			a.SetRange(analyzer.RangeConfig{
 				From:   analyzerCfg.From,
 				To:     analyzerCfg.To,
-				Source: sources[analyzerCfg.RPC],
+				Source: source,
 			})
 		}
 	}
@@ -135,7 +130,6 @@ func NewAnalysisService() (*AnalysisService, error) {
 
 	return &AnalysisService{
 		Analyzers: analyzers,
-		Sources:   sources,
 		logger:    logger,
 	}, nil
 }
