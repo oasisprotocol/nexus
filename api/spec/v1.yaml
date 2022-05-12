@@ -287,7 +287,7 @@ paths:
       responses:
         '200':
           description: |
-            A JSON object a list of nodes registered at the consensus layer.
+            A JSON object containing a list of nodes registered at the consensus layer.
           content:
             application/json:
               schema: 
@@ -313,7 +313,7 @@ paths:
           schema:
             type: string
           description: The node ID of the node to return.
-          example: *entity_id_2
+          example: *node_id_1
       responses:
         '200':
           description: |
