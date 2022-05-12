@@ -10,7 +10,6 @@ import (
 
 	migrate "github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/cockroachdb"
-	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 	"github.com/spf13/cobra"
