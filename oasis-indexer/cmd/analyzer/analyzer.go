@@ -72,6 +72,8 @@ func runAnalyzer(cmd *cobra.Command, args []string) {
 			"error", err,
 		)
 		os.Exit(1)
+	} else {
+		common.Logger().Info("migrations completed")
 	}
 
 	service, err := NewAnalysisService()
