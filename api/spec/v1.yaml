@@ -71,7 +71,6 @@ x-examples:
     - &epoch_2 8048966
   entity-id:
     - &entity_id_1 'gb8SHLeDc69Elk7OTfqhtVgE2sqxrBCDQI84xKR+Bjg='
-    - &entity_id_2 'LaKJUKndAqH57DVExspTjdRTRNGJOSqArzM0pm8REZw='
   node-id:
     - &node_id_1 'lbxs4hlud9XNloIOdhJPaCahd7HtiY8QATCgGnFfCM0='
   staking-address:
@@ -82,6 +81,25 @@ x-examples:
   iso-timestamp:
     - &iso_timestamp_1 '2022-03-01T00:00:00Z'
     - &iso_timestamp_2 '2019-04-01T00:00:00Z'
+
+x-common-types:
+  tx-methods: &tx_methods
+    - staking.Transfer
+    - staking.AddEscrow
+    - staking.ReclaimEscrow
+    - staking.AmendCommissionSchedule
+    - staking.Allow
+    - staking.Withdraw
+    - roothash.ExecutorCommit
+    - roothash.ExecutorProposerTimeout
+    - registry.RegisterEntity
+    - registry.RegisterNode
+    - registry.RegisterRuntime
+    - governance.CastVote
+    - governance.SubmitProposal
+    - beacon.PVSSCommit
+    - beacon.PVSSReveal
+    - beacon.VRFProve
 
 paths:
   /status:
@@ -177,8 +195,15 @@ paths:
           name: method
           schema:
             type: string
+            enum: *tx_methods
           description: A filter on transaction method.
           example: *tx_method_1
+        - in: query
+          name: sender
+          schema:
+            type: string
+          description: A filter on transaction sender.
+          example: *staking_address_1
         - in: query
           name: minFee
           schema:
@@ -609,6 +634,7 @@ components:
           example: 1000
         method:
           type: string
+          enum: *tx_methods
           description: The method that was called.
           example: *tx_method_1
         body:

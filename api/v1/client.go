@@ -211,6 +211,7 @@ func (c *storageClient) Transactions(ctx context.Context, r *http.Request) (*Tra
 	for param, condition := range map[string]string{
 		"block":  "block = %s",
 		"method": "method = %s",
+		"sender": "sender = %s",
 		"minFee": "fee_amount >= %s",
 		"maxFee": "fee_amount <= %s",
 		"code":   "code = %s",

@@ -24,32 +24,26 @@ services:
       - type: bind
         source: ./node
         target: /node
-  migration:
-    image: cockroachdb/cockroach:v21.2.10
-    depends_on:
-      - crdb
-    command: sql --url postgresql://root@crdb:26257/defaultdb?sslmode=disable -f /migrations/0000-oasis-3-init.sql
-    volumes:
-      - type: bind
-        source:  ../storage/migrations
-        target: /migrations
   indexer:
     build:
       context: ../
       dockerfile: ./docker/indexer/Dockerfile
     depends_on:
-      migration:
+      crdb:
         condition: service_started
       oasis-node:
         condition: service_healthy
     command:
-      - /bin/sh
-      - -c
-      - oasis-block-indexer analyze --analyzer.network_config=/config/network.yaml --analyzer.storage_endpoint=postgresql://root@crdb:26257/defaultdb?sslmode=disable
+      - analyze
+      - --analyzer.analysis_config=/config/network.yaml
+      - --analyzer.storage_endpoint=postgresql://root@crdb:26257/defaultdb?sslmode=disable
     volumes:
       - type: bind
         source: ./node
         target: /node
+      - type: bind
+        source: ../storage/migrations
+        target: /storage/migrations
 volumes:
   go: {}
   migrations: {}

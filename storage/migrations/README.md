@@ -6,10 +6,12 @@ each respective runtime.
 
 ## Naming Convention
 
-Migration filenames should be of the form `<id>-<name>.sql`, where `<id>` is the 4-digit index of the migration and `<name>` is a concise descriptor for the migration. For example, `0000-init.sql`.
+Migration filenames should follow the [convention](https://github.com/golang-migrate/migrate/blob/master/MIGRATIONS.md) `<id>_<name>.up.sql`, where `<id>` is the 4-digit index of the migration and `<name>` is a concise descriptor for the migration. For example, `0000_init.up.sql`.
 
-We add the extra convention that migrations tied to major network upgrades specify `<name>` as `<chain-id>-init.sql`.
-For example, `0001-oasis-3-init.sql` might encode initialization for the [Damask upgrade](https://github.com/oasisprotocol/mainnet-artifacts/releases/tag/2022-04-11).
+We add the extra convention that migrations tied to major network upgrades specify `<name>` as `<chain_id>_init.sql`.
+For example, `0001_oasis_3_init.sql` might encode initialization for the [Damask upgrade](https://github.com/oasisprotocol/mainnet-artifacts/releases/tag/2022-04-11).
+
+We do not expect to need the [down](https://github.com/golang-migrate/migrate/blob/master/FAQ.md#why-two-separate-files-up-and-down-for-a-migration) migrations.
 
 ## Generation
 
@@ -17,6 +19,6 @@ The Oasis Indexer supports a migration generator for truncating existing state t
 
 ```sh
 oasis-indexer generate \
-  --generator.genesis_file config/genesis.json \
-  --generator.migration_file ./storage/migrations/0000-example-migration.sql
+  --generator.genesis_file config/test/genesis.json \
+  --generator.migration_file ./storage/migrations/0000_example_migration.up.sql
 ```

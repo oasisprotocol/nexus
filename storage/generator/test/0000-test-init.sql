@@ -164,7 +164,7 @@ CREATE TABLE IF NOT EXISTS test.accounts
 CREATE TABLE IF NOT EXISTS test.allowances
 (
   owner       TEXT NOT NULL REFERENCES test.accounts(address),
-  beneficiary TEXT NOT NULL REFERENCES test.accounts(address),
+  beneficiary TEXT NOT NULL,
   allowance   NUMERIC,
 
   PRIMARY KEY (owner, beneficiary)
