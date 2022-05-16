@@ -1,7 +1,8 @@
 services:
   postgres:
     image: postgres:latest
-    ports: [5432:5432]
+    ports:
+      - 5432:5432
     environment:
       POSTGRES_USER: indexer
       POSTGRES_PASSWORD: password
