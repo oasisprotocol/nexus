@@ -21,7 +21,6 @@ import (
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 )
 
-
 const (
 	// CfgMigrationFile is the file to which generated migrations should
 	// be written.
