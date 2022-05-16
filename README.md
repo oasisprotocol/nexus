@@ -14,6 +14,18 @@ For example, this will be `unix:/node/data/internal.sock` in Docker.
 
 You will need to run a local [PostgreSQL DB](https://www.postgresql.org/).
 
+For example, a local [Docker](https://hub.docker.com/_/postgres) version would look like:
+```
+docker run
+  --name postgres
+  -p 5432:5432
+  -e POSTGRES_USER=indexer
+  -e POSTGRES_PASSWORD=password
+  -e POSTGRES_DB=indexer
+  -d
+  postgres
+```
+
 ### Indexer
 
 You should be able to `go build` the indexer and run `./oasis-indexer [cmd]` from the repo top
