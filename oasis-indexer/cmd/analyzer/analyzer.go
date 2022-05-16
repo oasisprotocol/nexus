@@ -5,11 +5,10 @@ import (
 	"context"
 	"io/ioutil"
 	"os"
-	"strings"
 	"sync"
 
 	migrate "github.com/golang-migrate/migrate/v4"
-	_ "github.com/golang-migrate/migrate/v4/database/cockroachdb"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 	"github.com/spf13/cobra"
@@ -50,13 +49,9 @@ func runAnalyzer(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	// Must use CockroachDB driver
-	// https://github.com/golang-migrate/migrate/issues/703
-	url := strings.Replace(cfgStorageEndpoint, "postgresql", "cockroachdb", 1)
-
 	m, err := migrate.New(
 		"file://../storage/migrations",
-		url)
+		cfgStorageEndpoint)
 	if err != nil {
 		common.Logger().Error("migrator failed to start",
 			"error", err,

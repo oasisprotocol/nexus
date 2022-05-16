@@ -10,9 +10,21 @@ You will need to run a local [node](https://docs.oasis.dev/general/run-a-node/se
 You will need the Unix socket for the `network.yaml` file while running an analyzer service.
 For example, this will be `unix:/node/data/internal.sock` in Docker.
 
-### Cockroach DB
+### Database
 
-You will need to run a local [Cockroach DB](https://www.cockroachlabs.com/docs/).
+You will need to run a local [PostgreSQL DB](https://www.postgresql.org/).
+
+For example, a local [Docker](https://hub.docker.com/_/postgres) version would look like:
+```
+docker run
+  --name postgres
+  -p 5432:5432
+  -e POSTGRES_USER=indexer
+  -e POSTGRES_PASSWORD=password
+  -e POSTGRES_DB=indexer
+  -d
+  postgres
+```
 
 ### Indexer
 
@@ -40,3 +52,5 @@ From within the `docker` directory, you can run:
 ```sh
 $ make docker-up
 ```
+
+The analyzer will run migrations automagically on start based on files in `storage/migrations`.
