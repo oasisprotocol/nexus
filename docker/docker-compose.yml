@@ -16,7 +16,7 @@ services:
       interval: 5s
       retries: 10
       timeout: 5s
-      start_period: 45s
+      start_period: 30s
     command:
       - /bin/sh
       - -c
