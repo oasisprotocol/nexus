@@ -172,7 +172,7 @@ CREATE TABLE IF NOT EXISTS oasis_3.allowances
 
 CREATE TABLE IF NOT EXISTS oasis_3.delegations
 (
-  delegatee TEXT NOT NULL REFERENCES oasis_3.accounts(address),
+  delegatee TEXT NOT NULL,
   delegator TEXT NOT NULL REFERENCES oasis_3.accounts(address),
   shares    NUMERIC NOT NULL,
 
@@ -181,7 +181,7 @@ CREATE TABLE IF NOT EXISTS oasis_3.delegations
 
 CREATE TABLE IF NOT EXISTS oasis_3.debonding_delegations
 (
-  delegatee  TEXT NOT NULL REFERENCES oasis_3.accounts(address),
+  delegatee  TEXT NOT NULL,
   delegator  TEXT NOT NULL REFERENCES oasis_3.accounts(address),
   shares     NUMERIC NOT NULL,
   debond_end BIGINT NOT NULL
