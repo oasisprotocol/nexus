@@ -148,6 +148,7 @@ func (c *ConsensusMain) processBlock(ctx context.Context, height int64) error {
 	for _, f := range []prepareFunc{
 		c.prepareBlockData,
 		c.prepareRegistryData,
+		c.prepareSchedulerData,
 	} {
 		func(f prepareFunc) {
 			group.Go(func() error {
@@ -407,6 +408,72 @@ func (c *ConsensusMain) queueNodeRegistrations(batch *storage.QueryBatch, data *
 			0,
 		)
 	}
+	return nil
+}
+
+// prepareSchedulerData adds scheduler data queries to the batch.
+func (c *ConsensusMain) prepareSchedulerData(ctx context.Context, height int64, batch *storage.QueryBatch) error {
+	source, err := c.source(height)
+	if err != nil {
+		return err
+	}
+
+	data, err := source.SchedulerData(ctx, height)
+
+	if err != nil {
+		return err
+	}
+
+	for _, f := range []func(*storage.QueryBatch, *storage.SchedulerData) error{
+		c.queueValidatorUpdates,
+		c.queueCommitteeUpdates,
+	} {
+		if err := f(batch, data); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (c *ConsensusMain) queueValidatorUpdates(batch *storage.QueryBatch, data *storage.SchedulerData) error {
+	for _, validator := range data.Validators {
+		batch.Queue(fmt.Sprintf(`
+			UPDATE %s.nodes SET voting_power = $2
+				WHERE id = $1;
+		`, chainID),
+			validator.ID,
+			validator.VotingPower,
+		)
+	}
+
+	return nil
+}
+
+func (c *ConsensusMain) queueCommitteeUpdates(batch *storage.QueryBatch, data *storage.SchedulerData) error {
+	batch.Queue(fmt.Sprintf(`
+		TRUNCATE %s.committee_members;
+	`, chainID))
+	for namespace, committees := range data.Committees {
+		runtime := namespace.String()
+		for _, committee := range committees {
+			kind := committee.String()
+			validFor := int64(committee.ValidFor)
+			for _, member := range committee.Members {
+				batch.Queue(fmt.Sprintf(`
+					INSERT INTO %s.committee_members (node, valid_for, runtime, kind, role)
+						VALUES ($1, $2, $3, $4, $5);
+				`, chainID),
+					member.PublicKey,
+					validFor,
+					runtime,
+					kind,
+					member.Role.String(),
+				)
+			}
+		}
+	}
+
 	return nil
 }
 
