@@ -148,6 +148,7 @@ func (c *ConsensusMain) processBlock(ctx context.Context, height int64) error {
 	for _, f := range []prepareFunc{
 		c.prepareBlockData,
 		c.prepareRegistryData,
+		c.prepareStakingData,
 		c.prepareSchedulerData,
 		c.prepareGovernanceData,
 	} {
@@ -409,6 +410,181 @@ func (c *ConsensusMain) queueNodeRegistrations(batch *storage.QueryBatch, data *
 			0,
 		)
 	}
+	return nil
+}
+
+func (c *ConsensusMain) prepareStakingData(ctx context.Context, height int64, batch *storage.QueryBatch) error {
+	source, err := c.source(height)
+	if err != nil {
+		return err
+	}
+
+	data, err := source.StakingData(ctx, height)
+	if err != nil {
+		return err
+	}
+
+	for _, f := range []func(*storage.QueryBatch, *storage.StakingData) error{
+		c.queueTransfers,
+		c.queueBurns,
+		c.queueEscrows,
+		c.queueAllowanceChanges,
+	} {
+		if err := f(batch, data); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (c *ConsensusMain) queueTransfers(batch *storage.QueryBatch, data *storage.StakingData) error {
+	for _, transfer := range data.Transfers {
+		from := transfer.From.String()
+		to := transfer.To.String()
+		amount := transfer.Amount.ToBigInt().Uint64()
+		batch.Queue(fmt.Sprintf(`
+			UPDATE %s.accounts
+			SET general_balance = general_balance - $2
+				WHERE address = $1;
+		`, chainID),
+			from,
+			amount,
+		)
+		batch.Queue(fmt.Sprintf(`
+			INSERT INTO %s.accounts (address, general_balance)
+				VALUES ($1, $2)
+			ON CONFLICT (address) DO
+				UPDATE SET general_balance = excluded.general_balance - $2;
+		`, chainID),
+			to,
+			amount,
+		)
+	}
+
+	return nil
+}
+
+func (c *ConsensusMain) queueBurns(batch *storage.QueryBatch, data *storage.StakingData) error {
+	for _, burn := range data.Burns {
+		batch.Queue(fmt.Sprintf(`
+			UPDATE %s.accounts
+			SET general_balance = general_balance - $2
+				WHERE address = $1;
+		`, chainID),
+			burn.Owner.String(),
+			burn.Amount.ToBigInt().Uint64(),
+		)
+	}
+
+	return nil
+}
+
+func (c *ConsensusMain) queueEscrows(batch *storage.QueryBatch, data *storage.StakingData) error {
+	for _, escrow := range data.Escrows {
+		if escrow.Add != nil {
+			owner := escrow.Add.Owner.String()
+			escrower := escrow.Add.Escrow.String()
+			amount := escrow.Add.Amount.ToBigInt().Uint64()
+			newShares := escrow.Add.NewShares.ToBigInt().Uint64()
+			batch.Queue(fmt.Sprintf(`
+				UPDATE %s.accounts
+				SET general_balance = general_balance - $2
+					WHERE address = $1;
+			`, chainID),
+				owner,
+				amount,
+			)
+			batch.Queue(fmt.Sprintf(`
+				INSERT INTO %s.accounts (address, escrow_balance_active, escrow_total_shares_active)
+					VALUES ($1, $2, $3)
+				ON CONFLICT (address) DO
+					UPDATE SET
+						escrow_balance_active = excluded.escrow_balance_active + $2,
+						escrow_total_shares_active = excluded.escrow_total_shares_active + $3;
+			`, chainID),
+				escrower,
+				amount,
+				newShares,
+			)
+			batch.Queue(fmt.Sprintf(`
+				INSERT INTO %s.delegations (delegatee, delegator, shares)
+					VALUES ($1, $2, $3)
+				ON CONFLICT (delegatee, delegator) DO
+					UPDATE SET shares = excluded.shares + $3;
+			`, chainID),
+				owner,
+				escrower,
+				newShares,
+			)
+		} else if escrow.Take != nil {
+			batch.Queue(fmt.Sprintf(`
+				UPDATE %s.accounts
+				SET escrow_balance_active = escrow_balance_active - $2
+					WHERE address = $1;
+			`, chainID),
+				escrow.Take.Owner.String(),
+				escrow.Take.Amount.ToBigInt().Uint64(),
+			)
+		} else if escrow.DebondingStart != nil {
+			batch.Queue(fmt.Sprintf(`
+				UPDATE %s.delegations
+					SET shares = shares - $3
+						WHERE delegatee = $1 AND delegator = $2;
+			`, chainID),
+				escrow.DebondingStart.Owner.String(),
+				escrow.DebondingStart.Escrow.String(),
+				escrow.DebondingStart.Amount.ToBigInt().Uint64(),
+			)
+			batch.Queue(fmt.Sprintf(`
+				INSERT INTO %s.debonding_delegations (delegatee, delegator, shares, debond_end)
+					VALUES ($1, $2, $3, $4);
+			`, chainID),
+				escrow.DebondingStart.Owner.String(),
+				escrow.DebondingStart.Escrow.String(),
+				escrow.DebondingStart.DebondingShares.ToBigInt().Uint64(),
+				escrow.DebondingStart.DebondEndTime,
+			)
+		} else if escrow.Reclaim != nil {
+			batch.Queue(fmt.Sprintf(`
+				UPDATE %s.accounts
+					SET general_balance = general_balance + $2
+						WHERE address = $1;
+			`, chainID),
+				escrow.Reclaim.Owner.String(),
+				escrow.Reclaim.Amount.ToBigInt().Uint64(),
+			)
+
+			batch.Queue(fmt.Sprintf(`
+				UPDATE %s.accounts
+					SET escrow_balance_active = escrow_balance_active - $2,
+						escrow_total_shares_active = escrow_total_shares_active - $3
+						WHERE address = $1;
+			`, chainID),
+				escrow.Reclaim.Escrow.String(),
+				escrow.Reclaim.Amount.ToBigInt().Uint64(),
+				escrow.Reclaim.Shares.ToBigInt().Uint64(),
+			)
+		}
+	}
+
+	return nil
+}
+
+func (c *ConsensusMain) queueAllowanceChanges(batch *storage.QueryBatch, data *storage.StakingData) error {
+	for _, allowanceChange := range data.AllowanceChanges {
+		batch.Queue(fmt.Sprintf(`
+			INSERT INTO %s.allowances (owner, beneficiary, allowance)
+				VALUES ($1, $2, $3)
+			ON CONFLICT (owner, beneficiary) DO
+				UPDATE SET allowance = EXCLUDED.allowance;
+		`, chainID),
+			allowanceChange.Owner.String(),
+			allowanceChange.Beneficiary.String(),
+			allowanceChange.Allowance.ToBigInt().Uint64(),
+		)
+	}
+
 	return nil
 }
 
