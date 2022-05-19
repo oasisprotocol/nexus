@@ -312,6 +312,12 @@ func (c *ConsensusMain) prepareRegistryData(ctx context.Context, height int64, b
 
 func (c *ConsensusMain) queueRuntimeRegistrations(batch *storage.QueryBatch, data *storage.RegistryData) error {
 	for _, runtimeEvent := range data.RuntimeEvents {
+		keyManager := "none"
+
+		if runtimeEvent.Runtime.KeyManager != nil {
+			keyManager = runtimeEvent.Runtime.KeyManager.String()
+		}
+
 		batch.Queue(fmt.Sprintf(`
 			INSERT INTO %s.runtimes (id, suspended, kind, tee_hardware, key_manager)
 				VALUES ($1, $2, $3, $4, $5)
@@ -326,7 +332,7 @@ func (c *ConsensusMain) queueRuntimeRegistrations(batch *storage.QueryBatch, dat
 			false,
 			runtimeEvent.Runtime.Kind.String(),
 			runtimeEvent.Runtime.TEEHardware.String(),
-			runtimeEvent.Runtime.KeyManager,
+			keyManager,
 		)
 	}
 
@@ -340,7 +346,7 @@ func (c *ConsensusMain) queueEntityEvents(batch *storage.QueryBatch, data *stora
 			nodes = append(nodes, node.String())
 		}
 		batch.Queue(fmt.Sprintf(`
-			INSERT INTO %s.entities (id, address) VALUES ($1, $2, $3)
+			INSERT INTO %s.entities (id, address) VALUES ($1, $2)
 				ON CONFLICT (id) DO
 				UPDATE SET
 					address = excluded.address;
