@@ -149,6 +149,7 @@ func (c *ConsensusMain) processBlock(ctx context.Context, height int64) error {
 		c.prepareBlockData,
 		c.prepareRegistryData,
 		c.prepareSchedulerData,
+		c.prepareGovernanceData,
 	} {
 		func(f prepareFunc) {
 			group.Go(func() error {
@@ -472,6 +473,122 @@ func (c *ConsensusMain) queueCommitteeUpdates(batch *storage.QueryBatch, data *s
 				)
 			}
 		}
+	}
+
+	return nil
+}
+
+// prepareGovernanceData adds governance data queries to the batch.
+func (c *ConsensusMain) prepareGovernanceData(ctx context.Context, height int64, batch *storage.QueryBatch) error {
+	source, err := c.source(height)
+	if err != nil {
+		return err
+	}
+
+	data, err := source.GovernanceData(ctx, height)
+	if err != nil {
+		return err
+	}
+
+	for _, f := range []func(*storage.QueryBatch, *storage.GovernanceData) error{
+		c.queueSubmissions,
+		c.queueExecutions,
+		c.queueFinalizations,
+		c.queueVotes,
+	} {
+		if err := f(batch, data); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (c *ConsensusMain) queueSubmissions(batch *storage.QueryBatch, data *storage.GovernanceData) error {
+	for _, submission := range data.ProposalSubmissions {
+		if submission.Content.Upgrade != nil {
+			batch.Queue(fmt.Sprintf(`
+				INSERT INTO %s.proposals (id, submitter, state, deposit, handler, cp_target_version, rhp_target_version, rcp_target_version, upgrade_epoch, created_at, closes_at)
+					VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11);
+			`, chainID),
+				submission.ID,
+				submission.Submitter.String(),
+				submission.State.String(),
+				submission.Deposit.ToBigInt().Uint64(),
+				submission.Content.Upgrade.Handler,
+				submission.Content.Upgrade.Target.ConsensusProtocol.String(),
+				submission.Content.Upgrade.Target.RuntimeHostProtocol.String(),
+				submission.Content.Upgrade.Target.RuntimeCommitteeProtocol.String(),
+				submission.Content.Upgrade.Epoch,
+				submission.CreatedAt,
+				submission.ClosesAt,
+			)
+		} else if submission.Content.CancelUpgrade != nil {
+			batch.Queue(fmt.Sprintf(`
+				INSERT INTO %s.proposals (id, submitter, state, deposit, cancels, created_at, closes_at)
+					VALUES ($1, $2, $3, $4, $5, $6, $7);
+			`, chainID),
+				submission.ID,
+				submission.Submitter.String(),
+				submission.State.String(),
+				submission.Deposit.ToBigInt().Uint64(),
+				submission.Content.CancelUpgrade.ProposalID,
+				submission.CreatedAt,
+				submission.ClosesAt,
+			)
+		}
+	}
+
+	return nil
+}
+
+func (c *ConsensusMain) queueExecutions(batch *storage.QueryBatch, data *storage.GovernanceData) error {
+	for _, execution := range data.ProposalExecutions {
+		batch.Queue(fmt.Sprintf(`
+			UPDATE %s.proposals
+			SET executed = true
+				WHERE id = $1;
+		`, chainID),
+			execution.ID,
+		)
+	}
+
+	return nil
+}
+
+func (c *ConsensusMain) queueFinalizations(batch *storage.QueryBatch, data *storage.GovernanceData) error {
+	for _, finalization := range data.ProposalFinalizations {
+		batch.Queue(fmt.Sprintf(`
+			UPDATE %s.proposals
+			SET state = $2
+				WHERE id = $1;
+		`, chainID),
+			finalization.ID,
+			finalization.State.String(),
+		)
+		batch.Queue(fmt.Sprintf(`
+			UPDATE %s.proposals
+			SET invalid_votes = $2
+				WHERE id = $1;
+		`, chainID),
+			finalization.ID,
+			finalization.InvalidVotes,
+		)
+	}
+
+	return nil
+}
+
+func (c *ConsensusMain) queueVotes(batch *storage.QueryBatch, data *storage.GovernanceData) error {
+	for _, vote := range data.Votes {
+		batch.Queue(fmt.Sprintf(`
+			INSERT INTO %s.votes (proposal, voter, vote)
+				VALUES ($1, $2, $3);
+		`, chainID),
+			vote.ID,
+			vote.Submitter.String(),
+			vote.Vote.String(),
+		)
 	}
 
 	return nil
