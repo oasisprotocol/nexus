@@ -583,7 +583,7 @@ func (c *ConsensusMain) queueAllowanceChanges(batch *storage.QueryBatch, data *s
 			INSERT INTO %s.allowances (owner, beneficiary, allowance)
 				VALUES ($1, $2, $3)
 			ON CONFLICT (owner, beneficiary) DO
-				UPDATE SET allowance = EXCLUDED.allowance;
+				UPDATE SET allowance = excluded.allowance;
 		`, chainID),
 			allowanceChange.Owner.String(),
 			allowanceChange.Beneficiary.String(),
