@@ -1,4 +1,4 @@
-package api
+package v1
 
 import (
 	"context"
@@ -8,6 +8,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"github.com/oasislabs/oasis-block-indexer/go/api/common"
 	"github.com/oasislabs/oasis-block-indexer/go/storage"
 )
 
@@ -56,7 +57,7 @@ func TestQueryBuilderPagination(t *testing.T) {
 	r, err := http.NewRequest("GET", "https://fake-api.com/get-resource", nil)
 	assert.Nil(t, err)
 
-	p, err := NewPagination(r)
+	p, err := common.NewPagination(r)
 	assert.Nil(t, err)
 
 	err = qb.AddPagination(ctx, p)

@@ -1,5 +1,5 @@
 // Tooling for response pagination.
-package api
+package common
 
 import (
 	"net/http"

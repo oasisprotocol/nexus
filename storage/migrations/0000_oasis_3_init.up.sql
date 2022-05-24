@@ -37,6 +37,7 @@ CREATE TABLE IF NOT EXISTS oasis_3.transactions
   fee_amount NUMERIC,
   max_gas    NUMERIC,
   method     TEXT NOT NULL,
+  sender     TEXT NOT NULL,
   body       BYTEA,
 
   -- Error Fields

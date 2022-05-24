@@ -1,8 +1,7 @@
-package api
+package v1
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -13,12 +12,8 @@ import (
 	"github.com/iancoleman/strcase"
 	"github.com/oasislabs/oasis-block-indexer/go/storage"
 	oasisErrors "github.com/oasisprotocol/oasis-core/go/common/errors"
-)
 
-var (
-	// ErrBadChainID is returned when a malformed or missing chain ID
-	// is provided.
-	ErrBadChainID = errors.New("unable to resolve chain ID")
+	"github.com/oasislabs/oasis-block-indexer/go/api/common"
 )
 
 // QueryBuilder is used for building queries to submit to storage.
@@ -36,7 +31,7 @@ func NewQueryBuilder(sql string, db storage.TargetStorage) *QueryBuilder {
 }
 
 // AddPagination adds pagination to the query builder.
-func (q *QueryBuilder) AddPagination(_ctx context.Context, p Pagination) error {
+func (q *QueryBuilder) AddPagination(_ctx context.Context, p common.Pagination) error {
 	_, err := q.inner.WriteString(
 		fmt.Sprintf("\n\tORDER BY %s\n\tLIMIT %d\n\tOFFSET %d", p.Order, p.Limit, p.Offset),
 	)
@@ -106,14 +101,14 @@ func (c *storageClient) Status(ctx context.Context) (*Status, error) {
 			strcase.ToSnake(LatestChainID)),
 	)
 	if err != nil {
-		return nil, err
+		return nil, common.ErrStorageError
 	}
 
 	s := Status{
 		LatestChainID: LatestChainID,
 	}
 	if err := row.Scan(&s.LatestBlock, &s.LatestUpdate); err != nil {
-		return nil, err
+		return nil, common.ErrStorageError
 	}
 	return &s, nil
 }
@@ -122,7 +117,7 @@ func (c *storageClient) Status(ctx context.Context) (*Status, error) {
 func (c *storageClient) Blocks(ctx context.Context, r *http.Request) (*BlockList, error) {
 	chainID, ok := ctx.Value(ChainIDContextKey).(string)
 	if !ok {
-		return nil, ErrBadChainID
+		return nil, common.ErrBadChainID
 	}
 
 	qb := NewQueryBuilder(fmt.Sprintf(`
@@ -145,15 +140,15 @@ func (c *storageClient) Blocks(ctx context.Context, r *http.Request) (*BlockList
 	}
 	qb.AddFilters(ctx, filters)
 
-	pagination, err := NewPagination(r)
+	pagination, err := common.NewPagination(r)
 	if err != nil {
-		return nil, err
+		return nil, common.ErrBadRequest
 	}
 	qb.AddPagination(ctx, pagination)
 
 	rows, err := c.db.Query(ctx, qb.String())
 	if err != nil {
-		return nil, err
+		return nil, common.ErrStorageError
 	}
 	defer rows.Close()
 
@@ -161,7 +156,7 @@ func (c *storageClient) Blocks(ctx context.Context, r *http.Request) (*BlockList
 	for rows.Next() {
 		var b Block
 		if err := rows.Scan(&b.Height, &b.Hash, &b.Timestamp); err != nil {
-			return nil, err
+			return nil, common.ErrStorageError
 		}
 
 		bs.Blocks = append(bs.Blocks, b)
@@ -174,7 +169,7 @@ func (c *storageClient) Blocks(ctx context.Context, r *http.Request) (*BlockList
 func (c *storageClient) Block(ctx context.Context, r *http.Request) (*Block, error) {
 	chainID, ok := ctx.Value(ChainIDContextKey).(string)
 	if !ok {
-		return nil, ErrBadChainID
+		return nil, common.ErrBadChainID
 	}
 
 	row, err := c.db.QueryRow(
@@ -187,12 +182,12 @@ func (c *storageClient) Block(ctx context.Context, r *http.Request) (*Block, err
 		chi.URLParam(r, "height"),
 	)
 	if err != nil {
-		return nil, err
+		return nil, common.ErrStorageError
 	}
 
 	var b Block
 	if err := row.Scan(&b.Height, &b.Hash, &b.Timestamp); err != nil {
-		return nil, err
+		return nil, common.ErrStorageError
 	}
 
 	return &b, nil
@@ -202,7 +197,7 @@ func (c *storageClient) Block(ctx context.Context, r *http.Request) (*Block, err
 func (c *storageClient) Transactions(ctx context.Context, r *http.Request) (*TransactionList, error) {
 	chainID, ok := ctx.Value(ChainIDContextKey).(string)
 	if !ok {
-		return nil, ErrBadChainID
+		return nil, common.ErrBadChainID
 	}
 
 	qb := NewQueryBuilder(fmt.Sprintf(`
@@ -216,6 +211,7 @@ func (c *storageClient) Transactions(ctx context.Context, r *http.Request) (*Tra
 	for param, condition := range map[string]string{
 		"block":  "block = %s",
 		"method": "method = %s",
+		"sender": "sender = %s",
 		"minFee": "fee_amount >= %s",
 		"maxFee": "fee_amount <= %s",
 		"code":   "code = %s",
@@ -225,15 +221,15 @@ func (c *storageClient) Transactions(ctx context.Context, r *http.Request) (*Tra
 		}
 	}
 	qb.AddFilters(ctx, filters)
-	pagination, err := NewPagination(r)
+	pagination, err := common.NewPagination(r)
 	if err != nil {
-		return nil, err
+		return nil, common.ErrBadRequest
 	}
 	qb.AddPagination(ctx, pagination)
 
 	rows, err := c.db.Query(ctx, qb.String())
 	if err != nil {
-		return nil, err
+		return nil, common.ErrStorageError
 	}
 	defer rows.Close()
 
@@ -250,7 +246,7 @@ func (c *storageClient) Transactions(ctx context.Context, r *http.Request) (*Tra
 			&t.Body,
 			&code,
 		); err != nil {
-			return nil, err
+			return nil, common.ErrStorageError
 		}
 		if code == oasisErrors.CodeNoError {
 			t.Success = true
@@ -266,7 +262,7 @@ func (c *storageClient) Transactions(ctx context.Context, r *http.Request) (*Tra
 func (c *storageClient) Transaction(ctx context.Context, r *http.Request) (*Transaction, error) {
 	chainID, ok := ctx.Value(ChainIDContextKey).(string)
 	if !ok {
-		return nil, ErrBadChainID
+		return nil, common.ErrBadChainID
 	}
 
 	row, err := c.db.QueryRow(
@@ -278,7 +274,7 @@ func (c *storageClient) Transaction(ctx context.Context, r *http.Request) (*Tran
 		chi.URLParam(r, "txn_hash"),
 	)
 	if err != nil {
-		return nil, err
+		return nil, common.ErrStorageError
 	}
 
 	var t Transaction
@@ -292,7 +288,7 @@ func (c *storageClient) Transaction(ctx context.Context, r *http.Request) (*Tran
 		&t.Body,
 		&code,
 	); err != nil {
-		return nil, err
+		return nil, common.ErrStorageError
 	}
 	if code == oasisErrors.CodeNoError {
 		t.Success = true
@@ -305,7 +301,7 @@ func (c *storageClient) Transaction(ctx context.Context, r *http.Request) (*Tran
 func (c *storageClient) Entities(ctx context.Context, r *http.Request) (*EntityList, error) {
 	chainID, ok := ctx.Value(ChainIDContextKey).(string)
 	if !ok {
-		return nil, ErrBadChainID
+		return nil, common.ErrBadChainID
 	}
 
 	qb := NewQueryBuilder(fmt.Sprintf("SELECT id, address FROM %s.entities", chainID), c.db)
@@ -317,15 +313,15 @@ func (c *storageClient) Entities(ctx context.Context, r *http.Request) (*EntityL
 		}
 	}
 
-	pagination, err := NewPagination(r)
+	pagination, err := common.NewPagination(r)
 	if err != nil {
-		return nil, err
+		return nil, common.ErrBadRequest
 	}
 	qb.AddPagination(ctx, pagination)
 
 	rows, err := c.db.Query(ctx, qb.String())
 	if err != nil {
-		return nil, err
+		return nil, common.ErrStorageError
 	}
 	defer rows.Close()
 
@@ -333,7 +329,7 @@ func (c *storageClient) Entities(ctx context.Context, r *http.Request) (*EntityL
 	for rows.Next() {
 		var e Entity
 		if err := rows.Scan(&e.ID, &e.Address); err != nil {
-			return nil, err
+			return nil, common.ErrStorageError
 		}
 
 		es.Entities = append(es.Entities, e)
@@ -346,7 +342,7 @@ func (c *storageClient) Entities(ctx context.Context, r *http.Request) (*EntityL
 func (c *storageClient) Entity(ctx context.Context, r *http.Request) (*Entity, error) {
 	chainID, ok := ctx.Value(ChainIDContextKey).(string)
 	if !ok {
-		return nil, ErrBadChainID
+		return nil, common.ErrBadChainID
 	}
 
 	qb := NewQueryBuilder(fmt.Sprintf("SELECT id, address FROM %s.entities", chainID), c.db)
@@ -365,12 +361,12 @@ func (c *storageClient) Entity(ctx context.Context, r *http.Request) (*Entity, e
 		chi.URLParam(r, "entity_id"),
 	)
 	if err != nil {
-		return nil, err
+		return nil, common.ErrStorageError
 	}
 
 	var e Entity
 	if err := entityRow.Scan(&e.ID, &e.Address); err != nil {
-		return nil, err
+		return nil, common.ErrStorageError
 	}
 
 	qb = NewQueryBuilder(fmt.Sprintf("SELECT id FROM %s.nodes", chainID), c.db)
@@ -387,14 +383,14 @@ func (c *storageClient) Entity(ctx context.Context, r *http.Request) (*Entity, e
 		chi.URLParam(r, "entity_id"),
 	)
 	if err != nil {
-		return nil, err
+		return nil, common.ErrStorageError
 	}
 	defer nodeRows.Close()
 
 	for nodeRows.Next() {
 		var nid string
 		if err := nodeRows.Scan(&nid); err != nil {
-			return nil, err
+			return nil, common.ErrStorageError
 		}
 
 		e.Nodes = append(e.Nodes, nid)
@@ -407,7 +403,7 @@ func (c *storageClient) Entity(ctx context.Context, r *http.Request) (*Entity, e
 func (c *storageClient) EntityNodes(ctx context.Context, r *http.Request) (*NodeList, error) {
 	chainID, ok := ctx.Value(ChainIDContextKey).(string)
 	if !ok {
-		return nil, ErrBadChainID
+		return nil, common.ErrBadChainID
 	}
 
 	qb := NewQueryBuilder(fmt.Sprintf(`
@@ -424,16 +420,16 @@ func (c *storageClient) EntityNodes(ctx context.Context, r *http.Request) (*Node
 
 	qb.AddFilters(ctx, []string{"entity_id = $1::text"})
 
-	pagination, err := NewPagination(r)
+	pagination, err := common.NewPagination(r)
 	if err != nil {
-		return nil, err
+		return nil, common.ErrBadRequest
 	}
 	qb.AddPagination(ctx, pagination)
 
 	id := chi.URLParam(r, "entity_id")
 	rows, err := c.db.Query(ctx, qb.String(), id)
 	if err != nil {
-		return nil, err
+		return nil, common.ErrStorageError
 	}
 	defer rows.Close()
 
@@ -450,7 +446,7 @@ func (c *storageClient) EntityNodes(ctx context.Context, r *http.Request) (*Node
 			&n.ConsensusPubkey,
 			&n.Roles,
 		); err != nil {
-			return nil, err
+			return nil, common.ErrStorageError
 		}
 
 		ns.Nodes = append(ns.Nodes, n)
@@ -464,7 +460,7 @@ func (c *storageClient) EntityNodes(ctx context.Context, r *http.Request) (*Node
 func (c *storageClient) EntityNode(ctx context.Context, r *http.Request) (*Node, error) {
 	chainID, ok := ctx.Value(ChainIDContextKey).(string)
 	if !ok {
-		return nil, ErrBadChainID
+		return nil, common.ErrBadChainID
 	}
 
 	qb := NewQueryBuilder(fmt.Sprintf(`
@@ -487,7 +483,7 @@ func (c *storageClient) EntityNode(ctx context.Context, r *http.Request) (*Node,
 		chi.URLParam(r, "node_id"),
 	)
 	if err != nil {
-		return nil, err
+		return nil, common.ErrStorageError
 	}
 
 	var n Node
@@ -501,7 +497,7 @@ func (c *storageClient) EntityNode(ctx context.Context, r *http.Request) (*Node,
 		&n.ConsensusPubkey,
 		&n.Roles,
 	); err != nil {
-		return nil, err
+		return nil, common.ErrStorageError
 	}
 
 	return &n, nil
@@ -511,7 +507,7 @@ func (c *storageClient) EntityNode(ctx context.Context, r *http.Request) (*Node,
 func (c *storageClient) Accounts(ctx context.Context, r *http.Request) (*AccountList, error) {
 	chainID, ok := ctx.Value(ChainIDContextKey).(string)
 	if !ok {
-		return nil, ErrBadChainID
+		return nil, common.ErrBadChainID
 	}
 
 	qb := NewQueryBuilder(fmt.Sprintf(`
@@ -528,12 +524,14 @@ func (c *storageClient) Accounts(ctx context.Context, r *http.Request) (*Account
 
 	var filters []string
 	for param, condition := range map[string]string{
-		"minBalance":   "general_balance >= %s",
-		"maxBalance":   "general_balance <= %s",
-		"minEscrow":    "escrow_balance_active >= %s",
-		"maxEscrow":    "escrow_balance_active <= %s",
-		"minDebonding": "escrow_balance_debonding >= %s",
-		"maxDebonding": "escrow_balance_debonding <= %s",
+		"minAvailable":    "general_balance >= %s",
+		"maxAvailable":    "general_balance <= %s",
+		"minEscrow":       "escrow_balance_active >= %s",
+		"maxEscrow":       "escrow_balance_active <= %s",
+		"minDebonding":    "escrow_balance_debonding >= %s",
+		"maxDebonding":    "escrow_balance_debonding <= %s",
+		"minTotalBalance": "general_balance + escrow_balance_active + escrow_balance_debonding <= %s",
+		"maxTotalBalance": "general_balance + escrow_balance_active + escrow_balance_debonding <= %s",
 	} {
 		if v := params.Get(param); v != "" {
 			filters = append(filters, fmt.Sprintf(condition, v))
@@ -541,15 +539,15 @@ func (c *storageClient) Accounts(ctx context.Context, r *http.Request) (*Account
 	}
 	qb.AddFilters(ctx, filters)
 
-	pagination, err := NewPagination(r)
+	pagination, err := common.NewPagination(r)
 	if err != nil {
-		return nil, err
+		return nil, common.ErrBadRequest
 	}
 	qb.AddPagination(ctx, pagination)
 
 	rows, err := c.db.Query(ctx, qb.String())
 	if err != nil {
-		return nil, err
+		return nil, common.ErrStorageError
 	}
 	defer rows.Close()
 
@@ -563,7 +561,7 @@ func (c *storageClient) Accounts(ctx context.Context, r *http.Request) (*Account
 			&a.Escrow,
 			&a.Debonding,
 		); err != nil {
-			return nil, err
+			return nil, common.ErrStorageError
 		}
 		a.Total = a.Available + a.Escrow + a.Debonding
 
@@ -577,7 +575,7 @@ func (c *storageClient) Accounts(ctx context.Context, r *http.Request) (*Account
 func (c *storageClient) Account(ctx context.Context, r *http.Request) (*Account, error) {
 	chainID, ok := ctx.Value(ChainIDContextKey).(string)
 	if !ok {
-		return nil, ErrBadChainID
+		return nil, common.ErrBadChainID
 	}
 
 	qb := NewQueryBuilder(fmt.Sprintf(`
@@ -599,7 +597,7 @@ func (c *storageClient) Account(ctx context.Context, r *http.Request) (*Account,
 		chi.URLParam(r, "address"),
 	)
 	if err != nil {
-		return nil, err
+		return nil, common.ErrStorageError
 	}
 
 	var a Account
@@ -610,7 +608,7 @@ func (c *storageClient) Account(ctx context.Context, r *http.Request) (*Account,
 		&a.Escrow,
 		&a.Debonding,
 	); err != nil {
-		return nil, err
+		return nil, common.ErrStorageError
 	}
 	a.Total = a.Available + a.Escrow + a.Debonding
 
@@ -631,7 +629,7 @@ func (c *storageClient) Account(ctx context.Context, r *http.Request) (*Account,
 		chi.URLParam(r, "address"),
 	)
 	if err != nil {
-		return nil, err
+		return nil, common.ErrStorageError
 	}
 	defer allowanceRows.Close()
 
@@ -641,7 +639,7 @@ func (c *storageClient) Account(ctx context.Context, r *http.Request) (*Account,
 			&al.Address,
 			&al.Amount,
 		); err != nil {
-			return nil, err
+			return nil, common.ErrStorageError
 		}
 
 		a.Allowances = append(a.Allowances, al)
@@ -654,7 +652,7 @@ func (c *storageClient) Account(ctx context.Context, r *http.Request) (*Account,
 func (c *storageClient) Epochs(ctx context.Context, r *http.Request) (*EpochList, error) {
 	chainID, ok := ctx.Value(ChainIDContextKey).(string)
 	if !ok {
-		return nil, ErrBadChainID
+		return nil, common.ErrBadChainID
 	}
 
 	qb := NewQueryBuilder(fmt.Sprintf(`
@@ -664,22 +662,22 @@ func (c *storageClient) Epochs(ctx context.Context, r *http.Request) (*EpochList
 
 	// TODO: Add filters.
 
-	pagination, err := NewPagination(r)
+	pagination, err := common.NewPagination(r)
 	if err != nil {
-		return nil, err
+		return nil, common.ErrBadRequest
 	}
 	qb.AddPagination(ctx, pagination)
 
 	rows, err := c.db.Query(ctx, qb.String())
 	if err != nil {
-		return nil, err
+		return nil, common.ErrStorageError
 	}
 
 	var es EpochList
 	for rows.Next() {
 		var e Epoch
 		if err := rows.Scan(&e.ID, &e.StartHeight, &e.EndHeight); err != nil {
-			return nil, err
+			return nil, common.ErrStorageError
 		}
 
 		es.Epochs = append(es.Epochs, e)
@@ -692,7 +690,7 @@ func (c *storageClient) Epochs(ctx context.Context, r *http.Request) (*EpochList
 func (c *storageClient) Epoch(ctx context.Context, r *http.Request) (*Epoch, error) {
 	chainID, ok := ctx.Value(ChainIDContextKey).(string)
 	if !ok {
-		return nil, ErrBadChainID
+		return nil, common.ErrBadChainID
 	}
 
 	row, err := c.db.QueryRow(
@@ -705,12 +703,12 @@ func (c *storageClient) Epoch(ctx context.Context, r *http.Request) (*Epoch, err
 		chi.URLParam(r, "epoch"),
 	)
 	if err != nil {
-		return nil, err
+		return nil, common.ErrStorageError
 	}
 
 	var e Epoch
 	if err := row.Scan(&e.ID, &e.StartHeight, &e.EndHeight); err != nil {
-		return nil, err
+		return nil, common.ErrStorageError
 	}
 
 	return &e, nil
@@ -720,7 +718,7 @@ func (c *storageClient) Epoch(ctx context.Context, r *http.Request) (*Epoch, err
 func (c *storageClient) Proposals(ctx context.Context, r *http.Request) (*ProposalList, error) {
 	chainID, ok := ctx.Value(ChainIDContextKey).(string)
 	if !ok {
-		return nil, ErrBadChainID
+		return nil, common.ErrBadChainID
 	}
 
 	qb := NewQueryBuilder(fmt.Sprintf(`
@@ -742,15 +740,15 @@ func (c *storageClient) Proposals(ctx context.Context, r *http.Request) (*Propos
 	}
 	qb.AddFilters(ctx, filters)
 
-	pagination, err := NewPagination(r)
+	pagination, err := common.NewPagination(r)
 	if err != nil {
-		return nil, err
+		return nil, common.ErrBadRequest
 	}
 	qb.AddPagination(ctx, pagination)
 
 	rows, err := c.db.Query(ctx, qb.String())
 	if err != nil {
-		return nil, err
+		return nil, common.ErrStorageError
 	}
 	defer rows.Close()
 
@@ -772,7 +770,7 @@ func (c *storageClient) Proposals(ctx context.Context, r *http.Request) (*Propos
 			&p.ClosesAt,
 			&p.InvalidVotes,
 		); err != nil {
-			return nil, err
+			return nil, common.ErrStorageError
 		}
 
 		ps.Proposals = append(ps.Proposals, p)
@@ -785,7 +783,7 @@ func (c *storageClient) Proposals(ctx context.Context, r *http.Request) (*Propos
 func (c *storageClient) Proposal(ctx context.Context, r *http.Request) (*Proposal, error) {
 	chainID, ok := ctx.Value(ChainIDContextKey).(string)
 	if !ok {
-		return nil, ErrBadChainID
+		return nil, common.ErrBadChainID
 	}
 
 	row, err := c.db.QueryRow(
@@ -799,7 +797,7 @@ func (c *storageClient) Proposal(ctx context.Context, r *http.Request) (*Proposa
 		chi.URLParam(r, "proposal_id"),
 	)
 	if err != nil {
-		return nil, err
+		return nil, common.ErrStorageError
 	}
 
 	var p Proposal
@@ -818,7 +816,7 @@ func (c *storageClient) Proposal(ctx context.Context, r *http.Request) (*Proposa
 		&p.ClosesAt,
 		&p.InvalidVotes,
 	); err != nil {
-		return nil, err
+		return nil, common.ErrStorageError
 	}
 
 	return &p, nil
@@ -828,7 +826,7 @@ func (c *storageClient) Proposal(ctx context.Context, r *http.Request) (*Proposa
 func (c *storageClient) ProposalVotes(ctx context.Context, r *http.Request) (*ProposalVotes, error) {
 	chainID, ok := ctx.Value(ChainIDContextKey).(string)
 	if !ok {
-		return nil, ErrBadChainID
+		return nil, common.ErrBadChainID
 	}
 
 	qb := NewQueryBuilder(fmt.Sprintf(`
@@ -837,20 +835,20 @@ func (c *storageClient) ProposalVotes(ctx context.Context, r *http.Request) (*Pr
 				WHERE proposal = $1::bigint`,
 		chainID), c.db)
 
-	pagination, err := NewPagination(r)
+	pagination, err := common.NewPagination(r)
 	if err != nil {
-		return nil, err
+		return nil, common.ErrBadRequest
 	}
 	qb.AddPagination(ctx, pagination)
 
 	id, err := strconv.ParseUint(chi.URLParam(r, "proposal_id"), 10, 64)
 	if err != nil {
-		return nil, err
+		return nil, common.ErrBadRequest
 	}
 
 	rows, err := c.db.Query(ctx, qb.String(), id)
 	if err != nil {
-		return nil, err
+		return nil, common.ErrStorageError
 	}
 	defer rows.Close()
 
@@ -861,7 +859,7 @@ func (c *storageClient) ProposalVotes(ctx context.Context, r *http.Request) (*Pr
 			&v.Address,
 			&v.Vote,
 		); err != nil {
-			return nil, err
+			return nil, common.ErrStorageError
 		}
 
 		vs.Votes = append(vs.Votes, v)

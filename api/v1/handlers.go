@@ -1,8 +1,10 @@
-package api
+package v1
 
 import (
 	"encoding/json"
 	"net/http"
+
+	"github.com/oasislabs/oasis-block-indexer/go/api/common"
 )
 
 // GetStatus gets the indexer status.
@@ -15,7 +17,7 @@ func (h *Handler) GetStatus(w http.ResponseWriter, r *http.Request) {
 			"request_id", ctx.Value(RequestIDContextKey),
 			"error", err,
 		)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		common.ReplyWithError(w, err)
 		return
 	}
 
@@ -25,7 +27,7 @@ func (h *Handler) GetStatus(w http.ResponseWriter, r *http.Request) {
 			"request_id", ctx.Value(RequestIDContextKey),
 			"error", err,
 		)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		common.ReplyWithError(w, err)
 		return
 	}
 
@@ -43,7 +45,7 @@ func (h *Handler) ListBlocks(w http.ResponseWriter, r *http.Request) {
 			"request_id", ctx.Value(RequestIDContextKey),
 			"error", err,
 		)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		common.ReplyWithError(w, err)
 		return
 	}
 
@@ -53,7 +55,7 @@ func (h *Handler) ListBlocks(w http.ResponseWriter, r *http.Request) {
 			"request_id", ctx.Value(RequestIDContextKey),
 			"error", err,
 		)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		common.ReplyWithError(w, err)
 		return
 	}
 
@@ -71,7 +73,7 @@ func (h *Handler) GetBlock(w http.ResponseWriter, r *http.Request) {
 			"request_id", ctx.Value(RequestIDContextKey),
 			"error", err,
 		)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		common.ReplyWithError(w, err)
 		return
 	}
 
@@ -81,7 +83,7 @@ func (h *Handler) GetBlock(w http.ResponseWriter, r *http.Request) {
 			"request_id", ctx.Value(RequestIDContextKey),
 			"error", err,
 		)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		common.ReplyWithError(w, err)
 		return
 	}
 
@@ -99,7 +101,7 @@ func (h *Handler) ListTransactions(w http.ResponseWriter, r *http.Request) {
 			"request_id", ctx.Value(RequestIDContextKey),
 			"error", err,
 		)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		common.ReplyWithError(w, err)
 		return
 	}
 
@@ -109,7 +111,7 @@ func (h *Handler) ListTransactions(w http.ResponseWriter, r *http.Request) {
 			"request_id", ctx.Value(RequestIDContextKey),
 			"error", err,
 		)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		common.ReplyWithError(w, err)
 		return
 	}
 
@@ -127,7 +129,7 @@ func (h *Handler) GetTransaction(w http.ResponseWriter, r *http.Request) {
 			"request_id", ctx.Value(RequestIDContextKey),
 			"error", err,
 		)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		common.ReplyWithError(w, err)
 		return
 	}
 
@@ -137,7 +139,7 @@ func (h *Handler) GetTransaction(w http.ResponseWriter, r *http.Request) {
 			"request_id", ctx.Value(RequestIDContextKey),
 			"error", err,
 		)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		common.ReplyWithError(w, err)
 		return
 	}
 
@@ -155,7 +157,7 @@ func (h *Handler) ListEntities(w http.ResponseWriter, r *http.Request) {
 			"request_id", ctx.Value(RequestIDContextKey),
 			"error", err,
 		)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		common.ReplyWithError(w, err)
 		return
 	}
 
@@ -165,7 +167,7 @@ func (h *Handler) ListEntities(w http.ResponseWriter, r *http.Request) {
 			"request_id", ctx.Value(RequestIDContextKey),
 			"error", err,
 		)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		common.ReplyWithError(w, err)
 		return
 	}
 
@@ -183,7 +185,7 @@ func (h *Handler) GetEntity(w http.ResponseWriter, r *http.Request) {
 			"request_id", ctx.Value(RequestIDContextKey),
 			"error", err,
 		)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		common.ReplyWithError(w, err)
 		return
 	}
 
@@ -193,7 +195,7 @@ func (h *Handler) GetEntity(w http.ResponseWriter, r *http.Request) {
 			"request_id", ctx.Value(RequestIDContextKey),
 			"error", err,
 		)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		common.ReplyWithError(w, err)
 		return
 	}
 
@@ -211,7 +213,7 @@ func (h *Handler) ListEntityNodes(w http.ResponseWriter, r *http.Request) {
 			"request_id", ctx.Value(RequestIDContextKey),
 			"error", err,
 		)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		common.ReplyWithError(w, err)
 		return
 	}
 
@@ -221,7 +223,7 @@ func (h *Handler) ListEntityNodes(w http.ResponseWriter, r *http.Request) {
 			"request_id", ctx.Value(RequestIDContextKey),
 			"error", err,
 		)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		common.ReplyWithError(w, err)
 		return
 	}
 
@@ -239,7 +241,7 @@ func (h *Handler) GetEntityNode(w http.ResponseWriter, r *http.Request) {
 			"request_id", ctx.Value(RequestIDContextKey),
 			"error", err,
 		)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		common.ReplyWithError(w, err)
 		return
 	}
 
@@ -249,7 +251,7 @@ func (h *Handler) GetEntityNode(w http.ResponseWriter, r *http.Request) {
 			"request_id", ctx.Value(RequestIDContextKey),
 			"error", err,
 		)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		common.ReplyWithError(w, err)
 		return
 	}
 
@@ -267,7 +269,7 @@ func (h *Handler) ListAccounts(w http.ResponseWriter, r *http.Request) {
 			"request_id", ctx.Value(RequestIDContextKey),
 			"error", err,
 		)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		common.ReplyWithError(w, err)
 		return
 	}
 
@@ -277,7 +279,7 @@ func (h *Handler) ListAccounts(w http.ResponseWriter, r *http.Request) {
 			"request_id", ctx.Value(RequestIDContextKey),
 			"error", err,
 		)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		common.ReplyWithError(w, err)
 		return
 	}
 
@@ -295,7 +297,7 @@ func (h *Handler) GetAccount(w http.ResponseWriter, r *http.Request) {
 			"request_id", ctx.Value(RequestIDContextKey),
 			"error", err,
 		)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		common.ReplyWithError(w, err)
 		return
 	}
 
@@ -305,7 +307,7 @@ func (h *Handler) GetAccount(w http.ResponseWriter, r *http.Request) {
 			"request_id", ctx.Value(RequestIDContextKey),
 			"error", err,
 		)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		common.ReplyWithError(w, err)
 		return
 	}
 
@@ -323,7 +325,7 @@ func (h *Handler) ListEpochs(w http.ResponseWriter, r *http.Request) {
 			"request_id", ctx.Value(RequestIDContextKey),
 			"error", err,
 		)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		common.ReplyWithError(w, err)
 		return
 	}
 
@@ -334,7 +336,7 @@ func (h *Handler) ListEpochs(w http.ResponseWriter, r *http.Request) {
 			"request_id", ctx.Value(RequestIDContextKey),
 			"error", err,
 		)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		common.ReplyWithError(w, err)
 		return
 	}
 
@@ -352,7 +354,7 @@ func (h *Handler) GetEpoch(w http.ResponseWriter, r *http.Request) {
 			"request_id", ctx.Value(RequestIDContextKey),
 			"error", err,
 		)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		common.ReplyWithError(w, err)
 		return
 	}
 
@@ -363,7 +365,7 @@ func (h *Handler) GetEpoch(w http.ResponseWriter, r *http.Request) {
 			"request_id", ctx.Value(RequestIDContextKey),
 			"error", err,
 		)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		common.ReplyWithError(w, err)
 		return
 	}
 
@@ -381,7 +383,7 @@ func (h *Handler) ListProposals(w http.ResponseWriter, r *http.Request) {
 			"request_id", ctx.Value(RequestIDContextKey),
 			"error", err,
 		)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		common.ReplyWithError(w, err)
 		return
 	}
 
@@ -391,7 +393,7 @@ func (h *Handler) ListProposals(w http.ResponseWriter, r *http.Request) {
 			"request_id", ctx.Value(RequestIDContextKey),
 			"error", err,
 		)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		common.ReplyWithError(w, err)
 		return
 	}
 
@@ -409,7 +411,7 @@ func (h *Handler) GetProposal(w http.ResponseWriter, r *http.Request) {
 			"request_id", ctx.Value(RequestIDContextKey),
 			"error", err,
 		)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		common.ReplyWithError(w, err)
 		return
 	}
 
@@ -419,7 +421,7 @@ func (h *Handler) GetProposal(w http.ResponseWriter, r *http.Request) {
 			"request_id", ctx.Value(RequestIDContextKey),
 			"error", err,
 		)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		common.ReplyWithError(w, err)
 		return
 	}
 
@@ -437,7 +439,7 @@ func (h *Handler) GetProposalVotes(w http.ResponseWriter, r *http.Request) {
 			"request_id", ctx.Value(RequestIDContextKey),
 			"error", err,
 		)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		common.ReplyWithError(w, err)
 		return
 	}
 
@@ -447,7 +449,7 @@ func (h *Handler) GetProposalVotes(w http.ResponseWriter, r *http.Request) {
 			"request_id", ctx.Value(RequestIDContextKey),
 			"error", err,
 		)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		common.ReplyWithError(w, err)
 		return
 	}
 

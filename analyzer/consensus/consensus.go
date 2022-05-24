@@ -10,6 +10,7 @@ import (
 	"github.com/jackc/pgx/v4"
 	"github.com/oasisprotocol/oasis-core/go/consensus/api/transaction"
 	"github.com/oasisprotocol/oasis-core/go/consensus/api/transaction/results"
+	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/oasislabs/oasis-block-indexer/go/analyzer"
@@ -229,9 +230,13 @@ func (c *ConsensusMain) queueTransactionInserts(batch *storage.QueryBatch, data 
 			continue
 		}
 
+		sender := staking.NewAddress(
+			signedTx.Signature.PublicKey,
+		).String()
+
 		batch.Queue(fmt.Sprintf(`
 			INSERT INTO %s.transactions (block, txn_hash, txn_index, nonce, fee_amount, max_gas, method, body, module, code, message)
-				VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11);
+				VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12);
 		`, chainID),
 			data.BlockHeader.Height,
 			signedTx.Hash().Hex(),
@@ -240,6 +245,7 @@ func (c *ConsensusMain) queueTransactionInserts(batch *storage.QueryBatch, data 
 			tx.Fee.Amount.ToBigInt().Uint64(),
 			tx.Fee.Gas,
 			tx.Method,
+			sender,
 			tx.Body,
 			result.Error.Module,
 			result.Error.Code,

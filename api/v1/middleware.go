@@ -1,4 +1,4 @@
-package api
+package v1
 
 import (
 	"context"
@@ -12,7 +12,11 @@ import (
 type ContextKey string
 
 const (
-	ChainIDContextKey   ContextKey = "chain_id"
+	// ChainIDContextKey is used to set the relevant chain ID
+	// in a request context.
+	ChainIDContextKey ContextKey = "chain_id"
+	// RequestIDContextKey is used to set a request id for tracing
+	// in a request context.
 	RequestIDContextKey ContextKey = "request_id"
 )
 
