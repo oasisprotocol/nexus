@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/jackc/pgx/v4"
 	"github.com/oasisprotocol/oasis-core/go/consensus/api/transaction"
@@ -146,7 +147,10 @@ func (c *ConsensusMain) processBlock(ctx context.Context, height int64) error {
 	type prepareFunc = func(context.Context, int64, *storage.QueryBatch) error
 	for _, f := range []prepareFunc{
 		c.prepareBlockData,
-		// TODO: Other network data.
+		c.prepareRegistryData,
+		c.prepareStakingData,
+		c.prepareSchedulerData,
+		c.prepareGovernanceData,
 	} {
 		func(f prepareFunc) {
 			group.Go(func() error {
@@ -235,7 +239,7 @@ func (c *ConsensusMain) queueTransactionInserts(batch *storage.QueryBatch, data 
 		).String()
 
 		batch.Queue(fmt.Sprintf(`
-			INSERT INTO %s.transactions (block, txn_hash, txn_index, nonce, fee_amount, max_gas, method, body, module, code, message)
+			INSERT INTO %s.transactions (block, txn_hash, txn_index, nonce, fee_amount, max_gas, method, sender, body, module, code, message)
 				VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12);
 		`, chainID),
 			data.BlockHeader.Height,
@@ -276,6 +280,497 @@ func (c *ConsensusMain) queueEventInserts(batch *storage.QueryBatch, data *stora
 				i,
 			)
 		}
+	}
+
+	return nil
+}
+
+// prepareRegistryData adds registry data queries to the batch
+func (c *ConsensusMain) prepareRegistryData(ctx context.Context, height int64, batch *storage.QueryBatch) error {
+	source, err := c.source(height)
+	if err != nil {
+		return err
+	}
+
+	data, err := source.RegistryData(ctx, height)
+
+	if err != nil {
+		return err
+	}
+
+	for _, f := range []func(*storage.QueryBatch, *storage.RegistryData) error{
+		c.queueRuntimeRegistrations,
+		c.queueEntityEvents,
+		c.queueNodeRegistrations,
+	} {
+		if err := f(batch, data); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (c *ConsensusMain) queueRuntimeRegistrations(batch *storage.QueryBatch, data *storage.RegistryData) error {
+	for _, runtimeEvent := range data.RuntimeEvents {
+		keyManager := "none"
+
+		if runtimeEvent.Runtime.KeyManager != nil {
+			keyManager = runtimeEvent.Runtime.KeyManager.String()
+		}
+
+		batch.Queue(fmt.Sprintf(`
+			INSERT INTO %s.runtimes (id, suspended, kind, tee_hardware, key_manager)
+				VALUES ($1, $2, $3, $4, $5)
+				ON CONFLICT (id) DO
+				UPDATE SET
+					suspended = excluded.suspended,
+					kind = excluded.kind,
+					tee_hardware = excluded.tee_hardware,
+					key_manager = excluded.key_manager;
+		`, chainID),
+			runtimeEvent.Runtime.ID.String(),
+			false,
+			runtimeEvent.Runtime.Kind.String(),
+			runtimeEvent.Runtime.TEEHardware.String(),
+			keyManager,
+		)
+	}
+
+	return nil
+}
+
+func (c *ConsensusMain) queueEntityEvents(batch *storage.QueryBatch, data *storage.RegistryData) error {
+	for _, entityEvent := range data.EntityEvents {
+		var nodes []string
+		for _, node := range entityEvent.Entity.Nodes {
+			nodes = append(nodes, node.String())
+		}
+		batch.Queue(fmt.Sprintf(`
+			INSERT INTO %s.entities (id, address) VALUES ($1, $2)
+				ON CONFLICT (id) DO
+				UPDATE SET
+					address = excluded.address;
+		`, chainID),
+			entityEvent.Entity.ID.String(),
+			strings.Join(nodes, ","),
+		)
+	}
+
+	return nil
+}
+
+func (c *ConsensusMain) queueNodeRegistrations(batch *storage.QueryBatch, data *storage.RegistryData) error {
+	for _, nodeEvent := range data.NodeEvent {
+		vrfPubkey := ""
+
+		if nodeEvent.Node.VRF != nil {
+			vrfPubkey = nodeEvent.Node.VRF.ID.String()
+		}
+		var tlsAddresses []string
+		for _, address := range nodeEvent.Node.TLS.Addresses {
+			tlsAddresses = append(tlsAddresses, address.String())
+		}
+
+		var p2pAddresses []string
+		for _, address := range nodeEvent.Node.P2P.Addresses {
+			p2pAddresses = append(p2pAddresses, address.String())
+		}
+
+		var consensusAddresses []string
+		for _, address := range nodeEvent.Node.Consensus.Addresses {
+			consensusAddresses = append(consensusAddresses, address.String())
+		}
+
+		batch.Queue(fmt.Sprintf(`
+			INSERT INTO %s.nodes (id, entity_id, expiration, tls_pubkey, tls_next_pubkey, tls_addresses, p2p_pubkey, p2p_addresses, consensus_pubkey, consensus_address, vrf_pubkey, roles, software_version, voting_power)
+					VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+				ON CONFLICT (id) DO
+				UPDATE SET
+					entity_id = excluded.entity_id,
+					expiration = excluded.expiration,
+					tls_pubkey = excluded.tls_pubkey,
+					tls_next_pubkey = excluded.tls_next_pubkey,
+					tls_addresses = excluded.tls_addresses,
+					p2p_pubkey = excluded.p2p_pubkey,
+					p2p_addresses = excluded.p2p_addresses,
+					consensus_pubkey = excluded.consensus_pubkey,
+					consensus_address = excluded.consensus_address,
+					vrf_pubkey = excluded.vrf_pubkey,
+					roles = excluded.roles,
+					software_version = excluded.software_version,
+					voting_power = excluded.voting_power;
+		`, chainID),
+			nodeEvent.Node.ID.String(),
+			nodeEvent.Node.EntityID.String(),
+			nodeEvent.Node.Expiration,
+			nodeEvent.Node.TLS.PubKey.String(),
+			nodeEvent.Node.TLS.NextPubKey.String(),
+			fmt.Sprintf(`{'%s'}`, strings.Join(tlsAddresses, `','`)),
+			nodeEvent.Node.P2P.ID.String(),
+			fmt.Sprintf(`{'%s'}`, strings.Join(p2pAddresses, `','`)),
+			nodeEvent.Node.Consensus.ID.String(),
+			strings.Join(consensusAddresses, ","),
+			vrfPubkey,
+			nodeEvent.Node.Roles,
+			nodeEvent.Node.SoftwareVersion,
+			0,
+		)
+	}
+	return nil
+}
+
+func (c *ConsensusMain) prepareStakingData(ctx context.Context, height int64, batch *storage.QueryBatch) error {
+	source, err := c.source(height)
+	if err != nil {
+		return err
+	}
+
+	data, err := source.StakingData(ctx, height)
+	if err != nil {
+		return err
+	}
+
+	for _, f := range []func(*storage.QueryBatch, *storage.StakingData) error{
+		c.queueTransfers,
+		c.queueBurns,
+		c.queueEscrows,
+		c.queueAllowanceChanges,
+	} {
+		if err := f(batch, data); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (c *ConsensusMain) queueTransfers(batch *storage.QueryBatch, data *storage.StakingData) error {
+	for _, transfer := range data.Transfers {
+		from := transfer.From.String()
+		to := transfer.To.String()
+		amount := transfer.Amount.ToBigInt().Uint64()
+		batch.Queue(fmt.Sprintf(`
+			UPDATE %s.accounts
+			SET general_balance = general_balance - $2
+				WHERE address = $1;
+		`, chainID),
+			from,
+			amount,
+		)
+		batch.Queue(fmt.Sprintf(`
+			INSERT INTO %s.accounts (address, general_balance)
+				VALUES ($1, $2)
+			ON CONFLICT (address) DO
+				UPDATE SET general_balance = %s.accounts.general_balance - $2;
+		`, chainID, chainID),
+			to,
+			amount,
+		)
+	}
+
+	return nil
+}
+
+func (c *ConsensusMain) queueBurns(batch *storage.QueryBatch, data *storage.StakingData) error {
+	for _, burn := range data.Burns {
+		batch.Queue(fmt.Sprintf(`
+			UPDATE %s.accounts
+			SET general_balance = general_balance - $2
+				WHERE address = $1;
+		`, chainID),
+			burn.Owner.String(),
+			burn.Amount.ToBigInt().Uint64(),
+		)
+	}
+
+	return nil
+}
+
+func (c *ConsensusMain) queueEscrows(batch *storage.QueryBatch, data *storage.StakingData) error {
+	for _, escrow := range data.Escrows {
+		if escrow.Add != nil {
+			owner := escrow.Add.Owner.String()
+			escrower := escrow.Add.Escrow.String()
+			amount := escrow.Add.Amount.ToBigInt().Uint64()
+			newShares := escrow.Add.NewShares.ToBigInt().Uint64()
+			batch.Queue(fmt.Sprintf(`
+				UPDATE %s.accounts
+				SET general_balance = general_balance - $2
+					WHERE address = $1;
+			`, chainID),
+				owner,
+				amount,
+			)
+			batch.Queue(fmt.Sprintf(`
+				INSERT INTO %s.accounts (address, escrow_balance_active, escrow_total_shares_active)
+					VALUES ($1, $2, $3)
+				ON CONFLICT (address) DO
+					UPDATE SET
+						escrow_balance_active = %s.accounts.escrow_balance_active + $2,
+						escrow_total_shares_active = %s.accounts.escrow_total_shares_active + $3;
+			`, chainID, chainID, chainID),
+				escrower,
+				amount,
+				newShares,
+			)
+			batch.Queue(fmt.Sprintf(`
+				INSERT INTO %s.delegations (delegatee, delegator, shares)
+					VALUES ($1, $2, $3)
+				ON CONFLICT (delegatee, delegator) DO
+					UPDATE SET shares = %s.delegations.shares + $3;
+			`, chainID, chainID),
+				owner,
+				escrower,
+				newShares,
+			)
+		} else if escrow.Take != nil {
+			batch.Queue(fmt.Sprintf(`
+				UPDATE %s.accounts
+				SET escrow_balance_active = escrow_balance_active - $2
+					WHERE address = $1;
+			`, chainID),
+				escrow.Take.Owner.String(),
+				escrow.Take.Amount.ToBigInt().Uint64(),
+			)
+		} else if escrow.DebondingStart != nil {
+			batch.Queue(fmt.Sprintf(`
+				UPDATE %s.delegations
+					SET shares = shares - $3
+						WHERE delegatee = $1 AND delegator = $2;
+			`, chainID),
+				escrow.DebondingStart.Owner.String(),
+				escrow.DebondingStart.Escrow.String(),
+				escrow.DebondingStart.Amount.ToBigInt().Uint64(),
+			)
+			batch.Queue(fmt.Sprintf(`
+				INSERT INTO %s.debonding_delegations (delegatee, delegator, shares, debond_end)
+					VALUES ($1, $2, $3, $4);
+			`, chainID),
+				escrow.DebondingStart.Owner.String(),
+				escrow.DebondingStart.Escrow.String(),
+				escrow.DebondingStart.DebondingShares.ToBigInt().Uint64(),
+				escrow.DebondingStart.DebondEndTime,
+			)
+		} else if escrow.Reclaim != nil {
+			batch.Queue(fmt.Sprintf(`
+				UPDATE %s.accounts
+					SET general_balance = general_balance + $2
+						WHERE address = $1;
+			`, chainID),
+				escrow.Reclaim.Owner.String(),
+				escrow.Reclaim.Amount.ToBigInt().Uint64(),
+			)
+
+			batch.Queue(fmt.Sprintf(`
+				UPDATE %s.accounts
+					SET escrow_balance_active = escrow_balance_active - $2,
+						escrow_total_shares_active = escrow_total_shares_active - $3
+						WHERE address = $1;
+			`, chainID),
+				escrow.Reclaim.Escrow.String(),
+				escrow.Reclaim.Amount.ToBigInt().Uint64(),
+				escrow.Reclaim.Shares.ToBigInt().Uint64(),
+			)
+		}
+	}
+
+	return nil
+}
+
+func (c *ConsensusMain) queueAllowanceChanges(batch *storage.QueryBatch, data *storage.StakingData) error {
+	for _, allowanceChange := range data.AllowanceChanges {
+		batch.Queue(fmt.Sprintf(`
+			INSERT INTO %s.allowances (owner, beneficiary, allowance)
+				VALUES ($1, $2, $3)
+			ON CONFLICT (owner, beneficiary) DO
+				UPDATE SET allowance = excluded.allowance;
+		`, chainID),
+			allowanceChange.Owner.String(),
+			allowanceChange.Beneficiary.String(),
+			allowanceChange.Allowance.ToBigInt().Uint64(),
+		)
+	}
+
+	return nil
+}
+
+// prepareSchedulerData adds scheduler data queries to the batch.
+func (c *ConsensusMain) prepareSchedulerData(ctx context.Context, height int64, batch *storage.QueryBatch) error {
+	source, err := c.source(height)
+	if err != nil {
+		return err
+	}
+
+	data, err := source.SchedulerData(ctx, height)
+
+	if err != nil {
+		return err
+	}
+
+	for _, f := range []func(*storage.QueryBatch, *storage.SchedulerData) error{
+		c.queueValidatorUpdates,
+		c.queueCommitteeUpdates,
+	} {
+		if err := f(batch, data); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (c *ConsensusMain) queueValidatorUpdates(batch *storage.QueryBatch, data *storage.SchedulerData) error {
+	for _, validator := range data.Validators {
+		batch.Queue(fmt.Sprintf(`
+			UPDATE %s.nodes SET voting_power = $2
+				WHERE id = $1;
+		`, chainID),
+			validator.ID,
+			validator.VotingPower,
+		)
+	}
+
+	return nil
+}
+
+func (c *ConsensusMain) queueCommitteeUpdates(batch *storage.QueryBatch, data *storage.SchedulerData) error {
+	batch.Queue(fmt.Sprintf(`
+		TRUNCATE %s.committee_members;
+	`, chainID))
+	for namespace, committees := range data.Committees {
+		runtime := namespace.String()
+		for _, committee := range committees {
+			kind := committee.String()
+			validFor := int64(committee.ValidFor)
+			for _, member := range committee.Members {
+				batch.Queue(fmt.Sprintf(`
+					INSERT INTO %s.committee_members (node, valid_for, runtime, kind, role)
+						VALUES ($1, $2, $3, $4, $5);
+				`, chainID),
+					member.PublicKey,
+					validFor,
+					runtime,
+					kind,
+					member.Role.String(),
+				)
+			}
+		}
+	}
+
+	return nil
+}
+
+// prepareGovernanceData adds governance data queries to the batch.
+func (c *ConsensusMain) prepareGovernanceData(ctx context.Context, height int64, batch *storage.QueryBatch) error {
+	source, err := c.source(height)
+	if err != nil {
+		return err
+	}
+
+	data, err := source.GovernanceData(ctx, height)
+	if err != nil {
+		return err
+	}
+
+	for _, f := range []func(*storage.QueryBatch, *storage.GovernanceData) error{
+		c.queueSubmissions,
+		c.queueExecutions,
+		c.queueFinalizations,
+		c.queueVotes,
+	} {
+		if err := f(batch, data); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (c *ConsensusMain) queueSubmissions(batch *storage.QueryBatch, data *storage.GovernanceData) error {
+	for _, submission := range data.ProposalSubmissions {
+		if submission.Content.Upgrade != nil {
+			batch.Queue(fmt.Sprintf(`
+				INSERT INTO %s.proposals (id, submitter, state, deposit, handler, cp_target_version, rhp_target_version, rcp_target_version, upgrade_epoch, created_at, closes_at)
+					VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11);
+			`, chainID),
+				submission.ID,
+				submission.Submitter.String(),
+				submission.State.String(),
+				submission.Deposit.ToBigInt().Uint64(),
+				submission.Content.Upgrade.Handler,
+				submission.Content.Upgrade.Target.ConsensusProtocol.String(),
+				submission.Content.Upgrade.Target.RuntimeHostProtocol.String(),
+				submission.Content.Upgrade.Target.RuntimeCommitteeProtocol.String(),
+				submission.Content.Upgrade.Epoch,
+				submission.CreatedAt,
+				submission.ClosesAt,
+			)
+		} else if submission.Content.CancelUpgrade != nil {
+			batch.Queue(fmt.Sprintf(`
+				INSERT INTO %s.proposals (id, submitter, state, deposit, cancels, created_at, closes_at)
+					VALUES ($1, $2, $3, $4, $5, $6, $7);
+			`, chainID),
+				submission.ID,
+				submission.Submitter.String(),
+				submission.State.String(),
+				submission.Deposit.ToBigInt().Uint64(),
+				submission.Content.CancelUpgrade.ProposalID,
+				submission.CreatedAt,
+				submission.ClosesAt,
+			)
+		}
+	}
+
+	return nil
+}
+
+func (c *ConsensusMain) queueExecutions(batch *storage.QueryBatch, data *storage.GovernanceData) error {
+	for _, execution := range data.ProposalExecutions {
+		batch.Queue(fmt.Sprintf(`
+			UPDATE %s.proposals
+			SET executed = true
+				WHERE id = $1;
+		`, chainID),
+			execution.ID,
+		)
+	}
+
+	return nil
+}
+
+func (c *ConsensusMain) queueFinalizations(batch *storage.QueryBatch, data *storage.GovernanceData) error {
+	for _, finalization := range data.ProposalFinalizations {
+		batch.Queue(fmt.Sprintf(`
+			UPDATE %s.proposals
+			SET state = $2
+				WHERE id = $1;
+		`, chainID),
+			finalization.ID,
+			finalization.State.String(),
+		)
+		batch.Queue(fmt.Sprintf(`
+			UPDATE %s.proposals
+			SET invalid_votes = $2
+				WHERE id = $1;
+		`, chainID),
+			finalization.ID,
+			finalization.InvalidVotes,
+		)
+	}
+
+	return nil
+}
+
+func (c *ConsensusMain) queueVotes(batch *storage.QueryBatch, data *storage.GovernanceData) error {
+	for _, vote := range data.Votes {
+		batch.Queue(fmt.Sprintf(`
+			INSERT INTO %s.votes (proposal, voter, vote)
+				VALUES ($1, $2, $3);
+		`, chainID),
+			vote.ID,
+			vote.Submitter.String(),
+			vote.Vote.String(),
+		)
 	}
 
 	return nil
