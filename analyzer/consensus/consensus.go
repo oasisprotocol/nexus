@@ -239,7 +239,7 @@ func (c *ConsensusMain) queueTransactionInserts(batch *storage.QueryBatch, data 
 		).String()
 
 		batch.Queue(fmt.Sprintf(`
-			INSERT INTO %s.transactions (block, txn_hash, txn_index, nonce, fee_amount, max_gas, method, body, module, code, message)
+			INSERT INTO %s.transactions (block, txn_hash, txn_index, nonce, fee_amount, max_gas, method, sender, body, module, code, message)
 				VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12);
 		`, chainID),
 			data.BlockHeader.Height,
