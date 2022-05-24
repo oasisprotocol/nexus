@@ -461,8 +461,8 @@ func (c *ConsensusMain) queueTransfers(batch *storage.QueryBatch, data *storage.
 			INSERT INTO %s.accounts (address, general_balance)
 				VALUES ($1, $2)
 			ON CONFLICT (address) DO
-				UPDATE SET general_balance = excluded.general_balance - $2;
-		`, chainID),
+				UPDATE SET general_balance = %s.accounts.general_balance - $2;
+		`, chainID, chainID),
 			to,
 			amount,
 		)
@@ -506,9 +506,9 @@ func (c *ConsensusMain) queueEscrows(batch *storage.QueryBatch, data *storage.St
 					VALUES ($1, $2, $3)
 				ON CONFLICT (address) DO
 					UPDATE SET
-						escrow_balance_active = excluded.escrow_balance_active + $2,
-						escrow_total_shares_active = excluded.escrow_total_shares_active + $3;
-			`, chainID),
+						escrow_balance_active = %s.accounts.escrow_balance_active + $2,
+						escrow_total_shares_active = %s.accounts.escrow_total_shares_active + $3;
+			`, chainID, chainID, chainID),
 				escrower,
 				amount,
 				newShares,
@@ -517,8 +517,8 @@ func (c *ConsensusMain) queueEscrows(batch *storage.QueryBatch, data *storage.St
 				INSERT INTO %s.delegations (delegatee, delegator, shares)
 					VALUES ($1, $2, $3)
 				ON CONFLICT (delegatee, delegator) DO
-					UPDATE SET shares = excluded.shares + $3;
-			`, chainID),
+					UPDATE SET shares = %s.delegations.shares + $3;
+			`, chainID, chainID),
 				owner,
 				escrower,
 				newShares,
