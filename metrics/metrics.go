@@ -36,6 +36,7 @@ type pullService struct {
 	logger *log.Logger
 }
 
+// StartInstrumentation starts the pull metrics service.
 func (s *pullService) StartInstrumentation() {
 	s.logger.Info("Initializing pull metrics service.")
 	go s.startHandler()
@@ -62,9 +63,9 @@ func Register(cmd *cobra.Command) {
 	}
 }
 
-// Creates a new prometheus pull service.
+// Creates a new Prometheus pull service.
 func NewPullService(rootLogger *log.Logger) (*pullService, error) {
-	logger := rootLogger.With(rootLogger, "pkg", "metrics")
+	logger := rootLogger.WithModule(moduleName)
 	addr := fmt.Sprintf("%s:%s", cfgMetricsPullAddr, cfgMetricsPullPort)
 
 	return &pullService{

@@ -4,32 +4,35 @@ import (
 	"github.com/go-chi/chi"
 
 	"github.com/oasislabs/oasis-block-indexer/go/log"
+	"github.com/oasislabs/oasis-block-indexer/go/metrics"
 	"github.com/oasislabs/oasis-block-indexer/go/storage"
 )
 
 const (
 	LatestChainID = "oasis-3"
 
-	moduleName = "api.v1"
+	moduleName = "api_v1"
 )
 
 // Handler is the Oasis Indexer V1 API handler.
 type Handler struct {
-	client *storageClient
-	logger *log.Logger
+	client  *storageClient
+	logger  *log.Logger
+	metrics metrics.RequestMetrics
 }
 
 // NewHandler creates a new V1 API handler.
 func NewHandler(db storage.TargetStorage, l *log.Logger) *Handler {
 	return &Handler{
-		client: newStorageClient(db),
-		logger: l.WithModule(moduleName),
+		client:  newStorageClient(db),
+		logger:  l.WithModule(moduleName),
+		metrics: metrics.NewDefaultRequestMetrics(moduleName),
 	}
 }
 
 // RegisterRoutes implements the APIHandler interface.
 func (h *Handler) RegisterMiddlewares(r chi.Router) {
-	r.Use(h.loggerMiddleware)
+	r.Use(h.metricsMiddleware)
 	r.Use(h.chainMiddleware)
 }
 

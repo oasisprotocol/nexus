@@ -21,7 +21,7 @@ import (
 )
 
 const (
-	moduleName = "storage.oasis"
+	moduleName = "storage_oasis"
 )
 
 // OasisNodeClient supports connections to an oasis-node instance.
