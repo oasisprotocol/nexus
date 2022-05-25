@@ -49,11 +49,13 @@ func runAnalyzer(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
+	logger := common.Logger()
+
 	m, err := migrate.New(
 		"file://../storage/migrations",
 		cfgStorageEndpoint)
 	if err != nil {
-		common.Logger().Error("migrator failed to start",
+		logger.Error("migrator failed to start",
 			"error", err,
 		)
 		os.Exit(1)
@@ -61,19 +63,19 @@ func runAnalyzer(cmd *cobra.Command, args []string) {
 
 	err = m.Up()
 	if err == migrate.ErrNoChange {
-		common.Logger().Info("migrations are up to date")
+		logger.Info("migrations are up to date")
 	} else if err != nil {
-		common.Logger().Error("migrations failed",
+		logger.Error("migrations failed",
 			"error", err,
 		)
 		os.Exit(1)
 	} else {
-		common.Logger().Info("migrations completed")
+		logger.Info("migrations completed")
 	}
 
 	service, err := NewAnalysisService()
 	if err != nil {
-		common.Logger().Error("service failed to start",
+		logger.Error("service failed to start",
 			"error", err,
 		)
 		os.Exit(1)
