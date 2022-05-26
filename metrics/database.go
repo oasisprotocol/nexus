@@ -8,7 +8,7 @@ import (
 
 var (
 	// Labels to use for partitioning database operations.
-	databaseOperationLabels = []string{"database", "operation", "status", "cause"}
+	databaseOperationLabels = []string{"database", "operation", "status"}
 
 	// Labels to use for partitioning database latencies.
 	databaseLatencyLabels = []string{"database", "operation"}
