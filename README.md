@@ -1,8 +1,34 @@
 # Oasis Block Indexer
 
-A block indexer for the Oasis Network.
+The official block indexer for the Oasis Network.
+
+## Docker Development
+
+You can create and run the Oasis Indexer with [`docker compose`](https://docs.docker.com/compose/).
+
+**Configuration**
+
+Download the current network's [genesis document](https://docs.oasis.dev/oasis-core/consensus/genesis)
+to the `docker/node/etc` directory. You will need this to run the Oasis Node container.
+
+**Build**
+
+From the repository root, you can run:
+```sh
+$ make docker-build
+```
+
+**Run**
+From the repository root, you can run:
+```sh
+$ make docker-up
+```
+
+The analyzer will run migrations automagically on start based on files in `storage/migrations`.
 
 ## Local Development
+
+Below are instructions for running the Oasis Indexer locally, without Docker.
 
 ### Oasis Node
 
@@ -30,27 +56,3 @@ docker run
 
 You should be able to `go build` the indexer and run `./oasis-indexer [cmd]` from the repo top
 level directory.
-
-## Docker Development
-
-You can create and run a Dockerized version of the Oasis Indexer as follows.
-
-**Configuration**
-
-Download the current network's [genesis document](https://docs.oasis.dev/oasis-core/consensus/genesis)
-to the `docker/node/etc` directory. You will need this to run the Oasis Node container.
-
-**Build**
-
-From within the `docker` directory, you can run:
-```sh
-$ make docker-build
-```
-
-**Run**
-From within the `docker` directory, you can run:
-```sh
-$ make docker-up
-```
-
-The analyzer will run migrations automagically on start based on files in `storage/migrations`.
