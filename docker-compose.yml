@@ -51,7 +51,7 @@ services:
       start_period: 15s
   oasis-node:
     build:
-      context: docker/oasis-node
+      context: ./docker/oasis-node
       dockerfile: ./Dockerfile
     user: oasis
     command:
@@ -60,7 +60,7 @@ services:
       - oasis-node --config /node/etc/config.yml --log.level WARN
     volumes:
       - type: bind
-        source: docker/node
+        source: ./docker/node
         target: /node
     healthcheck:
       test: oasis-node control status -a unix:/node/data/internal.sock || exit 1

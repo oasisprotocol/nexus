@@ -22,7 +22,7 @@ type Handler struct {
 // NewHandler creates a new V1 API handler.
 func NewHandler(db storage.TargetStorage, l *log.Logger) *Handler {
 	return &Handler{
-		client: newStorageClient(db),
+		client: newStorageClient(db, l),
 		logger: l.WithModule(moduleName),
 	}
 }
