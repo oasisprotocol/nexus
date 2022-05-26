@@ -26,6 +26,14 @@ $ make docker-up
 
 The analyzer will run migrations automagically on start based on files in `storage/migrations`.
 
+**Query**
+Now you can query the Oasis Indexer API
+```sh
+$ curl -X GET http://0.0.0.0:8008/v1
+```
+
+For a full list of endpoints see our [API docs](https://github.com/oasislabs/oasis-indexer/blob/main/api/README.md).
+
 ## Local Development
 
 Below are instructions for running the Oasis Indexer locally, without Docker.
