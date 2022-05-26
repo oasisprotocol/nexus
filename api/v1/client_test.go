@@ -8,8 +8,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/oasislabs/oasis-block-indexer/go/api/common"
-	"github.com/oasislabs/oasis-block-indexer/go/storage"
+	"github.com/oasislabs/oasis-indexer/go/api/common"
+	"github.com/oasislabs/oasis-indexer/go/storage"
 )
 
 // MockStorage is a mock object that implements the

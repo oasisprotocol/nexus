@@ -17,7 +17,7 @@ import (
 	config "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 	connection "github.com/oasisprotocol/oasis-sdk/client-sdk/go/connection"
 
-	"github.com/oasislabs/oasis-block-indexer/go/storage"
+	"github.com/oasislabs/oasis-indexer/go/storage"
 )
 
 const (

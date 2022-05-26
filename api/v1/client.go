@@ -10,11 +10,11 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/iancoleman/strcase"
-	"github.com/oasislabs/oasis-block-indexer/go/log"
-	"github.com/oasislabs/oasis-block-indexer/go/storage"
+	"github.com/oasislabs/oasis-indexer/go/log"
+	"github.com/oasislabs/oasis-indexer/go/storage"
 	oasisErrors "github.com/oasisprotocol/oasis-core/go/common/errors"
 
-	"github.com/oasislabs/oasis-block-indexer/go/api/common"
+	"github.com/oasislabs/oasis-indexer/go/api/common"
 )
 
 // QueryBuilder is used for building queries to submit to storage.

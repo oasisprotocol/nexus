@@ -3,8 +3,8 @@ package v1
 import (
 	"github.com/go-chi/chi"
 
-	"github.com/oasislabs/oasis-block-indexer/go/log"
-	"github.com/oasislabs/oasis-block-indexer/go/storage"
+	"github.com/oasislabs/oasis-indexer/go/log"
+	"github.com/oasislabs/oasis-indexer/go/storage"
 )
 
 const (
