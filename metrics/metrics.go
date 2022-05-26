@@ -44,7 +44,7 @@ func (s *pullService) startHandler() {
 
 // Register registers the flags for configuring a metrics service.
 func Register(cmd *cobra.Command) {
-	metricsFlags.StringVar(&cfgMetricsPullEndpoint, CfgMetricsPullEndpoint, "localhost", "Prometheus metrics address, at which metrics will be exposed")
+	metricsFlags.StringVar(&cfgMetricsPullEndpoint, CfgMetricsPullEndpoint, "localhost:8009", "metrics endpoint at which metrics will be exposed for Prometheus")
 
 	cmd.PersistentFlags().AddFlagSet(metricsFlags)
 
