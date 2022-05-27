@@ -30,12 +30,17 @@ const (
 	// the backing storage.
 	CfgStorageEndpoint = "analyzer.storage_endpoint"
 
+	// CfgMigrations is the flag for setting the directory where target
+	// database migrations reside.
+	CfgMigrations = "analyzer.migrations"
+
 	moduleName = "analysis_service"
 )
 
 var (
 	cfgStorageEndpoint string
 	cfgAnalysisConfig  string
+	cfgMigrations      string
 
 	analyzeCmd = &cobra.Command{
 		Use:   "analyze",
@@ -52,8 +57,9 @@ func runAnalyzer(cmd *cobra.Command, args []string) {
 	logger := common.Logger()
 
 	m, err := migrate.New(
-		"file://../storage/migrations",
-		cfgStorageEndpoint)
+		cfgMigrations,
+		cfgStorageEndpoint,
+	)
 	if err != nil {
 		logger.Error("migrator failed to start",
 			"error", err,
@@ -181,5 +187,6 @@ func (a *AnalysisService) Start() {
 func Register(parentCmd *cobra.Command) {
 	analyzeCmd.Flags().StringVar(&cfgAnalysisConfig, CfgAnalysisConfig, "", "path to an analysis service config file")
 	analyzeCmd.Flags().StringVar(&cfgStorageEndpoint, CfgStorageEndpoint, "", "a postgresql-compliant connection url")
+	analyzeCmd.Flags().StringVar(&cfgMigrations, CfgMigrations, "file://storage/migrations", "a directory containing target db migrations")
 	parentCmd.AddCommand(analyzeCmd)
 }
