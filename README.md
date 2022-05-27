@@ -1,6 +1,6 @@
-# Oasis Block Indexer
+# Oasis Indexer
 
-The official block indexer for the Oasis Network.
+The official indexer for the Oasis Network.
 
 ## Docker Development
 

@@ -20,9 +20,9 @@ const (
 	RequestIDContextKey ContextKey = "request_id"
 )
 
-// loggerMiddleware is a middleware that logs the start and end of each request,
+// metricsMiddleware is a middleware that measures the start and end of each request,
 // as well as other useful request information.
-func (h *Handler) loggerMiddleware(next http.Handler) http.Handler {
+func (h *Handler) metricsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		requestID := uuid.New()
 
@@ -32,12 +32,14 @@ func (h *Handler) loggerMiddleware(next http.Handler) http.Handler {
 		)
 
 		t := time.Now()
+		timer := h.metrics.RequestTimer(r.URL.Path)
 		defer func() {
 			h.logger.Info("ending request",
 				"endpoint", r.URL.Path,
 				"request_id", requestID,
 				"time", time.Since(t),
 			)
+			timer.ObserveDuration()
 		}()
 
 		next.ServeHTTP(w, r.WithContext(

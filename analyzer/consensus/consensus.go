@@ -16,6 +16,7 @@ import (
 
 	"github.com/oasislabs/oasis-indexer/go/analyzer"
 	"github.com/oasislabs/oasis-indexer/go/log"
+	"github.com/oasislabs/oasis-indexer/go/metrics"
 	"github.com/oasislabs/oasis-indexer/go/storage"
 )
 
@@ -40,13 +41,15 @@ type ConsensusMain struct {
 	rangeCfg analyzer.RangeConfig
 	target   storage.TargetStorage
 	logger   *log.Logger
+	metrics  metrics.DatabaseMetrics
 }
 
 // NewConsensusMain returns a new analyzer for the consensus layer.
 func NewConsensusMain(target storage.TargetStorage, logger *log.Logger) *ConsensusMain {
 	return &ConsensusMain{
-		target: target,
-		logger: logger.With("analyzer", analyzerName),
+		target:  target,
+		logger:  logger.With("analyzer", analyzerName),
+		metrics: metrics.NewDefaultDatabaseMetrics(analyzerName),
 	}
 }
 
@@ -179,7 +182,16 @@ func (c *ConsensusMain) processBlock(ctx context.Context, height int64) error {
 		return err
 	}
 
-	return c.target.SendBatch(ctx, batch)
+	opName := "process_block"
+	timer := c.metrics.DatabaseTimer(c.target.Name(), opName)
+	defer timer.ObserveDuration()
+
+	if err := c.target.SendBatch(ctx, batch); err != nil {
+		c.metrics.DatabaseCounter(c.target.Name(), opName, "failure").Inc()
+		return err
+	}
+	c.metrics.DatabaseCounter(c.target.Name(), opName, "success").Inc()
+	return nil
 }
 
 // prepareBlockData adds block data queries to the batch.

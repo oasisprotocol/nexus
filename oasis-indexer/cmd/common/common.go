@@ -41,7 +41,7 @@ func Init() error {
 	}
 	rootLogger = logger
 
-	// Initialize Prometheus service
+	// Initialize Prometheus service.
 	promServer, err := metrics.NewPullService(rootLogger)
 	if err != nil {
 		rootLogger.Error("failed to initialize metrics", "err", err)
