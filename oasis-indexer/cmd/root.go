@@ -7,6 +7,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/oasislabs/oasis-indexer/go/metrics"
 	"github.com/oasislabs/oasis-indexer/go/oasis-indexer/cmd/analyzer"
 	"github.com/oasislabs/oasis-indexer/go/oasis-indexer/cmd/api"
 	"github.com/oasislabs/oasis-indexer/go/oasis-indexer/cmd/common"
@@ -42,6 +43,7 @@ func init() {
 		analyzer.Register,
 		api.Register,
 		generator.Register,
+		metrics.Register,
 	} {
 		f(rootCmd)
 	}
