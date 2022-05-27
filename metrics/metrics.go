@@ -2,7 +2,6 @@
 package metrics
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
@@ -11,22 +10,18 @@ import (
 	flag "github.com/spf13/pflag"
 	"github.com/spf13/viper"
 
-	"github.com/oasislabs/oasis-block-indexer/go/log"
+	"github.com/oasislabs/oasis-indexer/go/log"
 )
 
 const (
-	// CfgMetricsPullAddr is the address at which Prometheus metrics will be exposed
-	CfgMetricsPullAddr = "metrics.pull.addr"
-
-	// CfgMetricsPullPort is the port at which Prometheus metrics will be exposed
-	CfgMetricsPullPort = "metrics.pull.port"
+	// CfgMetricsPullEndpoint is the endpoint at which Prometheus pull metrics will be exposed.
+	CfgMetricsPullEndpoint = "metrics.pull_endpoint"
 
 	moduleName = "metrics"
 )
 
 var (
-	cfgMetricsPullAddr string
-	cfgMetricsPullPort string
+	cfgMetricsPullEndpoint string
 
 	metricsFlags = flag.NewFlagSet("", flag.ContinueOnError)
 )
@@ -44,20 +39,18 @@ func (s *pullService) StartInstrumentation() {
 
 func (s *pullService) startHandler() {
 	if err := s.server.ListenAndServe(); err != nil {
-		s.logger.Error("Unable to initialize prometheus pull service", "listen_addr", cfgMetricsPullAddr, "listen_port", cfgMetricsPullPort)
+		s.logger.Error("Unable to initialize prometheus pull service", "endpoint", cfgMetricsPullEndpoint)
 	}
 }
 
 // Register registers the flags for configuring a metrics service.
 func Register(cmd *cobra.Command) {
-	metricsFlags.StringVar(&cfgMetricsPullAddr, CfgMetricsPullAddr, "localhost", "Prometheus metrics address, at which metrics will be exposed")
-	metricsFlags.StringVar(&cfgMetricsPullPort, CfgMetricsPullPort, "7000", "Prometheus metrics port, at which metrics will be exposed")
+	metricsFlags.StringVar(&cfgMetricsPullEndpoint, CfgMetricsPullEndpoint, "localhost:8009", "metrics endpoint at which metrics will be exposed for Prometheus")
 
 	cmd.PersistentFlags().AddFlagSet(metricsFlags)
 
 	for _, v := range []string{
-		CfgMetricsPullAddr,
-		CfgMetricsPullPort,
+		CfgMetricsPullEndpoint,
 	} {
 		_ = viper.BindPFlag(v, cmd.Flags().Lookup(v))
 	}
@@ -66,11 +59,10 @@ func Register(cmd *cobra.Command) {
 // Creates a new Prometheus pull service.
 func NewPullService(rootLogger *log.Logger) (*pullService, error) {
 	logger := rootLogger.WithModule(moduleName)
-	addr := fmt.Sprintf("%s:%s", cfgMetricsPullAddr, cfgMetricsPullPort)
 
 	return &pullService{
 		server: &http.Server{
-			Addr:           addr,
+			Addr:           cfgMetricsPullEndpoint,
 			Handler:        promhttp.Handler(),
 			ReadTimeout:    10 * time.Second,
 			WriteTimeout:   10 * time.Second,

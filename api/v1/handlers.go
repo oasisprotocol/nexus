@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/oasislabs/oasis-block-indexer/go/api/common"
+	"github.com/oasislabs/oasis-indexer/go/api/common"
 )
 
 // GetStatus gets the indexer status.

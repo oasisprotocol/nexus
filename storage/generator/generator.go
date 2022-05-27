@@ -13,7 +13,7 @@ import (
 	genesis "github.com/oasisprotocol/oasis-core/go/genesis/api"
 	registry "github.com/oasisprotocol/oasis-core/go/registry/api"
 
-	"github.com/oasislabs/oasis-block-indexer/go/log"
+	"github.com/oasislabs/oasis-indexer/go/log"
 )
 
 const bulkInsertBatchSize = 1000

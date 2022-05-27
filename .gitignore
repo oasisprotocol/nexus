@@ -1,6 +1,9 @@
 # Built binaries.
-oasis-indexer/oasis-indexer
+indexer
 
 # Oasis Node data.
 docker/node/data
 docker/node/etc/genesis.json
+
+# API files.
+api/index.html

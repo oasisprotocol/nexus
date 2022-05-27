@@ -1,0 +1,75 @@
+services:
+  indexer-analyzer:
+    build:
+      context: .
+      dockerfile: ./docker/indexer/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+      oasis-node:
+        condition: service_healthy
+    command:
+      - analyze
+      - --analyzer.analysis_config=/config/mainnet_config.yaml
+      - --analyzer.storage_endpoint=postgresql://indexer:password@postgres:5432/indexer?sslmode=disable
+    volumes:
+      - type: bind
+        source: ./docker/node
+        target: /node
+      - type: bind
+        source: ./storage/migrations
+        target: /storage/migrations
+      - type: bind
+        source: ./config
+        target: /config
+  indexer-api:
+    build:
+      context: .
+      dockerfile: ./docker/indexer/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - 8008:8008
+    command:
+      - serve
+      - --api.storage_endpoint=postgresql://indexer:password@postgres:5432/indexer?sslmode=disable
+      - --api.service_endpoint=0.0.0.0:8008
+  postgres:
+    image: postgres:latest
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: indexer
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: indexer
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      retries: 10
+      timeout: 5s
+      start_period: 15s
+  oasis-node:
+    build:
+      context: ./docker/oasis-node
+      dockerfile: ./Dockerfile
+    user: oasis
+    command:
+      - /bin/sh
+      - -c
+      - oasis-node --config /node/etc/config.yml --log.level WARN
+    volumes:
+      - type: bind
+        source: ./docker/node
+        target: /node
+    healthcheck:
+      test: oasis-node control status -a unix:/node/data/internal.sock || exit 1
+      interval: 5s
+      retries: 10
+      timeout: 5s
+      start_period: 30s
+
+volumes:
+  config: {}
+  go: {}
+  migrations: {}

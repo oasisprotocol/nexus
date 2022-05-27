@@ -3,9 +3,9 @@ package v1
 import (
 	"github.com/go-chi/chi"
 
-	"github.com/oasislabs/oasis-block-indexer/go/log"
-	"github.com/oasislabs/oasis-block-indexer/go/metrics"
-	"github.com/oasislabs/oasis-block-indexer/go/storage"
+	"github.com/oasislabs/oasis-indexer/go/log"
+	"github.com/oasislabs/oasis-indexer/go/metrics"
+	"github.com/oasislabs/oasis-indexer/go/storage"
 )
 
 const (
@@ -24,7 +24,7 @@ type Handler struct {
 // NewHandler creates a new V1 API handler.
 func NewHandler(db storage.TargetStorage, l *log.Logger) *Handler {
 	return &Handler{
-		client:  newStorageClient(db),
+		client:  newStorageClient(db, l),
 		logger:  l.WithModule(moduleName),
 		metrics: metrics.NewDefaultRequestMetrics(moduleName),
 	}
