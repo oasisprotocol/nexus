@@ -58,7 +58,7 @@ services:
     command:
       - /bin/sh
       - -c
-      - oasis-node --config /node/etc/config.yml --log.level WARN
+      - oasis-node --config /node/etc/config.yml
     volumes:
       - type: bind
         source: ./docker/node
