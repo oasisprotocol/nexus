@@ -74,8 +74,10 @@ func (c *ConsensusMain) Start() {
 			)
 			return
 		}
+		c.logger.Debug("setting height using range config")
 		height = c.rangeCfg.From
 	} else {
+		c.logger.Debug("setting height using latest block")
 		height = latest + 1
 	}
 

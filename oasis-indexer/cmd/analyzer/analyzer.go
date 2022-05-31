@@ -67,8 +67,7 @@ func runAnalyzer(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	err = m.Up()
-	if err == migrate.ErrNoChange {
+	if err = m.Up(); err == migrate.ErrNoChange {
 		logger.Info("migrations are up to date")
 	} else if err != nil {
 		logger.Error("migrations failed",

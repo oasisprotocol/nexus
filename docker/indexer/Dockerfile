@@ -10,5 +10,6 @@ RUN go mod download && \
 FROM golang:1.17-buster AS oasis-indexer
 
 COPY --from=oasis-indexer-builder /code/go/indexer /usr/local/bin/oasis-indexer
+COPY --from=oasis-indexer-builder /code/go/storage/migrations /storage/migrations/
 
 ENTRYPOINT ["oasis-indexer"]
