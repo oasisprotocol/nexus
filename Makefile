@@ -12,7 +12,14 @@ oasis-indexer:
 	@$(GO) build $(GOFLAGS) $(GO_EXTRA_FLAGS)
 
 docker:
-	@docker compose build
+	@docker build \
+		--tag oasislabs/oasis-node:dev \
+		--file docker/oasis-node/Dockerfile \
+		docker/oasis-node
+	@docker build \
+		--tag oasislabs/oasis-indexer:dev \
+		--file docker/indexer/Dockerfile \
+		.
 
 clean:
 	@$(GO) clean

@@ -1,8 +1,6 @@
 services:
   indexer-analyzer:
-    build:
-      context: .
-      dockerfile: ./docker/indexer/Dockerfile
+    image: oasislabs/oasis-indexer:dev
     depends_on:
       postgres:
         condition: service_healthy
@@ -24,9 +22,7 @@ services:
         source: ./config
         target: /config
   indexer-api:
-    build:
-      context: .
-      dockerfile: ./docker/indexer/Dockerfile
+    image: oasislabs/oasis-indexer:dev
     depends_on:
       postgres:
         condition: service_healthy
@@ -51,9 +47,7 @@ services:
       timeout: 5s
       start_period: 15s
   oasis-node:
-    build:
-      context: ./docker/oasis-node
-      dockerfile: ./Dockerfile
+    image: oasislabs/oasis-node:dev
     user: oasis
     command:
       - /bin/sh
