@@ -35,11 +35,11 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           build-args: |
-            VERSION=${{ env.VERSION }}
+            TAG=${GITHUB_REF#refs/*/}
           context: .
           file: docker/indexer/Dockerfile
           tags: |
-            oasislabs/oasis-indexer:${GITHUB_REF#refs/*/}
+            oasislabs/oasis-indexer:${{ env.TAG }}
           push: true
           labels: |
             org.opencontainers.image.source=${{ github.event.repository.html_url }}
