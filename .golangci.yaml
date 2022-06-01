@@ -5,6 +5,8 @@
 
 run:
   timeout: 5m
+  skip-dirs:
+    - storage/generator
 
 linters:
   # Disable all linters except the ones explicitly listed below.
@@ -15,7 +17,6 @@ linters:
     - deadcode
     - depguard
     - dogsled
-    - dupl
     - errcheck
     - exhaustive
     - exportloopref

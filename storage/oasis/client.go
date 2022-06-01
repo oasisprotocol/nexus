@@ -24,14 +24,14 @@ const (
 	moduleName = "storage_oasis"
 )
 
-// OasisNodeClient supports connections to an oasis-node instance.
-type OasisNodeClient struct {
+// Client supports connections to an oasis-node instance.
+type Client struct {
 	connection *connection.Connection
 	network    *config.Network
 }
 
-// NewOasisNodeClient creates a new oasis-node client.
-func NewOasisNodeClient(ctx context.Context, network *config.Network) (*OasisNodeClient, error) {
+// NewClient creates a new oasis-node client.
+func NewClient(ctx context.Context, network *config.Network) (*Client, error) {
 	connection, err := connection.Connect(ctx, network)
 	if err != nil {
 		return nil, err
@@ -45,14 +45,14 @@ func NewOasisNodeClient(ctx context.Context, network *config.Network) (*OasisNod
 	// Configure chain context for all signatures using chain domain separation.
 	signature.SetChainContext(chainContext)
 
-	return &OasisNodeClient{
+	return &Client{
 		&connection,
 		network,
 	}, nil
 }
 
 // GenesisDocument returns the original genesis document.
-func (c *OasisNodeClient) GenesisDocument(ctx context.Context) (*genesisAPI.Document, error) {
+func (c *Client) GenesisDocument(ctx context.Context) (*genesisAPI.Document, error) {
 	connection := *c.connection
 	doc, err := connection.Consensus().GetGenesisDocument(ctx)
 	if err != nil {
@@ -63,12 +63,12 @@ func (c *OasisNodeClient) GenesisDocument(ctx context.Context) (*genesisAPI.Docu
 }
 
 // Name returns the name of the oasis-node client.
-func (c *OasisNodeClient) Name() string {
+func (c *Client) Name() string {
 	return moduleName
 }
 
 // BlockData retrieves data about a block at the provided block height.
-func (c *OasisNodeClient) BlockData(ctx context.Context, height int64) (*storage.BlockData, error) {
+func (c *Client) BlockData(ctx context.Context, height int64) (*storage.BlockData, error) {
 	connection := *c.connection
 	block, err := connection.Consensus().GetBlock(ctx, height)
 	if err != nil {
@@ -80,8 +80,7 @@ func (c *OasisNodeClient) BlockData(ctx context.Context, height int64) (*storage
 		return nil, err
 	}
 
-	var transactions []*transaction.SignedTransaction
-
+	transactions := make([]*transaction.SignedTransaction, 0, len(transactionsWithResults.Transactions))
 	for _, bytes := range transactionsWithResults.Transactions {
 		var transaction transaction.SignedTransaction
 		if err := cbor.Unmarshal(bytes, &transaction); err != nil {
@@ -99,7 +98,7 @@ func (c *OasisNodeClient) BlockData(ctx context.Context, height int64) (*storage
 
 // BeaconData retrieves the beacon for the provided block height.
 // NOTE: The random beacon endpoint is in flux.
-func (c *OasisNodeClient) BeaconData(ctx context.Context, height int64) (*storage.BeaconData, error) {
+func (c *Client) BeaconData(ctx context.Context, height int64) (*storage.BeaconData, error) {
 	connection := *c.connection
 	beacon, err := connection.Consensus().Beacon().GetBeacon(ctx, height)
 	if err != nil {
@@ -118,7 +117,7 @@ func (c *OasisNodeClient) BeaconData(ctx context.Context, height int64) (*storag
 }
 
 // RegistryData retrieves registry events at the provided block height.
-func (c *OasisNodeClient) RegistryData(ctx context.Context, height int64) (*storage.RegistryData, error) {
+func (c *Client) RegistryData(ctx context.Context, height int64) (*storage.RegistryData, error) {
 	connection := *c.connection
 	events, err := connection.Consensus().Registry().GetEvents(ctx, height)
 	if err != nil {
@@ -131,14 +130,15 @@ func (c *OasisNodeClient) RegistryData(ctx context.Context, height int64) (*stor
 	var nodeUnfrozenEvents []*registryAPI.NodeUnfrozenEvent
 
 	for _, event := range events {
-		if event.RuntimeEvent != nil {
-			runtimeEvents = append(runtimeEvents, event.RuntimeEvent)
-		} else if event.EntityEvent != nil {
-			entityEvents = append(entityEvents, event.EntityEvent)
-		} else if event.NodeEvent != nil {
-			nodeEvents = append(nodeEvents, event.NodeEvent)
-		} else if event.NodeUnfrozenEvent != nil {
-			nodeUnfrozenEvents = append(nodeUnfrozenEvents, event.NodeUnfrozenEvent)
+		switch e := event; {
+		case e.RuntimeEvent != nil:
+			runtimeEvents = append(runtimeEvents, e.RuntimeEvent)
+		case e.EntityEvent != nil:
+			entityEvents = append(entityEvents, e.EntityEvent)
+		case e.NodeEvent != nil:
+			nodeEvents = append(nodeEvents, e.NodeEvent)
+		case e.NodeUnfrozenEvent != nil:
+			nodeUnfrozenEvents = append(nodeUnfrozenEvents, e.NodeUnfrozenEvent)
 		}
 	}
 
@@ -151,7 +151,7 @@ func (c *OasisNodeClient) RegistryData(ctx context.Context, height int64) (*stor
 }
 
 // StakingData retrieves staking events at the provided block height.
-func (c *OasisNodeClient) StakingData(ctx context.Context, height int64) (*storage.StakingData, error) {
+func (c *Client) StakingData(ctx context.Context, height int64) (*storage.StakingData, error) {
 	connection := *c.connection
 	events, err := connection.Consensus().Staking().GetEvents(ctx, height)
 	if err != nil {
@@ -164,13 +164,14 @@ func (c *OasisNodeClient) StakingData(ctx context.Context, height int64) (*stora
 	var allowanceChanges []*stakingAPI.AllowanceChangeEvent
 
 	for _, event := range events {
-		if event.Transfer != nil {
+		switch e := event; {
+		case e.Transfer != nil:
 			transfers = append(transfers, event.Transfer)
-		} else if event.Burn != nil {
+		case e.Burn != nil:
 			burns = append(burns, event.Burn)
-		} else if event.Escrow != nil {
+		case e.Escrow != nil:
 			escrows = append(escrows, event.Escrow)
-		} else if event.AllowanceChange != nil {
+		case e.AllowanceChange != nil:
 			allowanceChanges = append(allowanceChanges, event.AllowanceChange)
 		}
 	}
@@ -184,7 +185,7 @@ func (c *OasisNodeClient) StakingData(ctx context.Context, height int64) (*stora
 }
 
 // SchedulerData retrieves validators and runtime committees at the provided block height.
-func (c *OasisNodeClient) SchedulerData(ctx context.Context, height int64) (*storage.SchedulerData, error) {
+func (c *Client) SchedulerData(ctx context.Context, height int64) (*storage.SchedulerData, error) {
 	connection := *c.connection
 	validators, err := connection.Consensus().Scheduler().GetValidators(ctx, height)
 	if err != nil {
@@ -216,7 +217,7 @@ func (c *OasisNodeClient) SchedulerData(ctx context.Context, height int64) (*sto
 }
 
 // GovernanceData retrieves governance events at the provided block height.
-func (c *OasisNodeClient) GovernanceData(ctx context.Context, height int64) (*storage.GovernanceData, error) {
+func (c *Client) GovernanceData(ctx context.Context, height int64) (*storage.GovernanceData, error) {
 	connection := *c.connection
 	events, err := connection.Consensus().Governance().GetEvents(ctx, height)
 	if err != nil {
@@ -229,7 +230,8 @@ func (c *OasisNodeClient) GovernanceData(ctx context.Context, height int64) (*st
 	var votes []*governanceAPI.VoteEvent
 
 	for _, event := range events {
-		if event.ProposalSubmitted != nil {
+		switch e := event; {
+		case e.ProposalSubmitted != nil:
 			proposal, err := connection.Consensus().Governance().Proposal(ctx, &governanceAPI.ProposalQuery{
 				Height:     height,
 				ProposalID: event.ProposalSubmitted.ID,
@@ -238,9 +240,9 @@ func (c *OasisNodeClient) GovernanceData(ctx context.Context, height int64) (*st
 				return nil, err
 			}
 			submissions = append(submissions, proposal)
-		} else if event.ProposalExecuted != nil {
+		case e.ProposalExecuted != nil:
 			executions = append(executions, event.ProposalExecuted)
-		} else if event.ProposalFinalized != nil {
+		case e.ProposalFinalized != nil:
 			proposal, err := connection.Consensus().Governance().Proposal(ctx, &governanceAPI.ProposalQuery{
 				Height:     height,
 				ProposalID: event.ProposalFinalized.ID,
@@ -249,7 +251,7 @@ func (c *OasisNodeClient) GovernanceData(ctx context.Context, height int64) (*st
 				return nil, err
 			}
 			finalizations = append(finalizations, proposal)
-		} else if event.Vote != nil {
+		case e.Vote != nil:
 			votes = append(votes, event.Vote)
 		}
 	}

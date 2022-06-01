@@ -88,19 +88,20 @@ func NewGenerator() (*Generator, error) {
 // WriteMigration writes the state migration.
 func (g *Generator) WriteMigration() error {
 	var d *genesis.Document
-	if cfgGenesisFile != "" {
+	switch {
+	case cfgGenesisFile != "":
 		doc, err := g.genesisDocFromFile()
 		if err != nil {
 			return err
 		}
 		d = doc
-	} else if cfgNetworkConfigFile != "" {
+	case cfgNetworkConfigFile != "":
 		doc, err := g.genesisDocFromClient()
 		if err != nil {
 			return err
 		}
 		d = doc
-	} else {
+	default:
 		return errors.New("neither genesis file nor network config provided")
 	}
 
@@ -157,11 +158,11 @@ func (g *Generator) genesisDocFromClient() (*genesis.Document, error) {
 	}
 
 	var network config.Network
-	if err := yaml.Unmarshal([]byte(rawCfg), &network); err != nil {
+	if err = yaml.Unmarshal(rawCfg, &network); err != nil {
 		return nil, err
 	}
 
-	client, err := oasis.NewOasisNodeClient(ctx, &network)
+	client, err := oasis.NewClient(ctx, &network)
 	if err != nil {
 		return nil, err
 	}

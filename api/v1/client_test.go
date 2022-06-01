@@ -12,6 +12,10 @@ import (
 	"github.com/oasislabs/oasis-indexer/storage"
 )
 
+const (
+	queryBase = "SELECT * FROM table"
+)
+
 // MockStorage is a mock object that implements the
 // storage.TargetStorage interface.
 type MockStorage struct {
@@ -41,20 +45,18 @@ func (m *MockStorage) Name() string {
 // TestQueryBuilderBasic simply creates a new QueryBuilder
 // and sees if it returns the initial base query when built.
 func TestQueryBuilderBasic(t *testing.T) {
-	base := "SELECT * FROM table"
-	qb := NewQueryBuilder(base, NewMockStorage())
-	assert.Equal(t, base, qb.String())
+	qb := NewQueryBuilder(queryBase, NewMockStorage())
+	assert.Equal(t, queryBase, qb.String())
 }
 
 // TestQueryBuilderPagination tests adding pagination
 // to a query.
 func TestQueryBuilderPagination(t *testing.T) {
-	base := "SELECT * FROM table"
 	ctx := context.Background()
 
-	qb := NewQueryBuilder(base, NewMockStorage())
+	qb := NewQueryBuilder(queryBase, NewMockStorage())
 
-	r, err := http.NewRequest("GET", "https://fake-api.com/get-resource", nil)
+	r, err := http.NewRequestWithContext(ctx, "GET", "https://fake-api.com/get-resource", nil)
 	assert.Nil(t, err)
 
 	p, err := common.NewPagination(r)
@@ -62,16 +64,15 @@ func TestQueryBuilderPagination(t *testing.T) {
 
 	err = qb.AddPagination(ctx, p)
 	assert.Nil(t, err)
-	assert.Equal(t, fmt.Sprintf("%s\n\tORDER BY 1\n\tLIMIT 100\n\tOFFSET 0", base), qb.String())
+	assert.Equal(t, fmt.Sprintf("%s\n\tORDER BY 1\n\tLIMIT 100\n\tOFFSET 0", queryBase), qb.String())
 }
 
 // TestQueryBuilderFilters tests adding filters
 // to a query.
 func TestQueryBuilderFilters(t *testing.T) {
-	base := "SELECT * FROM table"
 	ctx := context.Background()
 
-	qb := NewQueryBuilder(base, NewMockStorage())
+	qb := NewQueryBuilder(queryBase, NewMockStorage())
 
 	filters := []string{
 		"n > 10",
@@ -80,5 +81,5 @@ func TestQueryBuilderFilters(t *testing.T) {
 	}
 	err := qb.AddFilters(ctx, filters)
 	assert.Nil(t, err)
-	assert.Equal(t, fmt.Sprintf("%s\n\tWHERE %s AND %s AND %s", base, filters[0], filters[1], filters[2]), qb.String())
+	assert.Equal(t, fmt.Sprintf("%s\n\tWHERE %s AND %s AND %s", queryBase, filters[0], filters[1], filters[2]), qb.String())
 }

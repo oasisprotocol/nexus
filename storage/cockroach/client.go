@@ -16,13 +16,13 @@ const (
 	moduleName = "cockroach"
 )
 
-type CockroachClient struct {
+type Client struct {
 	pool   *pgxpool.Pool
 	logger *log.Logger
 }
 
-// NewCockroachClient creates a new CockroachDB client.
-func NewCockroachClient(connString string, l *log.Logger) (*CockroachClient, error) {
+// NewClient creates a new CockroachDB client.
+func NewClient(connString string, l *log.Logger) (*Client, error) {
 	config, err := pgxpool.ParseConfig(connString)
 	if err != nil {
 		return nil, err
@@ -32,14 +32,14 @@ func NewCockroachClient(connString string, l *log.Logger) (*CockroachClient, err
 	if err != nil {
 		return nil, err
 	}
-	return &CockroachClient{
+	return &Client{
 		pool:   pool,
 		logger: l.WithModule(moduleName),
 	}, nil
 }
 
 // SendBatch submits a new transaction batch to CockroachDB.
-func (c *CockroachClient) SendBatch(ctx context.Context, batch *pgx.Batch) error {
+func (c *Client) SendBatch(ctx context.Context, batch *pgx.Batch) error {
 	conn, err := c.pool.Acquire(ctx)
 	if err != nil {
 		c.logger.Error("failed to acquire db connection from pool",
@@ -70,7 +70,7 @@ func (c *CockroachClient) SendBatch(ctx context.Context, batch *pgx.Batch) error
 }
 
 // Query submits a new query to CockroachDB.
-func (c *CockroachClient) Query(ctx context.Context, sql string, args ...interface{}) (pgx.Rows, error) {
+func (c *Client) Query(ctx context.Context, sql string, args ...interface{}) (pgx.Rows, error) {
 	conn, err := c.pool.Acquire(ctx)
 	if err != nil {
 		c.logger.Error("failed to acquire db connection from pool",
@@ -91,7 +91,7 @@ func (c *CockroachClient) Query(ctx context.Context, sql string, args ...interfa
 }
 
 // QueryRow submits a new query for a single row to CockroachDB.
-func (c *CockroachClient) QueryRow(ctx context.Context, sql string, args ...interface{}) (pgx.Row, error) {
+func (c *Client) QueryRow(ctx context.Context, sql string, args ...interface{}) (pgx.Row, error) {
 	conn, err := c.pool.Acquire(ctx)
 	if err != nil {
 		return nil, err
@@ -102,6 +102,6 @@ func (c *CockroachClient) QueryRow(ctx context.Context, sql string, args ...inte
 }
 
 // Name returns the name of the CockroachDB client.
-func (c *CockroachClient) Name() string {
+func (c *Client) Name() string {
 	return moduleName
 }

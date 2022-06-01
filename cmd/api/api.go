@@ -42,7 +42,7 @@ func runServer(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	service, err := NewAPIService()
+	service, err := NewService()
 	if err != nil {
 		common.Logger().Error("service failed to start",
 			"error", err,
@@ -53,23 +53,23 @@ func runServer(cmd *cobra.Command, args []string) {
 	service.Start()
 }
 
-// APIService is the Oasis Indexer's API service.
-type APIService struct {
+// Service is the Oasis Indexer's API service.
+type Service struct {
 	server string
 	api    *api.IndexerAPI
 	logger *log.Logger
 }
 
-// NewAPIService creates a new API service.
-func NewAPIService() (*APIService, error) {
+// NewService creates a new API service.
+func NewService() (*Service, error) {
 	logger := common.Logger().WithModule(moduleName)
 
-	cockroachClient, err := target.NewCockroachClient(cfgStorageEndpoint, logger)
+	cockroachClient, err := target.NewClient(cfgStorageEndpoint, logger)
 	if err != nil {
 		return nil, err
 	}
 
-	return &APIService{
+	return &Service{
 		server: cfgServiceEndpoint,
 		api:    api.NewIndexerAPI(cockroachClient, logger),
 		logger: logger,
@@ -77,7 +77,7 @@ func NewAPIService() (*APIService, error) {
 }
 
 // Start starts the API service.
-func (s *APIService) Start() {
+func (s *Service) Start() {
 	s.logger.Info("starting api service")
 
 	server := &http.Server{

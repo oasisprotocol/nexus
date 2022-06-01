@@ -16,8 +16,8 @@ const (
 	moduleName = "api"
 )
 
-// APIHandler is a handler that handles API requests.
-type APIHandler interface {
+// Handler is a handler that handles API requests.
+type Handler interface {
 	// RegisterRoutes registers middlewares for this API handler.
 	RegisterMiddlewares(chi.Router)
 
@@ -31,7 +31,7 @@ type APIHandler interface {
 // IndexerAPI is an API for the Oasis Indexer.
 type IndexerAPI struct {
 	router   *chi.Mux
-	handlers []APIHandler
+	handlers []Handler
 	logger   *log.Logger
 }
 
@@ -41,7 +41,7 @@ func NewIndexerAPI(db storage.TargetStorage, l *log.Logger) *IndexerAPI {
 
 	// Register handlers.
 	v1Handler := v1.NewHandler(db, l)
-	handlers := []APIHandler{
+	handlers := []Handler{
 		v1Handler,
 	}
 	for _, handler := range handlers {

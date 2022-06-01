@@ -57,7 +57,7 @@ func (q *QueryBuilder) AddTimestamp(ctx context.Context, height int64) error {
 	}
 
 	var processedTime time.Time
-	if err := row.Scan(&processedTime); err != nil {
+	if err = row.Scan(&processedTime); err != nil {
 		return err
 	}
 
@@ -113,7 +113,7 @@ func (c *storageClient) Status(ctx context.Context) (*Status, error) {
 	s := Status{
 		LatestChainID: LatestChainID,
 	}
-	if err := row.Scan(&s.LatestBlock, &s.LatestUpdate); err != nil {
+	if err = row.Scan(&s.LatestBlock, &s.LatestUpdate); err != nil {
 		c.logger.Info("row scan failed",
 			"request_id", ctx.Value(RequestIDContextKey),
 			"err", err.Error(),
@@ -164,7 +164,7 @@ func (c *storageClient) Blocks(ctx context.Context, r *http.Request) (*BlockList
 		)
 		return nil, common.ErrBadRequest
 	}
-	if err := qb.AddPagination(ctx, pagination); err != nil {
+	if err = qb.AddPagination(ctx, pagination); err != nil {
 		c.logger.Info("pagination add failed",
 			"request_id", ctx.Value(RequestIDContextKey),
 			"err", err.Error(),
@@ -224,7 +224,7 @@ func (c *storageClient) Block(ctx context.Context, r *http.Request) (*Block, err
 	}
 
 	var b Block
-	if err := row.Scan(&b.Height, &b.Hash, &b.Timestamp); err != nil {
+	if err = row.Scan(&b.Height, &b.Hash, &b.Timestamp); err != nil {
 		c.logger.Info("row scan failed",
 			"request_id", ctx.Value(RequestIDContextKey),
 			"err", err.Error(),
@@ -277,7 +277,7 @@ func (c *storageClient) Transactions(ctx context.Context, r *http.Request) (*Tra
 		)
 		return nil, common.ErrBadRequest
 	}
-	if err := qb.AddPagination(ctx, pagination); err != nil {
+	if err = qb.AddPagination(ctx, pagination); err != nil {
 		c.logger.Info("pagination add failed",
 			"request_id", ctx.Value(RequestIDContextKey),
 			"err", err.Error(),
@@ -349,7 +349,7 @@ func (c *storageClient) Transaction(ctx context.Context, r *http.Request) (*Tran
 
 	var t Transaction
 	var code uint64
-	if err := row.Scan(
+	if err = row.Scan(
 		&t.Height,
 		&t.Hash,
 		&t.Nonce,
@@ -401,7 +401,7 @@ func (c *storageClient) Entities(ctx context.Context, r *http.Request) (*EntityL
 		)
 		return nil, common.ErrBadRequest
 	}
-	if err := qb.AddPagination(ctx, pagination); err != nil {
+	if err = qb.AddPagination(ctx, pagination); err != nil {
 		c.logger.Info("pagination add failed",
 			"request_id", ctx.Value(RequestIDContextKey),
 			"err", err.Error(),
@@ -478,7 +478,7 @@ func (c *storageClient) Entity(ctx context.Context, r *http.Request) (*Entity, e
 	}
 
 	var e Entity
-	if err := entityRow.Scan(&e.ID, &e.Address); err != nil {
+	if err = entityRow.Scan(&e.ID, &e.Address); err != nil {
 		c.logger.Info("row scan failed",
 			"request_id", ctx.Value(RequestIDContextKey),
 			"err", err.Error(),
@@ -488,8 +488,9 @@ func (c *storageClient) Entity(ctx context.Context, r *http.Request) (*Entity, e
 
 	qb = NewQueryBuilder(fmt.Sprintf("SELECT id FROM %s.nodes", chainID), c.db)
 	if v := params.Get("height"); v != "" {
-		if h, err := strconv.ParseInt(v, 10, 64); err != nil {
-			if err := qb.AddTimestamp(ctx, h); err != nil {
+		var h int64
+		if h, err = strconv.ParseInt(v, 10, 64); err != nil {
+			if err = qb.AddTimestamp(ctx, h); err != nil {
 				c.logger.Info("timestamp add failed",
 					"request_id", ctx.Value(RequestIDContextKey),
 					"err", err.Error(),
@@ -498,7 +499,7 @@ func (c *storageClient) Entity(ctx context.Context, r *http.Request) (*Entity, e
 			}
 		}
 	}
-	if err := qb.AddFilters(ctx, []string{"entity_id = $1::text"}); err != nil {
+	if err = qb.AddFilters(ctx, []string{"entity_id = $1::text"}); err != nil {
 		c.logger.Info("filtering failed",
 			"request_id", ctx.Value(RequestIDContextKey),
 			"err", err.Error(),
@@ -576,7 +577,7 @@ func (c *storageClient) EntityNodes(ctx context.Context, r *http.Request) (*Node
 		)
 		return nil, common.ErrBadRequest
 	}
-	if err := qb.AddPagination(ctx, pagination); err != nil {
+	if err = qb.AddPagination(ctx, pagination); err != nil {
 		c.logger.Info("pagination add failed",
 			"request_id", ctx.Value(RequestIDContextKey),
 			"err", err.Error(),
@@ -669,7 +670,7 @@ func (c *storageClient) EntityNode(ctx context.Context, r *http.Request) (*Node,
 	}
 
 	var n Node
-	if err := row.Scan(
+	if err = row.Scan(
 		&n.ID,
 		&n.EntityID,
 		&n.Expiration,
@@ -745,7 +746,7 @@ func (c *storageClient) Accounts(ctx context.Context, r *http.Request) (*Account
 		)
 		return nil, common.ErrBadRequest
 	}
-	if err := qb.AddPagination(ctx, pagination); err != nil {
+	if err = qb.AddPagination(ctx, pagination); err != nil {
 		c.logger.Info("pagination add failed",
 			"request_id", ctx.Value(RequestIDContextKey),
 			"err", err.Error(),
@@ -833,7 +834,7 @@ func (c *storageClient) Account(ctx context.Context, r *http.Request) (*Account,
 	}
 
 	var a Account
-	if err := accountRow.Scan(
+	if err = accountRow.Scan(
 		&a.Address,
 		&a.Nonce,
 		&a.Available,
@@ -853,8 +854,9 @@ func (c *storageClient) Account(ctx context.Context, r *http.Request) (*Account,
 				FROM %s.allowances`,
 		chainID), c.db)
 	if v := params.Get("height"); v != "" {
-		if h, err := strconv.ParseInt(v, 10, 64); err != nil {
-			if err := qb.AddTimestamp(ctx, h); err != nil {
+		var h int64
+		if h, err = strconv.ParseInt(v, 10, 64); err != nil {
+			if err = qb.AddTimestamp(ctx, h); err != nil {
 				c.logger.Info("timestamp add failed",
 					"request_id", ctx.Value(RequestIDContextKey),
 					"err", err.Error(),
@@ -863,7 +865,7 @@ func (c *storageClient) Account(ctx context.Context, r *http.Request) (*Account,
 			}
 		}
 	}
-	if err := qb.AddFilters(ctx, []string{"owner = $1::text"}); err != nil {
+	if err = qb.AddFilters(ctx, []string{"owner = $1::text"}); err != nil {
 		c.logger.Info("filtering failed",
 			"request_id", ctx.Value(RequestIDContextKey),
 			"err", err.Error(),
@@ -926,7 +928,7 @@ func (c *storageClient) Epochs(ctx context.Context, r *http.Request) (*EpochList
 		)
 		return nil, common.ErrBadRequest
 	}
-	if err := qb.AddPagination(ctx, pagination); err != nil {
+	if err = qb.AddPagination(ctx, pagination); err != nil {
 		c.logger.Info("pagination add failed",
 			"request_id", ctx.Value(RequestIDContextKey),
 			"err", err.Error(),
@@ -985,7 +987,7 @@ func (c *storageClient) Epoch(ctx context.Context, r *http.Request) (*Epoch, err
 	}
 
 	var e Epoch
-	if err := row.Scan(&e.ID, &e.StartHeight, &e.EndHeight); err != nil {
+	if err = row.Scan(&e.ID, &e.StartHeight, &e.EndHeight); err != nil {
 		c.logger.Info("row scan failed",
 			"request_id", ctx.Value(RequestIDContextKey),
 			"err", err.Error(),
@@ -1036,7 +1038,7 @@ func (c *storageClient) Proposals(ctx context.Context, r *http.Request) (*Propos
 		)
 		return nil, common.ErrBadRequest
 	}
-	if err := qb.AddPagination(ctx, pagination); err != nil {
+	if err = qb.AddPagination(ctx, pagination); err != nil {
 		c.logger.Info("pagination add failed",
 			"request_id", ctx.Value(RequestIDContextKey),
 			"err", err.Error(),
@@ -1111,7 +1113,7 @@ func (c *storageClient) Proposal(ctx context.Context, r *http.Request) (*Proposa
 	}
 
 	var p Proposal
-	if err := row.Scan(
+	if err = row.Scan(
 		&p.ID,
 		&p.Submitter,
 		&p.State,
@@ -1157,7 +1159,7 @@ func (c *storageClient) ProposalVotes(ctx context.Context, r *http.Request) (*Pr
 		)
 		return nil, common.ErrBadRequest
 	}
-	if err := qb.AddPagination(ctx, pagination); err != nil {
+	if err = qb.AddPagination(ctx, pagination); err != nil {
 		c.logger.Info("pagination add failed",
 			"request_id", ctx.Value(RequestIDContextKey),
 			"err", err.Error(),

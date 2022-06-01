@@ -26,18 +26,18 @@ var (
 	metricsFlags = flag.NewFlagSet("", flag.ContinueOnError)
 )
 
-type pullService struct {
+type PullService struct {
 	server *http.Server
 	logger *log.Logger
 }
 
 // StartInstrumentation starts the pull metrics service.
-func (s *pullService) StartInstrumentation() {
+func (s *PullService) StartInstrumentation() {
 	s.logger.Info("Initializing pull metrics service.")
 	go s.startHandler()
 }
 
-func (s *pullService) startHandler() {
+func (s *PullService) startHandler() {
 	if err := s.server.ListenAndServe(); err != nil {
 		s.logger.Error("Unable to initialize prometheus pull service", "endpoint", cfgMetricsPullEndpoint)
 	}
@@ -57,10 +57,10 @@ func Register(cmd *cobra.Command) {
 }
 
 // Creates a new Prometheus pull service.
-func NewPullService(rootLogger *log.Logger) (*pullService, error) {
+func NewPullService(rootLogger *log.Logger) (*PullService, error) {
 	logger := rootLogger.WithModule(moduleName)
 
-	return &pullService{
+	return &PullService{
 		server: &http.Server{
 			Addr:           cfgMetricsPullEndpoint,
 			Handler:        promhttp.Handler(),
