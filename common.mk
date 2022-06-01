@@ -86,6 +86,12 @@ VERSION := $(or \
 	$(shell git describe --tags --abbrev=0)-git$(shell git describe --always --match '' --dirty=+dirty 2>/dev/null) \
 )
 
+# Project's version as the linker's string value definition.
+export GOLDFLAGS_VERSION := -X github.com/oasislabs/oasis-indexer/version.Software=$(VERSION)
+
+# Go's linker flags.
+export GOLDFLAGS ?= "$(GOLDFLAGS_VERSION)"
+
 # Helper that ensures the git workspace is clean.
 define ENSURE_GIT_CLEAN =
 	if [[ ! -z `git status --porcelain` ]]; then \
