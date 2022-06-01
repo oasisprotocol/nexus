@@ -104,6 +104,7 @@ type AnalysisServiceConfig struct {
 		Analyzers []struct {
 			Name         string `yaml:"name"`
 			RPC          string `yaml:"rpc"`
+			TLSCertFile  string `yaml:"tls_cert_file"`
 			ChainContext string `yaml:"chaincontext"`
 			From         int64  `yaml:"from"`
 			To           int64  `yaml:"to"`
@@ -145,6 +146,7 @@ func NewAnalysisService() (*AnalysisService, error) {
 			networkCfg := config.Network{
 				ChainContext: analyzerCfg.ChainContext,
 				RPC:          analyzerCfg.RPC,
+				TLSCertFile:  analyzerCfg.TLSCertFile,
 			}
 			source, err := source.NewOasisNodeClient(ctx, &networkCfg)
 			if err != nil {

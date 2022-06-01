@@ -10,7 +10,7 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/iancoleman/strcase v0.2.0
 	github.com/jackc/pgx/v4 v4.16.0
-	github.com/oasisprotocol/oasis-core/go v0.2201.3
+	github.com/oasisprotocol/oasis-core/go v0.2201.5
 	github.com/oasisprotocol/oasis-sdk/client-sdk/go v0.2.0
 	github.com/prometheus/client_golang v1.12.1
 	github.com/spf13/cobra v1.3.0
@@ -85,9 +85,11 @@ require (
 	golang.org/x/text v0.3.7 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20220314164441-57ef72a4c106 // indirect
-	google.golang.org/grpc v1.45.0 // indirect
+	google.golang.org/grpc v1.46.0 // indirect
 	google.golang.org/grpc/security/advancedtls v0.0.0-20200902210233-8630cac324bf // indirect
 	google.golang.org/protobuf v1.27.1 // indirect
 	gopkg.in/ini.v1 v1.66.2 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 )
+
+replace github.com/oasisprotocol/oasis-sdk/client-sdk/go => github.com/ravenac95/oasis-sdk/client-sdk/go v0.2.1-0.20220601223236-b7941756e2ef
