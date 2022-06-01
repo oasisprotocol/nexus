@@ -43,6 +43,9 @@ lint: $(lint-targets)
 run:
 	@docker compose up --remove-orphans
 
+release-build:
+	@goreleaser release --rm-dist
+
 # List of targets that are not actual files.
 .PHONY: \
 	all build \
