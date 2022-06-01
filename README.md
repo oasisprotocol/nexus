@@ -1,6 +1,7 @@
 # Oasis Indexer
 
-[![ci-test](https://github.com/oasislabs/oasis-indexer/actions/workflows/integration.yaml/badge.svg)](https://github.com/oasislabs/oasis-indexer/actions/workflows/integration.yaml)
+[![ci-lint](https://github.com/oasislabs/oasis-indexer/actions/workflows/ci-lint.yaml/badge.svg)](https://github.com/oasislabs/oasis-indexer/actions/workflows/ci-lint.yaml)
+[![ci-test](https://github.com/oasislabs/oasis-indexer/actions/workflows/ci-test.yaml/badge.svg)](https://github.com/oasislabs/oasis-indexer/actions/workflows/ci-test.yaml)
 
 The official indexer for the Oasis Network.
 
