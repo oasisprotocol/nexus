@@ -31,11 +31,15 @@ jobs:
           make release-build
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Set tag
+        run: |
+          echo "TAG=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+          echo $TAG
       - name: Build and push docker
         uses: docker/build-push-action@v3
         with:
           build-args: |
-            TAG=${GITHUB_REF#refs/*/}
+            TAG=${{ env.TAG }}
           context: .
           file: docker/indexer/Dockerfile
           tags: |
