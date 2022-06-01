@@ -21,8 +21,6 @@ import (
 )
 
 const (
-	chainID = "oasis_3"
-
 	analyzerName = "consensus_main_damask"
 )
 
@@ -124,7 +122,9 @@ func (m *Main) latestBlock(ctx context.Context) (int64, error) {
 				WHERE analyzer = $1
 				ORDER BY height DESC
 				LIMIT 1
-		`, chainID),
+		`, analyzer.FromHeight(m.rangeCfg.From)),
+		// ^analyzers should only analyze for a single chain ID, and we anchor this
+		// at the starting block.
 		analyzerName,
 	)
 	if err != nil {
@@ -143,6 +143,7 @@ func (m *Main) processBlock(ctx context.Context, height int64) error {
 	m.logger.Info("processing block",
 		"height", height,
 	)
+	chainID := analyzer.FromHeight(height)
 
 	group, groupCtx := errgroup.WithContext(ctx)
 
@@ -222,6 +223,8 @@ func (m *Main) prepareBlockData(ctx context.Context, height int64, batch *storag
 }
 
 func (m *Main) queueBlockInserts(batch *storage.QueryBatch, data *storage.BlockData) error {
+	chainID := analyzer.FromHeight(data.Height)
+
 	batch.Queue(fmt.Sprintf(`
 		INSERT INTO %s.blocks (height, block_hash, time, namespace, version, type, root_hash)
 			VALUES ($1, $2, $3, $4, $5, $6, $7);
@@ -239,6 +242,8 @@ func (m *Main) queueBlockInserts(batch *storage.QueryBatch, data *storage.BlockD
 }
 
 func (m *Main) queueTransactionInserts(batch *storage.QueryBatch, data *storage.BlockData) error {
+	chainID := analyzer.FromHeight(data.Height)
+
 	for i := range data.Transactions {
 		signedTx := data.Transactions[i]
 		result := data.Results[i]
@@ -275,6 +280,8 @@ func (m *Main) queueTransactionInserts(batch *storage.QueryBatch, data *storage.
 }
 
 func (m *Main) queueEventInserts(batch *storage.QueryBatch, data *storage.BlockData) error {
+	chainID := analyzer.FromHeight(data.Height)
+
 	for i := 0; i < len(data.Results); i++ {
 		for j := 0; j < len(data.Results[i].Events); j++ {
 			backend, ty, body, err := extractEventData(data.Results[i].Events[j])
@@ -324,6 +331,8 @@ func (m *Main) prepareRegistryData(ctx context.Context, height int64, batch *sto
 }
 
 func (m *Main) queueRuntimeRegistrations(batch *storage.QueryBatch, data *storage.RegistryData) error {
+	chainID := analyzer.FromHeight(data.Height)
+
 	for _, runtimeEvent := range data.RuntimeEvents {
 		keyManager := "none"
 
@@ -353,6 +362,8 @@ func (m *Main) queueRuntimeRegistrations(batch *storage.QueryBatch, data *storag
 }
 
 func (m *Main) queueEntityEvents(batch *storage.QueryBatch, data *storage.RegistryData) error {
+	chainID := analyzer.FromHeight(data.Height)
+
 	for _, entityEvent := range data.EntityEvents {
 		var nodes []string
 		for _, node := range entityEvent.Entity.Nodes {
@@ -373,6 +384,8 @@ func (m *Main) queueEntityEvents(batch *storage.QueryBatch, data *storage.Regist
 }
 
 func (m *Main) queueNodeRegistrations(batch *storage.QueryBatch, data *storage.RegistryData) error {
+	chainID := analyzer.FromHeight(data.Height)
+
 	for _, nodeEvent := range data.NodeEvent {
 		vrfPubkey := ""
 
@@ -458,6 +471,8 @@ func (m *Main) prepareStakingData(ctx context.Context, height int64, batch *stor
 }
 
 func (m *Main) queueTransfers(batch *storage.QueryBatch, data *storage.StakingData) error {
+	chainID := analyzer.FromHeight(data.Height)
+
 	for _, transfer := range data.Transfers {
 		from := transfer.From.String()
 		to := transfer.To.String()
@@ -485,6 +500,8 @@ func (m *Main) queueTransfers(batch *storage.QueryBatch, data *storage.StakingDa
 }
 
 func (m *Main) queueBurns(batch *storage.QueryBatch, data *storage.StakingData) error {
+	chainID := analyzer.FromHeight(data.Height)
+
 	for _, burn := range data.Burns {
 		batch.Queue(fmt.Sprintf(`
 			UPDATE %s.accounts
@@ -500,6 +517,8 @@ func (m *Main) queueBurns(batch *storage.QueryBatch, data *storage.StakingData) 
 }
 
 func (m *Main) queueEscrows(batch *storage.QueryBatch, data *storage.StakingData) error {
+	chainID := analyzer.FromHeight(data.Height)
+
 	for _, escrow := range data.Escrows {
 		switch e := escrow; {
 		case e.Add != nil:
@@ -592,6 +611,8 @@ func (m *Main) queueEscrows(batch *storage.QueryBatch, data *storage.StakingData
 }
 
 func (m *Main) queueAllowanceChanges(batch *storage.QueryBatch, data *storage.StakingData) error {
+	chainID := analyzer.FromHeight(data.Height)
+
 	for _, allowanceChange := range data.AllowanceChanges {
 		batch.Queue(fmt.Sprintf(`
 			INSERT INTO %s.allowances (owner, beneficiary, allowance)
@@ -633,6 +654,8 @@ func (m *Main) prepareSchedulerData(ctx context.Context, height int64, batch *st
 }
 
 func (m *Main) queueValidatorUpdates(batch *storage.QueryBatch, data *storage.SchedulerData) error {
+	chainID := analyzer.FromHeight(data.Height)
+
 	for _, validator := range data.Validators {
 		batch.Queue(fmt.Sprintf(`
 			UPDATE %s.nodes SET voting_power = $2
@@ -647,6 +670,8 @@ func (m *Main) queueValidatorUpdates(batch *storage.QueryBatch, data *storage.Sc
 }
 
 func (m *Main) queueCommitteeUpdates(batch *storage.QueryBatch, data *storage.SchedulerData) error {
+	chainID := analyzer.FromHeight(data.Height)
+
 	batch.Queue(fmt.Sprintf(`
 		TRUNCATE %s.committee_members;
 	`, chainID))
@@ -700,6 +725,8 @@ func (m *Main) prepareGovernanceData(ctx context.Context, height int64, batch *s
 }
 
 func (m *Main) queueSubmissions(batch *storage.QueryBatch, data *storage.GovernanceData) error {
+	chainID := analyzer.FromHeight(data.Height)
+
 	for _, submission := range data.ProposalSubmissions {
 		if submission.Content.Upgrade != nil {
 			batch.Queue(fmt.Sprintf(`
@@ -738,6 +765,8 @@ func (m *Main) queueSubmissions(batch *storage.QueryBatch, data *storage.Governa
 }
 
 func (m *Main) queueExecutions(batch *storage.QueryBatch, data *storage.GovernanceData) error {
+	chainID := analyzer.FromHeight(data.Height)
+
 	for _, execution := range data.ProposalExecutions {
 		batch.Queue(fmt.Sprintf(`
 			UPDATE %s.proposals
@@ -752,6 +781,8 @@ func (m *Main) queueExecutions(batch *storage.QueryBatch, data *storage.Governan
 }
 
 func (m *Main) queueFinalizations(batch *storage.QueryBatch, data *storage.GovernanceData) error {
+	chainID := analyzer.FromHeight(data.Height)
+
 	for _, finalization := range data.ProposalFinalizations {
 		batch.Queue(fmt.Sprintf(`
 			UPDATE %s.proposals
@@ -775,6 +806,8 @@ func (m *Main) queueFinalizations(batch *storage.QueryBatch, data *storage.Gover
 }
 
 func (m *Main) queueVotes(batch *storage.QueryBatch, data *storage.GovernanceData) error {
+	chainID := analyzer.FromHeight(data.Height)
+
 	for _, vote := range data.Votes {
 		batch.Queue(fmt.Sprintf(`
 			INSERT INTO %s.votes (proposal, voter, vote)

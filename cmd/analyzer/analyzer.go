@@ -19,8 +19,8 @@ import (
 	"github.com/oasislabs/oasis-indexer/analyzer/consensus"
 	"github.com/oasislabs/oasis-indexer/cmd/common"
 	"github.com/oasislabs/oasis-indexer/log"
-	target "github.com/oasislabs/oasis-indexer/storage/cockroach"
 	source "github.com/oasislabs/oasis-indexer/storage/oasis"
+	target "github.com/oasislabs/oasis-indexer/storage/postgres"
 )
 
 const (
