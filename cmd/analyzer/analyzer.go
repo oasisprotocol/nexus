@@ -17,8 +17,8 @@ import (
 
 	"github.com/oasislabs/oasis-indexer/analyzer"
 	"github.com/oasislabs/oasis-indexer/analyzer/consensus"
+	"github.com/oasislabs/oasis-indexer/cmd/common"
 	"github.com/oasislabs/oasis-indexer/log"
-	"github.com/oasislabs/oasis-indexer/oasis-indexer/cmd/common"
 	target "github.com/oasislabs/oasis-indexer/storage/cockroach"
 	source "github.com/oasislabs/oasis-indexer/storage/oasis"
 )

@@ -9,7 +9,7 @@ build:
 	@$(ECHO) "$(CYAN)*** Everything built successfully!$(OFF)"
 
 oasis-indexer:
-	@$(GO) build -o oasis-indexer/oasis-indexer oasis-indexer/main.go
+	@$(GO) build $(GOFLAGS) $(GO_EXTRA_FLAGS)
 
 docker:
 	@docker compose build

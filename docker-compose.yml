@@ -12,7 +12,7 @@ services:
       - analyze
       - --analyzer.analysis_config=/config/mainnet.yaml
       - --analyzer.storage_endpoint=postgresql://indexer:password@postgres:5432/indexer?sslmode=disable
-      - --analyzer.migrations=file://../storage/migrations
+      - --analyzer.migrations=file:///storage/migrations
     volumes:
       - type: bind
         source: ./docker/node
@@ -45,7 +45,7 @@ services:
       POSTGRES_PASSWORD: password
       POSTGRES_DB: indexer
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U indexer"]
       interval: 5s
       retries: 10
       timeout: 5s

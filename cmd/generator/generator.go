@@ -16,8 +16,8 @@ import (
 
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 
+	"github.com/oasislabs/oasis-indexer/cmd/common"
 	"github.com/oasislabs/oasis-indexer/log"
-	"github.com/oasislabs/oasis-indexer/oasis-indexer/cmd/common"
 	"github.com/oasislabs/oasis-indexer/storage/generator"
 	"github.com/oasislabs/oasis-indexer/storage/oasis"
 )
