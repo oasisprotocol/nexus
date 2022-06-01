@@ -15,5 +15,6 @@ Push the tag upstream:
 git push origin "${VERSION}"
 ```
 
-This will trigger the `release` GitHub Action that will create and publish a release, together with the changelog with changes since the previous release.
+This will trigger the `release` GitHub Action that will create and publish a
+release, together with the changelog with changes since the previous release.
 Commit messages are used to generate the changelog.
