@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/oasislabs/oasis-indexer/go/api/common"
+	"github.com/oasislabs/oasis-indexer/api/common"
 )
 
 // GetStatus gets the indexer status.
@@ -17,7 +17,12 @@ func (h *Handler) GetStatus(w http.ResponseWriter, r *http.Request) {
 			"request_id", ctx.Value(RequestIDContextKey),
 			"error", err,
 		)
-		common.ReplyWithError(w, err)
+		if err := common.ReplyWithError(w, err); err != nil {
+			h.logger.Error("failed to reply with error",
+				"request_id", ctx.Value(RequestIDContextKey),
+				"error", err,
+			)
+		}
 		h.metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
 		return
 	}
@@ -28,15 +33,26 @@ func (h *Handler) GetStatus(w http.ResponseWriter, r *http.Request) {
 			"request_id", ctx.Value(RequestIDContextKey),
 			"error", err,
 		)
-		common.ReplyWithError(w, err)
+		if err := common.ReplyWithError(w, err); err != nil {
+			h.logger.Error("failed to reply with error",
+				"request_id", ctx.Value(RequestIDContextKey),
+				"error", err,
+			)
+		}
 		h.metrics.RequestCounter(r.URL.Path, "failure", "serde_error").Inc()
 		return
 	}
 
 	w.Header().Set("content-type", "application/json")
-	w.Write(resp)
-
-	h.metrics.RequestCounter(r.URL.Path, "success").Inc()
+	if _, err := w.Write(resp); err != nil {
+		h.logger.Error("failed to write response",
+			"request_id", ctx.Value(RequestIDContextKey),
+			"error", err,
+		)
+		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
+	} else {
+		h.metrics.RequestCounter(r.URL.Path, "success").Inc()
+	}
 }
 
 // ListBlocks gets a list of consensus blocks.
@@ -49,7 +65,12 @@ func (h *Handler) ListBlocks(w http.ResponseWriter, r *http.Request) {
 			"request_id", ctx.Value(RequestIDContextKey),
 			"error", err,
 		)
-		common.ReplyWithError(w, err)
+		if err := common.ReplyWithError(w, err); err != nil {
+			h.logger.Error("failed to reply with error",
+				"request_id", ctx.Value(RequestIDContextKey),
+				"error", err,
+			)
+		}
 		h.metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
 		return
 	}
@@ -60,15 +81,26 @@ func (h *Handler) ListBlocks(w http.ResponseWriter, r *http.Request) {
 			"request_id", ctx.Value(RequestIDContextKey),
 			"error", err,
 		)
-		common.ReplyWithError(w, err)
+		if err := common.ReplyWithError(w, err); err != nil {
+			h.logger.Error("failed to reply with error",
+				"request_id", ctx.Value(RequestIDContextKey),
+				"error", err,
+			)
+		}
 		h.metrics.RequestCounter(r.URL.Path, "failure", "serde_error").Inc()
 		return
 	}
 
 	w.Header().Set("content-type", "application/json")
-	w.Write(resp)
-
-	h.metrics.RequestCounter(r.URL.Path, "success").Inc()
+	if _, err := w.Write(resp); err != nil {
+		h.logger.Error("failed to write response",
+			"request_id", ctx.Value(RequestIDContextKey),
+			"error", err,
+		)
+		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
+	} else {
+		h.metrics.RequestCounter(r.URL.Path, "success").Inc()
+	}
 }
 
 // GetBlock gets a consensus block.
@@ -81,7 +113,12 @@ func (h *Handler) GetBlock(w http.ResponseWriter, r *http.Request) {
 			"request_id", ctx.Value(RequestIDContextKey),
 			"error", err,
 		)
-		common.ReplyWithError(w, err)
+		if err := common.ReplyWithError(w, err); err != nil {
+			h.logger.Error("failed to reply with error",
+				"request_id", ctx.Value(RequestIDContextKey),
+				"error", err,
+			)
+		}
 		h.metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
 		return
 	}
@@ -92,15 +129,26 @@ func (h *Handler) GetBlock(w http.ResponseWriter, r *http.Request) {
 			"request_id", ctx.Value(RequestIDContextKey),
 			"error", err,
 		)
-		common.ReplyWithError(w, err)
+		if err := common.ReplyWithError(w, err); err != nil {
+			h.logger.Error("failed to reply with error",
+				"request_id", ctx.Value(RequestIDContextKey),
+				"error", err,
+			)
+		}
 		h.metrics.RequestCounter(r.URL.Path, "failure", "serde_error").Inc()
 		return
 	}
 
 	w.Header().Set("content-type", "application/json")
-	w.Write(resp)
-
-	h.metrics.RequestCounter(r.URL.Path, "success").Inc()
+	if _, err := w.Write(resp); err != nil {
+		h.logger.Error("failed to write response",
+			"request_id", ctx.Value(RequestIDContextKey),
+			"error", err,
+		)
+		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
+	} else {
+		h.metrics.RequestCounter(r.URL.Path, "success").Inc()
+	}
 }
 
 // ListTransactions gets a list of consensus transactions.
@@ -113,7 +161,12 @@ func (h *Handler) ListTransactions(w http.ResponseWriter, r *http.Request) {
 			"request_id", ctx.Value(RequestIDContextKey),
 			"error", err,
 		)
-		common.ReplyWithError(w, err)
+		if err := common.ReplyWithError(w, err); err != nil {
+			h.logger.Error("failed to reply with error",
+				"request_id", ctx.Value(RequestIDContextKey),
+				"error", err,
+			)
+		}
 		h.metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
 		return
 	}
@@ -124,15 +177,26 @@ func (h *Handler) ListTransactions(w http.ResponseWriter, r *http.Request) {
 			"request_id", ctx.Value(RequestIDContextKey),
 			"error", err,
 		)
-		common.ReplyWithError(w, err)
+		if err := common.ReplyWithError(w, err); err != nil {
+			h.logger.Error("failed to reply with error",
+				"request_id", ctx.Value(RequestIDContextKey),
+				"error", err,
+			)
+		}
 		h.metrics.RequestCounter(r.URL.Path, "failure", "serde_error").Inc()
 		return
 	}
 
 	w.Header().Set("content-type", "application/json")
-	w.Write(resp)
-
-	h.metrics.RequestCounter(r.URL.Path, "success").Inc()
+	if _, err := w.Write(resp); err != nil {
+		h.logger.Error("failed to write response",
+			"request_id", ctx.Value(RequestIDContextKey),
+			"error", err,
+		)
+		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
+	} else {
+		h.metrics.RequestCounter(r.URL.Path, "success").Inc()
+	}
 }
 
 // GetTransaction gets a consensus transaction.
@@ -145,7 +209,12 @@ func (h *Handler) GetTransaction(w http.ResponseWriter, r *http.Request) {
 			"request_id", ctx.Value(RequestIDContextKey),
 			"error", err,
 		)
-		common.ReplyWithError(w, err)
+		if err := common.ReplyWithError(w, err); err != nil {
+			h.logger.Error("failed to reply with error",
+				"request_id", ctx.Value(RequestIDContextKey),
+				"error", err,
+			)
+		}
 		h.metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
 		return
 	}
@@ -156,15 +225,26 @@ func (h *Handler) GetTransaction(w http.ResponseWriter, r *http.Request) {
 			"request_id", ctx.Value(RequestIDContextKey),
 			"error", err,
 		)
-		common.ReplyWithError(w, err)
+		if err := common.ReplyWithError(w, err); err != nil {
+			h.logger.Error("failed to reply with error",
+				"request_id", ctx.Value(RequestIDContextKey),
+				"error", err,
+			)
+		}
 		h.metrics.RequestCounter(r.URL.Path, "failure", "serde_error").Inc()
 		return
 	}
 
 	w.Header().Set("content-type", "application/json")
-	w.Write(resp)
-
-	h.metrics.RequestCounter(r.URL.Path, "success").Inc()
+	if _, err := w.Write(resp); err != nil {
+		h.logger.Error("failed to write response",
+			"request_id", ctx.Value(RequestIDContextKey),
+			"error", err,
+		)
+		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
+	} else {
+		h.metrics.RequestCounter(r.URL.Path, "success").Inc()
+	}
 }
 
 // ListEntities gets a list of registered entities.
@@ -177,7 +257,12 @@ func (h *Handler) ListEntities(w http.ResponseWriter, r *http.Request) {
 			"request_id", ctx.Value(RequestIDContextKey),
 			"error", err,
 		)
-		common.ReplyWithError(w, err)
+		if err := common.ReplyWithError(w, err); err != nil {
+			h.logger.Error("failed to reply with error",
+				"request_id", ctx.Value(RequestIDContextKey),
+				"error", err,
+			)
+		}
 		h.metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
 		return
 	}
@@ -188,15 +273,26 @@ func (h *Handler) ListEntities(w http.ResponseWriter, r *http.Request) {
 			"request_id", ctx.Value(RequestIDContextKey),
 			"error", err,
 		)
-		common.ReplyWithError(w, err)
+		if err := common.ReplyWithError(w, err); err != nil {
+			h.logger.Error("failed to reply with error",
+				"request_id", ctx.Value(RequestIDContextKey),
+				"error", err,
+			)
+		}
 		h.metrics.RequestCounter(r.URL.Path, "failure", "serde_error").Inc()
 		return
 	}
 
 	w.Header().Set("content-type", "application/json")
-	w.Write(resp)
-
-	h.metrics.RequestCounter(r.URL.Path, "success").Inc()
+	if _, err := w.Write(resp); err != nil {
+		h.logger.Error("failed to write response",
+			"request_id", ctx.Value(RequestIDContextKey),
+			"error", err,
+		)
+		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
+	} else {
+		h.metrics.RequestCounter(r.URL.Path, "success").Inc()
+	}
 }
 
 // GetEntity gets a registered entity.
@@ -209,7 +305,12 @@ func (h *Handler) GetEntity(w http.ResponseWriter, r *http.Request) {
 			"request_id", ctx.Value(RequestIDContextKey),
 			"error", err,
 		)
-		common.ReplyWithError(w, err)
+		if err := common.ReplyWithError(w, err); err != nil {
+			h.logger.Error("failed to reply with error",
+				"request_id", ctx.Value(RequestIDContextKey),
+				"error", err,
+			)
+		}
 		h.metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
 		return
 	}
@@ -220,15 +321,26 @@ func (h *Handler) GetEntity(w http.ResponseWriter, r *http.Request) {
 			"request_id", ctx.Value(RequestIDContextKey),
 			"error", err,
 		)
-		common.ReplyWithError(w, err)
+		if err := common.ReplyWithError(w, err); err != nil {
+			h.logger.Error("failed to reply with error",
+				"request_id", ctx.Value(RequestIDContextKey),
+				"error", err,
+			)
+		}
 		h.metrics.RequestCounter(r.URL.Path, "failure", "serde_error").Inc()
 		return
 	}
 
 	w.Header().Set("content-type", "application/json")
-	w.Write(resp)
-
-	h.metrics.RequestCounter(r.URL.Path, "success").Inc()
+	if _, err := w.Write(resp); err != nil {
+		h.logger.Error("failed to write response",
+			"request_id", ctx.Value(RequestIDContextKey),
+			"error", err,
+		)
+		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
+	} else {
+		h.metrics.RequestCounter(r.URL.Path, "success").Inc()
+	}
 }
 
 // ListEntityNodes gets a list of nodes controlled by the provided entity.
@@ -241,7 +353,12 @@ func (h *Handler) ListEntityNodes(w http.ResponseWriter, r *http.Request) {
 			"request_id", ctx.Value(RequestIDContextKey),
 			"error", err,
 		)
-		common.ReplyWithError(w, err)
+		if err := common.ReplyWithError(w, err); err != nil {
+			h.logger.Error("failed to reply with error",
+				"request_id", ctx.Value(RequestIDContextKey),
+				"error", err,
+			)
+		}
 		h.metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
 		return
 	}
@@ -252,15 +369,26 @@ func (h *Handler) ListEntityNodes(w http.ResponseWriter, r *http.Request) {
 			"request_id", ctx.Value(RequestIDContextKey),
 			"error", err,
 		)
-		common.ReplyWithError(w, err)
+		if err := common.ReplyWithError(w, err); err != nil {
+			h.logger.Error("failed to reply with error",
+				"request_id", ctx.Value(RequestIDContextKey),
+				"error", err,
+			)
+		}
 		h.metrics.RequestCounter(r.URL.Path, "failure", "serde_error").Inc()
 		return
 	}
 
 	w.Header().Set("content-type", "application/json")
-	w.Write(resp)
-
-	h.metrics.RequestCounter(r.URL.Path, "success").Inc()
+	if _, err := w.Write(resp); err != nil {
+		h.logger.Error("failed to write response",
+			"request_id", ctx.Value(RequestIDContextKey),
+			"error", err,
+		)
+		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
+	} else {
+		h.metrics.RequestCounter(r.URL.Path, "success").Inc()
+	}
 }
 
 // GetEntityNode gets a node controlled by the provided entity.
@@ -273,7 +401,12 @@ func (h *Handler) GetEntityNode(w http.ResponseWriter, r *http.Request) {
 			"request_id", ctx.Value(RequestIDContextKey),
 			"error", err,
 		)
-		common.ReplyWithError(w, err)
+		if err := common.ReplyWithError(w, err); err != nil {
+			h.logger.Error("failed to reply with error",
+				"request_id", ctx.Value(RequestIDContextKey),
+				"error", err,
+			)
+		}
 		h.metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
 		return
 	}
@@ -284,15 +417,26 @@ func (h *Handler) GetEntityNode(w http.ResponseWriter, r *http.Request) {
 			"request_id", ctx.Value(RequestIDContextKey),
 			"error", err,
 		)
-		common.ReplyWithError(w, err)
+		if err := common.ReplyWithError(w, err); err != nil {
+			h.logger.Error("failed to reply with error",
+				"request_id", ctx.Value(RequestIDContextKey),
+				"error", err,
+			)
+		}
 		h.metrics.RequestCounter(r.URL.Path, "failure", "serde_error").Inc()
 		return
 	}
 
 	w.Header().Set("content-type", "application/json")
-	w.Write(resp)
-
-	h.metrics.RequestCounter(r.URL.Path, "success").Inc()
+	if _, err := w.Write(resp); err != nil {
+		h.logger.Error("failed to write response",
+			"request_id", ctx.Value(RequestIDContextKey),
+			"error", err,
+		)
+		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
+	} else {
+		h.metrics.RequestCounter(r.URL.Path, "success").Inc()
+	}
 }
 
 // ListAccounts gets a list of consensus accounts.
@@ -305,7 +449,12 @@ func (h *Handler) ListAccounts(w http.ResponseWriter, r *http.Request) {
 			"request_id", ctx.Value(RequestIDContextKey),
 			"error", err,
 		)
-		common.ReplyWithError(w, err)
+		if err := common.ReplyWithError(w, err); err != nil {
+			h.logger.Error("failed to reply with error",
+				"request_id", ctx.Value(RequestIDContextKey),
+				"error", err,
+			)
+		}
 		h.metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
 		return
 	}
@@ -316,15 +465,26 @@ func (h *Handler) ListAccounts(w http.ResponseWriter, r *http.Request) {
 			"request_id", ctx.Value(RequestIDContextKey),
 			"error", err,
 		)
-		common.ReplyWithError(w, err)
+		if err := common.ReplyWithError(w, err); err != nil {
+			h.logger.Error("failed to reply with error",
+				"request_id", ctx.Value(RequestIDContextKey),
+				"error", err,
+			)
+		}
 		h.metrics.RequestCounter(r.URL.Path, "failure", "serde_error").Inc()
 		return
 	}
 
 	w.Header().Set("content-type", "application/json")
-	w.Write(resp)
-
-	h.metrics.RequestCounter(r.URL.Path, "success").Inc()
+	if _, err := w.Write(resp); err != nil {
+		h.logger.Error("failed to write response",
+			"request_id", ctx.Value(RequestIDContextKey),
+			"error", err,
+		)
+		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
+	} else {
+		h.metrics.RequestCounter(r.URL.Path, "success").Inc()
+	}
 }
 
 // GetAccount gets a consensus account.
@@ -337,7 +497,12 @@ func (h *Handler) GetAccount(w http.ResponseWriter, r *http.Request) {
 			"request_id", ctx.Value(RequestIDContextKey),
 			"error", err,
 		)
-		common.ReplyWithError(w, err)
+		if err := common.ReplyWithError(w, err); err != nil {
+			h.logger.Error("failed to reply with error",
+				"request_id", ctx.Value(RequestIDContextKey),
+				"error", err,
+			)
+		}
 		h.metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
 		return
 	}
@@ -348,15 +513,26 @@ func (h *Handler) GetAccount(w http.ResponseWriter, r *http.Request) {
 			"request_id", ctx.Value(RequestIDContextKey),
 			"error", err,
 		)
-		common.ReplyWithError(w, err)
+		if err := common.ReplyWithError(w, err); err != nil {
+			h.logger.Error("failed to reply with error",
+				"request_id", ctx.Value(RequestIDContextKey),
+				"error", err,
+			)
+		}
 		h.metrics.RequestCounter(r.URL.Path, "failure", "serde_error").Inc()
 		return
 	}
 
 	w.Header().Set("content-type", "application/json")
-	w.Write(resp)
-
-	h.metrics.RequestCounter(r.URL.Path, "success").Inc()
+	if _, err := w.Write(resp); err != nil {
+		h.logger.Error("failed to write response",
+			"request_id", ctx.Value(RequestIDContextKey),
+			"error", err,
+		)
+		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
+	} else {
+		h.metrics.RequestCounter(r.URL.Path, "success").Inc()
+	}
 }
 
 // ListEpochs gets a list of epochs.
@@ -369,7 +545,12 @@ func (h *Handler) ListEpochs(w http.ResponseWriter, r *http.Request) {
 			"request_id", ctx.Value(RequestIDContextKey),
 			"error", err,
 		)
-		common.ReplyWithError(w, err)
+		if err := common.ReplyWithError(w, err); err != nil {
+			h.logger.Error("failed to reply with error",
+				"request_id", ctx.Value(RequestIDContextKey),
+				"error", err,
+			)
+		}
 		h.metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
 		return
 	}
@@ -381,15 +562,26 @@ func (h *Handler) ListEpochs(w http.ResponseWriter, r *http.Request) {
 			"request_id", ctx.Value(RequestIDContextKey),
 			"error", err,
 		)
-		common.ReplyWithError(w, err)
+		if err := common.ReplyWithError(w, err); err != nil {
+			h.logger.Error("failed to reply with error",
+				"request_id", ctx.Value(RequestIDContextKey),
+				"error", err,
+			)
+		}
 		h.metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
 		return
 	}
 
 	w.Header().Set("content-type", "application/json")
-	w.Write(resp)
-
-	h.metrics.RequestCounter(r.URL.Path, "success").Inc()
+	if _, err := w.Write(resp); err != nil {
+		h.logger.Error("failed to write response",
+			"request_id", ctx.Value(RequestIDContextKey),
+			"error", err,
+		)
+		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
+	} else {
+		h.metrics.RequestCounter(r.URL.Path, "success").Inc()
+	}
 }
 
 // GetEpoch gets an epoch.
@@ -402,7 +594,12 @@ func (h *Handler) GetEpoch(w http.ResponseWriter, r *http.Request) {
 			"request_id", ctx.Value(RequestIDContextKey),
 			"error", err,
 		)
-		common.ReplyWithError(w, err)
+		if err := common.ReplyWithError(w, err); err != nil {
+			h.logger.Error("failed to reply with error",
+				"request_id", ctx.Value(RequestIDContextKey),
+				"error", err,
+			)
+		}
 		h.metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
 		return
 	}
@@ -414,15 +611,26 @@ func (h *Handler) GetEpoch(w http.ResponseWriter, r *http.Request) {
 			"request_id", ctx.Value(RequestIDContextKey),
 			"error", err,
 		)
-		common.ReplyWithError(w, err)
+		if err := common.ReplyWithError(w, err); err != nil {
+			h.logger.Error("failed to reply with error",
+				"request_id", ctx.Value(RequestIDContextKey),
+				"error", err,
+			)
+		}
 		h.metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
 		return
 	}
 
 	w.Header().Set("content-type", "application/json")
-	w.Write(resp)
-
-	h.metrics.RequestCounter(r.URL.Path, "success").Inc()
+	if _, err := w.Write(resp); err != nil {
+		h.logger.Error("failed to write response",
+			"request_id", ctx.Value(RequestIDContextKey),
+			"error", err,
+		)
+		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
+	} else {
+		h.metrics.RequestCounter(r.URL.Path, "success").Inc()
+	}
 }
 
 // ListProposals gets a list of governance proposals.
@@ -435,7 +643,12 @@ func (h *Handler) ListProposals(w http.ResponseWriter, r *http.Request) {
 			"request_id", ctx.Value(RequestIDContextKey),
 			"error", err,
 		)
-		common.ReplyWithError(w, err)
+		if err := common.ReplyWithError(w, err); err != nil {
+			h.logger.Error("failed to reply with error",
+				"request_id", ctx.Value(RequestIDContextKey),
+				"error", err,
+			)
+		}
 		h.metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
 		return
 	}
@@ -446,15 +659,26 @@ func (h *Handler) ListProposals(w http.ResponseWriter, r *http.Request) {
 			"request_id", ctx.Value(RequestIDContextKey),
 			"error", err,
 		)
-		common.ReplyWithError(w, err)
+		if err := common.ReplyWithError(w, err); err != nil {
+			h.logger.Error("failed to reply with error",
+				"request_id", ctx.Value(RequestIDContextKey),
+				"error", err,
+			)
+		}
 		h.metrics.RequestCounter(r.URL.Path, "failure", "serde_error").Inc()
 		return
 	}
 
 	w.Header().Set("content-type", "application/json")
-	w.Write(resp)
-
-	h.metrics.RequestCounter(r.URL.Path, "success").Inc()
+	if _, err := w.Write(resp); err != nil {
+		h.logger.Error("failed to write response",
+			"request_id", ctx.Value(RequestIDContextKey),
+			"error", err,
+		)
+		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
+	} else {
+		h.metrics.RequestCounter(r.URL.Path, "success").Inc()
+	}
 }
 
 // GetProposal gets a governance proposal.
@@ -467,7 +691,12 @@ func (h *Handler) GetProposal(w http.ResponseWriter, r *http.Request) {
 			"request_id", ctx.Value(RequestIDContextKey),
 			"error", err,
 		)
-		common.ReplyWithError(w, err)
+		if err := common.ReplyWithError(w, err); err != nil {
+			h.logger.Error("failed to reply with error",
+				"request_id", ctx.Value(RequestIDContextKey),
+				"error", err,
+			)
+		}
 		h.metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
 		return
 	}
@@ -478,15 +707,26 @@ func (h *Handler) GetProposal(w http.ResponseWriter, r *http.Request) {
 			"request_id", ctx.Value(RequestIDContextKey),
 			"error", err,
 		)
-		common.ReplyWithError(w, err)
+		if err := common.ReplyWithError(w, err); err != nil {
+			h.logger.Error("failed to reply with error",
+				"request_id", ctx.Value(RequestIDContextKey),
+				"error", err,
+			)
+		}
 		h.metrics.RequestCounter(r.URL.Path, "failure", "serde_error").Inc()
 		return
 	}
 
 	w.Header().Set("content-type", "application/json")
-	w.Write(resp)
-
-	h.metrics.RequestCounter(r.URL.Path, "success").Inc()
+	if _, err := w.Write(resp); err != nil {
+		h.logger.Error("failed to write response",
+			"request_id", ctx.Value(RequestIDContextKey),
+			"error", err,
+		)
+		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
+	} else {
+		h.metrics.RequestCounter(r.URL.Path, "success").Inc()
+	}
 }
 
 // GetProposalVotes gets votes for a governance proposal.
@@ -499,7 +739,12 @@ func (h *Handler) GetProposalVotes(w http.ResponseWriter, r *http.Request) {
 			"request_id", ctx.Value(RequestIDContextKey),
 			"error", err,
 		)
-		common.ReplyWithError(w, err)
+		if err := common.ReplyWithError(w, err); err != nil {
+			h.logger.Error("failed to reply with error",
+				"request_id", ctx.Value(RequestIDContextKey),
+				"error", err,
+			)
+		}
 		h.metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
 		return
 	}
@@ -510,13 +755,24 @@ func (h *Handler) GetProposalVotes(w http.ResponseWriter, r *http.Request) {
 			"request_id", ctx.Value(RequestIDContextKey),
 			"error", err,
 		)
-		common.ReplyWithError(w, err)
+		if err := common.ReplyWithError(w, err); err != nil {
+			h.logger.Error("failed to reply with error",
+				"request_id", ctx.Value(RequestIDContextKey),
+				"error", err,
+			)
+		}
 		h.metrics.RequestCounter(r.URL.Path, "failure", "serde_error").Inc()
 		return
 	}
 
 	w.Header().Set("content-type", "application/json")
-	w.Write(resp)
-
-	h.metrics.RequestCounter(r.URL.Path, "success").Inc()
+	if _, err := w.Write(resp); err != nil {
+		h.logger.Error("failed to write response",
+			"request_id", ctx.Value(RequestIDContextKey),
+			"error", err,
+		)
+		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
+	} else {
+		h.metrics.RequestCounter(r.URL.Path, "success").Inc()
+	}
 }

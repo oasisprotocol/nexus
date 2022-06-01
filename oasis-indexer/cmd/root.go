@@ -7,10 +7,10 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/oasislabs/oasis-indexer/go/oasis-indexer/cmd/analyzer"
-	"github.com/oasislabs/oasis-indexer/go/oasis-indexer/cmd/api"
-	"github.com/oasislabs/oasis-indexer/go/oasis-indexer/cmd/common"
-	"github.com/oasislabs/oasis-indexer/go/oasis-indexer/cmd/generator"
+	"github.com/oasislabs/oasis-indexer/oasis-indexer/cmd/analyzer"
+	"github.com/oasislabs/oasis-indexer/oasis-indexer/cmd/api"
+	"github.com/oasislabs/oasis-indexer/oasis-indexer/cmd/common"
+	"github.com/oasislabs/oasis-indexer/oasis-indexer/cmd/generator"
 )
 
 var rootCmd = &cobra.Command{

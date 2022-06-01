@@ -1,13 +1,22 @@
-name: CI Testing
+# NOTE: This name appears in GitHub's Checks API and in workflow's status badge.
+name: ci-test
 
+# Trigger the workflow when:
 on:
+  # A push occurs to one of the matched branches.
   push:
     branches:
       - main
-  
+  # Or when a pull request event occurs for a pull request against one of the
+  # matched branches.
   pull_request:
     branches:
       - main
+
+# Cancel in-progress jobs on same branch.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build-go:
@@ -15,16 +24,11 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-
-      - name: Install Go
+      - name: Setup Go
         uses: actions/setup-go@v3
         with:
-          go-version: '1.17'
-
-      - name: Lint indexer
-        run: if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then exit 1; fi
-
-      - name: Build indexer
+          go-version: "1.17"
+      - name: Build Go
         run: |
           go build -v ./...
           go test -v ./...

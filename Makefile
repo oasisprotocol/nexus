@@ -1,15 +1,55 @@
-.PHONY: docker-build docker-up go-build go-test
+include common.mk
 
-SHELL := /bin/bash
+all: build
 
-docker-build:
-	docker compose build
+build:
+	@$(ECHO) "$(CYAN)*** Building...$(OFF)"
+	@$(MAKE) oasis-indexer
+	@$(MAKE) docker
+	@$(ECHO) "$(CYAN)*** Everything built successfully!$(OFF)"
 
-docker-up:
-	docker compose up
+oasis-indexer:
+	@$(GO) build -o oasis-indexer/oasis-indexer oasis-indexer/main.go
 
-go-build:
-	go build -o indexer oasis-indexer/main.go
+docker:
+	@docker compose build
 
-go-test:
-	go test -v ./...
+clean:
+	@$(GO) clean
+
+test:
+	@$(GO) test ./... -v
+
+# Format code.
+fmt:
+	@$(ECHO) "$(CYAN)*** Running Go formatters...$(OFF)"
+	@gofumpt -s -w .
+	@goimports -w -local github.com/oasislabs/oasis-indexer .
+
+# Lint code, commits and documentation.
+lint-targets := lint-go lint-go-mod-tidy
+
+lint-go:
+	@$(ECHO) "$(CYAN)*** Running Go linters...$(OFF)"
+	@env -u GOPATH golangci-lint run
+
+lint-go-mod-tidy:
+	@$(ECHO) "$(CYAN)*** Checking go mod tidy...$(OFF)"
+	@$(ENSURE_GIT_CLEAN)
+	@$(CHECK_GO_MOD_TIDY)
+
+lint: $(lint-targets)
+
+run:
+	@docker compose up --remove-orphans
+
+# List of targets that are not actual files.
+.PHONY: \
+	all build \
+	oasis-indexer \
+	docker \
+	clean \
+	test \
+	fmt \
+	$(lint-targets) lint \
+	run

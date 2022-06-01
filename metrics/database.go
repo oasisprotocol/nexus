@@ -33,14 +33,14 @@ func NewDefaultDatabaseMetrics(pkg string) DatabaseMetrics {
 		DatabaseOperations: prometheus.NewCounterVec(
 			prometheus.CounterOpts{
 				Name: fmt.Sprintf("%s_db_operations", pkg),
-				Help: fmt.Sprintf("How many database operations occur, partitioned by operation, status, and cause."),
+				Help: "How many database operations occur, partitioned by operation, status, and cause.",
 			},
 			databaseOperationLabels,
 		),
 		DatabaseLatencies: prometheus.NewSummaryVec(
 			prometheus.SummaryOpts{
 				Name: fmt.Sprintf("%s_db_latencies", pkg),
-				Help: fmt.Sprintf("How long database operations take, partitioned by operation."),
+				Help: "How long database operations take, partitioned by operation.",
 			},
 			databaseLatencyLabels,
 		),

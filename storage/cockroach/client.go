@@ -9,7 +9,7 @@ import (
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 
-	"github.com/oasislabs/oasis-indexer/go/log"
+	"github.com/oasislabs/oasis-indexer/log"
 )
 
 const (

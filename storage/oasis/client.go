@@ -17,7 +17,7 @@ import (
 	config "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 	connection "github.com/oasisprotocol/oasis-sdk/client-sdk/go/connection"
 
-	"github.com/oasislabs/oasis-indexer/go/storage"
+	"github.com/oasislabs/oasis-indexer/storage"
 )
 
 const (
@@ -191,7 +191,7 @@ func (c *OasisNodeClient) SchedulerData(ctx context.Context, height int64) (*sto
 		return nil, err
 	}
 
-	var committees = make(map[common.Namespace][]*schedulerAPI.Committee, len(c.network.ParaTimes.All))
+	committees := make(map[common.Namespace][]*schedulerAPI.Committee, len(c.network.ParaTimes.All))
 
 	for name := range c.network.ParaTimes.All {
 		var runtimeID common.Namespace

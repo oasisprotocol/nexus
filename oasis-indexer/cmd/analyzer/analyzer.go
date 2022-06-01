@@ -14,12 +14,12 @@ import (
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
 
-	"github.com/oasislabs/oasis-indexer/go/analyzer"
-	"github.com/oasislabs/oasis-indexer/go/analyzer/consensus"
-	"github.com/oasislabs/oasis-indexer/go/log"
-	"github.com/oasislabs/oasis-indexer/go/oasis-indexer/cmd/common"
-	target "github.com/oasislabs/oasis-indexer/go/storage/cockroach"
-	source "github.com/oasislabs/oasis-indexer/go/storage/oasis"
+	"github.com/oasislabs/oasis-indexer/analyzer"
+	"github.com/oasislabs/oasis-indexer/analyzer/consensus"
+	"github.com/oasislabs/oasis-indexer/log"
+	"github.com/oasislabs/oasis-indexer/oasis-indexer/cmd/common"
+	target "github.com/oasislabs/oasis-indexer/storage/cockroach"
+	source "github.com/oasislabs/oasis-indexer/storage/oasis"
 )
 
 const (

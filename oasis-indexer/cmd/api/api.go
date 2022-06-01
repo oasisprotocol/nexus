@@ -8,10 +8,10 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/oasislabs/oasis-indexer/go/api"
-	"github.com/oasislabs/oasis-indexer/go/log"
-	"github.com/oasislabs/oasis-indexer/go/oasis-indexer/cmd/common"
-	target "github.com/oasislabs/oasis-indexer/go/storage/cockroach"
+	"github.com/oasislabs/oasis-indexer/api"
+	"github.com/oasislabs/oasis-indexer/log"
+	"github.com/oasislabs/oasis-indexer/oasis-indexer/cmd/common"
+	target "github.com/oasislabs/oasis-indexer/storage/cockroach"
 )
 
 const (

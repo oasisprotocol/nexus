@@ -14,10 +14,10 @@ import (
 	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/oasislabs/oasis-indexer/go/analyzer"
-	"github.com/oasislabs/oasis-indexer/go/log"
-	"github.com/oasislabs/oasis-indexer/go/metrics"
-	"github.com/oasislabs/oasis-indexer/go/storage"
+	"github.com/oasislabs/oasis-indexer/analyzer"
+	"github.com/oasislabs/oasis-indexer/log"
+	"github.com/oasislabs/oasis-indexer/metrics"
+	"github.com/oasislabs/oasis-indexer/storage"
 )
 
 const (
@@ -307,7 +307,6 @@ func (c *ConsensusMain) prepareRegistryData(ctx context.Context, height int64, b
 	}
 
 	data, err := source.RegistryData(ctx, height)
-
 	if err != nil {
 		return err
 	}
@@ -616,7 +615,6 @@ func (c *ConsensusMain) prepareSchedulerData(ctx context.Context, height int64, 
 	}
 
 	data, err := source.SchedulerData(ctx, height)
-
 	if err != nil {
 		return err
 	}

@@ -10,7 +10,7 @@ import (
 	flag "github.com/spf13/pflag"
 	"github.com/spf13/viper"
 
-	"github.com/oasislabs/oasis-indexer/go/log"
+	"github.com/oasislabs/oasis-indexer/log"
 )
 
 const (

@@ -3,9 +3,9 @@ package v1
 import (
 	"github.com/go-chi/chi"
 
-	"github.com/oasislabs/oasis-indexer/go/log"
-	"github.com/oasislabs/oasis-indexer/go/metrics"
-	"github.com/oasislabs/oasis-indexer/go/storage"
+	"github.com/oasislabs/oasis-indexer/log"
+	"github.com/oasislabs/oasis-indexer/metrics"
+	"github.com/oasislabs/oasis-indexer/storage"
 )
 
 const (
@@ -39,12 +39,10 @@ func (h *Handler) RegisterMiddlewares(r chi.Router) {
 // RegisterRoutes implements the APIHandler interface.
 func (h *Handler) RegisterRoutes(r chi.Router) {
 	r.Route("/v1", func(r chi.Router) {
-
 		// Status endpoints.
 		r.Get("/", h.GetStatus)
 
 		r.Route("/consensus", func(r chi.Router) {
-
 			// Block Endpoints.
 			r.Route("/blocks", func(r chi.Router) {
 				r.Get("/", h.ListBlocks)

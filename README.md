@@ -1,5 +1,7 @@
 # Oasis Indexer
 
+[![ci-test](https://github.com/oasislabs/oasis-indexer/actions/workflows/integration.yaml/badge.svg)](https://github.com/oasislabs/oasis-indexer/actions/workflows/integration.yaml)
+
 The official indexer for the Oasis Network.
 
 ## Docker Development
@@ -15,13 +17,13 @@ to the `docker/node/etc` directory. You will need this to run the Oasis Node con
 
 From the repository root, you can run:
 ```sh
-$ make docker-build
+$ make docker
 ```
 
 **Run**
 From the repository root, you can run:
 ```sh
-$ make docker-up
+$ make run
 ```
 
 The analyzer will run migrations automagically on start based on files in `storage/migrations`.
