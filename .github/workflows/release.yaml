@@ -31,9 +31,6 @@ jobs:
           make release-build
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Set release version
-        run: |
-          echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> ${GITHUB_ENV}
       - name: Build and push docker
         uses: docker/build-push-action@v3
         with:
@@ -42,7 +39,7 @@ jobs:
           context: .
           file: docker/indexer/Dockerfile
           tags: |
-            oasislabs/oasis-indexer:${RELEASE_VERSION}
+            oasislabs/oasis-indexer:${GITHUB_REF#refs/*/}
           push: true
           labels: |
             org.opencontainers.image.source=${{ github.event.repository.html_url }}
