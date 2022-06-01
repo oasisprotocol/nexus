@@ -45,7 +45,7 @@ services:
       POSTGRES_PASSWORD: password
       POSTGRES_DB: indexer
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U indexer"]
       interval: 5s
       retries: 10
       timeout: 5s
@@ -58,7 +58,7 @@ services:
     command:
       - /bin/sh
       - -c
-      - oasis-node --config /node/etc/config.yml --log.level WARN
+      - oasis-node --config /node/etc/config.yml
     volumes:
       - type: bind
         source: ./docker/node
