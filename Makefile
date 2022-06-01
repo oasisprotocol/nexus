@@ -40,6 +40,14 @@ lint-go-mod-tidy:
 
 lint: $(lint-targets)
 
+# Documentation
+docs-targets := docs-api
+
+docs-api:
+	@npx --no redoc-cli build api/spec/v1.yaml -o index.html
+
+docs: $(docs-targets)
+
 run:
 	@docker compose up --remove-orphans
 
@@ -55,4 +63,5 @@ release-build:
 	test \
 	fmt \
 	$(lint-targets) lint \
+	$(docs-targets) docs \
 	run

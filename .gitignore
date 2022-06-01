@@ -6,4 +6,4 @@ docker/node/data
 docker/node/etc/genesis.json
 
 # API files.
-api/index.html
+index.html
