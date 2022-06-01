@@ -23,7 +23,7 @@ test:
 # Format code.
 fmt:
 	@$(ECHO) "$(CYAN)*** Running Go formatters...$(OFF)"
-	@gofumpt -s -w .
+	@gofumpt -w .
 	@goimports -w -local github.com/oasislabs/oasis-indexer .
 
 # Lint code, commits and documentation.
