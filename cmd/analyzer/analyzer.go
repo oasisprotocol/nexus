@@ -56,17 +56,28 @@ func runAnalyzer(cmd *cobra.Command, args []string) {
 		logger.Error("analysis config not provided")
 		os.Exit(1)
 	}
-	aCfg := cfg.Analysis
+
+	service, err := Init(cfg.Analysis)
+	if err != nil {
+		os.Exit(1)
+	}
+
+	service.Start()
+}
+
+// Init initializes the analysis service.
+func Init(cfg *config.AnalysisConfig) (*Service, error) {
+	logger := common.Logger()
 
 	m, err := migrate.New(
-		aCfg.Migrations,
-		aCfg.Storage.Endpoint,
+		cfg.Migrations,
+		cfg.Storage.Endpoint,
 	)
 	if err != nil {
 		logger.Error("migrator failed to start",
 			"error", err,
 		)
-		os.Exit(1)
+		return nil, err
 	}
 
 	switch err = m.Up(); {
@@ -76,31 +87,30 @@ func runAnalyzer(cmd *cobra.Command, args []string) {
 		logger.Error("migrations failed",
 			"error", err,
 		)
-		os.Exit(1)
+		return nil, err
 	default:
 		logger.Info("migrations completed")
 	}
 
-	service, err := NewAnalysisService(aCfg)
+	service, err := NewService(cfg)
 	if err != nil {
 		logger.Error("service failed to start",
 			"error", err,
 		)
-		os.Exit(1)
+		return nil, err
 	}
-
-	service.Start()
+	return service, nil
 }
 
-// AnalysisService is the Oasis Indexer's analysis service.
-type AnalysisService struct {
+// Service is the Oasis Indexer's analysis service.
+type Service struct {
 	Analyzers map[string]analyzer.Analyzer
 
 	logger *log.Logger
 }
 
-// NewAnalysisService creates new AnalysisService.
-func NewAnalysisService(cfg *config.AnalysisConfig) (*AnalysisService, error) {
+// NewService creates new Service.
+func NewService(cfg *config.AnalysisConfig) (*Service, error) {
 	ctx := context.Background()
 	logger := common.Logger().WithModule(moduleName)
 
@@ -152,14 +162,14 @@ func NewAnalysisService(cfg *config.AnalysisConfig) (*AnalysisService, error) {
 
 	logger.Info("initialized analyzers")
 
-	return &AnalysisService{
+	return &Service{
 		Analyzers: analyzers,
 		logger:    logger,
 	}, nil
 }
 
 // Start starts the analysis service.
-func (a *AnalysisService) Start() {
+func (a *Service) Start() {
 	a.logger.Info("starting analysis service")
 
 	var wg sync.WaitGroup

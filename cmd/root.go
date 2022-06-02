@@ -4,6 +4,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"sync"
 
 	"github.com/spf13/cobra"
 
@@ -25,6 +26,12 @@ var (
 	}
 )
 
+// Service is a service run by the indexer.
+type Service interface {
+	// Start starts the service.
+	Start()
+}
+
 func rootMain(cmd *cobra.Command, args []string) {
 	// Initialize analyzer config.
 	cfg, err := config.InitConfig(configFile)
@@ -36,8 +43,28 @@ func rootMain(cmd *cobra.Command, args []string) {
 	if err := common.Init(cfg); err != nil {
 		os.Exit(1)
 	}
+	logger := common.Logger()
 
-	// TODO: Start oasis-indexer
+	analysisService, err := analyzer.Init(cfg.Analysis)
+	if err != nil {
+		os.Exit(1)
+	}
+	apiService, err := api.Init(cfg.Server)
+	if err != nil {
+		os.Exit(1)
+	}
+
+	var wg sync.WaitGroup
+	for _, service := range []Service{
+		analysisService,
+		apiService,
+	} {
+		wg.Add(1)
+		go service.Start()
+	}
+
+	logger.Info("started all services")
+	wg.Wait()
 }
 
 // Execute spawns the main entry point after handing the config file.

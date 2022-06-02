@@ -157,11 +157,11 @@ type ChainID string
 // FromHeight returns the ChainID for the provided height.
 func FromHeight(height int64) ChainID {
 	switch {
-	case height < 702000:
+	case 0 < height && height < 702000:
 		return "mainnet_beta_2020_10_01_1601568000"
-	case height < 3027601:
+	case 702000 <= height && height < 3027601:
 		return "oasis_1"
-	case height < 8048956:
+	case 3027601 <= height && height < 8048956:
 		return "oasis_2"
 	}
 	return "oasis_3"

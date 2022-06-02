@@ -2,6 +2,7 @@
 package api
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 	"time"
@@ -36,6 +37,7 @@ func runServer(cmd *cobra.Command, args []string) {
 	// Initialize config.
 	cfg, err := config.InitConfig(configFile)
 	if err != nil {
+		fmt.Printf("indexer-api: %s", err.Error())
 		os.Exit(1)
 	}
 
@@ -49,17 +51,27 @@ func runServer(cmd *cobra.Command, args []string) {
 		logger.Error("server config not provided")
 		os.Exit(1)
 	}
-	sCfg := cfg.Server
 
-	service, err := NewService(sCfg)
+	service, err := Init(cfg.Server)
 	if err != nil {
-		logger.Error("service failed to start",
-			"error", err,
-		)
 		os.Exit(1)
 	}
 
 	service.Start()
+}
+
+// Init initializes the API service.
+func Init(cfg *config.ServerConfig) (*Service, error) {
+	logger := common.Logger()
+
+	service, err := NewService(cfg)
+	if err != nil {
+		logger.Error("service failed to start",
+			"error", err,
+		)
+		return nil, err
+	}
+	return service, nil
 }
 
 // Service is the Oasis Indexer's API service.

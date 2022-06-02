@@ -11,17 +11,18 @@ analysis:
       from: 8048956
   storage:
     endpoint: postgresql://indexer:password@postgres:5432/indexer?sslmode=disable
-    backend: postgresql
+    backend: postgres
+  migrations: file:///storage/migrations
 
 server:
-  endpoint: localhost:8008
+  endpoint: 0.0.0.0:8008
   storage:
     endpoint: postgresql://indexer:password@postgres:5432/indexer?sslmode=disable
-    backend: postgresql
+    backend: postgres
 
 log:
   level: info
   format: json
 
 metrics:
-  pull_endpoint: localhost:8009
+  pull_endpoint: 0.0.0.0:8009
