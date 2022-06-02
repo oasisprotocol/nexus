@@ -28,7 +28,7 @@ From the repository root, you can run:
 $ make run
 ```
 
-The analyzer will run migrations automagically on start based on files in `storage/migrations`.
+The analyzer will run migrations on start based on files in `storage/migrations`.
 See [Generating Migrations](#generating-migrations) for information on generating new migrations.
 
 **Query**
