@@ -20,6 +20,9 @@ type Analyzer interface {
 // RangeConfig specifies configuration parameters
 // for processing a range of blocks.
 type RangeConfig struct {
+	// ChainID is the chain ID for the underlying network.
+	ChainID string
+
 	// From is the first block to process in this range, inclusive.
 	From int64
 
@@ -149,25 +152,4 @@ func (e *Event) String() string {
 	default:
 		return "Unknown"
 	}
-}
-
-// ChainID is the ID of a chain.
-type ChainID string
-
-// FromHeight returns the ChainID for the provided height.
-func FromHeight(height int64) ChainID {
-	switch {
-	case 0 < height && height < 702000:
-		return "mainnet_beta_2020_10_01_1601568000"
-	case 702000 <= height && height < 3027601:
-		return "oasis_1"
-	case 3027601 <= height && height < 8048956:
-		return "oasis_2"
-	}
-	return "oasis_3"
-}
-
-// String returns the string representation of a ChainID.
-func (c ChainID) String() string {
-	return string(c)
 }

@@ -78,6 +78,9 @@ type AnalyzerConfig struct {
 	// Name is the name of the analyzer.
 	Name string `koanf:"name"`
 
+	// ChainID is the chain ID of the chain this analyzer will process.
+	ChainID string `koanf:"chain_id"`
+
 	// RPC is the node endpoint.
 	RPC string `koanf:"rpc"`
 
@@ -98,6 +101,9 @@ type AnalyzerConfig struct {
 func (cfg *AnalyzerConfig) Validate() error {
 	if cfg.Name == "" {
 		return fmt.Errorf("malformed analyzer name '%s'", cfg.Name)
+	}
+	if cfg.ChainID == "" {
+		return fmt.Errorf("malformed chain id '%s'", cfg.ChainID)
 	}
 	if cfg.RPC == "" {
 		return fmt.Errorf("malformed RPC endpoint '%s'", cfg.RPC)

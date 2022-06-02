@@ -138,9 +138,10 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) {
 
 			// Configure analyzer.
 			a.SetRange(analyzer.RangeConfig{
-				From:   analyzerCfg.From,
-				To:     analyzerCfg.To,
-				Source: source,
+				ChainID: analyzerCfg.ChainID,
+				From:    analyzerCfg.From,
+				To:      analyzerCfg.To,
+				Source:  source,
 			})
 		}
 	}
