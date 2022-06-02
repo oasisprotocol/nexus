@@ -3,7 +3,6 @@ package analyzer
 
 import (
 	"context"
-	"io/ioutil"
 	"os"
 	"sync"
 
@@ -11,37 +10,27 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/database/postgres" // postgres driver for golang_migrate
 	_ "github.com/golang-migrate/migrate/v4/source/file"       // support file scheme for golang_migrate
 	_ "github.com/golang-migrate/migrate/v4/source/github"     // support github scheme for golang_migrate
-	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
+	oasisConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v2"
 
 	"github.com/oasislabs/oasis-indexer/analyzer"
 	"github.com/oasislabs/oasis-indexer/analyzer/consensus"
 	"github.com/oasislabs/oasis-indexer/cmd/common"
+	"github.com/oasislabs/oasis-indexer/config"
 	"github.com/oasislabs/oasis-indexer/log"
+	"github.com/oasislabs/oasis-indexer/storage"
+	"github.com/oasislabs/oasis-indexer/storage/cockroach"
 	source "github.com/oasislabs/oasis-indexer/storage/oasis"
-	target "github.com/oasislabs/oasis-indexer/storage/postgres"
+	"github.com/oasislabs/oasis-indexer/storage/postgres"
 )
 
 const (
-	// CfgAnalysisConfig is the config file for configuration of chain analyzers.
-	CfgAnalysisConfig = "analyzer.analysis_config"
-
-	// CfgStorageEndpoint is the flag for setting the connection string to
-	// the backing storage.
-	CfgStorageEndpoint = "analyzer.storage_endpoint"
-
-	// CfgMigrations is the flag for setting the directory where target
-	// database migrations reside.
-	CfgMigrations = "analyzer.migrations"
-
 	moduleName = "analysis_service"
 )
 
 var (
-	cfgStorageEndpoint string
-	cfgAnalysisConfig  string
-	cfgMigrations      string
+	// Path to the configuration file.
+	configFile string
 
 	analyzeCmd = &cobra.Command{
 		Use:   "analyze",
@@ -51,15 +40,27 @@ var (
 )
 
 func runAnalyzer(cmd *cobra.Command, args []string) {
-	if err := common.Init(); err != nil {
+	// Initialize config.
+	cfg, err := config.InitConfig(configFile)
+	if err != nil {
 		os.Exit(1)
 	}
 
+	// Initialize common environment.
+	if err := common.Init(cfg); err != nil {
+		os.Exit(1)
+	}
 	logger := common.Logger()
 
+	if cfg.Analysis == nil {
+		logger.Error("analysis config not provided")
+		os.Exit(1)
+	}
+	aCfg := cfg.Analysis
+
 	m, err := migrate.New(
-		cfgMigrations,
-		cfgStorageEndpoint,
+		aCfg.Migrations,
+		aCfg.Storage.Endpoint,
 	)
 	if err != nil {
 		logger.Error("migrator failed to start",
@@ -80,7 +81,7 @@ func runAnalyzer(cmd *cobra.Command, args []string) {
 		logger.Info("migrations completed")
 	}
 
-	service, err := NewAnalysisService()
+	service, err := NewAnalysisService(aCfg)
 	if err != nil {
 		logger.Error("service failed to start",
 			"error", err,
@@ -98,51 +99,40 @@ type AnalysisService struct {
 	logger *log.Logger
 }
 
-// AnalysisServiceConfig contains configuration parameters for network analyzers.
-type AnalysisServiceConfig struct {
-	Spec struct {
-		Analyzers []struct {
-			Name         string `yaml:"name"`
-			RPC          string `yaml:"rpc"`
-			ChainContext string `yaml:"chaincontext"`
-			From         int64  `yaml:"from"`
-			To           int64  `yaml:"to"`
-		} `yaml:"analyzers"`
-	}
-}
-
 // NewAnalysisService creates new AnalysisService.
-func NewAnalysisService() (*AnalysisService, error) {
+func NewAnalysisService(cfg *config.AnalysisConfig) (*AnalysisService, error) {
 	ctx := context.Background()
 	logger := common.Logger().WithModule(moduleName)
 
-	// Get analyzer configurations.
-	rawServiceCfg, err := ioutil.ReadFile(cfgAnalysisConfig)
-	if err != nil {
-		return nil, err
-	}
-	var serviceCfg AnalysisServiceConfig
-	if err = yaml.Unmarshal(rawServiceCfg, &serviceCfg); err != nil {
+	// Initialize target storage.
+	var backend config.StorageBackend
+	if err := backend.Set(cfg.Storage.Backend); err != nil {
 		return nil, err
 	}
 
-	// Initialize target storage.
-	cockroachClient, err := target.NewClient(cfgStorageEndpoint, logger)
+	var client storage.TargetStorage
+	var err error
+	switch backend {
+	case config.BackendCockroach:
+		client, err = cockroach.NewClient(cfg.Storage.Endpoint, logger)
+	case config.BackendPostgres:
+		client, err = postgres.NewClient(cfg.Storage.Endpoint, logger)
+	}
 	if err != nil {
 		return nil, err
 	}
 
 	// Initialize analyzers.
-	consensusMainDamask := consensus.NewMain(cockroachClient, logger)
+	consensusMainDamask := consensus.NewMain(client, logger)
 
 	analyzers := map[string]analyzer.Analyzer{
 		consensusMainDamask.Name(): consensusMainDamask,
 	}
 
-	for _, analyzerCfg := range serviceCfg.Spec.Analyzers {
+	for _, analyzerCfg := range cfg.Analyzers {
 		if a, ok := analyzers[analyzerCfg.Name]; ok {
 			// Initialize source.
-			networkCfg := config.Network{
+			networkCfg := oasisConfig.Network{
 				ChainContext: analyzerCfg.ChainContext,
 				RPC:          analyzerCfg.RPC,
 			}
@@ -186,8 +176,6 @@ func (a *AnalysisService) Start() {
 
 // Register registers the process sub-command.
 func Register(parentCmd *cobra.Command) {
-	analyzeCmd.Flags().StringVar(&cfgAnalysisConfig, CfgAnalysisConfig, "", "path to an analysis service config file")
-	analyzeCmd.Flags().StringVar(&cfgStorageEndpoint, CfgStorageEndpoint, "", "a postgresql-compliant connection url")
-	analyzeCmd.Flags().StringVar(&cfgMigrations, CfgMigrations, "file://storage/migrations", "a directory containing target db migrations")
+	analyzeCmd.Flags().StringVar(&configFile, "config", "./config/local.yml", "path to the config.yml file")
 	parentCmd.AddCommand(analyzeCmd)
 }

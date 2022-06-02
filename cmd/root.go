@@ -11,17 +11,29 @@ import (
 	"github.com/oasislabs/oasis-indexer/cmd/api"
 	"github.com/oasislabs/oasis-indexer/cmd/common"
 	"github.com/oasislabs/oasis-indexer/cmd/generator"
-	"github.com/oasislabs/oasis-indexer/metrics"
+	"github.com/oasislabs/oasis-indexer/config"
 )
 
-var rootCmd = &cobra.Command{
-	Use:   "oasis-indexer",
-	Short: "Oasis Indexer",
-	Run:   rootMain,
-}
+var (
+	// Path to the configuration file.
+	configFile string
+
+	rootCmd = &cobra.Command{
+		Use:   "oasis-indexer",
+		Short: "Oasis Indexer",
+		Run:   rootMain,
+	}
+)
 
 func rootMain(cmd *cobra.Command, args []string) {
-	if err := common.Init(); err != nil {
+	// Initialize analyzer config.
+	cfg, err := config.InitConfig(configFile)
+	if err != nil {
+		os.Exit(1)
+	}
+
+	// Initialize common environment.
+	if err := common.Init(cfg); err != nil {
 		os.Exit(1)
 	}
 
@@ -37,13 +49,12 @@ func Execute() {
 }
 
 func init() {
-	common.RegisterFlags(rootCmd)
+	rootCmd.Flags().StringVar(&configFile, "config", "./conf/server.yml", "path to the config.yml file")
 
 	for _, f := range []func(*cobra.Command){
 		analyzer.Register,
 		api.Register,
 		generator.Register,
-		metrics.Register,
 	} {
 		f(rootCmd)
 	}

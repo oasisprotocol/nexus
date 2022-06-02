@@ -1,4 +1,4 @@
-spec:
+analysis:
   analyzers:
     - name: consensus_main_cobalt
       rpc: unix:/node/data/internal.sock
@@ -9,3 +9,19 @@ spec:
       rpc: unix:/node/data/internal.sock
       chaincontext: b11b369e0da5bb230b220127f5e7b242d385ef8c6f54906243f30af63c815535
       from: 8048956
+  storage:
+    endpoint: postgresql://indexer:password@postgres:5432/indexer?sslmode=disable
+    backend: postgresql
+
+server:
+  endpoint: localhost:8008
+  storage:
+    endpoint: postgresql://indexer:password@postgres:5432/indexer?sslmode=disable
+    backend: postgresql
+
+log:
+  level: info
+  format: json
+
+metrics:
+  pull_endpoint: localhost:8009

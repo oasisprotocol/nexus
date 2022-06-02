@@ -10,25 +10,20 @@ import (
 
 	"github.com/oasislabs/oasis-indexer/api"
 	"github.com/oasislabs/oasis-indexer/cmd/common"
+	"github.com/oasislabs/oasis-indexer/config"
 	"github.com/oasislabs/oasis-indexer/log"
-	target "github.com/oasislabs/oasis-indexer/storage/cockroach"
+	"github.com/oasislabs/oasis-indexer/storage"
+	"github.com/oasislabs/oasis-indexer/storage/cockroach"
+	"github.com/oasislabs/oasis-indexer/storage/postgres"
 )
 
 const (
-	// CfgServiceEndpoint is the service endpoint at which the Oasis Indexer API
-	// can be reached.
-	CfgServiceEndpoint = "api.service_endpoint"
-
-	// CfgStorageEndpoint is the flag for setting the connection string to
-	// the backing storage.
-	CfgStorageEndpoint = "api.storage_endpoint"
-
 	moduleName = "api"
 )
 
 var (
-	cfgServiceEndpoint string
-	cfgStorageEndpoint string
+	// Path to the configuration file.
+	configFile string
 
 	apiCmd = &cobra.Command{
 		Use:   "serve",
@@ -38,13 +33,27 @@ var (
 )
 
 func runServer(cmd *cobra.Command, args []string) {
-	if err := common.Init(); err != nil {
+	// Initialize config.
+	cfg, err := config.InitConfig(configFile)
+	if err != nil {
 		os.Exit(1)
 	}
 
-	service, err := NewService()
+	// Initialize common environment.
+	if err := common.Init(cfg); err != nil {
+		os.Exit(1)
+	}
+	logger := common.Logger()
+
+	if cfg.Server == nil {
+		logger.Error("server config not provided")
+		os.Exit(1)
+	}
+	sCfg := cfg.Server
+
+	service, err := NewService(sCfg)
 	if err != nil {
-		common.Logger().Error("service failed to start",
+		logger.Error("service failed to start",
 			"error", err,
 		)
 		os.Exit(1)
@@ -61,17 +70,30 @@ type Service struct {
 }
 
 // NewService creates a new API service.
-func NewService() (*Service, error) {
+func NewService(cfg *config.ServerConfig) (*Service, error) {
 	logger := common.Logger().WithModule(moduleName)
 
-	cockroachClient, err := target.NewClient(cfgStorageEndpoint, logger)
+	// Initialize target storage.
+	var backend config.StorageBackend
+	if err := backend.Set(cfg.Storage.Backend); err != nil {
+		return nil, err
+	}
+
+	var client storage.TargetStorage
+	var err error
+	switch backend {
+	case config.BackendCockroach:
+		client, err = cockroach.NewClient(cfg.Storage.Endpoint, logger)
+	case config.BackendPostgres:
+		client, err = postgres.NewClient(cfg.Storage.Endpoint, logger)
+	}
 	if err != nil {
 		return nil, err
 	}
 
 	return &Service{
-		server: cfgServiceEndpoint,
-		api:    api.NewIndexerAPI(cockroachClient, logger),
+		server: cfg.Endpoint,
+		api:    api.NewIndexerAPI(client, logger),
 		logger: logger,
 	}, nil
 }
@@ -95,7 +117,6 @@ func (s *Service) Start() {
 
 // Register registers the process sub-command.
 func Register(parentCmd *cobra.Command) {
-	apiCmd.Flags().StringVar(&cfgStorageEndpoint, CfgStorageEndpoint, "", "a postgresql-compliant connection url")
-	apiCmd.Flags().StringVar(&cfgServiceEndpoint, CfgServiceEndpoint, "localhost:8008", "service endpoint from which to serve indexer api")
+	apiCmd.Flags().StringVar(&configFile, "config", "./config/local.yml", "path to the config.yml file")
 	parentCmd.AddCommand(apiCmd)
 }
