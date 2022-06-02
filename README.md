@@ -70,7 +70,12 @@ You should be able to `make oasis-indexer` and run `./oasis-indexer --config con
 This will start the entire indexer, but you can start each of its constituent services independently as well.
 See `./oasis-indexer --help` for more details.
 
-Happy indexing!
+Once the indexer has started, you can query the Oasis Indexer API
+```sh
+$ curl -X GET http://localhost:8008/v1
+```
+
+For a full list of endpoints see our [API docs](https://github.com/oasislabs/oasis-indexer/blob/main/api/README.md).
 
 ## Generating Migrations
 
