@@ -46,7 +46,7 @@ Below are instructions for running the Oasis Indexer locally, without Docker.
 ### Oasis Node
 
 You will need to run a local [node](https://docs.oasis.dev/general/run-a-node/set-up-your-node/run-non-validator) for development purposes.
-You will need the Unix socket for the `network.yaml` file while running an analyzer service.
+You will need to set the Unix socket in the `config/local-dev.yaml` file while running an instance of the Oasis Indexer.
 For example, this will be `unix:/node/data/internal.sock` in Docker.
 
 ### Database
@@ -66,7 +66,11 @@ docker run \
 
 ### Indexer
 
-You should be able to `make oasis-indexer` and run `./oasis-indexer [cmd]` from the repository root.
+You should be able to `make oasis-indexer` and run `./oasis-indexer --config config/local-dev.yml` from the repository root.
+This will start the entire indexer, but you can start each of its constituent services independently as well.
+See `./oasis-indexer --help` for more details.
+
+Happy indexing!
 
 ## Generating Migrations
 
