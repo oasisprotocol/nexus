@@ -16,6 +16,7 @@ const (
 	moduleName = "cockroach"
 )
 
+// Client is a CockroachDB client.
 type Client struct {
 	pool   *pgxpool.Pool
 	logger *log.Logger

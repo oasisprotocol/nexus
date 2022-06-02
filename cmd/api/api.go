@@ -13,9 +13,6 @@ import (
 	"github.com/oasislabs/oasis-indexer/cmd/common"
 	"github.com/oasislabs/oasis-indexer/config"
 	"github.com/oasislabs/oasis-indexer/log"
-	"github.com/oasislabs/oasis-indexer/storage"
-	"github.com/oasislabs/oasis-indexer/storage/cockroach"
-	"github.com/oasislabs/oasis-indexer/storage/postgres"
 )
 
 const (
@@ -42,7 +39,7 @@ func runServer(cmd *cobra.Command, args []string) {
 	}
 
 	// Initialize common environment.
-	if err := common.Init(cfg); err != nil {
+	if err = common.Init(cfg); err != nil {
 		os.Exit(1)
 	}
 	logger := common.Logger()
@@ -86,19 +83,7 @@ func NewService(cfg *config.ServerConfig) (*Service, error) {
 	logger := common.Logger().WithModule(moduleName)
 
 	// Initialize target storage.
-	var backend config.StorageBackend
-	if err := backend.Set(cfg.Storage.Backend); err != nil {
-		return nil, err
-	}
-
-	var client storage.TargetStorage
-	var err error
-	switch backend {
-	case config.BackendCockroach:
-		client, err = cockroach.NewClient(cfg.Storage.Endpoint, logger)
-	case config.BackendPostgres:
-		client, err = postgres.NewClient(cfg.Storage.Endpoint, logger)
-	}
+	client, err := common.NewClient(cfg.Storage, logger)
 	if err != nil {
 		return nil, err
 	}

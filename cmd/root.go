@@ -40,7 +40,7 @@ func rootMain(cmd *cobra.Command, args []string) {
 	}
 
 	// Initialize common environment.
-	if err := common.Init(cfg); err != nil {
+	if err = common.Init(cfg); err != nil {
 		os.Exit(1)
 	}
 	logger := common.Logger()

@@ -15,6 +15,7 @@ const (
 	moduleName = "postgres"
 )
 
+// Client is a PostgreSQL client.
 type Client struct {
 	pool   *pgxpool.Pool
 	logger *log.Logger

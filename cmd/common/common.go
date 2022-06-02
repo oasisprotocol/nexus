@@ -9,11 +9,12 @@ import (
 	"github.com/oasislabs/oasis-indexer/config"
 	"github.com/oasislabs/oasis-indexer/log"
 	"github.com/oasislabs/oasis-indexer/metrics"
+	"github.com/oasislabs/oasis-indexer/storage"
+	"github.com/oasislabs/oasis-indexer/storage/cockroach"
+	"github.com/oasislabs/oasis-indexer/storage/postgres"
 )
 
-var (
-	rootLogger = log.NewDefaultLogger("oasis-indexer")
-)
+var rootLogger = log.NewDefaultLogger("oasis-indexer")
 
 // Init initializes the common environment.
 func Init(cfg *config.Config) error {
@@ -65,4 +66,27 @@ func getLoggingStream(cfg *config.LogConfig) (io.Writer, error) {
 		return nil, err
 	}
 	return w, nil
+}
+
+// NewClient creates a new client to target storage.
+func NewClient(cfg *config.StorageConfig, logger *log.Logger) (storage.TargetStorage, error) {
+	var backend config.StorageBackend
+	if err := backend.Set(cfg.Backend); err != nil {
+		return nil, err
+	}
+
+	var client storage.TargetStorage
+	var err error
+	switch backend {
+	case config.BackendCockroach:
+		client, err = cockroach.NewClient(cfg.Endpoint, logger)
+	case config.BackendPostgres:
+		client, err = postgres.NewClient(cfg.Endpoint, logger)
+	default:
+		panic(fmt.Sprintf("unsupported storage backend: %v", backend))
+	}
+	if err != nil {
+		return nil, err
+	}
+	return client, nil
 }
