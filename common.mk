@@ -1,5 +1,3 @@
-
-   
 # Use Bash shell.
 # NOTE: You can control which Bash version is used by setting the PATH
 # appropriately.
