@@ -75,8 +75,6 @@ Once the indexer has started, you can query the Oasis Indexer API
 $ curl -X GET http://localhost:8008/v1
 ```
 
-For a full list of endpoints see our [API docs](https://github.com/oasislabs/oasis-indexer/blob/main/api/README.md).
-
 ## Generating Migrations
 
 The Oasis Indexer supports generating SQL migrations from a genesis document to initialize indexed state.
