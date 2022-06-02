@@ -33,7 +33,7 @@ type Service interface {
 }
 
 func rootMain(cmd *cobra.Command, args []string) {
-	// Initialize analyzer config.
+	// Initialize config.
 	cfg, err := config.InitConfig(configFile)
 	if err != nil {
 		os.Exit(1)
@@ -45,6 +45,7 @@ func rootMain(cmd *cobra.Command, args []string) {
 	}
 	logger := common.Logger()
 
+	// Initialize services.
 	analysisService, err := analyzer.Init(cfg.Analysis)
 	if err != nil {
 		os.Exit(1)
