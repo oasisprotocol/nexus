@@ -1,4 +1,4 @@
-module github.com/oasislabs/oasis-indexer/go
+module github.com/oasislabs/oasis-indexer
 
 go 1.17
 

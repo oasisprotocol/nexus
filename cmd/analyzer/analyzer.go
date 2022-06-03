@@ -8,19 +8,19 @@ import (
 	"sync"
 
 	migrate "github.com/golang-migrate/migrate/v4"
-	_ "github.com/golang-migrate/migrate/v4/database/postgres"
-	_ "github.com/golang-migrate/migrate/v4/source/file"
-	_ "github.com/golang-migrate/migrate/v4/source/github"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres" // postgres driver for golang_migrate
+	_ "github.com/golang-migrate/migrate/v4/source/file"       // support file scheme for golang_migrate
+	_ "github.com/golang-migrate/migrate/v4/source/github"     // support github scheme for golang_migrate
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
 
-	"github.com/oasislabs/oasis-indexer/go/analyzer"
-	"github.com/oasislabs/oasis-indexer/go/analyzer/consensus"
-	"github.com/oasislabs/oasis-indexer/go/log"
-	"github.com/oasislabs/oasis-indexer/go/oasis-indexer/cmd/common"
-	target "github.com/oasislabs/oasis-indexer/go/storage/cockroach"
-	source "github.com/oasislabs/oasis-indexer/go/storage/oasis"
+	"github.com/oasislabs/oasis-indexer/analyzer"
+	"github.com/oasislabs/oasis-indexer/analyzer/consensus"
+	"github.com/oasislabs/oasis-indexer/cmd/common"
+	"github.com/oasislabs/oasis-indexer/log"
+	source "github.com/oasislabs/oasis-indexer/storage/oasis"
+	target "github.com/oasislabs/oasis-indexer/storage/postgres"
 )
 
 const (
@@ -68,15 +68,15 @@ func runAnalyzer(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	err = m.Up()
-	if err == migrate.ErrNoChange {
+	switch err = m.Up(); {
+	case err == migrate.ErrNoChange:
 		logger.Info("migrations are up to date")
-	} else if err != nil {
+	case err != nil:
 		logger.Error("migrations failed",
 			"error", err,
 		)
 		os.Exit(1)
-	} else {
+	default:
 		logger.Info("migrations completed")
 	}
 
@@ -111,7 +111,7 @@ type AnalysisServiceConfig struct {
 	}
 }
 
-// NewAnalysisService creates new AnalysisService
+// NewAnalysisService creates new AnalysisService.
 func NewAnalysisService() (*AnalysisService, error) {
 	ctx := context.Background()
 	logger := common.Logger().WithModule(moduleName)
@@ -122,18 +122,18 @@ func NewAnalysisService() (*AnalysisService, error) {
 		return nil, err
 	}
 	var serviceCfg AnalysisServiceConfig
-	if err := yaml.Unmarshal(rawServiceCfg, &serviceCfg); err != nil {
+	if err = yaml.Unmarshal(rawServiceCfg, &serviceCfg); err != nil {
 		return nil, err
 	}
 
 	// Initialize target storage.
-	cockroachClient, err := target.NewCockroachClient(cfgStorageEndpoint, logger)
+	cockroachClient, err := target.NewClient(cfgStorageEndpoint, logger)
 	if err != nil {
 		return nil, err
 	}
 
 	// Initialize analyzers.
-	consensusMainDamask := consensus.NewConsensusMain(cockroachClient, logger)
+	consensusMainDamask := consensus.NewMain(cockroachClient, logger)
 
 	analyzers := map[string]analyzer.Analyzer{
 		consensusMainDamask.Name(): consensusMainDamask,
@@ -146,7 +146,7 @@ func NewAnalysisService() (*AnalysisService, error) {
 				ChainContext: analyzerCfg.ChainContext,
 				RPC:          analyzerCfg.RPC,
 			}
-			source, err := source.NewOasisNodeClient(ctx, &networkCfg)
+			source, err := source.NewClient(ctx, &networkCfg)
 			if err != nil {
 				return nil, err
 			}

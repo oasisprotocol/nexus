@@ -14,11 +14,12 @@ import (
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
 
-	"github.com/oasislabs/oasis-indexer/go/log"
-	"github.com/oasislabs/oasis-indexer/go/oasis-indexer/cmd/common"
-	"github.com/oasislabs/oasis-indexer/go/storage/generator"
-	"github.com/oasislabs/oasis-indexer/go/storage/oasis"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
+
+	"github.com/oasislabs/oasis-indexer/cmd/common"
+	"github.com/oasislabs/oasis-indexer/log"
+	"github.com/oasislabs/oasis-indexer/storage/generator"
+	"github.com/oasislabs/oasis-indexer/storage/oasis"
 )
 
 const (
@@ -87,19 +88,20 @@ func NewGenerator() (*Generator, error) {
 // WriteMigration writes the state migration.
 func (g *Generator) WriteMigration() error {
 	var d *genesis.Document
-	if cfgGenesisFile != "" {
+	switch {
+	case cfgGenesisFile != "":
 		doc, err := g.genesisDocFromFile()
 		if err != nil {
 			return err
 		}
 		d = doc
-	} else if cfgNetworkConfigFile != "" {
+	case cfgNetworkConfigFile != "":
 		doc, err := g.genesisDocFromClient()
 		if err != nil {
 			return err
 		}
 		d = doc
-	} else {
+	default:
 		return errors.New("neither genesis file nor network config provided")
 	}
 
@@ -120,12 +122,10 @@ func (g *Generator) WriteMigration() error {
 		if err := g.gen.WriteGenesisDocumentMigrationOasis3(w, d); err != nil {
 			return err
 		}
-		break
 	case "test":
 		if err := g.gen.WriteGenesisDocumentMigrationOasis3(w, d); err != nil {
 			return err
 		}
-		break
 	default:
 		g.logger.Error("unsupported chain id")
 		return errors.New("unsupported chain id")
@@ -158,9 +158,11 @@ func (g *Generator) genesisDocFromClient() (*genesis.Document, error) {
 	}
 
 	var network config.Network
-	yaml.Unmarshal([]byte(rawCfg), &network)
+	if err = yaml.Unmarshal(rawCfg, &network); err != nil {
+		return nil, err
+	}
 
-	client, err := oasis.NewOasisNodeClient(ctx, &network)
+	client, err := oasis.NewClient(ctx, &network)
 	if err != nil {
 		return nil, err
 	}

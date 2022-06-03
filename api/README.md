@@ -4,8 +4,8 @@ The Oasis Indexer API follows the [OpenAPI 3.0 Specification](https://swagger.io
 
 ## Render
 
-You can render the OpenAPI docs with [redoc-cli](https://www.npmjs.com/package/redoc-cli)
+You can render the OpenAPI docs from the repository root with
 
 ```sh
-redoc-cli build spec/v1.yaml -o index.html
+make docs-api
 ```

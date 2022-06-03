@@ -1,10 +1,14 @@
 # Oasis Indexer
 
+[![ci-lint](https://github.com/oasislabs/oasis-indexer/actions/workflows/ci-lint.yaml/badge.svg)](https://github.com/oasislabs/oasis-indexer/actions/workflows/ci-lint.yaml)
+[![ci-test](https://github.com/oasislabs/oasis-indexer/actions/workflows/ci-test.yaml/badge.svg)](https://github.com/oasislabs/oasis-indexer/actions/workflows/ci-test.yaml)
+
 The official indexer for the Oasis Network.
 
 ## Docker Development
 
 You can create and run the Oasis Indexer with [`docker compose`](https://docs.docker.com/compose/).
+Keep reading to get started, or take a look at our [Docker docs](https://github.com/oasislabs/oasis-indexer/blob/main/docker/README.md) for more detail.
 
 **Configuration**
 
@@ -15,16 +19,17 @@ to the `docker/node/etc` directory. You will need this to run the Oasis Node con
 
 From the repository root, you can run:
 ```sh
-$ make docker-build
+$ make docker
 ```
 
 **Run**
 From the repository root, you can run:
 ```sh
-$ make docker-up
+$ make run
 ```
 
 The analyzer will run migrations automagically on start based on files in `storage/migrations`.
+See [Generating Migrations](#generating-migrations) for information on generating new migrations.
 
 **Query**
 Now you can query the Oasis Indexer API
@@ -62,5 +67,25 @@ docker run
 
 ### Indexer
 
-You should be able to `go build` the indexer and run `./oasis-indexer [cmd]` from the repo top
-level directory.
+You should be able to `make oasis-indexer` and run `./oasis-indexer [cmd]` from the repository root.
+
+## Generating Migrations
+
+The Oasis Indexer supports generating SQL migrations from a genesis document to initialize indexed state.
+You can do so as follows:
+
+```sh
+oasis-indexer generate \
+  --generator.genesis_file path/to/your/genesis.json
+  --generator.migration_file storage/migrations/nnnn_example.up.sql
+```
+
+or directly from a running node
+
+```sh
+oasis-indexer generate \
+  --generator.network_config_file path/to/your/config.yaml
+  --generator.migration_file storage/migrations/nnnn_example.up.sql
+```
+
+See our [naming convention](https://github.com/oasislabs/oasis-indexer/blob/main/storage/migrations/README.md#naming-convention) for how to aptly name your migrations.

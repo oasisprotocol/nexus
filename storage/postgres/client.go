@@ -1,11 +1,10 @@
-// Package cockroach implements the target storage interface
-// backed by CockroachDB.
-package cockroach
+// Package postgres implements the target storage interface
+// backed by PostgreSQL.
+package postgres
 
 import (
 	"context"
 
-	"github.com/cockroachdb/cockroach-go/v2/crdb/crdbpgx"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 
@@ -13,7 +12,7 @@ import (
 )
 
 const (
-	moduleName = "cockroach"
+	moduleName = "postgres"
 )
 
 type Client struct {
@@ -21,7 +20,7 @@ type Client struct {
 	logger *log.Logger
 }
 
-// NewClient creates a new CockroachDB client.
+// NewClient creates a new PostgreSQL client.
 func NewClient(connString string, l *log.Logger) (*Client, error) {
 	config, err := pgxpool.ParseConfig(connString)
 	if err != nil {
@@ -38,7 +37,7 @@ func NewClient(connString string, l *log.Logger) (*Client, error) {
 	}, nil
 }
 
-// SendBatch submits a new transaction batch to CockroachDB.
+// SendBatch submits a new transaction batch to PostgreSQL.
 func (c *Client) SendBatch(ctx context.Context, batch *pgx.Batch) error {
 	conn, err := c.pool.Acquire(ctx)
 	if err != nil {
@@ -49,7 +48,7 @@ func (c *Client) SendBatch(ctx context.Context, batch *pgx.Batch) error {
 	}
 	defer conn.Release()
 
-	if err := crdbpgx.ExecuteTx(ctx, conn, pgx.TxOptions{}, func(tx pgx.Tx) error {
+	if err := conn.BeginTxFunc(ctx, pgx.TxOptions{}, func(tx pgx.Tx) error {
 		batchResults := tx.SendBatch(ctx, batch)
 		defer batchResults.Close()
 		for i := 0; i < batch.Len(); i++ {
@@ -69,7 +68,7 @@ func (c *Client) SendBatch(ctx context.Context, batch *pgx.Batch) error {
 	return nil
 }
 
-// Query submits a new query to CockroachDB.
+// Query submits a new query to PostgreSQL.
 func (c *Client) Query(ctx context.Context, sql string, args ...interface{}) (pgx.Rows, error) {
 	conn, err := c.pool.Acquire(ctx)
 	if err != nil {
@@ -90,7 +89,7 @@ func (c *Client) Query(ctx context.Context, sql string, args ...interface{}) (pg
 	return rows, nil
 }
 
-// QueryRow submits a new query for a single row to CockroachDB.
+// QueryRow submits a new query for a single row to PostgreSQL.
 func (c *Client) QueryRow(ctx context.Context, sql string, args ...interface{}) (pgx.Row, error) {
 	conn, err := c.pool.Acquire(ctx)
 	if err != nil {
@@ -101,7 +100,7 @@ func (c *Client) QueryRow(ctx context.Context, sql string, args ...interface{}) 
 	return conn.QueryRow(ctx, sql, args...), nil
 }
 
-// Name returns the name of the CockroachDB client.
+// Name returns the name of the PostgreSQL client.
 func (c *Client) Name() string {
 	return moduleName
 }

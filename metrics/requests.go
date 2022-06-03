@@ -33,14 +33,14 @@ func NewDefaultRequestMetrics(pkg string) RequestMetrics {
 		RequestCounts: prometheus.NewCounterVec(
 			prometheus.CounterOpts{
 				Name: fmt.Sprintf("%s_requests", pkg),
-				Help: fmt.Sprintf("How many service requests were made, partitioned by request endpoint, status, and cause."),
+				Help: "How many service requests were made, partitioned by request endpoint, status, and cause.",
 			},
 			requestLabels,
 		),
 		RequestLatencies: prometheus.NewSummaryVec(
 			prometheus.SummaryOpts{
 				Name: fmt.Sprintf("%s_request_latencies", pkg),
-				Help: fmt.Sprintf("How long requests take to process, partitioned by request endpoint."),
+				Help: "How long requests take to process, partitioned by request endpoint.",
 			},
 			requestLatencyLabels,
 		),

@@ -14,39 +14,37 @@ import (
 	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/oasislabs/oasis-indexer/go/analyzer"
-	"github.com/oasislabs/oasis-indexer/go/log"
-	"github.com/oasislabs/oasis-indexer/go/metrics"
-	"github.com/oasislabs/oasis-indexer/go/storage"
+	"github.com/oasislabs/oasis-indexer/analyzer"
+	"github.com/oasislabs/oasis-indexer/log"
+	"github.com/oasislabs/oasis-indexer/metrics"
+	"github.com/oasislabs/oasis-indexer/storage"
 )
 
 const (
-	chainID = "oasis_3"
-
 	analyzerName = "consensus_main_damask"
 )
 
 var (
 	// ErrOutOfRange is returned if the current block does not fall within tge
 	// analyzer's analysis range.
-	ErrOutOfRange = errors.New("range not found. no data source available.")
+	ErrOutOfRange = errors.New("range not found. no data source available")
 
 	// ErrLatestBlockNotFound is returned if the analyzer has not indexed any
 	// blocks yet. This indicates to begin from the start of its range.
 	ErrLatestBlockNotFound = errors.New("latest block not found")
 )
 
-// ConsensusMain is the main Analyzer for the consensus layer.
-type ConsensusMain struct {
+// Main is the main Analyzer for the consensus layer.
+type Main struct {
 	rangeCfg analyzer.RangeConfig
 	target   storage.TargetStorage
 	logger   *log.Logger
 	metrics  metrics.DatabaseMetrics
 }
 
-// NewConsensusMain returns a new analyzer for the consensus layer.
-func NewConsensusMain(target storage.TargetStorage, logger *log.Logger) *ConsensusMain {
-	return &ConsensusMain{
+// NewMain returns a new main analyzer for the consensus layer.
+func NewMain(target storage.TargetStorage, logger *log.Logger) *Main {
+	return &Main{
 		target:  target,
 		logger:  logger.With("analyzer", analyzerName),
 		metrics: metrics.NewDefaultDatabaseMetrics(analyzerName),
@@ -55,40 +53,42 @@ func NewConsensusMain(target storage.TargetStorage, logger *log.Logger) *Consens
 
 // SetRange adds configuration for the range of blocks to process to
 // this analyzer. It is intended to be called before Start.
-func (c *ConsensusMain) SetRange(cfg analyzer.RangeConfig) {
-	c.rangeCfg = cfg
+func (m *Main) SetRange(cfg analyzer.RangeConfig) {
+	m.rangeCfg = cfg
 }
 
 // Start starts the main consensus analyzer.
-func (c *ConsensusMain) Start() {
+func (m *Main) Start() {
 	ctx := context.Background()
 
 	// Get block to be indexed.
 	var height int64
 
-	latest, err := c.latestBlock(ctx)
+	latest, err := m.latestBlock(ctx)
 	if err != nil {
 		if err != pgx.ErrNoRows {
-			c.logger.Error("last block height not found",
+			m.logger.Error("last block height not found",
 				"err", err.Error(),
 			)
 			return
 		}
-		height = c.rangeCfg.From
+		m.logger.Debug("setting height using range config")
+		height = m.rangeCfg.From
 	} else {
+		m.logger.Debug("setting height using latest block")
 		height = latest + 1
 	}
 
 	for {
-		if err := c.processBlock(ctx, height); err != nil {
+		if err := m.processBlock(ctx, height); err != nil {
 			if err == ErrOutOfRange {
-				c.logger.Info("no data source available at this height",
+				m.logger.Info("no data source available at this height",
 					"height", height,
 				)
 				return
 			}
 
-			c.logger.Error("error processing block",
+			m.logger.Error("error processing block",
 				"err", err.Error(),
 			)
 			continue
@@ -98,14 +98,14 @@ func (c *ConsensusMain) Start() {
 	}
 }
 
-// Name returns the name of the ConsensusMain.
-func (c *ConsensusMain) Name() string {
+// Name returns the name of the Main.
+func (m *Main) Name() string {
 	return analyzerName
 }
 
 // source returns the source storage for the provided block height.
-func (c *ConsensusMain) source(height int64) (storage.SourceStorage, error) {
-	r := c.rangeCfg
+func (m *Main) source(height int64) (storage.SourceStorage, error) {
+	r := m.rangeCfg
 	if height >= r.From && (height <= r.To || r.To == 0) {
 		return r.Source, nil
 	}
@@ -114,15 +114,17 @@ func (c *ConsensusMain) source(height int64) (storage.SourceStorage, error) {
 }
 
 // latestBlock returns the latest block processed by the consensus analyzer.
-func (c *ConsensusMain) latestBlock(ctx context.Context) (int64, error) {
-	row, err := c.target.QueryRow(
+func (m *Main) latestBlock(ctx context.Context) (int64, error) {
+	row, err := m.target.QueryRow(
 		ctx,
 		fmt.Sprintf(`
 			SELECT height FROM %s.processed_blocks
 				WHERE analyzer = $1
 				ORDER BY height DESC
 				LIMIT 1
-		`, chainID),
+		`, analyzer.FromHeight(m.rangeCfg.From)),
+		// ^analyzers should only analyze for a single chain ID, and we anchor this
+		// at the starting block.
 		analyzerName,
 	)
 	if err != nil {
@@ -137,10 +139,11 @@ func (c *ConsensusMain) latestBlock(ctx context.Context) (int64, error) {
 }
 
 // processBlock processes the block at the provided block height.
-func (c *ConsensusMain) processBlock(ctx context.Context, height int64) error {
-	c.logger.Info("processing block",
+func (m *Main) processBlock(ctx context.Context, height int64) error {
+	m.logger.Info("processing block",
 		"height", height,
 	)
+	chainID := analyzer.FromHeight(height)
 
 	group, groupCtx := errgroup.WithContext(ctx)
 
@@ -149,11 +152,11 @@ func (c *ConsensusMain) processBlock(ctx context.Context, height int64) error {
 
 	type prepareFunc = func(context.Context, int64, *storage.QueryBatch) error
 	for _, f := range []prepareFunc{
-		c.prepareBlockData,
-		c.prepareRegistryData,
-		c.prepareStakingData,
-		c.prepareSchedulerData,
-		c.prepareGovernanceData,
+		m.prepareBlockData,
+		m.prepareRegistryData,
+		m.prepareStakingData,
+		m.prepareSchedulerData,
+		m.prepareGovernanceData,
 	} {
 		func(f prepareFunc) {
 			group.Go(func() error {
@@ -183,20 +186,20 @@ func (c *ConsensusMain) processBlock(ctx context.Context, height int64) error {
 	}
 
 	opName := "process_block"
-	timer := c.metrics.DatabaseTimer(c.target.Name(), opName)
+	timer := m.metrics.DatabaseTimer(m.target.Name(), opName)
 	defer timer.ObserveDuration()
 
-	if err := c.target.SendBatch(ctx, batch); err != nil {
-		c.metrics.DatabaseCounter(c.target.Name(), opName, "failure").Inc()
+	if err := m.target.SendBatch(ctx, batch); err != nil {
+		m.metrics.DatabaseCounter(m.target.Name(), opName, "failure").Inc()
 		return err
 	}
-	c.metrics.DatabaseCounter(c.target.Name(), opName, "success").Inc()
+	m.metrics.DatabaseCounter(m.target.Name(), opName, "success").Inc()
 	return nil
 }
 
 // prepareBlockData adds block data queries to the batch.
-func (c *ConsensusMain) prepareBlockData(ctx context.Context, height int64, batch *storage.QueryBatch) error {
-	source, err := c.source(height)
+func (m *Main) prepareBlockData(ctx context.Context, height int64, batch *storage.QueryBatch) error {
+	source, err := m.source(height)
 	if err != nil {
 		return err
 	}
@@ -207,9 +210,9 @@ func (c *ConsensusMain) prepareBlockData(ctx context.Context, height int64, batc
 	}
 
 	for _, f := range []func(*storage.QueryBatch, *storage.BlockData) error{
-		c.queueBlockInserts,
-		c.queueTransactionInserts,
-		c.queueEventInserts,
+		m.queueBlockInserts,
+		m.queueTransactionInserts,
+		m.queueEventInserts,
 	} {
 		if err := f(batch, data); err != nil {
 			return err
@@ -219,7 +222,9 @@ func (c *ConsensusMain) prepareBlockData(ctx context.Context, height int64, batc
 	return nil
 }
 
-func (c *ConsensusMain) queueBlockInserts(batch *storage.QueryBatch, data *storage.BlockData) error {
+func (m *Main) queueBlockInserts(batch *storage.QueryBatch, data *storage.BlockData) error {
+	chainID := analyzer.FromHeight(data.Height)
+
 	batch.Queue(fmt.Sprintf(`
 		INSERT INTO %s.blocks (height, block_hash, time, namespace, version, type, root_hash)
 			VALUES ($1, $2, $3, $4, $5, $6, $7);
@@ -236,7 +241,9 @@ func (c *ConsensusMain) queueBlockInserts(batch *storage.QueryBatch, data *stora
 	return nil
 }
 
-func (c *ConsensusMain) queueTransactionInserts(batch *storage.QueryBatch, data *storage.BlockData) error {
+func (m *Main) queueTransactionInserts(batch *storage.QueryBatch, data *storage.BlockData) error {
+	chainID := analyzer.FromHeight(data.Height)
+
 	for i := range data.Transactions {
 		signedTx := data.Transactions[i]
 		result := data.Results[i]
@@ -272,7 +279,9 @@ func (c *ConsensusMain) queueTransactionInserts(batch *storage.QueryBatch, data 
 	return nil
 }
 
-func (c *ConsensusMain) queueEventInserts(batch *storage.QueryBatch, data *storage.BlockData) error {
+func (m *Main) queueEventInserts(batch *storage.QueryBatch, data *storage.BlockData) error {
+	chainID := analyzer.FromHeight(data.Height)
+
 	for i := 0; i < len(data.Results); i++ {
 		for j := 0; j < len(data.Results[i].Events); j++ {
 			backend, ty, body, err := extractEventData(data.Results[i].Events[j])
@@ -297,23 +306,22 @@ func (c *ConsensusMain) queueEventInserts(batch *storage.QueryBatch, data *stora
 	return nil
 }
 
-// prepareRegistryData adds registry data queries to the batch
-func (c *ConsensusMain) prepareRegistryData(ctx context.Context, height int64, batch *storage.QueryBatch) error {
-	source, err := c.source(height)
+// prepareRegistryData adds registry data queries to the batch.
+func (m *Main) prepareRegistryData(ctx context.Context, height int64, batch *storage.QueryBatch) error {
+	source, err := m.source(height)
 	if err != nil {
 		return err
 	}
 
 	data, err := source.RegistryData(ctx, height)
-
 	if err != nil {
 		return err
 	}
 
 	for _, f := range []func(*storage.QueryBatch, *storage.RegistryData) error{
-		c.queueRuntimeRegistrations,
-		c.queueEntityEvents,
-		c.queueNodeRegistrations,
+		m.queueRuntimeRegistrations,
+		m.queueEntityEvents,
+		m.queueNodeRegistrations,
 	} {
 		if err := f(batch, data); err != nil {
 			return err
@@ -322,7 +330,9 @@ func (c *ConsensusMain) prepareRegistryData(ctx context.Context, height int64, b
 	return nil
 }
 
-func (c *ConsensusMain) queueRuntimeRegistrations(batch *storage.QueryBatch, data *storage.RegistryData) error {
+func (m *Main) queueRuntimeRegistrations(batch *storage.QueryBatch, data *storage.RegistryData) error {
+	chainID := analyzer.FromHeight(data.Height)
+
 	for _, runtimeEvent := range data.RuntimeEvents {
 		keyManager := "none"
 
@@ -351,7 +361,9 @@ func (c *ConsensusMain) queueRuntimeRegistrations(batch *storage.QueryBatch, dat
 	return nil
 }
 
-func (c *ConsensusMain) queueEntityEvents(batch *storage.QueryBatch, data *storage.RegistryData) error {
+func (m *Main) queueEntityEvents(batch *storage.QueryBatch, data *storage.RegistryData) error {
+	chainID := analyzer.FromHeight(data.Height)
+
 	for _, entityEvent := range data.EntityEvents {
 		var nodes []string
 		for _, node := range entityEvent.Entity.Nodes {
@@ -371,7 +383,9 @@ func (c *ConsensusMain) queueEntityEvents(batch *storage.QueryBatch, data *stora
 	return nil
 }
 
-func (c *ConsensusMain) queueNodeRegistrations(batch *storage.QueryBatch, data *storage.RegistryData) error {
+func (m *Main) queueNodeRegistrations(batch *storage.QueryBatch, data *storage.RegistryData) error {
+	chainID := analyzer.FromHeight(data.Height)
+
 	for _, nodeEvent := range data.NodeEvent {
 		vrfPubkey := ""
 
@@ -431,8 +445,8 @@ func (c *ConsensusMain) queueNodeRegistrations(batch *storage.QueryBatch, data *
 	return nil
 }
 
-func (c *ConsensusMain) prepareStakingData(ctx context.Context, height int64, batch *storage.QueryBatch) error {
-	source, err := c.source(height)
+func (m *Main) prepareStakingData(ctx context.Context, height int64, batch *storage.QueryBatch) error {
+	source, err := m.source(height)
 	if err != nil {
 		return err
 	}
@@ -443,10 +457,10 @@ func (c *ConsensusMain) prepareStakingData(ctx context.Context, height int64, ba
 	}
 
 	for _, f := range []func(*storage.QueryBatch, *storage.StakingData) error{
-		c.queueTransfers,
-		c.queueBurns,
-		c.queueEscrows,
-		c.queueAllowanceChanges,
+		m.queueTransfers,
+		m.queueBurns,
+		m.queueEscrows,
+		m.queueAllowanceChanges,
 	} {
 		if err := f(batch, data); err != nil {
 			return err
@@ -456,7 +470,9 @@ func (c *ConsensusMain) prepareStakingData(ctx context.Context, height int64, ba
 	return nil
 }
 
-func (c *ConsensusMain) queueTransfers(batch *storage.QueryBatch, data *storage.StakingData) error {
+func (m *Main) queueTransfers(batch *storage.QueryBatch, data *storage.StakingData) error {
+	chainID := analyzer.FromHeight(data.Height)
+
 	for _, transfer := range data.Transfers {
 		from := transfer.From.String()
 		to := transfer.To.String()
@@ -483,7 +499,9 @@ func (c *ConsensusMain) queueTransfers(batch *storage.QueryBatch, data *storage.
 	return nil
 }
 
-func (c *ConsensusMain) queueBurns(batch *storage.QueryBatch, data *storage.StakingData) error {
+func (m *Main) queueBurns(batch *storage.QueryBatch, data *storage.StakingData) error {
+	chainID := analyzer.FromHeight(data.Height)
+
 	for _, burn := range data.Burns {
 		batch.Queue(fmt.Sprintf(`
 			UPDATE %s.accounts
@@ -498,13 +516,16 @@ func (c *ConsensusMain) queueBurns(batch *storage.QueryBatch, data *storage.Stak
 	return nil
 }
 
-func (c *ConsensusMain) queueEscrows(batch *storage.QueryBatch, data *storage.StakingData) error {
+func (m *Main) queueEscrows(batch *storage.QueryBatch, data *storage.StakingData) error {
+	chainID := analyzer.FromHeight(data.Height)
+
 	for _, escrow := range data.Escrows {
-		if escrow.Add != nil {
-			owner := escrow.Add.Owner.String()
-			escrower := escrow.Add.Escrow.String()
-			amount := escrow.Add.Amount.ToBigInt().Uint64()
-			newShares := escrow.Add.NewShares.ToBigInt().Uint64()
+		switch e := escrow; {
+		case e.Add != nil:
+			owner := e.Add.Owner.String()
+			escrower := e.Add.Escrow.String()
+			amount := e.Add.Amount.ToBigInt().Uint64()
+			newShares := e.Add.NewShares.ToBigInt().Uint64()
 			batch.Queue(fmt.Sprintf(`
 				UPDATE %s.accounts
 				SET general_balance = general_balance - $2
@@ -535,42 +556,42 @@ func (c *ConsensusMain) queueEscrows(batch *storage.QueryBatch, data *storage.St
 				escrower,
 				newShares,
 			)
-		} else if escrow.Take != nil {
+		case e.Take != nil:
 			batch.Queue(fmt.Sprintf(`
 				UPDATE %s.accounts
 				SET escrow_balance_active = escrow_balance_active - $2
 					WHERE address = $1;
 			`, chainID),
-				escrow.Take.Owner.String(),
-				escrow.Take.Amount.ToBigInt().Uint64(),
+				e.Take.Owner.String(),
+				e.Take.Amount.ToBigInt().Uint64(),
 			)
-		} else if escrow.DebondingStart != nil {
+		case e.DebondingStart != nil:
 			batch.Queue(fmt.Sprintf(`
 				UPDATE %s.delegations
 					SET shares = shares - $3
 						WHERE delegatee = $1 AND delegator = $2;
 			`, chainID),
-				escrow.DebondingStart.Owner.String(),
-				escrow.DebondingStart.Escrow.String(),
-				escrow.DebondingStart.Amount.ToBigInt().Uint64(),
+				e.DebondingStart.Owner.String(),
+				e.DebondingStart.Escrow.String(),
+				e.DebondingStart.Amount.ToBigInt().Uint64(),
 			)
 			batch.Queue(fmt.Sprintf(`
 				INSERT INTO %s.debonding_delegations (delegatee, delegator, shares, debond_end)
 					VALUES ($1, $2, $3, $4);
 			`, chainID),
-				escrow.DebondingStart.Owner.String(),
-				escrow.DebondingStart.Escrow.String(),
-				escrow.DebondingStart.DebondingShares.ToBigInt().Uint64(),
-				escrow.DebondingStart.DebondEndTime,
+				e.DebondingStart.Owner.String(),
+				e.DebondingStart.Escrow.String(),
+				e.DebondingStart.DebondingShares.ToBigInt().Uint64(),
+				e.DebondingStart.DebondEndTime,
 			)
-		} else if escrow.Reclaim != nil {
+		case e.Reclaim != nil:
 			batch.Queue(fmt.Sprintf(`
 				UPDATE %s.accounts
 					SET general_balance = general_balance + $2
 						WHERE address = $1;
 			`, chainID),
-				escrow.Reclaim.Owner.String(),
-				escrow.Reclaim.Amount.ToBigInt().Uint64(),
+				e.Reclaim.Owner.String(),
+				e.Reclaim.Amount.ToBigInt().Uint64(),
 			)
 
 			batch.Queue(fmt.Sprintf(`
@@ -579,9 +600,9 @@ func (c *ConsensusMain) queueEscrows(batch *storage.QueryBatch, data *storage.St
 						escrow_total_shares_active = escrow_total_shares_active - $3
 						WHERE address = $1;
 			`, chainID),
-				escrow.Reclaim.Escrow.String(),
-				escrow.Reclaim.Amount.ToBigInt().Uint64(),
-				escrow.Reclaim.Shares.ToBigInt().Uint64(),
+				e.Reclaim.Escrow.String(),
+				e.Reclaim.Amount.ToBigInt().Uint64(),
+				e.Reclaim.Shares.ToBigInt().Uint64(),
 			)
 		}
 	}
@@ -589,7 +610,9 @@ func (c *ConsensusMain) queueEscrows(batch *storage.QueryBatch, data *storage.St
 	return nil
 }
 
-func (c *ConsensusMain) queueAllowanceChanges(batch *storage.QueryBatch, data *storage.StakingData) error {
+func (m *Main) queueAllowanceChanges(batch *storage.QueryBatch, data *storage.StakingData) error {
+	chainID := analyzer.FromHeight(data.Height)
+
 	for _, allowanceChange := range data.AllowanceChanges {
 		batch.Queue(fmt.Sprintf(`
 			INSERT INTO %s.allowances (owner, beneficiary, allowance)
@@ -607,21 +630,20 @@ func (c *ConsensusMain) queueAllowanceChanges(batch *storage.QueryBatch, data *s
 }
 
 // prepareSchedulerData adds scheduler data queries to the batch.
-func (c *ConsensusMain) prepareSchedulerData(ctx context.Context, height int64, batch *storage.QueryBatch) error {
-	source, err := c.source(height)
+func (m *Main) prepareSchedulerData(ctx context.Context, height int64, batch *storage.QueryBatch) error {
+	source, err := m.source(height)
 	if err != nil {
 		return err
 	}
 
 	data, err := source.SchedulerData(ctx, height)
-
 	if err != nil {
 		return err
 	}
 
 	for _, f := range []func(*storage.QueryBatch, *storage.SchedulerData) error{
-		c.queueValidatorUpdates,
-		c.queueCommitteeUpdates,
+		m.queueValidatorUpdates,
+		m.queueCommitteeUpdates,
 	} {
 		if err := f(batch, data); err != nil {
 			return err
@@ -631,7 +653,9 @@ func (c *ConsensusMain) prepareSchedulerData(ctx context.Context, height int64, 
 	return nil
 }
 
-func (c *ConsensusMain) queueValidatorUpdates(batch *storage.QueryBatch, data *storage.SchedulerData) error {
+func (m *Main) queueValidatorUpdates(batch *storage.QueryBatch, data *storage.SchedulerData) error {
+	chainID := analyzer.FromHeight(data.Height)
+
 	for _, validator := range data.Validators {
 		batch.Queue(fmt.Sprintf(`
 			UPDATE %s.nodes SET voting_power = $2
@@ -645,7 +669,9 @@ func (c *ConsensusMain) queueValidatorUpdates(batch *storage.QueryBatch, data *s
 	return nil
 }
 
-func (c *ConsensusMain) queueCommitteeUpdates(batch *storage.QueryBatch, data *storage.SchedulerData) error {
+func (m *Main) queueCommitteeUpdates(batch *storage.QueryBatch, data *storage.SchedulerData) error {
+	chainID := analyzer.FromHeight(data.Height)
+
 	batch.Queue(fmt.Sprintf(`
 		TRUNCATE %s.committee_members;
 	`, chainID))
@@ -673,8 +699,8 @@ func (c *ConsensusMain) queueCommitteeUpdates(batch *storage.QueryBatch, data *s
 }
 
 // prepareGovernanceData adds governance data queries to the batch.
-func (c *ConsensusMain) prepareGovernanceData(ctx context.Context, height int64, batch *storage.QueryBatch) error {
-	source, err := c.source(height)
+func (m *Main) prepareGovernanceData(ctx context.Context, height int64, batch *storage.QueryBatch) error {
+	source, err := m.source(height)
 	if err != nil {
 		return err
 	}
@@ -685,10 +711,10 @@ func (c *ConsensusMain) prepareGovernanceData(ctx context.Context, height int64,
 	}
 
 	for _, f := range []func(*storage.QueryBatch, *storage.GovernanceData) error{
-		c.queueSubmissions,
-		c.queueExecutions,
-		c.queueFinalizations,
-		c.queueVotes,
+		m.queueSubmissions,
+		m.queueExecutions,
+		m.queueFinalizations,
+		m.queueVotes,
 	} {
 		if err := f(batch, data); err != nil {
 			return err
@@ -698,7 +724,9 @@ func (c *ConsensusMain) prepareGovernanceData(ctx context.Context, height int64,
 	return nil
 }
 
-func (c *ConsensusMain) queueSubmissions(batch *storage.QueryBatch, data *storage.GovernanceData) error {
+func (m *Main) queueSubmissions(batch *storage.QueryBatch, data *storage.GovernanceData) error {
+	chainID := analyzer.FromHeight(data.Height)
+
 	for _, submission := range data.ProposalSubmissions {
 		if submission.Content.Upgrade != nil {
 			batch.Queue(fmt.Sprintf(`
@@ -736,7 +764,9 @@ func (c *ConsensusMain) queueSubmissions(batch *storage.QueryBatch, data *storag
 	return nil
 }
 
-func (c *ConsensusMain) queueExecutions(batch *storage.QueryBatch, data *storage.GovernanceData) error {
+func (m *Main) queueExecutions(batch *storage.QueryBatch, data *storage.GovernanceData) error {
+	chainID := analyzer.FromHeight(data.Height)
+
 	for _, execution := range data.ProposalExecutions {
 		batch.Queue(fmt.Sprintf(`
 			UPDATE %s.proposals
@@ -750,7 +780,9 @@ func (c *ConsensusMain) queueExecutions(batch *storage.QueryBatch, data *storage
 	return nil
 }
 
-func (c *ConsensusMain) queueFinalizations(batch *storage.QueryBatch, data *storage.GovernanceData) error {
+func (m *Main) queueFinalizations(batch *storage.QueryBatch, data *storage.GovernanceData) error {
+	chainID := analyzer.FromHeight(data.Height)
+
 	for _, finalization := range data.ProposalFinalizations {
 		batch.Queue(fmt.Sprintf(`
 			UPDATE %s.proposals
@@ -773,7 +805,9 @@ func (c *ConsensusMain) queueFinalizations(batch *storage.QueryBatch, data *stor
 	return nil
 }
 
-func (c *ConsensusMain) queueVotes(batch *storage.QueryBatch, data *storage.GovernanceData) error {
+func (m *Main) queueVotes(batch *storage.QueryBatch, data *storage.GovernanceData) error {
+	chainID := analyzer.FromHeight(data.Height)
+
 	for _, vote := range data.Votes {
 		batch.Queue(fmt.Sprintf(`
 			INSERT INTO %s.votes (proposal, voter, vote)
@@ -792,88 +826,94 @@ func (c *ConsensusMain) queueVotes(batch *storage.QueryBatch, data *storage.Gove
 //
 // TODO: Eliminate this if possible.
 func extractEventData(event *results.Event) (backend analyzer.Backend, ty analyzer.Event, body []byte, err error) {
-	if event.Staking != nil {
+	switch e := event; {
+	case e.Staking != nil:
 		backend = analyzer.BackendStaking
-		if event.Staking.Transfer != nil {
+		switch b := event.Staking; {
+		case b.Transfer != nil:
 			ty = analyzer.EventStakingTransfer
-			body, err = json.Marshal(event.Staking.Transfer)
+			body, err = json.Marshal(b.Transfer)
 			return
-		} else if event.Staking.Burn != nil {
-			ty = analyzer.EventStakingTransfer
-			body, err = json.Marshal(event.Staking.Burn)
+		case b.Burn != nil:
+			ty = analyzer.EventStakingBurn
+			body, err = json.Marshal(b.Burn)
 			return
-		} else if event.Staking.Escrow != nil {
-			if event.Staking.Escrow.Add != nil {
+		case b.Escrow != nil:
+			switch t := b.Escrow; {
+			case t.Add != nil:
 				ty = analyzer.EventStakingAddEscrow
-				body, err = json.Marshal(event.Staking.Escrow.Add)
+				body, err = json.Marshal(b.Escrow.Add)
 				return
-			} else if event.Staking.Escrow.Take != nil {
+			case t.Take != nil:
 				ty = analyzer.EventStakingTakeEscrow
-				body, err = json.Marshal(event.Staking.Escrow.Take)
+				body, err = json.Marshal(b.Escrow.Take)
 				return
-			} else if event.Staking.Escrow.DebondingStart != nil {
+			case t.DebondingStart != nil:
 				ty = analyzer.EventStakingDebondingStart
-				body, err = json.Marshal(event.Staking.Escrow.DebondingStart)
+				body, err = json.Marshal(b.Escrow.DebondingStart)
 				return
-			} else if event.Staking.Escrow.Reclaim != nil {
+			case t.Reclaim != nil:
 				ty = analyzer.EventStakingReclaimEscrow
-				body, err = json.Marshal(event.Staking.Escrow.Reclaim)
+				body, err = json.Marshal(b.Escrow.Reclaim)
 				return
 			}
-		} else if event.Staking.AllowanceChange != nil {
+		case b.AllowanceChange != nil:
 			ty = analyzer.EventStakingAllowanceChange
-			body, err = json.Marshal(event.Staking.AllowanceChange)
+			body, err = json.Marshal(b.AllowanceChange)
 			return
 		}
-	} else if event.Registry != nil {
+	case e.Registry != nil:
 		backend = analyzer.BackendRegistry
-		if event.Registry.RuntimeEvent != nil {
+		switch b := event.Registry; {
+		case b.RuntimeEvent != nil:
 			ty = analyzer.EventRegistryRuntimeRegistration
-			body, err = json.Marshal(event.Registry.RuntimeEvent)
+			body, err = json.Marshal(b.RuntimeEvent)
 			return
-		} else if event.Registry.EntityEvent != nil {
+		case b.EntityEvent != nil:
 			ty = analyzer.EventRegistryEntityRegistration
-			body, err = json.Marshal(event.Registry.EntityEvent)
+			body, err = json.Marshal(b.EntityEvent)
 			return
-		} else if event.Registry.NodeEvent != nil {
+		case b.NodeEvent != nil:
 			ty = analyzer.EventRegistryNodeRegistration
-			body, err = json.Marshal(event.Registry.NodeEvent)
+			body, err = json.Marshal(b.NodeEvent)
 			return
-		} else if event.Registry.NodeUnfrozenEvent != nil {
+		case b.NodeUnfrozenEvent != nil:
 			ty = analyzer.EventRegistryNodeUnfrozenEvent
-			body, err = json.Marshal(event.Registry.NodeUnfrozenEvent)
+			body, err = json.Marshal(b.NodeUnfrozenEvent)
 			return
 		}
-	} else if event.RootHash != nil {
+	case e.RootHash != nil:
 		backend = analyzer.BackendRoothash
-		if event.RootHash.ExecutorCommitted != nil {
+		switch b := event.RootHash; {
+		case b.ExecutorCommitted != nil:
 			ty = analyzer.EventRoothashExecutorCommittedEvent
 			body, err = json.Marshal(event.RootHash.ExecutorCommitted)
 			return
-		} else if event.RootHash.ExecutionDiscrepancyDetected != nil {
+		case b.ExecutionDiscrepancyDetected != nil:
 			ty = analyzer.EventRoothashDiscrepancyDetectedEvent
 			body, err = json.Marshal(event.RootHash.ExecutionDiscrepancyDetected)
 			return
-		} else if event.RootHash.Finalized != nil {
+		case b.Finalized != nil:
 			ty = analyzer.EventRoothashFinalizedEvent
 			body, err = json.Marshal(event.RootHash.Finalized)
 			return
 		}
-	} else if event.Governance != nil {
+	case e.Governance != nil:
 		backend = analyzer.BackendGovernance
-		if event.Governance.ProposalSubmitted != nil {
+		switch b := event.Governance; {
+		case b.ProposalSubmitted != nil:
 			ty = analyzer.EventGovernanceProposalSubmitted
 			body, err = json.Marshal(event.Governance.ProposalSubmitted)
 			return
-		} else if event.Governance.ProposalExecuted != nil {
+		case b.ProposalExecuted != nil:
 			ty = analyzer.EventGovernanceProposalExecuted
 			body, err = json.Marshal(event.Governance.ProposalExecuted)
 			return
-		} else if event.Governance.ProposalFinalized != nil {
+		case b.ProposalFinalized != nil:
 			ty = analyzer.EventGovernanceProposalExecuted
 			body, err = json.Marshal(event.Governance.ProposalFinalized)
 			return
-		} else if event.Governance.Vote != nil {
+		case b.Vote != nil:
 			ty = analyzer.EventGovernanceVote
 			body, err = json.Marshal(event.Governance.Vote)
 			return

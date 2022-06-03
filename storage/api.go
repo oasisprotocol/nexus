@@ -27,7 +27,6 @@ type QueryResult = pgx.Row
 
 // SourceStorage defines an interface for retrieving raw block data.
 type SourceStorage interface {
-
 	// BlockData gets block data at the specified height. This includes all
 	// block header information, as well as transactions and events included
 	// within that block.
@@ -64,7 +63,6 @@ type SourceStorage interface {
 // TargetStorage defines an interface for reading and writing
 // processed block data.
 type TargetStorage interface {
-
 	// SendBatch sends a batch of queries to be applied to target storage.
 	SendBatch(ctx context.Context, batch *QueryBatch) error
 
