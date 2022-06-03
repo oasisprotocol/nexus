@@ -37,7 +37,7 @@ To request new functionality the most appropriate place to propose it is as a
 <!-- markdownlint-disable line-length -->
 
 [new feature request]:
-  https://github.com/oasisprotocol/emerald-web3-gateway/issues/new?template=feature_request.md
+  https://github.com/oasislabs/oasis-indexer/issues/new?template=feature_request.md
 
 <!-- markdownlint-enable line-length -->
 
@@ -57,9 +57,9 @@ if the issue is not reported yet, [file a new one].
 <!-- markdownlint-disable line-length -->
 
 [existing issues in our repository]:
-  https://github.com/oasisprotocol/emerald-web3-gateway/issues
+  https://github.com/oasislabs/oasis-indexer/issues
 [file a new one]:
-  https://github.com/oasisprotocol/emerald-web3-gateway/issues/new?template=bug_report.md
+  https://github.com/oasislabs/oasis-indexer/issues/new?template=bug_report.md
 
 <!-- markdownlint-enable line-length -->
 
@@ -68,7 +68,7 @@ if the issue is not reported yet, [file a new one].
 ### Building and Testing
 
 Building and testing are documented in our
-[README](https://github.com/oasisprotocol/emerald-web3-gateway/blob/master/README.md).
+[README](https://github.com/oasislabs/oasis-indexer/blob/master/README.md).
 
 ### Contributing Code
 
