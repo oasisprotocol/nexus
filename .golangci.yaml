@@ -27,7 +27,6 @@ linters:
     - gofumpt
     - goheader
     - goimports
-    - revive
     - gomodguard
     - goprintffuncname
     - gosec
@@ -40,6 +39,7 @@ linters:
     - noctx
     - nolintlint
     - prealloc
+    - revive
     - rowserrcheck
     - staticcheck
     - structcheck
