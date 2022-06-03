@@ -52,7 +52,7 @@ type AnalysisConfig struct {
 	// Analyzers is the analyzer configs.
 	Analyzers []*AnalyzerConfig `koanf:"analyzers"`
 
-	// Migrations is directory containing storage migrations.
+	// Migrations is the directory containing storage migrations.
 	Migrations string `koanf:"migrations"`
 
 	Storage *StorageConfig `koanf:"storage"`
