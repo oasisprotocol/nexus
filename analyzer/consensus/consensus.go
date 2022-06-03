@@ -86,7 +86,7 @@ func (m *Main) Start() {
 	backoff := util.NewBackoff(
 		100*time.Millisecond,
 		6*time.Second,
-		// ^cap the maximum timeout at the expected
+		// ^cap the timeout at the expected
 		// consensus block time
 	)
 	for {
