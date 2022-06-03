@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/iancoleman/strcase"
 	"github.com/jackc/pgx/v4"
@@ -16,6 +17,7 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/oasislabs/oasis-indexer/analyzer"
+	"github.com/oasislabs/oasis-indexer/analyzer/util"
 	"github.com/oasislabs/oasis-indexer/log"
 	"github.com/oasislabs/oasis-indexer/metrics"
 	"github.com/oasislabs/oasis-indexer/storage"
@@ -81,6 +83,12 @@ func (m *Main) Start() {
 		height = latest + 1
 	}
 
+	backoff := util.NewBackoff(
+		100*time.Millisecond,
+		6*time.Second,
+		// ^cap the maximum timeout at the expected
+		// consensus block time
+	)
 	for {
 		if err := m.processBlock(ctx, height); err != nil {
 			if err == ErrOutOfRange {
@@ -93,9 +101,11 @@ func (m *Main) Start() {
 			m.logger.Error("error processing block",
 				"err", err.Error(),
 			)
+			backoff.Wait()
 			continue
 		}
 
+		backoff.Reset()
 		height++
 	}
 }
