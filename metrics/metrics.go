@@ -14,6 +14,7 @@ const (
 	moduleName = "metrics"
 )
 
+// PullService is a service that supports the Prometheus pull method.
 type PullService struct {
 	server *http.Server
 	logger *log.Logger
