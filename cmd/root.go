@@ -61,7 +61,10 @@ func rootMain(cmd *cobra.Command, args []string) {
 		apiService,
 	} {
 		wg.Add(1)
-		go service.Start()
+    go func() {
+      defer wg.Done()
+      service.Start()
+    }()
 	}
 
 	logger.Info("started all services")

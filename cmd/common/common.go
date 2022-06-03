@@ -48,7 +48,6 @@ func Init(cfg *config.Config) error {
 		}
 		promServer.StartInstrumentation()
 	}
-
 	return nil
 }
 

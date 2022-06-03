@@ -2,7 +2,6 @@
 package api
 
 import (
-	"fmt"
 	"net/http"
 	"os"
 	"time"
@@ -34,7 +33,6 @@ func runServer(cmd *cobra.Command, args []string) {
 	// Initialize config.
 	cfg, err := config.InitConfig(configFile)
 	if err != nil {
-		fmt.Printf("indexer-api: %s", err.Error())
 		os.Exit(1)
 	}
 

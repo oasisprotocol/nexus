@@ -344,7 +344,6 @@ func (m *Main) prepareRegistryData(ctx context.Context, height int64, batch *sto
 
 func (m *Main) queueRuntimeRegistrations(batch *storage.QueryBatch, data *storage.RegistryData) error {
 	chainID := m.rangeCfg.ChainID
-
 	for _, runtimeEvent := range data.RuntimeEvents {
 		keyManager := "none"
 

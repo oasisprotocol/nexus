@@ -38,7 +38,7 @@ func NewClient(connString string, l *log.Logger) (*Client, error) {
 	}, nil
 }
 
-// SendBatch submits a new transaction batch to CockroachDB.
+// SendBatch submits a new transaction batch to PostgreSQL.
 func (c *Client) SendBatch(ctx context.Context, batch *pgx.Batch) error {
 	conn, err := c.pool.Acquire(ctx)
 	if err != nil {
