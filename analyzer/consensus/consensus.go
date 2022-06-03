@@ -7,7 +7,9 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
+	"github.com/iancoleman/strcase"
 	"github.com/jackc/pgx/v4"
 	"github.com/oasisprotocol/oasis-core/go/consensus/api/transaction"
 	"github.com/oasisprotocol/oasis-core/go/consensus/api/transaction/results"
@@ -15,6 +17,7 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/oasislabs/oasis-indexer/analyzer"
+	"github.com/oasislabs/oasis-indexer/analyzer/util"
 	"github.com/oasislabs/oasis-indexer/log"
 	"github.com/oasislabs/oasis-indexer/metrics"
 	"github.com/oasislabs/oasis-indexer/storage"
@@ -55,6 +58,7 @@ func NewMain(target storage.TargetStorage, logger *log.Logger) *Main {
 // this analyzer. It is intended to be called before Start.
 func (m *Main) SetRange(cfg analyzer.RangeConfig) {
 	m.rangeCfg = cfg
+	m.rangeCfg.ChainID = strcase.ToSnake(m.rangeCfg.ChainID)
 }
 
 // Start starts the main consensus analyzer.
@@ -79,6 +83,12 @@ func (m *Main) Start() {
 		height = latest + 1
 	}
 
+	backoff := util.NewBackoff(
+		100*time.Millisecond,
+		6*time.Second,
+		// ^cap the timeout at the expected
+		// consensus block time
+	)
 	for {
 		if err := m.processBlock(ctx, height); err != nil {
 			if err == ErrOutOfRange {
@@ -91,9 +101,11 @@ func (m *Main) Start() {
 			m.logger.Error("error processing block",
 				"err", err.Error(),
 			)
+			backoff.Wait()
 			continue
 		}
 
+		backoff.Reset()
 		height++
 	}
 }
@@ -122,7 +134,7 @@ func (m *Main) latestBlock(ctx context.Context) (int64, error) {
 				WHERE analyzer = $1
 				ORDER BY height DESC
 				LIMIT 1
-		`, analyzer.FromHeight(m.rangeCfg.From)),
+		`, m.rangeCfg.ChainID),
 		// ^analyzers should only analyze for a single chain ID, and we anchor this
 		// at the starting block.
 		analyzerName,
@@ -143,7 +155,7 @@ func (m *Main) processBlock(ctx context.Context, height int64) error {
 	m.logger.Info("processing block",
 		"height", height,
 	)
-	chainID := analyzer.FromHeight(height)
+	chainID := m.rangeCfg.ChainID
 
 	group, groupCtx := errgroup.WithContext(ctx)
 
@@ -223,7 +235,7 @@ func (m *Main) prepareBlockData(ctx context.Context, height int64, batch *storag
 }
 
 func (m *Main) queueBlockInserts(batch *storage.QueryBatch, data *storage.BlockData) error {
-	chainID := analyzer.FromHeight(data.Height)
+	chainID := m.rangeCfg.ChainID
 
 	batch.Queue(fmt.Sprintf(`
 		INSERT INTO %s.blocks (height, block_hash, time, namespace, version, type, root_hash)
@@ -242,7 +254,7 @@ func (m *Main) queueBlockInserts(batch *storage.QueryBatch, data *storage.BlockD
 }
 
 func (m *Main) queueTransactionInserts(batch *storage.QueryBatch, data *storage.BlockData) error {
-	chainID := analyzer.FromHeight(data.Height)
+	chainID := m.rangeCfg.ChainID
 
 	for i := range data.Transactions {
 		signedTx := data.Transactions[i]
@@ -280,7 +292,7 @@ func (m *Main) queueTransactionInserts(batch *storage.QueryBatch, data *storage.
 }
 
 func (m *Main) queueEventInserts(batch *storage.QueryBatch, data *storage.BlockData) error {
-	chainID := analyzer.FromHeight(data.Height)
+	chainID := m.rangeCfg.ChainID
 
 	for i := 0; i < len(data.Results); i++ {
 		for j := 0; j < len(data.Results[i].Events); j++ {
@@ -331,8 +343,7 @@ func (m *Main) prepareRegistryData(ctx context.Context, height int64, batch *sto
 }
 
 func (m *Main) queueRuntimeRegistrations(batch *storage.QueryBatch, data *storage.RegistryData) error {
-	chainID := analyzer.FromHeight(data.Height)
-
+	chainID := m.rangeCfg.ChainID
 	for _, runtimeEvent := range data.RuntimeEvents {
 		keyManager := "none"
 
@@ -362,7 +373,7 @@ func (m *Main) queueRuntimeRegistrations(batch *storage.QueryBatch, data *storag
 }
 
 func (m *Main) queueEntityEvents(batch *storage.QueryBatch, data *storage.RegistryData) error {
-	chainID := analyzer.FromHeight(data.Height)
+	chainID := m.rangeCfg.ChainID
 
 	for _, entityEvent := range data.EntityEvents {
 		var nodes []string
@@ -384,7 +395,7 @@ func (m *Main) queueEntityEvents(batch *storage.QueryBatch, data *storage.Regist
 }
 
 func (m *Main) queueNodeRegistrations(batch *storage.QueryBatch, data *storage.RegistryData) error {
-	chainID := analyzer.FromHeight(data.Height)
+	chainID := m.rangeCfg.ChainID
 
 	for _, nodeEvent := range data.NodeEvent {
 		vrfPubkey := ""
@@ -471,7 +482,7 @@ func (m *Main) prepareStakingData(ctx context.Context, height int64, batch *stor
 }
 
 func (m *Main) queueTransfers(batch *storage.QueryBatch, data *storage.StakingData) error {
-	chainID := analyzer.FromHeight(data.Height)
+	chainID := m.rangeCfg.ChainID
 
 	for _, transfer := range data.Transfers {
 		from := transfer.From.String()
@@ -500,7 +511,7 @@ func (m *Main) queueTransfers(batch *storage.QueryBatch, data *storage.StakingDa
 }
 
 func (m *Main) queueBurns(batch *storage.QueryBatch, data *storage.StakingData) error {
-	chainID := analyzer.FromHeight(data.Height)
+	chainID := m.rangeCfg.ChainID
 
 	for _, burn := range data.Burns {
 		batch.Queue(fmt.Sprintf(`
@@ -517,7 +528,7 @@ func (m *Main) queueBurns(batch *storage.QueryBatch, data *storage.StakingData) 
 }
 
 func (m *Main) queueEscrows(batch *storage.QueryBatch, data *storage.StakingData) error {
-	chainID := analyzer.FromHeight(data.Height)
+	chainID := m.rangeCfg.ChainID
 
 	for _, escrow := range data.Escrows {
 		switch e := escrow; {
@@ -611,7 +622,7 @@ func (m *Main) queueEscrows(batch *storage.QueryBatch, data *storage.StakingData
 }
 
 func (m *Main) queueAllowanceChanges(batch *storage.QueryBatch, data *storage.StakingData) error {
-	chainID := analyzer.FromHeight(data.Height)
+	chainID := m.rangeCfg.ChainID
 
 	for _, allowanceChange := range data.AllowanceChanges {
 		batch.Queue(fmt.Sprintf(`
@@ -654,7 +665,7 @@ func (m *Main) prepareSchedulerData(ctx context.Context, height int64, batch *st
 }
 
 func (m *Main) queueValidatorUpdates(batch *storage.QueryBatch, data *storage.SchedulerData) error {
-	chainID := analyzer.FromHeight(data.Height)
+	chainID := m.rangeCfg.ChainID
 
 	for _, validator := range data.Validators {
 		batch.Queue(fmt.Sprintf(`
@@ -670,7 +681,7 @@ func (m *Main) queueValidatorUpdates(batch *storage.QueryBatch, data *storage.Sc
 }
 
 func (m *Main) queueCommitteeUpdates(batch *storage.QueryBatch, data *storage.SchedulerData) error {
-	chainID := analyzer.FromHeight(data.Height)
+	chainID := m.rangeCfg.ChainID
 
 	batch.Queue(fmt.Sprintf(`
 		TRUNCATE %s.committee_members;
@@ -725,7 +736,7 @@ func (m *Main) prepareGovernanceData(ctx context.Context, height int64, batch *s
 }
 
 func (m *Main) queueSubmissions(batch *storage.QueryBatch, data *storage.GovernanceData) error {
-	chainID := analyzer.FromHeight(data.Height)
+	chainID := m.rangeCfg.ChainID
 
 	for _, submission := range data.ProposalSubmissions {
 		if submission.Content.Upgrade != nil {
@@ -765,7 +776,7 @@ func (m *Main) queueSubmissions(batch *storage.QueryBatch, data *storage.Governa
 }
 
 func (m *Main) queueExecutions(batch *storage.QueryBatch, data *storage.GovernanceData) error {
-	chainID := analyzer.FromHeight(data.Height)
+	chainID := m.rangeCfg.ChainID
 
 	for _, execution := range data.ProposalExecutions {
 		batch.Queue(fmt.Sprintf(`
@@ -781,7 +792,7 @@ func (m *Main) queueExecutions(batch *storage.QueryBatch, data *storage.Governan
 }
 
 func (m *Main) queueFinalizations(batch *storage.QueryBatch, data *storage.GovernanceData) error {
-	chainID := analyzer.FromHeight(data.Height)
+	chainID := m.rangeCfg.ChainID
 
 	for _, finalization := range data.ProposalFinalizations {
 		batch.Queue(fmt.Sprintf(`
@@ -806,7 +817,7 @@ func (m *Main) queueFinalizations(batch *storage.QueryBatch, data *storage.Gover
 }
 
 func (m *Main) queueVotes(batch *storage.QueryBatch, data *storage.GovernanceData) error {
-	chainID := analyzer.FromHeight(data.Height)
+	chainID := m.rangeCfg.ChainID
 
 	for _, vote := range data.Votes {
 		batch.Queue(fmt.Sprintf(`

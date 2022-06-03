@@ -20,6 +20,9 @@ type Analyzer interface {
 // RangeConfig specifies configuration parameters
 // for processing a range of blocks.
 type RangeConfig struct {
+	// ChainID is the chain ID for the underlying network.
+	ChainID string
+
 	// From is the first block to process in this range, inclusive.
 	From int64
 

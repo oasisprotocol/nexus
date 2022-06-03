@@ -14,9 +14,10 @@ import (
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
 
-	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
+	oasisConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 
 	"github.com/oasislabs/oasis-indexer/cmd/common"
+	"github.com/oasislabs/oasis-indexer/config"
 	"github.com/oasislabs/oasis-indexer/log"
 	"github.com/oasislabs/oasis-indexer/storage/generator"
 	"github.com/oasislabs/oasis-indexer/storage/oasis"
@@ -38,6 +39,9 @@ const (
 )
 
 var (
+	// Path to the configuration file.
+	configFile string
+
 	cfgMigrationFile     string
 	cfgGenesisFile       string
 	cfgNetworkConfigFile string
@@ -50,19 +54,27 @@ var (
 )
 
 func runGenerator(cmd *cobra.Command, args []string) {
-	if err := common.Init(); err != nil {
+	// Initialize config.
+	cfg, err := config.InitConfig(configFile)
+	if err != nil {
 		os.Exit(1)
 	}
 
+	// Initialize common environment.
+	if err = common.Init(cfg); err != nil {
+		os.Exit(1)
+	}
+	logger := common.Logger()
+
 	g, err := NewGenerator()
 	if err != nil {
-		common.Logger().Error("migration failed to run",
+		logger.Error("migration failed to run",
 			"error", err,
 		)
 		os.Exit(1)
 	}
 	if err := g.WriteMigration(); err != nil {
-		common.Logger().Error("generator failed to initialize",
+		logger.Error("generator failed to initialize",
 			"error", err,
 		)
 		os.Exit(1)
@@ -157,7 +169,7 @@ func (g *Generator) genesisDocFromClient() (*genesis.Document, error) {
 		return nil, err
 	}
 
-	var network config.Network
+	var network oasisConfig.Network
 	if err = yaml.Unmarshal(rawCfg, &network); err != nil {
 		return nil, err
 	}
@@ -177,6 +189,7 @@ func (g *Generator) genesisDocFromClient() (*genesis.Document, error) {
 
 // Register registers the process sub-command.
 func Register(parentCmd *cobra.Command) {
+	generateCmd.Flags().StringVar(&configFile, "config", "./config/local.yml", "path to the config.yml file")
 	generateCmd.Flags().StringVar(&cfgMigrationFile, CfgMigrationFile, "", "path to output migration file")
 	generateCmd.Flags().StringVar(&cfgGenesisFile, CfgGenesisFile, "", "path to input genesis file")
 	generateCmd.Flags().StringVar(&cfgNetworkConfigFile, CfgNetworkConfigFile, "", "path to a network configuration file")
