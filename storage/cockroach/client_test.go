@@ -14,16 +14,22 @@ import (
 	"github.com/oasislabs/oasis-indexer/storage"
 )
 
+func makeClient(t *testing.T) *Client {
+	connString := os.Getenv("CI_TEST_CONN_STRING")
+	logger := log.NewDefaultLogger("oasis-indexer-test")
+
+	client, err := NewClient(connString, logger)
+	require.Nil(t, err)
+
+	return client
+}
+
 func TestQuery(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping testing in short mode")
 	}
 
-	connString := os.Getenv("CI_TEST_CONN_STRING")
-	logger := log.NewDefaultLogger("cockroach-test")
-
-	client, err := NewClient(connString, logger)
-	require.Nil(t, err)
+	client := makeClient(t)
 
 	rows, err := client.Query(context.Background(), `
 		SELECT * FROM ( VALUES (0),(1),(2) ) AS q;
@@ -47,11 +53,7 @@ func TestQueryRow(t *testing.T) {
 		t.Skip("skipping testing in short mode")
 	}
 
-	connString := os.Getenv("CI_TEST_CONN_STRING")
-	logger := log.NewDefaultLogger("oasis-indexer-test")
-
-	client, err := NewClient(connString, logger)
-	require.Nil(t, err)
+	client := makeClient(t)
 
 	row, err := client.QueryRow(context.Background(), `
 		SELECT 1+1;
@@ -69,18 +71,14 @@ func TestSendBatch(t *testing.T) {
 		t.Skip("skipping testing in short mode")
 	}
 
-	connString := os.Getenv("CI_TEST_CONN_STRING")
-	logger := log.NewDefaultLogger("oasis-indexer-test")
-
-	client, err := NewClient(connString, logger)
-	require.Nil(t, err)
+	client := makeClient(t)
 
 	defer func() {
 		destroy := &storage.QueryBatch{}
 		destroy.Queue(`
 			DROP TABLE films;
 		`)
-		err = client.SendBatch(context.Background(), destroy)
+		err := client.SendBatch(context.Background(), destroy)
 		require.Nil(t, err)
 	}()
 
@@ -91,7 +89,7 @@ func TestSendBatch(t *testing.T) {
 			name TEXT
 		);
 	`)
-	err = client.SendBatch(context.Background(), create)
+	err := client.SendBatch(context.Background(), create)
 	require.Nil(t, err)
 
 	insert := &storage.QueryBatch{}
