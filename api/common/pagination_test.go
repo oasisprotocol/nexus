@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // TestPaginationWithNoParams tests if the default pagination
@@ -15,14 +15,14 @@ func TestPaginationWithNoParams(t *testing.T) {
 	ctx := context.Background()
 
 	r, err := http.NewRequestWithContext(ctx, "GET", "https://fake-api.com/get-resource", nil)
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
 	p, err := NewPagination(r)
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
-	assert.Equal(t, p.Order, DefaultOrder)
-	assert.Equal(t, p.Limit, DefaultLimit)
-	assert.Equal(t, p.Offset, DefaultOffset)
+	require.Equal(t, p.Order, DefaultOrder)
+	require.Equal(t, p.Limit, DefaultLimit)
+	require.Equal(t, p.Offset, DefaultOffset)
 }
 
 // TestPaginationWithValidParams tests if the pagination values
@@ -34,14 +34,14 @@ func TestPaginationWithValidParams(t *testing.T) {
 	offset := uint64(20)
 
 	r, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("https://fake-api.com/get-resource?limit=%d&offset=%d", limit, offset), nil)
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
 	p, err := NewPagination(r)
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
-	assert.Equal(t, p.Order, DefaultOrder)
-	assert.Equal(t, p.Limit, limit)
-	assert.Equal(t, p.Offset, offset)
+	require.Equal(t, p.Order, DefaultOrder)
+	require.Equal(t, p.Limit, limit)
+	require.Equal(t, p.Offset, offset)
 }
 
 // TestPaginationWithInvalidParams tests if the pagination values
@@ -52,16 +52,16 @@ func TestPaginationWithInvalidParams(t *testing.T) {
 	limit := "nonsense"
 
 	r, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("https://fake-api.com/get-resource?limit=%s", limit), nil)
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
 	_, err = NewPagination(r)
-	assert.NotNil(t, err)
+	require.NotNil(t, err)
 
 	offset := -1
 
 	r, err = http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("https://fake-api.com/get-resource?offset=%d", offset), nil)
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
 	_, err = NewPagination(r)
-	assert.NotNil(t, err)
+	require.NotNil(t, err)
 }

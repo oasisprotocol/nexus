@@ -25,6 +25,9 @@ clean:
 	@$(GO) clean
 
 test:
+	@$(GO) test ./... -v -short
+
+test-ci:
 	@$(GO) test ./... -v
 
 # Format code.

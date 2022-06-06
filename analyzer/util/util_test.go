@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // TestBackoffWait tests if the backoff time is
@@ -14,7 +14,7 @@ func TestBackoffWait(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		backoff.Wait()
 	}
-	assert.Equal(t, backoff.Timeout(), 1024*time.Millisecond)
+	require.Equal(t, backoff.Timeout(), 1024*time.Millisecond)
 }
 
 // TestBackoffReset tests if the backoff time is
@@ -23,7 +23,7 @@ func TestBackoffReset(t *testing.T) {
 	backoff := NewBackoff(time.Millisecond, 10*time.Second)
 	backoff.Wait()
 	backoff.Reset()
-	assert.Equal(t, backoff.Timeout(), time.Millisecond)
+	require.Equal(t, backoff.Timeout(), time.Millisecond)
 }
 
 // TestBackoffMaximum tests if the backoff time is
@@ -33,5 +33,5 @@ func TestBackoffMaximum(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		backoff.Wait()
 	}
-	assert.Equal(t, backoff.Timeout(), 10*time.Millisecond)
+	require.Equal(t, backoff.Timeout(), 10*time.Millisecond)
 }

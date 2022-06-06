@@ -21,6 +21,19 @@ concurrency:
 jobs:
   build-go:
     runs-on: ubuntu-20.04
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_HOST: 127.0.0.1
+          POSTGRES_PORT: 5432
+          POSTGRES_DB: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+    env:
+      CI_TEST_CONN_STRING: "postgresql://postgres:postgres@127.0.0.1:5432/postgres"
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -30,8 +43,8 @@ jobs:
           go-version: 1.17
       - name: Build Go
         run: |
-          go build -v ./...
-          go test -v ./...
+          make oasis-indexer
+          make test-ci
   
   validate-openapi:
     runs-on: ubuntu-20.04
