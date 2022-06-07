@@ -25,10 +25,10 @@ clean:
 	@$(GO) clean
 
 test:
-	@$(GO) test ./... -v -short
+	@$(GO) test -short -v ./...
 
 test-ci:
-	@$(GO) test ./... -v
+	@$(GO) test -coverpkg=./... -race -coverprofile=coverage.out -covermode=atomic -v ./...
 
 # Format code.
 fmt:
