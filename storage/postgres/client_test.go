@@ -30,6 +30,7 @@ func TestQuery(t *testing.T) {
 	}
 
 	client := makeClient(t)
+	defer client.Shutdown()
 
 	rows, err := client.Query(context.Background(), `
 		SELECT * FROM ( VALUES (0),(1),(2) ) AS q;
@@ -54,6 +55,7 @@ func TestQueryRow(t *testing.T) {
 	}
 
 	client := makeClient(t)
+	defer client.Shutdown()
 
 	row, err := client.QueryRow(context.Background(), `
 		SELECT 1+1;
@@ -72,6 +74,7 @@ func TestSendBatch(t *testing.T) {
 	}
 
 	client := makeClient(t)
+	defer client.Shutdown()
 
 	defer func() {
 		destroy := &storage.QueryBatch{}

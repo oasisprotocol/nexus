@@ -101,6 +101,11 @@ func (c *Client) QueryRow(ctx context.Context, sql string, args ...interface{}) 
 	return conn.QueryRow(ctx, sql, args...), nil
 }
 
+// Shutdown shuts down the target storage client.
+func (c *Client) Shutdown() {
+	c.pool.Close()
+}
+
 // Name returns the name of the PostgreSQL client.
 func (c *Client) Name() string {
 	return moduleName

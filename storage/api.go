@@ -72,6 +72,9 @@ type TargetStorage interface {
 	// QueryRow submits a query to fetch a single row of data from target storage.
 	QueryRow(ctx context.Context, sql string, args ...interface{}) (QueryResult, error)
 
+	// Shutdown shuts down the target storage client.
+	Shutdown()
+
 	// Name returns the name of the target storage.
 	Name() string
 }

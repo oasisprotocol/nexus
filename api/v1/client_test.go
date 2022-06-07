@@ -38,6 +38,8 @@ func (m *MockStorage) QueryRow(ctx context.Context, sql string, args ...interfac
 	return nil, nil
 }
 
+func (m *MockStorage) Shutdown() {}
+
 func (m *MockStorage) Name() string {
 	return m.name
 }
