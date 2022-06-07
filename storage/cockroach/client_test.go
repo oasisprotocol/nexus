@@ -3,6 +3,7 @@ package cockroach
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"strings"
 	"sync"
@@ -16,22 +17,32 @@ import (
 
 func newClient(t *testing.T) (*Client, error) {
 	connString := os.Getenv("CI_TEST_CONN_STRING")
-	logger := log.NewDefaultLogger("cockroach-test")
+	logger, err := log.NewLogger("cockroach-test", ioutil.Discard, log.FmtJSON, log.LevelInfo)
+	require.Nil(t, err)
 
 	return NewClient(connString, logger)
 }
 
 func TestConnect(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping testing in short mode")
+	}
+
 	client, err := newClient(t)
 	require.Nil(t, err)
 	client.Shutdown()
 }
 
 func TestInvalidConnect(t *testing.T) {
-	connString := "an invalid connstring"
-	logger := log.NewDefaultLogger("cockroach-test")
+	if testing.Short() {
+		t.Skip("skipping testing in short mode")
+	}
 
-	_, err := NewClient(connString, logger)
+	connString := "an invalid connstring"
+	logger, err := log.NewLogger("cockroach-test", ioutil.Discard, log.FmtJSON, log.LevelInfo)
+	require.Nil(t, err)
+
+	_, err = NewClient(connString, logger)
 	require.NotNil(t, err)
 }
 

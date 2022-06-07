@@ -1,0 +1,2 @@
+ignore:
+  - storage/generator # Migrations generator. Independent from core indexer.
