@@ -14,14 +14,25 @@ import (
 	"github.com/oasislabs/oasis-indexer/storage"
 )
 
-func makeClient(t *testing.T) *Client {
+func newClient(t *testing.T) (*Client, error) {
 	connString := os.Getenv("CI_TEST_CONN_STRING")
-	logger := log.NewDefaultLogger("oasis-indexer-test")
+	logger := log.NewDefaultLogger("postgres-test")
 
-	client, err := NewClient(connString, logger)
+	return NewClient(connString, logger)
+}
+
+func TestConnect(t *testing.T) {
+	client, err := newClient(t)
 	require.Nil(t, err)
+	client.Shutdown()
+}
 
-	return client
+func TestInvalidConnect(t *testing.T) {
+	connString := "an invalid connstring"
+	logger := log.NewDefaultLogger("postgres-test")
+
+	_, err := NewClient(connString, logger)
+	require.NotNil(t, err)
 }
 
 func TestQuery(t *testing.T) {
@@ -29,7 +40,8 @@ func TestQuery(t *testing.T) {
 		t.Skip("skipping testing in short mode")
 	}
 
-	client := makeClient(t)
+	client, err := newClient(t)
+	require.Nil(t, err)
 	defer client.Shutdown()
 
 	rows, err := client.Query(context.Background(), `
@@ -49,16 +61,32 @@ func TestQuery(t *testing.T) {
 	require.Equal(t, 3, i)
 }
 
+func TestInvalidQuery(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping testing in short mode")
+	}
+
+	client, err := newClient(t)
+	require.Nil(t, err)
+	defer client.Shutdown()
+
+	_, err = client.Query(context.Background(), `
+		an invalid query
+	`)
+	require.NotNil(t, err)
+}
+
 func TestQueryRow(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping testing in short mode")
 	}
 
-	client := makeClient(t)
+	client, err := newClient(t)
+	require.Nil(t, err)
 	defer client.Shutdown()
 
 	var result int
-	err := client.QueryRow(context.Background(), `
+	err = client.QueryRow(context.Background(), `
 		SELECT 1+1;
 	`).Scan(&result)
 	require.Nil(t, err)
@@ -67,12 +95,29 @@ func TestQueryRow(t *testing.T) {
 	require.Equal(t, 2, result)
 }
 
+func TestInvalidQueryRow(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping testing in short mode")
+	}
+
+	client, err := newClient(t)
+	require.Nil(t, err)
+	defer client.Shutdown()
+
+	var result int
+	err = client.QueryRow(context.Background(), `
+		an invalid query
+	`).Scan(&result)
+	require.NotNil(t, err)
+}
+
 func TestSendBatch(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping testing in short mode")
 	}
 
-	client := makeClient(t)
+	client, err := newClient(t)
+	require.Nil(t, err)
 	defer client.Shutdown()
 
 	defer func() {
@@ -91,7 +136,7 @@ func TestSendBatch(t *testing.T) {
 			name TEXT
 		);
 	`)
-	err := client.SendBatch(context.Background(), create)
+	err = client.SendBatch(context.Background(), create)
 	require.Nil(t, err)
 
 	insert := &storage.QueryBatch{}
@@ -136,4 +181,21 @@ func TestSendBatch(t *testing.T) {
 	}
 
 	wg.Wait()
+}
+
+func TestInvalidSendBatch(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping testing in short mode")
+	}
+
+	client, err := newClient(t)
+	require.Nil(t, err)
+	defer client.Shutdown()
+
+	invalid := &storage.QueryBatch{}
+	invalid.Queue(`
+		an invalid query
+	`)
+	err = client.SendBatch(context.Background(), invalid)
+	require.NotNil(t, err)
 }
