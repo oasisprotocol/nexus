@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-20.04
     services:
       postgres:
-        image: postgres
+        image: postgres:13
         env:
           POSTGRES_HOST: 127.0.0.1
           POSTGRES_PORT: 5432
