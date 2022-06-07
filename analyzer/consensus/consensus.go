@@ -21,10 +21,12 @@ import (
 	"github.com/oasislabs/oasis-indexer/log"
 	"github.com/oasislabs/oasis-indexer/metrics"
 	"github.com/oasislabs/oasis-indexer/storage"
+	registry "github.com/oasisprotocol/metadata-registry-tools"
 )
 
 const (
 	consensusMainDamaskName = "consensus_main_damask"
+	registryUpdateFrequency = 100 // once per n block
 )
 
 var (
@@ -345,6 +347,12 @@ func (m *Main) prepareRegistryData(ctx context.Context, height int64, batch *sto
 		}
 	}
 
+	if height%registryUpdateFrequency == 0 {
+		if err := m.queueMetadataRegistry(ctx, batch); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -499,6 +507,36 @@ func (m *Main) queueNodeEvents(batch *storage.QueryBatch, data *storage.Registry
 				nodeEvent.Node.ID.String(),
 			)
 		}
+	}
+
+	return nil
+}
+
+func (m *Main) queueMetadataRegistry(ctx context.Context, batch *storage.QueryBatch) error {
+	gp, err := registry.NewGitProvider(registry.NewGitConfig())
+	if err != nil {
+		fmt.Printf("Failed to create Git registry provider: %s\n", err)
+		return err
+	}
+
+	// Get a list of all entities in the registry.
+	entities, err := gp.GetEntities(ctx)
+	if err != nil {
+		fmt.Printf("Failed to get a list of entities in registry: %s\n", err)
+		return err
+	}
+
+	for id, meta := range entities {
+		batch.Queue(fmt.Sprintf(`
+		INSERT INTO %s.metadata (id, meta)
+		VALUES ($1, $2)
+		ON CONFLICT (id) DO
+		UPDATE SET
+			meta = excluded.meta
+	`, m.rangeCfg.ChainID),
+			id,
+			meta,
+		)
 	}
 
 	return nil
