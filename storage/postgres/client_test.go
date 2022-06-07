@@ -101,8 +101,6 @@ func TestQueryRow(t *testing.T) {
 		SELECT 1+1;
 	`).Scan(&result)
 	require.Nil(t, err)
-
-	require.Nil(t, err)
 	require.Equal(t, 2, result)
 }
 
