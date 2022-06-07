@@ -79,6 +79,12 @@ func (h *Handler) RegisterRoutes(r chi.Router) {
 				r.Get("/{proposal_id}", h.GetProposal)
 				r.Get("/{proposal_id}/votes", h.GetProposalVotes)
 			})
+
+			// Validator Endpoints.
+			r.Route("/validators", func(r chi.Router) {
+				r.Get("/", h.ListValidators)
+				r.Get("/{entity_id}", h.GetValidator)
+			})
 		})
 	})
 

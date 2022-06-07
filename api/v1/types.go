@@ -142,3 +142,38 @@ type ProposalVote struct {
 	Address string `json:"address"`
 	Vote    string `json:"vote"`
 }
+
+// Validators is the API response for GetValidators
+type ValidatorList struct {
+	Validators []Validator `json:"validator"`
+}
+
+type ValidatorMedia struct {
+	WebSiteLink  string `json:"url"`
+	EmailAddress string `json:"email"`
+	TwitterAcc   string `json:"twitter"`
+	TgChat       string `json:"tg"`
+	Logotype     string `json:"logotype"`
+	Name         string `json:"name"`
+}
+
+type ValidatorCommissionBound struct {
+	Lower      uint64
+	Upper      uint64
+	EpochStart uint64
+	EpochEnd   uint64
+}
+
+type Validator struct {
+	Name          string
+	EntityAddress string
+	NodeAddress   string
+	Escrow        uint64
+	// If "true", entity is part of validator set (top <scheduler.params.max_validators> by stake).
+	Active bool
+	// If "true", an entity has a node that is registered for being a validator, node is up to date, and has successfully registered itself. However, it may or may not be part of validator set (top <scheduler.params.max_validators> by stake).
+	Status                 bool
+	Media                  ValidatorMedia
+	CurrentRate            uint64
+	CurrentCommissionBound ValidatorCommissionBound
+}

@@ -490,6 +490,67 @@ func (h *Handler) GetProposalVotes(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// GetValidator gets a validator.
+func (h *Handler) GetValidator(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	validator, err := h.client.Validator(ctx, r)
+	if err != nil {
+		h.logAndReply(ctx, "failed to get validator", w, err)
+		h.metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
+		return
+	}
+
+	resp, err := json.Marshal(validator)
+	if err != nil {
+		h.logAndReply(ctx, "failed to marshal validator", w, err)
+		h.metrics.RequestCounter(r.URL.Path, "failure", "serde_error").Inc()
+		return
+	}
+
+	w.Header().Set("content-type", "application/json")
+	if _, err := w.Write(resp); err != nil {
+		h.logger.Error("failed to write response",
+			"request_id", ctx.Value(RequestIDContextKey),
+			"error", err,
+		)
+		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
+	} else {
+		h.metrics.RequestCounter(r.URL.Path, "success").Inc()
+	}
+}
+
+// ListValidators gets a list of validators.
+func (h *Handler) ListValidators(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	validators, err := h.client.Validators(ctx, r)
+	if err != nil {
+		h.logAndReply(ctx, "failed to list validators", w, err)
+		h.metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
+		return
+	}
+
+	var resp []byte
+	resp, err = json.Marshal(validators)
+	if err != nil {
+		h.logAndReply(ctx, "failed to marshal validators", w, err)
+		h.metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
+		return
+	}
+
+	w.Header().Set("content-type", "application/json")
+	if _, err := w.Write(resp); err != nil {
+		h.logger.Error("failed to write response",
+			"request_id", ctx.Value(RequestIDContextKey),
+			"error", err,
+		)
+		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
+	} else {
+		h.metrics.RequestCounter(r.URL.Path, "success").Inc()
+	}
+}
+
 func (h *Handler) logAndReply(ctx context.Context, msg string, w http.ResponseWriter, err error) {
 	h.logger.Error(msg,
 		"request_id", ctx.Value(RequestIDContextKey),

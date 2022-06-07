@@ -13,9 +13,12 @@ import (
 	"github.com/iancoleman/strcase"
 	oasisErrors "github.com/oasisprotocol/oasis-core/go/common/errors"
 
+	"github.com/oasislabs/oasis-indexer/analyzer/util"
 	"github.com/oasislabs/oasis-indexer/api/common"
 	"github.com/oasislabs/oasis-indexer/log"
 	"github.com/oasislabs/oasis-indexer/storage"
+	beacon "github.com/oasisprotocol/oasis-core/go/beacon/api"
+	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
 )
 
 // QueryBuilder is used for building queries to submit to storage.
@@ -1147,6 +1150,205 @@ func (c *storageClient) ProposalVotes(ctx context.Context, r *http.Request) (*Pr
 		vs.Votes = append(vs.Votes, v)
 	}
 	vs.ProposalID = id
+
+	return &vs, nil
+}
+
+// Validator returns a single validator
+func (c *storageClient) Validator(ctx context.Context, r *http.Request) (*Validator, error) {
+	chainID, ok := ctx.Value(ChainIDContextKey).(string)
+	if !ok {
+		return nil, common.ErrBadChainID
+	}
+
+	var epoch Epoch
+	if err := c.db.QueryRow(
+		ctx,
+		fmt.Sprintf(`
+		SELECT id, start_height, end_height
+			FROM %s.epochs
+			ORDER BY id DESC
+			LIMIT 1`,
+			chainID),
+	).Scan(&epoch.ID, &epoch.StartHeight, &epoch.EndHeight); err != nil {
+		c.logger.Info("row scan failed",
+			"request_id", ctx.Value(RequestIDContextKey),
+			"err", err.Error(),
+		)
+		return nil, common.ErrStorageError
+	}
+
+	row := c.db.QueryRow(
+		ctx,
+		fmt.Sprintf(`
+			SELECT
+				%s.entities.address AS entity_address,
+				%s.nodes.id AS node_address,
+				%s.accounts.escrow_balance_active AS escrow,
+				%s.commissions.schedule AS commissions_schedule,
+				case when exists(select null from %s.nodes where %s.entities.id = %s.nodes.entity_id AND voting_power > 0) then true else false end as active,
+				case when exists(select null from %s.nodes where %s.entities.id = %s.nodes.entity_id AND %s.nodes.roles like 'validator') then true else false end as status,
+				meta
+			FROM %s.entities
+			JOIN %s.accounts ON %s.entities.address = %s.accounts.address
+			JOIN %s.metadata ON %s.entities.id = %s.metadata.id
+			JOIN %s.commissions ON %s.entities.address = %s.commissions.address
+			JOIN %s.nodes ON %s.entities.id = %s.nodes.entity_id
+				AND %s.nodes.voting_power = (
+					SELECT max(voting_power)
+					FROM %s.nodes
+					WHERE %s.entities.id = %s.nodes.entity_id
+						AND %s.nodes.roles like 'validator'
+				)
+			WHERE %s.entities.address = $1::text`,
+			chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID),
+		chi.URLParam(r, "entity_id"),
+	)
+
+	var v Validator
+	var schedule staking.CommissionSchedule
+	if err := row.Scan(
+		&v.EntityAddress,
+		&v.NodeAddress,
+		&v.Escrow,
+		&schedule,
+		&v.Active,
+		&v.Status,
+		&v.Media,
+	); err != nil {
+		c.logger.Info("query failed",
+			"err", err.Error(),
+		)
+		return nil, common.ErrStorageError
+	}
+	// Match API for now
+	v.Name = v.Media.Name
+
+	v.Name = v.Media.Name
+
+	v.CurrentRate = schedule.CurrentRate(beacon.EpochTime(epoch.ID)).ToBigInt().Uint64()
+	bound, next := util.CurrentBound(schedule, beacon.EpochTime(epoch.ID))
+	v.CurrentCommissionBound = ValidatorCommissionBound{
+		Lower:      bound.RateMin.ToBigInt().Uint64(),
+		Upper:      bound.RateMax.ToBigInt().Uint64(),
+		EpochStart: uint64(bound.Start),
+	}
+
+	if next > 0 {
+		v.CurrentCommissionBound.EpochEnd = next
+	}
+
+	return &v, nil
+}
+
+// Validators returns a list of validators
+func (c *storageClient) Validators(ctx context.Context, r *http.Request) (*ValidatorList, error) {
+	chainID, ok := ctx.Value(ChainIDContextKey).(string)
+	if !ok {
+		return nil, common.ErrBadChainID
+	}
+
+	var epoch Epoch
+	if err := c.db.QueryRow(
+		ctx,
+		fmt.Sprintf(`
+		SELECT id, start_height, end_height
+			FROM %s.epochs
+			ORDER BY id DESC
+			LIMIT 1`,
+			chainID),
+	).Scan(&epoch.ID, &epoch.StartHeight, &epoch.EndHeight); err != nil {
+		c.logger.Info("row scan failed",
+			"request_id", ctx.Value(RequestIDContextKey),
+			"err", err.Error(),
+		)
+		return nil, common.ErrStorageError
+	}
+
+	qb := NewQueryBuilder(fmt.Sprintf(`
+	SELECT
+		%s.entities.address AS entity_address,
+		%s.nodes.id AS node_address,
+		%s.accounts.escrow_balance_active AS escrow,
+		%s.commissions.schedule AS commissions_schedule,
+		case when exists(select null from %s.nodes where %s.entities.id = %s.nodes.entity_id AND voting_power > 0) then true else false end as active,
+	  case when exists(select null from %s.nodes where %s.entities.id = %s.nodes.entity_id AND %s.nodes.roles like 'validator') then true else false end as status,
+		meta
+	FROM %s.entities
+	JOIN %s.accounts ON %s.entities.address = %s.accounts.address
+	JOIN %s.metadata ON %s.entities.id = %s.metadata.id
+	JOIN %s.commissions ON %s.entities.address = %s.commissions.address
+	JOIN %s.nodes ON %s.entities.id = %s.nodes.entity_id
+		AND %s.nodes.voting_power = (
+			SELECT max(voting_power)
+			FROM %s.nodes
+			WHERE %s.entities.id = %s.nodes.entity_id
+				AND %s.nodes.roles like 'validator'
+		)
+	`, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID), c.db)
+
+	params := r.URL.Query()
+	if v := params.Get("height"); v != "" {
+		if h, err := strconv.ParseInt(v, 10, 64); err != nil {
+			qb.AddTimestamp(ctx, h)
+		}
+	}
+
+	pagination, err := common.NewPagination(r)
+	if err != nil {
+		c.logger.Info("pagination failed",
+			"request_id", ctx.Value(RequestIDContextKey),
+			"err", err.Error(),
+		)
+		return nil, common.ErrBadRequest
+	}
+	qb.AddPagination(ctx, pagination)
+
+	rows, err := c.db.Query(ctx, qb.String())
+	if err != nil {
+		c.logger.Info("query failed",
+			"request_id", ctx.Value(RequestIDContextKey),
+			"err", err.Error(),
+		)
+		return nil, common.ErrStorageError
+	}
+	defer rows.Close()
+
+	var vs ValidatorList
+	for rows.Next() {
+		var v Validator
+		var schedule staking.CommissionSchedule
+		if err := rows.Scan(
+			&v.EntityAddress,
+			&v.NodeAddress,
+			&v.Escrow,
+			&schedule,
+			&v.Active,
+			&v.Status,
+			&v.Media,
+		); err != nil {
+			c.logger.Info("query failed",
+				"err", err.Error(),
+			)
+			return nil, common.ErrStorageError
+		}
+		// Match API for now
+		v.Name = v.Media.Name
+
+		v.CurrentRate = schedule.CurrentRate(beacon.EpochTime(epoch.ID)).ToBigInt().Uint64()
+		bound, next := util.CurrentBound(schedule, beacon.EpochTime(epoch.ID))
+		v.CurrentCommissionBound = ValidatorCommissionBound{
+			Lower:      bound.RateMin.ToBigInt().Uint64(),
+			Upper:      bound.RateMax.ToBigInt().Uint64(),
+			EpochStart: uint64(bound.Start),
+		}
+
+		if next > 0 {
+			v.CurrentCommissionBound.EpochEnd = next
+		}
+
+		vs.Validators = append(vs.Validators, v)
+	}
 
 	return &vs, nil
 }

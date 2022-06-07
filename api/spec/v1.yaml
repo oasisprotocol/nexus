@@ -349,6 +349,24 @@ paths:
                 $ref: '#/components/schemas/Node'
         <<: *common-error-responses
 
+  /consensus/validators:
+    get:
+      summary: Returns a list of validators registered at the consensus layer.
+      parameters:
+        - *limit
+        - *offset
+        - *height
+      responses:
+        '200':
+          description: |
+            A JSON object containing a list of validators registered
+            at the consensus layer.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidatorList'
+        <<: *common-error-responses
+
   /consensus/accounts:
     get:
       summary: Returns a list of consensus layer accounts.
@@ -671,7 +689,82 @@ components:
           description: The vector of nodes owned by this entity.
       description: |
         An entity registered at the consensus layer.
+
+    ValidatorList:
+      type: object
+      properties:
+        validators:
+          type: array
+          items:
+            $ref: '#/components/schemas/Validator'
+      description: |
+        A list of validators registered at the consensus layer.
     
+    Validator:
+      type: object
+      properties:
+        entityAddress:
+          type: string
+          description: The public key identifying this Validator.
+          example: *entity_id_1
+        name:
+          type: string
+          description: The name of this Validator.
+          example: Valid validly validator
+        nodeAddress:
+          type: string
+          description: The public key identifying this Validator.
+          example: *node_id_1
+        escrow:
+          type: integer
+          format: int64
+          description: The amount staked.
+        active:
+          type: boolean
+          description: Entity is part of validator set.
+        status:
+          type: boolean
+          description: an entity has a node that is registered for being a validator, node is up to date, and has successfully registered itself.
+        media:
+          type: object
+          properties:
+            websiteLink:
+              type: string
+              description: An error message.
+            emailAddress:
+              type: string
+              description: An error message.
+            twitterAcc:
+              type: string
+              description: An error message.
+            tgChat:
+              type: string
+              description: An error message.
+            logotype:
+              type: string
+              description: An error message.
+        currentRate:
+          type: integer
+          format: int64
+          description: Commission rate.
+        currentCommissionBound:
+          type: object
+          properties:
+            lower:
+              type: integer
+              format: int64
+            upper:
+              type: integer
+              format: int64
+            epochStart:
+              type: integer
+              format: int64
+            epochEnd:
+              type: integer
+              format: int64
+      description: |
+        An validator registered at the consensus layer.
+
     NodeList:
       type: object
       properties:
