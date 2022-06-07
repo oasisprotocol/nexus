@@ -117,7 +117,7 @@ func TestError(t *testing.T) {
 	l, err := NewLogger("log-test", &b, FmtJSON, LevelError)
 	require.Nil(t, err)
 
-	l.Error("another statement")
+	l.Error("a statement")
 	require.NotEqual(t, 0, b.Len())
 }
 
