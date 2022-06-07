@@ -7,3 +7,6 @@ docker/node/etc/genesis.json
 
 # API files.
 index.html
+
+# Coverage reports.
+coverage.txt

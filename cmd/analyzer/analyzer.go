@@ -18,6 +18,7 @@ import (
 	"github.com/oasislabs/oasis-indexer/cmd/common"
 	"github.com/oasislabs/oasis-indexer/config"
 	"github.com/oasislabs/oasis-indexer/log"
+	"github.com/oasislabs/oasis-indexer/storage"
 	source "github.com/oasislabs/oasis-indexer/storage/oasis"
 )
 
@@ -58,6 +59,7 @@ func runAnalyzer(cmd *cobra.Command, args []string) {
 	if err != nil {
 		os.Exit(1)
 	}
+	service.Shutdown()
 
 	service.Start()
 }
@@ -103,6 +105,7 @@ func Init(cfg *config.AnalysisConfig) (*Service, error) {
 type Service struct {
 	Analyzers map[string]analyzer.Analyzer
 
+	target storage.TargetStorage
 	logger *log.Logger
 }
 
@@ -150,7 +153,9 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) {
 
 	return &Service{
 		Analyzers: analyzers,
-		logger:    logger,
+
+		target: client,
+		logger: logger,
 	}, nil
 }
 
@@ -168,6 +173,11 @@ func (a *Service) Start() {
 	}
 
 	wg.Wait()
+}
+
+// Shutdown gracefully shuts down the service.
+func (a *Service) Shutdown() {
+	a.target.Shutdown()
 }
 
 // Register registers the process sub-command.

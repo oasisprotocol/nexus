@@ -12,6 +12,7 @@ import (
 	"github.com/oasislabs/oasis-indexer/cmd/common"
 	"github.com/oasislabs/oasis-indexer/config"
 	"github.com/oasislabs/oasis-indexer/log"
+	"github.com/oasislabs/oasis-indexer/storage"
 )
 
 const (
@@ -51,6 +52,7 @@ func runServer(cmd *cobra.Command, args []string) {
 	if err != nil {
 		os.Exit(1)
 	}
+	defer service.Shutdown()
 
 	service.Start()
 }
@@ -73,6 +75,7 @@ func Init(cfg *config.ServerConfig) (*Service, error) {
 type Service struct {
 	server string
 	api    *api.IndexerAPI
+	target storage.TargetStorage
 	logger *log.Logger
 }
 
@@ -89,6 +92,7 @@ func NewService(cfg *config.ServerConfig) (*Service, error) {
 	return &Service{
 		server: cfg.Endpoint,
 		api:    api.NewIndexerAPI(client, logger),
+		target: client,
 		logger: logger,
 	}, nil
 }
@@ -108,6 +112,11 @@ func (s *Service) Start() {
 	s.logger.Error("shutting down",
 		"error", server.ListenAndServe(),
 	)
+}
+
+// Shutdown gracefully shuts down the service.
+func (s *Service) Shutdown() {
+	s.target.Shutdown()
 }
 
 // Register registers the process sub-command.

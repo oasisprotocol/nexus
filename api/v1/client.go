@@ -41,7 +41,8 @@ func (q *QueryBuilder) AddPagination(_ctx context.Context, p common.Pagination) 
 
 // AddTimestamp adds time travel to the query builder, at the time of the provided height.
 func (q *QueryBuilder) AddTimestamp(ctx context.Context, height int64) error {
-	row, err := q.db.QueryRow(
+	var processedTime time.Time
+	if err := q.db.QueryRow(
 		ctx,
 		fmt.Sprintf(`
 			SELECT processed_time
@@ -51,17 +52,11 @@ func (q *QueryBuilder) AddTimestamp(ctx context.Context, height int64) error {
 				LIMIT 1`,
 			strcase.ToSnake(LatestChainID)),
 		height,
-	)
-	if err != nil {
+	).Scan(&processedTime); err != nil {
 		return err
 	}
 
-	var processedTime time.Time
-	if err = row.Scan(&processedTime); err != nil {
-		return err
-	}
-
-	_, err = q.inner.WriteString(fmt.Sprintf("\n\tAS OF SYSTEM TIME %s", processedTime.String()))
+	_, err := q.inner.WriteString(fmt.Sprintf("\n\tAS OF SYSTEM TIME %s", processedTime.String()))
 	return err
 }
 
@@ -93,7 +88,10 @@ func newStorageClient(db storage.TargetStorage, l *log.Logger) *storageClient {
 
 // Status returns status information for the Oasis Indexer.
 func (c *storageClient) Status(ctx context.Context) (*Status, error) {
-	row, err := c.db.QueryRow(
+	s := Status{
+		LatestChainID: LatestChainID,
+	}
+	if err := c.db.QueryRow(
 		ctx,
 		fmt.Sprintf(`
 			SELECT height, processed_time
@@ -101,19 +99,7 @@ func (c *storageClient) Status(ctx context.Context) (*Status, error) {
 				ORDER BY processed_time DESC
 				LIMIT 1`,
 			strcase.ToSnake(LatestChainID)),
-	)
-	if err != nil {
-		c.logger.Info("query failed",
-			"request_id", ctx.Value(RequestIDContextKey),
-			"err", err.Error(),
-		)
-		return nil, common.ErrStorageError
-	}
-
-	s := Status{
-		LatestChainID: LatestChainID,
-	}
-	if err = row.Scan(&s.LatestBlock, &s.LatestUpdate); err != nil {
+	).Scan(&s.LatestBlock, &s.LatestUpdate); err != nil {
 		c.logger.Info("row scan failed",
 			"request_id", ctx.Value(RequestIDContextKey),
 			"err", err.Error(),
@@ -206,7 +192,8 @@ func (c *storageClient) Block(ctx context.Context, r *http.Request) (*Block, err
 		return nil, common.ErrBadChainID
 	}
 
-	row, err := c.db.QueryRow(
+	var b Block
+	if err := c.db.QueryRow(
 		ctx,
 		fmt.Sprintf(`
 			SELECT height, block_hash, time
@@ -214,17 +201,7 @@ func (c *storageClient) Block(ctx context.Context, r *http.Request) (*Block, err
 				WHERE height = $1::bigint`,
 			chainID),
 		chi.URLParam(r, "height"),
-	)
-	if err != nil {
-		c.logger.Info("query failed",
-			"request_id", ctx.Value(RequestIDContextKey),
-			"err", err.Error(),
-		)
-		return nil, common.ErrStorageError
-	}
-
-	var b Block
-	if err = row.Scan(&b.Height, &b.Hash, &b.Timestamp); err != nil {
+	).Scan(&b.Height, &b.Hash, &b.Timestamp); err != nil {
 		c.logger.Info("row scan failed",
 			"request_id", ctx.Value(RequestIDContextKey),
 			"err", err.Error(),
@@ -331,25 +308,16 @@ func (c *storageClient) Transaction(ctx context.Context, r *http.Request) (*Tran
 		return nil, common.ErrBadChainID
 	}
 
-	row, err := c.db.QueryRow(
+	var t Transaction
+	var code uint64
+	if err := c.db.QueryRow(
 		ctx,
 		fmt.Sprintf(`
 			SELECT block, txn_hash, nonce, fee_amount, method, body, code
 				FROM %s.transactions
 				WHERE txn_hash = $1::hash`, chainID),
 		chi.URLParam(r, "txn_hash"),
-	)
-	if err != nil {
-		c.logger.Info("query failed",
-			"request_id", ctx.Value(RequestIDContextKey),
-			"err", err.Error(),
-		)
-		return nil, common.ErrStorageError
-	}
-
-	var t Transaction
-	var code uint64
-	if err = row.Scan(
+	).Scan(
 		&t.Height,
 		&t.Hash,
 		&t.Nonce,
@@ -464,21 +432,12 @@ func (c *storageClient) Entity(ctx context.Context, r *http.Request) (*Entity, e
 		return nil, common.ErrBadRequest
 	}
 
-	entityRow, err := c.db.QueryRow(
+	var e Entity
+	if err := c.db.QueryRow(
 		ctx,
 		qb.String(),
 		chi.URLParam(r, "entity_id"),
-	)
-	if err != nil {
-		c.logger.Info("query failed",
-			"request_id", ctx.Value(RequestIDContextKey),
-			"err", err.Error(),
-		)
-		return nil, common.ErrStorageError
-	}
-
-	var e Entity
-	if err = entityRow.Scan(&e.ID, &e.Address); err != nil {
+	).Scan(&e.ID, &e.Address); err != nil {
 		c.logger.Info("row scan failed",
 			"request_id", ctx.Value(RequestIDContextKey),
 			"err", err.Error(),
@@ -488,8 +447,7 @@ func (c *storageClient) Entity(ctx context.Context, r *http.Request) (*Entity, e
 
 	qb = NewQueryBuilder(fmt.Sprintf("SELECT id FROM %s.nodes", chainID), c.db)
 	if v := params.Get("height"); v != "" {
-		var h int64
-		if h, err = strconv.ParseInt(v, 10, 64); err != nil {
+		if h, err := strconv.ParseInt(v, 10, 64); err != nil {
 			if err = qb.AddTimestamp(ctx, h); err != nil {
 				c.logger.Info("timestamp add failed",
 					"request_id", ctx.Value(RequestIDContextKey),
@@ -499,7 +457,7 @@ func (c *storageClient) Entity(ctx context.Context, r *http.Request) (*Entity, e
 			}
 		}
 	}
-	if err = qb.AddFilters(ctx, []string{"entity_id = $1::text"}); err != nil {
+	if err := qb.AddFilters(ctx, []string{"entity_id = $1::text"}); err != nil {
 		c.logger.Info("filtering failed",
 			"request_id", ctx.Value(RequestIDContextKey),
 			"err", err.Error(),
@@ -655,22 +613,13 @@ func (c *storageClient) EntityNode(ctx context.Context, r *http.Request) (*Node,
 		return nil, common.ErrBadRequest
 	}
 
-	row, err := c.db.QueryRow(
+	var n Node
+	if err := c.db.QueryRow(
 		ctx,
 		qb.String(),
 		chi.URLParam(r, "entity_id"),
 		chi.URLParam(r, "node_id"),
-	)
-	if err != nil {
-		c.logger.Info("query failed",
-			"request_id", ctx.Value(RequestIDContextKey),
-			"err", err.Error(),
-		)
-		return nil, common.ErrStorageError
-	}
-
-	var n Node
-	if err = row.Scan(
+	).Scan(
 		&n.ID,
 		&n.EntityID,
 		&n.Expiration,
@@ -820,21 +769,12 @@ func (c *storageClient) Account(ctx context.Context, r *http.Request) (*Account,
 		return nil, common.ErrBadRequest
 	}
 
-	accountRow, err := c.db.QueryRow(
+	var a Account
+	if err := c.db.QueryRow(
 		ctx,
 		qb.String(),
 		chi.URLParam(r, "address"),
-	)
-	if err != nil {
-		c.logger.Info("query failed",
-			"request_id", ctx.Value(RequestIDContextKey),
-			"err", err.Error(),
-		)
-		return nil, common.ErrStorageError
-	}
-
-	var a Account
-	if err = accountRow.Scan(
+	).Scan(
 		&a.Address,
 		&a.Nonce,
 		&a.Available,
@@ -854,8 +794,7 @@ func (c *storageClient) Account(ctx context.Context, r *http.Request) (*Account,
 				FROM %s.allowances`,
 		chainID), c.db)
 	if v := params.Get("height"); v != "" {
-		var h int64
-		if h, err = strconv.ParseInt(v, 10, 64); err != nil {
+		if h, err := strconv.ParseInt(v, 10, 64); err != nil {
 			if err = qb.AddTimestamp(ctx, h); err != nil {
 				c.logger.Info("timestamp add failed",
 					"request_id", ctx.Value(RequestIDContextKey),
@@ -865,7 +804,7 @@ func (c *storageClient) Account(ctx context.Context, r *http.Request) (*Account,
 			}
 		}
 	}
-	if err = qb.AddFilters(ctx, []string{"owner = $1::text"}); err != nil {
+	if err := qb.AddFilters(ctx, []string{"owner = $1::text"}); err != nil {
 		c.logger.Info("filtering failed",
 			"request_id", ctx.Value(RequestIDContextKey),
 			"err", err.Error(),
@@ -969,7 +908,8 @@ func (c *storageClient) Epoch(ctx context.Context, r *http.Request) (*Epoch, err
 		return nil, common.ErrBadChainID
 	}
 
-	row, err := c.db.QueryRow(
+	var e Epoch
+	if err := c.db.QueryRow(
 		ctx,
 		fmt.Sprintf(`
 			SELECT id, start_height, end_height
@@ -977,17 +917,7 @@ func (c *storageClient) Epoch(ctx context.Context, r *http.Request) (*Epoch, err
 				WHERE id = $1::bigint`,
 			chainID),
 		chi.URLParam(r, "epoch"),
-	)
-	if err != nil {
-		c.logger.Info("query failed",
-			"request_id", ctx.Value(RequestIDContextKey),
-			"err", err.Error(),
-		)
-		return nil, common.ErrStorageError
-	}
-
-	var e Epoch
-	if err = row.Scan(&e.ID, &e.StartHeight, &e.EndHeight); err != nil {
+	).Scan(&e.ID, &e.StartHeight, &e.EndHeight); err != nil {
 		c.logger.Info("row scan failed",
 			"request_id", ctx.Value(RequestIDContextKey),
 			"err", err.Error(),
@@ -1094,7 +1024,8 @@ func (c *storageClient) Proposal(ctx context.Context, r *http.Request) (*Proposa
 		return nil, common.ErrBadChainID
 	}
 
-	row, err := c.db.QueryRow(
+	var p Proposal
+	if err := c.db.QueryRow(
 		ctx,
 		fmt.Sprintf(`
 			SELECT id, submitter, state, deposit, handler, cp_target_version, rhp_target_version, rcp_target_version,
@@ -1103,17 +1034,7 @@ func (c *storageClient) Proposal(ctx context.Context, r *http.Request) (*Proposa
 				WHERE id = $1::bigint`,
 			chainID),
 		chi.URLParam(r, "proposal_id"),
-	)
-	if err != nil {
-		c.logger.Info("query failed",
-			"request_id", ctx.Value(RequestIDContextKey),
-			"err", err.Error(),
-		)
-		return nil, common.ErrStorageError
-	}
-
-	var p Proposal
-	if err = row.Scan(
+	).Scan(
 		&p.ID,
 		&p.Submitter,
 		&p.State,
