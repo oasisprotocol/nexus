@@ -34,8 +34,8 @@ func (m *MockStorage) Query(ctx context.Context, sql string, args ...interface{}
 	return nil, nil
 }
 
-func (m *MockStorage) QueryRow(ctx context.Context, sql string, args ...interface{}) (storage.QueryResult, error) {
-	return nil, nil
+func (m *MockStorage) QueryRow(ctx context.Context, sql string, args ...interface{}) storage.QueryResult {
+	return nil
 }
 
 func (m *MockStorage) Shutdown() {}

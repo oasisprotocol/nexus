@@ -15,6 +15,10 @@ const (
 	moduleName = "postgres"
 )
 
+var (
+	defaultMaxConns = int32(32)
+)
+
 // Client is a PostgreSQL client.
 type Client struct {
 	pool   *pgxpool.Pool
@@ -27,6 +31,7 @@ func NewClient(connString string, l *log.Logger) (*Client, error) {
 	if err != nil {
 		return nil, err
 	}
+	config.MaxConns = defaultMaxConns
 
 	pool, err := pgxpool.ConnectConfig(context.Background(), config)
 	if err != nil {
@@ -40,16 +45,7 @@ func NewClient(connString string, l *log.Logger) (*Client, error) {
 
 // SendBatch submits a new transaction batch to PostgreSQL.
 func (c *Client) SendBatch(ctx context.Context, batch *pgx.Batch) error {
-	conn, err := c.pool.Acquire(ctx)
-	if err != nil {
-		c.logger.Error("failed to acquire db connection from pool",
-			"error", err,
-		)
-		return err
-	}
-	defer conn.Release()
-
-	if err := conn.BeginTxFunc(ctx, pgx.TxOptions{}, func(tx pgx.Tx) error {
+	if err := c.pool.BeginTxFunc(ctx, pgx.TxOptions{}, func(tx pgx.Tx) error {
 		batchResults := tx.SendBatch(ctx, batch)
 		defer batchResults.Close()
 		for i := 0; i < batch.Len(); i++ {
@@ -71,16 +67,7 @@ func (c *Client) SendBatch(ctx context.Context, batch *pgx.Batch) error {
 
 // Query submits a new query to PostgreSQL.
 func (c *Client) Query(ctx context.Context, sql string, args ...interface{}) (pgx.Rows, error) {
-	conn, err := c.pool.Acquire(ctx)
-	if err != nil {
-		c.logger.Error("failed to acquire db connection from pool",
-			"error", err,
-		)
-		return nil, err
-	}
-	defer conn.Release()
-
-	rows, err := conn.Query(ctx, sql, args...)
+	rows, err := c.pool.Query(ctx, sql, args...)
 	if err != nil {
 		c.logger.Error("failed to query db",
 			"error", err,
@@ -91,14 +78,8 @@ func (c *Client) Query(ctx context.Context, sql string, args ...interface{}) (pg
 }
 
 // QueryRow submits a new query for a single row to PostgreSQL.
-func (c *Client) QueryRow(ctx context.Context, sql string, args ...interface{}) (pgx.Row, error) {
-	conn, err := c.pool.Acquire(ctx)
-	if err != nil {
-		return nil, err
-	}
-	defer conn.Release()
-
-	return conn.QueryRow(ctx, sql, args...), nil
+func (c *Client) QueryRow(ctx context.Context, sql string, args ...interface{}) pgx.Row {
+	return c.pool.QueryRow(ctx, sql, args...)
 }
 
 // Shutdown shuts down the target storage client.

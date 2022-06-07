@@ -127,7 +127,8 @@ func (m *Main) source(height int64) (storage.SourceStorage, error) {
 
 // latestBlock returns the latest block processed by the consensus analyzer.
 func (m *Main) latestBlock(ctx context.Context) (int64, error) {
-	row, err := m.target.QueryRow(
+	var latest int64
+	if err := m.target.QueryRow(
 		ctx,
 		fmt.Sprintf(`
 			SELECT height FROM %s.processed_blocks
@@ -138,13 +139,7 @@ func (m *Main) latestBlock(ctx context.Context) (int64, error) {
 		// ^analyzers should only analyze for a single chain ID, and we anchor this
 		// at the starting block.
 		analyzerName,
-	)
-	if err != nil {
-		return 0, err
-	}
-
-	var latest int64
-	if err := row.Scan(&latest); err != nil {
+	).Scan(&latest); err != nil {
 		return 0, err
 	}
 	return latest, nil

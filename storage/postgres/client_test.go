@@ -8,10 +8,9 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
 	"github.com/oasislabs/oasis-indexer/log"
 	"github.com/oasislabs/oasis-indexer/storage"
+	"github.com/stretchr/testify/require"
 )
 
 func makeClient(t *testing.T) *Client {
@@ -57,13 +56,12 @@ func TestQueryRow(t *testing.T) {
 	client := makeClient(t)
 	defer client.Shutdown()
 
-	row, err := client.QueryRow(context.Background(), `
+	var result int
+	err := client.QueryRow(context.Background(), `
 		SELECT 1+1;
-	`)
+	`).Scan(&result)
 	require.Nil(t, err)
 
-	var result int
-	err = row.Scan(&result)
 	require.Nil(t, err)
 	require.Equal(t, 2, result)
 }
@@ -127,12 +125,10 @@ func TestSendBatch(t *testing.T) {
 		go func(i int, film string) {
 			defer wg.Done()
 
-			var row storage.QueryResult
-			row, err = client.QueryRow(context.Background(), `
-				SELECT name FROM films WHERE fid = $1;
-			`, i)
 			var result string
-			err = row.Scan(&result)
+			err := client.QueryRow(context.Background(), `
+				SELECT name FROM films WHERE fid = $1;
+			`, i).Scan(&result)
 			require.Nil(t, err)
 			require.Equal(t, film, result)
 		}(i, film)
