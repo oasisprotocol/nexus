@@ -8,9 +8,10 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/oasislabs/oasis-indexer/log"
 	"github.com/oasislabs/oasis-indexer/storage"
-	"github.com/stretchr/testify/require"
 )
 
 func makeClient(t *testing.T) *Client {

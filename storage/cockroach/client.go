@@ -16,9 +16,7 @@ const (
 	moduleName = "cockroach"
 )
 
-var (
-	defaultMaxConns = int32(32)
-)
+var defaultMaxConns = int32(32)
 
 // Client is a CockroachDB client.
 type Client struct {

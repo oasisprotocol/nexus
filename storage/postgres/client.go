@@ -15,9 +15,7 @@ const (
 	moduleName = "postgres"
 )
 
-var (
-	defaultMaxConns = int32(32)
-)
+var defaultMaxConns = int32(32)
 
 // Client is a PostgreSQL client.
 type Client struct {

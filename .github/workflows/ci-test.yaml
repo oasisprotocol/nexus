@@ -47,6 +47,9 @@ jobs:
           make test-ci
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v3.1.0
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: ./coverage.txt
 
   validate-openapi:
     runs-on: ubuntu-20.04
