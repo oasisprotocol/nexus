@@ -50,7 +50,7 @@ func (h *Handler) RegisterRoutes(r chi.Router) {
 			})
 			r.Route("/transactions", func(r chi.Router) {
 				r.Get("/", h.ListTransactions)
-				r.Get("/{tx_hash}", h.GetTransaction)
+				r.Get("/{txn_hash}", h.GetTransaction)
 			})
 
 			// Registry Endpoints.

@@ -315,7 +315,7 @@ func (c *storageClient) Transaction(ctx context.Context, r *http.Request) (*Tran
 		fmt.Sprintf(`
 			SELECT block, txn_hash, nonce, fee_amount, method, body, code
 				FROM %s.transactions
-				WHERE txn_hash = $1::hash`, chainID),
+				WHERE txn_hash = $1::text`, chainID),
 		chi.URLParam(r, "txn_hash"),
 	).Scan(
 		&t.Height,
