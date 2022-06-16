@@ -23,6 +23,7 @@ $ make docker
 ```
 
 **Run**
+
 From the repository root, you can run:
 ```sh
 $ make run
@@ -32,6 +33,7 @@ The analyzer will run migrations on start based on files in `storage/migrations`
 See [Generating Migrations](#generating-migrations) for information on generating new migrations.
 
 **Query**
+
 Now you can query the Oasis Indexer API
 ```sh
 $ curl -X GET http://0.0.0.0:8008/v1
