@@ -220,6 +220,7 @@ func (m *Main) prepareBlockData(ctx context.Context, height int64, batch *storag
 
 	for _, f := range []func(*storage.QueryBatch, *storage.BlockData) error{
 		m.queueBlockInserts,
+		m.queueEpochInserts,
 		m.queueTransactionInserts,
 		m.queueEventInserts,
 	} {
@@ -245,6 +246,23 @@ func (m *Main) queueBlockInserts(batch *storage.QueryBatch, data *storage.BlockD
 		int64(data.BlockHeader.StateRoot.Version),
 		data.BlockHeader.StateRoot.Type.String(),
 		data.BlockHeader.StateRoot.Hash.Hex(),
+	)
+
+	return nil
+}
+
+func (m *Main) queueEpochInserts(batch *storage.QueryBatch, data *storage.BlockData) error {
+	chainID := m.rangeCfg.ChainID
+
+	batch.Queue(fmt.Sprintf(`
+		INSERT INTO %s.epochs (id, start_height)
+			VALUES ($1, $2)
+		ON CONFLICT (id) DO
+		UPDATE SET
+			end_height = excluded.start_height;
+	`, chainID),
+		data.Epoch,
+		data.BlockHeader.Height,
 	)
 
 	return nil
