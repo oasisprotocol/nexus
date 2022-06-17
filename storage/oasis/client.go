@@ -62,6 +62,17 @@ func (c *Client) GenesisDocument(ctx context.Context) (*genesisAPI.Document, err
 	return doc, nil
 }
 
+// StateToGenesis returns the genesis document at the provided height.
+func (c *Client) StateToGenesis(ctx context.Context, height int64) (*genesisAPI.Document, error) {
+	connection := *c.connection
+	doc, err := connection.Consensus().StateToGenesis(ctx, height)
+	if err != nil {
+		return nil, err
+	}
+
+	return doc, nil
+}
+
 // Name returns the name of the oasis-node client.
 func (c *Client) Name() string {
 	return moduleName
