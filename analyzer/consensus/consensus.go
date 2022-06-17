@@ -238,7 +238,7 @@ func (m *Main) queueBlockInserts(batch *storage.QueryBatch, data *storage.BlockD
 	`, chainID),
 		data.BlockHeader.Height,
 		data.BlockHeader.Hash.Hex(),
-		data.BlockHeader.Time,
+		data.BlockHeader.Time.UTC(),
 		data.BlockHeader.StateRoot.Namespace.String(),
 		int64(data.BlockHeader.StateRoot.Version),
 		data.BlockHeader.StateRoot.Type.String(),
@@ -485,8 +485,10 @@ func (m *Main) queueTransfers(batch *storage.QueryBatch, data *storage.StakingDa
 		amount := transfer.Amount.ToBigInt().Uint64()
 		batch.Queue(fmt.Sprintf(`
 			UPDATE %s.accounts
-			SET general_balance = general_balance - $2
-				WHERE address = $1;
+			SET
+				general_balance = general_balance - $2,
+				nonce = nonce + 1
+			WHERE address = $1;
 		`, chainID),
 			from,
 			amount,
@@ -495,7 +497,7 @@ func (m *Main) queueTransfers(batch *storage.QueryBatch, data *storage.StakingDa
 			INSERT INTO %s.accounts (address, general_balance)
 				VALUES ($1, $2)
 			ON CONFLICT (address) DO
-				UPDATE SET general_balance = %s.accounts.general_balance - $2;
+				UPDATE SET general_balance = %s.accounts.general_balance + $2;
 		`, chainID, chainID),
 			to,
 			amount,

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -178,6 +179,7 @@ func (c *storageClient) Blocks(ctx context.Context, r *http.Request) (*BlockList
 			)
 			return nil, common.ErrStorageError
 		}
+		b.Timestamp = b.Timestamp.UTC()
 
 		bs.Blocks = append(bs.Blocks, b)
 	}
@@ -208,6 +210,7 @@ func (c *storageClient) Block(ctx context.Context, r *http.Request) (*Block, err
 		)
 		return nil, common.ErrStorageError
 	}
+	b.Timestamp = b.Timestamp.UTC()
 
 	return &b, nil
 }
@@ -432,11 +435,16 @@ func (c *storageClient) Entity(ctx context.Context, r *http.Request) (*Entity, e
 		return nil, common.ErrBadRequest
 	}
 
+	entityID, err := url.PathUnescape(chi.URLParam(r, "entity_id"))
+	if err != nil {
+		return nil, common.ErrBadRequest
+	}
+
 	var e Entity
 	if err := c.db.QueryRow(
 		ctx,
 		qb.String(),
-		chi.URLParam(r, "entity_id"),
+		entityID,
 	).Scan(&e.ID, &e.Address); err != nil {
 		c.logger.Info("row scan failed",
 			"request_id", ctx.Value(RequestIDContextKey),
@@ -465,10 +473,15 @@ func (c *storageClient) Entity(ctx context.Context, r *http.Request) (*Entity, e
 		return nil, common.ErrBadRequest
 	}
 
+	entityID, err = url.PathUnescape(chi.URLParam(r, "entity_id"))
+	if err != nil {
+		return nil, common.ErrBadRequest
+	}
+
 	nodeRows, err := c.db.Query(
 		ctx,
 		qb.String(),
-		chi.URLParam(r, "entity_id"),
+		entityID,
 	)
 	if err != nil {
 		c.logger.Info("query failed",
@@ -543,7 +556,10 @@ func (c *storageClient) EntityNodes(ctx context.Context, r *http.Request) (*Node
 		return nil, common.ErrBadRequest
 	}
 
-	id := chi.URLParam(r, "entity_id")
+	id, err := url.PathUnescape(chi.URLParam(r, "entity_id"))
+	if err != nil {
+		return nil, common.ErrBadRequest
+	}
 	rows, err := c.db.Query(ctx, qb.String(), id)
 	if err != nil {
 		c.logger.Info("query failed",
@@ -613,12 +629,20 @@ func (c *storageClient) EntityNode(ctx context.Context, r *http.Request) (*Node,
 		return nil, common.ErrBadRequest
 	}
 
+	entityID, err := url.PathUnescape(chi.URLParam(r, "entity_id"))
+	if err != nil {
+		return nil, common.ErrBadRequest
+	}
+	nodeID, err := url.PathUnescape(chi.URLParam(r, "node_id"))
+	if err != nil {
+		return nil, common.ErrBadRequest
+	}
 	var n Node
 	if err := c.db.QueryRow(
 		ctx,
 		qb.String(),
-		chi.URLParam(r, "entity_id"),
-		chi.URLParam(r, "node_id"),
+		entityID,
+		nodeID,
 	).Scan(
 		&n.ID,
 		&n.EntityID,

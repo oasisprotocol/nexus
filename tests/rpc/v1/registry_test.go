@@ -2,6 +2,7 @@ package v1
 
 import (
 	"fmt"
+	"net/url"
 	"testing"
 
 	v1 "github.com/oasislabs/oasis-indexer/api/v1"
@@ -12,10 +13,10 @@ import (
 func makeTestEntities(t *testing.T) []v1.Entity {
 	return []v1.Entity{
 		{
-			ID:      "J3ou5m1abrwcbYwTksSj1Hj21QoDjyrSkjB40rEKV4E=",
-			Address: "oasis1qqnmppt4j5d2yl584euhn6g2cw9gewdswga9frg4",
+			ID:      "gb8SHLeDc69Elk7OTfqhtVgE2sqxrBCDQI84xKR+Bjg=",
+			Address: "oasis1qpgl52u29wy4hjla89f46ntkn2qsa6zpdvhv6s6n",
 			Nodes: []string{
-				"dMaOtmpPbdB7ukYfXdo+ssTTCjX2Qspmi1YJIg5Hcr0=",
+				"5RIMVgnsN1D/HdvNxXCpE+lWH5U/SGYUrYsvhsTMbyA=",
 			},
 		},
 	}
@@ -24,16 +25,19 @@ func makeTestEntities(t *testing.T) []v1.Entity {
 func makeTestNodes(t *testing.T) []v1.Node {
 	return []v1.Node{
 		{
-			ID:              "dMaOtmpPbdB7ukYfXdo+ssTTCjX2Qspmi1YJIg5Hcr0=",
-			EntityID:        "J3ou5m1abrwcbYwTksSj1Hj21QoDjyrSkjB40rEKV4E=",
-			Expiration:      13405,
-			TLSPubkey:       "SpIv9/Io9kooRVO5DWF6hoxYn3YA0PZMgFkldevAd/o=",
-			TLSNextPubkey:   "v+0vnXvaZRvJqlSJw5nog9jgHx25aMo89IMVwt+EeN0=",
-			P2PPubkey:       "n6zGACCsR+cn5LclGFp/DrHgcKtLrvbG5cgVb7EVSXo=",
-			ConsensusPubkey: "U2x+rr2iQJOCsw3Gj/eJspBiF/jVxSek9OD47Gvqw5I=",
+			ID:              "5RIMVgnsN1D/HdvNxXCpE+lWH5U/SGYUrYsvhsTMbyA=",
+			EntityID:        "gb8SHLeDc69Elk7OTfqhtVgE2sqxrBCDQI84xKR+Bjg=",
+			TLSPubkey:       "ULLgoIQNFizH5l6O3YpK6+pD6JYiJ/0bEj0OsXP4x7k=",
+			TLSNextPubkey:   "drjBggoGlujuzfoCV/aqhIKrwCaQdclE+Pc/XLx7a2I=",
+			P2PPubkey:       "ZjerSSlcR3yrd4dff3ZjoPI6TvMivoiwyvNWSXsYzWA=",
+			ConsensusPubkey: "s7peyC7dJcqo58KIMJXNQTwIivRPX7OQX0h/eOUs/cU=",
 			Roles:           "validator",
 		},
 	}
+}
+
+func escape(s string) string {
+	return url.PathEscape(s)
 }
 
 func TestListEntities(t *testing.T) {
@@ -77,7 +81,7 @@ func TestGetEntity(t *testing.T) {
 	<-tests.After(endHeight)
 
 	var entity v1.Entity
-	tests.GetFrom(fmt.Sprintf("/consensus/entities/%s", testEntities[0].ID), &entity)
+	tests.GetFrom(fmt.Sprintf("/consensus/entities/%s", escape(testEntities[0].ID)), &entity)
 
 	require.Equal(t, testEntities[0].ID, entity.ID)
 	require.Equal(t, testEntities[0].Address, entity.Address)
@@ -96,10 +100,12 @@ func TestListEntityNodes(t *testing.T) {
 	<-tests.After(endHeight)
 
 	var list v1.NodeList
-	tests.GetFrom(fmt.Sprintf("/consensus/entities/%s/nodes", testNodes[0].EntityID), &list)
+	tests.GetFrom(fmt.Sprintf("/consensus/entities/%s/nodes", escape(testNodes[0].EntityID)), &list)
 	require.Equal(t, len(testNodes), len(list.Nodes))
 
 	for i, node := range list.Nodes {
+		// The expiration is dynamic, until we have oasis-net-runner with a halt epoch.
+		testNodes[i].Expiration = node.Expiration
 		require.Equal(t, testNodes[i], node)
 	}
 }
@@ -116,6 +122,8 @@ func TestGetEntityNode(t *testing.T) {
 	<-tests.After(endHeight)
 
 	var node v1.Node
-	tests.GetFrom(fmt.Sprintf("/consensus/entities/%s/nodes/%s", testNodes[0].EntityID, testNodes[0].ID), &node)
+	tests.GetFrom(fmt.Sprintf("/consensus/entities/%s/nodes/%s", escape(testNodes[0].EntityID), escape(testNodes[0].ID)), &node)
+	// The expiration is dynamic, until we have oasis-net-runner with a halt epoch.
+	testNodes[0].Expiration = node.Expiration
 	require.Equal(t, testNodes[0], node)
 }
