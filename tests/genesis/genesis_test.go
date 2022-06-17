@@ -10,6 +10,7 @@ import (
 	"github.com/iancoleman/strcase"
 	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
 	oasisConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/oasislabs/oasis-indexer/log"
@@ -30,7 +31,7 @@ type TestAccount struct {
 func newTargetClient(t *testing.T) (*postgres.Client, error) {
 	connString := os.Getenv("CI_TEST_CONN_STRING")
 	logger, err := log.NewLogger("cockroach-test", ioutil.Discard, log.FmtJSON, log.LevelInfo)
-	require.Nil(t, err)
+	assert.Nil(t, err)
 
 	return postgres.NewClient(connString, logger)
 }
@@ -47,7 +48,7 @@ func checkpointStakingBackend(t *testing.T, source *oasis.Client, target *postgr
 	ctx := context.Background()
 
 	doc, err := source.GenesisDocument(ctx)
-	require.Nil(t, err)
+	assert.Nil(t, err)
 	chainID := strcase.ToSnake(doc.ChainID)
 
 	// Prepare checkpoint queries.
@@ -172,8 +173,8 @@ func TestStakingGenesis(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping testing in short mode")
 	}
-	if _, ok := os.LookupEnv("OASIS_INDEXER_TEST_GENESIS"); !ok {
-		t.Skip("skipping test since genesis tests are not enabled")
+	if _, ok := os.LookupEnv("OASIS_INDEXER_HEALTHCHECK"); !ok {
+		t.Skip("skipping test since healthcheck tests are not enabled")
 	}
 
 	t.Log("Initializing data stores...")
@@ -181,28 +182,27 @@ func TestStakingGenesis(t *testing.T) {
 	ctx := context.Background()
 
 	oasisClient, err := newSourceClient(t)
-	require.Nil(t, err)
+	assert.Nil(t, err)
 
 	postgresClient, err := newTargetClient(t)
-	require.Nil(t, err)
+	assert.Nil(t, err)
 
 	doc, err := oasisClient.GenesisDocument(ctx)
-	require.Nil(t, err)
+	assert.Nil(t, err)
 	chainID := strcase.ToSnake(doc.ChainID)
 
 	t.Log("Creating checkpoint...")
 
 	height, err := checkpointStakingBackend(t, oasisClient, postgresClient)
-	require.Nil(t, err)
+	assert.Nil(t, err)
 
 	t.Log("Fetching genesis state...")
 
-	doc, err = oasisClient.StateToGenesis(ctx, height)
-	require.Nil(t, err)
+	stakingGenesis, err := oasisClient.StakingGenesis(ctx, height)
+	assert.Nil(t, err)
 
 	t.Log("Validating...")
 
-	stakingGenesis := doc.Staking
 	rows, err := postgresClient.Query(ctx, fmt.Sprintf(
 		`SELECT address, nonce, general_balance, escrow_balance_active, escrow_balance_debonding
 				FROM %s.accounts`, chainID),
@@ -217,16 +217,20 @@ func TestStakingGenesis(t *testing.T) {
 			&ta.Escrow,
 			&ta.Debonding,
 		)
-		require.Nil(t, err)
+		assert.Nil(t, err)
 
 		var address staking.Address
 		err = address.UnmarshalText([]byte(ta.Address))
-		require.Nil(t, err)
+		assert.Nil(t, err)
 
 		a, ok := stakingGenesis.Ledger[address]
-		require.True(t, ok)
-		require.Equal(t, a.General.Nonce, ta.Nonce)
-		require.Equal(t, a.General.Balance.ToBigInt().Uint64(), ta.Available)
+		if ok {
+			assert.Equal(t, a.General.Nonce, ta.Nonce)
+			assert.Equal(t, a.General.Balance.ToBigInt().Uint64(), ta.Available)
+		} else {
+			t.Logf("Address %s not found in staking ledger.", address.String())
+		}
+
 	}
 
 	t.Log("Done!")

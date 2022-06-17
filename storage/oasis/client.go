@@ -62,10 +62,43 @@ func (c *Client) GenesisDocument(ctx context.Context) (*genesisAPI.Document, err
 	return doc, nil
 }
 
-// StateToGenesis returns the genesis document at the provided height.
-func (c *Client) StateToGenesis(ctx context.Context, height int64) (*genesisAPI.Document, error) {
+// RegistryGenesis returns the registry genesis document at the provided height.
+func (c *Client) StateToGenesis(ctx context.Context, height int64) (*registryAPI.Genesis, error) {
 	connection := *c.connection
-	doc, err := connection.Consensus().StateToGenesis(ctx, height)
+	doc, err := connection.Consensus().Registry().StateToGenesis(ctx, height)
+	if err != nil {
+		return nil, err
+	}
+
+	return doc, nil
+}
+
+// StakingGenesis returns the staking genesis document at the provided height.
+func (c *Client) StakingGenesis(ctx context.Context, height int64) (*stakingAPI.Genesis, error) {
+	connection := *c.connection
+	doc, err := connection.Consensus().Staking().StateToGenesis(ctx, height)
+	if err != nil {
+		return nil, err
+	}
+
+	return doc, nil
+}
+
+// SchedulerGenesis returns the scheduler genesis document at the provided height.
+func (c *Client) SchedulerGenesis(ctx context.Context, height int64) (*schedulerAPI.Genesis, error) {
+	connection := *c.connection
+	doc, err := connection.Consensus().Scheduler().StateToGenesis(ctx, height)
+	if err != nil {
+		return nil, err
+	}
+
+	return doc, nil
+}
+
+// GovernanceGenesis returns the governance genesis document at the provided height.
+func (c *Client) GovernanceGenesis(ctx context.Context, height int64) (*governanceAPI.Genesis, error) {
+	connection := *c.connection
+	doc, err := connection.Consensus().Governance().StateToGenesis(ctx, height)
 	if err != nil {
 		return nil, err
 	}
