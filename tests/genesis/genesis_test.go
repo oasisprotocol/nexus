@@ -16,6 +16,7 @@ import (
 	"github.com/oasislabs/oasis-indexer/storage"
 	"github.com/oasislabs/oasis-indexer/storage/oasis"
 	"github.com/oasislabs/oasis-indexer/storage/postgres"
+	"github.com/oasislabs/oasis-indexer/tests"
 )
 
 type TestAccount struct {
@@ -127,6 +128,46 @@ func checkpointStakingBackend(t *testing.T, source *oasis.Client, target *postgr
 	return checkpointHeight, nil
 }
 
+func TestBlocksSanityCheck(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping testing in short mode")
+	}
+
+	ctx := context.Background()
+
+	oasisClient, err := newSourceClient(t)
+	require.Nil(t, err)
+
+	postgresClient, err := newTargetClient(t)
+	require.Nil(t, err)
+
+	doc, err := oasisClient.GenesisDocument(ctx)
+	require.Nil(t, err)
+	chainID := strcase.ToSnake(doc.ChainID)
+
+	var latestHeight int64
+	err = postgresClient.QueryRow(ctx, fmt.Sprintf(
+		`SELECT height FROM %s.blocks ORDER BY height DESC LIMIT 1;`,
+		chainID,
+	)).Scan(&latestHeight)
+	require.Nil(t, err)
+
+	var actualHeightSum int64
+	err = postgresClient.QueryRow(ctx, fmt.Sprintf(
+		`SELECT SUM(height) FROM %s.blocks WHERE height <= $1;`,
+		chainID,
+	), latestHeight).Scan(&actualHeightSum)
+	require.Nil(t, err)
+
+	// Using formula for sum of first k natural numbers.
+	expectedHeightSum := latestHeight*(latestHeight+1)/2 - (tests.GenesisHeight-1)*tests.GenesisHeight/2
+	require.Equal(t, expectedHeightSum, actualHeightSum)
+}
+
+func TestRegistryGenesis(t *testing.T) {
+	// TODO
+}
+
 func TestStakingGenesis(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping testing in short mode")
@@ -189,4 +230,12 @@ func TestStakingGenesis(t *testing.T) {
 	}
 
 	t.Log("Done!")
+}
+
+func TestSchedulerGenesis(t *testing.T) {
+	// TODO
+}
+
+func TestGovernanceGenesis(t *testing.T) {
+	// TODO
 }
