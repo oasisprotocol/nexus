@@ -172,7 +172,7 @@ func TestStakingGenesis(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping testing in short mode")
 	}
-	if _, ok := os.LookupEnv("CI_TEST_GENESIS"); !ok {
+	if _, ok := os.LookupEnv("OASIS_INDEXER_TEST_GENESIS"); !ok {
 		t.Skip("skipping test since genesis tests are not enabled")
 	}
 
