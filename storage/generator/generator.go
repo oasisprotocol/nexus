@@ -12,6 +12,7 @@ import (
 	"github.com/oasisprotocol/oasis-core/go/common/node"
 	genesis "github.com/oasisprotocol/oasis-core/go/genesis/api"
 	registry "github.com/oasisprotocol/oasis-core/go/registry/api"
+	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
 
 	"github.com/oasislabs/oasis-indexer/log"
 )
@@ -61,7 +62,7 @@ TRUNCATE %s.entities CASCADE;`, chainID)); err != nil {
 		return err
 	}
 	if _, err := io.WriteString(w, fmt.Sprintf(`
-INSERT INTO %s.entities (id)
+INSERT INTO %s.entities (id, address)
 VALUES
 `, chainID)); err != nil {
 		return err
@@ -73,8 +74,9 @@ VALUES
 		}
 
 		if _, err := io.WriteString(w, fmt.Sprintf(
-			"\t('%s')",
+			"\t('%s', '%s')",
 			entity.ID.String(),
+			staking.NewAddress(entity.ID).String(),
 		)); err != nil {
 			return err
 		}

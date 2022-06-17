@@ -375,6 +375,9 @@ func (m *Main) queueEntityEvents(batch *storage.QueryBatch, data *storage.Regist
 		for _, node := range entityEvent.Entity.Nodes {
 			nodes = append(nodes, node.String())
 		}
+		m.logger.Debug(
+			"staking address", staking.NewAddress(entityEvent.Entity.ID).String(),
+		)
 		batch.Queue(fmt.Sprintf(`
 			INSERT INTO %s.entities (id, address) VALUES ($1, $2)
 				ON CONFLICT (id) DO
@@ -382,7 +385,7 @@ func (m *Main) queueEntityEvents(batch *storage.QueryBatch, data *storage.Regist
 					address = excluded.address;
 		`, chainID),
 			entityEvent.Entity.ID.String(),
-			strings.Join(nodes, ","),
+			staking.NewAddress(entityEvent.Entity.ID).String(),
 		)
 	}
 

@@ -189,7 +189,7 @@ func (g *Generator) genesisDocFromClient() (*genesis.Document, error) {
 
 // Register registers the process sub-command.
 func Register(parentCmd *cobra.Command) {
-	generateCmd.Flags().StringVar(&configFile, "config", "./config/local.yml", "path to the config.yml file")
+	generateCmd.Flags().StringVar(&configFile, "config", "./config/local-dev.yml", "path to the config.yml file")
 	generateCmd.Flags().StringVar(&cfgMigrationFile, CfgMigrationFile, "", "path to output migration file")
 	generateCmd.Flags().StringVar(&cfgGenesisFile, CfgGenesisFile, "", "path to input genesis file")
 	generateCmd.Flags().StringVar(&cfgNetworkConfigFile, CfgNetworkConfigFile, "", "path to a network configuration file")
