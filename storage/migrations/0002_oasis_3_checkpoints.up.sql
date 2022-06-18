@@ -54,4 +54,44 @@ CREATE TABLE IF NOT EXISTS oasis_3.checkpointed_heights
   checkpoint_time TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Governance Backend Data
+
+CREATE TABLE IF NOT EXISTS oasis_3.proposals_checkpoint
+(
+  id            BIGINT PRIMARY KEY,
+  submitter     TEXT NOT NULL,
+  state         TEXT NOT NULL DEFAULT 'active',
+  executed      BOOLEAN NOT NULL DEFAULT false,
+  deposit       NUMERIC NOT NULL,
+
+  -- If this proposal is a new proposal.
+  handler            TEXT,
+  cp_target_version  TEXT,
+  rhp_target_version TEXT,
+  rcp_target_version TEXT,
+  upgrade_epoch      BIGINT,
+
+  -- If this proposal cancels an existing proposal.
+  cancels BIGINT REFERENCES oasis_3.proposals(id) DEFAULT NULL,
+
+  created_at    BIGINT NOT NULL,
+  closes_at     BIGINT NOT NULL,
+  invalid_votes NUMERIC NOT NULL DEFAULT 0,
+
+  -- Arbitrary additional data.
+  extra_data JSON
+);
+
+CREATE TABLE IF NOT EXISTS oasis_3.votes_checkpoint
+(
+  proposal BIGINT NOT NULL REFERENCES oasis_3.proposals(id),
+  voter    TEXT NOT NULL,
+  vote     TEXT,
+
+  PRIMARY KEY (proposal, voter),
+
+  -- Arbitrary additional data.
+  extra_data JSON
+);
+
 COMMIT;

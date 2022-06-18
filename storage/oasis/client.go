@@ -63,7 +63,7 @@ func (c *Client) GenesisDocument(ctx context.Context) (*genesisAPI.Document, err
 }
 
 // RegistryGenesis returns the registry genesis document at the provided height.
-func (c *Client) StateToGenesis(ctx context.Context, height int64) (*registryAPI.Genesis, error) {
+func (c *Client) RegistryGenesis(ctx context.Context, height int64) (*registryAPI.Genesis, error) {
 	connection := *c.connection
 	doc, err := connection.Consensus().Registry().StateToGenesis(ctx, height)
 	if err != nil {

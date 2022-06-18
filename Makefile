@@ -61,6 +61,15 @@ docs: $(docs-targets)
 run:
 	@docker compose up --remove-orphans
 
+postgres:
+	@docker run \
+		--name postgres \
+		-p 5432:5432 \
+		-e POSTGRES_USER=indexer \
+		-e POSTGRES_PASSWORD=password \
+		-e POSTGRES_DB=indexer \
+		-d postgres
+
 release-build:
 	@goreleaser release --rm-dist
 
