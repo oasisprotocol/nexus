@@ -26,8 +26,9 @@ const (
 
 // Client supports connections to an oasis-node instance.
 type Client struct {
-	connection *connection.Connection
-	network    *config.Network
+	connection    *connection.Connection
+	network       *config.Network
+	genesisHeight int64
 }
 
 // NewClient creates a new oasis-node client.
@@ -45,16 +46,34 @@ func NewClient(ctx context.Context, network *config.Network) (*Client, error) {
 	// Configure chain context for all signatures using chain domain separation.
 	signature.SetChainContext(chainContext)
 
-	return &Client{
-		&connection,
-		network,
-	}, nil
+	c := &Client{
+		connection: &connection,
+		network:    network,
+	}
+	doc, err := c.GenesisDocument(ctx)
+	if err != nil {
+		return nil, err
+	}
+	c.genesisHeight = doc.Height
+
+	return c, nil
 }
 
 // GenesisDocument returns the original genesis document.
 func (c *Client) GenesisDocument(ctx context.Context) (*genesisAPI.Document, error) {
 	connection := *c.connection
 	doc, err := connection.Consensus().GetGenesisDocument(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return doc, nil
+}
+
+// GenesisDocumentAtHeight returns the genesis document at the provided height.
+func (c *Client) GenesisDocumentAtHeight(ctx context.Context, height int64) (*genesisAPI.Document, error) {
+	connection := *c.connection
+	doc, err := connection.Consensus().StateToGenesis(ctx, height)
 	if err != nil {
 		return nil, err
 	}
@@ -186,12 +205,75 @@ func (c *Client) RegistryData(ctx context.Context, height int64) (*storage.Regis
 		}
 	}
 
+	rts, err := c.runtimeUpdates(ctx, height)
+
+	var suspensions, unsuspensions []string
+	for rt, suspended := range rts {
+		if suspended {
+			suspensions = append(suspensions, rt)
+		} else {
+			unsuspensions = append(unsuspensions, rt)
+		}
+	}
+
 	return &storage.RegistryData{
-		RuntimeEvents:     runtimeEvents,
-		EntityEvents:      entityEvents,
-		NodeEvent:         nodeEvents,
-		NodeUnfrozenEvent: nodeUnfrozenEvents,
+		RuntimeEvents:        runtimeEvents,
+		EntityEvents:         entityEvents,
+		NodeEvents:           nodeEvents,
+		NodeUnfrozenEvents:   nodeUnfrozenEvents,
+		RuntimeSuspensions:   suspensions,
+		RuntimeUnsuspensions: unsuspensions,
 	}, nil
+}
+
+func (c *Client) runtimeUpdates(ctx context.Context, height int64) (map[string]bool, error) {
+	rtsCurr, err := c.runtimes(ctx, height)
+	if err != nil {
+		return nil, err
+	}
+
+	if height != c.genesisHeight {
+		rtsPrev, err := c.runtimes(ctx, height-1)
+		if err != nil {
+			return nil, err
+		}
+
+		for r, suspended := range rtsPrev {
+			if rtsCurr[r] == suspended {
+				delete(rtsCurr, r)
+			}
+		}
+	}
+	return rtsCurr, nil
+}
+
+func (c *Client) runtimes(ctx context.Context, height int64) (map[string]bool, error) {
+	connection := *c.connection
+	allRuntimes, err := connection.Consensus().Registry().GetRuntimes(ctx, &registryAPI.GetRuntimesQuery{
+		Height:           height,
+		IncludeSuspended: true,
+	})
+	if err != nil {
+		return nil, err
+	}
+	runtimes, err := connection.Consensus().Registry().GetRuntimes(ctx, &registryAPI.GetRuntimesQuery{
+		Height:           height,
+		IncludeSuspended: false,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// Mark suspended runtimes.
+	rts := make(map[string]bool)
+	for _, r := range allRuntimes {
+		rts[r.ID.String()] = true
+	}
+	for _, r := range runtimes {
+		rts[r.ID.String()] = false
+	}
+
+	return rts, nil
 }
 
 // StakingData retrieves staking events at the provided block height.

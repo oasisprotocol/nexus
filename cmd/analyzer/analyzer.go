@@ -5,6 +5,7 @@ import (
 	"context"
 	"os"
 	"sync"
+	"time"
 
 	migrate "github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres" // postgres driver for golang_migrate
@@ -128,7 +129,11 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) {
 	}
 
 	for _, analyzerCfg := range cfg.Analyzers {
-		if a, ok := analyzers[analyzerCfg.Name]; ok {
+		a, ok := analyzers[analyzerCfg.Name]
+		if !ok {
+			continue
+		}
+		if analyzerCfg.Interval == "" {
 			// Initialize source.
 			networkCfg := oasisConfig.Network{
 				ChainContext: analyzerCfg.ChainContext,
@@ -140,11 +145,25 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) {
 			}
 
 			// Configure analyzer.
-			a.SetRange(analyzer.RangeConfig{
-				ChainID: analyzerCfg.ChainID,
-				From:    analyzerCfg.From,
-				To:      analyzerCfg.To,
-				Source:  source,
+			blockRange := analyzer.Range{
+				From: analyzerCfg.From,
+				To:   analyzerCfg.To,
+			}
+			a.SetConfig(analyzer.Config{
+				ChainID:    analyzerCfg.ChainID,
+				BlockRange: blockRange,
+				Source:     source,
+			})
+		} else {
+			interval, err := time.ParseDuration(analyzerCfg.Interval)
+			if err != nil {
+				return nil, err
+			}
+
+			// Configure analyzer.
+			a.SetConfig(analyzer.Config{
+				ChainID:  analyzerCfg.ChainID,
+				Interval: interval,
 			})
 		}
 	}

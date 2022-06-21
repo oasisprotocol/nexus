@@ -26,7 +26,7 @@ $ make docker
 
 From the repository root, you can run:
 ```sh
-$ make run
+$ make start-docker
 ```
 
 The analyzer will run migrations on start based on files in `storage/migrations`.
