@@ -10,6 +10,7 @@ import (
 
 	"github.com/iancoleman/strcase"
 	"github.com/oasisprotocol/oasis-core/go/common/entity"
+	"github.com/oasisprotocol/oasis-core/go/common/node"
 	governance "github.com/oasisprotocol/oasis-core/go/governance/api"
 	registry "github.com/oasisprotocol/oasis-core/go/registry/api"
 	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
@@ -113,6 +114,7 @@ func checkpointBackends(t *testing.T, source *oasis.Client, target *postgres.Cli
 	for _, t := range []string{
 		// Registry backend.
 		"entities",
+		"claimed_nodes",
 		"nodes",
 		"runtimes",
 		// Staking backend.
@@ -220,9 +222,9 @@ func TestGenesisFull(t *testing.T) {
 	require.Nil(t, err)
 	validateRegistryBackend(t, registryGenesis, oasisClient, postgresClient)
 
-	// stakingGenesis, err := oasisClient.StakingGenesis(ctx, height)
-	// require.Nil(t, err)
-	// validateStakingBackend(t, stakingGenesis, oasisClient, postgresClient)
+	stakingGenesis, err := oasisClient.StakingGenesis(ctx, height)
+	require.Nil(t, err)
+	validateStakingBackend(t, stakingGenesis, oasisClient, postgresClient)
 
 	governanceGenesis, err := oasisClient.GovernanceGenesis(ctx, height)
 	require.Nil(t, err)
@@ -230,13 +232,21 @@ func TestGenesisFull(t *testing.T) {
 }
 
 func validateRegistryBackend(t *testing.T, genesis *registry.Genesis, source *oasis.Client, target *postgres.Client) {
-	ctx := context.Background()
+	t.Log("=== Validating registry backend ===")
 
+	validateEntities(t, genesis, source, target)
+	validateNodes(t, genesis, source, target)
+	validateRuntimes(t, genesis, source, target)
+
+	t.Log("=== Done validating registry backend ===")
+}
+
+func validateEntities(t *testing.T, genesis *registry.Genesis, source *oasis.Client, target *postgres.Client) {
+	t.Log("Validating entities...")
+
+	ctx := context.Background()
 	chainID := getChainID(ctx, t, source)
 
-	t.Log("Validating registry backend...")
-
-	// WHY: There's a number of nodes that are not registered via `RegisterNode` in the official genesis state.
 	expectedEntities := make(map[string]TestEntity)
 	for _, se := range genesis.Entities {
 		if se == nil {
@@ -273,20 +283,42 @@ func validateRegistryBackend(t *testing.T, genesis *registry.Genesis, source *oa
 		)
 		assert.Nil(t, err)
 
-		nodeRows, err := target.Query(ctx, fmt.Sprintf(
-			`SELECT id FROM %s.nodes_checkpoint WHERE entity_id = $1`, chainID),
+		nodeMap := make(map[string]bool)
+
+		nodeRowsFromEntity, err := target.Query(ctx, fmt.Sprintf(
+			`SELECT node_id FROM %s.claimed_nodes_checkpoint WHERE entity_id = $1`, chainID),
 			e.ID)
 		assert.Nil(t, err)
-
-		e.Nodes = make([]string, 0)
-		for nodeRows.Next() {
+		for nodeRowsFromEntity.Next() {
 			var nid string
-			err = nodeRows.Scan(
+			err = nodeRowsFromEntity.Scan(
 				&nid,
 			)
 			assert.Nil(t, err)
-			e.Nodes = append(e.Nodes, nid)
+			nodeMap[nid] = true
 		}
+
+		nodeRowsFromNode, err := target.Query(ctx, fmt.Sprintf(
+			`SELECT id FROM %s.nodes_checkpoint WHERE entity_id = $1`, chainID),
+			e.ID)
+		assert.Nil(t, err)
+		for nodeRowsFromNode.Next() {
+			var nid string
+			err = nodeRowsFromNode.Scan(
+				&nid,
+			)
+			assert.Nil(t, err)
+			nodeMap[nid] = true
+		}
+
+		e.Nodes = make([]string, len(nodeMap))
+
+		i := 0
+		for n, _ := range nodeMap {
+			e.Nodes[i] = n
+			i++
+		}
+
 		sort.Slice(e.Nodes, func(i, j int) bool {
 			return e.Nodes[i] < e.Nodes[j]
 		})
@@ -303,80 +335,123 @@ func validateRegistryBackend(t *testing.T, genesis *registry.Genesis, source *oa
 		}
 		assert.Equal(t, ve, va)
 	}
+	for ka, va := range actualEntities {
+		ve, ok := expectedEntities[ka]
+		if !ok {
+			t.Logf("entity %s found, but not expected", ka)
+			continue
+		}
+		assert.Equal(t, ve, va)
+	}
+}
 
-	// expectedNodes := make(map[string]TestNode)
-	// for _, sn := range genesis.Nodes {
-	// 	if sn == nil {
-	// 		continue
-	// 	}
-	// 	var n node.Node
-	// 	err := sn.Open(registry.RegisterNodeSignatureContext, &n)
-	// 	assert.Nil(t, err)
+func validateNodes(t *testing.T, genesis *registry.Genesis, source *oasis.Client, target *postgres.Client) {
+	t.Log("Validating nodes...")
 
-	// 	vrfPubkey := ""
-	// 	if n.VRF != nil {
-	// 		vrfPubkey = n.VRF.ID.String()
-	// 	}
-	// 	tn := TestNode{
-	// 		ID:              n.ID.String(),
-	// 		EntityID:        n.EntityID.String(),
-	// 		Expiration:      n.Expiration,
-	// 		TlsPubkey:       n.TLS.PubKey.String(),
-	// 		TlsNextPubkey:   n.TLS.NextPubKey.String(),
-	// 		P2pPubkey:       n.P2P.ID.String(),
-	// 		VrfPubkey:       vrfPubkey,
-	// 		Roles:           n.Roles.String(),
-	// 		SoftwareVersion: n.SoftwareVersion,
-	// 	}
+	ctx := context.Background()
+	chainID := getChainID(ctx, t, source)
 
-	// 	expectedNodes[tn.ID] = tn
-	// }
+	expectedNodes := make(map[string]TestNode)
+	for _, sn := range genesis.Nodes {
+		if sn == nil {
+			continue
+		}
+		var n node.Node
+		err := sn.Open(registry.RegisterNodeSignatureContext, &n)
+		assert.Nil(t, err)
 
-	// nodeRows, err := target.Query(ctx, fmt.Sprintf(
-	// 	`SELECT
-	// 		id, entity_id, expiration,
-	// 		tls_pubkey, tls_next_pubkey, p2p_pubkey,
-	// 		vrf_pubkey, roles, software_version
-	// 	FROM %s.nodes_checkpoint`, chainID),
-	// )
-	// require.Nil(t, err)
+		vrfPubkey := ""
+		if n.VRF != nil {
+			vrfPubkey = n.VRF.ID.String()
+		}
+		tn := TestNode{
+			ID:              n.ID.String(),
+			EntityID:        n.EntityID.String(),
+			Expiration:      n.Expiration,
+			TlsPubkey:       n.TLS.PubKey.String(),
+			TlsNextPubkey:   n.TLS.NextPubKey.String(),
+			P2pPubkey:       n.P2P.ID.String(),
+			VrfPubkey:       vrfPubkey,
+			Roles:           n.Roles.String(),
+			SoftwareVersion: n.SoftwareVersion,
+		}
 
-	// actualNodes := make(map[string]TestNode)
-	// for nodeRows.Next() {
-	// 	var n TestNode
-	// 	err = nodeRows.Scan(
-	// 		&n.ID,
-	// 		&n.EntityID,
-	// 		&n.Expiration,
-	// 		&n.TlsPubkey,
-	// 		&n.TlsNextPubkey,
-	// 		&n.P2pPubkey,
-	// 		&n.VrfPubkey,
-	// 		&n.Roles,
-	// 		&n.SoftwareVersion,
-	// 	)
-	// 	assert.Nil(t, err)
+		expectedNodes[tn.ID] = tn
+	}
 
-	// 	actualNodes[n.ID] = n
-	// }
+	nodes := make(map[string]TestNode)
 
-	// assert.Equal(t, len(expectedNodes), len(actualNodes))
-	// for ke, ve := range expectedNodes {
-	// 	va, ok := actualNodes[ke]
-	// 	if !ok {
-	// 		t.Logf("node %s expected, but not found", ke)
-	// 		continue
-	// 	}
-	// 	assert.Equal(t, ve, va)
-	// }
-	// for ka, va := range actualNodes {
-	// 	ve, ok := expectedNodes[ka]
-	// 	if !ok {
-	// 		t.Logf("node %s found, but not expected", ka)
-	// 		continue
-	// 	}
-	// 	assert.Equal(t, ve, va)
-	// }
+	nodeRowsFromNode, err := target.Query(ctx, fmt.Sprintf(
+		`SELECT
+			id, entity_id, expiration,
+			tls_pubkey, tls_next_pubkey, p2p_pubkey,
+			vrf_pubkey, roles, software_version
+		FROM %s.nodes_checkpoint`, chainID),
+	)
+	require.Nil(t, err)
+	for nodeRowsFromNode.Next() {
+		var n TestNode
+		err = nodeRowsFromNode.Scan(
+			&n.ID,
+			&n.EntityID,
+			&n.Expiration,
+			&n.TlsPubkey,
+			&n.TlsNextPubkey,
+			&n.P2pPubkey,
+			&n.VrfPubkey,
+			&n.Roles,
+			&n.SoftwareVersion,
+		)
+		assert.Nil(t, err)
+
+		nodes[n.ID] = n
+	}
+
+	actualNodes := make(map[string]TestNode)
+
+	nodeRowsFromEntity, err := target.Query(ctx, fmt.Sprintf(
+		`SELECT node_id, entity_id
+			FROM %s.claimed_nodes_checkpoint
+		`, chainID),
+	)
+	require.Nil(t, err)
+	for nodeRowsFromEntity.Next() {
+		var nid, eid string
+		err = nodeRowsFromEntity.Scan(
+			&nid,
+			&eid,
+		)
+		assert.Nil(t, err)
+
+		if n, ok := nodes[nid]; ok && n.EntityID == eid {
+			actualNodes[nid] = n
+		}
+	}
+
+	assert.Equal(t, len(expectedNodes), len(actualNodes))
+	for ke, ve := range expectedNodes {
+		va, ok := actualNodes[ke]
+		if !ok {
+			t.Logf("node %s expected, but not found", ke)
+			continue
+		}
+		assert.Equal(t, ve, va)
+	}
+	for ka, va := range actualNodes {
+		ve, ok := expectedNodes[ka]
+		if !ok {
+			t.Logf("node %s found, but not expected", ka)
+			continue
+		}
+		assert.Equal(t, ve, va)
+	}
+}
+
+func validateRuntimes(t *testing.T, genesis *registry.Genesis, source *oasis.Client, target *postgres.Client) {
+	t.Log("Validating runtimes...")
+
+	ctx := context.Background()
+	chainID := getChainID(ctx, t, source)
 
 	expectedRuntimes := make(map[string]TestRuntime)
 	for _, r := range genesis.Runtimes {
@@ -447,16 +522,30 @@ func validateRegistryBackend(t *testing.T, genesis *registry.Genesis, source *oa
 		}
 		assert.Equal(t, ve, va)
 	}
+	for ka, va := range expectedRuntimes {
+		ve, ok := actualRuntimes[ka]
+		if !ok {
+			t.Logf("runtime %s expected, but not found", ka)
+			continue
+		}
+		assert.Equal(t, ve, va)
+	}
 
-	t.Log("Done validating registry backend!")
 }
 
 func validateStakingBackend(t *testing.T, genesis *staking.Genesis, source *oasis.Client, target *postgres.Client) {
+	t.Log("=== Validating staking backend ===")
+
+	validateAccounts(t, genesis, source, target)
+
+	t.Log("=== Done validating staking backend! ===")
+}
+
+func validateAccounts(t *testing.T, genesis *staking.Genesis, source *oasis.Client, target *postgres.Client) {
+	t.Log("Validating accounts...")
+
 	ctx := context.Background()
-
 	chainID := getChainID(ctx, t, source)
-
-	t.Log("Validating staking backend...")
 
 	rows, err := target.Query(ctx, fmt.Sprintf(
 		`SELECT address, nonce, general_balance
@@ -492,18 +581,23 @@ func validateStakingBackend(t *testing.T, genesis *staking.Genesis, source *oasi
 			// Debonding: acct.Escrow.Debonding.Balance.ToBigInt().Uint64(),
 		}
 		assert.Equal(t, e, a)
-
 	}
-
-	t.Log("Done validating staking backend!")
 }
 
 func validateGovernanceBackend(t *testing.T, genesis *governance.Genesis, source *oasis.Client, target *postgres.Client) {
+	t.Log("=== Validating governance backend ===")
+
+	validateProposals(t, genesis, source, target)
+	validateVotes(t, genesis, source, target)
+
+	t.Log("=== Done validating governance backend! ===")
+}
+
+func validateProposals(t *testing.T, genesis *governance.Genesis, source *oasis.Client, target *postgres.Client) {
+	t.Log("Validating proposals...")
+
 	ctx := context.Background()
-
 	chainID := getChainID(ctx, t, source)
-
-	t.Log("Validating governance backend...")
 
 	expectedProposals := make(map[uint64]TestProposal)
 	for _, p := range genesis.Proposals {
@@ -580,6 +674,13 @@ func validateGovernanceBackend(t *testing.T, genesis *governance.Genesis, source
 		}
 		assert.Equal(t, ve, va)
 	}
+}
+
+func validateVotes(t *testing.T, genesis *governance.Genesis, source *oasis.Client, target *postgres.Client) {
+	t.Log("Validating votes...")
+
+	ctx := context.Background()
+	chainID := getChainID(ctx, t, source)
 
 	makeProposalKey := func(v TestVote) string {
 		return fmt.Sprintf("%d.%s.%s", v.Proposal, v.Voter, v.Vote)
@@ -624,6 +725,4 @@ func validateGovernanceBackend(t *testing.T, genesis *governance.Genesis, source
 		}
 		assert.Equal(t, ve, va)
 	}
-
-	t.Log("Done validating governance backend!")
 }

@@ -338,7 +338,7 @@ func (m *Main) prepareRegistryData(ctx context.Context, height int64, batch *sto
 		m.queueRuntimeRegistrations,
 		m.queueRuntimeStatusUpdates,
 		m.queueEntityEvents,
-		m.queueNodeRegistrations,
+		m.queueNodeEvents,
 	} {
 		if err := f(batch, data); err != nil {
 			return err
@@ -406,9 +406,16 @@ func (m *Main) queueEntityEvents(batch *storage.QueryBatch, data *storage.Regist
 	chainID := m.cfg.ChainID
 
 	for _, entityEvent := range data.EntityEvents {
-		var nodes []string
+		entityID := entityEvent.Entity.ID.String()
+
 		for _, node := range entityEvent.Entity.Nodes {
-			nodes = append(nodes, node.String())
+			batch.Queue(fmt.Sprintf(`
+				INSERT INTO %s.claimed_nodes (entity_id, node_id) VALUES ($1, $2)
+					ON CONFLICT (entity_id, node_id) DO NOTHING;
+			`, chainID),
+				entityID,
+				node,
+			)
 		}
 		batch.Queue(fmt.Sprintf(`
 			INSERT INTO %s.entities (id, address) VALUES ($1, $2)
@@ -416,7 +423,7 @@ func (m *Main) queueEntityEvents(batch *storage.QueryBatch, data *storage.Regist
 				UPDATE SET
 					address = excluded.address;
 		`, chainID),
-			entityEvent.Entity.ID.String(),
+			entityID,
 			staking.NewAddress(entityEvent.Entity.ID).String(),
 		)
 	}
@@ -424,7 +431,7 @@ func (m *Main) queueEntityEvents(batch *storage.QueryBatch, data *storage.Regist
 	return nil
 }
 
-func (m *Main) queueNodeRegistrations(batch *storage.QueryBatch, data *storage.RegistryData) error {
+func (m *Main) queueNodeEvents(batch *storage.QueryBatch, data *storage.RegistryData) error {
 	chainID := m.cfg.ChainID
 
 	for _, nodeEvent := range data.NodeEvents {
@@ -448,11 +455,13 @@ func (m *Main) queueNodeRegistrations(batch *storage.QueryBatch, data *storage.R
 			consensusAddresses = append(consensusAddresses, address.String())
 		}
 
-		batch.Queue(fmt.Sprintf(`
-			INSERT INTO %s.nodes (id, entity_id, expiration, tls_pubkey, tls_next_pubkey, tls_addresses, p2p_pubkey, p2p_addresses, consensus_pubkey, consensus_address, vrf_pubkey, roles, software_version, voting_power)
+		if nodeEvent.IsRegistration {
+			// A new node is registered.
+			batch.Queue(fmt.Sprintf(`
+				INSERT INTO %s.nodes (id, entity_id, expiration, tls_pubkey, tls_next_pubkey, tls_addresses, p2p_pubkey, p2p_addresses, consensus_pubkey, consensus_address, vrf_pubkey, roles, software_version, voting_power)
 					VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
-				ON CONFLICT (id) DO
-				UPDATE SET
+				ON CONFLICT (id) DO UPDATE
+				SET
 					entity_id = excluded.entity_id,
 					expiration = excluded.expiration,
 					tls_pubkey = excluded.tls_pubkey,
@@ -467,21 +476,29 @@ func (m *Main) queueNodeRegistrations(batch *storage.QueryBatch, data *storage.R
 					software_version = excluded.software_version,
 					voting_power = excluded.voting_power;
 		`, chainID),
-			nodeEvent.Node.ID.String(),
-			nodeEvent.Node.EntityID.String(),
-			nodeEvent.Node.Expiration,
-			nodeEvent.Node.TLS.PubKey.String(),
-			nodeEvent.Node.TLS.NextPubKey.String(),
-			fmt.Sprintf(`{'%s'}`, strings.Join(tlsAddresses, `','`)),
-			nodeEvent.Node.P2P.ID.String(),
-			fmt.Sprintf(`{'%s'}`, strings.Join(p2pAddresses, `','`)),
-			nodeEvent.Node.Consensus.ID.String(),
-			strings.Join(consensusAddresses, ","),
-			vrfPubkey,
-			nodeEvent.Node.Roles,
-			nodeEvent.Node.SoftwareVersion,
-			0,
-		)
+				nodeEvent.Node.ID.String(),
+				nodeEvent.Node.EntityID.String(),
+				nodeEvent.Node.Expiration,
+				nodeEvent.Node.TLS.PubKey.String(),
+				nodeEvent.Node.TLS.NextPubKey.String(),
+				fmt.Sprintf(`{'%s'}`, strings.Join(tlsAddresses, `','`)),
+				nodeEvent.Node.P2P.ID.String(),
+				fmt.Sprintf(`{'%s'}`, strings.Join(p2pAddresses, `','`)),
+				nodeEvent.Node.Consensus.ID.String(),
+				strings.Join(consensusAddresses, ","),
+				vrfPubkey,
+				nodeEvent.Node.Roles,
+				nodeEvent.Node.SoftwareVersion,
+				0,
+			)
+		} else {
+			// An existing node is expired.
+			batch.Queue(fmt.Sprintf(`
+				DELETE FROM %s.nodes WHERE id = $1;
+		`, chainID),
+				nodeEvent.Node.ID.String(),
+			)
+		}
 	}
 
 	return nil
