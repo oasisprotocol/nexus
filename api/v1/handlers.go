@@ -338,6 +338,66 @@ func (h *Handler) GetAccount(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+//GetDelegations gets an account's delegations.
+func (h *Handler) GetDelegations(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	delegations, err := h.client.Delegations(ctx, r)
+	if err != nil {
+		h.logAndReply(ctx, "failed to get delegations", w, err)
+		h.metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
+		return
+	}
+
+	resp, err := json.Marshal(delegations)
+	if err != nil {
+		h.logAndReply(ctx, "failed to marshal delegations", w, err)
+		h.metrics.RequestCounter(r.URL.Path, "failure", "serde_error").Inc()
+		return
+	}
+
+	w.Header().Set("content-type", "application/json")
+	if _, err := w.Write(resp); err != nil {
+		h.logger.Error("failed to write response",
+			"request_id", ctx.Value(RequestIDContextKey),
+			"error", err,
+		)
+		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
+	} else {
+		h.metrics.RequestCounter(r.URL.Path, "success").Inc()
+	}
+}
+
+//GetDebondingDelegations gets an account's debonding delegations.
+func (h *Handler) GetDebondingDelegations(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	debondingDelegations, err := h.client.DebondingDelegations(ctx, r)
+	if err != nil {
+		h.logAndReply(ctx, "failed to get debonding delegations", w, err)
+		h.metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
+		return
+	}
+
+	resp, err := json.Marshal(debondingDelegations)
+	if err != nil {
+		h.logAndReply(ctx, "failed to marshal debonding delegations", w, err)
+		h.metrics.RequestCounter(r.URL.Path, "failure", "serde_error").Inc()
+		return
+	}
+
+	w.Header().Set("content-type", "application/json")
+	if _, err := w.Write(resp); err != nil {
+		h.logger.Error("failed to write response",
+			"request_id", ctx.Value(RequestIDContextKey),
+			"error", err,
+		)
+		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
+	} else {
+		h.metrics.RequestCounter(r.URL.Path, "success").Inc()
+	}
+}
+
 // ListEpochs gets a list of epochs.
 func (h *Handler) ListEpochs(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()

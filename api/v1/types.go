@@ -89,6 +89,27 @@ type Account struct {
 	Allowances []Allowance `json:"allowances,omitempty"`
 }
 
+type Delegation struct {
+	Amount           uint64 `json:"amount"`
+	Shares           uint64 `json:"shares"`
+	ValidatorAddress string `json:"address"`
+}
+
+type DelegationList struct {
+	Delegations []Delegation `json:"delegations"`
+}
+
+type DebondingDelegation struct {
+	Amount           uint64 `json:"amount"`
+	Shares           uint64 `json:"shares"`
+	ValidatorAddress string `json:"address"`
+	DebondEnd        uint64 `json:"debond_end"`
+}
+
+type DebondingDelegationList struct {
+	DebondingDelegations []DebondingDelegation `json:"debonding_delegations"`
+}
+
 type Allowance struct {
 	Address string `json:"address"`
 	Amount  uint64 `json:"amount"`

@@ -875,6 +875,159 @@ func (c *storageClient) Account(ctx context.Context, r *http.Request) (*Account,
 	return &a, nil
 }
 
+// Delegations returns a list of delegations.
+func (c *storageClient) Delegations(ctx context.Context, r *http.Request) (*DelegationList, error) {
+	chainID, ok := ctx.Value(ChainIDContextKey).(string)
+	if !ok {
+		return nil, common.ErrBadChainID
+	}
+
+	qb := NewQueryBuilder(fmt.Sprintf(`
+			SELECT delegatee, shares
+				FROM %s.delegations`,
+		chainID), c.db)
+
+	params := r.URL.Query()
+
+	var filters []string
+	for param, condition := range map[string]string{
+		"delegator": "delegator = %s",
+	} {
+		if v := params.Get(param); v != "" {
+			filters = append(filters, fmt.Sprintf(condition, v))
+		}
+	}
+	if err := qb.AddFilters(ctx, filters); err != nil {
+		c.logger.Info("filtering failed",
+			"request_id", ctx.Value(RequestIDContextKey),
+			"err", err.Error(),
+		)
+		return nil, common.ErrBadRequest
+	}
+
+	pagination, err := common.NewPagination(r)
+	if err != nil {
+		c.logger.Info("pagination failed",
+			"request_id", ctx.Value(RequestIDContextKey),
+			"err", err.Error(),
+		)
+		return nil, common.ErrBadRequest
+	}
+	if err = qb.AddPagination(ctx, pagination); err != nil {
+		c.logger.Info("pagination add failed",
+			"request_id", ctx.Value(RequestIDContextKey),
+			"err", err.Error(),
+		)
+		return nil, common.ErrBadRequest
+	}
+
+	rows, err := c.db.Query(ctx, qb.String())
+	if err != nil {
+		c.logger.Info("query failed",
+			"request_id", ctx.Value(RequestIDContextKey),
+			"err", err.Error(),
+		)
+		return nil, common.ErrStorageError
+	}
+	defer rows.Close()
+
+	var ds DelegationList
+	for rows.Next() {
+		var d Delegation
+		if err := rows.Scan(
+			&d.ValidatorAddress,
+			&d.Shares,
+		); err != nil {
+			c.logger.Info("row scan failed",
+				"request_id", ctx.Value(RequestIDContextKey),
+				"err", err.Error(),
+			)
+			return nil, common.ErrStorageError
+		}
+
+		ds.Delegations = append(ds.Delegations, d)
+	}
+
+	return &ds, nil
+}
+
+// DebondingDelegations returns a list of debonding delegations.
+func (c *storageClient) DebondingDelegations(ctx context.Context, r *http.Request) (*DebondingDelegationList, error) {
+	chainID, ok := ctx.Value(ChainIDContextKey).(string)
+	if !ok {
+		return nil, common.ErrBadChainID
+	}
+
+	qb := NewQueryBuilder(fmt.Sprintf(`
+			SELECT delegatee, shares, debond_end
+				FROM %s.debonding_delegations`,
+		chainID), c.db)
+
+	params := r.URL.Query()
+
+	var filters []string
+	for param, condition := range map[string]string{
+		"delegator": "delegator = %s",
+	} {
+		if v := params.Get(param); v != "" {
+			filters = append(filters, fmt.Sprintf(condition, v))
+		}
+	}
+	if err := qb.AddFilters(ctx, filters); err != nil {
+		c.logger.Info("filtering failed",
+			"request_id", ctx.Value(RequestIDContextKey),
+			"err", err.Error(),
+		)
+		return nil, common.ErrBadRequest
+	}
+
+	pagination, err := common.NewPagination(r)
+	if err != nil {
+		c.logger.Info("pagination failed",
+			"request_id", ctx.Value(RequestIDContextKey),
+			"err", err.Error(),
+		)
+		return nil, common.ErrBadRequest
+	}
+	if err = qb.AddPagination(ctx, pagination); err != nil {
+		c.logger.Info("pagination add failed",
+			"request_id", ctx.Value(RequestIDContextKey),
+			"err", err.Error(),
+		)
+		return nil, common.ErrBadRequest
+	}
+
+	rows, err := c.db.Query(ctx, qb.String())
+	if err != nil {
+		c.logger.Info("query failed",
+			"request_id", ctx.Value(RequestIDContextKey),
+			"err", err.Error(),
+		)
+		return nil, common.ErrStorageError
+	}
+	defer rows.Close()
+
+	var ds DebondingDelegationList
+	for rows.Next() {
+		var d DebondingDelegation
+		if err := rows.Scan(
+			&d.ValidatorAddress,
+			&d.Shares,
+			&d.DebondEnd,
+		); err != nil {
+			c.logger.Info("row scan failed",
+				"request_id", ctx.Value(RequestIDContextKey),
+				"err", err.Error(),
+			)
+			return nil, common.ErrStorageError
+		}
+
+		ds.DebondingDelegations = append(ds.DebondingDelegations, d)
+	}
+
+	return &ds, nil
+}
+
 // Epochs returns a list of consensus epochs.
 func (c *storageClient) Epochs(ctx context.Context, r *http.Request) (*EpochList, error) {
 	chainID, ok := ctx.Value(ChainIDContextKey).(string)

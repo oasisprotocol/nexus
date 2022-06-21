@@ -65,6 +65,8 @@ func (h *Handler) RegisterRoutes(r chi.Router) {
 			r.Route("/accounts", func(r chi.Router) {
 				r.Get("/", h.ListAccounts)
 				r.Get("/{address}", h.GetAccount)
+				r.Get("/{address}/delegations", h.GetDelegations)
+				r.Get("/{address}/debonding_delegations", h.GetDebondingDelegations)
 			})
 
 			// Scheduler Endpoints.

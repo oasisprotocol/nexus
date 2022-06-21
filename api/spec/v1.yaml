@@ -461,6 +461,48 @@ paths:
                 $ref: '#/components/schemas/Account'
         <<: *common-error-responses
 
+  /consensus/accounts/{address}/delegations:
+    get:
+      summary: Returns an account's delegations.
+      parameters:
+        - *delegator
+        - in: path
+          name: address
+          required: true
+          schema:
+            type: string
+          description: The staking address of the account that delegated.
+          example: *staking_address_1
+      responses:
+        '200':
+          description: A JSON object containing a list of delegations.
+          content:
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/DelegationList'
+        <<: *common-error-responses
+
+  /consensus/accounts/{address}/debonding_delegations:
+    get:
+      summary: Returns an account's debonding delegations.
+      parameters:
+        - *delegator
+        - in: path
+          name: address
+          required: true
+          schema:
+            type: string
+          description: The staking address of the account that delegated.
+          example: *staking_address_1
+      responses:
+        '200':
+          description: A JSON object containing a list of debonding delegations.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DebondingDelegationList'
+        <<: *common-error-responses
+
   /consensus/epochs:
     get:
       summary: Returns a list of consensus epochs.
@@ -472,7 +514,7 @@ paths:
           description: A JSON object containing a list of consensus epochs.
           content:
             application/json:
-              schema: 
+              schema:
                 $ref: '#/components/schemas/EpochList'
         <<: *common-error-responses
 
@@ -615,6 +657,66 @@ components:
           example: *iso_timestamp_1
       description: |
         A consensus block.
+
+    Delegation:
+      type: object
+      properties: 
+        amount:
+          type: integer
+          format: int64
+          description: The amount of tokens delegated.
+        shares:
+          type: integer
+          format: int64
+          description: The shares of tokens delegated.
+        validatorAddress:
+          type: string
+          description: The public key identifying a delegatee.
+          example: *staking_address_1
+      description: |
+        A delegation.
+
+    DelegationList:
+      type: object
+      properties:
+        transactions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Delegation'
+      description: |
+        A list of delegations.
+
+    DebondingDelegation:
+      type: object
+      properties: 
+        amount:
+          type: integer
+          format: int64
+          description: The amount of tokens delegated.
+        shares:
+          type: integer
+          format: int64
+          description: The shares of tokens delegated.
+        validatorAddress:
+          type: string
+          description: The public key identifying a delegatee.
+          example: *staking_address_1
+        debondEnd:
+          type: integer
+          format: int64
+          description: The epoch at which the debonding ends.
+      description: |
+        A debonding delegation.
+
+    DebondingDelegationList:
+      type: object
+      properties:
+        transactions:
+          type: array
+          items:
+            $ref: '#/components/schemas/DebondingDelegation'
+      description: |
+        A list of debonding delegations.
 
     TransactionList:
       type: object
