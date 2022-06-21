@@ -3,6 +3,7 @@
 package generator
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"strings"
@@ -264,6 +265,52 @@ VALUES
 	}
 	if _, err := io.WriteString(w, ";\n"); err != nil {
 		return err
+	}
+
+	// Populate commissions.
+	// This won't overflow batch limit.
+	if _, err := io.WriteString(w, fmt.Sprintf(`
+TRUNCATE %s.commissions CASCADE;`, chainID)); err != nil {
+		return err
+	}
+
+	if _, err := io.WriteString(w, fmt.Sprintf(`
+INSERT INTO %s.commissions (address, schedule) VALUES
+`, chainID)); err != nil {
+		return err
+	}
+
+	commissions := make([]string, 0)
+
+	for address, account := range document.Staking.Ledger {
+		if len(account.Escrow.CommissionSchedule.Rates) > 0 || len(account.Escrow.CommissionSchedule.Bounds) > 0 {
+			schedule, err := json.Marshal(account.Escrow.CommissionSchedule)
+			if err != nil {
+				return err
+			}
+
+			commissions = append(commissions, fmt.Sprintf(
+				"\t('%s', '%s')",
+				address.String(),
+				string(schedule),
+			))
+		}
+	}
+
+	for index, commission := range commissions {
+		if _, err := io.WriteString(w, commission); err != nil {
+			return err
+		}
+
+		if index != len(commissions)-1 {
+			if _, err := io.WriteString(w, ",\n"); err != nil {
+				return err
+			}
+		} else {
+			if _, err := io.WriteString(w, ";\n"); err != nil {
+				return err
+			}
+		}
 	}
 
 	// Populate allowances.

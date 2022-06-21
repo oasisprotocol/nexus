@@ -11,6 +11,7 @@ import (
 
 	"github.com/iancoleman/strcase"
 	"github.com/jackc/pgx/v4"
+	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 	"github.com/oasisprotocol/oasis-core/go/consensus/api/transaction"
 	"github.com/oasisprotocol/oasis-core/go/consensus/api/transaction/results"
 	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
@@ -335,6 +336,29 @@ func (m *Main) queueEventInserts(batch *storage.QueryBatch, data *storage.BlockD
 				data.BlockHeader.Height,
 				data.Transactions[i].Hash().Hex(),
 				i,
+			)
+		}
+	}
+
+	for i := 0; i < len(data.Transactions); i++ {
+		var tx transaction.Transaction
+		data.Transactions[i].Open(&tx)
+
+		if tx.Method == "staking.AmendCommissionSchedule" {
+			var rawSchedule staking.AmendCommissionSchedule
+			cbor.Unmarshal(tx.Body, &rawSchedule)
+			schedule, err := json.Marshal(rawSchedule)
+
+			if err != nil {
+				return err
+			}
+
+			batch.Queue(fmt.Sprintf(`
+				INSERT INTO %s.commissions (address, schedule)
+					VALUES ($1, $2);
+			`, chainID),
+				staking.NewAddress(data.Transactions[i].Signature.PublicKey),
+				string(schedule),
 			)
 		}
 	}
