@@ -883,9 +883,11 @@ func (c *storageClient) Delegations(ctx context.Context, r *http.Request) (*Dele
 	}
 
 	qb := NewQueryBuilder(fmt.Sprintf(`
-			SELECT delegatee, shares
-				FROM %s.delegations`,
-		chainID), c.db)
+			SELECT delegatee, shares, escrow_balance_active, escrow_total_shares_active
+				FROM %s.delegations
+				JOIN %s.accounts ON %s.delegations.delegatee = %s.accounts.address
+			`,
+		chainID, chainID, chainID, chainID), c.db)
 
 	params := r.URL.Query()
 
@@ -934,9 +936,13 @@ func (c *storageClient) Delegations(ctx context.Context, r *http.Request) (*Dele
 	var ds DelegationList
 	for rows.Next() {
 		var d Delegation
+		var escrowBalanceActive uint64
+		var escrowTotalSharesActive uint64
 		if err := rows.Scan(
 			&d.ValidatorAddress,
 			&d.Shares,
+			&escrowBalanceActive,
+			&escrowTotalSharesActive,
 		); err != nil {
 			c.logger.Info("row scan failed",
 				"request_id", ctx.Value(RequestIDContextKey),
@@ -944,6 +950,8 @@ func (c *storageClient) Delegations(ctx context.Context, r *http.Request) (*Dele
 			)
 			return nil, common.ErrStorageError
 		}
+
+		d.Amount = float64(d.Shares*escrowBalanceActive) / float64(escrowTotalSharesActive)
 
 		ds.Delegations = append(ds.Delegations, d)
 	}
@@ -959,9 +967,11 @@ func (c *storageClient) DebondingDelegations(ctx context.Context, r *http.Reques
 	}
 
 	qb := NewQueryBuilder(fmt.Sprintf(`
-			SELECT delegatee, shares, debond_end
-				FROM %s.debonding_delegations`,
-		chainID), c.db)
+			SELECT delegatee, shares, debond_end, escrow_balance_debonding, escrow_total_shares_debonding
+				FROM %s.debonding_delegations
+				JOIN %s.accounts ON %s.debonding_delegations.delegatee = %s.accounts.address
+				`,
+		chainID, chainID, chainID, chainID), c.db)
 
 	params := r.URL.Query()
 
@@ -1010,10 +1020,14 @@ func (c *storageClient) DebondingDelegations(ctx context.Context, r *http.Reques
 	var ds DebondingDelegationList
 	for rows.Next() {
 		var d DebondingDelegation
+		var escrowBalanceDebonding uint64
+		var escrowTotalSharesDebonding uint64
 		if err := rows.Scan(
 			&d.ValidatorAddress,
 			&d.Shares,
 			&d.DebondEnd,
+			&escrowBalanceDebonding,
+			&escrowTotalSharesDebonding,
 		); err != nil {
 			c.logger.Info("row scan failed",
 				"request_id", ctx.Value(RequestIDContextKey),
@@ -1021,7 +1035,7 @@ func (c *storageClient) DebondingDelegations(ctx context.Context, r *http.Reques
 			)
 			return nil, common.ErrStorageError
 		}
-
+		d.Amount = float64(d.Shares*escrowBalanceDebonding) / float64(escrowTotalSharesDebonding)
 		ds.DebondingDelegations = append(ds.DebondingDelegations, d)
 	}
 

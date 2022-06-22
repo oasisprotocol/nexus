@@ -90,9 +90,9 @@ type Account struct {
 }
 
 type Delegation struct {
-	Amount           uint64 `json:"amount"`
-	Shares           uint64 `json:"shares"`
-	ValidatorAddress string `json:"address"`
+	Amount           float64 `json:"amount"`
+	Shares           uint64  `json:"shares"`
+	ValidatorAddress string  `json:"address"`
 }
 
 type DelegationList struct {
@@ -100,10 +100,10 @@ type DelegationList struct {
 }
 
 type DebondingDelegation struct {
-	Amount           uint64 `json:"amount"`
-	Shares           uint64 `json:"shares"`
-	ValidatorAddress string `json:"address"`
-	DebondEnd        uint64 `json:"debond_end"`
+	Amount           float64 `json:"amount"`
+	Shares           uint64  `json:"shares"`
+	ValidatorAddress string  `json:"address"`
+	DebondEnd        uint64  `json:"debond_end"`
 }
 
 type DebondingDelegationList struct {

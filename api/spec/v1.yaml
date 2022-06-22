@@ -662,8 +662,8 @@ components:
       type: object
       properties: 
         amount:
-          type: integer
-          format: int64
+          type: number
+          format: float
           description: The amount of tokens delegated.
         shares:
           type: integer
@@ -690,8 +690,8 @@ components:
       type: object
       properties: 
         amount:
-          type: integer
-          format: int64
+          type: number
+          format: float
           description: The amount of tokens delegated.
         shares:
           type: integer
