@@ -155,9 +155,6 @@ func checkpointBackends(t *testing.T, source *oasis.Client, target *postgres.Cli
 }
 
 func TestBlocksSanityCheck(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping testing in short mode")
-	}
 	if _, ok := os.LookupEnv("OASIS_INDEXER_HEALTHCHECK"); !ok {
 		t.Skip("skipping test since healthcheck tests are not enabled")
 	}
@@ -194,9 +191,6 @@ func TestBlocksSanityCheck(t *testing.T) {
 }
 
 func TestGenesisFull(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping testing in short mode")
-	}
 	if _, ok := os.LookupEnv("OASIS_INDEXER_HEALTHCHECK"); !ok {
 		t.Skip("skipping test since healthcheck tests are not enabled")
 	}
