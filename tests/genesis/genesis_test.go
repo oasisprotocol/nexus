@@ -83,7 +83,7 @@ type TestVote struct {
 }
 
 func newTargetClient(t *testing.T) (*postgres.Client, error) {
-	connString := os.Getenv("CI_TEST_CONN_STRING")
+	connString := os.Getenv("HEALTHCHECK_TEST_CONN_STRING")
 	logger, err := log.NewLogger("cockroach-test", ioutil.Discard, log.FmtJSON, log.LevelInfo)
 	assert.Nil(t, err)
 
@@ -92,8 +92,8 @@ func newTargetClient(t *testing.T) (*postgres.Client, error) {
 
 func newSourceClient() (*oasis.Client, error) {
 	network := &oasisConfig.Network{
-		ChainContext: os.Getenv("CI_TEST_CHAIN_CONTEXT"),
-		RPC:          os.Getenv("CI_TEST_NODE_RPC"),
+		ChainContext: os.Getenv("HEALTHCHECK_TEST_CHAIN_CONTEXT"),
+		RPC:          os.Getenv("HEALTHCHECK_TEST_NODE_RPC"),
 	}
 	return oasis.NewClient(context.Background(), network)
 }

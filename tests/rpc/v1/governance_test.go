@@ -2,6 +2,7 @@ package v1
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -61,8 +62,8 @@ func makeTestProposals() []v1.Proposal {
 }
 
 func TestListProposals(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping testing in short mode")
+	if _, ok := os.LookupEnv("OASIS_INDEXER_E2E"); !ok {
+		t.Skip("skipping test since e2e tests are not enabled")
 	}
 
 	tests.Init()
@@ -81,8 +82,8 @@ func TestListProposals(t *testing.T) {
 }
 
 func TestGetProposal(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping testing in short mode")
+	if _, ok := os.LookupEnv("OASIS_INDEXER_E2E"); !ok {
+		t.Skip("skipping test since e2e tests are not enabled")
 	}
 
 	tests.Init()
@@ -99,8 +100,8 @@ func TestGetProposal(t *testing.T) {
 }
 
 func TestGetProposalVotes(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping testing in short mode")
+	if _, ok := os.LookupEnv("OASIS_INDEXER_E2E"); !ok {
+		t.Skip("skipping test since e2e tests are not enabled")
 	}
 
 	tests.Init()

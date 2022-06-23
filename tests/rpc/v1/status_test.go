@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -10,8 +11,8 @@ import (
 )
 
 func TestGetStatus(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping testing in short mode")
+	if _, ok := os.LookupEnv("OASIS_INDEXER_E2E"); !ok {
+		t.Skip("skipping test since e2e tests are not enabled")
 	}
 
 	tests.Init()
