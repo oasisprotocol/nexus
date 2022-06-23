@@ -279,6 +279,10 @@ func validateEntities(t *testing.T, genesis *registry.Genesis, source *oasis.Cli
 
 		nodeMap := make(map[string]bool)
 
+		// Entities can register nodes.
+		// Nodes can also assert that they belong to an entity.
+		//
+		// Registry backend `StateToGenesis` returns the union of these nodes.
 		nodeRowsFromEntity, err := target.Query(ctx, fmt.Sprintf(
 			`SELECT node_id FROM %s.claimed_nodes_checkpoint WHERE entity_id = $1`, chainID),
 			e.ID)
@@ -373,19 +377,20 @@ func validateNodes(t *testing.T, genesis *registry.Genesis, source *oasis.Client
 		expectedNodes[tn.ID] = tn
 	}
 
-	nodes := make(map[string]TestNode)
-
-	nodeRowsFromNode, err := target.Query(ctx, fmt.Sprintf(
+	rows, err := target.Query(ctx, fmt.Sprintf(
 		`SELECT
 			id, entity_id, expiration,
 			tls_pubkey, tls_next_pubkey, p2p_pubkey,
 			vrf_pubkey, roles, software_version
-		FROM %s.nodes_checkpoint`, chainID),
+		FROM %s.nodes_checkpoint
+		WHERE roles LIKE '%s'`, chainID, "%validator%"),
 	)
 	require.Nil(t, err)
-	for nodeRowsFromNode.Next() {
+
+	actualNodes := make(map[string]TestNode)
+	for rows.Next() {
 		var n TestNode
-		err = nodeRowsFromNode.Scan(
+		err = rows.Scan(
 			&n.ID,
 			&n.EntityID,
 			&n.Expiration,
@@ -398,28 +403,7 @@ func validateNodes(t *testing.T, genesis *registry.Genesis, source *oasis.Client
 		)
 		assert.Nil(t, err)
 
-		nodes[n.ID] = n
-	}
-
-	actualNodes := make(map[string]TestNode)
-
-	nodeRowsFromEntity, err := target.Query(ctx, fmt.Sprintf(
-		`SELECT node_id, entity_id
-			FROM %s.claimed_nodes_checkpoint
-		`, chainID),
-	)
-	require.Nil(t, err)
-	for nodeRowsFromEntity.Next() {
-		var nid, eid string
-		err = nodeRowsFromEntity.Scan(
-			&nid,
-			&eid,
-		)
-		assert.Nil(t, err)
-
-		if n, ok := nodes[nid]; ok && n.EntityID == eid {
-			actualNodes[nid] = n
-		}
+		actualNodes[n.ID] = n
 	}
 
 	assert.Equal(t, len(expectedNodes), len(actualNodes))
@@ -541,7 +525,7 @@ func validateAccounts(t *testing.T, genesis *staking.Genesis, source *oasis.Clie
 	chainID := getChainID(ctx, t, source)
 
 	rows, err := target.Query(ctx, fmt.Sprintf(
-		`SELECT address, nonce, general_balance
+		`SELECT address, nonce, general_balance, escrow_balance_active, escrow_balance_debonding
 				FROM %s.accounts_checkpoint`, chainID),
 	)
 	require.Nil(t, err)
@@ -551,8 +535,8 @@ func validateAccounts(t *testing.T, genesis *staking.Genesis, source *oasis.Clie
 			&a.Address,
 			&a.Nonce,
 			&a.Available,
-			// &a.Escrow,
-			// &a.Debonding,
+			&a.Escrow,
+			&a.Debonding,
 		)
 		assert.Nil(t, err)
 
@@ -570,8 +554,8 @@ func validateAccounts(t *testing.T, genesis *staking.Genesis, source *oasis.Clie
 			Address:   address.String(),
 			Nonce:     acct.General.Nonce,
 			Available: acct.General.Balance.ToBigInt().Uint64(),
-			// Escrow:    acct.Escrow.Active.Balance.ToBigInt().Uint64(),
-			// Debonding: acct.Escrow.Debonding.Balance.ToBigInt().Uint64(),
+			Escrow:    acct.Escrow.Active.Balance.ToBigInt().Uint64(),
+			Debonding: acct.Escrow.Debonding.Balance.ToBigInt().Uint64(),
 		}
 		assert.Equal(t, e, a)
 	}

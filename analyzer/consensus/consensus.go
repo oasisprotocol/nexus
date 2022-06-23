@@ -614,8 +614,8 @@ func (m *Main) queueEscrows(batch *storage.QueryBatch, data *storage.StakingData
 				ON CONFLICT (delegatee, delegator) DO
 					UPDATE SET shares = %s.delegations.shares + $3;
 			`, chainID, chainID),
-				owner,
 				escrower,
+				owner,
 				newShares,
 			)
 		case e.Take != nil:
@@ -629,20 +629,30 @@ func (m *Main) queueEscrows(batch *storage.QueryBatch, data *storage.StakingData
 			)
 		case e.DebondingStart != nil:
 			batch.Queue(fmt.Sprintf(`
+				UPDATE %s.accounts
+					SET
+						escrow_balance_active = escrow_balance_active - $2,
+						escrow_balance_debonding = escrow_balance_debonding + $2
+					WHERE address = $1;
+			`, chainID),
+				e.DebondingStart.Escrow.String(),
+				e.DebondingStart.DebondingShares.ToBigInt().Uint64(),
+			)
+			batch.Queue(fmt.Sprintf(`
 				UPDATE %s.delegations
 					SET shares = shares - $3
 						WHERE delegatee = $1 AND delegator = $2;
 			`, chainID),
-				e.DebondingStart.Owner.String(),
 				e.DebondingStart.Escrow.String(),
-				e.DebondingStart.Amount.ToBigInt().Uint64(),
+				e.DebondingStart.Owner.String(),
+				e.DebondingStart.DebondingShares.ToBigInt().Uint64(),
 			)
 			batch.Queue(fmt.Sprintf(`
 				INSERT INTO %s.debonding_delegations (delegatee, delegator, shares, debond_end)
 					VALUES ($1, $2, $3, $4);
 			`, chainID),
-				e.DebondingStart.Owner.String(),
 				e.DebondingStart.Escrow.String(),
+				e.DebondingStart.Owner.String(),
 				e.DebondingStart.DebondingShares.ToBigInt().Uint64(),
 				e.DebondingStart.DebondEndTime,
 			)
@@ -656,17 +666,21 @@ func (m *Main) queueEscrows(batch *storage.QueryBatch, data *storage.StakingData
 				e.Reclaim.Owner.String(),
 				e.Reclaim.Amount.ToBigInt().Uint64(),
 			)
-
 			batch.Queue(fmt.Sprintf(`
 				UPDATE %s.accounts
-					SET escrow_balance_active = escrow_balance_active - $2,
-						escrow_total_shares_active = escrow_total_shares_active - $3
-						WHERE address = $1;
+					SET
+						escrow_balance_debonding = escrow_balance_debonding - $2,
+						escrow_total_shares_debonding = escrow_total_shares_debonding - $3
+					WHERE address = $1;
 			`, chainID),
 				e.Reclaim.Escrow.String(),
 				e.Reclaim.Amount.ToBigInt().Uint64(),
 				e.Reclaim.Shares.ToBigInt().Uint64(),
 			)
+
+			// TODO: Delete row from `debonding_delegations` that corresponds with
+			// the reclaimed escrow. The reclaim occurs on epoch transition, so
+			// check which epoch just transitioned.
 		}
 	}
 
