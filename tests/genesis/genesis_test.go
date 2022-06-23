@@ -34,8 +34,8 @@ type TestNode struct {
 	ID              string
 	EntityID        string
 	Expiration      uint64
-	TlsPubkey       string
-	TlsNextPubkey   string
+	TLSPubkey       string
+	TLSNextPubkey   string
 	P2pPubkey       string
 	ConsensusPubkey string
 	VrfPubkey       string
@@ -90,7 +90,7 @@ func newTargetClient(t *testing.T) (*postgres.Client, error) {
 	return postgres.NewClient(connString, logger)
 }
 
-func newSourceClient(t *testing.T) (*oasis.Client, error) {
+func newSourceClient() (*oasis.Client, error) {
 	network := &oasisConfig.Network{
 		ChainContext: os.Getenv("CI_TEST_CHAIN_CONTEXT"),
 		RPC:          os.Getenv("CI_TEST_NODE_RPC"),
@@ -161,7 +161,7 @@ func TestBlocksSanityCheck(t *testing.T) {
 
 	ctx := context.Background()
 
-	oasisClient, err := newSourceClient(t)
+	oasisClient, err := newSourceClient()
 	require.Nil(t, err)
 
 	postgresClient, err := newTargetClient(t)
@@ -199,7 +199,7 @@ func TestGenesisFull(t *testing.T) {
 
 	ctx := context.Background()
 
-	oasisClient, err := newSourceClient(t)
+	oasisClient, err := newSourceClient()
 	assert.Nil(t, err)
 
 	postgresClient, err := newTargetClient(t)
@@ -308,7 +308,7 @@ func validateEntities(t *testing.T, genesis *registry.Genesis, source *oasis.Cli
 		e.Nodes = make([]string, len(nodeMap))
 
 		i := 0
-		for n, _ := range nodeMap {
+		for n := range nodeMap {
 			e.Nodes[i] = n
 			i++
 		}
@@ -362,8 +362,8 @@ func validateNodes(t *testing.T, genesis *registry.Genesis, source *oasis.Client
 			ID:              n.ID.String(),
 			EntityID:        n.EntityID.String(),
 			Expiration:      n.Expiration,
-			TlsPubkey:       n.TLS.PubKey.String(),
-			TlsNextPubkey:   n.TLS.NextPubKey.String(),
+			TLSPubkey:       n.TLS.PubKey.String(),
+			TLSNextPubkey:   n.TLS.NextPubKey.String(),
 			P2pPubkey:       n.P2P.ID.String(),
 			VrfPubkey:       vrfPubkey,
 			Roles:           n.Roles.String(),
@@ -389,8 +389,8 @@ func validateNodes(t *testing.T, genesis *registry.Genesis, source *oasis.Client
 			&n.ID,
 			&n.EntityID,
 			&n.Expiration,
-			&n.TlsPubkey,
-			&n.TlsNextPubkey,
+			&n.TLSPubkey,
+			&n.TLSNextPubkey,
 			&n.P2pPubkey,
 			&n.VrfPubkey,
 			&n.Roles,
@@ -524,7 +524,6 @@ func validateRuntimes(t *testing.T, genesis *registry.Genesis, source *oasis.Cli
 		}
 		assert.Equal(t, ve, va)
 	}
-
 }
 
 func validateStakingBackend(t *testing.T, genesis *staking.Genesis, source *oasis.Client, target *postgres.Client) {
@@ -603,7 +602,9 @@ func validateProposals(t *testing.T, genesis *governance.Genesis, source *oasis.
 		ep.Submitter = p.Submitter.String()
 		ep.State = p.State.String()
 		ep.Deposit = p.Deposit.ToBigInt().Uint64()
-		if p.Content.Upgrade != nil {
+
+		switch {
+		case p.Content.Upgrade != nil:
 			handler := string(p.Content.Upgrade.Handler)
 			cpTargetVersion := p.Content.Upgrade.Target.ConsensusProtocol.String()
 			rhpTargetVersion := p.Content.Upgrade.Target.RuntimeHostProtocol.String()
@@ -615,11 +616,12 @@ func validateProposals(t *testing.T, genesis *governance.Genesis, source *oasis.
 			ep.RhpTargetVersion = &rhpTargetVersion
 			ep.RcpTargetVersion = &rcpTargetVersion
 			ep.UpgradeEpoch = &upgradeEpoch
-		} else if p.Content.CancelUpgrade != nil {
+		case p.Content.CancelUpgrade != nil:
 			cancels := p.Content.CancelUpgrade.ProposalID
 			ep.Cancels = &cancels
-		} else {
+		default:
 			t.Logf("Malformed proposal %d", p.ID)
+			return
 		}
 		ep.CreatedAt = uint64(p.CreatedAt)
 		ep.ClosesAt = uint64(p.ClosesAt)

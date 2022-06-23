@@ -19,7 +19,8 @@ func TestGetStatus(t *testing.T) {
 	<-tests.After(tests.GenesisHeight)
 
 	var status v1.Status
-	tests.GetFrom("/", &status)
+	err := tests.GetFrom("/", &status)
+	require.Nil(t, err)
 
 	require.Equal(t, tests.ChainID, status.LatestChainID)
 	require.LessOrEqual(t, tests.GenesisHeight, status.LatestBlock)

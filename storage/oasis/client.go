@@ -206,6 +206,9 @@ func (c *Client) RegistryData(ctx context.Context, height int64) (*storage.Regis
 	}
 
 	rts, err := c.runtimeUpdates(ctx, height)
+	if err != nil {
+		return nil, err
+	}
 
 	var suspensions, unsuspensions []string
 	for rt, suspended := range rts {

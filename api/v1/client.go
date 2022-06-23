@@ -441,7 +441,7 @@ func (c *storageClient) Entity(ctx context.Context, r *http.Request) (*Entity, e
 	}
 
 	var e Entity
-	if err := c.db.QueryRow(
+	if err = c.db.QueryRow(
 		ctx,
 		qb.String(),
 		entityID,
@@ -455,7 +455,8 @@ func (c *storageClient) Entity(ctx context.Context, r *http.Request) (*Entity, e
 
 	qb = NewQueryBuilder(fmt.Sprintf("SELECT id FROM %s.nodes", chainID), c.db)
 	if v := params.Get("height"); v != "" {
-		if h, err := strconv.ParseInt(v, 10, 64); err != nil {
+		var h int64
+		if h, err = strconv.ParseInt(v, 10, 64); err != nil {
 			if err = qb.AddTimestamp(ctx, h); err != nil {
 				c.logger.Info("timestamp add failed",
 					"request_id", ctx.Value(RequestIDContextKey),
@@ -465,7 +466,7 @@ func (c *storageClient) Entity(ctx context.Context, r *http.Request) (*Entity, e
 			}
 		}
 	}
-	if err := qb.AddFilters(ctx, []string{"entity_id = $1::text"}); err != nil {
+	if err = qb.AddFilters(ctx, []string{"entity_id = $1::text"}); err != nil {
 		c.logger.Info("filtering failed",
 			"request_id", ctx.Value(RequestIDContextKey),
 			"err", err.Error(),

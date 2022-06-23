@@ -5,12 +5,13 @@ import (
 	"net/url"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	v1 "github.com/oasislabs/oasis-indexer/api/v1"
 	"github.com/oasislabs/oasis-indexer/tests"
-	"github.com/stretchr/testify/require"
 )
 
-func makeTestEntities(t *testing.T) []v1.Entity {
+func makeTestEntities() []v1.Entity {
 	return []v1.Entity{
 		{
 			ID:      "gb8SHLeDc69Elk7OTfqhtVgE2sqxrBCDQI84xKR+Bjg=",
@@ -22,7 +23,7 @@ func makeTestEntities(t *testing.T) []v1.Entity {
 	}
 }
 
-func makeTestNodes(t *testing.T) []v1.Node {
+func makeTestNodes() []v1.Node {
 	return []v1.Node{
 		{
 			ID:              "5RIMVgnsN1D/HdvNxXCpE+lWH5U/SGYUrYsvhsTMbyA=",
@@ -47,12 +48,13 @@ func TestListEntities(t *testing.T) {
 
 	tests.Init()
 
-	testEntities := makeTestEntities(t)
+	testEntities := makeTestEntities()
 	endHeight := tests.GenesisHeight + int64(len(testEntities)-1)
 	<-tests.After(endHeight)
 
 	var list v1.EntityList
-	tests.GetFrom("/consensus/entities", &list)
+	err := tests.GetFrom("/consensus/entities", &list)
+	require.Nil(t, err)
 
 	check := func(e v1.Entity) bool {
 		for _, entity := range list.Entities {
@@ -76,12 +78,13 @@ func TestGetEntity(t *testing.T) {
 
 	tests.Init()
 
-	testEntities := makeTestEntities(t)
+	testEntities := makeTestEntities()
 	endHeight := tests.GenesisHeight + int64(len(testEntities)-1)
 	<-tests.After(endHeight)
 
 	var entity v1.Entity
-	tests.GetFrom(fmt.Sprintf("/consensus/entities/%s", escape(testEntities[0].ID)), &entity)
+	err := tests.GetFrom(fmt.Sprintf("/consensus/entities/%s", escape(testEntities[0].ID)), &entity)
+	require.Nil(t, err)
 
 	require.Equal(t, testEntities[0].ID, entity.ID)
 	require.Equal(t, testEntities[0].Address, entity.Address)
@@ -95,12 +98,13 @@ func TestListEntityNodes(t *testing.T) {
 
 	tests.Init()
 
-	testNodes := makeTestNodes(t)
+	testNodes := makeTestNodes()
 	endHeight := tests.GenesisHeight + int64(len(testNodes)-1)
 	<-tests.After(endHeight)
 
 	var list v1.NodeList
-	tests.GetFrom(fmt.Sprintf("/consensus/entities/%s/nodes", escape(testNodes[0].EntityID)), &list)
+	err := tests.GetFrom(fmt.Sprintf("/consensus/entities/%s/nodes", escape(testNodes[0].EntityID)), &list)
+	require.Nil(t, err)
 	require.Equal(t, len(testNodes), len(list.Nodes))
 
 	for i, node := range list.Nodes {
@@ -117,12 +121,13 @@ func TestGetEntityNode(t *testing.T) {
 
 	tests.Init()
 
-	testNodes := makeTestNodes(t)
+	testNodes := makeTestNodes()
 	endHeight := tests.GenesisHeight + int64(len(testNodes)-1)
 	<-tests.After(endHeight)
 
 	var node v1.Node
-	tests.GetFrom(fmt.Sprintf("/consensus/entities/%s/nodes/%s", escape(testNodes[0].EntityID), escape(testNodes[0].ID)), &node)
+	err := tests.GetFrom(fmt.Sprintf("/consensus/entities/%s/nodes/%s", escape(testNodes[0].EntityID), escape(testNodes[0].ID)), &node)
+	require.Nil(t, err)
 	// The expiration is dynamic, until we have oasis-net-runner with a halt epoch.
 	testNodes[0].Expiration = node.Expiration
 	require.Equal(t, testNodes[0], node)

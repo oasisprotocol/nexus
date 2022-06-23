@@ -4,16 +4,15 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	v1 "github.com/oasislabs/oasis-indexer/api/v1"
 	"github.com/oasislabs/oasis-indexer/tests"
-	"github.com/stretchr/testify/require"
 )
 
-var (
-	stakingEndHeight int64 = 8054649
-)
+var stakingEndHeight int64 = 8054649
 
-func makeTestAccounts(t *testing.T) []v1.Account {
+func makeTestAccounts() []v1.Account {
 	return []v1.Account{
 		{
 			Address:   "oasis1qp28vcurlx03y9exedzd9kfp7u2p0f0nvvv7h5wv",
@@ -44,7 +43,8 @@ func TestListAccounts(t *testing.T) {
 	<-tests.After(stakingEndHeight)
 
 	var list v1.AccountList
-	tests.GetFrom("/consensus/accounts?minAvailable=1000000000000000000", &list)
+	err := tests.GetFrom("/consensus/accounts?minAvailable=1000000000000000000", &list)
+	require.Nil(t, err)
 	require.Equal(t, 1, len(list.Accounts))
 
 	// The big kahuna (Binance Staking).
@@ -58,12 +58,13 @@ func TestGetAccount(t *testing.T) {
 
 	tests.Init()
 
-	testAccounts := makeTestAccounts(t)
+	testAccounts := makeTestAccounts()
 	<-tests.After(stakingEndHeight)
 
 	for _, testAccount := range testAccounts {
 		var account v1.Account
-		tests.GetFrom(fmt.Sprintf("/consensus/accounts/%s", testAccount.Address), &account)
+		err := tests.GetFrom(fmt.Sprintf("/consensus/accounts/%s", testAccount.Address), &account)
+		require.Nil(t, err)
 		require.Equal(t, testAccount, account)
 	}
 }

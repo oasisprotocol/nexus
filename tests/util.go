@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -11,7 +12,7 @@ import (
 
 // GetFrom completes an HTTP request and returns the unmarshalled response.
 func GetFrom(path string, v interface{}) error {
-	resp, err := http.Get(fmt.Sprintf("%s%s", baseEndpoint, path))
+	resp, err := http.NewRequestWithContext(context.Background(), "GET", fmt.Sprintf("%s%s", baseEndpoint, path), nil)
 	if err != nil {
 		return err
 	}

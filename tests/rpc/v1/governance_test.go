@@ -4,12 +4,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	v1 "github.com/oasislabs/oasis-indexer/api/v1"
 	"github.com/oasislabs/oasis-indexer/tests"
-	"github.com/stretchr/testify/require"
 )
 
-func makeTestProposals(t *testing.T) []v1.Proposal {
+func makeTestProposals() []v1.Proposal {
 	p1Handler := "consensus-params-update-2021-08"
 	p1Epoch := uint64(8049)
 	p1ConsensusTarget := "4.0.0"
@@ -66,11 +67,12 @@ func TestListProposals(t *testing.T) {
 
 	tests.Init()
 
-	testProposals := makeTestProposals(t)
+	testProposals := makeTestProposals()
 	<-tests.After(tests.GenesisHeight)
 
 	var list v1.ProposalList
-	tests.GetFrom("/consensus/proposals", &list)
+	err := tests.GetFrom("/consensus/proposals", &list)
+	require.Nil(t, err)
 	require.Equal(t, 2, len(list.Proposals))
 
 	for i, proposal := range list.Proposals {
@@ -85,12 +87,13 @@ func TestGetProposal(t *testing.T) {
 
 	tests.Init()
 
-	testProposals := makeTestProposals(t)
+	testProposals := makeTestProposals()
 	<-tests.After(tests.GenesisHeight)
 
 	for i, testProposal := range testProposals {
 		var proposal v1.Proposal
-		tests.GetFrom(fmt.Sprintf("/consensus/proposals/%d", i+1), &proposal)
+		err := tests.GetFrom(fmt.Sprintf("/consensus/proposals/%d", i+1), &proposal)
+		require.Nil(t, err)
 		require.Equal(t, testProposal, proposal)
 	}
 }
@@ -107,7 +110,8 @@ func TestGetProposalVotes(t *testing.T) {
 
 	for i, expected := range expectedVotes {
 		var votes v1.ProposalVotes
-		tests.GetFrom(fmt.Sprintf("/consensus/proposals/%d/votes", i+1), &votes)
+		err := tests.GetFrom(fmt.Sprintf("/consensus/proposals/%d/votes", i+1), &votes)
+		require.Nil(t, err)
 		require.Equal(t, uint64(i+1), votes.ProposalID)
 		require.Equal(t, expected, len(votes.Votes))
 	}
