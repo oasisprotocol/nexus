@@ -24,6 +24,10 @@ func newClient() (*Client, error) {
 }
 
 func TestConnect(t *testing.T) {
+	if _, ok := os.LookupEnv("OASIS_INDEXER_E2E"); !ok {
+		t.Skip("skipping test since e2e tests are not enabled")
+	}
+
 	if testing.Short() {
 		t.Skip("skipping testing in short mode")
 	}
@@ -33,6 +37,10 @@ func TestConnect(t *testing.T) {
 }
 
 func TestInvalidConnect(t *testing.T) {
+	if _, ok := os.LookupEnv("OASIS_INDEXER_E2E"); !ok {
+		t.Skip("skipping test since e2e tests are not enabled")
+	}
+
 	if testing.Short() {
 		t.Skip("skipping testing in short mode")
 	}
@@ -53,6 +61,10 @@ func TestInvalidConnect(t *testing.T) {
 }
 
 func TestGenesisDocument(t *testing.T) {
+	if _, ok := os.LookupEnv("OASIS_INDEXER_E2E"); !ok {
+		t.Skip("skipping test since e2e tests are not enabled")
+	}
+
 	if testing.Short() {
 		t.Skip("skipping testing in short mode")
 	}
@@ -67,6 +79,10 @@ func TestGenesisDocument(t *testing.T) {
 }
 
 func TestBlockData(t *testing.T) {
+	if _, ok := os.LookupEnv("OASIS_INDEXER_E2E"); !ok {
+		t.Skip("skipping test since e2e tests are not enabled")
+	}
+
 	if testing.Short() {
 		t.Skip("skipping testing in short mode")
 	}
@@ -84,6 +100,10 @@ func TestBlockData(t *testing.T) {
 }
 
 func TestBeaconData(t *testing.T) {
+	if _, ok := os.LookupEnv("OASIS_INDEXER_E2E"); !ok {
+		t.Skip("skipping test since e2e tests are not enabled")
+	}
+
 	if testing.Short() {
 		t.Skip("skipping testing in short mode")
 	}
@@ -103,6 +123,10 @@ func TestBeaconData(t *testing.T) {
 }
 
 func TestRegistryData(t *testing.T) {
+	if _, ok := os.LookupEnv("OASIS_INDEXER_E2E"); !ok {
+		t.Skip("skipping test since e2e tests are not enabled")
+	}
+
 	if testing.Short() {
 		t.Skip("skipping testing in short mode")
 	}
@@ -120,6 +144,10 @@ func TestRegistryData(t *testing.T) {
 }
 
 func TestStakingData(t *testing.T) {
+	if _, ok := os.LookupEnv("OASIS_INDEXER_E2E"); !ok {
+		t.Skip("skipping test since e2e tests are not enabled")
+	}
+
 	if testing.Short() {
 		t.Skip("skipping testing in short mode")
 	}
@@ -137,6 +165,10 @@ func TestStakingData(t *testing.T) {
 }
 
 func TestSchedulerData(t *testing.T) {
+	if _, ok := os.LookupEnv("OASIS_INDEXER_E2E"); !ok {
+		t.Skip("skipping test since e2e tests are not enabled")
+	}
+
 	if testing.Short() {
 		t.Skip("skipping testing in short mode")
 	}
@@ -156,6 +188,10 @@ func TestSchedulerData(t *testing.T) {
 }
 
 func TestGovernanceData(t *testing.T) {
+	if _, ok := os.LookupEnv("OASIS_INDEXER_E2E"); !ok {
+		t.Skip("skipping test since e2e tests are not enabled")
+	}
+
 	if testing.Short() {
 		t.Skip("skipping testing in short mode")
 	}

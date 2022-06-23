@@ -57,6 +57,8 @@ type TestAccount struct {
 	Available uint64
 	Escrow    uint64
 	Debonding uint64
+
+	Allowances map[string]uint64
 }
 
 type TestProposal struct {
@@ -524,14 +526,14 @@ func validateAccounts(t *testing.T, genesis *staking.Genesis, source *oasis.Clie
 	ctx := context.Background()
 	chainID := getChainID(ctx, t, source)
 
-	rows, err := target.Query(ctx, fmt.Sprintf(
+	acctRows, err := target.Query(ctx, fmt.Sprintf(
 		`SELECT address, nonce, general_balance, escrow_balance_active, escrow_balance_debonding
 				FROM %s.accounts_checkpoint`, chainID),
 	)
 	require.Nil(t, err)
-	for rows.Next() {
+	for acctRows.Next() {
 		var a TestAccount
-		err = rows.Scan(
+		err = acctRows.Scan(
 			&a.Address,
 			&a.Nonce,
 			&a.Available,
@@ -539,6 +541,27 @@ func validateAccounts(t *testing.T, genesis *staking.Genesis, source *oasis.Clie
 			&a.Debonding,
 		)
 		assert.Nil(t, err)
+
+		actualAllowances := make(map[string]uint64)
+		allowanceRows, err := target.Query(ctx, fmt.Sprintf(`
+			SELECT beneficiary, allowance
+				FROM %s.allowances_checkpoint
+				WHERE owner = $1
+			`, chainID),
+			a.Address,
+		)
+		assert.Nil(t, err)
+		for allowanceRows.Next() {
+			var beneficiary string
+			var amount uint64
+			err = allowanceRows.Scan(
+				&beneficiary,
+				&amount,
+			)
+			assert.Nil(t, err)
+			actualAllowances[beneficiary] = amount
+		}
+		a.Allowances = actualAllowances
 
 		var address staking.Address
 		err = address.UnmarshalText([]byte(a.Address))
@@ -550,12 +573,18 @@ func validateAccounts(t *testing.T, genesis *staking.Genesis, source *oasis.Clie
 			continue
 		}
 
+		expectedAllowances := make(map[string]uint64)
+		for beneficiary, amount := range acct.General.Allowances {
+			expectedAllowances[beneficiary.String()] = amount.ToBigInt().Uint64()
+		}
+
 		e := TestAccount{
-			Address:   address.String(),
-			Nonce:     acct.General.Nonce,
-			Available: acct.General.Balance.ToBigInt().Uint64(),
-			Escrow:    acct.Escrow.Active.Balance.ToBigInt().Uint64(),
-			Debonding: acct.Escrow.Debonding.Balance.ToBigInt().Uint64(),
+			Address:    address.String(),
+			Nonce:      acct.General.Nonce,
+			Available:  acct.General.Balance.ToBigInt().Uint64(),
+			Escrow:     acct.Escrow.Active.Balance.ToBigInt().Uint64(),
+			Debonding:  acct.Escrow.Debonding.Balance.ToBigInt().Uint64(),
+			Allowances: expectedAllowances,
 		}
 		assert.Equal(t, e, a)
 	}
