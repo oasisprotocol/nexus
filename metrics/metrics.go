@@ -4,8 +4,9 @@ package metrics
 import (
 	"net/http"
 
-	"github.com/oasislabs/oasis-indexer/log"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+
+	"github.com/oasislabs/oasis-indexer/log"
 )
 
 const (
