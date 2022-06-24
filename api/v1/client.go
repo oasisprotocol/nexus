@@ -223,7 +223,7 @@ func (c *storageClient) Transactions(ctx context.Context, r *http.Request) (*Tra
 	}
 
 	qb := NewQueryBuilder(fmt.Sprintf(`
-			SELECT block, txn_hash, nonce, fee_amount, method, body, code
+			SELECT block, txn_hash, sender, nonce, fee_amount, method, body, code
 				FROM %s.transactions`,
 		chainID), c.db)
 
@@ -232,8 +232,8 @@ func (c *storageClient) Transactions(ctx context.Context, r *http.Request) (*Tra
 	var filters []string
 	for param, condition := range map[string]string{
 		"block":  "block = %s",
-		"method": "method = %s",
-		"sender": "sender = %s",
+		"method": "method = '%s'",
+		"sender": "sender = '%s'",
 		"minFee": "fee_amount >= %s",
 		"maxFee": "fee_amount <= %s",
 		"code":   "code = %s",
@@ -282,6 +282,7 @@ func (c *storageClient) Transactions(ctx context.Context, r *http.Request) (*Tra
 		if err := rows.Scan(
 			&t.Height,
 			&t.Hash,
+			&t.Sender,
 			&t.Nonce,
 			&t.Fee,
 			&t.Method,
@@ -316,13 +317,14 @@ func (c *storageClient) Transaction(ctx context.Context, r *http.Request) (*Tran
 	if err := c.db.QueryRow(
 		ctx,
 		fmt.Sprintf(`
-			SELECT block, txn_hash, nonce, fee_amount, method, body, code
+			SELECT block, txn_hash, sender, nonce, fee_amount, method, body, code
 				FROM %s.transactions
 				WHERE txn_hash = $1::text`, chainID),
 		chi.URLParam(r, "txn_hash"),
 	).Scan(
 		&t.Height,
 		&t.Hash,
+		&t.Sender,
 		&t.Nonce,
 		&t.Fee,
 		&t.Method,
@@ -970,8 +972,8 @@ func (c *storageClient) Proposals(ctx context.Context, r *http.Request) (*Propos
 
 	var filters []string
 	for param, condition := range map[string]string{
-		"submitter": "submitter = %s",
-		"state":     "state = %s",
+		"submitter": "submitter = '%s'",
+		"state":     "state = '%s'",
 	} {
 		if v := params.Get(param); v != "" {
 			filters = append(filters, fmt.Sprintf(condition, v))
