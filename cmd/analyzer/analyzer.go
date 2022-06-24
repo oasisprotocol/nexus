@@ -66,7 +66,7 @@ func runAnalyzer(cmd *cobra.Command, args []string) {
 	if err != nil {
 		os.Exit(1)
 	}
-	service.Shutdown()
+	defer service.Shutdown()
 
 	service.Start()
 }
