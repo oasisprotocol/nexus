@@ -129,9 +129,6 @@ func checkpointBackends(t *testing.T, source *oasis.Client, target *postgres.Cli
 		"votes",
 	} {
 		batch.Queue(fmt.Sprintf(`
-			LOCK TABLE %s.%s IN ROW EXCLUSIVE MODE;
-		`, chainID, t))
-		batch.Queue(fmt.Sprintf(`
 			DROP TABLE IF EXISTS %s.%s_checkpoint CASCADE;
 		`, chainID, t))
 		batch.Queue(fmt.Sprintf(`
