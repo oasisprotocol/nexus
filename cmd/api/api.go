@@ -34,11 +34,17 @@ func runServer(cmd *cobra.Command, args []string) {
 	// Initialize config.
 	cfg, err := config.InitConfig(configFile)
 	if err != nil {
+		log.NewDefaultLogger("init").Error("init failed",
+			"error", err,
+		)
 		os.Exit(1)
 	}
 
 	// Initialize common environment.
 	if err = common.Init(cfg); err != nil {
+		log.NewDefaultLogger("init").Error("init failed",
+			"error", err,
+		)
 		os.Exit(1)
 	}
 	logger := common.Logger()

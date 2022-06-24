@@ -691,16 +691,27 @@ func (m *Main) queueAllowanceChanges(batch *storage.QueryBatch, data *storage.St
 	chainID := m.cfg.ChainID
 
 	for _, allowanceChange := range data.AllowanceChanges {
-		batch.Queue(fmt.Sprintf(`
-			INSERT INTO %s.allowances (owner, beneficiary, allowance)
-				VALUES ($1, $2, $3)
-			ON CONFLICT (owner, beneficiary) DO
-				UPDATE SET allowance = excluded.allowance;
-		`, chainID),
-			allowanceChange.Owner.String(),
-			allowanceChange.Beneficiary.String(),
-			allowanceChange.Allowance.ToBigInt().Uint64(),
-		)
+		allowance := allowanceChange.Allowance.ToBigInt().Uint64()
+		if allowance == 0 {
+			batch.Queue(fmt.Sprintf(`
+				DELETE FROM %s.allowances
+					WHERE owner = $1 AND beneficiary = $2;
+			`, chainID),
+				allowanceChange.Owner.String(),
+				allowanceChange.Beneficiary.String(),
+			)
+		} else {
+			batch.Queue(fmt.Sprintf(`
+				INSERT INTO %s.allowances (owner, beneficiary, allowance)
+					VALUES ($1, $2, $3)
+				ON CONFLICT (owner, beneficiary) DO
+					UPDATE SET allowance = excluded.allowance;
+			`, chainID),
+				allowanceChange.Owner.String(),
+				allowanceChange.Beneficiary.String(),
+				allowance,
+			)
+		}
 	}
 
 	return nil
