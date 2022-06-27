@@ -465,7 +465,6 @@ paths:
     get:
       summary: Returns an account's delegations.
       parameters:
-        - *delegator
         - in: path
           name: address
           required: true
@@ -486,7 +485,6 @@ paths:
     get:
       summary: Returns an account's debonding delegations.
       parameters:
-        - *delegator
         - in: path
           name: address
           required: true
@@ -662,16 +660,16 @@ components:
       type: object
       properties: 
         amount:
-          type: number
-          format: float
+          type: integer
+          format: int64
           description: The amount of tokens delegated.
         shares:
           type: integer
           format: int64
           description: The shares of tokens delegated.
-        validatorAddress:
+        validator_address:
           type: string
-          description: The public key identifying a delegatee.
+          description: The delegatee address.
           example: *staking_address_1
       description: |
         A delegation.
@@ -688,20 +686,20 @@ components:
 
     DebondingDelegation:
       type: object
-      properties: 
+      properties:
         amount:
-          type: number
-          format: float
+          type: integer
+          format: int64
           description: The amount of tokens delegated.
         shares:
           type: integer
           format: int64
           description: The shares of tokens delegated.
-        validatorAddress:
+        validator_address:
           type: string
-          description: The public key identifying a delegatee.
+          description: The delegatee address.
           example: *staking_address_1
-        debondEnd:
+        debond_end:
           type: integer
           format: int64
           description: The epoch at which the debonding ends.
@@ -801,11 +799,15 @@ components:
             $ref: '#/components/schemas/Validator'
       description: |
         A list of validators registered at the consensus layer.
-    
+
     Validator:
       type: object
       properties:
-        entityAddress:
+        entity_address:
+            type: string
+            description: The staking address identifying this Validator.
+            example: *staking_address_1
+        entity_id:
           type: string
           description: The public key identifying this Validator.
           example: *entity_id_1
@@ -813,9 +815,9 @@ components:
           type: string
           description: The name of this Validator.
           example: Valid validly validator
-        nodeAddress:
+        node_id:
           type: string
-          description: The public key identifying this Validator.
+          description: The public key identifying this Validator's node.
           example: *node_id_1
         escrow:
           type: integer
@@ -826,30 +828,30 @@ components:
           description: Entity is part of validator set.
         status:
           type: boolean
-          description: an entity has a node that is registered for being a validator, node is up to date, and has successfully registered itself.
+          description: An entity has a node that is registered for being a validator, node is up to date, and has successfully registered itself.
         media:
           type: object
           properties:
-            websiteLink:
+            website_link:
               type: string
-              description: An error message.
-            emailAddress:
+              description: An URL associated with the entity.
+            email_address:
               type: string
-              description: An error message.
-            twitterAcc:
+              description: An email address for the validator.
+            twitter_acc:
               type: string
-              description: An error message.
-            tgChat:
+              description: A Twitter handle.
+            tg_chat:
               type: string
-              description: An error message.
+              description: An Telegram handle.
             logotype:
               type: string
-              description: An error message.
-        currentRate:
+              description: A logo type.
+        current_rate:
           type: integer
           format: int64
           description: Commission rate.
-        currentCommissionBound:
+        current_commission_bound:
           type: object
           properties:
             lower:
@@ -858,10 +860,10 @@ components:
             upper:
               type: integer
               format: int64
-            epochStart:
+            epoch_start:
               type: integer
               format: int64
-            epochEnd:
+            epoch_end:
               type: integer
               format: int64
       description: |
