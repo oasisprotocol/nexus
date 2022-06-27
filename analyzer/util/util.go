@@ -40,7 +40,7 @@ func (b *Backoff) Timeout() time.Duration {
 }
 
 // CurrentBound returns the bound at the latest rate step that has started or nil if no step has started.
-func CurrentBound(cs staking.CommissionSchedule, now beacon.EpochTime) (staking.CommissionRateBoundStep, uint64) {
+func CurrentBound(cs staking.CommissionSchedule, now beacon.EpochTime) (currentBound staking.CommissionRateBoundStep, epochEnd uint64) {
 	var latestStartedStep *staking.CommissionRateBoundStep
 	i := 0
 	for ; i < len(cs.Bounds); i++ {
@@ -54,9 +54,9 @@ func CurrentBound(cs staking.CommissionSchedule, now beacon.EpochTime) (staking.
 		return *latestStartedStep, 0
 	}
 
-	if i >= len(cs.Bounds)-1 {
+	if i >= len(cs.Bounds) {
 		return *latestStartedStep, 0
 	} else {
-		return *latestStartedStep, uint64(cs.Bounds[i+1].Start)
+		return *latestStartedStep, uint64(cs.Bounds[i].Start - 1)
 	}
 }
