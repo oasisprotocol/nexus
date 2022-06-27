@@ -15,6 +15,8 @@ const (
 	DefaultOrder  = "1"
 	DefaultLimit  = uint64(100)
 	DefaultOffset = uint64(0)
+
+	MaximumLimit = uint64(1000)
 )
 
 // Pagination is used to define parameters for pagination.
@@ -31,6 +33,9 @@ func NewPagination(r *http.Request) (p Pagination, err error) {
 	limit := DefaultLimit
 	if v := values.Get(LimitKey); v != "" {
 		limit, err = strconv.ParseUint(v, 10, 64)
+	}
+	if limit > MaximumLimit {
+		limit = MaximumLimit
 	}
 
 	offset := DefaultOffset

@@ -1,0 +1,5 @@
+CREATE TABLE IF NOT EXISTS oasis_3.checkpointed_heights
+(
+  height BIGINT PRIMARY KEY,
+  checkpoint_time TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);

@@ -66,7 +66,7 @@ func TestQueryBuilderPagination(t *testing.T) {
 
 	err = qb.AddPagination(ctx, p)
 	require.Nil(t, err)
-	require.Equal(t, fmt.Sprintf("%s\n\tORDER BY 1\n\tLIMIT 100\n\tOFFSET 0", queryBase), qb.String())
+	require.Equal(t, fmt.Sprintf("%s\n\tORDER BY 1 DESC\n\tLIMIT 100\n\tOFFSET 0", queryBase), qb.String())
 }
 
 // TestQueryBuilderFilters tests adding filters

@@ -65,3 +65,22 @@ func TestPaginationWithInvalidParams(t *testing.T) {
 	_, err = NewPagination(r)
 	require.NotNil(t, err)
 }
+
+// TestPaginationWithTooHighLimit tests if the pagination values
+// are set correctly when providing query params.
+func TestPaginationWithTooHighLimit(t *testing.T) {
+	ctx := context.Background()
+
+	limit := uint64(100000000000)
+	offset := uint64(20)
+
+	r, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("https://fake-api.com/get-resource?limit=%d&offset=%d", limit, offset), nil)
+	require.Nil(t, err)
+
+	p, err := NewPagination(r)
+	require.Nil(t, err)
+
+	require.Equal(t, p.Order, DefaultOrder)
+	require.Equal(t, p.Limit, MaximumLimit)
+	require.Equal(t, p.Offset, offset)
+}

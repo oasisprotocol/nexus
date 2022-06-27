@@ -5,6 +5,9 @@ oasis-indexer
 docker/node/data
 docker/node/etc/genesis.json
 
+# Log output.
+**/*.log
+
 # API files.
 index.html
 

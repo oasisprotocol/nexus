@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -34,7 +35,7 @@ func NewQueryBuilder(sql string, db storage.TargetStorage) *QueryBuilder {
 // AddPagination adds pagination to the query builder.
 func (q *QueryBuilder) AddPagination(_ctx context.Context, p common.Pagination) error {
 	_, err := q.inner.WriteString(
-		fmt.Sprintf("\n\tORDER BY %s\n\tLIMIT %d\n\tOFFSET %d", p.Order, p.Limit, p.Offset),
+		fmt.Sprintf("\n\tORDER BY %s DESC\n\tLIMIT %d\n\tOFFSET %d", p.Order, p.Limit, p.Offset),
 	)
 	return err
 }
@@ -178,6 +179,7 @@ func (c *storageClient) Blocks(ctx context.Context, r *http.Request) (*BlockList
 			)
 			return nil, common.ErrStorageError
 		}
+		b.Timestamp = b.Timestamp.UTC()
 
 		bs.Blocks = append(bs.Blocks, b)
 	}
@@ -208,6 +210,7 @@ func (c *storageClient) Block(ctx context.Context, r *http.Request) (*Block, err
 		)
 		return nil, common.ErrStorageError
 	}
+	b.Timestamp = b.Timestamp.UTC()
 
 	return &b, nil
 }
@@ -220,7 +223,7 @@ func (c *storageClient) Transactions(ctx context.Context, r *http.Request) (*Tra
 	}
 
 	qb := NewQueryBuilder(fmt.Sprintf(`
-			SELECT block, txn_hash, nonce, fee_amount, method, body, code
+			SELECT block, txn_hash, sender, nonce, fee_amount, method, body, code
 				FROM %s.transactions`,
 		chainID), c.db)
 
@@ -229,8 +232,8 @@ func (c *storageClient) Transactions(ctx context.Context, r *http.Request) (*Tra
 	var filters []string
 	for param, condition := range map[string]string{
 		"block":  "block = %s",
-		"method": "method = %s",
-		"sender": "sender = %s",
+		"method": "method = '%s'",
+		"sender": "sender = '%s'",
 		"minFee": "fee_amount >= %s",
 		"maxFee": "fee_amount <= %s",
 		"code":   "code = %s",
@@ -279,6 +282,7 @@ func (c *storageClient) Transactions(ctx context.Context, r *http.Request) (*Tra
 		if err := rows.Scan(
 			&t.Height,
 			&t.Hash,
+			&t.Sender,
 			&t.Nonce,
 			&t.Fee,
 			&t.Method,
@@ -313,13 +317,14 @@ func (c *storageClient) Transaction(ctx context.Context, r *http.Request) (*Tran
 	if err := c.db.QueryRow(
 		ctx,
 		fmt.Sprintf(`
-			SELECT block, txn_hash, nonce, fee_amount, method, body, code
+			SELECT block, txn_hash, sender, nonce, fee_amount, method, body, code
 				FROM %s.transactions
-				WHERE txn_hash = $1::hash`, chainID),
+				WHERE txn_hash = $1::text`, chainID),
 		chi.URLParam(r, "txn_hash"),
 	).Scan(
 		&t.Height,
 		&t.Hash,
+		&t.Sender,
 		&t.Nonce,
 		&t.Fee,
 		&t.Method,
@@ -432,11 +437,16 @@ func (c *storageClient) Entity(ctx context.Context, r *http.Request) (*Entity, e
 		return nil, common.ErrBadRequest
 	}
 
+	entityID, err := url.PathUnescape(chi.URLParam(r, "entity_id"))
+	if err != nil {
+		return nil, common.ErrBadRequest
+	}
+
 	var e Entity
-	if err := c.db.QueryRow(
+	if err = c.db.QueryRow(
 		ctx,
 		qb.String(),
-		chi.URLParam(r, "entity_id"),
+		entityID,
 	).Scan(&e.ID, &e.Address); err != nil {
 		c.logger.Info("row scan failed",
 			"request_id", ctx.Value(RequestIDContextKey),
@@ -447,7 +457,8 @@ func (c *storageClient) Entity(ctx context.Context, r *http.Request) (*Entity, e
 
 	qb = NewQueryBuilder(fmt.Sprintf("SELECT id FROM %s.nodes", chainID), c.db)
 	if v := params.Get("height"); v != "" {
-		if h, err := strconv.ParseInt(v, 10, 64); err != nil {
+		var h int64
+		if h, err = strconv.ParseInt(v, 10, 64); err != nil {
 			if err = qb.AddTimestamp(ctx, h); err != nil {
 				c.logger.Info("timestamp add failed",
 					"request_id", ctx.Value(RequestIDContextKey),
@@ -457,7 +468,7 @@ func (c *storageClient) Entity(ctx context.Context, r *http.Request) (*Entity, e
 			}
 		}
 	}
-	if err := qb.AddFilters(ctx, []string{"entity_id = $1::text"}); err != nil {
+	if err = qb.AddFilters(ctx, []string{"entity_id = $1::text"}); err != nil {
 		c.logger.Info("filtering failed",
 			"request_id", ctx.Value(RequestIDContextKey),
 			"err", err.Error(),
@@ -465,10 +476,15 @@ func (c *storageClient) Entity(ctx context.Context, r *http.Request) (*Entity, e
 		return nil, common.ErrBadRequest
 	}
 
+	entityID, err = url.PathUnescape(chi.URLParam(r, "entity_id"))
+	if err != nil {
+		return nil, common.ErrBadRequest
+	}
+
 	nodeRows, err := c.db.Query(
 		ctx,
 		qb.String(),
-		chi.URLParam(r, "entity_id"),
+		entityID,
 	)
 	if err != nil {
 		c.logger.Info("query failed",
@@ -543,7 +559,10 @@ func (c *storageClient) EntityNodes(ctx context.Context, r *http.Request) (*Node
 		return nil, common.ErrBadRequest
 	}
 
-	id := chi.URLParam(r, "entity_id")
+	id, err := url.PathUnescape(chi.URLParam(r, "entity_id"))
+	if err != nil {
+		return nil, common.ErrBadRequest
+	}
 	rows, err := c.db.Query(ctx, qb.String(), id)
 	if err != nil {
 		c.logger.Info("query failed",
@@ -613,12 +632,20 @@ func (c *storageClient) EntityNode(ctx context.Context, r *http.Request) (*Node,
 		return nil, common.ErrBadRequest
 	}
 
+	entityID, err := url.PathUnescape(chi.URLParam(r, "entity_id"))
+	if err != nil {
+		return nil, common.ErrBadRequest
+	}
+	nodeID, err := url.PathUnescape(chi.URLParam(r, "node_id"))
+	if err != nil {
+		return nil, common.ErrBadRequest
+	}
 	var n Node
 	if err := c.db.QueryRow(
 		ctx,
 		qb.String(),
-		chi.URLParam(r, "entity_id"),
-		chi.URLParam(r, "node_id"),
+		entityID,
+		nodeID,
 	).Scan(
 		&n.ID,
 		&n.EntityID,
@@ -945,8 +972,8 @@ func (c *storageClient) Proposals(ctx context.Context, r *http.Request) (*Propos
 
 	var filters []string
 	for param, condition := range map[string]string{
-		"submitter": "submitter = %s",
-		"state":     "state = %s",
+		"submitter": "submitter = '%s'",
+		"state":     "state = '%s'",
 	} {
 		if v := params.Get(param); v != "" {
 			filters = append(filters, fmt.Sprintf(condition, v))

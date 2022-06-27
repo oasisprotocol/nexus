@@ -33,6 +33,7 @@ type TransactionList struct {
 type Transaction struct {
 	Height  int64  `json:"height"`
 	Hash    string `json:"hash"`
+	Sender  string `json:"sender"`
 	Nonce   uint64 `json:"nonce"`
 	Fee     uint64 `json:"fee"`
 	Method  string `json:"method"`

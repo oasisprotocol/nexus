@@ -1,14 +1,15 @@
 package analyzer
 
 import (
+	"time"
+
 	"github.com/oasislabs/oasis-indexer/storage"
 )
 
 // Analyzer is a worker that analyzes a subset of the Oasis Network.
 type Analyzer interface {
-	// SetRange sets configuration for the range of blocks to process
-	// to the analyzer.
-	SetRange(RangeConfig)
+	// SetConfig sets configuration for the data to process.
+	SetConfig(Config)
 
 	// Start starts the analyzer.
 	Start()
@@ -17,21 +18,32 @@ type Analyzer interface {
 	Name() string
 }
 
-// RangeConfig specifies configuration parameters
-// for processing a range of blocks.
-type RangeConfig struct {
+// Config specifies configuration parameters
+// for processing the network.
+type Config struct {
 	// ChainID is the chain ID for the underlying network.
 	ChainID string
 
+	// BlockRange is the range of blocks to process.
+	// If this is set, the analyzer analyzes blocks in the provided range.
+	BlockRange Range
+
+	// Interval is the interval at which to process.
+	// If this is set, the analyzer runs once per interval.
+	Interval time.Duration
+
+	// Source is the storage source from which to fetch block data
+	// when processing blocks in this range.
+	Source storage.SourceStorage
+}
+
+// Range is a range of blocks.
+type Range struct {
 	// From is the first block to process in this range, inclusive.
 	From int64
 
 	// To is the last block to process in this range, inclusive.
 	To int64
-
-	// Source is the storage source from which to fetch block data
-	// when processing blocks in this range.
-	Source storage.SourceStorage
 }
 
 // Backend is a consensus backend.

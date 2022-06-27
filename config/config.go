@@ -95,6 +95,11 @@ type AnalyzerConfig struct {
 	// continue processing new blocks until the next breaking
 	// upgrade.
 	To int64 `koanf:"to"`
+
+	// Interval is the time interval at which to run the analyzer.
+	// It should be specified as a string compliant with
+	// time.ParseDuration (https://pkg.go.dev/time#ParseDuration).
+	Interval string `koanf:"interval"`
 }
 
 // Validate validates the analysis configuration.

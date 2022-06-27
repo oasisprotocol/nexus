@@ -3,7 +3,6 @@ package metrics
 
 import (
 	"net/http"
-	"time"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
@@ -16,34 +15,33 @@ const (
 
 // PullService is a service that supports the Prometheus pull method.
 type PullService struct {
-	server *http.Server
-	logger *log.Logger
+	pullEndpoint string
+	logger       *log.Logger
 }
 
 // StartInstrumentation starts the pull metrics service.
 func (s *PullService) StartInstrumentation() {
-	s.logger.Info("Initializing pull metrics service.")
+	s.logger.Info("initializing pull metrics service")
 	go s.startHandler()
 }
 
 func (s *PullService) startHandler() {
-	if err := s.server.ListenAndServe(); err != nil {
-		s.logger.Error("Unable to initialize prometheus pull service", "endpoint", s.server.Addr)
+	http.Handle("/metrics", promhttp.Handler())
+
+	if err := http.ListenAndServe(s.pullEndpoint, nil); err != nil {
+		s.logger.Error("unable to initialize prometheus pull service",
+			"endpoint", s.pullEndpoint,
+			"error", err,
+		)
 	}
 }
 
 // Creates a new Prometheus pull service.
-func NewPullService(endpoint string, rootLogger *log.Logger) (*PullService, error) {
+func NewPullService(pullEndpoint string, rootLogger *log.Logger) (*PullService, error) {
 	logger := rootLogger.WithModule(moduleName)
 
 	return &PullService{
-		server: &http.Server{
-			Addr:           endpoint,
-			Handler:        promhttp.Handler(),
-			ReadTimeout:    10 * time.Second,
-			WriteTimeout:   10 * time.Second,
-			MaxHeaderBytes: 1 << 20,
-		},
-		logger: logger,
+		pullEndpoint: pullEndpoint,
+		logger:       logger,
 	}, nil
 }

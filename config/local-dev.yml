@@ -17,7 +17,7 @@ server:
     backend: postgres
 
 log:
-  level: info
+  level: debug
   format: json
 
 metrics:

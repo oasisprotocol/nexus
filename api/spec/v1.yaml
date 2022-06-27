@@ -102,7 +102,7 @@ x-common-types:
     - beacon.VRFProve
 
 paths:
-  /status:
+  /:
     get:
       summary: Returns the indexer status.
       responses:
