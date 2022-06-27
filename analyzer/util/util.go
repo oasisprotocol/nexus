@@ -56,7 +56,7 @@ func CurrentBound(cs staking.CommissionSchedule, now beacon.EpochTime) (currentB
 
 	if i >= len(cs.Bounds) {
 		return *latestStartedStep, 0
-	} else {
-		return *latestStartedStep, uint64(cs.Bounds[i].Start - 1)
 	}
+
+	return *latestStartedStep, uint64(cs.Bounds[i].Start - 1)
 }

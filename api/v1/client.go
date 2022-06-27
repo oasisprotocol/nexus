@@ -1288,7 +1288,7 @@ func (c *storageClient) ProposalVotes(ctx context.Context, r *http.Request) (*Pr
 	return &vs, nil
 }
 
-// Validator returns a single validator
+// Validator returns a single validator.
 func (c *storageClient) Validator(ctx context.Context, r *http.Request) (*Validator, error) {
 	chainID, ok := ctx.Value(ChainIDContextKey).(string)
 	if !ok {
@@ -1374,7 +1374,7 @@ func (c *storageClient) Validator(ctx context.Context, r *http.Request) (*Valida
 	return &v, nil
 }
 
-// Validators returns a list of validators
+// Validators returns a list of validators.
 func (c *storageClient) Validators(ctx context.Context, r *http.Request) (*ValidatorList, error) {
 	chainID, ok := ctx.Value(ChainIDContextKey).(string)
 	if !ok {
