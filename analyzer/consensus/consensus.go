@@ -323,7 +323,10 @@ func (m *Main) queueTransactionInserts(batch *storage.QueryBatch, data *storage.
 		// https://github.com/oasisprotocol/oasis-core/issues/4818
 		if tx.Method == "staking.AmendCommissionSchedule" {
 			var rawSchedule staking.AmendCommissionSchedule
-			cbor.Unmarshal(tx.Body, &rawSchedule)
+			if err := cbor.Unmarshal(tx.Body, &rawSchedule); err != nil {
+				return err
+			}
+
 			schedule, err := json.Marshal(rawSchedule)
 			if err != nil {
 				return err

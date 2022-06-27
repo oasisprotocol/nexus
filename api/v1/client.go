@@ -1423,7 +1423,13 @@ func (c *storageClient) Validators(ctx context.Context, r *http.Request) (*Valid
 	params := r.URL.Query()
 	if v := params.Get("height"); v != "" {
 		if h, err := strconv.ParseInt(v, 10, 64); err != nil {
-			qb.AddTimestamp(ctx, h)
+			if err = qb.AddTimestamp(ctx, h); err != nil {
+				c.logger.Info("timestamp add failed",
+					"request_id", ctx.Value(RequestIDContextKey),
+					"err", err.Error(),
+				)
+				return nil, common.ErrBadRequest
+			}
 		}
 	}
 
@@ -1435,7 +1441,13 @@ func (c *storageClient) Validators(ctx context.Context, r *http.Request) (*Valid
 		)
 		return nil, common.ErrBadRequest
 	}
-	qb.AddPagination(ctx, pagination)
+	if err = qb.AddPagination(ctx, pagination); err != nil {
+		c.logger.Info("pagination add failed",
+			"request_id", ctx.Value(RequestIDContextKey),
+			"err", err.Error(),
+		)
+		return nil, common.ErrBadRequest
+	}
 
 	rows, err := c.db.Query(ctx, qb.String())
 	if err != nil {
