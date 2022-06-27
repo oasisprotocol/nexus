@@ -229,6 +229,7 @@ func (c *Client) RegistryData(ctx context.Context, height int64) (*storage.Regis
 	}, nil
 }
 
+// runtimeUpdates gets runtimes that have seen status changes since the previous block
 func (c *Client) runtimeUpdates(ctx context.Context, height int64) (map[string]bool, error) {
 	rtsCurr, err := c.runtimes(ctx, height)
 	if err != nil {
