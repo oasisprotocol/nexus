@@ -13,12 +13,13 @@ import (
 	"github.com/iancoleman/strcase"
 	oasisErrors "github.com/oasisprotocol/oasis-core/go/common/errors"
 
+	beacon "github.com/oasisprotocol/oasis-core/go/beacon/api"
+	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
+
 	"github.com/oasislabs/oasis-indexer/analyzer/util"
 	"github.com/oasislabs/oasis-indexer/api/common"
 	"github.com/oasislabs/oasis-indexer/log"
 	"github.com/oasislabs/oasis-indexer/storage"
-	beacon "github.com/oasisprotocol/oasis-core/go/beacon/api"
-	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
 )
 
 // QueryBuilder is used for building queries to submit to storage.
@@ -886,26 +887,9 @@ func (c *storageClient) Delegations(ctx context.Context, r *http.Request) (*Dele
 			SELECT delegatee, shares, escrow_balance_active, escrow_total_shares_active
 				FROM %s.delegations
 				JOIN %s.accounts ON %s.delegations.delegatee = %s.accounts.address
+				WHERE delegator = $1::text;
 			`,
 		chainID, chainID, chainID, chainID), c.db)
-
-	params := r.URL.Query()
-
-	var filters []string
-	for param, condition := range map[string]string{
-		"delegator": "delegator = %s",
-	} {
-		if v := params.Get(param); v != "" {
-			filters = append(filters, fmt.Sprintf(condition, v))
-		}
-	}
-	if err := qb.AddFilters(ctx, filters); err != nil {
-		c.logger.Info("filtering failed",
-			"request_id", ctx.Value(RequestIDContextKey),
-			"err", err.Error(),
-		)
-		return nil, common.ErrBadRequest
-	}
 
 	pagination, err := common.NewPagination(r)
 	if err != nil {
@@ -923,7 +907,7 @@ func (c *storageClient) Delegations(ctx context.Context, r *http.Request) (*Dele
 		return nil, common.ErrBadRequest
 	}
 
-	rows, err := c.db.Query(ctx, qb.String())
+	rows, err := c.db.Query(ctx, qb.String(), chi.URLParam(r, "address"))
 	if err != nil {
 		c.logger.Info("query failed",
 			"request_id", ctx.Value(RequestIDContextKey),
@@ -951,7 +935,7 @@ func (c *storageClient) Delegations(ctx context.Context, r *http.Request) (*Dele
 			return nil, common.ErrStorageError
 		}
 
-		d.Amount = float64(d.Shares*escrowBalanceActive) / float64(escrowTotalSharesActive)
+		d.Amount = d.Shares * escrowBalanceActive / escrowTotalSharesActive
 
 		ds.Delegations = append(ds.Delegations, d)
 	}
@@ -969,27 +953,10 @@ func (c *storageClient) DebondingDelegations(ctx context.Context, r *http.Reques
 	qb := NewQueryBuilder(fmt.Sprintf(`
 			SELECT delegatee, shares, debond_end, escrow_balance_debonding, escrow_total_shares_debonding
 				FROM %s.debonding_delegations
-				JOIN %s.accounts ON %s.debonding_delegations.delegatee = %s.accounts.address
+				JOIN %s.accounts ON %s.delegations.delegatee = %s.accounts.address
+				WHERE delegator = $1::text;
 				`,
 		chainID, chainID, chainID, chainID), c.db)
-
-	params := r.URL.Query()
-
-	var filters []string
-	for param, condition := range map[string]string{
-		"delegator": "delegator = %s",
-	} {
-		if v := params.Get(param); v != "" {
-			filters = append(filters, fmt.Sprintf(condition, v))
-		}
-	}
-	if err := qb.AddFilters(ctx, filters); err != nil {
-		c.logger.Info("filtering failed",
-			"request_id", ctx.Value(RequestIDContextKey),
-			"err", err.Error(),
-		)
-		return nil, common.ErrBadRequest
-	}
 
 	pagination, err := common.NewPagination(r)
 	if err != nil {
@@ -1007,7 +974,7 @@ func (c *storageClient) DebondingDelegations(ctx context.Context, r *http.Reques
 		return nil, common.ErrBadRequest
 	}
 
-	rows, err := c.db.Query(ctx, qb.String())
+	rows, err := c.db.Query(ctx, qb.String(), chi.URLParam(r, "address"))
 	if err != nil {
 		c.logger.Info("query failed",
 			"request_id", ctx.Value(RequestIDContextKey),
@@ -1035,7 +1002,7 @@ func (c *storageClient) DebondingDelegations(ctx context.Context, r *http.Reques
 			)
 			return nil, common.ErrStorageError
 		}
-		d.Amount = float64(d.Shares*escrowBalanceDebonding) / float64(escrowTotalSharesDebonding)
+		d.Amount = d.Shares * escrowBalanceDebonding / escrowTotalSharesDebonding
 		ds.DebondingDelegations = append(ds.DebondingDelegations, d)
 	}
 
@@ -1349,16 +1316,16 @@ func (c *storageClient) Validator(ctx context.Context, r *http.Request) (*Valida
 		ctx,
 		fmt.Sprintf(`
 			SELECT
+				%s.entities.id AS entity_id,
 				%s.entities.address AS entity_address,
 				%s.nodes.id AS node_address,
 				%s.accounts.escrow_balance_active AS escrow,
 				%s.commissions.schedule AS commissions_schedule,
 				case when exists(select null from %s.nodes where %s.entities.id = %s.nodes.entity_id AND voting_power > 0) then true else false end as active,
 				case when exists(select null from %s.nodes where %s.entities.id = %s.nodes.entity_id AND %s.nodes.roles like 'validator') then true else false end as status,
-				meta
+				%s.entities.meta AS meta
 			FROM %s.entities
 			JOIN %s.accounts ON %s.entities.address = %s.accounts.address
-			JOIN %s.metadata ON %s.entities.id = %s.metadata.id
 			JOIN %s.commissions ON %s.entities.address = %s.commissions.address
 			JOIN %s.nodes ON %s.entities.id = %s.nodes.entity_id
 				AND %s.nodes.voting_power = (
@@ -1368,15 +1335,16 @@ func (c *storageClient) Validator(ctx context.Context, r *http.Request) (*Valida
 						AND %s.nodes.roles like 'validator'
 				)
 			WHERE %s.entities.address = $1::text`,
-			chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID),
+			chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID),
 		chi.URLParam(r, "entity_id"),
 	)
 
 	var v Validator
 	var schedule staking.CommissionSchedule
 	if err := row.Scan(
+		&v.EntityID,
 		&v.EntityAddress,
-		&v.NodeAddress,
+		&v.NodeID,
 		&v.Escrow,
 		&schedule,
 		&v.Active,
@@ -1391,18 +1359,16 @@ func (c *storageClient) Validator(ctx context.Context, r *http.Request) (*Valida
 	// Match API for now
 	v.Name = v.Media.Name
 
-	v.Name = v.Media.Name
-
 	v.CurrentRate = schedule.CurrentRate(beacon.EpochTime(epoch.ID)).ToBigInt().Uint64()
-	bound, next := util.CurrentBound(schedule, beacon.EpochTime(epoch.ID))
+	bound, epochEnd := util.CurrentBound(schedule, beacon.EpochTime(epoch.ID))
 	v.CurrentCommissionBound = ValidatorCommissionBound{
 		Lower:      bound.RateMin.ToBigInt().Uint64(),
 		Upper:      bound.RateMax.ToBigInt().Uint64(),
 		EpochStart: uint64(bound.Start),
 	}
 
-	if next > 0 {
-		v.CurrentCommissionBound.EpochEnd = next
+	if epochEnd > 0 {
+		v.CurrentCommissionBound.EpochEnd = epochEnd
 	}
 
 	return &v, nil
@@ -1434,16 +1400,16 @@ func (c *storageClient) Validators(ctx context.Context, r *http.Request) (*Valid
 
 	qb := NewQueryBuilder(fmt.Sprintf(`
 	SELECT
+		%s.entities.id AS entity_id,
 		%s.entities.address AS entity_address,
 		%s.nodes.id AS node_address,
 		%s.accounts.escrow_balance_active AS escrow,
 		%s.commissions.schedule AS commissions_schedule,
 		case when exists(select null from %s.nodes where %s.entities.id = %s.nodes.entity_id AND voting_power > 0) then true else false end as active,
-	  case when exists(select null from %s.nodes where %s.entities.id = %s.nodes.entity_id AND %s.nodes.roles like 'validator') then true else false end as status,
-		meta
+		case when exists(select null from %s.nodes where %s.entities.id = %s.nodes.entity_id AND %s.nodes.roles like 'validator') then true else false end as status,
+		%s.entities.meta AS meta
 	FROM %s.entities
 	JOIN %s.accounts ON %s.entities.address = %s.accounts.address
-	JOIN %s.metadata ON %s.entities.id = %s.metadata.id
 	JOIN %s.commissions ON %s.entities.address = %s.commissions.address
 	JOIN %s.nodes ON %s.entities.id = %s.nodes.entity_id
 		AND %s.nodes.voting_power = (
@@ -1452,7 +1418,7 @@ func (c *storageClient) Validators(ctx context.Context, r *http.Request) (*Valid
 			WHERE %s.entities.id = %s.nodes.entity_id
 				AND %s.nodes.roles like 'validator'
 		)
-	`, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID), c.db)
+	`, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID), c.db)
 
 	params := r.URL.Query()
 	if v := params.Get("height"); v != "" {
@@ -1486,8 +1452,9 @@ func (c *storageClient) Validators(ctx context.Context, r *http.Request) (*Valid
 		var v Validator
 		var schedule staking.CommissionSchedule
 		if err := rows.Scan(
+			&v.EntityID,
 			&v.EntityAddress,
-			&v.NodeAddress,
+			&v.NodeID,
 			&v.Escrow,
 			&schedule,
 			&v.Active,

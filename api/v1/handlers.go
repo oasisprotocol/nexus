@@ -338,7 +338,7 @@ func (h *Handler) GetAccount(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-//GetDelegations gets an account's delegations.
+// GetDelegations gets an account's delegations.
 func (h *Handler) GetDelegations(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -368,7 +368,7 @@ func (h *Handler) GetDelegations(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-//GetDebondingDelegations gets an account's debonding delegations.
+// GetDebondingDelegations gets an account's debonding delegations.
 func (h *Handler) GetDebondingDelegations(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
