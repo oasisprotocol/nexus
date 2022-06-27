@@ -268,7 +268,7 @@ VALUES
 	}
 
 	// Populate commissions.
-	// This won't overflow batch limit.
+	// This likely won't overflow batch limit.
 	if _, err := io.WriteString(w, fmt.Sprintf(`
 TRUNCATE %s.commissions CASCADE;`, chainID)); err != nil {
 		return err

@@ -6,7 +6,7 @@ BEGIN;
 
 CREATE TABLE IF NOT EXISTS oasis_3.commissions
 (
-  address TEXT PRIMARY KEY NOT NULL REFERENCES oasis_3.accounts(address),
+  address  TEXT PRIMARY KEY NOT NULL REFERENCES oasis_3.accounts(address),
   schedule JSON
 );
 
