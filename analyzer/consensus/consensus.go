@@ -334,7 +334,10 @@ func (m *Main) queueTransactionInserts(batch *storage.QueryBatch, data *storage.
 
 			batch.Queue(fmt.Sprintf(`
 				INSERT INTO %s.commissions (address, schedule)
-					VALUES ($1, $2);
+					VALUES ($1, $2)
+				ON CONFLICT (address) DO
+					UPDATE SET
+						schedule = excluded.schedule;
 			`, chainID),
 				staking.NewAddress(signedTx.Signature.PublicKey),
 				string(schedule),
