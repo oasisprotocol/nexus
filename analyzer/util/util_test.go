@@ -61,21 +61,21 @@ func TestCurrentBound(t *testing.T) {
 		},
 	}
 	bound, epochEnd := CurrentBound(commissionSchedule, beacon.EpochTime(4))
-	require.Equal(t, bound, staking.CommissionRateBoundStep{
+	require.Equal(t, bound, &staking.CommissionRateBoundStep{
 		Start:   1,
 		RateMin: *quantity.NewFromUint64(0),
 		RateMax: *quantity.NewFromUint64(1000),
 	})
 	require.Equal(t, epochEnd, uint64(4))
 	bound, epochEnd = CurrentBound(commissionSchedule, beacon.EpochTime(5))
-	require.Equal(t, bound, staking.CommissionRateBoundStep{
+	require.Equal(t, bound, &staking.CommissionRateBoundStep{
 		Start:   5,
 		RateMin: *quantity.NewFromUint64(5),
 		RateMax: *quantity.NewFromUint64(1000),
 	})
 	require.Equal(t, epochEnd, uint64(9))
 	bound, epochEnd = CurrentBound(commissionSchedule, beacon.EpochTime(10))
-	require.Equal(t, bound, staking.CommissionRateBoundStep{
+	require.Equal(t, bound, &staking.CommissionRateBoundStep{
 		Start:   10,
 		RateMin: *quantity.NewFromUint64(10),
 		RateMax: *quantity.NewFromUint64(1000),

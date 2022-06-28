@@ -1299,12 +1299,12 @@ func (c *storageClient) Validator(ctx context.Context, r *http.Request) (*Valida
 	if err := c.db.QueryRow(
 		ctx,
 		fmt.Sprintf(`
-		SELECT id, start_height, end_height
+		SELECT id, start_height
 			FROM %s.epochs
 			ORDER BY id DESC
 			LIMIT 1`,
 			chainID),
-	).Scan(&epoch.ID, &epoch.StartHeight, &epoch.EndHeight); err != nil {
+	).Scan(&epoch.ID, &epoch.StartHeight); err != nil {
 		c.logger.Info("row scan failed",
 			"request_id", ctx.Value(RequestIDContextKey),
 			"err", err.Error(),
@@ -1359,16 +1359,21 @@ func (c *storageClient) Validator(ctx context.Context, r *http.Request) (*Valida
 	// Match API for now
 	v.Name = v.Media.Name
 
-	v.CurrentRate = schedule.CurrentRate(beacon.EpochTime(epoch.ID)).ToBigInt().Uint64()
-	bound, epochEnd := util.CurrentBound(schedule, beacon.EpochTime(epoch.ID))
-	v.CurrentCommissionBound = ValidatorCommissionBound{
-		Lower:      bound.RateMin.ToBigInt().Uint64(),
-		Upper:      bound.RateMax.ToBigInt().Uint64(),
-		EpochStart: uint64(bound.Start),
+	currentRate := schedule.CurrentRate(beacon.EpochTime(epoch.ID))
+	if currentRate != nil {
+		v.CurrentRate = currentRate.ToBigInt().Uint64()
+	}
+	bound, next := util.CurrentBound(schedule, beacon.EpochTime(epoch.ID))
+	if bound != nil {
+		v.CurrentCommissionBound = ValidatorCommissionBound{
+			Lower:      bound.RateMin.ToBigInt().Uint64(),
+			Upper:      bound.RateMax.ToBigInt().Uint64(),
+			EpochStart: uint64(bound.Start),
+		}
 	}
 
-	if epochEnd > 0 {
-		v.CurrentCommissionBound.EpochEnd = epochEnd
+	if next > 0 {
+		v.CurrentCommissionBound.EpochEnd = next
 	}
 
 	return &v, nil
@@ -1385,12 +1390,12 @@ func (c *storageClient) Validators(ctx context.Context, r *http.Request) (*Valid
 	if err := c.db.QueryRow(
 		ctx,
 		fmt.Sprintf(`
-		SELECT id, start_height, end_height
+		SELECT id, start_height
 			FROM %s.epochs
 			ORDER BY id DESC
 			LIMIT 1`,
 			chainID),
-	).Scan(&epoch.ID, &epoch.StartHeight, &epoch.EndHeight); err != nil {
+	).Scan(&epoch.ID, &epoch.StartHeight); err != nil {
 		c.logger.Info("row scan failed",
 			"request_id", ctx.Value(RequestIDContextKey),
 			"err", err.Error(),
@@ -1481,12 +1486,17 @@ func (c *storageClient) Validators(ctx context.Context, r *http.Request) (*Valid
 		// Match API for now
 		v.Name = v.Media.Name
 
-		v.CurrentRate = schedule.CurrentRate(beacon.EpochTime(epoch.ID)).ToBigInt().Uint64()
+		currentRate := schedule.CurrentRate(beacon.EpochTime(epoch.ID))
+		if currentRate != nil {
+			v.CurrentRate = currentRate.ToBigInt().Uint64()
+		}
 		bound, next := util.CurrentBound(schedule, beacon.EpochTime(epoch.ID))
-		v.CurrentCommissionBound = ValidatorCommissionBound{
-			Lower:      bound.RateMin.ToBigInt().Uint64(),
-			Upper:      bound.RateMax.ToBigInt().Uint64(),
-			EpochStart: uint64(bound.Start),
+		if bound != nil {
+			v.CurrentCommissionBound = ValidatorCommissionBound{
+				Lower:      bound.RateMin.ToBigInt().Uint64(),
+				Upper:      bound.RateMax.ToBigInt().Uint64(),
+				EpochStart: uint64(bound.Start),
+			}
 		}
 
 		if next > 0 {
