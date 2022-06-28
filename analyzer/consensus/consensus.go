@@ -11,10 +11,13 @@ import (
 
 	"github.com/iancoleman/strcase"
 	"github.com/jackc/pgx/v4"
+	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 	"github.com/oasisprotocol/oasis-core/go/consensus/api/transaction"
 	"github.com/oasisprotocol/oasis-core/go/consensus/api/transaction/results"
 	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
 	"golang.org/x/sync/errgroup"
+
+	registry "github.com/oasisprotocol/metadata-registry-tools"
 
 	"github.com/oasislabs/oasis-indexer/analyzer"
 	"github.com/oasislabs/oasis-indexer/analyzer/util"
@@ -25,6 +28,7 @@ import (
 
 const (
 	consensusMainDamaskName = "consensus_main_damask"
+	registryUpdateFrequency = 100 // once per n block
 )
 
 var (
@@ -218,6 +222,7 @@ func (m *Main) prepareBlockData(ctx context.Context, height int64, batch *storag
 
 	for _, f := range []func(*storage.QueryBatch, *storage.BlockData) error{
 		m.queueBlockInserts,
+		m.queueEpochInserts,
 		m.queueTransactionInserts,
 		m.queueEventInserts,
 	} {
@@ -243,6 +248,29 @@ func (m *Main) queueBlockInserts(batch *storage.QueryBatch, data *storage.BlockD
 		int64(data.BlockHeader.StateRoot.Version),
 		data.BlockHeader.StateRoot.Type.String(),
 		data.BlockHeader.StateRoot.Hash.Hex(),
+	)
+
+	return nil
+}
+
+func (m *Main) queueEpochInserts(batch *storage.QueryBatch, data *storage.BlockData) error {
+	chainID := m.cfg.ChainID
+
+	batch.Queue(fmt.Sprintf(`
+		INSERT INTO %s.epochs (id, start_height)
+			VALUES ($1, $2)
+		ON CONFLICT (id) DO NOTHING;
+	`, chainID),
+		data.Epoch,
+		data.BlockHeader.Height,
+	)
+	batch.Queue(fmt.Sprintf(`
+		UPDATE %s.epochs
+		SET end_height = $2
+			WHERE id = $1 AND end_height IS NULL;
+	`, chainID),
+		data.Epoch-1,
+		data.BlockHeader.Height,
 	)
 
 	return nil
@@ -290,6 +318,31 @@ func (m *Main) queueTransactionInserts(batch *storage.QueryBatch, data *storage.
 			sender,
 			tx.Nonce+1,
 		)
+
+		// TODO: Use event when available
+		// https://github.com/oasisprotocol/oasis-core/issues/4818
+		if tx.Method == "staking.AmendCommissionSchedule" {
+			var rawSchedule staking.AmendCommissionSchedule
+			if err := cbor.Unmarshal(tx.Body, &rawSchedule); err != nil {
+				return err
+			}
+
+			schedule, err := json.Marshal(rawSchedule)
+			if err != nil {
+				return err
+			}
+
+			batch.Queue(fmt.Sprintf(`
+				INSERT INTO %s.commissions (address, schedule)
+					VALUES ($1, $2)
+				ON CONFLICT (address) DO
+					UPDATE SET
+						schedule = excluded.schedule;
+			`, chainID),
+				staking.NewAddress(signedTx.Signature.PublicKey),
+				string(schedule),
+			)
+		}
 	}
 
 	return nil
@@ -341,6 +394,12 @@ func (m *Main) prepareRegistryData(ctx context.Context, height int64, batch *sto
 		m.queueNodeEvents,
 	} {
 		if err := f(batch, data); err != nil {
+			return err
+		}
+	}
+
+	if height%registryUpdateFrequency == 0 {
+		if err := m.queueMetadataRegistry(ctx, batch); err != nil {
 			return err
 		}
 	}
@@ -499,6 +558,34 @@ func (m *Main) queueNodeEvents(batch *storage.QueryBatch, data *storage.Registry
 				nodeEvent.Node.ID.String(),
 			)
 		}
+	}
+
+	return nil
+}
+
+func (m *Main) queueMetadataRegistry(ctx context.Context, batch *storage.QueryBatch) error {
+	gp, err := registry.NewGitProvider(registry.NewGitConfig())
+	if err != nil {
+		m.logger.Error(fmt.Sprintf("Failed to create Git registry provider: %s\n", err))
+		return err
+	}
+
+	// Get a list of all entities in the registry.
+	entities, err := gp.GetEntities(ctx)
+	if err != nil {
+		m.logger.Error(fmt.Sprintf("Failed to get a list of entities in registry: %s\n", err))
+		return err
+	}
+
+	for id, meta := range entities {
+		batch.Queue(fmt.Sprintf(`
+		UPDATE %s.entities
+		SET meta = $2
+			WHERE id = $1
+	`, m.cfg.ChainID),
+			id,
+			meta,
+		)
 	}
 
 	return nil

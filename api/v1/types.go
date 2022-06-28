@@ -89,6 +89,31 @@ type Account struct {
 	Allowances []Allowance `json:"allowances,omitempty"`
 }
 
+// DebondingDelegationList is the API response for ListDebondingDelegations.
+type DebondingDelegationList struct {
+	DebondingDelegations []DebondingDelegation `json:"debonding_delegations"`
+}
+
+// DebondingDelegation is the API response for GetDebondingDelegation.
+type DebondingDelegation struct {
+	Amount           uint64 `json:"amount"`
+	Shares           uint64 `json:"shares"`
+	ValidatorAddress string `json:"address"`
+	DebondEnd        uint64 `json:"debond_end"`
+}
+
+// DelegationList is the API response for ListDelegations.
+type DelegationList struct {
+	Delegations []Delegation `json:"delegations"`
+}
+
+// Delegation is the API response for GetDelegation.
+type Delegation struct {
+	Amount           uint64 `json:"amount"`
+	Shares           uint64 `json:"shares"`
+	ValidatorAddress string `json:"address"`
+}
+
 type Allowance struct {
 	Address string `json:"address"`
 	Amount  uint64 `json:"amount"`
@@ -141,4 +166,43 @@ type ProposalVotes struct {
 type ProposalVote struct {
 	Address string `json:"address"`
 	Vote    string `json:"vote"`
+}
+
+// Validators is the API response for GetValidators.
+type ValidatorList struct {
+	Validators []Validator `json:"validator"`
+}
+
+// Validator is the API response for GetValidator.
+type Validator struct {
+	Name          string `json:"name"`
+	EntityAddress string `json:"entity_address"`
+	EntityID      string `json:"entity_id"`
+	NodeID        string `json:"node_id"`
+	Escrow        uint64 `json:"escrow"`
+	// If "true", entity is part of validator set (top <scheduler.params.max_validators> by stake).
+	Active bool `json:"active"`
+	// If "true", an entity has a node that is registered for being a validator, node is up to date, and has successfully registered itself. However, it may or may not be part of validator set (top <scheduler.params.max_validators> by stake).
+	Status                 bool                     `json:"status"`
+	Media                  ValidatorMedia           `json:"media"`
+	CurrentRate            uint64                   `json:"current_rate"`
+	CurrentCommissionBound ValidatorCommissionBound `json:"current_commission_bound"`
+}
+
+// ValidatorMedia is the metadata for a validator.
+type ValidatorMedia struct {
+	WebsiteLink  string `json:"url"`
+	EmailAddress string `json:"email"`
+	TwitterAcc   string `json:"twitter"`
+	TgChat       string `json:"tg"`
+	Logotype     string `json:"logotype"`
+	Name         string `json:"name"`
+}
+
+// ValidatorCommissionBound is the commission bound for a validator.
+type ValidatorCommissionBound struct {
+	Lower      uint64 `json:"lower"`
+	Upper      uint64 `json:"upper"`
+	EpochStart uint64 `json:"epoch_start"`
+	EpochEnd   uint64 `json:"epoch_end"`
 }

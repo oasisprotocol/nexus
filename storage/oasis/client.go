@@ -138,6 +138,11 @@ func (c *Client) BlockData(ctx context.Context, height int64) (*storage.BlockDat
 		return nil, err
 	}
 
+	epoch, err := connection.Consensus().Beacon().GetEpoch(ctx, height)
+	if err != nil {
+		return nil, err
+	}
+
 	transactionsWithResults, err := connection.Consensus().GetTransactionsWithResults(ctx, height)
 	if err != nil {
 		return nil, err
@@ -154,6 +159,7 @@ func (c *Client) BlockData(ctx context.Context, height int64) (*storage.BlockDat
 
 	return &storage.BlockData{
 		BlockHeader:  block,
+		Epoch:        epoch,
 		Transactions: transactions,
 		Results:      transactionsWithResults.Results,
 	}, nil

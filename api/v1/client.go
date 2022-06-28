@@ -13,6 +13,10 @@ import (
 	"github.com/iancoleman/strcase"
 	oasisErrors "github.com/oasisprotocol/oasis-core/go/common/errors"
 
+	beacon "github.com/oasisprotocol/oasis-core/go/beacon/api"
+	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
+
+	"github.com/oasislabs/oasis-indexer/analyzer/util"
 	"github.com/oasislabs/oasis-indexer/api/common"
 	"github.com/oasislabs/oasis-indexer/log"
 	"github.com/oasislabs/oasis-indexer/storage"
@@ -872,6 +876,139 @@ func (c *storageClient) Account(ctx context.Context, r *http.Request) (*Account,
 	return &a, nil
 }
 
+// Delegations returns a list of delegations.
+func (c *storageClient) Delegations(ctx context.Context, r *http.Request) (*DelegationList, error) {
+	chainID, ok := ctx.Value(ChainIDContextKey).(string)
+	if !ok {
+		return nil, common.ErrBadChainID
+	}
+
+	qb := NewQueryBuilder(fmt.Sprintf(`
+			SELECT delegatee, shares, escrow_balance_active, escrow_total_shares_active
+				FROM %s.delegations
+				JOIN %s.accounts ON %s.delegations.delegatee = %s.accounts.address
+				WHERE delegator = $1::text
+			`,
+		chainID, chainID, chainID, chainID), c.db)
+
+	pagination, err := common.NewPagination(r)
+	if err != nil {
+		c.logger.Info("pagination failed",
+			"request_id", ctx.Value(RequestIDContextKey),
+			"err", err.Error(),
+		)
+		return nil, common.ErrBadRequest
+	}
+	if err = qb.AddPagination(ctx, pagination); err != nil {
+		c.logger.Info("pagination add failed",
+			"request_id", ctx.Value(RequestIDContextKey),
+			"err", err.Error(),
+		)
+		return nil, common.ErrBadRequest
+	}
+
+	rows, err := c.db.Query(ctx, qb.String(), chi.URLParam(r, "address"))
+	if err != nil {
+		c.logger.Info("query failed",
+			"request_id", ctx.Value(RequestIDContextKey),
+			"err", err.Error(),
+		)
+		return nil, common.ErrStorageError
+	}
+	defer rows.Close()
+
+	var ds DelegationList
+	for rows.Next() {
+		var d Delegation
+		var escrowBalanceActive uint64
+		var escrowTotalSharesActive uint64
+		if err := rows.Scan(
+			&d.ValidatorAddress,
+			&d.Shares,
+			&escrowBalanceActive,
+			&escrowTotalSharesActive,
+		); err != nil {
+			c.logger.Info("row scan failed",
+				"request_id", ctx.Value(RequestIDContextKey),
+				"err", err.Error(),
+			)
+			return nil, common.ErrStorageError
+		}
+
+		d.Amount = d.Shares * escrowBalanceActive / escrowTotalSharesActive
+
+		ds.Delegations = append(ds.Delegations, d)
+	}
+
+	return &ds, nil
+}
+
+// DebondingDelegations returns a list of debonding delegations.
+func (c *storageClient) DebondingDelegations(ctx context.Context, r *http.Request) (*DebondingDelegationList, error) {
+	chainID, ok := ctx.Value(ChainIDContextKey).(string)
+	if !ok {
+		return nil, common.ErrBadChainID
+	}
+
+	qb := NewQueryBuilder(fmt.Sprintf(`
+			SELECT delegatee, shares, debond_end, escrow_balance_debonding, escrow_total_shares_debonding
+				FROM %s.debonding_delegations
+				JOIN %s.accounts ON %s.debonding_delegations.delegatee = %s.accounts.address
+				WHERE delegator = $1::text
+				`,
+		chainID, chainID, chainID, chainID), c.db)
+
+	pagination, err := common.NewPagination(r)
+	if err != nil {
+		c.logger.Info("pagination failed",
+			"request_id", ctx.Value(RequestIDContextKey),
+			"err", err.Error(),
+		)
+		return nil, common.ErrBadRequest
+	}
+	if err = qb.AddPagination(ctx, pagination); err != nil {
+		c.logger.Info("pagination add failed",
+			"request_id", ctx.Value(RequestIDContextKey),
+			"err", err.Error(),
+		)
+		return nil, common.ErrBadRequest
+	}
+
+	rows, err := c.db.Query(ctx, qb.String(), chi.URLParam(r, "address"))
+	if err != nil {
+		c.logger.Info("query failed",
+			"request_id", ctx.Value(RequestIDContextKey),
+			"err", err.Error(),
+		)
+		return nil, common.ErrStorageError
+	}
+	defer rows.Close()
+
+	var ds DebondingDelegationList
+	for rows.Next() {
+		var d DebondingDelegation
+		var escrowBalanceDebonding uint64
+		var escrowTotalSharesDebonding uint64
+		if err := rows.Scan(
+			&d.ValidatorAddress,
+			&d.Shares,
+			&d.DebondEnd,
+			&escrowBalanceDebonding,
+			&escrowTotalSharesDebonding,
+		); err != nil {
+			c.logger.Info("row scan failed",
+				"request_id", ctx.Value(RequestIDContextKey),
+				"err", err.Error(),
+			)
+			return nil, common.ErrStorageError
+		}
+		d.Amount = d.Shares * escrowBalanceDebonding / escrowTotalSharesDebonding
+		ds.DebondingDelegations = append(ds.DebondingDelegations, d)
+	}
+
+	return &ds, nil
+}
+
 // Epochs returns a list of consensus epochs.
 func (c *storageClient) Epochs(ctx context.Context, r *http.Request) (*EpochList, error) {
 	chainID, ok := ctx.Value(ChainIDContextKey).(string)
@@ -1147,6 +1284,227 @@ func (c *storageClient) ProposalVotes(ctx context.Context, r *http.Request) (*Pr
 		vs.Votes = append(vs.Votes, v)
 	}
 	vs.ProposalID = id
+
+	return &vs, nil
+}
+
+// Validator returns a single validator.
+func (c *storageClient) Validator(ctx context.Context, r *http.Request) (*Validator, error) {
+	chainID, ok := ctx.Value(ChainIDContextKey).(string)
+	if !ok {
+		return nil, common.ErrBadChainID
+	}
+
+	var epoch Epoch
+	if err := c.db.QueryRow(
+		ctx,
+		fmt.Sprintf(`
+		SELECT id, start_height
+			FROM %s.epochs
+			ORDER BY id DESC
+			LIMIT 1`,
+			chainID),
+	).Scan(&epoch.ID, &epoch.StartHeight); err != nil {
+		c.logger.Info("row scan failed",
+			"request_id", ctx.Value(RequestIDContextKey),
+			"err", err.Error(),
+		)
+		return nil, common.ErrStorageError
+	}
+
+	row := c.db.QueryRow(
+		ctx,
+		fmt.Sprintf(`
+			SELECT
+				%s.entities.id AS entity_id,
+				%s.entities.address AS entity_address,
+				%s.nodes.id AS node_address,
+				%s.accounts.escrow_balance_active AS escrow,
+				%s.commissions.schedule AS commissions_schedule,
+				case when exists(select null from %s.nodes where %s.entities.id = %s.nodes.entity_id AND voting_power > 0) then true else false end as active,
+				case when exists(select null from %s.nodes where %s.entities.id = %s.nodes.entity_id AND %s.nodes.roles like 'validator') then true else false end as status,
+				%s.entities.meta AS meta
+			FROM %s.entities
+			JOIN %s.accounts ON %s.entities.address = %s.accounts.address
+			JOIN %s.commissions ON %s.entities.address = %s.commissions.address
+			JOIN %s.nodes ON %s.entities.id = %s.nodes.entity_id
+				AND %s.nodes.voting_power = (
+					SELECT max(voting_power)
+					FROM %s.nodes
+					WHERE %s.entities.id = %s.nodes.entity_id
+						AND %s.nodes.roles like 'validator'
+				)
+			WHERE %s.entities.address = $1::text`,
+			chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID),
+		chi.URLParam(r, "entity_id"),
+	)
+
+	var v Validator
+	var schedule staking.CommissionSchedule
+	if err := row.Scan(
+		&v.EntityID,
+		&v.EntityAddress,
+		&v.NodeID,
+		&v.Escrow,
+		&schedule,
+		&v.Active,
+		&v.Status,
+		&v.Media,
+	); err != nil {
+		c.logger.Info("query failed",
+			"err", err.Error(),
+		)
+		return nil, common.ErrStorageError
+	}
+	// Match API for now
+	v.Name = v.Media.Name
+
+	currentRate := schedule.CurrentRate(beacon.EpochTime(epoch.ID))
+	if currentRate != nil {
+		v.CurrentRate = currentRate.ToBigInt().Uint64()
+	}
+	bound, next := util.CurrentBound(schedule, beacon.EpochTime(epoch.ID))
+	if bound != nil {
+		v.CurrentCommissionBound = ValidatorCommissionBound{
+			Lower:      bound.RateMin.ToBigInt().Uint64(),
+			Upper:      bound.RateMax.ToBigInt().Uint64(),
+			EpochStart: uint64(bound.Start),
+		}
+	}
+
+	if next > 0 {
+		v.CurrentCommissionBound.EpochEnd = next
+	}
+
+	return &v, nil
+}
+
+// Validators returns a list of validators.
+func (c *storageClient) Validators(ctx context.Context, r *http.Request) (*ValidatorList, error) {
+	chainID, ok := ctx.Value(ChainIDContextKey).(string)
+	if !ok {
+		return nil, common.ErrBadChainID
+	}
+
+	var epoch Epoch
+	if err := c.db.QueryRow(
+		ctx,
+		fmt.Sprintf(`
+		SELECT id, start_height
+			FROM %s.epochs
+			ORDER BY id DESC
+			LIMIT 1`,
+			chainID),
+	).Scan(&epoch.ID, &epoch.StartHeight); err != nil {
+		c.logger.Info("row scan failed",
+			"request_id", ctx.Value(RequestIDContextKey),
+			"err", err.Error(),
+		)
+		return nil, common.ErrStorageError
+	}
+
+	qb := NewQueryBuilder(fmt.Sprintf(`
+	SELECT
+		%s.entities.id AS entity_id,
+		%s.entities.address AS entity_address,
+		%s.nodes.id AS node_address,
+		%s.accounts.escrow_balance_active AS escrow,
+		%s.commissions.schedule AS commissions_schedule,
+		case when exists(select null from %s.nodes where %s.entities.id = %s.nodes.entity_id AND voting_power > 0) then true else false end as active,
+		case when exists(select null from %s.nodes where %s.entities.id = %s.nodes.entity_id AND %s.nodes.roles like 'validator') then true else false end as status,
+		%s.entities.meta AS meta
+	FROM %s.entities
+	JOIN %s.accounts ON %s.entities.address = %s.accounts.address
+	JOIN %s.commissions ON %s.entities.address = %s.commissions.address
+	JOIN %s.nodes ON %s.entities.id = %s.nodes.entity_id
+		AND %s.nodes.voting_power = (
+			SELECT max(voting_power)
+			FROM %s.nodes
+			WHERE %s.entities.id = %s.nodes.entity_id
+				AND %s.nodes.roles like 'validator'
+		)
+	`, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID), c.db)
+
+	params := r.URL.Query()
+	if v := params.Get("height"); v != "" {
+		if h, err := strconv.ParseInt(v, 10, 64); err != nil {
+			if err = qb.AddTimestamp(ctx, h); err != nil {
+				c.logger.Info("timestamp add failed",
+					"request_id", ctx.Value(RequestIDContextKey),
+					"err", err.Error(),
+				)
+				return nil, common.ErrBadRequest
+			}
+		}
+	}
+
+	pagination, err := common.NewPagination(r)
+	if err != nil {
+		c.logger.Info("pagination failed",
+			"request_id", ctx.Value(RequestIDContextKey),
+			"err", err.Error(),
+		)
+		return nil, common.ErrBadRequest
+	}
+	if err = qb.AddPagination(ctx, pagination); err != nil {
+		c.logger.Info("pagination add failed",
+			"request_id", ctx.Value(RequestIDContextKey),
+			"err", err.Error(),
+		)
+		return nil, common.ErrBadRequest
+	}
+
+	rows, err := c.db.Query(ctx, qb.String())
+	if err != nil {
+		c.logger.Info("query failed",
+			"request_id", ctx.Value(RequestIDContextKey),
+			"err", err.Error(),
+		)
+		return nil, common.ErrStorageError
+	}
+	defer rows.Close()
+
+	var vs ValidatorList
+	for rows.Next() {
+		var v Validator
+		var schedule staking.CommissionSchedule
+		if err := rows.Scan(
+			&v.EntityID,
+			&v.EntityAddress,
+			&v.NodeID,
+			&v.Escrow,
+			&schedule,
+			&v.Active,
+			&v.Status,
+			&v.Media,
+		); err != nil {
+			c.logger.Info("query failed",
+				"err", err.Error(),
+			)
+			return nil, common.ErrStorageError
+		}
+		// Match API for now
+		v.Name = v.Media.Name
+
+		currentRate := schedule.CurrentRate(beacon.EpochTime(epoch.ID))
+		if currentRate != nil {
+			v.CurrentRate = currentRate.ToBigInt().Uint64()
+		}
+		bound, next := util.CurrentBound(schedule, beacon.EpochTime(epoch.ID))
+		if bound != nil {
+			v.CurrentCommissionBound = ValidatorCommissionBound{
+				Lower:      bound.RateMin.ToBigInt().Uint64(),
+				Upper:      bound.RateMax.ToBigInt().Uint64(),
+				EpochStart: uint64(bound.Start),
+			}
+		}
+
+		if next > 0 {
+			v.CurrentCommissionBound.EpochEnd = next
+		}
+
+		vs.Validators = append(vs.Validators, v)
+	}
 
 	return &vs, nil
 }

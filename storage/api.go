@@ -84,6 +84,7 @@ type BlockData struct {
 	Height int64
 
 	BlockHeader  *consensus.Block
+	Epoch        beacon.EpochTime
 	Transactions []*transaction.SignedTransaction
 	Results      []*results.Result
 }

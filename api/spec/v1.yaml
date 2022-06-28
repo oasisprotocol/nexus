@@ -349,6 +349,24 @@ paths:
                 $ref: '#/components/schemas/Node'
         <<: *common-error-responses
 
+  /consensus/validators:
+    get:
+      summary: Returns a list of validators registered at the consensus layer.
+      parameters:
+        - *limit
+        - *offset
+        - *height
+      responses:
+        '200':
+          description: |
+            A JSON object containing a list of validators registered
+            at the consensus layer.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidatorList'
+        <<: *common-error-responses
+
   /consensus/accounts:
     get:
       summary: Returns a list of consensus layer accounts.
@@ -443,6 +461,46 @@ paths:
                 $ref: '#/components/schemas/Account'
         <<: *common-error-responses
 
+  /consensus/accounts/{address}/delegations:
+    get:
+      summary: Returns an account's delegations.
+      parameters:
+        - in: path
+          name: address
+          required: true
+          schema:
+            type: string
+          description: The staking address of the account that delegated.
+          example: *staking_address_1
+      responses:
+        '200':
+          description: A JSON object containing a list of delegations.
+          content:
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/DelegationList'
+        <<: *common-error-responses
+
+  /consensus/accounts/{address}/debonding_delegations:
+    get:
+      summary: Returns an account's debonding delegations.
+      parameters:
+        - in: path
+          name: address
+          required: true
+          schema:
+            type: string
+          description: The staking address of the account that delegated.
+          example: *staking_address_1
+      responses:
+        '200':
+          description: A JSON object containing a list of debonding delegations.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DebondingDelegationList'
+        <<: *common-error-responses
+
   /consensus/epochs:
     get:
       summary: Returns a list of consensus epochs.
@@ -454,7 +512,7 @@ paths:
           description: A JSON object containing a list of consensus epochs.
           content:
             application/json:
-              schema: 
+              schema:
                 $ref: '#/components/schemas/EpochList'
         <<: *common-error-responses
 
@@ -598,6 +656,66 @@ components:
       description: |
         A consensus block.
 
+    Delegation:
+      type: object
+      properties: 
+        amount:
+          type: integer
+          format: int64
+          description: The amount of tokens delegated.
+        shares:
+          type: integer
+          format: int64
+          description: The shares of tokens delegated.
+        validator_address:
+          type: string
+          description: The delegatee address.
+          example: *staking_address_1
+      description: |
+        A delegation.
+
+    DelegationList:
+      type: object
+      properties:
+        transactions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Delegation'
+      description: |
+        A list of delegations.
+
+    DebondingDelegation:
+      type: object
+      properties:
+        amount:
+          type: integer
+          format: int64
+          description: The amount of tokens delegated.
+        shares:
+          type: integer
+          format: int64
+          description: The shares of tokens delegated.
+        validator_address:
+          type: string
+          description: The delegatee address.
+          example: *staking_address_1
+        debond_end:
+          type: integer
+          format: int64
+          description: The epoch at which the debonding ends.
+      description: |
+        A debonding delegation.
+
+    DebondingDelegationList:
+      type: object
+      properties:
+        transactions:
+          type: array
+          items:
+            $ref: '#/components/schemas/DebondingDelegation'
+      description: |
+        A list of debonding delegations.
+
     TransactionList:
       type: object
       properties:
@@ -671,7 +789,86 @@ components:
           description: The vector of nodes owned by this entity.
       description: |
         An entity registered at the consensus layer.
-    
+
+    ValidatorList:
+      type: object
+      properties:
+        validators:
+          type: array
+          items:
+            $ref: '#/components/schemas/Validator'
+      description: |
+        A list of validators registered at the consensus layer.
+
+    Validator:
+      type: object
+      properties:
+        entity_address:
+            type: string
+            description: The staking address identifying this Validator.
+            example: *staking_address_1
+        entity_id:
+          type: string
+          description: The public key identifying this Validator.
+          example: *entity_id_1
+        name:
+          type: string
+          description: The name of this Validator.
+          example: Valid validly validator
+        node_id:
+          type: string
+          description: The public key identifying this Validator's node.
+          example: *node_id_1
+        escrow:
+          type: integer
+          format: int64
+          description: The amount staked.
+        active:
+          type: boolean
+          description: Entity is part of validator set.
+        status:
+          type: boolean
+          description: An entity has a node that is registered for being a validator, node is up to date, and has successfully registered itself.
+        media:
+          type: object
+          properties:
+            website_link:
+              type: string
+              description: An URL associated with the entity.
+            email_address:
+              type: string
+              description: An email address for the validator.
+            twitter_acc:
+              type: string
+              description: A Twitter handle.
+            tg_chat:
+              type: string
+              description: An Telegram handle.
+            logotype:
+              type: string
+              description: A logo type.
+        current_rate:
+          type: integer
+          format: int64
+          description: Commission rate.
+        current_commission_bound:
+          type: object
+          properties:
+            lower:
+              type: integer
+              format: int64
+            upper:
+              type: integer
+              format: int64
+            epoch_start:
+              type: integer
+              format: int64
+            epoch_end:
+              type: integer
+              format: int64
+      description: |
+        An validator registered at the consensus layer.
+
     NodeList:
       type: object
       properties:

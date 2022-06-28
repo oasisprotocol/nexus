@@ -65,6 +65,8 @@ func (h *Handler) RegisterRoutes(r chi.Router) {
 			r.Route("/accounts", func(r chi.Router) {
 				r.Get("/", h.ListAccounts)
 				r.Get("/{address}", h.GetAccount)
+				r.Get("/{address}/delegations", h.GetDelegations)
+				r.Get("/{address}/debonding_delegations", h.GetDebondingDelegations)
 			})
 
 			// Scheduler Endpoints.
@@ -78,6 +80,12 @@ func (h *Handler) RegisterRoutes(r chi.Router) {
 				r.Get("/", h.ListProposals)
 				r.Get("/{proposal_id}", h.GetProposal)
 				r.Get("/{proposal_id}/votes", h.GetProposalVotes)
+			})
+
+			// Validator Endpoints.
+			r.Route("/validators", func(r chi.Router) {
+				r.Get("/", h.ListValidators)
+				r.Get("/{entity_id}", h.GetValidator)
 			})
 		})
 	})
