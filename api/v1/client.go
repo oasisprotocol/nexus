@@ -887,7 +887,7 @@ func (c *storageClient) Delegations(ctx context.Context, r *http.Request) (*Dele
 			SELECT delegatee, shares, escrow_balance_active, escrow_total_shares_active
 				FROM %s.delegations
 				JOIN %s.accounts ON %s.delegations.delegatee = %s.accounts.address
-				WHERE delegator = $1::text;
+				WHERE delegator = $1::text
 			`,
 		chainID, chainID, chainID, chainID), c.db)
 
@@ -953,8 +953,8 @@ func (c *storageClient) DebondingDelegations(ctx context.Context, r *http.Reques
 	qb := NewQueryBuilder(fmt.Sprintf(`
 			SELECT delegatee, shares, debond_end, escrow_balance_debonding, escrow_total_shares_debonding
 				FROM %s.debonding_delegations
-				JOIN %s.accounts ON %s.delegations.delegatee = %s.accounts.address
-				WHERE delegator = $1::text;
+				JOIN %s.accounts ON %s.debonding_delegations.delegatee = %s.accounts.address
+				WHERE delegator = $1::text
 				`,
 		chainID, chainID, chainID, chainID), c.db)
 
