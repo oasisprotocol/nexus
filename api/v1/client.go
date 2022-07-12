@@ -173,7 +173,9 @@ func (c *storageClient) Blocks(ctx context.Context, r *http.Request) (*BlockList
 	}
 	defer rows.Close()
 
-	var bs BlockList
+	bs := BlockList{
+		Blocks: []Block{},
+	}
 	for rows.Next() {
 		var b Block
 		if err := rows.Scan(&b.Height, &b.Hash, &b.Timestamp); err != nil {
@@ -279,7 +281,9 @@ func (c *storageClient) Transactions(ctx context.Context, r *http.Request) (*Tra
 	}
 	defer rows.Close()
 
-	var ts TransactionList
+	ts := TransactionList{
+		Transactions: []Transaction{},
+	}
 	for rows.Next() {
 		var t Transaction
 		var code uint64
@@ -396,7 +400,9 @@ func (c *storageClient) Entities(ctx context.Context, r *http.Request) (*EntityL
 	}
 	defer rows.Close()
 
-	var es EntityList
+	es := EntityList{
+		Entities: []Entity{},
+	}
 	for rows.Next() {
 		var e Entity
 		if err := rows.Scan(&e.ID, &e.Address); err != nil {
@@ -577,7 +583,9 @@ func (c *storageClient) EntityNodes(ctx context.Context, r *http.Request) (*Node
 	}
 	defer rows.Close()
 
-	var ns NodeList
+	ns := NodeList{
+		Nodes: []Node{},
+	}
 	for rows.Next() {
 		var n Node
 		if err := rows.Scan(
@@ -744,7 +752,9 @@ func (c *storageClient) Accounts(ctx context.Context, r *http.Request) (*Account
 	}
 	defer rows.Close()
 
-	var as AccountList
+	as := AccountList{
+		Accounts: []Account{},
+	}
 	for rows.Next() {
 		var a Account
 		if err := rows.Scan(
@@ -800,7 +810,9 @@ func (c *storageClient) Account(ctx context.Context, r *http.Request) (*Account,
 		return nil, common.ErrBadRequest
 	}
 
-	var a Account
+	a := Account{
+		Allowances: []Allowance{},
+	}
 	if err := c.db.QueryRow(
 		ctx,
 		qb.String(),
@@ -917,7 +929,9 @@ func (c *storageClient) Delegations(ctx context.Context, r *http.Request) (*Dele
 	}
 	defer rows.Close()
 
-	var ds DelegationList
+	ds := DelegationList{
+		Delegations: []Delegation{},
+	}
 	for rows.Next() {
 		var d Delegation
 		var escrowBalanceActive uint64
@@ -984,7 +998,9 @@ func (c *storageClient) DebondingDelegations(ctx context.Context, r *http.Reques
 	}
 	defer rows.Close()
 
-	var ds DebondingDelegationList
+	ds := DebondingDelegationList{
+		DebondingDelegations: []DebondingDelegation{},
+	}
 	for rows.Next() {
 		var d DebondingDelegation
 		var escrowBalanceDebonding uint64
@@ -1048,7 +1064,9 @@ func (c *storageClient) Epochs(ctx context.Context, r *http.Request) (*EpochList
 		return nil, common.ErrStorageError
 	}
 
-	var es EpochList
+	es := EpochList{
+		Epochs: []Epoch{},
+	}
 	for rows.Next() {
 		var e Epoch
 		if err := rows.Scan(&e.ID, &e.StartHeight, &e.EndHeight); err != nil {
@@ -1150,7 +1168,9 @@ func (c *storageClient) Proposals(ctx context.Context, r *http.Request) (*Propos
 	}
 	defer rows.Close()
 
-	var ps ProposalList
+	ps := ProposalList{
+		Proposals: []Proposal{},
+	}
 	for rows.Next() {
 		var p Proposal
 		if err := rows.Scan(
@@ -1267,7 +1287,9 @@ func (c *storageClient) ProposalVotes(ctx context.Context, r *http.Request) (*Pr
 	}
 	defer rows.Close()
 
-	var vs ProposalVotes
+	vs := ProposalVotes{
+		Votes: []ProposalVote{},
+	}
 	for rows.Next() {
 		var v ProposalVote
 		if err := rows.Scan(
@@ -1464,7 +1486,9 @@ func (c *storageClient) Validators(ctx context.Context, r *http.Request) (*Valid
 	}
 	defer rows.Close()
 
-	var vs ValidatorList
+	vs := ValidatorList{
+		Validators: []Validator{},
+	}
 	for rows.Next() {
 		var v Validator
 		var schedule staking.CommissionSchedule
