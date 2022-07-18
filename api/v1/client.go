@@ -1069,12 +1069,16 @@ func (c *storageClient) Epochs(ctx context.Context, r *http.Request) (*EpochList
 	}
 	for rows.Next() {
 		var e Epoch
-		if err := rows.Scan(&e.ID, &e.StartHeight, &e.EndHeight); err != nil {
+		var endHeight *uint64
+		if err := rows.Scan(&e.ID, &e.StartHeight, &endHeight); err != nil {
 			c.logger.Info("row scan failed",
 				"request_id", ctx.Value(RequestIDContextKey),
 				"err", err.Error(),
 			)
 			return nil, common.ErrStorageError
+		}
+		if endHeight != nil {
+			e.EndHeight = *endHeight
 		}
 
 		es.Epochs = append(es.Epochs, e)
