@@ -51,7 +51,7 @@ type Entity struct {
 	ID      string `json:"id"`
 	Address string `json:"address,omitempty"`
 
-	Nodes []string `json:"nodes,omitempty"`
+	Nodes []string `json:"nodes"`
 }
 
 // NodeList is the API response for ListEntityNodes.
@@ -86,7 +86,7 @@ type Account struct {
 	Debonding uint64 `json:"debonding"`
 	Total     uint64 `json:"total"`
 
-	Allowances []Allowance `json:"allowances,omitempty"`
+	Allowances []Allowance `json:"allowances"`
 }
 
 // DebondingDelegationList is the API response for ListDebondingDelegations.
