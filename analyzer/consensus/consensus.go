@@ -732,7 +732,7 @@ func (m *Main) queueEscrows(batch *storage.QueryBatch, data *storage.StakingData
 			`, chainID),
 				e.DebondingStart.Escrow.String(),
 				e.DebondingStart.Owner.String(),
-				e.DebondingStart.DebondingShares.ToBigInt().Uint64(),
+				e.DebondingStart.ActiveShares.ToBigInt().Uint64(),
 			)
 			batch.Queue(fmt.Sprintf(`
 				INSERT INTO %s.debonding_delegations (delegatee, delegator, shares, debond_end)
