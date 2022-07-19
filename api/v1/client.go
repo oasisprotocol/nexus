@@ -1348,7 +1348,7 @@ func (c *storageClient) Validator(ctx context.Context, r *http.Request) (*Valida
 				%s.accounts.escrow_balance_active AS escrow,
 				%s.commissions.schedule AS commissions_schedule,
 				case when exists(select null from %s.nodes where %s.entities.id = %s.nodes.entity_id AND voting_power > 0) then true else false end as active,
-				case when exists(select null from %s.nodes where %s.entities.id = %s.nodes.entity_id AND %s.nodes.roles like 'validator') then true else false end as status,
+				case when exists(select null from %s.nodes where %s.entities.id = %s.nodes.entity_id AND %s.nodes.roles like '%%validator%%') then true else false end as status,
 				%s.entities.meta AS meta
 			FROM %s.entities
 			JOIN %s.accounts ON %s.entities.address = %s.accounts.address
@@ -1358,7 +1358,7 @@ func (c *storageClient) Validator(ctx context.Context, r *http.Request) (*Valida
 					SELECT max(voting_power)
 					FROM %s.nodes
 					WHERE %s.entities.id = %s.nodes.entity_id
-						AND %s.nodes.roles like 'validator'
+						AND %s.nodes.roles like '%%validator%%'
 				)
 			WHERE %s.entities.address = $1::text`,
 			chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID),
@@ -1437,7 +1437,7 @@ func (c *storageClient) Validators(ctx context.Context, r *http.Request) (*Valid
 		%s.accounts.escrow_balance_active AS escrow,
 		%s.commissions.schedule AS commissions_schedule,
 		case when exists(select null from %s.nodes where %s.entities.id = %s.nodes.entity_id AND voting_power > 0) then true else false end as active,
-		case when exists(select null from %s.nodes where %s.entities.id = %s.nodes.entity_id AND %s.nodes.roles like 'validator') then true else false end as status,
+		case when exists(select null from %s.nodes where %s.entities.id = %s.nodes.entity_id AND %s.nodes.roles like '%%validator%%') then true else false end as status,
 		%s.entities.meta AS meta
 	FROM %s.entities
 	JOIN %s.accounts ON %s.entities.address = %s.accounts.address
@@ -1447,7 +1447,7 @@ func (c *storageClient) Validators(ctx context.Context, r *http.Request) (*Valid
 			SELECT max(voting_power)
 			FROM %s.nodes
 			WHERE %s.entities.id = %s.nodes.entity_id
-				AND %s.nodes.roles like 'validator'
+				AND %s.nodes.roles like '%%validator%%'
 		)
 	`, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID), c.db)
 
