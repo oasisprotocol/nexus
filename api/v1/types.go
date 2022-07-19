@@ -170,7 +170,7 @@ type ProposalVote struct {
 
 // Validators is the API response for GetValidators.
 type ValidatorList struct {
-	Validators []Validator `json:"validator"`
+	Validators []Validator `json:"validators"`
 }
 
 // Validator is the API response for GetValidator.
