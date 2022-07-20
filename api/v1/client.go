@@ -1464,22 +1464,6 @@ func (c *storageClient) Validators(ctx context.Context, r *http.Request) (*Valid
 		}
 	}
 
-	pagination, err := common.NewPagination(r)
-	if err != nil {
-		c.logger.Info("pagination failed",
-			"request_id", ctx.Value(RequestIDContextKey),
-			"err", err.Error(),
-		)
-		return nil, common.ErrBadRequest
-	}
-	if err = qb.AddPagination(ctx, pagination); err != nil {
-		c.logger.Info("pagination add failed",
-			"request_id", ctx.Value(RequestIDContextKey),
-			"err", err.Error(),
-		)
-		return nil, common.ErrBadRequest
-	}
-
 	rows, err := c.db.Query(ctx, qb.String())
 	if err != nil {
 		c.logger.Info("query failed",
