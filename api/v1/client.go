@@ -1352,7 +1352,7 @@ func (c *storageClient) Validator(ctx context.Context, r *http.Request) (*Valida
 				%s.entities.meta AS meta
 			FROM %s.entities
 			JOIN %s.accounts ON %s.entities.address = %s.accounts.address
-			JOIN %s.commissions ON %s.entities.address = %s.commissions.address
+			LEFT JOIN %s.commissions ON %s.entities.address = %s.commissions.address
 			JOIN %s.nodes ON %s.entities.id = %s.nodes.entity_id
 				AND %s.nodes.voting_power = (
 					SELECT max(voting_power)
@@ -1441,7 +1441,7 @@ func (c *storageClient) Validators(ctx context.Context, r *http.Request) (*Valid
 		%s.entities.meta AS meta
 	FROM %s.entities
 	JOIN %s.accounts ON %s.entities.address = %s.accounts.address
-	JOIN %s.commissions ON %s.entities.address = %s.commissions.address
+	LEFT JOIN %s.commissions ON %s.entities.address = %s.commissions.address
 	JOIN %s.nodes ON %s.entities.id = %s.nodes.entity_id
 		AND %s.nodes.voting_power = (
 			SELECT max(voting_power)
