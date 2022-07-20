@@ -1449,6 +1449,7 @@ func (c *storageClient) Validators(ctx context.Context, r *http.Request) (*Valid
 			WHERE %s.entities.id = %s.nodes.entity_id
 				AND %s.nodes.roles like '%%validator%%'
 		)
+	ORDER BY voting_power DESC
 	`, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID), c.db)
 
 	params := r.URL.Query()
