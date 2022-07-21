@@ -1354,6 +1354,7 @@ func (c *storageClient) Validator(ctx context.Context, r *http.Request) (*Valida
 			JOIN %s.accounts ON %s.entities.address = %s.accounts.address
 			LEFT JOIN %s.commissions ON %s.entities.address = %s.commissions.address
 			JOIN %s.nodes ON %s.entities.id = %s.nodes.entity_id
+				AND %s.nodes.roles like '%%validator%%'
 				AND %s.nodes.voting_power = (
 					SELECT max(voting_power)
 					FROM %s.nodes
@@ -1361,7 +1362,7 @@ func (c *storageClient) Validator(ctx context.Context, r *http.Request) (*Valida
 						AND %s.nodes.roles like '%%validator%%'
 				)
 			WHERE %s.entities.address = $1::text`,
-			chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID),
+			chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID),
 		chi.URLParam(r, "entity_id"),
 	)
 
@@ -1443,6 +1444,7 @@ func (c *storageClient) Validators(ctx context.Context, r *http.Request) (*Valid
 	JOIN %s.accounts ON %s.entities.address = %s.accounts.address
 	LEFT JOIN %s.commissions ON %s.entities.address = %s.commissions.address
 	JOIN %s.nodes ON %s.entities.id = %s.nodes.entity_id
+		AND %s.nodes.roles like '%%validator%%'
 		AND %s.nodes.voting_power = (
 			SELECT max(voting_power)
 			FROM %s.nodes
@@ -1450,7 +1452,7 @@ func (c *storageClient) Validators(ctx context.Context, r *http.Request) (*Valid
 				AND %s.nodes.roles like '%%validator%%'
 		)
 	ORDER BY voting_power DESC
-	`, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID), c.db)
+	`, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID), c.db)
 
 	params := r.URL.Query()
 	if v := params.Get("height"); v != "" {
