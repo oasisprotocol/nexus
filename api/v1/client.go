@@ -1347,8 +1347,8 @@ func (c *storageClient) Validator(ctx context.Context, r *http.Request) (*Valida
 				%s.nodes.id AS node_address,
 				%s.accounts.escrow_balance_active AS escrow,
 				%s.commissions.schedule AS commissions_schedule,
-				case when exists(select null from %s.nodes where %s.entities.id = %s.nodes.entity_id AND voting_power > 0) then true else false end as active,
-				case when exists(select null from %s.nodes where %s.entities.id = %s.nodes.entity_id AND %s.nodes.roles like '%%validator%%') then true else false end as status,
+				CASE WHEN EXISTS(SELECT null FROM %s.nodes WHERE %s.entities.id = %s.nodes.entity_id AND voting_power > 0) THEN true ELSE false END AS active,
+				CASE WHEN EXISTS(SELECT null FROM %s.nodes WHERE %s.entities.id = %s.nodes.entity_id AND %s.nodes.roles like '%%validator%%') THEN true ELSE false END AS status,
 				%s.entities.meta AS meta
 			FROM %s.entities
 			JOIN %s.accounts ON %s.entities.address = %s.accounts.address
@@ -1437,8 +1437,8 @@ func (c *storageClient) Validators(ctx context.Context, r *http.Request) (*Valid
 		%s.nodes.id AS node_address,
 		%s.accounts.escrow_balance_active AS escrow,
 		%s.commissions.schedule AS commissions_schedule,
-		case when exists(select null from %s.nodes where %s.entities.id = %s.nodes.entity_id AND voting_power > 0) then true else false end as active,
-		case when exists(select null from %s.nodes where %s.entities.id = %s.nodes.entity_id AND %s.nodes.roles like '%%validator%%') then true else false end as status,
+		CASE WHEN EXISTS(SELECT NULL FROM %s.nodes WHERE %s.entities.id = %s.nodes.entity_id AND voting_power > 0) THEN true ELSE false END AS active,
+		CASE WHEN EXISTS(SELECT NULL FROM %s.nodes WHERE %s.entities.id = %s.nodes.entity_id AND %s.nodes.roles like '%%validator%%') THEN true ELSE false END AS status,
 		%s.entities.meta AS meta
 	FROM %s.entities
 	JOIN %s.accounts ON %s.entities.address = %s.accounts.address
