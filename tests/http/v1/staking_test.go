@@ -21,7 +21,6 @@ func makeTestAccounts() []v1.Account {
 			Available: 0,
 			Escrow:    0,
 			Debonding: 0,
-			Total:     0,
 		},
 		{
 			Address:   "oasis1qrj5x6twyjg0lxkz9kv0y9tyhzpxwq9u6v6sgje2",
@@ -29,7 +28,6 @@ func makeTestAccounts() []v1.Account {
 			Available: 56900000000,
 			Escrow:    0,
 			Debonding: 0,
-			Total:     56900000000,
 		},
 	}
 }

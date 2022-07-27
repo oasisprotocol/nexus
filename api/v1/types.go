@@ -84,7 +84,6 @@ type Account struct {
 	Available uint64 `json:"available"`
 	Escrow    uint64 `json:"escrow"`
 	Debonding uint64 `json:"debonding"`
-	Total     uint64 `json:"total"`
 
 	Allowances []Allowance `json:"allowances"`
 }

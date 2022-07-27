@@ -770,7 +770,6 @@ func (c *storageClient) Accounts(ctx context.Context, r *http.Request) (*Account
 			)
 			return nil, common.ErrStorageError
 		}
-		a.Total = a.Available + a.Escrow + a.Debonding
 
 		as.Accounts = append(as.Accounts, a)
 	}
@@ -830,7 +829,6 @@ func (c *storageClient) Account(ctx context.Context, r *http.Request) (*Account,
 		)
 		return nil, common.ErrStorageError
 	}
-	a.Total = a.Available + a.Escrow + a.Debonding
 
 	qb = NewQueryBuilder(fmt.Sprintf(`
 			SELECT beneficiary, allowance
