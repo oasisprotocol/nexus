@@ -1451,7 +1451,6 @@ func (c *storageClient) Validators(ctx context.Context, r *http.Request) (*Valid
 			WHERE %s.entities.id = %s.nodes.entity_id
 				AND %s.nodes.roles like '%%validator%%'
 		)
-	ORDER BY voting_power DESC
 	`, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID), c.db)
 
 	params := r.URL.Query()
@@ -1465,6 +1464,18 @@ func (c *storageClient) Validators(ctx context.Context, r *http.Request) (*Valid
 				return nil, common.ErrBadRequest
 			}
 		}
+	}
+
+	if err := qb.AddPagination(ctx, common.Pagination{
+		Limit:  1000,
+		Offset: 0,
+		Order:  "voting_power",
+	}); err != nil {
+		c.logger.Info("pagination add failed",
+			"request_id", ctx.Value(RequestIDContextKey),
+			"err", err.Error(),
+		)
+		return nil, common.ErrBadRequest
 	}
 
 	rows, err := c.db.Query(ctx, qb.String())
