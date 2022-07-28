@@ -720,10 +720,11 @@ func (m *Main) queueEscrows(batch *storage.QueryBatch, data *storage.StakingData
 					SET
 						escrow_balance_active = escrow_balance_active - $2,
 						escrow_balance_debonding = escrow_balance_debonding + $2
+						escrow_total_shares_debonding = escrow_total_shares_debonding + $2
 					WHERE address = $1;
 			`, chainID),
 				e.DebondingStart.Escrow.String(),
-				e.DebondingStart.DebondingShares.ToBigInt().Uint64(),
+				e.DebondingStart.ActiveShares.ToBigInt().Uint64(),
 			)
 			batch.Queue(fmt.Sprintf(`
 				UPDATE %s.delegations
