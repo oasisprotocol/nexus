@@ -1032,11 +1032,6 @@ components:
           format: int64
           description: The debonding escrow balance, in base units.
           example: 10000000000
-        total:
-          type: integer
-          format: int64
-          description: The total (available+escrow) balance, in base units.
-          example: 3000000000
         allowances:
           type: array
           items:
