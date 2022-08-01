@@ -4,7 +4,7 @@ go 1.17
 
 require (
 	github.com/cockroachdb/cockroach-go/v2 v2.2.8
-	github.com/go-chi/chi v1.5.4
+	github.com/go-chi/chi/v5 v5.0.7
 	github.com/go-kit/log v0.2.0
 	github.com/golang-migrate/migrate/v4 v4.15.2
 	github.com/google/uuid v1.3.0
