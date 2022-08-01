@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5"
 	"github.com/iancoleman/strcase"
 	oasisErrors "github.com/oasisprotocol/oasis-core/go/common/errors"
 
