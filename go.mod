@@ -14,7 +14,7 @@ require (
 	github.com/oasisprotocol/oasis-core/go v0.2201.10
 	github.com/oasisprotocol/oasis-sdk/client-sdk/go v0.2.0
 	github.com/prometheus/client_golang v1.12.2
-	github.com/spf13/cobra v1.3.0
+	github.com/spf13/cobra v1.5.0
 	github.com/stretchr/testify v1.7.0
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	gopkg.in/yaml.v2 v2.4.0
