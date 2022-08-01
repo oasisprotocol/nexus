@@ -737,7 +737,9 @@ func (m *Main) queueEscrows(batch *storage.QueryBatch, data *storage.StakingData
 			)
 			batch.Queue(fmt.Sprintf(`
 				INSERT INTO %s.debonding_delegations (delegatee, delegator, shares, debond_end)
-					VALUES ($1, $2, $3, $4);
+					VALUES ($1, $2, $3, $4)
+				ON CONFLICT (delegatee, delegator, debond_end) DO
+					UPDATE SET shares = shares + $3;
 			`, chainID),
 				e.DebondingStart.Escrow.String(),
 				e.DebondingStart.Owner.String(),
