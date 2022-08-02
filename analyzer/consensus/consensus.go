@@ -768,9 +768,33 @@ func (m *Main) queueEscrows(batch *storage.QueryBatch, data *storage.StakingData
 				e.Reclaim.Shares.ToBigInt().Uint64(),
 			)
 
-			// TODO: Delete row from `debonding_delegations` that corresponds with
-			// the reclaimed escrow. The reclaim occurs on epoch transition, so
-			// check which epoch just transitioned.
+			batch.Queue(fmt.Sprintf(`
+				UPDATE %s.debonding_delegations
+					SET shares = shares - $3
+				WHERE delegator = $1 AND delegatee = $2 AND debond_end = (
+					SELECT max(id)
+					FROM %s.epochs
+					WHERE end_height IS NOT NULL AND end_height < $$
+				);
+			`, chainID, chainID),
+				e.Reclaim.Owner.String(),
+				e.Reclaim.Escrow.String(),
+				e.Reclaim.Shares.ToBigInt().Uint64(),
+				data.Height,
+			)
+
+			batch.Queue(fmt.Sprintf(`
+				DELETE FROM %s.debonding_delegations
+					WHERE delegator = $1 AND delegatee = $2 AND shares = 0 AND debond_end = (
+						SELECT max(id)
+						FROM %s.epochs
+						WHERE end_height IS NOT NULL AND end_height < $3
+					);
+			`, chainID, chainID),
+				e.Reclaim.Owner.String(),
+				e.Reclaim.Escrow.String(),
+				data.Height,
+			)
 		}
 	}
 
