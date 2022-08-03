@@ -785,9 +785,21 @@ func (c *storageClient) Account(ctx context.Context, r *http.Request) (*Account,
 	}
 
 	qb := NewQueryBuilder(fmt.Sprintf(`
-			SELECT address, nonce, general_balance, escrow_balance_active, escrow_balance_debonding
+			SELECT address, nonce, general_balance, escrow_balance_active, escrow_balance_debonding,
+				(
+					SELECT COALESCE(ROUND(SUM(shares * escrow_balance_active / escrow_total_shares_active)), 0) AS delegations_balance
+					FROM %s.delegations
+					JOIN %s.accounts ON %s.accounts.address = %s.delegations.delegatee
+					WHERE delegator = $1::text
+				) AS delegations_balance,
+				(
+					SELECT COALESCE(ROUND(SUM(shares * escrow_balance_debonding / escrow_total_shares_debonding)), 0) AS debonding_delegations_balance
+					FROM %s.debonding_delegations
+					JOIN %s.accounts ON %s.accounts.address = %s.debonding_delegations.delegatee
+					WHERE delegator = $1::text
+				) AS debonding_delegations_balance
 				FROM %s.accounts`,
-		chainID), c.db)
+		chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID), c.db)
 
 	params := r.URL.Query()
 	if v := params.Get("height"); v != "" {
@@ -822,6 +834,8 @@ func (c *storageClient) Account(ctx context.Context, r *http.Request) (*Account,
 		&a.Available,
 		&a.Escrow,
 		&a.Debonding,
+		&a.DelegationsBalance,
+		&a.DebondingDelegationsBalance,
 	); err != nil {
 		c.logger.Info("row scan failed",
 			"request_id", ctx.Value(RequestIDContextKey),
