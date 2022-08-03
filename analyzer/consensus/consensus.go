@@ -737,9 +737,7 @@ func (m *Main) queueEscrows(batch *storage.QueryBatch, data *storage.StakingData
 			)
 			batch.Queue(fmt.Sprintf(`
 				INSERT INTO %s.debonding_delegations (delegatee, delegator, shares, debond_end)
-					VALUES ($1, $2, $3, $4)
-				ON CONFLICT (delegatee, delegator, debond_end) DO
-					UPDATE SET shares = shares + $3;
+					VALUES ($1, $2, $3, $4);
 			`, chainID),
 				e.DebondingStart.Escrow.String(),
 				e.DebondingStart.Owner.String(),
@@ -769,30 +767,21 @@ func (m *Main) queueEscrows(batch *storage.QueryBatch, data *storage.StakingData
 			)
 
 			batch.Queue(fmt.Sprintf(`
-				UPDATE %s.debonding_delegations
-					SET shares = shares - $3
-				WHERE delegator = $1 AND delegatee = $2 AND debond_end = (
-					SELECT max(id)
-					FROM %s.epochs
-					WHERE end_height IS NOT NULL AND end_height < $$
-				);
-			`, chainID, chainID),
+				DELETE FROM %s.debonding_delegations
+					WHERE (ctid) IN (
+						SELECT ctid
+						FROM %s.debonding_delegations
+						WHERE
+							delegator = $1 AND delegatee = $2 AND shares = $3 AND debond_end = (
+							SELECT max(id)
+							FROM %s.epochs
+							WHERE end_height IS NOT NULL AND end_height < $4
+						) LIMIT 1
+					);
+			`, chainID, chainID, chainID),
 				e.Reclaim.Owner.String(),
 				e.Reclaim.Escrow.String(),
 				e.Reclaim.Shares.ToBigInt().Uint64(),
-				data.Height,
-			)
-
-			batch.Queue(fmt.Sprintf(`
-				DELETE FROM %s.debonding_delegations
-					WHERE delegator = $1 AND delegatee = $2 AND shares = 0 AND debond_end = (
-						SELECT max(id)
-						FROM %s.epochs
-						WHERE end_height IS NOT NULL AND end_height < $3
-					);
-			`, chainID, chainID),
-				e.Reclaim.Owner.String(),
-				e.Reclaim.Escrow.String(),
 				data.Height,
 			)
 		}
