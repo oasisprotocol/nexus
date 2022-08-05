@@ -73,7 +73,6 @@ func NewMain(cfg *config.AnalyzerConfig, target storage.TargetStorage, logger *l
 			To:   cfg.To,
 		}
 		ac = analyzer.Config{
-			ChainID:    cfg.ChainID,
 			BlockRange: blockRange,
 			Source:     source,
 		}
@@ -85,11 +84,10 @@ func NewMain(cfg *config.AnalyzerConfig, target storage.TargetStorage, logger *l
 
 		// Configure analyzer.
 		ac = analyzer.Config{
-			ChainID:  cfg.ChainID,
 			Interval: interval,
 		}
 	}
-	cfg.ChainID = strcase.ToSnake(cfg.ChainID)
+	ac.ChainID = strcase.ToSnake(cfg.ChainID)
 	return &Main{
 		cfg:     ac,
 		target:  target,

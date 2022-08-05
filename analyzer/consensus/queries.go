@@ -245,8 +245,10 @@ func makeAllowanceChangeDeleteQuery(chainID string) string {
 
 func makeAllowanceChangeUpdateQuery(chainID string) string {
 	return fmt.Sprintf(`
-		DELETE FROM %s.allowances
-			WHERE owner = $1 AND beneficiary = $2`, chainID)
+		INSERT INTO %s.allowances (owner, beneficiary, allowance)
+			VALUES ($1, $2, $3)
+		ON CONFLICT (owner, beneficiary) DO
+			UPDATE SET allowance = excluded.allowance`, chainID)
 }
 
 func makeValidatorNodeUpdateQuery(chainID string) string {
