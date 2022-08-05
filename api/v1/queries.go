@@ -19,7 +19,7 @@ func makeBlocksQuery(chainID string) string {
 			WHERE ($1::bigint IS NULL OR height >= $1::bigint) AND
 						($2::bigint IS NULL OR height <= $2::bigint) AND
 						($3::timestamptz IS NULL OR time >= $3::timestamptz) AND
-						($4::timestampz IS NULL OR time <= $4::timestamptz)
+						($4::timestamptz IS NULL OR time <= $4::timestamptz)
 		ORDER BY
 			CASE
 				WHEN $5::text IS NULL THEN 1
