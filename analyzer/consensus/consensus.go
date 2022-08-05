@@ -708,14 +708,15 @@ func (m *Main) queueEscrows(batch *storage.QueryBatch, data *storage.StakingData
 		case e.Take != nil:
 			batch.Queue(fmt.Sprintf(`
 				UPDATE %s.accounts
-				SET escrow_balance_active = escrow_balance_active - $2
+					SET
+						escrow_balance_active = escrow_balance_active - ROUND($2 * escrow_balance_active  / (escrow_balance_active + escrow_balance_debonding)),
+						escrow_balance_debonding = escrow_balance_debonding - ROUND($2 * escrow_balance_debonding  / (escrow_balance_active + escrow_balance_debonding))
 					WHERE address = $1;
 			`, chainID),
 				e.Take.Owner.String(),
 				e.Take.Amount.ToBigInt().Uint64(),
 			)
 		case e.DebondingStart != nil:
-			// TODO: drop this column, escrow_balance_debonding is not accurate
 			batch.Queue(fmt.Sprintf(`
 				UPDATE %s.accounts
 					SET
