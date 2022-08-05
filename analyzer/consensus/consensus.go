@@ -1041,19 +1041,19 @@ func extractEventData(event *results.Event) (backend analyzer.Backend, ty analyz
 		backend = analyzer.BackendRegistry
 		switch b := event.Registry; {
 		case b.RuntimeEvent != nil:
-			ty = analyzer.EventRegistryRuntimeRegistration
+			ty = analyzer.EventRegistryRuntime
 			body, err = json.Marshal(b.RuntimeEvent)
 			return
 		case b.EntityEvent != nil:
-			ty = analyzer.EventRegistryEntityRegistration
+			ty = analyzer.EventRegistryEntity
 			body, err = json.Marshal(b.EntityEvent)
 			return
 		case b.NodeEvent != nil:
-			ty = analyzer.EventRegistryNodeRegistration
+			ty = analyzer.EventRegistryNode
 			body, err = json.Marshal(b.NodeEvent)
 			return
 		case b.NodeUnfrozenEvent != nil:
-			ty = analyzer.EventRegistryNodeUnfrozenEvent
+			ty = analyzer.EventRegistryNodeUnfrozen
 			body, err = json.Marshal(b.NodeUnfrozenEvent)
 			return
 		}
@@ -1061,15 +1061,15 @@ func extractEventData(event *results.Event) (backend analyzer.Backend, ty analyz
 		backend = analyzer.BackendRoothash
 		switch b := event.RootHash; {
 		case b.ExecutorCommitted != nil:
-			ty = analyzer.EventRoothashExecutorCommittedEvent
+			ty = analyzer.EventRoothashExecutorCommitted
 			body, err = json.Marshal(event.RootHash.ExecutorCommitted)
 			return
 		case b.ExecutionDiscrepancyDetected != nil:
-			ty = analyzer.EventRoothashDiscrepancyDetectedEvent
+			ty = analyzer.EventRoothashDiscrepancyDetected
 			body, err = json.Marshal(event.RootHash.ExecutionDiscrepancyDetected)
 			return
 		case b.Finalized != nil:
-			ty = analyzer.EventRoothashFinalizedEvent
+			ty = analyzer.EventRoothashFinalized
 			body, err = json.Marshal(event.RootHash.Finalized)
 			return
 		}
