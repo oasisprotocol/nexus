@@ -87,12 +87,18 @@ func (m *Main) Start() {
 		height = latest + 1
 	}
 
-	backoff := util.NewBackoff(
+	backoff, err := util.NewBackoff(
 		100*time.Millisecond,
 		6*time.Second,
 		// ^cap the timeout at the expected
 		// consensus block time
 	)
+	if err != nil {
+		m.logger.Error("error configuring indexer backoff policy",
+			"err", err.Error(),
+		)
+		return
+	}
 	for m.cfg.BlockRange.To == 0 || height <= m.cfg.BlockRange.To {
 		if err := m.processBlock(ctx, height); err != nil {
 			if err == ErrOutOfRange {

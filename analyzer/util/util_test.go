@@ -13,7 +13,9 @@ import (
 // TestBackoffWait tests if the backoff time is
 // updated correctly.
 func TestBackoffWait(t *testing.T) {
-	backoff := NewBackoff(time.Millisecond, 10*time.Second)
+	backoff, err := NewBackoff(time.Millisecond, 10*time.Second)
+	require.Nil(t, err)
+
 	for i := 0; i < 10; i++ {
 		backoff.Wait()
 	}
@@ -23,7 +25,9 @@ func TestBackoffWait(t *testing.T) {
 // TestBackoffReset tests if the backoff time is
 // reset correctly.
 func TestBackoffReset(t *testing.T) {
-	backoff := NewBackoff(time.Millisecond, 10*time.Second)
+	backoff, err := NewBackoff(time.Millisecond, 10*time.Second)
+	require.Nil(t, err)
+
 	backoff.Wait()
 	backoff.Reset()
 	require.Equal(t, backoff.Timeout(), time.Millisecond)
@@ -32,7 +36,9 @@ func TestBackoffReset(t *testing.T) {
 // TestBackoffMaximum tests if the backoff time is
 // appropriately upper bounded.
 func TestBackoffMaximum(t *testing.T) {
-	backoff := NewBackoff(time.Millisecond, 10*time.Millisecond)
+	backoff, err := NewBackoff(time.Millisecond, 10*time.Millisecond)
+	require.Nil(t, err)
+
 	for i := 0; i < 10; i++ {
 		backoff.Wait()
 	}

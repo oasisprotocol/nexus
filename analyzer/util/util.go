@@ -2,10 +2,18 @@
 package util
 
 import (
+	"errors"
+	"fmt"
+	"math"
 	"time"
 
 	beacon "github.com/oasisprotocol/oasis-core/go/beacon/api"
 	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
+)
+
+const (
+	initialTimeoutLowerBound = 0
+	maximumTimeoutUpperBound = math.MaxInt64 / 2
 )
 
 // Backoff implements retry backoff on failure.
@@ -16,8 +24,22 @@ type Backoff struct {
 }
 
 // NewBackoff returns a new backoff.
-func NewBackoff(initialTimeout time.Duration, maximumTimeout time.Duration) *Backoff {
-	return &Backoff{initialTimeout, initialTimeout, maximumTimeout}
+func NewBackoff(initialTimeout time.Duration, maximumTimeout time.Duration) (*Backoff, error) {
+	if initialTimeout <= initialTimeoutLowerBound {
+		return nil, errors.New(fmt.Sprintf(
+			"initial timeout %fs less than lower bound %ds",
+			initialTimeout.Seconds(),
+			initialTimeoutLowerBound,
+		))
+	}
+	if maximumTimeout.Seconds() >= math.MaxInt64/2 {
+		return nil, errors.New(fmt.Sprintf(
+			"maximum timeout %fs greater than upper bound %ds",
+			maximumTimeout.Seconds(),
+			maximumTimeoutUpperBound,
+		))
+	}
+	return &Backoff{initialTimeout, initialTimeout, maximumTimeout}, nil
 }
 
 // Wait waits for the appropriate backoff interval.
