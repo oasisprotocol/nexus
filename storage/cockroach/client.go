@@ -16,8 +16,6 @@ const (
 	moduleName = "cockroach"
 )
 
-var defaultMaxConns = int32(32)
-
 // Client is a client for connecting to CockroachDB.
 type Client struct {
 	pool   *pgxpool.Pool
@@ -30,7 +28,6 @@ func NewClient(connString string, l *log.Logger) (*Client, error) {
 	if err != nil {
 		return nil, err
 	}
-	config.MaxConns = defaultMaxConns
 
 	pool, err := pgxpool.ConnectConfig(context.Background(), config)
 	if err != nil {
