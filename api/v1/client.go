@@ -6,11 +6,8 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
-	"strings"
-	"time"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/iancoleman/strcase"
 	oasisErrors "github.com/oasisprotocol/oasis-core/go/common/errors"
 
 	beacon "github.com/oasisprotocol/oasis-core/go/beacon/api"
@@ -21,63 +18,6 @@ import (
 	"github.com/oasislabs/oasis-indexer/log"
 	"github.com/oasislabs/oasis-indexer/storage"
 )
-
-// QueryBuilder is used for building queries to submit to storage.
-type QueryBuilder struct {
-	inner *strings.Builder
-	db    storage.TargetStorage
-}
-
-// NewQueryBuilder creates a new query builder, with the provided SQL query
-// as the base query.
-func NewQueryBuilder(sql string, db storage.TargetStorage) *QueryBuilder {
-	inner := &strings.Builder{}
-	inner.WriteString(sql)
-	return &QueryBuilder{inner, db}
-}
-
-// AddPagination adds pagination to the query builder.
-func (q *QueryBuilder) AddPagination(_ctx context.Context, p common.Pagination) error {
-	_, err := q.inner.WriteString(
-		fmt.Sprintf("\n\tORDER BY %s DESC\n\tLIMIT %d\n\tOFFSET %d", p.Order, p.Limit, p.Offset),
-	)
-	return err
-}
-
-// AddTimestamp adds time travel to the query builder, at the time of the provided height.
-func (q *QueryBuilder) AddTimestamp(ctx context.Context, height int64) error {
-	var processedTime time.Time
-	if err := q.db.QueryRow(
-		ctx,
-		fmt.Sprintf(`
-			SELECT processed_time
-				FROM %s.processed_blocks
-				WHERE height = $1
-				ORDER BY processed_time DESC
-				LIMIT 1`,
-			strcase.ToSnake(LatestChainID)),
-		height,
-	).Scan(&processedTime); err != nil {
-		return err
-	}
-
-	_, err := q.inner.WriteString(fmt.Sprintf("\n\tAS OF SYSTEM TIME %s", processedTime.String()))
-	return err
-}
-
-// AddFilters adds the provided filters to the query builder.
-func (q *QueryBuilder) AddFilters(_ctx context.Context, filters []string) error {
-	if len(filters) > 0 {
-		_, err := q.inner.WriteString(fmt.Sprintf("\n\tWHERE %s", strings.Join(filters, " AND ")))
-		return err
-	}
-	return nil
-}
-
-// String returns the string representation of the query.
-func (q *QueryBuilder) String() string {
-	return q.inner.String()
-}
 
 // storageClient is a wrapper around a storage.TargetStorage
 // with knowledge of network semantics.
@@ -98,12 +38,7 @@ func (c *storageClient) Status(ctx context.Context) (*Status, error) {
 	}
 	if err := c.db.QueryRow(
 		ctx,
-		fmt.Sprintf(`
-			SELECT height, processed_time
-				FROM %s.processed_blocks
-				ORDER BY processed_time DESC
-				LIMIT 1`,
-			strcase.ToSnake(LatestChainID)),
+		makeStatusQuery(LatestChainID),
 	).Scan(&s.LatestBlock, &s.LatestUpdate); err != nil {
 		c.logger.Info("row scan failed",
 			"request_id", ctx.Value(RequestIDContextKey),
@@ -121,30 +56,23 @@ func (c *storageClient) Blocks(ctx context.Context, r *http.Request) (*BlockList
 		return nil, common.ErrBadChainID
 	}
 
-	qb := NewQueryBuilder(fmt.Sprintf(`
-			SELECT height, block_hash, time
-				FROM %s.blocks`,
-		chainID), c.db)
-
 	params := r.URL.Query()
 
-	var filters []string
-	for param, condition := range map[string]string{
-		"from":   "height >= %s",
-		"to":     "height <= %s",
-		"after":  "time >= TIMESTAMP %s",
-		"before": "time <= TIMESTAMP %s",
-	} {
-		if v := params.Get(param); v != "" {
-			filters = append(filters, fmt.Sprintf(condition, v))
-		}
+	var from *string
+	if v := params.Get("from"); v != "" {
+		from = &v
 	}
-	if err := qb.AddFilters(ctx, filters); err != nil {
-		c.logger.Info("filtering failed",
-			"request_id", ctx.Value(RequestIDContextKey),
-			"err", err.Error(),
-		)
-		return nil, common.ErrBadRequest
+	var to *string
+	if v := params.Get("to"); v != "" {
+		to = &v
+	}
+	var after *string
+	if v := params.Get("after"); v != "" {
+		after = &v
+	}
+	var before *string
+	if v := params.Get("before"); v != "" {
+		before = &v
 	}
 
 	pagination, err := common.NewPagination(r)
@@ -155,15 +83,18 @@ func (c *storageClient) Blocks(ctx context.Context, r *http.Request) (*BlockList
 		)
 		return nil, common.ErrBadRequest
 	}
-	if err = qb.AddPagination(ctx, pagination); err != nil {
-		c.logger.Info("pagination add failed",
-			"request_id", ctx.Value(RequestIDContextKey),
-			"err", err.Error(),
-		)
-		return nil, common.ErrBadRequest
-	}
 
-	rows, err := c.db.Query(ctx, qb.String())
+	rows, err := c.db.Query(
+		ctx,
+		makeBlocksQuery(chainID),
+		from,
+		to,
+		after,
+		before,
+		pagination.Order,
+		pagination.Limit,
+		pagination.Offset,
+	)
 	if err != nil {
 		c.logger.Info("query failed",
 			"request_id", ctx.Value(RequestIDContextKey),
@@ -203,11 +134,7 @@ func (c *storageClient) Block(ctx context.Context, r *http.Request) (*Block, err
 	var b Block
 	if err := c.db.QueryRow(
 		ctx,
-		fmt.Sprintf(`
-			SELECT height, block_hash, time
-				FROM %s.blocks
-				WHERE height = $1::bigint`,
-			chainID),
+		makeBlockQuery(chainID),
 		chi.URLParam(r, "height"),
 	).Scan(&b.Height, &b.Hash, &b.Timestamp); err != nil {
 		c.logger.Info("row scan failed",
@@ -228,12 +155,32 @@ func (c *storageClient) Transactions(ctx context.Context, r *http.Request) (*Tra
 		return nil, common.ErrBadChainID
 	}
 
-	qb := NewQueryBuilder(fmt.Sprintf(`
-			SELECT block, txn_hash, sender, nonce, fee_amount, method, body, code
-				FROM %s.transactions`,
-		chainID), c.db)
-
 	params := r.URL.Query()
+
+	var block *string
+	if v := params.Get("block"); v != "" {
+		block = &v
+	}
+	var method *string
+	if v := params.Get("method"); v != "" {
+		method = &v
+	}
+	var sender *string
+	if v := params.Get("sender"); v != "" {
+		sender = &v
+	}
+	var minFee *string
+	if v := params.Get("minFee"); v != "" {
+		minFee = &v
+	}
+	var maxFee *string
+	if v := params.Get("maxFee"); v != "" {
+		maxFee = &v
+	}
+	var code *string
+	if v := params.Get("code"); v != "" {
+		code = &v
+	}
 
 	var filters []string
 	for param, condition := range map[string]string{
@@ -248,13 +195,7 @@ func (c *storageClient) Transactions(ctx context.Context, r *http.Request) (*Tra
 			filters = append(filters, fmt.Sprintf(condition, v))
 		}
 	}
-	if err := qb.AddFilters(ctx, filters); err != nil {
-		c.logger.Info("filtering failed",
-			"request_id", ctx.Value(RequestIDContextKey),
-			"err", err.Error(),
-		)
-		return nil, common.ErrBadRequest
-	}
+
 	pagination, err := common.NewPagination(r)
 	if err != nil {
 		c.logger.Info("pagination failed",
@@ -263,15 +204,20 @@ func (c *storageClient) Transactions(ctx context.Context, r *http.Request) (*Tra
 		)
 		return nil, common.ErrBadRequest
 	}
-	if err = qb.AddPagination(ctx, pagination); err != nil {
-		c.logger.Info("pagination add failed",
-			"request_id", ctx.Value(RequestIDContextKey),
-			"err", err.Error(),
-		)
-		return nil, common.ErrBadRequest
-	}
 
-	rows, err := c.db.Query(ctx, qb.String())
+	rows, err := c.db.Query(
+		ctx,
+		makeTransactionsQuery(chainID),
+		block,
+		method,
+		sender,
+		minFee,
+		maxFee,
+		code,
+		pagination.Order,
+		pagination.Limit,
+		pagination.Offset,
+	)
 	if err != nil {
 		c.logger.Info("query failed",
 			"request_id", ctx.Value(RequestIDContextKey),
@@ -324,10 +270,7 @@ func (c *storageClient) Transaction(ctx context.Context, r *http.Request) (*Tran
 	var code uint64
 	if err := c.db.QueryRow(
 		ctx,
-		fmt.Sprintf(`
-			SELECT block, txn_hash, sender, nonce, fee_amount, method, body, code
-				FROM %s.transactions
-				WHERE txn_hash = $1::text`, chainID),
+		makeTransactionQuery(chainID),
 		chi.URLParam(r, "txn_hash"),
 	).Scan(
 		&t.Height,
@@ -359,21 +302,6 @@ func (c *storageClient) Entities(ctx context.Context, r *http.Request) (*EntityL
 		return nil, common.ErrBadChainID
 	}
 
-	qb := NewQueryBuilder(fmt.Sprintf("SELECT id, address FROM %s.entities", chainID), c.db)
-
-	params := r.URL.Query()
-	if v := params.Get("height"); v != "" {
-		if h, err := strconv.ParseInt(v, 10, 64); err != nil {
-			if err := qb.AddTimestamp(ctx, h); err != nil {
-				c.logger.Info("timestamp add failed",
-					"request_id", ctx.Value(RequestIDContextKey),
-					"err", err.Error(),
-				)
-				return nil, common.ErrBadRequest
-			}
-		}
-	}
-
 	pagination, err := common.NewPagination(r)
 	if err != nil {
 		c.logger.Info("pagination failed",
@@ -382,15 +310,14 @@ func (c *storageClient) Entities(ctx context.Context, r *http.Request) (*EntityL
 		)
 		return nil, common.ErrBadRequest
 	}
-	if err = qb.AddPagination(ctx, pagination); err != nil {
-		c.logger.Info("pagination add failed",
-			"request_id", ctx.Value(RequestIDContextKey),
-			"err", err.Error(),
-		)
-		return nil, common.ErrBadRequest
-	}
 
-	rows, err := c.db.Query(ctx, qb.String())
+	rows, err := c.db.Query(
+		ctx,
+		makeEntitiesQuery(chainID),
+		pagination.Order,
+		pagination.Limit,
+		pagination.Offset,
+	)
 	if err != nil {
 		c.logger.Info("query failed",
 			"request_id", ctx.Value(RequestIDContextKey),
@@ -425,28 +352,6 @@ func (c *storageClient) Entity(ctx context.Context, r *http.Request) (*Entity, e
 		return nil, common.ErrBadChainID
 	}
 
-	qb := NewQueryBuilder(fmt.Sprintf("SELECT id, address FROM %s.entities", chainID), c.db)
-
-	params := r.URL.Query()
-	if v := params.Get("height"); v != "" {
-		if h, err := strconv.ParseInt(v, 10, 64); err != nil {
-			if err := qb.AddTimestamp(ctx, h); err != nil {
-				c.logger.Info("timestamp add failed",
-					"request_id", ctx.Value(RequestIDContextKey),
-					"err", err.Error(),
-				)
-				return nil, common.ErrBadRequest
-			}
-		}
-	}
-	if err := qb.AddFilters(ctx, []string{"id = $1::text"}); err != nil {
-		c.logger.Info("filtering failed",
-			"request_id", ctx.Value(RequestIDContextKey),
-			"err", err.Error(),
-		)
-		return nil, common.ErrBadRequest
-	}
-
 	entityID, err := url.PathUnescape(chi.URLParam(r, "entity_id"))
 	if err != nil {
 		return nil, common.ErrBadRequest
@@ -455,7 +360,7 @@ func (c *storageClient) Entity(ctx context.Context, r *http.Request) (*Entity, e
 	var e Entity
 	if err = c.db.QueryRow(
 		ctx,
-		qb.String(),
+		makeEntityQuery(chainID),
 		entityID,
 	).Scan(&e.ID, &e.Address); err != nil {
 		c.logger.Info("row scan failed",
@@ -465,27 +370,6 @@ func (c *storageClient) Entity(ctx context.Context, r *http.Request) (*Entity, e
 		return nil, common.ErrStorageError
 	}
 
-	qb = NewQueryBuilder(fmt.Sprintf("SELECT id FROM %s.nodes", chainID), c.db)
-	if v := params.Get("height"); v != "" {
-		var h int64
-		if h, err = strconv.ParseInt(v, 10, 64); err != nil {
-			if err = qb.AddTimestamp(ctx, h); err != nil {
-				c.logger.Info("timestamp add failed",
-					"request_id", ctx.Value(RequestIDContextKey),
-					"err", err.Error(),
-				)
-				return nil, common.ErrBadRequest
-			}
-		}
-	}
-	if err = qb.AddFilters(ctx, []string{"entity_id = $1::text"}); err != nil {
-		c.logger.Info("filtering failed",
-			"request_id", ctx.Value(RequestIDContextKey),
-			"err", err.Error(),
-		)
-		return nil, common.ErrBadRequest
-	}
-
 	entityID, err = url.PathUnescape(chi.URLParam(r, "entity_id"))
 	if err != nil {
 		return nil, common.ErrBadRequest
@@ -493,7 +377,7 @@ func (c *storageClient) Entity(ctx context.Context, r *http.Request) (*Entity, e
 
 	nodeRows, err := c.db.Query(
 		ctx,
-		qb.String(),
+		makeEntityNodeIdsQuery(chainID),
 		entityID,
 	)
 	if err != nil {
@@ -528,41 +412,9 @@ func (c *storageClient) EntityNodes(ctx context.Context, r *http.Request) (*Node
 		return nil, common.ErrBadChainID
 	}
 
-	qb := NewQueryBuilder(fmt.Sprintf(`
-			SELECT id, entity_id, expiration, tls_pubkey, tls_next_pubkey, p2p_pubkey, consensus_pubkey, roles
-				FROM %s.nodes`,
-		chainID), c.db)
-
-	params := r.URL.Query()
-	if v := params.Get("height"); v != "" {
-		if h, err := strconv.ParseInt(v, 10, 64); err != nil {
-			if err := qb.AddTimestamp(ctx, h); err != nil {
-				c.logger.Info("timestamp add failed",
-					"request_id", ctx.Value(RequestIDContextKey),
-					"err", err.Error(),
-				)
-				return nil, common.ErrBadRequest
-			}
-		}
-	}
-	if err := qb.AddFilters(ctx, []string{"entity_id = $1::text"}); err != nil {
-		c.logger.Info("filtering failed",
-			"request_id", ctx.Value(RequestIDContextKey),
-			"err", err.Error(),
-		)
-		return nil, common.ErrBadRequest
-	}
-
 	pagination, err := common.NewPagination(r)
 	if err != nil {
 		c.logger.Info("pagination failed",
-			"request_id", ctx.Value(RequestIDContextKey),
-			"err", err.Error(),
-		)
-		return nil, common.ErrBadRequest
-	}
-	if err = qb.AddPagination(ctx, pagination); err != nil {
-		c.logger.Info("pagination add failed",
 			"request_id", ctx.Value(RequestIDContextKey),
 			"err", err.Error(),
 		)
@@ -573,7 +425,14 @@ func (c *storageClient) EntityNodes(ctx context.Context, r *http.Request) (*Node
 	if err != nil {
 		return nil, common.ErrBadRequest
 	}
-	rows, err := c.db.Query(ctx, qb.String(), id)
+	rows, err := c.db.Query(
+		ctx,
+		makeEntityNodesQuery(chainID),
+		id,
+		pagination.Order,
+		pagination.Limit,
+		pagination.Offset,
+	)
 	if err != nil {
 		c.logger.Info("query failed",
 			"request_id", ctx.Value(RequestIDContextKey),
@@ -619,31 +478,6 @@ func (c *storageClient) EntityNode(ctx context.Context, r *http.Request) (*Node,
 		return nil, common.ErrBadChainID
 	}
 
-	qb := NewQueryBuilder(fmt.Sprintf(`
-			SELECT id, entity_id, expiration, tls_pubkey, tls_next_pubkey, p2p_pubkey, consensus_pubkey, roles
-				FROM %s.nodes`,
-		chainID), c.db)
-
-	params := r.URL.Query()
-	if v := params.Get("height"); v != "" {
-		if h, err := strconv.ParseInt(v, 10, 64); err != nil {
-			if err := qb.AddTimestamp(ctx, h); err != nil {
-				c.logger.Info("timestamp add failed",
-					"request_id", ctx.Value(RequestIDContextKey),
-					"err", err.Error(),
-				)
-				return nil, common.ErrBadRequest
-			}
-		}
-	}
-	if err := qb.AddFilters(ctx, []string{"entity_id = $1::text", "id = $2::text"}); err != nil {
-		c.logger.Info("filtering failed",
-			"request_id", ctx.Value(RequestIDContextKey),
-			"err", err.Error(),
-		)
-		return nil, common.ErrBadRequest
-	}
-
 	entityID, err := url.PathUnescape(chi.URLParam(r, "entity_id"))
 	if err != nil {
 		return nil, common.ErrBadRequest
@@ -655,7 +489,7 @@ func (c *storageClient) EntityNode(ctx context.Context, r *http.Request) (*Node,
 	var n Node
 	if err := c.db.QueryRow(
 		ctx,
-		qb.String(),
+		makeEntityNodeQuery(chainID),
 		entityID,
 		nodeID,
 	).Scan(
@@ -685,45 +519,39 @@ func (c *storageClient) Accounts(ctx context.Context, r *http.Request) (*Account
 		return nil, common.ErrBadChainID
 	}
 
-	qb := NewQueryBuilder(fmt.Sprintf(`
-			SELECT address, nonce, general_balance, escrow_balance_active, escrow_balance_debonding
-				FROM %s.accounts`,
-		chainID), c.db)
-
 	params := r.URL.Query()
-	if v := params.Get("height"); v != "" {
-		if h, err := strconv.ParseInt(v, 10, 64); err != nil {
-			if err := qb.AddTimestamp(ctx, h); err != nil {
-				c.logger.Info("timestamp add failed",
-					"request_id", ctx.Value(RequestIDContextKey),
-					"err", err.Error(),
-				)
-				return nil, common.ErrBadRequest
-			}
-		}
-	}
 
-	var filters []string
-	for param, condition := range map[string]string{
-		"minAvailable":    "general_balance >= %s",
-		"maxAvailable":    "general_balance <= %s",
-		"minEscrow":       "escrow_balance_active >= %s",
-		"maxEscrow":       "escrow_balance_active <= %s",
-		"minDebonding":    "escrow_balance_debonding >= %s",
-		"maxDebonding":    "escrow_balance_debonding <= %s",
-		"minTotalBalance": "general_balance + escrow_balance_active + escrow_balance_debonding <= %s",
-		"maxTotalBalance": "general_balance + escrow_balance_active + escrow_balance_debonding <= %s",
-	} {
-		if v := params.Get(param); v != "" {
-			filters = append(filters, fmt.Sprintf(condition, v))
-		}
+	var minAvailable *string
+	if v := params.Get("minAvailable"); v != "" {
+		minAvailable = &v
 	}
-	if err := qb.AddFilters(ctx, filters); err != nil {
-		c.logger.Info("filtering failed",
-			"request_id", ctx.Value(RequestIDContextKey),
-			"err", err.Error(),
-		)
-		return nil, common.ErrBadRequest
+	var maxAvailable *string
+	if v := params.Get("maxAvailable"); v != "" {
+		maxAvailable = &v
+	}
+	var minEscrow *string
+	if v := params.Get("minEscrow"); v != "" {
+		minEscrow = &v
+	}
+	var maxEscrow *string
+	if v := params.Get("maxEscrow"); v != "" {
+		maxEscrow = &v
+	}
+	var minDebonding *string
+	if v := params.Get("minDebonding"); v != "" {
+		minDebonding = &v
+	}
+	var maxDebonding *string
+	if v := params.Get("maxDebonding"); v != "" {
+		maxDebonding = &v
+	}
+	var minTotalBalance *string
+	if v := params.Get("minTotalBalance"); v != "" {
+		minTotalBalance = &v
+	}
+	var maxTotalBalance *string
+	if v := params.Get("maxTotalBalance"); v != "" {
+		maxTotalBalance = &v
 	}
 
 	pagination, err := common.NewPagination(r)
@@ -734,15 +562,22 @@ func (c *storageClient) Accounts(ctx context.Context, r *http.Request) (*Account
 		)
 		return nil, common.ErrBadRequest
 	}
-	if err = qb.AddPagination(ctx, pagination); err != nil {
-		c.logger.Info("pagination add failed",
-			"request_id", ctx.Value(RequestIDContextKey),
-			"err", err.Error(),
-		)
-		return nil, common.ErrBadRequest
-	}
 
-	rows, err := c.db.Query(ctx, qb.String())
+	rows, err := c.db.Query(
+		ctx,
+		makeAccountsQuery(chainID),
+		minAvailable,
+		maxAvailable,
+		minEscrow,
+		maxEscrow,
+		minDebonding,
+		maxDebonding,
+		minTotalBalance,
+		maxTotalBalance,
+		pagination.Order,
+		pagination.Limit,
+		pagination.Offset,
+	)
 	if err != nil {
 		c.logger.Info("query failed",
 			"request_id", ctx.Value(RequestIDContextKey),
@@ -784,37 +619,12 @@ func (c *storageClient) Account(ctx context.Context, r *http.Request) (*Account,
 		return nil, common.ErrBadChainID
 	}
 
-	qb := NewQueryBuilder(fmt.Sprintf(`
-			SELECT address, nonce, general_balance, escrow_balance_active, escrow_balance_debonding
-				FROM %s.accounts`,
-		chainID), c.db)
-
-	params := r.URL.Query()
-	if v := params.Get("height"); v != "" {
-		if h, err := strconv.ParseInt(v, 10, 64); err != nil {
-			if err := qb.AddTimestamp(ctx, h); err != nil {
-				c.logger.Info("timestamp add failed",
-					"request_id", ctx.Value(RequestIDContextKey),
-					"err", err.Error(),
-				)
-				return nil, common.ErrBadRequest
-			}
-		}
-	}
-	if err := qb.AddFilters(ctx, []string{"address = $1::text"}); err != nil {
-		c.logger.Info("query failed",
-			"request_id", ctx.Value(RequestIDContextKey),
-			"err", err.Error(),
-		)
-		return nil, common.ErrBadRequest
-	}
-
 	a := Account{
 		Allowances: []Allowance{},
 	}
 	if err := c.db.QueryRow(
 		ctx,
-		qb.String(),
+		makeAccountQuery(chainID),
 		chi.URLParam(r, "address"),
 	).Scan(
 		&a.Address,
@@ -830,32 +640,9 @@ func (c *storageClient) Account(ctx context.Context, r *http.Request) (*Account,
 		return nil, common.ErrStorageError
 	}
 
-	qb = NewQueryBuilder(fmt.Sprintf(`
-			SELECT beneficiary, allowance
-				FROM %s.allowances`,
-		chainID), c.db)
-	if v := params.Get("height"); v != "" {
-		if h, err := strconv.ParseInt(v, 10, 64); err != nil {
-			if err = qb.AddTimestamp(ctx, h); err != nil {
-				c.logger.Info("timestamp add failed",
-					"request_id", ctx.Value(RequestIDContextKey),
-					"err", err.Error(),
-				)
-				return nil, common.ErrBadRequest
-			}
-		}
-	}
-	if err := qb.AddFilters(ctx, []string{"owner = $1::text"}); err != nil {
-		c.logger.Info("filtering failed",
-			"request_id", ctx.Value(RequestIDContextKey),
-			"err", err.Error(),
-		)
-		return nil, common.ErrBadRequest
-	}
-
 	allowanceRows, err := c.db.Query(
 		ctx,
-		qb.String(),
+		makeAccountAllowancesQuery(chainID),
 		chi.URLParam(r, "address"),
 	)
 	if err != nil {
@@ -893,14 +680,6 @@ func (c *storageClient) Delegations(ctx context.Context, r *http.Request) (*Dele
 		return nil, common.ErrBadChainID
 	}
 
-	qb := NewQueryBuilder(fmt.Sprintf(`
-			SELECT delegatee, shares, escrow_balance_active, escrow_total_shares_active
-				FROM %s.delegations
-				JOIN %s.accounts ON %s.delegations.delegatee = %s.accounts.address
-				WHERE delegator = $1::text
-			`,
-		chainID, chainID, chainID, chainID), c.db)
-
 	pagination, err := common.NewPagination(r)
 	if err != nil {
 		c.logger.Info("pagination failed",
@@ -909,15 +688,15 @@ func (c *storageClient) Delegations(ctx context.Context, r *http.Request) (*Dele
 		)
 		return nil, common.ErrBadRequest
 	}
-	if err = qb.AddPagination(ctx, pagination); err != nil {
-		c.logger.Info("pagination add failed",
-			"request_id", ctx.Value(RequestIDContextKey),
-			"err", err.Error(),
-		)
-		return nil, common.ErrBadRequest
-	}
 
-	rows, err := c.db.Query(ctx, qb.String(), chi.URLParam(r, "address"))
+	rows, err := c.db.Query(
+		ctx,
+		makeDelegationsQuery(chainID),
+		chi.URLParam(r, "address"),
+		pagination.Order,
+		pagination.Limit,
+		pagination.Offset,
+	)
 	if err != nil {
 		c.logger.Info("query failed",
 			"request_id", ctx.Value(RequestIDContextKey),
@@ -962,14 +741,6 @@ func (c *storageClient) DebondingDelegations(ctx context.Context, r *http.Reques
 		return nil, common.ErrBadChainID
 	}
 
-	qb := NewQueryBuilder(fmt.Sprintf(`
-			SELECT delegatee, shares, debond_end, escrow_balance_debonding, escrow_total_shares_debonding
-				FROM %s.debonding_delegations
-				JOIN %s.accounts ON %s.debonding_delegations.delegatee = %s.accounts.address
-				WHERE delegator = $1::text
-				`,
-		chainID, chainID, chainID, chainID), c.db)
-
 	pagination, err := common.NewPagination(r)
 	if err != nil {
 		c.logger.Info("pagination failed",
@@ -978,15 +749,15 @@ func (c *storageClient) DebondingDelegations(ctx context.Context, r *http.Reques
 		)
 		return nil, common.ErrBadRequest
 	}
-	if err = qb.AddPagination(ctx, pagination); err != nil {
-		c.logger.Info("pagination add failed",
-			"request_id", ctx.Value(RequestIDContextKey),
-			"err", err.Error(),
-		)
-		return nil, common.ErrBadRequest
-	}
 
-	rows, err := c.db.Query(ctx, qb.String(), chi.URLParam(r, "address"))
+	rows, err := c.db.Query(
+		ctx,
+		makeDebondingDelegationsQuery(chainID),
+		chi.URLParam(r, "address"),
+		pagination.Order,
+		pagination.Limit,
+		pagination.Offset,
+	)
 	if err != nil {
 		c.logger.Info("query failed",
 			"request_id", ctx.Value(RequestIDContextKey),
@@ -1030,13 +801,6 @@ func (c *storageClient) Epochs(ctx context.Context, r *http.Request) (*EpochList
 		return nil, common.ErrBadChainID
 	}
 
-	qb := NewQueryBuilder(fmt.Sprintf(`
-			SELECT id, start_height, end_height
-				FROM %s.epochs`,
-		chainID), c.db)
-
-	// TODO: Add filters.
-
 	pagination, err := common.NewPagination(r)
 	if err != nil {
 		c.logger.Info("pagination failed",
@@ -1045,15 +809,14 @@ func (c *storageClient) Epochs(ctx context.Context, r *http.Request) (*EpochList
 		)
 		return nil, common.ErrBadRequest
 	}
-	if err = qb.AddPagination(ctx, pagination); err != nil {
-		c.logger.Info("pagination add failed",
-			"request_id", ctx.Value(RequestIDContextKey),
-			"err", err.Error(),
-		)
-		return nil, common.ErrBadRequest
-	}
 
-	rows, err := c.db.Query(ctx, qb.String())
+	rows, err := c.db.Query(
+		ctx,
+		makeEpochsQuery(chainID),
+		pagination.Order,
+		pagination.Limit,
+		pagination.Offset,
+	)
 	if err != nil {
 		c.logger.Info("query failed",
 			"request_id", ctx.Value(RequestIDContextKey),
@@ -1095,11 +858,7 @@ func (c *storageClient) Epoch(ctx context.Context, r *http.Request) (*Epoch, err
 	var e Epoch
 	if err := c.db.QueryRow(
 		ctx,
-		fmt.Sprintf(`
-			SELECT id, start_height, end_height
-				FROM %s.epochs
-				WHERE id = $1::bigint`,
-			chainID),
+		makeEpochQuery(chainID),
 		chi.URLParam(r, "epoch"),
 	).Scan(&e.ID, &e.StartHeight, &e.EndHeight); err != nil {
 		c.logger.Info("row scan failed",
@@ -1119,29 +878,15 @@ func (c *storageClient) Proposals(ctx context.Context, r *http.Request) (*Propos
 		return nil, common.ErrBadChainID
 	}
 
-	qb := NewQueryBuilder(fmt.Sprintf(`
-			SELECT id, submitter, state, deposit, handler, cp_target_version, rhp_target_version, rcp_target_version,
-					upgrade_epoch, cancels, created_at, closes_at, invalid_votes
-				FROM %s.proposals`,
-		chainID), c.db)
-
 	params := r.URL.Query()
 
-	var filters []string
-	for param, condition := range map[string]string{
-		"submitter": "submitter = '%s'",
-		"state":     "state = '%s'",
-	} {
-		if v := params.Get(param); v != "" {
-			filters = append(filters, fmt.Sprintf(condition, v))
-		}
+	var submitter *string
+	if v := params.Get("submitter"); v != "" {
+		submitter = &v
 	}
-	if err := qb.AddFilters(ctx, filters); err != nil {
-		c.logger.Info("filtering failed",
-			"request_id", ctx.Value(RequestIDContextKey),
-			"err", err.Error(),
-		)
-		return nil, common.ErrBadRequest
+	var state *string
+	if v := params.Get("state"); v != "" {
+		state = &v
 	}
 
 	pagination, err := common.NewPagination(r)
@@ -1152,15 +897,16 @@ func (c *storageClient) Proposals(ctx context.Context, r *http.Request) (*Propos
 		)
 		return nil, common.ErrBadRequest
 	}
-	if err = qb.AddPagination(ctx, pagination); err != nil {
-		c.logger.Info("pagination add failed",
-			"request_id", ctx.Value(RequestIDContextKey),
-			"err", err.Error(),
-		)
-		return nil, common.ErrBadRequest
-	}
 
-	rows, err := c.db.Query(ctx, qb.String())
+	rows, err := c.db.Query(
+		ctx,
+		makeProposalsQuery(chainID),
+		submitter,
+		state,
+		pagination.Order,
+		pagination.Limit,
+		pagination.Offset,
+	)
 	if err != nil {
 		c.logger.Info("query failed",
 			"request_id", ctx.Value(RequestIDContextKey),
@@ -1213,12 +959,7 @@ func (c *storageClient) Proposal(ctx context.Context, r *http.Request) (*Proposa
 	var p Proposal
 	if err := c.db.QueryRow(
 		ctx,
-		fmt.Sprintf(`
-			SELECT id, submitter, state, deposit, handler, cp_target_version, rhp_target_version, rcp_target_version,
-						upgrade_epoch, cancels, created_at, closes_at, invalid_votes
-				FROM %s.proposals
-				WHERE id = $1::bigint`,
-			chainID),
+		makeProposalQuery(chainID),
 		chi.URLParam(r, "proposal_id"),
 	).Scan(
 		&p.ID,
@@ -1252,22 +993,9 @@ func (c *storageClient) ProposalVotes(ctx context.Context, r *http.Request) (*Pr
 		return nil, common.ErrBadChainID
 	}
 
-	qb := NewQueryBuilder(fmt.Sprintf(`
-			SELECT voter, vote
-				FROM %s.votes
-				WHERE proposal = $1::bigint`,
-		chainID), c.db)
-
 	pagination, err := common.NewPagination(r)
 	if err != nil {
 		c.logger.Info("pagination failed",
-			"request_id", ctx.Value(RequestIDContextKey),
-			"err", err.Error(),
-		)
-		return nil, common.ErrBadRequest
-	}
-	if err = qb.AddPagination(ctx, pagination); err != nil {
-		c.logger.Info("pagination add failed",
 			"request_id", ctx.Value(RequestIDContextKey),
 			"err", err.Error(),
 		)
@@ -1279,7 +1007,14 @@ func (c *storageClient) ProposalVotes(ctx context.Context, r *http.Request) (*Pr
 		return nil, common.ErrBadRequest
 	}
 
-	rows, err := c.db.Query(ctx, qb.String(), id)
+	rows, err := c.db.Query(
+		ctx,
+		makeProposalVotesQuery(chainID),
+		id,
+		pagination.Order,
+		pagination.Limit,
+		pagination.Offset,
+	)
 	if err != nil {
 		c.logger.Info("query failed",
 			"request_id", ctx.Value(RequestIDContextKey),
@@ -1322,12 +1057,7 @@ func (c *storageClient) Validator(ctx context.Context, r *http.Request) (*Valida
 	var epoch Epoch
 	if err := c.db.QueryRow(
 		ctx,
-		fmt.Sprintf(`
-		SELECT id, start_height
-			FROM %s.epochs
-			ORDER BY id DESC
-			LIMIT 1`,
-			chainID),
+		makeValidatorQuery(chainID),
 	).Scan(&epoch.ID, &epoch.StartHeight); err != nil {
 		c.logger.Info("row scan failed",
 			"request_id", ctx.Value(RequestIDContextKey),
@@ -1338,29 +1068,7 @@ func (c *storageClient) Validator(ctx context.Context, r *http.Request) (*Valida
 
 	row := c.db.QueryRow(
 		ctx,
-		fmt.Sprintf(`
-			SELECT
-				%s.entities.id AS entity_id,
-				%s.entities.address AS entity_address,
-				%s.nodes.id AS node_address,
-				%s.accounts.escrow_balance_active AS escrow,
-				%s.commissions.schedule AS commissions_schedule,
-				CASE WHEN EXISTS(SELECT null FROM %s.nodes WHERE %s.entities.id = %s.nodes.entity_id AND voting_power > 0) THEN true ELSE false END AS active,
-				CASE WHEN EXISTS(SELECT null FROM %s.nodes WHERE %s.entities.id = %s.nodes.entity_id AND %s.nodes.roles like '%%validator%%') THEN true ELSE false END AS status,
-				%s.entities.meta AS meta
-			FROM %s.entities
-			JOIN %s.accounts ON %s.entities.address = %s.accounts.address
-			LEFT JOIN %s.commissions ON %s.entities.address = %s.commissions.address
-			JOIN %s.nodes ON %s.entities.id = %s.nodes.entity_id
-				AND %s.nodes.roles like '%%validator%%'
-				AND %s.nodes.voting_power = (
-					SELECT max(voting_power)
-					FROM %s.nodes
-					WHERE %s.entities.id = %s.nodes.entity_id
-						AND %s.nodes.roles like '%%validator%%'
-				)
-			WHERE %s.entities.address = $1::text`,
-			chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID),
+		makeValidatorDataQuery(chainID),
 		chi.URLParam(r, "entity_id"),
 	)
 
@@ -1414,12 +1122,7 @@ func (c *storageClient) Validators(ctx context.Context, r *http.Request) (*Valid
 	var epoch Epoch
 	if err := c.db.QueryRow(
 		ctx,
-		fmt.Sprintf(`
-		SELECT id, start_height
-			FROM %s.epochs
-			ORDER BY id DESC
-			LIMIT 1`,
-			chainID),
+		makeValidatorsQuery(chainID),
 	).Scan(&epoch.ID, &epoch.StartHeight); err != nil {
 		c.logger.Info("row scan failed",
 			"request_id", ctx.Value(RequestIDContextKey),
@@ -1428,55 +1131,20 @@ func (c *storageClient) Validators(ctx context.Context, r *http.Request) (*Valid
 		return nil, common.ErrStorageError
 	}
 
-	qb := NewQueryBuilder(fmt.Sprintf(`
-	SELECT
-		%s.entities.id AS entity_id,
-		%s.entities.address AS entity_address,
-		%s.nodes.id AS node_address,
-		%s.accounts.escrow_balance_active AS escrow,
-		%s.commissions.schedule AS commissions_schedule,
-		CASE WHEN EXISTS(SELECT NULL FROM %s.nodes WHERE %s.entities.id = %s.nodes.entity_id AND voting_power > 0) THEN true ELSE false END AS active,
-		CASE WHEN EXISTS(SELECT NULL FROM %s.nodes WHERE %s.entities.id = %s.nodes.entity_id AND %s.nodes.roles like '%%validator%%') THEN true ELSE false END AS status,
-		%s.entities.meta AS meta
-	FROM %s.entities
-	JOIN %s.accounts ON %s.entities.address = %s.accounts.address
-	LEFT JOIN %s.commissions ON %s.entities.address = %s.commissions.address
-	JOIN %s.nodes ON %s.entities.id = %s.nodes.entity_id
-		AND %s.nodes.roles like '%%validator%%'
-		AND %s.nodes.voting_power = (
-			SELECT max(voting_power)
-			FROM %s.nodes
-			WHERE %s.entities.id = %s.nodes.entity_id
-				AND %s.nodes.roles like '%%validator%%'
-		)
-	`, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID, chainID), c.db)
-
-	params := r.URL.Query()
-	if v := params.Get("height"); v != "" {
-		if h, err := strconv.ParseInt(v, 10, 64); err != nil {
-			if err = qb.AddTimestamp(ctx, h); err != nil {
-				c.logger.Info("timestamp add failed",
-					"request_id", ctx.Value(RequestIDContextKey),
-					"err", err.Error(),
-				)
-				return nil, common.ErrBadRequest
-			}
-		}
-	}
-
-	if err := qb.AddPagination(ctx, common.Pagination{
+	order := "voting_power"
+	pagination := common.Pagination{
+		Order:  &order,
 		Limit:  1000,
 		Offset: 0,
-		Order:  "voting_power",
-	}); err != nil {
-		c.logger.Info("pagination add failed",
-			"request_id", ctx.Value(RequestIDContextKey),
-			"err", err.Error(),
-		)
-		return nil, common.ErrBadRequest
 	}
 
-	rows, err := c.db.Query(ctx, qb.String())
+	rows, err := c.db.Query(
+		ctx,
+		makeValidatorsDataQuery(chainID),
+		pagination.Order,
+		pagination.Limit,
+		pagination.Offset,
+	)
 	if err != nil {
 		c.logger.Info("query failed",
 			"request_id", ctx.Value(RequestIDContextKey),
