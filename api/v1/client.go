@@ -2,12 +2,12 @@ package v1
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"net/url"
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/iancoleman/strcase"
 	oasisErrors "github.com/oasisprotocol/oasis-core/go/common/errors"
 
 	beacon "github.com/oasisprotocol/oasis-core/go/beacon/api"
@@ -38,7 +38,7 @@ func (c *storageClient) Status(ctx context.Context) (*Status, error) {
 	}
 	if err := c.db.QueryRow(
 		ctx,
-		makeStatusQuery(LatestChainID),
+		makeStatusQuery(strcase.ToSnake(LatestChainID)),
 	).Scan(&s.LatestBlock, &s.LatestUpdate); err != nil {
 		c.logger.Info("row scan failed",
 			"request_id", ctx.Value(RequestIDContextKey),
@@ -180,20 +180,6 @@ func (c *storageClient) Transactions(ctx context.Context, r *http.Request) (*Tra
 	var code *string
 	if v := params.Get("code"); v != "" {
 		code = &v
-	}
-
-	var filters []string
-	for param, condition := range map[string]string{
-		"block":  "block = %s",
-		"method": "method = '%s'",
-		"sender": "sender = '%s'",
-		"minFee": "fee_amount >= %s",
-		"maxFee": "fee_amount <= %s",
-		"code":   "code = %s",
-	} {
-		if v := params.Get(param); v != "" {
-			filters = append(filters, fmt.Sprintf(condition, v))
-		}
 	}
 
 	pagination, err := common.NewPagination(r)

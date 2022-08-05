@@ -2,8 +2,6 @@ package v1
 
 import (
 	"fmt"
-
-	"github.com/iancoleman/strcase"
 )
 
 func makeStatusQuery(chainID string) string {
@@ -11,7 +9,7 @@ func makeStatusQuery(chainID string) string {
 		SELECT height, processed_time
 			FROM %s.processed_blocks
 		ORDER BY processed_time DESC
-		LIMIT 1`, strcase.ToSnake(LatestChainID))
+		LIMIT 1`, chainID)
 }
 
 func makeBlocksQuery(chainID string) string {

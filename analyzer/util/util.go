@@ -2,7 +2,6 @@
 package util
 
 import (
-	"errors"
 	"fmt"
 	"math"
 	"time"
@@ -26,18 +25,18 @@ type Backoff struct {
 // NewBackoff returns a new backoff.
 func NewBackoff(initialTimeout time.Duration, maximumTimeout time.Duration) (*Backoff, error) {
 	if initialTimeout <= initialTimeoutLowerBound {
-		return nil, errors.New(fmt.Sprintf(
+		return nil, fmt.Errorf(
 			"initial timeout %fs less than lower bound %ds",
 			initialTimeout.Seconds(),
 			initialTimeoutLowerBound,
-		))
+		)
 	}
 	if maximumTimeout.Seconds() >= math.MaxInt64/2 {
-		return nil, errors.New(fmt.Sprintf(
+		return nil, fmt.Errorf(
 			"maximum timeout %fs greater than upper bound %ds",
 			maximumTimeout.Seconds(),
 			maximumTimeoutUpperBound,
-		))
+		)
 	}
 	return &Backoff{initialTimeout, initialTimeout, maximumTimeout}, nil
 }
