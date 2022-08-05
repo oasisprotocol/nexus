@@ -33,12 +33,14 @@ func newStorageClient(db storage.TargetStorage, l *log.Logger) *storageClient {
 
 // Status returns status information for the Oasis Indexer.
 func (c *storageClient) Status(ctx context.Context) (*Status, error) {
+	qf := NewQueryFactory(strcase.ToSnake(LatestChainID))
+
 	s := Status{
 		LatestChainID: LatestChainID,
 	}
 	if err := c.db.QueryRow(
 		ctx,
-		makeStatusQuery(strcase.ToSnake(LatestChainID)),
+		qf.StatusQuery(),
 	).Scan(&s.LatestBlock, &s.LatestUpdate); err != nil {
 		c.logger.Info("row scan failed",
 			"request_id", ctx.Value(RequestIDContextKey),
@@ -51,10 +53,11 @@ func (c *storageClient) Status(ctx context.Context) (*Status, error) {
 
 // Blocks returns a list of consensus blocks.
 func (c *storageClient) Blocks(ctx context.Context, r *http.Request) (*BlockList, error) {
-	chainID, ok := ctx.Value(ChainIDContextKey).(string)
+	cid, ok := ctx.Value(ChainIDContextKey).(string)
 	if !ok {
 		return nil, common.ErrBadChainID
 	}
+	qf := NewQueryFactory(cid)
 
 	params := r.URL.Query()
 
@@ -86,7 +89,7 @@ func (c *storageClient) Blocks(ctx context.Context, r *http.Request) (*BlockList
 
 	rows, err := c.db.Query(
 		ctx,
-		makeBlocksQuery(chainID),
+		qf.BlocksQuery(),
 		from,
 		to,
 		after,
@@ -126,15 +129,16 @@ func (c *storageClient) Blocks(ctx context.Context, r *http.Request) (*BlockList
 
 // Block returns a consensus block.
 func (c *storageClient) Block(ctx context.Context, r *http.Request) (*Block, error) {
-	chainID, ok := ctx.Value(ChainIDContextKey).(string)
+	cid, ok := ctx.Value(ChainIDContextKey).(string)
 	if !ok {
 		return nil, common.ErrBadChainID
 	}
+	qf := NewQueryFactory(cid)
 
 	var b Block
 	if err := c.db.QueryRow(
 		ctx,
-		makeBlockQuery(chainID),
+		qf.BlockQuery(),
 		chi.URLParam(r, "height"),
 	).Scan(&b.Height, &b.Hash, &b.Timestamp); err != nil {
 		c.logger.Info("row scan failed",
@@ -150,10 +154,11 @@ func (c *storageClient) Block(ctx context.Context, r *http.Request) (*Block, err
 
 // Transactions returns a list of consensus transactions.
 func (c *storageClient) Transactions(ctx context.Context, r *http.Request) (*TransactionList, error) {
-	chainID, ok := ctx.Value(ChainIDContextKey).(string)
+	cid, ok := ctx.Value(ChainIDContextKey).(string)
 	if !ok {
 		return nil, common.ErrBadChainID
 	}
+	qf := NewQueryFactory(cid)
 
 	params := r.URL.Query()
 
@@ -193,7 +198,7 @@ func (c *storageClient) Transactions(ctx context.Context, r *http.Request) (*Tra
 
 	rows, err := c.db.Query(
 		ctx,
-		makeTransactionsQuery(chainID),
+		qf.TransactionsQuery(),
 		block,
 		method,
 		sender,
@@ -247,16 +252,17 @@ func (c *storageClient) Transactions(ctx context.Context, r *http.Request) (*Tra
 
 // Transaction returns a consensus transaction.
 func (c *storageClient) Transaction(ctx context.Context, r *http.Request) (*Transaction, error) {
-	chainID, ok := ctx.Value(ChainIDContextKey).(string)
+	cid, ok := ctx.Value(ChainIDContextKey).(string)
 	if !ok {
 		return nil, common.ErrBadChainID
 	}
+	qf := NewQueryFactory(cid)
 
 	var t Transaction
 	var code uint64
 	if err := c.db.QueryRow(
 		ctx,
-		makeTransactionQuery(chainID),
+		qf.TransactionQuery(),
 		chi.URLParam(r, "txn_hash"),
 	).Scan(
 		&t.Height,
@@ -283,10 +289,11 @@ func (c *storageClient) Transaction(ctx context.Context, r *http.Request) (*Tran
 
 // Entities returns a list of registered entities.
 func (c *storageClient) Entities(ctx context.Context, r *http.Request) (*EntityList, error) {
-	chainID, ok := ctx.Value(ChainIDContextKey).(string)
+	cid, ok := ctx.Value(ChainIDContextKey).(string)
 	if !ok {
 		return nil, common.ErrBadChainID
 	}
+	qf := NewQueryFactory(cid)
 
 	pagination, err := common.NewPagination(r)
 	if err != nil {
@@ -299,7 +306,7 @@ func (c *storageClient) Entities(ctx context.Context, r *http.Request) (*EntityL
 
 	rows, err := c.db.Query(
 		ctx,
-		makeEntitiesQuery(chainID),
+		qf.EntitiesQuery(),
 		pagination.Order,
 		pagination.Limit,
 		pagination.Offset,
@@ -333,10 +340,11 @@ func (c *storageClient) Entities(ctx context.Context, r *http.Request) (*EntityL
 
 // Entity returns a registered entity.
 func (c *storageClient) Entity(ctx context.Context, r *http.Request) (*Entity, error) {
-	chainID, ok := ctx.Value(ChainIDContextKey).(string)
+	cid, ok := ctx.Value(ChainIDContextKey).(string)
 	if !ok {
 		return nil, common.ErrBadChainID
 	}
+	qf := NewQueryFactory(cid)
 
 	entityID, err := url.PathUnescape(chi.URLParam(r, "entity_id"))
 	if err != nil {
@@ -346,7 +354,7 @@ func (c *storageClient) Entity(ctx context.Context, r *http.Request) (*Entity, e
 	var e Entity
 	if err = c.db.QueryRow(
 		ctx,
-		makeEntityQuery(chainID),
+		qf.EntityQuery(),
 		entityID,
 	).Scan(&e.ID, &e.Address); err != nil {
 		c.logger.Info("row scan failed",
@@ -363,7 +371,7 @@ func (c *storageClient) Entity(ctx context.Context, r *http.Request) (*Entity, e
 
 	nodeRows, err := c.db.Query(
 		ctx,
-		makeEntityNodeIdsQuery(chainID),
+		qf.EntityNodeIdsQuery(),
 		entityID,
 	)
 	if err != nil {
@@ -393,10 +401,11 @@ func (c *storageClient) Entity(ctx context.Context, r *http.Request) (*Entity, e
 
 // EntityNodes returns a list of nodes controlled by the provided entity.
 func (c *storageClient) EntityNodes(ctx context.Context, r *http.Request) (*NodeList, error) {
-	chainID, ok := ctx.Value(ChainIDContextKey).(string)
+	cid, ok := ctx.Value(ChainIDContextKey).(string)
 	if !ok {
 		return nil, common.ErrBadChainID
 	}
+	qf := NewQueryFactory(cid)
 
 	pagination, err := common.NewPagination(r)
 	if err != nil {
@@ -413,7 +422,7 @@ func (c *storageClient) EntityNodes(ctx context.Context, r *http.Request) (*Node
 	}
 	rows, err := c.db.Query(
 		ctx,
-		makeEntityNodesQuery(chainID),
+		qf.EntityNodesQuery(),
 		id,
 		pagination.Order,
 		pagination.Limit,
@@ -459,10 +468,11 @@ func (c *storageClient) EntityNodes(ctx context.Context, r *http.Request) (*Node
 
 // EntityNode returns a node controlled by the provided entity.
 func (c *storageClient) EntityNode(ctx context.Context, r *http.Request) (*Node, error) {
-	chainID, ok := ctx.Value(ChainIDContextKey).(string)
+	cid, ok := ctx.Value(ChainIDContextKey).(string)
 	if !ok {
 		return nil, common.ErrBadChainID
 	}
+	qf := NewQueryFactory(cid)
 
 	entityID, err := url.PathUnescape(chi.URLParam(r, "entity_id"))
 	if err != nil {
@@ -475,7 +485,7 @@ func (c *storageClient) EntityNode(ctx context.Context, r *http.Request) (*Node,
 	var n Node
 	if err := c.db.QueryRow(
 		ctx,
-		makeEntityNodeQuery(chainID),
+		qf.EntityNodeQuery(),
 		entityID,
 		nodeID,
 	).Scan(
@@ -500,10 +510,11 @@ func (c *storageClient) EntityNode(ctx context.Context, r *http.Request) (*Node,
 
 // Accounts returns a list of consensus accounts.
 func (c *storageClient) Accounts(ctx context.Context, r *http.Request) (*AccountList, error) {
-	chainID, ok := ctx.Value(ChainIDContextKey).(string)
+	cid, ok := ctx.Value(ChainIDContextKey).(string)
 	if !ok {
 		return nil, common.ErrBadChainID
 	}
+	qf := NewQueryFactory(cid)
 
 	params := r.URL.Query()
 
@@ -551,7 +562,7 @@ func (c *storageClient) Accounts(ctx context.Context, r *http.Request) (*Account
 
 	rows, err := c.db.Query(
 		ctx,
-		makeAccountsQuery(chainID),
+		qf.AccountsQuery(),
 		minAvailable,
 		maxAvailable,
 		minEscrow,
@@ -600,17 +611,18 @@ func (c *storageClient) Accounts(ctx context.Context, r *http.Request) (*Account
 
 // Account returns a consensus account.
 func (c *storageClient) Account(ctx context.Context, r *http.Request) (*Account, error) {
-	chainID, ok := ctx.Value(ChainIDContextKey).(string)
+	cid, ok := ctx.Value(ChainIDContextKey).(string)
 	if !ok {
 		return nil, common.ErrBadChainID
 	}
+	qf := NewQueryFactory(cid)
 
 	a := Account{
 		Allowances: []Allowance{},
 	}
 	if err := c.db.QueryRow(
 		ctx,
-		makeAccountQuery(chainID),
+		qf.AccountQuery(),
 		chi.URLParam(r, "address"),
 	).Scan(
 		&a.Address,
@@ -628,7 +640,7 @@ func (c *storageClient) Account(ctx context.Context, r *http.Request) (*Account,
 
 	allowanceRows, err := c.db.Query(
 		ctx,
-		makeAccountAllowancesQuery(chainID),
+		qf.AccountAllowancesQuery(),
 		chi.URLParam(r, "address"),
 	)
 	if err != nil {
@@ -661,10 +673,11 @@ func (c *storageClient) Account(ctx context.Context, r *http.Request) (*Account,
 
 // Delegations returns a list of delegations.
 func (c *storageClient) Delegations(ctx context.Context, r *http.Request) (*DelegationList, error) {
-	chainID, ok := ctx.Value(ChainIDContextKey).(string)
+	cid, ok := ctx.Value(ChainIDContextKey).(string)
 	if !ok {
 		return nil, common.ErrBadChainID
 	}
+	qf := NewQueryFactory(cid)
 
 	pagination, err := common.NewPagination(r)
 	if err != nil {
@@ -677,7 +690,7 @@ func (c *storageClient) Delegations(ctx context.Context, r *http.Request) (*Dele
 
 	rows, err := c.db.Query(
 		ctx,
-		makeDelegationsQuery(chainID),
+		qf.DelegationsQuery(),
 		chi.URLParam(r, "address"),
 		pagination.Order,
 		pagination.Limit,
@@ -722,10 +735,11 @@ func (c *storageClient) Delegations(ctx context.Context, r *http.Request) (*Dele
 
 // DebondingDelegations returns a list of debonding delegations.
 func (c *storageClient) DebondingDelegations(ctx context.Context, r *http.Request) (*DebondingDelegationList, error) {
-	chainID, ok := ctx.Value(ChainIDContextKey).(string)
+	cid, ok := ctx.Value(ChainIDContextKey).(string)
 	if !ok {
 		return nil, common.ErrBadChainID
 	}
+	qf := NewQueryFactory(cid)
 
 	pagination, err := common.NewPagination(r)
 	if err != nil {
@@ -738,7 +752,7 @@ func (c *storageClient) DebondingDelegations(ctx context.Context, r *http.Reques
 
 	rows, err := c.db.Query(
 		ctx,
-		makeDebondingDelegationsQuery(chainID),
+		qf.DebondingDelegationsQuery(),
 		chi.URLParam(r, "address"),
 		pagination.Order,
 		pagination.Limit,
@@ -782,10 +796,11 @@ func (c *storageClient) DebondingDelegations(ctx context.Context, r *http.Reques
 
 // Epochs returns a list of consensus epochs.
 func (c *storageClient) Epochs(ctx context.Context, r *http.Request) (*EpochList, error) {
-	chainID, ok := ctx.Value(ChainIDContextKey).(string)
+	cid, ok := ctx.Value(ChainIDContextKey).(string)
 	if !ok {
 		return nil, common.ErrBadChainID
 	}
+	qf := NewQueryFactory(cid)
 
 	pagination, err := common.NewPagination(r)
 	if err != nil {
@@ -798,7 +813,7 @@ func (c *storageClient) Epochs(ctx context.Context, r *http.Request) (*EpochList
 
 	rows, err := c.db.Query(
 		ctx,
-		makeEpochsQuery(chainID),
+		qf.EpochsQuery(),
 		pagination.Order,
 		pagination.Limit,
 		pagination.Offset,
@@ -836,15 +851,16 @@ func (c *storageClient) Epochs(ctx context.Context, r *http.Request) (*EpochList
 
 // Epoch returns a consensus epoch.
 func (c *storageClient) Epoch(ctx context.Context, r *http.Request) (*Epoch, error) {
-	chainID, ok := ctx.Value(ChainIDContextKey).(string)
+	cid, ok := ctx.Value(ChainIDContextKey).(string)
 	if !ok {
 		return nil, common.ErrBadChainID
 	}
+	qf := NewQueryFactory(cid)
 
 	var e Epoch
 	if err := c.db.QueryRow(
 		ctx,
-		makeEpochQuery(chainID),
+		qf.EpochQuery(),
 		chi.URLParam(r, "epoch"),
 	).Scan(&e.ID, &e.StartHeight, &e.EndHeight); err != nil {
 		c.logger.Info("row scan failed",
@@ -859,10 +875,11 @@ func (c *storageClient) Epoch(ctx context.Context, r *http.Request) (*Epoch, err
 
 // Proposals returns a list of governance proposals.
 func (c *storageClient) Proposals(ctx context.Context, r *http.Request) (*ProposalList, error) {
-	chainID, ok := ctx.Value(ChainIDContextKey).(string)
+	cid, ok := ctx.Value(ChainIDContextKey).(string)
 	if !ok {
 		return nil, common.ErrBadChainID
 	}
+	qf := NewQueryFactory(cid)
 
 	params := r.URL.Query()
 
@@ -886,7 +903,7 @@ func (c *storageClient) Proposals(ctx context.Context, r *http.Request) (*Propos
 
 	rows, err := c.db.Query(
 		ctx,
-		makeProposalsQuery(chainID),
+		qf.ProposalsQuery(),
 		submitter,
 		state,
 		pagination.Order,
@@ -937,15 +954,16 @@ func (c *storageClient) Proposals(ctx context.Context, r *http.Request) (*Propos
 
 // Proposal returns a governance proposal.
 func (c *storageClient) Proposal(ctx context.Context, r *http.Request) (*Proposal, error) {
-	chainID, ok := ctx.Value(ChainIDContextKey).(string)
+	cid, ok := ctx.Value(ChainIDContextKey).(string)
 	if !ok {
 		return nil, common.ErrBadChainID
 	}
+	qf := NewQueryFactory(cid)
 
 	var p Proposal
 	if err := c.db.QueryRow(
 		ctx,
-		makeProposalQuery(chainID),
+		qf.ProposalQuery(),
 		chi.URLParam(r, "proposal_id"),
 	).Scan(
 		&p.ID,
@@ -974,10 +992,11 @@ func (c *storageClient) Proposal(ctx context.Context, r *http.Request) (*Proposa
 
 // ProposalVotes returns votes for a governance proposal.
 func (c *storageClient) ProposalVotes(ctx context.Context, r *http.Request) (*ProposalVotes, error) {
-	chainID, ok := ctx.Value(ChainIDContextKey).(string)
+	cid, ok := ctx.Value(ChainIDContextKey).(string)
 	if !ok {
 		return nil, common.ErrBadChainID
 	}
+	qf := NewQueryFactory(cid)
 
 	pagination, err := common.NewPagination(r)
 	if err != nil {
@@ -995,7 +1014,7 @@ func (c *storageClient) ProposalVotes(ctx context.Context, r *http.Request) (*Pr
 
 	rows, err := c.db.Query(
 		ctx,
-		makeProposalVotesQuery(chainID),
+		qf.ProposalVotesQuery(),
 		id,
 		pagination.Order,
 		pagination.Limit,
@@ -1033,82 +1052,18 @@ func (c *storageClient) ProposalVotes(ctx context.Context, r *http.Request) (*Pr
 	return &vs, nil
 }
 
-// Validator returns a single validator.
-func (c *storageClient) Validator(ctx context.Context, r *http.Request) (*Validator, error) {
-	chainID, ok := ctx.Value(ChainIDContextKey).(string)
-	if !ok {
-		return nil, common.ErrBadChainID
-	}
-
-	var epoch Epoch
-	if err := c.db.QueryRow(
-		ctx,
-		makeValidatorQuery(chainID),
-	).Scan(&epoch.ID, &epoch.StartHeight); err != nil {
-		c.logger.Info("row scan failed",
-			"request_id", ctx.Value(RequestIDContextKey),
-			"err", err.Error(),
-		)
-		return nil, common.ErrStorageError
-	}
-
-	row := c.db.QueryRow(
-		ctx,
-		makeValidatorDataQuery(chainID),
-		chi.URLParam(r, "entity_id"),
-	)
-
-	var v Validator
-	var schedule staking.CommissionSchedule
-	if err := row.Scan(
-		&v.EntityID,
-		&v.EntityAddress,
-		&v.NodeID,
-		&v.Escrow,
-		&schedule,
-		&v.Active,
-		&v.Status,
-		&v.Media,
-	); err != nil {
-		c.logger.Info("query failed",
-			"err", err.Error(),
-		)
-		return nil, common.ErrStorageError
-	}
-	// Match API for now
-	v.Name = v.Media.Name
-
-	currentRate := schedule.CurrentRate(beacon.EpochTime(epoch.ID))
-	if currentRate != nil {
-		v.CurrentRate = currentRate.ToBigInt().Uint64()
-	}
-	bound, next := util.CurrentBound(schedule, beacon.EpochTime(epoch.ID))
-	if bound != nil {
-		v.CurrentCommissionBound = ValidatorCommissionBound{
-			Lower:      bound.RateMin.ToBigInt().Uint64(),
-			Upper:      bound.RateMax.ToBigInt().Uint64(),
-			EpochStart: uint64(bound.Start),
-		}
-	}
-
-	if next > 0 {
-		v.CurrentCommissionBound.EpochEnd = next
-	}
-
-	return &v, nil
-}
-
 // Validators returns a list of validators.
 func (c *storageClient) Validators(ctx context.Context, r *http.Request) (*ValidatorList, error) {
-	chainID, ok := ctx.Value(ChainIDContextKey).(string)
+	cid, ok := ctx.Value(ChainIDContextKey).(string)
 	if !ok {
 		return nil, common.ErrBadChainID
 	}
+	qf := NewQueryFactory(cid)
 
 	var epoch Epoch
 	if err := c.db.QueryRow(
 		ctx,
-		makeValidatorsQuery(chainID),
+		qf.ValidatorsQuery(),
 	).Scan(&epoch.ID, &epoch.StartHeight); err != nil {
 		c.logger.Info("row scan failed",
 			"request_id", ctx.Value(RequestIDContextKey),
@@ -1126,7 +1081,7 @@ func (c *storageClient) Validators(ctx context.Context, r *http.Request) (*Valid
 
 	rows, err := c.db.Query(
 		ctx,
-		makeValidatorsDataQuery(chainID),
+		qf.ValidatorsDataQuery(),
 		pagination.Order,
 		pagination.Limit,
 		pagination.Offset,
@@ -1185,4 +1140,70 @@ func (c *storageClient) Validators(ctx context.Context, r *http.Request) (*Valid
 	}
 
 	return &vs, nil
+}
+
+// Validator returns a single validator.
+func (c *storageClient) Validator(ctx context.Context, r *http.Request) (*Validator, error) {
+	cid, ok := ctx.Value(ChainIDContextKey).(string)
+	if !ok {
+		return nil, common.ErrBadChainID
+	}
+	qf := NewQueryFactory(cid)
+
+	var epoch Epoch
+	if err := c.db.QueryRow(
+		ctx,
+		qf.ValidatorQuery(),
+	).Scan(&epoch.ID, &epoch.StartHeight); err != nil {
+		c.logger.Info("row scan failed",
+			"request_id", ctx.Value(RequestIDContextKey),
+			"err", err.Error(),
+		)
+		return nil, common.ErrStorageError
+	}
+
+	row := c.db.QueryRow(
+		ctx,
+		qf.ValidatorDataQuery(),
+		chi.URLParam(r, "entity_id"),
+	)
+
+	var v Validator
+	var schedule staking.CommissionSchedule
+	if err := row.Scan(
+		&v.EntityID,
+		&v.EntityAddress,
+		&v.NodeID,
+		&v.Escrow,
+		&schedule,
+		&v.Active,
+		&v.Status,
+		&v.Media,
+	); err != nil {
+		c.logger.Info("query failed",
+			"err", err.Error(),
+		)
+		return nil, common.ErrStorageError
+	}
+	// Match API for now
+	v.Name = v.Media.Name
+
+	currentRate := schedule.CurrentRate(beacon.EpochTime(epoch.ID))
+	if currentRate != nil {
+		v.CurrentRate = currentRate.ToBigInt().Uint64()
+	}
+	bound, next := util.CurrentBound(schedule, beacon.EpochTime(epoch.ID))
+	if bound != nil {
+		v.CurrentCommissionBound = ValidatorCommissionBound{
+			Lower:      bound.RateMin.ToBigInt().Uint64(),
+			Upper:      bound.RateMax.ToBigInt().Uint64(),
+			EpochStart: uint64(bound.Start),
+		}
+	}
+
+	if next > 0 {
+		v.CurrentCommissionBound.EpochEnd = next
+	}
+
+	return &v, nil
 }

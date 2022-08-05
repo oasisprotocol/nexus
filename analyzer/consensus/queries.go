@@ -4,71 +4,80 @@ import (
 	"fmt"
 )
 
-func makeLatestBlockQuery(chainID string) string {
+// QueryFactory is a convenience type for creating API queries.
+type QueryFactory struct {
+	chainID string
+}
+
+func NewQueryFactory(chainID string) QueryFactory {
+	return QueryFactory{chainID}
+}
+
+func (qf QueryFactory) LatestBlockQuery() string {
 	return fmt.Sprintf(`
 		SELECT height FROM %s.processed_blocks
 			WHERE analyzer = $1
 		ORDER BY height DESC
-		LIMIT 1`, chainID)
+		LIMIT 1`, qf.chainID)
 }
 
-func makeIndexingProgressQuery(chainID string) string {
+func (qf QueryFactory) IndexingProgressQuery() string {
 	return fmt.Sprintf(`
 		INSERT INTO %s.processed_blocks (height, analyzer, processed_time)
 			VALUES
-				($1, $2, CURRENT_TIMESTAMP)`, chainID)
+				($1, $2, CURRENT_TIMESTAMP)`, qf.chainID)
 }
 
-func makeBlockInsertQuery(chainID string) string {
+func (qf QueryFactory) BlockInsertQuery() string {
 	return fmt.Sprintf(`
 		INSERT INTO %s.blocks (height, block_hash, time, namespace, version, type, root_hash)
-			VALUES ($1, $2, $3, $4, $5, $6, $7)`, chainID)
+			VALUES ($1, $2, $3, $4, $5, $6, $7)`, qf.chainID)
 }
 
-func makeEpochInsertQuery(chainID string) string {
+func (qf QueryFactory) EpochInsertQuery() string {
 	return fmt.Sprintf(`
 		INSERT INTO %s.epochs (id, start_height)
 			VALUES ($1, $2)
-		ON CONFLICT (id) DO NOTHING`, chainID)
+		ON CONFLICT (id) DO NOTHING`, qf.chainID)
 }
 
-func makeEpochUpdateQuery(chainID string) string {
+func (qf QueryFactory) EpochUpdateQuery() string {
 	return fmt.Sprintf(`
 		UPDATE %s.epochs
 		SET end_height = $2
-			WHERE id = $1 AND end_height IS NULL`, chainID)
+			WHERE id = $1 AND end_height IS NULL`, qf.chainID)
 }
 
-func makeTransactionInsertQuery(chainID string) string {
+func (qf QueryFactory) TransactionInsertQuery() string {
 	return fmt.Sprintf(`
 		INSERT INTO %s.transactions (block, txn_hash, txn_index, nonce, fee_amount, max_gas, method, sender, body, module, code, message)
-			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`, chainID)
+			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`, qf.chainID)
 }
 
-func makeAccountNonceUpdateQuery(chainID string) string {
+func (qf QueryFactory) AccountNonceUpdateQuery() string {
 	return fmt.Sprintf(`
 		UPDATE %s.accounts
 		SET
 			nonce = $2
-		WHERE address = $1`, chainID)
+		WHERE address = $1`, qf.chainID)
 }
 
-func makeCommissionsUpsertQuery(chainID string) string {
+func (qf QueryFactory) CommissionsUpsertQuery() string {
 	return fmt.Sprintf(`
 		INSERT INTO %s.commissions (address, schedule)
 			VALUES ($1, $2)
 		ON CONFLICT (address) DO
 			UPDATE SET
-				schedule = excluded.schedule`, chainID)
+				schedule = excluded.schedule`, qf.chainID)
 }
 
-func makeEventInsertQuery(chainID string) string {
+func (qf QueryFactory) EventInsertQuery() string {
 	return fmt.Sprintf(`
 		INSERT INTO %s.events (backend, type, body, txn_block, txn_hash, txn_index)
-			VALUES ($1, $2, $3, $4, $5, $6)`, chainID)
+			VALUES ($1, $2, $3, $4, $5, $6)`, qf.chainID)
 }
 
-func makeRuntimeUpsertQuery(chainID string) string {
+func (qf QueryFactory) RuntimeUpsertQuery() string {
 	return fmt.Sprintf(`
 		INSERT INTO %s.runtimes (id, suspended, kind, tee_hardware, key_manager)
 			VALUES ($1, $2, $3, $4, $5)
@@ -77,38 +86,38 @@ func makeRuntimeUpsertQuery(chainID string) string {
 				suspended = excluded.suspended,
 				kind = excluded.kind,
 				tee_hardware = excluded.tee_hardware,
-				key_manager = excluded.key_manager`, chainID)
+				key_manager = excluded.key_manager`, qf.chainID)
 }
 
-func makeRuntimeSuspensionQuery(chainID string) string {
+func (qf QueryFactory) RuntimeSuspensionQuery() string {
 	return fmt.Sprintf(`
 		UPDATE %s.runtimes
 			SET suspended = true
-			WHERE id = $1`, chainID)
+			WHERE id = $1`, qf.chainID)
 }
 
-func makeRuntimeUnsuspensionQuery(chainID string) string {
+func (qf QueryFactory) RuntimeUnsuspensionQuery() string {
 	return fmt.Sprintf(`
 		UPDATE %s.runtimes
 			SET suspended = false
-			WHERE id = $1`, chainID)
+			WHERE id = $1`, qf.chainID)
 }
 
-func makeClaimedNodeInsertQuery(chainID string) string {
+func (qf QueryFactory) ClaimedNodeInsertQuery() string {
 	return fmt.Sprintf(`
 		INSERT INTO %s.claimed_nodes (entity_id, node_id) VALUES ($1, $2)
-			ON CONFLICT (entity_id, node_id) DO NOTHING`, chainID)
+			ON CONFLICT (entity_id, node_id) DO NOTHING`, qf.chainID)
 }
 
-func makeEntityUpsertQuery(chainID string) string {
+func (qf QueryFactory) EntityUpsertQuery() string {
 	return fmt.Sprintf(`
 		INSERT INTO %s.entities (id, address) VALUES ($1, $2)
 			ON CONFLICT (id) DO
 			UPDATE SET
-				address = excluded.address`, chainID)
+				address = excluded.address`, qf.chainID)
 }
 
-func makeNodeUpsertQuery(chainID string) string {
+func (qf QueryFactory) NodeUpsertQuery() string {
 	return fmt.Sprintf(`
 		INSERT INTO %s.nodes (id, entity_id, expiration, tls_pubkey, tls_next_pubkey, tls_addresses, p2p_pubkey, p2p_addresses, consensus_pubkey, consensus_address, vrf_pubkey, roles, software_version, voting_power)
 			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
@@ -126,183 +135,183 @@ func makeNodeUpsertQuery(chainID string) string {
 			vrf_pubkey = excluded.vrf_pubkey,
 			roles = excluded.roles,
 			software_version = excluded.software_version,
-			voting_power = excluded.voting_power`, chainID)
+			voting_power = excluded.voting_power`, qf.chainID)
 }
 
-func makeNodeDeleteQuery(chainID string) string {
+func (qf QueryFactory) NodeDeleteQuery() string {
 	return fmt.Sprintf(`
-		DELETE FROM %s.nodes WHERE id = $1`, chainID)
+		DELETE FROM %s.nodes WHERE id = $1`, qf.chainID)
 }
 
-func makeEntityMetaUpsertQuery(chainID string) string {
+func (qf QueryFactory) EntityMetaUpsertQuery() string {
 	return fmt.Sprintf(`
 		UPDATE %s.entities
 		SET meta = $2
-			WHERE id = $1`, chainID)
+			WHERE id = $1`, qf.chainID)
 }
 
-func makeSenderUpdateQuery(chainID string) string {
+func (qf QueryFactory) SenderUpdateQuery() string {
 	return fmt.Sprintf(`
 		UPDATE %s.accounts
 		SET
 			general_balance = general_balance - $2
-		WHERE address = $1`, chainID)
+		WHERE address = $1`, qf.chainID)
 }
 
-func makeReceiverUpdateQuery(chainID string) string {
+func (qf QueryFactory) ReceiverUpdateQuery() string {
 	return fmt.Sprintf(`
 		INSERT INTO %[1]s.accounts (address, general_balance)
 			VALUES ($1, $2)
 		ON CONFLICT (address) DO
-			UPDATE SET general_balance = %[1]s.accounts.general_balance + $2;`, chainID)
+			UPDATE SET general_balance = %[1]s.accounts.general_balance + $2;`, qf.chainID)
 }
 
-func makeBurnUpdateQuery(chainID string) string {
+func (qf QueryFactory) BurnUpdateQuery() string {
 	return fmt.Sprintf(`
 		UPDATE %s.accounts
 		SET
 			general_balance = general_balance - $2
-		WHERE address = $1`, chainID)
+		WHERE address = $1`, qf.chainID)
 }
 
-func makeAddGeneralBalanceUpdateQuery(chainID string) string {
+func (qf QueryFactory) AddGeneralBalanceUpdateQuery() string {
 	return fmt.Sprintf(`
 		UPDATE %s.accounts
 		SET
 			general_balance = general_balance - $2
-		WHERE address = $1`, chainID)
+		WHERE address = $1`, qf.chainID)
 }
 
-func makeAddEscrowBalanceUpsertQuery(chainID string) string {
+func (qf QueryFactory) AddEscrowBalanceUpsertQuery() string {
 	return fmt.Sprintf(`
 		INSERT INTO %[1]s.accounts (address, escrow_balance_active, escrow_total_shares_active)
 			VALUES ($1, $2, $3)
 		ON CONFLICT (address) DO
 			UPDATE SET
 				escrow_balance_active = %[1]s.accounts.escrow_balance_active + $2,
-				escrow_total_shares_active = %[1]s.accounts.escrow_total_shares_active + $3`, chainID)
+				escrow_total_shares_active = %[1]s.accounts.escrow_total_shares_active + $3`, qf.chainID)
 }
 
-func makeAddDelegationsUpsertQuery(chainID string) string {
+func (qf QueryFactory) AddDelegationsUpsertQuery() string {
 	return fmt.Sprintf(`
 		INSERT INTO %[1]s.delegations (delegatee, delegator, shares)
 			VALUES ($1, $2, $3)
 		ON CONFLICT (delegatee, delegator) DO
-			UPDATE SET shares = %[1]s.delegations.shares + $3`, chainID)
+			UPDATE SET shares = %[1]s.delegations.shares + $3`, qf.chainID)
 }
 
-func makeTakeEscrowUpdateQuery(chainID string) string {
+func (qf QueryFactory) TakeEscrowUpdateQuery() string {
 	return fmt.Sprintf(`
 		UPDATE %s.accounts
 		SET escrow_balance_active = escrow_balance_active - $2
-			WHERE address = $1`, chainID)
+			WHERE address = $1`, qf.chainID)
 }
 
-func makeDebondingStartEscrowBalanceUpdateQuery(chainID string) string {
+func (qf QueryFactory) DebondingStartEscrowBalanceUpdateQuery() string {
 	return fmt.Sprintf(`
 		UPDATE %s.accounts
 			SET
 				escrow_balance_active = escrow_balance_active - $2,
 				escrow_balance_debonding = escrow_balance_debonding + $2
-			WHERE address = $1`, chainID)
+			WHERE address = $1`, qf.chainID)
 }
 
-func makeDebondingStartDelegationsUpdateQuery(chainID string) string {
+func (qf QueryFactory) DebondingStartDelegationsUpdateQuery() string {
 	return fmt.Sprintf(`
 		UPDATE %s.delegations
 			SET shares = shares - $3
-				WHERE delegatee = $1 AND delegator = $2`, chainID)
+				WHERE delegatee = $1 AND delegator = $2`, qf.chainID)
 }
 
-func makeDebondingStartDebondingDelegationsInsertQuery(chainID string) string {
+func (qf QueryFactory) DebondingStartDebondingDelegationsInsertQuery() string {
 	return fmt.Sprintf(`
 		INSERT INTO %s.debonding_delegations (delegatee, delegator, shares, debond_end)
-			VALUES ($1, $2, $3, $4)`, chainID)
+			VALUES ($1, $2, $3, $4)`, qf.chainID)
 }
 
-func makeReclaimGeneralBalanceUpdateQuery(chainID string) string {
+func (qf QueryFactory) ReclaimGeneralBalanceUpdateQuery() string {
 	return fmt.Sprintf(`
 		UPDATE %s.accounts
 			SET
 				general_balance = general_balance + $2
-			WHERE address = $1`, chainID)
+			WHERE address = $1`, qf.chainID)
 }
 
-func makeReclaimEscrowBalanceUpdateQuery(chainID string) string {
+func (qf QueryFactory) ReclaimEscrowBalanceUpdateQuery() string {
 	return fmt.Sprintf(`
 		UPDATE %s.accounts
 			SET
 				escrow_balance_debonding = escrow_balance_debonding - $2,
 				escrow_total_shares_debonding = escrow_total_shares_debonding - $3
-			WHERE address = $1`, chainID)
+			WHERE address = $1`, qf.chainID)
 }
 
-func makeAllowanceChangeDeleteQuery(chainID string) string {
+func (qf QueryFactory) AllowanceChangeDeleteQuery() string {
 	return fmt.Sprintf(`
 		DELETE FROM %s.allowances
-			WHERE owner = $1 AND beneficiary = $2`, chainID)
+			WHERE owner = $1 AND beneficiary = $2`, qf.chainID)
 }
 
-func makeAllowanceChangeUpdateQuery(chainID string) string {
+func (qf QueryFactory) AllowanceChangeUpdateQuery() string {
 	return fmt.Sprintf(`
 		INSERT INTO %s.allowances (owner, beneficiary, allowance)
 			VALUES ($1, $2, $3)
 		ON CONFLICT (owner, beneficiary) DO
-			UPDATE SET allowance = excluded.allowance`, chainID)
+			UPDATE SET allowance = excluded.allowance`, qf.chainID)
 }
 
-func makeValidatorNodeUpdateQuery(chainID string) string {
+func (qf QueryFactory) ValidatorNodeUpdateQuery() string {
 	return fmt.Sprintf(`
 		UPDATE %s.nodes SET voting_power = $2
-			WHERE id = $1`, chainID)
+			WHERE id = $1`, qf.chainID)
 }
 
-func makeCommitteeMemberInsertQuery(chainID string) string {
+func (qf QueryFactory) CommitteeMemberInsertQuery() string {
 	return fmt.Sprintf(`
 		INSERT INTO %s.committee_members (node, valid_for, runtime, kind, role)
-			VALUES ($1, $2, $3, $4, $5)`, chainID)
+			VALUES ($1, $2, $3, $4, $5)`, qf.chainID)
 }
 
-func makeCommitteeMembersTruncateQuery(chainID string) string {
+func (qf QueryFactory) CommitteeMembersTruncateQuery() string {
 	return fmt.Sprintf(`
-		TRUNCATE %s.committee_members`, chainID)
+		TRUNCATE %s.committee_members`, qf.chainID)
 }
 
-func makeProposalSubmissionInsertQuery(chainID string) string {
+func (qf QueryFactory) ProposalSubmissionInsertQuery() string {
 	return fmt.Sprintf(`
 		INSERT INTO %s.proposals (id, submitter, state, deposit, handler, cp_target_version, rhp_target_version, rcp_target_version, upgrade_epoch, created_at, closes_at)
-			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`, chainID)
+			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`, qf.chainID)
 }
 
-func makeProposalSubmissionCancelInsertQuery(chainID string) string {
+func (qf QueryFactory) ProposalSubmissionCancelInsertQuery() string {
 	return fmt.Sprintf(`
 		INSERT INTO %s.proposals (id, submitter, state, deposit, cancels, created_at, closes_at)
-			VALUES ($1, $2, $3, $4, $5, $6, $7)`, chainID)
+			VALUES ($1, $2, $3, $4, $5, $6, $7)`, qf.chainID)
 }
 
-func makeProposalExecutionsUpdateQuery(chainID string) string {
+func (qf QueryFactory) ProposalExecutionsUpdateQuery() string {
 	return fmt.Sprintf(`
 		UPDATE %s.proposals
 		SET executed = true
-			WHERE id = $1`, chainID)
+			WHERE id = $1`, qf.chainID)
 }
 
-func makeProposalUpdateQuery(chainID string) string {
+func (qf QueryFactory) ProposalUpdateQuery() string {
 	return fmt.Sprintf(`
 		UPDATE %s.proposals
 		SET state = $2
-			WHERE id = $1`, chainID)
+			WHERE id = $1`, qf.chainID)
 }
 
-func makeProposalInvalidVotesUpdateQuery(chainID string) string {
+func (qf QueryFactory) ProposalInvalidVotesUpdateQuery() string {
 	return fmt.Sprintf(`
 		UPDATE %s.proposals
 		SET invalid_votes = $2
-			WHERE id = $1`, chainID)
+			WHERE id = $1`, qf.chainID)
 }
 
-func makeVoteInsertQuery(chainID string) string {
+func (qf QueryFactory) VoteInsertQuery() string {
 	return fmt.Sprintf(`
 		INSERT INTO %s.votes (proposal, voter, vote)
-			VALUES ($1, $2, $3)`, chainID)
+			VALUES ($1, $2, $3)`, qf.chainID)
 }

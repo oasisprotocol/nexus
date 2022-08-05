@@ -46,6 +46,7 @@ var (
 // Main is the main Analyzer for the consensus layer.
 type Main struct {
 	cfg     analyzer.Config
+	qf      QueryFactory
 	target  storage.TargetStorage
 	logger  *log.Logger
 	metrics metrics.DatabaseMetrics
@@ -87,9 +88,9 @@ func NewMain(cfg *config.AnalyzerConfig, target storage.TargetStorage, logger *l
 			Interval: interval,
 		}
 	}
-	ac.ChainID = strcase.ToSnake(cfg.ChainID)
 	return &Main{
 		cfg:     ac,
+		qf:      NewQueryFactory(strcase.ToSnake(cfg.ChainID)),
 		target:  target,
 		logger:  logger.With("analyzer", consensusMainDamaskName),
 		metrics: metrics.NewDefaultDatabaseMetrics(consensusMainDamaskName),
@@ -171,7 +172,7 @@ func (m *Main) latestBlock(ctx context.Context) (int64, error) {
 	var latest int64
 	if err := m.target.QueryRow(
 		ctx,
-		makeLatestBlockQuery(m.cfg.ChainID),
+		m.qf.LatestBlockQuery(),
 		// ^analyzers should only analyze for a single chain ID, and we anchor this
 		// at the starting block.
 		consensusMainDamaskName,
@@ -186,7 +187,6 @@ func (m *Main) processBlock(ctx context.Context, height int64) error {
 	m.logger.Info("processing block",
 		"height", height,
 	)
-	chainID := m.cfg.ChainID
 
 	group, groupCtx := errgroup.WithContext(ctx)
 
@@ -214,7 +214,7 @@ func (m *Main) processBlock(ctx context.Context, height int64) error {
 	// Update indexing progress.
 	group.Go(func() error {
 		batch.Queue(
-			makeIndexingProgressQuery(chainID),
+			m.qf.IndexingProgressQuery(),
 			height,
 			consensusMainDamaskName,
 		)
@@ -264,10 +264,8 @@ func (m *Main) prepareBlockData(ctx context.Context, height int64, batch *storag
 }
 
 func (m *Main) queueBlockInserts(batch *storage.QueryBatch, data *storage.BlockData) error {
-	chainID := m.cfg.ChainID
-
 	batch.Queue(
-		makeBlockInsertQuery(chainID),
+		m.qf.BlockInsertQuery(),
 		data.BlockHeader.Height,
 		data.BlockHeader.Hash.Hex(),
 		data.BlockHeader.Time.UTC(),
@@ -281,15 +279,13 @@ func (m *Main) queueBlockInserts(batch *storage.QueryBatch, data *storage.BlockD
 }
 
 func (m *Main) queueEpochInserts(batch *storage.QueryBatch, data *storage.BlockData) error {
-	chainID := m.cfg.ChainID
-
 	batch.Queue(
-		makeEpochInsertQuery(chainID),
+		m.qf.EpochInsertQuery(),
 		data.Epoch,
 		data.BlockHeader.Height,
 	)
 	batch.Queue(
-		makeEpochUpdateQuery(chainID),
+		m.qf.EpochUpdateQuery(),
 		data.Epoch-1,
 		data.BlockHeader.Height,
 	)
@@ -298,10 +294,9 @@ func (m *Main) queueEpochInserts(batch *storage.QueryBatch, data *storage.BlockD
 }
 
 func (m *Main) queueTransactionInserts(batch *storage.QueryBatch, data *storage.BlockData) error {
-	chainID := m.cfg.ChainID
-	transactionInsertQuery := makeTransactionInsertQuery(chainID)
-	accountNonceUpdateQuery := makeAccountNonceUpdateQuery(chainID)
-	commissionsUpsertQuery := makeCommissionsUpsertQuery(chainID)
+	transactionInsertQuery := m.qf.TransactionInsertQuery()
+	accountNonceUpdateQuery := m.qf.AccountNonceUpdateQuery()
+	commissionsUpsertQuery := m.qf.CommissionsUpsertQuery()
 
 	for i := range data.Transactions {
 		signedTx := data.Transactions[i]
@@ -359,8 +354,7 @@ func (m *Main) queueTransactionInserts(batch *storage.QueryBatch, data *storage.
 }
 
 func (m *Main) queueEventInserts(batch *storage.QueryBatch, data *storage.BlockData) error {
-	chainID := m.cfg.ChainID
-	eventInsertQuery := makeEventInsertQuery(chainID)
+	eventInsertQuery := m.qf.EventInsertQuery()
 
 	for i := 0; i < len(data.Results); i++ {
 		for j := 0; j < len(data.Results[i].Events); j++ {
@@ -416,8 +410,7 @@ func (m *Main) prepareRegistryData(ctx context.Context, height int64, batch *sto
 }
 
 func (m *Main) queueRuntimeRegistrations(batch *storage.QueryBatch, data *storage.RegistryData) error {
-	chainID := m.cfg.ChainID
-	runtimeUpsertQuery := makeRuntimeUpsertQuery(chainID)
+	runtimeUpsertQuery := m.qf.RuntimeUpsertQuery()
 
 	for _, runtimeEvent := range data.RuntimeEvents {
 		keyManager := "none"
@@ -439,9 +432,8 @@ func (m *Main) queueRuntimeRegistrations(batch *storage.QueryBatch, data *storag
 }
 
 func (m *Main) queueRuntimeStatusUpdates(batch *storage.QueryBatch, data *storage.RegistryData) error {
-	chainID := m.cfg.ChainID
-	runtimeSuspensionQuery := makeRuntimeSuspensionQuery(chainID)
-	runtimeUnsuspensionQuery := makeRuntimeUnsuspensionQuery(chainID)
+	runtimeSuspensionQuery := m.qf.RuntimeSuspensionQuery()
+	runtimeUnsuspensionQuery := m.qf.RuntimeUnsuspensionQuery()
 
 	for _, runtime := range data.RuntimeSuspensions {
 		batch.Queue(runtimeSuspensionQuery, runtime)
@@ -454,9 +446,8 @@ func (m *Main) queueRuntimeStatusUpdates(batch *storage.QueryBatch, data *storag
 }
 
 func (m *Main) queueEntityEvents(batch *storage.QueryBatch, data *storage.RegistryData) error {
-	chainID := m.cfg.ChainID
-	claimedNodeInsertQuery := makeClaimedNodeInsertQuery(chainID)
-	entityUpsertQuery := makeEntityUpsertQuery(chainID)
+	claimedNodeInsertQuery := m.qf.ClaimedNodeInsertQuery()
+	entityUpsertQuery := m.qf.EntityUpsertQuery()
 
 	for _, entityEvent := range data.EntityEvents {
 		entityID := entityEvent.Entity.ID.String()
@@ -477,9 +468,8 @@ func (m *Main) queueEntityEvents(batch *storage.QueryBatch, data *storage.Regist
 }
 
 func (m *Main) queueNodeEvents(batch *storage.QueryBatch, data *storage.RegistryData) error {
-	chainID := m.cfg.ChainID
-	nodeUpsertQuery := makeNodeUpsertQuery(chainID)
-	nodeDeleteQuery := makeNodeDeleteQuery(chainID)
+	nodeUpsertQuery := m.qf.NodeUpsertQuery()
+	nodeDeleteQuery := m.qf.NodeDeleteQuery()
 
 	for _, nodeEvent := range data.NodeEvents {
 		vrfPubkey := ""
@@ -545,7 +535,7 @@ func (m *Main) queueMetadataRegistry(ctx context.Context, batch *storage.QueryBa
 		return err
 	}
 
-	entityMetaUpsertQuery := makeEntityMetaUpsertQuery(m.cfg.ChainID)
+	entityMetaUpsertQuery := m.qf.EntityMetaUpsertQuery()
 	for id, meta := range entities {
 		batch.Queue(entityMetaUpsertQuery,
 			id,
@@ -582,9 +572,8 @@ func (m *Main) prepareStakingData(ctx context.Context, height int64, batch *stor
 }
 
 func (m *Main) queueTransfers(batch *storage.QueryBatch, data *storage.StakingData) error {
-	chainID := m.cfg.ChainID
-	senderUpdateQuery := makeSenderUpdateQuery(chainID)
-	receiverUpsertQuery := makeReceiverUpdateQuery(chainID)
+	senderUpdateQuery := m.qf.SenderUpdateQuery()
+	receiverUpsertQuery := m.qf.ReceiverUpdateQuery()
 
 	for _, transfer := range data.Transfers {
 		from := transfer.From.String()
@@ -604,8 +593,7 @@ func (m *Main) queueTransfers(batch *storage.QueryBatch, data *storage.StakingDa
 }
 
 func (m *Main) queueBurns(batch *storage.QueryBatch, data *storage.StakingData) error {
-	chainID := m.cfg.ChainID
-	burnUpdateQuery := makeBurnUpdateQuery(chainID)
+	burnUpdateQuery := m.qf.BurnUpdateQuery()
 
 	for _, burn := range data.Burns {
 		batch.Queue(burnUpdateQuery,
@@ -618,16 +606,15 @@ func (m *Main) queueBurns(batch *storage.QueryBatch, data *storage.StakingData) 
 }
 
 func (m *Main) queueEscrows(batch *storage.QueryBatch, data *storage.StakingData) error {
-	chainID := m.cfg.ChainID
-	addGeneralBalanceUpdateQuery := makeAddGeneralBalanceUpdateQuery(chainID)
-	addEscrowBalanceUpsertQuery := makeAddEscrowBalanceUpsertQuery(chainID)
-	addDelegationsUpsertQuery := makeAddDelegationsUpsertQuery(chainID)
-	takeEscrowUpdateQuery := makeTakeEscrowUpdateQuery(chainID)
-	debondingStartEscrowBalanceUpdateQuery := makeDebondingStartEscrowBalanceUpdateQuery(chainID)
-	debondingStartDelegationsUpdateQuery := makeDebondingStartDelegationsUpdateQuery(chainID)
-	debondingStartDebondingDelegationsInsertQuery := makeDebondingStartDebondingDelegationsInsertQuery(chainID)
-	reclaimGeneralBalanceUpdateQuery := makeReclaimGeneralBalanceUpdateQuery(chainID)
-	reclaimEscrowBalanceUpdateQuery := makeReclaimEscrowBalanceUpdateQuery(chainID)
+	addGeneralBalanceUpdateQuery := m.qf.AddGeneralBalanceUpdateQuery()
+	addEscrowBalanceUpsertQuery := m.qf.AddEscrowBalanceUpsertQuery()
+	addDelegationsUpsertQuery := m.qf.AddDelegationsUpsertQuery()
+	takeEscrowUpdateQuery := m.qf.TakeEscrowUpdateQuery()
+	debondingStartEscrowBalanceUpdateQuery := m.qf.DebondingStartEscrowBalanceUpdateQuery()
+	debondingStartDelegationsUpdateQuery := m.qf.DebondingStartDelegationsUpdateQuery()
+	debondingStartDebondingDelegationsInsertQuery := m.qf.DebondingStartDebondingDelegationsInsertQuery()
+	reclaimGeneralBalanceUpdateQuery := m.qf.ReclaimGeneralBalanceUpdateQuery()
+	reclaimEscrowBalanceUpdateQuery := m.qf.ReclaimEscrowBalanceUpdateQuery()
 
 	for _, escrow := range data.Escrows {
 		switch e := escrow; {
@@ -692,9 +679,8 @@ func (m *Main) queueEscrows(batch *storage.QueryBatch, data *storage.StakingData
 }
 
 func (m *Main) queueAllowanceChanges(batch *storage.QueryBatch, data *storage.StakingData) error {
-	chainID := m.cfg.ChainID
-	allowanceChangeDeleteQuery := makeAllowanceChangeDeleteQuery(chainID)
-	allowanceChangeUpdateQuery := makeAllowanceChangeUpdateQuery(chainID)
+	allowanceChangeDeleteQuery := m.qf.AllowanceChangeDeleteQuery()
+	allowanceChangeUpdateQuery := m.qf.AllowanceChangeUpdateQuery()
 
 	for _, allowanceChange := range data.AllowanceChanges {
 		allowance := allowanceChange.Allowance.ToBigInt().Uint64()
@@ -740,8 +726,7 @@ func (m *Main) prepareSchedulerData(ctx context.Context, height int64, batch *st
 }
 
 func (m *Main) queueValidatorUpdates(batch *storage.QueryBatch, data *storage.SchedulerData) error {
-	chainID := m.cfg.ChainID
-	validatorNodeUpdateQuery := makeValidatorNodeUpdateQuery(chainID)
+	validatorNodeUpdateQuery := m.qf.ValidatorNodeUpdateQuery()
 	for _, validator := range data.Validators {
 		batch.Queue(validatorNodeUpdateQuery,
 			validator.ID,
@@ -753,10 +738,9 @@ func (m *Main) queueValidatorUpdates(batch *storage.QueryBatch, data *storage.Sc
 }
 
 func (m *Main) queueCommitteeUpdates(batch *storage.QueryBatch, data *storage.SchedulerData) error {
-	chainID := m.cfg.ChainID
-	committeeMemberInsertQuery := makeCommitteeMemberInsertQuery(chainID)
+	committeeMemberInsertQuery := m.qf.CommitteeMemberInsertQuery()
 
-	batch.Queue(makeCommitteeMembersTruncateQuery(chainID))
+	batch.Queue(m.qf.CommitteeMembersTruncateQuery())
 	for namespace, committees := range data.Committees {
 		runtime := namespace.String()
 		for _, committee := range committees {
@@ -804,9 +788,8 @@ func (m *Main) prepareGovernanceData(ctx context.Context, height int64, batch *s
 }
 
 func (m *Main) queueSubmissions(batch *storage.QueryBatch, data *storage.GovernanceData) error {
-	chainID := m.cfg.ChainID
-	proposalSubmissionInsertQuery := makeProposalSubmissionInsertQuery(chainID)
-	proposalSubmissionCancelInsertQuery := makeProposalSubmissionCancelInsertQuery(chainID)
+	proposalSubmissionInsertQuery := m.qf.ProposalSubmissionInsertQuery()
+	proposalSubmissionCancelInsertQuery := m.qf.ProposalSubmissionCancelInsertQuery()
 
 	for _, submission := range data.ProposalSubmissions {
 		if submission.Content.Upgrade != nil {
@@ -840,8 +823,7 @@ func (m *Main) queueSubmissions(batch *storage.QueryBatch, data *storage.Governa
 }
 
 func (m *Main) queueExecutions(batch *storage.QueryBatch, data *storage.GovernanceData) error {
-	chainID := m.cfg.ChainID
-	proposalExecutionsUpdateQuery := makeProposalExecutionsUpdateQuery(chainID)
+	proposalExecutionsUpdateQuery := m.qf.ProposalExecutionsUpdateQuery()
 
 	for _, execution := range data.ProposalExecutions {
 		batch.Queue(proposalExecutionsUpdateQuery,
@@ -853,9 +835,8 @@ func (m *Main) queueExecutions(batch *storage.QueryBatch, data *storage.Governan
 }
 
 func (m *Main) queueFinalizations(batch *storage.QueryBatch, data *storage.GovernanceData) error {
-	chainID := m.cfg.ChainID
-	proposalUpdateQuery := makeProposalUpdateQuery(chainID)
-	proposalInvalidVotesUpdateQuery := makeProposalInvalidVotesUpdateQuery(chainID)
+	proposalUpdateQuery := m.qf.ProposalUpdateQuery()
+	proposalInvalidVotesUpdateQuery := m.qf.ProposalInvalidVotesUpdateQuery()
 
 	for _, finalization := range data.ProposalFinalizations {
 		batch.Queue(proposalUpdateQuery,
@@ -872,8 +853,7 @@ func (m *Main) queueFinalizations(batch *storage.QueryBatch, data *storage.Gover
 }
 
 func (m *Main) queueVotes(batch *storage.QueryBatch, data *storage.GovernanceData) error {
-	chainID := m.cfg.ChainID
-	voteInsertQuery := makeVoteInsertQuery(chainID)
+	voteInsertQuery := m.qf.VoteInsertQuery()
 
 	for _, vote := range data.Votes {
 		batch.Queue(voteInsertQuery,

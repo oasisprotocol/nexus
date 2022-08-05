@@ -4,15 +4,24 @@ import (
 	"fmt"
 )
 
-func makeStatusQuery(chainID string) string {
+// QueryFactory is a convenience type for creating API queries.
+type QueryFactory struct {
+	chainID string
+}
+
+func NewQueryFactory(chainID string) QueryFactory {
+	return QueryFactory{chainID}
+}
+
+func (qf QueryFactory) StatusQuery() string {
 	return fmt.Sprintf(`
 		SELECT height, processed_time
 			FROM %s.processed_blocks
 		ORDER BY processed_time DESC
-		LIMIT 1`, chainID)
+		LIMIT 1`, qf.chainID)
 }
 
-func makeBlocksQuery(chainID string) string {
+func (qf QueryFactory) BlocksQuery() string {
 	return fmt.Sprintf(`
 		SELECT height, block_hash, time
 			FROM %s.blocks
@@ -27,17 +36,17 @@ func makeBlocksQuery(chainID string) string {
 			END
 		DESC
 		LIMIT $6::bigint
-		OFFSET $7::bigint`, chainID)
+		OFFSET $7::bigint`, qf.chainID)
 }
 
-func makeBlockQuery(chainID string) string {
+func (qf QueryFactory) BlockQuery() string {
 	return fmt.Sprintf(`
 		SELECT height, block_hash, time
 			FROM %s.blocks
-			WHERE height = $1::bigint`, chainID)
+			WHERE height = $1::bigint`, qf.chainID)
 }
 
-func makeTransactionsQuery(chainID string) string {
+func (qf QueryFactory) TransactionsQuery() string {
 	return fmt.Sprintf(`
 		SELECT block, txn_hash, sender, nonce, fee_amount, method, body, code
 			FROM %s.transactions
@@ -54,17 +63,17 @@ func makeTransactionsQuery(chainID string) string {
 			END
 		DESC
 		LIMIT $8::bigint
-		OFFSET $9::bigint`, chainID)
+		OFFSET $9::bigint`, qf.chainID)
 }
 
-func makeTransactionQuery(chainID string) string {
+func (qf QueryFactory) TransactionQuery() string {
 	return fmt.Sprintf(`
 		SELECT block, txn_hash, sender, nonce, fee_amount, method, body, code
 			FROM %s.transactions
-			WHERE txn_hash = $1::text`, chainID)
+			WHERE txn_hash = $1::text`, qf.chainID)
 }
 
-func makeEntitiesQuery(chainID string) string {
+func (qf QueryFactory) EntitiesQuery() string {
 	return fmt.Sprintf(`
 		SELECT id, address
 			FROM %s.entities
@@ -75,24 +84,24 @@ func makeEntitiesQuery(chainID string) string {
 			END
 		DESC
 		LIMIT $2::bigint
-		OFFSET $3::bigint`, chainID)
+		OFFSET $3::bigint`, qf.chainID)
 }
 
-func makeEntityQuery(chainID string) string {
+func (qf QueryFactory) EntityQuery() string {
 	return fmt.Sprintf(`
 		SELECT id, address
 			FROM %s.entities
-			WHERE id = $1::text`, chainID)
+			WHERE id = $1::text`, qf.chainID)
 }
 
-func makeEntityNodeIdsQuery(chainID string) string {
+func (qf QueryFactory) EntityNodeIdsQuery() string {
 	return fmt.Sprintf(`
 		SELECT id
 			FROM %s.nodes
-			WHERE entity_id = $1::text`, chainID)
+			WHERE entity_id = $1::text`, qf.chainID)
 }
 
-func makeEntityNodesQuery(chainID string) string {
+func (qf QueryFactory) EntityNodesQuery() string {
 	return fmt.Sprintf(`
 		SELECT id, entity_id, expiration, tls_pubkey, tls_next_pubkey, p2p_pubkey, consensus_pubkey, roles
 			FROM %s.nodes
@@ -104,17 +113,17 @@ func makeEntityNodesQuery(chainID string) string {
 			END
 		DESC
 		LIMIT $3::bigint
-		OFFSET $4::bigint`, chainID)
+		OFFSET $4::bigint`, qf.chainID)
 }
 
-func makeEntityNodeQuery(chainID string) string {
+func (qf QueryFactory) EntityNodeQuery() string {
 	return fmt.Sprintf(`
 		SELECT id, entity_id, expiration, tls_pubkey, tls_next_pubkey, p2p_pubkey, consensus_pubkey, roles
 			FROM %s.nodes
-			WHERE entity_id = $1::text AND id = $2::text`, chainID)
+			WHERE entity_id = $1::text AND id = $2::text`, qf.chainID)
 }
 
-func makeAccountsQuery(chainID string) string {
+func (qf QueryFactory) AccountsQuery() string {
 	return fmt.Sprintf(`
 		SELECT address, nonce, general_balance, escrow_balance_active, escrow_balance_debonding
 			FROM %s.accounts
@@ -133,24 +142,24 @@ func makeAccountsQuery(chainID string) string {
 			END
 		DESC
 		LIMIT $10::bigint
-		OFFSET $11::bigint`, chainID)
+		OFFSET $11::bigint`, qf.chainID)
 }
 
-func makeAccountQuery(chainID string) string {
+func (qf QueryFactory) AccountQuery() string {
 	return fmt.Sprintf(`
 		SELECT address, nonce, general_balance, escrow_balance_active, escrow_balance_debonding
 			FROM %s.accounts
-			WHERE address = $1::text`, chainID)
+			WHERE address = $1::text`, qf.chainID)
 }
 
-func makeAccountAllowancesQuery(chainID string) string {
+func (qf QueryFactory) AccountAllowancesQuery() string {
 	return fmt.Sprintf(`
 		SELECT beneficiary, allowance
 			FROM %s.allowances
-			WHERE owner = $1::text`, chainID)
+			WHERE owner = $1::text`, qf.chainID)
 }
 
-func makeDelegationsQuery(chainID string) string {
+func (qf QueryFactory) DelegationsQuery() string {
 	return fmt.Sprintf(`
 		SELECT delegatee, shares, escrow_balance_active, escrow_total_shares_active
 			FROM %[1]s.delegations
@@ -163,10 +172,10 @@ func makeDelegationsQuery(chainID string) string {
 			END
 		DESC
 		LIMIT $3::bigint
-		OFFSET $4::bigint`, chainID)
+		OFFSET $4::bigint`, qf.chainID)
 }
 
-func makeDebondingDelegationsQuery(chainID string) string {
+func (qf QueryFactory) DebondingDelegationsQuery() string {
 	return fmt.Sprintf(`
 		SELECT delegatee, shares, debond_end, escrow_balance_debonding, escrow_total_shares_debonding
 			FROM %[1]s.debonding_delegations
@@ -179,10 +188,10 @@ func makeDebondingDelegationsQuery(chainID string) string {
 			END
 		DESC
 		LIMIT $3::bigint
-		OFFSET $4::bigint`, chainID)
+		OFFSET $4::bigint`, qf.chainID)
 }
 
-func makeEpochsQuery(chainID string) string {
+func (qf QueryFactory) EpochsQuery() string {
 	return fmt.Sprintf(`
 		SELECT id, start_height, end_height
 			FROM %s.epochs
@@ -193,17 +202,17 @@ func makeEpochsQuery(chainID string) string {
 			END
 		DESC
 		LIMIT $2::bigint
-		OFFSET $3::bigint`, chainID)
+		OFFSET $3::bigint`, qf.chainID)
 }
 
-func makeEpochQuery(chainID string) string {
+func (qf QueryFactory) EpochQuery() string {
 	return fmt.Sprintf(`
 		SELECT id, start_height, end_height
 			FROM %s.epochs
-			WHERE id = $1::bigint`, chainID)
+			WHERE id = $1::bigint`, qf.chainID)
 }
 
-func makeProposalsQuery(chainID string) string {
+func (qf QueryFactory) ProposalsQuery() string {
 	return fmt.Sprintf(`
 		SELECT id, submitter, state, deposit, handler, cp_target_version, rhp_target_version, rcp_target_version,
 				upgrade_epoch, cancels, created_at, closes_at, invalid_votes
@@ -217,18 +226,18 @@ func makeProposalsQuery(chainID string) string {
 			END
 		DESC
 		LIMIT $4::bigint
-		OFFSET $5::bigint`, chainID)
+		OFFSET $5::bigint`, qf.chainID)
 }
 
-func makeProposalQuery(chainID string) string {
+func (qf QueryFactory) ProposalQuery() string {
 	return fmt.Sprintf(`
 		SELECT id, submitter, state, deposit, handler, cp_target_version, rhp_target_version, rcp_target_version,
 				upgrade_epoch, cancels, created_at, closes_at, invalid_votes
 			FROM %s.proposals
-			WHERE id = $1::bigint`, chainID)
+			WHERE id = $1::bigint`, qf.chainID)
 }
 
-func makeProposalVotesQuery(chainID string) string {
+func (qf QueryFactory) ProposalVotesQuery() string {
 	return fmt.Sprintf(`
 		SELECT voter, vote
 			FROM %s.votes
@@ -240,18 +249,18 @@ func makeProposalVotesQuery(chainID string) string {
 			END
 		DESC
 		LIMIT $3::bigint
-		OFFSET $4::bigint`, chainID)
+		OFFSET $4::bigint`, qf.chainID)
 }
 
-func makeValidatorQuery(chainID string) string {
+func (qf QueryFactory) ValidatorQuery() string {
 	return fmt.Sprintf(`
 		SELECT id, start_height
 			FROM %s.epochs
 			ORDER BY id DESC
-			LIMIT 1`, chainID)
+			LIMIT 1`, qf.chainID)
 }
 
-func makeValidatorDataQuery(chainID string) string {
+func (qf QueryFactory) ValidatorDataQuery() string {
 	return fmt.Sprintf(`
 		SELECT
 				%[1]s.entities.id AS entity_id,
@@ -273,17 +282,17 @@ func makeValidatorDataQuery(chainID string) string {
 					WHERE %[1]s.entities.id = %[1]s.nodes.entity_id
 						AND %[1]s.nodes.roles like '%%validator%%'
 				)
-			WHERE %[1]s.entities.address = $1::text`, chainID)
+			WHERE %[1]s.entities.address = $1::text`, qf.chainID)
 }
 
-func makeValidatorsQuery(chainID string) string {
+func (qf QueryFactory) ValidatorsQuery() string {
 	return fmt.Sprintf(`
 		SELECT id, start_height
 			FROM %s.epochs
-			ORDER BY id DESC`, chainID)
+			ORDER BY id DESC`, qf.chainID)
 }
 
-func makeValidatorsDataQuery(chainID string) string {
+func (qf QueryFactory) ValidatorsDataQuery() string {
 	return fmt.Sprintf(`
 		SELECT
 				%[1]s.entities.id AS entity_id,
@@ -312,5 +321,5 @@ func makeValidatorsDataQuery(chainID string) string {
 			END
 		DESC
 		LIMIT $2::bigint
-		OFFSET $3::bigint`, chainID)
+		OFFSET $3::bigint`, qf.chainID)
 }
