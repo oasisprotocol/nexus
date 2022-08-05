@@ -39,6 +39,10 @@ func NewClient(connString string, l *log.Logger) (*Client, error) {
 }
 
 // SendBatch submits a new query batch as an atomic transaction to PostgreSQL.
+//
+// For now, updated row counts are discarded as this is not intended to be used
+// by any indexer. We only care about atomic success or failure of the query batch
+// corresponding to a new block.
 func (c *Client) SendBatch(ctx context.Context, batch *pgx.Batch) error {
 	if err := c.pool.BeginTxFunc(ctx, pgx.TxOptions{}, func(tx pgx.Tx) error {
 		batchResults := tx.SendBatch(ctx, batch)
