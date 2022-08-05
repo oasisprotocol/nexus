@@ -8,9 +8,6 @@ import (
 
 // Analyzer is a worker that analyzes a subset of the Oasis Network.
 type Analyzer interface {
-	// SetConfig sets configuration for the data to process.
-	SetConfig(Config)
-
 	// Start starts the analyzer.
 	Start()
 

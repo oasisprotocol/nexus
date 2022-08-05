@@ -11,19 +11,21 @@ import (
 
 	"github.com/iancoleman/strcase"
 	"github.com/jackc/pgx/v4"
+	registry "github.com/oasisprotocol/metadata-registry-tools"
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 	"github.com/oasisprotocol/oasis-core/go/consensus/api/transaction"
 	"github.com/oasisprotocol/oasis-core/go/consensus/api/transaction/results"
 	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
+	oasisConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 	"golang.org/x/sync/errgroup"
-
-	registry "github.com/oasisprotocol/metadata-registry-tools"
 
 	"github.com/oasislabs/oasis-indexer/analyzer"
 	"github.com/oasislabs/oasis-indexer/analyzer/util"
+	"github.com/oasislabs/oasis-indexer/config"
 	"github.com/oasislabs/oasis-indexer/log"
 	"github.com/oasislabs/oasis-indexer/metrics"
 	"github.com/oasislabs/oasis-indexer/storage"
+	source "github.com/oasislabs/oasis-indexer/storage/oasis"
 )
 
 const (
@@ -50,19 +52,50 @@ type Main struct {
 }
 
 // NewMain returns a new main analyzer for the consensus layer.
-func NewMain(target storage.TargetStorage, logger *log.Logger) *Main {
+func NewMain(cfg *config.AnalyzerConfig, target storage.TargetStorage, logger *log.Logger) (*Main, error) {
+	ctx := context.Background()
+
+	var ac analyzer.Config
+	if cfg.Interval == "" {
+		// Initialize source storage.
+		networkCfg := oasisConfig.Network{
+			ChainContext: cfg.ChainContext,
+			RPC:          cfg.RPC,
+		}
+		source, err := source.NewClient(ctx, &networkCfg)
+		if err != nil {
+			return nil, err
+		}
+
+		// Configure analyzer.
+		blockRange := analyzer.Range{
+			From: cfg.From,
+			To:   cfg.To,
+		}
+		ac = analyzer.Config{
+			ChainID:    cfg.ChainID,
+			BlockRange: blockRange,
+			Source:     source,
+		}
+	} else {
+		interval, err := time.ParseDuration(cfg.Interval)
+		if err != nil {
+			return nil, err
+		}
+
+		// Configure analyzer.
+		ac = analyzer.Config{
+			ChainID:  cfg.ChainID,
+			Interval: interval,
+		}
+	}
+	cfg.ChainID = strcase.ToSnake(cfg.ChainID)
 	return &Main{
+		cfg:     ac,
 		target:  target,
 		logger:  logger.With("analyzer", consensusMainDamaskName),
 		metrics: metrics.NewDefaultDatabaseMetrics(consensusMainDamaskName),
-	}
-}
-
-// SetConfig adds configuration for the range of blocks to process to
-// this analyzer. It is intended to be called before Start.
-func (m *Main) SetConfig(cfg analyzer.Config) {
-	m.cfg = cfg
-	m.cfg.ChainID = strcase.ToSnake(m.cfg.ChainID)
+	}, nil
 }
 
 // Start starts the main consensus analyzer.
