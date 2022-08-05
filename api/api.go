@@ -58,7 +58,7 @@ func NewIndexerAPI(chainID string, db storage.TargetStorage, l *log.Logger) *Ind
 		router:   r,
 		handlers: handlers,
 		logger:   l.WithModule(moduleName),
-	}
+	}, nil
 }
 
 // Router gets the router for this Handler.

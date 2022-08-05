@@ -14,7 +14,7 @@ const (
 
 // Handler is the Oasis Indexer V1 API handler.
 type Handler struct {
-	client  *storageClient
+	client  *cachingStorageClient
 	logger  *log.Logger
 	metrics metrics.RequestMetrics
 }
@@ -25,7 +25,7 @@ func NewHandler(chainID string, db storage.TargetStorage, l *log.Logger) *Handle
 		client:  newStorageClient(chainID, db, l),
 		logger:  l.WithModule(moduleName),
 		metrics: metrics.NewDefaultRequestMetrics(moduleName),
-	}
+	}, nil
 }
 
 // RegisterRoutes implements the APIHandler interface.

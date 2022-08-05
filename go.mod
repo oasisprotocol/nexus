@@ -6,6 +6,7 @@ replace github.com/tendermint/tendermint => github.com/oasisprotocol/tendermint 
 
 require (
 	github.com/cockroachdb/cockroach-go/v2 v2.2.8
+	github.com/dgraph-io/ristretto v0.1.0
 	github.com/go-chi/chi/v5 v5.0.7
 	github.com/go-kit/log v0.2.1
 	github.com/golang-migrate/migrate/v4 v4.15.2
@@ -30,6 +31,7 @@ require (
 	github.com/cenkalti/backoff/v4 v4.1.3 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/dustin/go-humanize v1.0.0 // indirect
 	github.com/eapache/channels v1.1.0 // indirect
 	github.com/eapache/queue v1.1.0 // indirect
 	github.com/emirpasic/gods v1.12.0 // indirect
@@ -41,6 +43,7 @@ require (
 	github.com/go-git/go-git/v5 v5.1.0 // indirect
 	github.com/go-logfmt/logfmt v0.5.1 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
+	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/go-github/v39 v39.2.0 // indirect
