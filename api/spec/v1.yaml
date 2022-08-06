@@ -1032,6 +1032,16 @@ components:
           format: int64
           description: The debonding escrow balance, in base units.
           example: 10000000000
+        delegations_balance:
+          type: integer
+          format: int64
+          description: The delegations balance, in base units.
+          example: 10000000000
+        debonding_delegations_balance:
+          type: integer
+          format: int64
+          description: The debonding delegations balance, in base units.
+          example: 10000000000
         allowances:
           type: array
           items:

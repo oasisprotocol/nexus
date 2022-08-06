@@ -708,7 +708,9 @@ func (m *Main) queueEscrows(batch *storage.QueryBatch, data *storage.StakingData
 		case e.Take != nil:
 			batch.Queue(fmt.Sprintf(`
 				UPDATE %s.accounts
-				SET escrow_balance_active = escrow_balance_active - $2
+					SET
+						escrow_balance_active = escrow_balance_active - ROUND($2 * escrow_balance_active  / (escrow_balance_active + escrow_balance_debonding)),
+						escrow_balance_debonding = escrow_balance_debonding - ROUND($2 * escrow_balance_debonding  / (escrow_balance_active + escrow_balance_debonding))
 					WHERE address = $1;
 			`, chainID),
 				e.Take.Owner.String(),
@@ -719,11 +721,12 @@ func (m *Main) queueEscrows(batch *storage.QueryBatch, data *storage.StakingData
 				UPDATE %s.accounts
 					SET
 						escrow_balance_active = escrow_balance_active - $2,
-						escrow_balance_debonding = escrow_balance_debonding + $2
+						escrow_balance_debonding = escrow_balance_debonding + $2,
+						escrow_total_shares_debonding = escrow_total_shares_debonding + $2
 					WHERE address = $1;
 			`, chainID),
 				e.DebondingStart.Escrow.String(),
-				e.DebondingStart.DebondingShares.ToBigInt().Uint64(),
+				e.DebondingStart.ActiveShares.ToBigInt().Uint64(),
 			)
 			batch.Queue(fmt.Sprintf(`
 				UPDATE %s.delegations
@@ -765,9 +768,24 @@ func (m *Main) queueEscrows(batch *storage.QueryBatch, data *storage.StakingData
 				e.Reclaim.Shares.ToBigInt().Uint64(),
 			)
 
-			// TODO: Delete row from `debonding_delegations` that corresponds with
-			// the reclaimed escrow. The reclaim occurs on epoch transition, so
-			// check which epoch just transitioned.
+			batch.Queue(fmt.Sprintf(`
+				DELETE FROM %s.debonding_delegations
+					WHERE (ctid) IN (
+						SELECT ctid
+						FROM %s.debonding_delegations
+						WHERE
+							delegator = $1 AND delegatee = $2 AND shares = $3 AND debond_end = (
+							SELECT max(id)
+							FROM %s.epochs
+							WHERE end_height IS NOT NULL AND end_height < $4
+						) LIMIT 1
+					);
+			`, chainID, chainID, chainID),
+				e.Reclaim.Owner.String(),
+				e.Reclaim.Escrow.String(),
+				e.Reclaim.Shares.ToBigInt().Uint64(),
+				data.Height,
+			)
 		}
 	}
 
