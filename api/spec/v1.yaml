@@ -740,7 +740,8 @@ components:
         amount:
           type: integer
           format: int64
-          description: The amount of tokens delegated.
+          description: The amount of tokens delegated in base units.
+          example: 10000000000
         shares:
           type: integer
           format: int64
@@ -768,7 +769,8 @@ components:
         amount:
           type: integer
           format: int64
-          description: The amount of tokens delegated.
+          description: The amount of tokens delegated in base units.
+          example: 10000000000
         shares:
           type: integer
           format: int64
