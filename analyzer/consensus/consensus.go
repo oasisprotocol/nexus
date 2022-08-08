@@ -709,8 +709,8 @@ func (m *Main) queueEscrows(batch *storage.QueryBatch, data *storage.StakingData
 			batch.Queue(fmt.Sprintf(`
 				UPDATE %s.accounts
 					SET
-						escrow_balance_active = escrow_balance_active - ROUND($2 * escrow_balance_active  / (escrow_balance_active + escrow_balance_debonding)),
-						escrow_balance_debonding = escrow_balance_debonding - ROUND($2 * escrow_balance_debonding  / (escrow_balance_active + escrow_balance_debonding))
+						escrow_balance_active = escrow_balance_active - ROUND($2 * escrow_balance_active / (escrow_balance_active + escrow_balance_debonding)),
+						escrow_balance_debonding = escrow_balance_debonding - ROUND($2 * escrow_balance_debonding / (escrow_balance_active + escrow_balance_debonding))
 					WHERE address = $1;
 			`, chainID),
 				e.Take.Owner.String(),
@@ -721,13 +721,15 @@ func (m *Main) queueEscrows(batch *storage.QueryBatch, data *storage.StakingData
 				UPDATE %s.accounts
 					SET
 						escrow_balance_active = escrow_balance_active - $2,
-						escrow_balance_debonding = escrow_balance_debonding + $3,
-						escrow_total_shares_debonding = escrow_total_shares_debonding + $2
+						escrow_total_shares_active = escrow_total_shares_active - $3,
+						escrow_balance_debonding = escrow_balance_debonding + $2,
+						escrow_total_shares_debonding = escrow_total_shares_debonding + $4
 					WHERE address = $1;
 			`, chainID),
 				e.DebondingStart.Escrow.String(),
-				e.DebondingStart.ActiveShares.ToBigInt().Uint64(),
 				e.DebondingStart.Amount.ToBigInt().Uint64(),
+				e.DebondingStart.ActiveShares.ToBigInt().Uint64(),
+				e.DebondingStart.DebondingShares.ToBigInt().Uint64(),
 			)
 			batch.Queue(fmt.Sprintf(`
 				UPDATE %s.delegations
