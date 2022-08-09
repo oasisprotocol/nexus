@@ -45,6 +45,20 @@ func TestBackoffMaximum(t *testing.T) {
 	require.Equal(t, backoff.Timeout(), 10*time.Millisecond)
 }
 
+// TestMaximumTimeoutUpperBound tests that the maximum timeout upper
+// bound is respected.
+func TestMaximumTimeoutUpperBound(t *testing.T) {
+	_, err := NewBackoff(time.Millisecond, (MaximumTimeoutUpperBoundSeconds+1)*time.Second)
+	require.NotNil(t, err)
+}
+
+// TestInitialTimeoutLowerBound tests that the initial timeout lower
+// bound is respected.
+func TestInitialTimeoutUpperBound(t *testing.T) {
+	_, err := NewBackoff((InitialTimeoutLowerBoundSeconds-1)*time.Second, 10*time.Millisecond)
+	require.NotNil(t, err)
+}
+
 func TestCurrentBound(t *testing.T) {
 	commissionSchedule := staking.CommissionSchedule{
 		Rates: []staking.CommissionRateStep{},

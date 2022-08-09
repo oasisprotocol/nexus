@@ -3,7 +3,6 @@ package util
 
 import (
 	"fmt"
-	"math"
 	"time"
 
 	beacon "github.com/oasisprotocol/oasis-core/go/beacon/api"
@@ -11,8 +10,8 @@ import (
 )
 
 const (
-	initialTimeoutLowerBound = 0
-	maximumTimeoutUpperBound = math.MaxInt64 / 2
+	InitialTimeoutLowerBoundSeconds = 0
+	MaximumTimeoutUpperBoundSeconds = 60
 )
 
 // Backoff implements retry backoff on failure.
@@ -24,18 +23,18 @@ type Backoff struct {
 
 // NewBackoff returns a new backoff.
 func NewBackoff(initialTimeout time.Duration, maximumTimeout time.Duration) (*Backoff, error) {
-	if initialTimeout <= initialTimeoutLowerBound {
+	if initialTimeout <= InitialTimeoutLowerBoundSeconds {
 		return nil, fmt.Errorf(
 			"initial timeout %fs less than lower bound %ds",
 			initialTimeout.Seconds(),
-			initialTimeoutLowerBound,
+			InitialTimeoutLowerBoundSeconds,
 		)
 	}
-	if maximumTimeout.Seconds() >= math.MaxInt64/2 {
+	if maximumTimeout.Seconds() >= MaximumTimeoutUpperBoundSeconds {
 		return nil, fmt.Errorf(
 			"maximum timeout %fs greater than upper bound %ds",
 			maximumTimeout.Seconds(),
-			maximumTimeoutUpperBound,
+			MaximumTimeoutUpperBoundSeconds,
 		)
 	}
 	return &Backoff{initialTimeout, initialTimeout, maximumTimeout}, nil
