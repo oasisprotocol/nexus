@@ -203,7 +203,9 @@ func (qf QueryFactory) AddDelegationsUpsertQuery() string {
 func (qf QueryFactory) TakeEscrowUpdateQuery() string {
 	return fmt.Sprintf(`
 		UPDATE %s.accounts
-		SET escrow_balance_active = escrow_balance_active - $2
+			SET
+				escrow_balance_active = escrow_balance_active - ROUND($2 * escrow_balance_active / (escrow_balance_active + escrow_balance_debonding)),
+				escrow_balance_debonding = escrow_balance_debonding - ROUND($2 * escrow_balance_debonding / (escrow_balance_active + escrow_balance_debonding))
 			WHERE address = $1`, qf.chainID)
 }
 
@@ -212,7 +214,9 @@ func (qf QueryFactory) DebondingStartEscrowBalanceUpdateQuery() string {
 		UPDATE %s.accounts
 			SET
 				escrow_balance_active = escrow_balance_active - $2,
-				escrow_balance_debonding = escrow_balance_debonding + $2
+				escrow_total_shares_active = escrow_total_shares_active - $3,
+				escrow_balance_debonding = escrow_balance_debonding + $2,
+				escrow_total_shares_debonding = escrow_total_shares_debonding + $4
 			WHERE address = $1`, qf.chainID)
 }
 
@@ -244,6 +248,21 @@ func (qf QueryFactory) ReclaimEscrowBalanceUpdateQuery() string {
 				escrow_balance_debonding = escrow_balance_debonding - $2,
 				escrow_total_shares_debonding = escrow_total_shares_debonding - $3
 			WHERE address = $1`, qf.chainID)
+}
+
+func (qf QueryFactory) DeleteDebondingDelegationsQuery() string {
+	return fmt.Sprintf(`
+		DELETE FROM %[1]s.debonding_delegations
+			WHERE (ctid) IN (
+				SELECT ctid
+				FROM %[1]s.debonding_delegations
+				WHERE
+					delegator = $1 AND delegatee = $2 AND shares = $3 AND debond_end = (
+					SELECT max(id)
+					FROM %[1]s.epochs
+					WHERE end_height IS NOT NULL AND end_height < $4
+				) LIMIT 1
+			)`, qf.chainID)
 }
 
 func (qf QueryFactory) AllowanceChangeDeleteQuery() string {

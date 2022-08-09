@@ -615,6 +615,7 @@ func (m *Main) queueEscrows(batch *storage.QueryBatch, data *storage.StakingData
 	debondingStartDebondingDelegationsInsertQuery := m.qf.DebondingStartDebondingDelegationsInsertQuery()
 	reclaimGeneralBalanceUpdateQuery := m.qf.ReclaimGeneralBalanceUpdateQuery()
 	reclaimEscrowBalanceUpdateQuery := m.qf.ReclaimEscrowBalanceUpdateQuery()
+	deleteDebondingDelegationsQuery := m.qf.DeleteDebondingDelegationsQuery()
 
 	for _, escrow := range data.Escrows {
 		switch e := escrow; {
@@ -645,6 +646,8 @@ func (m *Main) queueEscrows(batch *storage.QueryBatch, data *storage.StakingData
 		case e.DebondingStart != nil:
 			batch.Queue(debondingStartEscrowBalanceUpdateQuery,
 				e.DebondingStart.Escrow.String(),
+				e.DebondingStart.Amount.ToBigInt().Uint64(),
+				e.DebondingStart.ActiveShares.ToBigInt().Uint64(),
 				e.DebondingStart.DebondingShares.ToBigInt().Uint64(),
 			)
 			batch.Queue(debondingStartDelegationsUpdateQuery,
@@ -669,9 +672,12 @@ func (m *Main) queueEscrows(batch *storage.QueryBatch, data *storage.StakingData
 				e.Reclaim.Shares.ToBigInt().Uint64(),
 			)
 
-			// TODO: Delete row from `debonding_delegations` that corresponds with
-			// the reclaimed escrow. The reclaim occurs on epoch transition, so
-			// check which epoch just transitioned.
+			batch.Queue(deleteDebondingDelegationsQuery,
+				e.Reclaim.Owner.String(),
+				e.Reclaim.Escrow.String(),
+				e.Reclaim.Shares.ToBigInt().Uint64(),
+				data.Height,
+			)
 		}
 	}
 

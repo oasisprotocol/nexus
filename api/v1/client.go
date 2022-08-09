@@ -630,6 +630,8 @@ func (c *storageClient) Account(ctx context.Context, r *http.Request) (*Account,
 		&a.Available,
 		&a.Escrow,
 		&a.Debonding,
+		&a.DelegationsBalance,
+		&a.DebondingDelegationsBalance,
 	); err != nil {
 		c.logger.Info("row scan failed",
 			"request_id", ctx.Value(RequestIDContextKey),
@@ -725,7 +727,7 @@ func (c *storageClient) Delegations(ctx context.Context, r *http.Request) (*Dele
 			return nil, common.ErrStorageError
 		}
 
-		d.Amount = d.Shares * escrowBalanceActive / escrowTotalSharesActive
+		d.Amount = uint64(float64(d.Shares) * float64(escrowBalanceActive) / float64(escrowTotalSharesActive))
 
 		ds.Delegations = append(ds.Delegations, d)
 	}
@@ -787,7 +789,7 @@ func (c *storageClient) DebondingDelegations(ctx context.Context, r *http.Reques
 			)
 			return nil, common.ErrStorageError
 		}
-		d.Amount = d.Shares * escrowBalanceDebonding / escrowTotalSharesDebonding
+		d.Amount = uint64(float64(d.Shares) * float64(escrowBalanceDebonding) / float64(escrowTotalSharesDebonding))
 		ds.DebondingDelegations = append(ds.DebondingDelegations, d)
 	}
 

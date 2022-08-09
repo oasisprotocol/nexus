@@ -79,11 +79,13 @@ type AccountList struct {
 
 // Account is the API response for GetAccount.
 type Account struct {
-	Address   string `json:"address"`
-	Nonce     uint64 `json:"nonce"`
-	Available uint64 `json:"available"`
-	Escrow    uint64 `json:"escrow"`
-	Debonding uint64 `json:"debonding"`
+	Address                     string `json:"address"`
+	Nonce                       uint64 `json:"nonce"`
+	Available                   uint64 `json:"available"`
+	Escrow                      uint64 `json:"escrow"`
+	Debonding                   uint64 `json:"debonding"`
+	DelegationsBalance          uint64 `json:"delegations_balance,omitempty"`
+	DebondingDelegationsBalance uint64 `json:"debonding_delegations_balance,omitempty"`
 
 	Allowances []Allowance `json:"allowances"`
 }
