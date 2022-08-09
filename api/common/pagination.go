@@ -23,7 +23,7 @@ const (
 type Pagination struct {
 	Limit  uint64
 	Offset uint64
-	Order  string
+	Order  *string
 }
 
 // NewPagination extracts pagination parameters from an http request.
@@ -43,10 +43,12 @@ func NewPagination(r *http.Request) (p Pagination, err error) {
 		offset, err = strconv.ParseUint(v, 10, 64)
 	}
 
+	order := DefaultOrder
+
 	p = Pagination{
 		Limit:  limit,
 		Offset: offset,
-		Order:  DefaultOrder,
+		Order:  &order,
 	}
 	return
 }

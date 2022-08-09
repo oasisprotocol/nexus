@@ -13,7 +13,9 @@ import (
 // TestBackoffWait tests if the backoff time is
 // updated correctly.
 func TestBackoffWait(t *testing.T) {
-	backoff := NewBackoff(time.Millisecond, 10*time.Second)
+	backoff, err := NewBackoff(time.Millisecond, 10*time.Second)
+	require.Nil(t, err)
+
 	for i := 0; i < 10; i++ {
 		backoff.Wait()
 	}
@@ -23,7 +25,9 @@ func TestBackoffWait(t *testing.T) {
 // TestBackoffReset tests if the backoff time is
 // reset correctly.
 func TestBackoffReset(t *testing.T) {
-	backoff := NewBackoff(time.Millisecond, 10*time.Second)
+	backoff, err := NewBackoff(time.Millisecond, 10*time.Second)
+	require.Nil(t, err)
+
 	backoff.Wait()
 	backoff.Reset()
 	require.Equal(t, backoff.Timeout(), time.Millisecond)
@@ -32,11 +36,27 @@ func TestBackoffReset(t *testing.T) {
 // TestBackoffMaximum tests if the backoff time is
 // appropriately upper bounded.
 func TestBackoffMaximum(t *testing.T) {
-	backoff := NewBackoff(time.Millisecond, 10*time.Millisecond)
+	backoff, err := NewBackoff(time.Millisecond, 10*time.Millisecond)
+	require.Nil(t, err)
+
 	for i := 0; i < 10; i++ {
 		backoff.Wait()
 	}
 	require.Equal(t, backoff.Timeout(), 10*time.Millisecond)
+}
+
+// TestMaximumTimeoutUpperBound tests that the maximum timeout upper
+// bound is respected.
+func TestMaximumTimeoutUpperBound(t *testing.T) {
+	_, err := NewBackoff(time.Millisecond, (MaximumTimeoutUpperBoundSeconds+1)*time.Second)
+	require.NotNil(t, err)
+}
+
+// TestInitialTimeoutLowerBound tests that the initial timeout lower
+// bound is respected.
+func TestInitialTimeoutUpperBound(t *testing.T) {
+	_, err := NewBackoff((InitialTimeoutLowerBoundSeconds-1)*time.Second, 10*time.Millisecond)
+	require.NotNil(t, err)
 }
 
 func TestCurrentBound(t *testing.T) {

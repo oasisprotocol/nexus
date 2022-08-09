@@ -8,9 +8,6 @@ import (
 
 // Analyzer is a worker that analyzes a subset of the Oasis Network.
 type Analyzer interface {
-	// SetConfig sets configuration for the data to process.
-	SetConfig(Config)
-
 	// Start starts the analyzer.
 	Start()
 
@@ -78,7 +75,7 @@ func (b *Backend) String() string {
 	}
 }
 
-// Event is a consensus event.
+// Event is a an event emitted by the consensus layer.
 type Event uint
 
 const (
@@ -96,20 +93,20 @@ const (
 	EventStakingReclaimEscrow
 	// EventStakingAllowanceChange is an allowance change event.
 	EventStakingAllowanceChange
-	// EventRegistryRuntimeRegistration is a runtime registration event.
-	EventRegistryRuntimeRegistration
-	// EventRegistryEntityRegistration is an entity registration event.
-	EventRegistryEntityRegistration
-	// EventRegistryNodeRegistration is a node registration event.
-	EventRegistryNodeRegistration
-	// EventRegistryNodeUnfrozenEvent is a node unfrozen event.
-	EventRegistryNodeUnfrozenEvent
-	// EventRoothashExecutorCommittedEvent is an executor committed event.
-	EventRoothashExecutorCommittedEvent
-	// EventRoothashDiscrepancyDetectedEvent is a discrepancy detected event.
-	EventRoothashDiscrepancyDetectedEvent
+	// EventRegistryRuntime is a runtime registration event.
+	EventRegistryRuntime
+	// EventRegistryEntity is an entity registration event.
+	EventRegistryEntity
+	// EventRegistryNode is a node registration event.
+	EventRegistryNode
+	// EventRegistryNodeUnfrozen is a node unfrozen event.
+	EventRegistryNodeUnfrozen
+	// EventRoothashExecutorCommitted is an executor committed event.
+	EventRoothashExecutorCommitted
+	// EventRoothashDiscrepancyDetected is a discrepancy detected event.
+	EventRoothashDiscrepancyDetected
 	// EventRoothashFinalizedEvent is a roothash finalization event.
-	EventRoothashFinalizedEvent
+	EventRoothashFinalized
 	// EventGovernanceProposalSubmitted is a proposal submission event.
 	EventGovernanceProposalSubmitted
 	// EventGovernanceProposalExecuted is a proposal execution event.
@@ -119,7 +116,7 @@ const (
 	// EventGovernanceVote is a proposal vote event.
 	EventGovernanceVote
 	// EventUnknown is an unknown event type.
-	EventUnknown
+	EventUnknown = 255
 )
 
 // String returns the string representation of an Event.
@@ -139,19 +136,19 @@ func (e *Event) String() string {
 		return "ReclaimEscrow"
 	case EventStakingAllowanceChange:
 		return "AllowanceChange"
-	case EventRegistryRuntimeRegistration:
-		return "RuntimeRegistration"
-	case EventRegistryEntityRegistration:
-		return "EntityRegistration"
-	case EventRegistryNodeRegistration:
-		return "NodeRegistration"
-	case EventRegistryNodeUnfrozenEvent:
+	case EventRegistryRuntime:
+		return "Runtime"
+	case EventRegistryEntity:
+		return "Entity"
+	case EventRegistryNode:
+		return "Node"
+	case EventRegistryNodeUnfrozen:
 		return "NodeUnfrozen"
-	case EventRoothashExecutorCommittedEvent:
+	case EventRoothashExecutorCommitted:
 		return "ExecutorCommitted"
-	case EventRoothashDiscrepancyDetectedEvent:
+	case EventRoothashDiscrepancyDetected:
 		return "DiscrepancyDetected"
-	case EventRoothashFinalizedEvent:
+	case EventRoothashFinalized:
 		return "Finalized"
 	case EventGovernanceProposalSubmitted:
 		return "ProposalSubmitted"

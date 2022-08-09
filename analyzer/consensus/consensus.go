@@ -11,19 +11,21 @@ import (
 
 	"github.com/iancoleman/strcase"
 	"github.com/jackc/pgx/v4"
+	registry "github.com/oasisprotocol/metadata-registry-tools"
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 	"github.com/oasisprotocol/oasis-core/go/consensus/api/transaction"
 	"github.com/oasisprotocol/oasis-core/go/consensus/api/transaction/results"
 	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
+	oasisConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 	"golang.org/x/sync/errgroup"
-
-	registry "github.com/oasisprotocol/metadata-registry-tools"
 
 	"github.com/oasislabs/oasis-indexer/analyzer"
 	"github.com/oasislabs/oasis-indexer/analyzer/util"
+	"github.com/oasislabs/oasis-indexer/config"
 	"github.com/oasislabs/oasis-indexer/log"
 	"github.com/oasislabs/oasis-indexer/metrics"
 	"github.com/oasislabs/oasis-indexer/storage"
+	source "github.com/oasislabs/oasis-indexer/storage/oasis"
 )
 
 const (
@@ -44,25 +46,55 @@ var (
 // Main is the main Analyzer for the consensus layer.
 type Main struct {
 	cfg     analyzer.Config
+	qf      QueryFactory
 	target  storage.TargetStorage
 	logger  *log.Logger
 	metrics metrics.DatabaseMetrics
 }
 
 // NewMain returns a new main analyzer for the consensus layer.
-func NewMain(target storage.TargetStorage, logger *log.Logger) *Main {
+func NewMain(cfg *config.AnalyzerConfig, target storage.TargetStorage, logger *log.Logger) (*Main, error) {
+	ctx := context.Background()
+
+	var ac analyzer.Config
+	if cfg.Interval == "" {
+		// Initialize source storage.
+		networkCfg := oasisConfig.Network{
+			ChainContext: cfg.ChainContext,
+			RPC:          cfg.RPC,
+		}
+		source, err := source.NewClient(ctx, &networkCfg)
+		if err != nil {
+			return nil, err
+		}
+
+		// Configure analyzer.
+		blockRange := analyzer.Range{
+			From: cfg.From,
+			To:   cfg.To,
+		}
+		ac = analyzer.Config{
+			BlockRange: blockRange,
+			Source:     source,
+		}
+	} else {
+		interval, err := time.ParseDuration(cfg.Interval)
+		if err != nil {
+			return nil, err
+		}
+
+		// Configure analyzer.
+		ac = analyzer.Config{
+			Interval: interval,
+		}
+	}
 	return &Main{
+		cfg:     ac,
+		qf:      NewQueryFactory(strcase.ToSnake(cfg.ChainID)),
 		target:  target,
 		logger:  logger.With("analyzer", consensusMainDamaskName),
 		metrics: metrics.NewDefaultDatabaseMetrics(consensusMainDamaskName),
-	}
-}
-
-// SetConfig adds configuration for the range of blocks to process to
-// this analyzer. It is intended to be called before Start.
-func (m *Main) SetConfig(cfg analyzer.Config) {
-	m.cfg = cfg
-	m.cfg.ChainID = strcase.ToSnake(m.cfg.ChainID)
+	}, nil
 }
 
 // Start starts the main consensus analyzer.
@@ -87,12 +119,18 @@ func (m *Main) Start() {
 		height = latest + 1
 	}
 
-	backoff := util.NewBackoff(
+	backoff, err := util.NewBackoff(
 		100*time.Millisecond,
 		6*time.Second,
 		// ^cap the timeout at the expected
 		// consensus block time
 	)
+	if err != nil {
+		m.logger.Error("error configuring indexer backoff policy",
+			"err", err.Error(),
+		)
+		return
+	}
 	for m.cfg.BlockRange.To == 0 || height <= m.cfg.BlockRange.To {
 		if err := m.processBlock(ctx, height); err != nil {
 			if err == ErrOutOfRange {
@@ -134,12 +172,7 @@ func (m *Main) latestBlock(ctx context.Context) (int64, error) {
 	var latest int64
 	if err := m.target.QueryRow(
 		ctx,
-		fmt.Sprintf(`
-			SELECT height FROM %s.processed_blocks
-				WHERE analyzer = $1
-				ORDER BY height DESC
-				LIMIT 1
-		`, m.cfg.ChainID),
+		m.qf.LatestBlockQuery(),
 		// ^analyzers should only analyze for a single chain ID, and we anchor this
 		// at the starting block.
 		consensusMainDamaskName,
@@ -154,7 +187,6 @@ func (m *Main) processBlock(ctx context.Context, height int64) error {
 	m.logger.Info("processing block",
 		"height", height,
 	)
-	chainID := m.cfg.ChainID
 
 	group, groupCtx := errgroup.WithContext(ctx)
 
@@ -181,11 +213,8 @@ func (m *Main) processBlock(ctx context.Context, height int64) error {
 
 	// Update indexing progress.
 	group.Go(func() error {
-		batch.Queue(fmt.Sprintf(`
-			INSERT INTO %s.processed_blocks (height, analyzer, processed_time)
-			VALUES
-				($1, $2, CURRENT_TIMESTAMP);
-		`, chainID),
+		batch.Queue(
+			m.qf.IndexingProgressQuery(),
 			height,
 			consensusMainDamaskName,
 		)
@@ -235,12 +264,8 @@ func (m *Main) prepareBlockData(ctx context.Context, height int64, batch *storag
 }
 
 func (m *Main) queueBlockInserts(batch *storage.QueryBatch, data *storage.BlockData) error {
-	chainID := m.cfg.ChainID
-
-	batch.Queue(fmt.Sprintf(`
-		INSERT INTO %s.blocks (height, block_hash, time, namespace, version, type, root_hash)
-			VALUES ($1, $2, $3, $4, $5, $6, $7);
-	`, chainID),
+	batch.Queue(
+		m.qf.BlockInsertQuery(),
 		data.BlockHeader.Height,
 		data.BlockHeader.Hash.Hex(),
 		data.BlockHeader.Time.UTC(),
@@ -254,21 +279,13 @@ func (m *Main) queueBlockInserts(batch *storage.QueryBatch, data *storage.BlockD
 }
 
 func (m *Main) queueEpochInserts(batch *storage.QueryBatch, data *storage.BlockData) error {
-	chainID := m.cfg.ChainID
-
-	batch.Queue(fmt.Sprintf(`
-		INSERT INTO %s.epochs (id, start_height)
-			VALUES ($1, $2)
-		ON CONFLICT (id) DO NOTHING;
-	`, chainID),
+	batch.Queue(
+		m.qf.EpochInsertQuery(),
 		data.Epoch,
 		data.BlockHeader.Height,
 	)
-	batch.Queue(fmt.Sprintf(`
-		UPDATE %s.epochs
-		SET end_height = $2
-			WHERE id = $1 AND end_height IS NULL;
-	`, chainID),
+	batch.Queue(
+		m.qf.EpochUpdateQuery(),
 		data.Epoch-1,
 		data.BlockHeader.Height,
 	)
@@ -277,7 +294,9 @@ func (m *Main) queueEpochInserts(batch *storage.QueryBatch, data *storage.BlockD
 }
 
 func (m *Main) queueTransactionInserts(batch *storage.QueryBatch, data *storage.BlockData) error {
-	chainID := m.cfg.ChainID
+	transactionInsertQuery := m.qf.TransactionInsertQuery()
+	accountNonceUpdateQuery := m.qf.AccountNonceUpdateQuery()
+	commissionsUpsertQuery := m.qf.CommissionsUpsertQuery()
 
 	for i := range data.Transactions {
 		signedTx := data.Transactions[i]
@@ -292,10 +311,7 @@ func (m *Main) queueTransactionInserts(batch *storage.QueryBatch, data *storage.
 			signedTx.Signature.PublicKey,
 		).String()
 
-		batch.Queue(fmt.Sprintf(`
-			INSERT INTO %s.transactions (block, txn_hash, txn_index, nonce, fee_amount, max_gas, method, sender, body, module, code, message)
-				VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12);
-		`, chainID),
+		batch.Queue(transactionInsertQuery,
 			data.BlockHeader.Height,
 			signedTx.Hash().Hex(),
 			i,
@@ -309,12 +325,7 @@ func (m *Main) queueTransactionInserts(batch *storage.QueryBatch, data *storage.
 			result.Error.Code,
 			result.Error.Message,
 		)
-		batch.Queue(fmt.Sprintf(`
-		UPDATE %s.accounts
-		SET
-			nonce = $2
-		WHERE address = $1;
-	`, chainID),
+		batch.Queue(accountNonceUpdateQuery,
 			sender,
 			tx.Nonce+1,
 		)
@@ -332,13 +343,7 @@ func (m *Main) queueTransactionInserts(batch *storage.QueryBatch, data *storage.
 				return err
 			}
 
-			batch.Queue(fmt.Sprintf(`
-				INSERT INTO %s.commissions (address, schedule)
-					VALUES ($1, $2)
-				ON CONFLICT (address) DO
-					UPDATE SET
-						schedule = excluded.schedule;
-			`, chainID),
+			batch.Queue(commissionsUpsertQuery,
 				staking.NewAddress(signedTx.Signature.PublicKey),
 				string(schedule),
 			)
@@ -349,7 +354,7 @@ func (m *Main) queueTransactionInserts(batch *storage.QueryBatch, data *storage.
 }
 
 func (m *Main) queueEventInserts(batch *storage.QueryBatch, data *storage.BlockData) error {
-	chainID := m.cfg.ChainID
+	eventInsertQuery := m.qf.EventInsertQuery()
 
 	for i := 0; i < len(data.Results); i++ {
 		for j := 0; j < len(data.Results[i].Events); j++ {
@@ -358,10 +363,7 @@ func (m *Main) queueEventInserts(batch *storage.QueryBatch, data *storage.BlockD
 				return err
 			}
 
-			batch.Queue(fmt.Sprintf(`
-				INSERT INTO %s.events (backend, type, body, txn_block, txn_hash, txn_index)
-					VALUES ($1, $2, $3, $4, $5, $6);
-			`, chainID),
+			batch.Queue(eventInsertQuery,
 				backend.String(),
 				ty.String(),
 				string(body),
@@ -408,7 +410,8 @@ func (m *Main) prepareRegistryData(ctx context.Context, height int64, batch *sto
 }
 
 func (m *Main) queueRuntimeRegistrations(batch *storage.QueryBatch, data *storage.RegistryData) error {
-	chainID := m.cfg.ChainID
+	runtimeUpsertQuery := m.qf.RuntimeUpsertQuery()
+
 	for _, runtimeEvent := range data.RuntimeEvents {
 		keyManager := "none"
 
@@ -416,16 +419,7 @@ func (m *Main) queueRuntimeRegistrations(batch *storage.QueryBatch, data *storag
 			keyManager = runtimeEvent.Runtime.KeyManager.String()
 		}
 
-		batch.Queue(fmt.Sprintf(`
-			INSERT INTO %s.runtimes (id, suspended, kind, tee_hardware, key_manager)
-				VALUES ($1, $2, $3, $4, $5)
-				ON CONFLICT (id) DO
-				UPDATE SET
-					suspended = excluded.suspended,
-					kind = excluded.kind,
-					tee_hardware = excluded.tee_hardware,
-					key_manager = excluded.key_manager;
-		`, chainID),
+		batch.Queue(runtimeUpsertQuery,
 			runtimeEvent.Runtime.ID.String(),
 			false,
 			runtimeEvent.Runtime.Kind.String(),
@@ -438,50 +432,33 @@ func (m *Main) queueRuntimeRegistrations(batch *storage.QueryBatch, data *storag
 }
 
 func (m *Main) queueRuntimeStatusUpdates(batch *storage.QueryBatch, data *storage.RegistryData) error {
-	chainID := m.cfg.ChainID
+	runtimeSuspensionQuery := m.qf.RuntimeSuspensionQuery()
+	runtimeUnsuspensionQuery := m.qf.RuntimeUnsuspensionQuery()
+
 	for _, runtime := range data.RuntimeSuspensions {
-		batch.Queue(fmt.Sprintf(`
-			UPDATE %s.runtimes
-				SET suspended = true
-				WHERE id = $1
-		`, chainID),
-			runtime,
-		)
+		batch.Queue(runtimeSuspensionQuery, runtime)
 	}
 	for _, runtime := range data.RuntimeUnsuspensions {
-		batch.Queue(fmt.Sprintf(`
-			UPDATE %s.runtimes
-				SET suspended = false
-				WHERE id = $1
-		`, chainID),
-			runtime,
-		)
+		batch.Queue(runtimeUnsuspensionQuery, runtime)
 	}
 
 	return nil
 }
 
 func (m *Main) queueEntityEvents(batch *storage.QueryBatch, data *storage.RegistryData) error {
-	chainID := m.cfg.ChainID
+	claimedNodeInsertQuery := m.qf.ClaimedNodeInsertQuery()
+	entityUpsertQuery := m.qf.EntityUpsertQuery()
 
 	for _, entityEvent := range data.EntityEvents {
 		entityID := entityEvent.Entity.ID.String()
 
 		for _, node := range entityEvent.Entity.Nodes {
-			batch.Queue(fmt.Sprintf(`
-				INSERT INTO %s.claimed_nodes (entity_id, node_id) VALUES ($1, $2)
-					ON CONFLICT (entity_id, node_id) DO NOTHING;
-			`, chainID),
+			batch.Queue(claimedNodeInsertQuery,
 				entityID,
 				node,
 			)
 		}
-		batch.Queue(fmt.Sprintf(`
-			INSERT INTO %s.entities (id, address) VALUES ($1, $2)
-				ON CONFLICT (id) DO
-				UPDATE SET
-					address = excluded.address;
-		`, chainID),
+		batch.Queue(entityUpsertQuery,
 			entityID,
 			staking.NewAddress(entityEvent.Entity.ID).String(),
 		)
@@ -491,7 +468,8 @@ func (m *Main) queueEntityEvents(batch *storage.QueryBatch, data *storage.Regist
 }
 
 func (m *Main) queueNodeEvents(batch *storage.QueryBatch, data *storage.RegistryData) error {
-	chainID := m.cfg.ChainID
+	nodeUpsertQuery := m.qf.NodeUpsertQuery()
+	nodeDeleteQuery := m.qf.NodeDeleteQuery()
 
 	for _, nodeEvent := range data.NodeEvents {
 		vrfPubkey := ""
@@ -516,25 +494,7 @@ func (m *Main) queueNodeEvents(batch *storage.QueryBatch, data *storage.Registry
 
 		if nodeEvent.IsRegistration {
 			// A new node is registered.
-			batch.Queue(fmt.Sprintf(`
-				INSERT INTO %s.nodes (id, entity_id, expiration, tls_pubkey, tls_next_pubkey, tls_addresses, p2p_pubkey, p2p_addresses, consensus_pubkey, consensus_address, vrf_pubkey, roles, software_version, voting_power)
-					VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
-				ON CONFLICT (id) DO UPDATE
-				SET
-					entity_id = excluded.entity_id,
-					expiration = excluded.expiration,
-					tls_pubkey = excluded.tls_pubkey,
-					tls_next_pubkey = excluded.tls_next_pubkey,
-					tls_addresses = excluded.tls_addresses,
-					p2p_pubkey = excluded.p2p_pubkey,
-					p2p_addresses = excluded.p2p_addresses,
-					consensus_pubkey = excluded.consensus_pubkey,
-					consensus_address = excluded.consensus_address,
-					vrf_pubkey = excluded.vrf_pubkey,
-					roles = excluded.roles,
-					software_version = excluded.software_version,
-					voting_power = excluded.voting_power;
-		`, chainID),
+			batch.Queue(nodeUpsertQuery,
 				nodeEvent.Node.ID.String(),
 				nodeEvent.Node.EntityID.String(),
 				nodeEvent.Node.Expiration,
@@ -552,9 +512,7 @@ func (m *Main) queueNodeEvents(batch *storage.QueryBatch, data *storage.Registry
 			)
 		} else {
 			// An existing node is expired.
-			batch.Queue(fmt.Sprintf(`
-				DELETE FROM %s.nodes WHERE id = $1;
-		`, chainID),
+			batch.Queue(nodeDeleteQuery,
 				nodeEvent.Node.ID.String(),
 			)
 		}
@@ -577,12 +535,9 @@ func (m *Main) queueMetadataRegistry(ctx context.Context, batch *storage.QueryBa
 		return err
 	}
 
+	entityMetaUpsertQuery := m.qf.EntityMetaUpsertQuery()
 	for id, meta := range entities {
-		batch.Queue(fmt.Sprintf(`
-		UPDATE %s.entities
-		SET meta = $2
-			WHERE id = $1
-	`, m.cfg.ChainID),
+		batch.Queue(entityMetaUpsertQuery,
 			id,
 			meta,
 		)
@@ -617,27 +572,18 @@ func (m *Main) prepareStakingData(ctx context.Context, height int64, batch *stor
 }
 
 func (m *Main) queueTransfers(batch *storage.QueryBatch, data *storage.StakingData) error {
-	chainID := m.cfg.ChainID
+	senderUpdateQuery := m.qf.SenderUpdateQuery()
+	receiverUpsertQuery := m.qf.ReceiverUpdateQuery()
 
 	for _, transfer := range data.Transfers {
 		from := transfer.From.String()
 		to := transfer.To.String()
 		amount := transfer.Amount.ToBigInt().Uint64()
-		batch.Queue(fmt.Sprintf(`
-			UPDATE %s.accounts
-			SET
-				general_balance = general_balance - $2
-			WHERE address = $1;
-		`, chainID),
+		batch.Queue(senderUpdateQuery,
 			from,
 			amount,
 		)
-		batch.Queue(fmt.Sprintf(`
-			INSERT INTO %s.accounts (address, general_balance)
-				VALUES ($1, $2)
-			ON CONFLICT (address) DO
-				UPDATE SET general_balance = %s.accounts.general_balance + $2;
-		`, chainID, chainID),
+		batch.Queue(receiverUpsertQuery,
 			to,
 			amount,
 		)
@@ -647,15 +593,10 @@ func (m *Main) queueTransfers(batch *storage.QueryBatch, data *storage.StakingDa
 }
 
 func (m *Main) queueBurns(batch *storage.QueryBatch, data *storage.StakingData) error {
-	chainID := m.cfg.ChainID
+	burnUpdateQuery := m.qf.BurnUpdateQuery()
 
 	for _, burn := range data.Burns {
-		batch.Queue(fmt.Sprintf(`
-			UPDATE %s.accounts
-			SET
-				general_balance = general_balance - $2
-			WHERE address = $1;
-		`, chainID),
+		batch.Queue(burnUpdateQuery,
 			burn.Owner.String(),
 			burn.Amount.ToBigInt().Uint64(),
 		)
@@ -665,7 +606,16 @@ func (m *Main) queueBurns(batch *storage.QueryBatch, data *storage.StakingData) 
 }
 
 func (m *Main) queueEscrows(batch *storage.QueryBatch, data *storage.StakingData) error {
-	chainID := m.cfg.ChainID
+	addGeneralBalanceUpdateQuery := m.qf.AddGeneralBalanceUpdateQuery()
+	addEscrowBalanceUpsertQuery := m.qf.AddEscrowBalanceUpsertQuery()
+	addDelegationsUpsertQuery := m.qf.AddDelegationsUpsertQuery()
+	takeEscrowUpdateQuery := m.qf.TakeEscrowUpdateQuery()
+	debondingStartEscrowBalanceUpdateQuery := m.qf.DebondingStartEscrowBalanceUpdateQuery()
+	debondingStartDelegationsUpdateQuery := m.qf.DebondingStartDelegationsUpdateQuery()
+	debondingStartDebondingDelegationsInsertQuery := m.qf.DebondingStartDebondingDelegationsInsertQuery()
+	reclaimGeneralBalanceUpdateQuery := m.qf.ReclaimGeneralBalanceUpdateQuery()
+	reclaimEscrowBalanceUpdateQuery := m.qf.ReclaimEscrowBalanceUpdateQuery()
+	deleteDebondingDelegationsQuery := m.qf.DeleteDebondingDelegationsQuery()
 
 	for _, escrow := range data.Escrows {
 		switch e := escrow; {
@@ -674,116 +624,55 @@ func (m *Main) queueEscrows(batch *storage.QueryBatch, data *storage.StakingData
 			escrower := e.Add.Escrow.String()
 			amount := e.Add.Amount.ToBigInt().Uint64()
 			newShares := e.Add.NewShares.ToBigInt().Uint64()
-			batch.Queue(fmt.Sprintf(`
-				UPDATE %s.accounts
-				SET
-					general_balance = general_balance - $2
-				WHERE address = $1;
-			`, chainID),
+			batch.Queue(addGeneralBalanceUpdateQuery,
 				owner,
 				amount,
 			)
-			batch.Queue(fmt.Sprintf(`
-				INSERT INTO %s.accounts (address, escrow_balance_active, escrow_total_shares_active)
-					VALUES ($1, $2, $3)
-				ON CONFLICT (address) DO
-					UPDATE SET
-						escrow_balance_active = %s.accounts.escrow_balance_active + $2,
-						escrow_total_shares_active = %s.accounts.escrow_total_shares_active + $3;
-			`, chainID, chainID, chainID),
+			batch.Queue(addEscrowBalanceUpsertQuery,
 				escrower,
 				amount,
 				newShares,
 			)
-			batch.Queue(fmt.Sprintf(`
-				INSERT INTO %s.delegations (delegatee, delegator, shares)
-					VALUES ($1, $2, $3)
-				ON CONFLICT (delegatee, delegator) DO
-					UPDATE SET shares = %s.delegations.shares + $3;
-			`, chainID, chainID),
+			batch.Queue(addDelegationsUpsertQuery,
 				escrower,
 				owner,
 				newShares,
 			)
 		case e.Take != nil:
-			batch.Queue(fmt.Sprintf(`
-				UPDATE %s.accounts
-					SET
-						escrow_balance_active = escrow_balance_active - ROUND($2 * escrow_balance_active / (escrow_balance_active + escrow_balance_debonding)),
-						escrow_balance_debonding = escrow_balance_debonding - ROUND($2 * escrow_balance_debonding / (escrow_balance_active + escrow_balance_debonding))
-					WHERE address = $1;
-			`, chainID),
+			batch.Queue(takeEscrowUpdateQuery,
 				e.Take.Owner.String(),
 				e.Take.Amount.ToBigInt().Uint64(),
 			)
 		case e.DebondingStart != nil:
-			batch.Queue(fmt.Sprintf(`
-				UPDATE %s.accounts
-					SET
-						escrow_balance_active = escrow_balance_active - $2,
-						escrow_total_shares_active = escrow_total_shares_active - $3,
-						escrow_balance_debonding = escrow_balance_debonding + $2,
-						escrow_total_shares_debonding = escrow_total_shares_debonding + $4
-					WHERE address = $1;
-			`, chainID),
+			batch.Queue(debondingStartEscrowBalanceUpdateQuery,
 				e.DebondingStart.Escrow.String(),
 				e.DebondingStart.Amount.ToBigInt().Uint64(),
 				e.DebondingStart.ActiveShares.ToBigInt().Uint64(),
 				e.DebondingStart.DebondingShares.ToBigInt().Uint64(),
 			)
-			batch.Queue(fmt.Sprintf(`
-				UPDATE %s.delegations
-					SET shares = shares - $3
-						WHERE delegatee = $1 AND delegator = $2;
-			`, chainID),
+			batch.Queue(debondingStartDelegationsUpdateQuery,
 				e.DebondingStart.Escrow.String(),
 				e.DebondingStart.Owner.String(),
 				e.DebondingStart.ActiveShares.ToBigInt().Uint64(),
 			)
-			batch.Queue(fmt.Sprintf(`
-				INSERT INTO %s.debonding_delegations (delegatee, delegator, shares, debond_end)
-					VALUES ($1, $2, $3, $4);
-			`, chainID),
+			batch.Queue(debondingStartDebondingDelegationsInsertQuery,
 				e.DebondingStart.Escrow.String(),
 				e.DebondingStart.Owner.String(),
 				e.DebondingStart.DebondingShares.ToBigInt().Uint64(),
 				e.DebondingStart.DebondEndTime,
 			)
 		case e.Reclaim != nil:
-			batch.Queue(fmt.Sprintf(`
-				UPDATE %s.accounts
-					SET
-						general_balance = general_balance + $2
-					WHERE address = $1;
-			`, chainID),
+			batch.Queue(reclaimGeneralBalanceUpdateQuery,
 				e.Reclaim.Owner.String(),
 				e.Reclaim.Amount.ToBigInt().Uint64(),
 			)
-			batch.Queue(fmt.Sprintf(`
-				UPDATE %s.accounts
-					SET
-						escrow_balance_debonding = escrow_balance_debonding - $2,
-						escrow_total_shares_debonding = escrow_total_shares_debonding - $3
-					WHERE address = $1;
-			`, chainID),
+			batch.Queue(reclaimEscrowBalanceUpdateQuery,
 				e.Reclaim.Escrow.String(),
 				e.Reclaim.Amount.ToBigInt().Uint64(),
 				e.Reclaim.Shares.ToBigInt().Uint64(),
 			)
 
-			batch.Queue(fmt.Sprintf(`
-				DELETE FROM %s.debonding_delegations
-					WHERE (ctid) IN (
-						SELECT ctid
-						FROM %s.debonding_delegations
-						WHERE
-							delegator = $1 AND delegatee = $2 AND shares = $3 AND debond_end = (
-							SELECT max(id)
-							FROM %s.epochs
-							WHERE end_height IS NOT NULL AND end_height < $4
-						) LIMIT 1
-					);
-			`, chainID, chainID, chainID),
+			batch.Queue(deleteDebondingDelegationsQuery,
 				e.Reclaim.Owner.String(),
 				e.Reclaim.Escrow.String(),
 				e.Reclaim.Shares.ToBigInt().Uint64(),
@@ -796,25 +685,18 @@ func (m *Main) queueEscrows(batch *storage.QueryBatch, data *storage.StakingData
 }
 
 func (m *Main) queueAllowanceChanges(batch *storage.QueryBatch, data *storage.StakingData) error {
-	chainID := m.cfg.ChainID
+	allowanceChangeDeleteQuery := m.qf.AllowanceChangeDeleteQuery()
+	allowanceChangeUpdateQuery := m.qf.AllowanceChangeUpdateQuery()
 
 	for _, allowanceChange := range data.AllowanceChanges {
 		allowance := allowanceChange.Allowance.ToBigInt().Uint64()
 		if allowance == 0 {
-			batch.Queue(fmt.Sprintf(`
-				DELETE FROM %s.allowances
-					WHERE owner = $1 AND beneficiary = $2;
-			`, chainID),
+			batch.Queue(allowanceChangeDeleteQuery,
 				allowanceChange.Owner.String(),
 				allowanceChange.Beneficiary.String(),
 			)
 		} else {
-			batch.Queue(fmt.Sprintf(`
-				INSERT INTO %s.allowances (owner, beneficiary, allowance)
-					VALUES ($1, $2, $3)
-				ON CONFLICT (owner, beneficiary) DO
-					UPDATE SET allowance = excluded.allowance;
-			`, chainID),
+			batch.Queue(allowanceChangeUpdateQuery,
 				allowanceChange.Owner.String(),
 				allowanceChange.Beneficiary.String(),
 				allowance,
@@ -850,13 +732,9 @@ func (m *Main) prepareSchedulerData(ctx context.Context, height int64, batch *st
 }
 
 func (m *Main) queueValidatorUpdates(batch *storage.QueryBatch, data *storage.SchedulerData) error {
-	chainID := m.cfg.ChainID
-
+	validatorNodeUpdateQuery := m.qf.ValidatorNodeUpdateQuery()
 	for _, validator := range data.Validators {
-		batch.Queue(fmt.Sprintf(`
-			UPDATE %s.nodes SET voting_power = $2
-				WHERE id = $1;
-		`, chainID),
+		batch.Queue(validatorNodeUpdateQuery,
 			validator.ID,
 			validator.VotingPower,
 		)
@@ -866,21 +744,16 @@ func (m *Main) queueValidatorUpdates(batch *storage.QueryBatch, data *storage.Sc
 }
 
 func (m *Main) queueCommitteeUpdates(batch *storage.QueryBatch, data *storage.SchedulerData) error {
-	chainID := m.cfg.ChainID
+	committeeMemberInsertQuery := m.qf.CommitteeMemberInsertQuery()
 
-	batch.Queue(fmt.Sprintf(`
-		TRUNCATE %s.committee_members;
-	`, chainID))
+	batch.Queue(m.qf.CommitteeMembersTruncateQuery())
 	for namespace, committees := range data.Committees {
 		runtime := namespace.String()
 		for _, committee := range committees {
 			kind := committee.String()
 			validFor := int64(committee.ValidFor)
 			for _, member := range committee.Members {
-				batch.Queue(fmt.Sprintf(`
-					INSERT INTO %s.committee_members (node, valid_for, runtime, kind, role)
-						VALUES ($1, $2, $3, $4, $5);
-				`, chainID),
+				batch.Queue(committeeMemberInsertQuery,
 					member.PublicKey,
 					validFor,
 					runtime,
@@ -921,14 +794,12 @@ func (m *Main) prepareGovernanceData(ctx context.Context, height int64, batch *s
 }
 
 func (m *Main) queueSubmissions(batch *storage.QueryBatch, data *storage.GovernanceData) error {
-	chainID := m.cfg.ChainID
+	proposalSubmissionInsertQuery := m.qf.ProposalSubmissionInsertQuery()
+	proposalSubmissionCancelInsertQuery := m.qf.ProposalSubmissionCancelInsertQuery()
 
 	for _, submission := range data.ProposalSubmissions {
 		if submission.Content.Upgrade != nil {
-			batch.Queue(fmt.Sprintf(`
-				INSERT INTO %s.proposals (id, submitter, state, deposit, handler, cp_target_version, rhp_target_version, rcp_target_version, upgrade_epoch, created_at, closes_at)
-					VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11);
-			`, chainID),
+			batch.Queue(proposalSubmissionInsertQuery,
 				submission.ID,
 				submission.Submitter.String(),
 				submission.State.String(),
@@ -942,10 +813,7 @@ func (m *Main) queueSubmissions(batch *storage.QueryBatch, data *storage.Governa
 				submission.ClosesAt,
 			)
 		} else if submission.Content.CancelUpgrade != nil {
-			batch.Queue(fmt.Sprintf(`
-				INSERT INTO %s.proposals (id, submitter, state, deposit, cancels, created_at, closes_at)
-					VALUES ($1, $2, $3, $4, $5, $6, $7);
-			`, chainID),
+			batch.Queue(proposalSubmissionCancelInsertQuery,
 				submission.ID,
 				submission.Submitter.String(),
 				submission.State.String(),
@@ -961,14 +829,10 @@ func (m *Main) queueSubmissions(batch *storage.QueryBatch, data *storage.Governa
 }
 
 func (m *Main) queueExecutions(batch *storage.QueryBatch, data *storage.GovernanceData) error {
-	chainID := m.cfg.ChainID
+	proposalExecutionsUpdateQuery := m.qf.ProposalExecutionsUpdateQuery()
 
 	for _, execution := range data.ProposalExecutions {
-		batch.Queue(fmt.Sprintf(`
-			UPDATE %s.proposals
-			SET executed = true
-				WHERE id = $1;
-		`, chainID),
+		batch.Queue(proposalExecutionsUpdateQuery,
 			execution.ID,
 		)
 	}
@@ -977,22 +841,15 @@ func (m *Main) queueExecutions(batch *storage.QueryBatch, data *storage.Governan
 }
 
 func (m *Main) queueFinalizations(batch *storage.QueryBatch, data *storage.GovernanceData) error {
-	chainID := m.cfg.ChainID
+	proposalUpdateQuery := m.qf.ProposalUpdateQuery()
+	proposalInvalidVotesUpdateQuery := m.qf.ProposalInvalidVotesUpdateQuery()
 
 	for _, finalization := range data.ProposalFinalizations {
-		batch.Queue(fmt.Sprintf(`
-			UPDATE %s.proposals
-			SET state = $2
-				WHERE id = $1;
-		`, chainID),
+		batch.Queue(proposalUpdateQuery,
 			finalization.ID,
 			finalization.State.String(),
 		)
-		batch.Queue(fmt.Sprintf(`
-			UPDATE %s.proposals
-			SET invalid_votes = $2
-				WHERE id = $1;
-		`, chainID),
+		batch.Queue(proposalInvalidVotesUpdateQuery,
 			finalization.ID,
 			finalization.InvalidVotes,
 		)
@@ -1002,13 +859,10 @@ func (m *Main) queueFinalizations(batch *storage.QueryBatch, data *storage.Gover
 }
 
 func (m *Main) queueVotes(batch *storage.QueryBatch, data *storage.GovernanceData) error {
-	chainID := m.cfg.ChainID
+	voteInsertQuery := m.qf.VoteInsertQuery()
 
 	for _, vote := range data.Votes {
-		batch.Queue(fmt.Sprintf(`
-			INSERT INTO %s.votes (proposal, voter, vote)
-				VALUES ($1, $2, $3);
-		`, chainID),
+		batch.Queue(voteInsertQuery,
 			vote.ID,
 			vote.Submitter.String(),
 			vote.Vote.String(),
@@ -1062,19 +916,19 @@ func extractEventData(event *results.Event) (backend analyzer.Backend, ty analyz
 		backend = analyzer.BackendRegistry
 		switch b := event.Registry; {
 		case b.RuntimeEvent != nil:
-			ty = analyzer.EventRegistryRuntimeRegistration
+			ty = analyzer.EventRegistryRuntime
 			body, err = json.Marshal(b.RuntimeEvent)
 			return
 		case b.EntityEvent != nil:
-			ty = analyzer.EventRegistryEntityRegistration
+			ty = analyzer.EventRegistryEntity
 			body, err = json.Marshal(b.EntityEvent)
 			return
 		case b.NodeEvent != nil:
-			ty = analyzer.EventRegistryNodeRegistration
+			ty = analyzer.EventRegistryNode
 			body, err = json.Marshal(b.NodeEvent)
 			return
 		case b.NodeUnfrozenEvent != nil:
-			ty = analyzer.EventRegistryNodeUnfrozenEvent
+			ty = analyzer.EventRegistryNodeUnfrozen
 			body, err = json.Marshal(b.NodeUnfrozenEvent)
 			return
 		}
@@ -1082,15 +936,15 @@ func extractEventData(event *results.Event) (backend analyzer.Backend, ty analyz
 		backend = analyzer.BackendRoothash
 		switch b := event.RootHash; {
 		case b.ExecutorCommitted != nil:
-			ty = analyzer.EventRoothashExecutorCommittedEvent
+			ty = analyzer.EventRoothashExecutorCommitted
 			body, err = json.Marshal(event.RootHash.ExecutorCommitted)
 			return
 		case b.ExecutionDiscrepancyDetected != nil:
-			ty = analyzer.EventRoothashDiscrepancyDetectedEvent
+			ty = analyzer.EventRoothashDiscrepancyDetected
 			body, err = json.Marshal(event.RootHash.ExecutionDiscrepancyDetected)
 			return
 		case b.Finalized != nil:
-			ty = analyzer.EventRoothashFinalizedEvent
+			ty = analyzer.EventRoothashFinalized
 			body, err = json.Marshal(event.RootHash.Finalized)
 			return
 		}

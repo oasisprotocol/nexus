@@ -15,9 +15,7 @@ const (
 	moduleName = "postgres"
 )
 
-var defaultMaxConns = int32(32)
-
-// Client is a PostgreSQL client.
+// Client is a client for connecting to PostgreSQL.
 type Client struct {
 	pool   *pgxpool.Pool
 	logger *log.Logger
@@ -29,7 +27,6 @@ func NewClient(connString string, l *log.Logger) (*Client, error) {
 	if err != nil {
 		return nil, err
 	}
-	config.MaxConns = defaultMaxConns
 
 	pool, err := pgxpool.ConnectConfig(context.Background(), config)
 	if err != nil {
@@ -41,7 +38,11 @@ func NewClient(connString string, l *log.Logger) (*Client, error) {
 	}, nil
 }
 
-// SendBatch submits a new transaction batch to PostgreSQL.
+// SendBatch submits a new batch of queries as an atomic transaction to PostgreSQL.
+//
+// For now, updated row counts are discarded as this is not intended to be used
+// by any indexer. We only care about atomic success or failure of the batch of queries
+// corresponding to a new block.
 func (c *Client) SendBatch(ctx context.Context, batch *pgx.Batch) error {
 	if err := c.pool.BeginTxFunc(ctx, pgx.TxOptions{}, func(tx pgx.Tx) error {
 		batchResults := tx.SendBatch(ctx, batch)
@@ -63,7 +64,7 @@ func (c *Client) SendBatch(ctx context.Context, batch *pgx.Batch) error {
 	return nil
 }
 
-// Query submits a new query to PostgreSQL.
+// Query submits a new read query to PostgreSQL.
 func (c *Client) Query(ctx context.Context, sql string, args ...interface{}) (pgx.Rows, error) {
 	rows, err := c.pool.Query(ctx, sql, args...)
 	if err != nil {
@@ -75,17 +76,17 @@ func (c *Client) Query(ctx context.Context, sql string, args ...interface{}) (pg
 	return rows, nil
 }
 
-// QueryRow submits a new query for a single row to PostgreSQL.
+// QueryRow submits a new read query for a single row to PostgreSQL.
 func (c *Client) QueryRow(ctx context.Context, sql string, args ...interface{}) pgx.Row {
 	return c.pool.QueryRow(ctx, sql, args...)
 }
 
-// Shutdown shuts down the target storage client.
+// Shutdown implements the storage.TargetStorage interface for Client.
 func (c *Client) Shutdown() {
 	c.pool.Close()
 }
 
-// Name returns the name of the PostgreSQL client.
+// Name implements the storage.TargetStorage interface for Client.
 func (c *Client) Name() string {
 	return moduleName
 }

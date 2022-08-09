@@ -20,7 +20,7 @@ func TestPaginationWithNoParams(t *testing.T) {
 	p, err := NewPagination(r)
 	require.Nil(t, err)
 
-	require.Equal(t, p.Order, DefaultOrder)
+	require.Equal(t, *p.Order, DefaultOrder)
 	require.Equal(t, p.Limit, DefaultLimit)
 	require.Equal(t, p.Offset, DefaultOffset)
 }
@@ -39,7 +39,7 @@ func TestPaginationWithValidParams(t *testing.T) {
 	p, err := NewPagination(r)
 	require.Nil(t, err)
 
-	require.Equal(t, p.Order, DefaultOrder)
+	require.Equal(t, *p.Order, DefaultOrder)
 	require.Equal(t, p.Limit, limit)
 	require.Equal(t, p.Offset, offset)
 }
@@ -80,7 +80,7 @@ func TestPaginationWithTooHighLimit(t *testing.T) {
 	p, err := NewPagination(r)
 	require.Nil(t, err)
 
-	require.Equal(t, p.Order, DefaultOrder)
+	require.Equal(t, *p.Order, DefaultOrder)
 	require.Equal(t, p.Limit, MaximumLimit)
 	require.Equal(t, p.Offset, offset)
 }

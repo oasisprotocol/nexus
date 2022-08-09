@@ -2,16 +2,13 @@
 package analyzer
 
 import (
-	"context"
 	"os"
 	"sync"
-	"time"
 
 	migrate "github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres" // postgres driver for golang_migrate
 	_ "github.com/golang-migrate/migrate/v4/source/file"       // support file scheme for golang_migrate
 	_ "github.com/golang-migrate/migrate/v4/source/github"     // support github scheme for golang_migrate
-	oasisConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 	"github.com/spf13/cobra"
 
 	"github.com/oasislabs/oasis-indexer/analyzer"
@@ -20,7 +17,6 @@ import (
 	"github.com/oasislabs/oasis-indexer/config"
 	"github.com/oasislabs/oasis-indexer/log"
 	"github.com/oasislabs/oasis-indexer/storage"
-	source "github.com/oasislabs/oasis-indexer/storage/oasis"
 )
 
 const (
@@ -118,7 +114,6 @@ type Service struct {
 
 // NewService creates new Service.
 func NewService(cfg *config.AnalysisConfig) (*Service, error) {
-	ctx := context.Background()
 	logger := common.Logger().WithModule(moduleName)
 
 	// Initialize target storage.
@@ -128,49 +123,16 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) {
 	}
 
 	// Initialize analyzers.
-	consensusMainDamask := consensus.NewMain(client, logger)
-
-	analyzers := map[string]analyzer.Analyzer{
-		consensusMainDamask.Name(): consensusMainDamask,
-	}
-
+	analyzers := map[string]analyzer.Analyzer{}
 	for _, analyzerCfg := range cfg.Analyzers {
-		a, ok := analyzers[analyzerCfg.Name]
-		if !ok {
-			continue
-		}
-		if analyzerCfg.Interval == "" {
-			// Initialize source.
-			networkCfg := oasisConfig.Network{
-				ChainContext: analyzerCfg.ChainContext,
-				RPC:          analyzerCfg.RPC,
-			}
-			source, err := source.NewClient(ctx, &networkCfg)
+		//nolint:gocritic
+		switch analyzerCfg.Name {
+		case "consensus_main_damask":
+			consensusMainDamask, err := consensus.NewMain(analyzerCfg, client, logger)
 			if err != nil {
 				return nil, err
 			}
-
-			// Configure analyzer.
-			blockRange := analyzer.Range{
-				From: analyzerCfg.From,
-				To:   analyzerCfg.To,
-			}
-			a.SetConfig(analyzer.Config{
-				ChainID:    analyzerCfg.ChainID,
-				BlockRange: blockRange,
-				Source:     source,
-			})
-		} else {
-			interval, err := time.ParseDuration(analyzerCfg.Interval)
-			if err != nil {
-				return nil, err
-			}
-
-			// Configure analyzer.
-			a.SetConfig(analyzer.Config{
-				ChainID:  analyzerCfg.ChainID,
-				Interval: interval,
-			})
+			analyzers[consensusMainDamask.Name()] = consensusMainDamask
 		}
 	}
 
