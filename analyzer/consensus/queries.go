@@ -258,9 +258,9 @@ func (qf QueryFactory) DeleteDebondingDelegationsQuery() string {
 				FROM %[1]s.debonding_delegations
 				WHERE
 					delegator = $1 AND delegatee = $2 AND shares = $3 AND debond_end = (
-					SELECT max(id)
+					SELECT id
 					FROM %[1]s.epochs
-					WHERE end_height IS NOT NULL AND end_height < $4
+					WHERE end_height IS NULL AND start_height = $4
 				) LIMIT 1
 			)`, qf.chainID)
 }
