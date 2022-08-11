@@ -31,7 +31,7 @@ type Config struct {
 
 	// Source is the storage source from which to fetch block data
 	// when processing blocks in this range.
-	Source storage.SourceStorage
+	Source storage.ConsensusSourceStorage
 }
 
 // Range is a range of blocks.

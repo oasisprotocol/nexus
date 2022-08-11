@@ -12,8 +12,14 @@ import (
 	"github.com/oasisprotocol/oasis-core/go/consensus/api/transaction/results"
 	governance "github.com/oasisprotocol/oasis-core/go/governance/api"
 	registry "github.com/oasisprotocol/oasis-core/go/registry/api"
+	"github.com/oasisprotocol/oasis-core/go/roothash/api/block"
 	scheduler "github.com/oasisprotocol/oasis-core/go/scheduler/api"
 	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
+	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/client"
+	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/accounts"
+	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/consensusaccounts"
+	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/contracts"
+	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/core"
 )
 
 // QueryBatch represents a batch of queries to be executed atomically.
@@ -25,12 +31,13 @@ type QueryResults = pgx.Rows
 // QueryResult represents the result from a read query.
 type QueryResult = pgx.Row
 
-// SourceStorage defines an interface for retrieving raw block data.
-type SourceStorage interface {
+// ConsensusSourceStorage defines an interface for retrieving raw block data
+// from the consensus layer.
+type ConsensusSourceStorage interface {
 	// BlockData gets block data at the specified height. This includes all
 	// block header information, as well as transactions and events included
 	// within that block.
-	BlockData(ctx context.Context, height int64) (*BlockData, error)
+	BlockData(ctx context.Context, height int64) (*ConsensusBlockData, error)
 
 	// BeaconData gets beacon data at the specified height. This includes
 	// the epoch number at that height, as well as the beacon state.
@@ -60,27 +67,8 @@ type SourceStorage interface {
 	Name() string
 }
 
-// TargetStorage defines an interface for reading and writing
-// processed block data.
-type TargetStorage interface {
-	// SendBatch sends a batch of queries to be applied to target storage.
-	SendBatch(ctx context.Context, batch *QueryBatch) error
-
-	// Query submits a query to fetch data from target storage.
-	Query(ctx context.Context, sql string, args ...interface{}) (QueryResults, error)
-
-	// QueryRow submits a query to fetch a single row of data from target storage.
-	QueryRow(ctx context.Context, sql string, args ...interface{}) QueryResult
-
-	// Shutdown shuts down the target storage client.
-	Shutdown()
-
-	// Name returns the name of the target storage.
-	Name() string
-}
-
-// BlockData represents data for a block at a given height.
-type BlockData struct {
+// ConsensusBlockData represents data for a consensus block at a given height.
+type ConsensusBlockData struct {
 	Height int64
 
 	BlockHeader  *consensus.Block
@@ -145,4 +133,86 @@ type GovernanceData struct {
 	ProposalExecutions    []*governance.ProposalExecutedEvent
 	ProposalFinalizations []*governance.Proposal
 	Votes                 []*governance.VoteEvent
+}
+
+// RuntimeSourceStorage defines an interface for retrieving raw block data
+// from the runtime layer.
+type RuntimeSourceStorage interface {
+	// BlockData gets block data in the specified round. This includes all
+	// block header information, as well as transactions and events included
+	// within that block.
+	BlockData(ctx context.Context, round uint64) (*RuntimeBlockData, error)
+
+	// CoreData gets data in the specified round emitted by the `core` module.
+	CoreData(ctx context.Context, round uint64) (*CoreData, error)
+
+	// AccountsData gets data in the specified round emitted by the `accounts` module.
+	AccountsData(ctx context.Context, round uint64) (*AccountsData, error)
+
+	// ConsensusAccountsData gets data in the specified round emitted by the `consensusaccounts` module.
+	ConsensusAccountsData(ctx context.Context, round uint64) (*ConsensusAccountsData, error)
+
+	// ContractsData gets data in the specified round emitted by the `contracts` module.
+	ContractsData(ctx context.Context, round uint64) (*ContractsData, error)
+
+	// Name returns the name of the source storage.
+	Name() string
+}
+
+// RuntimeBlockData represents data for a runtime block during a given round.
+type RuntimeBlockData struct {
+	Round uint64
+
+	BlockHeader             *block.Block
+	TransactionsWithResults []*client.TransactionWithResults
+}
+
+// CoreData represents data from the `core` module for a runtime.
+type CoreData struct {
+	Round uint64
+
+	GasUsedEvents []*core.GasUsedEvent
+}
+
+// AccountsData represents data from the `accounts` module for a runtime.
+type AccountsData struct {
+	Round uint64
+
+	TransferEvents []*accounts.TransferEvent
+	BurnEvents     []*accounts.BurnEvent
+	MintEvents     []*accounts.MintEvent
+}
+
+// ConsensusAccounts represents data from the `consensusaccounts` module for a runtime.
+type ConsensusAccountsData struct {
+	Round uint64
+
+	DepositEvents  []*consensusaccounts.DepositEvent
+	WithdrawEvents []*consensusaccounts.WithdrawEvent
+}
+
+// ContractsData represents data from the `contracts` module for a runtime.
+type ContractsData struct {
+	Round uint64
+
+	ContractEvents []*contracts.Event
+}
+
+// TargetStorage defines an interface for reading and writing
+// processed block data.
+type TargetStorage interface {
+	// SendBatch sends a batch of queries to be applied to target storage.
+	SendBatch(ctx context.Context, batch *QueryBatch) error
+
+	// Query submits a query to fetch data from target storage.
+	Query(ctx context.Context, sql string, args ...interface{}) (QueryResults, error)
+
+	// QueryRow submits a query to fetch a single row of data from target storage.
+	QueryRow(ctx context.Context, sql string, args ...interface{}) QueryResult
+
+	// Shutdown shuts down the target storage client.
+	Shutdown()
+
+	// Name returns the name of the target storage.
+	Name() string
 }

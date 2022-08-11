@@ -63,7 +63,11 @@ func NewMain(cfg *config.AnalyzerConfig, target storage.TargetStorage, logger *l
 			ChainContext: cfg.ChainContext,
 			RPC:          cfg.RPC,
 		}
-		source, err := source.NewClient(ctx, &networkCfg)
+		factory, err := source.NewClientFactory(ctx, &networkCfg)
+		if err != nil {
+			return nil, err
+		}
+		client, err := factory.Consensus()
 		if err != nil {
 			return nil, err
 		}
@@ -75,7 +79,7 @@ func NewMain(cfg *config.AnalyzerConfig, target storage.TargetStorage, logger *l
 		}
 		ac = analyzer.Config{
 			BlockRange: blockRange,
-			Source:     source,
+			Source:     client,
 		}
 	} else {
 		interval, err := time.ParseDuration(cfg.Interval)
@@ -158,7 +162,7 @@ func (m *Main) Name() string {
 }
 
 // source returns the source storage for the provided block height.
-func (m *Main) source(height int64) (storage.SourceStorage, error) {
+func (m *Main) source(height int64) (storage.ConsensusSourceStorage, error) {
 	r := m.cfg
 	if height >= r.BlockRange.From && (r.BlockRange.To == 0 || height <= r.BlockRange.To) {
 		return r.Source, nil
@@ -249,7 +253,7 @@ func (m *Main) prepareBlockData(ctx context.Context, height int64, batch *storag
 		return err
 	}
 
-	for _, f := range []func(*storage.QueryBatch, *storage.BlockData) error{
+	for _, f := range []func(*storage.QueryBatch, *storage.ConsensusBlockData) error{
 		m.queueBlockInserts,
 		m.queueEpochInserts,
 		m.queueTransactionInserts,
@@ -263,7 +267,7 @@ func (m *Main) prepareBlockData(ctx context.Context, height int64, batch *storag
 	return nil
 }
 
-func (m *Main) queueBlockInserts(batch *storage.QueryBatch, data *storage.BlockData) error {
+func (m *Main) queueBlockInserts(batch *storage.QueryBatch, data *storage.ConsensusBlockData) error {
 	batch.Queue(
 		m.qf.BlockInsertQuery(),
 		data.BlockHeader.Height,
@@ -278,7 +282,7 @@ func (m *Main) queueBlockInserts(batch *storage.QueryBatch, data *storage.BlockD
 	return nil
 }
 
-func (m *Main) queueEpochInserts(batch *storage.QueryBatch, data *storage.BlockData) error {
+func (m *Main) queueEpochInserts(batch *storage.QueryBatch, data *storage.ConsensusBlockData) error {
 	batch.Queue(
 		m.qf.EpochInsertQuery(),
 		data.Epoch,
@@ -293,7 +297,7 @@ func (m *Main) queueEpochInserts(batch *storage.QueryBatch, data *storage.BlockD
 	return nil
 }
 
-func (m *Main) queueTransactionInserts(batch *storage.QueryBatch, data *storage.BlockData) error {
+func (m *Main) queueTransactionInserts(batch *storage.QueryBatch, data *storage.ConsensusBlockData) error {
 	transactionInsertQuery := m.qf.TransactionInsertQuery()
 	accountNonceUpdateQuery := m.qf.AccountNonceUpdateQuery()
 	commissionsUpsertQuery := m.qf.CommissionsUpsertQuery()
@@ -353,7 +357,7 @@ func (m *Main) queueTransactionInserts(batch *storage.QueryBatch, data *storage.
 	return nil
 }
 
-func (m *Main) queueEventInserts(batch *storage.QueryBatch, data *storage.BlockData) error {
+func (m *Main) queueEventInserts(batch *storage.QueryBatch, data *storage.ConsensusBlockData) error {
 	eventInsertQuery := m.qf.EventInsertQuery()
 
 	for i := 0; i < len(data.Results); i++ {
