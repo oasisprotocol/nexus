@@ -251,16 +251,18 @@ func (qf QueryFactory) ReclaimEscrowBalanceUpdateQuery() string {
 }
 
 func (qf QueryFactory) DeleteDebondingDelegationsQuery() string {
+	// Network upgrades delays debonding by 1 epoch
 	return fmt.Sprintf(`
 		DELETE FROM %[1]s.debonding_delegations
 			WHERE (ctid) IN (
 				SELECT ctid
 				FROM %[1]s.debonding_delegations
 				WHERE
-					delegator = $1 AND delegatee = $2 AND shares = $3 AND debond_end = (
+					delegator = $1 AND delegatee = $2 AND shares = $3 AND debond_end IN (
 					SELECT id
 					FROM %[1]s.epochs
-					WHERE end_height IS NULL AND start_height = $4
+					ORDER BY id DESC
+					LIMIT 2
 				) LIMIT 1
 			)`, qf.chainID)
 }

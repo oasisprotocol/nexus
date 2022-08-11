@@ -676,7 +676,6 @@ func (m *Main) queueEscrows(batch *storage.QueryBatch, data *storage.StakingData
 				e.Reclaim.Owner.String(),
 				e.Reclaim.Escrow.String(),
 				e.Reclaim.Shares.ToBigInt().Uint64(),
-				data.Height,
 			)
 		}
 	}
