@@ -158,6 +158,7 @@ func (c *Client) BlockData(ctx context.Context, height int64) (*storage.BlockDat
 	}
 
 	return &storage.BlockData{
+		Height:       height,
 		BlockHeader:  block,
 		Epoch:        epoch,
 		Transactions: transactions,
@@ -180,6 +181,7 @@ func (c *Client) BeaconData(ctx context.Context, height int64) (*storage.BeaconD
 	}
 
 	return &storage.BeaconData{
+		Height: height,
 		Epoch:  epoch,
 		Beacon: beacon,
 	}, nil
@@ -226,6 +228,7 @@ func (c *Client) RegistryData(ctx context.Context, height int64) (*storage.Regis
 	}
 
 	return &storage.RegistryData{
+		Height:               height,
 		RuntimeEvents:        runtimeEvents,
 		EntityEvents:         entityEvents,
 		NodeEvents:           nodeEvents,
@@ -313,6 +316,7 @@ func (c *Client) StakingData(ctx context.Context, height int64) (*storage.Stakin
 	}
 
 	return &storage.StakingData{
+		Height:           height,
 		Transfers:        transfers,
 		Burns:            burns,
 		Escrows:          escrows,
@@ -347,6 +351,7 @@ func (c *Client) SchedulerData(ctx context.Context, height int64) (*storage.Sche
 	}
 
 	return &storage.SchedulerData{
+		Height:     height,
 		Validators: validators,
 		Committees: committees,
 	}, nil
@@ -392,6 +397,7 @@ func (c *Client) GovernanceData(ctx context.Context, height int64) (*storage.Gov
 		}
 	}
 	return &storage.GovernanceData{
+		Height:                height,
 		ProposalSubmissions:   submissions,
 		ProposalExecutions:    executions,
 		ProposalFinalizations: finalizations,
