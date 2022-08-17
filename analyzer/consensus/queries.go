@@ -254,16 +254,12 @@ func (qf QueryFactory) DeleteDebondingDelegationsQuery() string {
 	// Network upgrades delays debonding by 1 epoch
 	return fmt.Sprintf(`
 		DELETE FROM %[1]s.debonding_delegations
-			WHERE (ctid) IN (
-				SELECT ctid
+			WHERE id = (
+				SELECT id
 				FROM %[1]s.debonding_delegations
 				WHERE
-					delegator = $1 AND delegatee = $2 AND shares = $3 AND debond_end IN (
-					SELECT id
-					FROM %[1]s.epochs
-					ORDER BY id DESC
-					LIMIT 2
-				) LIMIT 1
+					delegator = $1 AND delegatee = $2 AND shares = $3 AND debond_end IN ($4::bigint, $4::bigint - 1)
+				LIMIT 1
 			)`, qf.chainID)
 }
 

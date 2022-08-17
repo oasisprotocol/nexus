@@ -671,11 +671,11 @@ func (m *Main) queueEscrows(batch *storage.QueryBatch, data *storage.StakingData
 				e.Reclaim.Amount.ToBigInt().Uint64(),
 				e.Reclaim.Shares.ToBigInt().Uint64(),
 			)
-
 			batch.Queue(deleteDebondingDelegationsQuery,
 				e.Reclaim.Owner.String(),
 				e.Reclaim.Escrow.String(),
 				e.Reclaim.Shares.ToBigInt().Uint64(),
+				data.Epoch,
 			)
 		}
 	}
