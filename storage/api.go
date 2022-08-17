@@ -119,6 +119,7 @@ type RegistryData struct {
 // retrieving events as updates to apply when getting data at specific height.
 type StakingData struct {
 	Height int64
+	Epoch  beacon.EpochTime
 
 	Transfers        []*staking.TransferEvent
 	Burns            []*staking.BurnEvent
