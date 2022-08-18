@@ -7,7 +7,7 @@ import (
 	"io"
 	"net/http"
 
-	v1 "github.com/oasislabs/oasis-indexer/api/v1"
+	v1 "github.com/oasisprotocol/oasis-indexer/api/v1"
 )
 
 // GetFrom completes an HTTP request and returns the unmarshalled response.

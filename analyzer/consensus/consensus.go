@@ -19,13 +19,13 @@ import (
 	oasisConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/oasislabs/oasis-indexer/analyzer"
-	"github.com/oasislabs/oasis-indexer/analyzer/util"
-	"github.com/oasislabs/oasis-indexer/config"
-	"github.com/oasislabs/oasis-indexer/log"
-	"github.com/oasislabs/oasis-indexer/metrics"
-	"github.com/oasislabs/oasis-indexer/storage"
-	source "github.com/oasislabs/oasis-indexer/storage/oasis"
+	"github.com/oasisprotocol/oasis-indexer/analyzer"
+	"github.com/oasisprotocol/oasis-indexer/analyzer/util"
+	"github.com/oasisprotocol/oasis-indexer/config"
+	"github.com/oasisprotocol/oasis-indexer/log"
+	"github.com/oasisprotocol/oasis-indexer/metrics"
+	"github.com/oasisprotocol/oasis-indexer/storage"
+	source "github.com/oasisprotocol/oasis-indexer/storage/oasis"
 )
 
 const (

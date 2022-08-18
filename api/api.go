@@ -7,9 +7,9 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 
-	v1 "github.com/oasislabs/oasis-indexer/api/v1"
-	"github.com/oasislabs/oasis-indexer/log"
-	"github.com/oasislabs/oasis-indexer/storage"
+	v1 "github.com/oasisprotocol/oasis-indexer/api/v1"
+	"github.com/oasisprotocol/oasis-indexer/log"
+	"github.com/oasisprotocol/oasis-indexer/storage"
 )
 
 const (

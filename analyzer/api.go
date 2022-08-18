@@ -3,7 +3,7 @@ package analyzer
 import (
 	"time"
 
-	"github.com/oasislabs/oasis-indexer/storage"
+	"github.com/oasisprotocol/oasis-indexer/storage"
 )
 
 // Analyzer is a worker that analyzes a subset of the Oasis Network.
