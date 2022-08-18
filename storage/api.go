@@ -15,11 +15,10 @@ import (
 	"github.com/oasisprotocol/oasis-core/go/roothash/api/block"
 	scheduler "github.com/oasisprotocol/oasis-core/go/scheduler/api"
 	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
-	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/client"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/accounts"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/consensusaccounts"
-	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/contracts"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/core"
+	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 )
 
 // QueryBatch represents a batch of queries to be executed atomically.
@@ -152,9 +151,6 @@ type RuntimeSourceStorage interface {
 	// ConsensusAccountsData gets data in the specified round emitted by the `consensusaccounts` module.
 	ConsensusAccountsData(ctx context.Context, round uint64) (*ConsensusAccountsData, error)
 
-	// ContractsData gets data in the specified round emitted by the `contracts` module.
-	ContractsData(ctx context.Context, round uint64) (*ContractsData, error)
-
 	// Name returns the name of the source storage.
 	Name() string
 }
@@ -164,38 +160,41 @@ type RuntimeBlockData struct {
 	Round uint64
 
 	BlockHeader             *block.Block
-	TransactionsWithResults []*client.TransactionWithResults
+	TransactionsWithResults []*TransactionWithResults
+}
+
+// TransactionWithResults contains a verified transaction, and the results of
+// executing that transactions.
+type TransactionWithResults struct {
+	Round uint64
+
+	Tx     *types.Transaction
+	Result types.CallResult
+	Events []*types.Event
 }
 
 // CoreData represents data from the `core` module for a runtime.
 type CoreData struct {
 	Round uint64
 
-	GasUsedEvents []*core.GasUsedEvent
+	GasUsed []*core.GasUsedEvent
 }
 
 // AccountsData represents data from the `accounts` module for a runtime.
 type AccountsData struct {
 	Round uint64
 
-	TransferEvents []*accounts.TransferEvent
-	BurnEvents     []*accounts.BurnEvent
-	MintEvents     []*accounts.MintEvent
+	Transfers []*accounts.TransferEvent
+	Burns     []*accounts.BurnEvent
+	Mints     []*accounts.MintEvent
 }
 
 // ConsensusAccounts represents data from the `consensusaccounts` module for a runtime.
 type ConsensusAccountsData struct {
 	Round uint64
 
-	DepositEvents  []*consensusaccounts.DepositEvent
-	WithdrawEvents []*consensusaccounts.WithdrawEvent
-}
-
-// ContractsData represents data from the `contracts` module for a runtime.
-type ContractsData struct {
-	Round uint64
-
-	ContractEvents []*contracts.Event
+	Deposits  []*consensusaccounts.DepositEvent
+	Withdraws []*consensusaccounts.WithdrawEvent
 }
 
 // TargetStorage defines an interface for reading and writing

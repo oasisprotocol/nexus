@@ -57,8 +57,14 @@ func (cf *ClientFactory) Runtime(runtimeID string) (*RuntimeClient, error) {
 	client := connection.Runtime(&config.ParaTime{
 		ID: runtimeID,
 	})
+
+	info, err := client.GetInfo(context.Background())
+	if err != nil {
+		return nil, err
+	}
 	return &RuntimeClient{
 		client:  client,
 		network: cf.network,
+		info:    info,
 	}, nil
 }

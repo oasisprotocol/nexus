@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/oasislabs/oasis-indexer/storage"
 	"github.com/oasisprotocol/oasis-core/go/common"
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 	consensus "github.com/oasisprotocol/oasis-core/go/consensus/api"
@@ -15,6 +14,8 @@ import (
 	schedulerAPI "github.com/oasisprotocol/oasis-core/go/scheduler/api"
 	stakingAPI "github.com/oasisprotocol/oasis-core/go/staking/api"
 	config "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
+
+	"github.com/oasislabs/oasis-indexer/storage"
 )
 
 // ConsensusClient is a client to the consensus backends.
