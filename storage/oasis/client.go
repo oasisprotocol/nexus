@@ -8,6 +8,7 @@ import (
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
 	config "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 	connection "github.com/oasisprotocol/oasis-sdk/client-sdk/go/connection"
+	runtimeSignature "github.com/oasisprotocol/oasis-sdk/client-sdk/go/crypto/signature"
 )
 
 const (
@@ -27,14 +28,6 @@ func NewClientFactory(ctx context.Context, network *config.Network) (*ClientFact
 		return nil, err
 	}
 
-	chainContext, err := connection.Consensus().GetChainContext(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	// Configure chain context for all signatures using chain domain separation.
-	signature.SetChainContext(chainContext)
-
 	return &ClientFactory{
 		connection: &connection,
 		network:    network,
@@ -43,8 +36,19 @@ func NewClientFactory(ctx context.Context, network *config.Network) (*ClientFact
 
 // Consensus creates a new ConsensusClient.
 func (cf *ClientFactory) Consensus() (*ConsensusClient, error) {
+	ctx := context.Background()
+
 	connection := *cf.connection
 	client := connection.Consensus()
+
+	consensusChainContext, err := client.GetChainContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// Configure chain context for all signatures using chain domain separation.
+	signature.SetChainContext(consensusChainContext)
+
 	return &ConsensusClient{
 		client:  client,
 		network: cf.network,
@@ -53,18 +57,28 @@ func (cf *ClientFactory) Consensus() (*ConsensusClient, error) {
 
 // Runtime creates a new RuntimeClient.
 func (cf *ClientFactory) Runtime(runtimeID string) (*RuntimeClient, error) {
+	ctx := context.Background()
+
 	connection := *cf.connection
 	client := connection.Runtime(&config.ParaTime{
 		ID: runtimeID,
 	})
 
-	info, err := client.GetInfo(context.Background())
+	consensusChainContext, err := connection.Consensus().GetChainContext(ctx)
 	if err != nil {
 		return nil, err
 	}
+
+	info, err := client.GetInfo(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	rtCtx := runtimeSignature.DeriveChainContext(info.ID, consensusChainContext)
 	return &RuntimeClient{
 		client:  client,
 		network: cf.network,
 		info:    info,
+		rtCtx:   rtCtx,
 	}, nil
 }

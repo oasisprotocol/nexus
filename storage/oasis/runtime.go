@@ -6,6 +6,7 @@ import (
 
 	config "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 	connection "github.com/oasisprotocol/oasis-sdk/client-sdk/go/connection"
+	runtimeSignature "github.com/oasisprotocol/oasis-sdk/client-sdk/go/crypto/signature"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/accounts"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/consensusaccounts"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/core"
@@ -19,7 +20,8 @@ type RuntimeClient struct {
 	client  connection.RuntimeClient
 	network *config.Network
 
-	info *types.RuntimeInfo
+	info  *types.RuntimeInfo
+	rtCtx runtimeSignature.Context
 }
 
 // BlockData gets block data in the specified round.
@@ -36,7 +38,7 @@ func (rc *RuntimeClient) BlockData(ctx context.Context, round uint64) (*storage.
 
 	verifiedTransactionsWithResults := make([]*storage.TransactionWithResults, 0, len(unverifiedTransactionsWithResults))
 	for _, tx := range unverifiedTransactionsWithResults {
-		verifiedTx, err := tx.Tx.Verify("blah blah") // TODO
+		verifiedTx, err := tx.Tx.Verify(rc.rtCtx)
 		if err != nil {
 			return nil, err
 		}
