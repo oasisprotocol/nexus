@@ -30,10 +30,7 @@ func (qf QueryFactory) BlocksQuery() string {
 						($3::timestamptz IS NULL OR time >= $3::timestamptz) AND
 						($4::timestamptz IS NULL OR time <= $4::timestamptz)
 		ORDER BY
-			CASE
-				WHEN $5::text IS NULL THEN 1
-				ELSE $5::text
-			END
+			$5::text
 		DESC
 		LIMIT $6::bigint
 		OFFSET $7::bigint`, qf.chainID)
@@ -57,10 +54,7 @@ func (qf QueryFactory) TransactionsQuery() string {
 						($5::bigint IS NULL OR fee_amount <= $5::bigint) AND
 						($6::bigint IS NULL OR code = $6::bigint)
 		ORDER BY
-			CASE
-				WHEN $7::text IS NULL THEN 1
-				ELSE $7::text
-			END
+			$7::text
 		DESC
 		LIMIT $8::bigint
 		OFFSET $9::bigint`, qf.chainID)
@@ -78,10 +72,7 @@ func (qf QueryFactory) EntitiesQuery() string {
 		SELECT id, address
 			FROM %s.entities
 		ORDER BY
-			CASE
-				WHEN $1::text IS NULL THEN 1
-				ELSE $1::text
-			END
+			$1::text
 		DESC
 		LIMIT $2::bigint
 		OFFSET $3::bigint`, qf.chainID)
@@ -107,10 +98,7 @@ func (qf QueryFactory) EntityNodesQuery() string {
 			FROM %s.nodes
 			WHERE entity_id = $1::text
 		ORDER BY
-			CASE
-				WHEN $2::text IS NULL THEN 1
-				ELSE $2::text
-			END
+			$2::text
 		DESC
 		LIMIT $3::bigint
 		OFFSET $4::bigint`, qf.chainID)
@@ -136,10 +124,7 @@ func (qf QueryFactory) AccountsQuery() string {
 						($7::bigint IS NULL OR general_balance + escrow_balance_active + escrow_balance_debonding >= $7::bigint) AND
 						($8::bigint IS NULL OR general_balance + escrow_balance_active + escrow_balance_debonding <= $8::bigint)
 		ORDER BY
-			CASE
-				WHEN $9::text IS NULL THEN 1
-				ELSE $9::text
-			END
+			$9::text
 		DESC
 		LIMIT $10::bigint
 		OFFSET $11::bigint`, qf.chainID)
@@ -178,10 +163,7 @@ func (qf QueryFactory) DelegationsQuery() string {
 			JOIN %[1]s.accounts ON %[1]s.delegations.delegatee = %[1]s.accounts.address
 			WHERE delegator = $1::text
 		ORDER BY
-			CASE
-				WHEN $2::text IS NULL THEN 1
-				ELSE $2::text
-			END
+			$2::text
 		DESC
 		LIMIT $3::bigint
 		OFFSET $4::bigint`, qf.chainID)
@@ -194,10 +176,7 @@ func (qf QueryFactory) DebondingDelegationsQuery() string {
 			JOIN %[1]s.accounts ON %[1]s.debonding_delegations.delegatee = %[1]s.accounts.address
 			WHERE delegator = $1::text
 		ORDER BY
-			CASE
-				WHEN $2::text IS NULL THEN 1
-				ELSE $2::text
-			END
+			$2::text
 		DESC
 		LIMIT $3::bigint
 		OFFSET $4::bigint`, qf.chainID)
@@ -208,10 +187,7 @@ func (qf QueryFactory) EpochsQuery() string {
 		SELECT id, start_height, end_height
 			FROM %s.epochs
 		ORDER BY
-			CASE
-				WHEN $1::text IS NULL THEN 1
-				ELSE $1::text
-			END
+			$1::text
 		DESC
 		LIMIT $2::bigint
 		OFFSET $3::bigint`, qf.chainID)
@@ -232,10 +208,7 @@ func (qf QueryFactory) ProposalsQuery() string {
 			WHERE ($1::text IS NULL OR submitter = $1::text) AND
 						($2::text IS NULL OR state = $2::text)
 		ORDER BY
-			CASE
-				WHEN $3::text IS NULL THEN 1
-				ELSE $3::text
-			END
+			$3::text
 		DESC
 		LIMIT $4::bigint
 		OFFSET $5::bigint`, qf.chainID)
@@ -255,10 +228,7 @@ func (qf QueryFactory) ProposalVotesQuery() string {
 			FROM %s.votes
 			WHERE proposal = $1::bigint
 		ORDER BY
-			CASE
-				WHEN $2::text IS NULL THEN 1
-				ELSE $2::text
-			END
+			$2::text
 		DESC
 		LIMIT $3::bigint
 		OFFSET $4::bigint`, qf.chainID)
@@ -327,10 +297,7 @@ func (qf QueryFactory) ValidatorsDataQuery() string {
 						AND %[1]s.nodes.roles like '%%validator%%'
 				)
 		ORDER BY
-			CASE
-				WHEN $1::text IS NULL THEN 1
-				ELSE $1::text
-			END
+			$1::text
 		DESC
 		LIMIT $2::bigint
 		OFFSET $3::bigint`, qf.chainID)
