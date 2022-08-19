@@ -11,8 +11,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/oasislabs/oasis-indexer/log"
-	"github.com/oasislabs/oasis-indexer/storage"
+	"github.com/oasisprotocol/oasis-indexer/log"
+	"github.com/oasisprotocol/oasis-indexer/storage"
 )
 
 func newClient(t *testing.T) (*Client, error) {

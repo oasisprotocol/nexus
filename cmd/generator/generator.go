@@ -16,11 +16,11 @@ import (
 
 	oasisConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 
-	"github.com/oasislabs/oasis-indexer/cmd/common"
-	"github.com/oasislabs/oasis-indexer/config"
-	"github.com/oasislabs/oasis-indexer/log"
-	"github.com/oasislabs/oasis-indexer/storage/generator"
-	"github.com/oasislabs/oasis-indexer/storage/oasis"
+	"github.com/oasisprotocol/oasis-indexer/cmd/common"
+	"github.com/oasisprotocol/oasis-indexer/config"
+	"github.com/oasisprotocol/oasis-indexer/log"
+	"github.com/oasisprotocol/oasis-indexer/storage/generator"
+	"github.com/oasisprotocol/oasis-indexer/storage/oasis"
 )
 
 const (

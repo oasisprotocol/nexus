@@ -15,7 +15,7 @@ import (
 	registry "github.com/oasisprotocol/oasis-core/go/registry/api"
 	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
 
-	"github.com/oasislabs/oasis-indexer/log"
+	"github.com/oasisprotocol/oasis-indexer/log"
 )
 
 const bulkInsertBatchSize = 1000

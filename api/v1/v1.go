@@ -3,9 +3,9 @@ package v1
 import (
 	"github.com/go-chi/chi/v5"
 
-	"github.com/oasislabs/oasis-indexer/log"
-	"github.com/oasislabs/oasis-indexer/metrics"
-	"github.com/oasislabs/oasis-indexer/storage"
+	"github.com/oasisprotocol/oasis-indexer/log"
+	"github.com/oasisprotocol/oasis-indexer/metrics"
+	"github.com/oasisprotocol/oasis-indexer/storage"
 )
 
 const (

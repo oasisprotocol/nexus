@@ -7,8 +7,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	v1 "github.com/oasislabs/oasis-indexer/api/v1"
-	"github.com/oasislabs/oasis-indexer/tests"
+	v1 "github.com/oasisprotocol/oasis-indexer/api/v1"
+	"github.com/oasisprotocol/oasis-indexer/tests"
 )
 
 var stakingEndHeight int64 = 8054649
