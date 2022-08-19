@@ -1,9 +1,20 @@
 package analyzer
 
 import (
+	"errors"
 	"time"
 
 	"github.com/oasislabs/oasis-indexer/storage"
+)
+
+var (
+	// ErrOutOfRange is returned if the current block does not fall within tge
+	// analyzer's analysis range.
+	ErrOutOfRange = errors.New("range not found. no data source available")
+
+	// ErrLatestBlockNotFound is returned if the analyzer has not indexed any
+	// blocks yet. This indicates to begin from the start of its range.
+	ErrLatestBlockNotFound = errors.New("latest block not found")
 )
 
 // Analyzer is a worker that analyzes a subset of the Oasis Network.
@@ -15,15 +26,15 @@ type Analyzer interface {
 	Name() string
 }
 
-// Config specifies configuration parameters
-// for processing the network.
-type Config struct {
+// ConsensusConfig specifies configuration parameters for
+// for processing the consensus layer.
+type ConsensusConfig struct {
 	// ChainID is the chain ID for the underlying network.
 	ChainID string
 
-	// BlockRange is the range of blocks to process.
+	// Range is the range of blocks to process.
 	// If this is set, the analyzer analyzes blocks in the provided range.
-	BlockRange Range
+	Range BlockRange
 
 	// Interval is the interval at which to process.
 	// If this is set, the analyzer runs once per interval.
@@ -34,13 +45,41 @@ type Config struct {
 	Source storage.ConsensusSourceStorage
 }
 
-// Range is a range of blocks.
-type Range struct {
+// BlockRange is a range of blocks.
+type BlockRange struct {
 	// From is the first block to process in this range, inclusive.
 	From int64
 
 	// To is the last block to process in this range, inclusive.
 	To int64
+}
+
+// RuntimeConfig specifies configuration parameters for
+// for processing the runtime layer.
+type RuntimeConfig struct {
+	// ChainID is the chain ID for the underlying network.
+	ChainID string
+
+	// Range is the range of rounds to process.
+	// If this is set, the analyzer analyzes rounds in the provided range.
+	Range RoundRange
+
+	// Interval is the interval at which to process.
+	// If this is set, the analyzer runs once per interval.
+	Interval time.Duration
+
+	// Source is the storage source from which to fetch block data
+	// when processing blocks in this range.
+	Source storage.RuntimeSourceStorage
+}
+
+// RoundRange is a range of blocks.
+type RoundRange struct {
+	// From is the first block to process in this range, inclusive.
+	From uint64
+
+	// To is the last block to process in this range, inclusive.
+	To uint64
 }
 
 // Backend is a consensus backend.

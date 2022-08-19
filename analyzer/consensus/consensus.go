@@ -33,19 +33,9 @@ const (
 	registryUpdateFrequency = 100 // once per n block
 )
 
-var (
-	// ErrOutOfRange is returned if the current block does not fall within tge
-	// analyzer's analysis range.
-	ErrOutOfRange = errors.New("range not found. no data source available")
-
-	// ErrLatestBlockNotFound is returned if the analyzer has not indexed any
-	// blocks yet. This indicates to begin from the start of its range.
-	ErrLatestBlockNotFound = errors.New("latest block not found")
-)
-
 // Main is the main Analyzer for the consensus layer.
 type Main struct {
-	cfg     analyzer.Config
+	cfg     analyzer.ConsensusConfig
 	qf      QueryFactory
 	target  storage.TargetStorage
 	logger  *log.Logger
@@ -56,7 +46,7 @@ type Main struct {
 func NewMain(cfg *config.AnalyzerConfig, target storage.TargetStorage, logger *log.Logger) (*Main, error) {
 	ctx := context.Background()
 
-	var ac analyzer.Config
+	var ac analyzer.ConsensusConfig
 	if cfg.Interval == "" {
 		// Initialize source storage.
 		networkCfg := oasisConfig.Network{
@@ -65,30 +55,39 @@ func NewMain(cfg *config.AnalyzerConfig, target storage.TargetStorage, logger *l
 		}
 		factory, err := source.NewClientFactory(ctx, &networkCfg)
 		if err != nil {
+			logger.Error("error creating client factory",
+				"err", err.Error(),
+			)
 			return nil, err
 		}
 		client, err := factory.Consensus()
 		if err != nil {
+			logger.Error("error creating consensus client",
+				"err", err.Error(),
+			)
 			return nil, err
 		}
 
 		// Configure analyzer.
-		blockRange := analyzer.Range{
+		blockRange := analyzer.BlockRange{
 			From: cfg.From,
 			To:   cfg.To,
 		}
-		ac = analyzer.Config{
-			BlockRange: blockRange,
-			Source:     client,
+		ac = analyzer.ConsensusConfig{
+			Range:  blockRange,
+			Source: client,
 		}
 	} else {
 		interval, err := time.ParseDuration(cfg.Interval)
 		if err != nil {
+			logger.Error("error parsing analysis interval",
+				"err", err.Error(),
+			)
 			return nil, err
 		}
 
 		// Configure analyzer.
-		ac = analyzer.Config{
+		ac = analyzer.ConsensusConfig{
 			Interval: interval,
 		}
 	}
@@ -117,7 +116,7 @@ func (m *Main) Start() {
 			return
 		}
 		m.logger.Debug("setting height using range config")
-		height = m.cfg.BlockRange.From
+		height = m.cfg.Range.From
 	} else {
 		m.logger.Debug("setting height using latest block")
 		height = latest + 1
@@ -135,9 +134,9 @@ func (m *Main) Start() {
 		)
 		return
 	}
-	for m.cfg.BlockRange.To == 0 || height <= m.cfg.BlockRange.To {
+	for m.cfg.Range.To == 0 || height <= m.cfg.Range.To {
 		if err := m.processBlock(ctx, height); err != nil {
-			if err == ErrOutOfRange {
+			if err == analyzer.ErrOutOfRange {
 				m.logger.Info("no data source available at this height",
 					"height", height,
 				)
@@ -164,11 +163,11 @@ func (m *Main) Name() string {
 // source returns the source storage for the provided block height.
 func (m *Main) source(height int64) (storage.ConsensusSourceStorage, error) {
 	r := m.cfg
-	if height >= r.BlockRange.From && (r.BlockRange.To == 0 || height <= r.BlockRange.To) {
+	if height >= r.Range.From && (r.Range.To == 0 || height <= r.Range.To) {
 		return r.Source, nil
 	}
 
-	return nil, ErrOutOfRange
+	return nil, analyzer.ErrOutOfRange
 }
 
 // latestBlock returns the latest block processed by the consensus analyzer.
@@ -186,7 +185,9 @@ func (m *Main) latestBlock(ctx context.Context) (int64, error) {
 	return latest, nil
 }
 
-// processBlock processes the block at the provided block height.
+// processBlock processes the provided block, retrieving all required information
+// from source storage and committing an atomically-executed batch of queries
+// to target storage.
 func (m *Main) processBlock(ctx context.Context, height int64) error {
 	m.logger.Info("processing block",
 		"height", height,
