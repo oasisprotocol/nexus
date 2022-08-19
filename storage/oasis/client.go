@@ -297,6 +297,11 @@ func (c *Client) StakingData(ctx context.Context, height int64) (*storage.Stakin
 		return nil, err
 	}
 
+	epoch, err := connection.Consensus().Beacon().GetEpoch(ctx, height)
+	if err != nil {
+		return nil, err
+	}
+
 	var transfers []*stakingAPI.TransferEvent
 	var burns []*stakingAPI.BurnEvent
 	var escrows []*stakingAPI.EscrowEvent
@@ -317,6 +322,7 @@ func (c *Client) StakingData(ctx context.Context, height int64) (*storage.Stakin
 
 	return &storage.StakingData{
 		Height:           height,
+		Epoch:            epoch,
 		Transfers:        transfers,
 		Burns:            burns,
 		Escrows:          escrows,
