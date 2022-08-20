@@ -92,21 +92,21 @@ func newTargetClient(t *testing.T) (*postgres.Client, error) {
 	return postgres.NewClient(connString, logger)
 }
 
-func newSourceClient() (*oasis.Client, error) {
+func newSourceClientFactory() (*oasis.ClientFactory, error) {
 	network := &oasisConfig.Network{
 		ChainContext: os.Getenv("HEALTHCHECK_TEST_CHAIN_CONTEXT"),
 		RPC:          os.Getenv("HEALTHCHECK_TEST_NODE_RPC"),
 	}
-	return oasis.NewClient(context.Background(), network)
+	return oasis.NewClientFactory(context.Background(), network)
 }
 
-func getChainID(ctx context.Context, t *testing.T, source *oasis.Client) string {
+func getChainID(ctx context.Context, t *testing.T, source *oasis.ConsensusClient) string {
 	doc, err := source.GenesisDocument(ctx)
 	assert.Nil(t, err)
 	return strcase.ToSnake(doc.ChainID)
 }
 
-func checkpointBackends(t *testing.T, source *oasis.Client, target *postgres.Client) (int64, error) {
+func checkpointBackends(t *testing.T, source *oasis.ConsensusClient, target *postgres.Client) (int64, error) {
 	ctx := context.Background()
 
 	chainID := getChainID(ctx, t, source)
@@ -163,7 +163,10 @@ func TestBlocksSanityCheck(t *testing.T) {
 
 	ctx := context.Background()
 
-	oasisClient, err := newSourceClient()
+	factory, err := newSourceClientFactory()
+	require.Nil(t, err)
+
+	oasisClient, err := factory.Consensus()
 	require.Nil(t, err)
 
 	postgresClient, err := newTargetClient(t)
@@ -201,8 +204,11 @@ func TestGenesisFull(t *testing.T) {
 
 	ctx := context.Background()
 
-	oasisClient, err := newSourceClient()
-	assert.Nil(t, err)
+	factory, err := newSourceClientFactory()
+	require.Nil(t, err)
+
+	oasisClient, err := factory.Consensus()
+	require.Nil(t, err)
 
 	postgresClient, err := newTargetClient(t)
 	assert.Nil(t, err)
@@ -227,7 +233,7 @@ func TestGenesisFull(t *testing.T) {
 	validateGovernanceBackend(t, governanceGenesis, oasisClient, postgresClient)
 }
 
-func validateRegistryBackend(t *testing.T, genesis *registry.Genesis, source *oasis.Client, target *postgres.Client) {
+func validateRegistryBackend(t *testing.T, genesis *registry.Genesis, source *oasis.ConsensusClient, target *postgres.Client) {
 	t.Log("=== Validating registry backend ===")
 
 	validateEntities(t, genesis, source, target)
@@ -237,7 +243,7 @@ func validateRegistryBackend(t *testing.T, genesis *registry.Genesis, source *oa
 	t.Log("=== Done validating registry backend ===")
 }
 
-func validateEntities(t *testing.T, genesis *registry.Genesis, source *oasis.Client, target *postgres.Client) {
+func validateEntities(t *testing.T, genesis *registry.Genesis, source *oasis.ConsensusClient, target *postgres.Client) {
 	t.Log("Validating entities...")
 
 	ctx := context.Background()
@@ -345,7 +351,7 @@ func validateEntities(t *testing.T, genesis *registry.Genesis, source *oasis.Cli
 	}
 }
 
-func validateNodes(t *testing.T, genesis *registry.Genesis, source *oasis.Client, target *postgres.Client) {
+func validateNodes(t *testing.T, genesis *registry.Genesis, source *oasis.ConsensusClient, target *postgres.Client) {
 	t.Log("Validating nodes...")
 
 	ctx := context.Background()
@@ -427,7 +433,7 @@ func validateNodes(t *testing.T, genesis *registry.Genesis, source *oasis.Client
 	}
 }
 
-func validateRuntimes(t *testing.T, genesis *registry.Genesis, source *oasis.Client, target *postgres.Client) {
+func validateRuntimes(t *testing.T, genesis *registry.Genesis, source *oasis.ConsensusClient, target *postgres.Client) {
 	t.Log("Validating runtimes...")
 
 	ctx := context.Background()
@@ -512,7 +518,7 @@ func validateRuntimes(t *testing.T, genesis *registry.Genesis, source *oasis.Cli
 	}
 }
 
-func validateStakingBackend(t *testing.T, genesis *staking.Genesis, source *oasis.Client, target *postgres.Client) {
+func validateStakingBackend(t *testing.T, genesis *staking.Genesis, source *oasis.ConsensusClient, target *postgres.Client) {
 	t.Log("=== Validating staking backend ===")
 
 	validateAccounts(t, genesis, source, target)
@@ -520,7 +526,7 @@ func validateStakingBackend(t *testing.T, genesis *staking.Genesis, source *oasi
 	t.Log("=== Done validating staking backend! ===")
 }
 
-func validateAccounts(t *testing.T, genesis *staking.Genesis, source *oasis.Client, target *postgres.Client) {
+func validateAccounts(t *testing.T, genesis *staking.Genesis, source *oasis.ConsensusClient, target *postgres.Client) {
 	t.Log("Validating accounts...")
 
 	ctx := context.Background()
@@ -590,7 +596,7 @@ func validateAccounts(t *testing.T, genesis *staking.Genesis, source *oasis.Clie
 	}
 }
 
-func validateGovernanceBackend(t *testing.T, genesis *governance.Genesis, source *oasis.Client, target *postgres.Client) {
+func validateGovernanceBackend(t *testing.T, genesis *governance.Genesis, source *oasis.ConsensusClient, target *postgres.Client) {
 	t.Log("=== Validating governance backend ===")
 
 	validateProposals(t, genesis, source, target)
@@ -599,7 +605,7 @@ func validateGovernanceBackend(t *testing.T, genesis *governance.Genesis, source
 	t.Log("=== Done validating governance backend! ===")
 }
 
-func validateProposals(t *testing.T, genesis *governance.Genesis, source *oasis.Client, target *postgres.Client) {
+func validateProposals(t *testing.T, genesis *governance.Genesis, source *oasis.ConsensusClient, target *postgres.Client) {
 	t.Log("Validating proposals...")
 
 	ctx := context.Background()
@@ -685,7 +691,7 @@ func validateProposals(t *testing.T, genesis *governance.Genesis, source *oasis.
 	}
 }
 
-func validateVotes(t *testing.T, genesis *governance.Genesis, source *oasis.Client, target *postgres.Client) {
+func validateVotes(t *testing.T, genesis *governance.Genesis, source *oasis.ConsensusClient, target *postgres.Client) {
 	t.Log("Validating votes...")
 
 	ctx := context.Background()

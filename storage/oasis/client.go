@@ -69,6 +69,9 @@ func (cf *ClientFactory) Runtime(runtimeID string) (*RuntimeClient, error) {
 		return nil, err
 	}
 
+	// Configure chain context for all signatures using chain domain separation.
+	signature.SetChainContext(consensusChainContext)
+
 	info, err := client.GetInfo(ctx)
 	if err != nil {
 		return nil, err

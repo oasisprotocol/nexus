@@ -15,12 +15,12 @@ const (
 	futureHeight = 100000000000 // an unreasonably high height
 )
 
-func newClient() (*Client, error) {
+func newClientFactory() (*ClientFactory, error) {
 	network := &config.Network{
 		ChainContext: os.Getenv("CI_TEST_CHAIN_CONTEXT"),
 		RPC:          os.Getenv("CI_TEST_NODE_RPC"),
 	}
-	return NewClient(context.Background(), network)
+	return NewClientFactory(context.Background(), network)
 }
 
 func TestConnect(t *testing.T) {
@@ -32,7 +32,7 @@ func TestConnect(t *testing.T) {
 		t.Skip("skipping testing in short mode")
 	}
 
-	_, err := newClient()
+	_, err := newClientFactory()
 	require.Nil(t, err)
 }
 
@@ -49,14 +49,14 @@ func TestInvalidConnect(t *testing.T) {
 		ChainContext: os.Getenv("CI_TEST_CHAIN_CONTEXT"),
 		RPC:          "an invalid rpc endpoint",
 	}
-	_, err := NewClient(context.Background(), network)
+	_, err := NewClientFactory(context.Background(), network)
 	require.NotNil(t, err)
 
 	network = &config.Network{
 		ChainContext: "an invalid chaincontext",
 		RPC:          os.Getenv("CI_TEST_NODE_RPC"),
 	}
-	_, err = NewClient(context.Background(), network)
+	_, err = NewClientFactory(context.Background(), network)
 	require.NotNil(t, err)
 }
 
@@ -71,7 +71,10 @@ func TestGenesisDocument(t *testing.T) {
 
 	ctx := context.Background()
 
-	client, err := newClient()
+	factory, err := newClientFactory()
+	require.Nil(t, err)
+
+	client, err := factory.Consensus()
 	require.Nil(t, err)
 
 	_, err = client.GenesisDocument(ctx)
@@ -89,7 +92,10 @@ func TestBlockData(t *testing.T) {
 
 	ctx := context.Background()
 
-	client, err := newClient()
+	factory, err := newClientFactory()
+	require.Nil(t, err)
+
+	client, err := factory.Consensus()
 	require.Nil(t, err)
 
 	_, err = client.BlockData(ctx, pastHeight)
@@ -110,7 +116,10 @@ func TestBeaconData(t *testing.T) {
 
 	ctx := context.Background()
 
-	client, err := newClient()
+	factory, err := newClientFactory()
+	require.Nil(t, err)
+
+	client, err := factory.Consensus()
 	require.Nil(t, err)
 
 	_, err = client.BeaconData(ctx, pastHeight)
@@ -133,7 +142,10 @@ func TestRegistryData(t *testing.T) {
 
 	ctx := context.Background()
 
-	client, err := newClient()
+	factory, err := newClientFactory()
+	require.Nil(t, err)
+
+	client, err := factory.Consensus()
 	require.Nil(t, err)
 
 	_, err = client.RegistryData(ctx, pastHeight)
@@ -154,7 +166,10 @@ func TestStakingData(t *testing.T) {
 
 	ctx := context.Background()
 
-	client, err := newClient()
+	factory, err := newClientFactory()
+	require.Nil(t, err)
+
+	client, err := factory.Consensus()
 	require.Nil(t, err)
 
 	_, err = client.StakingData(ctx, pastHeight)
@@ -175,7 +190,10 @@ func TestSchedulerData(t *testing.T) {
 
 	ctx := context.Background()
 
-	client, err := newClient()
+	factory, err := newClientFactory()
+	require.Nil(t, err)
+
+	client, err := factory.Consensus()
 	require.Nil(t, err)
 
 	_, err = client.SchedulerData(ctx, pastHeight)
@@ -198,7 +216,10 @@ func TestGovernanceData(t *testing.T) {
 
 	ctx := context.Background()
 
-	client, err := newClient()
+	factory, err := newClientFactory()
+	require.Nil(t, err)
+
+	client, err := factory.Consensus()
 	require.Nil(t, err)
 
 	_, err = client.GovernanceData(ctx, pastHeight)

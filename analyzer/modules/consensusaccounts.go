@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/oasislabs/oasis-indexer/log"
 	"github.com/oasislabs/oasis-indexer/storage"
 )
 
@@ -11,23 +12,27 @@ import (
 // `consensus_accounts` module for a runtime into target storage.
 type ConsensusAccountsHandler struct {
 	source storage.RuntimeSourceStorage
+	logger *log.Logger
 }
 
 // NewConsensusAccountsHandler creates a new handler for `consensus_accounts` module data.
-func NewConsensusAccountsHandler(source storage.RuntimeSourceStorage) *ConsensusAccountsHandler {
-	return &ConsensusAccountsHandler{source}
+func NewConsensusAccountsHandler(source storage.RuntimeSourceStorage, logger *log.Logger) *ConsensusAccountsHandler {
+	return &ConsensusAccountsHandler{source, logger}
 }
 
 // PrepareConsensusAccountsData prepares raw data from the `consensus_accounts` module for insertion
 // into target storage.
-func (a *ConsensusAccountsHandler) PrepareConsensusAccountsData(ctx context.Context, round uint64, batch *storage.QueryBatch) error {
-	data, err := a.source.ConsensusAccountsData(ctx, round)
+func (h *ConsensusAccountsHandler) PrepareData(ctx context.Context, round uint64, batch *storage.QueryBatch) error {
+	data, err := h.source.ConsensusAccountsData(ctx, round)
 	if err != nil {
+		h.logger.Error("error retrieving consensus_accounts data",
+			"error", err,
+		)
 		return err
 	}
 
 	for _, deposit := range data.Deposits {
-		fmt.Printf("deposit from %s to %s of %s\n", deposit.From.String(), deposit.To.String(), deposit.Amount.String())
+		h.logger.Error(fmt.Sprintf("deposit from %s to %s of %s\n", deposit.From.String(), deposit.To.String(), deposit.Amount.String()))
 	}
 	return nil
 }

@@ -126,7 +126,6 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) {
 	// Initialize analyzers.
 	analyzers := map[string]analyzer.Analyzer{}
 	for _, analyzerCfg := range cfg.Analyzers {
-		//nolint:gocritic
 		switch analyzerCfg.Name {
 		case "consensus_main_damask":
 			consensusMainDamask, err := consensus.NewMain(analyzerCfg, client, logger)
