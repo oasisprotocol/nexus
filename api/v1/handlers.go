@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/oasislabs/oasis-indexer/api/common"
+	"github.com/oasisprotocol/oasis-indexer/api/common"
 )
 
 // GetStatus gets the indexer status.

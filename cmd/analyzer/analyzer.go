@@ -11,13 +11,13 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/github"     // support github scheme for golang_migrate
 	"github.com/spf13/cobra"
 
-	"github.com/oasislabs/oasis-indexer/analyzer"
-	"github.com/oasislabs/oasis-indexer/analyzer/consensus"
-	"github.com/oasislabs/oasis-indexer/analyzer/emerald"
-	"github.com/oasislabs/oasis-indexer/cmd/common"
-	"github.com/oasislabs/oasis-indexer/config"
-	"github.com/oasislabs/oasis-indexer/log"
-	"github.com/oasislabs/oasis-indexer/storage"
+	"github.com/oasisprotocol/oasis-indexer/analyzer"
+	"github.com/oasisprotocol/oasis-indexer/analyzer/consensus"
+	"github.com/oasisprotocol/oasis-indexer/analyzer/emerald"
+	"github.com/oasisprotocol/oasis-indexer/cmd/common"
+	"github.com/oasisprotocol/oasis-indexer/config"
+	"github.com/oasisprotocol/oasis-indexer/log"
+	"github.com/oasisprotocol/oasis-indexer/storage"
 )
 
 const (

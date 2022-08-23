@@ -6,12 +6,12 @@ import (
 	"io"
 	"os"
 
-	"github.com/oasislabs/oasis-indexer/config"
-	"github.com/oasislabs/oasis-indexer/log"
-	"github.com/oasislabs/oasis-indexer/metrics"
-	"github.com/oasislabs/oasis-indexer/storage"
-	"github.com/oasislabs/oasis-indexer/storage/cockroach"
-	"github.com/oasislabs/oasis-indexer/storage/postgres"
+	"github.com/oasisprotocol/oasis-indexer/config"
+	"github.com/oasisprotocol/oasis-indexer/log"
+	"github.com/oasisprotocol/oasis-indexer/metrics"
+	"github.com/oasisprotocol/oasis-indexer/storage"
+	"github.com/oasisprotocol/oasis-indexer/storage/cockroach"
+	"github.com/oasisprotocol/oasis-indexer/storage/postgres"
 )
 
 var rootLogger = log.NewDefaultLogger("oasis-indexer")

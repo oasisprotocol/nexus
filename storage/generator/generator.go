@@ -15,7 +15,7 @@ import (
 	registry "github.com/oasisprotocol/oasis-core/go/registry/api"
 	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
 
-	"github.com/oasislabs/oasis-indexer/log"
+	"github.com/oasisprotocol/oasis-indexer/log"
 )
 
 const bulkInsertBatchSize = 1000
@@ -224,6 +224,65 @@ func (mg *MigrationGenerator) addStakingBackendMigrations(w io.Writer, document 
 TRUNCATE %s.accounts CASCADE;`, chainID)); err != nil {
 		return err
 	}
+
+	// Populate special accounts with reserved addresses.
+	if _, err := io.WriteString(w, fmt.Sprintf(`
+-- Reserved addresses
+INSERT INTO %s.accounts (address, general_balance, nonce, escrow_balance_active, escrow_total_shares_active, escrow_balance_debonding, escrow_total_shares_debonding)
+VALUES
+`, chainID)); err != nil {
+		return err
+	}
+
+	reservedAccounts := make(map[staking.Address]*staking.Account)
+
+	commonPoolAccount := staking.Account{
+		General: staking.GeneralAccount{
+			Balance: document.Staking.CommonPool,
+		},
+	}
+	feeAccumulatorAccount := staking.Account{
+		General: staking.GeneralAccount{
+			Balance: document.Staking.LastBlockFees,
+		},
+	}
+	governanceDepositsAccount := staking.Account{
+		General: staking.GeneralAccount{
+			Balance: document.Staking.GovernanceDeposits,
+		},
+	}
+
+	reservedAccounts[staking.CommonPoolAddress] = &commonPoolAccount
+	reservedAccounts[staking.FeeAccumulatorAddress] = &feeAccumulatorAccount
+	reservedAccounts[staking.GovernanceDepositsAddress] = &governanceDepositsAccount
+
+	i := 0
+	for address, account := range reservedAccounts {
+		if _, err := io.WriteString(w, fmt.Sprintf(
+			"\t('%s', %d, %d, %d, %d, %d, %d)",
+			address.String(),
+			account.General.Balance.ToBigInt(),
+			account.General.Nonce,
+			account.Escrow.Active.Balance.ToBigInt(),
+			account.Escrow.Active.TotalShares.ToBigInt(),
+			account.Escrow.Debonding.Balance.ToBigInt(),
+			account.Escrow.Debonding.TotalShares.ToBigInt(),
+		)); err != nil {
+			return err
+		}
+
+		if i != len(reservedAccounts)-1 {
+			if _, err := io.WriteString(w, ",\n"); err != nil {
+				return err
+			}
+		} else {
+			if _, err := io.WriteString(w, ";\n"); err != nil {
+				return err
+			}
+		}
+		i++
+	}
+
 	if _, err := io.WriteString(w, fmt.Sprintf(`
 INSERT INTO %s.accounts (address, general_balance, nonce, escrow_balance_active, escrow_total_shares_active, escrow_balance_debonding, escrow_total_shares_debonding)
 VALUES
@@ -231,7 +290,7 @@ VALUES
 		return err
 	}
 
-	i := 0
+	i = 0
 	for address, account := range document.Staking.Ledger {
 		if _, err := io.WriteString(w, fmt.Sprintf(
 			"\t('%s', %d, %d, %d, %d, %d, %d)",

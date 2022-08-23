@@ -8,11 +8,11 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/oasislabs/oasis-indexer/api"
-	"github.com/oasislabs/oasis-indexer/cmd/common"
-	"github.com/oasislabs/oasis-indexer/config"
-	"github.com/oasislabs/oasis-indexer/log"
-	"github.com/oasislabs/oasis-indexer/storage"
+	"github.com/oasisprotocol/oasis-indexer/api"
+	"github.com/oasisprotocol/oasis-indexer/cmd/common"
+	"github.com/oasisprotocol/oasis-indexer/config"
+	"github.com/oasisprotocol/oasis-indexer/log"
+	"github.com/oasisprotocol/oasis-indexer/storage"
 )
 
 const (

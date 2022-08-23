@@ -18,11 +18,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/oasislabs/oasis-indexer/log"
-	"github.com/oasislabs/oasis-indexer/storage"
-	"github.com/oasislabs/oasis-indexer/storage/oasis"
-	"github.com/oasislabs/oasis-indexer/storage/postgres"
-	"github.com/oasislabs/oasis-indexer/tests"
+	"github.com/oasisprotocol/oasis-indexer/log"
+	"github.com/oasisprotocol/oasis-indexer/storage"
+	"github.com/oasisprotocol/oasis-indexer/storage/oasis"
+	"github.com/oasisprotocol/oasis-indexer/storage/postgres"
+	"github.com/oasisprotocol/oasis-indexer/tests"
 )
 
 type TestEntity struct {

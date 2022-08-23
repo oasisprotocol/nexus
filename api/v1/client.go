@@ -13,10 +13,10 @@ import (
 	beacon "github.com/oasisprotocol/oasis-core/go/beacon/api"
 	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
 
-	"github.com/oasislabs/oasis-indexer/analyzer/util"
-	"github.com/oasislabs/oasis-indexer/api/common"
-	"github.com/oasislabs/oasis-indexer/log"
-	"github.com/oasislabs/oasis-indexer/storage"
+	"github.com/oasisprotocol/oasis-indexer/analyzer/util"
+	"github.com/oasisprotocol/oasis-indexer/api/common"
+	"github.com/oasisprotocol/oasis-indexer/log"
+	"github.com/oasisprotocol/oasis-indexer/storage"
 )
 
 // storageClient is a wrapper around a storage.TargetStorage

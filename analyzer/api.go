@@ -4,7 +4,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/oasislabs/oasis-indexer/storage"
+	"github.com/oasisprotocol/oasis-indexer/storage"
 )
 
 var (

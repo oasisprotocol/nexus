@@ -2,7 +2,7 @@
 package main
 
 import (
-	"github.com/oasislabs/oasis-indexer/cmd"
+	"github.com/oasisprotocol/oasis-indexer/cmd"
 )
 
 func main() {

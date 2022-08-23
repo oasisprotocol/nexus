@@ -3,7 +3,7 @@ package modules
 import (
 	"context"
 
-	"github.com/oasislabs/oasis-indexer/storage"
+	"github.com/oasisprotocol/oasis-indexer/storage"
 )
 
 // ModuleHandler handles parsing rounds for a runtime module.

@@ -10,7 +10,7 @@ import (
 	"github.com/knadh/koanf/providers/env"
 	"github.com/knadh/koanf/providers/file"
 
-	"github.com/oasislabs/oasis-indexer/log"
+	"github.com/oasisprotocol/oasis-indexer/log"
 )
 
 // Config contains the CLI configuration.

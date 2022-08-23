@@ -15,7 +15,7 @@ import (
 	stakingAPI "github.com/oasisprotocol/oasis-core/go/staking/api"
 	config "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 
-	"github.com/oasislabs/oasis-indexer/storage"
+	"github.com/oasisprotocol/oasis-indexer/storage"
 )
 
 // ConsensusClient is a client to the consensus backends.

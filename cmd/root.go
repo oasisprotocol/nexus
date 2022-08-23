@@ -8,12 +8,12 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/oasislabs/oasis-indexer/cmd/analyzer"
-	"github.com/oasislabs/oasis-indexer/cmd/api"
-	"github.com/oasislabs/oasis-indexer/cmd/common"
-	"github.com/oasislabs/oasis-indexer/cmd/generator"
-	"github.com/oasislabs/oasis-indexer/config"
-	"github.com/oasislabs/oasis-indexer/log"
+	"github.com/oasisprotocol/oasis-indexer/cmd/analyzer"
+	"github.com/oasisprotocol/oasis-indexer/cmd/api"
+	"github.com/oasisprotocol/oasis-indexer/cmd/common"
+	"github.com/oasisprotocol/oasis-indexer/cmd/generator"
+	"github.com/oasisprotocol/oasis-indexer/config"
+	"github.com/oasisprotocol/oasis-indexer/log"
 )
 
 var (

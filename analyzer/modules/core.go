@@ -3,9 +3,9 @@ package modules
 import (
 	"context"
 
-	"github.com/oasislabs/oasis-indexer/analyzer"
-	"github.com/oasislabs/oasis-indexer/log"
-	"github.com/oasislabs/oasis-indexer/storage"
+	"github.com/oasisprotocol/oasis-indexer/analyzer"
+	"github.com/oasisprotocol/oasis-indexer/log"
+	"github.com/oasisprotocol/oasis-indexer/storage"
 )
 
 const (
