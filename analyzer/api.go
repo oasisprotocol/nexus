@@ -22,6 +22,10 @@ var (
 	// ErrNetworkUnknown is returned if a chain context does not correspond
 	// to a known network identifier.
 	ErrNetworkUnknown = errors.New("network unknown")
+
+	// ErrParatimeUnknown is returned if a chain context does not correspond
+	// to a known paratime identifier.
+	ErrParatimeUnknown = errors.New("paratime unknown")
 )
 
 // Analyzer is a worker that analyzes a subset of the Oasis Network.
@@ -117,6 +121,7 @@ func (b *Backend) String() string {
 	case BackendGovernance:
 		return "governance"
 	default:
+		//nolint:goconst
 		return "unknown"
 	}
 }
@@ -300,5 +305,17 @@ func (p *Paratime) String() string {
 
 // ID returns the ID for a Paratime on the provided network.
 func (p Paratime) ID(n Network) (string, error) {
-	return "000000000000000000000000000000000000000000000000e199119c992377cb", nil
+	for nname, nw := range oasisConfig.DefaultNetworks.All {
+		if nname == n.String() {
+			for pname, pt := range nw.ParaTimes.All {
+				if pname == p.String() {
+					return pt.ID, nil
+				}
+			}
+
+			return "", ErrParatimeUnknown
+		}
+	}
+
+	return "", ErrParatimeUnknown
 }
