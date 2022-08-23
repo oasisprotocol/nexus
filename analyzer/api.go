@@ -23,9 +23,9 @@ var (
 	// to a known network identifier.
 	ErrNetworkUnknown = errors.New("network unknown")
 
-	// ErrParatimeUnknown is returned if a chain context does not correspond
-	// to a known paratime identifier.
-	ErrParatimeUnknown = errors.New("paratime unknown")
+	// ErrRuntimeUnknown is returned if a chain context does not correspond
+	// to a known runtime identifier.
+	ErrRuntimeUnknown = errors.New("runtime unknown")
 )
 
 // Analyzer is a worker that analyzes a subset of the Oasis Network.
@@ -264,8 +264,8 @@ func (n *Network) Set(s string) error {
 }
 
 // String returns the string representation of a network.
-func (n *Network) String() string {
-	switch *n {
+func (n Network) String() string {
+	switch n {
 	case NetworkTestnet:
 		return "testnet"
 	case NetworkMainnet:
@@ -275,47 +275,47 @@ func (n *Network) String() string {
 	}
 }
 
-// Paratime is an identifier for a Paratime on the Oasis Network.
-type Paratime uint16
+// Runtime is an identifier for a runtime on the Oasis Network.
+type Runtime uint16
 
 const (
-	// ParatimeEmerald is the identifier for the Emerald Paratime.
-	ParatimeEmerald Paratime = iota
-	// ParatimeCipher is the identifier for the Cipher Paratime.
-	ParatimeCipher
-	// ParatimeSapphire is the identifier for the Sapphire Paratime.
-	ParatimeSapphire
-	// ParatimeUnknown is the identifier for an unknown Paratime.
-	ParatimeUnknown = 1000
+	// RuntimeEmerald is the identifier for the Emerald Runtime.
+	RuntimeEmerald Runtime = iota
+	// RuntimeCipher is the identifier for the Cipher Runtime.
+	RuntimeCipher
+	// RuntimeSapphire is the identifier for the Sapphire Runtime.
+	RuntimeSapphire
+	// RuntimeUnknown is the identifier for an unknown Runtime.
+	RuntimeUnknown = 1000
 )
 
-// String returns the string representation of a paratime.
-func (p *Paratime) String() string {
-	switch *p {
-	case ParatimeEmerald:
+// String returns the string representation of a runtime.
+func (r Runtime) String() string {
+	switch r {
+	case RuntimeEmerald:
 		return "emerald"
-	case ParatimeCipher:
+	case RuntimeCipher:
 		return "cipher"
-	case ParatimeSapphire:
+	case RuntimeSapphire:
 		return "sapphire"
 	default:
 		return "unknown"
 	}
 }
 
-// ID returns the ID for a Paratime on the provided network.
-func (p Paratime) ID(n Network) (string, error) {
+// ID returns the ID for a Runtime on the provided network.
+func (r Runtime) ID(n Network) (string, error) {
 	for nname, nw := range oasisConfig.DefaultNetworks.All {
 		if nname == n.String() {
 			for pname, pt := range nw.ParaTimes.All {
-				if pname == p.String() {
+				if pname == r.String() {
 					return pt.ID, nil
 				}
 			}
 
-			return "", ErrParatimeUnknown
+			return "", ErrRuntimeUnknown
 		}
 	}
 
-	return "", ErrParatimeUnknown
+	return "", ErrRuntimeUnknown
 }

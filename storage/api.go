@@ -15,6 +15,7 @@ import (
 	"github.com/oasisprotocol/oasis-core/go/roothash/api/block"
 	scheduler "github.com/oasisprotocol/oasis-core/go/scheduler/api"
 	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
+	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/client"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/accounts"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/consensusaccounts"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/core"
@@ -161,7 +162,7 @@ type RuntimeBlockData struct {
 	Round uint64
 
 	BlockHeader             *block.Block
-	TransactionsWithResults []*TransactionWithResults
+	TransactionsWithResults []*client.TransactionWithResults
 }
 
 // TransactionWithResults contains a verified transaction, and the results of

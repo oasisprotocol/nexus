@@ -31,32 +31,15 @@ func (rc *RuntimeClient) BlockData(ctx context.Context, round uint64) (*storage.
 		return nil, err
 	}
 
-	unverifiedTransactionsWithResults, err := rc.client.GetTransactionsWithResults(ctx, round)
+	transactionsWithResults, err := rc.client.GetTransactionsWithResults(ctx, round)
 	if err != nil {
 		return nil, err
-	}
-
-	verifiedTransactionsWithResults := make([]*storage.TransactionWithResults, 0, len(unverifiedTransactionsWithResults))
-	for _, tx := range unverifiedTransactionsWithResults {
-		verifiedTx, err := tx.Tx.Verify(rc.rtCtx)
-		if err != nil {
-			return nil, err
-		}
-
-		verifiedTransactionWithResults := &storage.TransactionWithResults{
-			Round:  round,
-			Tx:     verifiedTx,
-			Result: tx.Result,
-			Events: tx.Events,
-		}
-
-		verifiedTransactionsWithResults = append(verifiedTransactionsWithResults, verifiedTransactionWithResults)
 	}
 
 	return &storage.RuntimeBlockData{
 		Round:                   round,
 		BlockHeader:             block,
-		TransactionsWithResults: verifiedTransactionsWithResults,
+		TransactionsWithResults: transactionsWithResults,
 	}, nil
 }
 

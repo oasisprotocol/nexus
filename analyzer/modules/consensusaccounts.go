@@ -25,7 +25,7 @@ func NewConsensusAccountsHandler(source storage.RuntimeSourceStorage, qf *analyz
 	return &ConsensusAccountsHandler{source, qf, logger}
 }
 
-// PrepareConsensusAccountsData prepares raw data from the `consensus_accounts` module for insertion
+// PrepareConsensusAccountsData prepares raw data from the `consensus_accounts` module for insertion.
 // into target storage.
 func (h *ConsensusAccountsHandler) PrepareData(ctx context.Context, round uint64, batch *storage.QueryBatch) error {
 	data, err := h.source.ConsensusAccountsData(ctx, round)

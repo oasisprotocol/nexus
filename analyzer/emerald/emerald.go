@@ -2,6 +2,7 @@ package emerald
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/iancoleman/strcase"
@@ -20,10 +21,12 @@ import (
 )
 
 const (
+	emerald = analyzer.RuntimeEmerald
+
 	emeraldMainDamaskName = "emerald_main_damask"
 )
 
-// Main is the main Analyzer for the Emerald ParaTime.
+// Main is the main Analyzer for the Emerald Runtime.
 type Main struct {
 	cfg     analyzer.RuntimeConfig
 	qf      analyzer.QueryFactory
@@ -34,7 +37,7 @@ type Main struct {
 	moduleHandlers []modules.ModuleHandler
 }
 
-// NewMain returns a new main analyzer for the Emerald ParaTime.
+// NewMain returns a new main analyzer for the Emerald Runtime.
 func NewMain(cfg *config.AnalyzerConfig, target storage.TargetStorage, logger *log.Logger) (*Main, error) {
 	ctx := context.Background()
 
@@ -56,7 +59,7 @@ func NewMain(cfg *config.AnalyzerConfig, target storage.TargetStorage, logger *l
 		return nil, err
 	}
 
-	id, err := analyzer.ParatimeEmerald.ID(network)
+	id, err := emerald.ID(network)
 	if err != nil {
 		return nil, err
 	}
@@ -77,11 +80,8 @@ func NewMain(cfg *config.AnalyzerConfig, target storage.TargetStorage, logger *l
 		Source: client,
 	}
 
-	qf := analyzer.NewQueryFactory(strcase.ToSnake(cfg.ChainID))
+	qf := analyzer.NewQueryFactory(strcase.ToSnake(cfg.ChainID), emerald.String())
 
-	coreHandler := modules.NewCoreHandler(client, &qf, logger)
-	accountsHandler := modules.NewAccountsHandler(client, &qf, logger)
-	consensusAccountsHandler := modules.NewConsensusAccountsHandler(client, &qf, logger)
 	return &Main{
 		cfg:     ac,
 		qf:      qf,
@@ -91,9 +91,9 @@ func NewMain(cfg *config.AnalyzerConfig, target storage.TargetStorage, logger *l
 
 		// module handlers
 		moduleHandlers: []modules.ModuleHandler{
-			coreHandler,
-			accountsHandler,
-			consensusAccountsHandler,
+			modules.NewCoreHandler(client, &qf, logger),
+			modules.NewAccountsHandler(client, &qf, logger),
+			modules.NewConsensusAccountsHandler(client, &qf, logger),
 		},
 	}, nil
 }
@@ -185,6 +185,13 @@ func (m *Main) processRound(ctx context.Context, round uint64) error {
 	// Prepare and perform updates.
 	batch := &storage.QueryBatch{}
 
+	group.Go(func() error {
+		if err := m.prepareBlockData(ctx, round, batch); err != nil {
+			return err
+		}
+		return nil
+	})
+
 	type prepareFunc = func(context.Context, uint64, *storage.QueryBatch) error
 	for _, h := range m.moduleHandlers {
 		func(f prepareFunc) {
@@ -211,7 +218,7 @@ func (m *Main) processRound(ctx context.Context, round uint64) error {
 		return err
 	}
 
-	opName := "process_round_emerald"
+	opName := fmt.Sprintf("process_round_%s", emerald.String())
 	timer := m.metrics.DatabaseTimer(m.target.Name(), opName)
 	defer timer.ObserveDuration()
 
@@ -220,5 +227,46 @@ func (m *Main) processRound(ctx context.Context, round uint64) error {
 		return err
 	}
 	m.metrics.DatabaseCounter(m.target.Name(), opName, "success").Inc()
+	return nil
+}
+
+// prepareBlockData adds block data queries to the batch.
+func (m *Main) prepareBlockData(ctx context.Context, round uint64, batch *storage.QueryBatch) error {
+	data, err := m.cfg.Source.BlockData(ctx, round)
+	if err != nil {
+		return err
+	}
+
+	for _, f := range []func(*storage.QueryBatch, *storage.RuntimeBlockData) error{
+		m.queueBlockInserts,
+		m.queueTransactionInserts,
+	} {
+		if err := f(batch, data); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *Main) queueBlockInserts(batch *storage.QueryBatch, data *storage.RuntimeBlockData) error {
+	batch.Queue(
+		m.qf.RuntimeBlockInsertQuery(),
+		data.Round,
+		data.BlockHeader.Header.Version,
+		data.BlockHeader.Header.Timestamp,
+		data.BlockHeader.Header.EncodedHash().Hex(),
+		data.BlockHeader.Header.PreviousHash.Hex(),
+		data.BlockHeader.Header.IORoot.Hex(),
+		data.BlockHeader.Header.StateRoot.Hex(),
+		data.BlockHeader.Header.MessagesHash.Hex(),
+		data.BlockHeader.Header.InMessagesHash.Hex(),
+	)
+	return nil
+}
+
+func (m *Main) queueTransactionInserts(batch *storage.QueryBatch, data *storage.RuntimeBlockData) error {
+	// TODO(ennsharma): Process Emerald transaction data in accordance with
+	// https://github.com/oasisprotocol/emerald-web3-gateway/blob/main/indexer/utils.go#L225
 	return nil
 }

@@ -4,6 +4,24 @@ BEGIN;
 
 CREATE TABLE IF NOT EXISTS oasis_3.emerald_rounds
 (
+  height    NUMERIC PRIMARY KEY,
+  version   BIGINT,
+  timestamp NUMERIC NOT NULL,
+
+  block_hash      TEXT NOT NULL,
+  prev_block_hash TEXT NOT NULL,
+
+  io_root          TEXT NOT NULL,
+  state_root       TEXT NOT NULL,
+  messages_hash    TEXT NOT NULL,
+  in_messages_hash TEXT NOT NULL,
+
+  -- Arbitrary additional data.
+  extra_data JSON
+);
+
+CREATE TABLE IF NOT EXISTS oasis_3.emerald_transactions
+(
   height NUMERIC PRIMARY KEY,
 
   -- Arbitrary additional data.
@@ -55,7 +73,7 @@ CREATE INDEX ix_emerald_deposits_receiver ON oasis_3.emerald_deposits(receiver);
 
 CREATE TABLE IF NOT EXISTS oasis_3.emerald_withdraws
 (
-  height NUMERIC NOT NULL,
+  height   NUMERIC NOT NULL,
   sender   TEXT NOT NULL,
   receiver TEXT NOT NULL,
   amount   TEXT NOT NULL,

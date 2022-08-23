@@ -25,7 +25,7 @@ func NewAccountsHandler(source storage.RuntimeSourceStorage, qf *analyzer.QueryF
 	return &AccountsHandler{source, qf, logger}
 }
 
-// PrepareAccountsData prepares raw data from the `accounts` module for insertion
+// PrepareAccountsData prepares raw data from the `accounts` module for insertion.
 // into target storage.
 func (h *AccountsHandler) PrepareData(ctx context.Context, round uint64, batch *storage.QueryBatch) error {
 	data, err := h.source.AccountsData(ctx, round)

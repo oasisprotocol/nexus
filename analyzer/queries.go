@@ -7,10 +7,11 @@ import (
 // QueryFactory is a convenience type for creating API queries.
 type QueryFactory struct {
 	chainID string
+	runtime string
 }
 
-func NewQueryFactory(chainID string) QueryFactory {
-	return QueryFactory{chainID}
+func NewQueryFactory(chainID string, runtime string) QueryFactory {
+	return QueryFactory{chainID, runtime}
 }
 
 func (qf QueryFactory) LatestBlockQuery() string {
@@ -333,50 +334,56 @@ func (qf QueryFactory) ConsensusVoteInsertQuery() string {
 			VALUES ($1, $2, $3)`, qf.chainID)
 }
 
+func (qf QueryFactory) RuntimeBlockInsertQuery() string {
+	return fmt.Sprintf(`
+		INSERT INTO %s.%s_rounds (height, version, timestamp, block_hash, prev_block_hash, io_root, state_root, messages_hash, in_messages_hash)
+			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`, qf.chainID, qf.runtime)
+}
+
 func (qf QueryFactory) RuntimeMintInsertQuery() string {
 	return fmt.Sprintf(`
-		INSERT INTO %s.emerald_transfers (height, receiver, amount)
-			VALUES ($1, $2, $3)`, qf.chainID)
+		INSERT INTO %s.%s_transfers (height, receiver, amount)
+			VALUES ($1, $2, $3)`, qf.chainID, qf.runtime)
 }
 
 func (qf QueryFactory) RuntimeBurnInsertQuery() string {
 	return fmt.Sprintf(`
-		INSERT INTO %s.emerald_transfers (height, sender, amount)
-			VALUES ($1, $2, $3)`, qf.chainID)
+		INSERT INTO %s.%s_transfers (height, sender, amount)
+			VALUES ($1, $2, $3)`, qf.chainID, qf.runtime)
 }
 
 func (qf QueryFactory) RuntimeTransferInsertQuery() string {
 	return fmt.Sprintf(`
-		INSERT INTO %s.emerald_transfers (height, sender, receiver, amount)
-			VALUES ($1, $2, $3, $4)`, qf.chainID)
+		INSERT INTO %s.%s_transfers (height, sender, receiver, amount)
+			VALUES ($1, $2, $3, $4)`, qf.chainID, qf.runtime)
 }
 
 func (qf QueryFactory) RuntimeDepositInsertQuery() string {
 	return fmt.Sprintf(`
-		INSERT INTO %s.emerald_deposits (height, sender, receiver, amount, nonce)
-			VALUES ($1, $2, $3, $4, $5)`, qf.chainID)
+		INSERT INTO %s.%s_deposits (height, sender, receiver, amount, nonce)
+			VALUES ($1, $2, $3, $4, $5)`, qf.chainID, qf.runtime)
 }
 
 func (qf QueryFactory) RuntimeDepositErrorInsertQuery() string {
 	return fmt.Sprintf(`
-		INSERT INTO %s.emerald_deposits (height, sender, receiver, amount, nonce, module, code)
-			VALUES ($1, $2, $3, $4, $5, $6, $7)`, qf.chainID)
+		INSERT INTO %s.%s_deposits (height, sender, receiver, amount, nonce, module, code)
+			VALUES ($1, $2, $3, $4, $5, $6, $7)`, qf.chainID, qf.runtime)
 }
 
 func (qf QueryFactory) RuntimeWithdrawInsertQuery() string {
 	return fmt.Sprintf(`
-		INSERT INTO %s.emerald_withdraws (height, sender, receiver, amount, nonce)
-			VALUES ($1, $2, $3, $4, $5)`, qf.chainID)
+		INSERT INTO %s.%s_withdraws (height, sender, receiver, amount, nonce)
+			VALUES ($1, $2, $3, $4, $5)`, qf.chainID, qf.runtime)
 }
 
 func (qf QueryFactory) RuntimeWithdrawErrorInsertQuery() string {
 	return fmt.Sprintf(`
-		INSERT INTO %s.emerald_withdraws (height, sender, receiver, amount, nonce, module, code)
-			VALUES ($1, $2, $3, $4, $5, $6, $7)`, qf.chainID)
+		INSERT INTO %s.%s_withdraws (height, sender, receiver, amount, nonce, module, code)
+			VALUES ($1, $2, $3, $4, $5, $6, $7)`, qf.chainID, qf.runtime)
 }
 
 func (qf QueryFactory) RuntimeGasUsedInsertQuery() string {
 	return fmt.Sprintf(`
-		INSERT INTO %s.emerald_gas_used (height, sender, amount)
-			VALUES ($1, $2, $3)`, qf.chainID)
+		INSERT INTO %s.%s_gas_used (height, sender, amount)
+			VALUES ($1, $2, $3)`, qf.chainID, qf.runtime)
 }

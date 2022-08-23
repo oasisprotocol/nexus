@@ -93,7 +93,7 @@ func NewMain(cfg *config.AnalyzerConfig, target storage.TargetStorage, logger *l
 	}
 	return &Main{
 		cfg:     ac,
-		qf:      analyzer.NewQueryFactory(strcase.ToSnake(cfg.ChainID)),
+		qf:      analyzer.NewQueryFactory(strcase.ToSnake(cfg.ChainID), "" /* no runtime identifier for the consensus layer */),
 		target:  target,
 		logger:  logger.With("analyzer", consensusMainDamaskName),
 		metrics: metrics.NewDefaultDatabaseMetrics(consensusMainDamaskName),
@@ -230,7 +230,7 @@ func (m *Main) processBlock(ctx context.Context, height int64) error {
 		return err
 	}
 
-	opName := "process_block"
+	opName := "process_block_consensus"
 	timer := m.metrics.DatabaseTimer(m.target.Name(), opName)
 	defer timer.ObserveDuration()
 

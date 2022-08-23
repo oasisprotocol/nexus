@@ -25,7 +25,7 @@ func NewCoreHandler(source storage.RuntimeSourceStorage, qf *analyzer.QueryFacto
 	return &CoreHandler{source, qf, logger}
 }
 
-// PrepareCoreData prepares raw data from the `core` module for insertion
+// PrepareCoreData prepares raw data from the `core` module for insertion.
 // into target storage.
 func (h *CoreHandler) PrepareData(ctx context.Context, round uint64, batch *storage.QueryBatch) error {
 	data, err := h.source.CoreData(ctx, round)
