@@ -142,7 +142,7 @@ paths:
           content:
             application/json:
               schema: 
-                $ref: '#/components/schemas/BlockList'
+                $ref: '#/components/schemas/ConsensusBlockList'
         '400':
           $ref: '#/components/responses/InvalidRequest'
         '404':
@@ -168,7 +168,7 @@ paths:
           content:
             application/json:
               schema: 
-                $ref: '#/components/schemas/Block'
+                $ref: '#/components/schemas/ConsensusBlock'
         '400':
           $ref: '#/components/responses/InvalidRequest'
         '404':
@@ -676,6 +676,80 @@ paths:
         '500':
           $ref: '#/components/responses/ServerError'
 
+  /emerald/blocks:
+    get:
+      summary: Returns a list of Emerald ParaTime blocks.
+      parameters:
+        - *limit
+        - *offset
+        - in: query
+          name: from
+          schema:
+            type: integer
+            format: uint64
+          description: A filter on minimum block height.
+          example: *block_height_1
+        - in: query
+          name: to
+          schema:
+            type: integer
+            format: uint64
+          description: A filter on maximum block height.
+          example: *block_height_2
+        - in: query
+          name: after
+          schema:
+            type: string
+            format: date-time
+          description: A filter on minimum block time.
+          example: *iso_timestamp_1
+        - in: query
+          name: before
+          schema:
+            type: string
+            format: date-time
+          description: A filter on maximum block time.
+          example: *iso_timestamp_2
+      responses:
+        '200':
+          description: A JSON object containing a list of runtime blocks.
+          content:
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/RuntimeBlockList'
+        '400':
+          $ref: '#/components/responses/InvalidRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /emerald/blocks/{round}:
+    get:
+      summary: Returns an Emerald ParaTime block.
+      parameters:
+        - in: path
+          name: height
+          required: true
+          schema:
+            type: integer
+            format: uint64
+          description: The block height of the block to return.
+          example: *block_height_1
+      responses:
+        '200':
+          description: A JSON object containing a Emerald block.
+          content:
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/RuntimeBlock'
+        '400':
+          $ref: '#/components/responses/InvalidRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
 components:
   schemas:
     ApiError:
@@ -704,17 +778,17 @@ components:
           description: The RFC 3339 formatted time of latest indexing update.
           example: *iso_timestamp_1
 
-    BlockList:
+    ConsensusBlockList:
       type: object
       properties:
         blocks:
           type: array
           items:
-            $ref: '#/components/schemas/Block'
+            $ref: '#/components/schemas/ConsensusBlock'
       description: |
         A list of consensus blocks.
 
-    Block:
+    ConsensusBlock:
       type: object
       properties: 
         height:
@@ -1195,6 +1269,60 @@ components:
           type: string
           description: The vote cast.
           example: 'yes'
+    
+    RuntimeBlockList:
+      type: object
+      properties:
+        blocks:
+          type: array
+          items:
+            $ref: '#/components/schemas/RuntimeBlock'
+      description: |
+        A list of runtime blocks.
+
+    RuntimeBlock:
+      type: object
+      properties: 
+        round:
+          type: integer
+          format: uint64
+          description: The block round.
+          example: *block_height_1
+        version:
+          type: integer
+          format: uint64
+          description: The protocol version number for the runtime.
+        timestamp:
+          type: string
+          format: date-time
+          description: The second-granular runtime time.
+          example: *iso_timestamp_1
+        hash:
+          type: string
+          description: The block header hash.
+          example: *block_hash_1
+        prev_hash:
+          type: string
+          description: The block header hash for this block's parent.
+          example: *block_hash_1
+        io_root:
+          type: string
+          description: The I/O Merkle root for this block.
+          example: *block_hash_1
+        state_root:
+          type: string
+          description: The state Merkle root for this block.
+          example: *block_hash_1
+        messages_hash:
+          type: string
+          description: The hash of emitted runtime messages.
+          example: *block_hash_1
+        in_messages_hash:
+          type: string
+          description: The hash of processed incoming messages.
+          example: *block_hash_1
+      description: |
+        A runtime block.
 
   responses:
     InvalidRequest:
