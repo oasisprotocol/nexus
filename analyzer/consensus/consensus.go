@@ -36,7 +36,7 @@ const (
 // Main is the main Analyzer for the consensus layer.
 type Main struct {
 	cfg     analyzer.ConsensusConfig
-	qf      QueryFactory
+	qf      analyzer.QueryFactory
 	target  storage.TargetStorage
 	logger  *log.Logger
 	metrics metrics.DatabaseMetrics
@@ -93,7 +93,7 @@ func NewMain(cfg *config.AnalyzerConfig, target storage.TargetStorage, logger *l
 	}
 	return &Main{
 		cfg:     ac,
-		qf:      NewQueryFactory(strcase.ToSnake(cfg.ChainID)),
+		qf:      analyzer.NewQueryFactory(strcase.ToSnake(cfg.ChainID)),
 		target:  target,
 		logger:  logger.With("analyzer", consensusMainDamaskName),
 		metrics: metrics.NewDefaultDatabaseMetrics(consensusMainDamaskName),
@@ -270,7 +270,7 @@ func (m *Main) prepareBlockData(ctx context.Context, height int64, batch *storag
 
 func (m *Main) queueBlockInserts(batch *storage.QueryBatch, data *storage.ConsensusBlockData) error {
 	batch.Queue(
-		m.qf.BlockInsertQuery(),
+		m.qf.ConsensusBlockInsertQuery(),
 		data.BlockHeader.Height,
 		data.BlockHeader.Hash.Hex(),
 		data.BlockHeader.Time.UTC(),
@@ -285,12 +285,12 @@ func (m *Main) queueBlockInserts(batch *storage.QueryBatch, data *storage.Consen
 
 func (m *Main) queueEpochInserts(batch *storage.QueryBatch, data *storage.ConsensusBlockData) error {
 	batch.Queue(
-		m.qf.EpochInsertQuery(),
+		m.qf.ConsensusEpochInsertQuery(),
 		data.Epoch,
 		data.BlockHeader.Height,
 	)
 	batch.Queue(
-		m.qf.EpochUpdateQuery(),
+		m.qf.ConsensusEpochUpdateQuery(),
 		data.Epoch-1,
 		data.BlockHeader.Height,
 	)
@@ -299,9 +299,9 @@ func (m *Main) queueEpochInserts(batch *storage.QueryBatch, data *storage.Consen
 }
 
 func (m *Main) queueTransactionInserts(batch *storage.QueryBatch, data *storage.ConsensusBlockData) error {
-	transactionInsertQuery := m.qf.TransactionInsertQuery()
-	accountNonceUpdateQuery := m.qf.AccountNonceUpdateQuery()
-	commissionsUpsertQuery := m.qf.CommissionsUpsertQuery()
+	transactionInsertQuery := m.qf.ConsensusTransactionInsertQuery()
+	accountNonceUpdateQuery := m.qf.ConsensusAccountNonceUpdateQuery()
+	commissionsUpsertQuery := m.qf.ConsensusCommissionsUpsertQuery()
 
 	for i := range data.Transactions {
 		signedTx := data.Transactions[i]
@@ -359,7 +359,7 @@ func (m *Main) queueTransactionInserts(batch *storage.QueryBatch, data *storage.
 }
 
 func (m *Main) queueEventInserts(batch *storage.QueryBatch, data *storage.ConsensusBlockData) error {
-	eventInsertQuery := m.qf.EventInsertQuery()
+	eventInsertQuery := m.qf.ConsensusEventInsertQuery()
 
 	for i := 0; i < len(data.Results); i++ {
 		for j := 0; j < len(data.Results[i].Events); j++ {
@@ -415,7 +415,7 @@ func (m *Main) prepareRegistryData(ctx context.Context, height int64, batch *sto
 }
 
 func (m *Main) queueRuntimeRegistrations(batch *storage.QueryBatch, data *storage.RegistryData) error {
-	runtimeUpsertQuery := m.qf.RuntimeUpsertQuery()
+	runtimeUpsertQuery := m.qf.ConsensusRuntimeUpsertQuery()
 
 	for _, runtimeEvent := range data.RuntimeEvents {
 		keyManager := "none"
@@ -437,8 +437,8 @@ func (m *Main) queueRuntimeRegistrations(batch *storage.QueryBatch, data *storag
 }
 
 func (m *Main) queueRuntimeStatusUpdates(batch *storage.QueryBatch, data *storage.RegistryData) error {
-	runtimeSuspensionQuery := m.qf.RuntimeSuspensionQuery()
-	runtimeUnsuspensionQuery := m.qf.RuntimeUnsuspensionQuery()
+	runtimeSuspensionQuery := m.qf.ConsensusRuntimeSuspensionQuery()
+	runtimeUnsuspensionQuery := m.qf.ConsensusRuntimeUnsuspensionQuery()
 
 	for _, runtime := range data.RuntimeSuspensions {
 		batch.Queue(runtimeSuspensionQuery, runtime)
@@ -451,8 +451,8 @@ func (m *Main) queueRuntimeStatusUpdates(batch *storage.QueryBatch, data *storag
 }
 
 func (m *Main) queueEntityEvents(batch *storage.QueryBatch, data *storage.RegistryData) error {
-	claimedNodeInsertQuery := m.qf.ClaimedNodeInsertQuery()
-	entityUpsertQuery := m.qf.EntityUpsertQuery()
+	claimedNodeInsertQuery := m.qf.ConsensusClaimedNodeInsertQuery()
+	entityUpsertQuery := m.qf.ConsensusEntityUpsertQuery()
 
 	for _, entityEvent := range data.EntityEvents {
 		entityID := entityEvent.Entity.ID.String()
@@ -473,8 +473,8 @@ func (m *Main) queueEntityEvents(batch *storage.QueryBatch, data *storage.Regist
 }
 
 func (m *Main) queueNodeEvents(batch *storage.QueryBatch, data *storage.RegistryData) error {
-	nodeUpsertQuery := m.qf.NodeUpsertQuery()
-	nodeDeleteQuery := m.qf.NodeDeleteQuery()
+	nodeUpsertQuery := m.qf.ConsensusNodeUpsertQuery()
+	nodeDeleteQuery := m.qf.ConsensusNodeDeleteQuery()
 
 	for _, nodeEvent := range data.NodeEvents {
 		vrfPubkey := ""
@@ -540,7 +540,7 @@ func (m *Main) queueMetadataRegistry(ctx context.Context, batch *storage.QueryBa
 		return err
 	}
 
-	entityMetaUpsertQuery := m.qf.EntityMetaUpsertQuery()
+	entityMetaUpsertQuery := m.qf.ConsensusEntityMetaUpsertQuery()
 	for id, meta := range entities {
 		batch.Queue(entityMetaUpsertQuery,
 			id,
@@ -577,8 +577,8 @@ func (m *Main) prepareStakingData(ctx context.Context, height int64, batch *stor
 }
 
 func (m *Main) queueTransfers(batch *storage.QueryBatch, data *storage.StakingData) error {
-	senderUpdateQuery := m.qf.SenderUpdateQuery()
-	receiverUpsertQuery := m.qf.ReceiverUpdateQuery()
+	senderUpdateQuery := m.qf.ConsensusSenderUpdateQuery()
+	receiverUpsertQuery := m.qf.ConsensusReceiverUpdateQuery()
 
 	for _, transfer := range data.Transfers {
 		from := transfer.From.String()
@@ -598,7 +598,7 @@ func (m *Main) queueTransfers(batch *storage.QueryBatch, data *storage.StakingDa
 }
 
 func (m *Main) queueBurns(batch *storage.QueryBatch, data *storage.StakingData) error {
-	burnUpdateQuery := m.qf.BurnUpdateQuery()
+	burnUpdateQuery := m.qf.ConsensusBurnUpdateQuery()
 
 	for _, burn := range data.Burns {
 		batch.Queue(burnUpdateQuery,
@@ -611,16 +611,16 @@ func (m *Main) queueBurns(batch *storage.QueryBatch, data *storage.StakingData) 
 }
 
 func (m *Main) queueEscrows(batch *storage.QueryBatch, data *storage.StakingData) error {
-	addGeneralBalanceUpdateQuery := m.qf.AddGeneralBalanceUpdateQuery()
-	addEscrowBalanceUpsertQuery := m.qf.AddEscrowBalanceUpsertQuery()
-	addDelegationsUpsertQuery := m.qf.AddDelegationsUpsertQuery()
-	takeEscrowUpdateQuery := m.qf.TakeEscrowUpdateQuery()
-	debondingStartEscrowBalanceUpdateQuery := m.qf.DebondingStartEscrowBalanceUpdateQuery()
-	debondingStartDelegationsUpdateQuery := m.qf.DebondingStartDelegationsUpdateQuery()
-	debondingStartDebondingDelegationsInsertQuery := m.qf.DebondingStartDebondingDelegationsInsertQuery()
-	reclaimGeneralBalanceUpdateQuery := m.qf.ReclaimGeneralBalanceUpdateQuery()
-	reclaimEscrowBalanceUpdateQuery := m.qf.ReclaimEscrowBalanceUpdateQuery()
-	deleteDebondingDelegationsQuery := m.qf.DeleteDebondingDelegationsQuery()
+	addGeneralBalanceUpdateQuery := m.qf.ConsensusAddGeneralBalanceUpdateQuery()
+	addEscrowBalanceUpsertQuery := m.qf.ConsensusAddEscrowBalanceUpsertQuery()
+	addDelegationsUpsertQuery := m.qf.ConsensusAddDelegationsUpsertQuery()
+	takeEscrowUpdateQuery := m.qf.ConsensusTakeEscrowUpdateQuery()
+	debondingStartEscrowBalanceUpdateQuery := m.qf.ConsensusDebondingStartEscrowBalanceUpdateQuery()
+	debondingStartDelegationsUpdateQuery := m.qf.ConsensusDebondingStartDelegationsUpdateQuery()
+	debondingStartDebondingDelegationsInsertQuery := m.qf.ConsensusDebondingStartDebondingDelegationsInsertQuery()
+	reclaimGeneralBalanceUpdateQuery := m.qf.ConsensusReclaimGeneralBalanceUpdateQuery()
+	reclaimEscrowBalanceUpdateQuery := m.qf.ConsensusReclaimEscrowBalanceUpdateQuery()
+	deleteDebondingDelegationsQuery := m.qf.ConsensusDeleteDebondingDelegationsQuery()
 
 	for _, escrow := range data.Escrows {
 		switch e := escrow; {
@@ -689,8 +689,8 @@ func (m *Main) queueEscrows(batch *storage.QueryBatch, data *storage.StakingData
 }
 
 func (m *Main) queueAllowanceChanges(batch *storage.QueryBatch, data *storage.StakingData) error {
-	allowanceChangeDeleteQuery := m.qf.AllowanceChangeDeleteQuery()
-	allowanceChangeUpdateQuery := m.qf.AllowanceChangeUpdateQuery()
+	allowanceChangeDeleteQuery := m.qf.ConsensusAllowanceChangeDeleteQuery()
+	allowanceChangeUpdateQuery := m.qf.ConsensusAllowanceChangeUpdateQuery()
 
 	for _, allowanceChange := range data.AllowanceChanges {
 		allowance := allowanceChange.Allowance.ToBigInt().Uint64()
@@ -736,7 +736,7 @@ func (m *Main) prepareSchedulerData(ctx context.Context, height int64, batch *st
 }
 
 func (m *Main) queueValidatorUpdates(batch *storage.QueryBatch, data *storage.SchedulerData) error {
-	validatorNodeUpdateQuery := m.qf.ValidatorNodeUpdateQuery()
+	validatorNodeUpdateQuery := m.qf.ConsensusValidatorNodeUpdateQuery()
 	for _, validator := range data.Validators {
 		batch.Queue(validatorNodeUpdateQuery,
 			validator.ID,
@@ -748,9 +748,9 @@ func (m *Main) queueValidatorUpdates(batch *storage.QueryBatch, data *storage.Sc
 }
 
 func (m *Main) queueCommitteeUpdates(batch *storage.QueryBatch, data *storage.SchedulerData) error {
-	committeeMemberInsertQuery := m.qf.CommitteeMemberInsertQuery()
+	committeeMemberInsertQuery := m.qf.ConsensusCommitteeMemberInsertQuery()
 
-	batch.Queue(m.qf.CommitteeMembersTruncateQuery())
+	batch.Queue(m.qf.ConsensusCommitteeMembersTruncateQuery())
 	for namespace, committees := range data.Committees {
 		runtime := namespace.String()
 		for _, committee := range committees {
@@ -798,8 +798,8 @@ func (m *Main) prepareGovernanceData(ctx context.Context, height int64, batch *s
 }
 
 func (m *Main) queueSubmissions(batch *storage.QueryBatch, data *storage.GovernanceData) error {
-	proposalSubmissionInsertQuery := m.qf.ProposalSubmissionInsertQuery()
-	proposalSubmissionCancelInsertQuery := m.qf.ProposalSubmissionCancelInsertQuery()
+	proposalSubmissionInsertQuery := m.qf.ConsensusProposalSubmissionInsertQuery()
+	proposalSubmissionCancelInsertQuery := m.qf.ConsensusProposalSubmissionCancelInsertQuery()
 
 	for _, submission := range data.ProposalSubmissions {
 		if submission.Content.Upgrade != nil {
@@ -833,7 +833,7 @@ func (m *Main) queueSubmissions(batch *storage.QueryBatch, data *storage.Governa
 }
 
 func (m *Main) queueExecutions(batch *storage.QueryBatch, data *storage.GovernanceData) error {
-	proposalExecutionsUpdateQuery := m.qf.ProposalExecutionsUpdateQuery()
+	proposalExecutionsUpdateQuery := m.qf.ConsensusProposalExecutionsUpdateQuery()
 
 	for _, execution := range data.ProposalExecutions {
 		batch.Queue(proposalExecutionsUpdateQuery,
@@ -845,8 +845,8 @@ func (m *Main) queueExecutions(batch *storage.QueryBatch, data *storage.Governan
 }
 
 func (m *Main) queueFinalizations(batch *storage.QueryBatch, data *storage.GovernanceData) error {
-	proposalUpdateQuery := m.qf.ProposalUpdateQuery()
-	proposalInvalidVotesUpdateQuery := m.qf.ProposalInvalidVotesUpdateQuery()
+	proposalUpdateQuery := m.qf.ConsensusProposalUpdateQuery()
+	proposalInvalidVotesUpdateQuery := m.qf.ConsensusProposalInvalidVotesUpdateQuery()
 
 	for _, finalization := range data.ProposalFinalizations {
 		batch.Queue(proposalUpdateQuery,
@@ -863,7 +863,7 @@ func (m *Main) queueFinalizations(batch *storage.QueryBatch, data *storage.Gover
 }
 
 func (m *Main) queueVotes(batch *storage.QueryBatch, data *storage.GovernanceData) error {
-	voteInsertQuery := m.qf.VoteInsertQuery()
+	voteInsertQuery := m.qf.ConsensusVoteInsertQuery()
 
 	for _, vote := range data.Votes {
 		batch.Queue(voteInsertQuery,

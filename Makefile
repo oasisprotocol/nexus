@@ -71,8 +71,7 @@ postgres:
 		-d postgres
 
 shutdown-postgres:
-	@docker kill postgres && \
-	@docker rm postgres
+	@docker rm postgres --force
 
 release-build:
 	@goreleaser release --rm-dist

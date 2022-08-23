@@ -7,6 +7,7 @@ import (
 	"github.com/iancoleman/strcase"
 	"github.com/jackc/pgx/v4"
 	oasisConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/oasislabs/oasis-indexer/analyzer"
 	"github.com/oasislabs/oasis-indexer/analyzer/modules"
@@ -25,7 +26,7 @@ const (
 // Main is the main Analyzer for the Emerald ParaTime.
 type Main struct {
 	cfg     analyzer.RuntimeConfig
-	qf      QueryFactory
+	qf      analyzer.QueryFactory
 	target  storage.TargetStorage
 	logger  *log.Logger
 	metrics metrics.DatabaseMetrics
@@ -57,7 +58,7 @@ func NewMain(cfg *config.AnalyzerConfig, target storage.TargetStorage, logger *l
 		return nil, err
 	}
 	roundRange := analyzer.RoundRange{
-		From: uint64(cfg.From), // TODO: Make `config/` support runtime semantics
+		From: uint64(cfg.From),
 		To:   uint64(cfg.To),
 	}
 	ac := analyzer.RuntimeConfig{
@@ -65,12 +66,14 @@ func NewMain(cfg *config.AnalyzerConfig, target storage.TargetStorage, logger *l
 		Source: client,
 	}
 
-	coreHandler := modules.NewCoreHandler(client, logger)
-	accountsHandler := modules.NewAccountsHandler(client, logger)
-	consensusAccountsHandler := modules.NewConsensusAccountsHandler(client, logger)
+	qf := analyzer.NewQueryFactory(strcase.ToSnake(cfg.ChainID))
+
+	coreHandler := modules.NewCoreHandler(client, &qf, logger)
+	accountsHandler := modules.NewAccountsHandler(client, &qf, logger)
+	consensusAccountsHandler := modules.NewConsensusAccountsHandler(client, &qf, logger)
 	return &Main{
 		cfg:     ac,
-		qf:      NewQueryFactory(strcase.ToSnake(cfg.ChainID)),
+		qf:      qf,
 		target:  target,
 		logger:  logger,
 		metrics: metrics.NewDefaultDatabaseMetrics(emeraldMainDamaskName),
@@ -148,7 +151,7 @@ func (m *Main) latestRound(ctx context.Context) (uint64, error) {
 	var latest uint64
 	if err := m.target.QueryRow(
 		ctx,
-		m.qf.LatestRoundQuery(),
+		m.qf.LatestBlockQuery(),
 		// ^analyzers should only analyze for a single chain ID, and we anchor this
 		// at the starting round.
 		emeraldMainDamaskName,
@@ -166,37 +169,45 @@ func (m *Main) processRound(ctx context.Context, round uint64) error {
 		"round", round,
 	)
 
-	// group, groupCtx := errgroup.WithContext(ctx)
+	group, groupCtx := errgroup.WithContext(ctx)
 
 	// Prepare and perform updates.
 	batch := &storage.QueryBatch{}
 
+	type prepareFunc = func(context.Context, uint64, *storage.QueryBatch) error
 	for _, h := range m.moduleHandlers {
-		h.PrepareData(ctx, round, batch)
+		func(f prepareFunc) {
+			group.Go(func() error {
+				if err := f(groupCtx, round, batch); err != nil {
+					return err
+				}
+				return nil
+			})
+		}(h.PrepareData)
 	}
 
 	// Update indexing progress.
-	// group.Go(func() error {
-	// 	batch.Queue(
-	// 		m.qf.IndexingProgressQuery(),
-	// 		round,
-	// 		emeraldMainDamaskName,
-	// 	)
-	// 	return nil
-	// })
+	group.Go(func() error {
+		batch.Queue(
+			m.qf.IndexingProgressQuery(),
+			round,
+			emeraldMainDamaskName,
+		)
+		return nil
+	})
 
-	// if err := group.Wait(); err != nil {
-	// 	return err
-	// }
+	if err := group.Wait(); err != nil {
+		return err
+	}
 
-	// opName := "process_round_emerald"
-	// timer := m.metrics.DatabaseTimer(m.target.Name(), opName)
-	// defer timer.ObserveDuration()
+	opName := "process_round_emerald"
+	timer := m.metrics.DatabaseTimer(m.target.Name(), opName)
+	defer timer.ObserveDuration()
 
-	// if err := m.target.SendBatch(ctx, batch); err != nil {
-	// 	m.metrics.DatabaseCounter(m.target.Name(), opName, "failure").Inc()
-	// 	return err
-	// }
-	// m.metrics.DatabaseCounter(m.target.Name(), opName, "success").Inc()
+	if err := m.target.SendBatch(ctx, batch); err != nil {
+		m.metrics.DatabaseCounter(m.target.Name(), opName, "failure").Inc()
+		return err
+	}
+	m.metrics.DatabaseCounter(m.target.Name(), opName, "success").Inc()
 	return nil
 }

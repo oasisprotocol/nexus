@@ -2,14 +2,14 @@ analysis:
   analyzers:
     # - name: consensus_main_damask
     #   chain_id: oasis-3
-    #   rpc: unix:/node/data/internal.sock
+    #   rpc: unix:/Users/nikhilsharma/node/data/internal.sock
     #   chaincontext: b11b369e0da5bb230b220127f5e7b242d385ef8c6f54906243f30af63c815535
     #   from: 8048956
     - name: emerald_main_damask
       chain_id: oasis-3
       rpc: unix:/Users/nikhilsharma/node/data/internal.sock
       chaincontext: b11b369e0da5bb230b220127f5e7b242d385ef8c6f54906243f30af63c815535
-      from: 1003298 # temporary
+      from: 2550000 # temporary
   storage:
     endpoint: postgresql://indexer:password@localhost:5432/indexer?sslmode=disable
     backend: postgres
