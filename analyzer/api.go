@@ -2,7 +2,10 @@ package analyzer
 
 import (
 	"errors"
+	"strings"
 	"time"
+
+	oasisConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 
 	"github.com/oasisprotocol/oasis-indexer/storage"
 )
@@ -15,6 +18,10 @@ var (
 	// ErrLatestBlockNotFound is returned if the analyzer has not indexed any
 	// blocks yet. This indicates to begin from the start of its range.
 	ErrLatestBlockNotFound = errors.New("latest block not found")
+
+	// ErrNetworkUnknown is returned if a chain context does not correspond
+	// to a known network identifier.
+	ErrNetworkUnknown = errors.New("network unknown")
 )
 
 // Analyzer is a worker that analyzes a subset of the Oasis Network.
@@ -205,20 +212,93 @@ func (e *Event) String() string {
 // ChainID is the ID of a chain.
 type ChainID string
 
-// FromHeight returns the ChainID for the provided height.
-func FromHeight(height int64) ChainID {
-	switch {
-	case height < 702000:
-		return "mainnet_beta_2020_10_01_1601568000"
-	case height < 3027601:
-		return "oasis_1"
-	case height < 8048956:
-		return "oasis_2"
-	}
-	return "oasis_3"
-}
-
 // String returns the string representation of a ChainID.
 func (c ChainID) String() string {
 	return string(c)
+}
+
+// Network is an instance of the Oasis Network.
+type Network uint
+
+const (
+	// NetworkTestnet is the identifier for testnet.
+	NetworkTestnet Network = iota
+	// NetworkMainnet is the identifier for mainnet.
+	NetworkMainnet
+	// NetworkUnknown is the identifier for an unknown network.
+	NetworkUnknown = 255
+)
+
+// FromChainContext identifies a Network using its ChainContext.
+func FromChainContext(chainContext string) (Network, error) {
+	var network Network
+	for name, nw := range oasisConfig.DefaultNetworks.All {
+		if nw.ChainContext == chainContext {
+			if err := network.Set(name); err != nil {
+				return NetworkUnknown, err
+			}
+			return network, nil
+		}
+	}
+
+	return NetworkUnknown, ErrNetworkUnknown
+}
+
+// Set sets the Network to the value specified by the provided string.
+func (n *Network) Set(s string) error {
+	switch strings.ToLower(s) {
+	case "mainnet":
+		*n = NetworkMainnet
+	case "testnet":
+		*n = NetworkTestnet
+	default:
+		return ErrNetworkUnknown
+	}
+
+	return nil
+}
+
+// String returns the string representation of a network.
+func (n *Network) String() string {
+	switch *n {
+	case NetworkTestnet:
+		return "testnet"
+	case NetworkMainnet:
+		return "mainnet"
+	default:
+		return "unknown"
+	}
+}
+
+// Paratime is an identifier for a Paratime on the Oasis Network.
+type Paratime uint16
+
+const (
+	// ParatimeEmerald is the identifier for the Emerald Paratime.
+	ParatimeEmerald Paratime = iota
+	// ParatimeCipher is the identifier for the Cipher Paratime.
+	ParatimeCipher
+	// ParatimeSapphire is the identifier for the Sapphire Paratime.
+	ParatimeSapphire
+	// ParatimeUnknown is the identifier for an unknown Paratime.
+	ParatimeUnknown = 1000
+)
+
+// String returns the string representation of a paratime.
+func (p *Paratime) String() string {
+	switch *p {
+	case ParatimeEmerald:
+		return "emerald"
+	case ParatimeCipher:
+		return "cipher"
+	case ParatimeSapphire:
+		return "sapphire"
+	default:
+		return "unknown"
+	}
+}
+
+// ID returns the ID for a Paratime on the provided network.
+func (p Paratime) ID(n Network) (string, error) {
+	return "000000000000000000000000000000000000000000000000e199119c992377cb", nil
 }

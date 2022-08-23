@@ -50,7 +50,18 @@ func NewMain(cfg *config.AnalyzerConfig, target storage.TargetStorage, logger *l
 		)
 		return nil, err
 	}
-	client, err := factory.Runtime("000000000000000000000000000000000000000000000000e2eaa99fc008f87f") // TODO: do this dynamically
+
+	network, err := analyzer.FromChainContext(cfg.ChainContext)
+	if err != nil {
+		return nil, err
+	}
+
+	id, err := analyzer.ParatimeEmerald.ID(network)
+	if err != nil {
+		return nil, err
+	}
+
+	client, err := factory.Runtime(id)
 	if err != nil {
 		logger.Error("error creating runtime client",
 			"err", err,
