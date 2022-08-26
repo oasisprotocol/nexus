@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	// ErrOutOfRange is returned if the current block does not fall within tge
+	// ErrOutOfRange is returned if the current block does not fall within the
 	// analyzer's analysis range.
 	ErrOutOfRange = errors.New("range not found. no data source available")
 
