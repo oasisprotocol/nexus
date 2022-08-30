@@ -22,15 +22,15 @@ func writeOrLog(w io.Writer, p []byte) {
 func getOkRead(url string) ([]byte, error) {
 	resp, err := http.Get(url)
 	if err != nil {
-		return nil, fmt.Errorf("http get: %w", err)
+		return nil, fmt.Errorf("http get %s: %w", url, err)
 	}
 	defer closeOrLog(resp.Body)
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return nil, fmt.Errorf("status %d not ok", resp.StatusCode)
+		return nil, fmt.Errorf("%s status %d not ok", url, resp.StatusCode)
 	}
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, fmt.Errorf("read body: %w", err)
+		return nil, fmt.Errorf("%s read body: %w", url, err)
 	}
 	return body, nil
 }
@@ -41,7 +41,7 @@ func getOkReadJson(url string, v interface{}) error {
 		return err
 	}
 	if err = json.Unmarshal(body, v); err != nil {
-		return fmt.Errorf("json unmarshal: %w", err)
+		return fmt.Errorf("json unmarshal response from %s: %w", url, err)
 	}
 	return nil
 }

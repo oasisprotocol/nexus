@@ -21,7 +21,7 @@ func makeEmeraldRouter() *chi.Mux {
 			blockRows[i].Hash = blockList.Blocks[i].Hash
 			blockRows[i].Timestamp = blockList.Blocks[i].Timestamp.Unix()
 		}
-		for i := range blockRows {
+		for _ = range blockRows {
 			// TODO: other fields
 		}
 		if err := respondCacheableJson(w, blockRows, 6); err != nil {
@@ -42,7 +42,7 @@ func makeEmeraldRouter() *chi.Mux {
 			transactionRows[i].FeeAmount = int64(transactionList.Transactions[i].Fee)
 			transactionRows[i].Method = transactionList.Transactions[i].Method
 		}
-		for i := range transactionRows {
+		for _ = range transactionRows {
 			// TODO: other fields
 		}
 		if err := respondCacheableJson(w, transactionRows, 6); err != nil {

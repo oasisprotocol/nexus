@@ -11,9 +11,13 @@ import (
 func makeConsensusRouter() *chi.Mux {
 	r := chi.NewRouter()
 	r.Get("/home/latest_blocks", fallible(func(w http.ResponseWriter, r *http.Request) error {
+		var status indexerV1.Status
+		if err := getOkReadJson(INDEXER_ENDPOINT+"/", &status); err != nil {
+			return err
+		}
 		var blockList indexerV1.BlockList
-		if err := getOkReadJson(INDEXER_ENDPOINT+"/consensus/blocks?limit=10", &blockList); err != nil {
-			return fmt.Errorf("indexer consensus blocks: %w", err)
+		if err := getOkReadJson(INDEXER_ENDPOINT+fmt.Sprintf("/consensus/blocks?from=%d&limit=10", status.LatestBlock-9), &blockList); err != nil {
+			return err
 		}
 		blockRows := make([]BlockRow, len(blockList.Blocks))
 		for i := range blockList.Blocks {
@@ -22,7 +26,13 @@ func makeConsensusRouter() *chi.Mux {
 			blockRows[i].Timestamp = blockList.Blocks[i].Timestamp.Unix()
 		}
 		for i := range blockRows {
-			// TODO: other fields
+			var transactionList indexerV1.TransactionList
+			if err := getOkReadJson(INDEXER_ENDPOINT+fmt.Sprintf("/consensus/transactions?block=%d", blockRows[i].Height), &transactionList); err != nil {
+				return err
+			}
+			blockRows[i].NumTransactions = len(transactionList.Transactions)
+			// TODO: block size
+			// TODO: total gas
 		}
 		if err := respondCacheableJson(w, blockRows, 6); err != nil {
 			return fmt.Errorf("writing response: %w", err)
@@ -32,7 +42,7 @@ func makeConsensusRouter() *chi.Mux {
 	r.Get("/home/latest_transactions", fallible(func(w http.ResponseWriter, r *http.Request) error {
 		var transactionList indexerV1.TransactionList
 		if err := getOkReadJson(INDEXER_ENDPOINT+"/consensus/transactions?limit=10", &transactionList); err != nil {
-			return fmt.Errorf("indexer consensus transactions: %w", err)
+			return err
 		}
 		transactionRows := make([]TransactionRow, len(transactionList.Transactions))
 		for i := range transactionList.Transactions {
@@ -42,7 +52,7 @@ func makeConsensusRouter() *chi.Mux {
 			transactionRows[i].FeeAmount = int64(transactionList.Transactions[i].Fee)
 			transactionRows[i].Method = transactionList.Transactions[i].Method
 		}
-		for i := range transactionRows {
+		for _ = range transactionRows {
 			// TODO: other fields
 		}
 		if err := respondCacheableJson(w, transactionRows, 6); err != nil {
