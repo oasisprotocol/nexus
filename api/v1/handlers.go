@@ -611,6 +611,68 @@ func (h *Handler) ListValidators(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// ListTransactionsPerSecond gets a list of TPS values.
+func (h *Handler) ListTransactionsPerSecond(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	tps, err := h.client.TransactionsPerSecond(ctx, r)
+	if err != nil {
+		h.logAndReply(ctx, "failed to list tps", w, err)
+		h.metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
+		return
+	}
+
+	var resp []byte
+	resp, err = json.Marshal(tps)
+	if err != nil {
+		h.logAndReply(ctx, "failed to marshal tps", w, err)
+		h.metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
+		return
+	}
+
+	w.Header().Set("content-type", "application/json")
+	if _, err := w.Write(resp); err != nil {
+		h.logger.Error("failed to write response",
+			"request_id", ctx.Value(RequestIDContextKey),
+			"error", err,
+		)
+		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
+	} else {
+		h.metrics.RequestCounter(r.URL.Path, "success").Inc()
+	}
+}
+
+// ListDailyVolume gets a list of daily transaction volume.
+func (h *Handler) ListDailyVolume(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	volumes, err := h.client.DailyVolumes(ctx, r)
+	if err != nil {
+		h.logAndReply(ctx, "failed to list daily tx volume", w, err)
+		h.metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
+		return
+	}
+
+	var resp []byte
+	resp, err = json.Marshal(volumes)
+	if err != nil {
+		h.logAndReply(ctx, "failed to marshal volumes", w, err)
+		h.metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
+		return
+	}
+
+	w.Header().Set("content-type", "application/json")
+	if _, err := w.Write(resp); err != nil {
+		h.logger.Error("failed to write response",
+			"request_id", ctx.Value(RequestIDContextKey),
+			"error", err,
+		)
+		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
+	} else {
+		h.metrics.RequestCounter(r.URL.Path, "success").Inc()
+	}
+}
+
 func (h *Handler) logAndReply(ctx context.Context, msg string, w http.ResponseWriter, err error) {
 	h.logger.Error(msg,
 		"request_id", ctx.Value(RequestIDContextKey),

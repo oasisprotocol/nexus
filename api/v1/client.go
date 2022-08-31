@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/iancoleman/strcase"
@@ -17,6 +18,10 @@ import (
 	"github.com/oasisprotocol/oasis-indexer/api/common"
 	"github.com/oasisprotocol/oasis-indexer/log"
 	"github.com/oasisprotocol/oasis-indexer/storage"
+)
+
+const (
+	tpsWindowSizeMinutes = 5
 )
 
 // storageClient is a wrapper around a storage.TargetStorage
@@ -1208,4 +1213,105 @@ func (c *storageClient) Validator(ctx context.Context, r *http.Request) (*Valida
 	}
 
 	return &v, nil
+}
+
+// TransactionsPerSecond returns a list of tps checkpoint values.
+func (c *storageClient) TransactionsPerSecond(ctx context.Context, r *http.Request) (*TpsCheckpointList, error) {
+	qf := NewQueryFactory(strcase.ToSnake(LatestChainID))
+
+	pagination := common.Pagination{
+		Limit:  100,
+		Offset: 0,
+	}
+
+	rows, err := c.db.Query(
+		ctx,
+		qf.TpsCheckpointQuery(),
+		pagination.Limit,
+		pagination.Offset,
+	)
+	if err != nil {
+		c.logger.Info("query failed",
+			"request_id", ctx.Value(RequestIDContextKey),
+			"err", err.Error(),
+		)
+		return nil, common.ErrStorageError
+	}
+	defer rows.Close()
+
+	ts := TpsCheckpointList{
+		IntervalMinutes: tpsWindowSizeMinutes,
+		TpsCheckpoints:  []TpsCheckpoint{},
+	}
+	for rows.Next() {
+		var d struct {
+			Hour     time.Time
+			MinSlot  int
+			TxVolume uint64
+		}
+		if err := rows.Scan(
+			&d.Hour,
+			&d.MinSlot,
+			&d.TxVolume,
+		); err != nil {
+			c.logger.Info("query failed",
+				"err", err.Error(),
+			)
+			return nil, common.ErrStorageError
+		}
+
+		t := TpsCheckpoint{
+			Timestamp: d.Hour.Add(time.Duration(tpsWindowSizeMinutes*d.MinSlot) * time.Minute),
+			TxVolume:  d.TxVolume,
+		}
+		ts.TpsCheckpoints = append(ts.TpsCheckpoints, t)
+	}
+
+	return &ts, nil
+}
+
+// DailyVolumes returns a list of daily transaction volumes.
+func (c *storageClient) DailyVolumes(ctx context.Context, r *http.Request) (*VolumeList, error) {
+	qf := NewQueryFactory(strcase.ToSnake(LatestChainID))
+
+	pagination := common.Pagination{
+		Limit:  100,
+		Offset: 0,
+	}
+
+	rows, err := c.db.Query(
+		ctx,
+		qf.TxVolumesQuery(),
+		pagination.Order,
+		pagination.Limit,
+		pagination.Offset,
+	)
+	if err != nil {
+		c.logger.Info("query failed",
+			"request_id", ctx.Value(RequestIDContextKey),
+			"err", err.Error(),
+		)
+		return nil, common.ErrStorageError
+	}
+	defer rows.Close()
+
+	vs := VolumeList{
+		Volumes: []Volume{},
+	}
+	for rows.Next() {
+		var v Volume
+		if err := rows.Scan(
+			&v.Date,
+			&v.TxVolume,
+		); err != nil {
+			c.logger.Info("query failed",
+				"err", err.Error(),
+			)
+			return nil, common.ErrStorageError
+		}
+
+		vs.Volumes = append(vs.Volumes, v)
+	}
+
+	return &vs, nil
 }

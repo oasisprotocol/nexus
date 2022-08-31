@@ -676,6 +676,42 @@ paths:
         '500':
           $ref: '#/components/responses/ServerError'
 
+  /consensus/stats/tps:
+    get:
+      summary: Returns the consensus layer TPS for each 5 minute interval.
+      responses:
+        '200':
+          description: |
+            A JSON object containing a list of TPS values for each interval.
+          content:
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/TpsCheckpoints'
+        '400':
+          $ref: '#/components/responses/InvalidRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /consensus/stats/daily_volume:
+    get:
+      summary: Returns the consensus layer daily transaction volume for each day.
+      responses:
+        '200':
+          description: |
+            A JSON object containing a list of daily transaction volumes for each day.
+          content:
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/Volumes'
+        '400':
+          $ref: '#/components/responses/InvalidRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
 components:
   schemas:
     ApiError:
@@ -1195,6 +1231,60 @@ components:
           type: string
           description: The vote cast.
           example: 'yes'
+    
+    TpsCheckpoints:
+      type: object
+      properties:
+        interval_minutes:
+          type: integer
+          format: int
+          description: The length, in minutes, of each TPS measurement window.
+        tps_checkpoints:
+          type: array
+          items:
+            $ref: '#/components/schemas/TpsCheckpoint'
+          description: The list of TPS checkpoint windows.
+      description: |
+        A list of TPS checkpoint windows.
+
+    TpsCheckpoint:
+      type: object
+      properties: 
+        timestamp:
+          type: string
+          format: date-time
+          description: The timestamp anchoring this TPS measurement window.
+          example: *iso_timestamp_1
+        tx_volume:
+          type: integer
+          format: int64
+          description: The transaction volume in this measurement window.
+          example: 420
+
+  VolumeList:
+      type: object
+      properties:
+        volumes:
+          type: array
+          items:
+            $ref: '#/components/schemas/Volume'
+          description: The list of daily transaction volumes.
+      description: |
+        A list of daily transaction volumes.
+
+    Volume:
+      type: object
+      properties: 
+        date:
+          type: string
+          format: date-time
+          description: The date for this daily transaction volume measurement.
+          example: *iso_timestamp_1
+        tx_volume:
+          type: integer
+          format: int64
+          description: The transaction volume on this day.
+          example: 420
 
   responses:
     InvalidRequest:

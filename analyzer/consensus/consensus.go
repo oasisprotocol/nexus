@@ -101,6 +101,9 @@ func NewMain(cfg *config.AnalyzerConfig, target storage.TargetStorage, logger *l
 func (m *Main) Start() {
 	ctx := context.Background()
 
+	// Start aggregate worker.
+	go m.aggregateWorker(ctx)
+
 	// Get block to be indexed.
 	var height int64
 

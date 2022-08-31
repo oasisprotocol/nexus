@@ -302,3 +302,26 @@ func (qf QueryFactory) ValidatorsDataQuery() string {
 		LIMIT $2::bigint
 		OFFSET $3::bigint`, qf.chainID)
 }
+
+func (qf QueryFactory) TpsCheckpointQuery() string {
+	return `
+		SELECT hour, min_slot, tx_volume
+			FROM min5_tx_volume
+		ORDER BY
+			hour DESC, min_slot DESC
+		LIMIT $1::bigint
+		OFFSET $2::bigint
+	`
+}
+
+func (qf QueryFactory) TxVolumesQuery() string {
+	return `
+		SELECT day, daily_tx_volume
+			FROM daily_tx_volume
+		ORDER BY
+			$1::text
+		DESC
+		LIMIT $2::bigint
+		OFFSET $3::bigint
+	`
+}

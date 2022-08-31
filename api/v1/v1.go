@@ -87,6 +87,12 @@ func (h *Handler) RegisterRoutes(r chi.Router) {
 				r.Get("/", h.ListValidators)
 				r.Get("/{entity_id}", h.GetValidator)
 			})
+
+			// Aggregate Statistics.
+			r.Route("/stats", func(r chi.Router) {
+				r.Get("/tps", h.ListTransactionsPerSecond)
+				r.Get("/daily_volume", h.ListDailyVolume)
+			})
 		})
 	})
 
