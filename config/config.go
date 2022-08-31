@@ -74,6 +74,10 @@ func (cfg *AnalysisConfig) Validate() error {
 }
 
 // AnalyzerConfig is the configuration for a chain analyzer.
+//
+// If an analyzer is intended to run periodically, it should specify
+// an Interval. If it is intended to process blocks linearly, it should
+// specify a From and (optionally) To block range.
 type AnalyzerConfig struct {
 	// Name is the name of the analyzer.
 	Name string `koanf:"name"`

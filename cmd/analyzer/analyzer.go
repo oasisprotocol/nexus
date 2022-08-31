@@ -13,6 +13,7 @@ import (
 
 	"github.com/oasisprotocol/oasis-indexer/analyzer"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/consensus"
+	"github.com/oasisprotocol/oasis-indexer/analyzer/emerald"
 	"github.com/oasisprotocol/oasis-indexer/cmd/common"
 	"github.com/oasisprotocol/oasis-indexer/config"
 	"github.com/oasisprotocol/oasis-indexer/log"
@@ -125,7 +126,6 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) {
 	// Initialize analyzers.
 	analyzers := map[string]analyzer.Analyzer{}
 	for _, analyzerCfg := range cfg.Analyzers {
-		//nolint:gocritic
 		switch analyzerCfg.Name {
 		case "consensus_main_damask":
 			consensusMainDamask, err := consensus.NewMain(analyzerCfg, client, logger)
@@ -133,6 +133,12 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) {
 				return nil, err
 			}
 			analyzers[consensusMainDamask.Name()] = consensusMainDamask
+		case "emerald_main_damask":
+			emeraldMainDamask, err := emerald.NewMain(analyzerCfg, client, logger)
+			if err != nil {
+				return nil, err
+			}
+			analyzers[emeraldMainDamask.Name()] = emeraldMainDamask
 		}
 	}
 
