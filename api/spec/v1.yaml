@@ -704,7 +704,7 @@ paths:
           content:
             application/json:
               schema: 
-                $ref: '#/components/schemas/Volumes'
+                $ref: '#/components/schemas/VolumeList'
         '400':
           $ref: '#/components/responses/InvalidRequest'
         '404':
@@ -1261,7 +1261,7 @@ components:
           description: The transaction volume in this measurement window.
           example: 420
 
-  VolumeList:
+    VolumeList:
       type: object
       properties:
         volumes:
