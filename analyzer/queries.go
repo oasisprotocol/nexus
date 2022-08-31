@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-// QueryFactory is a convenience type for creating API queries.
+// QueryFactory is a convenience type for creating database queries.
 type QueryFactory struct {
 	chainID string
 	runtime string

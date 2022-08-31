@@ -20,14 +20,6 @@ CREATE TABLE IF NOT EXISTS oasis_3.emerald_rounds
   extra_data JSON
 );
 
-CREATE TABLE IF NOT EXISTS oasis_3.emerald_transactions
-(
-  height NUMERIC PRIMARY KEY,
-
-  -- Arbitrary additional data.
-  extra_data JSON
-);
-
 -- Core Module Data
 CREATE TABLE IF NOT EXISTS oasis_3.emerald_gas_used
 (
