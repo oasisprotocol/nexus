@@ -1219,9 +1219,13 @@ func (c *storageClient) Validator(ctx context.Context, r *http.Request) (*Valida
 func (c *storageClient) TransactionsPerSecond(ctx context.Context, r *http.Request) (*TpsCheckpointList, error) {
 	qf := NewQueryFactory(strcase.ToSnake(LatestChainID))
 
-	pagination := common.Pagination{
-		Limit:  100,
-		Offset: 0,
+	pagination, err := common.NewPagination(r)
+	if err != nil {
+		c.logger.Info("pagination failed",
+			"request_id", ctx.Value(RequestIDContextKey),
+			"err", err.Error(),
+		)
+		return nil, common.ErrBadRequest
 	}
 
 	rows, err := c.db.Query(
@@ -1274,9 +1278,13 @@ func (c *storageClient) TransactionsPerSecond(ctx context.Context, r *http.Reque
 func (c *storageClient) DailyVolumes(ctx context.Context, r *http.Request) (*VolumeList, error) {
 	qf := NewQueryFactory(strcase.ToSnake(LatestChainID))
 
-	pagination := common.Pagination{
-		Limit:  100,
-		Offset: 0,
+	pagination, err := common.NewPagination(r)
+	if err != nil {
+		c.logger.Info("pagination failed",
+			"request_id", ctx.Value(RequestIDContextKey),
+			"err", err.Error(),
+		)
+		return nil, common.ErrBadRequest
 	}
 
 	rows, err := c.db.Query(

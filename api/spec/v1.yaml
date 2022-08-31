@@ -679,6 +679,9 @@ paths:
   /consensus/stats/tps:
     get:
       summary: Returns the consensus layer TPS for each 5 minute interval.
+      parameters:
+        - *limit
+        - *offset
       responses:
         '200':
           description: |
@@ -697,6 +700,9 @@ paths:
   /consensus/stats/daily_volume:
     get:
       summary: Returns the consensus layer daily transaction volume for each day.
+      parameters:
+        - *limit
+        - *offset
       responses:
         '200':
           description: |
