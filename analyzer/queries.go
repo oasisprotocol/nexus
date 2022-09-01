@@ -387,3 +387,15 @@ func (qf QueryFactory) RuntimeGasUsedInsertQuery() string {
 		INSERT INTO %s.%s_gas_used (height, sender, amount)
 			VALUES ($1, $2, $3)`, qf.chainID, qf.runtime)
 }
+
+func (qf QueryFactory) RefreshDailyTxVolumeQuery() string {
+	return `
+		REFRESH MATERIALIZED VIEW daily_tx_volume
+	`
+}
+
+func (qf QueryFactory) RefreshMin5TxVolumeQuery() string {
+	return `
+		REFRESH MATERIALIZED VIEW min5_tx_volume
+	`
+}

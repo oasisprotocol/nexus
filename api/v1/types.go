@@ -169,7 +169,7 @@ type ProposalVote struct {
 	Vote    string `json:"vote"`
 }
 
-// Validators is the API response for GetValidators.
+// ValidatorList is the API response for GetValidators.
 type ValidatorList struct {
 	Validators []Validator `json:"validators"`
 }
@@ -206,4 +206,27 @@ type ValidatorCommissionBound struct {
 	Upper      uint64 `json:"upper"`
 	EpochStart uint64 `json:"epoch_start"`
 	EpochEnd   uint64 `json:"epoch_end"`
+}
+
+// TpsCheckpointList is the API response for ListTransactionsPerSecond.
+type TpsCheckpointList struct {
+	IntervalMinutes int             `json:"interval_minutes"`
+	TpsCheckpoints  []TpsCheckpoint `json:"tps_checkpoints"`
+}
+
+// TpsCheckpoint is the live TPS value at the provided marker timestamp.
+type TpsCheckpoint struct {
+	Timestamp time.Time `json:"timestamp"`
+	TxVolume  uint64    `json:"tx_volume"`
+}
+
+// VolumeList is the API response for GetVolumes.
+type VolumeList struct {
+	Volumes []Volume `json:"volumes"`
+}
+
+// Volume is the daily transaction volume on the specified day.
+type Volume struct {
+	Date     time.Time `json:"date"`
+	TxVolume uint64    `json:"tx_volume"`
 }

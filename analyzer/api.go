@@ -223,7 +223,7 @@ func (c ChainID) String() string {
 }
 
 // Network is an instance of the Oasis Network.
-type Network uint
+type Network uint8
 
 const (
 	// NetworkTestnet is the identifier for testnet.
