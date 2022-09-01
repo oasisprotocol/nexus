@@ -99,7 +99,6 @@ func (c *storageClient) Blocks(ctx context.Context, r *http.Request) (*BlockList
 		to,
 		after,
 		before,
-		pagination.Order,
 		pagination.Limit,
 		pagination.Offset,
 	)
@@ -210,7 +209,6 @@ func (c *storageClient) Transactions(ctx context.Context, r *http.Request) (*Tra
 		minFee,
 		maxFee,
 		code,
-		pagination.Order,
 		pagination.Limit,
 		pagination.Offset,
 	)
@@ -312,7 +310,6 @@ func (c *storageClient) Entities(ctx context.Context, r *http.Request) (*EntityL
 	rows, err := c.db.Query(
 		ctx,
 		qf.EntitiesQuery(),
-		pagination.Order,
 		pagination.Limit,
 		pagination.Offset,
 	)
@@ -429,7 +426,6 @@ func (c *storageClient) EntityNodes(ctx context.Context, r *http.Request) (*Node
 		ctx,
 		qf.EntityNodesQuery(),
 		id,
-		pagination.Order,
 		pagination.Limit,
 		pagination.Offset,
 	)
@@ -576,7 +572,6 @@ func (c *storageClient) Accounts(ctx context.Context, r *http.Request) (*Account
 		maxDebonding,
 		minTotalBalance,
 		maxTotalBalance,
-		pagination.Order,
 		pagination.Limit,
 		pagination.Offset,
 	)
@@ -699,7 +694,6 @@ func (c *storageClient) Delegations(ctx context.Context, r *http.Request) (*Dele
 		ctx,
 		qf.DelegationsQuery(),
 		chi.URLParam(r, "address"),
-		pagination.Order,
 		pagination.Limit,
 		pagination.Offset,
 	)
@@ -761,7 +755,6 @@ func (c *storageClient) DebondingDelegations(ctx context.Context, r *http.Reques
 		ctx,
 		qf.DebondingDelegationsQuery(),
 		chi.URLParam(r, "address"),
-		pagination.Order,
 		pagination.Limit,
 		pagination.Offset,
 	)
@@ -821,7 +814,6 @@ func (c *storageClient) Epochs(ctx context.Context, r *http.Request) (*EpochList
 	rows, err := c.db.Query(
 		ctx,
 		qf.EpochsQuery(),
-		pagination.Order,
 		pagination.Limit,
 		pagination.Offset,
 	)
@@ -913,7 +905,6 @@ func (c *storageClient) Proposals(ctx context.Context, r *http.Request) (*Propos
 		qf.ProposalsQuery(),
 		submitter,
 		state,
-		pagination.Order,
 		pagination.Limit,
 		pagination.Offset,
 	)
@@ -1023,7 +1014,6 @@ func (c *storageClient) ProposalVotes(ctx context.Context, r *http.Request) (*Pr
 		ctx,
 		qf.ProposalVotesQuery(),
 		id,
-		pagination.Order,
 		pagination.Limit,
 		pagination.Offset,
 	)
@@ -1089,7 +1079,6 @@ func (c *storageClient) Validators(ctx context.Context, r *http.Request) (*Valid
 	rows, err := c.db.Query(
 		ctx,
 		qf.ValidatorsDataQuery(),
-		pagination.Order,
 		pagination.Limit,
 		pagination.Offset,
 	)
@@ -1265,7 +1254,7 @@ func (c *storageClient) TransactionsPerSecond(ctx context.Context, r *http.Reque
 		}
 
 		t := TpsCheckpoint{
-			Timestamp: d.Hour.Add(time.Duration(tpsWindowSizeMinutes*d.MinSlot) * time.Minute),
+			Timestamp: d.Hour.Add(time.Duration(tpsWindowSizeMinutes*d.MinSlot) * time.Minute).UTC(),
 			TxVolume:  d.TxVolume,
 		}
 		ts.TpsCheckpoints = append(ts.TpsCheckpoints, t)
@@ -1290,7 +1279,6 @@ func (c *storageClient) DailyVolumes(ctx context.Context, r *http.Request) (*Vol
 	rows, err := c.db.Query(
 		ctx,
 		qf.TxVolumesQuery(),
-		pagination.Order,
 		pagination.Limit,
 		pagination.Offset,
 	)
@@ -1317,6 +1305,7 @@ func (c *storageClient) DailyVolumes(ctx context.Context, r *http.Request) (*Vol
 			)
 			return nil, common.ErrStorageError
 		}
+		v.Date = v.Date.UTC()
 
 		vs.Volumes = append(vs.Volumes, v)
 	}
