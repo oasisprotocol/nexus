@@ -1,9 +1,31 @@
 package analyzer
 
 import (
+	"errors"
+	"strings"
 	"time"
 
+	oasisConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
+
 	"github.com/oasisprotocol/oasis-indexer/storage"
+)
+
+var (
+	// ErrOutOfRange is returned if the current block does not fall within the
+	// analyzer's analysis range.
+	ErrOutOfRange = errors.New("range not found. no data source available")
+
+	// ErrLatestBlockNotFound is returned if the analyzer has not indexed any
+	// blocks yet. This indicates to begin from the start of its range.
+	ErrLatestBlockNotFound = errors.New("latest block not found")
+
+	// ErrNetworkUnknown is returned if a chain context does not correspond
+	// to a known network identifier.
+	ErrNetworkUnknown = errors.New("network unknown")
+
+	// ErrRuntimeUnknown is returned if a chain context does not correspond
+	// to a known runtime identifier.
+	ErrRuntimeUnknown = errors.New("runtime unknown")
 )
 
 // Analyzer is a worker that analyzes a subset of the Oasis Network.
@@ -15,15 +37,15 @@ type Analyzer interface {
 	Name() string
 }
 
-// Config specifies configuration parameters
-// for processing the network.
-type Config struct {
+// ConsensusConfig specifies configuration parameters for
+// for processing the consensus layer.
+type ConsensusConfig struct {
 	// ChainID is the chain ID for the underlying network.
 	ChainID string
 
-	// BlockRange is the range of blocks to process.
+	// Range is the range of blocks to process.
 	// If this is set, the analyzer analyzes blocks in the provided range.
-	BlockRange Range
+	Range BlockRange
 
 	// Interval is the interval at which to process.
 	// If this is set, the analyzer runs once per interval.
@@ -31,16 +53,44 @@ type Config struct {
 
 	// Source is the storage source from which to fetch block data
 	// when processing blocks in this range.
-	Source storage.SourceStorage
+	Source storage.ConsensusSourceStorage
 }
 
-// Range is a range of blocks.
-type Range struct {
+// BlockRange is a range of blocks.
+type BlockRange struct {
 	// From is the first block to process in this range, inclusive.
 	From int64
 
 	// To is the last block to process in this range, inclusive.
 	To int64
+}
+
+// RuntimeConfig specifies configuration parameters for
+// for processing the runtime layer.
+type RuntimeConfig struct {
+	// ChainID is the chain ID for the underlying network.
+	ChainID string
+
+	// Range is the range of rounds to process.
+	// If this is set, the analyzer analyzes rounds in the provided range.
+	Range RoundRange
+
+	// Interval is the interval at which to process.
+	// If this is set, the analyzer runs once per interval.
+	Interval time.Duration
+
+	// Source is the storage source from which to fetch block data
+	// when processing blocks in this range.
+	Source storage.RuntimeSourceStorage
+}
+
+// RoundRange is a range of blocks.
+type RoundRange struct {
+	// From is the first block to process in this range, inclusive.
+	From uint64
+
+	// To is the last block to process in this range, inclusive.
+	To uint64
 }
 
 // Backend is a consensus backend.
@@ -71,6 +121,7 @@ func (b *Backend) String() string {
 	case BackendGovernance:
 		return "governance"
 	default:
+		//nolint:goconst
 		return "unknown"
 	}
 }
@@ -166,20 +217,105 @@ func (e *Event) String() string {
 // ChainID is the ID of a chain.
 type ChainID string
 
-// FromHeight returns the ChainID for the provided height.
-func FromHeight(height int64) ChainID {
-	switch {
-	case height < 702000:
-		return "mainnet_beta_2020_10_01_1601568000"
-	case height < 3027601:
-		return "oasis_1"
-	case height < 8048956:
-		return "oasis_2"
-	}
-	return "oasis_3"
-}
-
 // String returns the string representation of a ChainID.
 func (c ChainID) String() string {
 	return string(c)
+}
+
+// Network is an instance of the Oasis Network.
+type Network uint8
+
+const (
+	// NetworkTestnet is the identifier for testnet.
+	NetworkTestnet Network = iota
+	// NetworkMainnet is the identifier for mainnet.
+	NetworkMainnet
+	// NetworkUnknown is the identifier for an unknown network.
+	NetworkUnknown = 255
+)
+
+// FromChainContext identifies a Network using its ChainContext.
+func FromChainContext(chainContext string) (Network, error) {
+	var network Network
+	for name, nw := range oasisConfig.DefaultNetworks.All {
+		if nw.ChainContext == chainContext {
+			if err := network.Set(name); err != nil {
+				return NetworkUnknown, err
+			}
+			return network, nil
+		}
+	}
+
+	return NetworkUnknown, ErrNetworkUnknown
+}
+
+// Set sets the Network to the value specified by the provided string.
+func (n *Network) Set(s string) error {
+	switch strings.ToLower(s) {
+	case "mainnet":
+		*n = NetworkMainnet
+	case "testnet":
+		*n = NetworkTestnet
+	default:
+		return ErrNetworkUnknown
+	}
+
+	return nil
+}
+
+// String returns the string representation of a network.
+func (n Network) String() string {
+	switch n {
+	case NetworkTestnet:
+		return "testnet"
+	case NetworkMainnet:
+		return "mainnet"
+	default:
+		return "unknown"
+	}
+}
+
+// Runtime is an identifier for a runtime on the Oasis Network.
+type Runtime uint16
+
+const (
+	// RuntimeEmerald is the identifier for the Emerald Runtime.
+	RuntimeEmerald Runtime = iota
+	// RuntimeCipher is the identifier for the Cipher Runtime.
+	RuntimeCipher
+	// RuntimeSapphire is the identifier for the Sapphire Runtime.
+	RuntimeSapphire
+	// RuntimeUnknown is the identifier for an unknown Runtime.
+	RuntimeUnknown = 1000
+)
+
+// String returns the string representation of a runtime.
+func (r Runtime) String() string {
+	switch r {
+	case RuntimeEmerald:
+		return "emerald"
+	case RuntimeCipher:
+		return "cipher"
+	case RuntimeSapphire:
+		return "sapphire"
+	default:
+		return "unknown"
+	}
+}
+
+// ID returns the ID for a Runtime on the provided network.
+func (r Runtime) ID(n Network) (string, error) {
+	for nname, nw := range oasisConfig.DefaultNetworks.All {
+		if nname == n.String() {
+			for pname, pt := range nw.ParaTimes.All {
+				if pname == r.String() {
+					return pt.ID, nil
+				}
+			}
+
+			return "", ErrRuntimeUnknown
+		}
+	}
+
+	return "", ErrRuntimeUnknown
 }

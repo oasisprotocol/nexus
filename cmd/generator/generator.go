@@ -174,7 +174,11 @@ func (g *Generator) genesisDocFromClient() (*genesis.Document, error) {
 		return nil, err
 	}
 
-	client, err := oasis.NewClient(ctx, &network)
+	factory, err := oasis.NewClientFactory(ctx, &network)
+	if err != nil {
+		return nil, err
+	}
+	client, err := factory.Consensus()
 	if err != nil {
 		return nil, err
 	}

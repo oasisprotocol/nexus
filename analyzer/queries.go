@@ -1,16 +1,17 @@
-package consensus
+package analyzer
 
 import (
 	"fmt"
 )
 
-// QueryFactory is a convenience type for creating API queries.
+// QueryFactory is a convenience type for creating database queries.
 type QueryFactory struct {
 	chainID string
+	runtime string
 }
 
-func NewQueryFactory(chainID string) QueryFactory {
-	return QueryFactory{chainID}
+func NewQueryFactory(chainID string, runtime string) QueryFactory {
+	return QueryFactory{chainID, runtime}
 }
 
 func (qf QueryFactory) LatestBlockQuery() string {
@@ -28,33 +29,33 @@ func (qf QueryFactory) IndexingProgressQuery() string {
 				($1, $2, CURRENT_TIMESTAMP)`, qf.chainID)
 }
 
-func (qf QueryFactory) BlockInsertQuery() string {
+func (qf QueryFactory) ConsensusBlockInsertQuery() string {
 	return fmt.Sprintf(`
 		INSERT INTO %s.blocks (height, block_hash, time, namespace, version, type, root_hash)
 			VALUES ($1, $2, $3, $4, $5, $6, $7)`, qf.chainID)
 }
 
-func (qf QueryFactory) EpochInsertQuery() string {
+func (qf QueryFactory) ConsensusEpochInsertQuery() string {
 	return fmt.Sprintf(`
 		INSERT INTO %s.epochs (id, start_height)
 			VALUES ($1, $2)
 		ON CONFLICT (id) DO NOTHING`, qf.chainID)
 }
 
-func (qf QueryFactory) EpochUpdateQuery() string {
+func (qf QueryFactory) ConsensusEpochUpdateQuery() string {
 	return fmt.Sprintf(`
 		UPDATE %s.epochs
 		SET end_height = $2
 			WHERE id = $1 AND end_height IS NULL`, qf.chainID)
 }
 
-func (qf QueryFactory) TransactionInsertQuery() string {
+func (qf QueryFactory) ConsensusTransactionInsertQuery() string {
 	return fmt.Sprintf(`
 		INSERT INTO %s.transactions (block, txn_hash, txn_index, nonce, fee_amount, max_gas, method, sender, body, module, code, message)
 			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`, qf.chainID)
 }
 
-func (qf QueryFactory) AccountNonceUpdateQuery() string {
+func (qf QueryFactory) ConsensusAccountNonceUpdateQuery() string {
 	return fmt.Sprintf(`
 		UPDATE %s.accounts
 		SET
@@ -62,7 +63,7 @@ func (qf QueryFactory) AccountNonceUpdateQuery() string {
 		WHERE address = $1`, qf.chainID)
 }
 
-func (qf QueryFactory) CommissionsUpsertQuery() string {
+func (qf QueryFactory) ConsensusCommissionsUpsertQuery() string {
 	return fmt.Sprintf(`
 		INSERT INTO %s.commissions (address, schedule)
 			VALUES ($1, $2)
@@ -71,13 +72,13 @@ func (qf QueryFactory) CommissionsUpsertQuery() string {
 				schedule = excluded.schedule`, qf.chainID)
 }
 
-func (qf QueryFactory) EventInsertQuery() string {
+func (qf QueryFactory) ConsensusEventInsertQuery() string {
 	return fmt.Sprintf(`
 		INSERT INTO %s.events (backend, type, body, txn_block, txn_hash, txn_index)
 			VALUES ($1, $2, $3, $4, $5, $6)`, qf.chainID)
 }
 
-func (qf QueryFactory) RuntimeUpsertQuery() string {
+func (qf QueryFactory) ConsensusRuntimeUpsertQuery() string {
 	return fmt.Sprintf(`
 		INSERT INTO %s.runtimes (id, suspended, kind, tee_hardware, key_manager)
 			VALUES ($1, $2, $3, $4, $5)
@@ -89,27 +90,27 @@ func (qf QueryFactory) RuntimeUpsertQuery() string {
 				key_manager = excluded.key_manager`, qf.chainID)
 }
 
-func (qf QueryFactory) RuntimeSuspensionQuery() string {
+func (qf QueryFactory) ConsensusRuntimeSuspensionQuery() string {
 	return fmt.Sprintf(`
 		UPDATE %s.runtimes
 			SET suspended = true
 			WHERE id = $1`, qf.chainID)
 }
 
-func (qf QueryFactory) RuntimeUnsuspensionQuery() string {
+func (qf QueryFactory) ConsensusRuntimeUnsuspensionQuery() string {
 	return fmt.Sprintf(`
 		UPDATE %s.runtimes
 			SET suspended = false
 			WHERE id = $1`, qf.chainID)
 }
 
-func (qf QueryFactory) ClaimedNodeInsertQuery() string {
+func (qf QueryFactory) ConsensusClaimedNodeInsertQuery() string {
 	return fmt.Sprintf(`
 		INSERT INTO %s.claimed_nodes (entity_id, node_id) VALUES ($1, $2)
 			ON CONFLICT (entity_id, node_id) DO NOTHING`, qf.chainID)
 }
 
-func (qf QueryFactory) EntityUpsertQuery() string {
+func (qf QueryFactory) ConsensusEntityUpsertQuery() string {
 	return fmt.Sprintf(`
 		INSERT INTO %s.entities (id, address) VALUES ($1, $2)
 			ON CONFLICT (id) DO
@@ -117,7 +118,7 @@ func (qf QueryFactory) EntityUpsertQuery() string {
 				address = excluded.address`, qf.chainID)
 }
 
-func (qf QueryFactory) NodeUpsertQuery() string {
+func (qf QueryFactory) ConsensusNodeUpsertQuery() string {
 	return fmt.Sprintf(`
 		INSERT INTO %s.nodes (id, entity_id, expiration, tls_pubkey, tls_next_pubkey, tls_addresses, p2p_pubkey, p2p_addresses, consensus_pubkey, consensus_address, vrf_pubkey, roles, software_version, voting_power)
 			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
@@ -138,19 +139,19 @@ func (qf QueryFactory) NodeUpsertQuery() string {
 			voting_power = excluded.voting_power`, qf.chainID)
 }
 
-func (qf QueryFactory) NodeDeleteQuery() string {
+func (qf QueryFactory) ConsensusNodeDeleteQuery() string {
 	return fmt.Sprintf(`
 		DELETE FROM %s.nodes WHERE id = $1`, qf.chainID)
 }
 
-func (qf QueryFactory) EntityMetaUpsertQuery() string {
+func (qf QueryFactory) ConsensusEntityMetaUpsertQuery() string {
 	return fmt.Sprintf(`
 		UPDATE %s.entities
 		SET meta = $2
 			WHERE id = $1`, qf.chainID)
 }
 
-func (qf QueryFactory) SenderUpdateQuery() string {
+func (qf QueryFactory) ConsensusSenderUpdateQuery() string {
 	return fmt.Sprintf(`
 		UPDATE %s.accounts
 		SET
@@ -158,7 +159,7 @@ func (qf QueryFactory) SenderUpdateQuery() string {
 		WHERE address = $1`, qf.chainID)
 }
 
-func (qf QueryFactory) ReceiverUpdateQuery() string {
+func (qf QueryFactory) ConsensusReceiverUpdateQuery() string {
 	return fmt.Sprintf(`
 		INSERT INTO %[1]s.accounts (address, general_balance)
 			VALUES ($1, $2)
@@ -166,7 +167,7 @@ func (qf QueryFactory) ReceiverUpdateQuery() string {
 			UPDATE SET general_balance = %[1]s.accounts.general_balance + $2;`, qf.chainID)
 }
 
-func (qf QueryFactory) BurnUpdateQuery() string {
+func (qf QueryFactory) ConsensusBurnUpdateQuery() string {
 	return fmt.Sprintf(`
 		UPDATE %s.accounts
 		SET
@@ -174,7 +175,7 @@ func (qf QueryFactory) BurnUpdateQuery() string {
 		WHERE address = $1`, qf.chainID)
 }
 
-func (qf QueryFactory) AddGeneralBalanceUpdateQuery() string {
+func (qf QueryFactory) ConsensusAddGeneralBalanceUpdateQuery() string {
 	return fmt.Sprintf(`
 		UPDATE %s.accounts
 		SET
@@ -182,7 +183,7 @@ func (qf QueryFactory) AddGeneralBalanceUpdateQuery() string {
 		WHERE address = $1`, qf.chainID)
 }
 
-func (qf QueryFactory) AddEscrowBalanceUpsertQuery() string {
+func (qf QueryFactory) ConsensusAddEscrowBalanceUpsertQuery() string {
 	return fmt.Sprintf(`
 		INSERT INTO %[1]s.accounts (address, escrow_balance_active, escrow_total_shares_active)
 			VALUES ($1, $2, $3)
@@ -192,7 +193,7 @@ func (qf QueryFactory) AddEscrowBalanceUpsertQuery() string {
 				escrow_total_shares_active = %[1]s.accounts.escrow_total_shares_active + $3`, qf.chainID)
 }
 
-func (qf QueryFactory) AddDelegationsUpsertQuery() string {
+func (qf QueryFactory) ConsensusAddDelegationsUpsertQuery() string {
 	return fmt.Sprintf(`
 		INSERT INTO %[1]s.delegations (delegatee, delegator, shares)
 			VALUES ($1, $2, $3)
@@ -200,7 +201,7 @@ func (qf QueryFactory) AddDelegationsUpsertQuery() string {
 			UPDATE SET shares = %[1]s.delegations.shares + $3`, qf.chainID)
 }
 
-func (qf QueryFactory) TakeEscrowUpdateQuery() string {
+func (qf QueryFactory) ConsensusTakeEscrowUpdateQuery() string {
 	return fmt.Sprintf(`
 		UPDATE %s.accounts
 			SET
@@ -209,7 +210,7 @@ func (qf QueryFactory) TakeEscrowUpdateQuery() string {
 			WHERE address = $1`, qf.chainID)
 }
 
-func (qf QueryFactory) DebondingStartEscrowBalanceUpdateQuery() string {
+func (qf QueryFactory) ConsensusDebondingStartEscrowBalanceUpdateQuery() string {
 	return fmt.Sprintf(`
 		UPDATE %s.accounts
 			SET
@@ -220,20 +221,20 @@ func (qf QueryFactory) DebondingStartEscrowBalanceUpdateQuery() string {
 			WHERE address = $1`, qf.chainID)
 }
 
-func (qf QueryFactory) DebondingStartDelegationsUpdateQuery() string {
+func (qf QueryFactory) ConsensusDebondingStartDelegationsUpdateQuery() string {
 	return fmt.Sprintf(`
 		UPDATE %s.delegations
 			SET shares = shares - $3
 				WHERE delegatee = $1 AND delegator = $2`, qf.chainID)
 }
 
-func (qf QueryFactory) DebondingStartDebondingDelegationsInsertQuery() string {
+func (qf QueryFactory) ConsensusDebondingStartDebondingDelegationsInsertQuery() string {
 	return fmt.Sprintf(`
 		INSERT INTO %s.debonding_delegations (delegatee, delegator, shares, debond_end)
 			VALUES ($1, $2, $3, $4)`, qf.chainID)
 }
 
-func (qf QueryFactory) ReclaimGeneralBalanceUpdateQuery() string {
+func (qf QueryFactory) ConsensusReclaimGeneralBalanceUpdateQuery() string {
 	return fmt.Sprintf(`
 		UPDATE %s.accounts
 			SET
@@ -241,7 +242,7 @@ func (qf QueryFactory) ReclaimGeneralBalanceUpdateQuery() string {
 			WHERE address = $1`, qf.chainID)
 }
 
-func (qf QueryFactory) ReclaimEscrowBalanceUpdateQuery() string {
+func (qf QueryFactory) ConsensusReclaimEscrowBalanceUpdateQuery() string {
 	return fmt.Sprintf(`
 		UPDATE %s.accounts
 			SET
@@ -250,7 +251,7 @@ func (qf QueryFactory) ReclaimEscrowBalanceUpdateQuery() string {
 			WHERE address = $1`, qf.chainID)
 }
 
-func (qf QueryFactory) DeleteDebondingDelegationsQuery() string {
+func (qf QueryFactory) ConsensusDeleteDebondingDelegationsQuery() string {
 	// Network upgrades delays debonding by 1 epoch
 	return fmt.Sprintf(`
 		DELETE FROM %[1]s.debonding_delegations
@@ -263,13 +264,13 @@ func (qf QueryFactory) DeleteDebondingDelegationsQuery() string {
 			)`, qf.chainID)
 }
 
-func (qf QueryFactory) AllowanceChangeDeleteQuery() string {
+func (qf QueryFactory) ConsensusAllowanceChangeDeleteQuery() string {
 	return fmt.Sprintf(`
 		DELETE FROM %s.allowances
 			WHERE owner = $1 AND beneficiary = $2`, qf.chainID)
 }
 
-func (qf QueryFactory) AllowanceChangeUpdateQuery() string {
+func (qf QueryFactory) ConsensusAllowanceChangeUpdateQuery() string {
 	return fmt.Sprintf(`
 		INSERT INTO %s.allowances (owner, beneficiary, allowance)
 			VALUES ($1, $2, $3)
@@ -277,60 +278,114 @@ func (qf QueryFactory) AllowanceChangeUpdateQuery() string {
 			UPDATE SET allowance = excluded.allowance`, qf.chainID)
 }
 
-func (qf QueryFactory) ValidatorNodeUpdateQuery() string {
+func (qf QueryFactory) ConsensusValidatorNodeUpdateQuery() string {
 	return fmt.Sprintf(`
 		UPDATE %s.nodes SET voting_power = $2
 			WHERE id = $1`, qf.chainID)
 }
 
-func (qf QueryFactory) CommitteeMemberInsertQuery() string {
+func (qf QueryFactory) ConsensusCommitteeMemberInsertQuery() string {
 	return fmt.Sprintf(`
 		INSERT INTO %s.committee_members (node, valid_for, runtime, kind, role)
 			VALUES ($1, $2, $3, $4, $5)`, qf.chainID)
 }
 
-func (qf QueryFactory) CommitteeMembersTruncateQuery() string {
+func (qf QueryFactory) ConsensusCommitteeMembersTruncateQuery() string {
 	return fmt.Sprintf(`
 		TRUNCATE %s.committee_members`, qf.chainID)
 }
 
-func (qf QueryFactory) ProposalSubmissionInsertQuery() string {
+func (qf QueryFactory) ConsensusProposalSubmissionInsertQuery() string {
 	return fmt.Sprintf(`
 		INSERT INTO %s.proposals (id, submitter, state, deposit, handler, cp_target_version, rhp_target_version, rcp_target_version, upgrade_epoch, created_at, closes_at)
 			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`, qf.chainID)
 }
 
-func (qf QueryFactory) ProposalSubmissionCancelInsertQuery() string {
+func (qf QueryFactory) ConsensusProposalSubmissionCancelInsertQuery() string {
 	return fmt.Sprintf(`
 		INSERT INTO %s.proposals (id, submitter, state, deposit, cancels, created_at, closes_at)
 			VALUES ($1, $2, $3, $4, $5, $6, $7)`, qf.chainID)
 }
 
-func (qf QueryFactory) ProposalExecutionsUpdateQuery() string {
+func (qf QueryFactory) ConsensusProposalExecutionsUpdateQuery() string {
 	return fmt.Sprintf(`
 		UPDATE %s.proposals
 		SET executed = true
 			WHERE id = $1`, qf.chainID)
 }
 
-func (qf QueryFactory) ProposalUpdateQuery() string {
+func (qf QueryFactory) ConsensusProposalUpdateQuery() string {
 	return fmt.Sprintf(`
 		UPDATE %s.proposals
 		SET state = $2
 			WHERE id = $1`, qf.chainID)
 }
 
-func (qf QueryFactory) ProposalInvalidVotesUpdateQuery() string {
+func (qf QueryFactory) ConsensusProposalInvalidVotesUpdateQuery() string {
 	return fmt.Sprintf(`
 		UPDATE %s.proposals
 		SET invalid_votes = $2
 			WHERE id = $1`, qf.chainID)
 }
 
-func (qf QueryFactory) VoteInsertQuery() string {
+func (qf QueryFactory) ConsensusVoteInsertQuery() string {
 	return fmt.Sprintf(`
 		INSERT INTO %s.votes (proposal, voter, vote)
 			VALUES ($1, $2, $3)`, qf.chainID)
+}
+
+func (qf QueryFactory) RuntimeBlockInsertQuery() string {
+	return fmt.Sprintf(`
+		INSERT INTO %s.%s_rounds (height, version, timestamp, block_hash, prev_block_hash, io_root, state_root, messages_hash, in_messages_hash)
+			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`, qf.chainID, qf.runtime)
+}
+
+func (qf QueryFactory) RuntimeMintInsertQuery() string {
+	return fmt.Sprintf(`
+		INSERT INTO %s.%s_transfers (height, receiver, amount)
+			VALUES ($1, $2, $3)`, qf.chainID, qf.runtime)
+}
+
+func (qf QueryFactory) RuntimeBurnInsertQuery() string {
+	return fmt.Sprintf(`
+		INSERT INTO %s.%s_transfers (height, sender, amount)
+			VALUES ($1, $2, $3)`, qf.chainID, qf.runtime)
+}
+
+func (qf QueryFactory) RuntimeTransferInsertQuery() string {
+	return fmt.Sprintf(`
+		INSERT INTO %s.%s_transfers (height, sender, receiver, amount)
+			VALUES ($1, $2, $3, $4)`, qf.chainID, qf.runtime)
+}
+
+func (qf QueryFactory) RuntimeDepositInsertQuery() string {
+	return fmt.Sprintf(`
+		INSERT INTO %s.%s_deposits (height, sender, receiver, amount, nonce)
+			VALUES ($1, $2, $3, $4, $5)`, qf.chainID, qf.runtime)
+}
+
+func (qf QueryFactory) RuntimeDepositErrorInsertQuery() string {
+	return fmt.Sprintf(`
+		INSERT INTO %s.%s_deposits (height, sender, receiver, amount, nonce, module, code)
+			VALUES ($1, $2, $3, $4, $5, $6, $7)`, qf.chainID, qf.runtime)
+}
+
+func (qf QueryFactory) RuntimeWithdrawInsertQuery() string {
+	return fmt.Sprintf(`
+		INSERT INTO %s.%s_withdraws (height, sender, receiver, amount, nonce)
+			VALUES ($1, $2, $3, $4, $5)`, qf.chainID, qf.runtime)
+}
+
+func (qf QueryFactory) RuntimeWithdrawErrorInsertQuery() string {
+	return fmt.Sprintf(`
+		INSERT INTO %s.%s_withdraws (height, sender, receiver, amount, nonce, module, code)
+			VALUES ($1, $2, $3, $4, $5, $6, $7)`, qf.chainID, qf.runtime)
+}
+
+func (qf QueryFactory) RuntimeGasUsedInsertQuery() string {
+	return fmt.Sprintf(`
+		INSERT INTO %s.%s_gas_used (height, sender, amount)
+			VALUES ($1, $2, $3)`, qf.chainID, qf.runtime)
 }
 
 func (qf QueryFactory) RefreshDailyTxVolumeQuery() string {
