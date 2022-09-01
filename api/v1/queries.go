@@ -29,11 +29,9 @@ func (qf QueryFactory) BlocksQuery() string {
 						($2::bigint IS NULL OR height <= $2::bigint) AND
 						($3::timestamptz IS NULL OR time >= $3::timestamptz) AND
 						($4::timestamptz IS NULL OR time <= $4::timestamptz)
-		ORDER BY
-			$5::text
-		DESC
-		LIMIT $6::bigint
-		OFFSET $7::bigint`, qf.chainID)
+		ORDER BY height DESC
+		LIMIT $5::bigint
+		OFFSET $6::bigint`, qf.chainID)
 }
 
 func (qf QueryFactory) BlockQuery() string {
@@ -53,11 +51,9 @@ func (qf QueryFactory) TransactionsQuery() string {
 						($4::bigint IS NULL OR fee_amount >= $4::bigint) AND
 						($5::bigint IS NULL OR fee_amount <= $5::bigint) AND
 						($6::bigint IS NULL OR code = $6::bigint)
-		ORDER BY
-			$7::text
-		DESC
-		LIMIT $8::bigint
-		OFFSET $9::bigint`, qf.chainID)
+		ORDER BY block DESC, txn_index
+		LIMIT $7::bigint
+		OFFSET $8::bigint`, qf.chainID)
 }
 
 func (qf QueryFactory) TransactionQuery() string {
@@ -71,11 +67,8 @@ func (qf QueryFactory) EntitiesQuery() string {
 	return fmt.Sprintf(`
 		SELECT id, address
 			FROM %s.entities
-		ORDER BY
-			$1::text
-		DESC
-		LIMIT $2::bigint
-		OFFSET $3::bigint`, qf.chainID)
+		LIMIT $1::bigint
+		OFFSET $2::bigint`, qf.chainID)
 }
 
 func (qf QueryFactory) EntityQuery() string {
@@ -97,11 +90,8 @@ func (qf QueryFactory) EntityNodesQuery() string {
 		SELECT id, entity_id, expiration, tls_pubkey, tls_next_pubkey, p2p_pubkey, consensus_pubkey, roles
 			FROM %s.nodes
 			WHERE entity_id = $1::text
-		ORDER BY
-			$2::text
-		DESC
-		LIMIT $3::bigint
-		OFFSET $4::bigint`, qf.chainID)
+		LIMIT $2::bigint
+		OFFSET $3::bigint`, qf.chainID)
 }
 
 func (qf QueryFactory) EntityNodeQuery() string {
@@ -123,11 +113,8 @@ func (qf QueryFactory) AccountsQuery() string {
 						($6::bigint IS NULL OR escrow_balance_debonding <= $6::bigint) AND
 						($7::bigint IS NULL OR general_balance + escrow_balance_active + escrow_balance_debonding >= $7::bigint) AND
 						($8::bigint IS NULL OR general_balance + escrow_balance_active + escrow_balance_debonding <= $8::bigint)
-		ORDER BY
-			$9::text
-		DESC
-		LIMIT $10::bigint
-		OFFSET $11::bigint`, qf.chainID)
+		LIMIT $9::bigint
+		OFFSET $10::bigint`, qf.chainID)
 }
 
 func (qf QueryFactory) AccountQuery() string {
@@ -162,11 +149,8 @@ func (qf QueryFactory) DelegationsQuery() string {
 			FROM %[1]s.delegations
 			JOIN %[1]s.accounts ON %[1]s.delegations.delegatee = %[1]s.accounts.address
 			WHERE delegator = $1::text
-		ORDER BY
-			$2::text
-		DESC
-		LIMIT $3::bigint
-		OFFSET $4::bigint`, qf.chainID)
+		LIMIT $2::bigint
+		OFFSET $3::bigint`, qf.chainID)
 }
 
 func (qf QueryFactory) DebondingDelegationsQuery() string {
@@ -175,22 +159,18 @@ func (qf QueryFactory) DebondingDelegationsQuery() string {
 			FROM %[1]s.debonding_delegations
 			JOIN %[1]s.accounts ON %[1]s.debonding_delegations.delegatee = %[1]s.accounts.address
 			WHERE delegator = $1::text
-		ORDER BY
-			$2::text
-		DESC
-		LIMIT $3::bigint
-		OFFSET $4::bigint`, qf.chainID)
+		ORDER BY debond_end
+		LIMIT $2::bigint
+		OFFSET $3::bigint`, qf.chainID)
 }
 
 func (qf QueryFactory) EpochsQuery() string {
 	return fmt.Sprintf(`
 		SELECT id, start_height, end_height
 			FROM %s.epochs
-		ORDER BY
-			$1::text
-		DESC
-		LIMIT $2::bigint
-		OFFSET $3::bigint`, qf.chainID)
+		ORDER BY id DESC
+		LIMIT $1::bigint
+		OFFSET $2::bigint`, qf.chainID)
 }
 
 func (qf QueryFactory) EpochQuery() string {
@@ -207,11 +187,9 @@ func (qf QueryFactory) ProposalsQuery() string {
 			FROM %s.proposals
 			WHERE ($1::text IS NULL OR submitter = $1::text) AND
 						($2::text IS NULL OR state = $2::text)
-		ORDER BY
-			$3::text
-		DESC
-		LIMIT $4::bigint
-		OFFSET $5::bigint`, qf.chainID)
+		ORDER BY id DESC
+		LIMIT $3::bigint
+		OFFSET $4::bigint`, qf.chainID)
 }
 
 func (qf QueryFactory) ProposalQuery() string {
@@ -227,19 +205,17 @@ func (qf QueryFactory) ProposalVotesQuery() string {
 		SELECT voter, vote
 			FROM %s.votes
 			WHERE proposal = $1::bigint
-		ORDER BY
-			$2::text
-		DESC
-		LIMIT $3::bigint
-		OFFSET $4::bigint`, qf.chainID)
+		ORDER BY proposal DESC
+		LIMIT $2::bigint
+		OFFSET $3::bigint`, qf.chainID)
 }
 
 func (qf QueryFactory) ValidatorQuery() string {
 	return fmt.Sprintf(`
 		SELECT id, start_height
 			FROM %s.epochs
-			ORDER BY id DESC
-			LIMIT 1`, qf.chainID)
+		ORDER BY id DESC
+		LIMIT 1`, qf.chainID)
 }
 
 func (qf QueryFactory) ValidatorDataQuery() string {
@@ -296,11 +272,9 @@ func (qf QueryFactory) ValidatorsDataQuery() string {
 					WHERE %[1]s.entities.id = %[1]s.nodes.entity_id
 						AND %[1]s.nodes.roles like '%%validator%%'
 				)
-		ORDER BY
-			$1::text
-		DESC
-		LIMIT $2::bigint
-		OFFSET $3::bigint`, qf.chainID)
+		ORDER BY escrow_balance_active DESC
+		LIMIT $1::bigint
+		OFFSET $2::bigint`, qf.chainID)
 }
 
 func (qf QueryFactory) TpsCheckpointQuery() string {
@@ -318,10 +292,8 @@ func (qf QueryFactory) TxVolumesQuery() string {
 	return `
 		SELECT day, daily_tx_volume
 			FROM daily_tx_volume
-		ORDER BY
-			$1::text
-		DESC
-		LIMIT $2::bigint
-		OFFSET $3::bigint
+		ORDER BY day DESC
+		LIMIT $1::bigint
+		OFFSET $2::bigint
 	`
 }
