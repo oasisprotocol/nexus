@@ -1,2 +1,3 @@
 docker run --name explorer-postgres -e POSTGRES_PASSWORD=a -d postgres:14
 postgres://postgres:a@172.17.0.2/explorer
+docker run -it --rm postgres:14 psql postgresql://postgres:a@172.17.0.2/explorer
