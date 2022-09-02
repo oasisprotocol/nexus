@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/jackc/pgx/v4"
 	"github.com/oasisprotocol/oasis-core/go/common"
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 	commonGrpc "github.com/oasisprotocol/oasis-core/go/common/grpc"
@@ -22,19 +23,23 @@ func mainFallible(ctx context.Context) error {
 		return err
 	}
 	var rtid common.Namespace
+	chainAlias := "mainnet_emerald"
 	if err = rtid.UnmarshalHex("000000000000000000000000000000000000000000000000e2eaa99fc008f87f"); err != nil {
 		return err
 	}
 	mainnetEmeraldContext := signature.DeriveChainContext(rtid, "b11b369e0da5bb230b220127f5e7b242d385ef8c6f54906243f30af63c815535")
 	rc := client.New(conn, rtid)
 	round := uint64(2679238)
+	var gasUsed int64
+	var size int
+	// Inaccurate: Ignore unparseable transactions.
 	txrs, err := rc.GetTransactionsWithResults(ctx, round)
 	if err != nil {
 		return fmt.Errorf("get transactions with results round %d: %w", round, err)
 	}
 	for i, txr := range txrs {
 		fmt.Printf("%#v\n", txr)
-		var gasUsed uint64
+		var txGasUsed int64
 		foundGasUsedEvent := false
 		for j, event := range txr.Events {
 			fmt.Printf("%#v\n", event)
@@ -48,8 +53,11 @@ func mainFallible(ctx context.Context) error {
 					return fmt.Errorf("could not cast tx %d event %d decoded event %d to core.Event", i, j, k)
 				}
 				if coreEventCast.GasUsed != nil {
+					if foundGasUsedEvent {
+						return fmt.Errorf("multiple gas used events in tx %d", i)
+					}
 					foundGasUsedEvent = true
-					gasUsed = coreEventCast.GasUsed.Amount
+					txGasUsed = int64(coreEventCast.GasUsed.Amount)
 				}
 			}
 		}
@@ -61,16 +69,27 @@ func mainFallible(ctx context.Context) error {
 					// Should not be allowed to have a successful transaction without verification passing.
 					return fmt.Errorf("verify tx %d: %w", i, err1)
 				}
-				gasUsed = tx.AuthInfo.Fee.Gas
+				txGasUsed = int64(tx.AuthInfo.Fee.Gas)
 			} else {
-				// Treat as not using any gas (slightly inaccurate).
+				// Inaccurate: Treat as not using any gas.
 			}
 		}
-		fmt.Printf("gas used: %d\n", gasUsed)
-		// Should get this from the original serialized tx instead.
+		fmt.Printf("gas used: %d\n", txGasUsed)
+		gasUsed += txGasUsed
+		// Inaccurate: Re-serialize signed tx to estimate original size.
 		txSize := len(cbor.Marshal(txr.Tx))
 		fmt.Printf("tx size: %d\n", txSize)
+		size += txSize
 	}
+	dbConn, err := pgx.Connect(ctx, "postgres://postgres:a@172.17.0.2/explorer")
+	if err != nil {
+		return err
+	}
+	rows, err := dbConn.Query(ctx, "INSERT INTO block_extra (chain_alias, round, gas_used, size) VALUES ($1, $2, $3, $4)", chainAlias, round, gasUsed, size)
+	if err != nil {
+		return err
+	}
+	rows.Close()
 	return nil
 }
 
