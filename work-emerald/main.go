@@ -9,6 +9,7 @@ import (
 	"github.com/jackc/pgx/v4"
 	"github.com/oasisprotocol/oasis-core/go/common"
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
+	"github.com/oasisprotocol/oasis-core/go/common/crypto/hash"
 	commonGrpc "github.com/oasisprotocol/oasis-core/go/common/grpc"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/client"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/crypto/signature"
@@ -19,6 +20,11 @@ import (
 
 func scanRound(ctx context.Context, dbConn *pgx.Conn, chainAlias string, rtClient client.RuntimeClient, sigContext signature.Context, round int64) error {
 	fmt.Printf("scanning round %d\n", round)
+	block, err := rtClient.GetBlock(ctx, uint64(round))
+	if err != nil {
+		return fmt.Errorf("get block: %w", err)
+	}
+	blockHash := hash.NewFrom(block)
 	var gasUsed int64
 	var size int
 	// Inaccurate: Ignore unparseable transactions.
@@ -71,7 +77,7 @@ func scanRound(ctx context.Context, dbConn *pgx.Conn, chainAlias string, rtClien
 		size += txSize
 	}
 	if err = dbConn.BeginTxFunc(ctx, pgx.TxOptions{IsoLevel: pgx.RepeatableRead}, func(tx pgx.Tx) error {
-		if _, err1 := dbConn.Exec(ctx, "INSERT INTO block_extra (chain_alias, height, gas_used, size) VALUES ($1, $2, $3, $4)", chainAlias, round, gasUsed, size); err1 != nil {
+		if _, err1 := dbConn.Exec(ctx, "INSERT INTO block_extra (chain_alias, height, b_hash, gas_used, size) VALUES ($1, $2, $3, $4, $5)", chainAlias, round, blockHash, gasUsed, size); err1 != nil {
 			return err1
 		}
 		if _, err1 := dbConn.Exec(ctx, "UPDATE progress SET first_unscanned_height = $1 WHERE chain_alias = $2", round+1, chainAlias); err1 != nil {
