@@ -117,7 +117,7 @@ func extractRound(sigContext signature.Context, b *block.Block, txrs []*sdkClien
 			}
 		}
 		if !foundGasUsedEvent {
-			if txr.Result.IsSuccess() || txr.Result.IsUnknown() {
+			if (txr.Result.IsSuccess() || txr.Result.IsUnknown()) && tx != nil {
 				// Treat as if it used all the gas.
 				txGasUsed = int64(tx.AuthInfo.Fee.Gas)
 			} else {
