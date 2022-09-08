@@ -5,26 +5,16 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+
+	"oasis-explorer-backend/common"
 )
-
-func closeOrLog(c io.Closer) {
-	if err := c.Close(); err != nil {
-		fmt.Printf("close: %v", err)
-	}
-}
-
-func writeOrLog(w io.Writer, p []byte) {
-	if _, err := w.Write(p); err != nil {
-		fmt.Printf("write: %v", err)
-	}
-}
 
 func getOkRead(url string) ([]byte, error) {
 	resp, err := http.Get(url)
 	if err != nil {
 		return nil, fmt.Errorf("http get %s: %w", url, err)
 	}
-	defer closeOrLog(resp.Body)
+	defer common.CloseOrLog(resp.Body)
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		return nil, fmt.Errorf("%s status %d not ok", url, resp.StatusCode)
 	}
@@ -52,7 +42,7 @@ func respondCacheableJson(w http.ResponseWriter, result interface{}, maxAge int)
 		return fmt.Errorf("json marshal: %w", err)
 	}
 	w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%d", maxAge))
-	writeOrLog(w, j)
+	common.WriteOrLog(w, j)
 	return nil
 }
 

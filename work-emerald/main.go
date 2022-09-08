@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
-	"io"
 	"os"
 
 	"github.com/jackc/pgx/v4"
@@ -17,13 +16,9 @@ import (
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/core"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
-)
 
-func closeOrLog(c io.Closer) {
-	if err := c.Close(); err != nil {
-		fmt.Printf("close: %v", err)
-	}
-}
+	backend "oasis-explorer-backend/common"
+)
 
 type BlockTransactionSignerData struct {
 	Index   int
@@ -148,7 +143,7 @@ func saveRound(ctx context.Context, dbTx pgx.Tx, chainAlias string, round int64,
 	batch.Queue("INSERT INTO block_extra (chain_alias, height, b_hash, gas_used, size) VALUES ($1, $2, $3, $4, $5)", chainAlias, round, blockData.Hash, blockData.GasUsed, blockData.Size)
 	batch.Queue("UPDATE progress SET first_unscanned_height = $1 WHERE chain_alias = $2", round+1, chainAlias)
 	batchResults := dbTx.SendBatch(ctx, &batch)
-	defer closeOrLog(batchResults)
+	defer backend.CloseOrLog(batchResults)
 	for i := 0; i < batch.Len(); i++ {
 		if _, err := batchResults.Exec(); err != nil {
 			// We lose info about what query went wrong ):.
