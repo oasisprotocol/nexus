@@ -12,13 +12,20 @@ CREATE TABLE transaction_extra (
     chain_alias VARCHAR(32),
     height BIGINT,
     tx_index INTEGER,
-    tx_hash CHAR(64),
-    tx_from VARCHAR(46),
-    nonce INTEGER
+    tx_hash CHAR(64)
 );
 CREATE UNIQUE INDEX transaction_extra_chain_alias_height_index ON transaction_extra (chain_alias, height, tx_index);
-CREATE INDEX transaction_extra_chain_alias_from_nonce ON transaction_extra (chain_alias, tx_from, nonce);
 CREATE INDEX transaction_extra_hash ON transaction_extra (tx_hash);
+
+CREATE TABLE transaction_signer (
+    chain_alias VARCHAR(32),
+    height BIGINT,
+    tx_index INTEGER,
+    signer_index INTEGER,
+    addr VARCHAR(46),
+    nonce INTEGER
+);
+CREATE INDEX transaction_signer_chain_alias_signer_addr_nonce ON transaction_signer (chain_alias, addr, nonce);
 
 CREATE TABLE related_transaction (
     chain_alias VARCHAR(32),
@@ -32,4 +39,4 @@ CREATE TABLE progress (
     chain_alias VARCHAR(32) PRIMARY KEY,
     first_unscanned_height BIGINT
 );
-INSERT INTO progress (chain_alias, first_unscanned_height) VALUES ('mainnet_emerald', 2767126);
+INSERT INTO progress (chain_alias, first_unscanned_height) VALUES ('mainnet_emerald', 2780515);
