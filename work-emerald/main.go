@@ -14,7 +14,6 @@ import (
 	sdkClient "github.com/oasisprotocol/oasis-sdk/client-sdk/go/client"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/crypto/signature"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/core"
-	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 
@@ -53,29 +52,6 @@ func downloadRound(ctx context.Context, rtClient sdkClient.RuntimeClient, round 
 	return b, txrs, nil
 }
 
-// todo: move to common
-func verifyUtx(sigContext signature.Context, utx *sdkTypes.UnverifiedTransaction) (*sdkTypes.Transaction, error) {
-	if len(utx.AuthProofs) == 1 && utx.AuthProofs[0].Module != "" {
-		switch utx.AuthProofs[0].Module {
-		case "evm.ethereum.v0":
-			var chainId uint64 = 42262
-			tx, err := decodeRaw(utx.Body, &chainId)
-			if err != nil {
-				return nil, err
-			}
-			return tx, nil
-		default:
-			return nil, fmt.Errorf("module-controlled decoding scheme %s not supported", utx.AuthProofs[0].Module)
-		}
-	} else {
-		tx, err := utx.Verify(sigContext)
-		if err != nil {
-			return nil, fmt.Errorf("verify: %w", err)
-		}
-		return tx, nil
-	}
-}
-
 func extractRound(sigContext signature.Context, b *block.Block, txrs []*sdkClient.TransactionWithResults) (*BlockData, error) {
 	var blockData BlockData
 	blockData.Hash = b.Header.EncodedHash().String()
@@ -86,7 +62,7 @@ func extractRound(sigContext signature.Context, b *block.Block, txrs []*sdkClien
 		blockTransactionData.Index = i
 		blockTransactionData.Hash = txr.Tx.Hash().Hex()
 		blockTransactionData.RelatedAccountAddresses = make([]string, 0, 2)
-		tx, err := verifyUtx(sigContext, &txr.Tx)
+		tx, err := backend.VerifyUtx(sigContext, &txr.Tx)
 		if err != nil {
 			err = fmt.Errorf("tx %d: %w", i, err)
 			fmt.Println(err)
