@@ -32,13 +32,12 @@ func decodeEthRawTx(body []byte, expectedChainId *int64) (*types.Transaction, er
 		expectedChainIdBI = big.NewInt(*expectedChainId)
 	}
 	signer := ethTypes.LatestSignerForChainID(expectedChainIdBI)
-	// todo: this is not right, we're supposed to fill in the public key
-	ethSender, err := signer.Sender(&ethTx)
+	pubUncompressed, err := LondonSenderPub(signer, &ethTx)
 	if err != nil {
-		return nil, fmt.Errorf("eth signer sender: %w", err)
+		return nil, fmt.Errorf("recover signer public key: %w", err)
 	}
 	var sender secp256k1.PublicKey
-	if err = sender.UnmarshalBinary(ethSender.Bytes()); err != nil {
+	if err = sender.UnmarshalBinary(pubUncompressed); err != nil {
 		return nil, fmt.Errorf("sdk secp256k1 public key unmarshal binary: %w", err)
 	}
 	// Base fee is zero. Allocate only priority fee.
