@@ -2,7 +2,6 @@ package common
 
 import (
 	"encoding/hex"
-	"fmt"
 	"math/big"
 	"strings"
 	"testing"
@@ -33,7 +32,7 @@ func decodeExpectCall(
 	require.NoError(t, err)
 	tx, err := decodeEthRawTx(rawBytes, expectedChainId)
 	require.NoError(t, err)
-	fmt.Printf("%#v\n", tx) // %%%
+	t.Logf("%#v\n", tx)
 	require.Equal(t, tx.Call.Method, "evm.Call")
 	var body evm.Call
 	require.NoError(t, cbor.Unmarshal(tx.Call.Body, &body))
@@ -76,7 +75,7 @@ func decodeExpectCreate(
 	require.NoError(t, err)
 	tx, err := decodeEthRawTx(rawBytes, expectedChainId)
 	require.NoError(t, err)
-	fmt.Printf("%#v\n", tx) // %%%
+	t.Logf("%#v\n", tx)
 	require.Equal(t, tx.Call.Method, "evm.Create")
 	var body evm.Create
 	require.NoError(t, cbor.Unmarshal(tx.Call.Body, &body))
@@ -106,7 +105,7 @@ func decodeExpectInvalid(t *testing.T, raw string, expectedChainId uint64) {
 	require.NoError(t, err)
 	_, err = decodeEthRawTx(rawBytes, expectedChainId)
 	require.Error(t, err)
-	fmt.Printf("%#v\n", err) // %%%
+	t.Logf("%#v\n", err)
 }
 
 func decodeExpectFromMismatch(
@@ -119,7 +118,7 @@ func decodeExpectFromMismatch(
 	require.NoError(t, err)
 	tx, err := decodeEthRawTx(rawBytes, expectedChainId)
 	require.NoError(t, err)
-	fmt.Printf("%#v\n", tx) // %%%
+	t.Logf("%#v\n", tx)
 	require.Len(t, tx.AuthInfo.SignerInfo, 1)
 	from0xChecksummed := helpers.EthAddressFromPubKey(*tx.AuthInfo.SignerInfo[0].AddressSpec.Signature.Secp256k1Eth)
 	fromChecksummed := from0xChecksummed[2:]

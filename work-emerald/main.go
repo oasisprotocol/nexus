@@ -3,21 +3,25 @@ package main
 import (
 	"context"
 	"crypto/tls"
+	"encoding/hex"
 	"fmt"
 	"os"
 
 	"github.com/jackc/pgx/v4"
-	"github.com/oasisprotocol/oasis-core/go/common"
+	ocCommon "github.com/oasisprotocol/oasis-core/go/common"
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
-	commonGrpc "github.com/oasisprotocol/oasis-core/go/common/grpc"
+	"github.com/oasisprotocol/oasis-core/go/common/crypto/address"
+	ocGrpc "github.com/oasisprotocol/oasis-core/go/common/grpc"
 	"github.com/oasisprotocol/oasis-core/go/roothash/api/block"
 	sdkClient "github.com/oasisprotocol/oasis-sdk/client-sdk/go/client"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/crypto/signature"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/core"
+	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
+	"golang.org/x/crypto/sha3"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 
-	backend "oasis-explorer-backend/common"
+	"oasis-explorer-backend/common"
 )
 
 type BlockTransactionSignerData struct {
@@ -29,15 +33,23 @@ type BlockTransactionSignerData struct {
 type BlockTransactionData struct {
 	Index                   int
 	Hash                    string
+	EthHash                 *string
 	SignerData              []*BlockTransactionSignerData
-	RelatedAccountAddresses []string
+	RelatedAccountAddresses map[string]bool
+}
+
+type AddressPreimageData struct {
+	contextIdentifier string
+	contextVersion    int
+	data              []byte
 }
 
 type BlockData struct {
-	Hash            string
-	GasUsed         int64
-	Size            int
-	TransactionData []*BlockTransactionData
+	Hash             string
+	GasUsed          int64
+	Size             int
+	TransactionData  []*BlockTransactionData
+	AddressPreimages map[string]*AddressPreimageData
 }
 
 func downloadRound(ctx context.Context, rtClient sdkClient.RuntimeClient, round int64) (*block.Block, []*sdkClient.TransactionWithResults, error) {
@@ -52,17 +64,87 @@ func downloadRound(ctx context.Context, rtClient sdkClient.RuntimeClient, round 
 	return b, txrs, nil
 }
 
+func extractAddressPreimage(as *sdkTypes.AddressSpec) (*AddressPreimageData, error) {
+	// Adapted from oasis-sdk/client-sdk/go/types/transaction.go.
+	var (
+		ctx  address.Context
+		data []byte
+	)
+	switch {
+	case as.Signature != nil:
+		spec := as.Signature
+		switch {
+		case spec.Ed25519 != nil:
+			ctx = sdkTypes.AddressV0Ed25519Context
+			data, _ = spec.Ed25519.MarshalBinary()
+		case spec.Secp256k1Eth != nil:
+			ctx = sdkTypes.AddressV0Secp256k1EthContext
+			// Use a scheme such that we can compute Secp256k1 addresses from Ethereum
+			// addresses as this makes things more interoperable.
+			h := sha3.NewLegacyKeccak256()
+			untaggedPk, _ := spec.Secp256k1Eth.MarshalBinaryUncompressedUntagged()
+			h.Write(untaggedPk)
+			data = h.Sum(nil)[32-20:]
+		case spec.Sr25519 != nil:
+			ctx = sdkTypes.AddressV0Sr25519Context
+			data, _ = spec.Sr25519.MarshalBinary()
+		default:
+			panic("address: unsupported public key type")
+		}
+	case as.Multisig != nil:
+		config := as.Multisig
+		ctx = sdkTypes.AddressV0MultisigContext
+		data = cbor.Marshal(config)
+	default:
+		return nil, fmt.Errorf("malformed AddressSpec")
+	}
+	return &AddressPreimageData{
+		contextIdentifier: ctx.Identifier,
+		contextVersion:    int(ctx.Version),
+		data:              data,
+	}, nil
+}
+
+func visitAddressSpec(addressPreimages map[string]*AddressPreimageData, as *sdkTypes.AddressSpec) (string, error) {
+	addrAbstract, err := as.Address()
+	if err != nil {
+		return "", fmt.Errorf("derive adddress: %w", err)
+	}
+	addrBytes, err := addrAbstract.MarshalText()
+	if err != nil {
+		return "", fmt.Errorf("address marshal text: %w", err)
+	}
+	addr := string(addrBytes)
+
+	if _, ok := addressPreimages[addr]; !ok {
+		preimageData, err1 := extractAddressPreimage(as)
+		if err1 != nil {
+			return "", fmt.Errorf("extract address preimage: %w", err1)
+		}
+		addressPreimages[addr] = preimageData
+	}
+
+	return addr, nil
+}
+
 func extractRound(sigContext signature.Context, b *block.Block, txrs []*sdkClient.TransactionWithResults) (*BlockData, error) {
 	var blockData BlockData
 	blockData.Hash = b.Header.EncodedHash().String()
 	blockData.TransactionData = make([]*BlockTransactionData, 0, len(txrs))
+	blockData.AddressPreimages = map[string]*AddressPreimageData{}
 	for i, txr := range txrs {
 		// fmt.Printf("%#v\n", txr)
 		var blockTransactionData BlockTransactionData
 		blockTransactionData.Index = i
 		blockTransactionData.Hash = txr.Tx.Hash().Hex()
-		blockTransactionData.RelatedAccountAddresses = make([]string, 0, 2)
-		tx, err := backend.VerifyUtx(sigContext, &txr.Tx)
+		if len(txr.Tx.AuthProofs) == 1 && txr.Tx.AuthProofs[0].Module == "evm.ethereum.v0" {
+			h := sha3.NewLegacyKeccak256()
+			h.Write(txr.Tx.Body)
+			ethHash := hex.EncodeToString(h.Sum(nil))
+			blockTransactionData.EthHash = &ethHash
+		}
+		blockTransactionData.RelatedAccountAddresses = map[string]bool{}
+		tx, err := common.VerifyUtx(sigContext, &txr.Tx)
 		if err != nil {
 			err = fmt.Errorf("tx %d: %w", i, err)
 			fmt.Println(err)
@@ -73,19 +155,14 @@ func extractRound(sigContext signature.Context, b *block.Block, txrs []*sdkClien
 			for j, si := range tx.AuthInfo.SignerInfo {
 				var blockTransactionSignerData BlockTransactionSignerData
 				blockTransactionSignerData.Index = j
-				addr, err1 := si.AddressSpec.Address()
+				addr, err1 := visitAddressSpec(blockData.AddressPreimages, &si.AddressSpec)
 				if err1 != nil {
-					return nil, fmt.Errorf("tx %d signer %d derive address: %w", i, j, err1)
+					return nil, fmt.Errorf("tx %d signer %d visit address spec: %w", i, j, err1)
 				}
-				addrText, err1 := addr.MarshalText()
-				if err1 != nil {
-					return nil, fmt.Errorf("tx %d signer %d address marshal text: %w", i, j, err1)
-				}
-				addrTextString := string(addrText)
-				blockTransactionSignerData.Address = addrTextString
+				blockTransactionSignerData.Address = addr
 				blockTransactionSignerData.Nonce = int(si.Nonce)
 				blockTransactionData.SignerData = append(blockTransactionData.SignerData, &blockTransactionSignerData)
-				blockTransactionData.RelatedAccountAddresses = append(blockTransactionData.RelatedAccountAddresses, addrTextString)
+				blockTransactionData.RelatedAccountAddresses[addr] = true
 			}
 		}
 		blockData.TransactionData = append(blockData.TransactionData, &blockTransactionData)
@@ -135,15 +212,18 @@ func saveRound(ctx context.Context, dbTx pgx.Tx, chainAlias string, round int64,
 		for _, signerData := range transactionData.SignerData {
 			batch.Queue("INSERT INTO transaction_signer (chain_alias, height, tx_index, signer_index, addr, nonce) VALUES ($1, $2, $3, $4, $5, $6)", chainAlias, round, transactionData.Index, signerData.Index, signerData.Address, signerData.Nonce)
 		}
-		for _, addr := range transactionData.RelatedAccountAddresses {
+		for addr := range transactionData.RelatedAccountAddresses {
 			batch.Queue("INSERT INTO related_transaction (chain_alias, account_address, tx_height, tx_index) VALUES ($1, $2, $3, $4)", chainAlias, addr, round, transactionData.Index)
 		}
-		batch.Queue("INSERT INTO transaction_extra (chain_alias, height, tx_index, tx_hash) VALUES ($1, $2, $3, $4)", chainAlias, round, transactionData.Index, transactionData.Hash)
+		batch.Queue("INSERT INTO transaction_extra (chain_alias, height, tx_index, tx_hash, eth_hash) VALUES ($1, $2, $3, $4, $5)", chainAlias, round, transactionData.Index, transactionData.Hash, transactionData.EthHash)
+	}
+	for addr, preimageData := range blockData.AddressPreimages {
+		batch.Queue("INSERT INTO address_preimage (address, context_identifier, context_version, addr_data) VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING", addr, preimageData.contextIdentifier, preimageData.contextVersion, preimageData.data)
 	}
 	batch.Queue("INSERT INTO block_extra (chain_alias, height, b_hash, gas_used, size) VALUES ($1, $2, $3, $4, $5)", chainAlias, round, blockData.Hash, blockData.GasUsed, blockData.Size)
 	batch.Queue("UPDATE progress SET first_unscanned_height = $1 WHERE chain_alias = $2", round+1, chainAlias)
 	batchResults := dbTx.SendBatch(ctx, &batch)
-	defer backend.CloseOrLog(batchResults)
+	defer common.CloseOrLog(batchResults)
 	for i := 0; i < batch.Len(); i++ {
 		if _, err := batchResults.Exec(); err != nil {
 			// We lose info about what query went wrong ):.
@@ -191,12 +271,12 @@ func mainFallible(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	conn, err := commonGrpc.Dial("grpc.oasis.dev:443", grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{})))
+	conn, err := ocGrpc.Dial("grpc.oasis.dev:443", grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{})))
 	if err != nil {
 		return err
 	}
 	chainAlias := "mainnet_emerald"
-	var rtid common.Namespace
+	var rtid ocCommon.Namespace
 	if err = rtid.UnmarshalHex("000000000000000000000000000000000000000000000000e2eaa99fc008f87f"); err != nil {
 		return err
 	}

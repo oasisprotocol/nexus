@@ -38,15 +38,15 @@ CREATE TABLE related_transaction (
 );
 CREATE INDEX related_transaction_chain_alias_account_address ON related_transaction (chain_alias, account_address);
 
-CREATE TABLE progress (
-    chain_alias VARCHAR(32) PRIMARY KEY,
-    first_unscanned_height BIGINT
-);
-INSERT INTO progress (chain_alias, first_unscanned_height) VALUES ('mainnet_emerald', 2808000);
-
 CREATE TABLE address_preimage (
     address VARCHAR(46) PRIMARY KEY,
     context_identifier VARCHAR(64),
     context_version INTEGER,
-    data_hex bytea
+    addr_data bytea
 );
+
+CREATE TABLE progress (
+    chain_alias VARCHAR(32) PRIMARY KEY,
+    first_unscanned_height BIGINT
+);
+INSERT INTO progress (chain_alias, first_unscanned_height) VALUES ('mainnet_emerald', 2880214);
