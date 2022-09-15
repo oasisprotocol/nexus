@@ -11,8 +11,7 @@ func VerifyUtx(sigContext signature.Context, utx *types.UnverifiedTransaction) (
 	if len(utx.AuthProofs) == 1 && utx.AuthProofs[0].Module != "" {
 		switch utx.AuthProofs[0].Module {
 		case "evm.ethereum.v0":
-			var chainId int64 = 42262
-			tx, err := decodeEthRawTx(utx.Body, &chainId)
+			tx, err := decodeEthRawTx(utx.Body, 42262)
 			if err != nil {
 				return nil, err
 			}

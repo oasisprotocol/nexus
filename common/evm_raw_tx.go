@@ -2,36 +2,32 @@ package common
 
 import (
 	"fmt"
-	"math/big"
 
 	ethTypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/oasisprotocol/oasis-core/go/common/quantity"
+	sdkClient "github.com/oasisprotocol/oasis-sdk/client-sdk/go/client"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/crypto/signature/secp256k1"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/evm"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 )
 
-func decodeEthRawTx(body []byte, expectedChainId *int64) (*types.Transaction, error) {
+func decodeEthRawTx(body []byte, expectedChainId uint64) (*types.Transaction, error) {
 	var ethTx ethTypes.Transaction
-	if err := rlp.DecodeBytes(body, &ethTx); err != nil {
+	if err := ethTx.UnmarshalBinary(body); err != nil {
 		return nil, fmt.Errorf("rlp decode bytes: %w", err)
 	}
-	var tx *types.Transaction
+	evmV1 := evm.NewV1(nil)
+	var tb *sdkClient.TransactionBuilder
 	if to := ethTx.To(); to != nil {
-		tx = evm.NewCallTx(nil, &evm.Call{
-			Address: to.Bytes(),
-			Value:   ethTx.Value().Bytes(),
-			Data:    ethTx.Data(),
-		})
+		tb = evmV1.Call(to.Bytes(), ethTx.Value().Bytes(), ethTx.Data())
 	} else {
-		tx = evm.NewV1(nil).Create(ethTx.Value().Bytes(), ethTx.Data()).GetTransaction()
+		tb = evmV1.Create(ethTx.Value().Bytes(), ethTx.Data())
 	}
-	var expectedChainIdBI *big.Int
-	if expectedChainId != nil {
-		expectedChainIdBI = big.NewInt(*expectedChainId)
+	chainIdBI := ethTx.ChainId()
+	if !chainIdBI.IsUint64() || chainIdBI.Uint64() != expectedChainId {
+		return nil, fmt.Errorf("chain ID %v, expected %v", chainIdBI, expectedChainId)
 	}
-	signer := ethTypes.LatestSignerForChainID(expectedChainIdBI)
+	signer := ethTypes.LatestSignerForChainID(chainIdBI)
 	pubUncompressed, err := LondonSenderPub(signer, &ethTx)
 	if err != nil {
 		return nil, fmt.Errorf("recover signer public key: %w", err)
@@ -52,15 +48,8 @@ func decodeEthRawTx(body []byte, expectedChainId *int64) (*types.Transaction, er
 	if err = resolvedFeeAmount.Mul(quantity.NewFromUint64(ethTx.Gas())); err != nil {
 		return nil, fmt.Errorf("computing total fee amount: %w", err)
 	}
-	tx.AuthInfo.SignerInfo = append(tx.AuthInfo.SignerInfo, types.SignerInfo{
-		AddressSpec: types.AddressSpec{
-			Signature: &types.SignatureAddressSpec{
-				Secp256k1Eth: &sender,
-			},
-		},
-		Nonce: ethTx.Nonce(),
-	})
-	tx.AuthInfo.Fee.Amount = types.NewBaseUnits(resolvedFeeAmount, types.NativeDenomination)
-	tx.AuthInfo.Fee.Gas = ethTx.Gas()
-	return tx, nil
+	tb.AppendAuthSignature(types.SignatureAddressSpec{Secp256k1Eth: &sender}, ethTx.Nonce())
+	tb.SetFeeAmount(types.NewBaseUnits(resolvedFeeAmount, types.NativeDenomination))
+	tb.SetFeeGas(ethTx.Gas())
+	return tb.GetTransaction(), nil
 }
