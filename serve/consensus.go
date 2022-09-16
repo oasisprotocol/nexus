@@ -12,11 +12,11 @@ func makeConsensusRouter() *chi.Mux {
 	r := chi.NewRouter()
 	r.Get("/home/latest_blocks", fallible(func(w http.ResponseWriter, r *http.Request) error {
 		var status indexerV1.Status
-		if err := getOkReadJson(INDEXER_ENDPOINT+"/", &status); err != nil {
+		if err := getOkReadJson(IndexerEndpoint+"/", &status); err != nil {
 			return err
 		}
 		var blockList indexerV1.BlockList
-		if err := getOkReadJson(INDEXER_ENDPOINT+fmt.Sprintf("/consensus/blocks?from=%d&limit=10", status.LatestBlock-9), &blockList); err != nil {
+		if err := getOkReadJson(IndexerEndpoint+fmt.Sprintf("/consensus/blocks?from=%d&limit=10", status.LatestBlock-9), &blockList); err != nil {
 			return err
 		}
 		blockRows := make([]BlockRow, len(blockList.Blocks))
@@ -27,7 +27,7 @@ func makeConsensusRouter() *chi.Mux {
 		}
 		for i := range blockRows {
 			var transactionList indexerV1.TransactionList
-			if err := getOkReadJson(INDEXER_ENDPOINT+fmt.Sprintf("/consensus/transactions?block=%d", blockRows[i].Height), &transactionList); err != nil {
+			if err := getOkReadJson(IndexerEndpoint+fmt.Sprintf("/consensus/transactions?block=%d", blockRows[i].Height), &transactionList); err != nil {
 				return err
 			}
 			blockRows[i].NumTransactions = len(transactionList.Transactions)
@@ -41,7 +41,7 @@ func makeConsensusRouter() *chi.Mux {
 	}))
 	r.Get("/home/latest_transactions", fallible(func(w http.ResponseWriter, r *http.Request) error {
 		var transactionList indexerV1.TransactionList
-		if err := getOkReadJson(INDEXER_ENDPOINT+"/consensus/transactions?limit=10", &transactionList); err != nil {
+		if err := getOkReadJson(IndexerEndpoint+"/consensus/transactions?limit=10", &transactionList); err != nil {
 			return err
 		}
 		transactionRows := make([]TransactionRow, len(transactionList.Transactions))

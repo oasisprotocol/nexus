@@ -254,13 +254,13 @@ func scanRound(ctx context.Context, dbConn *pgx.Conn, chainAlias string, rtClien
 	return nil
 }
 
-func scanLoop(ctx context.Context, dbConn *pgx.Conn, chainAlias string, rc sdkClient.RuntimeClient, sigContext signature.Context) error {
+func scanLoop(ctx context.Context, dbConn *pgx.Conn, chainAlias string, rtClient sdkClient.RuntimeClient, sigContext signature.Context) error {
 	var firstUnscannedHeight int64
 	if err := dbConn.QueryRow(ctx, "SELECT first_unscanned_height FROM progress WHERE chain_alias = $1", chainAlias).Scan(&firstUnscannedHeight); err != nil {
 		return err
 	}
 	for round := firstUnscannedHeight; ; round++ {
-		if err := scanRound(ctx, dbConn, chainAlias, rc, sigContext, round); err != nil {
+		if err := scanRound(ctx, dbConn, chainAlias, rtClient, sigContext, round); err != nil {
 			return fmt.Errorf("round %d: %w", round, err)
 		}
 	}
@@ -280,9 +280,9 @@ func mainFallible(ctx context.Context) error {
 	if err = rtid.UnmarshalHex("000000000000000000000000000000000000000000000000e2eaa99fc008f87f"); err != nil {
 		return err
 	}
-	rc := sdkClient.New(conn, rtid)
+	rtClient := sdkClient.New(conn, rtid)
 	sigContext := signature.DeriveChainContext(rtid, "b11b369e0da5bb230b220127f5e7b242d385ef8c6f54906243f30af63c815535")
-	if err = scanLoop(ctx, dbConn, chainAlias, rc, sigContext); err != nil {
+	if err = scanLoop(ctx, dbConn, chainAlias, rtClient, sigContext); err != nil {
 		return err
 	}
 	return nil

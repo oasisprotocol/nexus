@@ -11,9 +11,12 @@ type BlockRow struct {
 
 type TransactionRow struct {
 	Height    int64  `json:"height"`
+	Index     int    `json:"index"`
 	Hash      string `json:"hash"`
+	EthHash   string `json:"eth_hash"`
 	Timestamp int64  `json:"timestamp"`
 	From      string `json:"from"`
+	// todo: settle on un-bad type for amounts. note that emerald et al. are 18 decimals
 	FeeAmount int64  `json:"fee_amount"`
 	FeeGas    int64  `json:"fee_gas"`
 	Method    string `json:"method"`
