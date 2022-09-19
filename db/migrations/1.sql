@@ -2,6 +2,7 @@ CREATE TABLE block_extra (
     chain_alias VARCHAR(32),
     height BIGINT,
     b_hash CHAR(64),
+    num_transactions INTEGER,
     gas_used BIGINT,
     size INTEGER,
     PRIMARY KEY (chain_alias, height)
@@ -49,4 +50,4 @@ CREATE TABLE progress (
     chain_alias VARCHAR(32) PRIMARY KEY,
     first_unscanned_height BIGINT
 );
-INSERT INTO progress (chain_alias, first_unscanned_height) VALUES ('mainnet_emerald', 2880214);
+INSERT INTO progress (chain_alias, first_unscanned_height) VALUES ('mainnet_emerald', 2929940);

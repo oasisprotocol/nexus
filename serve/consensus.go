@@ -49,7 +49,7 @@ func makeConsensusRouter() *chi.Mux {
 			transactionRows[i].Height = transactionList.Transactions[i].Height
 			transactionRows[i].Hash = transactionList.Transactions[i].Hash
 			transactionRows[i].From = transactionList.Transactions[i].Sender
-			transactionRows[i].FeeAmount = int64(transactionList.Transactions[i].Fee)
+			transactionRows[i].FeeAmount = fmt.Sprintf("%d", transactionList.Transactions[i].Fee)
 			transactionRows[i].Method = transactionList.Transactions[i].Method
 		}
 		for _ = range transactionRows {

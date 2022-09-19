@@ -15,7 +15,10 @@ import (
 	"github.com/oasisprotocol/oasis-core/go/roothash/api/block"
 	sdkClient "github.com/oasisprotocol/oasis-sdk/client-sdk/go/client"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/crypto/signature"
+	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/accounts"
+	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/consensusaccounts"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/core"
+	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/evm"
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 	"golang.org/x/crypto/sha3"
 	"google.golang.org/grpc"
@@ -39,13 +42,14 @@ type BlockTransactionData struct {
 }
 
 type AddressPreimageData struct {
-	contextIdentifier string
-	contextVersion    int
-	data              []byte
+	ContextIdentifier string
+	ContextVersion    int
+	Data              []byte
 }
 
 type BlockData struct {
 	Hash             string
+	NumTransactions  int
 	GasUsed          int64
 	Size             int
 	TransactionData  []*BlockTransactionData
@@ -61,6 +65,7 @@ func downloadRound(ctx context.Context, rtClient sdkClient.RuntimeClient, round 
 	if err != nil {
 		return nil, nil, fmt.Errorf("get transactions with results: %w", err)
 	}
+	// todo: non-transaction events
 	return b, txrs, nil
 }
 
@@ -99,9 +104,9 @@ func extractAddressPreimage(as *sdkTypes.AddressSpec) (*AddressPreimageData, err
 		return nil, fmt.Errorf("malformed AddressSpec")
 	}
 	return &AddressPreimageData{
-		contextIdentifier: ctx.Identifier,
-		contextVersion:    int(ctx.Version),
-		data:              data,
+		ContextIdentifier: ctx.Identifier,
+		ContextVersion:    int(ctx.Version),
+		Data:              data,
 	}, nil
 }
 
@@ -127,9 +132,22 @@ func visitAddressSpec(addressPreimages map[string]*AddressPreimageData, as *sdkT
 	return addr, nil
 }
 
+func visitRelatedAddressAbstract(relatedAddresses map[string]bool, addrAbstract sdkTypes.Address) (string, error) {
+	addrBytes, err := addrAbstract.MarshalText()
+	if err != nil {
+		return "", fmt.Errorf("address marshal text: %w", err)
+	}
+	addr := string(addrBytes)
+
+	relatedAddresses[addr] = true
+
+	return addr, nil
+}
+
 func extractRound(sigContext signature.Context, b *block.Block, txrs []*sdkClient.TransactionWithResults) (*BlockData, error) {
 	var blockData BlockData
 	blockData.Hash = b.Header.EncodedHash().String()
+	blockData.NumTransactions = len(txrs)
 	blockData.TransactionData = make([]*BlockTransactionData, 0, len(txrs))
 	blockData.AddressPreimages = map[string]*AddressPreimageData{}
 	for i, txr := range txrs {
@@ -165,14 +183,14 @@ func extractRound(sigContext signature.Context, b *block.Block, txrs []*sdkClien
 				blockTransactionData.RelatedAccountAddresses[addr] = true
 			}
 		}
-		blockData.TransactionData = append(blockData.TransactionData, &blockTransactionData)
 		var txGasUsed int64
 		foundGasUsedEvent := false
 		for j, event := range txr.Events {
 			// fmt.Printf("%#v\n", event)
+			// core
 			coreEvents, err1 := core.DecodeEvent(event)
 			if err1 != nil {
-				return nil, fmt.Errorf("tx %d event %d decode: %w", i, j, err1)
+				return nil, fmt.Errorf("tx %d event %d decode core: %w", i, j, err1)
 			}
 			for k, coreEvent := range coreEvents {
 				coreEventCast, ok := coreEvent.(*core.Event)
@@ -187,6 +205,70 @@ func extractRound(sigContext signature.Context, b *block.Block, txrs []*sdkClien
 					txGasUsed = int64(coreEventCast.GasUsed.Amount)
 				}
 			}
+			// accounts
+			accountEvents, err1 := accounts.DecodeEvent(event)
+			if err1 != nil {
+				return nil, fmt.Errorf("tx %d event %d decode accounts: %w", i, j, err1)
+			}
+			for k, accountEvent := range accountEvents {
+				accountEventCast, ok := accountEvent.(*accounts.Event)
+				if !ok {
+					return nil, fmt.Errorf("tx %d event %d decoded event %d could not cast to accounts.Event", i, j, k)
+				}
+				if accountEventCast.Transfer != nil {
+					if _, err1 = visitRelatedAddressAbstract(blockTransactionData.RelatedAccountAddresses, accountEventCast.Transfer.From); err1 != nil {
+						return nil, fmt.Errorf("tx %d event %d decoded event %d from: %w", i, j, k, err1)
+					}
+					if _, err1 = visitRelatedAddressAbstract(blockTransactionData.RelatedAccountAddresses, accountEventCast.Transfer.To); err1 != nil {
+						return nil, fmt.Errorf("tx %d event %d decoded event %d to: %w", i, j, k, err1)
+					}
+				}
+				if accountEventCast.Burn != nil {
+					if _, err1 = visitRelatedAddressAbstract(blockTransactionData.RelatedAccountAddresses, accountEventCast.Burn.Owner); err1 != nil {
+						return nil, fmt.Errorf("tx %d event %d decoded event %d owner: %w", i, j, k, err1)
+					}
+				}
+				if accountEventCast.Mint != nil {
+					if _, err1 = visitRelatedAddressAbstract(blockTransactionData.RelatedAccountAddresses, accountEventCast.Mint.Owner); err1 != nil {
+						return nil, fmt.Errorf("tx %d event %d decoded event %d owner: %w", i, j, k, err1)
+					}
+				}
+			}
+			// consensus accounts
+			consensusaccountsEvents, err1 := consensusaccounts.DecodeEvent(event)
+			if err1 != nil {
+				return nil, fmt.Errorf("tx %d event %d decode consensusaccounts: %w", i, j, err1)
+			}
+			for k, consensusaccountsEvent := range consensusaccountsEvents {
+				consensusaccountsEventCast, ok := consensusaccountsEvent.(*consensusaccounts.Event)
+				if !ok {
+					return nil, fmt.Errorf("tx %d event %d decoded event %d could not cast to consensusaccounts.Event", i, j, k)
+				}
+				if consensusaccountsEventCast.Deposit != nil {
+					// .From is from another chain, so exclude?
+					if _, err1 = visitRelatedAddressAbstract(blockTransactionData.RelatedAccountAddresses, consensusaccountsEventCast.Deposit.To); err1 != nil {
+						return nil, fmt.Errorf("tx %d event %d decoded event %d from: %w", i, j, k, err1)
+					}
+				}
+				if consensusaccountsEventCast.Withdraw != nil {
+					if _, err1 = visitRelatedAddressAbstract(blockTransactionData.RelatedAccountAddresses, consensusaccountsEventCast.Withdraw.From); err1 != nil {
+						return nil, fmt.Errorf("tx %d event %d decoded event %d from: %w", i, j, k, err1)
+					}
+					// .To is from another chain, so exclude?
+				}
+			}
+			// evm
+			evmEvents, err1 := evm.DecodeEvent(event)
+			if err1 != nil {
+				return nil, fmt.Errorf("tx %d event %d decode evm: %w", i, j, err1)
+			}
+			for k, evmEvent := range evmEvents {
+				evmEventCast, ok := evmEvent.(*evm.Event)
+				if !ok {
+					return nil, fmt.Errorf("tx %d event %d decoded event %d could not cast to evm.Event", i, j, k)
+				}
+				fmt.Printf("%#v\n", evmEventCast) // %%%
+			}
 		}
 		if !foundGasUsedEvent {
 			if (txr.Result.IsSuccess() || txr.Result.IsUnknown()) && tx != nil {
@@ -196,11 +278,10 @@ func extractRound(sigContext signature.Context, b *block.Block, txrs []*sdkClien
 				// Inaccurate: Treat as not using any gas.
 			}
 		}
-		// fmt.Printf("gas used: %d\n", txGasUsed)
+		blockData.TransactionData = append(blockData.TransactionData, &blockTransactionData)
 		blockData.GasUsed += txGasUsed
 		// Inaccurate: Re-serialize signed tx to estimate original size.
 		txSize := len(cbor.Marshal(txr.Tx))
-		// fmt.Printf("tx size: %d\n", txSize)
 		blockData.Size += txSize
 	}
 	return &blockData, nil
@@ -218,9 +299,9 @@ func saveRound(ctx context.Context, dbTx pgx.Tx, chainAlias string, round int64,
 		batch.Queue("INSERT INTO transaction_extra (chain_alias, height, tx_index, tx_hash, eth_hash) VALUES ($1, $2, $3, $4, $5)", chainAlias, round, transactionData.Index, transactionData.Hash, transactionData.EthHash)
 	}
 	for addr, preimageData := range blockData.AddressPreimages {
-		batch.Queue("INSERT INTO address_preimage (address, context_identifier, context_version, addr_data) VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING", addr, preimageData.contextIdentifier, preimageData.contextVersion, preimageData.data)
+		batch.Queue("INSERT INTO address_preimage (address, context_identifier, context_version, addr_data) VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING", addr, preimageData.ContextIdentifier, preimageData.ContextVersion, preimageData.Data)
 	}
-	batch.Queue("INSERT INTO block_extra (chain_alias, height, b_hash, gas_used, size) VALUES ($1, $2, $3, $4, $5)", chainAlias, round, blockData.Hash, blockData.GasUsed, blockData.Size)
+	batch.Queue("INSERT INTO block_extra (chain_alias, height, b_hash, num_transactions, gas_used, size) VALUES ($1, $2, $3, $4, $5, $6)", chainAlias, round, blockData.Hash, blockData.NumTransactions, blockData.GasUsed, blockData.Size)
 	batch.Queue("UPDATE progress SET first_unscanned_height = $1 WHERE chain_alias = $2", round+1, chainAlias)
 	batchResults := dbTx.SendBatch(ctx, &batch)
 	defer common.CloseOrLog(batchResults)
