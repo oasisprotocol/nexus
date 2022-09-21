@@ -27,6 +27,10 @@ import (
 	"oasis-explorer-backend/common"
 )
 
+var TopicErc20Transfer []byte = keccak256([]byte("Transfer(address,address,uint256)"))
+var TopicErc20Approval []byte = keccak256([]byte("Approval(address,address,uint256)"))
+var EthAddrZeroRaw []byte = make([]byte, 20)
+
 type BlockTransactionSignerData struct {
 	Index   int
 	Address string
@@ -54,6 +58,12 @@ type BlockData struct {
 	Size             int
 	TransactionData  []*BlockTransactionData
 	AddressPreimages map[string]*AddressPreimageData
+}
+
+func keccak256(data []byte) []byte {
+	h := sha3.NewLegacyKeccak256()
+	h.Write(data)
+	return h.Sum(nil)
 }
 
 func downloadRound(ctx context.Context, rtClient sdkClient.RuntimeClient, round int64) (*block.Block, []*sdkClient.TransactionWithResults, error) {
@@ -86,10 +96,8 @@ func extractAddressPreimage(as *sdkTypes.AddressSpec) (*AddressPreimageData, err
 			ctx = sdkTypes.AddressV0Secp256k1EthContext
 			// Use a scheme such that we can compute Secp256k1 addresses from Ethereum
 			// addresses as this makes things more interoperable.
-			h := sha3.NewLegacyKeccak256()
 			untaggedPk, _ := spec.Secp256k1Eth.MarshalBinaryUncompressedUntagged()
-			h.Write(untaggedPk)
-			data = h.Sum(nil)[32-20:]
+			data = keccak256(untaggedPk)[32-20:]
 		case spec.Sr25519 != nil:
 			ctx = sdkTypes.AddressV0Sr25519Context
 			data, _ = spec.Sr25519.MarshalBinary()
@@ -132,6 +140,22 @@ func visitAddressSpec(addressPreimages map[string]*AddressPreimageData, as *sdkT
 	return addr, nil
 }
 
+func visitEthereumAddress(addressPreimages map[string]*AddressPreimageData, addrRaw []byte) (string, error) {
+	preimageData := &AddressPreimageData{
+		ContextIdentifier: sdkTypes.AddressV0Secp256k1EthContext.Identifier,
+		ContextVersion:    int(sdkTypes.AddressV0Secp256k1EthContext.Version),
+		Data:              addrRaw,
+	}
+	addrAbstract := (sdkTypes.Address)(address.NewAddress(sdkTypes.AddressV0Secp256k1EthContext, addrRaw))
+	addrBytes, err := addrAbstract.MarshalText()
+	if err != nil {
+		return "", fmt.Errorf("address marshal text: %w", err)
+	}
+	addr := string(addrBytes)
+	addressPreimages[addr] = preimageData
+	return addr, nil
+}
+
 func visitRelatedAddressAbstract(relatedAddresses map[string]bool, addrAbstract sdkTypes.Address) (string, error) {
 	addrBytes, err := addrAbstract.MarshalText()
 	if err != nil {
@@ -156,9 +180,7 @@ func extractRound(sigContext signature.Context, b *block.Block, txrs []*sdkClien
 		blockTransactionData.Index = i
 		blockTransactionData.Hash = txr.Tx.Hash().Hex()
 		if len(txr.Tx.AuthProofs) == 1 && txr.Tx.AuthProofs[0].Module == "evm.ethereum.v0" {
-			h := sha3.NewLegacyKeccak256()
-			h.Write(txr.Tx.Body)
-			ethHash := hex.EncodeToString(h.Sum(nil))
+			ethHash := hex.EncodeToString(keccak256(txr.Tx.Body))
 			blockTransactionData.EthHash = &ethHash
 		}
 		blockTransactionData.RelatedAccountAddresses = map[string]bool{}
@@ -173,6 +195,7 @@ func extractRound(sigContext signature.Context, b *block.Block, txrs []*sdkClien
 			for j, si := range tx.AuthInfo.SignerInfo {
 				var blockTransactionSignerData BlockTransactionSignerData
 				blockTransactionSignerData.Index = j
+				// todo: combine this into visitRelatedAddressSpec
 				addr, err1 := visitAddressSpec(blockData.AddressPreimages, &si.AddressSpec)
 				if err1 != nil {
 					return nil, fmt.Errorf("tx %d signer %d visit address spec: %w", i, j, err1)
@@ -267,7 +290,29 @@ func extractRound(sigContext signature.Context, b *block.Block, txrs []*sdkClien
 				if !ok {
 					return nil, fmt.Errorf("tx %d event %d decoded event %d could not cast to evm.Event", i, j, k)
 				}
-				fmt.Printf("%#v\n", evmEventCast) // %%%
+				if len(evmEventCast.Topics) >= 1 {
+					// todo: can you really switch on byte slice?
+					switch evmEventCast.Topics[0] {
+					case TopicErc20Transfer:
+						if len(evmEventCast.Topics) == 3 {
+							fromAddrRaw := evmEventCast.Topics[1][32-20:]
+							// todo: do what I mean
+							if fromAddrRaw != EthAddrZeroRaw {
+								// todo: combine these into visitRelatedEthereumAddress
+								fromAddr, err2 := visitEthereumAddress(blockData.AddressPreimages, fromAddrRaw)
+								if err2 != nil {
+									return nil, fmt.Errorf("tx %d event %d decoded event %d from: %w", i, j, k, err2)
+								}
+								blockTransactionData.RelatedAccountAddresses[fromAddr] = true
+							}
+							// todo: to
+						}
+					}
+				}
+				fmt.Printf("event\naddress %s\ndata %s\n", hex.EncodeToString(evmEventCast.Address), hex.EncodeToString(evmEventCast.Data))
+				for _, topic := range evmEventCast.Topics {
+					fmt.Printf("topic %s\n", hex.EncodeToString(topic))
+				}
 			}
 		}
 		if !foundGasUsedEvent {
