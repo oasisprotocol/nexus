@@ -49,10 +49,17 @@ func (cf *ClientFactory) Consensus() (*ConsensusClient, error) {
 	// Configure chain context for all signatures using chain domain separation.
 	signature.SetChainContext(consensusChainContext)
 
-	return &ConsensusClient{
+	c := &ConsensusClient{
 		client:  client,
 		network: cf.network,
-	}, nil
+	}
+	doc, err := c.GenesisDocument(ctx)
+	if err != nil {
+		return nil, err
+	}
+	c.genesisHeight = doc.Height
+
+	return c, nil
 }
 
 // Runtime creates a new RuntimeClient.

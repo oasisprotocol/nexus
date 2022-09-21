@@ -20,8 +20,9 @@ import (
 
 // ConsensusClient is a client to the consensus backends.
 type ConsensusClient struct {
-	client  consensus.ClientBackend
-	network *config.Network
+	client        consensus.ClientBackend
+	network       *config.Network
+	genesisHeight int64
 }
 
 // GenesisDocument returns the original genesis document.
@@ -198,12 +199,7 @@ func (cc *ConsensusClient) runtimeUpdates(ctx context.Context, height int64) (ma
 		return nil, err
 	}
 
-	doc, err := cc.client.GetGenesisDocument(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	if height != doc.Height {
+	if height != cc.genesisHeight {
 		rtsPrev, err := cc.runtimes(ctx, height-1)
 		if err != nil {
 			return nil, err
