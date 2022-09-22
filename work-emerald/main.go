@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"crypto/tls"
 	"encoding/hex"
@@ -27,9 +28,12 @@ import (
 	"oasis-explorer-backend/common"
 )
 
-var TopicErc20Transfer []byte = keccak256([]byte("Transfer(address,address,uint256)"))
-var TopicErc20Approval []byte = keccak256([]byte("Approval(address,address,uint256)"))
-var EthAddrZeroRaw []byte = make([]byte, 20)
+var TopicErc20Transfer = keccak256([]byte("Transfer(address,address,uint256)"))
+var TopicErc20Approval = keccak256([]byte("Approval(address,address,uint256)"))
+
+// todo: erc721, erc1155
+
+var EthAddrZero = make([]byte, 20)
 
 type BlockTransactionSignerData struct {
 	Index   int
@@ -66,6 +70,10 @@ func keccak256(data []byte) []byte {
 	return h.Sum(nil)
 }
 
+func sliceEthAddr(b32 []byte) []byte {
+	return b32[32-20:]
+}
+
 func downloadRound(ctx context.Context, rtClient sdkClient.RuntimeClient, round int64) (*block.Block, []*sdkClient.TransactionWithResults, error) {
 	b, err := rtClient.GetBlock(ctx, uint64(round))
 	if err != nil {
@@ -97,7 +105,7 @@ func extractAddressPreimage(as *sdkTypes.AddressSpec) (*AddressPreimageData, err
 			// Use a scheme such that we can compute Secp256k1 addresses from Ethereum
 			// addresses as this makes things more interoperable.
 			untaggedPk, _ := spec.Secp256k1Eth.MarshalBinaryUncompressedUntagged()
-			data = keccak256(untaggedPk)[32-20:]
+			data = sliceEthAddr(keccak256(untaggedPk))
 		case spec.Sr25519 != nil:
 			ctx = sdkTypes.AddressV0Sr25519Context
 			data, _ = spec.Sr25519.MarshalBinary()
@@ -119,15 +127,15 @@ func extractAddressPreimage(as *sdkTypes.AddressSpec) (*AddressPreimageData, err
 }
 
 func visitAddressSpec(addressPreimages map[string]*AddressPreimageData, as *sdkTypes.AddressSpec) (string, error) {
-	addrAbstract, err := as.Address()
+	addrSdk, err := as.Address()
 	if err != nil {
 		return "", fmt.Errorf("derive adddress: %w", err)
 	}
-	addrBytes, err := addrAbstract.MarshalText()
+	addrTextBytes, err := addrSdk.MarshalText()
 	if err != nil {
 		return "", fmt.Errorf("address marshal text: %w", err)
 	}
-	addr := string(addrBytes)
+	addr := string(addrTextBytes)
 
 	if _, ok := addressPreimages[addr]; !ok {
 		preimageData, err1 := extractAddressPreimage(as)
@@ -140,24 +148,29 @@ func visitAddressSpec(addressPreimages map[string]*AddressPreimageData, as *sdkT
 	return addr, nil
 }
 
-func visitEthereumAddress(addressPreimages map[string]*AddressPreimageData, addrRaw []byte) (string, error) {
-	preimageData := &AddressPreimageData{
-		ContextIdentifier: sdkTypes.AddressV0Secp256k1EthContext.Identifier,
-		ContextVersion:    int(sdkTypes.AddressV0Secp256k1EthContext.Version),
-		Data:              addrRaw,
-	}
-	addrAbstract := (sdkTypes.Address)(address.NewAddress(sdkTypes.AddressV0Secp256k1EthContext, addrRaw))
-	addrBytes, err := addrAbstract.MarshalText()
+func visitEthAddress(addressPreimages map[string]*AddressPreimageData, ethAddr []byte) (string, error) {
+	ctx := sdkTypes.AddressV0Secp256k1EthContext
+	addrOc := address.NewAddress(ctx, ethAddr)
+	addrSdk := (sdkTypes.Address)(addrOc)
+	addrTextBytes, err := addrSdk.MarshalText()
 	if err != nil {
 		return "", fmt.Errorf("address marshal text: %w", err)
 	}
-	addr := string(addrBytes)
-	addressPreimages[addr] = preimageData
+	addr := string(addrTextBytes)
+
+	if _, ok := addressPreimages[addr]; !ok {
+		addressPreimages[addr] = &AddressPreimageData{
+			ContextIdentifier: ctx.Identifier,
+			ContextVersion:    int(ctx.Version),
+			Data:              ethAddr,
+		}
+	}
+
 	return addr, nil
 }
 
-func visitRelatedAddressAbstract(relatedAddresses map[string]bool, addrAbstract sdkTypes.Address) (string, error) {
-	addrBytes, err := addrAbstract.MarshalText()
+func visitRelatedAddressSdk(relatedAddresses map[string]bool, addrSdk sdkTypes.Address) (string, error) {
+	addrBytes, err := addrSdk.MarshalText()
 	if err != nil {
 		return "", fmt.Errorf("address marshal text: %w", err)
 	}
@@ -165,6 +178,24 @@ func visitRelatedAddressAbstract(relatedAddresses map[string]bool, addrAbstract 
 
 	relatedAddresses[addr] = true
 
+	return addr, nil
+}
+
+func visitRelatedAddressSpec(addressPreimages map[string]*AddressPreimageData, relatedAddresses map[string]bool, as *sdkTypes.AddressSpec) (string, error) {
+	addr, err := visitAddressSpec(addressPreimages, as)
+	if err != nil {
+		return "", err
+	}
+	relatedAddresses[addr] = true
+	return addr, nil
+}
+
+func visitRelatedEthAddress(addressPreimages map[string]*AddressPreimageData, relatedAddresses map[string]bool, ethAddr []byte) (string, error) {
+	addr, err := visitEthAddress(addressPreimages, ethAddr)
+	if err != nil {
+		return "", err
+	}
+	relatedAddresses[addr] = true
 	return addr, nil
 }
 
@@ -195,15 +226,13 @@ func extractRound(sigContext signature.Context, b *block.Block, txrs []*sdkClien
 			for j, si := range tx.AuthInfo.SignerInfo {
 				var blockTransactionSignerData BlockTransactionSignerData
 				blockTransactionSignerData.Index = j
-				// todo: combine this into visitRelatedAddressSpec
-				addr, err1 := visitAddressSpec(blockData.AddressPreimages, &si.AddressSpec)
+				addr, err1 := visitRelatedAddressSpec(blockData.AddressPreimages, blockTransactionData.RelatedAccountAddresses, &si.AddressSpec)
 				if err1 != nil {
 					return nil, fmt.Errorf("tx %d signer %d visit address spec: %w", i, j, err1)
 				}
 				blockTransactionSignerData.Address = addr
 				blockTransactionSignerData.Nonce = int(si.Nonce)
 				blockTransactionData.SignerData = append(blockTransactionData.SignerData, &blockTransactionSignerData)
-				blockTransactionData.RelatedAccountAddresses[addr] = true
 			}
 		}
 		var txGasUsed int64
@@ -239,20 +268,20 @@ func extractRound(sigContext signature.Context, b *block.Block, txrs []*sdkClien
 					return nil, fmt.Errorf("tx %d event %d decoded event %d could not cast to accounts.Event", i, j, k)
 				}
 				if accountEventCast.Transfer != nil {
-					if _, err1 = visitRelatedAddressAbstract(blockTransactionData.RelatedAccountAddresses, accountEventCast.Transfer.From); err1 != nil {
+					if _, err1 = visitRelatedAddressSdk(blockTransactionData.RelatedAccountAddresses, accountEventCast.Transfer.From); err1 != nil {
 						return nil, fmt.Errorf("tx %d event %d decoded event %d from: %w", i, j, k, err1)
 					}
-					if _, err1 = visitRelatedAddressAbstract(blockTransactionData.RelatedAccountAddresses, accountEventCast.Transfer.To); err1 != nil {
+					if _, err1 = visitRelatedAddressSdk(blockTransactionData.RelatedAccountAddresses, accountEventCast.Transfer.To); err1 != nil {
 						return nil, fmt.Errorf("tx %d event %d decoded event %d to: %w", i, j, k, err1)
 					}
 				}
 				if accountEventCast.Burn != nil {
-					if _, err1 = visitRelatedAddressAbstract(blockTransactionData.RelatedAccountAddresses, accountEventCast.Burn.Owner); err1 != nil {
+					if _, err1 = visitRelatedAddressSdk(blockTransactionData.RelatedAccountAddresses, accountEventCast.Burn.Owner); err1 != nil {
 						return nil, fmt.Errorf("tx %d event %d decoded event %d owner: %w", i, j, k, err1)
 					}
 				}
 				if accountEventCast.Mint != nil {
-					if _, err1 = visitRelatedAddressAbstract(blockTransactionData.RelatedAccountAddresses, accountEventCast.Mint.Owner); err1 != nil {
+					if _, err1 = visitRelatedAddressSdk(blockTransactionData.RelatedAccountAddresses, accountEventCast.Mint.Owner); err1 != nil {
 						return nil, fmt.Errorf("tx %d event %d decoded event %d owner: %w", i, j, k, err1)
 					}
 				}
@@ -269,12 +298,12 @@ func extractRound(sigContext signature.Context, b *block.Block, txrs []*sdkClien
 				}
 				if consensusaccountsEventCast.Deposit != nil {
 					// .From is from another chain, so exclude?
-					if _, err1 = visitRelatedAddressAbstract(blockTransactionData.RelatedAccountAddresses, consensusaccountsEventCast.Deposit.To); err1 != nil {
+					if _, err1 = visitRelatedAddressSdk(blockTransactionData.RelatedAccountAddresses, consensusaccountsEventCast.Deposit.To); err1 != nil {
 						return nil, fmt.Errorf("tx %d event %d decoded event %d from: %w", i, j, k, err1)
 					}
 				}
 				if consensusaccountsEventCast.Withdraw != nil {
-					if _, err1 = visitRelatedAddressAbstract(blockTransactionData.RelatedAccountAddresses, consensusaccountsEventCast.Withdraw.From); err1 != nil {
+					if _, err1 = visitRelatedAddressSdk(blockTransactionData.RelatedAccountAddresses, consensusaccountsEventCast.Withdraw.From); err1 != nil {
 						return nil, fmt.Errorf("tx %d event %d decoded event %d from: %w", i, j, k, err1)
 					}
 					// .To is from another chain, so exclude?
@@ -291,21 +320,36 @@ func extractRound(sigContext signature.Context, b *block.Block, txrs []*sdkClien
 					return nil, fmt.Errorf("tx %d event %d decoded event %d could not cast to evm.Event", i, j, k)
 				}
 				if len(evmEventCast.Topics) >= 1 {
-					// todo: can you really switch on byte slice?
-					switch evmEventCast.Topics[0] {
-					case TopicErc20Transfer:
-						if len(evmEventCast.Topics) == 3 {
-							fromAddrRaw := evmEventCast.Topics[1][32-20:]
-							// todo: do what I mean
-							if fromAddrRaw != EthAddrZeroRaw {
-								// todo: combine these into visitRelatedEthereumAddress
-								fromAddr, err2 := visitEthereumAddress(blockData.AddressPreimages, fromAddrRaw)
-								if err2 != nil {
-									return nil, fmt.Errorf("tx %d event %d decoded event %d from: %w", i, j, k, err2)
-								}
-								blockTransactionData.RelatedAccountAddresses[fromAddr] = true
+					switch {
+					case bytes.Equal(evmEventCast.Topics[0], TopicErc20Transfer) && len(evmEventCast.Topics) == 3:
+						fromEthAddr := sliceEthAddr(evmEventCast.Topics[1])
+						if !bytes.Equal(fromEthAddr, EthAddrZero) {
+							_, err1 = visitRelatedEthAddress(blockData.AddressPreimages, blockTransactionData.RelatedAccountAddresses, fromEthAddr)
+							if err1 != nil {
+								return nil, fmt.Errorf("tx %d event %d decoded event %d from: %w", i, j, k, err1)
 							}
-							// todo: to
+						}
+						toEthAddr := sliceEthAddr(evmEventCast.Topics[2])
+						if !bytes.Equal(toEthAddr, EthAddrZero) {
+							_, err1 = visitRelatedEthAddress(blockData.AddressPreimages, blockTransactionData.RelatedAccountAddresses, toEthAddr)
+							if err1 != nil {
+								return nil, fmt.Errorf("tx %d event %d decoded event %d to: %w", i, j, k, err1)
+							}
+						}
+					case bytes.Equal(evmEventCast.Topics[0], TopicErc20Approval) && len(evmEventCast.Topics) == 3:
+						ownerEthAddr := sliceEthAddr(evmEventCast.Topics[1])
+						if !bytes.Equal(ownerEthAddr, EthAddrZero) {
+							_, err1 = visitRelatedEthAddress(blockData.AddressPreimages, blockTransactionData.RelatedAccountAddresses, ownerEthAddr)
+							if err1 != nil {
+								return nil, fmt.Errorf("tx %d event %d decoded event %d owner: %w", i, j, k, err1)
+							}
+						}
+						spenderEthAddr := sliceEthAddr(evmEventCast.Topics[2])
+						if !bytes.Equal(spenderEthAddr, EthAddrZero) {
+							_, err1 = visitRelatedEthAddress(blockData.AddressPreimages, blockTransactionData.RelatedAccountAddresses, spenderEthAddr)
+							if err1 != nil {
+								return nil, fmt.Errorf("tx %d event %d decoded event %d spender: %w", i, j, k, err1)
+							}
 						}
 					}
 				}
