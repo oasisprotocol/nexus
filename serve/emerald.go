@@ -10,6 +10,9 @@ import (
 	ocCommon "github.com/oasisprotocol/oasis-core/go/common"
 	sdkClient "github.com/oasisprotocol/oasis-sdk/client-sdk/go/client"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/crypto/signature"
+	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/accounts"
+	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/consensusaccounts"
+	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/evm"
 	"google.golang.org/grpc"
 
 	"oasis-explorer-backend/common"
@@ -112,7 +115,61 @@ func makeEmeraldRouter(dbPool *pgxpool.Pool, conn *grpc.ClientConn) *chi.Mux {
 					// todo: is gas used desired?
 					tr.FeeGas = int64(tx.AuthInfo.Fee.Gas)
 					tr.Method = tx.Call.Method
-					// todo: To, Amount
+					if err1 = common.VisitCall(&tx.Call, &txr.Result, &common.CallHandler{
+						AccountsTransfer: func(body *accounts.Transfer) error {
+							to, err2 := common.StringifySdkAddress(&body.To)
+							if err2 != nil {
+								return fmt.Errorf("to: %w", err2)
+							}
+							tr.To = to
+							amount, err2 := common.StringifyNativeDenomination(&body.Amount)
+							if err2 != nil {
+								return fmt.Errorf("amount: %w", err2)
+							}
+							tr.Amount = amount
+							return nil
+						},
+						ConsensusAccountsDeposit: func(body *consensusaccounts.Deposit) error {
+							to, err2 := common.StringifySdkAddress(body.To)
+							if err2 != nil {
+								return fmt.Errorf("to: %w", err2)
+							}
+							tr.To = to
+							amount, err2 := common.StringifyNativeDenomination(&body.Amount)
+							if err2 != nil {
+								return fmt.Errorf("amount: %w", err2)
+							}
+							tr.Amount = amount
+							return nil
+						},
+						ConsensusAccountsWithdraw: func(body *consensusaccounts.Withdraw) error {
+							to, err2 := common.StringifySdkAddress(body.To)
+							if err2 != nil {
+								return fmt.Errorf("to: %w", err2)
+							}
+							// todo: is this right? we don't otherwise register this off-chain .To
+							tr.To = to
+							// todo: ensure native denomination?
+							tr.Amount = body.Amount.Amount.String()
+							return nil
+						},
+						EvmCreate: func(body *evm.Create, ok *[]byte) error {
+							// todo: do we want to populate .To with the created contract?
+							tr.Amount = common.StringifyBytes(body.Value)
+							return nil
+						},
+						EvmCall: func(body *evm.Call, ok *[]byte) error {
+							to, err2 := common.StringifyEthAddress(body.Address)
+							if err2 != nil {
+								return fmt.Errorf("to: %w", err2)
+							}
+							tr.To = to
+							tr.Amount = common.StringifyBytes(body.Value)
+							return nil
+						},
+					}); err1 != nil {
+						return err1
+					}
 				}
 			}
 		}

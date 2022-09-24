@@ -33,3 +33,22 @@ func TestEvmEvent(t *testing.T) {
 	require.NoError(t, err)
 	t.Log(string(blockDataPretty))
 }
+
+func TestEvmTransfer(t *testing.T) {
+	ctx := context.Background()
+	conn, err := ocGrpc.Dial("grpc.oasis.dev:443", grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{})))
+	require.NoError(t, err)
+	var rtid ocCommon.Namespace
+	err = rtid.UnmarshalHex("000000000000000000000000000000000000000000000000e2eaa99fc008f87f")
+	require.NoError(t, err)
+	rtClient := sdkClient.New(conn, rtid)
+	sigContext := signature.DeriveChainContext(rtid, "b11b369e0da5bb230b220127f5e7b242d385ef8c6f54906243f30af63c815535")
+	// https://explorer.emerald.oasis.dev/tx/0x67fa1a2318a415d026508037dc0ab2eae75f6aab9cd2e6a14c0645868ac4e52c/internal-transactions
+	b, txrs, err := downloadRound(ctx, rtClient, 2990282)
+	require.NoError(t, err)
+	blockData, err := extractRound(sigContext, b, txrs)
+	require.NoError(t, err)
+	blockDataPretty, err := json.MarshalIndent(blockData, "", "  ")
+	require.NoError(t, err)
+	t.Log(string(blockDataPretty))
+}

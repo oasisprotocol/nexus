@@ -8,10 +8,10 @@ import (
 	sdkClient "github.com/oasisprotocol/oasis-sdk/client-sdk/go/client"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/crypto/signature/secp256k1"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/evm"
-	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
+	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 )
 
-func decodeEthRawTx(body []byte, expectedChainId uint64) (*types.Transaction, error) {
+func decodeEthRawTx(body []byte, expectedChainId uint64) (*sdkTypes.Transaction, error) {
 	var ethTx ethTypes.Transaction
 	if err := ethTx.UnmarshalBinary(body); err != nil {
 		return nil, fmt.Errorf("rlp decode bytes: %w", err)
@@ -48,8 +48,8 @@ func decodeEthRawTx(body []byte, expectedChainId uint64) (*types.Transaction, er
 	if err = resolvedFeeAmount.Mul(quantity.NewFromUint64(ethTx.Gas())); err != nil {
 		return nil, fmt.Errorf("computing total fee amount: %w", err)
 	}
-	tb.AppendAuthSignature(types.SignatureAddressSpec{Secp256k1Eth: &sender}, ethTx.Nonce())
-	tb.SetFeeAmount(types.NewBaseUnits(resolvedFeeAmount, types.NativeDenomination))
+	tb.AppendAuthSignature(sdkTypes.SignatureAddressSpec{Secp256k1Eth: &sender}, ethTx.Nonce())
+	tb.SetFeeAmount(sdkTypes.NewBaseUnits(resolvedFeeAmount, sdkTypes.NativeDenomination))
 	tb.SetFeeGas(ethTx.Gas())
 	return tb.GetTransaction(), nil
 }

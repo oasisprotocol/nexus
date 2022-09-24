@@ -4,10 +4,10 @@ import (
 	"fmt"
 
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/crypto/signature"
-	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
+	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 )
 
-func VerifyUtx(sigContext signature.Context, utx *types.UnverifiedTransaction) (*types.Transaction, error) {
+func VerifyUtx(sigContext signature.Context, utx *sdkTypes.UnverifiedTransaction) (*sdkTypes.Transaction, error) {
 	if len(utx.AuthProofs) == 1 && utx.AuthProofs[0].Module != "" {
 		switch utx.AuthProofs[0].Module {
 		case "evm.ethereum.v0":

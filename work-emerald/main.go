@@ -21,26 +21,13 @@ import (
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/core"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/evm"
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
-	"golang.org/x/crypto/sha3"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 
 	"oasis-explorer-backend/common"
 )
 
-var TopicErc20Transfer = keccak256([]byte("Transfer(address,address,uint256)"))
-var TopicErc20Approval = keccak256([]byte("Approval(address,address,uint256)"))
-
 // todo: erc721, erc1155
-
-// nearly hungarian notation notes:
-// ethAddr -> []byte len-20 slice
-// ocAddr -> oasis-core type binary oasis address
-// sdkAddr -> oasis-sdk type binary oasis address
-// addr -> bech32 string oasis address
-// addrTextBytes -> bech32 []byte oasis address
-
-var ZeroEthAddr = make([]byte, 20)
 
 type BlockTransactionSignerData struct {
 	Index   int
@@ -69,16 +56,6 @@ type BlockData struct {
 	Size             int
 	TransactionData  []*BlockTransactionData
 	AddressPreimages map[string]*AddressPreimageData
-}
-
-func keccak256(data []byte) []byte {
-	h := sha3.NewLegacyKeccak256()
-	h.Write(data)
-	return h.Sum(nil)
-}
-
-func sliceEthAddr(b32 []byte) []byte {
-	return b32[32-20:]
 }
 
 func downloadRound(ctx context.Context, rtClient sdkClient.RuntimeClient, round int64) (*block.Block, []*sdkClient.TransactionWithResults, error) {
@@ -120,7 +97,7 @@ func extractAddressPreimage(as *sdkTypes.AddressSpec) (*AddressPreimageData, err
 			// Use a scheme such that we can compute Secp256k1 addresses from Ethereum
 			// addresses as this makes things more interoperable.
 			untaggedPk, _ := spec.Secp256k1Eth.MarshalBinaryUncompressedUntagged()
-			data = sliceEthAddr(keccak256(untaggedPk))
+			data = common.SliceEthAddress(common.Keccak256(untaggedPk))
 		case spec.Sr25519 != nil:
 			ctx = sdkTypes.AddressV0Sr25519Context
 			data, _ = spec.Sr25519.MarshalBinary()
@@ -142,15 +119,10 @@ func extractAddressPreimage(as *sdkTypes.AddressSpec) (*AddressPreimageData, err
 }
 
 func registerAddressSpec(addressPreimages map[string]*AddressPreimageData, as *sdkTypes.AddressSpec) (string, error) {
-	sdkAddr, err := as.Address()
+	addr, err := common.StringifyAddressSpec(as)
 	if err != nil {
-		return "", fmt.Errorf("derive adddress: %w", err)
+		return "", err
 	}
-	addrTextBytes, err := sdkAddr.MarshalText()
-	if err != nil {
-		return "", fmt.Errorf("address marshal text: %w", err)
-	}
-	addr := string(addrTextBytes)
 
 	if _, ok := addressPreimages[addr]; !ok {
 		preimageData, err1 := extractAddressPreimage(as)
@@ -164,19 +136,15 @@ func registerAddressSpec(addressPreimages map[string]*AddressPreimageData, as *s
 }
 
 func registerEthAddress(addressPreimages map[string]*AddressPreimageData, ethAddr []byte) (string, error) {
-	ctx := sdkTypes.AddressV0Secp256k1EthContext
-	ocAddr := address.NewAddress(ctx, ethAddr)
-	sdkAddr := (sdkTypes.Address)(ocAddr)
-	addrTextBytes, err := sdkAddr.MarshalText()
+	addr, err := common.StringifyEthAddress(ethAddr)
 	if err != nil {
-		return "", fmt.Errorf("address marshal text: %w", err)
+		return "", err
 	}
-	addr := string(addrTextBytes)
 
 	if _, ok := addressPreimages[addr]; !ok {
 		addressPreimages[addr] = &AddressPreimageData{
-			ContextIdentifier: ctx.Identifier,
-			ContextVersion:    int(ctx.Version),
+			ContextIdentifier: sdkTypes.AddressV0Secp256k1EthContext.Identifier,
+			ContextVersion:    int(sdkTypes.AddressV0Secp256k1EthContext.Version),
 			Data:              ethAddr,
 		}
 	}
@@ -184,12 +152,11 @@ func registerEthAddress(addressPreimages map[string]*AddressPreimageData, ethAdd
 	return addr, nil
 }
 
-func registerRelatedAddressSdk(relatedAddresses map[string]bool, sdkAddr sdkTypes.Address) (string, error) {
-	addrBytes, err := sdkAddr.MarshalText()
+func registerRelatedSdkAddress(relatedAddresses map[string]bool, sdkAddr *sdkTypes.Address) (string, error) {
+	addr, err := common.StringifySdkAddress(sdkAddr)
 	if err != nil {
-		return "", fmt.Errorf("address marshal text: %w", err)
+		return "", err
 	}
-	addr := string(addrBytes)
 
 	relatedAddresses[addr] = true
 
@@ -201,7 +168,9 @@ func registerRelatedAddressSpec(addressPreimages map[string]*AddressPreimageData
 	if err != nil {
 		return "", err
 	}
+
 	relatedAddresses[addr] = true
+
 	return addr, nil
 }
 
@@ -210,7 +179,9 @@ func registerRelatedEthAddress(addressPreimages map[string]*AddressPreimageData,
 	if err != nil {
 		return "", err
 	}
+
 	relatedAddresses[addr] = true
+
 	return addr, nil
 }
 
@@ -219,124 +190,6 @@ func dumpEvmEvent(event *evm.Event) { // %%%
 	for _, topic := range event.Topics {
 		fmt.Printf("topic %s\n", hex.EncodeToString(topic))
 	}
-}
-
-type SdkEventHandler struct {
-	Core              func(event *core.Event) error
-	Accounts          func(event *accounts.Event) error
-	ConsensusAccounts func(event *consensusaccounts.Event) error
-	Evm               func(event *evm.Event) error
-}
-
-func VisitSdkEvent(event *sdkTypes.Event, handler *SdkEventHandler) error {
-	// fmt.Printf("%#v\n", event) // %%%
-	// core
-	coreEvents, err := core.DecodeEvent(event)
-	if err != nil {
-		return fmt.Errorf("decode core: %w", err)
-	}
-	for i, coreEvent := range coreEvents {
-		coreEventCast, ok := coreEvent.(*core.Event)
-		if !ok {
-			return fmt.Errorf("decoded event %d could not cast to core.Event", i)
-		}
-		if handler.Core != nil {
-			if err = handler.Core(coreEventCast); err != nil {
-				return fmt.Errorf("decoded event %d core: %w", i, err)
-			}
-		}
-	}
-	// accounts
-	accountEvents, err := accounts.DecodeEvent(event)
-	if err != nil {
-		return fmt.Errorf("decode accounts: %w", err)
-	}
-	for i, accountEvent := range accountEvents {
-		accountEventCast, ok := accountEvent.(*accounts.Event)
-		if !ok {
-			return fmt.Errorf("decoded event %d could not cast to accounts.Event", i)
-		}
-		if handler.Accounts != nil {
-			if err = handler.Accounts(accountEventCast); err != nil {
-				return fmt.Errorf("decoded event %d accounts: %w", i, err)
-			}
-		}
-	}
-	// consensus accounts
-	consensusAccountsEvents, err := consensusaccounts.DecodeEvent(event)
-	if err != nil {
-		return fmt.Errorf("decode consensus accounts: %w", err)
-	}
-	for i, consensusAccountsEvent := range consensusAccountsEvents {
-		consensusAccountsEventCast, ok := consensusAccountsEvent.(*consensusaccounts.Event)
-		if !ok {
-			return fmt.Errorf("decoded event %d could not cast to consensusaccounts.Event", i)
-		}
-		if handler.ConsensusAccounts != nil {
-			if err = handler.ConsensusAccounts(consensusAccountsEventCast); err != nil {
-				return fmt.Errorf("decoded event %d consensus accounts: %w", i, err)
-			}
-		}
-	}
-	// evm
-	evmEvents, err := evm.DecodeEvent(event)
-	if err != nil {
-		return fmt.Errorf("decode evm: %w", err)
-	}
-	for i, evmEvent := range evmEvents {
-		evmEventCast, ok := evmEvent.(*evm.Event)
-		if !ok {
-			return fmt.Errorf("decoded event %d could not cast to evm.Event", i)
-		}
-		if handler.Evm != nil {
-			if err = handler.Evm(evmEventCast); err != nil {
-				return fmt.Errorf("decoded event %d evm: %w", i, err)
-			}
-		}
-	}
-	return nil
-}
-
-func VisitSdkEvents(events []*sdkTypes.Event, handler *SdkEventHandler) error {
-	for i, event := range events {
-		if err := VisitSdkEvent(event, handler); err != nil {
-			return fmt.Errorf("event %d: %w", i, err)
-		}
-	}
-	return nil
-}
-
-type EvmEventHandler struct {
-	Erc20Transfer func(fromEthAddr []byte, toEthAddr []byte, amountU256 []byte) error
-	Erc20Approval func(ownerEthAddr []byte, spenderEthAddr []byte, amountU256 []byte) error
-}
-
-func VisitEvmEvent(event *evm.Event, handler *EvmEventHandler) error {
-	if len(event.Topics) >= 1 {
-		switch {
-		case bytes.Equal(event.Topics[0], TopicErc20Transfer) && len(event.Topics) == 3:
-			if handler.Erc20Transfer != nil {
-				if err := handler.Erc20Transfer(
-					sliceEthAddr(event.Topics[1]),
-					sliceEthAddr(event.Topics[2]),
-					event.Data,
-				); err != nil {
-					return fmt.Errorf("erc20 transfer: %w", err)
-				}
-			}
-		case bytes.Equal(event.Topics[0], TopicErc20Approval) && len(event.Topics) == 3:
-			if handler.Erc20Approval != nil {
-				if err := handler.Erc20Approval(
-					sliceEthAddr(event.Topics[1]),
-					sliceEthAddr(event.Topics[2]),
-					event.Data,
-				); err != nil {
-					return fmt.Errorf("erc20 approval: %w", err)
-				}
-			}
-		}
-	}
-	return nil
 }
 
 func extractRound(sigContext signature.Context, b *block.Block, txrs []*sdkClient.TransactionWithResults) (*BlockData, error) {
@@ -351,7 +204,7 @@ func extractRound(sigContext signature.Context, b *block.Block, txrs []*sdkClien
 		blockTransactionData.Index = i
 		blockTransactionData.Hash = txr.Tx.Hash().Hex()
 		if len(txr.Tx.AuthProofs) == 1 && txr.Tx.AuthProofs[0].Module == "evm.ethereum.v0" {
-			ethHash := hex.EncodeToString(keccak256(txr.Tx.Body))
+			ethHash := hex.EncodeToString(common.Keccak256(txr.Tx.Body))
 			blockTransactionData.EthHash = &ethHash
 		}
 		blockTransactionData.RelatedAccountAddresses = map[string]bool{}
@@ -374,11 +227,46 @@ func extractRound(sigContext signature.Context, b *block.Block, txrs []*sdkClien
 				blockTransactionSignerData.Nonce = int(si.Nonce)
 				blockTransactionData.SignerData = append(blockTransactionData.SignerData, &blockTransactionSignerData)
 			}
-			// todo: visit call
+			if err = common.VisitCall(&tx.Call, &txr.Result, &common.CallHandler{
+				AccountsTransfer: func(body *accounts.Transfer) error {
+					if _, err = registerRelatedSdkAddress(blockTransactionData.RelatedAccountAddresses, &body.To); err != nil {
+						return fmt.Errorf("to: %w", err)
+					}
+					return nil
+				},
+				ConsensusAccountsDeposit: func(body *consensusaccounts.Deposit) error {
+					if _, err = registerRelatedSdkAddress(blockTransactionData.RelatedAccountAddresses, body.To); err != nil {
+						return fmt.Errorf("to: %w", err)
+					}
+					return nil
+				},
+				ConsensusAccountsWithdraw: func(body *consensusaccounts.Withdraw) error {
+					// .To is from another chain, so exclude?
+					return nil
+				},
+				EvmCreate: func(body *evm.Create, ok *[]byte) error {
+					if !txr.Result.IsUnknown() && txr.Result.IsSuccess() && len(*ok) == 32 {
+						// todo: is this rigorous enough?
+						if _, err = registerRelatedEthAddress(blockData.AddressPreimages, blockTransactionData.RelatedAccountAddresses, common.SliceEthAddress(*ok)); err != nil {
+							return fmt.Errorf("created contract: %w", err)
+						}
+					}
+					return nil
+				},
+				EvmCall: func(body *evm.Call, ok *[]byte) error {
+					if _, err = registerRelatedEthAddress(blockData.AddressPreimages, blockTransactionData.RelatedAccountAddresses, body.Address); err != nil {
+						return fmt.Errorf("address: %w", err)
+					}
+					// todo: maybe parse known token methods
+					return nil
+				},
+			}); err != nil {
+				return nil, err
+			}
 		}
 		var txGasUsed int64
 		foundGasUsedEvent := false
-		if err = VisitSdkEvents(txr.Events, &SdkEventHandler{
+		if err = common.VisitSdkEvents(txr.Events, &common.SdkEventHandler{
 			Core: func(event *core.Event) error {
 				if event.GasUsed != nil {
 					if foundGasUsedEvent {
@@ -391,20 +279,20 @@ func extractRound(sigContext signature.Context, b *block.Block, txrs []*sdkClien
 			},
 			Accounts: func(event *accounts.Event) error {
 				if event.Transfer != nil {
-					if _, err1 := registerRelatedAddressSdk(blockTransactionData.RelatedAccountAddresses, event.Transfer.From); err1 != nil {
+					if _, err1 := registerRelatedSdkAddress(blockTransactionData.RelatedAccountAddresses, &event.Transfer.From); err1 != nil {
 						return fmt.Errorf("from: %w", err1)
 					}
-					if _, err1 := registerRelatedAddressSdk(blockTransactionData.RelatedAccountAddresses, event.Transfer.To); err1 != nil {
+					if _, err1 := registerRelatedSdkAddress(blockTransactionData.RelatedAccountAddresses, &event.Transfer.To); err1 != nil {
 						return fmt.Errorf("to: %w", err1)
 					}
 				}
 				if event.Burn != nil {
-					if _, err1 := registerRelatedAddressSdk(blockTransactionData.RelatedAccountAddresses, event.Burn.Owner); err1 != nil {
+					if _, err1 := registerRelatedSdkAddress(blockTransactionData.RelatedAccountAddresses, &event.Burn.Owner); err1 != nil {
 						return fmt.Errorf("owner: %w", err1)
 					}
 				}
 				if event.Mint != nil {
-					if _, err1 := registerRelatedAddressSdk(blockTransactionData.RelatedAccountAddresses, event.Mint.Owner); err1 != nil {
+					if _, err1 := registerRelatedSdkAddress(blockTransactionData.RelatedAccountAddresses, &event.Mint.Owner); err1 != nil {
 						return fmt.Errorf("owner: %w", err1)
 					}
 				}
@@ -413,12 +301,12 @@ func extractRound(sigContext signature.Context, b *block.Block, txrs []*sdkClien
 			ConsensusAccounts: func(event *consensusaccounts.Event) error {
 				if event.Deposit != nil {
 					// .From is from another chain, so exclude?
-					if _, err1 := registerRelatedAddressSdk(blockTransactionData.RelatedAccountAddresses, event.Deposit.To); err1 != nil {
+					if _, err1 := registerRelatedSdkAddress(blockTransactionData.RelatedAccountAddresses, &event.Deposit.To); err1 != nil {
 						return fmt.Errorf("from: %w", err1)
 					}
 				}
 				if event.Withdraw != nil {
-					if _, err1 := registerRelatedAddressSdk(blockTransactionData.RelatedAccountAddresses, event.Withdraw.From); err1 != nil {
+					if _, err1 := registerRelatedSdkAddress(blockTransactionData.RelatedAccountAddresses, &event.Withdraw.From); err1 != nil {
 						return fmt.Errorf("from: %w", err1)
 					}
 					// .To is from another chain, so exclude?
@@ -427,15 +315,15 @@ func extractRound(sigContext signature.Context, b *block.Block, txrs []*sdkClien
 			},
 			Evm: func(event *evm.Event) error {
 				// dumpEvmEvent(event) // %%%
-				if err1 := VisitEvmEvent(event, &EvmEventHandler{
+				if err1 := common.VisitEvmEvent(event, &common.EvmEventHandler{
 					Erc20Transfer: func(fromEthAddr []byte, toEthAddr []byte, amountU256 []byte) error {
-						if !bytes.Equal(fromEthAddr, ZeroEthAddr) {
+						if !bytes.Equal(fromEthAddr, common.ZeroEthAddr) {
 							_, err1 := registerRelatedEthAddress(blockData.AddressPreimages, blockTransactionData.RelatedAccountAddresses, fromEthAddr)
 							if err1 != nil {
 								return fmt.Errorf("from: %w", err1)
 							}
 						}
-						if !bytes.Equal(toEthAddr, ZeroEthAddr) {
+						if !bytes.Equal(toEthAddr, common.ZeroEthAddr) {
 							_, err1 := registerRelatedEthAddress(blockData.AddressPreimages, blockTransactionData.RelatedAccountAddresses, toEthAddr)
 							if err1 != nil {
 								return fmt.Errorf("to: %w", err1)
@@ -444,13 +332,13 @@ func extractRound(sigContext signature.Context, b *block.Block, txrs []*sdkClien
 						return nil
 					},
 					Erc20Approval: func(ownerEthAddr []byte, spenderEthAddr []byte, amountU256 []byte) error {
-						if !bytes.Equal(ownerEthAddr, ZeroEthAddr) {
+						if !bytes.Equal(ownerEthAddr, common.ZeroEthAddr) {
 							_, err1 := registerRelatedEthAddress(blockData.AddressPreimages, blockTransactionData.RelatedAccountAddresses, ownerEthAddr)
 							if err1 != nil {
 								return fmt.Errorf("owner: %w", err1)
 							}
 						}
-						if !bytes.Equal(spenderEthAddr, ZeroEthAddr) {
+						if !bytes.Equal(spenderEthAddr, common.ZeroEthAddr) {
 							_, err1 := registerRelatedEthAddress(blockData.AddressPreimages, blockTransactionData.RelatedAccountAddresses, spenderEthAddr)
 							if err1 != nil {
 								return fmt.Errorf("spender: %w", err1)
@@ -467,7 +355,7 @@ func extractRound(sigContext signature.Context, b *block.Block, txrs []*sdkClien
 			return nil, fmt.Errorf("tx %d: %w", i, err)
 		}
 		if !foundGasUsedEvent {
-			if (txr.Result.IsSuccess() || txr.Result.IsUnknown()) && tx != nil {
+			if (txr.Result.IsUnknown() || txr.Result.IsSuccess()) && tx != nil {
 				// Treat as if it used all the gas.
 				txGasUsed = int64(tx.AuthInfo.Fee.Gas)
 			} else {
