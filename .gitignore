@@ -4,6 +4,7 @@ oasis-indexer
 # Oasis Node data.
 docker/node/data
 docker/node/etc/genesis.json
+docker/testnet/net-runner
 
 # Log output.
 **/*.log
