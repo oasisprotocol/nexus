@@ -19,10 +19,10 @@ import (
 func decodeExpectCall(
 	t *testing.T,
 	raw string,
-	expectedChainId uint64,
+	expectedChainID uint64,
 	expectedTo string,
 	expectedValue uint64,
-	expectedData string,
+	expectedData string, //nolint:unparam
 	expectedGasLimit uint64,
 	expectedGasPrice uint64,
 	expectedFrom string,
@@ -30,7 +30,7 @@ func decodeExpectCall(
 ) {
 	rawBytes, err := hex.DecodeString(raw)
 	require.NoError(t, err)
-	tx, err := decodeEthRawTx(rawBytes, expectedChainId)
+	tx, err := decodeEthRawTx(rawBytes, expectedChainID)
 	require.NoError(t, err)
 	t.Logf("%#v\n", tx)
 	require.Equal(t, tx.Call.Method, "evm.Call")
@@ -63,7 +63,7 @@ func decodeExpectCall(
 func decodeExpectCreate(
 	t *testing.T,
 	raw string,
-	expectedChainId uint64,
+	expectedChainID uint64,
 	expectedValue uint64,
 	expectedInitCode string,
 	expectedGasLimit uint64,
@@ -73,7 +73,7 @@ func decodeExpectCreate(
 ) {
 	rawBytes, err := hex.DecodeString(raw)
 	require.NoError(t, err)
-	tx, err := decodeEthRawTx(rawBytes, expectedChainId)
+	tx, err := decodeEthRawTx(rawBytes, expectedChainID)
 	require.NoError(t, err)
 	t.Logf("%#v\n", tx)
 	require.Equal(t, tx.Call.Method, "evm.Create")
@@ -100,10 +100,10 @@ func decodeExpectCreate(
 	require.Equal(t, expectedGasLimit, tx.AuthInfo.Fee.Gas)
 }
 
-func decodeExpectInvalid(t *testing.T, raw string, expectedChainId uint64) {
+func decodeExpectInvalid(t *testing.T, raw string, expectedChainID uint64) {
 	rawBytes, err := hex.DecodeString(raw)
 	require.NoError(t, err)
-	_, err = decodeEthRawTx(rawBytes, expectedChainId)
+	_, err = decodeEthRawTx(rawBytes, expectedChainID)
 	require.Error(t, err)
 	t.Logf("%#v\n", err)
 }
@@ -111,12 +111,12 @@ func decodeExpectInvalid(t *testing.T, raw string, expectedChainId uint64) {
 func decodeExpectFromMismatch(
 	t *testing.T,
 	raw string,
-	expectedChainId uint64,
+	expectedChainID uint64,
 	unexpectedFrom string,
 ) {
 	rawBytes, err := hex.DecodeString(raw)
 	require.NoError(t, err)
-	tx, err := decodeEthRawTx(rawBytes, expectedChainId)
+	tx, err := decodeEthRawTx(rawBytes, expectedChainID)
 	require.NoError(t, err)
 	t.Logf("%#v\n", tx)
 	require.Len(t, tx.AuthInfo.SignerInfo, 1)

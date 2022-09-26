@@ -11,7 +11,7 @@ import (
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 )
 
-func decodeEthRawTx(body []byte, expectedChainId uint64) (*sdkTypes.Transaction, error) {
+func decodeEthRawTx(body []byte, expectedChainID uint64) (*sdkTypes.Transaction, error) {
 	var ethTx ethTypes.Transaction
 	if err := ethTx.UnmarshalBinary(body); err != nil {
 		return nil, fmt.Errorf("rlp decode bytes: %w", err)
@@ -23,11 +23,11 @@ func decodeEthRawTx(body []byte, expectedChainId uint64) (*sdkTypes.Transaction,
 	} else {
 		tb = evmV1.Create(ethTx.Value().Bytes(), ethTx.Data())
 	}
-	chainIdBI := ethTx.ChainId()
-	if !chainIdBI.IsUint64() || chainIdBI.Uint64() != expectedChainId {
-		return nil, fmt.Errorf("chain ID %v, expected %v", chainIdBI, expectedChainId)
+	chainIDBI := ethTx.ChainId()
+	if !chainIDBI.IsUint64() || chainIDBI.Uint64() != expectedChainID {
+		return nil, fmt.Errorf("chain ID %v, expected %v", chainIDBI, expectedChainID)
 	}
-	signer := ethTypes.LatestSignerForChainID(chainIdBI)
+	signer := ethTypes.LatestSignerForChainID(chainIDBI)
 	pubUncompressed, err := LondonSenderPub(signer, &ethTx)
 	if err != nil {
 		return nil, fmt.Errorf("recover signer public key: %w", err)

@@ -16,6 +16,7 @@
 
 // This file contains code from go-ethereum, adapted to recover a public key instead of an address.
 
+//nolint:gocritic,godot
 package common
 
 import (

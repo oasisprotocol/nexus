@@ -20,6 +20,7 @@ type CallHandler struct {
 	EvmCall                   func(body *evm.Call, ok *[]byte) error
 }
 
+//nolint:nestif
 func VisitCall(call *sdkTypes.Call, result *sdkTypes.CallResult, handler *CallHandler) error {
 	switch call.Method {
 	case "accounts.Transfer":
@@ -178,27 +179,28 @@ type EvmEventHandler struct {
 }
 
 func VisitEvmEvent(event *evm.Event, handler *EvmEventHandler) error {
-	if len(event.Topics) >= 1 {
-		switch {
-		case bytes.Equal(event.Topics[0], TopicErc20Transfer) && len(event.Topics) == 3:
-			if handler.Erc20Transfer != nil {
-				if err := handler.Erc20Transfer(
-					SliceEthAddress(event.Topics[1]),
-					SliceEthAddress(event.Topics[2]),
-					event.Data,
-				); err != nil {
-					return fmt.Errorf("erc20 transfer: %w", err)
-				}
+	if len(event.Topics) == 0 {
+		return nil
+	}
+	switch {
+	case bytes.Equal(event.Topics[0], TopicErc20Transfer) && len(event.Topics) == 3:
+		if handler.Erc20Transfer != nil {
+			if err := handler.Erc20Transfer(
+				SliceEthAddress(event.Topics[1]),
+				SliceEthAddress(event.Topics[2]),
+				event.Data,
+			); err != nil {
+				return fmt.Errorf("erc20 transfer: %w", err)
 			}
-		case bytes.Equal(event.Topics[0], TopicErc20Approval) && len(event.Topics) == 3:
-			if handler.Erc20Approval != nil {
-				if err := handler.Erc20Approval(
-					SliceEthAddress(event.Topics[1]),
-					SliceEthAddress(event.Topics[2]),
-					event.Data,
-				); err != nil {
-					return fmt.Errorf("erc20 approval: %w", err)
-				}
+		}
+	case bytes.Equal(event.Topics[0], TopicErc20Approval) && len(event.Topics) == 3:
+		if handler.Erc20Approval != nil {
+			if err := handler.Erc20Approval(
+				SliceEthAddress(event.Topics[1]),
+				SliceEthAddress(event.Topics[2]),
+				event.Data,
+			); err != nil {
+				return fmt.Errorf("erc20 approval: %w", err)
 			}
 		}
 	}

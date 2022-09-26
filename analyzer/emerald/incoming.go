@@ -132,6 +132,7 @@ func registerEthAddress(addressPreimages map[string]*AddressPreimageData, ethAdd
 	return addr, nil
 }
 
+//nolint:unparam
 func registerRelatedSdkAddress(relatedAddresses map[string]bool, sdkAddr *sdkTypes.Address) (string, error) {
 	addr, err := common.StringifySdkAddress(sdkAddr)
 	if err != nil {
@@ -154,6 +155,7 @@ func registerRelatedAddressSpec(addressPreimages map[string]*AddressPreimageData
 	return addr, nil
 }
 
+//nolint:unparam
 func registerRelatedEthAddress(addressPreimages map[string]*AddressPreimageData, relatedAddresses map[string]bool, ethAddr []byte) (string, error) {
 	addr, err := registerEthAddress(addressPreimages, ethAddr)
 	if err != nil {
@@ -165,6 +167,7 @@ func registerRelatedEthAddress(addressPreimages map[string]*AddressPreimageData,
 	return addr, nil
 }
 
+//nolint:gocyclo
 func extractRound(sigContext signature.Context, b *block.Block, txrs []*sdkClient.TransactionWithResults) (*BlockData, error) {
 	var blockData BlockData
 	blockData.Hash = b.Header.EncodedHash().String()
@@ -331,7 +334,7 @@ func extractRound(sigContext signature.Context, b *block.Block, txrs []*sdkClien
 			if (txr.Result.IsUnknown() || txr.Result.IsSuccess()) && tx != nil {
 				// Treat as if it used all the gas.
 				txGasUsed = int64(tx.AuthInfo.Fee.Gas)
-			} else {
+			} else { //nolint:staticcheck
 				// Inaccurate: Treat as not using any gas.
 			}
 		}
