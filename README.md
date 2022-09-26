@@ -17,16 +17,35 @@ to the `docker/node/etc` directory. You will need this to run the Oasis Node con
 
 **Build**
 
-From the repository root, you can run:
-```sh
-$ make docker
+## We are doing a Linux system update.
 ```
+sudo apt-get update && apt-get upgrade -y
+```
+
+## We install the necessary libraries
+```
+sudo apt install curl tar wget clang pkg-config libssl-dev jq build-essential bsdmainutils git make ncdu gcc git jq chrony unzip liblz4-tool -y
+```
+
+From the repository root, you can run:
+```
+curl -fsSL https://get.docker.com -o get-docker.sh
+sudo sh get-docker.sh
+```
+
+## We are installing Docker.
+```
+curl -SL https://github.com/docker/compose/releases/download/v2.5.0/docker-compose-linux-x86_64 -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
+sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
+```
+
 
 **Run**
 
 From the repository root, you can run:
-```sh
-$ make start-docker
+```
+sudo systemctl enable --now docker
 ```
 
 The analyzer will run migrations on start based on files in `storage/migrations`.
