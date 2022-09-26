@@ -7,6 +7,7 @@ replace github.com/tendermint/tendermint => github.com/oasisprotocol/tendermint 
 require (
 	github.com/cockroachdb/cockroach-go/v2 v2.2.8
 	github.com/dgraph-io/ristretto v0.1.0
+	github.com/ethereum/go-ethereum v1.10.19
 	github.com/go-chi/chi/v5 v5.0.7
 	github.com/go-kit/log v0.2.1
 	github.com/golang-migrate/migrate/v4 v4.15.2
@@ -27,10 +28,12 @@ require (
 require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/btcsuite/btcd v0.22.1 // indirect
+	github.com/btcsuite/btcd/btcec/v2 v2.2.0 // indirect
 	github.com/btcsuite/btcutil v1.0.3-0.20201208143702-a53e38424cce // indirect
 	github.com/cenkalti/backoff/v4 v4.1.3 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.0.1 // indirect
 	github.com/dustin/go-humanize v1.0.0 // indirect
 	github.com/eapache/channels v1.1.0 // indirect
 	github.com/eapache/queue v1.1.0 // indirect
@@ -120,5 +123,5 @@ require (
 
 require (
 	github.com/oasisprotocol/metadata-registry-tools v0.0.0-20220406100644-7e9a2b991920
-	golang.org/x/crypto v0.0.0-20220525230936-793ad666bf5e // indirect
+	golang.org/x/crypto v0.0.0-20220525230936-793ad666bf5e
 )
