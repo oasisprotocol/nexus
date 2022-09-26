@@ -371,8 +371,7 @@ func extractRound(sigContext signature.Context, b *block.Block, txrs []*sdkClien
 	return &blockData, nil
 }
 
-func saveRound(ctx context.Context, dbTx pgx.Tx, chainAlias string, round int64, blockData *BlockData) error {
-	var batch pgx.Batch
+func emitRoundBatch(batch *pgx.Batch, chainAlias string, round int64, blockData *BlockData) {
 	for _, transactionData := range blockData.TransactionData {
 		for _, signerData := range transactionData.SignerData {
 			batch.Queue("INSERT INTO transaction_signer (chain_alias, height, tx_index, signer_index, addr, nonce) VALUES ($1, $2, $3, $4, $5, $6)", chainAlias, round, transactionData.Index, signerData.Index, signerData.Address, signerData.Nonce)
@@ -387,6 +386,11 @@ func saveRound(ctx context.Context, dbTx pgx.Tx, chainAlias string, round int64,
 	}
 	batch.Queue("INSERT INTO block_extra (chain_alias, height, b_hash, num_transactions, gas_used, size) VALUES ($1, $2, $3, $4, $5, $6)", chainAlias, round, blockData.Hash, blockData.NumTransactions, blockData.GasUsed, blockData.Size)
 	batch.Queue("UPDATE progress SET first_unscanned_height = $1 WHERE chain_alias = $2", round+1, chainAlias)
+}
+
+func saveRound(ctx context.Context, dbTx pgx.Tx, chainAlias string, round int64, blockData *BlockData) error {
+	var batch pgx.Batch
+	emitRoundBatch(&batch, chainAlias, round, blockData)
 	batchResults := dbTx.SendBatch(ctx, &batch)
 	defer common.CloseOrLog(batchResults)
 	for i := 0; i < batch.Len(); i++ {
