@@ -292,11 +292,15 @@ func (m *Main) queueEpochInserts(batch *storage.QueryBatch, data *storage.Consen
 		data.Epoch,
 		data.BlockHeader.Height,
 	)
-	batch.Queue(
-		m.qf.ConsensusEpochUpdateQuery(),
-		data.Epoch-1,
-		data.BlockHeader.Height,
-	)
+
+	// Conclude previous epoch
+	if data.Epoch > 0 {
+		batch.Queue(
+			m.qf.ConsensusEpochUpdateQuery(),
+			data.Epoch-1,
+			data.BlockHeader.Height,
+		)
+	}
 
 	return nil
 }
