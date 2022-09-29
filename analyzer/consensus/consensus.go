@@ -293,7 +293,7 @@ func (m *Main) queueEpochInserts(batch *storage.QueryBatch, data *storage.Consen
 		data.BlockHeader.Height,
 	)
 
-	// Conclude previous epoch
+	// Conclude previous epoch. Epochs start at index 0.
 	if data.Epoch > 0 {
 		batch.Queue(
 			m.qf.ConsensusEpochUpdateQuery(),
