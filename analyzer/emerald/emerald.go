@@ -63,6 +63,7 @@ func NewMain(cfg *config.AnalyzerConfig, target storage.TargetStorage, logger *l
 	if err != nil {
 		return nil, err
 	}
+	logger.Info("Emerald runtime ID determined", "runtime_id", id)
 
 	client, err := factory.Runtime(id)
 	if err != nil {
@@ -142,6 +143,7 @@ func (m *Main) Start() {
 
 			m.logger.Error("error processing round",
 				"err", err,
+				"round", round,
 			)
 			backoff.Wait()
 			continue
@@ -218,7 +220,7 @@ func (m *Main) processRound(ctx context.Context, round uint64) error {
 		return err
 	}
 
-	opName := fmt.Sprintf("process_round_%s", emerald.String())
+	opName := fmt.Sprintf("process_round_rt%s", emerald.String())
 	timer := m.metrics.DatabaseTimer(m.target.Name(), opName)
 	defer timer.ObserveDuration()
 
