@@ -2,6 +2,7 @@ package modules
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/oasisprotocol/oasis-indexer/analyzer"
 	"github.com/oasisprotocol/oasis-indexer/log"
@@ -30,10 +31,7 @@ func NewAccountsHandler(source storage.RuntimeSourceStorage, qf *analyzer.QueryF
 func (h *AccountsHandler) PrepareData(ctx context.Context, round uint64, batch *storage.QueryBatch) error {
 	data, err := h.source.AccountsData(ctx, round)
 	if err != nil {
-		h.logger.Error("error retrieving accounts data",
-			"error", err,
-		)
-		return err
+		return fmt.Errorf("error retrieving accounts data: %w", err)
 	}
 
 	for _, f := range []func(*storage.QueryBatch, *storage.AccountsData) error{
