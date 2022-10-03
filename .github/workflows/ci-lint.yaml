@@ -41,6 +41,6 @@ jobs:
       - name: Lint Go
         uses: golangci/golangci-lint-action@v3
         with:
-          version: v1.44.2
+          version: v1.49.0
         # Always run this step so that all linting errors can be seen at once.
         if: always()
