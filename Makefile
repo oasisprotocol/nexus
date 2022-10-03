@@ -20,6 +20,10 @@ docker:
 		--tag oasislabs/oasis-indexer:dev \
 		--file docker/indexer/Dockerfile \
 		.
+  @docker build \
+		--tag oasislabs/oasis-net-runner:dev \
+		--file docker/oasis-net-runner/Dockerfile \
+		docker/oasis-net-runner
 
 clean:
 	@$(GO) clean
