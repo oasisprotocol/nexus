@@ -68,3 +68,19 @@ jobs:
         uses: actions/checkout@v3
       - name: Validate storage migrations are serial
         run: scripts/validate_migrations.py --migrations storage/migrations
+
+  test-e2e:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Build docker
+        run: make docker
+      - name: Start docker
+        run: docker compose -f docker-compose.e2e.yml up -d
+      - name: Confirm containers
+        run: docker ps -a
+      - name: Log containers
+        run: docker logs oasis-indexer
+      - name: Test
+        run: docker exec oasis-indexer sh -c "cd /oasis-indexer && OASIS_INDEXER_E2E=true make test-e2e"

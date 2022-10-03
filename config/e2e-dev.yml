@@ -1,0 +1,25 @@
+analysis:
+  analyzers:
+    - name: consensus_main_damask
+      chain_id: oasis-3
+      rpc: unix:/testnet/net-runner/network/validator-0/internal.sock
+      chaincontext: a2114ae558d32d8e1bab78f7fe64d8ce8fa246b46d3cf9d13a76d17fa0803232
+      from: 1
+      to: 86400
+  storage:
+    endpoint: postgresql://indexer:password@postgres:5432/indexer?sslmode=disable
+    backend: postgres
+  migrations: file:///storage/migrations
+
+server:
+  endpoint: 0.0.0.0:8008
+  storage:
+    endpoint: postgresql://indexer:password@postgres:5432/indexer?sslmode=disable
+    backend: postgres
+
+log:
+  level: debug
+  format: json
+
+metrics:
+  pull_endpoint: 0.0.0.0:8009
