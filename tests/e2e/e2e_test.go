@@ -63,7 +63,7 @@ func TestIndexer(t *testing.T) {
 	name := "transfer"
 	src, _ := drbg.New(hash, seed, nil, []byte(fmt.Sprintf("txsource workload generator v1, workload %s", name)))
 
-	rng := rand.New(mathrand.New(src)) //nolint:gosec
+	rng := rand.New(mathrand.New(src)) //nolint:gosec // G404: Use of weak random number generator (math/rand instead of crypto/rand)
 
 	fundingAccount, _ := memorySigner.NewFactory().Generate(signature.SignerEntity, rng)
 

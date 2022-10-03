@@ -28,7 +28,7 @@ func (s *PullService) StartInstrumentation() {
 func (s *PullService) startHandler() {
 	http.Handle("/metrics", promhttp.Handler())
 
-	if err := http.ListenAndServe(s.pullEndpoint, nil); err != nil {
+	if err := http.ListenAndServe(s.pullEndpoint, nil); err != nil { //nolint:gosec // G114: Use of net/http serve function that has no support for setting timeouts
 		s.logger.Error("unable to initialize prometheus pull service",
 			"endpoint", s.pullEndpoint,
 			"error", err,
