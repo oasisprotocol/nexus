@@ -12,7 +12,12 @@ import (
 
 // GetFrom completes an HTTP request and returns the unmarshalled response.
 func GetFrom(path string, v interface{}) error {
-	resp, err := http.NewRequestWithContext(context.Background(), "GET", fmt.Sprintf("%s%s", baseEndpoint, path), nil)
+	req, err := http.NewRequestWithContext(context.Background(), "GET", fmt.Sprintf("%s%s", baseEndpoint, path), nil)
+	if err != nil {
+		return err
+	}
+
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return err
 	}
