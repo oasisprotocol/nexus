@@ -276,12 +276,11 @@ func (m *Main) queueTransactionInserts(batch *storage.QueryBatch, data *storage.
 		return err
 	}
 	sigContext := signature.DeriveChainContext(rtid, "b11b369e0da5bb230b220127f5e7b242d385ef8c6f54906243f30af63c815535")
-	chainAlias := "mainnet_emerald"
 
 	blockData, err := extractRound(sigContext, data.BlockHeader, data.TransactionsWithResults)
 	if err != nil {
 		return fmt.Errorf("extract round %d: %w", data.Round, err)
 	}
-	emitRoundBatch(batch, chainAlias, int64(data.Round), blockData)
+	emitRoundBatch(batch, int64(data.Round), blockData)
 	return nil
 }
