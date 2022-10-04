@@ -5,5 +5,5 @@ indexer
 docker/node/data
 docker/node/etc/genesis.json
 
-# Oasis net runner data
-docker/testnet
+# Oasis net-runner data.
+tests/e2e/testnet/net-runner
