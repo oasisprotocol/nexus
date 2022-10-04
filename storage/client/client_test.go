@@ -6,10 +6,6 @@ import (
 	"github.com/oasisprotocol/oasis-indexer/storage"
 )
 
-const (
-	queryBase = "SELECT * FROM table"
-)
-
 // MockStorage is a mock object that implements the
 // storage.TargetStorage interface.
 type MockStorage struct {

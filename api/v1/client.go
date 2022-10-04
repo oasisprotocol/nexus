@@ -61,7 +61,7 @@ func newStorageClient(chainID string, s *storage.StorageClient, l *log.Logger) (
 
 // Status returns status information for the Oasis Indexer.
 func (c *storageClient) Status(ctx context.Context) (*storage.Status, error) {
-	return c.Status(ctx)
+	return c.storage.Status(ctx)
 }
 
 // Blocks returns a list of consensus blocks.
@@ -589,7 +589,6 @@ func (c *storageClient) Validator(ctx context.Context, r *http.Request) (*storag
 	q.EntityId = &entityId
 
 	return c.storage.Validator(ctx, &q)
-
 }
 
 // TransactionsPerSecond returns a list of tps checkpoint values.

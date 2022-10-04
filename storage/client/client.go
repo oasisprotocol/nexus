@@ -408,7 +408,6 @@ func (c *StorageClient) EntityNode(ctx context.Context, r *EntityNodeRequest) (*
 
 // Accounts returns a list of consensus accounts.
 func (c *StorageClient) Accounts(ctx context.Context, r *AccountsRequest, p *common.Pagination) (*AccountList, error) {
-
 	cid, ok := ctx.Value(ChainIDContextKey).(string)
 	if !ok {
 		return nil, common.ErrBadChainID
