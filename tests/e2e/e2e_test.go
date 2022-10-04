@@ -51,38 +51,46 @@ func TestIndexer(t *testing.T) {
 	require.Nil(t, err)
 
 	connString := "unix:/testnet/net-runner/network/validator-0/internal.sock"
-	conn, _ := oasisGrpc.Dial(connString, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := oasisGrpc.Dial(connString, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	require.Nil(t, err)
 
 	ctx := context.Background()
 	cnsc := consensus.NewConsensusClient(conn)
-	doc, _ := cnsc.GetGenesisDocument(ctx)
+	doc, err := cnsc.GetGenesisDocument(ctx)
+	require.Nil(t, err)
 	doc.SetChainContext()
 
 	hash := crypto.SHA512
 	seed := []byte("seeeeeeeeeeeeeeeeeeeeeeeeeeeeeed")
 	name := "transfer"
-	src, _ := drbg.New(hash, seed, nil, []byte(fmt.Sprintf("txsource workload generator v1, workload %s", name)))
+	src, err := drbg.New(hash, seed, nil, []byte(fmt.Sprintf("txsource workload generator v1, workload %s", name)))
+	require.Nil(t, err)
 
 	rng := rand.New(mathrand.New(src)) //nolint:gosec // G404: Use of weak random number generator (math/rand instead of crypto/rand)
 
-	fundingAccount, _ := memorySigner.NewFactory().Generate(signature.SignerEntity, rng)
+	fundingAccount, err := memorySigner.NewFactory().Generate(signature.SignerEntity, rng)
+	require.Nil(t, err)
 
 	fmt.Println("Funding account address: ", staking.NewAddress(fundingAccount.Public()))
 
 	fac := memorySigner.NewFactory()
 
-	aliceAccount, _ := fac.Generate(signature.SignerEntity, rng)
-	bobAccount, _ := fac.Generate(signature.SignerEntity, rng)
+	aliceAccount, err := fac.Generate(signature.SignerEntity, rng)
+	require.Nil(t, err)
+	bobAccount, err := fac.Generate(signature.SignerEntity, rng)
+	require.Nil(t, err)
 	aliceAddress := staking.NewAddress(aliceAccount.Public())
 	bobAddress := staking.NewAddress(bobAccount.Public())
 
 	fmt.Println("Alice address: ", aliceAddress)
 	fmt.Println("Bob address: ", bobAddress)
 
-	pd, _ := consensus.NewStaticPriceDiscovery(uint64(0))
+	pd, err := consensus.NewStaticPriceDiscovery(uint64(0))
+	require.Nil(t, err)
 	sm := consensus.NewSubmissionManager(cnsc, pd, 0)
 
-	_, testEntitySigner, _ := entity.TestEntity()
+	_, testEntitySigner, err := entity.TestEntity()
+	require.Nil(t, err)
 
 	// Seed Alice account
 	bw := workload.NewBaseWorkload("funding")
