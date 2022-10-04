@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/dgraph-io/ristretto"
 	"github.com/go-chi/chi/v5"
 
 	governance "github.com/oasisprotocol/oasis-core/go/governance/api"
@@ -16,17 +17,46 @@ import (
 	storage "github.com/oasisprotocol/oasis-indexer/storage/client"
 )
 
+const (
+	blockCost = 1
+	txCost    = 1
+)
+
 // storageClient is a wrapper around a storage.TargetStorage
 // with knowledge of network semantics.
 type storageClient struct {
 	chainID string
 	storage *storage.StorageClient
-	logger  *log.Logger
+
+	blockCache *ristretto.Cache
+	txCache    *ristretto.Cache
+
+	logger *log.Logger
 }
 
 // newStorageClient creates a new storage client.
-func newStorageClient(chainID string, s *storage.StorageClient, l *log.Logger) *storageClient {
-	return &storageClient{chainID, s, l}
+func newStorageClient(chainID string, s *storage.StorageClient, l *log.Logger) (*storageClient, error) {
+	blockCache, err := ristretto.NewCache(&ristretto.Config{
+		NumCounters:        1024 * 10,
+		MaxCost:            1024,
+		BufferItems:        64,
+		IgnoreInternalCost: true,
+	})
+	if err != nil {
+		l.Error("api client: failed to create block cache: %w", err)
+		return nil, err
+	}
+	txCache, err := ristretto.NewCache(&ristretto.Config{
+		NumCounters:        1024 * 10,
+		MaxCost:            1024,
+		BufferItems:        64,
+		IgnoreInternalCost: true,
+	})
+	if err != nil {
+		l.Error("api client: failed to create tx cache: %w", err)
+		return nil, err
+	}
+	return &storageClient{chainID, s, blockCache, txCache, l}, nil
 }
 
 // Status returns status information for the Oasis Indexer.
@@ -79,7 +109,7 @@ func (c *storageClient) Blocks(ctx context.Context, r *http.Request) (*storage.B
 	return c.storage.Blocks(ctx, &q, &p)
 }
 
-// Block returns a consensus block.
+// Block returns a consensus block. This endpoint's responses are cached.
 func (c *storageClient) Block(ctx context.Context, r *http.Request) (*storage.Block, error) {
 	var q storage.BlockRequest
 
@@ -94,7 +124,23 @@ func (c *storageClient) Block(ctx context.Context, r *http.Request) (*storage.Bl
 	}
 	q.Height = &height
 
-	return c.storage.Block(ctx, &q)
+	// Check cache
+	untypedBlock, ok := c.blockCache.Get(height)
+	if ok {
+		return untypedBlock.(*storage.Block), nil
+	}
+
+	blk, err := c.storage.Block(ctx, &q)
+	if err != nil {
+		return nil, err
+	}
+	c.cacheBlock(blk)
+	return blk, nil
+}
+
+// cacheBlock adds a block to the client's block cache.
+func (c *storageClient) cacheBlock(blk *storage.Block) {
+	c.blockCache.Set(blk.Height, blk, blockCost)
 }
 
 // Transactions returns a list of consensus transactions.
@@ -164,7 +210,22 @@ func (c *storageClient) Transaction(ctx context.Context, r *http.Request) (*stor
 	}
 	q.TxHash = &txHash
 
-	return c.storage.Transaction(ctx, &q)
+	// Check cache
+	untypedTx, ok := c.txCache.Get(txHash)
+	if ok {
+		return untypedTx.(*storage.Transaction), nil
+	}
+	tx, err := c.storage.Transaction(ctx, &q)
+	if err != nil {
+		return nil, err
+	}
+	c.cacheTx(tx)
+	return tx, nil
+}
+
+// cacheTx adds a transaction to the client's transaction cache.
+func (c *storageClient) cacheTx(tx *storage.Transaction) {
+	c.txCache.Set(tx.Hash, tx, txCost)
 }
 
 // Entities returns a list of registered entities.
