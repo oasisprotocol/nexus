@@ -16,6 +16,7 @@ analysis:
   migrations: file:///storage/migrations
 
 server:
+  chain_id: oasis-3
   endpoint: 0.0.0.0:8008
   storage:
     endpoint: postgresql://indexer:password@postgres:5432/indexer?sslmode=disable

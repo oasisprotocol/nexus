@@ -52,7 +52,7 @@ func (h *Handler) metricsMiddleware(next http.Handler) http.Handler {
 // to the request context.
 func (h *Handler) chainMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		chainID := strcase.ToSnake(LatestChainID)
+		chainID := strcase.ToSnake(h.client.chainID)
 
 		// TODO: Set chainID based on provided height params.
 

@@ -9,8 +9,6 @@ import (
 )
 
 const (
-	LatestChainID = "oasis-3"
-
 	moduleName = "api_v1"
 )
 
@@ -22,9 +20,9 @@ type Handler struct {
 }
 
 // NewHandler creates a new V1 API handler.
-func NewHandler(db storage.TargetStorage, l *log.Logger) *Handler {
+func NewHandler(chainID string, db storage.TargetStorage, l *log.Logger) *Handler {
 	return &Handler{
-		client:  newStorageClient(db, l),
+		client:  newStorageClient(chainID, db, l),
 		logger:  l.WithModule(moduleName),
 		metrics: metrics.NewDefaultRequestMetrics(moduleName),
 	}

@@ -97,7 +97,7 @@ func NewService(cfg *config.ServerConfig) (*Service, error) {
 
 	return &Service{
 		server: cfg.Endpoint,
-		api:    api.NewIndexerAPI(client, logger),
+		api:    api.NewIndexerAPI(cfg.ChainID, client, logger),
 		target: client,
 		logger: logger,
 	}, nil

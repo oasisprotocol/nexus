@@ -36,11 +36,11 @@ type IndexerAPI struct {
 }
 
 // NewIndexerAPI creates a new Indexer API.
-func NewIndexerAPI(db storage.TargetStorage, l *log.Logger) *IndexerAPI {
+func NewIndexerAPI(chainID string, db storage.TargetStorage, l *log.Logger) *IndexerAPI {
 	r := chi.NewRouter()
 
 	// Register handlers.
-	v1Handler := v1.NewHandler(db, l)
+	v1Handler := v1.NewHandler(chainID, db, l)
 	handlers := []Handler{
 		v1Handler,
 	}
