@@ -71,7 +71,7 @@ func TestIndexer(t *testing.T) {
 	fundingAccount, err := memorySigner.NewFactory().Generate(signature.SignerEntity, rng)
 	require.Nil(t, err)
 
-	fmt.Println("Funding account address: ", staking.NewAddress(fundingAccount.Public()))
+	t.Log("Funding account address: ", staking.NewAddress(fundingAccount.Public()))
 
 	fac := memorySigner.NewFactory()
 
@@ -82,8 +82,8 @@ func TestIndexer(t *testing.T) {
 	aliceAddress := staking.NewAddress(aliceAccount.Public())
 	bobAddress := staking.NewAddress(bobAccount.Public())
 
-	fmt.Println("Alice address: ", aliceAddress)
-	fmt.Println("Bob address: ", bobAddress)
+	t.Log("Alice address: ", aliceAddress)
+	t.Log("Bob address: ", bobAddress)
 
 	pd, err := consensus.NewStaticPriceDiscovery(uint64(0))
 	require.Nil(t, err)
@@ -96,10 +96,10 @@ func TestIndexer(t *testing.T) {
 	bw := workload.NewBaseWorkload("funding")
 	bw.Init(cnsc, sm, testEntitySigner)
 	if err := workload.FundAccountFromTestEntity(ctx, cnsc, sm, fundingAccount); err != nil {
-		panic(fmt.Errorf("test entity account funding failure: %w", err))
+		t.Errorf("test entity account funding failure: %v", err)
 	}
 	if err := bw.TransferFunds(ctx, fundingAccount, aliceAddress, fundAccountAmount); err != nil {
-		panic(fmt.Errorf("account funding failure: %w", err))
+		t.Errorf("account funding failure: %v", err)
 	}
 
 	// Bob account does not exist
@@ -110,7 +110,7 @@ func TestIndexer(t *testing.T) {
 
 	// Transfer to Bob account
 	if err := bw.TransferFunds(ctx, aliceAccount, bobAddress, 100000000); err != nil {
-		panic(fmt.Errorf("account funding failure: %w", err))
+		t.Errorf("account funding failure: %v", err)
 	}
 
 	time.Sleep(timeout)
@@ -124,7 +124,7 @@ func TestIndexer(t *testing.T) {
 	}
 	delegateAmount := uint64(25000000)
 	if err := escrow.Amount.FromUint64(delegateAmount); err != nil {
-		panic(fmt.Errorf("escrow amount error: %w", err))
+		t.Errorf("escrow amount error: %v", err)
 	}
 
 	tx := staking.NewAddEscrowTx(uint64(1), nil, escrow)
@@ -134,7 +134,7 @@ func TestIndexer(t *testing.T) {
 	}
 
 	if err := bw.FundSignAndSubmitTx(ctx, bobAccount, tx); err != nil {
-		panic(fmt.Errorf("failed to sign and submit tx: %w", err))
+		t.Errorf("failed to sign and submit tx: %v", err)
 	}
 
 	// Bob account has correct delegation balance
