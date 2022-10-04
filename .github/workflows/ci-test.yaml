@@ -77,7 +77,7 @@ jobs:
       - name: Build docker
         run: make docker
       - name: Start docker
-        run: docker compose -f docker-compose.e2e.yml up -d
+        run: docker compose -f tests/e2e/docker-compose.e2e.yml up -d
       - name: Confirm containers
         run: docker ps -a
       - name: Log containers

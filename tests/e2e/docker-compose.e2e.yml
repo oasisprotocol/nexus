@@ -11,16 +11,17 @@ services:
       - --config=/config/e2e-dev.yml
     volumes:
       - type: bind
-        source: ./tests/e2e/migrations
+        source: ./migrations
         target: /storage/migrations
       - type: bind
         source: ./config
         target: /config
       - type: bind
-        source: ./docker/testnet
+        source: ./testnet
         target: /testnet
   postgres:
     image: postgres:13.7
+    container_name: oasis-postgres
     ports:
       - 5432:5432
     command: ["postgres", "-c", "log_statement=all"]
@@ -38,14 +39,14 @@ services:
     image: oasislabs/oasis-net-runner:dev
     build:
       context: .
-      dockerfile: ./docker/oasis-net-runner/Dockerfile
+      dockerfile: ../../docker/oasis-net-runner/Dockerfile
     container_name: oasis-net-runner
     volumes:
       - type: bind
         source: ./
         target: /oasis-indexer
       - type: bind
-        source: ./docker/testnet
+        source: ./testnet
         target: /testnet
     command:
       - /bin/sh
