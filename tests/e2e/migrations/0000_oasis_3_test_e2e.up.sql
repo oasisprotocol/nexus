@@ -4,11 +4,11 @@
 BEGIN;
 
 -- Create Damask Upgrade Schema with `chain-id`.
-CREATE SCHEMA IF NOT EXISTS oasis_3;
+CREATE SCHEMA IF NOT EXISTS oasis_test;
 
 -- Block Data
 
-CREATE TABLE IF NOT EXISTS oasis_3.blocks
+CREATE TABLE IF NOT EXISTS oasis_test.blocks
 (
   height     BIGINT PRIMARY KEY,
   block_hash TEXT NOT NULL,
@@ -27,9 +27,9 @@ CREATE TABLE IF NOT EXISTS oasis_3.blocks
   extra_data JSON
 );
 
-CREATE TABLE IF NOT EXISTS oasis_3.transactions
+CREATE TABLE IF NOT EXISTS oasis_test.transactions
 (
-  block BIGINT NOT NULL REFERENCES oasis_3.blocks(height),
+  block BIGINT NOT NULL REFERENCES oasis_test.blocks(height),
 
   txn_hash   TEXT NOT NULL,
   txn_index  INTEGER,
@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS oasis_3.transactions
   extra_data JSON
 );
 
-CREATE TABLE IF NOT EXISTS oasis_3.events
+CREATE TABLE IF NOT EXISTS oasis_test.events
 (
   backend TEXT NOT NULL,
   type    TEXT NOT NULL,
@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS oasis_3.events
   txn_hash   TEXT NOT NULL,
   txn_index  INTEGER,
 
-  FOREIGN KEY (txn_block, txn_hash, txn_index) REFERENCES oasis_3.transactions(block, txn_hash, txn_index),
+  FOREIGN KEY (txn_block, txn_hash, txn_index) REFERENCES oasis_test.transactions(block, txn_hash, txn_index),
 
   -- Arbitrary additional data.
   extra_data JSON
@@ -72,7 +72,7 @@ CREATE TABLE IF NOT EXISTS oasis_3.events
 
 -- Beacon Backend Data
 
-CREATE TABLE IF NOT EXISTS oasis_3.epochs
+CREATE TABLE IF NOT EXISTS oasis_test.epochs
 (
   id           BIGINT PRIMARY KEY,
   start_height BIGINT NOT NULL,
@@ -84,7 +84,7 @@ CREATE TABLE IF NOT EXISTS oasis_3.epochs
 );
 
 -- Registry Backend Data
-CREATE TABLE IF NOT EXISTS oasis_3.entities
+CREATE TABLE IF NOT EXISTS oasis_test.entities
 (
   id      TEXT PRIMARY KEY,
   address TEXT,
@@ -93,10 +93,10 @@ CREATE TABLE IF NOT EXISTS oasis_3.entities
   extra_data JSON
 );
 
-CREATE TABLE IF NOT EXISTS oasis_3.nodes
+CREATE TABLE IF NOT EXISTS oasis_test.nodes
 (
   id         TEXT PRIMARY KEY,
-  entity_id  TEXT NOT NULL REFERENCES oasis_3.entities(id),
+  entity_id  TEXT NOT NULL REFERENCES oasis_test.entities(id),
   expiration BIGINT NOT NULL,
 
   -- TLS Info
@@ -127,7 +127,7 @@ CREATE TABLE IF NOT EXISTS oasis_3.nodes
   extra_data JSON
 );
 
-CREATE TABLE IF NOT EXISTS oasis_3.runtimes
+CREATE TABLE IF NOT EXISTS oasis_test.runtimes
 (
   id           TEXT PRIMARY KEY,
   suspended    BOOLEAN NOT NULL DEFAULT false,
@@ -141,7 +141,7 @@ CREATE TABLE IF NOT EXISTS oasis_3.runtimes
 
 -- Staking Backend Data
 
-CREATE TABLE IF NOT EXISTS oasis_3.accounts
+CREATE TABLE IF NOT EXISTS oasis_test.accounts
 (
   address TEXT PRIMARY KEY,
 
@@ -161,7 +161,7 @@ CREATE TABLE IF NOT EXISTS oasis_3.accounts
   extra_data JSON
 );
 
-CREATE TABLE IF NOT EXISTS oasis_3.allowances
+CREATE TABLE IF NOT EXISTS oasis_test.allowances
 (
   owner       TEXT NOT NULL,
   beneficiary TEXT NOT NULL,
@@ -170,7 +170,7 @@ CREATE TABLE IF NOT EXISTS oasis_3.allowances
   PRIMARY KEY (owner, beneficiary)
 );
 
-CREATE TABLE IF NOT EXISTS oasis_3.delegations
+CREATE TABLE IF NOT EXISTS oasis_test.delegations
 (
   delegatee TEXT NOT NULL,
   delegator TEXT NOT NULL,
@@ -179,7 +179,7 @@ CREATE TABLE IF NOT EXISTS oasis_3.delegations
   PRIMARY KEY (delegatee, delegator)
 );
 
-CREATE TABLE IF NOT EXISTS oasis_3.debonding_delegations
+CREATE TABLE IF NOT EXISTS oasis_test.debonding_delegations
 (
   delegatee  TEXT NOT NULL,
   delegator  TEXT NOT NULL,
@@ -189,7 +189,7 @@ CREATE TABLE IF NOT EXISTS oasis_3.debonding_delegations
 
 -- Scheduler Backend Data
 
-CREATE TABLE IF NOT EXISTS oasis_3.committee_members
+CREATE TABLE IF NOT EXISTS oasis_test.committee_members
 (
   node      TEXT NOT NULL,
   valid_for BIGINT NOT NULL,
@@ -205,7 +205,7 @@ CREATE TABLE IF NOT EXISTS oasis_3.committee_members
 
 -- Governance Backend Data
 
-CREATE TABLE IF NOT EXISTS oasis_3.proposals
+CREATE TABLE IF NOT EXISTS oasis_test.proposals
 (
   id            BIGINT PRIMARY KEY,
   submitter     TEXT NOT NULL,
@@ -221,7 +221,7 @@ CREATE TABLE IF NOT EXISTS oasis_3.proposals
   upgrade_epoch      BIGINT,
 
   -- If this proposal cancels an existing proposal.
-  cancels BIGINT REFERENCES oasis_3.proposals(id) DEFAULT NULL,
+  cancels BIGINT REFERENCES oasis_test.proposals(id) DEFAULT NULL,
 
   created_at    BIGINT NOT NULL,
   closes_at     BIGINT NOT NULL,
@@ -231,9 +231,9 @@ CREATE TABLE IF NOT EXISTS oasis_3.proposals
   extra_data JSON
 );
 
-CREATE TABLE IF NOT EXISTS oasis_3.votes
+CREATE TABLE IF NOT EXISTS oasis_test.votes
 (
-  proposal BIGINT NOT NULL REFERENCES oasis_3.proposals(id),
+  proposal BIGINT NOT NULL REFERENCES oasis_test.proposals(id),
   voter    TEXT NOT NULL,
   vote     TEXT,
 
@@ -244,7 +244,7 @@ CREATE TABLE IF NOT EXISTS oasis_3.votes
 );
 
 -- Indexing Progress Management
-CREATE TABLE IF NOT EXISTS oasis_3.processed_blocks
+CREATE TABLE IF NOT EXISTS oasis_test.processed_blocks
 (
   height         BIGINT NOT NULL,
   analyzer       TEXT NOT NULL,
@@ -253,15 +253,15 @@ CREATE TABLE IF NOT EXISTS oasis_3.processed_blocks
   PRIMARY KEY (height, analyzer)
 );
 
-CREATE TABLE IF NOT EXISTS oasis_3.checkpointed_heights
+CREATE TABLE IF NOT EXISTS oasis_test.checkpointed_heights
 (
   height BIGINT PRIMARY KEY,
   checkpoint_time TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
-ALTER TABLE oasis_3.nodes DROP CONSTRAINT nodes_entity_id_fkey;
+ALTER TABLE oasis_test.nodes DROP CONSTRAINT nodes_entity_id_fkey;
 
-CREATE TABLE IF NOT EXISTS oasis_3.claimed_nodes
+CREATE TABLE IF NOT EXISTS oasis_test.claimed_nodes
 (
   entity_id TEXT NOT NULL,
   node_id   TEXT NOT NULL,
@@ -269,17 +269,17 @@ CREATE TABLE IF NOT EXISTS oasis_3.claimed_nodes
   PRIMARY KEY (entity_id, node_id)  
 );
 
-ALTER TABLE oasis_3.entities ADD meta JSON;
+ALTER TABLE oasis_test.entities ADD meta JSON;
 
-CREATE TABLE IF NOT EXISTS oasis_3.commissions
+CREATE TABLE IF NOT EXISTS oasis_test.commissions
 (
-  address  TEXT PRIMARY KEY NOT NULL REFERENCES oasis_3.accounts(address),
+  address  TEXT PRIMARY KEY NOT NULL REFERENCES oasis_test.accounts(address),
   schedule JSON
 );
 
-CREATE INDEX ix_transactions_sender ON oasis_3.transactions (sender);
+CREATE INDEX ix_transactions_sender ON oasis_test.transactions (sender);
 
-ALTER TABLE oasis_3.debonding_delegations ADD COLUMN id bigserial PRIMARY KEY;
+ALTER TABLE oasis_test.debonding_delegations ADD COLUMN id bigserial PRIMARY KEY;
 
 
 COMMIT;
