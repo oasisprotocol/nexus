@@ -20,7 +20,7 @@ services:
         source: ./docker/testnet
         target: /testnet
   postgres:
-    image: postgres:latest
+    image: postgres:13.7
     ports:
       - 5432:5432
     command: ["postgres", "-c", "log_statement=all"]
