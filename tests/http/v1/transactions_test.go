@@ -8,12 +8,12 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	v1 "github.com/oasisprotocol/oasis-indexer/api/v1"
+	storage "github.com/oasisprotocol/oasis-indexer/storage/client"
 	"github.com/oasisprotocol/oasis-indexer/tests"
 )
 
-func makeTestBlocks(t *testing.T) []v1.Block {
-	blocks := []v1.Block{
+func makeTestBlocks(t *testing.T) []storage.Block {
+	blocks := []storage.Block{
 		{
 			Hash:   "0a29ac21fa69bb9e43e5cb25d10826ff3946f1ce977e82f99a2614206a50765c",
 			Height: tests.GenesisHeight,
@@ -57,8 +57,8 @@ func makeTestBlocks(t *testing.T) []v1.Block {
 	return blocks
 }
 
-func makeTestTransactions() []v1.Transaction {
-	transactions := []v1.Transaction{
+func makeTestTransactions() []storage.Transaction {
+	transactions := []storage.Transaction{
 		{
 			Height:  8048959,
 			Hash:    "c58a618242396f2f5c7fa7b9c110c02e23e1d5c132085e72755605d938251ce0",
@@ -117,7 +117,7 @@ func TestListBlocks(t *testing.T) {
 	endHeight := tests.GenesisHeight + int64(len(testBlocks)-1)
 	<-tests.After(endHeight)
 
-	var list v1.BlockList
+	var list storage.BlockList
 	err := tests.GetFrom(fmt.Sprintf("/consensus/blocks?from=%d&to=%d", tests.GenesisHeight, endHeight), &list)
 	require.Nil(t, err)
 	require.Equal(t, len(testBlocks), len(list.Blocks))
@@ -136,7 +136,7 @@ func TestGetBlock(t *testing.T) {
 	endHeight := tests.GenesisHeight + int64(len(testBlocks)-1)
 	<-tests.After(endHeight)
 
-	var block v1.Block
+	var block storage.Block
 	err := tests.GetFrom(fmt.Sprintf("/consensus/blocks/%d", endHeight), &block)
 	require.Nil(t, err)
 	require.Equal(t, testBlocks[len(testBlocks)-1], block)
@@ -151,7 +151,7 @@ func TestListTransactions(t *testing.T) {
 	endHeight := tests.GenesisHeight + int64(len(testTransactions)-1)
 	<-tests.After(endHeight)
 
-	var list v1.TransactionList
+	var list storage.TransactionList
 	err := tests.GetFrom(fmt.Sprintf("/consensus/transactions?block=%d", testTransactions[0].Height), &list)
 	require.Nil(t, err)
 	require.Equal(t, len(testTransactions), len(list.Transactions))
@@ -176,7 +176,7 @@ func TestGetTransaction(t *testing.T) {
 	endHeight := tests.GenesisHeight + int64(len(testTransactions)-1)
 	<-tests.After(endHeight)
 
-	var transaction v1.Transaction
+	var transaction storage.Transaction
 	err := tests.GetFrom(fmt.Sprintf("/consensus/transactions/%s", testTransactions[0].Hash), &transaction)
 	require.Nil(t, err)
 	require.NotNil(t, transaction.Body)

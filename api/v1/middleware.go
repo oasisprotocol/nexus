@@ -9,17 +9,6 @@ import (
 	"github.com/iancoleman/strcase"
 )
 
-type ContextKey string
-
-const (
-	// ChainIDContextKey is used to set the relevant chain ID
-	// in a request context.
-	ChainIDContextKey ContextKey = "chain_id"
-	// RequestIDContextKey is used to set a request id for tracing
-	// in a request context.
-	RequestIDContextKey ContextKey = "request_id"
-)
-
 // metricsMiddleware is a middleware that measures the start and end of each request,
 // as well as other useful request information.
 func (h *Handler) metricsMiddleware(next http.Handler) http.Handler {

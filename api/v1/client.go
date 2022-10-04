@@ -8,83 +8,66 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/iancoleman/strcase"
-	oasisErrors "github.com/oasisprotocol/oasis-core/go/common/errors"
 
-	beacon "github.com/oasisprotocol/oasis-core/go/beacon/api"
+	governance "github.com/oasisprotocol/oasis-core/go/governance/api"
 	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
-
-	"github.com/oasisprotocol/oasis-indexer/analyzer/util"
 	"github.com/oasisprotocol/oasis-indexer/api/common"
 	"github.com/oasisprotocol/oasis-indexer/log"
-	"github.com/oasisprotocol/oasis-indexer/storage"
-)
-
-const (
-	tpsWindowSizeMinutes = 5
+	storage "github.com/oasisprotocol/oasis-indexer/storage/client"
 )
 
 // storageClient is a wrapper around a storage.TargetStorage
 // with knowledge of network semantics.
 type storageClient struct {
 	chainID string
-	db      storage.TargetStorage
+	storage *storage.StorageClient
 	logger  *log.Logger
 }
 
 // newStorageClient creates a new storage client.
-func newStorageClient(chainID string, db storage.TargetStorage, l *log.Logger) *storageClient {
-	return &storageClient{chainID, db, l}
+func newStorageClient(chainID string, s *storage.StorageClient, l *log.Logger) *storageClient {
+	return &storageClient{chainID, s, l}
 }
 
 // Status returns status information for the Oasis Indexer.
-func (c *storageClient) Status(ctx context.Context) (*Status, error) {
-	qf := NewQueryFactory(strcase.ToSnake(c.chainID))
-
-	s := Status{
-		LatestChainID: c.chainID,
-	}
-	if err := c.db.QueryRow(
-		ctx,
-		qf.StatusQuery(),
-	).Scan(&s.LatestBlock, &s.LatestUpdate); err != nil {
-		c.logger.Info("row scan failed",
-			"request_id", ctx.Value(RequestIDContextKey),
-			"err", err.Error(),
-		)
-		return nil, common.ErrStorageError
-	}
-	return &s, nil
+func (c *storageClient) Status(ctx context.Context) (*storage.Status, error) {
+	return c.Status(ctx)
 }
 
 // Blocks returns a list of consensus blocks.
-func (c *storageClient) Blocks(ctx context.Context, r *http.Request) (*BlockList, error) {
-	cid, ok := ctx.Value(ChainIDContextKey).(string)
-	if !ok {
-		return nil, common.ErrBadChainID
-	}
-	qf := NewQueryFactory(cid)
-
+func (c *storageClient) Blocks(ctx context.Context, r *http.Request) (*storage.BlockList, error) {
+	var q storage.BlocksRequest
 	params := r.URL.Query()
-
-	var from *string
 	if v := params.Get("from"); v != "" {
-		from = &v
+		from, err := strconv.ParseInt(v, 10, 64)
+		if err != nil {
+			return nil, common.ErrBadRequest
+		}
+		q.From = &from
 	}
-	var to *string
 	if v := params.Get("to"); v != "" {
-		to = &v
+		to, err := strconv.ParseInt(v, 10, 64)
+		if err != nil {
+			return nil, common.ErrBadRequest
+		}
+		q.To = &to
 	}
-	var after *string
 	if v := params.Get("after"); v != "" {
-		after = &v
+		after, err := time.Parse("2006-01-02T15:04:05Z-0700", v)
+		if err != nil {
+			return nil, common.ErrBadRequest
+		}
+		q.After = &after
 	}
-	var before *string
 	if v := params.Get("before"); v != "" {
-		before = &v
+		before, err := time.Parse("2006-01-02T15:04:05Z-0700", v)
+		if err != nil {
+			return nil, common.ErrBadRequest
+		}
+		q.Before = &before
 	}
 
-	pagination, err := common.NewPagination(r)
+	p, err := common.NewPagination(r)
 	if err != nil {
 		c.logger.Info("pagination failed",
 			"request_id", ctx.Value(RequestIDContextKey),
@@ -93,106 +76,72 @@ func (c *storageClient) Blocks(ctx context.Context, r *http.Request) (*BlockList
 		return nil, common.ErrBadRequest
 	}
 
-	rows, err := c.db.Query(
-		ctx,
-		qf.BlocksQuery(),
-		from,
-		to,
-		after,
-		before,
-		pagination.Limit,
-		pagination.Offset,
-	)
-	if err != nil {
-		c.logger.Info("query failed",
-			"request_id", ctx.Value(RequestIDContextKey),
-			"err", err.Error(),
-		)
-		return nil, common.ErrStorageError
-	}
-	defer rows.Close()
-
-	bs := BlockList{
-		Blocks: []Block{},
-	}
-	for rows.Next() {
-		var b Block
-		if err := rows.Scan(&b.Height, &b.Hash, &b.Timestamp); err != nil {
-			c.logger.Info("row scan failed",
-				"request_id", ctx.Value(RequestIDContextKey),
-				"err", err.Error(),
-			)
-			return nil, common.ErrStorageError
-		}
-		b.Timestamp = b.Timestamp.UTC()
-
-		bs.Blocks = append(bs.Blocks, b)
-	}
-
-	return &bs, nil
+	return c.storage.Blocks(ctx, &q, &p)
 }
 
 // Block returns a consensus block.
-func (c *storageClient) Block(ctx context.Context, r *http.Request) (*Block, error) {
-	cid, ok := ctx.Value(ChainIDContextKey).(string)
-	if !ok {
-		return nil, common.ErrBadChainID
-	}
-	qf := NewQueryFactory(cid)
+func (c *storageClient) Block(ctx context.Context, r *http.Request) (*storage.Block, error) {
+	var q storage.BlockRequest
 
-	var b Block
-	if err := c.db.QueryRow(
-		ctx,
-		qf.BlockQuery(),
-		chi.URLParam(r, "height"),
-	).Scan(&b.Height, &b.Hash, &b.Timestamp); err != nil {
-		c.logger.Info("row scan failed",
-			"request_id", ctx.Value(RequestIDContextKey),
-			"err", err.Error(),
-		)
-		return nil, common.ErrStorageError
+	v := chi.URLParam(r, "height")
+	if v == "" {
+		c.logger.Info("missing request parameter(s)")
+		return nil, common.ErrBadRequest
 	}
-	b.Timestamp = b.Timestamp.UTC()
+	height, err := strconv.ParseInt(v, 10, 64)
+	if err != nil {
+		return nil, common.ErrBadRequest
+	}
+	q.Height = &height
 
-	return &b, nil
+	return c.storage.Block(ctx, &q)
 }
 
 // Transactions returns a list of consensus transactions.
-func (c *storageClient) Transactions(ctx context.Context, r *http.Request) (*TransactionList, error) {
-	cid, ok := ctx.Value(ChainIDContextKey).(string)
-	if !ok {
-		return nil, common.ErrBadChainID
-	}
-	qf := NewQueryFactory(cid)
-
+func (c *storageClient) Transactions(ctx context.Context, r *http.Request) (*storage.TransactionList, error) {
+	var q storage.TransactionsRequest
 	params := r.URL.Query()
-
-	var block *string
 	if v := params.Get("block"); v != "" {
-		block = &v
+		block, err := strconv.ParseInt(v, 10, 64)
+		if err != nil {
+			return nil, common.ErrBadRequest
+		}
+		q.Block = &block
 	}
-	var method *string
 	if v := params.Get("method"); v != "" {
-		method = &v
+		q.Method = &v
 	}
-	var sender *string
 	if v := params.Get("sender"); v != "" {
-		sender = &v
+		var sender *staking.Address
+		err := sender.UnmarshalText([]byte(v))
+		if err != nil || !sender.IsValid() {
+			return nil, common.ErrBadRequest
+		}
+		q.Sender = sender
 	}
-	var minFee *string
 	if v := params.Get("minFee"); v != "" {
-		minFee = &v
+		minFee, err := strconv.ParseInt(v, 10, 64)
+		if err != nil {
+			return nil, common.ErrBadRequest
+		}
+		q.MinFee = &minFee
 	}
-	var maxFee *string
 	if v := params.Get("maxFee"); v != "" {
-		maxFee = &v
+		maxFee, err := strconv.ParseInt(v, 10, 64)
+		if err != nil {
+			return nil, common.ErrBadRequest
+		}
+		q.MaxFee = &maxFee
 	}
-	var code *string
 	if v := params.Get("code"); v != "" {
-		code = &v
+		code, err := strconv.ParseInt(v, 10, 64)
+		if err != nil {
+			return nil, common.ErrBadRequest
+		}
+		q.Code = &code
 	}
 
-	pagination, err := common.NewPagination(r)
+	p, err := common.NewPagination(r)
 	if err != nil {
 		c.logger.Info("pagination failed",
 			"request_id", ctx.Value(RequestIDContextKey),
@@ -201,105 +150,26 @@ func (c *storageClient) Transactions(ctx context.Context, r *http.Request) (*Tra
 		return nil, common.ErrBadRequest
 	}
 
-	rows, err := c.db.Query(
-		ctx,
-		qf.TransactionsQuery(),
-		block,
-		method,
-		sender,
-		minFee,
-		maxFee,
-		code,
-		pagination.Limit,
-		pagination.Offset,
-	)
-	if err != nil {
-		c.logger.Info("query failed",
-			"request_id", ctx.Value(RequestIDContextKey),
-			"err", err.Error(),
-		)
-		return nil, common.ErrStorageError
-	}
-	defer rows.Close()
-
-	ts := TransactionList{
-		Transactions: []Transaction{},
-	}
-	for rows.Next() {
-		var t Transaction
-		var code uint64
-		if err := rows.Scan(
-			&t.Height,
-			&t.Hash,
-			&t.Sender,
-			&t.Nonce,
-			&t.Fee,
-			&t.Method,
-			&t.Body,
-			&code,
-		); err != nil {
-			c.logger.Info("row scan failed",
-				"request_id", ctx.Value(RequestIDContextKey),
-				"err", err.Error(),
-			)
-			return nil, common.ErrStorageError
-		}
-		if code == oasisErrors.CodeNoError {
-			t.Success = true
-		}
-
-		ts.Transactions = append(ts.Transactions, t)
-	}
-
-	return &ts, nil
+	return c.storage.Transactions(ctx, &q, &p)
 }
 
 // Transaction returns a consensus transaction.
-func (c *storageClient) Transaction(ctx context.Context, r *http.Request) (*Transaction, error) {
-	cid, ok := ctx.Value(ChainIDContextKey).(string)
-	if !ok {
-		return nil, common.ErrBadChainID
-	}
-	qf := NewQueryFactory(cid)
+func (c *storageClient) Transaction(ctx context.Context, r *http.Request) (*storage.Transaction, error) {
+	var q storage.TransactionRequest
 
-	var t Transaction
-	var code uint64
-	if err := c.db.QueryRow(
-		ctx,
-		qf.TransactionQuery(),
-		chi.URLParam(r, "txn_hash"),
-	).Scan(
-		&t.Height,
-		&t.Hash,
-		&t.Sender,
-		&t.Nonce,
-		&t.Fee,
-		&t.Method,
-		&t.Body,
-		&code,
-	); err != nil {
-		c.logger.Info("row scan failed",
-			"request_id", ctx.Value(RequestIDContextKey),
-			"err", err.Error(),
-		)
-		return nil, common.ErrStorageError
+	txHash := chi.URLParam(r, "tx_hash")
+	if txHash == "" {
+		c.logger.Info("missing request parameters")
+		return nil, common.ErrBadRequest
 	}
-	if code == oasisErrors.CodeNoError {
-		t.Success = true
-	}
+	q.TxHash = &txHash
 
-	return &t, nil
+	return c.storage.Transaction(ctx, &q)
 }
 
 // Entities returns a list of registered entities.
-func (c *storageClient) Entities(ctx context.Context, r *http.Request) (*EntityList, error) {
-	cid, ok := ctx.Value(ChainIDContextKey).(string)
-	if !ok {
-		return nil, common.ErrBadChainID
-	}
-	qf := NewQueryFactory(cid)
-
-	pagination, err := common.NewPagination(r)
+func (c *storageClient) Entities(ctx context.Context, r *http.Request) (*storage.EntityList, error) {
+	p, err := common.NewPagination(r)
 	if err != nil {
 		c.logger.Info("pagination failed",
 			"request_id", ctx.Value(RequestIDContextKey),
@@ -308,109 +178,41 @@ func (c *storageClient) Entities(ctx context.Context, r *http.Request) (*EntityL
 		return nil, common.ErrBadRequest
 	}
 
-	rows, err := c.db.Query(
-		ctx,
-		qf.EntitiesQuery(),
-		pagination.Limit,
-		pagination.Offset,
-	)
-	if err != nil {
-		c.logger.Info("query failed",
-			"request_id", ctx.Value(RequestIDContextKey),
-			"err", err.Error(),
-		)
-		return nil, common.ErrStorageError
-	}
-	defer rows.Close()
-
-	es := EntityList{
-		Entities: []Entity{},
-	}
-	for rows.Next() {
-		var e Entity
-		if err := rows.Scan(&e.ID, &e.Address); err != nil {
-			c.logger.Info("query failed",
-				"err", err.Error(),
-			)
-			return nil, common.ErrStorageError
-		}
-
-		es.Entities = append(es.Entities, e)
-	}
-
-	return &es, nil
+	return c.storage.Entities(ctx, &p)
 }
 
 // Entity returns a registered entity.
-func (c *storageClient) Entity(ctx context.Context, r *http.Request) (*Entity, error) {
-	cid, ok := ctx.Value(ChainIDContextKey).(string)
-	if !ok {
-		return nil, common.ErrBadChainID
-	}
-	qf := NewQueryFactory(cid)
+func (c *storageClient) Entity(ctx context.Context, r *http.Request) (*storage.Entity, error) {
+	var q storage.EntityRequest
 
-	entityID, err := url.PathUnescape(chi.URLParam(r, "entity_id"))
+	entityId, err := url.PathUnescape(chi.URLParam(r, "entity_id"))
 	if err != nil {
 		return nil, common.ErrBadRequest
 	}
-
-	var e Entity
-	if err = c.db.QueryRow(
-		ctx,
-		qf.EntityQuery(),
-		entityID,
-	).Scan(&e.ID, &e.Address); err != nil {
-		c.logger.Info("row scan failed",
-			"request_id", ctx.Value(RequestIDContextKey),
-			"err", err.Error(),
-		)
-		return nil, common.ErrStorageError
-	}
-
-	entityID, err = url.PathUnescape(chi.URLParam(r, "entity_id"))
-	if err != nil {
+	if entityId == "" {
+		c.logger.Info("missing request parameters")
 		return nil, common.ErrBadRequest
 	}
+	q.EntityId = &entityId
 
-	nodeRows, err := c.db.Query(
-		ctx,
-		qf.EntityNodeIdsQuery(),
-		entityID,
-	)
-	if err != nil {
-		c.logger.Info("query failed",
-			"request_id", ctx.Value(RequestIDContextKey),
-			"err", err.Error(),
-		)
-		return nil, common.ErrStorageError
-	}
-	defer nodeRows.Close()
-
-	for nodeRows.Next() {
-		var nid string
-		if err := nodeRows.Scan(&nid); err != nil {
-			c.logger.Info("row scan failed",
-				"request_id", ctx.Value(RequestIDContextKey),
-				"err", err.Error(),
-			)
-			return nil, common.ErrStorageError
-		}
-
-		e.Nodes = append(e.Nodes, nid)
-	}
-
-	return &e, nil
+	return c.storage.Entity(ctx, &q)
 }
 
 // EntityNodes returns a list of nodes controlled by the provided entity.
-func (c *storageClient) EntityNodes(ctx context.Context, r *http.Request) (*NodeList, error) {
-	cid, ok := ctx.Value(ChainIDContextKey).(string)
-	if !ok {
-		return nil, common.ErrBadChainID
-	}
-	qf := NewQueryFactory(cid)
+func (c *storageClient) EntityNodes(ctx context.Context, r *http.Request) (*storage.NodeList, error) {
+	var q storage.EntityNodesRequest
 
-	pagination, err := common.NewPagination(r)
+	entityId, err := url.PathUnescape(chi.URLParam(r, "entity_id"))
+	if err != nil {
+		return nil, common.ErrBadRequest
+	}
+	if entityId == "" {
+		c.logger.Info("missing request parameters")
+		return nil, common.ErrBadRequest
+	}
+	q.EntityId = &entityId
+
+	p, err := common.NewPagination(r)
 	if err != nil {
 		c.logger.Info("pagination failed",
 			"request_id", ctx.Value(RequestIDContextKey),
@@ -419,141 +221,93 @@ func (c *storageClient) EntityNodes(ctx context.Context, r *http.Request) (*Node
 		return nil, common.ErrBadRequest
 	}
 
-	id, err := url.PathUnescape(chi.URLParam(r, "entity_id"))
-	if err != nil {
-		return nil, common.ErrBadRequest
-	}
-	rows, err := c.db.Query(
-		ctx,
-		qf.EntityNodesQuery(),
-		id,
-		pagination.Limit,
-		pagination.Offset,
-	)
-	if err != nil {
-		c.logger.Info("query failed",
-			"request_id", ctx.Value(RequestIDContextKey),
-			"err", err.Error(),
-		)
-		return nil, common.ErrStorageError
-	}
-	defer rows.Close()
-
-	ns := NodeList{
-		Nodes: []Node{},
-	}
-	for rows.Next() {
-		var n Node
-		if err := rows.Scan(
-			&n.ID,
-			&n.EntityID,
-			&n.Expiration,
-			&n.TLSPubkey,
-			&n.TLSNextPubkey,
-			&n.P2PPubkey,
-			&n.ConsensusPubkey,
-			&n.Roles,
-		); err != nil {
-			c.logger.Info("row scan failed",
-				"request_id", ctx.Value(RequestIDContextKey),
-				"err", err.Error(),
-			)
-			return nil, common.ErrStorageError
-		}
-
-		ns.Nodes = append(ns.Nodes, n)
-	}
-	ns.EntityID = id
-
-	return &ns, nil
+	return c.storage.EntityNodes(ctx, &q, &p)
 }
 
 // EntityNode returns a node controlled by the provided entity.
-func (c *storageClient) EntityNode(ctx context.Context, r *http.Request) (*Node, error) {
-	cid, ok := ctx.Value(ChainIDContextKey).(string)
-	if !ok {
-		return nil, common.ErrBadChainID
-	}
-	qf := NewQueryFactory(cid)
-
-	entityID, err := url.PathUnescape(chi.URLParam(r, "entity_id"))
+func (c *storageClient) EntityNode(ctx context.Context, r *http.Request) (*storage.Node, error) {
+	var q storage.EntityNodeRequest
+	entityId, err := url.PathUnescape(chi.URLParam(r, "entity_id"))
 	if err != nil {
 		return nil, common.ErrBadRequest
 	}
-	nodeID, err := url.PathUnescape(chi.URLParam(r, "node_id"))
+	nodeId, err := url.PathUnescape(chi.URLParam(r, "node_id"))
 	if err != nil {
 		return nil, common.ErrBadRequest
 	}
-	var n Node
-	if err := c.db.QueryRow(
-		ctx,
-		qf.EntityNodeQuery(),
-		entityID,
-		nodeID,
-	).Scan(
-		&n.ID,
-		&n.EntityID,
-		&n.Expiration,
-		&n.TLSPubkey,
-		&n.TLSNextPubkey,
-		&n.P2PPubkey,
-		&n.ConsensusPubkey,
-		&n.Roles,
-	); err != nil {
-		c.logger.Info("row scan failed",
-			"request_id", ctx.Value(RequestIDContextKey),
-			"err", err.Error(),
-		)
-		return nil, common.ErrStorageError
+	if entityId == "" || nodeId == "" {
+		c.logger.Info("missing request parameters")
+		return nil, common.ErrBadRequest
 	}
+	q.EntityId = &entityId
+	q.NodeId = &nodeId
 
-	return &n, nil
+	return c.storage.EntityNode(ctx, &q)
 }
 
 // Accounts returns a list of consensus accounts.
-func (c *storageClient) Accounts(ctx context.Context, r *http.Request) (*AccountList, error) {
-	cid, ok := ctx.Value(ChainIDContextKey).(string)
-	if !ok {
-		return nil, common.ErrBadChainID
-	}
-	qf := NewQueryFactory(cid)
-
+func (c *storageClient) Accounts(ctx context.Context, r *http.Request) (*storage.AccountList, error) {
+	var q storage.AccountsRequest
 	params := r.URL.Query()
 
-	var minAvailable *string
 	if v := params.Get("minAvailable"); v != "" {
-		minAvailable = &v
+		minAvailable, err := strconv.ParseInt(v, 10, 64)
+		if err != nil {
+			return nil, common.ErrBadRequest
+		}
+		q.MinAvailable = &minAvailable
 	}
-	var maxAvailable *string
 	if v := params.Get("maxAvailable"); v != "" {
-		maxAvailable = &v
+		maxAvailable, err := strconv.ParseInt(v, 10, 64)
+		if err != nil {
+			return nil, common.ErrBadRequest
+		}
+		q.MaxAvailable = &maxAvailable
 	}
-	var minEscrow *string
 	if v := params.Get("minEscrow"); v != "" {
-		minEscrow = &v
+		minEscrow, err := strconv.ParseInt(v, 10, 64)
+		if err != nil {
+			return nil, common.ErrBadRequest
+		}
+		q.MinEscrow = &minEscrow
 	}
-	var maxEscrow *string
 	if v := params.Get("maxEscrow"); v != "" {
-		maxEscrow = &v
+		maxEscrow, err := strconv.ParseInt(v, 10, 64)
+		if err != nil {
+			return nil, common.ErrBadRequest
+		}
+		q.MaxEscrow = &maxEscrow
 	}
-	var minDebonding *string
 	if v := params.Get("minDebonding"); v != "" {
-		minDebonding = &v
+		minDebonding, err := strconv.ParseInt(v, 10, 64)
+		if err != nil {
+			return nil, common.ErrBadRequest
+		}
+		q.MinDebonding = &minDebonding
 	}
-	var maxDebonding *string
 	if v := params.Get("maxDebonding"); v != "" {
-		maxDebonding = &v
+		maxDebonding, err := strconv.ParseInt(v, 10, 64)
+		if err != nil {
+			return nil, common.ErrBadRequest
+		}
+		q.MaxDebonding = &maxDebonding
 	}
-	var minTotalBalance *string
 	if v := params.Get("minTotalBalance"); v != "" {
-		minTotalBalance = &v
+		minTotalBalance, err := strconv.ParseInt(v, 10, 64)
+		if err != nil {
+			return nil, common.ErrBadRequest
+		}
+		q.MinTotalBalance = &minTotalBalance
 	}
-	var maxTotalBalance *string
 	if v := params.Get("maxTotalBalance"); v != "" {
-		maxTotalBalance = &v
+		maxTotalBalance, err := strconv.ParseInt(v, 10, 64)
+		if err != nil {
+			return nil, common.ErrBadRequest
+		}
+		q.MaxTotalBalance = &maxTotalBalance
 	}
 
-	pagination, err := common.NewPagination(r)
+	p, err := common.NewPagination(r)
 	if err != nil {
 		c.logger.Info("pagination failed",
 			"request_id", ctx.Value(RequestIDContextKey),
@@ -562,127 +316,45 @@ func (c *storageClient) Accounts(ctx context.Context, r *http.Request) (*Account
 		return nil, common.ErrBadRequest
 	}
 
-	rows, err := c.db.Query(
-		ctx,
-		qf.AccountsQuery(),
-		minAvailable,
-		maxAvailable,
-		minEscrow,
-		maxEscrow,
-		minDebonding,
-		maxDebonding,
-		minTotalBalance,
-		maxTotalBalance,
-		pagination.Limit,
-		pagination.Offset,
-	)
-	if err != nil {
-		c.logger.Info("query failed",
-			"request_id", ctx.Value(RequestIDContextKey),
-			"err", err.Error(),
-		)
-		return nil, common.ErrStorageError
-	}
-	defer rows.Close()
-
-	as := AccountList{
-		Accounts: []Account{},
-	}
-	for rows.Next() {
-		var a Account
-		if err := rows.Scan(
-			&a.Address,
-			&a.Nonce,
-			&a.Available,
-			&a.Escrow,
-			&a.Debonding,
-		); err != nil {
-			c.logger.Info("row scan failed",
-				"request_id", ctx.Value(RequestIDContextKey),
-				"err", err.Error(),
-			)
-			return nil, common.ErrStorageError
-		}
-
-		as.Accounts = append(as.Accounts, a)
-	}
-
-	return &as, nil
+	return c.storage.Accounts(ctx, &q, &p)
 }
 
 // Account returns a consensus account.
-func (c *storageClient) Account(ctx context.Context, r *http.Request) (*Account, error) {
-	cid, ok := ctx.Value(ChainIDContextKey).(string)
-	if !ok {
-		return nil, common.ErrBadChainID
-	}
-	qf := NewQueryFactory(cid)
+func (c *storageClient) Account(ctx context.Context, r *http.Request) (*storage.Account, error) {
+	var q storage.AccountRequest
 
-	a := Account{
-		Allowances: []Allowance{},
+	v := chi.URLParam(r, "address")
+	if v == "" {
+		c.logger.Info("missing required parameters")
+		return nil, common.ErrBadRequest
 	}
-	if err := c.db.QueryRow(
-		ctx,
-		qf.AccountQuery(),
-		chi.URLParam(r, "address"),
-	).Scan(
-		&a.Address,
-		&a.Nonce,
-		&a.Available,
-		&a.Escrow,
-		&a.Debonding,
-		&a.DelegationsBalance,
-		&a.DebondingDelegationsBalance,
-	); err != nil {
-		c.logger.Info("row scan failed",
-			"request_id", ctx.Value(RequestIDContextKey),
-			"err", err.Error(),
-		)
-		return nil, common.ErrStorageError
+	var address *staking.Address
+	err := address.UnmarshalText([]byte(v))
+	if err != nil || !address.IsValid() {
+		return nil, common.ErrBadRequest
 	}
+	q.Address = address
 
-	allowanceRows, err := c.db.Query(
-		ctx,
-		qf.AccountAllowancesQuery(),
-		chi.URLParam(r, "address"),
-	)
-	if err != nil {
-		c.logger.Info("query failed",
-			"request_id", ctx.Value(RequestIDContextKey),
-			"err", err.Error(),
-		)
-		return nil, common.ErrStorageError
-	}
-	defer allowanceRows.Close()
-
-	for allowanceRows.Next() {
-		var al Allowance
-		if err := allowanceRows.Scan(
-			&al.Address,
-			&al.Amount,
-		); err != nil {
-			c.logger.Info("row scan failed",
-				"request_id", ctx.Value(RequestIDContextKey),
-				"err", err.Error(),
-			)
-			return nil, common.ErrStorageError
-		}
-
-		a.Allowances = append(a.Allowances, al)
-	}
-
-	return &a, nil
+	return c.storage.Account(ctx, &q)
 }
 
 // Delegations returns a list of delegations.
-func (c *storageClient) Delegations(ctx context.Context, r *http.Request) (*DelegationList, error) {
-	cid, ok := ctx.Value(ChainIDContextKey).(string)
-	if !ok {
-		return nil, common.ErrBadChainID
-	}
-	qf := NewQueryFactory(cid)
+func (c *storageClient) Delegations(ctx context.Context, r *http.Request) (*storage.DelegationList, error) {
+	var q storage.DelegationsRequest
 
-	pagination, err := common.NewPagination(r)
+	v := chi.URLParam(r, "address")
+	if v == "" {
+		c.logger.Info("missing required parameters")
+		return nil, common.ErrBadRequest
+	}
+	var address *staking.Address
+	err := address.UnmarshalText([]byte(v))
+	if err != nil || !address.IsValid() {
+		return nil, common.ErrBadRequest
+	}
+	q.Address = address
+
+	p, err := common.NewPagination(r)
 	if err != nil {
 		c.logger.Info("pagination failed",
 			"request_id", ctx.Value(RequestIDContextKey),
@@ -691,59 +363,26 @@ func (c *storageClient) Delegations(ctx context.Context, r *http.Request) (*Dele
 		return nil, common.ErrBadRequest
 	}
 
-	rows, err := c.db.Query(
-		ctx,
-		qf.DelegationsQuery(),
-		chi.URLParam(r, "address"),
-		pagination.Limit,
-		pagination.Offset,
-	)
-	if err != nil {
-		c.logger.Info("query failed",
-			"request_id", ctx.Value(RequestIDContextKey),
-			"err", err.Error(),
-		)
-		return nil, common.ErrStorageError
-	}
-	defer rows.Close()
-
-	ds := DelegationList{
-		Delegations: []Delegation{},
-	}
-	for rows.Next() {
-		var d Delegation
-		var escrowBalanceActive uint64
-		var escrowTotalSharesActive uint64
-		if err := rows.Scan(
-			&d.ValidatorAddress,
-			&d.Shares,
-			&escrowBalanceActive,
-			&escrowTotalSharesActive,
-		); err != nil {
-			c.logger.Info("row scan failed",
-				"request_id", ctx.Value(RequestIDContextKey),
-				"err", err.Error(),
-			)
-			return nil, common.ErrStorageError
-		}
-
-		d.Amount = uint64(float64(d.Shares) * float64(escrowBalanceActive) / float64(escrowTotalSharesActive))
-
-		ds.Delegations = append(ds.Delegations, d)
-	}
-
-	return &ds, nil
+	return c.storage.Delegations(ctx, &q, &p)
 }
 
 // DebondingDelegations returns a list of debonding delegations.
-func (c *storageClient) DebondingDelegations(ctx context.Context, r *http.Request) (*DebondingDelegationList, error) {
-	cid, ok := ctx.Value(ChainIDContextKey).(string)
-	if !ok {
-		return nil, common.ErrBadChainID
-	}
-	qf := NewQueryFactory(cid)
+func (c *storageClient) DebondingDelegations(ctx context.Context, r *http.Request) (*storage.DebondingDelegationList, error) {
+	var q storage.DebondingDelegationsRequest
 
-	pagination, err := common.NewPagination(r)
+	v := chi.URLParam(r, "address")
+	if v == "" {
+		c.logger.Info("missing required parameters")
+		return nil, common.ErrBadRequest
+	}
+	var address *staking.Address
+	err := address.UnmarshalText([]byte(v))
+	if err != nil || !address.IsValid() {
+		return nil, common.ErrBadRequest
+	}
+	q.Address = address
+
+	p, err := common.NewPagination(r)
 	if err != nil {
 		c.logger.Info("pagination failed",
 			"request_id", ctx.Value(RequestIDContextKey),
@@ -752,58 +391,12 @@ func (c *storageClient) DebondingDelegations(ctx context.Context, r *http.Reques
 		return nil, common.ErrBadRequest
 	}
 
-	rows, err := c.db.Query(
-		ctx,
-		qf.DebondingDelegationsQuery(),
-		chi.URLParam(r, "address"),
-		pagination.Limit,
-		pagination.Offset,
-	)
-	if err != nil {
-		c.logger.Info("query failed",
-			"request_id", ctx.Value(RequestIDContextKey),
-			"err", err.Error(),
-		)
-		return nil, common.ErrStorageError
-	}
-	defer rows.Close()
-
-	ds := DebondingDelegationList{
-		DebondingDelegations: []DebondingDelegation{},
-	}
-	for rows.Next() {
-		var d DebondingDelegation
-		var escrowBalanceDebonding uint64
-		var escrowTotalSharesDebonding uint64
-		if err := rows.Scan(
-			&d.ValidatorAddress,
-			&d.Shares,
-			&d.DebondEnd,
-			&escrowBalanceDebonding,
-			&escrowTotalSharesDebonding,
-		); err != nil {
-			c.logger.Info("row scan failed",
-				"request_id", ctx.Value(RequestIDContextKey),
-				"err", err.Error(),
-			)
-			return nil, common.ErrStorageError
-		}
-		d.Amount = uint64(float64(d.Shares) * float64(escrowBalanceDebonding) / float64(escrowTotalSharesDebonding))
-		ds.DebondingDelegations = append(ds.DebondingDelegations, d)
-	}
-
-	return &ds, nil
+	return c.storage.DebondingDelegations(ctx, &q, &p)
 }
 
 // Epochs returns a list of consensus epochs.
-func (c *storageClient) Epochs(ctx context.Context, r *http.Request) (*EpochList, error) {
-	cid, ok := ctx.Value(ChainIDContextKey).(string)
-	if !ok {
-		return nil, common.ErrBadChainID
-	}
-	qf := NewQueryFactory(cid)
-
-	pagination, err := common.NewPagination(r)
+func (c *storageClient) Epochs(ctx context.Context, r *http.Request) (*storage.EpochList, error) {
+	p, err := common.NewPagination(r)
 	if err != nil {
 		c.logger.Info("pagination failed",
 			"request_id", ctx.Value(RequestIDContextKey),
@@ -812,87 +405,49 @@ func (c *storageClient) Epochs(ctx context.Context, r *http.Request) (*EpochList
 		return nil, common.ErrBadRequest
 	}
 
-	rows, err := c.db.Query(
-		ctx,
-		qf.EpochsQuery(),
-		pagination.Limit,
-		pagination.Offset,
-	)
-	if err != nil {
-		c.logger.Info("query failed",
-			"request_id", ctx.Value(RequestIDContextKey),
-			"err", err.Error(),
-		)
-		return nil, common.ErrStorageError
-	}
-
-	es := EpochList{
-		Epochs: []Epoch{},
-	}
-	for rows.Next() {
-		var e Epoch
-		var endHeight *uint64
-		if err := rows.Scan(&e.ID, &e.StartHeight, &endHeight); err != nil {
-			c.logger.Info("row scan failed",
-				"request_id", ctx.Value(RequestIDContextKey),
-				"err", err.Error(),
-			)
-			return nil, common.ErrStorageError
-		}
-		if endHeight != nil {
-			e.EndHeight = *endHeight
-		}
-
-		es.Epochs = append(es.Epochs, e)
-	}
-
-	return &es, nil
+	return c.storage.Epochs(ctx, &p)
 }
 
 // Epoch returns a consensus epoch.
-func (c *storageClient) Epoch(ctx context.Context, r *http.Request) (*Epoch, error) {
-	cid, ok := ctx.Value(ChainIDContextKey).(string)
-	if !ok {
-		return nil, common.ErrBadChainID
-	}
-	qf := NewQueryFactory(cid)
+func (c *storageClient) Epoch(ctx context.Context, r *http.Request) (*storage.Epoch, error) {
+	var q storage.EpochRequest
 
-	var e Epoch
-	if err := c.db.QueryRow(
-		ctx,
-		qf.EpochQuery(),
-		chi.URLParam(r, "epoch"),
-	).Scan(&e.ID, &e.StartHeight, &e.EndHeight); err != nil {
-		c.logger.Info("row scan failed",
-			"request_id", ctx.Value(RequestIDContextKey),
-			"err", err.Error(),
-		)
-		return nil, common.ErrStorageError
+	v := chi.URLParam(r, "epoch")
+	if v == "" {
+		c.logger.Info("missing required parameters")
+		return nil, common.ErrBadRequest
 	}
+	epoch, err := strconv.ParseInt(v, 10, 64)
+	if err != nil {
+		return nil, common.ErrBadRequest
+	}
+	q.Epoch = &epoch
 
-	return &e, nil
+	return c.storage.Epoch(ctx, &q)
 }
 
 // Proposals returns a list of governance proposals.
-func (c *storageClient) Proposals(ctx context.Context, r *http.Request) (*ProposalList, error) {
-	cid, ok := ctx.Value(ChainIDContextKey).(string)
-	if !ok {
-		return nil, common.ErrBadChainID
-	}
-	qf := NewQueryFactory(cid)
-
+func (c *storageClient) Proposals(ctx context.Context, r *http.Request) (*storage.ProposalList, error) {
+	var q storage.ProposalsRequest
 	params := r.URL.Query()
 
-	var submitter *string
 	if v := params.Get("submitter"); v != "" {
-		submitter = &v
+		var submitter *staking.Address
+		err := submitter.UnmarshalText([]byte(v))
+		if err != nil || !submitter.IsValid() {
+			return nil, common.ErrBadRequest
+		}
+		q.Submitter = submitter
 	}
-	var state *string
 	if v := params.Get("state"); v != "" {
-		state = &v
+		var state *governance.ProposalState
+		if err := state.UnmarshalText([]byte(v)); err != nil {
+			return nil, common.ErrBadRequest
+		}
+		q.State = state
 	}
 
-	pagination, err := common.NewPagination(r)
+	p, err := common.NewPagination(r)
 	if err != nil {
 		c.logger.Info("pagination failed",
 			"request_id", ctx.Value(RequestIDContextKey),
@@ -901,103 +456,43 @@ func (c *storageClient) Proposals(ctx context.Context, r *http.Request) (*Propos
 		return nil, common.ErrBadRequest
 	}
 
-	rows, err := c.db.Query(
-		ctx,
-		qf.ProposalsQuery(),
-		submitter,
-		state,
-		pagination.Limit,
-		pagination.Offset,
-	)
-	if err != nil {
-		c.logger.Info("query failed",
-			"request_id", ctx.Value(RequestIDContextKey),
-			"err", err.Error(),
-		)
-		return nil, common.ErrStorageError
-	}
-	defer rows.Close()
-
-	ps := ProposalList{
-		Proposals: []Proposal{},
-	}
-	for rows.Next() {
-		var p Proposal
-		if err := rows.Scan(
-			&p.ID,
-			&p.Submitter,
-			&p.State,
-			&p.Deposit,
-			&p.Handler,
-			&p.Target.ConsensusProtocol,
-			&p.Target.RuntimeHostProtocol,
-			&p.Target.RuntimeCommitteeProtocol,
-			&p.Epoch,
-			&p.Cancels,
-			&p.CreatedAt,
-			&p.ClosesAt,
-			&p.InvalidVotes,
-		); err != nil {
-			c.logger.Info("row scan failed",
-				"request_id", ctx.Value(RequestIDContextKey),
-				"err", err.Error(),
-			)
-			return nil, common.ErrStorageError
-		}
-
-		ps.Proposals = append(ps.Proposals, p)
-	}
-
-	return &ps, nil
+	return c.storage.Proposals(ctx, &q, &p)
 }
 
 // Proposal returns a governance proposal.
-func (c *storageClient) Proposal(ctx context.Context, r *http.Request) (*Proposal, error) {
-	cid, ok := ctx.Value(ChainIDContextKey).(string)
-	if !ok {
-		return nil, common.ErrBadChainID
-	}
-	qf := NewQueryFactory(cid)
+func (c *storageClient) Proposal(ctx context.Context, r *http.Request) (*storage.Proposal, error) {
+	var q storage.ProposalRequest
 
-	var p Proposal
-	if err := c.db.QueryRow(
-		ctx,
-		qf.ProposalQuery(),
-		chi.URLParam(r, "proposal_id"),
-	).Scan(
-		&p.ID,
-		&p.Submitter,
-		&p.State,
-		&p.Deposit,
-		&p.Handler,
-		&p.Target.ConsensusProtocol,
-		&p.Target.RuntimeHostProtocol,
-		&p.Target.RuntimeCommitteeProtocol,
-		&p.Epoch,
-		&p.Cancels,
-		&p.CreatedAt,
-		&p.ClosesAt,
-		&p.InvalidVotes,
-	); err != nil {
-		c.logger.Info("row scan failed",
-			"request_id", ctx.Value(RequestIDContextKey),
-			"err", err.Error(),
-		)
-		return nil, common.ErrStorageError
+	v := chi.URLParam(r, "proposal_id")
+	if v == "" {
+		c.logger.Info("missing required parameters")
+		return nil, common.ErrBadRequest
 	}
+	proposalId, err := strconv.ParseUint(v, 10, 64)
+	if err != nil {
+		return nil, common.ErrBadRequest
+	}
+	q.ProposalId = &proposalId
 
-	return &p, nil
+	return c.storage.Proposal(ctx, &q)
 }
 
 // ProposalVotes returns votes for a governance proposal.
-func (c *storageClient) ProposalVotes(ctx context.Context, r *http.Request) (*ProposalVotes, error) {
-	cid, ok := ctx.Value(ChainIDContextKey).(string)
-	if !ok {
-		return nil, common.ErrBadChainID
-	}
-	qf := NewQueryFactory(cid)
+func (c *storageClient) ProposalVotes(ctx context.Context, r *http.Request) (*storage.ProposalVotes, error) {
+	var q storage.ProposalVotesRequest
 
-	pagination, err := common.NewPagination(r)
+	v := chi.URLParam(r, "proposal_id")
+	if v == "" {
+		c.logger.Info("missing required parameters")
+		return nil, common.ErrBadRequest
+	}
+	proposalId, err := strconv.ParseUint(v, 10, 64)
+	if err != nil {
+		return nil, common.ErrBadRequest
+	}
+	q.ProposalId = &proposalId
+
+	p, err := common.NewPagination(r)
 	if err != nil {
 		c.logger.Info("pagination failed",
 			"request_id", ctx.Value(RequestIDContextKey),
@@ -1006,210 +501,39 @@ func (c *storageClient) ProposalVotes(ctx context.Context, r *http.Request) (*Pr
 		return nil, common.ErrBadRequest
 	}
 
-	id, err := strconv.ParseUint(chi.URLParam(r, "proposal_id"), 10, 64)
-	if err != nil {
-		return nil, common.ErrBadRequest
-	}
-
-	rows, err := c.db.Query(
-		ctx,
-		qf.ProposalVotesQuery(),
-		id,
-		pagination.Limit,
-		pagination.Offset,
-	)
-	if err != nil {
-		c.logger.Info("query failed",
-			"request_id", ctx.Value(RequestIDContextKey),
-			"err", err.Error(),
-		)
-		return nil, common.ErrStorageError
-	}
-	defer rows.Close()
-
-	vs := ProposalVotes{
-		Votes: []ProposalVote{},
-	}
-	for rows.Next() {
-		var v ProposalVote
-		if err := rows.Scan(
-			&v.Address,
-			&v.Vote,
-		); err != nil {
-			c.logger.Info("row scan failed",
-				"request_id", ctx.Value(RequestIDContextKey),
-				"err", err.Error(),
-			)
-			return nil, common.ErrStorageError
-		}
-
-		vs.Votes = append(vs.Votes, v)
-	}
-	vs.ProposalID = id
-
-	return &vs, nil
+	return c.storage.ProposalVotes(ctx, &q, &p)
 }
 
 // Validators returns a list of validators.
-func (c *storageClient) Validators(ctx context.Context, r *http.Request) (*ValidatorList, error) {
-	cid, ok := ctx.Value(ChainIDContextKey).(string)
-	if !ok {
-		return nil, common.ErrBadChainID
-	}
-	qf := NewQueryFactory(cid)
-
-	var epoch Epoch
-	if err := c.db.QueryRow(
-		ctx,
-		qf.ValidatorsQuery(),
-	).Scan(&epoch.ID, &epoch.StartHeight); err != nil {
-		c.logger.Info("row scan failed",
-			"request_id", ctx.Value(RequestIDContextKey),
-			"err", err.Error(),
-		)
-		return nil, common.ErrStorageError
-	}
-
+func (c *storageClient) Validators(ctx context.Context, r *http.Request) (*storage.ValidatorList, error) {
 	order := "voting_power"
-	pagination := common.Pagination{
+	p := common.Pagination{
 		Order:  &order,
 		Limit:  1000,
 		Offset: 0,
 	}
 
-	rows, err := c.db.Query(
-		ctx,
-		qf.ValidatorsDataQuery(),
-		pagination.Limit,
-		pagination.Offset,
-	)
-	if err != nil {
-		c.logger.Info("query failed",
-			"request_id", ctx.Value(RequestIDContextKey),
-			"err", err.Error(),
-		)
-		return nil, common.ErrStorageError
-	}
-	defer rows.Close()
-
-	vs := ValidatorList{
-		Validators: []Validator{},
-	}
-	for rows.Next() {
-		var v Validator
-		var schedule staking.CommissionSchedule
-		if err := rows.Scan(
-			&v.EntityID,
-			&v.EntityAddress,
-			&v.NodeID,
-			&v.Escrow,
-			&schedule,
-			&v.Active,
-			&v.Status,
-			&v.Media,
-		); err != nil {
-			c.logger.Info("query failed",
-				"err", err.Error(),
-			)
-			return nil, common.ErrStorageError
-		}
-		// Match API for now
-		v.Name = v.Media.Name
-
-		currentRate := schedule.CurrentRate(beacon.EpochTime(epoch.ID))
-		if currentRate != nil {
-			v.CurrentRate = currentRate.ToBigInt().Uint64()
-		}
-		bound, next := util.CurrentBound(schedule, beacon.EpochTime(epoch.ID))
-		if bound != nil {
-			v.CurrentCommissionBound = ValidatorCommissionBound{
-				Lower:      bound.RateMin.ToBigInt().Uint64(),
-				Upper:      bound.RateMax.ToBigInt().Uint64(),
-				EpochStart: uint64(bound.Start),
-			}
-		}
-
-		if next > 0 {
-			v.CurrentCommissionBound.EpochEnd = next
-		}
-
-		vs.Validators = append(vs.Validators, v)
-	}
-
-	return &vs, nil
+	return c.storage.Validators(ctx, &p)
 }
 
 // Validator returns a single validator.
-func (c *storageClient) Validator(ctx context.Context, r *http.Request) (*Validator, error) {
-	cid, ok := ctx.Value(ChainIDContextKey).(string)
-	if !ok {
-		return nil, common.ErrBadChainID
-	}
-	qf := NewQueryFactory(cid)
+func (c *storageClient) Validator(ctx context.Context, r *http.Request) (*storage.Validator, error) {
+	var q storage.ValidatorRequest
 
-	var epoch Epoch
-	if err := c.db.QueryRow(
-		ctx,
-		qf.ValidatorQuery(),
-	).Scan(&epoch.ID, &epoch.StartHeight); err != nil {
-		c.logger.Info("row scan failed",
-			"request_id", ctx.Value(RequestIDContextKey),
-			"err", err.Error(),
-		)
-		return nil, common.ErrStorageError
+	entityId := chi.URLParam(r, "entity_id")
+	if entityId == "" {
+		c.logger.Info("missing required parameters")
+		return nil, common.ErrBadRequest
 	}
+	q.EntityId = &entityId
 
-	row := c.db.QueryRow(
-		ctx,
-		qf.ValidatorDataQuery(),
-		chi.URLParam(r, "entity_id"),
-	)
+	return c.storage.Validator(ctx, &q)
 
-	var v Validator
-	var schedule staking.CommissionSchedule
-	if err := row.Scan(
-		&v.EntityID,
-		&v.EntityAddress,
-		&v.NodeID,
-		&v.Escrow,
-		&schedule,
-		&v.Active,
-		&v.Status,
-		&v.Media,
-	); err != nil {
-		c.logger.Info("query failed",
-			"err", err.Error(),
-		)
-		return nil, common.ErrStorageError
-	}
-	// Match API for now
-	v.Name = v.Media.Name
-
-	currentRate := schedule.CurrentRate(beacon.EpochTime(epoch.ID))
-	if currentRate != nil {
-		v.CurrentRate = currentRate.ToBigInt().Uint64()
-	}
-	bound, next := util.CurrentBound(schedule, beacon.EpochTime(epoch.ID))
-	if bound != nil {
-		v.CurrentCommissionBound = ValidatorCommissionBound{
-			Lower:      bound.RateMin.ToBigInt().Uint64(),
-			Upper:      bound.RateMax.ToBigInt().Uint64(),
-			EpochStart: uint64(bound.Start),
-		}
-	}
-
-	if next > 0 {
-		v.CurrentCommissionBound.EpochEnd = next
-	}
-
-	return &v, nil
 }
 
 // TransactionsPerSecond returns a list of tps checkpoint values.
-func (c *storageClient) TransactionsPerSecond(ctx context.Context, r *http.Request) (*TpsCheckpointList, error) {
-	qf := NewQueryFactory(strcase.ToSnake(c.chainID))
-
-	pagination, err := common.NewPagination(r)
+func (c *storageClient) TransactionsPerSecond(ctx context.Context, r *http.Request) (*storage.TpsCheckpointList, error) {
+	p, err := common.NewPagination(r)
 	if err != nil {
 		c.logger.Info("pagination failed",
 			"request_id", ctx.Value(RequestIDContextKey),
@@ -1218,57 +542,12 @@ func (c *storageClient) TransactionsPerSecond(ctx context.Context, r *http.Reque
 		return nil, common.ErrBadRequest
 	}
 
-	rows, err := c.db.Query(
-		ctx,
-		qf.TpsCheckpointQuery(),
-		pagination.Limit,
-		pagination.Offset,
-	)
-	if err != nil {
-		c.logger.Info("query failed",
-			"request_id", ctx.Value(RequestIDContextKey),
-			"err", err.Error(),
-		)
-		return nil, common.ErrStorageError
-	}
-	defer rows.Close()
-
-	ts := TpsCheckpointList{
-		IntervalMinutes: tpsWindowSizeMinutes,
-		TpsCheckpoints:  []TpsCheckpoint{},
-	}
-	for rows.Next() {
-		var d struct {
-			Hour     time.Time
-			MinSlot  int
-			TxVolume uint64
-		}
-		if err := rows.Scan(
-			&d.Hour,
-			&d.MinSlot,
-			&d.TxVolume,
-		); err != nil {
-			c.logger.Info("query failed",
-				"err", err.Error(),
-			)
-			return nil, common.ErrStorageError
-		}
-
-		t := TpsCheckpoint{
-			Timestamp: d.Hour.Add(time.Duration(tpsWindowSizeMinutes*d.MinSlot) * time.Minute).UTC(),
-			TxVolume:  d.TxVolume,
-		}
-		ts.TpsCheckpoints = append(ts.TpsCheckpoints, t)
-	}
-
-	return &ts, nil
+	return c.storage.TransactionsPerSecond(ctx, &p)
 }
 
 // DailyVolumes returns a list of daily transaction volumes.
-func (c *storageClient) DailyVolumes(ctx context.Context, r *http.Request) (*VolumeList, error) {
-	qf := NewQueryFactory(strcase.ToSnake(c.chainID))
-
-	pagination, err := common.NewPagination(r)
+func (c *storageClient) DailyVolumes(ctx context.Context, r *http.Request) (*storage.VolumeList, error) {
+	p, err := common.NewPagination(r)
 	if err != nil {
 		c.logger.Info("pagination failed",
 			"request_id", ctx.Value(RequestIDContextKey),
@@ -1277,39 +556,5 @@ func (c *storageClient) DailyVolumes(ctx context.Context, r *http.Request) (*Vol
 		return nil, common.ErrBadRequest
 	}
 
-	rows, err := c.db.Query(
-		ctx,
-		qf.TxVolumesQuery(),
-		pagination.Limit,
-		pagination.Offset,
-	)
-	if err != nil {
-		c.logger.Info("query failed",
-			"request_id", ctx.Value(RequestIDContextKey),
-			"err", err.Error(),
-		)
-		return nil, common.ErrStorageError
-	}
-	defer rows.Close()
-
-	vs := VolumeList{
-		Volumes: []Volume{},
-	}
-	for rows.Next() {
-		var v Volume
-		if err := rows.Scan(
-			&v.Date,
-			&v.TxVolume,
-		); err != nil {
-			c.logger.Info("query failed",
-				"err", err.Error(),
-			)
-			return nil, common.ErrStorageError
-		}
-		v.Date = v.Date.UTC()
-
-		vs.Volumes = append(vs.Volumes, v)
-	}
-
-	return &vs, nil
+	return c.storage.DailyVolumes(ctx, &p)
 }

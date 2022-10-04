@@ -6,14 +6,14 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	v1 "github.com/oasisprotocol/oasis-indexer/api/v1"
+	storage "github.com/oasisprotocol/oasis-indexer/storage/client"
 	"github.com/oasisprotocol/oasis-indexer/tests"
 )
 
 var stakingEndHeight int64 = 8054649
 
-func makeTestAccounts() []v1.Account {
-	return []v1.Account{
+func makeTestAccounts() []storage.Account {
+	return []storage.Account{
 		{
 			Address:   "oasis1qp28vcurlx03y9exedzd9kfp7u2p0f0nvvv7h5wv",
 			Nonce:     1,
@@ -38,7 +38,7 @@ func TestListAccounts(t *testing.T) {
 
 	<-tests.After(stakingEndHeight)
 
-	var list v1.AccountList
+	var list storage.AccountList
 	err := tests.GetFrom("/consensus/accounts?minAvailable=1000000000000000000", &list)
 	require.Nil(t, err)
 	require.Equal(t, 1, len(list.Accounts))
@@ -56,7 +56,7 @@ func TestGetAccount(t *testing.T) {
 	<-tests.After(stakingEndHeight)
 
 	for _, testAccount := range testAccounts {
-		var account v1.Account
+		var account storage.Account
 		err := tests.GetFrom(fmt.Sprintf("/consensus/accounts/%s", testAccount.Address), &account)
 		require.Nil(t, err)
 		require.Equal(t, testAccount, account)

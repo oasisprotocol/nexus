@@ -5,27 +5,37 @@ import (
 
 	"github.com/oasisprotocol/oasis-indexer/log"
 	"github.com/oasisprotocol/oasis-indexer/metrics"
-	"github.com/oasisprotocol/oasis-indexer/storage"
+	storage "github.com/oasisprotocol/oasis-indexer/storage/client"
 )
 
+type ContextKey string
+
 const (
-	moduleName = "api_v1"
+	LatestChainID = "oasis-3"
+
+	// ChainIDContextKey is used to set the relevant chain ID
+	// in a request context.
+	ChainIDContextKey ContextKey = "chain_id"
+	// RequestIDContextKey is used to set a request id for tracing
+	// in a request context.
+	RequestIDContextKey ContextKey = "request_id"
+	moduleName                     = "api_v1"
 )
 
 // Handler is the Oasis Indexer V1 API handler.
 type Handler struct {
-	client  *cachingStorageClient
+	client  *storageClient
 	logger  *log.Logger
 	metrics metrics.RequestMetrics
 }
 
 // NewHandler creates a new V1 API handler.
-func NewHandler(chainID string, db storage.TargetStorage, l *log.Logger) *Handler {
+func NewHandler(chainID string, s *storage.StorageClient, l *log.Logger) *Handler {
 	return &Handler{
-		client:  newStorageClient(chainID, db, l),
+		client:  newStorageClient(chainID, s, l),
 		logger:  l.WithModule(moduleName),
 		metrics: metrics.NewDefaultRequestMetrics(moduleName),
-	}, nil
+	}
 }
 
 // RegisterRoutes implements the APIHandler interface.

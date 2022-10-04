@@ -87,5 +87,6 @@ func NewClient(cfg *config.StorageConfig, logger *log.Logger) (storage.TargetSto
 	if err != nil {
 		return nil, err
 	}
+
 	return client, nil
 }

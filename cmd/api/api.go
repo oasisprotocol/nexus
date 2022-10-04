@@ -12,7 +12,7 @@ import (
 	"github.com/oasisprotocol/oasis-indexer/cmd/common"
 	"github.com/oasisprotocol/oasis-indexer/config"
 	"github.com/oasisprotocol/oasis-indexer/log"
-	"github.com/oasisprotocol/oasis-indexer/storage"
+	storage "github.com/oasisprotocol/oasis-indexer/storage/client"
 )
 
 const (
@@ -81,7 +81,7 @@ func Init(cfg *config.ServerConfig) (*Service, error) {
 type Service struct {
 	server string
 	api    *api.IndexerAPI
-	target storage.TargetStorage
+	target *storage.StorageClient
 	logger *log.Logger
 }
 
@@ -90,10 +90,11 @@ func NewService(cfg *config.ServerConfig) (*Service, error) {
 	logger := common.Logger().WithModule(moduleName)
 
 	// Initialize target storage.
-	client, err := common.NewClient(cfg.Storage, logger)
+	backing, err := common.NewClient(cfg.Storage, logger)
 	if err != nil {
 		return nil, err
 	}
+	client := storage.NewStorageClient(backing, logger)
 
 	return &Service{
 		server: cfg.Endpoint,

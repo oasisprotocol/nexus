@@ -1,5 +1,5 @@
-// Types for API responses.
-package v1
+// Types for storage API responses.
+package client
 
 import (
 	"time"

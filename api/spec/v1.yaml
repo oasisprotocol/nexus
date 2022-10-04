@@ -61,6 +61,8 @@ x-examples:
     - &staking_address_2 'oasis1qprtzrg97jk0wxnqkhxwyzy5qys47r7alvfl3fcg'
   proposal-id:
     - &proposal_id_1 1
+  proposal-state:
+    - &proposal_state_1 'active'
   iso-timestamp:
     - &iso_timestamp_1 '2022-03-01T00:00:00Z'
     - &iso_timestamp_2 '2019-04-01T00:00:00Z'
@@ -267,7 +269,6 @@ paths:
       parameters:
         - *limit
         - *offset
-        - *height
       responses:
         '200':
           description: |
@@ -400,6 +401,33 @@ paths:
         '500':
           $ref: '#/components/responses/ServerError'
 
+  /consensus/validators/{entity_id}:
+    get:
+      summary: Returns a validator registered at the consensus layer.
+      parameters:
+        - in: path
+          name: entity_id
+          required: true
+          schema:
+            type: string
+          description: The entity ID of the entity to return.
+          example: *entity_id_1
+      responses:
+        '200':
+          description: |
+            A JSON object containing a validator registered at the 
+            consensus layer.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Validator'
+        '400':
+          $ref: '#/components/responses/InvalidRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+          
   /consensus/accounts:
     get:
       summary: Returns a list of consensus layer accounts.
@@ -606,6 +634,18 @@ paths:
       parameters:
         - *limit
         - *offset
+        - in: query
+          name: submitter
+          schema:
+            type: string
+          description: The submitter of the proposal.
+          example: *staking_address_1
+        - in: query
+          name: state
+          schema:
+            type: string
+          description: The state of the proposal.
+          example: *proposal_state_1
       responses:
         '200':
           description: A JSON object containing a list of governance proposals.
