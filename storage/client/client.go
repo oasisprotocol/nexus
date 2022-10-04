@@ -280,7 +280,7 @@ func (c *StorageClient) Entity(ctx context.Context, r *EntityRequest) (*Entity, 
 	if err := c.db.QueryRow(
 		ctx,
 		qf.EntityQuery(),
-		r.EntityId,
+		r.EntityID,
 	).Scan(&e.ID, &e.Address); err != nil {
 		c.logger.Info("row scan failed",
 			"request_id", ctx.Value(RequestIDContextKey),
@@ -292,7 +292,7 @@ func (c *StorageClient) Entity(ctx context.Context, r *EntityRequest) (*Entity, 
 	nodeRows, err := c.db.Query(
 		ctx,
 		qf.EntityNodeIdsQuery(),
-		r.EntityId,
+		r.EntityID,
 	)
 	if err != nil {
 		c.logger.Info("query failed",
@@ -330,7 +330,7 @@ func (c *StorageClient) EntityNodes(ctx context.Context, r *EntityNodesRequest, 
 	rows, err := c.db.Query(
 		ctx,
 		qf.EntityNodesQuery(),
-		r.EntityId,
+		r.EntityID,
 		p.Limit,
 		p.Offset,
 	)
@@ -367,7 +367,7 @@ func (c *StorageClient) EntityNodes(ctx context.Context, r *EntityNodesRequest, 
 
 		ns.Nodes = append(ns.Nodes, n)
 	}
-	ns.EntityID = *r.EntityId
+	ns.EntityID = *r.EntityID
 
 	return &ns, nil
 }
@@ -384,8 +384,8 @@ func (c *StorageClient) EntityNode(ctx context.Context, r *EntityNodeRequest) (*
 	if err := c.db.QueryRow(
 		ctx,
 		qf.EntityNodeQuery(),
-		r.EntityId,
-		r.NodeId,
+		r.EntityID,
+		r.NodeID,
 	).Scan(
 		&n.ID,
 		&n.EntityID,
@@ -768,7 +768,7 @@ func (c *StorageClient) Proposal(ctx context.Context, r *ProposalRequest) (*Prop
 	if err := c.db.QueryRow(
 		ctx,
 		qf.ProposalQuery(),
-		r.ProposalId,
+		r.ProposalID,
 	).Scan(
 		&p.ID,
 		&p.Submitter,
@@ -805,7 +805,7 @@ func (c *StorageClient) ProposalVotes(ctx context.Context, r *ProposalVotesReque
 	rows, err := c.db.Query(
 		ctx,
 		qf.ProposalVotesQuery(),
-		r.ProposalId,
+		r.ProposalID,
 		p.Limit,
 		p.Offset,
 	)
@@ -836,7 +836,7 @@ func (c *StorageClient) ProposalVotes(ctx context.Context, r *ProposalVotesReque
 
 		vs.Votes = append(vs.Votes, v)
 	}
-	vs.ProposalID = *r.ProposalId
+	vs.ProposalID = *r.ProposalID
 
 	return &vs, nil
 }
@@ -946,7 +946,7 @@ func (c *StorageClient) Validator(ctx context.Context, r *ValidatorRequest) (*Va
 	row := c.db.QueryRow(
 		ctx,
 		qf.ValidatorDataQuery(),
-		r.EntityId,
+		r.EntityID,
 	)
 
 	var v Validator

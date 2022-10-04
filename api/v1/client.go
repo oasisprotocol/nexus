@@ -246,15 +246,15 @@ func (c *storageClient) Entities(ctx context.Context, r *http.Request) (*storage
 func (c *storageClient) Entity(ctx context.Context, r *http.Request) (*storage.Entity, error) {
 	var q storage.EntityRequest
 
-	entityId, err := url.PathUnescape(chi.URLParam(r, "entity_id"))
+	entityID, err := url.PathUnescape(chi.URLParam(r, "entity_id"))
 	if err != nil {
 		return nil, common.ErrBadRequest
 	}
-	if entityId == "" {
+	if entityID == "" {
 		c.logger.Info("missing request parameters")
 		return nil, common.ErrBadRequest
 	}
-	q.EntityId = &entityId
+	q.EntityID = &entityID
 
 	return c.storage.Entity(ctx, &q)
 }
@@ -263,15 +263,15 @@ func (c *storageClient) Entity(ctx context.Context, r *http.Request) (*storage.E
 func (c *storageClient) EntityNodes(ctx context.Context, r *http.Request) (*storage.NodeList, error) {
 	var q storage.EntityNodesRequest
 
-	entityId, err := url.PathUnescape(chi.URLParam(r, "entity_id"))
+	entityID, err := url.PathUnescape(chi.URLParam(r, "entity_id"))
 	if err != nil {
 		return nil, common.ErrBadRequest
 	}
-	if entityId == "" {
+	if entityID == "" {
 		c.logger.Info("missing request parameters")
 		return nil, common.ErrBadRequest
 	}
-	q.EntityId = &entityId
+	q.EntityID = &entityID
 
 	p, err := common.NewPagination(r)
 	if err != nil {
@@ -288,20 +288,20 @@ func (c *storageClient) EntityNodes(ctx context.Context, r *http.Request) (*stor
 // EntityNode returns a node controlled by the provided entity.
 func (c *storageClient) EntityNode(ctx context.Context, r *http.Request) (*storage.Node, error) {
 	var q storage.EntityNodeRequest
-	entityId, err := url.PathUnescape(chi.URLParam(r, "entity_id"))
+	entityID, err := url.PathUnescape(chi.URLParam(r, "entity_id"))
 	if err != nil {
 		return nil, common.ErrBadRequest
 	}
-	nodeId, err := url.PathUnescape(chi.URLParam(r, "node_id"))
+	nodeID, err := url.PathUnescape(chi.URLParam(r, "node_id"))
 	if err != nil {
 		return nil, common.ErrBadRequest
 	}
-	if entityId == "" || nodeId == "" {
+	if entityID == "" || nodeID == "" {
 		c.logger.Info("missing request parameters")
 		return nil, common.ErrBadRequest
 	}
-	q.EntityId = &entityId
-	q.NodeId = &nodeId
+	q.EntityID = &entityID
+	q.NodeID = &nodeID
 
 	return c.storage.EntityNode(ctx, &q)
 }
@@ -529,11 +529,11 @@ func (c *storageClient) Proposal(ctx context.Context, r *http.Request) (*storage
 		c.logger.Info("missing required parameters")
 		return nil, common.ErrBadRequest
 	}
-	proposalId, err := strconv.ParseUint(v, 10, 64)
+	proposalID, err := strconv.ParseUint(v, 10, 64)
 	if err != nil {
 		return nil, common.ErrBadRequest
 	}
-	q.ProposalId = &proposalId
+	q.ProposalID = &proposalID
 
 	return c.storage.Proposal(ctx, &q)
 }
@@ -547,11 +547,11 @@ func (c *storageClient) ProposalVotes(ctx context.Context, r *http.Request) (*st
 		c.logger.Info("missing required parameters")
 		return nil, common.ErrBadRequest
 	}
-	proposalId, err := strconv.ParseUint(v, 10, 64)
+	proposalID, err := strconv.ParseUint(v, 10, 64)
 	if err != nil {
 		return nil, common.ErrBadRequest
 	}
-	q.ProposalId = &proposalId
+	q.ProposalID = &proposalID
 
 	p, err := common.NewPagination(r)
 	if err != nil {
@@ -581,12 +581,12 @@ func (c *storageClient) Validators(ctx context.Context, r *http.Request) (*stora
 func (c *storageClient) Validator(ctx context.Context, r *http.Request) (*storage.Validator, error) {
 	var q storage.ValidatorRequest
 
-	entityId := chi.URLParam(r, "entity_id")
-	if entityId == "" {
+	entityID := chi.URLParam(r, "entity_id")
+	if entityID == "" {
 		c.logger.Info("missing required parameters")
 		return nil, common.ErrBadRequest
 	}
-	q.EntityId = &entityId
+	q.EntityID = &entityID
 
 	return c.storage.Validator(ctx, &q)
 }

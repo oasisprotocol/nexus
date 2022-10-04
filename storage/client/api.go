@@ -45,16 +45,16 @@ type TransactionRequest struct {
 }
 
 type EntityRequest struct {
-	EntityId *string
+	EntityID *string
 }
 
 type EntityNodesRequest struct {
-	EntityId *string
+	EntityID *string
 }
 
 type EntityNodeRequest struct {
-	EntityId *string
-	NodeId   *string
+	EntityID *string
+	NodeID   *string
 }
 
 type AccountsRequest struct {
@@ -90,13 +90,13 @@ type ProposalsRequest struct {
 }
 
 type ProposalRequest struct {
-	ProposalId *uint64
+	ProposalID *uint64
 }
 
 type ProposalVotesRequest struct {
-	ProposalId *uint64
+	ProposalID *uint64
 }
 
 type ValidatorRequest struct {
-	EntityId *string
+	EntityID *string
 }
