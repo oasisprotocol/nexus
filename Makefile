@@ -61,6 +61,7 @@ docs: $(docs-targets)
 start-docker:
 	@docker compose up --remove-orphans	
 
+# Run dockerized postgres for local development
 postgres:
 	@docker run \
 		--name postgres \
@@ -69,6 +70,10 @@ postgres:
 		-e POSTGRES_PASSWORD=password \
 		-e POSTGRES_DB=indexer \
 		-d postgres
+
+# Attach to the local DB from "make postgres"
+psql:
+	@docker exec -it postgres psql -U indexer indexer
 
 shutdown-postgres:
 	@docker rm postgres --force

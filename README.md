@@ -59,6 +59,10 @@ For example, you can start a local [Docker](https://hub.docker.com/_/postgres) i
 ```
 make postgres
 ```
+and later browse the DB with
+```
+make psql
+```
 
 ### Indexer
 
