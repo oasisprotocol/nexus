@@ -30,13 +30,9 @@ type Handler struct {
 }
 
 // NewHandler creates a new V1 API handler.
-func NewHandler(chainID string, s *storage.StorageClient, l *log.Logger) (*Handler, error) {
-	client, err := newStorageClient(chainID, s, l)
-	if err != nil {
-		return nil, err
-	}
+func NewHandler(chainID string, s *storage.StorageClient, l *log.Logger) *Handler {
 	return &Handler{
-		client:  client,
+		client:  newStorageClient(chainID, s, l),
 		logger:  l.WithModule(moduleName),
 		metrics: metrics.NewDefaultRequestMetrics(moduleName),
 	}

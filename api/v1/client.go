@@ -7,7 +7,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/dgraph-io/ristretto"
 	"github.com/go-chi/chi/v5"
 
 	governance "github.com/oasisprotocol/oasis-core/go/governance/api"
@@ -17,46 +16,42 @@ import (
 	storage "github.com/oasisprotocol/oasis-indexer/storage/client"
 )
 
-const (
-	blockCost = 1
-	txCost    = 1
-)
-
-// storageClient is a wrapper around a storage.TargetStorage
+// storageClient is a wrapper around a storage.StorageClient
 // with knowledge of network semantics.
 type storageClient struct {
 	chainID string
 	storage *storage.StorageClient
-
-	blockCache *ristretto.Cache
-	txCache    *ristretto.Cache
-
-	logger *log.Logger
+	logger  *log.Logger
 }
 
 // newStorageClient creates a new storage client.
-func newStorageClient(chainID string, s *storage.StorageClient, l *log.Logger) (*storageClient, error) {
-	blockCache, err := ristretto.NewCache(&ristretto.Config{
-		NumCounters:        1024 * 10,
-		MaxCost:            1024,
-		BufferItems:        64,
-		IgnoreInternalCost: true,
-	})
-	if err != nil {
-		l.Error("api client: failed to create block cache: %w", err)
-		return nil, err
+func newStorageClient(chainID string, s *storage.StorageClient, l *log.Logger) *storageClient {
+	return &storageClient{chainID, s, l}
+}
+
+// validateInt64 parses an int64 url parameter.
+func validateInt64(param string) (int64, error) {
+	return strconv.ParseInt(param, 10, 64)
+}
+
+// validateUint64 parses an int64 url parameter.
+func validateUint64(param string) (uint64, error) {
+	return strconv.ParseUint(param, 10, 64)
+}
+
+// validateDatetime parses a datetime url parameter.
+func validateDatetime(param string) (time.Time, error) {
+	return time.Parse("2006-01-02T15:04:05Z-0700", param)
+}
+
+// validateConsensusAddress parses a consensus oasis address url parameter.
+func validateConsensusAddress(param string) (*staking.Address, error) {
+	var sender *staking.Address
+	err := sender.UnmarshalText([]byte(param))
+	if err != nil || !sender.IsValid() {
+		return nil, common.ErrBadRequest
 	}
-	txCache, err := ristretto.NewCache(&ristretto.Config{
-		NumCounters:        1024 * 10,
-		MaxCost:            1024,
-		BufferItems:        64,
-		IgnoreInternalCost: true,
-	})
-	if err != nil {
-		l.Error("api client: failed to create tx cache: %w", err)
-		return nil, err
-	}
-	return &storageClient{chainID, s, blockCache, txCache, l}, nil
+	return sender, nil
 }
 
 // Status returns status information for the Oasis Indexer.
@@ -69,28 +64,28 @@ func (c *storageClient) Blocks(ctx context.Context, r *http.Request) (*storage.B
 	var q storage.BlocksRequest
 	params := r.URL.Query()
 	if v := params.Get("from"); v != "" {
-		from, err := strconv.ParseInt(v, 10, 64)
+		from, err := validateInt64(v)
 		if err != nil {
 			return nil, common.ErrBadRequest
 		}
 		q.From = &from
 	}
 	if v := params.Get("to"); v != "" {
-		to, err := strconv.ParseInt(v, 10, 64)
+		to, err := validateInt64(v)
 		if err != nil {
 			return nil, common.ErrBadRequest
 		}
 		q.To = &to
 	}
 	if v := params.Get("after"); v != "" {
-		after, err := time.Parse("2006-01-02T15:04:05Z-0700", v)
+		after, err := validateDatetime(v)
 		if err != nil {
 			return nil, common.ErrBadRequest
 		}
 		q.After = &after
 	}
 	if v := params.Get("before"); v != "" {
-		before, err := time.Parse("2006-01-02T15:04:05Z-0700", v)
+		before, err := validateDatetime(v)
 		if err != nil {
 			return nil, common.ErrBadRequest
 		}
@@ -118,29 +113,13 @@ func (c *storageClient) Block(ctx context.Context, r *http.Request) (*storage.Bl
 		c.logger.Info("missing request parameter(s)")
 		return nil, common.ErrBadRequest
 	}
-	height, err := strconv.ParseInt(v, 10, 64)
+	height, err := validateInt64(v)
 	if err != nil {
 		return nil, common.ErrBadRequest
 	}
 	q.Height = &height
 
-	// Check cache
-	untypedBlock, ok := c.blockCache.Get(height)
-	if ok {
-		return untypedBlock.(*storage.Block), nil
-	}
-
-	blk, err := c.storage.Block(ctx, &q)
-	if err != nil {
-		return nil, err
-	}
-	c.cacheBlock(blk)
-	return blk, nil
-}
-
-// cacheBlock adds a block to the client's block cache.
-func (c *storageClient) cacheBlock(blk *storage.Block) {
-	c.blockCache.Set(blk.Height, blk, blockCost)
+	return c.storage.Block(ctx, &q)
 }
 
 // Transactions returns a list of consensus transactions.
@@ -148,7 +127,7 @@ func (c *storageClient) Transactions(ctx context.Context, r *http.Request) (*sto
 	var q storage.TransactionsRequest
 	params := r.URL.Query()
 	if v := params.Get("block"); v != "" {
-		block, err := strconv.ParseInt(v, 10, 64)
+		block, err := validateInt64(v)
 		if err != nil {
 			return nil, common.ErrBadRequest
 		}
@@ -158,29 +137,28 @@ func (c *storageClient) Transactions(ctx context.Context, r *http.Request) (*sto
 		q.Method = &v
 	}
 	if v := params.Get("sender"); v != "" {
-		var sender *staking.Address
-		err := sender.UnmarshalText([]byte(v))
-		if err != nil || !sender.IsValid() {
+		sender, err := validateConsensusAddress(v)
+		if err != nil {
 			return nil, common.ErrBadRequest
 		}
 		q.Sender = sender
 	}
 	if v := params.Get("minFee"); v != "" {
-		minFee, err := strconv.ParseInt(v, 10, 64)
+		minFee, err := validateInt64(v)
 		if err != nil {
 			return nil, common.ErrBadRequest
 		}
 		q.MinFee = &minFee
 	}
 	if v := params.Get("maxFee"); v != "" {
-		maxFee, err := strconv.ParseInt(v, 10, 64)
+		maxFee, err := validateInt64(v)
 		if err != nil {
 			return nil, common.ErrBadRequest
 		}
 		q.MaxFee = &maxFee
 	}
 	if v := params.Get("code"); v != "" {
-		code, err := strconv.ParseInt(v, 10, 64)
+		code, err := validateInt64(v)
 		if err != nil {
 			return nil, common.ErrBadRequest
 		}
@@ -210,22 +188,7 @@ func (c *storageClient) Transaction(ctx context.Context, r *http.Request) (*stor
 	}
 	q.TxHash = &txHash
 
-	// Check cache
-	untypedTx, ok := c.txCache.Get(txHash)
-	if ok {
-		return untypedTx.(*storage.Transaction), nil
-	}
-	tx, err := c.storage.Transaction(ctx, &q)
-	if err != nil {
-		return nil, err
-	}
-	c.cacheTx(tx)
-	return tx, nil
-}
-
-// cacheTx adds a transaction to the client's transaction cache.
-func (c *storageClient) cacheTx(tx *storage.Transaction) {
-	c.txCache.Set(tx.Hash, tx, txCost)
+	return c.storage.Transaction(ctx, &q)
 }
 
 // Entities returns a list of registered entities.
@@ -312,56 +275,56 @@ func (c *storageClient) Accounts(ctx context.Context, r *http.Request) (*storage
 	params := r.URL.Query()
 
 	if v := params.Get("minAvailable"); v != "" {
-		minAvailable, err := strconv.ParseInt(v, 10, 64)
+		minAvailable, err := validateInt64(v)
 		if err != nil {
 			return nil, common.ErrBadRequest
 		}
 		q.MinAvailable = &minAvailable
 	}
 	if v := params.Get("maxAvailable"); v != "" {
-		maxAvailable, err := strconv.ParseInt(v, 10, 64)
+		maxAvailable, err := validateInt64(v)
 		if err != nil {
 			return nil, common.ErrBadRequest
 		}
 		q.MaxAvailable = &maxAvailable
 	}
 	if v := params.Get("minEscrow"); v != "" {
-		minEscrow, err := strconv.ParseInt(v, 10, 64)
+		minEscrow, err := validateInt64(v)
 		if err != nil {
 			return nil, common.ErrBadRequest
 		}
 		q.MinEscrow = &minEscrow
 	}
 	if v := params.Get("maxEscrow"); v != "" {
-		maxEscrow, err := strconv.ParseInt(v, 10, 64)
+		maxEscrow, err := validateInt64(v)
 		if err != nil {
 			return nil, common.ErrBadRequest
 		}
 		q.MaxEscrow = &maxEscrow
 	}
 	if v := params.Get("minDebonding"); v != "" {
-		minDebonding, err := strconv.ParseInt(v, 10, 64)
+		minDebonding, err := validateInt64(v)
 		if err != nil {
 			return nil, common.ErrBadRequest
 		}
 		q.MinDebonding = &minDebonding
 	}
 	if v := params.Get("maxDebonding"); v != "" {
-		maxDebonding, err := strconv.ParseInt(v, 10, 64)
+		maxDebonding, err := validateInt64(v)
 		if err != nil {
 			return nil, common.ErrBadRequest
 		}
 		q.MaxDebonding = &maxDebonding
 	}
 	if v := params.Get("minTotalBalance"); v != "" {
-		minTotalBalance, err := strconv.ParseInt(v, 10, 64)
+		minTotalBalance, err := validateInt64(v)
 		if err != nil {
 			return nil, common.ErrBadRequest
 		}
 		q.MinTotalBalance = &minTotalBalance
 	}
 	if v := params.Get("maxTotalBalance"); v != "" {
-		maxTotalBalance, err := strconv.ParseInt(v, 10, 64)
+		maxTotalBalance, err := validateInt64(v)
 		if err != nil {
 			return nil, common.ErrBadRequest
 		}
@@ -389,9 +352,8 @@ func (c *storageClient) Account(ctx context.Context, r *http.Request) (*storage.
 		c.logger.Info("missing required parameters")
 		return nil, common.ErrBadRequest
 	}
-	var address *staking.Address
-	err := address.UnmarshalText([]byte(v))
-	if err != nil || !address.IsValid() {
+	address, err := validateConsensusAddress(v)
+	if err != nil {
 		return nil, common.ErrBadRequest
 	}
 	q.Address = address
@@ -408,9 +370,8 @@ func (c *storageClient) Delegations(ctx context.Context, r *http.Request) (*stor
 		c.logger.Info("missing required parameters")
 		return nil, common.ErrBadRequest
 	}
-	var address *staking.Address
-	err := address.UnmarshalText([]byte(v))
-	if err != nil || !address.IsValid() {
+	address, err := validateConsensusAddress(v)
+	if err != nil {
 		return nil, common.ErrBadRequest
 	}
 	q.Address = address
@@ -436,9 +397,8 @@ func (c *storageClient) DebondingDelegations(ctx context.Context, r *http.Reques
 		c.logger.Info("missing required parameters")
 		return nil, common.ErrBadRequest
 	}
-	var address *staking.Address
-	err := address.UnmarshalText([]byte(v))
-	if err != nil || !address.IsValid() {
+	address, err := validateConsensusAddress(v)
+	if err != nil {
 		return nil, common.ErrBadRequest
 	}
 	q.Address = address
@@ -478,7 +438,7 @@ func (c *storageClient) Epoch(ctx context.Context, r *http.Request) (*storage.Ep
 		c.logger.Info("missing required parameters")
 		return nil, common.ErrBadRequest
 	}
-	epoch, err := strconv.ParseInt(v, 10, 64)
+	epoch, err := validateInt64(v)
 	if err != nil {
 		return nil, common.ErrBadRequest
 	}
@@ -493,9 +453,8 @@ func (c *storageClient) Proposals(ctx context.Context, r *http.Request) (*storag
 	params := r.URL.Query()
 
 	if v := params.Get("submitter"); v != "" {
-		var submitter *staking.Address
-		err := submitter.UnmarshalText([]byte(v))
-		if err != nil || !submitter.IsValid() {
+		submitter, err := validateConsensusAddress(v)
+		if err != nil {
 			return nil, common.ErrBadRequest
 		}
 		q.Submitter = submitter
@@ -529,7 +488,7 @@ func (c *storageClient) Proposal(ctx context.Context, r *http.Request) (*storage
 		c.logger.Info("missing required parameters")
 		return nil, common.ErrBadRequest
 	}
-	proposalID, err := strconv.ParseUint(v, 10, 64)
+	proposalID, err := validateUint64(v)
 	if err != nil {
 		return nil, common.ErrBadRequest
 	}
@@ -547,7 +506,7 @@ func (c *storageClient) ProposalVotes(ctx context.Context, r *http.Request) (*st
 		c.logger.Info("missing required parameters")
 		return nil, common.ErrBadRequest
 	}
-	proposalID, err := strconv.ParseUint(v, 10, 64)
+	proposalID, err := validateUint64(v)
 	if err != nil {
 		return nil, common.ErrBadRequest
 	}

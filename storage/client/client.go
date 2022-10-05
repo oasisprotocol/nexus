@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/dgraph-io/ristretto"
 	"github.com/iancoleman/strcase"
 	oasisErrors "github.com/oasisprotocol/oasis-core/go/common/errors"
 
@@ -18,18 +19,44 @@ import (
 
 const (
 	tpsWindowSizeMinutes = 5
+	blockCost            = 1
+	txCost               = 1
 )
 
 // StorageClient is a wrapper around a storage.TargetStorage
 // with knowledge of network semantics.
 type StorageClient struct {
-	db     storage.TargetStorage
+	db storage.TargetStorage
+
+	blockCache *ristretto.Cache
+	txCache    *ristretto.Cache
+
 	logger *log.Logger
 }
 
 // NewStorageClient creates a new storage client.
-func NewStorageClient(db storage.TargetStorage, l *log.Logger) *StorageClient {
-	return &StorageClient{db, l}
+func NewStorageClient(db storage.TargetStorage, l *log.Logger) (*StorageClient, error) {
+	blockCache, err := ristretto.NewCache(&ristretto.Config{
+		NumCounters:        1024 * 10,
+		MaxCost:            1024,
+		BufferItems:        64,
+		IgnoreInternalCost: true,
+	})
+	if err != nil {
+		l.Error("api client: failed to create block cache: %w", err)
+		return nil, err
+	}
+	txCache, err := ristretto.NewCache(&ristretto.Config{
+		NumCounters:        1024 * 10,
+		MaxCost:            1024,
+		BufferItems:        64,
+		IgnoreInternalCost: true,
+	})
+	if err != nil {
+		l.Error("api client: failed to create tx cache: %w", err)
+		return nil, err
+	}
+	return &StorageClient{db, blockCache, txCache, l}, nil
 }
 
 // Shutdown closes the backing TargetStorage.
@@ -104,8 +131,14 @@ func (c *StorageClient) Blocks(ctx context.Context, r *BlocksRequest, p *common.
 	return &bs, nil
 }
 
-// Block returns a consensus block.
+// Block returns a consensus block. This endpoint is cached.
 func (c *StorageClient) Block(ctx context.Context, r *BlockRequest) (*Block, error) {
+	// Check cache
+	untypedBlock, ok := c.blockCache.Get(r.Height)
+	if ok {
+		return untypedBlock.(*Block), nil
+	}
+
 	cid, ok := ctx.Value(ChainIDContextKey).(string)
 	if !ok {
 		return nil, common.ErrBadChainID
@@ -126,7 +159,13 @@ func (c *StorageClient) Block(ctx context.Context, r *BlockRequest) (*Block, err
 	}
 	b.Timestamp = b.Timestamp.UTC()
 
+	c.cacheBlock(&b)
 	return &b, nil
+}
+
+// cacheBlock adds a block to the client's block cache.
+func (c *StorageClient) cacheBlock(blk *Block) {
+	c.blockCache.Set(blk.Height, blk, blockCost)
 }
 
 // Transactions returns a list of consensus transactions.
@@ -192,6 +231,12 @@ func (c *StorageClient) Transactions(ctx context.Context, r *TransactionsRequest
 
 // Transaction returns a consensus transaction.
 func (c *StorageClient) Transaction(ctx context.Context, r *TransactionRequest) (*Transaction, error) {
+	// Check cache
+	untypedTx, ok := c.txCache.Get(r.TxHash)
+	if ok {
+		return untypedTx.(*Transaction), nil
+	}
+
 	cid, ok := ctx.Value(ChainIDContextKey).(string)
 	if !ok {
 		return nil, common.ErrBadChainID
@@ -224,7 +269,13 @@ func (c *StorageClient) Transaction(ctx context.Context, r *TransactionRequest) 
 		t.Success = true
 	}
 
+	c.cacheTx(&t)
 	return &t, nil
+}
+
+// cacheTx adds a transaction to the client's transaction cache.
+func (c *StorageClient) cacheTx(tx *Transaction) {
+	c.txCache.Set(tx.Hash, tx, txCost)
 }
 
 // Entities returns a list of registered entities.

@@ -51,20 +51,6 @@ services:
       retries: 10
       timeout: 5s
       start_period: 30s
-  oasis-net-runner:
-    image: oasisprotocol/oasis-net-runner:dev
-    volumes:
-      - type: bind
-        source: ./
-        target: /oasis-indexer
-    command:
-      - /bin/sh
-      - -c
-      - oasis-net-runner --basedir.no_temp_dir --basedir /testnet --fixture.default.node.binary oasis-node --fixture.default.setup_runtimes=false --fixture.default.deterministic_entities=true --fixture.default.fund_entities --fixture.default.num_entities 2
-    security_opt:
-      - apparmor:unconfined
-      - seccomp=unconfined
-    working_dir: /code
 
 volumes:
   config: {}
