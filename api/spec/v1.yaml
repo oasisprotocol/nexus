@@ -289,7 +289,6 @@ paths:
     get:
       summary: Returns an entity registered at the consensus layer.
       parameters:
-        - *height
         - in: path
           name: entity_id
           required: true
@@ -319,7 +318,6 @@ paths:
       parameters:
         - *limit
         - *offset
-        - *height
         - in: path
           name: entity_id
           required: true
@@ -347,7 +345,6 @@ paths:
     get:
       summary: Returns a node registered at the consensus layer.
       parameters:
-        - *height
         - in: path
           name: entity_id
           required: true
@@ -384,7 +381,6 @@ paths:
       parameters:
         - *limit
         - *offset
-        - *height
       responses:
         '200':
           description: |
@@ -434,7 +430,6 @@ paths:
       parameters:
         - *limit
         - *offset
-        - *height
         - in: query
           name: minAvailable
           schema:
@@ -510,7 +505,6 @@ paths:
     get:
       summary: Returns a consensus layer account.
       parameters:
-        - *height
         - in: path
           name: address
           required: true
