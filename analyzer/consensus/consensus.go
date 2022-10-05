@@ -211,10 +211,7 @@ func (m *Main) processBlock(ctx context.Context, height int64) error {
 	} {
 		func(f prepareFunc) {
 			group.Go(func() error {
-				if err := f(groupCtx, height, batch); err != nil {
-					return err
-				}
-				return nil
+				return f(groupCtx, height, batch)
 			})
 		}(f)
 	}

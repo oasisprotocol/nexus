@@ -188,20 +188,14 @@ func (m *Main) processRound(ctx context.Context, round uint64) error {
 	batch := &storage.QueryBatch{}
 
 	group.Go(func() error {
-		if err := m.prepareBlockData(ctx, round, batch); err != nil {
-			return err
-		}
-		return nil
+		return m.prepareBlockData(ctx, round, batch)
 	})
 
 	type prepareFunc = func(context.Context, uint64, *storage.QueryBatch) error
 	for _, h := range m.moduleHandlers {
 		func(f prepareFunc) {
 			group.Go(func() error {
-				if err := f(groupCtx, round, batch); err != nil {
-					return err
-				}
-				return nil
+				return f(groupCtx, round, batch)
 			})
 		}(h.PrepareData)
 	}
