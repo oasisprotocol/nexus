@@ -3,6 +3,7 @@ package emerald
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/iancoleman/strcase"
@@ -132,24 +133,27 @@ func (m *Main) Start() {
 		)
 		return
 	}
+
 	for m.cfg.Range.To == 0 || round <= m.cfg.Range.To {
+		backoff.Wait()
+
 		if err := m.processRound(ctx, round); err != nil {
 			if err == analyzer.ErrOutOfRange {
-				m.logger.Info("no data source available for this round",
+				m.logger.Info("no data available; will retry",
 					"round", round,
+					"retry_interval_ms", backoff.Timeout().Milliseconds(),
 				)
-				return
+			} else {
+				m.logger.Error("error processing round",
+					"round", round,
+					"err", err.Error(),
+				)
 			}
-
-			m.logger.Error("error processing round",
-				"err", err,
-				"round", round,
-			)
-			backoff.Wait()
+			backoff.Failure()
 			continue
 		}
 
-		backoff.Reset()
+		backoff.Success()
 		round++
 	}
 }
@@ -211,6 +215,9 @@ func (m *Main) processRound(ctx context.Context, round uint64) error {
 	})
 
 	if err := group.Wait(); err != nil {
+		if strings.Contains(err.Error(), "roothash: block not found") {
+			return analyzer.ErrOutOfRange
+		}
 		return err
 	}
 

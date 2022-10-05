@@ -17,7 +17,7 @@ func TestBackoffWait(t *testing.T) {
 	require.Nil(t, err)
 
 	for i := 0; i < 10; i++ {
-		backoff.Wait()
+		backoff.Failure()
 	}
 	require.Equal(t, backoff.Timeout(), 1024*time.Millisecond)
 }
@@ -28,7 +28,7 @@ func TestBackoffReset(t *testing.T) {
 	backoff, err := NewBackoff(time.Millisecond, 10*time.Second)
 	require.Nil(t, err)
 
-	backoff.Wait()
+	backoff.Failure()
 	backoff.Reset()
 	require.Equal(t, backoff.Timeout(), time.Millisecond)
 }
@@ -40,9 +40,22 @@ func TestBackoffMaximum(t *testing.T) {
 	require.Nil(t, err)
 
 	for i := 0; i < 10; i++ {
-		backoff.Wait()
+		backoff.Failure()
 	}
 	require.Equal(t, backoff.Timeout(), 10*time.Millisecond)
+}
+
+// TestBackoffMinimum tests if the backoff time is
+// appropriately lower bounded.
+func TestBackoffMinimum(t *testing.T) {
+	backoff, err := NewBackoff(time.Millisecond, 10*time.Millisecond)
+	require.Nil(t, err)
+
+	backoff.Failure()
+	for i := 0; i < 100; i++ {
+		backoff.Success()
+	}
+	require.Equal(t, backoff.Timeout(), time.Millisecond)
 }
 
 // TestMaximumTimeoutUpperBound tests that the maximum timeout upper

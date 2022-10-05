@@ -138,22 +138,25 @@ func (m *Main) Start() {
 		return
 	}
 	for m.cfg.Range.To == 0 || height <= m.cfg.Range.To {
+		backoff.Wait()
+
 		if err := m.processBlock(ctx, height); err != nil {
 			if err == analyzer.ErrOutOfRange {
-				m.logger.Info("no data source available at this height",
+				m.logger.Info("no data available; will retry",
 					"height", height,
+					"retry_interval_ms", backoff.Timeout().Milliseconds(),
 				)
-				return
+			} else {
+				m.logger.Error("error processing block",
+					"height", height,
+					"err", err.Error(),
+				)
 			}
-
-			m.logger.Error("error processing block",
-				"err", err.Error(),
-			)
-			backoff.Wait()
+			backoff.Failure()
 			continue
 		}
 
-		backoff.Reset()
+		backoff.Success()
 		height++
 	}
 }
@@ -227,6 +230,9 @@ func (m *Main) processBlock(ctx context.Context, height int64) error {
 	})
 
 	if err := group.Wait(); err != nil {
+		if strings.Contains(err.Error(), "must be less than or equal to the current blockchain height") {
+			return analyzer.ErrOutOfRange
+		}
 		return err
 	}
 

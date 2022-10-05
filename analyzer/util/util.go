@@ -43,6 +43,19 @@ func NewBackoff(initialTimeout time.Duration, maximumTimeout time.Duration) (*Ba
 // Wait waits for the appropriate backoff interval.
 func (b *Backoff) Wait() {
 	time.Sleep(b.currentTimeout)
+}
+
+// Success slightly decreases the backoff interval.
+func (b *Backoff) Success() {
+	b.currentTimeout *= 9
+	b.currentTimeout /= 10
+	if b.currentTimeout < b.initialTimeout {
+		b.currentTimeout = b.initialTimeout
+	}
+}
+
+// Failure increases the backoff interval.
+func (b *Backoff) Failure() {
 	b.currentTimeout *= 2
 	if b.currentTimeout > b.maximumTimeout {
 		b.currentTimeout = b.maximumTimeout
