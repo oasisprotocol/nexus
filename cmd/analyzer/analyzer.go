@@ -2,6 +2,7 @@
 package analyzer
 
 import (
+	"fmt"
 	"os"
 	"sync"
 
@@ -127,18 +128,20 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) {
 	analyzers := map[string]analyzer.Analyzer{}
 	for _, analyzerCfg := range cfg.Analyzers {
 		switch analyzerCfg.Name {
-		case "consensus_main_damask":
+		case "consensus_damask", "consensus_main_damask": // TODO: drop "main" variant; as of Oct 2022, it exists only to support legacy helmfiles
 			consensusMainDamask, err := consensus.NewMain(analyzerCfg, client, logger)
 			if err != nil {
 				return nil, err
 			}
 			analyzers[consensusMainDamask.Name()] = consensusMainDamask
-		case "emerald_main_damask":
+		case "emerald_damask", "emerald_main_damask": // TODO: drop "main" variant; as of Oct 2022, it exists only to support legacy helmfiles
 			emeraldMainDamask, err := emerald.NewMain(analyzerCfg, client, logger)
 			if err != nil {
 				return nil, err
 			}
 			analyzers[emeraldMainDamask.Name()] = emeraldMainDamask
+		default:
+			return nil, fmt.Errorf("unsupported analyzer name: %s", analyzerCfg.Name)
 		}
 	}
 

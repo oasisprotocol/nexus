@@ -23,7 +23,7 @@ import (
 const (
 	emerald = analyzer.RuntimeEmerald
 
-	emeraldMainDamaskName = "emerald_main_damask"
+	emeraldDamaskAnalyzerName = "emerald_damask"
 )
 
 // Main is the main Analyzer for the Emerald Runtime.
@@ -87,8 +87,8 @@ func NewMain(cfg *config.AnalyzerConfig, target storage.TargetStorage, logger *l
 		cfg:     ac,
 		qf:      qf,
 		target:  target,
-		logger:  logger,
-		metrics: metrics.NewDefaultDatabaseMetrics(emeraldMainDamaskName),
+		logger:  logger.With("analyzer", emeraldDamaskAnalyzerName),
+		metrics: metrics.NewDefaultDatabaseMetrics(emeraldDamaskAnalyzerName),
 
 		// module handlers
 		moduleHandlers: []modules.ModuleHandler{
@@ -156,7 +156,7 @@ func (m *Main) Start() {
 
 // Name returns the name of the Main.
 func (m *Main) Name() string {
-	return emeraldMainDamaskName
+	return emeraldDamaskAnalyzerName
 }
 
 // latestRound returns the latest round processed by the consensus analyzer.
@@ -167,7 +167,7 @@ func (m *Main) latestRound(ctx context.Context) (uint64, error) {
 		m.qf.LatestBlockQuery(),
 		// ^analyzers should only analyze for a single chain ID, and we anchor this
 		// at the starting round.
-		emeraldMainDamaskName,
+		emeraldDamaskAnalyzerName,
 	).Scan(&latest); err != nil {
 		return 0, err
 	}
@@ -205,7 +205,7 @@ func (m *Main) processRound(ctx context.Context, round uint64) error {
 		batch.Queue(
 			m.qf.IndexingProgressQuery(),
 			round,
-			emeraldMainDamaskName,
+			emeraldDamaskAnalyzerName,
 		)
 		return nil
 	})
