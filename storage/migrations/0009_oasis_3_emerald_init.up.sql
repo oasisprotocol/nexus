@@ -38,6 +38,10 @@ CREATE TABLE IF NOT EXISTS oasis_3.emerald_transaction_signers
 (
   round          BIGINT NOT NULL,
   tx_index       INTEGER NOT NULL,
+  -- Emerald processes mainly Ethereum-format transactions with only one
+  -- signer, but Emerald is built on the Oasis runtime SDK, which supports
+  -- multiple signers on a transaction (note that this is a distinct concept
+  -- from multisig accounts).
   signer_index   INTEGER NOT NULL,
   signer_address TEXT NOT NULL,
   nonce          BIGINT NOT NULL,
