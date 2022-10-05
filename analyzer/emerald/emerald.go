@@ -23,7 +23,7 @@ import (
 const (
 	emerald = analyzer.RuntimeEmerald
 
-	emeraldMainDamaskName = "emerald_main_damask"
+	emeraldDamaskAnalyzerName = "emerald_damask"
 )
 
 // Main is the main Analyzer for the Emerald Runtime.
@@ -63,6 +63,7 @@ func NewMain(cfg *config.AnalyzerConfig, target storage.TargetStorage, logger *l
 	if err != nil {
 		return nil, err
 	}
+	logger.Info("Emerald runtime ID determined", "runtime_id", id)
 
 	client, err := factory.Runtime(id)
 	if err != nil {
@@ -86,8 +87,8 @@ func NewMain(cfg *config.AnalyzerConfig, target storage.TargetStorage, logger *l
 		cfg:     ac,
 		qf:      qf,
 		target:  target,
-		logger:  logger,
-		metrics: metrics.NewDefaultDatabaseMetrics(emeraldMainDamaskName),
+		logger:  logger.With("analyzer", emeraldDamaskAnalyzerName),
+		metrics: metrics.NewDefaultDatabaseMetrics(emeraldDamaskAnalyzerName),
 
 		// module handlers
 		moduleHandlers: []modules.ModuleHandler{
@@ -142,6 +143,7 @@ func (m *Main) Start() {
 
 			m.logger.Error("error processing round",
 				"err", err,
+				"round", round,
 			)
 			backoff.Wait()
 			continue
@@ -154,7 +156,7 @@ func (m *Main) Start() {
 
 // Name returns the name of the Main.
 func (m *Main) Name() string {
-	return emeraldMainDamaskName
+	return emeraldDamaskAnalyzerName
 }
 
 // latestRound returns the latest round processed by the consensus analyzer.
@@ -165,7 +167,7 @@ func (m *Main) latestRound(ctx context.Context) (uint64, error) {
 		m.qf.LatestBlockQuery(),
 		// ^analyzers should only analyze for a single chain ID, and we anchor this
 		// at the starting round.
-		emeraldMainDamaskName,
+		emeraldDamaskAnalyzerName,
 	).Scan(&latest); err != nil {
 		return 0, err
 	}
@@ -186,20 +188,14 @@ func (m *Main) processRound(ctx context.Context, round uint64) error {
 	batch := &storage.QueryBatch{}
 
 	group.Go(func() error {
-		if err := m.prepareBlockData(ctx, round, batch); err != nil {
-			return err
-		}
-		return nil
+		return m.prepareBlockData(ctx, round, batch)
 	})
 
 	type prepareFunc = func(context.Context, uint64, *storage.QueryBatch) error
 	for _, h := range m.moduleHandlers {
 		func(f prepareFunc) {
 			group.Go(func() error {
-				if err := f(groupCtx, round, batch); err != nil {
-					return err
-				}
-				return nil
+				return f(groupCtx, round, batch)
 			})
 		}(h.PrepareData)
 	}
@@ -209,7 +205,7 @@ func (m *Main) processRound(ctx context.Context, round uint64) error {
 		batch.Queue(
 			m.qf.IndexingProgressQuery(),
 			round,
-			emeraldMainDamaskName,
+			emeraldDamaskAnalyzerName,
 		)
 		return nil
 	})
@@ -218,7 +214,7 @@ func (m *Main) processRound(ctx context.Context, round uint64) error {
 		return err
 	}
 
-	opName := fmt.Sprintf("process_round_%s", emerald.String())
+	opName := fmt.Sprintf("process_round_rt%s", emerald.String())
 	timer := m.metrics.DatabaseTimer(m.target.Name(), opName)
 	defer timer.ObserveDuration()
 

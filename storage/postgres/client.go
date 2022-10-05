@@ -55,8 +55,9 @@ func (c *Client) SendBatch(ctx context.Context, batch *pgx.Batch) error {
 
 		return nil
 	}); err != nil {
-		c.logger.Error("failed to execute tx batch",
+		c.logger.Error("failed to execute db batch",
 			"error", err,
+			"batch_size", batch.Len(),
 		)
 		return err
 	}
