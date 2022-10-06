@@ -102,7 +102,7 @@ func (l *Logger) WithModule(module string) *Logger {
 	}
 }
 
-// Level is the logging level
+// Level is the logging level.
 func (l *Logger) Level() Level {
 	return l.level
 }

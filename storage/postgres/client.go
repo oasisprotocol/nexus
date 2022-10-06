@@ -22,11 +22,52 @@ type Client struct {
 	logger *log.Logger
 }
 
+// pgxLogger is a pgx-compatible logger interface that uses indexer's standard
+// logger as the backend.
+type pgxLogger struct {
+	logger *log.Logger
+}
+
+func (l *pgxLogger) logFuncForLevel(level pgx.LogLevel) func(string, ...interface{}) {
+	switch level {
+	case pgx.LogLevelTrace, pgx.LogLevelDebug:
+		return l.logger.Debug
+	case pgx.LogLevelInfo:
+		return l.logger.Info
+	case pgx.LogLevelWarn:
+		return l.logger.Warn
+	case pgx.LogLevelError, pgx.LogLevelNone:
+		return l.logger.Error
+	default:
+		l.logger.Warn("Unknown log level", "unknown_level", level)
+		return l.logger.Info
+	}
+}
+
+// Implements pgx.Logger interface.
+func (l *pgxLogger) Log(ctx context.Context, level pgx.LogLevel, msg string, data map[string]interface{}) {
+	args := []interface{}{}
+	for k, v := range data {
+		args = append(args, k, v)
+	}
+
+	logFunc := l.logFuncForLevel(level)
+	logFunc(msg, args...)
+}
+
 // NewClient creates a new PostgreSQL client.
 func NewClient(connString string, l *log.Logger) (*Client, error) {
 	config, err := pgxpool.ParseConfig(connString)
 	if err != nil {
 		return nil, err
+	}
+
+	// Set up pgx logging. For a log line to be produced, it needs to be >= the level
+	// specified here, and >= the level of the underlying indexer logger. "Info" level
+	// logs every SQL statement executed.
+	config.ConnConfig.LogLevel = pgx.LogLevelWarn
+	config.ConnConfig.Logger = &pgxLogger{
+		logger: l.WithModule(moduleName).With("db", config.ConnConfig.Database),
 	}
 
 	pool, err := pgxpool.ConnectConfig(context.Background(), config)
