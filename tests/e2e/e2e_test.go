@@ -30,7 +30,9 @@ import (
 
 const (
 	fundAccountAmount = 10000000000
-	timeout           = 1 * time.Second
+	// Net runner seems to generate a block per second.
+	// 2 seconds appears to be enough for now.
+	timeout = 2 * time.Second
 )
 
 func TestIndexer(t *testing.T) {
