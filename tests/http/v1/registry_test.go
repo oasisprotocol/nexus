@@ -3,7 +3,6 @@ package v1
 import (
 	"fmt"
 	"net/url"
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -43,9 +42,7 @@ func escape(s string) string {
 }
 
 func TestListEntities(t *testing.T) {
-	if _, ok := os.LookupEnv("OASIS_INDEXER_E2E"); !ok {
-		t.Skip("skipping test since e2e tests are not enabled")
-	}
+	tests.SkipUnlessE2E(t)
 
 	tests.Init()
 
@@ -73,9 +70,7 @@ func TestListEntities(t *testing.T) {
 }
 
 func TestGetEntity(t *testing.T) {
-	if _, ok := os.LookupEnv("OASIS_INDEXER_E2E"); !ok {
-		t.Skip("skipping test since e2e tests are not enabled")
-	}
+	tests.SkipUnlessE2E(t)
 
 	tests.Init()
 
@@ -93,9 +88,7 @@ func TestGetEntity(t *testing.T) {
 }
 
 func TestListEntityNodes(t *testing.T) {
-	if _, ok := os.LookupEnv("OASIS_INDEXER_E2E"); !ok {
-		t.Skip("skipping test since e2e tests are not enabled")
-	}
+	tests.SkipUnlessE2E(t)
 
 	tests.Init()
 
@@ -116,9 +109,7 @@ func TestListEntityNodes(t *testing.T) {
 }
 
 func TestGetEntityNode(t *testing.T) {
-	if _, ok := os.LookupEnv("OASIS_INDEXER_E2E"); !ok {
-		t.Skip("skipping test since e2e tests are not enabled")
-	}
+	tests.SkipUnlessE2E(t)
 
 	tests.Init()
 

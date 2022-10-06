@@ -5,7 +5,6 @@ import (
 	"crypto"
 	"fmt"
 	"math/rand"
-	"os"
 	"testing"
 	"time"
 
@@ -36,9 +35,7 @@ const (
 )
 
 func TestIndexer(t *testing.T) {
-	if _, ok := os.LookupEnv("OASIS_INDEXER_E2E"); !ok {
-		t.Skip("skipping test since e2e tests are not enabled")
-	}
+	tests.SkipUnlessE2E(t)
 
 	if err := common.Init(); err != nil {
 		common.EarlyLogAndExit(err)

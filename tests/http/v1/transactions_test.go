@@ -2,7 +2,6 @@ package v1
 
 import (
 	"fmt"
-	"os"
 	"sort"
 	"testing"
 	"time"
@@ -110,9 +109,7 @@ func makeTestTransactions() []v1.Transaction {
 }
 
 func TestListBlocks(t *testing.T) {
-	if _, ok := os.LookupEnv("OASIS_INDEXER_E2E"); !ok {
-		t.Skip("skipping test since e2e tests are not enabled")
-	}
+	tests.SkipUnlessE2E(t)
 
 	tests.Init()
 
@@ -131,9 +128,7 @@ func TestListBlocks(t *testing.T) {
 }
 
 func TestGetBlock(t *testing.T) {
-	if _, ok := os.LookupEnv("OASIS_INDEXER_E2E"); !ok {
-		t.Skip("skipping test since e2e tests are not enabled")
-	}
+	tests.SkipUnlessE2E(t)
 
 	tests.Init()
 
@@ -148,9 +143,7 @@ func TestGetBlock(t *testing.T) {
 }
 
 func TestListTransactions(t *testing.T) {
-	if _, ok := os.LookupEnv("OASIS_INDEXER_E2E"); !ok {
-		t.Skip("skipping test since e2e tests are not enabled")
-	}
+	tests.SkipUnlessE2E(t)
 
 	tests.Init()
 
@@ -175,9 +168,7 @@ func TestListTransactions(t *testing.T) {
 }
 
 func TestGetTransaction(t *testing.T) {
-	if _, ok := os.LookupEnv("OASIS_INDEXER_E2E"); !ok {
-		t.Skip("skipping test since e2e tests are not enabled")
-	}
+	tests.SkipUnlessE2E(t)
 
 	tests.Init()
 
