@@ -22,6 +22,8 @@ CREATE TABLE IF NOT EXISTS oasis_3.emerald_rounds
   size             INTEGER
 );
 
+CREATE INDEX ix_emerald_rounds_block_hash ON oasis_3.emerald_rounds USING hash (block_hash);
+
 CREATE TABLE IF NOT EXISTS oasis_3.emerald_transactions
 (
   round       BIGINT NOT NULL,
@@ -31,8 +33,8 @@ CREATE TABLE IF NOT EXISTS oasis_3.emerald_transactions
   PRIMARY KEY (round, tx_index)
 );
 
-CREATE INDEX ix_emerald_transactions_tx_hash ON oasis_3.emerald_transactions(tx_hash);
-CREATE INDEX ix_emerald_transactions_tx_eth_hash ON oasis_3.emerald_transactions(tx_eth_hash);
+CREATE INDEX ix_emerald_transactions_tx_hash ON oasis_3.emerald_transactions USING hash (tx_hash);
+CREATE INDEX ix_emerald_transactions_tx_eth_hash ON oasis_3.emerald_transactions USING hash (tx_eth_hash);
 
 CREATE TABLE IF NOT EXISTS oasis_3.emerald_transaction_signers
 (
@@ -48,7 +50,7 @@ CREATE TABLE IF NOT EXISTS oasis_3.emerald_transaction_signers
   PRIMARY KEY (round, tx_index, signer_index)
 );
 
-CREATE INDEX ix_emerald_transaction_signers_signer_address_signer_nonce ON oasis_3.emerald_transaction_signers(signer_address, nonce);
+CREATE INDEX ix_emerald_transaction_signers_signer_address_signer_nonce ON oasis_3.emerald_transaction_signers (signer_address, nonce);
 
 CREATE TABLE IF NOT EXISTS oasis_3.emerald_related_transactions
 (
@@ -57,7 +59,7 @@ CREATE TABLE IF NOT EXISTS oasis_3.emerald_related_transactions
   tx_index        INTEGER NOT NULL
 );
 
-CREATE INDEX ix_emerald_related_transactions_address_height_index ON oasis_3.emerald_related_transactions(account_address, tx_round, tx_index);
+CREATE INDEX ix_emerald_related_transactions_address_height_index ON oasis_3.emerald_related_transactions (account_address, tx_round, tx_index);
 
 -- Retain this across hard forks as long as the address derivation scheme is compatible.
 CREATE TABLE IF NOT EXISTS oasis_3.address_preimages
