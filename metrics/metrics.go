@@ -3,6 +3,7 @@ package metrics
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
@@ -28,7 +29,13 @@ func (s *PullService) StartInstrumentation() {
 func (s *PullService) startHandler() {
 	http.Handle("/metrics", promhttp.Handler())
 
-	if err := http.ListenAndServe(s.pullEndpoint, nil); err != nil {
+	server := &http.Server{
+		Addr:           s.pullEndpoint,
+		ReadTimeout:    10 * time.Second,
+		WriteTimeout:   10 * time.Second,
+		MaxHeaderBytes: 1 << 20,
+	}
+	if err := server.ListenAndServe(); err != nil {
 		s.logger.Error("unable to initialize prometheus pull service",
 			"endpoint", s.pullEndpoint,
 			"error", err,

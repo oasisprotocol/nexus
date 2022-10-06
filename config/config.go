@@ -128,6 +128,9 @@ func (cfg *AnalyzerConfig) Validate() error {
 
 // ServerConfig contains the API server configuration.
 type ServerConfig struct {
+	// ChainID is the chain ID (normally latest) for the server API
+	ChainID string `koanf:"chain_id"`
+
 	// Endpoint is the service endpoint from which to serve the API.
 	Endpoint string `koanf:"endpoint"`
 

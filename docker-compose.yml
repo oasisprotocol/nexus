@@ -21,7 +21,7 @@ services:
         source: ./config
         target: /config
   postgres:
-    image: postgres:latest
+    image: postgres:13.7
     ports:
       - 5432:5432
     environment:

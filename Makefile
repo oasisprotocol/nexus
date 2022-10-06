@@ -20,6 +20,10 @@ docker:
 		--tag oasislabs/oasis-indexer:dev \
 		--file docker/indexer/Dockerfile \
 		.
+	@docker build \
+		--tag oasislabs/oasis-net-runner:dev \
+		--file docker/oasis-net-runner/Dockerfile \
+		docker/oasis-net-runner
 
 clean:
 	@$(GO) clean
@@ -29,6 +33,9 @@ test:
 
 test-ci:
 	@$(GO) test -race -coverpkg=./... -coverprofile=coverage.txt -covermode=atomic -v ./...
+
+test-e2e:
+	@$(GO) test -race -coverpkg=./... -coverprofile=coverage.txt -covermode=atomic -v ./tests/e2e
 
 # Format code.
 fmt:

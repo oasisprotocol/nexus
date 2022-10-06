@@ -2,7 +2,6 @@ package v1
 
 import (
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -33,9 +32,7 @@ func makeTestAccounts() []v1.Account {
 }
 
 func TestListAccounts(t *testing.T) {
-	if _, ok := os.LookupEnv("OASIS_INDEXER_E2E"); !ok {
-		t.Skip("skipping test since e2e tests are not enabled")
-	}
+	tests.SkipUnlessE2E(t)
 
 	tests.Init()
 
@@ -51,9 +48,7 @@ func TestListAccounts(t *testing.T) {
 }
 
 func TestGetAccount(t *testing.T) {
-	if _, ok := os.LookupEnv("OASIS_INDEXER_E2E"); !ok {
-		t.Skip("skipping test since e2e tests are not enabled")
-	}
+	tests.SkipUnlessE2E(t)
 
 	tests.Init()
 

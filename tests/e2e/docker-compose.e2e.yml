@@ -1,0 +1,70 @@
+services:
+  indexer:
+    image: oasislabs/oasis-indexer:dev
+    container_name: oasis-indexer
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - 8008:8008
+    command:
+      - --config=/config/e2e-dev.yml
+    volumes:
+      - type: bind
+        source: ./migrations
+        target: /storage/migrations
+      - type: bind
+        source: ./config
+        target: /config
+      - type: bind
+        source: ./testnet
+        target: /testnet
+  postgres:
+    image: postgres:13.7
+    container_name: oasis-postgres
+    ports:
+      - 5432:5432
+    command: ["postgres", "-c", "log_statement=all"]
+    environment:
+      POSTGRES_USER: indexer
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: indexer
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U indexer"]
+      interval: 5s
+      retries: 10
+      timeout: 5s
+      start_period: 15s
+  oasis-net-runner:
+    image: oasislabs/oasis-net-runner:dev
+    build:
+      context: .
+      dockerfile: ../../docker/oasis-net-runner/Dockerfile
+    container_name: oasis-net-runner
+    volumes:
+      - type: bind
+        source: ./
+        target: /oasis-indexer
+      - type: bind
+        source: ./testnet
+        target: /testnet
+    command:
+      - /bin/sh
+      - -c
+      - oasis-net-runner --basedir.no_temp_dir --basedir /testnet --fixture.file=/testnet/fixture.json
+    security_opt:
+      - apparmor:unconfined
+      - seccomp=unconfined
+    working_dir: /code
+    healthcheck:
+      test: oasis-node control status -a unix:/testnet/net-runner/network/validator-0/internal.sock || exit 1
+      interval: 5s
+      retries: 10
+      timeout: 5s
+      start_period: 30s
+
+volumes:
+  config: {}
+  go: {}
+  migrations: {}
+  testnet: {}

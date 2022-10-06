@@ -27,21 +27,22 @@ const (
 // storageClient is a wrapper around a storage.TargetStorage
 // with knowledge of network semantics.
 type storageClient struct {
-	db     storage.TargetStorage
-	logger *log.Logger
+	chainID string
+	db      storage.TargetStorage
+	logger  *log.Logger
 }
 
 // newStorageClient creates a new storage client.
-func newStorageClient(db storage.TargetStorage, l *log.Logger) *storageClient {
-	return &storageClient{db, l}
+func newStorageClient(chainID string, db storage.TargetStorage, l *log.Logger) *storageClient {
+	return &storageClient{chainID, db, l}
 }
 
 // Status returns status information for the Oasis Indexer.
 func (c *storageClient) Status(ctx context.Context) (*Status, error) {
-	qf := NewQueryFactory(strcase.ToSnake(LatestChainID))
+	qf := NewQueryFactory(strcase.ToSnake(c.chainID))
 
 	s := Status{
-		LatestChainID: LatestChainID,
+		LatestChainID: c.chainID,
 	}
 	if err := c.db.QueryRow(
 		ctx,
@@ -1206,7 +1207,7 @@ func (c *storageClient) Validator(ctx context.Context, r *http.Request) (*Valida
 
 // TransactionsPerSecond returns a list of tps checkpoint values.
 func (c *storageClient) TransactionsPerSecond(ctx context.Context, r *http.Request) (*TpsCheckpointList, error) {
-	qf := NewQueryFactory(strcase.ToSnake(LatestChainID))
+	qf := NewQueryFactory(strcase.ToSnake(c.chainID))
 
 	pagination, err := common.NewPagination(r)
 	if err != nil {
@@ -1265,7 +1266,7 @@ func (c *storageClient) TransactionsPerSecond(ctx context.Context, r *http.Reque
 
 // DailyVolumes returns a list of daily transaction volumes.
 func (c *storageClient) DailyVolumes(ctx context.Context, r *http.Request) (*VolumeList, error) {
-	qf := NewQueryFactory(strcase.ToSnake(LatestChainID))
+	qf := NewQueryFactory(strcase.ToSnake(c.chainID))
 
 	pagination, err := common.NewPagination(r)
 	if err != nil {

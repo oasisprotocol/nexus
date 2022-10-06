@@ -1,0 +1,152 @@
+{
+  "tee": {
+      "hardware": 0,
+      "mr_signer": null
+  },
+  "network": {
+      "node_binary": "oasis-node",
+      "runtime_loader_binary": "oasis-core-runtime-loader",
+      "consensus": {
+          "backend": "",
+          "params": {
+              "timeout_commit": 1000000000,
+              "skip_timeout_commit": false,
+              "empty_block_interval": 0,
+              "max_tx_size": 0,
+              "max_block_size": 0,
+              "max_block_gas": 0,
+              "max_evidence_size": 0,
+              "state_checkpoint_interval": 0
+          }
+      },
+      "initial_height": 1,
+      "halt_epoch": 18446744073709551615,
+      "beacon": {
+          "backend": "insecure"
+      },
+      "deterministic_identities": true,
+      "restore_identities": false,
+      "fund_entities": false,
+      "ias": {
+          "mock": true
+      },
+      "Nodes": null,
+      "genesis_file": "/testnet/genesis.json"
+  },
+  "entities": [
+      {
+          "IsDebugTestEntity": true,
+          "Restore": false
+      },
+      {
+          "IsDebugTestEntity": false,
+          "Restore": false
+      }
+  ],
+  "runtimes": [],
+  "validators": [
+      {
+          "allow_early_termination": false,
+          "allow_error_termination": false,
+          "enable_profiling": false,
+          "disable_cert_rotation": false,
+          "entity": 1,
+          "consensus": {
+              "min_gas_price": 0,
+              "submission_gas_price": 0,
+              "prune_num_kept": 0,
+              "prune_interval": 0,
+              "tendermint_recover_corrupted_wal": false,
+              "supplementary_sanity_interval": 1
+          }
+      }
+  ],
+  "keymanagers": [
+  ],
+  "keymanager_policies": [
+  ],
+  "compute_workers": [
+      {
+          "entity": 1,
+          "runtime_provisioner": "sandboxed",
+          "allow_early_termination": false,
+          "allow_error_termination": false,
+          "enable_profiling": false,
+          "disable_cert_rotation": false,
+          "disable_public_rpc": false,
+          "consensus": {
+              "min_gas_price": 0,
+              "submission_gas_price": 0,
+              "prune_num_kept": 0,
+              "prune_interval": 0,
+              "tendermint_recover_corrupted_wal": false
+          },
+          "crash_point_probability": 0,
+          "runtimes": [
+          ],
+          "runtime_state_paths": {}
+      },
+      {
+          "entity": 1,
+          "runtime_provisioner": "sandboxed",
+          "allow_early_termination": false,
+          "allow_error_termination": false,
+          "enable_profiling": false,
+          "disable_cert_rotation": false,
+          "disable_public_rpc": false,
+          "consensus": {
+              "min_gas_price": 0,
+              "submission_gas_price": 0,
+              "prune_num_kept": 0,
+              "prune_interval": 0,
+              "tendermint_recover_corrupted_wal": false
+          },
+          "crash_point_probability": 0,
+          "runtimes": [
+          ],
+          "runtime_state_paths": {}
+      },
+      {
+          "entity": 1,
+          "runtime_provisioner": "sandboxed",
+          "allow_early_termination": false,
+          "allow_error_termination": false,
+          "enable_profiling": false,
+          "disable_cert_rotation": false,
+          "disable_public_rpc": false,
+          "consensus": {
+              "min_gas_price": 0,
+              "submission_gas_price": 0,
+              "prune_num_kept": 0,
+              "prune_interval": 0,
+              "tendermint_recover_corrupted_wal": false
+          },
+          "crash_point_probability": 0,
+          "runtimes": [
+          ],
+          "runtime_state_paths": {}
+      }
+  ],
+  "clients": [
+      {
+          "allow_error_termination": false,
+          "allow_early_termination": false,
+          "enable_profiling": false,
+          "consensus": {
+              "min_gas_price": 0,
+              "submission_gas_price": 0,
+              "prune_num_kept": 0,
+              "prune_interval": 0,
+              "tendermint_recover_corrupted_wal": false
+          },
+          "runtimes": [
+          ],
+          "runtime_provisioner": "sandboxed"
+      }
+  ],
+  "seeds": [
+      {
+          "disable_addr_book_from_genesis": false
+      }
+  ]
+}
