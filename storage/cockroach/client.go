@@ -10,6 +10,7 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 
 	"github.com/oasisprotocol/oasis-indexer/log"
+	"github.com/oasisprotocol/oasis-indexer/storage"
 )
 
 const (
@@ -44,11 +45,12 @@ func NewClient(connString string, l *log.Logger) (*Client, error) {
 // For now, updated row counts are discarded as this is not intended to be used
 // by any indexer. We only care about atomic success or failure of the query batch
 // corresponding to a new block.
-func (c *Client) SendBatch(ctx context.Context, batch *pgx.Batch) error {
+func (c *Client) SendBatch(ctx context.Context, batch *storage.QueryBatch) error {
+	pgxBatch := batch.AsPgxBatch()
 	if err := crdbpgx.ExecuteTx(ctx, c.pool, pgx.TxOptions{}, func(tx pgx.Tx) error {
-		batchResults := tx.SendBatch(ctx, batch)
+		batchResults := tx.SendBatch(ctx, &pgxBatch)
 		defer batchResults.Close()
-		for i := 0; i < batch.Len(); i++ {
+		for i := 0; i < pgxBatch.Len(); i++ {
 			if _, err := batchResults.Exec(); err != nil {
 				return err
 			}

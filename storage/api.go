@@ -22,14 +22,48 @@ import (
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 )
 
+type batchItem struct {
+	cmd  string
+	args []interface{}
+}
+
 // QueryBatch represents a batch of queries to be executed atomically.
-type QueryBatch = pgx.Batch
+// We use a custom type that mirrors pgx.Batch but also allows introspection for debugging.
+type QueryBatch struct{ items []*batchItem }
 
 // QueryResults represents the results from a read query.
 type QueryResults = pgx.Rows
 
 // QueryResult represents the result from a read query.
 type QueryResult = pgx.Row
+
+// Queue adds query to a batch.
+func (b *QueryBatch) Queue(cmd string, args ...interface{}) {
+	b.items = append(b.items, &batchItem{
+		cmd:  cmd,
+		args: args,
+	})
+}
+
+// AsPgxBatch converts a QueryBatch to a pgx.Batch.
+func (b *QueryBatch) AsPgxBatch() pgx.Batch {
+	pgxBatch := pgx.Batch{}
+	for _, item := range b.items {
+		pgxBatch.Queue(item.cmd, item.args...)
+	}
+	return pgxBatch
+}
+
+// Queries returns the queries in the batch. Each item of the returned slice
+// is composed of the SQL command and its arguments.
+func (b *QueryBatch) Queries() [][]interface{} {
+	queries := make([][]interface{}, len(b.items))
+	for idx, item := range b.items {
+		queries[idx] = []interface{}{item.cmd}
+		queries[idx] = append(queries[idx], item.args...)
+	}
+	return queries
+}
 
 // ConsensusSourceStorage defines an interface for retrieving raw block data
 // from the consensus layer.
