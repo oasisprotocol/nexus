@@ -179,7 +179,7 @@ func (qf QueryFactory) ConsensusAddGeneralBalanceUpdateQuery() string {
 	return fmt.Sprintf(`
 		UPDATE %s.accounts
 		SET
-			general_balance = general_balance - $2
+			general_balance = general_balance + $2
 		WHERE address = $1`, qf.chainID)
 }
 
