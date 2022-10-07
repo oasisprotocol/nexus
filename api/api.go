@@ -36,7 +36,7 @@ type IndexerAPI struct {
 }
 
 // NewIndexerAPI creates a new Indexer API.
-func NewIndexerAPI(chainID string, s *storage.StorageClient, l *log.Logger) (*IndexerAPI, error) {
+func NewIndexerAPI(chainID string, s *storage.StorageClient, l *log.Logger) *IndexerAPI {
 	r := chi.NewRouter()
 
 	// Register handlers.
@@ -58,7 +58,7 @@ func NewIndexerAPI(chainID string, s *storage.StorageClient, l *log.Logger) (*In
 		router:   r,
 		handlers: handlers,
 		logger:   l.WithModule(moduleName),
-	}, nil
+	}
 }
 
 // Router gets the router for this Handler.

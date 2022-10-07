@@ -11,8 +11,6 @@ import (
 type ContextKey string
 
 const (
-	LatestChainID = "oasis-3"
-
 	// ChainIDContextKey is used to set the relevant chain ID
 	// in a request context.
 	ChainIDContextKey ContextKey = "chain_id"

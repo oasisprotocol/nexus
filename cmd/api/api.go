@@ -94,7 +94,7 @@ func NewService(cfg *config.ServerConfig) (*Service, error) {
 	if err != nil {
 		return nil, err
 	}
-	client, err := storage.NewStorageClient(backing, logger)
+	client, err := storage.NewStorageClient(cfg.ChainID, backing, logger)
 	if err != nil {
 		return nil, err
 	}

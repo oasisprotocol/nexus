@@ -26,7 +26,8 @@ const (
 // StorageClient is a wrapper around a storage.TargetStorage
 // with knowledge of network semantics.
 type StorageClient struct {
-	db storage.TargetStorage
+	chainID string
+	db      storage.TargetStorage
 
 	blockCache *ristretto.Cache
 	txCache    *ristretto.Cache
@@ -35,7 +36,7 @@ type StorageClient struct {
 }
 
 // NewStorageClient creates a new storage client.
-func NewStorageClient(db storage.TargetStorage, l *log.Logger) (*StorageClient, error) {
+func NewStorageClient(chainID string, db storage.TargetStorage, l *log.Logger) (*StorageClient, error) {
 	blockCache, err := ristretto.NewCache(&ristretto.Config{
 		NumCounters:        1024 * 10,
 		MaxCost:            1024,
@@ -56,7 +57,7 @@ func NewStorageClient(db storage.TargetStorage, l *log.Logger) (*StorageClient, 
 		l.Error("api client: failed to create tx cache: %w", err)
 		return nil, err
 	}
-	return &StorageClient{db, blockCache, txCache, l}, nil
+	return &StorageClient{chainID, db, blockCache, txCache, l}, nil
 }
 
 // Shutdown closes the backing TargetStorage.
@@ -66,10 +67,10 @@ func (c *StorageClient) Shutdown() {
 
 // Status returns status information for the Oasis Indexer.
 func (c *StorageClient) Status(ctx context.Context) (*Status, error) {
-	qf := NewQueryFactory(strcase.ToSnake(LatestChainID))
+	qf := NewQueryFactory(strcase.ToSnake(c.chainID))
 
 	s := Status{
-		LatestChainID: LatestChainID,
+		LatestChainID: c.chainID,
 	}
 	if err := c.db.QueryRow(
 		ctx,
@@ -1042,7 +1043,7 @@ func (c *StorageClient) Validator(ctx context.Context, r *ValidatorRequest) (*Va
 
 // TransactionsPerSecond returns a list of tps checkpoint values.
 func (c *StorageClient) TransactionsPerSecond(ctx context.Context, p *common.Pagination) (*TpsCheckpointList, error) {
-	qf := NewQueryFactory(strcase.ToSnake(LatestChainID))
+	qf := NewQueryFactory(strcase.ToSnake(c.chainID))
 
 	rows, err := c.db.Query(
 		ctx,
@@ -1092,7 +1093,7 @@ func (c *StorageClient) TransactionsPerSecond(ctx context.Context, p *common.Pag
 
 // DailyVolumes returns a list of daily transaction volumes.
 func (c *StorageClient) DailyVolumes(ctx context.Context, p *common.Pagination) (*VolumeList, error) {
-	qf := NewQueryFactory(strcase.ToSnake(LatestChainID))
+	qf := NewQueryFactory(strcase.ToSnake(c.chainID))
 
 	rows, err := c.db.Query(
 		ctx,
