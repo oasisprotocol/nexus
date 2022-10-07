@@ -9,7 +9,7 @@ import (
 
 	v1 "github.com/oasisprotocol/oasis-indexer/api/v1"
 	"github.com/oasisprotocol/oasis-indexer/log"
-	"github.com/oasisprotocol/oasis-indexer/storage"
+	storage "github.com/oasisprotocol/oasis-indexer/storage/client"
 )
 
 const (
@@ -36,11 +36,11 @@ type IndexerAPI struct {
 }
 
 // NewIndexerAPI creates a new Indexer API.
-func NewIndexerAPI(chainID string, db storage.TargetStorage, l *log.Logger) *IndexerAPI {
+func NewIndexerAPI(chainID string, s *storage.StorageClient, l *log.Logger) *IndexerAPI {
 	r := chi.NewRouter()
 
 	// Register handlers.
-	v1Handler := v1.NewHandler(chainID, db, l)
+	v1Handler := v1.NewHandler(chainID, s, l)
 	handlers := []Handler{
 		v1Handler,
 	}

@@ -9,7 +9,7 @@ import (
 	"os"
 	"testing"
 
-	v1 "github.com/oasisprotocol/oasis-indexer/api/v1"
+	storage "github.com/oasisprotocol/oasis-indexer/storage/client"
 )
 
 // GetFrom completes an HTTP request and returns the unmarshalled response.
@@ -43,7 +43,7 @@ func GetFrom(path string, v interface{}) error {
 func After(height int64) <-chan int64 {
 	out := make(chan int64)
 	go func() {
-		var status v1.Status
+		var status storage.Status
 		for {
 			if err := GetFrom("/", &status); err != nil {
 				out <- 0

@@ -7,12 +7,12 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	v1 "github.com/oasisprotocol/oasis-indexer/api/v1"
+	storage "github.com/oasisprotocol/oasis-indexer/storage/client"
 	"github.com/oasisprotocol/oasis-indexer/tests"
 )
 
-func makeTestEntities() []v1.Entity {
-	return []v1.Entity{
+func makeTestEntities() []storage.Entity {
+	return []storage.Entity{
 		{
 			ID:      "gb8SHLeDc69Elk7OTfqhtVgE2sqxrBCDQI84xKR+Bjg=",
 			Address: "oasis1qpgl52u29wy4hjla89f46ntkn2qsa6zpdvhv6s6n",
@@ -23,8 +23,8 @@ func makeTestEntities() []v1.Entity {
 	}
 }
 
-func makeTestNodes() []v1.Node {
-	return []v1.Node{
+func makeTestNodes() []storage.Node {
+	return []storage.Node{
 		{
 			ID:              "5RIMVgnsN1D/HdvNxXCpE+lWH5U/SGYUrYsvhsTMbyA=",
 			EntityID:        "gb8SHLeDc69Elk7OTfqhtVgE2sqxrBCDQI84xKR+Bjg=",
@@ -50,11 +50,11 @@ func TestListEntities(t *testing.T) {
 	endHeight := tests.GenesisHeight + int64(len(testEntities)-1)
 	<-tests.After(endHeight)
 
-	var list v1.EntityList
+	var list storage.EntityList
 	err := tests.GetFrom("/consensus/entities", &list)
 	require.Nil(t, err)
 
-	check := func(e v1.Entity) bool {
+	check := func(e storage.Entity) bool {
 		for _, entity := range list.Entities {
 			if e.ID == entity.ID {
 				require.Equal(t, e.Address, entity.Address)
@@ -78,7 +78,7 @@ func TestGetEntity(t *testing.T) {
 	endHeight := tests.GenesisHeight + int64(len(testEntities)-1)
 	<-tests.After(endHeight)
 
-	var entity v1.Entity
+	var entity storage.Entity
 	err := tests.GetFrom(fmt.Sprintf("/consensus/entities/%s", escape(testEntities[0].ID)), &entity)
 	require.Nil(t, err)
 
@@ -96,7 +96,7 @@ func TestListEntityNodes(t *testing.T) {
 	endHeight := tests.GenesisHeight + int64(len(testNodes)-1)
 	<-tests.After(endHeight)
 
-	var list v1.NodeList
+	var list storage.NodeList
 	err := tests.GetFrom(fmt.Sprintf("/consensus/entities/%s/nodes", escape(testNodes[0].EntityID)), &list)
 	require.Nil(t, err)
 	require.Equal(t, len(testNodes), len(list.Nodes))
@@ -117,7 +117,7 @@ func TestGetEntityNode(t *testing.T) {
 	endHeight := tests.GenesisHeight + int64(len(testNodes)-1)
 	<-tests.After(endHeight)
 
-	var node v1.Node
+	var node storage.Node
 	err := tests.GetFrom(fmt.Sprintf("/consensus/entities/%s/nodes/%s", escape(testNodes[0].EntityID), escape(testNodes[0].ID)), &node)
 	require.Nil(t, err)
 	// The expiration is dynamic, until we have oasis-net-runner with a halt epoch.

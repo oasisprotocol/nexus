@@ -12,21 +12,20 @@ import (
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/mathrand"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
 	memorySigner "github.com/oasisprotocol/oasis-core/go/common/crypto/signature/signers/memory"
+	"github.com/oasisprotocol/oasis-core/go/common/entity"
 	oasisGrpc "github.com/oasisprotocol/oasis-core/go/common/grpc"
 	"github.com/oasisprotocol/oasis-core/go/common/quantity"
-	"github.com/oasisprotocol/oasis-core/go/oasis-node/cmd/common"
-	"github.com/stretchr/testify/require"
-
-	"github.com/oasisprotocol/oasis-core/go/common/entity"
 	consensus "github.com/oasisprotocol/oasis-core/go/consensus/api"
 	"github.com/oasisprotocol/oasis-core/go/consensus/api/transaction"
-
+	"github.com/oasisprotocol/oasis-core/go/oasis-node/cmd/common"
 	"github.com/oasisprotocol/oasis-core/go/oasis-node/cmd/debug/txsource/workload"
 	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
-	v1 "github.com/oasisprotocol/oasis-indexer/api/v1"
-	"github.com/oasisprotocol/oasis-indexer/tests"
+	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+
+	storage "github.com/oasisprotocol/oasis-indexer/storage/client"
+	"github.com/oasisprotocol/oasis-indexer/tests"
 )
 
 const (
@@ -43,7 +42,7 @@ func TestIndexer(t *testing.T) {
 	tests.Init()
 
 	// Indexer should be up
-	var status v1.Status
+	var status storage.Status
 	err := tests.GetFrom("/", &status)
 	require.Nil(t, err)
 
@@ -100,7 +99,7 @@ func TestIndexer(t *testing.T) {
 	}
 
 	// Bob account does not exist
-	var account v1.Account
+	var account storage.Account
 	err = tests.GetFrom(fmt.Sprintf("/consensus/accounts/%s", bobAddress), &account)
 	require.Nil(t, err)
 	require.Empty(t, account.Address)

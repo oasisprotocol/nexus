@@ -46,9 +46,6 @@ func ReplyWithError(w http.ResponseWriter, err error) error {
 	w.Header().Set("content-type", "application/json; charset=utf-8")
 	w.Header().Set("x-content-type-options", "nosniff")
 	w.WriteHeader(code)
-	if err := json.NewEncoder(w).Encode(response); err != nil {
-		return err
-	}
 
-	return nil
+	return json.NewEncoder(w).Encode(response)
 }

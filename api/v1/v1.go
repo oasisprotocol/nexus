@@ -5,7 +5,7 @@ import (
 
 	"github.com/oasisprotocol/oasis-indexer/log"
 	"github.com/oasisprotocol/oasis-indexer/metrics"
-	"github.com/oasisprotocol/oasis-indexer/storage"
+	storage "github.com/oasisprotocol/oasis-indexer/storage/client"
 )
 
 const (
@@ -20,9 +20,9 @@ type Handler struct {
 }
 
 // NewHandler creates a new V1 API handler.
-func NewHandler(chainID string, db storage.TargetStorage, l *log.Logger) *Handler {
+func NewHandler(chainID string, s *storage.StorageClient, l *log.Logger) *Handler {
 	return &Handler{
-		client:  newStorageClient(chainID, db, l),
+		client:  newStorageClient(chainID, s, l),
 		logger:  l.WithModule(moduleName),
 		metrics: metrics.NewDefaultRequestMetrics(moduleName),
 	}
@@ -48,7 +48,7 @@ func (h *Handler) RegisterRoutes(r chi.Router) {
 			})
 			r.Route("/transactions", func(r chi.Router) {
 				r.Get("/", h.ListTransactions)
-				r.Get("/{txn_hash}", h.GetTransaction)
+				r.Get("/{tx_hash}", h.GetTransaction)
 			})
 
 			// Registry Endpoints.
