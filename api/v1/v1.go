@@ -8,18 +8,8 @@ import (
 	storage "github.com/oasisprotocol/oasis-indexer/storage/client"
 )
 
-type ContextKey string
-
 const (
-	LatestChainID = "oasis-3"
-
-	// ChainIDContextKey is used to set the relevant chain ID
-	// in a request context.
-	ChainIDContextKey ContextKey = "chain_id"
-	// RequestIDContextKey is used to set a request id for tracing
-	// in a request context.
-	RequestIDContextKey ContextKey = "request_id"
-	moduleName                     = "api_v1"
+	moduleName = "api_v1"
 )
 
 // Handler is the Oasis Indexer V1 API handler.
@@ -58,7 +48,7 @@ func (h *Handler) RegisterRoutes(r chi.Router) {
 			})
 			r.Route("/transactions", func(r chi.Router) {
 				r.Get("/", h.ListTransactions)
-				r.Get("/{txn_hash}", h.GetTransaction)
+				r.Get("/{tx_hash}", h.GetTransaction)
 			})
 
 			// Registry Endpoints.

@@ -7,6 +7,8 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/iancoleman/strcase"
+
+	storage "github.com/oasisprotocol/oasis-indexer/storage/client"
 )
 
 // metricsMiddleware is a middleware that measures the start and end of each request,
@@ -32,7 +34,7 @@ func (h *Handler) metricsMiddleware(next http.Handler) http.Handler {
 		}()
 
 		next.ServeHTTP(w, r.WithContext(
-			context.WithValue(r.Context(), RequestIDContextKey, requestID),
+			context.WithValue(r.Context(), storage.RequestIDContextKey, requestID),
 		))
 	})
 }
@@ -46,7 +48,7 @@ func (h *Handler) chainMiddleware(next http.Handler) http.Handler {
 		// TODO: Set chainID based on provided height params.
 
 		next.ServeHTTP(w, r.WithContext(
-			context.WithValue(r.Context(), ChainIDContextKey, chainID),
+			context.WithValue(r.Context(), storage.ChainIDContextKey, chainID),
 		))
 	})
 }

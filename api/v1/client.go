@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
+	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
 	governance "github.com/oasisprotocol/oasis-core/go/governance/api"
 	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
 	"github.com/oasisprotocol/oasis-indexer/api/common"
@@ -46,12 +47,30 @@ func validateDatetime(param string) (time.Time, error) {
 
 // validateConsensusAddress parses a consensus oasis address url parameter.
 func validateConsensusAddress(param string) (*staking.Address, error) {
-	var sender *staking.Address
+	var sender staking.Address
 	err := sender.UnmarshalText([]byte(param))
 	if err != nil || !sender.IsValid() {
 		return nil, common.ErrBadRequest
 	}
-	return sender, nil
+	return &sender, nil
+}
+
+// validateEntityID parses a governance entity ID url parameter.
+func validateEntityID(param string) (*signature.PublicKey, error) {
+	var pk signature.PublicKey
+	if err := pk.UnmarshalText([]byte(param)); err != nil || !pk.IsValid() {
+		return nil, err
+	}
+	return &pk, nil
+}
+
+// validateNodeID parses a node ID url parameter.
+func validateNodeID(param string) (*signature.PublicKey, error) {
+	var nid signature.PublicKey
+	if err := nid.UnmarshalText([]byte(param)); err != nil || !nid.IsValid() {
+		return nil, err
+	}
+	return &nid, nil
 }
 
 // Status returns status information for the Oasis Indexer.
@@ -95,7 +114,7 @@ func (c *storageClient) Blocks(ctx context.Context, r *http.Request) (*storage.B
 	p, err := common.NewPagination(r)
 	if err != nil {
 		c.logger.Info("pagination failed",
-			"request_id", ctx.Value(RequestIDContextKey),
+			"request_id", ctx.Value(storage.RequestIDContextKey),
 			"err", err.Error(),
 		)
 		return nil, common.ErrBadRequest
@@ -139,6 +158,7 @@ func (c *storageClient) Transactions(ctx context.Context, r *http.Request) (*sto
 	if v := params.Get("sender"); v != "" {
 		sender, err := validateConsensusAddress(v)
 		if err != nil {
+			c.logger.Info("failed to validate address", "error", err)
 			return nil, common.ErrBadRequest
 		}
 		q.Sender = sender
@@ -168,7 +188,7 @@ func (c *storageClient) Transactions(ctx context.Context, r *http.Request) (*sto
 	p, err := common.NewPagination(r)
 	if err != nil {
 		c.logger.Info("pagination failed",
-			"request_id", ctx.Value(RequestIDContextKey),
+			"request_id", ctx.Value(storage.RequestIDContextKey),
 			"err", err.Error(),
 		)
 		return nil, common.ErrBadRequest
@@ -196,7 +216,7 @@ func (c *storageClient) Entities(ctx context.Context, r *http.Request) (*storage
 	p, err := common.NewPagination(r)
 	if err != nil {
 		c.logger.Info("pagination failed",
-			"request_id", ctx.Value(RequestIDContextKey),
+			"request_id", ctx.Value(storage.RequestIDContextKey),
 			"err", err.Error(),
 		)
 		return nil, common.ErrBadRequest
@@ -209,15 +229,16 @@ func (c *storageClient) Entities(ctx context.Context, r *http.Request) (*storage
 func (c *storageClient) Entity(ctx context.Context, r *http.Request) (*storage.Entity, error) {
 	var q storage.EntityRequest
 
-	entityID, err := url.PathUnescape(chi.URLParam(r, "entity_id"))
+	v, err := url.PathUnescape(chi.URLParam(r, "entity_id"))
 	if err != nil {
 		return nil, common.ErrBadRequest
 	}
-	if entityID == "" {
-		c.logger.Info("missing request parameters")
+	entityID, err := validateEntityID(v)
+	if err != nil {
+		c.logger.Info("failed to validate entity id", "error", err)
 		return nil, common.ErrBadRequest
 	}
-	q.EntityID = &entityID
+	q.EntityID = entityID
 
 	return c.storage.Entity(ctx, &q)
 }
@@ -226,20 +247,21 @@ func (c *storageClient) Entity(ctx context.Context, r *http.Request) (*storage.E
 func (c *storageClient) EntityNodes(ctx context.Context, r *http.Request) (*storage.NodeList, error) {
 	var q storage.EntityNodesRequest
 
-	entityID, err := url.PathUnescape(chi.URLParam(r, "entity_id"))
+	v, err := url.PathUnescape(chi.URLParam(r, "entity_id"))
 	if err != nil {
 		return nil, common.ErrBadRequest
 	}
-	if entityID == "" {
-		c.logger.Info("missing request parameters")
+	entityID, err := validateEntityID(v)
+	if err != nil {
+		c.logger.Info("failed to validate entity id", "error", err)
 		return nil, common.ErrBadRequest
 	}
-	q.EntityID = &entityID
+	q.EntityID = entityID
 
 	p, err := common.NewPagination(r)
 	if err != nil {
 		c.logger.Info("pagination failed",
-			"request_id", ctx.Value(RequestIDContextKey),
+			"request_id", ctx.Value(storage.RequestIDContextKey),
 			"err", err.Error(),
 		)
 		return nil, common.ErrBadRequest
@@ -251,20 +273,26 @@ func (c *storageClient) EntityNodes(ctx context.Context, r *http.Request) (*stor
 // EntityNode returns a node controlled by the provided entity.
 func (c *storageClient) EntityNode(ctx context.Context, r *http.Request) (*storage.Node, error) {
 	var q storage.EntityNodeRequest
-	entityID, err := url.PathUnescape(chi.URLParam(r, "entity_id"))
+	v, err := url.PathUnescape(chi.URLParam(r, "entity_id"))
 	if err != nil {
 		return nil, common.ErrBadRequest
 	}
-	nodeID, err := url.PathUnescape(chi.URLParam(r, "node_id"))
+	entityID, err := validateEntityID(v)
+	if err != nil {
+		c.logger.Info("failed to validate entity id", "error", err)
+		return nil, common.ErrBadRequest
+	}
+	q.EntityID = entityID
+	v, err = url.PathUnescape(chi.URLParam(r, "node_id"))
 	if err != nil {
 		return nil, common.ErrBadRequest
 	}
-	if entityID == "" || nodeID == "" {
-		c.logger.Info("missing request parameters")
+	nodeID, err := validateNodeID(v)
+	if err != nil {
+		c.logger.Info("failed to validate node_id", "error", err)
 		return nil, common.ErrBadRequest
 	}
-	q.EntityID = &entityID
-	q.NodeID = &nodeID
+	q.NodeID = nodeID
 
 	return c.storage.EntityNode(ctx, &q)
 }
@@ -334,7 +362,7 @@ func (c *storageClient) Accounts(ctx context.Context, r *http.Request) (*storage
 	p, err := common.NewPagination(r)
 	if err != nil {
 		c.logger.Info("pagination failed",
-			"request_id", ctx.Value(RequestIDContextKey),
+			"request_id", ctx.Value(storage.RequestIDContextKey),
 			"err", err.Error(),
 		)
 		return nil, common.ErrBadRequest
@@ -354,6 +382,7 @@ func (c *storageClient) Account(ctx context.Context, r *http.Request) (*storage.
 	}
 	address, err := validateConsensusAddress(v)
 	if err != nil {
+		c.logger.Info("failed to validate address", "error", err)
 		return nil, common.ErrBadRequest
 	}
 	q.Address = address
@@ -372,6 +401,7 @@ func (c *storageClient) Delegations(ctx context.Context, r *http.Request) (*stor
 	}
 	address, err := validateConsensusAddress(v)
 	if err != nil {
+		c.logger.Info("failed to validate address", "error", err)
 		return nil, common.ErrBadRequest
 	}
 	q.Address = address
@@ -379,7 +409,7 @@ func (c *storageClient) Delegations(ctx context.Context, r *http.Request) (*stor
 	p, err := common.NewPagination(r)
 	if err != nil {
 		c.logger.Info("pagination failed",
-			"request_id", ctx.Value(RequestIDContextKey),
+			"request_id", ctx.Value(storage.RequestIDContextKey),
 			"err", err.Error(),
 		)
 		return nil, common.ErrBadRequest
@@ -399,6 +429,7 @@ func (c *storageClient) DebondingDelegations(ctx context.Context, r *http.Reques
 	}
 	address, err := validateConsensusAddress(v)
 	if err != nil {
+		c.logger.Info("failed to validate address", "error", err)
 		return nil, common.ErrBadRequest
 	}
 	q.Address = address
@@ -406,7 +437,7 @@ func (c *storageClient) DebondingDelegations(ctx context.Context, r *http.Reques
 	p, err := common.NewPagination(r)
 	if err != nil {
 		c.logger.Info("pagination failed",
-			"request_id", ctx.Value(RequestIDContextKey),
+			"request_id", ctx.Value(storage.RequestIDContextKey),
 			"err", err.Error(),
 		)
 		return nil, common.ErrBadRequest
@@ -420,7 +451,7 @@ func (c *storageClient) Epochs(ctx context.Context, r *http.Request) (*storage.E
 	p, err := common.NewPagination(r)
 	if err != nil {
 		c.logger.Info("pagination failed",
-			"request_id", ctx.Value(RequestIDContextKey),
+			"request_id", ctx.Value(storage.RequestIDContextKey),
 			"err", err.Error(),
 		)
 		return nil, common.ErrBadRequest
@@ -455,6 +486,7 @@ func (c *storageClient) Proposals(ctx context.Context, r *http.Request) (*storag
 	if v := params.Get("submitter"); v != "" {
 		submitter, err := validateConsensusAddress(v)
 		if err != nil {
+			c.logger.Info("failed to validate address", "error", err)
 			return nil, common.ErrBadRequest
 		}
 		q.Submitter = submitter
@@ -470,7 +502,7 @@ func (c *storageClient) Proposals(ctx context.Context, r *http.Request) (*storag
 	p, err := common.NewPagination(r)
 	if err != nil {
 		c.logger.Info("pagination failed",
-			"request_id", ctx.Value(RequestIDContextKey),
+			"request_id", ctx.Value(storage.RequestIDContextKey),
 			"err", err.Error(),
 		)
 		return nil, common.ErrBadRequest
@@ -515,7 +547,7 @@ func (c *storageClient) ProposalVotes(ctx context.Context, r *http.Request) (*st
 	p, err := common.NewPagination(r)
 	if err != nil {
 		c.logger.Info("pagination failed",
-			"request_id", ctx.Value(RequestIDContextKey),
+			"request_id", ctx.Value(storage.RequestIDContextKey),
 			"err", err.Error(),
 		)
 		return nil, common.ErrBadRequest
@@ -540,12 +572,16 @@ func (c *storageClient) Validators(ctx context.Context, r *http.Request) (*stora
 func (c *storageClient) Validator(ctx context.Context, r *http.Request) (*storage.Validator, error) {
 	var q storage.ValidatorRequest
 
-	entityID := chi.URLParam(r, "entity_id")
-	if entityID == "" {
-		c.logger.Info("missing required parameters")
+	v, err := url.PathUnescape(chi.URLParam(r, "entity_id"))
+	if err != nil {
 		return nil, common.ErrBadRequest
 	}
-	q.EntityID = &entityID
+	entityID, err := validateEntityID(v)
+	if err != nil {
+		c.logger.Info("failed to validate entity id", "error", err)
+		return nil, common.ErrBadRequest
+	}
+	q.EntityID = entityID
 
 	return c.storage.Validator(ctx, &q)
 }
@@ -555,7 +591,7 @@ func (c *storageClient) TransactionsPerSecond(ctx context.Context, r *http.Reque
 	p, err := common.NewPagination(r)
 	if err != nil {
 		c.logger.Info("pagination failed",
-			"request_id", ctx.Value(RequestIDContextKey),
+			"request_id", ctx.Value(storage.RequestIDContextKey),
 			"err", err.Error(),
 		)
 		return nil, common.ErrBadRequest
@@ -569,7 +605,7 @@ func (c *storageClient) DailyVolumes(ctx context.Context, r *http.Request) (*sto
 	p, err := common.NewPagination(r)
 	if err != nil {
 		c.logger.Info("pagination failed",
-			"request_id", ctx.Value(RequestIDContextKey),
+			"request_id", ctx.Value(storage.RequestIDContextKey),
 			"err", err.Error(),
 		)
 		return nil, common.ErrBadRequest

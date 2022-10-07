@@ -3,6 +3,7 @@ package client
 import (
 	"time"
 
+	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
 	governance "github.com/oasisprotocol/oasis-core/go/governance/api"
 	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
 )
@@ -45,16 +46,16 @@ type TransactionRequest struct {
 }
 
 type EntityRequest struct {
-	EntityID *string
+	EntityID *signature.PublicKey
 }
 
 type EntityNodesRequest struct {
-	EntityID *string
+	EntityID *signature.PublicKey
 }
 
 type EntityNodeRequest struct {
-	EntityID *string
-	NodeID   *string
+	EntityID *signature.PublicKey
+	NodeID   *signature.PublicKey
 }
 
 type AccountsRequest struct {
@@ -98,5 +99,5 @@ type ProposalVotesRequest struct {
 }
 
 type ValidatorRequest struct {
-	EntityID *string
+	EntityID *signature.PublicKey
 }

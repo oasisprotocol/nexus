@@ -134,7 +134,7 @@ func (c *StorageClient) Blocks(ctx context.Context, r *BlocksRequest, p *common.
 // Block returns a consensus block. This endpoint is cached.
 func (c *StorageClient) Block(ctx context.Context, r *BlockRequest) (*Block, error) {
 	// Check cache
-	untypedBlock, ok := c.blockCache.Get(r.Height)
+	untypedBlock, ok := c.blockCache.Get(*r.Height)
 	if ok {
 		return untypedBlock.(*Block), nil
 	}
@@ -181,7 +181,7 @@ func (c *StorageClient) Transactions(ctx context.Context, r *TransactionsRequest
 		qf.TransactionsQuery(),
 		r.Block,
 		r.Method,
-		r.Sender.String(),
+		r.Sender,
 		r.MinFee,
 		r.MaxFee,
 		r.Code,
@@ -229,10 +229,10 @@ func (c *StorageClient) Transactions(ctx context.Context, r *TransactionsRequest
 	return &ts, nil
 }
 
-// Transaction returns a consensus transaction.
+// Transaction returns a consensus transaction. This endpoint is cached.
 func (c *StorageClient) Transaction(ctx context.Context, r *TransactionRequest) (*Transaction, error) {
 	// Check cache
-	untypedTx, ok := c.txCache.Get(r.TxHash)
+	untypedTx, ok := c.txCache.Get(*r.TxHash)
 	if ok {
 		return untypedTx.(*Transaction), nil
 	}
@@ -331,7 +331,7 @@ func (c *StorageClient) Entity(ctx context.Context, r *EntityRequest) (*Entity, 
 	if err := c.db.QueryRow(
 		ctx,
 		qf.EntityQuery(),
-		r.EntityID,
+		r.EntityID.String(),
 	).Scan(&e.ID, &e.Address); err != nil {
 		c.logger.Info("row scan failed",
 			"request_id", ctx.Value(RequestIDContextKey),
@@ -381,7 +381,7 @@ func (c *StorageClient) EntityNodes(ctx context.Context, r *EntityNodesRequest, 
 	rows, err := c.db.Query(
 		ctx,
 		qf.EntityNodesQuery(),
-		r.EntityID,
+		r.EntityID.String(),
 		p.Limit,
 		p.Offset,
 	)
@@ -418,7 +418,7 @@ func (c *StorageClient) EntityNodes(ctx context.Context, r *EntityNodesRequest, 
 
 		ns.Nodes = append(ns.Nodes, n)
 	}
-	ns.EntityID = *r.EntityID
+	ns.EntityID = r.EntityID.String()
 
 	return &ns, nil
 }
@@ -435,8 +435,8 @@ func (c *StorageClient) EntityNode(ctx context.Context, r *EntityNodeRequest) (*
 	if err := c.db.QueryRow(
 		ctx,
 		qf.EntityNodeQuery(),
-		r.EntityID,
-		r.NodeID,
+		r.EntityID.String(),
+		r.NodeID.String(),
 	).Scan(
 		&n.ID,
 		&n.EntityID,
@@ -760,8 +760,8 @@ func (c *StorageClient) Proposals(ctx context.Context, r *ProposalsRequest, p *c
 	rows, err := c.db.Query(
 		ctx,
 		qf.ProposalsQuery(),
-		r.Submitter.String(),
-		r.State.String(),
+		r.Submitter,
+		r.State,
 		p.Limit,
 		p.Offset,
 	)
@@ -997,7 +997,7 @@ func (c *StorageClient) Validator(ctx context.Context, r *ValidatorRequest) (*Va
 	row := c.db.QueryRow(
 		ctx,
 		qf.ValidatorDataQuery(),
-		r.EntityID,
+		r.EntityID.String(),
 	)
 
 	var v Validator
