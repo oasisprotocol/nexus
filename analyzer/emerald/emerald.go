@@ -80,8 +80,10 @@ func NewMain(cfg *config.AnalyzerConfig, target storage.TargetStorage, logger *l
 		To:   uint64(cfg.To),
 	}
 	ac := analyzer.RuntimeConfig{
-		Range:  roundRange,
-		Source: client,
+		ChainContext: cfg.ChainContext,
+		RuntimeID:    id,
+		Range:        roundRange,
+		Source:       client,
 	}
 
 	qf := analyzer.NewQueryFactory(strcase.ToSnake(cfg.ChainID), emerald.String())
