@@ -16,10 +16,9 @@ CREATE TABLE IF NOT EXISTS oasis_3.emerald_rounds
   messages_hash    TEXT NOT NULL,
   in_messages_hash TEXT NOT NULL,
 
-  -- TODO: These should also be NOT NULL, but they're populated separately.
-  num_transactions INTEGER,
-  gas_used         BIGINT,
-  size             INTEGER
+  num_transactions INTEGER NOT NULL,
+  gas_used         BIGINT NOT NULL,
+  size             INTEGER NOT NULL
 );
 
 CREATE INDEX ix_emerald_rounds_block_hash ON oasis_3.emerald_rounds USING hash (block_hash);
