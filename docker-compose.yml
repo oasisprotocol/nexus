@@ -1,6 +1,7 @@
 services:
   indexer:
     image: oasislabs/oasis-indexer:dev
+    container_name: oasis-indexer
     depends_on:
       postgres:
         condition: service_healthy
@@ -22,20 +23,22 @@ services:
         target: /config
   postgres:
     image: postgres:13.7
+    container_name: oasis-postgres
     ports:
       - 5432:5432
     environment:
-      POSTGRES_USER: indexer
+      POSTGRES_USER: rwuser
       POSTGRES_PASSWORD: password
       POSTGRES_DB: indexer
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U indexer"]
+      test: ["CMD-SHELL", "pg_isready -U rwuser -d indexer"]
       interval: 5s
       retries: 10
       timeout: 5s
       start_period: 15s
   oasis-node:
     image: oasislabs/oasis-node:dev
+    container_name: oasis-node
     user: oasis
     command:
       - /bin/sh
