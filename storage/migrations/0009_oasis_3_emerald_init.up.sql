@@ -30,6 +30,11 @@ CREATE TABLE IF NOT EXISTS oasis_3.emerald_transactions
   tx_index    INTEGER NOT NULL,
   tx_hash     TEXT NOT NULL,
   tx_eth_hash TEXT,
+  -- raw is hex(cbor(UnverifiedTransaction)). If you're unable to get a copy
+  -- of the transaction from the node itself, parse from here. Remove this if
+  -- we later store sufficiently detailed data in other columns or if we turn
+  -- out to be able to get a copy of the transaction elsewhere.
+  raw         TEXT NOT NULL,
   PRIMARY KEY (round, tx_index)
 );
 

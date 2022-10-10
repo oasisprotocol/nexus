@@ -32,6 +32,7 @@ type BlockTransactionData struct {
 	Index                   int
 	Hash                    string
 	EthHash                 *string
+	Raw                     []byte
 	SignerData              []*BlockTransactionSignerData
 	RelatedAccountAddresses map[string]bool
 }
@@ -184,6 +185,7 @@ func extractRound(sigContext signature.Context, b *block.Block, txrs []*sdkClien
 			ethHash := hex.EncodeToString(common.Keccak256(txr.Tx.Body))
 			blockTransactionData.EthHash = &ethHash
 		}
+		blockTransactionData.Raw = cbor.Marshal(txr.Tx)
 		blockTransactionData.RelatedAccountAddresses = map[string]bool{}
 		tx, err := common.VerifyUtx(sigContext, &txr.Tx)
 		if err != nil {
@@ -356,7 +358,7 @@ func emitRoundBatch(batch *storage.QueryBatch, round int64, blockData *BlockData
 		for addr := range transactionData.RelatedAccountAddresses {
 			batch.Queue("INSERT INTO oasis_3.emerald_related_transactions (account_address, tx_round, tx_index) VALUES ($1, $2, $3)", addr, round, transactionData.Index)
 		}
-		batch.Queue("INSERT INTO oasis_3.emerald_transactions (round, tx_index, tx_hash, tx_eth_hash) VALUES ($1, $2, $3, $4)", round, transactionData.Index, transactionData.Hash, transactionData.EthHash)
+		batch.Queue("INSERT INTO oasis_3.emerald_transactions (round, tx_index, tx_hash, tx_eth_hash, raw) VALUES ($1, $2, $3, $4, $5)", round, transactionData.Index, transactionData.Hash, transactionData.EthHash, hex.EncodeToString(transactionData.Raw))
 	}
 	for addr, preimageData := range blockData.AddressPreimages {
 		batch.Queue("INSERT INTO oasis_3.address_preimages (address, context_identifier, context_version, address_data) VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING", addr, preimageData.ContextIdentifier, preimageData.ContextVersion, preimageData.Data)
