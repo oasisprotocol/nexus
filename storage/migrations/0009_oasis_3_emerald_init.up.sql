@@ -66,9 +66,23 @@ CREATE TABLE IF NOT EXISTS oasis_3.emerald_related_transactions
 
 CREATE INDEX ix_emerald_related_transactions_address_height_index ON oasis_3.emerald_related_transactions (account_address, tx_round, tx_index);
 
--- Retain this across hard forks as long as the address derivation scheme is compatible.
+-- Oasis addresses are derived from a derivation "context" and a piece of
+-- data, such as an ed25519 public key or an Ethereum address. The derivation
+-- is one-way, so you'd have to look up the address in this table and see if
+-- we've encountered the preimage before to find out what the address was
+-- derived from.
+--
+-- If you need to go the other way, from context + data to address, you'd just
+-- run the derivation. Thus we don't provide an index for going that way. See
+-- oasis-core/go/common/crypto/address/address.go for details. Consider
+-- inserting the preimage here if you're ingesting new blockchain data though.
+--
+-- Retain this across hard forks as long as the address derivation scheme is
+-- compatible.
 CREATE TABLE IF NOT EXISTS oasis_3.address_preimages
 (
+    -- address is the Bech32-encoded Oasis address (i.e. starting with
+    -- oasis1...).
     address            TEXT NOT NULL PRIMARY KEY,
     context_identifier TEXT NOT NULL,
     context_version    INTEGER NOT NULL,
