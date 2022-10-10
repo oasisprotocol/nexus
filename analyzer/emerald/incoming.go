@@ -51,6 +51,7 @@ type BlockData struct {
 	AddressPreimages map[string]*AddressPreimageData
 }
 
+// Function naming conventions in this file:
 // 'extract-' -> dataflow from parameters to return values, no side effects. suitable for processing pieces of data
 //   that doesn't affect their siblings
 // 'register-' -> dataflow from input parameters to output parameters, side effects. may have dataflow of something
