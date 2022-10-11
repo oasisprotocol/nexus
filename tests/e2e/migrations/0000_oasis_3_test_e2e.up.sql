@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS oasis_test.transactions
 
   txn_hash   TEXT NOT NULL,
   txn_index  INTEGER,
-  nonce      NUMERIC NOT NULL,
+  nonce      BIGINT NOT NULL,
   fee_amount NUMERIC,
   max_gas    NUMERIC,
   method     TEXT NOT NULL,

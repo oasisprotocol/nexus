@@ -337,55 +337,55 @@ func (qf QueryFactory) ConsensusVoteInsertQuery() string {
 
 func (qf QueryFactory) RuntimeBlockInsertQuery() string {
 	return fmt.Sprintf(`
-		INSERT INTO %s.%s_rounds (height, version, timestamp, block_hash, prev_block_hash, io_root, state_root, messages_hash, in_messages_hash, num_transactions, gas_used, size)
+		INSERT INTO %s.%s_rounds (round, version, produced_at, block_hash, prev_block_hash, io_root, state_root, messages_hash, in_messages_hash, num_transactions, gas_used, size)
 			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`, qf.chainID, qf.runtime)
 }
 
 func (qf QueryFactory) RuntimeMintInsertQuery() string {
 	return fmt.Sprintf(`
-		INSERT INTO %s.%s_transfers (height, receiver, amount)
+		INSERT INTO %s.%s_transfers (round, receiver, amount)
 			VALUES ($1, $2, $3)`, qf.chainID, qf.runtime)
 }
 
 func (qf QueryFactory) RuntimeBurnInsertQuery() string {
 	return fmt.Sprintf(`
-		INSERT INTO %s.%s_transfers (height, sender, amount)
+		INSERT INTO %s.%s_transfers (round, sender, amount)
 			VALUES ($1, $2, $3)`, qf.chainID, qf.runtime)
 }
 
 func (qf QueryFactory) RuntimeTransferInsertQuery() string {
 	return fmt.Sprintf(`
-		INSERT INTO %s.%s_transfers (height, sender, receiver, amount)
+		INSERT INTO %s.%s_transfers (round, sender, receiver, amount)
 			VALUES ($1, $2, $3, $4)`, qf.chainID, qf.runtime)
 }
 
 func (qf QueryFactory) RuntimeDepositInsertQuery() string {
 	return fmt.Sprintf(`
-		INSERT INTO %s.%s_deposits (height, sender, receiver, amount, nonce)
+		INSERT INTO %s.%s_deposits (round, sender, receiver, amount, nonce)
 			VALUES ($1, $2, $3, $4, $5)`, qf.chainID, qf.runtime)
 }
 
 func (qf QueryFactory) RuntimeDepositErrorInsertQuery() string {
 	return fmt.Sprintf(`
-		INSERT INTO %s.%s_deposits (height, sender, receiver, amount, nonce, module, code)
+		INSERT INTO %s.%s_deposits (round, sender, receiver, amount, nonce, module, code)
 			VALUES ($1, $2, $3, $4, $5, $6, $7)`, qf.chainID, qf.runtime)
 }
 
 func (qf QueryFactory) RuntimeWithdrawInsertQuery() string {
 	return fmt.Sprintf(`
-		INSERT INTO %s.%s_withdraws (height, sender, receiver, amount, nonce)
+		INSERT INTO %s.%s_withdraws (round, sender, receiver, amount, nonce)
 			VALUES ($1, $2, $3, $4, $5)`, qf.chainID, qf.runtime)
 }
 
 func (qf QueryFactory) RuntimeWithdrawErrorInsertQuery() string {
 	return fmt.Sprintf(`
-		INSERT INTO %s.%s_withdraws (height, sender, receiver, amount, nonce, module, code)
+		INSERT INTO %s.%s_withdraws (round, sender, receiver, amount, nonce, module, code)
 			VALUES ($1, $2, $3, $4, $5, $6, $7)`, qf.chainID, qf.runtime)
 }
 
 func (qf QueryFactory) RuntimeGasUsedInsertQuery() string {
 	return fmt.Sprintf(`
-		INSERT INTO %s.%s_gas_used (height, sender, amount)
+		INSERT INTO %s.%s_gas_used (round, sender, amount)
 			VALUES ($1, $2, $3)`, qf.chainID, qf.runtime)
 }
 
