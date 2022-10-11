@@ -16,11 +16,11 @@ import (
 
 	oasisConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 
+	"github.com/oasisprotocol/oasis-indexer/analyzer/consensus"
 	aCommon "github.com/oasisprotocol/oasis-indexer/analyzer/uncategorized"
 	"github.com/oasisprotocol/oasis-indexer/cmd/common"
 	"github.com/oasisprotocol/oasis-indexer/config"
 	"github.com/oasisprotocol/oasis-indexer/log"
-	"github.com/oasisprotocol/oasis-indexer/storage/generator"
 	"github.com/oasisprotocol/oasis-indexer/storage/oasis"
 )
 
@@ -84,7 +84,7 @@ func runGenerator(cmd *cobra.Command, args []string) {
 
 // Generator is the Oasis Indexer's migration generator.
 type Generator struct {
-	gen    *generator.MigrationGenerator
+	gen    *consensus.MigrationGenerator
 	logger *log.Logger
 }
 
@@ -93,7 +93,7 @@ func NewGenerator() (*Generator, error) {
 	logger := common.Logger().WithModule(moduleName)
 
 	return &Generator{
-		gen:    generator.NewMigrationGenerator(logger),
+		gen:    consensus.NewMigrationGenerator(logger),
 		logger: logger,
 	}, nil
 }

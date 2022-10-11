@@ -1,6 +1,6 @@
-// Package generator generates migrations for the Oasis Indexer
-// from the genesis file at a particular height.
-package generator
+// Conversion of the genesis state into SQL statements.
+
+package consensus
 
 import (
 	"encoding/json"
