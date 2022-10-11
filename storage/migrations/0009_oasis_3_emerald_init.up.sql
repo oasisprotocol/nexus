@@ -14,10 +14,7 @@ CREATE TABLE IF NOT EXISTS oasis_3.emerald_rounds
   io_root          TEXT NOT NULL,
   state_root       TEXT NOT NULL,
   messages_hash    TEXT NOT NULL,
-  in_messages_hash TEXT NOT NULL,
-
-  -- Arbitrary additional data.
-  extra_data JSON
+  in_messages_hash TEXT NOT NULL
 );
 
 -- Core Module Data
