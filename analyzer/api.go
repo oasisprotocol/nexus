@@ -68,7 +68,7 @@ type BlockRange struct {
 // RuntimeConfig specifies configuration parameters for
 // processing the runtime layer.
 type RuntimeConfig struct {
-	// ChainContext is the domain separation context.
+	// ChainContext is the domain separation context. It uniquely identifies the chain; it is derived as a hash of the genesis data.
 	ChainContext string
 
 	// RuntimeID is the runtime ID.
