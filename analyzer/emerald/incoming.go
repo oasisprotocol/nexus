@@ -5,7 +5,6 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	"github.com/jackc/pgx/v4"
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/address"
 	"github.com/oasisprotocol/oasis-core/go/roothash/api/block"
@@ -18,6 +17,7 @@ import (
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 
 	common "github.com/oasisprotocol/oasis-indexer/analyzer/uncategorized"
+	"github.com/oasisprotocol/oasis-indexer/storage"
 )
 
 // todo: erc721, erc1155
@@ -348,7 +348,7 @@ func extractRound(sigContext signature.Context, b *block.Block, txrs []*sdkClien
 	return &blockData, nil
 }
 
-func emitRoundBatch(batch *pgx.Batch, chainAlias string, round int64, blockData *BlockData) {
+func emitRoundBatch(batch *storage.QueryBatch, chainAlias string, round int64, blockData *BlockData) {
 	for _, transactionData := range blockData.TransactionData {
 		for _, signerData := range transactionData.SignerData {
 			batch.Queue("INSERT INTO transaction_signer (chain_alias, height, tx_index, signer_index, addr, nonce) VALUES ($1, $2, $3, $4, $5, $6)", chainAlias, round, transactionData.Index, signerData.Index, signerData.Address, signerData.Nonce)
