@@ -21,10 +21,7 @@ CREATE TABLE IF NOT EXISTS oasis_test.blocks
   root_hash TEXT NOT NULL,
 
   beacon     BYTEA,
-  metadata   JSON,
-
-  -- Arbitrary additional data.
-  extra_data JSON
+  metadata   JSON
 );
 
 CREATE TABLE IF NOT EXISTS oasis_test.transactions
@@ -48,10 +45,7 @@ CREATE TABLE IF NOT EXISTS oasis_test.transactions
 
   -- We require a composite primary key since duplicate transactions can
   -- be included within blocks for this chain.
-  PRIMARY KEY (block, txn_hash, txn_index),
-
-  -- Arbitrary additional data.
-  extra_data JSON
+  PRIMARY KEY (block, txn_hash, txn_index)
 );
 
 CREATE TABLE IF NOT EXISTS oasis_test.events
@@ -64,10 +58,7 @@ CREATE TABLE IF NOT EXISTS oasis_test.events
   txn_hash   TEXT NOT NULL,
   txn_index  INTEGER,
 
-  FOREIGN KEY (txn_block, txn_hash, txn_index) REFERENCES oasis_test.transactions(block, txn_hash, txn_index),
-
-  -- Arbitrary additional data.
-  extra_data JSON
+  FOREIGN KEY (txn_block, txn_hash, txn_index) REFERENCES oasis_test.transactions(block, txn_hash, txn_index)
 );
 
 -- Beacon Backend Data
@@ -77,20 +68,14 @@ CREATE TABLE IF NOT EXISTS oasis_test.epochs
   id           BIGINT PRIMARY KEY,
   start_height BIGINT NOT NULL,
   end_height   BIGINT,
-  UNIQUE (start_height, end_height),
-
-  -- Arbitrary additional data.
-  extra_data JSON
+  UNIQUE (start_height, end_height)
 );
 
 -- Registry Backend Data
 CREATE TABLE IF NOT EXISTS oasis_test.entities
 (
   id      TEXT PRIMARY KEY,
-  address TEXT,
-
-  -- Arbitrary additional data.
-  extra_data JSON
+  address TEXT
 );
 
 CREATE TABLE IF NOT EXISTS oasis_test.nodes
@@ -133,10 +118,7 @@ CREATE TABLE IF NOT EXISTS oasis_test.runtimes
   suspended    BOOLEAN NOT NULL DEFAULT false,
   kind         TEXT NOT NULL,
   tee_hardware TEXT NOT NULL,
-  key_manager  TEXT,
-
-  -- Arbitrary additional data.
-  extra_data JSON
+  key_manager  TEXT
 );
 
 -- Staking Backend Data
@@ -197,10 +179,7 @@ CREATE TABLE IF NOT EXISTS oasis_test.committee_members
   kind      TEXT NOT NULL,
   role      TEXT NOT NULL,
 
-  PRIMARY KEY (node, runtime, kind, role),
-
-  -- Arbitrary additional data.
-  extra_data JSON
+  PRIMARY KEY (node, runtime, kind, role)
 );
 
 -- Governance Backend Data
@@ -225,10 +204,7 @@ CREATE TABLE IF NOT EXISTS oasis_test.proposals
 
   created_at    BIGINT NOT NULL,
   closes_at     BIGINT NOT NULL,
-  invalid_votes NUMERIC NOT NULL DEFAULT 0,
-
-  -- Arbitrary additional data.
-  extra_data JSON
+  invalid_votes NUMERIC NOT NULL DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS oasis_test.votes
@@ -237,10 +213,7 @@ CREATE TABLE IF NOT EXISTS oasis_test.votes
   voter    TEXT NOT NULL,
   vote     TEXT,
 
-  PRIMARY KEY (proposal, voter),
-
-  -- Arbitrary additional data.
-  extra_data JSON
+  PRIMARY KEY (proposal, voter)
 );
 
 -- Indexing Progress Management
