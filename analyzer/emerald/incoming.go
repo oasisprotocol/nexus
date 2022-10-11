@@ -363,5 +363,4 @@ func emitRoundBatch(batch *storage.QueryBatch, round int64, blockData *BlockData
 	for addr, preimageData := range blockData.AddressPreimages {
 		batch.Queue("INSERT INTO oasis_3.address_preimages (address, context_identifier, context_version, address_data) VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING", addr, preimageData.ContextIdentifier, preimageData.ContextVersion, hex.EncodeToString(preimageData.Data))
 	}
-	batch.Queue("UPDATE oasis_3.emerald_rounds SET num_transactions = $2, gas_used = $3, size = $4 WHERE height = $1", round, blockData.NumTransactions, blockData.GasUsed, blockData.Size)
 }

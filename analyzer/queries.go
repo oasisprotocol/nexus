@@ -336,8 +336,8 @@ func (qf QueryFactory) ConsensusVoteInsertQuery() string {
 
 func (qf QueryFactory) RuntimeBlockInsertQuery() string {
 	return fmt.Sprintf(`
-		INSERT INTO %s.%s_rounds (height, version, timestamp, block_hash, prev_block_hash, io_root, state_root, messages_hash, in_messages_hash)
-			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`, qf.chainID, qf.runtime)
+		INSERT INTO %s.%s_rounds (height, version, timestamp, block_hash, prev_block_hash, io_root, state_root, messages_hash, in_messages_hash, num_transactions, gas_used, size)
+			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`, qf.chainID, qf.runtime)
 }
 
 func (qf QueryFactory) RuntimeMintInsertQuery() string {

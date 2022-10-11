@@ -66,10 +66,13 @@ type BlockRange struct {
 }
 
 // RuntimeConfig specifies configuration parameters for
-// for processing the runtime layer.
+// processing the runtime layer.
 type RuntimeConfig struct {
-	// ChainID is the chain ID for the underlying network.
-	ChainID string
+	// ChainContext is the domain separation context. It uniquely identifies the chain; it is derived as a hash of the genesis data.
+	ChainContext string
+
+	// RuntimeID is the runtime ID.
+	RuntimeID string
 
 	// Range is the range of rounds to process.
 	// If this is set, the analyzer analyzes rounds in the provided range.

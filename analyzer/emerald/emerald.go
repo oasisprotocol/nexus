@@ -80,8 +80,10 @@ func NewMain(cfg *config.AnalyzerConfig, target storage.TargetStorage, logger *l
 		To:   uint64(cfg.To),
 	}
 	ac := analyzer.RuntimeConfig{
-		Range:  roundRange,
-		Source: client,
+		ChainContext: cfg.ChainContext,
+		RuntimeID:    id,
+		Range:        roundRange,
+		Source:       client,
 	}
 
 	qf := analyzer.NewQueryFactory(strcase.ToSnake(cfg.ChainID), emerald.String())
@@ -243,8 +245,7 @@ func (m *Main) prepareBlockData(ctx context.Context, round uint64, batch *storag
 	}
 
 	for _, f := range []func(*storage.QueryBatch, *storage.RuntimeBlockData) error{
-		m.queueBlockInserts,
-		m.queueTransactionInserts,
+		m.queueBlockAndTransactionInserts,
 	} {
 		if err := f(batch, data); err != nil {
 			return err
@@ -254,7 +255,18 @@ func (m *Main) prepareBlockData(ctx context.Context, round uint64, batch *storag
 	return nil
 }
 
-func (m *Main) queueBlockInserts(batch *storage.QueryBatch, data *storage.RuntimeBlockData) error {
+func (m *Main) queueBlockAndTransactionInserts(batch *storage.QueryBatch, data *storage.RuntimeBlockData) error {
+	var rtid ocCommon.Namespace
+	if err := rtid.UnmarshalHex(m.cfg.RuntimeID); err != nil {
+		return err
+	}
+	sigContext := signature.DeriveChainContext(rtid, m.cfg.ChainContext)
+
+	blockData, err := extractRound(sigContext, data.BlockHeader, data.TransactionsWithResults)
+	if err != nil {
+		return fmt.Errorf("extract round %d: %w", data.Round, err)
+	}
+
 	batch.Queue(
 		m.qf.RuntimeBlockInsertQuery(),
 		data.Round,
@@ -266,21 +278,11 @@ func (m *Main) queueBlockInserts(batch *storage.QueryBatch, data *storage.Runtim
 		data.BlockHeader.Header.StateRoot.Hex(),
 		data.BlockHeader.Header.MessagesHash.Hex(),
 		data.BlockHeader.Header.InMessagesHash.Hex(),
+		blockData.NumTransactions,
+		blockData.GasUsed,
+		blockData.Size,
 	)
-	return nil
-}
 
-func (m *Main) queueTransactionInserts(batch *storage.QueryBatch, data *storage.RuntimeBlockData) error {
-	var rtid ocCommon.Namespace
-	if err := rtid.UnmarshalHex("000000000000000000000000000000000000000000000000e2eaa99fc008f87f"); err != nil {
-		return err
-	}
-	sigContext := signature.DeriveChainContext(rtid, "b11b369e0da5bb230b220127f5e7b242d385ef8c6f54906243f30af63c815535")
-
-	blockData, err := extractRound(sigContext, data.BlockHeader, data.TransactionsWithResults)
-	if err != nil {
-		return fmt.Errorf("extract round %d: %w", data.Round, err)
-	}
 	emitRoundBatch(batch, int64(data.Round), blockData)
 	return nil
 }

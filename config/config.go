@@ -88,7 +88,7 @@ type AnalyzerConfig struct {
 	// RPC is the node endpoint.
 	RPC string `koanf:"rpc"`
 
-	// ChainContext is the domain separation context.
+	// ChainContext is the domain separation context. It uniquely identifies the chain; it is derived as a hash of the genesis data.
 	ChainContext string `koanf:"chaincontext"`
 
 	// From is the (inclusive) starting block for this analyzer.
