@@ -621,7 +621,7 @@ func (m *Main) queueBurns(batch *storage.QueryBatch, data *storage.StakingData) 
 }
 
 func (m *Main) queueEscrows(batch *storage.QueryBatch, data *storage.StakingData) error {
-	addGeneralBalanceUpdateQuery := m.qf.ConsensusAddGeneralBalanceUpdateQuery()
+	decreaseGeneralBalanceForEscrowUpdateQuery := m.qf.ConsensusDecreaseGeneralBalanceForEscrowUpdateQuery()
 	addEscrowBalanceUpsertQuery := m.qf.ConsensusAddEscrowBalanceUpsertQuery()
 	addDelegationsUpsertQuery := m.qf.ConsensusAddDelegationsUpsertQuery()
 	takeEscrowUpdateQuery := m.qf.ConsensusTakeEscrowUpdateQuery()
@@ -639,7 +639,7 @@ func (m *Main) queueEscrows(batch *storage.QueryBatch, data *storage.StakingData
 			escrower := e.Add.Escrow.String()
 			amount := e.Add.Amount.ToBigInt().Uint64()
 			newShares := e.Add.NewShares.ToBigInt().Uint64()
-			batch.Queue(addGeneralBalanceUpdateQuery,
+			batch.Queue(decreaseGeneralBalanceForEscrowUpdateQuery,
 				owner,
 				amount,
 			)

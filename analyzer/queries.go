@@ -175,11 +175,12 @@ func (qf QueryFactory) ConsensusBurnUpdateQuery() string {
 		WHERE address = $1`, qf.chainID)
 }
 
-func (qf QueryFactory) ConsensusAddGeneralBalanceUpdateQuery() string {
+// Decreases the general balance because the given amount is being moved to escrow.
+func (qf QueryFactory) ConsensusDecreaseGeneralBalanceForEscrowUpdateQuery() string {
 	return fmt.Sprintf(`
 		UPDATE %s.accounts
 		SET
-			general_balance = general_balance + $2
+			general_balance = general_balance - $2
 		WHERE address = $1`, qf.chainID)
 }
 
