@@ -82,6 +82,10 @@ func (c *StorageClient) Status(ctx context.Context) (*Status, error) {
 		)
 		return nil, common.ErrStorageError
 	}
+	// oasis-node control status returns time truncated to the second
+	// https://github.com/oasisprotocol/oasis-core/blob/5985dc5c2844de28241b7b16b19d91a86e5cbeda/docs/oasis-node/cli.md?plain=1#L41
+	s.LatestUpdate = s.LatestUpdate.Truncate(time.Second)
+
 	return &s, nil
 }
 
