@@ -32,6 +32,7 @@ type BlockTransactionData struct {
 	Index                   int
 	Hash                    string
 	EthHash                 *string
+	Raw                     []byte
 	SignerData              []*BlockTransactionSignerData
 	RelatedAccountAddresses map[string]bool
 }
@@ -184,6 +185,7 @@ func extractRound(sigContext signature.Context, b *block.Block, txrs []*sdkClien
 			ethHash := hex.EncodeToString(common.Keccak256(txr.Tx.Body))
 			blockTransactionData.EthHash = &ethHash
 		}
+		blockTransactionData.Raw = cbor.Marshal(txr.Tx)
 		blockTransactionData.RelatedAccountAddresses = map[string]bool{}
 		tx, err := common.VerifyUtx(sigContext, &txr.Tx)
 		if err != nil {
@@ -348,19 +350,18 @@ func extractRound(sigContext signature.Context, b *block.Block, txrs []*sdkClien
 	return &blockData, nil
 }
 
-func emitRoundBatch(batch *storage.QueryBatch, chainAlias string, round int64, blockData *BlockData) {
+func emitRoundBatch(batch *storage.QueryBatch, round int64, blockData *BlockData) {
 	for _, transactionData := range blockData.TransactionData {
 		for _, signerData := range transactionData.SignerData {
-			batch.Queue("INSERT INTO transaction_signer (chain_alias, height, tx_index, signer_index, addr, nonce) VALUES ($1, $2, $3, $4, $5, $6)", chainAlias, round, transactionData.Index, signerData.Index, signerData.Address, signerData.Nonce)
+			batch.Queue("INSERT INTO oasis_3.emerald_transaction_signers (round, tx_index, signer_index, signer_address, nonce) VALUES ($1, $2, $3, $4, $5)", round, transactionData.Index, signerData.Index, signerData.Address, signerData.Nonce)
 		}
 		for addr := range transactionData.RelatedAccountAddresses {
-			batch.Queue("INSERT INTO related_transaction (chain_alias, account_address, tx_height, tx_index) VALUES ($1, $2, $3, $4)", chainAlias, addr, round, transactionData.Index)
+			batch.Queue("INSERT INTO oasis_3.emerald_related_transactions (account_address, tx_round, tx_index) VALUES ($1, $2, $3)", addr, round, transactionData.Index)
 		}
-		batch.Queue("INSERT INTO transaction_extra (chain_alias, height, tx_index, tx_hash, eth_hash) VALUES ($1, $2, $3, $4, $5)", chainAlias, round, transactionData.Index, transactionData.Hash, transactionData.EthHash)
+		batch.Queue("INSERT INTO oasis_3.emerald_transactions (round, tx_index, tx_hash, tx_eth_hash, raw) VALUES ($1, $2, $3, $4, $5)", round, transactionData.Index, transactionData.Hash, transactionData.EthHash, hex.EncodeToString(transactionData.Raw))
 	}
 	for addr, preimageData := range blockData.AddressPreimages {
-		batch.Queue("INSERT INTO address_preimage (address, context_identifier, context_version, addr_data) VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING", addr, preimageData.ContextIdentifier, preimageData.ContextVersion, preimageData.Data)
+		batch.Queue("INSERT INTO oasis_3.address_preimages (address, context_identifier, context_version, address_data) VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING", addr, preimageData.ContextIdentifier, preimageData.ContextVersion, hex.EncodeToString(preimageData.Data))
 	}
-	batch.Queue("INSERT INTO block_extra (chain_alias, height, b_hash, num_transactions, gas_used, size) VALUES ($1, $2, $3, $4, $5, $6)", chainAlias, round, blockData.Hash, blockData.NumTransactions, blockData.GasUsed, blockData.Size)
-	batch.Queue("UPDATE progress SET first_unscanned_height = $1 WHERE chain_alias = $2", round+1, chainAlias)
+	batch.Queue("UPDATE oasis_3.emerald_rounds SET num_transactions = $2, gas_used = $3, size = $4 WHERE height = $1", round, blockData.NumTransactions, blockData.GasUsed, blockData.Size)
 }

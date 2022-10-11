@@ -14,7 +14,79 @@ CREATE TABLE IF NOT EXISTS oasis_3.emerald_rounds
   io_root          TEXT NOT NULL,
   state_root       TEXT NOT NULL,
   messages_hash    TEXT NOT NULL,
-  in_messages_hash TEXT NOT NULL
+  in_messages_hash TEXT NOT NULL,
+
+  -- TODO: These should also be NOT NULL, but they're populated separately.
+  num_transactions INTEGER,
+  gas_used         BIGINT,
+  size             INTEGER
+);
+
+CREATE INDEX ix_emerald_rounds_block_hash ON oasis_3.emerald_rounds USING hash (block_hash);
+
+CREATE TABLE IF NOT EXISTS oasis_3.emerald_transactions
+(
+  round       BIGINT NOT NULL,
+  tx_index    INTEGER NOT NULL,
+  tx_hash     TEXT NOT NULL,
+  tx_eth_hash TEXT,
+  -- raw is hex(cbor(UnverifiedTransaction)). If you're unable to get a copy
+  -- of the transaction from the node itself, parse from here. Remove this if
+  -- we later store sufficiently detailed data in other columns or if we turn
+  -- out to be able to get a copy of the transaction elsewhere.
+  raw         TEXT NOT NULL,
+  PRIMARY KEY (round, tx_index)
+);
+
+CREATE INDEX ix_emerald_transactions_tx_hash ON oasis_3.emerald_transactions USING hash (tx_hash);
+CREATE INDEX ix_emerald_transactions_tx_eth_hash ON oasis_3.emerald_transactions USING hash (tx_eth_hash);
+
+CREATE TABLE IF NOT EXISTS oasis_3.emerald_transaction_signers
+(
+  round          BIGINT NOT NULL,
+  tx_index       INTEGER NOT NULL,
+  -- Emerald processes mainly Ethereum-format transactions with only one
+  -- signer, but Emerald is built on the Oasis runtime SDK, which supports
+  -- multiple signers on a transaction (note that this is a distinct concept
+  -- from multisig accounts).
+  signer_index   INTEGER NOT NULL,
+  signer_address TEXT NOT NULL,
+  nonce          BIGINT NOT NULL,
+  PRIMARY KEY (round, tx_index, signer_index)
+);
+
+CREATE INDEX ix_emerald_transaction_signers_signer_address_signer_nonce ON oasis_3.emerald_transaction_signers (signer_address, nonce);
+
+CREATE TABLE IF NOT EXISTS oasis_3.emerald_related_transactions
+(
+  account_address TEXT NOT NULL,
+  tx_round        BIGINT NOT NULL,
+  tx_index        INTEGER NOT NULL
+);
+
+CREATE INDEX ix_emerald_related_transactions_address_height_index ON oasis_3.emerald_related_transactions (account_address, tx_round, tx_index);
+
+-- Oasis addresses are derived from a derivation "context" and a piece of
+-- data, such as an ed25519 public key or an Ethereum address. The derivation
+-- is one-way, so you'd have to look up the address in this table and see if
+-- we've encountered the preimage before to find out what the address was
+-- derived from.
+--
+-- If you need to go the other way, from context + data to address, you'd just
+-- run the derivation. Thus we don't provide an index for going that way. See
+-- oasis-core/go/common/crypto/address/address.go for details. Consider
+-- inserting the preimage here if you're ingesting new blockchain data though.
+--
+-- Retain this across hard forks as long as the address derivation scheme is
+-- compatible.
+CREATE TABLE IF NOT EXISTS oasis_3.address_preimages
+(
+    -- address is the Bech32-encoded Oasis address (i.e. starting with
+    -- oasis1...).
+    address            TEXT NOT NULL PRIMARY KEY,
+    context_identifier TEXT NOT NULL,
+    context_version    INTEGER NOT NULL,
+    address_data       TEXT NOT NULL
 );
 
 -- Core Module Data
