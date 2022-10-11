@@ -85,7 +85,7 @@ CREATE TABLE IF NOT EXISTS oasis_3.address_preimages
     address            TEXT NOT NULL PRIMARY KEY,
     context_identifier TEXT NOT NULL,
     context_version    INTEGER NOT NULL,
-    address_data       TEXT NOT NULL
+    address_data       BYTEA NOT NULL
 );
 
 -- Core Module Data
