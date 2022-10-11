@@ -767,17 +767,17 @@ components:
       properties:
         latest_chain_id:
           type: string
-          description: The latest chain ID at the head of indexing.
+          description: The most recently indexed chain ID.
           example: *chain_id_1
         latest_block:
           type: integer
           format: int64
-          description: The latest indexed block at the head of indexing.
+          description: The height of the most recent indexed block. Query a synced Oasis node for the latest block produced.
           example: *block_height_1
         latest_update:
           type: string
           format: date-time
-          description: The RFC 3339 formatted time of latest indexing update.
+          description: The RFC 3339 formatted time when the Indexer processed the latest block. Compare with current time for approximate indexing progress with the Oasis Network.
           example: *iso_timestamp_1
 
     BlockList:
