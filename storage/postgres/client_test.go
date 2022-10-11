@@ -13,6 +13,7 @@ import (
 
 	"github.com/oasisprotocol/oasis-indexer/log"
 	"github.com/oasisprotocol/oasis-indexer/storage"
+	"github.com/oasisprotocol/oasis-indexer/tests"
 )
 
 func newClient(t *testing.T) (*Client, error) {
@@ -24,9 +25,7 @@ func newClient(t *testing.T) (*Client, error) {
 }
 
 func TestConnect(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping testing in short mode")
-	}
+	tests.SkipIfShort(t)
 
 	client, err := newClient(t)
 	require.Nil(t, err)
@@ -34,9 +33,7 @@ func TestConnect(t *testing.T) {
 }
 
 func TestInvalidConnect(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping testing in short mode")
-	}
+	tests.SkipIfShort(t)
 
 	connString := "an invalid connstring"
 	logger, err := log.NewLogger("cockroach-test", ioutil.Discard, log.FmtJSON, log.LevelInfo)
@@ -47,9 +44,7 @@ func TestInvalidConnect(t *testing.T) {
 }
 
 func TestQuery(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping testing in short mode")
-	}
+	tests.SkipIfShort(t)
 
 	client, err := newClient(t)
 	require.Nil(t, err)
@@ -73,9 +68,7 @@ func TestQuery(t *testing.T) {
 }
 
 func TestInvalidQuery(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping testing in short mode")
-	}
+	tests.SkipIfShort(t)
 
 	client, err := newClient(t)
 	require.Nil(t, err)
@@ -88,9 +81,7 @@ func TestInvalidQuery(t *testing.T) {
 }
 
 func TestQueryRow(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping testing in short mode")
-	}
+	tests.SkipIfShort(t)
 
 	client, err := newClient(t)
 	require.Nil(t, err)
@@ -105,9 +96,7 @@ func TestQueryRow(t *testing.T) {
 }
 
 func TestInvalidQueryRow(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping testing in short mode")
-	}
+	tests.SkipIfShort(t)
 
 	client, err := newClient(t)
 	require.Nil(t, err)
@@ -121,9 +110,7 @@ func TestInvalidQueryRow(t *testing.T) {
 }
 
 func TestSendBatch(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping testing in short mode")
-	}
+	tests.SkipIfShort(t)
 
 	client, err := newClient(t)
 	require.Nil(t, err)
@@ -193,9 +180,7 @@ func TestSendBatch(t *testing.T) {
 }
 
 func TestInvalidSendBatch(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping testing in short mode")
-	}
+	tests.SkipIfShort(t)
 
 	client, err := newClient(t)
 	require.Nil(t, err)
