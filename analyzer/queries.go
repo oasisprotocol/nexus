@@ -22,11 +22,26 @@ func (qf QueryFactory) LatestBlockQuery() string {
 		LIMIT 1`, qf.chainID)
 }
 
+func (qf QueryFactory) IsGenesisProcessedQuery() string {
+	return `
+		SELECT EXISTS (
+			SELECT 1 FROM processed_geneses
+			WHERE chain_id = $1 AND analyzer = $2
+		)`
+}
+
 func (qf QueryFactory) IndexingProgressQuery() string {
 	return fmt.Sprintf(`
 		INSERT INTO %s.processed_blocks (height, analyzer, processed_time)
 			VALUES
 				($1, $2, CURRENT_TIMESTAMP)`, qf.chainID)
+}
+
+func (qf QueryFactory) GenesisIndexingProgressQuery() string {
+	return `
+		INSERT INTO processed_geneses (chain_id, analyzer, processed_time)
+			VALUES
+				($1, $2, CURRENT_TIMESTAMP)`
 }
 
 func (qf QueryFactory) ConsensusBlockInsertQuery() string {

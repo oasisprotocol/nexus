@@ -2,10 +2,12 @@
 package consensus
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -111,6 +113,17 @@ func (m *Main) Start() {
 	// Get block to be indexed.
 	var height int64
 
+	isGenesisProcessed, err := m.isGenesisProcessed(ctx)
+	if err != nil {
+		m.logger.Error("failed to check if genesis is processed",
+			"err", err.Error(),
+		)
+		return
+	}
+	if !isGenesisProcessed {
+		m.processGenesis(ctx)
+	}
+
 	latest, err := m.latestBlock(ctx)
 	if err != nil {
 		if err != pgx.ErrNoRows {
@@ -128,9 +141,7 @@ func (m *Main) Start() {
 
 	backoff, err := util.NewBackoff(
 		100*time.Millisecond,
-		6*time.Second,
-		// ^cap the timeout at the expected
-		// consensus block time
+		6*time.Second, // cap the timeout at the expected consensus block time
 	)
 	if err != nil {
 		m.logger.Error("error configuring indexer backoff policy",
@@ -190,6 +201,57 @@ func (m *Main) latestBlock(ctx context.Context) (int64, error) {
 		return 0, err
 	}
 	return latest, nil
+}
+
+func (m *Main) isGenesisProcessed(ctx context.Context) (bool, error) {
+	var processed bool
+	if err := m.target.QueryRow(
+		ctx,
+		m.qf.IsGenesisProcessedQuery(),
+		m.cfg.ChainID,
+		consensusDamaskAnalyzerName,
+	).Scan(&processed); err != nil {
+		return false, err
+	}
+	return processed, nil
+}
+
+func (m *Main) processGenesis(ctx context.Context) error {
+	m.logger.Info("fetching genesis document")
+	genesisDoc, err := m.cfg.Source.GenesisDocument(ctx)
+	if err != nil {
+		return err
+	}
+
+	m.logger.Info("processing genesis document")
+	gen := NewMigrationGenerator(m.logger.With("height", "genesis"))
+	buf := new(bytes.Buffer)
+	if err := gen.WriteGenesisDocumentMigrationOasis3(buf, genesisDoc); err != nil {
+		return err
+	}
+	sql := buf.String()
+
+	// Debug: log the SQL into a file if requested.
+	debugPath := os.Getenv("CONSENSUS_DAMASK_GENESIS_DUMP")
+	if debugPath != "" {
+		if err := os.WriteFile(debugPath, []byte(sql), 0o644); err != nil {
+			gen.logger.Error("failed to write genesis sql to file", "err", err)
+		} else {
+			gen.logger.Info("wrote genesis sql to file", "path", debugPath)
+		}
+	}
+
+	batch := &storage.QueryBatch{}
+	batch.Queue(
+		m.qf.GenesisIndexingProgressQuery(),
+		m.cfg.ChainID,
+		consensusDamaskAnalyzerName,
+	)
+	batch.Queue(sql) // TODO: BROKEN: Cannot execute multiple statements in a single query.
+	m.target.SendBatch(ctx, batch)
+	m.logger.Info("genesis document processed")
+
+	return nil
 }
 
 // processBlock processes the provided block, retrieving all required information

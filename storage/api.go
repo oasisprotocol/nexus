@@ -10,6 +10,7 @@ import (
 	consensus "github.com/oasisprotocol/oasis-core/go/consensus/api"
 	"github.com/oasisprotocol/oasis-core/go/consensus/api/transaction"
 	"github.com/oasisprotocol/oasis-core/go/consensus/api/transaction/results"
+	genesisAPI "github.com/oasisprotocol/oasis-core/go/genesis/api"
 	governance "github.com/oasisprotocol/oasis-core/go/governance/api"
 	registry "github.com/oasisprotocol/oasis-core/go/registry/api"
 	"github.com/oasisprotocol/oasis-core/go/roothash/api/block"
@@ -68,6 +69,9 @@ func (b *QueryBatch) Queries() [][]interface{} {
 // ConsensusSourceStorage defines an interface for retrieving raw block data
 // from the consensus layer.
 type ConsensusSourceStorage interface {
+	// GenesisDocument returns the genesis document for the chain.
+	GenesisDocument(ctx context.Context) (*genesisAPI.Document, error)
+
 	// BlockData gets block data at the specified height. This includes all
 	// block header information, as well as transactions and events included
 	// within that block.
@@ -92,10 +96,6 @@ type ConsensusSourceStorage interface {
 	// GovernanceData gets governance data at the specified height. This
 	// includes all proposals, their respective statuses and voting responses.
 	GovernanceData(ctx context.Context, height int64) (*GovernanceData, error)
-
-	// TODO: Extend this interface to include a GetRoothashData to pull
-	// runtime blocks. This is only relevant when we begin to build runtime
-	// analyzers.
 
 	// Name returns the name of the source storage.
 	Name() string
