@@ -4,9 +4,9 @@ BEGIN;
 
 CREATE TABLE IF NOT EXISTS oasis_3.emerald_rounds
 (
-  height    NUMERIC PRIMARY KEY,
-  version   BIGINT,
-  timestamp NUMERIC NOT NULL,
+  round       BIGINT PRIMARY KEY,
+  version     BIGINT NOT NULL,
+  timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
 
   block_hash      TEXT NOT NULL,
   prev_block_hash TEXT NOT NULL,
@@ -91,7 +91,7 @@ CREATE TABLE IF NOT EXISTS oasis_3.address_preimages
 -- Core Module Data
 CREATE TABLE IF NOT EXISTS oasis_3.emerald_gas_used
 (
-  height NUMERIC NOT NULL,
+  round  BIGINT NOT NULL,
   sender TEXT NOT NULL,
   amount NUMERIC NOT NULL
 );
@@ -105,7 +105,7 @@ CREATE INDEX ix_emerald_gas_used_sender ON oasis_3.emerald_gas_used(sender);
 -- denoted by the 0-address as the sender.
 CREATE TABLE IF NOT EXISTS oasis_3.emerald_transfers
 (
-  height   NUMERIC NOT NULL,
+  round    BIGINT NOT NULL,
   sender   TEXT NOT NULL DEFAULT '0',
   receiver TEXT NOT NULL DEFAULT '0',
   amount   TEXT NOT NULL
@@ -117,15 +117,15 @@ CREATE INDEX ix_emerald_transfers_receiver ON oasis_3.emerald_transfers(receiver
 -- Consensus Accounts Module Data
 CREATE TABLE IF NOT EXISTS oasis_3.emerald_deposits
 (
-  height   NUMERIC NOT NULL,
+  round    BIGINT NOT NULL,
   sender   TEXT NOT NULL,
   receiver TEXT NOT NULL,
   amount   TEXT NOT NULL,
-  nonce    NUMERIC NOT NULL,
+  nonce    BIGINT NOT NULL,
 
   -- Optional error data
   module TEXT,
-  code   NUMERIC
+  code   BIGINT
 );
 
 CREATE INDEX ix_emerald_deposits_sender ON oasis_3.emerald_deposits(sender);
@@ -133,15 +133,15 @@ CREATE INDEX ix_emerald_deposits_receiver ON oasis_3.emerald_deposits(receiver);
 
 CREATE TABLE IF NOT EXISTS oasis_3.emerald_withdraws
 (
-  height   NUMERIC NOT NULL,
+  round    BIGINT NOT NULL,
   sender   TEXT NOT NULL,
   receiver TEXT NOT NULL,
   amount   TEXT NOT NULL,
-  nonce    NUMERIC NOT NULL,
+  nonce    BIGINT NOT NULL,
 
   -- Optional error data
   module TEXT,
-  code   NUMERIC
+  code   BIGINT
 );
 
 CREATE INDEX ix_emerald_withdraws_sender ON oasis_3.emerald_withdraws(sender);

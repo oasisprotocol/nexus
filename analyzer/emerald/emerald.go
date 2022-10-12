@@ -271,7 +271,7 @@ func (m *Main) queueBlockAndTransactionInserts(batch *storage.QueryBatch, data *
 		m.qf.RuntimeBlockInsertQuery(),
 		data.Round,
 		data.BlockHeader.Header.Version,
-		data.BlockHeader.Header.Timestamp,
+		time.Unix(int64(data.BlockHeader.Header.Timestamp), 0 /* nanos */),
 		data.BlockHeader.Header.EncodedHash().Hex(),
 		data.BlockHeader.Header.PreviousHash.Hex(),
 		data.BlockHeader.Header.IORoot.Hex(),
