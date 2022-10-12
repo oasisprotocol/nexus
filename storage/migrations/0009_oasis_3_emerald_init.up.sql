@@ -29,11 +29,11 @@ CREATE TABLE IF NOT EXISTS oasis_3.emerald_transactions
   tx_index    INTEGER NOT NULL,
   tx_hash     TEXT NOT NULL,
   tx_eth_hash TEXT,
-  -- raw is hex(cbor(UnverifiedTransaction)). If you're unable to get a copy
-  -- of the transaction from the node itself, parse from here. Remove this if
-  -- we later store sufficiently detailed data in other columns or if we turn
-  -- out to be able to get a copy of the transaction elsewhere.
-  raw         TEXT NOT NULL,
+  -- raw is cbor(UnverifiedTransaction). If you're unable to get a copy of the
+  -- transaction from the node itself, parse from here. Remove this if we
+  -- later store sufficiently detailed data in other columns or if we turn out
+  -- to be able to get a copy of the transaction elsewhere.
+  raw         BYTEA NOT NULL,
   PRIMARY KEY (round, tx_index)
 );
 
@@ -85,7 +85,7 @@ CREATE TABLE IF NOT EXISTS oasis_3.address_preimages
     address            TEXT NOT NULL PRIMARY KEY,
     context_identifier TEXT NOT NULL,
     context_version    INTEGER NOT NULL,
-    address_data       TEXT NOT NULL
+    address_data       BYTEA NOT NULL
 );
 
 -- Core Module Data
