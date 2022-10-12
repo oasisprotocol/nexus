@@ -240,7 +240,7 @@ func extractRound(sigContext signature.Context, b *block.Block, txrs []*sdkClien
 					return nil
 				},
 			}); err != nil {
-				return nil, err
+				return nil, fmt.Errorf("tx %d: %w", txIndex, err)
 			}
 		}
 		var txGasUsed int64
