@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"sort"
 	"strings"
 
 	"github.com/iancoleman/strcase"
@@ -257,7 +258,8 @@ VALUES
 	reservedAccounts[staking.GovernanceDepositsAddress] = &governanceDepositsAccount
 
 	i := 0
-	for address, account := range reservedAccounts {
+	for _, address := range sortedKeys(reservedAccounts) {
+		account := reservedAccounts[address]
 		if _, err := io.WriteString(w, fmt.Sprintf(
 			"\t('%s', %d, %d, %d, %d, %d, %d)",
 			address.String(),
@@ -291,7 +293,8 @@ VALUES
 	}
 
 	i = 0
-	for address, account := range document.Staking.Ledger {
+	for _, address := range sortedKeys(document.Staking.Ledger) {
+		account := document.Staking.Ledger[address]
 		if _, err := io.WriteString(w, fmt.Sprintf(
 			"\t('%s', %d, %d, %d, %d, %d, %d)",
 			address.String(),
@@ -341,7 +344,8 @@ INSERT INTO %s.commissions (address, schedule) VALUES
 
 	commissions := make([]string, 0)
 
-	for address, account := range document.Staking.Ledger {
+	for _, address := range sortedKeys(document.Staking.Ledger) {
+		account := document.Staking.Ledger[address]
 		if len(account.Escrow.CommissionSchedule.Rates) > 0 || len(account.Escrow.CommissionSchedule.Bounds) > 0 {
 			schedule, err := json.Marshal(account.Escrow.CommissionSchedule)
 			if err != nil {
@@ -381,7 +385,8 @@ TRUNCATE %s.allowances CASCADE;`, chainID)); err != nil {
 	foundAllowances := false // in case allowances are empty
 
 	i = 0
-	for owner, account := range document.Staking.Ledger {
+	for _, owner := range sortedKeys(document.Staking.Ledger) {
+		account := document.Staking.Ledger[owner]
 		if len(account.General.Allowances) > 0 && foundAllowances {
 			if _, err := io.WriteString(w, ",\n"); err != nil {
 				return err
@@ -390,7 +395,8 @@ TRUNCATE %s.allowances CASCADE;`, chainID)); err != nil {
 
 		ownerAllowances := make([]string, len(account.General.Allowances))
 		j := 0
-		for beneficiary, allowance := range account.General.Allowances {
+		for _, beneficiary := range sortedKeys(account.General.Allowances) {
+			allowance := account.General.Allowances[beneficiary]
 			ownerAllowances[j] = fmt.Sprintf(
 				"\t('%s', '%s', %d)",
 				owner.String(),
@@ -433,9 +439,11 @@ VALUES
 	}
 	i = 0
 	j := 0
-	for delegatee, escrows := range document.Staking.Delegations {
+	for _, delegatee := range sortedKeys(document.Staking.Delegations) {
+		escrows := document.Staking.Delegations[delegatee]
 		k := 0
-		for delegator, delegation := range escrows {
+		for _, delegator := range sortedKeys(escrows) {
+			delegation := escrows[delegator]
 			if _, err := io.WriteString(w, fmt.Sprintf(
 				"\t('%s', '%s', %d)",
 				delegatee.String(),
@@ -481,10 +489,12 @@ VALUES
 		return err
 	}
 	i = 0
-	for delegatee, escrows := range document.Staking.DebondingDelegations {
+	for _, delegatee := range sortedKeys(document.Staking.DebondingDelegations) {
+		escrows := document.Staking.DebondingDelegations[delegatee]
 		delegateeDebondingDelegations := make([]string, 0)
 		j := 0
-		for delegator, debondingDelegations := range escrows {
+		for _, delegator := range sortedKeys(escrows) {
+			debondingDelegations := escrows[delegator]
 			delegatorDebondingDelegations := make([]string, len(debondingDelegations))
 			for k, debondingDelegation := range debondingDelegations {
 				delegatorDebondingDelegations[k] = fmt.Sprintf(
@@ -597,7 +607,8 @@ TRUNCATE %s.votes CASCADE;`, chainID)); err != nil {
 	foundVotes := false // in case votes are empty
 
 	i := 0
-	for proposalID, voteEntries := range document.Governance.VoteEntries {
+	for _, proposalID := range sortedIntKeys(document.Governance.VoteEntries) {
+		voteEntries := document.Governance.VoteEntries[proposalID]
 		if len(voteEntries) > 0 && !foundVotes {
 			if _, err := io.WriteString(w, fmt.Sprintf(`
 INSERT INTO %s.votes (proposal, voter, vote)
@@ -634,4 +645,26 @@ VALUES
 	}
 
 	return nil
+}
+
+func sortedIntKeys[V any](m map[uint64]V) []uint64 {
+	keys := make([]uint64, len(m))
+	i := 0
+	for k := range m {
+		keys[i] = k
+		i++
+	}
+	sort.Slice(keys, func(i, j int) bool { return keys[i] < keys[j] })
+	return keys
+}
+
+func sortedKeys[V any](m map[staking.Address]V) []staking.Address {
+	keys := make([]staking.Address, len(m))
+	i := 0
+	for k := range m {
+		keys[i] = k
+		i++
+	}
+	sort.Slice(keys, func(i, j int) bool { return keys[i].String() < keys[j].String() })
+	return keys
 }
