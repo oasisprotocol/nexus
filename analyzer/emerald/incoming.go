@@ -340,6 +340,10 @@ func extractRound(sigContext signature.Context, b *block.Block, txrs []*sdkClien
 			}
 		}
 		blockData.TransactionData = append(blockData.TransactionData, &blockTransactionData)
+		// If this overflows, it will do so silently. However, supported
+		// runtimes internally use u64 checked math to impose a batch gas,
+		// which will prevent it from emitting blocks that use enough gas to
+		// do that.
 		blockData.GasUsed += txGasUsed
 		// Inaccurate: Re-serialize signed tx to estimate original size.
 		txSize := len(cbor.Marshal(txr.Tx))
