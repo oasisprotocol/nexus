@@ -1,18 +1,19 @@
 package common
 
 import (
-	"fmt"
 	"io"
+
+	"github.com/oasisprotocol/oasis-indexer/log"
 )
 
-func CloseOrLog(c io.Closer) {
+func CloseOrLog(c io.Closer, logger *log.Logger) {
 	if err := c.Close(); err != nil {
-		fmt.Printf("close: %v", err)
+		logger.Warn("error closing", "closer", c, "err", err)
 	}
 }
 
-func WriteOrLog(w io.Writer, p []byte) {
+func WriteOrLog(w io.Writer, p []byte, logger *log.Logger) {
 	if _, err := w.Write(p); err != nil {
-		fmt.Printf("write: %v", err)
+		logger.Warn("error writing", "writer", w, "err", err)
 	}
 }

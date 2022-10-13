@@ -17,6 +17,7 @@ import (
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 
 	common "github.com/oasisprotocol/oasis-indexer/analyzer/uncategorized"
+	"github.com/oasisprotocol/oasis-indexer/log"
 	"github.com/oasisprotocol/oasis-indexer/storage"
 )
 
@@ -170,14 +171,13 @@ func registerRelatedEthAddress(addressPreimages map[string]*AddressPreimageData,
 }
 
 //nolint:gocyclo
-func extractRound(sigContext signature.Context, b *block.Block, txrs []*sdkClient.TransactionWithResults) (*BlockData, error) {
+func extractRound(sigContext signature.Context, b *block.Block, txrs []*sdkClient.TransactionWithResults, logger *log.Logger) (*BlockData, error) {
 	var blockData BlockData
 	blockData.Hash = b.Header.EncodedHash().String()
 	blockData.NumTransactions = len(txrs)
 	blockData.TransactionData = make([]*BlockTransactionData, 0, len(txrs))
 	blockData.AddressPreimages = map[string]*AddressPreimageData{}
 	for txIndex, txr := range txrs {
-		// fmt.Printf("%#v\n", txr)
 		var blockTransactionData BlockTransactionData
 		blockTransactionData.Index = txIndex
 		blockTransactionData.Hash = txr.Tx.Hash().Hex()
@@ -189,8 +189,7 @@ func extractRound(sigContext signature.Context, b *block.Block, txrs []*sdkClien
 		blockTransactionData.RelatedAccountAddresses = map[string]bool{}
 		tx, err := common.VerifyUtx(sigContext, &txr.Tx)
 		if err != nil {
-			err = fmt.Errorf("tx %d: %w", txIndex, err)
-			fmt.Println(err)
+			logger.Error("error verifying tx", "tx_index", txIndex, "err", err)
 			tx = nil
 		}
 		if tx != nil {
@@ -293,7 +292,6 @@ func extractRound(sigContext signature.Context, b *block.Block, txrs []*sdkClien
 				return nil
 			},
 			Evm: func(event *evm.Event) error {
-				// dumpEvmEvent(event) // %%%
 				if err1 := common.VisitEvmEvent(event, &common.EvmEventHandler{
 					Erc20Transfer: func(fromEthAddr []byte, toEthAddr []byte, amountU256 []byte) error {
 						if !bytes.Equal(fromEthAddr, common.ZeroEthAddr) {
