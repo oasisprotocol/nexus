@@ -87,7 +87,7 @@ func Init(cfg *config.AnalysisConfig) (*Service, error) {
 
 	switch err = m.Up(); {
 	case err == migrate.ErrNoChange:
-		logger.Info("migrations are up to date")
+		logger.Info("no migrations needed to be applied")
 	case err != nil:
 		logger.Error("migrations failed",
 			"error", err,

@@ -76,8 +76,9 @@ func NewMain(cfg *config.AnalyzerConfig, target storage.TargetStorage, logger *l
 			To:   cfg.To,
 		}
 		ac = analyzer.ConsensusConfig{
-			Range:  blockRange,
-			Source: client,
+			ChainID: cfg.ChainID,
+			Range:   blockRange,
+			Source:  client,
 		}
 	} else {
 		interval, err := time.ParseDuration(cfg.Interval)
@@ -90,9 +91,12 @@ func NewMain(cfg *config.AnalyzerConfig, target storage.TargetStorage, logger *l
 
 		// Configure analyzer.
 		ac = analyzer.ConsensusConfig{
+			ChainID:  cfg.ChainID,
 			Interval: interval,
 		}
 	}
+
+	logger.Info("Starting consensus analyzer", "config", ac)
 	return &Main{
 		cfg:     ac,
 		qf:      analyzer.NewQueryFactory(strcase.ToSnake(cfg.ChainID), "" /* no runtime identifier for the consensus layer */),
