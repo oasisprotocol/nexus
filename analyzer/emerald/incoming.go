@@ -176,10 +176,10 @@ func extractRound(sigContext signature.Context, b *block.Block, txrs []*sdkClien
 	blockData.NumTransactions = len(txrs)
 	blockData.TransactionData = make([]*BlockTransactionData, 0, len(txrs))
 	blockData.AddressPreimages = map[string]*AddressPreimageData{}
-	for i, txr := range txrs {
+	for txIndex, txr := range txrs {
 		// fmt.Printf("%#v\n", txr)
 		var blockTransactionData BlockTransactionData
-		blockTransactionData.Index = i
+		blockTransactionData.Index = txIndex
 		blockTransactionData.Hash = txr.Tx.Hash().Hex()
 		if len(txr.Tx.AuthProofs) == 1 && txr.Tx.AuthProofs[0].Module == "evm.ethereum.v0" {
 			ethHash := hex.EncodeToString(common.Keccak256(txr.Tx.Body))
@@ -189,7 +189,7 @@ func extractRound(sigContext signature.Context, b *block.Block, txrs []*sdkClien
 		blockTransactionData.RelatedAccountAddresses = map[string]bool{}
 		tx, err := common.VerifyUtx(sigContext, &txr.Tx)
 		if err != nil {
-			err = fmt.Errorf("tx %d: %w", i, err)
+			err = fmt.Errorf("tx %d: %w", txIndex, err)
 			fmt.Println(err)
 			tx = nil
 		}
@@ -200,7 +200,7 @@ func extractRound(sigContext signature.Context, b *block.Block, txrs []*sdkClien
 				blockTransactionSignerData.Index = j
 				addr, err1 := registerRelatedAddressSpec(blockData.AddressPreimages, blockTransactionData.RelatedAccountAddresses, &si.AddressSpec)
 				if err1 != nil {
-					return nil, fmt.Errorf("tx %d signer %d visit address spec: %w", i, j, err1)
+					return nil, fmt.Errorf("tx %d signer %d visit address spec: %w", txIndex, j, err1)
 				}
 				blockTransactionSignerData.Address = addr
 				blockTransactionSignerData.Nonce = int(si.Nonce)
@@ -240,7 +240,7 @@ func extractRound(sigContext signature.Context, b *block.Block, txrs []*sdkClien
 					return nil
 				},
 			}); err != nil {
-				return nil, err
+				return nil, fmt.Errorf("tx %d: %w", txIndex, err)
 			}
 		}
 		var txGasUsed int64
@@ -331,7 +331,7 @@ func extractRound(sigContext signature.Context, b *block.Block, txrs []*sdkClien
 				return nil
 			},
 		}); err != nil {
-			return nil, fmt.Errorf("tx %d: %w", i, err)
+			return nil, fmt.Errorf("tx %d: %w", txIndex, err)
 		}
 		if !foundGasUsedEvent {
 			if (txr.Result.IsUnknown() || txr.Result.IsSuccess()) && tx != nil {
