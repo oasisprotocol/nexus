@@ -10,7 +10,6 @@ import (
 	"github.com/oasisprotocol/oasis-indexer/log"
 	"github.com/oasisprotocol/oasis-indexer/metrics"
 	"github.com/oasisprotocol/oasis-indexer/storage"
-	"github.com/oasisprotocol/oasis-indexer/storage/cockroach"
 	"github.com/oasisprotocol/oasis-indexer/storage/postgres"
 )
 
@@ -77,8 +76,6 @@ func NewClient(cfg *config.StorageConfig, logger *log.Logger) (storage.TargetSto
 	var client storage.TargetStorage
 	var err error
 	switch backend {
-	case config.BackendCockroach:
-		client, err = cockroach.NewClient(cfg.Endpoint, logger)
 	case config.BackendPostgres:
 		client, err = postgres.NewClient(cfg.Endpoint, logger)
 	default:
