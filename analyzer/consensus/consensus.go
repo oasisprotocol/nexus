@@ -2,7 +2,6 @@
 package consensus
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -225,15 +224,15 @@ func (m *Main) processGenesis(ctx context.Context) error {
 
 	m.logger.Info("processing genesis document")
 	gen := NewMigrationGenerator(m.logger.With("height", "genesis"))
-	buf := new(bytes.Buffer)
-	if err := gen.WriteGenesisDocumentMigrationOasis3(buf, genesisDoc); err != nil {
+	queries, err := gen.ProcessGenesisDocumentOasis3(genesisDoc)
+	if err != nil {
 		return err
 	}
-	sql := buf.String()
 
 	// Debug: log the SQL into a file if requested.
 	debugPath := os.Getenv("CONSENSUS_DAMASK_GENESIS_DUMP")
 	if debugPath != "" {
+		sql := strings.Join(queries, "\n")
 		if err := os.WriteFile(debugPath, []byte(sql), 0o644); err != nil {
 			gen.logger.Error("failed to write genesis sql to file", "err", err)
 		} else {
@@ -242,12 +241,14 @@ func (m *Main) processGenesis(ctx context.Context) error {
 	}
 
 	batch := &storage.QueryBatch{}
+	for _, query := range queries {
+		batch.Queue(query)
+	}
 	batch.Queue(
 		m.qf.GenesisIndexingProgressQuery(),
 		m.cfg.ChainID,
 		consensusDamaskAnalyzerName,
 	)
-	batch.Queue(sql) // TODO: BROKEN: Cannot execute multiple statements in a single query.
 	m.target.SendBatch(ctx, batch)
 	m.logger.Info("genesis document processed")
 
