@@ -3,7 +3,7 @@
 This directory contains, primarily, e2e tests for the Oasis Indexer. They have been organized as follows:
 
 - `genesis/` contains tests that validate our database state is correct against `oasis-node` genesis state.
-- `rpc/` contains tests that validate API endpoints behave as expected and return correct output.
+- `http/` contains tests that validate API endpoints behave as expected and return correct output.
 
 ## Setup for E2E Tests
 

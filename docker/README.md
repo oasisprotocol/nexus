@@ -21,7 +21,7 @@ make docker
 This will build both images with the `dev` tag, and will enable you to run
 
 ```sh
-make run
+make start-docker
 ```
 
 to start the development environment with [`docker compose`]((https://docs.docker.com/compose/).

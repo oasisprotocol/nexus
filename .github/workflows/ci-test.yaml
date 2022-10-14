@@ -83,4 +83,4 @@ jobs:
       - name: Log containers
         run: docker logs oasis-indexer
       - name: Test
-        run: docker exec oasis-indexer sh -c "cd /oasis-indexer && OASIS_INDEXER_E2E=true make test-e2e"
+        run: docker exec oasis-indexer sh -c "cd /oasis-indexer && make test-e2e"

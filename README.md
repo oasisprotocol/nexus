@@ -8,7 +8,7 @@ The official indexer for the Oasis Network.
 ## Docker Development
 
 You can create and run the Oasis Indexer with [`docker compose`](https://docs.docker.com/compose/).
-Keep reading to get started, or take a look at our [Docker docs](https://github.com/oasislabs/oasis-indexer/blob/main/docker/README.md) for more detail.
+Keep reading to get started, or take a look at our [Docker docs](docker/README.md) for more detail.
 
 **Configuration**
 
@@ -50,6 +50,10 @@ Below are instructions for running the Oasis Indexer locally, without Docker.
 You will need to run a local [node](https://docs.oasis.dev/general/run-a-node/set-up-your-node/run-non-validator) for development purposes.
 You will need to set the Unix socket in the `config/local-dev.yaml` file while running an instance of the Oasis Indexer.
 For example, this will be `unix:/node/data/internal.sock` in Docker.
+
+Note: A newly created node takes a while to fully sync with the network.
+The Oasis team has a node that is ready for internal use;
+if you are a member of the team, ask around to use it and save time.
 
 ### Database
 
