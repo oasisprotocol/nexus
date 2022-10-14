@@ -275,7 +275,9 @@ VALUES
 		}
 	}
 	query += ";\n"
-	queries = append(queries, query)
+	if len(document.Staking.Ledger) > 0 {
+		queries = append(queries, query)
+	}
 
 	// Populate commissions.
 	// This likely won't overflow batch limit.
@@ -311,7 +313,9 @@ VALUES
 			query += ";\n"
 		}
 	}
-	queries = append(queries, query)
+	if len(commissions) > 0 {
+		queries = append(queries, query)
+	}
 
 	// Populate allowances.
 	queries = append(queries, `TRUNCATE {{ChainId}}.allowances CASCADE;`)
@@ -423,7 +427,9 @@ VALUES
 		}
 	}
 	query += ";\n"
-	queries = append(queries, query)
+	if len(document.Staking.DebondingDelegations) > 0 {
+		queries = append(queries, query)
+	}
 
 	return queries, nil
 }
