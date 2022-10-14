@@ -1,2 +1,0 @@
--- This "migration" was really an import of genesis state.
--- Leaving the file present but empty to avoid breaking the sequential migration numbering.
