@@ -227,8 +227,8 @@ func (m *Main) processGenesis(ctx context.Context) error {
 	}
 
 	m.logger.Info("processing genesis document")
-	gen := NewMigrationGenerator(m.logger.With("height", "genesis"))
-	queries, err := gen.ProcessGenesisDocumentOasis3(genesisDoc)
+	gen := NewGenesisProcessor(m.logger.With("height", "genesis"))
+	queries, err := gen.Process(genesisDoc)
 	if err != nil {
 		return err
 	}

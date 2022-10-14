@@ -29,8 +29,7 @@ From the repository root, you can run:
 $ make start-docker
 ```
 
-The analyzer will run migrations on start based on files in `storage/migrations`.
-See [Generating Migrations](#generating-migrations) for information on generating new migrations.
+The analyzer will run DB migrations on start (i.e. create empty tables) based on files in `storage/migrations`.
 
 **Query**
 
