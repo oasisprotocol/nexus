@@ -5,7 +5,6 @@ package consensus
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"sort"
 	"strings"
 
@@ -30,24 +29,6 @@ type MigrationGenerator struct {
 // NewMigrationGenerator creates a new migration generator.
 func NewMigrationGenerator(logger *log.Logger) *MigrationGenerator {
 	return &MigrationGenerator{logger}
-}
-
-// WriteGenesisDocumentMigrationOasis3 creates a new migration that re-initializes all
-// height-dependent state as per the provided genesis document.
-func (mg *MigrationGenerator) WriteGenesisDocumentMigrationOasis3(w io.Writer, document *genesis.Document) error {
-	queries, err := mg.ProcessGenesisDocumentOasis3(document)
-	if err != nil {
-		return err
-	}
-
-	for _, query := range queries {
-		query += "\n"
-		if _, err := io.WriteString(w, query); err != nil {
-			return err
-		}
-	}
-
-	return nil
 }
 
 func (mg *MigrationGenerator) ProcessGenesisDocumentOasis3(document *genesis.Document) ([]string, error) {

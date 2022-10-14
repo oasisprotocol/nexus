@@ -13,13 +13,3 @@ For example, `0001_oasis_3_init.sql` might encode initialization for the [Damask
 
 We do not expect to need the [down](https://github.com/golang-migrate/migrate/blob/master/FAQ.md#why-two-separate-files-up-and-down-for-a-migration) migrations.
 
-## Generation
-
-The Oasis Indexer supports a migration generator for truncating existing state tables and inserting new state from a genesis file. Example usage is as follows:
-
-```sh
-oasis-indexer generate \
-  --config ./config/local-dev.yml \
-  --generator.genesis_file config/test/genesis.json \
-  --generator.migration_file ./storage/migrations/0000_example_migration.up.sql
-```

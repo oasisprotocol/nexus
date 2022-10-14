@@ -11,7 +11,6 @@ import (
 	"github.com/oasisprotocol/oasis-indexer/cmd/analyzer"
 	"github.com/oasisprotocol/oasis-indexer/cmd/api"
 	"github.com/oasisprotocol/oasis-indexer/cmd/common"
-	"github.com/oasisprotocol/oasis-indexer/cmd/generator"
 	"github.com/oasisprotocol/oasis-indexer/config"
 	"github.com/oasisprotocol/oasis-indexer/log"
 )
@@ -96,7 +95,6 @@ func init() {
 	for _, f := range []func(*cobra.Command){
 		analyzer.Register,
 		api.Register,
-		generator.Register,
 	} {
 		f(rootCmd)
 	}

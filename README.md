@@ -78,24 +78,3 @@ Once the indexer has started, you can query the Oasis Indexer API
 ```sh
 $ curl -X GET http://localhost:8008/v1
 ```
-
-## Generating Migrations
-
-The Oasis Indexer supports generating SQL migrations from a genesis document to initialize indexed state.
-You can do so as follows:
-
-```sh
-oasis-indexer generate \
-  --generator.genesis_file path/to/your/genesis.json
-  --generator.migration_file storage/migrations/nnnn_example.up.sql
-```
-
-or directly from a running node
-
-```sh
-oasis-indexer generate \
-  --generator.network_config_file path/to/your/config.yaml
-  --generator.migration_file storage/migrations/nnnn_example.up.sql
-```
-
-See our [naming convention](https://github.com/oasislabs/oasis-indexer/blob/main/storage/migrations/README.md#naming-convention) for how to aptly name your migrations.
