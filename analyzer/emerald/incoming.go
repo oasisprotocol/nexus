@@ -9,7 +9,6 @@ import (
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/address"
 	"github.com/oasisprotocol/oasis-core/go/roothash/api/block"
 	sdkClient "github.com/oasisprotocol/oasis-sdk/client-sdk/go/client"
-	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/crypto/signature"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/accounts"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/consensusaccounts"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/core"
@@ -172,7 +171,7 @@ func registerRelatedEthAddress(addressPreimages map[string]*AddressPreimageData,
 }
 
 //nolint:gocyclo
-func extractRound(sigContext signature.Context, b *block.Block, txrs []*sdkClient.TransactionWithResults, logger *log.Logger) (*BlockData, error) {
+func extractRound(b *block.Block, txrs []*sdkClient.TransactionWithResults, logger *log.Logger) (*BlockData, error) {
 	var blockData BlockData
 	blockData.Hash = b.Header.EncodedHash().String()
 	blockData.NumTransactions = len(txrs)
@@ -188,9 +187,9 @@ func extractRound(sigContext signature.Context, b *block.Block, txrs []*sdkClien
 		}
 		blockTransactionData.Raw = cbor.Marshal(txr.Tx)
 		blockTransactionData.RelatedAccountAddresses = map[string]bool{}
-		tx, err := common.VerifyUtx(sigContext, &txr.Tx)
+		tx, err := common.OpenUtxNoVerify(&txr.Tx)
 		if err != nil {
-			logger.Error("error verifying tx", "tx_index", txIndex, "err", err)
+			logger.Error("error decoding tx", "tx_index", txIndex, "err", err)
 			tx = nil
 		}
 		if tx != nil {

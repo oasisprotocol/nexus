@@ -8,9 +8,7 @@ import (
 
 	"github.com/iancoleman/strcase"
 	"github.com/jackc/pgx/v4"
-	ocCommon "github.com/oasisprotocol/oasis-core/go/common"
 	oasisConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
-	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/crypto/signature"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/oasisprotocol/oasis-indexer/analyzer"
@@ -80,10 +78,8 @@ func NewMain(cfg *config.AnalyzerConfig, target storage.TargetStorage, logger *l
 		To:   uint64(cfg.To),
 	}
 	ac := analyzer.RuntimeConfig{
-		ChainContext: cfg.ChainContext,
-		RuntimeID:    id,
-		Range:        roundRange,
-		Source:       client,
+		Range:  roundRange,
+		Source: client,
 	}
 
 	qf := analyzer.NewQueryFactory(strcase.ToSnake(cfg.ChainID), emerald.String())
@@ -256,13 +252,7 @@ func (m *Main) prepareBlockData(ctx context.Context, round uint64, batch *storag
 }
 
 func (m *Main) queueBlockAndTransactionInserts(batch *storage.QueryBatch, data *storage.RuntimeBlockData) error {
-	var rtid ocCommon.Namespace
-	if err := rtid.UnmarshalHex(m.cfg.RuntimeID); err != nil {
-		return err
-	}
-	sigContext := signature.DeriveChainContext(rtid, m.cfg.ChainContext)
-
-	blockData, err := extractRound(sigContext, data.BlockHeader, data.TransactionsWithResults, m.logger)
+	blockData, err := extractRound(data.BlockHeader, data.TransactionsWithResults, m.logger)
 	if err != nil {
 		return fmt.Errorf("extract round %d: %w", data.Round, err)
 	}
