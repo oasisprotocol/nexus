@@ -16,6 +16,7 @@ import (
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/evm"
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 
+	"github.com/oasisprotocol/oasis-indexer/analyzer"
 	common "github.com/oasisprotocol/oasis-indexer/analyzer/uncategorized"
 	"github.com/oasisprotocol/oasis-indexer/log"
 	"github.com/oasisprotocol/oasis-indexer/storage"
@@ -352,17 +353,24 @@ func extractRound(sigContext signature.Context, b *block.Block, txrs []*sdkClien
 	return &blockData, nil
 }
 
-func emitRoundBatch(batch *storage.QueryBatch, round uint64, blockData *BlockData) {
+func emitRoundBatch(batch *storage.QueryBatch, qf *analyzer.QueryFactory, round uint64, blockData *BlockData) {
 	for _, transactionData := range blockData.TransactionData {
 		for _, signerData := range transactionData.SignerData {
-			batch.Queue("INSERT INTO oasis_3.emerald_transaction_signers (round, tx_index, signer_index, signer_address, nonce) VALUES ($1, $2, $3, $4, $5)", round, transactionData.Index, signerData.Index, signerData.Address, signerData.Nonce)
+			batch.Queue(
+				qf.RuntimeTransactionSignerInsertQuery(),
+				round,
+				transactionData.Index,
+				signerData.Index,
+				signerData.Address,
+				signerData.Nonce,
+			)
 		}
 		for addr := range transactionData.RelatedAccountAddresses {
-			batch.Queue("INSERT INTO oasis_3.emerald_related_transactions (account_address, tx_round, tx_index) VALUES ($1, $2, $3)", addr, round, transactionData.Index)
+			batch.Queue(qf.RuntimeRelatedTransactionInsertQuery(), addr, round, transactionData.Index)
 		}
-		batch.Queue("INSERT INTO oasis_3.emerald_transactions (round, tx_index, tx_hash, tx_eth_hash, raw) VALUES ($1, $2, $3, $4, $5)", round, transactionData.Index, transactionData.Hash, transactionData.EthHash, transactionData.Raw)
+		batch.Queue(qf.RuntimeTransactionInsertQuery(), round, transactionData.Index, transactionData.Hash, transactionData.EthHash, transactionData.Raw)
 	}
 	for addr, preimageData := range blockData.AddressPreimages {
-		batch.Queue("INSERT INTO oasis_3.address_preimages (address, context_identifier, context_version, address_data) VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING", addr, preimageData.ContextIdentifier, preimageData.ContextVersion, preimageData.Data)
+		batch.Queue(qf.AddressPreimageInsertQuery(), addr, preimageData.ContextIdentifier, preimageData.ContextVersion, preimageData.Data)
 	}
 }

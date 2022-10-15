@@ -341,6 +341,24 @@ func (qf QueryFactory) RuntimeBlockInsertQuery() string {
 			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`, qf.chainID, qf.runtime)
 }
 
+func (qf QueryFactory) RuntimeTransactionSignerInsertQuery() string {
+	return fmt.Sprintf(`
+		INSERT INTO %s.%s_transaction_signers (round, tx_index, signer_index, signer_address, nonce)
+			VALUES ($1, $2, $3, $4, $5)`, qf.chainID, qf.runtime)
+}
+
+func (qf QueryFactory) RuntimeRelatedTransactionInsertQuery() string {
+	return fmt.Sprintf(`
+		INSERT INTO %s.%s_related_transactions (account_address, tx_round, tx_index)
+			VALUES ($1, $2, $3)`, qf.chainID, qf.runtime)
+}
+
+func (qf QueryFactory) RuntimeTransactionInsertQuery() string {
+	return fmt.Sprintf(`
+		INSERT INTO %s.%s_transactions (round, tx_index, tx_hash, tx_eth_hash, raw)
+			VALUES ($1, $2, $3, $4, $5)`, qf.chainID, qf.runtime)
+}
+
 func (qf QueryFactory) RuntimeMintInsertQuery() string {
 	return fmt.Sprintf(`
 		INSERT INTO %s.%s_transfers (round, receiver, amount)
@@ -387,6 +405,13 @@ func (qf QueryFactory) RuntimeGasUsedInsertQuery() string {
 	return fmt.Sprintf(`
 		INSERT INTO %s.%s_gas_used (round, sender, amount)
 			VALUES ($1, $2, $3)`, qf.chainID, qf.runtime)
+}
+
+func (qf QueryFactory) AddressPreimageInsertQuery() string {
+	return fmt.Sprintf(`
+		INSERT INTO %s.address_preimages (address, context_identifier, context_version, address_data)
+			VALUES ($1, $2, $3, $4)
+		ON CONFLICT DO NOTHING`, qf.chainID)
 }
 
 func (qf QueryFactory) RefreshDailyTxVolumeQuery() string {
