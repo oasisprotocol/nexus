@@ -4,6 +4,7 @@ BEGIN;
 
 -- min5_tx_volume stores the transaction volume in 5 minute buckets
 -- This can be used to estimate real time TPS.
+-- NOTE: This materialized view is NOT refreshed every 5 minutes due to computational cost.
 CREATE MATERIALIZED VIEW min5_tx_volume AS
   SELECT
     date_trunc( 'hour', b.time ) AS hour,
