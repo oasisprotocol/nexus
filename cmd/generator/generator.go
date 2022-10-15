@@ -16,6 +16,7 @@ import (
 
 	oasisConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 
+	aCommon "github.com/oasisprotocol/oasis-indexer/analyzer/uncategorized"
 	"github.com/oasisprotocol/oasis-indexer/cmd/common"
 	"github.com/oasisprotocol/oasis-indexer/config"
 	"github.com/oasisprotocol/oasis-indexer/log"
@@ -125,7 +126,7 @@ func (g *Generator) WriteMigration() error {
 		if err != nil {
 			return err
 		}
-		defer w.Close()
+		defer aCommon.CloseOrLog(w, g.logger)
 	}
 
 	// Generate migration.
