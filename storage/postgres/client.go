@@ -8,6 +8,7 @@ import (
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 
+	common "github.com/oasisprotocol/oasis-indexer/analyzer/uncategorized"
 	"github.com/oasisprotocol/oasis-indexer/log"
 	"github.com/oasisprotocol/oasis-indexer/storage"
 )
@@ -89,7 +90,7 @@ func (c *Client) SendBatch(ctx context.Context, batch *storage.QueryBatch) error
 	pgxBatch := batch.AsPgxBatch()
 	if err := c.pool.BeginTxFunc(ctx, pgx.TxOptions{}, func(tx pgx.Tx) error {
 		batchResults := tx.SendBatch(ctx, &pgxBatch)
-		defer batchResults.Close()
+		defer common.CloseOrLog(batchResults, c.logger)
 		for i := 0; i < pgxBatch.Len(); i++ {
 			if _, err := batchResults.Exec(); err != nil {
 				return err
