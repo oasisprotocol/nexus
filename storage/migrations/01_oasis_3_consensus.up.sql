@@ -58,9 +58,7 @@ CREATE TABLE oasis_3.events
 
   txn_block  BIGINT NOT NULL,
   txn_hash   TEXT NOT NULL,
-  txn_index  INTEGER,
-
-  FOREIGN KEY (txn_block, txn_hash, txn_index) REFERENCES oasis_3.transactions(block, txn_hash, txn_index)
+  txn_index  INTEGER
 );
 
 -- Beacon Backend Data
