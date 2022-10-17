@@ -1,4 +1,4 @@
-
+# NOTE: This name appears in GitHub's Checks API and in workflow's status badge.
 name: docker-indexer
 
 on:
