@@ -249,6 +249,11 @@ func (cc *ConsensusClient) StakingData(ctx context.Context, height int64) (*stor
 		return nil, err
 	}
 
+	epoch, err := cc.client.Beacon().GetEpoch(ctx, height)
+	if err != nil {
+		return nil, err
+	}
+
 	var transfers []*stakingAPI.TransferEvent
 	var burns []*stakingAPI.BurnEvent
 	var escrows []*stakingAPI.EscrowEvent
@@ -268,6 +273,7 @@ func (cc *ConsensusClient) StakingData(ctx context.Context, height int64) (*stor
 	}
 
 	return &storage.StakingData{
+		Epoch:            epoch,
 		Transfers:        transfers,
 		Burns:            burns,
 		Escrows:          escrows,
