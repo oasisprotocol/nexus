@@ -262,7 +262,7 @@ func (m *Main) queueBlockAndTransactionInserts(batch *storage.QueryBatch, data *
 	}
 	sigContext := signature.DeriveChainContext(rtid, m.cfg.ChainContext)
 
-	blockData, err := extractRound(sigContext, data.BlockHeader, data.TransactionsWithResults)
+	blockData, err := extractRound(sigContext, data.BlockHeader, data.TransactionsWithResults, m.logger)
 	if err != nil {
 		return fmt.Errorf("extract round %d: %w", data.Round, err)
 	}
