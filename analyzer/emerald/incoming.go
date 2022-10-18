@@ -189,7 +189,12 @@ func extractRound(b *block.Block, txrs []*sdkClient.TransactionWithResults, logg
 		blockTransactionData.RelatedAccountAddresses = map[string]bool{}
 		tx, err := common.OpenUtxNoVerify(&txr.Tx)
 		if err != nil {
-			logger.Error("error decoding tx", "tx_index", txIndex, "err", err)
+			logger.Error("error decoding tx, skipping tx-specific analysis",
+				"round", b.Header.Round,
+				"tx_index", txIndex,
+				"tx_hash", txr.Tx.Hash(),
+				"err", err,
+			)
 			tx = nil
 		}
 		if tx != nil {
