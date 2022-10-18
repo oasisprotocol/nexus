@@ -441,7 +441,7 @@ TRUNCATE {{ChainId}}.proposals CASCADE;`)
 
 	if len(document.Governance.Proposals) > 0 {
 
-		// TODO(ennsharma): Extract `executed` for proposal.
+		// TODO: Extract `executed` for proposal.
 		query := `INSERT INTO {{ChainId}}.proposals (id, submitter, state, deposit, handler, cp_target_version, rhp_target_version, rcp_target_version, upgrade_epoch, cancels, created_at, closes_at, invalid_votes)
 VALUES
 `
