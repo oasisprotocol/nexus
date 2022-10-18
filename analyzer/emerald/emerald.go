@@ -283,6 +283,6 @@ func (m *Main) queueBlockAndTransactionInserts(batch *storage.QueryBatch, data *
 		blockData.Size,
 	)
 
-	emitRoundBatch(batch, int64(data.Round), blockData)
+	emitRoundBatch(batch, data.Round, blockData)
 	return nil
 }

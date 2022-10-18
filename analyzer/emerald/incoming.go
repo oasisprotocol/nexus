@@ -47,7 +47,7 @@ type AddressPreimageData struct {
 type BlockData struct {
 	Hash             string
 	NumTransactions  int
-	GasUsed          int64
+	GasUsed          uint64
 	Size             int
 	TransactionData  []*BlockTransactionData
 	AddressPreimages map[string]*AddressPreimageData
@@ -242,7 +242,7 @@ func extractRound(sigContext signature.Context, b *block.Block, txrs []*sdkClien
 				return nil, fmt.Errorf("tx %d: %w", txIndex, err)
 			}
 		}
-		var txGasUsed int64
+		var txGasUsed uint64
 		foundGasUsedEvent := false
 		if err = common.VisitSdkEvents(txr.Events, &common.SdkEventHandler{
 			Core: func(event *core.Event) error {
@@ -251,7 +251,7 @@ func extractRound(sigContext signature.Context, b *block.Block, txrs []*sdkClien
 						return fmt.Errorf("multiple gas used events")
 					}
 					foundGasUsedEvent = true
-					txGasUsed = int64(event.GasUsed.Amount)
+					txGasUsed = event.GasUsed.Amount
 				}
 				return nil
 			},
@@ -334,12 +334,16 @@ func extractRound(sigContext signature.Context, b *block.Block, txrs []*sdkClien
 		if !foundGasUsedEvent {
 			if (txr.Result.IsUnknown() || txr.Result.IsSuccess()) && tx != nil {
 				// Treat as if it used all the gas.
-				txGasUsed = int64(tx.AuthInfo.Fee.Gas)
+				txGasUsed = tx.AuthInfo.Fee.Gas
 			} else { //nolint:staticcheck
 				// Inaccurate: Treat as not using any gas.
 			}
 		}
 		blockData.TransactionData = append(blockData.TransactionData, &blockTransactionData)
+		// If this overflows, it will do so silently. However, supported
+		// runtimes internally use u64 checked math to impose a batch gas,
+		// which will prevent it from emitting blocks that use enough gas to
+		// do that.
 		blockData.GasUsed += txGasUsed
 		// Inaccurate: Re-serialize signed tx to estimate original size.
 		txSize := len(cbor.Marshal(txr.Tx))
@@ -348,7 +352,7 @@ func extractRound(sigContext signature.Context, b *block.Block, txrs []*sdkClien
 	return &blockData, nil
 }
 
-func emitRoundBatch(batch *storage.QueryBatch, round int64, blockData *BlockData) {
+func emitRoundBatch(batch *storage.QueryBatch, round uint64, blockData *BlockData) {
 	for _, transactionData := range blockData.TransactionData {
 		for _, signerData := range transactionData.SignerData {
 			batch.Queue("INSERT INTO oasis_3.emerald_transaction_signers (round, tx_index, signer_index, signer_address, nonce) VALUES ($1, $2, $3, $4, $5)", round, transactionData.Index, signerData.Index, signerData.Address, signerData.Nonce)
