@@ -12,6 +12,7 @@ import (
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
 	governance "github.com/oasisprotocol/oasis-core/go/governance/api"
 	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
+
 	"github.com/oasisprotocol/oasis-indexer/api/common"
 	"github.com/oasisprotocol/oasis-indexer/log"
 	storage "github.com/oasisprotocol/oasis-indexer/storage/client"
@@ -584,6 +585,51 @@ func (c *storageClient) Validator(ctx context.Context, r *http.Request) (*storag
 	q.EntityID = entityID
 
 	return c.storage.Validator(ctx, &q)
+}
+
+// RuntimeBlocks returns a list of a runtime's blocks.
+func (c *storageClient) RuntimeBlocks(ctx context.Context, r *http.Request) (*storage.RuntimeBlockList, error) {
+	var q storage.BlocksRequest
+	params := r.URL.Query()
+	if v := params.Get("from"); v != "" {
+		from, err := validateInt64(v)
+		if err != nil {
+			return nil, common.ErrBadRequest
+		}
+		q.From = &from
+	}
+	if v := params.Get("to"); v != "" {
+		to, err := validateInt64(v)
+		if err != nil {
+			return nil, common.ErrBadRequest
+		}
+		q.To = &to
+	}
+	if v := params.Get("after"); v != "" {
+		after, err := validateDatetime(v)
+		if err != nil {
+			return nil, common.ErrBadRequest
+		}
+		q.After = &after
+	}
+	if v := params.Get("before"); v != "" {
+		before, err := validateDatetime(v)
+		if err != nil {
+			return nil, common.ErrBadRequest
+		}
+		q.Before = &before
+	}
+
+	p, err := common.NewPagination(r)
+	if err != nil {
+		c.logger.Info("pagination failed",
+			"request_id", ctx.Value(storage.RequestIDContextKey),
+			"err", err.Error(),
+		)
+		return nil, common.ErrBadRequest
+	}
+
+	return c.storage.RuntimeBlocks(ctx, &q, &p)
 }
 
 // TransactionsPerSecond returns a list of tps checkpoint values.

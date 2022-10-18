@@ -92,9 +92,17 @@ func (h *Handler) RegisterRoutes(r chi.Router) {
 				r.Get("/daily_volume", h.ListDailyVolume)
 			})
 		})
-	})
 
-	// ... ParaTime Endpoint Registration.
+		// ... ParaTime Endpoint Registration.
+
+		r.Route("/emerald", func(r chi.Router) {
+			r.Use(h.runtimeMiddleware("emerald"))
+			// Block Endpoints.
+			r.Route("/blocks", func(r chi.Router) {
+				r.Get("/", h.RuntimeListBlocks)
+			})
+		})
+	})
 }
 
 // Name implements the APIHandler interface.
