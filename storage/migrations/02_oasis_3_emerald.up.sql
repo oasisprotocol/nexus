@@ -2,7 +2,7 @@
 
 BEGIN;
 
-CREATE TABLE IF NOT EXISTS oasis_3.emerald_rounds
+CREATE TABLE oasis_3.emerald_rounds
 (
   round       BIGINT PRIMARY KEY,
   version     BIGINT NOT NULL,
@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS oasis_3.emerald_rounds
 
 CREATE INDEX ix_emerald_rounds_block_hash ON oasis_3.emerald_rounds USING hash (block_hash);
 
-CREATE TABLE IF NOT EXISTS oasis_3.emerald_transactions
+CREATE TABLE oasis_3.emerald_transactions
 (
   round       BIGINT NOT NULL,
   tx_index    INTEGER NOT NULL,
@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS oasis_3.emerald_transactions
 CREATE INDEX ix_emerald_transactions_tx_hash ON oasis_3.emerald_transactions USING hash (tx_hash);
 CREATE INDEX ix_emerald_transactions_tx_eth_hash ON oasis_3.emerald_transactions USING hash (tx_eth_hash);
 
-CREATE TABLE IF NOT EXISTS oasis_3.emerald_transaction_signers
+CREATE TABLE oasis_3.emerald_transaction_signers
 (
   round          BIGINT NOT NULL,
   tx_index       INTEGER NOT NULL,
@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS oasis_3.emerald_transaction_signers
 
 CREATE INDEX ix_emerald_transaction_signers_signer_address_signer_nonce ON oasis_3.emerald_transaction_signers (signer_address, nonce);
 
-CREATE TABLE IF NOT EXISTS oasis_3.emerald_related_transactions
+CREATE TABLE oasis_3.emerald_related_transactions
 (
   account_address TEXT NOT NULL,
   tx_round        BIGINT NOT NULL,
@@ -78,7 +78,7 @@ CREATE INDEX ix_emerald_related_transactions_address_height_index ON oasis_3.eme
 --
 -- Retain this across hard forks as long as the address derivation scheme is
 -- compatible.
-CREATE TABLE IF NOT EXISTS oasis_3.address_preimages
+CREATE TABLE oasis_3.address_preimages
 (
     -- address is the Bech32-encoded Oasis address (i.e. starting with
     -- oasis1...).
@@ -89,7 +89,7 @@ CREATE TABLE IF NOT EXISTS oasis_3.address_preimages
 );
 
 -- Core Module Data
-CREATE TABLE IF NOT EXISTS oasis_3.emerald_gas_used
+CREATE TABLE oasis_3.emerald_gas_used
 (
   round  BIGINT NOT NULL,
   sender TEXT NOT NULL,
@@ -103,7 +103,7 @@ CREATE INDEX ix_emerald_gas_used_sender ON oasis_3.emerald_gas_used(sender);
 -- The emerald_transfers table encapsulates transfers, burns, and mints.
 -- Burns are denoted by the 0-address as the receiver and mints are
 -- denoted by the 0-address as the sender.
-CREATE TABLE IF NOT EXISTS oasis_3.emerald_transfers
+CREATE TABLE oasis_3.emerald_transfers
 (
   round    BIGINT NOT NULL,
   sender   TEXT NOT NULL DEFAULT '0',
@@ -115,7 +115,7 @@ CREATE INDEX ix_emerald_transfers_sender ON oasis_3.emerald_transfers(sender);
 CREATE INDEX ix_emerald_transfers_receiver ON oasis_3.emerald_transfers(receiver);
 
 -- Consensus Accounts Module Data
-CREATE TABLE IF NOT EXISTS oasis_3.emerald_deposits
+CREATE TABLE oasis_3.emerald_deposits
 (
   round    BIGINT NOT NULL,
   sender   TEXT NOT NULL,
@@ -131,7 +131,7 @@ CREATE TABLE IF NOT EXISTS oasis_3.emerald_deposits
 CREATE INDEX ix_emerald_deposits_sender ON oasis_3.emerald_deposits(sender);
 CREATE INDEX ix_emerald_deposits_receiver ON oasis_3.emerald_deposits(receiver);
 
-CREATE TABLE IF NOT EXISTS oasis_3.emerald_withdraws
+CREATE TABLE oasis_3.emerald_withdraws
 (
   round    BIGINT NOT NULL,
   sender   TEXT NOT NULL,

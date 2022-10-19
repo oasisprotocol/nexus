@@ -8,7 +8,7 @@ CREATE SCHEMA IF NOT EXISTS oasis_3;
 
 -- Block Data
 
-CREATE TABLE IF NOT EXISTS oasis_3.blocks
+CREATE TABLE oasis_3.blocks
 (
   height     BIGINT PRIMARY KEY,
   block_hash TEXT NOT NULL,
@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS oasis_3.blocks
   metadata   JSON
 );
 
-CREATE TABLE IF NOT EXISTS oasis_3.transactions
+CREATE TABLE oasis_3.transactions
 (
   block BIGINT NOT NULL REFERENCES oasis_3.blocks(height),
 
@@ -47,8 +47,10 @@ CREATE TABLE IF NOT EXISTS oasis_3.transactions
   -- be included within blocks for this chain.
   PRIMARY KEY (block, txn_hash, txn_index)
 );
+-- Queries by sender are common, and unusably slow without an index.
+CREATE INDEX ix_transactions_sender ON oasis_3.transactions (sender);
 
-CREATE TABLE IF NOT EXISTS oasis_3.events
+CREATE TABLE oasis_3.events
 (
   backend TEXT NOT NULL,
   type    TEXT NOT NULL,
@@ -63,7 +65,7 @@ CREATE TABLE IF NOT EXISTS oasis_3.events
 
 -- Beacon Backend Data
 
-CREATE TABLE IF NOT EXISTS oasis_3.epochs
+CREATE TABLE oasis_3.epochs
 (
   id           BIGINT PRIMARY KEY,
   start_height BIGINT NOT NULL,
@@ -72,16 +74,20 @@ CREATE TABLE IF NOT EXISTS oasis_3.epochs
 );
 
 -- Registry Backend Data
-CREATE TABLE IF NOT EXISTS oasis_3.entities
+CREATE TABLE oasis_3.entities
 (
   id      TEXT PRIMARY KEY,
-  address TEXT
+  address TEXT,
+  -- Signed statements about the entity from https://github.com/oasisprotocol/metadata-registry
+  meta    JSON
 );
 
-CREATE TABLE IF NOT EXISTS oasis_3.nodes
+CREATE TABLE oasis_3.nodes
 (
   id         TEXT PRIMARY KEY,
-  entity_id  TEXT NOT NULL REFERENCES oasis_3.entities(id),
+  -- Entities are free to claim any node, and nodes are free to associate
+  -- themselves with any entity. So oasis_3.entities(id) is not a foreign key.
+  entity_id  TEXT NOT NULL,
   expiration BIGINT NOT NULL,
 
   -- TLS Info
@@ -112,7 +118,15 @@ CREATE TABLE IF NOT EXISTS oasis_3.nodes
   extra_data JSON
 );
 
-CREATE TABLE IF NOT EXISTS oasis_3.runtimes
+CREATE TABLE oasis_3.claimed_nodes
+(
+  entity_id TEXT NOT NULL,
+  node_id   TEXT NOT NULL,
+
+  PRIMARY KEY (entity_id, node_id)  
+);
+
+CREATE TABLE oasis_3.runtimes
 (
   id           TEXT PRIMARY KEY,
   suspended    BOOLEAN NOT NULL DEFAULT false,
@@ -123,7 +137,7 @@ CREATE TABLE IF NOT EXISTS oasis_3.runtimes
 
 -- Staking Backend Data
 
-CREATE TABLE IF NOT EXISTS oasis_3.accounts
+CREATE TABLE oasis_3.accounts
 (
   address TEXT PRIMARY KEY,
 
@@ -143,7 +157,7 @@ CREATE TABLE IF NOT EXISTS oasis_3.accounts
   extra_data JSON
 );
 
-CREATE TABLE IF NOT EXISTS oasis_3.allowances
+CREATE TABLE oasis_3.allowances
 (
   owner       TEXT NOT NULL,
   beneficiary TEXT NOT NULL,
@@ -152,7 +166,13 @@ CREATE TABLE IF NOT EXISTS oasis_3.allowances
   PRIMARY KEY (owner, beneficiary)
 );
 
-CREATE TABLE IF NOT EXISTS oasis_3.delegations
+CREATE TABLE oasis_3.commissions
+(
+  address  TEXT PRIMARY KEY NOT NULL REFERENCES oasis_3.accounts(address),
+  schedule JSON
+);
+
+CREATE TABLE oasis_3.delegations
 (
   delegatee TEXT NOT NULL,
   delegator TEXT NOT NULL,
@@ -161,8 +181,9 @@ CREATE TABLE IF NOT EXISTS oasis_3.delegations
   PRIMARY KEY (delegatee, delegator)
 );
 
-CREATE TABLE IF NOT EXISTS oasis_3.debonding_delegations
+CREATE TABLE oasis_3.debonding_delegations
 (
+  id         BIGSERIAL PRIMARY KEY,  -- index-internal ID
   delegatee  TEXT NOT NULL,
   delegator  TEXT NOT NULL,
   shares     NUMERIC NOT NULL,
@@ -171,7 +192,7 @@ CREATE TABLE IF NOT EXISTS oasis_3.debonding_delegations
 
 -- Scheduler Backend Data
 
-CREATE TABLE IF NOT EXISTS oasis_3.committee_members
+CREATE TABLE oasis_3.committee_members
 (
   node      TEXT NOT NULL,
   valid_for BIGINT NOT NULL,
@@ -184,7 +205,7 @@ CREATE TABLE IF NOT EXISTS oasis_3.committee_members
 
 -- Governance Backend Data
 
-CREATE TABLE IF NOT EXISTS oasis_3.proposals
+CREATE TABLE oasis_3.proposals
 (
   id            BIGINT PRIMARY KEY,
   submitter     TEXT NOT NULL,
@@ -207,7 +228,7 @@ CREATE TABLE IF NOT EXISTS oasis_3.proposals
   invalid_votes NUMERIC NOT NULL DEFAULT 0
 );
 
-CREATE TABLE IF NOT EXISTS oasis_3.votes
+CREATE TABLE oasis_3.votes
 (
   proposal BIGINT NOT NULL REFERENCES oasis_3.proposals(id),
   voter    TEXT NOT NULL,
@@ -217,7 +238,7 @@ CREATE TABLE IF NOT EXISTS oasis_3.votes
 );
 
 -- Indexing Progress Management
-CREATE TABLE IF NOT EXISTS oasis_3.processed_blocks
+CREATE TABLE oasis_3.processed_blocks
 (
   height         BIGINT NOT NULL,
   analyzer       TEXT NOT NULL,
