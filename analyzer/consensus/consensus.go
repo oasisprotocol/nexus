@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -75,8 +76,9 @@ func NewMain(cfg *config.AnalyzerConfig, target storage.TargetStorage, logger *l
 			To:   cfg.To,
 		}
 		ac = analyzer.ConsensusConfig{
-			Range:  blockRange,
-			Source: client,
+			ChainID: cfg.ChainID,
+			Range:   blockRange,
+			Source:  client,
 		}
 	} else {
 		interval, err := time.ParseDuration(cfg.Interval)
@@ -89,9 +91,12 @@ func NewMain(cfg *config.AnalyzerConfig, target storage.TargetStorage, logger *l
 
 		// Configure analyzer.
 		ac = analyzer.ConsensusConfig{
+			ChainID:  cfg.ChainID,
 			Interval: interval,
 		}
 	}
+
+	logger.Info("Starting consensus analyzer", "config", ac)
 	return &Main{
 		cfg:     ac,
 		qf:      analyzer.NewQueryFactory(strcase.ToSnake(cfg.ChainID), "" /* no runtime identifier for the consensus layer */),
@@ -111,6 +116,22 @@ func (m *Main) Start() {
 	// Get block to be indexed.
 	var height int64
 
+	isGenesisProcessed, err := m.isGenesisProcessed(ctx)
+	if err != nil {
+		m.logger.Error("failed to check if genesis is processed",
+			"err", err.Error(),
+		)
+		return
+	}
+	if !isGenesisProcessed {
+		if err := m.processGenesis(ctx); err != nil {
+			m.logger.Error("failed to process genesis",
+				"err", err.Error(),
+			)
+			return
+		}
+	}
+
 	latest, err := m.latestBlock(ctx)
 	if err != nil {
 		if err != pgx.ErrNoRows {
@@ -128,9 +149,7 @@ func (m *Main) Start() {
 
 	backoff, err := util.NewBackoff(
 		100*time.Millisecond,
-		6*time.Second,
-		// ^cap the timeout at the expected
-		// consensus block time
+		6*time.Second, // cap the timeout at the expected consensus block time
 	)
 	if err != nil {
 		m.logger.Error("error configuring indexer backoff policy",
@@ -190,6 +209,61 @@ func (m *Main) latestBlock(ctx context.Context) (int64, error) {
 		return 0, err
 	}
 	return latest, nil
+}
+
+func (m *Main) isGenesisProcessed(ctx context.Context) (bool, error) {
+	var processed bool
+	if err := m.target.QueryRow(
+		ctx,
+		m.qf.IsGenesisProcessedQuery(),
+		m.cfg.ChainID,
+		consensusDamaskAnalyzerName,
+	).Scan(&processed); err != nil {
+		return false, err
+	}
+	return processed, nil
+}
+
+func (m *Main) processGenesis(ctx context.Context) error {
+	m.logger.Info("fetching genesis document")
+	genesisDoc, err := m.cfg.Source.GenesisDocument(ctx)
+	if err != nil {
+		return err
+	}
+
+	m.logger.Info("processing genesis document")
+	gen := NewGenesisProcessor(m.logger.With("height", "genesis"))
+	queries, err := gen.Process(genesisDoc)
+	if err != nil {
+		return err
+	}
+
+	// Debug: log the SQL into a file if requested.
+	debugPath := os.Getenv("CONSENSUS_DAMASK_GENESIS_DUMP")
+	if debugPath != "" {
+		sql := strings.Join(queries, "\n")
+		if err := os.WriteFile(debugPath, []byte(sql), 0o600 /* Permissions: rw------- */); err != nil {
+			gen.logger.Error("failed to write genesis sql to file", "err", err)
+		} else {
+			gen.logger.Info("wrote genesis sql to file", "path", debugPath)
+		}
+	}
+
+	batch := &storage.QueryBatch{}
+	for _, query := range queries {
+		batch.Queue(query)
+	}
+	batch.Queue(
+		m.qf.GenesisIndexingProgressQuery(),
+		m.cfg.ChainID,
+		consensusDamaskAnalyzerName,
+	)
+	if err := m.target.SendBatch(ctx, batch); err != nil {
+		return err
+	}
+	m.logger.Info("genesis document processed")
+
+	return nil
 }
 
 // processBlock processes the provided block, retrieving all required information

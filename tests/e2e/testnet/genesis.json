@@ -1,7 +1,8 @@
 {
   "height": 1,
   "genesis_time": "2022-09-26T04:06:00.331342488Z",
-  "chain_id": "test: oasis-core tests",
+  "chain_id": "oasis-3",
+  "comment ^": "This is not the real mainnet. However, we match its chain_id so that we can test sql migrations (which use the chain_id as part of the fully qualified table names)",
   "registry": {
     "params": {
       "debug_allow_unroutable_addresses": true,

@@ -73,7 +73,6 @@ func runAnalyzer(cmd *cobra.Command, args []string) {
 func Init(cfg *config.AnalysisConfig) (*Service, error) {
 	logger := common.Logger()
 
-	// TODO: Refactor to parse migrations from genesis file https://github.com/oasisprotocol/oasis-indexer/issues/153
 	m, err := migrate.New(
 		cfg.Migrations,
 		cfg.Storage.Endpoint,
@@ -87,7 +86,7 @@ func Init(cfg *config.AnalysisConfig) (*Service, error) {
 
 	switch err = m.Up(); {
 	case err == migrate.ErrNoChange:
-		logger.Info("migrations are up to date")
+		logger.Info("no migrations needed to be applied")
 	case err != nil:
 		logger.Error("migrations failed",
 			"error", err,

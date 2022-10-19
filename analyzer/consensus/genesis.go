@@ -5,7 +5,6 @@ package consensus
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"sort"
 	"strings"
 
@@ -21,36 +20,17 @@ import (
 
 const bulkInsertBatchSize = 1000
 
-// MigrationGenerator generates migrations for the Oasis Indexer
-// target storage.
-type MigrationGenerator struct {
+// GenesisProcessor generates sql statements for indexing the genesis state.
+type GenesisProcessor struct {
 	logger *log.Logger
 }
 
-// NewMigrationGenerator creates a new migration generator.
-func NewMigrationGenerator(logger *log.Logger) *MigrationGenerator {
-	return &MigrationGenerator{logger}
+// NewGenesisProcessor creates a new GenesisProcessor.
+func NewGenesisProcessor(logger *log.Logger) *GenesisProcessor {
+	return &GenesisProcessor{logger}
 }
 
-// WriteGenesisDocumentMigrationOasis3 creates a new migration that re-initializes all
-// height-dependent state as per the provided genesis document.
-func (mg *MigrationGenerator) WriteGenesisDocumentMigrationOasis3(w io.Writer, document *genesis.Document) error {
-	queries, err := mg.ProcessGenesisDocumentOasis3(document)
-	if err != nil {
-		return err
-	}
-
-	for _, query := range queries {
-		query += "\n"
-		if _, err := io.WriteString(w, query); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (mg *MigrationGenerator) ProcessGenesisDocumentOasis3(document *genesis.Document) ([]string, error) {
+func (mg *GenesisProcessor) Process(document *genesis.Document) ([]string, error) {
 	var queries []string
 
 	for _, f := range []func(*genesis.Document) ([]string, error){
@@ -75,7 +55,7 @@ func (mg *MigrationGenerator) ProcessGenesisDocumentOasis3(document *genesis.Doc
 	return queries, nil
 }
 
-func (mg *MigrationGenerator) addRegistryBackendMigrations(document *genesis.Document) (queries []string, err error) {
+func (mg *GenesisProcessor) addRegistryBackendMigrations(document *genesis.Document) (queries []string, err error) {
 	// Populate entities.
 	queries = append(queries, `-- Registry Backend Data
 TRUNCATE {{ChainId}}.entities CASCADE;`)
@@ -189,7 +169,7 @@ VALUES
 }
 
 //nolint:gocyclo
-func (mg *MigrationGenerator) addStakingBackendMigrations(document *genesis.Document) (queries []string, err error) {
+func (mg *GenesisProcessor) addStakingBackendMigrations(document *genesis.Document) (queries []string, err error) {
 	// Populate accounts.
 	queries = append(queries, `-- Staking Backend Data
 TRUNCATE {{ChainId}}.accounts CASCADE;`)
@@ -433,7 +413,7 @@ VALUES
 	return queries, nil
 }
 
-func (mg *MigrationGenerator) addGovernanceBackendMigrations(document *genesis.Document) (queries []string, err error) {
+func (mg *GenesisProcessor) addGovernanceBackendMigrations(document *genesis.Document) (queries []string, err error) {
 	// Populate proposals.
 	queries = append(queries, `-- Governance Backend Data
 TRUNCATE {{ChainId}}.proposals CASCADE;`)

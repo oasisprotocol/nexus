@@ -34,6 +34,7 @@ test:
 test-ci:
 	@$(GO) test -race -coverpkg=./... -coverprofile=coverage.txt -covermode=atomic -v ./...
 
+test-e2e: export OASIS_INDEXER_E2E = true 
 test-e2e:
 	@$(GO) test -race -coverpkg=./... -coverprofile=coverage.txt -covermode=atomic -v ./tests/e2e
 
@@ -66,7 +67,7 @@ docs-api:
 docs: $(docs-targets)
 
 start-docker:
-	@docker compose up --remove-orphans	
+	@docker compose up --remove-orphans
 
 # Run dockerized postgres for local development
 postgres:

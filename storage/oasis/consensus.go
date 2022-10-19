@@ -27,62 +27,32 @@ type ConsensusClient struct {
 
 // GenesisDocument returns the original genesis document.
 func (cc *ConsensusClient) GenesisDocument(ctx context.Context) (*genesisAPI.Document, error) {
-	doc, err := cc.client.GetGenesisDocument(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	return doc, nil
+	return cc.client.GetGenesisDocument(ctx)
 }
 
 // GenesisDocumentAtHeight returns the genesis document at the provided height.
 func (cc *ConsensusClient) GenesisDocumentAtHeight(ctx context.Context, height int64) (*genesisAPI.Document, error) {
-	doc, err := cc.client.StateToGenesis(ctx, height)
-	if err != nil {
-		return nil, err
-	}
-
-	return doc, nil
+	return cc.client.StateToGenesis(ctx, height)
 }
 
 // RegistryGenesis returns the registry genesis document at the provided height.
 func (cc *ConsensusClient) RegistryGenesis(ctx context.Context, height int64) (*registryAPI.Genesis, error) {
-	doc, err := cc.client.Registry().StateToGenesis(ctx, height)
-	if err != nil {
-		return nil, err
-	}
-
-	return doc, nil
+	return cc.client.Registry().StateToGenesis(ctx, height)
 }
 
 // StakingGenesis returns the staking genesis document at the provided height.
 func (cc *ConsensusClient) StakingGenesis(ctx context.Context, height int64) (*stakingAPI.Genesis, error) {
-	doc, err := cc.client.Staking().StateToGenesis(ctx, height)
-	if err != nil {
-		return nil, err
-	}
-
-	return doc, nil
+	return cc.client.Staking().StateToGenesis(ctx, height)
 }
 
 // SchedulerGenesis returns the scheduler genesis document at the provided height.
 func (cc *ConsensusClient) SchedulerGenesis(ctx context.Context, height int64) (*schedulerAPI.Genesis, error) {
-	doc, err := cc.client.Scheduler().StateToGenesis(ctx, height)
-	if err != nil {
-		return nil, err
-	}
-
-	return doc, nil
+	return cc.client.Scheduler().StateToGenesis(ctx, height)
 }
 
 // GovernanceGenesis returns the governance genesis document at the provided height.
 func (cc *ConsensusClient) GovernanceGenesis(ctx context.Context, height int64) (*governanceAPI.Genesis, error) {
-	doc, err := cc.client.Governance().StateToGenesis(ctx, height)
-	if err != nil {
-		return nil, err
-	}
-
-	return doc, nil
+	return cc.client.Governance().StateToGenesis(ctx, height)
 }
 
 // Name returns the name of the client, for the ConsensusSourceStorage interface.
