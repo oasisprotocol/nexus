@@ -7,6 +7,13 @@ This directory contains, primarily, e2e tests for the Oasis Indexer. They have b
 
 ## Setup for E2E Tests
 
-To ensure that tests behave as expected, you should have either the local environment or Docker environment configured as per the [top-level README](../README.md#docker-development).
+To ensure that tests behave as expected, you should have either Docker environment configured as per the [top-level README](../README.md#docker-development).
 
-Then you can run these tests from the repository root with `make test-ci` or directly from this directory with `go test ./... -v`.
+Then you can run these tests from the running `oasis-indexer` container:
+
+```
+docker exec -it oasis-indexer bash
+cd /oasis-indexer && OASIS_INDEXER_E2E=true make test-e2e
+```
+
+In between runs, you can `make clean-e2e` to remove the `oasis-net-runner` generated files.

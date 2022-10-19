@@ -28,6 +28,9 @@ docker:
 clean:
 	@$(GO) clean
 
+clean-e2e:
+	rm -r tests/e2e/testnet/net-runner
+
 test:
 	@$(GO) test -short -v ./...
 
