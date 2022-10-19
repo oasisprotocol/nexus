@@ -35,7 +35,6 @@ func NewMigrationGenerator(logger *log.Logger) *MigrationGenerator {
 // WriteGenesisDocumentMigrationOasis3 creates a new migration that re-initializes all
 // height-dependent state as per the provided genesis document.
 func (mg *MigrationGenerator) WriteGenesisDocumentMigrationOasis3(w io.Writer, document *genesis.Document) error {
-
 	queries, err := mg.ProcessGenesisDocumentOasis3(document)
 	if err != nil {
 		return err
@@ -67,9 +66,9 @@ func (mg *MigrationGenerator) ProcessGenesisDocumentOasis3(document *genesis.Doc
 	}
 
 	// Rudimentary templating.
-	chainId := strcase.ToSnake(document.ChainID)
+	chainID := strcase.ToSnake(document.ChainID)
 	for i, query := range queries {
-		queries[i] = strings.ReplaceAll(query, "{{ChainId}}", chainId)
+		queries[i] = strings.ReplaceAll(query, "{{ChainId}}", chainID)
 	}
 	mg.logger.Info("generated genesis queries", "count", len(queries))
 
@@ -138,7 +137,7 @@ VALUES
 VALUES
 `
 		for i, runtime := range document.Registry.Runtimes {
-			keyManager := "none"
+			keyManager := noKeyManager
 			if runtime.KeyManager != nil {
 				keyManager = runtime.KeyManager.String()
 			}
@@ -165,7 +164,7 @@ VALUES
 `
 
 		for i, runtime := range document.Registry.SuspendedRuntimes {
-			keyManager := "none"
+			keyManager := noKeyManager
 			if runtime.KeyManager != nil {
 				keyManager = runtime.KeyManager.Hex()
 			}
@@ -189,6 +188,7 @@ VALUES
 	return queries, nil
 }
 
+//nolint:gocyclo
 func (mg *MigrationGenerator) addStakingBackendMigrations(document *genesis.Document) (queries []string, err error) {
 	// Populate accounts.
 	queries = append(queries, `-- Staking Backend Data
@@ -355,7 +355,6 @@ VALUES
 	if foundAllowances {
 		query += ";\n"
 		queries = append(queries, query)
-		query = ""
 	}
 
 	// Populate delegations.
@@ -440,7 +439,6 @@ func (mg *MigrationGenerator) addGovernanceBackendMigrations(document *genesis.D
 TRUNCATE {{ChainId}}.proposals CASCADE;`)
 
 	if len(document.Governance.Proposals) > 0 {
-
 		// TODO: Extract `executed` for proposal.
 		query := `INSERT INTO {{ChainId}}.proposals (id, submitter, state, deposit, handler, cp_target_version, rhp_target_version, rcp_target_version, upgrade_epoch, cancels, created_at, closes_at, invalid_votes)
 VALUES

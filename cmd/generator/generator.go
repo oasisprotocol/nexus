@@ -7,7 +7,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"io/ioutil"
 	"os"
 
 	genesis "github.com/oasisprotocol/oasis-core/go/genesis/api"
@@ -149,7 +148,7 @@ func (g *Generator) WriteMigration() error {
 }
 
 func (g *Generator) genesisDocFromFile() (*genesis.Document, error) {
-	rawDoc, err := ioutil.ReadFile(cfgGenesisFile)
+	rawDoc, err := os.ReadFile(cfgGenesisFile)
 	if err != nil {
 		return nil, err
 	}
@@ -165,7 +164,7 @@ func (g *Generator) genesisDocFromClient() (*genesis.Document, error) {
 	ctx := context.Background()
 
 	// Connect to oasis-node.
-	rawCfg, err := ioutil.ReadFile(cfgNetworkConfigFile)
+	rawCfg, err := os.ReadFile(cfgNetworkConfigFile)
 	if err != nil {
 		return nil, err
 	}

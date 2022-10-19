@@ -3,7 +3,7 @@ package genesis
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"sort"
 	"testing"
@@ -86,7 +86,7 @@ type TestVote struct {
 
 func newTargetClient(t *testing.T) (*postgres.Client, error) {
 	connString := os.Getenv("HEALTHCHECK_TEST_CONN_STRING")
-	logger, err := log.NewLogger("cockroach-test", ioutil.Discard, log.FmtJSON, log.LevelInfo)
+	logger, err := log.NewLogger("cockroach-test", io.Discard, log.FmtJSON, log.LevelInfo)
 	assert.Nil(t, err)
 
 	return postgres.NewClient(connString, logger)

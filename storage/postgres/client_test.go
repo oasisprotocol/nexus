@@ -3,7 +3,7 @@ package postgres
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"strings"
 	"sync"
@@ -18,7 +18,7 @@ import (
 
 func newClient(t *testing.T) (*Client, error) {
 	connString := os.Getenv("CI_TEST_CONN_STRING")
-	logger, err := log.NewLogger("cockroach-test", ioutil.Discard, log.FmtJSON, log.LevelInfo)
+	logger, err := log.NewLogger("cockroach-test", io.Discard, log.FmtJSON, log.LevelInfo)
 	require.Nil(t, err)
 
 	return NewClient(connString, logger)
@@ -36,7 +36,7 @@ func TestInvalidConnect(t *testing.T) {
 	tests.SkipIfShort(t)
 
 	connString := "an invalid connstring"
-	logger, err := log.NewLogger("cockroach-test", ioutil.Discard, log.FmtJSON, log.LevelInfo)
+	logger, err := log.NewLogger("cockroach-test", io.Discard, log.FmtJSON, log.LevelInfo)
 	require.Nil(t, err)
 
 	_, err = NewClient(connString, logger)

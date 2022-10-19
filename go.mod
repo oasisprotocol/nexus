@@ -5,7 +5,6 @@ go 1.18
 replace github.com/tendermint/tendermint => github.com/oasisprotocol/tendermint v0.34.21-oasis1
 
 require (
-	github.com/cockroachdb/cockroach-go/v2 v2.2.8
 	github.com/dgraph-io/ristretto v0.1.0
 	github.com/ethereum/go-ethereum v1.10.19
 	github.com/go-chi/chi/v5 v5.0.7

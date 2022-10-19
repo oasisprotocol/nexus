@@ -30,7 +30,8 @@ import (
 
 const (
 	consensusDamaskAnalyzerName = "consensus_damask"
-	registryUpdateFrequency     = 100 // once per n block
+	noKeyManager                = "none" // KM name to use when there is no KM
+	registryUpdateFrequency     = 100    // once per n block
 )
 
 // Main is the main Analyzer for the consensus layer.
@@ -428,7 +429,7 @@ func (m *Main) queueRuntimeRegistrations(batch *storage.QueryBatch, data *storag
 	runtimeUpsertQuery := m.qf.ConsensusRuntimeUpsertQuery()
 
 	for _, runtimeEvent := range data.RuntimeEvents {
-		keyManager := "none"
+		keyManager := noKeyManager
 
 		if runtimeEvent.Runtime.KeyManager != nil {
 			keyManager = runtimeEvent.Runtime.KeyManager.String()
