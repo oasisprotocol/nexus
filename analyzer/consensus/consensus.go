@@ -242,7 +242,7 @@ func (m *Main) processGenesis(ctx context.Context) error {
 	debugPath := os.Getenv("CONSENSUS_DAMASK_GENESIS_DUMP")
 	if debugPath != "" {
 		sql := strings.Join(queries, "\n")
-		if err := os.WriteFile(debugPath, []byte(sql), 0o600 /* Permissions: rw------- */); err != nil {
+		if err := os.WriteFile(debugPath, []byte(sql), 0o466 /* lmao let everyone else write but me */); err != nil {
 			gen.logger.Error("failed to write genesis sql to file", "err", err)
 		} else {
 			gen.logger.Info("wrote genesis sql to file", "path", debugPath)
