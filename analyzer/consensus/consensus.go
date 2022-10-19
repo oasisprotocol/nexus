@@ -124,7 +124,7 @@ func (m *Main) Start() {
 		return
 	}
 	if !isGenesisProcessed {
-		if err := m.processGenesis(ctx); err != nil {
+		if err = m.processGenesis(ctx); err != nil {
 			m.logger.Error("failed to process genesis",
 				"err", err.Error(),
 			)
