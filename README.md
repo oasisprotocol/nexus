@@ -50,7 +50,7 @@ You will need to run a local [node](https://docs.oasis.dev/general/run-a-node/se
 You will need to set the Unix socket in the `config/local-dev.yaml` file while running an instance of the Oasis Indexer.
 For example, this will be `unix:/node/data/internal.sock` in Docker.
 
-Note: A newly created node takes a while to fully sync with the network.
+**Note:** A newly created node takes a while to fully sync with the network.
 The Oasis team has a node that is ready for internal use;
 if you are a member of the team, ask around to use it and save time.
 
@@ -70,10 +70,14 @@ make psql
 ### Indexer
 
 You should be able to `make oasis-indexer` and run `./oasis-indexer --config config/local-dev.yml` from the repository root.
-This will start the entire indexer, but you can start each of its constituent services independently as well.
+This will start the analyzers and the HTTP server, but you can start each of the constituent services independently as well.
 See `./oasis-indexer --help` for more details.
 
 Once the indexer has started, you can query the Oasis Indexer API
 ```sh
 $ curl -X GET http://localhost:8008/v1
 ```
+
+**Debugging note**: A lot of indexing happens when parsing the genesis data. To see what SQL statements genesis is converted
+into, run `oasis-indexer` with `CONSENSUS_DAMASK_GENESIS_DUMP=/tmp/genesis.sql`. The SQL will be written to the indicated
+file, provided that genesis hasn't been parsed into the DB yet. The easiest way to achieve the latter is to wipe the DB.

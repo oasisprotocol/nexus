@@ -124,7 +124,12 @@ func (m *Main) Start() {
 		return
 	}
 	if !isGenesisProcessed {
-		m.processGenesis(ctx)
+		if err := m.processGenesis(ctx); err != nil {
+			m.logger.Error("failed to process genesis",
+				"err", err.Error(),
+			)
+			return
+		}
 	}
 
 	latest, err := m.latestBlock(ctx)
@@ -237,7 +242,7 @@ func (m *Main) processGenesis(ctx context.Context) error {
 	debugPath := os.Getenv("CONSENSUS_DAMASK_GENESIS_DUMP")
 	if debugPath != "" {
 		sql := strings.Join(queries, "\n")
-		if err := os.WriteFile(debugPath, []byte(sql), 0o644); err != nil {
+		if err := os.WriteFile(debugPath, []byte(sql), 0o600 /* Permissions: rw------- */); err != nil {
 			gen.logger.Error("failed to write genesis sql to file", "err", err)
 		} else {
 			gen.logger.Info("wrote genesis sql to file", "path", debugPath)
@@ -253,7 +258,9 @@ func (m *Main) processGenesis(ctx context.Context) error {
 		m.cfg.ChainID,
 		consensusDamaskAnalyzerName,
 	)
-	m.target.SendBatch(ctx, batch)
+	if err := m.target.SendBatch(ctx, batch); err != nil {
+		return err
+	}
 	m.logger.Info("genesis document processed")
 
 	return nil
