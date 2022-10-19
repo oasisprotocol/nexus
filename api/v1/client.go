@@ -632,6 +632,30 @@ func (c *storageClient) RuntimeBlocks(ctx context.Context, r *http.Request) (*st
 	return c.storage.RuntimeBlocks(ctx, &q, &p)
 }
 
+// RuntimeTransactions returns a list of runtime transactions.
+func (c *storageClient) RuntimeTransactions(ctx context.Context, r *http.Request) (*storage.RuntimeTransactionList, error) {
+	var q storage.RuntimeTransactionsRequest
+	params := r.URL.Query()
+	if v := params.Get("block"); v != "" {
+		block, err := validateInt64(v)
+		if err != nil {
+			return nil, common.ErrBadRequest
+		}
+		q.Block = &block
+	}
+
+	p, err := common.NewPagination(r)
+	if err != nil {
+		c.logger.Info("pagination failed",
+			"request_id", ctx.Value(storage.RequestIDContextKey),
+			"err", err.Error(),
+		)
+		return nil, common.ErrBadRequest
+	}
+
+	return c.storage.RuntimeTransactions(ctx, &q, &p)
+}
+
 // TransactionsPerSecond returns a list of tps checkpoint values.
 func (c *storageClient) TransactionsPerSecond(ctx context.Context, r *http.Request) (*storage.TpsCheckpointList, error) {
 	p, err := common.NewPagination(r)

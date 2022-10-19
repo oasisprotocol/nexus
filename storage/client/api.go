@@ -109,3 +109,7 @@ type RuntimeBlocksRequest struct {
 	After  *time.Time
 	Before *time.Time
 }
+
+type RuntimeTransactionsRequest struct {
+	Block *int64
+}

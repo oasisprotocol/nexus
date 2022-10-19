@@ -67,6 +67,10 @@ x-examples:
     - &runtime_block_round_1 3283246
   runtime-block-hash:
     - &runtime_block_hash_1 '21c243cd34bedfc234f1b45615d10a868f0655f59578f063a7d2fc8c6e5b4009'
+  runtime-tx-hash:
+    - &runtime_tx_hash_1 'ae2ae721d790dc5aacc2959f58ea3d18f62c672dd1f0834b9527ec1458ae935c'
+  runtime-tx-eth-hash:
+    - &runtime_tx_eth_hash_1 'e0a8808193cc71185c65994e273549c1986bc8bf26a115837198d21a5956e0c1'
   iso-timestamp:
     - &iso_timestamp_1 '2022-03-01T00:00:00Z'
     - &iso_timestamp_2 '2019-04-01T00:00:00Z'
@@ -763,6 +767,34 @@ paths:
         '500':
           $ref: '#/components/responses/ServerError'
 
+  /emerald/transactions:
+    get:
+      summary: Returns a list of Emerald transactions.
+      parameters:
+        - *limit
+        - *offset
+        - in: query
+          name: block
+          schema:
+            type: integer
+            format: int64
+          description: A filter on block round.
+          example: *runtime_block_round_1
+      responses:
+        '200':
+          description: |
+            A JSON object containing a list of Emerald transactions.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RuntimeTransactionList'
+        '400':
+          $ref: '#/components/responses/InvalidRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
   /consensus/stats/tps:
     get:
       summary: Returns the consensus layer TPS for each 5 minute interval.
@@ -1369,6 +1401,32 @@ components:
           example: 118597
       description: |
         A ParaTime block.
+
+    RuntimeTransactionList:
+      type: object
+      properties:
+        transactions:
+          type: array
+          items:
+            $ref: '#/components/schemas/RuntimeTransaction'
+      description: |
+        A list of consensus transactions.
+
+    RuntimeTransaction:
+      type: object
+      properties:
+        round:
+          type: integer
+          format: int64
+          description: The block round at which this transaction was executed.
+          example: *runtime_block_round_1
+        hash:
+          type: string
+          description: The Oasis cryptographic hash of this transaction's encoding.
+          example: *tx_hash_1
+        # todo: other fields
+      description: |
+        A runtime transaction.
 
     TpsCheckpoints:
       type: object
