@@ -156,6 +156,7 @@ func (cc *ConsensusClient) RegistryData(ctx context.Context, height int64) (*sto
 
 	return &storage.RegistryData{
 		Height:               height,
+		Events:               events,
 		RuntimeEvents:        runtimeEvents,
 		EntityEvents:         entityEvents,
 		NodeEvents:           nodeEvents,
@@ -248,6 +249,7 @@ func (cc *ConsensusClient) StakingData(ctx context.Context, height int64) (*stor
 	return &storage.StakingData{
 		Height:           height,
 		Epoch:            epoch,
+		Events:           events,
 		Transfers:        transfers,
 		Burns:            burns,
 		Escrows:          escrows,

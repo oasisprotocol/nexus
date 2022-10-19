@@ -129,6 +129,7 @@ type BeaconData struct {
 type RegistryData struct {
 	Height int64
 
+	Events             []*registry.Event
 	RuntimeEvents      []*registry.RuntimeEvent
 	EntityEvents       []*registry.EntityEvent
 	NodeEvents         []*registry.NodeEvent
@@ -176,6 +177,7 @@ type SchedulerData struct {
 type GovernanceData struct {
 	Height int64
 
+	Events                []*governance.Event
 	ProposalSubmissions   []*governance.Proposal
 	ProposalExecutions    []*governance.ProposalExecutedEvent
 	ProposalFinalizations []*governance.Proposal
