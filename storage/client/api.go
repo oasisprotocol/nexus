@@ -102,3 +102,10 @@ type ProposalVotesRequest struct {
 type ValidatorRequest struct {
 	EntityID *signature.PublicKey
 }
+
+type RuntimeBlocksRequest struct {
+	From   *int64
+	To     *int64
+	After  *time.Time
+	Before *time.Time
+}

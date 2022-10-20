@@ -1046,7 +1046,7 @@ func (c *StorageClient) Validator(ctx context.Context, r *ValidatorRequest) (*Va
 }
 
 // RuntimeBlocks returns a list of runtime blocks.
-func (c *StorageClient) RuntimeBlocks(ctx context.Context, r *BlocksRequest, p *common.Pagination) (*RuntimeBlockList, error) {
+func (c *StorageClient) RuntimeBlocks(ctx context.Context, r *RuntimeBlocksRequest, p *common.Pagination) (*RuntimeBlockList, error) {
 	cid, ok := ctx.Value(ChainIDContextKey).(string)
 	if !ok {
 		return nil, common.ErrBadChainID

@@ -589,7 +589,7 @@ func (c *storageClient) Validator(ctx context.Context, r *http.Request) (*storag
 
 // RuntimeBlocks returns a list of a runtime's blocks.
 func (c *storageClient) RuntimeBlocks(ctx context.Context, r *http.Request) (*storage.RuntimeBlockList, error) {
-	var q storage.BlocksRequest
+	var q storage.RuntimeBlocksRequest
 	params := r.URL.Query()
 	if v := params.Get("from"); v != "" {
 		from, err := validateInt64(v)
