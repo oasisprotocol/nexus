@@ -4,8 +4,8 @@ BEGIN;
 
 CREATE TABLE oasis_3.emerald_rounds
 (
-  round       BIGINT PRIMARY KEY,
-  version     BIGINT NOT NULL,
+  round     BIGINT PRIMARY KEY,
+  version   BIGINT NOT NULL,
   timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
 
   block_hash      TEXT NOT NULL,
