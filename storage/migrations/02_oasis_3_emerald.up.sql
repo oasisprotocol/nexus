@@ -22,6 +22,7 @@ CREATE TABLE oasis_3.emerald_rounds
 );
 
 CREATE INDEX ix_emerald_rounds_block_hash ON oasis_3.emerald_rounds USING hash (block_hash);
+CREATE INDEX ix_emerald_rounds_timestamp ON oasis_3.emerald_rounds (timestamp);
 
 CREATE TABLE oasis_3.emerald_transactions
 (
