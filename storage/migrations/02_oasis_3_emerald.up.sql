@@ -35,6 +35,8 @@ CREATE TABLE oasis_3.emerald_transactions
   -- later store sufficiently detailed data in other columns or if we turn out
   -- to be able to get a copy of the transaction elsewhere.
   raw         BYTEA NOT NULL,
+  -- result_raw is cbor(CallResult).
+  result_raw  BYTEA NOT NULL,
   PRIMARY KEY (round, tx_index)
 );
 

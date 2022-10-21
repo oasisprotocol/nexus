@@ -34,6 +34,7 @@ type BlockTransactionData struct {
 	Hash                    string
 	EthHash                 *string
 	Raw                     []byte
+	RawResult               []byte
 	SignerData              []*BlockTransactionSignerData
 	RelatedAccountAddresses map[string]bool
 }
@@ -186,6 +187,7 @@ func extractRound(b *block.Block, txrs []*sdkClient.TransactionWithResults, logg
 			blockTransactionData.EthHash = &ethHash
 		}
 		blockTransactionData.Raw = cbor.Marshal(txr.Tx)
+		blockTransactionData.RawResult = cbor.Marshal(txr.Result)
 		blockTransactionData.RelatedAccountAddresses = map[string]bool{}
 		tx, err := common.OpenUtxNoVerify(&txr.Tx)
 		if err != nil {
@@ -372,7 +374,7 @@ func emitRoundBatch(batch *storage.QueryBatch, qf *analyzer.QueryFactory, round 
 		for addr := range transactionData.RelatedAccountAddresses {
 			batch.Queue(qf.RuntimeRelatedTransactionInsertQuery(), addr, round, transactionData.Index)
 		}
-		batch.Queue(qf.RuntimeTransactionInsertQuery(), round, transactionData.Index, transactionData.Hash, transactionData.EthHash, transactionData.Raw)
+		batch.Queue(qf.RuntimeTransactionInsertQuery(), round, transactionData.Index, transactionData.Hash, transactionData.EthHash, transactionData.Raw, transactionData.RawResult)
 	}
 	for addr, preimageData := range blockData.AddressPreimages {
 		batch.Queue(qf.AddressPreimageInsertQuery(), addr, preimageData.ContextIdentifier, preimageData.ContextVersion, preimageData.Data)
