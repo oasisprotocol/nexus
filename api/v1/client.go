@@ -10,6 +10,9 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
+	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/accounts"
+	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/consensusaccounts"
+	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/evm"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
@@ -695,11 +698,60 @@ func (c *storageClient) RuntimeTransactions(ctx context.Context, r *http.Request
 			Success:   cr.IsSuccess(),
 		}
 		if err = uncategorized.VisitCall(&tx.Call, &cr, &uncategorized.CallHandler{
-			AccountsTransfer:          nil,
-			ConsensusAccountsDeposit:  nil,
-			ConsensusAccountsWithdraw: nil,
-			EvmCreate:                 nil,
-			EvmCall:                   nil,
+			AccountsTransfer: func(body *accounts.Transfer) error {
+				to, err2 := uncategorized.StringifySdkAddress(&body.To)
+				if err2 != nil {
+					return fmt.Errorf("to: %w", err2)
+				}
+				t.To = &to
+				amount, err2 := uncategorized.StringifyNativeDenomination(&body.Amount)
+				if err2 != nil {
+					return fmt.Errorf("amount: %w", err2)
+				}
+				t.Amount = &amount
+				return nil
+			},
+			ConsensusAccountsDeposit: func(body *consensusaccounts.Deposit) error {
+				to, err2 := uncategorized.StringifySdkAddress(body.To)
+				if err2 != nil {
+					return fmt.Errorf("to: %w", err2)
+				}
+				t.To = &to
+				amount, err2 := uncategorized.StringifyNativeDenomination(&body.Amount)
+				if err2 != nil {
+					return fmt.Errorf("amount: %w", err2)
+				}
+				t.Amount = &amount
+				return nil
+			},
+			ConsensusAccountsWithdraw: func(body *consensusaccounts.Withdraw) error {
+				to, err2 := uncategorized.StringifySdkAddress(body.To)
+				if err2 != nil {
+					return fmt.Errorf("to: %w", err2)
+				}
+				// todo: is this right? we don't otherwise register this off-chain .To
+				t.To = &to
+				// todo: ensure native denomination?
+				amount := body.Amount.Amount.String()
+				t.Amount = &amount
+				return nil
+			},
+			EvmCreate: func(body *evm.Create, ok *[]byte) error {
+				// todo: do we want to populate .To with the created contract?
+				amount := uncategorized.StringifyBytes(body.Value)
+				t.Amount = &amount
+				return nil
+			},
+			EvmCall: func(body *evm.Call, ok *[]byte) error {
+				to, err2 := uncategorized.StringifyEthAddress(body.Address)
+				if err2 != nil {
+					return fmt.Errorf("to: %w", err2)
+				}
+				t.To = &to
+				amount := uncategorized.StringifyBytes(body.Value)
+				t.Amount = &amount
+				return nil
+			},
 		}); err != nil {
 			return nil, fmt.Errorf("round %d tx %d: %w", st.Round, st.Index, err)
 		}
