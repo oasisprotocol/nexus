@@ -4,6 +4,7 @@ package postgres
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -93,7 +94,7 @@ func (c *Client) SendBatch(ctx context.Context, batch *storage.QueryBatch) error
 		defer common.CloseOrLog(batchResults, c.logger)
 		for i := 0; i < pgxBatch.Len(); i++ {
 			if _, err := batchResults.Exec(); err != nil {
-				return err
+				return fmt.Errorf("query %d %v: %w", i, batch.Queries()[i], err)
 			}
 		}
 
