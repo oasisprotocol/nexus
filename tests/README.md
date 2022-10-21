@@ -12,8 +12,7 @@ To ensure that tests behave as expected, you should have either Docker environme
 Then you can run these tests from the running `oasis-indexer` container:
 
 ```
-docker exec -it oasis-indexer bash
-cd /oasis-indexer && OASIS_INDEXER_E2E=true make test-e2e
+docker exec -it oasis-indexer bash -c "cd /oasis-indexer && make test-e2e"
 ```
 
 In between runs, you can `make clean-e2e` to remove the `oasis-net-runner` generated files.
