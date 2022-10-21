@@ -2,17 +2,21 @@ package v1
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"net/url"
 	"strconv"
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/oasisprotocol/oasis-core/go/common/cbor"
+	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
 	governance "github.com/oasisprotocol/oasis-core/go/governance/api"
 	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
 
+	uncategorized "github.com/oasisprotocol/oasis-indexer/analyzer/uncategorized"
 	"github.com/oasisprotocol/oasis-indexer/api/common"
 	"github.com/oasisprotocol/oasis-indexer/log"
 	storage "github.com/oasisprotocol/oasis-indexer/storage/client"
@@ -633,7 +637,7 @@ func (c *storageClient) RuntimeBlocks(ctx context.Context, r *http.Request) (*st
 }
 
 // RuntimeTransactions returns a list of runtime transactions.
-func (c *storageClient) RuntimeTransactions(ctx context.Context, r *http.Request) (*storage.RuntimeTransactionList, error) {
+func (c *storageClient) RuntimeTransactions(ctx context.Context, r *http.Request) (*RuntimeTransactionList, error) {
 	var q storage.RuntimeTransactionsRequest
 	params := r.URL.Query()
 	if v := params.Get("block"); v != "" {
@@ -653,7 +657,56 @@ func (c *storageClient) RuntimeTransactions(ctx context.Context, r *http.Request
 		return nil, common.ErrBadRequest
 	}
 
-	return c.storage.RuntimeTransactions(ctx, &q, &p)
+	sts, err := c.storage.RuntimeTransactions(ctx, &q, &p)
+	if err != nil {
+		return nil, err
+	}
+
+	var ts RuntimeTransactionList
+	for _, st := range sts.Transactions {
+		var utx types.UnverifiedTransaction
+		if err = cbor.Unmarshal(st.Raw, &utx); err != nil {
+			return nil, fmt.Errorf("round %d tx %d utx unmarshal: %w", st.Round, st.Index, err)
+		}
+		tx, err := uncategorized.OpenUtxNoVerify(&utx)
+		if err != nil {
+			return nil, fmt.Errorf("round %d tx %d utx open no verify: %w", st.Round, st.Index, err)
+		}
+		sender0, err := uncategorized.StringifyAddressSpec(&tx.AuthInfo.SignerInfo[0].AddressSpec)
+		if err != nil {
+			return nil, fmt.Errorf("round %d tx %d signer 0: %w", st.Round, st.Index, err)
+		}
+		var cr types.CallResult
+		if err = cbor.Unmarshal(st.ResultRaw, &cr); err != nil {
+			return nil, fmt.Errorf("round %d tx %d result unmarshal: %w", st.Round, st.Index, err)
+		}
+		t := RuntimeTransaction{
+			Round:   st.Round,
+			Index:   st.Index,
+			Hash:    st.Hash,
+			EthHash: st.EthHash,
+			// TODO: Get timestamp from that round's block
+			Sender0:   sender0,
+			Nonce0:    tx.AuthInfo.SignerInfo[0].Nonce,
+			FeeAmount: tx.AuthInfo.Fee.Amount.Amount.String(),
+			FeeGas:    tx.AuthInfo.Fee.Gas,
+			Method:    tx.Call.Method,
+			Body:      tx.Call.Body,
+			Success:   cr.IsSuccess(),
+		}
+		if err = uncategorized.VisitCall(&tx.Call, &cr, &uncategorized.CallHandler{
+			AccountsTransfer:          nil,
+			ConsensusAccountsDeposit:  nil,
+			ConsensusAccountsWithdraw: nil,
+			EvmCreate:                 nil,
+			EvmCall:                   nil,
+		}); err != nil {
+			return nil, fmt.Errorf("round %d tx %d: %w", st.Round, st.Index, err)
+		}
+		ts.Transactions = append(ts.Transactions, t)
+	}
+
+	return &ts, err
 }
 
 // TransactionsPerSecond returns a list of tps checkpoint values.

@@ -1127,15 +1127,13 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, r *RuntimeTrans
 	}
 	for rows.Next() {
 		var t RuntimeTransaction
-		var raw []byte
-		var resultRaw []byte
 		if err := rows.Scan(
 			&t.Round,
 			&t.Index,
 			&t.Hash,
 			&t.EthHash,
-			&raw,
-			&resultRaw,
+			&t.Raw,
+			&t.ResultRaw,
 		); err != nil {
 			c.logger.Info("row scan failed",
 				"request_id", ctx.Value(RequestIDContextKey),
@@ -1143,8 +1141,6 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, r *RuntimeTrans
 			)
 			return nil, common.ErrStorageError
 		}
-
-		// todo: other fields
 
 		ts.Transactions = append(ts.Transactions, t)
 	}
