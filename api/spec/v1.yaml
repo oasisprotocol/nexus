@@ -63,9 +63,14 @@ x-examples:
     - &proposal_id_1 1
   proposal-state:
     - &proposal_state_1 'active'
+  runtime-block-round:
+    - &runtime_block_round_1 3283246
+  runtime-block-hash:
+    - &runtime_block_hash_1 '21c243cd34bedfc234f1b45615d10a868f0655f59578f063a7d2fc8c6e5b4009'
   iso-timestamp:
     - &iso_timestamp_1 '2022-03-01T00:00:00Z'
     - &iso_timestamp_2 '2019-04-01T00:00:00Z'
+    - &iso_timestamp_3 '2022-10-15T00:05:34Z'
 
 x-common-types:
   tx-methods: &tx_methods
@@ -710,6 +715,54 @@ paths:
         '500':
           $ref: '#/components/responses/ServerError'
 
+  /emerald/blocks:
+    get:
+      summary: Returns a list of Emerald blocks.
+      parameters:
+        - *limit
+        - *offset
+        - in: query
+          name: from
+          schema:
+            type: integer
+            format: int64
+          description: A filter on minimum block height.
+          example: *block_height_1
+        - in: query
+          name: to
+          schema:
+            type: integer
+            format: int64
+          description: A filter on maximum block height.
+          example: *block_height_2
+        - in: query
+          name: after
+          schema:
+            type: string
+            format: date-time
+          description: A filter on minimum block time.
+          example: *iso_timestamp_1
+        - in: query
+          name: before
+          schema:
+            type: string
+            format: date-time
+          description: A filter on maximum block time.
+          example: *iso_timestamp_2
+      responses:
+        '200':
+          description: A JSON object containing a list of Emerald blocks.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RuntimeBlockList'
+        '400':
+          $ref: '#/components/responses/InvalidRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
   /consensus/stats/tps:
     get:
       summary: Returns the consensus layer TPS for each 5 minute interval.
@@ -1271,7 +1324,52 @@ components:
           type: string
           description: The vote cast.
           example: 'yes'
-    
+
+    RuntimeBlockList:
+      type: object
+      properties:
+        blocks:
+          type: array
+          items:
+            $ref: '#/components/schemas/RuntimeBlock'
+      description: |
+        A list of consensus blocks.
+
+    RuntimeBlock:
+      type: object
+      properties:
+        round:
+          type: integer
+          format: int64
+          description: The block round.
+          example: *runtime_block_round_1
+        hash:
+          type: string
+          description: The block header hash.
+          example: *runtime_block_hash_1
+        timestamp:
+          type: string
+          format: date-time
+          description: The second-granular consensus time.
+          example: *iso_timestamp_3
+        num_transactions:
+          type: integer
+          format: int32
+          description: The number of transactions in the block.
+          example: 1
+        size:
+          type: integer
+          format: int32
+          description: The total byte size of all transactions in the block.
+          example: 203
+        gas_used:
+          type: integer
+          format: int64
+          description: The total gas used by all transactions in the block.
+          example: 118597
+      description: |
+        A ParaTime block.
+
     TpsCheckpoints:
       type: object
       properties:

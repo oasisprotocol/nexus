@@ -7,10 +7,11 @@ import (
 // QueryFactory is a convenience type for creating API queries.
 type QueryFactory struct {
 	chainID string
+	runtime string
 }
 
-func NewQueryFactory(chainID string) QueryFactory {
-	return QueryFactory{chainID}
+func NewQueryFactory(chainID string, runtime string) QueryFactory {
+	return QueryFactory{chainID, runtime}
 }
 
 func (qf QueryFactory) StatusQuery() string {
@@ -275,6 +276,19 @@ func (qf QueryFactory) ValidatorsDataQuery() string {
 		ORDER BY escrow_balance_active DESC
 		LIMIT $1::bigint
 		OFFSET $2::bigint`, qf.chainID)
+}
+
+func (qf QueryFactory) RuntimeBlocksQuery() string {
+	return fmt.Sprintf(`
+		SELECT round, block_hash, timestamp, num_transactions, size, gas_used
+			FROM %s.%s_rounds
+			WHERE ($1::bigint IS NULL OR round >= $1::bigint) AND
+						($2::bigint IS NULL OR round <= $2::bigint) AND
+						($3::timestamptz IS NULL OR timestamp >= $3::timestamptz) AND
+						($4::timestamptz IS NULL OR timestamp <= $4::timestamptz)
+		ORDER BY round DESC
+		LIMIT $5::bigint
+		OFFSET $6::bigint`, qf.chainID, qf.runtime)
 }
 
 func (qf QueryFactory) TpsCheckpointQuery() string {

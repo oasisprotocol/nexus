@@ -208,6 +208,21 @@ type ValidatorCommissionBound struct {
 	EpochEnd   uint64 `json:"epoch_end"`
 }
 
+// RuntimeBlockList is the API response for RuntimeListBlocks.
+type RuntimeBlockList struct {
+	Blocks []RuntimeBlock `json:"blocks"`
+}
+
+// Block is the API response for RuntimeGetBlock.
+type RuntimeBlock struct {
+	Round           int64     `json:"round"`
+	Hash            string    `json:"hash"`
+	Timestamp       time.Time `json:"timestamp"`
+	NumTransactions int       `json:"num_transactions"`
+	Size            int       `json:"size_bytes"`
+	GasUsed         int64     `json:"gas_used"`
+}
+
 // TpsCheckpointList is the API response for ListTransactionsPerSecond.
 type TpsCheckpointList struct {
 	IntervalMinutes int             `json:"interval_minutes"`

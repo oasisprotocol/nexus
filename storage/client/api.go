@@ -14,6 +14,9 @@ const (
 	// ChainIDContextKey is used to set the relevant chain ID
 	// in a request context.
 	ChainIDContextKey ContextKey = "chain_id"
+	// RuntimeContextKey is used to set the relevant runtime name
+	// in a request context.
+	RuntimeContextKey ContextKey = "runtime"
 	// RequestIDContextKey is used to set a request id for tracing
 	// in a request context.
 	RequestIDContextKey ContextKey = "request_id"
@@ -98,4 +101,11 @@ type ProposalVotesRequest struct {
 
 type ValidatorRequest struct {
 	EntityID *signature.PublicKey
+}
+
+type RuntimeBlocksRequest struct {
+	From   *int64
+	To     *int64
+	After  *time.Time
+	Before *time.Time
 }

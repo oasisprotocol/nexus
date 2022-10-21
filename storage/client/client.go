@@ -67,7 +67,7 @@ func (c *StorageClient) Shutdown() {
 
 // Status returns status information for the Oasis Indexer.
 func (c *StorageClient) Status(ctx context.Context) (*Status, error) {
-	qf := NewQueryFactory(strcase.ToSnake(c.chainID))
+	qf := NewQueryFactory(strcase.ToSnake(c.chainID), "" /* no runtime identifier for the consensus layer */)
 
 	s := Status{
 		LatestChainID: c.chainID,
@@ -95,7 +95,7 @@ func (c *StorageClient) Blocks(ctx context.Context, r *BlocksRequest, p *common.
 	if !ok {
 		return nil, common.ErrBadChainID
 	}
-	qf := NewQueryFactory(cid)
+	qf := NewQueryFactory(cid, "" /* no runtime identifier for the consensus layer */)
 
 	rows, err := c.db.Query(
 		ctx,
@@ -148,7 +148,7 @@ func (c *StorageClient) Block(ctx context.Context, r *BlockRequest) (*Block, err
 	if !ok {
 		return nil, common.ErrBadChainID
 	}
-	qf := NewQueryFactory(cid)
+	qf := NewQueryFactory(cid, "" /* no runtime identifier for the consensus layer */)
 
 	var b Block
 	if err := c.db.QueryRow(
@@ -179,7 +179,7 @@ func (c *StorageClient) Transactions(ctx context.Context, r *TransactionsRequest
 	if !ok {
 		return nil, common.ErrBadChainID
 	}
-	qf := NewQueryFactory(cid)
+	qf := NewQueryFactory(cid, "" /* no runtime identifier for the consensus layer */)
 
 	rows, err := c.db.Query(
 		ctx,
@@ -246,7 +246,7 @@ func (c *StorageClient) Transaction(ctx context.Context, r *TransactionRequest) 
 	if !ok {
 		return nil, common.ErrBadChainID
 	}
-	qf := NewQueryFactory(cid)
+	qf := NewQueryFactory(cid, "" /* no runtime identifier for the consensus layer */)
 
 	var t Transaction
 	var code uint64
@@ -289,7 +289,7 @@ func (c *StorageClient) Entities(ctx context.Context, p *common.Pagination) (*En
 	if !ok {
 		return nil, common.ErrBadChainID
 	}
-	qf := NewQueryFactory(cid)
+	qf := NewQueryFactory(cid, "" /* no runtime identifier for the consensus layer */)
 
 	rows, err := c.db.Query(
 		ctx,
@@ -330,7 +330,7 @@ func (c *StorageClient) Entity(ctx context.Context, r *EntityRequest) (*Entity, 
 	if !ok {
 		return nil, common.ErrBadChainID
 	}
-	qf := NewQueryFactory(cid)
+	qf := NewQueryFactory(cid, "" /* no runtime identifier for the consensus layer */)
 
 	var e Entity
 	if err := c.db.QueryRow(
@@ -381,7 +381,7 @@ func (c *StorageClient) EntityNodes(ctx context.Context, r *EntityNodesRequest, 
 	if !ok {
 		return nil, common.ErrBadChainID
 	}
-	qf := NewQueryFactory(cid)
+	qf := NewQueryFactory(cid, "" /* no runtime identifier for the consensus layer */)
 
 	rows, err := c.db.Query(
 		ctx,
@@ -434,7 +434,7 @@ func (c *StorageClient) EntityNode(ctx context.Context, r *EntityNodeRequest) (*
 	if !ok {
 		return nil, common.ErrBadChainID
 	}
-	qf := NewQueryFactory(cid)
+	qf := NewQueryFactory(cid, "" /* no runtime identifier for the consensus layer */)
 
 	var n Node
 	if err := c.db.QueryRow(
@@ -468,7 +468,7 @@ func (c *StorageClient) Accounts(ctx context.Context, r *AccountsRequest, p *com
 	if !ok {
 		return nil, common.ErrBadChainID
 	}
-	qf := NewQueryFactory(cid)
+	qf := NewQueryFactory(cid, "" /* no runtime identifier for the consensus layer */)
 
 	rows, err := c.db.Query(
 		ctx,
@@ -524,7 +524,7 @@ func (c *StorageClient) Account(ctx context.Context, r *AccountRequest) (*Accoun
 	if !ok {
 		return nil, common.ErrBadChainID
 	}
-	qf := NewQueryFactory(cid)
+	qf := NewQueryFactory(cid, "" /* no runtime identifier for the consensus layer */)
 
 	a := Account{
 		Allowances: []Allowance{},
@@ -588,7 +588,7 @@ func (c *StorageClient) Delegations(ctx context.Context, r *DelegationsRequest, 
 	if !ok {
 		return nil, common.ErrBadChainID
 	}
-	qf := NewQueryFactory(cid)
+	qf := NewQueryFactory(cid, "" /* no runtime identifier for the consensus layer */)
 
 	rows, err := c.db.Query(
 		ctx,
@@ -640,7 +640,7 @@ func (c *StorageClient) DebondingDelegations(ctx context.Context, r *DebondingDe
 	if !ok {
 		return nil, common.ErrBadChainID
 	}
-	qf := NewQueryFactory(cid)
+	qf := NewQueryFactory(cid, "" /* no runtime identifier for the consensus layer */)
 
 	rows, err := c.db.Query(
 		ctx,
@@ -691,7 +691,7 @@ func (c *StorageClient) Epochs(ctx context.Context, p *common.Pagination) (*Epoc
 	if !ok {
 		return nil, common.ErrBadChainID
 	}
-	qf := NewQueryFactory(cid)
+	qf := NewQueryFactory(cid, "" /* no runtime identifier for the consensus layer */)
 
 	rows, err := c.db.Query(
 		ctx,
@@ -736,7 +736,7 @@ func (c *StorageClient) Epoch(ctx context.Context, r *EpochRequest) (*Epoch, err
 	if !ok {
 		return nil, common.ErrBadChainID
 	}
-	qf := NewQueryFactory(cid)
+	qf := NewQueryFactory(cid, "" /* no runtime identifier for the consensus layer */)
 
 	var e Epoch
 	if err := c.db.QueryRow(
@@ -760,7 +760,7 @@ func (c *StorageClient) Proposals(ctx context.Context, r *ProposalsRequest, p *c
 	if !ok {
 		return nil, common.ErrBadChainID
 	}
-	qf := NewQueryFactory(cid)
+	qf := NewQueryFactory(cid, "" /* no runtime identifier for the consensus layer */)
 
 	rows, err := c.db.Query(
 		ctx,
@@ -818,7 +818,7 @@ func (c *StorageClient) Proposal(ctx context.Context, r *ProposalRequest) (*Prop
 	if !ok {
 		return nil, common.ErrBadChainID
 	}
-	qf := NewQueryFactory(cid)
+	qf := NewQueryFactory(cid, "" /* no runtime identifier for the consensus layer */)
 
 	var p Proposal
 	if err := c.db.QueryRow(
@@ -856,7 +856,7 @@ func (c *StorageClient) ProposalVotes(ctx context.Context, r *ProposalVotesReque
 	if !ok {
 		return nil, common.ErrBadChainID
 	}
-	qf := NewQueryFactory(cid)
+	qf := NewQueryFactory(cid, "" /* no runtime identifier for the consensus layer */)
 
 	rows, err := c.db.Query(
 		ctx,
@@ -903,7 +903,7 @@ func (c *StorageClient) Validators(ctx context.Context, p *common.Pagination) (*
 	if !ok {
 		return nil, common.ErrBadChainID
 	}
-	qf := NewQueryFactory(cid)
+	qf := NewQueryFactory(cid, "" /* no runtime identifier for the consensus layer */)
 
 	var epoch Epoch
 	if err := c.db.QueryRow(
@@ -985,7 +985,7 @@ func (c *StorageClient) Validator(ctx context.Context, r *ValidatorRequest) (*Va
 	if !ok {
 		return nil, common.ErrBadChainID
 	}
-	qf := NewQueryFactory(cid)
+	qf := NewQueryFactory(cid, "" /* no runtime identifier for the consensus layer */)
 
 	var epoch Epoch
 	if err := c.db.QueryRow(
@@ -1045,9 +1045,58 @@ func (c *StorageClient) Validator(ctx context.Context, r *ValidatorRequest) (*Va
 	return &v, nil
 }
 
+// RuntimeBlocks returns a list of runtime blocks.
+func (c *StorageClient) RuntimeBlocks(ctx context.Context, r *RuntimeBlocksRequest, p *common.Pagination) (*RuntimeBlockList, error) {
+	cid, ok := ctx.Value(ChainIDContextKey).(string)
+	if !ok {
+		return nil, common.ErrBadChainID
+	}
+	runtime, ok := ctx.Value(RuntimeContextKey).(string)
+	if !ok {
+		return nil, common.ErrBadRuntime
+	}
+	qf := NewQueryFactory(cid, runtime)
+
+	rows, err := c.db.Query(
+		ctx,
+		qf.RuntimeBlocksQuery(),
+		r.From,
+		r.To,
+		r.After,
+		r.Before,
+		p.Limit,
+		p.Offset,
+	)
+	if err != nil {
+		c.logger.Info("query failed",
+			"request_id", ctx.Value(RequestIDContextKey),
+			"err", err.Error(),
+		)
+		return nil, common.ErrStorageError
+	}
+	defer rows.Close()
+
+	var bs RuntimeBlockList
+	for rows.Next() {
+		var b RuntimeBlock
+		if err := rows.Scan(&b.Round, &b.Hash, &b.Timestamp, &b.NumTransactions, &b.Size, &b.GasUsed); err != nil {
+			c.logger.Info("row scan failed",
+				"request_id", ctx.Value(RequestIDContextKey),
+				"err", err.Error(),
+			)
+			return nil, common.ErrStorageError
+		}
+		b.Timestamp = b.Timestamp.UTC()
+
+		bs.Blocks = append(bs.Blocks, b)
+	}
+
+	return &bs, nil
+}
+
 // TransactionsPerSecond returns a list of tps checkpoint values.
 func (c *StorageClient) TransactionsPerSecond(ctx context.Context, p *common.Pagination) (*TpsCheckpointList, error) {
-	qf := NewQueryFactory(strcase.ToSnake(c.chainID))
+	qf := NewQueryFactory(strcase.ToSnake(c.chainID), "")
 
 	rows, err := c.db.Query(
 		ctx,
@@ -1097,7 +1146,7 @@ func (c *StorageClient) TransactionsPerSecond(ctx context.Context, p *common.Pag
 
 // DailyVolumes returns a list of daily transaction volumes.
 func (c *StorageClient) DailyVolumes(ctx context.Context, p *common.Pagination) (*VolumeList, error) {
-	qf := NewQueryFactory(strcase.ToSnake(c.chainID))
+	qf := NewQueryFactory(strcase.ToSnake(c.chainID), "")
 
 	rows, err := c.db.Query(
 		ctx,
