@@ -28,7 +28,8 @@ docker:
 clean:
 	@$(GO) clean
 
-clean-e2e:
+stop-e2e:
+	@docker compose -f tests/e2e/docker-compose.e2e.yml down -v -t 0
 	rm -r tests/e2e/testnet/net-runner
 
 test:
@@ -37,7 +38,7 @@ test:
 test-ci:
 	@$(GO) test -race -coverpkg=./... -coverprofile=coverage.txt -covermode=atomic -v ./...
 
-test-e2e: export OASIS_INDEXER_E2E = true 
+test-e2e: export OASIS_INDEXER_E2E = true
 test-e2e:
 	@$(GO) test -race -coverpkg=./... -coverprofile=coverage.txt -covermode=atomic -v ./tests/e2e
 
@@ -71,6 +72,14 @@ docs: $(docs-targets)
 
 start-docker:
 	@docker compose up --remove-orphans
+
+start-e2e-ci:
+	@docker compose -f tests/e2e/docker-compose.e2e.yml up -d
+
+start-e2e: export HOST_UID=$(id -u)
+start-e2e: export HOST_GID=$(id -g)
+start-e2e:
+	@docker compose -f tests/e2e/docker-compose.e2e.yml up -d
 
 # Run dockerized postgres for local development
 postgres:
