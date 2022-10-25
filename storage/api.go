@@ -98,6 +98,8 @@ type ConsensusSourceStorage interface {
 	// includes all proposals, their respective statuses and voting responses.
 	GovernanceData(ctx context.Context, height int64) (*GovernanceData, error)
 
+	// RootHashData gets root hash data at the specified height. This includes
+	// root hash events.
 	RootHashData(ctx context.Context, height int64) (*RootHashData, error)
 
 	// Name returns the name of the source storage.
