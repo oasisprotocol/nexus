@@ -78,8 +78,6 @@ start-docker:
 start-docker-e2e:
 	@docker compose -f tests/e2e/docker-compose.e2e.yml up -d
 
-start-e2e: export HOST_UID=$(id -u)
-start-e2e: export HOST_GID=$(id -g)
 start-e2e: start-docker-e2e
 	docker exec oasis-indexer sh -c "cd /oasis-indexer && make test-e2e"
 
