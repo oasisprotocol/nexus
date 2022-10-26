@@ -28,13 +28,19 @@ docker:
 clean:
 	@$(GO) clean
 
+stop-e2e:
+	@docker compose -f tests/e2e/docker-compose.e2e.yml down -v -t 0
+	rm -rf tests/e2e/testnet/net-runner
+
 test:
 	@$(GO) test -short -v ./...
 
 test-ci:
 	@$(GO) test -race -coverpkg=./... -coverprofile=coverage.txt -covermode=atomic -v ./...
 
-test-e2e: export OASIS_INDEXER_E2E = true 
+# Run the e2e tests locally, assuming the environment is already set up.
+# The recommended usage is via the `start-e2e` target which sets up the environment first.
+test-e2e: export OASIS_INDEXER_E2E = true
 test-e2e:
 	@$(GO) test -race -coverpkg=./... -coverprofile=coverage.txt -covermode=atomic -v ./tests/e2e
 
@@ -68,6 +74,12 @@ docs: $(docs-targets)
 
 start-docker:
 	@docker compose up --remove-orphans
+
+start-docker-e2e:
+	@docker compose -f tests/e2e/docker-compose.e2e.yml up -d
+
+start-e2e: start-docker-e2e
+	docker exec oasis-indexer sh -c "cd /oasis-indexer && make test-e2e"
 
 # Run dockerized postgres for local development
 postgres:
