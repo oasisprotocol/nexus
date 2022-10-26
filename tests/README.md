@@ -21,7 +21,7 @@ make docker
 ```
 
 #### Run the e2e tests
-You can run tests from the `oasis-indexer` container:
+This line will clean up any prior runs and start a new run of tests inside the `oasis-indexer` container:
 
 ```sh
 make stop-e2e && make start-e2e
