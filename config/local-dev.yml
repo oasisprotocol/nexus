@@ -4,12 +4,12 @@ analysis:
       chain_id: oasis-3
       rpc: unix:/node/data/internal.sock
       chaincontext: b11b369e0da5bb230b220127f5e7b242d385ef8c6f54906243f30af63c815535
-      from: 8048956
+      from: 8_048_956  # Damask genesis
     - name: emerald_main_damask
       chain_id: oasis-3
       rpc: unix:/node/data/internal.sock
       chaincontext: b11b369e0da5bb230b220127f5e7b242d385ef8c6f54906243f30af63c815535
-      from: 2550000
+      from: 1_003_298  # round at Damask genesis
   storage:
     endpoint: postgresql://rwuser:password@localhost:5432/indexer?sslmode=disable
     backend: postgres

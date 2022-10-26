@@ -203,7 +203,7 @@ VALUES
 	reservedAccounts[staking.GovernanceDepositsAddress] = &governanceDepositsAccount
 
 	i := 0
-	for _, address := range sortedKeys(reservedAccounts) {
+	for _, address := range sortedAddressKeys(reservedAccounts) {
 		account := reservedAccounts[address]
 		query += fmt.Sprintf(
 			"\t('%s', %d, %d, %d, %d, %d, %d)",
@@ -230,7 +230,7 @@ VALUES
 `
 
 	i = 0
-	for _, address := range sortedKeys(document.Staking.Ledger) {
+	for _, address := range sortedAddressKeys(document.Staking.Ledger) {
 		account := document.Staking.Ledger[address]
 		query += fmt.Sprintf(
 			"\t('%s', %d, %d, %d, %d, %d, %d)",
@@ -268,7 +268,7 @@ VALUES
 
 	commissions := make([]string, 0)
 
-	for _, address := range sortedKeys(document.Staking.Ledger) {
+	for _, address := range sortedAddressKeys(document.Staking.Ledger) {
 		account := document.Staking.Ledger[address]
 		if len(account.Escrow.CommissionSchedule.Rates) > 0 || len(account.Escrow.CommissionSchedule.Bounds) > 0 {
 			schedule, err := json.Marshal(account.Escrow.CommissionSchedule)
@@ -304,7 +304,7 @@ VALUES
 
 	i = 0
 	query = ""
-	for _, owner := range sortedKeys(document.Staking.Ledger) {
+	for _, owner := range sortedAddressKeys(document.Staking.Ledger) {
 		account := document.Staking.Ledger[owner]
 		if len(account.General.Allowances) > 0 && foundAllowances {
 			query += ",\n"
@@ -312,7 +312,7 @@ VALUES
 
 		ownerAllowances := make([]string, len(account.General.Allowances))
 		j := 0
-		for _, beneficiary := range sortedKeys(account.General.Allowances) {
+		for _, beneficiary := range sortedAddressKeys(account.General.Allowances) {
 			allowance := account.General.Allowances[beneficiary]
 			ownerAllowances[j] = fmt.Sprintf(
 				"\t('%s', '%s', %d)",
@@ -344,10 +344,10 @@ VALUES
 `
 	i = 0
 	j := 0
-	for _, delegatee := range sortedKeys(document.Staking.Delegations) {
+	for _, delegatee := range sortedAddressKeys(document.Staking.Delegations) {
 		escrows := document.Staking.Delegations[delegatee]
 		k := 0
-		for _, delegator := range sortedKeys(escrows) {
+		for _, delegator := range sortedAddressKeys(escrows) {
 			delegation := escrows[delegator]
 			query += fmt.Sprintf(
 				"\t('%s', '%s', %d)",
@@ -379,11 +379,11 @@ VALUES
 VALUES
 `
 	i = 0
-	for _, delegatee := range sortedKeys(document.Staking.DebondingDelegations) {
+	for _, delegatee := range sortedAddressKeys(document.Staking.DebondingDelegations) {
 		escrows := document.Staking.DebondingDelegations[delegatee]
 		delegateeDebondingDelegations := make([]string, 0)
 		j := 0
-		for _, delegator := range sortedKeys(escrows) {
+		for _, delegator := range sortedAddressKeys(escrows) {
 			debondingDelegations := escrows[delegator]
 			delegatorDebondingDelegations := make([]string, len(debondingDelegations))
 			for k, debondingDelegation := range debondingDelegations {
@@ -519,7 +519,7 @@ func sortedIntKeys[V any](m map[uint64]V) []uint64 {
 	return keys
 }
 
-func sortedKeys[V any](m map[staking.Address]V) []staking.Address {
+func sortedAddressKeys[V any](m map[staking.Address]V) []staking.Address {
 	keys := make([]staking.Address, len(m))
 	i := 0
 	for k := range m {
