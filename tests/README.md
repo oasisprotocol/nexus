@@ -15,21 +15,24 @@ To ensure that tests behave as expected on CI, you should have Docker environmen
 For the canonical way to run these tests, see the [CI config](../../.github/workflows/ci-test.yaml).
 Here are some useful one-liners derived from those commands, and adapted for running locally and repeatedly.
 
-#### Get docker containers with current code up&running
+#### Build docker containers with current code
 ```sh
-make docker && make stop-e2e && make start-e2e
+make docker
 ```
-
-`make stop-e2e` wipes the state for `oasis-net-runner`; state left over from previous runs prevents the runner from starting. (Error: `failed to provision entity: oasis/entity: failed to create deterministic identity: signature/signer/file: key already exists`)
 
 #### Run the e2e tests
 You can run tests from the `oasis-indexer` container:
 
 ```sh
-docker exec oasis-indexer sh -c "cd /oasis-indexer && make test-e2e"
+make stop-e2e && make start-e2e
 ```
 
+`make stop-e2e` wipes the state for `oasis-net-runner`; state left over from previous runs prevents the runner from starting. (Error: `failed to provision entity: oasis/entity: failed to create deterministic identity: signature/signer/file: key already exists`)
+
 #### Check indexer logs
+
 ```sh
 docker logs oasis-indexer --since 2m -t | less
 ```
+
+This is the dockerized indexer against which the e2e tests ran.
