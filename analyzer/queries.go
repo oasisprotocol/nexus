@@ -89,8 +89,8 @@ func (qf QueryFactory) ConsensusCommissionsUpsertQuery() string {
 
 func (qf QueryFactory) ConsensusEventInsertQuery() string {
 	return fmt.Sprintf(`
-		INSERT INTO %s.events (backend, type, body, txn_block, txn_hash, txn_index)
-			VALUES ($1, $2, $3, $4, $5, $6)`, qf.chainID)
+		INSERT INTO %s.events (backend, type, body, txn_block, txn_hash)
+			VALUES ($1, $2, $3, $4, $5)`, qf.chainID)
 }
 
 func (qf QueryFactory) ConsensusRuntimeUpsertQuery() string {
