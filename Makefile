@@ -97,7 +97,7 @@ psql:
 	@docker exec -it indexer-postgres psql -U rwuser indexer
 
 shutdown-postgres:
-	@docker rm postgres --force
+	@docker rm indexer-postgres --force
 
 release-build:
 	@goreleaser release --rm-dist
