@@ -138,3 +138,26 @@ func (c *Client) Shutdown() {
 func (c *Client) Name() string {
 	return moduleName
 }
+
+// Wipe removes all contents of the database.
+func (c *Client) Wipe(ctx context.Context) error {
+	rows, err := c.Query(ctx, `
+		SELECT schemaname, tablename
+		FROM pg_tables
+		WHERE schemaname IN ('oasis_3', 'indexer', 'public')
+	`)
+	if err != nil {
+		return fmt.Errorf("failed to list tables: %w", err)
+	}
+	for rows.Next() {
+		var schema, table string
+		if err = rows.Scan(&schema, &table); err != nil {
+			return err
+		}
+		c.logger.Info("dropping table", "schema", schema, "table", table)
+		if _, err = c.pool.Exec(ctx, fmt.Sprintf("DROP TABLE %s.%s CASCADE;", schema, table)); err != nil {
+			return err
+		}
+	}
+	return err
+}

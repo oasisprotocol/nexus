@@ -57,10 +57,12 @@ func rootMain(cmd *cobra.Command, args []string) {
 	// Initialize services.
 	analysisService, err := analyzer.Init(cfg.Analysis)
 	if err != nil {
+		logger.Error("failed to initialize analysis service", "err", err)
 		os.Exit(1)
 	}
 	apiService, err := api.Init(cfg.Server)
 	if err != nil {
+		logger.Error("failed to initialize api service", "err", err)
 		os.Exit(1)
 	}
 
