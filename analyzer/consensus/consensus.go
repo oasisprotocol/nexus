@@ -619,8 +619,8 @@ func (m *Main) queueRegistryEvents(batch *storage.QueryBatch, data *storage.Regi
 			ty.String(),
 			string(body),
 			data.Height,
-			event.TxHash.Hex(),
-			"NULL",
+			util.SanitizeTxHash(event.TxHash.Hex()),
+			nil,
 		)
 	}
 
@@ -679,8 +679,8 @@ func (m *Main) queueRootHashEvents(batch *storage.QueryBatch, data *storage.Root
 			ty.String(),
 			string(body),
 			data.Height,
-			event.TxHash.Hex(),
-			"NULL",
+			util.SanitizeTxHash(event.TxHash.Hex()),
+			nil,
 		)
 	}
 
@@ -918,8 +918,8 @@ func (m *Main) queueStakingEvents(batch *storage.QueryBatch, data *storage.Staki
 			ty.String(),
 			string(body),
 			data.Height,
-			event.TxHash.Hex(),
-			"NULL",
+			util.SanitizeTxHash(event.TxHash.Hex()),
+			nil,
 		)
 	}
 
@@ -1125,8 +1125,8 @@ func (m *Main) queueGovernanceEvents(batch *storage.QueryBatch, data *storage.Go
 			ty.String(),
 			string(body),
 			data.Height,
-			event.TxHash.Hex(),
-			"NULL",
+			util.SanitizeTxHash(event.TxHash.Hex()),
+			nil,
 		)
 	}
 

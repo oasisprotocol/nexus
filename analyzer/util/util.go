@@ -12,6 +12,8 @@ import (
 const (
 	InitialTimeoutLowerBoundSeconds = 0
 	MaximumTimeoutUpperBoundSeconds = 60
+	// SHA256 of empty string.
+	EmptyTxHash = "c672b8d1ef56ed28ab87c3622c5114069bdd3ad7b8f9737498d0c01ecef0967a"
 )
 
 // Backoff implements retry backoff on failure.
@@ -92,4 +94,12 @@ func CurrentBound(cs staking.CommissionSchedule, now beacon.EpochTime) (currentB
 	}
 
 	return latestStartedStep, uint64(cs.Bounds[i].Start - 1)
+}
+
+func SanitizeTxHash(hash string) string {
+	if hash == EmptyTxHash {
+		return "NULL"
+	}
+
+	return hash
 }
