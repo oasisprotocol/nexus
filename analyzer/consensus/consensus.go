@@ -599,31 +599,19 @@ func (m *Main) queueRegistryEvents(batch *storage.QueryBatch, data *storage.Regi
 		case event.RuntimeEvent != nil:
 			ty = analyzer.EventRegistryRuntime
 			body, err = json.Marshal(event.RuntimeEvent)
-
-			if err != nil {
-				return err
-			}
 		case event.EntityEvent != nil:
 			ty = analyzer.EventRegistryEntity
 			body, err = json.Marshal(event.EntityEvent)
-
-			if err != nil {
-				return err
-			}
 		case event.NodeEvent != nil:
 			ty = analyzer.EventRegistryNode
 			body, err = json.Marshal(event.NodeEvent)
-
-			if err != nil {
-				return err
-			}
 		case event.NodeUnfrozenEvent != nil:
 			ty = analyzer.EventRegistryNodeUnfrozen
 			body, err = json.Marshal(event.NodeUnfrozenEvent)
+		}
 
-			if err != nil {
-				return err
-			}
+		if err != nil {
+			return err
 		}
 
 		batch.Queue(eventInsertQuery,
@@ -674,21 +662,16 @@ func (m *Main) queueRootHashEvents(batch *storage.QueryBatch, data *storage.Root
 		case event.ExecutorCommitted != nil:
 			ty = analyzer.EventRoothashExecutorCommitted
 			body, err = json.Marshal(event.ExecutorCommitted)
-			if err != nil {
-				return err
-			}
 		case event.ExecutionDiscrepancyDetected != nil:
 			ty = analyzer.EventRoothashDiscrepancyDetected
 			body, err = json.Marshal(event.ExecutionDiscrepancyDetected)
-			if err != nil {
-				return err
-			}
 		case event.Finalized != nil:
 			ty = analyzer.EventRoothashFinalized
 			body, err = json.Marshal(event.Finalized)
-			if err != nil {
-				return err
-			}
+		}
+
+		if err != nil {
+			return err
 		}
 
 		batch.Queue(eventInsertQuery,
@@ -903,55 +886,31 @@ func (m *Main) queueStakingEvents(batch *storage.QueryBatch, data *storage.Staki
 		case event.Transfer != nil:
 			ty = analyzer.EventStakingTransfer
 			body, err = json.Marshal(event.Transfer)
-
-			if err != nil {
-				return err
-			}
 		case event.Burn != nil:
 			ty = analyzer.EventStakingBurn
 			body, err = json.Marshal(event.Burn)
-
-			if err != nil {
-				return err
-			}
 		case event.Escrow != nil:
 			switch t := event.Escrow; {
 			case t.Add != nil:
 				ty = analyzer.EventStakingAddEscrow
 				body, err = json.Marshal(event.Escrow.Add)
-
-				if err != nil {
-					return err
-				}
 			case t.Take != nil:
 				ty = analyzer.EventStakingTakeEscrow
 				body, err = json.Marshal(event.Escrow.Take)
-
-				if err != nil {
-					return err
-				}
 			case t.DebondingStart != nil:
 				ty = analyzer.EventStakingDebondingStart
 				body, err = json.Marshal(event.Escrow.DebondingStart)
-
-				if err != nil {
-					return err
-				}
 			case t.Reclaim != nil:
 				ty = analyzer.EventStakingReclaimEscrow
 				body, err = json.Marshal(event.Escrow.Reclaim)
-
-				if err != nil {
-					return err
-				}
 			}
 		case event.AllowanceChange != nil:
 			ty = analyzer.EventStakingAllowanceChange
 			body, err = json.Marshal(event.AllowanceChange)
+		}
 
-			if err != nil {
-				return err
-			}
+		if err != nil {
+			return err
 		}
 
 		batch.Queue(eventInsertQuery,
@@ -1146,31 +1105,19 @@ func (m *Main) queueGovernanceEvents(batch *storage.QueryBatch, data *storage.Go
 		case event.ProposalSubmitted != nil:
 			ty = analyzer.EventGovernanceProposalSubmitted
 			body, err = json.Marshal(event.ProposalSubmitted)
-
-			if err != nil {
-				return err
-			}
 		case event.ProposalExecuted != nil:
 			ty = analyzer.EventGovernanceProposalExecuted
 			body, err = json.Marshal(event.ProposalExecuted)
-
-			if err != nil {
-				return err
-			}
 		case event.ProposalFinalized != nil:
 			ty = analyzer.EventGovernanceProposalExecuted
 			body, err = json.Marshal(event.ProposalFinalized)
-
-			if err != nil {
-				return err
-			}
 		case event.Vote != nil:
 			ty = analyzer.EventGovernanceVote
 			body, err = json.Marshal(event.Vote)
+		}
 
-			if err != nil {
-				return err
-			}
+		if err != nil {
+			return err
 		}
 
 		batch.Queue(eventInsertQuery,
