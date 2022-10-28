@@ -160,6 +160,36 @@ func (h *Handler) GetTransaction(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// ListEvents gets events from a consensus transaction.
+func (h *Handler) ListEvents(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	events, err := h.client.Events(ctx, r)
+	if err != nil {
+		h.logAndReply(ctx, "failed to list events", w, err)
+		h.metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
+		return
+	}
+
+	resp, err := json.Marshal(events)
+	if err != nil {
+		h.logAndReply(ctx, "failed to marshal events", w, err)
+		h.metrics.RequestCounter(r.URL.Path, "failure", "serde_error").Inc()
+		return
+	}
+
+	w.Header().Set("content-type", "application/json")
+	if _, err := w.Write(resp); err != nil {
+		h.logger.Error("failed to write response",
+			"request_id", ctx.Value(storage.RequestIDContextKey),
+			"error", err,
+		)
+		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
+	} else {
+		h.metrics.RequestCounter(r.URL.Path, "success").Inc()
+	}
+}
+
 // ListEntities gets a list of registered entities.
 func (h *Handler) ListEntities(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()

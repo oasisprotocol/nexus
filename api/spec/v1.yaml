@@ -268,6 +268,32 @@ paths:
         '500':
           $ref: '#/components/responses/ServerError'
 
+  /consensus/transactions/{tx_hash}/events:
+    get:
+      summary: Returns events from a consensus transaction.
+      parameters:
+        - in: path
+          name: tx_hash
+          required: true
+          schema:
+            type: string
+          description: The transaction hash associated with the events to return.
+          example: *tx_hash_1
+      responses:
+        '200':
+          description: |
+            A JSON object containing a list of events from a consensus transaction.
+          content:
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/EventList'
+        '400':
+          $ref: '#/components/responses/InvalidRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
   /consensus/entities:
     get:
       summary: Returns a list of entities registered at the consensus layer.
@@ -973,7 +999,32 @@ components:
           description: Whether this transaction successfully executed.
       description: |
         A consensus transaction.
-    
+
+    EventList:
+      type: object
+      properties:
+        entities:
+          type: array
+          items:
+            $ref: '#/components/schemas/Event'
+      description: |
+        A list of events at the consensus layer.
+
+    Event:
+      type: object
+      properties: 
+        id:
+          type: string
+          description: The public key identifying this entity.
+          example: *entity_id_1
+        nodes:
+          type: array
+          items:
+            type: string
+          description: The vector of nodes owned by this entity.
+      description: |
+        An event from the consensus layer.
+
     EntityList:
       type: object
       properties:

@@ -212,6 +212,20 @@ func (c *storageClient) Transaction(ctx context.Context, r *http.Request) (*stor
 	return c.storage.Transaction(ctx, &q)
 }
 
+// Events returns a list of events from a transaction.
+func (c *storageClient) Events(ctx context.Context, r *http.Request) (*storage.EventList, error) {
+	p, err := common.NewPagination(r)
+	if err != nil {
+		c.logger.Info("pagination failed",
+			"request_id", ctx.Value(storage.RequestIDContextKey),
+			"err", err.Error(),
+		)
+		return nil, common.ErrBadRequest
+	}
+
+	return c.storage.Events(ctx, &p)
+}
+
 // Entities returns a list of registered entities.
 func (c *storageClient) Entities(ctx context.Context, r *http.Request) (*storage.EntityList, error) {
 	p, err := common.NewPagination(r)

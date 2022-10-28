@@ -283,6 +283,67 @@ func (c *StorageClient) cacheTx(tx *Transaction) {
 	c.txCache.Set(tx.Hash, tx, txCost)
 }
 
+// Events returns a list of consensus events from a transaction.
+func (c *StorageClient) Events(ctx context.Context, p *common.Pagination) (*EventList, error) {
+	cid, ok := ctx.Value(ChainIDContextKey).(string)
+	if !ok {
+		return nil, common.ErrBadChainID
+	}
+	qf := NewQueryFactory(cid, "" /* no runtime identifier for the consensus layer */)
+
+	rows, err := c.db.Query(
+		ctx,
+		qf.TransactionsQuery(),
+		r.Block,
+		r.Method,
+		r.Sender,
+		r.MinFee,
+		r.MaxFee,
+		r.Code,
+		p.Limit,
+		p.Offset,
+	)
+	if err != nil {
+		c.logger.Info("query failed",
+			"request_id", ctx.Value(RequestIDContextKey),
+			"err", err.Error(),
+		)
+		return nil, common.ErrStorageError
+	}
+	defer rows.Close()
+
+	ts := TransactionList{
+		Transactions: []Transaction{},
+	}
+	for rows.Next() {
+		var t Transaction
+		var code uint64
+		if err := rows.Scan(
+			&t.Height,
+			&t.Hash,
+			&t.Sender,
+			&t.Nonce,
+			&t.Fee,
+			&t.Method,
+			&t.Body,
+			&code,
+		); err != nil {
+			c.logger.Info("row scan failed",
+				"request_id", ctx.Value(RequestIDContextKey),
+				"err", err.Error(),
+			)
+			return nil, common.ErrStorageError
+		}
+		if code == oasisErrors.CodeNoError {
+			t.Success = true
+		}
+
+		ts.Transactions = append(ts.Transactions, t)
+	}
+
+	return &ts, nil
+}
+
 // Entities returns a list of registered entities.
 func (c *StorageClient) Entities(ctx context.Context, p *common.Pagination) (*EntityList, error) {
 	cid, ok := ctx.Value(ChainIDContextKey).(string)

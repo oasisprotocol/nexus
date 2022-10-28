@@ -41,6 +41,19 @@ type Transaction struct {
 	Success bool   `json:"success"`
 }
 
+// EventList is the API response for ListEvents.
+type EventList struct {
+	Events []Event `json:"events"`
+}
+
+type Event struct {
+	Backend string `json:"backend"`
+	Type    string `json:"type"`
+	Body    []byte `json:"body"`
+	Height  int64  `json:"height"`
+	Hash    string `json:"hash"`
+}
+
 // EntityList is the API response for ListEntities.
 type EntityList struct {
 	Entities []Entity `json:"entities"`
