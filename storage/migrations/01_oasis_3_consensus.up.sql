@@ -146,10 +146,10 @@ CREATE TABLE oasis_3.accounts
   nonce           BIGINT DEFAULT 0,
 
   -- Escrow Account
-  escrow_balance_active         NUMERIC DEFAULT 0,
-  escrow_total_shares_active    NUMERIC DEFAULT 0,
-  escrow_balance_debonding      NUMERIC DEFAULT 0,
-  escrow_total_shares_debonding NUMERIC DEFAULT 0,
+  escrow_balance_active         NUMERIC(1000,0) DEFAULT 0,
+  escrow_total_shares_active    NUMERIC(1000,0) DEFAULT 0,
+  escrow_balance_debonding      NUMERIC(1000,0) DEFAULT 0,
+  escrow_total_shares_debonding NUMERIC(1000,0) DEFAULT 0,
 
   -- TODO: Track commission schedule and staking accumulator.
 

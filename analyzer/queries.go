@@ -221,8 +221,8 @@ func (qf QueryFactory) ConsensusTakeEscrowUpdateQuery() string {
 	return fmt.Sprintf(`
 		UPDATE %s.accounts
 			SET
-				escrow_balance_active = escrow_balance_active - ROUND($2 * escrow_balance_active / (escrow_balance_active + escrow_balance_debonding)),
-				escrow_balance_debonding = escrow_balance_debonding - ROUND($2 * escrow_balance_debonding / (escrow_balance_active + escrow_balance_debonding))
+				escrow_balance_active = escrow_balance_active - FLOOR($2 * escrow_balance_active / (escrow_balance_active + escrow_balance_debonding)),
+				escrow_balance_debonding = escrow_balance_debonding - FLOOR($2 * escrow_balance_debonding / (escrow_balance_active + escrow_balance_debonding))
 			WHERE address = $1`, qf.chainID)
 }
 
