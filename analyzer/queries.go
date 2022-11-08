@@ -370,8 +370,8 @@ func (qf QueryFactory) RuntimeRelatedTransactionInsertQuery() string {
 
 func (qf QueryFactory) RuntimeTransactionInsertQuery() string {
 	return fmt.Sprintf(`
-		INSERT INTO %s.%s_transactions (round, tx_index, tx_hash, tx_eth_hash, raw)
-			VALUES ($1, $2, $3, $4, $5)`, qf.chainID, qf.runtime)
+		INSERT INTO %s.%s_transactions (round, tx_index, tx_hash, tx_eth_hash, raw, result_raw)
+			VALUES ($1, $2, $3, $4, $5, $6)`, qf.chainID, qf.runtime)
 }
 
 func (qf QueryFactory) RuntimeMintInsertQuery() string {
