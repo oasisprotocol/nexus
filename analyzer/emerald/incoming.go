@@ -220,8 +220,10 @@ func extractRound(b *block.Block, txrs []*sdkClient.TransactionWithResults, logg
 					return nil
 				},
 				ConsensusAccountsDeposit: func(body *consensusaccounts.Deposit) error {
-					if _, err = registerRelatedSdkAddress(blockTransactionData.RelatedAccountAddresses, body.To); err != nil {
-						return fmt.Errorf("to: %w", err)
+					if body.To != nil {
+						if _, err = registerRelatedSdkAddress(blockTransactionData.RelatedAccountAddresses, body.To); err != nil {
+							return fmt.Errorf("to: %w", err)
+						}
 					}
 					return nil
 				},

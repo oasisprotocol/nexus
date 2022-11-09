@@ -712,11 +712,15 @@ func (c *storageClient) RuntimeTransactions(ctx context.Context, r *http.Request
 				return nil
 			},
 			ConsensusAccountsDeposit: func(body *consensusaccounts.Deposit) error {
-				to, err2 := uncategorized.StringifySdkAddress(body.To)
-				if err2 != nil {
-					return fmt.Errorf("to: %w", err2)
+				if body.To != nil {
+					to, err2 := uncategorized.StringifySdkAddress(body.To)
+					if err2 != nil {
+						return fmt.Errorf("to: %w", err2)
+					}
+					apiTransaction.To = &to
+				} else {
+					apiTransaction.To = &sender0
 				}
-				apiTransaction.To = &to
 				amount, err2 := uncategorized.StringifyNativeDenomination(&body.Amount)
 				if err2 != nil {
 					return fmt.Errorf("amount: %w", err2)
@@ -725,12 +729,16 @@ func (c *storageClient) RuntimeTransactions(ctx context.Context, r *http.Request
 				return nil
 			},
 			ConsensusAccountsWithdraw: func(body *consensusaccounts.Withdraw) error {
-				to, err2 := uncategorized.StringifySdkAddress(body.To)
-				if err2 != nil {
-					return fmt.Errorf("to: %w", err2)
+				if body.To != nil {
+					to, err2 := uncategorized.StringifySdkAddress(body.To)
+					if err2 != nil {
+						return fmt.Errorf("to: %w", err2)
+					}
+					// todo: is this right? we don't otherwise register this off-chain .To
+					apiTransaction.To = &to
+				} else {
+					apiTransaction.To = &sender0
 				}
-				// todo: is this right? we don't otherwise register this off-chain .To
-				apiTransaction.To = &to
 				// todo: ensure native denomination?
 				amount := body.Amount.Amount.String()
 				apiTransaction.Amount = &amount
