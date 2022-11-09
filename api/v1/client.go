@@ -660,34 +660,34 @@ func (c *storageClient) RuntimeTransactions(ctx context.Context, r *http.Request
 		return nil, common.ErrBadRequest
 	}
 
-	sts, err := c.storage.RuntimeTransactions(ctx, &q, &p)
+	storageTransactions, err := c.storage.RuntimeTransactions(ctx, &q, &p)
 	if err != nil {
 		return nil, err
 	}
 
-	var ts RuntimeTransactionList
-	for _, st := range sts.Transactions {
+	var apiTransactions RuntimeTransactionList
+	for _, storageTransaction := range storageTransactions.Transactions {
 		var utx types.UnverifiedTransaction
-		if err = cbor.Unmarshal(st.Raw, &utx); err != nil {
-			return nil, fmt.Errorf("round %d tx %d utx unmarshal: %w", st.Round, st.Index, err)
+		if err = cbor.Unmarshal(storageTransaction.Raw, &utx); err != nil {
+			return nil, fmt.Errorf("round %d tx %d utx unmarshal: %w", storageTransaction.Round, storageTransaction.Index, err)
 		}
 		tx, err := uncategorized.OpenUtxNoVerify(&utx)
 		if err != nil {
-			return nil, fmt.Errorf("round %d tx %d utx open no verify: %w", st.Round, st.Index, err)
+			return nil, fmt.Errorf("round %d tx %d utx open no verify: %w", storageTransaction.Round, storageTransaction.Index, err)
 		}
 		sender0, err := uncategorized.StringifyAddressSpec(&tx.AuthInfo.SignerInfo[0].AddressSpec)
 		if err != nil {
-			return nil, fmt.Errorf("round %d tx %d signer 0: %w", st.Round, st.Index, err)
+			return nil, fmt.Errorf("round %d tx %d signer 0: %w", storageTransaction.Round, storageTransaction.Index, err)
 		}
 		var cr types.CallResult
-		if err = cbor.Unmarshal(st.ResultRaw, &cr); err != nil {
-			return nil, fmt.Errorf("round %d tx %d result unmarshal: %w", st.Round, st.Index, err)
+		if err = cbor.Unmarshal(storageTransaction.ResultRaw, &cr); err != nil {
+			return nil, fmt.Errorf("round %d tx %d result unmarshal: %w", storageTransaction.Round, storageTransaction.Index, err)
 		}
-		t := RuntimeTransaction{
-			Round:   st.Round,
-			Index:   st.Index,
-			Hash:    st.Hash,
-			EthHash: st.EthHash,
+		apiTransaction := RuntimeTransaction{
+			Round:   storageTransaction.Round,
+			Index:   storageTransaction.Index,
+			Hash:    storageTransaction.Hash,
+			EthHash: storageTransaction.EthHash,
 			// TODO: Get timestamp from that round's block
 			Sender0:   sender0,
 			Nonce0:    tx.AuthInfo.SignerInfo[0].Nonce,
@@ -703,12 +703,12 @@ func (c *storageClient) RuntimeTransactions(ctx context.Context, r *http.Request
 				if err2 != nil {
 					return fmt.Errorf("to: %w", err2)
 				}
-				t.To = &to
+				apiTransaction.To = &to
 				amount, err2 := uncategorized.StringifyNativeDenomination(&body.Amount)
 				if err2 != nil {
 					return fmt.Errorf("amount: %w", err2)
 				}
-				t.Amount = &amount
+				apiTransaction.Amount = &amount
 				return nil
 			},
 			ConsensusAccountsDeposit: func(body *consensusaccounts.Deposit) error {
@@ -716,12 +716,12 @@ func (c *storageClient) RuntimeTransactions(ctx context.Context, r *http.Request
 				if err2 != nil {
 					return fmt.Errorf("to: %w", err2)
 				}
-				t.To = &to
+				apiTransaction.To = &to
 				amount, err2 := uncategorized.StringifyNativeDenomination(&body.Amount)
 				if err2 != nil {
 					return fmt.Errorf("amount: %w", err2)
 				}
-				t.Amount = &amount
+				apiTransaction.Amount = &amount
 				return nil
 			},
 			ConsensusAccountsWithdraw: func(body *consensusaccounts.Withdraw) error {
@@ -730,16 +730,16 @@ func (c *storageClient) RuntimeTransactions(ctx context.Context, r *http.Request
 					return fmt.Errorf("to: %w", err2)
 				}
 				// todo: is this right? we don't otherwise register this off-chain .To
-				t.To = &to
+				apiTransaction.To = &to
 				// todo: ensure native denomination?
 				amount := body.Amount.Amount.String()
-				t.Amount = &amount
+				apiTransaction.Amount = &amount
 				return nil
 			},
 			EvmCreate: func(body *evm.Create, ok *[]byte) error {
 				// todo: do we want to populate .To with the created contract?
 				amount := uncategorized.StringifyBytes(body.Value)
-				t.Amount = &amount
+				apiTransaction.Amount = &amount
 				return nil
 			},
 			EvmCall: func(body *evm.Call, ok *[]byte) error {
@@ -747,18 +747,18 @@ func (c *storageClient) RuntimeTransactions(ctx context.Context, r *http.Request
 				if err2 != nil {
 					return fmt.Errorf("to: %w", err2)
 				}
-				t.To = &to
+				apiTransaction.To = &to
 				amount := uncategorized.StringifyBytes(body.Value)
-				t.Amount = &amount
+				apiTransaction.Amount = &amount
 				return nil
 			},
 		}); err != nil {
-			return nil, fmt.Errorf("round %d tx %d: %w", st.Round, st.Index, err)
+			return nil, fmt.Errorf("round %d tx %d: %w", storageTransaction.Round, storageTransaction.Index, err)
 		}
-		ts.Transactions = append(ts.Transactions, t)
+		apiTransactions.Transactions = append(apiTransactions.Transactions, apiTransaction)
 	}
 
-	return &ts, err
+	return &apiTransactions, err
 }
 
 // TransactionsPerSecond returns a list of tps checkpoint values.
