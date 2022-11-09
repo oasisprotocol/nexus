@@ -737,7 +737,14 @@ func (c *storageClient) RuntimeTransactions(ctx context.Context, r *http.Request
 				return nil
 			},
 			EvmCreate: func(body *evm.Create, ok *[]byte) error {
-				// todo: do we want to populate .To with the created contract?
+				if !cr.IsUnknown() && cr.IsSuccess() && len(*ok) == 32 {
+					// todo: is this rigorous enough?
+					to, err2 := uncategorized.StringifyEthAddress(uncategorized.SliceEthAddress(*ok))
+					if err2 != nil {
+						return fmt.Errorf("created contract: %w", err2)
+					}
+					apiTransaction.To = &to
+				}
 				amount := uncategorized.StringifyBytes(body.Value)
 				apiTransaction.Amount = &amount
 				return nil
