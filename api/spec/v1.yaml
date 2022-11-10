@@ -67,10 +67,6 @@ x-examples:
     - &runtime_block_round_1 3283246
   runtime-block-hash:
     - &runtime_block_hash_1 '21c243cd34bedfc234f1b45615d10a868f0655f59578f063a7d2fc8c6e5b4009'
-  runtime-tx-hash:
-    - &runtime_tx_hash_1 'ae2ae721d790dc5aacc2959f58ea3d18f62c672dd1f0834b9527ec1458ae935c'
-  runtime-tx-eth-hash:
-    - &runtime_tx_eth_hash_1 'e0a8808193cc71185c65994e273549c1986bc8bf26a115837198d21a5956e0c1'
   iso-timestamp:
     - &iso_timestamp_1 '2022-03-01T00:00:00Z'
     - &iso_timestamp_2 '2019-04-01T00:00:00Z'
@@ -988,7 +984,7 @@ components:
           type: integer
           format: int64
           description: |
-            The fee that this transaction's sendeer committed
+            The fee that this transaction's sender committed
             to pay to execute it.
           example: 1000
         method:
@@ -1419,12 +1415,63 @@ components:
           type: integer
           format: int64
           description: The block round at which this transaction was executed.
-          example: *runtime_block_round_1
+          example: 3379702
         hash:
           type: string
           description: The Oasis cryptographic hash of this transaction's encoding.
-          example: *tx_hash_1
-        # todo: other fields
+          example: 8394f682150e5f62b02f197d16b4769d032cb1c1b7a6dcf853ba1b12626e080b
+        eth_hash:
+          type: string
+          description: |
+            The Ethereum cryptographic hash of this transaction's encoding.
+            Absent for non-Ethereum-format transactions.
+          example: 9e6a5837c6366d4a7e477c71ffe32d40915cdef7ef209792259e5ee70caf2705
+        sender_0:
+          type: string
+          description: The Oasis address of this transaction's 0th signer.
+          example: oasis1qz670t637yyxshnlxhjj5074wgwl94d0x5x69zqd
+        nonce_0:
+          type: integer
+          format: int64
+          description: The nonce used with this transaction's 0th signer, to prevent replay.
+          example: 114194
+        fee_amount:
+          type: string
+          description: |
+            The fee that this transaction's sender committed to pay to execute
+            it (total, native denomination, ParaTime base units, as a string).
+          example: "3000000000000000"
+        fee_gas:
+          type: integer
+          format: int64
+          description: |
+            The maximum gas that this transaction's sender committed to use to
+            execute it.
+          example: 30000
+        method:
+          type: string
+          description: The method that was called.
+          example: "evm.Call"
+        body:
+          type: string
+          description: The method call body.
+          example: "o2RkYXRhQGV2YWx1ZUgBY0V4wN0lc2dhZGRyZXNzVDlzcMsG8d3D2LY5FTn+1svi/l+V"
+        to:
+          type: string
+          description: |
+            A reasonable "to" Oasis address associated with this transaction,
+            if applicable. The meaning varies based on the transaction method.
+          example: "oasis1qq6ulxmcagnp5nr56ylva7nhmwnxtf0krumg9dkq"
+        amount:
+          type: string
+          description: |
+            A reasonable "amount" associated with this transaction, if
+            applicable. The meaning varies based on the transaction mehtod.
+            Usually in native denomination, ParaTime units. As a string.
+          example: "100000001666393459"
+        success:
+          type: boolean
+          description: Whether this transaction successfully executed.
       description: |
         A runtime transaction.
 
