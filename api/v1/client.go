@@ -9,17 +9,10 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/oasisprotocol/oasis-core/go/common/cbor"
-	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/accounts"
-	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/consensusaccounts"
-	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/evm"
-	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
-
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
 	governance "github.com/oasisprotocol/oasis-core/go/governance/api"
 	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
 
-	uncategorized "github.com/oasisprotocol/oasis-indexer/analyzer/uncategorized"
 	"github.com/oasisprotocol/oasis-indexer/api/common"
 	"github.com/oasisprotocol/oasis-indexer/log"
 	storage "github.com/oasisprotocol/oasis-indexer/storage/client"
@@ -667,108 +660,9 @@ func (c *storageClient) RuntimeTransactions(ctx context.Context, r *http.Request
 
 	var apiTransactions RuntimeTransactionList
 	for _, storageTransaction := range storageTransactions.Transactions {
-		var utx types.UnverifiedTransaction
-		if err = cbor.Unmarshal(storageTransaction.Raw, &utx); err != nil {
-			return nil, fmt.Errorf("round %d tx %d utx unmarshal: %w", storageTransaction.Round, storageTransaction.Index, err)
-		}
-		tx, err := uncategorized.OpenUtxNoVerify(&utx)
-		if err != nil {
-			return nil, fmt.Errorf("round %d tx %d utx open no verify: %w", storageTransaction.Round, storageTransaction.Index, err)
-		}
-		sender0, err := uncategorized.StringifyAddressSpec(&tx.AuthInfo.SignerInfo[0].AddressSpec)
-		if err != nil {
-			return nil, fmt.Errorf("round %d tx %d signer 0: %w", storageTransaction.Round, storageTransaction.Index, err)
-		}
-		var cr types.CallResult
-		if err = cbor.Unmarshal(storageTransaction.ResultRaw, &cr); err != nil {
-			return nil, fmt.Errorf("round %d tx %d result unmarshal: %w", storageTransaction.Round, storageTransaction.Index, err)
-		}
-		apiTransaction := RuntimeTransaction{
-			Round:   storageTransaction.Round,
-			Index:   storageTransaction.Index,
-			Hash:    storageTransaction.Hash,
-			EthHash: storageTransaction.EthHash,
-			// TODO: Get timestamp from that round's block
-			Sender0:   sender0,
-			Nonce0:    tx.AuthInfo.SignerInfo[0].Nonce,
-			FeeAmount: tx.AuthInfo.Fee.Amount.Amount.String(),
-			FeeGas:    tx.AuthInfo.Fee.Gas,
-			Method:    tx.Call.Method,
-			Body:      tx.Call.Body,
-			Success:   cr.IsSuccess(),
-		}
-		if err = uncategorized.VisitCall(&tx.Call, &cr, &uncategorized.CallHandler{
-			AccountsTransfer: func(body *accounts.Transfer) error {
-				to, err2 := uncategorized.StringifySdkAddress(&body.To)
-				if err2 != nil {
-					return fmt.Errorf("to: %w", err2)
-				}
-				apiTransaction.To = &to
-				amount, err2 := uncategorized.StringifyNativeDenomination(&body.Amount)
-				if err2 != nil {
-					return fmt.Errorf("amount: %w", err2)
-				}
-				apiTransaction.Amount = &amount
-				return nil
-			},
-			ConsensusAccountsDeposit: func(body *consensusaccounts.Deposit) error {
-				if body.To != nil {
-					to, err2 := uncategorized.StringifySdkAddress(body.To)
-					if err2 != nil {
-						return fmt.Errorf("to: %w", err2)
-					}
-					apiTransaction.To = &to
-				} else {
-					apiTransaction.To = &sender0
-				}
-				amount, err2 := uncategorized.StringifyNativeDenomination(&body.Amount)
-				if err2 != nil {
-					return fmt.Errorf("amount: %w", err2)
-				}
-				apiTransaction.Amount = &amount
-				return nil
-			},
-			ConsensusAccountsWithdraw: func(body *consensusaccounts.Withdraw) error {
-				if body.To != nil {
-					to, err2 := uncategorized.StringifySdkAddress(body.To)
-					if err2 != nil {
-						return fmt.Errorf("to: %w", err2)
-					}
-					// todo: is this right? we don't otherwise register this off-chain .To
-					apiTransaction.To = &to
-				} else {
-					apiTransaction.To = &sender0
-				}
-				// todo: ensure native denomination?
-				amount := body.Amount.Amount.String()
-				apiTransaction.Amount = &amount
-				return nil
-			},
-			EvmCreate: func(body *evm.Create, ok *[]byte) error {
-				if !cr.IsUnknown() && cr.IsSuccess() && len(*ok) == 32 {
-					// todo: is this rigorous enough?
-					to, err2 := uncategorized.StringifyEthAddress(uncategorized.SliceEthAddress(*ok))
-					if err2 != nil {
-						return fmt.Errorf("created contract: %w", err2)
-					}
-					apiTransaction.To = &to
-				}
-				amount := uncategorized.StringifyBytes(body.Value)
-				apiTransaction.Amount = &amount
-				return nil
-			},
-			EvmCall: func(body *evm.Call, ok *[]byte) error {
-				to, err2 := uncategorized.StringifyEthAddress(body.Address)
-				if err2 != nil {
-					return fmt.Errorf("to: %w", err2)
-				}
-				apiTransaction.To = &to
-				amount := uncategorized.StringifyBytes(body.Value)
-				apiTransaction.Amount = &amount
-				return nil
-			},
-		}); err != nil {
-			return nil, fmt.Errorf("round %d tx %d: %w", storageTransaction.Round, storageTransaction.Index, err)
+		apiTransaction, err2 := renderRuntimeTransaction(storageTransaction)
+		if err2 != nil {
+			return nil, fmt.Errorf("round %d tx %d: %w", storageTransaction.Round, storageTransaction.Index, err2)
 		}
 		apiTransactions.Transactions = append(apiTransactions.Transactions, apiTransaction)
 	}
