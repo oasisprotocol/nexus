@@ -98,6 +98,14 @@ CREATE TABLE oasis_3.address_preimages
     address_data       BYTEA NOT NULL
 );
 
+CREATE TABLE oasis_3.emerald_token_balances
+(
+  token_address TEXT NOT NULL,
+  account_address TEXT NOT NULL,
+  balance NUMERIC(1000,0) NOT NULL,
+  PRIMARY KEY (token_address, account_address)
+);
+
 -- Core Module Data
 CREATE TABLE oasis_3.emerald_gas_used
 (
