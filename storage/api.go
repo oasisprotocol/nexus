@@ -250,4 +250,7 @@ type TargetStorage interface {
 
 	// Name returns the name of the target storage.
 	Name() string
+
+	// Wipe removes all contents of the target storage.
+	Wipe(ctx context.Context) error
 }

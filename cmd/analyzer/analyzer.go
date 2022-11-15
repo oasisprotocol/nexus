@@ -2,6 +2,7 @@
 package analyzer
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"sync"
@@ -73,6 +74,15 @@ func runAnalyzer(cmd *cobra.Command, args []string) {
 func Init(cfg *config.AnalysisConfig) (*Service, error) {
 	logger := common.Logger()
 
+	logger.Info("initializing analysis service", "config", cfg)
+	if cfg.Storage.WipeStorage {
+		logger.Warn("wiping storage")
+		if err := wipeStorage(cfg.Storage); err != nil {
+			return nil, err
+		}
+		logger.Info("storage wiped")
+	}
+
 	m, err := migrate.New(
 		cfg.Migrations,
 		cfg.Storage.Endpoint,
@@ -104,6 +114,20 @@ func Init(cfg *config.AnalysisConfig) (*Service, error) {
 		return nil, err
 	}
 	return service, nil
+}
+
+func wipeStorage(cfg *config.StorageConfig) error {
+	logger := common.Logger().WithModule(moduleName)
+
+	// Initialize target storage.
+	storage, err := common.NewClient(cfg, logger)
+	if err != nil {
+		return err
+	}
+	defer storage.Shutdown()
+
+	ctx := context.Background()
+	return storage.Wipe(ctx)
 }
 
 // Service is the Oasis Indexer's analysis service.

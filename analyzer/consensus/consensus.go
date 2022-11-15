@@ -159,6 +159,7 @@ func (m *Main) Start() {
 	}
 	for m.cfg.Range.To == 0 || height <= m.cfg.Range.To {
 		backoff.Wait()
+		m.logger.Info("attempting block", "height", height)
 
 		if err := m.processBlock(ctx, height); err != nil {
 			if err == analyzer.ErrOutOfRange {
@@ -176,6 +177,7 @@ func (m *Main) Start() {
 			continue
 		}
 
+		m.logger.Info("processed block", "height", height)
 		backoff.Success()
 		height++
 	}
@@ -270,10 +272,6 @@ func (m *Main) processGenesis(ctx context.Context) error {
 // from source storage and committing an atomically-executed batch of queries
 // to target storage.
 func (m *Main) processBlock(ctx context.Context, height int64) error {
-	m.logger.Info("processing block",
-		"height", height,
-	)
-
 	group, groupCtx := errgroup.WithContext(ctx)
 
 	// Prepare and perform updates.
