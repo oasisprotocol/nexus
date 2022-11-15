@@ -179,7 +179,7 @@ func (qf QueryFactory) ConsensusReceiverUpdateQuery() string {
 		INSERT INTO %[1]s.accounts (address, general_balance)
 			VALUES ($1, $2)
 		ON CONFLICT (address) DO
-			UPDATE SET general_balance = %[1]s.accounts.general_balance + $2;`, qf.chainID)
+			UPDATE SET general_balance = %[1]s.accounts.general_balance + $2`, qf.chainID)
 }
 
 func (qf QueryFactory) ConsensusBurnUpdateQuery() string {
