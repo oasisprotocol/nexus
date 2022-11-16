@@ -431,7 +431,7 @@ func (m *Main) queueTransactionInserts(batch *storage.QueryBatch, data *storage.
 			}
 
 			batch.Queue(commissionsUpsertQuery,
-				staking.NewAddress(signedTx.Signature.PublicKey),
+				staking.NewAddress(signedTx.Signature.PublicKey).String(),
 				string(schedule),
 			)
 		}
@@ -543,7 +543,7 @@ func (m *Main) queueEntityEvents(batch *storage.QueryBatch, data *storage.Regist
 		for _, node := range entityEvent.Entity.Nodes {
 			batch.Queue(claimedNodeInsertQuery,
 				entityID,
-				node,
+				node.String(),
 			)
 		}
 		batch.Queue(entityUpsertQuery,
@@ -626,7 +626,7 @@ func (m *Main) queueMetadataRegistry(ctx context.Context, batch *storage.QueryBa
 	entityMetaUpsertQuery := m.qf.ConsensusEntityMetaUpsertQuery()
 	for id, meta := range entities {
 		batch.Queue(entityMetaUpsertQuery,
-			id,
+			id.String(),
 			meta,
 		)
 	}
@@ -822,7 +822,7 @@ func (m *Main) queueValidatorUpdates(batch *storage.QueryBatch, data *storage.Sc
 	validatorNodeUpdateQuery := m.qf.ConsensusValidatorNodeUpdateQuery()
 	for _, validator := range data.Validators {
 		batch.Queue(validatorNodeUpdateQuery,
-			validator.ID,
+			validator.ID.String(),
 			validator.VotingPower,
 		)
 	}
