@@ -99,6 +99,7 @@ CREATE TABLE oasis_3.nodes
   -- historically (as per @Yawning), we also allowed node registrations that are signed with the entity signing key,
   -- in which case, the node would be allowed to register without having been pre-claimed by the entity.
   -- For those cases, (id, entity_id) is not a foreign key into oasis_3.claimed_nodes.
+  -- Similarly, an entity can un-claim a node after the node registered, but the node can remain be registered for a while.
   entity_id  base64_ed25519_pubkey NOT NULL REFERENCES oasis_3.entities(id),
   expiration BIGINT NOT NULL,
 
@@ -168,7 +169,12 @@ CREATE TABLE oasis_3.accounts
 CREATE TABLE oasis_3.allowances
 (
   owner       oasis_addr NOT NULL REFERENCES oasis_3.accounts(address) DEFERRABLE INITIALLY DEFERRED,
-  beneficiary oasis_addr,  -- No REFERENCES; the beneficiary can technically be a nonexistent/unused address.
+  -- When creating an allowance for the purpose of subsequently depositing funds to a
+  -- paratime account A in paratime P (i.e. the expected use case for allowances), `beneficiary` is
+  -- the "staking account" of P. The staking account is a special account derived from the paratime ID:
+  --  - derivation: https://github.com/oasisprotocol/oasis-core/blob/f95186e3f15ec64bdd36493cde90be359bd17da8/go/staking/api/address.go#L96-L96
+  --  - precomputed accounts: https://github.com/oasisprotocol/oasis-wallet-web/blob/34fdf495de5ca0d585addf0073f6a71bba556588/src/config.ts#L89-L139
+  beneficiary oasis_addr,
   allowance   UINT_NUMERIC,
 
   PRIMARY KEY (owner, beneficiary)
