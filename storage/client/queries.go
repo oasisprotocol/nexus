@@ -121,18 +121,18 @@ func (qf QueryFactory) AccountsQuery() string {
 func (qf QueryFactory) AccountQuery() string {
 	return fmt.Sprintf(`
 		SELECT address, nonce, general_balance, escrow_balance_active, escrow_balance_debonding,
-			(
-				SELECT COALESCE(ROUND(SUM(shares * escrow_balance_active / escrow_total_shares_active)), 0) AS delegations_balance
+			COALESCE (
+				(SELECT COALESCE(ROUND(SUM(shares * escrow_balance_active / escrow_total_shares_active)), 0) AS delegations_balance
 				FROM %[1]s.delegations
 				JOIN %[1]s.accounts ON %[1]s.accounts.address = %[1]s.delegations.delegatee
-				WHERE delegator = $1::text
-			) AS delegations_balance,
-			(
-				SELECT COALESCE(ROUND(SUM(shares * escrow_balance_debonding / escrow_total_shares_debonding)), 0) AS debonding_delegations_balance
+				WHERE delegator = $1::text AND escrow_total_shares_active != 0)
+			, 0) AS delegations_balance,
+			COALESCE (
+				(SELECT COALESCE(ROUND(SUM(shares * escrow_balance_debonding / escrow_total_shares_debonding)), 0) AS debonding_delegations_balance
 				FROM %[1]s.debonding_delegations
 				JOIN %[1]s.accounts ON %[1]s.accounts.address = %[1]s.debonding_delegations.delegatee
-				WHERE delegator = $1::text
-			) AS debonding_delegations_balance
+				WHERE delegator = $1::text AND escrow_total_shares_debonding != 0)
+			, 0) AS debonding_delegations_balance
 			FROM %[1]s.accounts
 			WHERE address = $1::text`, qf.chainID)
 }
