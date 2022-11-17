@@ -143,7 +143,7 @@ CREATE TABLE oasis_3.emerald_deposits
   -- Regardless, the `receiver` often REFERENCES oasis_3.address_preimages(address), a notable exception
   -- being if the target account hasn't signed any txs yet.
   receiver oasis_addr NOT NULL,
-  amount   TEXT NOT NULL,
+  amount   UINT_NUMERIC NOT NULL,
   nonce    UINT63 NOT NULL,
 
   -- Optional error data; from https://github.com/oasisprotocol/oasis-sdk/blob/386ba0b99fcd1425c68015e0033a462d9a577835/client-sdk/go/modules/consensusaccounts/types.go#L44-L44
@@ -165,7 +165,7 @@ CREATE TABLE oasis_3.emerald_withdraws
   -- The `receiver` is a consensus account, so this REFERENCES oasis_3.accounts; we omit the FK so
   -- that consensus and paratimes can be indexed independently.
   receiver oasis_addr NOT NULL,
-  amount   TEXT NOT NULL,
+  amount   UINT_NUMERIC NOT NULL,
   nonce    UINT63 NOT NULL,
 
   -- Optional error data
