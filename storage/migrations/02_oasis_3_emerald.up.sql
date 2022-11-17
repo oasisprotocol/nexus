@@ -111,14 +111,23 @@ CREATE INDEX ix_emerald_gas_used_sender ON oasis_3.emerald_gas_used(sender);
 -- Accounts Module Data
 
 -- The emerald_transfers table encapsulates transfers, burns, and mints.
--- Burns are denoted by the 0-address as the receiver and mints are
--- denoted by the 0-address as the sender.
+-- Burns are denoted by NULL as the receiver and mints are denoted by NULL as the sender.
 CREATE TABLE oasis_3.emerald_transfers
 (
   round    UINT63 NOT NULL REFERENCES oasis_3.emerald_rounds DEFERRABLE INITIALLY DEFERRED,
-  sender   TEXT NOT NULL DEFAULT '0',
-  receiver TEXT NOT NULL DEFAULT '0',
-  amount   TEXT NOT NULL
+  -- Any paratime account. This almost always REFERENCES oasis_3.address_preimages(address)
+  -- because the sender signed the Transfer tx and was inserted into address_preimages then.
+  -- Exceptions are special addresses; see e.g. the rewards-pool address.
+  -- TODO: oasis1qr677rv0dcnh7ys4yanlynysvnjtk9gnsyhvm6ln is known to violate FK; where does it come from? Register it in prework().
+  -- If NULL, this is a mint.
+  sender   oasis_addr,
+  -- Any paratime account. Not necessarily found in oasis_3.address_preimages, e.g. if
+  -- this account hasn't signed a tx yet.
+  -- If NULL, this is a burn.
+  receiver oasis_addr,
+  amount   UINT_NUMERIC NOT NULL,
+
+  CHECK (NOT (sender IS NULL AND receiver IS NULL))
 );
 
 CREATE INDEX ix_emerald_transfers_sender ON oasis_3.emerald_transfers(sender);
