@@ -102,7 +102,7 @@ CREATE TABLE oasis_3.address_preimages
 CREATE TABLE oasis_3.emerald_gas_used
 (
   round  UINT63 NOT NULL REFERENCES oasis_3.emerald_rounds DEFERRABLE INITIALLY DEFERRED,
-  sender TEXT NOT NULL,  -- not oasis_addr because it uses a special value "unknown"
+  sender oasis_addr REFERENCES oasis_3.address_preimages,  -- TODO: add NOT NULL; but analyzer is only putting NULLs here for now because it doesn't have the data
   amount NUMERIC NOT NULL
 );
 
