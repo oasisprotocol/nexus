@@ -197,7 +197,7 @@ func (m *Main) prework() error {
 		m.qf.AddressPreimageInsertQuery(),
 		rewards.RewardPoolAddress.String(),          // oasis1qp7x0q9qahahhjas0xde8w0v04ctp4pqzu5mhjav for emerald on mainnet oasis-3
 		types.AddressV0ModuleContext.Identifier,     // context_identifier
-		int32(types.AddressV0ModuleContext.Version), // context_version,
+		int32(types.AddressV0ModuleContext.Version), // context_version
 		"rewards.reward-pool",                       // address_data (reconstructed from NewAddressForModule())
 	)
 	if err := m.target.SendBatch(ctx, batch); err != nil {
@@ -299,7 +299,7 @@ func (m *Main) queueBlockAndTransactionInserts(batch *storage.QueryBatch, data *
 		data.BlockHeader.Header.MessagesHash.Hex(),
 		data.BlockHeader.Header.InMessagesHash.Hex(),
 		blockData.NumTransactions,
-		blockData.GasUsed,
+		fmt.Sprintf("%d", blockData.GasUsed),
 		blockData.Size,
 	)
 

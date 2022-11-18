@@ -123,7 +123,7 @@ CREATE TABLE oasis_3.nodes
   software_version TEXT,
 
   -- Voting power should only be nonzero for consensus validator nodes.
-  voting_power     BIGINT DEFAULT 0
+  voting_power     UINT63 DEFAULT 0
 
   -- TODO: Track node status.
 );
