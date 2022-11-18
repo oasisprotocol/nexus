@@ -30,9 +30,11 @@ import (
 
 const (
 	fundAccountAmount = 10000000000
-	// Net runner seems to generate a block per second.
-	// 2 seconds appears to be enough for now.
-	timeout = 2 * time.Second
+	// The amount of time to wait after a blockchain tx to make sure that the a block with the
+	// tx was produced and the indexer has indexed the block.
+	// The node seems to generate a block per second.
+	// 2 seconds is experimentally enough, 1 second was flaky.
+	indexerDelay = 2 * time.Second
 )
 
 func TestIndexer(t *testing.T) {
@@ -111,7 +113,7 @@ func TestIndexer(t *testing.T) {
 		t.Errorf("account funding failure: %v", err)
 	}
 
-	time.Sleep(timeout)
+	time.Sleep(indexerDelay)
 	err = tests.GetFrom(fmt.Sprintf("/consensus/accounts/%s", bobAddress), &account)
 	require.Nil(t, err)
 	require.Equal(t, account.Available, uint64(100000000))
@@ -136,14 +138,14 @@ func TestIndexer(t *testing.T) {
 	}
 
 	// Bob account has correct delegation balance
-	time.Sleep(timeout)
+	time.Sleep(indexerDelay)
 	err = tests.GetFrom(fmt.Sprintf("/consensus/accounts/%s", bobAddress), &account)
 	require.Nil(t, err)
 	require.Equal(t, account.DelegationsBalance, uint64(25000000))
 	require.Equal(t, account.Available, uint64(75000000))
 
 	// Alice account has correct escrow balance
-	time.Sleep(timeout)
+	time.Sleep(indexerDelay)
 	err = tests.GetFrom(fmt.Sprintf("/consensus/accounts/%s", aliceAddress), &account)
 	require.Nil(t, err)
 	require.Equal(t, account.Escrow, uint64(25000000))
