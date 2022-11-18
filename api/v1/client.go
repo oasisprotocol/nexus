@@ -670,6 +670,21 @@ func (c *storageClient) RuntimeTransactions(ctx context.Context, r *http.Request
 	return &apiTransactions, err
 }
 
+func (c *storageClient) RuntimeTokens(ctx context.Context, r *http.Request) (*storage.RuntimeTokenList, error) {
+	var q storage.RuntimeTokensRequest
+
+	p, err := common.NewPagination(r)
+	if err != nil {
+		c.logger.Info("pagination failed",
+			"request_id", ctx.Value(storage.RequestIDContextKey),
+			"err", err.Error(),
+		)
+		return nil, common.ErrBadRequest
+	}
+
+	return c.storage.RuntimeTokens(ctx, &q, &p)
+}
+
 // TransactionsPerSecond returns a list of tps checkpoint values.
 func (c *storageClient) TransactionsPerSecond(ctx context.Context, r *http.Request) (*storage.TpsCheckpointList, error) {
 	p, err := common.NewPagination(r)

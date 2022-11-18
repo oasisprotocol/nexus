@@ -238,6 +238,15 @@ type RuntimeTransaction struct {
 	ResultRaw []byte
 }
 
+type RuntimeTokenList struct {
+	Tokens []RuntimeToken `json:"tokens"`
+}
+
+type RuntimeToken struct {
+	TokenAddr  string `json:"token_addr"`
+	NumHolders int64  `json:"num_holders"`
+}
+
 // TpsCheckpointList is the storage response for ListTransactionsPerSecond.
 type TpsCheckpointList struct {
 	IntervalMinutes int             `json:"interval_minutes"`

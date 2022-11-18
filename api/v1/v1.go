@@ -104,6 +104,9 @@ func (h *Handler) RegisterRoutes(r chi.Router) {
 			r.Route("/transactions", func(r chi.Router) {
 				r.Get("/", h.RuntimeListTransactions)
 			})
+			r.Route("/tokens", func(r chi.Router) {
+				r.Get("/", h.RuntimeListTokens)
+			})
 		})
 	})
 }
