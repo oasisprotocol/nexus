@@ -1,5 +1,9 @@
 include common.mk
 
+# For running `docker compose` containers as current user
+export HOST_UID := $(shell id -u)
+export HOST_GID := $(shell id -g)
+
 all: build
 
 build:
@@ -76,7 +80,7 @@ start-docker:
 	@docker compose up --remove-orphans
 
 start-docker-e2e:
-	@env HOST_UID=$(id -u) HOST_GID=$(id -g) docker compose -f tests/e2e/docker-compose.e2e.yml up -d
+	@docker compose -f tests/e2e/docker-compose.e2e.yml up -d
 
 start-e2e: start-docker-e2e
 	docker exec oasis-indexer sh -c "cd /oasis-indexer && make test-e2e"
