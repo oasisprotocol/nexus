@@ -31,7 +31,8 @@ import (
 
 const (
 	consensusDamaskAnalyzerName = "consensus_damask"
-	registryUpdateFrequency     = 100 // once per n block
+	noKeyManager                = "none" // KM name to use when there is no KM
+	registryUpdateFrequency     = 100    // once per n block
 )
 
 // Main is the main Analyzer for the consensus layer.
@@ -431,7 +432,7 @@ func (m *Main) queueTransactionInserts(batch *storage.QueryBatch, data *storage.
 			}
 
 			batch.Queue(commissionsUpsertQuery,
-				staking.NewAddress(signedTx.Signature.PublicKey).String(),
+				staking.NewAddress(signedTx.Signature.PublicKey),
 				string(schedule),
 			)
 		}
@@ -500,11 +501,10 @@ func (m *Main) queueRuntimeRegistrations(batch *storage.QueryBatch, data *storag
 	runtimeUpsertQuery := m.qf.ConsensusRuntimeUpsertQuery()
 
 	for _, runtimeEvent := range data.RuntimeEvents {
-		var keyManager *string
+		keyManager := noKeyManager
 
 		if runtimeEvent.Runtime.KeyManager != nil {
-			km := runtimeEvent.Runtime.KeyManager.String()
-			keyManager = &km
+			keyManager = runtimeEvent.Runtime.KeyManager.String()
 		}
 
 		batch.Queue(runtimeUpsertQuery,
@@ -543,7 +543,7 @@ func (m *Main) queueEntityEvents(batch *storage.QueryBatch, data *storage.Regist
 		for _, node := range entityEvent.Entity.Nodes {
 			batch.Queue(claimedNodeInsertQuery,
 				entityID,
-				node.String(),
+				node,
 			)
 		}
 		batch.Queue(entityUpsertQuery,
@@ -626,7 +626,7 @@ func (m *Main) queueMetadataRegistry(ctx context.Context, batch *storage.QueryBa
 	entityMetaUpsertQuery := m.qf.ConsensusEntityMetaUpsertQuery()
 	for id, meta := range entities {
 		batch.Queue(entityMetaUpsertQuery,
-			id.String(),
+			id,
 			meta,
 		)
 	}
@@ -822,7 +822,7 @@ func (m *Main) queueValidatorUpdates(batch *storage.QueryBatch, data *storage.Sc
 	validatorNodeUpdateQuery := m.qf.ConsensusValidatorNodeUpdateQuery()
 	for _, validator := range data.Validators {
 		batch.Queue(validatorNodeUpdateQuery,
-			validator.ID.String(),
+			validator.ID,
 			validator.VotingPower,
 		)
 	}

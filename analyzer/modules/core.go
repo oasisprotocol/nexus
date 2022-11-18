@@ -55,7 +55,7 @@ func (h *CoreHandler) queueGasUsed(batch *storage.QueryBatch, data *storage.Core
 		batch.Queue(
 			h.qf.RuntimeGasUsedInsertQuery(),
 			data.Round,
-			nil, // TODO: Get sender address from transaction data
+			"unknown", // TODO: Get sender from transaction data
 			gasUsed.Amount,
 		)
 	}

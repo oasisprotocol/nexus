@@ -9,8 +9,6 @@ import (
 	"github.com/iancoleman/strcase"
 	"github.com/jackc/pgx/v4"
 	oasisConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
-	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/rewards"
-	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/oasisprotocol/oasis-indexer/analyzer"
@@ -105,13 +103,6 @@ func NewMain(cfg *config.AnalyzerConfig, target storage.TargetStorage, logger *l
 func (m *Main) Start() {
 	ctx := context.Background()
 
-	if err := m.prework(); err != nil {
-		m.logger.Error("error doing prework",
-			"err", err,
-		)
-		return
-	}
-
 	// Get round to be indexed.
 	var round uint64
 
@@ -185,27 +176,6 @@ func (m *Main) latestRound(ctx context.Context) (uint64, error) {
 		return 0, err
 	}
 	return latest, nil
-}
-
-// prework performs tasks that need to be done before the main loop starts.
-func (m *Main) prework() error {
-	batch := &storage.QueryBatch{}
-	ctx := context.Background()
-
-	// Register special addresses.
-	batch.Queue(
-		m.qf.AddressPreimageInsertQuery(),
-		rewards.RewardPoolAddress.String(),          // oasis1qp7x0q9qahahhjas0xde8w0v04ctp4pqzu5mhjav for emerald on mainnet oasis-3
-		types.AddressV0ModuleContext.Identifier,     // context_identifier
-		int32(types.AddressV0ModuleContext.Version), // context_version,
-		"rewards.reward-pool",                       // address_data (reconstructed from NewAddressForModule())
-	)
-	if err := m.target.SendBatch(ctx, batch); err != nil {
-		return err
-	}
-	m.logger.Info("registered special addresses")
-
-	return nil
 }
 
 // processRound processes the provided round, retrieving all required information

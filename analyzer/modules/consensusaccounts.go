@@ -53,21 +53,13 @@ func (h *ConsensusAccountsHandler) Name() string {
 
 func (h *ConsensusAccountsHandler) queueDeposits(batch *storage.QueryBatch, data *storage.ConsensusAccountsData) error {
 	for _, deposit := range data.Deposits {
-		if !deposit.Amount.Denomination.IsNative() {
-			// Should never happen.
-			h.logger.Error("non-native denomination in deposit; pretending it is native",
-				"denomination", deposit.Amount.Denomination,
-				"round", data.Round,
-				"from", deposit.From.String(),
-				"to", deposit.To.String())
-		}
 		if deposit.Error != nil {
 			batch.Queue(
 				h.qf.RuntimeDepositErrorInsertQuery(),
 				data.Round,
 				deposit.From.String(),
 				deposit.To.String(),
-				deposit.Amount.Amount.String(),
+				deposit.Amount.String(),
 				deposit.Nonce,
 				deposit.Error.Module,
 				deposit.Error.Code,
@@ -78,7 +70,7 @@ func (h *ConsensusAccountsHandler) queueDeposits(batch *storage.QueryBatch, data
 				data.Round,
 				deposit.From.String(),
 				deposit.To.String(),
-				deposit.Amount.Amount.String(),
+				deposit.Amount.String(),
 				deposit.Nonce,
 			)
 		}
@@ -89,21 +81,13 @@ func (h *ConsensusAccountsHandler) queueDeposits(batch *storage.QueryBatch, data
 
 func (h *ConsensusAccountsHandler) queueWithdraws(batch *storage.QueryBatch, data *storage.ConsensusAccountsData) error {
 	for _, withdraw := range data.Withdraws {
-		if !withdraw.Amount.Denomination.IsNative() {
-			// Should never happen.
-			h.logger.Error("non-native denomination in withdraw; pretending it is native",
-				"denomination", withdraw.Amount.Denomination,
-				"round", data.Round,
-				"from", withdraw.From.String(),
-				"to", withdraw.To.String())
-		}
 		if withdraw.Error != nil {
 			batch.Queue(
 				h.qf.RuntimeWithdrawErrorInsertQuery(),
 				data.Round,
 				withdraw.From.String(),
 				withdraw.To.String(),
-				withdraw.Amount.Amount.String(),
+				withdraw.Amount.String(),
 				withdraw.Nonce,
 				withdraw.Error.Module,
 				withdraw.Error.Code,
@@ -114,7 +98,7 @@ func (h *ConsensusAccountsHandler) queueWithdraws(batch *storage.QueryBatch, dat
 				data.Round,
 				withdraw.From.String(),
 				withdraw.To.String(),
-				withdraw.Amount.Amount.String(),
+				withdraw.Amount.String(),
 				withdraw.Nonce,
 			)
 		}

@@ -58,7 +58,7 @@ func (h *AccountsHandler) queueMints(batch *storage.QueryBatch, data *storage.Ac
 			h.qf.RuntimeMintInsertQuery(),
 			data.Round,
 			mint.Owner.String(),
-			mint.Amount.Amount.String(),
+			mint.Amount.String(),
 		)
 	}
 
@@ -71,7 +71,7 @@ func (h *AccountsHandler) queueBurns(batch *storage.QueryBatch, data *storage.Ac
 			h.qf.RuntimeBurnInsertQuery(),
 			data.Round,
 			burn.Owner.String(),
-			burn.Amount.Amount.String(),
+			burn.Amount.String(),
 		)
 	}
 
@@ -85,7 +85,7 @@ func (h *AccountsHandler) queueTransfers(batch *storage.QueryBatch, data *storag
 			data.Round,
 			transfer.From.String(),
 			transfer.To.String(),
-			transfer.Amount.Amount.String(),
+			transfer.Amount.String(),
 		)
 	}
 
