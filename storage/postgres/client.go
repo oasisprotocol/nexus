@@ -30,6 +30,7 @@ type pgxLogger struct {
 	logger *log.Logger
 }
 
+// logFuncForLevel maps a pgx log severity level to a corresponding indexer logger function.
 func (l *pgxLogger) logFuncForLevel(level pgx.LogLevel) func(string, ...interface{}) {
 	switch level {
 	case pgx.LogLevelTrace, pgx.LogLevelDebug:
@@ -46,7 +47,7 @@ func (l *pgxLogger) logFuncForLevel(level pgx.LogLevel) func(string, ...interfac
 	}
 }
 
-// Implements pgx.Logger interface.
+// Implements pgx.Logger interface. Logs to indexer logger.
 func (l *pgxLogger) Log(ctx context.Context, level pgx.LogLevel, msg string, data map[string]interface{}) {
 	args := []interface{}{}
 	for k, v := range data {

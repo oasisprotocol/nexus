@@ -7,7 +7,7 @@ analysis:
       from: 1
       to: 86400
   storage:
-    endpoint: postgresql://indexer:password@postgres:5432/indexer?sslmode=disable
+    endpoint: postgresql://indexer:password@indexer-postgres:5432/indexer?sslmode=disable
     backend: postgres
   migrations: file:///storage/migrations
 
@@ -15,7 +15,7 @@ server:
   chain_id: oasis-3  # a fake mainnet, based on oasis-net-runner
   endpoint: 0.0.0.0:8008
   storage:
-    endpoint: postgresql://indexer:password@postgres:5432/indexer?sslmode=disable
+    endpoint: postgresql://indexer:password@indexer-postgres:5432/indexer?sslmode=disable
     backend: postgres
 
 log:
