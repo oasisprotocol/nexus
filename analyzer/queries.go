@@ -376,14 +376,14 @@ func (qf QueryFactory) RuntimeTransactionInsertQuery() string {
 
 func (qf QueryFactory) RuntimeMintInsertQuery() string {
 	return fmt.Sprintf(`
-		INSERT INTO %s.%s_transfers (round, receiver, amount)
-			VALUES ($1, $2, $3)`, qf.chainID, qf.runtime)
+		INSERT INTO %s.%s_transfers (round, sender, receiver, amount)
+			VALUES ($1, NULL, $2, $3)`, qf.chainID, qf.runtime)
 }
 
 func (qf QueryFactory) RuntimeBurnInsertQuery() string {
 	return fmt.Sprintf(`
-		INSERT INTO %s.%s_transfers (round, sender, amount)
-			VALUES ($1, $2, $3)`, qf.chainID, qf.runtime)
+		INSERT INTO %s.%s_transfers (round, sender, receiver, amount)
+			VALUES ($1, $2, NULL, $3)`, qf.chainID, qf.runtime)
 }
 
 func (qf QueryFactory) RuntimeTransferInsertQuery() string {
