@@ -81,7 +81,9 @@ func renderRuntimeTransaction(storageTransaction client.RuntimeTransaction) (Run
 				if err2 != nil {
 					return fmt.Errorf("to: %w", err2)
 				}
-				// todo: is this right? we don't otherwise register this off-chain .To
+				// Beware, this is the address of an account in the consensus
+				// layer, not an account in the runtime indicated in this API
+				// request.
 				apiTransaction.To = &to
 			} else {
 				apiTransaction.To = &sender0
