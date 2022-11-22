@@ -1,5 +1,9 @@
 include common.mk
 
+# For running `docker compose` containers as current user
+export HOST_UID := $(shell id -u)
+export HOST_GID := $(shell id -g)
+
 all: build
 
 build:
