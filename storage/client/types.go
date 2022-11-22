@@ -1,35 +1,35 @@
-// Types for storage API responses.
+// Types for storage client responses.
 package client
 
 import (
 	"time"
 )
 
-// Status is the API response for GetStatus.
+// Status is the storage response for GetStatus.
 type Status struct {
 	LatestChainID string    `json:"latest_chain_id"`
 	LatestBlock   int64     `json:"latest_block"`
 	LatestUpdate  time.Time `json:"latest_update"`
 }
 
-// BlockList is the API response for ListBlocks.
+// BlockList is the storage response for ListBlocks.
 type BlockList struct {
 	Blocks []Block `json:"blocks"`
 }
 
-// Block is the API response for GetBlock.
+// Block is the storage response for GetBlock.
 type Block struct {
 	Height    int64     `json:"height"`
 	Hash      string    `json:"hash"`
 	Timestamp time.Time `json:"timestamp"`
 }
 
-// TransactionList is the API response for ListTransactions.
+// TransactionList is the storage response for ListTransactions.
 type TransactionList struct {
 	Transactions []Transaction `json:"transactions"`
 }
 
-// Transaction is the API response for GetTransaction.
+// Transaction is the storage response for GetTransaction.
 type Transaction struct {
 	Height  int64  `json:"height"`
 	Hash    string `json:"hash"`
@@ -41,12 +41,12 @@ type Transaction struct {
 	Success bool   `json:"success"`
 }
 
-// EntityList is the API response for ListEntities.
+// EntityList is the storage response for ListEntities.
 type EntityList struct {
 	Entities []Entity `json:"entities"`
 }
 
-// Entity is the API response for GetEntity.
+// Entity is the storage response for GetEntity.
 type Entity struct {
 	ID      string `json:"id"`
 	Address string `json:"address,omitempty"`
@@ -54,13 +54,13 @@ type Entity struct {
 	Nodes []string `json:"nodes"`
 }
 
-// NodeList is the API response for ListEntityNodes.
+// NodeList is the storage response for ListEntityNodes.
 type NodeList struct {
 	EntityID string `json:"entity_id"`
 	Nodes    []Node `json:"nodes"`
 }
 
-// Node is the API response for GetEntityNode.
+// Node is the storage response for GetEntityNode.
 type Node struct {
 	ID              string `json:"id"`
 	EntityID        string `json:"entity_id"`
@@ -72,12 +72,12 @@ type Node struct {
 	Roles           string `json:"roles"`
 }
 
-// AccountList is the API response for ListAccounts.
+// AccountList is the storage response for ListAccounts.
 type AccountList struct {
 	Accounts []Account `json:"accounts"`
 }
 
-// Account is the API response for GetAccount.
+// Account is the storage response for GetAccount.
 type Account struct {
 	Address                     string `json:"address"`
 	Nonce                       uint64 `json:"nonce"`
@@ -90,12 +90,12 @@ type Account struct {
 	Allowances []Allowance `json:"allowances"`
 }
 
-// DebondingDelegationList is the API response for ListDebondingDelegations.
+// DebondingDelegationList is the storage response for ListDebondingDelegations.
 type DebondingDelegationList struct {
 	DebondingDelegations []DebondingDelegation `json:"debonding_delegations"`
 }
 
-// DebondingDelegation is the API response for GetDebondingDelegation.
+// DebondingDelegation is the storage response for GetDebondingDelegation.
 type DebondingDelegation struct {
 	Amount           uint64 `json:"amount"`
 	Shares           uint64 `json:"shares"`
@@ -103,12 +103,12 @@ type DebondingDelegation struct {
 	DebondEnd        uint64 `json:"debond_end"`
 }
 
-// DelegationList is the API response for ListDelegations.
+// DelegationList is the storage response for ListDelegations.
 type DelegationList struct {
 	Delegations []Delegation `json:"delegations"`
 }
 
-// Delegation is the API response for GetDelegation.
+// Delegation is the storage response for GetDelegation.
 type Delegation struct {
 	Amount           uint64 `json:"amount"`
 	Shares           uint64 `json:"shares"`
@@ -120,24 +120,24 @@ type Allowance struct {
 	Amount  uint64 `json:"amount"`
 }
 
-// Epoch is the API response for ListEpochs.
+// Epoch is the storage response for ListEpochs.
 type EpochList struct {
 	Epochs []Epoch `json:"epochs"`
 }
 
-// Epoch is the API response for GetEpoch.
+// Epoch is the storage response for GetEpoch.
 type Epoch struct {
 	ID          uint64 `json:"id"`
 	StartHeight uint64 `json:"start_height"`
 	EndHeight   uint64 `json:"end_height,omitempty"`
 }
 
-// ProposalList is the API response for ListProposals.
+// ProposalList is the storage response for ListProposals.
 type ProposalList struct {
 	Proposals []Proposal `json:"proposals"`
 }
 
-// Proposal is the API response for GetProposal.
+// Proposal is the storage response for GetProposal.
 type Proposal struct {
 	ID           uint64  `json:"id"`
 	Submitter    string  `json:"submitter"`
@@ -158,7 +158,7 @@ type Target struct {
 	RuntimeCommitteeProtocol *string `json:"runtime_committee_protocol"`
 }
 
-// ProposalVotes is the API response for GetProposalVotes.
+// ProposalVotes is the storage response for GetProposalVotes.
 type ProposalVotes struct {
 	ProposalID uint64         `json:"proposal_id"`
 	Votes      []ProposalVote `json:"votes"`
@@ -169,12 +169,12 @@ type ProposalVote struct {
 	Vote    string `json:"vote"`
 }
 
-// ValidatorList is the API response for GetValidators.
+// ValidatorList is the storage response for GetValidators.
 type ValidatorList struct {
 	Validators []Validator `json:"validators"`
 }
 
-// Validator is the API response for GetValidator.
+// Validator is the storage response for GetValidator.
 type Validator struct {
 	Name          string `json:"name"`
 	EntityAddress string `json:"entity_address"`
@@ -208,12 +208,12 @@ type ValidatorCommissionBound struct {
 	EpochEnd   uint64 `json:"epoch_end"`
 }
 
-// RuntimeBlockList is the API response for RuntimeListBlocks.
+// RuntimeBlockList is the storage response for RuntimeListBlocks.
 type RuntimeBlockList struct {
 	Blocks []RuntimeBlock `json:"blocks"`
 }
 
-// Block is the API response for RuntimeGetBlock.
+// Block is the storage response for RuntimeGetBlock.
 type RuntimeBlock struct {
 	Round           int64     `json:"round"`
 	Hash            string    `json:"hash"`
@@ -223,7 +223,22 @@ type RuntimeBlock struct {
 	GasUsed         int64     `json:"gas_used"`
 }
 
-// TpsCheckpointList is the API response for ListTransactionsPerSecond.
+// RuntimeTransactionList is the storage response for RuntimeTransactions.
+type RuntimeTransactionList struct {
+	Transactions []RuntimeTransaction `json:"transactions"`
+}
+
+// RuntimeTransaction is the storage response for RuntimeTransaction.
+type RuntimeTransaction struct {
+	Round     int64
+	Index     int64
+	Hash      string
+	EthHash   *string
+	Raw       []byte
+	ResultRaw []byte
+}
+
+// TpsCheckpointList is the storage response for ListTransactionsPerSecond.
 type TpsCheckpointList struct {
 	IntervalMinutes int             `json:"interval_minutes"`
 	TpsCheckpoints  []TpsCheckpoint `json:"tps_checkpoints"`
@@ -235,7 +250,7 @@ type TpsCheckpoint struct {
 	TxVolume  uint64    `json:"tx_volume"`
 }
 
-// VolumeList is the API response for GetVolumes.
+// VolumeList is the storage response for GetVolumes.
 type VolumeList struct {
 	Volumes []Volume `json:"volumes"`
 }

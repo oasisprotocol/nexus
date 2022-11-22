@@ -1094,6 +1094,60 @@ func (c *StorageClient) RuntimeBlocks(ctx context.Context, r *RuntimeBlocksReque
 	return &bs, nil
 }
 
+// RuntimeTransactions returns a list of runtime transactions.
+func (c *StorageClient) RuntimeTransactions(ctx context.Context, r *RuntimeTransactionsRequest, p *common.Pagination) (*RuntimeTransactionList, error) {
+	cid, ok := ctx.Value(ChainIDContextKey).(string)
+	if !ok {
+		return nil, common.ErrBadChainID
+	}
+	runtime, ok := ctx.Value(RuntimeContextKey).(string)
+	if !ok {
+		return nil, common.ErrBadRuntime
+	}
+	qf := NewQueryFactory(cid, runtime)
+
+	rows, err := c.db.Query(
+		ctx,
+		qf.RuntimeTransactionsQuery(),
+		r.Block,
+		p.Limit,
+		p.Offset,
+	)
+	if err != nil {
+		c.logger.Info("query failed",
+			"request_id", ctx.Value(RequestIDContextKey),
+			"err", err.Error(),
+		)
+		return nil, common.ErrStorageError
+	}
+	defer rows.Close()
+
+	ts := RuntimeTransactionList{
+		Transactions: []RuntimeTransaction{},
+	}
+	for rows.Next() {
+		var t RuntimeTransaction
+		if err := rows.Scan(
+			&t.Round,
+			&t.Index,
+			&t.Hash,
+			&t.EthHash,
+			&t.Raw,
+			&t.ResultRaw,
+		); err != nil {
+			c.logger.Info("row scan failed",
+				"request_id", ctx.Value(RequestIDContextKey),
+				"err", err.Error(),
+			)
+			return nil, common.ErrStorageError
+		}
+
+		ts.Transactions = append(ts.Transactions, t)
+	}
+
+	return &ts, nil
+}
+
 // TransactionsPerSecond returns a list of tps checkpoint values.
 func (c *StorageClient) TransactionsPerSecond(ctx context.Context, p *common.Pagination) (*TpsCheckpointList, error) {
 	qf := NewQueryFactory(strcase.ToSnake(c.chainID), "")

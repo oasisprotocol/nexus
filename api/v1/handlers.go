@@ -642,6 +642,36 @@ func (h *Handler) RuntimeListBlocks(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// RuntimeListTransactions gets a list of runtime transactions.
+func (h *Handler) RuntimeListTransactions(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	transactions, err := h.client.RuntimeTransactions(ctx, r)
+	if err != nil {
+		h.logAndReply(ctx, "failed to list runtime transactions", w, err)
+		h.metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
+		return
+	}
+
+	resp, err := json.Marshal(transactions)
+	if err != nil {
+		h.logAndReply(ctx, "failed to marshal transactions", w, err)
+		h.metrics.RequestCounter(r.URL.Path, "failure", "serde_error").Inc()
+		return
+	}
+
+	w.Header().Set("content-type", "application/json")
+	if _, err := w.Write(resp); err != nil {
+		h.logger.Error("failed to write response",
+			"request_id", ctx.Value(storage.RequestIDContextKey),
+			"error", err,
+		)
+		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
+	} else {
+		h.metrics.RequestCounter(r.URL.Path, "success").Inc()
+	}
+}
+
 // ListTransactionsPerSecond gets a list of TPS values.
 func (h *Handler) ListTransactionsPerSecond(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()

@@ -2,13 +2,13 @@ package v1
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"net/url"
 	"strconv"
 	"time"
 
 	"github.com/go-chi/chi/v5"
-
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
 	governance "github.com/oasisprotocol/oasis-core/go/governance/api"
 	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
@@ -630,6 +630,44 @@ func (c *storageClient) RuntimeBlocks(ctx context.Context, r *http.Request) (*st
 	}
 
 	return c.storage.RuntimeBlocks(ctx, &q, &p)
+}
+
+// RuntimeTransactions returns a list of runtime transactions.
+func (c *storageClient) RuntimeTransactions(ctx context.Context, r *http.Request) (*RuntimeTransactionList, error) {
+	var q storage.RuntimeTransactionsRequest
+	params := r.URL.Query()
+	if v := params.Get("block"); v != "" {
+		block, err := validateInt64(v)
+		if err != nil {
+			return nil, common.ErrBadRequest
+		}
+		q.Block = &block
+	}
+
+	p, err := common.NewPagination(r)
+	if err != nil {
+		c.logger.Info("pagination failed",
+			"request_id", ctx.Value(storage.RequestIDContextKey),
+			"err", err.Error(),
+		)
+		return nil, common.ErrBadRequest
+	}
+
+	storageTransactions, err := c.storage.RuntimeTransactions(ctx, &q, &p)
+	if err != nil {
+		return nil, err
+	}
+
+	var apiTransactions RuntimeTransactionList
+	for _, storageTransaction := range storageTransactions.Transactions {
+		apiTransaction, err2 := renderRuntimeTransaction(storageTransaction)
+		if err2 != nil {
+			return nil, fmt.Errorf("round %d tx %d: %w", storageTransaction.Round, storageTransaction.Index, err2)
+		}
+		apiTransactions.Transactions = append(apiTransactions.Transactions, apiTransaction)
+	}
+
+	return &apiTransactions, err
 }
 
 // TransactionsPerSecond returns a list of tps checkpoint values.
