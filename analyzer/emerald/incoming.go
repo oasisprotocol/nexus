@@ -170,7 +170,6 @@ func registerRelatedAddressSpec(addressPreimages map[string]*AddressPreimageData
 	return addr, nil
 }
 
-//nolint:unparam
 func registerRelatedEthAddress(addressPreimages map[string]*AddressPreimageData, relatedAddresses map[string]bool, ethAddr []byte) (string, error) {
 	addr, err := registerEthAddress(addressPreimages, ethAddr)
 	if err != nil {
@@ -342,16 +341,16 @@ func extractRound(b *block.Block, txrs []*sdkClient.TransactionWithResults, logg
 						amount := &big.Int{}
 						amount.SetBytes(amountU256)
 						if !bytes.Equal(fromEthAddr, common.ZeroEthAddr) {
-							fromAddr, err1 := registerRelatedEthAddress(blockData.AddressPreimages, blockTransactionData.RelatedAccountAddresses, fromEthAddr)
-							if err1 != nil {
-								return fmt.Errorf("from: %w", err1)
+							fromAddr, err2 := registerRelatedEthAddress(blockData.AddressPreimages, blockTransactionData.RelatedAccountAddresses, fromEthAddr)
+							if err2 != nil {
+								return fmt.Errorf("from: %w", err2)
 							}
 							registerTokenDecrease(blockData.TokenChanges, eventAddr, fromAddr, amount)
 						}
 						if !bytes.Equal(toEthAddr, common.ZeroEthAddr) {
-							toAddr, err1 := registerRelatedEthAddress(blockData.AddressPreimages, blockTransactionData.RelatedAccountAddresses, toEthAddr)
-							if err1 != nil {
-								return fmt.Errorf("to: %w", err1)
+							toAddr, err2 := registerRelatedEthAddress(blockData.AddressPreimages, blockTransactionData.RelatedAccountAddresses, toEthAddr)
+							if err2 != nil {
+								return fmt.Errorf("to: %w", err2)
 							}
 							registerTokenIncrease(blockData.TokenChanges, eventAddr, toAddr, amount)
 						}
@@ -359,15 +358,15 @@ func extractRound(b *block.Block, txrs []*sdkClient.TransactionWithResults, logg
 					},
 					Erc20Approval: func(ownerEthAddr []byte, spenderEthAddr []byte, amountU256 []byte) error {
 						if !bytes.Equal(ownerEthAddr, common.ZeroEthAddr) {
-							_, err1 := registerRelatedEthAddress(blockData.AddressPreimages, blockTransactionData.RelatedAccountAddresses, ownerEthAddr)
-							if err1 != nil {
-								return fmt.Errorf("owner: %w", err1)
+							_, err2 := registerRelatedEthAddress(blockData.AddressPreimages, blockTransactionData.RelatedAccountAddresses, ownerEthAddr)
+							if err2 != nil {
+								return fmt.Errorf("owner: %w", err2)
 							}
 						}
 						if !bytes.Equal(spenderEthAddr, common.ZeroEthAddr) {
-							_, err1 := registerRelatedEthAddress(blockData.AddressPreimages, blockTransactionData.RelatedAccountAddresses, spenderEthAddr)
-							if err1 != nil {
-								return fmt.Errorf("spender: %w", err1)
+							_, err2 := registerRelatedEthAddress(blockData.AddressPreimages, blockTransactionData.RelatedAccountAddresses, spenderEthAddr)
+							if err2 != nil {
+								return fmt.Errorf("spender: %w", err2)
 							}
 						}
 						return nil
