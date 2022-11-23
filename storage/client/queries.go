@@ -301,6 +301,16 @@ func (qf QueryFactory) RuntimeTransactionsQuery() string {
 		OFFSET $3::bigint`, qf.chainID, qf.runtime)
 }
 
+func (qf QueryFactory) RuntimeTokensQuery() string {
+	return fmt.Sprintf(`
+		SELECT token_address, COUNT(*) AS num_holders
+			FROM %s.%s_token_balances
+		GROUP BY token_address
+		ORDER BY num_holders DESC
+		LIMIT $1::bigint
+		OFFSET $2::bigint`, qf.chainID, qf.runtime)
+}
+
 func (qf QueryFactory) TpsCheckpointQuery() string {
 	return `
 		SELECT hour, min_slot, tx_volume

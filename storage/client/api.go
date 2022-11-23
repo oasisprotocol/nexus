@@ -113,3 +113,5 @@ type RuntimeBlocksRequest struct {
 type RuntimeTransactionsRequest struct {
 	Block *int64
 }
+
+type RuntimeTokensRequest struct{}
