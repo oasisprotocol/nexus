@@ -106,6 +106,8 @@ CREATE TABLE oasis_3.emerald_token_balances
   PRIMARY KEY (token_address, account_address)
 );
 
+CREATE INDEX ix_emerald_token_address ON oasis_3.emerald_token_balances (token_address) WHERE balance != 0;
+
 -- Core Module Data
 CREATE TABLE oasis_3.emerald_gas_used
 (
