@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/hex"
 	"fmt"
+	"math/big"
 
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/address"
@@ -45,6 +46,15 @@ type AddressPreimageData struct {
 	Data              []byte
 }
 
+type TokenChangeKey struct {
+	// TokenAddress is the Oasis address of the smart contract of the
+	// compatible (e.g. ERC-20) token.
+	TokenAddress string
+	// AccountAddress is the Oasis address of the owner of some amount of the
+	// compatible (e.g. ERC-20) token.
+	AccountAddress string
+}
+
 type BlockData struct {
 	Hash             string
 	NumTransactions  int
@@ -52,6 +62,7 @@ type BlockData struct {
 	Size             int
 	TransactionData  []*BlockTransactionData
 	AddressPreimages map[string]*AddressPreimageData
+	TokenChanges     map[TokenChangeKey]*big.Int
 }
 
 // Function naming conventions in this file:
@@ -159,7 +170,6 @@ func registerRelatedAddressSpec(addressPreimages map[string]*AddressPreimageData
 	return addr, nil
 }
 
-//nolint:unparam
 func registerRelatedEthAddress(addressPreimages map[string]*AddressPreimageData, relatedAddresses map[string]bool, ethAddr []byte) (string, error) {
 	addr, err := registerEthAddress(addressPreimages, ethAddr)
 	if err != nil {
@@ -171,6 +181,26 @@ func registerRelatedEthAddress(addressPreimages map[string]*AddressPreimageData,
 	return addr, nil
 }
 
+func findTokenChange(tokenChanges map[TokenChangeKey]*big.Int, contractAddr string, accountAddr string) *big.Int {
+	key := TokenChangeKey{contractAddr, accountAddr}
+	change, ok := tokenChanges[key]
+	if !ok {
+		change = &big.Int{}
+		tokenChanges[key] = change
+	}
+	return change
+}
+
+func registerTokenIncrease(tokenChanges map[TokenChangeKey]*big.Int, contractAddr string, accountAddr string, amount *big.Int) {
+	change := findTokenChange(tokenChanges, contractAddr, accountAddr)
+	change.Add(change, amount)
+}
+
+func registerTokenDecrease(tokenChanges map[TokenChangeKey]*big.Int, contractAddr string, accountAddr string, amount *big.Int) {
+	change := findTokenChange(tokenChanges, contractAddr, accountAddr)
+	change.Sub(change, amount)
+}
+
 //nolint:gocyclo
 func extractRound(b *block.Block, txrs []*sdkClient.TransactionWithResults, logger *log.Logger) (*BlockData, error) {
 	var blockData BlockData
@@ -178,6 +208,7 @@ func extractRound(b *block.Block, txrs []*sdkClient.TransactionWithResults, logg
 	blockData.NumTransactions = len(txrs)
 	blockData.TransactionData = make([]*BlockTransactionData, 0, len(txrs))
 	blockData.AddressPreimages = map[string]*AddressPreimageData{}
+	blockData.TokenChanges = map[TokenChangeKey]*big.Int{}
 	for txIndex, txr := range txrs {
 		var blockTransactionData BlockTransactionData
 		blockTransactionData.Index = txIndex
@@ -301,33 +332,41 @@ func extractRound(b *block.Block, txrs []*sdkClient.TransactionWithResults, logg
 				return nil
 			},
 			Evm: func(event *evm.Event) error {
-				if err1 := common.VisitEvmEvent(event, &common.EvmEventHandler{
+				eventAddr, err1 := registerRelatedEthAddress(blockData.AddressPreimages, blockTransactionData.RelatedAccountAddresses, event.Address)
+				if err1 != nil {
+					return fmt.Errorf("event address: %w", err1)
+				}
+				if err1 = common.VisitEvmEvent(event, &common.EvmEventHandler{
 					Erc20Transfer: func(fromEthAddr []byte, toEthAddr []byte, amountU256 []byte) error {
+						amount := &big.Int{}
+						amount.SetBytes(amountU256)
 						if !bytes.Equal(fromEthAddr, common.ZeroEthAddr) {
-							_, err1 := registerRelatedEthAddress(blockData.AddressPreimages, blockTransactionData.RelatedAccountAddresses, fromEthAddr)
-							if err1 != nil {
-								return fmt.Errorf("from: %w", err1)
+							fromAddr, err2 := registerRelatedEthAddress(blockData.AddressPreimages, blockTransactionData.RelatedAccountAddresses, fromEthAddr)
+							if err2 != nil {
+								return fmt.Errorf("from: %w", err2)
 							}
+							registerTokenDecrease(blockData.TokenChanges, eventAddr, fromAddr, amount)
 						}
 						if !bytes.Equal(toEthAddr, common.ZeroEthAddr) {
-							_, err1 := registerRelatedEthAddress(blockData.AddressPreimages, blockTransactionData.RelatedAccountAddresses, toEthAddr)
-							if err1 != nil {
-								return fmt.Errorf("to: %w", err1)
+							toAddr, err2 := registerRelatedEthAddress(blockData.AddressPreimages, blockTransactionData.RelatedAccountAddresses, toEthAddr)
+							if err2 != nil {
+								return fmt.Errorf("to: %w", err2)
 							}
+							registerTokenIncrease(blockData.TokenChanges, eventAddr, toAddr, amount)
 						}
 						return nil
 					},
 					Erc20Approval: func(ownerEthAddr []byte, spenderEthAddr []byte, amountU256 []byte) error {
 						if !bytes.Equal(ownerEthAddr, common.ZeroEthAddr) {
-							_, err1 := registerRelatedEthAddress(blockData.AddressPreimages, blockTransactionData.RelatedAccountAddresses, ownerEthAddr)
-							if err1 != nil {
-								return fmt.Errorf("owner: %w", err1)
+							_, err2 := registerRelatedEthAddress(blockData.AddressPreimages, blockTransactionData.RelatedAccountAddresses, ownerEthAddr)
+							if err2 != nil {
+								return fmt.Errorf("owner: %w", err2)
 							}
 						}
 						if !bytes.Equal(spenderEthAddr, common.ZeroEthAddr) {
-							_, err1 := registerRelatedEthAddress(blockData.AddressPreimages, blockTransactionData.RelatedAccountAddresses, spenderEthAddr)
-							if err1 != nil {
-								return fmt.Errorf("spender: %w", err1)
+							_, err2 := registerRelatedEthAddress(blockData.AddressPreimages, blockTransactionData.RelatedAccountAddresses, spenderEthAddr)
+							if err2 != nil {
+								return fmt.Errorf("spender: %w", err2)
 							}
 						}
 						return nil
@@ -380,5 +419,8 @@ func emitRoundBatch(batch *storage.QueryBatch, qf *analyzer.QueryFactory, round 
 	}
 	for addr, preimageData := range blockData.AddressPreimages {
 		batch.Queue(qf.AddressPreimageInsertQuery(), addr, preimageData.ContextIdentifier, preimageData.ContextVersion, preimageData.Data)
+	}
+	for key, change := range blockData.TokenChanges {
+		batch.Queue(qf.RuntimeTokenChangeUpdateQuery(), key.TokenAddress, key.AccountAddress, change.String())
 	}
 }
