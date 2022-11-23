@@ -1406,7 +1406,7 @@ components:
           items:
             $ref: '#/components/schemas/RuntimeTransaction'
       description: |
-        A list of consensus transactions.
+        A list of runtime transactions.
 
     RuntimeTransaction:
       type: object
