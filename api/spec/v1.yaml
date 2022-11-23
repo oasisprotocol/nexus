@@ -791,6 +791,27 @@ paths:
         '500':
           $ref: '#/components/responses/ServerError'
 
+  /emerald/tokens:
+    get:
+      summary: Returns a list of ERC-20 tokens on Emerald.
+      parameters:
+        - *limit
+        - *offset
+      responses:
+        '200':
+          description: |
+            A JSON object containing a list of ERC-20 tokens on Emerald.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RuntimeTokenList'
+        '400':
+          $ref: '#/components/responses/InvalidRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
   /consensus/stats/tps:
     get:
       summary: Returns the consensus layer TPS for each 5 minute interval.
@@ -1474,6 +1495,31 @@ components:
           description: Whether this transaction successfully executed.
       description: |
         A runtime transaction.
+
+    RuntimeTokenList:
+      type: object
+      properties:
+        tokens:
+          type: array
+          items:
+            $ref: '#/components/schemas/RuntimeToken'
+      description: |
+        A list of ERC-20 tokens on a runtime.
+
+    RuntimeToken:
+      type: object
+      properties:
+        token_addr:
+          type: string
+          description: The Oasis address of this token's contract.
+          example: 'oasis1qp2hssandc7dekjdr6ygmtzt783k3gn38uupdeys'
+        num_holders:
+          type: integer
+          format: int64
+          description: |
+            The number of addresses that have a nonzero balance of this token,
+            as calculated from Transfer events.
+          example: 123
 
     TpsCheckpoints:
       type: object
