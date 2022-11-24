@@ -440,7 +440,7 @@ func validateNodes(t *testing.T, genesis *registryAPI.Genesis, source *oasis.Con
 		actualNodes[n.ID] = n
 	}
 
-	assert.Equal(t, len(expectedNodes), len(actualNodes))
+	assert.Equal(t, len(expectedNodes), len(actualNodes), "wrong number of nodes")
 	for ke, ve := range expectedNodes {
 		va, ok := actualNodes[ke]
 		if !ok {
@@ -576,6 +576,16 @@ func validateAccounts(t *testing.T, genesis *stakingAPI.Genesis, source *oasis.C
 			&a.Debonding,
 		)
 		assert.Nil(t, err)
+
+		isReservedAddress :=
+			a.Address == stakingAPI.CommonPoolAddress.String() ||
+				a.Address == stakingAPI.FeeAccumulatorAddress.String() ||
+				a.Address == stakingAPI.GovernanceDepositsAddress.String() ||
+				a.Address == "oasis1qzq8u7xs328puu2jy524w3fygzs63rv3u5967970" // == stakingAPI.BurnAddress.String(); not yet exposed in the released stakingAPI
+		if isReservedAddress {
+			// Reserved addresses are explicitly not included in the ledger (and thus in the genesis dump).
+			continue
+		}
 
 		actualAllowances := make(map[string]uint64)
 		allowanceRows, err := target.Query(ctx, fmt.Sprintf(`
