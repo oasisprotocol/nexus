@@ -566,6 +566,7 @@ func validateAccounts(t *testing.T, genesis *stakingAPI.Genesis, source *oasis.C
 				FROM %s.accounts_checkpoint`, chainID),
 	)
 	require.Nil(t, err)
+	actualAccts := make(map[string]bool)
 	for acctRows.Next() {
 		var a TestAccount
 		err = acctRows.Scan(
@@ -576,6 +577,7 @@ func validateAccounts(t *testing.T, genesis *stakingAPI.Genesis, source *oasis.C
 			&a.Debonding,
 		)
 		assert.Nil(t, err)
+		actualAccts[a.Address] = true
 
 		isReservedAddress :=
 			a.Address == stakingAPI.CommonPoolAddress.String() ||
@@ -614,7 +616,8 @@ func validateAccounts(t *testing.T, genesis *stakingAPI.Genesis, source *oasis.C
 
 		acct, ok := genesis.Ledger[address]
 		if !ok {
-			t.Logf("address %s expected, but not found", address.String())
+			t.Logf("address %s found, but not expected", address.String())
+			t.Fail()
 			continue
 		}
 
@@ -632,6 +635,20 @@ func validateAccounts(t *testing.T, genesis *stakingAPI.Genesis, source *oasis.C
 			Allowances: expectedAllowances,
 		}
 		assert.Equal(t, e, a)
+	}
+	for addr, acct := range genesis.Ledger {
+		hasBalance :=
+			!acct.General.Balance.IsZero() ||
+				!acct.Escrow.Active.Balance.IsZero() ||
+				!acct.Escrow.Debonding.Balance.IsZero()
+		if !hasBalance { // the indexer doesn't have to know about this acct
+			continue
+		}
+
+		if !actualAccts[addr.String()] {
+			t.Logf("address %s expected, but not found", addr.String())
+			t.Fail()
+		}
 	}
 }
 
