@@ -86,7 +86,7 @@ type TestVote struct {
 
 func newTargetClient(t *testing.T) (*postgres.Client, error) {
 	connString := os.Getenv("HEALTHCHECK_TEST_CONN_STRING")
-	logger, err := log.NewLogger("cockroach-test", io.Discard, log.FmtJSON, log.LevelInfo)
+	logger, err := log.NewLogger("db-test", io.Discard, log.FmtJSON, log.LevelInfo)
 	assert.Nil(t, err)
 
 	return postgres.NewClient(connString, logger)
@@ -100,10 +100,14 @@ func newSourceClientFactory() (*oasis.ClientFactory, error) {
 	return oasis.NewClientFactory(context.Background(), network)
 }
 
+var chainId = "" // Memoization for getChainId(). Assumes all tests access the same chain.
 func getChainID(ctx context.Context, t *testing.T, source *oasis.ConsensusClient) string {
-	doc, err := source.GenesisDocument(ctx)
-	assert.Nil(t, err)
-	return strcase.ToSnake(doc.ChainID)
+	if chainId == "" {
+		doc, err := source.GenesisDocument(ctx)
+		assert.Nil(t, err)
+		chainId = strcase.ToSnake(doc.ChainID)
+	}
+	return chainId
 }
 
 func checkpointBackends(t *testing.T, source *oasis.ConsensusClient, target *postgres.Client) (int64, error) {
@@ -172,9 +176,7 @@ func TestBlocksSanityCheck(t *testing.T) {
 	postgresClient, err := newTargetClient(t)
 	require.Nil(t, err)
 
-	doc, err := oasisClient.GenesisDocument(ctx)
-	require.Nil(t, err)
-	chainID := strcase.ToSnake(doc.ChainID)
+	chainID := getChainID(ctx, t, oasisClient)
 
 	var latestHeight int64
 	err = postgresClient.QueryRow(ctx, fmt.Sprintf(
