@@ -142,6 +142,7 @@ func (c *Client) Name() string {
 
 // Wipe removes all contents of the database.
 func (c *Client) Wipe(ctx context.Context) error {
+	// List, then drop all tables.
 	rows, err := c.Query(ctx, `
 		SELECT schemaname, tablename
 		FROM pg_tables
@@ -160,5 +161,30 @@ func (c *Client) Wipe(ctx context.Context) error {
 			return err
 		}
 	}
-	return err
+
+	// List, then drop all custom types.
+	// Query from https://stackoverflow.com/questions/3660787/how-to-list-custom-types-using-postgres-information-schema
+	rows, err = c.Query(ctx, `
+		SELECT      n.nspname as schema, t.typname as type 
+		FROM        pg_type t 
+		LEFT JOIN   pg_catalog.pg_namespace n ON n.oid = t.typnamespace 
+		WHERE       (t.typrelid = 0 OR (SELECT c.relkind = 'c' FROM pg_catalog.pg_class c WHERE c.oid = t.typrelid)) 
+		AND     NOT EXISTS(SELECT 1 FROM pg_catalog.pg_type el WHERE el.oid = t.typelem AND el.typarray = t.oid)
+		AND     n.nspname NOT IN ('pg_catalog', 'information_schema');
+	`)
+	if err != nil {
+		return fmt.Errorf("failed to list types: %w", err)
+	}
+	for rows.Next() {
+		var schema, typ string
+		if err = rows.Scan(&schema, &typ); err != nil {
+			return err
+		}
+		c.logger.Info("dropping type", "schema", schema, "type", typ)
+		if _, err = c.pool.Exec(ctx, fmt.Sprintf("DROP TYPE %s.%s CASCADE;", schema, typ)); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
