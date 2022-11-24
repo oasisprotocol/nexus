@@ -506,7 +506,7 @@ func validateRuntimes(t *testing.T, genesis *registryAPI.Genesis, source *oasis.
 	}
 
 	runtimeRows, err := target.Query(ctx, fmt.Sprintf(
-		`SELECT id, suspended, kind, tee_hardware, key_manager FROM %s.runtimes_checkpoint`, chainID),
+		`SELECT id, suspended, kind, tee_hardware, COALESCE(key_manager, 'none') FROM %s.runtimes_checkpoint`, chainID),
 	)
 	require.Nil(t, err)
 
@@ -520,7 +520,10 @@ func validateRuntimes(t *testing.T, genesis *registryAPI.Genesis, source *oasis.
 			&tr.TeeHardware,
 			&tr.KeyManager,
 		)
-		assert.Nil(t, err)
+		if err != nil {
+			// We want to display err.Error(), or else the message is incomprehensible when it fails.
+			require.Nil(t, err, "error scanning runtime row", "errMsg", err.Error())
+		}
 
 		actualRuntimes[tr.ID] = tr
 	}
