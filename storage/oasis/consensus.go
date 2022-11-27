@@ -66,6 +66,44 @@ func (cc *ConsensusClient) GetEpoch(ctx context.Context, height int64) (api.Epoc
 	return cc.client.Beacon().GetEpoch(ctx, height)
 }
 
+// AtHeightData returns all relevant data related to the given height.
+func (cc *ConsensusClient) AtHeightData(ctx context.Context, height int64) (*storage.ConsensusAtHeightData, error) {
+	blockData, err := cc.BlockData(ctx, height)
+	if err != nil {
+		return nil, err
+	}
+	beaconData, err := cc.BeaconData(ctx, height)
+	if err != nil {
+		return nil, err
+	}
+	registryData, err := cc.RegistryData(ctx, height)
+	if err != nil {
+		return nil, err
+	}
+	stakingData, err := cc.StakingData(ctx, height)
+	if err != nil {
+		return nil, err
+	}
+	schedulerData, err := cc.SchedulerData(ctx, height)
+	if err != nil {
+		return nil, err
+	}
+	governanceData, err := cc.GovernanceData(ctx, height)
+	if err != nil {
+		return nil, err
+	}
+
+	data := storage.ConsensusAtHeightData{
+		BlockData:      blockData,
+		BeaconData:     beaconData,
+		RegistryData:   registryData,
+		StakingData:    stakingData,
+		SchedulerData:  schedulerData,
+		GovernanceData: governanceData,
+	}
+	return &data, nil
+}
+
 // BlockData retrieves data about a consensus block at the provided block height.
 func (cc *ConsensusClient) BlockData(ctx context.Context, height int64) (*storage.ConsensusBlockData, error) {
 	block, err := cc.client.GetBlock(ctx, height)
@@ -101,12 +139,13 @@ func (cc *ConsensusClient) BlockData(ctx context.Context, height int64) (*storag
 }
 
 // BeaconData retrieves the beacon for the provided block height.
-// NOTE: The random beacon endpoint is in flux.
 func (cc *ConsensusClient) BeaconData(ctx context.Context, height int64) (*storage.BeaconData, error) {
-	beacon, err := cc.client.Beacon().GetBeacon(ctx, height)
-	if err != nil {
-		return nil, err
-	}
+	// NOTE: The random beacon endpoint is in flux.
+	// GetBeacon() consistently errors out (at least for heights soon after Damask genesis) with "beacon: random beacon not available".
+	// beacon, err := cc.client.Beacon().GetBeacon(ctx, height)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
 	epoch, err := cc.GetEpoch(ctx, height)
 	if err != nil {
@@ -115,7 +154,7 @@ func (cc *ConsensusClient) BeaconData(ctx context.Context, height int64) (*stora
 
 	return &storage.BeaconData{
 		Epoch:  epoch,
-		Beacon: beacon,
+		Beacon: nil,
 	}, nil
 }
 

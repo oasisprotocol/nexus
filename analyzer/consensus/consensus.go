@@ -18,7 +18,6 @@ import (
 	"github.com/oasisprotocol/oasis-core/go/consensus/api/transaction/results"
 	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
 	oasisConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
-	"golang.org/x/sync/errgroup"
 
 	"github.com/oasisprotocol/oasis-indexer/analyzer"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/util"
@@ -271,54 +270,83 @@ func (m *Main) processGenesis(ctx context.Context) error {
 // from source storage and committing an atomically-executed batch of queries
 // to target storage.
 func (m *Main) processBlock(ctx context.Context, height int64) error {
-	group, groupCtx := errgroup.WithContext(ctx)
-
-	// Prepare and perform updates.
-	batch := &storage.QueryBatch{}
-	queries := make([]*storage.QueryBatch, 0)
-
-	type prepareFunc = func(context.Context, int64, *storage.QueryBatch) error
-	for _, f := range []prepareFunc{
-		m.prepareBlockData,
-		m.prepareRegistryData,
-		m.prepareStakingData,
-		m.prepareSchedulerData,
-		m.prepareGovernanceData,
-	} {
-		func(f prepareFunc) {
-			batch := storage.QueryBatch{}
-			queries = append(queries, &batch)
-			group.Go(func() error {
-				return f(groupCtx, height, &batch)
-			})
-		}(f)
-	}
-
-	// Update indexing progress.
-	group.Go(func() error {
-		batch.Queue(
-			m.qf.IndexingProgressQuery(),
-			height,
-			consensusDamaskAnalyzerName,
-		)
-		return nil
-	})
-
-	if err := group.Wait(); err != nil {
-		if strings.Contains(err.Error(), "must be less than or equal to the current blockchain height") {
-			return analyzer.ErrOutOfRange
-		}
+	// Fetch all data.
+	source, err := m.source(height)
+	if err != nil {
 		return err
 	}
 
-	for i, b := range queries {
-		if b.Len() == 0 {
-			m.logger.Debug(fmt.Sprintf("Block %d goroutine %d emitted zero queries", height, i))
-			continue
-		}
-		batch.Extend(b)
+	data, err := source.AtHeightData(ctx, height)
+	if err != nil {
+		return err
 	}
 
+	// Process data, prepare updates.
+	batch := &storage.QueryBatch{}
+	for _, f := range []func(*storage.QueryBatch, *storage.ConsensusBlockData) error{
+		m.queueBlockInserts,
+		m.queueEpochInserts,
+		m.queueTransactionInserts,
+		m.queueEventInserts,
+	} {
+		if err := f(batch, data.BlockData); err != nil {
+			if strings.Contains(err.Error(), "must be less than or equal to the current blockchain height") {
+				return analyzer.ErrOutOfRange
+			}
+			return err
+		}
+	}
+
+	for _, f := range []func(*storage.QueryBatch, *storage.RegistryData) error{
+		m.queueRuntimeRegistrations,
+		m.queueRuntimeStatusUpdates,
+		m.queueEntityEvents,
+		m.queueNodeEvents,
+	} {
+		if err := f(batch, data.RegistryData); err != nil {
+			return err
+		}
+	}
+
+	for _, f := range []func(*storage.QueryBatch, *storage.StakingData) error{
+		m.queueTransfers,
+		m.queueBurns,
+		m.queueEscrows,
+		m.queueAllowanceChanges,
+	} {
+		if err := f(batch, data.StakingData); err != nil {
+			return err
+		}
+	}
+
+	for _, f := range []func(*storage.QueryBatch, *storage.SchedulerData) error{
+		m.queueValidatorUpdates,
+		m.queueCommitteeUpdates,
+	} {
+		if err := f(batch, data.SchedulerData); err != nil {
+			return err
+		}
+	}
+
+	for _, f := range []func(*storage.QueryBatch, *storage.GovernanceData) error{
+		m.queueSubmissions,
+		m.queueExecutions,
+		m.queueFinalizations,
+		m.queueVotes,
+	} {
+		if err := f(batch, data.GovernanceData); err != nil {
+			return err
+		}
+	}
+
+	// Update indexing progress.
+	batch.Queue(
+		m.qf.IndexingProgressQuery(),
+		height,
+		consensusDamaskAnalyzerName,
+	)
+
+	// Apply updates to DB.
 	opName := "process_block_consensus"
 	timer := m.metrics.DatabaseTimer(m.target.Name(), opName)
 	defer timer.ObserveDuration()
@@ -328,32 +356,6 @@ func (m *Main) processBlock(ctx context.Context, height int64) error {
 		return err
 	}
 	m.metrics.DatabaseCounter(m.target.Name(), opName, "success").Inc()
-	return nil
-}
-
-// prepareBlockData adds block data queries to the batch.
-func (m *Main) prepareBlockData(ctx context.Context, height int64, batch *storage.QueryBatch) error {
-	source, err := m.source(height)
-	if err != nil {
-		return err
-	}
-
-	data, err := source.BlockData(ctx, height)
-	if err != nil {
-		return err
-	}
-
-	for _, f := range []func(*storage.QueryBatch, *storage.ConsensusBlockData) error{
-		m.queueBlockInserts,
-		m.queueEpochInserts,
-		m.queueTransactionInserts,
-		m.queueEventInserts,
-	} {
-		if err := f(batch, data); err != nil {
-			return err
-		}
-	}
-
 	return nil
 }
 
@@ -469,38 +471,6 @@ func (m *Main) queueEventInserts(batch *storage.QueryBatch, data *storage.Consen
 				data.Transactions[i].Hash().Hex(),
 				i,
 			)
-		}
-	}
-
-	return nil
-}
-
-// prepareRegistryData adds registry data queries to the batch.
-func (m *Main) prepareRegistryData(ctx context.Context, height int64, batch *storage.QueryBatch) error {
-	source, err := m.source(height)
-	if err != nil {
-		return err
-	}
-
-	data, err := source.RegistryData(ctx, height)
-	if err != nil {
-		return err
-	}
-
-	for _, f := range []func(*storage.QueryBatch, *storage.RegistryData) error{
-		m.queueRuntimeRegistrations,
-		m.queueRuntimeStatusUpdates,
-		m.queueEntityEvents,
-		m.queueNodeEvents,
-	} {
-		if err := f(batch, data); err != nil {
-			return err
-		}
-	}
-
-	if height%registryUpdateFrequency == 0 {
-		if err := m.queueMetadataRegistry(ctx, batch); err != nil {
-			return err
 		}
 	}
 
@@ -645,31 +615,6 @@ func (m *Main) queueMetadataRegistry(ctx context.Context, batch *storage.QueryBa
 	return nil
 }
 
-func (m *Main) prepareStakingData(ctx context.Context, height int64, batch *storage.QueryBatch) error {
-	source, err := m.source(height)
-	if err != nil {
-		return err
-	}
-
-	data, err := source.StakingData(ctx, height)
-	if err != nil {
-		return err
-	}
-
-	for _, f := range []func(*storage.QueryBatch, *storage.StakingData) error{
-		m.queueTransfers,
-		m.queueBurns,
-		m.queueEscrows,
-		m.queueAllowanceChanges,
-	} {
-		if err := f(batch, data); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
 func (m *Main) queueTransfers(batch *storage.QueryBatch, data *storage.StakingData) error {
 	senderUpdateQuery := m.qf.ConsensusSenderUpdateQuery()
 	receiverUpsertQuery := m.qf.ConsensusReceiverUpdateQuery()
@@ -801,30 +746,6 @@ func (m *Main) queueAllowanceChanges(batch *storage.QueryBatch, data *storage.St
 	return nil
 }
 
-// prepareSchedulerData adds scheduler data queries to the batch.
-func (m *Main) prepareSchedulerData(ctx context.Context, height int64, batch *storage.QueryBatch) error {
-	source, err := m.source(height)
-	if err != nil {
-		return err
-	}
-
-	data, err := source.SchedulerData(ctx, height)
-	if err != nil {
-		return err
-	}
-
-	for _, f := range []func(*storage.QueryBatch, *storage.SchedulerData) error{
-		m.queueValidatorUpdates,
-		m.queueCommitteeUpdates,
-	} {
-		if err := f(batch, data); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
 func (m *Main) queueValidatorUpdates(batch *storage.QueryBatch, data *storage.SchedulerData) error {
 	validatorNodeUpdateQuery := m.qf.ConsensusValidatorNodeUpdateQuery()
 	for _, validator := range data.Validators {
@@ -855,32 +776,6 @@ func (m *Main) queueCommitteeUpdates(batch *storage.QueryBatch, data *storage.Sc
 					member.Role.String(),
 				)
 			}
-		}
-	}
-
-	return nil
-}
-
-// prepareGovernanceData adds governance data queries to the batch.
-func (m *Main) prepareGovernanceData(ctx context.Context, height int64, batch *storage.QueryBatch) error {
-	source, err := m.source(height)
-	if err != nil {
-		return err
-	}
-
-	data, err := source.GovernanceData(ctx, height)
-	if err != nil {
-		return err
-	}
-
-	for _, f := range []func(*storage.QueryBatch, *storage.GovernanceData) error{
-		m.queueSubmissions,
-		m.queueExecutions,
-		m.queueFinalizations,
-		m.queueVotes,
-	} {
-		if err := f(batch, data); err != nil {
-			return err
 		}
 	}
 
