@@ -102,14 +102,14 @@ func newSourceClientFactory() (*oasis.ClientFactory, error) {
 	return oasis.NewClientFactory(context.Background(), network)
 }
 
-var chainId = "" // Memoization for getChainId(). Assumes all tests access the same chain.
+var chainID = "" // Memoization for getChainId(). Assumes all tests access the same chain.
 func getChainID(ctx context.Context, t *testing.T, source *oasis.ConsensusClient) string {
-	if chainId == "" {
+	if chainID == "" {
 		doc, err := source.GenesisDocument(ctx)
 		assert.Nil(t, err)
-		chainId = strcase.ToSnake(doc.ChainID)
+		chainID = strcase.ToSnake(doc.ChainID)
 	}
-	return chainId
+	return chainID
 }
 
 func checkpointBackends(t *testing.T, source *oasis.ConsensusClient, target *postgres.Client) (int64, error) {
@@ -228,12 +228,12 @@ func TestGenesisFull(t *testing.T) {
 	genesisPath := os.Getenv("OASIS_GENESIS_DUMP")
 	if genesisPath != "" {
 		t.Log("Reading genesis from dump at", genesisPath)
-		genesisJson, err := os.ReadFile(genesisPath)
+		gensisJSON, err := os.ReadFile(genesisPath)
 		if err != nil {
 			require.Nil(t, err)
 		}
 		var genesis genesisAPI.Document
-		err = json.Unmarshal([]byte(genesisJson), &genesis)
+		err = json.Unmarshal(gensisJSON, &genesis)
 		if err != nil {
 			require.Nil(t, err)
 		}
@@ -579,11 +579,10 @@ func validateAccounts(t *testing.T, genesis *stakingAPI.Genesis, source *oasis.C
 		assert.Nil(t, err)
 		actualAccts[a.Address] = true
 
-		isReservedAddress :=
-			a.Address == stakingAPI.CommonPoolAddress.String() ||
-				a.Address == stakingAPI.FeeAccumulatorAddress.String() ||
-				a.Address == stakingAPI.GovernanceDepositsAddress.String() ||
-				a.Address == "oasis1qzq8u7xs328puu2jy524w3fygzs63rv3u5967970" // == stakingAPI.BurnAddress.String(); not yet exposed in the released stakingAPI
+		isReservedAddress := a.Address == stakingAPI.CommonPoolAddress.String() ||
+			a.Address == stakingAPI.FeeAccumulatorAddress.String() ||
+			a.Address == stakingAPI.GovernanceDepositsAddress.String() ||
+			a.Address == "oasis1qzq8u7xs328puu2jy524w3fygzs63rv3u5967970" // == stakingAPI.BurnAddress.String(); not yet exposed in the released stakingAPI
 		if isReservedAddress {
 			// Reserved addresses are explicitly not included in the ledger (and thus in the genesis dump).
 			continue
@@ -637,10 +636,9 @@ func validateAccounts(t *testing.T, genesis *stakingAPI.Genesis, source *oasis.C
 		assert.Equal(t, e, a)
 	}
 	for addr, acct := range genesis.Ledger {
-		hasBalance :=
-			!acct.General.Balance.IsZero() ||
-				!acct.Escrow.Active.Balance.IsZero() ||
-				!acct.Escrow.Debonding.Balance.IsZero()
+		hasBalance := !acct.General.Balance.IsZero() ||
+			!acct.Escrow.Active.Balance.IsZero() ||
+			!acct.Escrow.Debonding.Balance.IsZero()
 		if !hasBalance { // the indexer doesn't have to know about this acct
 			continue
 		}
