@@ -46,6 +46,11 @@ func (b *QueryBatch) Queue(cmd string, args ...interface{}) {
 	})
 }
 
+// Append merges another batch into the current batch.
+func (b *QueryBatch) Append(qb *QueryBatch) {
+	b.items = append(b.items, qb.items...)
+}
+
 // AsPgxBatch converts a QueryBatch to a pgx.Batch.
 func (b *QueryBatch) AsPgxBatch() pgx.Batch {
 	pgxBatch := pgx.Batch{}

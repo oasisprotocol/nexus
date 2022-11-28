@@ -275,20 +275,21 @@ func (m *Main) processBlock(ctx context.Context, height int64) error {
 
 	// Prepare and perform updates.
 	batch := &storage.QueryBatch{}
+	queries := make([]*storage.QueryBatch, 6)
 
-	type prepareFunc = func(context.Context, int64, *storage.QueryBatch) error
-	for _, f := range []prepareFunc{
+	type prepareFunc = func(context.Context, int, []*storage.QueryBatch, int64) error
+	for i, f := range []prepareFunc{
 		m.prepareBlockData,
 		m.prepareRegistryData,
 		m.prepareStakingData,
 		m.prepareSchedulerData,
 		m.prepareGovernanceData,
 	} {
-		func(f prepareFunc) {
+		func(f prepareFunc, i int) {
 			group.Go(func() error {
-				return f(groupCtx, height, batch)
+				return f(groupCtx, i, queries, height)
 			})
-		}(f)
+		}(f, i)
 	}
 
 	// Update indexing progress.
@@ -308,6 +309,14 @@ func (m *Main) processBlock(ctx context.Context, height int64) error {
 		return err
 	}
 
+	for i, b := range queries {
+		if b == nil {
+			m.logger.Info(fmt.Sprintf("Block %d missing %d data", height, i))
+			continue
+		}
+		batch.Append(b)
+	}
+
 	opName := "process_block_consensus"
 	timer := m.metrics.DatabaseTimer(m.target.Name(), opName)
 	defer timer.ObserveDuration()
@@ -321,7 +330,7 @@ func (m *Main) processBlock(ctx context.Context, height int64) error {
 }
 
 // prepareBlockData adds block data queries to the batch.
-func (m *Main) prepareBlockData(ctx context.Context, height int64, batch *storage.QueryBatch) error {
+func (m *Main) prepareBlockData(ctx context.Context, idx int, batches []*storage.QueryBatch, height int64) error {
 	source, err := m.source(height)
 	if err != nil {
 		return err
@@ -332,6 +341,7 @@ func (m *Main) prepareBlockData(ctx context.Context, height int64, batch *storag
 		return err
 	}
 
+	batch := &storage.QueryBatch{}
 	for _, f := range []func(*storage.QueryBatch, *storage.ConsensusBlockData) error{
 		m.queueBlockInserts,
 		m.queueEpochInserts,
@@ -342,6 +352,8 @@ func (m *Main) prepareBlockData(ctx context.Context, height int64, batch *storag
 			return err
 		}
 	}
+
+	batches[idx] = batch
 
 	return nil
 }
@@ -465,7 +477,7 @@ func (m *Main) queueEventInserts(batch *storage.QueryBatch, data *storage.Consen
 }
 
 // prepareRegistryData adds registry data queries to the batch.
-func (m *Main) prepareRegistryData(ctx context.Context, height int64, batch *storage.QueryBatch) error {
+func (m *Main) prepareRegistryData(ctx context.Context, idx int, batches []*storage.QueryBatch, height int64) error {
 	source, err := m.source(height)
 	if err != nil {
 		return err
@@ -476,6 +488,7 @@ func (m *Main) prepareRegistryData(ctx context.Context, height int64, batch *sto
 		return err
 	}
 
+	batch := &storage.QueryBatch{}
 	for _, f := range []func(*storage.QueryBatch, *storage.RegistryData) error{
 		m.queueRuntimeRegistrations,
 		m.queueRuntimeStatusUpdates,
@@ -492,6 +505,8 @@ func (m *Main) prepareRegistryData(ctx context.Context, height int64, batch *sto
 			return err
 		}
 	}
+
+	batches[idx] = batch
 
 	return nil
 }
@@ -634,7 +649,7 @@ func (m *Main) queueMetadataRegistry(ctx context.Context, batch *storage.QueryBa
 	return nil
 }
 
-func (m *Main) prepareStakingData(ctx context.Context, height int64, batch *storage.QueryBatch) error {
+func (m *Main) prepareStakingData(ctx context.Context, idx int, batches []*storage.QueryBatch, height int64) error {
 	source, err := m.source(height)
 	if err != nil {
 		return err
@@ -644,6 +659,8 @@ func (m *Main) prepareStakingData(ctx context.Context, height int64, batch *stor
 	if err != nil {
 		return err
 	}
+
+	batch := &storage.QueryBatch{}
 
 	for _, f := range []func(*storage.QueryBatch, *storage.StakingData) error{
 		m.queueTransfers,
@@ -655,6 +672,8 @@ func (m *Main) prepareStakingData(ctx context.Context, height int64, batch *stor
 			return err
 		}
 	}
+
+	batches[idx] = batch
 
 	return nil
 }
@@ -791,7 +810,7 @@ func (m *Main) queueAllowanceChanges(batch *storage.QueryBatch, data *storage.St
 }
 
 // prepareSchedulerData adds scheduler data queries to the batch.
-func (m *Main) prepareSchedulerData(ctx context.Context, height int64, batch *storage.QueryBatch) error {
+func (m *Main) prepareSchedulerData(ctx context.Context, idx int, batches []*storage.QueryBatch, height int64) error {
 	source, err := m.source(height)
 	if err != nil {
 		return err
@@ -802,6 +821,8 @@ func (m *Main) prepareSchedulerData(ctx context.Context, height int64, batch *st
 		return err
 	}
 
+	batch := &storage.QueryBatch{}
+
 	for _, f := range []func(*storage.QueryBatch, *storage.SchedulerData) error{
 		m.queueValidatorUpdates,
 		m.queueCommitteeUpdates,
@@ -810,6 +831,8 @@ func (m *Main) prepareSchedulerData(ctx context.Context, height int64, batch *st
 			return err
 		}
 	}
+
+	batches[idx] = batch
 
 	return nil
 }
@@ -851,7 +874,7 @@ func (m *Main) queueCommitteeUpdates(batch *storage.QueryBatch, data *storage.Sc
 }
 
 // prepareGovernanceData adds governance data queries to the batch.
-func (m *Main) prepareGovernanceData(ctx context.Context, height int64, batch *storage.QueryBatch) error {
+func (m *Main) prepareGovernanceData(ctx context.Context, idx int, batches []*storage.QueryBatch, height int64) error {
 	source, err := m.source(height)
 	if err != nil {
 		return err
@@ -861,6 +884,8 @@ func (m *Main) prepareGovernanceData(ctx context.Context, height int64, batch *s
 	if err != nil {
 		return err
 	}
+
+	batch := &storage.QueryBatch{}
 
 	for _, f := range []func(*storage.QueryBatch, *storage.GovernanceData) error{
 		m.queueSubmissions,
@@ -872,6 +897,8 @@ func (m *Main) prepareGovernanceData(ctx context.Context, height int64, batch *s
 			return err
 		}
 	}
+
+	batches[idx] = batch
 
 	return nil
 }
