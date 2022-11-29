@@ -278,20 +278,20 @@ func (m *Main) processBlock(ctx context.Context, height int64) error {
 	queries := make([]storage.QueryBatch, 0)
 
 	type prepareFunc = func(context.Context, int64, *storage.QueryBatch) error
-	for i, f := range []prepareFunc{
+	for _, f := range []prepareFunc{
 		m.prepareBlockData,
 		m.prepareRegistryData,
 		m.prepareStakingData,
 		m.prepareSchedulerData,
 		m.prepareGovernanceData,
 	} {
-		func(f prepareFunc, i int) {
+		func(f prepareFunc) {
 			batch := storage.QueryBatch{}
 			queries = append(queries, batch)
 			group.Go(func() error {
 				return f(groupCtx, height, &batch)
 			})
-		}(f, i)
+		}(f)
 	}
 
 	// Update indexing progress.
