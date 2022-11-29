@@ -285,9 +285,9 @@ func (m *Main) processBlock(ctx context.Context, height int64) error {
 		m.prepareSchedulerData,
 		m.prepareGovernanceData,
 	} {
-		func(f prepareFunc, i int) {
+		func(f prepareFunc, idx int) {
 			group.Go(func() error {
-				return f(groupCtx, height, &queries[i])
+				return f(groupCtx, height, &queries[idx])
 			})
 		}(f, i)
 	}

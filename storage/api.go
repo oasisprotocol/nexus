@@ -5,6 +5,7 @@ import (
 	"context"
 
 	"github.com/jackc/pgx/v4"
+
 	beacon "github.com/oasisprotocol/oasis-core/go/beacon/api"
 	"github.com/oasisprotocol/oasis-core/go/common"
 	consensus "github.com/oasisprotocol/oasis-core/go/consensus/api"
