@@ -275,7 +275,7 @@ func (m *Main) processBlock(ctx context.Context, height int64) error {
 
 	// Prepare and perform updates.
 	batch := &storage.QueryBatch{}
-	queries := make([]storage.QueryBatch, 6)
+	queries := make([]storage.QueryBatch, 5)
 
 	type prepareFunc = func(context.Context, int64, *storage.QueryBatch) error
 	for i, f := range []prepareFunc{
@@ -285,9 +285,9 @@ func (m *Main) processBlock(ctx context.Context, height int64) error {
 		m.prepareSchedulerData,
 		m.prepareGovernanceData,
 	} {
-		func(f prepareFunc, idx int) {
+		func(f prepareFunc, i int) {
 			group.Go(func() error {
-				return f(groupCtx, height, &queries[idx])
+				return f(groupCtx, height, &queries[i])
 			})
 		}(f, i)
 	}
@@ -311,7 +311,7 @@ func (m *Main) processBlock(ctx context.Context, height int64) error {
 
 	for i, b := range queries {
 		if b.Len() == 0 {
-			m.logger.Info(fmt.Sprintf("Block %d missing %d data", height, i))
+			m.logger.Info(fmt.Sprintf("Block %d goroutine %d emitted zero queries", height, i))
 			continue
 		}
 		batch.Append(&b)
