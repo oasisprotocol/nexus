@@ -51,6 +51,11 @@ func (b *QueryBatch) Append(qb *QueryBatch) {
 	b.items = append(b.items, qb.items...)
 }
 
+// Len returns the number of queries in the batch.
+func (b *QueryBatch) Len() int {
+	return len(b.items)
+}
+
 // AsPgxBatch converts a QueryBatch to a pgx.Batch.
 func (b *QueryBatch) AsPgxBatch() pgx.Batch {
 	pgxBatch := pgx.Batch{}
