@@ -311,7 +311,7 @@ func (m *Main) processBlock(ctx context.Context, height int64) error {
 
 	for i, b := range queries {
 		if b.Len() == 0 {
-			m.logger.Info(fmt.Sprintf("Block %d goroutine %d emitted zero queries", height, i))
+			m.logger.Debug(fmt.Sprintf("Block %d goroutine %d emitted zero queries", height, i))
 			continue
 		}
 		batch.Append(&b)
