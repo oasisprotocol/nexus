@@ -47,8 +47,8 @@ func (b *QueryBatch) Queue(cmd string, args ...interface{}) {
 	})
 }
 
-// Append merges another batch into the current batch.
-func (b *QueryBatch) Append(qb *QueryBatch) {
+// Extend merges another batch into the current batch.
+func (b *QueryBatch) Extend(qb *QueryBatch) {
 	b.items = append(b.items, qb.items...)
 }
 
