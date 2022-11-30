@@ -3,7 +3,7 @@ services:
     image: oasislabs/oasis-indexer:dev
     container_name: oasis-indexer
     depends_on:
-      postgres:
+      indexer-postgres:
         condition: service_healthy
       oasis-node:
         condition: service_healthy
@@ -21,9 +21,9 @@ services:
       - type: bind
         source: ./config
         target: /config
-  postgres:
+  indexer-postgres:
     image: postgres:13.7
-    container_name: oasis-postgres
+    container_name: indexer-postgres
     ports:
       - 5432:5432
     environment:

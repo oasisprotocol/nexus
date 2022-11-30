@@ -2,6 +2,7 @@ package genesis
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -11,9 +12,10 @@ import (
 	"github.com/iancoleman/strcase"
 	"github.com/oasisprotocol/oasis-core/go/common/entity"
 	"github.com/oasisprotocol/oasis-core/go/common/node"
-	governance "github.com/oasisprotocol/oasis-core/go/governance/api"
-	registry "github.com/oasisprotocol/oasis-core/go/registry/api"
-	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
+	genesisAPI "github.com/oasisprotocol/oasis-core/go/genesis/api"
+	governanceAPI "github.com/oasisprotocol/oasis-core/go/governance/api"
+	registryAPI "github.com/oasisprotocol/oasis-core/go/registry/api"
+	stakingAPI "github.com/oasisprotocol/oasis-core/go/staking/api"
 	oasisConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -86,7 +88,7 @@ type TestVote struct {
 
 func newTargetClient(t *testing.T) (*postgres.Client, error) {
 	connString := os.Getenv("HEALTHCHECK_TEST_CONN_STRING")
-	logger, err := log.NewLogger("cockroach-test", io.Discard, log.FmtJSON, log.LevelInfo)
+	logger, err := log.NewLogger("db-test", io.Discard, log.FmtJSON, log.LevelInfo)
 	assert.Nil(t, err)
 
 	return postgres.NewClient(connString, logger)
@@ -100,10 +102,14 @@ func newSourceClientFactory() (*oasis.ClientFactory, error) {
 	return oasis.NewClientFactory(context.Background(), network)
 }
 
+var chainID = "" // Memoization for getChainId(). Assumes all tests access the same chain.
 func getChainID(ctx context.Context, t *testing.T, source *oasis.ConsensusClient) string {
-	doc, err := source.GenesisDocument(ctx)
-	assert.Nil(t, err)
-	return strcase.ToSnake(doc.ChainID)
+	if chainID == "" {
+		doc, err := source.GenesisDocument(ctx)
+		assert.Nil(t, err)
+		chainID = strcase.ToSnake(doc.ChainID)
+	}
+	return chainID
 }
 
 func checkpointBackends(t *testing.T, source *oasis.ConsensusClient, target *postgres.Client) (int64, error) {
@@ -172,9 +178,7 @@ func TestBlocksSanityCheck(t *testing.T) {
 	postgresClient, err := newTargetClient(t)
 	require.Nil(t, err)
 
-	doc, err := oasisClient.GenesisDocument(ctx)
-	require.Nil(t, err)
-	chainID := strcase.ToSnake(doc.ChainID)
+	chainID := getChainID(ctx, t, oasisClient)
 
 	var latestHeight int64
 	err = postgresClient.QueryRow(ctx, fmt.Sprintf(
@@ -214,26 +218,48 @@ func TestGenesisFull(t *testing.T) {
 	assert.Nil(t, err)
 
 	t.Log("Creating checkpoint...")
-
 	height, err := checkpointBackends(t, oasisClient, postgresClient)
 	assert.Nil(t, err)
 
+	t.Logf("Fetching genesis at height %d...", height)
+	var registryGenesis *registryAPI.Genesis
+	var stakingGenesis *stakingAPI.Genesis
+	var governanceGenesis *governanceAPI.Genesis
+	genesisPath := os.Getenv("OASIS_GENESIS_DUMP")
+	if genesisPath != "" {
+		t.Log("Reading genesis from dump at", genesisPath)
+		gensisJSON, err := os.ReadFile(genesisPath)
+		if err != nil {
+			require.Nil(t, err)
+		}
+		var genesis genesisAPI.Document
+		err = json.Unmarshal(gensisJSON, &genesis)
+		if err != nil {
+			require.Nil(t, err)
+		}
+		if genesis.Height != height {
+			require.Nil(t, fmt.Errorf("height mismatch: %d (in genesis dump) != %d (in DB)", genesis.Height, height))
+		}
+		registryGenesis = &genesis.Registry
+		stakingGenesis = &genesis.Staking
+		governanceGenesis = &genesis.Governance
+	} else {
+		t.Log("Fetching genesis from node", genesisPath)
+		registryGenesis, err = oasisClient.RegistryGenesis(ctx, height)
+		require.Nil(t, err)
+		stakingGenesis, err = oasisClient.StakingGenesis(ctx, height)
+		require.Nil(t, err)
+		governanceGenesis, err = oasisClient.GovernanceGenesis(ctx, height)
+		require.Nil(t, err)
+	}
+
 	t.Logf("Validating at height %d...", height)
-
-	registryGenesis, err := oasisClient.RegistryGenesis(ctx, height)
-	require.Nil(t, err)
 	validateRegistryBackend(t, registryGenesis, oasisClient, postgresClient)
-
-	stakingGenesis, err := oasisClient.StakingGenesis(ctx, height)
-	require.Nil(t, err)
 	validateStakingBackend(t, stakingGenesis, oasisClient, postgresClient)
-
-	governanceGenesis, err := oasisClient.GovernanceGenesis(ctx, height)
-	require.Nil(t, err)
 	validateGovernanceBackend(t, governanceGenesis, oasisClient, postgresClient)
 }
 
-func validateRegistryBackend(t *testing.T, genesis *registry.Genesis, source *oasis.ConsensusClient, target *postgres.Client) {
+func validateRegistryBackend(t *testing.T, genesis *registryAPI.Genesis, source *oasis.ConsensusClient, target *postgres.Client) {
 	t.Log("=== Validating registry backend ===")
 
 	validateEntities(t, genesis, source, target)
@@ -243,7 +269,7 @@ func validateRegistryBackend(t *testing.T, genesis *registry.Genesis, source *oa
 	t.Log("=== Done validating registry backend ===")
 }
 
-func validateEntities(t *testing.T, genesis *registry.Genesis, source *oasis.ConsensusClient, target *postgres.Client) {
+func validateEntities(t *testing.T, genesis *registryAPI.Genesis, source *oasis.ConsensusClient, target *postgres.Client) {
 	t.Log("Validating entities...")
 
 	ctx := context.Background()
@@ -255,7 +281,7 @@ func validateEntities(t *testing.T, genesis *registry.Genesis, source *oasis.Con
 			continue
 		}
 		var e entity.Entity
-		err := se.Open(registry.RegisterEntitySignatureContext, &e)
+		err := se.Open(registryAPI.RegisterEntitySignatureContext, &e)
 		assert.Nil(t, err)
 
 		te := TestEntity{
@@ -351,7 +377,7 @@ func validateEntities(t *testing.T, genesis *registry.Genesis, source *oasis.Con
 	}
 }
 
-func validateNodes(t *testing.T, genesis *registry.Genesis, source *oasis.ConsensusClient, target *postgres.Client) {
+func validateNodes(t *testing.T, genesis *registryAPI.Genesis, source *oasis.ConsensusClient, target *postgres.Client) {
 	t.Log("Validating nodes...")
 
 	ctx := context.Background()
@@ -363,7 +389,7 @@ func validateNodes(t *testing.T, genesis *registry.Genesis, source *oasis.Consen
 			continue
 		}
 		var n node.Node
-		err := sn.Open(registry.RegisterNodeSignatureContext, &n)
+		err := sn.Open(registryAPI.RegisterNodeSignatureContext, &n)
 		assert.Nil(t, err)
 
 		vrfPubkey := ""
@@ -414,7 +440,7 @@ func validateNodes(t *testing.T, genesis *registry.Genesis, source *oasis.Consen
 		actualNodes[n.ID] = n
 	}
 
-	assert.Equal(t, len(expectedNodes), len(actualNodes))
+	assert.Equal(t, len(expectedNodes), len(actualNodes), "wrong number of nodes")
 	for ke, ve := range expectedNodes {
 		va, ok := actualNodes[ke]
 		if !ok {
@@ -433,7 +459,7 @@ func validateNodes(t *testing.T, genesis *registry.Genesis, source *oasis.Consen
 	}
 }
 
-func validateRuntimes(t *testing.T, genesis *registry.Genesis, source *oasis.ConsensusClient, target *postgres.Client) {
+func validateRuntimes(t *testing.T, genesis *registryAPI.Genesis, source *oasis.ConsensusClient, target *postgres.Client) {
 	t.Log("Validating runtimes...")
 
 	ctx := context.Background()
@@ -480,7 +506,7 @@ func validateRuntimes(t *testing.T, genesis *registry.Genesis, source *oasis.Con
 	}
 
 	runtimeRows, err := target.Query(ctx, fmt.Sprintf(
-		`SELECT id, suspended, kind, tee_hardware, key_manager FROM %s.runtimes_checkpoint`, chainID),
+		`SELECT id, suspended, kind, tee_hardware, COALESCE(key_manager, 'none') FROM %s.runtimes_checkpoint`, chainID),
 	)
 	require.Nil(t, err)
 
@@ -494,7 +520,10 @@ func validateRuntimes(t *testing.T, genesis *registry.Genesis, source *oasis.Con
 			&tr.TeeHardware,
 			&tr.KeyManager,
 		)
-		assert.Nil(t, err)
+		if err != nil {
+			// We want to display err.Error(), or else the message is incomprehensible when it fails.
+			require.Nil(t, err, "error scanning runtime row", "errMsg", err.Error())
+		}
 
 		actualRuntimes[tr.ID] = tr
 	}
@@ -518,7 +547,7 @@ func validateRuntimes(t *testing.T, genesis *registry.Genesis, source *oasis.Con
 	}
 }
 
-func validateStakingBackend(t *testing.T, genesis *staking.Genesis, source *oasis.ConsensusClient, target *postgres.Client) {
+func validateStakingBackend(t *testing.T, genesis *stakingAPI.Genesis, source *oasis.ConsensusClient, target *postgres.Client) {
 	t.Log("=== Validating staking backend ===")
 
 	validateAccounts(t, genesis, source, target)
@@ -526,7 +555,7 @@ func validateStakingBackend(t *testing.T, genesis *staking.Genesis, source *oasi
 	t.Log("=== Done validating staking backend! ===")
 }
 
-func validateAccounts(t *testing.T, genesis *staking.Genesis, source *oasis.ConsensusClient, target *postgres.Client) {
+func validateAccounts(t *testing.T, genesis *stakingAPI.Genesis, source *oasis.ConsensusClient, target *postgres.Client) {
 	t.Log("Validating accounts...")
 
 	ctx := context.Background()
@@ -537,6 +566,7 @@ func validateAccounts(t *testing.T, genesis *staking.Genesis, source *oasis.Cons
 				FROM %s.accounts_checkpoint`, chainID),
 	)
 	require.Nil(t, err)
+	actualAccts := make(map[string]bool)
 	for acctRows.Next() {
 		var a TestAccount
 		err = acctRows.Scan(
@@ -547,6 +577,16 @@ func validateAccounts(t *testing.T, genesis *staking.Genesis, source *oasis.Cons
 			&a.Debonding,
 		)
 		assert.Nil(t, err)
+		actualAccts[a.Address] = true
+
+		isReservedAddress := a.Address == stakingAPI.CommonPoolAddress.String() ||
+			a.Address == stakingAPI.FeeAccumulatorAddress.String() ||
+			a.Address == stakingAPI.GovernanceDepositsAddress.String() ||
+			a.Address == "oasis1qzq8u7xs328puu2jy524w3fygzs63rv3u5967970" // == stakingAPI.BurnAddress.String(); not yet exposed in the released stakingAPI
+		if isReservedAddress {
+			// Reserved addresses are explicitly not included in the ledger (and thus in the genesis dump).
+			continue
+		}
 
 		actualAllowances := make(map[string]uint64)
 		allowanceRows, err := target.Query(ctx, fmt.Sprintf(`
@@ -569,13 +609,14 @@ func validateAccounts(t *testing.T, genesis *staking.Genesis, source *oasis.Cons
 		}
 		a.Allowances = actualAllowances
 
-		var address staking.Address
+		var address stakingAPI.Address
 		err = address.UnmarshalText([]byte(a.Address))
 		assert.Nil(t, err)
 
 		acct, ok := genesis.Ledger[address]
 		if !ok {
-			t.Logf("address %s expected, but not found", address.String())
+			t.Logf("address %s found, but not expected", address.String())
+			t.Fail()
 			continue
 		}
 
@@ -594,9 +635,22 @@ func validateAccounts(t *testing.T, genesis *staking.Genesis, source *oasis.Cons
 		}
 		assert.Equal(t, e, a)
 	}
+	for addr, acct := range genesis.Ledger {
+		hasBalance := !acct.General.Balance.IsZero() ||
+			!acct.Escrow.Active.Balance.IsZero() ||
+			!acct.Escrow.Debonding.Balance.IsZero()
+		if !hasBalance { // the indexer doesn't have to know about this acct
+			continue
+		}
+
+		if !actualAccts[addr.String()] {
+			t.Logf("address %s expected, but not found", addr.String())
+			t.Fail()
+		}
+	}
 }
 
-func validateGovernanceBackend(t *testing.T, genesis *governance.Genesis, source *oasis.ConsensusClient, target *postgres.Client) {
+func validateGovernanceBackend(t *testing.T, genesis *governanceAPI.Genesis, source *oasis.ConsensusClient, target *postgres.Client) {
 	t.Log("=== Validating governance backend ===")
 
 	validateProposals(t, genesis, source, target)
@@ -605,7 +659,7 @@ func validateGovernanceBackend(t *testing.T, genesis *governance.Genesis, source
 	t.Log("=== Done validating governance backend! ===")
 }
 
-func validateProposals(t *testing.T, genesis *governance.Genesis, source *oasis.ConsensusClient, target *postgres.Client) {
+func validateProposals(t *testing.T, genesis *governanceAPI.Genesis, source *oasis.ConsensusClient, target *postgres.Client) {
 	t.Log("Validating proposals...")
 
 	ctx := context.Background()
@@ -691,7 +745,7 @@ func validateProposals(t *testing.T, genesis *governance.Genesis, source *oasis.
 	}
 }
 
-func validateVotes(t *testing.T, genesis *governance.Genesis, source *oasis.ConsensusClient, target *postgres.Client) {
+func validateVotes(t *testing.T, genesis *governanceAPI.Genesis, source *oasis.ConsensusClient, target *postgres.Client) {
 	t.Log("Validating votes...")
 
 	ctx := context.Background()

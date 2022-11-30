@@ -22,6 +22,7 @@ jobs:
   build-go:
     runs-on: ubuntu-20.04
     services:
+      # Generic postgres server; used only for testing our DB client lib. Not used by indexer.
       postgres:
         image: postgres:13
         env:
@@ -80,7 +81,18 @@ jobs:
         run: make start-docker-e2e
       - name: Confirm containers
         run: docker ps -a
-      - name: Log containers
-        run: docker logs oasis-indexer
       - name: Test
         run: docker exec oasis-indexer sh -c "cd /oasis-indexer && make test-e2e"
+      - name: Dump logs and DB contents
+        run: |
+          docker logs oasis-indexer | tee /tmp/oasis-indexer.log;
+          docker logs indexer-postgres | tee /tmp/indexer-postgres.log;
+          docker exec indexer-postgres pg_dump -U indexer --create | tee /tmp/indexer_db.sql;
+        if: success() || failure()  # but not if job is manually cancelled
+      - uses: actions/upload-artifact@v3
+        with:
+          name: indexer_db.sql
+          path: |
+            /tmp/indexer_db.sql
+            /tmp/*.log
+        if: success() || failure()  # but not if job is manually cancelled

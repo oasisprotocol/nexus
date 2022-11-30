@@ -1,5 +1,9 @@
 include common.mk
 
+# For running `docker compose` containers as current user
+export HOST_UID := $(shell id -u)
+export HOST_GID := $(shell id -g)
+
 all: build
 
 build:
@@ -83,7 +87,7 @@ start-e2e: start-docker-e2e
 
 # Run dockerized postgres for local development
 postgres:
-	@docker ps --format '{{.Names}}' | grep -q indexer-postgres && docker start indexer-postgres || \
+	@docker ps -a --format '{{.Names}}' | grep -q indexer-postgres && docker start indexer-postgres || \
 	docker run \
 		--name indexer-postgres \
 		-p 5432:5432 \
@@ -91,6 +95,9 @@ postgres:
 		-e POSTGRES_PASSWORD=password \
 		-e POSTGRES_DB=indexer \
 		-d postgres
+	@sleep 1  # Experimentally enough for postgres to start accepting connections
+	# Create a read-only user to mimic the production environment.
+	docker exec -it indexer-postgres psql -U rwuser indexer -c "CREATE ROLE indexer_readonly; CREATE USER api WITH PASSWORD 'password' IN ROLE indexer_readonly;"
 
 # Attach to the local DB from "make postgres"
 psql:

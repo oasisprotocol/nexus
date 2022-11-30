@@ -202,6 +202,10 @@ type StorageConfig struct {
 
 	// Backend is the storage backend to select.
 	Backend string `koanf:"backend"`
+
+	// If true, we'll first delete all tables in the DB to
+	// force a full re-index of the blockchain.
+	WipeStorage bool `koanf:"DANGER__WIPE_STORAGE_ON_STARTUP"`
 }
 
 // Validate validates the storage configuration.

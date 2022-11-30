@@ -31,8 +31,7 @@ import (
 
 const (
 	consensusDamaskAnalyzerName = "consensus_damask"
-	noKeyManager                = "none" // KM name to use when there is no KM
-	registryUpdateFrequency     = 100    // once per n block
+	registryUpdateFrequency     = 100 // once per n block
 )
 
 // Main is the main Analyzer for the consensus layer.
@@ -159,6 +158,7 @@ func (m *Main) Start() {
 	}
 	for m.cfg.Range.To == 0 || height <= m.cfg.Range.To {
 		backoff.Wait()
+		m.logger.Info("attempting block", "height", height)
 
 		if err := m.processBlock(ctx, height); err != nil {
 			if err == analyzer.ErrOutOfRange {
@@ -176,6 +176,7 @@ func (m *Main) Start() {
 			continue
 		}
 
+		m.logger.Info("processed block", "height", height)
 		backoff.Success()
 		height++
 	}
@@ -270,14 +271,11 @@ func (m *Main) processGenesis(ctx context.Context) error {
 // from source storage and committing an atomically-executed batch of queries
 // to target storage.
 func (m *Main) processBlock(ctx context.Context, height int64) error {
-	m.logger.Info("processing block",
-		"height", height,
-	)
-
 	group, groupCtx := errgroup.WithContext(ctx)
 
 	// Prepare and perform updates.
 	batch := &storage.QueryBatch{}
+	queries := make([]*storage.QueryBatch, 0)
 
 	type prepareFunc = func(context.Context, int64, *storage.QueryBatch) error
 	for _, f := range []prepareFunc{
@@ -288,8 +286,10 @@ func (m *Main) processBlock(ctx context.Context, height int64) error {
 		m.prepareGovernanceData,
 	} {
 		func(f prepareFunc) {
+			batch := storage.QueryBatch{}
+			queries = append(queries, &batch)
 			group.Go(func() error {
-				return f(groupCtx, height, batch)
+				return f(groupCtx, height, &batch)
 			})
 		}(f)
 	}
@@ -309,6 +309,14 @@ func (m *Main) processBlock(ctx context.Context, height int64) error {
 			return analyzer.ErrOutOfRange
 		}
 		return err
+	}
+
+	for i, b := range queries {
+		if b.Len() == 0 {
+			m.logger.Debug(fmt.Sprintf("Block %d goroutine %d emitted zero queries", height, i))
+			continue
+		}
+		batch.Extend(b)
 	}
 
 	opName := "process_block_consensus"
@@ -406,8 +414,8 @@ func (m *Main) queueTransactionInserts(batch *storage.QueryBatch, data *storage.
 			signedTx.Hash().Hex(),
 			i,
 			tx.Nonce,
-			tx.Fee.Amount.ToBigInt().Uint64(),
-			tx.Fee.Gas,
+			tx.Fee.Amount.String(),
+			fmt.Sprintf("%d", tx.Fee.Gas),
 			tx.Method,
 			sender,
 			tx.Body,
@@ -434,7 +442,7 @@ func (m *Main) queueTransactionInserts(batch *storage.QueryBatch, data *storage.
 			}
 
 			batch.Queue(commissionsUpsertQuery,
-				staking.NewAddress(signedTx.Signature.PublicKey),
+				staking.NewAddress(signedTx.Signature.PublicKey).String(),
 				string(schedule),
 			)
 		}
@@ -503,10 +511,11 @@ func (m *Main) queueRuntimeRegistrations(batch *storage.QueryBatch, data *storag
 	runtimeUpsertQuery := m.qf.ConsensusRuntimeUpsertQuery()
 
 	for _, runtimeEvent := range data.RuntimeEvents {
-		keyManager := noKeyManager
+		var keyManager *string
 
 		if runtimeEvent.Runtime.KeyManager != nil {
-			keyManager = runtimeEvent.Runtime.KeyManager.String()
+			km := runtimeEvent.Runtime.KeyManager.String()
+			keyManager = &km
 		}
 
 		batch.Queue(runtimeUpsertQuery,
@@ -545,7 +554,7 @@ func (m *Main) queueEntityEvents(batch *storage.QueryBatch, data *storage.Regist
 		for _, node := range entityEvent.Entity.Nodes {
 			batch.Queue(claimedNodeInsertQuery,
 				entityID,
-				node,
+				node.String(),
 			)
 		}
 		batch.Queue(entityUpsertQuery,
@@ -628,7 +637,7 @@ func (m *Main) queueMetadataRegistry(ctx context.Context, batch *storage.QueryBa
 	entityMetaUpsertQuery := m.qf.ConsensusEntityMetaUpsertQuery()
 	for id, meta := range entities {
 		batch.Queue(entityMetaUpsertQuery,
-			id,
+			id.String(),
 			meta,
 		)
 	}
@@ -666,16 +675,13 @@ func (m *Main) queueTransfers(batch *storage.QueryBatch, data *storage.StakingDa
 	receiverUpsertQuery := m.qf.ConsensusReceiverUpdateQuery()
 
 	for _, transfer := range data.Transfers {
-		from := transfer.From.String()
-		to := transfer.To.String()
-		amount := transfer.Amount.ToBigInt().Uint64()
 		batch.Queue(senderUpdateQuery,
-			from,
-			amount,
+			transfer.From.String(),
+			transfer.Amount.String(),
 		)
 		batch.Queue(receiverUpsertQuery,
-			to,
-			amount,
+			transfer.To.String(),
+			transfer.Amount.String(),
 		)
 	}
 
@@ -688,7 +694,7 @@ func (m *Main) queueBurns(batch *storage.QueryBatch, data *storage.StakingData) 
 	for _, burn := range data.Burns {
 		batch.Queue(burnUpdateQuery,
 			burn.Owner.String(),
-			burn.Amount.ToBigInt().Uint64(),
+			burn.Amount.String(),
 		)
 	}
 
@@ -712,8 +718,8 @@ func (m *Main) queueEscrows(batch *storage.QueryBatch, data *storage.StakingData
 		case e.Add != nil:
 			owner := e.Add.Owner.String()
 			escrower := e.Add.Escrow.String()
-			amount := e.Add.Amount.ToBigInt().Uint64()
-			newShares := e.Add.NewShares.ToBigInt().Uint64()
+			amount := e.Add.Amount.String()
+			newShares := e.Add.NewShares.String()
 			batch.Queue(decreaseGeneralBalanceForEscrowUpdateQuery,
 				owner,
 				amount,
@@ -731,40 +737,40 @@ func (m *Main) queueEscrows(batch *storage.QueryBatch, data *storage.StakingData
 		case e.Take != nil:
 			batch.Queue(takeEscrowUpdateQuery,
 				e.Take.Owner.String(),
-				e.Take.Amount.ToBigInt().Uint64(),
+				e.Take.Amount.String(),
 			)
 		case e.DebondingStart != nil:
 			batch.Queue(debondingStartEscrowBalanceUpdateQuery,
 				e.DebondingStart.Escrow.String(),
-				e.DebondingStart.Amount.ToBigInt().Uint64(),
-				e.DebondingStart.ActiveShares.ToBigInt().Uint64(),
-				e.DebondingStart.DebondingShares.ToBigInt().Uint64(),
+				e.DebondingStart.Amount.String(),
+				e.DebondingStart.ActiveShares.String(),
+				e.DebondingStart.DebondingShares.String(),
 			)
 			batch.Queue(debondingStartDelegationsUpdateQuery,
 				e.DebondingStart.Escrow.String(),
 				e.DebondingStart.Owner.String(),
-				e.DebondingStart.ActiveShares.ToBigInt().Uint64(),
+				e.DebondingStart.ActiveShares.String(),
 			)
 			batch.Queue(debondingStartDebondingDelegationsInsertQuery,
 				e.DebondingStart.Escrow.String(),
 				e.DebondingStart.Owner.String(),
-				e.DebondingStart.DebondingShares.ToBigInt().Uint64(),
+				e.DebondingStart.DebondingShares.String(),
 				e.DebondingStart.DebondEndTime,
 			)
 		case e.Reclaim != nil:
 			batch.Queue(reclaimGeneralBalanceUpdateQuery,
 				e.Reclaim.Owner.String(),
-				e.Reclaim.Amount.ToBigInt().Uint64(),
+				e.Reclaim.Amount.String(),
 			)
 			batch.Queue(reclaimEscrowBalanceUpdateQuery,
 				e.Reclaim.Escrow.String(),
-				e.Reclaim.Amount.ToBigInt().Uint64(),
-				e.Reclaim.Shares.ToBigInt().Uint64(),
+				e.Reclaim.Amount.String(),
+				e.Reclaim.Shares.String(),
 			)
 			batch.Queue(deleteDebondingDelegationsQuery,
 				e.Reclaim.Owner.String(),
 				e.Reclaim.Escrow.String(),
-				e.Reclaim.Shares.ToBigInt().Uint64(),
+				e.Reclaim.Shares.String(),
 				data.Epoch,
 			)
 		}
@@ -778,8 +784,7 @@ func (m *Main) queueAllowanceChanges(batch *storage.QueryBatch, data *storage.St
 	allowanceChangeUpdateQuery := m.qf.ConsensusAllowanceChangeUpdateQuery()
 
 	for _, allowanceChange := range data.AllowanceChanges {
-		allowance := allowanceChange.Allowance.ToBigInt().Uint64()
-		if allowance == 0 {
+		if allowanceChange.Allowance.IsZero() {
 			batch.Queue(allowanceChangeDeleteQuery,
 				allowanceChange.Owner.String(),
 				allowanceChange.Beneficiary.String(),
@@ -788,7 +793,7 @@ func (m *Main) queueAllowanceChanges(batch *storage.QueryBatch, data *storage.St
 			batch.Queue(allowanceChangeUpdateQuery,
 				allowanceChange.Owner.String(),
 				allowanceChange.Beneficiary.String(),
-				allowance,
+				allowanceChange.Allowance.String(),
 			)
 		}
 	}
@@ -824,7 +829,7 @@ func (m *Main) queueValidatorUpdates(batch *storage.QueryBatch, data *storage.Sc
 	validatorNodeUpdateQuery := m.qf.ConsensusValidatorNodeUpdateQuery()
 	for _, validator := range data.Validators {
 		batch.Queue(validatorNodeUpdateQuery,
-			validator.ID,
+			validator.ID.String(),
 			validator.VotingPower,
 		)
 	}
@@ -892,7 +897,7 @@ func (m *Main) queueSubmissions(batch *storage.QueryBatch, data *storage.Governa
 				submission.ID,
 				submission.Submitter.String(),
 				submission.State.String(),
-				submission.Deposit.ToBigInt().Uint64(),
+				submission.Deposit.String(),
 				submission.Content.Upgrade.Handler,
 				submission.Content.Upgrade.Target.ConsensusProtocol.String(),
 				submission.Content.Upgrade.Target.RuntimeHostProtocol.String(),
@@ -906,7 +911,7 @@ func (m *Main) queueSubmissions(batch *storage.QueryBatch, data *storage.Governa
 				submission.ID,
 				submission.Submitter.String(),
 				submission.State.String(),
-				submission.Deposit.ToBigInt().Uint64(),
+				submission.Deposit.String(),
 				submission.Content.CancelUpgrade.ProposalID,
 				submission.CreatedAt,
 				submission.ClosesAt,
@@ -940,7 +945,7 @@ func (m *Main) queueFinalizations(batch *storage.QueryBatch, data *storage.Gover
 		)
 		batch.Queue(proposalInvalidVotesUpdateQuery,
 			finalization.ID,
-			finalization.InvalidVotes,
+			fmt.Sprintf("%d", finalization.InvalidVotes),
 		)
 	}
 

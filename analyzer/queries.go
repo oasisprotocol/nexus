@@ -179,7 +179,7 @@ func (qf QueryFactory) ConsensusReceiverUpdateQuery() string {
 		INSERT INTO %[1]s.accounts (address, general_balance)
 			VALUES ($1, $2)
 		ON CONFLICT (address) DO
-			UPDATE SET general_balance = %[1]s.accounts.general_balance + $2;`, qf.chainID)
+			UPDATE SET general_balance = %[1]s.accounts.general_balance + $2`, qf.chainID)
 }
 
 func (qf QueryFactory) ConsensusBurnUpdateQuery() string {
@@ -376,14 +376,14 @@ func (qf QueryFactory) RuntimeTransactionInsertQuery() string {
 
 func (qf QueryFactory) RuntimeMintInsertQuery() string {
 	return fmt.Sprintf(`
-		INSERT INTO %s.%s_transfers (round, receiver, amount)
-			VALUES ($1, $2, $3)`, qf.chainID, qf.runtime)
+		INSERT INTO %s.%s_transfers (round, sender, receiver, amount)
+			VALUES ($1, NULL, $2, $3)`, qf.chainID, qf.runtime)
 }
 
 func (qf QueryFactory) RuntimeBurnInsertQuery() string {
 	return fmt.Sprintf(`
-		INSERT INTO %s.%s_transfers (round, sender, amount)
-			VALUES ($1, $2, $3)`, qf.chainID, qf.runtime)
+		INSERT INTO %s.%s_transfers (round, sender, receiver, amount)
+			VALUES ($1, $2, NULL, $3)`, qf.chainID, qf.runtime)
 }
 
 func (qf QueryFactory) RuntimeTransferInsertQuery() string {
@@ -427,6 +427,14 @@ func (qf QueryFactory) AddressPreimageInsertQuery() string {
 		INSERT INTO %s.address_preimages (address, context_identifier, context_version, address_data)
 			VALUES ($1, $2, $3, $4)
 		ON CONFLICT DO NOTHING`, qf.chainID)
+}
+
+func (qf QueryFactory) RuntimeTokenChangeUpdateQuery() string {
+	return fmt.Sprintf(`
+		INSERT INTO %[1]s.%[2]s_token_balances (token_address, account_address, balance)
+			VALUES ($1, $2, $3)
+		ON CONFLICT (token_address, account_address) DO
+			UPDATE SET balance = %[1]s.%[2]s_token_balances.balance + $3`, qf.chainID, qf.runtime)
 }
 
 func (qf QueryFactory) RefreshDailyTxVolumeQuery() string {

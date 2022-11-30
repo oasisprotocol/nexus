@@ -55,26 +55,31 @@ func rootMain(cmd *cobra.Command, args []string) {
 	logger := common.Logger()
 
 	// Initialize services.
-	analysisService, err := analyzer.Init(cfg.Analysis)
-	if err != nil {
-		os.Exit(1)
-	}
-	apiService, err := api.Init(cfg.Server)
-	if err != nil {
-		os.Exit(1)
-	}
-
 	var wg sync.WaitGroup
-	for _, service := range []Service{
-		analysisService,
-		apiService,
-	} {
+	runInWG := func(s Service) {
 		wg.Add(1)
 		go func(s Service) {
 			defer wg.Done()
 			defer s.Shutdown()
 			s.Start()
-		}(service)
+		}(s)
+	}
+
+	if cfg.Analysis != nil {
+		analysisService, err := analyzer.Init(cfg.Analysis)
+		if err != nil {
+			logger.Error("failed to initialize analysis service", "err", err)
+			os.Exit(1)
+		}
+		runInWG(analysisService)
+	}
+	if cfg.Server != nil {
+		apiService, err := api.Init(cfg.Server)
+		if err != nil {
+			logger.Error("failed to initialize api service", "err", err)
+			os.Exit(1)
+		}
+		runInWG(apiService)
 	}
 
 	logger.Info("started all services")

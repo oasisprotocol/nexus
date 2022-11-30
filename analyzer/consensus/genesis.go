@@ -117,12 +117,12 @@ VALUES
 VALUES
 `
 		for i, runtime := range document.Registry.Runtimes {
-			keyManager := noKeyManager
+			keyManager := "NULL"
 			if runtime.KeyManager != nil {
-				keyManager = runtime.KeyManager.String()
+				keyManager = fmt.Sprintf("'%s'", runtime.KeyManager.String())
 			}
 			query += fmt.Sprintf(
-				"\t('%s', %t, '%s', '%s', '%s')",
+				"\t('%s', %t, '%s', '%s', %s)",
 				runtime.ID.String(),
 				false,
 				runtime.Kind.String(),
@@ -144,12 +144,12 @@ VALUES
 `
 
 		for i, runtime := range document.Registry.SuspendedRuntimes {
-			keyManager := noKeyManager
+			keyManager := "NULL"
 			if runtime.KeyManager != nil {
-				keyManager = runtime.KeyManager.Hex()
+				keyManager = fmt.Sprintf("'%s'", runtime.KeyManager.String())
 			}
 			query += fmt.Sprintf(
-				"\t('%s', %t, '%s', '%s', '%s')",
+				"\t('%s', %t, '%s', '%s', %s)",
 				runtime.ID.String(),
 				true,
 				runtime.Kind.String(),

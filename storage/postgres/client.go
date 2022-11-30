@@ -30,6 +30,7 @@ type pgxLogger struct {
 	logger *log.Logger
 }
 
+// logFuncForLevel maps a pgx log severity level to a corresponding indexer logger function.
 func (l *pgxLogger) logFuncForLevel(level pgx.LogLevel) func(string, ...interface{}) {
 	switch level {
 	case pgx.LogLevelTrace, pgx.LogLevelDebug:
@@ -46,7 +47,7 @@ func (l *pgxLogger) logFuncForLevel(level pgx.LogLevel) func(string, ...interfac
 	}
 }
 
-// Implements pgx.Logger interface.
+// Implements pgx.Logger interface. Logs to indexer logger.
 func (l *pgxLogger) Log(ctx context.Context, level pgx.LogLevel, msg string, data map[string]interface{}) {
 	args := []interface{}{}
 	for k, v := range data {
@@ -137,4 +138,53 @@ func (c *Client) Shutdown() {
 // Name implements the storage.TargetStorage interface for Client.
 func (c *Client) Name() string {
 	return moduleName
+}
+
+// Wipe removes all contents of the database.
+func (c *Client) Wipe(ctx context.Context) error {
+	// List, then drop all tables.
+	rows, err := c.Query(ctx, `
+		SELECT schemaname, tablename
+		FROM pg_tables
+		WHERE schemaname IN ('oasis_3', 'indexer', 'public')
+	`)
+	if err != nil {
+		return fmt.Errorf("failed to list tables: %w", err)
+	}
+	for rows.Next() {
+		var schema, table string
+		if err = rows.Scan(&schema, &table); err != nil {
+			return err
+		}
+		c.logger.Info("dropping table", "schema", schema, "table", table)
+		if _, err = c.pool.Exec(ctx, fmt.Sprintf("DROP TABLE %s.%s CASCADE;", schema, table)); err != nil {
+			return err
+		}
+	}
+
+	// List, then drop all custom types.
+	// Query from https://stackoverflow.com/questions/3660787/how-to-list-custom-types-using-postgres-information-schema
+	rows, err = c.Query(ctx, `
+		SELECT      n.nspname as schema, t.typname as type 
+		FROM        pg_type t 
+		LEFT JOIN   pg_catalog.pg_namespace n ON n.oid = t.typnamespace 
+		WHERE       (t.typrelid = 0 OR (SELECT c.relkind = 'c' FROM pg_catalog.pg_class c WHERE c.oid = t.typrelid)) 
+		AND     NOT EXISTS(SELECT 1 FROM pg_catalog.pg_type el WHERE el.oid = t.typelem AND el.typarray = t.oid)
+		AND     n.nspname NOT IN ('pg_catalog', 'information_schema');
+	`)
+	if err != nil {
+		return fmt.Errorf("failed to list types: %w", err)
+	}
+	for rows.Next() {
+		var schema, typ string
+		if err = rows.Scan(&schema, &typ); err != nil {
+			return err
+		}
+		c.logger.Info("dropping type", "schema", schema, "type", typ)
+		if _, err = c.pool.Exec(ctx, fmt.Sprintf("DROP TYPE %s.%s CASCADE;", schema, typ)); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

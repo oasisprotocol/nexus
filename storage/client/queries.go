@@ -291,6 +291,26 @@ func (qf QueryFactory) RuntimeBlocksQuery() string {
 		OFFSET $6::bigint`, qf.chainID, qf.runtime)
 }
 
+func (qf QueryFactory) RuntimeTransactionsQuery() string {
+	return fmt.Sprintf(`
+		SELECT round, tx_index, tx_hash, tx_eth_hash, raw, result_raw
+			FROM %s.%s_transactions
+			WHERE $1::bigint IS NULL OR round = $1::bigint
+		ORDER BY round DESC, tx_index DESC
+		LIMIT $2::bigint
+		OFFSET $3::bigint`, qf.chainID, qf.runtime)
+}
+
+func (qf QueryFactory) RuntimeTokensQuery() string {
+	return fmt.Sprintf(`
+		SELECT token_address, COUNT(*) AS num_holders
+			FROM %s.%s_token_balances
+		GROUP BY token_address
+		ORDER BY num_holders DESC
+		LIMIT $1::bigint
+		OFFSET $2::bigint`, qf.chainID, qf.runtime)
+}
+
 func (qf QueryFactory) TpsCheckpointQuery() string {
 	return `
 		SELECT hour, min_slot, tx_volume
