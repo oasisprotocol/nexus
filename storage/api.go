@@ -5,6 +5,7 @@ import (
 	"context"
 
 	"github.com/jackc/pgx/v4"
+
 	beacon "github.com/oasisprotocol/oasis-core/go/beacon/api"
 	"github.com/oasisprotocol/oasis-core/go/common"
 	consensus "github.com/oasisprotocol/oasis-core/go/consensus/api"
@@ -44,6 +45,16 @@ func (b *QueryBatch) Queue(cmd string, args ...interface{}) {
 		cmd:  cmd,
 		args: args,
 	})
+}
+
+// Extend merges another batch into the current batch.
+func (b *QueryBatch) Extend(qb *QueryBatch) {
+	b.items = append(b.items, qb.items...)
+}
+
+// Len returns the number of queries in the batch.
+func (b *QueryBatch) Len() int {
+	return len(b.items)
 }
 
 // AsPgxBatch converts a QueryBatch to a pgx.Batch.

@@ -275,6 +275,7 @@ func (m *Main) processBlock(ctx context.Context, height int64) error {
 
 	// Prepare and perform updates.
 	batch := &storage.QueryBatch{}
+	queries := make([]*storage.QueryBatch, 0)
 
 	type prepareFunc = func(context.Context, int64, *storage.QueryBatch) error
 	for _, f := range []prepareFunc{
@@ -285,8 +286,10 @@ func (m *Main) processBlock(ctx context.Context, height int64) error {
 		m.prepareGovernanceData,
 	} {
 		func(f prepareFunc) {
+			batch := storage.QueryBatch{}
+			queries = append(queries, &batch)
 			group.Go(func() error {
-				return f(groupCtx, height, batch)
+				return f(groupCtx, height, &batch)
 			})
 		}(f)
 	}
@@ -306,6 +309,14 @@ func (m *Main) processBlock(ctx context.Context, height int64) error {
 			return analyzer.ErrOutOfRange
 		}
 		return err
+	}
+
+	for i, b := range queries {
+		if b.Len() == 0 {
+			m.logger.Debug(fmt.Sprintf("Block %d goroutine %d emitted zero queries", height, i))
+			continue
+		}
+		batch.Extend(b)
 	}
 
 	opName := "process_block_consensus"
