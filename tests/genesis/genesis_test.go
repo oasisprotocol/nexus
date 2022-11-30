@@ -244,7 +244,7 @@ func TestGenesisFull(t *testing.T) {
 		stakingGenesis = &genesis.Staking
 		governanceGenesis = &genesis.Governance
 	} else {
-		t.Log("Fetching genesis from node", genesisPath)
+		t.Log("Fetching state dump at height", height, "from node")
 		registryGenesis, err = oasisClient.RegistryGenesis(ctx, height)
 		require.Nil(t, err)
 		stakingGenesis, err = oasisClient.StakingGenesis(ctx, height)
@@ -254,16 +254,16 @@ func TestGenesisFull(t *testing.T) {
 	}
 
 	t.Logf("Validating at height %d...", height)
-	validateRegistryBackend(t, registryGenesis, oasisClient, postgresClient)
+	validateRegistryBackend(t, registryGenesis, oasisClient, postgresClient, height)
 	validateStakingBackend(t, stakingGenesis, oasisClient, postgresClient)
 	validateGovernanceBackend(t, governanceGenesis, oasisClient, postgresClient)
 }
 
-func validateRegistryBackend(t *testing.T, genesis *registryAPI.Genesis, source *oasis.ConsensusClient, target *postgres.Client) {
+func validateRegistryBackend(t *testing.T, genesis *registryAPI.Genesis, source *oasis.ConsensusClient, target *postgres.Client, height int64) {
 	t.Log("=== Validating registry backend ===")
 
 	validateEntities(t, genesis, source, target)
-	validateNodes(t, genesis, source, target)
+	validateNodes(t, genesis, source, target, height)
 	validateRuntimes(t, genesis, source, target)
 
 	t.Log("=== Done validating registry backend ===")
@@ -377,11 +377,14 @@ func validateEntities(t *testing.T, genesis *registryAPI.Genesis, source *oasis.
 	}
 }
 
-func validateNodes(t *testing.T, genesis *registryAPI.Genesis, source *oasis.ConsensusClient, target *postgres.Client) {
+func validateNodes(t *testing.T, genesis *registryAPI.Genesis, source *oasis.ConsensusClient, target *postgres.Client, height int64) {
 	t.Log("Validating nodes...")
 
 	ctx := context.Background()
 	chainID := getChainID(ctx, t, source)
+
+	epoch, err := source.GetEpoch(ctx, height)
+	assert.Nil(t, err)
 
 	expectedNodes := make(map[string]TestNode)
 	for _, sn := range genesis.Nodes {
@@ -391,6 +394,12 @@ func validateNodes(t *testing.T, genesis *registryAPI.Genesis, source *oasis.Con
 		var n node.Node
 		err := sn.Open(registryAPI.RegisterNodeSignatureContext, &n)
 		assert.Nil(t, err)
+
+		if n.IsExpired(uint64(epoch)) {
+			// The indexer prunes expired nodes immediately. oasis-client doesn't,
+			// so we prune its output here to prevent false mismatches.
+			continue
+		}
 
 		vrfPubkey := ""
 		if n.VRF != nil {
@@ -416,8 +425,11 @@ func validateNodes(t *testing.T, genesis *registryAPI.Genesis, source *oasis.Con
 			id, entity_id, expiration,
 			tls_pubkey, tls_next_pubkey, p2p_pubkey,
 			vrf_pubkey, roles, software_version
-		FROM %s.nodes_checkpoint
-		WHERE roles LIKE '%s'`, chainID, "%validator%"),
+		FROM
+			%s.nodes_checkpoint
+		WHERE
+			roles LIKE '%%validator%%'
+		`, chainID),
 	)
 	require.Nil(t, err)
 
@@ -436,6 +448,12 @@ func validateNodes(t *testing.T, genesis *registryAPI.Genesis, source *oasis.Con
 			&n.SoftwareVersion,
 		)
 		assert.Nil(t, err)
+
+		if (&node.Node{Expiration: n.Expiration}).IsExpired(uint64(epoch)) {
+			// The indexer DB stores some nodes that are expired because
+			// an expiration event was never produced for them. Ignore them.
+			continue
+		}
 
 		actualNodes[n.ID] = n
 	}
