@@ -275,7 +275,7 @@ func (m *Main) processBlock(ctx context.Context, height int64) error {
 
 	// Prepare and perform updates.
 	batch := &storage.QueryBatch{}
-	queries := make([]storage.QueryBatch, 0)
+	queries := make([]*storage.QueryBatch, 0)
 
 	type prepareFunc = func(context.Context, int64, *storage.QueryBatch) error
 	for _, f := range []prepareFunc{
@@ -287,7 +287,7 @@ func (m *Main) processBlock(ctx context.Context, height int64) error {
 	} {
 		func(f prepareFunc) {
 			batch := storage.QueryBatch{}
-			queries = append(queries, batch)
+			queries = append(queries, &batch)
 			group.Go(func() error {
 				return f(groupCtx, height, &batch)
 			})
