@@ -316,7 +316,7 @@ func (m *Main) processBlock(ctx context.Context, height int64) error {
 			m.logger.Debug(fmt.Sprintf("Block %d goroutine %d emitted zero queries", height, i))
 			continue
 		}
-		batch.Extend(&b)
+		batch.Extend(b)
 	}
 
 	opName := "process_block_consensus"
