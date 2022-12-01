@@ -21,9 +21,8 @@ import (
 
 // ConsensusClient is a client to the consensus backends.
 type ConsensusClient struct {
-	client        consensus.ClientBackend
-	network       *config.Network
-	genesisHeight int64
+	client  consensus.ClientBackend
+	network *config.Network
 }
 
 // GenesisDocument returns the original genesis document.
@@ -183,78 +182,12 @@ func (cc *ConsensusClient) RegistryData(ctx context.Context, height int64) (*sto
 		}
 	}
 
-	rts, err := cc.runtimeUpdates(ctx, height)
-	if err != nil {
-		return nil, err
-	}
-
-	var suspensions, unsuspensions []string
-	for rt, suspended := range rts {
-		if suspended {
-			suspensions = append(suspensions, rt)
-		} else {
-			unsuspensions = append(unsuspensions, rt)
-		}
-	}
-
 	return &storage.RegistryData{
-		RuntimeEvents:        runtimeEvents,
-		EntityEvents:         entityEvents,
-		NodeEvents:           nodeEvents,
-		NodeUnfrozenEvents:   nodeUnfrozenEvents,
-		RuntimeSuspensions:   suspensions,
-		RuntimeUnsuspensions: unsuspensions,
+		RuntimeEvents:      runtimeEvents,
+		EntityEvents:       entityEvents,
+		NodeEvents:         nodeEvents,
+		NodeUnfrozenEvents: nodeUnfrozenEvents,
 	}, nil
-}
-
-// runtimeUpdates gets runtimes that have seen status changes since the previous block.
-func (cc *ConsensusClient) runtimeUpdates(ctx context.Context, height int64) (map[string]bool, error) {
-	rtsCurr, err := cc.runtimes(ctx, height)
-	if err != nil {
-		return nil, err
-	}
-
-	if height != cc.genesisHeight {
-		rtsPrev, err := cc.runtimes(ctx, height-1)
-		if err != nil {
-			return nil, err
-		}
-
-		for r, suspended := range rtsPrev {
-			if rtsCurr[r] == suspended {
-				delete(rtsCurr, r)
-			}
-		}
-	}
-	return rtsCurr, nil
-}
-
-func (cc *ConsensusClient) runtimes(ctx context.Context, height int64) (map[string]bool, error) {
-	allRuntimes, err := cc.client.Registry().GetRuntimes(ctx, &registryAPI.GetRuntimesQuery{
-		Height:           height,
-		IncludeSuspended: true,
-	})
-	if err != nil {
-		return nil, err
-	}
-	runtimes, err := cc.client.Registry().GetRuntimes(ctx, &registryAPI.GetRuntimesQuery{
-		Height:           height,
-		IncludeSuspended: false,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	// Mark suspended runtimes.
-	rts := make(map[string]bool)
-	for _, r := range allRuntimes {
-		rts[r.ID.String()] = true
-	}
-	for _, r := range runtimes {
-		rts[r.ID.String()] = false
-	}
-
-	return rts, nil
 }
 
 // StakingData retrieves staking events at the provided block height.

@@ -153,9 +153,6 @@ type RegistryData struct {
 	EntityEvents       []*registry.EntityEvent
 	NodeEvents         []*registry.NodeEvent
 	NodeUnfrozenEvents []*registry.NodeUnfrozenEvent
-
-	RuntimeSuspensions   []string
-	RuntimeUnsuspensions []string
 }
 
 // StakingData represents data for accounts at a given height.

@@ -105,20 +105,6 @@ func (qf QueryFactory) ConsensusRuntimeUpsertQuery() string {
 				key_manager = excluded.key_manager`, qf.chainID)
 }
 
-func (qf QueryFactory) ConsensusRuntimeSuspensionQuery() string {
-	return fmt.Sprintf(`
-		UPDATE %s.runtimes
-			SET suspended = true
-			WHERE id = $1`, qf.chainID)
-}
-
-func (qf QueryFactory) ConsensusRuntimeUnsuspensionQuery() string {
-	return fmt.Sprintf(`
-		UPDATE %s.runtimes
-			SET suspended = false
-			WHERE id = $1`, qf.chainID)
-}
-
 func (qf QueryFactory) ConsensusClaimedNodeInsertQuery() string {
 	return fmt.Sprintf(`
 		INSERT INTO %s.claimed_nodes (entity_id, node_id) VALUES ($1, $2)
