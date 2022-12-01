@@ -88,14 +88,14 @@ CREATE INDEX ix_emerald_related_transactions_address_height_index ON oasis_3.eme
 -- fields in this table (so that the signature can be verified correctly).
 CREATE TABLE oasis_3.address_preimages
 (
-    address            oasis_addr NOT NULL PRIMARY KEY,
-    -- "oasis-core/address: staking" | "oasis-runtime-sdk/address: secp256k1eth" | "oasis-runtime-sdk/address: sr25519" | "oasis-runtime-sdk/address: multisig" | "oasis-runtime-sdk/address: module"
-    -- From https://github.com/oasisprotocol/oasis-sdk/blob/386ba0b99fcd1425c68015e0033a462d9a577835/client-sdk/go/types/address.go#L22-L22
-    context_identifier TEXT NOT NULL,
-    context_version    UINT31 NOT NULL,
-    -- Data from which the address was derived. For example, for a "secp256k1eth" context, this is the
-    -- Ethereum address. For a "staking" context, this is the ed25519 pubkey.
-    address_data       BYTEA NOT NULL
+  address            oasis_addr NOT NULL PRIMARY KEY,
+  -- "oasis-core/address: staking" | "oasis-runtime-sdk/address: secp256k1eth" | "oasis-runtime-sdk/address: sr25519" | "oasis-runtime-sdk/address: multisig" | "oasis-runtime-sdk/address: module"
+  -- From https://github.com/oasisprotocol/oasis-sdk/blob/386ba0b99fcd1425c68015e0033a462d9a577835/client-sdk/go/types/address.go#L22-L22
+  context_identifier TEXT NOT NULL,
+  context_version    UINT31 NOT NULL,
+  -- Data from which the address was derived. For example, for a "secp256k1eth" context, this is the
+  -- Ethereum address. For a "staking" context, this is the ed25519 pubkey.
+  address_data       BYTEA NOT NULL
 );
 
 CREATE TABLE oasis_3.emerald_token_balances
