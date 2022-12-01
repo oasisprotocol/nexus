@@ -94,7 +94,7 @@ postgres:
 		-e POSTGRES_USER=rwuser \
 		-e POSTGRES_PASSWORD=password \
 		-e POSTGRES_DB=indexer \
-		-d postgres
+		-d postgres -c log_statement=all
 	@sleep 1  # Experimentally enough for postgres to start accepting connections
 	# Create a read-only user to mimic the production environment.
 	docker exec -it indexer-postgres psql -U rwuser indexer -c "CREATE ROLE indexer_readonly; CREATE USER api WITH PASSWORD 'password' IN ROLE indexer_readonly;"

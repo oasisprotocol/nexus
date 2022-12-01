@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/oasisprotocol/oasis-core/go/beacon/api"
 	"github.com/oasisprotocol/oasis-core/go/common"
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 	consensus "github.com/oasisprotocol/oasis-core/go/consensus/api"
@@ -60,6 +61,11 @@ func (cc *ConsensusClient) Name() string {
 	return fmt.Sprintf("%s_consensus", moduleName)
 }
 
+// GetEpoch returns the epoch number at the specified block height.
+func (cc *ConsensusClient) GetEpoch(ctx context.Context, height int64) (api.EpochTime, error) {
+	return cc.client.Beacon().GetEpoch(ctx, height)
+}
+
 // BlockData retrieves data about a consensus block at the provided block height.
 func (cc *ConsensusClient) BlockData(ctx context.Context, height int64) (*storage.ConsensusBlockData, error) {
 	block, err := cc.client.GetBlock(ctx, height)
@@ -67,7 +73,7 @@ func (cc *ConsensusClient) BlockData(ctx context.Context, height int64) (*storag
 		return nil, err
 	}
 
-	epoch, err := cc.client.Beacon().GetEpoch(ctx, height)
+	epoch, err := cc.GetEpoch(ctx, height)
 	if err != nil {
 		return nil, err
 	}
@@ -102,7 +108,7 @@ func (cc *ConsensusClient) BeaconData(ctx context.Context, height int64) (*stora
 		return nil, err
 	}
 
-	epoch, err := cc.client.Beacon().GetEpoch(ctx, height)
+	epoch, err := cc.GetEpoch(ctx, height)
 	if err != nil {
 		return nil, err
 	}
@@ -219,7 +225,7 @@ func (cc *ConsensusClient) StakingData(ctx context.Context, height int64) (*stor
 		return nil, err
 	}
 
-	epoch, err := cc.client.Beacon().GetEpoch(ctx, height)
+	epoch, err := cc.GetEpoch(ctx, height)
 	if err != nil {
 		return nil, err
 	}
