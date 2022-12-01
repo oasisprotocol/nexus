@@ -51,7 +51,7 @@ func NewMain(cfg *config.AnalyzerConfig, target storage.TargetStorage, logger *l
 		ChainContext: cfg.ChainContext,
 		RPC:          cfg.RPC,
 	}
-	factory, err := oasis.NewClientFactory(ctx, &networkCfg)
+	factory, err := oasis.NewClientFactory(ctx, &networkCfg, cfg.FastStartup)
 	if err != nil {
 		logger.Error("error creating client factory",
 			"err", err,

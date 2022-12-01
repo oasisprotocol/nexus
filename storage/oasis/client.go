@@ -22,14 +22,23 @@ type ClientFactory struct {
 }
 
 // NewClientFactory creates a new oasis-node client factory.
-func NewClientFactory(ctx context.Context, network *config.Network) (*ClientFactory, error) {
-	connection, err := connection.ConnectNoVerify(ctx, network)
+// Unless `skipChainContextCheck` is false, it also checks that
+// the RPC endpoint in `network` serves the chain context specified
+// in `network`.
+func NewClientFactory(ctx context.Context, network *config.Network, skipChainContextCheck bool) (*ClientFactory, error) {
+	var conn connection.Connection
+	var err error
+	if skipChainContextCheck {
+		conn, err = connection.ConnectNoVerify(ctx, network)
+	} else {
+		conn, err = connection.Connect(ctx, network)
+	}
 	if err != nil {
 		return nil, err
 	}
 
 	return &ClientFactory{
-		connection: &connection,
+		connection: &conn,
 		network:    network,
 	}, nil
 }

@@ -99,7 +99,7 @@ func newSourceClientFactory() (*oasis.ClientFactory, error) {
 		ChainContext: os.Getenv("HEALTHCHECK_TEST_CHAIN_CONTEXT"),
 		RPC:          os.Getenv("HEALTHCHECK_TEST_NODE_RPC"),
 	}
-	return oasis.NewClientFactory(context.Background(), network)
+	return oasis.NewClientFactory(context.Background(), network, true)
 }
 
 var chainID = "" // Memoization for getChainId(). Assumes all tests access the same chain.

@@ -83,12 +83,15 @@ type AnalyzerConfig struct {
 	Name string `koanf:"name"`
 
 	// ChainID is the chain ID of the chain this analyzer will process.
+	// Used to identify the chain in the database.
 	ChainID string `koanf:"chain_id"`
 
 	// RPC is the node endpoint.
 	RPC string `koanf:"rpc"`
 
-	// ChainContext is the domain separation context. It uniquely identifies the chain; it is derived as a hash of the genesis data.
+	// ChainContext is the domain separation context.
+	// It uniquely identifies the chain; it is derived as a hash of the genesis data.
+	// Used as safety check to prevent accidental use of the wrong RPC endpoint.
 	ChainContext string `koanf:"chaincontext"`
 
 	// From is the (inclusive) starting block for this analyzer.
@@ -104,6 +107,11 @@ type AnalyzerConfig struct {
 	// It should be specified as a string compliant with
 	// time.ParseDuration (https://pkg.go.dev/time#ParseDuration).
 	Interval string `koanf:"interval"`
+
+	// If set, the analyzer will skip some initial checks, e.g. that
+	// `rpc` really serves the chain with `chain_context`.
+	// NOT RECOMMENDED in production; intended for faster testing.
+	FastStartup bool `koanf:"fast_startup"`
 }
 
 // Validate validates the analysis configuration.
