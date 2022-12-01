@@ -415,7 +415,7 @@ func (qf QueryFactory) AddressPreimageInsertQuery() string {
 		ON CONFLICT DO NOTHING`, qf.chainID)
 }
 
-func (qf QueryFactory) RuntimeTokenChangeUpdateQuery() string {
+func (qf QueryFactory) RuntimeTokenBalanceUpdateQuery() string {
 	return fmt.Sprintf(`
 		INSERT INTO %[1]s.%[2]s_token_balances (token_address, account_address, balance)
 			VALUES ($1, $2, $3)

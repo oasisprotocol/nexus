@@ -56,13 +56,13 @@ type TokenChangeKey struct {
 }
 
 type BlockData struct {
-	Hash             string
-	NumTransactions  int
-	GasUsed          uint64
-	Size             int
-	TransactionData  []*BlockTransactionData
-	AddressPreimages map[string]*AddressPreimageData
-	TokenChanges     map[TokenChangeKey]*big.Int
+	Hash                string
+	NumTransactions     int
+	GasUsed             uint64
+	Size                int
+	TransactionData     []*BlockTransactionData
+	AddressPreimages    map[string]*AddressPreimageData
+	TokenBalanceChanges map[TokenChangeKey]*big.Int
 }
 
 // Function naming conventions in this file:
@@ -208,7 +208,7 @@ func extractRound(b *block.Block, txrs []*sdkClient.TransactionWithResults, logg
 	blockData.NumTransactions = len(txrs)
 	blockData.TransactionData = make([]*BlockTransactionData, 0, len(txrs))
 	blockData.AddressPreimages = map[string]*AddressPreimageData{}
-	blockData.TokenChanges = map[TokenChangeKey]*big.Int{}
+	blockData.TokenBalanceChanges = map[TokenChangeKey]*big.Int{}
 	for txIndex, txr := range txrs {
 		var blockTransactionData BlockTransactionData
 		blockTransactionData.Index = txIndex
@@ -345,14 +345,14 @@ func extractRound(b *block.Block, txrs []*sdkClient.TransactionWithResults, logg
 							if err2 != nil {
 								return fmt.Errorf("from: %w", err2)
 							}
-							registerTokenDecrease(blockData.TokenChanges, eventAddr, fromAddr, amount)
+							registerTokenDecrease(blockData.TokenBalanceChanges, eventAddr, fromAddr, amount)
 						}
 						if !bytes.Equal(toEthAddr, common.ZeroEthAddr) {
 							toAddr, err2 := registerRelatedEthAddress(blockData.AddressPreimages, blockTransactionData.RelatedAccountAddresses, toEthAddr)
 							if err2 != nil {
 								return fmt.Errorf("to: %w", err2)
 							}
-							registerTokenIncrease(blockData.TokenChanges, eventAddr, toAddr, amount)
+							registerTokenIncrease(blockData.TokenBalanceChanges, eventAddr, toAddr, amount)
 						}
 						return nil
 					},
@@ -420,7 +420,7 @@ func emitRoundBatch(batch *storage.QueryBatch, qf *analyzer.QueryFactory, round 
 	for addr, preimageData := range blockData.AddressPreimages {
 		batch.Queue(qf.AddressPreimageInsertQuery(), addr, preimageData.ContextIdentifier, preimageData.ContextVersion, preimageData.Data)
 	}
-	for key, change := range blockData.TokenChanges {
-		batch.Queue(qf.RuntimeTokenChangeUpdateQuery(), key.TokenAddress, key.AccountAddress, change.String())
+	for key, change := range blockData.TokenBalanceChanges {
+		batch.Queue(qf.RuntimeTokenBalanceUpdateQuery(), key.TokenAddress, key.AccountAddress, change.String())
 	}
 }
