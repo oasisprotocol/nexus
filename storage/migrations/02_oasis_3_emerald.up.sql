@@ -108,6 +108,15 @@ CREATE TABLE oasis_3.emerald_token_balances
 
 CREATE INDEX ix_emerald_token_address ON oasis_3.emerald_token_balances (token_address) WHERE balance != 0;
 
+CREATE TABLE oasis_3.emerald_tokens
+(
+  token_address oasis_addr PRIMARY KEY,
+  token_name TEXT,
+  symbol TEXT,
+  decimals INT,
+  total_supply uint_numeric
+);
+
 -- Core Module Data
 CREATE TABLE oasis_3.emerald_gas_used
 (

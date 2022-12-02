@@ -17,6 +17,7 @@ import (
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 
 	"github.com/oasisprotocol/oasis-indexer/analyzer"
+	"github.com/oasisprotocol/oasis-indexer/analyzer/modules"
 	common "github.com/oasisprotocol/oasis-indexer/analyzer/uncategorized"
 	"github.com/oasisprotocol/oasis-indexer/log"
 	"github.com/oasisprotocol/oasis-indexer/storage"
@@ -63,6 +64,8 @@ type BlockData struct {
 	TransactionData     []*BlockTransactionData
 	AddressPreimages    map[string]*AddressPreimageData
 	TokenBalanceChanges map[TokenChangeKey]*big.Int
+	// key is oasis bech32 address
+	PossibleTokens map[string]*modules.EVMPossibleToken
 }
 
 // Function naming conventions in this file:
@@ -209,6 +212,7 @@ func extractRound(b *block.Block, txrs []*sdkClient.TransactionWithResults, logg
 	blockData.TransactionData = make([]*BlockTransactionData, 0, len(txrs))
 	blockData.AddressPreimages = map[string]*AddressPreimageData{}
 	blockData.TokenBalanceChanges = map[TokenChangeKey]*big.Int{}
+	blockData.PossibleTokens = map[string]*modules.EVMPossibleToken{}
 	for txIndex, txr := range txrs {
 		var blockTransactionData BlockTransactionData
 		blockTransactionData.Index = txIndex
@@ -354,6 +358,10 @@ func extractRound(b *block.Block, txrs []*sdkClient.TransactionWithResults, logg
 							}
 							registerTokenIncrease(blockData.TokenBalanceChanges, eventAddr, toAddr, amount)
 						}
+						blockData.PossibleTokens[eventAddr] = &modules.EVMPossibleToken{
+							PossibleTypes: []modules.EVMTokenType{modules.EVMTokenTypeERC20},
+							EthAddr:       event.Address,
+						}
 						return nil
 					},
 					Erc20Approval: func(ownerEthAddr []byte, spenderEthAddr []byte, amountU256 []byte) error {
@@ -368,6 +376,10 @@ func extractRound(b *block.Block, txrs []*sdkClient.TransactionWithResults, logg
 							if err2 != nil {
 								return fmt.Errorf("spender: %w", err2)
 							}
+						}
+						blockData.PossibleTokens[eventAddr] = &modules.EVMPossibleToken{
+							PossibleTypes: []modules.EVMTokenType{modules.EVMTokenTypeERC20},
+							EthAddr:       event.Address,
 						}
 						return nil
 					},
@@ -400,7 +412,7 @@ func extractRound(b *block.Block, txrs []*sdkClient.TransactionWithResults, logg
 	return &blockData, nil
 }
 
-func emitRoundBatch(batch *storage.QueryBatch, qf *analyzer.QueryFactory, round uint64, blockData *BlockData) {
+func emitRoundBatch(batch *storage.QueryBatch, qf *analyzer.QueryFactory, round uint64, blockData *BlockData, blockTokenData *modules.EVMBlockTokenData) {
 	for _, transactionData := range blockData.TransactionData {
 		for _, signerData := range transactionData.SignerData {
 			batch.Queue(
@@ -422,5 +434,15 @@ func emitRoundBatch(batch *storage.QueryBatch, qf *analyzer.QueryFactory, round 
 	}
 	for key, change := range blockData.TokenBalanceChanges {
 		batch.Queue(qf.RuntimeTokenBalanceUpdateQuery(), key.TokenAddress, key.AccountAddress, change.String())
+	}
+	for tokenAddr, tokenData := range blockTokenData.TokenData {
+		batch.Queue(
+			qf.RuntimeTokenUpdateQuery(),
+			tokenAddr,
+			tokenData.Name,
+			tokenData.Symbol,
+			tokenData.Decimals,
+			tokenData.TotalSupply.String(),
+		)
 	}
 }

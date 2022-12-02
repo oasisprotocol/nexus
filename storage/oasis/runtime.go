@@ -10,6 +10,7 @@ import (
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/accounts"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/consensusaccounts"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/core"
+	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/evm"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 
 	"github.com/oasisprotocol/oasis-indexer/storage"
@@ -122,6 +123,10 @@ func (rc *RuntimeClient) ConsensusAccountsData(ctx context.Context, round uint64
 		Deposits:  deposits,
 		Withdraws: withdraws,
 	}, nil
+}
+
+func (rc *RuntimeClient) EvmSimulateCall(ctx context.Context, round uint64, gasPrice []byte, gasLimit uint64, caller []byte, address []byte, value []byte, data []byte) ([]byte, error) {
+	return evm.NewV1(rc.client).SimulateCall(ctx, round, gasPrice, gasLimit, caller, address, value, data)
 }
 
 // Name returns the name of the client, for the RuntimeSourceStorage interface.
