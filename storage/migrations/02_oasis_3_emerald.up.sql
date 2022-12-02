@@ -100,8 +100,8 @@ CREATE TABLE oasis_3.address_preimages
 
 CREATE TABLE oasis_3.emerald_token_balances
 (
-  token_address TEXT NOT NULL,
-  account_address TEXT NOT NULL,
+  token_address oasis_addr NOT NULL,
+  account_address oasis_addr NOT NULL,
   balance NUMERIC(1000,0) NOT NULL,
   PRIMARY KEY (token_address, account_address)
 );
