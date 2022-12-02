@@ -1076,7 +1076,9 @@ func (c *StorageClient) RuntimeBlocks(ctx context.Context, r *RuntimeBlocksReque
 	}
 	defer rows.Close()
 
-	var bs RuntimeBlockList
+	bs := RuntimeBlockList{
+		Blocks: []RuntimeBlock{},
+	}
 	for rows.Next() {
 		var b RuntimeBlock
 		if err := rows.Scan(&b.Round, &b.Hash, &b.Timestamp, &b.NumTransactions, &b.Size, &b.GasUsed); err != nil {

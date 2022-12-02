@@ -1,6 +1,8 @@
 package v1
 
 import (
+	"net/http"
+
 	"github.com/go-chi/chi/v5"
 
 	"github.com/oasisprotocol/oasis-indexer/log"
@@ -40,6 +42,7 @@ func (h *Handler) RegisterRoutes(r chi.Router) {
 		// Status endpoints.
 		r.Get("/", h.GetStatus)
 
+		// Consensus Endpoints.
 		r.Route("/consensus", func(r chi.Router) {
 			// Block Endpoints.
 			r.Route("/blocks", func(r chi.Router) {
@@ -93,8 +96,7 @@ func (h *Handler) RegisterRoutes(r chi.Router) {
 			})
 		})
 
-		// ... ParaTime Endpoint Registration.
-
+		// ParaTime Endpoints.
 		r.Route("/emerald", func(r chi.Router) {
 			r.Use(h.runtimeMiddleware("emerald"))
 			// Block Endpoints.
@@ -107,6 +109,12 @@ func (h *Handler) RegisterRoutes(r chi.Router) {
 			r.Route("/tokens", func(r chi.Router) {
 				r.Get("/", h.RuntimeListTokens)
 			})
+		})
+
+		// API specs.
+		r.Route("/spec", func(r chi.Router) {
+			specServer := http.FileServer(http.Dir("api/spec"))
+			r.Handle("/*", http.StripPrefix("/v1/spec", specServer))
 		})
 	})
 }
