@@ -37,7 +37,7 @@ CREATE TABLE oasis_3.transactions
   block BIGINT NOT NULL REFERENCES oasis_3.blocks(height) DEFERRABLE INITIALLY DEFERRED,
 
   txn_hash   HEX64 NOT NULL,
-  txn_index  UINT31,
+  txn_index  UINT31 NOT NULL,
   nonce      UINT63 NOT NULL,
   fee_amount UINT_NUMERIC,
   max_gas    UINT_NUMERIC,
@@ -51,9 +51,9 @@ CREATE TABLE oasis_3.transactions
   code    UINT31,  -- From https://github.com/oasisprotocol/oasis-core/blob/f95186e3f15ec64bdd36493cde90be359bd17da8/go/consensus/api/transaction/results/results.go#L20-L20
   message TEXT,
 
-  -- We require a composite primary key since duplicate transactions can
+  -- We require a composite primary key since duplicate transactions (with identical hashes) can
   -- be included within blocks for this chain.
-  PRIMARY KEY (block, txn_hash, txn_index)
+  PRIMARY KEY (block, txn_index)
 );
 -- Queries by sender are common, and unusably slow without an index.
 CREATE INDEX ix_transactions_sender ON oasis_3.transactions (sender);
@@ -65,10 +65,10 @@ CREATE TABLE oasis_3.events
   body    JSON,
 
   txn_block  UINT63 NOT NULL,
-  txn_hash   HEX64 NOT NULL,
   txn_index  UINT31,
+  txn_hash   HEX64,  -- could be fetched from `transactions` table; denormalized for efficiency
 
-  FOREIGN KEY (txn_block, txn_hash, txn_index) REFERENCES oasis_3.transactions(block, txn_hash, txn_index) DEFERRABLE INITIALLY DEFERRED
+  FOREIGN KEY (txn_block, txn_index) REFERENCES oasis_3.transactions(block, txn_index) DEFERRABLE INITIALLY DEFERRED
 );
 
 -- Beacon Backend Data
