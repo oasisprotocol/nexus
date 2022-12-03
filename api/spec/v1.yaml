@@ -5,9 +5,9 @@ info:
   version: 0.1.0
 
 servers:
-  - url: http://index.oasis.dev/v1
+  - url: http://index.oasislabs.com/v1
     description: Mainnet index endpoint.
-  - url: http://index.testnet.oasis.dev/v1
+  - url: http://index.testnet.oasislabs.com/v1
     description: Testnet index endpoint.
 
 x-query-params:
