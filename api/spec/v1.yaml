@@ -91,6 +91,23 @@ x-common-types:
     - beacon.PVSSReveal
     - beacon.VRFProve
 
+x-err-responses:
+  base-error: &base_error_response
+    content:
+      application/json:
+        schema:
+          $ref: '#/components/schemas/ApiError'
+  common-errors: &common_error_responses
+    '400':
+      <<: *base_error_response
+      description: Invalid request.
+    '404':
+      <<: *base_error_response
+      description: The requested resource was not found.
+    '500':
+      <<: *base_error_response
+      description: A server error occurred.
+
 paths:
   /:
     get:
@@ -102,12 +119,7 @@ paths:
             application/json:
               schema: 
                 $ref: '#/components/schemas/Status'
-        '400':
-          $ref: '#/components/responses/InvalidRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/ServerError'
+        <<: *common_error_responses
 
   /consensus/blocks:
     get:
@@ -150,12 +162,7 @@ paths:
             application/json:
               schema: 
                 $ref: '#/components/schemas/BlockList'
-        '400':
-          $ref: '#/components/responses/InvalidRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/ServerError'
+        <<: *common_error_responses
 
   /consensus/blocks/{height}:
     get:
@@ -176,12 +183,7 @@ paths:
             application/json:
               schema: 
                 $ref: '#/components/schemas/Block'
-        '400':
-          $ref: '#/components/responses/InvalidRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/ServerError'
+        <<: *common_error_responses
 
   /consensus/transactions:
     get:
@@ -236,12 +238,7 @@ paths:
             application/json:
               schema: 
                 $ref: '#/components/schemas/TransactionList'
-        '400':
-          $ref: '#/components/responses/InvalidRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/ServerError'
+        <<: *common_error_responses
 
   /consensus/transactions/{tx_hash}:
     get:
@@ -261,12 +258,7 @@ paths:
             application/json:
               schema: 
                 $ref: '#/components/schemas/Transaction'
-        '400':
-          $ref: '#/components/responses/InvalidRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/ServerError'
+        <<: *common_error_responses
 
   /consensus/entities:
     get:
@@ -283,12 +275,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EntityList'
-        '400':
-          $ref: '#/components/responses/InvalidRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/ServerError'
+        <<: *common_error_responses
 
   /consensus/entities/{entity_id}:
     get:
@@ -310,12 +297,7 @@ paths:
             application/json:
               schema: 
                 $ref: '#/components/schemas/Entity'
-        '400':
-          $ref: '#/components/responses/InvalidRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/ServerError'
+        <<: *common_error_responses
 
   /consensus/entities/{entity_id}/nodes:
     get:
@@ -339,12 +321,7 @@ paths:
             application/json:
               schema: 
                 $ref: '#/components/schemas/NodeList'
-        '400':
-          $ref: '#/components/responses/InvalidRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/ServerError'
+        <<: *common_error_responses
 
   /consensus/entities/{entity_id}/nodes/{node_id}:
     get:
@@ -373,12 +350,7 @@ paths:
             application/json:
               schema: 
                 $ref: '#/components/schemas/Node'
-        '400':
-          $ref: '#/components/responses/InvalidRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/ServerError'
+        <<: *common_error_responses
 
   /consensus/validators:
     get:
@@ -395,12 +367,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ValidatorList'
-        '400':
-          $ref: '#/components/responses/InvalidRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/ServerError'
+        <<: *common_error_responses
 
   /consensus/validators/{entity_id}:
     get:
@@ -422,12 +389,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Validator'
-        '400':
-          $ref: '#/components/responses/InvalidRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/ServerError'
+        <<: *common_error_responses
           
   /consensus/accounts:
     get:
@@ -499,12 +461,7 @@ paths:
             application/json:
               schema: 
                 $ref: '#/components/schemas/AccountList'
-        '400':
-          $ref: '#/components/responses/InvalidRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/ServerError'
+        <<: *common_error_responses
 
   /consensus/accounts/{address}:
     get:
@@ -524,12 +481,7 @@ paths:
             application/json:
               schema: 
                 $ref: '#/components/schemas/Account'
-        '400':
-          $ref: '#/components/responses/InvalidRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/ServerError'
+        <<: *common_error_responses
 
   /consensus/accounts/{address}/delegations:
     get:
@@ -549,12 +501,7 @@ paths:
             application/json:
               schema: 
                 $ref: '#/components/schemas/DelegationList'
-        '400':
-          $ref: '#/components/responses/InvalidRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/ServerError'
+        <<: *common_error_responses
 
   /consensus/accounts/{address}/debonding_delegations:
     get:
@@ -574,12 +521,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DebondingDelegationList'
-        '400':
-          $ref: '#/components/responses/InvalidRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/ServerError'
+        <<: *common_error_responses
 
   /consensus/epochs:
     get:
@@ -594,12 +536,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EpochList'
-        '400':
-          $ref: '#/components/responses/InvalidRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/ServerError'
+        <<: *common_error_responses
 
   /consensus/epochs/{epoch}:
     get:
@@ -620,12 +557,7 @@ paths:
             application/json:
               schema: 
                 $ref: '#/components/schemas/Epoch'
-        '400':
-          $ref: '#/components/responses/InvalidRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/ServerError'
+        <<: *common_error_responses
 
   /consensus/proposals:
     get:
@@ -652,12 +584,7 @@ paths:
             application/json:
               schema: 
                 $ref: '#/components/schemas/ProposalList'
-        '400':
-          $ref: '#/components/responses/InvalidRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/ServerError'
+        <<: *common_error_responses
 
   /consensus/proposals/{proposal_id}:
     get:
@@ -678,12 +605,7 @@ paths:
             application/json:
               schema: 
                 $ref: '#/components/schemas/Proposal'
-        '400':
-          $ref: '#/components/responses/InvalidRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/ServerError'
+        <<: *common_error_responses
 
   /consensus/proposals/{proposal_id}/votes:
     get:
@@ -708,12 +630,7 @@ paths:
             application/json:
               schema: 
                 $ref: '#/components/schemas/ProposalVotes'
-        '400':
-          $ref: '#/components/responses/InvalidRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/ServerError'
+        <<: *common_error_responses
 
   /emerald/blocks:
     get:
@@ -756,12 +673,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RuntimeBlockList'
-        '400':
-          $ref: '#/components/responses/InvalidRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/ServerError'
+        <<: *common_error_responses
 
   /emerald/transactions:
     get:
@@ -784,12 +696,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RuntimeTransactionList'
-        '400':
-          $ref: '#/components/responses/InvalidRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/ServerError'
+        <<: *common_error_responses
 
   /emerald/tokens:
     get:
@@ -805,12 +712,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RuntimeTokenList'
-        '400':
-          $ref: '#/components/responses/InvalidRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/ServerError'
+        <<: *common_error_responses
 
   /consensus/stats/tps:
     get:
@@ -826,12 +728,7 @@ paths:
             application/json:
               schema: 
                 $ref: '#/components/schemas/TpsCheckpoints'
-        '400':
-          $ref: '#/components/responses/InvalidRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/ServerError'
+        <<: *common_error_responses
 
   /consensus/stats/daily_volume:
     get:
@@ -847,12 +744,7 @@ paths:
             application/json:
               schema: 
                 $ref: '#/components/schemas/VolumeList'
-        '400':
-          $ref: '#/components/responses/InvalidRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/ServerError'
+        <<: *common_error_responses
 
 components:
   schemas:
