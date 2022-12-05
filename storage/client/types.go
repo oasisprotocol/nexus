@@ -2,6 +2,7 @@
 package client
 
 import (
+	"math/big"
 	"time"
 )
 
@@ -31,14 +32,14 @@ type TransactionList struct {
 
 // Transaction is the storage response for GetTransaction.
 type Transaction struct {
-	Height  int64  `json:"height"`
-	Hash    string `json:"hash"`
-	Sender  string `json:"sender"`
-	Nonce   uint64 `json:"nonce"`
-	Fee     uint64 `json:"fee"`
-	Method  string `json:"method"`
-	Body    []byte `json:"body"`
-	Success bool   `json:"success"`
+	Height  int64   `json:"height"`
+	Hash    string  `json:"hash"`
+	Sender  string  `json:"sender"`
+	Nonce   uint64  `json:"nonce"`
+	Fee     big.Int `json:"fee"`
+	Method  string  `json:"method"`
+	Body    []byte  `json:"body"`
+	Success bool    `json:"success"`
 }
 
 // EntityList is the storage response for ListEntities.
@@ -79,13 +80,13 @@ type AccountList struct {
 
 // Account is the storage response for GetAccount.
 type Account struct {
-	Address                     string `json:"address"`
-	Nonce                       uint64 `json:"nonce"`
-	Available                   uint64 `json:"available"`
-	Escrow                      uint64 `json:"escrow"`
-	Debonding                   uint64 `json:"debonding"`
-	DelegationsBalance          uint64 `json:"delegations_balance,omitempty"`
-	DebondingDelegationsBalance uint64 `json:"debonding_delegations_balance,omitempty"`
+	Address                     string  `json:"address"`
+	Nonce                       uint64  `json:"nonce"`
+	Available                   big.Int `json:"available"`
+	Escrow                      big.Int `json:"escrow"`
+	Debonding                   big.Int `json:"debonding"`
+	DelegationsBalance          big.Int `json:"delegations_balance,omitempty"`
+	DebondingDelegationsBalance big.Int `json:"debonding_delegations_balance,omitempty"`
 
 	Allowances []Allowance `json:"allowances"`
 }
@@ -97,10 +98,10 @@ type DebondingDelegationList struct {
 
 // DebondingDelegation is the storage response for GetDebondingDelegation.
 type DebondingDelegation struct {
-	Amount           uint64 `json:"amount"`
-	Shares           uint64 `json:"shares"`
-	ValidatorAddress string `json:"address"`
-	DebondEnd        uint64 `json:"debond_end"`
+	Amount           big.Int `json:"amount"`
+	Shares           big.Int `json:"shares"`
+	ValidatorAddress string  `json:"address"`
+	DebondEnd        uint64  `json:"debond_end"`
 }
 
 // DelegationList is the storage response for ListDelegations.
@@ -110,14 +111,14 @@ type DelegationList struct {
 
 // Delegation is the storage response for GetDelegation.
 type Delegation struct {
-	Amount           uint64 `json:"amount"`
-	Shares           uint64 `json:"shares"`
-	ValidatorAddress string `json:"address"`
+	Amount           big.Int `json:"amount"`
+	Shares           big.Int `json:"shares"`
+	ValidatorAddress string  `json:"address"`
 }
 
 type Allowance struct {
-	Address string `json:"address"`
-	Amount  uint64 `json:"amount"`
+	Address string  `json:"address"`
+	Amount  big.Int `json:"amount"`
 }
 
 // Epoch is the storage response for ListEpochs.
@@ -142,7 +143,7 @@ type Proposal struct {
 	ID           uint64  `json:"id"`
 	Submitter    string  `json:"submitter"`
 	State        string  `json:"state"`
-	Deposit      uint64  `json:"deposit"`
+	Deposit      big.Int `json:"deposit"`
 	Handler      *string `json:"handler,omitempty"`
 	Target       Target  `json:"target,omitempty"`
 	Epoch        *uint64 `json:"epoch,omitempty"`
@@ -176,11 +177,11 @@ type ValidatorList struct {
 
 // Validator is the storage response for GetValidator.
 type Validator struct {
-	Name          string `json:"name"`
-	EntityAddress string `json:"entity_address"`
-	EntityID      string `json:"entity_id"`
-	NodeID        string `json:"node_id"`
-	Escrow        uint64 `json:"escrow"`
+	Name          string  `json:"name"`
+	EntityAddress string  `json:"entity_address"`
+	EntityID      string  `json:"entity_id"`
+	NodeID        string  `json:"node_id"`
+	Escrow        big.Int `json:"escrow"`
 	// If "true", entity is part of validator set (top <scheduler.params.max_validators> by stake).
 	Active bool `json:"active"`
 	// If "true", an entity has a node that is registered for being a validator, node is up to date, and has successfully registered itself. However, it may or may not be part of validator set (top <scheduler.params.max_validators> by stake).

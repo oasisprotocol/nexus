@@ -2,6 +2,8 @@ package client
 
 import (
 	"context"
+	"fmt"
+	"math/big"
 	"time"
 
 	"github.com/dgraph-io/ristretto"
@@ -172,6 +174,22 @@ func (c *StorageClient) cacheBlock(blk *Block) {
 	c.blockCache.Set(blk.Height, blk, blockCost)
 }
 
+// deserializeBigIntOrLog attempts to deserialize the input string to a *big.Int
+// and logs an error if unsuccessful.
+func (c *StorageClient) deserializeToBigIntOrLog(ctx context.Context, s string) (*big.Int, error) {
+	i := big.NewInt(0)
+	i, err := i.SetString(s, 10)
+	if err {
+		c.logger.Info("deserialization failed",
+			"request_id", ctx.Value(RequestIDContextKey),
+			"string", s,
+		)
+		return nil, fmt.Errorf("failed to deserialize %s to big int", s)
+	}
+
+	return i, nil
+}
+
 // Transactions returns a list of consensus transactions.
 func (c *StorageClient) Transactions(ctx context.Context, r *TransactionsRequest, p *common.Pagination) (*TransactionList, error) {
 	cid, ok := ctx.Value(ChainIDContextKey).(string)
@@ -207,12 +225,13 @@ func (c *StorageClient) Transactions(ctx context.Context, r *TransactionsRequest
 	for rows.Next() {
 		var t Transaction
 		var code uint64
+		var feeStr string
 		if err := rows.Scan(
 			&t.Height,
 			&t.Hash,
 			&t.Sender,
 			&t.Nonce,
-			&t.Fee,
+			&feeStr,
 			&t.Method,
 			&t.Body,
 			&code,
@@ -223,6 +242,11 @@ func (c *StorageClient) Transactions(ctx context.Context, r *TransactionsRequest
 			)
 			return nil, common.ErrStorageError
 		}
+		fee, err := c.deserializeToBigIntOrLog(ctx, feeStr)
+		if err != nil {
+			return nil, common.ErrStorageError
+		}
+		t.Fee = *fee
 		if code == oasisErrors.CodeNoError {
 			t.Success = true
 		}
@@ -248,6 +272,7 @@ func (c *StorageClient) Transaction(ctx context.Context, r *TransactionRequest) 
 	qf := NewQueryFactory(cid, "" /* no runtime identifier for the consensus layer */)
 
 	var t Transaction
+	var feeStr string
 	var code uint64
 	if err := c.db.QueryRow(
 		ctx,
@@ -258,7 +283,7 @@ func (c *StorageClient) Transaction(ctx context.Context, r *TransactionRequest) 
 		&t.Hash,
 		&t.Sender,
 		&t.Nonce,
-		&t.Fee,
+		&feeStr,
 		&t.Method,
 		&t.Body,
 		&code,
@@ -269,6 +294,11 @@ func (c *StorageClient) Transaction(ctx context.Context, r *TransactionRequest) 
 		)
 		return nil, common.ErrStorageError
 	}
+	fee, err := c.deserializeToBigIntOrLog(ctx, feeStr)
+	if err != nil {
+		return nil, common.ErrStorageError
+	}
+	t.Fee = *fee
 	if code == oasisErrors.CodeNoError {
 		t.Success = true
 	}
@@ -497,12 +527,15 @@ func (c *StorageClient) Accounts(ctx context.Context, r *AccountsRequest, p *com
 	}
 	for rows.Next() {
 		var a Account
+		var availableStr string
+		var escrowStr string
+		var debondingStr string
 		if err := rows.Scan(
 			&a.Address,
 			&a.Nonce,
-			&a.Available,
-			&a.Escrow,
-			&a.Debonding,
+			&availableStr,
+			&escrowStr,
+			&debondingStr,
 		); err != nil {
 			c.logger.Info("row scan failed",
 				"request_id", ctx.Value(RequestIDContextKey),
@@ -510,6 +543,21 @@ func (c *StorageClient) Accounts(ctx context.Context, r *AccountsRequest, p *com
 			)
 			return nil, common.ErrStorageError
 		}
+		available, err := c.deserializeToBigIntOrLog(ctx, availableStr)
+		if err != nil {
+			return nil, common.ErrStorageError
+		}
+		escrow, err := c.deserializeToBigIntOrLog(ctx, escrowStr)
+		if err != nil {
+			return nil, common.ErrStorageError
+		}
+		debonding, err := c.deserializeToBigIntOrLog(ctx, debondingStr)
+		if err != nil {
+			return nil, common.ErrStorageError
+		}
+		a.Available = *available
+		a.Escrow = *escrow
+		a.Debonding = *debonding
 
 		as.Accounts = append(as.Accounts, a)
 	}
@@ -528,6 +576,11 @@ func (c *StorageClient) Account(ctx context.Context, r *AccountRequest) (*Accoun
 	a := Account{
 		Allowances: []Allowance{},
 	}
+	var availableStr string
+	var escrowStr string
+	var debondingStr string
+	var delegationsBalanceStr string
+	var debondingDelegationsBalanceStr string
 	if err := c.db.QueryRow(
 		ctx,
 		qf.AccountQuery(),
@@ -535,11 +588,11 @@ func (c *StorageClient) Account(ctx context.Context, r *AccountRequest) (*Accoun
 	).Scan(
 		&a.Address,
 		&a.Nonce,
-		&a.Available,
-		&a.Escrow,
-		&a.Debonding,
-		&a.DelegationsBalance,
-		&a.DebondingDelegationsBalance,
+		&availableStr,
+		&escrowStr,
+		&debondingStr,
+		&delegationsBalanceStr,
+		&debondingDelegationsBalanceStr,
 	); err != nil {
 		c.logger.Info("row scan failed",
 			"request_id", ctx.Value(RequestIDContextKey),
@@ -547,6 +600,45 @@ func (c *StorageClient) Account(ctx context.Context, r *AccountRequest) (*Accoun
 		)
 		return nil, common.ErrStorageError
 	}
+	available, err := c.deserializeToBigIntOrLog(ctx, availableStr)
+	if err != nil {
+		return nil, common.ErrStorageError
+	}
+	escrow, err := c.deserializeToBigIntOrLog(ctx, escrowStr)
+	if err != nil {
+		return nil, common.ErrStorageError
+	}
+	debonding, err := c.deserializeToBigIntOrLog(ctx, debondingStr)
+	if err != nil {
+		return nil, common.ErrStorageError
+	}
+	delegationsBalance, err := c.deserializeToBigIntOrLog(ctx, delegationsBalanceStr)
+	if err != nil {
+		return nil, common.ErrStorageError
+	}
+	debondingDelegationsBalance, err := c.deserializeToBigIntOrLog(ctx, debondingDelegationsBalanceStr)
+	if err != nil {
+		return nil, common.ErrStorageError
+	}
+	a.Available = *available
+	a.Escrow = *escrow
+	a.Debonding = *debonding
+	a.DelegationsBalance = *delegationsBalance
+	a.DebondingDelegationsBalance = *debondingDelegationsBalance
+
+	// fields := make([]*big.Int, 0)
+	// for _, s := range []string{availableStr, escrowStr, debondingStr, delegationsBalanceStr, debondingDelegationsBalanceStr} {
+	// 	num, err := c.deserializeToBigIntOrLog(ctx, s)
+	// 	if err != nil {
+	// 		return nil, common.ErrStorageError
+	// 	}
+	// 	fields = append(fields, num)
+	// }
+	// a.Available = *fields[0]
+	// a.Escrow = *fields[1]
+	// a.Debonding = *fields[2]
+	// a.DelegationsBalance = *fields[3]
+	// a.DebondingDelegationsBalance = *fields[4]
 
 	allowanceRows, err := c.db.Query(
 		ctx,
@@ -564,9 +656,10 @@ func (c *StorageClient) Account(ctx context.Context, r *AccountRequest) (*Accoun
 
 	for allowanceRows.Next() {
 		var al Allowance
+		var amountStr string
 		if err := allowanceRows.Scan(
 			&al.Address,
-			&al.Amount,
+			&amountStr,
 		); err != nil {
 			c.logger.Info("row scan failed",
 				"request_id", ctx.Value(RequestIDContextKey),
@@ -574,6 +667,11 @@ func (c *StorageClient) Account(ctx context.Context, r *AccountRequest) (*Accoun
 			)
 			return nil, common.ErrStorageError
 		}
+		amount, err := c.deserializeToBigIntOrLog(ctx, amountStr)
+		if err != nil {
+			return nil, common.ErrStorageError
+		}
+		al.Amount = *amount
 
 		a.Allowances = append(a.Allowances, al)
 	}
@@ -610,13 +708,14 @@ func (c *StorageClient) Delegations(ctx context.Context, r *DelegationsRequest, 
 	}
 	for rows.Next() {
 		var d Delegation
-		var escrowBalanceActive uint64
-		var escrowTotalSharesActive uint64
+		var sharesStr string
+		var escrowBalanceActiveStr string
+		var escrowTotalSharesActiveStr string
 		if err := rows.Scan(
 			&d.ValidatorAddress,
-			&d.Shares,
-			&escrowBalanceActive,
-			&escrowTotalSharesActive,
+			&sharesStr,
+			&escrowBalanceActiveStr,
+			&escrowTotalSharesActiveStr,
 		); err != nil {
 			c.logger.Info("row scan failed",
 				"request_id", ctx.Value(RequestIDContextKey),
@@ -624,8 +723,23 @@ func (c *StorageClient) Delegations(ctx context.Context, r *DelegationsRequest, 
 			)
 			return nil, common.ErrStorageError
 		}
-
-		d.Amount = uint64(float64(d.Shares) * float64(escrowBalanceActive) / float64(escrowTotalSharesActive))
+		shares, err := c.deserializeToBigIntOrLog(ctx, sharesStr)
+		if err != nil {
+			return nil, common.ErrStorageError
+		}
+		escrowBalanceActive, err := c.deserializeToBigIntOrLog(ctx, escrowBalanceActiveStr)
+		if err != nil {
+			return nil, common.ErrStorageError
+		}
+		escrowTotalSharesActive, err := c.deserializeToBigIntOrLog(ctx, escrowTotalSharesActiveStr)
+		if err != nil {
+			return nil, common.ErrStorageError
+		}
+		amount := big.NewInt(0)
+		amount.Mul(shares, escrowBalanceActive)
+		amount.Quo(amount, escrowTotalSharesActive)
+		d.Amount = *amount
+		d.Shares = *shares
 
 		ds.Delegations = append(ds.Delegations, d)
 	}
@@ -662,14 +776,15 @@ func (c *StorageClient) DebondingDelegations(ctx context.Context, r *DebondingDe
 	}
 	for rows.Next() {
 		var d DebondingDelegation
-		var escrowBalanceDebonding uint64
-		var escrowTotalSharesDebonding uint64
+		var sharesStr string
+		var escrowBalanceDebondingStr string
+		var escrowTotalSharesDebondingStr string
 		if err := rows.Scan(
 			&d.ValidatorAddress,
-			&d.Shares,
+			&sharesStr,
 			&d.DebondEnd,
-			&escrowBalanceDebonding,
-			&escrowTotalSharesDebonding,
+			&escrowBalanceDebondingStr,
+			&escrowTotalSharesDebondingStr,
 		); err != nil {
 			c.logger.Info("row scan failed",
 				"request_id", ctx.Value(RequestIDContextKey),
@@ -677,7 +792,24 @@ func (c *StorageClient) DebondingDelegations(ctx context.Context, r *DebondingDe
 			)
 			return nil, common.ErrStorageError
 		}
-		d.Amount = uint64(float64(d.Shares) * float64(escrowBalanceDebonding) / float64(escrowTotalSharesDebonding))
+		shares, err := c.deserializeToBigIntOrLog(ctx, sharesStr)
+		if err != nil {
+			return nil, common.ErrStorageError
+		}
+		escrowBalanceDebonding, err := c.deserializeToBigIntOrLog(ctx, escrowBalanceDebondingStr)
+		if err != nil {
+			return nil, common.ErrStorageError
+		}
+		escrowTotalSharesDebonding, err := c.deserializeToBigIntOrLog(ctx, escrowTotalSharesDebondingStr)
+		if err != nil {
+			return nil, common.ErrStorageError
+		}
+		amount := big.NewInt(0)
+		amount.Mul(shares, escrowBalanceDebonding)
+		amount.Quo(amount, escrowTotalSharesDebonding)
+		d.Amount = *amount
+		d.Shares = *shares
+
 		ds.DebondingDelegations = append(ds.DebondingDelegations, d)
 	}
 
@@ -783,11 +915,12 @@ func (c *StorageClient) Proposals(ctx context.Context, r *ProposalsRequest, p *c
 	}
 	for rows.Next() {
 		var p Proposal
+		var depositStr string
 		if err := rows.Scan(
 			&p.ID,
 			&p.Submitter,
 			&p.State,
-			&p.Deposit,
+			&depositStr,
 			&p.Handler,
 			&p.Target.ConsensusProtocol,
 			&p.Target.RuntimeHostProtocol,
@@ -804,6 +937,11 @@ func (c *StorageClient) Proposals(ctx context.Context, r *ProposalsRequest, p *c
 			)
 			return nil, common.ErrStorageError
 		}
+		deposit, err := c.deserializeToBigIntOrLog(ctx, depositStr)
+		if err != nil {
+			return nil, common.ErrStorageError
+		}
+		p.Deposit = *deposit
 
 		ps.Proposals = append(ps.Proposals, p)
 	}
@@ -820,6 +958,7 @@ func (c *StorageClient) Proposal(ctx context.Context, r *ProposalRequest) (*Prop
 	qf := NewQueryFactory(cid, "" /* no runtime identifier for the consensus layer */)
 
 	var p Proposal
+	var depositStr string
 	if err := c.db.QueryRow(
 		ctx,
 		qf.ProposalQuery(),
@@ -828,7 +967,7 @@ func (c *StorageClient) Proposal(ctx context.Context, r *ProposalRequest) (*Prop
 		&p.ID,
 		&p.Submitter,
 		&p.State,
-		&p.Deposit,
+		&depositStr,
 		&p.Handler,
 		&p.Target.ConsensusProtocol,
 		&p.Target.RuntimeHostProtocol,
@@ -845,6 +984,11 @@ func (c *StorageClient) Proposal(ctx context.Context, r *ProposalRequest) (*Prop
 		)
 		return nil, common.ErrStorageError
 	}
+	deposit, err := c.deserializeToBigIntOrLog(ctx, depositStr)
+	if err != nil {
+		return nil, common.ErrStorageError
+	}
+	p.Deposit = *deposit
 
 	return &p, nil
 }
@@ -936,12 +1080,13 @@ func (c *StorageClient) Validators(ctx context.Context, p *common.Pagination) (*
 	}
 	for rows.Next() {
 		var v Validator
+		var escrowStr string
 		var schedule staking.CommissionSchedule
 		if err := rows.Scan(
 			&v.EntityID,
 			&v.EntityAddress,
 			&v.NodeID,
-			&v.Escrow,
+			&escrowStr,
 			&schedule,
 			&v.Active,
 			&v.Status,
@@ -952,6 +1097,11 @@ func (c *StorageClient) Validators(ctx context.Context, p *common.Pagination) (*
 			)
 			return nil, common.ErrStorageError
 		}
+		escrow, err := c.deserializeToBigIntOrLog(ctx, escrowStr)
+		if err != nil {
+			return nil, common.ErrStorageError
+		}
+		v.Escrow = *escrow
 		// Match API for now
 		v.Name = v.Media.Name
 
@@ -1005,12 +1155,13 @@ func (c *StorageClient) Validator(ctx context.Context, r *ValidatorRequest) (*Va
 	)
 
 	var v Validator
+	var escrowStr string
 	var schedule staking.CommissionSchedule
 	if err := row.Scan(
 		&v.EntityID,
 		&v.EntityAddress,
 		&v.NodeID,
-		&v.Escrow,
+		&escrowStr,
 		&schedule,
 		&v.Active,
 		&v.Status,
@@ -1021,6 +1172,11 @@ func (c *StorageClient) Validator(ctx context.Context, r *ValidatorRequest) (*Va
 		)
 		return nil, common.ErrStorageError
 	}
+	escrow, err := c.deserializeToBigIntOrLog(ctx, escrowStr)
+	if err != nil {
+		return nil, common.ErrStorageError
+	}
+	v.Escrow = *escrow
 	// Match API for now
 	v.Name = v.Media.Name
 
