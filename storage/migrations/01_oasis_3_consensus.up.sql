@@ -40,7 +40,7 @@ CREATE TABLE oasis_3.transactions
   txn_hash   HEX64 NOT NULL,
   nonce      UINT63 NOT NULL,
   fee_amount UINT_NUMERIC,
-  max_gas    UINT_NUMERIC,
+  max_gas    UINT_63,
   method     TEXT NOT NULL,
   sender     oasis_addr NOT NULL,
   body       BYTEA,
@@ -154,7 +154,7 @@ CREATE TABLE oasis_3.accounts
   address oasis_addr PRIMARY KEY,
 
   -- General Account
-  general_balance NUMERIC DEFAULT 0,
+  general_balance UINT_NUMERIC DEFAULT 0,
   nonce           UINT63 NOT NULL DEFAULT 0,
 
   -- Escrow Account
@@ -225,7 +225,7 @@ CREATE TABLE oasis_3.proposals
   submitter     oasis_addr NOT NULL,
   state         TEXT NOT NULL DEFAULT 'active',  -- "active" | "passed" | "rejected" | "failed"; see https://github.com/oasisprotocol/oasis-core/blob/f95186e3f15ec64bdd36493cde90be359bd17da8/go/governance/api/proposal.go#L29-L29
   executed      BOOLEAN NOT NULL DEFAULT false,
-  deposit       NUMERIC NOT NULL,
+  deposit       UINT_NUMERIC NOT NULL, 
 
   -- If this proposal is a new proposal.
   handler            TEXT,
@@ -239,7 +239,7 @@ CREATE TABLE oasis_3.proposals
 
   created_at    UINT63 NOT NULL,  -- EpochTime, i.e. number of epochs since base epoch
   closes_at     UINT63 NOT NULL,  -- EpochTime, i.e. number of epochs since base epoch
-  invalid_votes UINT_NUMERIC NOT NULL DEFAULT 0
+  invalid_votes UINT63 NOT NULL DEFAULT 0
 );
 
 CREATE TABLE oasis_3.votes
