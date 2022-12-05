@@ -225,7 +225,7 @@ CREATE TABLE oasis_3.proposals
   submitter     oasis_addr NOT NULL,
   state         TEXT NOT NULL DEFAULT 'active',  -- "active" | "passed" | "rejected" | "failed"; see https://github.com/oasisprotocol/oasis-core/blob/f95186e3f15ec64bdd36493cde90be359bd17da8/go/governance/api/proposal.go#L29-L29
   executed      BOOLEAN NOT NULL DEFAULT false,
-  deposit       UINT_NUMERIC NOT NULL, 
+  deposit       UINT_NUMERIC NOT NULL,
 
   -- If this proposal is a new proposal.
   handler            TEXT,
