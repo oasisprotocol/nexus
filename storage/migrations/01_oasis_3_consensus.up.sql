@@ -40,7 +40,7 @@ CREATE TABLE oasis_3.transactions
   txn_hash   HEX64 NOT NULL,
   nonce      UINT63 NOT NULL,
   fee_amount UINT_NUMERIC,
-  max_gas    UINT_63,
+  max_gas    UINT_NUMERIC, -- uint64 in go; because the value might conceivably be >2^63, we use UINT_NUMERIC over UINT63 here.
   method     TEXT NOT NULL,
   sender     oasis_addr NOT NULL,
   body       BYTEA,
@@ -239,7 +239,7 @@ CREATE TABLE oasis_3.proposals
 
   created_at    UINT63 NOT NULL,  -- EpochTime, i.e. number of epochs since base epoch
   closes_at     UINT63 NOT NULL,  -- EpochTime, i.e. number of epochs since base epoch
-  invalid_votes UINT63 NOT NULL DEFAULT 0
+  invalid_votes UINT_NUMERIC NOT NULL DEFAULT 0 -- uint64 in go; because the value might conceivably be >2^63, we use UINT_NUMERIC over UINT63 here.
 );
 
 CREATE TABLE oasis_3.votes
