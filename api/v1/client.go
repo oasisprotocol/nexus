@@ -3,6 +3,7 @@ package v1
 import (
 	"context"
 	"fmt"
+	"math/big"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -39,6 +40,16 @@ func validateInt64(param string) (int64, error) {
 // validateUint64 parses an int64 url parameter.
 func validateUint64(param string) (uint64, error) {
 	return strconv.ParseUint(param, 10, 64)
+}
+
+// validateBigInt parses a big.Int url parameter.
+func validateBigInt(param string) (*big.Int, error) {
+	i := big.NewInt(0)
+	i, err := i.SetString(param, 10)
+	if err {
+		return nil, fmt.Errorf("failed to parse param %s to big.Int", param)
+	}
+	return i, nil
 }
 
 // validateDatetime parses a datetime url parameter.
@@ -165,18 +176,18 @@ func (c *storageClient) Transactions(ctx context.Context, r *http.Request) (*sto
 		q.Sender = sender
 	}
 	if v := params.Get("minFee"); v != "" {
-		minFee, err := validateInt64(v)
+		minFee, err := validateBigInt(v)
 		if err != nil {
 			return nil, common.ErrBadRequest
 		}
-		q.MinFee = &minFee
+		q.MinFee = minFee
 	}
 	if v := params.Get("maxFee"); v != "" {
-		maxFee, err := validateInt64(v)
+		maxFee, err := validateBigInt(v)
 		if err != nil {
 			return nil, common.ErrBadRequest
 		}
-		q.MaxFee = &maxFee
+		q.MaxFee = maxFee
 	}
 	if v := params.Get("code"); v != "" {
 		code, err := validateInt64(v)
@@ -304,60 +315,60 @@ func (c *storageClient) Accounts(ctx context.Context, r *http.Request) (*storage
 	params := r.URL.Query()
 
 	if v := params.Get("minAvailable"); v != "" {
-		minAvailable, err := validateInt64(v)
+		minAvailable, err := validateBigInt(v)
 		if err != nil {
 			return nil, common.ErrBadRequest
 		}
-		q.MinAvailable = &minAvailable
+		q.MinAvailable = minAvailable
 	}
 	if v := params.Get("maxAvailable"); v != "" {
-		maxAvailable, err := validateInt64(v)
+		maxAvailable, err := validateBigInt(v)
 		if err != nil {
 			return nil, common.ErrBadRequest
 		}
-		q.MaxAvailable = &maxAvailable
+		q.MaxAvailable = maxAvailable
 	}
 	if v := params.Get("minEscrow"); v != "" {
-		minEscrow, err := validateInt64(v)
+		minEscrow, err := validateBigInt(v)
 		if err != nil {
 			return nil, common.ErrBadRequest
 		}
-		q.MinEscrow = &minEscrow
+		q.MinEscrow = minEscrow
 	}
 	if v := params.Get("maxEscrow"); v != "" {
-		maxEscrow, err := validateInt64(v)
+		maxEscrow, err := validateBigInt(v)
 		if err != nil {
 			return nil, common.ErrBadRequest
 		}
-		q.MaxEscrow = &maxEscrow
+		q.MaxEscrow = maxEscrow
 	}
 	if v := params.Get("minDebonding"); v != "" {
-		minDebonding, err := validateInt64(v)
+		minDebonding, err := validateBigInt(v)
 		if err != nil {
 			return nil, common.ErrBadRequest
 		}
-		q.MinDebonding = &minDebonding
+		q.MinDebonding = minDebonding
 	}
 	if v := params.Get("maxDebonding"); v != "" {
-		maxDebonding, err := validateInt64(v)
+		maxDebonding, err := validateBigInt(v)
 		if err != nil {
 			return nil, common.ErrBadRequest
 		}
-		q.MaxDebonding = &maxDebonding
+		q.MaxDebonding = maxDebonding
 	}
 	if v := params.Get("minTotalBalance"); v != "" {
-		minTotalBalance, err := validateInt64(v)
+		minTotalBalance, err := validateBigInt(v)
 		if err != nil {
 			return nil, common.ErrBadRequest
 		}
-		q.MinTotalBalance = &minTotalBalance
+		q.MinTotalBalance = minTotalBalance
 	}
 	if v := params.Get("maxTotalBalance"); v != "" {
-		maxTotalBalance, err := validateInt64(v)
+		maxTotalBalance, err := validateBigInt(v)
 		if err != nil {
 			return nil, common.ErrBadRequest
 		}
-		q.MaxTotalBalance = &maxTotalBalance
+		q.MaxTotalBalance = maxTotalBalance
 	}
 
 	p, err := common.NewPagination(r)

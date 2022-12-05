@@ -1,6 +1,7 @@
 package client
 
 import (
+	"math/big"
 	"time"
 
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
@@ -37,8 +38,8 @@ type TransactionsRequest struct {
 	Block  *int64
 	Method *string
 	Sender *staking.Address
-	MinFee *int64
-	MaxFee *int64
+	MinFee *big.Int
+	MaxFee *big.Int
 	Code   *int64
 }
 
@@ -60,14 +61,14 @@ type EntityNodeRequest struct {
 }
 
 type AccountsRequest struct {
-	MinAvailable    *int64
-	MaxAvailable    *int64
-	MinEscrow       *int64
-	MaxEscrow       *int64
-	MinDebonding    *int64
-	MaxDebonding    *int64
-	MinTotalBalance *int64
-	MaxTotalBalance *int64
+	MinAvailable    *big.Int
+	MaxAvailable    *big.Int
+	MinEscrow       *big.Int
+	MaxEscrow       *big.Int
+	MinDebonding    *big.Int
+	MaxDebonding    *big.Int
+	MinTotalBalance *big.Int
+	MaxTotalBalance *big.Int
 }
 
 type AccountRequest struct {
