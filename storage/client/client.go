@@ -626,20 +626,6 @@ func (c *StorageClient) Account(ctx context.Context, r *AccountRequest) (*Accoun
 	a.DelegationsBalance = *delegationsBalance
 	a.DebondingDelegationsBalance = *debondingDelegationsBalance
 
-	// fields := make([]*big.Int, 0)
-	// for _, s := range []string{availableStr, escrowStr, debondingStr, delegationsBalanceStr, debondingDelegationsBalanceStr} {
-	// 	num, err := c.deserializeToBigIntOrLog(ctx, s)
-	// 	if err != nil {
-	// 		return nil, common.ErrStorageError
-	// 	}
-	// 	fields = append(fields, num)
-	// }
-	// a.Available = *fields[0]
-	// a.Escrow = *fields[1]
-	// a.Debonding = *fields[2]
-	// a.DelegationsBalance = *fields[3]
-	// a.DebondingDelegationsBalance = *fields[4]
-
 	allowanceRows, err := c.db.Query(
 		ctx,
 		qf.AccountAllowancesQuery(),
