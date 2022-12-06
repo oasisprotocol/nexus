@@ -146,7 +146,7 @@ func (c *Client) Wipe(ctx context.Context) error {
 	rows, err := c.Query(ctx, `
 		SELECT schemaname, tablename
 		FROM pg_tables
-		WHERE schemaname IN ('oasis_3', 'indexer', 'public')
+		WHERE schemaname != 'information_schema' AND schemaname NOT LIKE 'pg_%'
 	`)
 	if err != nil {
 		return fmt.Errorf("failed to list tables: %w", err)
@@ -170,7 +170,7 @@ func (c *Client) Wipe(ctx context.Context) error {
 		LEFT JOIN   pg_catalog.pg_namespace n ON n.oid = t.typnamespace 
 		WHERE       (t.typrelid = 0 OR (SELECT c.relkind = 'c' FROM pg_catalog.pg_class c WHERE c.oid = t.typrelid)) 
 		AND     NOT EXISTS(SELECT 1 FROM pg_catalog.pg_type el WHERE el.oid = t.typelem AND el.typarray = t.oid)
-		AND     n.nspname NOT IN ('pg_catalog', 'information_schema');
+		AND     n.nspname != 'information_schema' AND n.nspname NOT LIKE 'pg_%';
 	`)
 	if err != nil {
 		return fmt.Errorf("failed to list types: %w", err)
@@ -203,6 +203,26 @@ func (c *Client) Wipe(ctx context.Context) error {
 		}
 		c.logger.Info("dropping function", "schema", schema, "function", fn)
 		if _, err = c.pool.Exec(ctx, fmt.Sprintf("DROP FUNCTION %s.%s CASCADE;", schema, fn)); err != nil {
+			return err
+		}
+	}
+
+	// List, then drop all materialized views.
+	rows, err = c.Query(ctx, `
+		SELECT schemaname, matviewname
+		FROM pg_matviews
+		WHERE schemaname != 'information_schema' AND schemaname NOT LIKE 'pg_%'
+	`)
+	if err != nil {
+		return fmt.Errorf("failed to list materialized views: %w", err)
+	}
+	for rows.Next() {
+		var schema, view string
+		if err = rows.Scan(&schema, &view); err != nil {
+			return err
+		}
+		c.logger.Info("dropping materialized view", "schema", schema, "view", view)
+		if _, err = c.pool.Exec(ctx, fmt.Sprintf("DROP MATERIALIZED VIEW %s.%s CASCADE;", schema, view)); err != nil {
 			return err
 		}
 	}
