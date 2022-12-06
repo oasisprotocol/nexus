@@ -34,6 +34,17 @@ x-query-params:
     description: |
       The block height from which to query state. The Oasis Indexer does not
       make any guarantees about availability of historical state data.
+  - &bucket_size_seconds
+    in: query
+    name: bucket_size_seconds
+    schema:
+      type: integer
+      format: int32
+      default: 3600
+    description: |
+      The size of buckets into which the statistic is grouped, in seconds.
+      The backend supports a limited number of bucket sizes: 300 (5 minutes) and
+      3600 (1 hour). Requests with other values may be rejected.
 
 x-examples:
   chain-id:
@@ -714,32 +725,17 @@ paths:
                 $ref: '#/components/schemas/RuntimeTokenList'
         <<: *common_error_responses
 
-  /consensus/stats/tps:
+  /consensus/stats/tx_volume:
     get:
-      summary: Returns the consensus layer TPS for each 5 minute interval.
+      summary: Returns the consensus layer transaction volume at daily granularity
       parameters:
         - *limit
         - *offset
+        - *bucket_size_seconds
       responses:
         '200':
           description: |
             A JSON object containing a list of TPS values for each interval.
-          content:
-            application/json:
-              schema: 
-                $ref: '#/components/schemas/TpsCheckpoints'
-        <<: *common_error_responses
-
-  /consensus/stats/daily_volume:
-    get:
-      summary: Returns the consensus layer daily transaction volume for each day.
-      parameters:
-        - *limit
-        - *offset
-      responses:
-        '200':
-          description: |
-            A JSON object containing a list of daily transaction volumes for each day.
           content:
             application/json:
               schema: 
@@ -1412,35 +1408,6 @@ components:
             The number of addresses that have a nonzero balance of this token,
             as calculated from Transfer events.
           example: 123
-
-    TpsCheckpoints:
-      type: object
-      properties:
-        interval_minutes:
-          type: integer
-          format: int
-          description: The length, in minutes, of each TPS measurement window.
-        tps_checkpoints:
-          type: array
-          items:
-            $ref: '#/components/schemas/TpsCheckpoint'
-          description: The list of TPS checkpoint windows.
-      description: |
-        A list of TPS checkpoint windows.
-
-    TpsCheckpoint:
-      type: object
-      properties: 
-        timestamp:
-          type: string
-          format: date-time
-          description: The timestamp anchoring this TPS measurement window.
-          example: *iso_timestamp_1
-        tx_volume:
-          type: integer
-          format: int64
-          description: The transaction volume in this measurement window.
-          example: 420
 
     VolumeList:
       type: object

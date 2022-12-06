@@ -685,8 +685,8 @@ func (c *storageClient) RuntimeTokens(ctx context.Context, r *http.Request) (*st
 	return c.storage.RuntimeTokens(ctx, &q, &p)
 }
 
-// TransactionsPerSecond returns a list of tps checkpoint values.
-func (c *storageClient) TransactionsPerSecond(ctx context.Context, r *http.Request) (*storage.TpsCheckpointList, error) {
+// TxVolumes returns a list of transaction volumes grouped into fine-grained buckets.
+func (c *storageClient) TxVolumes(ctx context.Context, r *http.Request) (*storage.TxVolumeList, error) {
 	p, err := common.NewPagination(r)
 	if err != nil {
 		c.logger.Info("pagination failed",
@@ -696,19 +696,14 @@ func (c *storageClient) TransactionsPerSecond(ctx context.Context, r *http.Reque
 		return nil, common.ErrBadRequest
 	}
 
-	return c.storage.TransactionsPerSecond(ctx, &p)
-}
-
-// DailyVolumes returns a list of daily transaction volumes.
-func (c *storageClient) DailyVolumes(ctx context.Context, r *http.Request) (*storage.VolumeList, error) {
-	p, err := common.NewPagination(r)
+	q, err := common.NewBucketedStatsParams(r)
 	if err != nil {
-		c.logger.Info("pagination failed",
+		c.logger.Info("bucket param extraction failed",
 			"request_id", ctx.Value(storage.RequestIDContextKey),
 			"err", err.Error(),
 		)
 		return nil, common.ErrBadRequest
 	}
 
-	return c.storage.DailyVolumes(ctx, &p)
+	return c.storage.TxVolumes(ctx, &p, &q)
 }

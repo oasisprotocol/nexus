@@ -186,5 +186,26 @@ func (c *Client) Wipe(ctx context.Context) error {
 		}
 	}
 
+	// List, then drop all custom functions.
+	rows, err = c.Query(ctx, `
+		SELECT n.nspname as schema, p.proname as function
+		FROM pg_proc p
+		LEFT JOIN pg_catalog.pg_namespace n ON n.oid = p.pronamespace
+		WHERE n.nspname NOT IN ('pg_catalog', 'information_schema');
+	`)
+	if err != nil {
+		return fmt.Errorf("failed to list functions: %w", err)
+	}
+	for rows.Next() {
+		var schema, fn string
+		if err = rows.Scan(&schema, &fn); err != nil {
+			return err
+		}
+		c.logger.Info("dropping function", "schema", schema, "function", fn)
+		if _, err = c.pool.Exec(ctx, fmt.Sprintf("DROP FUNCTION %s.%s CASCADE;", schema, fn)); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }

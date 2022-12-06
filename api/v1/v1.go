@@ -91,8 +91,7 @@ func (h *Handler) RegisterRoutes(r chi.Router) {
 
 			// Aggregate Statistics.
 			r.Route("/stats", func(r chi.Router) {
-				r.Get("/tps", h.ListTransactionsPerSecond)
-				r.Get("/daily_volume", h.ListDailyVolume)
+				r.Get("/tx_volume", h.ListTxVolumes)
 			})
 		})
 

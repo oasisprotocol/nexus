@@ -311,12 +311,12 @@ func (qf QueryFactory) RuntimeTokensQuery() string {
 		OFFSET $2::bigint`, qf.chainID, qf.runtime)
 }
 
-func (qf QueryFactory) TpsCheckpointQuery() string {
+func (qf QueryFactory) FineTxVolumesQuery() string {
 	return `
-		SELECT hour, min_slot, tx_volume
+		SELECT window_start, tx_volume
 			FROM min5_tx_volume
 		ORDER BY
-			hour DESC, min_slot DESC
+			window_start DESC
 		LIMIT $1::bigint
 		OFFSET $2::bigint
 	`
@@ -324,9 +324,10 @@ func (qf QueryFactory) TpsCheckpointQuery() string {
 
 func (qf QueryFactory) TxVolumesQuery() string {
 	return `
-		SELECT day, daily_tx_volume
+		SELECT window_start, tx_volume
 			FROM daily_tx_volume
-		ORDER BY day DESC
+		ORDER BY
+			window_start DESC
 		LIMIT $1::bigint
 		OFFSET $2::bigint
 	`
