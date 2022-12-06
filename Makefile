@@ -17,15 +17,15 @@ oasis-indexer:
 
 docker:
 	@docker build \
-		--tag oasislabs/oasis-node:dev \
+		--tag oasislabs/oasis-node:$(USER)-dev \
 		--file docker/oasis-node/Dockerfile \
 		docker/oasis-node
 	@docker build \
-		--tag oasislabs/oasis-indexer:dev \
+		--tag oasislabs/oasis-indexer:$(USER)-dev \
 		--file docker/indexer/Dockerfile \
 		.
 	@docker build \
-		--tag oasislabs/oasis-net-runner:dev \
+		--tag oasislabs/oasis-net-runner:$(USER)-dev \
 		--file docker/oasis-net-runner/Dockerfile \
 		docker/oasis-net-runner
 

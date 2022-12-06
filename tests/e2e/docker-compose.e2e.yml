@@ -1,6 +1,6 @@
 services:
   indexer:
-    image: oasislabs/oasis-indexer:dev
+    image: oasislabs/oasis-indexer:${USER}-dev
     container_name: oasis-indexer
     depends_on:
       indexer-postgres:
@@ -35,7 +35,7 @@ services:
       timeout: 5s
       start_period: 15s
   oasis-net-runner:
-    image: oasislabs/oasis-net-runner:dev
+    image: oasislabs/oasis-net-runner:${USER}-dev
     # Allow running as a custom user with `env HOST_UID=$(id -u) HOST_GID=$(id -g) docker compose ...`
     # This way, the temporary files created by the net-runner will be owned by the current user.
     # Useful for local testing.
