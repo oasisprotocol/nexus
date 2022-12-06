@@ -5,6 +5,7 @@ BEGIN;
 
 -- Create Damask Upgrade Schema with `chain-id`.
 CREATE SCHEMA IF NOT EXISTS oasis_3;
+GRANT USAGE ON SCHEMA oasis_3 TO PUBLIC;
 
 -- Custom types
 CREATE DOMAIN uint_numeric NUMERIC(1000,0) CHECK(VALUE >= 0);
@@ -260,5 +261,9 @@ CREATE TABLE oasis_3.processed_blocks
 
   PRIMARY KEY (height, analyzer)
 );
+
+-- Grant others read-only use. This does NOT apply to future tables in the schema.
+GRANT SELECT ON ALL TABLES IN SCHEMA oasis_3 TO PUBLIC;
+GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA oasis_3 TO PUBLIC;
 
 COMMIT;

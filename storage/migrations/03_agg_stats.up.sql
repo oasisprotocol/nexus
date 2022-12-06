@@ -4,11 +4,13 @@ BEGIN;
 
 -- Schema for aggregate statistics that are not tied to a specific chain "generation" (oasis_3, oasis_4, etc.). 
 CREATE SCHEMA IF NOT EXISTS stats;
+GRANT USAGE ON SCHEMA stats TO PUBLIC;
 
 -- Rounds a given timestamp down to the nearest 5-minute "bucket" (e.g. 12:34:56 -> 12:30:00).
 CREATE FUNCTION floor_5min (ts timestamptz) RETURNS timestamptz AS $$
     SELECT date_trunc('hour', $1) + date_part('minute', $1)::int / 5 * '5 minutes'::interval;
 $$ LANGUAGE SQL IMMUTABLE;
+GRANT EXECUTE ON FUNCTION floor_5min TO PUBLIC;
 
 
 -- min5_tx_volume stores the consensus transaction volume in 5 minute buckets
@@ -30,5 +32,9 @@ CREATE MATERIALIZED VIEW stats.daily_tx_volume AS
     SUM(sub.tx_volume) AS tx_volume
   FROM stats.min5_tx_volume AS sub
   GROUP BY 1;
+
+
+-- Grant others read-only use. This does NOT apply to future tables in the schema.
+GRANT SELECT ON ALL TABLES IN SCHEMA stats TO PUBLIC;
 
 COMMIT;
