@@ -123,7 +123,7 @@ paths:
 
   /consensus/blocks:
     get:
-      summary: Returns a list of consensus blocks.
+      summary: Returns a list of consensus blocks, sorted from most to least recent.
       parameters:
         - *limit
         - *offset
