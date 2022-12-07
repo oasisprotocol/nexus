@@ -44,7 +44,7 @@ func makeTestProposals() []storage.Proposal {
 			Epoch:        &p1Epoch,
 			CreatedAt:    7708,
 			ClosesAt:     7876,
-			InvalidVotes: 2,
+			InvalidVotes: *big.NewInt(2),
 		},
 		{
 			ID:           2,
@@ -56,7 +56,7 @@ func makeTestProposals() []storage.Proposal {
 			Epoch:        &p2Epoch,
 			CreatedAt:    12984,
 			ClosesAt:     13152,
-			InvalidVotes: 1,
+			InvalidVotes: *big.NewInt(1),
 		},
 	}
 }
