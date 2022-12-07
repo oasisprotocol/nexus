@@ -111,15 +111,6 @@ func (cfg *AnalyzerConfig) Validate() error {
 	if cfg.Name == "" {
 		return fmt.Errorf("malformed analyzer name '%s'", cfg.Name)
 	}
-	if cfg.ChainID == "" {
-		return fmt.Errorf("malformed chain id '%s'", cfg.ChainID)
-	}
-	if cfg.RPC == "" {
-		return fmt.Errorf("malformed RPC endpoint '%s'", cfg.RPC)
-	}
-	if cfg.ChainContext == "" {
-		return fmt.Errorf("malformed chain context '%s'", cfg.ChainContext)
-	}
 	if (cfg.To != 0 && cfg.From > cfg.To) || cfg.To < 0 || cfg.From < 0 {
 		return fmt.Errorf("malformed analysis range from %d to %d", cfg.From, cfg.To)
 	}

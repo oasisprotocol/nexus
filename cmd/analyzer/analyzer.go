@@ -151,22 +151,23 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) {
 	// Initialize analyzers.
 	analyzers := map[string]analyzer.Analyzer{}
 	for _, analyzerCfg := range cfg.Analyzers {
+		// Parse analyzer name.
+		var a analyzer.Analyzer
 		switch analyzerCfg.Name {
-		case "consensus_damask", "consensus_main_damask": // TODO: drop "main" variant; as of Oct 2022, it exists only to support legacy helmfiles
-			consensusMainDamask, err := consensus.NewMain(analyzerCfg, client, logger)
-			if err != nil {
-				return nil, err
-			}
-			analyzers[consensusMainDamask.Name()] = consensusMainDamask
-		case "emerald_damask", "emerald_main_damask": // TODO: drop "main" variant; as of Oct 2022, it exists only to support legacy helmfiles
-			emeraldMainDamask, err := emerald.NewMain(analyzerCfg, client, logger)
-			if err != nil {
-				return nil, err
-			}
-			analyzers[emeraldMainDamask.Name()] = emeraldMainDamask
+		case consensus.ConsensusDamaskAnalyzerName, "consensus_main_damask": // TODO: drop "main" variant; as of Oct 2022, it exists only to support legacy helmfiles
+			a, err = consensus.NewMain(analyzerCfg, client, logger)
+		case emerald.EmeraldDamaskAnalyzerName, "emerald_main_damask": // TODO: drop "main" variant; as of Oct 2022, it exists only to support legacy helmfiles
+			a, err = emerald.NewMain(analyzerCfg, client, logger)
+		case analyzer.MetadataRegistryAnalyzerName:
+			a, err = analyzer.NewMetadataRegistryAnalyzer(analyzerCfg, client, logger)
 		default:
 			return nil, fmt.Errorf("unsupported analyzer name: %s", analyzerCfg.Name)
 		}
+
+		if err != nil {
+			return nil, err
+		}
+		analyzers[a.Name()] = a
 	}
 
 	logger.Info("initialized analyzers")

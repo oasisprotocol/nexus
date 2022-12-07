@@ -12,7 +12,7 @@ import (
 
 	"github.com/iancoleman/strcase"
 	"github.com/jackc/pgx/v4"
-	registry "github.com/oasisprotocol/metadata-registry-tools"
+
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 	"github.com/oasisprotocol/oasis-core/go/consensus/api/transaction"
 	"github.com/oasisprotocol/oasis-core/go/consensus/api/transaction/results"
@@ -29,8 +29,7 @@ import (
 )
 
 const (
-	consensusDamaskAnalyzerName = "consensus_damask"
-	registryUpdateFrequency     = 100 // once per n block
+	ConsensusDamaskAnalyzerName = "consensus_damask"
 )
 
 // Main is the main Analyzer for the consensus layer.
@@ -41,6 +40,8 @@ type Main struct {
 	logger  *log.Logger
 	metrics metrics.DatabaseMetrics
 }
+
+var _ analyzer.Analyzer = (*Main)(nil)
 
 // NewMain returns a new main analyzer for the consensus layer.
 func NewMain(cfg *config.AnalyzerConfig, target storage.TargetStorage, logger *log.Logger) (*Main, error) {
@@ -99,17 +100,14 @@ func NewMain(cfg *config.AnalyzerConfig, target storage.TargetStorage, logger *l
 		cfg:     ac,
 		qf:      analyzer.NewQueryFactory(strcase.ToSnake(cfg.ChainID), "" /* no runtime identifier for the consensus layer */),
 		target:  target,
-		logger:  logger.With("analyzer", consensusDamaskAnalyzerName),
-		metrics: metrics.NewDefaultDatabaseMetrics(consensusDamaskAnalyzerName),
+		logger:  logger.With("analyzer", ConsensusDamaskAnalyzerName),
+		metrics: metrics.NewDefaultDatabaseMetrics(ConsensusDamaskAnalyzerName),
 	}, nil
 }
 
 // Start starts the main consensus analyzer.
 func (m *Main) Start() {
 	ctx := context.Background()
-
-	// Start aggregate worker.
-	go m.aggregateWorker(ctx)
 
 	// Get block to be indexed.
 	var height int64
@@ -183,7 +181,7 @@ func (m *Main) Start() {
 
 // Name returns the name of the Main.
 func (m *Main) Name() string {
-	return consensusDamaskAnalyzerName
+	return ConsensusDamaskAnalyzerName
 }
 
 // source returns the source storage for the provided block height.
@@ -204,7 +202,7 @@ func (m *Main) latestBlock(ctx context.Context) (int64, error) {
 		m.qf.LatestBlockQuery(),
 		// ^analyzers should only analyze for a single chain ID, and we anchor this
 		// at the starting block.
-		consensusDamaskAnalyzerName,
+		ConsensusDamaskAnalyzerName,
 	).Scan(&latest); err != nil {
 		return 0, err
 	}
@@ -217,7 +215,7 @@ func (m *Main) isGenesisProcessed(ctx context.Context) (bool, error) {
 		ctx,
 		m.qf.IsGenesisProcessedQuery(),
 		m.cfg.ChainID,
-		consensusDamaskAnalyzerName,
+		ConsensusDamaskAnalyzerName,
 	).Scan(&processed); err != nil {
 		return false, err
 	}
@@ -256,7 +254,7 @@ func (m *Main) processGenesis(ctx context.Context) error {
 	batch.Queue(
 		m.qf.GenesisIndexingProgressQuery(),
 		m.cfg.ChainID,
-		consensusDamaskAnalyzerName,
+		ConsensusDamaskAnalyzerName,
 	)
 	if err := m.target.SendBatch(ctx, batch); err != nil {
 		return err
@@ -343,7 +341,7 @@ func (m *Main) processBlock(ctx context.Context, height int64) error {
 	batch.Queue(
 		m.qf.IndexingProgressQuery(),
 		height,
-		consensusDamaskAnalyzerName,
+		ConsensusDamaskAnalyzerName,
 	)
 
 	// Apply updates to DB.
@@ -585,31 +583,6 @@ func (m *Main) queueNodeEvents(batch *storage.QueryBatch, data *storage.Registry
 				nodeEvent.Node.ID.String(),
 			)
 		}
-	}
-
-	return nil
-}
-
-func (m *Main) queueMetadataRegistry(ctx context.Context, batch *storage.QueryBatch) error {
-	gp, err := registry.NewGitProvider(registry.NewGitConfig())
-	if err != nil {
-		m.logger.Error(fmt.Sprintf("Failed to create Git registry provider: %s\n", err))
-		return err
-	}
-
-	// Get a list of all entities in the registry.
-	entities, err := gp.GetEntities(ctx)
-	if err != nil {
-		m.logger.Error(fmt.Sprintf("Failed to get a list of entities in registry: %s\n", err))
-		return err
-	}
-
-	entityMetaUpsertQuery := m.qf.ConsensusEntityMetaUpsertQuery()
-	for id, meta := range entities {
-		batch.Queue(entityMetaUpsertQuery,
-			id.String(),
-			meta,
-		)
 	}
 
 	return nil
