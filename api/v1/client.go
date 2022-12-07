@@ -47,7 +47,7 @@ func validateBigInt(param string) (*big.Int, error) {
 	i := big.NewInt(0)
 	i, err := i.SetString(param, 10)
 	if err {
-		return nil, fmt.Errorf("failed to parse param %s to big.Int", param)
+		return nil, common.ErrBadRequest
 	}
 	return i, nil
 }
