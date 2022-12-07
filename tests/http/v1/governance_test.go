@@ -2,6 +2,7 @@ package v1
 
 import (
 	"fmt"
+	"math/big"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -37,7 +38,7 @@ func makeTestProposals() []storage.Proposal {
 			ID:           1,
 			Submitter:    "oasis1qpydpeyjrneq20kh2jz2809lew6d9p64yymutlee",
 			State:        "passed",
-			Deposit:      10000000000000,
+			Deposit:      *big.NewInt(10000000000000),
 			Handler:      &p1Handler,
 			Target:       p1Target,
 			Epoch:        &p1Epoch,
@@ -49,7 +50,7 @@ func makeTestProposals() []storage.Proposal {
 			ID:           2,
 			Submitter:    "oasis1qpydpeyjrneq20kh2jz2809lew6d9p64yymutlee",
 			State:        "passed",
-			Deposit:      10000000000000,
+			Deposit:      *big.NewInt(10000000000000),
 			Handler:      &p2Handler,
 			Target:       p2Target,
 			Epoch:        &p2Epoch,
