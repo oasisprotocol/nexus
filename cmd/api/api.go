@@ -109,7 +109,7 @@ func NewService(cfg *config.ServerConfig) (*Service, error) {
 
 // Start starts the API service.
 func (s *Service) Start() {
-	s.logger.Info("starting api service")
+	s.logger.Info("starting api service at " + s.server)
 
 	server := &http.Server{
 		Addr:           s.server,

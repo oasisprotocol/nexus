@@ -18,9 +18,8 @@ import (
 )
 
 const (
-	tpsWindowSizeMinutes = 5
-	blockCost            = 1
-	txCost               = 1
+	blockCost = 1
+	txCost    = 1
 )
 
 // StorageClient is a wrapper around a storage.TargetStorage
@@ -1076,7 +1075,9 @@ func (c *StorageClient) RuntimeBlocks(ctx context.Context, r *RuntimeBlocksReque
 	}
 	defer rows.Close()
 
-	var bs RuntimeBlockList
+	bs := RuntimeBlockList{
+		Blocks: []RuntimeBlock{},
+	}
 	for rows.Next() {
 		var b RuntimeBlock
 		if err := rows.Scan(&b.Round, &b.Hash, &b.Timestamp, &b.NumTransactions, &b.Size, &b.GasUsed); err != nil {
@@ -1196,13 +1197,19 @@ func (c *StorageClient) RuntimeTokens(ctx context.Context, r *RuntimeTokensReque
 	return &ts, nil
 }
 
-// TransactionsPerSecond returns a list of tps checkpoint values.
-func (c *StorageClient) TransactionsPerSecond(ctx context.Context, p *common.Pagination) (*TpsCheckpointList, error) {
+// TxVolumes returns a list of transaction volumes per time bucket.
+func (c *StorageClient) TxVolumes(ctx context.Context, p *common.Pagination, q *common.BucketedStatsParams) (*TxVolumeList, error) {
 	qf := NewQueryFactory(strcase.ToSnake(c.chainID), "")
+	var query string
+	if q.BucketSizeSeconds == 300 {
+		query = qf.FineTxVolumesQuery()
+	} else {
+		query = qf.TxVolumesQuery()
+	}
 
 	rows, err := c.db.Query(
 		ctx,
-		qf.TpsCheckpointQuery(),
+		query,
 		p.Limit,
 		p.Offset,
 	)
@@ -1215,19 +1222,17 @@ func (c *StorageClient) TransactionsPerSecond(ctx context.Context, p *common.Pag
 	}
 	defer rows.Close()
 
-	ts := TpsCheckpointList{
-		IntervalMinutes: tpsWindowSizeMinutes,
-		TpsCheckpoints:  []TpsCheckpoint{},
+	ts := TxVolumeList{
+		BucketSizeSeconds: q.BucketSizeSeconds,
+		Buckets:           []TxVolume{},
 	}
 	for rows.Next() {
 		var d struct {
-			Hour     time.Time
-			MinSlot  int
-			TxVolume uint64
+			BucketStart time.Time
+			TxVolume    uint64
 		}
 		if err := rows.Scan(
-			&d.Hour,
-			&d.MinSlot,
+			&d.BucketStart,
 			&d.TxVolume,
 		); err != nil {
 			c.logger.Info("query failed",
@@ -1236,53 +1241,12 @@ func (c *StorageClient) TransactionsPerSecond(ctx context.Context, p *common.Pag
 			return nil, common.ErrStorageError
 		}
 
-		t := TpsCheckpoint{
-			Timestamp: d.Hour.Add(time.Duration(tpsWindowSizeMinutes*d.MinSlot) * time.Minute).UTC(),
-			TxVolume:  d.TxVolume,
+		t := TxVolume{
+			BucketStart: d.BucketStart.UTC(),
+			Volume:      d.TxVolume,
 		}
-		ts.TpsCheckpoints = append(ts.TpsCheckpoints, t)
+		ts.Buckets = append(ts.Buckets, t)
 	}
 
 	return &ts, nil
-}
-
-// DailyVolumes returns a list of daily transaction volumes.
-func (c *StorageClient) DailyVolumes(ctx context.Context, p *common.Pagination) (*VolumeList, error) {
-	qf := NewQueryFactory(strcase.ToSnake(c.chainID), "")
-
-	rows, err := c.db.Query(
-		ctx,
-		qf.TxVolumesQuery(),
-		p.Limit,
-		p.Offset,
-	)
-	if err != nil {
-		c.logger.Info("query failed",
-			"request_id", ctx.Value(RequestIDContextKey),
-			"err", err.Error(),
-		)
-		return nil, common.ErrStorageError
-	}
-	defer rows.Close()
-
-	vs := VolumeList{
-		Volumes: []Volume{},
-	}
-	for rows.Next() {
-		var v Volume
-		if err := rows.Scan(
-			&v.Date,
-			&v.TxVolume,
-		); err != nil {
-			c.logger.Info("query failed",
-				"err", err.Error(),
-			)
-			return nil, common.ErrStorageError
-		}
-		v.Date = v.Date.UTC()
-
-		vs.Volumes = append(vs.Volumes, v)
-	}
-
-	return &vs, nil
 }

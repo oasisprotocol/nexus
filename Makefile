@@ -72,7 +72,7 @@ lint: $(lint-targets)
 docs-targets := docs-api
 
 docs-api:
-	@npx redoc-cli build api/spec/v1.yaml -o index.html
+	@npx redoc-cli build api/spec/v1.yaml -o api/spec/v1.html
 
 docs: $(docs-targets)
 

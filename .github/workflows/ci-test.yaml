@@ -57,10 +57,17 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+      - name: Normalize YAML
+        run: |
+          VERSION=v4.30.5 BINARY=yq_linux_amd64
+          wget https://github.com/mikefarah/yq/releases/download/${VERSION}/${BINARY} -O ./yq
+          chmod +x ./yq
+          # OpenAPI parser fails to parse YAML templates (*, <<:). Expand them out here.
+          <api/spec/v1.yaml ./yq --output-format json | ./yq --output-format yaml --input-format json >api/spec/v1-normalized.yaml
       - name: Validate OpenAPI definition
         uses: char0n/swagger-editor-validate@v1
         with:
-          definition-file: api/spec/v1.yaml
+          definition-file: api/spec/v1-normalized.yaml
 
   validate-migrations:
     runs-on: ubuntu-20.04

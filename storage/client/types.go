@@ -247,25 +247,14 @@ type RuntimeToken struct {
 	NumHolders int64  `json:"num_holders"`
 }
 
-// TpsCheckpointList is the storage response for ListTransactionsPerSecond.
-type TpsCheckpointList struct {
-	IntervalMinutes int             `json:"interval_minutes"`
-	TpsCheckpoints  []TpsCheckpoint `json:"tps_checkpoints"`
+// TxVolumeList is the storage response for GetVolumes.
+type TxVolumeList struct {
+	Buckets           []TxVolume `json:"buckets"`
+	BucketSizeSeconds uint32     `json:"bucket_size_seconds"`
 }
 
-// TpsCheckpoint is the live TPS value at the provided marker timestamp.
-type TpsCheckpoint struct {
-	Timestamp time.Time `json:"timestamp"`
-	TxVolume  uint64    `json:"tx_volume"`
-}
-
-// VolumeList is the storage response for GetVolumes.
-type VolumeList struct {
-	Volumes []Volume `json:"volumes"`
-}
-
-// Volume is the daily transaction volume on the specified day.
-type Volume struct {
-	Date     time.Time `json:"date"`
-	TxVolume uint64    `json:"tx_volume"`
+// TxVolume is the daily transaction volume on the specified day.
+type TxVolume struct {
+	BucketStart time.Time `json:"start"`
+	Volume      uint64    `json:"volume"`
 }

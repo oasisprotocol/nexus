@@ -7,6 +7,16 @@ COPY . ./
 RUN go mod download && \
     go build
 
+############
+
+FROM node:18-slim AS openapi-builder
+
+COPY api/spec /api/spec
+WORKDIR /
+RUN npx redoc-cli build api/spec/v1.yaml -o api/spec/v1.html
+
+############
+
 FROM golang:1.18-buster AS oasis-indexer
 
 WORKDIR /oasis-indexer
@@ -17,5 +27,6 @@ RUN apt-get update -q -q && \
 COPY --from=oasis-indexer-builder /code/go/oasis-indexer /usr/local/bin/oasis-indexer
 COPY --from=oasis-indexer-builder /code/go/storage/migrations /storage/migrations/
 COPY . /oasis-indexer
+COPY --from=openapi-builder /api/spec/v1.html api/spec/v1.html
 
 ENTRYPOINT ["oasis-indexer"]

@@ -5,9 +5,9 @@ info:
   version: 0.1.0
 
 servers:
-  - url: http://index.oasis.dev/v1
+  - url: http://index.oasislabs.com/v1
     description: Mainnet index endpoint.
-  - url: http://index.testnet.oasis.dev/v1
+  - url: http://index.testnet.oasislabs.com/v1
     description: Testnet index endpoint.
 
 x-query-params:
@@ -34,6 +34,17 @@ x-query-params:
     description: |
       The block height from which to query state. The Oasis Indexer does not
       make any guarantees about availability of historical state data.
+  - &bucket_size_seconds
+    in: query
+    name: bucket_size_seconds
+    schema:
+      type: integer
+      format: int32
+      default: 3600
+    description: |
+      The size of buckets into which the statistic is grouped, in seconds.
+      The backend supports a limited number of bucket sizes: 300 (5 minutes) and
+      3600 (1 hour). Requests with other values may be rejected.
 
 x-examples:
   chain-id:
@@ -91,6 +102,23 @@ x-common-types:
     - beacon.PVSSReveal
     - beacon.VRFProve
 
+x-err-responses:
+  base-error: &base_error_response
+    content:
+      application/json:
+        schema:
+          $ref: '#/components/schemas/ApiError'
+  common-errors: &common_error_responses
+    '400':
+      <<: *base_error_response
+      description: Invalid request.
+    '404':
+      <<: *base_error_response
+      description: The requested resource was not found.
+    '500':
+      <<: *base_error_response
+      description: A server error occurred.
+
 paths:
   /:
     get:
@@ -102,16 +130,11 @@ paths:
             application/json:
               schema: 
                 $ref: '#/components/schemas/Status'
-        '400':
-          $ref: '#/components/responses/InvalidRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/ServerError'
+        <<: *common_error_responses
 
   /consensus/blocks:
     get:
-      summary: Returns a list of consensus blocks.
+      summary: Returns a list of consensus blocks, sorted from most to least recent.
       parameters:
         - *limit
         - *offset
@@ -150,12 +173,7 @@ paths:
             application/json:
               schema: 
                 $ref: '#/components/schemas/BlockList'
-        '400':
-          $ref: '#/components/responses/InvalidRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/ServerError'
+        <<: *common_error_responses
 
   /consensus/blocks/{height}:
     get:
@@ -176,12 +194,7 @@ paths:
             application/json:
               schema: 
                 $ref: '#/components/schemas/Block'
-        '400':
-          $ref: '#/components/responses/InvalidRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/ServerError'
+        <<: *common_error_responses
 
   /consensus/transactions:
     get:
@@ -236,12 +249,7 @@ paths:
             application/json:
               schema: 
                 $ref: '#/components/schemas/TransactionList'
-        '400':
-          $ref: '#/components/responses/InvalidRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/ServerError'
+        <<: *common_error_responses
 
   /consensus/transactions/{tx_hash}:
     get:
@@ -261,12 +269,7 @@ paths:
             application/json:
               schema: 
                 $ref: '#/components/schemas/Transaction'
-        '400':
-          $ref: '#/components/responses/InvalidRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/ServerError'
+        <<: *common_error_responses
 
   /consensus/entities:
     get:
@@ -283,12 +286,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EntityList'
-        '400':
-          $ref: '#/components/responses/InvalidRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/ServerError'
+        <<: *common_error_responses
 
   /consensus/entities/{entity_id}:
     get:
@@ -310,12 +308,7 @@ paths:
             application/json:
               schema: 
                 $ref: '#/components/schemas/Entity'
-        '400':
-          $ref: '#/components/responses/InvalidRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/ServerError'
+        <<: *common_error_responses
 
   /consensus/entities/{entity_id}/nodes:
     get:
@@ -339,12 +332,7 @@ paths:
             application/json:
               schema: 
                 $ref: '#/components/schemas/NodeList'
-        '400':
-          $ref: '#/components/responses/InvalidRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/ServerError'
+        <<: *common_error_responses
 
   /consensus/entities/{entity_id}/nodes/{node_id}:
     get:
@@ -373,12 +361,7 @@ paths:
             application/json:
               schema: 
                 $ref: '#/components/schemas/Node'
-        '400':
-          $ref: '#/components/responses/InvalidRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/ServerError'
+        <<: *common_error_responses
 
   /consensus/validators:
     get:
@@ -395,12 +378,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ValidatorList'
-        '400':
-          $ref: '#/components/responses/InvalidRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/ServerError'
+        <<: *common_error_responses
 
   /consensus/validators/{entity_id}:
     get:
@@ -422,12 +400,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Validator'
-        '400':
-          $ref: '#/components/responses/InvalidRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/ServerError'
+        <<: *common_error_responses
           
   /consensus/accounts:
     get:
@@ -499,12 +472,7 @@ paths:
             application/json:
               schema: 
                 $ref: '#/components/schemas/AccountList'
-        '400':
-          $ref: '#/components/responses/InvalidRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/ServerError'
+        <<: *common_error_responses
 
   /consensus/accounts/{address}:
     get:
@@ -524,12 +492,7 @@ paths:
             application/json:
               schema: 
                 $ref: '#/components/schemas/Account'
-        '400':
-          $ref: '#/components/responses/InvalidRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/ServerError'
+        <<: *common_error_responses
 
   /consensus/accounts/{address}/delegations:
     get:
@@ -549,12 +512,7 @@ paths:
             application/json:
               schema: 
                 $ref: '#/components/schemas/DelegationList'
-        '400':
-          $ref: '#/components/responses/InvalidRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/ServerError'
+        <<: *common_error_responses
 
   /consensus/accounts/{address}/debonding_delegations:
     get:
@@ -574,12 +532,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DebondingDelegationList'
-        '400':
-          $ref: '#/components/responses/InvalidRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/ServerError'
+        <<: *common_error_responses
 
   /consensus/epochs:
     get:
@@ -594,12 +547,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EpochList'
-        '400':
-          $ref: '#/components/responses/InvalidRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/ServerError'
+        <<: *common_error_responses
 
   /consensus/epochs/{epoch}:
     get:
@@ -620,12 +568,7 @@ paths:
             application/json:
               schema: 
                 $ref: '#/components/schemas/Epoch'
-        '400':
-          $ref: '#/components/responses/InvalidRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/ServerError'
+        <<: *common_error_responses
 
   /consensus/proposals:
     get:
@@ -652,12 +595,7 @@ paths:
             application/json:
               schema: 
                 $ref: '#/components/schemas/ProposalList'
-        '400':
-          $ref: '#/components/responses/InvalidRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/ServerError'
+        <<: *common_error_responses
 
   /consensus/proposals/{proposal_id}:
     get:
@@ -678,12 +616,7 @@ paths:
             application/json:
               schema: 
                 $ref: '#/components/schemas/Proposal'
-        '400':
-          $ref: '#/components/responses/InvalidRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/ServerError'
+        <<: *common_error_responses
 
   /consensus/proposals/{proposal_id}/votes:
     get:
@@ -708,12 +641,7 @@ paths:
             application/json:
               schema: 
                 $ref: '#/components/schemas/ProposalVotes'
-        '400':
-          $ref: '#/components/responses/InvalidRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/ServerError'
+        <<: *common_error_responses
 
   /emerald/blocks:
     get:
@@ -756,12 +684,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RuntimeBlockList'
-        '400':
-          $ref: '#/components/responses/InvalidRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/ServerError'
+        <<: *common_error_responses
 
   /emerald/transactions:
     get:
@@ -784,12 +707,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RuntimeTransactionList'
-        '400':
-          $ref: '#/components/responses/InvalidRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/ServerError'
+        <<: *common_error_responses
 
   /emerald/tokens:
     get:
@@ -805,19 +723,15 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RuntimeTokenList'
-        '400':
-          $ref: '#/components/responses/InvalidRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/ServerError'
+        <<: *common_error_responses
 
-  /consensus/stats/tps:
+  /consensus/stats/tx_volume:
     get:
-      summary: Returns the consensus layer TPS for each 5 minute interval.
+      summary: Returns the consensus layer transaction volume at daily granularity
       parameters:
         - *limit
         - *offset
+        - *bucket_size_seconds
       responses:
         '200':
           description: |
@@ -825,34 +739,8 @@ paths:
           content:
             application/json:
               schema: 
-                $ref: '#/components/schemas/TpsCheckpoints'
-        '400':
-          $ref: '#/components/responses/InvalidRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/ServerError'
-
-  /consensus/stats/daily_volume:
-    get:
-      summary: Returns the consensus layer daily transaction volume for each day.
-      parameters:
-        - *limit
-        - *offset
-      responses:
-        '200':
-          description: |
-            A JSON object containing a list of daily transaction volumes for each day.
-          content:
-            application/json:
-              schema: 
                 $ref: '#/components/schemas/VolumeList'
-        '400':
-          $ref: '#/components/responses/InvalidRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/ServerError'
+        <<: *common_error_responses
 
 components:
   schemas:
@@ -1520,35 +1408,6 @@ components:
             The number of addresses that have a nonzero balance of this token,
             as calculated from Transfer events.
           example: 123
-
-    TpsCheckpoints:
-      type: object
-      properties:
-        interval_minutes:
-          type: integer
-          format: int
-          description: The length, in minutes, of each TPS measurement window.
-        tps_checkpoints:
-          type: array
-          items:
-            $ref: '#/components/schemas/TpsCheckpoint'
-          description: The list of TPS checkpoint windows.
-      description: |
-        A list of TPS checkpoint windows.
-
-    TpsCheckpoint:
-      type: object
-      properties: 
-        timestamp:
-          type: string
-          format: date-time
-          description: The timestamp anchoring this TPS measurement window.
-          example: *iso_timestamp_1
-        tx_volume:
-          type: integer
-          format: int64
-          description: The transaction volume in this measurement window.
-          example: 420
 
     VolumeList:
       type: object
