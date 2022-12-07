@@ -150,7 +150,7 @@ type Proposal struct {
 	Cancels      *int64  `json:"cancels,omitempty"`
 	CreatedAt    uint64  `json:"created_at"`
 	ClosesAt     uint64  `json:"closes_at"`
-	InvalidVotes uint64  `json:"invalid_votes"`
+	InvalidVotes big.Int `json:"invalid_votes"`
 }
 
 type Target struct {
