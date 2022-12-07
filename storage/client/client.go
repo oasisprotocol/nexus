@@ -37,21 +37,6 @@ type StorageClient struct {
 	logger *log.Logger
 }
 
-// type DbBigInt struct {
-// 	inner *big.Int
-// }
-
-// func (dst *DbBigInt) DecodeBinary(_ci *pgtype.ConnInfo, src []byte) error {
-// 	if src == nil {
-// 		dst.inner = nil
-// 		return nil
-// 	}
-
-// 	dst.inner = big.NewInt(0)
-// 	dst.inner.SetBytes(src)
-// 	return nil
-// }
-
 // NumericToBigInt converts a pgtype.Numeric to a big.int using the private method found at
 // https://github.com/jackc/pgtype/blob/master/numeric.go#L398
 func (c *StorageClient) NumericToBigInt(ctx context.Context, n *pgtype.Numeric) (*big.Int, error) {
