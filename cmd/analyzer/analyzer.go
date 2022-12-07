@@ -160,6 +160,8 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) {
 			a, err = emerald.NewMain(analyzerCfg, client, logger)
 		case analyzer.MetadataRegistryAnalyzerName:
 			a, err = analyzer.NewMetadataRegistryAnalyzer(analyzerCfg, client, logger)
+		case analyzer.AggregateStatsAnalyzerName:
+			a, err = analyzer.NewAggregateStatsAnalyzer(analyzerCfg, client, logger)
 		default:
 			return nil, fmt.Errorf("unsupported analyzer name: %s", analyzerCfg.Name)
 		}
