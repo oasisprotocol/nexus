@@ -37,11 +37,11 @@ type StorageClient struct {
 	logger *log.Logger
 }
 
-// NumericToBigInt converts a pgtype.Numeric to a big.int using the private method found at
+// numericToBigInt converts a pgtype.Numeric to a big.int using the private method found at
 // https://github.com/jackc/pgtype/blob/master/numeric.go#L398
-func (c *StorageClient) NumericToBigInt(ctx context.Context, n *pgtype.Numeric) (*big.Int, error) {
+func (c *StorageClient) numericToBigInt(ctx context.Context, n *pgtype.Numeric) (big.Int, error) {
 	if n.Exp == 0 {
-		return n.Int, nil
+		return *n.Int, nil
 	}
 
 	big0 := big.NewInt(0)
@@ -52,7 +52,7 @@ func (c *StorageClient) NumericToBigInt(ctx context.Context, n *pgtype.Numeric) 
 		mul := &big.Int{}
 		mul.Exp(big10, big.NewInt(int64(n.Exp)), nil)
 		bi.Mul(bi, mul)
-		return bi, nil
+		return *bi, nil
 	}
 
 	div := &big.Int{}
@@ -65,9 +65,9 @@ func (c *StorageClient) NumericToBigInt(ctx context.Context, n *pgtype.Numeric) 
 			"request_id", ctx.Value(RequestIDContextKey),
 			"err", err,
 		)
-		return nil, err
+		return *big0, err
 	}
-	return bi, nil
+	return *big0, nil
 }
 
 // NewStorageClient creates a new storage client.
@@ -260,11 +260,10 @@ func (c *StorageClient) Transactions(ctx context.Context, r *TransactionsRequest
 			)
 			return nil, common.ErrStorageError
 		}
-		fee, err := c.NumericToBigInt(ctx, &feeNum)
+		t.Fee, err = c.numericToBigInt(ctx, &feeNum)
 		if err != nil {
 			return nil, common.ErrStorageError
 		}
-		t.Fee = *fee
 		if code == oasisErrors.CodeNoError {
 			t.Success = true
 		}
@@ -312,11 +311,11 @@ func (c *StorageClient) Transaction(ctx context.Context, r *TransactionRequest) 
 		)
 		return nil, common.ErrStorageError
 	}
-	fee, err := c.NumericToBigInt(ctx, &feeNum)
+	var err error
+	t.Fee, err = c.numericToBigInt(ctx, &feeNum)
 	if err != nil {
 		return nil, common.ErrStorageError
 	}
-	t.Fee = *fee
 	if code == oasisErrors.CodeNoError {
 		t.Success = true
 	}
@@ -561,21 +560,18 @@ func (c *StorageClient) Accounts(ctx context.Context, r *AccountsRequest, p *com
 			)
 			return nil, common.ErrStorageError
 		}
-		available, err := c.NumericToBigInt(ctx, &availableNum)
+		a.Available, err = c.numericToBigInt(ctx, &availableNum)
 		if err != nil {
 			return nil, common.ErrStorageError
 		}
-		escrow, err := c.NumericToBigInt(ctx, &escrowNum)
+		a.Escrow, err = c.numericToBigInt(ctx, &escrowNum)
 		if err != nil {
 			return nil, common.ErrStorageError
 		}
-		debonding, err := c.NumericToBigInt(ctx, &debondingNum)
+		a.Debonding, err = c.numericToBigInt(ctx, &debondingNum)
 		if err != nil {
 			return nil, common.ErrStorageError
 		}
-		a.Available = *available
-		a.Escrow = *escrow
-		a.Debonding = *debonding
 
 		as.Accounts = append(as.Accounts, a)
 	}
@@ -618,31 +614,27 @@ func (c *StorageClient) Account(ctx context.Context, r *AccountRequest) (*Accoun
 		)
 		return nil, common.ErrStorageError
 	}
-	available, err := c.NumericToBigInt(ctx, &availableNum)
+	var err error
+	a.Available, err = c.numericToBigInt(ctx, &availableNum)
 	if err != nil {
 		return nil, common.ErrStorageError
 	}
-	escrow, err := c.NumericToBigInt(ctx, &escrowNum)
+	a.Escrow, err = c.numericToBigInt(ctx, &escrowNum)
 	if err != nil {
 		return nil, common.ErrStorageError
 	}
-	debonding, err := c.NumericToBigInt(ctx, &debondingNum)
+	a.Debonding, err = c.numericToBigInt(ctx, &debondingNum)
 	if err != nil {
 		return nil, common.ErrStorageError
 	}
-	delegationsBalance, err := c.NumericToBigInt(ctx, &delegationsBalanceNum)
+	a.DelegationsBalance, err = c.numericToBigInt(ctx, &delegationsBalanceNum)
 	if err != nil {
 		return nil, common.ErrStorageError
 	}
-	debondingDelegationsBalance, err := c.NumericToBigInt(ctx, &debondingDelegationsBalanceNum)
+	a.DebondingDelegationsBalance, err = c.numericToBigInt(ctx, &debondingDelegationsBalanceNum)
 	if err != nil {
 		return nil, common.ErrStorageError
 	}
-	a.Available = *available
-	a.Escrow = *escrow
-	a.Debonding = *debonding
-	a.DelegationsBalance = *delegationsBalance
-	a.DebondingDelegationsBalance = *debondingDelegationsBalance
 
 	allowanceRows, err := c.db.Query(
 		ctx,
@@ -671,11 +663,10 @@ func (c *StorageClient) Account(ctx context.Context, r *AccountRequest) (*Accoun
 			)
 			return nil, common.ErrStorageError
 		}
-		amount, err := c.NumericToBigInt(ctx, &amountNum)
+		al.Amount, err = c.numericToBigInt(ctx, &amountNum)
 		if err != nil {
 			return nil, common.ErrStorageError
 		}
-		al.Amount = *amount
 
 		a.Allowances = append(a.Allowances, al)
 	}
@@ -727,23 +718,22 @@ func (c *StorageClient) Delegations(ctx context.Context, r *DelegationsRequest, 
 			)
 			return nil, common.ErrStorageError
 		}
-		shares, err := c.NumericToBigInt(ctx, &sharesNum)
+		shares, err := c.numericToBigInt(ctx, &sharesNum)
 		if err != nil {
 			return nil, common.ErrStorageError
 		}
-		escrowBalanceActive, err := c.NumericToBigInt(ctx, &escrowBalanceActiveNum)
+		escrowBalanceActive, err := c.numericToBigInt(ctx, &escrowBalanceActiveNum)
 		if err != nil {
 			return nil, common.ErrStorageError
 		}
-		escrowTotalSharesActive, err := c.NumericToBigInt(ctx, &escrowBalanceActiveNum)
+		escrowTotalSharesActive, err := c.numericToBigInt(ctx, &escrowBalanceActiveNum)
 		if err != nil {
 			return nil, common.ErrStorageError
 		}
-		amount := big.NewInt(0)
-		amount.Mul(shares, escrowBalanceActive)
-		amount.Quo(amount, escrowTotalSharesActive)
+		amount := new(big.Int).Mul(&shares, &escrowBalanceActive)
+		amount.Quo(amount, &escrowTotalSharesActive)
 		d.Amount = *amount
-		d.Shares = *shares
+		d.Shares = shares
 
 		ds.Delegations = append(ds.Delegations, d)
 	}
@@ -797,23 +787,22 @@ func (c *StorageClient) DebondingDelegations(ctx context.Context, r *DebondingDe
 			return nil, common.ErrStorageError
 		}
 
-		shares, err := c.NumericToBigInt(ctx, &sharesNum)
+		shares, err := c.numericToBigInt(ctx, &sharesNum)
 		if err != nil {
 			return nil, common.ErrStorageError
 		}
-		escrowBalanceDebonding, err := c.NumericToBigInt(ctx, &escrowBalanceDebondingNum)
+		escrowBalanceDebonding, err := c.numericToBigInt(ctx, &escrowBalanceDebondingNum)
 		if err != nil {
 			return nil, common.ErrStorageError
 		}
-		escrowTotalSharesDebonding, err := c.NumericToBigInt(ctx, &escrowBalanceDebondingNum)
+		escrowTotalSharesDebonding, err := c.numericToBigInt(ctx, &escrowBalanceDebondingNum)
 		if err != nil {
 			return nil, common.ErrStorageError
 		}
-		amount := big.NewInt(0)
-		amount.Mul(shares, escrowBalanceDebonding)
-		amount.Quo(amount, escrowTotalSharesDebonding)
+		amount := new(big.Int).Mul(&shares, &escrowBalanceDebonding)
+		amount.Quo(amount, &escrowTotalSharesDebonding)
 		d.Amount = *amount
-		d.Shares = *shares
+		d.Shares = shares
 
 		ds.DebondingDelegations = append(ds.DebondingDelegations, d)
 	}
@@ -943,16 +932,14 @@ func (c *StorageClient) Proposals(ctx context.Context, r *ProposalsRequest, p *c
 			)
 			return nil, common.ErrStorageError
 		}
-		deposit, err := c.NumericToBigInt(ctx, &depositNum)
+		p.Deposit, err = c.numericToBigInt(ctx, &depositNum)
 		if err != nil {
 			return nil, common.ErrStorageError
 		}
-		invalidVotes, err := c.NumericToBigInt(ctx, &invalidVotesNum)
+		p.InvalidVotes, err = c.numericToBigInt(ctx, &invalidVotesNum)
 		if err != nil {
 			return nil, common.ErrStorageError
 		}
-		p.Deposit = *deposit
-		p.InvalidVotes = *invalidVotes
 
 		ps.Proposals = append(ps.Proposals, p)
 	}
@@ -996,16 +983,15 @@ func (c *StorageClient) Proposal(ctx context.Context, r *ProposalRequest) (*Prop
 		)
 		return nil, common.ErrStorageError
 	}
-	deposit, err := c.NumericToBigInt(ctx, &depositNum)
+	var err error
+	p.Deposit, err = c.numericToBigInt(ctx, &depositNum)
 	if err != nil {
 		return nil, common.ErrStorageError
 	}
-	invalidVotes, err := c.NumericToBigInt(ctx, &invalidVotesNum)
+	p.InvalidVotes, err = c.numericToBigInt(ctx, &invalidVotesNum)
 	if err != nil {
 		return nil, common.ErrStorageError
 	}
-	p.Deposit = *deposit
-	p.InvalidVotes = *invalidVotes
 
 	return &p, nil
 }
@@ -1114,11 +1100,10 @@ func (c *StorageClient) Validators(ctx context.Context, p *common.Pagination) (*
 			)
 			return nil, common.ErrStorageError
 		}
-		escrow, err := c.NumericToBigInt(ctx, &escrowNum)
+		v.Escrow, err = c.numericToBigInt(ctx, &escrowNum)
 		if err != nil {
 			return nil, common.ErrStorageError
 		}
-		v.Escrow = *escrow
 		// Match API for now
 		v.Name = v.Media.Name
 
@@ -1189,11 +1174,11 @@ func (c *StorageClient) Validator(ctx context.Context, r *ValidatorRequest) (*Va
 		)
 		return nil, common.ErrStorageError
 	}
-	escrow, err := c.NumericToBigInt(ctx, &escrowNum)
+	var err error
+	v.Escrow, err = c.numericToBigInt(ctx, &escrowNum)
 	if err != nil {
 		return nil, common.ErrStorageError
 	}
-	v.Escrow = *escrow
 	// Match API for now
 	v.Name = v.Media.Name
 
