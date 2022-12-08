@@ -195,4 +195,9 @@ CREATE TABLE oasis_3.emerald_withdraws
 CREATE INDEX ix_emerald_withdraws_sender ON oasis_3.emerald_withdraws(sender);
 CREATE INDEX ix_emerald_withdraws_receiver ON oasis_3.emerald_withdraws(receiver);
 
+-- Grant others read-only use.
+-- (We granted already in 01_oasis_3_consensus.up.sql, but the grant does not apply to new tables.)
+GRANT SELECT ON ALL TABLES IN SCHEMA oasis_3 TO PUBLIC;
+GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA oasis_3 TO PUBLIC;
+
 COMMIT;

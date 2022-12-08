@@ -25,7 +25,7 @@ func (qf QueryFactory) LatestBlockQuery() string {
 func (qf QueryFactory) IsGenesisProcessedQuery() string {
 	return `
 		SELECT EXISTS (
-			SELECT 1 FROM processed_geneses
+			SELECT 1 FROM multichain.processed_geneses
 			WHERE chain_id = $1 AND analyzer = $2
 		)`
 }
@@ -39,7 +39,7 @@ func (qf QueryFactory) IndexingProgressQuery() string {
 
 func (qf QueryFactory) GenesisIndexingProgressQuery() string {
 	return `
-		INSERT INTO processed_geneses (chain_id, analyzer, processed_time)
+		INSERT INTO multichain.processed_geneses (chain_id, analyzer, processed_time)
 			VALUES
 				($1, $2, CURRENT_TIMESTAMP)`
 }
@@ -439,12 +439,12 @@ func (qf QueryFactory) RuntimeTokenChangeUpdateQuery() string {
 
 func (qf QueryFactory) RefreshDailyTxVolumeQuery() string {
 	return `
-		REFRESH MATERIALIZED VIEW daily_tx_volume
+		REFRESH MATERIALIZED VIEW stats.daily_tx_volume
 	`
 }
 
 func (qf QueryFactory) RefreshMin5TxVolumeQuery() string {
 	return `
-		REFRESH MATERIALIZED VIEW min5_tx_volume
+		REFRESH MATERIALIZED VIEW stats.min5_tx_volume
 	`
 }
