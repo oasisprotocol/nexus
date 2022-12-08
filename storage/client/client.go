@@ -665,6 +665,7 @@ func (c *StorageClient) Account(ctx context.Context, r *AccountRequest) (*Accoun
 			)
 			return nil, common.ErrStorageError
 		}
+		var err error
 		al.Amount, err = c.numericToBigInt(ctx, &amountNum)
 		if err != nil {
 			return nil, common.ErrStorageError
