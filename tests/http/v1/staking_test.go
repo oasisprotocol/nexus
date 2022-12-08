@@ -2,6 +2,7 @@ package v1
 
 import (
 	"fmt"
+	"math/big"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -17,16 +18,16 @@ func makeTestAccounts() []storage.Account {
 		{
 			Address:   "oasis1qp28vcurlx03y9exedzd9kfp7u2p0f0nvvv7h5wv",
 			Nonce:     1,
-			Available: 0,
-			Escrow:    0,
-			Debonding: 0,
+			Available: *big.NewInt(0),
+			Escrow:    *big.NewInt(0),
+			Debonding: *big.NewInt(0),
 		},
 		{
 			Address:   "oasis1qrj5x6twyjg0lxkz9kv0y9tyhzpxwq9u6v6sgje2",
 			Nonce:     0,
-			Available: 56900000000,
-			Escrow:    0,
-			Debonding: 0,
+			Available: *big.NewInt(56900000000),
+			Escrow:    *big.NewInt(0),
+			Debonding: *big.NewInt(0),
 		},
 	}
 }

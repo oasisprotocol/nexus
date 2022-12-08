@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto"
 	"fmt"
+	"math/big"
 	"math/rand"
 	"testing"
 	"time"
@@ -116,7 +117,8 @@ func TestIndexer(t *testing.T) {
 	time.Sleep(indexerDelay)
 	err = tests.GetFrom(fmt.Sprintf("/consensus/accounts/%s", bobAddress), &account)
 	require.Nil(t, err)
-	require.Equal(t, uint64(100000000), account.Available)
+	expected := big.NewInt(100000000)
+	require.Equal(t, *expected, account.Available)
 
 	// Create escrow tx.
 	escrow := &staking.Escrow{
@@ -141,13 +143,17 @@ func TestIndexer(t *testing.T) {
 	time.Sleep(indexerDelay)
 	err = tests.GetFrom(fmt.Sprintf("/consensus/accounts/%s", bobAddress), &account)
 	require.Nil(t, err)
-	require.Equal(t, uint64(25000000), account.DelegationsBalance)
-	require.Equal(t, uint64(75000000), account.Available)
+	expectedDelegationsBalance := big.NewInt(25000000)
+	expectedAvailable := big.NewInt(75000000)
+	require.Equal(t, *expectedDelegationsBalance, account.DelegationsBalance)
+	require.Equal(t, *expectedAvailable, account.Available)
 
 	// Alice account has correct escrow balance
 	time.Sleep(indexerDelay)
 	err = tests.GetFrom(fmt.Sprintf("/consensus/accounts/%s", aliceAddress), &account)
 	require.Nil(t, err)
-	require.Equal(t, uint64(25000000), account.Escrow)
-	require.Equal(t, uint64(9900000000), account.Available)
+	expectedEscrow := big.NewInt(25000000)
+	expectedAvailable = big.NewInt(9900000000)
+	require.Equal(t, *expectedEscrow, account.Escrow)
+	require.Equal(t, *expectedAvailable, account.Available)
 }
