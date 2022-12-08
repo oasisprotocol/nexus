@@ -260,6 +260,7 @@ func (c *StorageClient) Transactions(ctx context.Context, r *TransactionsRequest
 			)
 			return nil, common.ErrStorageError
 		}
+		var err error
 		t.Fee, err = c.numericToBigInt(ctx, &feeNum)
 		if err != nil {
 			return nil, common.ErrStorageError
@@ -560,6 +561,7 @@ func (c *StorageClient) Accounts(ctx context.Context, r *AccountsRequest, p *com
 			)
 			return nil, common.ErrStorageError
 		}
+		var err error
 		a.Available, err = c.numericToBigInt(ctx, &availableNum)
 		if err != nil {
 			return nil, common.ErrStorageError
@@ -636,15 +638,15 @@ func (c *StorageClient) Account(ctx context.Context, r *AccountRequest) (*Accoun
 		return nil, common.ErrStorageError
 	}
 
-	allowanceRows, err := c.db.Query(
+	allowanceRows, queryErr := c.db.Query(
 		ctx,
 		qf.AccountAllowancesQuery(),
 		r.Address,
 	)
-	if err != nil {
+	if queryErr != nil {
 		c.logger.Info("query failed",
 			"request_id", ctx.Value(RequestIDContextKey),
-			"err", err.Error(),
+			"err", queryErr.Error(),
 		)
 		return nil, common.ErrStorageError
 	}
@@ -932,6 +934,7 @@ func (c *StorageClient) Proposals(ctx context.Context, r *ProposalsRequest, p *c
 			)
 			return nil, common.ErrStorageError
 		}
+		var err error
 		p.Deposit, err = c.numericToBigInt(ctx, &depositNum)
 		if err != nil {
 			return nil, common.ErrStorageError
@@ -1100,6 +1103,7 @@ func (c *StorageClient) Validators(ctx context.Context, p *common.Pagination) (*
 			)
 			return nil, common.ErrStorageError
 		}
+		var err error
 		v.Escrow, err = c.numericToBigInt(ctx, &escrowNum)
 		if err != nil {
 			return nil, common.ErrStorageError
