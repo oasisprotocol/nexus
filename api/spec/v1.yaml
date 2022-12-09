@@ -101,6 +101,25 @@ x-common-types:
     - beacon.PVSSCommit
     - beacon.PVSSReveal
     - beacon.VRFProve
+  consensus-event-types: &consensus_event_types
+    - AddEscrow
+    - AllowanceChange
+    - Burn
+    - DebondingStart
+    - DiscrepancyDetected
+    - Entity
+    - ExecutorCommitted
+    - Finalized
+    - Node
+    - NodeUnfrozen
+    - ProposalExecuted
+    - ProposalFinalized
+    - ProposalSubmitted
+    - ReclaimEscrow
+    - Runtime
+    - TakeEscrow
+    - Transfer
+    - Vote
 
 x-err-responses:
   base-error: &base_error_response
@@ -269,6 +288,66 @@ paths:
             application/json:
               schema: 
                 $ref: '#/components/schemas/Transaction'
+        <<: *common_error_responses
+
+  /consensus/events:
+    get:
+      summary: Returns a list of consensus events.
+      parameters:
+        - *limit
+        - *offset
+        - in: query
+          name: block
+          schema:
+            type: integer
+            format: int64
+          description: A filter on block height.
+          example: *block_height_1
+        - in: query
+          name: tx_index
+          schema:
+            type: integer
+            format: int32
+          description: |
+            A filter on transaction index. The returned events all need to originate
+            from a transaction that appeared in `tx_index`-th position in the block.
+            It is invalid to specify this filter without also specifying a `block`.
+            Specifying `tx_index` and `block` is an alternative to specifying `tx_hash`;
+            either works to fetch events from a specific transaction.
+          example: 3
+        - in: query
+          name: tx_hash
+          schema:
+            type: string
+          description: |
+            A filter on the hash of the transaction that originated the events.
+            Specifying `tx_index` and `block` is an alternative to specifying `tx_hash`;
+            either works to fetch events from a specific transaction.
+          example: *tx_hash_1
+        - in: query
+          name: rel
+          schema:
+            type: string
+          description: |
+            A filter on related accounts. Every returned event will refer to
+            this account. For example, for a `Transfer` event, this will be the
+            the sender or the recipient of tokens.
+          example: *staking_address_1
+        - in: query
+          name: type
+          schema:
+            type: string
+            enum: *consensus_event_types
+          description: A filter on the event type.
+          example: Transfer
+      responses:
+        '200':
+          description: |
+            Consensus events matching the filters, sorted by most recent first.
+          content:
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/ConsensusEventList'
         <<: *common_error_responses
 
   /consensus/entities:
@@ -910,7 +989,50 @@ components:
           description: Whether this transaction successfully executed.
       description: |
         A consensus transaction.
-    
+
+    ConsensusEventList:
+      type: object
+      properties:
+        events:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConsensusEvent'
+      description: |
+        A list of consensus events.
+
+    ConsensusEvent:
+      type: object
+      properties:
+        block:
+          type: integer
+          format: int64
+          description: The block height at which this event was generated.
+          example: *block_height_1
+        tx_index:
+          type: integer
+          format: int32
+          nullable: true
+          description: |
+            0-based index of this event's originating transaction within its block.
+            Absent if the event did not originate from a transaction.
+          example: 5 
+        tx_hash:
+          type: string
+          nullable: true
+          description: |
+            Hash of this event's originating transaction.
+            Absent if the event did not originate from a transaction.
+          example: *tx_hash_1
+        body:
+          type: object
+          description: |
+            The event contents. This spec does not encode the many possible types;
+            instead, see [the Go API](https://pkg.go.dev/github.com/oasisprotocol/oasis-core/go/consensus/api/transaction/results#Event) of oasis-core.
+            This object will conform to one of the `*Event` types two levels down
+            the hierarchy, e.g. `TransferEvent` from `Event > staking.Event > TransferEvent`
+      description: |
+        An event emitted by the consensus layer.
+
     EntityList:
       type: object
       properties:
