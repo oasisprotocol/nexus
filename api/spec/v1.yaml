@@ -876,6 +876,22 @@ components:
           format: date-time
           description: The second-granular consensus time.
           example: *iso_timestamp_1
+        num_transactions:
+          type: integer
+          format: int32
+          description: Number of transactions in the block.
+          example: 17
+        # TODO: Not available on backend
+        # size:
+        #   type: integer
+        #   format: int64
+        #   description: Size of the block, in bytes. TODO: Be more exact. Should this include results? By far the easiest is to give the total bytesize of txs here.
+        #   example: 123456
+        # gas_used:
+        #   type: integer
+        #   format: int64
+        #   description: Total gas used by the transactions in the block.
+        #   example: 123456
       description: |
         A consensus block.
 
@@ -954,15 +970,30 @@ components:
     Transaction:
       type: object
       properties: 
-        height:
+        block:
           type: integer
           format: int64
           description: The block height at which this transaction was executed.
           example: *block_height_1
+        index_in_block:
+          type: integer
+          format: int32
+          description: 0-based index of this transaction in its block
+          example: *block_height_1
+        timestamp:
+          type: string
+          format: date-time
+          # TODO REVIEW: Is this the time the block was _proposed_, or agreed on, or some other time?
+          description: The second-granular consensus time when this tx's block was proposed.
+          example: *iso_timestamp_3
         hash:
           type: string
           description: The cryptographic hash of this transaction's encoding.
           example: *tx_hash_1
+        sender:
+          type: string
+          description: The address of who sent this transaction.
+          example: *staking_address_1
         nonce:
           type: integer
           format: int64
@@ -982,6 +1013,9 @@ components:
           example: *tx_method_1
         body:
           type: string
+          # TODO: This is a serialzied CBOR blob. Expose as a JSON subtree instead.
+          # Front-end can pull the "recipient" field from here for transactions of a suitable type.
+          format: binary
           description: The method call body.
           example: *tx_body_1
         success:
