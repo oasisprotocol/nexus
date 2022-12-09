@@ -1,5 +1,10 @@
 analysis:
   analyzers:
+    - name: metadata_registry
+      chain_id: oasis-3
+      interval: 1h
+    - name: aggregate_stats
+      interval: 10m
     - name: consensus_main_damask
       chain_id: oasis-3
       rpc: unix:/node/data/internal.sock
