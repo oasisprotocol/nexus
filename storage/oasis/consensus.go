@@ -299,9 +299,24 @@ func (cc *ConsensusClient) GovernanceData(ctx context.Context, height int64) (*s
 		}
 	}
 	return &storage.GovernanceData{
+		Height:                height,
+		Events:                events,
 		ProposalSubmissions:   submissions,
 		ProposalExecutions:    executions,
 		ProposalFinalizations: finalizations,
 		Votes:                 votes,
+	}, nil
+}
+
+// RootHashData retrieves roothash events at the provided block height.
+func (cc *ConsensusClient) RootHashData(ctx context.Context, height int64) (*storage.RootHashData, error) {
+	events, err := cc.client.RootHash().GetEvents(ctx, height)
+	if err != nil {
+		return nil, err
+	}
+
+	return &storage.RootHashData{
+		Height: height,
+		Events: events,
 	}, nil
 }
