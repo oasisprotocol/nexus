@@ -130,6 +130,7 @@ func (cc *ConsensusClient) BlockData(ctx context.Context, height int64) (*storag
 	}
 
 	return &storage.ConsensusBlockData{
+		Height:       height,
 		BlockHeader:  block,
 		Epoch:        epoch,
 		Transactions: transactions,
@@ -152,6 +153,7 @@ func (cc *ConsensusClient) BeaconData(ctx context.Context, height int64) (*stora
 	}
 
 	return &storage.BeaconData{
+		Height: height,
 		Epoch:  epoch,
 		Beacon: nil,
 	}, nil
@@ -183,6 +185,8 @@ func (cc *ConsensusClient) RegistryData(ctx context.Context, height int64) (*sto
 	}
 
 	return &storage.RegistryData{
+		Height:             height,
+		Events:             events,
 		RuntimeEvents:      runtimeEvents,
 		EntityEvents:       entityEvents,
 		NodeEvents:         nodeEvents,
@@ -221,7 +225,9 @@ func (cc *ConsensusClient) StakingData(ctx context.Context, height int64) (*stor
 	}
 
 	return &storage.StakingData{
+		Height:           height,
 		Epoch:            epoch,
+		Events:           events,
 		Transfers:        transfers,
 		Burns:            burns,
 		Escrows:          escrows,
@@ -255,6 +261,7 @@ func (cc *ConsensusClient) SchedulerData(ctx context.Context, height int64) (*st
 	}
 
 	return &storage.SchedulerData{
+		Height:     height,
 		Validators: validators,
 		Committees: committees,
 	}, nil
