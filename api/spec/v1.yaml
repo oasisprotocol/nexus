@@ -917,7 +917,7 @@ components:
     DelegationList:
       type: object
       properties:
-        transactions:
+        delegations:
           type: array
           items:
             $ref: '#/components/schemas/Delegation'
@@ -950,7 +950,7 @@ components:
     DebondingDelegationList:
       type: object
       properties:
-        transactions:
+        delegations:
           type: array
           items:
             $ref: '#/components/schemas/DebondingDelegation'
