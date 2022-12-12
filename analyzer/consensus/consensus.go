@@ -282,6 +282,7 @@ func (m *Main) processBlock(ctx context.Context, height int64) error {
 		m.queueRuntimeRegistrations,
 		m.queueEntityEvents,
 		m.queueNodeEvents,
+		m.queueRegistryEvents,
 	} {
 		if err := f(batch, data.RegistryData); err != nil {
 			return err
@@ -293,6 +294,7 @@ func (m *Main) processBlock(ctx context.Context, height int64) error {
 		m.queueBurns,
 		m.queueEscrows,
 		m.queueAllowanceChanges,
+		m.queueStakingEvents,
 	} {
 		if err := f(batch, data.StakingData); err != nil {
 			return err
@@ -313,10 +315,15 @@ func (m *Main) processBlock(ctx context.Context, height int64) error {
 		m.queueExecutions,
 		m.queueFinalizations,
 		m.queueVotes,
+		m.queueGovernanceEvents,
 	} {
 		if err := f(batch, data.GovernanceData); err != nil {
 			return err
 		}
+	}
+
+	if err := m.queueRootHashEvents(batch, data.RootHashData); err != nil {
+		return err
 	}
 
 	// Update indexing progress.
@@ -555,6 +562,95 @@ func (m *Main) queueNodeEvents(batch *storage.QueryBatch, data *storage.Registry
 	return nil
 }
 
+func (m *Main) queueRegistryEvents(batch *storage.QueryBatch, data *storage.RegistryData) error {
+	eventInsertQuery := m.qf.ConsensusEventInsertQuery()
+	backend := analyzer.BackendRegistry
+
+	for _, event := range data.Events {
+		hash := util.SanitizeTxHash(event.TxHash.Hex())
+		if hash != nil {
+			continue
+		}
+
+		var ty analyzer.Event
+		var body []byte
+		var err error
+
+		switch {
+		case event.RuntimeEvent != nil:
+			ty = analyzer.EventRegistryRuntime
+			body, err = json.Marshal(event.RuntimeEvent)
+		case event.EntityEvent != nil:
+			ty = analyzer.EventRegistryEntity
+			body, err = json.Marshal(event.EntityEvent)
+		case event.NodeEvent != nil:
+			ty = analyzer.EventRegistryNode
+			body, err = json.Marshal(event.NodeEvent)
+		case event.NodeUnfrozenEvent != nil:
+			ty = analyzer.EventRegistryNodeUnfrozen
+			body, err = json.Marshal(event.NodeUnfrozenEvent)
+		}
+
+		if err != nil {
+			return err
+		}
+
+		batch.Queue(eventInsertQuery,
+			backend.String(),
+			ty.String(),
+			string(body),
+			data.Height,
+			hash,
+			nil,
+		)
+	}
+
+	return nil
+}
+
+func (m *Main) queueRootHashEvents(batch *storage.QueryBatch, data *storage.RootHashData) error {
+	eventInsertQuery := m.qf.ConsensusEventInsertQuery()
+	backend := analyzer.BackendRoothash
+
+	for _, event := range data.Events {
+		hash := util.SanitizeTxHash(event.TxHash.Hex())
+		if hash != nil {
+			continue
+		}
+
+		var ty analyzer.Event
+		var body []byte
+		var err error
+
+		switch {
+		case event.ExecutorCommitted != nil:
+			ty = analyzer.EventRoothashExecutorCommitted
+			body, err = json.Marshal(event.ExecutorCommitted)
+		case event.ExecutionDiscrepancyDetected != nil:
+			ty = analyzer.EventRoothashDiscrepancyDetected
+			body, err = json.Marshal(event.ExecutionDiscrepancyDetected)
+		case event.Finalized != nil:
+			ty = analyzer.EventRoothashFinalized
+			body, err = json.Marshal(event.Finalized)
+		}
+
+		if err != nil {
+			return err
+		}
+
+		batch.Queue(eventInsertQuery,
+			backend.String(),
+			ty.String(),
+			string(body),
+			data.Height,
+			hash,
+			nil,
+		)
+	}
+
+	return nil
+}
+
 func (m *Main) queueTransfers(batch *storage.QueryBatch, data *storage.StakingData) error {
 	senderUpdateQuery := m.qf.ConsensusSenderUpdateQuery()
 	receiverUpsertQuery := m.qf.ConsensusReceiverUpdateQuery()
@@ -686,6 +782,64 @@ func (m *Main) queueAllowanceChanges(batch *storage.QueryBatch, data *storage.St
 	return nil
 }
 
+func (m *Main) queueStakingEvents(batch *storage.QueryBatch, data *storage.StakingData) error {
+	eventInsertQuery := m.qf.ConsensusEventInsertQuery()
+	backend := analyzer.BackendStaking
+
+	for _, event := range data.Events {
+		hash := util.SanitizeTxHash(event.TxHash.Hex())
+		if hash != nil {
+			continue
+		}
+
+		var ty analyzer.Event
+		var body []byte
+		var err error
+
+		switch {
+		case event.Transfer != nil:
+			ty = analyzer.EventStakingTransfer
+			body, err = json.Marshal(event.Transfer)
+		case event.Burn != nil:
+			ty = analyzer.EventStakingBurn
+			body, err = json.Marshal(event.Burn)
+		case event.Escrow != nil:
+			switch t := event.Escrow; {
+			case t.Add != nil:
+				ty = analyzer.EventStakingAddEscrow
+				body, err = json.Marshal(event.Escrow.Add)
+			case t.Take != nil:
+				ty = analyzer.EventStakingTakeEscrow
+				body, err = json.Marshal(event.Escrow.Take)
+			case t.DebondingStart != nil:
+				ty = analyzer.EventStakingDebondingStart
+				body, err = json.Marshal(event.Escrow.DebondingStart)
+			case t.Reclaim != nil:
+				ty = analyzer.EventStakingReclaimEscrow
+				body, err = json.Marshal(event.Escrow.Reclaim)
+			}
+		case event.AllowanceChange != nil:
+			ty = analyzer.EventStakingAllowanceChange
+			body, err = json.Marshal(event.AllowanceChange)
+		}
+
+		if err != nil {
+			return err
+		}
+
+		batch.Queue(eventInsertQuery,
+			backend.String(),
+			ty.String(),
+			string(body),
+			data.Height,
+			hash,
+			nil,
+		)
+	}
+
+	return nil
+}
+
 func (m *Main) queueValidatorUpdates(batch *storage.QueryBatch, data *storage.SchedulerData) error {
 	validatorNodeUpdateQuery := m.qf.ConsensusValidatorNodeUpdateQuery()
 	for _, validator := range data.Validators {
@@ -795,6 +949,52 @@ func (m *Main) queueVotes(batch *storage.QueryBatch, data *storage.GovernanceDat
 			vote.ID,
 			vote.Submitter.String(),
 			vote.Vote.String(),
+		)
+	}
+
+	return nil
+}
+
+func (m *Main) queueGovernanceEvents(batch *storage.QueryBatch, data *storage.GovernanceData) error {
+	eventInsertQuery := m.qf.ConsensusEventInsertQuery()
+	backend := analyzer.BackendGovernance
+
+	for _, event := range data.Events {
+		hash := util.SanitizeTxHash(event.TxHash.Hex())
+		if hash != nil {
+			continue
+		}
+
+		var ty analyzer.Event
+		var body []byte
+		var err error
+
+		switch {
+		case event.ProposalSubmitted != nil:
+			ty = analyzer.EventGovernanceProposalSubmitted
+			body, err = json.Marshal(event.ProposalSubmitted)
+		case event.ProposalExecuted != nil:
+			ty = analyzer.EventGovernanceProposalExecuted
+			body, err = json.Marshal(event.ProposalExecuted)
+		case event.ProposalFinalized != nil:
+			ty = analyzer.EventGovernanceProposalExecuted
+			body, err = json.Marshal(event.ProposalFinalized)
+		case event.Vote != nil:
+			ty = analyzer.EventGovernanceVote
+			body, err = json.Marshal(event.Vote)
+		}
+
+		if err != nil {
+			return err
+		}
+
+		batch.Queue(eventInsertQuery,
+			backend.String(),
+			ty.String(),
+			string(body),
+			data.Height,
+			hash,
+			nil,
 		)
 	}
 

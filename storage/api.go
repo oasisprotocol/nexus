@@ -124,6 +124,7 @@ type ConsensusAllData struct {
 	BlockData      *ConsensusBlockData
 	BeaconData     *BeaconData
 	RegistryData   *RegistryData
+	RootHashData   *RootHashData
 	StakingData    *StakingData
 	SchedulerData  *SchedulerData
 	GovernanceData *GovernanceData

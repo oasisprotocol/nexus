@@ -91,11 +91,16 @@ func (cc *ConsensusClient) AllData(ctx context.Context, height int64) (*storage.
 	if err != nil {
 		return nil, err
 	}
+	rootHashData, err := cc.RootHashData(ctx, height)
+	if err != nil {
+		return nil, err
+	}
 
 	data := storage.ConsensusAllData{
 		BlockData:      blockData,
 		BeaconData:     beaconData,
 		RegistryData:   registryData,
+		RootHashData:   rootHashData,
 		StakingData:    stakingData,
 		SchedulerData:  schedulerData,
 		GovernanceData: governanceData,
