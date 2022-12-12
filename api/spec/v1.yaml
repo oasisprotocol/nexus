@@ -1,3 +1,5 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/OAI/OpenAPI-Specification/main/schemas/v3.1/schema.json
+
 openapi: 3.0.3
 info:
   title: Oasis Indexer API V1
@@ -285,6 +287,16 @@ paths:
             type: string
           description: The transaction hash of the transaction to return.
           example: *tx_hash_1
+        - in: query
+          name: rel
+          schema:
+            type: string
+          # TODO: Implement autodetection of Eth addresses, get rid of last sentence.
+          description: |
+            A filter on related accounts. Every returned transaction will refer to
+            this account in a way. For example, for an `accounts.Transfer` tx, this will be the
+            the sender or the recipient of tokens.
+          example: *staking_address_1
       responses:
         '200':
           description: A JSON object containing a consensus transaction.
@@ -791,7 +803,8 @@ paths:
             A filter on related accounts. Every returned transaction will refer to
             this account in a way. For example, for an `accounts.Transfer` tx, this will be the
             the sender or the recipient of tokens.
-            We detect related accounts inside EVM transactions and events on a best-effort basis.
+            The indexer detects related accounts inside EVM transactions and events on a
+            best-effort basis. For example, it inspects ERC20 methods inside `evm.Call` txs.
             However, you must provide the oasis-style derived address here, not the Eth address.
           example: *staking_address_1
       responses:
