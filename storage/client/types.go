@@ -244,8 +244,8 @@ type RuntimeTokenList struct {
 }
 
 type RuntimeToken struct {
-	TokenAddr  string `json:"token_addr"`
-	NumHolders int64  `json:"num_holders"`
+	ContractAddr string `json:"contract_addr"`
+	NumHolders   int64  `json:"num_holders"`
 }
 
 // TxVolumeList is the storage response for GetVolumes.

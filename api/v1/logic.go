@@ -36,13 +36,13 @@ func renderRuntimeTransaction(storageTransaction client.RuntimeTransaction) (Run
 		Hash:    storageTransaction.Hash,
 		EthHash: storageTransaction.EthHash,
 		// TODO: Get timestamp from that round's block
-		Sender0:   sender0,
-		Nonce0:    tx.AuthInfo.SignerInfo[0].Nonce,
-		FeeAmount: tx.AuthInfo.Fee.Amount.Amount.String(),
-		FeeGas:    tx.AuthInfo.Fee.Gas,
-		Method:    tx.Call.Method,
-		Body:      tx.Call.Body,
-		Success:   cr.IsSuccess(),
+		Sender0:  sender0,
+		Nonce0:   tx.AuthInfo.SignerInfo[0].Nonce,
+		Fee:      tx.AuthInfo.Fee.Amount.Amount.String(),
+		GasLimit: tx.AuthInfo.Fee.Gas,
+		Method:   tx.Call.Method,
+		Body:     tx.Call.Body,
+		Success:  cr.IsSuccess(),
 	}
 	if err = uncategorized.VisitCall(&tx.Call, &cr, &uncategorized.CallHandler{
 		AccountsTransfer: func(body *accounts.Transfer) error {

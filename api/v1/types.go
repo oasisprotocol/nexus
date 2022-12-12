@@ -12,13 +12,13 @@ type RuntimeTransaction struct {
 	Hash    string  `json:"hash"`
 	EthHash *string `json:"eth_hash"`
 	// TODO: timestamp
-	Sender0   string  `json:"sender_0"`
-	Nonce0    uint64  `json:"nonce_0"`
-	FeeAmount string  `json:"fee_amount"`
-	FeeGas    uint64  `json:"fee_gas"`
-	Method    string  `json:"method"`
-	Body      []byte  `json:"body"`
-	To        *string `json:"to"`
-	Amount    *string `json:"amount"`
-	Success   bool    `json:"success"`
+	Sender0  string  `json:"sender_0"`
+	Nonce0   uint64  `json:"nonce_0"`
+	Fee      string  `json:"fee"`
+	GasLimit uint64  `json:"gas_limit"`
+	Method   string  `json:"method"`
+	Body     []byte  `json:"body"`
+	To       *string `json:"to"`
+	Amount   *string `json:"amount"`
+	Success  bool    `json:"success"`
 }

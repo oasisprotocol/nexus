@@ -1344,7 +1344,7 @@ func (c *StorageClient) RuntimeTokens(ctx context.Context, r *RuntimeTokensReque
 	for rows.Next() {
 		var t RuntimeToken
 		if err := rows.Scan(
-			&t.TokenAddr,
+			&t.ContractAddr,
 			&t.NumHolders,
 		); err != nil {
 			c.logger.Info("row scan failed",
