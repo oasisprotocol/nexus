@@ -21,7 +21,7 @@ func newClientFactory() (*ClientFactory, error) {
 		ChainContext: os.Getenv("CI_TEST_CHAIN_CONTEXT"),
 		RPC:          os.Getenv("CI_TEST_NODE_RPC"),
 	}
-	return NewClientFactory(context.Background(), network)
+	return NewClientFactory(context.Background(), network, true)
 }
 
 func TestConnect(t *testing.T) {
@@ -40,14 +40,14 @@ func TestInvalidConnect(t *testing.T) {
 		ChainContext: os.Getenv("CI_TEST_CHAIN_CONTEXT"),
 		RPC:          "an invalid rpc endpoint",
 	}
-	_, err := NewClientFactory(context.Background(), network)
+	_, err := NewClientFactory(context.Background(), network, false)
 	require.NotNil(t, err)
 
 	network = &config.Network{
 		ChainContext: "an invalid chaincontext",
 		RPC:          os.Getenv("CI_TEST_NODE_RPC"),
 	}
-	_, err = NewClientFactory(context.Background(), network)
+	_, err = NewClientFactory(context.Background(), network, false)
 	require.NotNil(t, err)
 }
 

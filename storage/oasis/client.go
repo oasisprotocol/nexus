@@ -22,14 +22,23 @@ type ClientFactory struct {
 }
 
 // NewClientFactory creates a new oasis-node client factory.
-func NewClientFactory(ctx context.Context, network *config.Network) (*ClientFactory, error) {
-	connection, err := connection.Connect(ctx, network)
+// Unless `skipChainContextCheck` is false, it also checks that
+// the RPC endpoint in `network` serves the chain context specified
+// in `network`.
+func NewClientFactory(ctx context.Context, network *config.Network, skipChainContextCheck bool) (*ClientFactory, error) {
+	var conn connection.Connection
+	var err error
+	if skipChainContextCheck {
+		conn, err = connection.ConnectNoVerify(ctx, network)
+	} else {
+		conn, err = connection.Connect(ctx, network)
+	}
 	if err != nil {
 		return nil, err
 	}
 
 	return &ClientFactory{
-		connection: &connection,
+		connection: &conn,
 		network:    network,
 	}, nil
 }
@@ -41,13 +50,8 @@ func (cf *ClientFactory) Consensus() (*ConsensusClient, error) {
 	connection := *cf.connection
 	client := connection.Consensus()
 
-	consensusChainContext, err := client.GetChainContext(ctx)
-	if err != nil {
-		return nil, err
-	}
-
 	// Configure chain context for all signatures using chain domain separation.
-	signature.SetChainContext(consensusChainContext)
+	signature.SetChainContext(cf.network.ChainContext)
 
 	c := &ConsensusClient{
 		client:  client,
@@ -71,20 +75,15 @@ func (cf *ClientFactory) Runtime(runtimeID string) (*RuntimeClient, error) {
 		ID: runtimeID,
 	})
 
-	consensusChainContext, err := connection.Consensus().GetChainContext(ctx)
-	if err != nil {
-		return nil, err
-	}
-
 	// Configure chain context for all signatures using chain domain separation.
-	signature.SetChainContext(consensusChainContext)
+	signature.SetChainContext(cf.network.ChainContext)
 
 	info, err := client.GetInfo(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	rtCtx := runtimeSignature.DeriveChainContext(info.ID, consensusChainContext)
+	rtCtx := runtimeSignature.DeriveChainContext(info.ID, cf.network.ChainContext)
 	return &RuntimeClient{
 		client:  client,
 		network: cf.network,

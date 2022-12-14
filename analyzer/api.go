@@ -3,7 +3,6 @@ package analyzer
 import (
 	"errors"
 	"strings"
-	"time"
 
 	oasisConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 
@@ -47,10 +46,6 @@ type ConsensusConfig struct {
 	// If this is set, the analyzer analyzes blocks in the provided range.
 	Range BlockRange
 
-	// Interval is the interval at which to process.
-	// If this is set, the analyzer runs once per interval.
-	Interval time.Duration
-
 	// Source is the storage source from which to fetch block data
 	// when processing blocks in this range.
 	Source storage.ConsensusSourceStorage
@@ -71,10 +66,6 @@ type RuntimeConfig struct {
 	// Range is the range of rounds to process.
 	// If this is set, the analyzer analyzes rounds in the provided range.
 	Range RoundRange
-
-	// Interval is the interval at which to process.
-	// If this is set, the analyzer runs once per interval.
-	Interval time.Duration
 
 	// Source is the storage source from which to fetch block data
 	// when processing blocks in this range.

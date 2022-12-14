@@ -47,52 +47,35 @@ var _ analyzer.Analyzer = (*Main)(nil)
 func NewMain(cfg *config.AnalyzerConfig, target storage.TargetStorage, logger *log.Logger) (*Main, error) {
 	ctx := context.Background()
 
-	var ac analyzer.ConsensusConfig
-	if cfg.Interval == "" {
-		// Initialize source storage.
-		networkCfg := oasisConfig.Network{
-			ChainContext: cfg.ChainContext,
-			RPC:          cfg.RPC,
-		}
-		factory, err := source.NewClientFactory(ctx, &networkCfg)
-		if err != nil {
-			logger.Error("error creating client factory",
-				"err", err.Error(),
-			)
-			return nil, err
-		}
-		client, err := factory.Consensus()
-		if err != nil {
-			logger.Error("error creating consensus client",
-				"err", err.Error(),
-			)
-			return nil, err
-		}
+	// Initialize source storage.
+	networkCfg := oasisConfig.Network{
+		ChainContext: cfg.ChainContext,
+		RPC:          cfg.RPC,
+	}
+	factory, err := source.NewClientFactory(ctx, &networkCfg, cfg.FastStartup)
+	if err != nil {
+		logger.Error("error creating client factory",
+			"err", err.Error(),
+		)
+		return nil, err
+	}
+	client, err := factory.Consensus()
+	if err != nil {
+		logger.Error("error creating consensus client",
+			"err", err.Error(),
+		)
+		return nil, err
+	}
 
-		// Configure analyzer.
-		blockRange := analyzer.BlockRange{
-			From: cfg.From,
-			To:   cfg.To,
-		}
-		ac = analyzer.ConsensusConfig{
-			ChainID: cfg.ChainID,
-			Range:   blockRange,
-			Source:  client,
-		}
-	} else {
-		interval, err := time.ParseDuration(cfg.Interval)
-		if err != nil {
-			logger.Error("error parsing analysis interval",
-				"err", err.Error(),
-			)
-			return nil, err
-		}
-
-		// Configure analyzer.
-		ac = analyzer.ConsensusConfig{
-			ChainID:  cfg.ChainID,
-			Interval: interval,
-		}
+	// Configure analyzer.
+	blockRange := analyzer.BlockRange{
+		From: cfg.From,
+		To:   cfg.To,
+	}
+	ac := analyzer.ConsensusConfig{
+		ChainID: cfg.ChainID,
+		Range:   blockRange,
+		Source:  client,
 	}
 
 	logger.Info("Starting consensus analyzer", "config", ac)
