@@ -257,7 +257,7 @@ func (m *Main) processBlock(ctx context.Context, height int64) error {
 		return err
 	}
 
-	data, err := source.AtHeightData(ctx, height)
+	data, err := source.AllData(ctx, height)
 	if err != nil {
 		return err
 	}

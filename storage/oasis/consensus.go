@@ -65,8 +65,8 @@ func (cc *ConsensusClient) GetEpoch(ctx context.Context, height int64) (api.Epoc
 	return cc.client.Beacon().GetEpoch(ctx, height)
 }
 
-// AtHeightData returns all relevant data related to the given height.
-func (cc *ConsensusClient) AtHeightData(ctx context.Context, height int64) (*storage.ConsensusAtHeightData, error) {
+// AllData returns all relevant data related to the given height.
+func (cc *ConsensusClient) AllData(ctx context.Context, height int64) (*storage.ConsensusAllData, error) {
 	blockData, err := cc.BlockData(ctx, height)
 	if err != nil {
 		return nil, err
@@ -92,7 +92,7 @@ func (cc *ConsensusClient) AtHeightData(ctx context.Context, height int64) (*sto
 		return nil, err
 	}
 
-	data := storage.ConsensusAtHeightData{
+	data := storage.ConsensusAllData{
 		BlockData:      blockData,
 		BeaconData:     beaconData,
 		RegistryData:   registryData,
