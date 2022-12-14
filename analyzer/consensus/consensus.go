@@ -257,7 +257,7 @@ func (m *Main) processBlock(ctx context.Context, height int64) error {
 		return err
 	}
 
-	data, err := source.AtHeightData(ctx, height)
+	data, err := source.AllData(ctx, height)
 	if err != nil {
 		return err
 	}
@@ -280,7 +280,6 @@ func (m *Main) processBlock(ctx context.Context, height int64) error {
 
 	for _, f := range []func(*storage.QueryBatch, *storage.RegistryData) error{
 		m.queueRuntimeRegistrations,
-		m.queueRuntimeStatusUpdates,
 		m.queueEntityEvents,
 		m.queueNodeEvents,
 	} {
@@ -476,20 +475,6 @@ func (m *Main) queueRuntimeRegistrations(batch *storage.QueryBatch, data *storag
 			runtimeEvent.Runtime.TEEHardware.String(),
 			keyManager,
 		)
-	}
-
-	return nil
-}
-
-func (m *Main) queueRuntimeStatusUpdates(batch *storage.QueryBatch, data *storage.RegistryData) error {
-	runtimeSuspensionQuery := m.qf.ConsensusRuntimeSuspensionQuery()
-	runtimeUnsuspensionQuery := m.qf.ConsensusRuntimeUnsuspensionQuery()
-
-	for _, runtime := range data.RuntimeSuspensions {
-		batch.Queue(runtimeSuspensionQuery, runtime)
-	}
-	for _, runtime := range data.RuntimeUnsuspensions {
-		batch.Queue(runtimeUnsuspensionQuery, runtime)
 	}
 
 	return nil

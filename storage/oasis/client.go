@@ -45,8 +45,6 @@ func NewClientFactory(ctx context.Context, network *config.Network, skipChainCon
 
 // Consensus creates a new ConsensusClient.
 func (cf *ClientFactory) Consensus() (*ConsensusClient, error) {
-	ctx := context.Background()
-
 	connection := *cf.connection
 	client := connection.Consensus()
 
@@ -57,11 +55,6 @@ func (cf *ClientFactory) Consensus() (*ConsensusClient, error) {
 		client:  client,
 		network: cf.network,
 	}
-	doc, err := c.GenesisDocument(ctx)
-	if err != nil {
-		return nil, err
-	}
-	c.genesisHeight = doc.Height
 
 	return c, nil
 }

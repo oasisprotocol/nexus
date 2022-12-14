@@ -83,8 +83,8 @@ type ConsensusSourceStorage interface {
 	// GenesisDocument returns the genesis document for the chain.
 	GenesisDocument(ctx context.Context) (*genesisAPI.Document, error)
 
-	// AtHeightData returns all data tied to a specific height.
-	AtHeightData(ctx context.Context, height int64) (*ConsensusAtHeightData, error)
+	// AllData returns all data tied to a specific height.
+	AllData(ctx context.Context, height int64) (*ConsensusAllData, error)
 
 	// BlockData gets block data at the specified height. This includes all
 	// block header information, as well as transactions and events included
@@ -115,7 +115,7 @@ type ConsensusSourceStorage interface {
 	Name() string
 }
 
-type ConsensusAtHeightData struct {
+type ConsensusAllData struct {
 	BlockData      *ConsensusBlockData
 	BeaconData     *BeaconData
 	RegistryData   *RegistryData
@@ -153,9 +153,6 @@ type RegistryData struct {
 	EntityEvents       []*registry.EntityEvent
 	NodeEvents         []*registry.NodeEvent
 	NodeUnfrozenEvents []*registry.NodeUnfrozenEvent
-
-	RuntimeSuspensions   []string
-	RuntimeUnsuspensions []string
 }
 
 // StakingData represents data for accounts at a given height.
