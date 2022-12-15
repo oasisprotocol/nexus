@@ -2,6 +2,7 @@
 package client
 
 import (
+	"encoding/json"
 	"math/big"
 	"time"
 )
@@ -40,6 +41,17 @@ type Transaction struct {
 	Method  string  `json:"method"`
 	Body    []byte  `json:"body"`
 	Success bool    `json:"success"`
+}
+
+func (t *Transaction) MarshalJSON() ([]byte, error) {
+	type Alias Transaction
+	return json.Marshal(&struct {
+		Fee string `json:"fee"`
+		*Alias
+	}{
+		Fee:   t.Fee.String(),
+		Alias: (*Alias)(t),
+	})
 }
 
 // EntityList is the storage response for ListEntities.
@@ -91,6 +103,25 @@ type Account struct {
 	Allowances []Allowance `json:"allowances"`
 }
 
+func (a *Account) MarshalJSON() ([]byte, error) {
+	type Alias Account
+	return json.Marshal(&struct {
+		Available                   string `json:"available"`
+		Escrow                      string `json:"escrow"`
+		Debonding                   string `json:"debonding"`
+		DelegationsBalance          string `json:"delegations_balance,omitempty"`
+		DebondingDelegationsBalance string `json:"debonding_delegations_balance,omitempty"`
+		*Alias
+	}{
+		Available:                   a.Available.String(),
+		Escrow:                      a.Escrow.String(),
+		Debonding:                   a.Debonding.String(),
+		DelegationsBalance:          a.DelegationsBalance.String(),
+		DebondingDelegationsBalance: a.DebondingDelegationsBalance.String(),
+		Alias:                       (*Alias)(a),
+	})
+}
+
 // DebondingDelegationList is the storage response for ListDebondingDelegations.
 type DebondingDelegationList struct {
 	DebondingDelegations []DebondingDelegation `json:"debonding_delegations"`
@@ -102,6 +133,19 @@ type DebondingDelegation struct {
 	Shares           big.Int `json:"shares"`
 	ValidatorAddress string  `json:"address"`
 	DebondEnd        uint64  `json:"debond_end"`
+}
+
+func (d *DebondingDelegation) MarshalJSON() ([]byte, error) {
+	type Alias DebondingDelegation
+	return json.Marshal(&struct {
+		Amount string `json:"amount"`
+		Shares string `json:"shares"`
+		*Alias
+	}{
+		Amount: d.Amount.String(),
+		Shares: d.Shares.String(),
+		Alias:  (*Alias)(d),
+	})
 }
 
 // DelegationList is the storage response for ListDelegations.
@@ -116,9 +160,33 @@ type Delegation struct {
 	ValidatorAddress string  `json:"address"`
 }
 
+func (d *Delegation) MarshalJSON() ([]byte, error) {
+	type Alias Delegation
+	return json.Marshal(&struct {
+		Amount string `json:"amount"`
+		Shares string `json:"shares"`
+		*Alias
+	}{
+		Amount: d.Amount.String(),
+		Shares: d.Shares.String(),
+		Alias:  (*Alias)(d),
+	})
+}
+
 type Allowance struct {
 	Address string  `json:"address"`
 	Amount  big.Int `json:"amount"`
+}
+
+func (a *Allowance) MarshalJSON() ([]byte, error) {
+	type Alias Allowance
+	return json.Marshal(&struct {
+		Amount string `json:"amount"`
+		*Alias
+	}{
+		Amount: a.Amount.String(),
+		Alias:  (*Alias)(a),
+	})
 }
 
 // Epoch is the storage response for ListEpochs.
@@ -151,6 +219,19 @@ type Proposal struct {
 	CreatedAt    uint64  `json:"created_at"`
 	ClosesAt     uint64  `json:"closes_at"`
 	InvalidVotes big.Int `json:"invalid_votes"`
+}
+
+func (p *Proposal) MarshalJSON() ([]byte, error) {
+	type Alias Proposal
+	return json.Marshal(&struct {
+		Deposit      string `json:"deposit"`
+		InvalidVotes string `json:"invalid_votes"`
+		*Alias
+	}{
+		Deposit:      p.Deposit.String(),
+		InvalidVotes: p.InvalidVotes.String(),
+		Alias:        (*Alias)(p),
+	})
 }
 
 type Target struct {
@@ -189,6 +270,17 @@ type Validator struct {
 	Media                  ValidatorMedia           `json:"media"`
 	CurrentRate            uint64                   `json:"current_rate"`
 	CurrentCommissionBound ValidatorCommissionBound `json:"current_commission_bound"`
+}
+
+func (v *Validator) MarshalJSON() ([]byte, error) {
+	type Alias Validator
+	return json.Marshal(&struct {
+		Escrow string `json:"escrow"`
+		*Alias
+	}{
+		Escrow: v.Escrow.String(),
+		Alias:  (*Alias)(v),
+	})
 }
 
 // ValidatorMedia is the metadata for a validator.
