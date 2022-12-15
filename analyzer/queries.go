@@ -66,7 +66,7 @@ func (qf QueryFactory) ConsensusEpochUpdateQuery() string {
 
 func (qf QueryFactory) ConsensusTransactionInsertQuery() string {
 	return fmt.Sprintf(`
-		INSERT INTO %s.transactions (block, txn_hash, txn_index, nonce, fee_amount, max_gas, method, sender, body, module, code, message)
+		INSERT INTO %s.transactions (block, tx_hash, tx_index, nonce, fee_amount, max_gas, method, sender, body, module, code, message)
 			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`, qf.chainID)
 }
 
@@ -89,7 +89,7 @@ func (qf QueryFactory) ConsensusCommissionsUpsertQuery() string {
 
 func (qf QueryFactory) ConsensusEventInsertQuery() string {
 	return fmt.Sprintf(`
-		INSERT INTO %s.events (backend, type, body, txn_block, txn_hash, txn_index)
+		INSERT INTO %s.events (backend, type, body, tx_block, tx_hash, tx_index)
 			VALUES ($1, $2, $3, $4, $5, $6)`, qf.chainID)
 }
 
