@@ -44,7 +44,7 @@ func (qf QueryFactory) BlockQuery() string {
 
 func (qf QueryFactory) TransactionsQuery() string {
 	return fmt.Sprintf(`
-		SELECT block, txn_hash, sender, nonce, fee_amount, method, body, code
+		SELECT block, tx_hash, sender, nonce, fee_amount, method, body, code
 			FROM %s.transactions
 			WHERE ($1::bigint IS NULL OR block = $1::bigint) AND
 						($2::text IS NULL OR method = $2::text) AND
@@ -52,16 +52,16 @@ func (qf QueryFactory) TransactionsQuery() string {
 						($4::bigint IS NULL OR fee_amount >= $4::bigint) AND
 						($5::bigint IS NULL OR fee_amount <= $5::bigint) AND
 						($6::bigint IS NULL OR code = $6::bigint)
-		ORDER BY block DESC, txn_index
+		ORDER BY block DESC, tx_index
 		LIMIT $7::bigint
 		OFFSET $8::bigint`, qf.chainID)
 }
 
 func (qf QueryFactory) TransactionQuery() string {
 	return fmt.Sprintf(`
-		SELECT block, txn_hash, sender, nonce, fee_amount, method, body, code
+		SELECT block, tx_hash, sender, nonce, fee_amount, method, body, code
 			FROM %s.transactions
-			WHERE txn_hash = $1::text`, qf.chainID)
+			WHERE tx_hash = $1::text`, qf.chainID)
 }
 
 func (qf QueryFactory) EntitiesQuery() string {
