@@ -870,7 +870,7 @@ func extractEventData(event *results.Event) (backend analyzer.Backend, ty analyz
 			body, err = json.Marshal(event.RootHash.ExecutorCommitted)
 			return
 		case b.ExecutionDiscrepancyDetected != nil:
-			ty = analyzer.EventRoothashDiscrepancyDetected
+			ty = analyzer.EventRoothashExecutionDiscrepancyDetected
 			body, err = json.Marshal(event.RootHash.ExecutionDiscrepancyDetected)
 			return
 		case b.Finalized != nil:

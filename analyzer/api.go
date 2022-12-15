@@ -142,8 +142,8 @@ const (
 	EventRegistryNodeUnfrozen
 	// EventRoothashExecutorCommitted is an executor committed event.
 	EventRoothashExecutorCommitted
-	// EventRoothashDiscrepancyDetected is a discrepancy detected event.
-	EventRoothashDiscrepancyDetected
+	// EventRoothashExecutionDiscrepancyDetected is a discrepancy detected event.
+	EventRoothashExecutionDiscrepancyDetected
 	// EventRoothashFinalizedEvent is a roothash finalization event.
 	EventRoothashFinalized
 	// EventGovernanceProposalSubmitted is a proposal submission event.
@@ -185,8 +185,8 @@ func (e *Event) String() string {
 		return "NodeUnfrozen"
 	case EventRoothashExecutorCommitted:
 		return "ExecutorCommitted"
-	case EventRoothashDiscrepancyDetected:
-		return "DiscrepancyDetected"
+	case EventRoothashExecutionDiscrepancyDetected:
+		return "ExecutionDiscrepancyDetected"
 	case EventRoothashFinalized:
 		return "Finalized"
 	case EventGovernanceProposalSubmitted:

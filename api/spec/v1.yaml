@@ -111,7 +111,7 @@ x-common-types:
     - AllowanceChange
     - Burn
     - DebondingStart
-    - DiscrepancyDetected
+    - ExecutionDiscrepancyDetected
     - Entity
     - ExecutorCommitted
     - Finalized
