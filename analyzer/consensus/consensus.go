@@ -438,13 +438,12 @@ func (m *Main) queueEventInserts(batch *storage.QueryBatch, data *storage.Consen
 
 	for i := 0; i < len(data.Results); i++ {
 		for j := 0; j < len(data.Results[i].Events); j++ {
-			backend, ty, body, err := extractEventData(data.Results[i].Events[j])
+			_, ty, body, err := extractEventData(data.Results[i].Events[j])
 			if err != nil {
 				return err
 			}
 
 			batch.Queue(eventInsertQuery,
-				backend.String(),
 				ty.String(),
 				string(body),
 				data.BlockHeader.Height,

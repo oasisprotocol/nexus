@@ -63,8 +63,7 @@ CREATE TABLE oasis_3.events
 (
   tx_block  UINT63 NOT NULL,
   tx_index  UINT31,
-  
-  backend TEXT NOT NULL,  -- E.g. registry, staking
+
   type    TEXT NOT NULL,  -- Enum with many values, see https://github.com/oasisprotocol/oasis-indexer/blob/89b68717205809b491d7926533d096444611bd6b/analyzer/api.go#L171-L171
   body    JSON,
   tx_hash   HEX64, -- could be fetched from `transactions` table; denormalized for efficiency
