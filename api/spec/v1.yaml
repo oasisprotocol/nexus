@@ -856,6 +856,7 @@ components:
 
     Status:
       type: object
+      required: [latest_chain_id, latest_block, latest_update]
       properties:
         latest_chain_id:
           type: string
@@ -874,6 +875,7 @@ components:
 
     BlockList:
       type: object
+      required: [blocks]
       properties:
         blocks:
           type: array
@@ -884,6 +886,7 @@ components:
 
     Block:
       type: object
+      required: [height, hash, timestamp, num_transactions] # TODO: size, gas_used
       properties:
         height:
           type: integer
@@ -920,6 +923,7 @@ components:
 
     Delegation:
       type: object
+      required: [amount, shares, validator_address]
       properties:
         amount:
           type: integer
@@ -939,6 +943,7 @@ components:
 
     DelegationList:
       type: object
+      required: [delegations]
       properties:
         delegations:
           type: array
@@ -949,6 +954,7 @@ components:
 
     DebondingDelegation:
       type: object
+      required: [amount, shares, validator_address, debond_end]
       properties:
         amount:
           type: integer
@@ -972,6 +978,7 @@ components:
 
     DebondingDelegationList:
       type: object
+      required: [delegations]
       properties:
         delegations:
           type: array
@@ -982,6 +989,7 @@ components:
 
     TransactionList:
       type: object
+      required: [transactions]
       properties:
         transactions:
           type: array
@@ -992,6 +1000,7 @@ components:
 
     Transaction:
       type: object
+      required: [block, index, timestamp, hash, sender, nonce, fee, method, body, success]
       properties:
         block:
           type: integer
@@ -1050,6 +1059,7 @@ components:
 
     ConsensusEventList:
       type: object
+      required: [events]
       properties:
         events:
           type: array
@@ -1060,6 +1070,7 @@ components:
 
     ConsensusEvent:
       type: object
+      required: [block, tx_index, tx_hash, body]
       properties:
         block:
           type: integer
@@ -1093,6 +1104,7 @@ components:
 
     EntityList:
       type: object
+      required: [entities]
       properties:
         entities:
           type: array
@@ -1103,6 +1115,7 @@ components:
 
     Entity:
       type: object
+      required: [id, nodes]
       properties:
         id:
           type: string
@@ -1118,6 +1131,7 @@ components:
 
     ValidatorList:
       type: object
+      required: [validators]
       properties:
         validators:
           type: array
@@ -1128,6 +1142,7 @@ components:
 
     Validator:
       type: object
+      required: [entity_address, entity_id, name, node_id, escrow, active, status, current_rate, current_commission_bound]
       properties:
         entity_address:
             type: string
@@ -1197,6 +1212,7 @@ components:
 
     NodeList:
       type: object
+      required: [nodes]
       properties:
         entity_id:
           type: string
@@ -1209,6 +1225,7 @@ components:
 
     Node:
       type: object
+      required: [id, entity_id, expiration, tls_pubkey, tls_next_pubkey, p2p_pubkey, consensus_pubkey, roles]
       properties:
         id:
           type: string
@@ -1245,6 +1262,7 @@ components:
 
     AccountList:
       type: object
+      required: [accounts]
       properties:
         accounts:
           type: array
@@ -1281,6 +1299,7 @@ components:
         addresses, but only with oasis tools (e.g. a wallet); EVM contracts such as
         ERC20 tokens or tools such as Metamask cannot interact with staking addresses.
       type: object
+      required: [context, address_data]
       properties:
         context:
           $ref: "#/components/schemas/AddressDerivationContext"
@@ -1304,6 +1323,7 @@ components:
     RuntimeBalance:
       description: Balance of an account in a runtime.
       type: object
+      required: [amount, runtime, token_id, token_symbol]
       properties:
         amount:
           type: string
@@ -1327,6 +1347,7 @@ components:
 
     Account:
       type: object
+      required: [address, address_preimage, nonce, runtime_balances, available, escrow, debonding, delegations_balance, debonding_delegations_balance, allowances]
       properties:
         address:
           type: string
@@ -1380,6 +1401,7 @@ components:
 
     Allowance:
       type: object
+      required: [address, amount]
       properties:
         address:
           type: string
@@ -1393,6 +1415,7 @@ components:
 
     EpochList:
       type: object
+      required: [epochs]
       properties:
         epochs:
           type: array
@@ -1403,6 +1426,7 @@ components:
 
     Epoch:
       type: object
+      required: [id, start_height, end_height]
       properties:
         id:
           type: integer
@@ -1424,6 +1448,7 @@ components:
 
     ProposalList:
       type: object
+      required: [proposals]
       properties:
         proposals:
           type: array
@@ -1434,6 +1459,7 @@ components:
 
     Proposal:
       type: object
+      required: [id, submitter, state, deposit, handler, target, epoch, cancels, created_at, closes_at, invalid_votes]
       properties:
         id:
           type: integer
@@ -1497,6 +1523,7 @@ components:
 
     ProposalVotes:
       type: object
+      required: [proposal_id, votes]
       properties:
         proposal_id:
           type: integer
@@ -1512,6 +1539,7 @@ components:
 
     ProposalVote:
       type: object
+      required: [address, vote]
       properties:
         address:
           type: string
@@ -1524,6 +1552,7 @@ components:
 
     RuntimeBlockList:
       type: object
+      required: [blocks]
       properties:
         blocks:
           type: array
@@ -1534,6 +1563,7 @@ components:
 
     RuntimeBlock:
       type: object
+      required: [round, hash, timestamp, num_transactions, size, gas_used]
       properties:
         round:
           type: integer
@@ -1569,6 +1599,7 @@ components:
 
     RuntimeTransactionList:
       type: object
+      required: [transactions]
       properties:
         transactions:
           type: array
@@ -1579,6 +1610,8 @@ components:
 
     RuntimeTransaction:
       type: object
+      # NOTE: Not guaranteed to be present: eth_hash, to, amount.
+      required: [round, timestamp, hash, sender_0, nonce_0, fee, gas_limit, method, body, success]
       properties:
         round:
           type: integer
@@ -1662,6 +1695,7 @@ components:
 
     RuntimeTokenList:
       type: object
+      required: [tokens]
       properties:
         tokens:
           type: array
@@ -1672,6 +1706,7 @@ components:
 
     RuntimeToken:
       type: object
+      required: [contract_addr, num_holders, type]
       properties:
         contract_addr:
           type: string
@@ -1695,7 +1730,6 @@ components:
         type:
           type: string
           enum: *evm_token_types
-          nullable: true
           description: |
             The heuristically determined interface that the token contract implements.
             A less specialized variant of the token might be detected; for example, an
@@ -1714,6 +1748,7 @@ components:
 
     VolumeList:
       type: object
+      required: [volumes]
       properties:
         volumes:
           type: array
@@ -1725,6 +1760,7 @@ components:
 
     Volume:
       type: object
+      required: [date, tx_volume]
       properties:
         date:
           type: string
