@@ -2,10 +2,28 @@
 package client
 
 import (
-	"encoding/json"
+	"fmt"
 	"math/big"
+	"strings"
 	"time"
 )
+
+type BigInt struct {
+	big.Int
+}
+
+func NewBigInt(v int64) BigInt {
+	return BigInt{*big.NewInt(v)}
+}
+
+func (b *BigInt) MarshalJSON() ([]byte, error) {
+	return []byte(fmt.Sprintf(`"%s"`, b.String())), nil
+}
+
+func (b *BigInt) UnmarshalJSON(text []byte) error {
+	v := strings.Trim(string(text), "\"")
+	return b.Int.UnmarshalJSON([]byte(v))
+}
 
 // Status is the storage response for GetStatus.
 type Status struct {
@@ -33,25 +51,14 @@ type TransactionList struct {
 
 // Transaction is the storage response for GetTransaction.
 type Transaction struct {
-	Height  int64   `json:"height"`
-	Hash    string  `json:"hash"`
-	Sender  string  `json:"sender"`
-	Nonce   uint64  `json:"nonce"`
-	Fee     big.Int `json:"fee"`
-	Method  string  `json:"method"`
-	Body    []byte  `json:"body"`
-	Success bool    `json:"success"`
-}
-
-func (t *Transaction) MarshalJSON() ([]byte, error) {
-	type Alias Transaction
-	return json.Marshal(&struct {
-		Fee string `json:"fee"`
-		*Alias
-	}{
-		Fee:   t.Fee.String(),
-		Alias: (*Alias)(t),
-	})
+	Height  int64  `json:"height"`
+	Hash    string `json:"hash"`
+	Sender  string `json:"sender"`
+	Nonce   uint64 `json:"nonce"`
+	Fee     BigInt `json:"fee"`
+	Method  string `json:"method"`
+	Body    []byte `json:"body"`
+	Success bool   `json:"success"`
 }
 
 // EntityList is the storage response for ListEntities.
@@ -92,34 +99,15 @@ type AccountList struct {
 
 // Account is the storage response for GetAccount.
 type Account struct {
-	Address                     string  `json:"address"`
-	Nonce                       uint64  `json:"nonce"`
-	Available                   big.Int `json:"available"`
-	Escrow                      big.Int `json:"escrow"`
-	Debonding                   big.Int `json:"debonding"`
-	DelegationsBalance          big.Int `json:"delegations_balance,omitempty"`
-	DebondingDelegationsBalance big.Int `json:"debonding_delegations_balance,omitempty"`
+	Address                     string `json:"address"`
+	Nonce                       uint64 `json:"nonce"`
+	Available                   BigInt `json:"available"`
+	Escrow                      BigInt `json:"escrow"`
+	Debonding                   BigInt `json:"debonding"`
+	DelegationsBalance          BigInt `json:"delegations_balance,omitempty"`
+	DebondingDelegationsBalance BigInt `json:"debonding_delegations_balance,omitempty"`
 
 	Allowances []Allowance `json:"allowances"`
-}
-
-func (a *Account) MarshalJSON() ([]byte, error) {
-	type Alias Account
-	return json.Marshal(&struct {
-		Available                   string `json:"available"`
-		Escrow                      string `json:"escrow"`
-		Debonding                   string `json:"debonding"`
-		DelegationsBalance          string `json:"delegations_balance,omitempty"`
-		DebondingDelegationsBalance string `json:"debonding_delegations_balance,omitempty"`
-		*Alias
-	}{
-		Available:                   a.Available.String(),
-		Escrow:                      a.Escrow.String(),
-		Debonding:                   a.Debonding.String(),
-		DelegationsBalance:          a.DelegationsBalance.String(),
-		DebondingDelegationsBalance: a.DebondingDelegationsBalance.String(),
-		Alias:                       (*Alias)(a),
-	})
 }
 
 // DebondingDelegationList is the storage response for ListDebondingDelegations.
@@ -129,23 +117,10 @@ type DebondingDelegationList struct {
 
 // DebondingDelegation is the storage response for GetDebondingDelegation.
 type DebondingDelegation struct {
-	Amount           big.Int `json:"amount"`
-	Shares           big.Int `json:"shares"`
-	ValidatorAddress string  `json:"address"`
-	DebondEnd        uint64  `json:"debond_end"`
-}
-
-func (d *DebondingDelegation) MarshalJSON() ([]byte, error) {
-	type Alias DebondingDelegation
-	return json.Marshal(&struct {
-		Amount string `json:"amount"`
-		Shares string `json:"shares"`
-		*Alias
-	}{
-		Amount: d.Amount.String(),
-		Shares: d.Shares.String(),
-		Alias:  (*Alias)(d),
-	})
+	Amount           BigInt `json:"amount"`
+	Shares           BigInt `json:"shares"`
+	ValidatorAddress string `json:"address"`
+	DebondEnd        uint64 `json:"debond_end"`
 }
 
 // DelegationList is the storage response for ListDelegations.
@@ -155,38 +130,14 @@ type DelegationList struct {
 
 // Delegation is the storage response for GetDelegation.
 type Delegation struct {
-	Amount           big.Int `json:"amount"`
-	Shares           big.Int `json:"shares"`
-	ValidatorAddress string  `json:"address"`
-}
-
-func (d *Delegation) MarshalJSON() ([]byte, error) {
-	type Alias Delegation
-	return json.Marshal(&struct {
-		Amount string `json:"amount"`
-		Shares string `json:"shares"`
-		*Alias
-	}{
-		Amount: d.Amount.String(),
-		Shares: d.Shares.String(),
-		Alias:  (*Alias)(d),
-	})
+	Amount           BigInt `json:"amount"`
+	Shares           BigInt `json:"shares"`
+	ValidatorAddress string `json:"address"`
 }
 
 type Allowance struct {
-	Address string  `json:"address"`
-	Amount  big.Int `json:"amount"`
-}
-
-func (a *Allowance) MarshalJSON() ([]byte, error) {
-	type Alias Allowance
-	return json.Marshal(&struct {
-		Amount string `json:"amount"`
-		*Alias
-	}{
-		Amount: a.Amount.String(),
-		Alias:  (*Alias)(a),
-	})
+	Address string `json:"address"`
+	Amount  BigInt `json:"amount"`
 }
 
 // Epoch is the storage response for ListEpochs.
@@ -211,27 +162,14 @@ type Proposal struct {
 	ID           uint64  `json:"id"`
 	Submitter    string  `json:"submitter"`
 	State        string  `json:"state"`
-	Deposit      big.Int `json:"deposit"`
+	Deposit      BigInt  `json:"deposit"`
 	Handler      *string `json:"handler,omitempty"`
 	Target       Target  `json:"target,omitempty"`
 	Epoch        *uint64 `json:"epoch,omitempty"`
 	Cancels      *int64  `json:"cancels,omitempty"`
 	CreatedAt    uint64  `json:"created_at"`
 	ClosesAt     uint64  `json:"closes_at"`
-	InvalidVotes big.Int `json:"invalid_votes"`
-}
-
-func (p *Proposal) MarshalJSON() ([]byte, error) {
-	type Alias Proposal
-	return json.Marshal(&struct {
-		Deposit      string `json:"deposit"`
-		InvalidVotes string `json:"invalid_votes"`
-		*Alias
-	}{
-		Deposit:      p.Deposit.String(),
-		InvalidVotes: p.InvalidVotes.String(),
-		Alias:        (*Alias)(p),
-	})
+	InvalidVotes BigInt  `json:"invalid_votes"`
 }
 
 type Target struct {
@@ -258,11 +196,11 @@ type ValidatorList struct {
 
 // Validator is the storage response for GetValidator.
 type Validator struct {
-	Name          string  `json:"name"`
-	EntityAddress string  `json:"entity_address"`
-	EntityID      string  `json:"entity_id"`
-	NodeID        string  `json:"node_id"`
-	Escrow        big.Int `json:"escrow"`
+	Name          string `json:"name"`
+	EntityAddress string `json:"entity_address"`
+	EntityID      string `json:"entity_id"`
+	NodeID        string `json:"node_id"`
+	Escrow        BigInt `json:"escrow"`
 	// If "true", entity is part of validator set (top <scheduler.params.max_validators> by stake).
 	Active bool `json:"active"`
 	// If "true", an entity has a node that is registered for being a validator, node is up to date, and has successfully registered itself. However, it may or may not be part of validator set (top <scheduler.params.max_validators> by stake).
@@ -270,17 +208,6 @@ type Validator struct {
 	Media                  ValidatorMedia           `json:"media"`
 	CurrentRate            uint64                   `json:"current_rate"`
 	CurrentCommissionBound ValidatorCommissionBound `json:"current_commission_bound"`
-}
-
-func (v *Validator) MarshalJSON() ([]byte, error) {
-	type Alias Validator
-	return json.Marshal(&struct {
-		Escrow string `json:"escrow"`
-		*Alias
-	}{
-		Escrow: v.Escrow.String(),
-		Alias:  (*Alias)(v),
-	})
 }
 
 // ValidatorMedia is the metadata for a validator.
