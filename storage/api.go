@@ -182,7 +182,6 @@ type RootHashData struct {
 	Height int64
 
 	Events []*roothash.Event
-	// TODO: Extend this interface to include runtime blocks.
 }
 
 // SchedulerData represents data for elected committees and validators at a given height.

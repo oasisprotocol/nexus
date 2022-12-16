@@ -627,7 +627,7 @@ func (m *Main) queueRootHashEvents(batch *storage.QueryBatch, data *storage.Root
 			ty = analyzer.EventRoothashExecutorCommitted
 			body, err = json.Marshal(event.ExecutorCommitted)
 		case event.ExecutionDiscrepancyDetected != nil:
-			ty = analyzer.EventRoothashDiscrepancyDetected
+			ty = analyzer.EventRoothashExecutionDiscrepancyDetected
 			body, err = json.Marshal(event.ExecutionDiscrepancyDetected)
 		case event.Finalized != nil:
 			ty = analyzer.EventRoothashFinalized
