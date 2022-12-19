@@ -142,7 +142,7 @@ const (
 	EventRegistryNodeUnfrozen
 	// EventRoothashExecutorCommitted is an executor committed event.
 	EventRoothashExecutorCommitted
-	// EventRoothashExecutionDiscrepancyDetected is a discrepancy detected event.
+	// EventRoothashExecutionDiscrepancyDetected is a runtime discrepancy detected event.
 	EventRoothashExecutionDiscrepancyDetected
 	// EventRoothashFinalizedEvent is a roothash finalization event.
 	EventRoothashFinalized
