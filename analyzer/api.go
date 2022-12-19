@@ -142,8 +142,8 @@ const (
 	EventRegistryNodeUnfrozen
 	// EventRoothashExecutorCommitted is an executor committed event.
 	EventRoothashExecutorCommitted
-	// EventRoothashDiscrepancyDetected is a discrepancy detected event.
-	EventRoothashDiscrepancyDetected
+	// EventRoothashExecutionDiscrepancyDetected is a runtime discrepancy detected event.
+	EventRoothashExecutionDiscrepancyDetected
 	// EventRoothashFinalizedEvent is a roothash finalization event.
 	EventRoothashFinalized
 	// EventGovernanceProposalSubmitted is a proposal submission event.
@@ -162,43 +162,43 @@ const (
 func (e *Event) String() string {
 	switch *e {
 	case EventStakingTransfer:
-		return "Transfer"
+		return "staking.transfer"
 	case EventStakingBurn:
-		return "Burn"
+		return "staking.burn"
 	case EventStakingAddEscrow:
-		return "AddEscrow"
+		return "staking.escrow.add"
 	case EventStakingTakeEscrow:
-		return "TakeEscrow"
+		return "staking.escrow.take"
 	case EventStakingDebondingStart:
-		return "DebondingStart"
+		return "staking.escrow.debonding_start"
 	case EventStakingReclaimEscrow:
-		return "ReclaimEscrow"
+		return "staking.escrow.reclaim"
 	case EventStakingAllowanceChange:
-		return "AllowanceChange"
+		return "staking.allowance_change"
 	case EventRegistryRuntime:
-		return "Runtime"
+		return "registry.runtime"
 	case EventRegistryEntity:
-		return "Entity"
+		return "registry.entity"
 	case EventRegistryNode:
-		return "Node"
+		return "registry.node"
 	case EventRegistryNodeUnfrozen:
-		return "NodeUnfrozen"
+		return "registry.node_unfrozen"
 	case EventRoothashExecutorCommitted:
-		return "ExecutorCommitted"
-	case EventRoothashDiscrepancyDetected:
-		return "DiscrepancyDetected"
+		return "roothash.executor_committed"
+	case EventRoothashExecutionDiscrepancyDetected:
+		return "roothash.execution_discrepancy_detected"
 	case EventRoothashFinalized:
-		return "Finalized"
+		return "roothash.finalized"
 	case EventGovernanceProposalSubmitted:
-		return "ProposalSubmitted"
+		return "governance.proposal_submitted"
 	case EventGovernanceProposalExecuted:
-		return "ProposalExecuted"
+		return "governance.proposal_executed"
 	case EventGovernanceProposalFinalized:
-		return "ProposalFinalized"
+		return "governance.proposal_finalized"
 	case EventGovernanceVote:
-		return "Vote"
+		return "governance.vote"
 	default:
-		return "Unknown"
+		return "unknown"
 	}
 }
 

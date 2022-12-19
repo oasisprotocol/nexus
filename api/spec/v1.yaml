@@ -107,24 +107,24 @@ x-common-types:
     - beacon.PVSSReveal
     - beacon.VRFProve
   consensus-event-types: &consensus_event_types
-    - AddEscrow
-    - AllowanceChange
-    - Burn
-    - DebondingStart
-    - DiscrepancyDetected
-    - Entity
-    - ExecutorCommitted
-    - Finalized
-    - Node
-    - NodeUnfrozen
-    - ProposalExecuted
-    - ProposalFinalized
-    - ProposalSubmitted
-    - ReclaimEscrow
-    - Runtime
-    - TakeEscrow
-    - Transfer
-    - Vote
+    - governance.proposal_executed
+    - governance.proposal_finalized
+    - governance.proposal_submitted
+    - governance.vote
+    - registry.entity
+    - registry.node_unfrozen
+    - registry.node
+    - registry.runtime
+    - roothash.execution_discrepancy
+    - roothash.executor_committed
+    - roothash.finalized
+    - staking.allowance_change
+    - staking.burn
+    - staking.escrow.add
+    - staking.escrow.debonding_start
+    - staking.escrow.reclaim
+    - staking.escrow.take
+    - staking.transfer
   evm-token-types: &evm_token_types
     - ERC20
     - ERC721
