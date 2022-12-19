@@ -35,7 +35,7 @@ CREATE TABLE oasis_3.blocks
 
 CREATE TABLE oasis_3.transactions
 (
-  block BIGINT NOT NULL REFERENCES oasis_3.blocks(height) DEFERRABLE INITIALLY DEFERRED,
+  block UINT63 NOT NULL REFERENCES oasis_3.blocks(height) DEFERRABLE INITIALLY DEFERRED,
   tx_index  UINT31 NOT NULL,
   
   tx_hash   HEX64 NOT NULL,
@@ -101,7 +101,7 @@ CREATE TABLE oasis_3.nodes
   -- For those cases, (id, entity_id) is not a foreign key into oasis_3.claimed_nodes.
   -- Similarly, an entity can un-claim a node after the node registered, but the node can remain be registered for a while.
   entity_id  base64_ed25519_pubkey NOT NULL REFERENCES oasis_3.entities(id),
-  expiration BIGINT NOT NULL,
+  expiration UINT63 NOT NULL, -- The epoch in which this node expires.
 
   -- TLS Info
   tls_pubkey      TEXT NOT NULL,
@@ -235,7 +235,7 @@ CREATE TABLE oasis_3.proposals
   upgrade_epoch      UINT63,
 
   -- If this proposal cancels an existing proposal.
-  cancels BIGINT REFERENCES oasis_3.proposals(id) DEFAULT NULL,
+  cancels UINT63 REFERENCES oasis_3.proposals(id) DEFAULT NULL,
 
   created_at    UINT63 NOT NULL,  -- EpochTime, i.e. number of epochs since base epoch
   closes_at     UINT63 NOT NULL,  -- EpochTime, i.e. number of epochs since base epoch
