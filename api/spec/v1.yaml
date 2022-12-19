@@ -1,3 +1,5 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/OAI/OpenAPI-Specification/main/schemas/v3.1/schema.json
+
 openapi: 3.0.3
 info:
   title: Oasis Indexer API V1
@@ -23,6 +25,9 @@ x-query-params:
     name: limit
     schema:
       type: integer
+      default: 100
+      minimum: 1
+      maximum: 1000
     description: |
       The maximum numbers of items to return.
   - &height
@@ -120,6 +125,10 @@ x-common-types:
     - TakeEscrow
     - Transfer
     - Vote
+  evm-token-types: &evm_token_types
+    - ERC20
+    - ERC721
+    - ERC1155
 
 x-err-responses:
   base-error: &base_error_response
@@ -147,7 +156,7 @@ paths:
           description: A JSON object containing status metadata.
           content:
             application/json:
-              schema: 
+              schema:
                 $ref: '#/components/schemas/Status'
         <<: *common_error_responses
 
@@ -190,7 +199,7 @@ paths:
           description: A JSON object containing a list of consensus blocks.
           content:
             application/json:
-              schema: 
+              schema:
                 $ref: '#/components/schemas/BlockList'
         <<: *common_error_responses
 
@@ -211,7 +220,7 @@ paths:
           description: A JSON object containing a consensus block.
           content:
             application/json:
-              schema: 
+              schema:
                 $ref: '#/components/schemas/Block'
         <<: *common_error_responses
 
@@ -266,7 +275,7 @@ paths:
             A JSON object containing a list of consensus transactions.
           content:
             application/json:
-              schema: 
+              schema:
                 $ref: '#/components/schemas/TransactionList'
         <<: *common_error_responses
 
@@ -286,7 +295,7 @@ paths:
           description: A JSON object containing a consensus transaction.
           content:
             application/json:
-              schema: 
+              schema:
                 $ref: '#/components/schemas/Transaction'
         <<: *common_error_responses
 
@@ -346,7 +355,7 @@ paths:
             Consensus events matching the filters, sorted by most recent first.
           content:
             application/json:
-              schema: 
+              schema:
                 $ref: '#/components/schemas/ConsensusEventList'
         <<: *common_error_responses
 
@@ -385,7 +394,7 @@ paths:
             at the consensus layer.
           content:
             application/json:
-              schema: 
+              schema:
                 $ref: '#/components/schemas/Entity'
         <<: *common_error_responses
 
@@ -409,7 +418,7 @@ paths:
             A JSON object containing a list of nodes registered at the consensus layer.
           content:
             application/json:
-              schema: 
+              schema:
                 $ref: '#/components/schemas/NodeList'
         <<: *common_error_responses
 
@@ -438,7 +447,7 @@ paths:
             A JSON object containing a node registered at the consensus layer.
           content:
             application/json:
-              schema: 
+              schema:
                 $ref: '#/components/schemas/Node'
         <<: *common_error_responses
 
@@ -473,14 +482,14 @@ paths:
       responses:
         '200':
           description: |
-            A JSON object containing a validator registered at the 
+            A JSON object containing a validator registered at the
             consensus layer.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Validator'
         <<: *common_error_responses
-          
+
   /consensus/accounts:
     get:
       summary: Returns a list of consensus layer accounts.
@@ -549,7 +558,7 @@ paths:
             A JSON object containing a list of consensus layer accounts.
           content:
             application/json:
-              schema: 
+              schema:
                 $ref: '#/components/schemas/AccountList'
         <<: *common_error_responses
 
@@ -569,7 +578,7 @@ paths:
           description: A JSON object containing a consensus layer account.
           content:
             application/json:
-              schema: 
+              schema:
                 $ref: '#/components/schemas/Account'
         <<: *common_error_responses
 
@@ -589,7 +598,7 @@ paths:
           description: A JSON object containing a list of delegations.
           content:
             application/json:
-              schema: 
+              schema:
                 $ref: '#/components/schemas/DelegationList'
         <<: *common_error_responses
 
@@ -645,7 +654,7 @@ paths:
           description: A JSON object containing a consensus epoch.
           content:
             application/json:
-              schema: 
+              schema:
                 $ref: '#/components/schemas/Epoch'
         <<: *common_error_responses
 
@@ -672,7 +681,7 @@ paths:
           description: A JSON object containing a list of governance proposals.
           content:
             application/json:
-              schema: 
+              schema:
                 $ref: '#/components/schemas/ProposalList'
         <<: *common_error_responses
 
@@ -693,7 +702,7 @@ paths:
           description: A JSON object containing a governance proposal.
           content:
             application/json:
-              schema: 
+              schema:
                 $ref: '#/components/schemas/Proposal'
         <<: *common_error_responses
 
@@ -718,7 +727,7 @@ paths:
             A JSON object containing a list of votes for a governance proposal.
           content:
             application/json:
-              schema: 
+              schema:
                 $ref: '#/components/schemas/ProposalVotes'
         <<: *common_error_responses
 
@@ -778,6 +787,20 @@ paths:
             format: int64
           description: A filter on block round.
           example: *runtime_block_round_1
+        - in: query
+          name: rel
+          schema:
+            type: string
+          # TODO: Implement autodetection of Eth addresses, get rid of last sentence.
+          description: |
+            A filter on related accounts. Every returned transaction will refer to
+            this account in a way. For example, for an `accounts.Transfer` tx, this will be
+            the sender or the recipient of tokens.
+            The indexer detects related accounts inside EVM transactions and events on a
+            best-effort basis. For example, it inspects ERC20 methods inside `evm.Call` txs.
+            However, you must provide the oasis-style derived address here, not the Eth address.
+            See `AddressPreimage` for more info on oasis-style vs Eth addresses.
+          example: *staking_address_1
       responses:
         '200':
           description: |
@@ -817,7 +840,7 @@ paths:
             A JSON object containing a list of TPS values for each interval.
           content:
             application/json:
-              schema: 
+              schema:
                 $ref: '#/components/schemas/VolumeList'
         <<: *common_error_responses
 
@@ -861,7 +884,7 @@ components:
 
     Block:
       type: object
-      properties: 
+      properties:
         height:
           type: integer
           format: int64
@@ -876,12 +899,28 @@ components:
           format: date-time
           description: The second-granular consensus time.
           example: *iso_timestamp_1
+        num_transactions:
+          type: integer
+          format: int32
+          description: Number of transactions in the block.
+          example: 17
+        # TODO: Not available on backend
+        # size:
+        #   type: integer
+        #   format: int64
+        #   description: Size of the block, in bytes. TODO: Be more exact. Should this include results? By far the easiest is to give the total bytesize of txs here.
+        #   example: 123456
+        # gas_used:
+        #   type: integer
+        #   format: int64
+        #   description: Total gas used by the transactions in the block.
+        #   example: 123456
       description: |
         A consensus block.
 
     Delegation:
       type: object
-      properties: 
+      properties:
         amount:
           type: integer
           format: int64
@@ -901,7 +940,7 @@ components:
     DelegationList:
       type: object
       properties:
-        transactions:
+        delegations:
           type: array
           items:
             $ref: '#/components/schemas/Delegation'
@@ -934,7 +973,7 @@ components:
     DebondingDelegationList:
       type: object
       properties:
-        transactions:
+        delegations:
           type: array
           items:
             $ref: '#/components/schemas/DebondingDelegation'
@@ -950,19 +989,35 @@ components:
             $ref: '#/components/schemas/Transaction'
       description: |
         A list of consensus transactions.
-    
+
     Transaction:
       type: object
-      properties: 
-        height:
+      properties:
+        block:
           type: integer
           format: int64
           description: The block height at which this transaction was executed.
           example: *block_height_1
+        index:
+          type: integer
+          format: int32
+          description: 0-based index of this transaction in its block
+          example: 17
+        timestamp:
+          type: string
+          format: date-time
+          description: |
+            The second-granular consensus time this tx's block, i.e. roughly when the
+            [block was proposed](https://github.com/tendermint/tendermint/blob/v0.34.x/spec/core/data_structures.md#header).
+          example: *iso_timestamp_3
         hash:
           type: string
           description: The cryptographic hash of this transaction's encoding.
           example: *tx_hash_1
+        sender:
+          type: string
+          description: The address of who sent this transaction.
+          example: *staking_address_1
         nonce:
           type: integer
           format: int64
@@ -982,6 +1037,9 @@ components:
           example: *tx_method_1
         body:
           type: string
+          # TODO: This is a serialzied CBOR blob. Expose as a JSON subtree instead.
+          # Front-end can pull the "recipient" field from here for transactions of a suitable type.
+          format: binary
           description: The method call body.
           example: *tx_body_1
         success:
@@ -1015,7 +1073,7 @@ components:
           description: |
             0-based index of this event's originating transaction within its block.
             Absent if the event did not originate from a transaction.
-          example: 5 
+          example: 5
         tx_hash:
           type: string
           nullable: true
@@ -1042,10 +1100,10 @@ components:
             $ref: '#/components/schemas/Entity'
       description: |
         A list of entities registered at the consensus layer.
-    
+
     Entity:
       type: object
-      properties: 
+      properties:
         id:
           type: string
           description: The public key identifying this entity.
@@ -1148,10 +1206,10 @@ components:
             $ref: '#/components/schemas/Node'
       description: |
         A list of nodes registered at the consensus layer.
-    
+
     Node:
       type: object
-      properties: 
+      properties:
         id:
           type: string
           description: The public key identifying this node.
@@ -1194,19 +1252,99 @@ components:
             $ref: '#/components/schemas/Account'
       description: |
         A list of consensus layer accounts.
-    
+
+    AddressDerivationContext:
+      type: string
+      enum:
+        - "oasis-core/address: staking"
+        - "oasis-runtime-sdk/address: secp256k1eth"
+        - "oasis-runtime-sdk/address: sr25519"
+        - "oasis-runtime-sdk/address: multisig"
+        - "oasis-runtime-sdk/address: module"
+        - "oasis-runtime-sdk/address: runtime"
+
+    AddressPreimage:
+      description: |
+        The data from which a consensus-style address (`oasis1...`)
+        was derived. Notably, for EVM runtimes like Sapphire,
+        this links the oasis address and the Ethereum address.
+
+        Oasis addresses are derived from a piece of data, such as an ed25519
+        public key or an Ethereum address. For example, [this](https://github.com/oasisprotocol/oasis-sdk/blob/b37e6da699df331f5a2ac62793f8be099c68469c/client-sdk/go/helpers/address.go#L90-L91)
+        is how an Ethereum is converted to an oasis address. The type of underlying data usually also
+        determines how the signatuers for this address are verified.
+
+        Consensus supports only "staking addresses" (`context="oasis-core/address: staking"`
+        below; always ed25519-backed).
+        Runtimes support all types. This means that every consensus address is also
+        valid in every runtime. For example, in EVM runtimes, you can use staking
+        addresses, but only with oasis tools (e.g. a wallet); EVM contracts such as
+        ERC20 tokens or tools such as Metamask cannot interact with staking addresses.
+      type: object
+      properties:
+        context:
+          $ref: "#/components/schemas/AddressDerivationContext"
+          description: |
+            The method by which the oasis address was derived from `address_data`.
+          example: "oasis-runtime-sdk/address: secp256k1eth"
+        context_version:
+          type: integer
+          nullable: true
+          default: 0
+          description: Version of the `context`.
+        address_data:
+          type: string
+          format: hex
+          description: |
+            The hex-encoded data from which the oasis address was derived.
+            When `context = "oasis-runtime-sdk/address: secp256k1eth"`, this
+            is the Ethereum address (without the leading `0x`). All-lowercase.
+          example: '9907a0cf64ec9fbf6ed8fd4971090de88222a9ac'
+
+    RuntimeBalance:
+      description: Balance of an account in a runtime.
+      type: object
+      properties:
+        amount:
+          type: string
+          description: Number of base units held; as a string.
+          example: "1000000000000000000000"
+        runtime:
+          type: string
+          enum: ["emerald"]
+          description: Name of the runtime.
+        # TODO:
+        # - How do we handle NFTs? Add another field?
+        # - We do not handle non-native tokens from the `accounts` SDK module. The plan is to use
+        #   their denomination name for both `token_id` and `token_symbol`, or update the SDK to have tickers.
+        token_id:
+          type: string
+          format: binary
+          description: Unique dentifier for the token. For EVM tokens, this is their eth address.
+        token_symbol:
+          type: string
+          description: The token ticker symbol. Not guaranteed to be unique across distinct tokens.
+
     Account:
       type: object
-      properties: 
+      properties:
         address:
           type: string
           description: The staking address for this account.
           example: *staking_address_1
+        address_preimage:
+          $ref: '#/components/schemas/AddressPreimage'
         nonce:
           type: integer
           format: int64
           description: A nonce used to prevent replay.
           example: 0
+        # TODO: limit this to 1000 entries. If folks have more,
+        # we can eventually open up a separate, paginable endpoint just for balances.
+        runtime_balances:
+          type: array
+          items:
+            $ref: '#/components/schemas/RuntimeBalance'
         available:
           type: integer
           format: int64
@@ -1239,7 +1377,7 @@ components:
           description: The allowances made by this account.
       description: |
         A consensus layer account.
-    
+
     Allowance:
       type: object
       properties:
@@ -1252,7 +1390,7 @@ components:
           format: int64
           description: The amount allowed for the allowed account.
           example: 10000000000
-    
+
     EpochList:
       type: object
       properties:
@@ -1262,10 +1400,10 @@ components:
             $ref: '#/components/schemas/Epoch'
       description: |
         A list of consensus epochs.
-    
+
     Epoch:
       type: object
-      properties: 
+      properties:
         id:
           type: integer
           format: int64
@@ -1283,7 +1421,7 @@ components:
           example: *block_height_2
       description: |
         A consensus epoch.
-    
+
     ProposalList:
       type: object
       properties:
@@ -1293,10 +1431,10 @@ components:
             $ref: '#/components/schemas/Proposal'
       description: |
         A list of governance proposals.
-    
+
     Proposal:
       type: object
-      properties: 
+      properties:
         id:
           type: integer
           format: int64
@@ -1338,7 +1476,7 @@ components:
           format: int64
           description: |
             The proposal to cancel, if this proposal proposes
-            cancelling an existing proposal. 
+            cancelling an existing proposal.
         created_at:
           type: integer
           format: int64
@@ -1374,7 +1512,7 @@ components:
 
     ProposalVote:
       type: object
-      properties: 
+      properties:
         address:
           type: string
           description: The staking address casting this vote.
@@ -1447,6 +1585,12 @@ components:
           format: int64
           description: The block round at which this transaction was executed.
           example: 3379702
+        timestamp:
+          type: string
+          format: date-time
+          # TODO REVIEW: Is this the time the block was _proposed_, or agreed on, or some other time?
+          description: The second-granular consensus time when this tx's block was proposed.
+          example: *iso_timestamp_3
         hash:
           type: string
           description: The Oasis cryptographic hash of this transaction's encoding.
@@ -1459,20 +1603,25 @@ components:
           example: 9e6a5837c6366d4a7e477c71ffe32d40915cdef7ef209792259e5ee70caf2705
         sender_0:
           type: string
-          description: The Oasis address of this transaction's 0th signer.
+          description: |
+            The Oasis address of this transaction's 0th signer.
+            Unlike Ethereum, Oasis natively supports multiple-signature transactions.
+            However, the great majority of transactions only have a single signer in practice.
+            Retrieving the other signers is currently not supported by this API.
+          # NOTE: To expose the other signers, use the transaction_signers table.
           example: oasis1qz670t637yyxshnlxhjj5074wgwl94d0x5x69zqd
         nonce_0:
           type: integer
           format: int64
           description: The nonce used with this transaction's 0th signer, to prevent replay.
           example: 114194
-        fee_amount:
+        fee:
           type: string
           description: |
             The fee that this transaction's sender committed to pay to execute
             it (total, native denomination, ParaTime base units, as a string).
           example: "3000000000000000"
-        fee_gas:
+        gas_limit:
           type: integer
           format: int64
           description: |
@@ -1491,7 +1640,12 @@ components:
           type: string
           description: |
             A reasonable "to" Oasis address associated with this transaction,
-            if applicable. The meaning varies based on the transaction method.
+            if applicable. The meaning varies based on the transaction method. Some notable examples:
+              - For `method = "accounts.Transfer"`, this is the paratime account receiving the funds.
+              - For `method = "consensus.Deposit"`, this is the paratime account receiving the funds.
+              - For `method = "consensus.Withdraw"`, this is a consensus (!) account receiving the funds.
+              - For `method = "evm.Create"`, this is the address of the newly created smart contract.
+              - For `method = "evm.Call"`, this is the address of the called smart contract
           example: "oasis1qq6ulxmcagnp5nr56ylva7nhmwnxtf0krumg9dkq"
         amount:
           type: string
@@ -1519,10 +1673,37 @@ components:
     RuntimeToken:
       type: object
       properties:
-        token_addr:
+        contract_addr:
           type: string
           description: The Oasis address of this token's contract.
           example: 'oasis1qp2hssandc7dekjdr6ygmtzt783k3gn38uupdeys'
+        name:
+          type: string
+          description: Name of the token, as provided by token contract's `name()` method.
+          example: Uniswap
+        symbol:
+          type: string
+          description: Symbol of the token, as provided by token contract's `symbol()` method.
+          example: UNI
+        decimals:
+          type: integer
+          description: |
+            The number of least significant digits in base units that should be displayed as
+            decimals when displaying tokens. `tokens = base_units / (10**decimals)`.
+            Affects display only. Often equals 18, to match ETH.
+          example: 18
+        type:
+          type: string
+          enum: *evm_token_types
+          nullable: true
+          description: |
+            The heuristically determined interface that the token contract implements.
+            A less specialized variant of the token might be detected; for example, an
+            ERC-1363 token might be labeled as ERC-20 here. If the type cannot be
+            detected or is not supported, this field will be null/absent.
+        total_supply:
+          type: string
+          description: The total number of base units available.
         num_holders:
           type: integer
           format: int64
@@ -1544,7 +1725,7 @@ components:
 
     Volume:
       type: object
-      properties: 
+      properties:
         date:
           type: string
           format: date-time
