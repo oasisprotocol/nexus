@@ -787,7 +787,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/VolumeList'
+                $ref: '#/components/schemas/TxVolumeList'
         <<: *common_error_responses
 
 components:
@@ -1721,19 +1721,19 @@ components:
             as calculated from Transfer events.
           example: 123
 
-    VolumeList:
+    TxVolumeList:
       type: object
       required: [volumes]
       properties:
         volumes:
           type: array
           items:
-            $ref: '#/components/schemas/Volume'
+            $ref: '#/components/schemas/TxVolume'
           description: The list of daily transaction volumes.
       description: |
         A list of daily transaction volumes.
 
-    Volume:
+    TxVolume:
       type: object
       required: [date, tx_volume]
       properties:
