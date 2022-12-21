@@ -61,8 +61,6 @@ x-examples:
     - &block_hash_1 '0a29ac21fa69bb9e43e5cb25d10826ff3946f1ce977e82f99a2614206a50765c'
   tx-hash:
     - &tx_hash_1 '0d0531d6b8a468c07440182b1cdda517f5a076d69fb2199126a83082ecfc0f41'
-  tx-method:
-    - &tx_method_1 'staking.Transfer'
   tx-body:
     - &tx_body_1 '{"amount":"1000000000","account":"oasis1qpg2xuz46g53737343r20yxeddhlvc2ldqsjh70p"}'
   epoch:
@@ -87,48 +85,6 @@ x-examples:
     - &iso_timestamp_1 '2022-03-01T00:00:00Z'
     - &iso_timestamp_2 '2019-04-01T00:00:00Z'
     - &iso_timestamp_3 '2022-10-15T00:05:34Z'
-
-x-common-types:
-  tx-methods: &tx_methods
-    - staking.Transfer
-    - staking.AddEscrow
-    - staking.ReclaimEscrow
-    - staking.AmendCommissionSchedule
-    - staking.Allow
-    - staking.Withdraw
-    - roothash.ExecutorCommit
-    - roothash.ExecutorProposerTimeout
-    - registry.RegisterEntity
-    - registry.RegisterNode
-    - registry.RegisterRuntime
-    - governance.CastVote
-    - governance.SubmitProposal
-    - beacon.PVSSCommit
-    - beacon.PVSSReveal
-    - beacon.VRFProve
-  consensus-event-types: &consensus_event_types
-    - governance.proposal_executed
-    - governance.proposal_finalized
-    - governance.proposal_submitted
-    - governance.vote
-    - registry.entity
-    - registry.node_unfrozen
-    - registry.node
-    - registry.runtime
-    - roothash.execution_discrepancy
-    - roothash.executor_committed
-    - roothash.finalized
-    - staking.allowance_change
-    - staking.burn
-    - staking.escrow.add
-    - staking.escrow.debonding_start
-    - staking.escrow.reclaim
-    - staking.escrow.take
-    - staking.transfer
-  evm-token-types: &evm_token_types
-    - ERC20
-    - ERC721
-    - ERC1155
 
 x-err-responses:
   base-error: &base_error_response
@@ -240,10 +196,8 @@ paths:
         - in: query
           name: method
           schema:
-            type: string
-            enum: *tx_methods
+            $ref: '#/components/schemas/ConsensusTxMethod'
           description: A filter on transaction method.
-          example: *tx_method_1
         - in: query
           name: sender
           schema:
@@ -345,10 +299,9 @@ paths:
         - in: query
           name: type
           schema:
-            type: string
-            enum: *consensus_event_types
+            $ref: '#/components/schemas/ConsensusEventType'
           description: A filter on the event type.
-          example: Transfer
+          example: staking.transfer
       responses:
         '200':
           description: |
@@ -987,6 +940,27 @@ components:
       description: |
         A list of debonding delegations.
 
+    ConsensusTxMethod:
+      type: string
+      enum:
+        - staking.Transfer
+        - staking.AddEscrow
+        - staking.ReclaimEscrow
+        - staking.AmendCommissionSchedule
+        - staking.Allow
+        - staking.Withdraw
+        - roothash.ExecutorCommit
+        - roothash.ExecutorProposerTimeout
+        - registry.RegisterEntity
+        - registry.RegisterNode
+        - registry.RegisterRuntime
+        - governance.CastVote
+        - governance.SubmitProposal
+        - beacon.PVSSCommit
+        - beacon.PVSSReveal
+        - beacon.VRFProve
+      example: staking.Transfer
+
     TransactionList:
       type: object
       required: [transactions]
@@ -1040,10 +1014,8 @@ components:
             to pay to execute it.
           example: 1000
         method:
-          type: string
-          enum: *tx_methods
+          $ref: '#/components/schemas/ConsensusTxMethod'
           description: The method that was called.
-          example: *tx_method_1
         body:
           type: string
           # TODO: This is a serialzied CBOR blob. Expose as a JSON subtree instead.
@@ -1056,6 +1028,28 @@ components:
           description: Whether this transaction successfully executed.
       description: |
         A consensus transaction.
+
+    ConsensusEventType:
+      type: string
+      enum:
+        - governance.proposal_executed
+        - governance.proposal_finalized
+        - governance.proposal_submitted
+        - governance.vote
+        - registry.entity
+        - registry.node_unfrozen
+        - registry.node
+        - registry.runtime
+        - roothash.execution_discrepancy
+        - roothash.executor_committed
+        - roothash.finalized
+        - staking.allowance_change
+        - staking.burn
+        - staking.escrow.add
+        - staking.escrow.debonding_start
+        - staking.escrow.reclaim
+        - staking.escrow.take
+        - staking.transfer
 
     ConsensusEventList:
       type: object
@@ -1320,6 +1314,15 @@ components:
             is the Ethereum address (without the leading `0x`). All-lowercase.
           example: '9907a0cf64ec9fbf6ed8fd4971090de88222a9ac'
 
+    RuntimeName:
+      description: |
+        The name of a runtime. This is a human-readable identifier.
+        It is intended to stay stable across runtime upgrades/versions.
+      type: string
+      enum:
+        - emerald
+      example: emerald
+
     RuntimeBalance:
       description: Balance of an account in a runtime.
       type: object
@@ -1330,9 +1333,7 @@ components:
           description: Number of base units held; as a string.
           example: "1000000000000000000000"
         runtime:
-          type: string
-          enum: ["emerald"]
-          description: Name of the runtime.
+          $ref: "#/components/schemas/RuntimeName"
         # TODO:
         # - How do we handle NFTs? Add another field?
         # - We do not handle non-native tokens from the `accounts` SDK module. The plan is to use
@@ -1693,6 +1694,13 @@ components:
       description: |
         A runtime transaction.
 
+    EvmTokenType:
+      type: string
+      enum:
+        - ERC20
+        - ERC721
+        - ERC1155
+
     RuntimeTokenList:
       type: object
       required: [tokens]
@@ -1728,8 +1736,7 @@ components:
             Affects display only. Often equals 18, to match ETH.
           example: 18
         type:
-          type: string
-          enum: *evm_token_types
+          $ref: '#/components/schemas/EvmTokenType'
           description: |
             The heuristically determined interface that the token contract implements.
             A less specialized variant of the token might be detected; for example, an
