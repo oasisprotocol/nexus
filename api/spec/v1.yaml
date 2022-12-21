@@ -1020,7 +1020,6 @@ components:
           type: string
           # TODO: This is a serialzied CBOR blob. Expose as a JSON subtree instead.
           # Front-end can pull the "recipient" field from here for transactions of a suitable type.
-          format: binary
           description: The method call body.
           example: *tx_body_1
         success:
@@ -1340,8 +1339,7 @@ components:
         #   their denomination name for both `token_id` and `token_symbol`, or update the SDK to have tickers.
         token_id:
           type: string
-          format: binary
-          description: Unique dentifier for the token. For EVM tokens, this is their eth address.
+          description: Unique identifier for the token. For EVM tokens, this is their eth address.
         token_symbol:
           type: string
           description: The token ticker symbol. Not guaranteed to be unique across distinct tokens.
@@ -1668,6 +1666,7 @@ components:
           example: "evm.Call"
         body:
           type: string
+          format: byte
           description: The method call body.
           example: "o2RkYXRhQGV2YWx1ZUgBY0V4wN0lc2dhZGRyZXNzVDlzcMsG8d3D2LY5FTn+1svi/l+V"
         to:
