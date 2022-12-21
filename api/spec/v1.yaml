@@ -103,6 +103,15 @@ x-err-responses:
       <<: *base_error_response
       description: A server error occurred.
 
+x-type-annotations:
+  big-int: &BigIntType
+    type: string
+    pattern: '^-?[0-9]+$'
+    format: bigint  # Not used by the indexer; might be helpful to client generators to recognize this type.
+    example: "1234567890123456789012"
+    x-go-type: commonTypes.BigInt
+    x-go-type-import: { name: commonTypes, path: "github.com/oasisprotocol/oasis-indexer/storage/client" }
+
 paths:
   /:
     get:
@@ -452,59 +461,43 @@ paths:
         - in: query
           name: minAvailable
           schema:
-            type: integer
-            format: int64
+            <<: *BigIntType
           description: A filter on the minimum available account balance.
-          example: 10000000000
         - in: query
           name: maxAvailable
           schema:
-            type: integer
-            format: int64
+            <<: *BigIntType
           description: A filter on the maximum available account balance.
-          example: 100000000000
         - in: query
           name: minEscrow
           schema:
-            type: integer
-            format: int64
+            <<: *BigIntType
           description: A filter on the minimum active escrow account balance.
-          example: 10000000000
         - in: query
           name: maxEscrow
           schema:
-            type: integer
-            format: int64
+            <<: *BigIntType
           description: A filter on the maximum active escrow account balance.
-          example: 100000000000
         - in: query
           name: minDebonding
           schema:
-            type: integer
-            format: int64
+            <<: *BigIntType
           description: A filter on the minimum debonding account balance.
-          example: 10000000000
         - in: query
           name: maxDebonding
           schema:
-            type: integer
-            format: int64
+            <<: *BigIntType
           description: A filter on the maximum debonding account balance.
-          example: 100000000000
         - in: query
           name: minTotalBalance
           schema:
-            type: integer
-            format: int64
+            <<: *BigIntType
           description: A filter on the minimum total account balance.
-          example: 10000000000
         - in: query
           name: maxTotalBalance
           schema:
-            type: integer
-            format: int64
+            <<: *BigIntType
           description: A filter on the maximum total account balance.
-          example: 100000000000
       responses:
         '200':
           description: |
@@ -879,13 +872,10 @@ components:
       required: [amount, shares, validator_address]
       properties:
         amount:
-          type: integer
-          format: int64
+          <<: *BigIntType
           description: The amount of tokens delegated in base units.
-          example: 10000000000
         shares:
-          type: integer
-          format: int64
+          <<: *BigIntType
           description: The shares of tokens delegated.
         validator_address:
           type: string
@@ -910,13 +900,10 @@ components:
       required: [amount, shares, validator_address, debond_end]
       properties:
         amount:
-          type: integer
-          format: int64
+          <<: *BigIntType
           description: The amount of tokens delegated in base units.
-          example: 10000000000
         shares:
-          type: integer
-          format: int64
+          <<: *BigIntType
           description: The shares of tokens delegated.
         validator_address:
           type: string
@@ -1007,8 +994,7 @@ components:
           description: The nonce used with this transaction, to prevent replay.
           example: 0
         fee:
-          type: integer
-          format: int64
+          <<: *BigIntType
           description: |
             The fee that this transaction's sender committed
             to pay to execute it.
@@ -1154,15 +1140,14 @@ components:
           description: The public key identifying this Validator's node.
           example: *node_id_1
         escrow:
-          type: integer
-          format: int64
+          <<: *BigIntType
           description: The amount staked.
         active:
           type: boolean
-          description: Entity is part of validator set.
+          description: Whether the entity is part of validator set (top <scheduler.params.max_validators> by stake).
         status:
           type: boolean
-          description: An entity has a node that is registered for being a validator, node is up to date, and has successfully registered itself.
+          description: Whether the entity has a node that is registered for being a validator, node is up to date, and has successfully registered itself. It may or may not be part of validator set.
         media:
           type: object
           properties:
@@ -1328,9 +1313,8 @@ components:
       required: [amount, runtime, token_id, token_symbol]
       properties:
         amount:
-          type: string
+          <<: *BigIntType
           description: Number of base units held; as a string.
-          example: "1000000000000000000000"
         runtime:
           $ref: "#/components/schemas/RuntimeName"
         # TODO:
@@ -1355,8 +1339,7 @@ components:
         address_preimage:
           $ref: '#/components/schemas/AddressPreimage'
         nonce:
-          type: integer
-          format: int64
+          <<: *BigIntType
           description: A nonce used to prevent replay.
           example: 0
         # TODO: limit this to 1000 entries. If folks have more,
@@ -1366,28 +1349,19 @@ components:
           items:
             $ref: '#/components/schemas/RuntimeBalance'
         available:
-          type: integer
-          format: int64
+          <<: *BigIntType
           description: The available balance, in base units.
-          example: 10000000000
         escrow:
-          type: integer
-          format: int64
+          <<: *BigIntType
           description: The active escrow balance, in base units.
-          example: 10000000000
         debonding:
-          type: integer
-          format: int64
+          <<: *BigIntType
           description: The debonding escrow balance, in base units.
-          example: 10000000000
         delegations_balance:
-          type: integer
-          format: int64
+          <<: *BigIntType
           description: The delegations balance, in base units.
-          example: 10000000000
         debonding_delegations_balance:
-          type: integer
-          format: int64
+          <<: *BigIntType
           description: The debonding delegations balance, in base units.
           example: 10000000000
         allowances:
@@ -1407,10 +1381,8 @@ components:
           description: The allowed account.
           example: *staking_address_2
         amount:
-          type: integer
-          format: int64
+          <<: *BigIntType
           description: The amount allowed for the allowed account.
-          example: 10000000000
 
     EpochList:
       type: object
@@ -1474,10 +1446,8 @@ components:
           description: The state of the proposal.
           example: 'active'
         deposit:
-          type: integer
-          format: int64
+          <<: *BigIntType
           description: The deposit attached to this proposal.
-          example: 10000000000
         handler:
           type: string
           description: The name of the upgrade handler.
@@ -1513,8 +1483,7 @@ components:
           description: The epoch at which voting for this proposal will close.
           example: *epoch_2
         invalid_votes:
-          type: integer
-          format: int64
+          <<: *BigIntType
           description: |
             The number of invalid votes for this proposal, after tallying.
       description: |
