@@ -159,20 +159,20 @@ type ProposalList struct {
 
 // Proposal is the storage response for GetProposal.
 type Proposal struct {
-	ID           uint64  `json:"id"`
-	Submitter    string  `json:"submitter"`
-	State        string  `json:"state"`
-	Deposit      BigInt  `json:"deposit"`
-	Handler      *string `json:"handler,omitempty"`
-	Target       Target  `json:"target,omitempty"`
-	Epoch        *uint64 `json:"epoch,omitempty"`
-	Cancels      *int64  `json:"cancels,omitempty"`
-	CreatedAt    uint64  `json:"created_at"`
-	ClosesAt     uint64  `json:"closes_at"`
-	InvalidVotes BigInt  `json:"invalid_votes"`
+	ID           uint64         `json:"id"`
+	Submitter    string         `json:"submitter"`
+	State        string         `json:"state"`
+	Deposit      BigInt         `json:"deposit"`
+	Handler      *string        `json:"handler,omitempty"`
+	Target       ProposalTarget `json:"target,omitempty"`
+	Epoch        *uint64        `json:"epoch,omitempty"`
+	Cancels      *int64         `json:"cancels,omitempty"`
+	CreatedAt    uint64         `json:"created_at"`
+	ClosesAt     uint64         `json:"closes_at"`
+	InvalidVotes BigInt         `json:"invalid_votes"`
 }
 
-type Target struct {
+type ProposalTarget struct {
 	ConsensusProtocol        *string `json:"consensus_protocol"`
 	RuntimeHostProtocol      *string `json:"runtime_host_protocol"`
 	RuntimeCommitteeProtocol *string `json:"runtime_committee_protocol"`

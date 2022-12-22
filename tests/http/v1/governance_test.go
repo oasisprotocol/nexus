@@ -16,7 +16,7 @@ func makeTestProposals() []storage.Proposal {
 	p1ConsensusTarget := "4.0.0"
 	p1RuntimeHostTarget := "3.0.0"
 	p1RuntimeCommitteeTarget := "2.0.0"
-	p1Target := storage.Target{
+	p1Target := storage.ProposalTarget{
 		ConsensusProtocol:        &p1ConsensusTarget,
 		RuntimeHostProtocol:      &p1RuntimeHostTarget,
 		RuntimeCommitteeProtocol: &p1RuntimeCommitteeTarget,
@@ -27,7 +27,7 @@ func makeTestProposals() []storage.Proposal {
 	p2ConsensusTarget := "5.0.0"
 	p2RuntimeHostTarget := "5.0.0"
 	p2RuntimeCommitteeTarget := "4.0.0"
-	p2Target := storage.Target{
+	p2Target := storage.ProposalTarget{
 		ConsensusProtocol:        &p2ConsensusTarget,
 		RuntimeHostProtocol:      &p2RuntimeHostTarget,
 		RuntimeCommitteeProtocol: &p2RuntimeCommitteeTarget,

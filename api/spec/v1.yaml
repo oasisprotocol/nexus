@@ -1119,6 +1119,43 @@ components:
       description: |
         A list of validators registered at the consensus layer.
 
+    ValidatorCommissionBound:
+      type: object
+      required: [lower, upper, epoch_start, epoch_end]
+      properties:
+        lower:
+          type: integer
+          format: int64
+        upper:
+          type: integer
+          format: int64
+        epoch_start:
+          type: integer
+          format: int64
+        epoch_end:
+          type: integer
+          format: int64
+
+    ValidatorMedia:
+      type: object
+      # All of the fields are optional.
+      properties:
+        website_link:
+          type: string
+          description: An URL associated with the entity.
+        email_address:
+          type: string
+          description: An email address for the validator.
+        twitter_acc:
+          type: string
+          description: A Twitter handle.
+        tg_chat:
+          type: string
+          description: An Telegram handle.
+        logotype:
+          type: string
+          description: A logo type.
+
     Validator:
       type: object
       required: [entity_address, entity_id, name, node_id, escrow, active, status, current_rate, current_commission_bound]
@@ -1149,42 +1186,13 @@ components:
           type: boolean
           description: Whether the entity has a node that is registered for being a validator, node is up to date, and has successfully registered itself. It may or may not be part of validator set.
         media:
-          type: object
-          properties:
-            website_link:
-              type: string
-              description: An URL associated with the entity.
-            email_address:
-              type: string
-              description: An email address for the validator.
-            twitter_acc:
-              type: string
-              description: A Twitter handle.
-            tg_chat:
-              type: string
-              description: An Telegram handle.
-            logotype:
-              type: string
-              description: A logo type.
+          $ref: '#/components/schemas/ValidatorMedia'
         current_rate:
           type: integer
           format: int64
           description: Commission rate.
         current_commission_bound:
-          type: object
-          properties:
-            lower:
-              type: integer
-              format: int64
-            upper:
-              type: integer
-              format: int64
-            epoch_start:
-              type: integer
-              format: int64
-            epoch_end:
-              type: integer
-              format: int64
+          $ref: '#/components/schemas/ValidatorCommissionBound'
       description: |
         An validator registered at the consensus layer.
 
@@ -1428,6 +1436,18 @@ components:
       description: |
         A list of governance proposals.
 
+    ProposalTarget:
+      type: object
+      required: [consensus_protocol, runtime_host_protocol, runtime_committee_protocol]
+      properties:
+        consensus_protocol:
+          type: string
+        runtime_host_protocol:
+          type: string
+        runtime_committee_protocol:
+          type: string
+      description: The target propotocol versions for this upgrade proposal.
+      
     Proposal:
       type: object
       required: [id, submitter, state, deposit, handler, target, epoch, cancels, created_at, closes_at, invalid_votes]
@@ -1452,15 +1472,7 @@ components:
           type: string
           description: The name of the upgrade handler.
         target:
-          type: object
-          properties:
-            consensus_protocol:
-              type: string
-            runtime_host_protocol:
-              type: string
-            runtime_committee_protocol:
-              type: string
-          description: The target propotocol versions for this upgrade proposal.
+          $ref: '#/components/schemas/ProposalTarget'
         epoch:
           type: integer
           format: int64
