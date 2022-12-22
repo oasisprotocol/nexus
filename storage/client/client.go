@@ -41,7 +41,7 @@ type StorageClient struct {
 // private method found at https://github.com/jackc/pgtype/blob/master/numeric.go#L398
 func (c *StorageClient) numericToBigInt(ctx context.Context, n *pgtype.Numeric) (BigInt, error) {
 	if n.Exp == 0 {
-		return BigInt{*n.Int}, nil
+		return BigInt{Int: *n.Int}, nil
 	}
 
 	big0 := big.NewInt(0)
@@ -52,7 +52,7 @@ func (c *StorageClient) numericToBigInt(ctx context.Context, n *pgtype.Numeric) 
 		mul := &big.Int{}
 		mul.Exp(big10, big.NewInt(int64(n.Exp)), nil)
 		bi.Mul(bi, mul)
-		return BigInt{*bi}, nil
+		return BigInt{Int: *bi}, nil
 	}
 
 	div := &big.Int{}
@@ -65,9 +65,9 @@ func (c *StorageClient) numericToBigInt(ctx context.Context, n *pgtype.Numeric) 
 			"request_id", ctx.Value(RequestIDContextKey),
 			"err", err,
 		)
-		return BigInt{*big0}, err
+		return BigInt{Int: *big0}, err
 	}
-	return BigInt{*big0}, nil
+	return BigInt{Int: *big0}, nil
 }
 
 func toString(b *BigInt) *string {
@@ -743,7 +743,7 @@ func (c *StorageClient) Delegations(ctx context.Context, r *DelegationsRequest, 
 		}
 		amount := new(big.Int).Mul(&shares.Int, &escrowBalanceActive.Int)
 		amount.Quo(amount, &escrowTotalSharesActive.Int)
-		d.Amount = BigInt{*amount}
+		d.Amount = BigInt{Int: *amount}
 		d.Shares = shares
 
 		ds.Delegations = append(ds.Delegations, d)
@@ -812,7 +812,7 @@ func (c *StorageClient) DebondingDelegations(ctx context.Context, r *DebondingDe
 		}
 		amount := new(big.Int).Mul(&shares.Int, &escrowBalanceDebonding.Int)
 		amount.Quo(amount, &escrowTotalSharesDebonding.Int)
-		d.Amount = BigInt{*amount}
+		d.Amount = BigInt{Int: *amount}
 		d.Shares = shares
 
 		ds.DebondingDelegations = append(ds.DebondingDelegations, d)

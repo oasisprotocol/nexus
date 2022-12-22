@@ -109,8 +109,8 @@ x-type-annotations:
     pattern: '^-?[0-9]+$'
     format: bigint  # Not used by the indexer; might be helpful to client generators to recognize this type.
     example: "1234567890123456789012"
-    x-go-type: commonTypes.BigInt
-    x-go-type-import: { name: commonTypes, path: "github.com/oasisprotocol/oasis-indexer/storage/client" }
+    x-go-type: common.BigInt
+    x-go-type-import: { name: common, path: "github.com/oasisprotocol/oasis-indexer/common" }
 
 paths:
   /:
