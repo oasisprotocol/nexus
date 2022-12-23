@@ -15,7 +15,8 @@ import (
 	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
 
 	"github.com/oasisprotocol/oasis-indexer/analyzer/util"
-	"github.com/oasisprotocol/oasis-indexer/api/common"
+	apiCommon "github.com/oasisprotocol/oasis-indexer/api/common"
+	common "github.com/oasisprotocol/oasis-indexer/common"
 	"github.com/oasisprotocol/oasis-indexer/log"
 	"github.com/oasisprotocol/oasis-indexer/storage"
 )
@@ -62,7 +63,7 @@ func (c *StorageClient) numericToBigInt(ctx context.Context, n *pgtype.Numeric) 
 	if remainder.Cmp(big0) != 0 {
 		err := fmt.Errorf("cannot convert %v to integer", n)
 		c.logger.Info("failed to convert pgtype.Numeric to big.Int",
-			"request_id", ctx.Value(RequestIDContextKey),
+			"request_id", ctx.Value(common.RequestIDContextKey),
 			"err", err,
 		)
 		return BigInt{Int: *big0}, err
@@ -120,10 +121,10 @@ func (c *StorageClient) Status(ctx context.Context) (*Status, error) {
 		qf.StatusQuery(),
 	).Scan(&s.LatestBlock, &s.LatestUpdate); err != nil {
 		c.logger.Info("row scan failed",
-			"request_id", ctx.Value(RequestIDContextKey),
+			"request_id", ctx.Value(common.RequestIDContextKey),
 			"err", err.Error(),
 		)
-		return nil, common.ErrStorageError
+		return nil, apiCommon.ErrStorageError
 	}
 	// oasis-node control status returns time truncated to the second
 	// https://github.com/oasisprotocol/oasis-core/blob/5985dc5c2844de28241b7b16b19d91a86e5cbeda/docs/oasis-node/cli.md?plain=1#L41
@@ -133,10 +134,10 @@ func (c *StorageClient) Status(ctx context.Context) (*Status, error) {
 }
 
 // Blocks returns a list of consensus blocks.
-func (c *StorageClient) Blocks(ctx context.Context, r *BlocksRequest, p *common.Pagination) (*BlockList, error) {
-	cid, ok := ctx.Value(ChainIDContextKey).(string)
+func (c *StorageClient) Blocks(ctx context.Context, r *BlocksRequest, p *apiCommon.Pagination) (*BlockList, error) {
+	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
 	if !ok {
-		return nil, common.ErrBadChainID
+		return nil, apiCommon.ErrBadChainID
 	}
 	qf := NewQueryFactory(cid, "" /* no runtime identifier for the consensus layer */)
 
@@ -152,10 +153,10 @@ func (c *StorageClient) Blocks(ctx context.Context, r *BlocksRequest, p *common.
 	)
 	if err != nil {
 		c.logger.Info("query failed",
-			"request_id", ctx.Value(RequestIDContextKey),
+			"request_id", ctx.Value(common.RequestIDContextKey),
 			"err", err.Error(),
 		)
-		return nil, common.ErrStorageError
+		return nil, apiCommon.ErrStorageError
 	}
 	defer rows.Close()
 
@@ -166,10 +167,10 @@ func (c *StorageClient) Blocks(ctx context.Context, r *BlocksRequest, p *common.
 		var b Block
 		if err := rows.Scan(&b.Height, &b.Hash, &b.Timestamp); err != nil {
 			c.logger.Info("row scan failed",
-				"request_id", ctx.Value(RequestIDContextKey),
+				"request_id", ctx.Value(common.RequestIDContextKey),
 				"err", err.Error(),
 			)
-			return nil, common.ErrStorageError
+			return nil, apiCommon.ErrStorageError
 		}
 		b.Timestamp = b.Timestamp.UTC()
 
@@ -187,9 +188,9 @@ func (c *StorageClient) Block(ctx context.Context, r *BlockRequest) (*Block, err
 		return untypedBlock.(*Block), nil
 	}
 
-	cid, ok := ctx.Value(ChainIDContextKey).(string)
+	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
 	if !ok {
-		return nil, common.ErrBadChainID
+		return nil, apiCommon.ErrBadChainID
 	}
 	qf := NewQueryFactory(cid, "" /* no runtime identifier for the consensus layer */)
 
@@ -200,10 +201,10 @@ func (c *StorageClient) Block(ctx context.Context, r *BlockRequest) (*Block, err
 		r.Height,
 	).Scan(&b.Height, &b.Hash, &b.Timestamp); err != nil {
 		c.logger.Info("row scan failed",
-			"request_id", ctx.Value(RequestIDContextKey),
+			"request_id", ctx.Value(common.RequestIDContextKey),
 			"err", err.Error(),
 		)
-		return nil, common.ErrStorageError
+		return nil, apiCommon.ErrStorageError
 	}
 	b.Timestamp = b.Timestamp.UTC()
 
@@ -217,10 +218,10 @@ func (c *StorageClient) cacheBlock(blk *Block) {
 }
 
 // Transactions returns a list of consensus transactions.
-func (c *StorageClient) Transactions(ctx context.Context, r *TransactionsRequest, p *common.Pagination) (*TransactionList, error) {
-	cid, ok := ctx.Value(ChainIDContextKey).(string)
+func (c *StorageClient) Transactions(ctx context.Context, r *TransactionsRequest, p *apiCommon.Pagination) (*TransactionList, error) {
+	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
 	if !ok {
-		return nil, common.ErrBadChainID
+		return nil, apiCommon.ErrBadChainID
 	}
 	qf := NewQueryFactory(cid, "" /* no runtime identifier for the consensus layer */)
 
@@ -238,10 +239,10 @@ func (c *StorageClient) Transactions(ctx context.Context, r *TransactionsRequest
 	)
 	if err != nil {
 		c.logger.Info("query failed",
-			"request_id", ctx.Value(RequestIDContextKey),
+			"request_id", ctx.Value(common.RequestIDContextKey),
 			"err", err.Error(),
 		)
-		return nil, common.ErrStorageError
+		return nil, apiCommon.ErrStorageError
 	}
 	defer rows.Close()
 
@@ -263,15 +264,15 @@ func (c *StorageClient) Transactions(ctx context.Context, r *TransactionsRequest
 			&code,
 		); err != nil {
 			c.logger.Info("row scan failed",
-				"request_id", ctx.Value(RequestIDContextKey),
+				"request_id", ctx.Value(common.RequestIDContextKey),
 				"err", err.Error(),
 			)
-			return nil, common.ErrStorageError
+			return nil, apiCommon.ErrStorageError
 		}
 		var err error
 		t.Fee, err = c.numericToBigInt(ctx, &feeNum)
 		if err != nil {
-			return nil, common.ErrStorageError
+			return nil, apiCommon.ErrStorageError
 		}
 		if code == oasisErrors.CodeNoError {
 			t.Success = true
@@ -291,9 +292,9 @@ func (c *StorageClient) Transaction(ctx context.Context, r *TransactionRequest) 
 		return untypedTx.(*Transaction), nil
 	}
 
-	cid, ok := ctx.Value(ChainIDContextKey).(string)
+	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
 	if !ok {
-		return nil, common.ErrBadChainID
+		return nil, apiCommon.ErrBadChainID
 	}
 	qf := NewQueryFactory(cid, "" /* no runtime identifier for the consensus layer */)
 
@@ -315,15 +316,15 @@ func (c *StorageClient) Transaction(ctx context.Context, r *TransactionRequest) 
 		&code,
 	); err != nil {
 		c.logger.Info("row scan failed",
-			"request_id", ctx.Value(RequestIDContextKey),
+			"request_id", ctx.Value(common.RequestIDContextKey),
 			"err", err.Error(),
 		)
-		return nil, common.ErrStorageError
+		return nil, apiCommon.ErrStorageError
 	}
 	var err error
 	t.Fee, err = c.numericToBigInt(ctx, &feeNum)
 	if err != nil {
-		return nil, common.ErrStorageError
+		return nil, apiCommon.ErrStorageError
 	}
 	if code == oasisErrors.CodeNoError {
 		t.Success = true
@@ -339,10 +340,10 @@ func (c *StorageClient) cacheTx(tx *Transaction) {
 }
 
 // Entities returns a list of registered entities.
-func (c *StorageClient) Entities(ctx context.Context, p *common.Pagination) (*EntityList, error) {
-	cid, ok := ctx.Value(ChainIDContextKey).(string)
+func (c *StorageClient) Entities(ctx context.Context, p *apiCommon.Pagination) (*EntityList, error) {
+	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
 	if !ok {
-		return nil, common.ErrBadChainID
+		return nil, apiCommon.ErrBadChainID
 	}
 	qf := NewQueryFactory(cid, "" /* no runtime identifier for the consensus layer */)
 
@@ -354,10 +355,10 @@ func (c *StorageClient) Entities(ctx context.Context, p *common.Pagination) (*En
 	)
 	if err != nil {
 		c.logger.Info("query failed",
-			"request_id", ctx.Value(RequestIDContextKey),
+			"request_id", ctx.Value(common.RequestIDContextKey),
 			"err", err.Error(),
 		)
-		return nil, common.ErrStorageError
+		return nil, apiCommon.ErrStorageError
 	}
 	defer rows.Close()
 
@@ -370,7 +371,7 @@ func (c *StorageClient) Entities(ctx context.Context, p *common.Pagination) (*En
 			c.logger.Info("query failed",
 				"err", err.Error(),
 			)
-			return nil, common.ErrStorageError
+			return nil, apiCommon.ErrStorageError
 		}
 
 		es.Entities = append(es.Entities, e)
@@ -381,9 +382,9 @@ func (c *StorageClient) Entities(ctx context.Context, p *common.Pagination) (*En
 
 // Entity returns a registered entity.
 func (c *StorageClient) Entity(ctx context.Context, r *EntityRequest) (*Entity, error) {
-	cid, ok := ctx.Value(ChainIDContextKey).(string)
+	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
 	if !ok {
-		return nil, common.ErrBadChainID
+		return nil, apiCommon.ErrBadChainID
 	}
 	qf := NewQueryFactory(cid, "" /* no runtime identifier for the consensus layer */)
 
@@ -394,10 +395,10 @@ func (c *StorageClient) Entity(ctx context.Context, r *EntityRequest) (*Entity, 
 		r.EntityID.String(),
 	).Scan(&e.ID, &e.Address); err != nil {
 		c.logger.Info("row scan failed",
-			"request_id", ctx.Value(RequestIDContextKey),
+			"request_id", ctx.Value(common.RequestIDContextKey),
 			"err", err.Error(),
 		)
-		return nil, common.ErrStorageError
+		return nil, apiCommon.ErrStorageError
 	}
 
 	nodeRows, err := c.db.Query(
@@ -407,10 +408,10 @@ func (c *StorageClient) Entity(ctx context.Context, r *EntityRequest) (*Entity, 
 	)
 	if err != nil {
 		c.logger.Info("query failed",
-			"request_id", ctx.Value(RequestIDContextKey),
+			"request_id", ctx.Value(common.RequestIDContextKey),
 			"err", err.Error(),
 		)
-		return nil, common.ErrStorageError
+		return nil, apiCommon.ErrStorageError
 	}
 	defer nodeRows.Close()
 
@@ -418,10 +419,10 @@ func (c *StorageClient) Entity(ctx context.Context, r *EntityRequest) (*Entity, 
 		var nid string
 		if err := nodeRows.Scan(&nid); err != nil {
 			c.logger.Info("row scan failed",
-				"request_id", ctx.Value(RequestIDContextKey),
+				"request_id", ctx.Value(common.RequestIDContextKey),
 				"err", err.Error(),
 			)
-			return nil, common.ErrStorageError
+			return nil, apiCommon.ErrStorageError
 		}
 
 		e.Nodes = append(e.Nodes, nid)
@@ -431,10 +432,10 @@ func (c *StorageClient) Entity(ctx context.Context, r *EntityRequest) (*Entity, 
 }
 
 // EntityNodes returns a list of nodes controlled by the provided entity.
-func (c *StorageClient) EntityNodes(ctx context.Context, r *EntityNodesRequest, p *common.Pagination) (*NodeList, error) {
-	cid, ok := ctx.Value(ChainIDContextKey).(string)
+func (c *StorageClient) EntityNodes(ctx context.Context, r *EntityNodesRequest, p *apiCommon.Pagination) (*NodeList, error) {
+	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
 	if !ok {
-		return nil, common.ErrBadChainID
+		return nil, apiCommon.ErrBadChainID
 	}
 	qf := NewQueryFactory(cid, "" /* no runtime identifier for the consensus layer */)
 
@@ -447,10 +448,10 @@ func (c *StorageClient) EntityNodes(ctx context.Context, r *EntityNodesRequest, 
 	)
 	if err != nil {
 		c.logger.Info("query failed",
-			"request_id", ctx.Value(RequestIDContextKey),
+			"request_id", ctx.Value(common.RequestIDContextKey),
 			"err", err.Error(),
 		)
-		return nil, common.ErrStorageError
+		return nil, apiCommon.ErrStorageError
 	}
 	defer rows.Close()
 
@@ -470,10 +471,10 @@ func (c *StorageClient) EntityNodes(ctx context.Context, r *EntityNodesRequest, 
 			&n.Roles,
 		); err != nil {
 			c.logger.Info("row scan failed",
-				"request_id", ctx.Value(RequestIDContextKey),
+				"request_id", ctx.Value(common.RequestIDContextKey),
 				"err", err.Error(),
 			)
-			return nil, common.ErrStorageError
+			return nil, apiCommon.ErrStorageError
 		}
 
 		ns.Nodes = append(ns.Nodes, n)
@@ -485,9 +486,9 @@ func (c *StorageClient) EntityNodes(ctx context.Context, r *EntityNodesRequest, 
 
 // EntityNode returns a node controlled by the provided entity.
 func (c *StorageClient) EntityNode(ctx context.Context, r *EntityNodeRequest) (*Node, error) {
-	cid, ok := ctx.Value(ChainIDContextKey).(string)
+	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
 	if !ok {
-		return nil, common.ErrBadChainID
+		return nil, apiCommon.ErrBadChainID
 	}
 	qf := NewQueryFactory(cid, "" /* no runtime identifier for the consensus layer */)
 
@@ -508,20 +509,20 @@ func (c *StorageClient) EntityNode(ctx context.Context, r *EntityNodeRequest) (*
 		&n.Roles,
 	); err != nil {
 		c.logger.Info("row scan failed",
-			"request_id", ctx.Value(RequestIDContextKey),
+			"request_id", ctx.Value(common.RequestIDContextKey),
 			"err", err.Error(),
 		)
-		return nil, common.ErrStorageError
+		return nil, apiCommon.ErrStorageError
 	}
 
 	return &n, nil
 }
 
 // Accounts returns a list of consensus accounts.
-func (c *StorageClient) Accounts(ctx context.Context, r *AccountsRequest, p *common.Pagination) (*AccountList, error) {
-	cid, ok := ctx.Value(ChainIDContextKey).(string)
+func (c *StorageClient) Accounts(ctx context.Context, r *AccountsRequest, p *apiCommon.Pagination) (*AccountList, error) {
+	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
 	if !ok {
-		return nil, common.ErrBadChainID
+		return nil, apiCommon.ErrBadChainID
 	}
 	qf := NewQueryFactory(cid, "" /* no runtime identifier for the consensus layer */)
 
@@ -541,10 +542,10 @@ func (c *StorageClient) Accounts(ctx context.Context, r *AccountsRequest, p *com
 	)
 	if err != nil {
 		c.logger.Info("query failed",
-			"request_id", ctx.Value(RequestIDContextKey),
+			"request_id", ctx.Value(common.RequestIDContextKey),
 			"err", err.Error(),
 		)
-		return nil, common.ErrStorageError
+		return nil, apiCommon.ErrStorageError
 	}
 	defer rows.Close()
 
@@ -564,23 +565,23 @@ func (c *StorageClient) Accounts(ctx context.Context, r *AccountsRequest, p *com
 			&debondingNum,
 		); err != nil {
 			c.logger.Info("row scan failed",
-				"request_id", ctx.Value(RequestIDContextKey),
+				"request_id", ctx.Value(common.RequestIDContextKey),
 				"err", err.Error(),
 			)
-			return nil, common.ErrStorageError
+			return nil, apiCommon.ErrStorageError
 		}
 		var err error
 		a.Available, err = c.numericToBigInt(ctx, &availableNum)
 		if err != nil {
-			return nil, common.ErrStorageError
+			return nil, apiCommon.ErrStorageError
 		}
 		a.Escrow, err = c.numericToBigInt(ctx, &escrowNum)
 		if err != nil {
-			return nil, common.ErrStorageError
+			return nil, apiCommon.ErrStorageError
 		}
 		a.Debonding, err = c.numericToBigInt(ctx, &debondingNum)
 		if err != nil {
-			return nil, common.ErrStorageError
+			return nil, apiCommon.ErrStorageError
 		}
 
 		as.Accounts = append(as.Accounts, a)
@@ -591,9 +592,9 @@ func (c *StorageClient) Accounts(ctx context.Context, r *AccountsRequest, p *com
 
 // Account returns a consensus account.
 func (c *StorageClient) Account(ctx context.Context, r *AccountRequest) (*Account, error) {
-	cid, ok := ctx.Value(ChainIDContextKey).(string)
+	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
 	if !ok {
-		return nil, common.ErrBadChainID
+		return nil, apiCommon.ErrBadChainID
 	}
 	qf := NewQueryFactory(cid, "" /* no runtime identifier for the consensus layer */)
 
@@ -619,31 +620,31 @@ func (c *StorageClient) Account(ctx context.Context, r *AccountRequest) (*Accoun
 		&debondingDelegationsBalanceNum,
 	); err != nil {
 		c.logger.Info("row scan failed",
-			"request_id", ctx.Value(RequestIDContextKey),
+			"request_id", ctx.Value(common.RequestIDContextKey),
 			"err", err.Error(),
 		)
-		return nil, common.ErrStorageError
+		return nil, apiCommon.ErrStorageError
 	}
 	var err error
 	a.Available, err = c.numericToBigInt(ctx, &availableNum)
 	if err != nil {
-		return nil, common.ErrStorageError
+		return nil, apiCommon.ErrStorageError
 	}
 	a.Escrow, err = c.numericToBigInt(ctx, &escrowNum)
 	if err != nil {
-		return nil, common.ErrStorageError
+		return nil, apiCommon.ErrStorageError
 	}
 	a.Debonding, err = c.numericToBigInt(ctx, &debondingNum)
 	if err != nil {
-		return nil, common.ErrStorageError
+		return nil, apiCommon.ErrStorageError
 	}
 	a.DelegationsBalance, err = c.numericToBigInt(ctx, &delegationsBalanceNum)
 	if err != nil {
-		return nil, common.ErrStorageError
+		return nil, apiCommon.ErrStorageError
 	}
 	a.DebondingDelegationsBalance, err = c.numericToBigInt(ctx, &debondingDelegationsBalanceNum)
 	if err != nil {
-		return nil, common.ErrStorageError
+		return nil, apiCommon.ErrStorageError
 	}
 
 	allowanceRows, queryErr := c.db.Query(
@@ -653,10 +654,10 @@ func (c *StorageClient) Account(ctx context.Context, r *AccountRequest) (*Accoun
 	)
 	if queryErr != nil {
 		c.logger.Info("query failed",
-			"request_id", ctx.Value(RequestIDContextKey),
+			"request_id", ctx.Value(common.RequestIDContextKey),
 			"err", queryErr.Error(),
 		)
-		return nil, common.ErrStorageError
+		return nil, apiCommon.ErrStorageError
 	}
 	defer allowanceRows.Close()
 
@@ -668,15 +669,15 @@ func (c *StorageClient) Account(ctx context.Context, r *AccountRequest) (*Accoun
 			&amountNum,
 		); err != nil {
 			c.logger.Info("row scan failed",
-				"request_id", ctx.Value(RequestIDContextKey),
+				"request_id", ctx.Value(common.RequestIDContextKey),
 				"err", err.Error(),
 			)
-			return nil, common.ErrStorageError
+			return nil, apiCommon.ErrStorageError
 		}
 		var err error
 		al.Amount, err = c.numericToBigInt(ctx, &amountNum)
 		if err != nil {
-			return nil, common.ErrStorageError
+			return nil, apiCommon.ErrStorageError
 		}
 
 		a.Allowances = append(a.Allowances, al)
@@ -686,10 +687,10 @@ func (c *StorageClient) Account(ctx context.Context, r *AccountRequest) (*Accoun
 }
 
 // Delegations returns a list of delegations.
-func (c *StorageClient) Delegations(ctx context.Context, r *DelegationsRequest, p *common.Pagination) (*DelegationList, error) {
-	cid, ok := ctx.Value(ChainIDContextKey).(string)
+func (c *StorageClient) Delegations(ctx context.Context, r *DelegationsRequest, p *apiCommon.Pagination) (*DelegationList, error) {
+	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
 	if !ok {
-		return nil, common.ErrBadChainID
+		return nil, apiCommon.ErrBadChainID
 	}
 	qf := NewQueryFactory(cid, "" /* no runtime identifier for the consensus layer */)
 
@@ -702,10 +703,10 @@ func (c *StorageClient) Delegations(ctx context.Context, r *DelegationsRequest, 
 	)
 	if err != nil {
 		c.logger.Info("query failed",
-			"request_id", ctx.Value(RequestIDContextKey),
+			"request_id", ctx.Value(common.RequestIDContextKey),
 			"err", err.Error(),
 		)
-		return nil, common.ErrStorageError
+		return nil, apiCommon.ErrStorageError
 	}
 	defer rows.Close()
 
@@ -724,22 +725,22 @@ func (c *StorageClient) Delegations(ctx context.Context, r *DelegationsRequest, 
 			&escrowTotalSharesActiveNum,
 		); err != nil {
 			c.logger.Info("row scan failed",
-				"request_id", ctx.Value(RequestIDContextKey),
+				"request_id", ctx.Value(common.RequestIDContextKey),
 				"err", err.Error(),
 			)
-			return nil, common.ErrStorageError
+			return nil, apiCommon.ErrStorageError
 		}
 		shares, err := c.numericToBigInt(ctx, &sharesNum)
 		if err != nil {
-			return nil, common.ErrStorageError
+			return nil, apiCommon.ErrStorageError
 		}
 		escrowBalanceActive, err := c.numericToBigInt(ctx, &escrowBalanceActiveNum)
 		if err != nil {
-			return nil, common.ErrStorageError
+			return nil, apiCommon.ErrStorageError
 		}
 		escrowTotalSharesActive, err := c.numericToBigInt(ctx, &escrowBalanceActiveNum)
 		if err != nil {
-			return nil, common.ErrStorageError
+			return nil, apiCommon.ErrStorageError
 		}
 		amount := new(big.Int).Mul(&shares.Int, &escrowBalanceActive.Int)
 		amount.Quo(amount, &escrowTotalSharesActive.Int)
@@ -753,10 +754,10 @@ func (c *StorageClient) Delegations(ctx context.Context, r *DelegationsRequest, 
 }
 
 // DebondingDelegations returns a list of debonding delegations.
-func (c *StorageClient) DebondingDelegations(ctx context.Context, r *DebondingDelegationsRequest, p *common.Pagination) (*DebondingDelegationList, error) {
-	cid, ok := ctx.Value(ChainIDContextKey).(string)
+func (c *StorageClient) DebondingDelegations(ctx context.Context, r *DebondingDelegationsRequest, p *apiCommon.Pagination) (*DebondingDelegationList, error) {
+	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
 	if !ok {
-		return nil, common.ErrBadChainID
+		return nil, apiCommon.ErrBadChainID
 	}
 	qf := NewQueryFactory(cid, "" /* no runtime identifier for the consensus layer */)
 
@@ -769,10 +770,10 @@ func (c *StorageClient) DebondingDelegations(ctx context.Context, r *DebondingDe
 	)
 	if err != nil {
 		c.logger.Info("query failed",
-			"request_id", ctx.Value(RequestIDContextKey),
+			"request_id", ctx.Value(common.RequestIDContextKey),
 			"err", err.Error(),
 		)
-		return nil, common.ErrStorageError
+		return nil, apiCommon.ErrStorageError
 	}
 	defer rows.Close()
 
@@ -792,23 +793,23 @@ func (c *StorageClient) DebondingDelegations(ctx context.Context, r *DebondingDe
 			&escrowTotalSharesDebondingNum,
 		); err != nil {
 			c.logger.Info("row scan failed",
-				"request_id", ctx.Value(RequestIDContextKey),
+				"request_id", ctx.Value(common.RequestIDContextKey),
 				"err", err.Error(),
 			)
-			return nil, common.ErrStorageError
+			return nil, apiCommon.ErrStorageError
 		}
 
 		shares, err := c.numericToBigInt(ctx, &sharesNum)
 		if err != nil {
-			return nil, common.ErrStorageError
+			return nil, apiCommon.ErrStorageError
 		}
 		escrowBalanceDebonding, err := c.numericToBigInt(ctx, &escrowBalanceDebondingNum)
 		if err != nil {
-			return nil, common.ErrStorageError
+			return nil, apiCommon.ErrStorageError
 		}
 		escrowTotalSharesDebonding, err := c.numericToBigInt(ctx, &escrowBalanceDebondingNum)
 		if err != nil {
-			return nil, common.ErrStorageError
+			return nil, apiCommon.ErrStorageError
 		}
 		amount := new(big.Int).Mul(&shares.Int, &escrowBalanceDebonding.Int)
 		amount.Quo(amount, &escrowTotalSharesDebonding.Int)
@@ -822,10 +823,10 @@ func (c *StorageClient) DebondingDelegations(ctx context.Context, r *DebondingDe
 }
 
 // Epochs returns a list of consensus epochs.
-func (c *StorageClient) Epochs(ctx context.Context, p *common.Pagination) (*EpochList, error) {
-	cid, ok := ctx.Value(ChainIDContextKey).(string)
+func (c *StorageClient) Epochs(ctx context.Context, p *apiCommon.Pagination) (*EpochList, error) {
+	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
 	if !ok {
-		return nil, common.ErrBadChainID
+		return nil, apiCommon.ErrBadChainID
 	}
 	qf := NewQueryFactory(cid, "" /* no runtime identifier for the consensus layer */)
 
@@ -837,10 +838,10 @@ func (c *StorageClient) Epochs(ctx context.Context, p *common.Pagination) (*Epoc
 	)
 	if err != nil {
 		c.logger.Info("query failed",
-			"request_id", ctx.Value(RequestIDContextKey),
+			"request_id", ctx.Value(common.RequestIDContextKey),
 			"err", err.Error(),
 		)
-		return nil, common.ErrStorageError
+		return nil, apiCommon.ErrStorageError
 	}
 
 	es := EpochList{
@@ -851,10 +852,10 @@ func (c *StorageClient) Epochs(ctx context.Context, p *common.Pagination) (*Epoc
 		var endHeight *uint64
 		if err := rows.Scan(&e.ID, &e.StartHeight, &endHeight); err != nil {
 			c.logger.Info("row scan failed",
-				"request_id", ctx.Value(RequestIDContextKey),
+				"request_id", ctx.Value(common.RequestIDContextKey),
 				"err", err.Error(),
 			)
-			return nil, common.ErrStorageError
+			return nil, apiCommon.ErrStorageError
 		}
 		if endHeight != nil {
 			e.EndHeight = *endHeight
@@ -868,9 +869,9 @@ func (c *StorageClient) Epochs(ctx context.Context, p *common.Pagination) (*Epoc
 
 // Epoch returns a consensus epoch.
 func (c *StorageClient) Epoch(ctx context.Context, r *EpochRequest) (*Epoch, error) {
-	cid, ok := ctx.Value(ChainIDContextKey).(string)
+	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
 	if !ok {
-		return nil, common.ErrBadChainID
+		return nil, apiCommon.ErrBadChainID
 	}
 	qf := NewQueryFactory(cid, "" /* no runtime identifier for the consensus layer */)
 
@@ -881,20 +882,20 @@ func (c *StorageClient) Epoch(ctx context.Context, r *EpochRequest) (*Epoch, err
 		r.Epoch,
 	).Scan(&e.ID, &e.StartHeight, &e.EndHeight); err != nil {
 		c.logger.Info("row scan failed",
-			"request_id", ctx.Value(RequestIDContextKey),
+			"request_id", ctx.Value(common.RequestIDContextKey),
 			"err", err.Error(),
 		)
-		return nil, common.ErrStorageError
+		return nil, apiCommon.ErrStorageError
 	}
 
 	return &e, nil
 }
 
 // Proposals returns a list of governance proposals.
-func (c *StorageClient) Proposals(ctx context.Context, r *ProposalsRequest, p *common.Pagination) (*ProposalList, error) {
-	cid, ok := ctx.Value(ChainIDContextKey).(string)
+func (c *StorageClient) Proposals(ctx context.Context, r *ProposalsRequest, p *apiCommon.Pagination) (*ProposalList, error) {
+	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
 	if !ok {
-		return nil, common.ErrBadChainID
+		return nil, apiCommon.ErrBadChainID
 	}
 	qf := NewQueryFactory(cid, "" /* no runtime identifier for the consensus layer */)
 
@@ -908,10 +909,10 @@ func (c *StorageClient) Proposals(ctx context.Context, r *ProposalsRequest, p *c
 	)
 	if err != nil {
 		c.logger.Info("query failed",
-			"request_id", ctx.Value(RequestIDContextKey),
+			"request_id", ctx.Value(common.RequestIDContextKey),
 			"err", err.Error(),
 		)
-		return nil, common.ErrStorageError
+		return nil, apiCommon.ErrStorageError
 	}
 	defer rows.Close()
 
@@ -938,19 +939,19 @@ func (c *StorageClient) Proposals(ctx context.Context, r *ProposalsRequest, p *c
 			&invalidVotesNum,
 		); err != nil {
 			c.logger.Info("row scan failed",
-				"request_id", ctx.Value(RequestIDContextKey),
+				"request_id", ctx.Value(common.RequestIDContextKey),
 				"err", err.Error(),
 			)
-			return nil, common.ErrStorageError
+			return nil, apiCommon.ErrStorageError
 		}
 		var err error
 		p.Deposit, err = c.numericToBigInt(ctx, &depositNum)
 		if err != nil {
-			return nil, common.ErrStorageError
+			return nil, apiCommon.ErrStorageError
 		}
 		p.InvalidVotes, err = c.numericToBigInt(ctx, &invalidVotesNum)
 		if err != nil {
-			return nil, common.ErrStorageError
+			return nil, apiCommon.ErrStorageError
 		}
 
 		ps.Proposals = append(ps.Proposals, p)
@@ -961,9 +962,9 @@ func (c *StorageClient) Proposals(ctx context.Context, r *ProposalsRequest, p *c
 
 // Proposal returns a governance proposal.
 func (c *StorageClient) Proposal(ctx context.Context, r *ProposalRequest) (*Proposal, error) {
-	cid, ok := ctx.Value(ChainIDContextKey).(string)
+	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
 	if !ok {
-		return nil, common.ErrBadChainID
+		return nil, apiCommon.ErrBadChainID
 	}
 	qf := NewQueryFactory(cid, "" /* no runtime identifier for the consensus layer */)
 
@@ -990,29 +991,29 @@ func (c *StorageClient) Proposal(ctx context.Context, r *ProposalRequest) (*Prop
 		&invalidVotesNum,
 	); err != nil {
 		c.logger.Info("row scan failed",
-			"request_id", ctx.Value(RequestIDContextKey),
+			"request_id", ctx.Value(common.RequestIDContextKey),
 			"err", err.Error(),
 		)
-		return nil, common.ErrStorageError
+		return nil, apiCommon.ErrStorageError
 	}
 	var err error
 	p.Deposit, err = c.numericToBigInt(ctx, &depositNum)
 	if err != nil {
-		return nil, common.ErrStorageError
+		return nil, apiCommon.ErrStorageError
 	}
 	p.InvalidVotes, err = c.numericToBigInt(ctx, &invalidVotesNum)
 	if err != nil {
-		return nil, common.ErrStorageError
+		return nil, apiCommon.ErrStorageError
 	}
 
 	return &p, nil
 }
 
 // ProposalVotes returns votes for a governance proposal.
-func (c *StorageClient) ProposalVotes(ctx context.Context, r *ProposalVotesRequest, p *common.Pagination) (*ProposalVotes, error) {
-	cid, ok := ctx.Value(ChainIDContextKey).(string)
+func (c *StorageClient) ProposalVotes(ctx context.Context, r *ProposalVotesRequest, p *apiCommon.Pagination) (*ProposalVotes, error) {
+	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
 	if !ok {
-		return nil, common.ErrBadChainID
+		return nil, apiCommon.ErrBadChainID
 	}
 	qf := NewQueryFactory(cid, "" /* no runtime identifier for the consensus layer */)
 
@@ -1025,10 +1026,10 @@ func (c *StorageClient) ProposalVotes(ctx context.Context, r *ProposalVotesReque
 	)
 	if err != nil {
 		c.logger.Info("query failed",
-			"request_id", ctx.Value(RequestIDContextKey),
+			"request_id", ctx.Value(common.RequestIDContextKey),
 			"err", err.Error(),
 		)
-		return nil, common.ErrStorageError
+		return nil, apiCommon.ErrStorageError
 	}
 	defer rows.Close()
 
@@ -1042,10 +1043,10 @@ func (c *StorageClient) ProposalVotes(ctx context.Context, r *ProposalVotesReque
 			&v.Vote,
 		); err != nil {
 			c.logger.Info("row scan failed",
-				"request_id", ctx.Value(RequestIDContextKey),
+				"request_id", ctx.Value(common.RequestIDContextKey),
 				"err", err.Error(),
 			)
-			return nil, common.ErrStorageError
+			return nil, apiCommon.ErrStorageError
 		}
 
 		vs.Votes = append(vs.Votes, v)
@@ -1056,10 +1057,10 @@ func (c *StorageClient) ProposalVotes(ctx context.Context, r *ProposalVotesReque
 }
 
 // Validators returns a list of validators.
-func (c *StorageClient) Validators(ctx context.Context, p *common.Pagination) (*ValidatorList, error) {
-	cid, ok := ctx.Value(ChainIDContextKey).(string)
+func (c *StorageClient) Validators(ctx context.Context, p *apiCommon.Pagination) (*ValidatorList, error) {
+	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
 	if !ok {
-		return nil, common.ErrBadChainID
+		return nil, apiCommon.ErrBadChainID
 	}
 	qf := NewQueryFactory(cid, "" /* no runtime identifier for the consensus layer */)
 
@@ -1069,10 +1070,10 @@ func (c *StorageClient) Validators(ctx context.Context, p *common.Pagination) (*
 		qf.ValidatorsQuery(),
 	).Scan(&epoch.ID, &epoch.StartHeight); err != nil {
 		c.logger.Info("row scan failed",
-			"request_id", ctx.Value(RequestIDContextKey),
+			"request_id", ctx.Value(common.RequestIDContextKey),
 			"err", err.Error(),
 		)
-		return nil, common.ErrStorageError
+		return nil, apiCommon.ErrStorageError
 	}
 
 	rows, err := c.db.Query(
@@ -1083,10 +1084,10 @@ func (c *StorageClient) Validators(ctx context.Context, p *common.Pagination) (*
 	)
 	if err != nil {
 		c.logger.Info("query failed",
-			"request_id", ctx.Value(RequestIDContextKey),
+			"request_id", ctx.Value(common.RequestIDContextKey),
 			"err", err.Error(),
 		)
-		return nil, common.ErrStorageError
+		return nil, apiCommon.ErrStorageError
 	}
 	defer rows.Close()
 
@@ -1110,12 +1111,12 @@ func (c *StorageClient) Validators(ctx context.Context, p *common.Pagination) (*
 			c.logger.Info("query failed",
 				"err", err.Error(),
 			)
-			return nil, common.ErrStorageError
+			return nil, apiCommon.ErrStorageError
 		}
 		var err error
 		v.Escrow, err = c.numericToBigInt(ctx, &escrowNum)
 		if err != nil {
-			return nil, common.ErrStorageError
+			return nil, apiCommon.ErrStorageError
 		}
 		// Match API for now
 		v.Name = v.Media.Name
@@ -1145,9 +1146,9 @@ func (c *StorageClient) Validators(ctx context.Context, p *common.Pagination) (*
 
 // Validator returns a single validator.
 func (c *StorageClient) Validator(ctx context.Context, r *ValidatorRequest) (*Validator, error) {
-	cid, ok := ctx.Value(ChainIDContextKey).(string)
+	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
 	if !ok {
-		return nil, common.ErrBadChainID
+		return nil, apiCommon.ErrBadChainID
 	}
 	qf := NewQueryFactory(cid, "" /* no runtime identifier for the consensus layer */)
 
@@ -1157,10 +1158,10 @@ func (c *StorageClient) Validator(ctx context.Context, r *ValidatorRequest) (*Va
 		qf.ValidatorQuery(),
 	).Scan(&epoch.ID, &epoch.StartHeight); err != nil {
 		c.logger.Info("row scan failed",
-			"request_id", ctx.Value(RequestIDContextKey),
+			"request_id", ctx.Value(common.RequestIDContextKey),
 			"err", err.Error(),
 		)
-		return nil, common.ErrStorageError
+		return nil, apiCommon.ErrStorageError
 	}
 
 	row := c.db.QueryRow(
@@ -1185,12 +1186,12 @@ func (c *StorageClient) Validator(ctx context.Context, r *ValidatorRequest) (*Va
 		c.logger.Info("query failed",
 			"err", err.Error(),
 		)
-		return nil, common.ErrStorageError
+		return nil, apiCommon.ErrStorageError
 	}
 	var err error
 	v.Escrow, err = c.numericToBigInt(ctx, &escrowNum)
 	if err != nil {
-		return nil, common.ErrStorageError
+		return nil, apiCommon.ErrStorageError
 	}
 	// Match API for now
 	v.Name = v.Media.Name
@@ -1216,14 +1217,14 @@ func (c *StorageClient) Validator(ctx context.Context, r *ValidatorRequest) (*Va
 }
 
 // RuntimeBlocks returns a list of runtime blocks.
-func (c *StorageClient) RuntimeBlocks(ctx context.Context, r *RuntimeBlocksRequest, p *common.Pagination) (*RuntimeBlockList, error) {
-	cid, ok := ctx.Value(ChainIDContextKey).(string)
+func (c *StorageClient) RuntimeBlocks(ctx context.Context, r *RuntimeBlocksRequest, p *apiCommon.Pagination) (*RuntimeBlockList, error) {
+	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
 	if !ok {
-		return nil, common.ErrBadChainID
+		return nil, apiCommon.ErrBadChainID
 	}
-	runtime, ok := ctx.Value(RuntimeContextKey).(string)
+	runtime, ok := ctx.Value(common.RuntimeContextKey).(string)
 	if !ok {
-		return nil, common.ErrBadRuntime
+		return nil, apiCommon.ErrBadRuntime
 	}
 	qf := NewQueryFactory(cid, runtime)
 
@@ -1239,10 +1240,10 @@ func (c *StorageClient) RuntimeBlocks(ctx context.Context, r *RuntimeBlocksReque
 	)
 	if err != nil {
 		c.logger.Info("query failed",
-			"request_id", ctx.Value(RequestIDContextKey),
+			"request_id", ctx.Value(common.RequestIDContextKey),
 			"err", err.Error(),
 		)
-		return nil, common.ErrStorageError
+		return nil, apiCommon.ErrStorageError
 	}
 	defer rows.Close()
 
@@ -1253,10 +1254,10 @@ func (c *StorageClient) RuntimeBlocks(ctx context.Context, r *RuntimeBlocksReque
 		var b RuntimeBlock
 		if err := rows.Scan(&b.Round, &b.Hash, &b.Timestamp, &b.NumTransactions, &b.Size, &b.GasUsed); err != nil {
 			c.logger.Info("row scan failed",
-				"request_id", ctx.Value(RequestIDContextKey),
+				"request_id", ctx.Value(common.RequestIDContextKey),
 				"err", err.Error(),
 			)
-			return nil, common.ErrStorageError
+			return nil, apiCommon.ErrStorageError
 		}
 		b.Timestamp = b.Timestamp.UTC()
 
@@ -1267,14 +1268,14 @@ func (c *StorageClient) RuntimeBlocks(ctx context.Context, r *RuntimeBlocksReque
 }
 
 // RuntimeTransactions returns a list of runtime transactions.
-func (c *StorageClient) RuntimeTransactions(ctx context.Context, r *RuntimeTransactionsRequest, p *common.Pagination) (*RuntimeTransactionList, error) {
-	cid, ok := ctx.Value(ChainIDContextKey).(string)
+func (c *StorageClient) RuntimeTransactions(ctx context.Context, r *RuntimeTransactionsRequest, p *apiCommon.Pagination) (*RuntimeTransactionList, error) {
+	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
 	if !ok {
-		return nil, common.ErrBadChainID
+		return nil, apiCommon.ErrBadChainID
 	}
-	runtime, ok := ctx.Value(RuntimeContextKey).(string)
+	runtime, ok := ctx.Value(common.RuntimeContextKey).(string)
 	if !ok {
-		return nil, common.ErrBadRuntime
+		return nil, apiCommon.ErrBadRuntime
 	}
 	qf := NewQueryFactory(cid, runtime)
 
@@ -1287,10 +1288,10 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, r *RuntimeTrans
 	)
 	if err != nil {
 		c.logger.Info("query failed",
-			"request_id", ctx.Value(RequestIDContextKey),
+			"request_id", ctx.Value(common.RequestIDContextKey),
 			"err", err.Error(),
 		)
-		return nil, common.ErrStorageError
+		return nil, apiCommon.ErrStorageError
 	}
 	defer rows.Close()
 
@@ -1308,10 +1309,10 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, r *RuntimeTrans
 			&t.ResultRaw,
 		); err != nil {
 			c.logger.Info("row scan failed",
-				"request_id", ctx.Value(RequestIDContextKey),
+				"request_id", ctx.Value(common.RequestIDContextKey),
 				"err", err.Error(),
 			)
-			return nil, common.ErrStorageError
+			return nil, apiCommon.ErrStorageError
 		}
 
 		ts.Transactions = append(ts.Transactions, t)
@@ -1320,14 +1321,14 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, r *RuntimeTrans
 	return &ts, nil
 }
 
-func (c *StorageClient) RuntimeTokens(ctx context.Context, r *RuntimeTokensRequest, p *common.Pagination) (*RuntimeTokenList, error) {
-	cid, ok := ctx.Value(ChainIDContextKey).(string)
+func (c *StorageClient) RuntimeTokens(ctx context.Context, r *RuntimeTokensRequest, p *apiCommon.Pagination) (*RuntimeTokenList, error) {
+	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
 	if !ok {
-		return nil, common.ErrBadChainID
+		return nil, apiCommon.ErrBadChainID
 	}
-	runtime, ok := ctx.Value(RuntimeContextKey).(string)
+	runtime, ok := ctx.Value(common.RuntimeContextKey).(string)
 	if !ok {
-		return nil, common.ErrBadRuntime
+		return nil, apiCommon.ErrBadRuntime
 	}
 	qf := NewQueryFactory(cid, runtime)
 
@@ -1339,10 +1340,10 @@ func (c *StorageClient) RuntimeTokens(ctx context.Context, r *RuntimeTokensReque
 	)
 	if err != nil {
 		c.logger.Info("query failed",
-			"request_id", ctx.Value(RequestIDContextKey),
+			"request_id", ctx.Value(common.RequestIDContextKey),
 			"err", err.Error(),
 		)
-		return nil, common.ErrStorageError
+		return nil, apiCommon.ErrStorageError
 	}
 	defer rows.Close()
 
@@ -1356,10 +1357,10 @@ func (c *StorageClient) RuntimeTokens(ctx context.Context, r *RuntimeTokensReque
 			&t.NumHolders,
 		); err != nil {
 			c.logger.Info("row scan failed",
-				"request_id", ctx.Value(RequestIDContextKey),
+				"request_id", ctx.Value(common.RequestIDContextKey),
 				"err", err.Error(),
 			)
-			return nil, common.ErrStorageError
+			return nil, apiCommon.ErrStorageError
 		}
 
 		ts.Tokens = append(ts.Tokens, t)
@@ -1369,7 +1370,7 @@ func (c *StorageClient) RuntimeTokens(ctx context.Context, r *RuntimeTokensReque
 }
 
 // TxVolumes returns a list of transaction volumes per time bucket.
-func (c *StorageClient) TxVolumes(ctx context.Context, p *common.Pagination, q *common.BucketedStatsParams) (*TxVolumeList, error) {
+func (c *StorageClient) TxVolumes(ctx context.Context, p *apiCommon.Pagination, q *apiCommon.BucketedStatsParams) (*TxVolumeList, error) {
 	qf := NewQueryFactory(strcase.ToSnake(c.chainID), "")
 	var query string
 	if q.BucketSizeSeconds == 300 {
@@ -1386,10 +1387,10 @@ func (c *StorageClient) TxVolumes(ctx context.Context, p *common.Pagination, q *
 	)
 	if err != nil {
 		c.logger.Info("query failed",
-			"request_id", ctx.Value(RequestIDContextKey),
+			"request_id", ctx.Value(common.RequestIDContextKey),
 			"err", err.Error(),
 		)
-		return nil, common.ErrStorageError
+		return nil, apiCommon.ErrStorageError
 	}
 	defer rows.Close()
 
@@ -1409,7 +1410,7 @@ func (c *StorageClient) TxVolumes(ctx context.Context, p *common.Pagination, q *
 			c.logger.Info("query failed",
 				"err", err.Error(),
 			)
-			return nil, common.ErrStorageError
+			return nil, apiCommon.ErrStorageError
 		}
 
 		t := TxVolume{

@@ -127,7 +127,7 @@ func (c *storageClient) Blocks(ctx context.Context, r *http.Request) (*storage.B
 	p, err := apiCommon.NewPagination(r)
 	if err != nil {
 		c.logger.Info("pagination failed",
-			"request_id", ctx.Value(storage.RequestIDContextKey),
+			"request_id", ctx.Value(common.RequestIDContextKey),
 			"err", err.Error(),
 		)
 		return nil, apiCommon.ErrBadRequest
@@ -201,7 +201,7 @@ func (c *storageClient) Transactions(ctx context.Context, r *http.Request) (*sto
 	p, err := apiCommon.NewPagination(r)
 	if err != nil {
 		c.logger.Info("pagination failed",
-			"request_id", ctx.Value(storage.RequestIDContextKey),
+			"request_id", ctx.Value(common.RequestIDContextKey),
 			"err", err.Error(),
 		)
 		return nil, apiCommon.ErrBadRequest
@@ -229,7 +229,7 @@ func (c *storageClient) Entities(ctx context.Context, r *http.Request) (*storage
 	p, err := apiCommon.NewPagination(r)
 	if err != nil {
 		c.logger.Info("pagination failed",
-			"request_id", ctx.Value(storage.RequestIDContextKey),
+			"request_id", ctx.Value(common.RequestIDContextKey),
 			"err", err.Error(),
 		)
 		return nil, apiCommon.ErrBadRequest
@@ -274,7 +274,7 @@ func (c *storageClient) EntityNodes(ctx context.Context, r *http.Request) (*stor
 	p, err := apiCommon.NewPagination(r)
 	if err != nil {
 		c.logger.Info("pagination failed",
-			"request_id", ctx.Value(storage.RequestIDContextKey),
+			"request_id", ctx.Value(common.RequestIDContextKey),
 			"err", err.Error(),
 		)
 		return nil, apiCommon.ErrBadRequest
@@ -375,7 +375,7 @@ func (c *storageClient) Accounts(ctx context.Context, r *http.Request) (*storage
 	p, err := apiCommon.NewPagination(r)
 	if err != nil {
 		c.logger.Info("pagination failed",
-			"request_id", ctx.Value(storage.RequestIDContextKey),
+			"request_id", ctx.Value(common.RequestIDContextKey),
 			"err", err.Error(),
 		)
 		return nil, apiCommon.ErrBadRequest
@@ -422,7 +422,7 @@ func (c *storageClient) Delegations(ctx context.Context, r *http.Request) (*stor
 	p, err := apiCommon.NewPagination(r)
 	if err != nil {
 		c.logger.Info("pagination failed",
-			"request_id", ctx.Value(storage.RequestIDContextKey),
+			"request_id", ctx.Value(common.RequestIDContextKey),
 			"err", err.Error(),
 		)
 		return nil, apiCommon.ErrBadRequest
@@ -450,7 +450,7 @@ func (c *storageClient) DebondingDelegations(ctx context.Context, r *http.Reques
 	p, err := apiCommon.NewPagination(r)
 	if err != nil {
 		c.logger.Info("pagination failed",
-			"request_id", ctx.Value(storage.RequestIDContextKey),
+			"request_id", ctx.Value(common.RequestIDContextKey),
 			"err", err.Error(),
 		)
 		return nil, apiCommon.ErrBadRequest
@@ -464,7 +464,7 @@ func (c *storageClient) Epochs(ctx context.Context, r *http.Request) (*storage.E
 	p, err := apiCommon.NewPagination(r)
 	if err != nil {
 		c.logger.Info("pagination failed",
-			"request_id", ctx.Value(storage.RequestIDContextKey),
+			"request_id", ctx.Value(common.RequestIDContextKey),
 			"err", err.Error(),
 		)
 		return nil, apiCommon.ErrBadRequest
@@ -515,7 +515,7 @@ func (c *storageClient) Proposals(ctx context.Context, r *http.Request) (*storag
 	p, err := apiCommon.NewPagination(r)
 	if err != nil {
 		c.logger.Info("pagination failed",
-			"request_id", ctx.Value(storage.RequestIDContextKey),
+			"request_id", ctx.Value(common.RequestIDContextKey),
 			"err", err.Error(),
 		)
 		return nil, apiCommon.ErrBadRequest
@@ -560,7 +560,7 @@ func (c *storageClient) ProposalVotes(ctx context.Context, r *http.Request) (*st
 	p, err := apiCommon.NewPagination(r)
 	if err != nil {
 		c.logger.Info("pagination failed",
-			"request_id", ctx.Value(storage.RequestIDContextKey),
+			"request_id", ctx.Value(common.RequestIDContextKey),
 			"err", err.Error(),
 		)
 		return nil, apiCommon.ErrBadRequest
@@ -635,7 +635,7 @@ func (c *storageClient) RuntimeBlocks(ctx context.Context, r *http.Request) (*st
 	p, err := apiCommon.NewPagination(r)
 	if err != nil {
 		c.logger.Info("pagination failed",
-			"request_id", ctx.Value(storage.RequestIDContextKey),
+			"request_id", ctx.Value(common.RequestIDContextKey),
 			"err", err.Error(),
 		)
 		return nil, apiCommon.ErrBadRequest
@@ -659,7 +659,7 @@ func (c *storageClient) RuntimeTransactions(ctx context.Context, r *http.Request
 	p, err := apiCommon.NewPagination(r)
 	if err != nil {
 		c.logger.Info("pagination failed",
-			"request_id", ctx.Value(storage.RequestIDContextKey),
+			"request_id", ctx.Value(common.RequestIDContextKey),
 			"err", err.Error(),
 		)
 		return nil, apiCommon.ErrBadRequest
@@ -688,7 +688,7 @@ func (c *storageClient) RuntimeTokens(ctx context.Context, r *http.Request) (*st
 	p, err := apiCommon.NewPagination(r)
 	if err != nil {
 		c.logger.Info("pagination failed",
-			"request_id", ctx.Value(storage.RequestIDContextKey),
+			"request_id", ctx.Value(common.RequestIDContextKey),
 			"err", err.Error(),
 		)
 		return nil, apiCommon.ErrBadRequest
@@ -702,7 +702,7 @@ func (c *storageClient) TxVolumes(ctx context.Context, r *http.Request) (*storag
 	p, err := apiCommon.NewPagination(r)
 	if err != nil {
 		c.logger.Info("pagination failed",
-			"request_id", ctx.Value(storage.RequestIDContextKey),
+			"request_id", ctx.Value(common.RequestIDContextKey),
 			"err", err.Error(),
 		)
 		return nil, apiCommon.ErrBadRequest
@@ -711,7 +711,7 @@ func (c *storageClient) TxVolumes(ctx context.Context, r *http.Request) (*storag
 	q, err := apiCommon.NewBucketedStatsParams(r)
 	if err != nil {
 		c.logger.Info("bucket param extraction failed",
-			"request_id", ctx.Value(storage.RequestIDContextKey),
+			"request_id", ctx.Value(common.RequestIDContextKey),
 			"err", err.Error(),
 		)
 		return nil, apiCommon.ErrBadRequest
