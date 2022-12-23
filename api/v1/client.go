@@ -15,6 +15,7 @@ import (
 	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
 
 	apiCommon "github.com/oasisprotocol/oasis-indexer/api/common"
+	apiTypes "github.com/oasisprotocol/oasis-indexer/api/v1/types"
 	"github.com/oasisprotocol/oasis-indexer/common"
 	"github.com/oasisprotocol/oasis-indexer/log"
 	storage "github.com/oasisprotocol/oasis-indexer/storage/client"
@@ -645,7 +646,7 @@ func (c *storageClient) RuntimeBlocks(ctx context.Context, r *http.Request) (*st
 }
 
 // RuntimeTransactions returns a list of runtime transactions.
-func (c *storageClient) RuntimeTransactions(ctx context.Context, r *http.Request) (*RuntimeTransactionList, error) {
+func (c *storageClient) RuntimeTransactions(ctx context.Context, r *http.Request) (*apiTypes.RuntimeTransactionList, error) {
 	var q storage.RuntimeTransactionsRequest
 	params := r.URL.Query()
 	if v := params.Get("block"); v != "" {
@@ -670,7 +671,7 @@ func (c *storageClient) RuntimeTransactions(ctx context.Context, r *http.Request
 		return nil, err
 	}
 
-	var apiTransactions RuntimeTransactionList
+	var apiTransactions apiTypes.RuntimeTransactionList
 	for _, storageTransaction := range storageTransactions.Transactions {
 		apiTransaction, err2 := renderRuntimeTransaction(storageTransaction)
 		if err2 != nil {
