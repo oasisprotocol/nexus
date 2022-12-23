@@ -30,9 +30,12 @@ func renderRuntimeTransaction(storageTransaction client.RuntimeTransaction) (Run
 	if err = cbor.Unmarshal(storageTransaction.ResultRaw, &cr); err != nil {
 		return RuntimeTransaction{}, fmt.Errorf("result unmarshal: %w", err)
 	}
+	var body map[string]interface{}
+	if err := cbor.Unmarshal(tx.Call.Body, &body); err != nil {
+		return RuntimeTransaction{}, fmt.Errorf("body unmarshal: %w", err)
+	}
 	apiTransaction := RuntimeTransaction{
 		Round:   storageTransaction.Round,
-		Index:   storageTransaction.Index,
 		Hash:    storageTransaction.Hash,
 		EthHash: storageTransaction.EthHash,
 		// TODO: Get timestamp from that round's block
@@ -41,7 +44,7 @@ func renderRuntimeTransaction(storageTransaction client.RuntimeTransaction) (Run
 		Fee:      tx.AuthInfo.Fee.Amount.Amount.String(),
 		GasLimit: tx.AuthInfo.Fee.Gas,
 		Method:   tx.Call.Method,
-		Body:     tx.Call.Body,
+		Body:     body,
 		Success:  cr.IsSuccess(),
 	}
 	if err = uncategorized.VisitCall(&tx.Call, &cr, &uncategorized.CallHandler{

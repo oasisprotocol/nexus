@@ -1625,7 +1625,7 @@ components:
           example: oasis1qz670t637yyxshnlxhjj5074wgwl94d0x5x69zqd
         nonce_0:
           type: integer
-          format: int64
+          format: uint64
           description: The nonce used with this transaction's 0th signer, to prevent replay.
           example: 114194
         fee:
@@ -1636,7 +1636,7 @@ components:
           example: "3000000000000000"
         gas_limit:
           type: integer
-          format: int64
+          format: uint64
           description: |
             The maximum gas that this transaction's sender committed to use to
             execute it.
@@ -1646,10 +1646,9 @@ components:
           description: The method that was called.
           example: "evm.Call"
         body:
-          type: string
-          format: byte
+          type: object
           description: The method call body.
-          example: "o2RkYXRhQGV2YWx1ZUgBY0V4wN0lc2dhZGRyZXNzVDlzcMsG8d3D2LY5FTn+1svi/l+V"
+          # example: "o2RkYXRhQGV2YWx1ZUgBY0V4wN0lc2dhZGRyZXNzVDlzcMsG8d3D2LY5FTn+1svi/l+V"
         to:
           type: string
           description: |
