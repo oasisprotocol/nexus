@@ -43,13 +43,13 @@ func validateUint64(param string) (uint64, error) {
 }
 
 // validateBigInt parses a big.Int url parameter.
-func validateBigInt(param string) (*big.Int, error) {
+func validateBigInt(param string) (*storage.BigInt, error) {
 	i := big.NewInt(0)
 	i, err := i.SetString(param, 10)
 	if err {
 		return nil, common.ErrBadRequest
 	}
-	return i, nil
+	return &storage.BigInt{Int: *i}, nil
 }
 
 // validateDatetime parses a datetime url parameter.

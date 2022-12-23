@@ -2,7 +2,6 @@ package v1
 
 import (
 	"fmt"
-	"math/big"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -18,16 +17,16 @@ func makeTestAccounts() []storage.Account {
 		{
 			Address:   "oasis1qp28vcurlx03y9exedzd9kfp7u2p0f0nvvv7h5wv",
 			Nonce:     1,
-			Available: *big.NewInt(0),
-			Escrow:    *big.NewInt(0),
-			Debonding: *big.NewInt(0),
+			Available: storage.NewBigInt(0),
+			Escrow:    storage.NewBigInt(0),
+			Debonding: storage.NewBigInt(0),
 		},
 		{
 			Address:   "oasis1qrj5x6twyjg0lxkz9kv0y9tyhzpxwq9u6v6sgje2",
 			Nonce:     0,
-			Available: *big.NewInt(56900000000),
-			Escrow:    *big.NewInt(0),
-			Debonding: *big.NewInt(0),
+			Available: storage.NewBigInt(5600000000),
+			Escrow:    storage.NewBigInt(0),
+			Debonding: storage.NewBigInt(0),
 		},
 	}
 }
@@ -46,6 +45,7 @@ func TestListAccounts(t *testing.T) {
 
 	// The big kahuna (Binance Staking).
 	require.Equal(t, "oasis1qpg2xuz46g53737343r20yxeddhlvc2ldqsjh70p", list.Accounts[0].Address)
+	require.Greater(t, list.Accounts[0].Available, storage.NewBigInt(1000000000000000000))
 }
 
 func TestGetAccount(t *testing.T) {

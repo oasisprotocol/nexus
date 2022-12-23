@@ -37,11 +37,11 @@ type StorageClient struct {
 	logger *log.Logger
 }
 
-// numericToBigInt converts a pgtype.Numeric to a big.int using the private method found at
-// https://github.com/jackc/pgtype/blob/master/numeric.go#L398
-func (c *StorageClient) numericToBigInt(ctx context.Context, n *pgtype.Numeric) (big.Int, error) {
+// numericToBigInt converts a pgtype.Numeric to a BigInt similar to the
+// private method found at https://github.com/jackc/pgtype/blob/master/numeric.go#L398
+func (c *StorageClient) numericToBigInt(ctx context.Context, n *pgtype.Numeric) (BigInt, error) {
 	if n.Exp == 0 {
-		return *n.Int, nil
+		return BigInt{*n.Int}, nil
 	}
 
 	big0 := big.NewInt(0)
@@ -52,7 +52,7 @@ func (c *StorageClient) numericToBigInt(ctx context.Context, n *pgtype.Numeric) 
 		mul := &big.Int{}
 		mul.Exp(big10, big.NewInt(int64(n.Exp)), nil)
 		bi.Mul(bi, mul)
-		return *bi, nil
+		return BigInt{*bi}, nil
 	}
 
 	div := &big.Int{}
@@ -65,9 +65,9 @@ func (c *StorageClient) numericToBigInt(ctx context.Context, n *pgtype.Numeric) 
 			"request_id", ctx.Value(RequestIDContextKey),
 			"err", err,
 		)
-		return *big0, err
+		return BigInt{*big0}, err
 	}
-	return *big0, nil
+	return BigInt{*big0}, nil
 }
 
 // NewStorageClient creates a new storage client.
@@ -733,9 +733,9 @@ func (c *StorageClient) Delegations(ctx context.Context, r *DelegationsRequest, 
 		if err != nil {
 			return nil, common.ErrStorageError
 		}
-		amount := new(big.Int).Mul(&shares, &escrowBalanceActive)
-		amount.Quo(amount, &escrowTotalSharesActive)
-		d.Amount = *amount
+		amount := new(big.Int).Mul(&shares.Int, &escrowBalanceActive.Int)
+		amount.Quo(amount, &escrowTotalSharesActive.Int)
+		d.Amount = BigInt{*amount}
 		d.Shares = shares
 
 		ds.Delegations = append(ds.Delegations, d)
@@ -802,9 +802,9 @@ func (c *StorageClient) DebondingDelegations(ctx context.Context, r *DebondingDe
 		if err != nil {
 			return nil, common.ErrStorageError
 		}
-		amount := new(big.Int).Mul(&shares, &escrowBalanceDebonding)
-		amount.Quo(amount, &escrowTotalSharesDebonding)
-		d.Amount = *amount
+		amount := new(big.Int).Mul(&shares.Int, &escrowBalanceDebonding.Int)
+		amount.Quo(amount, &escrowTotalSharesDebonding.Int)
+		d.Amount = BigInt{*amount}
 		d.Shares = shares
 
 		ds.DebondingDelegations = append(ds.DebondingDelegations, d)
