@@ -805,6 +805,7 @@ components:
       required: [latest_chain_id, latest_block, latest_update]
       properties:
         latest_chain_id:
+          x-go-name: LatestChainID  # oapi-codegen generates LatestChainId (with a lowercase d) by default.
           type: string
           description: The most recently indexed chain ID.
           example: *chain_id_1
@@ -918,9 +919,9 @@ components:
 
     DebondingDelegationList:
       type: object
-      required: [delegations]
+      required: [debonding_delegations]
       properties:
-        delegations:
+        debonding_delegations:
           type: array
           items:
             $ref: '#/components/schemas/DebondingDelegation'
@@ -1004,6 +1005,7 @@ components:
           description: The method that was called.
         body:
           type: string
+          format: byte
           # TODO: This is a serialzied CBOR blob. Expose as a JSON subtree instead.
           # Front-end can pull the "recipient" field from here for transactions of a suitable type.
           description: The method call body.
@@ -1094,12 +1096,17 @@ components:
 
     Entity:
       type: object
-      required: [id, nodes]
+      required: [id, address, nodes]
       properties:
         id:
+          x-go-name: ID
           type: string
           description: The public key identifying this entity.
           example: *entity_id_1
+        address:
+          type: string
+          description: The staking address belonging to this entity; derived from the entity's public key.
+          example: *staking_address_1
         nodes:
           type: array
           items:
@@ -1125,16 +1132,16 @@ components:
       properties:
         lower:
           type: integer
-          format: int64
+          format: uint64
         upper:
           type: integer
-          format: int64
+          format: uint64
         epoch_start:
           type: integer
-          format: int64
+          format: uint64
         epoch_end:
           type: integer
-          format: int64
+          format: uint64
 
     ValidatorMedia:
       type: object
@@ -1155,6 +1162,10 @@ components:
         logotype:
           type: string
           description: A logo type.
+        name:
+          type: string
+          description: The human-readable name of this validator.
+          example: WhaleStake
 
     Validator:
       type: object
@@ -1165,14 +1176,12 @@ components:
             description: The staking address identifying this Validator.
             example: *staking_address_1
         entity_id:
+          x-go-name: EntityID
           type: string
           description: The public key identifying this Validator.
           example: *entity_id_1
-        name:
-          type: string
-          description: The name of this Validator.
-          example: Valid validly validator
         node_id:
+          x-go-name: NodeID
           type: string
           description: The public key identifying this Validator's node.
           example: *node_id_1
@@ -1189,7 +1198,7 @@ components:
           $ref: '#/components/schemas/ValidatorMedia'
         current_rate:
           type: integer
-          format: int64
+          format: uint64
           description: Commission rate.
         current_commission_bound:
           $ref: '#/components/schemas/ValidatorCommissionBound'
@@ -1198,9 +1207,10 @@ components:
 
     NodeList:
       type: object
-      required: [nodes]
+      required: [entity_id, nodes]
       properties:
         entity_id:
+          x-go-name: EntityID
           type: string
         nodes:
           type: array
@@ -1214,10 +1224,12 @@ components:
       required: [id, entity_id, expiration, tls_pubkey, tls_next_pubkey, p2p_pubkey, consensus_pubkey, roles]
       properties:
         id:
+          x-go-name: ID
           type: string
           description: The public key identifying this node.
           example: *node_id_1
         entity_id:
+          x-go-name: EntityID
           type: string
           description: |
             The public key identifying the entity controlling this node.
@@ -1227,14 +1239,17 @@ components:
           format: int64
           description: The epoch in which this node's commitment expires.
         tls_pubkey:
+          x-go-name: TLSPubkey
           type: string
           description: The public key used for establishing TLS connections.
         tls_next_pubkey:
+          x-go-name: TLSNextPubkey
           type: string
           description: |
             The public key that will be used for establishing TLS connections
             upon rotation.
         p2p_pubkey:
+          x-go-name: P2PPubkey
           type: string
           description: The unique identifier of this node on the P2P transport.
         consensus_pubkey:
@@ -1330,6 +1345,7 @@ components:
         # - We do not handle non-native tokens from the `accounts` SDK module. The plan is to use
         #   their denomination name for both `token_id` and `token_symbol`, or update the SDK to have tickers.
         token_id:
+          x-go-name: TokenID
           type: string
           description: Unique identifier for the token. For EVM tokens, this is their eth address.
         token_symbol:
@@ -1347,7 +1363,8 @@ components:
         address_preimage:
           $ref: '#/components/schemas/AddressPreimage'
         nonce:
-          <<: *BigIntType
+          type: integer
+          format: int64
           description: A nonce used to prevent replay.
           example: 0
         # TODO: limit this to 1000 entries. If folks have more,
@@ -1408,6 +1425,7 @@ components:
       required: [id, start_height, end_height]
       properties:
         id:
+          x-go-name: ID
           type: integer
           format: int64
           description: The epoch number.
@@ -1419,7 +1437,7 @@ components:
           example: *block_height_1
         end_height:
           type: integer
-          format: int64
+          format: uint64
           description: The (inclusive) height at which this epoch ended.
           example: *block_height_2
       description: |
@@ -1438,7 +1456,6 @@ components:
 
     ProposalTarget:
       type: object
-      required: [consensus_protocol, runtime_host_protocol, runtime_committee_protocol]
       properties:
         consensus_protocol:
           type: string
@@ -1450,11 +1467,15 @@ components:
       
     Proposal:
       type: object
-      required: [id, submitter, state, deposit, handler, target, epoch, cancels, created_at, closes_at, invalid_votes]
+      # TODO: Revise required fields. Most fields are required for actual proposals, and only absent
+      # for proposal cancellations (which instead have the `cancels` field). Split API and the DB into
+      # two types/tables?
+      required: [id, submitter, state, deposit, target, cancels, created_at, closes_at, invalid_votes]
       properties:
         id:
+          x-go-name: ID
           type: integer
-          format: int64
+          format: uint64
           description: The unique identifier of the proposal.
           example: *proposal_id_1
         submitter:
@@ -1475,7 +1496,7 @@ components:
           $ref: '#/components/schemas/ProposalTarget'
         epoch:
           type: integer
-          format: int64
+          format: uint64
           description: The epoch at which the proposed upgrade will happen.
           example: *epoch_1
         cancels:
@@ -1506,8 +1527,9 @@ components:
       required: [proposal_id, votes]
       properties:
         proposal_id:
+          x-go-name: ProposalID
           type: integer
-          format: int64
+          format: uint64
           description: The unique identifier of the proposal.
         votes:
           type: array
@@ -1734,9 +1756,12 @@ components:
 
     TxVolumeList:
       type: object
-      required: [volumes]
+      required: [bucket_size_seconds, buckets]
       properties:
-        volumes:
+        bucket_size_seconds:
+          type: integer
+          format: uint32
+        buckets:
           type: array
           items:
             $ref: '#/components/schemas/TxVolume'
@@ -1746,16 +1771,16 @@ components:
 
     TxVolume:
       type: object
-      required: [date, tx_volume]
+      required: [bucket_start, tx_volume]
       properties:
-        date:
+        bucket_start:
           type: string
           format: date-time
           description: The date for this daily transaction volume measurement.
           example: *iso_timestamp_1
         tx_volume:
           type: integer
-          format: int64
+          format: uint64
           description: The transaction volume on this day.
           example: 420
 

@@ -16,6 +16,7 @@ import (
 
 	"github.com/oasisprotocol/oasis-indexer/analyzer/util"
 	apiCommon "github.com/oasisprotocol/oasis-indexer/api/common"
+	api "github.com/oasisprotocol/oasis-indexer/api/v1/types"
 	common "github.com/oasisprotocol/oasis-indexer/common"
 	"github.com/oasisprotocol/oasis-indexer/log"
 	"github.com/oasisprotocol/oasis-indexer/storage"
@@ -254,7 +255,7 @@ func (c *StorageClient) Transactions(ctx context.Context, r *TransactionsRequest
 		var code uint64
 		var feeNum pgtype.Numeric
 		if err := rows.Scan(
-			&t.Height,
+			&t.Block,
 			&t.Hash,
 			&t.Sender,
 			&t.Nonce,
@@ -306,7 +307,7 @@ func (c *StorageClient) Transaction(ctx context.Context, r *TransactionRequest) 
 		qf.TransactionQuery(),
 		r.TxHash,
 	).Scan(
-		&t.Height,
+		&t.Block,
 		&t.Hash,
 		&t.Sender,
 		&t.Nonce,
@@ -1118,8 +1119,6 @@ func (c *StorageClient) Validators(ctx context.Context, p *apiCommon.Pagination)
 		if err != nil {
 			return nil, apiCommon.ErrStorageError
 		}
-		// Match API for now
-		v.Name = v.Media.Name
 
 		currentRate := schedule.CurrentRate(beacon.EpochTime(epoch.ID))
 		if currentRate != nil {
@@ -1193,8 +1192,6 @@ func (c *StorageClient) Validator(ctx context.Context, r *ValidatorRequest) (*Va
 	if err != nil {
 		return nil, apiCommon.ErrStorageError
 	}
-	// Match API for now
-	v.Name = v.Media.Name
 
 	currentRate := schedule.CurrentRate(beacon.EpochTime(epoch.ID))
 	if currentRate != nil {
@@ -1396,7 +1393,7 @@ func (c *StorageClient) TxVolumes(ctx context.Context, p *apiCommon.Pagination, 
 
 	ts := TxVolumeList{
 		BucketSizeSeconds: q.BucketSizeSeconds,
-		Buckets:           []TxVolume{},
+		Buckets:           []api.TxVolume{},
 	}
 	for rows.Next() {
 		var d struct {
@@ -1415,7 +1412,7 @@ func (c *StorageClient) TxVolumes(ctx context.Context, p *apiCommon.Pagination, 
 
 		t := TxVolume{
 			BucketStart: d.BucketStart.UTC(),
-			Volume:      d.TxVolume,
+			TxVolume:    d.TxVolume,
 		}
 		ts.Buckets = append(ts.Buckets, t)
 	}

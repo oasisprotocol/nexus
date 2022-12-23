@@ -61,7 +61,7 @@ func makeTestBlocks(t *testing.T) []storage.Block {
 func makeTestTransactions() []storage.Transaction {
 	transactions := []storage.Transaction{
 		{
-			Height:  8048959,
+			Block:   8048959,
 			Hash:    "c58a618242396f2f5c7fa7b9c110c02e23e1d5c132085e72755605d938251ce0",
 			Nonce:   4209,
 			Fee:     common.NewBigInt(0),
@@ -69,7 +69,7 @@ func makeTestTransactions() []storage.Transaction {
 			Success: true,
 		},
 		{
-			Height:  8048959,
+			Block:   8048959,
 			Hash:    "79f70f2d318043529b485ce171880bf16bd3fe0f59caf673336ab70c7f65e938",
 			Nonce:   13420,
 			Fee:     common.NewBigInt(0),
@@ -77,7 +77,7 @@ func makeTestTransactions() []storage.Transaction {
 			Success: true,
 		},
 		{
-			Height:  8048959,
+			Block:   8048959,
 			Hash:    "35f5f7b4f906c1ea2e57bb9989205ef14daab012fe675c0bf4d93be23bd7473a",
 			Nonce:   5719,
 			Fee:     common.NewBigInt(0),
@@ -85,7 +85,7 @@ func makeTestTransactions() []storage.Transaction {
 			Success: true,
 		},
 		{
-			Height:  8048959,
+			Block:   8048959,
 			Hash:    "fe36a8bf7e18e75bb9652d58a0a1b902fd8d5753a8542b6b69e1ae383fe7e64f",
 			Nonce:   2415,
 			Fee:     common.NewBigInt(0),
@@ -93,7 +93,7 @@ func makeTestTransactions() []storage.Transaction {
 			Success: true,
 		},
 		{
-			Height:  8048959,
+			Block:   8048959,
 			Hash:    "ad3cc19d7155084eb689b80b4f45d0e32af752049d8f85316965e476b7732264",
 			Nonce:   13420,
 			Fee:     common.NewBigInt(0),
@@ -153,7 +153,7 @@ func TestListTransactions(t *testing.T) {
 	<-tests.After(endHeight)
 
 	var list storage.TransactionList
-	err := tests.GetFrom(fmt.Sprintf("/consensus/transactions?block=%d", testTransactions[0].Height), &list)
+	err := tests.GetFrom(fmt.Sprintf("/consensus/transactions?block=%d", testTransactions[0].Block), &list)
 	require.Nil(t, err)
 	require.Equal(t, len(testTransactions), len(list.Transactions))
 

@@ -44,7 +44,7 @@ CREATE TABLE oasis_3.transactions
   max_gas    UINT_NUMERIC, -- uint64 in go; because the value might conceivably be >2^63, we use UINT_NUMERIC over UINT63 here.
   method     TEXT NOT NULL,
   sender     oasis_addr NOT NULL,
-  body       BYTEA,
+  body       BYTEA NOT NULL,
 
   -- Error Fields
   -- This includes an encoding of no error.
