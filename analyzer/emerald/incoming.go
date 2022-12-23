@@ -17,6 +17,7 @@ import (
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 
 	"github.com/oasisprotocol/oasis-indexer/analyzer"
+	"github.com/oasisprotocol/oasis-indexer/analyzer/modules"
 	common "github.com/oasisprotocol/oasis-indexer/analyzer/uncategorized"
 	"github.com/oasisprotocol/oasis-indexer/log"
 	"github.com/oasisprotocol/oasis-indexer/storage"
@@ -56,13 +57,15 @@ type TokenChangeKey struct {
 }
 
 type BlockData struct {
-	Hash             string
-	NumTransactions  int
-	GasUsed          uint64
-	Size             int
-	TransactionData  []*BlockTransactionData
-	AddressPreimages map[string]*AddressPreimageData
-	TokenChanges     map[TokenChangeKey]*big.Int
+	Hash                string
+	NumTransactions     int
+	GasUsed             uint64
+	Size                int
+	TransactionData     []*BlockTransactionData
+	AddressPreimages    map[string]*AddressPreimageData
+	TokenBalanceChanges map[TokenChangeKey]*big.Int
+	// key is oasis bech32 address
+	PossibleTokens map[string]*modules.EVMPossibleToken
 }
 
 // Function naming conventions in this file:
@@ -208,7 +211,8 @@ func extractRound(b *block.Block, txrs []*sdkClient.TransactionWithResults, logg
 	blockData.NumTransactions = len(txrs)
 	blockData.TransactionData = make([]*BlockTransactionData, 0, len(txrs))
 	blockData.AddressPreimages = map[string]*AddressPreimageData{}
-	blockData.TokenChanges = map[TokenChangeKey]*big.Int{}
+	blockData.TokenBalanceChanges = map[TokenChangeKey]*big.Int{}
+	blockData.PossibleTokens = map[string]*modules.EVMPossibleToken{}
 	for txIndex, txr := range txrs {
 		var blockTransactionData BlockTransactionData
 		blockTransactionData.Index = txIndex
@@ -345,14 +349,18 @@ func extractRound(b *block.Block, txrs []*sdkClient.TransactionWithResults, logg
 							if err2 != nil {
 								return fmt.Errorf("from: %w", err2)
 							}
-							registerTokenDecrease(blockData.TokenChanges, eventAddr, fromAddr, amount)
+							registerTokenDecrease(blockData.TokenBalanceChanges, eventAddr, fromAddr, amount)
 						}
 						if !bytes.Equal(toEthAddr, common.ZeroEthAddr) {
 							toAddr, err2 := registerRelatedEthAddress(blockData.AddressPreimages, blockTransactionData.RelatedAccountAddresses, toEthAddr)
 							if err2 != nil {
 								return fmt.Errorf("to: %w", err2)
 							}
-							registerTokenIncrease(blockData.TokenChanges, eventAddr, toAddr, amount)
+							registerTokenIncrease(blockData.TokenBalanceChanges, eventAddr, toAddr, amount)
+						}
+						blockData.PossibleTokens[eventAddr] = &modules.EVMPossibleToken{
+							PossibleTypes: []modules.EVMTokenType{modules.EVMTokenTypeERC20},
+							EthAddr:       event.Address,
 						}
 						return nil
 					},
@@ -368,6 +376,10 @@ func extractRound(b *block.Block, txrs []*sdkClient.TransactionWithResults, logg
 							if err2 != nil {
 								return fmt.Errorf("spender: %w", err2)
 							}
+						}
+						blockData.PossibleTokens[eventAddr] = &modules.EVMPossibleToken{
+							PossibleTypes: []modules.EVMTokenType{modules.EVMTokenTypeERC20},
+							EthAddr:       event.Address,
 						}
 						return nil
 					},
@@ -400,7 +412,7 @@ func extractRound(b *block.Block, txrs []*sdkClient.TransactionWithResults, logg
 	return &blockData, nil
 }
 
-func emitRoundBatch(batch *storage.QueryBatch, qf *analyzer.QueryFactory, round uint64, blockData *BlockData) {
+func emitRoundBatch(batch *storage.QueryBatch, qf *analyzer.QueryFactory, round uint64, blockData *BlockData, blockTokenData *modules.EVMBlockTokenData) {
 	for _, transactionData := range blockData.TransactionData {
 		for _, signerData := range transactionData.SignerData {
 			batch.Queue(
@@ -420,7 +432,17 @@ func emitRoundBatch(batch *storage.QueryBatch, qf *analyzer.QueryFactory, round 
 	for addr, preimageData := range blockData.AddressPreimages {
 		batch.Queue(qf.AddressPreimageInsertQuery(), addr, preimageData.ContextIdentifier, preimageData.ContextVersion, preimageData.Data)
 	}
-	for key, change := range blockData.TokenChanges {
-		batch.Queue(qf.RuntimeTokenChangeUpdateQuery(), key.TokenAddress, key.AccountAddress, change.String())
+	for key, change := range blockData.TokenBalanceChanges {
+		batch.Queue(qf.RuntimeTokenBalanceUpdateQuery(), key.TokenAddress, key.AccountAddress, change.String())
+	}
+	for tokenAddr, tokenData := range blockTokenData.TokenData {
+		batch.Queue(
+			qf.RuntimeTokenUpdateQuery(),
+			tokenAddr,
+			tokenData.Name,
+			tokenData.Symbol,
+			tokenData.Decimals,
+			tokenData.TotalSupply.String(),
+		)
 	}
 }

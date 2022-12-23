@@ -415,12 +415,24 @@ func (qf QueryFactory) AddressPreimageInsertQuery() string {
 		ON CONFLICT DO NOTHING`, qf.chainID)
 }
 
-func (qf QueryFactory) RuntimeTokenChangeUpdateQuery() string {
+func (qf QueryFactory) RuntimeTokenBalanceUpdateQuery() string {
 	return fmt.Sprintf(`
 		INSERT INTO %[1]s.%[2]s_token_balances (token_address, account_address, balance)
 			VALUES ($1, $2, $3)
 		ON CONFLICT (token_address, account_address) DO
 			UPDATE SET balance = %[1]s.%[2]s_token_balances.balance + $3`, qf.chainID, qf.runtime)
+}
+
+func (qf QueryFactory) RuntimeTokenUpdateQuery() string {
+	return fmt.Sprintf(`
+		INSERT INTO %s.%s_tokens (token_address, token_name, symbol, decimals, total_supply)
+			VALUES ($1, $2, $3, $4, $5)
+		ON CONFLICT (token_address) DO
+			UPDATE SET
+				token_name = excluded.token_name,
+				symbol = excluded.symbol,
+				decimals = excluded.decimals,
+				total_supply = excluded.total_supply`, qf.chainID, qf.runtime)
 }
 
 func (qf QueryFactory) RefreshDailyTxVolumeQuery() string {

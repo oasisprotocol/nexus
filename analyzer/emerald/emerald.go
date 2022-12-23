@@ -272,10 +272,10 @@ func (m *Main) prepareBlockData(ctx context.Context, round uint64, batch *storag
 		return err
 	}
 
-	for _, f := range []func(*storage.QueryBatch, *storage.RuntimeBlockData) error{
+	for _, f := range []func(context.Context, *storage.QueryBatch, *storage.RuntimeBlockData) error{
 		m.queueBlockAndTransactionInserts,
 	} {
-		if err := f(batch, data); err != nil {
+		if err := f(ctx, batch, data); err != nil {
 			return err
 		}
 	}
@@ -283,10 +283,16 @@ func (m *Main) prepareBlockData(ctx context.Context, round uint64, batch *storag
 	return nil
 }
 
-func (m *Main) queueBlockAndTransactionInserts(batch *storage.QueryBatch, data *storage.RuntimeBlockData) error {
+func (m *Main) queueBlockAndTransactionInserts(ctx context.Context, batch *storage.QueryBatch, data *storage.RuntimeBlockData) error {
 	blockData, err := extractRound(data.BlockHeader, data.TransactionsWithResults, m.logger)
 	if err != nil {
 		return fmt.Errorf("extract round %d: %w", data.Round, err)
+	}
+
+	// TODO: Move out of queue-* section. See https://github.com/oasisprotocol/oasis-indexer/issues/263
+	blockTokenData, err := modules.EVMDownloadRoundTokens(ctx, m.logger, m.cfg.Source, data.Round, blockData.PossibleTokens)
+	if err != nil {
+		return fmt.Errorf("download round tokens round %d: %w", data.Round, err)
 	}
 
 	batch.Queue(
@@ -305,6 +311,7 @@ func (m *Main) queueBlockAndTransactionInserts(batch *storage.QueryBatch, data *
 		blockData.Size,
 	)
 
-	emitRoundBatch(batch, &m.qf, data.Round, blockData)
+	emitRoundBatch(batch, &m.qf, data.Round, blockData, blockTokenData)
+
 	return nil
 }
