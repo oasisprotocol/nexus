@@ -14,6 +14,7 @@ import (
 	genesisAPI "github.com/oasisprotocol/oasis-core/go/genesis/api"
 	governance "github.com/oasisprotocol/oasis-core/go/governance/api"
 	registry "github.com/oasisprotocol/oasis-core/go/registry/api"
+	roothash "github.com/oasisprotocol/oasis-core/go/roothash/api"
 	"github.com/oasisprotocol/oasis-core/go/roothash/api/block"
 	scheduler "github.com/oasisprotocol/oasis-core/go/scheduler/api"
 	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
@@ -111,6 +112,10 @@ type ConsensusSourceStorage interface {
 	// includes all proposals, their respective statuses and voting responses.
 	GovernanceData(ctx context.Context, height int64) (*GovernanceData, error)
 
+	// RootHashData gets root hash data at the specified height. This includes
+	// root hash events.
+	RootHashData(ctx context.Context, height int64) (*RootHashData, error)
+
 	// Name returns the name of the source storage.
 	Name() string
 }
@@ -119,6 +124,7 @@ type ConsensusAllData struct {
 	BlockData      *ConsensusBlockData
 	BeaconData     *BeaconData
 	RegistryData   *RegistryData
+	RootHashData   *RootHashData
 	StakingData    *StakingData
 	SchedulerData  *SchedulerData
 	GovernanceData *GovernanceData
@@ -149,6 +155,7 @@ type BeaconData struct {
 type RegistryData struct {
 	Height int64
 
+	Events             []*registry.Event
 	RuntimeEvents      []*registry.RuntimeEvent
 	EntityEvents       []*registry.EntityEvent
 	NodeEvents         []*registry.NodeEvent
@@ -163,10 +170,18 @@ type StakingData struct {
 	Height int64
 	Epoch  beacon.EpochTime
 
+	Events           []*staking.Event
 	Transfers        []*staking.TransferEvent
 	Burns            []*staking.BurnEvent
 	Escrows          []*staking.EscrowEvent
 	AllowanceChanges []*staking.AllowanceChangeEvent
+}
+
+// RootHashData represents data for runtime processing at a given height.
+type RootHashData struct {
+	Height int64
+
+	Events []*roothash.Event
 }
 
 // SchedulerData represents data for elected committees and validators at a given height.
@@ -184,6 +199,7 @@ type SchedulerData struct {
 type GovernanceData struct {
 	Height int64
 
+	Events                []*governance.Event
 	ProposalSubmissions   []*governance.Proposal
 	ProposalExecutions    []*governance.ProposalExecutedEvent
 	ProposalFinalizations []*governance.Proposal

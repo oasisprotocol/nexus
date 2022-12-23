@@ -91,11 +91,16 @@ func (cc *ConsensusClient) AllData(ctx context.Context, height int64) (*storage.
 	if err != nil {
 		return nil, err
 	}
+	rootHashData, err := cc.RootHashData(ctx, height)
+	if err != nil {
+		return nil, err
+	}
 
 	data := storage.ConsensusAllData{
 		BlockData:      blockData,
 		BeaconData:     beaconData,
 		RegistryData:   registryData,
+		RootHashData:   rootHashData,
 		StakingData:    stakingData,
 		SchedulerData:  schedulerData,
 		GovernanceData: governanceData,
@@ -130,6 +135,7 @@ func (cc *ConsensusClient) BlockData(ctx context.Context, height int64) (*storag
 	}
 
 	return &storage.ConsensusBlockData{
+		Height:       height,
 		BlockHeader:  block,
 		Epoch:        epoch,
 		Transactions: transactions,
@@ -152,6 +158,7 @@ func (cc *ConsensusClient) BeaconData(ctx context.Context, height int64) (*stora
 	}
 
 	return &storage.BeaconData{
+		Height: height,
 		Epoch:  epoch,
 		Beacon: nil,
 	}, nil
@@ -183,6 +190,8 @@ func (cc *ConsensusClient) RegistryData(ctx context.Context, height int64) (*sto
 	}
 
 	return &storage.RegistryData{
+		Height:             height,
+		Events:             events,
 		RuntimeEvents:      runtimeEvents,
 		EntityEvents:       entityEvents,
 		NodeEvents:         nodeEvents,
@@ -221,7 +230,9 @@ func (cc *ConsensusClient) StakingData(ctx context.Context, height int64) (*stor
 	}
 
 	return &storage.StakingData{
+		Height:           height,
 		Epoch:            epoch,
+		Events:           events,
 		Transfers:        transfers,
 		Burns:            burns,
 		Escrows:          escrows,
@@ -255,6 +266,7 @@ func (cc *ConsensusClient) SchedulerData(ctx context.Context, height int64) (*st
 	}
 
 	return &storage.SchedulerData{
+		Height:     height,
 		Validators: validators,
 		Committees: committees,
 	}, nil
@@ -299,9 +311,24 @@ func (cc *ConsensusClient) GovernanceData(ctx context.Context, height int64) (*s
 		}
 	}
 	return &storage.GovernanceData{
+		Height:                height,
+		Events:                events,
 		ProposalSubmissions:   submissions,
 		ProposalExecutions:    executions,
 		ProposalFinalizations: finalizations,
 		Votes:                 votes,
+	}, nil
+}
+
+// RootHashData retrieves roothash events at the provided block height.
+func (cc *ConsensusClient) RootHashData(ctx context.Context, height int64) (*storage.RootHashData, error) {
+	events, err := cc.client.RootHash().GetEvents(ctx, height)
+	if err != nil {
+		return nil, err
+	}
+
+	return &storage.RootHashData{
+		Height: height,
+		Events: events,
 	}, nil
 }

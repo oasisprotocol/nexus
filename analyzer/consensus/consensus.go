@@ -16,6 +16,9 @@ import (
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 	"github.com/oasisprotocol/oasis-core/go/consensus/api/transaction"
 	"github.com/oasisprotocol/oasis-core/go/consensus/api/transaction/results"
+	governance "github.com/oasisprotocol/oasis-core/go/governance/api"
+	registry "github.com/oasisprotocol/oasis-core/go/registry/api"
+	roothash "github.com/oasisprotocol/oasis-core/go/roothash/api"
 	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
 	oasisConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 
@@ -268,7 +271,7 @@ func (m *Main) processBlock(ctx context.Context, height int64) error {
 		m.queueBlockInserts,
 		m.queueEpochInserts,
 		m.queueTransactionInserts,
-		m.queueEventInserts,
+		m.queueTxEventInserts,
 	} {
 		if err := f(batch, data.BlockData); err != nil {
 			if strings.Contains(err.Error(), "must be less than or equal to the current blockchain height") {
@@ -282,6 +285,7 @@ func (m *Main) processBlock(ctx context.Context, height int64) error {
 		m.queueRuntimeRegistrations,
 		m.queueEntityEvents,
 		m.queueNodeEvents,
+		m.queueRegistryEvents,
 	} {
 		if err := f(batch, data.RegistryData); err != nil {
 			return err
@@ -293,6 +297,7 @@ func (m *Main) processBlock(ctx context.Context, height int64) error {
 		m.queueBurns,
 		m.queueEscrows,
 		m.queueAllowanceChanges,
+		m.queueStakingEvents,
 	} {
 		if err := f(batch, data.StakingData); err != nil {
 			return err
@@ -313,10 +318,15 @@ func (m *Main) processBlock(ctx context.Context, height int64) error {
 		m.queueExecutions,
 		m.queueFinalizations,
 		m.queueVotes,
+		m.queueGovernanceEvents,
 	} {
 		if err := f(batch, data.GovernanceData); err != nil {
 			return err
 		}
+	}
+
+	if err := m.queueRootHashEvents(batch, data.RootHashData); err != nil {
+		return err
 	}
 
 	// Update indexing progress.
@@ -433,12 +443,13 @@ func (m *Main) queueTransactionInserts(batch *storage.QueryBatch, data *storage.
 	return nil
 }
 
-func (m *Main) queueEventInserts(batch *storage.QueryBatch, data *storage.ConsensusBlockData) error {
+// Enqueue DB statements to store events that were generated as the result of a TX execution.
+func (m *Main) queueTxEventInserts(batch *storage.QueryBatch, data *storage.ConsensusBlockData) error {
 	eventInsertQuery := m.qf.ConsensusEventInsertQuery()
 
 	for i := 0; i < len(data.Results); i++ {
 		for j := 0; j < len(data.Results[i].Events); j++ {
-			_, ty, body, err := extractEventData(data.Results[i].Events[j])
+			ty, body, err := extractEventData(data.Results[i].Events[j])
 			if err != nil {
 				return err
 			}
@@ -550,6 +561,58 @@ func (m *Main) queueNodeEvents(batch *storage.QueryBatch, data *storage.Registry
 				nodeEvent.Node.ID.String(),
 			)
 		}
+	}
+
+	return nil
+}
+
+func (m *Main) queueRegistryEvents(batch *storage.QueryBatch, data *storage.RegistryData) error {
+	eventInsertQuery := m.qf.ConsensusEventInsertQuery()
+
+	for _, event := range data.Events {
+		hash := util.SanitizeTxHash(event.TxHash.Hex())
+		if hash != nil {
+			continue // Events associated with a tx are processed in queueTxEventInserts
+		}
+
+		ty, body, err := extractRegistryEvent(event)
+		if err != nil {
+			return err
+		}
+
+		batch.Queue(eventInsertQuery,
+			ty.String(),
+			string(body),
+			data.Height,
+			hash,
+			nil,
+		)
+	}
+
+	return nil
+}
+
+func (m *Main) queueRootHashEvents(batch *storage.QueryBatch, data *storage.RootHashData) error {
+	eventInsertQuery := m.qf.ConsensusEventInsertQuery()
+
+	for _, event := range data.Events {
+		hash := util.SanitizeTxHash(event.TxHash.Hex())
+		if hash != nil {
+			continue // Events associated with a tx are processed in queueTxEventInserts
+		}
+
+		ty, body, err := extractRootHashEvent(event)
+		if err != nil {
+			return err
+		}
+
+		batch.Queue(eventInsertQuery,
+			ty.String(),
+			string(body),
+			data.Height,
+			hash,
+			nil,
+		)
 	}
 
 	return nil
@@ -686,6 +749,32 @@ func (m *Main) queueAllowanceChanges(batch *storage.QueryBatch, data *storage.St
 	return nil
 }
 
+func (m *Main) queueStakingEvents(batch *storage.QueryBatch, data *storage.StakingData) error {
+	eventInsertQuery := m.qf.ConsensusEventInsertQuery()
+
+	for _, event := range data.Events {
+		hash := util.SanitizeTxHash(event.TxHash.Hex())
+		if hash != nil {
+			continue // Events associated with a tx are processed in queueTxEventInserts
+		}
+
+		ty, body, err := extractStakingEvent(event)
+		if err != nil {
+			return err
+		}
+
+		batch.Queue(eventInsertQuery,
+			ty.String(),
+			string(body),
+			data.Height,
+			hash,
+			nil,
+		)
+	}
+
+	return nil
+}
+
 func (m *Main) queueValidatorUpdates(batch *storage.QueryBatch, data *storage.SchedulerData) error {
 	validatorNodeUpdateQuery := m.qf.ConsensusValidatorNodeUpdateQuery()
 	for _, validator := range data.Validators {
@@ -801,103 +890,145 @@ func (m *Main) queueVotes(batch *storage.QueryBatch, data *storage.GovernanceDat
 	return nil
 }
 
-// extractEventData extracts the type of an event.
-//
-// TODO: Eliminate this if possible.
-func extractEventData(event *results.Event) (backend analyzer.Backend, ty analyzer.Event, body []byte, err error) {
-	switch e := event; {
-	case e.Staking != nil:
-		backend = analyzer.BackendStaking
-		switch b := event.Staking; {
-		case b.Transfer != nil:
-			ty = analyzer.EventStakingTransfer
-			body, err = json.Marshal(b.Transfer)
-			return
-		case b.Burn != nil:
-			ty = analyzer.EventStakingBurn
-			body, err = json.Marshal(b.Burn)
-			return
-		case b.Escrow != nil:
-			switch t := b.Escrow; {
-			case t.Add != nil:
-				ty = analyzer.EventStakingAddEscrow
-				body, err = json.Marshal(b.Escrow.Add)
-				return
-			case t.Take != nil:
-				ty = analyzer.EventStakingTakeEscrow
-				body, err = json.Marshal(b.Escrow.Take)
-				return
-			case t.DebondingStart != nil:
-				ty = analyzer.EventStakingDebondingStart
-				body, err = json.Marshal(b.Escrow.DebondingStart)
-				return
-			case t.Reclaim != nil:
-				ty = analyzer.EventStakingReclaimEscrow
-				body, err = json.Marshal(b.Escrow.Reclaim)
-				return
-			}
-		case b.AllowanceChange != nil:
-			ty = analyzer.EventStakingAllowanceChange
-			body, err = json.Marshal(b.AllowanceChange)
-			return
+func (m *Main) queueGovernanceEvents(batch *storage.QueryBatch, data *storage.GovernanceData) error {
+	eventInsertQuery := m.qf.ConsensusEventInsertQuery()
+
+	for _, event := range data.Events {
+		hash := util.SanitizeTxHash(event.TxHash.Hex())
+		if hash != nil {
+			continue // Events associated with a tx are processed in queueTxEventInserts
 		}
-	case e.Registry != nil:
-		backend = analyzer.BackendRegistry
-		switch b := event.Registry; {
-		case b.RuntimeEvent != nil:
-			ty = analyzer.EventRegistryRuntime
-			body, err = json.Marshal(b.RuntimeEvent)
-			return
-		case b.EntityEvent != nil:
-			ty = analyzer.EventRegistryEntity
-			body, err = json.Marshal(b.EntityEvent)
-			return
-		case b.NodeEvent != nil:
-			ty = analyzer.EventRegistryNode
-			body, err = json.Marshal(b.NodeEvent)
-			return
-		case b.NodeUnfrozenEvent != nil:
-			ty = analyzer.EventRegistryNodeUnfrozen
-			body, err = json.Marshal(b.NodeUnfrozenEvent)
-			return
+
+		ty, body, err := extractGovernanceEvent(event)
+		if err != nil {
+			return err
 		}
-	case e.RootHash != nil:
-		backend = analyzer.BackendRoothash
-		switch b := event.RootHash; {
-		case b.ExecutorCommitted != nil:
-			ty = analyzer.EventRoothashExecutorCommitted
-			body, err = json.Marshal(event.RootHash.ExecutorCommitted)
-			return
-		case b.ExecutionDiscrepancyDetected != nil:
-			ty = analyzer.EventRoothashExecutionDiscrepancyDetected
-			body, err = json.Marshal(event.RootHash.ExecutionDiscrepancyDetected)
-			return
-		case b.Finalized != nil:
-			ty = analyzer.EventRoothashFinalized
-			body, err = json.Marshal(event.RootHash.Finalized)
-			return
-		}
-	case e.Governance != nil:
-		backend = analyzer.BackendGovernance
-		switch b := event.Governance; {
-		case b.ProposalSubmitted != nil:
-			ty = analyzer.EventGovernanceProposalSubmitted
-			body, err = json.Marshal(event.Governance.ProposalSubmitted)
-			return
-		case b.ProposalExecuted != nil:
-			ty = analyzer.EventGovernanceProposalExecuted
-			body, err = json.Marshal(event.Governance.ProposalExecuted)
-			return
-		case b.ProposalFinalized != nil:
-			ty = analyzer.EventGovernanceProposalExecuted
-			body, err = json.Marshal(event.Governance.ProposalFinalized)
-			return
-		case b.Vote != nil:
-			ty = analyzer.EventGovernanceVote
-			body, err = json.Marshal(event.Governance.Vote)
-			return
-		}
+
+		batch.Queue(eventInsertQuery,
+			ty.String(),
+			string(body),
+			data.Height,
+			hash,
+			nil,
+		)
 	}
 
-	return analyzer.BackendUnknown, analyzer.EventUnknown, []byte{}, errors.New("unknown event type")
+	return nil
+}
+
+// extractEventData extracts the type of an event.
+func extractEventData(event *results.Event) (analyzer.Event, []byte, error) {
+	switch e := event; {
+	case e.Staking != nil:
+		return extractStakingEvent(event.Staking)
+	case e.Registry != nil:
+		return extractRegistryEvent(event.Registry)
+	case e.RootHash != nil:
+		return extractRootHashEvent(event.RootHash)
+	case e.Governance != nil:
+		return extractGovernanceEvent(event.Governance)
+	}
+
+	return analyzer.EventUnknown, []byte{}, errors.New("unknown event type")
+}
+
+func extractGovernanceEvent(event *governance.Event) (analyzer.Event, []byte, error) {
+	var ty analyzer.Event
+	var body []byte
+	var err error
+	switch event := event; {
+	case event.ProposalSubmitted != nil:
+		ty = analyzer.EventGovernanceProposalSubmitted
+		body, err = json.Marshal(event.ProposalSubmitted)
+	case event.ProposalExecuted != nil:
+		ty = analyzer.EventGovernanceProposalExecuted
+		body, err = json.Marshal(event.ProposalExecuted)
+	case event.ProposalFinalized != nil:
+		ty = analyzer.EventGovernanceProposalExecuted
+		body, err = json.Marshal(event.ProposalFinalized)
+	case event.Vote != nil:
+		ty = analyzer.EventGovernanceVote
+		body, err = json.Marshal(event.Vote)
+	default:
+		err = fmt.Errorf("unsupported registry event type: %#v", event)
+	}
+	return ty, body, err
+}
+
+func extractRootHashEvent(event *roothash.Event) (analyzer.Event, []byte, error) {
+	var ty analyzer.Event
+	var body []byte
+	var err error
+	switch event := event; {
+	case event.ExecutorCommitted != nil:
+		ty = analyzer.EventRoothashExecutorCommitted
+		body, err = json.Marshal(event.ExecutorCommitted)
+	case event.ExecutionDiscrepancyDetected != nil:
+		ty = analyzer.EventRoothashExecutionDiscrepancyDetected
+		body, err = json.Marshal(event.ExecutionDiscrepancyDetected)
+	case event.Finalized != nil:
+		ty = analyzer.EventRoothashFinalized
+		body, err = json.Marshal(event.Finalized)
+	default:
+		err = fmt.Errorf("unsupported registry event type: %#v", event)
+	}
+	return ty, body, err
+}
+
+func extractRegistryEvent(event *registry.Event) (analyzer.Event, []byte, error) {
+	var ty analyzer.Event
+	var body []byte
+	var err error
+	switch event := event; {
+	case event.RuntimeEvent != nil:
+		ty = analyzer.EventRegistryRuntime
+		body, err = json.Marshal(event.RuntimeEvent)
+	case event.EntityEvent != nil:
+		ty = analyzer.EventRegistryEntity
+		body, err = json.Marshal(event.EntityEvent)
+	case event.NodeEvent != nil:
+		ty = analyzer.EventRegistryNode
+		body, err = json.Marshal(event.NodeEvent)
+	case event.NodeUnfrozenEvent != nil:
+		ty = analyzer.EventRegistryNodeUnfrozen
+		body, err = json.Marshal(event.NodeUnfrozenEvent)
+	default:
+		err = fmt.Errorf("unsupported registry event type: %#v", event)
+	}
+	return ty, body, err
+}
+
+func extractStakingEvent(event *staking.Event) (analyzer.Event, []byte, error) {
+	var ty analyzer.Event
+	var body []byte
+	var err error
+	switch event := event; {
+	case event.Transfer != nil:
+		ty = analyzer.EventStakingTransfer
+		body, err = json.Marshal(event.Transfer)
+	case event.Burn != nil:
+		ty = analyzer.EventStakingBurn
+		body, err = json.Marshal(event.Burn)
+	case event.Escrow != nil:
+		switch t := event.Escrow; {
+		case t.Add != nil:
+			ty = analyzer.EventStakingAddEscrow
+			body, err = json.Marshal(event.Escrow.Add)
+		case t.Take != nil:
+			ty = analyzer.EventStakingTakeEscrow
+			body, err = json.Marshal(event.Escrow.Take)
+		case t.DebondingStart != nil:
+			ty = analyzer.EventStakingDebondingStart
+			body, err = json.Marshal(event.Escrow.DebondingStart)
+		case t.Reclaim != nil:
+			ty = analyzer.EventStakingReclaimEscrow
+			body, err = json.Marshal(event.Escrow.Reclaim)
+		}
+	case event.AllowanceChange != nil:
+		ty = analyzer.EventStakingAllowanceChange
+		body, err = json.Marshal(event.AllowanceChange)
+	default:
+		err = fmt.Errorf("unsupported registry event type: %#v", event)
+	}
+	return ty, body, err
 }
