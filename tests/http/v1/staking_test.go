@@ -45,6 +45,7 @@ func TestListAccounts(t *testing.T) {
 
 	// The big kahuna (Binance Staking).
 	require.Equal(t, "oasis1qpg2xuz46g53737343r20yxeddhlvc2ldqsjh70p", list.Accounts[0].Address)
+	require.Greater(t, list.Accounts[0].Available, storage.NewBigInt(1000000000000000000))
 }
 
 func TestGetAccount(t *testing.T) {
