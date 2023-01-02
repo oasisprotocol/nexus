@@ -272,6 +272,13 @@ func (qf QueryFactory) ConsensusAllowanceChangeDeleteQuery() string {
 			WHERE owner = $1 AND beneficiary = $2`, qf.chainID)
 }
 
+func (qf QueryFactory) ConsensusAllowanceOwnerUpsertQuery() string {
+	return fmt.Sprintf(`
+		INSERT INTO %[1]s.accounts (address)
+			VALUES ($1)
+		ON CONFLICT (address) DO NOTHING`, qf.chainID)
+}
+
 func (qf QueryFactory) ConsensusAllowanceChangeUpdateQuery() string {
 	return fmt.Sprintf(`
 		INSERT INTO %s.allowances (owner, beneficiary, allowance)

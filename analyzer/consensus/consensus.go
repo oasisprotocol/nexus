@@ -730,6 +730,7 @@ func (m *Main) queueEscrows(batch *storage.QueryBatch, data *storage.StakingData
 func (m *Main) queueAllowanceChanges(batch *storage.QueryBatch, data *storage.StakingData) error {
 	allowanceChangeDeleteQuery := m.qf.ConsensusAllowanceChangeDeleteQuery()
 	allowanceChangeUpdateQuery := m.qf.ConsensusAllowanceChangeUpdateQuery()
+	allowanceOwnerUpsertQuery := m.qf.ConsensusAllowanceOwnerUpsertQuery()
 
 	for _, allowanceChange := range data.AllowanceChanges {
 		if allowanceChange.Allowance.IsZero() {
@@ -738,6 +739,9 @@ func (m *Main) queueAllowanceChanges(batch *storage.QueryBatch, data *storage.St
 				allowanceChange.Beneficiary.String(),
 			)
 		} else {
+			// A new account with no funds can still submit allowance change transactions.
+			// Ensure account exists and satisfy `allowances->accounts` foreign key.
+			batch.Queue(allowanceOwnerUpsertQuery, allowanceChange.Owner.String())
 			batch.Queue(allowanceChangeUpdateQuery,
 				allowanceChange.Owner.String(),
 				allowanceChange.Beneficiary.String(),
