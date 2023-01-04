@@ -5,8 +5,8 @@ import (
 )
 
 var (
-	TopicErc20Transfer = Keccak256([]byte("Transfer(address,address,uint256)"))
-	TopicErc20Approval = Keccak256([]byte("Approval(address,address,uint256)"))
+	TopicERC20Transfer = Keccak256([]byte("Transfer(address,address,uint256)"))
+	TopicERC20Approval = Keccak256([]byte("Approval(address,address,uint256)"))
 )
 
 var ZeroEthAddr = make([]byte, 20)

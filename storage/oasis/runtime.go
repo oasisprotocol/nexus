@@ -125,7 +125,7 @@ func (rc *RuntimeClient) ConsensusAccountsData(ctx context.Context, round uint64
 	}, nil
 }
 
-func (rc *RuntimeClient) EvmSimulateCall(ctx context.Context, round uint64, gasPrice []byte, gasLimit uint64, caller []byte, address []byte, value []byte, data []byte) ([]byte, error) {
+func (rc *RuntimeClient) EVMSimulateCall(ctx context.Context, round uint64, gasPrice []byte, gasLimit uint64, caller []byte, address []byte, value []byte, data []byte) ([]byte, error) {
 	return evm.NewV1(rc.client).SimulateCall(ctx, round, gasPrice, gasLimit, caller, address, value, data)
 }
 

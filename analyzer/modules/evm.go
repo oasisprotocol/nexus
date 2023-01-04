@@ -61,7 +61,7 @@ func evmCallWithABI(
 	if err != nil {
 		return fmt.Errorf("packing evm simulate call data: %w", err)
 	}
-	outPacked, err := source.EvmSimulateCall(ctx, round, gasPrice, gasLimit, caller, contractEthAddr, value, inPacked)
+	outPacked, err := source.EVMSimulateCall(ctx, round, gasPrice, gasLimit, caller, contractEthAddr, value, inPacked)
 	if err != nil {
 		return fmt.Errorf("runtime client evm simulate call: %w", err)
 	}

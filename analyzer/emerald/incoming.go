@@ -266,7 +266,7 @@ func extractRound(b *block.Block, txrs []*sdkClient.TransactionWithResults, logg
 					// .To is from another chain, so exclude?
 					return nil
 				},
-				EvmCreate: func(body *evm.Create, ok *[]byte) error {
+				EVMCreate: func(body *evm.Create, ok *[]byte) error {
 					if !txr.Result.IsUnknown() && txr.Result.IsSuccess() && len(*ok) == 32 {
 						// todo: is this rigorous enough?
 						if _, err = registerRelatedEthAddress(blockData.AddressPreimages, blockTransactionData.RelatedAccountAddresses, common.SliceEthAddress(*ok)); err != nil {
@@ -275,7 +275,7 @@ func extractRound(b *block.Block, txrs []*sdkClient.TransactionWithResults, logg
 					}
 					return nil
 				},
-				EvmCall: func(body *evm.Call, ok *[]byte) error {
+				EVMCall: func(body *evm.Call, ok *[]byte) error {
 					if _, err = registerRelatedEthAddress(blockData.AddressPreimages, blockTransactionData.RelatedAccountAddresses, body.Address); err != nil {
 						return fmt.Errorf("address: %w", err)
 					}
@@ -335,13 +335,13 @@ func extractRound(b *block.Block, txrs []*sdkClient.TransactionWithResults, logg
 				}
 				return nil
 			},
-			Evm: func(event *evm.Event) error {
+			EVM: func(event *evm.Event) error {
 				eventAddr, err1 := registerRelatedEthAddress(blockData.AddressPreimages, blockTransactionData.RelatedAccountAddresses, event.Address)
 				if err1 != nil {
 					return fmt.Errorf("event address: %w", err1)
 				}
-				if err1 = common.VisitEvmEvent(event, &common.EvmEventHandler{
-					Erc20Transfer: func(fromEthAddr []byte, toEthAddr []byte, amountU256 []byte) error {
+				if err1 = common.VisitEVMEvent(event, &common.EVMEventHandler{
+					ERC20Transfer: func(fromEthAddr []byte, toEthAddr []byte, amountU256 []byte) error {
 						amount := &big.Int{}
 						amount.SetBytes(amountU256)
 						if !bytes.Equal(fromEthAddr, common.ZeroEthAddr) {
@@ -364,7 +364,7 @@ func extractRound(b *block.Block, txrs []*sdkClient.TransactionWithResults, logg
 						}
 						return nil
 					},
-					Erc20Approval: func(ownerEthAddr []byte, spenderEthAddr []byte, amountU256 []byte) error {
+					ERC20Approval: func(ownerEthAddr []byte, spenderEthAddr []byte, amountU256 []byte) error {
 						if !bytes.Equal(ownerEthAddr, common.ZeroEthAddr) {
 							_, err2 := registerRelatedEthAddress(blockData.AddressPreimages, blockTransactionData.RelatedAccountAddresses, ownerEthAddr)
 							if err2 != nil {

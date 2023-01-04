@@ -16,8 +16,8 @@ type CallHandler struct {
 	AccountsTransfer          func(body *accounts.Transfer) error
 	ConsensusAccountsDeposit  func(body *consensusaccounts.Deposit) error
 	ConsensusAccountsWithdraw func(body *consensusaccounts.Withdraw) error
-	EvmCreate                 func(body *evm.Create, ok *[]byte) error
-	EvmCall                   func(body *evm.Call, ok *[]byte) error
+	EVMCreate                 func(body *evm.Create, ok *[]byte) error
+	EVMCall                   func(body *evm.Call, ok *[]byte) error
 }
 
 //nolint:nestif
@@ -54,7 +54,7 @@ func VisitCall(call *sdkTypes.Call, result *sdkTypes.CallResult, handler *CallHa
 			}
 		}
 	case "evm.Create":
-		if handler.EvmCreate != nil {
+		if handler.EVMCreate != nil {
 			var body evm.Create
 			if err := cbor.Unmarshal(call.Body, &body); err != nil {
 				return fmt.Errorf("unmarshal evm create: %w", err)
@@ -67,12 +67,12 @@ func VisitCall(call *sdkTypes.Call, result *sdkTypes.CallResult, handler *CallHa
 				}
 				okP = &ok
 			}
-			if err := handler.EvmCreate(&body, okP); err != nil {
+			if err := handler.EVMCreate(&body, okP); err != nil {
 				return fmt.Errorf("evm create: %w", err)
 			}
 		}
 	case "evm.Call":
-		if handler.EvmCall != nil {
+		if handler.EVMCall != nil {
 			var body evm.Call
 			if err := cbor.Unmarshal(call.Body, &body); err != nil {
 				return fmt.Errorf("unmarshal evm call: %w", err)
@@ -85,7 +85,7 @@ func VisitCall(call *sdkTypes.Call, result *sdkTypes.CallResult, handler *CallHa
 				}
 				okP = &ok
 			}
-			if err := handler.EvmCall(&body, okP); err != nil {
+			if err := handler.EVMCall(&body, okP); err != nil {
 				return fmt.Errorf("evm call: %w", err)
 			}
 		}
@@ -97,7 +97,7 @@ type SdkEventHandler struct {
 	Core              func(event *core.Event) error
 	Accounts          func(event *accounts.Event) error
 	ConsensusAccounts func(event *consensusaccounts.Event) error
-	Evm               func(event *evm.Event) error
+	EVM               func(event *evm.Event) error
 }
 
 func VisitSdkEvent(event *sdkTypes.Event, handler *SdkEventHandler) error {
@@ -146,7 +146,7 @@ func VisitSdkEvent(event *sdkTypes.Event, handler *SdkEventHandler) error {
 			}
 		}
 	}
-	if handler.Evm != nil {
+	if handler.EVM != nil {
 		evmEvents, err := evm.DecodeEvent(event)
 		if err != nil {
 			return fmt.Errorf("decode evm: %w", err)
@@ -156,7 +156,7 @@ func VisitSdkEvent(event *sdkTypes.Event, handler *SdkEventHandler) error {
 			if !ok {
 				return fmt.Errorf("decoded event %d could not cast to evm.Event", i)
 			}
-			if err = handler.Evm(evmEventCast); err != nil {
+			if err = handler.EVM(evmEventCast); err != nil {
 				return fmt.Errorf("decoded event %d evm: %w", i, err)
 			}
 		}
@@ -173,19 +173,19 @@ func VisitSdkEvents(events []*sdkTypes.Event, handler *SdkEventHandler) error {
 	return nil
 }
 
-type EvmEventHandler struct {
-	Erc20Transfer func(fromEthAddr []byte, toEthAddr []byte, amountU256 []byte) error
-	Erc20Approval func(ownerEthAddr []byte, spenderEthAddr []byte, amountU256 []byte) error
+type EVMEventHandler struct {
+	ERC20Transfer func(fromEthAddr []byte, toEthAddr []byte, amountU256 []byte) error
+	ERC20Approval func(ownerEthAddr []byte, spenderEthAddr []byte, amountU256 []byte) error
 }
 
-func VisitEvmEvent(event *evm.Event, handler *EvmEventHandler) error {
+func VisitEVMEvent(event *evm.Event, handler *EVMEventHandler) error {
 	if len(event.Topics) == 0 {
 		return nil
 	}
 	switch {
-	case bytes.Equal(event.Topics[0], TopicErc20Transfer) && len(event.Topics) == 3:
-		if handler.Erc20Transfer != nil {
-			if err := handler.Erc20Transfer(
+	case bytes.Equal(event.Topics[0], TopicERC20Transfer) && len(event.Topics) == 3:
+		if handler.ERC20Transfer != nil {
+			if err := handler.ERC20Transfer(
 				SliceEthAddress(event.Topics[1]),
 				SliceEthAddress(event.Topics[2]),
 				event.Data,
@@ -193,9 +193,9 @@ func VisitEvmEvent(event *evm.Event, handler *EvmEventHandler) error {
 				return fmt.Errorf("erc20 transfer: %w", err)
 			}
 		}
-	case bytes.Equal(event.Topics[0], TopicErc20Approval) && len(event.Topics) == 3:
-		if handler.Erc20Approval != nil {
-			if err := handler.Erc20Approval(
+	case bytes.Equal(event.Topics[0], TopicERC20Approval) && len(event.Topics) == 3:
+		if handler.ERC20Approval != nil {
+			if err := handler.ERC20Approval(
 				SliceEthAddress(event.Topics[1]),
 				SliceEthAddress(event.Topics[2]),
 				event.Data,
