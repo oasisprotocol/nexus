@@ -223,8 +223,8 @@ type RuntimeSourceStorage interface {
 	// ConsensusAccountsData gets data in the specified round emitted by the `consensusaccounts` module.
 	ConsensusAccountsData(ctx context.Context, round uint64) (*ConsensusAccountsData, error)
 
-	// EvmSimulateCall gets the result of the given EVM simulate call query.
-	EvmSimulateCall(ctx context.Context, round uint64, gasPrice []byte, gasLimit uint64, caller []byte, address []byte, value []byte, data []byte) ([]byte, error)
+	// EVMSimulateCall gets the result of the given EVM simulate call query.
+	EVMSimulateCall(ctx context.Context, round uint64, gasPrice []byte, gasLimit uint64, caller []byte, address []byte, value []byte, data []byte) ([]byte, error)
 
 	// Name returns the name of the source storage.
 	Name() string

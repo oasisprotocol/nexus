@@ -93,7 +93,7 @@ func renderRuntimeTransaction(storageTransaction client.RuntimeTransaction) (Run
 			apiTransaction.Amount = &amount
 			return nil
 		},
-		EvmCreate: func(body *evm.Create, ok *[]byte) error {
+		EVMCreate: func(body *evm.Create, ok *[]byte) error {
 			if !cr.IsUnknown() && cr.IsSuccess() && len(*ok) == 32 {
 				// todo: is this rigorous enough?
 				to, err2 := uncategorized.StringifyEthAddress(uncategorized.SliceEthAddress(*ok))
@@ -106,7 +106,7 @@ func renderRuntimeTransaction(storageTransaction client.RuntimeTransaction) (Run
 			apiTransaction.Amount = &amount
 			return nil
 		},
-		EvmCall: func(body *evm.Call, ok *[]byte) error {
+		EVMCall: func(body *evm.Call, ok *[]byte) error {
 			to, err2 := uncategorized.StringifyEthAddress(body.Address)
 			if err2 != nil {
 				return fmt.Errorf("to: %w", err2)
