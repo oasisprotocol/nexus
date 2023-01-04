@@ -81,8 +81,14 @@ func evmDownloadTokenERC20(ctx context.Context, logger *log.Logger, source stora
 			"err", err,
 		)
 	}
-	if err := evmCallWithABI(ctx, source, round, tokenEthAddr, evmabi.ERC20, &tokenData.Name, "name"); err != nil {
+	// These mandatory methods must succeed, or we do not count this as an ERC-20 token.
+	if err := evmCallWithABI(ctx, source, round, tokenEthAddr, evmabi.ERC20, &tokenData.TotalSupply, "totalSupply"); err != nil {
 		// todo: propagate nondeterministic errors
+		logError("calling totalSupply", err)
+		return nil, nil
+	}
+	// These optional methods may fail.
+	if err := evmCallWithABI(ctx, source, round, tokenEthAddr, evmabi.ERC20, &tokenData.Name, "name"); err != nil {
 		logError("calling name", err)
 	}
 	if err := evmCallWithABI(ctx, source, round, tokenEthAddr, evmabi.ERC20, &tokenData.Symbol, "symbol"); err != nil {
@@ -90,9 +96,6 @@ func evmDownloadTokenERC20(ctx context.Context, logger *log.Logger, source stora
 	}
 	if err := evmCallWithABI(ctx, source, round, tokenEthAddr, evmabi.ERC20, &tokenData.Decimals, "decimals"); err != nil {
 		logError("calling decimals", err)
-	}
-	if err := evmCallWithABI(ctx, source, round, tokenEthAddr, evmabi.ERC20, &tokenData.TotalSupply, "totalSupply"); err != nil {
-		logError("calling totalSupply", err)
 	}
 	return &tokenData, nil
 }
@@ -109,7 +112,9 @@ func EVMDownloadRoundTokens(ctx context.Context, logger *log.Logger, source stor
 				if err != nil {
 					return nil, fmt.Errorf("download token ERC20 %s %s (eth): %w", tokenAddr, hex.EncodeToString(possibleToken.EthAddr), err)
 				}
-				blockTokenData.TokenData[tokenAddr] = tokenData
+				if tokenData != nil {
+					blockTokenData.TokenData[tokenAddr] = tokenData
+				}
 			default:
 				logger.Info("EVMDownloadRoundTokens missing handler for a possible token type",
 					"token_oasis_addr", tokenAddr,
