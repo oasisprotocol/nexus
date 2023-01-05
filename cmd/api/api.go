@@ -81,10 +81,11 @@ func Init(cfg *config.ServerConfig) (*Service, error) {
 
 // Service is the Oasis Indexer's API service.
 type Service struct {
-	server string
-	api    *api.IndexerAPI
-	target *storage.StorageClient
-	logger *log.Logger
+	server  string
+	chainID string
+	api     *api.IndexerAPI
+	target  *storage.StorageClient
+	logger  *log.Logger
 }
 
 // NewService creates a new API service.
@@ -102,10 +103,11 @@ func NewService(cfg *config.ServerConfig) (*Service, error) {
 	}
 
 	return &Service{
-		server: cfg.Endpoint,
-		api:    api.NewIndexerAPI(cfg.ChainID, client, logger),
-		target: client,
-		logger: logger,
+		server:  cfg.Endpoint,
+		chainID: cfg.ChainID,
+		api:     api.NewIndexerAPI(cfg.ChainID, client, logger),
+		target:  client,
+		logger:  logger,
 	}, nil
 }
 
@@ -113,9 +115,19 @@ func NewService(cfg *config.ServerConfig) (*Service, error) {
 func (s *Service) Start() {
 	s.logger.Info("starting api service at " + s.server)
 
+	th := s.api.V1Handler
+	middlewares := []apiTypes.MiddlewareFunc{
+		func(next http.Handler) http.Handler {
+			return th.ChainMiddleware(next)
+		},
+		func(next http.Handler) http.Handler {
+			return th.MetricsMiddleware(next)
+		},
+	}
+
 	experimentalHandler := apiTypes.HandlerWithOptions(&v1.Foo{}, apiTypes.ChiServerOptions{
-		BaseURL: "/v1",
-		//Middlewares: ,
+		BaseURL:     "/v1",
+		Middlewares: middlewares,
 	})
 
 	server := &http.Server{

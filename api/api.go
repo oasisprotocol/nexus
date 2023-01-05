@@ -30,9 +30,10 @@ type Handler interface {
 
 // IndexerAPI is an API for the Oasis Indexer.
 type IndexerAPI struct {
-	router   *chi.Mux
-	handlers []Handler
-	logger   *log.Logger
+	router    *chi.Mux
+	handlers  []Handler
+	V1Handler *v1.Handler
+	logger    *log.Logger
 }
 
 // NewIndexerAPI creates a new Indexer API.
@@ -55,9 +56,10 @@ func NewIndexerAPI(chainID string, s *storage.StorageClient, l *log.Logger) *Ind
 	}
 
 	return &IndexerAPI{
-		router:   r,
-		handlers: handlers,
-		logger:   l.WithModule(moduleName),
+		router:    r,
+		handlers:  handlers,
+		V1Handler: v1Handler,
+		logger:    l.WithModule(moduleName),
 	}
 }
 

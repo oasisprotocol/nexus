@@ -10,9 +10,9 @@ import (
 	"github.com/oasisprotocol/oasis-indexer/common"
 )
 
-// metricsMiddleware is a middleware that measures the start and end of each request,
+// MetricsMiddleware is a middleware that measures the start and end of each request,
 // as well as other useful request information.
-func (h *Handler) metricsMiddleware(next http.Handler) http.Handler {
+func (h *Handler) MetricsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		requestID := uuid.New()
 
@@ -38,9 +38,9 @@ func (h *Handler) metricsMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-// chainMiddleware is a middleware that adds chain-specific information
+// ChainMiddleware is a middleware that adds chain-specific information
 // to the request context.
-func (h *Handler) chainMiddleware(next http.Handler) http.Handler {
+func (h *Handler) ChainMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		chainID := strcase.ToSnake(h.client.chainID)
 
@@ -52,7 +52,7 @@ func (h *Handler) chainMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func (h *Handler) runtimeMiddleware(runtime string) func(next http.Handler) http.Handler {
+func (h *Handler) RuntimeMiddleware(runtime string) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			next.ServeHTTP(w, r.WithContext(

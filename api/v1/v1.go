@@ -32,8 +32,8 @@ func NewHandler(chainID string, s *storage.StorageClient, l *log.Logger) *Handle
 
 // RegisterRoutes implements the APIHandler interface.
 func (h *Handler) RegisterMiddlewares(r chi.Router) {
-	r.Use(h.metricsMiddleware)
-	r.Use(h.chainMiddleware)
+	r.Use(h.MetricsMiddleware)
+	r.Use(h.ChainMiddleware)
 }
 
 // RegisterRoutes implements the APIHandler interface.
@@ -100,7 +100,7 @@ func (h *Handler) RegisterRoutes(r chi.Router) {
 
 		// ParaTime Endpoints.
 		r.Route("/emerald", func(r chi.Router) {
-			r.Use(h.runtimeMiddleware("emerald"))
+			r.Use(h.RuntimeMiddleware("emerald"))
 			// Block Endpoints.
 			r.Route("/blocks", func(r chi.Router) {
 				r.Get("/", h.RuntimeListBlocks)
