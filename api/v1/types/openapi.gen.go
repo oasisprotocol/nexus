@@ -660,10 +660,10 @@ type ValidatorMedia struct {
 // GetConsensusAccountsParams defines parameters for GetConsensusAccounts.
 type GetConsensusAccountsParams struct {
 	// Limit The maximum numbers of items to return.
-	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+	Limit *uint64 `form:"limit,omitempty" json:"limit,omitempty"`
 
 	// Offset The number of items to skip before starting to collect the result set.
-	Offset *int `form:"offset,omitempty" json:"offset,omitempty"`
+	Offset *uint64 `form:"offset,omitempty" json:"offset,omitempty"`
 
 	// MinAvailable A filter on the minimum available account balance.
 	MinAvailable *common.BigInt `form:"minAvailable,omitempty" json:"minAvailable,omitempty"`
@@ -693,10 +693,10 @@ type GetConsensusAccountsParams struct {
 // GetConsensusBlocksParams defines parameters for GetConsensusBlocks.
 type GetConsensusBlocksParams struct {
 	// Limit The maximum numbers of items to return.
-	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+	Limit *uint64 `form:"limit,omitempty" json:"limit,omitempty"`
 
 	// Offset The number of items to skip before starting to collect the result set.
-	Offset *int `form:"offset,omitempty" json:"offset,omitempty"`
+	Offset *uint64 `form:"offset,omitempty" json:"offset,omitempty"`
 
 	// From A filter on minimum block height, inclusive.
 	From *int64 `form:"from,omitempty" json:"from,omitempty"`
@@ -714,37 +714,37 @@ type GetConsensusBlocksParams struct {
 // GetConsensusEntitiesParams defines parameters for GetConsensusEntities.
 type GetConsensusEntitiesParams struct {
 	// Limit The maximum numbers of items to return.
-	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+	Limit *uint64 `form:"limit,omitempty" json:"limit,omitempty"`
 
 	// Offset The number of items to skip before starting to collect the result set.
-	Offset *int `form:"offset,omitempty" json:"offset,omitempty"`
+	Offset *uint64 `form:"offset,omitempty" json:"offset,omitempty"`
 }
 
 // GetConsensusEntitiesEntityIdNodesParams defines parameters for GetConsensusEntitiesEntityIdNodes.
 type GetConsensusEntitiesEntityIdNodesParams struct {
 	// Limit The maximum numbers of items to return.
-	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+	Limit *uint64 `form:"limit,omitempty" json:"limit,omitempty"`
 
 	// Offset The number of items to skip before starting to collect the result set.
-	Offset *int `form:"offset,omitempty" json:"offset,omitempty"`
+	Offset *uint64 `form:"offset,omitempty" json:"offset,omitempty"`
 }
 
 // GetConsensusEpochsParams defines parameters for GetConsensusEpochs.
 type GetConsensusEpochsParams struct {
 	// Limit The maximum numbers of items to return.
-	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+	Limit *uint64 `form:"limit,omitempty" json:"limit,omitempty"`
 
 	// Offset The number of items to skip before starting to collect the result set.
-	Offset *int `form:"offset,omitempty" json:"offset,omitempty"`
+	Offset *uint64 `form:"offset,omitempty" json:"offset,omitempty"`
 }
 
 // GetConsensusEventsParams defines parameters for GetConsensusEvents.
 type GetConsensusEventsParams struct {
 	// Limit The maximum numbers of items to return.
-	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+	Limit *uint64 `form:"limit,omitempty" json:"limit,omitempty"`
 
 	// Offset The number of items to skip before starting to collect the result set.
-	Offset *int `form:"offset,omitempty" json:"offset,omitempty"`
+	Offset *uint64 `form:"offset,omitempty" json:"offset,omitempty"`
 
 	// Block A filter on block height.
 	Block *int64 `form:"block,omitempty" json:"block,omitempty"`
@@ -773,10 +773,10 @@ type GetConsensusEventsParams struct {
 // GetConsensusProposalsParams defines parameters for GetConsensusProposals.
 type GetConsensusProposalsParams struct {
 	// Limit The maximum numbers of items to return.
-	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+	Limit *uint64 `form:"limit,omitempty" json:"limit,omitempty"`
 
 	// Offset The number of items to skip before starting to collect the result set.
-	Offset *int `form:"offset,omitempty" json:"offset,omitempty"`
+	Offset *uint64 `form:"offset,omitempty" json:"offset,omitempty"`
 
 	// Submitter The submitter of the proposal.
 	Submitter *string `form:"submitter,omitempty" json:"submitter,omitempty"`
@@ -788,19 +788,19 @@ type GetConsensusProposalsParams struct {
 // GetConsensusProposalsProposalIdVotesParams defines parameters for GetConsensusProposalsProposalIdVotes.
 type GetConsensusProposalsProposalIdVotesParams struct {
 	// Limit The maximum numbers of items to return.
-	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+	Limit *uint64 `form:"limit,omitempty" json:"limit,omitempty"`
 
 	// Offset The number of items to skip before starting to collect the result set.
-	Offset *int `form:"offset,omitempty" json:"offset,omitempty"`
+	Offset *uint64 `form:"offset,omitempty" json:"offset,omitempty"`
 }
 
 // GetConsensusStatsTxVolumeParams defines parameters for GetConsensusStatsTxVolume.
 type GetConsensusStatsTxVolumeParams struct {
 	// Limit The maximum numbers of items to return.
-	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+	Limit *uint64 `form:"limit,omitempty" json:"limit,omitempty"`
 
 	// Offset The number of items to skip before starting to collect the result set.
-	Offset *int `form:"offset,omitempty" json:"offset,omitempty"`
+	Offset *uint64 `form:"offset,omitempty" json:"offset,omitempty"`
 
 	// BucketSizeSeconds The size of buckets into which the statistic is grouped, in seconds.
 	// The backend supports a limited number of bucket sizes: 300 (5 minutes) and
@@ -811,10 +811,10 @@ type GetConsensusStatsTxVolumeParams struct {
 // GetConsensusTransactionsParams defines parameters for GetConsensusTransactions.
 type GetConsensusTransactionsParams struct {
 	// Limit The maximum numbers of items to return.
-	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+	Limit *uint64 `form:"limit,omitempty" json:"limit,omitempty"`
 
 	// Offset The number of items to skip before starting to collect the result set.
-	Offset *int `form:"offset,omitempty" json:"offset,omitempty"`
+	Offset *uint64 `form:"offset,omitempty" json:"offset,omitempty"`
 
 	// Block A filter on block height.
 	Block *int64 `form:"block,omitempty" json:"block,omitempty"`
@@ -838,19 +838,19 @@ type GetConsensusTransactionsParams struct {
 // GetConsensusValidatorsParams defines parameters for GetConsensusValidators.
 type GetConsensusValidatorsParams struct {
 	// Limit The maximum numbers of items to return.
-	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+	Limit *uint64 `form:"limit,omitempty" json:"limit,omitempty"`
 
 	// Offset The number of items to skip before starting to collect the result set.
-	Offset *int `form:"offset,omitempty" json:"offset,omitempty"`
+	Offset *uint64 `form:"offset,omitempty" json:"offset,omitempty"`
 }
 
 // GetEmeraldBlocksParams defines parameters for GetEmeraldBlocks.
 type GetEmeraldBlocksParams struct {
 	// Limit The maximum numbers of items to return.
-	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+	Limit *uint64 `form:"limit,omitempty" json:"limit,omitempty"`
 
 	// Offset The number of items to skip before starting to collect the result set.
-	Offset *int `form:"offset,omitempty" json:"offset,omitempty"`
+	Offset *uint64 `form:"offset,omitempty" json:"offset,omitempty"`
 
 	// From A filter on minimum block height, inclusive.
 	From *int64 `form:"from,omitempty" json:"from,omitempty"`
@@ -868,19 +868,19 @@ type GetEmeraldBlocksParams struct {
 // GetEmeraldTokensParams defines parameters for GetEmeraldTokens.
 type GetEmeraldTokensParams struct {
 	// Limit The maximum numbers of items to return.
-	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+	Limit *uint64 `form:"limit,omitempty" json:"limit,omitempty"`
 
 	// Offset The number of items to skip before starting to collect the result set.
-	Offset *int `form:"offset,omitempty" json:"offset,omitempty"`
+	Offset *uint64 `form:"offset,omitempty" json:"offset,omitempty"`
 }
 
 // GetEmeraldTransactionsParams defines parameters for GetEmeraldTransactions.
 type GetEmeraldTransactionsParams struct {
 	// Limit The maximum numbers of items to return.
-	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+	Limit *uint64 `form:"limit,omitempty" json:"limit,omitempty"`
 
 	// Offset The number of items to skip before starting to collect the result set.
-	Offset *int `form:"offset,omitempty" json:"offset,omitempty"`
+	Offset *uint64 `form:"offset,omitempty" json:"offset,omitempty"`
 
 	// Block A filter on block round.
 	Block *int64 `form:"block,omitempty" json:"block,omitempty"`
