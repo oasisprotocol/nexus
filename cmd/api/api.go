@@ -9,6 +9,8 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/oasisprotocol/oasis-indexer/api"
+	v1 "github.com/oasisprotocol/oasis-indexer/api/v1"
+	apiTypes "github.com/oasisprotocol/oasis-indexer/api/v1/types"
 	"github.com/oasisprotocol/oasis-indexer/cmd/common"
 	"github.com/oasisprotocol/oasis-indexer/config"
 	"github.com/oasisprotocol/oasis-indexer/log"
@@ -111,9 +113,14 @@ func NewService(cfg *config.ServerConfig) (*Service, error) {
 func (s *Service) Start() {
 	s.logger.Info("starting api service at " + s.server)
 
+	experimentalHandler := apiTypes.HandlerWithOptions(&v1.Foo{}, apiTypes.ChiServerOptions{
+		BaseURL: "/v1",
+		//Middlewares: ,
+	})
+
 	server := &http.Server{
 		Addr:           s.server,
-		Handler:        s.api.Router(),
+		Handler:        experimentalHandler, // s.api.Router(),
 		ReadTimeout:    10 * time.Second,
 		WriteTimeout:   10 * time.Second,
 		MaxHeaderBytes: 1 << 20,
