@@ -45,9 +45,9 @@ func validateUint64(param string) (uint64, error) {
 // validateBigInt parses a big.Int url parameter.
 func validateBigInt(param string) (*storage.BigInt, error) {
 	i := big.NewInt(0)
-	i, err := i.SetString(param, 10)
-	if err {
-		return nil, common.ErrBadRequest
+	i, ok := i.SetString(param, 10)
+	if !ok {
+		return nil, fmt.Errorf("invalid big.Int: %+v", param)
 	}
 	return &storage.BigInt{Int: *i}, nil
 }

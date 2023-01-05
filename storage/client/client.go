@@ -70,6 +70,14 @@ func (c *StorageClient) numericToBigInt(ctx context.Context, n *pgtype.Numeric) 
 	return BigInt{*big0}, nil
 }
 
+func toString(b *BigInt) *string {
+	if b == nil {
+		return nil
+	}
+	s := b.String()
+	return &s
+}
+
 // NewStorageClient creates a new storage client.
 func NewStorageClient(chainID string, db storage.TargetStorage, l *log.Logger) (*StorageClient, error) {
 	blockCache, err := ristretto.NewCache(&ristretto.Config{
@@ -222,8 +230,8 @@ func (c *StorageClient) Transactions(ctx context.Context, r *TransactionsRequest
 		r.Block,
 		r.Method,
 		r.Sender,
-		r.MinFee,
-		r.MaxFee,
+		toString(r.MinFee),
+		toString(r.MaxFee),
 		r.Code,
 		p.Limit,
 		p.Offset,
@@ -395,7 +403,7 @@ func (c *StorageClient) Entity(ctx context.Context, r *EntityRequest) (*Entity, 
 	nodeRows, err := c.db.Query(
 		ctx,
 		qf.EntityNodeIdsQuery(),
-		r.EntityID,
+		r.EntityID.String(),
 	)
 	if err != nil {
 		c.logger.Info("query failed",
@@ -520,14 +528,14 @@ func (c *StorageClient) Accounts(ctx context.Context, r *AccountsRequest, p *com
 	rows, err := c.db.Query(
 		ctx,
 		qf.AccountsQuery(),
-		r.MinAvailable,
-		r.MaxAvailable,
-		r.MinEscrow,
-		r.MaxEscrow,
-		r.MinDebonding,
-		r.MaxDebonding,
-		r.MinTotalBalance,
-		r.MaxTotalBalance,
+		toString(r.MinAvailable),
+		toString(r.MaxAvailable),
+		toString(r.MinEscrow),
+		toString(r.MaxEscrow),
+		toString(r.MinDebonding),
+		toString(r.MaxDebonding),
+		toString(r.MinTotalBalance),
+		toString(r.MaxTotalBalance),
 		p.Limit,
 		p.Offset,
 	)
