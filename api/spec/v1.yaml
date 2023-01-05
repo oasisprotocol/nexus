@@ -310,7 +310,6 @@ paths:
           schema:
             $ref: '#/components/schemas/ConsensusEventType'
           description: A filter on the event type.
-          example: staking.transfer
       responses:
         '200':
           description: |
@@ -1037,6 +1036,7 @@ components:
         - staking.escrow.reclaim
         - staking.escrow.take
         - staking.transfer
+      example: staking.transfer
 
     ConsensusEventList:
       type: object
@@ -1323,8 +1323,8 @@ components:
 
     RuntimeName:
       description: |
-        The name of a runtime. This is a human-readable identifier.
-        It is intended to stay stable across runtime upgrades/versions.
+        The name of a runtime. This is a human-readable identifier, and should
+        stay stable across runtime upgrades/versions.
       type: string
       enum:
         - emerald
@@ -1432,7 +1432,7 @@ components:
           example: *epoch_1
         start_height:
           type: integer
-          format: int64
+          format: uint64
           description: The (inclusive) height at which this epoch started.
           example: *block_height_1
         end_height:
@@ -1670,7 +1670,7 @@ components:
         body:
           type: object
           description: The method call body.
-          # example: "o2RkYXRhQGV2YWx1ZUgBY0V4wN0lc2dhZGRyZXNzVDlzcMsG8d3D2LY5FTn+1svi/l+V"
+          example: {"address": "t1mAPucIdVnrYBpJOcLV2nZoOFo=", "data": RBo+cAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=", "value": ""}
         to:
           type: string
           description: |

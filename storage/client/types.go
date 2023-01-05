@@ -5,11 +5,14 @@ import (
 	api "github.com/oasisprotocol/oasis-indexer/api/v1/types"
 )
 
-type (
-	Status    = api.Status
-	BlockList = api.BlockList
-	Block     = api.Block
-)
+// Status is the storage response for GetStatus.
+type Status = api.Status
+
+// BlockList is the storage response for ListBlocks.
+type BlockList = api.BlockList
+
+// Block is the storage response for GetBlock.
+type Block = api.Block
 
 // TransactionList is the storage response for ListTransactions.
 type TransactionList = api.TransactionList

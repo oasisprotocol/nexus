@@ -281,7 +281,7 @@ type Epoch struct {
 	ID int64 `json:"id"`
 
 	// StartHeight The (inclusive) height at which this epoch started.
-	StartHeight int64 `json:"start_height"`
+	StartHeight uint64 `json:"start_height"`
 }
 
 // EpochList A list of consensus epochs.
@@ -398,8 +398,8 @@ type RuntimeBalance struct {
 	// Amount Number of base units held; as a string.
 	Amount common.BigInt `json:"amount"`
 
-	// Runtime The name of a runtime. This is a human-readable identifier.
-	// It is intended to stay stable across runtime upgrades/versions.
+	// Runtime The name of a runtime. This is a human-readable identifier, and should
+	// stay stable across runtime upgrades/versions.
 	Runtime RuntimeName `json:"runtime"`
 
 	// TokenId Unique identifier for the token. For EVM tokens, this is their eth address.
@@ -435,8 +435,8 @@ type RuntimeBlockList struct {
 	Blocks []RuntimeBlock `json:"blocks"`
 }
 
-// RuntimeName The name of a runtime. This is a human-readable identifier.
-// It is intended to stay stable across runtime upgrades/versions.
+// RuntimeName The name of a runtime. This is a human-readable identifier, and should
+// stay stable across runtime upgrades/versions.
 type RuntimeName string
 
 // RuntimeToken defines model for RuntimeToken.
