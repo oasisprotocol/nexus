@@ -9,7 +9,7 @@ import (
 // with knowledge of network semantics.
 type storageClient struct {
 	chainID string
-	storage *storage.StorageClient
+	Storage *storage.StorageClient
 	logger  *log.Logger
 }
 
@@ -92,7 +92,7 @@ func validateNodeID(param string) (*signature.PublicKey, error) {
 
 // Status returns status information for the Oasis Indexer.
 func (c *storageClient) Status(ctx context.Context) (*apiTypes.Status, error) {
-	return c.storage.Status(ctx)
+	return c.Storage.Status(ctx)
 }
 
 // Blocks returns a list of consensus blocks.
@@ -137,7 +137,7 @@ func (c *storageClient) Blocks(ctx context.Context, r *http.Request) (*apiTypes.
 		return nil, apiCommon.ErrBadRequest
 	}
 
-	return c.storage.Blocks(ctx, &q, &p)
+	return c.Storage.Blocks(ctx, &q, &p)
 }
 
 // Block returns a consensus block. This endpoint's responses are cached.
@@ -155,7 +155,7 @@ func (c *storageClient) Block(ctx context.Context, r *http.Request) (*apiTypes.B
 	}
 	q.Height = &height
 
-	return c.storage.Block(ctx, &q)
+	return c.Storage.Block(ctx, &q)
 }
 
 // Transactions returns a list of consensus transactions.
@@ -219,7 +219,7 @@ func (c *storageClient) Transactions(ctx context.Context, r *http.Request) (*api
 		return nil, apiCommon.ErrBadRequest
 	}
 
-	return c.storage.Transactions(ctx, &q, &p)
+	return c.Storage.Transactions(ctx, &q, &p)
 }
 
 // Transaction returns a consensus transaction.
@@ -233,7 +233,7 @@ func (c *storageClient) Transaction(ctx context.Context, r *http.Request) (*apiT
 	}
 	q.TxHash = &txHash
 
-	return c.storage.Transaction(ctx, &q)
+	return c.Storage.Transaction(ctx, &q)
 }
 
 // Events returns a list of events.
@@ -301,7 +301,7 @@ func (c *storageClient) Entities(ctx context.Context, r *http.Request) (*apiType
 		return nil, apiCommon.ErrBadRequest
 	}
 
-	return c.storage.Entities(ctx, &p)
+	return c.Storage.Entities(ctx, &p)
 }
 
 // Entity returns a registered entity.
@@ -319,7 +319,7 @@ func (c *storageClient) Entity(ctx context.Context, r *http.Request) (*apiTypes.
 	}
 	q.EntityID = entityID
 
-	return c.storage.Entity(ctx, &q)
+	return c.Storage.Entity(ctx, &q)
 }
 
 // EntityNodes returns a list of nodes controlled by the provided entity.
@@ -346,7 +346,7 @@ func (c *storageClient) EntityNodes(ctx context.Context, r *http.Request) (*apiT
 		return nil, apiCommon.ErrBadRequest
 	}
 
-	return c.storage.EntityNodes(ctx, &q, &p)
+	return c.Storage.EntityNodes(ctx, &q, &p)
 }
 
 // EntityNode returns a node controlled by the provided entity.
@@ -373,7 +373,7 @@ func (c *storageClient) EntityNode(ctx context.Context, r *http.Request) (*apiTy
 	}
 	q.NodeID = nodeID
 
-	return c.storage.EntityNode(ctx, &q)
+	return c.Storage.EntityNode(ctx, &q)
 }
 
 // Accounts returns a list of consensus accounts.
@@ -438,7 +438,7 @@ func (c *storageClient) Accounts(ctx context.Context, r *http.Request) (*apiType
 		q.MaxTotalBalance = maxTotalBalance
 	}
 
-	p, err := apiCommon.NewPagination(r)
+	_, err := apiCommon.NewPagination(r)
 	if err != nil {
 		c.logger.Info("pagination failed",
 			"request_id", ctx.Value(common.RequestIDContextKey),
@@ -447,7 +447,8 @@ func (c *storageClient) Accounts(ctx context.Context, r *http.Request) (*apiType
 		return nil, apiCommon.ErrBadRequest
 	}
 
-	return c.storage.Accounts(ctx, &q, &p)
+	// return c.Storage.Accounts(ctx, &q, &p)
+	return nil, fmt.Errorf("obsolete")
 }
 
 // Account returns a consensus account.
@@ -466,7 +467,7 @@ func (c *storageClient) Account(ctx context.Context, r *http.Request) (*apiTypes
 	}
 	q.Address = address
 
-	return c.storage.Account(ctx, &q)
+	return c.Storage.Account(ctx, &q)
 }
 
 // Delegations returns a list of delegations.
@@ -494,7 +495,7 @@ func (c *storageClient) Delegations(ctx context.Context, r *http.Request) (*apiT
 		return nil, apiCommon.ErrBadRequest
 	}
 
-	return c.storage.Delegations(ctx, &q, &p)
+	return c.Storage.Delegations(ctx, &q, &p)
 }
 
 // DebondingDelegations returns a list of debonding delegations.
@@ -522,7 +523,7 @@ func (c *storageClient) DebondingDelegations(ctx context.Context, r *http.Reques
 		return nil, apiCommon.ErrBadRequest
 	}
 
-	return c.storage.DebondingDelegations(ctx, &q, &p)
+	return c.Storage.DebondingDelegations(ctx, &q, &p)
 }
 
 // Epochs returns a list of consensus epochs.
@@ -536,7 +537,7 @@ func (c *storageClient) Epochs(ctx context.Context, r *http.Request) (*apiTypes.
 		return nil, apiCommon.ErrBadRequest
 	}
 
-	return c.storage.Epochs(ctx, &p)
+	return c.Storage.Epochs(ctx, &p)
 }
 
 // Epoch returns a consensus epoch.
@@ -554,7 +555,7 @@ func (c *storageClient) Epoch(ctx context.Context, r *http.Request) (*apiTypes.E
 	}
 	q.Epoch = &epoch
 
-	return c.storage.Epoch(ctx, &q)
+	return c.Storage.Epoch(ctx, &q)
 }
 
 // Proposals returns a list of governance proposals.
@@ -587,7 +588,7 @@ func (c *storageClient) Proposals(ctx context.Context, r *http.Request) (*apiTyp
 		return nil, apiCommon.ErrBadRequest
 	}
 
-	return c.storage.Proposals(ctx, &q, &p)
+	return c.Storage.Proposals(ctx, &q, &p)
 }
 
 // Proposal returns a governance proposal.
@@ -605,7 +606,7 @@ func (c *storageClient) Proposal(ctx context.Context, r *http.Request) (*apiType
 	}
 	q.ProposalID = &proposalID
 
-	return c.storage.Proposal(ctx, &q)
+	return c.Storage.Proposal(ctx, &q)
 }
 
 // ProposalVotes returns votes for a governance proposal.
@@ -632,7 +633,7 @@ func (c *storageClient) ProposalVotes(ctx context.Context, r *http.Request) (*ap
 		return nil, apiCommon.ErrBadRequest
 	}
 
-	return c.storage.ProposalVotes(ctx, &q, &p)
+	return c.Storage.ProposalVotes(ctx, &q, &p)
 }
 
 // Validators returns a list of validators.
@@ -644,7 +645,7 @@ func (c *storageClient) Validators(ctx context.Context, r *http.Request) (*apiTy
 		Offset: 0,
 	}
 
-	return c.storage.Validators(ctx, &p)
+	return c.Storage.Validators(ctx, &p)
 }
 
 // Validator returns a single validator.
@@ -662,7 +663,7 @@ func (c *storageClient) Validator(ctx context.Context, r *http.Request) (*apiTyp
 	}
 	q.EntityID = entityID
 
-	return c.storage.Validator(ctx, &q)
+	return c.Storage.Validator(ctx, &q)
 }
 
 // RuntimeBlocks returns a list of a runtime's blocks.
@@ -707,7 +708,7 @@ func (c *storageClient) RuntimeBlocks(ctx context.Context, r *http.Request) (*ap
 		return nil, apiCommon.ErrBadRequest
 	}
 
-	return c.storage.RuntimeBlocks(ctx, &q, &p)
+	return c.Storage.RuntimeBlocks(ctx, &q, &p)
 }
 
 // RuntimeTransactions returns a list of runtime transactions.
@@ -731,7 +732,7 @@ func (c *storageClient) RuntimeTransactions(ctx context.Context, r *http.Request
 		return nil, apiCommon.ErrBadRequest
 	}
 
-	storageTransactions, err := c.storage.RuntimeTransactions(ctx, &q, &p)
+	storageTransactions, err := c.Storage.RuntimeTransactions(ctx, &q, &p)
 	if err != nil {
 		return nil, err
 	}
@@ -760,7 +761,7 @@ func (c *storageClient) RuntimeTokens(ctx context.Context, r *http.Request) (*ap
 		return nil, apiCommon.ErrBadRequest
 	}
 
-	return c.storage.RuntimeTokens(ctx, &q, &p)
+	return c.Storage.RuntimeTokens(ctx, &q, &p)
 }
 
 // TxVolumes returns a list of transaction volumes grouped into fine-grained buckets.
@@ -783,6 +784,6 @@ func (c *storageClient) TxVolumes(ctx context.Context, r *http.Request) (*apiTyp
 		return nil, apiCommon.ErrBadRequest
 	}
 
-	return c.storage.TxVolumes(ctx, &p, &q)
+	return c.Storage.TxVolumes(ctx, &p, &q)
 }
 */

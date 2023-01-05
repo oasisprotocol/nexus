@@ -17,7 +17,7 @@ import (
 
 	"github.com/oasisprotocol/oasis-indexer/analyzer/util"
 	apiCommon "github.com/oasisprotocol/oasis-indexer/api/common"
-	api "github.com/oasisprotocol/oasis-indexer/api/v1/types"
+	apiTypes "github.com/oasisprotocol/oasis-indexer/api/v1/types"
 	common "github.com/oasisprotocol/oasis-indexer/common"
 	"github.com/oasisprotocol/oasis-indexer/log"
 	"github.com/oasisprotocol/oasis-indexer/storage"
@@ -571,7 +571,7 @@ func (c *StorageClient) EntityNode(ctx context.Context, r *EntityNodeRequest) (*
 }
 
 // Accounts returns a list of consensus accounts.
-func (c *StorageClient) Accounts(ctx context.Context, r *AccountsRequest, p *apiCommon.Pagination) (*AccountList, error) {
+func (c *StorageClient) Accounts(ctx context.Context, r apiTypes.GetConsensusAccountsParams) (*AccountList, error) {
 	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
 	if !ok {
 		return nil, apiCommon.ErrBadChainID
@@ -589,8 +589,8 @@ func (c *StorageClient) Accounts(ctx context.Context, r *AccountsRequest, p *api
 		toString(r.MaxDebonding),
 		toString(r.MinTotalBalance),
 		toString(r.MaxTotalBalance),
-		p.Limit,
-		p.Offset,
+		r.Limit,
+		r.Offset,
 	)
 	if err != nil {
 		c.logger.Info("query failed",
@@ -1440,7 +1440,7 @@ func (c *StorageClient) TxVolumes(ctx context.Context, p *apiCommon.Pagination, 
 
 	ts := TxVolumeList{
 		BucketSizeSeconds: q.BucketSizeSeconds,
-		Buckets:           []api.TxVolume{},
+		Buckets:           []apiTypes.TxVolume{},
 	}
 	for rows.Next() {
 		var d struct {
