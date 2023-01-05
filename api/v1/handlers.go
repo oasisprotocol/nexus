@@ -13,10 +13,10 @@ import (
 func (h *Handler) GetStatus(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	status, err := h.client.Status(ctx)
+	status, err := h.Client.Status(ctx)
 	if err != nil {
 		h.logAndReply(ctx, "failed to get status", w, err)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
+		h.Metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
 		return
 	}
 
@@ -27,10 +27,10 @@ func (h *Handler) GetStatus(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) ListBlocks(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	blocks, err := h.client.Blocks(ctx, r)
+	blocks, err := h.Client.Blocks(ctx, r)
 	if err != nil {
 		h.logAndReply(ctx, "failed to list blocks", w, err)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
+		h.Metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
 		return
 	}
 
@@ -41,10 +41,10 @@ func (h *Handler) ListBlocks(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) GetBlock(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	block, err := h.client.Block(ctx, r)
+	block, err := h.Client.Block(ctx, r)
 	if err != nil {
 		h.logAndReply(ctx, "failed to get block", w, err)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
+		h.Metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
 		return
 	}
 
@@ -55,10 +55,10 @@ func (h *Handler) GetBlock(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) ListTransactions(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	transactions, err := h.client.Transactions(ctx, r)
+	transactions, err := h.Client.Transactions(ctx, r)
 	if err != nil {
 		h.logAndReply(ctx, "failed to list transactions", w, err)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
+		h.Metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
 		return
 	}
 
@@ -69,10 +69,10 @@ func (h *Handler) ListTransactions(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) GetTransaction(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	transaction, err := h.client.Transaction(ctx, r)
+	transaction, err := h.Client.Transaction(ctx, r)
 	if err != nil {
 		h.logAndReply(ctx, "failed to get transaction", w, err)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
+		h.Metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
 		return
 	}
 
@@ -97,10 +97,10 @@ func (h *Handler) ListEvents(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) ListEntities(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	entities, err := h.client.Entities(ctx, r)
+	entities, err := h.Client.Entities(ctx, r)
 	if err != nil {
 		h.logAndReply(ctx, "failed to list entities", w, err)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
+		h.Metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
 		return
 	}
 
@@ -111,10 +111,10 @@ func (h *Handler) ListEntities(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) GetEntity(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	entity, err := h.client.Entity(ctx, r)
+	entity, err := h.Client.Entity(ctx, r)
 	if err != nil {
 		h.logAndReply(ctx, "failed to get entity", w, err)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
+		h.Metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
 		return
 	}
 
@@ -125,10 +125,10 @@ func (h *Handler) GetEntity(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) ListEntityNodes(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	nodes, err := h.client.EntityNodes(ctx, r)
+	nodes, err := h.Client.EntityNodes(ctx, r)
 	if err != nil {
 		h.logAndReply(ctx, "failed to list entity nodes", w, err)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
+		h.Metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
 		return
 	}
 
@@ -139,10 +139,10 @@ func (h *Handler) ListEntityNodes(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) GetEntityNode(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	node, err := h.client.EntityNode(ctx, r)
+	node, err := h.Client.EntityNode(ctx, r)
 	if err != nil {
 		h.logAndReply(ctx, "failed to get entity node", w, err)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
+		h.Metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
 		return
 	}
 
@@ -153,10 +153,10 @@ func (h *Handler) GetEntityNode(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) ListAccounts(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	accounts, err := h.client.Accounts(ctx, r)
+	accounts, err := h.Client.Accounts(ctx, r)
 	if err != nil {
 		h.logAndReply(ctx, "failed to list accounts", w, err)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
+		h.Metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
 		return
 	}
 
@@ -167,10 +167,10 @@ func (h *Handler) ListAccounts(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) GetAccount(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	account, err := h.client.Account(ctx, r)
+	account, err := h.Client.Account(ctx, r)
 	if err != nil {
 		h.logAndReply(ctx, "failed to get account", w, err)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
+		h.Metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
 		return
 	}
 
@@ -181,10 +181,10 @@ func (h *Handler) GetAccount(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) GetDelegations(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	delegations, err := h.client.Delegations(ctx, r)
+	delegations, err := h.Client.Delegations(ctx, r)
 	if err != nil {
 		h.logAndReply(ctx, "failed to get delegations", w, err)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
+		h.Metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
 		return
 	}
 
@@ -195,10 +195,10 @@ func (h *Handler) GetDelegations(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) GetDebondingDelegations(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	debondingDelegations, err := h.client.DebondingDelegations(ctx, r)
+	debondingDelegations, err := h.Client.DebondingDelegations(ctx, r)
 	if err != nil {
 		h.logAndReply(ctx, "failed to get debonding delegations", w, err)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
+		h.Metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
 		return
 	}
 
@@ -209,10 +209,10 @@ func (h *Handler) GetDebondingDelegations(w http.ResponseWriter, r *http.Request
 func (h *Handler) ListEpochs(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	epochs, err := h.client.Epochs(ctx, r)
+	epochs, err := h.Client.Epochs(ctx, r)
 	if err != nil {
 		h.logAndReply(ctx, "failed to list epochs", w, err)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
+		h.Metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
 		return
 	}
 
@@ -223,10 +223,10 @@ func (h *Handler) ListEpochs(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) GetEpoch(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	epoch, err := h.client.Epoch(ctx, r)
+	epoch, err := h.Client.Epoch(ctx, r)
 	if err != nil {
 		h.logAndReply(ctx, "failed to get epoch", w, err)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
+		h.Metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
 		return
 	}
 
@@ -237,10 +237,10 @@ func (h *Handler) GetEpoch(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) ListProposals(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	proposals, err := h.client.Proposals(ctx, r)
+	proposals, err := h.Client.Proposals(ctx, r)
 	if err != nil {
 		h.logAndReply(ctx, "failed to list proposals", w, err)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
+		h.Metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
 		return
 	}
 
@@ -251,10 +251,10 @@ func (h *Handler) ListProposals(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) GetProposal(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	proposal, err := h.client.Proposal(ctx, r)
+	proposal, err := h.Client.Proposal(ctx, r)
 	if err != nil {
 		h.logAndReply(ctx, "failed to get proposal", w, err)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
+		h.Metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
 		return
 	}
 
@@ -265,10 +265,10 @@ func (h *Handler) GetProposal(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) GetProposalVotes(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	votes, err := h.client.ProposalVotes(ctx, r)
+	votes, err := h.Client.ProposalVotes(ctx, r)
 	if err != nil {
 		h.logAndReply(ctx, "failed to get proposal votes", w, err)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
+		h.Metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
 		return
 	}
 
@@ -279,10 +279,10 @@ func (h *Handler) GetProposalVotes(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) GetValidator(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	validator, err := h.client.Validator(ctx, r)
+	validator, err := h.Client.Validator(ctx, r)
 	if err != nil {
 		h.logAndReply(ctx, "failed to get validator", w, err)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
+		h.Metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
 		return
 	}
 
@@ -293,10 +293,10 @@ func (h *Handler) GetValidator(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) ListValidators(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	validators, err := h.client.Validators(ctx, r)
+	validators, err := h.Client.Validators(ctx, r)
 	if err != nil {
 		h.logAndReply(ctx, "failed to list validators", w, err)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
+		h.Metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
 		return
 	}
 
@@ -306,10 +306,10 @@ func (h *Handler) ListValidators(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) RuntimeListBlocks(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	blocks, err := h.client.RuntimeBlocks(ctx, r)
+	blocks, err := h.Client.RuntimeBlocks(ctx, r)
 	if err != nil {
 		h.logAndReply(ctx, "failed to list blocks", w, err)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
+		h.Metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
 		return
 	}
 
@@ -320,10 +320,10 @@ func (h *Handler) RuntimeListBlocks(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) RuntimeListTransactions(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	transactions, err := h.client.RuntimeTransactions(ctx, r)
+	transactions, err := h.Client.RuntimeTransactions(ctx, r)
 	if err != nil {
 		h.logAndReply(ctx, "failed to list runtime transactions", w, err)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
+		h.Metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
 		return
 	}
 
@@ -333,10 +333,10 @@ func (h *Handler) RuntimeListTransactions(w http.ResponseWriter, r *http.Request
 func (h *Handler) RuntimeListTokens(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	tokens, err := h.client.RuntimeTokens(ctx, r)
+	tokens, err := h.Client.RuntimeTokens(ctx, r)
 	if err != nil {
 		h.logAndReply(ctx, "failed to list runtime tokens", w, err)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
+		h.Metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
 		return
 	}
 
@@ -347,10 +347,10 @@ func (h *Handler) RuntimeListTokens(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) ListTxVolumes(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	volumes, err := h.client.TxVolumes(ctx, r)
+	volumes, err := h.Client.TxVolumes(ctx, r)
 	if err != nil {
 		h.logAndReply(ctx, "failed to list tx volume", w, err)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
+		h.Metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
 		return
 	}
 
@@ -377,7 +377,7 @@ func (h *Handler) replyJSON(ctx context.Context, w http.ResponseWriter, endpoint
 	resp, err := json.Marshal(res)
 	if err != nil {
 		h.logAndReply(ctx, "failed to marshal response", w, err)
-		h.metrics.RequestCounter(endpoint, "failure", "serde_error").Inc()
+		h.Metrics.RequestCounter(endpoint, "failure", "serde_error").Inc()
 		return
 	}
 
@@ -387,8 +387,8 @@ func (h *Handler) replyJSON(ctx context.Context, w http.ResponseWriter, endpoint
 			"request_id", ctx.Value(common.RequestIDContextKey),
 			"error", err,
 		)
-		h.metrics.RequestCounter(endpoint, "failure", "http_error").Inc()
+		h.Metrics.RequestCounter(endpoint, "failure", "http_error").Inc()
 	} else {
-		h.metrics.RequestCounter(endpoint, "success").Inc()
+		h.Metrics.RequestCounter(endpoint, "success").Inc()
 	}
 }

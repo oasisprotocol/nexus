@@ -23,7 +23,7 @@ func (h *Handler) MetricsMiddleware(next http.Handler) http.Handler {
 		)
 
 		t := time.Now()
-		timer := h.metrics.RequestTimer(r.URL.Path)
+		timer := h.Metrics.RequestTimer(r.URL.Path)
 		defer func() {
 			h.logger.Info("ending request",
 				"endpoint", r.URL.Path,
@@ -43,7 +43,7 @@ func (h *Handler) MetricsMiddleware(next http.Handler) http.Handler {
 // to the request context.
 func (h *Handler) ChainMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		chainID := strcase.ToSnake(h.client.chainID)
+		chainID := strcase.ToSnake(h.Client.chainID)
 
 		// TODO: Set chainID based on provided height params.
 

@@ -16,17 +16,17 @@ const (
 
 // Handler is the Oasis Indexer V1 API handler.
 type Handler struct {
-	client  *storageClient
+	Client  *storageClient
 	logger  *log.Logger
-	metrics metrics.RequestMetrics
+	Metrics metrics.RequestMetrics
 }
 
 // NewHandler creates a new V1 API handler.
 func NewHandler(chainID string, s *storage.StorageClient, l *log.Logger) *Handler {
 	return &Handler{
-		client:  newStorageClient(chainID, s, l),
+		Client:  newStorageClient(chainID, s, l),
 		logger:  l.WithModule(moduleName),
-		metrics: metrics.NewDefaultRequestMetrics(moduleName),
+		Metrics: metrics.NewDefaultRequestMetrics(moduleName),
 	}
 }
 

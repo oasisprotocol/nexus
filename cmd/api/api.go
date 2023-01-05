@@ -137,7 +137,7 @@ func (s *Service) Start() {
 		r.Handle("/*", http.StripPrefix("/v1/spec", specServer))
 	})
 
-	experimentalHandler := apiTypes.HandlerWithOptions(&v1.Foo{}, apiTypes.ChiServerOptions{
+	experimentalHandler := apiTypes.HandlerWithOptions(v1.NewFoo(s.api.V1Handler.Client, s.logger, s.api.V1Handler.Metrics), apiTypes.ChiServerOptions{
 		BaseURL:     "/v1",
 		Middlewares: middlewares,
 		BaseRouter:  r,
