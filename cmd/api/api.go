@@ -6,6 +6,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/spf13/cobra"
 
 	"github.com/oasisprotocol/oasis-indexer/api"
@@ -115,6 +116,7 @@ func NewService(cfg *config.ServerConfig) (*Service, error) {
 func (s *Service) Start() {
 	s.logger.Info("starting api service at " + s.server)
 
+	// prepare middlewares for installing later
 	th := s.api.V1Handler
 	middlewares := []apiTypes.MiddlewareFunc{
 		func(next http.Handler) http.Handler {
@@ -128,9 +130,17 @@ func (s *Service) Start() {
 		},
 	}
 
+	// prepare static routes
+	r := chi.NewRouter()
+	r.Route("/v1/spec", func(r chi.Router) {
+		specServer := http.FileServer(http.Dir("api/spec"))
+		r.Handle("/*", http.StripPrefix("/v1/spec", specServer))
+	})
+
 	experimentalHandler := apiTypes.HandlerWithOptions(&v1.Foo{}, apiTypes.ChiServerOptions{
 		BaseURL:     "/v1",
 		Middlewares: middlewares,
+		BaseRouter:  r,
 	})
 
 	server := &http.Server{
