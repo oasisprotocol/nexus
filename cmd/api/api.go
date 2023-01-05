@@ -137,11 +137,27 @@ func (s *Service) Start() {
 		r.Handle("/*", http.StripPrefix("/v1/spec", specServer))
 	})
 
-	experimentalHandler := apiTypes.HandlerWithOptions(v1.NewFoo(s.api.V1Handler.Client, s.logger, s.api.V1Handler.Metrics), apiTypes.ChiServerOptions{
-		BaseURL:     "/v1",
-		Middlewares: middlewares,
-		BaseRouter:  r,
-	})
+	strictHandler := apiTypes.NewStrictHandlerWithOptions(
+		v1.NewStrictServerImpl(s.api.V1Handler.Client, s.logger),
+		[]apiTypes.StrictMiddlewareFunc{}, // th.StrictChainMiddleware not needed, beacuse we do middleware at a lower level
+		apiTypes.StrictHTTPServerOptions{
+			// TODO: flesh these out
+			RequestErrorHandlerFunc: func(w http.ResponseWriter, r *http.Request, err error) {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+			},
+			ResponseErrorHandlerFunc: func(w http.ResponseWriter, r *http.Request, err error) {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+			},
+		},
+	)
+
+	experimentalHandler := apiTypes.HandlerWithOptions(
+		strictHandler, // v1.NewFoo(s.api.V1Handler.Client, s.logger, s.api.V1Handler.Metrics),
+		apiTypes.ChiServerOptions{
+			BaseURL:     "/v1",
+			Middlewares: middlewares,
+			BaseRouter:  r,
+		})
 
 	server := &http.Server{
 		Addr:           s.server,

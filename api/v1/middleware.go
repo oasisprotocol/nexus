@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/iancoleman/strcase"
+	apiTypes "github.com/oasisprotocol/oasis-indexer/api/v1/types"
 	"github.com/oasisprotocol/oasis-indexer/common"
 )
 
@@ -51,6 +52,20 @@ func (h *Handler) ChainMiddleware(next http.Handler) http.Handler {
 			context.WithValue(r.Context(), common.ChainIDContextKey, chainID),
 		))
 	})
+}
+
+// ChainMiddleware is a middleware that adds chain-specific information
+// to the request context.
+// _operationID is unused, but is required to match the StrictHandlerFunc signature. It takes values like "Get" and "Post".
+func (h *Handler) StrictChainMiddleware(next apiTypes.StrictHandlerFunc, _operationID string) apiTypes.StrictHandlerFunc {
+	return func(ctx context.Context, w http.ResponseWriter, r *http.Request, args interface{}) (interface{}, error) {
+		chainID := strcase.ToSnake(h.Client.chainID)
+
+		// TODO: Set chainID based on provided height params.
+
+		newCtx := context.WithValue(r.Context(), common.ChainIDContextKey, chainID)
+		return next(newCtx, w, r.WithContext(newCtx), args)
+	}
 }
 
 func (h *Handler) RuntimeMiddleware(runtime string) func(next http.Handler) http.Handler {
