@@ -20,23 +20,7 @@ func (h *Handler) GetStatus(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, err := json.Marshal(status)
-	if err != nil {
-		h.logAndReply(ctx, "failed to marshal status", w, err)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "serde_error").Inc()
-		return
-	}
-
-	w.Header().Set("content-type", "application/json")
-	if _, err := w.Write(resp); err != nil {
-		h.logger.Error("failed to write response",
-			"request_id", ctx.Value(common.RequestIDContextKey),
-			"error", err,
-		)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
-	} else {
-		h.metrics.RequestCounter(r.URL.Path, "success").Inc()
-	}
+	h.replyJSON(ctx, w, r.URL.Path, status)
 }
 
 // ListBlocks gets a list of consensus blocks.
@@ -50,23 +34,7 @@ func (h *Handler) ListBlocks(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, err := json.Marshal(blocks)
-	if err != nil {
-		h.logAndReply(ctx, "failed to marshal blocks", w, err)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "serde_error").Inc()
-		return
-	}
-
-	w.Header().Set("content-type", "application/json")
-	if _, err := w.Write(resp); err != nil {
-		h.logger.Error("failed to write response",
-			"request_id", ctx.Value(common.RequestIDContextKey),
-			"error", err,
-		)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
-	} else {
-		h.metrics.RequestCounter(r.URL.Path, "success").Inc()
-	}
+	h.replyJSON(ctx, w, r.URL.Path, blocks)
 }
 
 // GetBlock gets a consensus block.
@@ -80,23 +48,7 @@ func (h *Handler) GetBlock(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, err := json.Marshal(block)
-	if err != nil {
-		h.logAndReply(ctx, "failed to marshal block", w, err)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "serde_error").Inc()
-		return
-	}
-
-	w.Header().Set("content-type", "application/json")
-	if _, err := w.Write(resp); err != nil {
-		h.logger.Error("failed to write response",
-			"request_id", ctx.Value(common.RequestIDContextKey),
-			"error", err,
-		)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
-	} else {
-		h.metrics.RequestCounter(r.URL.Path, "success").Inc()
-	}
+	h.replyJSON(ctx, w, r.URL.Path, block)
 }
 
 // ListTransactions gets a list of consensus transactions.
@@ -110,23 +62,7 @@ func (h *Handler) ListTransactions(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, err := json.Marshal(transactions)
-	if err != nil {
-		h.logAndReply(ctx, "failed to marshal transactions", w, err)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "serde_error").Inc()
-		return
-	}
-
-	w.Header().Set("content-type", "application/json")
-	if _, err := w.Write(resp); err != nil {
-		h.logger.Error("failed to write response",
-			"request_id", ctx.Value(common.RequestIDContextKey),
-			"error", err,
-		)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
-	} else {
-		h.metrics.RequestCounter(r.URL.Path, "success").Inc()
-	}
+	h.replyJSON(ctx, w, r.URL.Path, transactions)
 }
 
 // GetTransaction gets a consensus transaction.
@@ -140,23 +76,7 @@ func (h *Handler) GetTransaction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, err := json.Marshal(transaction)
-	if err != nil {
-		h.logAndReply(ctx, "failed to marshal transaction", w, err)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "serde_error").Inc()
-		return
-	}
-
-	w.Header().Set("content-type", "application/json")
-	if _, err := w.Write(resp); err != nil {
-		h.logger.Error("failed to write response",
-			"request_id", ctx.Value(common.RequestIDContextKey),
-			"error", err,
-		)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
-	} else {
-		h.metrics.RequestCounter(r.URL.Path, "success").Inc()
-	}
+	h.replyJSON(ctx, w, r.URL.Path, transaction)
 }
 
 // ListEntities gets a list of registered entities.
@@ -170,23 +90,7 @@ func (h *Handler) ListEntities(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, err := json.Marshal(entities)
-	if err != nil {
-		h.logAndReply(ctx, "failed to marshal entities", w, err)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "serde_error").Inc()
-		return
-	}
-
-	w.Header().Set("content-type", "application/json")
-	if _, err := w.Write(resp); err != nil {
-		h.logger.Error("failed to write response",
-			"request_id", ctx.Value(common.RequestIDContextKey),
-			"error", err,
-		)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
-	} else {
-		h.metrics.RequestCounter(r.URL.Path, "success").Inc()
-	}
+	h.replyJSON(ctx, w, r.URL.Path, entities)
 }
 
 // GetEntity gets a registered entity.
@@ -200,23 +104,7 @@ func (h *Handler) GetEntity(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, err := json.Marshal(entity)
-	if err != nil {
-		h.logAndReply(ctx, "failed to marshal entity", w, err)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "serde_error").Inc()
-		return
-	}
-
-	w.Header().Set("content-type", "application/json")
-	if _, err := w.Write(resp); err != nil {
-		h.logger.Error("failed to write response",
-			"request_id", ctx.Value(common.RequestIDContextKey),
-			"error", err,
-		)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
-	} else {
-		h.metrics.RequestCounter(r.URL.Path, "success").Inc()
-	}
+	h.replyJSON(ctx, w, r.URL.Path, entity)
 }
 
 // ListEntityNodes gets a list of nodes controlled by the provided entity.
@@ -230,23 +118,7 @@ func (h *Handler) ListEntityNodes(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, err := json.Marshal(nodes)
-	if err != nil {
-		h.logAndReply(ctx, "failed to marshal entity nodes", w, err)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "serde_error").Inc()
-		return
-	}
-
-	w.Header().Set("content-type", "application/json")
-	if _, err := w.Write(resp); err != nil {
-		h.logger.Error("failed to write response",
-			"request_id", ctx.Value(common.RequestIDContextKey),
-			"error", err,
-		)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
-	} else {
-		h.metrics.RequestCounter(r.URL.Path, "success").Inc()
-	}
+	h.replyJSON(ctx, w, r.URL.Path, nodes)
 }
 
 // GetEntityNode gets a node controlled by the provided entity.
@@ -260,23 +132,7 @@ func (h *Handler) GetEntityNode(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, err := json.Marshal(node)
-	if err != nil {
-		h.logAndReply(ctx, "failed to marshal entity node", w, err)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "serde_error").Inc()
-		return
-	}
-
-	w.Header().Set("content-type", "application/json")
-	if _, err := w.Write(resp); err != nil {
-		h.logger.Error("failed to write response",
-			"request_id", ctx.Value(common.RequestIDContextKey),
-			"error", err,
-		)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
-	} else {
-		h.metrics.RequestCounter(r.URL.Path, "success").Inc()
-	}
+	h.replyJSON(ctx, w, r.URL.Path, node)
 }
 
 // ListAccounts gets a list of consensus accounts.
@@ -290,23 +146,7 @@ func (h *Handler) ListAccounts(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, err := json.Marshal(accounts)
-	if err != nil {
-		h.logAndReply(ctx, "failed to marshal accounts", w, err)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "serde_error").Inc()
-		return
-	}
-
-	w.Header().Set("content-type", "application/json")
-	if _, err := w.Write(resp); err != nil {
-		h.logger.Error("failed to write response",
-			"request_id", ctx.Value(common.RequestIDContextKey),
-			"error", err,
-		)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
-	} else {
-		h.metrics.RequestCounter(r.URL.Path, "success").Inc()
-	}
+	h.replyJSON(ctx, w, r.URL.Path, accounts)
 }
 
 // GetAccount gets a consensus account.
@@ -320,23 +160,7 @@ func (h *Handler) GetAccount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, err := json.Marshal(account)
-	if err != nil {
-		h.logAndReply(ctx, "failed to marshal account", w, err)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "serde_error").Inc()
-		return
-	}
-
-	w.Header().Set("content-type", "application/json")
-	if _, err := w.Write(resp); err != nil {
-		h.logger.Error("failed to write response",
-			"request_id", ctx.Value(common.RequestIDContextKey),
-			"error", err,
-		)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
-	} else {
-		h.metrics.RequestCounter(r.URL.Path, "success").Inc()
-	}
+	h.replyJSON(ctx, w, r.URL.Path, account)
 }
 
 // GetDelegations gets an account's delegations.
@@ -350,23 +174,7 @@ func (h *Handler) GetDelegations(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, err := json.Marshal(delegations)
-	if err != nil {
-		h.logAndReply(ctx, "failed to marshal delegations", w, err)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "serde_error").Inc()
-		return
-	}
-
-	w.Header().Set("content-type", "application/json")
-	if _, err := w.Write(resp); err != nil {
-		h.logger.Error("failed to write response",
-			"request_id", ctx.Value(common.RequestIDContextKey),
-			"error", err,
-		)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
-	} else {
-		h.metrics.RequestCounter(r.URL.Path, "success").Inc()
-	}
+	h.replyJSON(ctx, w, r.URL.Path, delegations)
 }
 
 // GetDebondingDelegations gets an account's debonding delegations.
@@ -380,23 +188,7 @@ func (h *Handler) GetDebondingDelegations(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	resp, err := json.Marshal(debondingDelegations)
-	if err != nil {
-		h.logAndReply(ctx, "failed to marshal debonding delegations", w, err)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "serde_error").Inc()
-		return
-	}
-
-	w.Header().Set("content-type", "application/json")
-	if _, err := w.Write(resp); err != nil {
-		h.logger.Error("failed to write response",
-			"request_id", ctx.Value(common.RequestIDContextKey),
-			"error", err,
-		)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
-	} else {
-		h.metrics.RequestCounter(r.URL.Path, "success").Inc()
-	}
+	h.replyJSON(ctx, w, r.URL.Path, debondingDelegations)
 }
 
 // ListEpochs gets a list of epochs.
@@ -410,24 +202,7 @@ func (h *Handler) ListEpochs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var resp []byte
-	resp, err = json.Marshal(epochs)
-	if err != nil {
-		h.logAndReply(ctx, "failed to marshal epochs", w, err)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
-		return
-	}
-
-	w.Header().Set("content-type", "application/json")
-	if _, err := w.Write(resp); err != nil {
-		h.logger.Error("failed to write response",
-			"request_id", ctx.Value(common.RequestIDContextKey),
-			"error", err,
-		)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
-	} else {
-		h.metrics.RequestCounter(r.URL.Path, "success").Inc()
-	}
+	h.replyJSON(ctx, w, r.URL.Path, epochs)
 }
 
 // GetEpoch gets an epoch.
@@ -441,24 +216,7 @@ func (h *Handler) GetEpoch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var resp []byte
-	resp, err = json.Marshal(epoch)
-	if err != nil {
-		h.logAndReply(ctx, "failed to marshal epoch", w, err)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
-		return
-	}
-
-	w.Header().Set("content-type", "application/json")
-	if _, err := w.Write(resp); err != nil {
-		h.logger.Error("failed to write response",
-			"request_id", ctx.Value(common.RequestIDContextKey),
-			"error", err,
-		)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
-	} else {
-		h.metrics.RequestCounter(r.URL.Path, "success").Inc()
-	}
+	h.replyJSON(ctx, w, r.URL.Path, epoch)
 }
 
 // ListProposals gets a list of governance proposals.
@@ -472,23 +230,7 @@ func (h *Handler) ListProposals(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, err := json.Marshal(proposals)
-	if err != nil {
-		h.logAndReply(ctx, "failed to marshal proposals", w, err)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "serde_error").Inc()
-		return
-	}
-
-	w.Header().Set("content-type", "application/json")
-	if _, err := w.Write(resp); err != nil {
-		h.logger.Error("failed to write response",
-			"request_id", ctx.Value(common.RequestIDContextKey),
-			"error", err,
-		)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
-	} else {
-		h.metrics.RequestCounter(r.URL.Path, "success").Inc()
-	}
+	h.replyJSON(ctx, w, r.URL.Path, proposals)
 }
 
 // GetProposal gets a governance proposal.
@@ -502,23 +244,7 @@ func (h *Handler) GetProposal(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, err := json.Marshal(proposal)
-	if err != nil {
-		h.logAndReply(ctx, "failed to marshal proposal", w, err)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "serde_error").Inc()
-		return
-	}
-
-	w.Header().Set("content-type", "application/json")
-	if _, err := w.Write(resp); err != nil {
-		h.logger.Error("failed to write response",
-			"request_id", ctx.Value(common.RequestIDContextKey),
-			"error", err,
-		)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
-	} else {
-		h.metrics.RequestCounter(r.URL.Path, "success").Inc()
-	}
+	h.replyJSON(ctx, w, r.URL.Path, proposal)
 }
 
 // GetProposalVotes gets votes for a governance proposal.
@@ -532,23 +258,7 @@ func (h *Handler) GetProposalVotes(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, err := json.Marshal(votes)
-	if err != nil {
-		h.logAndReply(ctx, "failed to marshal proposal votes", w, err)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "serde_error").Inc()
-		return
-	}
-
-	w.Header().Set("content-type", "application/json")
-	if _, err := w.Write(resp); err != nil {
-		h.logger.Error("failed to write response",
-			"request_id", ctx.Value(common.RequestIDContextKey),
-			"error", err,
-		)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
-	} else {
-		h.metrics.RequestCounter(r.URL.Path, "success").Inc()
-	}
+	h.replyJSON(ctx, w, r.URL.Path, votes)
 }
 
 // GetValidator gets a validator.
@@ -562,23 +272,7 @@ func (h *Handler) GetValidator(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, err := json.Marshal(validator)
-	if err != nil {
-		h.logAndReply(ctx, "failed to marshal validator", w, err)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "serde_error").Inc()
-		return
-	}
-
-	w.Header().Set("content-type", "application/json")
-	if _, err := w.Write(resp); err != nil {
-		h.logger.Error("failed to write response",
-			"request_id", ctx.Value(common.RequestIDContextKey),
-			"error", err,
-		)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
-	} else {
-		h.metrics.RequestCounter(r.URL.Path, "success").Inc()
-	}
+	h.replyJSON(ctx, w, r.URL.Path, validator)
 }
 
 // ListValidators gets a list of validators.
@@ -592,24 +286,7 @@ func (h *Handler) ListValidators(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var resp []byte
-	resp, err = json.Marshal(validators)
-	if err != nil {
-		h.logAndReply(ctx, "failed to marshal validators", w, err)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
-		return
-	}
-
-	w.Header().Set("content-type", "application/json")
-	if _, err := w.Write(resp); err != nil {
-		h.logger.Error("failed to write response",
-			"request_id", ctx.Value(common.RequestIDContextKey),
-			"error", err,
-		)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
-	} else {
-		h.metrics.RequestCounter(r.URL.Path, "success").Inc()
-	}
+	h.replyJSON(ctx, w, r.URL.Path, validators)
 }
 
 func (h *Handler) RuntimeListBlocks(w http.ResponseWriter, r *http.Request) {
@@ -622,23 +299,7 @@ func (h *Handler) RuntimeListBlocks(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, err := json.Marshal(blocks)
-	if err != nil {
-		h.logAndReply(ctx, "failed to marshal blocks", w, err)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "serde_error").Inc()
-		return
-	}
-
-	w.Header().Set("content-type", "application/json")
-	if _, err := w.Write(resp); err != nil {
-		h.logger.Error("failed to write response",
-			"request_id", ctx.Value(common.RequestIDContextKey),
-			"error", err,
-		)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
-	} else {
-		h.metrics.RequestCounter(r.URL.Path, "success").Inc()
-	}
+	h.replyJSON(ctx, w, r.URL.Path, blocks)
 }
 
 // RuntimeListTransactions gets a list of runtime transactions.
@@ -652,23 +313,7 @@ func (h *Handler) RuntimeListTransactions(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	resp, err := json.Marshal(transactions)
-	if err != nil {
-		h.logAndReply(ctx, "failed to marshal transactions", w, err)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "serde_error").Inc()
-		return
-	}
-
-	w.Header().Set("content-type", "application/json")
-	if _, err := w.Write(resp); err != nil {
-		h.logger.Error("failed to write response",
-			"request_id", ctx.Value(common.RequestIDContextKey),
-			"error", err,
-		)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
-	} else {
-		h.metrics.RequestCounter(r.URL.Path, "success").Inc()
-	}
+	h.replyJSON(ctx, w, r.URL.Path, transactions)
 }
 
 func (h *Handler) RuntimeListTokens(w http.ResponseWriter, r *http.Request) {
@@ -681,23 +326,7 @@ func (h *Handler) RuntimeListTokens(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, err := json.Marshal(tokens)
-	if err != nil {
-		h.logAndReply(ctx, "failed to marshal tokens", w, err)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "serde_error").Inc()
-		return
-	}
-
-	w.Header().Set("content-type", "application/json")
-	if _, err := w.Write(resp); err != nil {
-		h.logger.Error("failed to write response",
-			"request_id", ctx.Value(common.RequestIDContextKey),
-			"error", err,
-		)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
-	} else {
-		h.metrics.RequestCounter(r.URL.Path, "success").Inc()
-	}
+	h.replyJSON(ctx, w, r.URL.Path, tokens)
 }
 
 // ListTxVolumes gets a list of transaction volume per time bucket.
@@ -711,24 +340,7 @@ func (h *Handler) ListTxVolumes(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var resp []byte
-	resp, err = json.Marshal(volumes)
-	if err != nil {
-		h.logAndReply(ctx, "failed to marshal volumes", w, err)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
-		return
-	}
-
-	w.Header().Set("content-type", "application/json")
-	if _, err := w.Write(resp); err != nil {
-		h.logger.Error("failed to write response",
-			"request_id", ctx.Value(common.RequestIDContextKey),
-			"error", err,
-		)
-		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
-	} else {
-		h.metrics.RequestCounter(r.URL.Path, "success").Inc()
-	}
+	h.replyJSON(ctx, w, r.URL.Path, volumes)
 }
 
 func (h *Handler) logAndReply(ctx context.Context, msg string, w http.ResponseWriter, err error) {
@@ -741,5 +353,28 @@ func (h *Handler) logAndReply(ctx context.Context, msg string, w http.ResponseWr
 			"request_id", ctx.Value(common.RequestIDContextKey),
 			"error", err,
 		)
+	}
+}
+
+// replyJSON serializes a response `res` and writes it to an
+// http.ResponseWriter `w`. Any errors go to logger and/or the response. Pass
+// the URL path in `endpoint` for labeling in the metrics counters.
+func (h *Handler) replyJSON(ctx context.Context, w http.ResponseWriter, endpoint string, res interface{}) {
+	resp, err := json.Marshal(res)
+	if err != nil {
+		h.logAndReply(ctx, "failed to marshal response", w, err)
+		h.metrics.RequestCounter(endpoint, "failure", "serde_error").Inc()
+		return
+	}
+
+	w.Header().Set("content-type", "application/json")
+	if _, err = w.Write(resp); err != nil {
+		h.logger.Error("failed to write response",
+			"request_id", ctx.Value(common.RequestIDContextKey),
+			"error", err,
+		)
+		h.metrics.RequestCounter(endpoint, "failure", "http_error").Inc()
+	} else {
+		h.metrics.RequestCounter(endpoint, "success").Inc()
 	}
 }
