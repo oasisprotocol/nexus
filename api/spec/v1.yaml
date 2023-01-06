@@ -18,6 +18,8 @@ x-query-params:
     name: offset
     schema:
       type: integer
+      format: uint64
+      default: 0
     description: |
       The number of items to skip before starting to collect the result set.
   - &limit
@@ -25,6 +27,7 @@ x-query-params:
     name: limit
     schema:
       type: integer
+      format: uint64
       default: 100
       minimum: 1
       maximum: 1000
@@ -61,8 +64,6 @@ x-examples:
     - &block_hash_1 '0a29ac21fa69bb9e43e5cb25d10826ff3946f1ce977e82f99a2614206a50765c'
   tx-hash:
     - &tx_hash_1 '0d0531d6b8a468c07440182b1cdda517f5a076d69fb2199126a83082ecfc0f41'
-  tx-method:
-    - &tx_method_1 'staking.Transfer'
   tx-body:
     - &tx_body_1 '{"amount":"1000000000","account":"oasis1qpg2xuz46g53737343r20yxeddhlvc2ldqsjh70p"}'
   epoch:
@@ -88,48 +89,6 @@ x-examples:
     - &iso_timestamp_2 '2019-04-01T00:00:00Z'
     - &iso_timestamp_3 '2022-10-15T00:05:34Z'
 
-x-common-types:
-  tx-methods: &tx_methods
-    - staking.Transfer
-    - staking.AddEscrow
-    - staking.ReclaimEscrow
-    - staking.AmendCommissionSchedule
-    - staking.Allow
-    - staking.Withdraw
-    - roothash.ExecutorCommit
-    - roothash.ExecutorProposerTimeout
-    - registry.RegisterEntity
-    - registry.RegisterNode
-    - registry.RegisterRuntime
-    - governance.CastVote
-    - governance.SubmitProposal
-    - beacon.PVSSCommit
-    - beacon.PVSSReveal
-    - beacon.VRFProve
-  consensus-event-types: &consensus_event_types
-    - governance.proposal_executed
-    - governance.proposal_finalized
-    - governance.proposal_submitted
-    - governance.vote
-    - registry.entity
-    - registry.node_unfrozen
-    - registry.node
-    - registry.runtime
-    - roothash.execution_discrepancy
-    - roothash.executor_committed
-    - roothash.finalized
-    - staking.allowance_change
-    - staking.burn
-    - staking.escrow.add
-    - staking.escrow.debonding_start
-    - staking.escrow.reclaim
-    - staking.escrow.take
-    - staking.transfer
-  evm-token-types: &evm_token_types
-    - ERC20
-    - ERC721
-    - ERC1155
-
 x-err-responses:
   base-error: &base_error_response
     content:
@@ -146,6 +105,15 @@ x-err-responses:
     '500':
       <<: *base_error_response
       description: A server error occurred.
+
+x-type-annotations:
+  big-int: &BigIntType
+    type: string
+    pattern: '^-?[0-9]+$'
+    format: bigint  # Not used by the indexer; might be helpful to client generators to recognize this type.
+    example: "1234567890123456789012"
+    x-go-type: common.BigInt
+    x-go-type-import: { name: common, path: "github.com/oasisprotocol/oasis-indexer/common" }
 
 paths:
   /:
@@ -240,10 +208,8 @@ paths:
         - in: query
           name: method
           schema:
-            type: string
-            enum: *tx_methods
+            $ref: '#/components/schemas/ConsensusTxMethod'
           description: A filter on transaction method.
-          example: *tx_method_1
         - in: query
           name: sender
           schema:
@@ -345,10 +311,8 @@ paths:
         - in: query
           name: type
           schema:
-            type: string
-            enum: *consensus_event_types
+            $ref: '#/components/schemas/ConsensusEventType'
           description: A filter on the event type.
-          example: Transfer
       responses:
         '200':
           description: |
@@ -499,59 +463,43 @@ paths:
         - in: query
           name: minAvailable
           schema:
-            type: integer
-            format: int64
+            <<: *BigIntType
           description: A filter on the minimum available account balance.
-          example: 10000000000
         - in: query
           name: maxAvailable
           schema:
-            type: integer
-            format: int64
+            <<: *BigIntType
           description: A filter on the maximum available account balance.
-          example: 100000000000
         - in: query
           name: minEscrow
           schema:
-            type: integer
-            format: int64
+            <<: *BigIntType
           description: A filter on the minimum active escrow account balance.
-          example: 10000000000
         - in: query
           name: maxEscrow
           schema:
-            type: integer
-            format: int64
+            <<: *BigIntType
           description: A filter on the maximum active escrow account balance.
-          example: 100000000000
         - in: query
           name: minDebonding
           schema:
-            type: integer
-            format: int64
+            <<: *BigIntType
           description: A filter on the minimum debonding account balance.
-          example: 10000000000
         - in: query
           name: maxDebonding
           schema:
-            type: integer
-            format: int64
+            <<: *BigIntType
           description: A filter on the maximum debonding account balance.
-          example: 100000000000
         - in: query
           name: minTotalBalance
           schema:
-            type: integer
-            format: int64
+            <<: *BigIntType
           description: A filter on the minimum total account balance.
-          example: 10000000000
         - in: query
           name: maxTotalBalance
           schema:
-            type: integer
-            format: int64
+            <<: *BigIntType
           description: A filter on the maximum total account balance.
-          example: 100000000000
       responses:
         '200':
           description: |
@@ -841,7 +789,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/VolumeList'
+                $ref: '#/components/schemas/TxVolumeList'
         <<: *common_error_responses
 
 components:
@@ -856,8 +804,10 @@ components:
 
     Status:
       type: object
+      required: [latest_chain_id, latest_block, latest_update]
       properties:
         latest_chain_id:
+          x-go-name: LatestChainID  # oapi-codegen generates LatestChainId (with a lowercase d) by default.
           type: string
           description: The most recently indexed chain ID.
           example: *chain_id_1
@@ -874,6 +824,7 @@ components:
 
     BlockList:
       type: object
+      required: [blocks]
       properties:
         blocks:
           type: array
@@ -884,6 +835,7 @@ components:
 
     Block:
       type: object
+      required: [height, hash, timestamp, num_transactions] # TODO: size, gas_used
       properties:
         height:
           type: integer
@@ -920,15 +872,13 @@ components:
 
     Delegation:
       type: object
+      required: [amount, shares, validator_address]
       properties:
         amount:
-          type: integer
-          format: int64
+          <<: *BigIntType
           description: The amount of tokens delegated in base units.
-          example: 10000000000
         shares:
-          type: integer
-          format: int64
+          <<: *BigIntType
           description: The shares of tokens delegated.
         validator_address:
           type: string
@@ -939,6 +889,7 @@ components:
 
     DelegationList:
       type: object
+      required: [delegations]
       properties:
         delegations:
           type: array
@@ -949,15 +900,13 @@ components:
 
     DebondingDelegation:
       type: object
+      required: [amount, shares, validator_address, debond_end]
       properties:
         amount:
-          type: integer
-          format: int64
+          <<: *BigIntType
           description: The amount of tokens delegated in base units.
-          example: 10000000000
         shares:
-          type: integer
-          format: int64
+          <<: *BigIntType
           description: The shares of tokens delegated.
         validator_address:
           type: string
@@ -972,16 +921,39 @@ components:
 
     DebondingDelegationList:
       type: object
+      required: [debonding_delegations]
       properties:
-        delegations:
+        debonding_delegations:
           type: array
           items:
             $ref: '#/components/schemas/DebondingDelegation'
       description: |
         A list of debonding delegations.
 
+    ConsensusTxMethod:
+      type: string
+      enum:
+        - staking.Transfer
+        - staking.AddEscrow
+        - staking.ReclaimEscrow
+        - staking.AmendCommissionSchedule
+        - staking.Allow
+        - staking.Withdraw
+        - roothash.ExecutorCommit
+        - roothash.ExecutorProposerTimeout
+        - registry.RegisterEntity
+        - registry.RegisterNode
+        - registry.RegisterRuntime
+        - governance.CastVote
+        - governance.SubmitProposal
+        - beacon.PVSSCommit
+        - beacon.PVSSReveal
+        - beacon.VRFProve
+      example: staking.Transfer
+
     TransactionList:
       type: object
+      required: [transactions]
       properties:
         transactions:
           type: array
@@ -992,6 +964,7 @@ components:
 
     Transaction:
       type: object
+      required: [block, index, timestamp, hash, sender, nonce, fee, method, body, success]
       properties:
         block:
           type: integer
@@ -1024,22 +997,19 @@ components:
           description: The nonce used with this transaction, to prevent replay.
           example: 0
         fee:
-          type: integer
-          format: int64
+          <<: *BigIntType
           description: |
             The fee that this transaction's sender committed
             to pay to execute it.
           example: 1000
         method:
-          type: string
-          enum: *tx_methods
+          $ref: '#/components/schemas/ConsensusTxMethod'
           description: The method that was called.
-          example: *tx_method_1
         body:
           type: string
+          format: byte
           # TODO: This is a serialzied CBOR blob. Expose as a JSON subtree instead.
           # Front-end can pull the "recipient" field from here for transactions of a suitable type.
-          format: binary
           description: The method call body.
           example: *tx_body_1
         success:
@@ -1048,8 +1018,32 @@ components:
       description: |
         A consensus transaction.
 
+    ConsensusEventType:
+      type: string
+      enum:
+        - governance.proposal_executed
+        - governance.proposal_finalized
+        - governance.proposal_submitted
+        - governance.vote
+        - registry.entity
+        - registry.node_unfrozen
+        - registry.node
+        - registry.runtime
+        - roothash.execution_discrepancy
+        - roothash.executor_committed
+        - roothash.finalized
+        - staking.allowance_change
+        - staking.burn
+        - staking.escrow.add
+        - staking.escrow.debonding_start
+        - staking.escrow.reclaim
+        - staking.escrow.take
+        - staking.transfer
+      example: staking.transfer
+
     ConsensusEventList:
       type: object
+      required: [events]
       properties:
         events:
           type: array
@@ -1060,6 +1054,7 @@ components:
 
     ConsensusEvent:
       type: object
+      required: [block, tx_index, tx_hash, body]
       properties:
         block:
           type: integer
@@ -1093,6 +1088,7 @@ components:
 
     EntityList:
       type: object
+      required: [entities]
       properties:
         entities:
           type: array
@@ -1103,11 +1099,17 @@ components:
 
     Entity:
       type: object
+      required: [id, address, nodes]
       properties:
         id:
+          x-go-name: ID
           type: string
           description: The public key identifying this entity.
           example: *entity_id_1
+        address:
+          type: string
+          description: The staking address belonging to this entity; derived from the entity's public key.
+          example: *staking_address_1
         nodes:
           type: array
           items:
@@ -1118,6 +1120,7 @@ components:
 
     ValidatorList:
       type: object
+      required: [validators]
       properties:
         validators:
           type: array
@@ -1126,79 +1129,91 @@ components:
       description: |
         A list of validators registered at the consensus layer.
 
+    ValidatorCommissionBound:
+      type: object
+      required: [lower, upper, epoch_start, epoch_end]
+      properties:
+        lower:
+          type: integer
+          format: uint64
+        upper:
+          type: integer
+          format: uint64
+        epoch_start:
+          type: integer
+          format: uint64
+        epoch_end:
+          type: integer
+          format: uint64
+
+    ValidatorMedia:
+      type: object
+      # All of the fields are optional.
+      properties:
+        website_link:
+          type: string
+          description: An URL associated with the entity.
+        email_address:
+          type: string
+          description: An email address for the validator.
+        twitter_acc:
+          type: string
+          description: A Twitter handle.
+        tg_chat:
+          type: string
+          description: An Telegram handle.
+        logotype:
+          type: string
+          description: A logo type.
+        name:
+          type: string
+          description: The human-readable name of this validator.
+          example: WhaleStake
+
     Validator:
       type: object
+      required: [entity_address, entity_id, name, node_id, escrow, active, status, current_rate, current_commission_bound]
       properties:
         entity_address:
             type: string
             description: The staking address identifying this Validator.
             example: *staking_address_1
         entity_id:
+          x-go-name: EntityID
           type: string
           description: The public key identifying this Validator.
           example: *entity_id_1
-        name:
-          type: string
-          description: The name of this Validator.
-          example: Valid validly validator
         node_id:
+          x-go-name: NodeID
           type: string
           description: The public key identifying this Validator's node.
           example: *node_id_1
         escrow:
-          type: integer
-          format: int64
+          <<: *BigIntType
           description: The amount staked.
         active:
           type: boolean
-          description: Entity is part of validator set.
+          description: Whether the entity is part of validator set (top <scheduler.params.max_validators> by stake).
         status:
           type: boolean
-          description: An entity has a node that is registered for being a validator, node is up to date, and has successfully registered itself.
+          description: Whether the entity has a node that is registered for being a validator, node is up to date, and has successfully registered itself. It may or may not be part of validator set.
         media:
-          type: object
-          properties:
-            website_link:
-              type: string
-              description: An URL associated with the entity.
-            email_address:
-              type: string
-              description: An email address for the validator.
-            twitter_acc:
-              type: string
-              description: A Twitter handle.
-            tg_chat:
-              type: string
-              description: An Telegram handle.
-            logotype:
-              type: string
-              description: A logo type.
+          $ref: '#/components/schemas/ValidatorMedia'
         current_rate:
           type: integer
-          format: int64
+          format: uint64
           description: Commission rate.
         current_commission_bound:
-          type: object
-          properties:
-            lower:
-              type: integer
-              format: int64
-            upper:
-              type: integer
-              format: int64
-            epoch_start:
-              type: integer
-              format: int64
-            epoch_end:
-              type: integer
-              format: int64
+          $ref: '#/components/schemas/ValidatorCommissionBound'
       description: |
         An validator registered at the consensus layer.
 
     NodeList:
       type: object
+      required: [entity_id, nodes]
       properties:
         entity_id:
+          x-go-name: EntityID
           type: string
         nodes:
           type: array
@@ -1209,12 +1224,15 @@ components:
 
     Node:
       type: object
+      required: [id, entity_id, expiration, tls_pubkey, tls_next_pubkey, p2p_pubkey, consensus_pubkey, roles]
       properties:
         id:
+          x-go-name: ID
           type: string
           description: The public key identifying this node.
           example: *node_id_1
         entity_id:
+          x-go-name: EntityID
           type: string
           description: |
             The public key identifying the entity controlling this node.
@@ -1224,14 +1242,17 @@ components:
           format: int64
           description: The epoch in which this node's commitment expires.
         tls_pubkey:
+          x-go-name: TLSPubkey
           type: string
           description: The public key used for establishing TLS connections.
         tls_next_pubkey:
+          x-go-name: TLSNextPubkey
           type: string
           description: |
             The public key that will be used for establishing TLS connections
             upon rotation.
         p2p_pubkey:
+          x-go-name: P2PPubkey
           type: string
           description: The unique identifier of this node on the P2P transport.
         consensus_pubkey:
@@ -1245,6 +1266,7 @@ components:
 
     AccountList:
       type: object
+      required: [accounts]
       properties:
         accounts:
           type: array
@@ -1281,6 +1303,7 @@ components:
         addresses, but only with oasis tools (e.g. a wallet); EVM contracts such as
         ERC20 tokens or tools such as Metamask cannot interact with staking addresses.
       type: object
+      required: [context, address_data]
       properties:
         context:
           $ref: "#/components/schemas/AddressDerivationContext"
@@ -1301,32 +1324,40 @@ components:
             is the Ethereum address (without the leading `0x`). All-lowercase.
           example: '9907a0cf64ec9fbf6ed8fd4971090de88222a9ac'
 
+    RuntimeName:
+      description: |
+        The name of a runtime. This is a human-readable identifier, and should
+        stay stable across runtime upgrades/versions.
+      type: string
+      enum:
+        - emerald
+      example: emerald
+
     RuntimeBalance:
       description: Balance of an account in a runtime.
       type: object
+      required: [amount, runtime, token_id, token_symbol]
       properties:
         amount:
-          type: string
+          <<: *BigIntType
           description: Number of base units held; as a string.
-          example: "1000000000000000000000"
         runtime:
-          type: string
-          enum: ["emerald"]
-          description: Name of the runtime.
+          $ref: "#/components/schemas/RuntimeName"
         # TODO:
         # - How do we handle NFTs? Add another field?
         # - We do not handle non-native tokens from the `accounts` SDK module. The plan is to use
         #   their denomination name for both `token_id` and `token_symbol`, or update the SDK to have tickers.
         token_id:
+          x-go-name: TokenID
           type: string
-          format: binary
-          description: Unique dentifier for the token. For EVM tokens, this is their eth address.
+          description: Unique identifier for the token. For EVM tokens, this is their eth address.
         token_symbol:
           type: string
           description: The token ticker symbol. Not guaranteed to be unique across distinct tokens.
 
     Account:
       type: object
+      required: [address, address_preimage, nonce, runtime_balances, available, escrow, debonding, delegations_balance, debonding_delegations_balance, allowances]
       properties:
         address:
           type: string
@@ -1346,28 +1377,19 @@ components:
           items:
             $ref: '#/components/schemas/RuntimeBalance'
         available:
-          type: integer
-          format: int64
+          <<: *BigIntType
           description: The available balance, in base units.
-          example: 10000000000
         escrow:
-          type: integer
-          format: int64
+          <<: *BigIntType
           description: The active escrow balance, in base units.
-          example: 10000000000
         debonding:
-          type: integer
-          format: int64
+          <<: *BigIntType
           description: The debonding escrow balance, in base units.
-          example: 10000000000
         delegations_balance:
-          type: integer
-          format: int64
+          <<: *BigIntType
           description: The delegations balance, in base units.
-          example: 10000000000
         debonding_delegations_balance:
-          type: integer
-          format: int64
+          <<: *BigIntType
           description: The debonding delegations balance, in base units.
           example: 10000000000
         allowances:
@@ -1380,19 +1402,19 @@ components:
 
     Allowance:
       type: object
+      required: [address, amount]
       properties:
         address:
           type: string
           description: The allowed account.
           example: *staking_address_2
         amount:
-          type: integer
-          format: int64
+          <<: *BigIntType
           description: The amount allowed for the allowed account.
-          example: 10000000000
 
     EpochList:
       type: object
+      required: [epochs]
       properties:
         epochs:
           type: array
@@ -1403,20 +1425,22 @@ components:
 
     Epoch:
       type: object
+      required: [id, start_height, end_height]
       properties:
         id:
+          x-go-name: ID
           type: integer
           format: int64
           description: The epoch number.
           example: *epoch_1
         start_height:
           type: integer
-          format: int64
+          format: uint64
           description: The (inclusive) height at which this epoch started.
           example: *block_height_1
         end_height:
           type: integer
-          format: int64
+          format: uint64
           description: The (inclusive) height at which this epoch ended.
           example: *block_height_2
       description: |
@@ -1424,6 +1448,7 @@ components:
 
     ProposalList:
       type: object
+      required: [proposals]
       properties:
         proposals:
           type: array
@@ -1432,12 +1457,28 @@ components:
       description: |
         A list of governance proposals.
 
-    Proposal:
+    ProposalTarget:
       type: object
       properties:
+        consensus_protocol:
+          type: string
+        runtime_host_protocol:
+          type: string
+        runtime_committee_protocol:
+          type: string
+      description: The target propotocol versions for this upgrade proposal.
+      
+    Proposal:
+      type: object
+      # TODO: Revise required fields. Most fields are required for actual proposals, and only absent
+      # for proposal cancellations (which instead have the `cancels` field). Split API and the DB into
+      # two types/tables?
+      required: [id, submitter, state, deposit, target, cancels, created_at, closes_at, invalid_votes]
+      properties:
         id:
+          x-go-name: ID
           type: integer
-          format: int64
+          format: uint64
           description: The unique identifier of the proposal.
           example: *proposal_id_1
         submitter:
@@ -1449,26 +1490,16 @@ components:
           description: The state of the proposal.
           example: 'active'
         deposit:
-          type: integer
-          format: int64
+          <<: *BigIntType
           description: The deposit attached to this proposal.
-          example: 10000000000
         handler:
           type: string
           description: The name of the upgrade handler.
         target:
-          type: object
-          properties:
-            consensus_protocol:
-              type: string
-            runtime_host_protocol:
-              type: string
-            runtime_committee_protocol:
-              type: string
-          description: The target propotocol versions for this upgrade proposal.
+          $ref: '#/components/schemas/ProposalTarget'
         epoch:
           type: integer
-          format: int64
+          format: uint64
           description: The epoch at which the proposed upgrade will happen.
           example: *epoch_1
         cancels:
@@ -1488,8 +1519,7 @@ components:
           description: The epoch at which voting for this proposal will close.
           example: *epoch_2
         invalid_votes:
-          type: integer
-          format: int64
+          <<: *BigIntType
           description: |
             The number of invalid votes for this proposal, after tallying.
       description: |
@@ -1497,10 +1527,12 @@ components:
 
     ProposalVotes:
       type: object
+      required: [proposal_id, votes]
       properties:
         proposal_id:
+          x-go-name: ProposalID
           type: integer
-          format: int64
+          format: uint64
           description: The unique identifier of the proposal.
         votes:
           type: array
@@ -1512,6 +1544,7 @@ components:
 
     ProposalVote:
       type: object
+      required: [address, vote]
       properties:
         address:
           type: string
@@ -1524,6 +1557,7 @@ components:
 
     RuntimeBlockList:
       type: object
+      required: [blocks]
       properties:
         blocks:
           type: array
@@ -1534,6 +1568,7 @@ components:
 
     RuntimeBlock:
       type: object
+      required: [round, hash, timestamp, num_transactions, size, gas_used]
       properties:
         round:
           type: integer
@@ -1569,6 +1604,7 @@ components:
 
     RuntimeTransactionList:
       type: object
+      required: [transactions]
       properties:
         transactions:
           type: array
@@ -1579,6 +1615,8 @@ components:
 
     RuntimeTransaction:
       type: object
+      # NOTE: Not guaranteed to be present: eth_hash, to, amount.
+      required: [round, timestamp, hash, sender_0, nonce_0, fee, gas_limit, method, body, success]
       properties:
         round:
           type: integer
@@ -1612,7 +1650,7 @@ components:
           example: oasis1qz670t637yyxshnlxhjj5074wgwl94d0x5x69zqd
         nonce_0:
           type: integer
-          format: int64
+          format: uint64
           description: The nonce used with this transaction's 0th signer, to prevent replay.
           example: 114194
         fee:
@@ -1623,7 +1661,7 @@ components:
           example: "3000000000000000"
         gas_limit:
           type: integer
-          format: int64
+          format: uint64
           description: |
             The maximum gas that this transaction's sender committed to use to
             execute it.
@@ -1633,9 +1671,9 @@ components:
           description: The method that was called.
           example: "evm.Call"
         body:
-          type: string
+          type: object
           description: The method call body.
-          example: "o2RkYXRhQGV2YWx1ZUgBY0V4wN0lc2dhZGRyZXNzVDlzcMsG8d3D2LY5FTn+1svi/l+V"
+          example: {"address": "t1mAPucIdVnrYBpJOcLV2nZoOFo=", "data": RBo+cAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=", "value": ""}
         to:
           type: string
           description: |
@@ -1660,8 +1698,16 @@ components:
       description: |
         A runtime transaction.
 
+    EvmTokenType:
+      type: string
+      enum:
+        - ERC20
+        - ERC721
+        - ERC1155
+
     RuntimeTokenList:
       type: object
+      required: [tokens]
       properties:
         tokens:
           type: array
@@ -1672,6 +1718,7 @@ components:
 
     RuntimeToken:
       type: object
+      required: [contract_addr, num_holders, type]
       properties:
         contract_addr:
           type: string
@@ -1693,9 +1740,7 @@ components:
             Affects display only. Often equals 18, to match ETH.
           example: 18
         type:
-          type: string
-          enum: *evm_token_types
-          nullable: true
+          $ref: '#/components/schemas/EvmTokenType'
           description: |
             The heuristically determined interface that the token contract implements.
             A less specialized variant of the token might be detected; for example, an
@@ -1712,28 +1757,33 @@ components:
             as calculated from Transfer events.
           example: 123
 
-    VolumeList:
+    TxVolumeList:
       type: object
+      required: [bucket_size_seconds, buckets]
       properties:
-        volumes:
+        bucket_size_seconds:
+          type: integer
+          format: uint32
+        buckets:
           type: array
           items:
-            $ref: '#/components/schemas/Volume'
+            $ref: '#/components/schemas/TxVolume'
           description: The list of daily transaction volumes.
       description: |
         A list of daily transaction volumes.
 
-    Volume:
+    TxVolume:
       type: object
+      required: [bucket_start, tx_volume]
       properties:
-        date:
+        bucket_start:
           type: string
           format: date-time
           description: The date for this daily transaction volume measurement.
           example: *iso_timestamp_1
         tx_volume:
           type: integer
-          format: int64
+          format: uint64
           description: The transaction volume on this day.
           example: 420
 

@@ -17,13 +17,14 @@ import (
 	"github.com/oasisprotocol/oasis-core/go/common/quantity"
 	consensus "github.com/oasisprotocol/oasis-core/go/consensus/api"
 	"github.com/oasisprotocol/oasis-core/go/consensus/api/transaction"
-	"github.com/oasisprotocol/oasis-core/go/oasis-node/cmd/common"
+	cmdCommon "github.com/oasisprotocol/oasis-core/go/oasis-node/cmd/common"
 	"github.com/oasisprotocol/oasis-core/go/oasis-node/cmd/debug/txsource/workload"
 	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
+	"github.com/oasisprotocol/oasis-indexer/common"
 	storage "github.com/oasisprotocol/oasis-indexer/storage/client"
 	"github.com/oasisprotocol/oasis-indexer/tests"
 )
@@ -40,8 +41,8 @@ const (
 func TestIndexer(t *testing.T) {
 	tests.SkipUnlessE2E(t)
 
-	if err := common.Init(); err != nil {
-		common.EarlyLogAndExit(err)
+	if err := cmdCommon.Init(); err != nil {
+		cmdCommon.EarlyLogAndExit(err)
 	}
 	tests.Init()
 
@@ -116,7 +117,7 @@ func TestIndexer(t *testing.T) {
 	time.Sleep(indexerDelay)
 	err = tests.GetFrom(fmt.Sprintf("/consensus/accounts/%s", bobAddress), &account)
 	require.Nil(t, err)
-	expected := storage.NewBigInt(100000000)
+	expected := common.NewBigInt(100000000)
 	require.Equal(t, expected, account.Available)
 
 	// Create escrow tx.
@@ -142,8 +143,8 @@ func TestIndexer(t *testing.T) {
 	time.Sleep(indexerDelay)
 	err = tests.GetFrom(fmt.Sprintf("/consensus/accounts/%s", bobAddress), &account)
 	require.Nil(t, err)
-	expectedDelegationsBalance := storage.NewBigInt(25000000)
-	expectedAvailable := storage.NewBigInt(75000000)
+	expectedDelegationsBalance := common.NewBigInt(25000000)
+	expectedAvailable := common.NewBigInt(75000000)
 	require.Equal(t, expectedDelegationsBalance, account.DelegationsBalance)
 	require.Equal(t, expectedAvailable, account.Available)
 
@@ -151,8 +152,8 @@ func TestIndexer(t *testing.T) {
 	time.Sleep(indexerDelay)
 	err = tests.GetFrom(fmt.Sprintf("/consensus/accounts/%s", aliceAddress), &account)
 	require.Nil(t, err)
-	expectedEscrow := storage.NewBigInt(25000000)
-	expectedAvailable = storage.NewBigInt(9900000000)
+	expectedEscrow := common.NewBigInt(25000000)
+	expectedAvailable = common.NewBigInt(9900000000)
 	require.Equal(t, expectedEscrow, account.Escrow)
 	require.Equal(t, expectedAvailable, account.Available)
 }

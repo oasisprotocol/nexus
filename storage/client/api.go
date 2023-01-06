@@ -6,21 +6,10 @@ import (
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
 	governance "github.com/oasisprotocol/oasis-core/go/governance/api"
 	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
+	"github.com/oasisprotocol/oasis-indexer/common"
 )
 
-type ContextKey string
-
-const (
-	// ChainIDContextKey is used to set the relevant chain ID
-	// in a request context.
-	ChainIDContextKey ContextKey = "chain_id"
-	// RuntimeContextKey is used to set the relevant runtime name
-	// in a request context.
-	RuntimeContextKey ContextKey = "runtime"
-	// RequestIDContextKey is used to set a request id for tracing
-	// in a request context.
-	RequestIDContextKey ContextKey = "request_id"
-)
+type BigInt = common.BigInt
 
 type BlocksRequest struct {
 	From   *int64

@@ -5,9 +5,8 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/oasisprotocol/oasis-indexer/api/common"
-
-	storage "github.com/oasisprotocol/oasis-indexer/storage/client"
+	apiCommon "github.com/oasisprotocol/oasis-indexer/api/common"
+	common "github.com/oasisprotocol/oasis-indexer/common"
 )
 
 // GetStatus gets the indexer status.
@@ -31,7 +30,7 @@ func (h *Handler) GetStatus(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "application/json")
 	if _, err := w.Write(resp); err != nil {
 		h.logger.Error("failed to write response",
-			"request_id", ctx.Value(storage.RequestIDContextKey),
+			"request_id", ctx.Value(common.RequestIDContextKey),
 			"error", err,
 		)
 		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
@@ -61,7 +60,7 @@ func (h *Handler) ListBlocks(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "application/json")
 	if _, err := w.Write(resp); err != nil {
 		h.logger.Error("failed to write response",
-			"request_id", ctx.Value(storage.RequestIDContextKey),
+			"request_id", ctx.Value(common.RequestIDContextKey),
 			"error", err,
 		)
 		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
@@ -91,7 +90,7 @@ func (h *Handler) GetBlock(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "application/json")
 	if _, err := w.Write(resp); err != nil {
 		h.logger.Error("failed to write response",
-			"request_id", ctx.Value(storage.RequestIDContextKey),
+			"request_id", ctx.Value(common.RequestIDContextKey),
 			"error", err,
 		)
 		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
@@ -121,7 +120,7 @@ func (h *Handler) ListTransactions(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "application/json")
 	if _, err := w.Write(resp); err != nil {
 		h.logger.Error("failed to write response",
-			"request_id", ctx.Value(storage.RequestIDContextKey),
+			"request_id", ctx.Value(common.RequestIDContextKey),
 			"error", err,
 		)
 		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
@@ -151,7 +150,7 @@ func (h *Handler) GetTransaction(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "application/json")
 	if _, err := w.Write(resp); err != nil {
 		h.logger.Error("failed to write response",
-			"request_id", ctx.Value(storage.RequestIDContextKey),
+			"request_id", ctx.Value(common.RequestIDContextKey),
 			"error", err,
 		)
 		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
@@ -181,7 +180,7 @@ func (h *Handler) ListEntities(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "application/json")
 	if _, err := w.Write(resp); err != nil {
 		h.logger.Error("failed to write response",
-			"request_id", ctx.Value(storage.RequestIDContextKey),
+			"request_id", ctx.Value(common.RequestIDContextKey),
 			"error", err,
 		)
 		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
@@ -211,7 +210,7 @@ func (h *Handler) GetEntity(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "application/json")
 	if _, err := w.Write(resp); err != nil {
 		h.logger.Error("failed to write response",
-			"request_id", ctx.Value(storage.RequestIDContextKey),
+			"request_id", ctx.Value(common.RequestIDContextKey),
 			"error", err,
 		)
 		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
@@ -241,7 +240,7 @@ func (h *Handler) ListEntityNodes(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "application/json")
 	if _, err := w.Write(resp); err != nil {
 		h.logger.Error("failed to write response",
-			"request_id", ctx.Value(storage.RequestIDContextKey),
+			"request_id", ctx.Value(common.RequestIDContextKey),
 			"error", err,
 		)
 		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
@@ -271,7 +270,7 @@ func (h *Handler) GetEntityNode(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "application/json")
 	if _, err := w.Write(resp); err != nil {
 		h.logger.Error("failed to write response",
-			"request_id", ctx.Value(storage.RequestIDContextKey),
+			"request_id", ctx.Value(common.RequestIDContextKey),
 			"error", err,
 		)
 		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
@@ -301,7 +300,7 @@ func (h *Handler) ListAccounts(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "application/json")
 	if _, err := w.Write(resp); err != nil {
 		h.logger.Error("failed to write response",
-			"request_id", ctx.Value(storage.RequestIDContextKey),
+			"request_id", ctx.Value(common.RequestIDContextKey),
 			"error", err,
 		)
 		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
@@ -331,7 +330,7 @@ func (h *Handler) GetAccount(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "application/json")
 	if _, err := w.Write(resp); err != nil {
 		h.logger.Error("failed to write response",
-			"request_id", ctx.Value(storage.RequestIDContextKey),
+			"request_id", ctx.Value(common.RequestIDContextKey),
 			"error", err,
 		)
 		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
@@ -361,7 +360,7 @@ func (h *Handler) GetDelegations(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "application/json")
 	if _, err := w.Write(resp); err != nil {
 		h.logger.Error("failed to write response",
-			"request_id", ctx.Value(storage.RequestIDContextKey),
+			"request_id", ctx.Value(common.RequestIDContextKey),
 			"error", err,
 		)
 		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
@@ -391,7 +390,7 @@ func (h *Handler) GetDebondingDelegations(w http.ResponseWriter, r *http.Request
 	w.Header().Set("content-type", "application/json")
 	if _, err := w.Write(resp); err != nil {
 		h.logger.Error("failed to write response",
-			"request_id", ctx.Value(storage.RequestIDContextKey),
+			"request_id", ctx.Value(common.RequestIDContextKey),
 			"error", err,
 		)
 		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
@@ -422,7 +421,7 @@ func (h *Handler) ListEpochs(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "application/json")
 	if _, err := w.Write(resp); err != nil {
 		h.logger.Error("failed to write response",
-			"request_id", ctx.Value(storage.RequestIDContextKey),
+			"request_id", ctx.Value(common.RequestIDContextKey),
 			"error", err,
 		)
 		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
@@ -453,7 +452,7 @@ func (h *Handler) GetEpoch(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "application/json")
 	if _, err := w.Write(resp); err != nil {
 		h.logger.Error("failed to write response",
-			"request_id", ctx.Value(storage.RequestIDContextKey),
+			"request_id", ctx.Value(common.RequestIDContextKey),
 			"error", err,
 		)
 		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
@@ -483,7 +482,7 @@ func (h *Handler) ListProposals(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "application/json")
 	if _, err := w.Write(resp); err != nil {
 		h.logger.Error("failed to write response",
-			"request_id", ctx.Value(storage.RequestIDContextKey),
+			"request_id", ctx.Value(common.RequestIDContextKey),
 			"error", err,
 		)
 		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
@@ -513,7 +512,7 @@ func (h *Handler) GetProposal(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "application/json")
 	if _, err := w.Write(resp); err != nil {
 		h.logger.Error("failed to write response",
-			"request_id", ctx.Value(storage.RequestIDContextKey),
+			"request_id", ctx.Value(common.RequestIDContextKey),
 			"error", err,
 		)
 		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
@@ -543,7 +542,7 @@ func (h *Handler) GetProposalVotes(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "application/json")
 	if _, err := w.Write(resp); err != nil {
 		h.logger.Error("failed to write response",
-			"request_id", ctx.Value(storage.RequestIDContextKey),
+			"request_id", ctx.Value(common.RequestIDContextKey),
 			"error", err,
 		)
 		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
@@ -573,7 +572,7 @@ func (h *Handler) GetValidator(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "application/json")
 	if _, err := w.Write(resp); err != nil {
 		h.logger.Error("failed to write response",
-			"request_id", ctx.Value(storage.RequestIDContextKey),
+			"request_id", ctx.Value(common.RequestIDContextKey),
 			"error", err,
 		)
 		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
@@ -604,7 +603,7 @@ func (h *Handler) ListValidators(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "application/json")
 	if _, err := w.Write(resp); err != nil {
 		h.logger.Error("failed to write response",
-			"request_id", ctx.Value(storage.RequestIDContextKey),
+			"request_id", ctx.Value(common.RequestIDContextKey),
 			"error", err,
 		)
 		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
@@ -633,7 +632,7 @@ func (h *Handler) RuntimeListBlocks(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "application/json")
 	if _, err := w.Write(resp); err != nil {
 		h.logger.Error("failed to write response",
-			"request_id", ctx.Value(storage.RequestIDContextKey),
+			"request_id", ctx.Value(common.RequestIDContextKey),
 			"error", err,
 		)
 		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
@@ -663,7 +662,7 @@ func (h *Handler) RuntimeListTransactions(w http.ResponseWriter, r *http.Request
 	w.Header().Set("content-type", "application/json")
 	if _, err := w.Write(resp); err != nil {
 		h.logger.Error("failed to write response",
-			"request_id", ctx.Value(storage.RequestIDContextKey),
+			"request_id", ctx.Value(common.RequestIDContextKey),
 			"error", err,
 		)
 		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
@@ -692,7 +691,7 @@ func (h *Handler) RuntimeListTokens(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "application/json")
 	if _, err := w.Write(resp); err != nil {
 		h.logger.Error("failed to write response",
-			"request_id", ctx.Value(storage.RequestIDContextKey),
+			"request_id", ctx.Value(common.RequestIDContextKey),
 			"error", err,
 		)
 		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
@@ -723,7 +722,7 @@ func (h *Handler) ListTxVolumes(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "application/json")
 	if _, err := w.Write(resp); err != nil {
 		h.logger.Error("failed to write response",
-			"request_id", ctx.Value(storage.RequestIDContextKey),
+			"request_id", ctx.Value(common.RequestIDContextKey),
 			"error", err,
 		)
 		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()
@@ -734,12 +733,12 @@ func (h *Handler) ListTxVolumes(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) logAndReply(ctx context.Context, msg string, w http.ResponseWriter, err error) {
 	h.logger.Error(msg,
-		"request_id", ctx.Value(storage.RequestIDContextKey),
+		"request_id", ctx.Value(common.RequestIDContextKey),
 		"error", err,
 	)
-	if err = common.ReplyWithError(w, err); err != nil {
+	if err = apiCommon.ReplyWithError(w, err); err != nil {
 		h.logger.Error("failed to reply with error",
-			"request_id", ctx.Value(storage.RequestIDContextKey),
+			"request_id", ctx.Value(common.RequestIDContextKey),
 			"error", err,
 		)
 	}

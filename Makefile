@@ -13,7 +13,11 @@ build:
 	@$(ECHO) "$(CYAN)*** Everything built successfully!$(OFF)"
 
 oasis-indexer:
-	@$(GO) build $(GOFLAGS) $(GO_EXTRA_FLAGS)
+	@# Generate Go types from the openapi spec.
+	@# To install the tool, run:
+	@#   go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen@v1.12 
+	oapi-codegen -generate types -package types api/spec/v1.yaml >api/v1/types/openapi.gen.go
+	$(GO) build $(GOFLAGS) $(GO_EXTRA_FLAGS)
 
 docker:
 	@docker build \

@@ -10,29 +10,33 @@ import (
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 
 	uncategorized "github.com/oasisprotocol/oasis-indexer/analyzer/uncategorized"
+	apiTypes "github.com/oasisprotocol/oasis-indexer/api/v1/types"
 	"github.com/oasisprotocol/oasis-indexer/storage/client"
 )
 
-func renderRuntimeTransaction(storageTransaction client.RuntimeTransaction) (RuntimeTransaction, error) {
+func renderRuntimeTransaction(storageTransaction client.RuntimeTransaction) (apiTypes.RuntimeTransaction, error) {
 	var utx types.UnverifiedTransaction
 	if err := cbor.Unmarshal(storageTransaction.Raw, &utx); err != nil {
-		return RuntimeTransaction{}, fmt.Errorf("utx unmarshal: %w", err)
+		return apiTypes.RuntimeTransaction{}, fmt.Errorf("utx unmarshal: %w", err)
 	}
 	tx, err := uncategorized.OpenUtxNoVerify(&utx)
 	if err != nil {
-		return RuntimeTransaction{}, fmt.Errorf("utx open no verify: %w", err)
+		return apiTypes.RuntimeTransaction{}, fmt.Errorf("utx open no verify: %w", err)
 	}
 	sender0, err := uncategorized.StringifyAddressSpec(&tx.AuthInfo.SignerInfo[0].AddressSpec)
 	if err != nil {
-		return RuntimeTransaction{}, fmt.Errorf("signer 0: %w", err)
+		return apiTypes.RuntimeTransaction{}, fmt.Errorf("signer 0: %w", err)
 	}
 	var cr types.CallResult
 	if err = cbor.Unmarshal(storageTransaction.ResultRaw, &cr); err != nil {
-		return RuntimeTransaction{}, fmt.Errorf("result unmarshal: %w", err)
+		return apiTypes.RuntimeTransaction{}, fmt.Errorf("result unmarshal: %w", err)
 	}
-	apiTransaction := RuntimeTransaction{
+	var body map[string]interface{}
+	if err = cbor.Unmarshal(tx.Call.Body, &body); err != nil {
+		return apiTypes.RuntimeTransaction{}, fmt.Errorf("body unmarshal: %w", err)
+	}
+	apiTransaction := apiTypes.RuntimeTransaction{
 		Round:   storageTransaction.Round,
-		Index:   storageTransaction.Index,
 		Hash:    storageTransaction.Hash,
 		EthHash: storageTransaction.EthHash,
 		// TODO: Get timestamp from that round's block
@@ -41,7 +45,7 @@ func renderRuntimeTransaction(storageTransaction client.RuntimeTransaction) (Run
 		Fee:      tx.AuthInfo.Fee.Amount.Amount.String(),
 		GasLimit: tx.AuthInfo.Fee.Gas,
 		Method:   tx.Call.Method,
-		Body:     tx.Call.Body,
+		Body:     body,
 		Success:  cr.IsSuccess(),
 	}
 	if err = uncategorized.VisitCall(&tx.Call, &cr, &uncategorized.CallHandler{
@@ -117,7 +121,7 @@ func renderRuntimeTransaction(storageTransaction client.RuntimeTransaction) (Run
 			return nil
 		},
 	}); err != nil {
-		return RuntimeTransaction{}, err
+		return apiTypes.RuntimeTransaction{}, err
 	}
 	return apiTransaction, nil
 }
