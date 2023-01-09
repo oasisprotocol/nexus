@@ -1,8 +1,6 @@
 package v1
 
 import (
-	"net/http"
-
 	"github.com/go-chi/chi/v5"
 
 	"github.com/oasisprotocol/oasis-indexer/log"
@@ -38,6 +36,7 @@ func (h *Handler) RegisterMiddlewares(r chi.Router) {
 
 // RegisterRoutes implements the APIHandler interface.
 func (h *Handler) RegisterRoutes(r chi.Router) {
+	/* OBSOLETE
 	r.Route("/v1", func(r chi.Router) {
 		// Status endpoints.
 		r.Get("/", h.GetStatus)
@@ -119,6 +118,7 @@ func (h *Handler) RegisterRoutes(r chi.Router) {
 			r.Handle("/*", http.StripPrefix("/v1/spec", specServer))
 		})
 	})
+	*/
 }
 
 // Name implements the APIHandler interface.

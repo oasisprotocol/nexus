@@ -1,22 +1,6 @@
 package v1
 
 import (
-	"context"
-	"fmt"
-	"math/big"
-	"net/http"
-	"net/url"
-	"strconv"
-	"time"
-
-	"github.com/go-chi/chi/v5"
-	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
-	governance "github.com/oasisprotocol/oasis-core/go/governance/api"
-	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
-
-	apiCommon "github.com/oasisprotocol/oasis-indexer/api/common"
-	apiTypes "github.com/oasisprotocol/oasis-indexer/api/v1/types"
-	"github.com/oasisprotocol/oasis-indexer/common"
 	"github.com/oasisprotocol/oasis-indexer/log"
 	storage "github.com/oasisprotocol/oasis-indexer/storage/client"
 )
@@ -34,6 +18,7 @@ func newStorageClient(chainID string, s *storage.StorageClient, l *log.Logger) *
 	return &storageClient{chainID, s, l}
 }
 
+/* obsolete
 // validateInt32 parses an int32 url parameter.
 func validateInt32(param string) (int32, error) {
 	i, err := strconv.ParseInt(param, 10, 32)
@@ -800,3 +785,4 @@ func (c *storageClient) TxVolumes(ctx context.Context, r *http.Request) (*apiTyp
 
 	return c.storage.TxVolumes(ctx, &p, &q)
 }
+*/
