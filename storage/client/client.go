@@ -183,9 +183,9 @@ func (c *StorageClient) Blocks(ctx context.Context, r apiTypes.GetConsensusBlock
 }
 
 // Block returns a consensus block. This endpoint is cached.
-func (c *StorageClient) Block(ctx context.Context, r *BlockRequest) (*Block, error) {
+func (c *StorageClient) Block(ctx context.Context, height int64) (*Block, error) {
 	// Check cache
-	untypedBlock, ok := c.blockCache.Get(*r.Height)
+	untypedBlock, ok := c.blockCache.Get(height)
 	if ok {
 		return untypedBlock.(*Block), nil
 	}
@@ -200,7 +200,7 @@ func (c *StorageClient) Block(ctx context.Context, r *BlockRequest) (*Block, err
 	if err := c.db.QueryRow(
 		ctx,
 		qf.BlockQuery(),
-		r.Height,
+		height,
 	).Scan(&b.Height, &b.Hash, &b.Timestamp); err != nil {
 		c.logger.Info("row scan failed",
 			"request_id", ctx.Value(common.RequestIDContextKey),

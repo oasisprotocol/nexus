@@ -58,7 +58,11 @@ func (srv *StrictServerImpl) GetConsensusBlocks(ctx context.Context, request api
 }
 
 func (srv *StrictServerImpl) GetConsensusBlocksHeight(ctx context.Context, request apiTypes.GetConsensusBlocksHeightRequestObject) (apiTypes.GetConsensusBlocksHeightResponseObject, error) {
-	return apiTypes.GetConsensusBlocksHeight200JSONResponse{}, nil
+	block, err := srv.client.Storage.Block(ctx, request.Height)
+	if err != nil {
+		return nil, err
+	}
+	return apiTypes.GetConsensusBlocksHeight200JSONResponse(*block), nil
 }
 
 func (srv *StrictServerImpl) GetConsensusEntities(ctx context.Context, request apiTypes.GetConsensusEntitiesRequestObject) (apiTypes.GetConsensusEntitiesResponseObject, error) {
