@@ -128,7 +128,7 @@ func (c *storageClient) Blocks(ctx context.Context, r *http.Request) (*apiTypes.
 		q.Before = &before
 	}
 
-	p, err := apiCommon.NewPagination(r)
+	_, err := apiCommon.NewPagination(r)
 	if err != nil {
 		c.logger.Info("pagination failed",
 			"request_id", ctx.Value(common.RequestIDContextKey),
@@ -137,7 +137,8 @@ func (c *storageClient) Blocks(ctx context.Context, r *http.Request) (*apiTypes.
 		return nil, apiCommon.ErrBadRequest
 	}
 
-	return c.Storage.Blocks(ctx, &q, &p)
+	//return c.Storage.Blocks(ctx, &q, &p)
+	return nil, fmt.Errorf("obsolete")
 }
 
 // Block returns a consensus block. This endpoint's responses are cached.

@@ -50,7 +50,11 @@ func (srv *StrictServerImpl) GetConsensusAccountsAddressDelegations(ctx context.
 }
 
 func (srv *StrictServerImpl) GetConsensusBlocks(ctx context.Context, request apiTypes.GetConsensusBlocksRequestObject) (apiTypes.GetConsensusBlocksResponseObject, error) {
-	return apiTypes.GetConsensusBlocks200JSONResponse{}, nil
+	blocks, err := srv.client.Storage.Blocks(ctx, request.Params)
+	if err != nil {
+		return nil, err
+	}
+	return apiTypes.GetConsensusBlocks200JSONResponse(*blocks), nil
 }
 
 func (srv *StrictServerImpl) GetConsensusBlocksHeight(ctx context.Context, request apiTypes.GetConsensusBlocksHeightRequestObject) (apiTypes.GetConsensusBlocksHeightResponseObject, error) {

@@ -136,7 +136,7 @@ func (c *StorageClient) Status(ctx context.Context) (*Status, error) {
 }
 
 // Blocks returns a list of consensus blocks.
-func (c *StorageClient) Blocks(ctx context.Context, r *BlocksRequest, p *apiCommon.Pagination) (*BlockList, error) {
+func (c *StorageClient) Blocks(ctx context.Context, r apiTypes.GetConsensusBlocksParams) (*BlockList, error) {
 	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
 	if !ok {
 		return nil, apiCommon.ErrBadChainID
@@ -150,8 +150,8 @@ func (c *StorageClient) Blocks(ctx context.Context, r *BlocksRequest, p *apiComm
 		r.To,
 		r.After,
 		r.Before,
-		p.Limit,
-		p.Offset,
+		r.Limit,
+		r.Offset,
 	)
 	if err != nil {
 		c.logger.Info("query failed",
