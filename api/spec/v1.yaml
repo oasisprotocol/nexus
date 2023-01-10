@@ -116,6 +116,13 @@ x-type-annotations:
     example: "1234567890123456789012"
     x-go-type: common.BigInt
     x-go-type-import: { name: common, path: "github.com/oasisprotocol/oasis-indexer/common" }
+  staking-address: &StakingAddressType
+    type: string
+    pattern: '^oasis1[a-z0-9]{40}$'
+    example: "oasis1qpg2xuz46g53737343r20yxeddhlvc2ldqsjh70p"
+    x-go-type: staking.Address
+    x-go-type-import: { name: staking, path: "github.com/oasisprotocol/oasis-core/go/staking/api" }
+    description: An oasis-style (bech32) address.
 
 paths:
   /:
@@ -215,9 +222,8 @@ paths:
         - in: query
           name: sender
           schema:
-            type: string
+            <<: *StakingAddressType
           description: A filter on transaction sender.
-          example: *staking_address_1
         - in: query
           name: rel
           schema:
@@ -310,12 +316,11 @@ paths:
         - in: query
           name: rel
           schema:
-            type: string
+            <<: *StakingAddressType
           description: |
             A filter on related accounts. Every returned event will refer to
             this account. For example, for a `Transfer` event, this will be the
             the sender or the recipient of tokens.
-          example: *staking_address_1
         - in: query
           name: type
           schema:
@@ -527,9 +532,8 @@ paths:
           name: address
           required: true
           schema:
-            type: string
+            <<: *StakingAddressType
           description: The staking address of the account to return.
-          example: *staking_address_1
       responses:
         '200':
           description: A JSON object containing a consensus layer account.
@@ -547,9 +551,8 @@ paths:
           name: address
           required: true
           schema:
-            type: string
+            <<: *StakingAddressType
           description: The staking address of the account that delegated.
-          example: *staking_address_1
       responses:
         '200':
           description: A JSON object containing a list of delegations.
@@ -567,9 +570,8 @@ paths:
           name: address
           required: true
           schema:
-            type: string
+            <<: *StakingAddressType
           description: The staking address of the account that delegated.
-          example: *staking_address_1
       responses:
         '200':
           description: A JSON object containing a list of debonding delegations.
@@ -624,9 +626,8 @@ paths:
         - in: query
           name: submitter
           schema:
-            type: string
+            <<: *StakingAddressType
           description: The submitter of the proposal.
-          example: *staking_address_1
         - in: query
           name: state
           schema:
@@ -747,7 +748,7 @@ paths:
         - in: query
           name: rel
           schema:
-            type: string
+            <<: *StakingAddressType
           # TODO: Implement autodetection of Eth addresses, get rid of last sentence.
           description: |
             A filter on related accounts. Every returned transaction will refer to
@@ -757,7 +758,6 @@ paths:
             best-effort basis. For example, it inspects ERC20 methods inside `evm.Call` txs.
             However, you must provide the oasis-style derived address here, not the Eth address.
             See `AddressPreimage` for more info on oasis-style vs Eth addresses.
-          example: *staking_address_1
       responses:
         '200':
           description: |

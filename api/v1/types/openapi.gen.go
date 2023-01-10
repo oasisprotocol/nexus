@@ -6,6 +6,7 @@ package types
 import (
 	"time"
 
+	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
 	common "github.com/oasisprotocol/oasis-indexer/common"
 )
 
@@ -765,7 +766,7 @@ type GetConsensusEventsParams struct {
 	// Rel A filter on related accounts. Every returned event will refer to
 	// this account. For example, for a `Transfer` event, this will be the
 	// the sender or the recipient of tokens.
-	Rel *string `form:"rel,omitempty" json:"rel,omitempty"`
+	Rel *staking.Address `form:"rel,omitempty" json:"rel,omitempty"`
 
 	// Type A filter on the event type.
 	Type *ConsensusEventType `form:"type,omitempty" json:"type,omitempty"`
@@ -780,7 +781,7 @@ type GetConsensusProposalsParams struct {
 	Offset *uint64 `form:"offset,omitempty" json:"offset,omitempty"`
 
 	// Submitter The submitter of the proposal.
-	Submitter *string `form:"submitter,omitempty" json:"submitter,omitempty"`
+	Submitter *staking.Address `form:"submitter,omitempty" json:"submitter,omitempty"`
 
 	// State The state of the proposal.
 	State *string `form:"state,omitempty" json:"state,omitempty"`
@@ -824,7 +825,7 @@ type GetConsensusTransactionsParams struct {
 	Method *ConsensusTxMethod `form:"method,omitempty" json:"method,omitempty"`
 
 	// Sender A filter on transaction sender.
-	Sender *string `form:"sender,omitempty" json:"sender,omitempty"`
+	Sender *staking.Address `form:"sender,omitempty" json:"sender,omitempty"`
 
 	// Rel A filter on related accounts.
 	Rel *string `form:"rel,omitempty" json:"rel,omitempty"`
@@ -896,5 +897,5 @@ type GetEmeraldTransactionsParams struct {
 	// best-effort basis. For example, it inspects ERC20 methods inside `evm.Call` txs.
 	// However, you must provide the oasis-style derived address here, not the Eth address.
 	// See `AddressPreimage` for more info on oasis-style vs Eth addresses.
-	Rel *string `form:"rel,omitempty" json:"rel,omitempty"`
+	Rel *staking.Address `form:"rel,omitempty" json:"rel,omitempty"`
 }
