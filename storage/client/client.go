@@ -392,7 +392,7 @@ func (c *StorageClient) Events(ctx context.Context, r *EventsRequest, p *apiComm
 }
 
 // Entities returns a list of registered entities.
-func (c *StorageClient) Entities(ctx context.Context, p *apiCommon.Pagination) (*EntityList, error) {
+func (c *StorageClient) Entities(ctx context.Context, p apiTypes.GetConsensusEntitiesParams) (*EntityList, error) {
 	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
 	if !ok {
 		return nil, apiCommon.ErrBadChainID
@@ -739,7 +739,7 @@ func (c *StorageClient) Account(ctx context.Context, r *AccountRequest) (*Accoun
 }
 
 // Delegations returns a list of delegations.
-func (c *StorageClient) Delegations(ctx context.Context, r *DelegationsRequest, p *apiCommon.Pagination) (*DelegationList, error) {
+func (c *StorageClient) Delegations(ctx context.Context, address staking.Address, p apiTypes.GetConsensusAccountsAddressDelegationsParams) (*DelegationList, error) {
 	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
 	if !ok {
 		return nil, apiCommon.ErrBadChainID
@@ -749,7 +749,7 @@ func (c *StorageClient) Delegations(ctx context.Context, r *DelegationsRequest, 
 	rows, err := c.db.Query(
 		ctx,
 		qf.DelegationsQuery(),
-		r.Address.String(),
+		address.String(),
 		p.Limit,
 		p.Offset,
 	)

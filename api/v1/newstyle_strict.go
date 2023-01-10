@@ -46,7 +46,11 @@ func (srv *StrictServerImpl) GetConsensusAccountsAddressDebondingDelegations(ctx
 }
 
 func (srv *StrictServerImpl) GetConsensusAccountsAddressDelegations(ctx context.Context, request apiTypes.GetConsensusAccountsAddressDelegationsRequestObject) (apiTypes.GetConsensusAccountsAddressDelegationsResponseObject, error) {
-	return apiTypes.GetConsensusAccountsAddressDelegations200JSONResponse{}, nil
+	delegations, err := srv.client.Storage.Delegations(ctx, request.Address, request.Params)
+	if err != nil {
+		return nil, err
+	}
+	return apiTypes.GetConsensusAccountsAddressDelegations200JSONResponse(*delegations), nil
 }
 
 func (srv *StrictServerImpl) GetConsensusBlocks(ctx context.Context, request apiTypes.GetConsensusBlocksRequestObject) (apiTypes.GetConsensusBlocksResponseObject, error) {
@@ -66,7 +70,11 @@ func (srv *StrictServerImpl) GetConsensusBlocksHeight(ctx context.Context, reque
 }
 
 func (srv *StrictServerImpl) GetConsensusEntities(ctx context.Context, request apiTypes.GetConsensusEntitiesRequestObject) (apiTypes.GetConsensusEntitiesResponseObject, error) {
-	return apiTypes.GetConsensusEntities200JSONResponse{}, nil
+	entities, err := srv.client.Storage.Entities(ctx, request.Params)
+	if err != nil {
+		return nil, err
+	}
+	return apiTypes.GetConsensusEntities200JSONResponse(*entities), nil
 }
 
 func (srv *StrictServerImpl) GetConsensusEntitiesEntityId(ctx context.Context, request apiTypes.GetConsensusEntitiesEntityIdRequestObject) (apiTypes.GetConsensusEntitiesEntityIdResponseObject, error) {
