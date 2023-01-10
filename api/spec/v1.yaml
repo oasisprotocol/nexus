@@ -123,6 +123,13 @@ x-type-annotations:
     x-go-type: staking.Address
     x-go-type-import: { name: staking, path: "github.com/oasisprotocol/oasis-core/go/staking/api" }
     description: An oasis-style (bech32) address.
+  pubkey: &Ed25519PubKeyType
+    type: string
+    format: byte  # means base64-encoded raw bytes
+    example: "lbxs4hlud9XNloIOdhJPaCahd7HtiY8QATCgGnFfCM0="
+    x-go-type: signature.PublicKey
+    x-go-type-import: { name: signature, path: "github.com/oasisprotocol/oasis-core/go/common/crypto/signature" }
+    description: A base64-encoded ed25519 public key.
 
 paths:
   /:
@@ -362,9 +369,8 @@ paths:
           name: entity_id
           required: true
           schema:
-            type: string
+            <<: *Ed25519PubKeyType
           description: The entity ID of the entity to return.
-          example: *entity_id_1
       responses:
         '200':
           description: |
@@ -386,10 +392,9 @@ paths:
           name: entity_id
           required: true
           schema:
-            type: string
+            <<: *Ed25519PubKeyType
           description: |
             The entity ID of the controlling entity of the nodes to return.
-          example: *entity_id_1
       responses:
         '200':
           description: |
@@ -408,7 +413,7 @@ paths:
           name: entity_id
           required: true
           schema:
-            type: string
+            <<: *Ed25519PubKeyType
           description: |
             The entity ID of the entity controlling the node to return.
           example: *entity_id_1
@@ -416,9 +421,8 @@ paths:
           name: node_id
           required: true
           schema:
-            type: string
+            <<: *Ed25519PubKeyType
           description: The node ID of the node to return.
-          example: *node_id_1
       responses:
         '200':
           description: |
@@ -454,9 +458,8 @@ paths:
           name: entity_id
           required: true
           schema:
-            type: string
+            <<: *Ed25519PubKeyType
           description: The entity ID of the entity to return.
-          example: *entity_id_1
       responses:
         '200':
           description: |
