@@ -240,17 +240,15 @@ paths:
         - in: query
           name: minFee
           schema:
-            type: integer
-            format: int64
+            <<: *BigIntType
           description: A filter on minimum transaction fee, inclusive.
-          example: 1000
+          example: "1000"
         - in: query
           name: maxFee
           schema:
-            type: integer
-            format: int64
+            <<: *BigIntType
           description: A filter on maximum transaction fee, inclusive.
-          example: 10000
+          example: "100000000000000000000000"
         - in: query
           name: code
           schema:

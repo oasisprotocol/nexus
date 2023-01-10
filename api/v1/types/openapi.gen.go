@@ -831,10 +831,10 @@ type GetConsensusTransactionsParams struct {
 	Rel *string `form:"rel,omitempty" json:"rel,omitempty"`
 
 	// MinFee A filter on minimum transaction fee, inclusive.
-	MinFee *int64 `form:"minFee,omitempty" json:"minFee,omitempty"`
+	MinFee *common.BigInt `form:"minFee,omitempty" json:"minFee,omitempty"`
 
 	// MaxFee A filter on maximum transaction fee, inclusive.
-	MaxFee *int64 `form:"maxFee,omitempty" json:"maxFee,omitempty"`
+	MaxFee *common.BigInt `form:"maxFee,omitempty" json:"maxFee,omitempty"`
 
 	// Code A filter on transaction status code.
 	Code *int `form:"code,omitempty" json:"code,omitempty"`
