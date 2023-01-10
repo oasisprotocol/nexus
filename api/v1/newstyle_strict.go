@@ -30,8 +30,6 @@ func (srv *StrictServerImpl) Get(ctx context.Context, request apiTypes.GetReques
 }
 
 func (srv *StrictServerImpl) GetConsensusAccounts(ctx context.Context, request apiTypes.GetConsensusAccountsRequestObject) (apiTypes.GetConsensusAccountsResponseObject, error) {
-	fixDefaultsAndLimits(&request.Params) // TODO: move into a middleware
-
 	accounts, err := srv.client.Storage.Accounts(ctx, request.Params)
 	if err != nil {
 		return nil, err

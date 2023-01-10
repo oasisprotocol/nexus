@@ -139,7 +139,9 @@ func (s *Service) Start() {
 
 	strictHandler := apiTypes.NewStrictHandlerWithOptions(
 		v1.NewStrictServerImpl(s.api.V1Handler.Client, s.logger),
-		[]apiTypes.StrictMiddlewareFunc{}, // th.StrictChainMiddleware not needed, beacuse we do middleware at a lower level
+		[]apiTypes.StrictMiddlewareFunc{
+			v1.FixDefaultsAndLimitsMiddleware,
+		},
 		apiTypes.StrictHTTPServerOptions{
 			// TODO: flesh these out
 			RequestErrorHandlerFunc: func(w http.ResponseWriter, r *http.Request, err error) {
