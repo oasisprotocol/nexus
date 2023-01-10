@@ -332,7 +332,7 @@ type NodeList struct {
 type Proposal struct {
 	// Cancels The proposal to cancel, if this proposal proposes
 	// cancelling an existing proposal.
-	Cancels int64 `json:"cancels"`
+	Cancels *int64 `json:"cancels,omitempty"`
 
 	// ClosesAt The epoch at which voting for this proposal will close.
 	ClosesAt int64 `json:"closes_at"`
@@ -362,7 +362,7 @@ type Proposal struct {
 	Submitter string `json:"submitter"`
 
 	// Target The target propotocol versions for this upgrade proposal.
-	Target ProposalTarget `json:"target"`
+	Target *ProposalTarget `json:"target,omitempty"`
 }
 
 // ProposalList A list of governance proposals.

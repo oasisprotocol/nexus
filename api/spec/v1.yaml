@@ -655,7 +655,7 @@ paths:
           required: true
           schema:
             type: integer
-            format: int64
+            format: uint64
           description: The unique identifier of the proposal to return.
           example: *proposal_id_1
       responses:
@@ -678,7 +678,7 @@ paths:
           required: true
           schema:
             type: integer
-            format: int64
+            format: uint64
           description: |
             The unique identifier of the proposal for which votes are returned.
           example: *proposal_id_1
@@ -1488,7 +1488,7 @@ components:
       # TODO: Revise required fields. Most fields are required for actual proposals, and only absent
       # for proposal cancellations (which instead have the `cancels` field). Split API and the DB into
       # two types/tables?
-      required: [id, submitter, state, deposit, target, cancels, created_at, closes_at, invalid_votes]
+      required: [id, submitter, state, deposit, created_at, closes_at, invalid_votes]
       properties:
         id:
           x-go-name: ID

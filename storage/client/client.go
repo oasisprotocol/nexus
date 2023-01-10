@@ -968,7 +968,7 @@ func (c *StorageClient) Proposals(ctx context.Context, r *ProposalsRequest, p *a
 		Proposals: []Proposal{},
 	}
 	for rows.Next() {
-		var p Proposal
+		p := Proposal{Target: &ProposalTarget{}}
 		var depositNum pgtype.Numeric
 		var invalidVotesNum pgtype.Numeric
 		if err := rows.Scan(
@@ -1016,7 +1016,7 @@ func (c *StorageClient) Proposal(ctx context.Context, r *ProposalRequest) (*Prop
 	}
 	qf := NewQueryFactory(cid, "" /* no runtime identifier for the consensus layer */)
 
-	var p Proposal
+	p := Proposal{Target: &ProposalTarget{}}
 	var depositNum pgtype.Numeric
 	var invalidVotesNum pgtype.Numeric
 	if err := c.db.QueryRow(
