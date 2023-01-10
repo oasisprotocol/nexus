@@ -85,6 +85,8 @@ func fixDefaultsAndLimits(p any) {
 				f.Set(reflect.ValueOf(&defaultLimit))
 			case "Offset":
 				f.Set(reflect.ValueOf(&defaultOffset))
+			case "BucketSizeSeconds":
+				f.Set(reflect.ValueOf(&defaultBucketSizeSeconds))
 			}
 		}
 	}

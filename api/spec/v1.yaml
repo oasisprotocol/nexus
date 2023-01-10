@@ -47,7 +47,7 @@ x-query-params:
     name: bucket_size_seconds
     schema:
       type: integer
-      format: int32
+      format: uint32
       default: 3600
     description: |
       The size of buckets into which the statistic is grouped, in seconds.

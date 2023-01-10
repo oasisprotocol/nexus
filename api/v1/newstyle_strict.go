@@ -114,7 +114,11 @@ func (srv *StrictServerImpl) GetConsensusProposalsProposalIdVotes(ctx context.Co
 }
 
 func (srv *StrictServerImpl) GetConsensusStatsTxVolume(ctx context.Context, request apiTypes.GetConsensusStatsTxVolumeRequestObject) (apiTypes.GetConsensusStatsTxVolumeResponseObject, error) {
-	return apiTypes.GetConsensusStatsTxVolume200JSONResponse{}, nil
+	volumeList, err := srv.client.Storage.TxVolumes(ctx, request.Params)
+	if err != nil {
+		return nil, err
+	}
+	return apiTypes.GetConsensusStatsTxVolume200JSONResponse(*volumeList), nil
 }
 
 func (srv *StrictServerImpl) GetConsensusTransactions(ctx context.Context, request apiTypes.GetConsensusTransactionsRequestObject) (apiTypes.GetConsensusTransactionsResponseObject, error) {
