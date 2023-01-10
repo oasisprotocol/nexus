@@ -3,6 +3,7 @@ package v1
 import (
 	"context"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -60,4 +61,26 @@ func (h *Handler) RuntimeMiddleware(runtime string) func(next http.Handler) http
 			))
 		})
 	}
+}
+
+func (h *Handler) RuntimeFromURLMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		path := strings.TrimPrefix(r.URL.Path, "/v1")
+
+		// The first part of the path (after the version) determines the runtime.
+		// Recognize only whitelisted runtimes.
+		runtime := ""
+		switch { //nolint:gocritic // allow single-case switch for future expansions
+		case strings.HasPrefix(path, "/emerald/"):
+			runtime = "emerald"
+		}
+
+		if runtime != "" {
+			next.ServeHTTP(w, r.WithContext(
+				context.WithValue(r.Context(), common.RuntimeContextKey, runtime),
+			))
+		} else {
+			next.ServeHTTP(w, r)
+		}
+	})
 }

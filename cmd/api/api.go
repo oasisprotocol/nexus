@@ -123,6 +123,9 @@ func (s *Service) Start() {
 		func(next http.Handler) http.Handler {
 			return th.MetricsMiddleware(next)
 		},
+		func(next http.Handler) http.Handler {
+			return th.RuntimeFromURLMiddleware(next)
+		},
 	}
 
 	experimentalHandler := apiTypes.HandlerWithOptions(&v1.Foo{}, apiTypes.ChiServerOptions{
