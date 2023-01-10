@@ -1262,7 +1262,7 @@ func (c *StorageClient) Validator(ctx context.Context, entityID signature.Public
 }
 
 // RuntimeBlocks returns a list of runtime blocks.
-func (c *StorageClient) RuntimeBlocks(ctx context.Context, r *RuntimeBlocksRequest, p *apiCommon.Pagination) (*RuntimeBlockList, error) {
+func (c *StorageClient) RuntimeBlocks(ctx context.Context, p apiTypes.GetEmeraldBlocksParams) (*RuntimeBlockList, error) {
 	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
 	if !ok {
 		return nil, apiCommon.ErrBadChainID
@@ -1276,10 +1276,10 @@ func (c *StorageClient) RuntimeBlocks(ctx context.Context, r *RuntimeBlocksReque
 	rows, err := c.db.Query(
 		ctx,
 		qf.RuntimeBlocksQuery(),
-		r.From,
-		r.To,
-		r.After,
-		r.Before,
+		p.From,
+		p.To,
+		p.After,
+		p.Before,
 		p.Limit,
 		p.Offset,
 	)
@@ -1313,7 +1313,7 @@ func (c *StorageClient) RuntimeBlocks(ctx context.Context, r *RuntimeBlocksReque
 }
 
 // RuntimeTransactions returns a list of runtime transactions.
-func (c *StorageClient) RuntimeTransactions(ctx context.Context, r *RuntimeTransactionsRequest, p *apiCommon.Pagination) (*RuntimeTransactionList, error) {
+func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetEmeraldTransactionsParams) (*RuntimeTransactionList, error) {
 	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
 	if !ok {
 		return nil, apiCommon.ErrBadChainID
@@ -1327,7 +1327,7 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, r *RuntimeTrans
 	rows, err := c.db.Query(
 		ctx,
 		qf.RuntimeTransactionsQuery(),
-		r.Block,
+		p.Block,
 		p.Limit,
 		p.Offset,
 	)
@@ -1366,7 +1366,7 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, r *RuntimeTrans
 	return &ts, nil
 }
 
-func (c *StorageClient) RuntimeTokens(ctx context.Context, r *RuntimeTokensRequest, p *apiCommon.Pagination) (*RuntimeTokenList, error) {
+func (c *StorageClient) RuntimeTokens(ctx context.Context, p apiTypes.GetEmeraldTokensParams) (*RuntimeTokenList, error) {
 	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
 	if !ok {
 		return nil, apiCommon.ErrBadChainID

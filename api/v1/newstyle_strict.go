@@ -202,13 +202,36 @@ func (srv *StrictServerImpl) GetConsensusValidatorsEntityId(ctx context.Context,
 }
 
 func (srv *StrictServerImpl) GetEmeraldBlocks(ctx context.Context, request apiTypes.GetEmeraldBlocksRequestObject) (apiTypes.GetEmeraldBlocksResponseObject, error) {
-	return apiTypes.GetEmeraldBlocks200JSONResponse{}, nil
+	blocks, err := srv.client.Storage.RuntimeBlocks(ctx, request.Params)
+	if err != nil {
+		return nil, err
+	}
+	return apiTypes.GetEmeraldBlocks200JSONResponse(*blocks), nil
 }
 
 func (srv *StrictServerImpl) GetEmeraldTokens(ctx context.Context, request apiTypes.GetEmeraldTokensRequestObject) (apiTypes.GetEmeraldTokensResponseObject, error) {
-	return apiTypes.GetEmeraldTokens200JSONResponse{}, nil
+	tokens, err := srv.client.Storage.RuntimeTokens(ctx, request.Params)
+	if err != nil {
+		return nil, err
+	}
+	return apiTypes.GetEmeraldTokens200JSONResponse(*tokens), nil
 }
 
 func (srv *StrictServerImpl) GetEmeraldTransactions(ctx context.Context, request apiTypes.GetEmeraldTransactionsRequestObject) (apiTypes.GetEmeraldTransactionsResponseObject, error) {
-	return apiTypes.GetEmeraldTransactions200JSONResponse{}, nil
+	storageTransactions, err := srv.client.Storage.RuntimeTransactions(ctx, request.Params)
+	if err != nil {
+		return nil, err
+	}
+
+	// Perform additional tx body parsing on the fly; DB stores only partially-parsed txs..
+	var apiTransactions apiTypes.RuntimeTransactionList
+	for _, storageTransaction := range storageTransactions.Transactions {
+		apiTransaction, err2 := renderRuntimeTransaction(storageTransaction)
+		if err2 != nil {
+			return nil, fmt.Errorf("round %d tx %d: %w", storageTransaction.Round, storageTransaction.Index, err2)
+		}
+		apiTransactions.Transactions = append(apiTransactions.Transactions, apiTransaction)
+	}
+
+	return apiTypes.GetEmeraldTransactions200JSONResponse(apiTransactions), nil
 }
