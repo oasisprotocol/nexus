@@ -850,16 +850,12 @@ func (c *StorageClient) Epochs(ctx context.Context, p *apiCommon.Pagination) (*E
 	}
 	for rows.Next() {
 		var e Epoch
-		var endHeight *uint64
-		if err := rows.Scan(&e.ID, &e.StartHeight, &endHeight); err != nil {
+		if err := rows.Scan(&e.ID, &e.StartHeight, &e.EndHeight); err != nil {
 			c.logger.Info("row scan failed",
 				"request_id", ctx.Value(common.RequestIDContextKey),
 				"err", err.Error(),
 			)
 			return nil, apiCommon.ErrStorageError
-		}
-		if endHeight != nil {
-			e.EndHeight = *endHeight
 		}
 
 		es.Epochs = append(es.Epochs, e)

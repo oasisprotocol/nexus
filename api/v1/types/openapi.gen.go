@@ -274,8 +274,8 @@ type EntityList struct {
 
 // Epoch A consensus epoch.
 type Epoch struct {
-	// EndHeight The (inclusive) height at which this epoch ended.
-	EndHeight uint64 `json:"end_height"`
+	// EndHeight The (inclusive) height at which this epoch ended. Omitted if the epoch is still active.
+	EndHeight *uint64 `json:"end_height,omitempty"`
 
 	// Id The epoch number.
 	ID int64 `json:"id"`
