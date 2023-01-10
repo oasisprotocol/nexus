@@ -1425,7 +1425,7 @@ components:
 
     Epoch:
       type: object
-      required: [id, start_height, end_height]
+      required: [id, start_height]
       properties:
         id:
           x-go-name: ID
@@ -1441,7 +1441,7 @@ components:
         end_height:
           type: integer
           format: uint64
-          description: The (inclusive) height at which this epoch ended.
+          description: The (inclusive) height at which this epoch ended. Omitted if the epoch is still active.
           example: *block_height_2
       description: |
         A consensus epoch.
