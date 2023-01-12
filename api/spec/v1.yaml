@@ -1063,7 +1063,7 @@ components:
 
     ConsensusEvent:
       type: object
-      required: [block, tx_index, tx_hash, body]
+      required: [height, type, body]
       properties:
         height:
           type: integer
@@ -1088,7 +1088,8 @@ components:
         type:
           type: string
           description: The type of the event. 
-          enum: *consensus_event_types
+          schema:
+            $ref: '#/components/schemas/ConsensusEventType'
           example: *event_type_1
         body:
           type: object
