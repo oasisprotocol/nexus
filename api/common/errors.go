@@ -1,9 +1,7 @@
 package common
 
 import (
-	"encoding/json"
 	"errors"
-	"net/http"
 )
 
 var (
@@ -20,35 +18,3 @@ var (
 	// from an internal error.
 	ErrStorageError = errors.New("internal storage error")
 )
-
-// ErrorResponse is a JSON error.
-type ErrorResponse struct {
-	Msg string `json:"msg"`
-}
-
-// ReplyWithError replies to an HTTP request with an error
-// as JSON.
-func ReplyWithError(w http.ResponseWriter, err error) error {
-	var response ErrorResponse
-	var code int
-	switch err {
-	case ErrBadRequest:
-		response = ErrorResponse{err.Error()}
-		code = http.StatusBadRequest
-	case ErrBadChainID:
-		response = ErrorResponse{err.Error()}
-		code = http.StatusNotFound
-	case ErrStorageError:
-		response = ErrorResponse{err.Error()}
-		code = http.StatusInternalServerError
-	default:
-		response = ErrorResponse{err.Error()}
-		code = http.StatusInternalServerError
-	}
-
-	w.Header().Set("content-type", "application/json; charset=utf-8")
-	w.Header().Set("x-content-type-options", "nosniff")
-	w.WriteHeader(code)
-
-	return json.NewEncoder(w).Encode(response)
-}

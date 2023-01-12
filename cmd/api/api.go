@@ -2,6 +2,7 @@
 package api
 
 import (
+	"encoding/json"
 	"net/http"
 	"os"
 	"time"
@@ -145,10 +146,14 @@ func (s *Service) Start() {
 		apiTypes.StrictHTTPServerOptions{
 			// TODO: flesh these out
 			RequestErrorHandlerFunc: func(w http.ResponseWriter, r *http.Request, err error) {
-				http.Error(w, err.Error(), http.StatusBadRequest)
+				msg := err.Error()
+				jsonErr, _ := json.Marshal(apiTypes.HumanReadableError{Msg: msg})
+				http.Error(w, string(jsonErr), http.StatusInternalServerError)
 			},
 			ResponseErrorHandlerFunc: func(w http.ResponseWriter, r *http.Request, err error) {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
+				msg := err.Error()
+				jsonErr, _ := json.Marshal(apiTypes.HumanReadableError{Msg: msg})
+				http.Error(w, string(jsonErr), http.StatusInternalServerError)
 			},
 		},
 	)

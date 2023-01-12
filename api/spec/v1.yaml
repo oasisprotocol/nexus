@@ -92,20 +92,15 @@ x-examples:
     - &iso_timestamp_3 '2022-10-15T00:05:34Z'
 
 x-err-responses:
-  base-error: &base_error_response
-    content:
-      application/json:
-        schema:
-          $ref: '#/components/schemas/ApiError'
   common-errors: &common_error_responses
     '400':
-      <<: *base_error_response
+      $ref: '#/components/responses/HumanReadableError'
       description: Invalid request.
     '404':
-      <<: *base_error_response
+      $ref: '#/components/responses/NotFoundError'
       description: The requested resource was not found.
     '500':
-      <<: *base_error_response
+      $ref: '#/components/responses/HumanReadableError'
       description: A server error occurred.
 
 x-type-annotations:
@@ -808,14 +803,6 @@ paths:
 
 components:
   schemas:
-    ApiError:
-      type: object
-      properties:
-        msg:
-          type: string
-          description: An error message.
-          example: 'internal storage error'
-
     Status:
       type: object
       required: [latest_chain_id, latest_block, latest_update]
@@ -1805,21 +1792,20 @@ components:
           example: 420
 
   responses:
-    InvalidRequest:
-      description: Invalid request.
+    HumanReadableError:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ApiError'
-    NotFound:
-      description: No results found.
+            type: object
+            required: [msg]
+            properties:
+              msg:
+                type: string
+                description: An error message.
+                example: 'internal storage error'
+      description: "A human-readable error message."
+    NotFoundError:
+      description: An empty response indicating that the requested resource was not found.
       content:
         application/json:
-          schema:
-            $ref: '#/components/schemas/ApiError'
-    ServerError:
-      description: A server error occurred.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ApiError'
+          schema: {}
