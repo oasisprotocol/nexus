@@ -24,6 +24,7 @@ import (
 
 	"github.com/oasisprotocol/oasis-indexer/analyzer"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/util"
+	apiTypes "github.com/oasisprotocol/oasis-indexer/api/v1/types"
 	"github.com/oasisprotocol/oasis-indexer/config"
 	"github.com/oasisprotocol/oasis-indexer/log"
 	"github.com/oasisprotocol/oasis-indexer/metrics"
@@ -34,6 +35,8 @@ import (
 const (
 	ConsensusDamaskAnalyzerName = "consensus_damask"
 )
+
+type EventType = apiTypes.ConsensusEventType // alias for brevity
 
 // Main is the main Analyzer for the consensus layer.
 type Main struct {
@@ -462,7 +465,7 @@ func (m *Main) queueTxEventInserts(batch *storage.QueryBatch, data *storage.Cons
 			}
 
 			batch.Queue(eventInsertQuery,
-				ty.String(),
+				string(ty),
 				string(body),
 				data.BlockHeader.Height, // TODO: Is there a reason this isn't data.Height?
 				data.Transactions[i].Hash().Hex(),
@@ -479,7 +482,7 @@ func (m *Main) queueTxEventInserts(batch *storage.QueryBatch, data *storage.Cons
 					data.Height,
 					i,
 					data.Transactions[i].Hash().Hex(),
-					ty.String(),
+					string(ty),
 					string(body),
 				)
 			}
@@ -611,7 +614,7 @@ func (m *Main) queueRegistryEventInserts(batch *storage.QueryBatch, data *storag
 		}
 
 		batch.Queue(eventInsertQuery,
-			ty.String(),
+			string(ty),
 			string(body),
 			data.Height,
 			hash,
@@ -624,7 +627,7 @@ func (m *Main) queueRegistryEventInserts(batch *storage.QueryBatch, data *storag
 				data.Height,
 				nil,
 				nil,
-				ty.String(),
+				string(ty),
 				string(body),
 			)
 		}
@@ -649,7 +652,7 @@ func (m *Main) queueRootHashEventInserts(batch *storage.QueryBatch, data *storag
 		}
 
 		batch.Queue(eventInsertQuery,
-			ty.String(),
+			string(ty),
 			string(body),
 			data.Height,
 			hash,
@@ -662,7 +665,7 @@ func (m *Main) queueRootHashEventInserts(batch *storage.QueryBatch, data *storag
 				data.Height,
 				nil,
 				nil,
-				ty.String(),
+				string(ty),
 				string(body),
 			)
 		}
@@ -858,7 +861,7 @@ func (m *Main) queueStakingEventInserts(batch *storage.QueryBatch, data *storage
 		}
 
 		batch.Queue(eventInsertQuery,
-			ty.String(),
+			string(ty),
 			string(body),
 			data.Height,
 			hash,
@@ -871,7 +874,7 @@ func (m *Main) queueStakingEventInserts(batch *storage.QueryBatch, data *storage
 				data.Height,
 				nil,
 				nil,
-				ty.String(),
+				string(ty),
 				string(body),
 			)
 		}
@@ -1011,7 +1014,7 @@ func (m *Main) queueGovernanceEventInserts(batch *storage.QueryBatch, data *stor
 		}
 
 		batch.Queue(eventInsertQuery,
-			ty.String(),
+			string(ty),
 			string(body),
 			data.Height,
 			hash,
@@ -1024,7 +1027,7 @@ func (m *Main) queueGovernanceEventInserts(batch *storage.QueryBatch, data *stor
 				data.Height,
 				nil,
 				nil,
-				ty.String(),
+				string(ty),
 				string(body),
 			)
 		}
@@ -1034,7 +1037,7 @@ func (m *Main) queueGovernanceEventInserts(batch *storage.QueryBatch, data *stor
 }
 
 // extractEventData extracts the type of an event.
-func extractEventData(event *results.Event) (analyzer.Event, []byte, []*staking.Address, error) {
+func extractEventData(event *results.Event) (EventType, []byte, []*staking.Address, error) {
 	switch e := event; {
 	case e.Staking != nil:
 		return extractStakingEvent(event.Staking)
@@ -1046,27 +1049,27 @@ func extractEventData(event *results.Event) (analyzer.Event, []byte, []*staking.
 		return extractGovernanceEvent(event.Governance)
 	}
 
-	return analyzer.EventUnknown, []byte{}, []*staking.Address{}, errors.New("unknown event type")
+	return EventType("unknown"), []byte{}, []*staking.Address{}, errors.New("unknown event type")
 }
 
-func extractGovernanceEvent(event *governance.Event) (analyzer.Event, []byte, []*staking.Address, error) {
-	var ty analyzer.Event
+func extractGovernanceEvent(event *governance.Event) (EventType, []byte, []*staking.Address, error) {
+	var ty EventType
 	var body []byte
 	var accounts []*staking.Address
 	var err error
 	switch event := event; {
 	case event.ProposalSubmitted != nil:
-		ty = analyzer.EventGovernanceProposalSubmitted
+		ty = apiTypes.ConsensusEventTypeGovernanceProposalSubmitted
 		body, err = json.Marshal(event.ProposalSubmitted)
 		accounts = append(accounts, &event.ProposalSubmitted.Submitter)
 	case event.ProposalExecuted != nil:
-		ty = analyzer.EventGovernanceProposalExecuted
+		ty = apiTypes.ConsensusEventTypeGovernanceProposalExecuted
 		body, err = json.Marshal(event.ProposalExecuted)
 	case event.ProposalFinalized != nil:
-		ty = analyzer.EventGovernanceProposalExecuted
+		ty = apiTypes.ConsensusEventTypeGovernanceProposalExecuted
 		body, err = json.Marshal(event.ProposalFinalized)
 	case event.Vote != nil:
-		ty = analyzer.EventGovernanceVote
+		ty = apiTypes.ConsensusEventTypeGovernanceVote
 		body, err = json.Marshal(event.Vote)
 		accounts = append(accounts, &event.Vote.Submitter)
 	default:
@@ -1075,22 +1078,22 @@ func extractGovernanceEvent(event *governance.Event) (analyzer.Event, []byte, []
 	return ty, body, accounts, err
 }
 
-func extractRootHashEvent(event *roothash.Event) (analyzer.Event, []byte, []*staking.Address, error) {
-	var ty analyzer.Event
+func extractRootHashEvent(event *roothash.Event) (EventType, []byte, []*staking.Address, error) {
+	var ty EventType
 	var body []byte
 	var accounts []*staking.Address
 	var err error
 	switch event := event; {
 	case event.ExecutorCommitted != nil:
-		ty = analyzer.EventRoothashExecutorCommitted
+		ty = apiTypes.ConsensusEventTypeRoothashExecutorCommitted
 		nodeAddr := staking.NewAddress(event.ExecutorCommitted.Commit.NodeID)
 		body, err = json.Marshal(event.ExecutorCommitted)
 		accounts = append(accounts, &nodeAddr)
 	case event.ExecutionDiscrepancyDetected != nil:
-		ty = analyzer.EventRoothashExecutionDiscrepancyDetected
+		ty = apiTypes.ConsensusEventTypeRoothashExecutionDiscrepancy
 		body, err = json.Marshal(event.ExecutionDiscrepancyDetected)
 	case event.Finalized != nil:
-		ty = analyzer.EventRoothashFinalized
+		ty = apiTypes.ConsensusEventTypeRoothashFinalized
 		body, err = json.Marshal(event.Finalized)
 	default:
 		err = fmt.Errorf("unsupported registry event type: %#v", event)
@@ -1098,17 +1101,17 @@ func extractRootHashEvent(event *roothash.Event) (analyzer.Event, []byte, []*sta
 	return ty, body, accounts, err
 }
 
-func extractRegistryEvent(event *registry.Event) (analyzer.Event, []byte, []*staking.Address, error) {
-	var ty analyzer.Event
+func extractRegistryEvent(event *registry.Event) (EventType, []byte, []*staking.Address, error) {
+	var ty EventType
 	var body []byte
 	var accounts []*staking.Address
 	var err error
 	switch event := event; {
 	case event.RuntimeEvent != nil:
-		ty = analyzer.EventRegistryRuntime
+		ty = apiTypes.ConsensusEventTypeRegistryRuntime
 		body, err = json.Marshal(event.RuntimeEvent)
 	case event.EntityEvent != nil:
-		ty = analyzer.EventRegistryEntity
+		ty = apiTypes.ConsensusEventTypeRegistryEntity
 		body, err = json.Marshal(event.EntityEvent)
 		addr := staking.NewAddress(event.EntityEvent.Entity.ID)
 		accounts = append(accounts, &addr)
@@ -1117,13 +1120,13 @@ func extractRegistryEvent(event *registry.Event) (analyzer.Event, []byte, []*sta
 			accounts = append(accounts, &nodeAddr)
 		}
 	case event.NodeEvent != nil:
-		ty = analyzer.EventRegistryNode
+		ty = apiTypes.ConsensusEventTypeRegistryNode
 		body, err = json.Marshal(event.NodeEvent)
 		nodeAddr := staking.NewAddress(event.NodeEvent.Node.EntityID)
 		entityAddr := staking.NewAddress(event.NodeEvent.Node.ID)
 		accounts = append(accounts, &nodeAddr, &entityAddr)
 	case event.NodeUnfrozenEvent != nil:
-		ty = analyzer.EventRegistryNodeUnfrozen
+		ty = apiTypes.ConsensusEventTypeRegistryNodeUnfrozen
 		body, err = json.Marshal(event.NodeUnfrozenEvent)
 		nodeAddr := staking.NewAddress(event.NodeUnfrozenEvent.NodeID)
 		accounts = append(accounts, &nodeAddr)
@@ -1133,41 +1136,41 @@ func extractRegistryEvent(event *registry.Event) (analyzer.Event, []byte, []*sta
 	return ty, body, accounts, err
 }
 
-func extractStakingEvent(event *staking.Event) (analyzer.Event, []byte, []*staking.Address, error) {
-	var ty analyzer.Event
+func extractStakingEvent(event *staking.Event) (EventType, []byte, []*staking.Address, error) {
+	var ty EventType
 	var body []byte
 	var accounts []*staking.Address
 	var err error
 	switch event := event; {
 	case event.Transfer != nil:
-		ty = analyzer.EventStakingTransfer
+		ty = apiTypes.ConsensusEventTypeStakingTransfer
 		body, err = json.Marshal(event.Transfer)
 		accounts = append(accounts, &event.Transfer.From, &event.Transfer.To)
 	case event.Burn != nil:
-		ty = analyzer.EventStakingBurn
+		ty = apiTypes.ConsensusEventTypeStakingBurn
 		body, err = json.Marshal(event.Burn)
 		accounts = append(accounts, &event.Burn.Owner)
 	case event.Escrow != nil:
 		switch t := event.Escrow; {
 		case t.Add != nil:
-			ty = analyzer.EventStakingAddEscrow
+			ty = apiTypes.ConsensusEventTypeStakingEscrowAdd
 			body, err = json.Marshal(event.Escrow.Add)
 			accounts = append(accounts, &t.Add.Owner, &t.Add.Escrow)
 		case t.Take != nil:
-			ty = analyzer.EventStakingTakeEscrow
+			ty = apiTypes.ConsensusEventTypeStakingEscrowTake
 			body, err = json.Marshal(event.Escrow.Take)
 			accounts = append(accounts, &t.Take.Owner)
 		case t.DebondingStart != nil:
-			ty = analyzer.EventStakingDebondingStart
+			ty = apiTypes.ConsensusEventTypeStakingEscrowDebondingStart
 			body, err = json.Marshal(event.Escrow.DebondingStart)
 			accounts = append(accounts, &t.DebondingStart.Owner, &t.DebondingStart.Escrow)
 		case t.Reclaim != nil:
-			ty = analyzer.EventStakingReclaimEscrow
+			ty = apiTypes.ConsensusEventTypeStakingEscrowReclaim
 			body, err = json.Marshal(event.Escrow.Reclaim)
 			accounts = append(accounts, &t.Reclaim.Owner, &t.Reclaim.Escrow)
 		}
 	case event.AllowanceChange != nil:
-		ty = analyzer.EventStakingAllowanceChange
+		ty = apiTypes.ConsensusEventTypeStakingAllowanceChange
 		body, err = json.Marshal(event.AllowanceChange)
 		accounts = append(accounts, &event.AllowanceChange.Owner, &event.AllowanceChange.Beneficiary)
 	default:
