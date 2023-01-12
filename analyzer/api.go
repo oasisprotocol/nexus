@@ -160,46 +160,53 @@ const (
 
 // String returns the string representation of an Event.
 func (e *Event) String() string {
-	switch *e {
-	case EventStakingTransfer:
-		return "staking.transfer"
-	case EventStakingBurn:
-		return "staking.burn"
-	case EventStakingAddEscrow:
-		return "staking.escrow.add"
-	case EventStakingTakeEscrow:
-		return "staking.escrow.take"
-	case EventStakingDebondingStart:
-		return "staking.escrow.debonding_start"
-	case EventStakingReclaimEscrow:
-		return "staking.escrow.reclaim"
-	case EventStakingAllowanceChange:
-		return "staking.allowance_change"
-	case EventRegistryRuntime:
-		return "registry.runtime"
-	case EventRegistryEntity:
-		return "registry.entity"
-	case EventRegistryNode:
-		return "registry.node"
-	case EventRegistryNodeUnfrozen:
-		return "registry.node_unfrozen"
-	case EventRoothashExecutorCommitted:
-		return "roothash.executor_committed"
-	case EventRoothashExecutionDiscrepancyDetected:
-		return "roothash.execution_discrepancy_detected"
-	case EventRoothashFinalized:
-		return "roothash.finalized"
-	case EventGovernanceProposalSubmitted:
-		return "governance.proposal_submitted"
-	case EventGovernanceProposalExecuted:
-		return "governance.proposal_executed"
-	case EventGovernanceProposalFinalized:
-		return "governance.proposal_finalized"
-	case EventGovernanceVote:
-		return "governance.vote"
-	default:
-		return "unknown"
+	name, ok := EventToString[*e]
+	if ok {
+		return name
 	}
+	return "unknown"
+}
+
+var EventToString map[Event]string = map[Event]string{
+	EventStakingTransfer:                      "staking.transfer",
+	EventStakingBurn:                          "staking.burn",
+	EventStakingAddEscrow:                     "staking.escrow.add",
+	EventStakingTakeEscrow:                    "staking.escrow.take",
+	EventStakingDebondingStart:                "staking.escrow.debonding_start",
+	EventStakingReclaimEscrow:                 "staking.escrow.reclaim",
+	EventStakingAllowanceChange:               "staking.allowance_change",
+	EventRegistryRuntime:                      "registry.runtime",
+	EventRegistryEntity:                       "registry.entity",
+	EventRegistryNode:                         "registry.node",
+	EventRegistryNodeUnfrozen:                 "registry.node_unfrozen",
+	EventRoothashExecutorCommitted:            "roothash.executor_committed",
+	EventRoothashExecutionDiscrepancyDetected: "roothash.execution_discrepancy_detected",
+	EventRoothashFinalized:                    "roothash.finalized",
+	EventGovernanceProposalSubmitted:          "governance.proposal_submitted",
+	EventGovernanceProposalExecuted:           "governance.proposal_executed",
+	EventGovernanceProposalFinalized:          "governance.proposal_finalized",
+	EventGovernanceVote:                       "governance.vote",
+}
+
+var StringToEvent map[string]Event = map[string]Event{
+	"staking.transfer":                        EventStakingTransfer,
+	"staking.burn":                            EventStakingBurn,
+	"staking.escrow.add":                      EventStakingAddEscrow,
+	"staking.escrow.take":                     EventStakingTakeEscrow,
+	"staking.escrow.debonding_start":          EventStakingDebondingStart,
+	"staking.escrow.reclaim":                  EventStakingReclaimEscrow,
+	"staking.allowance_change":                EventStakingAllowanceChange,
+	"registry.runtime":                        EventRegistryRuntime,
+	"registry.entity":                         EventRegistryEntity,
+	"registry.node":                           EventRegistryNode,
+	"registry.node_unfrozen":                  EventRegistryNodeUnfrozen,
+	"roothash.executor_committed":             EventRoothashExecutorCommitted,
+	"roothash.execution_discrepancy_detected": EventRoothashExecutionDiscrepancyDetected,
+	"roothash.finalized":                      EventRoothashFinalized,
+	"governance.proposal_submitted":           EventGovernanceProposalSubmitted,
+	"governance.proposal_executed":            EventGovernanceProposalExecuted,
+	"governance.proposal_finalized":           EventGovernanceProposalFinalized,
+	"governance.vote":                         EventGovernanceVote,
 }
 
 // ChainID is the ID of a chain.

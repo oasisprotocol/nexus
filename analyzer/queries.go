@@ -93,6 +93,18 @@ func (qf QueryFactory) ConsensusEventInsertQuery() string {
 			VALUES ($1, $2, $3, $4, $5)`, qf.chainID)
 }
 
+func (qf QueryFactory) ConsensusAccountRelatedTransactionInsertQuery() string {
+	return fmt.Sprintf(`
+	    INSERT INTO %s.accounts_related_transactions (account_address, tx_block, tx_index)
+		    VALUES ($1, $2, $3)`, qf.chainID)
+}
+
+func (qf QueryFactory) ConsensusAccountRelatedEventInsertQuery() string {
+	return fmt.Sprintf(`
+		INSERT INTO %s.accounts_related_events (account_address, event_block, tx_index, tx_hash, type, body)
+		    VALUES ($1, $2, $3, $4, $5, $6)`, qf.chainID)
+}
+
 func (qf QueryFactory) ConsensusRuntimeUpsertQuery() string {
 	return fmt.Sprintf(`
 		INSERT INTO %s.runtimes (id, suspended, kind, tee_hardware, key_manager)
