@@ -4,7 +4,8 @@ WORKDIR /code/go
 
 COPY . ./
 
-RUN go mod download && \
+RUN go codegen-go && \
+    go mod download && \
     go build
 
 ############

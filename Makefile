@@ -12,12 +12,15 @@ build:
 	@$(MAKE) docker
 	@$(ECHO) "$(CYAN)*** Everything built successfully!$(OFF)"
 
-oasis-indexer:
-	@# Generate Go types from the openapi spec.
-	@# To install the tool, run:
-	@#   go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen@v1.12 
+# Generate Go types from the openapi spec.
+# To install the tool, run:
+#   go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen@v1.12
+codegen-go:
+	mkdir -p api/v1/types  # for hosting codegenerated code
 	oapi-codegen -generate types                    -package types api/spec/v1.yaml >api/v1/types/openapi.gen.go
 	oapi-codegen -generate chi-server,strict-server -package types api/spec/v1.yaml >api/v1/types/server.gen.go
+
+oasis-indexer: codegen-go
 	$(GO) build $(GOFLAGS) $(GO_EXTRA_FLAGS)
 
 docker:
@@ -62,7 +65,7 @@ fmt:
 # Lint code, commits and documentation.
 lint-targets := lint-go lint-go-mod-tidy
 
-lint-go:
+lint-go: codegen-go
 	@$(ECHO) "$(CYAN)*** Running Go linters...$(OFF)"
 	@env -u GOPATH golangci-lint run
 
@@ -117,6 +120,7 @@ release-build:
 # List of targets that are not actual files.
 .PHONY: \
 	all build \
+	codegen-go \
 	oasis-indexer \
 	docker \
 	clean \
