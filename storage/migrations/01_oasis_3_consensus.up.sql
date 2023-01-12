@@ -35,7 +35,7 @@ CREATE TABLE oasis_3.blocks
 
 CREATE TABLE oasis_3.transactions
 (
-  block UINT63 NOT NULL REFERENCES oasis_3.blocks(height) DEFERRABLE INITIALLY DEFERRED,
+  block UINT63 NOT NULL REFERENCES oasis_3.blocks(height) DEFERRABLE INITIALLY DEFERRED, -- TODO: rename to height
   tx_index  UINT31 NOT NULL,
   
   tx_hash   HEX64 NOT NULL,
@@ -61,14 +61,14 @@ CREATE INDEX ix_transactions_sender ON oasis_3.transactions (sender);
 
 CREATE TABLE oasis_3.events
 (
-  tx_block  UINT63 NOT NULL,
+  tx_block UINT63 NOT NULL, -- TODO: rename to height
   tx_index  UINT31,
 
   type    TEXT NOT NULL,  -- Enum with many values, see https://github.com/oasisprotocol/oasis-indexer/blob/89b68717205809b491d7926533d096444611bd6b/analyzer/api.go#L171-L171
   body    JSON,
   tx_hash   HEX64, -- could be fetched from `transactions` table; denormalized for efficiency
 
-  FOREIGN KEY (tx_block, tx_index) REFERENCES oasis_3.transactions(block, tx_index) DEFERRABLE INITIALLY DEFERRED
+  FOREIGN KEY (tx_block, tx_index) REFERENCES oasis_3.transactions(block, tx_index) DEFERRABLE INITIALLY DEFERRED -- TODO: After 188, tx_index may be null, Will that violate this fkey constraint
 );
 
 -- Beacon Backend Data
@@ -250,6 +250,30 @@ CREATE TABLE oasis_3.votes
 
   PRIMARY KEY (proposal, voter)
 );
+
+-- Related Accounts Data
+
+CREATE TABLE oasis_3.accounts_related_transactions
+(
+  account_address oasis_addr NOT NULL,
+  tx_block UINT63 NOT NULL,
+  tx_index UINT31 NOT NULL,
+  FOREIGN KEY (tx_block, tx_index) REFERENCES oasis_3.transactions(block, tx_index) DEFERRABLE INITIALLY DEFERRED
+);
+CREATE INDEX ix_accounts_related_transactions_address_block_index ON oasis_3.accounts_related_transactions (account_address, tx_block, tx_index);
+
+CREATE TABLE oasis_3.accounts_related_events
+(
+  account_address oasis_addr NOT NULL,
+  event_block UINT63 NOT NULL,
+  tx_index UINT31,
+  tx_hash HEX64,
+  type TEXT NOT NULL,
+  body JSON
+
+  -- FOREIGN KEY (account_address) REFERENCES oasis_3.accounts(address) DEFERRABLE INITIALLY DEFERRED; TODO: This isn't really feasible unless we preopulate
+);
+CREATE INDEX ix_accounts_related_events_address_block ON oasis_3.accounts_related_events (account_address, event_block);
 
 -- Indexing Progress Management
 CREATE TABLE oasis_3.processed_blocks
