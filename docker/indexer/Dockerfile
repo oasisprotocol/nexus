@@ -4,9 +4,11 @@ WORKDIR /code/go
 
 COPY . ./
 
-RUN go codegen-go && \
-    go mod download && \
-    go build
+RUN \
+  go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen@v1.12 && \ 
+  make codegen-go && \
+  go mod download && \
+  go build
 
 ############
 

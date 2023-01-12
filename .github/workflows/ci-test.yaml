@@ -84,6 +84,14 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.18
+      - name: Autogenerate Go code
+        run: |
+          go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen@v1.12
+          make codegen-go
       - name: Build docker
         run: make docker
       - name: Start docker
