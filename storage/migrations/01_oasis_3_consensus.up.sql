@@ -56,8 +56,9 @@ CREATE TABLE oasis_3.transactions
   -- be included within blocks for this chain.
   PRIMARY KEY (block, tx_index)
 );
--- Queries by sender are common, and unusably slow without an index.
+-- Queries by sender and/or tx_hash are available via the API.
 CREATE INDEX ix_transactions_sender ON oasis_3.transactions (sender);
+CREATE INDEX ix_transactions_tx_hash ON oasis_3.transactions (tx_hash);
 
 CREATE TABLE oasis_3.events
 (
