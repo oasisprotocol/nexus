@@ -9,6 +9,7 @@ import (
 	"github.com/dgraph-io/ristretto"
 	"github.com/iancoleman/strcase"
 	"github.com/jackc/pgtype"
+	"github.com/jackc/pgx/v4"
 	oasisErrors "github.com/oasisprotocol/oasis-core/go/common/errors"
 
 	beacon "github.com/oasisprotocol/oasis-core/go/beacon/api"
@@ -232,6 +233,7 @@ func (c *StorageClient) Transactions(ctx context.Context, r *TransactionsRequest
 		r.Block,
 		r.Method,
 		r.Sender,
+		r.Rel,
 		toString(r.MinFee),
 		toString(r.MaxFee),
 		r.Code,
@@ -338,6 +340,55 @@ func (c *StorageClient) Transaction(ctx context.Context, r *TransactionRequest) 
 // cacheTx adds a transaction to the client's transaction cache.
 func (c *StorageClient) cacheTx(tx *Transaction) {
 	c.txCache.Set(tx.Hash, tx, txCost)
+}
+
+// Events returns a list of events.
+func (c *StorageClient) Events(ctx context.Context, r *EventsRequest, p *apiCommon.Pagination) (*EventList, error) {
+	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
+	if !ok {
+		return nil, apiCommon.ErrBadChainID
+	}
+	qf := NewQueryFactory(cid, "" /* no runtime identifier for the consensus layer */)
+
+	var rows pgx.Rows
+	var err error
+	rows, err = c.db.Query(
+		ctx,
+		qf.EventsQuery(),
+		r.Block,
+		r.TxIndex,
+		r.TxHash,
+		r.Type,
+		r.Rel,
+		p.Limit,
+		p.Offset,
+	)
+
+	if err != nil {
+		c.logger.Info("query failed",
+			"request_id", ctx.Value(common.RequestIDContextKey),
+			"err", err.Error(),
+		)
+		return nil, apiCommon.ErrStorageError
+	}
+	defer rows.Close()
+
+	es := EventList{
+		Events: []Event{},
+	}
+
+	for rows.Next() {
+		var e Event
+		if err := rows.Scan(&e.Block, &e.TxIndex, &e.TxHash, &e.Type, &e.Body); err != nil {
+			c.logger.Info("query failed",
+				"err", err.Error(),
+			)
+			return nil, apiCommon.ErrStorageError
+		}
+		es.Events = append(es.Events, e)
+	}
+
+	return &es, nil
 }
 
 // Entities returns a list of registered entities.

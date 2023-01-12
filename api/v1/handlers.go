@@ -79,6 +79,20 @@ func (h *Handler) GetTransaction(w http.ResponseWriter, r *http.Request) {
 	h.replyJSON(ctx, w, r.URL.Path, transaction)
 }
 
+// ListEvents gets a list of events.
+func (h *Handler) ListEvents(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	events, err := h.client.Events(ctx, r)
+	if err != nil {
+		h.logAndReply(ctx, "failed to list events", w, err)
+		h.metrics.RequestCounter(r.URL.Path, "failure", "database_error").Inc()
+		return
+	}
+
+	h.replyJSON(ctx, w, r.URL.Path, events)
+}
+
 // ListEntities gets a list of registered entities.
 func (h *Handler) ListEntities(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()

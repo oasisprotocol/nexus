@@ -34,6 +34,15 @@ func newStorageClient(chainID string, s *storage.StorageClient, l *log.Logger) *
 	return &storageClient{chainID, s, l}
 }
 
+// validateInt32 parses an int32 url parameter.
+func validateInt32(param string) (int32, error) {
+	i, err := strconv.ParseInt(param, 10, 32)
+	if err != nil {
+		return 0, apiCommon.ErrBadRequest
+	}
+	return int32(i), nil
+}
+
 // validateInt64 parses an int64 url parameter.
 func validateInt64(param string) (int64, error) {
 	return strconv.ParseInt(param, 10, 64)
@@ -67,6 +76,15 @@ func validateConsensusAddress(param string) (*staking.Address, error) {
 		return nil, apiCommon.ErrBadRequest
 	}
 	return &sender, nil
+}
+
+// validateEventType parses a consensus event type url parameter.
+func validateEventType(param string) (*string, error) {
+	_, ok := apiTypes.StringToEvent[param]
+	if ok {
+		return &param, nil
+	}
+	return nil, apiCommon.ErrBadRequest
 }
 
 // validateEntityID parses a governance entity ID url parameter.
@@ -177,6 +195,14 @@ func (c *storageClient) Transactions(ctx context.Context, r *http.Request) (*api
 		}
 		q.Sender = sender
 	}
+	if v := params.Get("rel"); v != "" {
+		rel, err := validateConsensusAddress(v)
+		if err != nil {
+			c.logger.Info("failed to validate address", "error", err)
+			return nil, apiCommon.ErrBadRequest
+		}
+		q.Rel = rel
+	}
 	if v := params.Get("minFee"); v != "" {
 		minFee, err := validateBigInt(v)
 		if err != nil {
@@ -223,6 +249,60 @@ func (c *storageClient) Transaction(ctx context.Context, r *http.Request) (*apiT
 	q.TxHash = &txHash
 
 	return c.storage.Transaction(ctx, &q)
+}
+
+// Events returns a list of events.
+func (c *storageClient) Events(ctx context.Context, r *http.Request) (*apiTypes.ConsensusEventList, error) {
+	var q storage.EventsRequest
+
+	params := r.URL.Query()
+	if v := params.Get("block"); v != "" {
+		block, err := validateInt64(v)
+		if err != nil {
+			return nil, apiCommon.ErrBadRequest
+		}
+		q.Block = &block
+	}
+	if v := params.Get("tx_index"); v != "" {
+		// If tx_index is provided, height must also be provided.
+		if q.Block == nil {
+			return nil, apiCommon.ErrBadRequest
+		}
+
+		txIndex, err := validateInt32(v)
+		if err != nil {
+			return nil, apiCommon.ErrBadRequest
+		}
+		q.TxIndex = &txIndex
+	}
+	if v := params.Get("tx_hash"); v != "" {
+		q.TxHash = &v
+	}
+	if v := params.Get("rel"); v != "" {
+		addr, err := validateConsensusAddress(v)
+		if err != nil {
+			return nil, apiCommon.ErrBadRequest
+		}
+		q.Rel = addr
+	}
+	if v := params.Get("type"); v != "" {
+		ty, err := validateEventType(v)
+		if err != nil {
+			return nil, apiCommon.ErrBadRequest
+		}
+		q.Type = ty
+	}
+
+	p, err := apiCommon.NewPagination(r)
+	if err != nil {
+		c.logger.Info("pagination failed",
+			"request_id", ctx.Value(common.RequestIDContextKey),
+			"err", err.Error(),
+		)
+		return nil, apiCommon.ErrBadRequest
+	}
+
+	return c.storage.Events(ctx, &q, &p)
 }
 
 // Entities returns a list of registered entities.

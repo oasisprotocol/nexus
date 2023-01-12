@@ -44,17 +44,31 @@ func (qf QueryFactory) BlockQuery() string {
 
 func (qf QueryFactory) TransactionsQuery() string {
 	return fmt.Sprintf(`
-		SELECT block, tx_hash, sender, nonce, fee_amount, method, body, code
-			FROM %s.transactions
-			WHERE ($1::bigint IS NULL OR block = $1::bigint) AND
-						($2::text IS NULL OR method = $2::text) AND
-						($3::text IS NULL OR sender = $3::text) AND
-						($4::bigint IS NULL OR fee_amount >= $4::bigint) AND
-						($5::bigint IS NULL OR fee_amount <= $5::bigint) AND
-						($6::bigint IS NULL OR code = $6::bigint)
-		ORDER BY block DESC, tx_index
-		LIMIT $7::bigint
-		OFFSET $8::bigint`, qf.chainID)
+		SELECT 
+				%[1]s.transactions.block as block,
+				%[1]s.transactions.tx_hash as tx_hash,
+				%[1]s.transactions.sender as sender,
+				%[1]s.transactions.nonce as nonce,
+				%[1]s.transactions.fee_amount as fee_amount,
+				%[1]s.transactions.method as method,
+				%[1]s.transactions.body as body,
+				%[1]s.transactions.code as code
+			FROM %[1]s.transactions
+			LEFT JOIN %[1]s.accounts_related_transactions ON %[1]s.transactions.block = %[1]s.accounts_related_transactions.tx_block 
+				AND %[1]s.transactions.tx_index = %[1]s.accounts_related_transactions.tx_index
+				-- When related_address ($4) is NULL and hence we do no filtering on it, avoid the join altogether.
+				-- Otherwise, every tx will be returned as many times as there are related addresses for it. 
+				AND $4::text IS NOT NULL
+			WHERE ($1::bigint IS NULL OR %[1]s.transactions.block = $1::bigint) AND
+					($2::text IS NULL OR %[1]s.transactions.method = $2::text) AND
+					($3::text IS NULL OR %[1]s.transactions.sender = $3::text) AND
+					($4::text IS NULL OR %[1]s.accounts_related_transactions.account_address = $4::text) AND
+					($5::bigint IS NULL OR %[1]s.transactions.fee_amount >= $5::bigint) AND
+					($6::bigint IS NULL OR %[1]s.transactions.fee_amount <= $6::bigint) AND
+					($7::bigint IS NULL OR %[1]s.transactions.code = $7::bigint)
+			ORDER BY %[1]s.transactions.block DESC, %[1]s.transactions.tx_index
+			LIMIT $8::bigint
+			OFFSET $9::bigint`, qf.chainID)
 }
 
 func (qf QueryFactory) TransactionQuery() string {
@@ -62,6 +76,34 @@ func (qf QueryFactory) TransactionQuery() string {
 		SELECT block, tx_hash, sender, nonce, fee_amount, method, body, code
 			FROM %s.transactions
 			WHERE tx_hash = $1::text`, qf.chainID)
+}
+
+func (qf QueryFactory) EventsQuery() string {
+	return fmt.Sprintf(`
+		SELECT tx_block, tx_index, tx_hash, type, body
+			FROM %s.events
+			WHERE ($1::bigint IS NULL OR tx_block = $1::bigint) AND
+					($2::integer IS NULL OR tx_index = $2::integer) AND
+					($3::text IS NULL OR tx_hash = $3::text) AND
+					($4::text IS NULL OR type = $4::text) AND
+					($5::text IS NULL OR ARRAY[$5::text] <@ related_accounts)
+			ORDER BY tx_block DESC, tx_index
+			LIMIT $6::bigint
+			OFFSET $7::bigint`, qf.chainID)
+}
+
+func (qf QueryFactory) EventsRelAccountsQuery() string {
+	return fmt.Sprintf(`
+		SELECT event_block, tx_index, tx_hash, type, body
+			FROM %s.accounts_related_events
+			WHERE (account_address = $1::text) AND
+					($2::bigint IS NULL OR event_block = $1::bigint) AND
+					($3::integer IS NULL OR tx_index = $3::integer) AND
+					($4::text IS NULL OR tx_hash = $4::text) AND
+					($5::text IS NULL OR type = $5::text)
+			ORDER BY event_block DESC, tx_index
+			LIMIT $6::bigint
+			OFFSET $7::bigint`, qf.chainID)
 }
 
 func (qf QueryFactory) EntitiesQuery() string {

@@ -26,6 +26,7 @@ type TransactionsRequest struct {
 	Block  *int64
 	Method *string
 	Sender *staking.Address
+	Rel    *staking.Address
 	MinFee *BigInt
 	MaxFee *BigInt
 	Code   *int64
@@ -33,6 +34,14 @@ type TransactionsRequest struct {
 
 type TransactionRequest struct {
 	TxHash *string
+}
+
+type EventsRequest struct {
+	Block   *int64
+	TxIndex *int32
+	TxHash  *string
+	Rel     *staking.Address
+	Type    *string
 }
 
 type EntityRequest struct {
