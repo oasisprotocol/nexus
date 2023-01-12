@@ -253,7 +253,7 @@ func (c *storageClient) Transaction(ctx context.Context, r *http.Request) (*apiT
 }
 
 // Events returns a list of events.
-func (c *storageClient) Events(ctx context.Context, r *http.Request) (*apiTypes.EventsList, error) {
+func (c *storageClient) Events(ctx context.Context, r *http.Request) (*apiTypes.ConsensusEventList, error) {
 	var q storage.EventsRequest
 
 	params := r.URL.Query()

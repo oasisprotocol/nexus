@@ -100,7 +100,7 @@ func (h *Handler) ListEvents(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "application/json")
 	if _, err := w.Write(resp); err != nil {
 		h.logger.Error("failed to write response",
-			"request_id", ctx.Value(storage.RequestIDContextKey),
+			"request_id", ctx.Value(common.RequestIDContextKey),
 			"error", err,
 		)
 		h.metrics.RequestCounter(r.URL.Path, "failure", "http_error").Inc()

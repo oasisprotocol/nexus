@@ -21,18 +21,10 @@ type TransactionList = api.TransactionList
 type Transaction = api.Transaction
 
 // EventsList is the storage response for ListEvents.
-type EventsList struct {
-	Events []Event `json:"events"`
-}
+type EventList = api.ConsensusEventList
 
 // Event is a consensus event.
-type Event struct {
-	Height  int64   `json:"height"`
-	TxIndex *int32  `json:"tx_index,omitempty"`
-	TxHash  *string `json:"hash,omitempty"`
-	Type    string  `json:"type"`
-	Body    []byte  `json:"body"`
-}
+type Event = api.ConsensusEvent
 
 // EntityList is the storage response for ListEntities.
 type EntityList = api.EntityList
