@@ -2,7 +2,6 @@
 package api
 
 import (
-	"encoding/json"
 	"net/http"
 	"os"
 	"time"
@@ -10,6 +9,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/spf13/cobra"
 
+	apiCommon "github.com/oasisprotocol/oasis-indexer/api/common"
 	v1 "github.com/oasisprotocol/oasis-indexer/api/v1"
 	apiTypes "github.com/oasisprotocol/oasis-indexer/api/v1/types"
 	"github.com/oasisprotocol/oasis-indexer/cmd/common"
@@ -21,6 +21,8 @@ import (
 
 const (
 	moduleName = "api"
+	// The path portion with which all v1 API endpoints start.
+	v1BaseURL = "/v1"
 )
 
 var (
@@ -83,7 +85,7 @@ func Init(cfg *config.ServerConfig) (*Service, error) {
 
 // Service is the Oasis Indexer's API service.
 type Service struct {
-	server  string
+	address string
 	chainID string
 	target  *storage.StorageClient
 	logger  *log.Logger
@@ -104,7 +106,7 @@ func NewService(cfg *config.ServerConfig) (*Service, error) {
 	}
 
 	return &Service{
-		server:  cfg.Endpoint,
+		address: cfg.Endpoint,
 		chainID: cfg.ChainID,
 		target:  client,
 		logger:  logger,
@@ -113,54 +115,50 @@ func NewService(cfg *config.ServerConfig) (*Service, error) {
 
 // Start starts the API service.
 func (s *Service) Start() {
-	s.logger.Info("starting api service at " + s.server)
+	s.logger.Info("starting api service at " + s.address)
 
-	// prepare middlewares for installing later
-	middlewares := []apiTypes.MiddlewareFunc{
-		v1.ChainMiddleware(s.chainID),
-		v1.MetricsMiddleware(metrics.NewDefaultRequestMetrics(moduleName), *s.logger),
-		v1.RuntimeFromURLMiddleware,
-	}
-
-	// prepare static routes
-	r := chi.NewRouter()
-	r.Route("/v1/spec", func(r chi.Router) {
+	// Routes to static files (openapi spec).
+	staticFileRouter := chi.NewRouter()
+	staticFileRouter.Route("/v1/spec", func(r chi.Router) {
 		specServer := http.FileServer(http.Dir("api/spec"))
 		r.Handle("/*", http.StripPrefix("/v1/spec", specServer))
 	})
 
+	// A "strict handler" that handles the great majority of requests.
+	// It is strict in the sense that it enforces input and output types
+	// as defined in the OpenAPI spec.
 	strictHandler := apiTypes.NewStrictHandlerWithOptions(
+		// The "meat" of the API. The rest of `strictHandler` is autogenned code
+		// that deals with validation and serialization.
 		v1.NewStrictServerImpl(*s.target, *s.logger),
+		// Middleware to apply to all requests. These operate on parsed parameters.
 		[]apiTypes.StrictMiddlewareFunc{
 			v1.FixDefaultsAndLimitsMiddleware,
 			v1.ParseBigIntParamsMiddleware,
 		},
 		apiTypes.StrictHTTPServerOptions{
-			// TODO: flesh these out
-			RequestErrorHandlerFunc: func(w http.ResponseWriter, r *http.Request, err error) {
-				msg := err.Error()
-				jsonErr, _ := json.Marshal(apiTypes.HumanReadableError{Msg: msg})
-				http.Error(w, string(jsonErr), http.StatusInternalServerError)
-			},
-			ResponseErrorHandlerFunc: func(w http.ResponseWriter, r *http.Request, err error) {
-				msg := err.Error()
-				jsonErr, _ := json.Marshal(apiTypes.HumanReadableError{Msg: msg})
-				http.Error(w, string(jsonErr), http.StatusInternalServerError)
-			},
+			RequestErrorHandlerFunc:  apiCommon.HumanReadableJsonErrorHandler,
+			ResponseErrorHandlerFunc: apiCommon.HumanReadableJsonErrorHandler,
 		},
 	)
 
-	experimentalHandler := apiTypes.HandlerWithOptions(
-		strictHandler, // v1.NewFoo(s.api.V1Handler.Client, s.logger, s.api.V1Handler.Metrics),
+	// The top-level chi handler.
+	handler := apiTypes.HandlerWithOptions(
+		strictHandler,
 		apiTypes.ChiServerOptions{
-			BaseURL:     "/v1",
-			Middlewares: middlewares,
-			BaseRouter:  r,
+			BaseURL: v1BaseURL,
+			Middlewares: []apiTypes.MiddlewareFunc{
+				v1.ChainMiddleware(s.chainID),
+				v1.MetricsMiddleware(metrics.NewDefaultRequestMetrics(moduleName), *s.logger),
+				v1.RuntimeFromURLMiddleware(v1BaseURL),
+			},
+			BaseRouter:       staticFileRouter,
+			ErrorHandlerFunc: apiCommon.HumanReadableJsonErrorHandler,
 		})
 
 	server := &http.Server{
-		Addr:           s.server,
-		Handler:        experimentalHandler, // s.api.Router(),
+		Addr:           s.address,
+		Handler:        handler,
 		ReadTimeout:    10 * time.Second,
 		WriteTimeout:   10 * time.Second,
 		MaxHeaderBytes: 1 << 20,

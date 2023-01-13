@@ -41,6 +41,7 @@ func MetricsMiddleware(m metrics.RequestMetrics, logger log.Logger) func(next ht
 					"endpoint", r.URL.Path,
 					"request_id", requestID,
 					"time", time.Since(t),
+					"status_code", reflect.ValueOf(w).Elem().FieldByName("status").Int(),
 				)
 				timer.ObserveDuration()
 			}()
@@ -57,12 +58,13 @@ func MetricsMiddleware(m metrics.RequestMetrics, logger log.Logger) func(next ht
 func ChainMiddleware(chainID string) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			chainID := strcase.ToSnake(chainID)
+			// snake_case the chainID; it's how it's used to name the DB schemas.
+			chainIDSnake := strcase.ToSnake(chainID)
 
 			// TODO: Set chainID based on provided height params.
 
 			next.ServeHTTP(w, r.WithContext(
-				context.WithValue(r.Context(), common.ChainIDContextKey, chainID),
+				context.WithValue(r.Context(), common.ChainIDContextKey, chainIDSnake),
 			))
 		})
 	}
@@ -212,24 +214,28 @@ func ParseBigIntParamsMiddleware(next apiTypes.StrictHandlerFunc, _operationID s
 	}
 }
 
-func RuntimeFromURLMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		path := strings.TrimPrefix(r.URL.Path, "/v1")
+// RuntimeFromURLMiddleware extracts the runtime from the URL and sets it in the request context.
+// The runtime is expected to be the first part of the path after the `baseURL` (e.g. "/v1").
+func RuntimeFromURLMiddleware(baseURL string) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			path := strings.TrimPrefix(r.URL.Path, baseURL)
 
-		// The first part of the path (after the version) determines the runtime.
-		// Recognize only whitelisted runtimes.
-		runtime := ""
-		switch { //nolint:gocritic // allow single-case switch for future expansions
-		case strings.HasPrefix(path, "/emerald/"):
-			runtime = "emerald"
-		}
+			// The first part of the path (after the version) determines the runtime.
+			// Recognize only whitelisted runtimes.
+			runtime := ""
+			switch { //nolint:gocritic // allow single-case switch for future expansions
+			case strings.HasPrefix(path, "/emerald/"):
+				runtime = "emerald"
+			}
 
-		if runtime != "" {
-			next.ServeHTTP(w, r.WithContext(
-				context.WithValue(r.Context(), common.RuntimeContextKey, runtime),
-			))
-		} else {
-			next.ServeHTTP(w, r)
-		}
-	})
+			if runtime != "" {
+				next.ServeHTTP(w, r.WithContext(
+					context.WithValue(r.Context(), common.RuntimeContextKey, runtime),
+				))
+			} else {
+				next.ServeHTTP(w, r)
+			}
+		})
+	}
 }
