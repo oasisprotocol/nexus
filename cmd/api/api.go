@@ -133,6 +133,7 @@ func (s *Service) Start() {
 		v1.NewStrictServerImpl(*s.target, *s.logger),
 		[]apiTypes.StrictMiddlewareFunc{
 			v1.FixDefaultsAndLimitsMiddleware,
+			v1.ParseBigIntParamsMiddleware,
 		},
 		apiTypes.StrictHTTPServerOptions{
 			// TODO: flesh these out

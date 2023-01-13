@@ -143,6 +143,75 @@ func FixDefaultsAndLimitsMiddleware(next apiTypes.StrictHandlerFunc, _operationI
 	}
 }
 
+// Find the json annotation on a struct field, and return the json specified
+// name if available, otherwise, just the field name.
+func jsonName(f reflect.StructField) string {
+	fieldName := f.Name
+	tag := f.Tag.Get("json")
+	if tag != "" {
+		tagParts := strings.Split(tag, ",")
+		name := tagParts[0]
+		if name != "" {
+			fieldName = name
+		}
+	}
+	return fieldName
+}
+
+// ParseBigIntParamsMiddleware fixes the parsing of URL query parameters of type *BigInt.
+// oapi-codegen does not really support reading URL query params into structs (but see note below).
+// This middleware reproduces a portion of oapi-codegen's param-fetching logic, but then parses
+// the input string with `UnmarshalText()`.
+//
+// LIMITATIONS: The middleware relies on assumptions that happen to hold for oasis-indexer:
+//   - only works for `*BigInt` (not `BigInt`)
+//   - only works for `*BigInt` fields directly under `Params`, not nested in other structs.
+//   - only works for URL query parameters (like ?myNumber=123), not path parameters
+//     (like .../foo/123?...) or HTTP body data.
+//
+// NOTE: oapi-codegen _does_ support some custom type parsing, so we don't need to patch their parsing here.
+// Date and Time are two hardcoded supported structs. Also, non-struct typedefs (like `type Address [21]byte`,
+// which is our `staking.Address`) work fine.
+func ParseBigIntParamsMiddleware(next apiTypes.StrictHandlerFunc, _operationID string) apiTypes.StrictHandlerFunc {
+	return func(ctx context.Context, w http.ResponseWriter, r *http.Request, args interface{}) (interface{}, error) {
+		// Create a new struct of the same type as `args` and copy the values from `args` into it.
+		// This new struct will be "addressable" (= modifiable), unlike `args`.
+		argsV := reflect.ValueOf(args)
+		v := reflect.New(argsV.Type())
+		v.Elem().Set(argsV)
+
+		// Use reflection to check if `args.Params` has any fields of type *BigInt.
+		// If it does, we'll parse its value from the request.
+		if v.Elem().Kind() == reflect.Struct { //nolint:nestif
+			paramsV := v.Elem().FieldByName("Params")
+			if paramsV.IsValid() && paramsV.Kind() == reflect.Struct {
+				// Iterate through fields of Params.
+				for i := 0; i < paramsV.NumField(); i++ {
+					f := paramsV.Field(i)
+					// For every *BigInt member of Params:
+					if f.Type() == reflect.TypeOf(&common.BigInt{}) {
+						// Fetch the string value from the query URL.
+						queryKey := jsonName(paramsV.Type().Field(i))
+						queryValue := r.URL.Query().Get(queryKey)
+						if queryValue == "" {
+							continue // no value in the query URL, skip
+						}
+						// Parse the string value into a *BigInt.
+						bigInt := &common.BigInt{}
+						if err := bigInt.UnmarshalText([]byte(queryValue)); err != nil {
+							return nil, &apiTypes.InvalidParamFormatError{ParamName: queryKey, Err: err}
+						}
+						f.Set(reflect.ValueOf(bigInt))
+					}
+				}
+			}
+		}
+
+		// Call the next middleware in the chain with fixed `args`.
+		return next(ctx, w, r, v.Elem().Interface())
+	}
+}
+
 func RuntimeFromURLMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		path := strings.TrimPrefix(r.URL.Path, "/v1")
