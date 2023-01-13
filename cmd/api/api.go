@@ -10,12 +10,12 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/spf13/cobra"
 
-	"github.com/oasisprotocol/oasis-indexer/api"
 	v1 "github.com/oasisprotocol/oasis-indexer/api/v1"
 	apiTypes "github.com/oasisprotocol/oasis-indexer/api/v1/types"
 	"github.com/oasisprotocol/oasis-indexer/cmd/common"
 	"github.com/oasisprotocol/oasis-indexer/config"
 	"github.com/oasisprotocol/oasis-indexer/log"
+	"github.com/oasisprotocol/oasis-indexer/metrics"
 	storage "github.com/oasisprotocol/oasis-indexer/storage/client"
 )
 
@@ -85,7 +85,6 @@ func Init(cfg *config.ServerConfig) (*Service, error) {
 type Service struct {
 	server  string
 	chainID string
-	api     *api.IndexerAPI
 	target  *storage.StorageClient
 	logger  *log.Logger
 }
@@ -107,7 +106,6 @@ func NewService(cfg *config.ServerConfig) (*Service, error) {
 	return &Service{
 		server:  cfg.Endpoint,
 		chainID: cfg.ChainID,
-		api:     api.NewIndexerAPI(cfg.ChainID, client, logger),
 		target:  client,
 		logger:  logger,
 	}, nil
@@ -118,17 +116,10 @@ func (s *Service) Start() {
 	s.logger.Info("starting api service at " + s.server)
 
 	// prepare middlewares for installing later
-	th := s.api.V1Handler
 	middlewares := []apiTypes.MiddlewareFunc{
-		func(next http.Handler) http.Handler {
-			return th.ChainMiddleware(next)
-		},
-		func(next http.Handler) http.Handler {
-			return th.MetricsMiddleware(next)
-		},
-		func(next http.Handler) http.Handler {
-			return th.RuntimeFromURLMiddleware(next)
-		},
+		v1.ChainMiddleware(s.chainID),
+		v1.MetricsMiddleware(metrics.NewDefaultRequestMetrics(moduleName), *s.logger),
+		v1.RuntimeFromURLMiddleware,
 	}
 
 	// prepare static routes
@@ -139,7 +130,7 @@ func (s *Service) Start() {
 	})
 
 	strictHandler := apiTypes.NewStrictHandlerWithOptions(
-		v1.NewStrictServerImpl(s.api.V1Handler.Client, s.logger),
+		v1.NewStrictServerImpl(*s.target, *s.logger),
 		[]apiTypes.StrictMiddlewareFunc{
 			v1.FixDefaultsAndLimitsMiddleware,
 		},

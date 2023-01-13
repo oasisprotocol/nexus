@@ -2,31 +2,33 @@ package v1
 
 import (
 	"context"
+	"fmt"
 
 	apiTypes "github.com/oasisprotocol/oasis-indexer/api/v1/types"
 	"github.com/oasisprotocol/oasis-indexer/log"
+	"github.com/oasisprotocol/oasis-indexer/storage/client"
 )
 
 type StrictServerImpl struct {
-	client *storageClient
-	logger *log.Logger
+	dbClient client.StorageClient
+	logger   log.Logger
 }
 
 var _ apiTypes.StrictServerInterface = (*StrictServerImpl)(nil)
 
-func NewStrictServerImpl(client *storageClient, logger *log.Logger) *StrictServerImpl {
+func NewStrictServerImpl(client client.StorageClient, logger log.Logger) *StrictServerImpl {
 	return &StrictServerImpl{
-		client: client,
-		logger: logger,
+		dbClient: client,
+		logger:   logger,
 	}
 }
 
 // Stubs generated with:
 //
-//	sed -n '/type StrictServerInterface interface/,/^\}/p' api/v1/types/server.gen.go | grep -v // | head -n-1 | tail -n+2 | sed -E 's/^\s+(\w+)(.*)/func (srv *StrictServerImpl) \1\2 { return apiTypes.\1200JSONResponse{}, nil } /g; s/[a-zA-Z]+(Params|RequestObject|ResponseObject)/apiTypes.\0/g;'
+//	sed -n '/type StrictServerInterface interface/,/^\}/p' api/v1/types/server.gen.go | grep -v // | head -n-1 | tail -n+2 | sed -E 's/^\s+(\w+)(.*)/func (srv *StrictServerImpl) \1\2 { return apiTypes.\1200JSONResponse{}, nil }\n/g; s/[a-zA-Z]+(Params|RequestObject|ResponseObject)/apiTypes.\0/g;'
 
 func (srv *StrictServerImpl) Get(ctx context.Context, request apiTypes.GetRequestObject) (apiTypes.GetResponseObject, error) {
-	status, err := srv.client.Storage.Status(ctx)
+	status, err := srv.dbClient.Status(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -34,7 +36,7 @@ func (srv *StrictServerImpl) Get(ctx context.Context, request apiTypes.GetReques
 }
 
 func (srv *StrictServerImpl) GetConsensusAccounts(ctx context.Context, request apiTypes.GetConsensusAccountsRequestObject) (apiTypes.GetConsensusAccountsResponseObject, error) {
-	accounts, err := srv.client.Storage.Accounts(ctx, request.Params)
+	accounts, err := srv.dbClient.Accounts(ctx, request.Params)
 	if err != nil {
 		return nil, err
 	}
@@ -42,7 +44,7 @@ func (srv *StrictServerImpl) GetConsensusAccounts(ctx context.Context, request a
 }
 
 func (srv *StrictServerImpl) GetConsensusAccountsAddress(ctx context.Context, request apiTypes.GetConsensusAccountsAddressRequestObject) (apiTypes.GetConsensusAccountsAddressResponseObject, error) {
-	account, err := srv.client.Storage.Account(ctx, request.Address)
+	account, err := srv.dbClient.Account(ctx, request.Address)
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +52,7 @@ func (srv *StrictServerImpl) GetConsensusAccountsAddress(ctx context.Context, re
 }
 
 func (srv *StrictServerImpl) GetConsensusAccountsAddressDebondingDelegations(ctx context.Context, request apiTypes.GetConsensusAccountsAddressDebondingDelegationsRequestObject) (apiTypes.GetConsensusAccountsAddressDebondingDelegationsResponseObject, error) {
-	delegations, err := srv.client.Storage.DebondingDelegations(ctx, request.Address, request.Params)
+	delegations, err := srv.dbClient.DebondingDelegations(ctx, request.Address, request.Params)
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +60,7 @@ func (srv *StrictServerImpl) GetConsensusAccountsAddressDebondingDelegations(ctx
 }
 
 func (srv *StrictServerImpl) GetConsensusAccountsAddressDelegations(ctx context.Context, request apiTypes.GetConsensusAccountsAddressDelegationsRequestObject) (apiTypes.GetConsensusAccountsAddressDelegationsResponseObject, error) {
-	delegations, err := srv.client.Storage.Delegations(ctx, request.Address, request.Params)
+	delegations, err := srv.dbClient.Delegations(ctx, request.Address, request.Params)
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +68,7 @@ func (srv *StrictServerImpl) GetConsensusAccountsAddressDelegations(ctx context.
 }
 
 func (srv *StrictServerImpl) GetConsensusBlocks(ctx context.Context, request apiTypes.GetConsensusBlocksRequestObject) (apiTypes.GetConsensusBlocksResponseObject, error) {
-	blocks, err := srv.client.Storage.Blocks(ctx, request.Params)
+	blocks, err := srv.dbClient.Blocks(ctx, request.Params)
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +76,7 @@ func (srv *StrictServerImpl) GetConsensusBlocks(ctx context.Context, request api
 }
 
 func (srv *StrictServerImpl) GetConsensusBlocksHeight(ctx context.Context, request apiTypes.GetConsensusBlocksHeightRequestObject) (apiTypes.GetConsensusBlocksHeightResponseObject, error) {
-	block, err := srv.client.Storage.Block(ctx, request.Height)
+	block, err := srv.dbClient.Block(ctx, request.Height)
 	if err != nil {
 		return nil, err
 	}
@@ -82,7 +84,7 @@ func (srv *StrictServerImpl) GetConsensusBlocksHeight(ctx context.Context, reque
 }
 
 func (srv *StrictServerImpl) GetConsensusEntities(ctx context.Context, request apiTypes.GetConsensusEntitiesRequestObject) (apiTypes.GetConsensusEntitiesResponseObject, error) {
-	entities, err := srv.client.Storage.Entities(ctx, request.Params)
+	entities, err := srv.dbClient.Entities(ctx, request.Params)
 	if err != nil {
 		return nil, err
 	}
@@ -90,7 +92,7 @@ func (srv *StrictServerImpl) GetConsensusEntities(ctx context.Context, request a
 }
 
 func (srv *StrictServerImpl) GetConsensusEntitiesEntityId(ctx context.Context, request apiTypes.GetConsensusEntitiesEntityIdRequestObject) (apiTypes.GetConsensusEntitiesEntityIdResponseObject, error) {
-	entity, err := srv.client.Storage.Entity(ctx, request.EntityId)
+	entity, err := srv.dbClient.Entity(ctx, request.EntityId)
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +100,7 @@ func (srv *StrictServerImpl) GetConsensusEntitiesEntityId(ctx context.Context, r
 }
 
 func (srv *StrictServerImpl) GetConsensusEntitiesEntityIdNodes(ctx context.Context, request apiTypes.GetConsensusEntitiesEntityIdNodesRequestObject) (apiTypes.GetConsensusEntitiesEntityIdNodesResponseObject, error) {
-	nodes, err := srv.client.Storage.EntityNodes(ctx, request.EntityId, request.Params)
+	nodes, err := srv.dbClient.EntityNodes(ctx, request.EntityId, request.Params)
 	if err != nil {
 		return nil, err
 	}
@@ -106,7 +108,7 @@ func (srv *StrictServerImpl) GetConsensusEntitiesEntityIdNodes(ctx context.Conte
 }
 
 func (srv *StrictServerImpl) GetConsensusEntitiesEntityIdNodesNodeId(ctx context.Context, request apiTypes.GetConsensusEntitiesEntityIdNodesNodeIdRequestObject) (apiTypes.GetConsensusEntitiesEntityIdNodesNodeIdResponseObject, error) {
-	node, err := srv.client.Storage.EntityNode(ctx, request.EntityId, request.NodeId)
+	node, err := srv.dbClient.EntityNode(ctx, request.EntityId, request.NodeId)
 	if err != nil {
 		return nil, err
 	}
@@ -114,7 +116,7 @@ func (srv *StrictServerImpl) GetConsensusEntitiesEntityIdNodesNodeId(ctx context
 }
 
 func (srv *StrictServerImpl) GetConsensusEpochs(ctx context.Context, request apiTypes.GetConsensusEpochsRequestObject) (apiTypes.GetConsensusEpochsResponseObject, error) {
-	epochs, err := srv.client.Storage.Epochs(ctx, request.Params)
+	epochs, err := srv.dbClient.Epochs(ctx, request.Params)
 	if err != nil {
 		return nil, err
 	}
@@ -122,7 +124,7 @@ func (srv *StrictServerImpl) GetConsensusEpochs(ctx context.Context, request api
 }
 
 func (srv *StrictServerImpl) GetConsensusEpochsEpoch(ctx context.Context, request apiTypes.GetConsensusEpochsEpochRequestObject) (apiTypes.GetConsensusEpochsEpochResponseObject, error) {
-	epoch, err := srv.client.Storage.Epoch(ctx, request.Epoch)
+	epoch, err := srv.dbClient.Epoch(ctx, request.Epoch)
 	if err != nil {
 		return nil, err
 	}
@@ -130,7 +132,7 @@ func (srv *StrictServerImpl) GetConsensusEpochsEpoch(ctx context.Context, reques
 }
 
 func (srv *StrictServerImpl) GetConsensusEvents(ctx context.Context, request apiTypes.GetConsensusEventsRequestObject) (apiTypes.GetConsensusEventsResponseObject, error) {
-	events, err := srv.client.Storage.Events(ctx, request.Params)
+	events, err := srv.dbClient.Events(ctx, request.Params)
 	if err != nil {
 		return nil, err
 	}
@@ -138,7 +140,7 @@ func (srv *StrictServerImpl) GetConsensusEvents(ctx context.Context, request api
 }
 
 func (srv *StrictServerImpl) GetConsensusProposals(ctx context.Context, request apiTypes.GetConsensusProposalsRequestObject) (apiTypes.GetConsensusProposalsResponseObject, error) {
-	proposals, err := srv.client.Storage.Proposals(ctx, request.Params)
+	proposals, err := srv.dbClient.Proposals(ctx, request.Params)
 	if err != nil {
 		return nil, err
 	}
@@ -146,7 +148,7 @@ func (srv *StrictServerImpl) GetConsensusProposals(ctx context.Context, request 
 }
 
 func (srv *StrictServerImpl) GetConsensusProposalsProposalId(ctx context.Context, request apiTypes.GetConsensusProposalsProposalIdRequestObject) (apiTypes.GetConsensusProposalsProposalIdResponseObject, error) {
-	proposal, err := srv.client.Storage.Proposal(ctx, request.ProposalId)
+	proposal, err := srv.dbClient.Proposal(ctx, request.ProposalId)
 	if err != nil {
 		return nil, err
 	}
@@ -154,7 +156,7 @@ func (srv *StrictServerImpl) GetConsensusProposalsProposalId(ctx context.Context
 }
 
 func (srv *StrictServerImpl) GetConsensusProposalsProposalIdVotes(ctx context.Context, request apiTypes.GetConsensusProposalsProposalIdVotesRequestObject) (apiTypes.GetConsensusProposalsProposalIdVotesResponseObject, error) {
-	votes, err := srv.client.Storage.ProposalVotes(ctx, request.ProposalId, request.Params)
+	votes, err := srv.dbClient.ProposalVotes(ctx, request.ProposalId, request.Params)
 	if err != nil {
 		return nil, err
 	}
@@ -162,7 +164,7 @@ func (srv *StrictServerImpl) GetConsensusProposalsProposalIdVotes(ctx context.Co
 }
 
 func (srv *StrictServerImpl) GetConsensusStatsTxVolume(ctx context.Context, request apiTypes.GetConsensusStatsTxVolumeRequestObject) (apiTypes.GetConsensusStatsTxVolumeResponseObject, error) {
-	volumeList, err := srv.client.Storage.TxVolumes(ctx, request.Params)
+	volumeList, err := srv.dbClient.TxVolumes(ctx, request.Params)
 	if err != nil {
 		return nil, err
 	}
@@ -170,7 +172,7 @@ func (srv *StrictServerImpl) GetConsensusStatsTxVolume(ctx context.Context, requ
 }
 
 func (srv *StrictServerImpl) GetConsensusTransactions(ctx context.Context, request apiTypes.GetConsensusTransactionsRequestObject) (apiTypes.GetConsensusTransactionsResponseObject, error) {
-	txs, err := srv.client.Storage.Transactions(ctx, request.Params)
+	txs, err := srv.dbClient.Transactions(ctx, request.Params)
 	if err != nil {
 		return nil, err
 	}
@@ -178,7 +180,7 @@ func (srv *StrictServerImpl) GetConsensusTransactions(ctx context.Context, reque
 }
 
 func (srv *StrictServerImpl) GetConsensusTransactionsTxHash(ctx context.Context, request apiTypes.GetConsensusTransactionsTxHashRequestObject) (apiTypes.GetConsensusTransactionsTxHashResponseObject, error) {
-	tx, err := srv.client.Storage.Transaction(ctx, request.TxHash)
+	tx, err := srv.dbClient.Transaction(ctx, request.TxHash)
 	if err != nil {
 		return nil, err
 	}
@@ -186,7 +188,7 @@ func (srv *StrictServerImpl) GetConsensusTransactionsTxHash(ctx context.Context,
 }
 
 func (srv *StrictServerImpl) GetConsensusValidators(ctx context.Context, request apiTypes.GetConsensusValidatorsRequestObject) (apiTypes.GetConsensusValidatorsResponseObject, error) {
-	validators, err := srv.client.Storage.Validators(ctx, request.Params)
+	validators, err := srv.dbClient.Validators(ctx, request.Params)
 	if err != nil {
 		return nil, err
 	}
@@ -194,7 +196,7 @@ func (srv *StrictServerImpl) GetConsensusValidators(ctx context.Context, request
 }
 
 func (srv *StrictServerImpl) GetConsensusValidatorsEntityId(ctx context.Context, request apiTypes.GetConsensusValidatorsEntityIdRequestObject) (apiTypes.GetConsensusValidatorsEntityIdResponseObject, error) {
-	validator, err := srv.client.Storage.Validator(ctx, request.EntityId)
+	validator, err := srv.dbClient.Validator(ctx, request.EntityId)
 	if err != nil {
 		return nil, err
 	}
@@ -202,7 +204,7 @@ func (srv *StrictServerImpl) GetConsensusValidatorsEntityId(ctx context.Context,
 }
 
 func (srv *StrictServerImpl) GetEmeraldBlocks(ctx context.Context, request apiTypes.GetEmeraldBlocksRequestObject) (apiTypes.GetEmeraldBlocksResponseObject, error) {
-	blocks, err := srv.client.Storage.RuntimeBlocks(ctx, request.Params)
+	blocks, err := srv.dbClient.RuntimeBlocks(ctx, request.Params)
 	if err != nil {
 		return nil, err
 	}
@@ -210,7 +212,7 @@ func (srv *StrictServerImpl) GetEmeraldBlocks(ctx context.Context, request apiTy
 }
 
 func (srv *StrictServerImpl) GetEmeraldTokens(ctx context.Context, request apiTypes.GetEmeraldTokensRequestObject) (apiTypes.GetEmeraldTokensResponseObject, error) {
-	tokens, err := srv.client.Storage.RuntimeTokens(ctx, request.Params)
+	tokens, err := srv.dbClient.RuntimeTokens(ctx, request.Params)
 	if err != nil {
 		return nil, err
 	}
@@ -218,7 +220,7 @@ func (srv *StrictServerImpl) GetEmeraldTokens(ctx context.Context, request apiTy
 }
 
 func (srv *StrictServerImpl) GetEmeraldTransactions(ctx context.Context, request apiTypes.GetEmeraldTransactionsRequestObject) (apiTypes.GetEmeraldTransactionsResponseObject, error) {
-	storageTransactions, err := srv.client.Storage.RuntimeTransactions(ctx, request.Params)
+	storageTransactions, err := srv.dbClient.RuntimeTransactions(ctx, request.Params)
 	if err != nil {
 		return nil, err
 	}
