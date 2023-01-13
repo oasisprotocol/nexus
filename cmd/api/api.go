@@ -149,12 +149,14 @@ func (s *Service) Start() {
 			BaseURL: v1BaseURL,
 			Middlewares: []apiTypes.MiddlewareFunc{
 				v1.ChainMiddleware(s.chainID),
-				v1.MetricsMiddleware(metrics.NewDefaultRequestMetrics(moduleName), *s.logger),
 				v1.RuntimeFromURLMiddleware(v1BaseURL),
 			},
 			BaseRouter:       staticFileRouter,
 			ErrorHandlerFunc: apiCommon.HumanReadableJsonErrorHandler,
 		})
+	// Manually apply the metrics middleware; we want it to run always, and at the outermost layer.
+	// HandlerWithOptions() above does not apply it to some requests (404 URLs, requests with bad params, etc.).
+	handler = v1.MetricsMiddleware(metrics.NewDefaultRequestMetrics(moduleName), *s.logger)(handler)
 
 	server := &http.Server{
 		Addr:           s.address,

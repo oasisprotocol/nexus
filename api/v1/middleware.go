@@ -24,31 +24,41 @@ var (
 
 // MetricsMiddleware is a middleware that measures the start and end of each request,
 // as well as other useful request information.
+// It should be used as the outermost middleware, so it can
+// - set a requestID and make it available to all handlers and
+// - observe the final HTTP status code at the end of the request.
 func MetricsMiddleware(m metrics.RequestMetrics, logger log.Logger) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// Pre-work and initial logging.
 			requestID := uuid.New()
-
 			logger.Info("starting request",
 				"endpoint", r.URL.Path,
 				"request_id", requestID,
 			)
-
 			t := time.Now()
 			timer := m.RequestTimer(r.URL.Path)
-			defer func() {
-				logger.Info("ending request",
-					"endpoint", r.URL.Path,
-					"request_id", requestID,
-					"time", time.Since(t),
-					"status_code", reflect.ValueOf(w).Elem().FieldByName("status").Int(),
-				)
-				timer.ObserveDuration()
-			}()
 
+			// Serve the request.
 			next.ServeHTTP(w, r.WithContext(
 				context.WithValue(r.Context(), common.RequestIDContextKey, requestID),
 			))
+
+			// Observe results and log/record them.
+			httpStatus := reflect.ValueOf(w).Elem().FieldByName("status").Int()
+			logger.Info("ending request",
+				"endpoint", r.URL.Path,
+				"request_id", requestID,
+				"time", time.Since(t),
+				"status_code", httpStatus,
+			)
+			timer.ObserveDuration()
+
+			statusTxt := "failure"
+			if httpStatus >= 200 && httpStatus < 400 {
+				statusTxt = "success"
+			}
+			m.RequestCounter(r.URL.Path, statusTxt).Inc()
 		})
 	}
 }
