@@ -17,7 +17,7 @@ import (
 
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/util"
-	apiCommon "github.com/oasisprotocol/oasis-indexer/api/common"
+	apiCommon "github.com/oasisprotocol/oasis-indexer/api"
 	apiTypes "github.com/oasisprotocol/oasis-indexer/api/v1/types"
 	common "github.com/oasisprotocol/oasis-indexer/common"
 	"github.com/oasisprotocol/oasis-indexer/log"

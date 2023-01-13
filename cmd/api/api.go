@@ -9,7 +9,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/spf13/cobra"
 
-	apiCommon "github.com/oasisprotocol/oasis-indexer/api/common"
+	api "github.com/oasisprotocol/oasis-indexer/api"
 	v1 "github.com/oasisprotocol/oasis-indexer/api/v1"
 	apiTypes "github.com/oasisprotocol/oasis-indexer/api/v1/types"
 	"github.com/oasisprotocol/oasis-indexer/cmd/common"
@@ -133,12 +133,12 @@ func (s *Service) Start() {
 		v1.NewStrictServerImpl(*s.target, *s.logger),
 		// Middleware to apply to all requests. These operate on parsed parameters.
 		[]apiTypes.StrictMiddlewareFunc{
-			v1.FixDefaultsAndLimitsMiddleware,
-			v1.ParseBigIntParamsMiddleware,
+			api.FixDefaultsAndLimitsMiddleware,
+			api.ParseBigIntParamsMiddleware,
 		},
 		apiTypes.StrictHTTPServerOptions{
-			RequestErrorHandlerFunc:  apiCommon.HumanReadableJsonErrorHandler,
-			ResponseErrorHandlerFunc: apiCommon.HumanReadableJsonErrorHandler,
+			RequestErrorHandlerFunc:  api.HumanReadableJsonErrorHandler,
+			ResponseErrorHandlerFunc: api.HumanReadableJsonErrorHandler,
 		},
 	)
 
@@ -148,15 +148,15 @@ func (s *Service) Start() {
 		apiTypes.ChiServerOptions{
 			BaseURL: v1BaseURL,
 			Middlewares: []apiTypes.MiddlewareFunc{
-				v1.ChainMiddleware(s.chainID),
-				v1.RuntimeFromURLMiddleware(v1BaseURL),
+				api.ChainMiddleware(s.chainID),
+				api.RuntimeFromURLMiddleware(v1BaseURL),
 			},
 			BaseRouter:       staticFileRouter,
-			ErrorHandlerFunc: apiCommon.HumanReadableJsonErrorHandler,
+			ErrorHandlerFunc: api.HumanReadableJsonErrorHandler,
 		})
 	// Manually apply the metrics middleware; we want it to run always, and at the outermost layer.
 	// HandlerWithOptions() above does not apply it to some requests (404 URLs, requests with bad params, etc.).
-	handler = v1.MetricsMiddleware(metrics.NewDefaultRequestMetrics(moduleName), *s.logger)(handler)
+	handler = api.MetricsMiddleware(metrics.NewDefaultRequestMetrics(moduleName), *s.logger)(handler)
 
 	server := &http.Server{
 		Addr:           s.address,
