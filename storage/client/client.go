@@ -807,7 +807,7 @@ func (c *StorageClient) Delegations(ctx context.Context, address staking.Address
 }
 
 // DebondingDelegations returns a list of debonding delegations.
-func (c *StorageClient) DebondingDelegations(ctx context.Context, r *DebondingDelegationsRequest, p *apiCommon.Pagination) (*DebondingDelegationList, error) {
+func (c *StorageClient) DebondingDelegations(ctx context.Context, address staking.Address, p apiTypes.GetConsensusAccountsAddressDebondingDelegationsParams) (*DebondingDelegationList, error) {
 	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
 	if !ok {
 		return nil, apiCommon.ErrBadChainID
@@ -817,7 +817,7 @@ func (c *StorageClient) DebondingDelegations(ctx context.Context, r *DebondingDe
 	rows, err := c.db.Query(
 		ctx,
 		qf.DebondingDelegationsQuery(),
-		r.Address.String(),
+		address.String(),
 		p.Limit,
 		p.Offset,
 	)

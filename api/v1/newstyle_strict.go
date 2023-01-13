@@ -50,7 +50,11 @@ func (srv *StrictServerImpl) GetConsensusAccountsAddress(ctx context.Context, re
 }
 
 func (srv *StrictServerImpl) GetConsensusAccountsAddressDebondingDelegations(ctx context.Context, request apiTypes.GetConsensusAccountsAddressDebondingDelegationsRequestObject) (apiTypes.GetConsensusAccountsAddressDebondingDelegationsResponseObject, error) {
-	return apiTypes.GetConsensusAccountsAddressDebondingDelegations200JSONResponse{}, nil
+	delegations, err := srv.client.Storage.DebondingDelegations(ctx, request.Address, request.Params)
+	if err != nil {
+		return nil, err
+	}
+	return apiTypes.GetConsensusAccountsAddressDebondingDelegations200JSONResponse(*delegations), nil
 }
 
 func (srv *StrictServerImpl) GetConsensusAccountsAddressDelegations(ctx context.Context, request apiTypes.GetConsensusAccountsAddressDelegationsRequestObject) (apiTypes.GetConsensusAccountsAddressDelegationsResponseObject, error) {

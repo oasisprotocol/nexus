@@ -569,6 +569,8 @@ paths:
     get:
       summary: Returns an account's debonding delegations.
       parameters:
+        - *limit
+        - *offset
         - in: path
           name: address
           required: true
