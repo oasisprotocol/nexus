@@ -294,12 +294,6 @@ func (m *Main) queueBlockAndTransactionInserts(ctx context.Context, batch *stora
 		return fmt.Errorf("extract round %d: %w", data.Round, err)
 	}
 
-	// TODO: Move out of queue-* section. See https://github.com/oasisprotocol/oasis-indexer/issues/263
-	blockTokenData, err := modules.EVMDownloadRoundTokens(ctx, m.logger, m.cfg.Source, data.Round, blockData.PossibleTokens)
-	if err != nil {
-		return fmt.Errorf("download round tokens round %d: %w", data.Round, err)
-	}
-
 	batch.Queue(
 		m.qf.RuntimeBlockInsertQuery(),
 		data.Round,
@@ -316,7 +310,7 @@ func (m *Main) queueBlockAndTransactionInserts(ctx context.Context, batch *stora
 		blockData.Size,
 	)
 
-	emitRoundBatch(batch, &m.qf, data.Round, blockData, blockTokenData)
+	emitRoundBatch(batch, &m.qf, data.Round, blockData)
 
 	return nil
 }

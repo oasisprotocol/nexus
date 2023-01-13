@@ -22,14 +22,18 @@ const (
 )
 
 type EVMPossibleToken struct {
-	PossibleTypes []EVMTokenType
-	EthAddr       []byte
+	Mutated bool
 }
 
 type EVMTokenData struct {
-	Name        string
-	Symbol      string
-	Decimals    uint8
+	Type     EVMTokenType
+	Name     string
+	Symbol   string
+	Decimals uint8
+	*EVMTokenMutableData
+}
+
+type EVMTokenMutableData struct {
 	TotalSupply *big.Int
 }
 
@@ -120,8 +124,8 @@ func evmCallWithABI(
 	return evmCallWithABICustom(ctx, source, round, gasPrice, gasLimit, caller, contractEthAddr, value, contractABI, result, method, params...)
 }
 
-func evmDownloadTokenERC20(ctx context.Context, logger *log.Logger, source storage.RuntimeSourceStorage, round uint64, tokenEthAddr []byte) (*EVMTokenData, error) {
-	var tokenData EVMTokenData
+func evmDownloadTokenERC20Mutable(ctx context.Context, logger *log.Logger, source storage.RuntimeSourceStorage, round uint64, tokenEthAddr []byte) (*EVMTokenMutableData, error) {
+	var mutable EVMTokenMutableData
 	logError := func(method string, err error) {
 		logger.Info("ERC20 call failed",
 			"round", round,
@@ -131,12 +135,25 @@ func evmDownloadTokenERC20(ctx context.Context, logger *log.Logger, source stora
 		)
 	}
 	// These mandatory methods must succeed, or we do not count this as an ERC-20 token.
-	if err := evmCallWithABI(ctx, source, round, tokenEthAddr, evmabi.ERC20, &tokenData.TotalSupply, "totalSupply"); err != nil {
+	if err := evmCallWithABI(ctx, source, round, tokenEthAddr, evmabi.ERC20, &mutable.TotalSupply, "totalSupply"); err != nil {
 		logError("totalSupply", err)
 		if !errors.Is(err, EVMDeterministicError{}) {
 			return nil, fmt.Errorf("calling totalSupply: %w", err)
 		}
 		return nil, nil
+	}
+	return &mutable, nil
+}
+
+func evmDownloadTokenERC20(ctx context.Context, logger *log.Logger, source storage.RuntimeSourceStorage, round uint64, tokenEthAddr []byte) (*EVMTokenData, error) {
+	var tokenData EVMTokenData
+	logError := func(method string, err error) {
+		logger.Info("ERC20 call failed",
+			"round", round,
+			"token_eth_addr_hex", hex.EncodeToString(tokenEthAddr),
+			"method", method,
+			"err", err,
+		)
 	}
 	// These optional methods may fail.
 	if err := evmCallWithABI(ctx, source, round, tokenEthAddr, evmabi.ERC20, &tokenData.Name, "name"); err != nil {
@@ -161,32 +178,49 @@ func evmDownloadTokenERC20(ctx context.Context, logger *log.Logger, source stora
 			return nil, fmt.Errorf("calling decimals: %w", err)
 		}
 	}
+	mutable, err := evmDownloadTokenERC20Mutable(ctx, logger, source, round, tokenEthAddr)
+	if err != nil {
+		return nil, err
+	}
+	if mutable == nil {
+		return nil, nil
+	}
+	tokenData.EVMTokenMutableData = mutable
 	return &tokenData, nil
 }
 
-func EVMDownloadRoundTokens(ctx context.Context, logger *log.Logger, source storage.RuntimeSourceStorage, round uint64, possibleTokens map[string]*EVMPossibleToken) (*EVMBlockTokenData, error) {
-	var blockTokenData EVMBlockTokenData
-	blockTokenData.TokenData = map[string]*EVMTokenData{}
-	// todo: slow and serialized, lots of round trips
-	for tokenAddr, possibleToken := range possibleTokens {
-		for _, possibleType := range possibleToken.PossibleTypes {
-			switch possibleType {
-			case EVMTokenTypeERC20:
-				tokenData, err := evmDownloadTokenERC20(ctx, logger, source, round, possibleToken.EthAddr)
-				if err != nil {
-					return nil, fmt.Errorf("download token ERC20 %s %s (eth): %w", tokenAddr, hex.EncodeToString(possibleToken.EthAddr), err)
-				}
-				if tokenData != nil {
-					blockTokenData.TokenData[tokenAddr] = tokenData
-				}
-			default:
-				logger.Info("EVMDownloadRoundTokens missing handler for a possible token type",
-					"token_oasis_addr", tokenAddr,
-					"token_eth_addr", possibleToken.EthAddr,
-					"possible_type", possibleType,
-				)
-			}
-		}
+func EVMDownloadNewToken(ctx context.Context, logger *log.Logger, source storage.RuntimeSourceStorage, round uint64, tokenEthAddr []byte) (*EVMTokenData, error) {
+	// todo: check ERC-165 0xffffffff compliance
+	// todo: try other token standards based on ERC-165
+	// see https://github.com/oasisprotocol/oasis-indexer/issues/225
+
+	// Check ERC-20.
+	tokenData, err := evmDownloadTokenERC20(ctx, logger, source, round, tokenEthAddr)
+	if err != nil {
+		return nil, fmt.Errorf("download token ERC-20: %w", err)
 	}
-	return &blockTokenData, nil
+	if tokenData != nil {
+		return tokenData, nil
+	}
+
+	// No applicable token discovered.
+	return nil, nil
+}
+
+func EVMDownloadMutatedToken(ctx context.Context, logger *log.Logger, source storage.RuntimeSourceStorage, round uint64, tokenEthAddr []byte, tokenType EVMTokenType) (*EVMTokenMutableData, error) {
+	switch tokenType {
+	case EVMTokenTypeERC20:
+		// Check ERC-20.
+		mutable, err := evmDownloadTokenERC20Mutable(ctx, logger, source, round, tokenEthAddr)
+		if err != nil {
+			return nil, fmt.Errorf("download token ERC-20 mutable: %w", err)
+		}
+		return mutable, nil
+
+	// todo: add suppport for other token types
+	// see https://github.com/oasisprotocol/oasis-indexer/issues/225
+
+	default:
+		return nil, fmt.Errorf("download mutated token type %v not handled", tokenType)
+	}
 }

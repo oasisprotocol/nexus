@@ -16,6 +16,7 @@ import (
 	"github.com/oasisprotocol/oasis-indexer/analyzer"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/consensus"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/emerald"
+	"github.com/oasisprotocol/oasis-indexer/analyzer/evmtokens"
 	"github.com/oasisprotocol/oasis-indexer/cmd/common"
 	"github.com/oasisprotocol/oasis-indexer/config"
 	"github.com/oasisprotocol/oasis-indexer/log"
@@ -158,6 +159,8 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) {
 			a, err = consensus.NewMain(analyzerCfg, client, logger)
 		case emerald.EmeraldDamaskAnalyzerName, "emerald_main_damask": // TODO: drop "main" variant; as of Oct 2022, it exists only to support legacy helmfiles
 			a, err = emerald.NewMain(analyzerCfg, client, logger)
+		case evmtokens.EmeraldDamaskTokensAnalyzerName:
+			a, err = evmtokens.NewMain(analyzerCfg, client, logger)
 		case analyzer.MetadataRegistryAnalyzerName:
 			a, err = analyzer.NewMetadataRegistryAnalyzer(analyzerCfg, client, logger)
 		case analyzer.AggregateStatsAnalyzerName:
