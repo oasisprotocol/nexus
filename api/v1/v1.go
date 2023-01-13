@@ -4,7 +4,6 @@ import (
 	"github.com/go-chi/chi/v5"
 
 	"github.com/oasisprotocol/oasis-indexer/log"
-	"github.com/oasisprotocol/oasis-indexer/metrics"
 	storage "github.com/oasisprotocol/oasis-indexer/storage/client"
 )
 
@@ -14,17 +13,17 @@ const (
 
 // Handler is the Oasis Indexer V1 API handler.
 type Handler struct {
-	Client  *storageClient
-	logger  *log.Logger
-	Metrics metrics.RequestMetrics
+	Client *storageClient
+	logger *log.Logger
+	// Metrics metrics.RequestMetrics
 }
 
 // NewHandler creates a new V1 API handler.
 func NewHandler(chainID string, s *storage.StorageClient, l *log.Logger) *Handler {
 	return &Handler{
-		Client:  newStorageClient(chainID, s, l),
-		logger:  l.WithModule(moduleName),
-		Metrics: metrics.NewDefaultRequestMetrics(moduleName),
+		Client: newStorageClient(chainID, s, l),
+		logger: l.WithModule(moduleName),
+		// Metrics: metrics.NewDefaultRequestMetrics(moduleName),
 	}
 }
 
@@ -122,6 +121,6 @@ func (h *Handler) RegisterRoutes(r chi.Router) {
 }
 
 // Name implements the APIHandler interface.
-func (h *Handler) Name() string {
-	return "v1"
-}
+// func (h *Handler) Name() string {
+// 	return "v1"
+// }

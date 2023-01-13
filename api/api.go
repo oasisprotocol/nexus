@@ -25,7 +25,7 @@ type Handler interface {
 	RegisterRoutes(chi.Router)
 
 	// Name returns the name of this API handler.
-	Name() string
+	// Name() string
 }
 
 // IndexerAPI is an API for the Oasis Indexer.
