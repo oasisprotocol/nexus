@@ -37,6 +37,7 @@ func renderRuntimeTransaction(storageTransaction client.RuntimeTransaction) (api
 	}
 	apiTransaction := apiTypes.RuntimeTransaction{
 		Round:   storageTransaction.Round,
+		Index:   storageTransaction.Index,
 		Hash:    storageTransaction.Hash,
 		EthHash: storageTransaction.EthHash,
 		// TODO: Get timestamp from that round's block

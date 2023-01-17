@@ -1653,13 +1653,18 @@ components:
     RuntimeTransaction:
       type: object
       # NOTE: Not guaranteed to be present: eth_hash, to, amount.
-      required: [round, timestamp, hash, sender_0, nonce_0, fee, gas_limit, method, body, success]
+      required: [round, index, timestamp, hash, sender_0, nonce_0, fee, gas_limit, method, body, success]
       properties:
         round:
           type: integer
           format: int64
           description: The block round at which this transaction was executed.
           example: 3379702
+        index:
+          type: integer
+          format: int64
+          description: The 0-based index of this transaction in the block.
+          example: 0
         timestamp:
           type: string
           format: date-time
