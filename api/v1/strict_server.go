@@ -248,3 +248,17 @@ func (srv *StrictServerImpl) GetEmeraldTransactions(ctx context.Context, request
 
 	return apiTypes.GetEmeraldTransactions200JSONResponse(apiTransactions), nil
 }
+
+func (srv *StrictServerImpl) GetEmeraldTransactionsTxHash(ctx context.Context, request apiTypes.GetEmeraldTransactionsTxHashRequestObject) (apiTypes.GetEmeraldTransactionsTxHashResponseObject, error) {
+	storageTx, err := srv.dbClient.RuntimeTransaction(ctx, request.TxHash)
+	if err != nil {
+		return nil, err
+	}
+
+	apiTx, err := renderRuntimeTransaction(*storageTx)
+	if err != nil {
+		return nil, fmt.Errorf("rendering emerald tx %s: %w", request.TxHash, err)
+	}
+
+	return apiTypes.GetEmeraldTransactionsTxHash200JSONResponse(apiTx), nil
+}

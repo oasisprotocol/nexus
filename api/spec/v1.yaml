@@ -768,6 +768,26 @@ paths:
                 $ref: '#/components/schemas/RuntimeTransactionList'
         <<: *common_error_responses
 
+  /emerald/transactions/{tx_hash}:
+    get:
+      summary: Returns an Emerald transaction with the given transaction hash.
+      parameters:
+        - in: path
+          name: tx_hash
+          required: true
+          schema:
+            type: string
+          description: The transaction hash of the transaction to return.
+          example: *tx_hash_1
+      responses:
+        '200':
+          description: The requested Emerald transactions.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RuntimeTransaction'
+        <<: *common_error_responses
+
   /emerald/tokens:
     get:
       summary: Returns a list of ERC-20 tokens on Emerald.
