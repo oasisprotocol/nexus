@@ -62,15 +62,17 @@ CREATE INDEX ix_transactions_tx_hash ON oasis_3.transactions (tx_hash);
 
 CREATE TABLE oasis_3.events
 (
-  tx_block  UINT63 NOT NULL,
+  tx_block UINT63 NOT NULL,
   tx_index  UINT31,
 
   type    TEXT NOT NULL,  -- Enum with many values, see https://github.com/oasisprotocol/oasis-indexer/blob/89b68717205809b491d7926533d096444611bd6b/analyzer/api.go#L171-L171
   body    JSON,
   tx_hash   HEX64, -- could be fetched from `transactions` table; denormalized for efficiency
+  related_accounts TEXT[],
 
   FOREIGN KEY (tx_block, tx_index) REFERENCES oasis_3.transactions(block, tx_index) DEFERRABLE INITIALLY DEFERRED
 );
+CREATE INDEX ix_events_related_accounts ON oasis_3.events USING gin(related_accounts);
 
 -- Beacon Backend Data
 
@@ -251,6 +253,17 @@ CREATE TABLE oasis_3.votes
 
   PRIMARY KEY (proposal, voter)
 );
+
+-- Related Accounts Data
+
+CREATE TABLE oasis_3.accounts_related_transactions
+(
+  account_address oasis_addr NOT NULL,
+  tx_block UINT63 NOT NULL,
+  tx_index UINT31 NOT NULL,
+  FOREIGN KEY (tx_block, tx_index) REFERENCES oasis_3.transactions(block, tx_index) DEFERRABLE INITIALLY DEFERRED
+);
+CREATE INDEX ix_accounts_related_transactions_address_block_index ON oasis_3.accounts_related_transactions (account_address);
 
 -- Indexing Progress Management
 CREATE TABLE oasis_3.processed_blocks

@@ -190,7 +190,7 @@ type BlockList struct {
 // ConsensusEvent An event emitted by the consensus layer.
 type ConsensusEvent struct {
 	// Block The block height at which this event was generated.
-	Block int64 `json:"block"`
+	Block *int64 `json:"block,omitempty"`
 
 	// Body The event contents. This spec does not encode the many possible types;
 	// instead, see [the Go API](https://pkg.go.dev/github.com/oasisprotocol/oasis-core/go/consensus/api/transaction/results#Event) of oasis-core.
@@ -204,7 +204,8 @@ type ConsensusEvent struct {
 
 	// TxIndex 0-based index of this event's originating transaction within its block.
 	// Absent if the event did not originate from a transaction.
-	TxIndex *int32 `json:"tx_index"`
+	TxIndex *int32             `json:"tx_index"`
+	Type    ConsensusEventType `json:"type"`
 }
 
 // ConsensusEventList A list of consensus events.
@@ -824,6 +825,9 @@ type GetConsensusTransactionsParams struct {
 
 	// Sender A filter on transaction sender.
 	Sender *string `form:"sender,omitempty" json:"sender,omitempty"`
+
+	// Rel A filter on related accounts.
+	Rel *string `form:"rel,omitempty" json:"rel,omitempty"`
 
 	// MinFee A filter on minimum transaction fee, inclusive.
 	MinFee *int64 `form:"minFee,omitempty" json:"minFee,omitempty"`

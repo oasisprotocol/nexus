@@ -53,6 +53,9 @@ func (h *Handler) RegisterRoutes(r chi.Router) {
 				r.Get("/", h.ListTransactions)
 				r.Get("/{tx_hash}", h.GetTransaction)
 			})
+			r.Route("/events", func(r chi.Router) {
+				r.Get("/", h.ListEvents)
+			})
 
 			// Registry Endpoints.
 			r.Route("/entities", func(r chi.Router) {
