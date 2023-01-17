@@ -1354,12 +1354,12 @@ components:
           description: Version of the `context`.
         address_data:
           type: string
-          format: hex
+          format: byte
           description: |
-            The hex-encoded data from which the oasis address was derived.
+            The base64-encoded data from which the oasis address was derived.
             When `context = "oasis-runtime-sdk/address: secp256k1eth"`, this
-            is the Ethereum address (without the leading `0x`). All-lowercase.
-          example: '9907a0cf64ec9fbf6ed8fd4971090de88222a9ac'
+            is the Ethereum address (in base64, not hex!).
+          example: 'INLp2Ih3YIdcA+zFNhM+SIGyFgKsYYc9SKQeKRKe2uI='
 
     RuntimeName:
       description: |
@@ -1394,7 +1394,7 @@ components:
 
     Account:
       type: object
-      required: [address, address_preimage, nonce, runtime_balances, available, escrow, debonding, delegations_balance, debonding_delegations_balance, allowances]
+      required: [address, nonce, available, escrow, debonding, allowances]
       properties:
         address:
           type: string
@@ -1407,9 +1407,11 @@ components:
           format: int64
           description: A nonce used to prevent replay.
           example: 0
-        # TODO: limit this to 1000 entries. If folks have more,
-        # we can eventually open up a separate, paginable endpoint just for balances.
         runtime_balances:
+          description: |
+            The balances of this account in various denominations in each runtime.
+            NOTE 1: This field is omitted for efficiency when listing multiple accounts.
+            NOTE 2: This field is limited to 1000 entries. If you need more, please let us know in a GitHub issue.
           type: array
           items:
             $ref: '#/components/schemas/RuntimeBalance'
@@ -1424,10 +1426,14 @@ components:
           description: The debonding escrow balance, in base units.
         delegations_balance:
           <<: *BigIntType
-          description: The delegations balance, in base units.
+          description: |
+            The delegations balance, in base units.
+            For efficiency, this field is omitted when listing multiple-accounts.
         debonding_delegations_balance:
           <<: *BigIntType
-          description: The debonding delegations balance, in base units.
+          description: |
+            The debonding delegations balance, in base units.
+            For efficiency, this field is omitted when listing multiple-accounts.
           example: 10000000000
         allowances:
           type: array
@@ -1504,7 +1510,7 @@ components:
         runtime_committee_protocol:
           type: string
       description: The target propotocol versions for this upgrade proposal.
-      
+
     Proposal:
       type: object
       # TODO: Revise required fields. Most fields are required for actual proposals, and only absent

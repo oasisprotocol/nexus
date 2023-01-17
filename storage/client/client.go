@@ -610,16 +610,20 @@ func (c *StorageClient) Accounts(ctx context.Context, r apiTypes.GetConsensusAcc
 		Accounts: []Account{},
 	}
 	for rows.Next() {
-		var a Account
+		a := Account{AddressPreimage: &AddressPreimage{}}
 		var availableNum pgtype.Numeric
 		var escrowNum pgtype.Numeric
 		var debondingNum pgtype.Numeric
+		var preimageContext *string
 		if err := rows.Scan(
 			&a.Address,
 			&a.Nonce,
 			&availableNum,
 			&escrowNum,
 			&debondingNum,
+			&preimageContext,
+			&a.AddressPreimage.ContextVersion,
+			&a.AddressPreimage.AddressData,
 		); err != nil {
 			c.logger.Info("row scan failed",
 				"request_id", ctx.Value(common.RequestIDContextKey),
@@ -640,6 +644,11 @@ func (c *StorageClient) Accounts(ctx context.Context, r apiTypes.GetConsensusAcc
 		if err != nil {
 			return nil, apiCommon.ErrStorageError
 		}
+		if preimageContext != nil {
+			a.AddressPreimage.Context = AddressDerivationContext(*preimageContext)
+		} else {
+			a.AddressPreimage = nil
+		}
 
 		as.Accounts = append(as.Accounts, a)
 	}
@@ -656,11 +665,17 @@ func (c *StorageClient) Account(ctx context.Context, address staking.Address) (*
 	qf := NewQueryFactory(cid, "" /* no runtime identifier for the consensus layer */)
 
 	a := Account{
-		Allowances: []Allowance{},
+		// Initialize optional fields to empty values to avoid null pointer dereferences
+		// when filling them from the database.
+		Allowances:                  []Allowance{},
+		AddressPreimage:             &AddressPreimage{},
+		DelegationsBalance:          &common.BigInt{},
+		DebondingDelegationsBalance: &common.BigInt{},
 	}
 	var availableNum pgtype.Numeric
 	var escrowNum pgtype.Numeric
 	var debondingNum pgtype.Numeric
+	var preimageContext *string
 	var delegationsBalanceNum pgtype.Numeric
 	var debondingDelegationsBalanceNum pgtype.Numeric
 	if err := c.db.QueryRow(
@@ -673,10 +688,13 @@ func (c *StorageClient) Account(ctx context.Context, address staking.Address) (*
 		&availableNum,
 		&escrowNum,
 		&debondingNum,
+		&preimageContext,
+		&a.AddressPreimage.ContextVersion,
+		&a.AddressPreimage.AddressData,
 		&delegationsBalanceNum,
 		&debondingDelegationsBalanceNum,
 	); err != nil {
-		c.logger.Info("row scan failed",
+		c.logger.Info("row scan for Account failed",
 			"request_id", ctx.Value(common.RequestIDContextKey),
 			"err", err.Error(),
 		)
@@ -695,13 +713,18 @@ func (c *StorageClient) Account(ctx context.Context, address staking.Address) (*
 	if err != nil {
 		return nil, apiCommon.ErrStorageError
 	}
-	a.DelegationsBalance, err = c.numericToBigInt(ctx, &delegationsBalanceNum)
+	*a.DelegationsBalance, err = c.numericToBigInt(ctx, &delegationsBalanceNum)
 	if err != nil {
 		return nil, apiCommon.ErrStorageError
 	}
-	a.DebondingDelegationsBalance, err = c.numericToBigInt(ctx, &debondingDelegationsBalanceNum)
+	*a.DebondingDelegationsBalance, err = c.numericToBigInt(ctx, &debondingDelegationsBalanceNum)
 	if err != nil {
 		return nil, apiCommon.ErrStorageError
+	}
+	if preimageContext != nil {
+		a.AddressPreimage.Context = AddressDerivationContext(*preimageContext)
+	} else {
+		a.AddressPreimage = nil
 	}
 
 	allowanceRows, queryErr := c.db.Query(

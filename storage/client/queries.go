@@ -150,23 +150,32 @@ func (qf QueryFactory) EntityNodeQuery() string {
 
 func (qf QueryFactory) AccountsQuery() string {
 	return fmt.Sprintf(`
-		SELECT address, nonce, general_balance, escrow_balance_active, escrow_balance_debonding
-			FROM %s.accounts
-			WHERE ($1::numeric IS NULL OR general_balance >= $1::numeric) AND
-						($2::numeric IS NULL OR general_balance <= $2::numeric) AND
-						($3::numeric IS NULL OR escrow_balance_active >= $3::numeric) AND
-						($4::numeric IS NULL OR escrow_balance_active <= $4::numeric) AND
-						($5::numeric IS NULL OR escrow_balance_debonding >= $5::numeric) AND
-						($6::numeric IS NULL OR escrow_balance_debonding <= $6::numeric) AND
-						($7::numeric IS NULL OR general_balance + escrow_balance_active + escrow_balance_debonding >= $7::numeric) AND
-						($8::numeric IS NULL OR general_balance + escrow_balance_active + escrow_balance_debonding <= $8::numeric)
+		SELECT
+			address, nonce, general_balance, escrow_balance_active, escrow_balance_debonding,
+			preimage.context_identifier AS preimage_context,
+			preimage.context_version AS preimage_context_version,
+			preimage.address_data AS preimage_address_data
+		FROM %[1]s.accounts
+		LEFT JOIN %[1]s.address_preimages AS preimage USING (address)
+		WHERE ($1::numeric IS NULL OR general_balance >= $1::numeric) AND
+					($2::numeric IS NULL OR general_balance <= $2::numeric) AND
+					($3::numeric IS NULL OR escrow_balance_active >= $3::numeric) AND
+					($4::numeric IS NULL OR escrow_balance_active <= $4::numeric) AND
+					($5::numeric IS NULL OR escrow_balance_debonding >= $5::numeric) AND
+					($6::numeric IS NULL OR escrow_balance_debonding <= $6::numeric) AND
+					($7::numeric IS NULL OR general_balance + escrow_balance_active + escrow_balance_debonding >= $7::numeric) AND
+					($8::numeric IS NULL OR general_balance + escrow_balance_active + escrow_balance_debonding <= $8::numeric)
 		LIMIT $9::bigint
 		OFFSET $10::bigint`, qf.chainID)
 }
 
 func (qf QueryFactory) AccountQuery() string {
 	return fmt.Sprintf(`
-		SELECT address, nonce, general_balance, escrow_balance_active, escrow_balance_debonding,
+		SELECT
+			address, nonce, general_balance, escrow_balance_active, escrow_balance_debonding,
+			preimage.context_identifier AS preimage_context,
+			preimage.context_version AS preimage_context_version,
+			preimage.address_data AS preimage_address_data,
 			COALESCE (
 				(SELECT COALESCE(ROUND(SUM(shares * escrow_balance_active / escrow_total_shares_active)), 0) AS delegations_balance
 				FROM %[1]s.delegations
@@ -179,8 +188,9 @@ func (qf QueryFactory) AccountQuery() string {
 				JOIN %[1]s.accounts ON %[1]s.accounts.address = %[1]s.debonding_delegations.delegatee
 				WHERE delegator = $1::text AND escrow_total_shares_debonding != 0)
 			, 0) AS debonding_delegations_balance
-			FROM %[1]s.accounts
-			WHERE address = $1::text`, qf.chainID)
+		FROM %[1]s.accounts
+		LEFT JOIN %[1]s.address_preimages AS preimage USING (address)
+		WHERE address = $1::text`, qf.chainID)
 }
 
 func (qf QueryFactory) AccountAllowancesQuery() string {
