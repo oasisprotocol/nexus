@@ -168,7 +168,7 @@ func (c *StorageClient) Blocks(ctx context.Context, r apiTypes.GetConsensusBlock
 	}
 	for rows.Next() {
 		var b Block
-		if err := rows.Scan(&b.Height, &b.Hash, &b.Timestamp); err != nil {
+		if err := rows.Scan(&b.Height, &b.Hash, &b.Timestamp, &b.NumTransactions); err != nil {
 			c.logger.Info("row scan failed",
 				"request_id", ctx.Value(common.RequestIDContextKey),
 				"err", err.Error(),
@@ -202,7 +202,7 @@ func (c *StorageClient) Block(ctx context.Context, height int64) (*Block, error)
 		ctx,
 		qf.BlockQuery(),
 		height,
-	).Scan(&b.Height, &b.Hash, &b.Timestamp); err != nil {
+	).Scan(&b.Height, &b.Hash, &b.Timestamp, &b.NumTransactions); err != nil {
 		c.logger.Info("row scan failed",
 			"request_id", ctx.Value(common.RequestIDContextKey),
 			"err", err.Error(),

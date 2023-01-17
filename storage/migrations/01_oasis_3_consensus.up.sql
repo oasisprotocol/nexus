@@ -22,6 +22,7 @@ CREATE TABLE oasis_3.blocks
   height     UINT63 PRIMARY KEY,
   block_hash HEX64 NOT NULL,
   time       TIMESTAMP WITH TIME ZONE NOT NULL,
+  num_txs    UINT31 NOT NULL,
 
   -- State Root Info
   namespace TEXT NOT NULL,

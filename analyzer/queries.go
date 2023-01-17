@@ -46,8 +46,8 @@ func (qf QueryFactory) GenesisIndexingProgressQuery() string {
 
 func (qf QueryFactory) ConsensusBlockInsertQuery() string {
 	return fmt.Sprintf(`
-		INSERT INTO %s.blocks (height, block_hash, time, namespace, version, type, root_hash)
-			VALUES ($1, $2, $3, $4, $5, $6, $7)`, qf.chainID)
+		INSERT INTO %s.blocks (height, block_hash, time, num_txs, namespace, version, type, root_hash)
+			VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`, qf.chainID)
 }
 
 func (qf QueryFactory) ConsensusEpochInsertQuery() string {

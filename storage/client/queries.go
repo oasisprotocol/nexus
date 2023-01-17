@@ -24,7 +24,7 @@ func (qf QueryFactory) StatusQuery() string {
 
 func (qf QueryFactory) BlocksQuery() string {
 	return fmt.Sprintf(`
-		SELECT height, block_hash, time
+		SELECT height, block_hash, time, num_txs
 			FROM %s.blocks
 			WHERE ($1::bigint IS NULL OR height >= $1::bigint) AND
 						($2::bigint IS NULL OR height <= $2::bigint) AND
@@ -37,7 +37,7 @@ func (qf QueryFactory) BlocksQuery() string {
 
 func (qf QueryFactory) BlockQuery() string {
 	return fmt.Sprintf(`
-		SELECT height, block_hash, time
+		SELECT height, block_hash, time, num_txs
 			FROM %s.blocks
 			WHERE height = $1::bigint`, qf.chainID)
 }
