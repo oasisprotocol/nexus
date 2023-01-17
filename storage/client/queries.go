@@ -46,14 +46,17 @@ func (qf QueryFactory) TransactionsQuery() string {
 	return fmt.Sprintf(`
 		SELECT 
 				%[1]s.transactions.block as block,
+				%[1]s.transactions.tx_index as tx_index,
 				%[1]s.transactions.tx_hash as tx_hash,
 				%[1]s.transactions.sender as sender,
 				%[1]s.transactions.nonce as nonce,
 				%[1]s.transactions.fee_amount as fee_amount,
 				%[1]s.transactions.method as method,
 				%[1]s.transactions.body as body,
-				%[1]s.transactions.code as code
+				%[1]s.transactions.code as code,
+				%[1]s.blocks.time as time
 			FROM %[1]s.transactions
+			JOIN %[1]s.blocks ON %[1]s.transactions.block = %[1]s.blocks.height
 			LEFT JOIN %[1]s.accounts_related_transactions ON %[1]s.transactions.block = %[1]s.accounts_related_transactions.tx_block 
 				AND %[1]s.transactions.tx_index = %[1]s.accounts_related_transactions.tx_index
 				-- When related_address ($4) is NULL and hence we do no filtering on it, avoid the join altogether.
@@ -73,8 +76,9 @@ func (qf QueryFactory) TransactionsQuery() string {
 
 func (qf QueryFactory) TransactionQuery() string {
 	return fmt.Sprintf(`
-		SELECT block, tx_hash, sender, nonce, fee_amount, method, body, code
-			FROM %s.transactions
+		SELECT block, tx_index, tx_hash, sender, nonce, fee_amount, method, body, code, %[1]s.blocks.time
+			FROM %[1]s.transactions
+			JOIN %[1]s.blocks ON %[1]s.transactions.block = %[1]s.blocks.height
 			WHERE tx_hash = $1::text`, qf.chainID)
 }
 

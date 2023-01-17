@@ -259,6 +259,7 @@ func (c *StorageClient) Transactions(ctx context.Context, p apiTypes.GetConsensu
 		var feeNum pgtype.Numeric
 		if err := rows.Scan(
 			&t.Block,
+			&t.Index,
 			&t.Hash,
 			&t.Sender,
 			&t.Nonce,
@@ -266,6 +267,7 @@ func (c *StorageClient) Transactions(ctx context.Context, p apiTypes.GetConsensu
 			&t.Method,
 			&t.Body,
 			&code,
+			&t.Timestamp,
 		); err != nil {
 			c.logger.Info("row scan failed",
 				"request_id", ctx.Value(common.RequestIDContextKey),
@@ -311,6 +313,7 @@ func (c *StorageClient) Transaction(ctx context.Context, txHash string) (*Transa
 		txHash,
 	).Scan(
 		&t.Block,
+		&t.Index,
 		&t.Hash,
 		&t.Sender,
 		&t.Nonce,
@@ -318,6 +321,7 @@ func (c *StorageClient) Transaction(ctx context.Context, txHash string) (*Transa
 		&t.Method,
 		&t.Body,
 		&code,
+		&t.Timestamp,
 	); err != nil {
 		c.logger.Info("row scan failed",
 			"request_id", ctx.Value(common.RequestIDContextKey),
