@@ -151,12 +151,16 @@ func (qf QueryFactory) EntityNodeQuery() string {
 func (qf QueryFactory) AccountsQuery() string {
 	return fmt.Sprintf(`
 		SELECT
-			address, nonce, general_balance, escrow_balance_active, escrow_balance_debonding,
+			address, 
+			COALESCE(nonce, 0),
+			COALESCE(general_balance, 0),
+			COALESCE(escrow_balance_active, 0),
+			COALESCE(escrow_balance_debonding, 0),
 			preimage.context_identifier AS preimage_context,
 			preimage.context_version AS preimage_context_version,
 			preimage.address_data AS preimage_address_data
 		FROM %[1]s.accounts
-		LEFT JOIN %[1]s.address_preimages AS preimage USING (address)
+		FULL OUTER JOIN %[1]s.address_preimages AS preimage USING (address)
 		WHERE ($1::numeric IS NULL OR general_balance >= $1::numeric) AND
 					($2::numeric IS NULL OR general_balance <= $2::numeric) AND
 					($3::numeric IS NULL OR escrow_balance_active >= $3::numeric) AND
@@ -172,7 +176,11 @@ func (qf QueryFactory) AccountsQuery() string {
 func (qf QueryFactory) AccountQuery() string {
 	return fmt.Sprintf(`
 		SELECT
-			address, nonce, general_balance, escrow_balance_active, escrow_balance_debonding,
+			address, 
+			COALESCE(nonce, 0),
+			COALESCE(general_balance, 0),
+			COALESCE(escrow_balance_active, 0),
+			COALESCE(escrow_balance_debonding, 0),
 			preimage.context_identifier AS preimage_context,
 			preimage.context_version AS preimage_context_version,
 			preimage.address_data AS preimage_address_data,
@@ -189,7 +197,7 @@ func (qf QueryFactory) AccountQuery() string {
 				WHERE delegator = $1::text AND escrow_total_shares_debonding != 0)
 			, 0) AS debonding_delegations_balance
 		FROM %[1]s.accounts
-		LEFT JOIN %[1]s.address_preimages AS preimage USING (address)
+		FULL OUTER JOIN %[1]s.address_preimages AS preimage USING (address)
 		WHERE address = $1::text`, qf.chainID)
 }
 
@@ -366,6 +374,34 @@ func (qf QueryFactory) RuntimeTokensQuery() string {
 		ORDER BY num_holders DESC
 		LIMIT $1::bigint
 		OFFSET $2::bigint`, qf.chainID, qf.runtime)
+}
+
+func (qf QueryFactory) AccountRuntimeBalancesQuery() string {
+	return fmt.Sprintf(`
+	  -- EVM token balances (ERC-20 etc., e.g. USDT)
+		SELECT
+			%[1]s.%[2]s_token_balances.balance AS balance,
+			%[1]s.%[2]s_token_balances.token_address AS token_id,
+			%[1]s.%[2]s_tokens.symbol AS token_symbol,
+			'ERC20' AS token_type  -- TODO: fetch from the table once available
+		FROM %[1]s.%[2]s_token_balances
+		JOIN %[1]s.%[2]s_tokens USING (token_address)
+		WHERE account_address = $1::text
+		  AND balance != 0
+
+		UNION
+
+		-- oasis-sdk token balances (e.g. ROSE)
+		SELECT
+			balance AS balance,
+			CONCAT('oasis-sdk:', symbol) AS token_id,
+			symbol AS token_symbol,
+			'OasisSdk' AS token_type
+		FROM %[1]s.runtime_native_balances
+		WHERE account_address = $1::text
+			AND runtime = '%[2]s'::text
+			AND balance != 0
+	`, qf.chainID, qf.runtime)
 }
 
 func (qf QueryFactory) FineTxVolumesQuery() string {

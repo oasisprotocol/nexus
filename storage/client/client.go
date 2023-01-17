@@ -664,6 +664,7 @@ func (c *StorageClient) Account(ctx context.Context, address staking.Address) (*
 	}
 	qf := NewQueryFactory(cid, "" /* no runtime identifier for the consensus layer */)
 
+	// Get basic account info.
 	a := Account{
 		// Initialize optional fields to empty values to avoid null pointer dereferences
 		// when filling them from the database.
@@ -671,6 +672,7 @@ func (c *StorageClient) Account(ctx context.Context, address staking.Address) (*
 		AddressPreimage:             &AddressPreimage{},
 		DelegationsBalance:          &common.BigInt{},
 		DebondingDelegationsBalance: &common.BigInt{},
+		RuntimeBalances:             &[]RuntimeBalance{},
 	}
 	var availableNum pgtype.Numeric
 	var escrowNum pgtype.Numeric
@@ -678,7 +680,7 @@ func (c *StorageClient) Account(ctx context.Context, address staking.Address) (*
 	var preimageContext *string
 	var delegationsBalanceNum pgtype.Numeric
 	var debondingDelegationsBalanceNum pgtype.Numeric
-	if err := c.db.QueryRow(
+	err := c.db.QueryRow(
 		ctx,
 		qf.AccountQuery(),
 		address.String(),
@@ -693,40 +695,45 @@ func (c *StorageClient) Account(ctx context.Context, address staking.Address) (*
 		&a.AddressPreimage.AddressData,
 		&delegationsBalanceNum,
 		&debondingDelegationsBalanceNum,
-	); err != nil {
-		c.logger.Info("row scan for Account failed",
-			"request_id", ctx.Value(common.RequestIDContextKey),
-			"err", err.Error(),
-		)
-		return nil, apiCommon.ErrStorageError
-	}
-	var err error
-	a.Available, err = c.numericToBigInt(ctx, &availableNum)
-	if err != nil {
-		return nil, apiCommon.ErrStorageError
-	}
-	a.Escrow, err = c.numericToBigInt(ctx, &escrowNum)
-	if err != nil {
-		return nil, apiCommon.ErrStorageError
-	}
-	a.Debonding, err = c.numericToBigInt(ctx, &debondingNum)
-	if err != nil {
-		return nil, apiCommon.ErrStorageError
-	}
-	*a.DelegationsBalance, err = c.numericToBigInt(ctx, &delegationsBalanceNum)
-	if err != nil {
-		return nil, apiCommon.ErrStorageError
-	}
-	*a.DebondingDelegationsBalance, err = c.numericToBigInt(ctx, &debondingDelegationsBalanceNum)
-	if err != nil {
-		return nil, apiCommon.ErrStorageError
-	}
-	if preimageContext != nil {
-		a.AddressPreimage.Context = AddressDerivationContext(*preimageContext)
+	)
+	if err == nil { //nolint:gocritic,nestif
+		// Convert numeric values to big.Int.
+		var err2 error
+		a.Available, err2 = c.numericToBigInt(ctx, &availableNum)
+		if err2 != nil {
+			return nil, apiCommon.ErrStorageError
+		}
+		a.Escrow, err2 = c.numericToBigInt(ctx, &escrowNum)
+		if err2 != nil {
+			return nil, apiCommon.ErrStorageError
+		}
+		a.Debonding, err2 = c.numericToBigInt(ctx, &debondingNum)
+		if err2 != nil {
+			return nil, apiCommon.ErrStorageError
+		}
+		*a.DelegationsBalance, err2 = c.numericToBigInt(ctx, &delegationsBalanceNum)
+		if err2 != nil {
+			return nil, apiCommon.ErrStorageError
+		}
+		*a.DebondingDelegationsBalance, err2 = c.numericToBigInt(ctx, &debondingDelegationsBalanceNum)
+		if err2 != nil {
+			return nil, apiCommon.ErrStorageError
+		}
+		if preimageContext != nil {
+			a.AddressPreimage.Context = AddressDerivationContext(*preimageContext)
+		} else {
+			a.AddressPreimage = nil
+		}
+	} else if err == pgx.ErrNoRows {
+		// An address can have no entries in the consensus `accounts` table (= no balance, nonce, etc)
+		// but it's still valid, and it might have balances in the runtimes.
+		// Leave the consensus-specific info initialized to defaults.
+		a.Address = address.String()
 	} else {
-		a.AddressPreimage = nil
+		return nil, apiCommon.ErrStorageError
 	}
 
+	// Get allowances.
 	allowanceRows, queryErr := c.db.Query(
 		ctx,
 		qf.AccountAllowancesQuery(),
@@ -761,6 +768,46 @@ func (c *StorageClient) Account(ctx context.Context, address staking.Address) (*
 		}
 
 		a.Allowances = append(a.Allowances, al)
+	}
+
+	// Get paratime balances.
+	//
+	// XXX: This method needs to return balances across all paratimes.
+	// For now, we manually query "each" runtime in turn (= just Emerald for now).
+	// TODO: Refactor emerald tables to contain all paratimes.
+	paratimeRows, queryErr := c.db.Query(
+		ctx,
+		NewQueryFactory(cid, "emerald").AccountRuntimeBalancesQuery(),
+		address.String(),
+	)
+	if queryErr != nil {
+		c.logger.Info("query failed",
+			"request_id", ctx.Value(common.RequestIDContextKey),
+			"err", queryErr.Error(),
+		)
+		return nil, apiCommon.ErrStorageError
+	}
+	defer paratimeRows.Close()
+
+	for paratimeRows.Next() {
+		b := apiTypes.RuntimeBalance{
+			Runtime: "emerald",
+		}
+		var balanceNum pgtype.Numeric
+		if err := paratimeRows.Scan(
+			&balanceNum,
+			&b.TokenID,
+			&b.TokenSymbol,
+			&b.TokenType,
+		); err != nil {
+			return nil, apiCommon.ErrStorageError
+		}
+		var err error
+		b.Balance, err = c.numericToBigInt(ctx, &balanceNum)
+		if err != nil {
+			return nil, apiCommon.ErrStorageError
+		}
+		*a.RuntimeBalances = append(*a.RuntimeBalances, b)
 	}
 
 	return &a, nil
@@ -1464,14 +1511,10 @@ func (c *StorageClient) RuntimeTokens(ctx context.Context, p apiTypes.GetEmerald
 	}
 	for rows.Next() {
 		var t RuntimeToken
-		if err := rows.Scan(
+		if err2 := rows.Scan(
 			&t.ContractAddr,
 			&t.NumHolders,
-		); err != nil {
-			c.logger.Info("row scan failed",
-				"request_id", ctx.Value(common.RequestIDContextKey),
-				"err", err.Error(),
-			)
+		); err2 != nil {
 			return nil, apiCommon.ErrStorageError
 		}
 
