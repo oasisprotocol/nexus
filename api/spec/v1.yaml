@@ -1055,7 +1055,7 @@ components:
 
     ConsensusEvent:
       type: object
-      required: [height, type, body]
+      required: [block, type, body]
       properties:
         block:
           type: integer

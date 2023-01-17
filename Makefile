@@ -16,7 +16,7 @@ build:
 # To install the tool, run:
 #   go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen@v1.12
 codegen-go:
-	mkdir -p api/v1/types  # for hosting codegenerated code
+	@oapi-codegen --version | grep -qE '^v1.12.' || echo "ERROR: Installed oapi-codegen is not v1.12.x. See Makefile."
 	oapi-codegen -generate types                    -package types api/spec/v1.yaml >api/v1/types/openapi.gen.go
 	oapi-codegen -generate chi-server,strict-server -package types api/spec/v1.yaml >api/v1/types/server.gen.go
 

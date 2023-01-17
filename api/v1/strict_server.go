@@ -135,6 +135,14 @@ func (srv *StrictServerImpl) GetConsensusEpochsEpoch(ctx context.Context, reques
 }
 
 func (srv *StrictServerImpl) GetConsensusEvents(ctx context.Context, request apiTypes.GetConsensusEventsRequestObject) (apiTypes.GetConsensusEventsResponseObject, error) {
+	// Additional param validation.
+	if request.Params.Type != nil && !request.Params.Type.IsValid() {
+		return nil, &apiTypes.InvalidParamFormatError{ParamName: "type", Err: fmt.Errorf("not a valid enum value: %s", *request.Params.Type)}
+	}
+	if request.Params.TxIndex != nil && request.Params.Block == nil {
+		return nil, &apiTypes.InvalidParamFormatError{ParamName: "block", Err: fmt.Errorf("must be specified when tx_index is specified")}
+	}
+
 	events, err := srv.dbClient.Events(ctx, request.Params)
 	if err != nil {
 		return nil, err
