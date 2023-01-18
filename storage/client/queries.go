@@ -63,8 +63,8 @@ func (qf QueryFactory) TransactionsQuery() string {
 					($2::text IS NULL OR %[1]s.transactions.method = $2::text) AND
 					($3::text IS NULL OR %[1]s.transactions.sender = $3::text) AND
 					($4::text IS NULL OR %[1]s.accounts_related_transactions.account_address = $4::text) AND
-					($5::bigint IS NULL OR %[1]s.transactions.fee_amount >= $5::bigint) AND
-					($6::bigint IS NULL OR %[1]s.transactions.fee_amount <= $6::bigint) AND
+					($5::numeric IS NULL OR %[1]s.transactions.fee_amount >= $5::numeric) AND
+					($6::numeric IS NULL OR %[1]s.transactions.fee_amount <= $6::numeric) AND
 					($7::bigint IS NULL OR %[1]s.transactions.code = $7::bigint)
 			ORDER BY %[1]s.transactions.block DESC, %[1]s.transactions.tx_index
 			LIMIT $8::bigint
@@ -148,14 +148,14 @@ func (qf QueryFactory) AccountsQuery() string {
 	return fmt.Sprintf(`
 		SELECT address, nonce, general_balance, escrow_balance_active, escrow_balance_debonding
 			FROM %s.accounts
-			WHERE ($1::bigint IS NULL OR general_balance >= $1::bigint) AND
-						($2::bigint IS NULL OR general_balance <= $2::bigint) AND
-						($3::bigint IS NULL OR escrow_balance_active >= $3::bigint) AND
-						($4::bigint IS NULL OR escrow_balance_active <= $4::bigint) AND
-						($5::bigint IS NULL OR escrow_balance_debonding >= $5::bigint) AND
-						($6::bigint IS NULL OR escrow_balance_debonding <= $6::bigint) AND
-						($7::bigint IS NULL OR general_balance + escrow_balance_active + escrow_balance_debonding >= $7::bigint) AND
-						($8::bigint IS NULL OR general_balance + escrow_balance_active + escrow_balance_debonding <= $8::bigint)
+			WHERE ($1::numeric IS NULL OR general_balance >= $1::numeric) AND
+						($2::numeric IS NULL OR general_balance <= $2::numeric) AND
+						($3::numeric IS NULL OR escrow_balance_active >= $3::numeric) AND
+						($4::numeric IS NULL OR escrow_balance_active <= $4::numeric) AND
+						($5::numeric IS NULL OR escrow_balance_debonding >= $5::numeric) AND
+						($6::numeric IS NULL OR escrow_balance_debonding <= $6::numeric) AND
+						($7::numeric IS NULL OR general_balance + escrow_balance_active + escrow_balance_debonding >= $7::numeric) AND
+						($8::numeric IS NULL OR general_balance + escrow_balance_active + escrow_balance_debonding <= $8::numeric)
 		LIMIT $9::bigint
 		OFFSET $10::bigint`, qf.chainID)
 }

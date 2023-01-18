@@ -116,6 +116,20 @@ x-type-annotations:
     example: "1234567890123456789012"
     x-go-type: common.BigInt
     x-go-type-import: { name: common, path: "github.com/oasisprotocol/oasis-indexer/common" }
+  staking-address: &StakingAddressType
+    type: string
+    pattern: '^oasis1[a-z0-9]{40}$'
+    example: "oasis1qpg2xuz46g53737343r20yxeddhlvc2ldqsjh70p"
+    x-go-type: staking.Address
+    x-go-type-import: { name: staking, path: "github.com/oasisprotocol/oasis-core/go/staking/api" }
+    description: An oasis-style (bech32) address.
+  pubkey: &Ed25519PubKeyType
+    type: string
+    format: byte  # means base64-encoded raw bytes
+    example: "lbxs4hlud9XNloIOdhJPaCahd7HtiY8QATCgGnFfCM0="
+    x-go-type: signature.PublicKey
+    x-go-type-import: { name: signature, path: "github.com/oasisprotocol/oasis-core/go/common/crypto/signature" }
+    description: A base64-encoded ed25519 public key.
 
 paths:
   /:
@@ -215,9 +229,8 @@ paths:
         - in: query
           name: sender
           schema:
-            type: string
+            <<: *StakingAddressType
           description: A filter on transaction sender.
-          example: *staking_address_1
         - in: query
           name: rel
           schema:
@@ -227,17 +240,15 @@ paths:
         - in: query
           name: minFee
           schema:
-            type: integer
-            format: int64
+            <<: *BigIntType
           description: A filter on minimum transaction fee, inclusive.
-          example: 1000
+          example: "1000"
         - in: query
           name: maxFee
           schema:
-            type: integer
-            format: int64
+            <<: *BigIntType
           description: A filter on maximum transaction fee, inclusive.
-          example: 10000
+          example: "100000000000000000000000"
         - in: query
           name: code
           schema:
@@ -310,12 +321,11 @@ paths:
         - in: query
           name: rel
           schema:
-            type: string
+            <<: *StakingAddressType
           description: |
             A filter on related accounts. Every returned event will refer to
             this account. For example, for a `Transfer` event, this will be the
             the sender or the recipient of tokens.
-          example: *staking_address_1
         - in: query
           name: type
           schema:
@@ -357,9 +367,8 @@ paths:
           name: entity_id
           required: true
           schema:
-            type: string
+            <<: *Ed25519PubKeyType
           description: The entity ID of the entity to return.
-          example: *entity_id_1
       responses:
         '200':
           description: |
@@ -381,10 +390,9 @@ paths:
           name: entity_id
           required: true
           schema:
-            type: string
+            <<: *Ed25519PubKeyType
           description: |
             The entity ID of the controlling entity of the nodes to return.
-          example: *entity_id_1
       responses:
         '200':
           description: |
@@ -403,7 +411,7 @@ paths:
           name: entity_id
           required: true
           schema:
-            type: string
+            <<: *Ed25519PubKeyType
           description: |
             The entity ID of the entity controlling the node to return.
           example: *entity_id_1
@@ -411,9 +419,8 @@ paths:
           name: node_id
           required: true
           schema:
-            type: string
+            <<: *Ed25519PubKeyType
           description: The node ID of the node to return.
-          example: *node_id_1
       responses:
         '200':
           description: |
@@ -449,9 +456,8 @@ paths:
           name: entity_id
           required: true
           schema:
-            type: string
+            <<: *Ed25519PubKeyType
           description: The entity ID of the entity to return.
-          example: *entity_id_1
       responses:
         '200':
           description: |
@@ -527,9 +533,8 @@ paths:
           name: address
           required: true
           schema:
-            type: string
+            <<: *StakingAddressType
           description: The staking address of the account to return.
-          example: *staking_address_1
       responses:
         '200':
           description: A JSON object containing a consensus layer account.
@@ -547,9 +552,8 @@ paths:
           name: address
           required: true
           schema:
-            type: string
+            <<: *StakingAddressType
           description: The staking address of the account that delegated.
-          example: *staking_address_1
       responses:
         '200':
           description: A JSON object containing a list of delegations.
@@ -567,9 +571,8 @@ paths:
           name: address
           required: true
           schema:
-            type: string
+            <<: *StakingAddressType
           description: The staking address of the account that delegated.
-          example: *staking_address_1
       responses:
         '200':
           description: A JSON object containing a list of debonding delegations.
@@ -624,9 +627,8 @@ paths:
         - in: query
           name: submitter
           schema:
-            type: string
+            <<: *StakingAddressType
           description: The submitter of the proposal.
-          example: *staking_address_1
         - in: query
           name: state
           schema:
@@ -651,7 +653,7 @@ paths:
           required: true
           schema:
             type: integer
-            format: int64
+            format: uint64
           description: The unique identifier of the proposal to return.
           example: *proposal_id_1
       responses:
@@ -674,7 +676,7 @@ paths:
           required: true
           schema:
             type: integer
-            format: int64
+            format: uint64
           description: |
             The unique identifier of the proposal for which votes are returned.
           example: *proposal_id_1
@@ -747,7 +749,7 @@ paths:
         - in: query
           name: rel
           schema:
-            type: string
+            <<: *StakingAddressType
           # TODO: Implement autodetection of Eth addresses, get rid of last sentence.
           description: |
             A filter on related accounts. Every returned transaction will refer to
@@ -757,7 +759,6 @@ paths:
             best-effort basis. For example, it inspects ERC20 methods inside `evm.Call` txs.
             However, you must provide the oasis-style derived address here, not the Eth address.
             See `AddressPreimage` for more info on oasis-style vs Eth addresses.
-          example: *staking_address_1
       responses:
         '200':
           description: |
@@ -1485,7 +1486,7 @@ components:
       # TODO: Revise required fields. Most fields are required for actual proposals, and only absent
       # for proposal cancellations (which instead have the `cancels` field). Split API and the DB into
       # two types/tables?
-      required: [id, submitter, state, deposit, target, cancels, created_at, closes_at, invalid_votes]
+      required: [id, submitter, state, deposit, created_at, closes_at, invalid_votes]
       properties:
         id:
           x-go-name: ID

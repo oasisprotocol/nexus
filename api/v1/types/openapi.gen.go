@@ -6,6 +6,7 @@ package types
 import (
 	"time"
 
+	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
 	common "github.com/oasisprotocol/oasis-indexer/common"
 )
 
@@ -331,7 +332,7 @@ type NodeList struct {
 type Proposal struct {
 	// Cancels The proposal to cancel, if this proposal proposes
 	// cancelling an existing proposal.
-	Cancels int64 `json:"cancels"`
+	Cancels *int64 `json:"cancels,omitempty"`
 
 	// ClosesAt The epoch at which voting for this proposal will close.
 	ClosesAt int64 `json:"closes_at"`
@@ -361,7 +362,7 @@ type Proposal struct {
 	Submitter string `json:"submitter"`
 
 	// Target The target propotocol versions for this upgrade proposal.
-	Target ProposalTarget `json:"target"`
+	Target *ProposalTarget `json:"target,omitempty"`
 }
 
 // ProposalList A list of governance proposals.
@@ -765,7 +766,7 @@ type GetConsensusEventsParams struct {
 	// Rel A filter on related accounts. Every returned event will refer to
 	// this account. For example, for a `Transfer` event, this will be the
 	// the sender or the recipient of tokens.
-	Rel *string `form:"rel,omitempty" json:"rel,omitempty"`
+	Rel *staking.Address `form:"rel,omitempty" json:"rel,omitempty"`
 
 	// Type A filter on the event type.
 	Type *ConsensusEventType `form:"type,omitempty" json:"type,omitempty"`
@@ -780,7 +781,7 @@ type GetConsensusProposalsParams struct {
 	Offset *uint64 `form:"offset,omitempty" json:"offset,omitempty"`
 
 	// Submitter The submitter of the proposal.
-	Submitter *string `form:"submitter,omitempty" json:"submitter,omitempty"`
+	Submitter *staking.Address `form:"submitter,omitempty" json:"submitter,omitempty"`
 
 	// State The state of the proposal.
 	State *string `form:"state,omitempty" json:"state,omitempty"`
@@ -824,16 +825,16 @@ type GetConsensusTransactionsParams struct {
 	Method *ConsensusTxMethod `form:"method,omitempty" json:"method,omitempty"`
 
 	// Sender A filter on transaction sender.
-	Sender *string `form:"sender,omitempty" json:"sender,omitempty"`
+	Sender *staking.Address `form:"sender,omitempty" json:"sender,omitempty"`
 
 	// Rel A filter on related accounts.
 	Rel *string `form:"rel,omitempty" json:"rel,omitempty"`
 
 	// MinFee A filter on minimum transaction fee, inclusive.
-	MinFee *int64 `form:"minFee,omitempty" json:"minFee,omitempty"`
+	MinFee *common.BigInt `form:"minFee,omitempty" json:"minFee,omitempty"`
 
 	// MaxFee A filter on maximum transaction fee, inclusive.
-	MaxFee *int64 `form:"maxFee,omitempty" json:"maxFee,omitempty"`
+	MaxFee *common.BigInt `form:"maxFee,omitempty" json:"maxFee,omitempty"`
 
 	// Code A filter on transaction status code.
 	Code *int `form:"code,omitempty" json:"code,omitempty"`
@@ -896,5 +897,5 @@ type GetEmeraldTransactionsParams struct {
 	// best-effort basis. For example, it inspects ERC20 methods inside `evm.Call` txs.
 	// However, you must provide the oasis-style derived address here, not the Eth address.
 	// See `AddressPreimage` for more info on oasis-style vs Eth addresses.
-	Rel *string `form:"rel,omitempty" json:"rel,omitempty"`
+	Rel *staking.Address `form:"rel,omitempty" json:"rel,omitempty"`
 }
