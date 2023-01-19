@@ -20,6 +20,8 @@ jobs:
         uses: actions/setup-go@v2.2.0
         with:
           go-version: 1.18
+      - name: Install Go tools
+        run: go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen@v1.12
 
       # Prepare the GitHub release.
       - name: Install GoReleaser
