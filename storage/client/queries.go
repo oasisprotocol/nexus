@@ -337,10 +337,11 @@ func (qf QueryFactory) RuntimeTransactionsQuery() string {
 	return fmt.Sprintf(`
 		SELECT round, tx_index, tx_hash, tx_eth_hash, raw, result_raw
 			FROM %s.%s_transactions
-			WHERE $1::bigint IS NULL OR round = $1::bigint
+			WHERE ($1::bigint IS NULL OR round = $1::bigint) AND
+						($2::text IS NULL OR tx_hash = $2::text)
 		ORDER BY round DESC, tx_index DESC
-		LIMIT $2::bigint
-		OFFSET $3::bigint`, qf.chainID, qf.runtime)
+		LIMIT $3::bigint
+		OFFSET $4::bigint`, qf.chainID, qf.runtime)
 }
 
 func (qf QueryFactory) RuntimeTokensQuery() string {

@@ -1328,6 +1328,7 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetE
 		ctx,
 		qf.RuntimeTransactionsQuery(),
 		p.Block,
+		nil, // tx_hash; filter not supported by this endpoint
 		p.Limit,
 		p.Offset,
 	)
@@ -1364,6 +1365,45 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetE
 	}
 
 	return &ts, nil
+}
+
+// RuntimeTransaction returns a single runtime transaction.
+func (c *StorageClient) RuntimeTransaction(ctx context.Context, txHash string) (*RuntimeTransaction, error) {
+	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
+	if !ok {
+		return nil, apiCommon.ErrBadChainID
+	}
+	runtime, ok := ctx.Value(common.RuntimeContextKey).(string)
+	if !ok {
+		return nil, apiCommon.ErrBadRuntime
+	}
+	qf := NewQueryFactory(cid, runtime)
+
+	t := RuntimeTransaction{}
+	err := c.db.QueryRow(
+		ctx,
+		qf.RuntimeTransactionsQuery(),
+		nil, // block; filter not supported by this endpoint
+		txHash,
+		1, // limit
+		0, // offset
+	).Scan(
+		&t.Round,
+		&t.Index,
+		&t.Hash,
+		&t.EthHash,
+		&t.Raw,
+		&t.ResultRaw,
+	)
+	if err != nil {
+		c.logger.Info("query failed",
+			"request_id", ctx.Value(common.RequestIDContextKey),
+			"err", err.Error(),
+		)
+		return nil, apiCommon.ErrStorageError
+	}
+
+	return &t, nil
 }
 
 func (c *StorageClient) RuntimeTokens(ctx context.Context, p apiTypes.GetEmeraldTokensParams) (*RuntimeTokenList, error) {
