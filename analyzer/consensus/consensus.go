@@ -34,6 +34,8 @@ import (
 
 const (
 	ConsensusDamaskAnalyzerName = "consensus_damask"
+
+	ProcessBlockTimeout = 61 * time.Second
 )
 
 type EventType = apiTypes.ConsensusEventType // alias for brevity
@@ -266,13 +268,16 @@ func (m *Main) processGenesis(ctx context.Context) error {
 // from source storage and committing an atomically-executed batch of queries
 // to target storage.
 func (m *Main) processBlock(ctx context.Context, height int64) error {
+	ctxWithTimeout, cancel := context.WithTimeout(ctx, ProcessBlockTimeout)
+	defer cancel()
+
 	// Fetch all data.
 	source, err := m.source(height)
 	if err != nil {
 		return err
 	}
 
-	data, err := source.AllData(ctx, height)
+	data, err := source.AllData(ctxWithTimeout, height)
 	if err != nil {
 		return err
 	}

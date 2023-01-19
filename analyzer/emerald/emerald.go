@@ -27,6 +27,8 @@ const (
 	emerald = analyzer.RuntimeEmerald
 
 	EmeraldDamaskAnalyzerName = "emerald_damask"
+
+	ProcessRoundTimeout = 61 * time.Second
 )
 
 // Main is the main Analyzer for the Emerald Runtime.
@@ -218,13 +220,15 @@ func (m *Main) processRound(ctx context.Context, round uint64) error {
 		"round", round,
 	)
 
-	group, groupCtx := errgroup.WithContext(ctx)
+	ctxWithTimeout, cancel := context.WithTimeout(ctx, ProcessRoundTimeout)
+	defer cancel()
+	group, groupCtx := errgroup.WithContext(ctxWithTimeout)
 
 	// Prepare and perform updates.
 	batch := &storage.QueryBatch{}
 
 	group.Go(func() error {
-		return m.prepareBlockData(ctx, round, batch)
+		return m.prepareBlockData(groupCtx, round, batch)
 	})
 
 	type prepareFunc = func(context.Context, uint64, *storage.QueryBatch) error
