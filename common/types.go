@@ -16,6 +16,14 @@ func NewBigInt(v int64) BigInt {
 	return BigInt{*big.NewInt(v)}
 }
 
+func (b BigInt) MarshalText() ([]byte, error) {
+	return []byte(b.String()), nil
+}
+
+func (b *BigInt) UnmarshalText(text []byte) error {
+	return b.Int.UnmarshalText(text)
+}
+
 func (b BigInt) MarshalJSON() ([]byte, error) {
 	return []byte(fmt.Sprintf(`"%s"`, b.String())), nil
 }

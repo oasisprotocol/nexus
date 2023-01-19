@@ -283,7 +283,7 @@ func (qf QueryFactory) ValidatorDataQuery() string {
 					WHERE %[1]s.entities.id = %[1]s.nodes.entity_id
 						AND %[1]s.nodes.roles like '%%validator%%'
 				)
-			WHERE %[1]s.entities.address = $1::text`, qf.chainID)
+			WHERE %[1]s.entities.id = $1::text`, qf.chainID)
 }
 
 func (qf QueryFactory) ValidatorsQuery() string {

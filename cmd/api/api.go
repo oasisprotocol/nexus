@@ -6,17 +6,23 @@ import (
 	"os"
 	"time"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/spf13/cobra"
 
-	"github.com/oasisprotocol/oasis-indexer/api"
+	api "github.com/oasisprotocol/oasis-indexer/api"
+	v1 "github.com/oasisprotocol/oasis-indexer/api/v1"
+	apiTypes "github.com/oasisprotocol/oasis-indexer/api/v1/types"
 	"github.com/oasisprotocol/oasis-indexer/cmd/common"
 	"github.com/oasisprotocol/oasis-indexer/config"
 	"github.com/oasisprotocol/oasis-indexer/log"
+	"github.com/oasisprotocol/oasis-indexer/metrics"
 	storage "github.com/oasisprotocol/oasis-indexer/storage/client"
 )
 
 const (
 	moduleName = "api"
+	// The path portion with which all v1 API endpoints start.
+	v1BaseURL = "/v1"
 )
 
 var (
@@ -79,10 +85,10 @@ func Init(cfg *config.ServerConfig) (*Service, error) {
 
 // Service is the Oasis Indexer's API service.
 type Service struct {
-	server string
-	api    *api.IndexerAPI
-	target *storage.StorageClient
-	logger *log.Logger
+	address string
+	chainID string
+	target  *storage.StorageClient
+	logger  *log.Logger
 }
 
 // NewService creates a new API service.
@@ -100,20 +106,61 @@ func NewService(cfg *config.ServerConfig) (*Service, error) {
 	}
 
 	return &Service{
-		server: cfg.Endpoint,
-		api:    api.NewIndexerAPI(cfg.ChainID, client, logger),
-		target: client,
-		logger: logger,
+		address: cfg.Endpoint,
+		chainID: cfg.ChainID,
+		target:  client,
+		logger:  logger,
 	}, nil
 }
 
 // Start starts the API service.
 func (s *Service) Start() {
-	s.logger.Info("starting api service at " + s.server)
+	s.logger.Info("starting api service at " + s.address)
+
+	// Routes to static files (openapi spec).
+	staticFileRouter := chi.NewRouter()
+	staticFileRouter.Route("/v1/spec", func(r chi.Router) {
+		specServer := http.FileServer(http.Dir("api/spec"))
+		r.Handle("/*", http.StripPrefix("/v1/spec", specServer))
+	})
+
+	// A "strict handler" that handles the great majority of requests.
+	// It is strict in the sense that it enforces input and output types
+	// as defined in the OpenAPI spec.
+	strictHandler := apiTypes.NewStrictHandlerWithOptions(
+		// The "meat" of the API. The rest of `strictHandler` is autogenned code
+		// that deals with validation and serialization.
+		v1.NewStrictServerImpl(*s.target, *s.logger),
+		// Middleware to apply to all requests. These operate on parsed parameters.
+		[]apiTypes.StrictMiddlewareFunc{
+			api.FixDefaultsAndLimitsMiddleware,
+			api.ParseBigIntParamsMiddleware,
+		},
+		apiTypes.StrictHTTPServerOptions{
+			RequestErrorHandlerFunc:  api.HumanReadableJsonErrorHandler,
+			ResponseErrorHandlerFunc: api.HumanReadableJsonErrorHandler,
+		},
+	)
+
+	// The top-level chi handler.
+	handler := apiTypes.HandlerWithOptions(
+		strictHandler,
+		apiTypes.ChiServerOptions{
+			BaseURL: v1BaseURL,
+			Middlewares: []apiTypes.MiddlewareFunc{
+				api.ChainMiddleware(s.chainID),
+				api.RuntimeFromURLMiddleware(v1BaseURL),
+			},
+			BaseRouter:       staticFileRouter,
+			ErrorHandlerFunc: api.HumanReadableJsonErrorHandler,
+		})
+	// Manually apply the metrics middleware; we want it to run always, and at the outermost layer.
+	// HandlerWithOptions() above does not apply it to some requests (404 URLs, requests with bad params, etc.).
+	handler = api.MetricsMiddleware(metrics.NewDefaultRequestMetrics(moduleName), *s.logger)(handler)
 
 	server := &http.Server{
-		Addr:           s.server,
-		Handler:        s.api.Router(),
+		Addr:           s.address,
+		Handler:        handler,
 		ReadTimeout:    10 * time.Second,
 		WriteTimeout:   10 * time.Second,
 		MaxHeaderBytes: 1 << 20,

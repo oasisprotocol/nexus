@@ -47,7 +47,7 @@ x-query-params:
     name: bucket_size_seconds
     schema:
       type: integer
-      format: int32
+      format: uint32
       default: 3600
     description: |
       The size of buckets into which the statistic is grouped, in seconds.
@@ -92,20 +92,15 @@ x-examples:
     - &iso_timestamp_3 '2022-10-15T00:05:34Z'
 
 x-err-responses:
-  base-error: &base_error_response
-    content:
-      application/json:
-        schema:
-          $ref: '#/components/schemas/ApiError'
   common-errors: &common_error_responses
     '400':
-      <<: *base_error_response
+      $ref: '#/components/responses/HumanReadableError'
       description: Invalid request.
     '404':
-      <<: *base_error_response
+      $ref: '#/components/responses/NotFoundError'
       description: The requested resource was not found.
     '500':
-      <<: *base_error_response
+      $ref: '#/components/responses/HumanReadableError'
       description: A server error occurred.
 
 x-type-annotations:
@@ -548,6 +543,8 @@ paths:
     get:
       summary: Returns an account's delegations.
       parameters:
+        - *limit
+        - *offset
         - in: path
           name: address
           required: true
@@ -567,6 +564,8 @@ paths:
     get:
       summary: Returns an account's debonding delegations.
       parameters:
+        - *limit
+        - *offset
         - in: path
           name: address
           required: true
@@ -804,14 +803,6 @@ paths:
 
 components:
   schemas:
-    ApiError:
-      type: object
-      properties:
-        msg:
-          type: string
-          description: An error message.
-          example: 'internal storage error'
-
     Status:
       type: object
       required: [latest_chain_id, latest_block, latest_update]
@@ -1064,7 +1055,7 @@ components:
 
     ConsensusEvent:
       type: object
-      required: [height, type, body]
+      required: [block, type, body]
       properties:
         block:
           type: integer
@@ -1801,21 +1792,20 @@ components:
           example: 420
 
   responses:
-    InvalidRequest:
-      description: Invalid request.
+    HumanReadableError:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ApiError'
-    NotFound:
-      description: No results found.
+            type: object
+            required: [msg]
+            properties:
+              msg:
+                type: string
+                description: An error message.
+                example: 'internal storage error'
+      description: "A human-readable error message."
+    NotFoundError:
+      description: An empty response indicating that the requested resource was not found.
       content:
         application/json:
-          schema:
-            $ref: '#/components/schemas/ApiError'
-    ServerError:
-      description: A server error occurred.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ApiError'
+          schema: {}

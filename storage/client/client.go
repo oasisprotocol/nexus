@@ -15,9 +15,10 @@ import (
 	beacon "github.com/oasisprotocol/oasis-core/go/beacon/api"
 	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
 
+	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/util"
-	apiCommon "github.com/oasisprotocol/oasis-indexer/api/common"
-	api "github.com/oasisprotocol/oasis-indexer/api/v1/types"
+	apiCommon "github.com/oasisprotocol/oasis-indexer/api"
+	apiTypes "github.com/oasisprotocol/oasis-indexer/api/v1/types"
 	common "github.com/oasisprotocol/oasis-indexer/common"
 	"github.com/oasisprotocol/oasis-indexer/log"
 	"github.com/oasisprotocol/oasis-indexer/storage"
@@ -136,7 +137,7 @@ func (c *StorageClient) Status(ctx context.Context) (*Status, error) {
 }
 
 // Blocks returns a list of consensus blocks.
-func (c *StorageClient) Blocks(ctx context.Context, r *BlocksRequest, p *apiCommon.Pagination) (*BlockList, error) {
+func (c *StorageClient) Blocks(ctx context.Context, r apiTypes.GetConsensusBlocksParams) (*BlockList, error) {
 	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
 	if !ok {
 		return nil, apiCommon.ErrBadChainID
@@ -150,8 +151,8 @@ func (c *StorageClient) Blocks(ctx context.Context, r *BlocksRequest, p *apiComm
 		r.To,
 		r.After,
 		r.Before,
-		p.Limit,
-		p.Offset,
+		r.Limit,
+		r.Offset,
 	)
 	if err != nil {
 		c.logger.Info("query failed",
@@ -183,9 +184,9 @@ func (c *StorageClient) Blocks(ctx context.Context, r *BlocksRequest, p *apiComm
 }
 
 // Block returns a consensus block. This endpoint is cached.
-func (c *StorageClient) Block(ctx context.Context, r *BlockRequest) (*Block, error) {
+func (c *StorageClient) Block(ctx context.Context, height int64) (*Block, error) {
 	// Check cache
-	untypedBlock, ok := c.blockCache.Get(*r.Height)
+	untypedBlock, ok := c.blockCache.Get(height)
 	if ok {
 		return untypedBlock.(*Block), nil
 	}
@@ -200,7 +201,7 @@ func (c *StorageClient) Block(ctx context.Context, r *BlockRequest) (*Block, err
 	if err := c.db.QueryRow(
 		ctx,
 		qf.BlockQuery(),
-		r.Height,
+		height,
 	).Scan(&b.Height, &b.Hash, &b.Timestamp); err != nil {
 		c.logger.Info("row scan failed",
 			"request_id", ctx.Value(common.RequestIDContextKey),
@@ -220,7 +221,7 @@ func (c *StorageClient) cacheBlock(blk *Block) {
 }
 
 // Transactions returns a list of consensus transactions.
-func (c *StorageClient) Transactions(ctx context.Context, r *TransactionsRequest, p *apiCommon.Pagination) (*TransactionList, error) {
+func (c *StorageClient) Transactions(ctx context.Context, p apiTypes.GetConsensusTransactionsParams) (*TransactionList, error) {
 	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
 	if !ok {
 		return nil, apiCommon.ErrBadChainID
@@ -230,13 +231,13 @@ func (c *StorageClient) Transactions(ctx context.Context, r *TransactionsRequest
 	rows, err := c.db.Query(
 		ctx,
 		qf.TransactionsQuery(),
-		r.Block,
-		r.Method,
-		r.Sender,
-		r.Rel,
-		toString(r.MinFee),
-		toString(r.MaxFee),
-		r.Code,
+		p.Block,
+		p.Method,
+		p.Sender,
+		p.Rel,
+		toString(p.MinFee),
+		toString(p.MaxFee),
+		p.Code,
 		p.Limit,
 		p.Offset,
 	)
@@ -288,9 +289,9 @@ func (c *StorageClient) Transactions(ctx context.Context, r *TransactionsRequest
 }
 
 // Transaction returns a consensus transaction. This endpoint is cached.
-func (c *StorageClient) Transaction(ctx context.Context, r *TransactionRequest) (*Transaction, error) {
+func (c *StorageClient) Transaction(ctx context.Context, txHash string) (*Transaction, error) {
 	// Check cache
-	untypedTx, ok := c.txCache.Get(*r.TxHash)
+	untypedTx, ok := c.txCache.Get(txHash)
 	if ok {
 		return untypedTx.(*Transaction), nil
 	}
@@ -307,7 +308,7 @@ func (c *StorageClient) Transaction(ctx context.Context, r *TransactionRequest) 
 	if err := c.db.QueryRow(
 		ctx,
 		qf.TransactionQuery(),
-		r.TxHash,
+		txHash,
 	).Scan(
 		&t.Block,
 		&t.Hash,
@@ -343,7 +344,7 @@ func (c *StorageClient) cacheTx(tx *Transaction) {
 }
 
 // Events returns a list of events.
-func (c *StorageClient) Events(ctx context.Context, r *EventsRequest, p *apiCommon.Pagination) (*EventList, error) {
+func (c *StorageClient) Events(ctx context.Context, p apiTypes.GetConsensusEventsParams) (*EventList, error) {
 	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
 	if !ok {
 		return nil, apiCommon.ErrBadChainID
@@ -355,11 +356,11 @@ func (c *StorageClient) Events(ctx context.Context, r *EventsRequest, p *apiComm
 	rows, err = c.db.Query(
 		ctx,
 		qf.EventsQuery(),
-		r.Block,
-		r.TxIndex,
-		r.TxHash,
-		r.Type,
-		r.Rel,
+		p.Block,
+		p.TxIndex,
+		p.TxHash,
+		p.Type,
+		p.Rel,
 		p.Limit,
 		p.Offset,
 	)
@@ -392,7 +393,7 @@ func (c *StorageClient) Events(ctx context.Context, r *EventsRequest, p *apiComm
 }
 
 // Entities returns a list of registered entities.
-func (c *StorageClient) Entities(ctx context.Context, p *apiCommon.Pagination) (*EntityList, error) {
+func (c *StorageClient) Entities(ctx context.Context, p apiTypes.GetConsensusEntitiesParams) (*EntityList, error) {
 	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
 	if !ok {
 		return nil, apiCommon.ErrBadChainID
@@ -433,7 +434,7 @@ func (c *StorageClient) Entities(ctx context.Context, p *apiCommon.Pagination) (
 }
 
 // Entity returns a registered entity.
-func (c *StorageClient) Entity(ctx context.Context, r *EntityRequest) (*Entity, error) {
+func (c *StorageClient) Entity(ctx context.Context, entityID signature.PublicKey) (*Entity, error) {
 	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
 	if !ok {
 		return nil, apiCommon.ErrBadChainID
@@ -444,7 +445,7 @@ func (c *StorageClient) Entity(ctx context.Context, r *EntityRequest) (*Entity, 
 	if err := c.db.QueryRow(
 		ctx,
 		qf.EntityQuery(),
-		r.EntityID.String(),
+		entityID.String(),
 	).Scan(&e.ID, &e.Address); err != nil {
 		c.logger.Info("row scan failed",
 			"request_id", ctx.Value(common.RequestIDContextKey),
@@ -456,7 +457,7 @@ func (c *StorageClient) Entity(ctx context.Context, r *EntityRequest) (*Entity, 
 	nodeRows, err := c.db.Query(
 		ctx,
 		qf.EntityNodeIdsQuery(),
-		r.EntityID.String(),
+		entityID.String(),
 	)
 	if err != nil {
 		c.logger.Info("query failed",
@@ -484,7 +485,7 @@ func (c *StorageClient) Entity(ctx context.Context, r *EntityRequest) (*Entity, 
 }
 
 // EntityNodes returns a list of nodes controlled by the provided entity.
-func (c *StorageClient) EntityNodes(ctx context.Context, r *EntityNodesRequest, p *apiCommon.Pagination) (*NodeList, error) {
+func (c *StorageClient) EntityNodes(ctx context.Context, entityID signature.PublicKey, r apiTypes.GetConsensusEntitiesEntityIdNodesParams) (*NodeList, error) {
 	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
 	if !ok {
 		return nil, apiCommon.ErrBadChainID
@@ -494,9 +495,9 @@ func (c *StorageClient) EntityNodes(ctx context.Context, r *EntityNodesRequest, 
 	rows, err := c.db.Query(
 		ctx,
 		qf.EntityNodesQuery(),
-		r.EntityID.String(),
-		p.Limit,
-		p.Offset,
+		entityID.String(),
+		r.Limit,
+		r.Offset,
 	)
 	if err != nil {
 		c.logger.Info("query failed",
@@ -531,13 +532,13 @@ func (c *StorageClient) EntityNodes(ctx context.Context, r *EntityNodesRequest, 
 
 		ns.Nodes = append(ns.Nodes, n)
 	}
-	ns.EntityID = r.EntityID.String()
+	ns.EntityID = entityID.String()
 
 	return &ns, nil
 }
 
 // EntityNode returns a node controlled by the provided entity.
-func (c *StorageClient) EntityNode(ctx context.Context, r *EntityNodeRequest) (*Node, error) {
+func (c *StorageClient) EntityNode(ctx context.Context, entityID signature.PublicKey, nodeID signature.PublicKey) (*Node, error) {
 	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
 	if !ok {
 		return nil, apiCommon.ErrBadChainID
@@ -548,8 +549,8 @@ func (c *StorageClient) EntityNode(ctx context.Context, r *EntityNodeRequest) (*
 	if err := c.db.QueryRow(
 		ctx,
 		qf.EntityNodeQuery(),
-		r.EntityID.String(),
-		r.NodeID.String(),
+		entityID.String(),
+		nodeID.String(),
 	).Scan(
 		&n.ID,
 		&n.EntityID,
@@ -571,7 +572,7 @@ func (c *StorageClient) EntityNode(ctx context.Context, r *EntityNodeRequest) (*
 }
 
 // Accounts returns a list of consensus accounts.
-func (c *StorageClient) Accounts(ctx context.Context, r *AccountsRequest, p *apiCommon.Pagination) (*AccountList, error) {
+func (c *StorageClient) Accounts(ctx context.Context, r apiTypes.GetConsensusAccountsParams) (*AccountList, error) {
 	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
 	if !ok {
 		return nil, apiCommon.ErrBadChainID
@@ -589,8 +590,8 @@ func (c *StorageClient) Accounts(ctx context.Context, r *AccountsRequest, p *api
 		toString(r.MaxDebonding),
 		toString(r.MinTotalBalance),
 		toString(r.MaxTotalBalance),
-		p.Limit,
-		p.Offset,
+		r.Limit,
+		r.Offset,
 	)
 	if err != nil {
 		c.logger.Info("query failed",
@@ -643,7 +644,7 @@ func (c *StorageClient) Accounts(ctx context.Context, r *AccountsRequest, p *api
 }
 
 // Account returns a consensus account.
-func (c *StorageClient) Account(ctx context.Context, r *AccountRequest) (*Account, error) {
+func (c *StorageClient) Account(ctx context.Context, address staking.Address) (*Account, error) {
 	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
 	if !ok {
 		return nil, apiCommon.ErrBadChainID
@@ -661,7 +662,7 @@ func (c *StorageClient) Account(ctx context.Context, r *AccountRequest) (*Accoun
 	if err := c.db.QueryRow(
 		ctx,
 		qf.AccountQuery(),
-		r.Address.String(),
+		address.String(),
 	).Scan(
 		&a.Address,
 		&a.Nonce,
@@ -702,7 +703,7 @@ func (c *StorageClient) Account(ctx context.Context, r *AccountRequest) (*Accoun
 	allowanceRows, queryErr := c.db.Query(
 		ctx,
 		qf.AccountAllowancesQuery(),
-		r.Address,
+		address.String(),
 	)
 	if queryErr != nil {
 		c.logger.Info("query failed",
@@ -739,7 +740,7 @@ func (c *StorageClient) Account(ctx context.Context, r *AccountRequest) (*Accoun
 }
 
 // Delegations returns a list of delegations.
-func (c *StorageClient) Delegations(ctx context.Context, r *DelegationsRequest, p *apiCommon.Pagination) (*DelegationList, error) {
+func (c *StorageClient) Delegations(ctx context.Context, address staking.Address, p apiTypes.GetConsensusAccountsAddressDelegationsParams) (*DelegationList, error) {
 	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
 	if !ok {
 		return nil, apiCommon.ErrBadChainID
@@ -749,7 +750,7 @@ func (c *StorageClient) Delegations(ctx context.Context, r *DelegationsRequest, 
 	rows, err := c.db.Query(
 		ctx,
 		qf.DelegationsQuery(),
-		r.Address.String(),
+		address.String(),
 		p.Limit,
 		p.Offset,
 	)
@@ -806,7 +807,7 @@ func (c *StorageClient) Delegations(ctx context.Context, r *DelegationsRequest, 
 }
 
 // DebondingDelegations returns a list of debonding delegations.
-func (c *StorageClient) DebondingDelegations(ctx context.Context, r *DebondingDelegationsRequest, p *apiCommon.Pagination) (*DebondingDelegationList, error) {
+func (c *StorageClient) DebondingDelegations(ctx context.Context, address staking.Address, p apiTypes.GetConsensusAccountsAddressDebondingDelegationsParams) (*DebondingDelegationList, error) {
 	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
 	if !ok {
 		return nil, apiCommon.ErrBadChainID
@@ -816,7 +817,7 @@ func (c *StorageClient) DebondingDelegations(ctx context.Context, r *DebondingDe
 	rows, err := c.db.Query(
 		ctx,
 		qf.DebondingDelegationsQuery(),
-		r.Address.String(),
+		address.String(),
 		p.Limit,
 		p.Offset,
 	)
@@ -875,7 +876,7 @@ func (c *StorageClient) DebondingDelegations(ctx context.Context, r *DebondingDe
 }
 
 // Epochs returns a list of consensus epochs.
-func (c *StorageClient) Epochs(ctx context.Context, p *apiCommon.Pagination) (*EpochList, error) {
+func (c *StorageClient) Epochs(ctx context.Context, p apiTypes.GetConsensusEpochsParams) (*EpochList, error) {
 	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
 	if !ok {
 		return nil, apiCommon.ErrBadChainID
@@ -916,7 +917,7 @@ func (c *StorageClient) Epochs(ctx context.Context, p *apiCommon.Pagination) (*E
 }
 
 // Epoch returns a consensus epoch.
-func (c *StorageClient) Epoch(ctx context.Context, r *EpochRequest) (*Epoch, error) {
+func (c *StorageClient) Epoch(ctx context.Context, epoch int64) (*Epoch, error) {
 	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
 	if !ok {
 		return nil, apiCommon.ErrBadChainID
@@ -927,7 +928,7 @@ func (c *StorageClient) Epoch(ctx context.Context, r *EpochRequest) (*Epoch, err
 	if err := c.db.QueryRow(
 		ctx,
 		qf.EpochQuery(),
-		r.Epoch,
+		epoch,
 	).Scan(&e.ID, &e.StartHeight, &e.EndHeight); err != nil {
 		c.logger.Info("row scan failed",
 			"request_id", ctx.Value(common.RequestIDContextKey),
@@ -940,7 +941,7 @@ func (c *StorageClient) Epoch(ctx context.Context, r *EpochRequest) (*Epoch, err
 }
 
 // Proposals returns a list of governance proposals.
-func (c *StorageClient) Proposals(ctx context.Context, r *ProposalsRequest, p *apiCommon.Pagination) (*ProposalList, error) {
+func (c *StorageClient) Proposals(ctx context.Context, p apiTypes.GetConsensusProposalsParams) (*ProposalList, error) {
 	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
 	if !ok {
 		return nil, apiCommon.ErrBadChainID
@@ -950,8 +951,8 @@ func (c *StorageClient) Proposals(ctx context.Context, r *ProposalsRequest, p *a
 	rows, err := c.db.Query(
 		ctx,
 		qf.ProposalsQuery(),
-		r.Submitter,
-		r.State,
+		p.Submitter,
+		p.State,
 		p.Limit,
 		p.Offset,
 	)
@@ -1009,7 +1010,7 @@ func (c *StorageClient) Proposals(ctx context.Context, r *ProposalsRequest, p *a
 }
 
 // Proposal returns a governance proposal.
-func (c *StorageClient) Proposal(ctx context.Context, r *ProposalRequest) (*Proposal, error) {
+func (c *StorageClient) Proposal(ctx context.Context, proposalID uint64) (*Proposal, error) {
 	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
 	if !ok {
 		return nil, apiCommon.ErrBadChainID
@@ -1022,7 +1023,7 @@ func (c *StorageClient) Proposal(ctx context.Context, r *ProposalRequest) (*Prop
 	if err := c.db.QueryRow(
 		ctx,
 		qf.ProposalQuery(),
-		r.ProposalID,
+		proposalID,
 	).Scan(
 		&p.ID,
 		&p.Submitter,
@@ -1058,7 +1059,7 @@ func (c *StorageClient) Proposal(ctx context.Context, r *ProposalRequest) (*Prop
 }
 
 // ProposalVotes returns votes for a governance proposal.
-func (c *StorageClient) ProposalVotes(ctx context.Context, r *ProposalVotesRequest, p *apiCommon.Pagination) (*ProposalVotes, error) {
+func (c *StorageClient) ProposalVotes(ctx context.Context, proposalID uint64, p apiTypes.GetConsensusProposalsProposalIdVotesParams) (*ProposalVotes, error) {
 	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
 	if !ok {
 		return nil, apiCommon.ErrBadChainID
@@ -1068,7 +1069,7 @@ func (c *StorageClient) ProposalVotes(ctx context.Context, r *ProposalVotesReque
 	rows, err := c.db.Query(
 		ctx,
 		qf.ProposalVotesQuery(),
-		r.ProposalID,
+		proposalID,
 		p.Limit,
 		p.Offset,
 	)
@@ -1099,13 +1100,13 @@ func (c *StorageClient) ProposalVotes(ctx context.Context, r *ProposalVotesReque
 
 		vs.Votes = append(vs.Votes, v)
 	}
-	vs.ProposalID = *r.ProposalID
+	vs.ProposalID = proposalID
 
 	return &vs, nil
 }
 
 // Validators returns a list of validators.
-func (c *StorageClient) Validators(ctx context.Context, p *apiCommon.Pagination) (*ValidatorList, error) {
+func (c *StorageClient) Validators(ctx context.Context, p apiTypes.GetConsensusValidatorsParams) (*ValidatorList, error) {
 	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
 	if !ok {
 		return nil, apiCommon.ErrBadChainID
@@ -1191,7 +1192,7 @@ func (c *StorageClient) Validators(ctx context.Context, p *apiCommon.Pagination)
 }
 
 // Validator returns a single validator.
-func (c *StorageClient) Validator(ctx context.Context, r *ValidatorRequest) (*Validator, error) {
+func (c *StorageClient) Validator(ctx context.Context, entityID signature.PublicKey) (*Validator, error) {
 	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
 	if !ok {
 		return nil, apiCommon.ErrBadChainID
@@ -1213,7 +1214,7 @@ func (c *StorageClient) Validator(ctx context.Context, r *ValidatorRequest) (*Va
 	row := c.db.QueryRow(
 		ctx,
 		qf.ValidatorDataQuery(),
-		r.EntityID.String(),
+		entityID.String(),
 	)
 
 	var v Validator
@@ -1261,7 +1262,7 @@ func (c *StorageClient) Validator(ctx context.Context, r *ValidatorRequest) (*Va
 }
 
 // RuntimeBlocks returns a list of runtime blocks.
-func (c *StorageClient) RuntimeBlocks(ctx context.Context, r *RuntimeBlocksRequest, p *apiCommon.Pagination) (*RuntimeBlockList, error) {
+func (c *StorageClient) RuntimeBlocks(ctx context.Context, p apiTypes.GetEmeraldBlocksParams) (*RuntimeBlockList, error) {
 	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
 	if !ok {
 		return nil, apiCommon.ErrBadChainID
@@ -1275,10 +1276,10 @@ func (c *StorageClient) RuntimeBlocks(ctx context.Context, r *RuntimeBlocksReque
 	rows, err := c.db.Query(
 		ctx,
 		qf.RuntimeBlocksQuery(),
-		r.From,
-		r.To,
-		r.After,
-		r.Before,
+		p.From,
+		p.To,
+		p.After,
+		p.Before,
 		p.Limit,
 		p.Offset,
 	)
@@ -1312,7 +1313,7 @@ func (c *StorageClient) RuntimeBlocks(ctx context.Context, r *RuntimeBlocksReque
 }
 
 // RuntimeTransactions returns a list of runtime transactions.
-func (c *StorageClient) RuntimeTransactions(ctx context.Context, r *RuntimeTransactionsRequest, p *apiCommon.Pagination) (*RuntimeTransactionList, error) {
+func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetEmeraldTransactionsParams) (*RuntimeTransactionList, error) {
 	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
 	if !ok {
 		return nil, apiCommon.ErrBadChainID
@@ -1326,7 +1327,7 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, r *RuntimeTrans
 	rows, err := c.db.Query(
 		ctx,
 		qf.RuntimeTransactionsQuery(),
-		r.Block,
+		p.Block,
 		p.Limit,
 		p.Offset,
 	)
@@ -1365,7 +1366,7 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, r *RuntimeTrans
 	return &ts, nil
 }
 
-func (c *StorageClient) RuntimeTokens(ctx context.Context, r *RuntimeTokensRequest, p *apiCommon.Pagination) (*RuntimeTokenList, error) {
+func (c *StorageClient) RuntimeTokens(ctx context.Context, p apiTypes.GetEmeraldTokensParams) (*RuntimeTokenList, error) {
 	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
 	if !ok {
 		return nil, apiCommon.ErrBadChainID
@@ -1414,12 +1415,18 @@ func (c *StorageClient) RuntimeTokens(ctx context.Context, r *RuntimeTokensReque
 }
 
 // TxVolumes returns a list of transaction volumes per time bucket.
-func (c *StorageClient) TxVolumes(ctx context.Context, p *apiCommon.Pagination, q *apiCommon.BucketedStatsParams) (*TxVolumeList, error) {
+func (c *StorageClient) TxVolumes(ctx context.Context, p apiTypes.GetConsensusStatsTxVolumeParams) (*TxVolumeList, error) {
+	if p.BucketSizeSeconds == nil {
+		return nil, fmt.Errorf("bucket_size_seconds default was not applied") // double-check middleware's job
+	}
+
 	qf := NewQueryFactory(strcase.ToSnake(c.chainID), "")
 	var query string
-	if q.BucketSizeSeconds == 300 {
+	if *p.BucketSizeSeconds == 300 {
 		query = qf.FineTxVolumesQuery()
 	} else {
+		var hour uint32 = 3600
+		p.BucketSizeSeconds = &hour
 		query = qf.TxVolumesQuery()
 	}
 
@@ -1439,8 +1446,8 @@ func (c *StorageClient) TxVolumes(ctx context.Context, p *apiCommon.Pagination, 
 	defer rows.Close()
 
 	ts := TxVolumeList{
-		BucketSizeSeconds: q.BucketSizeSeconds,
-		Buckets:           []api.TxVolume{},
+		BucketSizeSeconds: *p.BucketSizeSeconds,
+		Buckets:           []apiTypes.TxVolume{},
 	}
 	for rows.Next() {
 		var d struct {
