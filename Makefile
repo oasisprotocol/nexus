@@ -114,7 +114,7 @@ psql:
 shutdown-postgres:
 	@docker rm indexer-postgres --force
 
-release-build:
+release-build: codegen-go
 	@goreleaser release --rm-dist
 
 # List of targets that are not actual files.
