@@ -13,6 +13,8 @@ tests/e2e/testnet/net-runner
 
 # Log output.
 **/*.log
+/cache
+/logs
 
 # API files.
 index.html
