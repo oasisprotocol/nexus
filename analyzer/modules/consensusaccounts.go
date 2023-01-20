@@ -7,6 +7,7 @@ import (
 	"github.com/oasisprotocol/oasis-indexer/analyzer"
 	"github.com/oasisprotocol/oasis-indexer/log"
 	"github.com/oasisprotocol/oasis-indexer/storage"
+	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/consensusaccounts"
 )
 
 const (
@@ -61,27 +62,17 @@ func (h *ConsensusAccountsHandler) queueDeposits(batch *storage.QueryBatch, data
 				"from", deposit.From.String(),
 				"to", deposit.To.String())
 		}
-		if deposit.Error != nil {
-			batch.Queue(
-				h.qf.RuntimeDepositErrorInsertQuery(),
-				data.Round,
-				deposit.From.String(),
-				deposit.To.String(),
-				deposit.Amount.Amount.String(),
-				deposit.Nonce,
-				deposit.Error.Module,
-				deposit.Error.Code,
-			)
-		} else {
-			batch.Queue(
-				h.qf.RuntimeDepositInsertQuery(),
-				data.Round,
-				deposit.From.String(),
-				deposit.To.String(),
-				deposit.Amount.Amount.String(),
-				deposit.Nonce,
-			)
-		}
+		errorModule, errorCode := decomposeError(deposit.Error)
+		batch.Queue(
+			h.qf.RuntimeDepositInsertQuery(),
+			data.Round,
+			deposit.From.String(),
+			deposit.To.String(),
+			deposit.Amount.Amount.String(),
+			deposit.Nonce,
+			errorModule,
+			errorCode,
+		)
 	}
 
 	return nil
@@ -97,28 +88,27 @@ func (h *ConsensusAccountsHandler) queueWithdraws(batch *storage.QueryBatch, dat
 				"from", withdraw.From.String(),
 				"to", withdraw.To.String())
 		}
-		if withdraw.Error != nil {
-			batch.Queue(
-				h.qf.RuntimeWithdrawErrorInsertQuery(),
-				data.Round,
-				withdraw.From.String(),
-				withdraw.To.String(),
-				withdraw.Amount.Amount.String(),
-				withdraw.Nonce,
-				withdraw.Error.Module,
-				withdraw.Error.Code,
-			)
-		} else {
-			batch.Queue(
-				h.qf.RuntimeWithdrawInsertQuery(),
-				data.Round,
-				withdraw.From.String(),
-				withdraw.To.String(),
-				withdraw.Amount.Amount.String(),
-				withdraw.Nonce,
-			)
-		}
+		errorModule, errorCode := decomposeError(withdraw.Error)
+		batch.Queue(
+			h.qf.RuntimeWithdrawInsertQuery(),
+			data.Round,
+			withdraw.From.String(),
+			withdraw.To.String(),
+			withdraw.Amount.Amount.String(),
+			withdraw.Nonce,
+			errorModule,
+			errorCode,
+		)
+
 	}
 
 	return nil
+}
+
+func decomposeError(err *consensusaccounts.ConsensusError) (*string, *uint32) {
+	if err == nil {
+		return nil, nil
+	}
+
+	return &err.Module, &err.Code
 }

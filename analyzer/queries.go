@@ -399,23 +399,11 @@ func (qf QueryFactory) RuntimeTransferInsertQuery() string {
 
 func (qf QueryFactory) RuntimeDepositInsertQuery() string {
 	return fmt.Sprintf(`
-		INSERT INTO %s.%s_deposits (round, sender, receiver, amount, nonce)
-			VALUES ($1, $2, $3, $4, $5)`, qf.chainID, qf.runtime)
-}
-
-func (qf QueryFactory) RuntimeDepositErrorInsertQuery() string {
-	return fmt.Sprintf(`
 		INSERT INTO %s.%s_deposits (round, sender, receiver, amount, nonce, module, code)
 			VALUES ($1, $2, $3, $4, $5, $6, $7)`, qf.chainID, qf.runtime)
 }
 
 func (qf QueryFactory) RuntimeWithdrawInsertQuery() string {
-	return fmt.Sprintf(`
-		INSERT INTO %s.%s_withdraws (round, sender, receiver, amount, nonce)
-			VALUES ($1, $2, $3, $4, $5)`, qf.chainID, qf.runtime)
-}
-
-func (qf QueryFactory) RuntimeWithdrawErrorInsertQuery() string {
 	return fmt.Sprintf(`
 		INSERT INTO %s.%s_withdraws (round, sender, receiver, amount, nonce, module, code)
 			VALUES ($1, $2, $3, $4, $5, $6, $7)`, qf.chainID, qf.runtime)
