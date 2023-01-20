@@ -228,6 +228,11 @@ type RuntimeSourceStorage interface {
 
 	// Name returns the name of the source storage.
 	Name() string
+
+	// StringifyDenomination returns a string representation of the given denomination.
+	// This is simply the denomination's symbol; notably, for the native denomination,
+	// this is looked up from network config.
+	StringifyDenomination(d types.Denomination) string
 }
 
 // RuntimeBlockData represents data for a runtime block during a given round.

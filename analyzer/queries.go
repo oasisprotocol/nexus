@@ -381,20 +381,20 @@ func (qf QueryFactory) RuntimeTransactionInsertQuery() string {
 
 func (qf QueryFactory) RuntimeMintInsertQuery() string {
 	return fmt.Sprintf(`
-		INSERT INTO %s.%s_transfers (round, sender, receiver, amount)
-			VALUES ($1, NULL, $2, $3)`, qf.chainID, qf.runtime)
+		INSERT INTO %s.%s_transfers (round, sender, receiver, symbol, amount)
+			VALUES ($1, NULL, $2, $3, $4)`, qf.chainID, qf.runtime)
 }
 
 func (qf QueryFactory) RuntimeBurnInsertQuery() string {
 	return fmt.Sprintf(`
-		INSERT INTO %s.%s_transfers (round, sender, receiver, amount)
-			VALUES ($1, $2, NULL, $3)`, qf.chainID, qf.runtime)
+		INSERT INTO %s.%s_transfers (round, sender, receiver, symbol, amount)
+			VALUES ($1, $2, NULL, $3, $4)`, qf.chainID, qf.runtime)
 }
 
 func (qf QueryFactory) RuntimeTransferInsertQuery() string {
 	return fmt.Sprintf(`
-		INSERT INTO %s.%s_transfers (round, sender, receiver, amount)
-			VALUES ($1, $2, $3, $4)`, qf.chainID, qf.runtime)
+		INSERT INTO %s.%s_transfers (round, sender, receiver, symbol, amount)
+			VALUES ($1, $2, $3, $4, $5)`, qf.chainID, qf.runtime)
 }
 
 func (qf QueryFactory) RuntimeDepositInsertQuery() string {
@@ -407,6 +407,14 @@ func (qf QueryFactory) RuntimeWithdrawInsertQuery() string {
 	return fmt.Sprintf(`
 		INSERT INTO %s.%s_withdraws (round, sender, receiver, amount, nonce, module, code)
 			VALUES ($1, $2, $3, $4, $5, $6, $7)`, qf.chainID, qf.runtime)
+}
+
+func (qf QueryFactory) RuntimeNativeBalanceUpdateQuery() string {
+	return fmt.Sprintf(`
+		INSERT INTO %[1]s.runtime_native_balances (runtime, account_address, symbol, balance)
+		  VALUES ('%[2]s', $1, $2, $3)
+		ON CONFLICT (runtime, account_address, symbol) DO
+		UPDATE SET balance = %[1]s.runtime_native_balances.balance + $3`, qf.chainID, qf.runtime)
 }
 
 func (qf QueryFactory) RuntimeGasUsedInsertQuery() string {
@@ -422,7 +430,7 @@ func (qf QueryFactory) AddressPreimageInsertQuery() string {
 		ON CONFLICT DO NOTHING`, qf.chainID)
 }
 
-func (qf QueryFactory) RuntimeTokenBalanceUpdateQuery() string {
+func (qf QueryFactory) RuntimeEvmBalanceUpdateQuery() string {
 	return fmt.Sprintf(`
 		INSERT INTO %[1]s.%[2]s_token_balances (token_address, account_address, balance)
 			VALUES ($1, $2, $3)

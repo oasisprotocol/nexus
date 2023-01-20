@@ -20,7 +20,6 @@ CREATE TABLE oasis_3.emerald_rounds
   gas_used         UINT63 NOT NULL,
   size             UINT31 NOT NULL  -- Total byte size of all transactions in the block.
 );
-
 CREATE INDEX ix_emerald_rounds_block_hash ON oasis_3.emerald_rounds USING hash (block_hash);
 CREATE INDEX ix_emerald_rounds_timestamp ON oasis_3.emerald_rounds (timestamp);
 
@@ -39,7 +38,6 @@ CREATE TABLE oasis_3.emerald_transactions
   result_raw  BYTEA NOT NULL,
   PRIMARY KEY (round, tx_index)
 );
-
 CREATE INDEX ix_emerald_transactions_tx_hash ON oasis_3.emerald_transactions USING hash (tx_hash);
 CREATE INDEX ix_emerald_transactions_tx_eth_hash ON oasis_3.emerald_transactions USING hash (tx_eth_hash);
 
@@ -57,7 +55,6 @@ CREATE TABLE oasis_3.emerald_transaction_signers
   PRIMARY KEY (round, tx_index, signer_index),
   FOREIGN KEY (round, tx_index) REFERENCES oasis_3.emerald_transactions(round, tx_index) DEFERRABLE INITIALLY DEFERRED
 );
-
 CREATE INDEX ix_emerald_transaction_signers_signer_address_signer_nonce ON oasis_3.emerald_transaction_signers (signer_address, nonce);
 
 CREATE TABLE oasis_3.emerald_related_transactions
@@ -67,7 +64,6 @@ CREATE TABLE oasis_3.emerald_related_transactions
   tx_index        UINT31 NOT NULL,
   FOREIGN KEY (tx_round, tx_index) REFERENCES oasis_3.emerald_transactions(round, tx_index) DEFERRABLE INITIALLY DEFERRED
 );
-
 CREATE INDEX ix_emerald_related_transactions_address_height_index ON oasis_3.emerald_related_transactions (account_address, tx_round, tx_index);
 
 -- Oasis addresses are derived from a derivation "context" and a piece of
@@ -105,7 +101,6 @@ CREATE TABLE oasis_3.emerald_token_balances
   balance NUMERIC(1000,0) NOT NULL,
   PRIMARY KEY (token_address, account_address)
 );
-
 CREATE INDEX ix_emerald_token_address ON oasis_3.emerald_token_balances (token_address) WHERE balance != 0;
 
 CREATE TABLE oasis_3.emerald_tokens
@@ -144,11 +139,11 @@ CREATE TABLE oasis_3.emerald_transfers
   -- this account hasn't signed a tx yet.
   -- If NULL, this is a burn.
   receiver oasis_addr,
+  symbol   TEXT NOT NULL,  -- called `Denomination` in the SDK
   amount   UINT_NUMERIC NOT NULL,
 
   CHECK (NOT (sender IS NULL AND receiver IS NULL))
 );
-
 CREATE INDEX ix_emerald_transfers_sender ON oasis_3.emerald_transfers(sender);
 CREATE INDEX ix_emerald_transfers_receiver ON oasis_3.emerald_transfers(receiver);
 
@@ -171,14 +166,13 @@ CREATE TABLE oasis_3.emerald_deposits
   -- Regardless, the `receiver` often REFERENCES oasis_3.address_preimages(address), a notable exception
   -- being if the target account hasn't signed any txs yet.
   receiver oasis_addr NOT NULL,
-  amount   UINT_NUMERIC NOT NULL,
+  amount   UINT_NUMERIC NOT NULL,  -- always in native denomination
   nonce    UINT63 NOT NULL,
 
   -- Optional error data; from https://github.com/oasisprotocol/oasis-sdk/blob/386ba0b99fcd1425c68015e0033a462d9a577835/client-sdk/go/modules/consensusaccounts/types.go#L44-L44
   module TEXT,
   code   UINT63
 );
-
 CREATE INDEX ix_emerald_deposits_sender ON oasis_3.emerald_deposits(sender);
 CREATE INDEX ix_emerald_deposits_receiver ON oasis_3.emerald_deposits(receiver);
 
@@ -193,16 +187,26 @@ CREATE TABLE oasis_3.emerald_withdraws
   -- The `receiver` is a consensus account, so this REFERENCES oasis_3.accounts; we omit the FK so
   -- that consensus and paratimes can be indexed independently.
   receiver oasis_addr NOT NULL,
-  amount   UINT_NUMERIC NOT NULL,
+  amount   UINT_NUMERIC NOT NULL,  -- always in native denomination
   nonce    UINT63 NOT NULL,
 
   -- Optional error data
   module TEXT,
   code   UINT63
 );
-
 CREATE INDEX ix_emerald_withdraws_sender ON oasis_3.emerald_withdraws(sender);
 CREATE INDEX ix_emerald_withdraws_receiver ON oasis_3.emerald_withdraws(receiver);
+
+-- Balance of the oasis-sdk native tokens (notably ROSE) in paratimes.
+CREATE TABLE oasis_3.runtime_native_balances (
+  runtime TEXT,  -- 'emerald' | 'sapphire'
+  account_address oasis_addr,
+  symbol   TEXT NOT NULL,  -- called `Denomination` in the SDK
+  PRIMARY KEY (runtime, account_address, symbol),
+  balance NUMERIC(1000,0) NOT NULL  -- TODO: Use UINT_NUMERIC once we are processing Emerald from round 0.
+);
+
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
 -- Grant others read-only use.
 -- (We granted already in 01_oasis_3_consensus.up.sql, but the grant does not apply to new tables.)

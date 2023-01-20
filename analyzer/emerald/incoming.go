@@ -433,7 +433,7 @@ func emitRoundBatch(batch *storage.QueryBatch, qf *analyzer.QueryFactory, round 
 		batch.Queue(qf.AddressPreimageInsertQuery(), addr, preimageData.ContextIdentifier, preimageData.ContextVersion, preimageData.Data)
 	}
 	for key, change := range blockData.TokenBalanceChanges {
-		batch.Queue(qf.RuntimeTokenBalanceUpdateQuery(), key.TokenAddress, key.AccountAddress, change.String())
+		batch.Queue(qf.RuntimeEvmBalanceUpdateQuery(), key.TokenAddress, key.AccountAddress, change.String())
 	}
 	for tokenAddr, tokenData := range blockTokenData.TokenData {
 		batch.Queue(

@@ -73,6 +73,8 @@ func (h *ConsensusAccountsHandler) queueDeposits(batch *storage.QueryBatch, data
 			errorModule,
 			errorCode,
 		)
+		// Do not increase the recipient's runtime balance at this point;
+		// the deposit will trigger a mint event in the runtime, and we'll update the balance then.
 	}
 
 	return nil
@@ -99,7 +101,8 @@ func (h *ConsensusAccountsHandler) queueWithdraws(batch *storage.QueryBatch, dat
 			errorModule,
 			errorCode,
 		)
-
+		// Do not decrease the recipient's runtime balance at this point;
+		// the withdraw will trigger a burn event in the runtime, and we'll update the balance then.
 	}
 
 	return nil
