@@ -1514,6 +1514,7 @@ func (c *StorageClient) RuntimeTokens(ctx context.Context, p apiTypes.GetEmerald
 		var totalSupplyNum pgtype.Numeric
 		if err2 := rows.Scan(
 			&t.ContractAddr,
+			&t.EvmContractAddr,
 			&t.Name,
 			&t.Symbol,
 			&t.Decimals,

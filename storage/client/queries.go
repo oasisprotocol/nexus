@@ -368,21 +368,23 @@ func (qf QueryFactory) RuntimeTransactionsQuery() string {
 
 func (qf QueryFactory) EvmTokensQuery() string {
 	return fmt.Sprintf(`
-		WITH token_holders AS (
+		WITH holders AS (
 			SELECT token_address, COUNT(*) AS cnt
 			FROM %[1]s.%[2]s_token_balances
 			GROUP BY token_address
 		)
 		SELECT
-			token_address AS contract_addr,
-			token_name AS name,
-			symbol,
-			decimals,
-			total_supply,
+			tokens.token_address AS contract_addr,
+			encode(preimages.address_data, 'hex') as eth_contract_addr,
+			tokens.token_name AS name,
+			tokens.symbol,
+			tokens.decimals,
+			tokens.total_supply,
 			'ERC20' AS type,  -- TODO: fetch from the table once available
-			token_holders.cnt AS num_holders
-		FROM %[1]s.%[2]s_tokens
-		JOIN token_holders USING (token_address)
+			holders.cnt AS num_holders
+		FROM %[1]s.%[2]s_tokens AS tokens
+		JOIN %[1]s.address_preimages AS preimages ON (token_address = preimages.address)
+		JOIN holders USING (token_address)
 		ORDER BY num_holders DESC
 		LIMIT $1::bigint
 		OFFSET $2::bigint`, qf.chainID, qf.runtime)
