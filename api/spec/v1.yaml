@@ -804,13 +804,22 @@ paths:
                 $ref: '#/components/schemas/RuntimeTokenList'
         <<: *common_error_responses
 
-  /consensus/stats/tx_volume:
+  /{layer}/stats/tx_volume:
     get:
-      summary: Returns the consensus layer transaction volume at daily granularity
+      summary: |
+        Returns a timeline of the transaction volume at the chosen granularity,
+        for either consensus or one of the paratimes.
       parameters:
         - *limit
         - *offset
         - *bucket_size_seconds
+        - in: path
+          name: layer
+          required: true
+          schema:
+            $ref: '#/components/schemas/Layer'
+          description: |
+            The layer for which to return the transaction volume timeline.
       responses:
         '200':
           description: |
@@ -823,6 +832,10 @@ paths:
 
 components:
   schemas:
+    Layer:
+      type: string
+      enum: [consensus, emerald]
+
     Status:
       type: object
       required: [latest_chain_id, latest_block, latest_update]

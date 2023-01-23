@@ -25,3 +25,12 @@ func (c ConsensusEventType) IsValid() bool {
 		return false
 	}
 }
+
+func (c Layer) IsValid() bool {
+	switch c {
+	case LayerConsensus, LayerEmerald:
+		return true
+	default:
+		return false
+	}
+}

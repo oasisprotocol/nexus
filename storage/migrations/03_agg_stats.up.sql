@@ -18,20 +18,32 @@ GRANT EXECUTE ON FUNCTION floor_5min TO PUBLIC;
 -- NOTE: This materialized view is NOT refreshed every 5 minutes due to computational cost.
 CREATE MATERIALIZED VIEW stats.min5_tx_volume AS
   SELECT
+    'consensus' AS layer,
     floor_5min(b.time) AS window_start,
     COUNT(*) AS tx_volume
   FROM oasis_3.blocks AS b
-    INNER JOIN oasis_3.transactions AS t ON b.height = t.block
-  GROUP BY 1;
+  JOIN oasis_3.transactions AS t ON b.height = t.block
+  GROUP BY 2
+  
+  UNION ALL
+  
+  SELECT
+    'emerald' AS layer,
+    floor_5min(b.timestamp) AS window_start,
+    COUNT(*) AS tx_volume
+  FROM oasis_3.emerald_rounds AS b
+  JOIN oasis_3.emerald_transactions AS t ON b.round = t.round
+  GROUP BY 2;
 
 -- daily_tx_volume stores the number of transactions per day
 -- at the consensus layer.
 CREATE MATERIALIZED VIEW stats.daily_tx_volume AS
   SELECT
+    layer,
     date_trunc ( 'day', sub.window_start ) AS window_start,
     SUM(sub.tx_volume) AS tx_volume
   FROM stats.min5_tx_volume AS sub
-  GROUP BY 1;
+  GROUP BY 1, 2;
 
 
 -- Grant others read-only use. This does NOT apply to future tables in the schema.

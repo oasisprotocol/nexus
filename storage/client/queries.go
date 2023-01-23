@@ -357,21 +357,23 @@ func (qf QueryFactory) RuntimeTokensQuery() string {
 func (qf QueryFactory) FineTxVolumesQuery() string {
 	return `
 		SELECT window_start, tx_volume
-			FROM stats.min5_tx_volume
+		FROM stats.min5_tx_volume
+		WHERE layer = $1::text
 		ORDER BY
 			window_start DESC
-		LIMIT $1::bigint
-		OFFSET $2::bigint
+		LIMIT $2::bigint
+		OFFSET $3::bigint
 	`
 }
 
 func (qf QueryFactory) TxVolumesQuery() string {
 	return `
 		SELECT window_start, tx_volume
-			FROM stats.daily_tx_volume
+		FROM stats.daily_tx_volume
+		WHERE layer = $1::text
 		ORDER BY
 			window_start DESC
-		LIMIT $1::bigint
-		OFFSET $2::bigint
+		LIMIT $2::bigint
+		OFFSET $3::bigint
 	`
 }

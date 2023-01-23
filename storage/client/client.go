@@ -1455,12 +1455,8 @@ func (c *StorageClient) RuntimeTokens(ctx context.Context, p apiTypes.GetEmerald
 }
 
 // TxVolumes returns a list of transaction volumes per time bucket.
-func (c *StorageClient) TxVolumes(ctx context.Context, p apiTypes.GetConsensusStatsTxVolumeParams) (*TxVolumeList, error) {
-	if p.BucketSizeSeconds == nil {
-		return nil, fmt.Errorf("bucket_size_seconds default was not applied") // double-check middleware's job
-	}
-
-	qf := NewQueryFactory(strcase.ToSnake(c.chainID), "")
+func (c *StorageClient) TxVolumes(ctx context.Context, layer apiTypes.Layer, p apiTypes.GetLayerStatsTxVolumeParams) (*TxVolumeList, error) {
+	qf := NewQueryFactory(strcase.ToSnake(c.chainID), string(layer))
 	var query string
 	if *p.BucketSizeSeconds == 300 {
 		query = qf.FineTxVolumesQuery()
@@ -1473,6 +1469,7 @@ func (c *StorageClient) TxVolumes(ctx context.Context, p apiTypes.GetConsensusSt
 	rows, err := c.db.Query(
 		ctx,
 		query,
+		layer,
 		p.Limit,
 		p.Offset,
 	)
