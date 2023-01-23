@@ -1480,7 +1480,7 @@ func (c *StorageClient) RuntimeTransaction(ctx context.Context, txHash string) (
 	return &t, nil
 }
 
-func (c *StorageClient) RuntimeTokens(ctx context.Context, p apiTypes.GetEmeraldTokensParams) (*RuntimeTokenList, error) {
+func (c *StorageClient) RuntimeTokens(ctx context.Context, p apiTypes.GetEmeraldEvmTokensParams) (*EvmTokenList, error) {
 	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
 	if !ok {
 		return nil, apiCommon.ErrBadChainID
@@ -1493,7 +1493,7 @@ func (c *StorageClient) RuntimeTokens(ctx context.Context, p apiTypes.GetEmerald
 
 	rows, err := c.db.Query(
 		ctx,
-		qf.RuntimeTokensQuery(),
+		qf.EvmTokensQuery(),
 		p.Limit,
 		p.Offset,
 	)
@@ -1506,11 +1506,11 @@ func (c *StorageClient) RuntimeTokens(ctx context.Context, p apiTypes.GetEmerald
 	}
 	defer rows.Close()
 
-	ts := RuntimeTokenList{
-		Tokens: []RuntimeToken{},
+	ts := EvmTokenList{
+		EvmTokens: []EvmToken{},
 	}
 	for rows.Next() {
-		var t RuntimeToken
+		var t EvmToken
 		var totalSupplyNum pgtype.Numeric
 		if err2 := rows.Scan(
 			&t.ContractAddr,
@@ -1531,7 +1531,7 @@ func (c *StorageClient) RuntimeTokens(ctx context.Context, p apiTypes.GetEmerald
 			}
 		}
 
-		ts.Tokens = append(ts.Tokens, t)
+		ts.EvmTokens = append(ts.EvmTokens, t)
 	}
 
 	return &ts, nil

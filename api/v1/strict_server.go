@@ -227,12 +227,12 @@ func (srv *StrictServerImpl) GetEmeraldBlocks(ctx context.Context, request apiTy
 	return apiTypes.GetEmeraldBlocks200JSONResponse(*blocks), nil
 }
 
-func (srv *StrictServerImpl) GetEmeraldTokens(ctx context.Context, request apiTypes.GetEmeraldTokensRequestObject) (apiTypes.GetEmeraldTokensResponseObject, error) {
+func (srv *StrictServerImpl) GetEmeraldEvmTokens(ctx context.Context, request apiTypes.GetEmeraldEvmTokensRequestObject) (apiTypes.GetEmeraldEvmTokensResponseObject, error) {
 	tokens, err := srv.dbClient.RuntimeTokens(ctx, request.Params)
 	if err != nil {
 		return nil, err
 	}
-	return apiTypes.GetEmeraldTokens200JSONResponse(*tokens), nil
+	return apiTypes.GetEmeraldEvmTokens200JSONResponse(*tokens), nil
 }
 
 func (srv *StrictServerImpl) GetEmeraldTransactions(ctx context.Context, request apiTypes.GetEmeraldTransactionsRequestObject) (apiTypes.GetEmeraldTransactionsResponseObject, error) {

@@ -120,9 +120,9 @@ type RuntimeTransaction struct {
 	ResultRaw []byte
 }
 
-type RuntimeTokenList = api.RuntimeTokenList
+type EvmTokenList = api.EvmTokenList
 
-type RuntimeToken = api.RuntimeToken
+type EvmToken = api.EvmToken
 
 // TxVolumeList is the storage response for GetVolumes.
 type TxVolumeList = api.TxVolumeList

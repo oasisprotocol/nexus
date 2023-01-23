@@ -366,7 +366,7 @@ func (qf QueryFactory) RuntimeTransactionsQuery() string {
 		OFFSET $4::bigint`, qf.chainID, qf.runtime)
 }
 
-func (qf QueryFactory) RuntimeTokensQuery() string {
+func (qf QueryFactory) EvmTokensQuery() string {
 	return fmt.Sprintf(`
 		WITH token_holders AS (
 			SELECT token_address, COUNT(*) AS cnt
