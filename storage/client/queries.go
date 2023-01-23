@@ -368,9 +368,21 @@ func (qf QueryFactory) RuntimeTransactionsQuery() string {
 
 func (qf QueryFactory) RuntimeTokensQuery() string {
 	return fmt.Sprintf(`
-		SELECT token_address, COUNT(*) AS num_holders
-			FROM %s.%s_token_balances
-		GROUP BY token_address
+		WITH token_holders AS (
+			SELECT token_address, COUNT(*) AS cnt
+			FROM %[1]s.%[2]s_token_balances
+			GROUP BY token_address
+		)
+		SELECT
+			token_address AS contract_addr,
+			token_name AS name,
+			symbol,
+			decimals,
+			total_supply,
+			'ERC20' AS type,  -- TODO: fetch from the table once available
+			token_holders.cnt AS num_holders
+		FROM %[1]s.%[2]s_tokens
+		JOIN token_holders USING (token_address)
 		ORDER BY num_holders DESC
 		LIMIT $1::bigint
 		OFFSET $2::bigint`, qf.chainID, qf.runtime)

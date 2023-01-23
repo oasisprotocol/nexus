@@ -1804,7 +1804,7 @@ components:
             ERC-1363 token might be labeled as ERC-20 here. If the type cannot be
             detected or is not supported, this field will be null/absent.
         total_supply:
-          type: string
+          <<: *BigIntType
           description: The total number of base units available.
         num_holders:
           type: integer

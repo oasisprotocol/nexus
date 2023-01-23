@@ -1511,11 +1511,24 @@ func (c *StorageClient) RuntimeTokens(ctx context.Context, p apiTypes.GetEmerald
 	}
 	for rows.Next() {
 		var t RuntimeToken
+		var totalSupplyNum pgtype.Numeric
 		if err2 := rows.Scan(
 			&t.ContractAddr,
+			&t.Name,
+			&t.Symbol,
+			&t.Decimals,
+			&totalSupplyNum,
+			&t.Type,
 			&t.NumHolders,
 		); err2 != nil {
 			return nil, apiCommon.ErrStorageError
+		}
+		if totalSupplyNum.Status == pgtype.Present {
+			t.TotalSupply = &common.BigInt{}
+			*t.TotalSupply, err = c.numericToBigInt(ctx, &totalSupplyNum)
+			if err != nil {
+				return nil, apiCommon.ErrStorageError
+			}
 		}
 
 		ts.Tokens = append(ts.Tokens, t)
