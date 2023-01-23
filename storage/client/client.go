@@ -1461,8 +1461,8 @@ func (c *StorageClient) TxVolumes(ctx context.Context, layer apiTypes.Layer, p a
 	if *p.BucketSizeSeconds == 300 {
 		query = qf.FineTxVolumesQuery()
 	} else {
-		var hour uint32 = 3600
-		p.BucketSizeSeconds = &hour
+		var day uint32 = 86400
+		p.BucketSizeSeconds = &day
 		query = qf.TxVolumesQuery()
 	}
 
