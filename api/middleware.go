@@ -13,6 +13,7 @@ import (
 	"github.com/oasisprotocol/oasis-indexer/common"
 	"github.com/oasisprotocol/oasis-indexer/log"
 	"github.com/oasisprotocol/oasis-indexer/metrics"
+	"github.com/rs/cors"
 )
 
 var (
@@ -249,3 +250,16 @@ func RuntimeFromURLMiddleware(baseURL string) func(next http.Handler) http.Handl
 		})
 	}
 }
+
+// CorsMiddleware is a restrictive CORS middleware that only allows GET requests.
+//
+// NOTE: To support other methods (e.g. POST), we'd also need to support OPTIONS
+// preflight requests, in which case this would have to be the outermost handler
+// to run; the openapi-generated handler will reject OPTIONS requests because
+// they are not in the openapi spec.
+var CorsMiddleware func(http.Handler) http.Handler = cors.New(cors.Options{
+	AllowedMethods: []string{
+		http.MethodGet,
+	},
+	AllowCredentials: false,
+}).Handler
