@@ -150,6 +150,7 @@ func (s *Service) Start() {
 			Middlewares: []apiTypes.MiddlewareFunc{
 				api.ChainMiddleware(s.chainID),
 				api.RuntimeFromURLMiddleware(v1BaseURL),
+				api.CorsMiddleware,
 			},
 			BaseRouter:       staticFileRouter,
 			ErrorHandlerFunc: api.HumanReadableJsonErrorHandler,
