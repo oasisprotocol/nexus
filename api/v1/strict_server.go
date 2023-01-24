@@ -267,3 +267,7 @@ func (srv *StrictServerImpl) GetEmeraldTransactionsTxHash(ctx context.Context, r
 
 	return apiTypes.GetEmeraldTransactionsTxHash200JSONResponse(apiTx), nil
 }
+
+func (srv *StrictServerImpl) GetEmeraldEvents(ctx context.Context, request apiTypes.GetEmeraldEventsRequestObject) (apiTypes.GetEmeraldEventsResponseObject, error) {
+	return apiTypes.GetEmeraldEvents200JSONResponse{}, nil // Not implemented
+}
