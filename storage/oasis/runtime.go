@@ -11,7 +11,7 @@ import (
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/consensusaccounts"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/core"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/evm"
-	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
+	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 
 	"github.com/oasisprotocol/oasis-indexer/storage"
 )
@@ -21,7 +21,7 @@ type RuntimeClient struct {
 	client  connection.RuntimeClient
 	network *config.Network
 
-	info  *types.RuntimeInfo
+	info  *sdkTypes.RuntimeInfo
 	rtCtx runtimeSignature.Context
 }
 
@@ -145,4 +145,26 @@ func (rc *RuntimeClient) Name() string {
 		}
 	}
 	return fmt.Sprintf("%s_runtime", paratimeName)
+}
+
+func (rc *RuntimeClient) nativeTokenSymbol() string {
+	for _, network := range config.DefaultNetworks.All {
+		if network.ChainContext != rc.network.ChainContext {
+			continue
+		}
+		for _, paratime := range network.ParaTimes.All {
+			if paratime.ID == rc.info.ID.Hex() {
+				return paratime.Denominations[config.NativeDenominationKey].Symbol
+			}
+		}
+	}
+	panic("Cannot find native token symbol for runtime")
+}
+
+func (rc *RuntimeClient) StringifyDenomination(d sdkTypes.Denomination) string {
+	if d.IsNative() {
+		return rc.nativeTokenSymbol()
+	}
+
+	return d.String()
 }
