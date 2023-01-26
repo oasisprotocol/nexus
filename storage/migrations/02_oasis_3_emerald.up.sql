@@ -100,6 +100,8 @@ CREATE TABLE oasis_3.address_preimages
   address_data       BYTEA NOT NULL
 );
 
+-- -- -- -- -- -- -- -- -- -- -- -- -- Module evm -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
 CREATE TABLE oasis_3.emerald_token_balances
 (
   token_address oasis_addr NOT NULL,
@@ -119,7 +121,8 @@ CREATE TABLE oasis_3.emerald_tokens
   total_supply uint_numeric
 );
 
--- Core Module Data
+-- -- -- -- -- -- -- -- -- -- -- -- -- Module core -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
 CREATE TABLE oasis_3.runtime_gas_used
 (
   runtime runtime NOT NULL,
@@ -130,9 +133,9 @@ CREATE TABLE oasis_3.runtime_gas_used
 
 CREATE INDEX ix_runtime_gas_used_sender ON oasis_3.runtime_gas_used(sender);
 
--- Accounts Module Data
+-- -- -- -- -- -- -- -- -- -- -- -- -- Module accounts -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
--- The emerald_transfers table encapsulates transfers, burns, and mints.
+-- This table encapsulates transfers, burns, and mints (at the level of the `accounts` SDK module; NOT evm transfers).
 -- Burns are denoted by NULL as the receiver and mints are denoted by NULL as the sender.
 CREATE TABLE oasis_3.emerald_transfers
 (
@@ -155,7 +158,8 @@ CREATE TABLE oasis_3.emerald_transfers
 CREATE INDEX ix_emerald_transfers_sender ON oasis_3.emerald_transfers(sender);
 CREATE INDEX ix_emerald_transfers_receiver ON oasis_3.emerald_transfers(receiver);
 
--- Consensus Accounts Module Data
+-- -- -- -- -- -- -- -- -- -- -- -- -- Module consensusaccounts -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
 -- Deposits from the consensus layer into the paratime.
 CREATE TABLE oasis_3.emerald_deposits
 (
