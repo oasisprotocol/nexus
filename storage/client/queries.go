@@ -114,6 +114,7 @@ func (qf QueryFactory) EntitiesQuery() string {
 	return fmt.Sprintf(`
 		SELECT id, address
 			FROM %s.entities
+		ORDER BY id
 		LIMIT $1::bigint
 		OFFSET $2::bigint`, qf.chainID)
 }
@@ -137,6 +138,7 @@ func (qf QueryFactory) EntityNodesQuery() string {
 		SELECT id, entity_id, expiration, tls_pubkey, tls_next_pubkey, p2p_pubkey, consensus_pubkey, roles
 			FROM %s.nodes
 			WHERE entity_id = $1::text
+		ORDER BY id
 		LIMIT $2::bigint
 		OFFSET $3::bigint`, qf.chainID)
 }
@@ -169,6 +171,7 @@ func (qf QueryFactory) AccountsQuery() string {
 					($6::numeric IS NULL OR escrow_balance_debonding <= $6::numeric) AND
 					($7::numeric IS NULL OR general_balance + escrow_balance_active + escrow_balance_debonding >= $7::numeric) AND
 					($8::numeric IS NULL OR general_balance + escrow_balance_active + escrow_balance_debonding <= $8::numeric)
+		ORDER BY address
 		LIMIT $9::bigint
 		OFFSET $10::bigint`, qf.chainID)
 }
@@ -214,6 +217,7 @@ func (qf QueryFactory) DelegationsQuery() string {
 			FROM %[1]s.delegations
 			JOIN %[1]s.accounts ON %[1]s.delegations.delegatee = %[1]s.accounts.address
 			WHERE delegator = $1::text
+		ORDER BY delegatee, shares
 		LIMIT $2::bigint
 		OFFSET $3::bigint`, qf.chainID)
 }
