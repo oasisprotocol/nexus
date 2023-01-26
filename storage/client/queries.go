@@ -349,8 +349,9 @@ func (qf QueryFactory) ValidatorsDataQuery() string {
 func (qf QueryFactory) RuntimeBlocksQuery() string {
 	return fmt.Sprintf(`
 		SELECT round, block_hash, timestamp, num_transactions, size, gas_used
-			FROM %s.%s_rounds
-			WHERE ($1::bigint IS NULL OR round >= $1::bigint) AND
+			FROM %[1]s.runtime_blocks
+			WHERE (runtime = '%[2]s') AND
+						($1::bigint IS NULL OR round >= $1::bigint) AND
 						($2::bigint IS NULL OR round <= $2::bigint) AND
 						($3::timestamptz IS NULL OR timestamp >= $3::timestamptz) AND
 						($4::timestamptz IS NULL OR timestamp <= $4::timestamptz)
