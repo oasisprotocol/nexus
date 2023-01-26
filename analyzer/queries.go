@@ -381,32 +381,32 @@ func (qf QueryFactory) RuntimeTransactionInsertQuery() string {
 
 func (qf QueryFactory) RuntimeMintInsertQuery() string {
 	return fmt.Sprintf(`
-		INSERT INTO %s.%s_transfers (round, sender, receiver, symbol, amount)
-			VALUES ($1, NULL, $2, $3, $4)`, qf.chainID, qf.runtime)
+		INSERT INTO %[1]s.runtime_transfers (runtime, round, sender, receiver, symbol, amount)
+			VALUES ('%[2]s', $1, NULL, $2, $3, $4)`, qf.chainID, qf.runtime)
 }
 
 func (qf QueryFactory) RuntimeBurnInsertQuery() string {
 	return fmt.Sprintf(`
-		INSERT INTO %s.%s_transfers (round, sender, receiver, symbol, amount)
-			VALUES ($1, $2, NULL, $3, $4)`, qf.chainID, qf.runtime)
+		INSERT INTO %[1]s.runtime_transfers (runtime, round, sender, receiver, symbol, amount)
+			VALUES ('%[2]s', $1, $2, NULL, $3, $4)`, qf.chainID, qf.runtime)
 }
 
 func (qf QueryFactory) RuntimeTransferInsertQuery() string {
 	return fmt.Sprintf(`
-		INSERT INTO %s.%s_transfers (round, sender, receiver, symbol, amount)
-			VALUES ($1, $2, $3, $4, $5)`, qf.chainID, qf.runtime)
+		INSERT INTO %[1]s.runtime_transfers (runtime, round, sender, receiver, symbol, amount)
+			VALUES ('%[2]s', $1, $2, $3, $4, $5)`, qf.chainID, qf.runtime)
 }
 
 func (qf QueryFactory) RuntimeDepositInsertQuery() string {
 	return fmt.Sprintf(`
-		INSERT INTO %s.%s_deposits (round, sender, receiver, amount, nonce, module, code)
-			VALUES ($1, $2, $3, $4, $5, $6, $7)`, qf.chainID, qf.runtime)
+		INSERT INTO %[1]s.runtime_deposits (runtime, round, sender, receiver, amount, nonce, module, code)
+			VALUES ('%[2]s', $1, $2, $3, $4, $5, $6, $7)`, qf.chainID, qf.runtime)
 }
 
 func (qf QueryFactory) RuntimeWithdrawInsertQuery() string {
 	return fmt.Sprintf(`
-		INSERT INTO %s.%s_withdraws (round, sender, receiver, amount, nonce, module, code)
-			VALUES ($1, $2, $3, $4, $5, $6, $7)`, qf.chainID, qf.runtime)
+		INSERT INTO %[1]s.runtime_withdraws (runtime, round, sender, receiver, amount, nonce, module, code)
+			VALUES ('%[2]s', $1, $2, $3, $4, $5, $6, $7)`, qf.chainID, qf.runtime)
 }
 
 func (qf QueryFactory) RuntimeNativeBalanceUpdateQuery() string {

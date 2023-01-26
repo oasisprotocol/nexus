@@ -140,8 +140,9 @@ CREATE INDEX ix_runtime_gas_used_sender ON oasis_3.runtime_gas_used(sender);
 
 -- This table encapsulates transfers, burns, and mints (at the level of the `accounts` SDK module; NOT evm transfers).
 -- Burns are denoted by NULL as the receiver and mints are denoted by NULL as the sender.
-CREATE TABLE oasis_3.emerald_transfers
+CREATE TABLE oasis_3.runtime_transfers
 (
+  runtime  runtime NOT NULL,
   round    UINT63 NOT NULL REFERENCES oasis_3.runtime_blocks DEFERRABLE INITIALLY DEFERRED,
   -- Any paratime account. This almost always REFERENCES oasis_3.address_preimages(address)
   -- because the sender signed the Transfer tx and was inserted into address_preimages then.
@@ -158,14 +159,15 @@ CREATE TABLE oasis_3.emerald_transfers
 
   CHECK (NOT (sender IS NULL AND receiver IS NULL))
 );
-CREATE INDEX ix_emerald_transfers_sender ON oasis_3.emerald_transfers(sender);
-CREATE INDEX ix_emerald_transfers_receiver ON oasis_3.emerald_transfers(receiver);
+CREATE INDEX ix_runtime_transfers_sender ON oasis_3.runtime_transfers(sender);
+CREATE INDEX ix_runtime_transfers_receiver ON oasis_3.runtime_transfers(receiver);
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- Module consensusaccounts -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
 -- Deposits from the consensus layer into the paratime.
-CREATE TABLE oasis_3.emerald_deposits
+CREATE TABLE oasis_3.runtime_deposits
 (
+  runtime  runtime NOT NULL, 
   round    UINT63 NOT NULL REFERENCES oasis_3.runtime_blocks DEFERRABLE INITIALLY DEFERRED,
   -- The `sender` is a consensus account, so this REFERENCES oasis_3.accounts; we omit the FK so
   -- that consensus and paratimes can be indexed independently.
@@ -188,12 +190,13 @@ CREATE TABLE oasis_3.emerald_deposits
   module TEXT,
   code   UINT63
 );
-CREATE INDEX ix_emerald_deposits_sender ON oasis_3.emerald_deposits(sender);
-CREATE INDEX ix_emerald_deposits_receiver ON oasis_3.emerald_deposits(receiver);
+CREATE INDEX ix_runtime_deposits_sender ON oasis_3.runtime_deposits(sender);
+CREATE INDEX ix_runtime_deposits_receiver ON oasis_3.runtime_deposits(receiver);
 
 -- Withdrawals from the paratime into consensus layer.
-CREATE TABLE oasis_3.emerald_withdraws
+CREATE TABLE oasis_3.runtime_withdraws
 (
+  runtime  runtime NOT NULL,
   round    UINT63 NOT NULL REFERENCES oasis_3.runtime_blocks DEFERRABLE INITIALLY DEFERRED,
   -- The `sender` can be any paratime address. (i.e. secp256k1eth-backed OR ed25519-backed;
   -- other are options unlikely in an EVM paratime)
@@ -209,8 +212,8 @@ CREATE TABLE oasis_3.emerald_withdraws
   module TEXT,
   code   UINT63
 );
-CREATE INDEX ix_emerald_withdraws_sender ON oasis_3.emerald_withdraws(sender);
-CREATE INDEX ix_emerald_withdraws_receiver ON oasis_3.emerald_withdraws(receiver);
+CREATE INDEX ix_runtime_withdraws_sender ON oasis_3.runtime_withdraws(sender);
+CREATE INDEX ix_runtime_withdraws_receiver ON oasis_3.runtime_withdraws(receiver);
 
 -- Balance of the oasis-sdk native tokens (notably ROSE) in paratimes.
 CREATE TABLE oasis_3.runtime_sdk_balances (
