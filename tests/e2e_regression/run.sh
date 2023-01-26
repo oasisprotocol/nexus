@@ -28,8 +28,8 @@ testCases=(
   'accounts                 /v1/consensus/accounts'
   'min_balance              /v1/consensus/accounts?minTotalBalance=1000000'
   'big_int_balance          /v1/consensus/accounts?minTotalBalance=999999999999999999999999999'
-  'bad_big_int              /v1/consensus/accounts?minTotalBalance=NA'
-  'extraneous_key           /v1/consensus/accounts?foo=bar'
+  'accounts_bad_big_int     /v1/consensus/accounts?minTotalBalance=NA'
+  'accounts_extraneous_key  /v1/consensus/accounts?foo=bar'
   'blocks                   /v1/consensus/blocks'
   'block                    /v1/consensus/blocks/8050000'
   'bad_account              /v1/consensus/accounts/oasis1aaaaaaa'
@@ -81,17 +81,28 @@ for (( i=0; i<nCases; i++ )); do
   echo "Running test case: $name"
   # Fetch the server response for $url
   curl --silent --show-error --dump-header "$outDir/$name.headers" "$url" > "$outDir/$name.body"
-  # Try to pretty-print the output. If `jq` fails, output was probably not JSON; leave it as-is.
-  <"$outDir/$name.body" jq >/tmp/pretty 2>/dev/null && cp /tmp/pretty "$outDir/$name.body" || true
+  # Try to pretty-print and normalize (for stable diffs) the output.
+  # If `jq` fails, output was probably not JSON; leave it as-is.
+  jq 'if .latest_update? then .latest_update="UNINTERESTING" else . end' \
+    <"$outDir/$name.body" \
+    >/tmp/pretty 2>/dev/null \
+  && cp /tmp/pretty "$outDir/$name.body" || true
   # Sanitize the current timestamp out of the response header so that diffs are stable
-  sed -i 's/^Date: .*/Date: UNINTERESTING/g' "$outDir/$name.headers"
-  sed -i 's/^Content-Length: .*/Content-Length: UNINTERESTING/g' "$outDir/$name.headers"
+  sed -E -i 's/^(Date|Content-Length|Last-Modified): .*/\1: UNINTERESTING/g' "$outDir/$name.headers"
 done
 
-diff --recursive "$SCRIPT_DIR/expected" "$outDir" || {
+diff --recursive "$SCRIPT_DIR/expected" "$outDir" >/dev/null || {
   echo
-  echo "ERROR: $SCRIPT_DIR/expected and $outDir differ (see above)."
-  echo "If the new reults are expected, copy them into .../expected and re-run this script."
+  echo "NOTE: $SCRIPT_DIR/expected and $outDir differ."
+  echo "Press enter see the diff, or Ctrl-C to abort."
+  read -r
+  git diff --no-index "$SCRIPT_DIR"/{expected,actual} || true
+  echo
+  echo "To re-view the diff, run:"
+  echo "  git diff --no-index $SCRIPT_DIR/{expected,actual}"
+  echo
+  echo "If the new results are expected, re-run this script after copying the new results into .../expected:"
+  echo "  cp $SCRIPT_DIR/{actual/*,expected}"
   exit 1
 }
 
