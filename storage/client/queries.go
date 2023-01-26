@@ -363,8 +363,9 @@ func (qf QueryFactory) RuntimeBlocksQuery() string {
 func (qf QueryFactory) RuntimeTransactionsQuery() string {
 	return fmt.Sprintf(`
 		SELECT round, tx_index, tx_hash, tx_eth_hash, raw, result_raw
-			FROM %s.%s_transactions
-			WHERE ($1::bigint IS NULL OR round = $1::bigint) AND
+			FROM %[1]s.runtime_transactions
+			WHERE (runtime = '%[2]s') AND
+						($1::bigint IS NULL OR round = $1::bigint) AND
 						($2::text IS NULL OR tx_hash = $2::text)
 		ORDER BY round DESC, tx_index DESC
 		LIMIT $3::bigint

@@ -26,8 +26,9 @@ CREATE TABLE oasis_3.runtime_blocks
 CREATE INDEX ix_runtime_blocks_block_hash ON oasis_3.runtime_blocks USING hash (block_hash);  -- Hash indexes cannot span two colmns (runtime, block_hash). Not a problem for efficiency because block_hash is globally uniqueish.
 CREATE INDEX ix_runtime_blocks_timestamp ON oasis_3.runtime_blocks (runtime, timestamp);
 
-CREATE TABLE oasis_3.emerald_transactions
+CREATE TABLE oasis_3.runtime_transactions
 (
+  runtime     runtime NOT NULL,
   round       UINT63 NOT NULL REFERENCES oasis_3.runtime_blocks DEFERRABLE INITIALLY DEFERRED,
   tx_index    UINT31 NOT NULL,
   tx_hash     HEX64 NOT NULL,
@@ -41,8 +42,8 @@ CREATE TABLE oasis_3.emerald_transactions
   result_raw  BYTEA NOT NULL,
   PRIMARY KEY (round, tx_index)
 );
-CREATE INDEX ix_emerald_transactions_tx_hash ON oasis_3.emerald_transactions USING hash (tx_hash);
-CREATE INDEX ix_emerald_transactions_tx_eth_hash ON oasis_3.emerald_transactions USING hash (tx_eth_hash);
+CREATE INDEX ix_runtime_transactions_tx_hash ON oasis_3.runtime_transactions USING hash (tx_hash);
+CREATE INDEX ix_runtime_transactions_tx_eth_hash ON oasis_3.runtime_transactions USING hash (tx_eth_hash);
 
 CREATE TABLE oasis_3.emerald_transaction_signers
 (
@@ -56,7 +57,7 @@ CREATE TABLE oasis_3.emerald_transaction_signers
   signer_address oasis_addr NOT NULL,
   nonce          UINT31 NOT NULL,
   PRIMARY KEY (round, tx_index, signer_index),
-  FOREIGN KEY (round, tx_index) REFERENCES oasis_3.emerald_transactions(round, tx_index) DEFERRABLE INITIALLY DEFERRED
+  FOREIGN KEY (round, tx_index) REFERENCES oasis_3.runtime_transactions(round, tx_index) DEFERRABLE INITIALLY DEFERRED
 );
 CREATE INDEX ix_emerald_transaction_signers_signer_address_signer_nonce ON oasis_3.emerald_transaction_signers (signer_address, nonce);
 
@@ -65,7 +66,7 @@ CREATE TABLE oasis_3.emerald_related_transactions
   account_address oasis_addr NOT NULL,
   tx_round        UINT63 NOT NULL,
   tx_index        UINT31 NOT NULL,
-  FOREIGN KEY (tx_round, tx_index) REFERENCES oasis_3.emerald_transactions(round, tx_index) DEFERRABLE INITIALLY DEFERRED
+  FOREIGN KEY (tx_round, tx_index) REFERENCES oasis_3.runtime_transactions(round, tx_index) DEFERRABLE INITIALLY DEFERRED
 );
 CREATE INDEX ix_emerald_related_transactions_address_height_index ON oasis_3.emerald_related_transactions (account_address, tx_round, tx_index);
 
