@@ -411,10 +411,10 @@ func (qf QueryFactory) RuntimeWithdrawInsertQuery() string {
 
 func (qf QueryFactory) RuntimeNativeBalanceUpdateQuery() string {
 	return fmt.Sprintf(`
-		INSERT INTO %[1]s.runtime_native_balances (runtime, account_address, symbol, balance)
+		INSERT INTO %[1]s.runtime_sdk_balances (runtime, account_address, symbol, balance)
 		  VALUES ('%[2]s', $1, $2, $3)
 		ON CONFLICT (runtime, account_address, symbol) DO
-		UPDATE SET balance = %[1]s.runtime_native_balances.balance + $3`, qf.chainID, qf.runtime)
+		UPDATE SET balance = %[1]s.runtime_sdk_balances.balance + $3`, qf.chainID, qf.runtime)
 }
 
 func (qf QueryFactory) RuntimeGasUsedInsertQuery() string {

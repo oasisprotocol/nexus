@@ -48,7 +48,8 @@ type Account = api.Account
 type (
 	AddressPreimage          = api.AddressPreimage
 	AddressDerivationContext = api.AddressDerivationContext
-	RuntimeBalance           = api.RuntimeBalance
+	RuntimeSdkBalance        = api.RuntimeSdkBalance
+	RuntimeEvmBalance        = api.RuntimeEvmBalance
 )
 
 // DebondingDelegationList is the storage response for ListDebondingDelegations.

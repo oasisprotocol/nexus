@@ -390,31 +390,34 @@ func (qf QueryFactory) EvmTokensQuery() string {
 		OFFSET $2::bigint`, qf.chainID, qf.runtime)
 }
 
-func (qf QueryFactory) AccountRuntimeBalancesQuery() string {
+func (qf QueryFactory) AccountRuntimeSdkBalancesQuery() string {
 	return fmt.Sprintf(`
-	  -- EVM token balances (ERC-20 etc., e.g. USDT)
+		SELECT
+			balance AS balance,
+			symbol AS token_symbol
+		FROM %[1]s.runtime_sdk_balances
+		WHERE account_address = $1::text
+			AND runtime = '%[2]s'::text
+			AND balance != 0
+		ORDER BY balance DESC
+		LIMIT 1000  -- To prevent huge responses. Hardcoded because API exposes this as a subfield that does not lend itself to pagination.
+	`, qf.chainID, qf.runtime)
+}
+
+func (qf QueryFactory) AccountRuntimeEvmBalancesQuery() string {
+	return fmt.Sprintf(`
 		SELECT
 			%[1]s.%[2]s_token_balances.balance AS balance,
-			%[1]s.%[2]s_token_balances.token_address AS token_id,
+			%[1]s.%[2]s_token_balances.token_address AS token_address,
 			%[1]s.%[2]s_tokens.symbol AS token_symbol,
+			%[1]s.%[2]s_tokens.symbol AS token_name,
 			'ERC20' AS token_type  -- TODO: fetch from the table once available
 		FROM %[1]s.%[2]s_token_balances
 		JOIN %[1]s.%[2]s_tokens USING (token_address)
 		WHERE account_address = $1::text
 		  AND balance != 0
-
-		UNION
-
-		-- oasis-sdk token balances (e.g. ROSE)
-		SELECT
-			balance AS balance,
-			CONCAT('oasis-sdk:', symbol) AS token_id,
-			symbol AS token_symbol,
-			'OasisSdk' AS token_type
-		FROM %[1]s.runtime_native_balances
-		WHERE account_address = $1::text
-			AND runtime = '%[2]s'::text
-			AND balance != 0
+		ORDER BY balance DESC
+		LIMIT 1000  -- To prevent huge responses. Hardcoded because API exposes this as a subfield that does not lend itself to pagination.
 	`, qf.chainID, qf.runtime)
 }
 

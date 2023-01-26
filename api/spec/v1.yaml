@@ -1369,31 +1369,43 @@ components:
         - emerald
       example: emerald
 
-    RuntimeBalance:
-      description: Balances of an account in runtimes.
+    RuntimeSdkBalance:
+      description: Balance of an account for a specific runtime and oasis-sdk token (e.g. ROSE).
       type: object
-      required: [balance, runtime, token_id, token_symbol]
+      required: [balance, runtime, token_symbol]
       properties:
         balance:
           <<: *BigIntType
-          description: Number of tokens held; as a string.
+          description: Number of tokens held, in base units.
         runtime:
           $ref: "#/components/schemas/RuntimeName"
-        # TODO:
-        # - How do we handle NFTs? Add another field?
-        token_id:
-          x-go-name: TokenID
+        token_symbol:
           type: string
-          description: |
-            Unique identifier for the token. For EVM tokens, this is their eth address.
-            For oasis-native tokens (see token_type), this is a string of the form
-            `"oasis-sdk:<token_symbol>"`.
+          description: The token ticker symbol. Unique across all oasis-sdk tokens in the same runtime.
+          example: ROSE
+
+    RuntimeEvmBalance:
+      description: Balance of an account for a specific runtime and EVM token.
+      type: object
+      required: [balance, runtime, token_contract_addr]
+      properties:
+        balance:
+          <<: *BigIntType
+          description: Number of tokens held, in base units.
+        runtime:
+          $ref: "#/components/schemas/RuntimeName"
+        token_contract_addr:
+          type: string
+          description: The EVM address of this token's contract. Encoded as a lowercase hex string.
+          example: 'dc19a122e268128b5ee20366299fc7b5b199c8e3'
         token_symbol:
           type: string
           description: The token ticker symbol. Not guaranteed to be unique across distinct EVM tokens.
+        token_name:
+          type: string
+          description: The name of the token. Not guaranteed to be unique across distinct EVM tokens.
         token_type:
-          $ref: "#/components/schemas/RuntimeTokenType"
-
+          $ref: "#/components/schemas/EvmTokenType"
 
     Account:
       type: object
@@ -1410,14 +1422,22 @@ components:
           format: int64
           description: A nonce used to prevent replay.
           example: 0
-        runtime_balances:
+        runtime_sdk_balances:
           description: |
-            The balances of this account in various denominations in each runtime.
+            The balances of this account in each runtime, as managed by oasis-sdk.
             NOTE 1: This field is omitted for efficiency when listing multiple accounts.
             NOTE 2: This field is limited to 1000 entries. If you need more, please let us know in a GitHub issue.
           type: array
           items:
-            $ref: '#/components/schemas/RuntimeBalance'
+            $ref: '#/components/schemas/RuntimeSdkBalance'
+        runtime_evm_balances:
+          description: |
+            The balances of this account in each runtime, as managed by EVM smart contracts (notably, ERC-20).
+            NOTE 1: This field is omitted for efficiency when listing multiple accounts.
+            NOTE 2: This field is limited to 1000 entries. If you need more, please let us know in a GitHub issue.
+          type: array
+          items:
+            $ref: '#/components/schemas/RuntimeEvmBalance'
         available:
           <<: *BigIntType
           description: The available balance, in base units.
@@ -1749,7 +1769,7 @@ components:
       description: |
         A runtime transaction.
 
-    RuntimeTokenType:
+    EvmTokenType:
       type: string
       enum:
         - ERC20
@@ -1757,10 +1777,7 @@ components:
         - ERC1155
         - OasisSdk
       description: |
-        The type of a Runtime token. Values starting with "ERC" represent the corresponding
-        EVM token. "OasisSdk" represents a runtime token tracked by the oasis-sdk `accounts`
-        module, i.e. the recommended way for runtimes to track account balances.
-        In EVM runtimes, typically ROSE is the only OasisSdk token.
+        The type of a EVM token.
 
     EvmTokenList:
       type: object
@@ -1801,7 +1818,7 @@ components:
             Affects display only. Often equals 18, to match ETH.
           example: 18
         type:
-          $ref: '#/components/schemas/RuntimeTokenType'
+          $ref: '#/components/schemas/EvmTokenType'
           description: |
             The heuristically determined interface that the token contract implements.
             A less specialized variant of the token might be detected; for example, an

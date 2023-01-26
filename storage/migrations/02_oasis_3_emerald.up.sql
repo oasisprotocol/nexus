@@ -107,7 +107,7 @@ CREATE TABLE oasis_3.emerald_tokens
 (
   token_address oasis_addr PRIMARY KEY,
   token_name TEXT,
-  -- TODO: Add token type (ERC20, ERC721, etc.). See RuntimeTokenType enum
+  -- TODO: Add token type (ERC20, ERC721, etc.). See EvmTokenType enum
   symbol TEXT,
   decimals INT,
   total_supply uint_numeric
@@ -199,7 +199,7 @@ CREATE INDEX ix_emerald_withdraws_sender ON oasis_3.emerald_withdraws(sender);
 CREATE INDEX ix_emerald_withdraws_receiver ON oasis_3.emerald_withdraws(receiver);
 
 -- Balance of the oasis-sdk native tokens (notably ROSE) in paratimes.
-CREATE TABLE oasis_3.runtime_native_balances (
+CREATE TABLE oasis_3.runtime_sdk_balances (
   runtime TEXT,  -- 'emerald' | 'sapphire'
   account_address oasis_addr,
   symbol   TEXT NOT NULL,  -- called `Denomination` in the SDK

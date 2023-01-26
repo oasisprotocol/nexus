@@ -672,7 +672,8 @@ func (c *StorageClient) Account(ctx context.Context, address staking.Address) (*
 		AddressPreimage:             &AddressPreimage{},
 		DelegationsBalance:          &common.BigInt{},
 		DebondingDelegationsBalance: &common.BigInt{},
-		RuntimeBalances:             &[]RuntimeBalance{},
+		RuntimeSdkBalances:          &[]RuntimeSdkBalance{},
+		RuntimeEvmBalances:          &[]RuntimeEvmBalance{},
 	}
 	var availableNum pgtype.Numeric
 	var escrowNum pgtype.Numeric
@@ -775,29 +776,55 @@ func (c *StorageClient) Account(ctx context.Context, address staking.Address) (*
 	// XXX: This method needs to return balances across all paratimes.
 	// For now, we manually query "each" runtime in turn (= just Emerald for now).
 	// TODO: Refactor emerald tables to contain all paratimes.
-	paratimeRows, queryErr := c.db.Query(
+	runtimeSdkRows, queryErr := c.db.Query(
 		ctx,
-		NewQueryFactory(cid, "emerald").AccountRuntimeBalancesQuery(),
+		NewQueryFactory(cid, "emerald").AccountRuntimeSdkBalancesQuery(),
 		address.String(),
 	)
 	if queryErr != nil {
-		c.logger.Info("query failed",
-			"request_id", ctx.Value(common.RequestIDContextKey),
-			"err", queryErr.Error(),
-		)
 		return nil, apiCommon.ErrStorageError
 	}
-	defer paratimeRows.Close()
+	defer runtimeSdkRows.Close()
 
-	for paratimeRows.Next() {
-		b := apiTypes.RuntimeBalance{
+	for runtimeSdkRows.Next() {
+		b := RuntimeSdkBalance{
 			Runtime: "emerald",
 		}
 		var balanceNum pgtype.Numeric
-		if err := paratimeRows.Scan(
+		if err := runtimeSdkRows.Scan(
 			&balanceNum,
-			&b.TokenID,
 			&b.TokenSymbol,
+		); err != nil {
+			return nil, apiCommon.ErrStorageError
+		}
+		var err error
+		b.Balance, err = c.numericToBigInt(ctx, &balanceNum)
+		if err != nil {
+			return nil, apiCommon.ErrStorageError
+		}
+		*a.RuntimeSdkBalances = append(*a.RuntimeSdkBalances, b)
+	}
+
+	runtimeEvmRows, queryErr := c.db.Query(
+		ctx,
+		NewQueryFactory(cid, "emerald").AccountRuntimeEvmBalancesQuery(),
+		address.String(),
+	)
+	if queryErr != nil {
+		return nil, apiCommon.ErrStorageError
+	}
+	defer runtimeEvmRows.Close()
+
+	for runtimeEvmRows.Next() {
+		b := RuntimeEvmBalance{
+			Runtime: "emerald",
+		}
+		var balanceNum pgtype.Numeric
+		if err := runtimeEvmRows.Scan(
+			&balanceNum,
+			&b.TokenContractAddr,
+			&b.TokenSymbol,
+			&b.TokenName,
 			&b.TokenType,
 		); err != nil {
 			return nil, apiCommon.ErrStorageError
@@ -807,7 +834,7 @@ func (c *StorageClient) Account(ctx context.Context, address staking.Address) (*
 		if err != nil {
 			return nil, apiCommon.ErrStorageError
 		}
-		*a.RuntimeBalances = append(*a.RuntimeBalances, b)
+		*a.RuntimeEvmBalances = append(*a.RuntimeEvmBalances, b)
 	}
 
 	return &a, nil
