@@ -102,18 +102,21 @@ CREATE TABLE oasis_3.address_preimages
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- Module evm -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-CREATE TABLE oasis_3.emerald_token_balances
+CREATE TABLE oasis_3.evm_token_balances
 (
+  runtime runtime NOT NULL,
   token_address oasis_addr NOT NULL,
   account_address oasis_addr NOT NULL,
-  balance NUMERIC(1000,0) NOT NULL,  -- TODO: Use UINT_NUMERIC once we are processing Emerald from round 0.
-  PRIMARY KEY (token_address, account_address)
+  PRIMARY KEY (runtime, token_address, account_address),
+  balance NUMERIC(1000,0) NOT NULL  -- TODO: Use UINT_NUMERIC once we are processing Emerald from round 0.
 );
-CREATE INDEX ix_emerald_token_address ON oasis_3.emerald_token_balances (token_address) WHERE balance != 0;
+CREATE INDEX ix_emerald_token_address ON oasis_3.evm_token_balances (token_address) WHERE balance != 0;
 
-CREATE TABLE oasis_3.emerald_tokens
+CREATE TABLE oasis_3.evm_tokens
 (
-  token_address oasis_addr PRIMARY KEY,
+  runtime runtime NOT NULL,
+  token_address oasis_addr,
+  PRIMARY KEY (runtime, token_address),
   token_name TEXT,
   -- TODO: Add token type (ERC20, ERC721, etc.). See EvmTokenType enum
   symbol TEXT,

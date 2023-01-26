@@ -773,13 +773,9 @@ func (c *StorageClient) Account(ctx context.Context, address staking.Address) (*
 	}
 
 	// Get paratime balances.
-	//
-	// XXX: This method needs to return balances across all paratimes.
-	// For now, we manually query "each" runtime in turn (= just Emerald for now).
-	// TODO: Refactor emerald tables to contain all paratimes.
 	runtimeSdkRows, queryErr := c.db.Query(
 		ctx,
-		NewQueryFactory(cid, "emerald").AccountRuntimeSdkBalancesQuery(),
+		NewQueryFactory(cid, "(ignored)").AccountRuntimeSdkBalancesQuery(),
 		address.String(),
 	)
 	if queryErr != nil {
@@ -789,7 +785,6 @@ func (c *StorageClient) Account(ctx context.Context, address staking.Address) (*
 
 	for runtimeSdkRows.Next() {
 		b := RuntimeSdkBalance{
-			Runtime: "emerald",
 			// HACK: 18 is accurate for Emerald and Sapphire, but Cipher has 9.
 			// Once we add a non-18-decimals runtime, we'll need to query the runtime for this
 			// at analysis time and store it in a table, similar to how we store the EVM token metadata.
@@ -797,6 +792,7 @@ func (c *StorageClient) Account(ctx context.Context, address staking.Address) (*
 		}
 		var balanceNum pgtype.Numeric
 		if err := runtimeSdkRows.Scan(
+			&b.Runtime,
 			&balanceNum,
 			&b.TokenSymbol,
 		); err != nil {
@@ -812,7 +808,7 @@ func (c *StorageClient) Account(ctx context.Context, address staking.Address) (*
 
 	runtimeEvmRows, queryErr := c.db.Query(
 		ctx,
-		NewQueryFactory(cid, "emerald").AccountRuntimeEvmBalancesQuery(),
+		NewQueryFactory(cid, "(ignored)").AccountRuntimeEvmBalancesQuery(),
 		address.String(),
 	)
 	if queryErr != nil {
@@ -821,11 +817,10 @@ func (c *StorageClient) Account(ctx context.Context, address staking.Address) (*
 	defer runtimeEvmRows.Close()
 
 	for runtimeEvmRows.Next() {
-		b := RuntimeEvmBalance{
-			Runtime: "emerald",
-		}
+		b := RuntimeEvmBalance{}
 		var balanceNum pgtype.Numeric
 		if err := runtimeEvmRows.Scan(
+			&b.Runtime,
 			&balanceNum,
 			&b.TokenContractAddr,
 			&b.TokenSymbol,

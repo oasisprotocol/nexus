@@ -432,17 +432,17 @@ func (qf QueryFactory) AddressPreimageInsertQuery() string {
 
 func (qf QueryFactory) RuntimeEvmBalanceUpdateQuery() string {
 	return fmt.Sprintf(`
-		INSERT INTO %[1]s.%[2]s_token_balances (token_address, account_address, balance)
-			VALUES ($1, $2, $3)
-		ON CONFLICT (token_address, account_address) DO
-			UPDATE SET balance = %[1]s.%[2]s_token_balances.balance + $3`, qf.chainID, qf.runtime)
+		INSERT INTO %[1]s.evm_token_balances (runtime, token_address, account_address, balance)
+			VALUES ('%[2]s', $1, $2, $3)
+		ON CONFLICT (runtime, token_address, account_address) DO
+			UPDATE SET balance = %[1]s.evm_token_balances.balance + $3`, qf.chainID, qf.runtime)
 }
 
 func (qf QueryFactory) RuntimeTokenUpdateQuery() string {
 	return fmt.Sprintf(`
-		INSERT INTO %s.%s_tokens (token_address, token_name, symbol, decimals, total_supply)
-			VALUES ($1, $2, $3, $4, $5)
-		ON CONFLICT (token_address) DO
+		INSERT INTO %[1]s.evm_tokens (runtime, token_address, token_name, symbol, decimals, total_supply)
+			VALUES ('%[2]s', $1, $2, $3, $4, $5)
+		ON CONFLICT (runtime, token_address) DO
 			UPDATE SET
 				token_name = excluded.token_name,
 				symbol = excluded.symbol,

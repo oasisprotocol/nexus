@@ -376,7 +376,8 @@ func (qf QueryFactory) EvmTokensQuery() string {
 	return fmt.Sprintf(`
 		WITH holders AS (
 			SELECT token_address, COUNT(*) AS cnt
-			FROM %[1]s.%[2]s_token_balances
+			FROM %[1]s.evm_token_balances
+			WHERE (runtime = '%[2]s')
 			GROUP BY token_address
 		)
 		SELECT
@@ -388,9 +389,10 @@ func (qf QueryFactory) EvmTokensQuery() string {
 			tokens.total_supply,
 			'ERC20' AS type,  -- TODO: fetch from the table once available
 			holders.cnt AS num_holders
-		FROM %[1]s.%[2]s_tokens AS tokens
+		FROM %[1]s.evm_tokens AS tokens
 		JOIN %[1]s.address_preimages AS preimages ON (token_address = preimages.address)
 		JOIN holders USING (token_address)
+		WHERE (tokens.runtime = '%[2]s')
 		ORDER BY num_holders DESC
 		LIMIT $1::bigint
 		OFFSET $2::bigint`, qf.chainID, qf.runtime)
@@ -399,11 +401,11 @@ func (qf QueryFactory) EvmTokensQuery() string {
 func (qf QueryFactory) AccountRuntimeSdkBalancesQuery() string {
 	return fmt.Sprintf(`
 		SELECT
+			runtime AS runtime,
 			balance AS balance,
 			symbol AS token_symbol
 		FROM %[1]s.runtime_sdk_balances
 		WHERE account_address = $1::text
-			AND runtime = '%[2]s'::text
 			AND balance != 0
 		ORDER BY balance DESC
 		LIMIT 1000  -- To prevent huge responses. Hardcoded because API exposes this as a subfield that does not lend itself to pagination.
@@ -413,14 +415,15 @@ func (qf QueryFactory) AccountRuntimeSdkBalancesQuery() string {
 func (qf QueryFactory) AccountRuntimeEvmBalancesQuery() string {
 	return fmt.Sprintf(`
 		SELECT
-			%[1]s.%[2]s_token_balances.balance AS balance,
-			%[1]s.%[2]s_token_balances.token_address AS token_address,
-			%[1]s.%[2]s_tokens.symbol AS token_symbol,
-			%[1]s.%[2]s_tokens.symbol AS token_name,
+			balances.runtime AS runtime,
+			balances.balance AS balance,
+			balances.token_address AS token_address,
+			tokens.symbol AS token_symbol,
+			tokens.symbol AS token_name,
 			'ERC20' AS token_type,  -- TODO: fetch from the table once available
-			%[1]s.%[2]s_tokens.decimals AS token_decimals
-		FROM %[1]s.%[2]s_token_balances
-		JOIN %[1]s.%[2]s_tokens USING (token_address)
+			tokens.decimals AS token_decimals
+		FROM %[1]s.evm_token_balances AS balances
+		JOIN %[1]s.evm_tokens         AS tokens USING (runtime, token_address)
 		WHERE account_address = $1::text
 		  AND balance != 0
 		ORDER BY balance DESC
