@@ -363,14 +363,14 @@ func (qf QueryFactory) RuntimeBlockInsertQuery() string {
 
 func (qf QueryFactory) RuntimeTransactionSignerInsertQuery() string {
 	return fmt.Sprintf(`
-		INSERT INTO %s.%s_transaction_signers (round, tx_index, signer_index, signer_address, nonce)
-			VALUES ($1, $2, $3, $4, $5)`, qf.chainID, qf.runtime)
+		INSERT INTO %[1]s.runtime_transaction_signers (runtime, round, tx_index, signer_index, signer_address, nonce)
+			VALUES ('%[2]s', $1, $2, $3, $4, $5)`, qf.chainID, qf.runtime)
 }
 
 func (qf QueryFactory) RuntimeRelatedTransactionInsertQuery() string {
 	return fmt.Sprintf(`
-		INSERT INTO %s.%s_related_transactions (account_address, tx_round, tx_index)
-			VALUES ($1, $2, $3)`, qf.chainID, qf.runtime)
+		INSERT INTO %[1]s.runtime_related_transactions (runtime, account_address, tx_round, tx_index)
+			VALUES ('%[2]s', $1, $2, $3)`, qf.chainID, qf.runtime)
 }
 
 func (qf QueryFactory) RuntimeTransactionInsertQuery() string {

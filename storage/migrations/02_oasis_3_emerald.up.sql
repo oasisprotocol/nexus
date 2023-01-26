@@ -40,13 +40,14 @@ CREATE TABLE oasis_3.runtime_transactions
   raw         BYTEA NOT NULL,
   -- result_raw is cbor(CallResult).
   result_raw  BYTEA NOT NULL,
-  PRIMARY KEY (round, tx_index)
+  PRIMARY KEY (runtime, round, tx_index)
 );
 CREATE INDEX ix_runtime_transactions_tx_hash ON oasis_3.runtime_transactions USING hash (tx_hash);
 CREATE INDEX ix_runtime_transactions_tx_eth_hash ON oasis_3.runtime_transactions USING hash (tx_eth_hash);
 
-CREATE TABLE oasis_3.emerald_transaction_signers
+CREATE TABLE oasis_3.runtime_transaction_signers
 (
+  runtime        runtime NOT NULL,
   round          UINT63 NOT NULL,
   tx_index       UINT31 NOT NULL,
   -- Emerald processes mainly Ethereum-format transactions with only one
@@ -56,19 +57,20 @@ CREATE TABLE oasis_3.emerald_transaction_signers
   signer_index   UINT31 NOT NULL,
   signer_address oasis_addr NOT NULL,
   nonce          UINT31 NOT NULL,
-  PRIMARY KEY (round, tx_index, signer_index),
-  FOREIGN KEY (round, tx_index) REFERENCES oasis_3.runtime_transactions(round, tx_index) DEFERRABLE INITIALLY DEFERRED
+  PRIMARY KEY (runtime, round, tx_index, signer_index),
+  FOREIGN KEY (runtime, round, tx_index) REFERENCES oasis_3.runtime_transactions(runtime, round, tx_index) DEFERRABLE INITIALLY DEFERRED
 );
-CREATE INDEX ix_emerald_transaction_signers_signer_address_signer_nonce ON oasis_3.emerald_transaction_signers (signer_address, nonce);
+CREATE INDEX ix_runtime_transaction_signers_signer_address_signer_nonce ON oasis_3.runtime_transaction_signers (signer_address, nonce);
 
-CREATE TABLE oasis_3.emerald_related_transactions
+CREATE TABLE oasis_3.runtime_related_transactions
 (
+  runtime         runtime NOT NULL,
   account_address oasis_addr NOT NULL,
   tx_round        UINT63 NOT NULL,
   tx_index        UINT31 NOT NULL,
-  FOREIGN KEY (tx_round, tx_index) REFERENCES oasis_3.runtime_transactions(round, tx_index) DEFERRABLE INITIALLY DEFERRED
+  FOREIGN KEY (runtime, tx_round, tx_index) REFERENCES oasis_3.runtime_transactions(runtime, round, tx_index) DEFERRABLE INITIALLY DEFERRED
 );
-CREATE INDEX ix_emerald_related_transactions_address_height_index ON oasis_3.emerald_related_transactions (account_address, tx_round, tx_index);
+CREATE INDEX ix_runtime_related_transactions_address_height_index ON oasis_3.runtime_related_transactions (account_address, tx_round, tx_index);
 
 -- Oasis addresses are derived from a derivation "context" and a piece of
 -- data, such as an ed25519 public key or an Ethereum address. The derivation
