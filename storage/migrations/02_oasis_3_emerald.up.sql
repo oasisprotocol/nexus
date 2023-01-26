@@ -120,14 +120,15 @@ CREATE TABLE oasis_3.emerald_tokens
 );
 
 -- Core Module Data
-CREATE TABLE oasis_3.emerald_gas_used
+CREATE TABLE oasis_3.runtime_gas_used
 (
-  round  UINT63 NOT NULL REFERENCES oasis_3.runtime_blocks DEFERRABLE INITIALLY DEFERRED,
-  sender oasis_addr REFERENCES oasis_3.address_preimages,  -- TODO: add NOT NULL; but analyzer is only putting NULLs here for now because it doesn't have the data
-  amount UINT_NUMERIC NOT NULL
+  runtime runtime NOT NULL,
+  round   UINT63 NOT NULL REFERENCES oasis_3.runtime_blocks DEFERRABLE INITIALLY DEFERRED,
+  sender  oasis_addr REFERENCES oasis_3.address_preimages,  -- TODO: add NOT NULL; but analyzer is only putting NULLs here for now because it doesn't have the data
+  amount  UINT_NUMERIC NOT NULL
 );
 
-CREATE INDEX ix_emerald_gas_used_sender ON oasis_3.emerald_gas_used(sender);
+CREATE INDEX ix_runtime_gas_used_sender ON oasis_3.runtime_gas_used(sender);
 
 -- Accounts Module Data
 

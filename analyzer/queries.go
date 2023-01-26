@@ -419,8 +419,8 @@ func (qf QueryFactory) RuntimeNativeBalanceUpdateQuery() string {
 
 func (qf QueryFactory) RuntimeGasUsedInsertQuery() string {
 	return fmt.Sprintf(`
-		INSERT INTO %s.%s_gas_used (round, sender, amount)
-			VALUES ($1, $2, $3)`, qf.chainID, qf.runtime)
+		INSERT INTO %[1]s.runtime_gas_used (runtime, round, sender, amount)
+			VALUES ('%[2]s', $1, $2, $3)`, qf.chainID, qf.runtime)
 }
 
 func (qf QueryFactory) AddressPreimageInsertQuery() string {
