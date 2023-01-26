@@ -103,11 +103,17 @@ func TestIndexer(t *testing.T) {
 		t.Errorf("account funding failure: %v", err)
 	}
 
-	// Bob account does not exist
+	// Bob account "does not exist". Technically, every valid account exists, but it has no balance or activity.
 	var account storage.Account
 	err = tests.GetFrom(fmt.Sprintf("/consensus/accounts/%s", bobAddress), &account)
 	require.Nil(t, err)
-	require.Empty(t, account.Address)
+	require.Equal(t, account.Address, bobAddress.String())
+	require.Nil(t, account.AddressPreimage)
+	require.Zero(t, account.Nonce)
+	require.Zero(t, account.Available)
+	require.Zero(t, *account.DelegationsBalance)
+	require.Zero(t, *account.DebondingDelegationsBalance)
+	require.Zero(t, account.Escrow)
 
 	// Transfer to Bob account
 	if err := bw.TransferFunds(ctx, aliceAccount, bobAddress, 100000000); err != nil {
@@ -145,7 +151,7 @@ func TestIndexer(t *testing.T) {
 	require.Nil(t, err)
 	expectedDelegationsBalance := common.NewBigInt(25000000)
 	expectedAvailable := common.NewBigInt(75000000)
-	require.Equal(t, expectedDelegationsBalance, account.DelegationsBalance)
+	require.Equal(t, expectedDelegationsBalance, *account.DelegationsBalance)
 	require.Equal(t, expectedAvailable, account.Available)
 
 	// Alice account has correct escrow balance

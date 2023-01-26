@@ -730,6 +730,7 @@ func (c *StorageClient) Account(ctx context.Context, address staking.Address) (*
 		// but it's still valid, and it might have balances in the runtimes.
 		// Leave the consensus-specific info initialized to defaults.
 		a.Address = address.String()
+		a.AddressPreimage = nil
 	} else {
 		return nil, apiCommon.ErrStorageError
 	}
