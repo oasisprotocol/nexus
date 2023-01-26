@@ -46,8 +46,8 @@ func (qf QueryFactory) GenesisIndexingProgressQuery() string {
 
 func (qf QueryFactory) ConsensusBlockInsertQuery() string {
 	return fmt.Sprintf(`
-		INSERT INTO %s.blocks (height, block_hash, time, namespace, version, type, root_hash)
-			VALUES ($1, $2, $3, $4, $5, $6, $7)`, qf.chainID)
+		INSERT INTO %s.blocks (height, block_hash, time, num_txs, namespace, version, type, root_hash)
+			VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`, qf.chainID)
 }
 
 func (qf QueryFactory) ConsensusEpochInsertQuery() string {
@@ -411,10 +411,10 @@ func (qf QueryFactory) RuntimeWithdrawInsertQuery() string {
 
 func (qf QueryFactory) RuntimeNativeBalanceUpdateQuery() string {
 	return fmt.Sprintf(`
-		INSERT INTO %[1]s.runtime_native_balances (runtime, account_address, symbol, balance)
+		INSERT INTO %[1]s.runtime_sdk_balances (runtime, account_address, symbol, balance)
 		  VALUES ('%[2]s', $1, $2, $3)
 		ON CONFLICT (runtime, account_address, symbol) DO
-		UPDATE SET balance = %[1]s.runtime_native_balances.balance + $3`, qf.chainID, qf.runtime)
+		UPDATE SET balance = %[1]s.runtime_sdk_balances.balance + $3`, qf.chainID, qf.runtime)
 }
 
 func (qf QueryFactory) RuntimeGasUsedInsertQuery() string {

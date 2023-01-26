@@ -44,6 +44,14 @@ type AccountList = api.AccountList
 // Account is the storage response for GetAccount.
 type Account = api.Account
 
+// Types that are a part of the storage response for GetAccount.
+type (
+	AddressPreimage          = api.AddressPreimage
+	AddressDerivationContext = api.AddressDerivationContext
+	RuntimeSdkBalance        = api.RuntimeSdkBalance
+	RuntimeEvmBalance        = api.RuntimeEvmBalance
+)
+
 // DebondingDelegationList is the storage response for ListDebondingDelegations.
 type DebondingDelegationList = api.DebondingDelegationList
 
@@ -113,9 +121,9 @@ type RuntimeTransaction struct {
 	ResultRaw []byte
 }
 
-type RuntimeTokenList = api.RuntimeTokenList
+type EvmTokenList = api.EvmTokenList
 
-type RuntimeToken = api.RuntimeToken
+type EvmToken = api.EvmToken
 
 // TxVolumeList is the storage response for GetVolumes.
 type TxVolumeList = api.TxVolumeList

@@ -373,6 +373,7 @@ func (m *Main) queueBlockInserts(batch *storage.QueryBatch, data *storage.Consen
 		data.BlockHeader.Height,
 		data.BlockHeader.Hash.Hex(),
 		data.BlockHeader.Time.UTC(),
+		len(data.Transactions),
 		data.BlockHeader.StateRoot.Namespace.String(),
 		int64(data.BlockHeader.StateRoot.Version),
 		data.BlockHeader.StateRoot.Type.String(),

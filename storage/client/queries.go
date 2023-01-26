@@ -24,7 +24,7 @@ func (qf QueryFactory) StatusQuery() string {
 
 func (qf QueryFactory) BlocksQuery() string {
 	return fmt.Sprintf(`
-		SELECT height, block_hash, time
+		SELECT height, block_hash, time, num_txs
 			FROM %s.blocks
 			WHERE ($1::bigint IS NULL OR height >= $1::bigint) AND
 						($2::bigint IS NULL OR height <= $2::bigint) AND
@@ -37,7 +37,7 @@ func (qf QueryFactory) BlocksQuery() string {
 
 func (qf QueryFactory) BlockQuery() string {
 	return fmt.Sprintf(`
-		SELECT height, block_hash, time
+		SELECT height, block_hash, time, num_txs
 			FROM %s.blocks
 			WHERE height = $1::bigint`, qf.chainID)
 }
@@ -46,14 +46,17 @@ func (qf QueryFactory) TransactionsQuery() string {
 	return fmt.Sprintf(`
 		SELECT 
 				%[1]s.transactions.block as block,
+				%[1]s.transactions.tx_index as tx_index,
 				%[1]s.transactions.tx_hash as tx_hash,
 				%[1]s.transactions.sender as sender,
 				%[1]s.transactions.nonce as nonce,
 				%[1]s.transactions.fee_amount as fee_amount,
 				%[1]s.transactions.method as method,
 				%[1]s.transactions.body as body,
-				%[1]s.transactions.code as code
+				%[1]s.transactions.code as code,
+				%[1]s.blocks.time as time
 			FROM %[1]s.transactions
+			JOIN %[1]s.blocks ON %[1]s.transactions.block = %[1]s.blocks.height
 			LEFT JOIN %[1]s.accounts_related_transactions ON %[1]s.transactions.block = %[1]s.accounts_related_transactions.tx_block 
 				AND %[1]s.transactions.tx_index = %[1]s.accounts_related_transactions.tx_index
 				-- When related_address ($4) is NULL and hence we do no filtering on it, avoid the join altogether.
@@ -73,8 +76,9 @@ func (qf QueryFactory) TransactionsQuery() string {
 
 func (qf QueryFactory) TransactionQuery() string {
 	return fmt.Sprintf(`
-		SELECT block, tx_hash, sender, nonce, fee_amount, method, body, code
-			FROM %s.transactions
+		SELECT block, tx_index, tx_hash, sender, nonce, fee_amount, method, body, code, %[1]s.blocks.time
+			FROM %[1]s.transactions
+			JOIN %[1]s.blocks ON %[1]s.transactions.block = %[1]s.blocks.height
 			WHERE tx_hash = $1::text`, qf.chainID)
 }
 
@@ -146,23 +150,40 @@ func (qf QueryFactory) EntityNodeQuery() string {
 
 func (qf QueryFactory) AccountsQuery() string {
 	return fmt.Sprintf(`
-		SELECT address, nonce, general_balance, escrow_balance_active, escrow_balance_debonding
-			FROM %s.accounts
-			WHERE ($1::numeric IS NULL OR general_balance >= $1::numeric) AND
-						($2::numeric IS NULL OR general_balance <= $2::numeric) AND
-						($3::numeric IS NULL OR escrow_balance_active >= $3::numeric) AND
-						($4::numeric IS NULL OR escrow_balance_active <= $4::numeric) AND
-						($5::numeric IS NULL OR escrow_balance_debonding >= $5::numeric) AND
-						($6::numeric IS NULL OR escrow_balance_debonding <= $6::numeric) AND
-						($7::numeric IS NULL OR general_balance + escrow_balance_active + escrow_balance_debonding >= $7::numeric) AND
-						($8::numeric IS NULL OR general_balance + escrow_balance_active + escrow_balance_debonding <= $8::numeric)
+		SELECT
+			address, 
+			COALESCE(nonce, 0),
+			COALESCE(general_balance, 0),
+			COALESCE(escrow_balance_active, 0),
+			COALESCE(escrow_balance_debonding, 0),
+			preimage.context_identifier AS preimage_context,
+			preimage.context_version AS preimage_context_version,
+			preimage.address_data AS preimage_address_data
+		FROM %[1]s.accounts
+		FULL OUTER JOIN %[1]s.address_preimages AS preimage USING (address)
+		WHERE ($1::numeric IS NULL OR general_balance >= $1::numeric) AND
+					($2::numeric IS NULL OR general_balance <= $2::numeric) AND
+					($3::numeric IS NULL OR escrow_balance_active >= $3::numeric) AND
+					($4::numeric IS NULL OR escrow_balance_active <= $4::numeric) AND
+					($5::numeric IS NULL OR escrow_balance_debonding >= $5::numeric) AND
+					($6::numeric IS NULL OR escrow_balance_debonding <= $6::numeric) AND
+					($7::numeric IS NULL OR general_balance + escrow_balance_active + escrow_balance_debonding >= $7::numeric) AND
+					($8::numeric IS NULL OR general_balance + escrow_balance_active + escrow_balance_debonding <= $8::numeric)
 		LIMIT $9::bigint
 		OFFSET $10::bigint`, qf.chainID)
 }
 
 func (qf QueryFactory) AccountQuery() string {
 	return fmt.Sprintf(`
-		SELECT address, nonce, general_balance, escrow_balance_active, escrow_balance_debonding,
+		SELECT
+			address, 
+			COALESCE(nonce, 0),
+			COALESCE(general_balance, 0),
+			COALESCE(escrow_balance_active, 0),
+			COALESCE(escrow_balance_debonding, 0),
+			preimage.context_identifier AS preimage_context,
+			preimage.context_version AS preimage_context_version,
+			preimage.address_data AS preimage_address_data,
 			COALESCE (
 				(SELECT COALESCE(ROUND(SUM(shares * escrow_balance_active / escrow_total_shares_active)), 0) AS delegations_balance
 				FROM %[1]s.delegations
@@ -175,8 +196,9 @@ func (qf QueryFactory) AccountQuery() string {
 				JOIN %[1]s.accounts ON %[1]s.accounts.address = %[1]s.debonding_delegations.delegatee
 				WHERE delegator = $1::text AND escrow_total_shares_debonding != 0)
 			, 0) AS debonding_delegations_balance
-			FROM %[1]s.accounts
-			WHERE address = $1::text`, qf.chainID)
+		FROM %[1]s.accounts
+		FULL OUTER JOIN %[1]s.address_preimages AS preimage USING (address)
+		WHERE address = $1::text`, qf.chainID)
 }
 
 func (qf QueryFactory) AccountAllowancesQuery() string {
@@ -344,14 +366,60 @@ func (qf QueryFactory) RuntimeTransactionsQuery() string {
 		OFFSET $4::bigint`, qf.chainID, qf.runtime)
 }
 
-func (qf QueryFactory) RuntimeTokensQuery() string {
+func (qf QueryFactory) EvmTokensQuery() string {
 	return fmt.Sprintf(`
-		SELECT token_address, COUNT(*) AS num_holders
-			FROM %s.%s_token_balances
-		GROUP BY token_address
+		WITH holders AS (
+			SELECT token_address, COUNT(*) AS cnt
+			FROM %[1]s.%[2]s_token_balances
+			GROUP BY token_address
+		)
+		SELECT
+			tokens.token_address AS contract_addr,
+			encode(preimages.address_data, 'hex') as eth_contract_addr,
+			tokens.token_name AS name,
+			tokens.symbol,
+			tokens.decimals,
+			tokens.total_supply,
+			'ERC20' AS type,  -- TODO: fetch from the table once available
+			holders.cnt AS num_holders
+		FROM %[1]s.%[2]s_tokens AS tokens
+		JOIN %[1]s.address_preimages AS preimages ON (token_address = preimages.address)
+		JOIN holders USING (token_address)
 		ORDER BY num_holders DESC
 		LIMIT $1::bigint
 		OFFSET $2::bigint`, qf.chainID, qf.runtime)
+}
+
+func (qf QueryFactory) AccountRuntimeSdkBalancesQuery() string {
+	return fmt.Sprintf(`
+		SELECT
+			balance AS balance,
+			symbol AS token_symbol
+		FROM %[1]s.runtime_sdk_balances
+		WHERE account_address = $1::text
+			AND runtime = '%[2]s'::text
+			AND balance != 0
+		ORDER BY balance DESC
+		LIMIT 1000  -- To prevent huge responses. Hardcoded because API exposes this as a subfield that does not lend itself to pagination.
+	`, qf.chainID, qf.runtime)
+}
+
+func (qf QueryFactory) AccountRuntimeEvmBalancesQuery() string {
+	return fmt.Sprintf(`
+		SELECT
+			%[1]s.%[2]s_token_balances.balance AS balance,
+			%[1]s.%[2]s_token_balances.token_address AS token_address,
+			%[1]s.%[2]s_tokens.symbol AS token_symbol,
+			%[1]s.%[2]s_tokens.symbol AS token_name,
+			'ERC20' AS token_type,  -- TODO: fetch from the table once available
+			%[1]s.%[2]s_tokens.decimals AS token_decimals
+		FROM %[1]s.%[2]s_token_balances
+		JOIN %[1]s.%[2]s_tokens USING (token_address)
+		WHERE account_address = $1::text
+		  AND balance != 0
+		ORDER BY balance DESC
+		LIMIT 1000  -- To prevent huge responses. Hardcoded because API exposes this as a subfield that does not lend itself to pagination.
+	`, qf.chainID, qf.runtime)
 }
 
 func (qf QueryFactory) FineTxVolumesQuery() string {

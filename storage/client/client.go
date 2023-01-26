@@ -168,7 +168,7 @@ func (c *StorageClient) Blocks(ctx context.Context, r apiTypes.GetConsensusBlock
 	}
 	for rows.Next() {
 		var b Block
-		if err := rows.Scan(&b.Height, &b.Hash, &b.Timestamp); err != nil {
+		if err := rows.Scan(&b.Height, &b.Hash, &b.Timestamp, &b.NumTransactions); err != nil {
 			c.logger.Info("row scan failed",
 				"request_id", ctx.Value(common.RequestIDContextKey),
 				"err", err.Error(),
@@ -202,7 +202,7 @@ func (c *StorageClient) Block(ctx context.Context, height int64) (*Block, error)
 		ctx,
 		qf.BlockQuery(),
 		height,
-	).Scan(&b.Height, &b.Hash, &b.Timestamp); err != nil {
+	).Scan(&b.Height, &b.Hash, &b.Timestamp, &b.NumTransactions); err != nil {
 		c.logger.Info("row scan failed",
 			"request_id", ctx.Value(common.RequestIDContextKey),
 			"err", err.Error(),
@@ -259,6 +259,7 @@ func (c *StorageClient) Transactions(ctx context.Context, p apiTypes.GetConsensu
 		var feeNum pgtype.Numeric
 		if err := rows.Scan(
 			&t.Block,
+			&t.Index,
 			&t.Hash,
 			&t.Sender,
 			&t.Nonce,
@@ -266,6 +267,7 @@ func (c *StorageClient) Transactions(ctx context.Context, p apiTypes.GetConsensu
 			&t.Method,
 			&t.Body,
 			&code,
+			&t.Timestamp,
 		); err != nil {
 			c.logger.Info("row scan failed",
 				"request_id", ctx.Value(common.RequestIDContextKey),
@@ -311,6 +313,7 @@ func (c *StorageClient) Transaction(ctx context.Context, txHash string) (*Transa
 		txHash,
 	).Scan(
 		&t.Block,
+		&t.Index,
 		&t.Hash,
 		&t.Sender,
 		&t.Nonce,
@@ -318,6 +321,7 @@ func (c *StorageClient) Transaction(ctx context.Context, txHash string) (*Transa
 		&t.Method,
 		&t.Body,
 		&code,
+		&t.Timestamp,
 	); err != nil {
 		c.logger.Info("row scan failed",
 			"request_id", ctx.Value(common.RequestIDContextKey),
@@ -606,16 +610,20 @@ func (c *StorageClient) Accounts(ctx context.Context, r apiTypes.GetConsensusAcc
 		Accounts: []Account{},
 	}
 	for rows.Next() {
-		var a Account
+		a := Account{AddressPreimage: &AddressPreimage{}}
 		var availableNum pgtype.Numeric
 		var escrowNum pgtype.Numeric
 		var debondingNum pgtype.Numeric
+		var preimageContext *string
 		if err := rows.Scan(
 			&a.Address,
 			&a.Nonce,
 			&availableNum,
 			&escrowNum,
 			&debondingNum,
+			&preimageContext,
+			&a.AddressPreimage.ContextVersion,
+			&a.AddressPreimage.AddressData,
 		); err != nil {
 			c.logger.Info("row scan failed",
 				"request_id", ctx.Value(common.RequestIDContextKey),
@@ -636,6 +644,11 @@ func (c *StorageClient) Accounts(ctx context.Context, r apiTypes.GetConsensusAcc
 		if err != nil {
 			return nil, apiCommon.ErrStorageError
 		}
+		if preimageContext != nil {
+			a.AddressPreimage.Context = AddressDerivationContext(*preimageContext)
+		} else {
+			a.AddressPreimage = nil
+		}
 
 		as.Accounts = append(as.Accounts, a)
 	}
@@ -651,15 +664,24 @@ func (c *StorageClient) Account(ctx context.Context, address staking.Address) (*
 	}
 	qf := NewQueryFactory(cid, "" /* no runtime identifier for the consensus layer */)
 
+	// Get basic account info.
 	a := Account{
-		Allowances: []Allowance{},
+		// Initialize optional fields to empty values to avoid null pointer dereferences
+		// when filling them from the database.
+		Allowances:                  []Allowance{},
+		AddressPreimage:             &AddressPreimage{},
+		DelegationsBalance:          &common.BigInt{},
+		DebondingDelegationsBalance: &common.BigInt{},
+		RuntimeSdkBalances:          &[]RuntimeSdkBalance{},
+		RuntimeEvmBalances:          &[]RuntimeEvmBalance{},
 	}
 	var availableNum pgtype.Numeric
 	var escrowNum pgtype.Numeric
 	var debondingNum pgtype.Numeric
+	var preimageContext *string
 	var delegationsBalanceNum pgtype.Numeric
 	var debondingDelegationsBalanceNum pgtype.Numeric
-	if err := c.db.QueryRow(
+	err := c.db.QueryRow(
 		ctx,
 		qf.AccountQuery(),
 		address.String(),
@@ -669,37 +691,51 @@ func (c *StorageClient) Account(ctx context.Context, address staking.Address) (*
 		&availableNum,
 		&escrowNum,
 		&debondingNum,
+		&preimageContext,
+		&a.AddressPreimage.ContextVersion,
+		&a.AddressPreimage.AddressData,
 		&delegationsBalanceNum,
 		&debondingDelegationsBalanceNum,
-	); err != nil {
-		c.logger.Info("row scan failed",
-			"request_id", ctx.Value(common.RequestIDContextKey),
-			"err", err.Error(),
-		)
-		return nil, apiCommon.ErrStorageError
-	}
-	var err error
-	a.Available, err = c.numericToBigInt(ctx, &availableNum)
-	if err != nil {
-		return nil, apiCommon.ErrStorageError
-	}
-	a.Escrow, err = c.numericToBigInt(ctx, &escrowNum)
-	if err != nil {
-		return nil, apiCommon.ErrStorageError
-	}
-	a.Debonding, err = c.numericToBigInt(ctx, &debondingNum)
-	if err != nil {
-		return nil, apiCommon.ErrStorageError
-	}
-	a.DelegationsBalance, err = c.numericToBigInt(ctx, &delegationsBalanceNum)
-	if err != nil {
-		return nil, apiCommon.ErrStorageError
-	}
-	a.DebondingDelegationsBalance, err = c.numericToBigInt(ctx, &debondingDelegationsBalanceNum)
-	if err != nil {
+	)
+	if err == nil { //nolint:gocritic,nestif
+		// Convert numeric values to big.Int.
+		var err2 error
+		a.Available, err2 = c.numericToBigInt(ctx, &availableNum)
+		if err2 != nil {
+			return nil, apiCommon.ErrStorageError
+		}
+		a.Escrow, err2 = c.numericToBigInt(ctx, &escrowNum)
+		if err2 != nil {
+			return nil, apiCommon.ErrStorageError
+		}
+		a.Debonding, err2 = c.numericToBigInt(ctx, &debondingNum)
+		if err2 != nil {
+			return nil, apiCommon.ErrStorageError
+		}
+		*a.DelegationsBalance, err2 = c.numericToBigInt(ctx, &delegationsBalanceNum)
+		if err2 != nil {
+			return nil, apiCommon.ErrStorageError
+		}
+		*a.DebondingDelegationsBalance, err2 = c.numericToBigInt(ctx, &debondingDelegationsBalanceNum)
+		if err2 != nil {
+			return nil, apiCommon.ErrStorageError
+		}
+		if preimageContext != nil {
+			a.AddressPreimage.Context = AddressDerivationContext(*preimageContext)
+		} else {
+			a.AddressPreimage = nil
+		}
+	} else if err == pgx.ErrNoRows {
+		// An address can have no entries in the consensus `accounts` table (= no balance, nonce, etc)
+		// but it's still valid, and it might have balances in the runtimes.
+		// Leave the consensus-specific info initialized to defaults.
+		a.Address = address.String()
+		a.AddressPreimage = nil
+	} else {
 		return nil, apiCommon.ErrStorageError
 	}
 
+	// Get allowances.
 	allowanceRows, queryErr := c.db.Query(
 		ctx,
 		qf.AccountAllowancesQuery(),
@@ -734,6 +770,77 @@ func (c *StorageClient) Account(ctx context.Context, address staking.Address) (*
 		}
 
 		a.Allowances = append(a.Allowances, al)
+	}
+
+	// Get paratime balances.
+	//
+	// XXX: This method needs to return balances across all paratimes.
+	// For now, we manually query "each" runtime in turn (= just Emerald for now).
+	// TODO: Refactor emerald tables to contain all paratimes.
+	runtimeSdkRows, queryErr := c.db.Query(
+		ctx,
+		NewQueryFactory(cid, "emerald").AccountRuntimeSdkBalancesQuery(),
+		address.String(),
+	)
+	if queryErr != nil {
+		return nil, apiCommon.ErrStorageError
+	}
+	defer runtimeSdkRows.Close()
+
+	for runtimeSdkRows.Next() {
+		b := RuntimeSdkBalance{
+			Runtime: "emerald",
+			// HACK: 18 is accurate for Emerald and Sapphire, but Cipher has 9.
+			// Once we add a non-18-decimals runtime, we'll need to query the runtime for this
+			// at analysis time and store it in a table, similar to how we store the EVM token metadata.
+			TokenDecimals: 18,
+		}
+		var balanceNum pgtype.Numeric
+		if err := runtimeSdkRows.Scan(
+			&balanceNum,
+			&b.TokenSymbol,
+		); err != nil {
+			return nil, apiCommon.ErrStorageError
+		}
+		var err error
+		b.Balance, err = c.numericToBigInt(ctx, &balanceNum)
+		if err != nil {
+			return nil, apiCommon.ErrStorageError
+		}
+		*a.RuntimeSdkBalances = append(*a.RuntimeSdkBalances, b)
+	}
+
+	runtimeEvmRows, queryErr := c.db.Query(
+		ctx,
+		NewQueryFactory(cid, "emerald").AccountRuntimeEvmBalancesQuery(),
+		address.String(),
+	)
+	if queryErr != nil {
+		return nil, apiCommon.ErrStorageError
+	}
+	defer runtimeEvmRows.Close()
+
+	for runtimeEvmRows.Next() {
+		b := RuntimeEvmBalance{
+			Runtime: "emerald",
+		}
+		var balanceNum pgtype.Numeric
+		if err := runtimeEvmRows.Scan(
+			&balanceNum,
+			&b.TokenContractAddr,
+			&b.TokenSymbol,
+			&b.TokenName,
+			&b.TokenType,
+			&b.TokenDecimals,
+		); err != nil {
+			return nil, apiCommon.ErrStorageError
+		}
+		var err error
+		b.Balance, err = c.numericToBigInt(ctx, &balanceNum)
+		if err != nil {
+			return nil, apiCommon.ErrStorageError
+		}
+		*a.RuntimeEvmBalances = append(*a.RuntimeEvmBalances, b)
 	}
 
 	return &a, nil
@@ -1406,7 +1513,7 @@ func (c *StorageClient) RuntimeTransaction(ctx context.Context, txHash string) (
 	return &t, nil
 }
 
-func (c *StorageClient) RuntimeTokens(ctx context.Context, p apiTypes.GetEmeraldTokensParams) (*RuntimeTokenList, error) {
+func (c *StorageClient) RuntimeTokens(ctx context.Context, p apiTypes.GetEmeraldEvmTokensParams) (*EvmTokenList, error) {
 	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
 	if !ok {
 		return nil, apiCommon.ErrBadChainID
@@ -1419,7 +1526,7 @@ func (c *StorageClient) RuntimeTokens(ctx context.Context, p apiTypes.GetEmerald
 
 	rows, err := c.db.Query(
 		ctx,
-		qf.RuntimeTokensQuery(),
+		qf.EvmTokensQuery(),
 		p.Limit,
 		p.Offset,
 	)
@@ -1432,23 +1539,33 @@ func (c *StorageClient) RuntimeTokens(ctx context.Context, p apiTypes.GetEmerald
 	}
 	defer rows.Close()
 
-	ts := RuntimeTokenList{
-		Tokens: []RuntimeToken{},
+	ts := EvmTokenList{
+		EvmTokens: []EvmToken{},
 	}
 	for rows.Next() {
-		var t RuntimeToken
-		if err := rows.Scan(
+		var t EvmToken
+		var totalSupplyNum pgtype.Numeric
+		if err2 := rows.Scan(
 			&t.ContractAddr,
+			&t.EvmContractAddr,
+			&t.Name,
+			&t.Symbol,
+			&t.Decimals,
+			&totalSupplyNum,
+			&t.Type,
 			&t.NumHolders,
-		); err != nil {
-			c.logger.Info("row scan failed",
-				"request_id", ctx.Value(common.RequestIDContextKey),
-				"err", err.Error(),
-			)
+		); err2 != nil {
 			return nil, apiCommon.ErrStorageError
 		}
+		if totalSupplyNum.Status == pgtype.Present {
+			t.TotalSupply = &common.BigInt{}
+			*t.TotalSupply, err = c.numericToBigInt(ctx, &totalSupplyNum)
+			if err != nil {
+				return nil, apiCommon.ErrStorageError
+			}
+		}
 
-		ts.Tokens = append(ts.Tokens, t)
+		ts.EvmTokens = append(ts.EvmTokens, t)
 	}
 
 	return &ts, nil

@@ -98,7 +98,7 @@ CREATE TABLE oasis_3.emerald_token_balances
 (
   token_address oasis_addr NOT NULL,
   account_address oasis_addr NOT NULL,
-  balance NUMERIC(1000,0) NOT NULL,
+  balance NUMERIC(1000,0) NOT NULL,  -- TODO: Use UINT_NUMERIC once we are processing Emerald from round 0.
   PRIMARY KEY (token_address, account_address)
 );
 CREATE INDEX ix_emerald_token_address ON oasis_3.emerald_token_balances (token_address) WHERE balance != 0;
@@ -107,6 +107,7 @@ CREATE TABLE oasis_3.emerald_tokens
 (
   token_address oasis_addr PRIMARY KEY,
   token_name TEXT,
+  -- TODO: Add token type (ERC20, ERC721, etc.). See EvmTokenType enum
   symbol TEXT,
   decimals INT,
   total_supply uint_numeric
@@ -117,7 +118,7 @@ CREATE TABLE oasis_3.emerald_gas_used
 (
   round  UINT63 NOT NULL REFERENCES oasis_3.emerald_rounds DEFERRABLE INITIALLY DEFERRED,
   sender oasis_addr REFERENCES oasis_3.address_preimages,  -- TODO: add NOT NULL; but analyzer is only putting NULLs here for now because it doesn't have the data
-  amount NUMERIC NOT NULL
+  amount UINT_NUMERIC NOT NULL
 );
 
 CREATE INDEX ix_emerald_gas_used_sender ON oasis_3.emerald_gas_used(sender);
@@ -198,7 +199,7 @@ CREATE INDEX ix_emerald_withdraws_sender ON oasis_3.emerald_withdraws(sender);
 CREATE INDEX ix_emerald_withdraws_receiver ON oasis_3.emerald_withdraws(receiver);
 
 -- Balance of the oasis-sdk native tokens (notably ROSE) in paratimes.
-CREATE TABLE oasis_3.runtime_native_balances (
+CREATE TABLE oasis_3.runtime_sdk_balances (
   runtime TEXT,  -- 'emerald' | 'sapphire'
   account_address oasis_addr,
   symbol   TEXT NOT NULL,  -- called `Denomination` in the SDK

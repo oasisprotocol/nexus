@@ -788,20 +788,19 @@ paths:
                 $ref: '#/components/schemas/RuntimeTransaction'
         <<: *common_error_responses
 
-  /emerald/tokens:
+  /emerald/evm_tokens:
     get:
-      summary: Returns a list of ERC-20 tokens on Emerald.
+      summary: Returns a list of EVM (ERC-20, ...) tokens on Emerald.
       parameters:
         - *limit
         - *offset
       responses:
         '200':
-          description: |
-            A JSON object containing a list of ERC-20 tokens on Emerald.
+          description: The requested tokens.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RuntimeTokenList'
+                $ref: '#/components/schemas/EvmTokenList'
         <<: *common_error_responses
 
   /{layer}/stats/tx_volume:
@@ -1354,12 +1353,12 @@ components:
           description: Version of the `context`.
         address_data:
           type: string
-          format: hex
+          format: byte
           description: |
-            The hex-encoded data from which the oasis address was derived.
+            The base64-encoded data from which the oasis address was derived.
             When `context = "oasis-runtime-sdk/address: secp256k1eth"`, this
-            is the Ethereum address (without the leading `0x`). All-lowercase.
-          example: '9907a0cf64ec9fbf6ed8fd4971090de88222a9ac'
+            is the Ethereum address (in base64, not hex!).
+          example: 'INLp2Ih3YIdcA+zFNhM+SIGyFgKsYYc9SKQeKRKe2uI='
 
     RuntimeName:
       description: |
@@ -1370,31 +1369,55 @@ components:
         - emerald
       example: emerald
 
-    RuntimeBalance:
-      description: Balance of an account in a runtime.
+    RuntimeSdkBalance:
+      description: Balance of an account for a specific runtime and oasis-sdk token (e.g. ROSE).
       type: object
-      required: [amount, runtime, token_id, token_symbol]
+      required: [balance, runtime, token_symbol, token_decimals]
       properties:
-        amount:
+        balance:
           <<: *BigIntType
-          description: Number of base units held; as a string.
+          description: Number of tokens held, in base units.
         runtime:
           $ref: "#/components/schemas/RuntimeName"
-        # TODO:
-        # - How do we handle NFTs? Add another field?
-        # - We do not handle non-native tokens from the `accounts` SDK module. The plan is to use
-        #   their denomination name for both `token_id` and `token_symbol`, or update the SDK to have tickers.
-        token_id:
-          x-go-name: TokenID
-          type: string
-          description: Unique identifier for the token. For EVM tokens, this is their eth address.
         token_symbol:
           type: string
-          description: The token ticker symbol. Not guaranteed to be unique across distinct tokens.
+          description: The token ticker symbol. Unique across all oasis-sdk tokens in the same runtime.
+          example: ROSE
+        token_decimals:
+          type: integer
+          description: The number of decimals of precision for this token.
+          example: 18
+
+    RuntimeEvmBalance:
+      description: Balance of an account for a specific runtime and EVM token.
+      type: object
+      required: [balance, runtime, token_contract_addr, token_decimals]
+      properties:
+        balance:
+          <<: *BigIntType
+          description: Number of tokens held, in base units.
+        runtime:
+          $ref: "#/components/schemas/RuntimeName"
+        token_contract_addr:
+          type: string
+          description: The EVM address of this token's contract. Encoded as a lowercase hex string.
+          example: 'dc19a122e268128b5ee20366299fc7b5b199c8e3'
+        token_symbol:
+          type: string
+          description: The token ticker symbol. Not guaranteed to be unique across distinct EVM tokens.
+        token_name:
+          type: string
+          description: The name of the token. Not guaranteed to be unique across distinct EVM tokens.
+        token_type:
+          $ref: "#/components/schemas/EvmTokenType"
+        token_decimals:
+          type: integer
+          description: The number of decimals of precision for this token.
+          example: 18
 
     Account:
       type: object
-      required: [address, address_preimage, nonce, runtime_balances, available, escrow, debonding, delegations_balance, debonding_delegations_balance, allowances]
+      required: [address, nonce, available, escrow, debonding, allowances]
       properties:
         address:
           type: string
@@ -1407,12 +1430,22 @@ components:
           format: int64
           description: A nonce used to prevent replay.
           example: 0
-        # TODO: limit this to 1000 entries. If folks have more,
-        # we can eventually open up a separate, paginable endpoint just for balances.
-        runtime_balances:
+        runtime_sdk_balances:
+          description: |
+            The balances of this account in each runtime, as managed by oasis-sdk.
+            NOTE 1: This field is omitted for efficiency when listing multiple accounts.
+            NOTE 2: This field is limited to 1000 entries. If you need more, please let us know in a GitHub issue.
           type: array
           items:
-            $ref: '#/components/schemas/RuntimeBalance'
+            $ref: '#/components/schemas/RuntimeSdkBalance'
+        runtime_evm_balances:
+          description: |
+            The balances of this account in each runtime, as managed by EVM smart contracts (notably, ERC-20).
+            NOTE 1: This field is omitted for efficiency when listing multiple accounts.
+            NOTE 2: This field is limited to 1000 entries. If you need more, please let us know in a GitHub issue.
+          type: array
+          items:
+            $ref: '#/components/schemas/RuntimeEvmBalance'
         available:
           <<: *BigIntType
           description: The available balance, in base units.
@@ -1424,10 +1457,14 @@ components:
           description: The debonding escrow balance, in base units.
         delegations_balance:
           <<: *BigIntType
-          description: The delegations balance, in base units.
+          description: |
+            The delegations balance, in base units.
+            For efficiency, this field is omitted when listing multiple-accounts.
         debonding_delegations_balance:
           <<: *BigIntType
-          description: The debonding delegations balance, in base units.
+          description: |
+            The debonding delegations balance, in base units.
+            For efficiency, this field is omitted when listing multiple-accounts.
           example: 10000000000
         allowances:
           type: array
@@ -1504,7 +1541,7 @@ components:
         runtime_committee_protocol:
           type: string
       description: The target propotocol versions for this upgrade proposal.
-      
+
     Proposal:
       type: object
       # TODO: Revise required fields. Most fields are required for actual proposals, and only absent
@@ -1653,13 +1690,18 @@ components:
     RuntimeTransaction:
       type: object
       # NOTE: Not guaranteed to be present: eth_hash, to, amount.
-      required: [round, timestamp, hash, sender_0, nonce_0, fee, gas_limit, method, body, success]
+      required: [round, index, timestamp, hash, sender_0, nonce_0, fee, gas_limit, method, body, success]
       properties:
         round:
           type: integer
           format: int64
           description: The block round at which this transaction was executed.
           example: 3379702
+        index:
+          type: integer
+          format: int64
+          description: The 0-based index of this transaction in the block.
+          example: 0
         timestamp:
           type: string
           format: date-time
@@ -1741,26 +1783,33 @@ components:
         - ERC20
         - ERC721
         - ERC1155
+        - OasisSdk
+      description: |
+        The type of a EVM token.
 
-    RuntimeTokenList:
+    EvmTokenList:
       type: object
-      required: [tokens]
+      required: [evm_tokens]
       properties:
-        tokens:
+        evm_tokens:
           type: array
           items:
-            $ref: '#/components/schemas/RuntimeToken'
-      description: |
-        A list of ERC-20 tokens on a runtime.
+            $ref: '#/components/schemas/EvmToken'
+          description: A list of L2 EVM tokens (ERC-20, ERC-271, ...).
+      description: A list of tokens in a runtime.
 
-    RuntimeToken:
+    EvmToken:
       type: object
-      required: [contract_addr, num_holders, type]
+      required: [contract_addr, evm_contract_addr, num_holders, type]
       properties:
         contract_addr:
           type: string
           description: The Oasis address of this token's contract.
           example: 'oasis1qp2hssandc7dekjdr6ygmtzt783k3gn38uupdeys'
+        evm_contract_addr:
+          type: string
+          description: The EVM address of this token's contract. Encoded as a lowercase hex string.
+          example: 'dc19a122e268128b5ee20366299fc7b5b199c8e3'
         name:
           type: string
           description: Name of the token, as provided by token contract's `name()` method.
@@ -1768,7 +1817,7 @@ components:
         symbol:
           type: string
           description: Symbol of the token, as provided by token contract's `symbol()` method.
-          example: UNI
+          example: USDT
         decimals:
           type: integer
           description: |
@@ -1784,7 +1833,7 @@ components:
             ERC-1363 token might be labeled as ERC-20 here. If the type cannot be
             detected or is not supported, this field will be null/absent.
         total_supply:
-          type: string
+          <<: *BigIntType
           description: The total number of base units available.
         num_holders:
           type: integer

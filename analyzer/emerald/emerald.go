@@ -149,6 +149,7 @@ func (m *Main) Start() {
 
 	for m.cfg.Range.To == 0 || round <= m.cfg.Range.To {
 		backoff.Wait()
+		m.logger.Info("attempting block", "round", round)
 
 		if err := m.processRound(ctx, round); err != nil {
 			if err == analyzer.ErrOutOfRange {
@@ -166,9 +167,13 @@ func (m *Main) Start() {
 			continue
 		}
 
+		m.logger.Info("processed block", "round", round)
 		backoff.Success()
 		round++
 	}
+	m.logger.Info(
+		fmt.Sprintf("finished processing all blocks in the configured range [%d, %d]",
+			m.cfg.Range.From, m.cfg.Range.To))
 }
 
 // Name returns the name of the Main.
@@ -216,10 +221,6 @@ func (m *Main) prework() error {
 // from source storage and committing an atomically-executed batch of queries
 // to target storage.
 func (m *Main) processRound(ctx context.Context, round uint64) error {
-	m.logger.Info("processing round",
-		"round", round,
-	)
-
 	ctxWithTimeout, cancel := context.WithTimeout(ctx, ProcessRoundTimeout)
 	defer cancel()
 	group, groupCtx := errgroup.WithContext(ctxWithTimeout)
