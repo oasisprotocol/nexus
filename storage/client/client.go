@@ -790,6 +790,10 @@ func (c *StorageClient) Account(ctx context.Context, address staking.Address) (*
 	for runtimeSdkRows.Next() {
 		b := RuntimeSdkBalance{
 			Runtime: "emerald",
+			// HACK: 18 is accurate for Emerald and Sapphire, but Cipher has 9.
+			// Once we add a non-18-decimals runtime, we'll need to query the runtime for this
+			// at analysis time and store it in a table, similar to how we store the EVM token metadata.
+			TokenDecimals: 18,
 		}
 		var balanceNum pgtype.Numeric
 		if err := runtimeSdkRows.Scan(
@@ -827,6 +831,7 @@ func (c *StorageClient) Account(ctx context.Context, address staking.Address) (*
 			&b.TokenSymbol,
 			&b.TokenName,
 			&b.TokenType,
+			&b.TokenDecimals,
 		); err != nil {
 			return nil, apiCommon.ErrStorageError
 		}

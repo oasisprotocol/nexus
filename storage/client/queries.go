@@ -411,7 +411,8 @@ func (qf QueryFactory) AccountRuntimeEvmBalancesQuery() string {
 			%[1]s.%[2]s_token_balances.token_address AS token_address,
 			%[1]s.%[2]s_tokens.symbol AS token_symbol,
 			%[1]s.%[2]s_tokens.symbol AS token_name,
-			'ERC20' AS token_type  -- TODO: fetch from the table once available
+			'ERC20' AS token_type,  -- TODO: fetch from the table once available
+			%[1]s.%[2]s_tokens.decimals AS token_decimals
 		FROM %[1]s.%[2]s_token_balances
 		JOIN %[1]s.%[2]s_tokens USING (token_address)
 		WHERE account_address = $1::text

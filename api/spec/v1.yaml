@@ -1372,7 +1372,7 @@ components:
     RuntimeSdkBalance:
       description: Balance of an account for a specific runtime and oasis-sdk token (e.g. ROSE).
       type: object
-      required: [balance, runtime, token_symbol]
+      required: [balance, runtime, token_symbol, token_decimals]
       properties:
         balance:
           <<: *BigIntType
@@ -1383,11 +1383,15 @@ components:
           type: string
           description: The token ticker symbol. Unique across all oasis-sdk tokens in the same runtime.
           example: ROSE
+        token_decimals:
+          type: integer
+          description: The number of decimals of precision for this token.
+          example: 18
 
     RuntimeEvmBalance:
       description: Balance of an account for a specific runtime and EVM token.
       type: object
-      required: [balance, runtime, token_contract_addr]
+      required: [balance, runtime, token_contract_addr, token_decimals]
       properties:
         balance:
           <<: *BigIntType
@@ -1406,6 +1410,10 @@ components:
           description: The name of the token. Not guaranteed to be unique across distinct EVM tokens.
         token_type:
           $ref: "#/components/schemas/EvmTokenType"
+        token_decimals:
+          type: integer
+          description: The number of decimals of precision for this token.
+          example: 18
 
     Account:
       type: object
