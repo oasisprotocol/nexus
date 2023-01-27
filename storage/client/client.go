@@ -89,10 +89,6 @@ func (c *StorageClient) Status(ctx context.Context) (*Status, error) {
 		ctx,
 		qf.StatusQuery(),
 	).Scan(&s.LatestBlock, &s.LatestUpdate); err != nil {
-		c.logger.Info("row scan failed",
-			"request_id", ctx.Value(common.RequestIDContextKey),
-			"err", err.Error(),
-		)
 		return nil, apiCommon.ErrStorageError
 	}
 	// oasis-node control status returns time truncated to the second
@@ -121,10 +117,6 @@ func (c *StorageClient) Blocks(ctx context.Context, r apiTypes.GetConsensusBlock
 		r.Offset,
 	)
 	if err != nil {
-		c.logger.Info("query failed",
-			"request_id", ctx.Value(common.RequestIDContextKey),
-			"err", err.Error(),
-		)
 		return nil, apiCommon.ErrStorageError
 	}
 	defer rows.Close()
@@ -135,10 +127,6 @@ func (c *StorageClient) Blocks(ctx context.Context, r apiTypes.GetConsensusBlock
 	for rows.Next() {
 		var b Block
 		if err := rows.Scan(&b.Height, &b.Hash, &b.Timestamp, &b.NumTransactions); err != nil {
-			c.logger.Info("row scan failed",
-				"request_id", ctx.Value(common.RequestIDContextKey),
-				"err", err.Error(),
-			)
 			return nil, apiCommon.ErrStorageError
 		}
 		b.Timestamp = b.Timestamp.UTC()
@@ -169,10 +157,6 @@ func (c *StorageClient) Block(ctx context.Context, height int64) (*Block, error)
 		qf.BlockQuery(),
 		height,
 	).Scan(&b.Height, &b.Hash, &b.Timestamp, &b.NumTransactions); err != nil {
-		c.logger.Info("row scan failed",
-			"request_id", ctx.Value(common.RequestIDContextKey),
-			"err", err.Error(),
-		)
 		return nil, apiCommon.ErrStorageError
 	}
 	b.Timestamp = b.Timestamp.UTC()
@@ -208,10 +192,6 @@ func (c *StorageClient) Transactions(ctx context.Context, p apiTypes.GetConsensu
 		p.Offset,
 	)
 	if err != nil {
-		c.logger.Info("query failed",
-			"request_id", ctx.Value(common.RequestIDContextKey),
-			"err", err.Error(),
-		)
 		return nil, apiCommon.ErrStorageError
 	}
 	defer rows.Close()
@@ -234,10 +214,6 @@ func (c *StorageClient) Transactions(ctx context.Context, p apiTypes.GetConsensu
 			&code,
 			&t.Timestamp,
 		); err != nil {
-			c.logger.Info("row scan failed",
-				"request_id", ctx.Value(common.RequestIDContextKey),
-				"err", err.Error(),
-			)
 			return nil, apiCommon.ErrStorageError
 		}
 		if code == oasisErrors.CodeNoError {
@@ -282,10 +258,6 @@ func (c *StorageClient) Transaction(ctx context.Context, txHash string) (*Transa
 		&code,
 		&t.Timestamp,
 	); err != nil {
-		c.logger.Info("row scan failed",
-			"request_id", ctx.Value(common.RequestIDContextKey),
-			"err", err.Error(),
-		)
 		return nil, apiCommon.ErrStorageError
 	}
 	if code == oasisErrors.CodeNoError {
@@ -324,10 +296,6 @@ func (c *StorageClient) Events(ctx context.Context, p apiTypes.GetConsensusEvent
 	)
 
 	if err != nil {
-		c.logger.Info("query failed",
-			"request_id", ctx.Value(common.RequestIDContextKey),
-			"err", err.Error(),
-		)
 		return nil, apiCommon.ErrStorageError
 	}
 	defer rows.Close()
@@ -339,9 +307,6 @@ func (c *StorageClient) Events(ctx context.Context, p apiTypes.GetConsensusEvent
 	for rows.Next() {
 		var e Event
 		if err := rows.Scan(&e.Block, &e.TxIndex, &e.TxHash, &e.Type, &e.Body); err != nil {
-			c.logger.Info("query failed",
-				"err", err.Error(),
-			)
 			return nil, apiCommon.ErrStorageError
 		}
 		es.Events = append(es.Events, e)
@@ -365,10 +330,6 @@ func (c *StorageClient) Entities(ctx context.Context, p apiTypes.GetConsensusEnt
 		p.Offset,
 	)
 	if err != nil {
-		c.logger.Info("query failed",
-			"request_id", ctx.Value(common.RequestIDContextKey),
-			"err", err.Error(),
-		)
 		return nil, apiCommon.ErrStorageError
 	}
 	defer rows.Close()
@@ -379,9 +340,6 @@ func (c *StorageClient) Entities(ctx context.Context, p apiTypes.GetConsensusEnt
 	for rows.Next() {
 		var e Entity
 		if err := rows.Scan(&e.ID, &e.Address); err != nil {
-			c.logger.Info("query failed",
-				"err", err.Error(),
-			)
 			return nil, apiCommon.ErrStorageError
 		}
 
@@ -405,10 +363,6 @@ func (c *StorageClient) Entity(ctx context.Context, entityID signature.PublicKey
 		qf.EntityQuery(),
 		entityID.String(),
 	).Scan(&e.ID, &e.Address); err != nil {
-		c.logger.Info("row scan failed",
-			"request_id", ctx.Value(common.RequestIDContextKey),
-			"err", err.Error(),
-		)
 		return nil, apiCommon.ErrStorageError
 	}
 
@@ -418,10 +372,6 @@ func (c *StorageClient) Entity(ctx context.Context, entityID signature.PublicKey
 		entityID.String(),
 	)
 	if err != nil {
-		c.logger.Info("query failed",
-			"request_id", ctx.Value(common.RequestIDContextKey),
-			"err", err.Error(),
-		)
 		return nil, apiCommon.ErrStorageError
 	}
 	defer nodeRows.Close()
@@ -429,10 +379,6 @@ func (c *StorageClient) Entity(ctx context.Context, entityID signature.PublicKey
 	for nodeRows.Next() {
 		var nid string
 		if err := nodeRows.Scan(&nid); err != nil {
-			c.logger.Info("row scan failed",
-				"request_id", ctx.Value(common.RequestIDContextKey),
-				"err", err.Error(),
-			)
 			return nil, apiCommon.ErrStorageError
 		}
 
@@ -458,10 +404,6 @@ func (c *StorageClient) EntityNodes(ctx context.Context, entityID signature.Publ
 		r.Offset,
 	)
 	if err != nil {
-		c.logger.Info("query failed",
-			"request_id", ctx.Value(common.RequestIDContextKey),
-			"err", err.Error(),
-		)
 		return nil, apiCommon.ErrStorageError
 	}
 	defer rows.Close()
@@ -481,10 +423,6 @@ func (c *StorageClient) EntityNodes(ctx context.Context, entityID signature.Publ
 			&n.ConsensusPubkey,
 			&n.Roles,
 		); err != nil {
-			c.logger.Info("row scan failed",
-				"request_id", ctx.Value(common.RequestIDContextKey),
-				"err", err.Error(),
-			)
 			return nil, apiCommon.ErrStorageError
 		}
 
@@ -519,10 +457,6 @@ func (c *StorageClient) EntityNode(ctx context.Context, entityID signature.Publi
 		&n.ConsensusPubkey,
 		&n.Roles,
 	); err != nil {
-		c.logger.Info("row scan failed",
-			"request_id", ctx.Value(common.RequestIDContextKey),
-			"err", err.Error(),
-		)
 		return nil, apiCommon.ErrStorageError
 	}
 
@@ -552,10 +486,6 @@ func (c *StorageClient) Accounts(ctx context.Context, r apiTypes.GetConsensusAcc
 		r.Offset,
 	)
 	if err != nil {
-		c.logger.Info("query failed",
-			"request_id", ctx.Value(common.RequestIDContextKey),
-			"err", err.Error(),
-		)
 		return nil, apiCommon.ErrStorageError
 	}
 	defer rows.Close()
@@ -576,10 +506,6 @@ func (c *StorageClient) Accounts(ctx context.Context, r apiTypes.GetConsensusAcc
 			&a.AddressPreimage.ContextVersion,
 			&a.AddressPreimage.AddressData,
 		); err != nil {
-			c.logger.Info("row scan failed",
-				"request_id", ctx.Value(common.RequestIDContextKey),
-				"err", err.Error(),
-			)
 			return nil, apiCommon.ErrStorageError
 		}
 		if preimageContext != nil {
@@ -665,10 +591,6 @@ func (c *StorageClient) Account(ctx context.Context, address staking.Address) (*
 		address.String(),
 	)
 	if queryErr != nil {
-		c.logger.Info("query failed",
-			"request_id", ctx.Value(common.RequestIDContextKey),
-			"err", queryErr.Error(),
-		)
 		return nil, apiCommon.ErrStorageError
 	}
 	defer allowanceRows.Close()
@@ -679,10 +601,6 @@ func (c *StorageClient) Account(ctx context.Context, address staking.Address) (*
 			&al.Address,
 			&al.Amount,
 		); err2 != nil {
-			c.logger.Info("row scan failed",
-				"request_id", ctx.Value(common.RequestIDContextKey),
-				"err", err.Error(),
-			)
 			return nil, apiCommon.ErrStorageError
 		}
 
@@ -762,10 +680,6 @@ func (c *StorageClient) Delegations(ctx context.Context, address staking.Address
 		p.Offset,
 	)
 	if err != nil {
-		c.logger.Info("query failed",
-			"request_id", ctx.Value(common.RequestIDContextKey),
-			"err", err.Error(),
-		)
 		return nil, apiCommon.ErrStorageError
 	}
 	defer rows.Close()
@@ -782,10 +696,6 @@ func (c *StorageClient) Delegations(ctx context.Context, address staking.Address
 			&escrowBalanceActive,
 			&escrowTotalSharesActive,
 		); err != nil {
-			c.logger.Info("row scan failed",
-				"request_id", ctx.Value(common.RequestIDContextKey),
-				"err", err.Error(),
-			)
 			return nil, apiCommon.ErrStorageError
 		}
 		amount := new(big.Int).Mul(&shares.Int, &escrowBalanceActive.Int)
@@ -815,10 +725,6 @@ func (c *StorageClient) DebondingDelegations(ctx context.Context, address stakin
 		p.Offset,
 	)
 	if err != nil {
-		c.logger.Info("query failed",
-			"request_id", ctx.Value(common.RequestIDContextKey),
-			"err", err.Error(),
-		)
 		return nil, apiCommon.ErrStorageError
 	}
 	defer rows.Close()
@@ -836,10 +742,6 @@ func (c *StorageClient) DebondingDelegations(ctx context.Context, address stakin
 			&escrowBalanceDebonding,
 			&escrowTotalSharesDebonding,
 		); err != nil {
-			c.logger.Info("row scan failed",
-				"request_id", ctx.Value(common.RequestIDContextKey),
-				"err", err.Error(),
-			)
 			return nil, apiCommon.ErrStorageError
 		}
 
@@ -869,10 +771,6 @@ func (c *StorageClient) Epochs(ctx context.Context, p apiTypes.GetConsensusEpoch
 		p.Offset,
 	)
 	if err != nil {
-		c.logger.Info("query failed",
-			"request_id", ctx.Value(common.RequestIDContextKey),
-			"err", err.Error(),
-		)
 		return nil, apiCommon.ErrStorageError
 	}
 
@@ -882,10 +780,6 @@ func (c *StorageClient) Epochs(ctx context.Context, p apiTypes.GetConsensusEpoch
 	for rows.Next() {
 		var e Epoch
 		if err := rows.Scan(&e.ID, &e.StartHeight, &e.EndHeight); err != nil {
-			c.logger.Info("row scan failed",
-				"request_id", ctx.Value(common.RequestIDContextKey),
-				"err", err.Error(),
-			)
 			return nil, apiCommon.ErrStorageError
 		}
 
@@ -909,10 +803,6 @@ func (c *StorageClient) Epoch(ctx context.Context, epoch int64) (*Epoch, error) 
 		qf.EpochQuery(),
 		epoch,
 	).Scan(&e.ID, &e.StartHeight, &e.EndHeight); err != nil {
-		c.logger.Info("row scan failed",
-			"request_id", ctx.Value(common.RequestIDContextKey),
-			"err", err.Error(),
-		)
 		return nil, apiCommon.ErrStorageError
 	}
 
@@ -936,10 +826,6 @@ func (c *StorageClient) Proposals(ctx context.Context, p apiTypes.GetConsensusPr
 		p.Offset,
 	)
 	if err != nil {
-		c.logger.Info("query failed",
-			"request_id", ctx.Value(common.RequestIDContextKey),
-			"err", err.Error(),
-		)
 		return nil, apiCommon.ErrStorageError
 	}
 	defer rows.Close()
@@ -965,10 +851,6 @@ func (c *StorageClient) Proposals(ctx context.Context, p apiTypes.GetConsensusPr
 			&p.ClosesAt,
 			&invalidVotesNum,
 		); err != nil {
-			c.logger.Info("row scan failed",
-				"request_id", ctx.Value(common.RequestIDContextKey),
-				"err", err.Error(),
-			)
 			return nil, apiCommon.ErrStorageError
 		}
 
@@ -1006,10 +888,6 @@ func (c *StorageClient) Proposal(ctx context.Context, proposalID uint64) (*Propo
 		&p.ClosesAt,
 		&p.InvalidVotes,
 	); err != nil {
-		c.logger.Info("row scan failed",
-			"request_id", ctx.Value(common.RequestIDContextKey),
-			"err", err.Error(),
-		)
 		return nil, apiCommon.ErrStorageError
 	}
 
@@ -1032,10 +910,6 @@ func (c *StorageClient) ProposalVotes(ctx context.Context, proposalID uint64, p 
 		p.Offset,
 	)
 	if err != nil {
-		c.logger.Info("query failed",
-			"request_id", ctx.Value(common.RequestIDContextKey),
-			"err", err.Error(),
-		)
 		return nil, apiCommon.ErrStorageError
 	}
 	defer rows.Close()
@@ -1049,10 +923,6 @@ func (c *StorageClient) ProposalVotes(ctx context.Context, proposalID uint64, p 
 			&v.Address,
 			&v.Vote,
 		); err != nil {
-			c.logger.Info("row scan failed",
-				"request_id", ctx.Value(common.RequestIDContextKey),
-				"err", err.Error(),
-			)
 			return nil, apiCommon.ErrStorageError
 		}
 
@@ -1076,10 +946,6 @@ func (c *StorageClient) Validators(ctx context.Context, p apiTypes.GetConsensusV
 		ctx,
 		qf.ValidatorsQuery(),
 	).Scan(&epoch.ID, &epoch.StartHeight); err != nil {
-		c.logger.Info("row scan failed",
-			"request_id", ctx.Value(common.RequestIDContextKey),
-			"err", err.Error(),
-		)
 		return nil, apiCommon.ErrStorageError
 	}
 
@@ -1090,10 +956,6 @@ func (c *StorageClient) Validators(ctx context.Context, p apiTypes.GetConsensusV
 		p.Offset,
 	)
 	if err != nil {
-		c.logger.Info("query failed",
-			"request_id", ctx.Value(common.RequestIDContextKey),
-			"err", err.Error(),
-		)
 		return nil, apiCommon.ErrStorageError
 	}
 	defer rows.Close()
@@ -1114,9 +976,6 @@ func (c *StorageClient) Validators(ctx context.Context, p apiTypes.GetConsensusV
 			&v.Status,
 			&v.Media,
 		); err != nil {
-			c.logger.Info("query failed",
-				"err", err.Error(),
-			)
 			return nil, apiCommon.ErrStorageError
 		}
 
@@ -1156,10 +1015,6 @@ func (c *StorageClient) Validator(ctx context.Context, entityID signature.Public
 		ctx,
 		qf.ValidatorQuery(),
 	).Scan(&epoch.ID, &epoch.StartHeight); err != nil {
-		c.logger.Info("row scan failed",
-			"request_id", ctx.Value(common.RequestIDContextKey),
-			"err", err.Error(),
-		)
 		return nil, apiCommon.ErrStorageError
 	}
 
@@ -1181,9 +1036,6 @@ func (c *StorageClient) Validator(ctx context.Context, entityID signature.Public
 		&v.Status,
 		&v.Media,
 	); err != nil {
-		c.logger.Info("query failed",
-			"err", err.Error(),
-		)
 		return nil, apiCommon.ErrStorageError
 	}
 
@@ -1230,10 +1082,6 @@ func (c *StorageClient) RuntimeBlocks(ctx context.Context, p apiTypes.GetEmerald
 		p.Offset,
 	)
 	if err != nil {
-		c.logger.Info("query failed",
-			"request_id", ctx.Value(common.RequestIDContextKey),
-			"err", err.Error(),
-		)
 		return nil, apiCommon.ErrStorageError
 	}
 	defer rows.Close()
@@ -1244,10 +1092,6 @@ func (c *StorageClient) RuntimeBlocks(ctx context.Context, p apiTypes.GetEmerald
 	for rows.Next() {
 		var b RuntimeBlock
 		if err := rows.Scan(&b.Round, &b.Hash, &b.Timestamp, &b.NumTransactions, &b.Size, &b.GasUsed); err != nil {
-			c.logger.Info("row scan failed",
-				"request_id", ctx.Value(common.RequestIDContextKey),
-				"err", err.Error(),
-			)
 			return nil, apiCommon.ErrStorageError
 		}
 		b.Timestamp = b.Timestamp.UTC()
@@ -1279,10 +1123,6 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetE
 		p.Offset,
 	)
 	if err != nil {
-		c.logger.Info("query failed",
-			"request_id", ctx.Value(common.RequestIDContextKey),
-			"err", err.Error(),
-		)
 		return nil, apiCommon.ErrStorageError
 	}
 	defer rows.Close()
@@ -1300,10 +1140,6 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetE
 			&t.Raw,
 			&t.ResultRaw,
 		); err != nil {
-			c.logger.Info("row scan failed",
-				"request_id", ctx.Value(common.RequestIDContextKey),
-				"err", err.Error(),
-			)
 			return nil, apiCommon.ErrStorageError
 		}
 
@@ -1342,10 +1178,6 @@ func (c *StorageClient) RuntimeTransaction(ctx context.Context, txHash string) (
 		&t.ResultRaw,
 	)
 	if err != nil {
-		c.logger.Info("query failed",
-			"request_id", ctx.Value(common.RequestIDContextKey),
-			"err", err.Error(),
-		)
 		return nil, apiCommon.ErrStorageError
 	}
 
@@ -1370,10 +1202,6 @@ func (c *StorageClient) RuntimeTokens(ctx context.Context, p apiTypes.GetEmerald
 		p.Offset,
 	)
 	if err != nil {
-		c.logger.Info("query failed",
-			"request_id", ctx.Value(common.RequestIDContextKey),
-			"err", err.Error(),
-		)
 		return nil, apiCommon.ErrStorageError
 	}
 	defer rows.Close()
@@ -1430,10 +1258,6 @@ func (c *StorageClient) TxVolumes(ctx context.Context, layer apiTypes.Layer, p a
 		p.Offset,
 	)
 	if err != nil {
-		c.logger.Info("query failed",
-			"request_id", ctx.Value(common.RequestIDContextKey),
-			"err", err.Error(),
-		)
 		return nil, apiCommon.ErrStorageError
 	}
 	defer rows.Close()
@@ -1451,9 +1275,6 @@ func (c *StorageClient) TxVolumes(ctx context.Context, layer apiTypes.Layer, p a
 			&d.BucketStart,
 			&d.TxVolume,
 		); err != nil {
-			c.logger.Info("query failed",
-				"err", err.Error(),
-			)
 			return nil, apiCommon.ErrStorageError
 		}
 
