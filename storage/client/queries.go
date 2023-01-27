@@ -419,7 +419,9 @@ func (qf QueryFactory) EvmTokensQuery() string {
 			tokens.symbol,
 			tokens.decimals,
 			tokens.total_supply,
-			'ERC20' AS type,  -- TODO: fetch from the table once available
+			CASE
+				WHEN tokens.token_type = 20 THEN 'ERC20'
+			END AS type,
 			holders.cnt AS num_holders
 		FROM %[1]s.evm_tokens AS tokens
 		JOIN %[1]s.address_preimages AS preimages ON (token_address = preimages.address)
