@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/dgraph-io/ristretto"
-	"github.com/iancoleman/strcase"
 	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v4"
 	oasisErrors "github.com/oasisprotocol/oasis-core/go/common/errors"
@@ -88,14 +87,12 @@ func wrapError(err error) error {
 
 // Status returns status information for the Oasis Indexer.
 func (c *StorageClient) Status(ctx context.Context) (*Status, error) {
-	qf := NewQueryFactory(strcase.ToSnake(c.chainID), "" /* no runtime identifier for the consensus layer */)
-
 	s := Status{
 		LatestChainID: c.chainID,
 	}
 	if err := c.db.QueryRow(
 		ctx,
-		qf.StatusQuery(),
+		QueryFactoryFromCtx(ctx).StatusQuery(),
 	).Scan(&s.LatestBlock, &s.LatestUpdate); err != nil {
 		return nil, wrapError(err)
 	}
@@ -108,15 +105,9 @@ func (c *StorageClient) Status(ctx context.Context) (*Status, error) {
 
 // Blocks returns a list of consensus blocks.
 func (c *StorageClient) Blocks(ctx context.Context, r apiTypes.GetConsensusBlocksParams) (*BlockList, error) {
-	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
-	if !ok {
-		return nil, apiCommon.ErrBadChainID
-	}
-	qf := NewQueryFactory(cid, "" /* no runtime identifier for the consensus layer */)
-
 	rows, err := c.db.Query(
 		ctx,
-		qf.BlocksQuery(),
+		QueryFactoryFromCtx(ctx).BlocksQuery(),
 		r.From,
 		r.To,
 		r.After,
@@ -153,16 +144,10 @@ func (c *StorageClient) Block(ctx context.Context, height int64) (*Block, error)
 		return untypedBlock.(*Block), nil
 	}
 
-	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
-	if !ok {
-		return nil, apiCommon.ErrBadChainID
-	}
-	qf := NewQueryFactory(cid, "" /* no runtime identifier for the consensus layer */)
-
 	var b Block
 	if err := c.db.QueryRow(
 		ctx,
-		qf.BlockQuery(),
+		QueryFactoryFromCtx(ctx).BlockQuery(),
 		height,
 	).Scan(&b.Height, &b.Hash, &b.Timestamp, &b.NumTransactions); err != nil {
 		return nil, wrapError(err)
@@ -180,15 +165,9 @@ func (c *StorageClient) cacheBlock(blk *Block) {
 
 // Transactions returns a list of consensus transactions.
 func (c *StorageClient) Transactions(ctx context.Context, p apiTypes.GetConsensusTransactionsParams) (*TransactionList, error) {
-	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
-	if !ok {
-		return nil, apiCommon.ErrBadChainID
-	}
-	qf := NewQueryFactory(cid, "" /* no runtime identifier for the consensus layer */)
-
 	rows, err := c.db.Query(
 		ctx,
-		qf.TransactionsQuery(),
+		QueryFactoryFromCtx(ctx).TransactionsQuery(),
 		p.Block,
 		p.Method,
 		p.Sender,
@@ -242,17 +221,11 @@ func (c *StorageClient) Transaction(ctx context.Context, txHash string) (*Transa
 		return untypedTx.(*Transaction), nil
 	}
 
-	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
-	if !ok {
-		return nil, apiCommon.ErrBadChainID
-	}
-	qf := NewQueryFactory(cid, "" /* no runtime identifier for the consensus layer */)
-
 	var t Transaction
 	var code uint64
 	if err := c.db.QueryRow(
 		ctx,
-		qf.TransactionQuery(),
+		QueryFactoryFromCtx(ctx).TransactionQuery(),
 		txHash,
 	).Scan(
 		&t.Block,
@@ -283,17 +256,11 @@ func (c *StorageClient) cacheTx(tx *Transaction) {
 
 // Events returns a list of events.
 func (c *StorageClient) Events(ctx context.Context, p apiTypes.GetConsensusEventsParams) (*EventList, error) {
-	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
-	if !ok {
-		return nil, apiCommon.ErrBadChainID
-	}
-	qf := NewQueryFactory(cid, "" /* no runtime identifier for the consensus layer */)
-
 	var rows pgx.Rows
 	var err error
 	rows, err = c.db.Query(
 		ctx,
-		qf.EventsQuery(),
+		QueryFactoryFromCtx(ctx).EventsQuery(),
 		p.Block,
 		p.TxIndex,
 		p.TxHash,
@@ -325,15 +292,9 @@ func (c *StorageClient) Events(ctx context.Context, p apiTypes.GetConsensusEvent
 
 // Entities returns a list of registered entities.
 func (c *StorageClient) Entities(ctx context.Context, p apiTypes.GetConsensusEntitiesParams) (*EntityList, error) {
-	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
-	if !ok {
-		return nil, apiCommon.ErrBadChainID
-	}
-	qf := NewQueryFactory(cid, "" /* no runtime identifier for the consensus layer */)
-
 	rows, err := c.db.Query(
 		ctx,
-		qf.EntitiesQuery(),
+		QueryFactoryFromCtx(ctx).EntitiesQuery(),
 		p.Limit,
 		p.Offset,
 	)
@@ -359,16 +320,10 @@ func (c *StorageClient) Entities(ctx context.Context, p apiTypes.GetConsensusEnt
 
 // Entity returns a registered entity.
 func (c *StorageClient) Entity(ctx context.Context, entityID signature.PublicKey) (*Entity, error) {
-	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
-	if !ok {
-		return nil, apiCommon.ErrBadChainID
-	}
-	qf := NewQueryFactory(cid, "" /* no runtime identifier for the consensus layer */)
-
 	var e Entity
 	if err := c.db.QueryRow(
 		ctx,
-		qf.EntityQuery(),
+		QueryFactoryFromCtx(ctx).EntityQuery(),
 		entityID.String(),
 	).Scan(&e.ID, &e.Address); err != nil {
 		return nil, wrapError(err)
@@ -376,7 +331,7 @@ func (c *StorageClient) Entity(ctx context.Context, entityID signature.PublicKey
 
 	nodeRows, err := c.db.Query(
 		ctx,
-		qf.EntityNodeIdsQuery(),
+		QueryFactoryFromCtx(ctx).EntityNodeIdsQuery(),
 		entityID.String(),
 	)
 	if err != nil {
@@ -398,15 +353,9 @@ func (c *StorageClient) Entity(ctx context.Context, entityID signature.PublicKey
 
 // EntityNodes returns a list of nodes controlled by the provided entity.
 func (c *StorageClient) EntityNodes(ctx context.Context, entityID signature.PublicKey, r apiTypes.GetConsensusEntitiesEntityIdNodesParams) (*NodeList, error) {
-	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
-	if !ok {
-		return nil, apiCommon.ErrBadChainID
-	}
-	qf := NewQueryFactory(cid, "" /* no runtime identifier for the consensus layer */)
-
 	rows, err := c.db.Query(
 		ctx,
-		qf.EntityNodesQuery(),
+		QueryFactoryFromCtx(ctx).EntityNodesQuery(),
 		entityID.String(),
 		r.Limit,
 		r.Offset,
@@ -443,16 +392,10 @@ func (c *StorageClient) EntityNodes(ctx context.Context, entityID signature.Publ
 
 // EntityNode returns a node controlled by the provided entity.
 func (c *StorageClient) EntityNode(ctx context.Context, entityID signature.PublicKey, nodeID signature.PublicKey) (*Node, error) {
-	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
-	if !ok {
-		return nil, apiCommon.ErrBadChainID
-	}
-	qf := NewQueryFactory(cid, "" /* no runtime identifier for the consensus layer */)
-
 	var n Node
 	if err := c.db.QueryRow(
 		ctx,
-		qf.EntityNodeQuery(),
+		QueryFactoryFromCtx(ctx).EntityNodeQuery(),
 		entityID.String(),
 		nodeID.String(),
 	).Scan(
@@ -473,15 +416,9 @@ func (c *StorageClient) EntityNode(ctx context.Context, entityID signature.Publi
 
 // Accounts returns a list of consensus accounts.
 func (c *StorageClient) Accounts(ctx context.Context, r apiTypes.GetConsensusAccountsParams) (*AccountList, error) {
-	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
-	if !ok {
-		return nil, apiCommon.ErrBadChainID
-	}
-	qf := NewQueryFactory(cid, "" /* no runtime identifier for the consensus layer */)
-
 	rows, err := c.db.Query(
 		ctx,
-		qf.AccountsQuery(),
+		QueryFactoryFromCtx(ctx).AccountsQuery(),
 		toString(r.MinAvailable),
 		toString(r.MaxAvailable),
 		toString(r.MinEscrow),
@@ -530,12 +467,6 @@ func (c *StorageClient) Accounts(ctx context.Context, r apiTypes.GetConsensusAcc
 
 // Account returns a consensus account.
 func (c *StorageClient) Account(ctx context.Context, address staking.Address) (*Account, error) {
-	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
-	if !ok {
-		return nil, apiCommon.ErrBadChainID
-	}
-	qf := NewQueryFactory(cid, "" /* no runtime identifier for the consensus layer */)
-
 	// Get basic account info.
 	a := Account{
 		// Initialize optional fields to empty values to avoid null pointer dereferences
@@ -552,7 +483,7 @@ func (c *StorageClient) Account(ctx context.Context, address staking.Address) (*
 	var debondingDelegationsBalanceNum pgtype.Numeric
 	err := c.db.QueryRow(
 		ctx,
-		qf.AccountQuery(),
+		QueryFactoryFromCtx(ctx).AccountQuery(),
 		address.String(),
 	).Scan(
 		&a.Address,
@@ -595,7 +526,7 @@ func (c *StorageClient) Account(ctx context.Context, address staking.Address) (*
 	// Get allowances.
 	allowanceRows, queryErr := c.db.Query(
 		ctx,
-		qf.AccountAllowancesQuery(),
+		QueryFactoryFromCtx(ctx).AccountAllowancesQuery(),
 		address.String(),
 	)
 	if queryErr != nil {
@@ -618,7 +549,7 @@ func (c *StorageClient) Account(ctx context.Context, address staking.Address) (*
 	// Get paratime balances.
 	runtimeSdkRows, queryErr := c.db.Query(
 		ctx,
-		NewQueryFactory(cid, "(ignored)").AccountRuntimeSdkBalancesQuery(),
+		QueryFactoryFromCtx(ctx).AccountRuntimeSdkBalancesQuery(),
 		address.String(),
 	)
 	if queryErr != nil {
@@ -645,7 +576,7 @@ func (c *StorageClient) Account(ctx context.Context, address staking.Address) (*
 
 	runtimeEvmRows, queryErr := c.db.Query(
 		ctx,
-		NewQueryFactory(cid, "(ignored)").AccountRuntimeEvmBalancesQuery(),
+		QueryFactoryFromCtx(ctx).AccountRuntimeEvmBalancesQuery(),
 		address.String(),
 	)
 	if queryErr != nil {
@@ -674,15 +605,9 @@ func (c *StorageClient) Account(ctx context.Context, address staking.Address) (*
 
 // Delegations returns a list of delegations.
 func (c *StorageClient) Delegations(ctx context.Context, address staking.Address, p apiTypes.GetConsensusAccountsAddressDelegationsParams) (*DelegationList, error) {
-	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
-	if !ok {
-		return nil, apiCommon.ErrBadChainID
-	}
-	qf := NewQueryFactory(cid, "" /* no runtime identifier for the consensus layer */)
-
 	rows, err := c.db.Query(
 		ctx,
-		qf.DelegationsQuery(),
+		QueryFactoryFromCtx(ctx).DelegationsQuery(),
 		address.String(),
 		p.Limit,
 		p.Offset,
@@ -719,15 +644,9 @@ func (c *StorageClient) Delegations(ctx context.Context, address staking.Address
 
 // DebondingDelegations returns a list of debonding delegations.
 func (c *StorageClient) DebondingDelegations(ctx context.Context, address staking.Address, p apiTypes.GetConsensusAccountsAddressDebondingDelegationsParams) (*DebondingDelegationList, error) {
-	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
-	if !ok {
-		return nil, apiCommon.ErrBadChainID
-	}
-	qf := NewQueryFactory(cid, "" /* no runtime identifier for the consensus layer */)
-
 	rows, err := c.db.Query(
 		ctx,
-		qf.DebondingDelegationsQuery(),
+		QueryFactoryFromCtx(ctx).DebondingDelegationsQuery(),
 		address.String(),
 		p.Limit,
 		p.Offset,
@@ -766,15 +685,9 @@ func (c *StorageClient) DebondingDelegations(ctx context.Context, address stakin
 
 // Epochs returns a list of consensus epochs.
 func (c *StorageClient) Epochs(ctx context.Context, p apiTypes.GetConsensusEpochsParams) (*EpochList, error) {
-	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
-	if !ok {
-		return nil, apiCommon.ErrBadChainID
-	}
-	qf := NewQueryFactory(cid, "" /* no runtime identifier for the consensus layer */)
-
 	rows, err := c.db.Query(
 		ctx,
-		qf.EpochsQuery(),
+		QueryFactoryFromCtx(ctx).EpochsQuery(),
 		p.Limit,
 		p.Offset,
 	)
@@ -799,16 +712,10 @@ func (c *StorageClient) Epochs(ctx context.Context, p apiTypes.GetConsensusEpoch
 
 // Epoch returns a consensus epoch.
 func (c *StorageClient) Epoch(ctx context.Context, epoch int64) (*Epoch, error) {
-	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
-	if !ok {
-		return nil, apiCommon.ErrBadChainID
-	}
-	qf := NewQueryFactory(cid, "" /* no runtime identifier for the consensus layer */)
-
 	var e Epoch
 	if err := c.db.QueryRow(
 		ctx,
-		qf.EpochQuery(),
+		QueryFactoryFromCtx(ctx).EpochQuery(),
 		epoch,
 	).Scan(&e.ID, &e.StartHeight, &e.EndHeight); err != nil {
 		return nil, wrapError(err)
@@ -819,15 +726,9 @@ func (c *StorageClient) Epoch(ctx context.Context, epoch int64) (*Epoch, error) 
 
 // Proposals returns a list of governance proposals.
 func (c *StorageClient) Proposals(ctx context.Context, p apiTypes.GetConsensusProposalsParams) (*ProposalList, error) {
-	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
-	if !ok {
-		return nil, apiCommon.ErrBadChainID
-	}
-	qf := NewQueryFactory(cid, "" /* no runtime identifier for the consensus layer */)
-
 	rows, err := c.db.Query(
 		ctx,
-		qf.ProposalsQuery(),
+		QueryFactoryFromCtx(ctx).ProposalsQuery(),
 		p.Submitter,
 		p.State,
 		p.Limit,
@@ -870,16 +771,10 @@ func (c *StorageClient) Proposals(ctx context.Context, p apiTypes.GetConsensusPr
 
 // Proposal returns a governance proposal.
 func (c *StorageClient) Proposal(ctx context.Context, proposalID uint64) (*Proposal, error) {
-	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
-	if !ok {
-		return nil, apiCommon.ErrBadChainID
-	}
-	qf := NewQueryFactory(cid, "" /* no runtime identifier for the consensus layer */)
-
 	p := Proposal{Target: &ProposalTarget{}}
 	if err := c.db.QueryRow(
 		ctx,
-		qf.ProposalQuery(),
+		QueryFactoryFromCtx(ctx).ProposalQuery(),
 		proposalID,
 	).Scan(
 		&p.ID,
@@ -904,15 +799,9 @@ func (c *StorageClient) Proposal(ctx context.Context, proposalID uint64) (*Propo
 
 // ProposalVotes returns votes for a governance proposal.
 func (c *StorageClient) ProposalVotes(ctx context.Context, proposalID uint64, p apiTypes.GetConsensusProposalsProposalIdVotesParams) (*ProposalVotes, error) {
-	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
-	if !ok {
-		return nil, apiCommon.ErrBadChainID
-	}
-	qf := NewQueryFactory(cid, "" /* no runtime identifier for the consensus layer */)
-
 	rows, err := c.db.Query(
 		ctx,
-		qf.ProposalVotesQuery(),
+		QueryFactoryFromCtx(ctx).ProposalVotesQuery(),
 		proposalID,
 		p.Limit,
 		p.Offset,
@@ -943,23 +832,17 @@ func (c *StorageClient) ProposalVotes(ctx context.Context, proposalID uint64, p 
 
 // Validators returns a list of validators.
 func (c *StorageClient) Validators(ctx context.Context, p apiTypes.GetConsensusValidatorsParams) (*ValidatorList, error) {
-	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
-	if !ok {
-		return nil, apiCommon.ErrBadChainID
-	}
-	qf := NewQueryFactory(cid, "" /* no runtime identifier for the consensus layer */)
-
 	var epoch Epoch
 	if err := c.db.QueryRow(
 		ctx,
-		qf.ValidatorsQuery(),
+		QueryFactoryFromCtx(ctx).ValidatorsQuery(),
 	).Scan(&epoch.ID, &epoch.StartHeight); err != nil {
 		return nil, wrapError(err)
 	}
 
 	rows, err := c.db.Query(
 		ctx,
-		qf.ValidatorsDataQuery(),
+		QueryFactoryFromCtx(ctx).ValidatorsDataQuery(),
 		p.Limit,
 		p.Offset,
 	)
@@ -1012,23 +895,17 @@ func (c *StorageClient) Validators(ctx context.Context, p apiTypes.GetConsensusV
 
 // Validator returns a single validator.
 func (c *StorageClient) Validator(ctx context.Context, entityID signature.PublicKey) (*Validator, error) {
-	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
-	if !ok {
-		return nil, apiCommon.ErrBadChainID
-	}
-	qf := NewQueryFactory(cid, "" /* no runtime identifier for the consensus layer */)
-
 	var epoch Epoch
 	if err := c.db.QueryRow(
 		ctx,
-		qf.ValidatorQuery(),
+		QueryFactoryFromCtx(ctx).ValidatorQuery(),
 	).Scan(&epoch.ID, &epoch.StartHeight); err != nil {
 		return nil, wrapError(err)
 	}
 
 	row := c.db.QueryRow(
 		ctx,
-		qf.ValidatorDataQuery(),
+		QueryFactoryFromCtx(ctx).ValidatorDataQuery(),
 		entityID.String(),
 	)
 
@@ -1069,19 +946,9 @@ func (c *StorageClient) Validator(ctx context.Context, entityID signature.Public
 
 // RuntimeBlocks returns a list of runtime blocks.
 func (c *StorageClient) RuntimeBlocks(ctx context.Context, p apiTypes.GetEmeraldBlocksParams) (*RuntimeBlockList, error) {
-	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
-	if !ok {
-		return nil, apiCommon.ErrBadChainID
-	}
-	runtime, ok := ctx.Value(common.RuntimeContextKey).(string)
-	if !ok {
-		return nil, apiCommon.ErrBadRuntime
-	}
-	qf := NewQueryFactory(cid, runtime)
-
 	rows, err := c.db.Query(
 		ctx,
-		qf.RuntimeBlocksQuery(),
+		QueryFactoryFromCtx(ctx).RuntimeBlocksQuery(),
 		p.From,
 		p.To,
 		p.After,
@@ -1112,19 +979,9 @@ func (c *StorageClient) RuntimeBlocks(ctx context.Context, p apiTypes.GetEmerald
 
 // RuntimeTransactions returns a list of runtime transactions.
 func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetEmeraldTransactionsParams) (*RuntimeTransactionList, error) {
-	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
-	if !ok {
-		return nil, apiCommon.ErrBadChainID
-	}
-	runtime, ok := ctx.Value(common.RuntimeContextKey).(string)
-	if !ok {
-		return nil, apiCommon.ErrBadRuntime
-	}
-	qf := NewQueryFactory(cid, runtime)
-
 	rows, err := c.db.Query(
 		ctx,
-		qf.RuntimeTransactionsQuery(),
+		QueryFactoryFromCtx(ctx).RuntimeTransactionsQuery(),
 		p.Block,
 		nil, // tx_hash; filter not supported by this endpoint
 		p.Limit,
@@ -1159,20 +1016,10 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetE
 
 // RuntimeTransaction returns a single runtime transaction.
 func (c *StorageClient) RuntimeTransaction(ctx context.Context, txHash string) (*RuntimeTransaction, error) {
-	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
-	if !ok {
-		return nil, apiCommon.ErrBadChainID
-	}
-	runtime, ok := ctx.Value(common.RuntimeContextKey).(string)
-	if !ok {
-		return nil, apiCommon.ErrBadRuntime
-	}
-	qf := NewQueryFactory(cid, runtime)
-
 	t := RuntimeTransaction{}
 	err := c.db.QueryRow(
 		ctx,
-		qf.RuntimeTransactionsQuery(),
+		QueryFactoryFromCtx(ctx).RuntimeTransactionsQuery(),
 		nil, // block; filter not supported by this endpoint
 		txHash,
 		1, // limit
@@ -1193,19 +1040,9 @@ func (c *StorageClient) RuntimeTransaction(ctx context.Context, txHash string) (
 }
 
 func (c *StorageClient) RuntimeTokens(ctx context.Context, p apiTypes.GetEmeraldEvmTokensParams) (*EvmTokenList, error) {
-	cid, ok := ctx.Value(common.ChainIDContextKey).(string)
-	if !ok {
-		return nil, apiCommon.ErrBadChainID
-	}
-	runtime, ok := ctx.Value(common.RuntimeContextKey).(string)
-	if !ok {
-		return nil, apiCommon.ErrBadRuntime
-	}
-	qf := NewQueryFactory(cid, runtime)
-
 	rows, err := c.db.Query(
 		ctx,
-		qf.EvmTokensQuery(),
+		QueryFactoryFromCtx(ctx).EvmTokensQuery(),
 		p.Limit,
 		p.Offset,
 	)
@@ -1248,14 +1085,13 @@ func (c *StorageClient) RuntimeTokens(ctx context.Context, p apiTypes.GetEmerald
 
 // TxVolumes returns a list of transaction volumes per time bucket.
 func (c *StorageClient) TxVolumes(ctx context.Context, layer apiTypes.Layer, p apiTypes.GetLayerStatsTxVolumeParams) (*TxVolumeList, error) {
-	qf := NewQueryFactory(strcase.ToSnake(c.chainID), string(layer))
 	var query string
 	if *p.BucketSizeSeconds == 300 {
-		query = qf.FineTxVolumesQuery()
+		query = QueryFactoryFromCtx(ctx).FineTxVolumesQuery()
 	} else {
 		var day uint32 = 86400
 		p.BucketSizeSeconds = &day
-		query = qf.TxVolumesQuery()
+		query = QueryFactoryFromCtx(ctx).TxVolumesQuery()
 	}
 
 	rows, err := c.db.Query(
