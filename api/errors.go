@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"reflect"
 
@@ -19,21 +20,32 @@ var (
 	// ErrBadRuntime is returned when a malformed or missing runtime name
 	// is provided.
 	ErrBadRuntime = errors.New("unable to resolve runtime")
-	// ErrStorageError is returned when the underlying storage suffers
-	// from an internal error.
-	ErrStorageError = errors.New("internal storage error")
+	// ErrNotFound is returned when handling a request for an item that
+	// does not exist in the DB.
+	ErrNotFound = errors.New("item not found")
 )
 
+type ErrStorageError struct{ Err error }
+
+func (e ErrStorageError) Error() string { return fmt.Sprintf("storage error: %s", e.Err.Error()) }
+
 func HttpCodeForError(err error) int {
-	errType := reflect.ValueOf(err).Elem().Type()
+	errVal := reflect.ValueOf(err)
+	// dereference an interface or pointer
+	if errVal.Kind() == reflect.Interface || errVal.Kind() == reflect.Ptr {
+		errVal = errVal.Elem()
+	}
+	errType := errVal.Type()
 
 	switch {
 	case err == ErrBadChainID:
 		return http.StatusNotFound
-	case err == ErrStorageError:
-		return http.StatusInternalServerError
 	case err == ErrBadRequest:
 		return http.StatusBadRequest
+	case err == ErrNotFound:
+		return http.StatusNotFound
+	case errType == reflect.TypeOf(ErrStorageError{}):
+		return http.StatusInternalServerError
 	case (errType == reflect.TypeOf(apiTypes.InvalidParamFormatError{}) ||
 		errType == reflect.TypeOf(apiTypes.RequiredHeaderError{}) ||
 		errType == reflect.TypeOf(apiTypes.RequiredParamError{}) ||

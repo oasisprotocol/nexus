@@ -78,6 +78,14 @@ func (c *StorageClient) Shutdown() {
 	c.db.Shutdown()
 }
 
+// Wraps an error into one of the error types defined by the `common` package, if applicable.
+func wrapError(err error) error {
+	if err == pgx.ErrNoRows {
+		return apiCommon.ErrNotFound
+	}
+	return apiCommon.ErrStorageError{Err: err}
+}
+
 // Status returns status information for the Oasis Indexer.
 func (c *StorageClient) Status(ctx context.Context) (*Status, error) {
 	qf := NewQueryFactory(strcase.ToSnake(c.chainID), "" /* no runtime identifier for the consensus layer */)
@@ -89,7 +97,7 @@ func (c *StorageClient) Status(ctx context.Context) (*Status, error) {
 		ctx,
 		qf.StatusQuery(),
 	).Scan(&s.LatestBlock, &s.LatestUpdate); err != nil {
-		return nil, apiCommon.ErrStorageError
+		return nil, wrapError(err)
 	}
 	// oasis-node control status returns time truncated to the second
 	// https://github.com/oasisprotocol/oasis-core/blob/5985dc5c2844de28241b7b16b19d91a86e5cbeda/docs/oasis-node/cli.md?plain=1#L41
@@ -117,7 +125,7 @@ func (c *StorageClient) Blocks(ctx context.Context, r apiTypes.GetConsensusBlock
 		r.Offset,
 	)
 	if err != nil {
-		return nil, apiCommon.ErrStorageError
+		return nil, wrapError(err)
 	}
 	defer rows.Close()
 
@@ -127,7 +135,7 @@ func (c *StorageClient) Blocks(ctx context.Context, r apiTypes.GetConsensusBlock
 	for rows.Next() {
 		var b Block
 		if err := rows.Scan(&b.Height, &b.Hash, &b.Timestamp, &b.NumTransactions); err != nil {
-			return nil, apiCommon.ErrStorageError
+			return nil, wrapError(err)
 		}
 		b.Timestamp = b.Timestamp.UTC()
 
@@ -157,7 +165,7 @@ func (c *StorageClient) Block(ctx context.Context, height int64) (*Block, error)
 		qf.BlockQuery(),
 		height,
 	).Scan(&b.Height, &b.Hash, &b.Timestamp, &b.NumTransactions); err != nil {
-		return nil, apiCommon.ErrStorageError
+		return nil, wrapError(err)
 	}
 	b.Timestamp = b.Timestamp.UTC()
 
@@ -192,7 +200,7 @@ func (c *StorageClient) Transactions(ctx context.Context, p apiTypes.GetConsensu
 		p.Offset,
 	)
 	if err != nil {
-		return nil, apiCommon.ErrStorageError
+		return nil, wrapError(err)
 	}
 	defer rows.Close()
 
@@ -214,7 +222,7 @@ func (c *StorageClient) Transactions(ctx context.Context, p apiTypes.GetConsensu
 			&code,
 			&t.Timestamp,
 		); err != nil {
-			return nil, apiCommon.ErrStorageError
+			return nil, wrapError(err)
 		}
 		if code == oasisErrors.CodeNoError {
 			t.Success = true
@@ -258,7 +266,7 @@ func (c *StorageClient) Transaction(ctx context.Context, txHash string) (*Transa
 		&code,
 		&t.Timestamp,
 	); err != nil {
-		return nil, apiCommon.ErrStorageError
+		return nil, wrapError(err)
 	}
 	if code == oasisErrors.CodeNoError {
 		t.Success = true
@@ -296,7 +304,7 @@ func (c *StorageClient) Events(ctx context.Context, p apiTypes.GetConsensusEvent
 	)
 
 	if err != nil {
-		return nil, apiCommon.ErrStorageError
+		return nil, wrapError(err)
 	}
 	defer rows.Close()
 
@@ -307,7 +315,7 @@ func (c *StorageClient) Events(ctx context.Context, p apiTypes.GetConsensusEvent
 	for rows.Next() {
 		var e Event
 		if err := rows.Scan(&e.Block, &e.TxIndex, &e.TxHash, &e.Type, &e.Body); err != nil {
-			return nil, apiCommon.ErrStorageError
+			return nil, wrapError(err)
 		}
 		es.Events = append(es.Events, e)
 	}
@@ -330,7 +338,7 @@ func (c *StorageClient) Entities(ctx context.Context, p apiTypes.GetConsensusEnt
 		p.Offset,
 	)
 	if err != nil {
-		return nil, apiCommon.ErrStorageError
+		return nil, wrapError(err)
 	}
 	defer rows.Close()
 
@@ -340,7 +348,7 @@ func (c *StorageClient) Entities(ctx context.Context, p apiTypes.GetConsensusEnt
 	for rows.Next() {
 		var e Entity
 		if err := rows.Scan(&e.ID, &e.Address); err != nil {
-			return nil, apiCommon.ErrStorageError
+			return nil, wrapError(err)
 		}
 
 		es.Entities = append(es.Entities, e)
@@ -363,7 +371,7 @@ func (c *StorageClient) Entity(ctx context.Context, entityID signature.PublicKey
 		qf.EntityQuery(),
 		entityID.String(),
 	).Scan(&e.ID, &e.Address); err != nil {
-		return nil, apiCommon.ErrStorageError
+		return nil, wrapError(err)
 	}
 
 	nodeRows, err := c.db.Query(
@@ -372,14 +380,14 @@ func (c *StorageClient) Entity(ctx context.Context, entityID signature.PublicKey
 		entityID.String(),
 	)
 	if err != nil {
-		return nil, apiCommon.ErrStorageError
+		return nil, wrapError(err)
 	}
 	defer nodeRows.Close()
 
 	for nodeRows.Next() {
 		var nid string
 		if err := nodeRows.Scan(&nid); err != nil {
-			return nil, apiCommon.ErrStorageError
+			return nil, wrapError(err)
 		}
 
 		e.Nodes = append(e.Nodes, nid)
@@ -404,7 +412,7 @@ func (c *StorageClient) EntityNodes(ctx context.Context, entityID signature.Publ
 		r.Offset,
 	)
 	if err != nil {
-		return nil, apiCommon.ErrStorageError
+		return nil, wrapError(err)
 	}
 	defer rows.Close()
 
@@ -423,7 +431,7 @@ func (c *StorageClient) EntityNodes(ctx context.Context, entityID signature.Publ
 			&n.ConsensusPubkey,
 			&n.Roles,
 		); err != nil {
-			return nil, apiCommon.ErrStorageError
+			return nil, wrapError(err)
 		}
 
 		ns.Nodes = append(ns.Nodes, n)
@@ -457,7 +465,7 @@ func (c *StorageClient) EntityNode(ctx context.Context, entityID signature.Publi
 		&n.ConsensusPubkey,
 		&n.Roles,
 	); err != nil {
-		return nil, apiCommon.ErrStorageError
+		return nil, wrapError(err)
 	}
 
 	return &n, nil
@@ -486,7 +494,7 @@ func (c *StorageClient) Accounts(ctx context.Context, r apiTypes.GetConsensusAcc
 		r.Offset,
 	)
 	if err != nil {
-		return nil, apiCommon.ErrStorageError
+		return nil, wrapError(err)
 	}
 	defer rows.Close()
 
@@ -506,7 +514,7 @@ func (c *StorageClient) Accounts(ctx context.Context, r apiTypes.GetConsensusAcc
 			&a.AddressPreimage.ContextVersion,
 			&a.AddressPreimage.AddressData,
 		); err != nil {
-			return nil, apiCommon.ErrStorageError
+			return nil, wrapError(err)
 		}
 		if preimageContext != nil {
 			a.AddressPreimage.Context = AddressDerivationContext(*preimageContext)
@@ -563,11 +571,11 @@ func (c *StorageClient) Account(ctx context.Context, address staking.Address) (*
 		var err2 error
 		*a.DelegationsBalance, err2 = common.NumericToBigInt(delegationsBalanceNum)
 		if err2 != nil {
-			return nil, apiCommon.ErrStorageError
+			return nil, wrapError(err)
 		}
 		*a.DebondingDelegationsBalance, err2 = common.NumericToBigInt(debondingDelegationsBalanceNum)
 		if err2 != nil {
-			return nil, apiCommon.ErrStorageError
+			return nil, wrapError(err)
 		}
 		if preimageContext != nil {
 			a.AddressPreimage.Context = AddressDerivationContext(*preimageContext)
@@ -581,7 +589,7 @@ func (c *StorageClient) Account(ctx context.Context, address staking.Address) (*
 		a.Address = address.String()
 		a.AddressPreimage = nil
 	} else {
-		return nil, apiCommon.ErrStorageError
+		return nil, wrapError(err)
 	}
 
 	// Get allowances.
@@ -591,7 +599,7 @@ func (c *StorageClient) Account(ctx context.Context, address staking.Address) (*
 		address.String(),
 	)
 	if queryErr != nil {
-		return nil, apiCommon.ErrStorageError
+		return nil, wrapError(err)
 	}
 	defer allowanceRows.Close()
 
@@ -601,7 +609,7 @@ func (c *StorageClient) Account(ctx context.Context, address staking.Address) (*
 			&al.Address,
 			&al.Amount,
 		); err2 != nil {
-			return nil, apiCommon.ErrStorageError
+			return nil, wrapError(err2)
 		}
 
 		a.Allowances = append(a.Allowances, al)
@@ -614,7 +622,7 @@ func (c *StorageClient) Account(ctx context.Context, address staking.Address) (*
 		address.String(),
 	)
 	if queryErr != nil {
-		return nil, apiCommon.ErrStorageError
+		return nil, wrapError(err)
 	}
 	defer runtimeSdkRows.Close()
 
@@ -630,7 +638,7 @@ func (c *StorageClient) Account(ctx context.Context, address staking.Address) (*
 			&b.Balance,
 			&b.TokenSymbol,
 		); err2 != nil {
-			return nil, apiCommon.ErrStorageError
+			return nil, wrapError(err2)
 		}
 		*a.RuntimeSdkBalances = append(*a.RuntimeSdkBalances, b)
 	}
@@ -641,7 +649,7 @@ func (c *StorageClient) Account(ctx context.Context, address staking.Address) (*
 		address.String(),
 	)
 	if queryErr != nil {
-		return nil, apiCommon.ErrStorageError
+		return nil, wrapError(err)
 	}
 	defer runtimeEvmRows.Close()
 
@@ -656,7 +664,7 @@ func (c *StorageClient) Account(ctx context.Context, address staking.Address) (*
 			&b.TokenType,
 			&b.TokenDecimals,
 		); err != nil {
-			return nil, apiCommon.ErrStorageError
+			return nil, wrapError(err)
 		}
 		*a.RuntimeEvmBalances = append(*a.RuntimeEvmBalances, b)
 	}
@@ -680,7 +688,7 @@ func (c *StorageClient) Delegations(ctx context.Context, address staking.Address
 		p.Offset,
 	)
 	if err != nil {
-		return nil, apiCommon.ErrStorageError
+		return nil, wrapError(err)
 	}
 	defer rows.Close()
 
@@ -696,7 +704,7 @@ func (c *StorageClient) Delegations(ctx context.Context, address staking.Address
 			&escrowBalanceActive,
 			&escrowTotalSharesActive,
 		); err != nil {
-			return nil, apiCommon.ErrStorageError
+			return nil, wrapError(err)
 		}
 		amount := new(big.Int).Mul(&shares.Int, &escrowBalanceActive.Int)
 		amount.Quo(amount, &escrowTotalSharesActive.Int)
@@ -725,7 +733,7 @@ func (c *StorageClient) DebondingDelegations(ctx context.Context, address stakin
 		p.Offset,
 	)
 	if err != nil {
-		return nil, apiCommon.ErrStorageError
+		return nil, wrapError(err)
 	}
 	defer rows.Close()
 
@@ -742,7 +750,7 @@ func (c *StorageClient) DebondingDelegations(ctx context.Context, address stakin
 			&escrowBalanceDebonding,
 			&escrowTotalSharesDebonding,
 		); err != nil {
-			return nil, apiCommon.ErrStorageError
+			return nil, wrapError(err)
 		}
 
 		amount := new(big.Int).Mul(&shares.Int, &escrowBalanceDebonding.Int)
@@ -771,7 +779,7 @@ func (c *StorageClient) Epochs(ctx context.Context, p apiTypes.GetConsensusEpoch
 		p.Offset,
 	)
 	if err != nil {
-		return nil, apiCommon.ErrStorageError
+		return nil, wrapError(err)
 	}
 
 	es := EpochList{
@@ -780,7 +788,7 @@ func (c *StorageClient) Epochs(ctx context.Context, p apiTypes.GetConsensusEpoch
 	for rows.Next() {
 		var e Epoch
 		if err := rows.Scan(&e.ID, &e.StartHeight, &e.EndHeight); err != nil {
-			return nil, apiCommon.ErrStorageError
+			return nil, wrapError(err)
 		}
 
 		es.Epochs = append(es.Epochs, e)
@@ -803,7 +811,7 @@ func (c *StorageClient) Epoch(ctx context.Context, epoch int64) (*Epoch, error) 
 		qf.EpochQuery(),
 		epoch,
 	).Scan(&e.ID, &e.StartHeight, &e.EndHeight); err != nil {
-		return nil, apiCommon.ErrStorageError
+		return nil, wrapError(err)
 	}
 
 	return &e, nil
@@ -826,7 +834,7 @@ func (c *StorageClient) Proposals(ctx context.Context, p apiTypes.GetConsensusPr
 		p.Offset,
 	)
 	if err != nil {
-		return nil, apiCommon.ErrStorageError
+		return nil, wrapError(err)
 	}
 	defer rows.Close()
 
@@ -851,7 +859,7 @@ func (c *StorageClient) Proposals(ctx context.Context, p apiTypes.GetConsensusPr
 			&p.ClosesAt,
 			&invalidVotesNum,
 		); err != nil {
-			return nil, apiCommon.ErrStorageError
+			return nil, wrapError(err)
 		}
 
 		ps.Proposals = append(ps.Proposals, p)
@@ -888,7 +896,7 @@ func (c *StorageClient) Proposal(ctx context.Context, proposalID uint64) (*Propo
 		&p.ClosesAt,
 		&p.InvalidVotes,
 	); err != nil {
-		return nil, apiCommon.ErrStorageError
+		return nil, wrapError(err)
 	}
 
 	return &p, nil
@@ -910,7 +918,7 @@ func (c *StorageClient) ProposalVotes(ctx context.Context, proposalID uint64, p 
 		p.Offset,
 	)
 	if err != nil {
-		return nil, apiCommon.ErrStorageError
+		return nil, wrapError(err)
 	}
 	defer rows.Close()
 
@@ -923,7 +931,7 @@ func (c *StorageClient) ProposalVotes(ctx context.Context, proposalID uint64, p 
 			&v.Address,
 			&v.Vote,
 		); err != nil {
-			return nil, apiCommon.ErrStorageError
+			return nil, wrapError(err)
 		}
 
 		vs.Votes = append(vs.Votes, v)
@@ -946,7 +954,7 @@ func (c *StorageClient) Validators(ctx context.Context, p apiTypes.GetConsensusV
 		ctx,
 		qf.ValidatorsQuery(),
 	).Scan(&epoch.ID, &epoch.StartHeight); err != nil {
-		return nil, apiCommon.ErrStorageError
+		return nil, wrapError(err)
 	}
 
 	rows, err := c.db.Query(
@@ -956,7 +964,7 @@ func (c *StorageClient) Validators(ctx context.Context, p apiTypes.GetConsensusV
 		p.Offset,
 	)
 	if err != nil {
-		return nil, apiCommon.ErrStorageError
+		return nil, wrapError(err)
 	}
 	defer rows.Close()
 
@@ -976,7 +984,7 @@ func (c *StorageClient) Validators(ctx context.Context, p apiTypes.GetConsensusV
 			&v.Status,
 			&v.Media,
 		); err != nil {
-			return nil, apiCommon.ErrStorageError
+			return nil, wrapError(err)
 		}
 
 		currentRate := schedule.CurrentRate(beacon.EpochTime(epoch.ID))
@@ -1015,7 +1023,7 @@ func (c *StorageClient) Validator(ctx context.Context, entityID signature.Public
 		ctx,
 		qf.ValidatorQuery(),
 	).Scan(&epoch.ID, &epoch.StartHeight); err != nil {
-		return nil, apiCommon.ErrStorageError
+		return nil, wrapError(err)
 	}
 
 	row := c.db.QueryRow(
@@ -1036,7 +1044,7 @@ func (c *StorageClient) Validator(ctx context.Context, entityID signature.Public
 		&v.Status,
 		&v.Media,
 	); err != nil {
-		return nil, apiCommon.ErrStorageError
+		return nil, wrapError(err)
 	}
 
 	currentRate := schedule.CurrentRate(beacon.EpochTime(epoch.ID))
@@ -1082,7 +1090,7 @@ func (c *StorageClient) RuntimeBlocks(ctx context.Context, p apiTypes.GetEmerald
 		p.Offset,
 	)
 	if err != nil {
-		return nil, apiCommon.ErrStorageError
+		return nil, wrapError(err)
 	}
 	defer rows.Close()
 
@@ -1092,7 +1100,7 @@ func (c *StorageClient) RuntimeBlocks(ctx context.Context, p apiTypes.GetEmerald
 	for rows.Next() {
 		var b RuntimeBlock
 		if err := rows.Scan(&b.Round, &b.Hash, &b.Timestamp, &b.NumTransactions, &b.Size, &b.GasUsed); err != nil {
-			return nil, apiCommon.ErrStorageError
+			return nil, wrapError(err)
 		}
 		b.Timestamp = b.Timestamp.UTC()
 
@@ -1123,7 +1131,7 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetE
 		p.Offset,
 	)
 	if err != nil {
-		return nil, apiCommon.ErrStorageError
+		return nil, wrapError(err)
 	}
 	defer rows.Close()
 
@@ -1140,7 +1148,7 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetE
 			&t.Raw,
 			&t.ResultRaw,
 		); err != nil {
-			return nil, apiCommon.ErrStorageError
+			return nil, wrapError(err)
 		}
 
 		ts.Transactions = append(ts.Transactions, t)
@@ -1178,7 +1186,7 @@ func (c *StorageClient) RuntimeTransaction(ctx context.Context, txHash string) (
 		&t.ResultRaw,
 	)
 	if err != nil {
-		return nil, apiCommon.ErrStorageError
+		return nil, wrapError(err)
 	}
 
 	return &t, nil
@@ -1202,7 +1210,7 @@ func (c *StorageClient) RuntimeTokens(ctx context.Context, p apiTypes.GetEmerald
 		p.Offset,
 	)
 	if err != nil {
-		return nil, apiCommon.ErrStorageError
+		return nil, wrapError(err)
 	}
 	defer rows.Close()
 
@@ -1222,13 +1230,13 @@ func (c *StorageClient) RuntimeTokens(ctx context.Context, p apiTypes.GetEmerald
 			&t.Type,
 			&t.NumHolders,
 		); err2 != nil {
-			return nil, apiCommon.ErrStorageError
+			return nil, wrapError(err)
 		}
 		if totalSupplyNum.Status == pgtype.Present {
 			t.TotalSupply = &common.BigInt{}
 			*t.TotalSupply, err = common.NumericToBigInt(totalSupplyNum)
 			if err != nil {
-				return nil, apiCommon.ErrStorageError
+				return nil, wrapError(err)
 			}
 		}
 
@@ -1258,7 +1266,7 @@ func (c *StorageClient) TxVolumes(ctx context.Context, layer apiTypes.Layer, p a
 		p.Offset,
 	)
 	if err != nil {
-		return nil, apiCommon.ErrStorageError
+		return nil, wrapError(err)
 	}
 	defer rows.Close()
 
@@ -1275,7 +1283,7 @@ func (c *StorageClient) TxVolumes(ctx context.Context, layer apiTypes.Layer, p a
 			&d.BucketStart,
 			&d.TxVolume,
 		); err != nil {
-			return nil, apiCommon.ErrStorageError
+			return nil, wrapError(err)
 		}
 
 		t := TxVolume{
