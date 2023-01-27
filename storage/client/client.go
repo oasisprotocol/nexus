@@ -2,7 +2,6 @@ package client
 
 import (
 	"context"
-	"fmt"
 	"math/big"
 	"time"
 
@@ -39,39 +38,6 @@ type StorageClient struct {
 	txCache    *ristretto.Cache
 
 	logger *log.Logger
-}
-
-// numericToBigInt converts a pgtype.Numeric to a BigInt similar to the
-// private method found at https://github.com/jackc/pgtype/blob/master/numeric.go#L398
-func (c *StorageClient) numericToBigInt(ctx context.Context, n *pgtype.Numeric) (BigInt, error) {
-	if n.Exp == 0 {
-		return BigInt{Int: *n.Int}, nil
-	}
-
-	big0 := big.NewInt(0)
-	big10 := big.NewInt(10)
-	bi := &big.Int{}
-	bi.Set(n.Int)
-	if n.Exp > 0 {
-		mul := &big.Int{}
-		mul.Exp(big10, big.NewInt(int64(n.Exp)), nil)
-		bi.Mul(bi, mul)
-		return BigInt{Int: *bi}, nil
-	}
-
-	div := &big.Int{}
-	div.Exp(big10, big.NewInt(int64(-n.Exp)), nil)
-	remainder := &big.Int{}
-	bi.DivMod(bi, div, remainder)
-	if remainder.Cmp(big0) != 0 {
-		err := fmt.Errorf("cannot convert %v to integer", n)
-		c.logger.Info("failed to convert pgtype.Numeric to big.Int",
-			"request_id", ctx.Value(common.RequestIDContextKey),
-			"err", err,
-		)
-		return BigInt{Int: *big0}, err
-	}
-	return BigInt{Int: *big0}, nil
 }
 
 func toString(b *BigInt) *string {
@@ -256,14 +222,13 @@ func (c *StorageClient) Transactions(ctx context.Context, p apiTypes.GetConsensu
 	for rows.Next() {
 		var t Transaction
 		var code uint64
-		var feeNum pgtype.Numeric
 		if err := rows.Scan(
 			&t.Block,
 			&t.Index,
 			&t.Hash,
 			&t.Sender,
 			&t.Nonce,
-			&feeNum,
+			&t.Fee,
 			&t.Method,
 			&t.Body,
 			&code,
@@ -273,11 +238,6 @@ func (c *StorageClient) Transactions(ctx context.Context, p apiTypes.GetConsensu
 				"request_id", ctx.Value(common.RequestIDContextKey),
 				"err", err.Error(),
 			)
-			return nil, apiCommon.ErrStorageError
-		}
-		var err error
-		t.Fee, err = c.numericToBigInt(ctx, &feeNum)
-		if err != nil {
 			return nil, apiCommon.ErrStorageError
 		}
 		if code == oasisErrors.CodeNoError {
@@ -305,7 +265,6 @@ func (c *StorageClient) Transaction(ctx context.Context, txHash string) (*Transa
 	qf := NewQueryFactory(cid, "" /* no runtime identifier for the consensus layer */)
 
 	var t Transaction
-	var feeNum pgtype.Numeric
 	var code uint64
 	if err := c.db.QueryRow(
 		ctx,
@@ -317,7 +276,7 @@ func (c *StorageClient) Transaction(ctx context.Context, txHash string) (*Transa
 		&t.Hash,
 		&t.Sender,
 		&t.Nonce,
-		&feeNum,
+		&t.Fee,
 		&t.Method,
 		&t.Body,
 		&code,
@@ -327,11 +286,6 @@ func (c *StorageClient) Transaction(ctx context.Context, txHash string) (*Transa
 			"request_id", ctx.Value(common.RequestIDContextKey),
 			"err", err.Error(),
 		)
-		return nil, apiCommon.ErrStorageError
-	}
-	var err error
-	t.Fee, err = c.numericToBigInt(ctx, &feeNum)
-	if err != nil {
 		return nil, apiCommon.ErrStorageError
 	}
 	if code == oasisErrors.CodeNoError {
@@ -611,16 +565,13 @@ func (c *StorageClient) Accounts(ctx context.Context, r apiTypes.GetConsensusAcc
 	}
 	for rows.Next() {
 		a := Account{AddressPreimage: &AddressPreimage{}}
-		var availableNum pgtype.Numeric
-		var escrowNum pgtype.Numeric
-		var debondingNum pgtype.Numeric
 		var preimageContext *string
 		if err := rows.Scan(
 			&a.Address,
 			&a.Nonce,
-			&availableNum,
-			&escrowNum,
-			&debondingNum,
+			&a.Available,
+			&a.Escrow,
+			&a.Debonding,
 			&preimageContext,
 			&a.AddressPreimage.ContextVersion,
 			&a.AddressPreimage.AddressData,
@@ -629,19 +580,6 @@ func (c *StorageClient) Accounts(ctx context.Context, r apiTypes.GetConsensusAcc
 				"request_id", ctx.Value(common.RequestIDContextKey),
 				"err", err.Error(),
 			)
-			return nil, apiCommon.ErrStorageError
-		}
-		var err error
-		a.Available, err = c.numericToBigInt(ctx, &availableNum)
-		if err != nil {
-			return nil, apiCommon.ErrStorageError
-		}
-		a.Escrow, err = c.numericToBigInt(ctx, &escrowNum)
-		if err != nil {
-			return nil, apiCommon.ErrStorageError
-		}
-		a.Debonding, err = c.numericToBigInt(ctx, &debondingNum)
-		if err != nil {
 			return nil, apiCommon.ErrStorageError
 		}
 		if preimageContext != nil {
@@ -675,9 +613,6 @@ func (c *StorageClient) Account(ctx context.Context, address staking.Address) (*
 		RuntimeSdkBalances:          &[]RuntimeSdkBalance{},
 		RuntimeEvmBalances:          &[]RuntimeEvmBalance{},
 	}
-	var availableNum pgtype.Numeric
-	var escrowNum pgtype.Numeric
-	var debondingNum pgtype.Numeric
 	var preimageContext *string
 	var delegationsBalanceNum pgtype.Numeric
 	var debondingDelegationsBalanceNum pgtype.Numeric
@@ -688,9 +623,9 @@ func (c *StorageClient) Account(ctx context.Context, address staking.Address) (*
 	).Scan(
 		&a.Address,
 		&a.Nonce,
-		&availableNum,
-		&escrowNum,
-		&debondingNum,
+		&a.Available,
+		&a.Escrow,
+		&a.Debonding,
 		&preimageContext,
 		&a.AddressPreimage.ContextVersion,
 		&a.AddressPreimage.AddressData,
@@ -698,25 +633,13 @@ func (c *StorageClient) Account(ctx context.Context, address staking.Address) (*
 		&debondingDelegationsBalanceNum,
 	)
 	if err == nil { //nolint:gocritic,nestif
-		// Convert numeric values to big.Int.
+		// Convert numeric values to big.Int. pgx has a bug where it doesn't support reading into *big.Int.
 		var err2 error
-		a.Available, err2 = c.numericToBigInt(ctx, &availableNum)
+		*a.DelegationsBalance, err2 = common.NumericToBigInt(delegationsBalanceNum)
 		if err2 != nil {
 			return nil, apiCommon.ErrStorageError
 		}
-		a.Escrow, err2 = c.numericToBigInt(ctx, &escrowNum)
-		if err2 != nil {
-			return nil, apiCommon.ErrStorageError
-		}
-		a.Debonding, err2 = c.numericToBigInt(ctx, &debondingNum)
-		if err2 != nil {
-			return nil, apiCommon.ErrStorageError
-		}
-		*a.DelegationsBalance, err2 = c.numericToBigInt(ctx, &delegationsBalanceNum)
-		if err2 != nil {
-			return nil, apiCommon.ErrStorageError
-		}
-		*a.DebondingDelegationsBalance, err2 = c.numericToBigInt(ctx, &debondingDelegationsBalanceNum)
+		*a.DebondingDelegationsBalance, err2 = common.NumericToBigInt(debondingDelegationsBalanceNum)
 		if err2 != nil {
 			return nil, apiCommon.ErrStorageError
 		}
@@ -752,20 +675,14 @@ func (c *StorageClient) Account(ctx context.Context, address staking.Address) (*
 
 	for allowanceRows.Next() {
 		var al Allowance
-		var amountNum pgtype.Numeric
-		if err := allowanceRows.Scan(
+		if err2 := allowanceRows.Scan(
 			&al.Address,
-			&amountNum,
-		); err != nil {
+			&al.Amount,
+		); err2 != nil {
 			c.logger.Info("row scan failed",
 				"request_id", ctx.Value(common.RequestIDContextKey),
 				"err", err.Error(),
 			)
-			return nil, apiCommon.ErrStorageError
-		}
-		var err error
-		al.Amount, err = c.numericToBigInt(ctx, &amountNum)
-		if err != nil {
 			return nil, apiCommon.ErrStorageError
 		}
 
@@ -790,17 +707,11 @@ func (c *StorageClient) Account(ctx context.Context, address staking.Address) (*
 			// at analysis time and store it in a table, similar to how we store the EVM token metadata.
 			TokenDecimals: 18,
 		}
-		var balanceNum pgtype.Numeric
-		if err := runtimeSdkRows.Scan(
+		if err2 := runtimeSdkRows.Scan(
 			&b.Runtime,
-			&balanceNum,
+			&b.Balance,
 			&b.TokenSymbol,
-		); err != nil {
-			return nil, apiCommon.ErrStorageError
-		}
-		var err error
-		b.Balance, err = c.numericToBigInt(ctx, &balanceNum)
-		if err != nil {
+		); err2 != nil {
 			return nil, apiCommon.ErrStorageError
 		}
 		*a.RuntimeSdkBalances = append(*a.RuntimeSdkBalances, b)
@@ -818,21 +729,15 @@ func (c *StorageClient) Account(ctx context.Context, address staking.Address) (*
 
 	for runtimeEvmRows.Next() {
 		b := RuntimeEvmBalance{}
-		var balanceNum pgtype.Numeric
 		if err := runtimeEvmRows.Scan(
 			&b.Runtime,
-			&balanceNum,
+			&b.Balance,
 			&b.TokenContractAddr,
 			&b.TokenSymbol,
 			&b.TokenName,
 			&b.TokenType,
 			&b.TokenDecimals,
 		); err != nil {
-			return nil, apiCommon.ErrStorageError
-		}
-		var err error
-		b.Balance, err = c.numericToBigInt(ctx, &balanceNum)
-		if err != nil {
 			return nil, apiCommon.ErrStorageError
 		}
 		*a.RuntimeEvmBalances = append(*a.RuntimeEvmBalances, b)
@@ -870,31 +775,17 @@ func (c *StorageClient) Delegations(ctx context.Context, address staking.Address
 	}
 	for rows.Next() {
 		var d Delegation
-		var sharesNum pgtype.Numeric
-		var escrowBalanceActiveNum pgtype.Numeric
-		var escrowTotalSharesActiveNum pgtype.Numeric
+		var shares, escrowBalanceActive, escrowTotalSharesActive common.BigInt
 		if err := rows.Scan(
 			&d.ValidatorAddress,
-			&sharesNum,
-			&escrowBalanceActiveNum,
-			&escrowTotalSharesActiveNum,
+			&shares,
+			&escrowBalanceActive,
+			&escrowTotalSharesActive,
 		); err != nil {
 			c.logger.Info("row scan failed",
 				"request_id", ctx.Value(common.RequestIDContextKey),
 				"err", err.Error(),
 			)
-			return nil, apiCommon.ErrStorageError
-		}
-		shares, err := c.numericToBigInt(ctx, &sharesNum)
-		if err != nil {
-			return nil, apiCommon.ErrStorageError
-		}
-		escrowBalanceActive, err := c.numericToBigInt(ctx, &escrowBalanceActiveNum)
-		if err != nil {
-			return nil, apiCommon.ErrStorageError
-		}
-		escrowTotalSharesActive, err := c.numericToBigInt(ctx, &escrowBalanceActiveNum)
-		if err != nil {
 			return nil, apiCommon.ErrStorageError
 		}
 		amount := new(big.Int).Mul(&shares.Int, &escrowBalanceActive.Int)
@@ -937,15 +828,13 @@ func (c *StorageClient) DebondingDelegations(ctx context.Context, address stakin
 	}
 	for rows.Next() {
 		var d DebondingDelegation
-		var sharesNum pgtype.Numeric
-		var escrowBalanceDebondingNum pgtype.Numeric
-		var escrowTotalSharesDebondingNum pgtype.Numeric
+		var shares, escrowBalanceDebonding, escrowTotalSharesDebonding common.BigInt
 		if err := rows.Scan(
 			&d.ValidatorAddress,
-			&sharesNum,
+			&shares,
 			&d.DebondEnd,
-			&escrowBalanceDebondingNum,
-			&escrowTotalSharesDebondingNum,
+			&escrowBalanceDebonding,
+			&escrowTotalSharesDebonding,
 		); err != nil {
 			c.logger.Info("row scan failed",
 				"request_id", ctx.Value(common.RequestIDContextKey),
@@ -954,18 +843,6 @@ func (c *StorageClient) DebondingDelegations(ctx context.Context, address stakin
 			return nil, apiCommon.ErrStorageError
 		}
 
-		shares, err := c.numericToBigInt(ctx, &sharesNum)
-		if err != nil {
-			return nil, apiCommon.ErrStorageError
-		}
-		escrowBalanceDebonding, err := c.numericToBigInt(ctx, &escrowBalanceDebondingNum)
-		if err != nil {
-			return nil, apiCommon.ErrStorageError
-		}
-		escrowTotalSharesDebonding, err := c.numericToBigInt(ctx, &escrowBalanceDebondingNum)
-		if err != nil {
-			return nil, apiCommon.ErrStorageError
-		}
 		amount := new(big.Int).Mul(&shares.Int, &escrowBalanceDebonding.Int)
 		amount.Quo(amount, &escrowTotalSharesDebonding.Int)
 		d.Amount = BigInt{Int: *amount}
@@ -1072,13 +949,12 @@ func (c *StorageClient) Proposals(ctx context.Context, p apiTypes.GetConsensusPr
 	}
 	for rows.Next() {
 		p := Proposal{Target: &ProposalTarget{}}
-		var depositNum pgtype.Numeric
 		var invalidVotesNum pgtype.Numeric
 		if err := rows.Scan(
 			&p.ID,
 			&p.Submitter,
 			&p.State,
-			&depositNum,
+			&p.Deposit,
 			&p.Handler,
 			&p.Target.ConsensusProtocol,
 			&p.Target.RuntimeHostProtocol,
@@ -1093,15 +969,6 @@ func (c *StorageClient) Proposals(ctx context.Context, p apiTypes.GetConsensusPr
 				"request_id", ctx.Value(common.RequestIDContextKey),
 				"err", err.Error(),
 			)
-			return nil, apiCommon.ErrStorageError
-		}
-		var err error
-		p.Deposit, err = c.numericToBigInt(ctx, &depositNum)
-		if err != nil {
-			return nil, apiCommon.ErrStorageError
-		}
-		p.InvalidVotes, err = c.numericToBigInt(ctx, &invalidVotesNum)
-		if err != nil {
 			return nil, apiCommon.ErrStorageError
 		}
 
@@ -1120,8 +987,6 @@ func (c *StorageClient) Proposal(ctx context.Context, proposalID uint64) (*Propo
 	qf := NewQueryFactory(cid, "" /* no runtime identifier for the consensus layer */)
 
 	p := Proposal{Target: &ProposalTarget{}}
-	var depositNum pgtype.Numeric
-	var invalidVotesNum pgtype.Numeric
 	if err := c.db.QueryRow(
 		ctx,
 		qf.ProposalQuery(),
@@ -1130,7 +995,7 @@ func (c *StorageClient) Proposal(ctx context.Context, proposalID uint64) (*Propo
 		&p.ID,
 		&p.Submitter,
 		&p.State,
-		&depositNum,
+		&p.Deposit,
 		&p.Handler,
 		&p.Target.ConsensusProtocol,
 		&p.Target.RuntimeHostProtocol,
@@ -1139,21 +1004,12 @@ func (c *StorageClient) Proposal(ctx context.Context, proposalID uint64) (*Propo
 		&p.Cancels,
 		&p.CreatedAt,
 		&p.ClosesAt,
-		&invalidVotesNum,
+		&p.InvalidVotes,
 	); err != nil {
 		c.logger.Info("row scan failed",
 			"request_id", ctx.Value(common.RequestIDContextKey),
 			"err", err.Error(),
 		)
-		return nil, apiCommon.ErrStorageError
-	}
-	var err error
-	p.Deposit, err = c.numericToBigInt(ctx, &depositNum)
-	if err != nil {
-		return nil, apiCommon.ErrStorageError
-	}
-	p.InvalidVotes, err = c.numericToBigInt(ctx, &invalidVotesNum)
-	if err != nil {
 		return nil, apiCommon.ErrStorageError
 	}
 
@@ -1247,13 +1103,12 @@ func (c *StorageClient) Validators(ctx context.Context, p apiTypes.GetConsensusV
 	}
 	for rows.Next() {
 		var v Validator
-		var escrowNum pgtype.Numeric
 		var schedule staking.CommissionSchedule
 		if err := rows.Scan(
 			&v.EntityID,
 			&v.EntityAddress,
 			&v.NodeID,
-			&escrowNum,
+			&v.Escrow,
 			&schedule,
 			&v.Active,
 			&v.Status,
@@ -1262,11 +1117,6 @@ func (c *StorageClient) Validators(ctx context.Context, p apiTypes.GetConsensusV
 			c.logger.Info("query failed",
 				"err", err.Error(),
 			)
-			return nil, apiCommon.ErrStorageError
-		}
-		var err error
-		v.Escrow, err = c.numericToBigInt(ctx, &escrowNum)
-		if err != nil {
 			return nil, apiCommon.ErrStorageError
 		}
 
@@ -1320,13 +1170,12 @@ func (c *StorageClient) Validator(ctx context.Context, entityID signature.Public
 	)
 
 	var v Validator
-	var escrowNum pgtype.Numeric
 	var schedule staking.CommissionSchedule
 	if err := row.Scan(
 		&v.EntityID,
 		&v.EntityAddress,
 		&v.NodeID,
-		&escrowNum,
+		&v.Escrow,
 		&schedule,
 		&v.Active,
 		&v.Status,
@@ -1335,11 +1184,6 @@ func (c *StorageClient) Validator(ctx context.Context, entityID signature.Public
 		c.logger.Info("query failed",
 			"err", err.Error(),
 		)
-		return nil, apiCommon.ErrStorageError
-	}
-	var err error
-	v.Escrow, err = c.numericToBigInt(ctx, &escrowNum)
-	if err != nil {
 		return nil, apiCommon.ErrStorageError
 	}
 
@@ -1554,7 +1398,7 @@ func (c *StorageClient) RuntimeTokens(ctx context.Context, p apiTypes.GetEmerald
 		}
 		if totalSupplyNum.Status == pgtype.Present {
 			t.TotalSupply = &common.BigInt{}
-			*t.TotalSupply, err = c.numericToBigInt(ctx, &totalSupplyNum)
+			*t.TotalSupply, err = common.NumericToBigInt(totalSupplyNum)
 			if err != nil {
 				return nil, apiCommon.ErrStorageError
 			}

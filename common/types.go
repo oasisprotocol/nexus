@@ -46,7 +46,7 @@ func (b *BigInt) DecodeBinary(ci *pgtype.ConnInfo, src []byte) error {
 		return err
 	}
 
-	bigInt, err := numericToBigInt(numeric)
+	bigInt, err := NumericToBigInt(numeric)
 	*b = bigInt
 	return err
 }
@@ -56,11 +56,9 @@ func (b BigInt) EncodeBinary(ci *pgtype.ConnInfo, buf []byte) (newBuf []byte, er
 	return numeric.EncodeBinary(ci, buf)
 }
 
-// TODO: DEDUPLICATE - DO NOT SUBMIT PR BEFORE FIXING THIS
-//
-// numericToBigInt converts a pgtype.Numeric to a BigInt similar to the
+// NumericToBigInt converts a pgtype.Numeric to a BigInt similar to the
 // private method found at https://github.com/jackc/pgtype/blob/master/numeric.go#L398
-func numericToBigInt(n pgtype.Numeric) (BigInt, error) {
+func NumericToBigInt(n pgtype.Numeric) (BigInt, error) {
 	if n.Exp == 0 {
 		return BigInt{Int: *n.Int}, nil
 	}
