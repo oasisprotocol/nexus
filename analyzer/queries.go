@@ -357,56 +357,56 @@ func (qf QueryFactory) ConsensusVoteInsertQuery() string {
 
 func (qf QueryFactory) RuntimeBlockInsertQuery() string {
 	return fmt.Sprintf(`
-		INSERT INTO %s.%s_rounds (round, version, timestamp, block_hash, prev_block_hash, io_root, state_root, messages_hash, in_messages_hash, num_transactions, gas_used, size)
-			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`, qf.chainID, qf.runtime)
+		INSERT INTO %s.runtime_blocks (runtime, round, version, timestamp, block_hash, prev_block_hash, io_root, state_root, messages_hash, in_messages_hash, num_transactions, gas_used, size)
+			VALUES ('%s', $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`, qf.chainID, qf.runtime)
 }
 
 func (qf QueryFactory) RuntimeTransactionSignerInsertQuery() string {
 	return fmt.Sprintf(`
-		INSERT INTO %s.%s_transaction_signers (round, tx_index, signer_index, signer_address, nonce)
-			VALUES ($1, $2, $3, $4, $5)`, qf.chainID, qf.runtime)
+		INSERT INTO %[1]s.runtime_transaction_signers (runtime, round, tx_index, signer_index, signer_address, nonce)
+			VALUES ('%[2]s', $1, $2, $3, $4, $5)`, qf.chainID, qf.runtime)
 }
 
 func (qf QueryFactory) RuntimeRelatedTransactionInsertQuery() string {
 	return fmt.Sprintf(`
-		INSERT INTO %s.%s_related_transactions (account_address, tx_round, tx_index)
-			VALUES ($1, $2, $3)`, qf.chainID, qf.runtime)
+		INSERT INTO %[1]s.runtime_related_transactions (runtime, account_address, tx_round, tx_index)
+			VALUES ('%[2]s', $1, $2, $3)`, qf.chainID, qf.runtime)
 }
 
 func (qf QueryFactory) RuntimeTransactionInsertQuery() string {
 	return fmt.Sprintf(`
-		INSERT INTO %s.%s_transactions (round, tx_index, tx_hash, tx_eth_hash, raw, result_raw)
-			VALUES ($1, $2, $3, $4, $5, $6)`, qf.chainID, qf.runtime)
+		INSERT INTO %[1]s.runtime_transactions (runtime, round, tx_index, tx_hash, tx_eth_hash, raw, result_raw)
+			VALUES ('%[2]s', $1, $2, $3, $4, $5, $6)`, qf.chainID, qf.runtime)
 }
 
 func (qf QueryFactory) RuntimeMintInsertQuery() string {
 	return fmt.Sprintf(`
-		INSERT INTO %s.%s_transfers (round, sender, receiver, symbol, amount)
-			VALUES ($1, NULL, $2, $3, $4)`, qf.chainID, qf.runtime)
+		INSERT INTO %[1]s.runtime_transfers (runtime, round, sender, receiver, symbol, amount)
+			VALUES ('%[2]s', $1, NULL, $2, $3, $4)`, qf.chainID, qf.runtime)
 }
 
 func (qf QueryFactory) RuntimeBurnInsertQuery() string {
 	return fmt.Sprintf(`
-		INSERT INTO %s.%s_transfers (round, sender, receiver, symbol, amount)
-			VALUES ($1, $2, NULL, $3, $4)`, qf.chainID, qf.runtime)
+		INSERT INTO %[1]s.runtime_transfers (runtime, round, sender, receiver, symbol, amount)
+			VALUES ('%[2]s', $1, $2, NULL, $3, $4)`, qf.chainID, qf.runtime)
 }
 
 func (qf QueryFactory) RuntimeTransferInsertQuery() string {
 	return fmt.Sprintf(`
-		INSERT INTO %s.%s_transfers (round, sender, receiver, symbol, amount)
-			VALUES ($1, $2, $3, $4, $5)`, qf.chainID, qf.runtime)
+		INSERT INTO %[1]s.runtime_transfers (runtime, round, sender, receiver, symbol, amount)
+			VALUES ('%[2]s', $1, $2, $3, $4, $5)`, qf.chainID, qf.runtime)
 }
 
 func (qf QueryFactory) RuntimeDepositInsertQuery() string {
 	return fmt.Sprintf(`
-		INSERT INTO %s.%s_deposits (round, sender, receiver, amount, nonce, module, code)
-			VALUES ($1, $2, $3, $4, $5, $6, $7)`, qf.chainID, qf.runtime)
+		INSERT INTO %[1]s.runtime_deposits (runtime, round, sender, receiver, amount, nonce, module, code)
+			VALUES ('%[2]s', $1, $2, $3, $4, $5, $6, $7)`, qf.chainID, qf.runtime)
 }
 
 func (qf QueryFactory) RuntimeWithdrawInsertQuery() string {
 	return fmt.Sprintf(`
-		INSERT INTO %s.%s_withdraws (round, sender, receiver, amount, nonce, module, code)
-			VALUES ($1, $2, $3, $4, $5, $6, $7)`, qf.chainID, qf.runtime)
+		INSERT INTO %[1]s.runtime_withdraws (runtime, round, sender, receiver, amount, nonce, module, code)
+			VALUES ('%[2]s', $1, $2, $3, $4, $5, $6, $7)`, qf.chainID, qf.runtime)
 }
 
 func (qf QueryFactory) RuntimeNativeBalanceUpdateQuery() string {
@@ -419,8 +419,8 @@ func (qf QueryFactory) RuntimeNativeBalanceUpdateQuery() string {
 
 func (qf QueryFactory) RuntimeGasUsedInsertQuery() string {
 	return fmt.Sprintf(`
-		INSERT INTO %s.%s_gas_used (round, sender, amount)
-			VALUES ($1, $2, $3)`, qf.chainID, qf.runtime)
+		INSERT INTO %[1]s.runtime_gas_used (runtime, round, sender, amount)
+			VALUES ('%[2]s', $1, $2, $3)`, qf.chainID, qf.runtime)
 }
 
 func (qf QueryFactory) AddressPreimageInsertQuery() string {
@@ -432,17 +432,17 @@ func (qf QueryFactory) AddressPreimageInsertQuery() string {
 
 func (qf QueryFactory) RuntimeEvmBalanceUpdateQuery() string {
 	return fmt.Sprintf(`
-		INSERT INTO %[1]s.%[2]s_token_balances (token_address, account_address, balance)
-			VALUES ($1, $2, $3)
-		ON CONFLICT (token_address, account_address) DO
-			UPDATE SET balance = %[1]s.%[2]s_token_balances.balance + $3`, qf.chainID, qf.runtime)
+		INSERT INTO %[1]s.evm_token_balances (runtime, token_address, account_address, balance)
+			VALUES ('%[2]s', $1, $2, $3)
+		ON CONFLICT (runtime, token_address, account_address) DO
+			UPDATE SET balance = %[1]s.evm_token_balances.balance + $3`, qf.chainID, qf.runtime)
 }
 
 func (qf QueryFactory) RuntimeTokenUpdateQuery() string {
 	return fmt.Sprintf(`
-		INSERT INTO %s.%s_tokens (token_address, token_name, symbol, decimals, total_supply)
-			VALUES ($1, $2, $3, $4, $5)
-		ON CONFLICT (token_address) DO
+		INSERT INTO %[1]s.evm_tokens (runtime, token_address, token_name, symbol, decimals, total_supply)
+			VALUES ('%[2]s', $1, $2, $3, $4, $5)
+		ON CONFLICT (runtime, token_address) DO
 			UPDATE SET
 				token_name = excluded.token_name,
 				symbol = excluded.symbol,

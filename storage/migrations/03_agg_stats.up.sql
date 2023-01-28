@@ -28,12 +28,12 @@ CREATE MATERIALIZED VIEW stats.min5_tx_volume AS
   UNION ALL
   
   SELECT
-    'emerald' AS layer,
+    b.runtime::text AS layer,
     floor_5min(b.timestamp) AS window_start,
     COUNT(*) AS tx_volume
-  FROM oasis_3.emerald_rounds AS b
-  JOIN oasis_3.emerald_transactions AS t ON b.round = t.round
-  GROUP BY 2;
+  FROM oasis_3.runtime_blocks AS b
+  JOIN oasis_3.runtime_transactions AS t ON (b.round = t.round AND b.runtime = t.runtime)
+  GROUP BY 1, 2;
 
 -- daily_tx_volume stores the number of transactions per day
 -- at the consensus layer.

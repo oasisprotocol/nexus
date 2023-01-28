@@ -114,6 +114,7 @@ func (qf QueryFactory) EntitiesQuery() string {
 	return fmt.Sprintf(`
 		SELECT id, address
 			FROM %s.entities
+		ORDER BY id
 		LIMIT $1::bigint
 		OFFSET $2::bigint`, qf.chainID)
 }
@@ -137,6 +138,7 @@ func (qf QueryFactory) EntityNodesQuery() string {
 		SELECT id, entity_id, expiration, tls_pubkey, tls_next_pubkey, p2p_pubkey, consensus_pubkey, roles
 			FROM %s.nodes
 			WHERE entity_id = $1::text
+		ORDER BY id
 		LIMIT $2::bigint
 		OFFSET $3::bigint`, qf.chainID)
 }
@@ -169,6 +171,7 @@ func (qf QueryFactory) AccountsQuery() string {
 					($6::numeric IS NULL OR escrow_balance_debonding <= $6::numeric) AND
 					($7::numeric IS NULL OR general_balance + escrow_balance_active + escrow_balance_debonding >= $7::numeric) AND
 					($8::numeric IS NULL OR general_balance + escrow_balance_active + escrow_balance_debonding <= $8::numeric)
+		ORDER BY address
 		LIMIT $9::bigint
 		OFFSET $10::bigint`, qf.chainID)
 }
@@ -214,6 +217,7 @@ func (qf QueryFactory) DelegationsQuery() string {
 			FROM %[1]s.delegations
 			JOIN %[1]s.accounts ON %[1]s.delegations.delegatee = %[1]s.accounts.address
 			WHERE delegator = $1::text
+		ORDER BY delegatee, shares
 		LIMIT $2::bigint
 		OFFSET $3::bigint`, qf.chainID)
 }
@@ -345,8 +349,9 @@ func (qf QueryFactory) ValidatorsDataQuery() string {
 func (qf QueryFactory) RuntimeBlocksQuery() string {
 	return fmt.Sprintf(`
 		SELECT round, block_hash, timestamp, num_transactions, size, gas_used
-			FROM %s.%s_rounds
-			WHERE ($1::bigint IS NULL OR round >= $1::bigint) AND
+			FROM %[1]s.runtime_blocks
+			WHERE (runtime = '%[2]s') AND
+						($1::bigint IS NULL OR round >= $1::bigint) AND
 						($2::bigint IS NULL OR round <= $2::bigint) AND
 						($3::timestamptz IS NULL OR timestamp >= $3::timestamptz) AND
 						($4::timestamptz IS NULL OR timestamp <= $4::timestamptz)
@@ -358,8 +363,9 @@ func (qf QueryFactory) RuntimeBlocksQuery() string {
 func (qf QueryFactory) RuntimeTransactionsQuery() string {
 	return fmt.Sprintf(`
 		SELECT round, tx_index, tx_hash, tx_eth_hash, raw, result_raw
-			FROM %s.%s_transactions
-			WHERE ($1::bigint IS NULL OR round = $1::bigint) AND
+			FROM %[1]s.runtime_transactions
+			WHERE (runtime = '%[2]s') AND
+						($1::bigint IS NULL OR round = $1::bigint) AND
 						($2::text IS NULL OR tx_hash = $2::text)
 		ORDER BY round DESC, tx_index DESC
 		LIMIT $3::bigint
@@ -370,7 +376,8 @@ func (qf QueryFactory) EvmTokensQuery() string {
 	return fmt.Sprintf(`
 		WITH holders AS (
 			SELECT token_address, COUNT(*) AS cnt
-			FROM %[1]s.%[2]s_token_balances
+			FROM %[1]s.evm_token_balances
+			WHERE (runtime = '%[2]s')
 			GROUP BY token_address
 		)
 		SELECT
@@ -382,9 +389,10 @@ func (qf QueryFactory) EvmTokensQuery() string {
 			tokens.total_supply,
 			'ERC20' AS type,  -- TODO: fetch from the table once available
 			holders.cnt AS num_holders
-		FROM %[1]s.%[2]s_tokens AS tokens
+		FROM %[1]s.evm_tokens AS tokens
 		JOIN %[1]s.address_preimages AS preimages ON (token_address = preimages.address)
 		JOIN holders USING (token_address)
+		WHERE (tokens.runtime = '%[2]s')
 		ORDER BY num_holders DESC
 		LIMIT $1::bigint
 		OFFSET $2::bigint`, qf.chainID, qf.runtime)
@@ -393,11 +401,11 @@ func (qf QueryFactory) EvmTokensQuery() string {
 func (qf QueryFactory) AccountRuntimeSdkBalancesQuery() string {
 	return fmt.Sprintf(`
 		SELECT
+			runtime AS runtime,
 			balance AS balance,
 			symbol AS token_symbol
 		FROM %[1]s.runtime_sdk_balances
 		WHERE account_address = $1::text
-			AND runtime = '%[2]s'::text
 			AND balance != 0
 		ORDER BY balance DESC
 		LIMIT 1000  -- To prevent huge responses. Hardcoded because API exposes this as a subfield that does not lend itself to pagination.
@@ -407,14 +415,15 @@ func (qf QueryFactory) AccountRuntimeSdkBalancesQuery() string {
 func (qf QueryFactory) AccountRuntimeEvmBalancesQuery() string {
 	return fmt.Sprintf(`
 		SELECT
-			%[1]s.%[2]s_token_balances.balance AS balance,
-			%[1]s.%[2]s_token_balances.token_address AS token_address,
-			%[1]s.%[2]s_tokens.symbol AS token_symbol,
-			%[1]s.%[2]s_tokens.symbol AS token_name,
+			balances.runtime AS runtime,
+			balances.balance AS balance,
+			balances.token_address AS token_address,
+			tokens.symbol AS token_symbol,
+			tokens.symbol AS token_name,
 			'ERC20' AS token_type,  -- TODO: fetch from the table once available
-			%[1]s.%[2]s_tokens.decimals AS token_decimals
-		FROM %[1]s.%[2]s_token_balances
-		JOIN %[1]s.%[2]s_tokens USING (token_address)
+			tokens.decimals AS token_decimals
+		FROM %[1]s.evm_token_balances AS balances
+		JOIN %[1]s.evm_tokens         AS tokens USING (runtime, token_address)
 		WHERE account_address = $1::text
 		  AND balance != 0
 		ORDER BY balance DESC

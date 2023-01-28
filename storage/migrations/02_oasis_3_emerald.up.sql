@@ -2,9 +2,13 @@
 
 BEGIN;
 
-CREATE TABLE oasis_3.emerald_rounds
+CREATE TYPE runtime AS ENUM ('emerald', 'sapphire', 'cipher');
+
+CREATE TABLE oasis_3.runtime_blocks
 (
-  round     UINT63 PRIMARY KEY,
+  runtime   runtime NOT NULL,
+  round     UINT63,
+  PRIMARY KEY (runtime, round),
   version   UINT63 NOT NULL,
   timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
 
@@ -20,12 +24,14 @@ CREATE TABLE oasis_3.emerald_rounds
   gas_used         UINT63 NOT NULL,
   size             UINT31 NOT NULL  -- Total byte size of all transactions in the block.
 );
-CREATE INDEX ix_emerald_rounds_block_hash ON oasis_3.emerald_rounds USING hash (block_hash);
-CREATE INDEX ix_emerald_rounds_timestamp ON oasis_3.emerald_rounds (timestamp);
+CREATE INDEX ix_runtime_blocks_block_hash ON oasis_3.runtime_blocks USING hash (block_hash);  -- Hash indexes cannot span two colmns (runtime, block_hash). Not a problem for efficiency because block_hash is globally uniqueish.
+CREATE INDEX ix_runtime_blocks_timestamp ON oasis_3.runtime_blocks (runtime, timestamp);
 
-CREATE TABLE oasis_3.emerald_transactions
+CREATE TABLE oasis_3.runtime_transactions
 (
-  round       UINT63 NOT NULL REFERENCES oasis_3.emerald_rounds DEFERRABLE INITIALLY DEFERRED,
+  runtime     runtime NOT NULL,
+  round       UINT63 NOT NULL,
+  FOREIGN KEY (runtime, round) REFERENCES oasis_3.runtime_blocks DEFERRABLE INITIALLY DEFERRED,
   tx_index    UINT31 NOT NULL,
   tx_hash     HEX64 NOT NULL,
   tx_eth_hash HEX64,
@@ -36,13 +42,14 @@ CREATE TABLE oasis_3.emerald_transactions
   raw         BYTEA NOT NULL,
   -- result_raw is cbor(CallResult).
   result_raw  BYTEA NOT NULL,
-  PRIMARY KEY (round, tx_index)
+  PRIMARY KEY (runtime, round, tx_index)
 );
-CREATE INDEX ix_emerald_transactions_tx_hash ON oasis_3.emerald_transactions USING hash (tx_hash);
-CREATE INDEX ix_emerald_transactions_tx_eth_hash ON oasis_3.emerald_transactions USING hash (tx_eth_hash);
+CREATE INDEX ix_runtime_transactions_tx_hash ON oasis_3.runtime_transactions USING hash (tx_hash);
+CREATE INDEX ix_runtime_transactions_tx_eth_hash ON oasis_3.runtime_transactions USING hash (tx_eth_hash);
 
-CREATE TABLE oasis_3.emerald_transaction_signers
+CREATE TABLE oasis_3.runtime_transaction_signers
 (
+  runtime        runtime NOT NULL,
   round          UINT63 NOT NULL,
   tx_index       UINT31 NOT NULL,
   -- Emerald processes mainly Ethereum-format transactions with only one
@@ -52,19 +59,20 @@ CREATE TABLE oasis_3.emerald_transaction_signers
   signer_index   UINT31 NOT NULL,
   signer_address oasis_addr NOT NULL,
   nonce          UINT31 NOT NULL,
-  PRIMARY KEY (round, tx_index, signer_index),
-  FOREIGN KEY (round, tx_index) REFERENCES oasis_3.emerald_transactions(round, tx_index) DEFERRABLE INITIALLY DEFERRED
+  PRIMARY KEY (runtime, round, tx_index, signer_index),
+  FOREIGN KEY (runtime, round, tx_index) REFERENCES oasis_3.runtime_transactions(runtime, round, tx_index) DEFERRABLE INITIALLY DEFERRED
 );
-CREATE INDEX ix_emerald_transaction_signers_signer_address_signer_nonce ON oasis_3.emerald_transaction_signers (signer_address, nonce);
+CREATE INDEX ix_runtime_transaction_signers_signer_address_signer_nonce ON oasis_3.runtime_transaction_signers (signer_address, nonce);
 
-CREATE TABLE oasis_3.emerald_related_transactions
+CREATE TABLE oasis_3.runtime_related_transactions
 (
+  runtime         runtime NOT NULL,
   account_address oasis_addr NOT NULL,
   tx_round        UINT63 NOT NULL,
   tx_index        UINT31 NOT NULL,
-  FOREIGN KEY (tx_round, tx_index) REFERENCES oasis_3.emerald_transactions(round, tx_index) DEFERRABLE INITIALLY DEFERRED
+  FOREIGN KEY (runtime, tx_round, tx_index) REFERENCES oasis_3.runtime_transactions(runtime, round, tx_index) DEFERRABLE INITIALLY DEFERRED
 );
-CREATE INDEX ix_emerald_related_transactions_address_height_index ON oasis_3.emerald_related_transactions (account_address, tx_round, tx_index);
+CREATE INDEX ix_runtime_related_transactions_address_height_index ON oasis_3.runtime_related_transactions (account_address, tx_round, tx_index);
 
 -- Oasis addresses are derived from a derivation "context" and a piece of
 -- data, such as an ed25519 public key or an Ethereum address. The derivation
@@ -94,18 +102,23 @@ CREATE TABLE oasis_3.address_preimages
   address_data       BYTEA NOT NULL
 );
 
-CREATE TABLE oasis_3.emerald_token_balances
+-- -- -- -- -- -- -- -- -- -- -- -- -- Module evm -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
+CREATE TABLE oasis_3.evm_token_balances
 (
+  runtime runtime NOT NULL,
   token_address oasis_addr NOT NULL,
   account_address oasis_addr NOT NULL,
-  balance NUMERIC(1000,0) NOT NULL,  -- TODO: Use UINT_NUMERIC once we are processing Emerald from round 0.
-  PRIMARY KEY (token_address, account_address)
+  PRIMARY KEY (runtime, token_address, account_address),
+  balance NUMERIC(1000,0) NOT NULL  -- TODO: Use UINT_NUMERIC once we are processing Emerald from round 0.
 );
-CREATE INDEX ix_emerald_token_address ON oasis_3.emerald_token_balances (token_address) WHERE balance != 0;
+CREATE INDEX ix_emerald_token_address ON oasis_3.evm_token_balances (token_address) WHERE balance != 0;
 
-CREATE TABLE oasis_3.emerald_tokens
+CREATE TABLE oasis_3.evm_tokens
 (
-  token_address oasis_addr PRIMARY KEY,
+  runtime runtime NOT NULL,
+  token_address oasis_addr,
+  PRIMARY KEY (runtime, token_address),
   token_name TEXT,
   -- TODO: Add token type (ERC20, ERC721, etc.). See EvmTokenType enum
   symbol TEXT,
@@ -113,23 +126,28 @@ CREATE TABLE oasis_3.emerald_tokens
   total_supply uint_numeric
 );
 
--- Core Module Data
-CREATE TABLE oasis_3.emerald_gas_used
+-- -- -- -- -- -- -- -- -- -- -- -- -- Module core -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
+CREATE TABLE oasis_3.runtime_gas_used
 (
-  round  UINT63 NOT NULL REFERENCES oasis_3.emerald_rounds DEFERRABLE INITIALLY DEFERRED,
-  sender oasis_addr REFERENCES oasis_3.address_preimages,  -- TODO: add NOT NULL; but analyzer is only putting NULLs here for now because it doesn't have the data
-  amount UINT_NUMERIC NOT NULL
+  runtime runtime NOT NULL,
+  round   UINT63 NOT NULL,
+  FOREIGN KEY (runtime, round) REFERENCES oasis_3.runtime_blocks DEFERRABLE INITIALLY DEFERRED,
+  sender  oasis_addr REFERENCES oasis_3.address_preimages,  -- TODO: add NOT NULL; but analyzer is only putting NULLs here for now because it doesn't have the data
+  amount  UINT_NUMERIC NOT NULL
 );
 
-CREATE INDEX ix_emerald_gas_used_sender ON oasis_3.emerald_gas_used(sender);
+CREATE INDEX ix_runtime_gas_used_sender ON oasis_3.runtime_gas_used(sender);
 
--- Accounts Module Data
+-- -- -- -- -- -- -- -- -- -- -- -- -- Module accounts -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
--- The emerald_transfers table encapsulates transfers, burns, and mints.
+-- This table encapsulates transfers, burns, and mints (at the level of the `accounts` SDK module; NOT evm transfers).
 -- Burns are denoted by NULL as the receiver and mints are denoted by NULL as the sender.
-CREATE TABLE oasis_3.emerald_transfers
+CREATE TABLE oasis_3.runtime_transfers
 (
-  round    UINT63 NOT NULL REFERENCES oasis_3.emerald_rounds DEFERRABLE INITIALLY DEFERRED,
+  runtime  runtime NOT NULL,
+  round    UINT63 NOT NULL,
+  FOREIGN KEY (runtime, round) REFERENCES oasis_3.runtime_blocks DEFERRABLE INITIALLY DEFERRED,
   -- Any paratime account. This almost always REFERENCES oasis_3.address_preimages(address)
   -- because the sender signed the Transfer tx and was inserted into address_preimages then.
   -- Exceptions are special addresses; see e.g. the rewards-pool address.
@@ -145,14 +163,17 @@ CREATE TABLE oasis_3.emerald_transfers
 
   CHECK (NOT (sender IS NULL AND receiver IS NULL))
 );
-CREATE INDEX ix_emerald_transfers_sender ON oasis_3.emerald_transfers(sender);
-CREATE INDEX ix_emerald_transfers_receiver ON oasis_3.emerald_transfers(receiver);
+CREATE INDEX ix_runtime_transfers_sender ON oasis_3.runtime_transfers(sender);
+CREATE INDEX ix_runtime_transfers_receiver ON oasis_3.runtime_transfers(receiver);
 
--- Consensus Accounts Module Data
+-- -- -- -- -- -- -- -- -- -- -- -- -- Module consensusaccounts -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
 -- Deposits from the consensus layer into the paratime.
-CREATE TABLE oasis_3.emerald_deposits
+CREATE TABLE oasis_3.runtime_deposits
 (
-  round    UINT63 NOT NULL REFERENCES oasis_3.emerald_rounds DEFERRABLE INITIALLY DEFERRED,
+  runtime  runtime NOT NULL, 
+  round    UINT63 NOT NULL,
+  FOREIGN KEY (runtime, round) REFERENCES oasis_3.runtime_blocks DEFERRABLE INITIALLY DEFERRED,
   -- The `sender` is a consensus account, so this REFERENCES oasis_3.accounts; we omit the FK so
   -- that consensus and paratimes can be indexed independently.
   -- It also REFERENCES oasis_3.address_preimages because the sender signed at least the Deposit tx.
@@ -174,13 +195,15 @@ CREATE TABLE oasis_3.emerald_deposits
   module TEXT,
   code   UINT63
 );
-CREATE INDEX ix_emerald_deposits_sender ON oasis_3.emerald_deposits(sender);
-CREATE INDEX ix_emerald_deposits_receiver ON oasis_3.emerald_deposits(receiver);
+CREATE INDEX ix_runtime_deposits_sender ON oasis_3.runtime_deposits(sender);
+CREATE INDEX ix_runtime_deposits_receiver ON oasis_3.runtime_deposits(receiver);
 
 -- Withdrawals from the paratime into consensus layer.
-CREATE TABLE oasis_3.emerald_withdraws
+CREATE TABLE oasis_3.runtime_withdraws
 (
-  round    UINT63 NOT NULL REFERENCES oasis_3.emerald_rounds DEFERRABLE INITIALLY DEFERRED,
+  runtime  runtime NOT NULL,
+  round    UINT63 NOT NULL,
+  FOREIGN KEY (runtime, round) REFERENCES oasis_3.runtime_blocks DEFERRABLE INITIALLY DEFERRED,
   -- The `sender` can be any paratime address. (i.e. secp256k1eth-backed OR ed25519-backed;
   -- other are options unlikely in an EVM paratime)
   -- It REFERENCES oasis_3.address_preimages because the sender signed at least the Withdraw tx.
@@ -195,8 +218,8 @@ CREATE TABLE oasis_3.emerald_withdraws
   module TEXT,
   code   UINT63
 );
-CREATE INDEX ix_emerald_withdraws_sender ON oasis_3.emerald_withdraws(sender);
-CREATE INDEX ix_emerald_withdraws_receiver ON oasis_3.emerald_withdraws(receiver);
+CREATE INDEX ix_runtime_withdraws_sender ON oasis_3.runtime_withdraws(sender);
+CREATE INDEX ix_runtime_withdraws_receiver ON oasis_3.runtime_withdraws(receiver);
 
 -- Balance of the oasis-sdk native tokens (notably ROSE) in paratimes.
 CREATE TABLE oasis_3.runtime_sdk_balances (
