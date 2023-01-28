@@ -7,7 +7,8 @@ CREATE TYPE runtime AS ENUM ('emerald', 'sapphire', 'cipher');
 CREATE TABLE oasis_3.runtime_blocks
 (
   runtime   runtime NOT NULL,
-  round     UINT63 PRIMARY KEY,
+  round     UINT63,
+  PRIMARY KEY (runtime, round),
   version   UINT63 NOT NULL,
   timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
 
@@ -29,7 +30,8 @@ CREATE INDEX ix_runtime_blocks_timestamp ON oasis_3.runtime_blocks (runtime, tim
 CREATE TABLE oasis_3.runtime_transactions
 (
   runtime     runtime NOT NULL,
-  round       UINT63 NOT NULL REFERENCES oasis_3.runtime_blocks DEFERRABLE INITIALLY DEFERRED,
+  round       UINT63 NOT NULL,
+  FOREIGN KEY (runtime, round) REFERENCES oasis_3.runtime_blocks DEFERRABLE INITIALLY DEFERRED,
   tx_index    UINT31 NOT NULL,
   tx_hash     HEX64 NOT NULL,
   tx_eth_hash HEX64,
@@ -129,7 +131,8 @@ CREATE TABLE oasis_3.evm_tokens
 CREATE TABLE oasis_3.runtime_gas_used
 (
   runtime runtime NOT NULL,
-  round   UINT63 NOT NULL REFERENCES oasis_3.runtime_blocks DEFERRABLE INITIALLY DEFERRED,
+  round   UINT63 NOT NULL,
+  FOREIGN KEY (runtime, round) REFERENCES oasis_3.runtime_blocks DEFERRABLE INITIALLY DEFERRED,
   sender  oasis_addr REFERENCES oasis_3.address_preimages,  -- TODO: add NOT NULL; but analyzer is only putting NULLs here for now because it doesn't have the data
   amount  UINT_NUMERIC NOT NULL
 );
@@ -143,7 +146,8 @@ CREATE INDEX ix_runtime_gas_used_sender ON oasis_3.runtime_gas_used(sender);
 CREATE TABLE oasis_3.runtime_transfers
 (
   runtime  runtime NOT NULL,
-  round    UINT63 NOT NULL REFERENCES oasis_3.runtime_blocks DEFERRABLE INITIALLY DEFERRED,
+  round    UINT63 NOT NULL,
+  FOREIGN KEY (runtime, round) REFERENCES oasis_3.runtime_blocks DEFERRABLE INITIALLY DEFERRED,
   -- Any paratime account. This almost always REFERENCES oasis_3.address_preimages(address)
   -- because the sender signed the Transfer tx and was inserted into address_preimages then.
   -- Exceptions are special addresses; see e.g. the rewards-pool address.
@@ -168,7 +172,8 @@ CREATE INDEX ix_runtime_transfers_receiver ON oasis_3.runtime_transfers(receiver
 CREATE TABLE oasis_3.runtime_deposits
 (
   runtime  runtime NOT NULL, 
-  round    UINT63 NOT NULL REFERENCES oasis_3.runtime_blocks DEFERRABLE INITIALLY DEFERRED,
+  round    UINT63 NOT NULL,
+  FOREIGN KEY (runtime, round) REFERENCES oasis_3.runtime_blocks DEFERRABLE INITIALLY DEFERRED,
   -- The `sender` is a consensus account, so this REFERENCES oasis_3.accounts; we omit the FK so
   -- that consensus and paratimes can be indexed independently.
   -- It also REFERENCES oasis_3.address_preimages because the sender signed at least the Deposit tx.
@@ -197,7 +202,8 @@ CREATE INDEX ix_runtime_deposits_receiver ON oasis_3.runtime_deposits(receiver);
 CREATE TABLE oasis_3.runtime_withdraws
 (
   runtime  runtime NOT NULL,
-  round    UINT63 NOT NULL REFERENCES oasis_3.runtime_blocks DEFERRABLE INITIALLY DEFERRED,
+  round    UINT63 NOT NULL,
+  FOREIGN KEY (runtime, round) REFERENCES oasis_3.runtime_blocks DEFERRABLE INITIALLY DEFERRED,
   -- The `sender` can be any paratime address. (i.e. secp256k1eth-backed OR ed25519-backed;
   -- other are options unlikely in an EVM paratime)
   -- It REFERENCES oasis_3.address_preimages because the sender signed at least the Withdraw tx.
