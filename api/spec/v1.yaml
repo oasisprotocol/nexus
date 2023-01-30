@@ -86,6 +86,8 @@ x-examples:
     - &runtime_block_round_1 3283246
   runtime-block-hash:
     - &runtime_block_hash_1 '21c243cd34bedfc234f1b45615d10a868f0655f59578f063a7d2fc8c6e5b4009'
+  runtime-event-type:
+    - &runtime_event_type_1 'consensus_accounts.deposit'
   iso-timestamp:
     - &iso_timestamp_1 '2022-03-01T00:00:00Z'
     - &iso_timestamp_2 '2019-04-01T00:00:00Z'
@@ -766,6 +768,74 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RuntimeTransactionList'
+        <<: *common_error_responses
+  
+  /emerald/events:
+    get:
+      summary: Returns a list of Emerald events.
+      parameters:
+        - *limit
+        - *offset
+        - in: query
+          name: block
+          schema:
+            type: integer
+            format: int64
+          description: A filter on block round.
+          example: *runtime_block_round_1
+        - in: query
+          name: tx_index # TODO: Is it possible to get the tx_index from the oasis-sdk (currently only returns txhash)? Could make a second call to fetch the tx by its hash...
+          schema:
+            type: integer
+            format: int32
+          description: |
+            A filter on transaction index. The returned events all need to originate
+            from a transaction that appeared in `tx_index`-th position in the block.
+            It is invalid to specify this filter without also specifying a `block`.
+            Specifying `tx_index` and `round` is an alternative to specifying `tx_hash`;
+            either works to fetch events from a specific transaction.
+          example: 3
+        - in: query
+          name: tx_hash
+          schema:
+            type: string
+          description: |
+            A filter on the hash of the transaction that originated the events.
+            Specifying `tx_index` and `round` is an alternative to specifying `tx_hash`;
+            either works to fetch events from a specific transaction.
+          example: *tx_hash_1
+        - in: query
+          name: rel
+          schema:
+            type: string
+          description: |
+            A filter on related accounts. Every returned event will refer to
+            this account. For example, for a `accounts.Transfer` event, this will be
+            the sender or the recipient of tokens.
+          example: *staking_address_1
+        - in: query
+          name: type
+          schema:
+            $ref: '#/components/schemas/RuntimeEventType'
+          description: A filter on the event type.
+        - in: query
+          name: evm_log_signature
+          schema:
+            type: string
+          description: |
+            A filter on the first of `topics` in the EVM log structure, which typically contains the 
+            event _signature_, i.e. the keccak256 hash of the event name and parameter types.
+            Note: The filter will match on `topics[0]` even in the rare case of anonymous events 
+            when that field does not actually contain the signature.
+          example: '0x27f12abfe35860a9a927b465bb3d4a9c23c8428174b83f278fe45ed7b4da2662'
+      responses:
+        '200':
+          description: |
+            Runtime events matching the filters, sorted by most recent first.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RuntimeEventList'
         <<: *common_error_responses
 
   /emerald/transactions/{tx_hash}:
@@ -1675,6 +1745,72 @@ components:
           example: 118597
       description: |
         A ParaTime block.
+
+    RuntimeEventList:
+      type: object
+      required: [events]
+      properties:
+        events:
+          type: array
+          items:
+            $ref: '#/components/schemas/RuntimeEvent'
+      description: |
+        A list of runtime events.
+
+    RuntimeEvent:
+      type: object
+      required: [round, type, body]
+      properties:
+        round:
+          type: integer
+          format: int64
+          description: The block height at which this event was generated.
+          example: *runtime_block_round_1
+        tx_hash:
+          type: string
+          nullable: true
+          description: |
+            Hash of this event's originating transaction
+            Absent if the event did not originate from a transaction.
+          example: *tx_hash_1
+        type: 
+          description: The type of the event.
+          $ref: '#/components/schemas/RuntimeEventType'
+        body:
+          type: object
+          description: |
+            The decoded event contents. This spec does not encode the many possible types;
+            instead, see [the Go API](https://pkg.go.dev/github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules).
+            This object will conform to one of the `*Event` types two levels down
+            the hierarchy (e.g. `MintEvent` from `accounts > Event > MintEvent`),
+            OR `evm > Event`.
+        evm_log_name:
+          type: string
+          nullable: true
+          description: |
+            If the event type is `evm.log`, this field describes the human-readable type of evm event, e.g.
+            `Transfer`. We currently only support two types of evm events, ERC20 `Transfer` and `Approve`.
+            Absent if the event type is not `evm.log`.
+          example: 'Transfer'
+        evm_log_params:
+          type: object
+          description: |
+            The decoded `evm.log` event data. We currently support only two types of evm events, ERC20 `Transfer` 
+            and `Approve`.
+            Absent if the event type is not `evm.log`.
+      description: An event emitted by the runtime layer
+
+    RuntimeEventType:
+      type: string
+      enum:
+        - accounts.transfer
+        - accounts.burn
+        - accounts.mint
+        - consensus_accounts.deposit
+        - consensus_accounts.withdraw
+        - core.gas_used
+        - evm.log
+      example: *runtime_event_type_1
 
     RuntimeTransactionList:
       type: object

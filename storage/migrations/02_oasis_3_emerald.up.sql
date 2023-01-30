@@ -232,6 +232,32 @@ CREATE TABLE oasis_3.runtime_sdk_balances (
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
+-- Events emitted from the emerald paratime
+CREATE TABLE oasis_3.runtime_events
+(
+  runtime runtime NOT NULL,
+  round UINT63 NOT NULL,
+  tx_index UINT31,
+  FOREIGN KEY (runtime, round, tx_index) REFERENCES oasis_3.runtime_transactions(runtime, round, tx_index) DEFERRABLE INITIALLY DEFERRED,
+  
+  tx_hash HEX64,
+  -- TODO: add link to openapi spec section with runtime event types.
+  type TEXT NOT NULL,
+  -- The raw event, as returned by the oasis-sdk runtime client. 
+  -- `evm.log` events are further parsed into known event types, 
+  -- e.g. (ERC20) Transfer, to populate the `evm_log_name` and 
+  -- `evm_log_params` fields below.
+  body JSON NOT NULL,
+  evm_log_name TEXT,
+  -- The event signature, if it exists, will be the first topic.
+  evm_log_signature TEXT GENERATED ALWAYS AS (body->'topics'->>0) STORED,
+  evm_log_params JSONB,
+  related_accounts oasis_addr[]  
+);
+CREATE INDEX ix_runtime_events_related_accounts ON oasis_3.runtime_events USING gin(related_accounts);
+CREATE INDEX ix_runtime_events_evm_log_signature ON oasis_3.runtime_events(evm_log_signature);
+CREATE INDEX ix_runtime_events_evm_log_params ON oasis_3.runtime_events USING gin(evm_log_params);
+
 -- Grant others read-only use.
 -- (We granted already in 01_oasis_3_consensus.up.sql, but the grant does not apply to new tables.)
 GRANT SELECT ON ALL TABLES IN SCHEMA oasis_3 TO PUBLIC;
