@@ -4,6 +4,7 @@ package config
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/knadh/koanf"
 	"github.com/knadh/koanf/parsers/yaml"
@@ -49,39 +50,64 @@ func (cfg *Config) Validate() error {
 
 // AnalysisConfig is the configuration for chain analyzers.
 type AnalysisConfig struct {
-	// Analyzers is the analyzer configs.
-	Analyzers []*AnalyzerConfig `koanf:"analyzers"`
+	// Node is the configuration for accessing oasis-node.
+	Node NodeConfig `koanf:"node"`
 
-	// Migrations is the directory containing storage migrations.
-	Migrations string `koanf:"migrations"`
+	// Analyzers is the analyzer configs.
+	Analyzers AnalyzersList `koanf:"analyzers"`
 
 	Storage *StorageConfig `koanf:"storage"`
 }
 
 // Validate validates the analysis configuration.
 func (cfg *AnalysisConfig) Validate() error {
-	names := make(map[string]bool, len(cfg.Analyzers))
-	for _, analyzerCfg := range cfg.Analyzers {
-		if err := analyzerCfg.Validate(); err != nil {
+	if cfg.Analyzers.Consensus != nil {
+		if err := cfg.Analyzers.Consensus.Validate(); err != nil {
 			return err
 		}
-		if _, ok := names[analyzerCfg.Name]; ok {
-			return fmt.Errorf("repeated analyzer name '%s'", analyzerCfg.Name)
-		}
-		names[analyzerCfg.Name] = true
 	}
-	return cfg.Storage.Validate()
+	if cfg.Analyzers.Emerald != nil {
+		if err := cfg.Analyzers.Emerald.Validate(); err != nil {
+			return err
+		}
+	}
+	if cfg.Analyzers.Sapphire != nil {
+		if err := cfg.Analyzers.Sapphire.Validate(); err != nil {
+			return err
+		}
+	}
+	if cfg.Analyzers.Cipher != nil {
+		if err := cfg.Analyzers.Cipher.Validate(); err != nil {
+			return err
+		}
+	}
+	if cfg.Analyzers.MetadataRegistry != nil {
+		if err := cfg.Analyzers.MetadataRegistry.Validate(); err != nil {
+			return err
+		}
+	}
+	if cfg.Analyzers.AggregateStats != nil {
+		if err := cfg.Analyzers.AggregateStats.Validate(); err != nil {
+			return err
+		}
+	}
+	return cfg.Storage.Validate(true /* requireMigrations */)
 }
 
-// AnalyzerConfig is the configuration for a chain analyzer.
-//
-// If an analyzer is intended to run periodically, it should specify
-// an Interval. If it is intended to process blocks linearly, it should
-// specify a From and (optionally) To block range.
-type AnalyzerConfig struct {
-	// Name is the name of the analyzer.
-	Name string `koanf:"name"`
+type AnalyzersList struct {
+	Consensus *BlockBasedAnalyzerConfig `koanf:"consensus"`
+	Emerald   *BlockBasedAnalyzerConfig `koanf:"emerald"`
+	Sapphire  *BlockBasedAnalyzerConfig `koanf:"sapphire"`
+	Cipher    *BlockBasedAnalyzerConfig `koanf:"cipher"`
 
+	EvmTokens *EvmTokensAnalyzerConfig `koanf:"evm_tokens"`
+
+	MetadataRegistry *IntervalBasedAnalyzerConfig `koanf:"metadata_registry"`
+	AggregateStats   *IntervalBasedAnalyzerConfig `koanf:"aggregate_stats"`
+}
+
+// NodeConfig is the configuration for chain analyzers.
+type NodeConfig struct {
 	// ChainID is the chain ID of the chain this analyzer will process.
 	// Used to identify the chain in the database.
 	ChainID string `koanf:"chain_id"`
@@ -94,6 +120,13 @@ type AnalyzerConfig struct {
 	// Used as safety check to prevent accidental use of the wrong RPC endpoint.
 	ChainContext string `koanf:"chaincontext"`
 
+	// If set, the analyzer will skip some initial checks, e.g. that
+	// `rpc` really serves the chain with `chain_context`.
+	// NOT RECOMMENDED in production; intended for faster testing.
+	FastStartup bool `koanf:"fast_startup"`
+}
+
+type BlockBasedAnalyzerConfig struct {
 	// From is the (inclusive) starting block for this analyzer.
 	From int64 `koanf:"from"`
 
@@ -102,27 +135,39 @@ type AnalyzerConfig struct {
 	// continue processing new blocks until the next breaking
 	// upgrade.
 	To int64 `koanf:"to"`
+}
 
+type IntervalBasedAnalyzerConfig struct {
 	// Interval is the time interval at which to run the analyzer.
 	// It should be specified as a string compliant with
 	// time.ParseDuration (https://pkg.go.dev/time#ParseDuration).
 	Interval string `koanf:"interval"`
-
-	// If set, the analyzer will skip some initial checks, e.g. that
-	// `rpc` really serves the chain with `chain_context`.
-	// NOT RECOMMENDED in production; intended for faster testing.
-	FastStartup bool `koanf:"fast_startup"`
 }
 
-// Validate validates the analysis configuration.
-func (cfg *AnalyzerConfig) Validate() error {
-	if cfg.Name == "" {
-		return fmt.Errorf("malformed analyzer name '%s'", cfg.Name)
-	}
+type EvmTokensAnalyzerConfig struct{}
+
+// Validate validates the range configuration.
+func (cfg *BlockBasedAnalyzerConfig) Validate() error {
 	if (cfg.To != 0 && cfg.From > cfg.To) || cfg.To < 0 || cfg.From < 0 {
 		return fmt.Errorf("malformed analysis range from %d to %d", cfg.From, cfg.To)
 	}
 	return nil
+}
+
+// Validate validates the range configuration.
+func (cfg *IntervalBasedAnalyzerConfig) Validate() error {
+	_, err := time.ParseDuration(cfg.Interval)
+	return err
+}
+
+func (cfg *IntervalBasedAnalyzerConfig) ParsedInterval() time.Duration {
+	var interval time.Duration
+	var err error
+	interval, err = time.ParseDuration(cfg.Interval)
+	if err != nil {
+		panic(err) // should have been caught by Validate()
+	}
+	return interval
 }
 
 // ServerConfig contains the API server configuration.
@@ -144,7 +189,7 @@ func (cfg *ServerConfig) Validate() error {
 	if cfg.Storage == nil {
 		return fmt.Errorf("no storage config provided")
 	}
-	return cfg.Storage.Validate()
+	return cfg.Storage.Validate(false /* requireMigrations */)
 }
 
 // StorageBackend is a storage backend.
@@ -202,15 +247,21 @@ type StorageConfig struct {
 	// Backend is the storage backend to select.
 	Backend string `koanf:"backend"`
 
+	// Migrations is the directory containing schema migrations.
+	Migrations string `koanf:"migrations"`
+
 	// If true, we'll first delete all tables in the DB to
 	// force a full re-index of the blockchain.
 	WipeStorage bool `koanf:"DANGER__WIPE_STORAGE_ON_STARTUP"`
 }
 
 // Validate validates the storage configuration.
-func (cfg *StorageConfig) Validate() error {
+func (cfg *StorageConfig) Validate(requireMigrations bool) error {
 	if cfg.Endpoint == "" {
 		return fmt.Errorf("malformed storage endpoint '%s'", cfg.Endpoint)
+	}
+	if cfg.Migrations == "" && requireMigrations {
+		return fmt.Errorf("invalid path to migrations '%s'", cfg.Migrations)
 	}
 	var sb StorageBackend
 	return sb.Set(cfg.Backend)

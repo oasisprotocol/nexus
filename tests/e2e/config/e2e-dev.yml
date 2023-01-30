@@ -1,15 +1,16 @@
 analysis:
-  analyzers:
-    - name: consensus_damask
+  node:
       chain_id: oasis-3  # a fake mainnet, based on oasis-net-runner
       rpc: unix:/testnet/net-runner/network/validator-0/internal.sock
       chaincontext: 59e65fd10f3057cb8009998c5e6288db40b32a3a37f3c3a7c769fd84ed4c63c9
+  analyzers:
+    consensus:
       from: 1
       to: 86400
   storage:
     endpoint: postgresql://indexer:password@indexer-postgres:5432/indexer?sslmode=disable
     backend: postgres
-  migrations: file:///storage/migrations
+    migrations: file:///storage/migrations
 
 server:
   chain_id: oasis-3  # a fake mainnet, based on oasis-net-runner

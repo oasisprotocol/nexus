@@ -58,15 +58,15 @@ type Main struct {
 var _ analyzer.Analyzer = (*Main)(nil)
 
 // NewMain returns a new main analyzer for the consensus layer.
-func NewMain(cfg *config.AnalyzerConfig, target storage.TargetStorage, logger *log.Logger) (*Main, error) {
+func NewMain(nodeCfg config.NodeConfig, cfg *config.BlockBasedAnalyzerConfig, target storage.TargetStorage, logger *log.Logger) (*Main, error) {
 	ctx := context.Background()
 
 	// Initialize source storage.
 	networkCfg := oasisConfig.Network{
-		ChainContext: cfg.ChainContext,
-		RPC:          cfg.RPC,
+		ChainContext: nodeCfg.ChainContext,
+		RPC:          nodeCfg.RPC,
 	}
-	factory, err := source.NewClientFactory(ctx, &networkCfg, cfg.FastStartup)
+	factory, err := source.NewClientFactory(ctx, &networkCfg, nodeCfg.FastStartup)
 	if err != nil {
 		logger.Error("error creating client factory",
 			"err", err.Error(),
@@ -87,7 +87,7 @@ func NewMain(cfg *config.AnalyzerConfig, target storage.TargetStorage, logger *l
 		To:   cfg.To,
 	}
 	ac := analyzer.ConsensusConfig{
-		ChainID: cfg.ChainID,
+		ChainID: nodeCfg.ChainID,
 		Range:   blockRange,
 		Source:  client,
 	}
@@ -95,7 +95,7 @@ func NewMain(cfg *config.AnalyzerConfig, target storage.TargetStorage, logger *l
 	logger.Info("Starting consensus analyzer", "config", ac)
 	return &Main{
 		cfg:     ac,
-		qf:      analyzer.NewQueryFactory(strcase.ToSnake(cfg.ChainID), "" /* no runtime identifier for the consensus layer */),
+		qf:      analyzer.NewQueryFactory(strcase.ToSnake(nodeCfg.ChainID), "" /* no runtime identifier for the consensus layer */),
 		target:  target,
 		logger:  logger.With("analyzer", ConsensusDamaskAnalyzerName),
 		metrics: metrics.NewDefaultDatabaseMetrics(ConsensusDamaskAnalyzerName),

@@ -1,24 +1,21 @@
 analysis:
+  node:
+    chain_id: oasis-3
+    rpc: unix:/tmp/node.sock #unix:/node/data/internal.sock
+    chaincontext: b11b369e0da5bb230b220127f5e7b242d385ef8c6f54906243f30af63c815535
   analyzers:
-    - name: metadata_registry
-      chain_id: oasis-3
+    metadata_registry:
       interval: 1h
-    - name: aggregate_stats
+    aggregate_stats:
       interval: 10m
-    - name: consensus_main_damask
-      chain_id: oasis-3
-      rpc: unix:/node/data/internal.sock
-      chaincontext: b11b369e0da5bb230b220127f5e7b242d385ef8c6f54906243f30af63c815535
+    consensus:
       from: 8_048_956  # Damask genesis
-    - name: emerald_main_damask
-      chain_id: oasis-3
-      rpc: unix:/node/data/internal.sock
-      chaincontext: b11b369e0da5bb230b220127f5e7b242d385ef8c6f54906243f30af63c815535
+    emerald:
       from: 1_003_298  # round at Damask genesis
   storage:
-    endpoint: postgresql://rwuser:password@localhost:5432/indexer?sslmode=disable
     backend: postgres
-  migrations: file://storage/migrations
+    endpoint: postgresql://rwuser:password@localhost:5432/indexer?sslmode=disable
+    migrations: file://storage/migrations
 
 server:
   chain_id: oasis-3
