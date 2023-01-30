@@ -40,6 +40,9 @@ type QueryResults = pgx.Rows
 // QueryResult represents the result from a read query.
 type QueryResult = pgx.Row
 
+// TxOptions encodes the way DB transactions are executed.
+type TxOptions = pgx.TxOptions
+
 // Queue adds query to a batch.
 func (b *QueryBatch) Queue(cmd string, args ...interface{}) {
 	b.items = append(b.items, &batchItem{
@@ -282,6 +285,9 @@ type ConsensusAccountsData struct {
 type TargetStorage interface {
 	// SendBatch sends a batch of queries to be applied to target storage.
 	SendBatch(ctx context.Context, batch *QueryBatch) error
+
+	// SendBatchWithOptions is like SendBatch, with custom DB options (e.g. level of tx isolation).
+	SendBatchWithOptions(ctx context.Context, batch *QueryBatch, opts TxOptions) error
 
 	// Query submits a query to fetch data from target storage.
 	Query(ctx context.Context, sql string, args ...interface{}) (QueryResults, error)
