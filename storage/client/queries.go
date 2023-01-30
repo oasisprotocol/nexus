@@ -1,7 +1,10 @@
 package client
 
 import (
+	"context"
 	"fmt"
+
+	"github.com/oasisprotocol/oasis-indexer/common"
 )
 
 // QueryFactory is a convenience type for creating API queries.
@@ -12,6 +15,35 @@ type QueryFactory struct {
 
 func NewQueryFactory(chainID string, runtime string) QueryFactory {
 	return QueryFactory{chainID, runtime}
+}
+
+func QueryFactoryFromCtx(ctx context.Context) QueryFactory {
+	// Extract ChainID from context. It's populated from the runtime config,
+	// so it should always be present.
+	chainID, ok := ctx.Value(common.ChainIDContextKey).(string)
+	if !ok {
+		panic(fmt.Sprintf("cannot retrieve chain ID from ctx %v", ctx))
+	}
+
+	// Extract the runtime name.
+	runtime, ok := ctx.Value(common.RuntimeContextKey).(string)
+	if !ok {
+		runtime = "__NO_RUNTIME__"
+	} else {
+		// Validate the runtime name. It's populated in the middleware based on a whitelist,
+		// but QueryFactory injects this value into the queries without escaping it,
+		// so we double-check here to prevent SQL injection.
+		switch runtime {
+		case "emerald", "sapphire", "cipher", "consensus": // ok
+		default:
+			panic(fmt.Sprintf("invalid runtime \"%s\" passed in ctx", runtime))
+		}
+	}
+
+	return QueryFactory{
+		chainID: chainID,
+		runtime: runtime,
+	}
 }
 
 func (qf QueryFactory) StatusQuery() string {
