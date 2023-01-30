@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/iancoleman/strcase"
+	"github.com/jackc/pgx/v4"
 	"github.com/oasisprotocol/oasis-core/go/common/entity"
 	"github.com/oasisprotocol/oasis-core/go/common/node"
 	genesisAPI "github.com/oasisprotocol/oasis-core/go/genesis/api"
@@ -147,7 +148,10 @@ func checkpointBackends(t *testing.T, source *oasis.ConsensusClient, target *pos
 				ON CONFLICT DO NOTHING;
 		`, chainID, chainID))
 
-	if err := target.SendBatch(ctx, batch); err != nil {
+	// Create the snapshot using a high level of isolation; we don't want another
+	// tx to be able to modify the tables while this is running, creating a snapshot that
+	// represents indexer state at two (or more) blockchain heights.
+	if err := target.SendBatchWithOptions(ctx, batch, pgx.TxOptions{IsoLevel: pgx.Serializable}); err != nil {
 		return 0, err
 	}
 

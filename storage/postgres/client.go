@@ -89,8 +89,12 @@ func NewClient(connString string, l *log.Logger) (*Client, error) {
 // by any indexer. We only care about atomic success or failure of the batch of queries
 // corresponding to a new block.
 func (c *Client) SendBatch(ctx context.Context, batch *storage.QueryBatch) error {
+	return c.SendBatchWithOptions(ctx, batch, pgx.TxOptions{})
+}
+
+func (c *Client) SendBatchWithOptions(ctx context.Context, batch *storage.QueryBatch, opts pgx.TxOptions) error {
 	pgxBatch := batch.AsPgxBatch()
-	if err := c.pool.BeginTxFunc(ctx, pgx.TxOptions{}, func(tx pgx.Tx) error {
+	if err := c.pool.BeginTxFunc(ctx, opts, func(tx pgx.Tx) error {
 		batchResults := tx.SendBatch(ctx, &pgxBatch)
 		defer common.CloseOrLog(batchResults, c.logger)
 		for i := 0; i < pgxBatch.Len(); i++ {
