@@ -95,14 +95,14 @@ func (qf QueryFactory) ConsensusEventInsertQuery() string {
 
 func (qf QueryFactory) ConsensusAccountRelatedTransactionInsertQuery() string {
 	return fmt.Sprintf(`
-	    INSERT INTO %s.accounts_related_transactions (account_address, tx_block, tx_index)
-		    VALUES ($1, $2, $3)`, qf.chainID)
+		INSERT INTO %s.accounts_related_transactions (account_address, tx_block, tx_index)
+			VALUES ($1, $2, $3)`, qf.chainID)
 }
 
 func (qf QueryFactory) ConsensusAccountRelatedEventInsertQuery() string {
 	return fmt.Sprintf(`
 		INSERT INTO %s.accounts_related_events (account_address, event_block, tx_index, tx_hash, type, body)
-		    VALUES ($1, $2, $3, $4, $5, $6)`, qf.chainID)
+			VALUES ($1, $2, $3, $4, $5, $6)`, qf.chainID)
 }
 
 func (qf QueryFactory) ConsensusRuntimeUpsertQuery() string {
