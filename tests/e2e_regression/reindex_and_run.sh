@@ -11,6 +11,7 @@ analysis:
     chain_id: oasis-3
     rpc: unix:/tmp/node.sock
     chaincontext: b11b369e0da5bb230b220127f5e7b242d385ef8c6f54906243f30af63c815535
+    fast_startup: true
   analyzers:
     emerald:
       from: 1_003_298  # round at Damask genesis

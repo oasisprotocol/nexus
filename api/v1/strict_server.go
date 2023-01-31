@@ -219,23 +219,23 @@ func (srv *StrictServerImpl) GetConsensusValidatorsEntityId(ctx context.Context,
 	return apiTypes.GetConsensusValidatorsEntityId200JSONResponse(*validator), nil
 }
 
-func (srv *StrictServerImpl) GetEmeraldBlocks(ctx context.Context, request apiTypes.GetEmeraldBlocksRequestObject) (apiTypes.GetEmeraldBlocksResponseObject, error) {
+func (srv *StrictServerImpl) GetRuntimeBlocks(ctx context.Context, request apiTypes.GetRuntimeBlocksRequestObject) (apiTypes.GetRuntimeBlocksResponseObject, error) {
 	blocks, err := srv.dbClient.RuntimeBlocks(ctx, request.Params)
 	if err != nil {
 		return nil, err
 	}
-	return apiTypes.GetEmeraldBlocks200JSONResponse(*blocks), nil
+	return apiTypes.GetRuntimeBlocks200JSONResponse(*blocks), nil
 }
 
-func (srv *StrictServerImpl) GetEmeraldEvmTokens(ctx context.Context, request apiTypes.GetEmeraldEvmTokensRequestObject) (apiTypes.GetEmeraldEvmTokensResponseObject, error) {
+func (srv *StrictServerImpl) GetRuntimeEvmTokens(ctx context.Context, request apiTypes.GetRuntimeEvmTokensRequestObject) (apiTypes.GetRuntimeEvmTokensResponseObject, error) {
 	tokens, err := srv.dbClient.RuntimeTokens(ctx, request.Params)
 	if err != nil {
 		return nil, err
 	}
-	return apiTypes.GetEmeraldEvmTokens200JSONResponse(*tokens), nil
+	return apiTypes.GetRuntimeEvmTokens200JSONResponse(*tokens), nil
 }
 
-func (srv *StrictServerImpl) GetEmeraldTransactions(ctx context.Context, request apiTypes.GetEmeraldTransactionsRequestObject) (apiTypes.GetEmeraldTransactionsResponseObject, error) {
+func (srv *StrictServerImpl) GetRuntimeTransactions(ctx context.Context, request apiTypes.GetRuntimeTransactionsRequestObject) (apiTypes.GetRuntimeTransactionsResponseObject, error) {
 	storageTransactions, err := srv.dbClient.RuntimeTransactions(ctx, request.Params)
 	if err != nil {
 		return nil, err
@@ -251,10 +251,10 @@ func (srv *StrictServerImpl) GetEmeraldTransactions(ctx context.Context, request
 		apiTransactions.Transactions = append(apiTransactions.Transactions, apiTransaction)
 	}
 
-	return apiTypes.GetEmeraldTransactions200JSONResponse(apiTransactions), nil
+	return apiTypes.GetRuntimeTransactions200JSONResponse(apiTransactions), nil
 }
 
-func (srv *StrictServerImpl) GetEmeraldTransactionsTxHash(ctx context.Context, request apiTypes.GetEmeraldTransactionsTxHashRequestObject) (apiTypes.GetEmeraldTransactionsTxHashResponseObject, error) {
+func (srv *StrictServerImpl) GetRuntimeTransactionsTxHash(ctx context.Context, request apiTypes.GetRuntimeTransactionsTxHashRequestObject) (apiTypes.GetRuntimeTransactionsTxHashResponseObject, error) {
 	storageTx, err := srv.dbClient.RuntimeTransaction(ctx, request.TxHash)
 	if err != nil {
 		return nil, err
@@ -265,9 +265,9 @@ func (srv *StrictServerImpl) GetEmeraldTransactionsTxHash(ctx context.Context, r
 		return nil, fmt.Errorf("rendering runtime tx %s: %w", request.TxHash, err)
 	}
 
-	return apiTypes.GetEmeraldTransactionsTxHash200JSONResponse(apiTx), nil
+	return apiTypes.GetRuntimeTransactionsTxHash200JSONResponse(apiTx), nil
 }
 
-func (srv *StrictServerImpl) GetEmeraldEvents(ctx context.Context, request apiTypes.GetEmeraldEventsRequestObject) (apiTypes.GetEmeraldEventsResponseObject, error) {
-	return apiTypes.GetEmeraldEvents200JSONResponse{}, nil // Not implemented
+func (srv *StrictServerImpl) GetRuntimeEvents(ctx context.Context, request apiTypes.GetRuntimeEventsRequestObject) (apiTypes.GetRuntimeEventsResponseObject, error) {
+	return apiTypes.GetRuntimeEvents200JSONResponse{}, nil // Not implemented
 }

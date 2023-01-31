@@ -42,6 +42,14 @@ x-query-params:
     description: |
       The block height from which to query state. The Oasis Indexer does not
       make any guarantees about availability of historical state data.
+  - &runtime
+    in: path
+    name: runtime
+    required: true
+    schema:
+      $ref: '#/components/schemas/Runtime'
+    description: |
+      The runtime which to query.
   - &bucket_size_seconds
     in: query
     name: bucket_size_seconds
@@ -692,12 +700,13 @@ paths:
                 $ref: '#/components/schemas/ProposalVotes'
         <<: *common_error_responses
 
-  /emerald/blocks:
+  /{runtime}/blocks:
     get:
       summary: Returns a list of Emerald blocks.
       parameters:
         - *limit
         - *offset
+        - *runtime
         - in: query
           name: from
           schema:
@@ -735,12 +744,13 @@ paths:
                 $ref: '#/components/schemas/RuntimeBlockList'
         <<: *common_error_responses
 
-  /emerald/transactions:
+  /{runtime}/transactions:
     get:
       summary: Returns a list of Emerald transactions.
       parameters:
         - *limit
         - *offset
+        - *runtime
         - in: query
           name: block
           schema:
@@ -771,12 +781,13 @@ paths:
                 $ref: '#/components/schemas/RuntimeTransactionList'
         <<: *common_error_responses
   
-  /emerald/events:
+  /{runtime}/events:
     get:
       summary: Returns a list of Emerald events.
       parameters:
         - *limit
         - *offset
+        - *runtime
         - in: query
           name: block
           schema:
@@ -839,10 +850,11 @@ paths:
                 $ref: '#/components/schemas/RuntimeEventList'
         <<: *common_error_responses
 
-  /emerald/transactions/{tx_hash}:
+  /{runtime}/transactions/{tx_hash}:
     get:
       summary: Returns an Emerald transaction with the given transaction hash.
       parameters:
+        - *runtime
         - in: path
           name: tx_hash
           required: true
@@ -859,12 +871,13 @@ paths:
                 $ref: '#/components/schemas/RuntimeTransaction'
         <<: *common_error_responses
 
-  /emerald/evm_tokens:
+  /{runtime}/evm_tokens:
     get:
       summary: Returns a list of EVM (ERC-20, ...) tokens on Emerald.
       parameters:
         - *limit
         - *offset
+        - *runtime
       responses:
         '200':
           description: The requested tokens.
@@ -904,7 +917,11 @@ components:
   schemas:
     Layer:
       type: string
-      enum: [consensus, emerald]
+      enum: [emerald, sapphire, cipher, consensus]
+
+    Runtime:
+      type: string
+      enum: [emerald, sapphire, cipher]
 
     Status:
       type: object
