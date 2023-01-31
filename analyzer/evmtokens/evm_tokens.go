@@ -27,9 +27,9 @@ import (
 // this token analyzer updates last_download_round.
 
 const (
-	EmeraldDamaskTokensAnalyzerName = "emerald_damask_tokens"
-	MaxDownloadBatch                = 20
-	DownloadTimeout                 = 61 * time.Second
+	EvmTokensAnalyzerName = "evm_tokens"
+	MaxDownloadBatch      = 20
+	DownloadTimeout       = 61 * time.Second
 )
 
 type Main struct {
@@ -80,7 +80,7 @@ func NewMain(nodeCfg *config.NodeConfig, target storage.TargetStorage, logger *l
 		source: client,
 		target: target,
 		qf:     analyzer.NewQueryFactory("oasis_3", analyzer.RuntimeEmerald.String()),
-		logger: logger.With("analyzer", EmeraldDamaskTokensAnalyzerName),
+		logger: logger.With("analyzer", EvmTokensAnalyzerName),
 	}, nil
 }
 
@@ -200,8 +200,7 @@ func (m Main) Start() {
 	backoff, err := util.NewBackoff(
 		100*time.Millisecond,
 		6*time.Second,
-		// ^cap the timeout at the expected
-		// emerald round time
+		// ^cap the timeout at the expected emerald round time
 	)
 	if err != nil {
 		m.logger.Error("error configuring indexer backoff policy",
@@ -232,5 +231,5 @@ func (m Main) Start() {
 }
 
 func (m Main) Name() string {
-	return EmeraldDamaskTokensAnalyzerName
+	return EvmTokensAnalyzerName
 }

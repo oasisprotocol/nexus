@@ -262,7 +262,7 @@ func (srv *StrictServerImpl) GetEmeraldTransactionsTxHash(ctx context.Context, r
 
 	apiTx, err := renderRuntimeTransaction(*storageTx)
 	if err != nil {
-		return nil, fmt.Errorf("rendering emerald tx %s: %w", request.TxHash, err)
+		return nil, fmt.Errorf("rendering runtime tx %s: %w", request.TxHash, err)
 	}
 
 	return apiTypes.GetEmeraldTransactionsTxHash200JSONResponse(apiTx), nil
