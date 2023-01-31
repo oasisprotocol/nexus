@@ -119,10 +119,10 @@ func (m Main) getStaleTokens(ctx context.Context, limit int) ([]*StaleToken, err
 	return staleTokens, nil
 }
 
-func (m Main) processBatch(ctx context.Context) error {
+func (m Main) processBatch(ctx context.Context) (int, error) {
 	staleTokens, err := m.getStaleTokens(ctx, MaxDownloadBatch)
 	if err != nil {
-		return fmt.Errorf("getting discovered tokens: %w", err)
+		return 0, fmt.Errorf("getting discovered tokens: %w", err)
 	}
 	m.logger.Info("processing", "num_stale_tokens", len(staleTokens))
 	if len(staleTokens) == 0 {
@@ -185,13 +185,13 @@ func (m Main) processBatch(ctx context.Context) error {
 	}
 
 	if err := group.Wait(); err != nil {
-		return err
+		return 0, err
 	}
 
 	if err := m.target.SendBatch(ctx, batch); err != nil {
-		return fmt.Errorf("sending batch: %w", err)
+		return 0, fmt.Errorf("sending batch: %w", err)
 	}
-	return nil
+	return len(staleTokens), nil
 }
 
 func (m Main) Start() {
@@ -213,8 +213,16 @@ func (m Main) Start() {
 	for {
 		backoff.Wait()
 
-		if err := m.processBatch(ctx); err != nil {
+		numProcessed, err := m.processBatch(ctx)
+		if err != nil {
 			m.logger.Error("error processing batch", "err", err)
+			backoff.Failure()
+			continue
+		}
+
+		if numProcessed == 0 {
+			// Count this as a failure to reduce the polling when we are
+			// running faster than the block analyzer can find new tokens.
 			backoff.Failure()
 			continue
 		}
