@@ -131,6 +131,7 @@ x-type-annotations:
 paths:
   /:
     get:
+      operationId: getStatus
       summary: Returns the indexer status.
       responses:
         '200':
