@@ -227,11 +227,17 @@ func (m *Main) processRound(ctx context.Context, round uint64) error {
 	// Prepare and perform updates.
 	batch := &storage.QueryBatch{}
 
-	group.Go(func() error {
-		return m.prepareBlockData(groupCtx, round, batch)
-	})
-
 	type prepareFunc = func(context.Context, uint64, *storage.QueryBatch) error
+	for _, f := range []prepareFunc{
+		m.prepareBlockData,
+	} {
+		func(f prepareFunc) {
+			group.Go(func() error {
+				return f(groupCtx, round, batch)
+			})
+		}(f)
+	}
+
 	for _, h := range m.moduleHandlers {
 		func(f prepareFunc) {
 			group.Go(func() error {

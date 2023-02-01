@@ -1,5 +1,12 @@
 package types
 
+const (
+	Erc20Transfer = "erc20.transfer"
+	Erc20Approval = "erc20.approval"
+)
+
+type Address string
+
 func (c ConsensusEventType) IsValid() bool {
 	switch c {
 	case ConsensusEventTypeStakingTransfer,

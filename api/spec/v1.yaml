@@ -796,7 +796,7 @@ paths:
           description: A filter on block round.
           example: *runtime_block_round_1
         - in: query
-          name: tx_index # TODO: Is it possible to get the tx_index from the oasis-sdk (currently only returns txhash)? Could make a second call to fetch the tx by its hash...
+          name: tx_index
           schema:
             type: integer
             format: int32
@@ -817,6 +817,11 @@ paths:
             either works to fetch events from a specific transaction.
           example: *tx_hash_1
         - in: query
+          name: type
+          schema:
+            $ref: '#/components/schemas/RuntimeEventType'
+          description: A filter on the event type.
+        - in: query
           name: rel
           schema:
             type: string
@@ -825,11 +830,6 @@ paths:
             this account. For example, for a `accounts.Transfer` event, this will be
             the sender or the recipient of tokens.
           example: *staking_address_1
-        - in: query
-          name: type
-          schema:
-            $ref: '#/components/schemas/RuntimeEventType'
-          description: A filter on the event type.
         - in: query
           name: evm_log_signature
           schema:
@@ -1784,11 +1784,17 @@ components:
           format: int64
           description: The block height at which this event was generated.
           example: *runtime_block_round_1
+        tx_index:
+          type: integer
+          format: int32
+          description: |
+            0-based index of this event's originating transaction within its block.
+            Absent if the event did not originate from a transaction.
         tx_hash:
           type: string
           nullable: true
           description: |
-            Hash of this event's originating transaction
+            Hash of this event's originating transaction.
             Absent if the event did not originate from a transaction.
           example: *tx_hash_1
         type: 
@@ -1811,7 +1817,9 @@ components:
             Absent if the event type is not `evm.log`.
           example: 'Transfer'
         evm_log_params:
-          type: object
+          type: array
+          items:
+            $ref: '#/components/schemas/EvmEventParam'
           description: |
             The decoded `evm.log` event data. We currently support only two types of evm events, ERC20 `Transfer` 
             and `Approve`.
@@ -1829,6 +1837,20 @@ components:
         - core.gas_used
         - evm.log
       example: *runtime_event_type_1
+
+    EvmEventParam: 
+      type: object
+      required: [name, evm_type, value]
+      properties:
+        name:
+          type: string
+          description: The parameter name.
+        evm_type:
+          type: string
+          description: The solidity type of the event parameter.
+        value:
+          description: The parameter value.
+      description: A decoded parameter of an event emitted from an evm runtime.
 
     RuntimeTransactionList:
       type: object

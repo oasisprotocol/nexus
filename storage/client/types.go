@@ -121,6 +121,13 @@ type RuntimeTransaction struct {
 	ResultRaw []byte
 }
 
+// RuntimeEventList is the storage response for RuntimeEvents.
+type RuntimeEventList = api.RuntimeEventList
+
+type RuntimeEvent = api.RuntimeEvent
+
+type RuntimeEventType = api.RuntimeEventType
+
 type EvmTokenList = api.EvmTokenList
 
 type EvmToken = api.EvmToken

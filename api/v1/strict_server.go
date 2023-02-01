@@ -269,5 +269,9 @@ func (srv *StrictServerImpl) GetRuntimeTransactionsTxHash(ctx context.Context, r
 }
 
 func (srv *StrictServerImpl) GetRuntimeEvents(ctx context.Context, request apiTypes.GetRuntimeEventsRequestObject) (apiTypes.GetRuntimeEventsResponseObject, error) {
-	return apiTypes.GetRuntimeEvents200JSONResponse{}, nil // Not implemented
+	events, err := srv.dbClient.RuntimeEvents(ctx, request.Params)
+	if err != nil {
+		return nil, err
+	}
+	return apiTypes.GetRuntimeEvents200JSONResponse(*events), nil
 }

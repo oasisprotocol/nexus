@@ -125,6 +125,18 @@ func (rc *RuntimeClient) ConsensusAccountsData(ctx context.Context, round uint64
 	}, nil
 }
 
+func (rc *RuntimeClient) GetEventsRaw(ctx context.Context, round uint64) (*storage.RawEvents, error) {
+	events, err := rc.client.GetEventsRaw(ctx, round)
+	if err != nil {
+		return nil, err
+	}
+
+	return &storage.RawEvents{
+		Round:  round,
+		Events: events,
+	}, nil
+}
+
 func (rc *RuntimeClient) EVMSimulateCall(ctx context.Context, round uint64, gasPrice []byte, gasLimit uint64, caller []byte, address []byte, value []byte, data []byte) ([]byte, error) {
 	return evm.NewV1(rc.client).SimulateCall(ctx, round, gasPrice, gasLimit, caller, address, value, data)
 }
