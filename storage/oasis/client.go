@@ -22,7 +22,7 @@ type ClientFactory struct {
 }
 
 // NewClientFactory creates a new oasis-node client factory.
-// Unless `skipChainContextCheck` is false, it also checks that
+// If `skipChainContextCheck` is true, it also checks that
 // the RPC endpoint in `network` serves the chain context specified
 // in `network`.
 func NewClientFactory(ctx context.Context, network *config.Network, skipChainContextCheck bool) (*ClientFactory, error) {

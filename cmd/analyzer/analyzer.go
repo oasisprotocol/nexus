@@ -3,7 +3,6 @@ package analyzer
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"sync"
 
@@ -15,8 +14,8 @@ import (
 
 	"github.com/oasisprotocol/oasis-indexer/analyzer"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/consensus"
-	"github.com/oasisprotocol/oasis-indexer/analyzer/emerald"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/evmtokens"
+	"github.com/oasisprotocol/oasis-indexer/analyzer/runtime"
 	"github.com/oasisprotocol/oasis-indexer/cmd/common"
 	"github.com/oasisprotocol/oasis-indexer/config"
 	"github.com/oasisprotocol/oasis-indexer/log"
@@ -85,7 +84,7 @@ func Init(cfg *config.AnalysisConfig) (*Service, error) {
 	}
 
 	m, err := migrate.New(
-		cfg.Migrations,
+		cfg.Storage.Migrations,
 		cfg.Storage.Endpoint,
 	)
 	if err != nil {
@@ -139,6 +138,25 @@ type Service struct {
 	logger *log.Logger
 }
 
+type A = analyzer.Analyzer
+
+// addAnalyzer adds the analyzer produced by `analyzerGenerator()` to `analyzers`.
+// It expects an initial state (analyzers, errSoFar) and returns the updated state, which
+// should be fed into subsequent call to the function.
+// As soon as an analyzerGenerator returns an error, all subsequent calls will
+// short-circuit and return the same error, leaving `analyzers` unchanged.
+func addAnalyzer(analyzers map[string]A, errSoFar error, analyzerGenerator func() (A, error)) (map[string]A, error) {
+	if errSoFar != nil {
+		return analyzers, errSoFar
+	}
+	a, errSoFar := analyzerGenerator()
+	if errSoFar != nil {
+		return analyzers, errSoFar
+	}
+	analyzers[a.Name()] = a
+	return analyzers, nil
+}
+
 // NewService creates new Service.
 func NewService(cfg *config.AnalysisConfig) (*Service, error) {
 	logger := common.Logger().WithModule(moduleName)
@@ -150,32 +168,47 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) {
 	}
 
 	// Initialize analyzers.
-	analyzers := map[string]analyzer.Analyzer{}
-	for _, analyzerCfg := range cfg.Analyzers {
-		// Parse analyzer name.
-		var a analyzer.Analyzer
-		switch analyzerCfg.Name {
-		case consensus.ConsensusDamaskAnalyzerName, "consensus_main_damask": // TODO: drop "main" variant; as of Oct 2022, it exists only to support legacy helmfiles
-			a, err = consensus.NewMain(analyzerCfg, client, logger)
-		case emerald.EmeraldDamaskAnalyzerName, "emerald_main_damask": // TODO: drop "main" variant; as of Oct 2022, it exists only to support legacy helmfiles
-			a, err = emerald.NewMain(analyzerCfg, client, logger)
-		case evmtokens.EmeraldDamaskTokensAnalyzerName:
-			a, err = evmtokens.NewMain(analyzerCfg, client, logger)
-		case analyzer.MetadataRegistryAnalyzerName:
-			a, err = analyzer.NewMetadataRegistryAnalyzer(analyzerCfg, client, logger)
-		case analyzer.AggregateStatsAnalyzerName:
-			a, err = analyzer.NewAggregateStatsAnalyzer(analyzerCfg, client, logger)
-		default:
-			return nil, fmt.Errorf("unsupported analyzer name: %s", analyzerCfg.Name)
-		}
-
-		if err != nil {
-			return nil, err
-		}
-		analyzers[a.Name()] = a
+	analyzers := map[string]A{}
+	if cfg.Analyzers.Consensus != nil {
+		analyzers, err = addAnalyzer(analyzers, err, func() (A, error) {
+			return consensus.NewMain(cfg.Node, cfg.Analyzers.Consensus, client, logger)
+		})
+	}
+	if cfg.Analyzers.Emerald != nil {
+		analyzers, err = addAnalyzer(analyzers, err, func() (A, error) {
+			return runtime.NewRuntimeAnalyzer(cfg.Node, cfg.Analyzers.Emerald, client, logger)
+		})
+	}
+	if cfg.Analyzers.Sapphire != nil {
+		analyzers, err = addAnalyzer(analyzers, err, func() (A, error) {
+			return runtime.NewRuntimeAnalyzer(cfg.Node, cfg.Analyzers.Sapphire, client, logger)
+		})
+	}
+	if cfg.Analyzers.Cipher != nil {
+		analyzers, err = addAnalyzer(analyzers, err, func() (A, error) {
+			return runtime.NewRuntimeAnalyzer(cfg.Node, cfg.Analyzers.Cipher, client, logger)
+		})
+	}
+	if cfg.Analyzers.EvmTokens != nil {
+		analyzers, err = addAnalyzer(analyzers, err, func() (A, error) {
+			return evmtokens.NewMain(&cfg.Node, client, logger)
+		})
+	}
+	if cfg.Analyzers.MetadataRegistry != nil {
+		analyzers, err = addAnalyzer(analyzers, err, func() (A, error) {
+			return analyzer.NewMetadataRegistryAnalyzer(cfg.Node.ChainID, cfg.Analyzers.MetadataRegistry, client, logger)
+		})
+	}
+	if cfg.Analyzers.AggregateStats != nil {
+		analyzers, err = addAnalyzer(analyzers, err, func() (A, error) {
+			return analyzer.NewAggregateStatsAnalyzer(cfg.Analyzers.MetadataRegistry, client, logger)
+		})
+	}
+	if err != nil {
+		return nil, err
 	}
 
-	logger.Info("initialized analyzers")
+	logger.Info("initialized all analyzers")
 
 	return &Service{
 		Analyzers: analyzers,

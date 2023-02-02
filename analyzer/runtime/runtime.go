@@ -1,4 +1,4 @@
-package emerald
+package runtime
 
 import (
 	"context"
@@ -44,16 +44,16 @@ type Main struct {
 
 var _ analyzer.Analyzer = (*Main)(nil)
 
-// NewMain returns a new main analyzer for the Emerald Runtime.
-func NewMain(cfg *config.AnalyzerConfig, target storage.TargetStorage, logger *log.Logger) (*Main, error) {
+// NewRuntimeAnalyzer returns a new main analyzer for the Emerald Runtime.
+func NewRuntimeAnalyzer(nodeCfg config.NodeConfig, cfg *config.BlockBasedAnalyzerConfig, target storage.TargetStorage, logger *log.Logger) (*Main, error) {
 	ctx := context.Background()
 
 	// Initialize source storage.
 	networkCfg := oasisConfig.Network{
-		ChainContext: cfg.ChainContext,
-		RPC:          cfg.RPC,
+		ChainContext: nodeCfg.ChainContext,
+		RPC:          nodeCfg.RPC,
 	}
-	factory, err := oasis.NewClientFactory(ctx, &networkCfg, cfg.FastStartup)
+	factory, err := oasis.NewClientFactory(ctx, &networkCfg, nodeCfg.FastStartup)
 	if err != nil {
 		logger.Error("error creating client factory",
 			"err", err,
@@ -61,7 +61,7 @@ func NewMain(cfg *config.AnalyzerConfig, target storage.TargetStorage, logger *l
 		return nil, err
 	}
 
-	network, err := analyzer.FromChainContext(cfg.ChainContext)
+	network, err := analyzer.FromChainContext(nodeCfg.ChainContext)
 	if err != nil {
 		return nil, err
 	}
@@ -88,7 +88,7 @@ func NewMain(cfg *config.AnalyzerConfig, target storage.TargetStorage, logger *l
 		Source: client,
 	}
 
-	qf := analyzer.NewQueryFactory(strcase.ToSnake(cfg.ChainID), emerald.String())
+	qf := analyzer.NewQueryFactory(strcase.ToSnake(nodeCfg.ChainID), emerald.String())
 
 	return &Main{
 		cfg:     ac,

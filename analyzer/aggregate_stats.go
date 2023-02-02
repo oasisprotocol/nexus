@@ -32,25 +32,10 @@ func (a *AggregateStatsAnalyzer) Name() string {
 	return AggregateStatsAnalyzerName
 }
 
-func NewAggregateStatsAnalyzer(cfg *config.AnalyzerConfig, target storage.TargetStorage, logger *log.Logger) (*AggregateStatsAnalyzer, error) {
-	// Parse config
-	var interval time.Duration
-	var err error
-	if cfg.Interval == "" {
-		interval = 1 * time.Hour // default interval
-	} else {
-		interval, err = time.ParseDuration(cfg.Interval)
-		if err != nil {
-			logger.Error("error parsing analysis interval",
-				"err", err.Error(),
-			)
-			return nil, err
-		}
-	}
-
+func NewAggregateStatsAnalyzer(cfg *config.IntervalBasedAnalyzerConfig, target storage.TargetStorage, logger *log.Logger) (*AggregateStatsAnalyzer, error) {
 	logger.Info("Starting aggregate_stats analyzer")
 	return &AggregateStatsAnalyzer{
-		interval: interval,
+		interval: cfg.ParsedInterval(),
 		qf:       NewQueryFactory("" /*chainID*/, "" /*runtime*/),
 		target:   target,
 		logger:   logger.With("analyzer", AggregateStatsAnalyzerName),
