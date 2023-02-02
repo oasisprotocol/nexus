@@ -344,23 +344,31 @@ func extractRound(b *block.Block, txrs []*sdkClient.TransactionWithResults, logg
 					ERC20Transfer: func(fromEthAddr []byte, toEthAddr []byte, amountU256 []byte) error {
 						amount := &big.Int{}
 						amount.SetBytes(amountU256)
-						if !bytes.Equal(fromEthAddr, common.ZeroEthAddr) {
+						fromZero := bytes.Equal(fromEthAddr, common.ZeroEthAddr)
+						toZero := bytes.Equal(toEthAddr, common.ZeroEthAddr)
+						if !fromZero {
 							fromAddr, err2 := registerRelatedEthAddress(blockData.AddressPreimages, blockTransactionData.RelatedAccountAddresses, fromEthAddr)
 							if err2 != nil {
 								return fmt.Errorf("from: %w", err2)
 							}
 							registerTokenDecrease(blockData.TokenBalanceChanges, eventAddr, fromAddr, amount)
 						}
-						if !bytes.Equal(toEthAddr, common.ZeroEthAddr) {
+						if !toZero {
 							toAddr, err2 := registerRelatedEthAddress(blockData.AddressPreimages, blockTransactionData.RelatedAccountAddresses, toEthAddr)
 							if err2 != nil {
 								return fmt.Errorf("to: %w", err2)
 							}
 							registerTokenIncrease(blockData.TokenBalanceChanges, eventAddr, toAddr, amount)
 						}
-						blockData.PossibleTokens[eventAddr] = &modules.EVMPossibleToken{
-							PossibleTypes: []modules.EVMTokenType{modules.EVMTokenTypeERC20},
-							EthAddr:       event.Address,
+						if _, ok := blockData.PossibleTokens[eventAddr]; !ok {
+							blockData.PossibleTokens[eventAddr] = &modules.EVMPossibleToken{}
+						}
+						// Mark as mutated if transfer is between zero address
+						// and nonzero address (either direction) and nonzero
+						// amount. These will change the total supply as mint/
+						// burn.
+						if fromZero != toZero && amount.Cmp(&big.Int{}) != 0 {
+							blockData.PossibleTokens[eventAddr].Mutated = true
 						}
 						return nil
 					},
@@ -377,9 +385,8 @@ func extractRound(b *block.Block, txrs []*sdkClient.TransactionWithResults, logg
 								return fmt.Errorf("spender: %w", err2)
 							}
 						}
-						blockData.PossibleTokens[eventAddr] = &modules.EVMPossibleToken{
-							PossibleTypes: []modules.EVMTokenType{modules.EVMTokenTypeERC20},
-							EthAddr:       event.Address,
+						if _, ok := blockData.PossibleTokens[eventAddr]; !ok {
+							blockData.PossibleTokens[eventAddr] = &modules.EVMPossibleToken{}
 						}
 						return nil
 					},
@@ -412,7 +419,7 @@ func extractRound(b *block.Block, txrs []*sdkClient.TransactionWithResults, logg
 	return &blockData, nil
 }
 
-func emitRoundBatch(batch *storage.QueryBatch, qf *analyzer.QueryFactory, round uint64, blockData *BlockData, blockTokenData *modules.EVMBlockTokenData) {
+func emitRoundBatch(batch *storage.QueryBatch, qf *analyzer.QueryFactory, round uint64, blockData *BlockData) {
 	for _, transactionData := range blockData.TransactionData {
 		for _, signerData := range transactionData.SignerData {
 			batch.Queue(
@@ -435,14 +442,11 @@ func emitRoundBatch(batch *storage.QueryBatch, qf *analyzer.QueryFactory, round 
 	for key, change := range blockData.TokenBalanceChanges {
 		batch.Queue(qf.RuntimeEvmBalanceUpdateQuery(), key.TokenAddress, key.AccountAddress, change.String())
 	}
-	for tokenAddr, tokenData := range blockTokenData.TokenData {
-		batch.Queue(
-			qf.RuntimeTokenUpdateQuery(),
-			tokenAddr,
-			tokenData.Name,
-			tokenData.Symbol,
-			tokenData.Decimals,
-			tokenData.TotalSupply.String(),
-		)
+	for addr, possibleToken := range blockData.PossibleTokens {
+		if possibleToken.Mutated {
+			batch.Queue(qf.RuntimeEVMTokenAnalysisMutateInsertQuery(), addr, round)
+		} else {
+			batch.Queue(qf.RuntimeEVMTokenAnalysisInsertQuery(), addr, round)
+		}
 	}
 }

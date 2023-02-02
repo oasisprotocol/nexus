@@ -95,14 +95,14 @@ func (qf QueryFactory) ConsensusEventInsertQuery() string {
 
 func (qf QueryFactory) ConsensusAccountRelatedTransactionInsertQuery() string {
 	return fmt.Sprintf(`
-	    INSERT INTO %s.accounts_related_transactions (account_address, tx_block, tx_index)
-		    VALUES ($1, $2, $3)`, qf.chainID)
+		INSERT INTO %s.accounts_related_transactions (account_address, tx_block, tx_index)
+			VALUES ($1, $2, $3)`, qf.chainID)
 }
 
 func (qf QueryFactory) ConsensusAccountRelatedEventInsertQuery() string {
 	return fmt.Sprintf(`
 		INSERT INTO %s.accounts_related_events (account_address, event_block, tx_index, tx_hash, type, body)
-		    VALUES ($1, $2, $3, $4, $5, $6)`, qf.chainID)
+			VALUES ($1, $2, $3, $4, $5, $6)`, qf.chainID)
 }
 
 func (qf QueryFactory) ConsensusRuntimeUpsertQuery() string {
@@ -438,16 +438,68 @@ func (qf QueryFactory) RuntimeEvmBalanceUpdateQuery() string {
 			UPDATE SET balance = %[1]s.evm_token_balances.balance + $3`, qf.chainID, qf.runtime)
 }
 
-func (qf QueryFactory) RuntimeTokenUpdateQuery() string {
+func (qf QueryFactory) RuntimeEVMTokensAnalysisStaleQuery() string {
 	return fmt.Sprintf(`
-		INSERT INTO %[1]s.evm_tokens (runtime, token_address, token_name, symbol, decimals, total_supply)
-			VALUES ('%[2]s', $1, $2, $3, $4, $5)
-		ON CONFLICT (runtime, token_address) DO
-			UPDATE SET
-				token_name = excluded.token_name,
-				symbol = excluded.symbol,
-				decimals = excluded.decimals,
-				total_supply = excluded.total_supply`, qf.chainID, qf.runtime)
+		SELECT
+			evm_token_analysis.token_address,
+			evm_token_analysis.last_mutate_round,
+			evm_token_analysis.last_download_round,
+			evm_tokens.token_type,
+			address_preimages.context_identifier,
+			address_preimages.context_version,
+			address_preimages.address_data
+		FROM %[1]s.evm_token_analysis
+		LEFT JOIN %[1]s.evm_tokens USING (runtime, token_address)
+		LEFT JOIN %[1]s.address_preimages ON
+			address_preimages.address = evm_token_analysis.token_address
+		WHERE
+			evm_token_analysis.runtime = '%[2]s' AND
+			(
+				evm_token_analysis.last_download_round IS NULL OR
+				evm_token_analysis.last_mutate_round > evm_token_analysis.last_download_round
+			)
+		LIMIT $1`, qf.chainID, qf.runtime)
+}
+
+func (qf QueryFactory) RuntimeEVMTokenAnalysisInsertQuery() string {
+	return fmt.Sprintf(`
+		INSERT INTO %[1]s.evm_token_analysis (runtime, token_address, last_mutate_round)
+			VALUES ('%[2]s', $1, $2)
+		ON CONFLICT (runtime, token_address) DO NOTHING`, qf.chainID, qf.runtime)
+}
+
+func (qf QueryFactory) RuntimeEVMTokenAnalysisMutateInsertQuery() string {
+	return fmt.Sprintf(`
+		INSERT INTO %[1]s.evm_token_analysis (runtime, token_address, last_mutate_round)
+			VALUES ('%[2]s', $1, $2)
+		ON CONFLICT (runtime, token_address) DO UPDATE
+			SET last_mutate_round = excluded.last_mutate_round`, qf.chainID, qf.runtime)
+}
+
+func (qf QueryFactory) RuntimeEVMTokenAnalysisUpdateQuery() string {
+	return fmt.Sprintf(`
+		UPDATE %[1]s.evm_token_analysis
+		SET
+			last_download_round = $2
+		WHERE
+			runtime = '%[2]s' AND
+			token_address = $1`, qf.chainID, qf.runtime)
+}
+
+func (qf QueryFactory) RuntimeEVMTokenInsertQuery() string {
+	return fmt.Sprintf(`
+		INSERT INTO %[1]s.evm_tokens (runtime, token_address, token_type, token_name, symbol, decimals, total_supply)
+			VALUES ('%[2]s', $1, $2, $3, $4, $5, $6)`, qf.chainID, qf.runtime)
+}
+
+func (qf QueryFactory) RuntimeEVMTokenUpdateQuery() string {
+	return fmt.Sprintf(`
+		UPDATE %[1]s.evm_tokens
+		SET
+			total_supply = $2
+		WHERE
+			runtime = '%[2]s' AND
+			token_address = $1`, qf.chainID, qf.runtime)
 }
 
 func (qf QueryFactory) RefreshDailyTxVolumeQuery() string {

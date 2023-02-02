@@ -117,14 +117,28 @@ CREATE INDEX ix_emerald_token_address ON oasis_3.evm_token_balances (token_addre
 CREATE TABLE oasis_3.evm_tokens
 (
   runtime runtime NOT NULL,
-  token_address oasis_addr,
-  PRIMARY KEY (runtime, token_address),
+  token_address oasis_addr NOT NULL,
+  token_type INTEGER, -- todo: need enum link
   token_name TEXT,
-  -- TODO: Add token type (ERC20, ERC721, etc.). See EvmTokenType enum
   symbol TEXT,
-  decimals INT,
-  total_supply uint_numeric
+  decimals INTEGER,
+  total_supply uint_numeric,
+  PRIMARY KEY (runtime, token_address)
 );
+
+CREATE TABLE oasis_3.evm_token_analysis
+(
+  runtime runtime NOT NULL,
+  token_address oasis_addr NOT NULL,
+  -- Block analyzer bumps this when it sees the mutable fields of the token
+  -- change (e.g. total supply) based on dead reckoning.
+  last_mutate_round UINT63 NOT NULL,
+  -- Token analyzer bumps this when it downloads info about the token.
+  last_download_round UINT63,
+  PRIMARY KEY (runtime, token_address)
+);
+
+CREATE INDEX ix_evm_token_analysis_stale ON oasis_3.evm_token_analysis (runtime, token_address) WHERE last_download_round IS NULL OR last_mutate_round > last_download_round;
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- Module core -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
@@ -171,7 +185,7 @@ CREATE INDEX ix_runtime_transfers_receiver ON oasis_3.runtime_transfers(receiver
 -- Deposits from the consensus layer into the paratime.
 CREATE TABLE oasis_3.runtime_deposits
 (
-  runtime  runtime NOT NULL, 
+  runtime  runtime NOT NULL,
   round    UINT63 NOT NULL,
   FOREIGN KEY (runtime, round) REFERENCES oasis_3.runtime_blocks DEFERRABLE INITIALLY DEFERRED,
   -- The `sender` is a consensus account, so this REFERENCES oasis_3.accounts; we omit the FK so
@@ -239,20 +253,20 @@ CREATE TABLE oasis_3.runtime_events
   round UINT63 NOT NULL,
   tx_index UINT31,
   FOREIGN KEY (runtime, round, tx_index) REFERENCES oasis_3.runtime_transactions(runtime, round, tx_index) DEFERRABLE INITIALLY DEFERRED,
-  
+
   tx_hash HEX64,
   -- TODO: add link to openapi spec section with runtime event types.
   type TEXT NOT NULL,
-  -- The raw event, as returned by the oasis-sdk runtime client. 
-  -- `evm.log` events are further parsed into known event types, 
-  -- e.g. (ERC20) Transfer, to populate the `evm_log_name` and 
+  -- The raw event, as returned by the oasis-sdk runtime client.
+  -- `evm.log` events are further parsed into known event types,
+  -- e.g. (ERC20) Transfer, to populate the `evm_log_name` and
   -- `evm_log_params` fields below.
   body JSON NOT NULL,
   evm_log_name TEXT,
   -- The event signature, if it exists, will be the first topic.
   evm_log_signature TEXT GENERATED ALWAYS AS (body->'topics'->>0) STORED,
   evm_log_params JSONB,
-  related_accounts oasis_addr[]  
+  related_accounts oasis_addr[]
 );
 CREATE INDEX ix_runtime_events_related_accounts ON oasis_3.runtime_events USING gin(related_accounts);
 CREATE INDEX ix_runtime_events_evm_log_signature ON oasis_3.runtime_events(evm_log_signature);
