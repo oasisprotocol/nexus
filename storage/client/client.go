@@ -945,7 +945,7 @@ func (c *StorageClient) Validator(ctx context.Context, entityID signature.Public
 }
 
 // RuntimeBlocks returns a list of runtime blocks.
-func (c *StorageClient) RuntimeBlocks(ctx context.Context, p apiTypes.GetEmeraldBlocksParams) (*RuntimeBlockList, error) {
+func (c *StorageClient) RuntimeBlocks(ctx context.Context, p apiTypes.GetRuntimeBlocksParams) (*RuntimeBlockList, error) {
 	rows, err := c.db.Query(
 		ctx,
 		QueryFactoryFromCtx(ctx).RuntimeBlocksQuery(),
@@ -978,7 +978,7 @@ func (c *StorageClient) RuntimeBlocks(ctx context.Context, p apiTypes.GetEmerald
 }
 
 // RuntimeTransactions returns a list of runtime transactions.
-func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetEmeraldTransactionsParams) (*RuntimeTransactionList, error) {
+func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetRuntimeTransactionsParams) (*RuntimeTransactionList, error) {
 	rows, err := c.db.Query(
 		ctx,
 		QueryFactoryFromCtx(ctx).RuntimeTransactionsQuery(),
@@ -1039,7 +1039,7 @@ func (c *StorageClient) RuntimeTransaction(ctx context.Context, txHash string) (
 	return &t, nil
 }
 
-func (c *StorageClient) RuntimeTokens(ctx context.Context, p apiTypes.GetEmeraldEvmTokensParams) (*EvmTokenList, error) {
+func (c *StorageClient) RuntimeTokens(ctx context.Context, p apiTypes.GetRuntimeEvmTokensParams) (*EvmTokenList, error) {
 	rows, err := c.db.Query(
 		ctx,
 		QueryFactoryFromCtx(ctx).EvmTokensQuery(),

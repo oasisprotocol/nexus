@@ -136,9 +136,8 @@ func (m *Main) Start() {
 
 	backoff, err := util.NewBackoff(
 		100*time.Millisecond,
+		// Cap the timeout at the expected round time. All runtimes currently have the same round time.
 		6*time.Second,
-		// ^cap the timeout at the expected
-		// emerald round time
 	)
 	if err != nil {
 		m.logger.Error("error configuring indexer backoff policy",
@@ -204,7 +203,7 @@ func (m *Main) prework() error {
 	// Register special addresses.
 	batch.Queue(
 		m.qf.AddressPreimageInsertQuery(),
-		rewards.RewardPoolAddress.String(),          // oasis1qp7x0q9qahahhjas0xde8w0v04ctp4pqzu5mhjav for emerald on mainnet oasis-3
+		rewards.RewardPoolAddress.String(),          // oasis1qp7x0q9qahahhjas0xde8w0v04ctp4pqzu5mhjav on mainnet oasis-3
 		types.AddressV0ModuleContext.Identifier,     // context_identifier
 		int32(types.AddressV0ModuleContext.Version), // context_version
 		"rewards.reward-pool",                       // address_data (reconstructed from NewAddressForModule())
@@ -258,7 +257,7 @@ func (m *Main) processRound(ctx context.Context, round uint64) error {
 		return err
 	}
 
-	opName := fmt.Sprintf("process_round_rt%s", emerald.String())
+	opName := fmt.Sprintf("process_block_%s", emerald.String())
 	timer := m.metrics.DatabaseTimer(m.target.Name(), opName)
 	defer timer.ObserveDuration()
 
