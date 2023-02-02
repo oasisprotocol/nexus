@@ -144,7 +144,7 @@ CREATE TABLE oasis_3.evm_tokens
 (
   runtime runtime NOT NULL,
   token_address oasis_addr NOT NULL,
-  token_type INTEGER, -- todo: need enum link
+  token_type INTEGER, -- From https://github.com/oasisprotocol/oasis-indexer/blob/v0.0.7/analyzer/modules/evm.go#L21
   token_name TEXT,
   symbol TEXT,
   decimals INTEGER,
