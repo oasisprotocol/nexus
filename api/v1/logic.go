@@ -37,18 +37,18 @@ func renderRuntimeTransaction(storageTransaction client.RuntimeTransaction) (api
 		return apiTypes.RuntimeTransaction{}, fmt.Errorf("body unmarshal: %w", err)
 	}
 	apiTransaction := apiTypes.RuntimeTransaction{
-		Round:   storageTransaction.Round,
-		Index:   storageTransaction.Index,
-		Hash:    storageTransaction.Hash,
-		EthHash: storageTransaction.EthHash,
-		// TODO: Get timestamp from that round's block
-		Sender0:  sender0,
-		Nonce0:   tx.AuthInfo.SignerInfo[0].Nonce,
-		Fee:      tx.AuthInfo.Fee.Amount.Amount.String(),
-		GasLimit: tx.AuthInfo.Fee.Gas,
-		Method:   tx.Call.Method,
-		Body:     body,
-		Success:  cr.IsSuccess(),
+		Round:     storageTransaction.Round,
+		Index:     storageTransaction.Index,
+		Hash:      storageTransaction.Hash,
+		EthHash:   storageTransaction.EthHash,
+		Timestamp: storageTransaction.Timestamp,
+		Sender0:   sender0,
+		Nonce0:    tx.AuthInfo.SignerInfo[0].Nonce,
+		Fee:       tx.AuthInfo.Fee.Amount.Amount.String(),
+		GasLimit:  tx.AuthInfo.Fee.Gas,
+		Method:    tx.Call.Method,
+		Body:      body,
+		Success:   cr.IsSuccess(),
 	}
 	if err = uncategorized.VisitCall(&tx.Call, &cr, &uncategorized.CallHandler{
 		AccountsTransfer: func(body *accounts.Transfer) error {

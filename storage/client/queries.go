@@ -394,7 +394,7 @@ func (qf QueryFactory) RuntimeBlocksQuery() string {
 
 func (qf QueryFactory) RuntimeTransactionsQuery() string {
 	return fmt.Sprintf(`
-		SELECT round, tx_index, tx_hash, tx_eth_hash, raw, result_raw
+		SELECT round, tx_index, tx_hash, tx_eth_hash, timestamp, raw, result_raw
 			FROM %[1]s.runtime_transactions
 			WHERE (runtime = '%[2]s') AND
 						($1::bigint IS NULL OR round = $1::bigint) AND

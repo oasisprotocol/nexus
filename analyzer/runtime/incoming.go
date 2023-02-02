@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"math/big"
+	"time"
 
 	ethCommon "github.com/ethereum/go-ethereum/common"
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
@@ -78,6 +79,7 @@ type TokenChangeKey struct {
 
 type BlockData struct {
 	Hash                string
+	Timestamp           time.Time
 	NumTransactions     int
 	GasUsed             uint64
 	Size                int
@@ -227,6 +229,7 @@ func registerTokenDecrease(tokenChanges map[TokenChangeKey]*big.Int, contractAdd
 func extractRound(b *block.Block, txrs []*sdkClient.TransactionWithResults, logger *log.Logger) (*BlockData, error) {
 	var blockData BlockData
 	blockData.Hash = b.Header.EncodedHash().String()
+	blockData.Timestamp = time.Unix(int64(b.Header.Timestamp), 0 /* nanos */)
 	blockData.NumTransactions = len(txrs)
 	blockData.TransactionData = make([]*BlockTransactionData, 0, len(txrs))
 	blockData.EventData = []*EventData{}
@@ -576,7 +579,7 @@ func emitRoundBatch(batch *storage.QueryBatch, qf *analyzer.QueryFactory, round 
 		for addr := range transactionData.RelatedAccountAddresses {
 			batch.Queue(qf.RuntimeRelatedTransactionInsertQuery(), addr, round, transactionData.Index)
 		}
-		batch.Queue(qf.RuntimeTransactionInsertQuery(), round, transactionData.Index, transactionData.Hash, transactionData.EthHash, transactionData.Raw, transactionData.RawResult)
+		batch.Queue(qf.RuntimeTransactionInsertQuery(), round, transactionData.Index, transactionData.Hash, transactionData.EthHash, blockData.Timestamp, transactionData.Raw, transactionData.RawResult)
 	}
 	for _, eventData := range blockData.EventData {
 		eventRelatedAddresses := common.ExtractAddresses(eventData.RelatedAddresses)

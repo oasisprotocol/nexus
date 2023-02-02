@@ -1002,6 +1002,7 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetR
 			&t.Index,
 			&t.Hash,
 			&t.EthHash,
+			&t.Timestamp,
 			&t.Raw,
 			&t.ResultRaw,
 		); err != nil {
@@ -1029,6 +1030,7 @@ func (c *StorageClient) RuntimeTransaction(ctx context.Context, txHash string) (
 		&t.Index,
 		&t.Hash,
 		&t.EthHash,
+		&t.Timestamp,
 		&t.Raw,
 		&t.ResultRaw,
 	)

@@ -2,6 +2,8 @@
 package client
 
 import (
+	"time"
+
 	api "github.com/oasisprotocol/oasis-indexer/api/v1/types"
 )
 
@@ -117,6 +119,7 @@ type RuntimeTransaction struct {
 	Index     int64
 	Hash      string
 	EthHash   *string
+	Timestamp time.Time
 	Raw       []byte
 	ResultRaw []byte
 }

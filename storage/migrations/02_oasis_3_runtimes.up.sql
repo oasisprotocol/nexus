@@ -35,6 +35,7 @@ CREATE TABLE oasis_3.runtime_transactions
   tx_index    UINT31 NOT NULL,
   tx_hash     HEX64 NOT NULL,
   tx_eth_hash HEX64,
+  timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
   -- raw is cbor(UnverifiedTransaction). If you're unable to get a copy of the
   -- transaction from the node itself, parse from here. Remove this if we
   -- later store sufficiently detailed data in other columns or if we turn out
