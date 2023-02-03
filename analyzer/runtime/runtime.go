@@ -24,15 +24,14 @@ import (
 )
 
 const (
-	emerald = analyzer.RuntimeEmerald
-
-	EmeraldDamaskAnalyzerName = "emerald_damask"
+	MajorCompat = "damask"
 
 	ProcessRoundTimeout = 61 * time.Second
 )
 
-// Main is the main Analyzer for the Emerald Runtime.
+// Main is the main Analyzer for runtimes.
 type Main struct {
+	runtime analyzer.Runtime
 	cfg     analyzer.RuntimeConfig
 	qf      analyzer.QueryFactory
 	target  storage.TargetStorage
@@ -44,8 +43,14 @@ type Main struct {
 
 var _ analyzer.Analyzer = (*Main)(nil)
 
-// NewRuntimeAnalyzer returns a new main analyzer for the Emerald Runtime.
-func NewRuntimeAnalyzer(nodeCfg config.NodeConfig, cfg *config.BlockBasedAnalyzerConfig, target storage.TargetStorage, logger *log.Logger) (*Main, error) {
+// NewRuntimeAnalyzer returns a new main analyzer for a runtime.
+func NewRuntimeAnalyzer(
+	runtime analyzer.Runtime,
+	nodeCfg config.NodeConfig,
+	cfg *config.BlockBasedAnalyzerConfig,
+	target storage.TargetStorage,
+	logger *log.Logger,
+) (*Main, error) {
 	ctx := context.Background()
 
 	// Initialize source storage.
@@ -66,11 +71,11 @@ func NewRuntimeAnalyzer(nodeCfg config.NodeConfig, cfg *config.BlockBasedAnalyze
 		return nil, err
 	}
 
-	id, err := emerald.ID(network)
+	id, err := runtime.ID(network)
 	if err != nil {
 		return nil, err
 	}
-	logger.Info("Emerald runtime ID determined", "runtime_id", id)
+	logger.Info("Runtime ID determined", "runtime", runtime.String(), "runtime_id", id)
 
 	client, err := factory.Runtime(id)
 	if err != nil {
@@ -88,14 +93,15 @@ func NewRuntimeAnalyzer(nodeCfg config.NodeConfig, cfg *config.BlockBasedAnalyze
 		Source: client,
 	}
 
-	qf := analyzer.NewQueryFactory(strcase.ToSnake(nodeCfg.ChainID), emerald.String())
+	qf := analyzer.NewQueryFactory(strcase.ToSnake(nodeCfg.ChainID), runtime.String())
 
 	return &Main{
+		runtime: runtime,
 		cfg:     ac,
 		qf:      qf,
 		target:  target,
-		logger:  logger.With("analyzer", EmeraldDamaskAnalyzerName),
-		metrics: metrics.NewDefaultDatabaseMetrics(EmeraldDamaskAnalyzerName),
+		logger:  logger.With("analyzer", runtime.String()+"_"+MajorCompat),
+		metrics: metrics.NewDefaultDatabaseMetrics(runtime.String() + "_" + MajorCompat),
 
 		// module handlers
 		moduleHandlers: []modules.ModuleHandler{
@@ -177,7 +183,8 @@ func (m *Main) Start() {
 
 // Name returns the name of the Main.
 func (m *Main) Name() string {
-	return EmeraldDamaskAnalyzerName
+	panic("we never actually call Name")
+	return m.runtime.String() + "_" + MajorCompat
 }
 
 // latestRound returns the latest round processed by the consensus analyzer.
@@ -188,7 +195,7 @@ func (m *Main) latestRound(ctx context.Context) (uint64, error) {
 		m.qf.LatestBlockQuery(),
 		// ^analyzers should only analyze for a single chain ID, and we anchor this
 		// at the starting round.
-		EmeraldDamaskAnalyzerName,
+		m.runtime.String(),
 	).Scan(&latest); err != nil {
 		return 0, err
 	}
@@ -251,7 +258,7 @@ func (m *Main) processRound(ctx context.Context, round uint64) error {
 		batch.Queue(
 			m.qf.IndexingProgressQuery(),
 			round,
-			EmeraldDamaskAnalyzerName,
+			m.runtime.String()+"_"+MajorCompat,
 		)
 		return nil
 	})
@@ -263,7 +270,7 @@ func (m *Main) processRound(ctx context.Context, round uint64) error {
 		return err
 	}
 
-	opName := fmt.Sprintf("process_block_%s", emerald.String())
+	opName := fmt.Sprintf("process_block_%s", m.runtime.String())
 	timer := m.metrics.DatabaseTimer(m.target.Name(), opName)
 	defer timer.ObserveDuration()
 
