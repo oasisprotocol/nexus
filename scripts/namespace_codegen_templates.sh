@@ -16,12 +16,7 @@ rm -rf /tmp/namespaced-templates
 cp -r "$codegenDir/templates" /tmp/namespaced-templates
 find /tmp/namespaced-templates/ -type d -print0 | xargs -0 chmod 755
 
-# Mac OSX sed does not support GNU sed features such as \b.
 # Rename the "runtime" package to "codegen_runtime" in all templates.
-if [[ "$OSTYPE" == "darwin"* ]]; then
-    find /tmp/namespaced-templates -type f -print0 | xargs -0 sed -i -E 's/[[:<:]]runtime[[:>:]]/codegen_runtime/g'
-else
-    find /tmp/namespaced-templates -type f -print0 | xargs -0 sed -i -E 's/\bruntime\b/codegen_runtime/g'
-fi
+find /tmp/namespaced-templates -type f -print0 | xargs -0 sed -i -E 's/ runtime./ codegen_runtime./g'
 # Fix the import statement to use the new name.
-sed -i -E 's!"github.com/deepmap/oapi-codegen/pkg/codegen_runtime"!codegen_runtime "github.com/deepmap/oapi-codegen/pkg/runtime"!' /tmp/namespaced-templates/imports.tmpl
+sed -i -E 's!"github.com/deepmap/oapi-codegen/pkg/runtime"!codegen_runtime "github.com/deepmap/oapi-codegen/pkg/runtime"!' /tmp/namespaced-templates/imports.tmpl
