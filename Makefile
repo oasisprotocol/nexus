@@ -18,8 +18,9 @@ build:
 codegen-go:
 	@oapi-codegen --version | grep -qE '^v1.12.' || echo "ERROR: Installed oapi-codegen is not v1.12.x. See Makefile."
 	@scripts/namespace_codegen_templates.sh
-	oapi-codegen -generate types                    -templates /tmp/namespaced-templates/ -package types api/spec/v1.yaml >api/v1/types/openapi.gen.go
-	oapi-codegen -generate chi-server,strict-server -templates /tmp/namespaced-templates/ -package types api/spec/v1.yaml >api/v1/types/server.gen.go
+	@echo $$'compatibility:\n  always-prefix-enum-values: true' > /tmp/codegen-config.yaml
+	oapi-codegen -generate types                    -config /tmp/codegen-config.yaml -templates /tmp/namespaced-templates/ -package types api/spec/v1.yaml >api/v1/types/openapi.gen.go
+	oapi-codegen -generate chi-server,strict-server -config /tmp/codegen-config.yaml -templates /tmp/namespaced-templates/ -package types api/spec/v1.yaml >api/v1/types/server.gen.go
 
 oasis-indexer: codegen-go
 	$(GO) build $(GOFLAGS) $(GO_EXTRA_FLAGS)

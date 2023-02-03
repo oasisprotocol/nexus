@@ -1039,6 +1039,47 @@ func (c *StorageClient) RuntimeTransaction(ctx context.Context, txHash string) (
 	return &t, nil
 }
 
+// RuntimeEvents returns a list of runtime events.
+func (c *StorageClient) RuntimeEvents(ctx context.Context, p apiTypes.GetRuntimeEventsParams) (*RuntimeEventList, error) {
+	rows, err := c.db.Query(
+		ctx,
+		QueryFactoryFromCtx(ctx).RuntimeEventsQuery(),
+		p.Block,
+		p.TxIndex,
+		p.TxHash,
+		p.Type,
+		p.EvmLogSignature,
+		p.Rel,
+		p.Limit,
+		p.Offset,
+	)
+	if err != nil {
+		return nil, wrapError(err)
+	}
+	defer rows.Close()
+
+	es := RuntimeEventList{
+		Events: []RuntimeEvent{},
+	}
+	for rows.Next() {
+		var e RuntimeEvent
+		if err := rows.Scan(
+			&e.Round,
+			&e.TxIndex,
+			&e.TxHash,
+			&e.Type,
+			&e.Body,
+			&e.EvmLogName,
+			&e.EvmLogParams,
+		); err != nil {
+			return nil, wrapError(err)
+		}
+		es.Events = append(es.Events, e)
+	}
+
+	return &es, nil
+}
+
 func (c *StorageClient) RuntimeTokens(ctx context.Context, p apiTypes.GetRuntimeEvmTokensParams) (*EvmTokenList, error) {
 	rows, err := c.db.Query(
 		ctx,

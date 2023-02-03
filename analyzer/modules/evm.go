@@ -9,6 +9,7 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/oasisprotocol/oasis-core/go/common/errors"
+	apiTypes "github.com/oasisprotocol/oasis-indexer/api/v1/types"
 
 	"github.com/oasisprotocol/oasis-indexer/analyzer/evmabi"
 	"github.com/oasisprotocol/oasis-indexer/log"
@@ -38,7 +39,7 @@ type EVMTokenMutableData struct {
 }
 
 type EVMBlockTokenData struct {
-	TokenData map[string]*EVMTokenData
+	TokenData map[apiTypes.Address]*EVMTokenData
 }
 
 type EVMDeterministicError struct {

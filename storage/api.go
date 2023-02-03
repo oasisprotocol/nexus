@@ -226,6 +226,9 @@ type RuntimeSourceStorage interface {
 	// ConsensusAccountsData gets data in the specified round emitted by the `consensusaccounts` module.
 	ConsensusAccountsData(ctx context.Context, round uint64) (*ConsensusAccountsData, error)
 
+	// EventsData gets all events in the specified round, including non-tx events.
+	GetEventsRaw(ctx context.Context, round uint64) (*RawEvents, error)
+
 	// EVMSimulateCall gets the result of the given EVM simulate call query.
 	EVMSimulateCall(ctx context.Context, round uint64, gasPrice []byte, gasLimit uint64, caller []byte, address []byte, value []byte, data []byte) ([]byte, error)
 
@@ -272,12 +275,19 @@ type AccountsData struct {
 	Mints     []*accounts.MintEvent
 }
 
-// ConsensusAccounts represents data from the `consensusaccounts` module for a runtime.
+// ConsensusAccountsData represents data from the `consensusaccounts` module for a runtime.
 type ConsensusAccountsData struct {
 	Round uint64
 
 	Deposits  []*consensusaccounts.DepositEvent
 	Withdraws []*consensusaccounts.WithdrawEvent
+}
+
+// RawEvents contains all undecoded events for a given height.
+type RawEvents struct {
+	Round uint64
+
+	Events []*types.Event
 }
 
 // TargetStorage defines an interface for reading and writing

@@ -94,7 +94,7 @@ CREATE TABLE oasis_3.runtime_events
   -- The event signature, if it exists, will be the first topic.
   evm_log_signature TEXT GENERATED ALWAYS AS (body->'topics'->>0) STORED,
   evm_log_params JSONB,
-  related_accounts oasis_addr[]
+  related_accounts TEXT[]
 );
 CREATE INDEX ix_runtime_events_related_accounts ON oasis_3.runtime_events USING gin(related_accounts);
 CREATE INDEX ix_runtime_events_evm_log_signature ON oasis_3.runtime_events(evm_log_signature);

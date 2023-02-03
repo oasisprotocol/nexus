@@ -404,6 +404,22 @@ func (qf QueryFactory) RuntimeTransactionsQuery() string {
 		OFFSET $4::bigint`, qf.chainID, qf.runtime)
 }
 
+func (qf QueryFactory) RuntimeEventsQuery() string {
+	return fmt.Sprintf(`
+		SELECT round, tx_index, tx_hash, type, body, evm_log_name, evm_log_params
+			FROM %[1]s.runtime_events
+			WHERE (runtime = '%[2]s') AND
+					($1::bigint IS NULL OR round = $1::bigint) AND
+					($2::integer IS NULL OR tx_index = $2::integer) AND
+					($3::text IS NULL OR tx_hash = $3::text) AND
+					($4::text IS NULL OR type = $4::text) AND
+					($5::text IS NULL OR evm_log_signature = $5::text) AND
+					($6::text IS NULL OR related_accounts @> ARRAY[$6::text])
+			ORDER BY round DESC, tx_index
+			LIMIT $7::bigint
+			OFFSET $8::bigint`, qf.chainID, qf.runtime)
+}
+
 func (qf QueryFactory) EvmTokensQuery() string {
 	return fmt.Sprintf(`
 		WITH holders AS (

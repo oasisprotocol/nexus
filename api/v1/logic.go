@@ -23,10 +23,11 @@ func renderRuntimeTransaction(storageTransaction client.RuntimeTransaction) (api
 	if err != nil {
 		return apiTypes.RuntimeTransaction{}, fmt.Errorf("utx open no verify: %w", err)
 	}
-	sender0, err := uncategorized.StringifyAddressSpec(&tx.AuthInfo.SignerInfo[0].AddressSpec)
+	sender0Addr, err := uncategorized.StringifyAddressSpec(&tx.AuthInfo.SignerInfo[0].AddressSpec)
 	if err != nil {
 		return apiTypes.RuntimeTransaction{}, fmt.Errorf("signer 0: %w", err)
 	}
+	sender0 := string(sender0Addr)
 	var cr types.CallResult
 	if err = cbor.Unmarshal(storageTransaction.ResultRaw, &cr); err != nil {
 		return apiTypes.RuntimeTransaction{}, fmt.Errorf("result unmarshal: %w", err)
@@ -51,10 +52,11 @@ func renderRuntimeTransaction(storageTransaction client.RuntimeTransaction) (api
 	}
 	if err = uncategorized.VisitCall(&tx.Call, &cr, &uncategorized.CallHandler{
 		AccountsTransfer: func(body *accounts.Transfer) error {
-			to, err2 := uncategorized.StringifySdkAddress(&body.To)
+			toAddr, err2 := uncategorized.StringifySdkAddress(&body.To)
 			if err2 != nil {
 				return fmt.Errorf("to: %w", err2)
 			}
+			to := string(toAddr)
 			apiTransaction.To = &to
 			amount, err2 := uncategorized.StringifyNativeDenomination(&body.Amount)
 			if err2 != nil {
@@ -65,10 +67,11 @@ func renderRuntimeTransaction(storageTransaction client.RuntimeTransaction) (api
 		},
 		ConsensusAccountsDeposit: func(body *consensusaccounts.Deposit) error {
 			if body.To != nil {
-				to, err2 := uncategorized.StringifySdkAddress(body.To)
+				toAddr, err2 := uncategorized.StringifySdkAddress(body.To)
 				if err2 != nil {
 					return fmt.Errorf("to: %w", err2)
 				}
+				to := string(toAddr)
 				apiTransaction.To = &to
 			} else {
 				apiTransaction.To = &sender0
@@ -82,10 +85,11 @@ func renderRuntimeTransaction(storageTransaction client.RuntimeTransaction) (api
 		},
 		ConsensusAccountsWithdraw: func(body *consensusaccounts.Withdraw) error {
 			if body.To != nil {
-				to, err2 := uncategorized.StringifySdkAddress(body.To)
+				toAddr, err2 := uncategorized.StringifySdkAddress(body.To)
 				if err2 != nil {
 					return fmt.Errorf("to: %w", err2)
 				}
+				to := string(toAddr)
 				// Beware, this is the address of an account in the consensus
 				// layer, not an account in the runtime indicated in this API
 				// request.
@@ -101,10 +105,11 @@ func renderRuntimeTransaction(storageTransaction client.RuntimeTransaction) (api
 		EVMCreate: func(body *evm.Create, ok *[]byte) error {
 			if !cr.IsUnknown() && cr.IsSuccess() && len(*ok) == 32 {
 				// todo: is this rigorous enough?
-				to, err2 := uncategorized.StringifyEthAddress(uncategorized.SliceEthAddress(*ok))
+				toAddr, err2 := uncategorized.StringifyEthAddress(uncategorized.SliceEthAddress(*ok))
 				if err2 != nil {
 					return fmt.Errorf("created contract: %w", err2)
 				}
+				to := string(toAddr)
 				apiTransaction.To = &to
 			}
 			amount := uncategorized.StringifyBytes(body.Value)
@@ -112,10 +117,11 @@ func renderRuntimeTransaction(storageTransaction client.RuntimeTransaction) (api
 			return nil
 		},
 		EVMCall: func(body *evm.Call, ok *[]byte) error {
-			to, err2 := uncategorized.StringifyEthAddress(body.Address)
+			toAddr, err2 := uncategorized.StringifyEthAddress(body.Address)
 			if err2 != nil {
 				return fmt.Errorf("to: %w", err2)
 			}
+			to := string(toAddr)
 			apiTransaction.To = &to
 			amount := uncategorized.StringifyBytes(body.Value)
 			apiTransaction.Amount = &amount
