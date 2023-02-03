@@ -14,8 +14,8 @@ require (
 	github.com/iancoleman/strcase v0.2.0
 	github.com/jackc/pgx/v4 v4.16.0
 	github.com/knadh/koanf v1.4.1
-	github.com/oasisprotocol/oasis-core/go v0.2202.3
-	github.com/oasisprotocol/oasis-sdk/client-sdk/go v0.2.1-0.20220823181727-bd5025a9857b
+	github.com/oasisprotocol/oasis-core/go v0.2202.5
+	github.com/oasisprotocol/oasis-sdk/client-sdk/go v0.2.1-0.20230131160755-5e0353622f04
 	github.com/prometheus/client_golang v1.13.0
 	github.com/spf13/cobra v1.5.0
 	github.com/stretchr/testify v1.8.1
