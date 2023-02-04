@@ -176,17 +176,17 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) {
 	}
 	if cfg.Analyzers.Emerald != nil {
 		analyzers, err = addAnalyzer(analyzers, err, func() (A, error) {
-			return runtime.NewRuntimeAnalyzer(cfg.Node, cfg.Analyzers.Emerald, client, logger)
+			return runtime.NewRuntimeAnalyzer(analyzer.RuntimeEmerald, cfg.Node, cfg.Analyzers.Emerald, client, logger)
 		})
 	}
 	if cfg.Analyzers.Sapphire != nil {
 		analyzers, err = addAnalyzer(analyzers, err, func() (A, error) {
-			return runtime.NewRuntimeAnalyzer(cfg.Node, cfg.Analyzers.Sapphire, client, logger)
+			return runtime.NewRuntimeAnalyzer(analyzer.RuntimeSapphire, cfg.Node, cfg.Analyzers.Sapphire, client, logger)
 		})
 	}
 	if cfg.Analyzers.Cipher != nil {
 		analyzers, err = addAnalyzer(analyzers, err, func() (A, error) {
-			return runtime.NewRuntimeAnalyzer(cfg.Node, cfg.Analyzers.Cipher, client, logger)
+			return runtime.NewRuntimeAnalyzer(analyzer.RuntimeCipher, cfg.Node, cfg.Analyzers.Cipher, client, logger)
 		})
 	}
 	if cfg.Analyzers.EvmTokens != nil {

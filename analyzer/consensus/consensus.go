@@ -33,7 +33,7 @@ import (
 )
 
 const (
-	ConsensusDamaskAnalyzerName = "consensus_damask"
+	ConsensusAnalyzerName = "consensus"
 
 	ProcessBlockTimeout = 61 * time.Second
 )
@@ -97,8 +97,8 @@ func NewMain(nodeCfg config.NodeConfig, cfg *config.BlockBasedAnalyzerConfig, ta
 		cfg:     ac,
 		qf:      analyzer.NewQueryFactory(strcase.ToSnake(nodeCfg.ChainID), "" /* no runtime identifier for the consensus layer */),
 		target:  target,
-		logger:  logger.With("analyzer", ConsensusDamaskAnalyzerName),
-		metrics: metrics.NewDefaultDatabaseMetrics(ConsensusDamaskAnalyzerName),
+		logger:  logger.With("analyzer", ConsensusAnalyzerName),
+		metrics: metrics.NewDefaultDatabaseMetrics(ConsensusAnalyzerName),
 	}, nil
 }
 
@@ -181,7 +181,7 @@ func (m *Main) Start() {
 
 // Name returns the name of the Main.
 func (m *Main) Name() string {
-	return ConsensusDamaskAnalyzerName
+	return ConsensusAnalyzerName
 }
 
 // source returns the source storage for the provided block height.
@@ -202,7 +202,7 @@ func (m *Main) latestBlock(ctx context.Context) (int64, error) {
 		m.qf.LatestBlockQuery(),
 		// ^analyzers should only analyze for a single chain ID, and we anchor this
 		// at the starting block.
-		ConsensusDamaskAnalyzerName,
+		ConsensusAnalyzerName,
 	).Scan(&latest); err != nil {
 		return 0, err
 	}
@@ -215,7 +215,7 @@ func (m *Main) isGenesisProcessed(ctx context.Context) (bool, error) {
 		ctx,
 		m.qf.IsGenesisProcessedQuery(),
 		m.cfg.ChainID,
-		ConsensusDamaskAnalyzerName,
+		ConsensusAnalyzerName,
 	).Scan(&processed); err != nil {
 		return false, err
 	}
@@ -254,7 +254,7 @@ func (m *Main) processGenesis(ctx context.Context) error {
 	batch.Queue(
 		m.qf.GenesisIndexingProgressQuery(),
 		m.cfg.ChainID,
-		ConsensusDamaskAnalyzerName,
+		ConsensusAnalyzerName,
 	)
 	if err := m.target.SendBatch(ctx, batch); err != nil {
 		return err
@@ -351,7 +351,7 @@ func (m *Main) processBlock(ctx context.Context, height int64) error {
 	batch.Queue(
 		m.qf.IndexingProgressQuery(),
 		height,
-		ConsensusDamaskAnalyzerName,
+		ConsensusAnalyzerName,
 	)
 
 	// Apply updates to DB.
