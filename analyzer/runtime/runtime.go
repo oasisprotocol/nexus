@@ -24,8 +24,6 @@ import (
 )
 
 const (
-	MajorCompat = "damask"
-
 	ProcessRoundTimeout = 61 * time.Second
 )
 
@@ -100,8 +98,8 @@ func NewRuntimeAnalyzer(
 		cfg:     ac,
 		qf:      qf,
 		target:  target,
-		logger:  logger.With("analyzer", runtime.String()+"_"+MajorCompat),
-		metrics: metrics.NewDefaultDatabaseMetrics(runtime.String() + "_" + MajorCompat),
+		logger:  logger.With("analyzer", runtime.String()),
+		metrics: metrics.NewDefaultDatabaseMetrics(runtime.String()),
 
 		// module handlers
 		moduleHandlers: []modules.ModuleHandler{
@@ -183,8 +181,7 @@ func (m *Main) Start() {
 
 // Name returns the name of the Main.
 func (m *Main) Name() string {
-	panic("we never actually call Name")
-	return m.runtime.String() + "_" + MajorCompat
+	return m.runtime.String()
 }
 
 // latestRound returns the latest round processed by the consensus analyzer.
@@ -258,7 +255,7 @@ func (m *Main) processRound(ctx context.Context, round uint64) error {
 		batch.Queue(
 			m.qf.IndexingProgressQuery(),
 			round,
-			m.runtime.String()+"_"+MajorCompat,
+			m.runtime.String(),
 		)
 		return nil
 	})
