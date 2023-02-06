@@ -8,6 +8,9 @@ import (
 	"github.com/dgraph-io/ristretto"
 	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v4"
+
+	ethCommon "github.com/ethereum/go-ethereum/common"
+
 	oasisErrors "github.com/oasisprotocol/oasis-core/go/common/errors"
 
 	beacon "github.com/oasisprotocol/oasis-core/go/beacon/api"
@@ -998,6 +1001,7 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetR
 	}
 	for rows.Next() {
 		var t RuntimeTransaction
+		var address []byte
 		if err := rows.Scan(
 			&t.Round,
 			&t.Index,
@@ -1006,9 +1010,14 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetR
 			&t.Timestamp,
 			&t.Raw,
 			&t.ResultRaw,
+			&t.Sender0,
+			&address,
 		); err != nil {
 			return nil, wrapError(err)
 		}
+
+		senderEth0 := ethCommon.BytesToAddress(address).String()
+		t.SenderEth0 = &senderEth0
 
 		ts.Transactions = append(ts.Transactions, t)
 	}

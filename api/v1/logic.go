@@ -23,11 +23,6 @@ func renderRuntimeTransaction(storageTransaction client.RuntimeTransaction) (api
 	if err != nil {
 		return apiTypes.RuntimeTransaction{}, fmt.Errorf("utx open no verify: %w", err)
 	}
-	sender0Addr, err := uncategorized.StringifyAddressSpec(&tx.AuthInfo.SignerInfo[0].AddressSpec)
-	if err != nil {
-		return apiTypes.RuntimeTransaction{}, fmt.Errorf("signer 0: %w", err)
-	}
-	sender0 := string(sender0Addr)
 	var cr types.CallResult
 	if err = cbor.Unmarshal(storageTransaction.ResultRaw, &cr); err != nil {
 		return apiTypes.RuntimeTransaction{}, fmt.Errorf("result unmarshal: %w", err)
@@ -37,18 +32,19 @@ func renderRuntimeTransaction(storageTransaction client.RuntimeTransaction) (api
 		return apiTypes.RuntimeTransaction{}, fmt.Errorf("body unmarshal: %w", err)
 	}
 	apiTransaction := apiTypes.RuntimeTransaction{
-		Round:     storageTransaction.Round,
-		Index:     storageTransaction.Index,
-		Hash:      storageTransaction.Hash,
-		EthHash:   storageTransaction.EthHash,
-		Timestamp: storageTransaction.Timestamp,
-		Sender0:   sender0,
-		Nonce0:    tx.AuthInfo.SignerInfo[0].Nonce,
-		Fee:       tx.AuthInfo.Fee.Amount.Amount.String(),
-		GasLimit:  tx.AuthInfo.Fee.Gas,
-		Method:    tx.Call.Method,
-		Body:      body,
-		Success:   cr.IsSuccess(),
+		Round:      storageTransaction.Round,
+		Index:      storageTransaction.Index,
+		Hash:       storageTransaction.Hash,
+		EthHash:    storageTransaction.EthHash,
+		Timestamp:  storageTransaction.Timestamp,
+		Sender0:    *storageTransaction.Sender0,
+		SenderEth0: storageTransaction.SenderEth0,
+		Nonce0:     tx.AuthInfo.SignerInfo[0].Nonce,
+		Fee:        tx.AuthInfo.Fee.Amount.Amount.String(),
+		GasLimit:   tx.AuthInfo.Fee.Gas,
+		Method:     tx.Call.Method,
+		Body:       body,
+		Success:    cr.IsSuccess(),
 	}
 	if err = uncategorized.VisitCall(&tx.Call, &cr, &uncategorized.CallHandler{
 		AccountsTransfer: func(body *accounts.Transfer) error {
@@ -74,7 +70,7 @@ func renderRuntimeTransaction(storageTransaction client.RuntimeTransaction) (api
 				to := string(toAddr)
 				apiTransaction.To = &to
 			} else {
-				apiTransaction.To = &sender0
+				apiTransaction.To = storageTransaction.Sender0
 			}
 			amount, err2 := uncategorized.StringifyNativeDenomination(&body.Amount)
 			if err2 != nil {
@@ -95,7 +91,7 @@ func renderRuntimeTransaction(storageTransaction client.RuntimeTransaction) (api
 				// request.
 				apiTransaction.To = &to
 			} else {
-				apiTransaction.To = &sender0
+				apiTransaction.To = storageTransaction.Sender0
 			}
 			// todo: ensure native denomination?
 			amount := body.Amount.Amount.String()

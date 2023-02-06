@@ -401,7 +401,9 @@ func (qf QueryFactory) RuntimeTransactionsQuery() string {
 				txs.tx_eth_hash,
 				txs.timestamp,
 				txs.raw,
-				txs.result_raw
+				txs.result_raw,
+				%[1]s.address_preimages.address,
+				%[1]s.address_preimages.address_data
 			FROM %[1]s.runtime_transactions AS txs
 			LEFT JOIN %[1]s.runtime_related_transactions AS rel_accounts ON txs.round = rel_accounts.tx_round 
 				AND txs.tx_index = rel_accounts.tx_index
@@ -409,6 +411,11 @@ func (qf QueryFactory) RuntimeTransactionsQuery() string {
 				-- When related_address ($3) is NULL and hence we do no filtering on it, avoid the join altogether.
 				-- Otherwise, every tx will be returned as many times as there are related addresses for it. 
 				AND $3::text IS NOT NULL
+			JOIN %[1]s.runtime_transaction_signers ON txs.round = %[1]s.runtime_transaction_signers.round 
+				AND txs.tx_index = %[1]s.runtime_transaction_signers.tx_index
+				-- Currently, transactions only have a single signer in practice.
+				AND %[1]s.runtime_transaction_signers.signer_index = 0
+			JOIN %[1]s.address_preimages ON %[1]s.runtime_transaction_signers.signer_address = %[1]s.address_preimages.address
 			WHERE (txs.runtime = '%[2]s') AND
 						($1::bigint IS NULL OR txs.round = $1::bigint) AND
 						($2::text IS NULL OR txs.tx_hash = $2::text OR txs.tx_eth_hash = $2::text) AND

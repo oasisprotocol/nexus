@@ -1909,6 +1909,11 @@ components:
             Retrieving the other signers is currently not supported by this API.
           # NOTE: To expose the other signers, use the transaction_signers table.
           example: oasis1qz670t637yyxshnlxhjj5074wgwl94d0x5x69zqd
+        sender_eth_0:
+          type: string
+          description: |
+            The Ethereum address of this transaction's 0th signer.
+          example: 0xd8A2Ae03f6Edd58999a0F1005db7a6532F2AA79e
         nonce_0:
           type: integer
           format: uint64
