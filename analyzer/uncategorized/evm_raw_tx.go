@@ -11,7 +11,7 @@ import (
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 )
 
-func decodeEthRawTx(body []byte, expectedChainID uint64) (*sdkTypes.Transaction, error) {
+func decodeEthRawTx(body []byte) (*sdkTypes.Transaction, error) {
 	var ethTx ethTypes.Transaction
 	if err := ethTx.UnmarshalBinary(body); err != nil {
 		return nil, fmt.Errorf("rlp decode bytes: %w", err)
@@ -24,9 +24,6 @@ func decodeEthRawTx(body []byte, expectedChainID uint64) (*sdkTypes.Transaction,
 		tb = evmV1.Create(ethTx.Value().Bytes(), ethTx.Data())
 	}
 	chainIDBI := ethTx.ChainId()
-	if !chainIDBI.IsUint64() || chainIDBI.Uint64() != expectedChainID {
-		return nil, fmt.Errorf("chain ID %v, expected %v", chainIDBI, expectedChainID)
-	}
 	signer := ethTypes.LatestSignerForChainID(chainIDBI)
 	pubUncompressed, err := LondonSenderPub(signer, &ethTx)
 	if err != nil {

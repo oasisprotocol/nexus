@@ -15,7 +15,7 @@ func OpenUtxNoVerify(utx *sdkTypes.UnverifiedTransaction) (*sdkTypes.Transaction
 	if len(utx.AuthProofs) == 1 && utx.AuthProofs[0].Module != "" {
 		switch utx.AuthProofs[0].Module {
 		case "evm.ethereum.v0":
-			tx, err := decodeEthRawTx(utx.Body, 42262)
+			tx, err := decodeEthRawTx(utx.Body)
 			if err != nil {
 				return nil, err
 			}
