@@ -23,6 +23,12 @@ func renderRuntimeTransaction(storageTransaction client.RuntimeTransaction) (api
 	if err != nil {
 		return apiTypes.RuntimeTransaction{}, fmt.Errorf("utx open no verify: %w", err)
 	}
+	sender0Addr, err := uncategorized.StringifyAddressSpec(&tx.AuthInfo.SignerInfo[0].AddressSpec)
+	if err != nil {
+		return apiTypes.RuntimeTransaction{}, fmt.Errorf("signer 0: %w", err)
+	}
+	sender0 := string(sender0Addr)
+	sender0Eth := uncategorized.EthAddrReference(storageTransaction.AddressPreimage[sender0])
 	var cr types.CallResult
 	if err = cbor.Unmarshal(storageTransaction.ResultRaw, &cr); err != nil {
 		return apiTypes.RuntimeTransaction{}, fmt.Errorf("result unmarshal: %w", err)
@@ -37,8 +43,8 @@ func renderRuntimeTransaction(storageTransaction client.RuntimeTransaction) (api
 		Hash:       storageTransaction.Hash,
 		EthHash:    storageTransaction.EthHash,
 		Timestamp:  storageTransaction.Timestamp,
-		Sender0:    *storageTransaction.Sender0,
-		SenderEth0: storageTransaction.SenderEth0,
+		Sender0:    sender0,
+		Sender0Eth: sender0Eth,
 		Nonce0:     tx.AuthInfo.SignerInfo[0].Nonce,
 		Fee:        tx.AuthInfo.Fee.Amount.Amount.String(),
 		GasLimit:   tx.AuthInfo.Fee.Gas,
@@ -68,9 +74,12 @@ func renderRuntimeTransaction(storageTransaction client.RuntimeTransaction) (api
 					return fmt.Errorf("to: %w", err2)
 				}
 				to := string(toAddr)
+				toEth := uncategorized.EthAddrReference(storageTransaction.AddressPreimage[to])
 				apiTransaction.To = &to
+				apiTransaction.ToEth = toEth
 			} else {
-				apiTransaction.To = storageTransaction.Sender0
+				apiTransaction.To = &sender0
+				apiTransaction.ToEth = sender0Eth
 			}
 			amount, err2 := uncategorized.StringifyNativeDenomination(&body.Amount)
 			if err2 != nil {
@@ -86,12 +95,15 @@ func renderRuntimeTransaction(storageTransaction client.RuntimeTransaction) (api
 					return fmt.Errorf("to: %w", err2)
 				}
 				to := string(toAddr)
+				toEth := uncategorized.EthAddrReference(storageTransaction.AddressPreimage[to])
 				// Beware, this is the address of an account in the consensus
 				// layer, not an account in the runtime indicated in this API
 				// request.
 				apiTransaction.To = &to
+				apiTransaction.ToEth = toEth
 			} else {
-				apiTransaction.To = storageTransaction.Sender0
+				apiTransaction.To = &sender0
+				apiTransaction.ToEth = sender0Eth
 			}
 			// todo: ensure native denomination?
 			amount := body.Amount.Amount.String()
@@ -106,7 +118,9 @@ func renderRuntimeTransaction(storageTransaction client.RuntimeTransaction) (api
 					return fmt.Errorf("created contract: %w", err2)
 				}
 				to := string(toAddr)
+				toEth := uncategorized.EthAddrReference(storageTransaction.AddressPreimage[to])
 				apiTransaction.To = &to
+				apiTransaction.ToEth = toEth
 			}
 			amount := uncategorized.StringifyBytes(body.Value)
 			apiTransaction.Amount = &amount
@@ -118,7 +132,9 @@ func renderRuntimeTransaction(storageTransaction client.RuntimeTransaction) (api
 				return fmt.Errorf("to: %w", err2)
 			}
 			to := string(toAddr)
+			toEth := uncategorized.EthAddrReference(storageTransaction.AddressPreimage[to])
 			apiTransaction.To = &to
+			apiTransaction.ToEth = toEth
 			amount := uncategorized.StringifyBytes(body.Value)
 			apiTransaction.Amount = &amount
 			return nil

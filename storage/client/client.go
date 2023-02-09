@@ -9,14 +9,10 @@ import (
 	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v4"
 
-	ethCommon "github.com/ethereum/go-ethereum/common"
-
-	oasisErrors "github.com/oasisprotocol/oasis-core/go/common/errors"
-
 	beacon "github.com/oasisprotocol/oasis-core/go/beacon/api"
-	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
-
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
+	oasisErrors "github.com/oasisprotocol/oasis-core/go/common/errors"
+	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/util"
 	apiCommon "github.com/oasisprotocol/oasis-indexer/api"
 	apiTypes "github.com/oasisprotocol/oasis-indexer/api/v1/types"
@@ -1001,7 +997,6 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetR
 	}
 	for rows.Next() {
 		var t RuntimeTransaction
-		var address []byte
 		if err := rows.Scan(
 			&t.Round,
 			&t.Index,
@@ -1010,14 +1005,10 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetR
 			&t.Timestamp,
 			&t.Raw,
 			&t.ResultRaw,
-			&t.Sender0,
-			&address,
+			&t.AddressPreimage,
 		); err != nil {
 			return nil, wrapError(err)
 		}
-
-		senderEth0 := ethCommon.BytesToAddress(address).String()
-		t.SenderEth0 = &senderEth0
 
 		ts.Transactions = append(ts.Transactions, t)
 	}

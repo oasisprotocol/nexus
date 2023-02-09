@@ -3,6 +3,8 @@ package common
 import (
 	"fmt"
 
+	ethCommon "github.com/ethereum/go-ethereum/common"
+
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/address"
 	apiTypes "github.com/oasisprotocol/oasis-indexer/api/v1/types"
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
@@ -40,6 +42,15 @@ func StringifyEthAddress(ethAddr []byte) (apiTypes.Address, error) {
 	ctx := sdkTypes.AddressV0Secp256k1EthContext
 	ocAddr := address.NewAddress(ctx, ethAddr)
 	return StringifyOcAddress(ocAddr)
+}
+
+func EthAddrReference(eth_addr_hex string) *string {
+	if len(eth_addr_hex) == 0 {
+		return nil
+	}
+
+	ref := ethCommon.HexToAddress(eth_addr_hex).String()
+	return &ref
 }
 
 func ExtractAddresses(accounts map[apiTypes.Address]bool) []string {
