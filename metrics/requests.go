@@ -20,7 +20,7 @@ type RequestMetrics struct {
 	RequestCounts *prometheus.CounterVec
 
 	// Latencies of serving incoming requests.
-	RequestLatencies *prometheus.SummaryVec
+	RequestLatencies *prometheus.HistogramVec
 }
 
 // NewDefaultRequestMetrics creates Prometheus metric instrumentation for
@@ -37,8 +37,8 @@ func NewDefaultRequestMetrics(pkg string) RequestMetrics {
 			},
 			requestLabels,
 		),
-		RequestLatencies: prometheus.NewSummaryVec(
-			prometheus.SummaryOpts{
+		RequestLatencies: prometheus.NewHistogramVec(
+			prometheus.HistogramOpts{
 				Name: fmt.Sprintf("%s_request_latencies", pkg),
 				Help: "How long requests take to process, partitioned by request endpoint.",
 			},

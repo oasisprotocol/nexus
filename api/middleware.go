@@ -23,6 +23,31 @@ var (
 	maxLimit                 = uint64(1000)
 )
 
+// normalizeEndpoint removes all unique identifiers from the URL in order to
+// make it possible to group the Prometheus metrics nicely.
+func normalizeEndpoint(url string) string {
+	var nels []string
+
+	els := strings.Split(url, "/")
+	for _, e := range els {
+		// All unique IDs that we use are some hashes or integers, so we can
+		// just cut everything that's too long or looks like an int here.
+		//
+		// In the future, a better solution would be to look at the OpenAPI
+		// declaration and pass only non-parametrized parts of the query
+		// through, but that might be over-engineering.
+		isTooLong := len(e) >= 32
+		isInt := len(e) > 0 && strings.IndexFunc(e, func(c rune) bool { return c < '0' || c > '9' }) == -1
+		if isTooLong || isInt {
+			nels = append(nels, "*")
+		} else {
+			nels = append(nels, e)
+		}
+	}
+
+	return strings.Join(nels, "/")
+}
+
 // MetricsMiddleware is a middleware that measures the start and end of each request,
 // as well as other useful request information.
 // It should be used as the outermost middleware, so it can
@@ -38,7 +63,8 @@ func MetricsMiddleware(m metrics.RequestMetrics, logger log.Logger) func(next ht
 				"request_id", requestID,
 			)
 			t := time.Now()
-			timer := m.RequestTimer(r.URL.Path)
+			timerName := normalizeEndpoint(r.URL.Path)
+			timer := m.RequestTimer(timerName)
 
 			// Serve the request.
 			next.ServeHTTP(w, r.WithContext(
@@ -59,7 +85,7 @@ func MetricsMiddleware(m metrics.RequestMetrics, logger log.Logger) func(next ht
 			if httpStatus >= 200 && httpStatus < 400 {
 				statusTxt = "success"
 			}
-			m.RequestCounter(r.URL.Path, statusTxt).Inc()
+			m.RequestCounter(timerName, statusTxt).Inc()
 		})
 	}
 }
