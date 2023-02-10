@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/iancoleman/strcase"
 	oasisConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 	"golang.org/x/sync/errgroup"
 
@@ -27,21 +28,28 @@ import (
 // this token analyzer updates last_download_round.
 
 const (
-	EvmTokensAnalyzerName = "evm_tokens"
-	MaxDownloadBatch      = 20
-	DownloadTimeout       = 61 * time.Second
+	//nolint:gosec // thinks this is a hardcoded credential
+	EvmTokensAnalyzerPrefix = "evm_tokens_"
+	MaxDownloadBatch        = 20
+	DownloadTimeout         = 61 * time.Second
 )
 
 type Main struct {
-	source storage.RuntimeSourceStorage
-	target storage.TargetStorage
-	qf     analyzer.QueryFactory
-	logger *log.Logger
+	runtime analyzer.Runtime
+	cfg     analyzer.RuntimeConfig
+	qf      analyzer.QueryFactory
+	target  storage.TargetStorage
+	logger  *log.Logger
 }
 
 var _ analyzer.Analyzer = (*Main)(nil)
 
-func NewMain(nodeCfg *config.NodeConfig, target storage.TargetStorage, logger *log.Logger) (*Main, error) {
+func NewMain(
+	runtime analyzer.Runtime,
+	nodeCfg *config.NodeConfig,
+	target storage.TargetStorage,
+	logger *log.Logger,
+) (*Main, error) {
 	ctx := context.Background()
 
 	// Initialize source storage.
@@ -62,11 +70,11 @@ func NewMain(nodeCfg *config.NodeConfig, target storage.TargetStorage, logger *l
 		return nil, err
 	}
 
-	id, err := analyzer.RuntimeEmerald.ID(network)
+	id, err := runtime.ID(network)
 	if err != nil {
 		return nil, err
 	}
-	logger.Info("Emerald runtime ID determined", "runtime_id", id)
+	logger.Info("Runtime ID determined", "runtime", runtime.String(), "runtime_id", id)
 
 	client, err := factory.Runtime(id)
 	if err != nil {
@@ -75,12 +83,18 @@ func NewMain(nodeCfg *config.NodeConfig, target storage.TargetStorage, logger *l
 		)
 		return nil, err
 	}
+	ac := analyzer.RuntimeConfig{
+		Source: client,
+	}
+
+	qf := analyzer.NewQueryFactory(strcase.ToSnake(nodeCfg.ChainID), runtime.String())
 
 	return &Main{
-		source: client,
-		target: target,
-		qf:     analyzer.NewQueryFactory("oasis_3", analyzer.RuntimeEmerald.String()),
-		logger: logger.With("analyzer", EvmTokensAnalyzerName),
+		runtime: runtime,
+		cfg:     ac,
+		qf:      qf,
+		target:  target,
+		logger:  logger.With("analyzer", EvmTokensAnalyzerPrefix+runtime.String()),
 	}, nil
 }
 
@@ -145,7 +159,7 @@ func (m Main) processBatch(ctx context.Context) (int, error) {
 				tokenData, err := modules.EVMDownloadNewToken(
 					groupCtx,
 					m.logger,
-					m.source,
+					m.cfg.Source,
 					staleToken.LastMutateRound,
 					staleToken.AddrData,
 				)
@@ -166,7 +180,7 @@ func (m Main) processBatch(ctx context.Context) (int, error) {
 				mutable, err := modules.EVMDownloadMutatedToken(
 					groupCtx,
 					m.logger,
-					m.source,
+					m.cfg.Source,
 					staleToken.LastMutateRound,
 					staleToken.AddrData,
 					*staleToken.Type,
@@ -199,8 +213,8 @@ func (m Main) Start() {
 
 	backoff, err := util.NewBackoff(
 		100*time.Millisecond,
+		// Cap the timeout at the expected round time. All runtimes currently have the same round time.
 		6*time.Second,
-		// ^cap the timeout at the expected emerald round time
 	)
 	if err != nil {
 		m.logger.Error("error configuring indexer backoff policy",
@@ -231,5 +245,5 @@ func (m Main) Start() {
 }
 
 func (m Main) Name() string {
-	return EvmTokensAnalyzerName
+	return EvmTokensAnalyzerPrefix + m.runtime.String()
 }
