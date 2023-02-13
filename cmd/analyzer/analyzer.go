@@ -189,9 +189,14 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) {
 			return runtime.NewRuntimeAnalyzer(analyzer.RuntimeCipher, cfg.Node, cfg.Analyzers.Cipher, client, logger)
 		})
 	}
-	if cfg.Analyzers.EvmTokens != nil {
+	if cfg.Analyzers.EmeraldEvmTokens != nil {
 		analyzers, err = addAnalyzer(analyzers, err, func() (A, error) {
-			return evmtokens.NewMain(&cfg.Node, client, logger)
+			return evmtokens.NewMain(analyzer.RuntimeEmerald, &cfg.Node, client, logger)
+		})
+	}
+	if cfg.Analyzers.SapphireEvmTokens != nil {
+		analyzers, err = addAnalyzer(analyzers, err, func() (A, error) {
+			return evmtokens.NewMain(analyzer.RuntimeSapphire, &cfg.Node, client, logger)
 		})
 	}
 	if cfg.Analyzers.MetadataRegistry != nil {
