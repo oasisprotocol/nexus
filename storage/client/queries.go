@@ -394,14 +394,28 @@ func (qf QueryFactory) RuntimeBlocksQuery() string {
 
 func (qf QueryFactory) RuntimeTransactionsQuery() string {
 	return fmt.Sprintf(`
-		SELECT round, tx_index, tx_hash, tx_eth_hash, timestamp, raw, result_raw
-			FROM %[1]s.runtime_transactions
-			WHERE (runtime = '%[2]s') AND
-						($1::bigint IS NULL OR round = $1::bigint) AND
-						($2::text IS NULL OR tx_hash = $2::text)
-		ORDER BY round DESC, tx_index DESC
-		LIMIT $3::bigint
-		OFFSET $4::bigint`, qf.chainID, qf.runtime)
+		SELECT 
+				txs.round,
+				txs.tx_index,
+				txs.tx_hash,
+				txs.tx_eth_hash,
+				txs.timestamp,
+				txs.raw,
+				txs.result_raw
+			FROM %[1]s.runtime_transactions AS txs
+			LEFT JOIN %[1]s.runtime_related_transactions AS rel_accounts ON txs.round = rel_accounts.tx_round 
+				AND txs.tx_index = rel_accounts.tx_index
+				AND txs.runtime = rel_accounts.runtime
+				-- When related_address ($3) is NULL and hence we do no filtering on it, avoid the join altogether.
+				-- Otherwise, every tx will be returned as many times as there are related addresses for it. 
+				AND $3::text IS NOT NULL
+			WHERE (txs.runtime = '%[2]s') AND
+						($1 IS NULL OR txs.round = $1::bigint) AND
+						($2 IS NULL OR txs.tx_hash = $2::text) AND
+						($3 IS NULL OR rel_accounts.account_address = $3::text)
+		ORDER BY txs.round DESC, txs.tx_index DESC
+		LIMIT $4::bigint
+		OFFSET $5::bigint`, qf.chainID, qf.runtime)
 }
 
 func (qf QueryFactory) RuntimeEventsQuery() string {
