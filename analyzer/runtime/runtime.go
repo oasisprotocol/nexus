@@ -15,7 +15,9 @@ import (
 
 	"github.com/oasisprotocol/oasis-indexer/analyzer"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/modules"
+	common "github.com/oasisprotocol/oasis-indexer/analyzer/uncategorized"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/util"
+	apiTypes "github.com/oasisprotocol/oasis-indexer/api/v1/types"
 	"github.com/oasisprotocol/oasis-indexer/config"
 	"github.com/oasisprotocol/oasis-indexer/log"
 	"github.com/oasisprotocol/oasis-indexer/metrics"
@@ -234,6 +236,7 @@ func (m *Main) processRound(ctx context.Context, round uint64) error {
 	type prepareFunc = func(context.Context, uint64, *storage.QueryBatch) error
 	for _, f := range []prepareFunc{
 		m.prepareBlockData,
+		m.prepareEventData,
 	} {
 		func(f prepareFunc) {
 			group.Go(func() error {
@@ -292,6 +295,51 @@ func (m *Main) prepareBlockData(ctx context.Context, round uint64, batch *storag
 		if err := f(ctx, batch, data); err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+// prepareEventData adds non-tx event data queries to the batch.
+func (m *Main) prepareEventData(ctx context.Context, round uint64, batch *storage.QueryBatch) error {
+	events, err := m.cfg.Source.GetEventsRaw(ctx, round)
+	if err != nil {
+		return err
+	}
+	nonTxEvents := []*types.Event{}
+	for _, e := range events.Events {
+		if e.TxHash.String() == util.ZeroTxHash {
+			nonTxEvents = append(nonTxEvents, e)
+		}
+	}
+
+	blockData := BlockData{
+		AddressPreimages: map[apiTypes.Address]*AddressPreimageData{},
+	}
+	res, err := extractEvents(&blockData, map[apiTypes.Address]bool{}, nonTxEvents)
+	if err != nil {
+		return err
+	}
+
+	// Insert non-tx event data.
+	for _, eventData := range res.ExtractedEvents {
+		eventRelatedAddresses := common.ExtractAddresses(eventData.RelatedAddresses)
+		batch.Queue(
+			m.qf.RuntimeEventInsertQuery(),
+			round,
+			nil, // non-tx event has no tx index
+			nil, // non-tx event has no tx hash
+			eventData.Type,
+			eventData.Body,
+			eventData.EvmLogName,
+			eventData.EvmLogParams,
+			eventRelatedAddresses,
+		)
+	}
+
+	// Insert any eth address preimages found in non-tx events.
+	for addr, preimageData := range blockData.AddressPreimages {
+		batch.Queue(m.qf.AddressPreimageInsertQuery(), addr, preimageData.ContextIdentifier, preimageData.ContextVersion, preimageData.Data)
 	}
 
 	return nil

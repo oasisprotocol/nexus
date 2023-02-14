@@ -16,6 +16,10 @@ const (
 	// oasis-core tags event that are not associated with any real transactions.
 	// For example, the DebondingStart escrow event.
 	EmptyTxHash = "c672b8d1ef56ed28ab87c3622c5114069bdd3ad7b8f9737498d0c01ecef0967a"
+	// The zero-value transaction hash.
+	// oasis-core tags runtime events that are not associated with any real transactions.
+	// See https://github.com/oasisprotocol/oasis-core/blob/b6c20732c43f95b51d31e42968acd118cf0ac1b6/go/runtime/transaction/tags.go#L5-L7
+	ZeroTxHash = "0000000000000000000000000000000000000000000000000000000000000000"
 )
 
 // Backoff implements retry backoff on failure.
