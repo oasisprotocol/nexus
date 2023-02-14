@@ -984,6 +984,7 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetR
 		QueryFactoryFromCtx(ctx).RuntimeTransactionsQuery(),
 		p.Block,
 		nil, // tx_hash; filter not supported by this endpoint
+		p.Rel,
 		p.Limit,
 		p.Offset,
 	)
@@ -1023,8 +1024,9 @@ func (c *StorageClient) RuntimeTransaction(ctx context.Context, txHash string) (
 		QueryFactoryFromCtx(ctx).RuntimeTransactionsQuery(),
 		nil, // block; filter not supported by this endpoint
 		txHash,
-		1, // limit
-		0, // offset
+		nil, // rel; filter not supported by this endpoint
+		1,   // limit
+		0,   // offset
 	).Scan(
 		&t.Round,
 		&t.Index,
