@@ -236,13 +236,15 @@ func (srv *StrictServerImpl) GetRuntimeEvmTokens(ctx context.Context, request ap
 }
 
 func (srv *StrictServerImpl) GetRuntimeTransactions(ctx context.Context, request apiTypes.GetRuntimeTransactionsRequestObject) (apiTypes.GetRuntimeTransactionsResponseObject, error) {
-	storageTransactions, err := srv.dbClient.RuntimeTransactions(ctx, request.Params)
+	storageTransactions, err := srv.dbClient.RuntimeTransactions(ctx, request.Params, nil)
 	if err != nil {
 		return nil, err
 	}
 
 	// Perform additional tx body parsing on the fly; DB stores only partially-parsed txs.
-	var apiTransactions apiTypes.RuntimeTransactionList
+	apiTransactions := apiTypes.RuntimeTransactionList{
+		Transactions: []apiTypes.RuntimeTransaction{},
+	}
 	for _, storageTransaction := range storageTransactions.Transactions {
 		apiTransaction, err2 := renderRuntimeTransaction(storageTransaction)
 		if err2 != nil {
@@ -255,17 +257,26 @@ func (srv *StrictServerImpl) GetRuntimeTransactions(ctx context.Context, request
 }
 
 func (srv *StrictServerImpl) GetRuntimeTransactionsTxHash(ctx context.Context, request apiTypes.GetRuntimeTransactionsTxHashRequestObject) (apiTypes.GetRuntimeTransactionsTxHashResponseObject, error) {
-	storageTx, err := srv.dbClient.RuntimeTransaction(ctx, request.TxHash)
+	storageTransactions, err := srv.dbClient.RuntimeTransactions(ctx, apiTypes.GetRuntimeTransactionsParams{}, &request.TxHash)
 	if err != nil {
 		return nil, err
 	}
 
-	apiTx, err := renderRuntimeTransaction(*storageTx)
-	if err != nil {
-		return nil, fmt.Errorf("rendering runtime tx %s: %w", request.TxHash, err)
+	if len(storageTransactions.Transactions) == 0 {
+		return apiTypes.GetRuntimeTransactionsTxHash404JSONResponse{}, nil
 	}
 
-	return apiTypes.GetRuntimeTransactionsTxHash200JSONResponse(apiTx), nil
+	// Perform additional tx body parsing on the fly; DB stores only partially-parsed txs.
+	var apiTransactions apiTypes.RuntimeTransactionList
+	for _, storageTransaction := range storageTransactions.Transactions {
+		apiTransaction, err2 := renderRuntimeTransaction(storageTransaction)
+		if err2 != nil {
+			return nil, fmt.Errorf("round %d tx %d: %w", storageTransaction.Round, storageTransaction.Index, err2)
+		}
+		apiTransactions.Transactions = append(apiTransactions.Transactions, apiTransaction)
+	}
+
+	return apiTypes.GetRuntimeTransactionsTxHash200JSONResponse(apiTransactions), nil
 }
 
 func (srv *StrictServerImpl) GetRuntimeEvents(ctx context.Context, request apiTypes.GetRuntimeEventsRequestObject) (apiTypes.GetRuntimeEventsResponseObject, error) {
