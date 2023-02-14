@@ -9,9 +9,9 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/oasisprotocol/oasis-core/go/common/errors"
-	apiTypes "github.com/oasisprotocol/oasis-indexer/api/v1/types"
 
 	"github.com/oasisprotocol/oasis-indexer/analyzer/evmabi"
+	apiTypes "github.com/oasisprotocol/oasis-indexer/api/v1/types"
 	"github.com/oasisprotocol/oasis-indexer/log"
 	"github.com/oasisprotocol/oasis-indexer/storage"
 )
@@ -147,7 +147,9 @@ func evmDownloadTokenERC20Mutable(ctx context.Context, logger *log.Logger, sourc
 }
 
 func evmDownloadTokenERC20(ctx context.Context, logger *log.Logger, source storage.RuntimeSourceStorage, round uint64, tokenEthAddr []byte) (*EVMTokenData, error) {
-	var tokenData EVMTokenData
+	tokenData := EVMTokenData{
+		Type: EVMTokenTypeERC20,
+	}
 	logError := func(method string, err error) {
 		logger.Info("ERC20 call failed",
 			"round", round,
