@@ -63,8 +63,8 @@ func MetricsMiddleware(m metrics.RequestMetrics, logger log.Logger) func(next ht
 				"request_id", requestID,
 			)
 			t := time.Now()
-			timerName := normalizeEndpoint(r.URL.Path)
-			timer := m.RequestTimer(timerName)
+			metricName := normalizeEndpoint(r.URL.Path)
+			timer := m.RequestTimer(metricName)
 
 			// Serve the request.
 			next.ServeHTTP(w, r.WithContext(
@@ -73,19 +73,32 @@ func MetricsMiddleware(m metrics.RequestMetrics, logger log.Logger) func(next ht
 
 			// Observe results and log/record them.
 			httpStatus := reflect.ValueOf(w).Elem().FieldByName("status").Int()
+			if httpStatus < 400 || httpStatus >= 500 {
+				// Only observe the request timing if it's not going to be
+				// ignored (see below).
+				// Timers are reported to Prometheus only after they're
+				// observed, so it's OK to create it above and then ignore it
+				// like we're doing here if we don't want to use it.
+				timer.ObserveDuration()
+			}
 			logger.Info("ending request",
 				"endpoint", r.URL.Path,
 				"request_id", requestID,
 				"time", time.Since(t),
 				"status_code", httpStatus,
 			)
-			timer.ObserveDuration()
 
 			statusTxt := "failure"
 			if httpStatus >= 200 && httpStatus < 400 {
 				statusTxt = "success"
+			} else if httpStatus >= 400 && httpStatus < 500 {
+				// Group all 4xx errors into the "ignored" label, as they're
+				// almost always just bots and are not relevant to the metrics
+				// we're interested in.
+				statusTxt = "failure_4xx"
+				metricName = "ignored"
 			}
-			m.RequestCounter(timerName, statusTxt).Inc()
+			m.RequestCounter(metricName, statusTxt).Inc()
 		})
 	}
 }
