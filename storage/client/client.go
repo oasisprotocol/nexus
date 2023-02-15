@@ -978,12 +978,12 @@ func (c *StorageClient) RuntimeBlocks(ctx context.Context, p apiTypes.GetRuntime
 }
 
 // RuntimeTransactions returns a list of runtime transactions.
-func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetRuntimeTransactionsParams) (*RuntimeTransactionList, error) {
+func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetRuntimeTransactionsParams, txHash *string) (*RuntimeTransactionList, error) {
 	rows, err := c.db.Query(
 		ctx,
 		QueryFactoryFromCtx(ctx).RuntimeTransactionsQuery(),
 		p.Block,
-		nil, // tx_hash; filter not supported by this endpoint
+		txHash, // tx_hash; used only by GetRuntimeTransactionsTxHash
 		p.Rel,
 		p.Limit,
 		p.Offset,
@@ -1014,33 +1014,6 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetR
 	}
 
 	return &ts, nil
-}
-
-// RuntimeTransaction returns a single runtime transaction.
-func (c *StorageClient) RuntimeTransaction(ctx context.Context, txHash string) (*RuntimeTransaction, error) {
-	t := RuntimeTransaction{}
-	err := c.db.QueryRow(
-		ctx,
-		QueryFactoryFromCtx(ctx).RuntimeTransactionsQuery(),
-		nil, // block; filter not supported by this endpoint
-		txHash,
-		nil, // rel; filter not supported by this endpoint
-		1,   // limit
-		0,   // offset
-	).Scan(
-		&t.Round,
-		&t.Index,
-		&t.Hash,
-		&t.EthHash,
-		&t.Timestamp,
-		&t.Raw,
-		&t.ResultRaw,
-	)
-	if err != nil {
-		return nil, wrapError(err)
-	}
-
-	return &t, nil
 }
 
 // RuntimeEvents returns a list of runtime events.

@@ -780,7 +780,34 @@ paths:
               schema:
                 $ref: '#/components/schemas/RuntimeTransactionList'
         <<: *common_error_responses
-  
+
+  /{runtime}/transactions/{tx_hash}:
+    get:
+      summary: Returns runtime transactions with the given transaction hash.
+      parameters:
+        - *runtime
+        - in: path
+          name: tx_hash
+          required: true
+          schema:
+            type: string
+          description: |
+            The transaction hash of the transaction(s) to return. This can be an
+            Ethereum transaction hash; the query will compare against both a
+            transaction's regular tx_hash and eth_tx_hash (if it exists).
+            This endpoint can return multiple transactions in extremely rare cases,
+            e.g. when a hash matches multiple Oasis runtime transactions or both
+            an Oasis runtime transaction and the eth_tx_hash of an evm-transaction.
+          example: *tx_hash_1
+      responses:
+        '200':
+          description: The requested runtime transactions.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RuntimeTransactionList'
+        <<: *common_error_responses
+
   /{runtime}/events:
     get:
       summary: Returns a list of Emerald events.
@@ -848,27 +875,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RuntimeEventList'
-        <<: *common_error_responses
-
-  /{runtime}/transactions/{tx_hash}:
-    get:
-      summary: Returns an Emerald transaction with the given transaction hash.
-      parameters:
-        - *runtime
-        - in: path
-          name: tx_hash
-          required: true
-          schema:
-            type: string
-          description: The transaction hash of the transaction to return.
-          example: *tx_hash_1
-      responses:
-        '200':
-          description: The requested Emerald transactions.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RuntimeTransaction'
         <<: *common_error_responses
 
   /{runtime}/evm_tokens:
