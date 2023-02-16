@@ -13,6 +13,7 @@ import (
 
 // nearly hungarian notation notes:
 // ethAddr -> []byte len-20 slice
+// ecAddr -> go-ethereum type binary address
 // ocAddr -> oasis-core type binary oasis address
 // sdkAddr -> oasis-sdk type binary oasis address
 // addr -> bech32 string oasis address
