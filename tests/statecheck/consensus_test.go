@@ -1,32 +1,46 @@
-package genesis
+package statecheck
 
 import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"os"
 	"sort"
 	"testing"
 
-	"github.com/iancoleman/strcase"
-	"github.com/jackc/pgx/v4"
 	"github.com/oasisprotocol/oasis-core/go/common/entity"
 	"github.com/oasisprotocol/oasis-core/go/common/node"
 	genesisAPI "github.com/oasisprotocol/oasis-core/go/genesis/api"
 	governanceAPI "github.com/oasisprotocol/oasis-core/go/governance/api"
 	registryAPI "github.com/oasisprotocol/oasis-core/go/registry/api"
 	stakingAPI "github.com/oasisprotocol/oasis-core/go/staking/api"
-	oasisConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/oasisprotocol/oasis-indexer/log"
-	"github.com/oasisprotocol/oasis-indexer/storage"
 	"github.com/oasisprotocol/oasis-indexer/storage/oasis"
 	"github.com/oasisprotocol/oasis-indexer/storage/postgres"
 	"github.com/oasisprotocol/oasis-indexer/tests"
 )
+
+const (
+	ConsensusName = "consensus"
+)
+
+var ConsensusTables = []string{
+	// Registry backend.
+	"entities",
+	"claimed_nodes",
+	"nodes",
+	"runtimes",
+	// Staking backend.
+	"accounts",
+	"allowances",
+
+	"debonding_delegations",
+	// Governance backend.
+	"proposals",
+	"votes",
+}
 
 type TestEntity struct {
 	ID    string
@@ -87,85 +101,6 @@ type TestVote struct {
 	Vote     string
 }
 
-func newTargetClient(t *testing.T) (*postgres.Client, error) {
-	connString := os.Getenv("HEALTHCHECK_TEST_CONN_STRING")
-	logger, err := log.NewLogger("db-test", io.Discard, log.FmtJSON, log.LevelInfo)
-	assert.Nil(t, err)
-
-	return postgres.NewClient(connString, logger)
-}
-
-func newSourceClientFactory() (*oasis.ClientFactory, error) {
-	network := &oasisConfig.Network{
-		ChainContext: os.Getenv("HEALTHCHECK_TEST_CHAIN_CONTEXT"),
-		RPC:          os.Getenv("HEALTHCHECK_TEST_NODE_RPC"),
-	}
-	return oasis.NewClientFactory(context.Background(), network, true)
-}
-
-var chainID = "" // Memoization for getChainId(). Assumes all tests access the same chain.
-func getChainID(ctx context.Context, t *testing.T, source *oasis.ConsensusClient) string {
-	if chainID == "" {
-		doc, err := source.GenesisDocument(ctx)
-		assert.Nil(t, err)
-		chainID = strcase.ToSnake(doc.ChainID)
-	}
-	return chainID
-}
-
-func checkpointBackends(t *testing.T, source *oasis.ConsensusClient, target *postgres.Client) (int64, error) {
-	ctx := context.Background()
-
-	chainID := getChainID(ctx, t, source)
-
-	// Create checkpoint tables.
-	batch := &storage.QueryBatch{}
-	for _, t := range []string{
-		// Registry backend.
-		"entities",
-		"claimed_nodes",
-		"nodes",
-		"runtimes",
-		// Staking backend.
-		"accounts",
-		"allowances",
-		"delegations",
-		"debonding_delegations",
-		// Governance backend.
-		"proposals",
-		"votes",
-	} {
-		batch.Queue(fmt.Sprintf(`
-			DROP TABLE IF EXISTS %s.%s_checkpoint CASCADE;
-		`, chainID, t))
-		batch.Queue(fmt.Sprintf(`
-			CREATE TABLE %s.%s_checkpoint AS TABLE %s.%s;
-		`, chainID, t, chainID, t))
-	}
-	batch.Queue(fmt.Sprintf(`
-			INSERT INTO %s.checkpointed_heights (height)
-				SELECT height FROM %s.processed_blocks ORDER BY height DESC, processed_time DESC LIMIT 1
-				ON CONFLICT DO NOTHING;
-		`, chainID, chainID))
-
-	// Create the snapshot using a high level of isolation; we don't want another
-	// tx to be able to modify the tables while this is running, creating a snapshot that
-	// represents indexer state at two (or more) blockchain heights.
-	if err := target.SendBatchWithOptions(ctx, batch, pgx.TxOptions{IsoLevel: pgx.Serializable}); err != nil {
-		return 0, err
-	}
-
-	var checkpointHeight int64
-	if err := target.QueryRow(ctx, fmt.Sprintf(`
-		SELECT height FROM %s.checkpointed_heights
-			ORDER BY height DESC LIMIT 1;
-	`, chainID)).Scan(&checkpointHeight); err != nil {
-		return 0, err
-	}
-
-	return checkpointHeight, nil
-}
-
 func TestBlocksSanityCheck(t *testing.T) {
 	if _, ok := os.LookupEnv("OASIS_INDEXER_HEALTHCHECK"); !ok {
 		t.Skip("skipping test since healthcheck tests are not enabled")
@@ -222,7 +157,7 @@ func TestGenesisFull(t *testing.T) {
 	assert.Nil(t, err)
 
 	t.Log("Creating checkpoint...")
-	height, err := checkpointBackends(t, oasisClient, postgresClient)
+	height, err := checkpointBackends(t, oasisClient, postgresClient, ConsensusName, ConsensusTables)
 	assert.Nil(t, err)
 
 	t.Logf("Fetching genesis at height %d...", height)
