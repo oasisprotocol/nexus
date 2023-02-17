@@ -63,7 +63,7 @@ CREATE TABLE oasis_3.runtime_transaction_signers
   PRIMARY KEY (runtime, round, tx_index, signer_index),
   FOREIGN KEY (runtime, round, tx_index) REFERENCES oasis_3.runtime_transactions(runtime, round, tx_index) DEFERRABLE INITIALLY DEFERRED
 );
-CREATE INDEX ix_runtime_transaction_signers_signer_address_signer_nonce ON oasis_3.runtime_transaction_signers (signer_address, nonce);
+CREATE INDEX ix_runtime_transaction_signers_address_nonce ON oasis_3.runtime_transaction_signers (runtime, signer_address, nonce);
 
 CREATE TABLE oasis_3.runtime_related_transactions
 (
@@ -73,7 +73,7 @@ CREATE TABLE oasis_3.runtime_related_transactions
   tx_index        UINT31 NOT NULL,
   FOREIGN KEY (runtime, tx_round, tx_index) REFERENCES oasis_3.runtime_transactions(runtime, round, tx_index) DEFERRABLE INITIALLY DEFERRED
 );
-CREATE INDEX ix_runtime_related_transactions_address_height_index ON oasis_3.runtime_related_transactions (account_address, tx_round, tx_index);
+CREATE INDEX ix_runtime_related_transactions_address ON oasis_3.runtime_related_transactions (runtime, account_address);
 
 -- Events emitted from the runtimes. Includes deeply-parsed EVM events from EVM runtimes.
 CREATE TABLE oasis_3.runtime_events
@@ -139,7 +139,7 @@ CREATE TABLE oasis_3.evm_token_balances
   PRIMARY KEY (runtime, token_address, account_address),
   balance NUMERIC(1000,0) NOT NULL  -- TODO: Use UINT_NUMERIC once we are processing Emerald from round 0.
 );
-CREATE INDEX ix_evm_token_address ON oasis_3.evm_token_balances (token_address) WHERE balance != 0;
+CREATE INDEX ix_evm_token_address ON oasis_3.evm_token_balances (runtime, token_address) WHERE balance != 0;
 
 CREATE TABLE oasis_3.evm_tokens
 (
