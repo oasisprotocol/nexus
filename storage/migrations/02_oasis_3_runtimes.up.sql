@@ -74,6 +74,7 @@ CREATE TABLE oasis_3.runtime_related_transactions
   FOREIGN KEY (runtime, tx_round, tx_index) REFERENCES oasis_3.runtime_transactions(runtime, round, tx_index) DEFERRABLE INITIALLY DEFERRED
 );
 CREATE INDEX ix_runtime_related_transactions_address ON oasis_3.runtime_related_transactions (runtime, account_address);
+CREATE INDEX ix_runtime_related_transactions_round_index ON oasis_3.runtime_related_transactions (runtime, tx_round, tx_index);
 
 -- Events emitted from the runtimes. Includes deeply-parsed EVM events from EVM runtimes.
 CREATE TABLE oasis_3.runtime_events
