@@ -2,9 +2,13 @@ package oasis
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"os"
 
-	"github.com/oasisprotocol/oasis-core/go/beacon/api"
+	"google.golang.org/grpc"
+
+	beaconAPI "github.com/oasisprotocol/oasis-core/go/beacon/api"
 	"github.com/oasisprotocol/oasis-core/go/common"
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 	consensus "github.com/oasisprotocol/oasis-core/go/consensus/api"
@@ -14,6 +18,7 @@ import (
 	registryAPI "github.com/oasisprotocol/oasis-core/go/registry/api"
 	schedulerAPI "github.com/oasisprotocol/oasis-core/go/scheduler/api"
 	stakingAPI "github.com/oasisprotocol/oasis-core/go/staking/api"
+	genesisAPICobalt "github.com/oasisprotocol/oasis-indexer/coreapi/genesis/api"
 	config "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 
 	"github.com/oasisprotocol/oasis-indexer/storage"
@@ -21,13 +26,51 @@ import (
 
 // ConsensusClient is a client to the consensus backends.
 type ConsensusClient struct {
-	client  consensus.ClientBackend
-	network *config.Network
+	grpcConn grpc.ClientConn
+	client   consensus.ClientBackend
+	network  *config.Network
 }
 
 // GenesisDocument returns the original genesis document.
 func (cc *ConsensusClient) GenesisDocument(ctx context.Context) (*genesisAPI.Document, error) {
-	return cc.client.GetGenesisDocument(ctx)
+	var rsp genesisAPICobalt.Document
+	// var rsp genesisAPI.Document
+	if err := cc.grpcConn.Invoke(ctx, "/oasis-core.Consensus/GetGenesisDocument", nil, &rsp); err != nil {
+		os.Stderr.WriteString("OLD GENESIS FETCH FAILED\n")
+		return nil, err
+	}
+	fmt.Printf("OLD GENESIS FETCH SUCCEEDED\n")
+	fmt.Printf("%v\n", rsp)
+	// return &rsp, nil
+	//return cc.client.GetGenesisDocument(ctx)
+	bytes, err := json.Marshal(rsp)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("%s", bytes)
+	return genesisDocumentFromCobalt(rsp), nil
+}
+
+func genesisDocumentFromCobalt(d genesisAPICobalt.Document) *genesisAPI.Document {
+	return &genesisAPI.Document{
+		Height:  d.Height,
+		Time:    d.Time,
+		ChainID: d.ChainID,
+		Governance: governanceAPI.Genesis{
+			// Parameters:  governanceAPI.ConsensusParameters{}, // not used
+			Proposals:   []*governanceAPI.Proposal{},
+			VoteEntries: map[uint64][]*governanceAPI.VoteEntry{},
+		},
+		Registry: registryAPI.Genesis{},
+		Staking:  stakingAPI.Genesis{},
+		// RootHash:   roothashAPI.Genesis{}, // not used
+		// KeyManager: keymanagerAPI.Genesis{}, // not used
+		// Scheduler:  schedulerAPI.Genesis{}, // not used
+		// Beacon:     beaconAPI.Genesis{}, // not used
+		// Consensus:  genesis.Genesis{},// not used
+		// HaltEpoch:  beaconAPI.EpochTime(rsp.HaltEpoch), // not used
+		// ExtraData:  map[string][]byte{}, // not used
+	}
 }
 
 // GenesisDocumentAtHeight returns the genesis document at the provided height.
@@ -61,7 +104,7 @@ func (cc *ConsensusClient) Name() string {
 }
 
 // GetEpoch returns the epoch number at the specified block height.
-func (cc *ConsensusClient) GetEpoch(ctx context.Context, height int64) (api.EpochTime, error) {
+func (cc *ConsensusClient) GetEpoch(ctx context.Context, height int64) (beaconAPI.EpochTime, error) {
 	return cc.client.Beacon().GetEpoch(ctx, height)
 }
 

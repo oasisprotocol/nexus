@@ -4,11 +4,16 @@ package oasis
 
 import (
 	"context"
+	"crypto/tls"
 
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
+	cmnGrpc "github.com/oasisprotocol/oasis-core/go/common/grpc"
 	config "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 	connection "github.com/oasisprotocol/oasis-sdk/client-sdk/go/connection"
 	runtimeSignature "github.com/oasisprotocol/oasis-sdk/client-sdk/go/crypto/signature"
+
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 )
 
 const (
@@ -45,6 +50,13 @@ func NewClientFactory(ctx context.Context, network *config.Network, skipChainCon
 
 // Consensus creates a new ConsensusClient.
 func (cf *ClientFactory) Consensus() (*ConsensusClient, error) {
+	creds := credentials.NewTLS(&tls.Config{MinVersion: tls.VersionTLS12})
+	dialOpts := []grpc.DialOption{grpc.WithTransportCredentials(creds)}
+	grpcConn, err := cmnGrpc.Dial(cf.network.RPC, dialOpts...)
+	if err != nil {
+		return nil, err
+	}
+
 	connection := *cf.connection
 	client := connection.Consensus()
 
@@ -52,8 +64,9 @@ func (cf *ClientFactory) Consensus() (*ConsensusClient, error) {
 	signature.SetChainContext(cf.network.ChainContext)
 
 	c := &ConsensusClient{
-		client:  client,
-		network: cf.network,
+		grpcConn: *grpcConn,
+		client:   client,
+		network:  cf.network,
 	}
 
 	return c, nil
