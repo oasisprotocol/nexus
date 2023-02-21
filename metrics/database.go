@@ -20,7 +20,7 @@ type DatabaseMetrics struct {
 	DatabaseOperations *prometheus.CounterVec
 
 	// Latencies of database operations.
-	DatabaseLatencies *prometheus.SummaryVec
+	DatabaseLatencies *prometheus.HistogramVec
 }
 
 // NewDefaultDatabaseMetrics creates Prometheus metric instrumentation
@@ -37,8 +37,8 @@ func NewDefaultDatabaseMetrics(pkg string) DatabaseMetrics {
 			},
 			databaseOperationLabels,
 		),
-		DatabaseLatencies: prometheus.NewSummaryVec(
-			prometheus.SummaryOpts{
+		DatabaseLatencies: prometheus.NewHistogramVec(
+			prometheus.HistogramOpts{
 				Name: fmt.Sprintf("%s_db_latencies", pkg),
 				Help: "How long database operations take, partitioned by operation.",
 			},
