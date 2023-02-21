@@ -137,6 +137,14 @@ func (rc *RuntimeClient) GetEventsRaw(ctx context.Context, round uint64) (*stora
 	}, nil
 }
 
+func (rc *RuntimeClient) GetAccountAddresses(ctx context.Context, round uint64, denomination sdkTypes.Denomination) (accounts.Addresses, error) {
+	return rc.client.Accounts.Addresses(ctx, round, denomination)
+}
+
+func (rc *RuntimeClient) GetAccountBalances(ctx context.Context, round uint64, addr sdkTypes.Address) (*accounts.AccountBalances, error) {
+	return rc.client.Accounts.Balances(ctx, round, addr)
+}
+
 func (rc *RuntimeClient) EVMSimulateCall(ctx context.Context, round uint64, gasPrice []byte, gasLimit uint64, caller []byte, address []byte, value []byte, data []byte) ([]byte, error) {
 	return evm.NewV1(rc.client).SimulateCall(ctx, round, gasPrice, gasLimit, caller, address, value, data)
 }

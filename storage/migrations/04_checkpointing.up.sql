@@ -4,6 +4,7 @@ BEGIN;
 -- table X to X_checkpoint) as part of `tests/genesis`.
 CREATE TABLE oasis_3.checkpointed_heights
 (
+  analyzer TEXT NOT NULL,
   height BIGINT PRIMARY KEY,
   checkpoint_time TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
