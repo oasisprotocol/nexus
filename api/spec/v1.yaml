@@ -895,6 +895,26 @@ paths:
                 $ref: '#/components/schemas/EvmTokenList'
         <<: *common_error_responses
 
+  /{runtime}/accounts/{address}:
+    get:
+      summary: Returns a runtime account.
+      parameters:
+        - *runtime
+        - in: path
+          name: address
+          required: true
+          schema:
+            <<: *StakingAddressType
+          description: The staking address of the account to return.
+      responses:
+        '200':
+          description: A JSON object containing a runtime layer account.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RuntimeAccount'
+        <<: *common_error_responses
+
   /{layer}/stats/tx_volume:
     get:
       summary: |
@@ -1490,25 +1510,14 @@ components:
             is the Ethereum address (in base64, not hex!).
           example: 'INLp2Ih3YIdcA+zFNhM+SIGyFgKsYYc9SKQeKRKe2uI='
 
-    RuntimeName:
-      description: |
-        The name of a runtime. This is a human-readable identifier, and should
-        stay stable across runtime upgrades/versions.
-      type: string
-      enum:
-        - emerald
-      example: emerald
-
     RuntimeSdkBalance:
       description: Balance of an account for a specific runtime and oasis-sdk token (e.g. ROSE).
       type: object
-      required: [balance, runtime, token_symbol, token_decimals]
+      required: [balance, token_symbol, token_decimals]
       properties:
         balance:
           <<: *BigIntType
           description: Number of tokens held, in base units.
-        runtime:
-          $ref: "#/components/schemas/RuntimeName"
         token_symbol:
           type: string
           description: The token ticker symbol. Unique across all oasis-sdk tokens in the same runtime.
@@ -1521,13 +1530,11 @@ components:
     RuntimeEvmBalance:
       description: Balance of an account for a specific runtime and EVM token.
       type: object
-      required: [balance, runtime, token_contract_addr, token_decimals]
+      required: [balance, token_contract_addr, token_decimals]
       properties:
         balance:
           <<: *BigIntType
           description: Number of tokens held, in base units.
-        runtime:
-          $ref: "#/components/schemas/RuntimeName"
         token_contract_addr:
           type: string
           description: The EVM address of this token's contract. Encoded as a lowercase hex string.
@@ -1553,29 +1560,11 @@ components:
           type: string
           description: The staking address for this account.
           example: *staking_address_1
-        address_preimage:
-          $ref: '#/components/schemas/AddressPreimage'
         nonce:
           type: integer
           format: int64
           description: A nonce used to prevent replay.
           example: 0
-        runtime_sdk_balances:
-          description: |
-            The balances of this account in each runtime, as managed by oasis-sdk.
-            NOTE 1: This field is omitted for efficiency when listing multiple accounts.
-            NOTE 2: This field is limited to 1000 entries. If you need more, please let us know in a GitHub issue.
-          type: array
-          items:
-            $ref: '#/components/schemas/RuntimeSdkBalance'
-        runtime_evm_balances:
-          description: |
-            The balances of this account in each runtime, as managed by EVM smart contracts (notably, ERC-20).
-            NOTE 1: This field is omitted for efficiency when listing multiple accounts.
-            NOTE 2: This field is limited to 1000 entries. If you need more, please let us know in a GitHub issue.
-          type: array
-          items:
-            $ref: '#/components/schemas/RuntimeEvmBalance'
         available:
           <<: *BigIntType
           description: The available balance, in base units.
@@ -2008,7 +1997,7 @@ components:
           type: string
           description: |
             A reasonable "amount" associated with this transaction, if
-            applicable. The meaning varies based on the transaction mehtod.
+            applicable. The meaning varies based on the transaction method.
             Usually in native denomination, ParaTime units. As a string.
           example: "100000001666393459"
         success:
@@ -2016,6 +2005,35 @@ components:
           description: Whether this transaction successfully executed.
       description: |
         A runtime transaction.
+
+    RuntimeAccount:
+      type: object
+      required: [address, runtime, balances, evm_balances, stats]
+      properties:
+        address:
+          type: string
+          description: The staking address for this account.
+          example: *staking_address_1
+        address_preimage:
+          $ref: '#/components/schemas/AddressPreimage'
+        balances:
+          description: |
+            The balance(s) of this account in this runtime. Most runtimes use only one denomination, and thus
+            produce only one balance here. These balances do not include "layer (n+1) tokens", i.e. tokens
+            managed by smart contracts deployed in this runtime. For example, in EVM-compatible runtimes,
+            this does not include ERC-20 tokens
+          type: array
+          items:
+            $ref: '#/components/schemas/RuntimeSdkBalance'
+        evm_balances:
+          description: |
+            The balances of this account in each runtime, as managed by EVM smart contracts (notably, ERC-20).
+            NOTE: This field is limited to 1000 entries. If you need more, please let us know in a GitHub issue.
+          type: array
+          items:
+            $ref: '#/components/schemas/RuntimeEvmBalance'
+        stats:
+          $ref: '#/components/schemas/AccountStats'
 
     EvmTokenType:
       type: string
@@ -2084,6 +2102,22 @@ components:
             The number of addresses that have a nonzero balance of this token,
             as calculated from Transfer events.
           example: 123
+    
+    AccountStats:
+      type: object
+      required: [total_sent, total_received, num_txns]
+      properties:
+        total_sent:
+          description: The total number of tokens sent, in base units.
+          <<: *BigIntType
+        total_received:
+          description: The total number of tokens received, in base units.
+          <<: *BigIntType
+        num_txns:
+          description: The total number of transactions this account was involved with.
+          type: integer
+          format: uint64
+          example: 4184
 
     TxVolumeList:
       type: object

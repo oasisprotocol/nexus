@@ -108,7 +108,6 @@ func TestIndexer(t *testing.T) {
 	err = tests.GetFrom(fmt.Sprintf("/consensus/accounts/%s", bobAddress), &account)
 	require.Nil(t, err)
 	require.Equal(t, account.Address, bobAddress.String())
-	require.Nil(t, account.AddressPreimage)
 	require.Zero(t, account.Nonce)
 	require.Zero(t, account.Available)
 	require.Zero(t, *account.DelegationsBalance)
