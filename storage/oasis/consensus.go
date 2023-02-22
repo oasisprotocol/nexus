@@ -2,9 +2,7 @@ package oasis
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"os"
 
 	"google.golang.org/grpc"
 
@@ -18,7 +16,8 @@ import (
 	registryAPI "github.com/oasisprotocol/oasis-core/go/registry/api"
 	schedulerAPI "github.com/oasisprotocol/oasis-core/go/scheduler/api"
 	stakingAPI "github.com/oasisprotocol/oasis-core/go/staking/api"
-	genesisAPICobalt "github.com/oasisprotocol/oasis-indexer/coreapi/genesis/api"
+	genesisAPICobalt "github.com/oasisprotocol/oasis-indexer/coreapi/v21.1.1/genesis/api"
+	cobalt "github.com/oasisprotocol/oasis-indexer/storage/oasis/cobalt"
 	config "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 
 	"github.com/oasisprotocol/oasis-indexer/storage"
@@ -34,43 +33,10 @@ type ConsensusClient struct {
 // GenesisDocument returns the original genesis document.
 func (cc *ConsensusClient) GenesisDocument(ctx context.Context) (*genesisAPI.Document, error) {
 	var rsp genesisAPICobalt.Document
-	// var rsp genesisAPI.Document
 	if err := cc.grpcConn.Invoke(ctx, "/oasis-core.Consensus/GetGenesisDocument", nil, &rsp); err != nil {
-		os.Stderr.WriteString("OLD GENESIS FETCH FAILED\n")
 		return nil, err
 	}
-	fmt.Printf("OLD GENESIS FETCH SUCCEEDED\n")
-	fmt.Printf("%v\n", rsp)
-	// return &rsp, nil
-	//return cc.client.GetGenesisDocument(ctx)
-	bytes, err := json.Marshal(rsp)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Printf("%s", bytes)
-	return genesisDocumentFromCobalt(rsp), nil
-}
-
-func genesisDocumentFromCobalt(d genesisAPICobalt.Document) *genesisAPI.Document {
-	return &genesisAPI.Document{
-		Height:  d.Height,
-		Time:    d.Time,
-		ChainID: d.ChainID,
-		Governance: governanceAPI.Genesis{
-			// Parameters:  governanceAPI.ConsensusParameters{}, // not used
-			Proposals:   []*governanceAPI.Proposal{},
-			VoteEntries: map[uint64][]*governanceAPI.VoteEntry{},
-		},
-		Registry: registryAPI.Genesis{},
-		Staking:  stakingAPI.Genesis{},
-		// RootHash:   roothashAPI.Genesis{}, // not used
-		// KeyManager: keymanagerAPI.Genesis{}, // not used
-		// Scheduler:  schedulerAPI.Genesis{}, // not used
-		// Beacon:     beaconAPI.Genesis{}, // not used
-		// Consensus:  genesis.Genesis{},// not used
-		// HaltEpoch:  beaconAPI.EpochTime(rsp.HaltEpoch), // not used
-		// ExtraData:  map[string][]byte{}, // not used
-	}
+	return cobalt.ConvertGenesis(rsp), nil
 }
 
 // GenesisDocumentAtHeight returns the genesis document at the provided height.
