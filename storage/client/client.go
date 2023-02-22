@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"fmt"
 	"math/big"
 	"time"
 
@@ -24,6 +25,8 @@ import (
 const (
 	blockCost = 1
 	txCost    = 1
+
+	maxTotalCount = 1000
 )
 
 // StorageClient is a wrapper around a storage.TargetStorage
@@ -36,6 +39,12 @@ type StorageClient struct {
 	txCache    *ristretto.Cache
 
 	logger *log.Logger
+}
+
+type rowsWithCount struct {
+	rows                pgx.Rows
+	totalCount          uint64
+	isTotalCountClipped bool
 }
 
 func toString(b *BigInt) *string {
@@ -84,6 +93,46 @@ func wrapError(err error) error {
 	return apiCommon.ErrStorageError{Err: err}
 }
 
+// For queries that return multiple rows, returns the rows for a given query, as well as
+// the total count of matching records, i.e. the number of rows the query would return
+// with limit=infinity.
+// Assumes that the last two query parameters are limit and offset.
+// The total count is capped by an internal limit for performance reasons.
+func (c *StorageClient) withTotalCount(ctx context.Context, sql string, args ...interface{}) (*rowsWithCount, error) {
+	var totalCount uint64
+	if len(args) < 2 {
+		return nil, fmt.Errorf("list queries must have at least two params (limit and offset)")
+	}
+	rows, err := c.db.Query(
+		ctx,
+		sql,
+		args...,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	args[len(args)-2] = maxTotalCount + 1 // limit
+	if err := c.db.QueryRow(
+		ctx,
+		QueryFactoryFromCtx(ctx).TotalCountQuery(sql),
+		args...,
+	).Scan(&totalCount); err != nil {
+		return nil, wrapError(err)
+	}
+
+	clipped := totalCount == maxTotalCount+1
+	if clipped {
+		totalCount = maxTotalCount
+	}
+
+	return &rowsWithCount{
+		rows:                rows,
+		totalCount:          totalCount,
+		isTotalCountClipped: clipped,
+	}, nil
+}
+
 // Status returns status information for the Oasis Indexer.
 func (c *StorageClient) Status(ctx context.Context) (*Status, error) {
 	s := Status{
@@ -104,7 +153,7 @@ func (c *StorageClient) Status(ctx context.Context) (*Status, error) {
 
 // Blocks returns a list of consensus blocks.
 func (c *StorageClient) Blocks(ctx context.Context, r apiTypes.GetConsensusBlocksParams) (*BlockList, error) {
-	rows, err := c.db.Query(
+	res, err := c.withTotalCount(
 		ctx,
 		QueryFactoryFromCtx(ctx).BlocksQuery(),
 		r.From,
@@ -117,14 +166,16 @@ func (c *StorageClient) Blocks(ctx context.Context, r apiTypes.GetConsensusBlock
 	if err != nil {
 		return nil, wrapError(err)
 	}
-	defer rows.Close()
+	defer res.rows.Close()
 
 	bs := BlockList{
-		Blocks: []Block{},
+		Blocks:              []Block{},
+		TotalCount:          res.totalCount,
+		IsTotalCountClipped: res.isTotalCountClipped,
 	}
-	for rows.Next() {
+	for res.rows.Next() {
 		var b Block
-		if err := rows.Scan(&b.Height, &b.Hash, &b.Timestamp, &b.NumTransactions); err != nil {
+		if err := res.rows.Scan(&b.Height, &b.Hash, &b.Timestamp, &b.NumTransactions); err != nil {
 			return nil, wrapError(err)
 		}
 		b.Timestamp = b.Timestamp.UTC()
@@ -164,7 +215,7 @@ func (c *StorageClient) cacheBlock(blk *Block) {
 
 // Transactions returns a list of consensus transactions.
 func (c *StorageClient) Transactions(ctx context.Context, p apiTypes.GetConsensusTransactionsParams) (*TransactionList, error) {
-	rows, err := c.db.Query(
+	res, err := c.withTotalCount(
 		ctx,
 		QueryFactoryFromCtx(ctx).TransactionsQuery(),
 		p.Block,
@@ -180,15 +231,17 @@ func (c *StorageClient) Transactions(ctx context.Context, p apiTypes.GetConsensu
 	if err != nil {
 		return nil, wrapError(err)
 	}
-	defer rows.Close()
+	defer res.rows.Close()
 
 	ts := TransactionList{
-		Transactions: []Transaction{},
+		Transactions:        []Transaction{},
+		TotalCount:          res.totalCount,
+		IsTotalCountClipped: res.isTotalCountClipped,
 	}
-	for rows.Next() {
+	for res.rows.Next() {
 		var t Transaction
 		var code uint64
-		if err := rows.Scan(
+		if err := res.rows.Scan(
 			&t.Block,
 			&t.Index,
 			&t.Hash,
@@ -255,9 +308,7 @@ func (c *StorageClient) cacheTx(tx *Transaction) {
 
 // Events returns a list of events.
 func (c *StorageClient) Events(ctx context.Context, p apiTypes.GetConsensusEventsParams) (*EventList, error) {
-	var rows pgx.Rows
-	var err error
-	rows, err = c.db.Query(
+	res, err := c.withTotalCount(
 		ctx,
 		QueryFactoryFromCtx(ctx).EventsQuery(),
 		p.Block,
@@ -268,19 +319,20 @@ func (c *StorageClient) Events(ctx context.Context, p apiTypes.GetConsensusEvent
 		p.Limit,
 		p.Offset,
 	)
-
 	if err != nil {
 		return nil, wrapError(err)
 	}
-	defer rows.Close()
+	defer res.rows.Close()
 
 	es := EventList{
-		Events: []Event{},
+		Events:              []Event{},
+		TotalCount:          res.totalCount,
+		IsTotalCountClipped: res.isTotalCountClipped,
 	}
 
-	for rows.Next() {
+	for res.rows.Next() {
 		var e Event
-		if err := rows.Scan(&e.Block, &e.TxIndex, &e.TxHash, &e.Type, &e.Body); err != nil {
+		if err := res.rows.Scan(&e.Block, &e.TxIndex, &e.TxHash, &e.Type, &e.Body); err != nil {
 			return nil, wrapError(err)
 		}
 		es.Events = append(es.Events, e)
@@ -291,7 +343,7 @@ func (c *StorageClient) Events(ctx context.Context, p apiTypes.GetConsensusEvent
 
 // Entities returns a list of registered entities.
 func (c *StorageClient) Entities(ctx context.Context, p apiTypes.GetConsensusEntitiesParams) (*EntityList, error) {
-	rows, err := c.db.Query(
+	res, err := c.withTotalCount(
 		ctx,
 		QueryFactoryFromCtx(ctx).EntitiesQuery(),
 		p.Limit,
@@ -300,14 +352,16 @@ func (c *StorageClient) Entities(ctx context.Context, p apiTypes.GetConsensusEnt
 	if err != nil {
 		return nil, wrapError(err)
 	}
-	defer rows.Close()
+	defer res.rows.Close()
 
 	es := EntityList{
-		Entities: []Entity{},
+		Entities:            []Entity{},
+		TotalCount:          res.totalCount,
+		IsTotalCountClipped: res.isTotalCountClipped,
 	}
-	for rows.Next() {
+	for res.rows.Next() {
 		var e Entity
-		if err := rows.Scan(&e.ID, &e.Address); err != nil {
+		if err := res.rows.Scan(&e.ID, &e.Address); err != nil {
 			return nil, wrapError(err)
 		}
 
@@ -352,7 +406,7 @@ func (c *StorageClient) Entity(ctx context.Context, entityID signature.PublicKey
 
 // EntityNodes returns a list of nodes controlled by the provided entity.
 func (c *StorageClient) EntityNodes(ctx context.Context, entityID signature.PublicKey, r apiTypes.GetConsensusEntitiesEntityIdNodesParams) (*NodeList, error) {
-	rows, err := c.db.Query(
+	res, err := c.withTotalCount(
 		ctx,
 		QueryFactoryFromCtx(ctx).EntityNodesQuery(),
 		entityID.String(),
@@ -362,14 +416,16 @@ func (c *StorageClient) EntityNodes(ctx context.Context, entityID signature.Publ
 	if err != nil {
 		return nil, wrapError(err)
 	}
-	defer rows.Close()
+	defer res.rows.Close()
 
 	ns := NodeList{
-		Nodes: []Node{},
+		Nodes:               []Node{},
+		TotalCount:          res.totalCount,
+		IsTotalCountClipped: res.isTotalCountClipped,
 	}
-	for rows.Next() {
+	for res.rows.Next() {
 		var n Node
-		if err := rows.Scan(
+		if err := res.rows.Scan(
 			&n.ID,
 			&n.EntityID,
 			&n.Expiration,
@@ -415,7 +471,7 @@ func (c *StorageClient) EntityNode(ctx context.Context, entityID signature.Publi
 
 // Accounts returns a list of consensus accounts.
 func (c *StorageClient) Accounts(ctx context.Context, r apiTypes.GetConsensusAccountsParams) (*AccountList, error) {
-	rows, err := c.db.Query(
+	res, err := c.withTotalCount(
 		ctx,
 		QueryFactoryFromCtx(ctx).AccountsQuery(),
 		toString(r.MinAvailable),
@@ -432,15 +488,17 @@ func (c *StorageClient) Accounts(ctx context.Context, r apiTypes.GetConsensusAcc
 	if err != nil {
 		return nil, wrapError(err)
 	}
-	defer rows.Close()
+	defer res.rows.Close()
 
 	as := AccountList{
-		Accounts: []Account{},
+		Accounts:            []Account{},
+		TotalCount:          res.totalCount,
+		IsTotalCountClipped: res.isTotalCountClipped,
 	}
-	for rows.Next() {
+	for res.rows.Next() {
 		a := Account{AddressPreimage: &AddressPreimage{}}
 		var preimageContext *string
-		if err := rows.Scan(
+		if err := res.rows.Scan(
 			&a.Address,
 			&a.Nonce,
 			&a.Available,
@@ -604,7 +662,7 @@ func (c *StorageClient) Account(ctx context.Context, address staking.Address) (*
 
 // Delegations returns a list of delegations.
 func (c *StorageClient) Delegations(ctx context.Context, address staking.Address, p apiTypes.GetConsensusAccountsAddressDelegationsParams) (*DelegationList, error) {
-	rows, err := c.db.Query(
+	res, err := c.withTotalCount(
 		ctx,
 		QueryFactoryFromCtx(ctx).DelegationsQuery(),
 		address.String(),
@@ -614,15 +672,17 @@ func (c *StorageClient) Delegations(ctx context.Context, address staking.Address
 	if err != nil {
 		return nil, wrapError(err)
 	}
-	defer rows.Close()
+	defer res.rows.Close()
 
 	ds := DelegationList{
-		Delegations: []Delegation{},
+		Delegations:         []Delegation{},
+		TotalCount:          res.totalCount,
+		IsTotalCountClipped: res.isTotalCountClipped,
 	}
-	for rows.Next() {
+	for res.rows.Next() {
 		var d Delegation
 		var shares, escrowBalanceActive, escrowTotalSharesActive common.BigInt
-		if err := rows.Scan(
+		if err := res.rows.Scan(
 			&d.ValidatorAddress,
 			&shares,
 			&escrowBalanceActive,
@@ -643,7 +703,7 @@ func (c *StorageClient) Delegations(ctx context.Context, address staking.Address
 
 // DebondingDelegations returns a list of debonding delegations.
 func (c *StorageClient) DebondingDelegations(ctx context.Context, address staking.Address, p apiTypes.GetConsensusAccountsAddressDebondingDelegationsParams) (*DebondingDelegationList, error) {
-	rows, err := c.db.Query(
+	res, err := c.withTotalCount(
 		ctx,
 		QueryFactoryFromCtx(ctx).DebondingDelegationsQuery(),
 		address.String(),
@@ -653,15 +713,17 @@ func (c *StorageClient) DebondingDelegations(ctx context.Context, address stakin
 	if err != nil {
 		return nil, wrapError(err)
 	}
-	defer rows.Close()
+	defer res.rows.Close()
 
 	ds := DebondingDelegationList{
 		DebondingDelegations: []DebondingDelegation{},
+		TotalCount:           res.totalCount,
+		IsTotalCountClipped:  res.isTotalCountClipped,
 	}
-	for rows.Next() {
+	for res.rows.Next() {
 		var d DebondingDelegation
 		var shares, escrowBalanceDebonding, escrowTotalSharesDebonding common.BigInt
-		if err := rows.Scan(
+		if err := res.rows.Scan(
 			&d.ValidatorAddress,
 			&shares,
 			&d.DebondEnd,
@@ -684,7 +746,7 @@ func (c *StorageClient) DebondingDelegations(ctx context.Context, address stakin
 
 // Epochs returns a list of consensus epochs.
 func (c *StorageClient) Epochs(ctx context.Context, p apiTypes.GetConsensusEpochsParams) (*EpochList, error) {
-	rows, err := c.db.Query(
+	res, err := c.withTotalCount(
 		ctx,
 		QueryFactoryFromCtx(ctx).EpochsQuery(),
 		p.Limit,
@@ -695,11 +757,13 @@ func (c *StorageClient) Epochs(ctx context.Context, p apiTypes.GetConsensusEpoch
 	}
 
 	es := EpochList{
-		Epochs: []Epoch{},
+		Epochs:              []Epoch{},
+		TotalCount:          res.totalCount,
+		IsTotalCountClipped: res.isTotalCountClipped,
 	}
-	for rows.Next() {
+	for res.rows.Next() {
 		var e Epoch
-		if err := rows.Scan(&e.ID, &e.StartHeight, &e.EndHeight); err != nil {
+		if err := res.rows.Scan(&e.ID, &e.StartHeight, &e.EndHeight); err != nil {
 			return nil, wrapError(err)
 		}
 
@@ -725,7 +789,7 @@ func (c *StorageClient) Epoch(ctx context.Context, epoch int64) (*Epoch, error) 
 
 // Proposals returns a list of governance proposals.
 func (c *StorageClient) Proposals(ctx context.Context, p apiTypes.GetConsensusProposalsParams) (*ProposalList, error) {
-	rows, err := c.db.Query(
+	res, err := c.withTotalCount(
 		ctx,
 		QueryFactoryFromCtx(ctx).ProposalsQuery(),
 		p.Submitter,
@@ -736,15 +800,17 @@ func (c *StorageClient) Proposals(ctx context.Context, p apiTypes.GetConsensusPr
 	if err != nil {
 		return nil, wrapError(err)
 	}
-	defer rows.Close()
+	defer res.rows.Close()
 
 	ps := ProposalList{
-		Proposals: []Proposal{},
+		Proposals:           []Proposal{},
+		TotalCount:          res.totalCount,
+		IsTotalCountClipped: res.isTotalCountClipped,
 	}
-	for rows.Next() {
+	for res.rows.Next() {
 		p := Proposal{Target: &ProposalTarget{}}
 		var invalidVotesNum pgtype.Numeric
-		if err := rows.Scan(
+		if err := res.rows.Scan(
 			&p.ID,
 			&p.Submitter,
 			&p.State,
@@ -798,7 +864,7 @@ func (c *StorageClient) Proposal(ctx context.Context, proposalID uint64) (*Propo
 
 // ProposalVotes returns votes for a governance proposal.
 func (c *StorageClient) ProposalVotes(ctx context.Context, proposalID uint64, p apiTypes.GetConsensusProposalsProposalIdVotesParams) (*ProposalVotes, error) {
-	rows, err := c.db.Query(
+	res, err := c.withTotalCount(
 		ctx,
 		QueryFactoryFromCtx(ctx).ProposalVotesQuery(),
 		proposalID,
@@ -808,14 +874,16 @@ func (c *StorageClient) ProposalVotes(ctx context.Context, proposalID uint64, p 
 	if err != nil {
 		return nil, wrapError(err)
 	}
-	defer rows.Close()
+	defer res.rows.Close()
 
 	vs := ProposalVotes{
-		Votes: []ProposalVote{},
+		Votes:               []ProposalVote{},
+		TotalCount:          res.totalCount,
+		IsTotalCountClipped: res.isTotalCountClipped,
 	}
-	for rows.Next() {
+	for res.rows.Next() {
 		var v ProposalVote
-		if err := rows.Scan(
+		if err := res.rows.Scan(
 			&v.Address,
 			&v.Vote,
 		); err != nil {
@@ -839,7 +907,7 @@ func (c *StorageClient) Validators(ctx context.Context, p apiTypes.GetConsensusV
 		return nil, wrapError(err)
 	}
 
-	rows, err := c.db.Query(
+	res, err := c.withTotalCount(
 		ctx,
 		QueryFactoryFromCtx(ctx).ValidatorsDataQuery(),
 		p.Limit,
@@ -848,15 +916,17 @@ func (c *StorageClient) Validators(ctx context.Context, p apiTypes.GetConsensusV
 	if err != nil {
 		return nil, wrapError(err)
 	}
-	defer rows.Close()
+	defer res.rows.Close()
 
 	vs := ValidatorList{
-		Validators: []Validator{},
+		Validators:          []Validator{},
+		TotalCount:          res.totalCount,
+		IsTotalCountClipped: res.isTotalCountClipped,
 	}
-	for rows.Next() {
+	for res.rows.Next() {
 		var v Validator
 		var schedule staking.CommissionSchedule
-		if err := rows.Scan(
+		if err := res.rows.Scan(
 			&v.EntityID,
 			&v.EntityAddress,
 			&v.NodeID,
@@ -945,7 +1015,7 @@ func (c *StorageClient) Validator(ctx context.Context, entityID signature.Public
 
 // RuntimeBlocks returns a list of runtime blocks.
 func (c *StorageClient) RuntimeBlocks(ctx context.Context, p apiTypes.GetRuntimeBlocksParams) (*RuntimeBlockList, error) {
-	rows, err := c.db.Query(
+	res, err := c.withTotalCount(
 		ctx,
 		QueryFactoryFromCtx(ctx).RuntimeBlocksQuery(),
 		p.From,
@@ -958,14 +1028,16 @@ func (c *StorageClient) RuntimeBlocks(ctx context.Context, p apiTypes.GetRuntime
 	if err != nil {
 		return nil, wrapError(err)
 	}
-	defer rows.Close()
+	defer res.rows.Close()
 
 	bs := RuntimeBlockList{
-		Blocks: []RuntimeBlock{},
+		Blocks:              []RuntimeBlock{},
+		TotalCount:          res.totalCount,
+		IsTotalCountClipped: res.isTotalCountClipped,
 	}
-	for rows.Next() {
+	for res.rows.Next() {
 		var b RuntimeBlock
-		if err := rows.Scan(&b.Round, &b.Hash, &b.Timestamp, &b.NumTransactions, &b.Size, &b.GasUsed); err != nil {
+		if err := res.rows.Scan(&b.Round, &b.Hash, &b.Timestamp, &b.NumTransactions, &b.Size, &b.GasUsed); err != nil {
 			return nil, wrapError(err)
 		}
 		b.Timestamp = b.Timestamp.UTC()
@@ -978,7 +1050,7 @@ func (c *StorageClient) RuntimeBlocks(ctx context.Context, p apiTypes.GetRuntime
 
 // RuntimeTransactions returns a list of runtime transactions.
 func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetRuntimeTransactionsParams, txHash *string) (*RuntimeTransactionList, error) {
-	rows, err := c.db.Query(
+	res, err := c.withTotalCount(
 		ctx,
 		QueryFactoryFromCtx(ctx).RuntimeTransactionsQuery(),
 		p.Block,
@@ -990,14 +1062,16 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetR
 	if err != nil {
 		return nil, wrapError(err)
 	}
-	defer rows.Close()
+	defer res.rows.Close()
 
 	ts := RuntimeTransactionList{
-		Transactions: []RuntimeTransaction{},
+		Transactions:        []RuntimeTransaction{},
+		TotalCount:          res.totalCount,
+		IsTotalCountClipped: res.isTotalCountClipped,
 	}
-	for rows.Next() {
+	for res.rows.Next() {
 		var t RuntimeTransaction
-		if err := rows.Scan(
+		if err := res.rows.Scan(
 			&t.Round,
 			&t.Index,
 			&t.Hash,
@@ -1018,7 +1092,7 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetR
 
 // RuntimeEvents returns a list of runtime events.
 func (c *StorageClient) RuntimeEvents(ctx context.Context, p apiTypes.GetRuntimeEventsParams) (*RuntimeEventList, error) {
-	rows, err := c.db.Query(
+	res, err := c.withTotalCount(
 		ctx,
 		QueryFactoryFromCtx(ctx).RuntimeEventsQuery(),
 		p.Block,
@@ -1033,14 +1107,16 @@ func (c *StorageClient) RuntimeEvents(ctx context.Context, p apiTypes.GetRuntime
 	if err != nil {
 		return nil, wrapError(err)
 	}
-	defer rows.Close()
+	defer res.rows.Close()
 
 	es := RuntimeEventList{
-		Events: []RuntimeEvent{},
+		Events:              []RuntimeEvent{},
+		TotalCount:          res.totalCount,
+		IsTotalCountClipped: res.isTotalCountClipped,
 	}
-	for rows.Next() {
+	for res.rows.Next() {
 		var e RuntimeEvent
-		if err := rows.Scan(
+		if err := res.rows.Scan(
 			&e.Round,
 			&e.TxIndex,
 			&e.TxHash,
@@ -1058,7 +1134,7 @@ func (c *StorageClient) RuntimeEvents(ctx context.Context, p apiTypes.GetRuntime
 }
 
 func (c *StorageClient) RuntimeTokens(ctx context.Context, p apiTypes.GetRuntimeEvmTokensParams) (*EvmTokenList, error) {
-	rows, err := c.db.Query(
+	res, err := c.withTotalCount(
 		ctx,
 		QueryFactoryFromCtx(ctx).EvmTokensQuery(),
 		p.Limit,
@@ -1067,15 +1143,17 @@ func (c *StorageClient) RuntimeTokens(ctx context.Context, p apiTypes.GetRuntime
 	if err != nil {
 		return nil, wrapError(err)
 	}
-	defer rows.Close()
+	defer res.rows.Close()
 
 	ts := EvmTokenList{
-		EvmTokens: []EvmToken{},
+		EvmTokens:           []EvmToken{},
+		TotalCount:          res.totalCount,
+		IsTotalCountClipped: res.isTotalCountClipped,
 	}
-	for rows.Next() {
+	for res.rows.Next() {
 		var t EvmToken
 		var totalSupplyNum pgtype.Numeric
-		if err2 := rows.Scan(
+		if err2 := res.rows.Scan(
 			&t.ContractAddr,
 			&t.EvmContractAddr,
 			&t.Name,
