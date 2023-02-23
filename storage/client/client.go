@@ -8,12 +8,11 @@ import (
 	"github.com/dgraph-io/ristretto"
 	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v4"
-	oasisErrors "github.com/oasisprotocol/oasis-core/go/common/errors"
 
 	beacon "github.com/oasisprotocol/oasis-core/go/beacon/api"
-	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
-
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
+	oasisErrors "github.com/oasisprotocol/oasis-core/go/common/errors"
+	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/util"
 	apiCommon "github.com/oasisprotocol/oasis-indexer/api"
 	apiTypes "github.com/oasisprotocol/oasis-indexer/api/v1/types"
@@ -1006,6 +1005,7 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetR
 			&t.Timestamp,
 			&t.Raw,
 			&t.ResultRaw,
+			&t.AddressPreimage,
 		); err != nil {
 			return nil, wrapError(err)
 		}

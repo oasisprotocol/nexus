@@ -394,28 +394,38 @@ func (qf QueryFactory) RuntimeBlocksQuery() string {
 
 func (qf QueryFactory) RuntimeTransactionsQuery() string {
 	return fmt.Sprintf(`
-		SELECT 
-				txs.round,
-				txs.tx_index,
-				txs.tx_hash,
-				txs.tx_eth_hash,
-				txs.timestamp,
-				txs.raw,
-				txs.result_raw
-			FROM %[1]s.runtime_transactions AS txs
-			LEFT JOIN %[1]s.runtime_related_transactions AS rel_accounts ON txs.round = rel_accounts.tx_round 
-				AND txs.tx_index = rel_accounts.tx_index
-				AND txs.runtime = rel_accounts.runtime
-				-- When related_address ($3) is NULL and hence we do no filtering on it, avoid the join altogether.
-				-- Otherwise, every tx will be returned as many times as there are related addresses for it. 
-				AND $3::text IS NOT NULL
-			WHERE (txs.runtime = '%[2]s') AND
-						($1::bigint IS NULL OR txs.round = $1::bigint) AND
-						($2::text IS NULL OR txs.tx_hash = $2::text OR txs.tx_eth_hash = $2::text) AND
-						($3::text IS NULL OR rel_accounts.account_address = $3::text)
+		SELECT
+			txs.round,
+			txs.tx_index,
+			txs.tx_hash,
+			txs.tx_eth_hash,
+			txs.timestamp,
+			txs.raw,
+			txs.result_raw,
+			(
+				SELECT
+					json_object_agg(pre.address, encode(pre.address_data, 'hex'))
+				FROM %[1]s.runtime_related_transactions AS rel
+				JOIN %[1]s.address_preimages AS pre ON rel.account_address = pre.address
+				WHERE txs.runtime = rel.runtime
+					AND txs.round = rel.tx_round
+					AND txs.tx_index = rel.tx_index
+			) AS eth_addr_lookup
+		FROM %[1]s.runtime_transactions AS txs
+		LEFT JOIN %[1]s.runtime_related_transactions AS rel ON txs.round = rel.tx_round
+			AND txs.tx_index = rel.tx_index
+			AND txs.runtime = rel.runtime
+			-- When related_address ($3) is NULL and hence we do no filtering on it, avoid the join altogether.
+			-- Otherwise, every tx will be returned as many times as there are related addresses for it.
+			AND $3::text IS NOT NULL
+		WHERE (txs.runtime = '%[2]s') AND
+					($1::bigint IS NULL OR txs.round = $1::bigint) AND
+					($2::text IS NULL OR txs.tx_hash = $2::text OR txs.tx_eth_hash = $2::text) AND
+					($3::text IS NULL OR rel.account_address = $3::text)
 		ORDER BY txs.round DESC, txs.tx_index DESC
 		LIMIT $4::bigint
-		OFFSET $5::bigint`, qf.chainID, qf.runtime)
+		OFFSET $5::bigint
+		`, qf.chainID, qf.runtime)
 }
 
 func (qf QueryFactory) RuntimeEventsQuery() string {

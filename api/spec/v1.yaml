@@ -86,6 +86,8 @@ x-examples:
   staking-address:
     - &staking_address_1 'oasis1qpg2xuz46g53737343r20yxeddhlvc2ldqsjh70p'
     - &staking_address_2 'oasis1qprtzrg97jk0wxnqkhxwyzy5qys47r7alvfl3fcg'
+  eth-address:
+    - &eth_address_1 0xd8A2Ae03f6Edd58999a0F1005db7a6532F2AA79e
   proposal-id:
     - &proposal_id_1 1
   proposal-state:
@@ -1909,6 +1911,11 @@ components:
             Retrieving the other signers is currently not supported by this API.
           # NOTE: To expose the other signers, use the transaction_signers table.
           example: oasis1qz670t637yyxshnlxhjj5074wgwl94d0x5x69zqd
+        sender_0_eth:
+          type: string
+          description: |
+            The Ethereum address of this transaction's 0th signer.
+          example: *eth_address_1
         nonce_0:
           type: integer
           format: uint64
@@ -1946,6 +1953,11 @@ components:
               - For `method = "evm.Create"`, this is the address of the newly created smart contract.
               - For `method = "evm.Call"`, this is the address of the called smart contract
           example: "oasis1qq6ulxmcagnp5nr56ylva7nhmwnxtf0krumg9dkq"
+        to_eth:
+          type: string
+          description: |
+            A reasonable "to" Ethereum address associated with this transaction,
+          example: *eth_address_1
         amount:
           type: string
           description: |

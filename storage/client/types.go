@@ -115,13 +115,16 @@ type RuntimeTransactionList struct {
 // version of the transaction, and we finish parsing on the fly, as we
 // return the tx.
 type RuntimeTransaction struct {
-	Round     int64
-	Index     int64
-	Hash      string
-	EthHash   *string
-	Timestamp time.Time
-	Raw       []byte
-	ResultRaw []byte
+	Round           int64
+	Index           int64
+	Hash            string
+	EthHash         *string
+	Sender0         *string
+	Sender0Eth      *string
+	Timestamp       time.Time
+	Raw             []byte
+	ResultRaw       []byte
+	AddressPreimage map[string]string
 }
 
 // RuntimeEventList is the storage response for RuntimeEvents.

@@ -29,7 +29,3 @@ consensus:
           #   p2p:
           #     # External P2P configuration.
           #     enabled: true
-runtime:
-  mode: client
-  paths:
-    - /node/runtimes/emerald-paratime.orc
