@@ -44,26 +44,6 @@ func (cc *ConsensusClient) GenesisDocumentAtHeight(ctx context.Context, height i
 	return cc.client.StateToGenesis(ctx, height)
 }
 
-// RegistryGenesis returns the registry genesis document at the provided height.
-func (cc *ConsensusClient) RegistryGenesis(ctx context.Context, height int64) (*registryAPI.Genesis, error) {
-	return cc.client.Registry().StateToGenesis(ctx, height)
-}
-
-// StakingGenesis returns the staking genesis document at the provided height.
-func (cc *ConsensusClient) StakingGenesis(ctx context.Context, height int64) (*stakingAPI.Genesis, error) {
-	return cc.client.Staking().StateToGenesis(ctx, height)
-}
-
-// SchedulerGenesis returns the scheduler genesis document at the provided height.
-func (cc *ConsensusClient) SchedulerGenesis(ctx context.Context, height int64) (*schedulerAPI.Genesis, error) {
-	return cc.client.Scheduler().StateToGenesis(ctx, height)
-}
-
-// GovernanceGenesis returns the governance genesis document at the provided height.
-func (cc *ConsensusClient) GovernanceGenesis(ctx context.Context, height int64) (*governanceAPI.Genesis, error) {
-	return cc.client.Governance().StateToGenesis(ctx, height)
-}
-
 // Name returns the name of the client, for the ConsensusSourceStorage interface.
 func (cc *ConsensusClient) Name() string {
 	return fmt.Sprintf("%s_consensus", moduleName)
