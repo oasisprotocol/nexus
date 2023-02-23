@@ -1,4 +1,4 @@
-package v21_1_1
+package cobalt
 
 import (
 	"github.com/oasisprotocol/oasis-core/go/common/quantity"
