@@ -29,7 +29,7 @@ RUN apt-get update -q -q && \
 
 COPY --from=oasis-indexer-builder /code/go/oasis-indexer /usr/local/bin/oasis-indexer
 COPY --from=oasis-indexer-builder /code/go/storage/migrations /storage/migrations/
-COPY . /oasis-indexer
+COPY --from=oasis-indexer-builder /code/go/ /oasis-indexer
 COPY --from=openapi-builder /api/spec/v1.html api/spec/v1.html
 
 ENTRYPOINT ["oasis-indexer"]
