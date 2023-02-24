@@ -7,7 +7,7 @@ import (
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/common"
+	ethCommon "github.com/ethereum/go-ethereum/common"
 	"github.com/oasisprotocol/oasis-core/go/common/errors"
 
 	"github.com/oasisprotocol/oasis-indexer/analyzer/evmabi"
@@ -119,7 +119,7 @@ func evmCallWithABI(
 	// https://github.com/oasisprotocol/oasis-web3-gateway/blob/v3.0.0/rpc/eth/api.go#L403-L408
 	gasPrice := []byte{1}
 	gasLimit := uint64(30_000_000)
-	caller := common.Address{1}.Bytes()
+	caller := ethCommon.Address{1}.Bytes()
 	value := []byte{0}
 
 	return evmCallWithABICustom(ctx, source, round, gasPrice, gasLimit, caller, contractEthAddr, value, contractABI, result, method, params...)
