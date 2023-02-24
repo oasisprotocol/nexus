@@ -26,6 +26,7 @@ CREATE TABLE oasis_3.runtime_blocks
 );
 CREATE INDEX ix_runtime_blocks_block_hash ON oasis_3.runtime_blocks USING hash (block_hash);  -- Hash indexes cannot span two colmns (runtime, block_hash). Not a problem for efficiency because block_hash is globally uniqueish.
 CREATE INDEX ix_runtime_blocks_timestamp ON oasis_3.runtime_blocks (runtime, timestamp);
+CREATE INDEX ix_runtime_blocks_round ON oasis_3.runtime_blocks (runtime, round);
 
 CREATE TABLE oasis_3.runtime_transactions
 (

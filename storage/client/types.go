@@ -151,3 +151,6 @@ type TxVolumeList = api.TxVolumeList
 
 // TxVolume is the daily transaction volume on the specified day.
 type TxVolume = api.TxVolume
+
+// DailyActiveAccountsList is the storage response for GetDailyActiveAccounts.
+type DailyActiveAccountsList = api.ActiveAccountsList

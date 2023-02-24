@@ -103,8 +103,8 @@ type AnalyzersList struct {
 	EmeraldEvmTokens  *EvmTokensAnalyzerConfig `koanf:"evm_tokens_emerald"`
 	SapphireEvmTokens *EvmTokensAnalyzerConfig `koanf:"evm_tokens_sapphire"`
 
-	MetadataRegistry *IntervalBasedAnalyzerConfig `koanf:"metadata_registry"`
-	AggregateStats   *IntervalBasedAnalyzerConfig `koanf:"aggregate_stats"`
+	MetadataRegistry *MetadataRegistryConfig `koanf:"metadata_registry"`
+	AggregateStats   *AggregateStatsConfig   `koanf:"aggregate_stats"`
 }
 
 // NodeConfig is the configuration for chain analyzers.
@@ -140,9 +140,7 @@ type BlockBasedAnalyzerConfig struct {
 
 type IntervalBasedAnalyzerConfig struct {
 	// Interval is the time interval at which to run the analyzer.
-	// It should be specified as a string compliant with
-	// time.ParseDuration (https://pkg.go.dev/time#ParseDuration).
-	Interval string `koanf:"interval"`
+	Interval time.Duration `koanf:"interval"`
 }
 
 type EvmTokensAnalyzerConfig struct{}
@@ -155,20 +153,33 @@ func (cfg *BlockBasedAnalyzerConfig) Validate() error {
 	return nil
 }
 
-// Validate validates the range configuration.
-func (cfg *IntervalBasedAnalyzerConfig) Validate() error {
-	_, err := time.ParseDuration(cfg.Interval)
-	return err
+// MetadataRegistryConfig is the configuration for the metadata registry analyzer.
+type MetadataRegistryConfig struct {
+	IntervalBasedAnalyzerConfig `koanf:",squash"`
 }
 
-func (cfg *IntervalBasedAnalyzerConfig) ParsedInterval() time.Duration {
-	var interval time.Duration
-	var err error
-	interval, err = time.ParseDuration(cfg.Interval)
-	if err != nil {
-		panic(err) // should have been caught by Validate()
+// Validate validates the configuration.
+func (cfg *MetadataRegistryConfig) Validate() error {
+	if cfg.Interval < time.Minute {
+		return fmt.Errorf("metadata registry interval must be at least 1 minute")
 	}
-	return interval
+	return nil
+}
+
+// AggregateStatsConfig is the configuration for the aggregate stats analyzer.
+type AggregateStatsConfig struct {
+	// TxVolumeInterval is the time interval for recomputing the tx volume aggregate stats.
+	// We would ideally recompute stats (which include 5-min aggregates) every 5 min, but the
+	// current naive implementation is too inefficient for that.
+	TxVolumeInterval time.Duration `koanf:"tx_volume_interval"`
+}
+
+// Validate validates the aggregate stats config.
+func (cfg *AggregateStatsConfig) Validate() error {
+	if cfg.TxVolumeInterval < 5*time.Minute {
+		return fmt.Errorf("tx_volume_interval must be at least 5 minutes")
+	}
+	return nil
 }
 
 // ServerConfig contains the API server configuration.

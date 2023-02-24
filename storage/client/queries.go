@@ -82,7 +82,7 @@ func (qf QueryFactory) BlockQuery() string {
 
 func (qf QueryFactory) TransactionsQuery() string {
 	return fmt.Sprintf(`
-		SELECT 
+		SELECT
 				%[1]s.transactions.block as block,
 				%[1]s.transactions.tx_index as tx_index,
 				%[1]s.transactions.tx_hash as tx_hash,
@@ -95,10 +95,10 @@ func (qf QueryFactory) TransactionsQuery() string {
 				%[1]s.blocks.time as time
 			FROM %[1]s.transactions
 			JOIN %[1]s.blocks ON %[1]s.transactions.block = %[1]s.blocks.height
-			LEFT JOIN %[1]s.accounts_related_transactions ON %[1]s.transactions.block = %[1]s.accounts_related_transactions.tx_block 
+			LEFT JOIN %[1]s.accounts_related_transactions ON %[1]s.transactions.block = %[1]s.accounts_related_transactions.tx_block
 				AND %[1]s.transactions.tx_index = %[1]s.accounts_related_transactions.tx_index
 				-- When related_address ($4) is NULL and hence we do no filtering on it, avoid the join altogether.
-				-- Otherwise, every tx will be returned as many times as there are related addresses for it. 
+				-- Otherwise, every tx will be returned as many times as there are related addresses for it.
 				AND $4::text IS NOT NULL
 			WHERE ($1::bigint IS NULL OR %[1]s.transactions.block = $1::bigint) AND
 					($2::text IS NULL OR %[1]s.transactions.method = $2::text) AND
@@ -191,7 +191,7 @@ func (qf QueryFactory) EntityNodeQuery() string {
 func (qf QueryFactory) AccountsQuery() string {
 	return fmt.Sprintf(`
 		SELECT
-			address, 
+			address,
 			COALESCE(nonce, 0),
 			COALESCE(general_balance, 0),
 			COALESCE(escrow_balance_active, 0),
@@ -213,7 +213,7 @@ func (qf QueryFactory) AccountsQuery() string {
 func (qf QueryFactory) AccountQuery() string {
 	return fmt.Sprintf(`
 		SELECT
-			address, 
+			address,
 			COALESCE(nonce, 0),
 			COALESCE(general_balance, 0),
 			COALESCE(escrow_balance_active, 0),
@@ -545,6 +545,32 @@ func (qf QueryFactory) TxVolumesQuery() string {
 		WHERE layer = $1::text
 		ORDER BY
 			window_start DESC
+		LIMIT $2::bigint
+		OFFSET $3::bigint
+	`
+}
+
+// FineDailyActiveAccountsQuery returns the fine-grained query for daily active account windows.
+func (qf QueryFactory) FineDailyActiveAccountsQuery() string {
+	return `
+		SELECT window_end, active_accounts
+		FROM stats.daily_active_accounts
+		WHERE layer = $1::text
+		ORDER BY
+			window_end DESC
+		LIMIT $2::bigint
+		OFFSET $3::bigint
+	`
+}
+
+// DailyActiveAccountsQuery returns the query for daily sampled daily active account windows.
+func (qf QueryFactory) DailyActiveAccountsQuery() string {
+	return `
+		SELECT date_trunc('day', window_end) as window_end, active_accounts
+		FROM stats.daily_active_accounts
+		WHERE (layer = $1::text AND (window_end AT TIME ZONE 'UTC')::time = '00:00:00')
+		ORDER BY
+			window_end DESC
 		LIMIT $2::bigint
 		OFFSET $3::bigint
 	`

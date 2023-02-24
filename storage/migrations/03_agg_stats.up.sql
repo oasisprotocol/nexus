@@ -1,8 +1,8 @@
--- Initialization of materialized views for aggregate statistics on the consensus layer.
+-- Initialization of materialized views and tables for aggregate statistics on the consensus layer.
 
 BEGIN;
 
--- Schema for aggregate statistics that are not tied to a specific chain "generation" (oasis_3, oasis_4, etc.). 
+-- Schema for aggregate statistics that are not tied to a specific chain "generation" (oasis_3, oasis_4, etc.).
 CREATE SCHEMA IF NOT EXISTS stats;
 GRANT USAGE ON SCHEMA stats TO PUBLIC;
 
@@ -24,9 +24,9 @@ CREATE MATERIALIZED VIEW stats.min5_tx_volume AS
   FROM oasis_3.blocks AS b
   JOIN oasis_3.transactions AS t ON b.height = t.block
   GROUP BY 2
-  
+
   UNION ALL
-  
+
   SELECT
     b.runtime::text AS layer,
     floor_5min(b.timestamp) AS window_start,
@@ -45,6 +45,18 @@ CREATE MATERIALIZED VIEW stats.daily_tx_volume AS
   FROM stats.min5_tx_volume AS sub
   GROUP BY 1, 2;
 
+-- daily_active_accounts stores the sliding widnow for the number of unique accounts per day
+-- that were involved in transactions.
+CREATE TABLE stats.daily_active_accounts
+(
+  layer           TEXT NOT NULL,
+  window_end      TIMESTAMP WITH TIME ZONE NOT NULL,
+  active_accounts uint63 NOT NULL,
+
+  PRIMARY KEY (layer, window_end)
+);
+-- Index for efficient query of the daily samples.
+CREATE INDEX ix_stats_daily_active_accounts_daily_windows ON stats.daily_active_accounts (layer, window_end) WHERE ((window_end AT TIME ZONE 'UTC')::time = '00:00:00');
 
 -- Grant others read-only use. This does NOT apply to future tables in the schema.
 GRANT SELECT ON ALL TABLES IN SCHEMA stats TO PUBLIC;

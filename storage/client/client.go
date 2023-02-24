@@ -1239,22 +1239,56 @@ func (c *StorageClient) TxVolumes(ctx context.Context, layer apiTypes.Layer, p a
 		Buckets:           []apiTypes.TxVolume{},
 	}
 	for rows.Next() {
-		var d struct {
-			BucketStart time.Time
-			TxVolume    uint64
-		}
+		var t TxVolume
 		if err := rows.Scan(
-			&d.BucketStart,
-			&d.TxVolume,
+			&t.BucketStart,
+			&t.TxVolume,
 		); err != nil {
 			return nil, wrapError(err)
 		}
-
-		t := TxVolume{
-			BucketStart: d.BucketStart.UTC(),
-			TxVolume:    d.TxVolume,
-		}
+		t.BucketStart = t.BucketStart.UTC() // Ensure UTC timestamp in response.
 		ts.Buckets = append(ts.Buckets, t)
+	}
+
+	return &ts, nil
+}
+
+// DailyActiveAccounts returns a list of daily active accounts.
+func (c *StorageClient) DailyActiveAccounts(ctx context.Context, layer apiTypes.Layer, p apiTypes.GetLayerStatsActiveAccountsParams) (*DailyActiveAccountsList, error) {
+	var query string
+	switch {
+	case p.WindowStepSeconds != nil && *p.WindowStepSeconds == 300:
+		query = QueryFactoryFromCtx(ctx).FineDailyActiveAccountsQuery()
+	default:
+		query = QueryFactoryFromCtx(ctx).DailyActiveAccountsQuery()
+	}
+
+	rows, err := c.db.Query(
+		ctx,
+		query,
+		layer,
+		p.Limit,
+		p.Offset,
+	)
+	if err != nil {
+		return nil, wrapError(err)
+	}
+	defer rows.Close()
+
+	ts := DailyActiveAccountsList{
+		WindowSizeSeconds: 86400, // Day.
+		Windows:           []apiTypes.ActiveAccounts{},
+	}
+	for rows.Next() {
+		var t apiTypes.ActiveAccounts
+		if err := rows.Scan(
+			&t.WindowEnd,
+			&t.ActiveAccounts,
+		); err != nil {
+			return nil, wrapError(err)
+		}
+		t.WindowEnd = t.WindowEnd.UTC() // Ensure UTC timestamp in response.
+		ts.Windows = append(ts.Windows, t)
 	}
 
 	return &ts, nil

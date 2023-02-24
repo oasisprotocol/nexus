@@ -61,6 +61,18 @@ x-query-params:
       The size of buckets into which the statistic is grouped, in seconds.
       The backend supports a limited number of bucket sizes: 300 (5 minutes) and
       86400 (1 day). Requests with other values may be rejected.
+  - &window_step_seconds
+    in: query
+    name: window_step_seconds
+    schema:
+      type: integer
+      format: uint32
+      enum: [300, 86400]
+      default: 86400
+    description: |
+      The size of the step between returned statistic windows, in seconds.
+      The backend supports a limited number of window sizes: 300 (5 minutes) and
+      86400 (1 day). Requests with other values may be rejected.
 
 x-examples:
   chain-id:
@@ -864,9 +876,9 @@ paths:
           schema:
             type: string
           description: |
-            A filter on the first of `topics` in the EVM log structure, which typically contains the 
+            A filter on the first of `topics` in the EVM log structure, which typically contains the
             event _signature_, i.e. the keccak256 hash of the event name and parameter types.
-            Note: The filter will match on `topics[0]` even in the rare case of anonymous events 
+            Note: The filter will match on `topics[0]` even in the rare case of anonymous events
             when that field does not actually contain the signature.
           example: '0x27f12abfe35860a9a927b465bb3d4a9c23c8428174b83f278fe45ed7b4da2662'
       responses:
@@ -939,6 +951,32 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TxVolumeList'
+        <<: *common_error_responses
+
+  /{layer}/stats/active_accounts:
+    get:
+      summary: |
+        Returns a (sliding) timeline of the recorded daily unique active accounts for
+        either consensus or one of the paratimes.
+      parameters:
+        - *limit
+        - *offset
+        - *window_step_seconds
+        - in: path
+          name: layer
+          required: true
+          schema:
+            $ref: '#/components/schemas/Layer'
+          description: |
+            The layer for which to return the active accounts timeline.
+      responses:
+        '200':
+          description: |
+            A JSON object containing a list of unique active accounts values for each interval.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActiveAccountsList'
         <<: *common_error_responses
 
 components:
@@ -1252,7 +1290,7 @@ components:
             Absent if the event did not originate from a transaction.
           example: *tx_hash_1
         type:
-          description: The type of the event. 
+          description: The type of the event.
           $ref: '#/components/schemas/ConsensusEventType'
         body:
           type: object
@@ -1838,7 +1876,7 @@ components:
             Hash of this event's originating transaction.
             Absent if the event did not originate from a transaction.
           example: *tx_hash_1
-        type: 
+        type:
           description: The type of the event.
           $ref: '#/components/schemas/RuntimeEventType'
         body:
@@ -1862,7 +1900,7 @@ components:
           items:
             $ref: '#/components/schemas/EvmEventParam'
           description: |
-            The decoded `evm.log` event data. We currently support only two types of evm events, ERC20 `Transfer` 
+            The decoded `evm.log` event data. We currently support only two types of evm events, ERC20 `Transfer`
             and `Approve`.
             Absent if the event type is not `evm.log`.
       description: An event emitted by the runtime layer
@@ -1879,7 +1917,7 @@ components:
         - evm.log
       example: *runtime_event_type_1
 
-    EvmEventParam: 
+    EvmEventParam:
       type: object
       required: [name, evm_type, value]
       properties:
@@ -2155,6 +2193,36 @@ components:
           type: integer
           format: uint64
           description: The transaction volume on this day.
+          example: 420
+
+    ActiveAccountsList:
+      type: object
+      required: [window_size_seconds, windows]
+      properties:
+        window_size_seconds:
+          type: integer
+          format: uint32
+        windows:
+          type: array
+          items:
+            $ref: '#/components/schemas/ActiveAccounts'
+          description: The list of daily unique active account windows.
+      description: |
+        A list of daily unique active account windows.
+
+    ActiveAccounts:
+      type: object
+      required: [window_end, active_accounts]
+      properties:
+        window_end:
+          type: string
+          format: date-time
+          description: The date for the end of the daily active accounts measurement window.
+          example: *iso_timestamp_1
+        active_accounts:
+          type: integer
+          format: uint64
+          description: The number of active accounts for the 24hour window starting at bucket_start.
           example: 420
 
   responses:

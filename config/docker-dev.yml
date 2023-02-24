@@ -7,7 +7,7 @@ analysis:
     metadata_registry:
       interval: 1h
     aggregate_stats:
-      interval: 10m
+      tx_volume_interval: 10m
     consensus:
       from: 8_048_956  # Damask genesis
     emerald:
