@@ -19,31 +19,40 @@ type Logger struct {
 
 // NewDefaultLogger initializes a new logger instance with default settings.
 func NewDefaultLogger(module string) *Logger {
-	return &Logger{
-		logger: log.NewJSONLogger(log.NewSyncWriter(os.Stdout)),
-		level:  LevelInfo,
-		module: module,
+	logger, err := NewLogger(module, os.Stdout, FmtJSON, LevelInfo)
+	if err != nil {
+		// Shouldn't happen as NewLogger can only fail if an invalid format is provided.
+		panic(err)
 	}
+	return logger
 }
 
 // NewLogger initializes a new logger instance.
 func NewLogger(module string, w io.Writer, format Format, lvl Level) (*Logger, error) {
+	// log.DefaultCaller + 1 for this module's leveling wrapper.
+	callerUnwind := 4
+
+	var logger log.Logger
 	switch format {
 	case FmtLogfmt:
-		return &Logger{
-			logger: log.NewLogfmtLogger(log.NewSyncWriter(w)),
-			level:  lvl,
-			module: module,
-		}, nil
+		logger = log.NewLogfmtLogger(log.NewSyncWriter(w))
 	case FmtJSON:
-		return &Logger{
-			logger: log.NewJSONLogger(log.NewSyncWriter(w)),
-			level:  lvl,
-			module: module,
-		}, nil
+		logger = log.NewJSONLogger(log.NewSyncWriter(w))
 	default:
 		return nil, fmt.Errorf("log: unsupported log format: %v", format)
 	}
+
+	prefixes := []interface{}{
+		"ts", log.DefaultTimestampUTC,
+		"caller", log.Caller(callerUnwind),
+	}
+	logger = log.WithPrefix(logger, prefixes...)
+
+	return &Logger{
+		logger: logger,
+		level:  lvl,
+		module: module,
+	}, nil
 }
 
 // Debug logs the message and key value pairs at the Debug log level.
