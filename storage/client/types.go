@@ -107,7 +107,9 @@ type RuntimeBlock = api.RuntimeBlock
 
 // RuntimeTransactionList is the storage response for RuntimeTransactions.
 type RuntimeTransactionList struct {
-	Transactions []RuntimeTransaction `json:"transactions"`
+	Transactions        []RuntimeTransaction `json:"transactions"`
+	TotalCount          uint64
+	IsTotalCountClipped bool
 }
 
 // RuntimeTransaction is the storage response for RuntimeTransaction.

@@ -931,6 +931,22 @@ components:
       type: string
       enum: [emerald, sapphire, cipher]
 
+    List:
+      type: object
+      required: [total_count, is_total_count_clipped]
+      properties:
+        total_count:
+          type: integer
+          format: uint64
+          description: |
+            The total number of records that match the query, i.e. the number of records
+            the query would return with limit=infinity.
+          example: 412
+        is_total_count_clipped:
+          type: boolean
+          description: Whether total_count is clipped for performance reasons.
+          example: true
+
     Status:
       type: object
       required: [latest_chain_id, latest_block, latest_update]
@@ -952,13 +968,15 @@ components:
           example: *iso_timestamp_1
 
     BlockList:
-      type: object
-      required: [blocks]
-      properties:
-        blocks:
-          type: array
-          items:
-            $ref: '#/components/schemas/Block'
+      allOf:
+        - $ref: '#/components/schemas/List'
+        - type: object
+          required: [blocks]
+          properties:
+            blocks:
+              type: array
+              items:
+                $ref: '#/components/schemas/Block'
       description: |
         A list of consensus blocks.
 
@@ -1017,15 +1035,17 @@ components:
         A delegation.
 
     DelegationList:
-      type: object
-      required: [delegations]
-      properties:
-        delegations:
-          type: array
-          items:
-            $ref: '#/components/schemas/Delegation'
-      description: |
-        A list of delegations.
+      allOf:
+        - $ref: '#/components/schemas/List'
+        - type: object
+          required: [delegations]
+          properties:
+            delegations:
+              type: array
+              items:
+                $ref: '#/components/schemas/Delegation'
+          description: |
+            A list of delegations.
 
     DebondingDelegation:
       type: object
@@ -1049,15 +1069,17 @@ components:
         A debonding delegation.
 
     DebondingDelegationList:
-      type: object
-      required: [debonding_delegations]
-      properties:
-        debonding_delegations:
-          type: array
-          items:
-            $ref: '#/components/schemas/DebondingDelegation'
-      description: |
-        A list of debonding delegations.
+      allOf:
+        - $ref: '#/components/schemas/List'
+        - type: object
+          required: [debonding_delegations]
+          properties:
+            debonding_delegations:
+              type: array
+              items:
+                $ref: '#/components/schemas/DebondingDelegation'
+          description: |
+            A list of debonding delegations.
 
     ConsensusTxMethod:
       type: string
@@ -1081,15 +1103,17 @@ components:
       example: staking.Transfer
 
     TransactionList:
-      type: object
-      required: [transactions]
-      properties:
-        transactions:
-          type: array
-          items:
-            $ref: '#/components/schemas/Transaction'
-      description: |
-        A list of consensus transactions.
+      allOf:
+        - $ref: '#/components/schemas/List'
+        - type: object
+          required: [transactions]
+          properties:
+            transactions:
+              type: array
+              items:
+                $ref: '#/components/schemas/Transaction'
+          description: |
+            A list of consensus transactions.
 
     Transaction:
       type: object
@@ -1171,15 +1195,17 @@ components:
       example: *event_type_1
 
     ConsensusEventList:
-      type: object
-      required: [events]
-      properties:
-        events:
-          type: array
-          items:
-            $ref: '#/components/schemas/ConsensusEvent'
-      description: |
-        A list of consensus events.
+      allOf:
+        - $ref: '#/components/schemas/List'
+        - type: object
+          required: [events]
+          properties:
+            events:
+              type: array
+              items:
+                $ref: '#/components/schemas/ConsensusEvent'
+          description: |
+            A list of consensus events.
 
     ConsensusEvent:
       type: object
@@ -1219,15 +1245,17 @@ components:
         An event emitted by the consensus layer.
 
     EntityList:
-      type: object
-      required: [entities]
-      properties:
-        entities:
-          type: array
-          items:
-            $ref: '#/components/schemas/Entity'
-      description: |
-        A list of entities registered at the consensus layer.
+      allOf:
+        - $ref: '#/components/schemas/List'
+        - type: object
+          required: [entities]
+          properties:
+            entities:
+              type: array
+              items:
+                $ref: '#/components/schemas/Entity'
+          description: |
+            A list of entities registered at the consensus layer.
 
     Entity:
       type: object
@@ -1251,15 +1279,17 @@ components:
         An entity registered at the consensus layer.
 
     ValidatorList:
-      type: object
-      required: [validators]
-      properties:
-        validators:
-          type: array
-          items:
-            $ref: '#/components/schemas/Validator'
-      description: |
-        A list of validators registered at the consensus layer.
+      allOf:
+        - $ref: '#/components/schemas/List'
+        - type: object
+          required: [validators]
+          properties:
+            validators:
+              type: array
+              items:
+                $ref: '#/components/schemas/Validator'
+          description: |
+            A list of validators registered at the consensus layer.
 
     ValidatorCommissionBound:
       type: object
@@ -1341,18 +1371,20 @@ components:
         An validator registered at the consensus layer.
 
     NodeList:
-      type: object
-      required: [entity_id, nodes]
-      properties:
-        entity_id:
-          x-go-name: EntityID
-          type: string
-        nodes:
-          type: array
-          items:
-            $ref: '#/components/schemas/Node'
-      description: |
-        A list of nodes registered at the consensus layer.
+      allOf:
+        - $ref: '#/components/schemas/List'
+        - type: object
+          required: [entity_id, nodes]
+          properties:
+            entity_id:
+              x-go-name: EntityID
+              type: string
+            nodes:
+              type: array
+              items:
+                $ref: '#/components/schemas/Node'
+          description: |
+            A list of nodes registered at the consensus layer.
 
     Node:
       type: object
@@ -1397,15 +1429,17 @@ components:
         A node registered at the consensus layer.
 
     AccountList:
-      type: object
-      required: [accounts]
-      properties:
-        accounts:
-          type: array
-          items:
-            $ref: '#/components/schemas/Account'
-      description: |
-        A list of consensus layer accounts.
+      allOf:
+        - $ref: '#/components/schemas/List'
+        - type: object
+          required: [accounts]
+          properties:
+            accounts:
+              type: array
+              items:
+                $ref: '#/components/schemas/Account'
+          description: |
+            A list of consensus layer accounts.
 
     AddressDerivationContext:
       type: string
@@ -1583,15 +1617,17 @@ components:
           description: The amount allowed for the allowed account.
 
     EpochList:
-      type: object
-      required: [epochs]
-      properties:
-        epochs:
-          type: array
-          items:
-            $ref: '#/components/schemas/Epoch'
-      description: |
-        A list of consensus epochs.
+      allOf:
+        - $ref: '#/components/schemas/List'
+        - type: object
+          required: [epochs]
+          properties:
+            epochs:
+              type: array
+              items:
+                $ref: '#/components/schemas/Epoch'
+          description: |
+            A list of consensus epochs.
 
     Epoch:
       type: object
@@ -1617,15 +1653,17 @@ components:
         A consensus epoch.
 
     ProposalList:
-      type: object
-      required: [proposals]
-      properties:
-        proposals:
-          type: array
-          items:
-            $ref: '#/components/schemas/Proposal'
-      description: |
-        A list of governance proposals.
+      allOf:
+        - $ref: '#/components/schemas/List'
+        - type: object
+          required: [proposals]
+          properties:
+            proposals:
+              type: array
+              items:
+                $ref: '#/components/schemas/Proposal'
+          description: |
+            A list of governance proposals.
 
     ProposalTarget:
       type: object
@@ -1696,21 +1734,23 @@ components:
         A governance proposal.
 
     ProposalVotes:
-      type: object
-      required: [proposal_id, votes]
-      properties:
-        proposal_id:
-          x-go-name: ProposalID
-          type: integer
-          format: uint64
-          description: The unique identifier of the proposal.
-        votes:
-          type: array
-          items:
-            $ref: '#/components/schemas/ProposalVote'
-          description: The list of votes for the proposal.
-      description: |
-        A list of votes for a governance proposal.
+      allOf:
+        - $ref: '#/components/schemas/List'
+        - type: object
+          required: [proposal_id, votes]
+          properties:
+            proposal_id:
+              x-go-name: ProposalID
+              type: integer
+              format: uint64
+              description: The unique identifier of the proposal.
+            votes:
+              type: array
+              items:
+                $ref: '#/components/schemas/ProposalVote'
+              description: The list of votes for the proposal.
+          description: |
+            A list of votes for a governance proposal.
 
     ProposalVote:
       type: object
@@ -1726,15 +1766,17 @@ components:
           example: 'yes'
 
     RuntimeBlockList:
-      type: object
-      required: [blocks]
-      properties:
-        blocks:
-          type: array
-          items:
-            $ref: '#/components/schemas/RuntimeBlock'
-      description: |
-        A list of consensus blocks.
+      allOf:
+        - $ref: '#/components/schemas/List'
+        - type: object
+          required: [blocks]
+          properties:
+            blocks:
+              type: array
+              items:
+                $ref: '#/components/schemas/RuntimeBlock'
+          description: |
+            A list of consensus blocks.
 
     RuntimeBlock:
       type: object
@@ -1773,15 +1815,17 @@ components:
         A ParaTime block.
 
     RuntimeEventList:
-      type: object
-      required: [events]
-      properties:
-        events:
-          type: array
-          items:
-            $ref: '#/components/schemas/RuntimeEvent'
-      description: |
-        A list of runtime events.
+      allOf:
+        - $ref: '#/components/schemas/List'
+        - type: object
+          required: [events]
+          properties:
+            events:
+              type: array
+              items:
+                $ref: '#/components/schemas/RuntimeEvent'
+          description: |
+            A list of runtime events.
 
     RuntimeEvent:
       type: object
@@ -1861,15 +1905,17 @@ components:
       description: A decoded parameter of an event emitted from an evm runtime.
 
     RuntimeTransactionList:
-      type: object
-      required: [transactions]
-      properties:
-        transactions:
-          type: array
-          items:
-            $ref: '#/components/schemas/RuntimeTransaction'
-      description: |
-        A list of runtime transactions.
+      allOf:
+        - $ref: '#/components/schemas/List'
+        - type: object
+          required: [transactions]
+          properties:
+            transactions:
+              type: array
+              items:
+                $ref: '#/components/schemas/RuntimeTransaction'
+          description: |
+            A list of runtime transactions.
 
     RuntimeTransaction:
       type: object
@@ -1982,15 +2028,17 @@ components:
         The type of a EVM token.
 
     EvmTokenList:
-      type: object
-      required: [evm_tokens]
-      properties:
-        evm_tokens:
-          type: array
-          items:
-            $ref: '#/components/schemas/EvmToken'
-          description: A list of L2 EVM tokens (ERC-20, ERC-271, ...).
-      description: A list of tokens in a runtime.
+      allOf:
+        - $ref: '#/components/schemas/List'
+        - type: object
+          required: [evm_tokens]
+          properties:
+            evm_tokens:
+              type: array
+              items:
+                $ref: '#/components/schemas/EvmToken'
+              description: A list of L2 EVM tokens (ERC-20, ERC-271, ...).
+          description: A list of tokens in a runtime.
 
     EvmToken:
       type: object

@@ -46,6 +46,12 @@ func QueryFactoryFromCtx(ctx context.Context) QueryFactory {
 	}
 }
 
+func (qf QueryFactory) TotalCountQuery(inner string) string {
+	return fmt.Sprintf(`
+		WITH subquery AS (%s)
+			SELECT count(*) FROM subquery`, inner)
+}
+
 func (qf QueryFactory) StatusQuery() string {
 	return fmt.Sprintf(`
 		SELECT height, processed_time
