@@ -38,6 +38,19 @@ type EVMTokenMutableData struct {
 	TotalSupply *big.Int
 }
 
+type EVMTokenBalanceData struct {
+	// Balance... if you're here to ask about why there's a "balance" struct
+	// with a Balance field, it's because the struct is really a little
+	// document that the EVMDownloadTokenBalance function can optionally give
+	// you about an account. (And we didn't name the struct "account" because
+	// the only thing inside it is the balance.) We let that function return a
+	// *EVMTokenBalanceData so that it can return nil if it can determine that
+	// the contract is not supported. Plus, Go's idea of an arbitrary size
+	// integer is *big.Int, and we don't want anyone fainting if they see a
+	// ** in the codebase.
+	Balance *big.Int
+}
+
 type EVMDeterministicError struct {
 	// Note: .error is the implementation of .Error, .Unwrap etc. It is not
 	// in the Unwrap chain. Use something like
@@ -120,7 +133,7 @@ func evmCallWithABI(
 	contractABI *abi.ABI,
 	result interface{},
 	method string,
-	params ...interface{}, //nolint:unparam
+	params ...interface{},
 ) error {
 	// https://github.com/oasisprotocol/oasis-web3-gateway/blob/v3.0.0/rpc/eth/api.go#L403-L408
 	gasPrice := []byte{1}
@@ -242,5 +255,49 @@ func EVMDownloadMutatedToken(ctx context.Context, logger *log.Logger, source sto
 
 	default:
 		return nil, fmt.Errorf("download mutated token type %v not handled", tokenType)
+	}
+}
+
+func evmDownloadTokenBalanceERC20(ctx context.Context, logger *log.Logger, source storage.RuntimeSourceStorage, round uint64, tokenEthAddr []byte, accountEthAddr []byte) (*EVMTokenBalanceData, error) {
+	var balanceData EVMTokenBalanceData
+	logError := func(method string, err error) {
+		logger.Info("ERC20 call failed",
+			"round", round,
+			"token_eth_addr_hex", hex.EncodeToString(tokenEthAddr),
+			"account_eth_addr_hex", hex.EncodeToString(accountEthAddr),
+			"method", method,
+			"err", err,
+		)
+	}
+	accountECAddr := ethCommon.BytesToAddress(accountEthAddr)
+	if err := evmCallWithABI(ctx, source, round, tokenEthAddr, evmabi.ERC20, &balanceData.Balance, "balanceOf", accountECAddr); err != nil {
+		logError("balanceOf", err)
+		if !errors.Is(err, EVMDeterministicError{}) {
+			return nil, fmt.Errorf("calling balanceOf: %w", err)
+		}
+		return nil, nil
+	}
+	return &balanceData, nil
+}
+
+// EVMDownloadTokenBalance tries to download the balance of a given account
+// for a given token. If it transiently fails to download the balance, it
+// returns with a non-nil error. If it deterministically cannot download the
+// balance, it returns nil with nil error as well. Note that this latter case
+// is not considered an error!
+func EVMDownloadTokenBalance(ctx context.Context, logger *log.Logger, source storage.RuntimeSourceStorage, round uint64, tokenEthAddr []byte, accountEthAddr []byte, tokenType EVMTokenType) (*EVMTokenBalanceData, error) {
+	switch tokenType {
+	case EVMTokenTypeERC20:
+		balance, err := evmDownloadTokenBalanceERC20(ctx, logger, source, round, tokenEthAddr, accountEthAddr)
+		if err != nil {
+			return nil, fmt.Errorf("download token balance ERC-20: %w", err)
+		}
+		return balance, nil
+
+	// todo: add support for other token types
+	// see https://github.com/oasisprotocol/oasis-indexer/issues/225
+
+	default:
+		return nil, fmt.Errorf("download stale token balance type %v not handled", tokenType)
 	}
 }

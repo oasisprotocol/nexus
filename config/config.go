@@ -100,8 +100,10 @@ type AnalyzersList struct {
 	Sapphire  *BlockBasedAnalyzerConfig `koanf:"sapphire"`
 	Cipher    *BlockBasedAnalyzerConfig `koanf:"cipher"`
 
-	EmeraldEvmTokens  *EvmTokensAnalyzerConfig `koanf:"evm_tokens_emerald"`
-	SapphireEvmTokens *EvmTokensAnalyzerConfig `koanf:"evm_tokens_sapphire"`
+	EmeraldEvmTokens         *EvmTokensAnalyzerConfig `koanf:"evm_tokens_emerald"`
+	SapphireEvmTokens        *EvmTokensAnalyzerConfig `koanf:"evm_tokens_sapphire"`
+	EmeraldEvmTokenBalances  *EvmTokensAnalyzerConfig `koanf:"evm_token_balances_emerald"`
+	SapphireEvmTokenBalances *EvmTokensAnalyzerConfig `koanf:"evm_token_balances_sapphire"`
 
 	MetadataRegistry *MetadataRegistryConfig `koanf:"metadata_registry"`
 	AggregateStats   *AggregateStatsConfig   `koanf:"aggregate_stats"`

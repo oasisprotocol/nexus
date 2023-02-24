@@ -172,8 +172,18 @@ CREATE TABLE chain.evm_token_analysis
   last_download_round UINT63,
   PRIMARY KEY (runtime, token_address)
 );
-
 CREATE INDEX ix_evm_token_analysis_stale ON chain.evm_token_analysis (runtime, token_address) WHERE last_download_round IS NULL OR last_mutate_round > last_download_round;
+
+CREATE TABLE chain.evm_token_balance_analysis
+(
+  runtime runtime NOT NULL,
+  token_address oasis_addr NOT NULL,
+  account_address oasis_addr NOT NULL,
+  last_mutate_round UINT63 NOT NULL,
+  last_download_round UINT63,
+  PRIMARY KEY (runtime, token_address, account_address)
+);
+CREATE INDEX ix_evm_token_balance_analysis_stale ON chain.evm_token_balance_analysis (runtime, token_address, account_address) WHERE last_download_round IS NULL OR last_mutate_round > last_download_round;
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- Module core -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 

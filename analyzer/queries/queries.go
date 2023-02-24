@@ -315,6 +315,15 @@ const (
     ON CONFLICT (runtime, token_address, account_address) DO
       UPDATE SET balance = chain.evm_token_balances.balance + $4`
 
+	RuntimeEVMTokenBalanceAnalysisInsert = `
+	INSERT INTO chain.evm_token_balance_analysis
+		(runtime, token_address, account_address, last_mutate_round)
+	VALUES
+		($1, $2, $3, $4)
+	ON CONFLICT (runtime, token_address, account_address) DO UPDATE
+	SET
+		last_mutate_round = excluded.last_mutate_round`
+
 	RuntimeEVMTokenAnalysisStale = `
     SELECT
       evm_token_analysis.token_address,
@@ -366,6 +375,45 @@ const (
     WHERE
       runtime = $1 AND
       token_address = $2`
+
+	RuntimeEVMTokenBalanceAnalysisStale = `
+	SELECT
+		evm_token_balance_analysis.token_address,
+		evm_token_balance_analysis.account_address,
+		evm_token_balance_analysis.last_mutate_round,
+		evm_tokens.token_type,
+		evm_token_balances.balance,
+		token_address_preimage.context_identifier,
+		token_address_preimage.context_version,
+		token_address_preimage.address_data,
+		account_address_preimage.context_identifier,
+		account_address_preimage.context_version,
+		account_address_preimage.address_data
+	FROM chain.evm_token_balance_analysis
+	JOIN chain.evm_token_analysis USING (runtime, token_address)
+	LEFT JOIN chain.evm_tokens USING (runtime, token_address)
+	LEFT JOIN chain.evm_token_balances USING (runtime, token_address, account_address)
+	LEFT JOIN chain.address_preimages AS token_address_preimage ON
+		token_address_preimage.address = evm_token_balance_analysis.token_address
+	LEFT JOIN chain.address_preimages AS account_address_preimage ON
+		account_address_preimage.address = evm_token_balance_analysis.account_address
+	WHERE
+		evm_token_balance_analysis.runtime = $1 AND
+		(
+			evm_token_balance_analysis.last_download_round IS NULL OR
+			evm_token_balance_analysis.last_mutate_round > evm_token_balance_analysis.last_download_round
+		) AND
+		evm_token_analysis.last_download_round IS NOT NULL
+	LIMIT $2`
+
+	RuntimeEVMTokenBalanceAnalysisUpdate = `
+	UPDATE chain.evm_token_balance_analysis
+	SET
+		last_download_round = $4
+	WHERE
+		runtime = $1 AND
+		token_address = $2 AND
+		account_address = $3`
 
 	RefreshDailyTxVolume = `
     REFRESH MATERIALIZED VIEW stats.daily_tx_volume

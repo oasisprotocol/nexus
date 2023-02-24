@@ -615,6 +615,7 @@ func (m *Main) emitRoundBatch(batch *storage.QueryBatch, round uint64, blockData
 	}
 	for key, change := range blockData.TokenBalanceChanges {
 		batch.Queue(queries.RuntimeEVMTokenBalanceUpdate, m.runtime, key.TokenAddress, key.AccountAddress, change.String())
+		batch.Queue(queries.RuntimeEVMTokenBalanceAnalysisInsert, m.runtime, key.TokenAddress, key.AccountAddress, round)
 	}
 	for addr, possibleToken := range blockData.PossibleTokens {
 		if possibleToken.Mutated {

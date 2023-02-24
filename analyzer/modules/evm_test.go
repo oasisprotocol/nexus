@@ -34,6 +34,24 @@ func TestEVMDownloadTokenERC20(t *testing.T) {
 	t.Logf("data %#v", data)
 }
 
+func TestEVMDownloadTokenBalanceERC20(t *testing.T) {
+	// TODO: Would be nice to have an offline test.
+	ctx := context.Background()
+	cf, err := oasis.NewClientFactory(ctx, config.DefaultNetworks.All["mainnet"], true)
+	require.NoError(t, err)
+	source, err := cf.Runtime(config.DefaultNetworks.All["mainnet"].ParaTimes.All["emerald"].ID)
+	require.NoError(t, err)
+	// Wormhole bridged USDT on Emerald mainnet.
+	tokenEthAddr, err := hex.DecodeString("dC19A122e268128B5eE20366299fc7b5b199C8e3")
+	require.NoError(t, err)
+	// An address that possesses no USDT.
+	accountEthAddr, err := hex.DecodeString("5555555555555555555555555555555555555555")
+	require.NoError(t, err)
+	balanceData, err := evmDownloadTokenBalanceERC20(ctx, common.Logger(), source, api.RoundLatest, tokenEthAddr, accountEthAddr)
+	require.NoError(t, err)
+	t.Logf("balance %#v", balanceData)
+}
+
 func TestEVMFailDeterministicUnoccupied(t *testing.T) {
 	// TODO: Would be nice to have an offline test.
 	ctx := context.Background()
