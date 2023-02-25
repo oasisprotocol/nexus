@@ -2,11 +2,14 @@ package log
 
 import (
 	"bytes"
+	"regexp"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 )
+
+const tsRegex = `\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{0,9}Z`
 
 func TestLoggerLogfmt(t *testing.T) {
 	var b bytes.Buffer
@@ -14,10 +17,8 @@ func TestLoggerLogfmt(t *testing.T) {
 	require.Nil(t, err)
 
 	l.Debug("a statement")
-	require.Equal(t,
-		"level=debug "+
-			"module=log-test "+
-			"msg=\"a statement\"\n",
+	require.Regexp(t, regexp.MustCompile(
+		`level=debug ts=`+tsRegex+` caller=log_test\.go:\d{1,4} module=log-test msg="a statement"`),
 		b.String())
 }
 
@@ -27,10 +28,8 @@ func TestLoggerJSON(t *testing.T) {
 	require.Nil(t, err)
 
 	l.Debug("a statement")
-	require.Equal(t,
-		"{\"level\":\"debug\","+
-			"\"module\":\"log-test\","+
-			"\"msg\":\"a statement\"}\n",
+	require.Regexp(t, regexp.MustCompile(
+		`{"caller":"log_test\.go:\d{1,4}","level":"debug","module":"log-test","msg":"a statement","ts":"`+tsRegex+`"}\n`),
 		b.String())
 }
 
@@ -46,11 +45,8 @@ func TestWith(t *testing.T) {
 	require.Nil(t, err)
 
 	l.With("height", 8000000).Debug("a statement")
-	require.Equal(t,
-		"{\"height\":8000000,"+
-			"\"level\":\"debug\","+
-			"\"module\":\"log-test\","+
-			"\"msg\":\"a statement\"}\n",
+	require.Regexp(t, regexp.MustCompile(
+		`{"caller":"log_test\.go:\d{1,4}","height":8000000,"level":"debug","module":"log-test","msg":"a statement","ts":"`+tsRegex+`"}\n`),
 		b.String())
 }
 
@@ -60,10 +56,8 @@ func TestWithModule(t *testing.T) {
 	require.Nil(t, err)
 
 	l.WithModule("log-test-2").Debug("a statement")
-	require.Equal(t,
-		"{\"level\":\"debug\","+
-			"\"module\":\"log-test-2\","+
-			"\"msg\":\"a statement\"}\n",
+	require.Regexp(t, regexp.MustCompile(
+		`{"caller":"log_test\.go:\d{1,4}","level":"debug","module":"log-test-2","msg":"a statement","ts":"`+tsRegex+`"}\n`),
 		b.String())
 }
 
