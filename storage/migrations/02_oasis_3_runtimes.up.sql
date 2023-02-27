@@ -98,6 +98,8 @@ CREATE TABLE oasis_3.runtime_events
   evm_log_params JSONB,
   related_accounts TEXT[]
 );
+CREATE INDEX ix_runtime_events_round ON oasis_3.runtime_events(runtime, round);  -- for sorting by round, when there are no filters applied
+CREATE INDEX ix_runtime_events_tx_hash ON oasis_3.runtime_events(tx_hash);
 CREATE INDEX ix_runtime_events_related_accounts ON oasis_3.runtime_events USING gin(related_accounts);
 CREATE INDEX ix_runtime_events_evm_log_signature ON oasis_3.runtime_events(evm_log_signature);
 CREATE INDEX ix_runtime_events_evm_log_params ON oasis_3.runtime_events USING gin(evm_log_params);
