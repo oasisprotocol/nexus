@@ -5,7 +5,7 @@
 #
 # The intention is to use them to communicate with archive nodes that use
 # old oasis-core. (The indexer needs to be able to talk to archive nodes
-# and the curernt node; ee cannot directly include multiple versions of
+# and the current node; ie cannot directly include multiple versions of
 # oasis-core as a dependency; Go does not support that.)
 #
 # WHEN TO USE:

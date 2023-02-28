@@ -16,13 +16,6 @@ import re
 lines = sys.stdin.readlines()
 out = []
 
-def find_end(lines, start):
-  for i, line in enumerate(lines[start:]):
-    if line.startswith("}") or line.startswith(")"):
-      # if line != "}\n":
-      #   sys.stderr.write("Warning: } not on its own line\n")
-      return i + start
-
 in_func = False  # are we inside a function or other block we want to skip
 for i, line in enumerate(lines):
   if in_func and i <= end:
@@ -32,7 +25,9 @@ for i, line in enumerate(lines):
 
   if line.startswith("func"):
     # We'll remove functions in general, but we'll keep the (un)marshalers
-    if "Marshal" in line or "Unmarshal" in line or re.match(r"^func \([^)]+\) String\(\).*", line) or "func (s SlashReason) checkedString()" in line:
+    if "Marshal" in line or "Unmarshal" in line \
+    or re.match(r"^func \([^)]+\) String\(\).*", line) \
+    or "func (s SlashReason) checkedString()" in line:  # A dependency of a String(). This is a (possibly Cobalt-specific) hack.
       out.append(line)
       continue
     end = lines.index("}\n", i)
