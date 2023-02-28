@@ -143,7 +143,9 @@ CREATE TABLE chain.evm_token_balances
   token_address oasis_addr NOT NULL,
   account_address oasis_addr NOT NULL,
   PRIMARY KEY (runtime, token_address, account_address),
-  balance NUMERIC(1000,0) NOT NULL  -- TODO: Use UINT_NUMERIC once we are processing Emerald from round 0.
+  -- Allow signed values because contracts may overdraw accounts beyond our
+  -- understanding or may misbehave.
+  balance NUMERIC(1000,0) NOT NULL
 );
 CREATE INDEX ix_evm_token_address ON chain.evm_token_balances (runtime, token_address) WHERE balance != 0;
 

@@ -309,13 +309,13 @@ const (
       VALUES ($1, $2, $3, $4)
     ON CONFLICT DO NOTHING`
 
-	RuntimeEvmBalanceUpdate = `
+	RuntimeEVMTokenBalanceUpdate = `
     INSERT INTO chain.evm_token_balances (runtime, token_address, account_address, balance)
       VALUES ($1, $2, $3, $4)
     ON CONFLICT (runtime, token_address, account_address) DO
       UPDATE SET balance = chain.evm_token_balances.balance + $4`
 
-	RuntimeEVMTokensAnalysisStale = `
+	RuntimeEVMTokenAnalysisStale = `
     SELECT
       evm_token_analysis.token_address,
       evm_token_analysis.last_mutate_round,

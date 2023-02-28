@@ -198,6 +198,10 @@ func evmDownloadTokenERC20(ctx context.Context, logger *log.Logger, source stora
 	return &tokenData, nil
 }
 
+// EVMDownloadNewToken tries to download the data of a given token. If it
+// transiently fails to download the data, it returns with a non-nil error. If
+// it deterministically cannot download the data, it returns nil with nil
+// error as well. Note that this latter case is not considered an error!
 func EVMDownloadNewToken(ctx context.Context, logger *log.Logger, source storage.RuntimeSourceStorage, round uint64, tokenEthAddr []byte) (*EVMTokenData, error) {
 	// todo: check ERC-165 0xffffffff compliance
 	// todo: try other token standards based on ERC-165
@@ -212,21 +216,28 @@ func EVMDownloadNewToken(ctx context.Context, logger *log.Logger, source storage
 		return tokenData, nil
 	}
 
+	// todo: add support for other token types
+	// see https://github.com/oasisprotocol/oasis-indexer/issues/225
+
 	// No applicable token discovered.
 	return nil, nil
 }
 
+// EVMDownloadMutatedToken tries to download the mutable data of a given
+// token. If it transiently fails to download the data, it returns with a
+// non-nil error. If it deterministically cannot download the data, it returns
+// nil with nil error as well. Note that this latter case is not considered an
+// error!
 func EVMDownloadMutatedToken(ctx context.Context, logger *log.Logger, source storage.RuntimeSourceStorage, round uint64, tokenEthAddr []byte, tokenType EVMTokenType) (*EVMTokenMutableData, error) {
 	switch tokenType {
 	case EVMTokenTypeERC20:
-		// Check ERC-20.
 		mutable, err := evmDownloadTokenERC20Mutable(ctx, logger, source, round, tokenEthAddr)
 		if err != nil {
 			return nil, fmt.Errorf("download token ERC-20 mutable: %w", err)
 		}
 		return mutable, nil
 
-	// todo: add suppport for other token types
+	// todo: add support for other token types
 	// see https://github.com/oasisprotocol/oasis-indexer/issues/225
 
 	default:

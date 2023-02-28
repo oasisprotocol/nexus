@@ -19,7 +19,7 @@ import (
 	"github.com/oasisprotocol/oasis-indexer/storage/oasis"
 )
 
-func TestEVMTokenDataERC20(t *testing.T) {
+func TestEVMDownloadTokenERC20(t *testing.T) {
 	// TODO: Would be nice to have an offline test.
 	ctx := context.Background()
 	cf, err := oasis.NewClientFactory(ctx, config.DefaultNetworks.All["mainnet"], true)

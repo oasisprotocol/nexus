@@ -106,7 +106,7 @@ type StaleToken struct {
 
 func (m Main) getStaleTokens(ctx context.Context, limit int) ([]*StaleToken, error) {
 	var staleTokens []*StaleToken
-	rows, err := m.target.Query(ctx, queries.RuntimeEVMTokensAnalysisStale, m.runtime, limit)
+	rows, err := m.target.Query(ctx, queries.RuntimeEVMTokenAnalysisStale, m.runtime, limit)
 	if err != nil {
 		return nil, fmt.Errorf("querying discovered tokens: %w", err)
 	}
