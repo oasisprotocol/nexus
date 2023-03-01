@@ -3,7 +3,6 @@ package api
 import (
 	"time"
 
-	"github.com/oasisprotocol/oasis-core/go/common/logging"
 	"github.com/oasisprotocol/oasis-core/go/common/quantity"
 )
 
@@ -27,14 +26,6 @@ type staticPriceDiscovery struct {
 
 // SubmissionManager is a transaction submission manager interface.
 // removed interface
-
-type submissionManager struct {
-	backend        ClientBackend
-	priceDiscovery PriceDiscovery
-	maxFee         quantity.Quantity
-
-	logger *logging.Logger
-}
 
 // Implements SubmissionManager.
 // removed func
