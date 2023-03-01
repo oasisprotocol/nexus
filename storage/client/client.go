@@ -496,24 +496,15 @@ func (c *StorageClient) Accounts(ctx context.Context, r apiTypes.GetConsensusAcc
 		IsTotalCountClipped: res.isTotalCountClipped,
 	}
 	for res.rows.Next() {
-		a := Account{AddressPreimage: &AddressPreimage{}}
-		var preimageContext *string
+		var a Account
 		if err := res.rows.Scan(
 			&a.Address,
 			&a.Nonce,
 			&a.Available,
 			&a.Escrow,
 			&a.Debonding,
-			&preimageContext,
-			&a.AddressPreimage.ContextVersion,
-			&a.AddressPreimage.AddressData,
 		); err != nil {
 			return nil, wrapError(err)
-		}
-		if preimageContext != nil {
-			a.AddressPreimage.Context = AddressDerivationContext(*preimageContext)
-		} else {
-			a.AddressPreimage = nil
 		}
 
 		as.Accounts = append(as.Accounts, a)
@@ -529,13 +520,9 @@ func (c *StorageClient) Account(ctx context.Context, address staking.Address) (*
 		// Initialize optional fields to empty values to avoid null pointer dereferences
 		// when filling them from the database.
 		Allowances:                  []Allowance{},
-		AddressPreimage:             &AddressPreimage{},
 		DelegationsBalance:          &common.BigInt{},
 		DebondingDelegationsBalance: &common.BigInt{},
-		RuntimeSdkBalances:          &[]RuntimeSdkBalance{},
-		RuntimeEvmBalances:          &[]RuntimeEvmBalance{},
 	}
-	var preimageContext *string
 	var delegationsBalanceNum pgtype.Numeric
 	var debondingDelegationsBalanceNum pgtype.Numeric
 	err := c.db.QueryRow(
@@ -548,34 +535,26 @@ func (c *StorageClient) Account(ctx context.Context, address staking.Address) (*
 		&a.Available,
 		&a.Escrow,
 		&a.Debonding,
-		&preimageContext,
-		&a.AddressPreimage.ContextVersion,
-		&a.AddressPreimage.AddressData,
 		&delegationsBalanceNum,
 		&debondingDelegationsBalanceNum,
 	)
-	if err == nil { //nolint:gocritic,nestif
-		// Convert numeric values to big.Int. pgx has a bug where it doesn't support reading into *big.Int.
+	if err == nil { //nolint:gocritic
 		var err2 error
+		// Convert numeric values to big.Int. pgx has a bug where it doesn't support reading into *big.Int.
 		*a.DelegationsBalance, err2 = common.NumericToBigInt(delegationsBalanceNum)
 		if err2 != nil {
-			return nil, wrapError(err)
+			return nil, wrapError(err2)
 		}
 		*a.DebondingDelegationsBalance, err2 = common.NumericToBigInt(debondingDelegationsBalanceNum)
 		if err2 != nil {
-			return nil, wrapError(err)
-		}
-		if preimageContext != nil {
-			a.AddressPreimage.Context = AddressDerivationContext(*preimageContext)
-		} else {
-			a.AddressPreimage = nil
+			return nil, wrapError(err2)
 		}
 	} else if err == pgx.ErrNoRows {
-		// An address can have no entries in the consensus `accounts` table (= no balance, nonce, etc)
-		// but it's still valid, and it might have balances in the runtimes.
-		// Leave the consensus-specific info initialized to defaults.
+		// An address can have no entry in the `accounts` table, which means the indexer
+		// hasn't seen any activity for this address before. However, the address itself is
+		// still valid, with 0 balance. We rely on type-checking of the input `address` to
+		// ensure that we do not return these responses for malformed oasis addresses.
 		a.Address = address.String()
-		a.AddressPreimage = nil
 	} else {
 		return nil, wrapError(err)
 	}
@@ -601,60 +580,6 @@ func (c *StorageClient) Account(ctx context.Context, address staking.Address) (*
 		}
 
 		a.Allowances = append(a.Allowances, al)
-	}
-
-	// Get paratime balances.
-	runtimeSdkRows, queryErr := c.db.Query(
-		ctx,
-		QueryFactoryFromCtx(ctx).AccountRuntimeSdkBalancesQuery(),
-		address.String(),
-	)
-	if queryErr != nil {
-		return nil, wrapError(err)
-	}
-	defer runtimeSdkRows.Close()
-
-	for runtimeSdkRows.Next() {
-		b := RuntimeSdkBalance{
-			// HACK: 18 is accurate for Emerald and Sapphire, but Cipher has 9.
-			// Once we add a non-18-decimals runtime, we'll need to query the runtime for this
-			// at analysis time and store it in a table, similar to how we store the EVM token metadata.
-			TokenDecimals: 18,
-		}
-		if err2 := runtimeSdkRows.Scan(
-			&b.Runtime,
-			&b.Balance,
-			&b.TokenSymbol,
-		); err2 != nil {
-			return nil, wrapError(err2)
-		}
-		*a.RuntimeSdkBalances = append(*a.RuntimeSdkBalances, b)
-	}
-
-	runtimeEvmRows, queryErr := c.db.Query(
-		ctx,
-		QueryFactoryFromCtx(ctx).AccountRuntimeEvmBalancesQuery(),
-		address.String(),
-	)
-	if queryErr != nil {
-		return nil, wrapError(err)
-	}
-	defer runtimeEvmRows.Close()
-
-	for runtimeEvmRows.Next() {
-		b := RuntimeEvmBalance{}
-		if err := runtimeEvmRows.Scan(
-			&b.Runtime,
-			&b.Balance,
-			&b.TokenContractAddr,
-			&b.TokenSymbol,
-			&b.TokenName,
-			&b.TokenType,
-			&b.TokenDecimals,
-		); err != nil {
-			return nil, wrapError(err)
-		}
-		*a.RuntimeEvmBalances = append(*a.RuntimeEvmBalances, b)
 	}
 
 	return &a, nil
@@ -972,15 +897,13 @@ func (c *StorageClient) Validator(ctx context.Context, entityID signature.Public
 		return nil, wrapError(err)
 	}
 
-	row := c.db.QueryRow(
+	var v Validator
+	var schedule staking.CommissionSchedule
+	if err := c.db.QueryRow(
 		ctx,
 		QueryFactoryFromCtx(ctx).ValidatorDataQuery(),
 		entityID.String(),
-	)
-
-	var v Validator
-	var schedule staking.CommissionSchedule
-	if err := row.Scan(
+	).Scan(
 		&v.EntityID,
 		&v.EntityAddress,
 		&v.NodeID,
@@ -1131,6 +1054,113 @@ func (c *StorageClient) RuntimeEvents(ctx context.Context, p apiTypes.GetRuntime
 	}
 
 	return &es, nil
+}
+
+func (c *StorageClient) RuntimeAccount(ctx context.Context, address staking.Address) (*RuntimeAccount, error) {
+	a := RuntimeAccount{
+		Address:         address.String(),
+		AddressPreimage: &AddressPreimage{},
+		Balances:        []RuntimeSdkBalance{},
+		EvmBalances:     []RuntimeEvmBalance{},
+	}
+	var preimageContext string
+	err := c.db.QueryRow(
+		ctx,
+		QueryFactoryFromCtx(ctx).AddressPreimageQuery(),
+		address,
+	).Scan(
+		&preimageContext,
+		&a.AddressPreimage.ContextVersion,
+		&a.AddressPreimage.AddressData,
+	)
+	if err == nil { //nolint:gocritic
+		a.AddressPreimage.Context = AddressDerivationContext(preimageContext)
+	} else if err == pgx.ErrNoRows {
+		// An address can have no entry in the address preimage table, which means the indexer
+		// hasn't seen any activity for this address before. However, the address itself is
+		// still valid, with 0 balance. We rely on type-checking of the input `address` to
+		// ensure that we do not return these responses for malformed oasis addresses.
+		a.Address = address.String()
+		a.AddressPreimage = nil
+	} else {
+		return nil, wrapError(err)
+	}
+
+	// Get paratime balances.
+	runtimeSdkRows, queryErr := c.db.Query(
+		ctx,
+		QueryFactoryFromCtx(ctx).AccountRuntimeSdkBalancesQuery(),
+		address.String(),
+	)
+	if queryErr != nil {
+		return nil, wrapError(queryErr)
+	}
+	defer runtimeSdkRows.Close()
+
+	for runtimeSdkRows.Next() {
+		b := RuntimeSdkBalance{
+			// HACK: 18 is accurate for Emerald and Sapphire, but Cipher has 9.
+			// Once we add a non-18-decimals runtime, we'll need to query the runtime for this
+			// at analysis time and store it in a table, similar to how we store the EVM token metadata.
+			TokenDecimals: 18,
+		}
+		if err = runtimeSdkRows.Scan(
+			&b.Balance,
+			&b.TokenSymbol,
+		); err != nil {
+			return nil, wrapError(err)
+		}
+		a.Balances = append(a.Balances, b)
+	}
+
+	runtimeEvmRows, queryErr := c.db.Query(
+		ctx,
+		QueryFactoryFromCtx(ctx).AccountRuntimeEvmBalancesQuery(),
+		address.String(),
+	)
+	if queryErr != nil {
+		return nil, wrapError(queryErr)
+	}
+	defer runtimeEvmRows.Close()
+
+	for runtimeEvmRows.Next() {
+		b := RuntimeEvmBalance{}
+		if err = runtimeEvmRows.Scan(
+			&b.Balance,
+			&b.TokenContractAddr,
+			&b.TokenSymbol,
+			&b.TokenName,
+			&b.TokenType,
+			&b.TokenDecimals,
+		); err != nil {
+			return nil, wrapError(err)
+		}
+		a.EvmBalances = append(a.EvmBalances, b)
+	}
+
+	var totalSent pgtype.Numeric
+	var totalReceived pgtype.Numeric
+	if err = c.db.QueryRow(
+		ctx,
+		QueryFactoryFromCtx(ctx).RuntimeAccountStatsQuery(),
+		address.String(),
+	).Scan(
+		&totalSent,
+		&totalReceived,
+		&a.Stats.NumTxns,
+	); err != nil {
+		return nil, wrapError(err)
+	}
+	a.Stats.TotalSent, err = common.NumericToBigInt(totalSent)
+	if err != nil {
+		return nil, wrapError(err)
+	}
+	a.Stats.TotalReceived, err = common.NumericToBigInt(totalReceived)
+	if err != nil {
+		return nil, wrapError(err)
+	}
+
+	return &a, nil
 }
 
 func (c *StorageClient) RuntimeTokens(ctx context.Context, p apiTypes.GetRuntimeEvmTokensParams) (*EvmTokenList, error) {

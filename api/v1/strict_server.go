@@ -288,3 +288,11 @@ func (srv *StrictServerImpl) GetRuntimeEvents(ctx context.Context, request apiTy
 	}
 	return apiTypes.GetRuntimeEvents200JSONResponse(*events), nil
 }
+
+func (srv *StrictServerImpl) GetRuntimeAccountsAddress(ctx context.Context, request apiTypes.GetRuntimeAccountsAddressRequestObject) (apiTypes.GetRuntimeAccountsAddressResponseObject, error) {
+	account, err := srv.dbClient.RuntimeAccount(ctx, request.Address)
+	if err != nil {
+		return nil, err
+	}
+	return apiTypes.GetRuntimeAccountsAddress200JSONResponse(*account), nil
+}

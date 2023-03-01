@@ -195,12 +195,8 @@ func (qf QueryFactory) AccountsQuery() string {
 			COALESCE(nonce, 0),
 			COALESCE(general_balance, 0),
 			COALESCE(escrow_balance_active, 0),
-			COALESCE(escrow_balance_debonding, 0),
-			preimage.context_identifier AS preimage_context,
-			preimage.context_version AS preimage_context_version,
-			preimage.address_data AS preimage_address_data
+			COALESCE(escrow_balance_debonding, 0)
 		FROM %[1]s.accounts
-		FULL OUTER JOIN %[1]s.address_preimages AS preimage USING (address)
 		WHERE ($1::numeric IS NULL OR general_balance >= $1::numeric) AND
 					($2::numeric IS NULL OR general_balance <= $2::numeric) AND
 					($3::numeric IS NULL OR escrow_balance_active >= $3::numeric) AND
@@ -222,9 +218,6 @@ func (qf QueryFactory) AccountQuery() string {
 			COALESCE(general_balance, 0),
 			COALESCE(escrow_balance_active, 0),
 			COALESCE(escrow_balance_debonding, 0),
-			preimage.context_identifier AS preimage_context,
-			preimage.context_version AS preimage_context_version,
-			preimage.address_data AS preimage_address_data,
 			COALESCE (
 				(SELECT COALESCE(ROUND(SUM(shares * escrow_balance_active / escrow_total_shares_active)), 0) AS delegations_balance
 				FROM %[1]s.delegations
@@ -238,7 +231,6 @@ func (qf QueryFactory) AccountQuery() string {
 				WHERE delegator = $1::text AND escrow_total_shares_debonding != 0)
 			, 0) AS debonding_delegations_balance
 		FROM %[1]s.accounts
-		FULL OUTER JOIN %[1]s.address_preimages AS preimage USING (address)
 		WHERE address = $1::text`, qf.chainID)
 }
 
@@ -450,6 +442,27 @@ func (qf QueryFactory) RuntimeEventsQuery() string {
 			OFFSET $8::bigint`, qf.chainID, qf.runtime)
 }
 
+func (qf QueryFactory) AddressPreimageQuery() string {
+	return fmt.Sprintf(`
+		SELECT context_identifier, context_version, address_data
+			FROM %[1]s.address_preimages
+			WHERE address = $1::text`, qf.chainID)
+}
+
+func (qf QueryFactory) RuntimeAccountStatsQuery() string {
+	return fmt.Sprintf(`
+		SELECT
+			COALESCE (
+				(SELECT sum(amount) from %[1]s.runtime_transfers where sender=$1::text)
+				, 0) AS total_sent,
+			COALESCE (
+				(SELECT sum(amount) from %[1]s.runtime_transfers where receiver=$1::text)
+				, 0) AS total_received,
+			COALESCE (
+				(SELECT count(*) from %[1]s.runtime_related_transactions where account_address=$1::text)
+				, 0) AS num_txns`, qf.chainID)
+}
+
 func (qf QueryFactory) EvmTokensQuery() string {
 	return fmt.Sprintf(`
 		WITH holders AS (
@@ -481,12 +494,12 @@ func (qf QueryFactory) EvmTokensQuery() string {
 func (qf QueryFactory) AccountRuntimeSdkBalancesQuery() string {
 	return fmt.Sprintf(`
 		SELECT
-			runtime AS runtime,
 			balance AS balance,
 			symbol AS token_symbol
 		FROM %[1]s.runtime_sdk_balances
-		WHERE account_address = $1::text
-			AND balance != 0
+		WHERE runtime = '%[2]s' AND
+			account_address = $1::text AND
+			balance != 0
 		ORDER BY balance DESC
 		LIMIT 1000  -- To prevent huge responses. Hardcoded because API exposes this as a subfield that does not lend itself to pagination.
 	`, qf.chainID, qf.runtime)
@@ -495,7 +508,6 @@ func (qf QueryFactory) AccountRuntimeSdkBalancesQuery() string {
 func (qf QueryFactory) AccountRuntimeEvmBalancesQuery() string {
 	return fmt.Sprintf(`
 		SELECT
-			balances.runtime AS runtime,
 			balances.balance AS balance,
 			balances.token_address AS token_address,
 			tokens.symbol AS token_symbol,
@@ -504,8 +516,9 @@ func (qf QueryFactory) AccountRuntimeEvmBalancesQuery() string {
 			tokens.decimals AS token_decimals
 		FROM %[1]s.evm_token_balances AS balances
 		JOIN %[1]s.evm_tokens         AS tokens USING (runtime, token_address)
-		WHERE account_address = $1::text
-		  AND balance != 0
+		WHERE runtime = '%[2]s' AND
+			account_address = $1::text AND
+			balance != 0
 		ORDER BY balance DESC
 		LIMIT 1000  -- To prevent huge responses. Hardcoded because API exposes this as a subfield that does not lend itself to pagination.
 	`, qf.chainID, qf.runtime)
