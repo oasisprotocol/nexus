@@ -1909,7 +1909,7 @@ components:
     RuntimeTransaction:
       type: object
       # NOTE: Not guaranteed to be present: eth_hash, to, amount.
-      required: [round, index, timestamp, hash, sender_0, nonce_0, fee, gas_limit, method, body, success]
+      required: [round, index, timestamp, hash, sender_0, nonce_0, fee, gas_limit, gas_used, size, method, body, success]
       properties:
         round:
           type: integer
@@ -1969,6 +1969,14 @@ components:
             The maximum gas that this transaction's sender committed to use to
             execute it.
           example: 30000
+        gas_used:
+          type: integer
+          format: uint64
+          description: The total gas used by the transaction.
+        size:
+          type: integer
+          format: int32
+          description: The total byte size of the transaction.
         method:
           type: string
           description: The method that was called.

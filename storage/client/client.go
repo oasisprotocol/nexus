@@ -999,6 +999,8 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetR
 			&t.Index,
 			&t.Hash,
 			&t.EthHash,
+			&t.GasUsed,
+			&t.Size,
 			&t.Timestamp,
 			&t.Raw,
 			&t.ResultRaw,

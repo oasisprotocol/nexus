@@ -375,8 +375,8 @@ func (qf QueryFactory) RuntimeRelatedTransactionInsertQuery() string {
 
 func (qf QueryFactory) RuntimeTransactionInsertQuery() string {
 	return fmt.Sprintf(`
-		INSERT INTO %[1]s.runtime_transactions (runtime, round, tx_index, tx_hash, tx_eth_hash, timestamp, raw, result_raw)
-			VALUES ('%[2]s', $1, $2, $3, $4, $5, $6, $7)`, qf.chainID, qf.runtime)
+		INSERT INTO %[1]s.runtime_transactions (runtime, round, tx_index, tx_hash, tx_eth_hash, gas_used, size, timestamp, raw, result_raw)
+			VALUES ('%[2]s', $1, $2, $3, $4, $5, $6, $7, $8, $9)`, qf.chainID, qf.runtime)
 }
 
 func (qf QueryFactory) RuntimeEventInsertQuery() string {
