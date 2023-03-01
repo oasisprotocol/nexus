@@ -74,6 +74,9 @@ CREATE TABLE oasis_3.events
   FOREIGN KEY (tx_block, tx_index) REFERENCES oasis_3.transactions(block, tx_index) DEFERRABLE INITIALLY DEFERRED
 );
 CREATE INDEX ix_events_related_accounts ON oasis_3.events USING gin(related_accounts);
+CREATE INDEX ix_events_tx_block ON oasis_3.events (tx_block);  -- for fetching events without filters
+CREATE INDEX ix_events_tx_hash ON oasis_3.events (tx_hash);
+CREATE INDEX ix_events_type ON oasis_3.events (type, tx_block);  -- tx_block is for sorting the events of a given type by recency
 
 -- Beacon Backend Data
 
