@@ -20,7 +20,7 @@ func convertProposal(p *governanceCobalt.Proposal) *governance.Proposal {
 
 	return &governance.Proposal{
 		ID:        p.ID,
-		Submitter: staking.Address(p.Submitter),
+		Submitter: p.Submitter,
 		State:     governance.ProposalState(p.State),
 		Deposit:   p.Deposit,
 		Content: governance.ProposalContent{
@@ -82,7 +82,7 @@ func ConvertGenesis(d genesisCobalt.Document) *genesis.Document {
 		voteEntries[k] = make([]*governance.VoteEntry, len(v))
 		for i, ve := range v {
 			voteEntries[k][i] = &governance.VoteEntry{
-				Voter: staking.Address(ve.Voter),
+				Voter: ve.Voter,
 				Vote:  governance.Vote(ve.Vote),
 			}
 		}

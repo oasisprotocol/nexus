@@ -7,7 +7,7 @@ import (
 	consensus "github.com/oasisprotocol/oasis-core/go/consensus/api"
 	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
 
-	// indexer-internal data types
+	// indexer-internal data types.
 	beacon "github.com/oasisprotocol/oasis-core/go/beacon/api"
 	genesis "github.com/oasisprotocol/oasis-core/go/genesis/api"
 	governance "github.com/oasisprotocol/oasis-core/go/governance/api"

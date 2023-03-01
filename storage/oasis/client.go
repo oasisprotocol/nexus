@@ -53,7 +53,6 @@ func NewClientFactory(ctx context.Context, network *config.Network, skipChainCon
 
 // Consensus creates a new ConsensusClient.
 func (cf *ClientFactory) Consensus() (*ConsensusClient, error) {
-
 	// TODO: Remove the hardcoded values in next block once indexer config supports multiple nodes.
 	// The plan is to introduce a new implementation of ConsensusApiLite that
 	// will forward each call to either CobaltConsensusApiLite or DamaskConsensusApiLite,
@@ -67,7 +66,7 @@ func (cf *ClientFactory) Consensus() (*ConsensusClient, error) {
 		if err != nil {
 			return nil, err
 		}
-		nodeApi = cobalt.NewCobaltConsensusApiLite(*grpcConn)
+		nodeApi = cobalt.NewCobaltConsensusApiLite(grpcConn)
 	} else {
 		// Assume Damask.
 		client := (*cf.connection).Consensus()

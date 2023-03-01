@@ -6,7 +6,7 @@ import (
 	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
 	"google.golang.org/grpc"
 
-	// indexer-internal data types
+	// indexer-internal data types.
 	beacon "github.com/oasisprotocol/oasis-core/go/beacon/api"
 	"github.com/oasisprotocol/oasis-core/go/common"
 	consensus "github.com/oasisprotocol/oasis-core/go/consensus/api"
@@ -17,7 +17,7 @@ import (
 	scheduler "github.com/oasisprotocol/oasis-core/go/scheduler/api"
 	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
 
-	// data types for Cobalt gRPC APIs
+	// data types for Cobalt gRPC APIs.
 	genesisCobalt "github.com/oasisprotocol/oasis-indexer/coreapi/v21.1.1/genesis/api"
 )
 
@@ -25,12 +25,12 @@ import (
 // Cobalt node. To be able to use the old gRPC API, this struct uses gRPC
 // directly, skipping the convenience wrappers provided by oasis-core.
 type CobaltConsensusApiLite struct {
-	grpcConn grpc.ClientConn
+	grpcConn *grpc.ClientConn
 }
 
 var _ nodeapi.ConsensusApiLite = (*CobaltConsensusApiLite)(nil)
 
-func NewCobaltConsensusApiLite(grpcConn grpc.ClientConn) *CobaltConsensusApiLite {
+func NewCobaltConsensusApiLite(grpcConn *grpc.ClientConn) *CobaltConsensusApiLite {
 	return &CobaltConsensusApiLite{
 		grpcConn: grpcConn,
 	}
