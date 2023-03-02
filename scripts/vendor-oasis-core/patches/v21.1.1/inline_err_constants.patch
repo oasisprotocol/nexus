@@ -1,0 +1,35 @@
+diff --git a/coreapi/v21.1.1/registry/api/runtime.go b/coreapi/registry/api/runtime.go
+index 2eac2e8..ebfd9f6 100644
+--- a/coreapi/v21.1.1/registry/api/runtime.go
++++ b/coreapi/v21.1.1/registry/api/runtime.go
+@@ -281,7 +281,7 @@ func (gm RuntimeGovernanceModel) MarshalText() ([]byte, error) {
+ 	case GovernanceConsensus:
+ 		return []byte(gmConsensus), nil
+ 	default:
+-		return nil, ErrUnsupportedRuntimeGovernanceModel
++		return nil, fmt.Errorf("unspported runtime governance model: %d", gm)
+ 	}
+ }
+ 
+@@ -294,7 +294,7 @@ func (gm *RuntimeGovernanceModel) UnmarshalText(text []byte) error {
+ 	case gmConsensus:
+ 		*gm = GovernanceConsensus
+ 	default:
+-		return fmt.Errorf("%w: '%s'", ErrUnsupportedRuntimeGovernanceModel, string(text))
++		return fmt.Errorf("unspported runtime governance model: '%s'", string(text))
+ 	}
+ 
+ 	return nil
+diff --git a/coreapi/v21.1.1/staking/api/api.go b/coreapi/staking/api/api.go
+index 453ad6b..22428ac 100644
+--- a/coreapi/v21.1.1/staking/api/api.go
++++ b/coreapi/v21.1.1/staking/api/api.go
+@@ -433,7 +433,7 @@ func (k *ThresholdKind) UnmarshalText(text []byte) error {
+ 	case KindRuntimeKeyManagerName:
+ 		*k = KindRuntimeKeyManager
+ 	default:
+-		return fmt.Errorf("%w: %s", ErrInvalidThreshold, string(text))
++		return fmt.Errorf("%w: %s", fmt.Errorf("invalid threshold"), string(text))
+ 	}
+ 	return nil
+ }

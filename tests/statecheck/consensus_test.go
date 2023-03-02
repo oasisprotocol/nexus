@@ -161,36 +161,28 @@ func TestGenesisFull(t *testing.T) {
 	assert.Nil(t, err)
 
 	t.Logf("Fetching genesis at height %d...", height)
-	var registryGenesis *registryAPI.Genesis
-	var stakingGenesis *stakingAPI.Genesis
-	var governanceGenesis *governanceAPI.Genesis
-	genesisPath := os.Getenv("OASIS_GENESIS_DUMP")
-	if genesisPath != "" {
+	genesis := &genesisAPI.Document{}
+	if genesisPath := os.Getenv("OASIS_GENESIS_DUMP"); genesisPath != "" {
 		t.Log("Reading genesis from dump at", genesisPath)
 		gensisJSON, err := os.ReadFile(genesisPath)
 		if err != nil {
 			require.Nil(t, err)
 		}
-		var genesis genesisAPI.Document
-		err = json.Unmarshal(gensisJSON, &genesis)
+		err = json.Unmarshal(gensisJSON, genesis)
 		if err != nil {
 			require.Nil(t, err)
 		}
 		if genesis.Height != height {
 			require.Nil(t, fmt.Errorf("height mismatch: %d (in genesis dump) != %d (in DB)", genesis.Height, height))
 		}
-		registryGenesis = &genesis.Registry
-		stakingGenesis = &genesis.Staking
-		governanceGenesis = &genesis.Governance
 	} else {
 		t.Log("Fetching state dump at height", height, "from node")
-		registryGenesis, err = oasisClient.RegistryGenesis(ctx, height)
-		require.Nil(t, err)
-		stakingGenesis, err = oasisClient.StakingGenesis(ctx, height)
-		require.Nil(t, err)
-		governanceGenesis, err = oasisClient.GovernanceGenesis(ctx, height)
+		genesis, err = oasisClient.GenesisDocumentAtHeight(ctx, height)
 		require.Nil(t, err)
 	}
+	registryGenesis := &genesis.Registry
+	stakingGenesis := &genesis.Staking
+	governanceGenesis := &genesis.Governance
 
 	t.Logf("Validating at height %d...", height)
 	validateRegistryBackend(t, registryGenesis, oasisClient, postgresClient, height)
