@@ -202,21 +202,26 @@ func (a *AggregateStatsAnalyzer) dailyActiveAccountsWorker(ctx context.Context) 
 				windowEnd := nextWindow
 
 				// Compute active accounts for the provided time window.
-				var aggregateQuery string
+				var acctsRow pgx.Row
 				switch layer {
 				case layerConsensus:
-					aggregateQuery = a.qf.ConsensusActiveAccountsQuery()
+					acctsRow = a.target.QueryRow(
+						ctx,
+						a.qf.ConsensusActiveAccountsQuery(),
+						windowStart, // from
+						windowEnd,   // to
+					)
 				default:
-					qf := a.qf.NewWithRuntime(layer)
-					aggregateQuery = qf.RuntimeActiveAccountsQuery()
+					acctsRow = a.target.QueryRow(
+						ctx,
+						a.qf.RuntimeActiveAccountsQuery(),
+						layer,       // runtime
+						windowStart, // from
+						windowEnd,   // to
+					)
 				}
 				var activeAccounts uint64
-				if err := a.target.QueryRow(
-					ctx,
-					aggregateQuery,
-					windowStart, // from
-					windowEnd,   // to
-				).Scan(&activeAccounts); err != nil {
+				if err := acctsRow.Scan(&activeAccounts); err != nil {
 					a.logger.Error("failed to compute daily active accounts", "layer", layer, "window_start", windowStart, "window_end", windowEnd, "err", err)
 					continue
 				}
@@ -246,16 +251,15 @@ func (a *AggregateStatsAnalyzer) dailyActiveAccountsWorker(ctx context.Context) 
 
 // Queries the latest indexed block of the specified layer.
 func (a *AggregateStatsAnalyzer) latestBlockTs(ctx context.Context, layer string) (*time.Time, error) {
-	var latestBlockTsQuery string
+	var latestBlockTsRow pgx.Row
 	switch layer {
 	case layerConsensus:
-		latestBlockTsQuery = a.qf.LatestConsensusBlockTimeQuery()
+		latestBlockTsRow = a.target.QueryRow(ctx, a.qf.LatestConsensusBlockTimeQuery())
 	default:
-		qf := a.qf.NewWithRuntime(layer)
-		latestBlockTsQuery = qf.LatestRuntimeBlockTimeQuery()
+		latestBlockTsRow = a.target.QueryRow(ctx, a.qf.LatestRuntimeBlockTimeQuery(), layer)
 	}
 	var latestBlockTs *time.Time
-	if err := a.target.QueryRow(ctx, latestBlockTsQuery).Scan(&latestBlockTs); err != nil { // Fails with ErrNoRows if no blocks.
+	if err := latestBlockTsRow.Scan(&latestBlockTs); err != nil { // Fails with ErrNoRows if no blocks.
 		return nil, err
 	}
 	return latestBlockTs, nil
@@ -263,16 +267,15 @@ func (a *AggregateStatsAnalyzer) latestBlockTs(ctx context.Context, layer string
 
 // Queries the earliest indexed block for the specified layer.
 func (a *AggregateStatsAnalyzer) earliestBlockTs(ctx context.Context, layer string) (*time.Time, error) {
-	var earliestBlockTsQuery string
+	var earliestBlockTsRow pgx.Row
 	switch layer {
 	case layerConsensus:
-		earliestBlockTsQuery = a.qf.EarliestConsensusBlockTimeQuery()
+		earliestBlockTsRow = a.target.QueryRow(ctx, a.qf.EarliestConsensusBlockTimeQuery())
 	default:
-		qf := a.qf.NewWithRuntime(layer)
-		earliestBlockTsQuery = qf.EarliestRuntimeBlockTimeQuery()
+		earliestBlockTsRow = a.target.QueryRow(ctx, a.qf.EarliestRuntimeBlockTimeQuery(), layer)
 	}
 	var earliestBlockTs *time.Time
-	if err := a.target.QueryRow(ctx, earliestBlockTsQuery).Scan(&earliestBlockTs); err != nil { // Fails with ErrNoRows if no blocks.
+	if err := earliestBlockTsRow.Scan(&earliestBlockTs); err != nil { // Fails with ErrNoRows if no blocks.
 		return nil, err
 	}
 	return earliestBlockTs, nil

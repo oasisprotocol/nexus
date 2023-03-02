@@ -110,7 +110,7 @@ type StaleToken struct {
 
 func (m Main) getStaleTokens(ctx context.Context, limit int) ([]*StaleToken, error) {
 	var staleTokens []*StaleToken
-	rows, err := m.target.Query(ctx, m.qf.RuntimeEVMTokensAnalysisStaleQuery(), limit)
+	rows, err := m.target.Query(ctx, m.qf.RuntimeEVMTokensAnalysisStaleQuery(), m.runtime, limit)
 	if err != nil {
 		return nil, fmt.Errorf("querying discovered tokens: %w", err)
 	}
@@ -170,6 +170,7 @@ func (m Main) processBatch(ctx context.Context) (int, error) {
 				}
 				if tokenData != nil {
 					batch.Queue(m.qf.RuntimeEVMTokenInsertQuery(),
+						m.runtime,
 						staleToken.Addr,
 						tokenData.Type,
 						tokenData.Name,
@@ -191,11 +192,12 @@ func (m Main) processBatch(ctx context.Context) (int, error) {
 					return fmt.Errorf("downloading mutated token %s: %w", staleToken.Addr, err)
 				}
 				batch.Queue(m.qf.RuntimeEVMTokenUpdateQuery(),
+					m.runtime,
 					staleToken.Addr,
 					mutable.TotalSupply.String(),
 				)
 			}
-			batch.Queue(m.qf.RuntimeEVMTokenAnalysisUpdateQuery(), staleToken.Addr, staleToken.LastMutateRound)
+			batch.Queue(m.qf.RuntimeEVMTokenAnalysisUpdateQuery(), m.runtime, staleToken.Addr, staleToken.LastMutateRound)
 			return nil
 		})
 	}

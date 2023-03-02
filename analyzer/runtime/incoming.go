@@ -567,11 +567,12 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 	}, nil
 }
 
-func emitRoundBatch(batch *storage.QueryBatch, qf *analyzer.QueryFactory, round uint64, blockData *BlockData) {
+func (m *Main) emitRoundBatch(batch *storage.QueryBatch, qf *analyzer.QueryFactory, round uint64, blockData *BlockData) {
 	for _, transactionData := range blockData.TransactionData {
 		for _, signerData := range transactionData.SignerData {
 			batch.Queue(
 				qf.RuntimeTransactionSignerInsertQuery(),
+				m.runtime,
 				round,
 				transactionData.Index,
 				signerData.Index,
@@ -580,10 +581,11 @@ func emitRoundBatch(batch *storage.QueryBatch, qf *analyzer.QueryFactory, round 
 			)
 		}
 		for addr := range transactionData.RelatedAccountAddresses {
-			batch.Queue(qf.RuntimeRelatedTransactionInsertQuery(), addr, round, transactionData.Index)
+			batch.Queue(qf.RuntimeRelatedTransactionInsertQuery(), m.runtime, addr, round, transactionData.Index)
 		}
 		batch.Queue(
 			qf.RuntimeTransactionInsertQuery(),
+			m.runtime,
 			round,
 			transactionData.Index,
 			transactionData.Hash,
@@ -599,6 +601,7 @@ func emitRoundBatch(batch *storage.QueryBatch, qf *analyzer.QueryFactory, round 
 		eventRelatedAddresses := common.ExtractAddresses(eventData.RelatedAddresses)
 		batch.Queue(
 			qf.RuntimeEventInsertQuery(),
+			m.runtime,
 			round,
 			eventData.TxIndex,
 			eventData.TxHash,
@@ -613,13 +616,13 @@ func emitRoundBatch(batch *storage.QueryBatch, qf *analyzer.QueryFactory, round 
 		batch.Queue(qf.AddressPreimageInsertQuery(), addr, preimageData.ContextIdentifier, preimageData.ContextVersion, preimageData.Data)
 	}
 	for key, change := range blockData.TokenBalanceChanges {
-		batch.Queue(qf.RuntimeEvmBalanceUpdateQuery(), key.TokenAddress, key.AccountAddress, change.String())
+		batch.Queue(qf.RuntimeEvmBalanceUpdateQuery(), m.runtime, key.TokenAddress, key.AccountAddress, change.String())
 	}
 	for addr, possibleToken := range blockData.PossibleTokens {
 		if possibleToken.Mutated {
-			batch.Queue(qf.RuntimeEVMTokenAnalysisMutateInsertQuery(), addr, round)
+			batch.Queue(qf.RuntimeEVMTokenAnalysisMutateInsertQuery(), m.runtime, addr, round)
 		} else {
-			batch.Queue(qf.RuntimeEVMTokenAnalysisInsertQuery(), addr, round)
+			batch.Queue(qf.RuntimeEVMTokenAnalysisInsertQuery(), m.runtime, addr, round)
 		}
 	}
 }

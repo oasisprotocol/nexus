@@ -17,14 +17,15 @@ const (
 // AccountsHandler implements support for transforming and inserting data from the
 // `accounts` module for a runtime into target storage.
 type AccountsHandler struct {
-	source storage.RuntimeSourceStorage
-	qf     *analyzer.QueryFactory
-	logger *log.Logger
+	source      storage.RuntimeSourceStorage
+	runtimeName string
+	qf          *analyzer.QueryFactory
+	logger      *log.Logger
 }
 
 // NewAccountsHandler creates a new handler for `accounts` module data.
-func NewAccountsHandler(source storage.RuntimeSourceStorage, qf *analyzer.QueryFactory, logger *log.Logger) *AccountsHandler {
-	return &AccountsHandler{source, qf, logger}
+func NewAccountsHandler(source storage.RuntimeSourceStorage, runtimeName string, qf *analyzer.QueryFactory, logger *log.Logger) *AccountsHandler {
+	return &AccountsHandler{source, runtimeName, qf, logger}
 }
 
 // PrepareAccountsData prepares raw data from the `accounts` module for insertion.
@@ -58,6 +59,7 @@ func (h *AccountsHandler) queueMints(batch *storage.QueryBatch, data *storage.Ac
 		// Record the event.
 		batch.Queue(
 			h.qf.RuntimeMintInsertQuery(),
+			h.runtimeName,
 			data.Round,
 			mint.Owner.String(),
 			h.source.StringifyDenomination(mint.Amount.Denomination),
@@ -66,6 +68,7 @@ func (h *AccountsHandler) queueMints(batch *storage.QueryBatch, data *storage.Ac
 		// Increase minter's balance.
 		batch.Queue(
 			h.qf.RuntimeNativeBalanceUpdateQuery(),
+			h.runtimeName,
 			mint.Owner.String(),
 			h.source.StringifyDenomination(mint.Amount.Denomination),
 			mint.Amount.Amount.String(),
@@ -80,6 +83,7 @@ func (h *AccountsHandler) queueBurns(batch *storage.QueryBatch, data *storage.Ac
 		// Record the event.
 		batch.Queue(
 			h.qf.RuntimeBurnInsertQuery(),
+			h.runtimeName,
 			data.Round,
 			burn.Owner.String(),
 			h.source.StringifyDenomination(burn.Amount.Denomination),
@@ -88,6 +92,7 @@ func (h *AccountsHandler) queueBurns(batch *storage.QueryBatch, data *storage.Ac
 		// Decrease burner's balance.
 		batch.Queue(
 			h.qf.RuntimeNativeBalanceUpdateQuery(),
+			h.runtimeName,
 			burn.Owner.String(),
 			h.source.StringifyDenomination(burn.Amount.Denomination),
 			(&big.Int{}).Neg(burn.Amount.Amount.ToBigInt()).String(),
@@ -102,6 +107,7 @@ func (h *AccountsHandler) queueTransfers(batch *storage.QueryBatch, data *storag
 		// Record the event.
 		batch.Queue(
 			h.qf.RuntimeTransferInsertQuery(),
+			h.runtimeName,
 			data.Round,
 			transfer.From.String(),
 			transfer.To.String(),
@@ -111,6 +117,7 @@ func (h *AccountsHandler) queueTransfers(batch *storage.QueryBatch, data *storag
 		// Increase receiver's balance.
 		batch.Queue(
 			h.qf.RuntimeNativeBalanceUpdateQuery(),
+			h.runtimeName,
 			transfer.To.String(),
 			h.source.StringifyDenomination(transfer.Amount.Denomination),
 			transfer.Amount.Amount.String(),
@@ -118,6 +125,7 @@ func (h *AccountsHandler) queueTransfers(batch *storage.QueryBatch, data *storag
 		// Decrease sender's balance.
 		batch.Queue(
 			h.qf.RuntimeNativeBalanceUpdateQuery(),
+			h.runtimeName,
 			transfer.From.String(),
 			h.source.StringifyDenomination(transfer.Amount.Denomination),
 			(&big.Int{}).Neg(transfer.Amount.Amount.ToBigInt()).String(),

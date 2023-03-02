@@ -105,9 +105,9 @@ func NewRuntimeAnalyzer(
 
 		// module handlers
 		moduleHandlers: []modules.ModuleHandler{
-			modules.NewCoreHandler(client, &qf, logger),
-			modules.NewAccountsHandler(client, &qf, logger),
-			modules.NewConsensusAccountsHandler(client, &qf, logger),
+			modules.NewCoreHandler(client, runtime.String(), &qf, logger),
+			modules.NewAccountsHandler(client, runtime.String(), &qf, logger),
+			modules.NewConsensusAccountsHandler(client, runtime.String(), &qf, logger),
 		},
 	}, nil
 }
@@ -326,6 +326,7 @@ func (m *Main) prepareEventData(ctx context.Context, round uint64, batch *storag
 		eventRelatedAddresses := common.ExtractAddresses(eventData.RelatedAddresses)
 		batch.Queue(
 			m.qf.RuntimeEventInsertQuery(),
+			m.runtime,
 			round,
 			nil, // non-tx event has no tx index
 			nil, // non-tx event has no tx hash
@@ -353,6 +354,7 @@ func (m *Main) queueBlockAndTransactionInserts(ctx context.Context, batch *stora
 
 	batch.Queue(
 		m.qf.RuntimeBlockInsertQuery(),
+		m.runtime,
 		data.Round,
 		data.BlockHeader.Header.Version,
 		time.Unix(int64(data.BlockHeader.Header.Timestamp), 0 /* nanos */),
@@ -367,7 +369,7 @@ func (m *Main) queueBlockAndTransactionInserts(ctx context.Context, batch *stora
 		blockData.Size,
 	)
 
-	emitRoundBatch(batch, &m.qf, data.Round, blockData)
+	m.emitRoundBatch(batch, &m.qf, data.Round, blockData)
 
 	return nil
 }
