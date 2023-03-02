@@ -1,8 +1,6 @@
 package modules
 
 import (
-	"context"
-	"fmt"
 	"math/big"
 
 	"github.com/oasisprotocol/oasis-indexer/analyzer"
@@ -30,18 +28,13 @@ func NewAccountsHandler(source storage.RuntimeSourceStorage, runtime analyzer.Ru
 
 // PrepareAccountsData prepares raw data from the `accounts` module for insertion.
 // into target storage.
-func (h *AccountsHandler) PrepareData(ctx context.Context, round uint64, batch *storage.QueryBatch) error {
-	data, err := h.source.AccountsData(ctx, round)
-	if err != nil {
-		return fmt.Errorf("error retrieving accounts data: %w", err)
-	}
-
+func (h *AccountsHandler) PrepareData(batch *storage.QueryBatch, data *storage.RuntimeAllData) error {
 	for _, f := range []func(*storage.QueryBatch, *storage.AccountsData) error{
 		h.queueMints,
 		h.queueBurns,
 		h.queueTransfers,
 	} {
-		if err := f(batch, data); err != nil {
+		if err := f(batch, data.AccountsData); err != nil {
 			return err
 		}
 	}

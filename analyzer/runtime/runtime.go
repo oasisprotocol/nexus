@@ -10,7 +10,6 @@ import (
 	oasisConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/rewards"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
-	"golang.org/x/sync/errgroup"
 
 	"github.com/oasisprotocol/oasis-indexer/analyzer"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/modules"
@@ -224,47 +223,41 @@ func (m *Main) prework() error {
 func (m *Main) processRound(ctx context.Context, round uint64) error {
 	ctxWithTimeout, cancel := context.WithTimeout(ctx, ProcessRoundTimeout)
 	defer cancel()
-	group, groupCtx := errgroup.WithContext(ctxWithTimeout)
 
-	// Prepare and perform updates.
-	batch := &storage.QueryBatch{}
-
-	type prepareFunc = func(context.Context, uint64, *storage.QueryBatch) error
-	for _, f := range []prepareFunc{
-		m.prepareBlockData,
-		m.prepareEventData,
-	} {
-		func(f prepareFunc) {
-			group.Go(func() error {
-				return f(groupCtx, round, batch)
-			})
-		}(f)
-	}
-
-	for _, h := range m.moduleHandlers {
-		func(f prepareFunc) {
-			group.Go(func() error {
-				return f(groupCtx, round, batch)
-			})
-		}(h.PrepareData)
-	}
-
-	// Update indexing progress.
-	group.Go(func() error {
-		batch.Queue(
-			queries.IndexingProgress,
-			round,
-			m.runtime.String(),
-		)
-		return nil
-	})
-
-	if err := group.Wait(); err != nil {
+	// Fetch all data.
+	data, err := m.cfg.Source.AllData(ctxWithTimeout, round)
+	if err != nil {
 		if strings.Contains(err.Error(), "roothash: block not found") {
 			return analyzer.ErrOutOfRange
 		}
 		return err
 	}
+
+	// Prepare and perform updates.
+	batch := &storage.QueryBatch{}
+	type prepareFunc = func(*storage.QueryBatch, *storage.RuntimeAllData) error
+	// Process block and event data.
+	for _, f := range []prepareFunc{
+		m.prepareBlockData,
+		m.prepareEventData,
+	} {
+		if err := f(batch, data); err != nil {
+			return err
+		}
+	}
+	// Process module data.
+	for _, h := range m.moduleHandlers {
+		if err := h.PrepareData(batch, data); err != nil {
+			return err
+		}
+	}
+
+	// Update indexing progress.
+	batch.Queue(
+		queries.IndexingProgress,
+		round,
+		m.runtime.String(),
+	)
 
 	opName := fmt.Sprintf("process_block_%s", m.runtime.String())
 	timer := m.metrics.DatabaseTimer(m.target.Name(), opName)
@@ -279,31 +272,14 @@ func (m *Main) processRound(ctx context.Context, round uint64) error {
 }
 
 // prepareBlockData adds block data queries to the batch.
-func (m *Main) prepareBlockData(ctx context.Context, round uint64, batch *storage.QueryBatch) error {
-	data, err := m.cfg.Source.BlockData(ctx, round)
-	if err != nil {
-		return err
-	}
-
-	for _, f := range []func(context.Context, *storage.QueryBatch, *storage.RuntimeBlockData) error{
-		m.queueBlockAndTransactionInserts,
-	} {
-		if err := f(ctx, batch, data); err != nil {
-			return err
-		}
-	}
-
-	return nil
+func (m *Main) prepareBlockData(batch *storage.QueryBatch, data *storage.RuntimeAllData) error {
+	return m.queueBlockAndTransactionInserts(batch, data.BlockData)
 }
 
 // prepareEventData adds non-tx event data queries to the batch.
-func (m *Main) prepareEventData(ctx context.Context, round uint64, batch *storage.QueryBatch) error {
-	events, err := m.cfg.Source.GetEventsRaw(ctx, round)
-	if err != nil {
-		return err
-	}
+func (m *Main) prepareEventData(batch *storage.QueryBatch, data *storage.RuntimeAllData) error {
 	nonTxEvents := []*types.Event{}
-	for _, e := range events.Events {
+	for _, e := range data.RawEvents.Events {
 		if e.TxHash.String() == util.ZeroTxHash {
 			nonTxEvents = append(nonTxEvents, e)
 		}
@@ -323,7 +299,7 @@ func (m *Main) prepareEventData(ctx context.Context, round uint64, batch *storag
 		batch.Queue(
 			queries.RuntimeEventInsert,
 			m.runtime,
-			round,
+			data.Round,
 			nil, // non-tx event has no tx index
 			nil, // non-tx event has no tx hash
 			eventData.Type,
@@ -342,7 +318,7 @@ func (m *Main) prepareEventData(ctx context.Context, round uint64, batch *storag
 	return nil
 }
 
-func (m *Main) queueBlockAndTransactionInserts(ctx context.Context, batch *storage.QueryBatch, data *storage.RuntimeBlockData) error {
+func (m *Main) queueBlockAndTransactionInserts(batch *storage.QueryBatch, data *storage.RuntimeBlockData) error {
 	blockData, err := extractRound(data.BlockHeader, data.TransactionsWithResults, m.logger)
 	if err != nil {
 		return fmt.Errorf("extract round %d: %w", data.Round, err)

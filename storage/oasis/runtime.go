@@ -25,6 +25,40 @@ type RuntimeClient struct {
 	rtCtx runtimeSignature.Context
 }
 
+// AllData returns all relevant data to the given round.
+func (rc *RuntimeClient) AllData(ctx context.Context, round uint64) (*storage.RuntimeAllData, error) {
+	blockData, err := rc.BlockData(ctx, round)
+	if err != nil {
+		return nil, err
+	}
+	coreData, err := rc.CoreData(ctx, round)
+	if err != nil {
+		return nil, err
+	}
+	accountsData, err := rc.AccountsData(ctx, round)
+	if err != nil {
+		return nil, err
+	}
+	consensusAccountsData, err := rc.ConsensusAccountsData(ctx, round)
+	if err != nil {
+		return nil, err
+	}
+	rawEvents, err := rc.GetEventsRaw(ctx, round)
+	if err != nil {
+		return nil, err
+	}
+
+	data := storage.RuntimeAllData{
+		Round:                 round,
+		BlockData:             blockData,
+		CoreData:              coreData,
+		AccountsData:          accountsData,
+		ConsensusAccountsData: consensusAccountsData,
+		RawEvents:             rawEvents,
+	}
+	return &data, nil
+}
+
 // BlockData gets block data in the specified round.
 func (rc *RuntimeClient) BlockData(ctx context.Context, round uint64) (*storage.RuntimeBlockData, error) {
 	block, err := rc.client.GetBlock(ctx, round)
