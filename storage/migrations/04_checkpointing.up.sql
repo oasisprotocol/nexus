@@ -2,7 +2,7 @@ BEGIN;
 
 -- Heights at which the key tables have been "checkpointed" (i.e. copied from
 -- table X to X_checkpoint) as part of `tests/genesis`.
-CREATE TABLE oasis_3.checkpointed_heights
+CREATE TABLE chain.checkpointed_heights
 (
   analyzer TEXT NOT NULL,
   height BIGINT PRIMARY KEY,

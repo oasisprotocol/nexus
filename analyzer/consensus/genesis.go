@@ -8,7 +8,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/iancoleman/strcase"
 	"github.com/oasisprotocol/oasis-core/go/common/entity"
 	"github.com/oasisprotocol/oasis-core/go/common/node"
 	genesis "github.com/oasisprotocol/oasis-core/go/genesis/api"
@@ -46,9 +45,8 @@ func (mg *GenesisProcessor) Process(document *genesis.Document) ([]string, error
 	}
 
 	// Rudimentary templating.
-	chainID := strcase.ToSnake(document.ChainID)
 	for i, query := range queries {
-		queries[i] = strings.ReplaceAll(query, "{{ChainId}}", chainID)
+		queries[i] = strings.ReplaceAll(query, "{{ChainId}}", "chain")
 	}
 	mg.logger.Info("generated genesis queries", "count", len(queries))
 

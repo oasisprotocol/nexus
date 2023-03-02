@@ -10,8 +10,8 @@ type QueryFactory struct {
 	runtime string
 }
 
-func NewQueryFactory(chainID string, runtime string) QueryFactory {
-	return QueryFactory{chainID, runtime}
+func NewQueryFactory(_ string, runtime string) QueryFactory {
+	return QueryFactory{"chain", runtime}
 }
 
 // NewWithRuntime returns a new QueryFactory with the runtime set.
