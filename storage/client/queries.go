@@ -397,6 +397,8 @@ func (qf QueryFactory) RuntimeTransactionsQuery() string {
 			txs.tx_index,
 			txs.tx_hash,
 			txs.tx_eth_hash,
+			txs.gas_used,
+			txs.size,
 			txs.timestamp,
 			txs.raw,
 			txs.result_raw,

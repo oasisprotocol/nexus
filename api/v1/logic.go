@@ -42,6 +42,8 @@ func renderRuntimeTransaction(storageTransaction client.RuntimeTransaction) (api
 		Index:      storageTransaction.Index,
 		Hash:       storageTransaction.Hash,
 		EthHash:    storageTransaction.EthHash,
+		GasUsed:    storageTransaction.GasUsed,
+		Size:       storageTransaction.Size,
 		Timestamp:  storageTransaction.Timestamp,
 		Sender0:    sender0,
 		Sender0Eth: sender0Eth,

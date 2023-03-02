@@ -113,6 +113,8 @@ type RuntimeTransaction struct {
 	Index           int64
 	Hash            string
 	EthHash         *string
+	GasUsed         uint64
+	Size            int32
 	Sender0         *string
 	Sender0Eth      *string
 	Timestamp       time.Time

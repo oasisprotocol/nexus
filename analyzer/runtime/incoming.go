@@ -38,6 +38,8 @@ type BlockTransactionData struct {
 	Index                   int
 	Hash                    string
 	EthHash                 *string
+	GasUsed                 uint64
+	Size                    int
 	Raw                     []byte
 	RawResult               []byte
 	SignerData              []*BlockTransactionSignerData
@@ -245,6 +247,8 @@ func extractRound(b *block.Block, txrs []*sdkClient.TransactionWithResults, logg
 			blockTransactionData.EthHash = &ethHash
 		}
 		blockTransactionData.Raw = cbor.Marshal(txr.Tx)
+		// Inaccurate: Re-serialize signed tx to estimate original size.
+		blockTransactionData.Size = len(blockTransactionData.Raw)
 		blockTransactionData.RawResult = cbor.Marshal(txr.Result)
 		blockTransactionData.RelatedAccountAddresses = map[apiTypes.Address]bool{}
 		tx, err := common.OpenUtxNoVerify(&txr.Tx)
@@ -327,6 +331,7 @@ func extractRound(b *block.Block, txrs []*sdkClient.TransactionWithResults, logg
 				// Inaccurate: Treat as not using any gas.
 			}
 		}
+		blockTransactionData.GasUsed = res.TxGasUsed
 		blockData.TransactionData = append(blockData.TransactionData, &blockTransactionData)
 		blockData.EventData = append(blockData.EventData, res.ExtractedEvents...)
 		// If this overflows, it will do so silently. However, supported
@@ -334,9 +339,7 @@ func extractRound(b *block.Block, txrs []*sdkClient.TransactionWithResults, logg
 		// which will prevent it from emitting blocks that use enough gas to
 		// do that.
 		blockData.GasUsed += res.TxGasUsed
-		// Inaccurate: Re-serialize signed tx to estimate original size.
-		txSize := len(cbor.Marshal(txr.Tx))
-		blockData.Size += txSize
+		blockData.Size += blockTransactionData.Size
 	}
 	return &blockData, nil
 }
@@ -579,7 +582,18 @@ func emitRoundBatch(batch *storage.QueryBatch, qf *analyzer.QueryFactory, round 
 		for addr := range transactionData.RelatedAccountAddresses {
 			batch.Queue(qf.RuntimeRelatedTransactionInsertQuery(), addr, round, transactionData.Index)
 		}
-		batch.Queue(qf.RuntimeTransactionInsertQuery(), round, transactionData.Index, transactionData.Hash, transactionData.EthHash, blockData.Timestamp, transactionData.Raw, transactionData.RawResult)
+		batch.Queue(
+			qf.RuntimeTransactionInsertQuery(),
+			round,
+			transactionData.Index,
+			transactionData.Hash,
+			transactionData.EthHash,
+			transactionData.GasUsed,
+			transactionData.Size,
+			blockData.Timestamp,
+			transactionData.Raw,
+			transactionData.RawResult,
+		)
 	}
 	for _, eventData := range blockData.EventData {
 		eventRelatedAddresses := common.ExtractAddresses(eventData.RelatedAddresses)
