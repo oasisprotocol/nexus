@@ -280,6 +280,12 @@ CREATE TABLE chain.processed_blocks
   PRIMARY KEY (height, analyzer)
 );
 
+-- Keeps track of chains for which we've already processed the genesis data.
+CREATE TABLE chain.processed_geneses (
+    chain_context TEXT NOT NULL PRIMARY KEY,  -- identifies the genesis data; derived from its hash
+    processed_time TIMESTAMP WITH TIME ZONE NOT NULL
+);
+
 -- Grant others read-only use. This does NOT apply to future tables in the schema.
 GRANT SELECT ON ALL TABLES IN SCHEMA chain TO PUBLIC;
 GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA chain TO PUBLIC;
