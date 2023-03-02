@@ -29,14 +29,14 @@ func (a *MetadataRegistryAnalyzer) Name() string {
 	return MetadataRegistryAnalyzerName
 }
 
-func NewMetadataRegistryAnalyzer(chainID string, cfg *config.IntervalBasedAnalyzerConfig, target storage.TargetStorage, logger *log.Logger) (*MetadataRegistryAnalyzer, error) {
+func NewMetadataRegistryAnalyzer(chainID string, cfg *config.MetadataRegistryConfig, target storage.TargetStorage, logger *log.Logger) (*MetadataRegistryAnalyzer, error) {
 	if chainID == "" {
 		return nil, fmt.Errorf("metadata_registry analyzer: `ChainID` must be specified in the config")
 	}
 
 	logger.Info("Starting metadata_registry analyzer")
 	return &MetadataRegistryAnalyzer{
-		interval: cfg.ParsedInterval(),
+		interval: cfg.Interval,
 		qf:       NewQueryFactory(strcase.ToSnake(chainID), "" /*runtime*/),
 		target:   target,
 		logger:   logger.With("analyzer", MetadataRegistryAnalyzerName),

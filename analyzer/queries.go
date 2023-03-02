@@ -14,6 +14,11 @@ func NewQueryFactory(chainID string, runtime string) QueryFactory {
 	return QueryFactory{chainID, runtime}
 }
 
+// NewWithRuntime returns a new QueryFactory with the runtime set.
+func (qf QueryFactory) NewWithRuntime(runtime string) QueryFactory {
+	return QueryFactory{qf.chainID, runtime}
+}
+
 func (qf QueryFactory) LatestBlockQuery() string {
 	return fmt.Sprintf(`
 		SELECT height FROM %s.processed_blocks
@@ -518,4 +523,91 @@ func (qf QueryFactory) RefreshMin5TxVolumeQuery() string {
 	return `
 		REFRESH MATERIALIZED VIEW stats.min5_tx_volume
 	`
+}
+
+// LatestDailyAccountStatsQuery returns the query to get the timestamp of the latest daily active accounts stat.
+func (qf QueryFactory) LatestDailyAccountStatsQuery() string {
+	return `
+		SELECT window_end
+		FROM stats.daily_active_accounts
+		WHERE layer = $1
+		ORDER BY window_end DESC
+		LIMIT 1
+	`
+}
+
+// InsertDailyAccountStatsQuery returns the query to insert the daily active accounts stat.
+func (qf QueryFactory) InsertDailyAccountStatsQuery() string {
+	return `
+		INSERT INTO stats.daily_active_accounts (layer, window_end, active_accounts)
+		VALUES ($1, $2, $3)
+	`
+}
+
+// EarliestConsensusBlockTimeQuery returns the query to get the timestamp of the earliest
+// indexed consensus block.
+func (qf QueryFactory) EarliestConsensusBlockTimeQuery() string {
+	return fmt.Sprintf(`
+		SELECT time
+		FROM %[1]s.blocks
+		ORDER BY height
+		LIMIT 1
+	`, qf.chainID)
+}
+
+// LatestConsensusBlockTimeQuery returns the query to get the timestamp of the latest
+// indexed consensus block.
+func (qf QueryFactory) LatestConsensusBlockTimeQuery() string {
+	return fmt.Sprintf(`
+		SELECT time
+		FROM %[1]s.blocks
+		ORDER BY height DESC
+		LIMIT 1
+	`, qf.chainID)
+}
+
+// EarliestRuntimeBlockTimeQuery returns the query to get the timestamp of the earliest
+// indexed runtime block.
+func (qf QueryFactory) EarliestRuntimeBlockTimeQuery() string {
+	return fmt.Sprintf(`
+		SELECT timestamp
+		FROM %[1]s.runtime_blocks
+		WHERE (runtime = '%[2]s')
+		ORDER BY round
+		LIMIT 1
+	`, qf.chainID, qf.runtime)
+}
+
+// LatestRuntimeBlockTimeQuery returns the query to get the timestamp of the latest
+// indexed runtime block.
+func (qf QueryFactory) LatestRuntimeBlockTimeQuery() string {
+	return fmt.Sprintf(`
+		SELECT timestamp
+		FROM %[1]s.runtime_blocks
+		WHERE (runtime = '%[2]s')
+		ORDER BY round DESC
+		LIMIT 1
+	`, qf.chainID, qf.runtime)
+}
+
+// ConsensusActiveAccountsQuery returns the query to get the number of
+// active accounts in the consensus layer within the given time range.
+func (qf QueryFactory) ConsensusActiveAccountsQuery() string {
+	return fmt.Sprintf(`
+		SELECT COUNT(DISTINCT account_address)
+		FROM %[1]s.accounts_related_transactions AS art
+		JOIN %[1]s.blocks AS b ON art.tx_block = b.height
+		WHERE (b.time >= $1::timestamptz AND b.time < $2::timestamptz)
+		`, qf.chainID)
+}
+
+// RuntimeActiveAccountsQuery returns the query to get the number of
+// active accounts in the runtime layer within the given time range.
+func (qf QueryFactory) RuntimeActiveAccountsQuery() string {
+	return fmt.Sprintf(`
+		SELECT COUNT(DISTINCT account_address)
+		FROM %[1]s.runtime_related_transactions AS rt
+		JOIN %[1]s.runtime_blocks AS b ON (rt.runtime = b.runtime AND rt.tx_round = b.round)
+		WHERE (rt.runtime = '%[2]s' AND b.timestamp >= $1::timestamptz AND b.timestamp < $2::timestamptz)
+		`, qf.chainID, qf.runtime)
 }

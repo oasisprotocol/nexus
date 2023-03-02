@@ -187,6 +187,22 @@ func (srv *StrictServerImpl) GetLayerStatsTxVolume(ctx context.Context, request 
 	return apiTypes.GetLayerStatsTxVolume200JSONResponse(*volumeList), nil
 }
 
+func (srv *StrictServerImpl) GetLayerStatsActiveAccounts(ctx context.Context, request apiTypes.GetLayerStatsActiveAccountsRequestObject) (apiTypes.GetLayerStatsActiveAccountsResponseObject, error) {
+	// Additional param validation.
+	if !request.Layer.IsValid() {
+		return nil, &apiTypes.InvalidParamFormatError{ParamName: "layer", Err: fmt.Errorf("not a valid enum value: %s", request.Layer)}
+	}
+	if err := request.Params.Validate(); err != nil {
+		return nil, err
+	}
+
+	activeAccountsList, err := srv.dbClient.DailyActiveAccounts(ctx, request.Layer, request.Params)
+	if err != nil {
+		return nil, err
+	}
+	return apiTypes.GetLayerStatsActiveAccounts200JSONResponse(*activeAccountsList), nil
+}
+
 func (srv *StrictServerImpl) GetConsensusTransactions(ctx context.Context, request apiTypes.GetConsensusTransactionsRequestObject) (apiTypes.GetConsensusTransactionsResponseObject, error) {
 	txs, err := srv.dbClient.Transactions(ctx, request.Params)
 	if err != nil {

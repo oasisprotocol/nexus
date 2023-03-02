@@ -33,12 +33,13 @@ CREATE TABLE oasis_3.blocks
   beacon     BYTEA,
   metadata   JSON
 );
+CREATE INDEX ix_blocks_time ON oasis_3.blocks (time);
 
 CREATE TABLE oasis_3.transactions
 (
   block UINT63 NOT NULL REFERENCES oasis_3.blocks(height) DEFERRABLE INITIALLY DEFERRED,
   tx_index  UINT31 NOT NULL,
-  
+
   tx_hash   HEX64 NOT NULL,
   nonce      UINT63 NOT NULL,
   fee_amount UINT_NUMERIC,
@@ -142,7 +143,7 @@ CREATE TABLE oasis_3.claimed_nodes
   entity_id base64_ed25519_pubkey NOT NULL REFERENCES oasis_3.entities(id) DEFERRABLE INITIALLY DEFERRED,
   node_id   base64_ed25519_pubkey NOT NULL,  -- No REFERENCES because the node likely does not exist (in the indexer) yet when the entity claims it.
 
-  PRIMARY KEY (entity_id, node_id)  
+  PRIMARY KEY (entity_id, node_id)
 );
 
 CREATE TABLE oasis_3.runtimes

@@ -206,7 +206,7 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) {
 	}
 	if cfg.Analyzers.AggregateStats != nil {
 		analyzers, err = addAnalyzer(analyzers, err, func() (A, error) {
-			return analyzer.NewAggregateStatsAnalyzer(cfg.Analyzers.MetadataRegistry, client, logger)
+			return analyzer.NewAggregateStatsAnalyzer(cfg.Node.ChainID, cfg.Analyzers.AggregateStats, client, logger)
 		})
 	}
 	if err != nil {
