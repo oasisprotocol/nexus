@@ -20,6 +20,7 @@ import (
 	common "github.com/oasisprotocol/oasis-indexer/common"
 	"github.com/oasisprotocol/oasis-indexer/log"
 	"github.com/oasisprotocol/oasis-indexer/storage"
+	"github.com/oasisprotocol/oasis-indexer/storage/client/queries"
 )
 
 const (
@@ -126,7 +127,7 @@ func (c *StorageClient) withTotalCount(ctx context.Context, sql string, args ...
 	args[len(args)-2] = maxTotalCount + 1 // limit
 	if err := c.db.QueryRow(
 		ctx,
-		QueryFactoryFromCtx(ctx).TotalCountQuery(sql),
+		queries.TotalCountQuery(sql),
 		args...,
 	).Scan(&totalCount); err != nil {
 		return nil, wrapError(err)
@@ -151,7 +152,7 @@ func (c *StorageClient) Status(ctx context.Context) (*Status, error) {
 	}
 	if err := c.db.QueryRow(
 		ctx,
-		QueryFactoryFromCtx(ctx).StatusQuery(),
+		queries.Status,
 	).Scan(&s.LatestBlock, &s.LatestUpdate); err != nil {
 		return nil, wrapError(err)
 	}
@@ -166,7 +167,7 @@ func (c *StorageClient) Status(ctx context.Context) (*Status, error) {
 func (c *StorageClient) Blocks(ctx context.Context, r apiTypes.GetConsensusBlocksParams) (*BlockList, error) {
 	res, err := c.withTotalCount(
 		ctx,
-		QueryFactoryFromCtx(ctx).BlocksQuery(),
+		queries.Blocks,
 		r.From,
 		r.To,
 		r.After,
@@ -208,7 +209,7 @@ func (c *StorageClient) Block(ctx context.Context, height int64) (*Block, error)
 	var b Block
 	if err := c.db.QueryRow(
 		ctx,
-		QueryFactoryFromCtx(ctx).BlockQuery(),
+		queries.Block,
 		height,
 	).Scan(&b.Height, &b.Hash, &b.Timestamp, &b.NumTransactions); err != nil {
 		return nil, wrapError(err)
@@ -228,7 +229,7 @@ func (c *StorageClient) cacheBlock(blk *Block) {
 func (c *StorageClient) Transactions(ctx context.Context, p apiTypes.GetConsensusTransactionsParams) (*TransactionList, error) {
 	res, err := c.withTotalCount(
 		ctx,
-		QueryFactoryFromCtx(ctx).TransactionsQuery(),
+		queries.Transactions,
 		p.Block,
 		p.Method,
 		p.Sender,
@@ -288,7 +289,7 @@ func (c *StorageClient) Transaction(ctx context.Context, txHash string) (*Transa
 	var code uint64
 	if err := c.db.QueryRow(
 		ctx,
-		QueryFactoryFromCtx(ctx).TransactionQuery(),
+		queries.Transaction,
 		txHash,
 	).Scan(
 		&t.Block,
@@ -321,7 +322,7 @@ func (c *StorageClient) cacheTx(tx *Transaction) {
 func (c *StorageClient) Events(ctx context.Context, p apiTypes.GetConsensusEventsParams) (*EventList, error) {
 	res, err := c.withTotalCount(
 		ctx,
-		QueryFactoryFromCtx(ctx).EventsQuery(),
+		queries.Events,
 		p.Block,
 		p.TxIndex,
 		p.TxHash,
@@ -356,7 +357,7 @@ func (c *StorageClient) Events(ctx context.Context, p apiTypes.GetConsensusEvent
 func (c *StorageClient) Entities(ctx context.Context, p apiTypes.GetConsensusEntitiesParams) (*EntityList, error) {
 	res, err := c.withTotalCount(
 		ctx,
-		QueryFactoryFromCtx(ctx).EntitiesQuery(),
+		queries.Entities,
 		p.Limit,
 		p.Offset,
 	)
@@ -387,7 +388,7 @@ func (c *StorageClient) Entity(ctx context.Context, entityID signature.PublicKey
 	var e Entity
 	if err := c.db.QueryRow(
 		ctx,
-		QueryFactoryFromCtx(ctx).EntityQuery(),
+		queries.Entity,
 		entityID.String(),
 	).Scan(&e.ID, &e.Address); err != nil {
 		return nil, wrapError(err)
@@ -395,7 +396,7 @@ func (c *StorageClient) Entity(ctx context.Context, entityID signature.PublicKey
 
 	nodeRows, err := c.db.Query(
 		ctx,
-		QueryFactoryFromCtx(ctx).EntityNodeIdsQuery(),
+		queries.EntityNodeIds,
 		entityID.String(),
 	)
 	if err != nil {
@@ -419,7 +420,7 @@ func (c *StorageClient) Entity(ctx context.Context, entityID signature.PublicKey
 func (c *StorageClient) EntityNodes(ctx context.Context, entityID signature.PublicKey, r apiTypes.GetConsensusEntitiesEntityIdNodesParams) (*NodeList, error) {
 	res, err := c.withTotalCount(
 		ctx,
-		QueryFactoryFromCtx(ctx).EntityNodesQuery(),
+		queries.EntityNodes,
 		entityID.String(),
 		r.Limit,
 		r.Offset,
@@ -461,7 +462,7 @@ func (c *StorageClient) EntityNode(ctx context.Context, entityID signature.Publi
 	var n Node
 	if err := c.db.QueryRow(
 		ctx,
-		QueryFactoryFromCtx(ctx).EntityNodeQuery(),
+		queries.EntityNode,
 		entityID.String(),
 		nodeID.String(),
 	).Scan(
@@ -484,7 +485,7 @@ func (c *StorageClient) EntityNode(ctx context.Context, entityID signature.Publi
 func (c *StorageClient) Accounts(ctx context.Context, r apiTypes.GetConsensusAccountsParams) (*AccountList, error) {
 	res, err := c.withTotalCount(
 		ctx,
-		QueryFactoryFromCtx(ctx).AccountsQuery(),
+		queries.Accounts,
 		toString(r.MinAvailable),
 		toString(r.MaxAvailable),
 		toString(r.MinEscrow),
@@ -538,7 +539,7 @@ func (c *StorageClient) Account(ctx context.Context, address staking.Address) (*
 	var debondingDelegationsBalanceNum pgtype.Numeric
 	err := c.db.QueryRow(
 		ctx,
-		QueryFactoryFromCtx(ctx).AccountQuery(),
+		queries.Account,
 		address.String(),
 	).Scan(
 		&a.Address,
@@ -573,7 +574,7 @@ func (c *StorageClient) Account(ctx context.Context, address staking.Address) (*
 	// Get allowances.
 	allowanceRows, queryErr := c.db.Query(
 		ctx,
-		QueryFactoryFromCtx(ctx).AccountAllowancesQuery(),
+		queries.AccountAllowances,
 		address.String(),
 	)
 	if queryErr != nil {
@@ -600,7 +601,7 @@ func (c *StorageClient) Account(ctx context.Context, address staking.Address) (*
 func (c *StorageClient) Delegations(ctx context.Context, address staking.Address, p apiTypes.GetConsensusAccountsAddressDelegationsParams) (*DelegationList, error) {
 	res, err := c.withTotalCount(
 		ctx,
-		QueryFactoryFromCtx(ctx).DelegationsQuery(),
+		queries.Delegations,
 		address.String(),
 		p.Limit,
 		p.Offset,
@@ -641,7 +642,7 @@ func (c *StorageClient) Delegations(ctx context.Context, address staking.Address
 func (c *StorageClient) DebondingDelegations(ctx context.Context, address staking.Address, p apiTypes.GetConsensusAccountsAddressDebondingDelegationsParams) (*DebondingDelegationList, error) {
 	res, err := c.withTotalCount(
 		ctx,
-		QueryFactoryFromCtx(ctx).DebondingDelegationsQuery(),
+		queries.DebondingDelegations,
 		address.String(),
 		p.Limit,
 		p.Offset,
@@ -684,7 +685,7 @@ func (c *StorageClient) DebondingDelegations(ctx context.Context, address stakin
 func (c *StorageClient) Epochs(ctx context.Context, p apiTypes.GetConsensusEpochsParams) (*EpochList, error) {
 	res, err := c.withTotalCount(
 		ctx,
-		QueryFactoryFromCtx(ctx).EpochsQuery(),
+		queries.Epochs,
 		p.Limit,
 		p.Offset,
 	)
@@ -714,7 +715,7 @@ func (c *StorageClient) Epoch(ctx context.Context, epoch int64) (*Epoch, error) 
 	var e Epoch
 	if err := c.db.QueryRow(
 		ctx,
-		QueryFactoryFromCtx(ctx).EpochQuery(),
+		queries.Epoch,
 		epoch,
 	).Scan(&e.ID, &e.StartHeight, &e.EndHeight); err != nil {
 		return nil, wrapError(err)
@@ -727,7 +728,7 @@ func (c *StorageClient) Epoch(ctx context.Context, epoch int64) (*Epoch, error) 
 func (c *StorageClient) Proposals(ctx context.Context, p apiTypes.GetConsensusProposalsParams) (*ProposalList, error) {
 	res, err := c.withTotalCount(
 		ctx,
-		QueryFactoryFromCtx(ctx).ProposalsQuery(),
+		queries.Proposals,
 		p.Submitter,
 		p.State,
 		p.Limit,
@@ -775,7 +776,7 @@ func (c *StorageClient) Proposal(ctx context.Context, proposalID uint64) (*Propo
 	p := Proposal{Target: &ProposalTarget{}}
 	if err := c.db.QueryRow(
 		ctx,
-		QueryFactoryFromCtx(ctx).ProposalQuery(),
+		queries.Proposal,
 		proposalID,
 	).Scan(
 		&p.ID,
@@ -802,7 +803,7 @@ func (c *StorageClient) Proposal(ctx context.Context, proposalID uint64) (*Propo
 func (c *StorageClient) ProposalVotes(ctx context.Context, proposalID uint64, p apiTypes.GetConsensusProposalsProposalIdVotesParams) (*ProposalVotes, error) {
 	res, err := c.withTotalCount(
 		ctx,
-		QueryFactoryFromCtx(ctx).ProposalVotesQuery(),
+		queries.ProposalVotes,
 		proposalID,
 		p.Limit,
 		p.Offset,
@@ -838,14 +839,14 @@ func (c *StorageClient) Validators(ctx context.Context, p apiTypes.GetConsensusV
 	var epoch Epoch
 	if err := c.db.QueryRow(
 		ctx,
-		QueryFactoryFromCtx(ctx).ValidatorsQuery(),
+		queries.Validators,
 	).Scan(&epoch.ID, &epoch.StartHeight); err != nil {
 		return nil, wrapError(err)
 	}
 
 	res, err := c.withTotalCount(
 		ctx,
-		QueryFactoryFromCtx(ctx).ValidatorsDataQuery(),
+		queries.ValidatorsData,
 		p.Limit,
 		p.Offset,
 	)
@@ -903,7 +904,7 @@ func (c *StorageClient) Validator(ctx context.Context, entityID signature.Public
 	var epoch Epoch
 	if err := c.db.QueryRow(
 		ctx,
-		QueryFactoryFromCtx(ctx).ValidatorQuery(),
+		queries.Validator,
 	).Scan(&epoch.ID, &epoch.StartHeight); err != nil {
 		return nil, wrapError(err)
 	}
@@ -912,7 +913,7 @@ func (c *StorageClient) Validator(ctx context.Context, entityID signature.Public
 	var schedule staking.CommissionSchedule
 	if err := c.db.QueryRow(
 		ctx,
-		QueryFactoryFromCtx(ctx).ValidatorDataQuery(),
+		queries.ValidatorData,
 		entityID.String(),
 	).Scan(
 		&v.EntityID,
@@ -951,7 +952,7 @@ func (c *StorageClient) Validator(ctx context.Context, entityID signature.Public
 func (c *StorageClient) RuntimeBlocks(ctx context.Context, p apiTypes.GetRuntimeBlocksParams) (*RuntimeBlockList, error) {
 	res, err := c.withTotalCount(
 		ctx,
-		QueryFactoryFromCtx(ctx).RuntimeBlocksQuery(),
+		queries.RuntimeBlocks,
 		runtimeFromCtx(ctx),
 		p.From,
 		p.To,
@@ -987,7 +988,7 @@ func (c *StorageClient) RuntimeBlocks(ctx context.Context, p apiTypes.GetRuntime
 func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetRuntimeTransactionsParams, txHash *string) (*RuntimeTransactionList, error) {
 	res, err := c.withTotalCount(
 		ctx,
-		QueryFactoryFromCtx(ctx).RuntimeTransactionsQuery(),
+		queries.RuntimeTransactions,
 		runtimeFromCtx(ctx),
 		p.Block,
 		txHash, // tx_hash; used only by GetRuntimeTransactionsTxHash
@@ -1032,7 +1033,7 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetR
 func (c *StorageClient) RuntimeEvents(ctx context.Context, p apiTypes.GetRuntimeEventsParams) (*RuntimeEventList, error) {
 	res, err := c.withTotalCount(
 		ctx,
-		QueryFactoryFromCtx(ctx).RuntimeEventsQuery(),
+		queries.RuntimeEvents,
 		runtimeFromCtx(ctx),
 		p.Block,
 		p.TxIndex,
@@ -1082,7 +1083,7 @@ func (c *StorageClient) RuntimeAccount(ctx context.Context, address staking.Addr
 	var preimageContext string
 	err := c.db.QueryRow(
 		ctx,
-		QueryFactoryFromCtx(ctx).AddressPreimageQuery(),
+		queries.AddressPreimage,
 		address,
 	).Scan(
 		&preimageContext,
@@ -1105,7 +1106,7 @@ func (c *StorageClient) RuntimeAccount(ctx context.Context, address staking.Addr
 	// Get paratime balances.
 	runtimeSdkRows, queryErr := c.db.Query(
 		ctx,
-		QueryFactoryFromCtx(ctx).AccountRuntimeSdkBalancesQuery(),
+		queries.AccountRuntimeSdkBalances,
 		runtimeFromCtx(ctx),
 		address.String(),
 	)
@@ -1132,7 +1133,7 @@ func (c *StorageClient) RuntimeAccount(ctx context.Context, address staking.Addr
 
 	runtimeEvmRows, queryErr := c.db.Query(
 		ctx,
-		QueryFactoryFromCtx(ctx).AccountRuntimeEvmBalancesQuery(),
+		queries.AccountRuntimeEvmBalances,
 		runtimeFromCtx(ctx),
 		address.String(),
 	)
@@ -1160,7 +1161,7 @@ func (c *StorageClient) RuntimeAccount(ctx context.Context, address staking.Addr
 	var totalReceived pgtype.Numeric
 	if err = c.db.QueryRow(
 		ctx,
-		QueryFactoryFromCtx(ctx).RuntimeAccountStatsQuery(),
+		queries.RuntimeAccountStats,
 		address.String(),
 	).Scan(
 		&totalSent,
@@ -1184,7 +1185,7 @@ func (c *StorageClient) RuntimeAccount(ctx context.Context, address staking.Addr
 func (c *StorageClient) RuntimeTokens(ctx context.Context, p apiTypes.GetRuntimeEvmTokensParams) (*EvmTokenList, error) {
 	res, err := c.withTotalCount(
 		ctx,
-		QueryFactoryFromCtx(ctx).EvmTokensQuery(),
+		queries.EvmTokens,
 		runtimeFromCtx(ctx),
 		p.Limit,
 		p.Offset,
@@ -1232,11 +1233,11 @@ func (c *StorageClient) RuntimeTokens(ctx context.Context, p apiTypes.GetRuntime
 func (c *StorageClient) TxVolumes(ctx context.Context, layer apiTypes.Layer, p apiTypes.GetLayerStatsTxVolumeParams) (*TxVolumeList, error) {
 	var query string
 	if *p.BucketSizeSeconds == 300 {
-		query = QueryFactoryFromCtx(ctx).FineTxVolumesQuery()
+		query = queries.FineTxVolumes
 	} else {
 		var day uint32 = 86400
 		p.BucketSizeSeconds = &day
-		query = QueryFactoryFromCtx(ctx).TxVolumesQuery()
+		query = queries.TxVolumes
 	}
 
 	rows, err := c.db.Query(
@@ -1275,9 +1276,9 @@ func (c *StorageClient) DailyActiveAccounts(ctx context.Context, layer apiTypes.
 	var query string
 	switch {
 	case p.WindowStepSeconds != nil && *p.WindowStepSeconds == 300:
-		query = QueryFactoryFromCtx(ctx).FineDailyActiveAccountsQuery()
+		query = queries.FineDailyActiveAccounts
 	default:
-		query = QueryFactoryFromCtx(ctx).DailyActiveAccountsQuery()
+		query = queries.DailyActiveAccounts
 	}
 
 	rows, err := c.db.Query(
