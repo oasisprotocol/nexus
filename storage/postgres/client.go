@@ -111,9 +111,7 @@ func (c *Client) SendBatchWithOptions(ctx context.Context, batch *storage.QueryB
 			}
 		} else {
 			for i, q := range batch.Queries() {
-				sql := q[0].(string)
-				args := q[1:]
-				if _, err := tx.Exec(ctx, sql, args...); err != nil {
+				if _, err := tx.Exec(ctx, q.Cmd, q.Args...); err != nil {
 					return fmt.Errorf("query %d %v: %w", i, q, err)
 				}
 			}
