@@ -7,7 +7,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/iancoleman/strcase"
 	"github.com/jackc/pgx/v4"
 	"github.com/oasisprotocol/oasis-indexer/log"
 	"github.com/oasisprotocol/oasis-indexer/storage"
@@ -37,34 +36,24 @@ func newSourceClientFactory() (*oasis.ClientFactory, error) {
 	return oasis.NewClientFactory(context.Background(), network, true)
 }
 
-var chainID = "" // Memoization for getChainId(). Assumes all tests access the same chain.
-func getChainID(ctx context.Context, t *testing.T, source *oasis.ConsensusClient) string {
-	if chainID == "" {
-		doc, err := source.GenesisDocument(ctx)
-		assert.Nil(t, err)
-		chainID = strcase.ToSnake(doc.ChainID)
-	}
-	return chainID
-}
-
-func checkpointBackends(t *testing.T, consensusClient *oasis.ConsensusClient, target *postgres.Client, analyzer string, tables []string) (int64, error) {
+func snapshotBackends(target *postgres.Client, analyzer string, tables []string) (int64, error) {
 	ctx := context.Background()
-	chainID = getChainID(ctx, t, consensusClient)
 
 	batch := &storage.QueryBatch{}
+	batch.Queue(`CREATE SCHEMA IF NOT EXISTS snapshot;`)
 	for _, t := range tables {
 		batch.Queue(fmt.Sprintf(`
-			DROP TABLE IF EXISTS %s.%s_checkpoint CASCADE;
-		`, chainID, t))
+			DROP TABLE IF EXISTS snapshot.%s CASCADE;
+		`, t))
 		batch.Queue(fmt.Sprintf(`
-			CREATE TABLE %s.%s_checkpoint AS TABLE %s.%s;
-		`, chainID, t, chainID, t))
+			CREATE TABLE snapshot.%[1]s AS TABLE chain.%[1]s;
+		`, t))
 	}
-	batch.Queue(fmt.Sprintf(`
-		INSERT INTO %s.checkpointed_heights (analyzer, height)
-			SELECT analyzer, height FROM %s.processed_blocks WHERE analyzer='%s' ORDER BY height DESC, processed_time DESC LIMIT 1
+	batch.Queue(`
+		INSERT INTO snapshot.snapshotted_heights (analyzer, height)
+			SELECT analyzer, height FROM chain.processed_blocks WHERE analyzer=$1 ORDER BY height DESC, processed_time DESC LIMIT 1
 			ON CONFLICT DO NOTHING;
-	`, chainID, chainID, analyzer))
+	`, analyzer)
 
 	// Create the snapshot using a high level of isolation; we don't want another
 	// tx to be able to modify the tables while this is running, creating a snapshot that
@@ -73,14 +62,14 @@ func checkpointBackends(t *testing.T, consensusClient *oasis.ConsensusClient, ta
 		return 0, err
 	}
 
-	var checkpointHeight int64
-	if err := target.QueryRow(ctx, fmt.Sprintf(`
-		SELECT height from %s.checkpointed_heights
-			WHERE analyzer='%s'
+	var snapshotHeight int64
+	if err := target.QueryRow(ctx, `
+		SELECT height from snapshot.snapshotted_heights
+			WHERE analyzer=$1
 			ORDER BY height DESC LIMIT 1;
-	`, chainID, analyzer)).Scan(&checkpointHeight); err != nil {
+	`, analyzer).Scan(&snapshotHeight); err != nil {
 		return 0, err
 	}
 
-	return checkpointHeight, nil
+	return snapshotHeight, nil
 }

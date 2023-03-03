@@ -2,7 +2,6 @@ package statecheck
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"testing"
 
@@ -42,9 +41,6 @@ func testRuntimeAccounts(t *testing.T, runtime string) {
 	factory, err := newSourceClientFactory()
 	require.Nil(t, err)
 
-	oasisConsensusClient, err := factory.Consensus()
-	require.Nil(t, err)
-
 	network, err := analyzer.FromChainContext(MainnetChainContext)
 	require.Nil(t, err)
 
@@ -64,8 +60,8 @@ func testRuntimeAccounts(t *testing.T, runtime string) {
 	postgresClient, err := newTargetClient(t)
 	assert.Nil(t, err)
 
-	t.Log("Creating checkpoint for runtime tables...")
-	height, err := checkpointBackends(t, oasisConsensusClient, postgresClient, runtime, RuntimeTables)
+	t.Log("Creating snapshot for runtime tables...")
+	height, err := snapshotBackends(postgresClient, runtime, RuntimeTables)
 	assert.Nil(t, err)
 
 	t.Logf("Fetching accounts information at height %d...", height)
@@ -77,10 +73,10 @@ func testRuntimeAccounts(t *testing.T, runtime string) {
 	}
 	t.Logf("Fetched %d account addresses", len(addresses))
 
-	acctRows, err := postgresClient.Query(ctx, fmt.Sprintf(
+	acctRows, err := postgresClient.Query(ctx,
 		`SELECT account_address, balance, symbol
-			FROM %s.runtime_sdk_balances_checkpoint
-			WHERE runtime='%s'`, chainID, runtime),
+			FROM snapshot.runtime_sdk_balances
+			WHERE runtime=$1`, runtime,
 	)
 	require.Nil(t, err)
 	actualAccts := make(map[string]bool)

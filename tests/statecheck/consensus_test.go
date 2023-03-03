@@ -108,29 +108,19 @@ func TestBlocksSanityCheck(t *testing.T) {
 
 	ctx := context.Background()
 
-	factory, err := newSourceClientFactory()
-	require.Nil(t, err)
-
-	oasisClient, err := factory.Consensus()
-	require.Nil(t, err)
-
 	postgresClient, err := newTargetClient(t)
 	require.Nil(t, err)
 
-	chainID := getChainID(ctx, t, oasisClient)
-
 	var latestHeight int64
-	err = postgresClient.QueryRow(ctx, fmt.Sprintf(
-		`SELECT height FROM %s.blocks ORDER BY height DESC LIMIT 1;`,
-		chainID,
-	)).Scan(&latestHeight)
+	err = postgresClient.QueryRow(ctx,
+		`SELECT height FROM chain.blocks ORDER BY height DESC LIMIT 1;`,
+	).Scan(&latestHeight)
 	require.Nil(t, err)
 
 	var actualHeightSum int64
-	err = postgresClient.QueryRow(ctx, fmt.Sprintf(
-		`SELECT SUM(height) FROM %s.blocks WHERE height <= $1;`,
-		chainID,
-	), latestHeight).Scan(&actualHeightSum)
+	err = postgresClient.QueryRow(ctx,
+		`SELECT SUM(height) FROM chain.blocks WHERE height <= $1;`,
+		latestHeight).Scan(&actualHeightSum)
 	require.Nil(t, err)
 
 	// Using formula for sum of first k natural numbers.
@@ -156,8 +146,8 @@ func TestGenesisFull(t *testing.T) {
 	postgresClient, err := newTargetClient(t)
 	assert.Nil(t, err)
 
-	t.Log("Creating checkpoint...")
-	height, err := checkpointBackends(t, oasisClient, postgresClient, ConsensusName, ConsensusTables)
+	t.Log("Creating snapshot...")
+	height, err := snapshotBackends(postgresClient, ConsensusName, ConsensusTables)
 	assert.Nil(t, err)
 
 	t.Logf("Fetching genesis at height %d...", height)
@@ -186,25 +176,23 @@ func TestGenesisFull(t *testing.T) {
 
 	t.Logf("Validating at height %d...", height)
 	validateRegistryBackend(t, registryGenesis, oasisClient, postgresClient, height)
-	validateStakingBackend(t, stakingGenesis, oasisClient, postgresClient)
-	validateGovernanceBackend(t, governanceGenesis, oasisClient, postgresClient)
+	validateStakingBackend(t, stakingGenesis, postgresClient)
+	validateGovernanceBackend(t, governanceGenesis, postgresClient)
 }
 
 func validateRegistryBackend(t *testing.T, genesis *registryAPI.Genesis, source *oasis.ConsensusClient, target *postgres.Client, height int64) {
 	t.Log("=== Validating registry backend ===")
 
-	validateEntities(t, genesis, source, target)
+	validateEntities(t, genesis, target)
 	validateNodes(t, genesis, source, target, height)
-	validateRuntimes(t, genesis, source, target)
+	validateRuntimes(t, genesis, target)
 
 	t.Log("=== Done validating registry backend ===")
 }
 
-func validateEntities(t *testing.T, genesis *registryAPI.Genesis, source *oasis.ConsensusClient, target *postgres.Client) {
+func validateEntities(t *testing.T, genesis *registryAPI.Genesis, target *postgres.Client) {
 	t.Log("Validating entities...")
-
 	ctx := context.Background()
-	chainID := getChainID(ctx, t, source)
 
 	expectedEntities := make(map[string]TestEntity)
 	for _, se := range genesis.Entities {
@@ -229,8 +217,8 @@ func validateEntities(t *testing.T, genesis *registryAPI.Genesis, source *oasis.
 		expectedEntities[te.ID] = te
 	}
 
-	entityRows, err := target.Query(ctx, fmt.Sprintf(
-		`SELECT id FROM %s.entities_checkpoint`, chainID),
+	entityRows, err := target.Query(ctx,
+		`SELECT id FROM snapshot.entities`,
 	)
 	require.Nil(t, err)
 
@@ -248,8 +236,8 @@ func validateEntities(t *testing.T, genesis *registryAPI.Genesis, source *oasis.
 		// Nodes can also assert that they belong to an entity.
 		//
 		// Registry backend `StateToGenesis` returns the union of these nodes.
-		nodeRowsFromEntity, err := target.Query(ctx, fmt.Sprintf(
-			`SELECT node_id FROM %s.claimed_nodes_checkpoint WHERE entity_id = $1`, chainID),
+		nodeRowsFromEntity, err := target.Query(ctx,
+			`SELECT node_id FROM snapshot.claimed_nodes WHERE entity_id = $1`,
 			e.ID)
 		assert.Nil(t, err)
 		for nodeRowsFromEntity.Next() {
@@ -261,8 +249,8 @@ func validateEntities(t *testing.T, genesis *registryAPI.Genesis, source *oasis.
 			nodeMap[nid] = true
 		}
 
-		nodeRowsFromNode, err := target.Query(ctx, fmt.Sprintf(
-			`SELECT id FROM %s.nodes_checkpoint WHERE entity_id = $1`, chainID),
+		nodeRowsFromNode, err := target.Query(ctx,
+			`SELECT id FROM snapshot.nodes WHERE entity_id = $1`,
 			e.ID)
 		assert.Nil(t, err)
 		for nodeRowsFromNode.Next() {
@@ -310,9 +298,7 @@ func validateEntities(t *testing.T, genesis *registryAPI.Genesis, source *oasis.
 
 func validateNodes(t *testing.T, genesis *registryAPI.Genesis, source *oasis.ConsensusClient, target *postgres.Client, height int64) {
 	t.Log("Validating nodes...")
-
 	ctx := context.Background()
-	chainID := getChainID(ctx, t, source)
 
 	epoch, err := source.GetEpoch(ctx, height)
 	assert.Nil(t, err)
@@ -351,17 +337,16 @@ func validateNodes(t *testing.T, genesis *registryAPI.Genesis, source *oasis.Con
 		expectedNodes[tn.ID] = tn
 	}
 
-	rows, err := target.Query(ctx, fmt.Sprintf(
-		`SELECT
+	rows, err := target.Query(ctx, `
+		SELECT
 			id, entity_id, expiration,
 			tls_pubkey, tls_next_pubkey, p2p_pubkey,
 			vrf_pubkey, roles, software_version
 		FROM
-			%s.nodes_checkpoint
+			snapshot.nodes
 		WHERE
-			roles LIKE '%%validator%%'
-		`, chainID),
-	)
+			roles LIKE '%validator%'
+	`)
 	require.Nil(t, err)
 
 	actualNodes := make(map[string]TestNode)
@@ -408,11 +393,9 @@ func validateNodes(t *testing.T, genesis *registryAPI.Genesis, source *oasis.Con
 	}
 }
 
-func validateRuntimes(t *testing.T, genesis *registryAPI.Genesis, source *oasis.ConsensusClient, target *postgres.Client) {
+func validateRuntimes(t *testing.T, genesis *registryAPI.Genesis, target *postgres.Client) {
 	t.Log("Validating runtimes...")
-
 	ctx := context.Background()
-	chainID := getChainID(ctx, t, source)
 
 	expectedRuntimes := make(map[string]TestRuntime)
 	for _, r := range genesis.Runtimes {
@@ -454,8 +437,8 @@ func validateRuntimes(t *testing.T, genesis *registryAPI.Genesis, source *oasis.
 		expectedRuntimes[tr.ID] = tr
 	}
 
-	runtimeRows, err := target.Query(ctx, fmt.Sprintf(
-		`SELECT id, suspended, kind, tee_hardware, COALESCE(key_manager, 'none') FROM %s.runtimes_checkpoint`, chainID),
+	runtimeRows, err := target.Query(ctx,
+		`SELECT id, suspended, kind, tee_hardware, COALESCE(key_manager, 'none') FROM snapshot.runtimes`,
 	)
 	require.Nil(t, err)
 
@@ -496,23 +479,21 @@ func validateRuntimes(t *testing.T, genesis *registryAPI.Genesis, source *oasis.
 	}
 }
 
-func validateStakingBackend(t *testing.T, genesis *stakingAPI.Genesis, source *oasis.ConsensusClient, target *postgres.Client) {
+func validateStakingBackend(t *testing.T, genesis *stakingAPI.Genesis, target *postgres.Client) {
 	t.Log("=== Validating staking backend ===")
 
-	validateAccounts(t, genesis, source, target)
+	validateAccounts(t, genesis, target)
 
 	t.Log("=== Done validating staking backend! ===")
 }
 
-func validateAccounts(t *testing.T, genesis *stakingAPI.Genesis, source *oasis.ConsensusClient, target *postgres.Client) {
+func validateAccounts(t *testing.T, genesis *stakingAPI.Genesis, target *postgres.Client) {
 	t.Log("Validating accounts...")
-
 	ctx := context.Background()
-	chainID := getChainID(ctx, t, source)
 
-	acctRows, err := target.Query(ctx, fmt.Sprintf(
+	acctRows, err := target.Query(ctx,
 		`SELECT address, nonce, general_balance, escrow_balance_active, escrow_balance_debonding
-				FROM %s.accounts_checkpoint`, chainID),
+				FROM snapshot.accounts`,
 	)
 	require.Nil(t, err)
 	actualAccts := make(map[string]bool)
@@ -538,11 +519,11 @@ func validateAccounts(t *testing.T, genesis *stakingAPI.Genesis, source *oasis.C
 		}
 
 		actualAllowances := make(map[string]uint64)
-		allowanceRows, err := target.Query(ctx, fmt.Sprintf(`
+		allowanceRows, err := target.Query(ctx, `
 			SELECT beneficiary, allowance
-				FROM %s.allowances_checkpoint
+				FROM snapshot.allowances
 				WHERE owner = $1
-			`, chainID),
+			`,
 			a.Address,
 		)
 		assert.Nil(t, err)
@@ -599,20 +580,18 @@ func validateAccounts(t *testing.T, genesis *stakingAPI.Genesis, source *oasis.C
 	}
 }
 
-func validateGovernanceBackend(t *testing.T, genesis *governanceAPI.Genesis, source *oasis.ConsensusClient, target *postgres.Client) {
+func validateGovernanceBackend(t *testing.T, genesis *governanceAPI.Genesis, target *postgres.Client) {
 	t.Log("=== Validating governance backend ===")
 
-	validateProposals(t, genesis, source, target)
-	validateVotes(t, genesis, source, target)
+	validateProposals(t, genesis, target)
+	validateVotes(t, genesis, target)
 
 	t.Log("=== Done validating governance backend! ===")
 }
 
-func validateProposals(t *testing.T, genesis *governanceAPI.Genesis, source *oasis.ConsensusClient, target *postgres.Client) {
+func validateProposals(t *testing.T, genesis *governanceAPI.Genesis, target *postgres.Client) {
 	t.Log("Validating proposals...")
-
 	ctx := context.Background()
-	chainID := getChainID(ctx, t, source)
 
 	expectedProposals := make(map[uint64]TestProposal)
 	for _, p := range genesis.Proposals {
@@ -652,11 +631,11 @@ func validateProposals(t *testing.T, genesis *governanceAPI.Genesis, source *oas
 		expectedProposals[ep.ID] = ep
 	}
 
-	proposalRows, err := target.Query(ctx, fmt.Sprintf(
-		`SELECT id, submitter, state, executed, deposit,
-						handler, cp_target_version, rhp_target_version, rcp_target_version, upgrade_epoch, cancels,
-						created_at, closes_at, invalid_votes
-				FROM %s.proposals_checkpoint`, chainID),
+	proposalRows, err := target.Query(ctx, `
+		SELECT id, submitter, state, executed, deposit,
+				handler, cp_target_version, rhp_target_version, rcp_target_version, upgrade_epoch, cancels,
+				created_at, closes_at, invalid_votes
+		FROM snapshot.proposals`,
 	)
 	require.Nil(t, err)
 
@@ -694,11 +673,9 @@ func validateProposals(t *testing.T, genesis *governanceAPI.Genesis, source *oas
 	}
 }
 
-func validateVotes(t *testing.T, genesis *governanceAPI.Genesis, source *oasis.ConsensusClient, target *postgres.Client) {
+func validateVotes(t *testing.T, genesis *governanceAPI.Genesis, target *postgres.Client) {
 	t.Log("Validating votes...")
-
 	ctx := context.Background()
-	chainID := getChainID(ctx, t, source)
 
 	makeProposalKey := func(v TestVote) string {
 		return fmt.Sprintf("%d.%s.%s", v.Proposal, v.Voter, v.Vote)
@@ -716,10 +693,7 @@ func validateVotes(t *testing.T, genesis *governanceAPI.Genesis, source *oasis.C
 		}
 	}
 
-	voteRows, err := target.Query(ctx, fmt.Sprintf(
-		`SELECT proposal, voter, vote
-				FROM %s.votes_checkpoint`, chainID),
-	)
+	voteRows, err := target.Query(ctx, `SELECT proposal, voter, vote FROM snapshot.votes`)
 	require.Nil(t, err)
 
 	actualVotes := make(map[string]TestVote)
