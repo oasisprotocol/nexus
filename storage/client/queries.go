@@ -1,78 +1,23 @@
 package client
 
 import (
-	"context"
 	"fmt"
-
-	"github.com/oasisprotocol/oasis-indexer/common"
 )
 
-// QueryFactory is a convenience type for creating API queries.
-type QueryFactory struct {
-	chainID string
-	runtime string
-}
-
-func NewQueryFactory(chainID string, runtime string) QueryFactory {
-	return QueryFactory{"chain", runtime}
-}
-
-func QueryFactoryFromCtx(ctx context.Context) QueryFactory {
-	// Extract ChainID from context. It's populated from the runtime config,
-	// so it should always be present.
-	_, ok := ctx.Value(common.ChainIDContextKey).(string)
-	if !ok {
-		panic(fmt.Sprintf("cannot retrieve chain ID from ctx %v", ctx))
-	}
-
-	// Extract the runtime name.
-	runtime, ok := ctx.Value(common.RuntimeContextKey).(string)
-	if !ok {
-		runtime = "__NO_RUNTIME__"
-	} else {
-		// Validate the runtime name. It's populated in the middleware based on a whitelist,
-		// but QueryFactory injects this value into the queries without escaping it,
-		// so we double-check here to prevent SQL injection.
-		switch runtime {
-		case "emerald", "sapphire", "cipher", "consensus": // ok
-		default:
-			panic(fmt.Sprintf("invalid runtime \"%s\" passed in ctx", runtime))
-		}
-	}
-
-	return QueryFactory{
-		chainID: "chain",
-		runtime: runtime,
-	}
-}
-
-func RuntimeFromCtx(ctx context.Context) string {
-	// Extract the runtime name. It's populated by a middleware based on the URL.
-	runtime, ok := ctx.Value(common.RuntimeContextKey).(string)
-	if !ok {
-		// We're being called from a non-runtime-specific endpoint.
-		// This shouldn't happen. Return a dummy value, let the caller deal with it.
-		return "__NO_RUNTIME__"
-	}
-	return runtime
-}
-
-func (qf QueryFactory) TotalCountQuery(inner string) string {
+func TotalCountQuery(inner string) string {
 	return fmt.Sprintf(`
 		WITH subquery AS (%s)
 			SELECT count(*) FROM subquery`, inner)
 }
 
-func (qf QueryFactory) StatusQuery() string {
-	return `
+const (
+	Status = `
 		SELECT height, processed_time
 			FROM chain.processed_blocks
 		ORDER BY processed_time DESC
 		LIMIT 1`
-}
 
-func (qf QueryFactory) BlocksQuery() string {
-	return `
+	Blocks = `
 		SELECT height, block_hash, time, num_txs
 			FROM chain.blocks
 			WHERE ($1::bigint IS NULL OR height >= $1::bigint) AND
@@ -82,17 +27,13 @@ func (qf QueryFactory) BlocksQuery() string {
 		ORDER BY height DESC
 		LIMIT $5::bigint
 		OFFSET $6::bigint`
-}
 
-func (qf QueryFactory) BlockQuery() string {
-	return `
+	Block = `
 		SELECT height, block_hash, time, num_txs
 			FROM chain.blocks
 			WHERE height = $1::bigint`
-}
 
-func (qf QueryFactory) TransactionsQuery() string {
-	return `
+	Transactions = `
 		SELECT
 				chain.transactions.block as block,
 				chain.transactions.tx_index as tx_index,
@@ -121,18 +62,14 @@ func (qf QueryFactory) TransactionsQuery() string {
 			ORDER BY chain.transactions.block DESC, chain.transactions.tx_index
 			LIMIT $8::bigint
 			OFFSET $9::bigint`
-}
 
-func (qf QueryFactory) TransactionQuery() string {
-	return `
+	Transaction = `
 		SELECT block, tx_index, tx_hash, sender, nonce, fee_amount, method, body, code, chain.blocks.time
 			FROM chain.transactions
 			JOIN chain.blocks ON chain.transactions.block = chain.blocks.height
 			WHERE tx_hash = $1::text`
-}
 
-func (qf QueryFactory) EventsQuery() string {
-	return `
+	Events = `
 		SELECT tx_block, tx_index, tx_hash, type, body
 			FROM chain.events
 			WHERE ($1::bigint IS NULL OR tx_block = $1::bigint) AND
@@ -143,10 +80,8 @@ func (qf QueryFactory) EventsQuery() string {
 			ORDER BY tx_block DESC, tx_index
 			LIMIT $6::bigint
 			OFFSET $7::bigint`
-}
 
-func (qf QueryFactory) EventsRelAccountsQuery() string {
-	return `
+	EventsRelAccounts = `
 		SELECT event_block, tx_index, tx_hash, type, body
 			FROM chain.accounts_related_events
 			WHERE (account_address = $1::text) AND
@@ -157,50 +92,38 @@ func (qf QueryFactory) EventsRelAccountsQuery() string {
 			ORDER BY event_block DESC, tx_index
 			LIMIT $6::bigint
 			OFFSET $7::bigint`
-}
 
-func (qf QueryFactory) EntitiesQuery() string {
-	return `
+	Entities = `
 		SELECT id, address
 			FROM chain.entities
 		ORDER BY id
 		LIMIT $1::bigint
 		OFFSET $2::bigint`
-}
 
-func (qf QueryFactory) EntityQuery() string {
-	return `
+	Entity = `
 		SELECT id, address
 			FROM chain.entities
 			WHERE id = $1::text`
-}
 
-func (qf QueryFactory) EntityNodeIdsQuery() string {
-	return `
+	EntityNodeIds = `
 		SELECT id
 			FROM chain.nodes
 			WHERE entity_id = $1::text`
-}
 
-func (qf QueryFactory) EntityNodesQuery() string {
-	return `
+	EntityNodes = `
 		SELECT id, entity_id, expiration, tls_pubkey, tls_next_pubkey, p2p_pubkey, consensus_pubkey, roles
 			FROM chain.nodes
 			WHERE entity_id = $1::text
 		ORDER BY id
 		LIMIT $2::bigint
 		OFFSET $3::bigint`
-}
 
-func (qf QueryFactory) EntityNodeQuery() string {
-	return `
+	EntityNode = `
 		SELECT id, entity_id, expiration, tls_pubkey, tls_next_pubkey, p2p_pubkey, consensus_pubkey, roles
 			FROM chain.nodes
 			WHERE entity_id = $1::text AND id = $2::text`
-}
 
-func (qf QueryFactory) AccountsQuery() string {
-	return `
+	Accounts = `
 		SELECT
 			address,
 			COALESCE(nonce, 0),
@@ -219,10 +142,8 @@ func (qf QueryFactory) AccountsQuery() string {
 		ORDER BY address
 		LIMIT $9::bigint
 		OFFSET $10::bigint`
-}
 
-func (qf QueryFactory) AccountQuery() string {
-	return `
+	Account = `
 		SELECT
 			address,
 			COALESCE(nonce, 0),
@@ -243,17 +164,13 @@ func (qf QueryFactory) AccountQuery() string {
 			, 0) AS debonding_delegations_balance
 		FROM chain.accounts
 		WHERE address = $1::text`
-}
 
-func (qf QueryFactory) AccountAllowancesQuery() string {
-	return `
+	AccountAllowances = `
 		SELECT beneficiary, allowance
 			FROM chain.allowances
 			WHERE owner = $1::text`
-}
 
-func (qf QueryFactory) DelegationsQuery() string {
-	return `
+	Delegations = `
 		SELECT delegatee, shares, escrow_balance_active, escrow_total_shares_active
 			FROM chain.delegations
 			JOIN chain.accounts ON chain.delegations.delegatee = chain.accounts.address
@@ -261,10 +178,8 @@ func (qf QueryFactory) DelegationsQuery() string {
 		ORDER BY delegatee, shares
 		LIMIT $2::bigint
 		OFFSET $3::bigint`
-}
 
-func (qf QueryFactory) DebondingDelegationsQuery() string {
-	return `
+	DebondingDelegations = `
 		SELECT delegatee, shares, debond_end, escrow_balance_debonding, escrow_total_shares_debonding
 			FROM chain.debonding_delegations
 			JOIN chain.accounts ON chain.debonding_delegations.delegatee = chain.accounts.address
@@ -272,26 +187,20 @@ func (qf QueryFactory) DebondingDelegationsQuery() string {
 		ORDER BY debond_end
 		LIMIT $2::bigint
 		OFFSET $3::bigint`
-}
 
-func (qf QueryFactory) EpochsQuery() string {
-	return `
+	Epochs = `
 		SELECT id, start_height, end_height
 			FROM chain.epochs
 		ORDER BY id DESC
 		LIMIT $1::bigint
 		OFFSET $2::bigint`
-}
 
-func (qf QueryFactory) EpochQuery() string {
-	return `
+	Epoch = `
 		SELECT id, start_height, end_height
 			FROM chain.epochs
 			WHERE id = $1::bigint`
-}
 
-func (qf QueryFactory) ProposalsQuery() string {
-	return `
+	Proposals = `
 		SELECT id, submitter, state, deposit, handler, cp_target_version, rhp_target_version, rcp_target_version,
 				upgrade_epoch, cancels, created_at, closes_at, invalid_votes
 			FROM chain.proposals
@@ -300,36 +209,28 @@ func (qf QueryFactory) ProposalsQuery() string {
 		ORDER BY id DESC
 		LIMIT $3::bigint
 		OFFSET $4::bigint`
-}
 
-func (qf QueryFactory) ProposalQuery() string {
-	return `
+	Proposal = `
 		SELECT id, submitter, state, deposit, handler, cp_target_version, rhp_target_version, rcp_target_version,
 				upgrade_epoch, cancels, created_at, closes_at, invalid_votes
 			FROM chain.proposals
 			WHERE id = $1::bigint`
-}
 
-func (qf QueryFactory) ProposalVotesQuery() string {
-	return `
+	ProposalVotes = `
 		SELECT voter, vote
 			FROM chain.votes
 			WHERE proposal = $1::bigint
 		ORDER BY proposal DESC
 		LIMIT $2::bigint
 		OFFSET $3::bigint`
-}
 
-func (qf QueryFactory) ValidatorQuery() string {
-	return `
+	Validator = `
 		SELECT id, start_height
 			FROM chain.epochs
 		ORDER BY id DESC
 		LIMIT 1`
-}
 
-func (qf QueryFactory) ValidatorDataQuery() string {
-	return `
+	ValidatorData = `
 		SELECT
 				chain.entities.id AS entity_id,
 				chain.entities.address AS entity_address,
@@ -351,17 +252,13 @@ func (qf QueryFactory) ValidatorDataQuery() string {
 						AND chain.nodes.roles like '%validator%'
 				)
 			WHERE chain.entities.id = $1::text`
-}
 
-func (qf QueryFactory) ValidatorsQuery() string {
-	return `
+	Validators = `
 		SELECT id, start_height
 			FROM chain.epochs
 			ORDER BY id DESC`
-}
 
-func (qf QueryFactory) ValidatorsDataQuery() string {
-	return `
+	ValidatorsData = `
 		SELECT
 				chain.entities.id AS entity_id,
 				chain.entities.address AS entity_address,
@@ -385,10 +282,8 @@ func (qf QueryFactory) ValidatorsDataQuery() string {
 		ORDER BY escrow_balance_active DESC
 		LIMIT $1::bigint
 		OFFSET $2::bigint`
-}
 
-func (qf QueryFactory) RuntimeBlocksQuery() string {
-	return `
+	RuntimeBlocks = `
 		SELECT round, block_hash, timestamp, num_transactions, size, gas_used
 			FROM chain.runtime_blocks
 			WHERE (runtime = $1) AND
@@ -399,10 +294,8 @@ func (qf QueryFactory) RuntimeBlocksQuery() string {
 		ORDER BY round DESC
 		LIMIT $6::bigint
 		OFFSET $7::bigint`
-}
 
-func (qf QueryFactory) RuntimeTransactionsQuery() string {
-	return `
+	RuntimeTransactions = `
 		SELECT
 			txs.round,
 			txs.tx_index,
@@ -437,10 +330,8 @@ func (qf QueryFactory) RuntimeTransactionsQuery() string {
 		LIMIT $5::bigint
 		OFFSET $6::bigint
 		`
-}
 
-func (qf QueryFactory) RuntimeEventsQuery() string {
-	return `
+	RuntimeEvents = `
 		SELECT round, tx_index, tx_hash, type, body, evm_log_name, evm_log_params
 			FROM chain.runtime_events
 			WHERE (runtime = $1) AND
@@ -453,17 +344,13 @@ func (qf QueryFactory) RuntimeEventsQuery() string {
 			ORDER BY round DESC, tx_index
 			LIMIT $8::bigint
 			OFFSET $9::bigint`
-}
 
-func (qf QueryFactory) AddressPreimageQuery() string {
-	return `
+	AddressPreimage = `
 		SELECT context_identifier, context_version, address_data
 			FROM chain.address_preimages
 			WHERE address = $1::text`
-}
 
-func (qf QueryFactory) RuntimeAccountStatsQuery() string {
-	return `
+	RuntimeAccountStats = `
 		SELECT
 			COALESCE (
 				(SELECT sum(amount) from chain.runtime_transfers where sender=$1::text)
@@ -474,10 +361,9 @@ func (qf QueryFactory) RuntimeAccountStatsQuery() string {
 			COALESCE (
 				(SELECT count(*) from chain.runtime_related_transactions where account_address=$1::text)
 				, 0) AS num_txns`
-}
 
-func (qf QueryFactory) EvmTokensQuery() string {
-	return `
+	//nolint:gosec // Linter suspects a hardcoded access token.
+	EvmTokens = `
 		WITH holders AS (
 			SELECT token_address, COUNT(*) AS cnt
 			FROM chain.evm_token_balances
@@ -502,10 +388,8 @@ func (qf QueryFactory) EvmTokensQuery() string {
 		ORDER BY num_holders DESC
 		LIMIT $2::bigint
 		OFFSET $3::bigint`
-}
 
-func (qf QueryFactory) AccountRuntimeSdkBalancesQuery() string {
-	return `
+	AccountRuntimeSdkBalances = `
 		SELECT
 			balance AS balance,
 			symbol AS token_symbol
@@ -516,10 +400,8 @@ func (qf QueryFactory) AccountRuntimeSdkBalancesQuery() string {
 		ORDER BY balance DESC
 		LIMIT 1000  -- To prevent huge responses. Hardcoded because API exposes this as a subfield that does not lend itself to pagination.
 	`
-}
 
-func (qf QueryFactory) AccountRuntimeEvmBalancesQuery() string {
-	return `
+	AccountRuntimeEvmBalances = `
 		SELECT
 			balances.balance AS balance,
 			balances.token_address AS token_address,
@@ -535,10 +417,8 @@ func (qf QueryFactory) AccountRuntimeEvmBalancesQuery() string {
 		ORDER BY balance DESC
 		LIMIT 1000  -- To prevent huge responses. Hardcoded because API exposes this as a subfield that does not lend itself to pagination.
 	`
-}
 
-func (qf QueryFactory) FineTxVolumesQuery() string {
-	return `
+	FineTxVolumes = `
 		SELECT window_start, tx_volume
 		FROM stats.min5_tx_volume
 		WHERE layer = $1::text
@@ -547,10 +427,8 @@ func (qf QueryFactory) FineTxVolumesQuery() string {
 		LIMIT $2::bigint
 		OFFSET $3::bigint
 	`
-}
 
-func (qf QueryFactory) TxVolumesQuery() string {
-	return `
+	TxVolumes = `
 		SELECT window_start, tx_volume
 		FROM stats.daily_tx_volume
 		WHERE layer = $1::text
@@ -559,11 +437,9 @@ func (qf QueryFactory) TxVolumesQuery() string {
 		LIMIT $2::bigint
 		OFFSET $3::bigint
 	`
-}
 
-// FineDailyActiveAccountsQuery returns the fine-grained query for daily active account windows.
-func (qf QueryFactory) FineDailyActiveAccountsQuery() string {
-	return `
+	// FineDailyActiveAccountsQuery returns the fine-grained query for daily active account windows.
+	FineDailyActiveAccounts = `
 		SELECT window_end, active_accounts
 		FROM stats.daily_active_accounts
 		WHERE layer = $1::text
@@ -572,11 +448,9 @@ func (qf QueryFactory) FineDailyActiveAccountsQuery() string {
 		LIMIT $2::bigint
 		OFFSET $3::bigint
 	`
-}
 
-// DailyActiveAccountsQuery returns the query for daily sampled daily active account windows.
-func (qf QueryFactory) DailyActiveAccountsQuery() string {
-	return `
+	// DailyActiveAccountsQuery returns the query for daily sampled daily active account windows.
+	DailyActiveAccounts = `
 		SELECT date_trunc('day', window_end) as window_end, active_accounts
 		FROM stats.daily_active_accounts
 		WHERE (layer = $1::text AND (window_end AT TIME ZONE 'UTC')::time = '00:00:00')
@@ -585,4 +459,4 @@ func (qf QueryFactory) DailyActiveAccountsQuery() string {
 		LIMIT $2::bigint
 		OFFSET $3::bigint
 	`
-}
+)

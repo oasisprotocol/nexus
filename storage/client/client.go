@@ -55,6 +55,17 @@ func toString(b *BigInt) *string {
 	return &s
 }
 
+func runtimeFromCtx(ctx context.Context) string {
+	// Extract the runtime name. It's populated by a middleware based on the URL.
+	runtime, ok := ctx.Value(common.RuntimeContextKey).(string)
+	if !ok {
+		// We're being called from a non-runtime-specific endpoint.
+		// This shouldn't happen. Return a dummy value, let the caller deal with it.
+		return "__NO_RUNTIME__"
+	}
+	return runtime
+}
+
 // NewStorageClient creates a new storage client.
 func NewStorageClient(chainID string, db storage.TargetStorage, l *log.Logger) (*StorageClient, error) {
 	blockCache, err := ristretto.NewCache(&ristretto.Config{
@@ -941,7 +952,7 @@ func (c *StorageClient) RuntimeBlocks(ctx context.Context, p apiTypes.GetRuntime
 	res, err := c.withTotalCount(
 		ctx,
 		QueryFactoryFromCtx(ctx).RuntimeBlocksQuery(),
-		RuntimeFromCtx(ctx),
+		runtimeFromCtx(ctx),
 		p.From,
 		p.To,
 		p.After,
@@ -977,7 +988,7 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetR
 	res, err := c.withTotalCount(
 		ctx,
 		QueryFactoryFromCtx(ctx).RuntimeTransactionsQuery(),
-		RuntimeFromCtx(ctx),
+		runtimeFromCtx(ctx),
 		p.Block,
 		txHash, // tx_hash; used only by GetRuntimeTransactionsTxHash
 		p.Rel,
@@ -1022,7 +1033,7 @@ func (c *StorageClient) RuntimeEvents(ctx context.Context, p apiTypes.GetRuntime
 	res, err := c.withTotalCount(
 		ctx,
 		QueryFactoryFromCtx(ctx).RuntimeEventsQuery(),
-		RuntimeFromCtx(ctx),
+		runtimeFromCtx(ctx),
 		p.Block,
 		p.TxIndex,
 		p.TxHash,
@@ -1095,7 +1106,7 @@ func (c *StorageClient) RuntimeAccount(ctx context.Context, address staking.Addr
 	runtimeSdkRows, queryErr := c.db.Query(
 		ctx,
 		QueryFactoryFromCtx(ctx).AccountRuntimeSdkBalancesQuery(),
-		RuntimeFromCtx(ctx),
+		runtimeFromCtx(ctx),
 		address.String(),
 	)
 	if queryErr != nil {
@@ -1122,7 +1133,7 @@ func (c *StorageClient) RuntimeAccount(ctx context.Context, address staking.Addr
 	runtimeEvmRows, queryErr := c.db.Query(
 		ctx,
 		QueryFactoryFromCtx(ctx).AccountRuntimeEvmBalancesQuery(),
-		RuntimeFromCtx(ctx),
+		runtimeFromCtx(ctx),
 		address.String(),
 	)
 	if queryErr != nil {
@@ -1174,7 +1185,7 @@ func (c *StorageClient) RuntimeTokens(ctx context.Context, p apiTypes.GetRuntime
 	res, err := c.withTotalCount(
 		ctx,
 		QueryFactoryFromCtx(ctx).EvmTokensQuery(),
-		RuntimeFromCtx(ctx),
+		runtimeFromCtx(ctx),
 		p.Limit,
 		p.Offset,
 	)
