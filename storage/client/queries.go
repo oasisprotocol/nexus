@@ -14,13 +14,13 @@ type QueryFactory struct {
 }
 
 func NewQueryFactory(chainID string, runtime string) QueryFactory {
-	return QueryFactory{chainID, runtime}
+	return QueryFactory{"chain", runtime}
 }
 
 func QueryFactoryFromCtx(ctx context.Context) QueryFactory {
 	// Extract ChainID from context. It's populated from the runtime config,
 	// so it should always be present.
-	chainID, ok := ctx.Value(common.ChainIDContextKey).(string)
+	_, ok := ctx.Value(common.ChainIDContextKey).(string)
 	if !ok {
 		panic(fmt.Sprintf("cannot retrieve chain ID from ctx %v", ctx))
 	}
@@ -41,7 +41,7 @@ func QueryFactoryFromCtx(ctx context.Context) QueryFactory {
 	}
 
 	return QueryFactory{
-		chainID: chainID,
+		chainID: "chain",
 		runtime: runtime,
 	}
 }
