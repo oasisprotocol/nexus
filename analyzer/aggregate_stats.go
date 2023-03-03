@@ -7,7 +7,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/iancoleman/strcase"
 	"github.com/jackc/pgx/v4"
 
 	"github.com/oasisprotocol/oasis-indexer/config"
@@ -54,7 +53,6 @@ var dailyActiveAccountsLayers = []string{
 }
 
 type AggregateStatsAnalyzer struct {
-	qf     QueryFactory
 	target storage.TargetStorage
 
 	txVolumeInterval time.Duration
@@ -72,7 +70,6 @@ func (a *AggregateStatsAnalyzer) Name() string {
 func NewAggregateStatsAnalyzer(chainID string, cfg *config.AggregateStatsConfig, target storage.TargetStorage, logger *log.Logger) (*AggregateStatsAnalyzer, error) {
 	logger.Info("starting aggregate_stats analyzer")
 	return &AggregateStatsAnalyzer{
-		qf:               NewQueryFactory(strcase.ToSnake(chainID), "" /*runtime*/),
 		target:           target,
 		txVolumeInterval: cfg.TxVolumeInterval,
 		logger:           logger.With("analyzer", AggregateStatsAnalyzerName),

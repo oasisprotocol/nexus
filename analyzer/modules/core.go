@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/oasisprotocol/oasis-indexer/analyzer"
 	"github.com/oasisprotocol/oasis-indexer/log"
 	"github.com/oasisprotocol/oasis-indexer/storage"
 )
@@ -18,13 +17,12 @@ const (
 type CoreHandler struct {
 	source      storage.RuntimeSourceStorage
 	runtimeName string
-	qf          *analyzer.QueryFactory
 	logger      *log.Logger
 }
 
 // NewCoreHandler creates a new handler for `core` module data.
-func NewCoreHandler(source storage.RuntimeSourceStorage, runtimeName string, qf *analyzer.QueryFactory, logger *log.Logger) *CoreHandler {
-	return &CoreHandler{source, runtimeName, qf, logger}
+func NewCoreHandler(source storage.RuntimeSourceStorage, runtimeName string, logger *log.Logger) *CoreHandler {
+	return &CoreHandler{source, runtimeName, logger}
 }
 
 // PrepareCoreData prepares raw data from the `core` module for insertion.

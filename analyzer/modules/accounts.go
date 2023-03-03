@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/oasisprotocol/oasis-indexer/analyzer"
 	"github.com/oasisprotocol/oasis-indexer/log"
 	"github.com/oasisprotocol/oasis-indexer/storage"
 )
@@ -19,13 +18,12 @@ const (
 type AccountsHandler struct {
 	source      storage.RuntimeSourceStorage
 	runtimeName string
-	qf          *analyzer.QueryFactory
 	logger      *log.Logger
 }
 
 // NewAccountsHandler creates a new handler for `accounts` module data.
-func NewAccountsHandler(source storage.RuntimeSourceStorage, runtimeName string, qf *analyzer.QueryFactory, logger *log.Logger) *AccountsHandler {
-	return &AccountsHandler{source, runtimeName, qf, logger}
+func NewAccountsHandler(source storage.RuntimeSourceStorage, runtimeName string, logger *log.Logger) *AccountsHandler {
+	return &AccountsHandler{source, runtimeName, logger}
 }
 
 // PrepareAccountsData prepares raw data from the `accounts` module for insertion.

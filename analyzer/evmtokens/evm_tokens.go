@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/iancoleman/strcase"
 	oasisConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 	"golang.org/x/sync/errgroup"
 
@@ -37,7 +36,6 @@ const (
 type Main struct {
 	runtime analyzer.Runtime
 	cfg     analyzer.RuntimeConfig
-	qf      analyzer.QueryFactory
 	target  storage.TargetStorage
 	logger  *log.Logger
 }
@@ -87,12 +85,9 @@ func NewMain(
 		Source: client,
 	}
 
-	qf := analyzer.NewQueryFactory(strcase.ToSnake(nodeCfg.ChainID), runtime.String())
-
 	return &Main{
 		runtime: runtime,
 		cfg:     ac,
-		qf:      qf,
 		target:  target,
 		logger:  logger.With("analyzer", EvmTokensAnalyzerPrefix+runtime.String()),
 	}, nil

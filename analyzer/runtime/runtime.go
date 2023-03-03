@@ -6,7 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/iancoleman/strcase"
 	"github.com/jackc/pgx/v4"
 	oasisConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/rewards"
@@ -33,7 +32,6 @@ const (
 type Main struct {
 	runtime analyzer.Runtime
 	cfg     analyzer.RuntimeConfig
-	qf      analyzer.QueryFactory
 	target  storage.TargetStorage
 	logger  *log.Logger
 	metrics metrics.DatabaseMetrics
@@ -93,21 +91,18 @@ func NewRuntimeAnalyzer(
 		Source: client,
 	}
 
-	qf := analyzer.NewQueryFactory(strcase.ToSnake(nodeCfg.ChainID), runtime.String())
-
 	return &Main{
 		runtime: runtime,
 		cfg:     ac,
-		qf:      qf,
 		target:  target,
 		logger:  logger.With("analyzer", runtime.String()),
 		metrics: metrics.NewDefaultDatabaseMetrics(runtime.String()),
 
 		// module handlers
 		moduleHandlers: []modules.ModuleHandler{
-			modules.NewCoreHandler(client, runtime.String(), &qf, logger),
-			modules.NewAccountsHandler(client, runtime.String(), &qf, logger),
-			modules.NewConsensusAccountsHandler(client, runtime.String(), &qf, logger),
+			modules.NewCoreHandler(client, runtime.String(), logger),
+			modules.NewAccountsHandler(client, runtime.String(), logger),
+			modules.NewConsensusAccountsHandler(client, runtime.String(), logger),
 		},
 	}, nil
 }
@@ -369,7 +364,7 @@ func (m *Main) queueBlockAndTransactionInserts(ctx context.Context, batch *stora
 		blockData.Size,
 	)
 
-	m.emitRoundBatch(batch, &m.qf, data.Round, blockData)
+	m.emitRoundBatch(batch, data.Round, blockData)
 
 	return nil
 }

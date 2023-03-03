@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/oasisprotocol/oasis-indexer/analyzer"
 	"github.com/oasisprotocol/oasis-indexer/log"
 	"github.com/oasisprotocol/oasis-indexer/storage"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/consensusaccounts"
@@ -19,13 +18,12 @@ const (
 type ConsensusAccountsHandler struct {
 	source      storage.RuntimeSourceStorage
 	runtimeName string
-	qf          *analyzer.QueryFactory
 	logger      *log.Logger
 }
 
 // NewConsensusAccountsHandler creates a new handler for `consensus_accounts` module data.
-func NewConsensusAccountsHandler(source storage.RuntimeSourceStorage, runtimeName string, qf *analyzer.QueryFactory, logger *log.Logger) *ConsensusAccountsHandler {
-	return &ConsensusAccountsHandler{source, runtimeName, qf, logger}
+func NewConsensusAccountsHandler(source storage.RuntimeSourceStorage, runtimeName string, logger *log.Logger) *ConsensusAccountsHandler {
+	return &ConsensusAccountsHandler{source, runtimeName, logger}
 }
 
 // PrepareConsensusAccountsData prepares raw data from the `consensus_accounts` module for insertion.

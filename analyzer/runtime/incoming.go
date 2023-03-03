@@ -18,7 +18,6 @@ import (
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/evm"
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 
-	"github.com/oasisprotocol/oasis-indexer/analyzer"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/modules"
 	common "github.com/oasisprotocol/oasis-indexer/analyzer/uncategorized"
 	apiTypes "github.com/oasisprotocol/oasis-indexer/api/v1/types"
@@ -567,7 +566,7 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 	}, nil
 }
 
-func (m *Main) emitRoundBatch(batch *storage.QueryBatch, qf *analyzer.QueryFactory, round uint64, blockData *BlockData) {
+func (m *Main) emitRoundBatch(batch *storage.QueryBatch, round uint64, blockData *BlockData) {
 	for _, transactionData := range blockData.TransactionData {
 		for _, signerData := range transactionData.SignerData {
 			batch.Queue(

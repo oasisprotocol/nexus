@@ -10,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/iancoleman/strcase"
 	"github.com/jackc/pgx/v4"
 
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
@@ -49,7 +48,6 @@ type parsedEvent struct {
 // Main is the main Analyzer for the consensus layer.
 type Main struct {
 	cfg     analyzer.ConsensusConfig
-	qf      analyzer.QueryFactory
 	target  storage.TargetStorage
 	logger  *log.Logger
 	metrics metrics.DatabaseMetrics
@@ -96,7 +94,6 @@ func NewMain(nodeCfg config.NodeConfig, cfg *config.BlockBasedAnalyzerConfig, ta
 	logger.Info("Starting consensus analyzer", "config", ac)
 	return &Main{
 		cfg:     ac,
-		qf:      analyzer.NewQueryFactory(strcase.ToSnake(nodeCfg.ChainID), "" /* no runtime identifier for the consensus layer */),
 		target:  target,
 		logger:  logger.With("analyzer", ConsensusAnalyzerName),
 		metrics: metrics.NewDefaultDatabaseMetrics(ConsensusAnalyzerName),

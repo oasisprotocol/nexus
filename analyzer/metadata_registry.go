@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/iancoleman/strcase"
 	registry "github.com/oasisprotocol/metadata-registry-tools"
 	"github.com/oasisprotocol/oasis-indexer/config"
 	"github.com/oasisprotocol/oasis-indexer/log"
@@ -16,7 +15,6 @@ import (
 const MetadataRegistryAnalyzerName = "metadata_registry"
 
 type MetadataRegistryAnalyzer struct {
-	qf       QueryFactory
 	target   storage.TargetStorage
 	logger   *log.Logger
 	metrics  metrics.DatabaseMetrics
@@ -37,7 +35,6 @@ func NewMetadataRegistryAnalyzer(chainID string, cfg *config.MetadataRegistryCon
 	logger.Info("Starting metadata_registry analyzer")
 	return &MetadataRegistryAnalyzer{
 		interval: cfg.Interval,
-		qf:       NewQueryFactory(strcase.ToSnake(chainID), "" /*runtime*/),
 		target:   target,
 		logger:   logger.With("analyzer", MetadataRegistryAnalyzerName),
 		metrics:  metrics.NewDefaultDatabaseMetrics(MetadataRegistryAnalyzerName),
