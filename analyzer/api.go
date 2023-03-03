@@ -143,31 +143,18 @@ func (n Network) String() string {
 }
 
 // Runtime is an identifier for a runtime on the Oasis Network.
-type Runtime uint16
+type Runtime string
 
 const (
-	// RuntimeEmerald is the identifier for the Emerald Runtime.
-	RuntimeEmerald Runtime = iota
-	// RuntimeCipher is the identifier for the Cipher Runtime.
-	RuntimeCipher
-	// RuntimeSapphire is the identifier for the Sapphire Runtime.
-	RuntimeSapphire
-	// RuntimeUnknown is the identifier for an unknown Runtime.
-	RuntimeUnknown = 1000
+	RuntimeEmerald  Runtime = "emerald"
+	RuntimeCipher   Runtime = "cipher"
+	RuntimeSapphire Runtime = "sapphire"
+	RuntimeUnknown  Runtime = "unknown"
 )
 
 // String returns the string representation of a runtime.
 func (r Runtime) String() string {
-	switch r {
-	case RuntimeEmerald:
-		return "emerald"
-	case RuntimeCipher:
-		return "cipher"
-	case RuntimeSapphire:
-		return "sapphire"
-	default:
-		return "unknown"
-	}
+	return string(r)
 }
 
 // ID returns the ID for a Runtime on the provided network.
