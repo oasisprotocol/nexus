@@ -941,6 +941,7 @@ func (c *StorageClient) RuntimeBlocks(ctx context.Context, p apiTypes.GetRuntime
 	res, err := c.withTotalCount(
 		ctx,
 		QueryFactoryFromCtx(ctx).RuntimeBlocksQuery(),
+		RuntimeFromCtx(ctx),
 		p.From,
 		p.To,
 		p.After,
@@ -976,6 +977,7 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetR
 	res, err := c.withTotalCount(
 		ctx,
 		QueryFactoryFromCtx(ctx).RuntimeTransactionsQuery(),
+		RuntimeFromCtx(ctx),
 		p.Block,
 		txHash, // tx_hash; used only by GetRuntimeTransactionsTxHash
 		p.Rel,
@@ -1020,6 +1022,7 @@ func (c *StorageClient) RuntimeEvents(ctx context.Context, p apiTypes.GetRuntime
 	res, err := c.withTotalCount(
 		ctx,
 		QueryFactoryFromCtx(ctx).RuntimeEventsQuery(),
+		RuntimeFromCtx(ctx),
 		p.Block,
 		p.TxIndex,
 		p.TxHash,
@@ -1092,6 +1095,7 @@ func (c *StorageClient) RuntimeAccount(ctx context.Context, address staking.Addr
 	runtimeSdkRows, queryErr := c.db.Query(
 		ctx,
 		QueryFactoryFromCtx(ctx).AccountRuntimeSdkBalancesQuery(),
+		RuntimeFromCtx(ctx),
 		address.String(),
 	)
 	if queryErr != nil {
@@ -1118,6 +1122,7 @@ func (c *StorageClient) RuntimeAccount(ctx context.Context, address staking.Addr
 	runtimeEvmRows, queryErr := c.db.Query(
 		ctx,
 		QueryFactoryFromCtx(ctx).AccountRuntimeEvmBalancesQuery(),
+		RuntimeFromCtx(ctx),
 		address.String(),
 	)
 	if queryErr != nil {
@@ -1169,6 +1174,7 @@ func (c *StorageClient) RuntimeTokens(ctx context.Context, p apiTypes.GetRuntime
 	res, err := c.withTotalCount(
 		ctx,
 		QueryFactoryFromCtx(ctx).EvmTokensQuery(),
+		RuntimeFromCtx(ctx),
 		p.Limit,
 		p.Offset,
 	)

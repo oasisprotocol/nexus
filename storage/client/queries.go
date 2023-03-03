@@ -46,6 +46,17 @@ func QueryFactoryFromCtx(ctx context.Context) QueryFactory {
 	}
 }
 
+func RuntimeFromCtx(ctx context.Context) string {
+	// Extract the runtime name. It's populated by a middleware based on the URL.
+	runtime, ok := ctx.Value(common.RuntimeContextKey).(string)
+	if !ok {
+		// We're being called from a non-runtime-specific endpoint.
+		// This shouldn't happen. Return a dummy value, let the caller deal with it.
+		return "__NO_RUNTIME__"
+	}
+	return runtime
+}
+
 func (qf QueryFactory) TotalCountQuery(inner string) string {
 	return fmt.Sprintf(`
 		WITH subquery AS (%s)
@@ -53,77 +64,77 @@ func (qf QueryFactory) TotalCountQuery(inner string) string {
 }
 
 func (qf QueryFactory) StatusQuery() string {
-	return fmt.Sprintf(`
+	return `
 		SELECT height, processed_time
-			FROM %s.processed_blocks
+			FROM chain.processed_blocks
 		ORDER BY processed_time DESC
-		LIMIT 1`, qf.chainID)
+		LIMIT 1`
 }
 
 func (qf QueryFactory) BlocksQuery() string {
-	return fmt.Sprintf(`
+	return `
 		SELECT height, block_hash, time, num_txs
-			FROM %s.blocks
+			FROM chain.blocks
 			WHERE ($1::bigint IS NULL OR height >= $1::bigint) AND
 						($2::bigint IS NULL OR height <= $2::bigint) AND
 						($3::timestamptz IS NULL OR time >= $3::timestamptz) AND
 						($4::timestamptz IS NULL OR time <= $4::timestamptz)
 		ORDER BY height DESC
 		LIMIT $5::bigint
-		OFFSET $6::bigint`, qf.chainID)
+		OFFSET $6::bigint`
 }
 
 func (qf QueryFactory) BlockQuery() string {
-	return fmt.Sprintf(`
+	return `
 		SELECT height, block_hash, time, num_txs
-			FROM %s.blocks
-			WHERE height = $1::bigint`, qf.chainID)
+			FROM chain.blocks
+			WHERE height = $1::bigint`
 }
 
 func (qf QueryFactory) TransactionsQuery() string {
-	return fmt.Sprintf(`
+	return `
 		SELECT
-				%[1]s.transactions.block as block,
-				%[1]s.transactions.tx_index as tx_index,
-				%[1]s.transactions.tx_hash as tx_hash,
-				%[1]s.transactions.sender as sender,
-				%[1]s.transactions.nonce as nonce,
-				%[1]s.transactions.fee_amount as fee_amount,
-				%[1]s.transactions.method as method,
-				%[1]s.transactions.body as body,
-				%[1]s.transactions.code as code,
-				%[1]s.blocks.time as time
-			FROM %[1]s.transactions
-			JOIN %[1]s.blocks ON %[1]s.transactions.block = %[1]s.blocks.height
-			LEFT JOIN %[1]s.accounts_related_transactions ON %[1]s.transactions.block = %[1]s.accounts_related_transactions.tx_block
-				AND %[1]s.transactions.tx_index = %[1]s.accounts_related_transactions.tx_index
+				chain.transactions.block as block,
+				chain.transactions.tx_index as tx_index,
+				chain.transactions.tx_hash as tx_hash,
+				chain.transactions.sender as sender,
+				chain.transactions.nonce as nonce,
+				chain.transactions.fee_amount as fee_amount,
+				chain.transactions.method as method,
+				chain.transactions.body as body,
+				chain.transactions.code as code,
+				chain.blocks.time as time
+			FROM chain.transactions
+			JOIN chain.blocks ON chain.transactions.block = chain.blocks.height
+			LEFT JOIN chain.accounts_related_transactions ON chain.transactions.block = chain.accounts_related_transactions.tx_block
+				AND chain.transactions.tx_index = chain.accounts_related_transactions.tx_index
 				-- When related_address ($4) is NULL and hence we do no filtering on it, avoid the join altogether.
 				-- Otherwise, every tx will be returned as many times as there are related addresses for it.
 				AND $4::text IS NOT NULL
-			WHERE ($1::bigint IS NULL OR %[1]s.transactions.block = $1::bigint) AND
-					($2::text IS NULL OR %[1]s.transactions.method = $2::text) AND
-					($3::text IS NULL OR %[1]s.transactions.sender = $3::text) AND
-					($4::text IS NULL OR %[1]s.accounts_related_transactions.account_address = $4::text) AND
-					($5::numeric IS NULL OR %[1]s.transactions.fee_amount >= $5::numeric) AND
-					($6::numeric IS NULL OR %[1]s.transactions.fee_amount <= $6::numeric) AND
-					($7::bigint IS NULL OR %[1]s.transactions.code = $7::bigint)
-			ORDER BY %[1]s.transactions.block DESC, %[1]s.transactions.tx_index
+			WHERE ($1::bigint IS NULL OR chain.transactions.block = $1::bigint) AND
+					($2::text IS NULL OR chain.transactions.method = $2::text) AND
+					($3::text IS NULL OR chain.transactions.sender = $3::text) AND
+					($4::text IS NULL OR chain.accounts_related_transactions.account_address = $4::text) AND
+					($5::numeric IS NULL OR chain.transactions.fee_amount >= $5::numeric) AND
+					($6::numeric IS NULL OR chain.transactions.fee_amount <= $6::numeric) AND
+					($7::bigint IS NULL OR chain.transactions.code = $7::bigint)
+			ORDER BY chain.transactions.block DESC, chain.transactions.tx_index
 			LIMIT $8::bigint
-			OFFSET $9::bigint`, qf.chainID)
+			OFFSET $9::bigint`
 }
 
 func (qf QueryFactory) TransactionQuery() string {
-	return fmt.Sprintf(`
-		SELECT block, tx_index, tx_hash, sender, nonce, fee_amount, method, body, code, %[1]s.blocks.time
-			FROM %[1]s.transactions
-			JOIN %[1]s.blocks ON %[1]s.transactions.block = %[1]s.blocks.height
-			WHERE tx_hash = $1::text`, qf.chainID)
+	return `
+		SELECT block, tx_index, tx_hash, sender, nonce, fee_amount, method, body, code, chain.blocks.time
+			FROM chain.transactions
+			JOIN chain.blocks ON chain.transactions.block = chain.blocks.height
+			WHERE tx_hash = $1::text`
 }
 
 func (qf QueryFactory) EventsQuery() string {
-	return fmt.Sprintf(`
+	return `
 		SELECT tx_block, tx_index, tx_hash, type, body
-			FROM %s.events
+			FROM chain.events
 			WHERE ($1::bigint IS NULL OR tx_block = $1::bigint) AND
 					($2::integer IS NULL OR tx_index = $2::integer) AND
 					($3::text IS NULL OR tx_hash = $3::text) AND
@@ -131,13 +142,13 @@ func (qf QueryFactory) EventsQuery() string {
 					($5::text IS NULL OR ARRAY[$5::text] <@ related_accounts)
 			ORDER BY tx_block DESC, tx_index
 			LIMIT $6::bigint
-			OFFSET $7::bigint`, qf.chainID)
+			OFFSET $7::bigint`
 }
 
 func (qf QueryFactory) EventsRelAccountsQuery() string {
-	return fmt.Sprintf(`
+	return `
 		SELECT event_block, tx_index, tx_hash, type, body
-			FROM %s.accounts_related_events
+			FROM chain.accounts_related_events
 			WHERE (account_address = $1::text) AND
 					($2::bigint IS NULL OR event_block = $1::bigint) AND
 					($3::integer IS NULL OR tx_index = $3::integer) AND
@@ -145,58 +156,58 @@ func (qf QueryFactory) EventsRelAccountsQuery() string {
 					($5::text IS NULL OR type = $5::text)
 			ORDER BY event_block DESC, tx_index
 			LIMIT $6::bigint
-			OFFSET $7::bigint`, qf.chainID)
+			OFFSET $7::bigint`
 }
 
 func (qf QueryFactory) EntitiesQuery() string {
-	return fmt.Sprintf(`
+	return `
 		SELECT id, address
-			FROM %s.entities
+			FROM chain.entities
 		ORDER BY id
 		LIMIT $1::bigint
-		OFFSET $2::bigint`, qf.chainID)
+		OFFSET $2::bigint`
 }
 
 func (qf QueryFactory) EntityQuery() string {
-	return fmt.Sprintf(`
+	return `
 		SELECT id, address
-			FROM %s.entities
-			WHERE id = $1::text`, qf.chainID)
+			FROM chain.entities
+			WHERE id = $1::text`
 }
 
 func (qf QueryFactory) EntityNodeIdsQuery() string {
-	return fmt.Sprintf(`
+	return `
 		SELECT id
-			FROM %s.nodes
-			WHERE entity_id = $1::text`, qf.chainID)
+			FROM chain.nodes
+			WHERE entity_id = $1::text`
 }
 
 func (qf QueryFactory) EntityNodesQuery() string {
-	return fmt.Sprintf(`
+	return `
 		SELECT id, entity_id, expiration, tls_pubkey, tls_next_pubkey, p2p_pubkey, consensus_pubkey, roles
-			FROM %s.nodes
+			FROM chain.nodes
 			WHERE entity_id = $1::text
 		ORDER BY id
 		LIMIT $2::bigint
-		OFFSET $3::bigint`, qf.chainID)
+		OFFSET $3::bigint`
 }
 
 func (qf QueryFactory) EntityNodeQuery() string {
-	return fmt.Sprintf(`
+	return `
 		SELECT id, entity_id, expiration, tls_pubkey, tls_next_pubkey, p2p_pubkey, consensus_pubkey, roles
-			FROM %s.nodes
-			WHERE entity_id = $1::text AND id = $2::text`, qf.chainID)
+			FROM chain.nodes
+			WHERE entity_id = $1::text AND id = $2::text`
 }
 
 func (qf QueryFactory) AccountsQuery() string {
-	return fmt.Sprintf(`
+	return `
 		SELECT
 			address,
 			COALESCE(nonce, 0),
 			COALESCE(general_balance, 0),
 			COALESCE(escrow_balance_active, 0),
 			COALESCE(escrow_balance_debonding, 0)
-		FROM %[1]s.accounts
+		FROM chain.accounts
 		WHERE ($1::numeric IS NULL OR general_balance >= $1::numeric) AND
 					($2::numeric IS NULL OR general_balance <= $2::numeric) AND
 					($3::numeric IS NULL OR escrow_balance_active >= $3::numeric) AND
@@ -207,11 +218,11 @@ func (qf QueryFactory) AccountsQuery() string {
 					($8::numeric IS NULL OR general_balance + escrow_balance_active + escrow_balance_debonding <= $8::numeric)
 		ORDER BY address
 		LIMIT $9::bigint
-		OFFSET $10::bigint`, qf.chainID)
+		OFFSET $10::bigint`
 }
 
 func (qf QueryFactory) AccountQuery() string {
-	return fmt.Sprintf(`
+	return `
 		SELECT
 			address,
 			COALESCE(nonce, 0),
@@ -220,178 +231,178 @@ func (qf QueryFactory) AccountQuery() string {
 			COALESCE(escrow_balance_debonding, 0),
 			COALESCE (
 				(SELECT COALESCE(ROUND(SUM(shares * escrow_balance_active / escrow_total_shares_active)), 0) AS delegations_balance
-				FROM %[1]s.delegations
-				JOIN %[1]s.accounts ON %[1]s.accounts.address = %[1]s.delegations.delegatee
+				FROM chain.delegations
+				JOIN chain.accounts ON chain.accounts.address = chain.delegations.delegatee
 				WHERE delegator = $1::text AND escrow_total_shares_active != 0)
 			, 0) AS delegations_balance,
 			COALESCE (
 				(SELECT COALESCE(ROUND(SUM(shares * escrow_balance_debonding / escrow_total_shares_debonding)), 0) AS debonding_delegations_balance
-				FROM %[1]s.debonding_delegations
-				JOIN %[1]s.accounts ON %[1]s.accounts.address = %[1]s.debonding_delegations.delegatee
+				FROM chain.debonding_delegations
+				JOIN chain.accounts ON chain.accounts.address = chain.debonding_delegations.delegatee
 				WHERE delegator = $1::text AND escrow_total_shares_debonding != 0)
 			, 0) AS debonding_delegations_balance
-		FROM %[1]s.accounts
-		WHERE address = $1::text`, qf.chainID)
+		FROM chain.accounts
+		WHERE address = $1::text`
 }
 
 func (qf QueryFactory) AccountAllowancesQuery() string {
-	return fmt.Sprintf(`
+	return `
 		SELECT beneficiary, allowance
-			FROM %s.allowances
-			WHERE owner = $1::text`, qf.chainID)
+			FROM chain.allowances
+			WHERE owner = $1::text`
 }
 
 func (qf QueryFactory) DelegationsQuery() string {
-	return fmt.Sprintf(`
+	return `
 		SELECT delegatee, shares, escrow_balance_active, escrow_total_shares_active
-			FROM %[1]s.delegations
-			JOIN %[1]s.accounts ON %[1]s.delegations.delegatee = %[1]s.accounts.address
+			FROM chain.delegations
+			JOIN chain.accounts ON chain.delegations.delegatee = chain.accounts.address
 			WHERE delegator = $1::text
 		ORDER BY delegatee, shares
 		LIMIT $2::bigint
-		OFFSET $3::bigint`, qf.chainID)
+		OFFSET $3::bigint`
 }
 
 func (qf QueryFactory) DebondingDelegationsQuery() string {
-	return fmt.Sprintf(`
+	return `
 		SELECT delegatee, shares, debond_end, escrow_balance_debonding, escrow_total_shares_debonding
-			FROM %[1]s.debonding_delegations
-			JOIN %[1]s.accounts ON %[1]s.debonding_delegations.delegatee = %[1]s.accounts.address
+			FROM chain.debonding_delegations
+			JOIN chain.accounts ON chain.debonding_delegations.delegatee = chain.accounts.address
 			WHERE delegator = $1::text
 		ORDER BY debond_end
 		LIMIT $2::bigint
-		OFFSET $3::bigint`, qf.chainID)
+		OFFSET $3::bigint`
 }
 
 func (qf QueryFactory) EpochsQuery() string {
-	return fmt.Sprintf(`
+	return `
 		SELECT id, start_height, end_height
-			FROM %s.epochs
+			FROM chain.epochs
 		ORDER BY id DESC
 		LIMIT $1::bigint
-		OFFSET $2::bigint`, qf.chainID)
+		OFFSET $2::bigint`
 }
 
 func (qf QueryFactory) EpochQuery() string {
-	return fmt.Sprintf(`
+	return `
 		SELECT id, start_height, end_height
-			FROM %s.epochs
-			WHERE id = $1::bigint`, qf.chainID)
+			FROM chain.epochs
+			WHERE id = $1::bigint`
 }
 
 func (qf QueryFactory) ProposalsQuery() string {
-	return fmt.Sprintf(`
+	return `
 		SELECT id, submitter, state, deposit, handler, cp_target_version, rhp_target_version, rcp_target_version,
 				upgrade_epoch, cancels, created_at, closes_at, invalid_votes
-			FROM %s.proposals
+			FROM chain.proposals
 			WHERE ($1::text IS NULL OR submitter = $1::text) AND
 						($2::text IS NULL OR state = $2::text)
 		ORDER BY id DESC
 		LIMIT $3::bigint
-		OFFSET $4::bigint`, qf.chainID)
+		OFFSET $4::bigint`
 }
 
 func (qf QueryFactory) ProposalQuery() string {
-	return fmt.Sprintf(`
+	return `
 		SELECT id, submitter, state, deposit, handler, cp_target_version, rhp_target_version, rcp_target_version,
 				upgrade_epoch, cancels, created_at, closes_at, invalid_votes
-			FROM %s.proposals
-			WHERE id = $1::bigint`, qf.chainID)
+			FROM chain.proposals
+			WHERE id = $1::bigint`
 }
 
 func (qf QueryFactory) ProposalVotesQuery() string {
-	return fmt.Sprintf(`
+	return `
 		SELECT voter, vote
-			FROM %s.votes
+			FROM chain.votes
 			WHERE proposal = $1::bigint
 		ORDER BY proposal DESC
 		LIMIT $2::bigint
-		OFFSET $3::bigint`, qf.chainID)
+		OFFSET $3::bigint`
 }
 
 func (qf QueryFactory) ValidatorQuery() string {
-	return fmt.Sprintf(`
+	return `
 		SELECT id, start_height
-			FROM %s.epochs
+			FROM chain.epochs
 		ORDER BY id DESC
-		LIMIT 1`, qf.chainID)
+		LIMIT 1`
 }
 
 func (qf QueryFactory) ValidatorDataQuery() string {
-	return fmt.Sprintf(`
+	return `
 		SELECT
-				%[1]s.entities.id AS entity_id,
-				%[1]s.entities.address AS entity_address,
-				%[1]s.nodes.id AS node_address,
-				%[1]s.accounts.escrow_balance_active AS escrow,
-				%[1]s.commissions.schedule AS commissions_schedule,
-				CASE WHEN EXISTS(SELECT null FROM %[1]s.nodes WHERE %[1]s.entities.id = %[1]s.nodes.entity_id AND voting_power > 0) THEN true ELSE false END AS active,
-				CASE WHEN EXISTS(SELECT null FROM %[1]s.nodes WHERE %[1]s.entities.id = %[1]s.nodes.entity_id AND %[1]s.nodes.roles like '%%validator%%') THEN true ELSE false END AS status,
-				%[1]s.entities.meta AS meta
-			FROM %[1]s.entities
-			JOIN %[1]s.accounts ON %[1]s.entities.address = %[1]s.accounts.address
-			LEFT JOIN %[1]s.commissions ON %[1]s.entities.address = %[1]s.commissions.address
-			JOIN %[1]s.nodes ON %[1]s.entities.id = %[1]s.nodes.entity_id
-				AND %[1]s.nodes.roles like '%%validator%%'
-				AND %[1]s.nodes.voting_power = (
+				chain.entities.id AS entity_id,
+				chain.entities.address AS entity_address,
+				chain.nodes.id AS node_address,
+				chain.accounts.escrow_balance_active AS escrow,
+				chain.commissions.schedule AS commissions_schedule,
+				CASE WHEN EXISTS(SELECT null FROM chain.nodes WHERE chain.entities.id = chain.nodes.entity_id AND voting_power > 0) THEN true ELSE false END AS active,
+				CASE WHEN EXISTS(SELECT null FROM chain.nodes WHERE chain.entities.id = chain.nodes.entity_id AND chain.nodes.roles like '%validator%') THEN true ELSE false END AS status,
+				chain.entities.meta AS meta
+			FROM chain.entities
+			JOIN chain.accounts ON chain.entities.address = chain.accounts.address
+			LEFT JOIN chain.commissions ON chain.entities.address = chain.commissions.address
+			JOIN chain.nodes ON chain.entities.id = chain.nodes.entity_id
+				AND chain.nodes.roles like '%validator%'
+				AND chain.nodes.voting_power = (
 					SELECT max(voting_power)
-					FROM %[1]s.nodes
-					WHERE %[1]s.entities.id = %[1]s.nodes.entity_id
-						AND %[1]s.nodes.roles like '%%validator%%'
+					FROM chain.nodes
+					WHERE chain.entities.id = chain.nodes.entity_id
+						AND chain.nodes.roles like '%validator%'
 				)
-			WHERE %[1]s.entities.id = $1::text`, qf.chainID)
+			WHERE chain.entities.id = $1::text`
 }
 
 func (qf QueryFactory) ValidatorsQuery() string {
-	return fmt.Sprintf(`
+	return `
 		SELECT id, start_height
-			FROM %s.epochs
-			ORDER BY id DESC`, qf.chainID)
+			FROM chain.epochs
+			ORDER BY id DESC`
 }
 
 func (qf QueryFactory) ValidatorsDataQuery() string {
-	return fmt.Sprintf(`
+	return `
 		SELECT
-				%[1]s.entities.id AS entity_id,
-				%[1]s.entities.address AS entity_address,
-				%[1]s.nodes.id AS node_address,
-				%[1]s.accounts.escrow_balance_active AS escrow,
-				%[1]s.commissions.schedule AS commissions_schedule,
-				CASE WHEN EXISTS(SELECT NULL FROM %[1]s.nodes WHERE %[1]s.entities.id = %[1]s.nodes.entity_id AND voting_power > 0) THEN true ELSE false END AS active,
-				CASE WHEN EXISTS(SELECT NULL FROM %[1]s.nodes WHERE %[1]s.entities.id = %[1]s.nodes.entity_id AND %[1]s.nodes.roles like '%%validator%%') THEN true ELSE false END AS status,
-				%[1]s.entities.meta AS meta
-			FROM %[1]s.entities
-			JOIN %[1]s.accounts ON %[1]s.entities.address = %[1]s.accounts.address
-			LEFT JOIN %[1]s.commissions ON %[1]s.entities.address = %[1]s.commissions.address
-			JOIN %[1]s.nodes ON %[1]s.entities.id = %[1]s.nodes.entity_id
-				AND %[1]s.nodes.roles like '%%validator%%'
-				AND %[1]s.nodes.voting_power = (
+				chain.entities.id AS entity_id,
+				chain.entities.address AS entity_address,
+				chain.nodes.id AS node_address,
+				chain.accounts.escrow_balance_active AS escrow,
+				chain.commissions.schedule AS commissions_schedule,
+				CASE WHEN EXISTS(SELECT NULL FROM chain.nodes WHERE chain.entities.id = chain.nodes.entity_id AND voting_power > 0) THEN true ELSE false END AS active,
+				CASE WHEN EXISTS(SELECT NULL FROM chain.nodes WHERE chain.entities.id = chain.nodes.entity_id AND chain.nodes.roles like '%validator%') THEN true ELSE false END AS status,
+				chain.entities.meta AS meta
+			FROM chain.entities
+			JOIN chain.accounts ON chain.entities.address = chain.accounts.address
+			LEFT JOIN chain.commissions ON chain.entities.address = chain.commissions.address
+			JOIN chain.nodes ON chain.entities.id = chain.nodes.entity_id
+				AND chain.nodes.roles like '%validator%'
+				AND chain.nodes.voting_power = (
 					SELECT max(voting_power)
-					FROM %[1]s.nodes
-					WHERE %[1]s.entities.id = %[1]s.nodes.entity_id
-						AND %[1]s.nodes.roles like '%%validator%%'
+					FROM chain.nodes
+					WHERE chain.entities.id = chain.nodes.entity_id
+						AND chain.nodes.roles like '%validator%'
 				)
 		ORDER BY escrow_balance_active DESC
 		LIMIT $1::bigint
-		OFFSET $2::bigint`, qf.chainID)
+		OFFSET $2::bigint`
 }
 
 func (qf QueryFactory) RuntimeBlocksQuery() string {
-	return fmt.Sprintf(`
+	return `
 		SELECT round, block_hash, timestamp, num_transactions, size, gas_used
-			FROM %[1]s.runtime_blocks
-			WHERE (runtime = '%[2]s') AND
-						($1::bigint IS NULL OR round >= $1::bigint) AND
-						($2::bigint IS NULL OR round <= $2::bigint) AND
-						($3::timestamptz IS NULL OR timestamp >= $3::timestamptz) AND
-						($4::timestamptz IS NULL OR timestamp <= $4::timestamptz)
+			FROM chain.runtime_blocks
+			WHERE (runtime = $1) AND
+						($2::bigint IS NULL OR round >= $2::bigint) AND
+						($3::bigint IS NULL OR round <= $3::bigint) AND
+						($4::timestamptz IS NULL OR timestamp >= $4::timestamptz) AND
+						($5::timestamptz IS NULL OR timestamp <= $5::timestamptz)
 		ORDER BY round DESC
-		LIMIT $5::bigint
-		OFFSET $6::bigint`, qf.chainID, qf.runtime)
+		LIMIT $6::bigint
+		OFFSET $7::bigint`
 }
 
 func (qf QueryFactory) RuntimeTransactionsQuery() string {
-	return fmt.Sprintf(`
+	return `
 		SELECT
 			txs.round,
 			txs.tx_index,
@@ -405,72 +416,72 @@ func (qf QueryFactory) RuntimeTransactionsQuery() string {
 			(
 				SELECT
 					json_object_agg(pre.address, encode(pre.address_data, 'hex'))
-				FROM %[1]s.runtime_related_transactions AS rel
-				JOIN %[1]s.address_preimages AS pre ON rel.account_address = pre.address
+				FROM chain.runtime_related_transactions AS rel
+				JOIN chain.address_preimages AS pre ON rel.account_address = pre.address
 				WHERE txs.runtime = rel.runtime
 					AND txs.round = rel.tx_round
 					AND txs.tx_index = rel.tx_index
 			) AS eth_addr_lookup
-		FROM %[1]s.runtime_transactions AS txs
-		LEFT JOIN %[1]s.runtime_related_transactions AS rel ON txs.round = rel.tx_round
+		FROM chain.runtime_transactions AS txs
+		LEFT JOIN chain.runtime_related_transactions AS rel ON txs.round = rel.tx_round
 			AND txs.tx_index = rel.tx_index
 			AND txs.runtime = rel.runtime
-			-- When related_address ($3) is NULL and hence we do no filtering on it, avoid the join altogether.
+			-- When related_address ($4) is NULL and hence we do no filtering on it, avoid the join altogether.
 			-- Otherwise, every tx will be returned as many times as there are related addresses for it.
-			AND $3::text IS NOT NULL
-		WHERE (txs.runtime = '%[2]s') AND
-					($1::bigint IS NULL OR txs.round = $1::bigint) AND
-					($2::text IS NULL OR txs.tx_hash = $2::text OR txs.tx_eth_hash = $2::text) AND
-					($3::text IS NULL OR rel.account_address = $3::text)
+			AND $4::text IS NOT NULL
+		WHERE (txs.runtime = $1) AND
+					($2::bigint IS NULL OR txs.round = $2::bigint) AND
+					($3::text IS NULL OR txs.tx_hash = $3::text OR txs.tx_eth_hash = $3::text) AND
+					($4::text IS NULL OR rel.account_address = $4::text)
 		ORDER BY txs.round DESC, txs.tx_index DESC
-		LIMIT $4::bigint
-		OFFSET $5::bigint
-		`, qf.chainID, qf.runtime)
+		LIMIT $5::bigint
+		OFFSET $6::bigint
+		`
 }
 
 func (qf QueryFactory) RuntimeEventsQuery() string {
-	return fmt.Sprintf(`
+	return `
 		SELECT round, tx_index, tx_hash, type, body, evm_log_name, evm_log_params
-			FROM %[1]s.runtime_events
-			WHERE (runtime = '%[2]s') AND
-					($1::bigint IS NULL OR round = $1::bigint) AND
-					($2::integer IS NULL OR tx_index = $2::integer) AND
-					($3::text IS NULL OR tx_hash = $3::text) AND
-					($4::text IS NULL OR type = $4::text) AND
-					($5::text IS NULL OR evm_log_signature = $5::text) AND
-					($6::text IS NULL OR related_accounts @> ARRAY[$6::text])
+			FROM chain.runtime_events
+			WHERE (runtime = $1) AND
+					($2::bigint IS NULL OR round = $2::bigint) AND
+					($3::integer IS NULL OR tx_index = $3::integer) AND
+					($4::text IS NULL OR tx_hash = $4::text) AND
+					($5::text IS NULL OR type = $5::text) AND
+					($6::text IS NULL OR evm_log_signature = $6::text) AND
+					($7::text IS NULL OR related_accounts @> ARRAY[$7::text])
 			ORDER BY round DESC, tx_index
-			LIMIT $7::bigint
-			OFFSET $8::bigint`, qf.chainID, qf.runtime)
+			LIMIT $8::bigint
+			OFFSET $9::bigint`
 }
 
 func (qf QueryFactory) AddressPreimageQuery() string {
-	return fmt.Sprintf(`
+	return `
 		SELECT context_identifier, context_version, address_data
-			FROM %[1]s.address_preimages
-			WHERE address = $1::text`, qf.chainID)
+			FROM chain.address_preimages
+			WHERE address = $1::text`
 }
 
 func (qf QueryFactory) RuntimeAccountStatsQuery() string {
-	return fmt.Sprintf(`
+	return `
 		SELECT
 			COALESCE (
-				(SELECT sum(amount) from %[1]s.runtime_transfers where sender=$1::text)
+				(SELECT sum(amount) from chain.runtime_transfers where sender=$1::text)
 				, 0) AS total_sent,
 			COALESCE (
-				(SELECT sum(amount) from %[1]s.runtime_transfers where receiver=$1::text)
+				(SELECT sum(amount) from chain.runtime_transfers where receiver=$1::text)
 				, 0) AS total_received,
 			COALESCE (
-				(SELECT count(*) from %[1]s.runtime_related_transactions where account_address=$1::text)
-				, 0) AS num_txns`, qf.chainID)
+				(SELECT count(*) from chain.runtime_related_transactions where account_address=$1::text)
+				, 0) AS num_txns`
 }
 
 func (qf QueryFactory) EvmTokensQuery() string {
-	return fmt.Sprintf(`
+	return `
 		WITH holders AS (
 			SELECT token_address, COUNT(*) AS cnt
-			FROM %[1]s.evm_token_balances
-			WHERE (runtime = '%[2]s')
+			FROM chain.evm_token_balances
+			WHERE (runtime = $1)
 			GROUP BY token_address
 		)
 		SELECT
@@ -484,31 +495,31 @@ func (qf QueryFactory) EvmTokensQuery() string {
 				WHEN tokens.token_type = 20 THEN 'ERC20'
 			END AS type,
 			holders.cnt AS num_holders
-		FROM %[1]s.evm_tokens AS tokens
-		JOIN %[1]s.address_preimages AS preimages ON (token_address = preimages.address)
+		FROM chain.evm_tokens AS tokens
+		JOIN chain.address_preimages AS preimages ON (token_address = preimages.address)
 		JOIN holders USING (token_address)
-		WHERE (tokens.runtime = '%[2]s')
+		WHERE (tokens.runtime = $1)
 		ORDER BY num_holders DESC
-		LIMIT $1::bigint
-		OFFSET $2::bigint`, qf.chainID, qf.runtime)
+		LIMIT $2::bigint
+		OFFSET $3::bigint`
 }
 
 func (qf QueryFactory) AccountRuntimeSdkBalancesQuery() string {
-	return fmt.Sprintf(`
+	return `
 		SELECT
 			balance AS balance,
 			symbol AS token_symbol
-		FROM %[1]s.runtime_sdk_balances
-		WHERE runtime = '%[2]s' AND
-			account_address = $1::text AND
+		FROM chain.runtime_sdk_balances
+		WHERE runtime = $1 AND
+			account_address = $2::text AND
 			balance != 0
 		ORDER BY balance DESC
 		LIMIT 1000  -- To prevent huge responses. Hardcoded because API exposes this as a subfield that does not lend itself to pagination.
-	`, qf.chainID, qf.runtime)
+	`
 }
 
 func (qf QueryFactory) AccountRuntimeEvmBalancesQuery() string {
-	return fmt.Sprintf(`
+	return `
 		SELECT
 			balances.balance AS balance,
 			balances.token_address AS token_address,
@@ -516,14 +527,14 @@ func (qf QueryFactory) AccountRuntimeEvmBalancesQuery() string {
 			tokens.symbol AS token_name,
 			'ERC20' AS token_type,  -- TODO: fetch from the table once available
 			tokens.decimals AS token_decimals
-		FROM %[1]s.evm_token_balances AS balances
-		JOIN %[1]s.evm_tokens         AS tokens USING (runtime, token_address)
-		WHERE runtime = '%[2]s' AND
-			account_address = $1::text AND
+		FROM chain.evm_token_balances AS balances
+		JOIN chain.evm_tokens         AS tokens USING (runtime, token_address)
+		WHERE runtime = $1 AND
+			account_address = $2::text AND
 			balance != 0
 		ORDER BY balance DESC
 		LIMIT 1000  -- To prevent huge responses. Hardcoded because API exposes this as a subfield that does not lend itself to pagination.
-	`, qf.chainID, qf.runtime)
+	`
 }
 
 func (qf QueryFactory) FineTxVolumesQuery() string {
