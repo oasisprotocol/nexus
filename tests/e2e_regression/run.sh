@@ -105,7 +105,7 @@ diff --recursive "$SCRIPT_DIR/expected" "$outDir" >/dev/null || {
   echo "  git diff --no-index $SCRIPT_DIR/{expected,actual}"
   echo
   echo "If the new results are expected, re-run this script after copying the new results into .../expected:"
-  echo "  cp $SCRIPT_DIR/{actual/*,expected}"
+  echo "  rm -rf $SCRIPT_DIR/expected; cp -r $SCRIPT_DIR/{actual,expected}"
   exit 1
 }
 
