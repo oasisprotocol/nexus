@@ -22,6 +22,7 @@ import (
 	oasisConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 
 	"github.com/oasisprotocol/oasis-indexer/analyzer"
+	"github.com/oasisprotocol/oasis-indexer/analyzer/queries"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/util"
 	apiTypes "github.com/oasisprotocol/oasis-indexer/api/v1/types"
 	"github.com/oasisprotocol/oasis-indexer/config"
@@ -197,7 +198,7 @@ func (m *Main) latestBlock(ctx context.Context) (int64, error) {
 	var latest int64
 	if err := m.target.QueryRow(
 		ctx,
-		m.qf.LatestBlockQuery(),
+		queries.LatestBlock,
 		// ^analyzers should only analyze for a single chain ID, and we anchor this
 		// at the starting block.
 		ConsensusAnalyzerName,
@@ -211,7 +212,7 @@ func (m *Main) isGenesisProcessed(ctx context.Context) (bool, error) {
 	var processed bool
 	if err := m.target.QueryRow(
 		ctx,
-		m.qf.IsGenesisProcessedQuery(),
+		queries.IsGenesisProcessed,
 		m.cfg.ChainContext,
 	).Scan(&processed); err != nil {
 		return false, err
@@ -228,7 +229,7 @@ func (m *Main) processGenesis(ctx context.Context) error {
 
 	m.logger.Info("processing genesis document")
 	gen := NewGenesisProcessor(m.logger.With("height", "genesis"))
-	queries, err := gen.Process(genesisDoc)
+	batchStr, err := gen.Process(genesisDoc)
 	if err != nil {
 		return err
 	}
@@ -236,7 +237,7 @@ func (m *Main) processGenesis(ctx context.Context) error {
 	// Debug: log the SQL into a file if requested.
 	debugPath := os.Getenv("CONSENSUS_DAMASK_GENESIS_DUMP")
 	if debugPath != "" {
-		sql := strings.Join(queries, "\n")
+		sql := strings.Join(batchStr, "\n")
 		if err := os.WriteFile(debugPath, []byte(sql), 0o600 /* Permissions: rw------- */); err != nil {
 			gen.logger.Error("failed to write genesis sql to file", "err", err)
 		} else {
@@ -245,11 +246,11 @@ func (m *Main) processGenesis(ctx context.Context) error {
 	}
 
 	batch := &storage.QueryBatch{}
-	for _, query := range queries {
+	for _, query := range batchStr {
 		batch.Queue(query)
 	}
 	batch.Queue(
-		m.qf.GenesisIndexingProgressQuery(),
+		queries.GenesisIndexingProgress,
 		m.cfg.ChainContext,
 	)
 	if err := m.target.SendBatch(ctx, batch); err != nil {
@@ -345,7 +346,7 @@ func (m *Main) processBlock(ctx context.Context, height int64) error {
 
 	// Update indexing progress.
 	batch.Queue(
-		m.qf.IndexingProgressQuery(),
+		queries.IndexingProgress,
 		height,
 		ConsensusAnalyzerName,
 	)
@@ -365,7 +366,7 @@ func (m *Main) processBlock(ctx context.Context, height int64) error {
 
 func (m *Main) queueBlockInserts(batch *storage.QueryBatch, data *storage.ConsensusBlockData) error {
 	batch.Queue(
-		m.qf.ConsensusBlockInsertQuery(),
+		queries.ConsensusBlockInsert,
 		data.BlockHeader.Height,
 		data.BlockHeader.Hash.Hex(),
 		data.BlockHeader.Time.UTC(),
@@ -381,7 +382,7 @@ func (m *Main) queueBlockInserts(batch *storage.QueryBatch, data *storage.Consen
 
 func (m *Main) queueEpochInserts(batch *storage.QueryBatch, data *storage.ConsensusBlockData) error {
 	batch.Queue(
-		m.qf.ConsensusEpochInsertQuery(),
+		queries.ConsensusEpochInsert,
 		data.Epoch,
 		data.BlockHeader.Height,
 	)
@@ -389,7 +390,7 @@ func (m *Main) queueEpochInserts(batch *storage.QueryBatch, data *storage.Consen
 	// Conclude previous epoch. Epochs start at index 0.
 	if data.Epoch > 0 {
 		batch.Queue(
-			m.qf.ConsensusEpochUpdateQuery(),
+			queries.ConsensusEpochUpdate,
 			data.Epoch-1,
 			data.BlockHeader.Height,
 		)
@@ -412,7 +413,7 @@ func (m *Main) queueTransactionInserts(batch *storage.QueryBatch, data *storage.
 			signedTx.Signature.PublicKey,
 		).String()
 
-		batch.Queue(m.qf.ConsensusTransactionInsertQuery(),
+		batch.Queue(queries.ConsensusTransactionInsert,
 			data.BlockHeader.Height,
 			signedTx.Hash().Hex(),
 			i,
@@ -426,7 +427,7 @@ func (m *Main) queueTransactionInserts(batch *storage.QueryBatch, data *storage.
 			result.Error.Code,
 			result.Error.Message,
 		)
-		batch.Queue(m.qf.ConsensusAccountNonceUpdateQuery(),
+		batch.Queue(queries.ConsensusAccountNonceUpdate,
 			sender,
 			tx.Nonce+1,
 		)
@@ -444,7 +445,7 @@ func (m *Main) queueTransactionInserts(batch *storage.QueryBatch, data *storage.
 				return err
 			}
 
-			batch.Queue(m.qf.ConsensusCommissionsUpsertQuery(),
+			batch.Queue(queries.ConsensusCommissionsUpsert,
 				staking.NewAddress(signedTx.Signature.PublicKey).String(),
 				string(schedule),
 			)
@@ -470,7 +471,7 @@ func (m *Main) queueTxEventInserts(batch *storage.QueryBatch, data *storage.Cons
 				return err
 			}
 
-			batch.Queue(m.qf.ConsensusEventInsertQuery(),
+			batch.Queue(queries.ConsensusEventInsert,
 				string(eventData.ty),
 				string(body),
 				data.Height,
@@ -481,7 +482,7 @@ func (m *Main) queueTxEventInserts(batch *storage.QueryBatch, data *storage.Cons
 		}
 		uniqueTxAccounts := extractUniqueAddresses(txAccounts)
 		for _, addr := range uniqueTxAccounts {
-			batch.Queue(m.qf.ConsensusAccountRelatedTransactionInsertQuery(),
+			batch.Queue(queries.ConsensusAccountRelatedTransactionInsert,
 				addr,
 				data.Height,
 				i,
@@ -501,7 +502,7 @@ func (m *Main) queueRuntimeRegistrations(batch *storage.QueryBatch, data *storag
 			keyManager = &km
 		}
 
-		batch.Queue(m.qf.ConsensusRuntimeUpsertQuery(),
+		batch.Queue(queries.ConsensusRuntimeUpsert,
 			runtimeEvent.Runtime.ID.String(),
 			false,
 			runtimeEvent.Runtime.Kind.String(),
@@ -518,12 +519,12 @@ func (m *Main) queueEntityEvents(batch *storage.QueryBatch, data *storage.Regist
 		entityID := entityEvent.Entity.ID.String()
 
 		for _, node := range entityEvent.Entity.Nodes {
-			batch.Queue(m.qf.ConsensusClaimedNodeInsertQuery(),
+			batch.Queue(queries.ConsensusClaimedNodeInsert,
 				entityID,
 				node.String(),
 			)
 		}
-		batch.Queue(m.qf.ConsensusEntityUpsertQuery(),
+		batch.Queue(queries.ConsensusEntityUpsert,
 			entityID,
 			staking.NewAddress(entityEvent.Entity.ID).String(),
 		)
@@ -556,7 +557,7 @@ func (m *Main) queueNodeEvents(batch *storage.QueryBatch, data *storage.Registry
 
 		if nodeEvent.IsRegistration {
 			// A new node is registered.
-			batch.Queue(m.qf.ConsensusNodeUpsertQuery(),
+			batch.Queue(queries.ConsensusNodeUpsert,
 				nodeEvent.Node.ID.String(),
 				nodeEvent.Node.EntityID.String(),
 				nodeEvent.Node.Expiration,
@@ -574,7 +575,7 @@ func (m *Main) queueNodeEvents(batch *storage.QueryBatch, data *storage.Registry
 			)
 		} else {
 			// An existing node is expired.
-			batch.Queue(m.qf.ConsensusNodeDeleteQuery(),
+			batch.Queue(queries.ConsensusNodeDelete,
 				nodeEvent.Node.ID.String(),
 			)
 		}
@@ -661,11 +662,11 @@ func (m *Main) queueTransfers(batch *storage.QueryBatch, data *storage.StakingDa
 			continue
 		}
 
-		batch.Queue(m.qf.ConsensusSenderUpdateQuery(),
+		batch.Queue(queries.ConsensusSenderUpdate,
 			transfer.From.String(),
 			transfer.Amount.String(),
 		)
-		batch.Queue(m.qf.ConsensusReceiverUpdateQuery(),
+		batch.Queue(queries.ConsensusReceiverUpdate,
 			transfer.To.String(),
 			transfer.Amount.String(),
 		)
@@ -676,7 +677,7 @@ func (m *Main) queueTransfers(batch *storage.QueryBatch, data *storage.StakingDa
 
 func (m *Main) queueBurns(batch *storage.QueryBatch, data *storage.StakingData) error {
 	for _, burn := range data.Burns {
-		batch.Queue(m.qf.ConsensusBurnUpdateQuery(),
+		batch.Queue(queries.ConsensusBurnUpdate,
 			burn.Owner.String(),
 			burn.Amount.String(),
 		)
@@ -693,54 +694,54 @@ func (m *Main) queueEscrows(batch *storage.QueryBatch, data *storage.StakingData
 			escrower := e.Add.Escrow.String()
 			amount := e.Add.Amount.String()
 			newShares := e.Add.NewShares.String()
-			batch.Queue(m.qf.ConsensusDecreaseGeneralBalanceForEscrowUpdateQuery(),
+			batch.Queue(queries.ConsensusDecreaseGeneralBalanceForEscrowUpdate,
 				owner,
 				amount,
 			)
-			batch.Queue(m.qf.ConsensusAddEscrowBalanceUpsertQuery(),
+			batch.Queue(queries.ConsensusAddEscrowBalanceUpsert,
 				escrower,
 				amount,
 				newShares,
 			)
-			batch.Queue(m.qf.ConsensusAddDelegationsUpsertQuery(),
+			batch.Queue(queries.ConsensusAddDelegationsUpsert,
 				escrower,
 				owner,
 				newShares,
 			)
 		case e.Take != nil:
-			batch.Queue(m.qf.ConsensusTakeEscrowUpdateQuery(),
+			batch.Queue(queries.ConsensusTakeEscrowUpdate,
 				e.Take.Owner.String(),
 				e.Take.Amount.String(),
 			)
 		case e.DebondingStart != nil:
-			batch.Queue(m.qf.ConsensusDebondingStartEscrowBalanceUpdateQuery(),
+			batch.Queue(queries.ConsensusDebondingStartEscrowBalanceUpdate,
 				e.DebondingStart.Escrow.String(),
 				e.DebondingStart.Amount.String(),
 				e.DebondingStart.ActiveShares.String(),
 				e.DebondingStart.DebondingShares.String(),
 			)
-			batch.Queue(m.qf.ConsensusDebondingStartDelegationsUpdateQuery(),
+			batch.Queue(queries.ConsensusDebondingStartDelegationsUpdate,
 				e.DebondingStart.Escrow.String(),
 				e.DebondingStart.Owner.String(),
 				e.DebondingStart.ActiveShares.String(),
 			)
-			batch.Queue(m.qf.ConsensusDebondingStartDebondingDelegationsInsertQuery(),
+			batch.Queue(queries.ConsensusDebondingStartDebondingDelegationsInsert,
 				e.DebondingStart.Escrow.String(),
 				e.DebondingStart.Owner.String(),
 				e.DebondingStart.DebondingShares.String(),
 				e.DebondingStart.DebondEndTime,
 			)
 		case e.Reclaim != nil:
-			batch.Queue(m.qf.ConsensusReclaimGeneralBalanceUpdateQuery(),
+			batch.Queue(queries.ConsensusReclaimGeneralBalanceUpdate,
 				e.Reclaim.Owner.String(),
 				e.Reclaim.Amount.String(),
 			)
-			batch.Queue(m.qf.ConsensusReclaimEscrowBalanceUpdateQuery(),
+			batch.Queue(queries.ConsensusReclaimEscrowBalanceUpdate,
 				e.Reclaim.Escrow.String(),
 				e.Reclaim.Amount.String(),
 				e.Reclaim.Shares.String(),
 			)
-			batch.Queue(m.qf.ConsensusDeleteDebondingDelegationsQuery(),
+			batch.Queue(queries.ConsensusDeleteDebondingDelegations,
 				e.Reclaim.Owner.String(),
 				e.Reclaim.Escrow.String(),
 				e.Reclaim.Shares.String(),
@@ -755,15 +756,15 @@ func (m *Main) queueEscrows(batch *storage.QueryBatch, data *storage.StakingData
 func (m *Main) queueAllowanceChanges(batch *storage.QueryBatch, data *storage.StakingData) error {
 	for _, allowanceChange := range data.AllowanceChanges {
 		if allowanceChange.Allowance.IsZero() {
-			batch.Queue(m.qf.ConsensusAllowanceChangeDeleteQuery(),
+			batch.Queue(queries.ConsensusAllowanceChangeDelete,
 				allowanceChange.Owner.String(),
 				allowanceChange.Beneficiary.String(),
 			)
 		} else {
 			// A new account with no funds can still submit allowance change transactions.
 			// Ensure account exists and satisfy `allowances->accounts` foreign key.
-			batch.Queue(m.qf.ConsensusAllowanceOwnerUpsertQuery(), allowanceChange.Owner.String())
-			batch.Queue(m.qf.ConsensusAllowanceChangeUpdateQuery(),
+			batch.Queue(queries.ConsensusAllowanceOwnerUpsert, allowanceChange.Owner.String())
+			batch.Queue(queries.ConsensusAllowanceChangeUpdate,
 				allowanceChange.Owner.String(),
 				allowanceChange.Beneficiary.String(),
 				allowanceChange.Allowance.String(),
@@ -796,7 +797,7 @@ func (m *Main) queueStakingEventInserts(batch *storage.QueryBatch, data *storage
 
 func (m *Main) queueValidatorUpdates(batch *storage.QueryBatch, data *storage.SchedulerData) error {
 	for _, validator := range data.Validators {
-		batch.Queue(m.qf.ConsensusValidatorNodeUpdateQuery(),
+		batch.Queue(queries.ConsensusValidatorNodeUpdate,
 			validator.ID.String(),
 			validator.VotingPower,
 		)
@@ -806,14 +807,14 @@ func (m *Main) queueValidatorUpdates(batch *storage.QueryBatch, data *storage.Sc
 }
 
 func (m *Main) queueCommitteeUpdates(batch *storage.QueryBatch, data *storage.SchedulerData) error {
-	batch.Queue(m.qf.ConsensusCommitteeMembersTruncateQuery())
+	batch.Queue(queries.ConsensusCommitteeMembersTruncate)
 	for namespace, committees := range data.Committees {
 		runtime := namespace.String()
 		for _, committee := range committees {
 			kind := committee.String()
 			validFor := int64(committee.ValidFor)
 			for _, member := range committee.Members {
-				batch.Queue(m.qf.ConsensusCommitteeMemberInsertQuery(),
+				batch.Queue(queries.ConsensusCommitteeMemberInsert,
 					member.PublicKey,
 					validFor,
 					runtime,
@@ -830,7 +831,7 @@ func (m *Main) queueCommitteeUpdates(batch *storage.QueryBatch, data *storage.Sc
 func (m *Main) queueSubmissions(batch *storage.QueryBatch, data *storage.GovernanceData) error {
 	for _, submission := range data.ProposalSubmissions {
 		if submission.Content.Upgrade != nil {
-			batch.Queue(m.qf.ConsensusProposalSubmissionInsertQuery(),
+			batch.Queue(queries.ConsensusProposalSubmissionInsert,
 				submission.ID,
 				submission.Submitter.String(),
 				submission.State.String(),
@@ -844,7 +845,7 @@ func (m *Main) queueSubmissions(batch *storage.QueryBatch, data *storage.Governa
 				submission.ClosesAt,
 			)
 		} else if submission.Content.CancelUpgrade != nil {
-			batch.Queue(m.qf.ConsensusProposalSubmissionCancelInsertQuery(),
+			batch.Queue(queries.ConsensusProposalSubmissionCancelInsert,
 				submission.ID,
 				submission.Submitter.String(),
 				submission.State.String(),
@@ -861,7 +862,7 @@ func (m *Main) queueSubmissions(batch *storage.QueryBatch, data *storage.Governa
 
 func (m *Main) queueExecutions(batch *storage.QueryBatch, data *storage.GovernanceData) error {
 	for _, execution := range data.ProposalExecutions {
-		batch.Queue(m.qf.ConsensusProposalExecutionsUpdateQuery(),
+		batch.Queue(queries.ConsensusProposalExecutionsUpdate,
 			execution.ID,
 		)
 	}
@@ -871,11 +872,11 @@ func (m *Main) queueExecutions(batch *storage.QueryBatch, data *storage.Governan
 
 func (m *Main) queueFinalizations(batch *storage.QueryBatch, data *storage.GovernanceData) error {
 	for _, finalization := range data.ProposalFinalizations {
-		batch.Queue(m.qf.ConsensusProposalUpdateQuery(),
+		batch.Queue(queries.ConsensusProposalUpdate,
 			finalization.ID,
 			finalization.State.String(),
 		)
-		batch.Queue(m.qf.ConsensusProposalInvalidVotesUpdateQuery(),
+		batch.Queue(queries.ConsensusProposalInvalidVotesUpdate,
 			finalization.ID,
 			fmt.Sprintf("%d", finalization.InvalidVotes),
 		)
@@ -886,7 +887,7 @@ func (m *Main) queueFinalizations(batch *storage.QueryBatch, data *storage.Gover
 
 func (m *Main) queueVotes(batch *storage.QueryBatch, data *storage.GovernanceData) error {
 	for _, vote := range data.Votes {
-		batch.Queue(m.qf.ConsensusVoteInsertQuery(),
+		batch.Queue(queries.ConsensusVoteInsert,
 			vote.ID,
 			vote.Submitter.String(),
 			vote.Vote.String(),
@@ -923,7 +924,7 @@ func (m *Main) queueSingleEventInserts(batch *storage.QueryBatch, eventData *par
 		return err
 	}
 
-	batch.Queue(m.qf.ConsensusEventInsertQuery(),
+	batch.Queue(queries.ConsensusEventInsert,
 		string(eventData.ty),
 		string(body),
 		height,

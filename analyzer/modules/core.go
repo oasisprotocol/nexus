@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/oasisprotocol/oasis-indexer/analyzer/queries"
 	"github.com/oasisprotocol/oasis-indexer/log"
 	"github.com/oasisprotocol/oasis-indexer/storage"
 )
@@ -52,7 +53,7 @@ func (h *CoreHandler) Name() string {
 func (h *CoreHandler) queueGasUsed(batch *storage.QueryBatch, data *storage.CoreData) error {
 	for _, gasUsed := range data.GasUsed {
 		batch.Queue(
-			h.qf.RuntimeGasUsedInsertQuery(),
+			queries.RuntimeGasUsedInsert,
 			h.runtimeName,
 			data.Round,
 			nil, // TODO: Get sender address from transaction data

@@ -14,6 +14,7 @@ import (
 
 	"github.com/oasisprotocol/oasis-indexer/analyzer"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/modules"
+	"github.com/oasisprotocol/oasis-indexer/analyzer/queries"
 	common "github.com/oasisprotocol/oasis-indexer/analyzer/uncategorized"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/util"
 	apiTypes "github.com/oasisprotocol/oasis-indexer/api/v1/types"
@@ -186,7 +187,7 @@ func (m *Main) latestRound(ctx context.Context) (uint64, error) {
 	var latest uint64
 	if err := m.target.QueryRow(
 		ctx,
-		m.qf.LatestBlockQuery(),
+		queries.LatestBlock,
 		// ^analyzers should only analyze for a single chain ID, and we anchor this
 		// at the starting round.
 		m.runtime.String(),
@@ -203,7 +204,7 @@ func (m *Main) prework() error {
 
 	// Register special addresses.
 	batch.Queue(
-		m.qf.AddressPreimageInsertQuery(),
+		queries.AddressPreimageInsert,
 		rewards.RewardPoolAddress.String(),          // oasis1qp7x0q9qahahhjas0xde8w0v04ctp4pqzu5mhjav on mainnet oasis-3
 		types.AddressV0ModuleContext.Identifier,     // context_identifier
 		int32(types.AddressV0ModuleContext.Version), // context_version
@@ -251,7 +252,7 @@ func (m *Main) processRound(ctx context.Context, round uint64) error {
 	// Update indexing progress.
 	group.Go(func() error {
 		batch.Queue(
-			m.qf.IndexingProgressQuery(),
+			queries.IndexingProgress,
 			round,
 			m.runtime.String(),
 		)
@@ -320,7 +321,7 @@ func (m *Main) prepareEventData(ctx context.Context, round uint64, batch *storag
 	for _, eventData := range res.ExtractedEvents {
 		eventRelatedAddresses := common.ExtractAddresses(eventData.RelatedAddresses)
 		batch.Queue(
-			m.qf.RuntimeEventInsertQuery(),
+			queries.RuntimeEventInsert,
 			m.runtime,
 			round,
 			nil, // non-tx event has no tx index
@@ -335,7 +336,7 @@ func (m *Main) prepareEventData(ctx context.Context, round uint64, batch *storag
 
 	// Insert any eth address preimages found in non-tx events.
 	for addr, preimageData := range blockData.AddressPreimages {
-		batch.Queue(m.qf.AddressPreimageInsertQuery(), addr, preimageData.ContextIdentifier, preimageData.ContextVersion, preimageData.Data)
+		batch.Queue(queries.AddressPreimageInsert, addr, preimageData.ContextIdentifier, preimageData.ContextVersion, preimageData.Data)
 	}
 
 	return nil
@@ -348,7 +349,7 @@ func (m *Main) queueBlockAndTransactionInserts(ctx context.Context, batch *stora
 	}
 
 	batch.Queue(
-		m.qf.RuntimeBlockInsertQuery(),
+		queries.RuntimeBlockInsert,
 		m.runtime,
 		data.Round,
 		data.BlockHeader.Header.Version,

@@ -10,6 +10,7 @@ import (
 
 	"github.com/oasisprotocol/oasis-indexer/analyzer"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/modules"
+	"github.com/oasisprotocol/oasis-indexer/analyzer/queries"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/util"
 	"github.com/oasisprotocol/oasis-indexer/config"
 	"github.com/oasisprotocol/oasis-indexer/log"
@@ -105,7 +106,7 @@ type StaleToken struct {
 
 func (m Main) getStaleTokens(ctx context.Context, limit int) ([]*StaleToken, error) {
 	var staleTokens []*StaleToken
-	rows, err := m.target.Query(ctx, m.qf.RuntimeEVMTokensAnalysisStaleQuery(), m.runtime, limit)
+	rows, err := m.target.Query(ctx, queries.RuntimeEVMTokensAnalysisStale, m.runtime, limit)
 	if err != nil {
 		return nil, fmt.Errorf("querying discovered tokens: %w", err)
 	}
@@ -164,7 +165,7 @@ func (m Main) processBatch(ctx context.Context) (int, error) {
 					return fmt.Errorf("downloading new token %s: %w", staleToken.Addr, err)
 				}
 				if tokenData != nil {
-					batch.Queue(m.qf.RuntimeEVMTokenInsertQuery(),
+					batch.Queue(queries.RuntimeEVMTokenInsert,
 						m.runtime,
 						staleToken.Addr,
 						tokenData.Type,
@@ -186,13 +187,13 @@ func (m Main) processBatch(ctx context.Context) (int, error) {
 				if err != nil {
 					return fmt.Errorf("downloading mutated token %s: %w", staleToken.Addr, err)
 				}
-				batch.Queue(m.qf.RuntimeEVMTokenUpdateQuery(),
+				batch.Queue(queries.RuntimeEVMTokenUpdate,
 					m.runtime,
 					staleToken.Addr,
 					mutable.TotalSupply.String(),
 				)
 			}
-			batch.Queue(m.qf.RuntimeEVMTokenAnalysisUpdateQuery(), m.runtime, staleToken.Addr, staleToken.LastMutateRound)
+			batch.Queue(queries.RuntimeEVMTokenAnalysisUpdate, m.runtime, staleToken.Addr, staleToken.LastMutateRound)
 			return nil
 		})
 	}

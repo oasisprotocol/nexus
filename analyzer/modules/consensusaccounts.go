@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/oasisprotocol/oasis-indexer/analyzer/queries"
 	"github.com/oasisprotocol/oasis-indexer/log"
 	"github.com/oasisprotocol/oasis-indexer/storage"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/consensusaccounts"
@@ -63,7 +64,7 @@ func (h *ConsensusAccountsHandler) queueDeposits(batch *storage.QueryBatch, data
 		}
 		errorModule, errorCode := decomposeError(deposit.Error)
 		batch.Queue(
-			h.qf.RuntimeDepositInsertQuery(),
+			queries.RuntimeDepositInsert,
 			h.runtimeName,
 			data.Round,
 			deposit.From.String(),
@@ -92,7 +93,7 @@ func (h *ConsensusAccountsHandler) queueWithdraws(batch *storage.QueryBatch, dat
 		}
 		errorModule, errorCode := decomposeError(withdraw.Error)
 		batch.Queue(
-			h.qf.RuntimeWithdrawInsertQuery(),
+			queries.RuntimeWithdrawInsert,
 			h.runtimeName,
 			data.Round,
 			withdraw.From.String(),

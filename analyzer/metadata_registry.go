@@ -6,6 +6,7 @@ import (
 	"time"
 
 	registry "github.com/oasisprotocol/metadata-registry-tools"
+	"github.com/oasisprotocol/oasis-indexer/analyzer/queries"
 	"github.com/oasisprotocol/oasis-indexer/config"
 	"github.com/oasisprotocol/oasis-indexer/log"
 	"github.com/oasisprotocol/oasis-indexer/metrics"
@@ -76,7 +77,7 @@ func (a *MetadataRegistryAnalyzer) queueUpdates(ctx context.Context, batch *stor
 
 	for id, meta := range entities {
 		batch.Queue(
-			a.qf.ConsensusEntityMetaUpsertQuery(),
+			queries.ConsensusEntityMetaUpsert,
 			id.String(),
 			meta,
 		)
