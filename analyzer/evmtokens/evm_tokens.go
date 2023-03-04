@@ -147,11 +147,13 @@ func (m Main) processBatch(ctx context.Context) (int, error) {
 	defer cancel()
 	group, groupCtx := errgroup.WithContext(ctxWithTimeout)
 
-	batch := &storage.QueryBatch{}
+	batches := make([]*storage.QueryBatch, 0, len(staleTokens))
 
 	for _, st := range staleTokens {
 		// Redeclare `st` for unclobbered use within goroutine.
 		staleToken := st
+		batch := &storage.QueryBatch{}
+		batches = append(batches, batch)
 		group.Go(func() error {
 			m.logger.Info("downloading", "stale_token", staleToken)
 			// todo: assert that addr context is secp256k1
@@ -202,6 +204,10 @@ func (m Main) processBatch(ctx context.Context) (int, error) {
 		return 0, err
 	}
 
+	batch := &storage.QueryBatch{}
+	for _, b := range batches {
+		batch.Extend(b)
+	}
 	if err := m.target.SendBatch(ctx, batch); err != nil {
 		return 0, fmt.Errorf("sending batch: %w", err)
 	}
