@@ -101,9 +101,9 @@ func NewRuntimeAnalyzer(
 
 		// module handlers
 		moduleHandlers: []modules.ModuleHandler{
-			modules.NewCoreHandler(client, runtime.String(), logger),
-			modules.NewAccountsHandler(client, runtime.String(), logger),
-			modules.NewConsensusAccountsHandler(client, runtime.String(), logger),
+			modules.NewCoreHandler(client, runtime, logger),
+			modules.NewAccountsHandler(client, runtime, logger),
+			modules.NewConsensusAccountsHandler(client, runtime, logger),
 		},
 	}, nil
 }

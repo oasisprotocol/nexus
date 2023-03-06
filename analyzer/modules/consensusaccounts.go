@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/oasisprotocol/oasis-indexer/analyzer"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/queries"
 	"github.com/oasisprotocol/oasis-indexer/log"
 	"github.com/oasisprotocol/oasis-indexer/storage"
@@ -17,14 +18,14 @@ const (
 // ConsensusAccountsHandler implements support for transforming and inserting data from the
 // `consensus_accounts` module for a runtime into target storage.
 type ConsensusAccountsHandler struct {
-	source      storage.RuntimeSourceStorage
-	runtimeName string
-	logger      *log.Logger
+	source  storage.RuntimeSourceStorage
+	runtime analyzer.Runtime
+	logger  *log.Logger
 }
 
 // NewConsensusAccountsHandler creates a new handler for `consensus_accounts` module data.
-func NewConsensusAccountsHandler(source storage.RuntimeSourceStorage, runtimeName string, logger *log.Logger) *ConsensusAccountsHandler {
-	return &ConsensusAccountsHandler{source, runtimeName, logger}
+func NewConsensusAccountsHandler(source storage.RuntimeSourceStorage, runtime analyzer.Runtime, logger *log.Logger) *ConsensusAccountsHandler {
+	return &ConsensusAccountsHandler{source, runtime, logger}
 }
 
 // PrepareConsensusAccountsData prepares raw data from the `consensus_accounts` module for insertion.
@@ -65,7 +66,7 @@ func (h *ConsensusAccountsHandler) queueDeposits(batch *storage.QueryBatch, data
 		errorModule, errorCode := decomposeError(deposit.Error)
 		batch.Queue(
 			queries.RuntimeDepositInsert,
-			h.runtimeName,
+			h.runtime,
 			data.Round,
 			deposit.From.String(),
 			deposit.To.String(),
@@ -94,7 +95,7 @@ func (h *ConsensusAccountsHandler) queueWithdraws(batch *storage.QueryBatch, dat
 		errorModule, errorCode := decomposeError(withdraw.Error)
 		batch.Queue(
 			queries.RuntimeWithdrawInsert,
-			h.runtimeName,
+			h.runtime,
 			data.Round,
 			withdraw.From.String(),
 			withdraw.To.String(),
