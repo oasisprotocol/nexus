@@ -438,7 +438,7 @@ const (
 		OFFSET $3::bigint
 	`
 
-	// FineDailyActiveAccountsQuery returns the fine-grained query for daily active account windows.
+	// FineDailyActiveAccounts returns the fine-grained query for daily active account windows.
 	FineDailyActiveAccounts = `
 		SELECT window_end, active_accounts
 		FROM stats.daily_active_accounts
@@ -449,7 +449,7 @@ const (
 		OFFSET $3::bigint
 	`
 
-	// DailyActiveAccountsQuery returns the query for daily sampled daily active account windows.
+	// DailyActiveAccounts returns the query for daily sampled daily active account windows.
 	DailyActiveAccounts = `
 		SELECT date_trunc('day', window_end) as window_end, active_accounts
 		FROM stats.daily_active_accounts

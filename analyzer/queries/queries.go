@@ -375,7 +375,7 @@ const (
     REFRESH MATERIALIZED VIEW stats.min5_tx_volume
   `
 
-	// LatestDailyAccountStatsQuery returns the query to get the timestamp of the latest daily active accounts stat.
+	// LatestDailyAccountStats returns the query to get the timestamp of the latest daily active accounts stat.
 	LatestDailyAccountStats = `
     SELECT window_end
     FROM stats.daily_active_accounts
@@ -384,13 +384,13 @@ const (
     LIMIT 1
   `
 
-	// InsertDailyAccountStatsQuery returns the query to insert the daily active accounts stat.
+	// InsertDailyAccountStats returns the query to insert the daily active accounts stat.
 	InsertDailyAccountStats = `
     INSERT INTO stats.daily_active_accounts (layer, window_end, active_accounts)
     VALUES ($1, $2, $3)
   `
 
-	// EarliestConsensusBlockTimeQuery returns the query to get the timestamp of the earliest
+	// EarliestConsensusBlockTime returns the query to get the timestamp of the earliest
 	// indexed consensus block.
 	EarliestConsensusBlockTime = `
     SELECT time
@@ -399,7 +399,7 @@ const (
     LIMIT 1
   `
 
-	// LatestConsensusBlockTimeQuery returns the query to get the timestamp of the latest
+	// LatestConsensusBlockTime returns the query to get the timestamp of the latest
 	// indexed consensus block.
 	LatestConsensusBlockTime = `
     SELECT time
@@ -408,7 +408,7 @@ const (
     LIMIT 1
   `
 
-	// EarliestRuntimeBlockTimeQuery returns the query to get the timestamp of the earliest
+	// EarliestRuntimeBlockTime returns the query to get the timestamp of the earliest
 	// indexed runtime block.
 	EarliestRuntimeBlockTime = `
     SELECT timestamp
@@ -418,7 +418,7 @@ const (
     LIMIT 1
   `
 
-	// LatestRuntimeBlockTimeQuery returns the query to get the timestamp of the latest
+	// LatestRuntimeBlockTime returns the query to get the timestamp of the latest
 	// indexed runtime block.
 	LatestRuntimeBlockTime = `
     SELECT timestamp
@@ -428,7 +428,7 @@ const (
     LIMIT 1
   `
 
-	// ConsensusActiveAccountsQuery returns the query to get the number of
+	// ConsensusActiveAccounts returns the query to get the number of
 	// active accounts in the consensus layer within the given time range.
 	ConsensusActiveAccounts = `
     SELECT COUNT(DISTINCT account_address)
@@ -437,7 +437,7 @@ const (
     WHERE (b.time >= $1::timestamptz AND b.time < $2::timestamptz)
     `
 
-	// RuntimeActiveAccountsQuery returns the query to get the number of
+	// RuntimeActiveAccounts returns the query to get the number of
 	// active accounts in the runtime layer within the given time range.
 	RuntimeActiveAccounts = `
     SELECT COUNT(DISTINCT account_address)
