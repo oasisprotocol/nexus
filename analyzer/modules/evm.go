@@ -11,7 +11,6 @@ import (
 	"github.com/oasisprotocol/oasis-core/go/common/errors"
 
 	"github.com/oasisprotocol/oasis-indexer/analyzer/evmabi"
-	apiTypes "github.com/oasisprotocol/oasis-indexer/api/v1/types"
 	"github.com/oasisprotocol/oasis-indexer/log"
 	"github.com/oasisprotocol/oasis-indexer/storage"
 )
@@ -36,10 +35,6 @@ type EVMTokenData struct {
 
 type EVMTokenMutableData struct {
 	TotalSupply *big.Int
-}
-
-type EVMBlockTokenData struct {
-	TokenData map[apiTypes.Address]*EVMTokenData
 }
 
 type EVMDeterministicError struct {
