@@ -18,8 +18,8 @@ import (
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/evm"
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 
-	"github.com/oasisprotocol/oasis-indexer/analyzer"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/modules"
+	"github.com/oasisprotocol/oasis-indexer/analyzer/queries"
 	common "github.com/oasisprotocol/oasis-indexer/analyzer/uncategorized"
 	apiTypes "github.com/oasisprotocol/oasis-indexer/api/v1/types"
 	"github.com/oasisprotocol/oasis-indexer/log"
@@ -567,11 +567,12 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 	}, nil
 }
 
-func emitRoundBatch(batch *storage.QueryBatch, qf *analyzer.QueryFactory, round uint64, blockData *BlockData) {
+func (m *Main) emitRoundBatch(batch *storage.QueryBatch, round uint64, blockData *BlockData) {
 	for _, transactionData := range blockData.TransactionData {
 		for _, signerData := range transactionData.SignerData {
 			batch.Queue(
-				qf.RuntimeTransactionSignerInsertQuery(),
+				queries.RuntimeTransactionSignerInsert,
+				m.runtime,
 				round,
 				transactionData.Index,
 				signerData.Index,
@@ -580,10 +581,11 @@ func emitRoundBatch(batch *storage.QueryBatch, qf *analyzer.QueryFactory, round 
 			)
 		}
 		for addr := range transactionData.RelatedAccountAddresses {
-			batch.Queue(qf.RuntimeRelatedTransactionInsertQuery(), addr, round, transactionData.Index)
+			batch.Queue(queries.RuntimeRelatedTransactionInsert, m.runtime, addr, round, transactionData.Index)
 		}
 		batch.Queue(
-			qf.RuntimeTransactionInsertQuery(),
+			queries.RuntimeTransactionInsert,
+			m.runtime,
 			round,
 			transactionData.Index,
 			transactionData.Hash,
@@ -598,7 +600,8 @@ func emitRoundBatch(batch *storage.QueryBatch, qf *analyzer.QueryFactory, round 
 	for _, eventData := range blockData.EventData {
 		eventRelatedAddresses := common.ExtractAddresses(eventData.RelatedAddresses)
 		batch.Queue(
-			qf.RuntimeEventInsertQuery(),
+			queries.RuntimeEventInsert,
+			m.runtime,
 			round,
 			eventData.TxIndex,
 			eventData.TxHash,
@@ -610,16 +613,16 @@ func emitRoundBatch(batch *storage.QueryBatch, qf *analyzer.QueryFactory, round 
 		)
 	}
 	for addr, preimageData := range blockData.AddressPreimages {
-		batch.Queue(qf.AddressPreimageInsertQuery(), addr, preimageData.ContextIdentifier, preimageData.ContextVersion, preimageData.Data)
+		batch.Queue(queries.AddressPreimageInsert, addr, preimageData.ContextIdentifier, preimageData.ContextVersion, preimageData.Data)
 	}
 	for key, change := range blockData.TokenBalanceChanges {
-		batch.Queue(qf.RuntimeEvmBalanceUpdateQuery(), key.TokenAddress, key.AccountAddress, change.String())
+		batch.Queue(queries.RuntimeEvmBalanceUpdate, m.runtime, key.TokenAddress, key.AccountAddress, change.String())
 	}
 	for addr, possibleToken := range blockData.PossibleTokens {
 		if possibleToken.Mutated {
-			batch.Queue(qf.RuntimeEVMTokenAnalysisMutateInsertQuery(), addr, round)
+			batch.Queue(queries.RuntimeEVMTokenAnalysisMutateInsert, m.runtime, addr, round)
 		} else {
-			batch.Queue(qf.RuntimeEVMTokenAnalysisInsertQuery(), addr, round)
+			batch.Queue(queries.RuntimeEVMTokenAnalysisInsert, m.runtime, addr, round)
 		}
 	}
 }

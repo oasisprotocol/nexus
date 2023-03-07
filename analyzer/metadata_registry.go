@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/iancoleman/strcase"
 	registry "github.com/oasisprotocol/metadata-registry-tools"
+	"github.com/oasisprotocol/oasis-indexer/analyzer/queries"
 	"github.com/oasisprotocol/oasis-indexer/config"
 	"github.com/oasisprotocol/oasis-indexer/log"
 	"github.com/oasisprotocol/oasis-indexer/metrics"
@@ -16,7 +16,6 @@ import (
 const MetadataRegistryAnalyzerName = "metadata_registry"
 
 type MetadataRegistryAnalyzer struct {
-	qf       QueryFactory
 	target   storage.TargetStorage
 	logger   *log.Logger
 	metrics  metrics.DatabaseMetrics
@@ -37,7 +36,6 @@ func NewMetadataRegistryAnalyzer(chainID string, cfg *config.MetadataRegistryCon
 	logger.Info("Starting metadata_registry analyzer")
 	return &MetadataRegistryAnalyzer{
 		interval: cfg.Interval,
-		qf:       NewQueryFactory(strcase.ToSnake(chainID), "" /*runtime*/),
 		target:   target,
 		logger:   logger.With("analyzer", MetadataRegistryAnalyzerName),
 		metrics:  metrics.NewDefaultDatabaseMetrics(MetadataRegistryAnalyzerName),
@@ -79,7 +77,7 @@ func (a *MetadataRegistryAnalyzer) queueUpdates(ctx context.Context, batch *stor
 
 	for id, meta := range entities {
 		batch.Queue(
-			a.qf.ConsensusEntityMetaUpsertQuery(),
+			queries.ConsensusEntityMetaUpsert,
 			id.String(),
 			meta,
 		)

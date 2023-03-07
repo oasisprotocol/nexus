@@ -7,9 +7,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/iancoleman/strcase"
 	"github.com/jackc/pgx/v4"
 
+	"github.com/oasisprotocol/oasis-indexer/analyzer/queries"
 	"github.com/oasisprotocol/oasis-indexer/config"
 	"github.com/oasisprotocol/oasis-indexer/log"
 	"github.com/oasisprotocol/oasis-indexer/metrics"
@@ -54,7 +54,6 @@ var dailyActiveAccountsLayers = []string{
 }
 
 type AggregateStatsAnalyzer struct {
-	qf     QueryFactory
 	target storage.TargetStorage
 
 	txVolumeInterval time.Duration
@@ -72,7 +71,6 @@ func (a *AggregateStatsAnalyzer) Name() string {
 func NewAggregateStatsAnalyzer(chainID string, cfg *config.AggregateStatsConfig, target storage.TargetStorage, logger *log.Logger) (*AggregateStatsAnalyzer, error) {
 	logger.Info("starting aggregate_stats analyzer")
 	return &AggregateStatsAnalyzer{
-		qf:               NewQueryFactory(strcase.ToSnake(chainID), "" /*runtime*/),
 		target:           target,
 		txVolumeInterval: cfg.TxVolumeInterval,
 		logger:           logger.With("analyzer", AggregateStatsAnalyzerName),
@@ -108,8 +106,8 @@ func (a *AggregateStatsAnalyzer) txVolumeWorker(ctx context.Context) {
 		// Note: The order matters here! Daily tx volume is a materialized view
 		// that's instantiated from 5 minute tx volume.
 		batch := &storage.QueryBatch{}
-		batch.Queue(a.qf.RefreshMin5TxVolumeQuery())
-		batch.Queue(a.qf.RefreshDailyTxVolumeQuery())
+		batch.Queue(queries.RefreshMin5TxVolume)
+		batch.Queue(queries.RefreshDailyTxVolume)
 
 		ctxWithTimeout, cancelCtx := context.WithTimeout(ctx, txVolumeStatsUpdateTimeout)
 		if err := a.writeToDB(ctxWithTimeout, batch, "update_tx_volume_stats"); err != nil {
@@ -170,7 +168,7 @@ func (a *AggregateStatsAnalyzer) dailyActiveAccountsWorker(ctx context.Context) 
 			var latestStatsTs time.Time
 			err = a.target.QueryRow(
 				ctx,
-				a.qf.LatestDailyAccountStatsQuery(),
+				queries.LatestDailyAccountStats,
 				layer,
 			).Scan(&latestStatsTs)
 			switch {
@@ -202,27 +200,32 @@ func (a *AggregateStatsAnalyzer) dailyActiveAccountsWorker(ctx context.Context) 
 				windowEnd := nextWindow
 
 				// Compute active accounts for the provided time window.
-				var aggregateQuery string
+				var acctsRow pgx.Row
 				switch layer {
 				case layerConsensus:
-					aggregateQuery = a.qf.ConsensusActiveAccountsQuery()
+					acctsRow = a.target.QueryRow(
+						ctx,
+						queries.ConsensusActiveAccounts,
+						windowStart, // from
+						windowEnd,   // to
+					)
 				default:
-					qf := a.qf.NewWithRuntime(layer)
-					aggregateQuery = qf.RuntimeActiveAccountsQuery()
+					acctsRow = a.target.QueryRow(
+						ctx,
+						queries.RuntimeActiveAccounts,
+						layer,       // runtime
+						windowStart, // from
+						windowEnd,   // to
+					)
 				}
 				var activeAccounts uint64
-				if err := a.target.QueryRow(
-					ctx,
-					aggregateQuery,
-					windowStart, // from
-					windowEnd,   // to
-				).Scan(&activeAccounts); err != nil {
+				if err := acctsRow.Scan(&activeAccounts); err != nil {
 					a.logger.Error("failed to compute daily active accounts", "layer", layer, "window_start", windowStart, "window_end", windowEnd, "err", err)
 					continue
 				}
 
 				// Insert computed active accounts.
-				batch.Queue(a.qf.InsertDailyAccountStatsQuery(), layer, windowEnd.UTC(), activeAccounts)
+				batch.Queue(queries.InsertDailyAccountStats, layer, windowEnd.UTC(), activeAccounts)
 				if batch.Len() > dailyActiveAccountsBatchLimit {
 					break
 				}
@@ -246,16 +249,15 @@ func (a *AggregateStatsAnalyzer) dailyActiveAccountsWorker(ctx context.Context) 
 
 // Queries the latest indexed block of the specified layer.
 func (a *AggregateStatsAnalyzer) latestBlockTs(ctx context.Context, layer string) (*time.Time, error) {
-	var latestBlockTsQuery string
+	var latestBlockTsRow pgx.Row
 	switch layer {
 	case layerConsensus:
-		latestBlockTsQuery = a.qf.LatestConsensusBlockTimeQuery()
+		latestBlockTsRow = a.target.QueryRow(ctx, queries.LatestConsensusBlockTime)
 	default:
-		qf := a.qf.NewWithRuntime(layer)
-		latestBlockTsQuery = qf.LatestRuntimeBlockTimeQuery()
+		latestBlockTsRow = a.target.QueryRow(ctx, queries.LatestRuntimeBlockTime, layer)
 	}
 	var latestBlockTs *time.Time
-	if err := a.target.QueryRow(ctx, latestBlockTsQuery).Scan(&latestBlockTs); err != nil { // Fails with ErrNoRows if no blocks.
+	if err := latestBlockTsRow.Scan(&latestBlockTs); err != nil { // Fails with ErrNoRows if no blocks.
 		return nil, err
 	}
 	return latestBlockTs, nil
@@ -263,16 +265,15 @@ func (a *AggregateStatsAnalyzer) latestBlockTs(ctx context.Context, layer string
 
 // Queries the earliest indexed block for the specified layer.
 func (a *AggregateStatsAnalyzer) earliestBlockTs(ctx context.Context, layer string) (*time.Time, error) {
-	var earliestBlockTsQuery string
+	var earliestBlockTsRow pgx.Row
 	switch layer {
 	case layerConsensus:
-		earliestBlockTsQuery = a.qf.EarliestConsensusBlockTimeQuery()
+		earliestBlockTsRow = a.target.QueryRow(ctx, queries.EarliestConsensusBlockTime)
 	default:
-		qf := a.qf.NewWithRuntime(layer)
-		earliestBlockTsQuery = qf.EarliestRuntimeBlockTimeQuery()
+		earliestBlockTsRow = a.target.QueryRow(ctx, queries.EarliestRuntimeBlockTime, layer)
 	}
 	var earliestBlockTs *time.Time
-	if err := a.target.QueryRow(ctx, earliestBlockTsQuery).Scan(&earliestBlockTs); err != nil { // Fails with ErrNoRows if no blocks.
+	if err := earliestBlockTsRow.Scan(&earliestBlockTs); err != nil { // Fails with ErrNoRows if no blocks.
 		return nil, err
 	}
 	return earliestBlockTs, nil

@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/oasisprotocol/oasis-indexer/analyzer"
+	"github.com/oasisprotocol/oasis-indexer/analyzer/queries"
 	"github.com/oasisprotocol/oasis-indexer/log"
 	"github.com/oasisprotocol/oasis-indexer/storage"
 )
@@ -16,14 +17,14 @@ const (
 // CoreHandler implements support for transforming and inserting data from the
 // `core` module for a runtime into target storage.
 type CoreHandler struct {
-	source storage.RuntimeSourceStorage
-	qf     *analyzer.QueryFactory
-	logger *log.Logger
+	source  storage.RuntimeSourceStorage
+	runtime analyzer.Runtime
+	logger  *log.Logger
 }
 
 // NewCoreHandler creates a new handler for `core` module data.
-func NewCoreHandler(source storage.RuntimeSourceStorage, qf *analyzer.QueryFactory, logger *log.Logger) *CoreHandler {
-	return &CoreHandler{source, qf, logger}
+func NewCoreHandler(source storage.RuntimeSourceStorage, runtime analyzer.Runtime, logger *log.Logger) *CoreHandler {
+	return &CoreHandler{source, runtime, logger}
 }
 
 // PrepareCoreData prepares raw data from the `core` module for insertion.
@@ -53,7 +54,8 @@ func (h *CoreHandler) Name() string {
 func (h *CoreHandler) queueGasUsed(batch *storage.QueryBatch, data *storage.CoreData) error {
 	for _, gasUsed := range data.GasUsed {
 		batch.Queue(
-			h.qf.RuntimeGasUsedInsertQuery(),
+			queries.RuntimeGasUsedInsert,
+			h.runtime,
 			data.Round,
 			nil, // TODO: Get sender address from transaction data
 			gasUsed.Amount,

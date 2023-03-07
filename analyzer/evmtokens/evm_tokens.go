@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/iancoleman/strcase"
 	oasisConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/oasisprotocol/oasis-indexer/analyzer"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/modules"
+	"github.com/oasisprotocol/oasis-indexer/analyzer/queries"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/util"
 	"github.com/oasisprotocol/oasis-indexer/config"
 	"github.com/oasisprotocol/oasis-indexer/log"
@@ -37,7 +37,6 @@ const (
 type Main struct {
 	runtime analyzer.Runtime
 	cfg     analyzer.RuntimeConfig
-	qf      analyzer.QueryFactory
 	target  storage.TargetStorage
 	logger  *log.Logger
 }
@@ -87,12 +86,9 @@ func NewMain(
 		Source: client,
 	}
 
-	qf := analyzer.NewQueryFactory(strcase.ToSnake(nodeCfg.ChainID), runtime.String())
-
 	return &Main{
 		runtime: runtime,
 		cfg:     ac,
-		qf:      qf,
 		target:  target,
 		logger:  logger.With("analyzer", EvmTokensAnalyzerPrefix+runtime.String()),
 	}, nil
@@ -110,7 +106,7 @@ type StaleToken struct {
 
 func (m Main) getStaleTokens(ctx context.Context, limit int) ([]*StaleToken, error) {
 	var staleTokens []*StaleToken
-	rows, err := m.target.Query(ctx, m.qf.RuntimeEVMTokensAnalysisStaleQuery(), limit)
+	rows, err := m.target.Query(ctx, queries.RuntimeEVMTokensAnalysisStale, m.runtime, limit)
 	if err != nil {
 		return nil, fmt.Errorf("querying discovered tokens: %w", err)
 	}
@@ -169,7 +165,8 @@ func (m Main) processBatch(ctx context.Context) (int, error) {
 					return fmt.Errorf("downloading new token %s: %w", staleToken.Addr, err)
 				}
 				if tokenData != nil {
-					batch.Queue(m.qf.RuntimeEVMTokenInsertQuery(),
+					batch.Queue(queries.RuntimeEVMTokenInsert,
+						m.runtime,
 						staleToken.Addr,
 						tokenData.Type,
 						tokenData.Name,
@@ -190,12 +187,13 @@ func (m Main) processBatch(ctx context.Context) (int, error) {
 				if err != nil {
 					return fmt.Errorf("downloading mutated token %s: %w", staleToken.Addr, err)
 				}
-				batch.Queue(m.qf.RuntimeEVMTokenUpdateQuery(),
+				batch.Queue(queries.RuntimeEVMTokenUpdate,
+					m.runtime,
 					staleToken.Addr,
 					mutable.TotalSupply.String(),
 				)
 			}
-			batch.Queue(m.qf.RuntimeEVMTokenAnalysisUpdateQuery(), staleToken.Addr, staleToken.LastMutateRound)
+			batch.Queue(queries.RuntimeEVMTokenAnalysisUpdate, m.runtime, staleToken.Addr, staleToken.LastMutateRound)
 			return nil
 		})
 	}
