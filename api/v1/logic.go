@@ -54,6 +54,12 @@ func renderRuntimeTransaction(storageTransaction client.RuntimeTransaction) (api
 		Body:       body,
 		Success:    cr.IsSuccess(),
 	}
+	if !cr.IsSuccess() {
+		code := int(cr.Failed.Code)
+		apiTransaction.Code = &code
+		apiTransaction.Module = &cr.Failed.Module
+		apiTransaction.Message = &cr.Failed.Message
+	}
 	if err = uncategorized.VisitCall(&tx.Call, &cr, &uncategorized.CallHandler{
 		AccountsTransfer: func(body *accounts.Transfer) error {
 			toAddr, err2 := uncategorized.StringifySdkAddress(&body.To)
