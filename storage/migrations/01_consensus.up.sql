@@ -4,8 +4,8 @@
 BEGIN;
 
 -- Create Damask Upgrade Schema with `chain-id`.
-CREATE SCHEMA IF NOT EXISTS oasis_3;
-GRANT USAGE ON SCHEMA oasis_3 TO PUBLIC;
+CREATE SCHEMA IF NOT EXISTS chain;
+GRANT USAGE ON SCHEMA chain TO PUBLIC;
 
 -- Custom types
 CREATE DOMAIN uint_numeric NUMERIC(1000,0) CHECK(VALUE >= 0);
@@ -17,7 +17,7 @@ CREATE DOMAIN base64_ed25519_pubkey TEXT CHECK(VALUE ~ '^[A-Za-z0-9+/]{43}=$');
 CREATE DOMAIN oasis_addr TEXT CHECK(length(VALUE) = 46 AND VALUE ~ '^oasis1');
 
 -- Block Data
-CREATE TABLE oasis_3.blocks
+CREATE TABLE chain.blocks
 (
   height     UINT63 PRIMARY KEY,
   block_hash HEX64 NOT NULL,
@@ -33,11 +33,11 @@ CREATE TABLE oasis_3.blocks
   beacon     BYTEA,
   metadata   JSON
 );
-CREATE INDEX ix_blocks_time ON oasis_3.blocks (time);
+CREATE INDEX ix_blocks_time ON chain.blocks (time);
 
-CREATE TABLE oasis_3.transactions
+CREATE TABLE chain.transactions
 (
-  block UINT63 NOT NULL REFERENCES oasis_3.blocks(height) DEFERRABLE INITIALLY DEFERRED,
+  block UINT63 NOT NULL REFERENCES chain.blocks(height) DEFERRABLE INITIALLY DEFERRED,
   tx_index  UINT31 NOT NULL,
 
   tx_hash   HEX64 NOT NULL,
@@ -59,10 +59,10 @@ CREATE TABLE oasis_3.transactions
   PRIMARY KEY (block, tx_index)
 );
 -- Queries by sender and/or tx_hash are available via the API.
-CREATE INDEX ix_transactions_sender ON oasis_3.transactions (sender);
-CREATE INDEX ix_transactions_tx_hash ON oasis_3.transactions (tx_hash);
+CREATE INDEX ix_transactions_sender ON chain.transactions (sender);
+CREATE INDEX ix_transactions_tx_hash ON chain.transactions (tx_hash);
 
-CREATE TABLE oasis_3.events
+CREATE TABLE chain.events
 (
   tx_block UINT63 NOT NULL,
   tx_index  UINT31,
@@ -72,16 +72,16 @@ CREATE TABLE oasis_3.events
   tx_hash   HEX64, -- could be fetched from `transactions` table; denormalized for efficiency
   related_accounts TEXT[],
 
-  FOREIGN KEY (tx_block, tx_index) REFERENCES oasis_3.transactions(block, tx_index) DEFERRABLE INITIALLY DEFERRED
+  FOREIGN KEY (tx_block, tx_index) REFERENCES chain.transactions(block, tx_index) DEFERRABLE INITIALLY DEFERRED
 );
-CREATE INDEX ix_events_related_accounts ON oasis_3.events USING gin(related_accounts);
-CREATE INDEX ix_events_tx_block ON oasis_3.events (tx_block);  -- for fetching events without filters
-CREATE INDEX ix_events_tx_hash ON oasis_3.events (tx_hash);
-CREATE INDEX ix_events_type ON oasis_3.events (type, tx_block);  -- tx_block is for sorting the events of a given type by recency
+CREATE INDEX ix_events_related_accounts ON chain.events USING gin(related_accounts);
+CREATE INDEX ix_events_tx_block ON chain.events (tx_block);  -- for fetching events without filters
+CREATE INDEX ix_events_tx_hash ON chain.events (tx_hash);
+CREATE INDEX ix_events_type ON chain.events (type, tx_block);  -- tx_block is for sorting the events of a given type by recency
 
 -- Beacon Backend Data
 
-CREATE TABLE oasis_3.epochs
+CREATE TABLE chain.epochs
 (
   id           UINT63 PRIMARY KEY,
   start_height UINT63 NOT NULL,
@@ -90,7 +90,7 @@ CREATE TABLE oasis_3.epochs
 );
 
 -- Registry Backend Data
-CREATE TABLE oasis_3.entities
+CREATE TABLE chain.entities
 (
   id      base64_ed25519_pubkey PRIMARY KEY,
   address oasis_addr,
@@ -98,17 +98,17 @@ CREATE TABLE oasis_3.entities
   meta    JSON
 );
 
-CREATE TABLE oasis_3.nodes
+CREATE TABLE chain.nodes
 (
-  -- `id` technically REFERENCES oasis_3.claimed_nodes(node_id) because node had to be pre-claimed; see oasis_3.claimed_nodes.
+  -- `id` technically REFERENCES chain.claimed_nodes(node_id) because node had to be pre-claimed; see chain.claimed_nodes.
   -- However, postgres does not allow foreign keys to a non-unique column.
   id         base64_ed25519_pubkey PRIMARY KEY,
-  -- Owning entity. The entity has likely claimed this node (see oasis_3.claimed_nodes) previously. However
+  -- Owning entity. The entity has likely claimed this node (see chain.claimed_nodes) previously. However
   -- historically (as per @Yawning), we also allowed node registrations that are signed with the entity signing key,
   -- in which case, the node would be allowed to register without having been pre-claimed by the entity.
-  -- For those cases, (id, entity_id) is not a foreign key into oasis_3.claimed_nodes.
+  -- For those cases, (id, entity_id) is not a foreign key into chain.claimed_nodes.
   -- Similarly, an entity can un-claim a node after the node registered, but the node can remain be registered for a while.
-  entity_id  base64_ed25519_pubkey NOT NULL REFERENCES oasis_3.entities(id),
+  entity_id  base64_ed25519_pubkey NOT NULL REFERENCES chain.entities(id),
   expiration UINT63 NOT NULL, -- The epoch in which this node expires.
 
   -- TLS Info
@@ -138,15 +138,15 @@ CREATE TABLE oasis_3.nodes
 
 -- Claims of entities that they own nodes. Each entity claims 0 or more nodes when it registers.
 -- A node can only register if it declares itself to be owned by an entity that previously claimed it.
-CREATE TABLE oasis_3.claimed_nodes
+CREATE TABLE chain.claimed_nodes
 (
-  entity_id base64_ed25519_pubkey NOT NULL REFERENCES oasis_3.entities(id) DEFERRABLE INITIALLY DEFERRED,
+  entity_id base64_ed25519_pubkey NOT NULL REFERENCES chain.entities(id) DEFERRABLE INITIALLY DEFERRED,
   node_id   base64_ed25519_pubkey NOT NULL,  -- No REFERENCES because the node likely does not exist (in the indexer) yet when the entity claims it.
 
   PRIMARY KEY (entity_id, node_id)
 );
 
-CREATE TABLE oasis_3.runtimes
+CREATE TABLE chain.runtimes
 (
   id           HEX64 PRIMARY KEY,
   suspended    BOOLEAN NOT NULL DEFAULT false,  -- not tracked as of Dec 2022
@@ -157,7 +157,7 @@ CREATE TABLE oasis_3.runtimes
 
 -- Staking Backend Data
 
-CREATE TABLE oasis_3.accounts
+CREATE TABLE chain.accounts
 (
   address oasis_addr PRIMARY KEY,
 
@@ -174,9 +174,9 @@ CREATE TABLE oasis_3.accounts
   -- TODO: Track commission schedule and staking accumulator.
 );
 
-CREATE TABLE oasis_3.allowances
+CREATE TABLE chain.allowances
 (
-  owner       oasis_addr NOT NULL REFERENCES oasis_3.accounts(address) DEFERRABLE INITIALLY DEFERRED,
+  owner       oasis_addr NOT NULL REFERENCES chain.accounts(address) DEFERRABLE INITIALLY DEFERRED,
   -- When creating an allowance for the purpose of subsequently depositing funds to a
   -- paratime account A in paratime P (i.e. the expected use case for allowances), `beneficiary` is
   -- the "staking account" of P. The staking account is a special account derived from the paratime ID:
@@ -188,33 +188,33 @@ CREATE TABLE oasis_3.allowances
   PRIMARY KEY (owner, beneficiary)
 );
 
-CREATE TABLE oasis_3.commissions
+CREATE TABLE chain.commissions
 (
-  address  oasis_addr PRIMARY KEY NOT NULL REFERENCES oasis_3.accounts(address) DEFERRABLE INITIALLY DEFERRED,
+  address  oasis_addr PRIMARY KEY NOT NULL REFERENCES chain.accounts(address) DEFERRABLE INITIALLY DEFERRED,
   schedule JSON
 );
 
-CREATE TABLE oasis_3.delegations
+CREATE TABLE chain.delegations
 (
-  delegatee oasis_addr NOT NULL REFERENCES oasis_3.accounts(address) DEFERRABLE INITIALLY DEFERRED,
-  delegator oasis_addr NOT NULL REFERENCES oasis_3.accounts(address) DEFERRABLE INITIALLY DEFERRED,
+  delegatee oasis_addr NOT NULL REFERENCES chain.accounts(address) DEFERRABLE INITIALLY DEFERRED,
+  delegator oasis_addr NOT NULL REFERENCES chain.accounts(address) DEFERRABLE INITIALLY DEFERRED,
   shares    UINT_NUMERIC NOT NULL,
 
   PRIMARY KEY (delegatee, delegator)
 );
 
-CREATE TABLE oasis_3.debonding_delegations
+CREATE TABLE chain.debonding_delegations
 (
   id         BIGSERIAL PRIMARY KEY,  -- index-internal ID
-  delegatee  oasis_addr NOT NULL REFERENCES oasis_3.accounts(address) DEFERRABLE INITIALLY DEFERRED,
-  delegator  oasis_addr NOT NULL REFERENCES oasis_3.accounts(address) DEFERRABLE INITIALLY DEFERRED,
+  delegatee  oasis_addr NOT NULL REFERENCES chain.accounts(address) DEFERRABLE INITIALLY DEFERRED,
+  delegator  oasis_addr NOT NULL REFERENCES chain.accounts(address) DEFERRABLE INITIALLY DEFERRED,
   shares     UINT_NUMERIC NOT NULL,
   debond_end UINT63 NOT NULL  -- EpochTime, i.e. number of epochs since base epoch
 );
 
 -- Scheduler Backend Data
 
-CREATE TABLE oasis_3.committee_members
+CREATE TABLE chain.committee_members
 (
   node      TEXT NOT NULL,
   valid_for UINT63 NOT NULL,
@@ -227,7 +227,7 @@ CREATE TABLE oasis_3.committee_members
 
 -- Governance Backend Data
 
-CREATE TABLE oasis_3.proposals
+CREATE TABLE chain.proposals
 (
   id            UINT63 PRIMARY KEY,
   submitter     oasis_addr NOT NULL,
@@ -243,16 +243,16 @@ CREATE TABLE oasis_3.proposals
   upgrade_epoch      UINT63,
 
   -- If this proposal cancels an existing proposal.
-  cancels UINT63 REFERENCES oasis_3.proposals(id) DEFAULT NULL,
+  cancels UINT63 REFERENCES chain.proposals(id) DEFAULT NULL,
 
   created_at    UINT63 NOT NULL,  -- EpochTime, i.e. number of epochs since base epoch
   closes_at     UINT63 NOT NULL,  -- EpochTime, i.e. number of epochs since base epoch
   invalid_votes UINT_NUMERIC NOT NULL DEFAULT 0 -- uint64 in go; because the value might conceivably be >2^63, we use UINT_NUMERIC over UINT63 here.
 );
 
-CREATE TABLE oasis_3.votes
+CREATE TABLE chain.votes
 (
-  proposal UINT63 NOT NULL REFERENCES oasis_3.proposals(id) DEFERRABLE INITIALLY DEFERRED,
+  proposal UINT63 NOT NULL REFERENCES chain.proposals(id) DEFERRABLE INITIALLY DEFERRED,
   voter    oasis_addr NOT NULL,
   vote     TEXT,  -- "yes" | "no" | "abstain"; see https://github.com/oasisprotocol/oasis-core/blob/f95186e3f15ec64bdd36493cde90be359bd17da8/go/registry/api/runtime.go#L54-L54
 
@@ -261,17 +261,17 @@ CREATE TABLE oasis_3.votes
 
 -- Related Accounts Data
 
-CREATE TABLE oasis_3.accounts_related_transactions
+CREATE TABLE chain.accounts_related_transactions
 (
   account_address oasis_addr NOT NULL,
   tx_block UINT63 NOT NULL,
   tx_index UINT31 NOT NULL,
-  FOREIGN KEY (tx_block, tx_index) REFERENCES oasis_3.transactions(block, tx_index) DEFERRABLE INITIALLY DEFERRED
+  FOREIGN KEY (tx_block, tx_index) REFERENCES chain.transactions(block, tx_index) DEFERRABLE INITIALLY DEFERRED
 );
-CREATE INDEX ix_accounts_related_transactions_address_block_index ON oasis_3.accounts_related_transactions (account_address);
+CREATE INDEX ix_accounts_related_transactions_address_block_index ON chain.accounts_related_transactions (account_address);
 
 -- Indexing Progress Management
-CREATE TABLE oasis_3.processed_blocks
+CREATE TABLE chain.processed_blocks
 (
   height         UINT63 NOT NULL,
   analyzer       TEXT NOT NULL,
@@ -280,8 +280,14 @@ CREATE TABLE oasis_3.processed_blocks
   PRIMARY KEY (height, analyzer)
 );
 
+-- Keeps track of chains for which we've already processed the genesis data.
+CREATE TABLE chain.processed_geneses (
+    chain_context TEXT NOT NULL PRIMARY KEY,  -- identifies the genesis data; derived from its hash
+    processed_time TIMESTAMP WITH TIME ZONE NOT NULL
+);
+
 -- Grant others read-only use. This does NOT apply to future tables in the schema.
-GRANT SELECT ON ALL TABLES IN SCHEMA oasis_3 TO PUBLIC;
-GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA oasis_3 TO PUBLIC;
+GRANT SELECT ON ALL TABLES IN SCHEMA chain TO PUBLIC;
+GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA chain TO PUBLIC;
 
 COMMIT;

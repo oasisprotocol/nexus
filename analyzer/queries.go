@@ -10,8 +10,8 @@ type QueryFactory struct {
 	runtime string
 }
 
-func NewQueryFactory(chainID string, runtime string) QueryFactory {
-	return QueryFactory{chainID, runtime}
+func NewQueryFactory(_ string, runtime string) QueryFactory {
+	return QueryFactory{"chain", runtime}
 }
 
 // NewWithRuntime returns a new QueryFactory with the runtime set.
@@ -30,8 +30,8 @@ func (qf QueryFactory) LatestBlockQuery() string {
 func (qf QueryFactory) IsGenesisProcessedQuery() string {
 	return `
 		SELECT EXISTS (
-			SELECT 1 FROM multichain.processed_geneses
-			WHERE chain_id = $1 AND analyzer = $2
+			SELECT 1 FROM chain.processed_geneses
+			WHERE chain_context = $1
 		)`
 }
 
@@ -44,9 +44,9 @@ func (qf QueryFactory) IndexingProgressQuery() string {
 
 func (qf QueryFactory) GenesisIndexingProgressQuery() string {
 	return `
-		INSERT INTO multichain.processed_geneses (chain_id, analyzer, processed_time)
+		INSERT INTO chain.processed_geneses (chain_context, processed_time)
 			VALUES
-				($1, $2, CURRENT_TIMESTAMP)`
+				($1, CURRENT_TIMESTAMP)`
 }
 
 func (qf QueryFactory) ConsensusBlockInsertQuery() string {

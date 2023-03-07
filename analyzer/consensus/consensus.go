@@ -87,9 +87,10 @@ func NewMain(nodeCfg config.NodeConfig, cfg *config.BlockBasedAnalyzerConfig, ta
 		To:   cfg.To,
 	}
 	ac := analyzer.ConsensusConfig{
-		ChainID: nodeCfg.ChainID,
-		Range:   blockRange,
-		Source:  client,
+		ChainID:      nodeCfg.ChainID,
+		ChainContext: nodeCfg.ChainContext,
+		Range:        blockRange,
+		Source:       client,
 	}
 
 	logger.Info("Starting consensus analyzer", "config", ac)
@@ -214,8 +215,7 @@ func (m *Main) isGenesisProcessed(ctx context.Context) (bool, error) {
 	if err := m.target.QueryRow(
 		ctx,
 		m.qf.IsGenesisProcessedQuery(),
-		m.cfg.ChainID,
-		ConsensusAnalyzerName,
+		m.cfg.ChainContext,
 	).Scan(&processed); err != nil {
 		return false, err
 	}
@@ -253,8 +253,7 @@ func (m *Main) processGenesis(ctx context.Context) error {
 	}
 	batch.Queue(
 		m.qf.GenesisIndexingProgressQuery(),
-		m.cfg.ChainID,
-		ConsensusAnalyzerName,
+		m.cfg.ChainContext,
 	)
 	if err := m.target.SendBatch(ctx, batch); err != nil {
 		return err

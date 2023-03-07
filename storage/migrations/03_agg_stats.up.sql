@@ -2,7 +2,7 @@
 
 BEGIN;
 
--- Schema for aggregate statistics that are not tied to a specific chain "generation" (oasis_3, oasis_4, etc.).
+-- Schema for aggregate statistics.
 CREATE SCHEMA IF NOT EXISTS stats;
 GRANT USAGE ON SCHEMA stats TO PUBLIC;
 
@@ -21,8 +21,8 @@ CREATE MATERIALIZED VIEW stats.min5_tx_volume AS
     'consensus' AS layer,
     floor_5min(b.time) AS window_start,
     COUNT(*) AS tx_volume
-  FROM oasis_3.blocks AS b
-  JOIN oasis_3.transactions AS t ON b.height = t.block
+  FROM chain.blocks AS b
+  JOIN chain.transactions AS t ON b.height = t.block
   GROUP BY 2
 
   UNION ALL
@@ -31,8 +31,8 @@ CREATE MATERIALIZED VIEW stats.min5_tx_volume AS
     b.runtime::text AS layer,
     floor_5min(b.timestamp) AS window_start,
     COUNT(*) AS tx_volume
-  FROM oasis_3.runtime_blocks AS b
-  JOIN oasis_3.runtime_transactions AS t ON (b.round = t.round AND b.runtime = t.runtime)
+  FROM chain.runtime_blocks AS b
+  JOIN chain.runtime_transactions AS t ON (b.round = t.round AND b.runtime = t.runtime)
   GROUP BY 1, 2;
 
 -- daily_tx_volume stores the number of transactions per day

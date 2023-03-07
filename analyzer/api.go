@@ -42,6 +42,10 @@ type ConsensusConfig struct {
 	// ChainID is the chain ID for the underlying network.
 	ChainID string
 
+	// ChainContext is the ChainContext (= chain identifier, based on a hash of the
+	// genesis file) for the underlying network.
+	ChainContext string
+
 	// Range is the range of blocks to process.
 	// If this is set, the analyzer analyzes blocks in the provided range.
 	Range BlockRange
