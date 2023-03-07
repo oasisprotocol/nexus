@@ -1,12 +1,11 @@
 package common
 
 import (
-	"errors"
 	"fmt"
 	"math/big"
 	"strings"
 
-	"github.com/jackc/pgtype"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 // Arbitrary-precision integer. Wrapper around big.Int to allow for
@@ -36,24 +35,19 @@ func (b *BigInt) UnmarshalJSON(text []byte) error {
 	return b.Int.UnmarshalJSON([]byte(v))
 }
 
-func (b *BigInt) DecodeBinary(ci *pgtype.ConnInfo, src []byte) error {
-	if src == nil {
-		return errors.New("NULL values can't be decoded. Scan into a **BigInt to handle NULLs")
-	}
-
-	numeric := pgtype.Numeric{}
-	if err := numeric.DecodeBinary(ci, src); err != nil {
-		return err
-	}
-
-	bigInt, err := NumericToBigInt(numeric)
-	*b = bigInt
-	return err
+// Implement NumericValuer interface for BigInt.
+func (b BigInt) NumericValue() (pgtype.Numeric, error) {
+	return pgtype.Numeric{Int: &b.Int, Exp: 0, NaN: false, Valid: true, InfinityModifier: pgtype.Finite}, nil
 }
 
-func (b BigInt) EncodeBinary(ci *pgtype.ConnInfo, buf []byte) (newBuf []byte, err error) {
-	numeric := pgtype.Numeric{Int: &b.Int, Exp: 0, Status: pgtype.Present}
-	return numeric.EncodeBinary(ci, buf)
+// Implement NumericDecoder interface for BigInt.
+func (b *BigInt) ScanNumeric(n pgtype.Numeric) error {
+	if !n.Valid {
+		return fmt.Errorf("NULL values can't be decoded. Scan into a **BigInt to handle NULLs")
+	}
+	bigInt, err := NumericToBigInt(n)
+	*b = bigInt
+	return err
 }
 
 // NumericToBigInt converts a pgtype.Numeric to a BigInt similar to the

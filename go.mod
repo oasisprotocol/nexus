@@ -12,14 +12,14 @@ require (
 	github.com/golang-migrate/migrate/v4 v4.15.2
 	github.com/google/uuid v1.3.0
 	github.com/iancoleman/strcase v0.2.0
-	github.com/jackc/pgx/v4 v4.16.0
+	github.com/jackc/pgx/v5 v5.3.1
 	github.com/knadh/koanf v1.4.1
 	github.com/oasisprotocol/oasis-core/go v0.2202.5
 	github.com/oasisprotocol/oasis-sdk/client-sdk/go v0.2.1-0.20230131160755-5e0353622f04
 	github.com/prometheus/client_golang v1.13.0
 	github.com/spf13/cobra v1.5.0
 	github.com/stretchr/testify v1.8.1
-	golang.org/x/sync v0.0.0-20220722155255-886fb9371eb4
+	golang.org/x/sync v0.1.0
 	google.golang.org/grpc v1.49.0
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
@@ -62,13 +62,9 @@ require (
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/ipfs/go-cid v0.3.2 // indirect
 	github.com/ipfs/go-log/v2 v2.5.1 // indirect
-	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
-	github.com/jackc/pgconn v1.12.0 // indirect
-	github.com/jackc/pgio v1.0.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
-	github.com/jackc/pgproto3/v2 v2.3.0 // indirect
-	github.com/jackc/pgservicefile v0.0.0-20200714003250-2b9c44734f2b // indirect
-	github.com/jackc/puddle v1.2.1 // indirect
+	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
+	github.com/jackc/puddle/v2 v2.2.0 // indirect
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
 	github.com/kevinburke/ssh_config v0.0.0-20190725054713-01f96b0aa0cd // indirect
 	github.com/klauspost/cpuid/v2 v2.1.1 // indirect
@@ -124,10 +120,10 @@ require (
 	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/multierr v1.8.0 // indirect
 	go.uber.org/zap v1.23.0 // indirect
-	golang.org/x/net v0.2.0 // indirect
+	golang.org/x/net v0.6.0 // indirect
 	golang.org/x/oauth2 v0.0.0-20220411215720-9780585627b5 // indirect
-	golang.org/x/sys v0.2.0 // indirect
-	golang.org/x/text v0.4.0 // indirect
+	golang.org/x/sys v0.5.0 // indirect
+	golang.org/x/text v0.7.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20220725144611-272f38e5d71b // indirect
 	google.golang.org/grpc/security/advancedtls v0.0.0-20221004221323-12db695f1648 // indirect
@@ -140,8 +136,7 @@ require (
 
 require (
 	github.com/deepmap/oapi-codegen v1.12.4
-	github.com/jackc/pgtype v1.11.0
 	github.com/oasisprotocol/metadata-registry-tools v0.0.0-20220406100644-7e9a2b991920
 	github.com/rs/cors v1.8.3
-	golang.org/x/crypto v0.1.0
+	golang.org/x/crypto v0.6.0
 )

@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/jackc/pgx/v4"
+	"github.com/jackc/pgx/v5"
 
 	"github.com/oasisprotocol/oasis-indexer/analyzer/queries"
 	"github.com/oasisprotocol/oasis-indexer/config"

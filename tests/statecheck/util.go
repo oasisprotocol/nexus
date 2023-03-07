@@ -7,7 +7,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/jackc/pgx/v4"
+	"github.com/jackc/pgx/v5"
 	"github.com/oasisprotocol/oasis-indexer/log"
 	"github.com/oasisprotocol/oasis-indexer/storage"
 	"github.com/oasisprotocol/oasis-indexer/storage/oasis"
