@@ -1240,6 +1240,15 @@ components:
         success:
           type: boolean
           description: Whether this transaction successfully executed.
+        code:
+          type: integer
+          description: The status code of a failed call.
+        module:
+          type: string
+          description: The module of a failed call.
+        message:
+          type: string
+          description: The message of a failed call.
       description: |
         A consensus transaction.
 

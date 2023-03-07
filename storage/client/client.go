@@ -279,7 +279,8 @@ func (c *StorageClient) Transactions(ctx context.Context, p apiTypes.GetConsensu
 	}
 	for res.rows.Next() {
 		var t Transaction
-		var code uint64
+		var module string
+		var message string
 		if err := res.rows.Scan(
 			&t.Block,
 			&t.Index,
@@ -289,13 +290,18 @@ func (c *StorageClient) Transactions(ctx context.Context, p apiTypes.GetConsensu
 			&t.Fee,
 			&t.Method,
 			&t.Body,
-			&code,
+			&t.Code,
+			&module,
+			&message,
 			&t.Timestamp,
 		); err != nil {
 			return nil, wrapError(err)
 		}
-		if code == oasisErrors.CodeNoError {
+		if *t.Code == oasisErrors.CodeNoError {
 			t.Success = true
+		} else {
+			t.Module = &module
+			t.Message = &message
 		}
 
 		ts.Transactions = append(ts.Transactions, t)
@@ -313,7 +319,8 @@ func (c *StorageClient) Transaction(ctx context.Context, txHash string) (*Transa
 	}
 
 	var t Transaction
-	var code uint64
+	var module string
+	var message string
 	if err := c.db.QueryRow(
 		ctx,
 		queries.Transaction,
@@ -327,13 +334,18 @@ func (c *StorageClient) Transaction(ctx context.Context, txHash string) (*Transa
 		&t.Fee,
 		&t.Method,
 		&t.Body,
-		&code,
+		&t.Code,
+		&module,
+		&message,
 		&t.Timestamp,
 	); err != nil {
 		return nil, wrapError(err)
 	}
-	if code == oasisErrors.CodeNoError {
+	if *t.Code == oasisErrors.CodeNoError {
 		t.Success = true
+	} else {
+		t.Module = &module
+		t.Message = &message
 	}
 
 	c.cacheTx(&t)
