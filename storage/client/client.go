@@ -117,12 +117,14 @@ func (c *StorageClient) withTotalCount(ctx context.Context, sql string, args ...
 	}
 
 	// A note on ordering: We query the totalCount before querying for the rows in order to
-	// avoid deadlocks. The row returned by the totalCount query is Scan-ed immediately
+	// avoid deadlocks. The row returned by the totalCount query is `Scan`-ed immediately
 	// and thus the underlying db connection is also released. However, the `rows` are
 	// `Scan`-ed in the calling function, which means that the underlying db connection is
 	// held (and unavailable to other goroutines) in the meantime.
-	limit := args[len(args)-2]
-	args[len(args)-2] = maxTotalCount + 1 // limit
+	origLimit := args[len(args)-2]
+	// Temporarily set limit to just high enough to learn
+	// if there are >maxTotalCount matching items in the DB.
+	args[len(args)-2] = maxTotalCount + 1
 	if err := c.db.QueryRow(
 		ctx,
 		queries.TotalCountQuery(sql),
@@ -130,8 +132,12 @@ func (c *StorageClient) withTotalCount(ctx context.Context, sql string, args ...
 	).Scan(&totalCount); err != nil {
 		return nil, wrapError(err)
 	}
+	clipped := totalCount == maxTotalCount+1
+	if clipped {
+		totalCount = maxTotalCount
+	}
 
-	args[len(args)-2] = limit
+	args[len(args)-2] = origLimit
 	rows, err := c.db.Query(
 		ctx,
 		sql,
@@ -139,11 +145,6 @@ func (c *StorageClient) withTotalCount(ctx context.Context, sql string, args ...
 	)
 	if err != nil {
 		return nil, err
-	}
-
-	clipped := totalCount == maxTotalCount+1
-	if clipped {
-		totalCount = maxTotalCount
 	}
 
 	return &rowsWithCount{
