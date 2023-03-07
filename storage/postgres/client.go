@@ -5,6 +5,7 @@ package postgres
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -93,13 +94,26 @@ func (c *Client) SendBatch(ctx context.Context, batch *storage.QueryBatch) error
 }
 
 func (c *Client) SendBatchWithOptions(ctx context.Context, batch *storage.QueryBatch, opts pgx.TxOptions) error {
-	pgxBatch := batch.AsPgxBatch()
 	if err := c.pool.BeginTxFunc(ctx, opts, func(tx pgx.Tx) error {
-		batchResults := tx.SendBatch(ctx, &pgxBatch)
-		defer common.CloseOrLog(batchResults, c.logger)
-		for i := 0; i < pgxBatch.Len(); i++ {
-			if _, err := batchResults.Exec(); err != nil {
-				return fmt.Errorf("query %d %v: %w", i, batch.Queries()[i], err)
+		// NOTE: Sending txs with tx.SendBatch(batch.AsPgxBatch()) is possibly more
+		// efficient. However, it reports errors poorly: If _any_ query is syntactically
+		// malformed, called with the wrong number of args, or has a type conversion problem,
+		// pgx will report the _first_ query as failing.
+		if os.Getenv("PGX_FAST_BATCH") == "1" {
+			// TODO: Remove this branch if we verify that the performance gain is negligible.
+			pgxBatch := batch.AsPgxBatch()
+			batchResults := tx.SendBatch(ctx, &pgxBatch)
+			defer common.CloseOrLog(batchResults, c.logger)
+			for i := 0; i < pgxBatch.Len(); i++ {
+				if _, err := batchResults.Exec(); err != nil {
+					return fmt.Errorf("query %d %v: %w", i, batch.Queries()[i], err)
+				}
+			}
+		} else {
+			for i, q := range batch.Queries() {
+				if _, err := tx.Exec(ctx, q.Cmd, q.Args...); err != nil {
+					return fmt.Errorf("query %d %v: %w", i, q, err)
+				}
 			}
 		}
 

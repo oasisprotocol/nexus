@@ -13,10 +13,17 @@ analysis:
     chaincontext: b11b369e0da5bb230b220127f5e7b242d385ef8c6f54906243f30af63c815535
     fast_startup: true
   analyzers:
+    consensus:
+      from: 8_048_956  # Damask genesis
+      to: 8_049_056  # 100 blocks; fast enough for early testing
     emerald:
       from: 1_003_298  # round at Damask genesis
-      to: 1_003_308  # 10 blocks; very fast, for early testing
+      to: 1_003_398  # 100 blocks; fast enough for early testing
     evm_tokens: {}
+    aggregate_stats:
+      tx_volume_interval: 5m
+    metadata_registry:
+      interval: 5m
   storage:
     endpoint: postgresql://rwuser:password@localhost:5432/indexer?sslmode=disable
     backend: postgres
@@ -45,13 +52,21 @@ make oasis-indexer
 ./oasis-indexer --config=/tmp/e2e_config.yaml analyze | tee /tmp/analyze.out &
 analyzer_pid=$!
 
-# Wait for the analyzer to be done, then kill it.
+# Count how many block analyzers are enabled in the config.
+n_block_analyzers=0
+for analyzer in consensus emerald sapphire cipher; do
+  if grep -qE "^ *${analyzer}:" /tmp/e2e_config.yaml; then
+    n_block_analyzers=$((n_block_analyzers + 1))
+  fi
+done
+
+# Wait for blocks analyzers to be done, then kill the entire indexer.
 # It won't terminate on its own because the evm_tokens analyzer is always looking for more work.
-while ! grep -q "finished processing all blocks" /tmp/analyze.out; do
-  echo "Waiting for analyzer to finish..."
+while (( $(grep --count "finished processing all blocks" /tmp/analyze.out) < n_block_analyzers )); do
+  echo "Waiting for $n_block_analyzers block analyzers to finish..."
   sleep 1
 done
-sleep 2  # Give evm_tokens analyzer a chance to finish.
+sleep 2  # Give evm_tokens analyzer (and other non-block analyzers) a chance to finish.
 kill $analyzer_pid
 
 ./oasis-indexer --config=/tmp/e2e_config.yaml serve &
