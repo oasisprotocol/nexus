@@ -41,11 +41,11 @@ const (
     INSERT INTO chain.transactions (block, tx_hash, tx_index, nonce, fee_amount, max_gas, method, sender, body, module, code, message)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`
 
-	ConsensusAccountNonceUpdate = `
-    UPDATE chain.accounts
-    SET
-      nonce = $2
-    WHERE address = $1`
+	ConsensusAccountNonceUpsert = `
+    INSERT INTO chain.accounts(address, nonce)
+    VALUES ($1, $2)
+    ON CONFLICT (address) DO UPDATE
+      SET nonce = $2`
 
 	ConsensusCommissionsUpsert = `
     INSERT INTO chain.commissions (address, schedule)
@@ -116,30 +116,18 @@ const (
     DELETE FROM chain.nodes WHERE id = $1`
 
 	ConsensusEntityMetaUpsert = `
-    UPDATE chain.entities
-    SET meta = $2
-      WHERE id = $1`
+    INSERT INTO chain.entities(id, meta)
+      VALUES ($1, $2)
+    ON CONFLICT (id) DO UPDATE
+      SET meta = $2`
 
-	ConsensusSenderUpdate = `
-    UPDATE chain.accounts
-    SET
-      general_balance = general_balance - $2
-    WHERE address = $1`
-
-	ConsensusReceiverUpdate = `
+	ConsensusIncreaseGeneralBalanceUpsert = `
     INSERT INTO chain.accounts (address, general_balance)
       VALUES ($1, $2)
     ON CONFLICT (address) DO
       UPDATE SET general_balance = chain.accounts.general_balance + $2`
 
-	ConsensusBurnUpdate = `
-    UPDATE chain.accounts
-    SET
-      general_balance = general_balance - $2
-    WHERE address = $1`
-
-	// Decreases the general balance because the given amount is being moved to escrow.
-	ConsensusDecreaseGeneralBalanceForEscrowUpdate = `
+	ConsensusDecreaseGeneralBalanceUpsert = `
     UPDATE chain.accounts
     SET
       general_balance = general_balance - $2
@@ -183,12 +171,6 @@ const (
 	ConsensusDebondingStartDebondingDelegationsInsert = `
     INSERT INTO chain.debonding_delegations (delegatee, delegator, shares, debond_end)
       VALUES ($1, $2, $3, $4)`
-
-	ConsensusReclaimGeneralBalanceUpdate = `
-    UPDATE chain.accounts
-      SET
-        general_balance = general_balance + $2
-      WHERE address = $1`
 
 	ConsensusReclaimEscrowBalanceUpdate = `
     UPDATE chain.accounts
@@ -433,7 +415,7 @@ const (
     REFRESH MATERIALIZED VIEW stats.min5_tx_volume
   `
 
-	// LatestDailyAccountStats returns the query to get the timestamp of the latest daily active accounts stat.
+	// LatestDailyAccountStats is the query to get the timestamp of the latest daily active accounts stat.
 	LatestDailyAccountStats = `
     SELECT window_end
     FROM stats.daily_active_accounts
@@ -442,13 +424,13 @@ const (
     LIMIT 1
   `
 
-	// InsertDailyAccountStats returns the query to insert the daily active accounts stat.
+	// InsertDailyAccountStats is the query to insert the daily active accounts stat.
 	InsertDailyAccountStats = `
     INSERT INTO stats.daily_active_accounts (layer, window_end, active_accounts)
     VALUES ($1, $2, $3)
   `
 
-	// EarliestConsensusBlockTime returns the query to get the timestamp of the earliest
+	// EarliestConsensusBlockTime is the query to get the timestamp of the earliest
 	// indexed consensus block.
 	EarliestConsensusBlockTime = `
     SELECT time
@@ -457,7 +439,7 @@ const (
     LIMIT 1
   `
 
-	// LatestConsensusBlockTime returns the query to get the timestamp of the latest
+	// LatestConsensusBlockTime is the query to get the timestamp of the latest
 	// indexed consensus block.
 	LatestConsensusBlockTime = `
     SELECT time
@@ -466,7 +448,7 @@ const (
     LIMIT 1
   `
 
-	// EarliestRuntimeBlockTime returns the query to get the timestamp of the earliest
+	// EarliestRuntimeBlockTime is the query to get the timestamp of the earliest
 	// indexed runtime block.
 	EarliestRuntimeBlockTime = `
     SELECT timestamp
@@ -476,7 +458,7 @@ const (
     LIMIT 1
   `
 
-	// LatestRuntimeBlockTime returns the query to get the timestamp of the latest
+	// LatestRuntimeBlockTime is the query to get the timestamp of the latest
 	// indexed runtime block.
 	LatestRuntimeBlockTime = `
     SELECT timestamp
@@ -486,7 +468,7 @@ const (
     LIMIT 1
   `
 
-	// ConsensusActiveAccounts returns the query to get the number of
+	// ConsensusActiveAccounts is the query to get the number of
 	// active accounts in the consensus layer within the given time range.
 	ConsensusActiveAccounts = `
     SELECT COUNT(DISTINCT account_address)
@@ -495,7 +477,7 @@ const (
     WHERE (b.time >= $1::timestamptz AND b.time < $2::timestamptz)
     `
 
-	// RuntimeActiveAccounts returns the query to get the number of
+	// RuntimeActiveAccounts is the query to get the number of
 	// active accounts in the runtime layer within the given time range.
 	RuntimeActiveAccounts = `
     SELECT COUNT(DISTINCT account_address)
