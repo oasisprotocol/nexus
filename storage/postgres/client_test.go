@@ -11,6 +11,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/oasisprotocol/oasis-indexer/common"
 	"github.com/oasisprotocol/oasis-indexer/log"
 	"github.com/oasisprotocol/oasis-indexer/storage"
 	"github.com/oasisprotocol/oasis-indexer/tests"
@@ -192,4 +193,29 @@ func TestInvalidSendBatch(t *testing.T) {
 	`)
 	err = client.SendBatch(context.Background(), invalid)
 	require.NotNil(t, err)
+}
+
+func TestNumeric(t *testing.T) {
+	client, err := newClient(t)
+	require.Nil(t, err)
+	defer client.Shutdown()
+
+	// Create custom type, derived from NUMERIC.
+	_, err = client.pool.Exec(context.Background(), `CREATE DOMAIN mynumeric NUMERIC(1000,0) CHECK(VALUE >= 0)`)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	// Test that we can scan both null and non-null values into a *common.BigInt.
+	var mynull *common.BigInt
+	var my2 *common.BigInt
+	err = client.QueryRow(context.Background(), `
+		SELECT null::mynumeric, 2::mynumeric;
+	`).Scan(&mynull, &my2)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	require.Nil(t, err)
+	require.Nil(t, mynull)
+	require.Equal(t, int64(2), my2.Int64())
 }

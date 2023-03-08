@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jackc/pgx/v4"
+	"github.com/jackc/pgx/v5"
 
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 	"github.com/oasisprotocol/oasis-core/go/consensus/api/transaction"
@@ -413,6 +413,11 @@ func (m *Main) queueTransactionInserts(batch *storage.QueryBatch, data *storage.
 			signedTx.Signature.PublicKey,
 		).String()
 
+		bodyBytes, err := tx.Body.MarshalCBOR()
+		if err != nil {
+			m.logger.Warn("failed to marshal transaction body", "err", err, "tx_hash", signedTx.Hash().Hex(), "height", data.Height)
+			bodyBytes = []byte{}
+		}
 		batch.Queue(queries.ConsensusTransactionInsert,
 			data.BlockHeader.Height,
 			signedTx.Hash().Hex(),
@@ -422,7 +427,7 @@ func (m *Main) queueTransactionInserts(batch *storage.QueryBatch, data *storage.
 			fmt.Sprintf("%d", tx.Fee.Gas),
 			tx.Method,
 			sender,
-			tx.Body,
+			bodyBytes,
 			result.Error.Module,
 			result.Error.Code,
 			result.Error.Message,

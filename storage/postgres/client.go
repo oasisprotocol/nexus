@@ -7,8 +7,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/jackc/pgx/v4"
-	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jackc/pgx/v5/tracelog"
 
 	common "github.com/oasisprotocol/oasis-indexer/analyzer/uncategorized"
 	"github.com/oasisprotocol/oasis-indexer/log"
@@ -32,15 +33,15 @@ type pgxLogger struct {
 }
 
 // logFuncForLevel maps a pgx log severity level to a corresponding indexer logger function.
-func (l *pgxLogger) logFuncForLevel(level pgx.LogLevel) func(string, ...interface{}) {
+func (l *pgxLogger) logFuncForLevel(level tracelog.LogLevel) func(string, ...interface{}) {
 	switch level {
-	case pgx.LogLevelTrace, pgx.LogLevelDebug:
+	case tracelog.LogLevelTrace, tracelog.LogLevelDebug:
 		return l.logger.Debug
-	case pgx.LogLevelInfo:
+	case tracelog.LogLevelInfo:
 		return l.logger.Info
-	case pgx.LogLevelWarn:
+	case tracelog.LogLevelWarn:
 		return l.logger.Warn
-	case pgx.LogLevelError, pgx.LogLevelNone:
+	case tracelog.LogLevelError, tracelog.LogLevelNone:
 		return l.logger.Error
 	default:
 		l.logger.Warn("Unknown log level", "unknown_level", level)
@@ -49,7 +50,7 @@ func (l *pgxLogger) logFuncForLevel(level pgx.LogLevel) func(string, ...interfac
 }
 
 // Implements pgx.Logger interface. Logs to indexer logger.
-func (l *pgxLogger) Log(ctx context.Context, level pgx.LogLevel, msg string, data map[string]interface{}) {
+func (l *pgxLogger) Log(ctx context.Context, level tracelog.LogLevel, msg string, data map[string]interface{}) {
 	args := []interface{}{}
 	for k, v := range data {
 		args = append(args, k, v)
@@ -69,12 +70,14 @@ func NewClient(connString string, l *log.Logger) (*Client, error) {
 	// Set up pgx logging. For a log line to be produced, it needs to be >= the level
 	// specified here, and >= the level of the underlying indexer logger. "Info" level
 	// logs every SQL statement executed.
-	config.ConnConfig.LogLevel = pgx.LogLevelWarn
-	config.ConnConfig.Logger = &pgxLogger{
-		logger: l.WithModule(moduleName).With("db", config.ConnConfig.Database),
+	config.ConnConfig.Tracer = &tracelog.TraceLog{
+		LogLevel: tracelog.LogLevelWarn,
+		Logger: &pgxLogger{
+			logger: l.WithModule(moduleName).With("db", config.ConnConfig.Database),
+		},
 	}
 
-	pool, err := pgxpool.ConnectConfig(context.Background(), config)
+	pool, err := pgxpool.NewWithConfig(context.Background(), config)
 	if err != nil {
 		return nil, err
 	}
@@ -94,38 +97,85 @@ func (c *Client) SendBatch(ctx context.Context, batch *storage.QueryBatch) error
 }
 
 func (c *Client) SendBatchWithOptions(ctx context.Context, batch *storage.QueryBatch, opts pgx.TxOptions) error {
-	if err := c.pool.BeginTxFunc(ctx, opts, func(tx pgx.Tx) error {
-		// NOTE: Sending txs with tx.SendBatch(batch.AsPgxBatch()) is possibly more
-		// efficient. However, it reports errors poorly: If _any_ query is syntactically
-		// malformed, called with the wrong number of args, or has a type conversion problem,
-		// pgx will report the _first_ query as failing.
-		if os.Getenv("PGX_FAST_BATCH") == "1" {
-			// TODO: Remove this branch if we verify that the performance gain is negligible.
-			pgxBatch := batch.AsPgxBatch()
-			batchResults := tx.SendBatch(ctx, &pgxBatch)
-			defer common.CloseOrLog(batchResults, c.logger)
-			for i := 0; i < pgxBatch.Len(); i++ {
-				if _, err := batchResults.Exec(); err != nil {
-					return fmt.Errorf("query %d %v: %w", i, batch.Queries()[i], err)
-				}
+	// NOTE: Sending txs with tx.SendBatch(batch.AsPgxBatch()) is more efficient as it happens
+	// in a single roundtrip to the server.
+	// However, it reports errors poorly: If _any_ query is syntactically
+	// malformed, called with the wrong number of args, or has a type conversion problem,
+	// pgx will report the _first_ query as failing.
+	//
+	// TODO: Remove the first branch if we verify that the performance gain is negligible.
+	if os.Getenv("PGX_FAST_BATCH") == "1" { //nolint:nestif
+		pgxBatch := batch.AsPgxBatch()
+		var batchResults pgx.BatchResults
+		var emptyTxOptions pgx.TxOptions
+		var tx pgx.Tx
+		var err error
+
+		// Begin a transaction.
+		useExplicitTx := opts != emptyTxOptions
+		if useExplicitTx {
+			// set up our own tx with the specified options
+			tx, err = c.pool.BeginTx(ctx, opts)
+			if err != nil {
+				return fmt.Errorf("failed to begin tx: %w", err)
 			}
+			batchResults = c.pool.SendBatch(ctx, &pgxBatch)
 		} else {
-			for i, q := range batch.Queries() {
-				if _, err := tx.Exec(ctx, q.Cmd, q.Args...); err != nil {
-					return fmt.Errorf("query %d %v: %w", i, q, err)
+			// use implicit tx provided by SendBatch; see https://github.com/jackc/pgx/issues/879
+			batchResults = c.pool.SendBatch(ctx, &pgxBatch)
+		}
+		defer common.CloseOrLog(batchResults, c.logger)
+
+		// Exec indiviual queries in the batch.
+		for i := 0; i < pgxBatch.Len(); i++ {
+			if _, err := batchResults.Exec(); err != nil {
+				rollbackErr := ""
+				if useExplicitTx {
+					err2 := tx.Rollback(ctx)
+					if err2 != nil {
+						rollbackErr = fmt.Sprintf("; also failed to rollback tx: %s", err2.Error())
+					}
 				}
+				return fmt.Errorf("query %d %v: %w%s", i, batch.Queries()[i], err, rollbackErr)
 			}
 		}
 
-		return nil
-	}); err != nil {
-		c.logger.Error("failed to execute db batch",
-			"error", err,
-			"batch", batch.Queries(),
-		)
-		return err
-	}
+		// Commit the tx.
+		if useExplicitTx {
+			err := tx.Commit(ctx)
+			if err != nil {
+				return fmt.Errorf("failed to commit tx: %w", err)
+			}
+		}
+	} else {
+		// Begin a transaction.
+		tx, err := c.pool.BeginTx(ctx, opts)
+		if err != nil {
+			return fmt.Errorf("failed to begin tx: %w", err)
+		}
 
+		// Exec indiviual queries in the batch.
+		for i, q := range batch.Queries() {
+			if _, err2 := tx.Exec(ctx, q.Cmd, q.Args...); err2 != nil {
+				rollbackErr := ""
+				err3 := tx.Rollback(ctx)
+				if err3 != nil {
+					rollbackErr = fmt.Sprintf("; also failed to rollback tx: %s", err3.Error())
+				}
+				return fmt.Errorf("query %d %v: %w%s", i, q, err2, rollbackErr)
+			}
+		}
+
+		// Commit the transaction.
+		err = tx.Commit(ctx)
+		if err != nil {
+			c.logger.Error("failed to submit tx",
+				"error", err,
+				"batch", batch.Queries(),
+			)
+			return err
+		}
+	}
 	return nil
 }
 

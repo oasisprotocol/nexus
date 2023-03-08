@@ -1,4 +1,4 @@
-FROM golang:1.18-buster AS oasis-node
+FROM golang:1.19-buster AS oasis-node
 
 WORKDIR /code/go
 

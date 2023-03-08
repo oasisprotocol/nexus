@@ -1,4 +1,4 @@
-FROM golang:1.18-buster AS oasis-indexer-builder
+FROM golang:1.19-buster AS oasis-indexer-builder
 
 WORKDIR /code/go
 
@@ -20,7 +20,7 @@ RUN npx redoc-cli build api/spec/v1.yaml -o api/spec/v1.html
 
 ############
 
-FROM golang:1.18-buster AS oasis-indexer
+FROM golang:1.19-buster AS oasis-indexer
 
 WORKDIR /oasis-indexer
 

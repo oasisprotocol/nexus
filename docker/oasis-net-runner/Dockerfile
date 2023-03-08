@@ -1,4 +1,4 @@
-FROM golang:1.18-buster AS oasis-core
+FROM golang:1.19-buster AS oasis-core
 
 ARG OASIS_CORE_VERSION=22.1.10
 

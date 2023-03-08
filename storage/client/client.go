@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/dgraph-io/ristretto"
-	"github.com/jackc/pgtype"
-	"github.com/jackc/pgx/v4"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 
 	beacon "github.com/oasisprotocol/oasis-core/go/beacon/api"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
@@ -1211,25 +1211,17 @@ func (c *StorageClient) RuntimeTokens(ctx context.Context, p apiTypes.GetRuntime
 	}
 	for res.rows.Next() {
 		var t EvmToken
-		var totalSupplyNum pgtype.Numeric
 		if err2 := res.rows.Scan(
 			&t.ContractAddr,
 			&t.EvmContractAddr,
 			&t.Name,
 			&t.Symbol,
 			&t.Decimals,
-			&totalSupplyNum,
+			&t.TotalSupply,
 			&t.Type,
 			&t.NumHolders,
 		); err2 != nil {
 			return nil, wrapError(err)
-		}
-		if totalSupplyNum.Status == pgtype.Present {
-			t.TotalSupply = &common.BigInt{}
-			*t.TotalSupply, err = common.NumericToBigInt(totalSupplyNum)
-			if err != nil {
-				return nil, wrapError(err)
-			}
 		}
 
 		ts.EvmTokens = append(ts.EvmTokens, t)
