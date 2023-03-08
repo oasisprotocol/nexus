@@ -315,6 +315,7 @@ const (
     ON CONFLICT (runtime, token_address, account_address) DO
       UPDATE SET balance = chain.evm_token_balances.balance + $4`
 
+	//nolint:gosec // thinks this is an authentication "token"
 	RuntimeEVMTokenBalanceAnalysisInsert = `
 	INSERT INTO chain.evm_token_balance_analysis
 		(runtime, token_address, account_address, last_mutate_round)
@@ -376,6 +377,7 @@ const (
       runtime = $1 AND
       token_address = $2`
 
+	//nolint:gosec // thinks this is an authentication "token"
 	RuntimeEVMTokenBalanceAnalysisStale = `
 	SELECT
 		evm_token_balance_analysis.token_address,
@@ -406,6 +408,7 @@ const (
 		evm_token_analysis.last_download_round IS NOT NULL
 	LIMIT $2`
 
+	//nolint:gosec // thinks this is an authentication "token"
 	RuntimeEVMTokenBalanceAnalysisUpdate = `
 	UPDATE chain.evm_token_balance_analysis
 	SET
