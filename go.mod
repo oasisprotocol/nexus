@@ -1,6 +1,6 @@
 module github.com/oasisprotocol/oasis-indexer
 
-go 1.18
+go 1.19
 
 replace github.com/tendermint/tendermint => github.com/oasisprotocol/tendermint v0.34.21-oasis1
 
