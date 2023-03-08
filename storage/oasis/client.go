@@ -4,19 +4,18 @@ package oasis
 
 import (
 	"context"
-	"crypto/tls"
 
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
-	cmnGrpc "github.com/oasisprotocol/oasis-core/go/common/grpc"
+
 	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
 	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi/cobalt"
 	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi/damask"
+	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi/history"
+
 	config "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 	connection "github.com/oasisprotocol/oasis-sdk/client-sdk/go/connection"
 
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
-	"google.golang.org/grpc/credentials/insecure"
 )
 
 const (
@@ -45,7 +44,7 @@ func NewClientFactory(ctx context.Context, network *config.Network, skipChainCon
 	if err != nil {
 		return nil, err
 	}
-	rawConn, err := ConnectNoVerify(ctx, network)
+	rawConn, err := history.ConnectNoVerify(network.RPC)
 	if err != nil {
 		return nil, err
 	}
@@ -103,23 +102,4 @@ func (cf *ClientFactory) Runtime(runtimeID string) (*RuntimeClient, error) {
 		nodeApi: nodeApi,
 		info:    info,
 	}, nil
-}
-
-// ConnectNoVerify establishes gRPC connection with the target URL,
-// omitting the chain context check.
-// This is a clone of the oasis-copy `ConnectNoVerify()` function,
-// but returns a raw gRPC connection instead of the oasis-sdk `Connection` wrapper.
-func ConnectNoVerify(ctx context.Context, net *config.Network) (*grpc.ClientConn, error) {
-	var dialOpts []grpc.DialOption
-	switch net.IsLocalRPC() {
-	case true:
-		// No TLS needed for local nodes.
-		dialOpts = append(dialOpts, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	case false:
-		// Configure TLS for non-local nodes.
-		creds := credentials.NewTLS(&tls.Config{MinVersion: tls.VersionTLS12})
-		dialOpts = append(dialOpts, grpc.WithTransportCredentials(creds))
-	}
-
-	return cmnGrpc.Dial(net.RPC, dialOpts...)
 }
