@@ -153,6 +153,7 @@ func (m Main) processBatch(ctx context.Context) (int, error) {
 		group.Go(func() error {
 			m.logger.Info("downloading", "stale_token", staleToken)
 			// todo: assert that addr context is secp256k1
+			//nolint:nestif
 			if staleToken.LastDownloadRound == nil {
 				tokenData, err := modules.EVMDownloadNewToken(
 					groupCtx,
@@ -187,11 +188,13 @@ func (m Main) processBatch(ctx context.Context) (int, error) {
 				if err != nil {
 					return fmt.Errorf("downloading mutated token %s: %w", staleToken.Addr, err)
 				}
-				batch.Queue(queries.RuntimeEVMTokenUpdate,
-					m.runtime,
-					staleToken.Addr,
-					mutable.TotalSupply.String(),
-				)
+				if mutable != nil {
+					batch.Queue(queries.RuntimeEVMTokenUpdate,
+						m.runtime,
+						staleToken.Addr,
+						mutable.TotalSupply.String(),
+					)
+				}
 			}
 			batch.Queue(queries.RuntimeEVMTokenAnalysisUpdate, m.runtime, staleToken.Addr, staleToken.LastMutateRound)
 			return nil
