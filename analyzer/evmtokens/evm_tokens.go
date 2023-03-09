@@ -152,7 +152,10 @@ func (m Main) processBatch(ctx context.Context) (int, error) {
 		batches = append(batches, batch)
 		group.Go(func() error {
 			m.logger.Info("downloading", "stale_token", staleToken)
-			// todo: assert that addr context is secp256k1
+			tokenEthAddr, err := modules.EVMEthAddrFromPreimage(staleToken.AddrContextIdentifier, staleToken.AddrContextVersion, staleToken.AddrData)
+			if err != nil {
+				return fmt.Errorf("token address: %w", err)
+			}
 			//nolint:nestif
 			if staleToken.LastDownloadRound == nil {
 				tokenData, err := modules.EVMDownloadNewToken(
@@ -160,7 +163,7 @@ func (m Main) processBatch(ctx context.Context) (int, error) {
 					m.logger,
 					m.cfg.Source,
 					staleToken.LastMutateRound,
-					staleToken.AddrData,
+					tokenEthAddr,
 				)
 				if err != nil {
 					return fmt.Errorf("downloading new token %s: %w", staleToken.Addr, err)
@@ -182,7 +185,7 @@ func (m Main) processBatch(ctx context.Context) (int, error) {
 					m.logger,
 					m.cfg.Source,
 					staleToken.LastMutateRound,
-					staleToken.AddrData,
+					tokenEthAddr,
 					*staleToken.Type,
 				)
 				if err != nil {
