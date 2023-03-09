@@ -183,6 +183,60 @@ func (m Main) getStaleTokenBalances(ctx context.Context, limit int) ([]*StaleTok
 	return staleTokenBalances, nil
 }
 
+func (m Main) processStaleTokenBalance(ctx context.Context, batch *storage.QueryBatch, staleTokenBalance *StaleTokenBalance) error {
+	m.logger.Info("downloading", "stale_token_balance", staleTokenBalance)
+	// todo: assert that token addr and account addr contexts are secp256k1
+	tokenEthAddr, err := modules.EVMEthAddrFromPreimage(staleTokenBalance.TokenAddrContextIdentifier, staleTokenBalance.TokenAddrContextVersion, staleTokenBalance.TokenAddrData)
+	if err != nil {
+		return fmt.Errorf("token address: %w", err)
+	}
+	accountEthAddr, err := modules.EVMEthAddrFromPreimage(staleTokenBalance.AccountAddrContextIdentifier, staleTokenBalance.AccountAddrContextVersion, staleTokenBalance.AccountAddrData)
+	if err != nil {
+		return fmt.Errorf("account address: %w", err)
+	}
+	if staleTokenBalance.Type != nil {
+		balanceData, err := modules.EVMDownloadTokenBalance(
+			ctx,
+			m.logger,
+			m.cfg.Source,
+			staleTokenBalance.LastMutateRound,
+			tokenEthAddr,
+			accountEthAddr,
+			*staleTokenBalance.Type,
+		)
+		if err != nil {
+			return fmt.Errorf("downloading token balance %s %s: %w", staleTokenBalance.TokenAddr, staleTokenBalance.AccountAddr, err)
+		}
+		if balanceData != nil {
+			if balanceData.Balance.Cmp(staleTokenBalance.Balance) != 0 {
+				correction := &big.Int{}
+				correction.Sub(balanceData.Balance, staleTokenBalance.Balance)
+				m.logger.Info("correcting reckoned balance of token to downloaded balance",
+					"token_addr", staleTokenBalance.TokenAddr,
+					"account_addr", staleTokenBalance.AccountAddr,
+					"download_round", staleTokenBalance.LastMutateRound,
+					"reckoned_balance", staleTokenBalance.Balance,
+					"downloaded_balance", balanceData,
+					"correction", correction,
+				)
+				batch.Queue(queries.RuntimeEVMTokenBalanceUpdate,
+					m.runtime,
+					staleTokenBalance.TokenAddr,
+					staleTokenBalance.AccountAddr,
+					correction.String(),
+				)
+			}
+		}
+	}
+	batch.Queue(queries.RuntimeEVMTokenBalanceAnalysisUpdate,
+		m.runtime,
+		staleTokenBalance.TokenAddr,
+		staleTokenBalance.AccountAddr,
+		staleTokenBalance.LastMutateRound,
+	)
+	return nil
+}
+
 func (m Main) processBatch(ctx context.Context) (int, error) {
 	staleTokenBalances, err := m.getStaleTokenBalances(ctx, MaxDownloadBatch)
 	if err != nil {
@@ -205,57 +259,7 @@ func (m Main) processBatch(ctx context.Context) (int, error) {
 		batch := &storage.QueryBatch{}
 		batches = append(batches, batch)
 		group.Go(func() error {
-			m.logger.Info("downloading", "stale_token_balance", staleTokenBalance)
-			// todo: assert that token addr and account addr contexts are secp256k1
-			tokenEthAddr, err := modules.EVMEthAddrFromPreimage(staleTokenBalance.TokenAddrContextIdentifier, staleTokenBalance.TokenAddrContextVersion, staleTokenBalance.TokenAddrData)
-			if err != nil {
-				return fmt.Errorf("token address: %w", err)
-			}
-			accountEthAddr, err := modules.EVMEthAddrFromPreimage(staleTokenBalance.AccountAddrContextIdentifier, staleTokenBalance.AccountAddrContextVersion, staleTokenBalance.AccountAddrData)
-			if err != nil {
-				return fmt.Errorf("account address: %w", err)
-			}
-			if staleTokenBalance.Type != nil {
-				balanceData, err := modules.EVMDownloadTokenBalance(
-					groupCtx,
-					m.logger,
-					m.cfg.Source,
-					staleTokenBalance.LastMutateRound,
-					tokenEthAddr,
-					accountEthAddr,
-					*staleTokenBalance.Type,
-				)
-				if err != nil {
-					return fmt.Errorf("downloading token balance %s %s: %w", staleTokenBalance.TokenAddr, staleTokenBalance.AccountAddr, err)
-				}
-				if balanceData != nil {
-					if balanceData.Balance.Cmp(staleTokenBalance.Balance) != 0 {
-						correction := &big.Int{}
-						correction.Sub(balanceData.Balance, staleTokenBalance.Balance)
-						m.logger.Info("correcting reckoned balance of token to downloaded balance",
-							"token_addr", staleTokenBalance.TokenAddr,
-							"account_addr", staleTokenBalance.AccountAddr,
-							"download_round", staleTokenBalance.LastMutateRound,
-							"reckoned_balance", staleTokenBalance.Balance,
-							"downloaded_balance", balanceData,
-							"correction", correction,
-						)
-						batch.Queue(queries.RuntimeEVMTokenBalanceUpdate,
-							m.runtime,
-							staleTokenBalance.TokenAddr,
-							staleTokenBalance.AccountAddr,
-							correction.String(),
-						)
-					}
-				}
-			}
-			batch.Queue(queries.RuntimeEVMTokenBalanceAnalysisUpdate,
-				m.runtime,
-				staleTokenBalance.TokenAddr,
-				staleTokenBalance.AccountAddr,
-				staleTokenBalance.LastMutateRound,
-			)
-			return nil
+			return m.processStaleTokenBalance(groupCtx, batch, staleTokenBalance)
 		})
 	}
 
