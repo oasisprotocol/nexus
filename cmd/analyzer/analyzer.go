@@ -14,6 +14,7 @@ import (
 
 	"github.com/oasisprotocol/oasis-indexer/analyzer"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/consensus"
+	"github.com/oasisprotocol/oasis-indexer/analyzer/evmtokenbalances"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/evmtokens"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/runtime"
 	"github.com/oasisprotocol/oasis-indexer/cmd/common"
@@ -197,6 +198,16 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) {
 	if cfg.Analyzers.SapphireEvmTokens != nil {
 		analyzers, err = addAnalyzer(analyzers, err, func() (A, error) {
 			return evmtokens.NewMain(analyzer.RuntimeSapphire, &cfg.Node, client, logger)
+		})
+	}
+	if cfg.Analyzers.EmeraldEvmTokenBalances != nil {
+		analyzers, err = addAnalyzer(analyzers, err, func() (A, error) {
+			return evmtokenbalances.NewMain(analyzer.RuntimeEmerald, &cfg.Node, client, logger)
+		})
+	}
+	if cfg.Analyzers.SapphireEvmTokenBalances != nil {
+		analyzers, err = addAnalyzer(analyzers, err, func() (A, error) {
+			return evmtokenbalances.NewMain(analyzer.RuntimeSapphire, &cfg.Node, client, logger)
 		})
 	}
 	if cfg.Analyzers.MetadataRegistry != nil {

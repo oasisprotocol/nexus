@@ -106,7 +106,7 @@ type StaleToken struct {
 
 func (m Main) getStaleTokens(ctx context.Context, limit int) ([]*StaleToken, error) {
 	var staleTokens []*StaleToken
-	rows, err := m.target.Query(ctx, queries.RuntimeEVMTokensAnalysisStale, m.runtime, limit)
+	rows, err := m.target.Query(ctx, queries.RuntimeEVMTokenAnalysisStale, m.runtime, limit)
 	if err != nil {
 		return nil, fmt.Errorf("querying discovered tokens: %w", err)
 	}
@@ -127,6 +127,59 @@ func (m Main) getStaleTokens(ctx context.Context, limit int) ([]*StaleToken, err
 		staleTokens = append(staleTokens, &staleToken)
 	}
 	return staleTokens, nil
+}
+
+func (m Main) processStaleToken(ctx context.Context, batch *storage.QueryBatch, staleToken *StaleToken) error {
+	m.logger.Info("downloading", "stale_token", staleToken)
+	tokenEthAddr, err := modules.EVMEthAddrFromPreimage(staleToken.AddrContextIdentifier, staleToken.AddrContextVersion, staleToken.AddrData)
+	if err != nil {
+		return fmt.Errorf("token address: %w", err)
+	}
+	//nolint:nestif
+	if staleToken.LastDownloadRound == nil {
+		tokenData, err := modules.EVMDownloadNewToken(
+			ctx,
+			m.logger,
+			m.cfg.Source,
+			staleToken.LastMutateRound,
+			tokenEthAddr,
+		)
+		if err != nil {
+			return fmt.Errorf("downloading new token %s: %w", staleToken.Addr, err)
+		}
+		if tokenData != nil {
+			batch.Queue(queries.RuntimeEVMTokenInsert,
+				m.runtime,
+				staleToken.Addr,
+				tokenData.Type,
+				tokenData.Name,
+				tokenData.Symbol,
+				tokenData.Decimals,
+				tokenData.TotalSupply.String(),
+			)
+		}
+	} else if staleToken.Type != nil {
+		mutable, err := modules.EVMDownloadMutatedToken(
+			ctx,
+			m.logger,
+			m.cfg.Source,
+			staleToken.LastMutateRound,
+			tokenEthAddr,
+			*staleToken.Type,
+		)
+		if err != nil {
+			return fmt.Errorf("downloading mutated token %s: %w", staleToken.Addr, err)
+		}
+		if mutable != nil {
+			batch.Queue(queries.RuntimeEVMTokenUpdate,
+				m.runtime,
+				staleToken.Addr,
+				mutable.TotalSupply.String(),
+			)
+		}
+	}
+	batch.Queue(queries.RuntimeEVMTokenAnalysisUpdate, m.runtime, staleToken.Addr, staleToken.LastMutateRound)
+	return nil
 }
 
 func (m Main) processBatch(ctx context.Context) (int, error) {
@@ -151,53 +204,7 @@ func (m Main) processBatch(ctx context.Context) (int, error) {
 		batch := &storage.QueryBatch{}
 		batches = append(batches, batch)
 		group.Go(func() error {
-			m.logger.Info("downloading", "stale_token", staleToken)
-			// todo: assert that addr context is secp256k1
-			//nolint:nestif
-			if staleToken.LastDownloadRound == nil {
-				tokenData, err := modules.EVMDownloadNewToken(
-					groupCtx,
-					m.logger,
-					m.cfg.Source,
-					staleToken.LastMutateRound,
-					staleToken.AddrData,
-				)
-				if err != nil {
-					return fmt.Errorf("downloading new token %s: %w", staleToken.Addr, err)
-				}
-				if tokenData != nil {
-					batch.Queue(queries.RuntimeEVMTokenInsert,
-						m.runtime,
-						staleToken.Addr,
-						tokenData.Type,
-						tokenData.Name,
-						tokenData.Symbol,
-						tokenData.Decimals,
-						tokenData.TotalSupply.String(),
-					)
-				}
-			} else if staleToken.Type != nil {
-				mutable, err := modules.EVMDownloadMutatedToken(
-					groupCtx,
-					m.logger,
-					m.cfg.Source,
-					staleToken.LastMutateRound,
-					staleToken.AddrData,
-					*staleToken.Type,
-				)
-				if err != nil {
-					return fmt.Errorf("downloading mutated token %s: %w", staleToken.Addr, err)
-				}
-				if mutable != nil {
-					batch.Queue(queries.RuntimeEVMTokenUpdate,
-						m.runtime,
-						staleToken.Addr,
-						mutable.TotalSupply.String(),
-					)
-				}
-			}
-			batch.Queue(queries.RuntimeEVMTokenAnalysisUpdate, m.runtime, staleToken.Addr, staleToken.LastMutateRound)
-			return nil
+			return m.processStaleToken(groupCtx, batch, staleToken)
 		})
 	}
 

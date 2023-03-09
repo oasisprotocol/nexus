@@ -26,8 +26,6 @@ import (
 	"github.com/oasisprotocol/oasis-indexer/storage"
 )
 
-// todo: erc721, erc1155
-
 type BlockTransactionSignerData struct {
 	Index   int
 	Address apiTypes.Address
@@ -616,7 +614,8 @@ func (m *Main) emitRoundBatch(batch *storage.QueryBatch, round uint64, blockData
 		batch.Queue(queries.AddressPreimageInsert, addr, preimageData.ContextIdentifier, preimageData.ContextVersion, preimageData.Data)
 	}
 	for key, change := range blockData.TokenBalanceChanges {
-		batch.Queue(queries.RuntimeEvmBalanceUpdate, m.runtime, key.TokenAddress, key.AccountAddress, change.String())
+		batch.Queue(queries.RuntimeEVMTokenBalanceUpdate, m.runtime, key.TokenAddress, key.AccountAddress, change.String())
+		batch.Queue(queries.RuntimeEVMTokenBalanceAnalysisInsert, m.runtime, key.TokenAddress, key.AccountAddress, round)
 	}
 	for addr, possibleToken := range blockData.PossibleTokens {
 		if possibleToken.Mutated {
