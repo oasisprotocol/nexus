@@ -44,10 +44,6 @@ func (mg *GenesisProcessor) Process(document *genesis.Document) ([]string, error
 		queries = append(queries, qs...)
 	}
 
-	// Rudimentary templating.
-	for i, query := range queries {
-		queries[i] = strings.ReplaceAll(query, "{{ChainId}}", "chain")
-	}
 	mg.logger.Info("generated genesis queries", "count", len(queries))
 
 	return queries, nil
@@ -55,9 +51,8 @@ func (mg *GenesisProcessor) Process(document *genesis.Document) ([]string, error
 
 func (mg *GenesisProcessor) addRegistryBackendMigrations(document *genesis.Document) (queries []string, err error) {
 	// Populate entities.
-	queries = append(queries, `-- Registry Backend Data
-TRUNCATE {{ChainId}}.entities CASCADE;`)
-	query := `INSERT INTO {{ChainId}}.entities (id, address)
+	queries = append(queries, "-- Registry Backend Data\n")
+	query := `INSERT INTO chain.entities (id, address)
 VALUES
 `
 	for i, signedEntity := range document.Registry.Entities {
@@ -75,12 +70,13 @@ VALUES
 			query += ",\n"
 		}
 	}
-	query += ";"
+	query += `
+ON CONFLICT (id) DO UPDATE SET address = EXCLUDED.address;`
 	queries = append(queries, query)
 
 	// Populate nodes.
-	queries = append(queries, `TRUNCATE {{ChainId}}.nodes CASCADE;`)
-	query = `INSERT INTO {{ChainId}}.nodes (id, entity_id, expiration, tls_pubkey, tls_next_pubkey, p2p_pubkey, consensus_pubkey, roles)
+	queries = append(queries, `TRUNCATE chain.nodes CASCADE;`)
+	query = `INSERT INTO chain.nodes (id, entity_id, expiration, tls_pubkey, tls_next_pubkey, p2p_pubkey, consensus_pubkey, roles)
 VALUES
 `
 	for i, signedNode := range document.Registry.Nodes {
@@ -108,10 +104,8 @@ VALUES
 	queries = append(queries, query)
 
 	// Populate runtimes.
-	queries = append(queries, `TRUNCATE {{ChainId}}.runtimes CASCADE;`)
-
 	if len(document.Registry.Runtimes) > 0 {
-		query = `INSERT INTO {{ChainId}}.runtimes (id, suspended, kind, tee_hardware, key_manager)
+		query = `INSERT INTO chain.runtimes (id, suspended, kind, tee_hardware, key_manager)
 VALUES
 `
 		for i, runtime := range document.Registry.Runtimes {
@@ -132,12 +126,17 @@ VALUES
 				query += ",\n"
 			}
 		}
-		query += ";"
+		query += `
+ON CONFLICT (id) DO UPDATE SET
+	suspended = EXCLUDED.suspended,
+	kind = EXCLUDED.kind,
+	tee_hardware = EXCLUDED.tee_hardware,
+	key_manager = EXCLUDED.key_manager;`
 		queries = append(queries, query)
 	}
 
 	if len(document.Registry.SuspendedRuntimes) > 0 {
-		query = `INSERT INTO {{ChainId}}.runtimes (id, suspended, kind, tee_hardware, key_manager)
+		query = `INSERT INTO chain.runtimes (id, suspended, kind, tee_hardware, key_manager)
 VALUES
 `
 
@@ -159,7 +158,12 @@ VALUES
 				query += ",\n"
 			}
 		}
-		query += ";\n"
+		query += `
+ON CONFLICT (id) DO UPDATE SET
+	suspended = EXCLUDED.suspended,
+	kind = EXCLUDED.kind,
+	tee_hardware = EXCLUDED.tee_hardware,
+	key_manager = EXCLUDED.key_manager;`
 		queries = append(queries, query)
 	}
 
@@ -169,12 +173,11 @@ VALUES
 //nolint:gocyclo
 func (mg *GenesisProcessor) addStakingBackendMigrations(document *genesis.Document) (queries []string, err error) {
 	// Populate accounts.
-	queries = append(queries, `-- Staking Backend Data
-TRUNCATE {{ChainId}}.accounts CASCADE;`)
+	queries = append(queries, "-- Staking Backend Data\n")
 
 	// Populate special accounts with reserved addresses.
 	query := `-- Reserved addresses
-INSERT INTO {{ChainId}}.accounts (address, general_balance, nonce, escrow_balance_active, escrow_total_shares_active, escrow_balance_debonding, escrow_total_shares_debonding)
+INSERT INTO chain.accounts (address, general_balance, nonce, escrow_balance_active, escrow_total_shares_active, escrow_balance_debonding, escrow_total_shares_debonding)
 VALUES
 `
 
@@ -200,8 +203,7 @@ VALUES
 	reservedAccounts[staking.FeeAccumulatorAddress] = &feeAccumulatorAccount
 	reservedAccounts[staking.GovernanceDepositsAddress] = &governanceDepositsAccount
 
-	i := 0
-	for _, address := range sortedAddressKeys(reservedAccounts) {
+	for i, address := range sortedAddressKeys(reservedAccounts) {
 		account := reservedAccounts[address]
 		query += fmt.Sprintf(
 			"\t('%s', %d, %d, %d, %d, %d, %d)",
@@ -216,19 +218,23 @@ VALUES
 
 		if i != len(reservedAccounts)-1 {
 			query += ",\n"
-		} else {
-			query += ";\n"
 		}
-		i++
 	}
+	query += `
+ON CONFLICT (address) DO UPDATE SET
+	general_balance = EXCLUDED.general_balance,
+	nonce = EXCLUDED.nonce,
+	escrow_balance_active = EXCLUDED.escrow_balance_active,
+	escrow_total_shares_active = EXCLUDED.escrow_total_shares_active,
+	escrow_balance_debonding = EXCLUDED.escrow_balance_debonding,
+	escrow_total_shares_debonding = EXCLUDED.escrow_total_shares_debonding;`
 	queries = append(queries, query)
 
-	query = `INSERT INTO {{ChainId}}.accounts (address, general_balance, nonce, escrow_balance_active, escrow_total_shares_active, escrow_balance_debonding, escrow_total_shares_debonding)
+	query = `INSERT INTO chain.accounts (address, general_balance, nonce, escrow_balance_active, escrow_total_shares_active, escrow_balance_debonding, escrow_total_shares_debonding)
 VALUES
 `
 
-	i = 0
-	for _, address := range sortedAddressKeys(document.Staking.Ledger) {
+	for i, address := range sortedAddressKeys(document.Staking.Ledger) {
 		account := document.Staking.Ledger[address]
 		query += fmt.Sprintf(
 			"\t('%s', %d, %d, %d, %d, %d, %d)",
@@ -240,28 +246,40 @@ VALUES
 			account.Escrow.Debonding.Balance.ToBigInt(),
 			account.Escrow.Debonding.TotalShares.ToBigInt(),
 		)
-		i++
 
-		if i%bulkInsertBatchSize == 0 {
-			query += ";\n"
+		if (i+1)%bulkInsertBatchSize == 0 {
+			query += `
+ON CONFLICT (address) DO UPDATE SET
+	general_balance = EXCLUDED.general_balance,
+	nonce = EXCLUDED.nonce,
+	escrow_balance_active = EXCLUDED.escrow_balance_active,
+	escrow_total_shares_active = EXCLUDED.escrow_total_shares_active,
+	escrow_balance_debonding = EXCLUDED.escrow_balance_debonding,
+	escrow_total_shares_debonding = EXCLUDED.escrow_total_shares_debonding;
+`
 			queries = append(queries, query)
-			query = `INSERT INTO {{ChainId}}.accounts (address, general_balance, nonce, escrow_balance_active, escrow_total_shares_active, escrow_balance_debonding, escrow_total_shares_debonding)
+			query = `INSERT INTO chain.accounts (address, general_balance, nonce, escrow_balance_active, escrow_total_shares_active, escrow_balance_debonding, escrow_total_shares_debonding)
 VALUES
 `
-		} else if i != len(document.Staking.Ledger) {
+		} else if i != len(document.Staking.Ledger)-1 {
 			query += ",\n"
 		}
 	}
-	query += ";\n"
+	query += `
+ON CONFLICT (address) DO UPDATE SET
+	general_balance = EXCLUDED.general_balance,
+	nonce = EXCLUDED.nonce,
+	escrow_balance_active = EXCLUDED.escrow_balance_active,
+	escrow_total_shares_active = EXCLUDED.escrow_total_shares_active,
+	escrow_balance_debonding = EXCLUDED.escrow_balance_debonding,
+	escrow_total_shares_debonding = EXCLUDED.escrow_total_shares_debonding;`
 	if len(document.Staking.Ledger) > 0 {
 		queries = append(queries, query)
 	}
 
 	// Populate commissions.
 	// This likely won't overflow batch limit.
-	queries = append(queries, `TRUNCATE {{ChainId}}.commissions CASCADE;`)
-
-	query = `INSERT INTO {{ChainId}}.commissions (address, schedule) VALUES
+	query = `INSERT INTO chain.commissions (address, schedule) VALUES
 `
 
 	commissions := make([]string, 0)
@@ -288,7 +306,9 @@ VALUES
 		if index != len(commissions)-1 {
 			query += ",\n"
 		} else {
-			query += ";\n"
+			query += `
+ON CONFLICT (address) DO UPDATE SET
+	schedule = EXCLUDED.schedule;`
 		}
 	}
 	if len(commissions) > 0 {
@@ -296,11 +316,9 @@ VALUES
 	}
 
 	// Populate allowances.
-	queries = append(queries, `TRUNCATE {{ChainId}}.allowances CASCADE;`)
-
+	queries = append(queries, `TRUNCATE chain.allowances CASCADE;`)
 	foundAllowances := false // in case allowances are empty
 
-	i = 0
 	query = ""
 	for _, owner := range sortedAddressKeys(document.Staking.Ledger) {
 		account := document.Staking.Ledger[owner]
@@ -309,8 +327,7 @@ VALUES
 		}
 
 		ownerAllowances := make([]string, len(account.General.Allowances))
-		j := 0
-		for _, beneficiary := range sortedAddressKeys(account.General.Allowances) {
+		for j, beneficiary := range sortedAddressKeys(account.General.Allowances) {
 			allowance := account.General.Allowances[beneficiary]
 			ownerAllowances[j] = fmt.Sprintf(
 				"\t('%s', '%s', %d)",
@@ -318,34 +335,29 @@ VALUES
 				beneficiary.String(),
 				allowance.ToBigInt(),
 			)
-			j++
 		}
 		if len(account.General.Allowances) > 0 && !foundAllowances {
-			query += `INSERT INTO {{ChainId}}.allowances (owner, beneficiary, allowance)
+			query += `INSERT INTO chain.allowances (owner, beneficiary, allowance)
 VALUES
 `
 			foundAllowances = true
 		}
 
 		query += strings.Join(ownerAllowances, ",\n")
-		i++
 	}
 	if foundAllowances {
-		query += ";\n"
+		query += ";"
 		queries = append(queries, query)
 	}
 
 	// Populate delegations.
-	queries = append(queries, `TRUNCATE {{ChainId}}.delegations CASCADE;`)
-	query = `INSERT INTO {{ChainId}}.delegations (delegatee, delegator, shares)
+	query = `INSERT INTO chain.delegations (delegatee, delegator, shares)
 VALUES
 `
-	i = 0
-	j := 0
-	for _, delegatee := range sortedAddressKeys(document.Staking.Delegations) {
+	i := 0
+	for j, delegatee := range sortedAddressKeys(document.Staking.Delegations) {
 		escrows := document.Staking.Delegations[delegatee]
-		k := 0
-		for _, delegator := range sortedAddressKeys(escrows) {
+		for k, delegator := range sortedAddressKeys(escrows) {
 			delegation := escrows[delegator]
 			query += fmt.Sprintf(
 				"\t('%s', '%s', %d)",
@@ -356,31 +368,31 @@ VALUES
 			i++
 
 			if i%bulkInsertBatchSize == 0 {
-				query += ";\n"
+				query += `
+ON CONFLICT (delegatee, delegator) DO UPDATE SET
+	shares = EXCLUDED.shares;`
 				queries = append(queries, query)
-				query = `INSERT INTO {{ChainId}}.delegations (delegatee, delegator, shares)
+				query = `INSERT INTO chain.delegations (delegatee, delegator, shares)
 VALUES
 `
 			} else if !(k == len(escrows)-1 && j == len(document.Staking.Delegations)-1) {
 				query += ",\n"
 			}
-			k++
 		}
-		j++
 	}
-	query += ";\n"
+	query += `
+ON CONFLICT (delegatee, delegator) DO UPDATE SET
+	shares = EXCLUDED.shares;`
 	queries = append(queries, query)
 
 	// Populate debonding delegations.
-	queries = append(queries, `TRUNCATE {{ChainId}}.debonding_delegations CASCADE;`)
-	query = `INSERT INTO {{ChainId}}.debonding_delegations (delegatee, delegator, shares, debond_end)
+	queries = append(queries, `TRUNCATE chain.debonding_delegations CASCADE;`)
+	query = `INSERT INTO chain.debonding_delegations (delegatee, delegator, shares, debond_end)
 VALUES
 `
-	i = 0
-	for _, delegatee := range sortedAddressKeys(document.Staking.DebondingDelegations) {
+	for i, delegatee := range sortedAddressKeys(document.Staking.DebondingDelegations) {
 		escrows := document.Staking.DebondingDelegations[delegatee]
 		delegateeDebondingDelegations := make([]string, 0)
-		j := 0
 		for _, delegator := range sortedAddressKeys(escrows) {
 			debondingDelegations := escrows[delegator]
 			delegatorDebondingDelegations := make([]string, len(debondingDelegations))
@@ -394,12 +406,10 @@ VALUES
 				)
 			}
 			delegateeDebondingDelegations = append(delegateeDebondingDelegations, delegatorDebondingDelegations...)
-			j++
 		}
 		query += strings.Join(delegateeDebondingDelegations, ",\n")
-		i++
 
-		if i != len(document.Staking.DebondingDelegations) && len(escrows) > 0 {
+		if i != len(document.Staking.DebondingDelegations)-1 && len(escrows) > 0 {
 			query += ",\n"
 		}
 	}
@@ -413,12 +423,11 @@ VALUES
 
 func (mg *GenesisProcessor) addGovernanceBackendMigrations(document *genesis.Document) (queries []string, err error) {
 	// Populate proposals.
-	queries = append(queries, `-- Governance Backend Data
-TRUNCATE {{ChainId}}.proposals CASCADE;`)
+	queries = append(queries, "-- Governance Backend Data\n")
 
 	if len(document.Governance.Proposals) > 0 {
 		// TODO: Extract `executed` for proposal.
-		query := `INSERT INTO {{ChainId}}.proposals (id, submitter, state, deposit, handler, cp_target_version, rhp_target_version, rcp_target_version, upgrade_epoch, cancels, created_at, closes_at, invalid_votes)
+		query := `INSERT INTO chain.proposals (id, submitter, state, deposit, handler, cp_target_version, rhp_target_version, rcp_target_version, upgrade_epoch, cancels, created_at, closes_at, invalid_votes)
 VALUES
 `
 
@@ -463,21 +472,31 @@ VALUES
 				query += ",\n"
 			}
 		}
-		query += ";\n"
+		query += `
+ON CONFLICT (id) DO UPDATE SET
+	submitter = EXCLUDED.submitter,
+	state = EXCLUDED.state,
+	deposit = EXCLUDED.deposit,
+	handler = EXCLUDED.handler,
+	cp_target_version = EXCLUDED.cp_target_version,
+	rhp_target_version = EXCLUDED.rhp_target_version,
+	rcp_target_version = EXCLUDED.rcp_target_version,
+	upgrade_epoch = EXCLUDED.upgrade_epoch,
+	cancels = EXCLUDED.cancels,
+	created_at = EXCLUDED.created_at,
+	closes_at = EXCLUDED.closes_at,
+	invalid_votes = EXCLUDED.invalid_votes;`
 		queries = append(queries, query)
 	}
 
 	// Populate votes.
-	queries = append(queries, `TRUNCATE {{ChainId}}.votes CASCADE;`)
-
 	foundVotes := false // in case votes are empty
 
-	i := 0
 	var query string
-	for _, proposalID := range sortedIntKeys(document.Governance.VoteEntries) {
+	for i, proposalID := range sortedIntKeys(document.Governance.VoteEntries) {
 		voteEntries := document.Governance.VoteEntries[proposalID]
 		if len(voteEntries) > 0 && !foundVotes {
-			query = `INSERT INTO {{ChainId}}.votes (proposal, voter, vote)
+			query = `INSERT INTO chain.votes (proposal, voter, vote)
 VALUES
 `
 			foundVotes = true
@@ -492,14 +511,15 @@ VALUES
 			)
 		}
 		query += strings.Join(votes, ",\n")
-		i++
 
-		if i != len(document.Governance.VoteEntries) && len(voteEntries) > 0 {
+		if i != len(document.Governance.VoteEntries)-1 && len(voteEntries) > 0 {
 			query += ",\n"
 		}
 	}
 	if foundVotes {
-		query += ";\n"
+		query += `
+ON CONFLICT (proposal, voter) DO UPDATE SET
+	vote = EXCLUDED.vote;`
 		queries = append(queries, query)
 	}
 
