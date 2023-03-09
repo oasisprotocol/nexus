@@ -3,6 +3,7 @@ package storage
 
 import (
 	"context"
+	"sync"
 
 	"github.com/jackc/pgx/v5"
 
@@ -31,8 +32,12 @@ type BatchItem struct {
 }
 
 // QueryBatch represents a batch of queries to be executed atomically.
-// We use a custom type that mirrors pgx.Batch but also allows introspection for debugging.
-type QueryBatch struct{ items []*BatchItem }
+// We use a custom type that mirrors `pgx.Batch`, but is thread-safe to use and
+// allows introspection for debugging.
+type QueryBatch struct {
+	items []*BatchItem
+	mu    sync.Mutex
+}
 
 // QueryResults represents the results from a read query.
 type QueryResults = pgx.Rows
@@ -45,6 +50,8 @@ type TxOptions = pgx.TxOptions
 
 // Queue adds query to a batch.
 func (b *QueryBatch) Queue(cmd string, args ...interface{}) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
 	b.items = append(b.items, &BatchItem{
 		Cmd:  cmd,
 		Args: args,
@@ -53,16 +60,27 @@ func (b *QueryBatch) Queue(cmd string, args ...interface{}) {
 
 // Extend merges another batch into the current batch.
 func (b *QueryBatch) Extend(qb *QueryBatch) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	if qb != b {
+		qb.mu.Lock()
+		defer qb.mu.Unlock()
+	}
+
 	b.items = append(b.items, qb.items...)
 }
 
 // Len returns the number of queries in the batch.
 func (b *QueryBatch) Len() int {
+	b.mu.Lock()
+	defer b.mu.Unlock()
 	return len(b.items)
 }
 
 // AsPgxBatch converts a QueryBatch to a pgx.Batch.
 func (b *QueryBatch) AsPgxBatch() pgx.Batch {
+	b.mu.Lock()
+	defer b.mu.Unlock()
 	pgxBatch := pgx.Batch{}
 	for _, item := range b.items {
 		pgxBatch.Queue(item.Cmd, item.Args...)
@@ -70,8 +88,11 @@ func (b *QueryBatch) AsPgxBatch() pgx.Batch {
 	return pgxBatch
 }
 
-// Queries returns the queries in the batch.
+// Queries returns the queries in the batch. Each item of the returned slice
+// is composed of the SQL command and its arguments.
 func (b *QueryBatch) Queries() []*BatchItem {
+	b.mu.Lock()
+	defer b.mu.Unlock()
 	return b.items
 }
 
@@ -206,6 +227,9 @@ type GovernanceData struct {
 // RuntimeSourceStorage defines an interface for retrieving raw block data
 // from the runtime layer.
 type RuntimeSourceStorage interface {
+	// AllData returns all data tied to a specific round.
+	AllData(ctx context.Context, round uint64) (*RuntimeAllData, error)
+
 	// BlockData gets block data in the specified round. This includes all
 	// block header information, as well as transactions and events included
 	// within that block.
@@ -233,6 +257,15 @@ type RuntimeSourceStorage interface {
 	// This is simply the denomination's symbol; notably, for the native denomination,
 	// this is looked up from network config.
 	StringifyDenomination(d types.Denomination) string
+}
+
+type RuntimeAllData struct {
+	Round                 uint64
+	BlockData             *RuntimeBlockData
+	CoreData              *CoreData
+	AccountsData          *AccountsData
+	ConsensusAccountsData *ConsensusAccountsData
+	RawEvents             *RawEvents
 }
 
 // RuntimeBlockData represents data for a runtime block during a given round.

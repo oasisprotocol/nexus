@@ -1,9 +1,6 @@
 package modules
 
 import (
-	"context"
-	"fmt"
-
 	"github.com/oasisprotocol/oasis-indexer/analyzer"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/queries"
 	"github.com/oasisprotocol/oasis-indexer/log"
@@ -30,17 +27,12 @@ func NewConsensusAccountsHandler(source storage.RuntimeSourceStorage, runtime an
 
 // PrepareConsensusAccountsData prepares raw data from the `consensus_accounts` module for insertion.
 // into target storage.
-func (h *ConsensusAccountsHandler) PrepareData(ctx context.Context, round uint64, batch *storage.QueryBatch) error {
-	data, err := h.source.ConsensusAccountsData(ctx, round)
-	if err != nil {
-		return fmt.Errorf("error retrieving consensus_accounts data: %w", err)
-	}
-
+func (h *ConsensusAccountsHandler) PrepareData(batch *storage.QueryBatch, data *storage.RuntimeAllData) error {
 	for _, f := range []func(*storage.QueryBatch, *storage.ConsensusAccountsData) error{
 		h.queueDeposits,
 		h.queueWithdraws,
 	} {
-		if err := f(batch, data); err != nil {
+		if err := f(batch, data.ConsensusAccountsData); err != nil {
 			return err
 		}
 	}

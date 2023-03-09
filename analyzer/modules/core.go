@@ -1,9 +1,6 @@
 package modules
 
 import (
-	"context"
-	"fmt"
-
 	"github.com/oasisprotocol/oasis-indexer/analyzer"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/queries"
 	"github.com/oasisprotocol/oasis-indexer/log"
@@ -29,16 +26,11 @@ func NewCoreHandler(source storage.RuntimeSourceStorage, runtime analyzer.Runtim
 
 // PrepareCoreData prepares raw data from the `core` module for insertion.
 // into target storage.
-func (h *CoreHandler) PrepareData(ctx context.Context, round uint64, batch *storage.QueryBatch) error {
-	data, err := h.source.CoreData(ctx, round)
-	if err != nil {
-		return fmt.Errorf("error retrieving core data: %w", err)
-	}
-
+func (h *CoreHandler) PrepareData(batch *storage.QueryBatch, data *storage.RuntimeAllData) error {
 	for _, f := range []func(*storage.QueryBatch, *storage.CoreData) error{
 		h.queueGasUsed,
 	} {
-		if err := f(batch, data); err != nil {
+		if err := f(batch, data.CoreData); err != nil {
 			return err
 		}
 	}
