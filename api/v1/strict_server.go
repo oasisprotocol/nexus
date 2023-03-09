@@ -285,7 +285,11 @@ func (srv *StrictServerImpl) GetRuntimeTransactionsTxHash(ctx context.Context, r
 	}
 
 	// Perform additional tx body parsing on the fly; DB stores only partially-parsed txs.
-	var apiTransactions apiTypes.RuntimeTransactionList
+	apiTransactions := apiTypes.RuntimeTransactionList{
+		Transactions:        []apiTypes.RuntimeTransaction{},
+		TotalCount:          storageTransactions.TotalCount,
+		IsTotalCountClipped: storageTransactions.IsTotalCountClipped,
+	}
 	for _, storageTransaction := range storageTransactions.Transactions {
 		apiTransaction, err2 := renderRuntimeTransaction(storageTransaction)
 		if err2 != nil {
