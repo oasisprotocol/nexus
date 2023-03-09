@@ -211,7 +211,11 @@ func (m Main) processStaleTokenBalance(ctx context.Context, batch *storage.Query
 			if balanceData.Balance.Cmp(staleTokenBalance.Balance) != 0 {
 				correction := &big.Int{}
 				correction.Sub(balanceData.Balance, staleTokenBalance.Balance)
-				m.logger.Info("correcting reckoned balance of token to downloaded balance",
+				// Note: This will happen because we currently don't scan
+				// before the beginning of the Dasmask upgrade, so the
+				// reckoning will be wrong about any balances from before
+				// then. It can also happen when contracts misbehave.
+				m.logger.Warn("correcting reckoned balance of token to downloaded balance",
 					"token_addr", staleTokenBalance.TokenAddr,
 					"account_addr", staleTokenBalance.AccountAddr,
 					"download_round", staleTokenBalance.LastMutateRound,
