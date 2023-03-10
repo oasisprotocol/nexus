@@ -2,6 +2,7 @@ package cobalt
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
 	"google.golang.org/grpc"
@@ -26,13 +27,16 @@ import (
 // directly, skipping the convenience wrappers provided by oasis-core.
 type CobaltConsensusApiLite struct {
 	grpcConn *grpc.ClientConn
+	// Used as a convenience for calling methods that are ABI-compatible between Cobalt and Damask.
+	damaskClient consensus.ClientBackend
 }
 
 var _ nodeapi.ConsensusApiLite = (*CobaltConsensusApiLite)(nil)
 
-func NewCobaltConsensusApiLite(grpcConn *grpc.ClientConn) *CobaltConsensusApiLite {
+func NewCobaltConsensusApiLite(grpcConn *grpc.ClientConn, damaskClient consensus.ClientBackend) *CobaltConsensusApiLite {
 	return &CobaltConsensusApiLite{
-		grpcConn: grpcConn,
+		grpcConn:     grpcConn,
+		damaskClient: damaskClient,
 	}
 }
 
@@ -45,45 +49,98 @@ func (c *CobaltConsensusApiLite) GetGenesisDocument(ctx context.Context) (*genes
 }
 
 func (c *CobaltConsensusApiLite) StateToGenesis(ctx context.Context, height int64) (*genesis.Document, error) {
-	panic("not implemented") // TODO: Implement
+	var rsp genesisCobalt.Document
+	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Consensus/StateToGenesis", height, &rsp); err != nil {
+		return nil, err
+	}
+	return ConvertGenesis(rsp), nil
 }
 
 func (c *CobaltConsensusApiLite) GetBlock(ctx context.Context, height int64) (*consensus.Block, error) {
-	panic("not implemented") // TODO: Implement
+	rsp, err := c.damaskClient.GetBlock(ctx, height)
+	if err != nil {
+		return nil, fmt.Errorf("calling GetBlock() on Cobalt node using Damask ABI: %w", err)
+	}
+	return rsp, nil
 }
 
 func (c *CobaltConsensusApiLite) GetTransactionsWithResults(ctx context.Context, height int64) (*consensus.TransactionsWithResults, error) {
-	panic("not implemented") // TODO: Implement
+	rsp, err := c.damaskClient.GetTransactionsWithResults(ctx, height)
+	if err != nil {
+		return nil, fmt.Errorf("calling GetTransactionsWithResults() on Cobalt node using Damask ABI: %w", err)
+	}
+	return rsp, nil
 }
 
 func (c *CobaltConsensusApiLite) GetEpoch(ctx context.Context, height int64) (beacon.EpochTime, error) {
-	panic("not implemented") // TODO: Implement
+	rsp, err := c.damaskClient.Beacon().GetEpoch(ctx, height)
+	if err != nil {
+		return beacon.EpochInvalid, fmt.Errorf("calling GetEpoch() on Cobalt node using Damask ABI: %w", err)
+	}
+	return rsp, nil
 }
 
 func (c *CobaltConsensusApiLite) RegistryEvents(ctx context.Context, height int64) ([]*registry.Event, error) {
-	panic("not implemented") // TODO: Implement
+	return []*registry.Event{}, nil
+	// TODO: the currently-deployed node does not support this call yet (forbidden via its config)
+	rsp, err := c.damaskClient.Registry().GetEvents(ctx, height)
+	if err != nil {
+		fmt.Printf("error in Registry: %s\n", err)
+		return nil, err
+	}
+	return rsp, nil
 }
 
 func (c *CobaltConsensusApiLite) StakingEvents(ctx context.Context, height int64) ([]*staking.Event, error) {
-	panic("not implemented") // TODO: Implement
+	rsp, err := c.damaskClient.Staking().GetEvents(ctx, height)
+	if err != nil {
+		return nil, fmt.Errorf("calling StakingEvents() on Cobalt node using Damask ABI: %w", err)
+	}
+	return rsp, nil
 }
 
 func (c *CobaltConsensusApiLite) GovernanceEvents(ctx context.Context, height int64) ([]*governance.Event, error) {
-	panic("not implemented") // TODO: Implement
+	rsp, err := c.damaskClient.Governance().GetEvents(ctx, height)
+	if err != nil {
+		return nil, fmt.Errorf("calling GovernanceEvents() on Cobalt node using Damask ABI: %w", err)
+	}
+	return rsp, nil
 }
 
 func (c *CobaltConsensusApiLite) RoothashEvents(ctx context.Context, height int64) ([]*roothash.Event, error) {
-	panic("not implemented") // TODO: Implement
+	rsp, err := c.damaskClient.RootHash().GetEvents(ctx, height)
+	if err != nil {
+		return nil, fmt.Errorf("calling RoothashEvents() on Cobalt node using Damask ABI: %w", err)
+	}
+	return rsp, nil
 }
 
 func (c *CobaltConsensusApiLite) GetValidators(ctx context.Context, height int64) ([]*scheduler.Validator, error) {
-	panic("not implemented") // TODO: Implement
+	rsp, err := c.damaskClient.Scheduler().GetValidators(ctx, height)
+	if err != nil {
+		return nil, fmt.Errorf("calling GetValidators() on Cobalt node using Damask ABI: %w", err)
+	}
+	return rsp, nil
 }
 
 func (c *CobaltConsensusApiLite) GetCommittees(ctx context.Context, height int64, runtimeID common.Namespace) ([]*scheduler.Committee, error) {
-	panic("not implemented") // TODO: Implement
+	rsp, err := c.damaskClient.Scheduler().GetCommittees(ctx, &scheduler.GetCommitteesRequest{
+		Height:    height,
+		RuntimeID: runtimeID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("calling GetCommittees() on Cobalt node using Damask ABI: %w", err)
+	}
+	return rsp, nil
 }
 
 func (c *CobaltConsensusApiLite) GetProposal(ctx context.Context, height int64, proposalID uint64) (*governance.Proposal, error) {
-	panic("not implemented") // TODO: Implement
+	rsp, err := c.damaskClient.Governance().Proposal(ctx, &governance.ProposalQuery{
+		Height:     height,
+		ProposalID: proposalID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("calling GetProposal() on Cobalt node using Damask ABI: %w", err)
+	}
+	return rsp, nil
 }

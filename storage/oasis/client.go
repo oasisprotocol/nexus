@@ -66,7 +66,7 @@ func (cf *ClientFactory) Consensus() (*ConsensusClient, error) {
 		if err != nil {
 			return nil, err
 		}
-		nodeApi = cobalt.NewCobaltConsensusApiLite(grpcConn)
+		nodeApi = cobalt.NewCobaltConsensusApiLite(grpcConn, (*cf.connection).Consensus())
 	} else {
 		// Assume Damask.
 		client := (*cf.connection).Consensus()
