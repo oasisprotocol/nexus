@@ -14,6 +14,7 @@ const (
 	Status = `
 		SELECT height, processed_time
 			FROM chain.processed_blocks
+			WHERE analyzer=$1
 		ORDER BY processed_time DESC
 		LIMIT 1`
 
@@ -416,6 +417,12 @@ const (
 			balance != 0
 		ORDER BY balance DESC
 		LIMIT 1000  -- To prevent huge responses. Hardcoded because API exposes this as a subfield that does not lend itself to pagination.
+	`
+
+	RuntimeActiveNodes = `
+		SELECT COUNT(*) AS active_nodes
+		FROM chain.runtime_nodes
+		WHERE runtime_id = $1::text
 	`
 
 	FineTxVolumes = `

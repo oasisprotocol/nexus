@@ -312,3 +312,15 @@ func (srv *StrictServerImpl) GetRuntimeAccountsAddress(ctx context.Context, requ
 	}
 	return apiTypes.GetRuntimeAccountsAddress200JSONResponse(*account), nil
 }
+
+func (srv *StrictServerImpl) GetRuntimeStatus(ctx context.Context, request apiTypes.GetRuntimeStatusRequestObject) (apiTypes.GetRuntimeStatusResponseObject, error) {
+	if !request.Runtime.IsValid() {
+		return nil, &apiTypes.InvalidParamFormatError{ParamName: "runtime", Err: fmt.Errorf("not a valid enum value: %s", request.Runtime)}
+	}
+
+	status, err := srv.dbClient.RuntimeStatus(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return apiTypes.GetRuntimeStatus200JSONResponse(*status), nil
+}

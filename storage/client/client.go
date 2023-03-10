@@ -21,6 +21,7 @@ import (
 	"github.com/oasisprotocol/oasis-indexer/log"
 	"github.com/oasisprotocol/oasis-indexer/storage"
 	"github.com/oasisprotocol/oasis-indexer/storage/client/queries"
+	oasisConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 )
 
 const (
@@ -33,13 +34,29 @@ const (
 // StorageClient is a wrapper around a storage.TargetStorage
 // with knowledge of network semantics.
 type StorageClient struct {
-	chainID string
-	db      storage.TargetStorage
+	chainID   string
+	chainName string
+	db        storage.TargetStorage
 
 	blockCache *ristretto.Cache
 	txCache    *ristretto.Cache
 
 	logger *log.Logger
+}
+
+// runtimeNameToID returns the runtime ID for the given network and runtime name.
+func runtimeNameToID(networkName string, name string) (string, error) {
+	network, exists := oasisConfig.DefaultNetworks.All[networkName]
+	if !exists {
+		return "", fmt.Errorf("unknown network: %s", networkName)
+	}
+
+	paratime, exists := network.ParaTimes.All[name]
+	if !exists {
+		return "", fmt.Errorf("unknown runtime: %s", name)
+	}
+
+	return paratime.ID, nil
 }
 
 type rowsWithCount struct {
@@ -68,7 +85,7 @@ func runtimeFromCtx(ctx context.Context) string {
 }
 
 // NewStorageClient creates a new storage client.
-func NewStorageClient(chainID string, db storage.TargetStorage, l *log.Logger) (*StorageClient, error) {
+func NewStorageClient(chainID string, chainName string, db storage.TargetStorage, l *log.Logger) (*StorageClient, error) {
 	blockCache, err := ristretto.NewCache(&ristretto.Config{
 		NumCounters:        1024 * 10,
 		MaxCost:            1024,
@@ -89,7 +106,7 @@ func NewStorageClient(chainID string, db storage.TargetStorage, l *log.Logger) (
 		l.Error("api client: failed to create tx cache: %w", err)
 		return nil, err
 	}
-	return &StorageClient{chainID, db, blockCache, txCache, l}, nil
+	return &StorageClient{chainID, chainName, db, blockCache, txCache, l}, nil
 }
 
 // Shutdown closes the backing TargetStorage.
@@ -162,6 +179,7 @@ func (c *StorageClient) Status(ctx context.Context) (*Status, error) {
 	if err := c.db.QueryRow(
 		ctx,
 		queries.Status,
+		"consensus",
 	).Scan(&s.LatestBlock, &s.LatestUpdate); err != nil {
 		return nil, wrapError(err)
 	}
@@ -1228,6 +1246,47 @@ func (c *StorageClient) RuntimeTokens(ctx context.Context, p apiTypes.GetRuntime
 	}
 
 	return &ts, nil
+}
+
+// RuntimeStatus returns runtime status information.
+func (c *StorageClient) RuntimeStatus(ctx context.Context) (*RuntimeStatus, error) {
+	runtimeName := runtimeFromCtx(ctx)
+	runtimeID, err := runtimeNameToID(c.chainName, runtimeName)
+	if err != nil {
+		// Return a generic error here and log the detailed error. This is most likely a misconfiguration of the server.
+		c.logger.Error("runtime name to ID failure", "runtime", runtimeName, "chain", c.chainName, "err", err)
+		return nil, apiCommon.ErrBadRuntime
+	}
+
+	var s apiTypes.RuntimeStatus
+	// Query latest block and update time.
+	err = c.db.QueryRow(
+		ctx,
+		queries.Status,
+		runtimeName,
+	).Scan(&s.LatestBlock, &s.LatestUpdate)
+	switch err {
+	case nil:
+	case pgx.ErrNoRows:
+		// No runtime blocks indexed yet.
+		s.LatestBlock = -1
+	default:
+		return nil, wrapError(err)
+	}
+	// oasis-node control status returns time truncated to the second
+	// https://github.com/oasisprotocol/oasis-core/blob/5985dc5c2844de28241b7b16b19d91a86e5cbeda/docs/oasis-node/cli.md?plain=1#L41
+	s.LatestUpdate = s.LatestUpdate.Truncate(time.Second)
+
+	// Query active nodes.
+	if err := c.db.QueryRow(
+		ctx,
+		queries.RuntimeActiveNodes,
+		runtimeID,
+	).Scan(&s.ActiveNodes); err != nil {
+		return nil, wrapError(err)
+	}
+
+	return &s, nil
 }
 
 // TxVolumes returns a list of transaction volumes per time bucket.

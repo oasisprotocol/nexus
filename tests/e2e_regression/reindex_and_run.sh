@@ -32,6 +32,7 @@ analysis:
 
 server:
   chain_id: oasis-3
+  chain_name: mainnet
   endpoint: localhost:8008
   storage:
     endpoint: postgresql://api:password@localhost:5432/indexer?sslmode=disable

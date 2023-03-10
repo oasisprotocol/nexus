@@ -44,6 +44,15 @@ func (c Layer) IsValid() bool {
 	}
 }
 
+func (c Runtime) IsValid() bool {
+	switch c {
+	case RuntimeCipher, RuntimeEmerald, RuntimeSapphire:
+		return true
+	default:
+		return false
+	}
+}
+
 // Validate validates the parameters.
 func (p *GetLayerStatsActiveAccountsParams) Validate() error {
 	if p.WindowStepSeconds == nil {

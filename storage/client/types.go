@@ -130,6 +130,9 @@ type RuntimeEvent = api.RuntimeEvent
 
 type RuntimeEventType = api.RuntimeEventType
 
+// RuntimeStatus is the storage response for RuntimeStatus.
+type RuntimeStatus = api.RuntimeStatus
+
 // Types that are a part of the storage response for GetRuntimeAccount.
 type (
 	AddressPreimage          = api.AddressPreimage
