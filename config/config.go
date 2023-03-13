@@ -189,6 +189,9 @@ type ServerConfig struct {
 	// ChainID is the chain ID (normally latest) for the server API
 	ChainID string `koanf:"chain_id"`
 
+	// ChainName is the name of the chain (e.g. mainnet/testnet/local).
+	ChainName string `koanf:"chain_name"`
+
 	// Endpoint is the service endpoint from which to serve the API.
 	Endpoint string `koanf:"endpoint"`
 
@@ -203,6 +206,10 @@ func (cfg *ServerConfig) Validate() error {
 	if cfg.Storage == nil {
 		return fmt.Errorf("no storage config provided")
 	}
+	if cfg.ChainName == "" {
+		return fmt.Errorf("no chain name provided")
+	}
+
 	return cfg.Storage.Validate(false /* requireMigrations */)
 }
 

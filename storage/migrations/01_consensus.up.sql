@@ -155,6 +155,14 @@ CREATE TABLE chain.runtimes
   key_manager  HEX64
 );
 
+CREATE TABLE chain.runtime_nodes
+(
+  runtime_id HEX64 NOT NULL REFERENCES chain.runtimes(id) DEFERRABLE INITIALLY DEFERRED,
+  node_id    base64_ed25519_pubkey NOT NULL REFERENCES chain.nodes(id) DEFERRABLE INITIALLY DEFERRED,
+
+  PRIMARY KEY (runtime_id, node_id)
+);
+
 -- Staking Backend Data
 
 CREATE TABLE chain.accounts

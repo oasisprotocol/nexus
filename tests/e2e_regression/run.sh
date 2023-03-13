@@ -64,6 +64,7 @@ testCases=(
   'emerald_txs              /v1/emerald/transactions'
   'emerald_events           /v1/consensus/events'
   'emerald_events_by_type   /v1/consensus/events?type=sdf'
+  'emerald_status           /v1/emerald/status'
 )
 nCases=${#testCases[@]}
 

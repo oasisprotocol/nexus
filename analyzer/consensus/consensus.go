@@ -578,8 +578,17 @@ func (m *Main) queueNodeEvents(batch *storage.QueryBatch, data *storage.Registry
 				nodeEvent.Node.SoftwareVersion,
 				0,
 			)
+
+			// Update the node's runtime associations by deleting
+			// previous node records and inserting new ones.
+			batch.Queue(queries.ConsensusRuntimeNodesDelete, nodeEvent.Node.ID.String())
+			for _, runtime := range nodeEvent.Node.Runtimes {
+				// XXX: Include other fields here if needed in the future.
+				batch.Queue(queries.ConsensusRuntimeNodesUpsert, runtime.ID.String(), nodeEvent.Node.ID.String())
+			}
 		} else {
 			// An existing node is expired.
+			batch.Queue(queries.ConsensusRuntimeNodesDelete, nodeEvent.Node.ID.String())
 			batch.Queue(queries.ConsensusNodeDelete,
 				nodeEvent.Node.ID.String(),
 			)

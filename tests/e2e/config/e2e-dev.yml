@@ -14,6 +14,7 @@ analysis:
 
 server:
   chain_id: oasis-3  # a fake mainnet, based on oasis-net-runner
+  chain_name: localnet
   endpoint: 0.0.0.0:8008
   storage:
     endpoint: postgresql://indexer:password@indexer-postgres:5432/indexer?sslmode=disable

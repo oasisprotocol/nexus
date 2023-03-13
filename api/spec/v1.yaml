@@ -927,6 +927,20 @@ paths:
                 $ref: '#/components/schemas/RuntimeAccount'
         <<: *common_error_responses
 
+  /{runtime}/status:
+    get:
+      summary: Returns the runtime status.
+      parameters:
+        - *runtime
+      responses:
+        '200':
+          description: A JSON object containing latest runtime status.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RuntimeStatus'
+        <<: *common_error_responses
+
   /{layer}/stats/tx_volume:
     get:
       summary: |
@@ -2081,6 +2095,25 @@ components:
         stats:
           $ref: '#/components/schemas/AccountStats'
 
+    RuntimeStatus:
+      type: object
+      required: [active_nodes, latest_block, latest_update]
+      properties:
+        active_nodes:
+          type: integer
+          description: The number of compute nodes that are registered and can run the runtime.
+          example: 42
+        latest_block:
+          type: integer
+          format: int64
+          description: The height of the most recent indexed block (also sometimes referred to as "round") for this runtime. Query a synced Oasis node for the latest block produced.
+          example: *block_height_1
+        latest_update:
+          type: string
+          format: date-time
+          description: The RFC 3339 formatted time when the Indexer processed the latest block for this runtime. Compare with current time for approximate indexing progress with the Oasis Network.
+          example: *iso_timestamp_1
+
     EvmTokenType:
       type: string
       enum:
@@ -2148,7 +2181,7 @@ components:
             The number of addresses that have a nonzero balance of this token,
             as calculated from Transfer events.
           example: 123
-    
+
     AccountStats:
       type: object
       required: [total_sent, total_received, num_txns]

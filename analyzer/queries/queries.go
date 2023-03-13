@@ -105,6 +105,13 @@ const (
       software_version = excluded.software_version,
       voting_power = excluded.voting_power`
 
+	ConsensusRuntimeNodesUpsert = `
+    INSERT INTO chain.runtime_nodes (runtime_id, node_id) VALUES ($1, $2)
+      ON CONFLICT (runtime_id, node_id) DO NOTHING`
+
+	ConsensusRuntimeNodesDelete = `
+    DELETE FROM chain.runtime_nodes WHERE node_id = $1`
+
 	ConsensusNodeDelete = `
     DELETE FROM chain.nodes WHERE id = $1`
 
