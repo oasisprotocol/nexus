@@ -55,10 +55,14 @@ func renderRuntimeTransaction(storageTransaction client.RuntimeTransaction) (api
 		Success:    cr.IsSuccess(),
 	}
 	if !cr.IsSuccess() {
+		// `module` should be present but message may be null
+		// https://github.com/oasisprotocol/oasis-sdk/blob/fb741678585c04fdb413441f2bfba18aafbf98f3/client-sdk/go/types/transaction.go#L488-L492
 		apiTransaction.Error = &apiTypes.TxError{
-			Code:    int(cr.Failed.Code),
-			Module:  cr.Failed.Module,
-			Message: cr.Failed.Message,
+			Code:   cr.Failed.Code,
+			Module: &cr.Failed.Module,
+		}
+		if len(cr.Failed.Message) > 0 {
+			apiTransaction.Error.Message = &cr.Failed.Message
 		}
 	}
 	if err = uncategorized.VisitCall(&tx.Call, &cr, &uncategorized.CallHandler{

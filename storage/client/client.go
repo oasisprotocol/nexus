@@ -279,9 +279,9 @@ func (c *StorageClient) Transactions(ctx context.Context, p apiTypes.GetConsensu
 	}
 	for res.rows.Next() {
 		var t Transaction
-		var code uint64
-		var module string
-		var message string
+		var code uint32
+		var module *string
+		var message *string
 		if err := res.rows.Scan(
 			&t.Block,
 			&t.Index,
@@ -302,7 +302,7 @@ func (c *StorageClient) Transactions(ctx context.Context, p apiTypes.GetConsensu
 			t.Success = true
 		} else {
 			t.Error = &apiTypes.TxError{
-				Code:    int(code),
+				Code:    code,
 				Module:  module,
 				Message: message,
 			}
@@ -323,9 +323,9 @@ func (c *StorageClient) Transaction(ctx context.Context, txHash string) (*Transa
 	}
 
 	var t Transaction
-	var code uint64
-	var module string
-	var message string
+	var code uint32
+	var module *string
+	var message *string
 	if err := c.db.QueryRow(
 		ctx,
 		queries.Transaction,
@@ -350,7 +350,7 @@ func (c *StorageClient) Transaction(ctx context.Context, txHash string) (*Transa
 		t.Success = true
 	} else {
 		t.Error = &apiTypes.TxError{
-			Code:    int(code),
+			Code:    code,
 			Module:  module,
 			Message: message,
 		}

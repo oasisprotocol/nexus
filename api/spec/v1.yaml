@@ -1248,10 +1248,11 @@ components:
 
     TxError:
       type: object
-      required: [code, module, message]
+      required: [code]
       properties:
         code:
           type: integer
+          format: uint32
           description: The status code of a failed transaction.
         module:
           type: string
