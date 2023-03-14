@@ -4,102 +4,52 @@ package oasis
 
 import (
 	"context"
+	"fmt"
 
-	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
-
+	"github.com/oasisprotocol/oasis-indexer/analyzer"
+	"github.com/oasisprotocol/oasis-indexer/config"
 	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
-	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi/cobalt"
-	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi/damask"
 	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi/history"
-
-	config "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
-	connection "github.com/oasisprotocol/oasis-sdk/client-sdk/go/connection"
-
-	"google.golang.org/grpc"
 )
 
 const (
 	moduleName = "storage_oasis"
 )
 
-// ClientFactory supports connections to an oasis-node instance.
-type ClientFactory struct {
-	connection        *connection.Connection
-	rawGrpcConnection *grpc.ClientConn
-	network           *config.Network
-}
-
-// NewClientFactory creates a new oasis-node client factory.
-// If `skipChainContextCheck` is true, it also checks that
-// the RPC endpoint in `network` serves the chain context specified
-// in `network`.
-func NewClientFactory(ctx context.Context, network *config.Network, skipChainContextCheck bool) (*ClientFactory, error) {
-	var conn connection.Connection
-	var err error
-	if skipChainContextCheck {
-		conn, err = connection.ConnectNoVerify(ctx, network)
-	} else {
-		conn, err = connection.Connect(ctx, network)
-	}
+// NewConsensusClient creates a new ConsensusClient.
+func NewConsensusClient(ctx context.Context, sourceConfig *config.SourceConfig) (*ConsensusClient, error) {
+	nodeApi, err := history.NewHistoryConsensusApiLite(ctx, sourceConfig.History(), sourceConfig.Nodes, sourceConfig.FastStartup)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("instantiating history consensus API lite: %w", err)
 	}
-	rawConn, err := history.ConnectNoVerify(network.RPC)
-	if err != nil {
-		return nil, err
-	}
-
-	return &ClientFactory{
-		connection:        &conn,
-		rawGrpcConnection: rawConn,
-		network:           network,
+	return &ConsensusClient{
+		nodeApi: nodeApi,
+		network: sourceConfig.SDKNetwork(),
 	}, nil
 }
 
-// Consensus creates a new ConsensusClient.
-func (cf *ClientFactory) Consensus() (*ConsensusClient, error) {
-	// TODO: Remove the hardcoded values in next block once indexer config supports multiple nodes.
-	// The plan is to introduce a new implementation of ConsensusApiLite that
-	// will forward each call to either CobaltConsensusApiLite or DamaskConsensusApiLite,
-	// depending on the `height` parameter in the call.
-	var nodeApi nodeapi.ConsensusApiLite
-	if cf.network.ChainContext == "53852332637bacb61b91b6411ab4095168ba02a50be4c3f82448438826f23898" {
-		// Cobalt mainnet.
-		nodeApi = cobalt.NewCobaltConsensusApiLite(cf.rawGrpcConnection)
-	} else {
-		// Assume Damask.
-		client := (*cf.connection).Consensus()
-		nodeApi = damask.NewDamaskConsensusApiLite(client)
+// NewRuntimeClient creates a new RuntimeClient.
+func NewRuntimeClient(ctx context.Context, sourceConfig *config.SourceConfig, runtime analyzer.Runtime) (*RuntimeClient, error) {
+	currentHistoryRecord := sourceConfig.History().CurrentRecord()
+	currentNode := sourceConfig.Nodes[currentHistoryRecord.ArchiveName]
+	rawConn, err := history.RawConnect(currentNode)
+	if err != nil {
+		return nil, fmt.Errorf("indexer RawConnect: %w", err)
 	}
-
-	// Configure chain context for all signatures using chain domain separation.
-	signature.SetChainContext(cf.network.ChainContext)
-
-	c := &ConsensusClient{
-		nodeApi: nodeApi,
-		network: cf.network,
+	sdkConn, err := history.SDKConnect(ctx, currentHistoryRecord.ChainContext, currentNode, sourceConfig.FastStartup)
+	if err != nil {
+		return nil, err
 	}
+	sdkPT := sourceConfig.SDKNetwork().ParaTimes.All[runtime.String()]
+	sdkClient := sdkConn.Runtime(sdkPT)
 
-	return c, nil
-}
-
-// Runtime creates a new RuntimeClient.
-func (cf *ClientFactory) Runtime(runtimeID string) (*RuntimeClient, error) {
-	ctx := context.Background()
-
-	client := (*cf.connection).Runtime(&config.ParaTime{ID: runtimeID})
-	info, err := client.GetInfo(ctx)
+	info, err := sdkClient.GetInfo(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	nodeApi := nodeapi.NewUniversalRuntimeApiLite(info.ID, cf.rawGrpcConnection, &client)
-
-	// Configure chain context for all signatures using chain domain separation.
-	signature.SetChainContext(cf.network.ChainContext)
-
 	return &RuntimeClient{
-		nodeApi: nodeApi,
+		nodeApi: nodeapi.NewUniversalRuntimeApiLite(info.ID, rawConn, &sdkClient),
 		info:    info,
 	}, nil
 }

@@ -1,8 +1,15 @@
 analysis:
-  node:
-      chain_id: oasis-3  # a fake mainnet, based on oasis-net-runner
-      rpc: unix:/testnet/net-runner/network/validator-0/internal.sock
-      chaincontext: 59e65fd10f3057cb8009998c5e6288db40b32a3a37f3c3a7c769fd84ed4c63c9
+  source:
+    custom_chain:
+      history:
+        records:
+          - archive_name: damask
+            genesis_height: 1
+            chain_context: 59e65fd10f3057cb8009998c5e6288db40b32a3a37f3c3a7c769fd84ed4c63c9
+      sdk_network: {}
+    nodes:
+      damask:
+        rpc: unix:/testnet/net-runner/network/validator-0/internal.sock
   analyzers:
     consensus:
       from: 1
@@ -13,8 +20,7 @@ analysis:
     migrations: file:///storage/migrations
 
 server:
-  chain_id: oasis-3  # a fake mainnet, based on oasis-net-runner
-  chain_name: localnet
+  chain_name: localnet  # a fake mainnet, based on oasis-net-runner
   endpoint: 0.0.0.0:8008
   storage:
     endpoint: postgresql://indexer:password@indexer-postgres:5432/indexer?sslmode=disable

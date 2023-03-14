@@ -5,10 +5,11 @@ import (
 	"os"
 	"testing"
 
-	"github.com/oasisprotocol/oasis-indexer/tests"
-	config "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/oasisprotocol/oasis-indexer/config"
+	"github.com/oasisprotocol/oasis-indexer/tests"
 )
 
 const (
@@ -16,39 +17,38 @@ const (
 	futureHeight = 100000000000 // an unreasonably high height
 )
 
-func newClientFactory() (*ClientFactory, error) {
-	network := &config.Network{
-		ChainContext: os.Getenv("CI_TEST_CHAIN_CONTEXT"),
-		RPC:          os.Getenv("CI_TEST_NODE_RPC"),
-	}
-	return NewClientFactory(context.Background(), network, true)
-}
+var TestSourceConfig = config.CustomSingleNetworkSourceConfig(
+	os.Getenv("CI_TEST_NODE_RPC"),
+	os.Getenv("CI_TEST_CHAIN_CONTEXT"),
+)
 
 func TestConnect(t *testing.T) {
 	tests.SkipUnlessE2E(t)
 	tests.SkipIfShort(t)
 
-	_, err := newClientFactory()
-	require.Nil(t, err)
+	_, err := NewConsensusClient(context.Background(), TestSourceConfig)
+	require.NoError(t, err)
 }
 
 func TestInvalidConnect(t *testing.T) {
 	tests.SkipUnlessE2E(t)
 	tests.SkipIfShort(t)
 
-	network := &config.Network{
-		ChainContext: os.Getenv("CI_TEST_CHAIN_CONTEXT"),
-		RPC:          "an invalid rpc endpoint",
-	}
-	_, err := NewClientFactory(context.Background(), network, false)
-	require.NotNil(t, err)
+	invalidRPCSourceConfig := config.CustomSingleNetworkSourceConfig(
+		"an invalid rpc endpoint",
+		os.Getenv("CI_TEST_CHAIN_CONTEXT"),
+	)
+	invalidRPCSourceConfig.FastStartup = false
+	_, err := NewConsensusClient(context.Background(), invalidRPCSourceConfig)
+	require.Error(t, err)
 
-	network = &config.Network{
-		ChainContext: "an invalid chaincontext",
-		RPC:          os.Getenv("CI_TEST_NODE_RPC"),
-	}
-	_, err = NewClientFactory(context.Background(), network, false)
-	require.NotNil(t, err)
+	invalidChainContextSourceConfig := config.CustomSingleNetworkSourceConfig(
+		os.Getenv("CI_TEST_NODE_RPC"),
+		"ci-test-invalid-chaincontext",
+	)
+	invalidChainContextSourceConfig.FastStartup = false
+	_, err = NewConsensusClient(context.Background(), invalidChainContextSourceConfig)
+	require.Error(t, err)
 }
 
 func TestGenesisDocument(t *testing.T) {
@@ -57,11 +57,8 @@ func TestGenesisDocument(t *testing.T) {
 
 	ctx := context.Background()
 
-	factory, err := newClientFactory()
-	require.Nil(t, err)
-
-	client, err := factory.Consensus()
-	require.Nil(t, err)
+	client, err := NewConsensusClient(ctx, TestSourceConfig)
+	require.NoError(t, err)
 
 	_, err = client.GenesisDocument(ctx)
 	assert.Nil(t, err)
@@ -73,11 +70,8 @@ func TestBlockData(t *testing.T) {
 
 	ctx := context.Background()
 
-	factory, err := newClientFactory()
-	require.Nil(t, err)
-
-	client, err := factory.Consensus()
-	require.Nil(t, err)
+	client, err := NewConsensusClient(ctx, TestSourceConfig)
+	require.NoError(t, err)
 
 	_, err = client.BlockData(ctx, pastHeight)
 	require.Nil(t, err)
@@ -92,11 +86,8 @@ func TestBeaconData(t *testing.T) {
 
 	ctx := context.Background()
 
-	factory, err := newClientFactory()
-	require.Nil(t, err)
-
-	client, err := factory.Consensus()
-	require.Nil(t, err)
+	client, err := NewConsensusClient(ctx, TestSourceConfig)
+	require.NoError(t, err)
 
 	_, err = client.BeaconData(ctx, pastHeight)
 	require.NotNil(t, err)
@@ -113,11 +104,8 @@ func TestRegistryData(t *testing.T) {
 
 	ctx := context.Background()
 
-	factory, err := newClientFactory()
-	require.Nil(t, err)
-
-	client, err := factory.Consensus()
-	require.Nil(t, err)
+	client, err := NewConsensusClient(ctx, TestSourceConfig)
+	require.NoError(t, err)
 
 	_, err = client.RegistryData(ctx, pastHeight)
 	require.Nil(t, err)
@@ -132,11 +120,8 @@ func TestStakingData(t *testing.T) {
 
 	ctx := context.Background()
 
-	factory, err := newClientFactory()
-	require.Nil(t, err)
-
-	client, err := factory.Consensus()
-	require.Nil(t, err)
+	client, err := NewConsensusClient(ctx, TestSourceConfig)
+	require.NoError(t, err)
 
 	_, err = client.StakingData(ctx, pastHeight)
 	require.Nil(t, err)
@@ -151,11 +136,8 @@ func TestSchedulerData(t *testing.T) {
 
 	ctx := context.Background()
 
-	factory, err := newClientFactory()
-	require.Nil(t, err)
-
-	client, err := factory.Consensus()
-	require.Nil(t, err)
+	client, err := NewConsensusClient(ctx, TestSourceConfig)
+	require.NoError(t, err)
 
 	_, err = client.SchedulerData(ctx, pastHeight)
 	require.Nil(t, err)
@@ -172,11 +154,8 @@ func TestGovernanceData(t *testing.T) {
 
 	ctx := context.Background()
 
-	factory, err := newClientFactory()
-	require.Nil(t, err)
-
-	client, err := factory.Consensus()
-	require.Nil(t, err)
+	client, err := NewConsensusClient(ctx, TestSourceConfig)
+	require.NoError(t, err)
 
 	_, err = client.GovernanceData(ctx, pastHeight)
 	require.Nil(t, err)

@@ -6,7 +6,6 @@ import (
 	"math/big"
 	"time"
 
-	oasisConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/oasisprotocol/oasis-indexer/analyzer"
@@ -89,37 +88,14 @@ var _ analyzer.Analyzer = (*Main)(nil)
 
 func NewMain(
 	runtime analyzer.Runtime,
-	nodeCfg *config.NodeConfig,
+	sourceConfig *config.SourceConfig,
 	target storage.TargetStorage,
 	logger *log.Logger,
 ) (*Main, error) {
 	ctx := context.Background()
 
 	// Initialize source storage.
-	networkCfg := oasisConfig.Network{
-		ChainContext: nodeCfg.ChainContext,
-		RPC:          nodeCfg.RPC,
-	}
-	factory, err := oasis.NewClientFactory(ctx, &networkCfg, nodeCfg.FastStartup)
-	if err != nil {
-		logger.Error("error creating client factory",
-			"err", err,
-		)
-		return nil, err
-	}
-
-	network, err := analyzer.FromChainContext(nodeCfg.ChainContext)
-	if err != nil {
-		return nil, err
-	}
-
-	id, err := runtime.ID(network)
-	if err != nil {
-		return nil, err
-	}
-	logger.Info("Runtime ID determined", "runtime", runtime.String(), "runtime_id", id)
-
-	client, err := factory.Runtime(id)
+	client, err := oasis.NewRuntimeClient(ctx, sourceConfig, runtime)
 	if err != nil {
 		logger.Error("error creating runtime client",
 			"err", err,

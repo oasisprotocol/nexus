@@ -1,10 +1,11 @@
 # Indexer configuration for non-synthetic e2e regression tests implemented in this directory.
 
 analysis:
-  node:
-    chain_id: oasis-3
-    rpc: unix:/tmp/node.sock
-    chaincontext: b11b369e0da5bb230b220127f5e7b242d385ef8c6f54906243f30af63c815535
+  source:
+    chain_name: mainnet
+    nodes:
+      damask:
+        rpc: unix:/tmp/node.sock
     fast_startup: true
   analyzers:
     consensus:

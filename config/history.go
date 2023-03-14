@@ -42,6 +42,18 @@ func (h *History) RecordForHeight(height int64) (*Record, error) {
 	)
 }
 
+func SingleRecordHistory(chainContext string) *History {
+	return &History{
+		Records: []*Record{
+			{
+				ArchiveName:   "damask",
+				GenesisHeight: 1,
+				ChainContext:  chainContext,
+			},
+		},
+	}
+}
+
 var DefaultChains = map[string]*History{
 	"mainnet": {
 		Records: []*Record{

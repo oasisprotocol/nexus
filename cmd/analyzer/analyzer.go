@@ -172,52 +172,52 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) {
 	analyzers := map[string]A{}
 	if cfg.Analyzers.Consensus != nil {
 		analyzers, err = addAnalyzer(analyzers, err, func() (A, error) {
-			return consensus.NewMain(cfg.Node, cfg.Analyzers.Consensus, client, logger)
+			return consensus.NewMain(&cfg.Source, cfg.Analyzers.Consensus, client, logger)
 		})
 	}
 	if cfg.Analyzers.Emerald != nil {
 		analyzers, err = addAnalyzer(analyzers, err, func() (A, error) {
-			return runtime.NewRuntimeAnalyzer(analyzer.RuntimeEmerald, cfg.Node, cfg.Analyzers.Emerald, client, logger)
+			return runtime.NewRuntimeAnalyzer(analyzer.RuntimeEmerald, &cfg.Source, cfg.Analyzers.Emerald, client, logger)
 		})
 	}
 	if cfg.Analyzers.Sapphire != nil {
 		analyzers, err = addAnalyzer(analyzers, err, func() (A, error) {
-			return runtime.NewRuntimeAnalyzer(analyzer.RuntimeSapphire, cfg.Node, cfg.Analyzers.Sapphire, client, logger)
+			return runtime.NewRuntimeAnalyzer(analyzer.RuntimeSapphire, &cfg.Source, cfg.Analyzers.Sapphire, client, logger)
 		})
 	}
 	if cfg.Analyzers.Cipher != nil {
 		analyzers, err = addAnalyzer(analyzers, err, func() (A, error) {
-			return runtime.NewRuntimeAnalyzer(analyzer.RuntimeCipher, cfg.Node, cfg.Analyzers.Cipher, client, logger)
+			return runtime.NewRuntimeAnalyzer(analyzer.RuntimeCipher, &cfg.Source, cfg.Analyzers.Cipher, client, logger)
 		})
 	}
 	if cfg.Analyzers.EmeraldEvmTokens != nil {
 		analyzers, err = addAnalyzer(analyzers, err, func() (A, error) {
-			return evmtokens.NewMain(analyzer.RuntimeEmerald, &cfg.Node, client, logger)
+			return evmtokens.NewMain(analyzer.RuntimeEmerald, &cfg.Source, client, logger)
 		})
 	}
 	if cfg.Analyzers.SapphireEvmTokens != nil {
 		analyzers, err = addAnalyzer(analyzers, err, func() (A, error) {
-			return evmtokens.NewMain(analyzer.RuntimeSapphire, &cfg.Node, client, logger)
+			return evmtokens.NewMain(analyzer.RuntimeSapphire, &cfg.Source, client, logger)
 		})
 	}
 	if cfg.Analyzers.EmeraldEvmTokenBalances != nil {
 		analyzers, err = addAnalyzer(analyzers, err, func() (A, error) {
-			return evmtokenbalances.NewMain(analyzer.RuntimeEmerald, &cfg.Node, client, logger)
+			return evmtokenbalances.NewMain(analyzer.RuntimeEmerald, &cfg.Source, client, logger)
 		})
 	}
 	if cfg.Analyzers.SapphireEvmTokenBalances != nil {
 		analyzers, err = addAnalyzer(analyzers, err, func() (A, error) {
-			return evmtokenbalances.NewMain(analyzer.RuntimeSapphire, &cfg.Node, client, logger)
+			return evmtokenbalances.NewMain(analyzer.RuntimeSapphire, &cfg.Source, client, logger)
 		})
 	}
 	if cfg.Analyzers.MetadataRegistry != nil {
 		analyzers, err = addAnalyzer(analyzers, err, func() (A, error) {
-			return analyzer.NewMetadataRegistryAnalyzer(cfg.Node.ChainID, cfg.Analyzers.MetadataRegistry, client, logger)
+			return analyzer.NewMetadataRegistryAnalyzer(cfg.Analyzers.MetadataRegistry, client, logger)
 		})
 	}
 	if cfg.Analyzers.AggregateStats != nil {
 		analyzers, err = addAnalyzer(analyzers, err, func() (A, error) {
-			return analyzer.NewAggregateStatsAnalyzer(cfg.Node.ChainID, cfg.Analyzers.AggregateStats, client, logger)
+			return analyzer.NewAggregateStatsAnalyzer(cfg.Analyzers.AggregateStats, client, logger)
 		})
 	}
 	if err != nil {

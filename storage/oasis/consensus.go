@@ -7,10 +7,10 @@ import (
 	beaconAPI "github.com/oasisprotocol/oasis-core/go/beacon/api"
 	"github.com/oasisprotocol/oasis-core/go/common"
 	genesisAPI "github.com/oasisprotocol/oasis-core/go/genesis/api"
-	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
-	config "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
+	sdkConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 
 	"github.com/oasisprotocol/oasis-indexer/storage"
+	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
 )
 
 // ConsensusClient is a client to the consensus methods/data of oasis node. It
@@ -24,7 +24,7 @@ import (
 //     using nodeapi types directly.
 type ConsensusClient struct {
 	nodeApi nodeapi.ConsensusApiLite
-	network *config.Network
+	network *sdkConfig.Network
 }
 
 // GenesisDocument returns the original genesis document.

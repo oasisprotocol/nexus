@@ -28,11 +28,11 @@ var APIConstructors = map[string]APIConstructor{
 		return damask.NewDamaskConsensusApiLite(sdkConn.Consensus()), nil
 	},
 	"cobalt": func(ctx context.Context, chainContext string, nodeConfig *config.NodeConfig, fastStartup bool) (nodeapi.ConsensusApiLite, error) {
-		rawGRPCConnection, err := ConnectNoVerify(nodeConfig.RPC)
+		rawConn, err := RawConnect(nodeConfig)
 		if err != nil {
-			return nil, fmt.Errorf("indexer ConnectNoVerify: %w", err)
+			return nil, fmt.Errorf("indexer RawConnect: %w", err)
 		}
-		return cobalt.NewCobaltConsensusApiLite(rawGRPCConnection), nil
+		return cobalt.NewCobaltConsensusApiLite(rawConn), nil
 	},
 }
 

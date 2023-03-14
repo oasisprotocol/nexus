@@ -8,16 +8,18 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
+
+	"github.com/oasisprotocol/oasis-indexer/config"
 )
 
-// ConnectNoVerify establishes gRPC connection with the target URL,
+// RawConnect establishes gRPC connection with the target URL,
 // omitting the chain context check.
 // This is based on oasis-sdk `ConnectNoVerify()` function,
 // but returns a raw gRPC connection instead of the oasis-sdk `Connection` wrapper.
-func ConnectNoVerify(rpc string) (*grpc.ClientConn, error) {
+func RawConnect(nodeConfig *config.NodeConfig) (*grpc.ClientConn, error) {
 	var dialOpts []grpc.DialOption
 	fakeSDKNet := &sdkConfig.Network{
-		RPC: rpc,
+		RPC: nodeConfig.RPC,
 	}
 	switch fakeSDKNet.IsLocalRPC() {
 	case true:
@@ -29,5 +31,5 @@ func ConnectNoVerify(rpc string) (*grpc.ClientConn, error) {
 		dialOpts = append(dialOpts, grpc.WithTransportCredentials(creds))
 	}
 
-	return cmnGrpc.Dial(rpc, dialOpts...)
+	return cmnGrpc.Dial(nodeConfig.RPC, dialOpts...)
 }

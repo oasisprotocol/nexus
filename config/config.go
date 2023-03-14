@@ -10,6 +10,7 @@ import (
 	"github.com/knadh/koanf/parsers/yaml"
 	"github.com/knadh/koanf/providers/env"
 	"github.com/knadh/koanf/providers/file"
+	sdkConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 
 	"github.com/oasisprotocol/oasis-indexer/log"
 )
@@ -50,8 +51,8 @@ func (cfg *Config) Validate() error {
 
 // AnalysisConfig is the configuration for chain analyzers.
 type AnalysisConfig struct {
-	// Node is the configuration for accessing oasis-node.
-	Node NodeConfig `koanf:"node"`
+	// Source is the configuration for accessing oasis-node(s).
+	Source SourceConfig `koanf:"source"`
 
 	// Analyzers is the analyzer configs.
 	Analyzers AnalyzersList `koanf:"analyzers"`
@@ -61,6 +62,11 @@ type AnalysisConfig struct {
 
 // Validate validates the analysis configuration.
 func (cfg *AnalysisConfig) Validate() error {
+	if cfg.Source.ChainName == "" && cfg.Source.CustomChain == nil {
+		return fmt.Errorf("source not configured, specify either source.chain_name or source.custom_chain")
+	} else if cfg.Source.ChainName != "" && cfg.Source.CustomChain != nil {
+		return fmt.Errorf("source.chain_name and source.custom_chain specified, can only use one")
+	}
 	if cfg.Analyzers.Consensus != nil {
 		if err := cfg.Analyzers.Consensus.Validate(); err != nil {
 			return err
@@ -109,24 +115,71 @@ type AnalyzersList struct {
 	AggregateStats   *AggregateStatsConfig   `koanf:"aggregate_stats"`
 }
 
-// NodeConfig is the configuration for chain analyzers.
-type NodeConfig struct {
-	// ChainID is the chain ID of the chain this analyzer will process.
-	// Used to identify the chain in the database.
-	ChainID string `koanf:"chain_id"`
+// SourceConfig has some controls about what chain we're analyzing and how to connect.
+type SourceConfig struct {
+	// ChainName is the name of the chain (e.g. mainnet/testnet). Set
+	// this to use one of the default chains.
+	ChainName string `koanf:"chain_name"`
+	// CustomChain is information about a custom chain. Set this to use a
+	// chain other than the default chains, e.g. a local testnet.
+	CustomChain *CustomChainConfig `koanf:"custom_chain"`
 
-	// RPC is the node endpoint.
-	RPC string `koanf:"rpc"`
-
-	// ChainContext is the domain separation context.
-	// It uniquely identifies the chain; it is derived as a hash of the genesis data.
-	// Used as safety check to prevent accidental use of the wrong RPC endpoint.
-	ChainContext string `koanf:"chaincontext"`
+	// Nodes describe the oasis-node(s) to connect to. Keys are "archive
+	// names," which are named after mainnet releases, in lowercase e.g.
+	// "cobalt" and "damask."
+	Nodes map[string]*NodeConfig `koanf:"nodes"`
 
 	// If set, the analyzer will skip some initial checks, e.g. that
-	// `rpc` really serves the chain with `chain_context`.
+	// `rpc` really serves the chain with the chain context we expect.
 	// NOT RECOMMENDED in production; intended for faster testing.
 	FastStartup bool `koanf:"fast_startup"`
+}
+
+func (sc *SourceConfig) History() *History {
+	if sc.ChainName != "" {
+		return DefaultChains[sc.ChainName]
+	}
+	return sc.CustomChain.History
+}
+
+func (sc *SourceConfig) SDKNetwork() *sdkConfig.Network {
+	if sc.ChainName != "" {
+		return sdkConfig.DefaultNetworks.All[sc.ChainName]
+	}
+	return sc.CustomChain.SDKNetwork
+}
+
+func CustomSingleNetworkSourceConfig(rpc string, chainContext string) *SourceConfig {
+	return &SourceConfig{
+		CustomChain: &CustomChainConfig{
+			History:    SingleRecordHistory(chainContext),
+			SDKNetwork: &sdkConfig.Network{},
+		},
+		Nodes:       SingleNetworkLookup(rpc),
+		FastStartup: true,
+	}
+}
+
+func SingleNetworkLookup(rpc string) map[string]*NodeConfig {
+	return map[string]*NodeConfig{
+		"damask": {
+			RPC: rpc,
+		},
+	}
+}
+
+type CustomChainConfig struct {
+	// History is the sequence of networks in the chain.
+	History *History `koanf:"history"`
+	// SDKNetwork is the oasis-sdk Network configuration of the latest
+	// network in the chain.
+	SDKNetwork *sdkConfig.Network `koanf:"sdk_network"`
+}
+
+// NodeConfig is information about one oasis-node to connect to.
+type NodeConfig struct {
+	// RPC is the node endpoint.
+	RPC string `koanf:"rpc"`
 }
 
 type BlockBasedAnalyzerConfig struct {

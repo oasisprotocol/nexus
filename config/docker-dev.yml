@@ -1,8 +1,9 @@
 analysis:
-  node:
-    chain_id: oasis-3
-    rpc: unix:/tmp/node.sock #unix:/node/data/internal.sock
-    chaincontext: b11b369e0da5bb230b220127f5e7b242d385ef8c6f54906243f30af63c815535
+  source:
+    chain_name: mainnet
+    nodes:
+      damask:
+        rpc: unix:/tmp/node.sock #unix:/node/data/internal.sock
   analyzers:
     metadata_registry:
       interval: 1h
@@ -20,7 +21,6 @@ analysis:
     migrations: file://storage/migrations
 
 server:
-  chain_id: oasis-3
   chain_name: mainnet
   endpoint: 0.0.0.0:8008
   storage:
