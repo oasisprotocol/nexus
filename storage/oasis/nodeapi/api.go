@@ -13,7 +13,6 @@ import (
 	genesis "github.com/oasisprotocol/oasis-core/go/genesis/api"
 	governance "github.com/oasisprotocol/oasis-core/go/governance/api"
 	registry "github.com/oasisprotocol/oasis-core/go/registry/api"
-	roothash "github.com/oasisprotocol/oasis-core/go/roothash/api"
 	scheduler "github.com/oasisprotocol/oasis-core/go/scheduler/api"
 	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
 	apiTypes "github.com/oasisprotocol/oasis-indexer/api/v1/types"
@@ -33,12 +32,12 @@ type ConsensusApiLite interface {
 	GetGenesisDocument(ctx context.Context) (*genesis.Document, error)
 	StateToGenesis(ctx context.Context, height int64) (*genesis.Document, error)
 	GetBlock(ctx context.Context, height int64) (*consensus.Block, error)
-	GetTransactionsWithResults(ctx context.Context, height int64) ([]*TransactionWithResults, error)
+	GetTransactionsWithResults(ctx context.Context, height int64) ([]TransactionWithResults, error)
 	GetEpoch(ctx context.Context, height int64) (beacon.EpochTime, error)
-	RegistryEvents(ctx context.Context, height int64) ([]*registry.Event, error)
-	StakingEvents(ctx context.Context, height int64) ([]*staking.Event, error)
-	GovernanceEvents(ctx context.Context, height int64) ([]*governance.Event, error)
-	RoothashEvents(ctx context.Context, height int64) ([]*roothash.Event, error)
+	RegistryEvents(ctx context.Context, height int64) ([]Event, error)
+	StakingEvents(ctx context.Context, height int64) ([]Event, error)
+	GovernanceEvents(ctx context.Context, height int64) ([]Event, error)
+	RoothashEvents(ctx context.Context, height int64) ([]Event, error)
 	GetValidators(ctx context.Context, height int64) ([]*scheduler.Validator, error)
 	GetCommittees(ctx context.Context, height int64, runtimeID coreCommon.Namespace) ([]*scheduler.Committee, error)
 	GetProposal(ctx context.Context, height int64, proposalID uint64) (*governance.Proposal, error)
