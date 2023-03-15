@@ -47,13 +47,15 @@ type ConsensusApiLite interface {
 // A lightweight subset of `consensus.TransactionsWithResults`.
 type TransactionWithResults struct {
 	Transaction consensusTransaction.SignedTransaction
-	Result      Result
+	Result      TxResult
 }
 
-type Result struct {
-	Error  consensusResults.Error
+type TxResult struct {
+	Error  TxError
 	Events []Event
 }
+
+type TxError consensusResults.Error
 
 // A lightweight version of "consensus/api/transactions/results".Event.
 //
@@ -77,6 +79,7 @@ type Event struct {
 	StakingTakeEscrow           *TakeEscrowEvent
 	StakingEscrowDebondingStart *DebondingStartEscrowEvent
 	StakingReclaimEscrow        *ReclaimEscrowEvent
+	StakingDebondingStart       *DebondingStartEscrowEvent // Available starting in Damask.
 	StakingAllowanceChange      *AllowanceChangeEvent
 
 	RegistryRuntime      *RuntimeEvent

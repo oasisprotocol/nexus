@@ -2,19 +2,22 @@ package damask
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/oasisprotocol/oasis-core/go/common"
-	consensus "github.com/oasisprotocol/oasis-core/go/consensus/api"
-	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
+	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 
 	// indexer-internal data types.
 	beacon "github.com/oasisprotocol/oasis-core/go/beacon/api"
+	consensus "github.com/oasisprotocol/oasis-core/go/consensus/api"
+	consensusTx "github.com/oasisprotocol/oasis-core/go/consensus/api/transaction"
 	genesis "github.com/oasisprotocol/oasis-core/go/genesis/api"
 	governance "github.com/oasisprotocol/oasis-core/go/governance/api"
 	registry "github.com/oasisprotocol/oasis-core/go/registry/api"
 	roothash "github.com/oasisprotocol/oasis-core/go/roothash/api"
 	scheduler "github.com/oasisprotocol/oasis-core/go/scheduler/api"
 	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
+	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
 )
 
 // DamaskConsensusApiLite provides low-level access to the consensus API of a
@@ -45,8 +48,28 @@ func (c *DamaskConsensusApiLite) GetBlock(ctx context.Context, height int64) (*c
 	return c.client.GetBlock(ctx, height)
 }
 
-func (c *DamaskConsensusApiLite) GetTransactionsWithResults(ctx context.Context, height int64) (*consensus.TransactionsWithResults, error) {
-	return c.client.GetTransactionsWithResults(ctx, height)
+func (c *DamaskConsensusApiLite) GetTransactionsWithResults(ctx context.Context, height int64) ([]*nodeapi.TransactionWithResults, error) {
+	rsp, err := c.client.GetTransactionsWithResults(ctx, height)
+	if err != nil {
+		return nil, err
+	}
+	txrs := make([]*nodeapi.TransactionWithResults, len(rsp.Transactions))
+
+	// convert the response to the indexer-internal data type
+	for i, txBytes := range rsp.Transactions {
+		var tx consensusTx.SignedTransaction
+		if err := cbor.Unmarshal(txBytes, &tx); err != nil {
+			return nil, err
+		}
+		if rsp.Results[i] == nil {
+			return nil, fmt.Errorf("transaction %d (%s) has no result", i, tx.Hash())
+		}
+		txrs[i] = &nodeapi.TransactionWithResults{
+			Transaction: tx,
+			Result:      convertTxResult(*rsp.Results[i]),
+		}
+	}
+	return txrs, nil
 }
 
 func (c *DamaskConsensusApiLite) GetEpoch(ctx context.Context, height int64) (beacon.EpochTime, error) {

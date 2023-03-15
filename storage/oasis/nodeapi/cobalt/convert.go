@@ -154,7 +154,7 @@ func ConvertGenesis(d genesisCobalt.Document) *genesis.Document {
 	}
 }
 
-func convertTxResult(r txResultsCobalt.Result) nodeapi.Result {
+func convertTxResult(r txResultsCobalt.Result) nodeapi.TxResult {
 	events := make([]nodeapi.Event, len(r.Events))
 	for i, e := range r.Events {
 		switch {
@@ -315,8 +315,8 @@ func convertTxResult(r txResultsCobalt.Result) nodeapi.Result {
 		}
 	}
 
-	return nodeapi.Result{
-		Error:  consensusTxResults.Error(r.Error),
+	return nodeapi.TxResult{
+		Error:  nodeapi.TxError(r.Error),
 		Events: events,
 	}
 }

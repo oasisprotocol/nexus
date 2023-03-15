@@ -4,8 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 	"google.golang.org/grpc"
+
+	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 
 	// indexer-internal data types.
 	beacon "github.com/oasisprotocol/oasis-core/go/beacon/api"
