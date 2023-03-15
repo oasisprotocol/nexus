@@ -6,8 +6,6 @@ import (
 
 	beaconAPI "github.com/oasisprotocol/oasis-core/go/beacon/api"
 	"github.com/oasisprotocol/oasis-core/go/common"
-	"github.com/oasisprotocol/oasis-core/go/common/cbor"
-	"github.com/oasisprotocol/oasis-core/go/consensus/api/transaction"
 	genesisAPI "github.com/oasisprotocol/oasis-core/go/genesis/api"
 	governanceAPI "github.com/oasisprotocol/oasis-core/go/governance/api"
 	registryAPI "github.com/oasisprotocol/oasis-core/go/registry/api"
@@ -105,21 +103,11 @@ func (cc *ConsensusClient) BlockData(ctx context.Context, height int64) (*storag
 		return nil, err
 	}
 
-	transactions := make([]*transaction.SignedTransaction, 0, len(transactionsWithResults.Transactions))
-	for _, bytes := range transactionsWithResults.Transactions {
-		var transaction transaction.SignedTransaction
-		if err := cbor.Unmarshal(bytes, &transaction); err != nil {
-			return nil, err
-		}
-		transactions = append(transactions, &transaction)
-	}
-
 	return &storage.ConsensusBlockData{
-		Height:       height,
-		BlockHeader:  block,
-		Epoch:        epoch,
-		Transactions: transactions,
-		Results:      transactionsWithResults.Results,
+		Height:                  height,
+		BlockHeader:             block,
+		Epoch:                   epoch,
+		TransactionsWithResults: transactionsWithResults,
 	}, nil
 }
 

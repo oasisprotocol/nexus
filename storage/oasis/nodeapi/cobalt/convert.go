@@ -163,13 +163,13 @@ func convertTxResult(r txResultsCobalt.Result) nodeapi.TxResult {
 			case e.Staking.Transfer != nil:
 				events[i] = nodeapi.Event{
 					StakingTransfer: (*nodeapi.TransferEvent)(e.Staking.Transfer),
-					Raw:             e.Staking.Transfer,
+					Body:            e.Staking.Transfer,
 					Type:            apiTypes.ConsensusEventTypeStakingTransfer,
 				}
 			case e.Staking.Burn != nil:
 				events[i] = nodeapi.Event{
 					StakingBurn: (*nodeapi.BurnEvent)(e.Staking.Burn),
-					Raw:         e.Staking.Burn,
+					Body:        e.Staking.Burn,
 					Type:        apiTypes.ConsensusEventTypeStakingBurn,
 				}
 			case e.Staking.Escrow != nil:
@@ -182,13 +182,13 @@ func convertTxResult(r txResultsCobalt.Result) nodeapi.TxResult {
 							Amount:    e.Staking.Escrow.Add.Amount,
 							NewShares: quantity.Quantity{}, // NOTE: not available in the Cobalt API
 						},
-						Raw:  e.Staking.Escrow.Add,
+						Body: e.Staking.Escrow.Add,
 						Type: apiTypes.ConsensusEventTypeStakingEscrowAdd,
 					}
 				case e.Staking.Escrow.Take != nil:
 					events[i] = nodeapi.Event{
 						StakingTakeEscrow: (*nodeapi.TakeEscrowEvent)(e.Staking.Escrow.Take),
-						Raw:               e.Staking.Escrow.Take,
+						Body:              e.Staking.Escrow.Take,
 						Type:              apiTypes.ConsensusEventTypeStakingEscrowTake,
 					}
 				case e.Staking.Escrow.Reclaim != nil:
@@ -199,7 +199,7 @@ func convertTxResult(r txResultsCobalt.Result) nodeapi.TxResult {
 							Amount: e.Staking.Escrow.Reclaim.Amount,
 							Shares: quantity.Quantity{}, // NOTE: not available in the Cobalt API
 						},
-						Raw:  e.Staking.Escrow.Reclaim,
+						Body: e.Staking.Escrow.Reclaim,
 						Type: apiTypes.ConsensusEventTypeStakingEscrowReclaim,
 					}
 					// NOTE: There is no Staking.Escrow.DebondingStart event in Cobalt.
@@ -207,7 +207,7 @@ func convertTxResult(r txResultsCobalt.Result) nodeapi.TxResult {
 			case e.Staking.AllowanceChange != nil:
 				events[i] = nodeapi.Event{
 					StakingAllowanceChange: (*nodeapi.AllowanceChangeEvent)(e.Staking.AllowanceChange),
-					Raw:                    e.Staking.AllowanceChange,
+					Body:                   e.Staking.AllowanceChange,
 					Type:                   apiTypes.ConsensusEventTypeStakingAllowanceChange,
 				}
 			}
@@ -222,13 +222,13 @@ func convertTxResult(r txResultsCobalt.Result) nodeapi.TxResult {
 						ID:       e.Registry.RuntimeEvent.Runtime.ID,
 						EntityID: e.Registry.RuntimeEvent.Runtime.EntityID,
 					},
-					Raw:  e.Registry.RuntimeEvent,
+					Body: e.Registry.RuntimeEvent,
 					Type: apiTypes.ConsensusEventTypeRegistryRuntime,
 				}
 			case e.Registry.EntityEvent != nil:
 				events[i] = nodeapi.Event{
 					RegistryEntity: (*nodeapi.EntityEvent)(e.Registry.EntityEvent),
-					Raw:            e.Registry.EntityEvent,
+					Body:           e.Registry.EntityEvent,
 					Type:           apiTypes.ConsensusEventTypeRegistryEntity,
 				}
 			case e.Registry.NodeEvent != nil:
@@ -243,13 +243,13 @@ func convertTxResult(r txResultsCobalt.Result) nodeapi.TxResult {
 						RuntimeIDs:     runtimeIDs,
 						IsRegistration: e.Registry.NodeEvent.IsRegistration,
 					},
-					Raw:  e.Registry.NodeEvent,
+					Body: e.Registry.NodeEvent,
 					Type: apiTypes.ConsensusEventTypeRegistryNode,
 				}
 			case e.Registry.NodeUnfrozenEvent != nil:
 				events[i] = nodeapi.Event{
 					RegistryNodeUnfrozen: (*nodeapi.NodeUnfrozenEvent)(e.Registry.NodeUnfrozenEvent),
-					Raw:                  e.Registry.NodeUnfrozenEvent,
+					Body:                 e.Registry.NodeUnfrozenEvent,
 					Type:                 apiTypes.ConsensusEventTypeRegistryNodeUnfrozen,
 				}
 			}
@@ -263,17 +263,17 @@ func convertTxResult(r txResultsCobalt.Result) nodeapi.TxResult {
 					RoothashExecutorCommitted: &nodeapi.ExecutorCommittedEvent{
 						NodeID: nil, // Not available in Cobalt.
 					},
-					Raw:  e.RootHash.ExecutorCommitted,
+					Body: e.RootHash.ExecutorCommitted,
 					Type: apiTypes.ConsensusEventTypeRoothashExecutorCommitted,
 				}
 			case e.RootHash.ExecutionDiscrepancyDetected != nil:
 				events[i] = nodeapi.Event{
-					Raw:  e.RootHash.ExecutionDiscrepancyDetected,
+					Body: e.RootHash.ExecutionDiscrepancyDetected,
 					Type: apiTypes.ConsensusEventTypeRoothashExecutionDiscrepancy,
 				}
 			case e.RootHash.Finalized != nil:
 				events[i] = nodeapi.Event{
-					Raw:  e.RootHash.Finalized,
+					Body: e.RootHash.Finalized,
 					Type: apiTypes.ConsensusEventTypeRoothashFinalized,
 				}
 			}
@@ -287,17 +287,17 @@ func convertTxResult(r txResultsCobalt.Result) nodeapi.TxResult {
 					GovernanceProposalSubmitted: &nodeapi.ProposalSubmittedEvent{
 						Submitter: e.Governance.ProposalSubmitted.Submitter,
 					},
-					Raw:  e.Governance.ProposalSubmitted,
+					Body: e.Governance.ProposalSubmitted,
 					Type: apiTypes.ConsensusEventTypeGovernanceProposalSubmitted,
 				}
 			case e.Governance.ProposalExecuted != nil:
 				events[i] = nodeapi.Event{
-					Raw:  e.Governance.ProposalExecuted,
+					Body: e.Governance.ProposalExecuted,
 					Type: apiTypes.ConsensusEventTypeGovernanceProposalExecuted,
 				}
 			case e.Governance.ProposalFinalized != nil:
 				events[i] = nodeapi.Event{
-					Raw:  e.Governance.ProposalFinalized,
+					Body: e.Governance.ProposalFinalized,
 					Type: apiTypes.ConsensusEventTypeGovernanceProposalFinalized,
 				}
 			case e.Governance.Vote != nil:
@@ -305,7 +305,7 @@ func convertTxResult(r txResultsCobalt.Result) nodeapi.TxResult {
 					GovernanceVote: &nodeapi.VoteEvent{
 						Submitter: e.Governance.Vote.Submitter,
 					},
-					Raw:  e.Governance.Vote,
+					Body: e.Governance.Vote,
 					Type: apiTypes.ConsensusEventTypeGovernanceVote,
 				}
 			}

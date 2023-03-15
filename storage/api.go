@@ -10,8 +10,6 @@ import (
 	beacon "github.com/oasisprotocol/oasis-core/go/beacon/api"
 	"github.com/oasisprotocol/oasis-core/go/common"
 	consensus "github.com/oasisprotocol/oasis-core/go/consensus/api"
-	"github.com/oasisprotocol/oasis-core/go/consensus/api/transaction"
-	"github.com/oasisprotocol/oasis-core/go/consensus/api/transaction/results"
 	genesisAPI "github.com/oasisprotocol/oasis-core/go/genesis/api"
 	governance "github.com/oasisprotocol/oasis-core/go/governance/api"
 	registry "github.com/oasisprotocol/oasis-core/go/registry/api"
@@ -19,6 +17,7 @@ import (
 	"github.com/oasisprotocol/oasis-core/go/roothash/api/block"
 	scheduler "github.com/oasisprotocol/oasis-core/go/scheduler/api"
 	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
+	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/client"
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 )
@@ -149,10 +148,9 @@ type ConsensusAllData struct {
 type ConsensusBlockData struct {
 	Height int64
 
-	BlockHeader  *consensus.Block
-	Epoch        beacon.EpochTime
-	Transactions []*transaction.SignedTransaction
-	Results      []*results.Result
+	BlockHeader             *consensus.Block
+	Epoch                   beacon.EpochTime
+	TransactionsWithResults []*nodeapi.TransactionWithResults
 }
 
 // BeaconData represents data for the random beacon at a given height.

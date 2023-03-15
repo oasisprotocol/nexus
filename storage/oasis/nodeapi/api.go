@@ -68,7 +68,7 @@ type Event struct {
 
 	// The fine-grained Event struct directly from oasis-core; corresponds to
 	// at most one of the fields below (StakingTransfer, StakingBurn, etc.).
-	Raw interface{}
+	Body interface{}
 
 	// Called "Kind" in oasis-core but "Type" in indexer APIs and DBs.
 	Type apiTypes.ConsensusEventType
