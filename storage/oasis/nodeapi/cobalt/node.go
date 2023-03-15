@@ -4,21 +4,24 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
+	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 	"google.golang.org/grpc"
 
 	// indexer-internal data types.
 	beacon "github.com/oasisprotocol/oasis-core/go/beacon/api"
 	"github.com/oasisprotocol/oasis-core/go/common"
 	consensus "github.com/oasisprotocol/oasis-core/go/consensus/api"
+	consensusTx "github.com/oasisprotocol/oasis-core/go/consensus/api/transaction"
 	genesis "github.com/oasisprotocol/oasis-core/go/genesis/api"
 	governance "github.com/oasisprotocol/oasis-core/go/governance/api"
 	registry "github.com/oasisprotocol/oasis-core/go/registry/api"
 	roothash "github.com/oasisprotocol/oasis-core/go/roothash/api"
 	scheduler "github.com/oasisprotocol/oasis-core/go/scheduler/api"
 	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
+	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
 
 	// data types for Cobalt gRPC APIs.
+	consensusCobalt "github.com/oasisprotocol/oasis-indexer/coreapi/v21.1.1/consensus/api"
 	genesisCobalt "github.com/oasisprotocol/oasis-indexer/coreapi/v21.1.1/genesis/api"
 )
 
@@ -64,12 +67,28 @@ func (c *CobaltConsensusApiLite) GetBlock(ctx context.Context, height int64) (*c
 	return rsp, nil
 }
 
-func (c *CobaltConsensusApiLite) GetTransactionsWithResults(ctx context.Context, height int64) (*consensus.TransactionsWithResults, error) {
-	rsp, err := c.damaskClient.GetTransactionsWithResults(ctx, height)
-	if err != nil {
-		return nil, fmt.Errorf("calling GetTransactionsWithResults() on Cobalt node using Damask ABI: %w", err)
+func (c *CobaltConsensusApiLite) GetTransactionsWithResults(ctx context.Context, height int64) ([]*nodeapi.TransactionWithResults, error) {
+	var rsp consensusCobalt.TransactionsWithResults
+	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Consensus/GetTransactionsWithResults", nil, &rsp); err != nil {
+		return nil, err
 	}
-	return rsp, nil
+	txrs := make([]*nodeapi.TransactionWithResults, len(rsp.Transactions))
+
+	// convert the response to the indexer-internal data type
+	for i, txBytes := range rsp.Transactions {
+		var tx consensusTx.SignedTransaction
+		if err := cbor.Unmarshal(txBytes, &tx); err != nil {
+			return nil, err
+		}
+		if rsp.Results[i] == nil {
+			return nil, fmt.Errorf("transaction %d (%s) has no result", i, tx.Hash())
+		}
+		txrs[i] = &nodeapi.TransactionWithResults{
+			Transaction: tx,
+			Result:      convertTxResult(*rsp.Results[i]),
+		}
+	}
+	return txrs, nil
 }
 
 func (c *CobaltConsensusApiLite) GetEpoch(ctx context.Context, height int64) (beacon.EpochTime, error) {

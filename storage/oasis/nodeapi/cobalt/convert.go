@@ -2,10 +2,18 @@ package cobalt
 
 import (
 	"github.com/oasisprotocol/oasis-core/go/common/quantity"
+
+	// indexer-internal data types.
+	"github.com/oasisprotocol/oasis-core/go/common"
 	genesis "github.com/oasisprotocol/oasis-core/go/genesis/api"
 	governance "github.com/oasisprotocol/oasis-core/go/governance/api"
 	registry "github.com/oasisprotocol/oasis-core/go/registry/api"
 	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
+	apiTypes "github.com/oasisprotocol/oasis-indexer/api/v1/types"
+	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
+
+	// data types for Cobalt gRPC APIs.
+	txResultsCobalt "github.com/oasisprotocol/oasis-indexer/coreapi/v21.1.1/consensus/api/transaction/results"
 	genesisCobalt "github.com/oasisprotocol/oasis-indexer/coreapi/v21.1.1/genesis/api"
 	governanceCobalt "github.com/oasisprotocol/oasis-indexer/coreapi/v21.1.1/governance/api"
 	registryCobalt "github.com/oasisprotocol/oasis-indexer/coreapi/v21.1.1/registry/api"
@@ -143,5 +151,172 @@ func ConvertGenesis(d genesisCobalt.Document) *genesis.Document {
 			Delegations:          delegations,
 			DebondingDelegations: debondingDelegations,
 		},
+	}
+}
+
+func convertTxResult(r txResultsCobalt.Result) nodeapi.Result {
+	events := make([]nodeapi.Event, len(r.Events))
+	for i, e := range r.Events {
+		switch {
+		case e.Staking != nil:
+			switch {
+			case e.Staking.Transfer != nil:
+				events[i] = nodeapi.Event{
+					StakingTransfer: (*nodeapi.TransferEvent)(e.Staking.Transfer),
+					Raw:             e.Staking.Transfer,
+					Type:            apiTypes.ConsensusEventTypeStakingTransfer,
+				}
+			case e.Staking.Burn != nil:
+				events[i] = nodeapi.Event{
+					StakingBurn: (*nodeapi.BurnEvent)(e.Staking.Burn),
+					Raw:         e.Staking.Burn,
+					Type:        apiTypes.ConsensusEventTypeStakingBurn,
+				}
+			case e.Staking.Escrow != nil:
+				switch {
+				case e.Staking.Escrow.Add != nil:
+					events[i] = nodeapi.Event{
+						StakingAddEscrow: &nodeapi.AddEscrowEvent{
+							Owner:     e.Staking.Escrow.Add.Owner,
+							Escrow:    e.Staking.Escrow.Add.Escrow,
+							Amount:    e.Staking.Escrow.Add.Amount,
+							NewShares: quantity.Quantity{}, // NOTE: not available in the Cobalt API
+						},
+						Raw:  e.Staking.Escrow.Add,
+						Type: apiTypes.ConsensusEventTypeStakingEscrowAdd,
+					}
+				case e.Staking.Escrow.Take != nil:
+					events[i] = nodeapi.Event{
+						StakingTakeEscrow: (*nodeapi.TakeEscrowEvent)(e.Staking.Escrow.Take),
+						Raw:               e.Staking.Escrow.Take,
+						Type:              apiTypes.ConsensusEventTypeStakingEscrowTake,
+					}
+				case e.Staking.Escrow.Reclaim != nil:
+					events[i] = nodeapi.Event{
+						StakingReclaimEscrow: &nodeapi.ReclaimEscrowEvent{
+							Owner:  e.Staking.Escrow.Reclaim.Owner,
+							Escrow: e.Staking.Escrow.Reclaim.Escrow,
+							Amount: e.Staking.Escrow.Reclaim.Amount,
+							Shares: quantity.Quantity{}, // NOTE: not available in the Cobalt API
+						},
+						Raw:  e.Staking.Escrow.Reclaim,
+						Type: apiTypes.ConsensusEventTypeStakingEscrowReclaim,
+					}
+					// NOTE: There is no Staking.Escrow.DebondingStart event in Cobalt.
+				}
+			case e.Staking.AllowanceChange != nil:
+				events[i] = nodeapi.Event{
+					StakingAllowanceChange: (*nodeapi.AllowanceChangeEvent)(e.Staking.AllowanceChange),
+					Raw:                    e.Staking.AllowanceChange,
+					Type:                   apiTypes.ConsensusEventTypeStakingAllowanceChange,
+				}
+			}
+			events[i].Height = e.Staking.Height
+			events[i].TxHash = e.Staking.TxHash
+			// End Staking.
+		case e.Registry != nil:
+			switch {
+			case e.Registry.RuntimeEvent != nil && e.Registry.RuntimeEvent.Runtime != nil:
+				events[i] = nodeapi.Event{
+					RegistryRuntime: &nodeapi.RuntimeEvent{
+						ID:       e.Registry.RuntimeEvent.Runtime.ID,
+						EntityID: e.Registry.RuntimeEvent.Runtime.EntityID,
+					},
+					Raw:  e.Registry.RuntimeEvent,
+					Type: apiTypes.ConsensusEventTypeRegistryRuntime,
+				}
+			case e.Registry.EntityEvent != nil:
+				events[i] = nodeapi.Event{
+					RegistryEntity: (*nodeapi.EntityEvent)(e.Registry.EntityEvent),
+					Raw:            e.Registry.EntityEvent,
+					Type:           apiTypes.ConsensusEventTypeRegistryEntity,
+				}
+			case e.Registry.NodeEvent != nil:
+				runtimeIDs := make([]common.Namespace, len(e.Registry.NodeEvent.Node.Runtimes))
+				for i, r := range e.Registry.NodeEvent.Node.Runtimes {
+					runtimeIDs[i] = r.ID
+				}
+				events[i] = nodeapi.Event{
+					RegistryNode: &nodeapi.NodeEvent{
+						NodeID:         e.Registry.NodeEvent.Node.EntityID,
+						EntityID:       e.Registry.NodeEvent.Node.EntityID,
+						RuntimeIDs:     runtimeIDs,
+						IsRegistration: e.Registry.NodeEvent.IsRegistration,
+					},
+					Raw:  e.Registry.NodeEvent,
+					Type: apiTypes.ConsensusEventTypeRegistryNode,
+				}
+			case e.Registry.NodeUnfrozenEvent != nil:
+				events[i] = nodeapi.Event{
+					RegistryNodeUnfrozen: (*nodeapi.NodeUnfrozenEvent)(e.Registry.NodeUnfrozenEvent),
+					Raw:                  e.Registry.NodeUnfrozenEvent,
+					Type:                 apiTypes.ConsensusEventTypeRegistryNodeUnfrozen,
+				}
+			}
+			events[i].Height = e.Registry.Height
+			events[i].TxHash = e.Registry.TxHash
+			// End Registry.
+		case e.RootHash != nil:
+			switch {
+			case e.RootHash.ExecutorCommitted != nil:
+				events[i] = nodeapi.Event{
+					RoothashExecutorCommitted: &nodeapi.ExecutorCommittedEvent{
+						NodeID: nil, // Not available in Cobalt.
+					},
+					Raw:  e.RootHash.ExecutorCommitted,
+					Type: apiTypes.ConsensusEventTypeRoothashExecutorCommitted,
+				}
+			case e.RootHash.ExecutionDiscrepancyDetected != nil:
+				events[i] = nodeapi.Event{
+					Raw:  e.RootHash.ExecutionDiscrepancyDetected,
+					Type: apiTypes.ConsensusEventTypeRoothashExecutionDiscrepancy,
+				}
+			case e.RootHash.Finalized != nil:
+				events[i] = nodeapi.Event{
+					Raw:  e.RootHash.Finalized,
+					Type: apiTypes.ConsensusEventTypeRoothashFinalized,
+				}
+			}
+			events[i].Height = e.RootHash.Height
+			events[i].TxHash = e.RootHash.TxHash
+			// End RootHash.
+		case e.Governance != nil:
+			switch {
+			case e.Governance.ProposalSubmitted != nil:
+				events[i] = nodeapi.Event{
+					GovernanceProposalSubmitted: &nodeapi.ProposalSubmittedEvent{
+						Submitter: e.Governance.ProposalSubmitted.Submitter,
+					},
+					Raw:  e.Governance.ProposalSubmitted,
+					Type: apiTypes.ConsensusEventTypeGovernanceProposalSubmitted,
+				}
+			case e.Governance.ProposalExecuted != nil:
+				events[i] = nodeapi.Event{
+					Raw:  e.Governance.ProposalExecuted,
+					Type: apiTypes.ConsensusEventTypeGovernanceProposalExecuted,
+				}
+			case e.Governance.ProposalFinalized != nil:
+				events[i] = nodeapi.Event{
+					Raw:  e.Governance.ProposalFinalized,
+					Type: apiTypes.ConsensusEventTypeGovernanceProposalFinalized,
+				}
+			case e.Governance.Vote != nil:
+				events[i] = nodeapi.Event{
+					GovernanceVote: &nodeapi.VoteEvent{
+						Submitter: e.Governance.Vote.Submitter,
+					},
+					Raw:  e.Governance.Vote,
+					Type: apiTypes.ConsensusEventTypeGovernanceVote,
+				}
+			}
+			events[i].Height = e.Governance.Height
+			events[i].TxHash = e.Governance.TxHash
+			// End Governance.
+		}
+	}
+
+	return nodeapi.Result{
+		Error:  consensusTxResults.Error(r.Error),
+		Events: events,
 	}
 }
