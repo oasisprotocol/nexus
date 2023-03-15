@@ -116,7 +116,7 @@ type NodeEvent struct {
 	EntityID           signature.PublicKey
 	Expiration         uint64 // Epoch in which the node expires.
 	RuntimeIDs         []coreCommon.Namespace
-	VRFPubKey          signature.PublicKey
+	VRFPubKey          *signature.PublicKey
 	TLSAddresses       []string // TCP addresses of the node's TLS-enabled gRPC endpoint.
 	TLSPubKey          signature.PublicKey
 	TLSNextPubKey      signature.PublicKey

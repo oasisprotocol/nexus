@@ -3,6 +3,7 @@ package cobalt
 import (
 	"strings"
 
+	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
 	"github.com/oasisprotocol/oasis-core/go/common/quantity"
 
 	// indexer-internal data types.
@@ -236,6 +237,10 @@ func convertEvent(e txResultsCobalt.Event) nodeapi.Event {
 				Type:           apiTypes.ConsensusEventTypeRegistryEntity,
 			}
 		case e.Registry.NodeEvent != nil:
+			var vrfID *signature.PublicKey = nil
+			if e.Registry.NodeEvent.Node.VRF != nil {
+				vrfID = &e.Registry.NodeEvent.Node.VRF.ID
+			}
 			runtimeIDs := make([]common.Namespace, len(e.Registry.NodeEvent.Node.Runtimes))
 			for i, r := range e.Registry.NodeEvent.Node.Runtimes {
 				runtimeIDs[i] = r.ID
@@ -257,7 +262,7 @@ func convertEvent(e txResultsCobalt.Event) nodeapi.Event {
 					NodeID:             e.Registry.NodeEvent.Node.ID,
 					EntityID:           e.Registry.NodeEvent.Node.EntityID,
 					Expiration:         e.Registry.NodeEvent.Node.Expiration,
-					VRFPubKey:          e.Registry.NodeEvent.Node.VRF.ID,
+					VRFPubKey:          vrfID,
 					TLSAddresses:       tlsAddresses,
 					TLSPubKey:          e.Registry.NodeEvent.Node.TLS.PubKey,
 					TLSNextPubKey:      e.Registry.NodeEvent.Node.TLS.NextPubKey,
