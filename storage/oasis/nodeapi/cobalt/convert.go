@@ -1,6 +1,8 @@
 package cobalt
 
 import (
+	"strings"
+
 	"github.com/oasisprotocol/oasis-core/go/common/quantity"
 
 	// indexer-internal data types.
@@ -218,8 +220,11 @@ func convertEvent(e txResultsCobalt.Event) nodeapi.Event {
 		case e.Registry.RuntimeEvent != nil && e.Registry.RuntimeEvent.Runtime != nil:
 			ret = nodeapi.Event{
 				RegistryRuntime: &nodeapi.RuntimeEvent{
-					ID:       e.Registry.RuntimeEvent.Runtime.ID,
-					EntityID: e.Registry.RuntimeEvent.Runtime.EntityID,
+					ID:          e.Registry.RuntimeEvent.Runtime.ID,
+					EntityID:    e.Registry.RuntimeEvent.Runtime.EntityID,
+					Kind:        e.Registry.RuntimeEvent.Runtime.Kind.String(),
+					KeyManager:  e.Registry.RuntimeEvent.Runtime.KeyManager,
+					TEEHardware: e.Registry.RuntimeEvent.Runtime.TEEHardware.String(),
 				},
 				Body: e.Registry.RuntimeEvent,
 				Type: apiTypes.ConsensusEventTypeRegistryRuntime,
@@ -235,12 +240,35 @@ func convertEvent(e txResultsCobalt.Event) nodeapi.Event {
 			for i, r := range e.Registry.NodeEvent.Node.Runtimes {
 				runtimeIDs[i] = r.ID
 			}
+			tlsAddresses := make([]string, len(e.Registry.NodeEvent.Node.TLS.Addresses))
+			for i, a := range e.Registry.NodeEvent.Node.TLS.Addresses {
+				tlsAddresses[i] = a.String()
+			}
+			p2pAddresses := make([]string, len(e.Registry.NodeEvent.Node.P2P.Addresses))
+			for i, a := range e.Registry.NodeEvent.Node.P2P.Addresses {
+				p2pAddresses[i] = a.String()
+			}
+			consensusAddresses := make([]string, len(e.Registry.NodeEvent.Node.Consensus.Addresses))
+			for i, a := range e.Registry.NodeEvent.Node.Consensus.Addresses {
+				consensusAddresses[i] = a.String()
+			}
 			ret = nodeapi.Event{
 				RegistryNode: &nodeapi.NodeEvent{
-					NodeID:         e.Registry.NodeEvent.Node.EntityID,
-					EntityID:       e.Registry.NodeEvent.Node.EntityID,
-					RuntimeIDs:     runtimeIDs,
-					IsRegistration: e.Registry.NodeEvent.IsRegistration,
+					NodeID:             e.Registry.NodeEvent.Node.ID,
+					EntityID:           e.Registry.NodeEvent.Node.EntityID,
+					Expiration:         e.Registry.NodeEvent.Node.Expiration,
+					VRFPubKey:          e.Registry.NodeEvent.Node.VRF.ID,
+					TLSAddresses:       tlsAddresses,
+					TLSPubKey:          e.Registry.NodeEvent.Node.TLS.PubKey,
+					TLSNextPubKey:      e.Registry.NodeEvent.Node.TLS.NextPubKey,
+					P2PID:              e.Registry.NodeEvent.Node.P2P.ID,
+					P2PAddresses:       p2pAddresses,
+					RuntimeIDs:         runtimeIDs,
+					ConsensusID:        e.Registry.NodeEvent.Node.Consensus.ID,
+					ConsensusAddresses: consensusAddresses,
+					IsRegistration:     e.Registry.NodeEvent.IsRegistration,
+					Roles:              strings.Split(e.Registry.NodeEvent.Node.Roles.String(), ","),
+					SoftwareVersion:    e.Registry.NodeEvent.Node.SoftwareVersion,
 				},
 				Body: e.Registry.NodeEvent,
 				Type: apiTypes.ConsensusEventTypeRegistryNode,
@@ -283,26 +311,32 @@ func convertEvent(e txResultsCobalt.Event) nodeapi.Event {
 		switch {
 		case e.Governance.ProposalSubmitted != nil:
 			ret = nodeapi.Event{
-				GovernanceProposalSubmitted: &nodeapi.ProposalSubmittedEvent{
-					Submitter: e.Governance.ProposalSubmitted.Submitter,
-				},
-				Body: e.Governance.ProposalSubmitted,
-				Type: apiTypes.ConsensusEventTypeGovernanceProposalSubmitted,
+				GovernanceProposalSubmitted: (*nodeapi.ProposalSubmittedEvent)(e.Governance.ProposalSubmitted),
+				Body:                        e.Governance.ProposalSubmitted,
+				Type:                        apiTypes.ConsensusEventTypeGovernanceProposalSubmitted,
 			}
 		case e.Governance.ProposalExecuted != nil:
 			ret = nodeapi.Event{
-				Body: e.Governance.ProposalExecuted,
-				Type: apiTypes.ConsensusEventTypeGovernanceProposalExecuted,
+				GovernanceProposalExecuted: (*nodeapi.ProposalExecutedEvent)(e.Governance.ProposalExecuted),
+				Body:                       e.Governance.ProposalExecuted,
+				Type:                       apiTypes.ConsensusEventTypeGovernanceProposalExecuted,
 			}
 		case e.Governance.ProposalFinalized != nil:
 			ret = nodeapi.Event{
+				GovernanceProposalFinalized: &nodeapi.ProposalFinalizedEvent{
+					ID: e.Governance.ProposalFinalized.ID,
+					// This assumes that the ProposalState enum is backwards-compatible
+					State: governance.ProposalState(e.Governance.ProposalFinalized.State),
+				},
 				Body: e.Governance.ProposalFinalized,
 				Type: apiTypes.ConsensusEventTypeGovernanceProposalFinalized,
 			}
 		case e.Governance.Vote != nil:
 			ret = nodeapi.Event{
 				GovernanceVote: &nodeapi.VoteEvent{
+					ID:        e.Governance.Vote.ID,
 					Submitter: e.Governance.Vote.Submitter,
+					Vote:      e.Governance.Vote.Vote.String(),
 				},
 				Body: e.Governance.Vote,
 				Type: apiTypes.ConsensusEventTypeGovernanceVote,

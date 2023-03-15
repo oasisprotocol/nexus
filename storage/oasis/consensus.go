@@ -7,10 +7,6 @@ import (
 	beaconAPI "github.com/oasisprotocol/oasis-core/go/beacon/api"
 	"github.com/oasisprotocol/oasis-core/go/common"
 	genesisAPI "github.com/oasisprotocol/oasis-core/go/genesis/api"
-	governanceAPI "github.com/oasisprotocol/oasis-core/go/governance/api"
-	registryAPI "github.com/oasisprotocol/oasis-core/go/registry/api"
-	schedulerAPI "github.com/oasisprotocol/oasis-core/go/scheduler/api"
-	stakingAPI "github.com/oasisprotocol/oasis-core/go/staking/api"
 	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
 	config "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 
@@ -139,21 +135,21 @@ func (cc *ConsensusClient) RegistryData(ctx context.Context, height int64) (*sto
 		return nil, err
 	}
 
-	var runtimeEvents []*registryAPI.RuntimeEvent
-	var entityEvents []*registryAPI.EntityEvent
-	var nodeEvents []*registryAPI.NodeEvent
-	var nodeUnfrozenEvents []*registryAPI.NodeUnfrozenEvent
+	var runtimeEvents []nodeapi.RuntimeEvent
+	var entityEvents []nodeapi.EntityEvent
+	var nodeEvents []nodeapi.NodeEvent
+	var nodeUnfrozenEvents []nodeapi.NodeUnfrozenEvent
 
 	for _, event := range events {
 		switch e := event; {
-		case e.RuntimeEvent != nil:
-			runtimeEvents = append(runtimeEvents, e.RuntimeEvent)
-		case e.EntityEvent != nil:
-			entityEvents = append(entityEvents, e.EntityEvent)
-		case e.NodeEvent != nil:
-			nodeEvents = append(nodeEvents, e.NodeEvent)
-		case e.NodeUnfrozenEvent != nil:
-			nodeUnfrozenEvents = append(nodeUnfrozenEvents, e.NodeUnfrozenEvent)
+		case e.RegistryRuntime != nil:
+			runtimeEvents = append(runtimeEvents, *e.RegistryRuntime)
+		case e.RegistryEntity != nil:
+			entityEvents = append(entityEvents, *e.RegistryEntity)
+		case e.RegistryNode != nil:
+			nodeEvents = append(nodeEvents, *e.RegistryNode)
+		case e.RegistryNodeUnfrozen != nil:
+			nodeUnfrozenEvents = append(nodeUnfrozenEvents, *e.RegistryNodeUnfrozen)
 		}
 	}
 
@@ -179,32 +175,44 @@ func (cc *ConsensusClient) StakingData(ctx context.Context, height int64) (*stor
 		return nil, err
 	}
 
-	var transfers []*stakingAPI.TransferEvent
-	var burns []*stakingAPI.BurnEvent
-	var escrows []*stakingAPI.EscrowEvent
-	var allowanceChanges []*stakingAPI.AllowanceChangeEvent
+	var transfers []nodeapi.TransferEvent
+	var burns []nodeapi.BurnEvent
+	var addEscrows []nodeapi.AddEscrowEvent
+	var reclaimEscrows []nodeapi.ReclaimEscrowEvent
+	var debondingStartEscrows []nodeapi.DebondingStartEscrowEvent
+	var takeEscrows []nodeapi.TakeEscrowEvent
+	var allowanceChanges []nodeapi.AllowanceChangeEvent
 
 	for _, event := range events {
 		switch e := event; {
-		case e.Transfer != nil:
-			transfers = append(transfers, event.Transfer)
-		case e.Burn != nil:
-			burns = append(burns, event.Burn)
-		case e.Escrow != nil:
-			escrows = append(escrows, event.Escrow)
-		case e.AllowanceChange != nil:
-			allowanceChanges = append(allowanceChanges, event.AllowanceChange)
+		case e.StakingTransfer != nil:
+			transfers = append(transfers, *event.StakingTransfer)
+		case e.StakingBurn != nil:
+			burns = append(burns, *event.StakingBurn)
+		case e.StakingAddEscrow != nil:
+			addEscrows = append(addEscrows, *event.StakingAddEscrow)
+		case e.StakingReclaimEscrow != nil:
+			reclaimEscrows = append(reclaimEscrows, *event.StakingReclaimEscrow)
+		case e.StakingDebondingStart != nil:
+			debondingStartEscrows = append(debondingStartEscrows, *event.StakingDebondingStart)
+		case e.StakingTakeEscrow != nil:
+			takeEscrows = append(takeEscrows, *event.StakingTakeEscrow)
+		case e.StakingAllowanceChange != nil:
+			allowanceChanges = append(allowanceChanges, *event.StakingAllowanceChange)
 		}
 	}
 
 	return &storage.StakingData{
-		Height:           height,
-		Epoch:            epoch,
-		Events:           events,
-		Transfers:        transfers,
-		Burns:            burns,
-		Escrows:          escrows,
-		AllowanceChanges: allowanceChanges,
+		Height:                height,
+		Epoch:                 epoch,
+		Events:                events,
+		Transfers:             transfers,
+		Burns:                 burns,
+		AddEscrows:            addEscrows,
+		ReclaimEscrows:        reclaimEscrows,
+		DebondingStartEscrows: debondingStartEscrows,
+		TakeEscrows:           takeEscrows,
+		AllowanceChanges:      allowanceChanges,
 	}, nil
 }
 
@@ -215,7 +223,7 @@ func (cc *ConsensusClient) SchedulerData(ctx context.Context, height int64) (*st
 		return nil, err
 	}
 
-	committees := make(map[common.Namespace][]*schedulerAPI.Committee, len(cc.network.ParaTimes.All))
+	committees := make(map[common.Namespace][]nodeapi.Committee, len(cc.network.ParaTimes.All))
 
 	for name := range cc.network.ParaTimes.All {
 		var runtimeID common.Namespace
@@ -244,29 +252,29 @@ func (cc *ConsensusClient) GovernanceData(ctx context.Context, height int64) (*s
 		return nil, err
 	}
 
-	var submissions []*governanceAPI.Proposal
-	var executions []*governanceAPI.ProposalExecutedEvent
-	var finalizations []*governanceAPI.Proposal
-	var votes []*governanceAPI.VoteEvent
+	var submissions []nodeapi.Proposal
+	var executions []nodeapi.ProposalExecutedEvent
+	var finalizations []nodeapi.Proposal
+	var votes []nodeapi.VoteEvent
 
 	for _, event := range events {
-		switch e := event; {
-		case e.ProposalSubmitted != nil:
-			proposal, err := cc.nodeApi.GetProposal(ctx, height, event.ProposalSubmitted.ID)
+		switch {
+		case event.GovernanceProposalSubmitted != nil:
+			proposal, err := cc.nodeApi.GetProposal(ctx, height, event.GovernanceProposalSubmitted.ID)
 			if err != nil {
 				return nil, err
 			}
-			submissions = append(submissions, proposal)
-		case e.ProposalExecuted != nil:
-			executions = append(executions, event.ProposalExecuted)
-		case e.ProposalFinalized != nil:
-			proposal, err := cc.nodeApi.GetProposal(ctx, height, event.ProposalFinalized.ID)
+			submissions = append(submissions, *proposal)
+		case event.GovernanceProposalExecuted != nil:
+			executions = append(executions, *event.GovernanceProposalExecuted)
+		case event.GovernanceProposalFinalized != nil:
+			proposal, err := cc.nodeApi.GetProposal(ctx, height, event.GovernanceProposalFinalized.ID)
 			if err != nil {
 				return nil, err
 			}
-			finalizations = append(finalizations, proposal)
-		case e.Vote != nil:
-			votes = append(votes, event.Vote)
+			finalizations = append(finalizations, *proposal)
+		case event.GovernanceVote != nil:
+			votes = append(votes, *event.GovernanceVote)
 		}
 	}
 	return &storage.GovernanceData{

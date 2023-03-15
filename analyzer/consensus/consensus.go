@@ -503,16 +503,16 @@ func (m *Main) queueRuntimeRegistrations(batch *storage.QueryBatch, data *storag
 	for _, runtimeEvent := range data.RuntimeEvents {
 		var keyManager *string
 
-		if runtimeEvent.Runtime.KeyManager != nil {
-			km := runtimeEvent.Runtime.KeyManager.String()
+		if runtimeEvent.KeyManager != nil {
+			km := runtimeEvent.KeyManager.String()
 			keyManager = &km
 		}
 
 		batch.Queue(queries.ConsensusRuntimeUpsert,
-			runtimeEvent.Runtime.ID.String(),
+			runtimeEvent.ID.String(),
 			false,
-			runtimeEvent.Runtime.Kind.String(),
-			runtimeEvent.Runtime.TEEHardware.String(),
+			runtimeEvent.Kind,
+			runtimeEvent.TEEHardware,
 			keyManager,
 		)
 	}
@@ -541,42 +541,22 @@ func (m *Main) queueEntityEvents(batch *storage.QueryBatch, data *storage.Regist
 
 func (m *Main) queueNodeEvents(batch *storage.QueryBatch, data *storage.RegistryData) error {
 	for _, nodeEvent := range data.NodeEvents {
-		vrfPubkey := ""
-
-		if nodeEvent.Node.VRF != nil {
-			vrfPubkey = nodeEvent.Node.VRF.ID.String()
-		}
-		var tlsAddresses []string
-		for _, address := range nodeEvent.Node.TLS.Addresses {
-			tlsAddresses = append(tlsAddresses, address.String())
-		}
-
-		var p2pAddresses []string
-		for _, address := range nodeEvent.Node.P2P.Addresses {
-			p2pAddresses = append(p2pAddresses, address.String())
-		}
-
-		var consensusAddresses []string
-		for _, address := range nodeEvent.Node.Consensus.Addresses {
-			consensusAddresses = append(consensusAddresses, address.String())
-		}
-
 		if nodeEvent.IsRegistration {
 			// A new node is registered.
 			batch.Queue(queries.ConsensusNodeUpsert,
-				nodeEvent.Node.ID.String(),
-				nodeEvent.Node.EntityID.String(),
-				nodeEvent.Node.Expiration,
-				nodeEvent.Node.TLS.PubKey.String(),
-				nodeEvent.Node.TLS.NextPubKey.String(),
-				fmt.Sprintf(`{'%s'}`, strings.Join(tlsAddresses, `','`)),
-				nodeEvent.Node.P2P.ID.String(),
-				fmt.Sprintf(`{'%s'}`, strings.Join(p2pAddresses, `','`)),
-				nodeEvent.Node.Consensus.ID.String(),
-				strings.Join(consensusAddresses, ","),
-				vrfPubkey,
-				nodeEvent.Node.Roles,
-				nodeEvent.Node.SoftwareVersion,
+				nodeEvent.NodeID.String(),
+				nodeEvent.EntityID.String(),
+				nodeEvent.Expiration,
+				nodeEvent.TLSPubKey.String(),
+				nodeEvent.TLSNextPubKey.String(),
+				nodeEvent.TLSAddresses,
+				nodeEvent.P2PID.String(),
+				nodeEvent.P2PAddresses,
+				nodeEvent.ConsensusID.String(),
+				strings.Join(nodeEvent.ConsensusAddresses, ","), // TODO: store as array
+				nodeEvent.VRFPubKey,
+				strings.Join(nodeEvent.Roles, ","), // TODO: store as array
+				nodeEvent.SoftwareVersion,
 				0,
 			)
 
@@ -591,7 +571,7 @@ func (m *Main) queueNodeEvents(batch *storage.QueryBatch, data *storage.Registry
 			// An existing node is expired.
 			batch.Queue(queries.ConsensusRuntimeNodesDelete, nodeEvent.Node.ID.String())
 			batch.Queue(queries.ConsensusNodeDelete,
-				nodeEvent.Node.ID.String(),
+				nodeEvent.NodeID.String(),
 			)
 		}
 	}
@@ -606,7 +586,7 @@ func (m *Main) queueRegistryEventInserts(batch *storage.QueryBatch, data *storag
 			continue // Events associated with a tx are processed in queueTxEventInserts
 		}
 
-		eventData := m.extractEventData(*event)
+		eventData := m.extractEventData(event)
 
 		if err := m.queueSingleEventInserts(batch, &eventData, data.Height); err != nil {
 			return err
@@ -623,12 +603,9 @@ func (m *Main) queueRootHashEventInserts(batch *storage.QueryBatch, data *storag
 			continue // Events associated with a tx are processed in queueTxEventInserts
 		}
 
-		eventData, err := extractRootHashEvent(event)
-		if err != nil {
-			return err
-		}
+		eventData := m.extractEventData(event)
 
-		if err = m.queueSingleEventInserts(batch, eventData, data.Height); err != nil {
+		if err := m.queueSingleEventInserts(batch, &eventData, data.Height); err != nil {
 			return err
 		}
 	}
@@ -699,74 +676,74 @@ func (m *Main) queueBurns(batch *storage.QueryBatch, data *storage.StakingData) 
 }
 
 func (m *Main) queueEscrows(batch *storage.QueryBatch, data *storage.StakingData) error {
-	for _, escrow := range data.Escrows {
-		switch e := escrow; {
-		case e.Add != nil:
-			owner := e.Add.Owner.String()
-			escrower := e.Add.Escrow.String()
-			amount := e.Add.Amount.String()
-			newShares := e.Add.NewShares.String()
-			batch.Queue(queries.ConsensusDecreaseGeneralBalanceUpsert,
-				owner,
-				amount,
-			)
-			batch.Queue(queries.ConsensusAddEscrowBalanceUpsert,
-				escrower,
-				amount,
-				newShares,
-			)
-			batch.Queue(queries.ConsensusAddDelegationsUpsert,
-				escrower,
-				owner,
-				newShares,
-			)
-		case e.Take != nil:
-			batch.Queue(queries.ConsensusTakeEscrowUpdate,
-				e.Take.Owner.String(),
-				e.Take.Amount.String(),
-			)
-		case e.DebondingStart != nil:
-			batch.Queue(queries.ConsensusDebondingStartEscrowBalanceUpdate,
-				e.DebondingStart.Escrow.String(),
-				e.DebondingStart.Amount.String(),
-				e.DebondingStart.ActiveShares.String(),
-				e.DebondingStart.DebondingShares.String(),
-			)
-			batch.Queue(queries.ConsensusDebondingStartDelegationsUpdate,
-				e.DebondingStart.Escrow.String(),
-				e.DebondingStart.Owner.String(),
-				e.DebondingStart.ActiveShares.String(),
-			)
-			batch.Queue(queries.ConsensusDebondingStartDebondingDelegationsInsert,
-				e.DebondingStart.Escrow.String(),
-				e.DebondingStart.Owner.String(),
-				e.DebondingStart.DebondingShares.String(),
-				e.DebondingStart.DebondEndTime,
-			)
-		case e.Reclaim != nil:
-			batch.Queue(queries.ConsensusIncreaseGeneralBalanceUpsert,
-				e.Reclaim.Owner.String(),
-				e.Reclaim.Amount.String(),
-			)
-			batch.Queue(queries.ConsensusReclaimEscrowBalanceUpdate,
-				e.Reclaim.Escrow.String(),
-				e.Reclaim.Amount.String(),
-				e.Reclaim.Shares.String(),
-			)
-			batch.Queue(queries.ConsensusDeleteDebondingDelegations,
-				e.Reclaim.Owner.String(),
-				e.Reclaim.Escrow.String(),
-				e.Reclaim.Shares.String(),
-				data.Epoch,
-			)
-		}
+	for _, e := range data.AddEscrows {
+		owner := e.Owner.String()
+		escrower := e.Escrow.String()
+		amount := e.Amount.String()
+		newShares := e.NewShares.String()
+		batch.Queue(queries.ConsensusDecreaseGeneralBalanceUpsert,
+			owner,
+			amount,
+		)
+		batch.Queue(queries.ConsensusAddEscrowBalanceUpsert,
+			escrower,
+			amount,
+			newShares,
+		)
+		batch.Queue(queries.ConsensusAddDelegationsUpsert,
+			escrower,
+			owner,
+			newShares,
+		)
+	}
+	for _, e := range data.TakeEscrows {
+		batch.Queue(queries.ConsensusTakeEscrowUpdate,
+			e.Owner.String(),
+			e.Amount.String(),
+		)
+	}
+	for _, e := range data.DebondingStartEscrows {
+		batch.Queue(queries.ConsensusDebondingStartEscrowBalanceUpdate,
+			e.Escrow.String(),
+			e.Amount.String(),
+			e.ActiveShares.String(),
+			e.DebondingShares.String(),
+		)
+		batch.Queue(queries.ConsensusDebondingStartDelegationsUpdate,
+			e.Escrow.String(),
+			e.Owner.String(),
+			e.ActiveShares.String(),
+		)
+		batch.Queue(queries.ConsensusDebondingStartDebondingDelegationsInsert,
+			e.Escrow.String(),
+			e.Owner.String(),
+			e.DebondingShares.String(),
+			e.DebondEndTime,
+		)
+	}
+	for _, e := range data.ReclaimEscrows {
+		batch.Queue(queries.ConsensusIncreaseGeneralBalanceUpsert,
+			e.Owner.String(),
+			e.Amount.String(),
+		)
+		batch.Queue(queries.ConsensusReclaimEscrowBalanceUpdate,
+			e.Escrow.String(),
+			e.Amount.String(),
+			e.Shares.String(),
+		)
+		batch.Queue(queries.ConsensusDeleteDebondingDelegations,
+			e.Owner.String(),
+			e.Escrow.String(),
+			e.Shares.String(),
+			data.Epoch,
+		)
 	}
 
 	return nil
 }
 
 func (m *Main) queueAllowanceChanges(batch *storage.QueryBatch, data *storage.StakingData) error {
-	for _, allowanceChange := range data.StakingAllowanceChanges {
+	for _, allowanceChange := range data.AllowanceChanges {
 		if allowanceChange.Allowance.IsZero() {
 			batch.Queue(queries.ConsensusAllowanceChangeDelete,
 				allowanceChange.Owner.String(),
@@ -794,12 +771,9 @@ func (m *Main) queueStakingEventInserts(batch *storage.QueryBatch, data *storage
 			continue // Events associated with a tx are processed in queueTxEventInserts
 		}
 
-		eventData, err := extractStakingEvent(event)
-		if err != nil {
-			return err
-		}
+		eventData := m.extractEventData(event)
 
-		if err = m.queueSingleEventInserts(batch, eventData, data.Height); err != nil {
+		if err := m.queueSingleEventInserts(batch, &eventData, data.Height); err != nil {
 			return err
 		}
 	}
@@ -823,14 +797,17 @@ func (m *Main) queueCommitteeUpdates(batch *storage.QueryBatch, data *storage.Sc
 	for namespace, committees := range data.Committees {
 		runtime := namespace.String()
 		for _, committee := range committees {
-			kind := committee.String()
+			kind, err := json.Marshal(committee)
+			if err != nil {
+				return fmt.Errorf("error marshaling committee: %w", err)
+			}
 			validFor := int64(committee.ValidFor)
 			for _, member := range committee.Members {
 				batch.Queue(queries.ConsensusCommitteeMemberInsert,
 					member.PublicKey,
 					validFor,
 					runtime,
-					kind,
+					kind, // TODO: store in DB as JSON
 					member.Role.String(),
 				)
 			}
@@ -902,7 +879,7 @@ func (m *Main) queueVotes(batch *storage.QueryBatch, data *storage.GovernanceDat
 		batch.Queue(queries.ConsensusVoteInsert,
 			vote.ID,
 			vote.Submitter.String(),
-			vote.Vote.String(),
+			vote.Vote,
 		)
 	}
 
@@ -916,12 +893,9 @@ func (m *Main) queueGovernanceEventInserts(batch *storage.QueryBatch, data *stor
 			continue // Events associated with a tx are processed in queueTxEventInserts
 		}
 
-		eventData, err := extractGovernanceEvent(event)
-		if err != nil {
-			return err
-		}
+		eventData := m.extractEventData(event)
 
-		if err = m.queueSingleEventInserts(batch, eventData, data.Height); err != nil {
+		if err := m.queueSingleEventInserts(batch, &eventData, data.Height); err != nil {
 			return err
 		}
 	}

@@ -150,15 +150,19 @@ func (c *CobaltConsensusApiLite) RoothashEvents(ctx context.Context, height int6
 	return events, nil
 }
 
-func (c *CobaltConsensusApiLite) GetValidators(ctx context.Context, height int64) ([]*scheduler.Validator, error) {
+func (c *CobaltConsensusApiLite) GetValidators(ctx context.Context, height int64) ([]nodeapi.Validator, error) {
 	rsp, err := c.damaskClient.Scheduler().GetValidators(ctx, height)
 	if err != nil {
 		return nil, fmt.Errorf("calling GetValidators() on Cobalt node using Damask ABI: %w", err)
 	}
-	return rsp, nil
+	validators := make([]nodeapi.Validator, len(rsp))
+	for i, v := range rsp {
+		validators[i] = nodeapi.Validator(*v)
+	}
+	return validators, nil
 }
 
-func (c *CobaltConsensusApiLite) GetCommittees(ctx context.Context, height int64, runtimeID common.Namespace) ([]*scheduler.Committee, error) {
+func (c *CobaltConsensusApiLite) GetCommittees(ctx context.Context, height int64, runtimeID common.Namespace) ([]nodeapi.Committee, error) {
 	rsp, err := c.damaskClient.Scheduler().GetCommittees(ctx, &scheduler.GetCommitteesRequest{
 		Height:    height,
 		RuntimeID: runtimeID,
@@ -166,10 +170,14 @@ func (c *CobaltConsensusApiLite) GetCommittees(ctx context.Context, height int64
 	if err != nil {
 		return nil, fmt.Errorf("calling GetCommittees() on Cobalt node using Damask ABI: %w", err)
 	}
-	return rsp, nil
+	committees := make([]nodeapi.Committee, len(rsp))
+	for i, c := range rsp {
+		committees[i] = nodeapi.Committee(*c)
+	}
+	return committees, nil
 }
 
-func (c *CobaltConsensusApiLite) GetProposal(ctx context.Context, height int64, proposalID uint64) (*governance.Proposal, error) {
+func (c *CobaltConsensusApiLite) GetProposal(ctx context.Context, height int64, proposalID uint64) (*nodeapi.Proposal, error) {
 	rsp, err := c.damaskClient.Governance().Proposal(ctx, &governance.ProposalQuery{
 		Height:     height,
 		ProposalID: proposalID,
@@ -177,5 +185,5 @@ func (c *CobaltConsensusApiLite) GetProposal(ctx context.Context, height int64, 
 	if err != nil {
 		return nil, fmt.Errorf("calling GetProposal() on Cobalt node using Damask ABI: %w", err)
 	}
-	return rsp, nil
+	return (*nodeapi.Proposal)(rsp), nil
 }

@@ -124,20 +124,40 @@ func (c *DamaskConsensusApiLite) RoothashEvents(ctx context.Context, height int6
 	return events, nil
 }
 
-func (c *DamaskConsensusApiLite) GetValidators(ctx context.Context, height int64) ([]*scheduler.Validator, error) {
-	return c.client.Scheduler().GetValidators(ctx, height)
+func (c *DamaskConsensusApiLite) GetValidators(ctx context.Context, height int64) ([]nodeapi.Validator, error) {
+	rsp, err := c.client.Scheduler().GetValidators(ctx, height)
+	if err != nil {
+		return nil, err
+	}
+	validators := make([]nodeapi.Validator, len(rsp))
+	for i, v := range rsp {
+		validators[i] = nodeapi.Validator(*v)
+	}
+	return validators, nil
 }
 
-func (c *DamaskConsensusApiLite) GetCommittees(ctx context.Context, height int64, runtimeID common.Namespace) ([]*scheduler.Committee, error) {
-	return c.client.Scheduler().GetCommittees(ctx, &scheduler.GetCommitteesRequest{
+func (c *DamaskConsensusApiLite) GetCommittees(ctx context.Context, height int64, runtimeID common.Namespace) ([]nodeapi.Committee, error) {
+	rsp, err := c.client.Scheduler().GetCommittees(ctx, &scheduler.GetCommitteesRequest{
 		Height:    height,
 		RuntimeID: runtimeID,
 	})
+	if err != nil {
+		return nil, err
+	}
+	committees := make([]nodeapi.Committee, len(rsp))
+	for i, c := range rsp {
+		committees[i] = nodeapi.Committee(*c)
+	}
+	return committees, nil
 }
 
-func (c *DamaskConsensusApiLite) GetProposal(ctx context.Context, height int64, proposalID uint64) (*governance.Proposal, error) {
-	return c.client.Governance().Proposal(ctx, &governance.ProposalQuery{
+func (c *DamaskConsensusApiLite) GetProposal(ctx context.Context, height int64, proposalID uint64) (*nodeapi.Proposal, error) {
+	rsp, err := c.client.Governance().Proposal(ctx, &governance.ProposalQuery{
 		Height:     height,
 		ProposalID: proposalID,
 	})
+	if err != nil {
+		return nil, err
+	}
+	return (*nodeapi.Proposal)(rsp), nil
 }
