@@ -97,13 +97,18 @@ type Event struct {
 	GovernanceVote              *VoteEvent
 }
 
-type TransferEvent staking.TransferEvent // NOTE: NewShares field is available starting with Damask.
-type BurnEvent staking.BurnEvent
-type AddEscrowEvent staking.AddEscrowEvent // NOTE: NewShares field is available starting with Damask.
-type TakeEscrowEvent staking.TakeEscrowEvent
-type DebondingStartEscrowEvent staking.DebondingStartEscrowEvent
-type ReclaimEscrowEvent staking.ReclaimEscrowEvent
-type AllowanceChangeEvent staking.AllowanceChangeEvent
+// .................... Staking  ....................
+type (
+	TransferEvent             staking.TransferEvent // NOTE: NewShares field is available starting with Damask.
+	BurnEvent                 staking.BurnEvent
+	AddEscrowEvent            staking.AddEscrowEvent // NOTE: NewShares field is available starting with Damask.
+	TakeEscrowEvent           staking.TakeEscrowEvent
+	DebondingStartEscrowEvent staking.DebondingStartEscrowEvent
+	ReclaimEscrowEvent        staking.ReclaimEscrowEvent
+	AllowanceChangeEvent      staking.AllowanceChangeEvent
+)
+
+// .................... Registry ....................
 
 // RuntimeEvent signifies new runtime registration.
 type RuntimeEvent struct {
@@ -113,39 +118,55 @@ type RuntimeEvent struct {
 	KeyManager  *coreCommon.Namespace // Key manager runtime ID.
 	TEEHardware string                // enum: "invalid" (= no TEE), "intel-sgx"
 }
-type EntityEvent registry.EntityEvent
-type NodeEvent struct {
-	NodeID             signature.PublicKey
-	EntityID           signature.PublicKey
-	Expiration         uint64 // Epoch in which the node expires.
-	RuntimeIDs         []coreCommon.Namespace
-	VRFPubKey          *signature.PublicKey
-	TLSAddresses       []string // TCP addresses of the node's TLS-enabled gRPC endpoint.
-	TLSPubKey          signature.PublicKey
-	TLSNextPubKey      signature.PublicKey
-	P2PID              signature.PublicKey
-	P2PAddresses       []string // TCP addresses of the node's P2P endpoint.
-	ConsensusID        signature.PublicKey
-	ConsensusAddresses []string // TCP addresses of the node's tendermint endpoint.
-	Roles              []string // enum: "compute", "key-manager", "validator", "consensus-rpc", "storage-rpc"
-	SoftwareVersion    string
-	IsRegistration     bool
-}
+type (
+	EntityEvent registry.EntityEvent
+	NodeEvent   struct {
+		NodeID             signature.PublicKey
+		EntityID           signature.PublicKey
+		Expiration         uint64 // Epoch in which the node expires.
+		RuntimeIDs         []coreCommon.Namespace
+		VRFPubKey          *signature.PublicKey
+		TLSAddresses       []string // TCP addresses of the node's TLS-enabled gRPC endpoint.
+		TLSPubKey          signature.PublicKey
+		TLSNextPubKey      signature.PublicKey
+		P2PID              signature.PublicKey
+		P2PAddresses       []string // TCP addresses of the node's P2P endpoint.
+		ConsensusID        signature.PublicKey
+		ConsensusAddresses []string // TCP addresses of the node's tendermint endpoint.
+		Roles              []string // enum: "compute", "key-manager", "validator", "consensus-rpc", "storage-rpc"
+		SoftwareVersion    string
+		IsRegistration     bool
+	}
+)
 type NodeUnfrozenEvent registry.NodeUnfrozenEvent
+
+// .................... RootHash  ....................
 
 type ExecutorCommittedEvent struct {
 	NodeID *signature.PublicKey // Available starting in Damask.
 }
 
-type ProposalSubmittedEvent governance.ProposalSubmittedEvent
-type ProposalExecutedEvent governance.ProposalExecutedEvent
-type ProposalFinalizedEvent governance.ProposalFinalizedEvent
-type VoteEvent struct {
-	ID        uint64
-	Submitter staking.Address
-	Vote      string // enum: "yes", "no", "abstain"
-}
+// .................... Governance ....................
 
-type Validator scheduler.Validator
-type Committee scheduler.Committee
+type (
+	ProposalSubmittedEvent governance.ProposalSubmittedEvent
+	ProposalExecutedEvent  governance.ProposalExecutedEvent
+	ProposalFinalizedEvent governance.ProposalFinalizedEvent
+	VoteEvent              struct {
+		ID        uint64
+		Submitter staking.Address
+		Vote      string // enum: "yes", "no", "abstain"
+	}
+)
+
+// .................... Scheduler ....................
+
+type (
+	Validator scheduler.Validator
+	Committee scheduler.Committee
+	Proposal  governance.Proposal
+)
+
+// .................... Governance ....................
+
 type Proposal governance.Proposal

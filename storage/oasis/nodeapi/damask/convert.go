@@ -1,11 +1,9 @@
 package damask
 
 import (
-
-	// indexer-internal data types.
-
 	"strings"
 
+	// indexer-internal data types.
 	"github.com/oasisprotocol/oasis-core/go/common"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
 	apiTypes "github.com/oasisprotocol/oasis-indexer/api/v1/types"
@@ -90,7 +88,7 @@ func convertEvent(e txResultsDamask.Event) nodeapi.Event {
 				Type:           apiTypes.ConsensusEventTypeRegistryEntity,
 			}
 		case e.Registry.NodeEvent != nil:
-			var vrfID *signature.PublicKey = nil
+			var vrfID *signature.PublicKey
 			if e.Registry.NodeEvent.Node.VRF != nil {
 				vrfID = &e.Registry.NodeEvent.Node.VRF.ID
 			}

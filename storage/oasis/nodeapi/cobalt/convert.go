@@ -237,7 +237,7 @@ func convertEvent(e txResultsCobalt.Event) nodeapi.Event {
 				Type:           apiTypes.ConsensusEventTypeRegistryEntity,
 			}
 		case e.Registry.NodeEvent != nil:
-			var vrfID *signature.PublicKey = nil
+			var vrfID *signature.PublicKey
 			if e.Registry.NodeEvent.Node.VRF != nil {
 				vrfID = &e.Registry.NodeEvent.Node.VRF.ID
 			}
