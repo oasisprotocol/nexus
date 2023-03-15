@@ -21,14 +21,17 @@ import (
 // ConsensusApiLite provides low-level access to the consensus API of one or
 // more (versions of) Oasis nodes.
 //
-// Each method is intended to be a thin wrapper around a corresponding gRPC
-// method of the node. In this sense, this is a reimplentation of convenience
-// methods in oasis-core.
+// Each method of this corresponds to a gRPC method of the node. In this sense,
+// this is a reimplementation of convenience gRPC wrapers in oasis-core.
+// However, this interface ONLY supports methods needed by the indexer, and the
+// return values (events, genesis doc, ...) are converted to simplified internal
+// types that mirror oasis-core types but contain only the fields relevant to
+// the indexer.
 //
-// The difference is that this interface only supports methods needed by the
-// indexer, and that implementations allow handling different versions of Oasis
-// nodes.
+// Since the types are simpler and fewer, their structure is, in
+// places, flattened compared to their counterparts in oasis-core.
 type ConsensusApiLite interface {
+	// TODO: Introduce internal, stripped-down version of `genesis.Document`.
 	GetGenesisDocument(ctx context.Context) (*genesis.Document, error)
 	StateToGenesis(ctx context.Context, height int64) (*genesis.Document, error)
 	GetBlock(ctx context.Context, height int64) (*consensus.Block, error)

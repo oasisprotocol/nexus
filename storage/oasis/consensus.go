@@ -13,7 +13,15 @@ import (
 	"github.com/oasisprotocol/oasis-indexer/storage"
 )
 
-// ConsensusClient is a client to the consensus backends.
+// ConsensusClient is a client to the consensus methods/data of oasis node. It
+// differs from the nodeapi.ConsensusApiLite in that:
+//   - Its methods may collect data using multiple RPCs each.
+//   - The return types make no effort to closely resemble oasis-core types
+//     in structure. Instead, they are structured in a way that is most convenient
+//     for the analyzer.
+//     TODO: The benefits of this are miniscule, and introduce considerable
+//     boilerplate. Consider removing most types from this package, and
+//     using nodeapi types directly.
 type ConsensusClient struct {
 	nodeApi nodeapi.ConsensusApiLite
 	network *config.Network
