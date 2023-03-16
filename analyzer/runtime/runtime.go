@@ -33,8 +33,6 @@ type Main struct {
 	target  storage.TargetStorage
 	logger  *log.Logger
 	metrics metrics.DatabaseMetrics
-
-	moduleHandlers []ModuleHandler
 }
 
 var _ analyzer.Analyzer = (*Main)(nil)
@@ -95,13 +93,6 @@ func NewRuntimeAnalyzer(
 		target:  target,
 		logger:  logger.With("analyzer", runtime.String()),
 		metrics: metrics.NewDefaultDatabaseMetrics(runtime.String()),
-
-		// module handlers
-		moduleHandlers: []ModuleHandler{
-			NewCoreHandler(client, runtime, logger),
-			NewAccountsHandler(client, runtime, logger),
-			NewConsensusAccountsHandler(client, runtime, logger),
-		},
 	}, nil
 }
 
@@ -237,23 +228,12 @@ func (m *Main) processRound(ctx context.Context, round uint64) error {
 		return err
 	}
 
-	// Prepare and perform updates.
+	// Prepare DB queries.
 	batch := &storage.QueryBatch{}
-	type prepareFunc = func(*storage.QueryBatch, *BlockData) error
-	// Process block and event data.
-	for _, f := range []prepareFunc{
-		m.queueDbUpdates,
-	} {
-		if err := f(batch, blockData); err != nil {
-			return err
-		}
-	}
-	// Process module data.
-	for _, h := range m.moduleHandlers {
-		if err := h.PrepareData(batch, data); err != nil {
-			return err
-		}
-	}
+	m.queueDbUpdates(batch, blockData)
+	NewCoreHandler(m.cfg.Source, m.runtime, m.logger).PrepareData(batch, data)
+	NewAccountsHandler(m.cfg.Source, m.runtime, m.logger).PrepareData(batch, data)
+	NewConsensusAccountsHandler(m.cfg.Source, m.runtime, m.logger).PrepareData(batch, data)
 
 	// Update indexing progress.
 	batch.Queue(
@@ -275,7 +255,7 @@ func (m *Main) processRound(ctx context.Context, round uint64) error {
 }
 
 // queueDbUpdates extends `batch` with queries that reflect `data`.
-func (m *Main) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) error {
+func (m *Main) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 	// Block metadata.
 	batch.Queue(
 		queries.RuntimeBlockInsert,
@@ -378,6 +358,4 @@ func (m *Main) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) error 
 		batch.Queue(queries.RuntimeEVMTokenBalanceUpdate, m.runtime, key.TokenAddress, key.AccountAddress, change.String())
 		batch.Queue(queries.RuntimeEVMTokenBalanceAnalysisInsert, m.runtime, key.TokenAddress, key.AccountAddress, data.Header.Round)
 	}
-
-	return nil
 }
