@@ -28,7 +28,6 @@ import (
 	"github.com/oasisprotocol/oasis-indexer/analyzer/util"
 	apiTypes "github.com/oasisprotocol/oasis-indexer/api/v1/types"
 	"github.com/oasisprotocol/oasis-indexer/log"
-	"github.com/oasisprotocol/oasis-indexer/storage"
 )
 
 type BlockTransactionSignerData struct {
@@ -297,7 +296,7 @@ func ExtractRound(blockHeader block.Header, txrs []*sdkClient.TransactionWithRes
 				blockTransactionSignerData.Nonce = int(si.Nonce)
 				blockTransactionData.SignerData = append(blockTransactionData.SignerData, &blockTransactionSignerData)
 			}
-			if err = common.VisitCall(&tx.Call, &txr.Result, &common.CallHandler{
+			if err = VisitCall(&tx.Call, &txr.Result, &CallHandler{
 				AccountsTransfer: func(body *accounts.Transfer) error {
 					if _, err = registerRelatedSdkAddress(blockTransactionData.RelatedAccountAddresses, &body.To); err != nil {
 						return fmt.Errorf("to: %w", err)
@@ -371,7 +370,7 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 	extractedEvents := []*EventData{}
 	foundGasUsedEvent := false
 	var txGasUsed uint64
-	if err := common.VisitSdkEvents(eventsRaw, &common.SdkEventHandler{
+	if err := VisitSdkEvents(eventsRaw, &SdkEventHandler{
 		Core: func(event *core.Event) error {
 			if event.GasUsed != nil {
 				if foundGasUsedEvent {
@@ -469,7 +468,7 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 				return fmt.Errorf("event address: %w", err1)
 			}
 			eventRelatedAddresses := map[apiTypes.Address]bool{eventAddr: true}
-			if err1 = common.VisitEVMEvent(event, &common.EVMEventHandler{
+			if err1 = VisitEVMEvent(event, &EVMEventHandler{
 				ERC20Transfer: func(fromEthAddr []byte, toEthAddr []byte, amountU256 []byte) error {
 					amount := &big.Int{}
 					amount.SetBytes(amountU256)
@@ -592,8 +591,4 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 		FoundGasUsedEvent: foundGasUsedEvent,
 		TxGasUsed:         txGasUsed,
 	}, nil
-}
-
-func (m *Main) emitRoundBatch(batch *storage.QueryBatch, round uint64, blockData *BlockData) {
-
 }
