@@ -440,7 +440,7 @@ func (m *Main) queueTransactionInserts(batch *storage.QueryBatch, data *storage.
 			result.Error.Code,
 			message,
 		)
-		batch.Queue(queries.ConsensusAccountNonceUpdate,
+		batch.Queue(queries.ConsensusAccountNonceUpsert,
 			sender,
 			tx.Nonce+1,
 		)
@@ -684,11 +684,11 @@ func (m *Main) queueTransfers(batch *storage.QueryBatch, data *storage.StakingDa
 			continue
 		}
 
-		batch.Queue(queries.ConsensusSenderUpdate,
+		batch.Queue(queries.ConsensusDecreaseGeneralBalanceUpsert,
 			transfer.From.String(),
 			transfer.Amount.String(),
 		)
-		batch.Queue(queries.ConsensusReceiverUpdate,
+		batch.Queue(queries.ConsensusIncreaseGeneralBalanceUpsert,
 			transfer.To.String(),
 			transfer.Amount.String(),
 		)
@@ -699,7 +699,7 @@ func (m *Main) queueTransfers(batch *storage.QueryBatch, data *storage.StakingDa
 
 func (m *Main) queueBurns(batch *storage.QueryBatch, data *storage.StakingData) error {
 	for _, burn := range data.Burns {
-		batch.Queue(queries.ConsensusBurnUpdate,
+		batch.Queue(queries.ConsensusDecreaseGeneralBalanceUpsert,
 			burn.Owner.String(),
 			burn.Amount.String(),
 		)
@@ -716,7 +716,7 @@ func (m *Main) queueEscrows(batch *storage.QueryBatch, data *storage.StakingData
 			escrower := e.Add.Escrow.String()
 			amount := e.Add.Amount.String()
 			newShares := e.Add.NewShares.String()
-			batch.Queue(queries.ConsensusDecreaseGeneralBalanceForEscrowUpdate,
+			batch.Queue(queries.ConsensusDecreaseGeneralBalanceUpsert,
 				owner,
 				amount,
 			)
@@ -754,7 +754,7 @@ func (m *Main) queueEscrows(batch *storage.QueryBatch, data *storage.StakingData
 				e.DebondingStart.DebondEndTime,
 			)
 		case e.Reclaim != nil:
-			batch.Queue(queries.ConsensusReclaimGeneralBalanceUpdate,
+			batch.Queue(queries.ConsensusIncreaseGeneralBalanceUpsert,
 				e.Reclaim.Owner.String(),
 				e.Reclaim.Amount.String(),
 			)
