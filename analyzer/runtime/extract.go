@@ -1,5 +1,11 @@
 package runtime
 
+// This file analyzes raw runtime data as fetched from the node, and transforms
+// into indexed structures that are suitable/convenient for data insertion into
+// the DB.
+//
+// The main entrypoint is `ExtractRound()`.
+
 import (
 	"bytes"
 	"encoding/hex"
@@ -19,7 +25,6 @@ import (
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 
 	"github.com/oasisprotocol/oasis-indexer/analyzer/modules"
-	"github.com/oasisprotocol/oasis-indexer/analyzer/queries"
 	common "github.com/oasisprotocol/oasis-indexer/analyzer/uncategorized"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/util"
 	apiTypes "github.com/oasisprotocol/oasis-indexer/api/v1/types"
@@ -229,7 +234,7 @@ func registerTokenDecrease(tokenChanges map[TokenChangeKey]*big.Int, contractAdd
 	change.Sub(change, amount)
 }
 
-func extractRound(blockHeader block.Header, txrs []*sdkClient.TransactionWithResults, rawEvents []*sdkTypes.Event, logger *log.Logger) (*BlockData, error) {
+func ExtractRound(blockHeader block.Header, txrs []*sdkClient.TransactionWithResults, rawEvents []*sdkTypes.Event, logger *log.Logger) (*BlockData, error) {
 	var blockData = BlockData{
 		Header:              blockHeader,
 		Hash:                blockHeader.EncodedHash().String(),
@@ -591,62 +596,5 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 }
 
 func (m *Main) emitRoundBatch(batch *storage.QueryBatch, round uint64, blockData *BlockData) {
-	for _, transactionData := range blockData.TransactionData {
-		for _, signerData := range transactionData.SignerData {
-			batch.Queue(
-				queries.RuntimeTransactionSignerInsert,
-				m.runtime,
-				round,
-				transactionData.Index,
-				signerData.Index,
-				signerData.Address,
-				signerData.Nonce,
-			)
-		}
-		for addr := range transactionData.RelatedAccountAddresses {
-			batch.Queue(queries.RuntimeRelatedTransactionInsert, m.runtime, addr, round, transactionData.Index)
-		}
-		batch.Queue(
-			queries.RuntimeTransactionInsert,
-			m.runtime,
-			round,
-			transactionData.Index,
-			transactionData.Hash,
-			transactionData.EthHash,
-			transactionData.GasUsed,
-			transactionData.Size,
-			blockData.Timestamp,
-			transactionData.Raw,
-			transactionData.RawResult,
-		)
-	}
-	for _, eventData := range blockData.EventData {
-		eventRelatedAddresses := common.ExtractAddresses(eventData.RelatedAddresses)
-		batch.Queue(
-			queries.RuntimeEventInsert,
-			m.runtime,
-			round,
-			eventData.TxIndex,
-			eventData.TxHash,
-			eventData.Type,
-			eventData.Body,
-			eventData.EvmLogName,
-			eventData.EvmLogParams,
-			eventRelatedAddresses,
-		)
-	}
-	for addr, preimageData := range blockData.AddressPreimages {
-		batch.Queue(queries.AddressPreimageInsert, addr, preimageData.ContextIdentifier, preimageData.ContextVersion, preimageData.Data)
-	}
-	for key, change := range blockData.TokenBalanceChanges {
-		batch.Queue(queries.RuntimeEVMTokenBalanceUpdate, m.runtime, key.TokenAddress, key.AccountAddress, change.String())
-		batch.Queue(queries.RuntimeEVMTokenBalanceAnalysisInsert, m.runtime, key.TokenAddress, key.AccountAddress, round)
-	}
-	for addr, possibleToken := range blockData.PossibleTokens {
-		if possibleToken.Mutated {
-			batch.Queue(queries.RuntimeEVMTokenAnalysisMutateInsert, m.runtime, addr, round)
-		} else {
-			batch.Queue(queries.RuntimeEVMTokenAnalysisInsert, m.runtime, addr, round)
-		}
-	}
+
 }
