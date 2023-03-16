@@ -16,7 +16,6 @@ import (
 	"github.com/oasisprotocol/oasis-indexer/analyzer/queries"
 	common "github.com/oasisprotocol/oasis-indexer/analyzer/uncategorized"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/util"
-	apiTypes "github.com/oasisprotocol/oasis-indexer/api/v1/types"
 	"github.com/oasisprotocol/oasis-indexer/config"
 	"github.com/oasisprotocol/oasis-indexer/log"
 	"github.com/oasisprotocol/oasis-indexer/metrics"
@@ -233,15 +232,21 @@ func (m *Main) processRound(ctx context.Context, round uint64) error {
 		return err
 	}
 
+	// Preprocess data.
+	blockData, err := extractRound(data.BlockData.BlockHeader.Header, data.BlockData.TransactionsWithResults, data.RawEvents.Events, m.logger)
+	if err != nil {
+		return err
+	}
+
 	// Prepare and perform updates.
 	batch := &storage.QueryBatch{}
-	type prepareFunc = func(*storage.QueryBatch, *storage.RuntimeAllData) error
+	type prepareFunc = func(*storage.QueryBatch, *BlockData) error
 	// Process block and event data.
 	for _, f := range []prepareFunc{
 		m.prepareBlockData,
 		m.prepareEventData,
 	} {
-		if err := f(batch, data); err != nil {
+		if err := f(batch, blockData); err != nil {
 			return err
 		}
 	}
@@ -272,34 +277,19 @@ func (m *Main) processRound(ctx context.Context, round uint64) error {
 }
 
 // prepareBlockData adds block data queries to the batch.
-func (m *Main) prepareBlockData(batch *storage.QueryBatch, data *storage.RuntimeAllData) error {
-	return m.queueBlockAndTransactionInserts(batch, data.BlockData)
+func (m *Main) prepareBlockData(batch *storage.QueryBatch, data *BlockData) error {
+	return m.queueBlockAndTransactionInserts(batch, data)
 }
 
 // prepareEventData adds non-tx event data queries to the batch.
-func (m *Main) prepareEventData(batch *storage.QueryBatch, data *storage.RuntimeAllData) error {
-	nonTxEvents := []*types.Event{}
-	for _, e := range data.RawEvents.Events {
-		if e.TxHash.String() == util.ZeroTxHash {
-			nonTxEvents = append(nonTxEvents, e)
-		}
-	}
-
-	blockData := BlockData{
-		AddressPreimages: map[apiTypes.Address]*AddressPreimageData{},
-	}
-	res, err := extractEvents(&blockData, map[apiTypes.Address]bool{}, nonTxEvents)
-	if err != nil {
-		return err
-	}
-
+func (m *Main) prepareEventData(batch *storage.QueryBatch, data *BlockData) error {
 	// Insert non-tx event data.
-	for _, eventData := range res.ExtractedEvents {
+	for _, eventData := range data.NonTxEvents {
 		eventRelatedAddresses := common.ExtractAddresses(eventData.RelatedAddresses)
 		batch.Queue(
 			queries.RuntimeEventInsert,
 			m.runtime,
-			data.Round,
+			data.Header.Round,
 			nil, // non-tx event has no tx index
 			nil, // non-tx event has no tx hash
 			eventData.Type,
@@ -310,38 +300,28 @@ func (m *Main) prepareEventData(batch *storage.QueryBatch, data *storage.Runtime
 		)
 	}
 
-	// Insert any eth address preimages found in non-tx events.
-	for addr, preimageData := range blockData.AddressPreimages {
-		batch.Queue(queries.AddressPreimageInsert, addr, preimageData.ContextIdentifier, preimageData.ContextVersion, preimageData.Data)
-	}
-
 	return nil
 }
 
-func (m *Main) queueBlockAndTransactionInserts(batch *storage.QueryBatch, data *storage.RuntimeBlockData) error {
-	blockData, err := extractRound(data.BlockHeader, data.TransactionsWithResults, m.logger)
-	if err != nil {
-		return fmt.Errorf("extract round %d: %w", data.Round, err)
-	}
-
+func (m *Main) queueBlockAndTransactionInserts(batch *storage.QueryBatch, data *BlockData) error {
 	batch.Queue(
 		queries.RuntimeBlockInsert,
 		m.runtime,
-		data.Round,
-		data.BlockHeader.Header.Version,
-		time.Unix(int64(data.BlockHeader.Header.Timestamp), 0 /* nanos */),
-		data.BlockHeader.Header.EncodedHash().Hex(),
-		data.BlockHeader.Header.PreviousHash.Hex(),
-		data.BlockHeader.Header.IORoot.Hex(),
-		data.BlockHeader.Header.StateRoot.Hex(),
-		data.BlockHeader.Header.MessagesHash.Hex(),
-		data.BlockHeader.Header.InMessagesHash.Hex(),
-		blockData.NumTransactions,
-		fmt.Sprintf("%d", blockData.GasUsed),
-		blockData.Size,
+		data.Header.Round,
+		data.Header.Version,
+		time.Unix(int64(data.Header.Timestamp), 0 /* nanos */),
+		data.Header.EncodedHash().Hex(),
+		data.Header.PreviousHash.Hex(),
+		data.Header.IORoot.Hex(),
+		data.Header.StateRoot.Hex(),
+		data.Header.MessagesHash.Hex(),
+		data.Header.InMessagesHash.Hex(),
+		data.NumTransactions,
+		fmt.Sprintf("%d", data.GasUsed),
+		data.Size,
 	)
 
-	m.emitRoundBatch(batch, data.Round, blockData)
+	m.emitRoundBatch(batch, data.Header.Round, data)
 
 	return nil
 }

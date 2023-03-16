@@ -21,6 +21,7 @@ import (
 	"github.com/oasisprotocol/oasis-indexer/analyzer/modules"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/queries"
 	common "github.com/oasisprotocol/oasis-indexer/analyzer/uncategorized"
+	"github.com/oasisprotocol/oasis-indexer/analyzer/util"
 	apiTypes "github.com/oasisprotocol/oasis-indexer/api/v1/types"
 	"github.com/oasisprotocol/oasis-indexer/log"
 	"github.com/oasisprotocol/oasis-indexer/storage"
@@ -78,6 +79,7 @@ type TokenChangeKey struct {
 }
 
 type BlockData struct {
+	Header              block.Header // TODO: deduplicate with Hash, Timestamp.
 	Hash                string
 	Timestamp           time.Time
 	NumTransactions     int
@@ -85,6 +87,7 @@ type BlockData struct {
 	Size                int
 	TransactionData     []*BlockTransactionData
 	EventData           []*EventData
+	NonTxEvents         []*EventData
 	AddressPreimages    map[apiTypes.Address]*AddressPreimageData
 	TokenBalanceChanges map[TokenChangeKey]*big.Int
 	// key is oasis bech32 address
@@ -226,16 +229,34 @@ func registerTokenDecrease(tokenChanges map[TokenChangeKey]*big.Int, contractAdd
 	change.Sub(change, amount)
 }
 
-func extractRound(b *block.Block, txrs []*sdkClient.TransactionWithResults, logger *log.Logger) (*BlockData, error) {
-	var blockData BlockData
-	blockData.Hash = b.Header.EncodedHash().String()
-	blockData.Timestamp = time.Unix(int64(b.Header.Timestamp), 0 /* nanos */)
-	blockData.NumTransactions = len(txrs)
-	blockData.TransactionData = make([]*BlockTransactionData, 0, len(txrs))
-	blockData.EventData = []*EventData{}
-	blockData.AddressPreimages = map[apiTypes.Address]*AddressPreimageData{}
-	blockData.TokenBalanceChanges = map[TokenChangeKey]*big.Int{}
-	blockData.PossibleTokens = map[apiTypes.Address]*modules.EVMPossibleToken{}
+func extractRound(blockHeader block.Header, txrs []*sdkClient.TransactionWithResults, rawEvents []*sdkTypes.Event, logger *log.Logger) (*BlockData, error) {
+	var blockData = BlockData{
+		Header:              blockHeader,
+		Hash:                blockHeader.EncodedHash().String(),
+		Timestamp:           time.Unix(int64(blockHeader.Timestamp), 0 /* nanos */),
+		NumTransactions:     len(txrs),
+		TransactionData:     make([]*BlockTransactionData, 0, len(txrs)),
+		EventData:           []*EventData{},
+		NonTxEvents:         []*EventData{},
+		AddressPreimages:    map[apiTypes.Address]*AddressPreimageData{},
+		TokenBalanceChanges: map[TokenChangeKey]*big.Int{},
+		PossibleTokens:      map[apiTypes.Address]*modules.EVMPossibleToken{},
+	}
+
+	// Extract info from non-tx events.
+	rawNonTxEvents := []*sdkTypes.Event{}
+	for _, e := range rawEvents {
+		if e.TxHash.String() == util.ZeroTxHash {
+			rawNonTxEvents = append(rawNonTxEvents, e)
+		}
+	}
+	res, err := extractEvents(&blockData, map[apiTypes.Address]bool{}, rawNonTxEvents)
+	if err != nil {
+		return nil, fmt.Errorf("extract non-tx events: %w", err)
+	}
+	blockData.NonTxEvents = res.ExtractedEvents
+
+	// Extract info from transactions.
 	for txIndex, txr := range txrs {
 		var blockTransactionData BlockTransactionData
 		blockTransactionData.Index = txIndex
@@ -252,7 +273,7 @@ func extractRound(b *block.Block, txrs []*sdkClient.TransactionWithResults, logg
 		tx, err := common.OpenUtxNoVerify(&txr.Tx)
 		if err != nil {
 			logger.Error("error decoding tx, skipping tx-specific analysis",
-				"round", b.Header.Round,
+				"round", blockHeader.Round,
 				"tx_index", txIndex,
 				"tx_hash", txr.Tx.Hash(),
 				"err", err,
