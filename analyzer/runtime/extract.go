@@ -24,7 +24,6 @@ import (
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/evm"
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 
-	"github.com/oasisprotocol/oasis-indexer/analyzer/modules"
 	common "github.com/oasisprotocol/oasis-indexer/analyzer/uncategorized"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/util"
 	apiTypes "github.com/oasisprotocol/oasis-indexer/api/v1/types"
@@ -96,7 +95,7 @@ type BlockData struct {
 	AddressPreimages    map[apiTypes.Address]*AddressPreimageData
 	TokenBalanceChanges map[TokenChangeKey]*big.Int
 	// key is oasis bech32 address
-	PossibleTokens map[apiTypes.Address]*modules.EVMPossibleToken
+	PossibleTokens map[apiTypes.Address]*EVMPossibleToken
 }
 
 // Function naming conventions in this file:
@@ -245,7 +244,7 @@ func ExtractRound(blockHeader block.Header, txrs []*sdkClient.TransactionWithRes
 		NonTxEvents:         []*EventData{},
 		AddressPreimages:    map[apiTypes.Address]*AddressPreimageData{},
 		TokenBalanceChanges: map[TokenChangeKey]*big.Int{},
-		PossibleTokens:      map[apiTypes.Address]*modules.EVMPossibleToken{},
+		PossibleTokens:      map[apiTypes.Address]*EVMPossibleToken{},
 	}
 
 	// Extract info from non-tx events.
@@ -493,7 +492,7 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 						registerTokenIncrease(blockData.TokenBalanceChanges, eventAddr, toAddr, amount)
 					}
 					if _, ok := blockData.PossibleTokens[eventAddr]; !ok {
-						blockData.PossibleTokens[eventAddr] = &modules.EVMPossibleToken{}
+						blockData.PossibleTokens[eventAddr] = &EVMPossibleToken{}
 					}
 					// Mark as mutated if transfer is between zero address
 					// and nonzero address (either direction) and nonzero
@@ -547,7 +546,7 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 						eventRelatedAddresses[spenderAddr] = true
 					}
 					if _, ok := blockData.PossibleTokens[eventAddr]; !ok {
-						blockData.PossibleTokens[eventAddr] = &modules.EVMPossibleToken{}
+						blockData.PossibleTokens[eventAddr] = &EVMPossibleToken{}
 					}
 					amount := &big.Int{}
 					amount.SetBytes(amountU256)

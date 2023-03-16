@@ -12,7 +12,6 @@ import (
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 
 	"github.com/oasisprotocol/oasis-indexer/analyzer"
-	"github.com/oasisprotocol/oasis-indexer/analyzer/modules"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/queries"
 	common "github.com/oasisprotocol/oasis-indexer/analyzer/uncategorized"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/util"
@@ -35,7 +34,7 @@ type Main struct {
 	logger  *log.Logger
 	metrics metrics.DatabaseMetrics
 
-	moduleHandlers []modules.ModuleHandler
+	moduleHandlers []ModuleHandler
 }
 
 var _ analyzer.Analyzer = (*Main)(nil)
@@ -98,10 +97,10 @@ func NewRuntimeAnalyzer(
 		metrics: metrics.NewDefaultDatabaseMetrics(runtime.String()),
 
 		// module handlers
-		moduleHandlers: []modules.ModuleHandler{
-			modules.NewCoreHandler(client, runtime, logger),
-			modules.NewAccountsHandler(client, runtime, logger),
-			modules.NewConsensusAccountsHandler(client, runtime, logger),
+		moduleHandlers: []ModuleHandler{
+			NewCoreHandler(client, runtime, logger),
+			NewAccountsHandler(client, runtime, logger),
+			NewConsensusAccountsHandler(client, runtime, logger),
 		},
 	}, nil
 }

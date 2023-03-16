@@ -1,4 +1,4 @@
-package modules
+package runtime
 
 import (
 	"github.com/oasisprotocol/oasis-indexer/analyzer"

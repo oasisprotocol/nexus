@@ -10,8 +10,8 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/oasisprotocol/oasis-indexer/analyzer"
-	"github.com/oasisprotocol/oasis-indexer/analyzer/modules"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/queries"
+	"github.com/oasisprotocol/oasis-indexer/analyzer/runtime"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/util"
 	"github.com/oasisprotocol/oasis-indexer/common"
 	"github.com/oasisprotocol/oasis-indexer/config"
@@ -142,7 +142,7 @@ type StaleTokenBalance struct {
 	TokenAddr                    string
 	AccountAddr                  string
 	LastMutateRound              uint64
-	Type                         *modules.EVMTokenType
+	Type                         *runtime.EVMTokenType
 	Balance                      *big.Int
 	TokenAddrContextIdentifier   string
 	TokenAddrContextVersion      int
@@ -186,16 +186,16 @@ func (m Main) getStaleTokenBalances(ctx context.Context, limit int) ([]*StaleTok
 func (m Main) processStaleTokenBalance(ctx context.Context, batch *storage.QueryBatch, staleTokenBalance *StaleTokenBalance) error {
 	m.logger.Info("downloading", "stale_token_balance", staleTokenBalance)
 	// todo: assert that token addr and account addr contexts are secp256k1
-	tokenEthAddr, err := modules.EVMEthAddrFromPreimage(staleTokenBalance.TokenAddrContextIdentifier, staleTokenBalance.TokenAddrContextVersion, staleTokenBalance.TokenAddrData)
+	tokenEthAddr, err := runtime.EVMEthAddrFromPreimage(staleTokenBalance.TokenAddrContextIdentifier, staleTokenBalance.TokenAddrContextVersion, staleTokenBalance.TokenAddrData)
 	if err != nil {
 		return fmt.Errorf("token address: %w", err)
 	}
-	accountEthAddr, err := modules.EVMEthAddrFromPreimage(staleTokenBalance.AccountAddrContextIdentifier, staleTokenBalance.AccountAddrContextVersion, staleTokenBalance.AccountAddrData)
+	accountEthAddr, err := runtime.EVMEthAddrFromPreimage(staleTokenBalance.AccountAddrContextIdentifier, staleTokenBalance.AccountAddrContextVersion, staleTokenBalance.AccountAddrData)
 	if err != nil {
 		return fmt.Errorf("account address: %w", err)
 	}
 	if staleTokenBalance.Type != nil {
-		balanceData, err := modules.EVMDownloadTokenBalance(
+		balanceData, err := runtime.EVMDownloadTokenBalance(
 			ctx,
 			m.logger,
 			m.cfg.Source,
