@@ -51,7 +51,7 @@ CREATE TABLE chain.transactions
   -- Error Fields
   -- This includes an encoding of no error.
   module  TEXT,
-  code    UINT31,  -- From https://github.com/oasisprotocol/oasis-core/blob/f95186e3f15ec64bdd36493cde90be359bd17da8/go/consensus/api/transaction/results/results.go#L20-L20
+  code    UINT31 NOT NULL,  -- From https://github.com/oasisprotocol/oasis-core/blob/f95186e3f15ec64bdd36493cde90be359bd17da8/go/consensus/api/transaction/results/results.go#L20-L20
   message TEXT,
 
   -- We require a composite primary key since duplicate transactions (with identical hashes) can

@@ -418,6 +418,14 @@ func (m *Main) queueTransactionInserts(batch *storage.QueryBatch, data *storage.
 			m.logger.Warn("failed to marshal transaction body", "err", err, "tx_hash", signedTx.Hash().Hex(), "height", data.Height)
 			bodyBytes = []byte{}
 		}
+		var module *string
+		if len(result.Error.Module) > 0 {
+			module = &result.Error.Module
+		}
+		var message *string
+		if len(result.Error.Message) > 0 {
+			message = &result.Error.Message
+		}
 		batch.Queue(queries.ConsensusTransactionInsert,
 			data.BlockHeader.Height,
 			signedTx.Hash().Hex(),
@@ -428,9 +436,9 @@ func (m *Main) queueTransactionInserts(batch *storage.QueryBatch, data *storage.
 			tx.Method,
 			sender,
 			bodyBytes,
-			result.Error.Module,
+			module,
 			result.Error.Code,
-			result.Error.Message,
+			message,
 		)
 		batch.Queue(queries.ConsensusAccountNonceUpdate,
 			sender,

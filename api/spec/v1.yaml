@@ -1240,8 +1240,26 @@ components:
         success:
           type: boolean
           description: Whether this transaction successfully executed.
+        error:
+          $ref: '#/components/schemas/TxError'
+          description: Error details of a failed transaction.
       description: |
         A consensus transaction.
+
+    TxError:
+      type: object
+      required: [code]
+      properties:
+        code:
+          type: integer
+          format: uint32
+          description: The status code of a failed transaction.
+        module:
+          type: string
+          description: The module of a failed transaction.
+        message:
+          type: string
+          description: The message of a failed transaction.
 
     ConsensusEventType:
       type: string
@@ -2063,6 +2081,9 @@ components:
         success:
           type: boolean
           description: Whether this transaction successfully executed.
+        error:
+          $ref: '#/components/schemas/TxError'
+          description: Error details of a failed transaction.
       description: |
         A runtime transaction.
 
