@@ -242,7 +242,7 @@ func registerTokenDecrease(tokenChanges map[TokenChangeKey]*big.Int, contractAdd
 }
 
 func ExtractRound(blockHeader block.Header, txrs []*sdkClient.TransactionWithResults, rawEvents []*sdkTypes.Event, logger *log.Logger) (*BlockData, error) {
-	var blockData = BlockData{
+	blockData := BlockData{
 		Header:              blockHeader,
 		Hash:                blockHeader.EncodedHash().String(),
 		Timestamp:           time.Unix(int64(blockHeader.Timestamp), 0 /* nanos */),

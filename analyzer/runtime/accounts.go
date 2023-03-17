@@ -15,7 +15,7 @@ import (
 // module-independent way. It only records effects for which an understanding of
 // the module's semantics is necessary.
 func (m *Main) queueAccountsEvents(batch *storage.QueryBatch, blockData *BlockData) {
-	allEvents := append(blockData.EventData, blockData.NonTxEvents...)
+	allEvents := append(blockData.EventData, blockData.NonTxEvents...) //nolint: gocritic
 	for _, event := range allEvents {
 		if event.WithScope.Accounts == nil {
 			continue
