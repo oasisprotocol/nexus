@@ -55,9 +55,18 @@ type EventData struct {
 	TxHash           string
 	Type             apiTypes.RuntimeEventType
 	Body             EventBody
+	WithScope        ScopedSdkEvent
 	EvmLogName       string
 	EvmLogParams     []*apiTypes.EvmEventParam
 	RelatedAddresses map[apiTypes.Address]bool
+}
+
+// ScopedSdkEvent is a one-of container for SDK events.
+type ScopedSdkEvent struct {
+	Core              *core.Event
+	Accounts          *accounts.Event
+	ConsensusAccounts *consensusaccounts.Event
+	EVM               *evm.Event
 }
 
 type extractEventResult struct {
@@ -379,8 +388,9 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 				foundGasUsedEvent = true
 				txGasUsed = event.GasUsed.Amount
 				eventData := EventData{
-					Type: apiTypes.RuntimeEventTypeCoreGasUsed,
-					Body: event.GasUsed,
+					Type:      apiTypes.RuntimeEventTypeCoreGasUsed,
+					Body:      event.GasUsed,
+					WithScope: ScopedSdkEvent{Core: event},
 				}
 				extractedEvents = append(extractedEvents, &eventData)
 			}
@@ -403,6 +413,7 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 				eventData := EventData{
 					Type:             apiTypes.RuntimeEventTypeAccountsTransfer,
 					Body:             event.Transfer,
+					WithScope:        ScopedSdkEvent{Accounts: event},
 					RelatedAddresses: eventRelatedAddresses,
 				}
 				extractedEvents = append(extractedEvents, &eventData)
@@ -415,6 +426,7 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 				eventData := EventData{
 					Type:             apiTypes.RuntimeEventTypeAccountsBurn,
 					Body:             event.Burn,
+					WithScope:        ScopedSdkEvent{Accounts: event},
 					RelatedAddresses: map[apiTypes.Address]bool{ownerAddr: true},
 				}
 				extractedEvents = append(extractedEvents, &eventData)
@@ -427,6 +439,7 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 				eventData := EventData{
 					Type:             apiTypes.RuntimeEventTypeAccountsMint,
 					Body:             event.Mint,
+					WithScope:        ScopedSdkEvent{Accounts: event},
 					RelatedAddresses: map[apiTypes.Address]bool{ownerAddr: true},
 				}
 				extractedEvents = append(extractedEvents, &eventData)
@@ -443,6 +456,7 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 				eventData := EventData{
 					Type:             apiTypes.RuntimeEventTypeConsensusAccountsDeposit,
 					Body:             event.Deposit,
+					WithScope:        ScopedSdkEvent{ConsensusAccounts: event},
 					RelatedAddresses: map[apiTypes.Address]bool{toAddr: true},
 				}
 				extractedEvents = append(extractedEvents, &eventData)
@@ -455,6 +469,7 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 				eventData := EventData{
 					Type:             apiTypes.RuntimeEventTypeConsensusAccountsWithdraw,
 					Body:             event.Withdraw,
+					WithScope:        ScopedSdkEvent{ConsensusAccounts: event},
 					RelatedAddresses: map[apiTypes.Address]bool{fromAddr: true},
 				}
 				extractedEvents = append(extractedEvents, &eventData)
@@ -522,6 +537,7 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 					eventData := EventData{
 						Type:             apiTypes.RuntimeEventTypeEvmLog,
 						Body:             event,
+						WithScope:        ScopedSdkEvent{EVM: event},
 						EvmLogName:       apiTypes.Erc20Transfer,
 						EvmLogParams:     evmLogParams,
 						RelatedAddresses: eventRelatedAddresses,
@@ -571,6 +587,7 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 					eventData := EventData{
 						Type:             apiTypes.RuntimeEventTypeEvmLog,
 						Body:             event,
+						WithScope:        ScopedSdkEvent{EVM: event},
 						EvmLogName:       apiTypes.Erc20Approval,
 						EvmLogParams:     evmLogParams,
 						RelatedAddresses: eventRelatedAddresses,
