@@ -3,23 +3,28 @@ package cobalt
 import (
 	"strings"
 
+	"github.com/oasisprotocol/oasis-core/go/common/crypto/hash"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
 	"github.com/oasisprotocol/oasis-core/go/common/quantity"
+	consensus "github.com/oasisprotocol/oasis-core/go/consensus/api"
 
 	// indexer-internal data types.
 	"github.com/oasisprotocol/oasis-core/go/common"
 	genesis "github.com/oasisprotocol/oasis-core/go/genesis/api"
 	governance "github.com/oasisprotocol/oasis-core/go/governance/api"
 	registry "github.com/oasisprotocol/oasis-core/go/registry/api"
+	scheduler "github.com/oasisprotocol/oasis-core/go/scheduler/api"
 	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
 	apiTypes "github.com/oasisprotocol/oasis-indexer/api/v1/types"
 	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
 
 	// data types for Cobalt gRPC APIs.
+	consensusCobalt "github.com/oasisprotocol/oasis-indexer/coreapi/v21.1.1/consensus/api"
 	txResultsCobalt "github.com/oasisprotocol/oasis-indexer/coreapi/v21.1.1/consensus/api/transaction/results"
 	genesisCobalt "github.com/oasisprotocol/oasis-indexer/coreapi/v21.1.1/genesis/api"
 	governanceCobalt "github.com/oasisprotocol/oasis-indexer/coreapi/v21.1.1/governance/api"
 	registryCobalt "github.com/oasisprotocol/oasis-indexer/coreapi/v21.1.1/registry/api"
+	schedulerCobalt "github.com/oasisprotocol/oasis-indexer/coreapi/v21.1.1/scheduler/api"
 	stakingCobalt "github.com/oasisprotocol/oasis-indexer/coreapi/v21.1.1/staking/api"
 )
 
@@ -363,5 +368,31 @@ func convertTxResult(r txResultsCobalt.Result) nodeapi.TxResult {
 	return nodeapi.TxResult{
 		Error:  nodeapi.TxError(r.Error),
 		Events: events,
+	}
+}
+
+func convertBlock(block consensusCobalt.Block) *consensus.Block {
+	return &consensus.Block{
+		Height:    block.Height,
+		Hash:      hash.NewFromBytes(block.Hash), // The only "conversion": from []byte to hash.Hash, which is defined as []byte.
+		Time:      block.Time,
+		StateRoot: block.StateRoot,
+		Meta:      block.Meta,
+	}
+}
+
+func convertCommittee(c schedulerCobalt.Committee) nodeapi.Committee {
+	members := make([]*scheduler.CommitteeNode, len(c.Members))
+	for j, m := range c.Members {
+		members[j] = &scheduler.CommitteeNode{
+			PublicKey: m.PublicKey,
+			Role:      scheduler.Role(m.Role), // We assume the enum is backwards-compatible.
+		}
+	}
+	return nodeapi.Committee{
+		Kind:      scheduler.CommitteeKind(c.Kind), // We assume the enum is backwards-compatible.
+		Members:   members,
+		RuntimeID: c.RuntimeID,
+		ValidFor:  c.ValidFor,
 	}
 }

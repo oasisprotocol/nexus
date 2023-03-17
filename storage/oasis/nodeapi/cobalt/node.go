@@ -19,12 +19,14 @@ import (
 	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
 
 	// data types for Cobalt gRPC APIs.
+	beaconCobalt "github.com/oasisprotocol/oasis-indexer/coreapi/v21.1.1/beacon/api"
 	consensusCobalt "github.com/oasisprotocol/oasis-indexer/coreapi/v21.1.1/consensus/api"
 	txResultsCobalt "github.com/oasisprotocol/oasis-indexer/coreapi/v21.1.1/consensus/api/transaction/results"
 	genesisCobalt "github.com/oasisprotocol/oasis-indexer/coreapi/v21.1.1/genesis/api"
 	governanceCobalt "github.com/oasisprotocol/oasis-indexer/coreapi/v21.1.1/governance/api"
 	registryCobalt "github.com/oasisprotocol/oasis-indexer/coreapi/v21.1.1/registry/api"
 	roothashCobalt "github.com/oasisprotocol/oasis-indexer/coreapi/v21.1.1/roothash/api"
+	schedulerCobalt "github.com/oasisprotocol/oasis-indexer/coreapi/v21.1.1/scheduler/api"
 	stakingCobalt "github.com/oasisprotocol/oasis-indexer/coreapi/v21.1.1/staking/api"
 )
 
@@ -33,16 +35,13 @@ import (
 // directly, skipping the convenience wrappers provided by oasis-core.
 type CobaltConsensusApiLite struct {
 	grpcConn *grpc.ClientConn
-	// Used as a convenience for calling methods that are ABI-compatible between Cobalt and Damask.
-	damaskClient consensus.ClientBackend
 }
 
 var _ nodeapi.ConsensusApiLite = (*CobaltConsensusApiLite)(nil)
 
-func NewCobaltConsensusApiLite(grpcConn *grpc.ClientConn, damaskClient consensus.ClientBackend) *CobaltConsensusApiLite {
+func NewCobaltConsensusApiLite(grpcConn *grpc.ClientConn) *CobaltConsensusApiLite {
 	return &CobaltConsensusApiLite{
-		grpcConn:     grpcConn,
-		damaskClient: damaskClient,
+		grpcConn: grpcConn,
 	}
 }
 
@@ -63,16 +62,16 @@ func (c *CobaltConsensusApiLite) StateToGenesis(ctx context.Context, height int6
 }
 
 func (c *CobaltConsensusApiLite) GetBlock(ctx context.Context, height int64) (*consensus.Block, error) {
-	rsp, err := c.damaskClient.GetBlock(ctx, height)
-	if err != nil {
-		return nil, fmt.Errorf("calling GetBlock() on Cobalt node using Damask ABI: %w", err)
+	var rsp consensusCobalt.Block
+	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Consensus/GetBlock", height, &rsp); err != nil {
+		return nil, err
 	}
-	return rsp, nil
+	return convertBlock(rsp), nil
 }
 
 func (c *CobaltConsensusApiLite) GetTransactionsWithResults(ctx context.Context, height int64) ([]nodeapi.TransactionWithResults, error) {
 	var rsp consensusCobalt.TransactionsWithResults
-	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Consensus/GetTransactionsWithResults", nil, &rsp); err != nil {
+	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Consensus/GetTransactionsWithResults", height, &rsp); err != nil {
 		return nil, err
 	}
 	txrs := make([]nodeapi.TransactionWithResults, len(rsp.Transactions))
@@ -95,16 +94,16 @@ func (c *CobaltConsensusApiLite) GetTransactionsWithResults(ctx context.Context,
 }
 
 func (c *CobaltConsensusApiLite) GetEpoch(ctx context.Context, height int64) (beacon.EpochTime, error) {
-	rsp, err := c.damaskClient.Beacon().GetEpoch(ctx, height)
-	if err != nil {
-		return beacon.EpochInvalid, fmt.Errorf("calling GetEpoch() on Cobalt node using Damask ABI: %w", err)
+	var rsp beaconCobalt.EpochTime
+	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Beacon/GetEpoch", height, &rsp); err != nil {
+		return beacon.EpochInvalid, err
 	}
 	return rsp, nil
 }
 
 func (c *CobaltConsensusApiLite) RegistryEvents(ctx context.Context, height int64) ([]nodeapi.Event, error) {
 	var rsp []*registryCobalt.Event
-	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Registry/GetEvents", nil, &rsp); err != nil {
+	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Registry/GetEvents", height, &rsp); err != nil {
 		return nil, err
 	}
 	events := make([]nodeapi.Event, len(rsp))
@@ -116,7 +115,7 @@ func (c *CobaltConsensusApiLite) RegistryEvents(ctx context.Context, height int6
 
 func (c *CobaltConsensusApiLite) StakingEvents(ctx context.Context, height int64) ([]nodeapi.Event, error) {
 	var rsp []*stakingCobalt.Event
-	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Staking/GetEvents", nil, &rsp); err != nil {
+	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Staking/GetEvents", height, &rsp); err != nil {
 		return nil, err
 	}
 	events := make([]nodeapi.Event, len(rsp))
@@ -128,7 +127,7 @@ func (c *CobaltConsensusApiLite) StakingEvents(ctx context.Context, height int64
 
 func (c *CobaltConsensusApiLite) GovernanceEvents(ctx context.Context, height int64) ([]nodeapi.Event, error) {
 	var rsp []*governanceCobalt.Event
-	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Governance/GetEvents", nil, &rsp); err != nil {
+	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Governance/GetEvents", height, &rsp); err != nil {
 		return nil, err
 	}
 	events := make([]nodeapi.Event, len(rsp))
@@ -140,7 +139,7 @@ func (c *CobaltConsensusApiLite) GovernanceEvents(ctx context.Context, height in
 
 func (c *CobaltConsensusApiLite) RoothashEvents(ctx context.Context, height int64) ([]nodeapi.Event, error) {
 	var rsp []*roothashCobalt.Event
-	if err := c.grpcConn.Invoke(ctx, "/oasis-core.RootHash/GetEvents", nil, &rsp); err != nil {
+	if err := c.grpcConn.Invoke(ctx, "/oasis-core.RootHash/GetEvents", height, &rsp); err != nil {
 		return nil, err
 	}
 	events := make([]nodeapi.Event, len(rsp))
@@ -151,9 +150,9 @@ func (c *CobaltConsensusApiLite) RoothashEvents(ctx context.Context, height int6
 }
 
 func (c *CobaltConsensusApiLite) GetValidators(ctx context.Context, height int64) ([]nodeapi.Validator, error) {
-	rsp, err := c.damaskClient.Scheduler().GetValidators(ctx, height)
-	if err != nil {
-		return nil, fmt.Errorf("calling GetValidators() on Cobalt node using Damask ABI: %w", err)
+	var rsp []*schedulerCobalt.Validator
+	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Scheduler/GetValidators", height, &rsp); err != nil {
+		return nil, err
 	}
 	validators := make([]nodeapi.Validator, len(rsp))
 	for i, v := range rsp {
@@ -163,27 +162,27 @@ func (c *CobaltConsensusApiLite) GetValidators(ctx context.Context, height int64
 }
 
 func (c *CobaltConsensusApiLite) GetCommittees(ctx context.Context, height int64, runtimeID common.Namespace) ([]nodeapi.Committee, error) {
-	rsp, err := c.damaskClient.Scheduler().GetCommittees(ctx, &scheduler.GetCommitteesRequest{
+	var rsp []*schedulerCobalt.Committee
+	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Scheduler/GetCommittee", &scheduler.GetCommitteesRequest{
 		Height:    height,
 		RuntimeID: runtimeID,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("calling GetCommittees() on Cobalt node using Damask ABI: %w", err)
+	}, &rsp); err != nil {
+		return nil, err
 	}
 	committees := make([]nodeapi.Committee, len(rsp))
 	for i, c := range rsp {
-		committees[i] = nodeapi.Committee(*c)
+		committees[i] = convertCommittee(*c)
 	}
 	return committees, nil
 }
 
 func (c *CobaltConsensusApiLite) GetProposal(ctx context.Context, height int64, proposalID uint64) (*nodeapi.Proposal, error) {
-	rsp, err := c.damaskClient.Governance().Proposal(ctx, &governance.ProposalQuery{
+	var rsp *governanceCobalt.Proposal
+	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Governance/Proposal", &governance.ProposalQuery{
 		Height:     height,
 		ProposalID: proposalID,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("calling GetProposal() on Cobalt node using Damask ABI: %w", err)
+	}, &rsp); err != nil {
+		return nil, err
 	}
-	return (*nodeapi.Proposal)(rsp), nil
+	return (*nodeapi.Proposal)(convertProposal(rsp)), nil
 }

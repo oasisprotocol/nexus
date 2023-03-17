@@ -164,7 +164,6 @@ type (
 type (
 	Validator scheduler.Validator
 	Committee scheduler.Committee
-	Proposal  governance.Proposal
 )
 
 // .................... Governance ....................
