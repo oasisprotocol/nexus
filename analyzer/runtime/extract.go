@@ -99,7 +99,7 @@ type BlockData struct {
 	Size                int
 	TransactionData     []*BlockTransactionData
 	EventData           []*EventData
-	NonTxEvents         []*EventData
+	NonTxEvents         []*EventData // TODO: Can we fold these events into `EventData`?
 	AddressPreimages    map[apiTypes.Address]*AddressPreimageData
 	TokenBalanceChanges map[TokenChangeKey]*big.Int
 	// key is oasis bech32 address

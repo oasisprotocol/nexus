@@ -230,10 +230,9 @@ func (m *Main) processRound(ctx context.Context, round uint64) error {
 
 	// Prepare DB queries.
 	batch := &storage.QueryBatch{}
-	//allEvents := append(blockData.EventData, blockData.NonTxEvents...) // TODO: Can we collapse these events into a single field?
 	m.queueDbUpdates(batch, blockData)
-	NewAccountsHandler(m.cfg.Source, m.runtime, m.logger).PrepareData(batch, data)
-	NewConsensusAccountsHandler(m.cfg.Source, m.runtime, m.logger).PrepareData(batch, data)
+	m.queueAccountsEvents(batch, blockData)
+	m.queueConsensusAccountsEvents(batch, blockData)
 
 	// Update indexing progress.
 	batch.Queue(
