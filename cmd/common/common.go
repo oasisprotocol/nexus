@@ -6,6 +6,8 @@ import (
 	"io"
 	"os"
 
+	coreLogging "github.com/oasisprotocol/oasis-core/go/common/logging"
+
 	"github.com/oasisprotocol/oasis-indexer/config"
 	"github.com/oasisprotocol/oasis-indexer/log"
 	"github.com/oasisprotocol/oasis-indexer/metrics"
@@ -20,6 +22,10 @@ func Init(cfg *config.Config) error {
 	var w io.Writer = os.Stdout
 	format := log.FmtJSON
 	level := log.LevelDebug
+	coreFormat := coreLogging.FmtJSON   // For oasis-core.
+	coreLevel := coreLogging.LevelDebug // For oasis-core.
+
+	// Initialize oasis-indexer logging.
 	if cfg.Log != nil {
 		var err error
 		if w, err = getLoggingStream(cfg.Log); err != nil {
@@ -37,6 +43,12 @@ func Init(cfg *config.Config) error {
 		return err
 	}
 	rootLogger = logger
+
+	// Initialize oasis-core logging. Useful for low-level gRPC issues.
+	if err := coreLogging.Initialize(w, coreFormat, coreLevel, nil); err != nil {
+		logger.Error("failed to initialize oasis-core logging", "err", err)
+		return err
+	}
 
 	// Initialize Prometheus service.
 	if cfg.Metrics != nil {

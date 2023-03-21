@@ -10,15 +10,9 @@ import (
 	beacon "github.com/oasisprotocol/oasis-core/go/beacon/api"
 	"github.com/oasisprotocol/oasis-core/go/common"
 	consensus "github.com/oasisprotocol/oasis-core/go/consensus/api"
-	"github.com/oasisprotocol/oasis-core/go/consensus/api/transaction"
-	"github.com/oasisprotocol/oasis-core/go/consensus/api/transaction/results"
 	genesisAPI "github.com/oasisprotocol/oasis-core/go/genesis/api"
-	governance "github.com/oasisprotocol/oasis-core/go/governance/api"
-	registry "github.com/oasisprotocol/oasis-core/go/registry/api"
-	roothash "github.com/oasisprotocol/oasis-core/go/roothash/api"
 	"github.com/oasisprotocol/oasis-core/go/roothash/api/block"
-	scheduler "github.com/oasisprotocol/oasis-core/go/scheduler/api"
-	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
+	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/client"
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 )
@@ -149,10 +143,9 @@ type ConsensusAllData struct {
 type ConsensusBlockData struct {
 	Height int64
 
-	BlockHeader  *consensus.Block
-	Epoch        beacon.EpochTime
-	Transactions []*transaction.SignedTransaction
-	Results      []*results.Result
+	BlockHeader             *consensus.Block
+	Epoch                   beacon.EpochTime
+	TransactionsWithResults []nodeapi.TransactionWithResults
 }
 
 // BeaconData represents data for the random beacon at a given height.
@@ -170,11 +163,11 @@ type BeaconData struct {
 type RegistryData struct {
 	Height int64
 
-	Events             []*registry.Event
-	RuntimeEvents      []*registry.RuntimeEvent
-	EntityEvents       []*registry.EntityEvent
-	NodeEvents         []*registry.NodeEvent
-	NodeUnfrozenEvents []*registry.NodeUnfrozenEvent
+	Events             []nodeapi.Event
+	RuntimeEvents      []nodeapi.RuntimeEvent
+	EntityEvents       []nodeapi.EntityEvent
+	NodeEvents         []nodeapi.NodeEvent
+	NodeUnfrozenEvents []nodeapi.NodeUnfrozenEvent
 }
 
 // StakingData represents data for accounts at a given height.
@@ -185,26 +178,29 @@ type StakingData struct {
 	Height int64
 	Epoch  beacon.EpochTime
 
-	Events           []*staking.Event
-	Transfers        []*staking.TransferEvent
-	Burns            []*staking.BurnEvent
-	Escrows          []*staking.EscrowEvent
-	AllowanceChanges []*staking.AllowanceChangeEvent
+	Events                []nodeapi.Event
+	Transfers             []nodeapi.TransferEvent
+	Burns                 []nodeapi.BurnEvent
+	AddEscrows            []nodeapi.AddEscrowEvent
+	TakeEscrows           []nodeapi.TakeEscrowEvent
+	ReclaimEscrows        []nodeapi.ReclaimEscrowEvent
+	DebondingStartEscrows []nodeapi.DebondingStartEscrowEvent
+	AllowanceChanges      []nodeapi.AllowanceChangeEvent
 }
 
 // RootHashData represents data for runtime processing at a given height.
 type RootHashData struct {
 	Height int64
 
-	Events []*roothash.Event
+	Events []nodeapi.Event
 }
 
 // SchedulerData represents data for elected committees and validators at a given height.
 type SchedulerData struct {
 	Height int64
 
-	Validators []*scheduler.Validator
-	Committees map[common.Namespace][]*scheduler.Committee
+	Validators []nodeapi.Validator
+	Committees map[common.Namespace][]nodeapi.Committee
 }
 
 // GovernanceData represents governance data for proposals at a given height.
@@ -214,11 +210,11 @@ type SchedulerData struct {
 type GovernanceData struct {
 	Height int64
 
-	Events                []*governance.Event
-	ProposalSubmissions   []*governance.Proposal
-	ProposalExecutions    []*governance.ProposalExecutedEvent
-	ProposalFinalizations []*governance.Proposal
-	Votes                 []*governance.VoteEvent
+	Events                []nodeapi.Event
+	ProposalSubmissions   []nodeapi.Proposal
+	ProposalExecutions    []nodeapi.ProposalExecutedEvent
+	ProposalFinalizations []nodeapi.Proposal
+	Votes                 []nodeapi.VoteEvent
 }
 
 // RuntimeSourceStorage defines an interface for retrieving raw block data

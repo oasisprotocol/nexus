@@ -6,6 +6,8 @@ import (
 	"strings"
 
 	"github.com/jackc/pgx/v5/pgtype"
+
+	"github.com/oasisprotocol/oasis-core/go/common/quantity"
 )
 
 // Arbitrary-precision integer. Wrapper around big.Int to allow for
@@ -33,6 +35,10 @@ func (b BigInt) MarshalJSON() ([]byte, error) {
 func (b *BigInt) UnmarshalJSON(text []byte) error {
 	v := strings.Trim(string(text), "\"")
 	return b.Int.UnmarshalJSON([]byte(v))
+}
+
+func BigIntFromQuantity(q quantity.Quantity) BigInt {
+	return BigInt{*q.ToBigInt()}
 }
 
 // Implement NumericValuer interface for BigInt.
