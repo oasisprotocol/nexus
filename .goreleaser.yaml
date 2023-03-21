@@ -7,7 +7,7 @@ before:
 builds:
   - binary: oasis-indexer
     env:
-      - CGO_ENABLED=0
+      - CGO_ENABLED=0  # build statically-linked binaries
     flags:
       - -trimpath
     ldflags:
