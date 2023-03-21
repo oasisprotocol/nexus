@@ -185,19 +185,6 @@ CREATE TABLE chain.evm_token_balance_analysis
 );
 CREATE INDEX ix_evm_token_balance_analysis_stale ON chain.evm_token_balance_analysis (runtime, token_address, account_address) WHERE last_download_round IS NULL OR last_mutate_round > last_download_round;
 
--- -- -- -- -- -- -- -- -- -- -- -- -- Module core -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-
-CREATE TABLE chain.runtime_gas_used
-(
-  runtime runtime NOT NULL,
-  round   UINT63 NOT NULL,
-  FOREIGN KEY (runtime, round) REFERENCES chain.runtime_blocks DEFERRABLE INITIALLY DEFERRED,
-  sender  oasis_addr REFERENCES chain.address_preimages,  -- TODO: add NOT NULL; but analyzer is only putting NULLs here for now because it doesn't have the data
-  amount  UINT_NUMERIC NOT NULL
-);
-
-CREATE INDEX ix_runtime_gas_used_sender ON chain.runtime_gas_used(sender);
-
 -- -- -- -- -- -- -- -- -- -- -- -- -- Module accounts -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
 -- This table encapsulates transfers, burns, and mints (at the level of the `accounts` SDK module; NOT evm transfers).

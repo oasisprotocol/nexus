@@ -289,10 +289,6 @@ const (
     ON CONFLICT (runtime, account_address, symbol) DO
     UPDATE SET balance = chain.runtime_sdk_balances.balance + $4`
 
-	RuntimeGasUsedInsert = `
-    INSERT INTO chain.runtime_gas_used (runtime, round, sender, amount)
-      VALUES ($1, $2, $3, $4)`
-
 	AddressPreimageInsert = `
     INSERT INTO chain.address_preimages (address, context_identifier, context_version, address_data)
       VALUES ($1, $2, $3, $4)

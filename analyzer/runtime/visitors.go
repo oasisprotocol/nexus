@@ -1,4 +1,4 @@
-package common
+package runtime
 
 import (
 	"bytes"
@@ -10,6 +10,8 @@ import (
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/core"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/evm"
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
+
+	evmCommon "github.com/oasisprotocol/oasis-indexer/analyzer/uncategorized"
 )
 
 type CallHandler struct {
@@ -183,21 +185,21 @@ func VisitEVMEvent(event *evm.Event, handler *EVMEventHandler) error {
 		return nil
 	}
 	switch {
-	case bytes.Equal(event.Topics[0], TopicERC20Transfer) && len(event.Topics) == 3:
+	case bytes.Equal(event.Topics[0], evmCommon.TopicERC20Transfer) && len(event.Topics) == 3:
 		if handler.ERC20Transfer != nil {
 			if err := handler.ERC20Transfer(
-				SliceEthAddress(event.Topics[1]),
-				SliceEthAddress(event.Topics[2]),
+				evmCommon.SliceEthAddress(event.Topics[1]),
+				evmCommon.SliceEthAddress(event.Topics[2]),
 				event.Data,
 			); err != nil {
 				return fmt.Errorf("erc20 transfer: %w", err)
 			}
 		}
-	case bytes.Equal(event.Topics[0], TopicERC20Approval) && len(event.Topics) == 3:
+	case bytes.Equal(event.Topics[0], evmCommon.TopicERC20Approval) && len(event.Topics) == 3:
 		if handler.ERC20Approval != nil {
 			if err := handler.ERC20Approval(
-				SliceEthAddress(event.Topics[1]),
-				SliceEthAddress(event.Topics[2]),
+				evmCommon.SliceEthAddress(event.Topics[1]),
+				evmCommon.SliceEthAddress(event.Topics[2]),
 				event.Data,
 			); err != nil {
 				return fmt.Errorf("erc20 approval: %w", err)

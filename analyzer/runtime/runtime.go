@@ -12,11 +12,9 @@ import (
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 
 	"github.com/oasisprotocol/oasis-indexer/analyzer"
-	"github.com/oasisprotocol/oasis-indexer/analyzer/modules"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/queries"
 	common "github.com/oasisprotocol/oasis-indexer/analyzer/uncategorized"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/util"
-	apiTypes "github.com/oasisprotocol/oasis-indexer/api/v1/types"
 	"github.com/oasisprotocol/oasis-indexer/config"
 	"github.com/oasisprotocol/oasis-indexer/log"
 	"github.com/oasisprotocol/oasis-indexer/metrics"
@@ -35,8 +33,6 @@ type Main struct {
 	target  storage.TargetStorage
 	logger  *log.Logger
 	metrics metrics.DatabaseMetrics
-
-	moduleHandlers []modules.ModuleHandler
 }
 
 var _ analyzer.Analyzer = (*Main)(nil)
@@ -97,13 +93,6 @@ func NewRuntimeAnalyzer(
 		target:  target,
 		logger:  logger.With("analyzer", runtime.String()),
 		metrics: metrics.NewDefaultDatabaseMetrics(runtime.String()),
-
-		// module handlers
-		moduleHandlers: []modules.ModuleHandler{
-			modules.NewCoreHandler(client, runtime, logger),
-			modules.NewAccountsHandler(client, runtime, logger),
-			modules.NewConsensusAccountsHandler(client, runtime, logger),
-		},
 	}, nil
 }
 
@@ -233,24 +222,17 @@ func (m *Main) processRound(ctx context.Context, round uint64) error {
 		return err
 	}
 
-	// Prepare and perform updates.
+	// Preprocess data.
+	blockData, err := ExtractRound(data.BlockData.BlockHeader.Header, data.BlockData.TransactionsWithResults, data.RawEvents, m.logger)
+	if err != nil {
+		return err
+	}
+
+	// Prepare DB queries.
 	batch := &storage.QueryBatch{}
-	type prepareFunc = func(*storage.QueryBatch, *storage.RuntimeAllData) error
-	// Process block and event data.
-	for _, f := range []prepareFunc{
-		m.prepareBlockData,
-		m.prepareEventData,
-	} {
-		if err := f(batch, data); err != nil {
-			return err
-		}
-	}
-	// Process module data.
-	for _, h := range m.moduleHandlers {
-		if err := h.PrepareData(batch, data); err != nil {
-			return err
-		}
-	}
+	m.queueDbUpdates(batch, blockData)
+	m.queueAccountsEvents(batch, blockData)
+	m.queueConsensusAccountsEvents(batch, blockData)
 
 	// Update indexing progress.
 	batch.Queue(
@@ -271,35 +253,81 @@ func (m *Main) processRound(ctx context.Context, round uint64) error {
 	return nil
 }
 
-// prepareBlockData adds block data queries to the batch.
-func (m *Main) prepareBlockData(batch *storage.QueryBatch, data *storage.RuntimeAllData) error {
-	return m.queueBlockAndTransactionInserts(batch, data.BlockData)
-}
+// queueDbUpdates extends `batch` with queries that reflect `data`.
+func (m *Main) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
+	// Block metadata.
+	batch.Queue(
+		queries.RuntimeBlockInsert,
+		m.runtime,
+		data.Header.Round,
+		data.Header.Version,
+		time.Unix(int64(data.Header.Timestamp), 0 /* nanos */),
+		data.Header.EncodedHash().Hex(),
+		data.Header.PreviousHash.Hex(),
+		data.Header.IORoot.Hex(),
+		data.Header.StateRoot.Hex(),
+		data.Header.MessagesHash.Hex(),
+		data.Header.InMessagesHash.Hex(),
+		data.NumTransactions,
+		fmt.Sprintf("%d", data.GasUsed),
+		data.Size,
+	)
 
-// prepareEventData adds non-tx event data queries to the batch.
-func (m *Main) prepareEventData(batch *storage.QueryBatch, data *storage.RuntimeAllData) error {
-	nonTxEvents := []*types.Event{}
-	for _, e := range data.RawEvents.Events {
-		if e.TxHash.String() == util.ZeroTxHash {
-			nonTxEvents = append(nonTxEvents, e)
+	// Insert transactions and associated data (without events).
+	for _, transactionData := range data.TransactionData {
+		for _, signerData := range transactionData.SignerData {
+			batch.Queue(
+				queries.RuntimeTransactionSignerInsert,
+				m.runtime,
+				data.Header.Round,
+				transactionData.Index,
+				signerData.Index,
+				signerData.Address,
+				signerData.Nonce,
+			)
 		}
+		for addr := range transactionData.RelatedAccountAddresses {
+			batch.Queue(queries.RuntimeRelatedTransactionInsert, m.runtime, addr, data.Header.Round, transactionData.Index)
+		}
+		batch.Queue(
+			queries.RuntimeTransactionInsert,
+			m.runtime,
+			data.Header.Round,
+			transactionData.Index,
+			transactionData.Hash,
+			transactionData.EthHash,
+			transactionData.GasUsed,
+			transactionData.Size,
+			data.Timestamp,
+			transactionData.Raw,
+			transactionData.RawResult,
+		)
 	}
 
-	blockData := BlockData{
-		AddressPreimages: map[apiTypes.Address]*AddressPreimageData{},
-	}
-	res, err := extractEvents(&blockData, map[apiTypes.Address]bool{}, nonTxEvents)
-	if err != nil {
-		return err
-	}
-
-	// Insert non-tx event data.
-	for _, eventData := range res.ExtractedEvents {
+	// Insert tx-related events.
+	for _, eventData := range data.EventData {
 		eventRelatedAddresses := common.ExtractAddresses(eventData.RelatedAddresses)
 		batch.Queue(
 			queries.RuntimeEventInsert,
 			m.runtime,
-			data.Round,
+			data.Header.Round,
+			eventData.TxIndex,
+			eventData.TxHash,
+			eventData.Type,
+			eventData.Body,
+			eventData.EvmLogName,
+			eventData.EvmLogParams,
+			eventRelatedAddresses,
+		)
+	}
+
+	// Insert non-tx events.
+	for _, eventData := range data.NonTxEvents {
+		eventRelatedAddresses := common.ExtractAddresses(eventData.RelatedAddresses)
+		batch.Queue(
+			queries.RuntimeEventInsert,
+			m.runtime,
+			data.Header.Round,
 			nil, // non-tx event has no tx index
 			nil, // non-tx event has no tx hash
 			eventData.Type,
@@ -310,38 +338,23 @@ func (m *Main) prepareEventData(batch *storage.QueryBatch, data *storage.Runtime
 		)
 	}
 
-	// Insert any eth address preimages found in non-tx events.
-	for addr, preimageData := range blockData.AddressPreimages {
+	// Insert address preimages.
+	for addr, preimageData := range data.AddressPreimages {
 		batch.Queue(queries.AddressPreimageInsert, addr, preimageData.ContextIdentifier, preimageData.ContextVersion, preimageData.Data)
 	}
 
-	return nil
-}
-
-func (m *Main) queueBlockAndTransactionInserts(batch *storage.QueryBatch, data *storage.RuntimeBlockData) error {
-	blockData, err := extractRound(data.BlockHeader, data.TransactionsWithResults, m.logger)
-	if err != nil {
-		return fmt.Errorf("extract round %d: %w", data.Round, err)
+	// Insert EVM token addresses.
+	for addr, possibleToken := range data.PossibleTokens {
+		if possibleToken.Mutated {
+			batch.Queue(queries.RuntimeEVMTokenAnalysisMutateInsert, m.runtime, addr, data.Header.Round)
+		} else {
+			batch.Queue(queries.RuntimeEVMTokenAnalysisInsert, m.runtime, addr, data.Header.Round)
+		}
 	}
 
-	batch.Queue(
-		queries.RuntimeBlockInsert,
-		m.runtime,
-		data.Round,
-		data.BlockHeader.Header.Version,
-		time.Unix(int64(data.BlockHeader.Header.Timestamp), 0 /* nanos */),
-		data.BlockHeader.Header.EncodedHash().Hex(),
-		data.BlockHeader.Header.PreviousHash.Hex(),
-		data.BlockHeader.Header.IORoot.Hex(),
-		data.BlockHeader.Header.StateRoot.Hex(),
-		data.BlockHeader.Header.MessagesHash.Hex(),
-		data.BlockHeader.Header.InMessagesHash.Hex(),
-		blockData.NumTransactions,
-		fmt.Sprintf("%d", blockData.GasUsed),
-		blockData.Size,
-	)
-
-	m.emitRoundBatch(batch, data.Round, blockData)
-
-	return nil
+	// Update EVM token balances (dead reckoning).
+	for key, change := range data.TokenBalanceChanges {
+		batch.Queue(queries.RuntimeEVMTokenBalanceUpdate, m.runtime, key.TokenAddress, key.AccountAddress, change.String())
+		batch.Queue(queries.RuntimeEVMTokenBalanceAnalysisInsert, m.runtime, key.TokenAddress, key.AccountAddress, data.Header.Round)
+	}
 }

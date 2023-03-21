@@ -9,8 +9,8 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/oasisprotocol/oasis-indexer/analyzer"
-	"github.com/oasisprotocol/oasis-indexer/analyzer/modules"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/queries"
+	"github.com/oasisprotocol/oasis-indexer/analyzer/runtime"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/util"
 	"github.com/oasisprotocol/oasis-indexer/config"
 	"github.com/oasisprotocol/oasis-indexer/log"
@@ -98,7 +98,7 @@ type StaleToken struct {
 	Addr                  string
 	LastMutateRound       uint64
 	LastDownloadRound     *uint64
-	Type                  *modules.EVMTokenType
+	Type                  *runtime.EVMTokenType
 	AddrContextIdentifier string
 	AddrContextVersion    int
 	AddrData              []byte
@@ -131,13 +131,13 @@ func (m Main) getStaleTokens(ctx context.Context, limit int) ([]*StaleToken, err
 
 func (m Main) processStaleToken(ctx context.Context, batch *storage.QueryBatch, staleToken *StaleToken) error {
 	m.logger.Info("downloading", "stale_token", staleToken)
-	tokenEthAddr, err := modules.EVMEthAddrFromPreimage(staleToken.AddrContextIdentifier, staleToken.AddrContextVersion, staleToken.AddrData)
+	tokenEthAddr, err := runtime.EVMEthAddrFromPreimage(staleToken.AddrContextIdentifier, staleToken.AddrContextVersion, staleToken.AddrData)
 	if err != nil {
 		return fmt.Errorf("token address: %w", err)
 	}
 	//nolint:nestif
 	if staleToken.LastDownloadRound == nil {
-		tokenData, err := modules.EVMDownloadNewToken(
+		tokenData, err := runtime.EVMDownloadNewToken(
 			ctx,
 			m.logger,
 			m.cfg.Source,
@@ -159,7 +159,7 @@ func (m Main) processStaleToken(ctx context.Context, batch *storage.QueryBatch, 
 			)
 		}
 	} else if staleToken.Type != nil {
-		mutable, err := modules.EVMDownloadMutatedToken(
+		mutable, err := runtime.EVMDownloadMutatedToken(
 			ctx,
 			m.logger,
 			m.cfg.Source,

@@ -20,10 +20,7 @@ import (
 	scheduler "github.com/oasisprotocol/oasis-core/go/scheduler/api"
 	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/client"
-	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/accounts"
-	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/consensusaccounts"
-	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/core"
-	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
+	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 )
 
 type BatchItem struct {
@@ -235,17 +232,8 @@ type RuntimeSourceStorage interface {
 	// within that block.
 	BlockData(ctx context.Context, round uint64) (*RuntimeBlockData, error)
 
-	// CoreData gets data in the specified round emitted by the `core` module.
-	CoreData(ctx context.Context, round uint64) (*CoreData, error)
-
-	// AccountsData gets data in the specified round emitted by the `accounts` module.
-	AccountsData(ctx context.Context, round uint64) (*AccountsData, error)
-
-	// ConsensusAccountsData gets data in the specified round emitted by the `consensusaccounts` module.
-	ConsensusAccountsData(ctx context.Context, round uint64) (*ConsensusAccountsData, error)
-
 	// EventsData gets all events in the specified round, including non-tx events.
-	GetEventsRaw(ctx context.Context, round uint64) (*RawEvents, error)
+	GetEventsRaw(ctx context.Context, round uint64) ([]*sdkTypes.Event, error)
 
 	// EVMSimulateCall gets the result of the given EVM simulate call query.
 	EVMSimulateCall(ctx context.Context, round uint64, gasPrice []byte, gasLimit uint64, caller []byte, address []byte, value []byte, data []byte) ([]byte, error)
@@ -256,16 +244,13 @@ type RuntimeSourceStorage interface {
 	// StringifyDenomination returns a string representation of the given denomination.
 	// This is simply the denomination's symbol; notably, for the native denomination,
 	// this is looked up from network config.
-	StringifyDenomination(d types.Denomination) string
+	StringifyDenomination(d sdkTypes.Denomination) string
 }
 
 type RuntimeAllData struct {
-	Round                 uint64
-	BlockData             *RuntimeBlockData
-	CoreData              *CoreData
-	AccountsData          *AccountsData
-	ConsensusAccountsData *ConsensusAccountsData
-	RawEvents             *RawEvents
+	Round     uint64
+	BlockData *RuntimeBlockData
+	RawEvents []*sdkTypes.Event
 }
 
 // RuntimeBlockData represents data for a runtime block during a given round.
@@ -281,40 +266,9 @@ type RuntimeBlockData struct {
 type TransactionWithResults struct {
 	Round uint64
 
-	Tx     *types.Transaction
-	Result types.CallResult
-	Events []*types.Event
-}
-
-// CoreData represents data from the `core` module for a runtime.
-type CoreData struct {
-	Round uint64
-
-	GasUsed []*core.GasUsedEvent
-}
-
-// AccountsData represents data from the `accounts` module for a runtime.
-type AccountsData struct {
-	Round uint64
-
-	Transfers []*accounts.TransferEvent
-	Burns     []*accounts.BurnEvent
-	Mints     []*accounts.MintEvent
-}
-
-// ConsensusAccountsData represents data from the `consensusaccounts` module for a runtime.
-type ConsensusAccountsData struct {
-	Round uint64
-
-	Deposits  []*consensusaccounts.DepositEvent
-	Withdraws []*consensusaccounts.WithdrawEvent
-}
-
-// RawEvents contains all undecoded events for a given height.
-type RawEvents struct {
-	Round uint64
-
-	Events []*types.Event
+	Tx     *sdkTypes.Transaction
+	Result sdkTypes.CallResult
+	Events []*sdkTypes.Event
 }
 
 // TargetStorage defines an interface for reading and writing

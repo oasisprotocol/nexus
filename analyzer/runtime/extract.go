@@ -1,5 +1,11 @@
 package runtime
 
+// This file analyzes raw runtime data as fetched from the node, and transforms
+// into indexed structures that are suitable/convenient for data insertion into
+// the DB.
+//
+// The main entrypoint is `ExtractRound()`.
+
 import (
 	"bytes"
 	"encoding/hex"
@@ -18,12 +24,10 @@ import (
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/evm"
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 
-	"github.com/oasisprotocol/oasis-indexer/analyzer/modules"
-	"github.com/oasisprotocol/oasis-indexer/analyzer/queries"
 	common "github.com/oasisprotocol/oasis-indexer/analyzer/uncategorized"
+	"github.com/oasisprotocol/oasis-indexer/analyzer/util"
 	apiTypes "github.com/oasisprotocol/oasis-indexer/api/v1/types"
 	"github.com/oasisprotocol/oasis-indexer/log"
-	"github.com/oasisprotocol/oasis-indexer/storage"
 )
 
 type BlockTransactionSignerData struct {
@@ -51,9 +55,18 @@ type EventData struct {
 	TxHash           string
 	Type             apiTypes.RuntimeEventType
 	Body             EventBody
+	WithScope        ScopedSdkEvent
 	EvmLogName       string
 	EvmLogParams     []*apiTypes.EvmEventParam
 	RelatedAddresses map[apiTypes.Address]bool
+}
+
+// ScopedSdkEvent is a one-of container for SDK events.
+type ScopedSdkEvent struct {
+	Core              *core.Event
+	Accounts          *accounts.Event
+	ConsensusAccounts *consensusaccounts.Event
+	EVM               *evm.Event
 }
 
 type extractEventResult struct {
@@ -78,6 +91,7 @@ type TokenChangeKey struct {
 }
 
 type BlockData struct {
+	Header              block.Header // TODO: deduplicate with Hash, Timestamp.
 	Hash                string
 	Timestamp           time.Time
 	NumTransactions     int
@@ -85,10 +99,11 @@ type BlockData struct {
 	Size                int
 	TransactionData     []*BlockTransactionData
 	EventData           []*EventData
+	NonTxEvents         []*EventData // TODO: Can we fold these events into `EventData`?
 	AddressPreimages    map[apiTypes.Address]*AddressPreimageData
 	TokenBalanceChanges map[TokenChangeKey]*big.Int
 	// key is oasis bech32 address
-	PossibleTokens map[apiTypes.Address]*modules.EVMPossibleToken
+	PossibleTokens map[apiTypes.Address]*EVMPossibleToken
 }
 
 // Function naming conventions in this file:
@@ -226,16 +241,34 @@ func registerTokenDecrease(tokenChanges map[TokenChangeKey]*big.Int, contractAdd
 	change.Sub(change, amount)
 }
 
-func extractRound(b *block.Block, txrs []*sdkClient.TransactionWithResults, logger *log.Logger) (*BlockData, error) {
-	var blockData BlockData
-	blockData.Hash = b.Header.EncodedHash().String()
-	blockData.Timestamp = time.Unix(int64(b.Header.Timestamp), 0 /* nanos */)
-	blockData.NumTransactions = len(txrs)
-	blockData.TransactionData = make([]*BlockTransactionData, 0, len(txrs))
-	blockData.EventData = []*EventData{}
-	blockData.AddressPreimages = map[apiTypes.Address]*AddressPreimageData{}
-	blockData.TokenBalanceChanges = map[TokenChangeKey]*big.Int{}
-	blockData.PossibleTokens = map[apiTypes.Address]*modules.EVMPossibleToken{}
+func ExtractRound(blockHeader block.Header, txrs []*sdkClient.TransactionWithResults, rawEvents []*sdkTypes.Event, logger *log.Logger) (*BlockData, error) {
+	blockData := BlockData{
+		Header:              blockHeader,
+		Hash:                blockHeader.EncodedHash().String(),
+		Timestamp:           time.Unix(int64(blockHeader.Timestamp), 0 /* nanos */),
+		NumTransactions:     len(txrs),
+		TransactionData:     make([]*BlockTransactionData, 0, len(txrs)),
+		EventData:           []*EventData{},
+		NonTxEvents:         []*EventData{},
+		AddressPreimages:    map[apiTypes.Address]*AddressPreimageData{},
+		TokenBalanceChanges: map[TokenChangeKey]*big.Int{},
+		PossibleTokens:      map[apiTypes.Address]*EVMPossibleToken{},
+	}
+
+	// Extract info from non-tx events.
+	rawNonTxEvents := []*sdkTypes.Event{}
+	for _, e := range rawEvents {
+		if e.TxHash.String() == util.ZeroTxHash {
+			rawNonTxEvents = append(rawNonTxEvents, e)
+		}
+	}
+	res, err := extractEvents(&blockData, map[apiTypes.Address]bool{}, rawNonTxEvents)
+	if err != nil {
+		return nil, fmt.Errorf("extract non-tx events: %w", err)
+	}
+	blockData.NonTxEvents = res.ExtractedEvents
+
+	// Extract info from transactions.
 	for txIndex, txr := range txrs {
 		var blockTransactionData BlockTransactionData
 		blockTransactionData.Index = txIndex
@@ -252,7 +285,7 @@ func extractRound(b *block.Block, txrs []*sdkClient.TransactionWithResults, logg
 		tx, err := common.OpenUtxNoVerify(&txr.Tx)
 		if err != nil {
 			logger.Error("error decoding tx, skipping tx-specific analysis",
-				"round", b.Header.Round,
+				"round", blockHeader.Round,
 				"tx_index", txIndex,
 				"tx_hash", txr.Tx.Hash(),
 				"err", err,
@@ -272,7 +305,7 @@ func extractRound(b *block.Block, txrs []*sdkClient.TransactionWithResults, logg
 				blockTransactionSignerData.Nonce = int(si.Nonce)
 				blockTransactionData.SignerData = append(blockTransactionData.SignerData, &blockTransactionSignerData)
 			}
-			if err = common.VisitCall(&tx.Call, &txr.Result, &common.CallHandler{
+			if err = VisitCall(&tx.Call, &txr.Result, &CallHandler{
 				AccountsTransfer: func(body *accounts.Transfer) error {
 					if _, err = registerRelatedSdkAddress(blockTransactionData.RelatedAccountAddresses, &body.To); err != nil {
 						return fmt.Errorf("to: %w", err)
@@ -346,7 +379,7 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 	extractedEvents := []*EventData{}
 	foundGasUsedEvent := false
 	var txGasUsed uint64
-	if err := common.VisitSdkEvents(eventsRaw, &common.SdkEventHandler{
+	if err := VisitSdkEvents(eventsRaw, &SdkEventHandler{
 		Core: func(event *core.Event) error {
 			if event.GasUsed != nil {
 				if foundGasUsedEvent {
@@ -355,8 +388,9 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 				foundGasUsedEvent = true
 				txGasUsed = event.GasUsed.Amount
 				eventData := EventData{
-					Type: apiTypes.RuntimeEventTypeCoreGasUsed,
-					Body: event.GasUsed,
+					Type:      apiTypes.RuntimeEventTypeCoreGasUsed,
+					Body:      event.GasUsed,
+					WithScope: ScopedSdkEvent{Core: event},
 				}
 				extractedEvents = append(extractedEvents, &eventData)
 			}
@@ -379,6 +413,7 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 				eventData := EventData{
 					Type:             apiTypes.RuntimeEventTypeAccountsTransfer,
 					Body:             event.Transfer,
+					WithScope:        ScopedSdkEvent{Accounts: event},
 					RelatedAddresses: eventRelatedAddresses,
 				}
 				extractedEvents = append(extractedEvents, &eventData)
@@ -391,6 +426,7 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 				eventData := EventData{
 					Type:             apiTypes.RuntimeEventTypeAccountsBurn,
 					Body:             event.Burn,
+					WithScope:        ScopedSdkEvent{Accounts: event},
 					RelatedAddresses: map[apiTypes.Address]bool{ownerAddr: true},
 				}
 				extractedEvents = append(extractedEvents, &eventData)
@@ -403,6 +439,7 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 				eventData := EventData{
 					Type:             apiTypes.RuntimeEventTypeAccountsMint,
 					Body:             event.Mint,
+					WithScope:        ScopedSdkEvent{Accounts: event},
 					RelatedAddresses: map[apiTypes.Address]bool{ownerAddr: true},
 				}
 				extractedEvents = append(extractedEvents, &eventData)
@@ -419,6 +456,7 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 				eventData := EventData{
 					Type:             apiTypes.RuntimeEventTypeConsensusAccountsDeposit,
 					Body:             event.Deposit,
+					WithScope:        ScopedSdkEvent{ConsensusAccounts: event},
 					RelatedAddresses: map[apiTypes.Address]bool{toAddr: true},
 				}
 				extractedEvents = append(extractedEvents, &eventData)
@@ -431,6 +469,7 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 				eventData := EventData{
 					Type:             apiTypes.RuntimeEventTypeConsensusAccountsWithdraw,
 					Body:             event.Withdraw,
+					WithScope:        ScopedSdkEvent{ConsensusAccounts: event},
 					RelatedAddresses: map[apiTypes.Address]bool{fromAddr: true},
 				}
 				extractedEvents = append(extractedEvents, &eventData)
@@ -444,7 +483,7 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 				return fmt.Errorf("event address: %w", err1)
 			}
 			eventRelatedAddresses := map[apiTypes.Address]bool{eventAddr: true}
-			if err1 = common.VisitEVMEvent(event, &common.EVMEventHandler{
+			if err1 = VisitEVMEvent(event, &EVMEventHandler{
 				ERC20Transfer: func(fromEthAddr []byte, toEthAddr []byte, amountU256 []byte) error {
 					amount := &big.Int{}
 					amount.SetBytes(amountU256)
@@ -467,7 +506,7 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 						registerTokenIncrease(blockData.TokenBalanceChanges, eventAddr, toAddr, amount)
 					}
 					if _, ok := blockData.PossibleTokens[eventAddr]; !ok {
-						blockData.PossibleTokens[eventAddr] = &modules.EVMPossibleToken{}
+						blockData.PossibleTokens[eventAddr] = &EVMPossibleToken{}
 					}
 					// Mark as mutated if transfer is between zero address
 					// and nonzero address (either direction) and nonzero
@@ -498,6 +537,7 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 					eventData := EventData{
 						Type:             apiTypes.RuntimeEventTypeEvmLog,
 						Body:             event,
+						WithScope:        ScopedSdkEvent{EVM: event},
 						EvmLogName:       apiTypes.Erc20Transfer,
 						EvmLogParams:     evmLogParams,
 						RelatedAddresses: eventRelatedAddresses,
@@ -521,7 +561,7 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 						eventRelatedAddresses[spenderAddr] = true
 					}
 					if _, ok := blockData.PossibleTokens[eventAddr]; !ok {
-						blockData.PossibleTokens[eventAddr] = &modules.EVMPossibleToken{}
+						blockData.PossibleTokens[eventAddr] = &EVMPossibleToken{}
 					}
 					amount := &big.Int{}
 					amount.SetBytes(amountU256)
@@ -547,6 +587,7 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 					eventData := EventData{
 						Type:             apiTypes.RuntimeEventTypeEvmLog,
 						Body:             event,
+						WithScope:        ScopedSdkEvent{EVM: event},
 						EvmLogName:       apiTypes.Erc20Approval,
 						EvmLogParams:     evmLogParams,
 						RelatedAddresses: eventRelatedAddresses,
@@ -567,65 +608,4 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 		FoundGasUsedEvent: foundGasUsedEvent,
 		TxGasUsed:         txGasUsed,
 	}, nil
-}
-
-func (m *Main) emitRoundBatch(batch *storage.QueryBatch, round uint64, blockData *BlockData) {
-	for _, transactionData := range blockData.TransactionData {
-		for _, signerData := range transactionData.SignerData {
-			batch.Queue(
-				queries.RuntimeTransactionSignerInsert,
-				m.runtime,
-				round,
-				transactionData.Index,
-				signerData.Index,
-				signerData.Address,
-				signerData.Nonce,
-			)
-		}
-		for addr := range transactionData.RelatedAccountAddresses {
-			batch.Queue(queries.RuntimeRelatedTransactionInsert, m.runtime, addr, round, transactionData.Index)
-		}
-		batch.Queue(
-			queries.RuntimeTransactionInsert,
-			m.runtime,
-			round,
-			transactionData.Index,
-			transactionData.Hash,
-			transactionData.EthHash,
-			transactionData.GasUsed,
-			transactionData.Size,
-			blockData.Timestamp,
-			transactionData.Raw,
-			transactionData.RawResult,
-		)
-	}
-	for _, eventData := range blockData.EventData {
-		eventRelatedAddresses := common.ExtractAddresses(eventData.RelatedAddresses)
-		batch.Queue(
-			queries.RuntimeEventInsert,
-			m.runtime,
-			round,
-			eventData.TxIndex,
-			eventData.TxHash,
-			eventData.Type,
-			eventData.Body,
-			eventData.EvmLogName,
-			eventData.EvmLogParams,
-			eventRelatedAddresses,
-		)
-	}
-	for addr, preimageData := range blockData.AddressPreimages {
-		batch.Queue(queries.AddressPreimageInsert, addr, preimageData.ContextIdentifier, preimageData.ContextVersion, preimageData.Data)
-	}
-	for key, change := range blockData.TokenBalanceChanges {
-		batch.Queue(queries.RuntimeEVMTokenBalanceUpdate, m.runtime, key.TokenAddress, key.AccountAddress, change.String())
-		batch.Queue(queries.RuntimeEVMTokenBalanceAnalysisInsert, m.runtime, key.TokenAddress, key.AccountAddress, round)
-	}
-	for addr, possibleToken := range blockData.PossibleTokens {
-		if possibleToken.Mutated {
-			batch.Queue(queries.RuntimeEVMTokenAnalysisMutateInsert, m.runtime, addr, round)
-		} else {
-			batch.Queue(queries.RuntimeEVMTokenAnalysisInsert, m.runtime, addr, round)
-		}
-	}
 }

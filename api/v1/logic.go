@@ -9,6 +9,7 @@ import (
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/evm"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 
+	"github.com/oasisprotocol/oasis-indexer/analyzer/runtime"
 	uncategorized "github.com/oasisprotocol/oasis-indexer/analyzer/uncategorized"
 	apiTypes "github.com/oasisprotocol/oasis-indexer/api/v1/types"
 	"github.com/oasisprotocol/oasis-indexer/storage/client"
@@ -65,7 +66,7 @@ func renderRuntimeTransaction(storageTransaction client.RuntimeTransaction) (api
 			apiTransaction.Error.Message = &cr.Failed.Message
 		}
 	}
-	if err = uncategorized.VisitCall(&tx.Call, &cr, &uncategorized.CallHandler{
+	if err = runtime.VisitCall(&tx.Call, &cr, &runtime.CallHandler{
 		AccountsTransfer: func(body *accounts.Transfer) error {
 			toAddr, err2 := uncategorized.StringifySdkAddress(&body.To)
 			if err2 != nil {
