@@ -223,7 +223,7 @@ func (m *Main) processRound(ctx context.Context, round uint64) error {
 	}
 
 	// Preprocess data.
-	blockData, err := ExtractRound(data.BlockData.BlockHeader.Header, data.BlockData.TransactionsWithResults, data.RawEvents, m.logger)
+	blockData, err := ExtractRound(*data.BlockData.BlockHeader, data.BlockData.TransactionsWithResults, data.RawEvents, m.logger)
 	if err != nil {
 		return err
 	}

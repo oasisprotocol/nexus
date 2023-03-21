@@ -251,17 +251,13 @@ type RuntimeAllData struct {
 
 // RuntimeBlockData represents data for a runtime block during a given round.
 type RuntimeBlockData struct {
-	Round uint64
-
-	BlockHeader             *block.Block
+	BlockHeader             *block.Header
 	TransactionsWithResults []*client.TransactionWithResults
 }
 
 // TransactionWithResults contains a verified transaction, and the results of
 // executing that transactions.
 type TransactionWithResults struct {
-	Round uint64
-
 	Tx     *sdkTypes.Transaction
 	Result sdkTypes.CallResult
 	Events []*sdkTypes.Event

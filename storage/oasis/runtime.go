@@ -54,8 +54,7 @@ func (rc *RuntimeClient) BlockData(ctx context.Context, round uint64) (*storage.
 	}
 
 	return &storage.RuntimeBlockData{
-		Round:                   round,
-		BlockHeader:             block,
+		BlockHeader:             &block.Header,
 		TransactionsWithResults: transactionsWithResults,
 	}, nil
 }
