@@ -87,9 +87,8 @@ func (rc *RuntimeClient) Name() string {
 
 func (rc *RuntimeClient) nativeTokenSymbol() string {
 	for _, network := range config.DefaultNetworks.All {
-		if network.ChainContext != rc.network.ChainContext {
-			continue
-		}
+		// Iterate over all networks and find the one that contains the runtime.
+		// Any network will do; we assume that paratime IDs are unique across networks.
 		for _, paratime := range network.ParaTimes.All {
 			if paratime.ID == rc.info.ID.Hex() {
 				return paratime.Denominations[config.NativeDenominationKey].Symbol

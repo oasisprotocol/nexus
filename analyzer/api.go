@@ -107,6 +107,10 @@ const (
 
 // FromChainContext identifies a Network using its ChainContext.
 func FromChainContext(chainContext string) (Network, error) {
+	// TODO: Remove this hardcoded value once indexer config supports multiple nodes.
+	if chainContext == "53852332637bacb61b91b6411ab4095168ba02a50be4c3f82448438826f23898" {
+		return NetworkMainnet, nil // cobalt mainnet
+	}
 	var network Network
 	for name, nw := range oasisConfig.DefaultNetworks.All {
 		if nw.ChainContext == chainContext {
