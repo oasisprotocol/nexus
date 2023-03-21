@@ -2,9 +2,11 @@ package types
 
 import "fmt"
 
+// Hardcoded event names emitted by ERC-20 contracts.
+// TODO: Remove these once we are able to query the ABI of the contract.
 const (
-	Erc20Transfer = "erc20.transfer"
-	Erc20Approval = "erc20.approval"
+	Erc20Transfer = "Transfer"
+	Erc20Approval = "Approval"
 )
 
 type Address string
