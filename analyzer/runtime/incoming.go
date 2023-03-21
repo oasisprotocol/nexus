@@ -490,7 +490,9 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 						{
 							Name:    "value",
 							EvmType: "uint256",
-							Value:   amount,
+							// JSON supports encoding big integers, but many clients (javascript, jq, etc.)
+							// will incorrectly parse them as floats. So we encode uint256 as a string instead.
+							Value: amount.String(),
 						},
 					}
 					eventData := EventData{
@@ -537,7 +539,9 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 						{
 							Name:    "value",
 							EvmType: "uint256",
-							Value:   amount,
+							// JSON supports encoding big integers, but many clients (javascript, jq, etc.)
+							// will incorrectly parse them as floats. So we encode uint256 as a string instead.
+							Value: amount.String(),
 						},
 					}
 					eventData := EventData{
