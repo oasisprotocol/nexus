@@ -8,12 +8,12 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/iancoleman/strcase"
+	"github.com/rs/cors"
+
 	apiTypes "github.com/oasisprotocol/oasis-indexer/api/v1/types"
 	"github.com/oasisprotocol/oasis-indexer/common"
 	"github.com/oasisprotocol/oasis-indexer/log"
 	"github.com/oasisprotocol/oasis-indexer/metrics"
-	"github.com/rs/cors"
 )
 
 var (
@@ -99,23 +99,6 @@ func MetricsMiddleware(m metrics.RequestMetrics, logger log.Logger) func(next ht
 				metricName = "ignored"
 			}
 			m.RequestCounter(metricName, statusTxt).Inc()
-		})
-	}
-}
-
-// ChainMiddleware is a middleware that adds chain-specific information
-// to the request context.
-func ChainMiddleware(chainID string) func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			// snake_case the chainID; it's how it's used to name the DB schemas.
-			chainIDSnake := strcase.ToSnake(chainID)
-
-			// TODO: Set chainID based on provided height params.
-
-			next.ServeHTTP(w, r.WithContext(
-				context.WithValue(r.Context(), common.ChainIDContextKey, chainIDSnake),
-			))
 		})
 	}
 }

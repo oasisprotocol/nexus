@@ -2,7 +2,6 @@ package tests
 
 const (
 	GenesisHeight = int64(8_048_956) // TODO: Get from config.
-	ChainID       = "oasis-test"     // TODO: Get from config.
 )
 
 var baseEndpoint string

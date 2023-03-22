@@ -75,8 +75,6 @@ x-query-params:
       86400 (1 day). Requests with other values may be rejected.
 
 x-examples:
-  chain-id:
-    - &chain_id_1 'oasis-3'
   block-height:
     - &block_height_1 8048956
     - &block_height_2 8049555
@@ -1023,11 +1021,6 @@ components:
       type: object
       required: [latest_chain_id, latest_block, latest_update]
       properties:
-        latest_chain_id:
-          x-go-name: LatestChainID  # oapi-codegen generates LatestChainId (with a lowercase d) by default.
-          type: string
-          description: The most recently indexed chain ID.
-          example: *chain_id_1
         latest_block:
           type: integer
           format: int64

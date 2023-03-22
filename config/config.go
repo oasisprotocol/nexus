@@ -239,9 +239,6 @@ func (cfg *AggregateStatsConfig) Validate() error {
 
 // ServerConfig contains the API server configuration.
 type ServerConfig struct {
-	// ChainID is the chain ID (normally latest) for the server API
-	ChainID string `koanf:"chain_id"`
-
 	// ChainName is the name of the chain (e.g. mainnet/testnet/local).
 	ChainName string `koanf:"chain_name"`
 

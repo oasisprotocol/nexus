@@ -86,7 +86,6 @@ func Init(cfg *config.ServerConfig) (*Service, error) {
 // Service is the Oasis Indexer's API service.
 type Service struct {
 	address string
-	chainID string
 	target  *storage.StorageClient
 	logger  *log.Logger
 }
@@ -100,14 +99,13 @@ func NewService(cfg *config.ServerConfig) (*Service, error) {
 	if err != nil {
 		return nil, err
 	}
-	client, err := storage.NewStorageClient(cfg.ChainID, cfg.ChainName, backing, logger)
+	client, err := storage.NewStorageClient(cfg.ChainName, backing, logger)
 	if err != nil {
 		return nil, err
 	}
 
 	return &Service{
 		address: cfg.Endpoint,
-		chainID: cfg.ChainID,
 		target:  client,
 		logger:  logger,
 	}, nil
@@ -148,7 +146,6 @@ func (s *Service) Start() {
 		apiTypes.ChiServerOptions{
 			BaseURL: v1BaseURL,
 			Middlewares: []apiTypes.MiddlewareFunc{
-				api.ChainMiddleware(s.chainID),
 				api.RuntimeFromURLMiddleware(v1BaseURL),
 				api.CorsMiddleware,
 			},

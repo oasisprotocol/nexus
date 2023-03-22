@@ -20,6 +20,5 @@ func TestGetStatus(t *testing.T) {
 	err := tests.GetFrom("/", &status)
 	require.Nil(t, err)
 
-	require.Equal(t, tests.ChainID, status.LatestChainID)
 	require.LessOrEqual(t, tests.GenesisHeight, status.LatestBlock)
 }
