@@ -88,10 +88,19 @@ func (cf *ClientFactory) Consensus() (*ConsensusClient, error) {
 func (cf *ClientFactory) Runtime(runtimeID string) (*RuntimeClient, error) {
 	ctx := context.Background()
 
+	// A new runtime client, with convenience methods implemented by oasis-sdk.
 	connection := *cf.connection
 	client := connection.Runtime(&config.ParaTime{
 		ID: runtimeID,
 	})
+
+	// A raw gRPC client to the node, for accessing archive nodes with incompatible CBOR types.
+	creds := credentials.NewTLS(&tls.Config{MinVersion: tls.VersionTLS12})
+	dialOpts := []grpc.DialOption{grpc.WithTransportCredentials(creds)}
+	grpcConn, err := cmnGrpc.Dial(cf.network.RPC, dialOpts...)
+	if err != nil {
+		return nil, err
+	}
 
 	// Configure chain context for all signatures using chain domain separation.
 	signature.SetChainContext(cf.network.ChainContext)
@@ -103,9 +112,10 @@ func (cf *ClientFactory) Runtime(runtimeID string) (*RuntimeClient, error) {
 
 	rtCtx := runtimeSignature.DeriveChainContext(info.ID, cf.network.ChainContext)
 	return &RuntimeClient{
-		client:  client,
-		network: cf.network,
-		info:    info,
-		rtCtx:   rtCtx,
+		client:   client,
+		grpcConn: grpcConn,
+		network:  cf.network,
+		info:     info,
+		rtCtx:    rtCtx,
 	}, nil
 }
