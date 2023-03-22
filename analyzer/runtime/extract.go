@@ -354,12 +354,16 @@ func ExtractRound(blockHeader block.Header, txrs []*sdkClient.TransactionWithRes
 			eventData.TxHash = blockTransactionData.Hash
 		}
 		if !res.FoundGasUsedEvent {
+			// Early versions of runtimes didn't emit a GasUsed event.
 			if (txr.Result.IsUnknown() || txr.Result.IsSuccess()) && tx != nil {
 				// Treat as if it used all the gas.
 				logger.Info("tx didn't emit a core.GasUsed event, assuming it used max allowed gas", "tx_hash", txr.Tx.Hash(), "assumed_gas_used", tx.AuthInfo.Fee.Gas)
 				res.TxGasUsed = tx.AuthInfo.Fee.Gas
-			} else { //nolint:staticcheck
+			} else {
 				// Inaccurate: Treat as not using any gas.
+				// TODO: Decode the tx; if it failed with "out of gas", assume it used all the gas.
+				logger.Info("tx didn't emit a core.GasUsed event and failed, assuming it used no gas", "tx_hash", txr.Tx.Hash(), "assumed_gas_used", 0)
+				res.TxGasUsed = 0
 			}
 		}
 		blockTransactionData.GasUsed = res.TxGasUsed
