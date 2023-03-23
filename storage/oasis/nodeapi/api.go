@@ -21,6 +21,10 @@ import (
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 )
 
+// ....................................................
+// ....................  Consensus  ...................
+// ....................................................
+
 // ConsensusApiLite provides low-level access to the consensus API of one or
 // more (versions of) Oasis nodes.
 //
@@ -48,18 +52,6 @@ type ConsensusApiLite interface {
 	GetCommittees(ctx context.Context, height int64, runtimeID coreCommon.Namespace) ([]Committee, error)
 	GetProposal(ctx context.Context, height int64, proposalID uint64) (*Proposal, error)
 }
-
-// Like ConsensusApiLite, but for the runtime API.
-type RuntimeApiLite interface {
-	GetEventsRaw(ctx context.Context, round uint64) ([]*RuntimeEvent, error)
-	EVMSimulateCall(ctx context.Context, round uint64, gasPrice []byte, gasLimit uint64, caller []byte, address []byte, value []byte, data []byte) ([]byte, error)
-	GetBlockHeader(ctx context.Context, round uint64) (*RuntimeBlockHeader, error)
-	GetTransactionsWithResults(ctx context.Context, round uint64) ([]*RuntimeTransactionWithResults, error)
-}
-
-type RuntimeEvent sdkTypes.Event
-type RuntimeBlockHeader roothash.Header
-type RuntimeTransactionWithResults sdkClient.TransactionWithResults
 
 // A lightweight subset of `consensus.TransactionsWithResults`.
 type TransactionWithResults struct {
@@ -184,3 +176,21 @@ type (
 // .................... Governance ....................
 
 type Proposal governance.Proposal
+
+// ....................................................
+// ....................  Runtimes  ....................
+// ....................................................
+
+// Like ConsensusApiLite, but for the runtime API.
+type RuntimeApiLite interface {
+	GetEventsRaw(ctx context.Context, round uint64) ([]*RuntimeEvent, error)
+	EVMSimulateCall(ctx context.Context, round uint64, gasPrice []byte, gasLimit uint64, caller []byte, address []byte, value []byte, data []byte) ([]byte, error)
+	GetBlockHeader(ctx context.Context, round uint64) (*RuntimeBlockHeader, error)
+	GetTransactionsWithResults(ctx context.Context, round uint64) ([]*RuntimeTransactionWithResults, error)
+}
+
+type (
+	RuntimeEvent                  sdkTypes.Event
+	RuntimeBlockHeader            roothash.Header
+	RuntimeTransactionWithResults sdkClient.TransactionWithResults
+)
