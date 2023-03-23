@@ -5,6 +5,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -38,24 +39,24 @@ func testRuntimeAccounts(t *testing.T, runtime string) {
 
 	ctx := context.Background()
 
-	factory, err := newSourceClientFactory()
-	require.Nil(t, err)
-
 	network, err := analyzer.FromChainContext(MainnetChainContext)
 	require.Nil(t, err)
 
-	var id string
+	var runtimeID string
 	switch runtime {
 	case "emerald":
-		id, err = analyzer.RuntimeEmerald.ID(network)
+		runtimeID, err = analyzer.RuntimeEmerald.ID(network)
 	case "sapphire":
-		id, err = analyzer.RuntimeSapphire.ID(network)
+		runtimeID, err = analyzer.RuntimeSapphire.ID(network)
 	}
 	require.Nil(t, err)
-	t.Log("Runtime ID determined", "runtime", runtime, "runtime_id", id)
+	t.Log("Runtime ID determined", "runtime", runtime, "runtime_id", runtimeID)
 
-	oasisRuntimeClient, err := factory.Runtime(id)
+	conn, err := newSdkConnection(ctx)
 	require.Nil(t, err)
+	oasisRuntimeClient := conn.Runtime(&config.ParaTime{
+		ID: runtimeID,
+	})
 
 	postgresClient, err := newTargetClient(t)
 	assert.Nil(t, err)
@@ -65,7 +66,7 @@ func testRuntimeAccounts(t *testing.T, runtime string) {
 	assert.Nil(t, err)
 
 	t.Logf("Fetching accounts information at height %d...", height)
-	addresses, err := oasisRuntimeClient.GetAccountAddresses(ctx, uint64(height), sdkTypes.NativeDenomination)
+	addresses, err := oasisRuntimeClient.Accounts.Addresses(ctx, uint64(height), sdkTypes.NativeDenomination)
 	assert.Nil(t, err)
 	expectedAccts := make(map[sdkTypes.Address]bool)
 	for _, addr := range addresses {
@@ -101,10 +102,10 @@ func testRuntimeAccounts(t *testing.T, runtime string) {
 		}
 
 		// Check that the account balance is accurate.
-		balances, err := oasisRuntimeClient.GetAccountBalances(ctx, uint64(height), actualAddr)
+		balances, err := oasisRuntimeClient.Accounts.Balances(ctx, uint64(height), actualAddr)
 		assert.Nil(t, err)
 		for denom, amount := range balances.Balances {
-			if oasisRuntimeClient.StringifyDenomination(denom) == a.Symbol {
+			if stringifyDenomination(denom, runtimeID) == a.Symbol {
 				assert.Equal(t, amount.ToBigInt(), a.Balance)
 			}
 			assert.Equal(t, amount.ToBigInt().Int64(), a.Balance)
@@ -119,4 +120,27 @@ func testRuntimeAccounts(t *testing.T, runtime string) {
 			t.Fail()
 		}
 	}
+}
+
+func nativeTokenSymbol(runtimeID string) string {
+	// Iterate over all networks and find the one that contains the runtime.
+	// Any network will do; we assume that paratime IDs are unique across networks.
+	for _, network := range config.DefaultNetworks.All {
+		for _, paratime := range network.ParaTimes.All {
+			if paratime.ID == runtimeID {
+				return paratime.Denominations[config.NativeDenominationKey].Symbol
+			}
+		}
+	}
+	panic("Cannot find native token symbol for runtime")
+}
+
+// StringifyDenomination returns a string representation denomination `d`
+// in the context of `runtimeID`. The context matters for the native denomination.
+func stringifyDenomination(d sdkTypes.Denomination, runtimeID string) string {
+	if d.IsNative() {
+		return nativeTokenSymbol(runtimeID)
+	}
+
+	return d.String()
 }
