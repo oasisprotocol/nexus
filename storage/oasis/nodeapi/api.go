@@ -13,9 +13,12 @@ import (
 	genesis "github.com/oasisprotocol/oasis-core/go/genesis/api"
 	governance "github.com/oasisprotocol/oasis-core/go/governance/api"
 	registry "github.com/oasisprotocol/oasis-core/go/registry/api"
+	roothash "github.com/oasisprotocol/oasis-core/go/roothash/api/block"
 	scheduler "github.com/oasisprotocol/oasis-core/go/scheduler/api"
 	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
 	apiTypes "github.com/oasisprotocol/oasis-indexer/api/v1/types"
+	sdkClient "github.com/oasisprotocol/oasis-sdk/client-sdk/go/client"
+	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 )
 
 // ConsensusApiLite provides low-level access to the consensus API of one or
@@ -45,6 +48,17 @@ type ConsensusApiLite interface {
 	GetCommittees(ctx context.Context, height int64, runtimeID coreCommon.Namespace) ([]Committee, error)
 	GetProposal(ctx context.Context, height int64, proposalID uint64) (*Proposal, error)
 }
+
+// Like ConsensusApiLite, but for the runtime API.
+type RuntimeApiLite interface {
+	GetEventsRaw(ctx context.Context, round uint64) ([]*SdkEvent, error)
+	EVMSimulateCall(ctx context.Context, round uint64, gasPrice []byte, gasLimit uint64, caller []byte, address []byte, value []byte, data []byte) ([]byte, error)
+	GetBlockHeader(ctx context.Context, round uint64) (*RuntimeBlockHeader, error)
+	GetTransactionsWithResults(ctx context.Context, round uint64) ([]*RuntimeTransactionWithResults, error)
+}
+type SdkEvent = sdkTypes.Event
+type RuntimeBlockHeader = roothash.Header
+type RuntimeTransactionWithResults = sdkClient.TransactionWithResults
 
 // A lightweight subset of `consensus.TransactionsWithResults`.
 type TransactionWithResults struct {

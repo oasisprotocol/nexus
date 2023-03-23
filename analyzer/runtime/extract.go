@@ -17,7 +17,6 @@ import (
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/address"
 	"github.com/oasisprotocol/oasis-core/go/roothash/api/block"
-	sdkClient "github.com/oasisprotocol/oasis-sdk/client-sdk/go/client"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/accounts"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/consensusaccounts"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/core"
@@ -28,6 +27,7 @@ import (
 	"github.com/oasisprotocol/oasis-indexer/analyzer/util"
 	apiTypes "github.com/oasisprotocol/oasis-indexer/api/v1/types"
 	"github.com/oasisprotocol/oasis-indexer/log"
+	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
 )
 
 type BlockTransactionSignerData struct {
@@ -241,7 +241,7 @@ func registerTokenDecrease(tokenChanges map[TokenChangeKey]*big.Int, contractAdd
 	change.Sub(change, amount)
 }
 
-func ExtractRound(blockHeader block.Header, txrs []*sdkClient.TransactionWithResults, rawEvents []*sdkTypes.Event, logger *log.Logger) (*BlockData, error) {
+func ExtractRound(blockHeader block.Header, txrs []*nodeapi.RuntimeTransactionWithResults, rawEvents []*sdkTypes.Event, logger *log.Logger) (*BlockData, error) {
 	blockData := BlockData{
 		Header:              blockHeader,
 		Hash:                blockHeader.EncodedHash().String(),

@@ -13,7 +13,6 @@ import (
 	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi/damask"
 	config "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 	connection "github.com/oasisprotocol/oasis-sdk/client-sdk/go/connection"
-	runtimeSignature "github.com/oasisprotocol/oasis-sdk/client-sdk/go/crypto/signature"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -110,12 +109,8 @@ func (cf *ClientFactory) Runtime(runtimeID string) (*RuntimeClient, error) {
 		return nil, err
 	}
 
-	rtCtx := runtimeSignature.DeriveChainContext(info.ID, cf.network.ChainContext)
 	return &RuntimeClient{
-		client:   client,
-		grpcConn: grpcConn,
-		network:  cf.network,
-		info:     info,
-		rtCtx:    rtCtx,
+		nodeApi: nodeapi.NewUniversalRuntimeApiLite(info.ID, grpcConn, &client),
+		info:    info,
 	}, nil
 }
