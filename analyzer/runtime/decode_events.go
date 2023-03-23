@@ -11,7 +11,7 @@ import (
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/evm"
 )
 
-func DecodeCoreEvent(event *nodeapi.SdkEvent) ([]core.Event, error) {
+func DecodeCoreEvent(event *nodeapi.RuntimeEvent) ([]core.Event, error) {
 	if event.Module != core.ModuleName {
 		return nil, nil
 	}
@@ -31,7 +31,7 @@ func DecodeCoreEvent(event *nodeapi.SdkEvent) ([]core.Event, error) {
 	return events, nil
 }
 
-func DecodeAccountsEvent(event *nodeapi.SdkEvent) ([]accounts.Event, error) {
+func DecodeAccountsEvent(event *nodeapi.RuntimeEvent) ([]accounts.Event, error) {
 	if event.Module != accounts.ModuleName {
 		return nil, nil
 	}
@@ -67,7 +67,7 @@ func DecodeAccountsEvent(event *nodeapi.SdkEvent) ([]accounts.Event, error) {
 	return events, nil
 }
 
-func DecodeConsensusAccountsEvent(event *nodeapi.SdkEvent) ([]consensusaccounts.Event, error) {
+func DecodeConsensusAccountsEvent(event *nodeapi.RuntimeEvent) ([]consensusaccounts.Event, error) {
 	if event.Module != consensusaccounts.ModuleName {
 		return nil, nil
 	}
@@ -95,7 +95,7 @@ func DecodeConsensusAccountsEvent(event *nodeapi.SdkEvent) ([]consensusaccounts.
 	return events, nil
 }
 
-func DecodeEVMEvent(event *nodeapi.SdkEvent) ([]evm.Event, error) {
+func DecodeEVMEvent(event *nodeapi.RuntimeEvent) ([]evm.Event, error) {
 	if event.Module != evm.ModuleName {
 		return nil, nil
 	}

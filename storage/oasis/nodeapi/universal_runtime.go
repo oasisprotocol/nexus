@@ -101,16 +101,16 @@ func (rc *UniversalRuntimeApiLite) GetTransactionsWithResults(ctx context.Contex
 	return txrs, nil
 }
 
-func (rc *UniversalRuntimeApiLite) GetEventsRaw(ctx context.Context, round uint64) ([]*SdkEvent, error) {
+func (rc *UniversalRuntimeApiLite) GetEventsRaw(ctx context.Context, round uint64) ([]*RuntimeEvent, error) {
 	rsp, err := rc.sdkClient.GetEventsRaw(ctx, round)
 	if err != nil {
 		return nil, err
 	}
 
 	// Convert to indexer-internal type.
-	evs := make([]*SdkEvent, len(rsp))
+	evs := make([]*RuntimeEvent, len(rsp))
 	for i, ev := range rsp {
-		evs[i] = (*SdkEvent)(ev)
+		evs[i] = (*RuntimeEvent)(ev)
 	}
 
 	return evs, nil

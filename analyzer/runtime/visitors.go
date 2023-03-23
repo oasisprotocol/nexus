@@ -103,7 +103,7 @@ type SdkEventHandler struct {
 	EVM               func(event *evm.Event) error
 }
 
-func VisitSdkEvent(event *nodeapi.SdkEvent, handler *SdkEventHandler) error {
+func VisitSdkEvent(event *nodeapi.RuntimeEvent, handler *SdkEventHandler) error {
 	if handler.Core != nil {
 		coreEvents, err := DecodeCoreEvent(event)
 		if err != nil {
@@ -151,7 +151,7 @@ func VisitSdkEvent(event *nodeapi.SdkEvent, handler *SdkEventHandler) error {
 	return nil
 }
 
-func VisitSdkEvents(events []*nodeapi.SdkEvent, handler *SdkEventHandler) error {
+func VisitSdkEvents(events []*nodeapi.RuntimeEvent, handler *SdkEventHandler) error {
 	for i, event := range events {
 		if err := VisitSdkEvent(event, handler); err != nil {
 			return fmt.Errorf("event %d: %w", i, err)

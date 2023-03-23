@@ -51,12 +51,13 @@ type ConsensusApiLite interface {
 
 // Like ConsensusApiLite, but for the runtime API.
 type RuntimeApiLite interface {
-	GetEventsRaw(ctx context.Context, round uint64) ([]*SdkEvent, error)
+	GetEventsRaw(ctx context.Context, round uint64) ([]*RuntimeEvent, error)
 	EVMSimulateCall(ctx context.Context, round uint64, gasPrice []byte, gasLimit uint64, caller []byte, address []byte, value []byte, data []byte) ([]byte, error)
 	GetBlockHeader(ctx context.Context, round uint64) (*RuntimeBlockHeader, error)
 	GetTransactionsWithResults(ctx context.Context, round uint64) ([]*RuntimeTransactionWithResults, error)
 }
-type SdkEvent sdkTypes.Event
+
+type RuntimeEvent sdkTypes.Event
 type RuntimeBlockHeader roothash.Header
 type RuntimeTransactionWithResults sdkClient.TransactionWithResults
 
@@ -98,10 +99,10 @@ type Event struct {
 	StakingDebondingStart       *DebondingStartEscrowEvent // Available starting in Damask.
 	StakingAllowanceChange      *AllowanceChangeEvent
 
-	RegistryRuntime      *RuntimeEvent
-	RegistryEntity       *EntityEvent
-	RegistryNode         *NodeEvent
-	RegistryNodeUnfrozen *NodeUnfrozenEvent
+	RegistryRuntimeRegistered *RuntimeRegisteredEvent
+	RegistryEntity            *EntityEvent
+	RegistryNode              *NodeEvent
+	RegistryNodeUnfrozen      *NodeUnfrozenEvent
 
 	RoothashExecutorCommitted *ExecutorCommittedEvent
 
@@ -124,8 +125,8 @@ type (
 
 // .................... Registry ....................
 
-// RuntimeEvent signifies new runtime registration.
-type RuntimeEvent struct {
+// RuntimeRegisteredEvent signifies new runtime registration.
+type RuntimeRegisteredEvent struct {
 	ID          coreCommon.Namespace
 	EntityID    signature.PublicKey   // The Entity controlling the runtime.
 	Kind        string                // enum: "compute", "keymanager"

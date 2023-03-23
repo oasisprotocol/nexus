@@ -241,7 +241,7 @@ func registerTokenDecrease(tokenChanges map[TokenChangeKey]*big.Int, contractAdd
 	change.Sub(change, amount)
 }
 
-func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []*nodeapi.RuntimeTransactionWithResults, rawEvents []*nodeapi.SdkEvent, logger *log.Logger) (*BlockData, error) {
+func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []*nodeapi.RuntimeTransactionWithResults, rawEvents []*nodeapi.RuntimeEvent, logger *log.Logger) (*BlockData, error) {
 	blockData := BlockData{
 		Header:              blockHeader,
 		Hash:                hash.NewFrom(blockHeader).String(),
@@ -256,7 +256,7 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []*nodeapi.Runtim
 	}
 
 	// Extract info from non-tx events.
-	rawNonTxEvents := []*nodeapi.SdkEvent{}
+	rawNonTxEvents := []*nodeapi.RuntimeEvent{}
 	for _, e := range rawEvents {
 		if e.TxHash.String() == util.ZeroTxHash {
 			rawNonTxEvents = append(rawNonTxEvents, e)
@@ -344,9 +344,9 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []*nodeapi.Runtim
 				return nil, fmt.Errorf("tx %d: %w", txIndex, err)
 			}
 		}
-		txEvents := make([]*nodeapi.SdkEvent, len(txr.Events))
+		txEvents := make([]*nodeapi.RuntimeEvent, len(txr.Events))
 		for i, e := range txr.Events {
-			txEvents[i] = (*nodeapi.SdkEvent)(e)
+			txEvents[i] = (*nodeapi.RuntimeEvent)(e)
 		}
 		res, err := extractEvents(&blockData, blockTransactionData.RelatedAccountAddresses, txEvents)
 		if err != nil {
@@ -383,7 +383,7 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []*nodeapi.Runtim
 	return &blockData, nil
 }
 
-func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Address]bool, eventsRaw []*nodeapi.SdkEvent) (*extractEventResult, error) {
+func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Address]bool, eventsRaw []*nodeapi.RuntimeEvent) (*extractEventResult, error) {
 	extractedEvents := []*EventData{}
 	foundGasUsedEvent := false
 	var txGasUsed uint64

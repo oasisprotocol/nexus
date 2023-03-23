@@ -161,11 +161,11 @@ type BeaconData struct {
 type RegistryData struct {
 	Height int64
 
-	Events             []nodeapi.Event
-	RuntimeEvents      []nodeapi.RuntimeEvent
-	EntityEvents       []nodeapi.EntityEvent
-	NodeEvents         []nodeapi.NodeEvent
-	NodeUnfrozenEvents []nodeapi.NodeUnfrozenEvent
+	Events                  []nodeapi.Event
+	RuntimeRegisteredEvents []nodeapi.RuntimeRegisteredEvent
+	EntityEvents            []nodeapi.EntityEvent
+	NodeEvents              []nodeapi.NodeEvent
+	NodeUnfrozenEvents      []nodeapi.NodeUnfrozenEvent
 }
 
 // StakingData represents data for accounts at a given height.
@@ -233,7 +233,7 @@ type RuntimeSourceStorage interface {
 type RuntimeAllData struct {
 	Round                   uint64
 	BlockHeader             nodeapi.RuntimeBlockHeader
-	RawEvents               []*nodeapi.SdkEvent
+	RawEvents               []*nodeapi.RuntimeEvent
 	TransactionsWithResults []*nodeapi.RuntimeTransactionWithResults
 }
 

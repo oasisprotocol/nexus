@@ -500,7 +500,7 @@ func (m *Main) queueTxEventInserts(batch *storage.QueryBatch, data *storage.Cons
 }
 
 func (m *Main) queueRuntimeRegistrations(batch *storage.QueryBatch, data *storage.RegistryData) error {
-	for _, runtimeEvent := range data.RuntimeEvents {
+	for _, runtimeEvent := range data.RuntimeRegisteredEvents {
 		var keyManager *string
 
 		if runtimeEvent.KeyManager != nil {
