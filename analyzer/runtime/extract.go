@@ -16,7 +16,7 @@ import (
 	ethCommon "github.com/ethereum/go-ethereum/common"
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/address"
-	"github.com/oasisprotocol/oasis-core/go/roothash/api/block"
+	"github.com/oasisprotocol/oasis-core/go/common/crypto/hash"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/accounts"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/consensusaccounts"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/core"
@@ -91,7 +91,7 @@ type TokenChangeKey struct {
 }
 
 type BlockData struct {
-	Header              block.Header // TODO: deduplicate with Hash, Timestamp.
+	Header              nodeapi.RuntimeBlockHeader // TODO: deduplicate with Hash, Timestamp.
 	Hash                string
 	Timestamp           time.Time
 	NumTransactions     int
@@ -241,10 +241,10 @@ func registerTokenDecrease(tokenChanges map[TokenChangeKey]*big.Int, contractAdd
 	change.Sub(change, amount)
 }
 
-func ExtractRound(blockHeader block.Header, txrs []*nodeapi.RuntimeTransactionWithResults, rawEvents []*sdkTypes.Event, logger *log.Logger) (*BlockData, error) {
+func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []*nodeapi.RuntimeTransactionWithResults, rawEvents []*nodeapi.SdkEvent, logger *log.Logger) (*BlockData, error) {
 	blockData := BlockData{
 		Header:              blockHeader,
-		Hash:                blockHeader.EncodedHash().String(),
+		Hash:                hash.NewFrom(blockHeader).String(),
 		Timestamp:           time.Unix(int64(blockHeader.Timestamp), 0 /* nanos */),
 		NumTransactions:     len(txrs),
 		TransactionData:     make([]*BlockTransactionData, 0, len(txrs)),
@@ -256,7 +256,7 @@ func ExtractRound(blockHeader block.Header, txrs []*nodeapi.RuntimeTransactionWi
 	}
 
 	// Extract info from non-tx events.
-	rawNonTxEvents := []*sdkTypes.Event{}
+	rawNonTxEvents := []*nodeapi.SdkEvent{}
 	for _, e := range rawEvents {
 		if e.TxHash.String() == util.ZeroTxHash {
 			rawNonTxEvents = append(rawNonTxEvents, e)
@@ -344,7 +344,11 @@ func ExtractRound(blockHeader block.Header, txrs []*nodeapi.RuntimeTransactionWi
 				return nil, fmt.Errorf("tx %d: %w", txIndex, err)
 			}
 		}
-		res, err := extractEvents(&blockData, blockTransactionData.RelatedAccountAddresses, txr.Events)
+		txEvents := make([]*nodeapi.SdkEvent, len(txr.Events))
+		for i, e := range txr.Events {
+			txEvents[i] = (*nodeapi.SdkEvent)(e)
+		}
+		res, err := extractEvents(&blockData, blockTransactionData.RelatedAccountAddresses, txEvents)
 		if err != nil {
 			return nil, fmt.Errorf("tx %d: %w", txIndex, err)
 		}
@@ -379,7 +383,7 @@ func ExtractRound(blockHeader block.Header, txrs []*nodeapi.RuntimeTransactionWi
 	return &blockData, nil
 }
 
-func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Address]bool, eventsRaw []*sdkTypes.Event) (*extractEventResult, error) {
+func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Address]bool, eventsRaw []*nodeapi.SdkEvent) (*extractEventResult, error) {
 	extractedEvents := []*EventData{}
 	foundGasUsedEvent := false
 	var txGasUsed uint64

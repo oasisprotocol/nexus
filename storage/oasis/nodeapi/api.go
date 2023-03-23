@@ -56,9 +56,9 @@ type RuntimeApiLite interface {
 	GetBlockHeader(ctx context.Context, round uint64) (*RuntimeBlockHeader, error)
 	GetTransactionsWithResults(ctx context.Context, round uint64) ([]*RuntimeTransactionWithResults, error)
 }
-type SdkEvent = sdkTypes.Event
-type RuntimeBlockHeader = roothash.Header
-type RuntimeTransactionWithResults = sdkClient.TransactionWithResults
+type SdkEvent sdkTypes.Event
+type RuntimeBlockHeader roothash.Header
+type RuntimeTransactionWithResults sdkClient.TransactionWithResults
 
 // A lightweight subset of `consensus.TransactionsWithResults`.
 type TransactionWithResults struct {

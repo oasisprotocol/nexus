@@ -4,14 +4,14 @@ import (
 	"fmt"
 
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
+	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/accounts"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/consensusaccounts"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/core"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/evm"
-	types "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 )
 
-func DecodeCoreEvent(event *types.Event) ([]core.Event, error) {
+func DecodeCoreEvent(event *nodeapi.SdkEvent) ([]core.Event, error) {
 	if event.Module != core.ModuleName {
 		return nil, nil
 	}
@@ -31,7 +31,7 @@ func DecodeCoreEvent(event *types.Event) ([]core.Event, error) {
 	return events, nil
 }
 
-func DecodeAccountsEvent(event *types.Event) ([]accounts.Event, error) {
+func DecodeAccountsEvent(event *nodeapi.SdkEvent) ([]accounts.Event, error) {
 	if event.Module != accounts.ModuleName {
 		return nil, nil
 	}
@@ -67,7 +67,7 @@ func DecodeAccountsEvent(event *types.Event) ([]accounts.Event, error) {
 	return events, nil
 }
 
-func DecodeConsensusAccountsEvent(event *types.Event) ([]consensusaccounts.Event, error) {
+func DecodeConsensusAccountsEvent(event *nodeapi.SdkEvent) ([]consensusaccounts.Event, error) {
 	if event.Module != consensusaccounts.ModuleName {
 		return nil, nil
 	}
@@ -95,7 +95,7 @@ func DecodeConsensusAccountsEvent(event *types.Event) ([]consensusaccounts.Event
 	return events, nil
 }
 
-func DecodeEVMEvent(event *types.Event) ([]evm.Event, error) {
+func DecodeEVMEvent(event *nodeapi.SdkEvent) ([]evm.Event, error) {
 	if event.Module != evm.ModuleName {
 		return nil, nil
 	}

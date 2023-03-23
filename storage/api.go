@@ -224,9 +224,6 @@ type RuntimeSourceStorage interface {
 	// EVMSimulateCall gets the result of the given EVM simulate call query.
 	EVMSimulateCall(ctx context.Context, round uint64, gasPrice []byte, gasLimit uint64, caller []byte, address []byte, value []byte, data []byte) ([]byte, error)
 
-	// Name returns the name of the source storage.
-	Name() string
-
 	// StringifyDenomination returns a string representation of the given denomination.
 	// This is simply the denomination's symbol; notably, for the native denomination,
 	// this is looked up from network config.

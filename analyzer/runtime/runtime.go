@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/oasisprotocol/oasis-core/go/common/crypto/hash"
 	oasisConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/rewards"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
@@ -262,7 +263,7 @@ func (m *Main) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 		data.Header.Round,
 		data.Header.Version,
 		time.Unix(int64(data.Header.Timestamp), 0 /* nanos */),
-		data.Header.EncodedHash().Hex(),
+		hash.NewFrom(data.Header).Hex(),
 		data.Header.PreviousHash.Hex(),
 		data.Header.IORoot.Hex(),
 		data.Header.StateRoot.Hex(),
