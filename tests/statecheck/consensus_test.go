@@ -10,6 +10,7 @@ import (
 
 	"github.com/oasisprotocol/oasis-core/go/common/entity"
 	"github.com/oasisprotocol/oasis-core/go/common/node"
+	consensusAPI "github.com/oasisprotocol/oasis-core/go/consensus/api"
 	genesisAPI "github.com/oasisprotocol/oasis-core/go/genesis/api"
 	governanceAPI "github.com/oasisprotocol/oasis-core/go/governance/api"
 	registryAPI "github.com/oasisprotocol/oasis-core/go/registry/api"
@@ -17,7 +18,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/oasisprotocol/oasis-indexer/storage/oasis"
 	"github.com/oasisprotocol/oasis-indexer/storage/postgres"
 	"github.com/oasisprotocol/oasis-indexer/tests"
 )
@@ -137,11 +137,9 @@ func TestGenesisFull(t *testing.T) {
 
 	ctx := context.Background()
 
-	factory, err := newSourceClientFactory()
+	conn, err := newSdkConnection(ctx)
 	require.Nil(t, err)
-
-	oasisClient, err := factory.Consensus()
-	require.Nil(t, err)
+	oasisClient := conn.Consensus()
 
 	postgresClient, err := newTargetClient(t)
 	assert.Nil(t, err)
@@ -167,7 +165,7 @@ func TestGenesisFull(t *testing.T) {
 		}
 	} else {
 		t.Log("Fetching state dump at height", height, "from node")
-		genesis, err = oasisClient.GenesisDocumentAtHeight(ctx, height)
+		genesis, err = oasisClient.StateToGenesis(ctx, height)
 		require.Nil(t, err)
 	}
 	registryGenesis := &genesis.Registry
@@ -180,7 +178,7 @@ func TestGenesisFull(t *testing.T) {
 	validateGovernanceBackend(t, governanceGenesis, postgresClient)
 }
 
-func validateRegistryBackend(t *testing.T, genesis *registryAPI.Genesis, source *oasis.ConsensusClient, target *postgres.Client, height int64) {
+func validateRegistryBackend(t *testing.T, genesis *registryAPI.Genesis, source consensusAPI.ClientBackend, target *postgres.Client, height int64) {
 	t.Log("=== Validating registry backend ===")
 
 	validateEntities(t, genesis, target)
@@ -296,11 +294,11 @@ func validateEntities(t *testing.T, genesis *registryAPI.Genesis, target *postgr
 	}
 }
 
-func validateNodes(t *testing.T, genesis *registryAPI.Genesis, source *oasis.ConsensusClient, target *postgres.Client, height int64) {
+func validateNodes(t *testing.T, genesis *registryAPI.Genesis, source consensusAPI.ClientBackend, target *postgres.Client, height int64) {
 	t.Log("Validating nodes...")
 	ctx := context.Background()
 
-	epoch, err := source.GetEpoch(ctx, height)
+	epoch, err := source.Beacon().GetEpoch(ctx, height)
 	assert.Nil(t, err)
 
 	expectedNodes := make(map[string]TestNode)

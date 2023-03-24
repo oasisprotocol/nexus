@@ -10,9 +10,9 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/oasisprotocol/oasis-indexer/log"
 	"github.com/oasisprotocol/oasis-indexer/storage"
-	"github.com/oasisprotocol/oasis-indexer/storage/oasis"
 	"github.com/oasisprotocol/oasis-indexer/storage/postgres"
 	oasisConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
+	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/connection"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -28,12 +28,12 @@ func newTargetClient(t *testing.T) (*postgres.Client, error) {
 	return postgres.NewClient(connString, logger)
 }
 
-func newSourceClientFactory() (*oasis.ClientFactory, error) {
-	network := &oasisConfig.Network{
+func newSdkConnection(ctx context.Context) (connection.Connection, error) {
+	net := &oasisConfig.Network{
 		ChainContext: os.Getenv("HEALTHCHECK_TEST_CHAIN_CONTEXT"),
 		RPC:          os.Getenv("HEALTHCHECK_TEST_NODE_RPC"),
 	}
-	return oasis.NewClientFactory(context.Background(), network, true)
+	return connection.ConnectNoVerify(ctx, net)
 }
 
 func snapshotBackends(target *postgres.Client, analyzer string, tables []string) (int64, error) {

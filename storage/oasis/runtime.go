@@ -7,7 +7,6 @@ import (
 	config "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 	connection "github.com/oasisprotocol/oasis-sdk/client-sdk/go/connection"
 	runtimeSignature "github.com/oasisprotocol/oasis-sdk/client-sdk/go/crypto/signature"
-	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/accounts"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/evm"
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 
@@ -63,14 +62,6 @@ func (rc *RuntimeClient) BlockData(ctx context.Context, round uint64) (*storage.
 
 func (rc *RuntimeClient) GetEventsRaw(ctx context.Context, round uint64) ([]*sdkTypes.Event, error) {
 	return rc.client.GetEventsRaw(ctx, round)
-}
-
-func (rc *RuntimeClient) GetAccountAddresses(ctx context.Context, round uint64, denomination sdkTypes.Denomination) (accounts.Addresses, error) {
-	return rc.client.Accounts.Addresses(ctx, round, denomination)
-}
-
-func (rc *RuntimeClient) GetAccountBalances(ctx context.Context, round uint64, addr sdkTypes.Address) (*accounts.AccountBalances, error) {
-	return rc.client.Accounts.Balances(ctx, round, addr)
 }
 
 func (rc *RuntimeClient) EVMSimulateCall(ctx context.Context, round uint64, gasPrice []byte, gasLimit uint64, caller []byte, address []byte, value []byte, data []byte) ([]byte, error) {
