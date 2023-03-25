@@ -2053,7 +2053,14 @@ components:
           description: The total byte size of the transaction.
         method:
           type: string
-          description: The method that was called.
+          description: |
+            The method that was called. Defined by the runtime. In theory, this could be any string as the runtimes evolve.
+            In practice, the indexer currently expects only the following methods:
+              - "accounts.Transfer"
+              - "consensus.Deposit"
+              - "consensus.Withdraw"
+              - "evm.Create"
+              - "evm.Call"
           example: "evm.Call"
         body:
           type: object
