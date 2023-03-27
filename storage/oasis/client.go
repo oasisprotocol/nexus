@@ -22,7 +22,7 @@ func NewConsensusClient(ctx context.Context, sourceConfig *config.SourceConfig) 
 		return nil, fmt.Errorf("instantiating history consensus API lite: %w", err)
 	}
 	return &ConsensusClient{
-		nodeApi: nodeApi,
+		NodeApi: nodeApi,
 		network: sourceConfig.SDKNetwork(),
 	}, nil
 }

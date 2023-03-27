@@ -24,6 +24,7 @@ require (
 )
 
 require (
+	github.com/akrylysov/pogreb v0.10.1 // indirect
 	github.com/apapsch/go-jsonmerge/v2 v2.0.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/btcsuite/btcd v0.22.1 // indirect

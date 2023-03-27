@@ -23,13 +23,13 @@ import (
 //     boilerplate. Consider removing most types from this package, and
 //     using nodeapi types directly.
 type ConsensusClient struct {
-	nodeApi nodeapi.ConsensusApiLite
+	NodeApi nodeapi.ConsensusApiLite
 	network *sdkConfig.Network
 }
 
 // GenesisDocument returns the original genesis document.
 func (cc *ConsensusClient) GenesisDocument(ctx context.Context) (*genesisAPI.Document, error) {
-	return cc.nodeApi.GetGenesisDocument(ctx)
+	return cc.NodeApi.GetGenesisDocument(ctx)
 }
 
 // Name returns the name of the client, for the ConsensusSourceStorage interface.
@@ -39,7 +39,7 @@ func (cc *ConsensusClient) Name() string {
 
 // GetEpoch returns the epoch number at the specified block height.
 func (cc *ConsensusClient) GetEpoch(ctx context.Context, height int64) (beaconAPI.EpochTime, error) {
-	return cc.nodeApi.GetEpoch(ctx, height)
+	return cc.NodeApi.GetEpoch(ctx, height)
 }
 
 // AllData returns all relevant data related to the given height.
@@ -87,7 +87,7 @@ func (cc *ConsensusClient) AllData(ctx context.Context, height int64) (*storage.
 
 // BlockData retrieves data about a consensus block at the provided block height.
 func (cc *ConsensusClient) BlockData(ctx context.Context, height int64) (*storage.ConsensusBlockData, error) {
-	block, err := cc.nodeApi.GetBlock(ctx, height)
+	block, err := cc.NodeApi.GetBlock(ctx, height)
 	if err != nil {
 		return nil, err
 	}
@@ -97,7 +97,7 @@ func (cc *ConsensusClient) BlockData(ctx context.Context, height int64) (*storag
 		return nil, err
 	}
 
-	transactionsWithResults, err := cc.nodeApi.GetTransactionsWithResults(ctx, height)
+	transactionsWithResults, err := cc.NodeApi.GetTransactionsWithResults(ctx, height)
 	if err != nil {
 		return nil, err
 	}
@@ -133,7 +133,7 @@ func (cc *ConsensusClient) BeaconData(ctx context.Context, height int64) (*stora
 
 // RegistryData retrieves registry events at the provided block height.
 func (cc *ConsensusClient) RegistryData(ctx context.Context, height int64) (*storage.RegistryData, error) {
-	events, err := cc.nodeApi.RegistryEvents(ctx, height)
+	events, err := cc.NodeApi.RegistryEvents(ctx, height)
 	if err != nil {
 		return nil, err
 	}
@@ -168,7 +168,7 @@ func (cc *ConsensusClient) RegistryData(ctx context.Context, height int64) (*sto
 
 // StakingData retrieves staking events at the provided block height.
 func (cc *ConsensusClient) StakingData(ctx context.Context, height int64) (*storage.StakingData, error) {
-	events, err := cc.nodeApi.StakingEvents(ctx, height)
+	events, err := cc.NodeApi.StakingEvents(ctx, height)
 	if err != nil {
 		return nil, err
 	}
@@ -221,7 +221,7 @@ func (cc *ConsensusClient) StakingData(ctx context.Context, height int64) (*stor
 
 // SchedulerData retrieves validators and runtime committees at the provided block height.
 func (cc *ConsensusClient) SchedulerData(ctx context.Context, height int64) (*storage.SchedulerData, error) {
-	validators, err := cc.nodeApi.GetValidators(ctx, height)
+	validators, err := cc.NodeApi.GetValidators(ctx, height)
 	if err != nil {
 		return nil, err
 	}
@@ -234,7 +234,7 @@ func (cc *ConsensusClient) SchedulerData(ctx context.Context, height int64) (*st
 			return nil, err
 		}
 
-		consensusCommittees, err := cc.nodeApi.GetCommittees(ctx, height, runtimeID)
+		consensusCommittees, err := cc.NodeApi.GetCommittees(ctx, height, runtimeID)
 		if err != nil {
 			return nil, err
 		}
@@ -250,7 +250,7 @@ func (cc *ConsensusClient) SchedulerData(ctx context.Context, height int64) (*st
 
 // GovernanceData retrieves governance events at the provided block height.
 func (cc *ConsensusClient) GovernanceData(ctx context.Context, height int64) (*storage.GovernanceData, error) {
-	events, err := cc.nodeApi.GovernanceEvents(ctx, height)
+	events, err := cc.NodeApi.GovernanceEvents(ctx, height)
 	if err != nil {
 		return nil, err
 	}
@@ -263,7 +263,7 @@ func (cc *ConsensusClient) GovernanceData(ctx context.Context, height int64) (*s
 	for _, event := range events {
 		switch {
 		case event.GovernanceProposalSubmitted != nil:
-			proposal, err := cc.nodeApi.GetProposal(ctx, height, event.GovernanceProposalSubmitted.ID)
+			proposal, err := cc.NodeApi.GetProposal(ctx, height, event.GovernanceProposalSubmitted.ID)
 			if err != nil {
 				return nil, err
 			}
@@ -271,7 +271,7 @@ func (cc *ConsensusClient) GovernanceData(ctx context.Context, height int64) (*s
 		case event.GovernanceProposalExecuted != nil:
 			executions = append(executions, *event.GovernanceProposalExecuted)
 		case event.GovernanceProposalFinalized != nil:
-			proposal, err := cc.nodeApi.GetProposal(ctx, height, event.GovernanceProposalFinalized.ID)
+			proposal, err := cc.NodeApi.GetProposal(ctx, height, event.GovernanceProposalFinalized.ID)
 			if err != nil {
 				return nil, err
 			}
@@ -292,7 +292,7 @@ func (cc *ConsensusClient) GovernanceData(ctx context.Context, height int64) (*s
 
 // RootHashData retrieves roothash events at the provided block height.
 func (cc *ConsensusClient) RootHashData(ctx context.Context, height int64) (*storage.RootHashData, error) {
-	events, err := cc.nodeApi.RoothashEvents(ctx, height)
+	events, err := cc.NodeApi.RoothashEvents(ctx, height)
 	if err != nil {
 		return nil, err
 	}
