@@ -355,7 +355,7 @@ const (
 					($5::text IS NULL OR type = $5::text) AND
 					($6::text IS NULL OR evm_log_signature = $6::text) AND
 					($7::text IS NULL OR related_accounts @> ARRAY[$7::text])
-			ORDER BY round DESC, tx_index
+			ORDER BY round DESC, tx_index, type, body::text
 			LIMIT $8::bigint
 			OFFSET $9::bigint`
 
