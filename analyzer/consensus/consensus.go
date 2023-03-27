@@ -42,6 +42,14 @@ type parsedEvent struct {
 	relatedAddresses []staking.Address
 }
 
+func OpenSignedTxNoVerify(signedTx *transaction.SignedTransaction) (*transaction.Transaction, error) {
+	var tx transaction.Transaction
+	if err := cbor.Unmarshal(signedTx.Blob, &tx); err != nil {
+		return nil, fmt.Errorf("signed tx unmarshal: %w", err)
+	}
+	return &tx, nil
+}
+
 // Main is the main Analyzer for the consensus layer.
 type Main struct {
 	cfg     analyzer.ConsensusConfig
@@ -400,8 +408,13 @@ func (m *Main) queueTransactionInserts(batch *storage.QueryBatch, data *storage.
 		signedTx := txr.Transaction
 		result := txr.Result
 
-		var tx transaction.Transaction
-		if err := signedTx.Open(&tx); err != nil {
+		tx, err := OpenSignedTxNoVerify(&signedTx)
+		if err != nil {
+			m.logger.Info("couldn't parse transaction",
+				"err", err,
+				"height", data.Height,
+				"tx_index", i,
+			)
 			continue
 		}
 
@@ -443,7 +456,7 @@ func (m *Main) queueTransactionInserts(batch *storage.QueryBatch, data *storage.
 
 		// TODO: Use event when available
 		// https://github.com/oasisprotocol/oasis-core/issues/4818
-		if tx.Method == "staking.AmendCommissionSchedule" {
+		if tx.Method == "staking.AmendCommissionSchedule" && result.IsSuccess() {
 			var rawSchedule staking.AmendCommissionSchedule
 			if err := cbor.Unmarshal(tx.Body, &rawSchedule); err != nil {
 				return err

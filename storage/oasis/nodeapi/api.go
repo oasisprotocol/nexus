@@ -8,6 +8,7 @@ import (
 	coreCommon "github.com/oasisprotocol/oasis-core/go/common"
 	hash "github.com/oasisprotocol/oasis-core/go/common/crypto/hash"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
+	"github.com/oasisprotocol/oasis-core/go/common/errors"
 	consensus "github.com/oasisprotocol/oasis-core/go/consensus/api"
 	consensusTransaction "github.com/oasisprotocol/oasis-core/go/consensus/api/transaction"
 	consensusResults "github.com/oasisprotocol/oasis-core/go/consensus/api/transaction/results"
@@ -16,6 +17,7 @@ import (
 	registry "github.com/oasisprotocol/oasis-core/go/registry/api"
 	scheduler "github.com/oasisprotocol/oasis-core/go/scheduler/api"
 	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
+
 	apiTypes "github.com/oasisprotocol/oasis-indexer/api/v1/types"
 	sdkClient "github.com/oasisprotocol/oasis-sdk/client-sdk/go/client"
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
@@ -62,6 +64,11 @@ type TransactionWithResults struct {
 type TxResult struct {
 	Error  TxError
 	Events []Event
+}
+
+// IsSuccess returns true if transaction execution was successful.
+func (r *TxResult) IsSuccess() bool {
+	return r.Error.Code == errors.CodeNoError
 }
 
 type TxError consensusResults.Error
