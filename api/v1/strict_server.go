@@ -252,53 +252,22 @@ func (srv *StrictServerImpl) GetRuntimeEvmTokens(ctx context.Context, request ap
 }
 
 func (srv *StrictServerImpl) GetRuntimeTransactions(ctx context.Context, request apiTypes.GetRuntimeTransactionsRequestObject) (apiTypes.GetRuntimeTransactionsResponseObject, error) {
-	storageTransactions, err := srv.dbClient.RuntimeTransactions(ctx, request.Params, nil)
+	transactions, err := srv.dbClient.RuntimeTransactions(ctx, request.Params, nil)
 	if err != nil {
 		return nil, err
 	}
-
-	// Perform additional tx body parsing on the fly; DB stores only partially-parsed txs.
-	apiTransactions := apiTypes.RuntimeTransactionList{
-		Transactions:        []apiTypes.RuntimeTransaction{},
-		TotalCount:          storageTransactions.TotalCount,
-		IsTotalCountClipped: storageTransactions.IsTotalCountClipped,
-	}
-	for _, storageTransaction := range storageTransactions.Transactions {
-		apiTransaction, err2 := renderRuntimeTransaction(storageTransaction)
-		if err2 != nil {
-			return nil, fmt.Errorf("round %d tx %d: %w", storageTransaction.Round, storageTransaction.Index, err2)
-		}
-		apiTransactions.Transactions = append(apiTransactions.Transactions, apiTransaction)
-	}
-
-	return apiTypes.GetRuntimeTransactions200JSONResponse(apiTransactions), nil
+	return apiTypes.GetRuntimeTransactions200JSONResponse(*transactions), nil
 }
 
 func (srv *StrictServerImpl) GetRuntimeTransactionsTxHash(ctx context.Context, request apiTypes.GetRuntimeTransactionsTxHashRequestObject) (apiTypes.GetRuntimeTransactionsTxHashResponseObject, error) {
-	storageTransactions, err := srv.dbClient.RuntimeTransactions(ctx, apiTypes.GetRuntimeTransactionsParams{}, &request.TxHash)
+	transactions, err := srv.dbClient.RuntimeTransactions(ctx, apiTypes.GetRuntimeTransactionsParams{}, &request.TxHash)
 	if err != nil {
 		return nil, err
 	}
-
-	if len(storageTransactions.Transactions) == 0 {
+	if len(transactions.Transactions) == 0 {
 		return apiTypes.GetRuntimeTransactionsTxHash404JSONResponse{}, nil
 	}
-
-	// Perform additional tx body parsing on the fly; DB stores only partially-parsed txs.
-	apiTransactions := apiTypes.RuntimeTransactionList{
-		Transactions:        []apiTypes.RuntimeTransaction{},
-		TotalCount:          storageTransactions.TotalCount,
-		IsTotalCountClipped: storageTransactions.IsTotalCountClipped,
-	}
-	for _, storageTransaction := range storageTransactions.Transactions {
-		apiTransaction, err2 := renderRuntimeTransaction(storageTransaction)
-		if err2 != nil {
-			return nil, fmt.Errorf("round %d tx %d: %w", storageTransaction.Round, storageTransaction.Index, err2)
-		}
-		apiTransactions.Transactions = append(apiTransactions.Transactions, apiTransaction)
-	}
-
-	return apiTypes.GetRuntimeTransactionsTxHash200JSONResponse(apiTransactions), nil
+	return apiTypes.GetRuntimeTransactionsTxHash200JSONResponse(*transactions), nil
 }
 
 func (srv *StrictServerImpl) GetRuntimeEvents(ctx context.Context, request apiTypes.GetRuntimeEventsRequestObject) (apiTypes.GetRuntimeEventsResponseObject, error) {

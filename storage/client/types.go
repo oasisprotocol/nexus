@@ -2,8 +2,6 @@
 package client
 
 import (
-	"time"
-
 	api "github.com/oasisprotocol/oasis-indexer/api/v1/types"
 )
 
@@ -98,30 +96,11 @@ type RuntimeBlockList = api.RuntimeBlockList
 type RuntimeBlock = api.RuntimeBlock
 
 // RuntimeTransactionList is the storage response for RuntimeTransactions.
-type RuntimeTransactionList struct {
-	Transactions        []RuntimeTransaction `json:"transactions"`
-	TotalCount          uint64
-	IsTotalCountClipped bool
-}
-
-// RuntimeTransaction is the storage response for RuntimeTransaction.
-// It differs from what the API returns; the DB stores a less-parsed
-// version of the transaction, and we finish parsing on the fly, as we
-// return the tx.
-type RuntimeTransaction struct {
-	Round           int64
-	Index           int64
-	Hash            string
-	EthHash         *string
-	GasUsed         uint64
-	Size            int32
-	Sender0         *string
-	Sender0Eth      *string
-	Timestamp       time.Time
-	Raw             []byte
-	ResultRaw       []byte
-	AddressPreimage map[string]string
-}
+type (
+	RuntimeTransactionList = api.RuntimeTransactionList
+	RuntimeTransaction     = api.RuntimeTransaction
+	TxError                = api.TxError
+)
 
 // RuntimeEventList is the storage response for RuntimeEvents.
 type RuntimeEventList = api.RuntimeEventList

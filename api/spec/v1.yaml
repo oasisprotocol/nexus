@@ -1250,13 +1250,13 @@ components:
       type: object
       required: [code]
       properties:
+        module:
+          type: string
+          description: The module of a failed transaction.
         code:
           type: integer
           format: uint32
           description: The status code of a failed transaction.
-        module:
-          type: string
-          description: The module of a failed transaction.
         message:
           type: string
           description: The message of a failed transaction.
@@ -1983,7 +1983,7 @@ components:
     RuntimeTransaction:
       type: object
       # NOTE: Not guaranteed to be present: eth_hash, to, amount.
-      required: [round, index, timestamp, hash, sender_0, nonce_0, fee, gas_limit, gas_used, size, method, body, success]
+      required: [round, index, timestamp, hash, sender_0, nonce_0, fee, gas_limit, gas_used, size, method, body]
       properties:
         round:
           type: integer
@@ -2091,7 +2091,9 @@ components:
           example: "100000001666393459"
         success:
           type: boolean
-          description: Whether this transaction successfully executed.
+          description: |
+            Whether this transaction successfully executed.
+            Can be absent (meaning "unknown") for confidential runtimes.
         error:
           $ref: '#/components/schemas/TxError'
           description: Error details of a failed transaction.

@@ -60,6 +60,7 @@ CREATE TABLE chain.runtime_transactions
   -- transaction from the node itself, parse from here. Remove this if we
   -- later store sufficiently detailed data in other columns or if we turn out
   -- to be able to get a copy of the transaction elsewhere.
+  -- TODO: Move raw values to a separate table, or remove them. They're normally not used.
   raw         BYTEA NOT NULL,
   result_raw  BYTEA NOT NULL,  -- cbor(CallResult).
   PRIMARY KEY (runtime, round, tx_index)

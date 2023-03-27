@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/dgraph-io/ristretto"
+	ethCommon "github.com/ethereum/go-ethereum/common"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 
@@ -1054,20 +1055,37 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetR
 		IsTotalCountClipped: res.isTotalCountClipped,
 	}
 	for res.rows.Next() {
-		var t RuntimeTransaction
+		t := RuntimeTransaction{
+			Error: &TxError{},
+		}
 		if err := res.rows.Scan(
 			&t.Round,
 			&t.Index,
+			&t.Timestamp,
 			&t.Hash,
 			&t.EthHash,
+			&t.Sender0,
+			&t.Sender0Eth,
+			&t.Nonce0,
+			&t.Fee,
+			&t.GasLimit,
 			&t.GasUsed,
 			&t.Size,
-			&t.Timestamp,
-			&t.Raw,
-			&t.ResultRaw,
-			&t.AddressPreimage,
+			&t.Method,
+			&t.Body,
+			&t.Success,
+			&t.Error.Module,
+			&t.Error.Code,
+			&t.Error.Message,
 		); err != nil {
 			return nil, wrapError(err)
+		}
+		if t.Success != nil && *t.Success {
+			t.Error = nil
+		}
+		// Fancy-format eth addresses: Apply checksum capitalization, prepend 0x.
+		if t.Sender0Eth != nil {
+			*t.Sender0Eth = ethCommon.HexToAddress(*t.Sender0Eth).Hex()
 		}
 
 		ts.Transactions = append(ts.Transactions, t)
