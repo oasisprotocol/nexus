@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/gob"
+	"fmt"
 
 	"github.com/akrylysov/pogreb"
 	beacon "github.com/oasisprotocol/oasis-core/go/beacon/api"
@@ -23,6 +24,8 @@ type FileConsensusApiLite struct {
 	db        pogreb.DB
 	damaskApi *damask.DamaskConsensusApiLite
 }
+
+type ConsensusApiMethod func() (interface{}, error)
 
 var _ nodeapi.ConsensusApiLite = (*FileConsensusApiLite)(nil)
 
@@ -57,7 +60,7 @@ func generateCacheKey(methodName string, params ...interface{}) ([]byte, error) 
 	return buf.Bytes(), nil
 }
 
-func (c *FileConsensusApiLite) Get(key []byte, result interface{}) error {
+func (c *FileConsensusApiLite) get(key []byte, result interface{}) error {
 	res, err := c.db.Get(key)
 	if err != nil {
 		return err
@@ -66,19 +69,18 @@ func (c *FileConsensusApiLite) Get(key []byte, result interface{}) error {
 	return dec.Decode(result)
 }
 
-func (c *FileConsensusApiLite) Put(key []byte, val interface{}) error {
+func (c *FileConsensusApiLite) put(key []byte, val interface{}) error {
 	var buf bytes.Buffer
 	enc := gob.NewEncoder(&buf)
 	err := enc.Encode(val)
 	if err != nil {
+		fmt.Printf("file backend: error encoding value for put " + err.Error())
 		return err
 	}
 	return c.db.Put(key, buf.Bytes())
 }
 
-type ConsensusMethod func() (interface{}, error)
-
-func (c *FileConsensusApiLite) UpdateCache(key []byte, method ConsensusMethod) error {
+func (c *FileConsensusApiLite) updateCache(key []byte, method ConsensusApiMethod) error {
 	exists, err := c.db.Has(key)
 	if err != nil {
 		return err
@@ -90,7 +92,8 @@ func (c *FileConsensusApiLite) UpdateCache(key []byte, method ConsensusMethod) e
 	if err != nil {
 		return err
 	}
-	return c.Put(key, val)
+
+	return c.put(key, val)
 }
 
 func (c *FileConsensusApiLite) GetGenesisDocument(ctx context.Context) (*genesis.Document, error) {
@@ -99,11 +102,17 @@ func (c *FileConsensusApiLite) GetGenesisDocument(ctx context.Context) (*genesis
 		return nil, err
 	}
 	if c.damaskApi != nil {
-		c.UpdateCache(key, func() (interface{}, error) { return c.damaskApi.GetGenesisDocument(ctx) })
+		fmt.Printf("file backend: fetching genesis")
+		if err := c.updateCache(key, func() (interface{}, error) { return c.damaskApi.GetGenesisDocument(ctx) }); err != nil {
+			fmt.Printf("file backend: error fetching genesis")
+			return nil, err
+		}
 	}
 	var genesisDocument genesis.Document
-	err = c.Get(key, &genesisDocument)
+	fmt.Printf("file backend: about to get")
+	err = c.get(key, &genesisDocument)
 	if err != nil {
+		fmt.Printf("file backend: error getting genesis back from pogreb")
 		return nil, err
 	}
 	return &genesisDocument, nil
@@ -115,10 +124,10 @@ func (c *FileConsensusApiLite) StateToGenesis(ctx context.Context, height int64)
 		return nil, err
 	}
 	if c.damaskApi != nil {
-		c.UpdateCache(key, func() (interface{}, error) { return c.damaskApi.StateToGenesis(ctx, height) })
+		c.updateCache(key, func() (interface{}, error) { return c.damaskApi.StateToGenesis(ctx, height) })
 	}
 	var genesisDocument genesis.Document
-	err = c.Get(key, &genesisDocument)
+	err = c.get(key, &genesisDocument)
 	if err != nil {
 		return nil, err
 	}
@@ -131,10 +140,10 @@ func (c *FileConsensusApiLite) GetBlock(ctx context.Context, height int64) (*con
 		return nil, err
 	}
 	if c.damaskApi != nil {
-		c.UpdateCache(key, func() (interface{}, error) { return c.damaskApi.GetBlock(ctx, height) })
+		c.updateCache(key, func() (interface{}, error) { return c.damaskApi.GetBlock(ctx, height) })
 	}
 	var block consensus.Block
-	err = c.Get(key, &block)
+	err = c.get(key, &block)
 	if err != nil {
 		return nil, err
 	}
@@ -147,10 +156,10 @@ func (c *FileConsensusApiLite) GetTransactionsWithResults(ctx context.Context, h
 		return nil, err
 	}
 	if c.damaskApi != nil {
-		c.UpdateCache(key, func() (interface{}, error) { return c.damaskApi.GetTransactionsWithResults(ctx, height) })
+		c.updateCache(key, func() (interface{}, error) { return c.damaskApi.GetTransactionsWithResults(ctx, height) })
 	}
 	txs := []nodeapi.TransactionWithResults{}
-	err = c.Get(key, &txs) // TODO: is the & necessary?
+	err = c.get(key, &txs) // TODO: is the & necessary?
 	if err != nil {
 		return nil, err
 	}
@@ -163,10 +172,10 @@ func (c *FileConsensusApiLite) GetEpoch(ctx context.Context, height int64) (beac
 		return beacon.EpochInvalid, err
 	}
 	if c.damaskApi != nil {
-		c.UpdateCache(key, func() (interface{}, error) { return c.damaskApi.GetEpoch(ctx, height) })
+		c.updateCache(key, func() (interface{}, error) { return c.damaskApi.GetEpoch(ctx, height) })
 	}
 	var epoch beacon.EpochTime
-	err = c.Get(key, &epoch)
+	err = c.get(key, &epoch)
 	if err != nil {
 		return beacon.EpochInvalid, err
 	}
@@ -179,10 +188,10 @@ func (c *FileConsensusApiLite) RegistryEvents(ctx context.Context, height int64)
 		return nil, err
 	}
 	if c.damaskApi != nil {
-		c.UpdateCache(key, func() (interface{}, error) { return c.damaskApi.RegistryEvents(ctx, height) })
+		c.updateCache(key, func() (interface{}, error) { return c.damaskApi.RegistryEvents(ctx, height) })
 	}
 	events := []nodeapi.Event{}
-	err = c.Get(key, &events)
+	err = c.get(key, &events)
 	if err != nil {
 		return nil, err
 	}
@@ -195,10 +204,10 @@ func (c *FileConsensusApiLite) StakingEvents(ctx context.Context, height int64) 
 		return nil, err
 	}
 	if c.damaskApi != nil {
-		c.UpdateCache(key, func() (interface{}, error) { return c.damaskApi.StakingEvents(ctx, height) })
+		c.updateCache(key, func() (interface{}, error) { return c.damaskApi.StakingEvents(ctx, height) })
 	}
 	events := []nodeapi.Event{}
-	err = c.Get(key, &events)
+	err = c.get(key, &events)
 	if err != nil {
 		return nil, err
 	}
@@ -211,10 +220,10 @@ func (c *FileConsensusApiLite) GovernanceEvents(ctx context.Context, height int6
 		return nil, err
 	}
 	if c.damaskApi != nil {
-		c.UpdateCache(key, func() (interface{}, error) { return c.damaskApi.GovernanceEvents(ctx, height) })
+		c.updateCache(key, func() (interface{}, error) { return c.damaskApi.GovernanceEvents(ctx, height) })
 	}
 	events := []nodeapi.Event{}
-	err = c.Get(key, &events)
+	err = c.get(key, &events)
 	if err != nil {
 		return nil, err
 	}
@@ -227,10 +236,10 @@ func (c *FileConsensusApiLite) RoothashEvents(ctx context.Context, height int64)
 		return nil, err
 	}
 	if c.damaskApi != nil {
-		c.UpdateCache(key, func() (interface{}, error) { return c.damaskApi.RoothashEvents(ctx, height) })
+		c.updateCache(key, func() (interface{}, error) { return c.damaskApi.RoothashEvents(ctx, height) })
 	}
 	events := []nodeapi.Event{}
-	err = c.Get(key, &events)
+	err = c.get(key, &events)
 	if err != nil {
 		return nil, err
 	}
@@ -243,10 +252,10 @@ func (c *FileConsensusApiLite) GetValidators(ctx context.Context, height int64) 
 		return nil, err
 	}
 	if c.damaskApi != nil {
-		c.UpdateCache(key, func() (interface{}, error) { return c.damaskApi.GetValidators(ctx, height) })
+		c.updateCache(key, func() (interface{}, error) { return c.damaskApi.GetValidators(ctx, height) })
 	}
 	validators := []nodeapi.Validator{}
-	err = c.Get(key, &validators)
+	err = c.get(key, &validators)
 	if err != nil {
 		return nil, err
 	}
@@ -259,10 +268,10 @@ func (c *FileConsensusApiLite) GetCommittees(ctx context.Context, height int64, 
 		return nil, err
 	}
 	if c.damaskApi != nil {
-		c.UpdateCache(key, func() (interface{}, error) { return c.damaskApi.GetCommittees(ctx, height, runtimeID) })
+		c.updateCache(key, func() (interface{}, error) { return c.damaskApi.GetCommittees(ctx, height, runtimeID) })
 	}
 	committees := []nodeapi.Committee{}
-	err = c.Get(key, &committees)
+	err = c.get(key, &committees)
 	if err != nil {
 		return nil, err
 	}
@@ -275,10 +284,10 @@ func (c *FileConsensusApiLite) GetProposal(ctx context.Context, height int64, pr
 		return nil, err
 	}
 	if c.damaskApi != nil {
-		c.UpdateCache(key, func() (interface{}, error) { return c.damaskApi.GetProposal(ctx, height, proposalID) })
+		c.updateCache(key, func() (interface{}, error) { return c.damaskApi.GetProposal(ctx, height, proposalID) })
 	}
 	var proposal nodeapi.Proposal
-	err = c.Get(key, &proposal)
+	err = c.get(key, &proposal)
 	if err != nil {
 		return nil, err
 	}

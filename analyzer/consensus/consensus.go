@@ -58,7 +58,7 @@ func OpenSignedTxNoVerify(signedTx *transaction.SignedTransaction) (*transaction
 
 // Main is the main Analyzer for the consensus layer.
 type Main struct {
-	cfg     analyzer.ConsensusConfig
+	Cfg     analyzer.ConsensusConfig
 	target  storage.TargetStorage
 	logger  *log.Logger
 	metrics metrics.DatabaseMetrics
@@ -92,7 +92,7 @@ func NewMain(sourceConfig *config.SourceConfig, cfg *config.BlockBasedAnalyzerCo
 
 	logger.Info("Starting consensus analyzer", "config", ac)
 	return &Main{
-		cfg:     ac,
+		Cfg:     ac,
 		target:  target,
 		logger:  logger.With("analyzer", ConsensusAnalyzerName),
 		metrics: metrics.NewDefaultDatabaseMetrics(ConsensusAnalyzerName),
@@ -131,7 +131,7 @@ func (m *Main) Start() {
 			return
 		}
 		m.logger.Debug("setting height using range config")
-		height = m.cfg.Range.From
+		height = m.Cfg.Range.From
 	} else {
 		m.logger.Debug("setting height using latest block")
 		height = latest + 1
@@ -147,7 +147,7 @@ func (m *Main) Start() {
 		)
 		return
 	}
-	for m.cfg.Range.To == 0 || height <= m.cfg.Range.To {
+	for m.Cfg.Range.To == 0 || height <= m.Cfg.Range.To {
 		backoff.Wait()
 		m.logger.Info("attempting block", "height", height)
 
@@ -173,7 +173,7 @@ func (m *Main) Start() {
 	}
 	m.logger.Info(
 		fmt.Sprintf("finished processing all blocks in the configured range [%d, %d]",
-			m.cfg.Range.From, m.cfg.Range.To))
+			m.Cfg.Range.From, m.Cfg.Range.To))
 }
 
 // Name returns the name of the Main.
@@ -183,7 +183,7 @@ func (m *Main) Name() string {
 
 // source returns the source storage for the provided block height.
 func (m *Main) source(height int64) (storage.ConsensusSourceStorage, error) {
-	r := m.cfg
+	r := m.Cfg
 	if height >= r.Range.From && (r.Range.To == 0 || height <= r.Range.To) {
 		return r.Source, nil
 	}
@@ -220,7 +220,7 @@ func (m *Main) isGenesisProcessed(ctx context.Context, chainContext string) (boo
 
 func (m *Main) processGenesis(ctx context.Context, chainContext string) error {
 	m.logger.Info("fetching genesis document")
-	genesisDoc, err := m.cfg.Source.GenesisDocument(ctx)
+	genesisDoc, err := m.Cfg.Source.GenesisDocument(ctx)
 	if err != nil {
 		return err
 	}
