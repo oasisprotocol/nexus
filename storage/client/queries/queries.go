@@ -293,8 +293,10 @@ const (
 			txs.timestamp,
 			txs.tx_hash,
 			txs.tx_eth_hash,
-			signer0.signer_address AS sender0,
-			encode(signer_eth.address_data, 'hex') AS sender0_eth,
+			signer0.signer_address AS sender0, -- oh god we didn't even use the same word between the db and the api
+			signer0_preimage.context_identifier AS sender0_preimage_context_identifier,
+			signer0_preimage.context_version AS sender0_preimage_context_version,
+			encode(signer0_preimage.address_data, 'base64') AS sender0_preimage_data,
 			signer0.nonce AS nonce0,
 			txs.fee,
 			txs.gas_limit,
@@ -303,7 +305,9 @@ const (
 			txs.method,
 			txs.body,
 			txs.to,
-			encode(to_eth.address_data, 'hex') AS to_eth,
+			to_preimage.context_identifier AS to_preimage_context_identifier,
+			to_preimage.context_version AS to_preimage_context_version,
+			encode(to_preimage.address_data, 'base64') AS to_preimage_data,
 			txs.amount,
 			txs.success,
 			txs.error_module,
@@ -315,12 +319,18 @@ const (
 		    (signer0.round = txs.round) AND
 		    (signer0.tx_index = txs.tx_index) AND
 		    (signer0.signer_index = 0)
-		LEFT JOIN chain.address_preimages AS signer_eth ON
-			(signer0.signer_address = signer_eth.address) AND
-			(signer_eth.context_identifier = 'oasis-runtime-sdk/address: secp256k1eth') AND (signer_eth.context_version = 0)
-		LEFT JOIN chain.address_preimages AS to_eth ON
-			(txs.to = to_eth.address) AND
-			(to_eth.context_identifier = 'oasis-runtime-sdk/address: secp256k1eth') AND (to_eth.context_version = 0)
+		LEFT JOIN chain.address_preimages AS signer0_preimage ON
+			(signer0.signer_address = signer0_preimage.address) AND
+			-- For now, the only user is the explorer, where we only care
+			-- about Ethereum-compatible addresses, so only get those. Can
+			-- easily enable for other address types though.
+			(signer0_preimage.context_identifier = 'oasis-runtime-sdk/address: secp256k1eth') AND (signer0_preimage.context_version = 0)
+		LEFT JOIN chain.address_preimages AS to_preimage ON
+			(txs.to = to_preimage.address) AND
+			-- For now, the only user is the explorer, where we only care
+			-- about Ethereum-compatible addresses, so only get those. Can
+			-- easily enable for other address types though.
+			(to_preimage.context_identifier = 'oasis-runtime-sdk/address: secp256k1eth') AND (to_preimage.context_version = 0)
 		LEFT JOIN chain.runtime_related_transactions AS rel ON
 			(txs.round = rel.tx_round) AND
 			(txs.tx_index = rel.tx_index) AND
