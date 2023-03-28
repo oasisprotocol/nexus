@@ -11,7 +11,6 @@ import (
 	"encoding/hex"
 	"fmt"
 	"math/big"
-	"time"
 
 	ethCommon "github.com/ethereum/go-ethereum/common"
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
@@ -90,10 +89,8 @@ type TokenChangeKey struct {
 }
 
 type BlockData struct {
-	Header              nodeapi.RuntimeBlockHeader // TODO: deduplicate with Hash, Timestamp.
-	Hash                string
-	Timestamp           time.Time
-	NumTransactions     int
+	Header              nodeapi.RuntimeBlockHeader
+	NumTransactions     int // Might be different from len(TransactionData) if some transactions are malformed.
 	GasUsed             uint64
 	Size                int
 	TransactionData     []*BlockTransactionData
@@ -101,8 +98,7 @@ type BlockData struct {
 	NonTxEvents         []*EventData // TODO: Can we fold these events into `EventData`?
 	AddressPreimages    map[apiTypes.Address]*AddressPreimageData
 	TokenBalanceChanges map[TokenChangeKey]*big.Int
-	// key is oasis bech32 address
-	PossibleTokens map[apiTypes.Address]*EVMPossibleToken
+	PossibleTokens      map[apiTypes.Address]*EVMPossibleToken // key is oasis bech32 address
 }
 
 // Function naming conventions in this file:
@@ -243,8 +239,6 @@ func registerTokenDecrease(tokenChanges map[TokenChangeKey]*big.Int, contractAdd
 func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []*nodeapi.RuntimeTransactionWithResults, rawEvents []*nodeapi.RuntimeEvent, logger *log.Logger) (*BlockData, error) {
 	blockData := BlockData{
 		Header:              blockHeader,
-		Hash:                blockHeader.Hash.Hex(),
-		Timestamp:           blockHeader.Timestamp,
 		NumTransactions:     len(txrs),
 		TransactionData:     make([]*BlockTransactionData, 0, len(txrs)),
 		EventData:           []*EventData{},

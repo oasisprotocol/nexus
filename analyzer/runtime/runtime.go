@@ -298,7 +298,7 @@ func (m *Main) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 			transactionData.EthHash,
 			transactionData.GasUsed,
 			transactionData.Size,
-			data.Timestamp,
+			data.Header.Timestamp,
 			transactionData.Raw,
 			transactionData.RawResult,
 		)
