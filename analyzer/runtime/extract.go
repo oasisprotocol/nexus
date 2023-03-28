@@ -49,8 +49,8 @@ type BlockTransactionData struct {
 type EventBody interface{}
 
 type EventData struct {
-	TxIndex          int
-	TxHash           string
+	TxIndex          *int    // nil for non-tx events
+	TxHash           *string // nil for non-tx events
 	Type             apiTypes.RuntimeEventType
 	Body             EventBody
 	WithScope        ScopedSdkEvent
@@ -95,7 +95,6 @@ type BlockData struct {
 	Size                int
 	TransactionData     []*BlockTransactionData
 	EventData           []*EventData
-	NonTxEvents         []*EventData // TODO: Can we fold these events into `EventData`?
 	AddressPreimages    map[apiTypes.Address]*AddressPreimageData
 	TokenBalanceChanges map[TokenChangeKey]*big.Int
 	PossibleTokens      map[apiTypes.Address]*EVMPossibleToken // key is oasis bech32 address
@@ -242,7 +241,6 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []*nodeapi.Runtim
 		NumTransactions:     len(txrs),
 		TransactionData:     make([]*BlockTransactionData, 0, len(txrs)),
 		EventData:           []*EventData{},
-		NonTxEvents:         []*EventData{},
 		AddressPreimages:    map[apiTypes.Address]*AddressPreimageData{},
 		TokenBalanceChanges: map[TokenChangeKey]*big.Int{},
 		PossibleTokens:      map[apiTypes.Address]*EVMPossibleToken{},
@@ -259,7 +257,7 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []*nodeapi.Runtim
 	if err != nil {
 		return nil, fmt.Errorf("extract non-tx events: %w", err)
 	}
-	blockData.NonTxEvents = res.ExtractedEvents
+	blockData.EventData = res.ExtractedEvents
 
 	// Extract info from transactions.
 	for txIndex, txr := range txrs {
@@ -347,8 +345,8 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []*nodeapi.Runtim
 		}
 		// Populate eventData with tx-specific data.
 		for _, eventData := range res.ExtractedEvents {
-			eventData.TxIndex = txIndex
-			eventData.TxHash = blockTransactionData.Hash
+			eventData.TxIndex = &txIndex
+			eventData.TxHash = &blockTransactionData.Hash
 		}
 		if !res.FoundGasUsedEvent {
 			// Early versions of runtimes didn't emit a GasUsed event.

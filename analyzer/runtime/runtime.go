@@ -304,7 +304,7 @@ func (m *Main) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 		)
 	}
 
-	// Insert tx-related events.
+	// Insert events.
 	for _, eventData := range data.EventData {
 		eventRelatedAddresses := common.ExtractAddresses(eventData.RelatedAddresses)
 		batch.Queue(
@@ -313,23 +313,6 @@ func (m *Main) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 			data.Header.Round,
 			eventData.TxIndex,
 			eventData.TxHash,
-			eventData.Type,
-			eventData.Body,
-			eventData.EvmLogName,
-			eventData.EvmLogParams,
-			eventRelatedAddresses,
-		)
-	}
-
-	// Insert non-tx events.
-	for _, eventData := range data.NonTxEvents {
-		eventRelatedAddresses := common.ExtractAddresses(eventData.RelatedAddresses)
-		batch.Queue(
-			queries.RuntimeEventInsert,
-			m.runtime,
-			data.Header.Round,
-			nil, // non-tx event has no tx index
-			nil, // non-tx event has no tx hash
 			eventData.Type,
 			eventData.Body,
 			eventData.EvmLogName,
