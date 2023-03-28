@@ -67,12 +67,6 @@ type ScopedSdkEvent struct {
 	EVM               *evm.Event
 }
 
-type extractEventResult struct {
-	ExtractedEvents   []*EventData
-	FoundGasUsedEvent bool
-	TxGasUsed         uint64
-}
-
 type AddressPreimageData struct {
 	ContextIdentifier string
 	ContextVersion    int
@@ -253,11 +247,11 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []*nodeapi.Runtim
 			rawNonTxEvents = append(rawNonTxEvents, e)
 		}
 	}
-	res, err := extractEvents(&blockData, map[apiTypes.Address]bool{}, rawNonTxEvents)
+	nonTxEvents, err := extractEvents(&blockData, map[apiTypes.Address]bool{}, rawNonTxEvents)
 	if err != nil {
 		return nil, fmt.Errorf("extract non-tx events: %w", err)
 	}
-	blockData.EventData = res.ExtractedEvents
+	blockData.EventData = nonTxEvents
 
 	// Extract info from transactions.
 	for txIndex, txr := range txrs {
@@ -339,54 +333,59 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []*nodeapi.Runtim
 		for i, e := range txr.Events {
 			txEvents[i] = (*nodeapi.RuntimeEvent)(e)
 		}
-		res, err := extractEvents(&blockData, blockTransactionData.RelatedAccountAddresses, txEvents)
+		extractedTxEvents, err := extractEvents(&blockData, blockTransactionData.RelatedAccountAddresses, txEvents)
 		if err != nil {
 			return nil, fmt.Errorf("tx %d: %w", txIndex, err)
 		}
+		txGasUsed, foundGasUsedEvent := sumGasUsed(extractedTxEvents)
 		// Populate eventData with tx-specific data.
-		for _, eventData := range res.ExtractedEvents {
+		for _, eventData := range extractedTxEvents {
 			txIndex := txIndex // const local copy of loop variable
 			eventData.TxIndex = &txIndex
 			eventData.TxHash = &blockTransactionData.Hash
 		}
-		if !res.FoundGasUsedEvent {
+		if !foundGasUsedEvent {
 			// Early versions of runtimes didn't emit a GasUsed event.
 			if (txr.Result.IsUnknown() || txr.Result.IsSuccess()) && tx != nil {
 				// Treat as if it used all the gas.
 				logger.Info("tx didn't emit a core.GasUsed event, assuming it used max allowed gas", "tx_hash", txr.Tx.Hash(), "assumed_gas_used", tx.AuthInfo.Fee.Gas)
-				res.TxGasUsed = tx.AuthInfo.Fee.Gas
+				txGasUsed = tx.AuthInfo.Fee.Gas
 			} else {
 				// Inaccurate: Treat as not using any gas.
 				// TODO: Decode the tx; if it failed with "out of gas", assume it used all the gas.
 				logger.Info("tx didn't emit a core.GasUsed event and failed, assuming it used no gas", "tx_hash", txr.Tx.Hash(), "assumed_gas_used", 0)
-				res.TxGasUsed = 0
+				txGasUsed = 0
 			}
 		}
-		blockTransactionData.GasUsed = res.TxGasUsed
+		blockTransactionData.GasUsed = txGasUsed
 		blockData.TransactionData = append(blockData.TransactionData, &blockTransactionData)
-		blockData.EventData = append(blockData.EventData, res.ExtractedEvents...)
+		blockData.EventData = append(blockData.EventData, extractedTxEvents...)
 		// If this overflows, it will do so silently. However, supported
 		// runtimes internally use u64 checked math to impose a batch gas,
 		// which will prevent it from emitting blocks that use enough gas to
 		// do that.
-		blockData.GasUsed += res.TxGasUsed
+		blockData.GasUsed += txGasUsed
 		blockData.Size += blockTransactionData.Size
 	}
 	return &blockData, nil
 }
 
-func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Address]bool, eventsRaw []*nodeapi.RuntimeEvent) (*extractEventResult, error) {
+func sumGasUsed(events []*EventData) (sum uint64, foundGasUsedEvent bool) {
+	foundGasUsedEvent = false
+	for _, event := range events {
+		if event.WithScope.Core != nil && event.WithScope.Core.GasUsed != nil {
+			foundGasUsedEvent = true
+			sum += event.WithScope.Core.GasUsed.Amount
+		}
+	}
+	return
+}
+
+func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Address]bool, eventsRaw []*nodeapi.RuntimeEvent) ([]*EventData, error) {
 	extractedEvents := []*EventData{}
-	foundGasUsedEvent := false
-	var txGasUsed uint64
 	if err := VisitSdkEvents(eventsRaw, &SdkEventHandler{
 		Core: func(event *core.Event) error {
 			if event.GasUsed != nil {
-				if foundGasUsedEvent {
-					return fmt.Errorf("multiple gas used events")
-				}
-				foundGasUsedEvent = true
-				txGasUsed = event.GasUsed.Amount
 				eventData := EventData{
 					Type:      apiTypes.RuntimeEventTypeCoreGasUsed,
 					Body:      event.GasUsed,
@@ -601,11 +600,7 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 			return nil
 		},
 	}); err != nil {
-		return &extractEventResult{}, err
+		return nil, err
 	}
-	return &extractEventResult{
-		ExtractedEvents:   extractedEvents,
-		FoundGasUsedEvent: foundGasUsedEvent,
-		TxGasUsed:         txGasUsed,
-	}, nil
+	return extractedEvents, nil
 }
