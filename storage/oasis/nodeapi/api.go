@@ -5,7 +5,6 @@ import (
 	"time"
 
 	beacon "github.com/oasisprotocol/oasis-core/go/beacon/api"
-	"github.com/oasisprotocol/oasis-core/go/common"
 	coreCommon "github.com/oasisprotocol/oasis-core/go/common"
 	hash "github.com/oasisprotocol/oasis-core/go/common/crypto/hash"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
@@ -200,9 +199,9 @@ type (
 // we mustn't compute it on the fly because depending on the
 // node version, this header struct might not be the exact struct
 // returned from the node, so its real hash will differ.
-type RuntimeBlockHeader struct { // nolint: maligned
+type RuntimeBlockHeader struct { //nolint: maligned
 	Version   uint16
-	Namespace common.Namespace
+	Namespace coreCommon.Namespace
 	Round     uint64
 	Timestamp time.Time
 	// Hash of the raw header struct as received from the node API.
