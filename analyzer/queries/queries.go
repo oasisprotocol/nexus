@@ -256,8 +256,8 @@ const (
       VALUES ($1, $2, $3, $4)`
 
 	RuntimeTransactionInsert = `
-    INSERT INTO chain.runtime_transactions (runtime, round, tx_index, tx_hash, tx_eth_hash, fee, gas_limit, gas_used, size, timestamp, method, body, success, error_module, error_code, error_message, raw, result_raw)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)`
+    INSERT INTO chain.runtime_transactions (runtime, round, tx_index, tx_hash, tx_eth_hash, fee, gas_limit, gas_used, size, timestamp, method, body, success, error_module, error_code, error_message)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)`
 
 	RuntimeEventInsert = `
     INSERT INTO chain.runtime_events (runtime, round, tx_index, tx_hash, type, body, evm_log_name, evm_log_params, related_accounts)

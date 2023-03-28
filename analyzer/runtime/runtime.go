@@ -315,8 +315,6 @@ func (m *Main) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 			error_module,
 			error_code,
 			error_message,
-			transactionData.Raw,
-			transactionData.RawResult,
 		)
 	}
 

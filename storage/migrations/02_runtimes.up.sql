@@ -34,6 +34,7 @@ CREATE TABLE chain.runtime_transactions
   round       UINT63 NOT NULL,
   FOREIGN KEY (runtime, round) REFERENCES chain.runtime_blocks DEFERRABLE INITIALLY DEFERRED,
   tx_index    UINT31 NOT NULL,
+  PRIMARY KEY (runtime, round, tx_index),
   timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
 
   tx_hash     HEX64 NOT NULL,
@@ -54,16 +55,7 @@ CREATE TABLE chain.runtime_transactions
   success       BOOLEAN,  -- NULL means success is unknown (can happen in confidential runtimes)
   error_module  TEXT,
   error_code    UINT63,
-  error_message TEXT,
-
-  -- raw is cbor(UnverifiedTransaction). If you're unable to get a copy of the
-  -- transaction from the node itself, parse from here. Remove this if we
-  -- later store sufficiently detailed data in other columns or if we turn out
-  -- to be able to get a copy of the transaction elsewhere.
-  -- TODO: Move raw values to a separate table, or remove them. They're normally not used.
-  raw         BYTEA NOT NULL,
-  result_raw  BYTEA NOT NULL,  -- cbor(CallResult).
-  PRIMARY KEY (runtime, round, tx_index)
+  error_message TEXT
 );
 CREATE INDEX ix_runtime_transactions_tx_hash ON chain.runtime_transactions USING hash (tx_hash);
 CREATE INDEX ix_runtime_transactions_tx_eth_hash ON chain.runtime_transactions USING hash (tx_eth_hash);
