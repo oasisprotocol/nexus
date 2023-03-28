@@ -16,7 +16,6 @@ import (
 	ethCommon "github.com/ethereum/go-ethereum/common"
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/address"
-	"github.com/oasisprotocol/oasis-core/go/common/crypto/hash"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/accounts"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/consensusaccounts"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/core"
@@ -244,8 +243,8 @@ func registerTokenDecrease(tokenChanges map[TokenChangeKey]*big.Int, contractAdd
 func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []*nodeapi.RuntimeTransactionWithResults, rawEvents []*nodeapi.RuntimeEvent, logger *log.Logger) (*BlockData, error) {
 	blockData := BlockData{
 		Header:              blockHeader,
-		Hash:                hash.NewFrom(blockHeader).String(),
-		Timestamp:           time.Unix(int64(blockHeader.Timestamp), 0 /* nanos */),
+		Hash:                blockHeader.Hash.Hex(),
+		Timestamp:           blockHeader.Timestamp,
 		NumTransactions:     len(txrs),
 		TransactionData:     make([]*BlockTransactionData, 0, len(txrs)),
 		EventData:           []*EventData{},

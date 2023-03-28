@@ -84,7 +84,9 @@ type Header struct { // nolint: maligned
 // removed func
 
 // EncodedHash returns the encoded cryptographic hash of the header.
-// removed func
+func (h *Header) EncodedHash() hash.Hash {
+	return hash.NewFrom(h)
+}
 
 // StorageRoots returns the storage roots contained in this header.
 // removed func

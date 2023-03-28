@@ -2,8 +2,10 @@ package nodeapi
 
 import (
 	"context"
+	"time"
 
 	beacon "github.com/oasisprotocol/oasis-core/go/beacon/api"
+	"github.com/oasisprotocol/oasis-core/go/common"
 	coreCommon "github.com/oasisprotocol/oasis-core/go/common"
 	hash "github.com/oasisprotocol/oasis-core/go/common/crypto/hash"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
@@ -13,7 +15,6 @@ import (
 	genesis "github.com/oasisprotocol/oasis-core/go/genesis/api"
 	governance "github.com/oasisprotocol/oasis-core/go/governance/api"
 	registry "github.com/oasisprotocol/oasis-core/go/registry/api"
-	roothash "github.com/oasisprotocol/oasis-core/go/roothash/api/block"
 	scheduler "github.com/oasisprotocol/oasis-core/go/scheduler/api"
 	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
 	apiTypes "github.com/oasisprotocol/oasis-indexer/api/v1/types"
@@ -191,6 +192,25 @@ type RuntimeApiLite interface {
 
 type (
 	RuntimeEvent                  sdkTypes.Event
-	RuntimeBlockHeader            roothash.Header
 	RuntimeTransactionWithResults sdkClient.TransactionWithResults
 )
+
+// Derived from oasis-core: roothash/api/block/header.go
+// Expanded to include the precomputed hash of the header;
+// we mustn't compute it on the fly because depending on the
+// node version, this header struct might not be the exact struct
+// returned from the node, so its real hash will differ.
+type RuntimeBlockHeader struct { // nolint: maligned
+	Version   uint16
+	Namespace common.Namespace
+	Round     uint64
+	Timestamp time.Time
+	// Hash of the raw header struct as received from the node API.
+	// The `PreviousHash` of the next round's block should match this.
+	Hash           hash.Hash
+	PreviousHash   hash.Hash
+	IORoot         hash.Hash
+	StateRoot      hash.Hash
+	MessagesHash   hash.Hash
+	InMessagesHash hash.Hash // NOTE: Available starting in Damask.
+}

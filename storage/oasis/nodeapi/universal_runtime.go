@@ -3,6 +3,7 @@ package nodeapi
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"google.golang.org/grpc"
 
@@ -65,23 +66,35 @@ func (rc *UniversalRuntimeApiLite) GetBlockHeader(ctx context.Context, round uin
 	var block roothash.Block
 	var cobaltBlock cobaltRoothash.Block
 	if err := cbor.Unmarshal(rsp, &block); err == nil {
-		// This is a post-Cobalt block. We use the same type internally in indexer.
-		header = RuntimeBlockHeader(block.Header)
+		// This is a post-Cobalt block.
+		header = RuntimeBlockHeader{
+			Version:        block.Header.Version,
+			Namespace:      block.Header.Namespace,
+			Round:          block.Header.Round,
+			Timestamp:      time.Unix(int64(block.Header.Timestamp), 0 /* nanos */),
+			Hash:           block.Header.EncodedHash(),
+			PreviousHash:   block.Header.PreviousHash,
+			IORoot:         block.Header.IORoot,
+			StateRoot:      block.Header.StateRoot,
+			MessagesHash:   block.Header.MessagesHash,
+			InMessagesHash: block.Header.InMessagesHash,
+		}
 	} else if err := cbor.Unmarshal(rsp, &cobaltBlock); err == nil {
-		// This is a Cobalt block. Convert it to our internal format (= post-Cobalt block).
+		// This is a Cobalt block.
 		header = RuntimeBlockHeader{
 			Version:        cobaltBlock.Header.Version,
 			Namespace:      cobaltBlock.Header.Namespace,
 			Round:          cobaltBlock.Header.Round,
-			Timestamp:      roothash.Timestamp(cobaltBlock.Header.Timestamp),
-			HeaderType:     roothash.HeaderType(cobaltBlock.Header.HeaderType), // We assume a backwards-compatible enum.
+			Timestamp:      time.Unix(int64(cobaltBlock.Header.Timestamp), 0 /* nanos */),
+			Hash:           cobaltBlock.Header.EncodedHash(),
+			PreviousHash:   cobaltBlock.Header.PreviousHash,
 			IORoot:         cobaltBlock.Header.IORoot,
 			StateRoot:      cobaltBlock.Header.StateRoot,
 			MessagesHash:   cobaltBlock.Header.MessagesHash,
 			InMessagesHash: hash.Hash{}, // Absent in Cobalt.
 		}
 	} else {
-		return nil, fmt.Errorf("unsupported runtime block structure: %#v", rsp)
+		return nil, fmt.Errorf("unsupported runtime block structure: %w %x", err, rsp)
 	}
 	return &header, nil
 }
