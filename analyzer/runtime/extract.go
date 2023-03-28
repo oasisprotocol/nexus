@@ -345,6 +345,7 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []*nodeapi.Runtim
 		}
 		// Populate eventData with tx-specific data.
 		for _, eventData := range res.ExtractedEvents {
+			txIndex := txIndex // const local copy of loop variable
 			eventData.TxIndex = &txIndex
 			eventData.TxHash = &blockTransactionData.Hash
 		}
