@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/gob"
+	"encoding/json"
 	"fmt"
 
 	"github.com/akrylysov/pogreb"
@@ -65,19 +66,16 @@ func (c *FileConsensusApiLite) get(key []byte, result interface{}) error {
 	if err != nil {
 		return err
 	}
-	dec := gob.NewDecoder(bytes.NewReader(res))
-	return dec.Decode(result)
+	return json.Unmarshal(res, result)
 }
 
 func (c *FileConsensusApiLite) put(key []byte, val interface{}) error {
-	var buf bytes.Buffer
-	enc := gob.NewEncoder(&buf)
-	err := enc.Encode(val)
+	valBytes, err := json.Marshal(val)
 	if err != nil {
 		fmt.Printf("file backend: error encoding value for put " + err.Error())
 		return err
 	}
-	return c.db.Put(key, buf.Bytes())
+	return c.db.Put(key, valBytes)
 }
 
 func (c *FileConsensusApiLite) updateCache(key []byte, method ConsensusApiMethod) error {
