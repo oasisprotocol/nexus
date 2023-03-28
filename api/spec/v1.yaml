@@ -140,6 +140,12 @@ x-type-annotations:
     x-go-type: staking.Address
     x-go-type-import: { name: staking, path: "github.com/oasisprotocol/oasis-core/go/staking/api" }
     description: An oasis-style (bech32) address.
+  address: &AddressType
+    type: string
+    pattern: '^oasis1[a-z0-9]{40}$'
+    example: "oasis1qpg2xuz46g53737343r20yxeddhlvc2ldqsjh70p"
+    x-go-type: Address
+    description: An oasis-style (bech32) address.
   pubkey: &Ed25519PubKeyType
     type: string
     format: byte  # means base64-encoded raw bytes
@@ -2005,7 +2011,7 @@ components:
             Absent for non-Ethereum-format transactions.
           example: 9e6a5837c6366d4a7e477c71ffe32d40915cdef7ef209792259e5ee70caf2705
         sender_0:
-          type: string
+          <<: *AddressType
           description: |
             The Oasis address of this transaction's 0th signer.
             Unlike Ethereum, Oasis natively supports multiple-signature transactions.
@@ -2061,7 +2067,7 @@ components:
           description: The method call body. May be null if the transaction was malformed.
           example: {"address": "t1mAPucIdVnrYBpJOcLV2nZoOFo=", "data": RBo+cAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=", "value": ""}
         to:
-          type: string
+          <<: *AddressType
           description: |
             A reasonable "to" Oasis address associated with this transaction,
             if applicable. The meaning varies based on the transaction method. Some notable examples:
