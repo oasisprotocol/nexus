@@ -50,6 +50,8 @@ CREATE TABLE chain.runtime_transactions
   -- Transaction contents.
   method      TEXT NOT NULL,  -- accounts.Transter, consensus.Deposit, consensus.Withdraw, evm.Create, evm.Call
   body        JSON NOT NULL,  -- For EVM txs, the EVM method and args are encoded in here.
+  "to"        oasis_addr,     -- Exact semantics depend on method. Extracted from body; for convenience only.
+  amount      UINT_NUMERIC,   -- Exact semantics depend on method. Extracted from body; for convenience only.
 
   -- Error information.
   success       BOOLEAN,  -- NULL means success is unknown (can happen in confidential runtimes)

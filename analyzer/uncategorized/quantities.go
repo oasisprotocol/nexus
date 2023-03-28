@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/big"
 
+	"github.com/oasisprotocol/oasis-core/go/common/quantity"
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 )
 
@@ -16,4 +17,10 @@ func StringifyNativeDenomination(amount *sdkTypes.BaseUnits) (string, error) {
 
 func StringifyBytes(value []byte) string {
 	return new(big.Int).SetBytes(value).String()
+}
+
+func QuantityFromBytes(value []byte) quantity.Quantity {
+	q := *quantity.NewQuantity()
+	q.FromBigInt(new(big.Int).SetBytes(value))
+	return q
 }

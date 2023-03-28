@@ -325,7 +325,9 @@ const (
 			txs.size,
 			txs.method,
 			txs.body,
-			-- .to, .to_eth, and .amout have to be inferred from the body post-hoc
+			txs.to,
+			encode(to_eth.address_data, 'hex') AS to_eth,
+			txs.amount,
 			txs.success,
 			txs.error_module,
 			txs.error_code,
@@ -334,8 +336,10 @@ const (
 		LEFT JOIN chain.runtime_transaction_signers AS signer0 USING (runtime, round, tx_index)
 		LEFT JOIN chain.address_preimages AS signer_eth ON
 			(signer0.signer_address = signer_eth.address) AND
-			(signer_eth.context_identifier = 'oasis-runtime-sdk/address: secp256k1eth') AND
-			(signer_eth.context_version = 0)
+			(signer_eth.context_identifier = 'oasis-runtime-sdk/address: secp256k1eth') AND (signer_eth.context_version = 0)
+		LEFT JOIN chain.address_preimages AS to_eth ON
+			(txs.to = to_eth.address) AND
+			(to_eth.context_identifier = 'oasis-runtime-sdk/address: secp256k1eth') AND (to_eth.context_version = 0)
 		LEFT JOIN chain.runtime_related_transactions AS rel ON 
 			(txs.round = rel.tx_round) AND
 			(txs.tx_index = rel.tx_index) AND

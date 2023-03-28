@@ -1073,6 +1073,9 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetR
 			&t.Size,
 			&t.Method,
 			&t.Body,
+			&t.To,
+			&t.ToEth,
+			&t.Amount,
 			&t.Success,
 			&t.Error.Module,
 			&t.Error.Code,
@@ -1086,6 +1089,9 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetR
 		// Fancy-format eth addresses: Apply checksum capitalization, prepend 0x.
 		if t.Sender0Eth != nil {
 			*t.Sender0Eth = ethCommon.HexToAddress(*t.Sender0Eth).Hex()
+		}
+		if t.ToEth != nil {
+			*t.ToEth = ethCommon.HexToAddress(*t.ToEth).Hex()
 		}
 
 		ts.Transactions = append(ts.Transactions, t)

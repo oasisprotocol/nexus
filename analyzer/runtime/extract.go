@@ -15,6 +15,7 @@ import (
 	ethCommon "github.com/ethereum/go-ethereum/common"
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/address"
+	"github.com/oasisprotocol/oasis-core/go/common/quantity"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/accounts"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/consensusaccounts"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/core"
@@ -45,13 +46,14 @@ type BlockTransactionData struct {
 	RawResult               []byte
 	SignerData              []*BlockTransactionSignerData
 	RelatedAccountAddresses map[apiTypes.Address]bool
-	// TODO: Provide:
-	Fee      common.BigInt
-	GasLimit uint64
-	Method   string
-	Body     interface{}
-	Success  *bool
-	Error    *TxError
+	Fee                     common.BigInt
+	GasLimit                uint64
+	Method                  string
+	Body                    interface{}
+	To                      *apiTypes.Address // Extracted from the body for convenience. Semantics vary by tx type.
+	Amount                  *common.BigInt    // Extracted from the body for convenience. Semantics vary by tx type.
+	Success                 *bool
+	Error                   *TxError
 }
 
 type TxError struct {
@@ -326,18 +328,22 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []*nodeapi.Runtim
 			}
 
 			blockTransactionData.Method = tx.Call.Method
+			var to apiTypes.Address
+			var amount quantity.Quantity
 			if err = VisitCall(&tx.Call, &txr.Result, &CallHandler{
 				AccountsTransfer: func(body *accounts.Transfer) error {
 					blockTransactionData.Body = body
-					if _, err = registerRelatedSdkAddress(blockTransactionData.RelatedAccountAddresses, &body.To); err != nil {
+					amount = body.Amount.Amount
+					if to, err = registerRelatedSdkAddress(blockTransactionData.RelatedAccountAddresses, &body.To); err != nil {
 						return fmt.Errorf("to: %w", err)
 					}
 					return nil
 				},
 				ConsensusAccountsDeposit: func(body *consensusaccounts.Deposit) error {
 					blockTransactionData.Body = body
+					amount = body.Amount.Amount
 					if body.To != nil {
-						if _, err = registerRelatedSdkAddress(blockTransactionData.RelatedAccountAddresses, body.To); err != nil {
+						if to, err = registerRelatedSdkAddress(blockTransactionData.RelatedAccountAddresses, body.To); err != nil {
 							return fmt.Errorf("to: %w", err)
 						}
 					}
@@ -345,14 +351,23 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []*nodeapi.Runtim
 				},
 				ConsensusAccountsWithdraw: func(body *consensusaccounts.Withdraw) error {
 					blockTransactionData.Body = body
-					// .To is from another chain, so exclude?
+					amount = body.Amount.Amount
+					if body.To != nil {
+						// Beware, this is the address of an account in the consensus
+						// layer, not an account in the runtime that generated this event.
+						// We do not register it as a preimage.
+						if to, err = uncategorized.StringifySdkAddress(body.To); err != nil {
+							return fmt.Errorf("to: %w", err)
+						}
+					}
 					return nil
 				},
 				EVMCreate: func(body *evm.Create, ok *[]byte) error {
 					blockTransactionData.Body = body
+					amount = uncategorized.QuantityFromBytes(body.Value)
 					if !txr.Result.IsUnknown() && txr.Result.IsSuccess() && len(*ok) == 32 {
 						// todo: is this rigorous enough?
-						if _, err = registerRelatedEthAddress(blockData.AddressPreimages, blockTransactionData.RelatedAccountAddresses, uncategorized.SliceEthAddress(*ok)); err != nil {
+						if to, err = registerRelatedEthAddress(blockData.AddressPreimages, blockTransactionData.RelatedAccountAddresses, uncategorized.SliceEthAddress(*ok)); err != nil {
 							return fmt.Errorf("created contract: %w", err)
 						}
 					}
@@ -360,7 +375,8 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []*nodeapi.Runtim
 				},
 				EVMCall: func(body *evm.Call, ok *[]byte) error {
 					blockTransactionData.Body = body
-					if _, err = registerRelatedEthAddress(blockData.AddressPreimages, blockTransactionData.RelatedAccountAddresses, body.Address); err != nil {
+					amount = uncategorized.QuantityFromBytes(body.Value)
+					if to, err = registerRelatedEthAddress(blockData.AddressPreimages, blockTransactionData.RelatedAccountAddresses, body.Address); err != nil {
 						return fmt.Errorf("address: %w", err)
 					}
 					// todo: maybe parse known token methods
@@ -369,6 +385,10 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []*nodeapi.Runtim
 			}); err != nil {
 				return nil, fmt.Errorf("tx %d: %w", txIndex, err)
 			}
+			if to != "" {
+				blockTransactionData.To = &to
+			}
+			blockTransactionData.Amount = common.Ptr(common.BigIntFromQuantity(amount))
 		}
 		txEvents := make([]*nodeapi.RuntimeEvent, len(txr.Events))
 		for i, e := range txr.Events {

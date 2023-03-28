@@ -311,6 +311,8 @@ func (m *Main) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 			data.Header.Timestamp,
 			transactionData.Method,
 			transactionData.Body,
+			transactionData.To,
+			transactionData.Amount,
 			transactionData.Success,
 			error_module,
 			error_code,
