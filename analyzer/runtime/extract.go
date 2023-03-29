@@ -247,7 +247,7 @@ func registerTokenDecrease(tokenChanges map[TokenChangeKey]*big.Int, contractAdd
 	change.Sub(change, amount)
 }
 
-func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []*nodeapi.RuntimeTransactionWithResults, rawEvents []*nodeapi.RuntimeEvent, logger *log.Logger) (*BlockData, error) {
+func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []*nodeapi.RuntimeTransactionWithResults, rawEvents []*nodeapi.RuntimeEvent, logger *log.Logger) (*BlockData, error) { //nolint:gocyclo
 	blockData := BlockData{
 		Header:              blockHeader,
 		NumTransactions:     len(txrs),
@@ -295,7 +295,7 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []*nodeapi.Runtim
 			)
 			tx = nil
 		}
-		if tx != nil {
+		if tx != nil { //nolint:nestif
 			blockTransactionData.SignerData = make([]*BlockTransactionSignerData, 0, len(tx.AuthInfo.SignerInfo))
 			for j, si := range tx.AuthInfo.SignerInfo {
 				var blockTransactionSignerData BlockTransactionSignerData
@@ -312,7 +312,7 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []*nodeapi.Runtim
 			blockTransactionData.GasLimit = tx.AuthInfo.Fee.Gas
 
 			// Parse the success/error status.
-			if fail := txr.Result.Failed; fail != nil {
+			if fail := txr.Result.Failed; fail != nil { //nolint:gocritic
 				blockTransactionData.Success = common.Ptr(false)
 				blockTransactionData.Error = &TxError{
 					Code:   fail.Code,

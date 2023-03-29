@@ -21,6 +21,6 @@ func StringifyBytes(value []byte) string {
 
 func QuantityFromBytes(value []byte) quantity.Quantity {
 	q := *quantity.NewQuantity()
-	q.FromBigInt(new(big.Int).SetBytes(value))
+	_ = q.FromBigInt(new(big.Int).SetBytes(value))
 	return q
 }
