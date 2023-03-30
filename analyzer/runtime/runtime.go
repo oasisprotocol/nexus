@@ -304,7 +304,7 @@ func (m *Main) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 			transactionData.Index,
 			transactionData.Hash,
 			transactionData.EthHash,
-			transactionData.Fee.String(),
+			&transactionData.Fee, // pgx bug? Needs a *BigInt (not BigInt) to know how to serialize.
 			transactionData.GasLimit,
 			transactionData.GasUsed,
 			transactionData.Size,
