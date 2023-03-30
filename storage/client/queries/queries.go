@@ -98,26 +98,15 @@ const (
 
 	Entities = `
 		SELECT id, address
-		FROM chain.entities
-		-- The metadata_registry analyzer does not receive entity addresses from git, only metadata.
-		-- Addresses come from registry events in the consensus layer. Ignore entities that only the
-		-- metadata_registry analyzer knows about; they are irrelevant to the current state of the
-		-- chain, and our API guarantees a non-null address.
-		WHERE (address IS NOT NULL)
+			FROM chain.entities
 		ORDER BY id
 		LIMIT $1::bigint
 		OFFSET $2::bigint`
 
 	Entity = `
 		SELECT id, address
-		FROM chain.entities
-		WHERE
-			(id = $1::text) AND
-			-- The metadata_registry analyzer does not receive entity addresses from git, only metadata.
-			-- Addresses come from registry events in the consensus layer. Ignore entities that only the
-			-- metadata_registry analyzer knows about; they are irrelevant to the current state of the
-			-- chain, and our API guarantees a non-null address.
-			(address IS NOT NULL)`
+			FROM chain.entities
+			WHERE id = $1::text`
 
 	EntityNodeIds = `
 		SELECT id
