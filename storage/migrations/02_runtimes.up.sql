@@ -78,6 +78,7 @@ CREATE TABLE chain.runtime_related_transactions
 );
 CREATE INDEX ix_runtime_related_transactions_address ON chain.runtime_related_transactions (runtime, account_address);
 CREATE INDEX ix_runtime_related_transactions_round_index ON chain.runtime_related_transactions (runtime, tx_round, tx_index);
+CREATE INDEX ix_runtime_related_transactions_address_round_index ON chain.runtime_related_transactions (runtime, account_address, tx_round, tx_index);
 
 -- Events emitted from the runtimes. Includes deeply-parsed EVM events from EVM runtimes.
 CREATE TABLE chain.runtime_events
