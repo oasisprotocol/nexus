@@ -351,8 +351,14 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []*nodeapi.Runtim
 				logger.Info("tx didn't emit a core.GasUsed event, assuming it used max allowed gas", "tx_hash", txr.Tx.Hash(), "assumed_gas_used", tx.AuthInfo.Fee.Gas)
 				txGasUsed = tx.AuthInfo.Fee.Gas
 			} else {
-				// Inaccurate: Treat as not using any gas.
-				// TODO: Decode the tx; if it failed with "out of gas", assume it used all the gas.
+				// Very rough heuristic: Treat as not using any gas.
+				//
+				// It's probably closer to truth to guess that all gas was used, unless
+				// there was an auth or insufficient-funds error, but a very simple
+				// heuristic is nice in its own right; it's easy to explain.
+				//
+				// Beware that some failed txs have an enormous (e.g. MAX_INT64) gas
+				// limit.
 				logger.Info("tx didn't emit a core.GasUsed event and failed, assuming it used no gas", "tx_hash", txr.Tx.Hash(), "assumed_gas_used", 0)
 				txGasUsed = 0
 			}

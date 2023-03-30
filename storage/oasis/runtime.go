@@ -52,6 +52,9 @@ func (rc *RuntimeClient) nativeTokenSymbol() string {
 	for _, network := range config.DefaultNetworks.All {
 		// Iterate over all networks and find the one that contains the runtime.
 		// Any network will do; we assume that paratime IDs are unique across networks.
+		// TODO: Remove this assumption; paratime IDs are chosen by the entity that registers them,
+		// so conflicts (particularly intentional/malicious) are possible.
+		// https://github.com/oasisprotocol/oasis-indexer/pull/362#discussion_r1153606360
 		for _, paratime := range network.ParaTimes.All {
 			if paratime.ID == rc.info.ID.Hex() {
 				return paratime.Denominations[config.NativeDenominationKey].Symbol

@@ -118,6 +118,8 @@ type (
 // .................... Registry ....................
 
 // RuntimeRegisteredEvent signifies new runtime registration.
+// This is a stripped-down version of an unfortunately named `registry.RuntimeEvent` (in Cobalt and Damask).
+// Post-Damask, this is replaced by registry.RuntimeStartedEvent.
 type RuntimeRegisteredEvent struct {
 	ID          coreCommon.Namespace
 	EntityID    signature.PublicKey   // The Entity controlling the runtime.
