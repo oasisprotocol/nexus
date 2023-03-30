@@ -78,9 +78,10 @@ type Event struct {
 // AddEscrowEvent is the event emitted when stake is transferred into an escrow
 // account.
 type AddEscrowEvent struct {
-	Owner  Address           `json:"owner"`
-	Escrow Address           `json:"escrow"`
-	Amount quantity.Quantity `json:"amount"`
+	Owner     Address           `json:"owner"`
+	Escrow    Address           `json:"escrow"`
+	Amount    quantity.Quantity `json:"amount"`
+	NewShares quantity.Quantity `json:"new_shares"` // Only emitted at _some_ heights; introduced in oasis-core v21.2.0 mid-Cobalt.
 }
 
 // TakeEscrowEvent is the event emitted when stake is taken from an escrow
@@ -96,6 +97,7 @@ type ReclaimEscrowEvent struct {
 	Owner  Address           `json:"owner"`
 	Escrow Address           `json:"escrow"`
 	Amount quantity.Quantity `json:"amount"`
+	Shares quantity.Quantity `json:"shares"` // Only emitted at _some_ heights; introduced in oasis-core v21.2.0 mid-Cobalt.
 }
 
 // AllowanceChangeEvent is the event emitted when allowance is changed for a beneficiary.
