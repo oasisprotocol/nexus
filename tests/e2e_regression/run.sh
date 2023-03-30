@@ -68,8 +68,19 @@ testCases=(
 )
 nCases=${#testCases[@]}
 
-seen=()
+# Kill background processes on exit. (In our case the indexer API server.)
+trap 'trap - SIGTERM && kill -- -$$' SIGINT SIGTERM EXIT
 
+# Start the API server.
+make oasis-indexer
+./oasis-indexer --config="${SCRIPT_DIR}/e2e_config.yaml" serve &
+while ! curl --silent localhost:8008/v1/ >/dev/null; do
+  echo "Waiting for API server to start..."
+  sleep 1
+done
+
+# Run the test cases.
+seen=()
 for (( i=0; i<nCases; i++ )); do
   name="$(echo "${testCases[$i]}" | awk '{print $1}')"
   url="$(echo "${testCases[$i]}" | awk '{print $2}')"

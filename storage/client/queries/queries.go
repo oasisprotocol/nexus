@@ -313,33 +313,46 @@ const (
 		SELECT
 			txs.round,
 			txs.tx_index,
+			txs.timestamp,
 			txs.tx_hash,
 			txs.tx_eth_hash,
+			signer0.signer_address AS sender0,
+			encode(signer_eth.address_data, 'hex') AS sender0_eth,
+			signer0.nonce AS nonce0,
+			txs.fee,
+			txs.gas_limit,
 			txs.gas_used,
 			txs.size,
-			txs.timestamp,
-			txs.raw,
-			txs.result_raw,
-			(
-				SELECT
-					json_object_agg(pre.address, encode(pre.address_data, 'hex'))
-				FROM chain.runtime_related_transactions AS rel
-				JOIN chain.address_preimages AS pre ON rel.account_address = pre.address
-				WHERE txs.runtime = rel.runtime
-					AND txs.round = rel.tx_round
-					AND txs.tx_index = rel.tx_index
-			) AS eth_addr_lookup
+			txs.method,
+			txs.body,
+			txs.to,
+			encode(to_eth.address_data, 'hex') AS to_eth,
+			txs.amount,
+			txs.success,
+			txs.error_module,
+			txs.error_code,
+			txs.error_message
 		FROM chain.runtime_transactions AS txs
-		LEFT JOIN chain.runtime_related_transactions AS rel ON txs.round = rel.tx_round
-			AND txs.tx_index = rel.tx_index
-			AND txs.runtime = rel.runtime
+		LEFT JOIN chain.runtime_transaction_signers AS signer0 USING (runtime, round, tx_index)
+		LEFT JOIN chain.address_preimages AS signer_eth ON
+			(signer0.signer_address = signer_eth.address) AND
+			(signer_eth.context_identifier = 'oasis-runtime-sdk/address: secp256k1eth') AND (signer_eth.context_version = 0)
+		LEFT JOIN chain.address_preimages AS to_eth ON
+			(txs.to = to_eth.address) AND
+			(to_eth.context_identifier = 'oasis-runtime-sdk/address: secp256k1eth') AND (to_eth.context_version = 0)
+		LEFT JOIN chain.runtime_related_transactions AS rel ON 
+			(txs.round = rel.tx_round) AND
+			(txs.tx_index = rel.tx_index) AND
+			(txs.runtime = rel.runtime) AND
 			-- When related_address ($4) is NULL and hence we do no filtering on it, avoid the join altogether.
 			-- Otherwise, every tx will be returned as many times as there are related addresses for it.
-			AND $4::text IS NOT NULL
-		WHERE (txs.runtime = $1) AND
-					($2::bigint IS NULL OR txs.round = $2::bigint) AND
-					($3::text IS NULL OR txs.tx_hash = $3::text OR txs.tx_eth_hash = $3::text) AND
-					($4::text IS NULL OR rel.account_address = $4::text)
+			($4::text IS NOT NULL)
+		WHERE
+			(txs.runtime = $1) AND
+			(signer0.signer_index = 0) AND
+			($2::bigint IS NULL OR txs.round = $2::bigint) AND
+			($3::text IS NULL OR txs.tx_hash = $3::text OR txs.tx_eth_hash = $3::text) AND
+			($4::text IS NULL OR rel.account_address = $4::text)
 		ORDER BY txs.round DESC, txs.tx_index DESC
 		LIMIT $5::bigint
 		OFFSET $6::bigint
@@ -355,7 +368,7 @@ const (
 					($5::text IS NULL OR type = $5::text) AND
 					($6::text IS NULL OR evm_log_signature = $6::text) AND
 					($7::text IS NULL OR related_accounts @> ARRAY[$7::text])
-			ORDER BY round DESC, tx_index
+			ORDER BY round DESC, tx_index, type, body::text
 			LIMIT $8::bigint
 			OFFSET $9::bigint`
 

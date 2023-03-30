@@ -289,6 +289,14 @@ func (m *Main) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 		for addr := range transactionData.RelatedAccountAddresses {
 			batch.Queue(queries.RuntimeRelatedTransactionInsert, m.runtime, addr, data.Header.Round, transactionData.Index)
 		}
+		var error_module string
+		var error_code uint32
+		var error_message *string
+		if transactionData.Error != nil {
+			error_module = transactionData.Error.Module
+			error_code = transactionData.Error.Code
+			error_message = transactionData.Error.Message
+		}
 		batch.Queue(
 			queries.RuntimeTransactionInsert,
 			m.runtime,
@@ -296,11 +304,19 @@ func (m *Main) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 			transactionData.Index,
 			transactionData.Hash,
 			transactionData.EthHash,
+			&transactionData.Fee, // pgx bug? Needs a *BigInt (not BigInt) to know how to serialize.
+			transactionData.GasLimit,
 			transactionData.GasUsed,
 			transactionData.Size,
 			data.Header.Timestamp,
-			transactionData.Raw,
-			transactionData.RawResult,
+			transactionData.Method,
+			transactionData.Body,
+			transactionData.To,
+			transactionData.Amount,
+			transactionData.Success,
+			error_module,
+			error_code,
+			error_message,
 		)
 	}
 

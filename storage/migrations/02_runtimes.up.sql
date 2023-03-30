@@ -34,19 +34,30 @@ CREATE TABLE chain.runtime_transactions
   round       UINT63 NOT NULL,
   FOREIGN KEY (runtime, round) REFERENCES chain.runtime_blocks DEFERRABLE INITIALLY DEFERRED,
   tx_index    UINT31 NOT NULL,
+  PRIMARY KEY (runtime, round, tx_index),
+  timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
+
   tx_hash     HEX64 NOT NULL,
   tx_eth_hash HEX64,
-  gas_used UINT63 NOT NULL,
+  -- NOTE: The signer(s) and their nonce(s) are stored separately in runtime_transaction_signers.
+
+  fee         UINT_NUMERIC NOT NULL,
+  gas_limit   UINT63 NOT NULL,
+  gas_used    UINT63 NOT NULL,
+
   size UINT31 NOT NULL,
-  timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
-  -- raw is cbor(UnverifiedTransaction). If you're unable to get a copy of the
-  -- transaction from the node itself, parse from here. Remove this if we
-  -- later store sufficiently detailed data in other columns or if we turn out
-  -- to be able to get a copy of the transaction elsewhere.
-  raw         BYTEA NOT NULL,
-  -- result_raw is cbor(CallResult).
-  result_raw  BYTEA NOT NULL,
-  PRIMARY KEY (runtime, round, tx_index)
+  
+  -- Transaction contents.
+  method      TEXT NOT NULL,  -- accounts.Transter, consensus.Deposit, consensus.Withdraw, evm.Create, evm.Call
+  body        JSON NOT NULL,  -- For EVM txs, the EVM method and args are encoded in here.
+  "to"        oasis_addr,     -- Exact semantics depend on method. Extracted from body; for convenience only.
+  amount      UINT_NUMERIC,   -- Exact semantics depend on method. Extracted from body; for convenience only.
+
+  -- Error information.
+  success       BOOLEAN,  -- NULL means success is unknown (can happen in confidential runtimes)
+  error_module  TEXT,
+  error_code    UINT63,
+  error_message TEXT
 );
 CREATE INDEX ix_runtime_transactions_tx_hash ON chain.runtime_transactions USING hash (tx_hash);
 CREATE INDEX ix_runtime_transactions_tx_eth_hash ON chain.runtime_transactions USING hash (tx_eth_hash);
@@ -62,7 +73,7 @@ CREATE TABLE chain.runtime_transaction_signers
   -- from multisig accounts).
   signer_index   UINT31 NOT NULL,
   signer_address oasis_addr NOT NULL,
-  nonce          UINT31 NOT NULL,
+  nonce          UINT63 NOT NULL,
   PRIMARY KEY (runtime, round, tx_index, signer_index),
   FOREIGN KEY (runtime, round, tx_index) REFERENCES chain.runtime_transactions(runtime, round, tx_index) DEFERRABLE INITIALLY DEFERRED
 );

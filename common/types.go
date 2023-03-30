@@ -84,6 +84,10 @@ func NumericToBigInt(n pgtype.Numeric) (BigInt, error) {
 	return BigInt{Int: *big0}, nil
 }
 
+func Ptr[T any](v T) *T {
+	return &v
+}
+
 // Key used to set values in a web request context. API uses this to set
 // values, backend uses this to retrieve values.
 type ContextKey string
