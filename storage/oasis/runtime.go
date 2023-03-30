@@ -2,95 +2,59 @@ package oasis
 
 import (
 	"context"
-	"fmt"
 
+	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
 	config "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
-	connection "github.com/oasisprotocol/oasis-sdk/client-sdk/go/connection"
-	runtimeSignature "github.com/oasisprotocol/oasis-sdk/client-sdk/go/crypto/signature"
-	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/evm"
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 
 	"github.com/oasisprotocol/oasis-indexer/storage"
 )
 
-// RuntimeClient is a client to a ParaTime.
+// RuntimeClient is a client to a runtime. Unlike RuntimeApiLite implementations,
+// which provide a 1:1 mapping to the Oasis node's runtime RPCs, this client
+// is higher-level and provides a more convenient interface for the indexer.
+//
+// TODO: Get rid of this struct, it hardly provides any value.
 type RuntimeClient struct {
-	client  connection.RuntimeClient
-	network *config.Network
-
-	info  *sdkTypes.RuntimeInfo
-	rtCtx runtimeSignature.Context
+	nodeApi nodeapi.RuntimeApiLite
+	info    *sdkTypes.RuntimeInfo
 }
 
 // AllData returns all relevant data to the given round.
 func (rc *RuntimeClient) AllData(ctx context.Context, round uint64) (*storage.RuntimeAllData, error) {
-	blockData, err := rc.BlockData(ctx, round)
+	blockHeader, err := rc.nodeApi.GetBlockHeader(ctx, round)
 	if err != nil {
 		return nil, err
 	}
-	rawEvents, err := rc.GetEventsRaw(ctx, round)
+	rawEvents, err := rc.nodeApi.GetEventsRaw(ctx, round)
+	if err != nil {
+		return nil, err
+	}
+	transactionsWithResults, err := rc.nodeApi.GetTransactionsWithResults(ctx, round)
 	if err != nil {
 		return nil, err
 	}
 
 	data := storage.RuntimeAllData{
-		Round:     round,
-		BlockData: blockData,
-		RawEvents: rawEvents,
+		Round:                   round,
+		BlockHeader:             *blockHeader,
+		RawEvents:               rawEvents,
+		TransactionsWithResults: transactionsWithResults,
 	}
 	return &data, nil
 }
 
-// BlockData gets block data in the specified round.
-func (rc *RuntimeClient) BlockData(ctx context.Context, round uint64) (*storage.RuntimeBlockData, error) {
-	block, err := rc.client.GetBlock(ctx, round)
-	if err != nil {
-		return nil, err
-	}
-
-	transactionsWithResults, err := rc.client.GetTransactionsWithResults(ctx, round)
-	if err != nil {
-		return nil, err
-	}
-
-	return &storage.RuntimeBlockData{
-		Round:                   round,
-		BlockHeader:             block,
-		TransactionsWithResults: transactionsWithResults,
-	}, nil
-}
-
-func (rc *RuntimeClient) GetEventsRaw(ctx context.Context, round uint64) ([]*sdkTypes.Event, error) {
-	return rc.client.GetEventsRaw(ctx, round)
-}
-
 func (rc *RuntimeClient) EVMSimulateCall(ctx context.Context, round uint64, gasPrice []byte, gasLimit uint64, caller []byte, address []byte, value []byte, data []byte) ([]byte, error) {
-	return evm.NewV1(rc.client).SimulateCall(ctx, round, gasPrice, gasLimit, caller, address, value, data)
-}
-
-// Name returns the name of the client, for the RuntimeSourceStorage interface.
-func (rc *RuntimeClient) Name() string {
-	paratimeName := "unknown"
-	for _, network := range config.DefaultNetworks.All {
-		for pName := range network.ParaTimes.All {
-			if pName == rc.info.ID.String() {
-				paratimeName = pName
-				break
-			}
-		}
-
-		if paratimeName != "unknown" {
-			break
-		}
-	}
-	return fmt.Sprintf("%s_runtime", paratimeName)
+	return rc.nodeApi.EVMSimulateCall(ctx, round, gasPrice, gasLimit, caller, address, value, data)
 }
 
 func (rc *RuntimeClient) nativeTokenSymbol() string {
 	for _, network := range config.DefaultNetworks.All {
-		if network.ChainContext != rc.network.ChainContext {
-			continue
-		}
+		// Iterate over all networks and find the one that contains the runtime.
+		// Any network will do; we assume that paratime IDs are unique across networks.
+		// TODO: Remove this assumption; paratime IDs are chosen by the entity that registers them,
+		// so conflicts (particularly intentional/malicious) are possible.
+		// https://github.com/oasisprotocol/oasis-indexer/pull/362#discussion_r1153606360
 		for _, paratime := range network.ParaTimes.All {
 			if paratime.ID == rc.info.ID.Hex() {
 				return paratime.Denominations[config.NativeDenominationKey].Symbol

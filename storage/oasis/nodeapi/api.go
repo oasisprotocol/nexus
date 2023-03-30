@@ -2,6 +2,7 @@ package nodeapi
 
 import (
 	"context"
+	"time"
 
 	beacon "github.com/oasisprotocol/oasis-core/go/beacon/api"
 	coreCommon "github.com/oasisprotocol/oasis-core/go/common"
@@ -16,7 +17,13 @@ import (
 	scheduler "github.com/oasisprotocol/oasis-core/go/scheduler/api"
 	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
 	apiTypes "github.com/oasisprotocol/oasis-indexer/api/v1/types"
+	sdkClient "github.com/oasisprotocol/oasis-sdk/client-sdk/go/client"
+	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 )
+
+// ....................................................
+// ....................  Consensus  ...................
+// ....................................................
 
 // ConsensusApiLite provides low-level access to the consensus API of one or
 // more (versions of) Oasis nodes.
@@ -84,10 +91,10 @@ type Event struct {
 	StakingDebondingStart       *DebondingStartEscrowEvent // Available starting in Damask.
 	StakingAllowanceChange      *AllowanceChangeEvent
 
-	RegistryRuntime      *RuntimeEvent
-	RegistryEntity       *EntityEvent
-	RegistryNode         *NodeEvent
-	RegistryNodeUnfrozen *NodeUnfrozenEvent
+	RegistryRuntimeRegistered *RuntimeRegisteredEvent
+	RegistryEntity            *EntityEvent
+	RegistryNode              *NodeEvent
+	RegistryNodeUnfrozen      *NodeUnfrozenEvent
 
 	RoothashExecutorCommitted *ExecutorCommittedEvent
 
@@ -110,8 +117,10 @@ type (
 
 // .................... Registry ....................
 
-// RuntimeEvent signifies new runtime registration.
-type RuntimeEvent struct {
+// RuntimeRegisteredEvent signifies new runtime registration.
+// This is a stripped-down version of an unfortunately named `registry.RuntimeEvent` (in Cobalt and Damask).
+// Post-Damask, this is replaced by registry.RuntimeStartedEvent.
+type RuntimeRegisteredEvent struct {
 	ID          coreCommon.Namespace
 	EntityID    signature.PublicKey   // The Entity controlling the runtime.
 	Kind        string                // enum: "compute", "keymanager"
@@ -169,3 +178,40 @@ type (
 // .................... Governance ....................
 
 type Proposal governance.Proposal
+
+// ....................................................
+// ....................  Runtimes  ....................
+// ....................................................
+
+// Like ConsensusApiLite, but for the runtime API.
+type RuntimeApiLite interface {
+	GetEventsRaw(ctx context.Context, round uint64) ([]*RuntimeEvent, error)
+	EVMSimulateCall(ctx context.Context, round uint64, gasPrice []byte, gasLimit uint64, caller []byte, address []byte, value []byte, data []byte) ([]byte, error)
+	GetBlockHeader(ctx context.Context, round uint64) (*RuntimeBlockHeader, error)
+	GetTransactionsWithResults(ctx context.Context, round uint64) ([]*RuntimeTransactionWithResults, error)
+}
+
+type (
+	RuntimeEvent                  sdkTypes.Event
+	RuntimeTransactionWithResults sdkClient.TransactionWithResults
+)
+
+// Derived from oasis-core: roothash/api/block/header.go
+// Expanded to include the precomputed hash of the header;
+// we mustn't compute it on the fly because depending on the
+// node version, this header struct might not be the exact struct
+// returned from the node, so its real hash will differ.
+type RuntimeBlockHeader struct { //nolint: maligned
+	Version   uint16
+	Namespace coreCommon.Namespace
+	Round     uint64
+	Timestamp time.Time
+	// Hash of the raw header struct as received from the node API.
+	// The `PreviousHash` of the next round's block should match this.
+	Hash           hash.Hash
+	PreviousHash   hash.Hash
+	IORoot         hash.Hash
+	StateRoot      hash.Hash
+	MessagesHash   hash.Hash
+	InMessagesHash hash.Hash // NOTE: Available starting in Damask.
+}

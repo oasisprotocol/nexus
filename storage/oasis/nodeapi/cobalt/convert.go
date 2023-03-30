@@ -225,7 +225,7 @@ func convertEvent(e txResultsCobalt.Event) nodeapi.Event {
 		switch {
 		case e.Registry.RuntimeEvent != nil && e.Registry.RuntimeEvent.Runtime != nil:
 			ret = nodeapi.Event{
-				RegistryRuntime: &nodeapi.RuntimeEvent{
+				RegistryRuntimeRegistered: &nodeapi.RuntimeRegisteredEvent{
 					ID:          e.Registry.RuntimeEvent.Runtime.ID,
 					EntityID:    e.Registry.RuntimeEvent.Runtime.EntityID,
 					Kind:        e.Registry.RuntimeEvent.Runtime.Kind.String(),

@@ -12,6 +12,7 @@ import (
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 
 	evmCommon "github.com/oasisprotocol/oasis-indexer/analyzer/uncategorized"
+	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
 )
 
 type CallHandler struct {
@@ -102,63 +103,47 @@ type SdkEventHandler struct {
 	EVM               func(event *evm.Event) error
 }
 
-func VisitSdkEvent(event *sdkTypes.Event, handler *SdkEventHandler) error {
+func VisitSdkEvent(event *nodeapi.RuntimeEvent, handler *SdkEventHandler) error {
 	if handler.Core != nil {
-		coreEvents, err := core.DecodeEvent(event)
+		coreEvents, err := DecodeCoreEvent(event)
 		if err != nil {
 			return fmt.Errorf("decode core: %w", err)
 		}
-		for i, coreEvent := range coreEvents {
-			coreEventCast, ok := coreEvent.(*core.Event)
-			if !ok {
-				return fmt.Errorf("decoded event %d could not cast to core.Event", i)
-			}
-			if err = handler.Core(coreEventCast); err != nil {
+		for i := range coreEvents {
+			if err = handler.Core(&coreEvents[i]); err != nil {
 				return fmt.Errorf("decoded event %d core: %w", i, err)
 			}
 		}
 	}
 	if handler.Accounts != nil {
-		accountEvents, err := accounts.DecodeEvent(event)
+		accountEvents, err := DecodeAccountsEvent(event)
 		if err != nil {
 			return fmt.Errorf("decode accounts: %w", err)
 		}
-		for i, accountEvent := range accountEvents {
-			accountEventCast, ok := accountEvent.(*accounts.Event)
-			if !ok {
-				return fmt.Errorf("decoded event %d could not cast to accounts.Event", i)
-			}
-			if err = handler.Accounts(accountEventCast); err != nil {
+		for i := range accountEvents {
+			if err = handler.Accounts(&accountEvents[i]); err != nil {
 				return fmt.Errorf("decoded event %d accounts: %w", i, err)
 			}
 		}
 	}
 	if handler.ConsensusAccounts != nil {
-		consensusAccountsEvents, err := consensusaccounts.DecodeEvent(event)
+		consensusAccountsEvents, err := DecodeConsensusAccountsEvent(event)
 		if err != nil {
 			return fmt.Errorf("decode consensus accounts: %w", err)
 		}
-		for i, consensusAccountsEvent := range consensusAccountsEvents {
-			consensusAccountsEventCast, ok := consensusAccountsEvent.(*consensusaccounts.Event)
-			if !ok {
-				return fmt.Errorf("decoded event %d could not cast to consensusaccounts.Event", i)
-			}
-			if err = handler.ConsensusAccounts(consensusAccountsEventCast); err != nil {
+		for i := range consensusAccountsEvents {
+			if err = handler.ConsensusAccounts(&consensusAccountsEvents[i]); err != nil {
 				return fmt.Errorf("decoded event %d consensus accounts: %w", i, err)
 			}
 		}
 	}
 	if handler.EVM != nil {
-		evmEvents, err := evm.DecodeEvent(event)
+		evmEvents, err := DecodeEVMEvent(event)
 		if err != nil {
 			return fmt.Errorf("decode evm: %w", err)
 		}
-		for i, evmEvent := range evmEvents {
-			evmEventCast, ok := evmEvent.(*evm.Event)
-			if !ok {
-				return fmt.Errorf("decoded event %d could not cast to evm.Event", i)
-			}
-			if err = handler.EVM(evmEventCast); err != nil {
+		for i := range evmEvents {
+			if err = handler.EVM(&evmEvents[i]); err != nil {
 				return fmt.Errorf("decoded event %d evm: %w", i, err)
 			}
 		}
@@ -166,7 +151,7 @@ func VisitSdkEvent(event *sdkTypes.Event, handler *SdkEventHandler) error {
 	return nil
 }
 
-func VisitSdkEvents(events []*sdkTypes.Event, handler *SdkEventHandler) error {
+func VisitSdkEvents(events []*nodeapi.RuntimeEvent, handler *SdkEventHandler) error {
 	for i, event := range events {
 		if err := VisitSdkEvent(event, handler); err != nil {
 			return fmt.Errorf("event %d: %w", i, err)

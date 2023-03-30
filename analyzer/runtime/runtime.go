@@ -223,7 +223,7 @@ func (m *Main) processRound(ctx context.Context, round uint64) error {
 	}
 
 	// Preprocess data.
-	blockData, err := ExtractRound(data.BlockData.BlockHeader.Header, data.BlockData.TransactionsWithResults, data.RawEvents, m.logger)
+	blockData, err := ExtractRound(data.BlockHeader, data.TransactionsWithResults, data.RawEvents, m.logger)
 	if err != nil {
 		return err
 	}
@@ -261,8 +261,8 @@ func (m *Main) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 		m.runtime,
 		data.Header.Round,
 		data.Header.Version,
-		time.Unix(int64(data.Header.Timestamp), 0 /* nanos */),
-		data.Header.EncodedHash().Hex(),
+		data.Header.Timestamp,
+		data.Header.Hash,
 		data.Header.PreviousHash.Hex(),
 		data.Header.IORoot.Hex(),
 		data.Header.StateRoot.Hex(),
@@ -298,13 +298,13 @@ func (m *Main) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 			transactionData.EthHash,
 			transactionData.GasUsed,
 			transactionData.Size,
-			data.Timestamp,
+			data.Header.Timestamp,
 			transactionData.Raw,
 			transactionData.RawResult,
 		)
 	}
 
-	// Insert tx-related events.
+	// Insert events.
 	for _, eventData := range data.EventData {
 		eventRelatedAddresses := common.ExtractAddresses(eventData.RelatedAddresses)
 		batch.Queue(
@@ -313,23 +313,6 @@ func (m *Main) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 			data.Header.Round,
 			eventData.TxIndex,
 			eventData.TxHash,
-			eventData.Type,
-			eventData.Body,
-			eventData.EvmLogName,
-			eventData.EvmLogParams,
-			eventRelatedAddresses,
-		)
-	}
-
-	// Insert non-tx events.
-	for _, eventData := range data.NonTxEvents {
-		eventRelatedAddresses := common.ExtractAddresses(eventData.RelatedAddresses)
-		batch.Queue(
-			queries.RuntimeEventInsert,
-			m.runtime,
-			data.Header.Round,
-			nil, // non-tx event has no tx index
-			nil, // non-tx event has no tx hash
 			eventData.Type,
 			eventData.Body,
 			eventData.EvmLogName,

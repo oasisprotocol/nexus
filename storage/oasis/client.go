@@ -13,10 +13,10 @@ import (
 	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi/damask"
 	config "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 	connection "github.com/oasisprotocol/oasis-sdk/client-sdk/go/connection"
-	runtimeSignature "github.com/oasisprotocol/oasis-sdk/client-sdk/go/crypto/signature"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 const (
@@ -25,8 +25,9 @@ const (
 
 // ClientFactory supports connections to an oasis-node instance.
 type ClientFactory struct {
-	connection *connection.Connection
-	network    *config.Network
+	connection        *connection.Connection
+	rawGrpcConnection *grpc.ClientConn
+	network           *config.Network
 }
 
 // NewClientFactory creates a new oasis-node client factory.
@@ -44,10 +45,15 @@ func NewClientFactory(ctx context.Context, network *config.Network, skipChainCon
 	if err != nil {
 		return nil, err
 	}
+	rawConn, err := ConnectNoVerify(ctx, network)
+	if err != nil {
+		return nil, err
+	}
 
 	return &ClientFactory{
-		connection: &conn,
-		network:    network,
+		connection:        &conn,
+		rawGrpcConnection: rawConn,
+		network:           network,
 	}, nil
 }
 
@@ -60,13 +66,7 @@ func (cf *ClientFactory) Consensus() (*ConsensusClient, error) {
 	var nodeApi nodeapi.ConsensusApiLite
 	if cf.network.ChainContext == "53852332637bacb61b91b6411ab4095168ba02a50be4c3f82448438826f23898" {
 		// Cobalt mainnet.
-		creds := credentials.NewTLS(&tls.Config{MinVersion: tls.VersionTLS12})
-		dialOpts := []grpc.DialOption{grpc.WithTransportCredentials(creds)}
-		grpcConn, err := cmnGrpc.Dial(cf.network.RPC, dialOpts...)
-		if err != nil {
-			return nil, err
-		}
-		nodeApi = cobalt.NewCobaltConsensusApiLite(grpcConn)
+		nodeApi = cobalt.NewCobaltConsensusApiLite(cf.rawGrpcConnection)
 	} else {
 		// Assume Damask.
 		client := (*cf.connection).Consensus()
@@ -88,24 +88,38 @@ func (cf *ClientFactory) Consensus() (*ConsensusClient, error) {
 func (cf *ClientFactory) Runtime(runtimeID string) (*RuntimeClient, error) {
 	ctx := context.Background()
 
-	connection := *cf.connection
-	client := connection.Runtime(&config.ParaTime{
-		ID: runtimeID,
-	})
-
-	// Configure chain context for all signatures using chain domain separation.
-	signature.SetChainContext(cf.network.ChainContext)
-
+	client := (*cf.connection).Runtime(&config.ParaTime{ID: runtimeID})
 	info, err := client.GetInfo(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	rtCtx := runtimeSignature.DeriveChainContext(info.ID, cf.network.ChainContext)
+	nodeApi := nodeapi.NewUniversalRuntimeApiLite(info.ID, cf.rawGrpcConnection, &client)
+
+	// Configure chain context for all signatures using chain domain separation.
+	signature.SetChainContext(cf.network.ChainContext)
+
 	return &RuntimeClient{
-		client:  client,
-		network: cf.network,
+		nodeApi: nodeApi,
 		info:    info,
-		rtCtx:   rtCtx,
 	}, nil
+}
+
+// ConnectNoVerify establishes gRPC connection with the target URL,
+// omitting the chain context check.
+// This is a clone of the oasis-copy `ConnectNoVerify()` function,
+// but returns a raw gRPC connection instead of the oasis-sdk `Connection` wrapper.
+func ConnectNoVerify(ctx context.Context, net *config.Network) (*grpc.ClientConn, error) {
+	var dialOpts []grpc.DialOption
+	switch net.IsLocalRPC() {
+	case true:
+		// No TLS needed for local nodes.
+		dialOpts = append(dialOpts, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	case false:
+		// Configure TLS for non-local nodes.
+		creds := credentials.NewTLS(&tls.Config{MinVersion: tls.VersionTLS12})
+		dialOpts = append(dialOpts, grpc.WithTransportCredentials(creds))
+	}
+
+	return cmnGrpc.Dial(net.RPC, dialOpts...)
 }

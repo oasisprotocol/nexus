@@ -11,9 +11,7 @@ import (
 	"github.com/oasisprotocol/oasis-core/go/common"
 	consensus "github.com/oasisprotocol/oasis-core/go/consensus/api"
 	genesisAPI "github.com/oasisprotocol/oasis-core/go/genesis/api"
-	"github.com/oasisprotocol/oasis-core/go/roothash/api/block"
 	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
-	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/client"
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 )
 
@@ -163,11 +161,11 @@ type BeaconData struct {
 type RegistryData struct {
 	Height int64
 
-	Events             []nodeapi.Event
-	RuntimeEvents      []nodeapi.RuntimeEvent
-	EntityEvents       []nodeapi.EntityEvent
-	NodeEvents         []nodeapi.NodeEvent
-	NodeUnfrozenEvents []nodeapi.NodeUnfrozenEvent
+	Events                  []nodeapi.Event
+	RuntimeRegisteredEvents []nodeapi.RuntimeRegisteredEvent
+	EntityEvents            []nodeapi.EntityEvent
+	NodeEvents              []nodeapi.NodeEvent
+	NodeUnfrozenEvents      []nodeapi.NodeUnfrozenEvent
 }
 
 // StakingData represents data for accounts at a given height.
@@ -223,19 +221,8 @@ type RuntimeSourceStorage interface {
 	// AllData returns all data tied to a specific round.
 	AllData(ctx context.Context, round uint64) (*RuntimeAllData, error)
 
-	// BlockData gets block data in the specified round. This includes all
-	// block header information, as well as transactions and events included
-	// within that block.
-	BlockData(ctx context.Context, round uint64) (*RuntimeBlockData, error)
-
-	// EventsData gets all events in the specified round, including non-tx events.
-	GetEventsRaw(ctx context.Context, round uint64) ([]*sdkTypes.Event, error)
-
 	// EVMSimulateCall gets the result of the given EVM simulate call query.
 	EVMSimulateCall(ctx context.Context, round uint64, gasPrice []byte, gasLimit uint64, caller []byte, address []byte, value []byte, data []byte) ([]byte, error)
-
-	// Name returns the name of the source storage.
-	Name() string
 
 	// StringifyDenomination returns a string representation of the given denomination.
 	// This is simply the denomination's symbol; notably, for the native denomination,
@@ -244,24 +231,15 @@ type RuntimeSourceStorage interface {
 }
 
 type RuntimeAllData struct {
-	Round     uint64
-	BlockData *RuntimeBlockData
-	RawEvents []*sdkTypes.Event
-}
-
-// RuntimeBlockData represents data for a runtime block during a given round.
-type RuntimeBlockData struct {
-	Round uint64
-
-	BlockHeader             *block.Block
-	TransactionsWithResults []*client.TransactionWithResults
+	Round                   uint64
+	BlockHeader             nodeapi.RuntimeBlockHeader
+	RawEvents               []*nodeapi.RuntimeEvent
+	TransactionsWithResults []*nodeapi.RuntimeTransactionWithResults
 }
 
 // TransactionWithResults contains a verified transaction, and the results of
 // executing that transactions.
 type TransactionWithResults struct {
-	Round uint64
-
 	Tx     *sdkTypes.Transaction
 	Result sdkTypes.CallResult
 	Events []*sdkTypes.Event
