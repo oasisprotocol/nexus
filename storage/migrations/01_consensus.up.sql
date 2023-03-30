@@ -93,9 +93,8 @@ CREATE TABLE chain.epochs
 CREATE TABLE chain.entities
 (
   id      base64_ed25519_pubkey PRIMARY KEY,
-  address oasis_addr,
-  -- Signed statements about the entity from https://github.com/oasisprotocol/metadata-registry
-  meta    JSON
+  address oasis_addr NOT NULL, -- Deterministically derived from the ID.
+  meta    JSON  -- Signed statements about the entity from https://github.com/oasisprotocol/metadata-registry
 );
 
 CREATE TABLE chain.nodes
