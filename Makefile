@@ -62,7 +62,7 @@ dump-state:
 	@OASIS_INDEXER_DUMP_NODE_DATA=true && $(GO) test -race -coverpkg=./... -coverprofile=coverage.txt -covermode=atomic -v ./tests/api
 
 test-api:
-	@OASIS_INDEXER_TEST_API=true && $(GO) test -race -coverpkg=./... -coverprofile=coverage.txt -covermode=atomic -v ./tests/api
+	@OASIS_INDEXER_API_TESTS=true && $(GO) test -race -coverpkg=./... -coverprofile=coverage.txt -covermode=atomic -v ./tests/api
 	./tests/e2e_regression/run.sh
 
 # Format code.
