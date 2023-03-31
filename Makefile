@@ -58,6 +58,13 @@ test-e2e: export OASIS_INDEXER_E2E = true
 test-e2e:
 	@$(GO) test -race -coverpkg=./... -coverprofile=coverage.txt -covermode=atomic -v ./tests/e2e
 
+dump-state:
+	@OASIS_INDEXER_DUMP_NODE_DATA=true && $(GO) test -race -coverpkg=./... -coverprofile=coverage.txt -covermode=atomic -v ./tests/api
+
+test-api:
+	@OASIS_INDEXER_TEST_API=true && $(GO) test -race -coverpkg=./... -coverprofile=coverage.txt -covermode=atomic -v ./tests/api
+	./tests/e2e_regression/run.sh
+
 # Format code.
 fmt:
 	@$(ECHO) "$(CYAN)*** Running Go formatters...$(OFF)"

@@ -34,7 +34,20 @@ func TestDumpConsensusNodeData(t *testing.T) {
 	cfg, err := config.InitConfig(ConfigFile)
 	require.Nil(t, err)
 
-	// Initialize source storage.
+	// Initialize and wipe target storage. Note that if we do not
+	// wipe storage, the db may already have synced past the endHeight
+	// and the indexer will not fetch data from the node.
+	target, err := common.NewClient(cfg.Analysis.Storage, logger)
+	require.Nil(t, err)
+	defer target.Shutdown()
+	err = target.Wipe(ctx)
+	require.Nil(t, err)
+
+	// Initialize consensus analyzer.
+	consensusAnalyzer, err := consensus.NewMain(cfg.Analysis.Node, cfg.Analysis.Analyzers.Consensus, target, logger)
+
+	// Initialize file-based source storage.
+	// TODO: rip this out once the config changes go in
 	networkCfg := oasisConfig.Network{
 		ChainContext: cfg.Analysis.Node.ChainContext,
 		RPC:          cfg.Analysis.Node.RPC,
@@ -49,12 +62,9 @@ func TestDumpConsensusNodeData(t *testing.T) {
 	fileBackend, err := fileSource.NewFileConsensusApiLite(DestFile, &consensusConn)
 	require.Nil(t, err)
 	sourceClient.NodeApi = fileBackend
-	target, err := common.NewClient(cfg.Analysis.Storage, logger)
-	require.Nil(t, err)
-	consensusAnalyzer, err := consensus.NewMain(cfg.Analysis.Node, cfg.Analysis.Analyzers.Consensus, target, logger)
 	consensusAnalyzer.Cfg.Source = sourceClient
 
-	// Initialize target storage
+	// Perform migrations.
 	m, err := migrate.New(
 		cfg.Analysis.Storage.Migrations,
 		cfg.Analysis.Storage.Endpoint,
@@ -72,5 +82,5 @@ func TestDumpConsensusNodeData(t *testing.T) {
 
 	// Run analyzer
 	consensusAnalyzer.Start()
-	t.Log("api-test analyzer finished processing blocks")
+	t.Log("finished dumping consensus node data to " + DestFile)
 }
