@@ -84,18 +84,6 @@ const (
 			LIMIT $6::bigint
 			OFFSET $7::bigint`
 
-	EventsRelAccounts = `
-		SELECT event_block, tx_index, tx_hash, type, body
-			FROM chain.accounts_related_events
-			WHERE (account_address = $1::text) AND
-					($2::bigint IS NULL OR event_block = $1::bigint) AND
-					($3::integer IS NULL OR tx_index = $3::integer) AND
-					($4::text IS NULL OR tx_hash = $4::text) AND
-					($5::text IS NULL OR type = $5::text)
-			ORDER BY event_block DESC, tx_index
-			LIMIT $6::bigint
-			OFFSET $7::bigint`
-
 	Entities = `
 		SELECT id, address
 			FROM chain.entities
