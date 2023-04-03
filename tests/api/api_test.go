@@ -43,6 +43,7 @@ func TestRunFileBasedIndexer(t *testing.T) {
 	require.Nil(t, err)
 
 	consensusAnalyzer, err := consensus.NewMain(cfg.Analysis.Node, cfg.Analysis.Analyzers.Consensus, target, logger)
+	require.Nil(t, err)
 
 	// Initialize file-based source storage.
 	// TODO: rip this out once the config changes go in

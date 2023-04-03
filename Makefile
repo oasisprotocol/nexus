@@ -5,7 +5,7 @@ export HOST_UID := $(shell id -u)
 export HOST_GID := $(shell id -g)
 
 all: build
-
+	
 build:
 	@$(ECHO) "$(CYAN)*** Building...$(OFF)"
 	@$(MAKE) oasis-indexer
@@ -58,11 +58,13 @@ test-e2e: export OASIS_INDEXER_E2E = true
 test-e2e:
 	@$(GO) test -race -coverpkg=./... -coverprofile=coverage.txt -covermode=atomic -v ./tests/e2e
 
+dump-state: export OASIS_INDEXER_DUMP_NODE_DATA=true
 dump-state:
-	@OASIS_INDEXER_DUMP_NODE_DATA=true && $(GO) test -race -coverpkg=./... -coverprofile=coverage.txt -covermode=atomic -v ./tests/api
+	@$(GO) test -race -v ./tests/api
 
+test-api: export OASIS_INDEXER_API_TESTS=true
 test-api:
-	@OASIS_INDEXER_API_TESTS=true && $(GO) test -race -coverpkg=./... -coverprofile=coverage.txt -covermode=atomic -v ./tests/api
+	@$(GO) test -race -v ./tests/api
 	./tests/e2e_regression/run.sh
 
 # Format code.

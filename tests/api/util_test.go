@@ -45,6 +45,7 @@ func TestDumpConsensusNodeData(t *testing.T) {
 
 	// Initialize consensus analyzer.
 	consensusAnalyzer, err := consensus.NewMain(cfg.Analysis.Node, cfg.Analysis.Analyzers.Consensus, target, logger)
+	require.Nil(t, err)
 
 	// Initialize file-based source storage.
 	// TODO: rip this out once the config changes go in
