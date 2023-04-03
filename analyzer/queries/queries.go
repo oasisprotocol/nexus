@@ -116,10 +116,10 @@ const (
     DELETE FROM chain.nodes WHERE id = $1`
 
 	ConsensusEntityMetaUpsert = `
-    INSERT INTO chain.entities(id, meta)
-      VALUES ($1, $2)
-    ON CONFLICT (id) DO UPDATE
-      SET meta = $2`
+    INSERT INTO chain.entities(id, address, meta)
+      VALUES ($1, $2, $3)
+    ON CONFLICT (id) DO UPDATE SET
+      meta = excluded.meta`
 
 	ConsensusIncreaseGeneralBalanceUpsert = `
     INSERT INTO chain.accounts (address, general_balance)

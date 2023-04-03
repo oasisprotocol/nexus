@@ -6,6 +6,7 @@ import (
 	"time"
 
 	registry "github.com/oasisprotocol/metadata-registry-tools"
+	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/queries"
 	"github.com/oasisprotocol/oasis-indexer/config"
 	"github.com/oasisprotocol/oasis-indexer/log"
@@ -79,6 +80,7 @@ func (a *MetadataRegistryAnalyzer) queueUpdates(ctx context.Context, batch *stor
 		batch.Queue(
 			queries.ConsensusEntityMetaUpsert,
 			id.String(),
+			staking.NewAddress(id).String(),
 			meta,
 		)
 	}
