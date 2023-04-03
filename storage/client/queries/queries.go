@@ -380,13 +380,13 @@ const (
 	RuntimeAccountStats = `
 		SELECT
 			COALESCE (
-				(SELECT sum(amount) from chain.runtime_transfers where sender=$1::text)
+				(SELECT sum(amount) from chain.runtime_transfers where runtime = $1 AND sender = $2::text)
 				, 0) AS total_sent,
 			COALESCE (
-				(SELECT sum(amount) from chain.runtime_transfers where receiver=$1::text)
+				(SELECT sum(amount) from chain.runtime_transfers where runtime = $1 AND receiver = $2::text)
 				, 0) AS total_received,
 			COALESCE (
-				(SELECT count(*) from chain.runtime_related_transactions where account_address=$1::text)
+				(SELECT count(*) from chain.runtime_related_transactions where runtime= $1 AND account_address = $2::text)
 				, 0) AS num_txns`
 
 	//nolint:gosec // Linter suspects a hardcoded access token.

@@ -1233,6 +1233,7 @@ func (c *StorageClient) RuntimeAccount(ctx context.Context, address staking.Addr
 	if err = c.db.QueryRow(
 		ctx,
 		queries.RuntimeAccountStats,
+		runtimeFromCtx(ctx),
 		address.String(),
 	).Scan(
 		&totalSent,
