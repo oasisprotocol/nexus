@@ -1983,7 +1983,7 @@ components:
     RuntimeTransaction:
       type: object
       # NOTE: Not guaranteed to be present: eth_hash, to, amount.
-      required: [round, index, timestamp, hash, sender_0, nonce_0, fee, gas_limit, gas_used, size, method, body]
+      required: [round, index, timestamp, hash, sender_0, nonce_0, fee, gas_limit, gas_used, size]
       properties:
         round:
           type: integer
@@ -2061,10 +2061,11 @@ components:
               - "consensus.Withdraw"
               - "evm.Create"
               - "evm.Call"
+            May be null if the transaction was malformed.
           example: "evm.Call"
         body:
           type: object
-          description: The method call body.
+          description: The method call body. May be null if the transaction was malformed.
           example: {"address": "t1mAPucIdVnrYBpJOcLV2nZoOFo=", "data": RBo+cAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=", "value": ""}
         to:
           type: string
