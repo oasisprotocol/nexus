@@ -8,12 +8,14 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	oasisConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
+	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/evm"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/rewards"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 
 	"github.com/oasisprotocol/oasis-indexer/analyzer"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/queries"
 	common "github.com/oasisprotocol/oasis-indexer/analyzer/uncategorized"
+	uncategorized "github.com/oasisprotocol/oasis-indexer/analyzer/uncategorized"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/util"
 	"github.com/oasisprotocol/oasis-indexer/config"
 	"github.com/oasisprotocol/oasis-indexer/log"
@@ -318,6 +320,23 @@ func (m *Main) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 			error_code,
 			error_message,
 		)
+
+		// Handle native-token transfers from transactions.
+		// These transfers do not emit events and are not covered
+		// by the accounts module, so we process them here.
+		if transactionData.Method == "evm.Call" {
+			body := transactionData.Body.(*evm.Call)
+			if len(body.Data) == 0 {
+				amount := uncategorized.QuantityFromBytes(body.Value)
+				batch.Queue(
+					queries.RuntimeNativeBalanceUpdate,
+					m.runtime,
+					transactionData.To,
+					m.cfg.Source.StringifyDenomination(types.NativeDenomination),
+					amount.String(),
+				)
+			}
+		}
 	}
 
 	// Insert events.
