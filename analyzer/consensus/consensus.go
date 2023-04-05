@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 	"github.com/oasisprotocol/oasis-core/go/consensus/api/transaction"
@@ -77,14 +78,12 @@ func NewMain(nodeCfg config.NodeConfig, cfg *config.BlockBasedAnalyzerConfig, ta
 	}
 
 	// Configure analyzer.
-	blockRange := analyzer.BlockRange{
-		From: cfg.From,
-		To:   cfg.To,
-	}
+	ranges := parseRanges(cfg)
+
 	ac := analyzer.ConsensusConfig{
 		ChainID:      nodeCfg.ChainID,
 		ChainContext: nodeCfg.ChainContext,
-		Range:        blockRange,
+		Ranges:       ranges,
 		Source:       client,
 	}
 
@@ -100,9 +99,6 @@ func NewMain(nodeCfg config.NodeConfig, cfg *config.BlockBasedAnalyzerConfig, ta
 // Start starts the main consensus analyzer.
 func (m *Main) Start() {
 	ctx := context.Background()
-
-	// Get block to be indexed.
-	var height int64
 
 	isGenesisProcessed, err := m.isGenesisProcessed(ctx)
 	if err != nil {
@@ -129,12 +125,53 @@ func (m *Main) Start() {
 			return
 		}
 		m.logger.Debug("setting height using range config")
-		height = m.cfg.Range.From
 	} else {
 		m.logger.Debug("setting height using latest block")
-		height = latest + 1
+		// Remove ranges that have been already processed
+		for m.cfg.Ranges[0].To != 0 && m.cfg.Ranges[0].To <= latest {
+			if len(m.cfg.Ranges) == 1 {
+				m.logger.Debug("all configured ranges have been processed")
+				return
+			}
+			m.cfg.Ranges = m.cfg.Ranges[1:]
+		}
+		m.cfg.Ranges[0].From = latest + 1 // start indexing from latest + 1
 	}
 
+	// Iterate over ranges. Divide the range into parallelism
+	// sections and start goroutine analyzers for each of them.
+	// If range.To == 0, simply run a single analyzer indefinitely.
+	for _, br := range m.cfg.Ranges {
+		if err := m.processBlockRange(ctx, br); err != nil {
+			m.logger.Error("error processing block range",
+				"from", br.From,
+				"to", br.To,
+				"parallelism", br.Parallelism,
+			)
+			return
+		}
+	}
+}
+
+func (m *Main) processBlockRange(ctx context.Context, br analyzer.BlockRange) error {
+	rangeSize := br.To - br.From + 1
+	if int64(br.Parallelism) > rangeSize {
+		return fmt.Errorf("Parallelism factor %d is greater than block range length %d", br.Parallelism, br.To-br.From)
+	}
+	subRangeSize := rangeSize / int64(br.Parallelism)
+	group, groupCtx := errgroup.WithContext(ctx)
+	for from := br.From; from < br.To; from += subRangeSize {
+		func(from int64, to int64) {
+			group.Go(func() error {
+				return m.processBlockRangeSequential(groupCtx, from, to)
+			})
+		}(from, from+subRangeSize-1)
+	}
+
+	return group.Wait()
+}
+
+func (m *Main) processBlockRangeSequential(ctx context.Context, from int64, to int64) error {
 	backoff, err := util.NewBackoff(
 		100*time.Millisecond,
 		6*time.Second, // cap the timeout at the expected consensus block time
@@ -143,9 +180,11 @@ func (m *Main) Start() {
 		m.logger.Error("error configuring indexer backoff policy",
 			"err", err.Error(),
 		)
-		return
+		return err
 	}
-	for m.cfg.Range.To == 0 || height <= m.cfg.Range.To {
+
+	height := from
+	for to == 0 || height <= to {
 		backoff.Wait()
 		m.logger.Info("attempting block", "height", height)
 
@@ -171,7 +210,9 @@ func (m *Main) Start() {
 	}
 	m.logger.Info(
 		fmt.Sprintf("finished processing all blocks in the configured range [%d, %d]",
-			m.cfg.Range.From, m.cfg.Range.To))
+			from, to))
+
+	return nil
 }
 
 // Name returns the name of the Main.
@@ -181,9 +222,11 @@ func (m *Main) Name() string {
 
 // source returns the source storage for the provided block height.
 func (m *Main) source(height int64) (storage.ConsensusSourceStorage, error) {
-	r := m.cfg
-	if height >= r.Range.From && (r.Range.To == 0 || height <= r.Range.To) {
-		return r.Source, nil
+	start := m.cfg.Ranges[0].From
+	end := m.cfg.Ranges[len(m.cfg.Ranges)-1].To
+
+	if height >= start && (end == 0 || height <= end) {
+		return m.cfg.Source, nil
 	}
 
 	return nil, analyzer.ErrOutOfRange
@@ -202,6 +245,34 @@ func (m *Main) latestBlock(ctx context.Context) (int64, error) {
 		return 0, err
 	}
 	return latest, nil
+}
+
+func parseRanges(cfg *config.BlockBasedAnalyzerConfig) []analyzer.BlockRange {
+	var ranges []analyzer.BlockRange
+	if cfg.ParallelTo != 0 {
+		ranges = []analyzer.BlockRange{
+			analyzer.BlockRange{
+				From:        cfg.From,
+				To:          cfg.ParallelTo,
+				Parallelism: cfg.Parallelism,
+			},
+			analyzer.BlockRange{
+				From:        cfg.ParallelTo + 1,
+				To:          cfg.To,
+				Parallelism: 1,
+			},
+		}
+	} else {
+		ranges = []analyzer.BlockRange{
+			analyzer.BlockRange{
+				From:        cfg.From,
+				To:          cfg.To,
+				Parallelism: 1,
+			},
+		}
+	}
+
+	return ranges
 }
 
 func (m *Main) isGenesisProcessed(ctx context.Context) (bool, error) {

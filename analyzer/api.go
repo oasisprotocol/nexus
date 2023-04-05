@@ -48,7 +48,7 @@ type ConsensusConfig struct {
 
 	// Range is the range of blocks to process.
 	// If this is set, the analyzer analyzes blocks in the provided range.
-	Range BlockRange
+	Ranges []BlockRange
 
 	// Source is the storage source from which to fetch block data
 	// when processing blocks in this range.
@@ -62,6 +62,10 @@ type BlockRange struct {
 
 	// To is the last block to process in this range, inclusive.
 	To int64
+
+	// Parallelism is the number of parallel goroutines that will process
+	// this block range.
+	Parallelism int32
 }
 
 // RuntimeConfig specifies configuration parameters for

@@ -138,6 +138,19 @@ type BlockBasedAnalyzerConfig struct {
 	// continue processing new blocks until the next breaking
 	// upgrade.
 	To int64 `koanf:"to"`
+
+	// ParallelTo is the (inclusive) ending block at which to
+	// stop parallel processing for this analyzer. If the To
+	// config parameter is provided and is greater than ParallelTo,
+	// the analyzer will process blocks from [To+1,ParallelTo]
+	// sequentially with a single analyzer.
+	// Omitting this parameter means that the analyzer will
+	// process all blocks sequentially.
+	ParallelTo int64 `koanf:"parallel_to"`
+
+	// Parallelism is the number of concurrent processes that
+	// can run during the parallel phase of this analyzer.
+	Parallelism int32 `koanf:"parallelism"`
 }
 
 type IntervalBasedAnalyzerConfig struct {
@@ -151,6 +164,16 @@ type EvmTokensAnalyzerConfig struct{}
 func (cfg *BlockBasedAnalyzerConfig) Validate() error {
 	if (cfg.To != 0 && cfg.From > cfg.To) || cfg.To < 0 || cfg.From < 0 {
 		return fmt.Errorf("malformed analysis range from %d to %d", cfg.From, cfg.To)
+	}
+	if (cfg.ParallelTo != 0 && cfg.From > cfg.ParallelTo) || cfg.ParallelTo <= 0 || cfg.Parallelism < 0 {
+		return fmt.Errorf("malformed parallel analysis range from %d to %d with parallelism %d", cfg.From, cfg.ParallelTo, cfg.Parallelism)
+	}
+	// todo: remove?
+	if cfg.Parallelism > 100 {
+		return fmt.Errorf("parallelism factor %d is too high; limit is 100", cfg.Parallelism)
+	}
+	if cfg.Parallelism == 0 {
+		cfg.Parallelism = 1 // default to sequential processing
 	}
 	return nil
 }
