@@ -15,7 +15,6 @@ import (
 	"github.com/oasisprotocol/oasis-indexer/analyzer"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/queries"
 	common "github.com/oasisprotocol/oasis-indexer/analyzer/uncategorized"
-	uncategorized "github.com/oasisprotocol/oasis-indexer/analyzer/uncategorized"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/util"
 	"github.com/oasisprotocol/oasis-indexer/config"
 	"github.com/oasisprotocol/oasis-indexer/log"
@@ -327,7 +326,7 @@ func (m *Main) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 		if transactionData.Method == "evm.Call" {
 			body := transactionData.Body.(*evm.Call)
 			if len(body.Data) == 0 {
-				amount := uncategorized.QuantityFromBytes(body.Value)
+				amount := common.QuantityFromBytes(body.Value)
 				batch.Queue(
 					queries.RuntimeNativeBalanceUpdate,
 					m.runtime,
