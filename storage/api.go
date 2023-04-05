@@ -91,6 +91,9 @@ type ConsensusSourceStorage interface {
 	// GenesisDocument returns the genesis document for the chain.
 	GenesisDocument(ctx context.Context) (*genesisAPI.Document, error)
 
+	// StateToGenesis returns the genesis document at the specified height.
+	StateToGenesis(ctx context.Context, height int64) (*genesisAPI.Document, error)
+
 	// AllData returns all data tied to a specific height.
 	AllData(ctx context.Context, height int64) (*ConsensusAllData, error)
 
