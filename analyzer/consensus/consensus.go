@@ -14,6 +14,7 @@ import (
 
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 	"github.com/oasisprotocol/oasis-core/go/consensus/api/transaction"
+	genesis "github.com/oasisprotocol/oasis-core/go/genesis/api"
 	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
 	oasisConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 
@@ -108,7 +109,7 @@ func (m *Main) Start() {
 		return
 	}
 	if !isGenesisProcessed {
-		if err = m.processGenesis(ctx); err != nil {
+		if err = m.processGenesis(ctx, 0); err != nil {
 			m.logger.Error("failed to process genesis",
 				"err", err.Error(),
 			)
@@ -138,9 +139,8 @@ func (m *Main) Start() {
 		m.cfg.Ranges[0].From = latest + 1 // start indexing from latest + 1
 	}
 
-	// Iterate over ranges. Divide the range into parallelism
-	// sections and start goroutine analyzers for each of them.
-	// If range.To == 0, simply run a single analyzer indefinitely.
+	// Process block ranges sequentially. Blocks within a
+	// block range may be processed in parallel.
 	for _, br := range m.cfg.Ranges {
 		if err := m.processBlockRange(ctx, br); err != nil {
 			m.logger.Error("error processing block range",
@@ -149,6 +149,12 @@ func (m *Main) Start() {
 				"parallelism", br.Parallelism,
 			)
 			return
+		}
+		// If the block range was processed in parallel, dead-reckoned
+		// state will be inaccurate. Update this state using the genesis
+		// file for the end height.
+		if br.Parallelism != 1 {
+			m.processGenesis(ctx, br.To)
 		}
 	}
 }
@@ -287,9 +293,15 @@ func (m *Main) isGenesisProcessed(ctx context.Context) (bool, error) {
 	return processed, nil
 }
 
-func (m *Main) processGenesis(ctx context.Context) error {
-	m.logger.Info("fetching genesis document")
-	genesisDoc, err := m.cfg.Source.GenesisDocument(ctx)
+func (m *Main) processGenesis(ctx context.Context, height int64) error {
+	m.logger.Info(fmt.Sprintf("fetching genesis document at height %d", height))
+	var genesisDoc *genesis.Document
+	var err error
+	if height == 0 {
+		genesisDoc, err = m.cfg.Source.GenesisDocument(ctx)
+	} else {
+		genesisDoc, err = m.cfg.Source.StateToGenesis(ctx, height)
+	}
 	if err != nil {
 		return err
 	}
