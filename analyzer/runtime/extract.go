@@ -52,6 +52,7 @@ type BlockTransactionData struct {
 	Body                    interface{}
 	To                      *apiTypes.Address // Extracted from the body for convenience. Semantics vary by tx type.
 	Amount                  *common.BigInt    // Extracted from the body for convenience. Semantics vary by tx type.
+	IsNativeTransfer        bool
 	Success                 *bool
 	Error                   *TxError
 }
@@ -379,7 +380,14 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []*nodeapi.Runtim
 					if to, err = registerRelatedEthAddress(blockData.AddressPreimages, blockTransactionData.RelatedAccountAddresses, body.Address); err != nil {
 						return fmt.Errorf("address: %w", err)
 					}
-					// todo: maybe parse known token methods
+
+					// Handle native-token transfers from transactions.
+					// These transfers do not emit events and are not covered
+					// by the accounts module, so we use the following heuristic
+					// to identify these transfers.
+					blockTransactionData.IsNativeTransfer = len(body.Data) == 0
+
+					// todo: maybe parse additional known token methods
 					return nil
 				},
 			}); err != nil {
