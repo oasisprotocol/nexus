@@ -48,8 +48,8 @@ CREATE TABLE chain.runtime_transactions
   size UINT31 NOT NULL,
   
   -- Transaction contents.
-  method      TEXT,         -- accounts.Transter, consensus.Deposit, consensus.Withdraw, evm.Create, evm.Call. NULL for malformed txs.
-  body        JSON,         -- For EVM txs, the EVM method and args are encoded in here. NULL for malformed txs.
+  method      TEXT,         -- accounts.Transter, consensus.Deposit, consensus.Withdraw, evm.Create, evm.Call. NULL for malformed and encrypted txs.
+  body        JSON,         -- For EVM txs, the EVM method and args are encoded in here. NULL for malformed and encrypted txs.
   "to"        oasis_addr,   -- Exact semantics depend on method. Extracted from body; for convenience only.
   amount      UINT_NUMERIC, -- Exact semantics depend on method. Extracted from body; for convenience only.
 
