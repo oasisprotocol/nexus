@@ -548,7 +548,12 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 			if err1 != nil {
 				return fmt.Errorf("event address: %w", err1)
 			}
-			eventRelatedAddresses := map[apiTypes.Address]bool{eventAddr: true}
+			eventData := EventData{
+				Type:             apiTypes.RuntimeEventTypeEvmLog,
+				Body:             event,
+				WithScope:        ScopedSdkEvent{EVM: event},
+				RelatedAddresses: map[apiTypes.Address]bool{eventAddr: true},
+			}
 			if err1 = VisitEVMEvent(event, &EVMEventHandler{
 				ERC20Transfer: func(fromEthAddr []byte, toEthAddr []byte, amountU256 []byte) error {
 					amount := &big.Int{}
@@ -560,7 +565,7 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 						if err2 != nil {
 							return fmt.Errorf("from: %w", err2)
 						}
-						eventRelatedAddresses[fromAddr] = true
+						eventData.RelatedAddresses[fromAddr] = true
 						registerTokenDecrease(blockData.TokenBalanceChanges, eventAddr, fromAddr, amount)
 					}
 					if !toZero {
@@ -568,7 +573,7 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 						if err2 != nil {
 							return fmt.Errorf("to: %w", err2)
 						}
-						eventRelatedAddresses[toAddr] = true
+						eventData.RelatedAddresses[toAddr] = true
 						registerTokenIncrease(blockData.TokenBalanceChanges, eventAddr, toAddr, amount)
 					}
 					if _, ok := blockData.PossibleTokens[eventAddr]; !ok {
@@ -581,7 +586,8 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 					if fromZero != toZero && amount.Cmp(&big.Int{}) != 0 {
 						blockData.PossibleTokens[eventAddr].Mutated = true
 					}
-					evmLogParams := []*apiTypes.EvmEventParam{
+					eventData.EvmLogName = apiTypes.Erc20Transfer
+					eventData.EvmLogParams = []*apiTypes.EvmEventParam{
 						{
 							Name:    "from",
 							EvmType: "address",
@@ -600,15 +606,6 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 							Value: amount.String(),
 						},
 					}
-					eventData := EventData{
-						Type:             apiTypes.RuntimeEventTypeEvmLog,
-						Body:             event,
-						WithScope:        ScopedSdkEvent{EVM: event},
-						EvmLogName:       apiTypes.Erc20Transfer,
-						EvmLogParams:     evmLogParams,
-						RelatedAddresses: eventRelatedAddresses,
-					}
-					extractedEvents = append(extractedEvents, &eventData)
 					return nil
 				},
 				ERC20Approval: func(ownerEthAddr []byte, spenderEthAddr []byte, amountU256 []byte) error {
@@ -617,21 +614,22 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 						if err2 != nil {
 							return fmt.Errorf("owner: %w", err2)
 						}
-						eventRelatedAddresses[ownerAddr] = true
+						eventData.RelatedAddresses[ownerAddr] = true
 					}
 					if !bytes.Equal(spenderEthAddr, uncategorized.ZeroEthAddr) {
 						spenderAddr, err2 := registerRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, spenderEthAddr)
 						if err2 != nil {
 							return fmt.Errorf("spender: %w", err2)
 						}
-						eventRelatedAddresses[spenderAddr] = true
+						eventData.RelatedAddresses[spenderAddr] = true
 					}
 					if _, ok := blockData.PossibleTokens[eventAddr]; !ok {
 						blockData.PossibleTokens[eventAddr] = &EVMPossibleToken{}
 					}
 					amount := &big.Int{}
 					amount.SetBytes(amountU256)
-					evmLogParams := []*apiTypes.EvmEventParam{
+					eventData.EvmLogName = apiTypes.Erc20Approval
+					eventData.EvmLogParams = []*apiTypes.EvmEventParam{
 						{
 							Name:    "owner",
 							EvmType: "address",
@@ -650,20 +648,12 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 							Value: amount.String(),
 						},
 					}
-					eventData := EventData{
-						Type:             apiTypes.RuntimeEventTypeEvmLog,
-						Body:             event,
-						WithScope:        ScopedSdkEvent{EVM: event},
-						EvmLogName:       apiTypes.Erc20Approval,
-						EvmLogParams:     evmLogParams,
-						RelatedAddresses: eventRelatedAddresses,
-					}
-					extractedEvents = append(extractedEvents, &eventData)
 					return nil
 				},
 			}); err1 != nil {
 				return err1
 			}
+			extractedEvents = append(extractedEvents, &eventData)
 			return nil
 		},
 	}); err != nil {
