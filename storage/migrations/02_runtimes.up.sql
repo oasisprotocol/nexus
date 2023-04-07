@@ -49,7 +49,7 @@ CREATE TABLE chain.runtime_transactions
   
   -- Transaction contents.
   method      TEXT,         -- accounts.Transter, consensus.Deposit, consensus.Withdraw, evm.Create, evm.Call. NULL for malformed and encrypted txs.
-  body        JSON,         -- For EVM txs, the EVM method and args are encoded in here. NULL for malformed and encrypted txs.
+  body        JSONB,        -- For EVM txs, the EVM method and args are encoded in here. NULL for malformed and encrypted txs.
   "to"        oasis_addr,   -- Exact semantics depend on method. Extracted from body; for convenience only.
   amount      UINT_NUMERIC, -- Exact semantics depend on method. Extracted from body; for convenience only.
 
@@ -106,7 +106,7 @@ CREATE TABLE chain.runtime_events
   -- `evm.log` events are further parsed into known event types,
   -- e.g. (ERC20) Transfer, to populate the `evm_log_name` and
   -- `evm_log_params` fields below.
-  body JSON NOT NULL,
+  body JSONB NOT NULL,
   evm_log_name TEXT,
   -- The event signature, if it exists, will be the first topic.
   evm_log_signature TEXT GENERATED ALWAYS AS (body->'topics'->>0) STORED,

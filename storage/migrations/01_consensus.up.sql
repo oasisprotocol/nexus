@@ -31,7 +31,7 @@ CREATE TABLE chain.blocks
   root_hash HEX64 NOT NULL,
 
   beacon     BYTEA,
-  metadata   JSON
+  metadata   JSONB
 );
 CREATE INDEX ix_blocks_time ON chain.blocks (time);
 
@@ -68,7 +68,7 @@ CREATE TABLE chain.events
   tx_index  UINT31,
 
   type    TEXT NOT NULL,  -- Enum with many values, see https://github.com/oasisprotocol/oasis-indexer/blob/89b68717205809b491d7926533d096444611bd6b/analyzer/api.go#L171-L171
-  body    JSON,
+  body    JSONB,
   tx_hash   HEX64, -- could be fetched from `transactions` table; denormalized for efficiency
   related_accounts TEXT[],
 
@@ -94,7 +94,7 @@ CREATE TABLE chain.entities
 (
   id      base64_ed25519_pubkey PRIMARY KEY,
   address oasis_addr NOT NULL, -- Deterministically derived from the ID.
-  meta    JSON  -- Signed statements about the entity from https://github.com/oasisprotocol/metadata-registry
+  meta    JSONB  -- Signed statements about the entity from https://github.com/oasisprotocol/metadata-registry
 );
 
 CREATE TABLE chain.nodes
@@ -198,7 +198,7 @@ CREATE TABLE chain.allowances
 CREATE TABLE chain.commissions
 (
   address  oasis_addr PRIMARY KEY NOT NULL REFERENCES chain.accounts(address) DEFERRABLE INITIALLY DEFERRED,
-  schedule JSON
+  schedule JSONB
 );
 
 CREATE TABLE chain.delegations
