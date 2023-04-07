@@ -11,7 +11,6 @@ require (
 	github.com/go-kit/log v0.2.1
 	github.com/golang-migrate/migrate/v4 v4.15.2
 	github.com/google/uuid v1.3.0
-	github.com/iancoleman/strcase v0.2.0
 	github.com/jackc/pgx/v5 v5.3.1
 	github.com/knadh/koanf v1.4.1
 	github.com/oasisprotocol/oasis-core/go v0.2202.5

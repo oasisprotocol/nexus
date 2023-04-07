@@ -14,7 +14,6 @@ import (
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 	"github.com/oasisprotocol/oasis-core/go/consensus/api/transaction"
 	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
-	oasisConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 
 	"github.com/oasisprotocol/oasis-indexer/analyzer"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/queries"
@@ -42,6 +41,21 @@ type parsedEvent struct {
 	relatedAddresses []staking.Address
 }
 
+// OpenSignedTxNoVerify decodes the Transaction inside a Signed transaction
+// without verifying the signature. Callers should be sure to check if the
+// transaction actually succeeded. The indexer trusts its oasis-node to
+// provide the correct transaction result, which will indicate if there was an
+// authentication problem. Skipping the verification saves CPU on the indexer.
+// Due to the chain context being global, we cannot verify transactions for
+// multiple networks anyway.
+func OpenSignedTxNoVerify(signedTx *transaction.SignedTransaction) (*transaction.Transaction, error) {
+	var tx transaction.Transaction
+	if err := cbor.Unmarshal(signedTx.Blob, &tx); err != nil {
+		return nil, fmt.Errorf("signed tx unmarshal: %w", err)
+	}
+	return &tx, nil
+}
+
 // Main is the main Analyzer for the consensus layer.
 type Main struct {
 	cfg     analyzer.ConsensusConfig
@@ -53,22 +67,11 @@ type Main struct {
 var _ analyzer.Analyzer = (*Main)(nil)
 
 // NewMain returns a new main analyzer for the consensus layer.
-func NewMain(nodeCfg config.NodeConfig, cfg *config.BlockBasedAnalyzerConfig, target storage.TargetStorage, logger *log.Logger) (*Main, error) {
+func NewMain(sourceConfig *config.SourceConfig, cfg *config.BlockBasedAnalyzerConfig, target storage.TargetStorage, logger *log.Logger) (*Main, error) {
 	ctx := context.Background()
 
 	// Initialize source storage.
-	networkCfg := oasisConfig.Network{
-		ChainContext: nodeCfg.ChainContext,
-		RPC:          nodeCfg.RPC,
-	}
-	factory, err := source.NewClientFactory(ctx, &networkCfg, nodeCfg.FastStartup)
-	if err != nil {
-		logger.Error("error creating client factory",
-			"err", err.Error(),
-		)
-		return nil, err
-	}
-	client, err := factory.Consensus()
+	client, err := source.NewConsensusClient(ctx, sourceConfig)
 	if err != nil {
 		logger.Error("error creating consensus client",
 			"err", err.Error(),
@@ -82,10 +85,9 @@ func NewMain(nodeCfg config.NodeConfig, cfg *config.BlockBasedAnalyzerConfig, ta
 		To:   cfg.To,
 	}
 	ac := analyzer.ConsensusConfig{
-		ChainID:      nodeCfg.ChainID,
-		ChainContext: nodeCfg.ChainContext,
-		Range:        blockRange,
-		Source:       client,
+		GenesisChainContext: sourceConfig.History().CurrentRecord().ChainContext,
+		Range:               blockRange,
+		Source:              client,
 	}
 
 	logger.Info("Starting consensus analyzer", "config", ac)
@@ -104,7 +106,7 @@ func (m *Main) Start() {
 	// Get block to be indexed.
 	var height int64
 
-	isGenesisProcessed, err := m.isGenesisProcessed(ctx)
+	isGenesisProcessed, err := m.isGenesisProcessed(ctx, m.cfg.GenesisChainContext)
 	if err != nil {
 		m.logger.Error("failed to check if genesis is processed",
 			"err", err.Error(),
@@ -112,7 +114,7 @@ func (m *Main) Start() {
 		return
 	}
 	if !isGenesisProcessed {
-		if err = m.processGenesis(ctx); err != nil {
+		if err = m.processGenesis(ctx, m.cfg.GenesisChainContext); err != nil {
 			m.logger.Error("failed to process genesis",
 				"err", err.Error(),
 			)
@@ -204,19 +206,19 @@ func (m *Main) latestBlock(ctx context.Context) (int64, error) {
 	return latest, nil
 }
 
-func (m *Main) isGenesisProcessed(ctx context.Context) (bool, error) {
+func (m *Main) isGenesisProcessed(ctx context.Context, chainContext string) (bool, error) {
 	var processed bool
 	if err := m.target.QueryRow(
 		ctx,
 		queries.IsGenesisProcessed,
-		m.cfg.ChainContext,
+		chainContext,
 	).Scan(&processed); err != nil {
 		return false, err
 	}
 	return processed, nil
 }
 
-func (m *Main) processGenesis(ctx context.Context) error {
+func (m *Main) processGenesis(ctx context.Context, chainContext string) error {
 	m.logger.Info("fetching genesis document")
 	genesisDoc, err := m.cfg.Source.GenesisDocument(ctx)
 	if err != nil {
@@ -247,7 +249,7 @@ func (m *Main) processGenesis(ctx context.Context) error {
 	}
 	batch.Queue(
 		queries.GenesisIndexingProgress,
-		m.cfg.ChainContext,
+		chainContext,
 	)
 	if err := m.target.SendBatch(ctx, batch); err != nil {
 		return err
@@ -400,8 +402,13 @@ func (m *Main) queueTransactionInserts(batch *storage.QueryBatch, data *storage.
 		signedTx := txr.Transaction
 		result := txr.Result
 
-		var tx transaction.Transaction
-		if err := signedTx.Open(&tx); err != nil {
+		tx, err := OpenSignedTxNoVerify(&signedTx)
+		if err != nil {
+			m.logger.Info("couldn't parse transaction",
+				"err", err,
+				"height", data.Height,
+				"tx_index", i,
+			)
 			continue
 		}
 
@@ -443,7 +450,7 @@ func (m *Main) queueTransactionInserts(batch *storage.QueryBatch, data *storage.
 
 		// TODO: Use event when available
 		// https://github.com/oasisprotocol/oasis-core/issues/4818
-		if tx.Method == "staking.AmendCommissionSchedule" {
+		if tx.Method == "staking.AmendCommissionSchedule" && result.IsSuccess() {
 			var rawSchedule staking.AmendCommissionSchedule
 			if err := cbor.Unmarshal(tx.Body, &rawSchedule); err != nil {
 				return err

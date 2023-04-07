@@ -39,12 +39,9 @@ type Analyzer interface {
 // ConsensusConfig specifies configuration parameters for
 // for processing the consensus layer.
 type ConsensusConfig struct {
-	// ChainID is the chain ID for the underlying network.
-	ChainID string
-
-	// ChainContext is the ChainContext (= chain identifier, based on a hash of the
-	// genesis file) for the underlying network.
-	ChainContext string
+	// GenesisChainContext is the chain context that specifies which genesis
+	// file to analyze.
+	GenesisChainContext string
 
 	// Range is the range of blocks to process.
 	// If this is set, the analyzer analyzes blocks in the provided range.

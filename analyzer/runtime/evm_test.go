@@ -11,20 +11,34 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	ethCommon "github.com/ethereum/go-ethereum/common"
 	"github.com/oasisprotocol/oasis-core/go/runtime/client/api"
-	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
+	sdkConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 	"github.com/stretchr/testify/require"
 
+	"github.com/oasisprotocol/oasis-indexer/analyzer"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/evmabi"
 	"github.com/oasisprotocol/oasis-indexer/cmd/common"
+	"github.com/oasisprotocol/oasis-indexer/config"
 	"github.com/oasisprotocol/oasis-indexer/storage/oasis"
 )
 
-func TestEVMDownloadTokenERC20(t *testing.T) {
+var (
+	ChainName          = "mainnet"
+	CurrentArchiveName = config.DefaultChains[ChainName].CurrentRecord().ArchiveName
 	// TODO: Would be nice to have an offline test.
+	PublicSourceConfig = &config.SourceConfig{
+		ChainName: ChainName,
+		Nodes: map[string]*config.NodeConfig{
+			CurrentArchiveName: {
+				RPC: sdkConfig.DefaultNetworks.All[ChainName].RPC,
+			},
+		},
+		FastStartup: false,
+	}
+)
+
+func TestEVMDownloadTokenERC20(t *testing.T) {
 	ctx := context.Background()
-	cf, err := oasis.NewClientFactory(ctx, config.DefaultNetworks.All["mainnet"], true)
-	require.NoError(t, err)
-	source, err := cf.Runtime(config.DefaultNetworks.All["mainnet"].ParaTimes.All["emerald"].ID)
+	source, err := oasis.NewRuntimeClient(ctx, PublicSourceConfig, analyzer.RuntimeEmerald)
 	require.NoError(t, err)
 	// Wormhole bridged USDT on Emerald mainnet.
 	tokenEthAddr, err := hex.DecodeString("dC19A122e268128B5eE20366299fc7b5b199C8e3")
@@ -35,11 +49,8 @@ func TestEVMDownloadTokenERC20(t *testing.T) {
 }
 
 func TestEVMDownloadTokenBalanceERC20(t *testing.T) {
-	// TODO: Would be nice to have an offline test.
 	ctx := context.Background()
-	cf, err := oasis.NewClientFactory(ctx, config.DefaultNetworks.All["mainnet"], true)
-	require.NoError(t, err)
-	source, err := cf.Runtime(config.DefaultNetworks.All["mainnet"].ParaTimes.All["emerald"].ID)
+	source, err := oasis.NewRuntimeClient(ctx, PublicSourceConfig, analyzer.RuntimeEmerald)
 	require.NoError(t, err)
 	// Wormhole bridged USDT on Emerald mainnet.
 	tokenEthAddr, err := hex.DecodeString("dC19A122e268128B5eE20366299fc7b5b199C8e3")
@@ -53,11 +64,8 @@ func TestEVMDownloadTokenBalanceERC20(t *testing.T) {
 }
 
 func TestEVMFailDeterministicUnoccupied(t *testing.T) {
-	// TODO: Would be nice to have an offline test.
 	ctx := context.Background()
-	cf, err := oasis.NewClientFactory(ctx, config.DefaultNetworks.All["mainnet"], true)
-	require.NoError(t, err)
-	source, err := cf.Runtime(config.DefaultNetworks.All["mainnet"].ParaTimes.All["emerald"].ID)
+	source, err := oasis.NewRuntimeClient(ctx, PublicSourceConfig, analyzer.RuntimeEmerald)
 	require.NoError(t, err)
 	// An address at which no smart contract exists.
 	tokenEthAddr, err := hex.DecodeString("5555555555555555555555555555555555555555")
@@ -70,11 +78,8 @@ func TestEVMFailDeterministicUnoccupied(t *testing.T) {
 }
 
 func TestEVMFailDeterministicOutOfGas(t *testing.T) {
-	// TODO: Would be nice to have an offline test.
 	ctx := context.Background()
-	cf, err := oasis.NewClientFactory(ctx, config.DefaultNetworks.All["mainnet"], true)
-	require.NoError(t, err)
-	source, err := cf.Runtime(config.DefaultNetworks.All["mainnet"].ParaTimes.All["emerald"].ID)
+	source, err := oasis.NewRuntimeClient(ctx, PublicSourceConfig, analyzer.RuntimeEmerald)
 	require.NoError(t, err)
 	// Wormhole bridged USDT on Emerald mainnet.
 	tokenEthAddr, err := hex.DecodeString("dC19A122e268128B5eE20366299fc7b5b199C8e3")
@@ -92,11 +97,8 @@ func TestEVMFailDeterministicOutOfGas(t *testing.T) {
 }
 
 func TestEVMFailDeterministicUnsupportedMethod(t *testing.T) {
-	// TODO: Would be nice to have an offline test.
 	ctx := context.Background()
-	cf, err := oasis.NewClientFactory(ctx, config.DefaultNetworks.All["mainnet"], true)
-	require.NoError(t, err)
-	source, err := cf.Runtime(config.DefaultNetworks.All["mainnet"].ParaTimes.All["emerald"].ID)
+	source, err := oasis.NewRuntimeClient(ctx, PublicSourceConfig, analyzer.RuntimeEmerald)
 	require.NoError(t, err)
 	// Wormhole bridged USDT on Emerald mainnet.
 	tokenEthAddr, err := hex.DecodeString("dC19A122e268128B5eE20366299fc7b5b199C8e3")

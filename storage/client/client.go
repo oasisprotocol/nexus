@@ -15,6 +15,8 @@ import (
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
 	oasisErrors "github.com/oasisprotocol/oasis-core/go/common/errors"
 	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
+	oasisConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
+
 	"github.com/oasisprotocol/oasis-indexer/analyzer/util"
 	apiCommon "github.com/oasisprotocol/oasis-indexer/api"
 	apiTypes "github.com/oasisprotocol/oasis-indexer/api/v1/types"
@@ -22,7 +24,6 @@ import (
 	"github.com/oasisprotocol/oasis-indexer/log"
 	"github.com/oasisprotocol/oasis-indexer/storage"
 	"github.com/oasisprotocol/oasis-indexer/storage/client/queries"
-	oasisConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 )
 
 const (
@@ -35,7 +36,6 @@ const (
 // StorageClient is a wrapper around a storage.TargetStorage
 // with knowledge of network semantics.
 type StorageClient struct {
-	chainID   string
 	chainName string
 	db        storage.TargetStorage
 
@@ -86,7 +86,7 @@ func runtimeFromCtx(ctx context.Context) string {
 }
 
 // NewStorageClient creates a new storage client.
-func NewStorageClient(chainID string, chainName string, db storage.TargetStorage, l *log.Logger) (*StorageClient, error) {
+func NewStorageClient(chainName string, db storage.TargetStorage, l *log.Logger) (*StorageClient, error) {
 	blockCache, err := ristretto.NewCache(&ristretto.Config{
 		NumCounters:        1024 * 10,
 		MaxCost:            1024,
@@ -107,7 +107,7 @@ func NewStorageClient(chainID string, chainName string, db storage.TargetStorage
 		l.Error("api client: failed to create tx cache: %w", err)
 		return nil, err
 	}
-	return &StorageClient{chainID, chainName, db, blockCache, txCache, l}, nil
+	return &StorageClient{chainName, db, blockCache, txCache, l}, nil
 }
 
 // Shutdown closes the backing TargetStorage.
@@ -174,9 +174,7 @@ func (c *StorageClient) withTotalCount(ctx context.Context, sql string, args ...
 
 // Status returns status information for the Oasis Indexer.
 func (c *StorageClient) Status(ctx context.Context) (*Status, error) {
-	s := Status{
-		LatestChainID: c.chainID,
-	}
+	var s Status
 	if err := c.db.QueryRow(
 		ctx,
 		queries.Status,

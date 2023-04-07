@@ -93,9 +93,6 @@ func Ptr[T any](v T) *T {
 type ContextKey string
 
 const (
-	// ChainIDContextKey is used to set the relevant chain ID
-	// in a request context.
-	ChainIDContextKey ContextKey = "chain_id"
 	// RuntimeContextKey is used to set the relevant runtime name
 	// in a request context.
 	RuntimeContextKey ContextKey = "runtime"

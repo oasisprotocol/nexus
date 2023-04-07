@@ -84,18 +84,6 @@ const (
 			LIMIT $6::bigint
 			OFFSET $7::bigint`
 
-	EventsRelAccounts = `
-		SELECT event_block, tx_index, tx_hash, type, body
-			FROM chain.accounts_related_events
-			WHERE (account_address = $1::text) AND
-					($2::bigint IS NULL OR event_block = $1::bigint) AND
-					($3::integer IS NULL OR tx_index = $3::integer) AND
-					($4::text IS NULL OR tx_hash = $4::text) AND
-					($5::text IS NULL OR type = $5::text)
-			ORDER BY event_block DESC, tx_index
-			LIMIT $6::bigint
-			OFFSET $7::bigint`
-
 	Entities = `
 		SELECT id, address
 			FROM chain.entities
@@ -322,14 +310,18 @@ const (
 			txs.error_code,
 			txs.error_message
 		FROM chain.runtime_transactions AS txs
-		LEFT JOIN chain.runtime_transaction_signers AS signer0 USING (runtime, round, tx_index)
+		LEFT JOIN chain.runtime_transaction_signers AS signer0 ON
+		    (signer0.runtime = txs.runtime) AND
+		    (signer0.round = txs.round) AND
+		    (signer0.tx_index = txs.tx_index) AND
+		    (signer0.signer_index = 0)
 		LEFT JOIN chain.address_preimages AS signer_eth ON
 			(signer0.signer_address = signer_eth.address) AND
 			(signer_eth.context_identifier = 'oasis-runtime-sdk/address: secp256k1eth') AND (signer_eth.context_version = 0)
 		LEFT JOIN chain.address_preimages AS to_eth ON
 			(txs.to = to_eth.address) AND
 			(to_eth.context_identifier = 'oasis-runtime-sdk/address: secp256k1eth') AND (to_eth.context_version = 0)
-		LEFT JOIN chain.runtime_related_transactions AS rel ON 
+		LEFT JOIN chain.runtime_related_transactions AS rel ON
 			(txs.round = rel.tx_round) AND
 			(txs.tx_index = rel.tx_index) AND
 			(txs.runtime = rel.runtime) AND
@@ -338,7 +330,6 @@ const (
 			($4::text IS NOT NULL)
 		WHERE
 			(txs.runtime = $1) AND
-			(signer0.signer_index = 0) AND
 			($2::bigint IS NULL OR txs.round = $2::bigint) AND
 			($3::text IS NULL OR txs.tx_hash = $3::text OR txs.tx_eth_hash = $3::text) AND
 			($4::text IS NULL OR rel.account_address = $4::text)

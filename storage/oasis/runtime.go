@@ -3,11 +3,11 @@ package oasis
 import (
 	"context"
 
-	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
-	config "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
+	sdkConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 
 	"github.com/oasisprotocol/oasis-indexer/storage"
+	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
 )
 
 // RuntimeClient is a client to a runtime. Unlike RuntimeApiLite implementations,
@@ -49,7 +49,7 @@ func (rc *RuntimeClient) EVMSimulateCall(ctx context.Context, round uint64, gasP
 }
 
 func (rc *RuntimeClient) nativeTokenSymbol() string {
-	for _, network := range config.DefaultNetworks.All {
+	for _, network := range sdkConfig.DefaultNetworks.All {
 		// Iterate over all networks and find the one that contains the runtime.
 		// Any network will do; we assume that paratime IDs are unique across networks.
 		// TODO: Remove this assumption; paratime IDs are chosen by the entity that registers them,
@@ -57,7 +57,7 @@ func (rc *RuntimeClient) nativeTokenSymbol() string {
 		// https://github.com/oasisprotocol/oasis-indexer/pull/362#discussion_r1153606360
 		for _, paratime := range network.ParaTimes.All {
 			if paratime.ID == rc.info.ID.Hex() {
-				return paratime.Denominations[config.NativeDenominationKey].Symbol
+				return paratime.Denominations[sdkConfig.NativeDenominationKey].Symbol
 			}
 		}
 	}
