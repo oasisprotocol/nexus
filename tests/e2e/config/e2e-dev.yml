@@ -20,7 +20,7 @@ analysis:
     migrations: file:///storage/migrations
 
 server:
-  chain_name: localnet  # a fake mainnet, based on oasis-net-runner
+  chain_name: localnet  # unused
   endpoint: 0.0.0.0:8008
   storage:
     endpoint: postgresql://indexer:password@indexer-postgres:5432/indexer?sslmode=disable
