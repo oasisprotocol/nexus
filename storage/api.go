@@ -233,8 +233,8 @@ type RuntimeSourceStorage interface {
 type RuntimeAllData struct {
 	Round                   uint64
 	BlockHeader             nodeapi.RuntimeBlockHeader
-	RawEvents               []*nodeapi.RuntimeEvent
-	TransactionsWithResults []*nodeapi.RuntimeTransactionWithResults
+	RawEvents               []nodeapi.RuntimeEvent
+	TransactionsWithResults []nodeapi.RuntimeTransactionWithResults
 }
 
 // TransactionWithResults contains a verified transaction, and the results of

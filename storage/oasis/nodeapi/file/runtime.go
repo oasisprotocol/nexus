@@ -84,29 +84,29 @@ func (r *FileRuntimeApiLite) GetBlockHeader(ctx context.Context, round uint64) (
 	return &blockHeader, nil
 }
 
-func (r *FileRuntimeApiLite) GetTransactionsWithResults(ctx context.Context, round uint64) ([]*nodeapi.RuntimeTransactionWithResults, error) {
+func (r *FileRuntimeApiLite) GetTransactionsWithResults(ctx context.Context, round uint64) ([]nodeapi.RuntimeTransactionWithResults, error) {
 	key := generateCacheKey("GetRuntimeTransactionsWithResults", round) // todo: maybe remove "runtime" from key; if we don't need to worry about collisions with the consensus api method of the same name. are we always guaranteed the diff db between consensus/runtime?
 	if r.runtimeApi != nil {
 		if err := r.updateCache(key, func() (interface{}, error) { return r.runtimeApi.GetTransactionsWithResults(ctx, round) }); err != nil {
 			return nil, err
 		}
 	}
-	txr := []*nodeapi.RuntimeTransactionWithResults{}
-	err := r.get(key, &txr)
+	txrs := []nodeapi.RuntimeTransactionWithResults{}
+	err := r.get(key, &txrs)
 	if err != nil {
 		return nil, err
 	}
-	return txr, nil
+	return txrs, nil
 }
 
-func (r *FileRuntimeApiLite) GetEventsRaw(ctx context.Context, round uint64) ([]*nodeapi.RuntimeEvent, error) {
+func (r *FileRuntimeApiLite) GetEventsRaw(ctx context.Context, round uint64) ([]nodeapi.RuntimeEvent, error) {
 	key := generateCacheKey("GetEventsRaw", round)
 	if r.runtimeApi != nil {
 		if err := r.updateCache(key, func() (interface{}, error) { return r.runtimeApi.GetEventsRaw(ctx, round) }); err != nil {
 			return nil, err
 		}
 	}
-	events := []*nodeapi.RuntimeEvent{}
+	events := []nodeapi.RuntimeEvent{}
 	err := r.get(key, &events)
 	if err != nil {
 		return nil, err
