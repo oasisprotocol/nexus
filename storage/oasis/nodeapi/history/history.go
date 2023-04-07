@@ -10,6 +10,7 @@ import (
 	genesis "github.com/oasisprotocol/oasis-core/go/genesis/api"
 
 	"github.com/oasisprotocol/oasis-indexer/config"
+	"github.com/oasisprotocol/oasis-indexer/storage/oasis/connections"
 	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
 	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi/cobalt"
 	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi/damask"
@@ -21,14 +22,14 @@ type APIConstructor func(ctx context.Context, chainContext string, nodeConfig *c
 
 var APIConstructors = map[string]APIConstructor{
 	"damask": func(ctx context.Context, chainContext string, nodeConfig *config.NodeConfig, fastStartup bool) (nodeapi.ConsensusApiLite, error) {
-		sdkConn, err := SDKConnect(ctx, chainContext, nodeConfig, fastStartup)
+		sdkConn, err := connections.SDKConnect(ctx, chainContext, nodeConfig, fastStartup)
 		if err != nil {
 			return nil, err
 		}
 		return damask.NewDamaskConsensusApiLite(sdkConn.Consensus()), nil
 	},
 	"cobalt": func(ctx context.Context, chainContext string, nodeConfig *config.NodeConfig, fastStartup bool) (nodeapi.ConsensusApiLite, error) {
-		rawConn, err := RawConnect(nodeConfig)
+		rawConn, err := connections.RawConnect(nodeConfig)
 		if err != nil {
 			return nil, fmt.Errorf("indexer RawConnect: %w", err)
 		}

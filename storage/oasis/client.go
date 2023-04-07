@@ -8,6 +8,7 @@ import (
 
 	"github.com/oasisprotocol/oasis-indexer/analyzer"
 	"github.com/oasisprotocol/oasis-indexer/config"
+	"github.com/oasisprotocol/oasis-indexer/storage/oasis/connections"
 	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
 	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi/history"
 )
@@ -32,11 +33,11 @@ func NewConsensusClient(ctx context.Context, sourceConfig *config.SourceConfig) 
 func NewRuntimeClient(ctx context.Context, sourceConfig *config.SourceConfig, runtime analyzer.Runtime) (*RuntimeClient, error) {
 	currentHistoryRecord := sourceConfig.History().CurrentRecord()
 	currentNode := sourceConfig.Nodes[currentHistoryRecord.ArchiveName]
-	rawConn, err := history.RawConnect(currentNode)
+	rawConn, err := connections.RawConnect(currentNode)
 	if err != nil {
 		return nil, fmt.Errorf("indexer RawConnect: %w", err)
 	}
-	sdkConn, err := history.SDKConnect(ctx, currentHistoryRecord.ChainContext, currentNode, sourceConfig.FastStartup)
+	sdkConn, err := connections.SDKConnect(ctx, currentHistoryRecord.ChainContext, currentNode, sourceConfig.FastStartup)
 	if err != nil {
 		return nil, err
 	}
