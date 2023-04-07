@@ -1,11 +1,8 @@
 package file
 
 import (
-	"bytes"
 	"context"
-	"encoding/gob"
 	"encoding/json"
-	"fmt"
 
 	"github.com/akrylysov/pogreb"
 	beacon "github.com/oasisprotocol/oasis-core/go/beacon/api"
@@ -26,8 +23,6 @@ type FileConsensusApiLite struct {
 	consensusApi nodeapi.ConsensusApiLite
 }
 
-type ConsensusApiMethod func() (interface{}, error)
-
 var _ nodeapi.ConsensusApiLite = (*FileConsensusApiLite)(nil)
 
 func NewFileConsensusApiLite(filename string, client *consensus.ClientBackend) (*FileConsensusApiLite, error) {
@@ -35,7 +30,7 @@ func NewFileConsensusApiLite(filename string, client *consensus.ClientBackend) (
 	if err != nil {
 		return nil, err
 	}
-	var consensusApi *damask.DamaskConsensusApiLite
+	var consensusApi nodeapi.ConsensusApiLite
 	if client != nil {
 		consensusApi = damask.NewDamaskConsensusApiLite(*client)
 	}
@@ -43,22 +38,6 @@ func NewFileConsensusApiLite(filename string, client *consensus.ClientBackend) (
 		db:           *db,
 		consensusApi: consensusApi,
 	}, nil
-}
-
-func generateCacheKey(methodName string, params ...interface{}) []byte {
-	var buf bytes.Buffer
-	enc := gob.NewEncoder(&buf)
-	err := enc.Encode(methodName)
-	if err != nil {
-		panic(err)
-	}
-	for _, p := range params {
-		err = enc.Encode(p)
-		if err != nil {
-			panic(err)
-		}
-	}
-	return buf.Bytes()
 }
 
 func (c *FileConsensusApiLite) get(key []byte, result interface{}) error {
@@ -72,13 +51,12 @@ func (c *FileConsensusApiLite) get(key []byte, result interface{}) error {
 func (c *FileConsensusApiLite) put(key []byte, val interface{}) error {
 	valBytes, err := json.Marshal(val)
 	if err != nil {
-		fmt.Printf("file backend: error encoding value for put " + err.Error())
 		return err
 	}
 	return c.db.Put(key, valBytes)
 }
 
-func (c *FileConsensusApiLite) updateCache(key []byte, method ConsensusApiMethod) error {
+func (c *FileConsensusApiLite) updateCache(key []byte, method NodeApiMethod) error {
 	exists, err := c.db.Has(key)
 	if err != nil {
 		return err
@@ -97,17 +75,13 @@ func (c *FileConsensusApiLite) updateCache(key []byte, method ConsensusApiMethod
 func (c *FileConsensusApiLite) GetGenesisDocument(ctx context.Context) (*genesis.Document, error) {
 	key := generateCacheKey("GetGenesisDocument")
 	if c.consensusApi != nil {
-		fmt.Printf("file backend: fetching genesis")
 		if err := c.updateCache(key, func() (interface{}, error) { return c.consensusApi.GetGenesisDocument(ctx) }); err != nil {
-			fmt.Printf("file backend: error fetching genesis")
 			return nil, err
 		}
 	}
 	var genesisDocument genesis.Document
-	fmt.Printf("file backend: about to get")
 	err := c.get(key, &genesisDocument)
 	if err != nil {
-		fmt.Printf("file backend: error getting genesis back from pogreb")
 		return nil, err
 	}
 	return &genesisDocument, nil
