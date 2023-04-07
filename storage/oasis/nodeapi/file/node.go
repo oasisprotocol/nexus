@@ -22,8 +22,8 @@ import (
 // to `ConsensusApiLite` calls, this data is inherently compatible with the
 // current indexer and can thus handle heights from both Cobalt/Damask.
 type FileConsensusApiLite struct {
-	db        pogreb.DB
-	damaskApi *damask.DamaskConsensusApiLite
+	db           pogreb.DB
+	consensusApi nodeapi.ConsensusApiLite
 }
 
 type ConsensusApiMethod func() (interface{}, error)
@@ -35,30 +35,30 @@ func NewFileConsensusApiLite(filename string, client *consensus.ClientBackend) (
 	if err != nil {
 		return nil, err
 	}
-	var damaskApi *damask.DamaskConsensusApiLite
+	var consensusApi *damask.DamaskConsensusApiLite
 	if client != nil {
-		damaskApi = damask.NewDamaskConsensusApiLite(*client)
+		consensusApi = damask.NewDamaskConsensusApiLite(*client)
 	}
 	return &FileConsensusApiLite{
-		db:        *db,
-		damaskApi: damaskApi,
+		db:           *db,
+		consensusApi: consensusApi,
 	}, nil
 }
 
-func generateCacheKey(methodName string, params ...interface{}) ([]byte, error) {
+func generateCacheKey(methodName string, params ...interface{}) []byte {
 	var buf bytes.Buffer
 	enc := gob.NewEncoder(&buf)
 	err := enc.Encode(methodName)
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
 	for _, p := range params {
 		err = enc.Encode(p)
 		if err != nil {
-			return nil, err
+			panic(err)
 		}
 	}
-	return buf.Bytes(), nil
+	return buf.Bytes()
 }
 
 func (c *FileConsensusApiLite) get(key []byte, result interface{}) error {
@@ -95,20 +95,17 @@ func (c *FileConsensusApiLite) updateCache(key []byte, method ConsensusApiMethod
 }
 
 func (c *FileConsensusApiLite) GetGenesisDocument(ctx context.Context) (*genesis.Document, error) {
-	key, err := generateCacheKey("GetGenesisDocument")
-	if err != nil {
-		return nil, err
-	}
-	if c.damaskApi != nil {
+	key := generateCacheKey("GetGenesisDocument")
+	if c.consensusApi != nil {
 		fmt.Printf("file backend: fetching genesis")
-		if err := c.updateCache(key, func() (interface{}, error) { return c.damaskApi.GetGenesisDocument(ctx) }); err != nil {
+		if err := c.updateCache(key, func() (interface{}, error) { return c.consensusApi.GetGenesisDocument(ctx) }); err != nil {
 			fmt.Printf("file backend: error fetching genesis")
 			return nil, err
 		}
 	}
 	var genesisDocument genesis.Document
 	fmt.Printf("file backend: about to get")
-	err = c.get(key, &genesisDocument)
+	err := c.get(key, &genesisDocument)
 	if err != nil {
 		fmt.Printf("file backend: error getting genesis back from pogreb")
 		return nil, err
@@ -117,15 +114,12 @@ func (c *FileConsensusApiLite) GetGenesisDocument(ctx context.Context) (*genesis
 }
 
 func (c *FileConsensusApiLite) StateToGenesis(ctx context.Context, height int64) (*genesis.Document, error) {
-	key, err := generateCacheKey("StateToGenesis", height)
-	if err != nil {
-		return nil, err
-	}
-	if c.damaskApi != nil {
-		c.updateCache(key, func() (interface{}, error) { return c.damaskApi.StateToGenesis(ctx, height) })
+	key := generateCacheKey("StateToGenesis", height)
+	if c.consensusApi != nil {
+		c.updateCache(key, func() (interface{}, error) { return c.consensusApi.StateToGenesis(ctx, height) })
 	}
 	var genesisDocument genesis.Document
-	err = c.get(key, &genesisDocument)
+	err := c.get(key, &genesisDocument)
 	if err != nil {
 		return nil, err
 	}
@@ -133,15 +127,12 @@ func (c *FileConsensusApiLite) StateToGenesis(ctx context.Context, height int64)
 }
 
 func (c *FileConsensusApiLite) GetBlock(ctx context.Context, height int64) (*consensus.Block, error) {
-	key, err := generateCacheKey("GetBlock", height)
-	if err != nil {
-		return nil, err
-	}
-	if c.damaskApi != nil {
-		c.updateCache(key, func() (interface{}, error) { return c.damaskApi.GetBlock(ctx, height) })
+	key := generateCacheKey("GetBlock", height)
+	if c.consensusApi != nil {
+		c.updateCache(key, func() (interface{}, error) { return c.consensusApi.GetBlock(ctx, height) })
 	}
 	var block consensus.Block
-	err = c.get(key, &block)
+	err := c.get(key, &block)
 	if err != nil {
 		return nil, err
 	}
@@ -149,15 +140,12 @@ func (c *FileConsensusApiLite) GetBlock(ctx context.Context, height int64) (*con
 }
 
 func (c *FileConsensusApiLite) GetTransactionsWithResults(ctx context.Context, height int64) ([]nodeapi.TransactionWithResults, error) {
-	key, err := generateCacheKey("GetTransactionsWithResults", height)
-	if err != nil {
-		return nil, err
-	}
-	if c.damaskApi != nil {
-		c.updateCache(key, func() (interface{}, error) { return c.damaskApi.GetTransactionsWithResults(ctx, height) })
+	key := generateCacheKey("GetTransactionsWithResults", height)
+	if c.consensusApi != nil {
+		c.updateCache(key, func() (interface{}, error) { return c.consensusApi.GetTransactionsWithResults(ctx, height) })
 	}
 	txs := []nodeapi.TransactionWithResults{}
-	err = c.get(key, &txs) // TODO: is the & necessary?
+	err := c.get(key, &txs) // TODO: is the & necessary?
 	if err != nil {
 		return nil, err
 	}
@@ -165,15 +153,12 @@ func (c *FileConsensusApiLite) GetTransactionsWithResults(ctx context.Context, h
 }
 
 func (c *FileConsensusApiLite) GetEpoch(ctx context.Context, height int64) (beacon.EpochTime, error) {
-	key, err := generateCacheKey("GetEpoch", height)
-	if err != nil {
-		return beacon.EpochInvalid, err
-	}
-	if c.damaskApi != nil {
-		c.updateCache(key, func() (interface{}, error) { return c.damaskApi.GetEpoch(ctx, height) })
+	key := generateCacheKey("GetEpoch", height)
+	if c.consensusApi != nil {
+		c.updateCache(key, func() (interface{}, error) { return c.consensusApi.GetEpoch(ctx, height) })
 	}
 	var epoch beacon.EpochTime
-	err = c.get(key, &epoch)
+	err := c.get(key, &epoch)
 	if err != nil {
 		return beacon.EpochInvalid, err
 	}
@@ -181,15 +166,12 @@ func (c *FileConsensusApiLite) GetEpoch(ctx context.Context, height int64) (beac
 }
 
 func (c *FileConsensusApiLite) RegistryEvents(ctx context.Context, height int64) ([]nodeapi.Event, error) {
-	key, err := generateCacheKey("RegistryEvents", height)
-	if err != nil {
-		return nil, err
-	}
-	if c.damaskApi != nil {
-		c.updateCache(key, func() (interface{}, error) { return c.damaskApi.RegistryEvents(ctx, height) })
+	key := generateCacheKey("RegistryEvents", height)
+	if c.consensusApi != nil {
+		c.updateCache(key, func() (interface{}, error) { return c.consensusApi.RegistryEvents(ctx, height) })
 	}
 	events := []nodeapi.Event{}
-	err = c.get(key, &events)
+	err := c.get(key, &events)
 	if err != nil {
 		return nil, err
 	}
@@ -197,15 +179,12 @@ func (c *FileConsensusApiLite) RegistryEvents(ctx context.Context, height int64)
 }
 
 func (c *FileConsensusApiLite) StakingEvents(ctx context.Context, height int64) ([]nodeapi.Event, error) {
-	key, err := generateCacheKey("StakingEvents", height)
-	if err != nil {
-		return nil, err
-	}
-	if c.damaskApi != nil {
-		c.updateCache(key, func() (interface{}, error) { return c.damaskApi.StakingEvents(ctx, height) })
+	key := generateCacheKey("StakingEvents", height)
+	if c.consensusApi != nil {
+		c.updateCache(key, func() (interface{}, error) { return c.consensusApi.StakingEvents(ctx, height) })
 	}
 	events := []nodeapi.Event{}
-	err = c.get(key, &events)
+	err := c.get(key, &events)
 	if err != nil {
 		return nil, err
 	}
@@ -213,15 +192,12 @@ func (c *FileConsensusApiLite) StakingEvents(ctx context.Context, height int64) 
 }
 
 func (c *FileConsensusApiLite) GovernanceEvents(ctx context.Context, height int64) ([]nodeapi.Event, error) {
-	key, err := generateCacheKey("GovernanceEvents", height)
-	if err != nil {
-		return nil, err
-	}
-	if c.damaskApi != nil {
-		c.updateCache(key, func() (interface{}, error) { return c.damaskApi.GovernanceEvents(ctx, height) })
+	key := generateCacheKey("GovernanceEvents", height)
+	if c.consensusApi != nil {
+		c.updateCache(key, func() (interface{}, error) { return c.consensusApi.GovernanceEvents(ctx, height) })
 	}
 	events := []nodeapi.Event{}
-	err = c.get(key, &events)
+	err := c.get(key, &events)
 	if err != nil {
 		return nil, err
 	}
@@ -229,15 +205,12 @@ func (c *FileConsensusApiLite) GovernanceEvents(ctx context.Context, height int6
 }
 
 func (c *FileConsensusApiLite) RoothashEvents(ctx context.Context, height int64) ([]nodeapi.Event, error) {
-	key, err := generateCacheKey("RoothashEvents", height)
-	if err != nil {
-		return nil, err
-	}
-	if c.damaskApi != nil {
-		c.updateCache(key, func() (interface{}, error) { return c.damaskApi.RoothashEvents(ctx, height) })
+	key := generateCacheKey("RoothashEvents", height)
+	if c.consensusApi != nil {
+		c.updateCache(key, func() (interface{}, error) { return c.consensusApi.RoothashEvents(ctx, height) })
 	}
 	events := []nodeapi.Event{}
-	err = c.get(key, &events)
+	err := c.get(key, &events)
 	if err != nil {
 		return nil, err
 	}
@@ -245,15 +218,12 @@ func (c *FileConsensusApiLite) RoothashEvents(ctx context.Context, height int64)
 }
 
 func (c *FileConsensusApiLite) GetValidators(ctx context.Context, height int64) ([]nodeapi.Validator, error) {
-	key, err := generateCacheKey("GetValidators", height)
-	if err != nil {
-		return nil, err
-	}
-	if c.damaskApi != nil {
-		c.updateCache(key, func() (interface{}, error) { return c.damaskApi.GetValidators(ctx, height) })
+	key := generateCacheKey("GetValidators", height)
+	if c.consensusApi != nil {
+		c.updateCache(key, func() (interface{}, error) { return c.consensusApi.GetValidators(ctx, height) })
 	}
 	validators := []nodeapi.Validator{}
-	err = c.get(key, &validators)
+	err := c.get(key, &validators)
 	if err != nil {
 		return nil, err
 	}
@@ -261,15 +231,12 @@ func (c *FileConsensusApiLite) GetValidators(ctx context.Context, height int64) 
 }
 
 func (c *FileConsensusApiLite) GetCommittees(ctx context.Context, height int64, runtimeID coreCommon.Namespace) ([]nodeapi.Committee, error) {
-	key, err := generateCacheKey("GetCommittees", height, runtimeID)
-	if err != nil {
-		return nil, err
-	}
-	if c.damaskApi != nil {
-		c.updateCache(key, func() (interface{}, error) { return c.damaskApi.GetCommittees(ctx, height, runtimeID) })
+	key := generateCacheKey("GetCommittees", height, runtimeID)
+	if c.consensusApi != nil {
+		c.updateCache(key, func() (interface{}, error) { return c.consensusApi.GetCommittees(ctx, height, runtimeID) })
 	}
 	committees := []nodeapi.Committee{}
-	err = c.get(key, &committees)
+	err := c.get(key, &committees)
 	if err != nil {
 		return nil, err
 	}
@@ -277,15 +244,12 @@ func (c *FileConsensusApiLite) GetCommittees(ctx context.Context, height int64, 
 }
 
 func (c *FileConsensusApiLite) GetProposal(ctx context.Context, height int64, proposalID uint64) (*nodeapi.Proposal, error) {
-	key, err := generateCacheKey("GetProposal", height, proposalID)
-	if err != nil {
-		return nil, err
-	}
-	if c.damaskApi != nil {
-		c.updateCache(key, func() (interface{}, error) { return c.damaskApi.GetProposal(ctx, height, proposalID) })
+	key := generateCacheKey("GetProposal", height, proposalID)
+	if c.consensusApi != nil {
+		c.updateCache(key, func() (interface{}, error) { return c.consensusApi.GetProposal(ctx, height, proposalID) })
 	}
 	var proposal nodeapi.Proposal
-	err = c.get(key, &proposal)
+	err := c.get(key, &proposal)
 	if err != nil {
 		return nil, err
 	}
