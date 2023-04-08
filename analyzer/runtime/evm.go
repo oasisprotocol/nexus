@@ -9,7 +9,6 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	ethCommon "github.com/ethereum/go-ethereum/common"
 	"github.com/oasisprotocol/oasis-core/go/common/errors"
-	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 
 	"github.com/oasisprotocol/oasis-indexer/analyzer/evmabi"
 	"github.com/oasisprotocol/oasis-indexer/log"
@@ -75,16 +74,6 @@ var (
 	// https://github.com/oasisprotocol/oasis-sdk/blob/runtime-sdk/v0.2.0/runtime-sdk/modules/evm/src/lib.rs#L147
 	ErrEVMReverted = errors.New(EVMModuleName, 8, "reverted")
 )
-
-func EVMEthAddrFromPreimage(contextIdentifier string, contextVersion int, data []byte) ([]byte, error) {
-	if contextIdentifier != sdkTypes.AddressV0Secp256k1EthContext.Identifier {
-		return nil, fmt.Errorf("preimage context identifier %q, expecting %q", contextIdentifier, sdkTypes.AddressV0Secp256k1EthContext.Identifier)
-	}
-	if contextVersion != int(sdkTypes.AddressV0Secp256k1EthContext.Version) {
-		return nil, fmt.Errorf("preimage context version %d, expecting %d", contextVersion, sdkTypes.AddressV0Secp256k1EthContext.Version)
-	}
-	return data, nil
-}
 
 func evmCallWithABICustom(
 	ctx context.Context,

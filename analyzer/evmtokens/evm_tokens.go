@@ -14,6 +14,7 @@ import (
 	"github.com/oasisprotocol/oasis-indexer/config"
 	"github.com/oasisprotocol/oasis-indexer/log"
 	"github.com/oasisprotocol/oasis-indexer/storage"
+	"github.com/oasisprotocol/oasis-indexer/storage/client"
 	"github.com/oasisprotocol/oasis-indexer/storage/oasis"
 )
 
@@ -107,7 +108,7 @@ func (m Main) getStaleTokens(ctx context.Context, limit int) ([]*StaleToken, err
 
 func (m Main) processStaleToken(ctx context.Context, batch *storage.QueryBatch, staleToken *StaleToken) error {
 	m.logger.Info("downloading", "stale_token", staleToken)
-	tokenEthAddr, err := runtime.EVMEthAddrFromPreimage(staleToken.AddrContextIdentifier, staleToken.AddrContextVersion, staleToken.AddrData)
+	tokenEthAddr, err := client.EVMEthAddrFromPreimage(staleToken.AddrContextIdentifier, staleToken.AddrContextVersion, staleToken.AddrData)
 	if err != nil {
 		return fmt.Errorf("token address: %w", err)
 	}

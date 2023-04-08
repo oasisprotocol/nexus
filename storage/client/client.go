@@ -16,8 +16,8 @@ import (
 	oasisErrors "github.com/oasisprotocol/oasis-core/go/common/errors"
 	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
 	oasisConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
+	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 
-	"github.com/oasisprotocol/oasis-indexer/analyzer/runtime"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/util"
 	apiCommon "github.com/oasisprotocol/oasis-indexer/api"
 	apiTypes "github.com/oasisprotocol/oasis-indexer/api/v1/types"
@@ -1031,11 +1031,21 @@ func (c *StorageClient) RuntimeBlocks(ctx context.Context, p apiTypes.GetRuntime
 	return &bs, nil
 }
 
+func EVMEthAddrFromPreimage(contextIdentifier string, contextVersion int, data []byte) ([]byte, error) {
+	if contextIdentifier != sdkTypes.AddressV0Secp256k1EthContext.Identifier {
+		return nil, fmt.Errorf("preimage context identifier %q, expecting %q", contextIdentifier, sdkTypes.AddressV0Secp256k1EthContext.Identifier)
+	}
+	if contextVersion != int(sdkTypes.AddressV0Secp256k1EthContext.Version) {
+		return nil, fmt.Errorf("preimage context version %d, expecting %d", contextVersion, sdkTypes.AddressV0Secp256k1EthContext.Version)
+	}
+	return data, nil
+}
+
 // EthChecksumAddrFromPreimage gives the friendly Ethereum-style mixed-case
 // checksum address (see ERC-55) for an address preimage or nil if the
 // preimage context is not AddressV0Secp256k1EthContext.
 func EthChecksumAddrFromPreimage(contextIdentifier string, contextVersion int, data []byte) *string {
-	ethAddr, err := runtime.EVMEthAddrFromPreimage(contextIdentifier, contextVersion, data)
+	ethAddr, err := EVMEthAddrFromPreimage(contextIdentifier, contextVersion, data)
 	if err != nil {
 		// Ignore error about the preimage not being AddressV0Secp256k1EthContext.
 		return nil

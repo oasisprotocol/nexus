@@ -16,6 +16,7 @@ import (
 	"github.com/oasisprotocol/oasis-indexer/config"
 	"github.com/oasisprotocol/oasis-indexer/log"
 	"github.com/oasisprotocol/oasis-indexer/storage"
+	"github.com/oasisprotocol/oasis-indexer/storage/client"
 	"github.com/oasisprotocol/oasis-indexer/storage/oasis"
 )
 
@@ -162,11 +163,11 @@ func (m Main) getStaleTokenBalances(ctx context.Context, limit int) ([]*StaleTok
 func (m Main) processStaleTokenBalance(ctx context.Context, batch *storage.QueryBatch, staleTokenBalance *StaleTokenBalance) error {
 	m.logger.Info("downloading", "stale_token_balance", staleTokenBalance)
 	// todo: assert that token addr and account addr contexts are secp256k1
-	tokenEthAddr, err := runtime.EVMEthAddrFromPreimage(staleTokenBalance.TokenAddrContextIdentifier, staleTokenBalance.TokenAddrContextVersion, staleTokenBalance.TokenAddrData)
+	tokenEthAddr, err := client.EVMEthAddrFromPreimage(staleTokenBalance.TokenAddrContextIdentifier, staleTokenBalance.TokenAddrContextVersion, staleTokenBalance.TokenAddrData)
 	if err != nil {
 		return fmt.Errorf("token address: %w", err)
 	}
-	accountEthAddr, err := runtime.EVMEthAddrFromPreimage(staleTokenBalance.AccountAddrContextIdentifier, staleTokenBalance.AccountAddrContextVersion, staleTokenBalance.AccountAddrData)
+	accountEthAddr, err := client.EVMEthAddrFromPreimage(staleTokenBalance.AccountAddrContextIdentifier, staleTokenBalance.AccountAddrContextVersion, staleTokenBalance.AccountAddrData)
 	if err != nil {
 		return fmt.Errorf("account address: %w", err)
 	}
