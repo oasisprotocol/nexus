@@ -427,7 +427,10 @@ func (m *Main) queueTransactionInserts(batch *storage.QueryBatch, data *storage.
 		}
 		var message *string
 		if len(result.Error.Message) > 0 {
-			message = &result.Error.Message
+			// The message should be well-formed since it comes from oasis-core.
+			// However postgres requires valid UTF-8 with no 0x00, so we sanitize the message just in case.
+			sanitizedMsg := strings.ToValidUTF8(strings.ReplaceAll(result.Error.Message, "\x00", "?"), "?")
+			message = &sanitizedMsg
 		}
 		batch.Queue(queries.ConsensusTransactionInsert,
 			data.BlockHeader.Height,
