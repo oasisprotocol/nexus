@@ -173,10 +173,13 @@ CREATE TABLE chain.accounts
   nonce           UINT63 NOT NULL DEFAULT 0,
 
   -- Escrow Account
-  escrow_balance_active         UINT_NUMERIC NOT NULL DEFAULT 0,
-  escrow_total_shares_active    UINT_NUMERIC NOT NULL DEFAULT 0,
-  escrow_balance_debonding      UINT_NUMERIC NOT NULL DEFAULT 0,
-  escrow_total_shares_debonding UINT_NUMERIC NOT NULL DEFAULT 0
+  -- TODO: Use UINT_NUMERIC for the next four columns. Their values should always be >=0;
+  -- however in Cobalt, the emitted events didn't allow perfect tracking of shares, so
+  -- the indexer can arrive at negative values (https://github.com/oasisprotocol/oasis-indexer/pull/370). 
+  escrow_balance_active         NUMERIC(1000,0) NOT NULL DEFAULT 0,
+  escrow_total_shares_active    NUMERIC(1000,0) NOT NULL DEFAULT 0,
+  escrow_balance_debonding      NUMERIC(1000,0) NOT NULL DEFAULT 0,
+  escrow_total_shares_debonding NUMERIC(1000,0) NOT NULL DEFAULT 0
 
   -- TODO: Track commission schedule and staking accumulator.
 );

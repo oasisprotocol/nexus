@@ -183,14 +183,9 @@ func convertEvent(e txResultsCobalt.Event) nodeapi.Event {
 			switch {
 			case e.Staking.Escrow.Add != nil:
 				ret = nodeapi.Event{
-					StakingAddEscrow: &nodeapi.AddEscrowEvent{
-						Owner:     e.Staking.Escrow.Add.Owner,
-						Escrow:    e.Staking.Escrow.Add.Escrow,
-						Amount:    e.Staking.Escrow.Add.Amount,
-						NewShares: quantity.Quantity{}, // NOTE: not available in the Cobalt API
-					},
-					Body: e.Staking.Escrow.Add,
-					Type: apiTypes.ConsensusEventTypeStakingEscrowAdd,
+					StakingAddEscrow: (*nodeapi.AddEscrowEvent)(e.Staking.Escrow.Add),
+					Body:             e.Staking.Escrow.Add,
+					Type:             apiTypes.ConsensusEventTypeStakingEscrowAdd,
 				}
 			case e.Staking.Escrow.Take != nil:
 				ret = nodeapi.Event{
@@ -200,14 +195,9 @@ func convertEvent(e txResultsCobalt.Event) nodeapi.Event {
 				}
 			case e.Staking.Escrow.Reclaim != nil:
 				ret = nodeapi.Event{
-					StakingReclaimEscrow: &nodeapi.ReclaimEscrowEvent{
-						Owner:  e.Staking.Escrow.Reclaim.Owner,
-						Escrow: e.Staking.Escrow.Reclaim.Escrow,
-						Amount: e.Staking.Escrow.Reclaim.Amount,
-						Shares: quantity.Quantity{}, // NOTE: not available in the Cobalt API
-					},
-					Body: e.Staking.Escrow.Reclaim,
-					Type: apiTypes.ConsensusEventTypeStakingEscrowReclaim,
+					StakingReclaimEscrow: (*nodeapi.ReclaimEscrowEvent)(e.Staking.Escrow.Reclaim),
+					Body:                 e.Staking.Escrow.Reclaim,
+					Type:                 apiTypes.ConsensusEventTypeStakingEscrowReclaim,
 				}
 				// NOTE: There is no Staking.Escrow.DebondingStart event in Cobalt.
 			}
