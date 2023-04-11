@@ -227,7 +227,7 @@ const (
 				chain.entities.address AS entity_address,
 				chain.nodes.id AS node_address,
 				chain.accounts.escrow_balance_active AS escrow,
-				COALESCE(chain.commissions.schedule, '{}'::json) AS commissions_schedule,
+				COALESCE(chain.commissions.schedule, '{}'::JSONB) AS commissions_schedule,
 				CASE WHEN EXISTS(SELECT null FROM chain.nodes WHERE chain.entities.id = chain.nodes.entity_id AND voting_power > 0) THEN true ELSE false END AS active,
 				CASE WHEN EXISTS(SELECT null FROM chain.nodes WHERE chain.entities.id = chain.nodes.entity_id AND chain.nodes.roles like '%validator%') THEN true ELSE false END AS status,
 				chain.entities.meta AS meta
@@ -255,7 +255,7 @@ const (
 				chain.entities.address AS entity_address,
 				chain.nodes.id AS node_address,
 				chain.accounts.escrow_balance_active AS escrow,
-				COALESCE(chain.commissions.schedule, '{}'::json) AS commissions_schedule,
+				COALESCE(chain.commissions.schedule, '{}'::JSONB) AS commissions_schedule,
 				CASE WHEN EXISTS(SELECT NULL FROM chain.nodes WHERE chain.entities.id = chain.nodes.entity_id AND voting_power > 0) THEN true ELSE false END AS active,
 				CASE WHEN EXISTS(SELECT NULL FROM chain.nodes WHERE chain.entities.id = chain.nodes.entity_id AND chain.nodes.roles like '%validator%') THEN true ELSE false END AS status,
 				chain.entities.meta AS meta
