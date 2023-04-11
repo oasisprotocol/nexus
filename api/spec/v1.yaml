@@ -71,7 +71,7 @@ x-query-params:
       default: 86400
     description: |
       The size of the step between returned statistic windows, in seconds.
-      The backend supports a limited number of window sizes: 300 (5 minutes) and
+      The backend supports a limited number of step sizes: 300 (5 minutes) and
       86400 (1 day). Requests with other values may be rejected.
 
 x-examples:
