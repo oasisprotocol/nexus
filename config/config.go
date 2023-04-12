@@ -117,6 +117,9 @@ type AnalyzersList struct {
 
 // SourceConfig has some controls about what chain we're analyzing and how to connect.
 type SourceConfig struct {
+	// Cache holds the configuration for a file-based caching backend.
+	Cache *CacheList `koanf:"cache"`
+
 	// ChainName is the name of the chain (e.g. mainnet/testnet). Set
 	// this to use one of the default chains.
 	ChainName string `koanf:"chain_name"`
@@ -166,6 +169,30 @@ func SingleNetworkLookup(rpc string) map[string]*NodeConfig {
 			RPC: rpc,
 		},
 	}
+}
+
+type CacheList struct {
+	// Consensus holds the configuration for the consensus cache
+	Consensus *CacheConfig `koanf:"consensus"`
+
+	// Runtime holds the configuration for the runtime cache
+	Runtime *CacheConfig `koanf:"runtime"`
+}
+
+type CacheConfig struct {
+	// File is the directory where the cache data is stored
+	File string `koanf:"file"`
+
+	// If set, the indexer will query the node upon any cache
+	// misses.
+	QueryOnCacheMiss bool `koanf:"query_on_cache_miss"`
+}
+
+func (cfg *CacheConfig) Validate() error {
+	if cfg.File == "" {
+		return fmt.Errorf("invalid cache filepath")
+	}
+	return nil
 }
 
 type CustomChainConfig struct {

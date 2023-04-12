@@ -1,8 +1,16 @@
 analysis:
-  node:
-    chain_id: oasis-3
-    rpc: unix:/tmp/node.sock #unix:/node/data/internal.sock
-    chaincontext: b11b369e0da5bb230b220127f5e7b242d385ef8c6f54906243f30af63c815535
+  source:
+    cache:
+      consensus:
+        file: tests/api/data/consensus
+        query_on_cache_miss: true
+      runtime:
+        file: tests/api/data/runtime
+        query_on_cache_miss: true
+    chain_name: mainnet
+    nodes:
+      damask:
+        rpc: unix:/tmp/node.sock #unix:/node/data/internal.sock
   analyzers:
     # metadata_registry:
     #   interval: 1h
@@ -13,15 +21,15 @@ analysis:
       to: 8_049_056
     # emerald:
     #   from: 1_003_298  # round at Damask genesis
-    #   to: 1_003_398
+    # sapphire:
+    #   from: 0  # first round in Damask
   storage:
     backend: postgres
     endpoint: postgresql://rwuser:password@localhost:5432/indexer?sslmode=disable
-    DANGER__WIPE_STORAGE_ON_STARTUP: true
-    migrations: file:///Users/andrewlow/oasis/oasis-block-indexer/storage/migrations
+    # DANGER__WIPE_STORAGE_ON_STARTUP: true
+    migrations: file://storage/migrations
 
 server:
-  chain_id: oasis-3
   chain_name: mainnet
   endpoint: localhost:8008
   storage:

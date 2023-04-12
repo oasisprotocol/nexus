@@ -58,13 +58,16 @@ test-e2e: export OASIS_INDEXER_E2E = true
 test-e2e:
 	@$(GO) test -race -coverpkg=./... -coverprofile=coverage.txt -covermode=atomic -v ./tests/e2e
 
-dump-state: export OASIS_INDEXER_DUMP_NODE_DATA=true
-dump-state:
-	@$(GO) test -race -v ./tests/api
+dump-state: oasis-indexer
+	sed -E -i '' 's/query_on_cache_miss: false/query_on_cache_miss: true/g' "tests/api/api-dev.yml"
+	./oasis-indexer --config tests/api/api-dev.yml
 
-test-api: export OASIS_INDEXER_API_TESTS=true
-test-api:
-	@$(GO) test -race -v ./tests/api
+# Run the api tests locally, assuming the environment is set up with an oasis-node that is 
+# accessible as specified in the config file.
+test-api: oasis-indexer
+	sed -E -i '' 's/query_on_cache_miss: true/query_on_cache_miss: false/g' "tests/api/api-dev.yml"
+	./oasis-indexer --config tests/api/api-dev.yml
+	@$(ECHO) "$(CYAN)*** Indexer finished; starting api tests...$(OFF)"
 	./tests/e2e_regression/run.sh
 
 # Format code.

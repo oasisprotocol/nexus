@@ -55,7 +55,7 @@ func (rc *HistoryRuntimeApiLite) APIForRound(round uint64) (nodeapi.RuntimeApiLi
 	return api, nil
 }
 
-func (rc *HistoryRuntimeApiLite) GetEventsRaw(ctx context.Context, round uint64) ([]*nodeapi.RuntimeEvent, error) {
+func (rc *HistoryRuntimeApiLite) GetEventsRaw(ctx context.Context, round uint64) ([]nodeapi.RuntimeEvent, error) {
 	api, err := rc.APIForRound(round)
 	if err != nil {
 		return nil, fmt.Errorf("getting api for runtime %s round %d: %w", rc.Runtime, round, err)
@@ -79,7 +79,7 @@ func (rc *HistoryRuntimeApiLite) GetBlockHeader(ctx context.Context, round uint6
 	return api.GetBlockHeader(ctx, round)
 }
 
-func (rc *HistoryRuntimeApiLite) GetTransactionsWithResults(ctx context.Context, round uint64) ([]*nodeapi.RuntimeTransactionWithResults, error) {
+func (rc *HistoryRuntimeApiLite) GetTransactionsWithResults(ctx context.Context, round uint64) ([]nodeapi.RuntimeTransactionWithResults, error) {
 	api, err := rc.APIForRound(round)
 	if err != nil {
 		return nil, fmt.Errorf("getting api for runtime %s round %d: %w", rc.Runtime, round, err)

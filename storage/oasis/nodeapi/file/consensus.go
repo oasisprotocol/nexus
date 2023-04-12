@@ -2,16 +2,15 @@ package file
 
 import (
 	"context"
-	"encoding/json"
 
 	"github.com/akrylysov/pogreb"
+	"github.com/fxamacker/cbor"
 	beacon "github.com/oasisprotocol/oasis-core/go/beacon/api"
 	coreCommon "github.com/oasisprotocol/oasis-core/go/common"
 	consensus "github.com/oasisprotocol/oasis-core/go/consensus/api"
 	genesis "github.com/oasisprotocol/oasis-core/go/genesis/api"
 
 	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
-	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi/damask"
 )
 
 // FileConsensusApiLite provides access to the consensus API of an Oasis node.
@@ -25,14 +24,10 @@ type FileConsensusApiLite struct {
 
 var _ nodeapi.ConsensusApiLite = (*FileConsensusApiLite)(nil)
 
-func NewFileConsensusApiLite(filename string, client *consensus.ClientBackend) (*FileConsensusApiLite, error) {
+func NewFileConsensusApiLite(filename string, consensusApi nodeapi.ConsensusApiLite) (*FileConsensusApiLite, error) {
 	db, err := pogreb.Open(filename, &pogreb.Options{BackgroundSyncInterval: -1})
 	if err != nil {
 		return nil, err
-	}
-	var consensusApi nodeapi.ConsensusApiLite
-	if client != nil {
-		consensusApi = damask.NewDamaskConsensusApiLite(*client)
 	}
 	return &FileConsensusApiLite{
 		db:           *db,
@@ -45,11 +40,11 @@ func (c *FileConsensusApiLite) get(key []byte, result interface{}) error {
 	if err != nil {
 		return err
 	}
-	return json.Unmarshal(res, result)
+	return cbor.Unmarshal(res, result)
 }
 
 func (c *FileConsensusApiLite) put(key []byte, val interface{}) error {
-	valBytes, err := json.Marshal(val)
+	valBytes, err := cbor.Marshal(val, cbor.CanonicalEncOptions())
 	if err != nil {
 		return err
 	}

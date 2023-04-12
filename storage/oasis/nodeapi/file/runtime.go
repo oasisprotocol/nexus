@@ -2,13 +2,9 @@ package file
 
 import (
 	"context"
-	"encoding/json"
 
 	"github.com/akrylysov/pogreb"
-	"google.golang.org/grpc"
-
-	coreCommon "github.com/oasisprotocol/oasis-core/go/common"
-	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/connection"
+	"github.com/fxamacker/cbor"
 
 	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
 )
@@ -22,14 +18,10 @@ type RuntimeApiMethod func() (interface{}, error)
 
 var _ nodeapi.RuntimeApiLite = (*FileRuntimeApiLite)(nil)
 
-func NewFileRuntimeApiLite(filename string, runtimeID coreCommon.Namespace, grpcConn *grpc.ClientConn, sdkClient *connection.RuntimeClient) (*FileRuntimeApiLite, error) {
+func NewFileRuntimeApiLite(filename string, runtimeApi nodeapi.RuntimeApiLite) (*FileRuntimeApiLite, error) {
 	db, err := pogreb.Open(filename, &pogreb.Options{BackgroundSyncInterval: -1})
 	if err != nil {
 		return nil, err
-	}
-	var runtimeApi nodeapi.RuntimeApiLite
-	if grpcConn != nil && sdkClient != nil {
-		runtimeApi = nodeapi.NewUniversalRuntimeApiLite(runtimeID, grpcConn, sdkClient)
 	}
 	return &FileRuntimeApiLite{
 		db:         *db,
@@ -42,11 +34,11 @@ func (r *FileRuntimeApiLite) get(key []byte, result interface{}) error {
 	if err != nil {
 		return err
 	}
-	return json.Unmarshal(res, result)
+	return cbor.Unmarshal(res, result)
 }
 
 func (r *FileRuntimeApiLite) put(key []byte, val interface{}) error {
-	valBytes, err := json.Marshal(val)
+	valBytes, err := cbor.Marshal(val, cbor.CanonicalEncOptions())
 	if err != nil {
 		return err
 	}
