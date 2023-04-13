@@ -163,7 +163,7 @@ func (c *CobaltConsensusApiLite) GetValidators(ctx context.Context, height int64
 
 func (c *CobaltConsensusApiLite) GetCommittees(ctx context.Context, height int64, runtimeID common.Namespace) ([]nodeapi.Committee, error) {
 	var rsp []*schedulerCobalt.Committee
-	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Scheduler/GetCommittee", &scheduler.GetCommitteesRequest{
+	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Scheduler/GetCommittees", &scheduler.GetCommitteesRequest{
 		Height:    height,
 		RuntimeID: runtimeID,
 	}, &rsp); err != nil {
