@@ -118,7 +118,6 @@ func NewMain(
 type StaleTokenBalance struct {
 	TokenAddr                    string
 	AccountAddr                  string
-	LastMutateRound              uint64
 	Type                         *runtime.EVMTokenType
 	Balance                      *big.Int
 	TokenAddrContextIdentifier   string
@@ -127,6 +126,7 @@ type StaleTokenBalance struct {
 	AccountAddrContextIdentifier string
 	AccountAddrContextVersion    int
 	AccountAddrData              []byte
+	DownloadRound                uint64
 }
 
 func (m Main) getStaleTokenBalances(ctx context.Context, limit int) ([]*StaleTokenBalance, error) {
@@ -142,7 +142,6 @@ func (m Main) getStaleTokenBalances(ctx context.Context, limit int) ([]*StaleTok
 		if err = rows.Scan(
 			&staleTokenBalance.TokenAddr,
 			&staleTokenBalance.AccountAddr,
-			&staleTokenBalance.LastMutateRound,
 			&staleTokenBalance.Type,
 			&balanceC,
 			&staleTokenBalance.TokenAddrContextIdentifier,
@@ -151,6 +150,7 @@ func (m Main) getStaleTokenBalances(ctx context.Context, limit int) ([]*StaleTok
 			&staleTokenBalance.AccountAddrContextIdentifier,
 			&staleTokenBalance.AccountAddrContextVersion,
 			&staleTokenBalance.AccountAddrData,
+			&staleTokenBalance.DownloadRound,
 		); err != nil {
 			return nil, fmt.Errorf("scanning stale token balance: %w", err)
 		}
@@ -176,7 +176,7 @@ func (m Main) processStaleTokenBalance(ctx context.Context, batch *storage.Query
 			ctx,
 			m.logger,
 			m.cfg.Source,
-			staleTokenBalance.LastMutateRound,
+			staleTokenBalance.DownloadRound,
 			tokenEthAddr,
 			accountEthAddr,
 			*staleTokenBalance.Type,
@@ -195,7 +195,7 @@ func (m Main) processStaleTokenBalance(ctx context.Context, batch *storage.Query
 				m.logger.Warn("correcting reckoned balance of token to downloaded balance",
 					"token_addr", staleTokenBalance.TokenAddr,
 					"account_addr", staleTokenBalance.AccountAddr,
-					"download_round", staleTokenBalance.LastMutateRound,
+					"download_round", staleTokenBalance.DownloadRound,
 					"reckoned_balance", staleTokenBalance.Balance,
 					"downloaded_balance", balanceData,
 					"correction", correction,
@@ -213,7 +213,7 @@ func (m Main) processStaleTokenBalance(ctx context.Context, batch *storage.Query
 		m.runtime,
 		staleTokenBalance.TokenAddr,
 		staleTokenBalance.AccountAddr,
-		staleTokenBalance.LastMutateRound,
+		staleTokenBalance.DownloadRound,
 	)
 	return nil
 }

@@ -313,12 +313,12 @@ const (
 	RuntimeEVMTokenAnalysisStale = `
     SELECT
       evm_token_analysis.token_address,
-      evm_token_analysis.last_mutate_round,
       evm_token_analysis.last_download_round,
       evm_tokens.token_type,
       address_preimages.context_identifier,
       address_preimages.context_version,
-      address_preimages.address_data
+      address_preimages.address_data,
+      (SELECT MAX(height) FROM chain.processed_blocks WHERE analyzer = evm_token_analysis.runtime::text) AS download_round
     FROM chain.evm_token_analysis
     LEFT JOIN chain.evm_tokens USING (runtime, token_address)
     LEFT JOIN chain.address_preimages ON
@@ -367,7 +367,6 @@ const (
     SELECT
       evm_token_balance_analysis.token_address,
       evm_token_balance_analysis.account_address,
-      evm_token_balance_analysis.last_mutate_round,
       evm_tokens.token_type,
       evm_token_balances.balance,
       token_address_preimage.context_identifier,
@@ -375,7 +374,8 @@ const (
       token_address_preimage.address_data,
       account_address_preimage.context_identifier,
       account_address_preimage.context_version,
-      account_address_preimage.address_data
+      account_address_preimage.address_data,
+      (SELECT MAX(height) FROM chain.processed_blocks WHERE analyzer = evm_token_balance_analysis.runtime::text) AS download_round
     FROM chain.evm_token_balance_analysis
     JOIN chain.evm_token_analysis USING (runtime, token_address)
     LEFT JOIN chain.evm_tokens USING (runtime, token_address)
