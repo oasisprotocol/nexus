@@ -14,9 +14,9 @@ import (
 	sdkConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 	"github.com/stretchr/testify/require"
 
-	"github.com/oasisprotocol/oasis-indexer/analyzer"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/evmabi"
-	"github.com/oasisprotocol/oasis-indexer/cmd/common"
+	cmdCommon "github.com/oasisprotocol/oasis-indexer/cmd/common"
+	"github.com/oasisprotocol/oasis-indexer/common"
 	"github.com/oasisprotocol/oasis-indexer/config"
 	"github.com/oasisprotocol/oasis-indexer/storage/oasis"
 )
@@ -38,19 +38,19 @@ var (
 
 func TestEVMDownloadTokenERC20(t *testing.T) {
 	ctx := context.Background()
-	source, err := oasis.NewRuntimeClient(ctx, PublicSourceConfig, analyzer.RuntimeEmerald)
+	source, err := oasis.NewRuntimeClient(ctx, PublicSourceConfig, common.RuntimeEmerald)
 	require.NoError(t, err)
 	// Wormhole bridged USDT on Emerald mainnet.
 	tokenEthAddr, err := hex.DecodeString("dC19A122e268128B5eE20366299fc7b5b199C8e3")
 	require.NoError(t, err)
-	data, err := evmDownloadTokenERC20(ctx, common.Logger(), source, runtimeClient.RoundLatest, tokenEthAddr)
+	data, err := evmDownloadTokenERC20(ctx, cmdCommon.Logger(), source, runtimeClient.RoundLatest, tokenEthAddr)
 	require.NoError(t, err)
 	t.Logf("data %#v", data)
 }
 
 func TestEVMDownloadTokenBalanceERC20(t *testing.T) {
 	ctx := context.Background()
-	source, err := oasis.NewRuntimeClient(ctx, PublicSourceConfig, analyzer.RuntimeEmerald)
+	source, err := oasis.NewRuntimeClient(ctx, PublicSourceConfig, common.RuntimeEmerald)
 	require.NoError(t, err)
 	// Wormhole bridged USDT on Emerald mainnet.
 	tokenEthAddr, err := hex.DecodeString("dC19A122e268128B5eE20366299fc7b5b199C8e3")
@@ -58,14 +58,14 @@ func TestEVMDownloadTokenBalanceERC20(t *testing.T) {
 	// An address that possesses no USDT.
 	accountEthAddr, err := hex.DecodeString("5555555555555555555555555555555555555555")
 	require.NoError(t, err)
-	balanceData, err := evmDownloadTokenBalanceERC20(ctx, common.Logger(), source, runtimeClient.RoundLatest, tokenEthAddr, accountEthAddr)
+	balanceData, err := evmDownloadTokenBalanceERC20(ctx, cmdCommon.Logger(), source, runtimeClient.RoundLatest, tokenEthAddr, accountEthAddr)
 	require.NoError(t, err)
 	t.Logf("balance %#v", balanceData)
 }
 
 func TestEVMFailDeterministicUnoccupied(t *testing.T) {
 	ctx := context.Background()
-	source, err := oasis.NewRuntimeClient(ctx, PublicSourceConfig, analyzer.RuntimeEmerald)
+	source, err := oasis.NewRuntimeClient(ctx, PublicSourceConfig, common.RuntimeEmerald)
 	require.NoError(t, err)
 	// An address at which no smart contract exists.
 	tokenEthAddr, err := hex.DecodeString("5555555555555555555555555555555555555555")
@@ -79,7 +79,7 @@ func TestEVMFailDeterministicUnoccupied(t *testing.T) {
 
 func TestEVMFailDeterministicOutOfGas(t *testing.T) {
 	ctx := context.Background()
-	source, err := oasis.NewRuntimeClient(ctx, PublicSourceConfig, analyzer.RuntimeEmerald)
+	source, err := oasis.NewRuntimeClient(ctx, PublicSourceConfig, common.RuntimeEmerald)
 	require.NoError(t, err)
 	// Wormhole bridged USDT on Emerald mainnet.
 	tokenEthAddr, err := hex.DecodeString("dC19A122e268128B5eE20366299fc7b5b199C8e3")
@@ -98,7 +98,7 @@ func TestEVMFailDeterministicOutOfGas(t *testing.T) {
 
 func TestEVMFailDeterministicUnsupportedMethod(t *testing.T) {
 	ctx := context.Background()
-	source, err := oasis.NewRuntimeClient(ctx, PublicSourceConfig, analyzer.RuntimeEmerald)
+	source, err := oasis.NewRuntimeClient(ctx, PublicSourceConfig, common.RuntimeEmerald)
 	require.NoError(t, err)
 	// Wormhole bridged USDT on Emerald mainnet.
 	tokenEthAddr, err := hex.DecodeString("dC19A122e268128B5eE20366299fc7b5b199C8e3")

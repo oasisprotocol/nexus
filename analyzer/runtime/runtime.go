@@ -13,8 +13,9 @@ import (
 
 	"github.com/oasisprotocol/oasis-indexer/analyzer"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/queries"
-	common "github.com/oasisprotocol/oasis-indexer/analyzer/uncategorized"
+	uncategorized "github.com/oasisprotocol/oasis-indexer/analyzer/uncategorized"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/util"
+	"github.com/oasisprotocol/oasis-indexer/common"
 	"github.com/oasisprotocol/oasis-indexer/config"
 	"github.com/oasisprotocol/oasis-indexer/log"
 	"github.com/oasisprotocol/oasis-indexer/metrics"
@@ -28,7 +29,7 @@ const (
 
 // Main is the main Analyzer for runtimes.
 type Main struct {
-	runtime analyzer.Runtime
+	runtime common.Runtime
 	cfg     analyzer.RuntimeConfig
 	target  storage.TargetStorage
 	logger  *log.Logger
@@ -39,7 +40,7 @@ var _ analyzer.Analyzer = (*Main)(nil)
 
 // NewRuntimeAnalyzer returns a new main analyzer for a runtime.
 func NewRuntimeAnalyzer(
-	runtime analyzer.Runtime,
+	runtime common.Runtime,
 	sourceConfig *config.SourceConfig,
 	cfg *config.BlockBasedAnalyzerConfig,
 	target storage.TargetStorage,
@@ -299,7 +300,7 @@ func (m *Main) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 
 	// Insert events.
 	for _, eventData := range data.EventData {
-		eventRelatedAddresses := common.ExtractAddresses(eventData.RelatedAddresses)
+		eventRelatedAddresses := uncategorized.ExtractAddresses(eventData.RelatedAddresses)
 		batch.Queue(
 			queries.RuntimeEventInsert,
 			m.runtime,

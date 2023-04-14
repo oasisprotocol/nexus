@@ -6,7 +6,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/oasisprotocol/oasis-indexer/analyzer"
+	"github.com/oasisprotocol/oasis-indexer/common"
 	"github.com/oasisprotocol/oasis-indexer/config"
 	"github.com/oasisprotocol/oasis-indexer/storage/oasis/connections"
 	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
@@ -30,7 +30,7 @@ func NewConsensusClient(ctx context.Context, sourceConfig *config.SourceConfig) 
 }
 
 // NewRuntimeClient creates a new RuntimeClient.
-func NewRuntimeClient(ctx context.Context, sourceConfig *config.SourceConfig, runtime analyzer.Runtime) (*RuntimeClient, error) {
+func NewRuntimeClient(ctx context.Context, sourceConfig *config.SourceConfig, runtime common.Runtime) (*RuntimeClient, error) {
 	currentHistoryRecord := sourceConfig.History().CurrentRecord()
 	currentNode := sourceConfig.Nodes[currentHistoryRecord.ArchiveName]
 	rawConn, err := connections.RawConnect(currentNode)

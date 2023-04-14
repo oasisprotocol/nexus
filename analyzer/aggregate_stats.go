@@ -10,6 +10,7 @@ import (
 	"github.com/jackc/pgx/v5"
 
 	"github.com/oasisprotocol/oasis-indexer/analyzer/queries"
+	"github.com/oasisprotocol/oasis-indexer/common"
 	"github.com/oasisprotocol/oasis-indexer/config"
 	"github.com/oasisprotocol/oasis-indexer/log"
 	"github.com/oasisprotocol/oasis-indexer/metrics"
@@ -48,8 +49,8 @@ const (
 // by (periodically) querying the `runtime_related_transactions` table.
 var dailyActiveAccountsLayers = []string{
 	layerConsensus,
-	RuntimeEmerald.String(),
-	RuntimeSapphire.String(),
+	common.RuntimeEmerald.String(),
+	common.RuntimeSapphire.String(),
 	// RuntimeCipher.String(), // Enable once Cipher is supported by the indexer.
 }
 
