@@ -60,7 +60,7 @@ func (h *History) RecordForRuntimeRound(runtime common.Runtime, round uint64) (*
 	}
 	earliestRecord := h.EarliestRecord()
 	return nil, fmt.Errorf(
-		"runtime %s round %u earlier than earliest history record %s start round %u",
+		"runtime %s round %d earlier than earliest history record %s start round %d",
 		runtime,
 		round,
 		earliestRecord.ArchiveName,
