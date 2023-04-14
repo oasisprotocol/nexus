@@ -72,7 +72,7 @@ func (c *HistoryConsensusApiLite) APIForHeight(height int64) (nodeapi.ConsensusA
 	}
 	api, ok := c.APIs[record.ArchiveName]
 	if !ok {
-		return nil, fmt.Errorf("archive %s for has no node configured", record.ArchiveName)
+		return nil, fmt.Errorf("archive %s has no node configured", record.ArchiveName)
 	}
 	return api, nil
 }
