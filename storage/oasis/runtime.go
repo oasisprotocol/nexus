@@ -17,7 +17,7 @@ import (
 // TODO: Get rid of this struct, it hardly provides any value.
 type RuntimeClient struct {
 	nodeApi nodeapi.RuntimeApiLite
-	info    *sdkTypes.RuntimeInfo
+	sdkPT   *sdkConfig.ParaTime
 }
 
 // AllData returns all relevant data to the given round.
@@ -56,7 +56,7 @@ func (rc *RuntimeClient) nativeTokenSymbol() string {
 		// so conflicts (particularly intentional/malicious) are possible.
 		// https://github.com/oasisprotocol/oasis-indexer/pull/362#discussion_r1153606360
 		for _, paratime := range network.ParaTimes.All {
-			if paratime.ID == rc.info.ID.Hex() {
+			if paratime.ID == rc.sdkPT.ID {
 				return paratime.Denominations[sdkConfig.NativeDenominationKey].Symbol
 			}
 		}
