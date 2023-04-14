@@ -3,7 +3,7 @@ package config
 import (
 	"fmt"
 
-	"github.com/oasisprotocol/oasis-core/go/consensus/api"
+	consensus "github.com/oasisprotocol/oasis-core/go/consensus/api"
 )
 
 type Record struct {
@@ -25,7 +25,7 @@ func (h *History) EarliestRecord() *Record {
 }
 
 func (h *History) RecordForHeight(height int64) (*Record, error) {
-	if height == api.HeightLatest {
+	if height == consensus.HeightLatest {
 		return h.CurrentRecord(), nil
 	}
 	for _, r := range h.Records {

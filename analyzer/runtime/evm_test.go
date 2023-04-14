@@ -10,7 +10,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	ethCommon "github.com/ethereum/go-ethereum/common"
-	"github.com/oasisprotocol/oasis-core/go/runtime/client/api"
+	runtimeClient "github.com/oasisprotocol/oasis-core/go/runtime/client/api"
 	sdkConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 	"github.com/stretchr/testify/require"
 
@@ -43,7 +43,7 @@ func TestEVMDownloadTokenERC20(t *testing.T) {
 	// Wormhole bridged USDT on Emerald mainnet.
 	tokenEthAddr, err := hex.DecodeString("dC19A122e268128B5eE20366299fc7b5b199C8e3")
 	require.NoError(t, err)
-	data, err := evmDownloadTokenERC20(ctx, common.Logger(), source, api.RoundLatest, tokenEthAddr)
+	data, err := evmDownloadTokenERC20(ctx, common.Logger(), source, runtimeClient.RoundLatest, tokenEthAddr)
 	require.NoError(t, err)
 	t.Logf("data %#v", data)
 }
@@ -58,7 +58,7 @@ func TestEVMDownloadTokenBalanceERC20(t *testing.T) {
 	// An address that possesses no USDT.
 	accountEthAddr, err := hex.DecodeString("5555555555555555555555555555555555555555")
 	require.NoError(t, err)
-	balanceData, err := evmDownloadTokenBalanceERC20(ctx, common.Logger(), source, api.RoundLatest, tokenEthAddr, accountEthAddr)
+	balanceData, err := evmDownloadTokenBalanceERC20(ctx, common.Logger(), source, runtimeClient.RoundLatest, tokenEthAddr, accountEthAddr)
 	require.NoError(t, err)
 	t.Logf("balance %#v", balanceData)
 }
@@ -71,7 +71,7 @@ func TestEVMFailDeterministicUnoccupied(t *testing.T) {
 	tokenEthAddr, err := hex.DecodeString("5555555555555555555555555555555555555555")
 	require.NoError(t, err)
 	var name string
-	err = evmCallWithABI(ctx, source, api.RoundLatest, tokenEthAddr, evmabi.ERC20, &name, "name")
+	err = evmCallWithABI(ctx, source, runtimeClient.RoundLatest, tokenEthAddr, evmabi.ERC20, &name, "name")
 	require.Error(t, err)
 	fmt.Printf("getting ERC-20 name from unoccupied address should fail: %+v\n", err)
 	require.True(t, errors.Is(err, EVMDeterministicError{}))
@@ -90,7 +90,7 @@ func TestEVMFailDeterministicOutOfGas(t *testing.T) {
 	gasLimit := uint64(10)
 	caller := ethCommon.Address{1}.Bytes()
 	value := []byte{0}
-	err = evmCallWithABICustom(ctx, source, api.RoundLatest, gasPrice, gasLimit, caller, tokenEthAddr, value, evmabi.ERC20, &name, "name")
+	err = evmCallWithABICustom(ctx, source, runtimeClient.RoundLatest, gasPrice, gasLimit, caller, tokenEthAddr, value, evmabi.ERC20, &name, "name")
 	require.Error(t, err)
 	fmt.Printf("query that runs out of gas should fail: %+v\n", err)
 	require.True(t, errors.Is(err, EVMDeterministicError{}))
@@ -119,7 +119,7 @@ func TestEVMFailDeterministicUnsupportedMethod(t *testing.T) {
 	}]`))
 	require.NoError(t, err)
 	var name string
-	err = evmCallWithABI(ctx, source, api.RoundLatest, tokenEthAddr, &fakeABI, &name, "bike")
+	err = evmCallWithABI(ctx, source, runtimeClient.RoundLatest, tokenEthAddr, &fakeABI, &name, "bike")
 	require.Error(t, err)
 	fmt.Printf("querying an unsupported method should fail: %+v\n", err)
 	require.True(t, errors.Is(err, EVMDeterministicError{}))
