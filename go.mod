@@ -24,7 +24,6 @@ require (
 )
 
 require (
-	github.com/akrylysov/pogreb v0.10.1 // indirect
 	github.com/apapsch/go-jsonmerge/v2 v2.0.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/btcsuite/btcd v0.22.1 // indirect
@@ -40,7 +39,6 @@ require (
 	github.com/emirpasic/gods v1.12.0 // indirect
 	github.com/fatih/color v1.13.0 // indirect
 	github.com/fsnotify/fsnotify v1.5.4 // indirect
-	github.com/fxamacker/cbor v1.5.1 // indirect
 	github.com/fxamacker/cbor/v2 v2.4.0 // indirect
 	github.com/go-git/gcfg v1.5.0 // indirect
 	github.com/go-git/go-billy/v5 v5.0.0 // indirect
@@ -136,6 +134,7 @@ require (
 )
 
 require (
+	github.com/akrylysov/pogreb v0.10.1
 	github.com/deepmap/oapi-codegen v1.12.4
 	github.com/oasisprotocol/metadata-registry-tools v0.0.0-20220406100644-7e9a2b991920
 	github.com/rs/cors v1.8.3

@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/akrylysov/pogreb"
-	"github.com/fxamacker/cbor"
+	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 
 	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
 )
@@ -29,22 +29,6 @@ func NewFileRuntimeApiLite(filename string, runtimeApi nodeapi.RuntimeApiLite) (
 	}, nil
 }
 
-func (r *FileRuntimeApiLite) get(key []byte, result interface{}) error {
-	res, err := r.db.Get(key)
-	if err != nil {
-		return err
-	}
-	return cbor.Unmarshal(res, result)
-}
-
-func (r *FileRuntimeApiLite) put(key []byte, val interface{}) error {
-	valBytes, err := cbor.Marshal(val, cbor.CanonicalEncOptions())
-	if err != nil {
-		return err
-	}
-	return r.db.Put(key, valBytes)
-}
-
 func (r *FileRuntimeApiLite) updateCache(key []byte, method NodeApiMethod) error {
 	exists, err := r.db.Has(key)
 	if err != nil {
@@ -58,7 +42,7 @@ func (r *FileRuntimeApiLite) updateCache(key []byte, method NodeApiMethod) error
 		return err
 	}
 
-	return r.put(key, val)
+	return r.db.Put(key, cbor.Marshal(val))
 }
 
 func (r *FileRuntimeApiLite) GetBlockHeader(ctx context.Context, round uint64) (*nodeapi.RuntimeBlockHeader, error) {
@@ -69,7 +53,11 @@ func (r *FileRuntimeApiLite) GetBlockHeader(ctx context.Context, round uint64) (
 		}
 	}
 	var blockHeader nodeapi.RuntimeBlockHeader
-	err := r.get(key, &blockHeader)
+	raw, err := r.db.Get(key)
+	if err != nil {
+		return nil, err
+	}
+	err = cbor.Unmarshal(raw, &blockHeader)
 	if err != nil {
 		return nil, err
 	}
@@ -84,7 +72,11 @@ func (r *FileRuntimeApiLite) GetTransactionsWithResults(ctx context.Context, rou
 		}
 	}
 	txrs := []nodeapi.RuntimeTransactionWithResults{}
-	err := r.get(key, &txrs)
+	raw, err := r.db.Get(key)
+	if err != nil {
+		return nil, err
+	}
+	err = cbor.Unmarshal(raw, &txrs)
 	if err != nil {
 		return nil, err
 	}
@@ -99,7 +91,11 @@ func (r *FileRuntimeApiLite) GetEventsRaw(ctx context.Context, round uint64) ([]
 		}
 	}
 	events := []nodeapi.RuntimeEvent{}
-	err := r.get(key, &events)
+	raw, err := r.db.Get(key)
+	if err != nil {
+		return nil, err
+	}
+	err = cbor.Unmarshal(raw, events)
 	if err != nil {
 		return nil, err
 	}
@@ -116,7 +112,11 @@ func (r *FileRuntimeApiLite) EVMSimulateCall(ctx context.Context, round uint64, 
 		}
 	}
 	res := []byte{}
-	err := r.get(key, &res)
+	raw, err := r.db.Get(key)
+	if err != nil {
+		return nil, err
+	}
+	err = cbor.Unmarshal(raw, res)
 	if err != nil {
 		return nil, err
 	}

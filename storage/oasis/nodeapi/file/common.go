@@ -2,15 +2,14 @@ package file
 
 import (
 	"bytes"
-
-	"github.com/fxamacker/cbor"
+	"encoding/gob"
 )
 
 type NodeApiMethod func() (interface{}, error)
 
 func generateCacheKey(methodName string, params ...interface{}) []byte {
 	var buf bytes.Buffer
-	enc := cbor.NewEncoder(&buf, cbor.CanonicalEncOptions())
+	enc := gob.NewEncoder(&buf)
 	err := enc.Encode(methodName)
 	if err != nil {
 		panic(err)
