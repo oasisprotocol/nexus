@@ -90,7 +90,7 @@ type Event struct {
 	// field will be populated.
 	// We convert to JSON and effectively erase the type here in order to decouple
 	// oasis-core types (which vary between versions) from the indexer.
-	RawBodyJSON json.RawMessage
+	RawBody json.RawMessage
 
 	// Called "Kind" in oasis-core but "Type" in indexer APIs and DBs.
 	Type apiTypes.ConsensusEventType
