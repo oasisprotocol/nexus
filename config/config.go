@@ -180,8 +180,8 @@ type CacheList struct {
 }
 
 type CacheConfig struct {
-	// File is the directory where the cache data is stored
-	File string `koanf:"file"`
+	// CacheDir is the directory where the cache data is stored
+	CacheDir string `koanf:"cache_dir"`
 
 	// If set, the indexer will query the node upon any cache
 	// misses.
@@ -189,7 +189,7 @@ type CacheConfig struct {
 }
 
 func (cfg *CacheConfig) Validate() error {
-	if cfg.File == "" {
+	if cfg.CacheDir == "" {
 		return fmt.Errorf("invalid cache filepath")
 	}
 	return nil
