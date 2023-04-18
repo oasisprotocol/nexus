@@ -19,18 +19,24 @@ const (
 
 // NewConsensusClient creates a new ConsensusClient.
 func NewConsensusClient(ctx context.Context, sourceConfig *config.SourceConfig) (*ConsensusClient, error) {
+	// If we are using purely file-backed indexer, do not connect to the node.
+	if sourceConfig.Cache != nil && sourceConfig.Cache.Consensus != nil && !sourceConfig.Cache.Consensus.QueryOnCacheMiss {
+		nodeApi, err := file.NewFileConsensusApiLite(sourceConfig.Cache.Consensus.CacheDir, nil)
+		if err != nil {
+			return nil, fmt.Errorf("error instantiating cache-based consensusApi: %w", err)
+		}
+		return &ConsensusClient{
+			nodeApi: nodeApi,
+			network: sourceConfig.SDKNetwork(),
+		}, nil
+	}
 	var nodeApi nodeapi.ConsensusApiLite
 	nodeApi, err := history.NewHistoryConsensusApiLite(ctx, sourceConfig.History(), sourceConfig.Nodes, sourceConfig.FastStartup)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating history consensus API lite: %w", err)
 	}
 	if sourceConfig.Cache != nil && sourceConfig.Cache.Consensus != nil {
-		cacheConfig := sourceConfig.Cache.Consensus
-		if cacheConfig.QueryOnCacheMiss {
-			nodeApi, err = file.NewFileConsensusApiLite(cacheConfig.File, nodeApi)
-		} else {
-			nodeApi, err = file.NewFileConsensusApiLite(cacheConfig.File, nil)
-		}
+		nodeApi, err = file.NewFileConsensusApiLite(sourceConfig.Cache.Consensus.CacheDir, nodeApi)
 		if err != nil {
 			return nil, fmt.Errorf("error instantiating cache-based consensusApi: %w", err)
 		}
@@ -55,9 +61,9 @@ func NewRuntimeClient(ctx context.Context, sourceConfig *config.SourceConfig, ru
 	if sourceConfig.Cache != nil && sourceConfig.Cache.Runtime != nil {
 		cacheConfig := sourceConfig.Cache.Runtime
 		if cacheConfig.QueryOnCacheMiss {
-			nodeApi, err = file.NewFileRuntimeApiLite(cacheConfig.File, nodeApi)
+			nodeApi, err = file.NewFileRuntimeApiLite(runtime.String(), cacheConfig.CacheDir, nodeApi)
 		} else {
-			nodeApi, err = file.NewFileRuntimeApiLite(cacheConfig.File, nil)
+			nodeApi, err = file.NewFileRuntimeApiLite(runtime.String(), cacheConfig.CacheDir, nil)
 		}
 		if err != nil {
 			return nil, fmt.Errorf("error instantiating cache-based runtimeApi: %w", err)

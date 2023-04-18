@@ -3,9 +3,12 @@ package file
 import (
 	"bytes"
 	"encoding/gob"
+	"errors"
 )
 
 type NodeApiMethod func() (interface{}, error)
+
+var ErrUnstableRPCMethod = errors.New("this method is not cacheable because the RPC return value is not constant")
 
 func generateCacheKey(methodName string, params ...interface{}) []byte {
 	var buf bytes.Buffer
