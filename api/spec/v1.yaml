@@ -828,7 +828,7 @@ paths:
 
   /{runtime}/events:
     get:
-      summary: Returns a list of Emerald events.
+      summary: Returns a list of runtime events.
       parameters:
         - *limit
         - *offset
