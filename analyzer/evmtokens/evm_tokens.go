@@ -73,12 +73,12 @@ func NewMain(
 
 type StaleToken struct {
 	Addr                  string
-	LastMutateRound       uint64
 	LastDownloadRound     *uint64
 	Type                  *runtime.EVMTokenType
 	AddrContextIdentifier string
 	AddrContextVersion    int
 	AddrData              []byte
+	DownloadRound         uint64
 }
 
 func (m Main) getStaleTokens(ctx context.Context, limit int) ([]*StaleToken, error) {
@@ -92,12 +92,12 @@ func (m Main) getStaleTokens(ctx context.Context, limit int) ([]*StaleToken, err
 		var staleToken StaleToken
 		if err = rows.Scan(
 			&staleToken.Addr,
-			&staleToken.LastMutateRound,
 			&staleToken.LastDownloadRound,
 			&staleToken.Type,
 			&staleToken.AddrContextIdentifier,
 			&staleToken.AddrContextVersion,
 			&staleToken.AddrData,
+			&staleToken.DownloadRound,
 		); err != nil {
 			return nil, fmt.Errorf("scanning discovered token: %w", err)
 		}
@@ -118,7 +118,7 @@ func (m Main) processStaleToken(ctx context.Context, batch *storage.QueryBatch, 
 			ctx,
 			m.logger,
 			m.cfg.Source,
-			staleToken.LastMutateRound,
+			staleToken.DownloadRound,
 			tokenEthAddr,
 		)
 		if err != nil {
@@ -140,7 +140,7 @@ func (m Main) processStaleToken(ctx context.Context, batch *storage.QueryBatch, 
 			ctx,
 			m.logger,
 			m.cfg.Source,
-			staleToken.LastMutateRound,
+			staleToken.DownloadRound,
 			tokenEthAddr,
 			*staleToken.Type,
 		)
@@ -155,7 +155,7 @@ func (m Main) processStaleToken(ctx context.Context, batch *storage.QueryBatch, 
 			)
 		}
 	}
-	batch.Queue(queries.RuntimeEVMTokenAnalysisUpdate, m.runtime, staleToken.Addr, staleToken.LastMutateRound)
+	batch.Queue(queries.RuntimeEVMTokenAnalysisUpdate, m.runtime, staleToken.Addr, staleToken.DownloadRound)
 	return nil
 }
 

@@ -287,7 +287,7 @@ CREATE TABLE chain.processed_blocks
   analyzer       TEXT NOT NULL,
   processed_time TIMESTAMP WITH TIME ZONE NOT NULL,
 
-  PRIMARY KEY (height, analyzer)
+  PRIMARY KEY (analyzer, height)
 );
 
 -- Keeps track of chains for which we've already processed the genesis data.
