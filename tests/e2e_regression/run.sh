@@ -69,7 +69,6 @@ testCases=(
 nCases=${#testCases[@]}
 
 # Kill background processes on exit. (In our case the indexer API server.)
-# todo: this doesn't work on MacOS. 
 trap 'trap - SIGTERM && kill -- -$$' SIGINT SIGTERM EXIT
 
 # Start the API server.

@@ -14,12 +14,12 @@ analysis:
     fast_startup: true
   analyzers:
     metadata_registry:
-      interval: 1h
+      interval: 5m
     aggregate_stats:
-      tx_volume_interval: 10m
+      tx_volume_interval: 5m
     consensus:
       from: 8_048_956  # Damask genesis
-      to: 8_049_056
+      to: 8_049_056 # 100 blocks; fast enough for early testing
     emerald:
       from: 1_003_298  # round at Damask genesis
       to: 1_003_398 
@@ -35,11 +35,11 @@ server:
   chain_name: mainnet
   endpoint: localhost:8008
   storage:
-    endpoint: postgresql://rwuser:password@localhost:5432/indexer?sslmode=disable
+    endpoint: postgresql://api:password@localhost:5432/indexer?sslmode=disable
     backend: postgres
 
 log:
-  level: info
+  level: debug
   format: json
 
 metrics:

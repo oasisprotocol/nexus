@@ -101,7 +101,7 @@ type Event struct {
 	StakingTakeEscrow           *TakeEscrowEvent
 	StakingEscrowDebondingStart *DebondingStartEscrowEvent
 	StakingReclaimEscrow        *ReclaimEscrowEvent
-	StakingDebondingStart       *DebondingStartEscrowEvent
+	StakingDebondingStart       *DebondingStartEscrowEvent // Available starting in Damask.
 	StakingAllowanceChange      *AllowanceChangeEvent
 
 	RegistryRuntimeRegistered *RuntimeRegisteredEvent
@@ -132,30 +132,30 @@ type (
 
 // RuntimeRegisteredEvent signifies new runtime registration.
 // This is a stripped-down version of an unfortunately named `registry.RuntimeEvent` (in Cobalt and Damask).
-// Post-Damask, this is replaced by registry.RuntimeStartedEvent.type RuntimeRegisteredEvent struct {
+// Post-Damask, this is replaced by registry.RuntimeStartedEvent.
 type RuntimeRegisteredEvent struct {
 	ID          coreCommon.Namespace
-	EntityID    signature.PublicKey
-	Kind        string
-	KeyManager  *coreCommon.Namespace
-	TEEHardware string
+	EntityID    signature.PublicKey   // The Entity controlling the runtime.
+	Kind        string                // enum: "compute", "keymanager"
+	KeyManager  *coreCommon.Namespace // Key manager runtime ID.
+	TEEHardware string                // enum: "invalid" (= no TEE), "intel-sgx"
 }
 type (
 	EntityEvent registry.EntityEvent
 	NodeEvent   struct {
 		NodeID             signature.PublicKey
 		EntityID           signature.PublicKey
-		Expiration         uint64
+		Expiration         uint64 // Epoch in which the node expires.
 		RuntimeIDs         []coreCommon.Namespace
 		VRFPubKey          *signature.PublicKey
-		TLSAddresses       []string
+		TLSAddresses       []string // TCP addresses of the node's TLS-enabled gRPC endpoint.
 		TLSPubKey          signature.PublicKey
 		TLSNextPubKey      signature.PublicKey
 		P2PID              signature.PublicKey
-		P2PAddresses       []string
+		P2PAddresses       []string // TCP addresses of the node's P2P endpoint.
 		ConsensusID        signature.PublicKey
-		ConsensusAddresses []string
-		Roles              []string
+		ConsensusAddresses []string // TCP addresses of the node's tendermint endpoint.
+		Roles              []string // enum: "compute", "key-manager", "validator", "consensus-rpc", "storage-rpc"
 		SoftwareVersion    string
 		IsRegistration     bool
 	}
@@ -165,7 +165,7 @@ type NodeUnfrozenEvent registry.NodeUnfrozenEvent
 // .................... RootHash  ....................
 
 type ExecutorCommittedEvent struct {
-	NodeID *signature.PublicKey
+	NodeID *signature.PublicKey // Available starting in Damask.
 }
 
 // .................... Governance ....................
@@ -177,7 +177,7 @@ type (
 	VoteEvent              struct {
 		ID        uint64
 		Submitter staking.Address
-		Vote      string
+		Vote      string // enum: "yes", "no", "abstain"
 	}
 )
 

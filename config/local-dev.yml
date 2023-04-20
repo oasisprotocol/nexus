@@ -1,8 +1,5 @@
 analysis:
   source:
-    cache:
-      file: file://tests/api/data/consensus
-      query_on_cache_miss: true
     chain_name: mainnet
     nodes:
       damask:
