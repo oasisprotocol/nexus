@@ -10,8 +10,7 @@ import (
 )
 
 const (
-	InitialTimeoutLowerBoundSeconds = 0
-	MaximumTimeoutUpperBoundSeconds = 60
+	timeoutUpperBound = 60 * time.Second
 	// SHA256 of empty string.
 	// oasis-core tags event that are not associated with any real transactions.
 	// For example, the DebondingStart escrow event.
@@ -24,28 +23,39 @@ const (
 
 // Backoff implements retry backoff on failure.
 type Backoff struct {
-	initialTimeout time.Duration
 	currentTimeout time.Duration
+	minTimeoutStep time.Duration
 	maximumTimeout time.Duration
 }
 
-// NewBackoff returns a new backoff.
-func NewBackoff(initialTimeout time.Duration, maximumTimeout time.Duration) (*Backoff, error) {
-	if initialTimeout <= InitialTimeoutLowerBoundSeconds {
+// NewBackoff returns a new exponential backoff.
+//
+// Initial timeout is always 0.
+// The minTimeoutStep is the timeout step on first failure. A call to `Success()` that
+// lowers the timeout below the minTimeoutStep, reduces the timeout back to 0.
+// The maximum timeout is the maximum possible timeout to use.
+func NewBackoff(minTimeoutStep time.Duration, maximumTimeout time.Duration) (*Backoff, error) {
+	if minTimeoutStep > maximumTimeout {
 		return nil, fmt.Errorf(
-			"initial timeout %fs less than lower bound %ds",
-			initialTimeout.Seconds(),
-			InitialTimeoutLowerBoundSeconds,
+			"minimum timeout step %d greater than maximum timeout %d",
+			minTimeoutStep,
+			maximumTimeout,
 		)
 	}
-	if maximumTimeout.Seconds() >= MaximumTimeoutUpperBoundSeconds {
+	if minTimeoutStep <= 0 {
 		return nil, fmt.Errorf(
-			"maximum timeout %fs greater than upper bound %ds",
-			maximumTimeout.Seconds(),
-			MaximumTimeoutUpperBoundSeconds,
+			"minimum timeout %d step must be greater than 0",
+			minTimeoutStep,
 		)
 	}
-	return &Backoff{initialTimeout, initialTimeout, maximumTimeout}, nil
+	if maximumTimeout >= timeoutUpperBound {
+		return nil, fmt.Errorf(
+			"maximum timeout %ds greater than upper bound %ds",
+			maximumTimeout,
+			timeoutUpperBound,
+		)
+	}
+	return &Backoff{0, minTimeoutStep, maximumTimeout}, nil
 }
 
 // Wait waits for the appropriate backoff interval.
@@ -57,14 +67,20 @@ func (b *Backoff) Wait() {
 func (b *Backoff) Success() {
 	b.currentTimeout *= 9
 	b.currentTimeout /= 10
-	if b.currentTimeout < b.initialTimeout {
-		b.currentTimeout = b.initialTimeout
+	// If we go below the minimum timeout step on success, reset the timeout back to 0.
+	if b.currentTimeout < b.minTimeoutStep {
+		b.currentTimeout = 0
 	}
 }
 
 // Failure increases the backoff interval.
 func (b *Backoff) Failure() {
 	b.currentTimeout *= 2
+	// If we are below the minimum timeout step on failure, increase the timeout to the minimum.
+	if b.currentTimeout < b.minTimeoutStep {
+		b.currentTimeout = b.minTimeoutStep
+	}
+	// Cap the timeout at the maximum.
 	if b.currentTimeout > b.maximumTimeout {
 		b.currentTimeout = b.maximumTimeout
 	}
@@ -72,7 +88,7 @@ func (b *Backoff) Failure() {
 
 // Reset resets the backoff.
 func (b *Backoff) Reset() {
-	b.currentTimeout = b.initialTimeout
+	b.currentTimeout = 0
 }
 
 // Timeout returns the backoff timeout.

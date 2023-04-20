@@ -4,10 +4,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
+
 	beacon "github.com/oasisprotocol/oasis-core/go/beacon/api"
 	"github.com/oasisprotocol/oasis-core/go/common/quantity"
 	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
-	"github.com/stretchr/testify/require"
 )
 
 // TestBackoffWait tests if the backoff time is
@@ -19,7 +20,7 @@ func TestBackoffWait(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		backoff.Failure()
 	}
-	require.Equal(t, backoff.Timeout(), 1024*time.Millisecond)
+	require.Equal(t, 512*time.Millisecond, backoff.Timeout())
 }
 
 // TestBackoffReset tests if the backoff time is
@@ -30,7 +31,7 @@ func TestBackoffReset(t *testing.T) {
 
 	backoff.Failure()
 	backoff.Reset()
-	require.Equal(t, backoff.Timeout(), time.Millisecond)
+	require.Equal(t, 0*time.Second, backoff.Timeout())
 }
 
 // TestBackoffMaximum tests if the backoff time is
@@ -55,20 +56,44 @@ func TestBackoffMinimum(t *testing.T) {
 	for i := 0; i < 100; i++ {
 		backoff.Success()
 	}
-	require.Equal(t, backoff.Timeout(), time.Millisecond)
+	require.Equal(t, 0*time.Second, backoff.Timeout())
+}
+
+// TestBackoff tests the backoff logic.
+func TestBackoff(t *testing.T) {
+	backoff, err := NewBackoff(100*time.Millisecond, 6*time.Second)
+	require.Nil(t, err)
+
+	for i := 0; i < 2; i++ {
+		backoff.Failure()
+	}
+	require.Equal(t, 200*time.Millisecond, backoff.Timeout())
+	backoff.Success()
+	require.Equal(t, (200*9/10)*time.Millisecond, backoff.Timeout())
+	for i := 0; i < 6; i++ {
+		backoff.Success()
+	}
+	require.Equal(t, 0*time.Second, backoff.Timeout())
+	backoff.Success()
+	require.Equal(t, 0*time.Second, backoff.Timeout())
+}
+
+// TestMinimumBelowMaximum tests that the configured minimum timeout step must be less that the maximum.
+func TestMinimumGreaterThanMaximum(t *testing.T) {
+	_, err := NewBackoff(time.Millisecond*2, time.Millisecond)
+	require.NotNil(t, err)
 }
 
 // TestMaximumTimeoutUpperBound tests that the maximum timeout upper
 // bound is respected.
 func TestMaximumTimeoutUpperBound(t *testing.T) {
-	_, err := NewBackoff(time.Millisecond, (MaximumTimeoutUpperBoundSeconds+1)*time.Second)
+	_, err := NewBackoff(time.Millisecond, timeoutUpperBound+1*time.Second)
 	require.NotNil(t, err)
 }
 
-// TestInitialTimeoutLowerBound tests that the initial timeout lower
-// bound is respected.
-func TestInitialTimeoutUpperBound(t *testing.T) {
-	_, err := NewBackoff((InitialTimeoutLowerBoundSeconds-1)*time.Second, 10*time.Millisecond)
+// TestMinTimeoutStepBound tests that the minimum timeout step is positive.
+func TestMinTimeoutStepBound(t *testing.T) {
+	_, err := NewBackoff(0, 10*time.Millisecond)
 	require.NotNil(t, err)
 }
 
