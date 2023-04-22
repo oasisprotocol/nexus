@@ -11,6 +11,7 @@ import (
 	"github.com/oasisprotocol/oasis-indexer/analyzer/queries"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/runtime"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/util"
+	"github.com/oasisprotocol/oasis-indexer/common"
 	"github.com/oasisprotocol/oasis-indexer/config"
 	"github.com/oasisprotocol/oasis-indexer/log"
 	"github.com/oasisprotocol/oasis-indexer/storage"
@@ -35,7 +36,7 @@ const (
 )
 
 type Main struct {
-	runtime analyzer.Runtime
+	runtime common.Runtime
 	cfg     analyzer.RuntimeConfig
 	target  storage.TargetStorage
 	logger  *log.Logger
@@ -44,7 +45,7 @@ type Main struct {
 var _ analyzer.Analyzer = (*Main)(nil)
 
 func NewMain(
-	runtime analyzer.Runtime,
+	runtime common.Runtime,
 	sourceConfig *config.SourceConfig,
 	target storage.TargetStorage,
 	logger *log.Logger,

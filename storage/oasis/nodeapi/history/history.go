@@ -45,7 +45,7 @@ type HistoryConsensusApiLite struct {
 }
 
 func NewHistoryConsensusApiLite(ctx context.Context, history *config.History, nodes map[string]*config.NodeConfig, fastStartup bool) (*HistoryConsensusApiLite, error) {
-	APIs := map[string]nodeapi.ConsensusApiLite{}
+	apis := map[string]nodeapi.ConsensusApiLite{}
 	for _, record := range history.Records {
 		if nodeConfig, ok := nodes[record.ArchiveName]; ok {
 			apiConstructor := APIConstructors[record.ArchiveName]
@@ -56,12 +56,12 @@ func NewHistoryConsensusApiLite(ctx context.Context, history *config.History, no
 			if err != nil {
 				return nil, fmt.Errorf("connecting to archive %s: %w", record.ArchiveName, err)
 			}
-			APIs[record.ArchiveName] = api
+			apis[record.ArchiveName] = api
 		}
 	}
 	return &HistoryConsensusApiLite{
 		History: history,
-		APIs:    APIs,
+		APIs:    apis,
 	}, nil
 }
 
@@ -72,7 +72,7 @@ func (c *HistoryConsensusApiLite) APIForHeight(height int64) (nodeapi.ConsensusA
 	}
 	api, ok := c.APIs[record.ArchiveName]
 	if !ok {
-		return nil, fmt.Errorf("archive %s for has no node configured", record.ArchiveName)
+		return nil, fmt.Errorf("archive %s has no node configured", record.ArchiveName)
 	}
 	return api, nil
 }

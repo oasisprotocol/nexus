@@ -17,7 +17,8 @@ import (
 	"github.com/oasisprotocol/oasis-indexer/analyzer/evmtokenbalances"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/evmtokens"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/runtime"
-	"github.com/oasisprotocol/oasis-indexer/cmd/common"
+	cmdCommon "github.com/oasisprotocol/oasis-indexer/cmd/common"
+	"github.com/oasisprotocol/oasis-indexer/common"
 	"github.com/oasisprotocol/oasis-indexer/config"
 	"github.com/oasisprotocol/oasis-indexer/log"
 	"github.com/oasisprotocol/oasis-indexer/storage"
@@ -49,13 +50,13 @@ func runAnalyzer(cmd *cobra.Command, args []string) {
 	}
 
 	// Initialize common environment.
-	if err = common.Init(cfg); err != nil {
+	if err = cmdCommon.Init(cfg); err != nil {
 		log.NewDefaultLogger("init").Error("init failed",
 			"error", err,
 		)
 		os.Exit(1)
 	}
-	logger := common.Logger()
+	logger := cmdCommon.Logger()
 
 	if cfg.Analysis == nil {
 		logger.Error("analysis config not provided")
@@ -73,7 +74,7 @@ func runAnalyzer(cmd *cobra.Command, args []string) {
 
 // Init initializes the analysis service.
 func Init(cfg *config.AnalysisConfig) (*Service, error) {
-	logger := common.Logger()
+	logger := cmdCommon.Logger()
 
 	logger.Info("initializing analysis service", "config", cfg)
 	if cfg.Storage.WipeStorage {
@@ -118,10 +119,10 @@ func Init(cfg *config.AnalysisConfig) (*Service, error) {
 }
 
 func wipeStorage(cfg *config.StorageConfig) error {
-	logger := common.Logger().WithModule(moduleName)
+	logger := cmdCommon.Logger().WithModule(moduleName)
 
 	// Initialize target storage.
-	storage, err := common.NewClient(cfg, logger)
+	storage, err := cmdCommon.NewClient(cfg, logger)
 	if err != nil {
 		return err
 	}
@@ -160,10 +161,10 @@ func addAnalyzer(analyzers map[string]A, errSoFar error, analyzerGenerator func(
 
 // NewService creates new Service.
 func NewService(cfg *config.AnalysisConfig) (*Service, error) {
-	logger := common.Logger().WithModule(moduleName)
+	logger := cmdCommon.Logger().WithModule(moduleName)
 
 	// Initialize target storage.
-	client, err := common.NewClient(cfg.Storage, logger)
+	client, err := cmdCommon.NewClient(cfg.Storage, logger)
 	if err != nil {
 		return nil, err
 	}
@@ -177,37 +178,37 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) {
 	}
 	if cfg.Analyzers.Emerald != nil {
 		analyzers, err = addAnalyzer(analyzers, err, func() (A, error) {
-			return runtime.NewRuntimeAnalyzer(analyzer.RuntimeEmerald, &cfg.Source, cfg.Analyzers.Emerald, client, logger)
+			return runtime.NewRuntimeAnalyzer(common.RuntimeEmerald, &cfg.Source, cfg.Analyzers.Emerald, client, logger)
 		})
 	}
 	if cfg.Analyzers.Sapphire != nil {
 		analyzers, err = addAnalyzer(analyzers, err, func() (A, error) {
-			return runtime.NewRuntimeAnalyzer(analyzer.RuntimeSapphire, &cfg.Source, cfg.Analyzers.Sapphire, client, logger)
+			return runtime.NewRuntimeAnalyzer(common.RuntimeSapphire, &cfg.Source, cfg.Analyzers.Sapphire, client, logger)
 		})
 	}
 	if cfg.Analyzers.Cipher != nil {
 		analyzers, err = addAnalyzer(analyzers, err, func() (A, error) {
-			return runtime.NewRuntimeAnalyzer(analyzer.RuntimeCipher, &cfg.Source, cfg.Analyzers.Cipher, client, logger)
+			return runtime.NewRuntimeAnalyzer(common.RuntimeCipher, &cfg.Source, cfg.Analyzers.Cipher, client, logger)
 		})
 	}
 	if cfg.Analyzers.EmeraldEvmTokens != nil {
 		analyzers, err = addAnalyzer(analyzers, err, func() (A, error) {
-			return evmtokens.NewMain(analyzer.RuntimeEmerald, &cfg.Source, client, logger)
+			return evmtokens.NewMain(common.RuntimeEmerald, &cfg.Source, client, logger)
 		})
 	}
 	if cfg.Analyzers.SapphireEvmTokens != nil {
 		analyzers, err = addAnalyzer(analyzers, err, func() (A, error) {
-			return evmtokens.NewMain(analyzer.RuntimeSapphire, &cfg.Source, client, logger)
+			return evmtokens.NewMain(common.RuntimeSapphire, &cfg.Source, client, logger)
 		})
 	}
 	if cfg.Analyzers.EmeraldEvmTokenBalances != nil {
 		analyzers, err = addAnalyzer(analyzers, err, func() (A, error) {
-			return evmtokenbalances.NewMain(analyzer.RuntimeEmerald, &cfg.Source, client, logger)
+			return evmtokenbalances.NewMain(common.RuntimeEmerald, &cfg.Source, client, logger)
 		})
 	}
 	if cfg.Analyzers.SapphireEvmTokenBalances != nil {
 		analyzers, err = addAnalyzer(analyzers, err, func() (A, error) {
-			return evmtokenbalances.NewMain(analyzer.RuntimeSapphire, &cfg.Source, client, logger)
+			return evmtokenbalances.NewMain(common.RuntimeSapphire, &cfg.Source, client, logger)
 		})
 	}
 	if cfg.Analyzers.MetadataRegistry != nil {

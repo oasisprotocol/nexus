@@ -10,7 +10,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/oasisprotocol/oasis-indexer/analyzer"
 	common "github.com/oasisprotocol/oasis-indexer/common"
 )
 
@@ -39,15 +38,15 @@ func testRuntimeAccounts(t *testing.T, runtime string) {
 
 	ctx := context.Background()
 
-	network, err := analyzer.FromChainContext(MainnetChainContext)
+	network, err := common.FromChainContext(MainnetChainContext)
 	require.Nil(t, err)
 
 	var runtimeID string
 	switch runtime {
 	case "emerald":
-		runtimeID, err = analyzer.RuntimeEmerald.ID(network)
+		runtimeID, err = common.RuntimeEmerald.ID(network)
 	case "sapphire":
-		runtimeID, err = analyzer.RuntimeSapphire.ID(network)
+		runtimeID, err = common.RuntimeSapphire.ID(network)
 	}
 	require.Nil(t, err)
 	t.Log("Runtime ID determined", "runtime", runtime, "runtime_id", runtimeID)
