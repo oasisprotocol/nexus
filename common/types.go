@@ -124,14 +124,6 @@ var (
 	ErrRuntimeUnknown = errors.New("runtime unknown")
 )
 
-// ChainID is the ID of a chain.
-type ChainID string
-
-// String returns the string representation of a ChainID.
-func (c ChainID) String() string {
-	return string(c)
-}
-
 // Network is an instance of the Oasis Network.
 type Network uint8
 
