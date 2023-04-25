@@ -3,9 +3,10 @@ package runtime
 import (
 	"math/big"
 
+	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/accounts"
+
 	"github.com/oasisprotocol/oasis-indexer/analyzer/queries"
 	"github.com/oasisprotocol/oasis-indexer/storage"
-	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/accounts"
 )
 
 // queueAccountsEvents expands `batch` with DB queries that record the "effects"
@@ -38,7 +39,7 @@ func (m *Main) queueMint(batch *storage.QueryBatch, round uint64, e accounts.Min
 		m.runtime,
 		round,
 		e.Owner.String(),
-		m.cfg.Source.StringifyDenomination(e.Amount.Denomination),
+		m.StringifyDenomination(e.Amount.Denomination),
 		e.Amount.Amount.String(),
 	)
 	// Increase minter's balance.
@@ -46,7 +47,7 @@ func (m *Main) queueMint(batch *storage.QueryBatch, round uint64, e accounts.Min
 		queries.RuntimeNativeBalanceUpdate,
 		m.runtime,
 		e.Owner.String(),
-		m.cfg.Source.StringifyDenomination(e.Amount.Denomination),
+		m.StringifyDenomination(e.Amount.Denomination),
 		e.Amount.Amount.String(),
 	)
 }
@@ -58,7 +59,7 @@ func (m *Main) queueBurn(batch *storage.QueryBatch, round uint64, e accounts.Bur
 		m.runtime,
 		round,
 		e.Owner.String(),
-		m.cfg.Source.StringifyDenomination(e.Amount.Denomination),
+		m.StringifyDenomination(e.Amount.Denomination),
 		e.Amount.Amount.String(),
 	)
 	// Decrease burner's balance.
@@ -66,7 +67,7 @@ func (m *Main) queueBurn(batch *storage.QueryBatch, round uint64, e accounts.Bur
 		queries.RuntimeNativeBalanceUpdate,
 		m.runtime,
 		e.Owner.String(),
-		m.cfg.Source.StringifyDenomination(e.Amount.Denomination),
+		m.StringifyDenomination(e.Amount.Denomination),
 		(&big.Int{}).Neg(e.Amount.Amount.ToBigInt()).String(),
 	)
 }
@@ -79,7 +80,7 @@ func (m *Main) queueTransfer(batch *storage.QueryBatch, round uint64, e accounts
 		round,
 		e.From.String(),
 		e.To.String(),
-		m.cfg.Source.StringifyDenomination(e.Amount.Denomination),
+		m.StringifyDenomination(e.Amount.Denomination),
 		e.Amount.Amount.String(),
 	)
 	// Increase receiver's balance.
@@ -87,7 +88,7 @@ func (m *Main) queueTransfer(batch *storage.QueryBatch, round uint64, e accounts
 		queries.RuntimeNativeBalanceUpdate,
 		m.runtime,
 		e.To.String(),
-		m.cfg.Source.StringifyDenomination(e.Amount.Denomination),
+		m.StringifyDenomination(e.Amount.Denomination),
 		e.Amount.Amount.String(),
 	)
 	// Decrease sender's balance.
@@ -95,7 +96,7 @@ func (m *Main) queueTransfer(batch *storage.QueryBatch, round uint64, e accounts
 		queries.RuntimeNativeBalanceUpdate,
 		m.runtime,
 		e.From.String(),
-		m.cfg.Source.StringifyDenomination(e.Amount.Denomination),
+		m.StringifyDenomination(e.Amount.Denomination),
 		(&big.Int{}).Neg(e.Amount.Amount.ToBigInt()).String(),
 	)
 }

@@ -153,6 +153,10 @@ func (sc *SourceConfig) SDKNetwork() *sdkConfig.Network {
 	return sc.CustomChain.SDKNetwork
 }
 
+func (sc *SourceConfig) SDKParaTime(runtime common.Runtime) *sdkConfig.ParaTime {
+	return sc.SDKNetwork().ParaTimes.All[string(runtime)]
+}
+
 func CustomSingleNetworkSourceConfig(rpc string, chainContext string) *SourceConfig {
 	return &SourceConfig{
 		CustomChain: &CustomChainConfig{

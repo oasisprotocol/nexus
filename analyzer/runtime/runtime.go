@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5"
-
+	sdkConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/rewards"
-	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
+	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 
 	"github.com/oasisprotocol/oasis-indexer/analyzer"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/queries"
@@ -61,8 +61,9 @@ func NewRuntimeAnalyzer(
 		To:   uint64(cfg.To),
 	}
 	ac := analyzer.RuntimeConfig{
-		Range:  roundRange,
-		Source: client,
+		ParaTime: sourceConfig.SDKParaTime(runtime),
+		Range:    roundRange,
+		Source:   client,
 	}
 
 	return &Main{
@@ -148,6 +149,21 @@ func (m *Main) Name() string {
 	return string(m.runtime)
 }
 
+func (m *Main) nativeTokenSymbol() string {
+	return m.cfg.ParaTime.Denominations[sdkConfig.NativeDenominationKey].Symbol
+}
+
+// StringifyDenomination returns a string representation of the given denomination.
+// This is simply the denomination's symbol; notably, for the native denomination,
+// this is looked up from network config.
+func (m *Main) StringifyDenomination(d sdkTypes.Denomination) string {
+	if d.IsNative() {
+		return m.nativeTokenSymbol()
+	}
+
+	return d.String()
+}
+
 // latestRound returns the latest round processed by the consensus analyzer.
 func (m *Main) latestRound(ctx context.Context) (uint64, error) {
 	var latest uint64
@@ -171,10 +187,10 @@ func (m *Main) prework() error {
 	// Register special addresses.
 	batch.Queue(
 		queries.AddressPreimageInsert,
-		rewards.RewardPoolAddress.String(),          // oasis1qp7x0q9qahahhjas0xde8w0v04ctp4pqzu5mhjav on mainnet oasis-3
-		types.AddressV0ModuleContext.Identifier,     // context_identifier
-		int32(types.AddressV0ModuleContext.Version), // context_version
-		"rewards.reward-pool",                       // address_data (reconstructed from NewAddressForModule())
+		rewards.RewardPoolAddress.String(),             // oasis1qp7x0q9qahahhjas0xde8w0v04ctp4pqzu5mhjav on mainnet oasis-3
+		sdkTypes.AddressV0ModuleContext.Identifier,     // context_identifier
+		int32(sdkTypes.AddressV0ModuleContext.Version), // context_version
+		"rewards.reward-pool",                          // address_data (reconstructed from NewAddressForModule())
 	)
 	if err := m.target.SendBatch(ctx, batch); err != nil {
 		return err

@@ -54,9 +54,8 @@ func NewConsensusClient(ctx context.Context, sourceConfig *config.SourceConfig) 
 
 // NewRuntimeClient creates a new RuntimeClient.
 func NewRuntimeClient(ctx context.Context, sourceConfig *config.SourceConfig, runtime common.Runtime) (*RuntimeClient, error) {
-	sdkPT := sourceConfig.SDKNetwork().ParaTimes.All[string(runtime)]
 	var nodeApi nodeapi.RuntimeApiLite
-	nodeApi, err := history.NewHistoryRuntimeApiLite(ctx, sourceConfig.History(), sdkPT, sourceConfig.Nodes, sourceConfig.FastStartup, runtime)
+	nodeApi, err := history.NewHistoryRuntimeApiLite(ctx, sourceConfig.History(), sourceConfig.SDKParaTime(runtime), sourceConfig.Nodes, sourceConfig.FastStartup, runtime)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating history runtime API lite: %w", err)
 	}
@@ -77,6 +76,5 @@ func NewRuntimeClient(ctx context.Context, sourceConfig *config.SourceConfig, ru
 
 	return &RuntimeClient{
 		nodeApi: nodeApi,
-		sdkPT:   sdkPT,
 	}, nil
 }
