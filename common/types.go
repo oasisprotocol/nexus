@@ -124,17 +124,22 @@ var (
 	ErrRuntimeUnknown = errors.New("runtime unknown")
 )
 
-// Network is an instance of the Oasis Network.
-type Network uint8
+// ChainName is a name given to a sequence of networks. Used to index
+// config.DefaultChains and sdkConfig.DefaultNetworks.All.
+type ChainName string
 
 const (
-	// NetworkTestnet is the identifier for testnet.
-	NetworkTestnet Network = iota
-	// NetworkMainnet is the identifier for mainnet.
-	NetworkMainnet
-	// NetworkUnknown is the identifier for an unknown network.
-	NetworkUnknown = 255
+	// ChainNameTestnet is the identifier for testnet.
+	ChainNameTestnet ChainName = "testnet"
+	// ChainNameMainnet is the identifier for mainnet.
+	ChainNameMainnet ChainName = "mainnet"
+	// ChainNameUnknown is the identifier for an unknown network.
+	ChainNameUnknown ChainName = "unknown"
 )
+
+func (cn ChainName) String() string {
+	return string(cn)
+}
 
 // FromChainContext identifies a Network using its ChainContext.
 func FromChainContext(chainContext string) (Network, error) {
@@ -153,32 +158,6 @@ func FromChainContext(chainContext string) (Network, error) {
 	}
 
 	return NetworkUnknown, ErrNetworkUnknown
-}
-
-// Set sets the Network to the value specified by the provided string.
-func (n *Network) Set(s string) error {
-	switch strings.ToLower(s) {
-	case "mainnet":
-		*n = NetworkMainnet
-	case "testnet":
-		*n = NetworkTestnet
-	default:
-		return ErrNetworkUnknown
-	}
-
-	return nil
-}
-
-// String returns the string representation of a network.
-func (n Network) String() string {
-	switch n {
-	case NetworkTestnet:
-		return "testnet"
-	case NetworkMainnet:
-		return "mainnet"
-	default:
-		return "unknown"
-	}
 }
 
 // Runtime is an identifier for a runtime on the Oasis Network.
