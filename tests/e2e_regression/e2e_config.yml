@@ -1,12 +1,8 @@
 analysis:
   source:
     cache:
-      consensus:
-        cache_dir: tests/e2e_regression/data/consensus
-        query_on_cache_miss: true
-      runtime:
-        cache_dir: tests/e2e_regression/data/runtime
-        query_on_cache_miss: true
+      cache_dir: tests/e2e_regression/data
+      query_on_cache_miss: true
     chain_name: mainnet
     nodes:
       damask:

@@ -118,7 +118,7 @@ type AnalyzersList struct {
 // SourceConfig has some controls about what chain we're analyzing and how to connect.
 type SourceConfig struct {
 	// Cache holds the configuration for a file-based caching backend.
-	Cache *CacheList `koanf:"cache"`
+	Cache *CacheConfig `koanf:"cache"`
 
 	// ChainName is the name of the chain (e.g. mainnet/testnet). Set
 	// this to use one of the default chains.
@@ -169,14 +169,6 @@ func SingleNetworkLookup(rpc string) map[string]*NodeConfig {
 			RPC: rpc,
 		},
 	}
-}
-
-type CacheList struct {
-	// Consensus holds the configuration for the consensus cache
-	Consensus *CacheConfig `koanf:"consensus"`
-
-	// Runtime holds the configuration for the runtime cache
-	Runtime *CacheConfig `koanf:"runtime"`
 }
 
 type CacheConfig struct {
