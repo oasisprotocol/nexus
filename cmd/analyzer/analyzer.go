@@ -4,6 +4,7 @@ package analyzer
 import (
 	"context"
 	"os"
+	"os/signal"
 	"sync"
 
 	migrate "github.com/golang-migrate/migrate/v4"
@@ -242,6 +243,28 @@ func (a *Service) Start() {
 
 	var ctx context.Context
 	ctx, a.cancelAnalyzers = context.WithCancel(context.Background())
+
+	// trap Ctrl+C and call cancel on the context
+	signalChan := make(chan os.Signal, 1)
+	signal.Notify(signalChan, os.Interrupt)
+	defer func() {
+		signal.Stop(signalChan) // Stop catching Ctrl+C signals.
+		a.Shutdown()            // Shut down gracefully.
+	}()
+
+	go func() {
+		select {
+		case <-signalChan:
+			// We received the first Ctrl+C; try to shut down gracefully.
+			a.Shutdown()
+		case <-ctx.Done():
+			// Analyzers have already shut down, hopefully gracefully; clean up again just in case.
+			a.Shutdown()
+		}
+		// If the user hits Ctrl+C again, immediately exit.
+		<-signalChan
+		os.Exit(2)
+	}()
 
 	var wg sync.WaitGroup
 	for _, an := range a.Analyzers {
