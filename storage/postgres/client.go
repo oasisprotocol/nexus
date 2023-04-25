@@ -208,31 +208,45 @@ func (c *Client) Name() string {
 	return moduleName
 }
 
-// Wipe removes all contents of the database.
-func (c *Client) Wipe(ctx context.Context) error {
-	// List, then drop all tables.
+// Returns all tables that are not internal to Postgres. Table names are fully-qualified,
+// i.e. of the form "<schema>.<table>".
+func (c *Client) listIndexerTables(ctx context.Context) ([]string, error) {
 	rows, err := c.Query(ctx, `
 		SELECT schemaname, tablename
 		FROM pg_tables
 		WHERE schemaname != 'information_schema' AND schemaname NOT LIKE 'pg_%'
 	`)
 	if err != nil {
-		return fmt.Errorf("failed to list tables: %w", err)
+		return nil, fmt.Errorf("list tables: %w", err)
 	}
+
+	tables := []string{}
 	for rows.Next() {
 		var schema, table string
 		if err = rows.Scan(&schema, &table); err != nil {
-			return err
+			return nil, err
 		}
-		c.logger.Info("dropping table", "schema", schema, "table", table)
-		if _, err = c.pool.Exec(ctx, fmt.Sprintf("DROP TABLE %s.%s CASCADE;", schema, table)); err != nil {
+		tables = append(tables, fmt.Sprintf("%s.%s", schema, table))
+	}
+	return tables, nil
+}
+
+// Wipe removes all contents of the database.
+func (c *Client) Wipe(ctx context.Context) error {
+	tables, err := c.listIndexerTables(ctx)
+	if err != nil {
+		return err
+	}
+	for _, table := range tables {
+		c.logger.Info("dropping table", "table", table)
+		if _, err = c.pool.Exec(ctx, fmt.Sprintf("DROP TABLE %s CASCADE;", table)); err != nil {
 			return err
 		}
 	}
 
 	// List, then drop all custom types.
 	// Query from https://stackoverflow.com/questions/3660787/how-to-list-custom-types-using-postgres-information-schema
-	rows, err = c.Query(ctx, `
+	rows, err := c.Query(ctx, `
 		SELECT      n.nspname as schema, t.typname as type 
 		FROM        pg_type t 
 		LEFT JOIN   pg_catalog.pg_namespace n ON n.oid = t.typnamespace 
@@ -295,5 +309,42 @@ func (c *Client) Wipe(ctx context.Context) error {
 		}
 	}
 
+	return nil
+}
+
+// DisableTriggersAndFKConstraints disables all triggers and foreign key constraints
+// in indexer tables. This is useful when inserting blockchain data out of order,
+// so that later blocks can refer to (yet unindexed) earlier blocks without violating constraints.
+func (c *Client) DisableTriggersAndFKConstraints(ctx context.Context) error {
+	// List all tables, then drop their triggers.
+	// FK constraints are implemented via triggers, so this also disables FK constraints.
+	tables, err := c.listIndexerTables(ctx)
+	if err != nil {
+		return err
+	}
+	for _, table := range tables {
+		c.logger.Info("disabling DB triggers on table", "table", table)
+		if _, err = c.pool.Exec(ctx, fmt.Sprintf("ALTER TABLE %s DISABLE TRIGGER ALL;", table)); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// EnableTriggersAndFKConstraints enables all triggers and foreign key constraints
+// in the given schema.
+// WARNING: This might enable triggers not explicitly disabled by DisableTriggersAndFKConstraints.
+// WARNING: This does not enforce/check contraints on rows that were inserted while triggers were disabled.
+func (c *Client) EnableTriggersAndFKConstraints(ctx context.Context) error {
+	tables, err := c.listIndexerTables(ctx)
+	if err != nil {
+		return err
+	}
+	for _, table := range tables {
+		c.logger.Info("enabling DB triggers on table", "table", table)
+		if _, err = c.pool.Exec(ctx, fmt.Sprintf("ALTER TABLE %s ENABLE TRIGGER ALL;", table)); err != nil {
+			return err
+		}
+	}
 	return nil
 }
