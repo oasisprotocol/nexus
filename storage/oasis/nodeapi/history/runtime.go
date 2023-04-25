@@ -43,6 +43,15 @@ func NewHistoryRuntimeApiLite(ctx context.Context, history *config.History, sdkP
 	}, nil
 }
 
+func (rc *HistoryRuntimeApiLite) Close() error {
+	for _, api := range rc.APIs {
+		if err := api.Close(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (rc *HistoryRuntimeApiLite) APIForRound(round uint64) (nodeapi.RuntimeApiLite, error) {
 	record, err := rc.History.RecordForRuntimeRound(rc.Runtime, round)
 	if err != nil {

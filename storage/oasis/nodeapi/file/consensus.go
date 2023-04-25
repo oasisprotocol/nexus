@@ -34,6 +34,10 @@ func NewFileConsensusApiLite(filename string, consensusApi nodeapi.ConsensusApiL
 	}, nil
 }
 
+func (c *FileConsensusApiLite) Close() error {
+	return c.db.Close()
+}
+
 func (c *FileConsensusApiLite) GetGenesisDocument(ctx context.Context) (*genesis.Document, error) {
 	return GetFromCacheOrCall(
 		c.db, false,

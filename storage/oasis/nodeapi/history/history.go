@@ -65,6 +65,17 @@ func NewHistoryConsensusApiLite(ctx context.Context, history *config.History, no
 	}, nil
 }
 
+func (c *HistoryConsensusApiLite) Close() error {
+	var firstErr error
+	for _, api := range c.APIs {
+		if err := api.Close(); err != nil {
+			firstErr = err
+			// Do not return yet; keep closing others.
+		}
+	}
+	return firstErr
+}
+
 func (c *HistoryConsensusApiLite) APIForHeight(height int64) (nodeapi.ConsensusApiLite, error) {
 	record, err := c.History.RecordForHeight(height)
 	if err != nil {

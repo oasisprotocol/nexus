@@ -79,11 +79,7 @@ func NewAggregateStatsAnalyzer(cfg *config.AggregateStatsConfig, target storage.
 	}, nil
 }
 
-func (a *AggregateStatsAnalyzer) Start() {
-	// TODO: ideally analyzers would get a top level context passed in.
-	// That way the analyzers can gracefully shutdown on application termination.
-	ctx := context.Background()
-
+func (a *AggregateStatsAnalyzer) Start(ctx context.Context) {
 	var wg sync.WaitGroup
 	wg.Add(2)
 
@@ -121,7 +117,7 @@ func (a *AggregateStatsAnalyzer) txVolumeWorker(ctx context.Context) {
 		case <-time.After(a.txVolumeInterval):
 			// Update stats.
 		case <-ctx.Done():
-			a.logger.Error("shutting down tx volume worker", "err", ctx.Err())
+			a.logger.Error("shutting down tx volume worker", "reason", ctx.Err())
 			return
 		}
 	}
@@ -240,9 +236,10 @@ func (a *AggregateStatsAnalyzer) dailyActiveAccountsWorker(ctx context.Context) 
 
 		select {
 		case <-time.After(dailyActiveAccountsInterval):
-			// Update stats.
+			// Update stats again.
 		case <-ctx.Done():
-			a.logger.Error("shutting down daily active accounts worker", "err", ctx.Err())
+			a.logger.Error("shutting down daily active accounts worker", "reason", ctx.Err())
+			// No cleanup needed.
 			return
 		}
 	}

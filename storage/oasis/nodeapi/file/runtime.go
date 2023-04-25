@@ -32,6 +32,10 @@ func NewFileRuntimeApiLite(runtime common.Runtime, cacheDir string, runtimeApi n
 	}, nil
 }
 
+func (r *FileRuntimeApiLite) Close() error {
+	return r.db.Close()
+}
+
 func (r *FileRuntimeApiLite) GetBlockHeader(ctx context.Context, round uint64) (*nodeapi.RuntimeBlockHeader, error) {
 	return GetFromCacheOrCall(
 		r.db, round == roothash.RoundLatest,

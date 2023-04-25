@@ -39,9 +39,7 @@ func NewMetadataRegistryAnalyzer(cfg *config.MetadataRegistryConfig, target stor
 	}, nil
 }
 
-func (a *MetadataRegistryAnalyzer) Start() {
-	ctx := context.Background()
-
+func (a *MetadataRegistryAnalyzer) Start(ctx context.Context) {
 	for {
 		a.logger.Info("Updating metadata registry snapshot")
 
@@ -54,7 +52,14 @@ func (a *MetadataRegistryAnalyzer) Start() {
 		}
 		a.logger.Info("Updated metadata registry", "num_updates", batch.Len())
 
-		time.Sleep(a.interval)
+		select {
+		case <-time.After(a.interval):
+			// Fetch data again.
+		case <-ctx.Done():
+			a.logger.Warn("shutting down metadata analyzer", "reason", ctx.Err())
+			// No clean-up needed.
+			return
+		}
 	}
 }
 

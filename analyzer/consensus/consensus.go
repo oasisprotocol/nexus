@@ -100,9 +100,7 @@ func NewMain(sourceConfig *config.SourceConfig, cfg *config.BlockBasedAnalyzerCo
 }
 
 // Start starts the main consensus analyzer.
-func (m *Main) Start() {
-	ctx := context.Background()
-
+func (m *Main) Start(ctx context.Context) {
 	// Get block to be indexed.
 	var height int64
 
@@ -148,7 +146,16 @@ func (m *Main) Start() {
 		return
 	}
 	for m.cfg.Range.To == 0 || height <= m.cfg.Range.To {
-		backoff.Wait()
+		select {
+		case <-time.After(backoff.Timeout()):
+			// Process next block.
+		case <-ctx.Done():
+			m.logger.Warn("shutting down consensus analyzer", "reason", ctx.Err())
+			if err := m.cleanup(); err != nil {
+				m.logger.Error("error cleaning up consensus analyzer", "err", err)
+			}
+			return
+		}
 		m.logger.Info("attempting block", "height", height)
 
 		if err := m.processBlock(ctx, height); err != nil {
@@ -174,6 +181,10 @@ func (m *Main) Start() {
 	m.logger.Info(
 		fmt.Sprintf("finished processing all blocks in the configured range [%d, %d]",
 			m.cfg.Range.From, m.cfg.Range.To))
+}
+
+func (m *Main) cleanup() error {
+	return m.cfg.Source.Close()
 }
 
 // Name returns the name of the Main.

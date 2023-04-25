@@ -7,6 +7,7 @@ import (
 
 	"github.com/akrylysov/pogreb"
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
+	"github.com/oasisprotocol/oasis-indexer/log"
 )
 
 type NodeApiMethod func() (interface{}, error)
@@ -30,6 +31,11 @@ func generateCacheKey(methodName string, params ...interface{}) []byte {
 }
 
 type KVStore struct{ *pogreb.DB }
+
+func (s KVStore) Close() error {
+	log.NewDefaultLogger("kvstore").Info("closing KVStore")
+	return s.DB.Close()
+}
 
 // getFromCacheOrCall fetches the value of `cacheKey` from the cache if it exists,
 // interpreted as a `Value`. If it does not exist, it calls `valueFunc` to get the

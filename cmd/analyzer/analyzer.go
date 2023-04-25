@@ -134,7 +134,8 @@ func wipeStorage(cfg *config.StorageConfig) error {
 
 // Service is the Oasis Indexer's analysis service.
 type Service struct {
-	Analyzers map[string]analyzer.Analyzer
+	Analyzers       map[string]analyzer.Analyzer
+	cancelAnalyzers context.CancelFunc
 
 	target storage.TargetStorage
 	logger *log.Logger
@@ -239,12 +240,15 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) {
 func (a *Service) Start() {
 	a.logger.Info("starting analysis service")
 
+	var ctx context.Context
+	ctx, a.cancelAnalyzers = context.WithCancel(context.Background())
+
 	var wg sync.WaitGroup
 	for _, an := range a.Analyzers {
 		wg.Add(1)
 		go func(an analyzer.Analyzer) {
 			defer wg.Done()
-			an.Start()
+			an.Start(ctx)
 		}(an)
 	}
 
@@ -254,6 +258,7 @@ func (a *Service) Start() {
 // Shutdown gracefully shuts down the service.
 func (a *Service) Shutdown() {
 	a.target.Shutdown()
+	a.cancelAnalyzers()
 }
 
 // Register registers the process sub-command.

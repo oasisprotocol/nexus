@@ -74,9 +74,7 @@ func NewRuntimeAnalyzer(
 	}, nil
 }
 
-func (m *Main) Start() {
-	ctx := context.Background()
-
+func (m *Main) Start(ctx context.Context) {
 	if err := m.prework(); err != nil {
 		m.logger.Error("error doing prework",
 			"err", err,
@@ -115,7 +113,14 @@ func (m *Main) Start() {
 	}
 
 	for m.cfg.Range.To == 0 || round <= m.cfg.Range.To {
-		backoff.Wait()
+		select {
+		case <-time.After(backoff.Timeout()):
+			// Process next block.
+		case <-ctx.Done():
+			m.logger.Warn("shutting down runtime analyzer", "reason", ctx.Err())
+			m.cleanup()
+			return
+		}
 		m.logger.Info("attempting block", "round", round)
 
 		if err := m.processRound(ctx, round); err != nil {
@@ -141,6 +146,10 @@ func (m *Main) Start() {
 	m.logger.Info(
 		fmt.Sprintf("finished processing all blocks in the configured range [%d, %d]",
 			m.cfg.Range.From, m.cfg.Range.To))
+}
+
+func (m *Main) cleanup() {
+	m.cfg.Source.Close()
 }
 
 // Name returns the name of the Main.
