@@ -23,8 +23,8 @@ type FileConsensusApiLite struct {
 
 var _ nodeapi.ConsensusApiLite = (*FileConsensusApiLite)(nil)
 
-func NewFileConsensusApiLite(filename string, consensusApi nodeapi.ConsensusApiLite) (*FileConsensusApiLite, error) {
-	db, err := pogreb.Open(filename, &pogreb.Options{BackgroundSyncInterval: -1})
+func NewFileConsensusApiLite(cacheDir string, consensusApi nodeapi.ConsensusApiLite) (*FileConsensusApiLite, error) {
+	db, err := pogreb.Open(cacheDir, &pogreb.Options{BackgroundSyncInterval: -1})
 	if err != nil {
 		return nil, err
 	}
