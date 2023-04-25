@@ -258,8 +258,6 @@ func RuntimeFromURLMiddleware(baseURL string) func(next http.Handler) http.Handl
 			// Recognize only whitelisted runtimes.
 			runtime := ""
 			switch {
-			case strings.HasPrefix(path, "/consensus/"):
-				runtime = "consensus"
 			case strings.HasPrefix(path, "/emerald/"):
 				runtime = "emerald"
 			case strings.HasPrefix(path, "/sapphire/"):
