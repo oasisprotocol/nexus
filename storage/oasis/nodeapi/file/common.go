@@ -7,7 +7,6 @@ import (
 
 	"github.com/akrylysov/pogreb"
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
-	consensus "github.com/oasisprotocol/oasis-core/go/consensus/api"
 )
 
 type NodeApiMethod func() (interface{}, error)
@@ -35,11 +34,10 @@ type KVStore struct{ pogreb.DB }
 // getFromCacheOrCall fetches the value of `cacheKey` from the cache if it exists,
 // interpreted as a `Value`. If it does not exist, it calls `valueFunc` to get the
 // value, and caches it before returning it.
-// `height` is taken as an explicit parameter to catch non-cacheable calls. If `valueFunc`
-// is not height-based, `height` should be set to `nil`.
-func GetFromCacheOrCall[Value any](cache KVStore, height *int64, cacheKey []byte, valueFunc func() (*Value, error)) (*Value, error) {
+// If `volatile` is true, `valueFunc` is always called, and the result is not cached.
+func GetFromCacheOrCall[Value any](cache KVStore, volatile bool, cacheKey []byte, valueFunc func() (*Value, error)) (*Value, error) {
 	// If the latest height was requested, the response is not cacheable, so we have to hit the backing API.
-	if height != nil && *height == consensus.HeightLatest {
+	if volatile {
 		return valueFunc()
 	}
 
@@ -69,9 +67,9 @@ func GetFromCacheOrCall[Value any](cache KVStore, height *int64, cacheKey []byte
 }
 
 // Like getFromCacheOrCall, but for slice-typed return values.
-func GetSliceFromCacheOrCall[Response any](cache KVStore, height *int64, cacheKey []byte, valueFunc func() ([]Response, error)) ([]Response, error) {
+func GetSliceFromCacheOrCall[Response any](cache KVStore, volatile bool, cacheKey []byte, valueFunc func() ([]Response, error)) ([]Response, error) {
 	// Use `getFromCacheOrCall()` to avoid duplicating the cache update logic.
-	responsePtr, err := GetFromCacheOrCall(cache, height, cacheKey, func() (*[]Response, error) {
+	responsePtr, err := GetFromCacheOrCall(cache, volatile, cacheKey, func() (*[]Response, error) {
 		response, err := valueFunc()
 		if response == nil {
 			return nil, err
