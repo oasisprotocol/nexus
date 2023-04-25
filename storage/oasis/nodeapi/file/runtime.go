@@ -12,7 +12,7 @@ import (
 
 type FileRuntimeApiLite struct {
 	runtime    string
-	db         pogreb.DB
+	db         KVStore
 	runtimeApi nodeapi.RuntimeApiLite
 }
 
@@ -27,7 +27,7 @@ func NewFileRuntimeApiLite(runtime string, filename string, runtimeApi nodeapi.R
 	}
 	return &FileRuntimeApiLite{
 		runtime:    runtime,
-		db:         *db,
+		db:         KVStore{*db},
 		runtimeApi: runtimeApi,
 	}, nil
 }
