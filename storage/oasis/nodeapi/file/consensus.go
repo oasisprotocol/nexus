@@ -35,7 +35,9 @@ func NewFileConsensusApiLite(filename string, consensusApi nodeapi.ConsensusApiL
 	}, nil
 }
 
-func (c *FileConsensusApiLite) updateCache(key []byte, method NodeApiMethod) error {
+// ensureCacheKey ensures that the given key exists in the cache. If the key already
+// exists, it does nothing; otherwise, it fills it with the return value of `method`.
+func (c *FileConsensusApiLite) ensureCacheKey(key []byte, method NodeApiMethod) error {
 	exists, err := c.db.Has(key)
 	if err != nil {
 		return err
@@ -51,296 +53,157 @@ func (c *FileConsensusApiLite) updateCache(key []byte, method NodeApiMethod) err
 	return c.db.Put(key, cbor.Marshal(val))
 }
 
-func (c *FileConsensusApiLite) GetGenesisDocument(ctx context.Context) (*genesis.Document, error) {
-	key := generateCacheKey("GetGenesisDocument")
+// fetchFromCacheOrElseCall fetches the value of `cacheKey` from the cache if it exists,
+// interpreted as a `Response`. If it does not exist, it calls `backingApiFunc` to get the
+// value, and caches it before returning it.
+// `height` is taken as an explicit parameter to catch non-cacheable calls. If `backingApiFunc`
+// is not height-based, `height` should be set to `nil`.
+func fetchFromCacheOrElseCall[Response any](c *FileConsensusApiLite, ctx context.Context, height *int64, cacheKey []byte, backingApiFunc func() (*Response, error)) (*Response, error) {
+	// If the latest height was requested, the response is not cacheable, so we have to hit the backing API.
+	if height != nil && *height == consensus.HeightLatest {
+		if c.consensusApi != nil {
+			return backingApiFunc()
+		}
+		return nil, ErrUnstableRPCMethod
+	}
+
+	// Warm the cache if possible.
+	// XXX: Assumes that `backingApiFunc` uses `c.consensusApi`.
 	if c.consensusApi != nil {
-		if err := c.updateCache(key, func() (interface{}, error) { return c.consensusApi.GetGenesisDocument(ctx) }); err != nil {
+		if err := c.ensureCacheKey(cacheKey, func() (interface{}, error) { return backingApiFunc() }); err != nil {
 			return nil, err
 		}
 	}
-	var genesisDocument genesis.Document
-	raw, err := c.db.Get(key)
+
+	// Fetch the response from the cache.
+	var result *Response
+	raw, err := c.db.Get(cacheKey)
 	if err != nil {
 		return nil, err
 	}
-	err = cbor.Unmarshal(raw, &genesisDocument)
+	err = cbor.Unmarshal(raw, &result)
 	if err != nil {
 		return nil, err
 	}
-	return &genesisDocument, nil
+	return result, nil
+}
+
+// Like fetchFromCacheOrElseCall, but for slice-typed return values.
+func fetchSliceFromCacheOrElseCall[Response any](c *FileConsensusApiLite, ctx context.Context, height *int64, cacheKey []byte, backingApiFunc func() ([]Response, error)) ([]Response, error) {
+	// Use `fetchFromCacheOrElseCall()` to avoid duplicating the cache update logic.
+	responsePtr, err := fetchFromCacheOrElseCall(c, ctx, height, cacheKey, func() (*[]Response, error) {
+		response, err := backingApiFunc()
+		if response == nil {
+			return nil, err
+		}
+		// Return the response wrapped in a pointer to conform to the signature of `fetchFromCacheOrElseCall()`.
+		return &response, err
+	})
+	if responsePtr == nil {
+		return nil, err
+	}
+	// Undo the pointer wrapping.
+	return *responsePtr, err
+}
+
+func (c *FileConsensusApiLite) GetGenesisDocument(ctx context.Context) (*genesis.Document, error) {
+	return fetchFromCacheOrElseCall(
+		c, ctx, nil, /* height */
+		generateCacheKey("GetGenesisDocument"),
+		func() (*genesis.Document, error) { return c.consensusApi.GetGenesisDocument(ctx) },
+	)
 }
 
 func (c *FileConsensusApiLite) StateToGenesis(ctx context.Context, height int64) (*genesis.Document, error) {
-	if height == consensus.HeightLatest {
-		if c.consensusApi != nil {
-			return c.consensusApi.StateToGenesis(ctx, height)
-		}
-		return nil, ErrUnstableRPCMethod
-	}
-	key := generateCacheKey("StateToGenesis", height)
-	if c.consensusApi != nil {
-		if err := c.updateCache(key, func() (interface{}, error) { return c.consensusApi.StateToGenesis(ctx, height) }); err != nil {
-			return nil, err
-		}
-	}
-	var genesisDocument genesis.Document
-	raw, err := c.db.Get(key)
-	if err != nil {
-		return nil, err
-	}
-	err = cbor.Unmarshal(raw, &genesisDocument)
-	if err != nil {
-		return nil, err
-	}
-	return &genesisDocument, nil
+	return fetchFromCacheOrElseCall(
+		c, ctx, &height,
+		generateCacheKey("StateToGenesis", height),
+		func() (*genesis.Document, error) { return c.consensusApi.StateToGenesis(ctx, height) },
+	)
 }
 
 func (c *FileConsensusApiLite) GetBlock(ctx context.Context, height int64) (*consensus.Block, error) {
-	if height == consensus.HeightLatest {
-		if c.consensusApi != nil {
-			return c.consensusApi.GetBlock(ctx, height)
-		}
-		return nil, ErrUnstableRPCMethod
-	}
-	key := generateCacheKey("GetBlock", height)
-	if c.consensusApi != nil {
-		if err := c.updateCache(key, func() (interface{}, error) { return c.consensusApi.GetBlock(ctx, height) }); err != nil {
-			return nil, err
-		}
-	}
-	var block consensus.Block
-	raw, err := c.db.Get(key)
-	if err != nil {
-		return nil, err
-	}
-	err = cbor.Unmarshal(raw, &block)
-	if err != nil {
-		return nil, err
-	}
-	return &block, nil
+	return fetchFromCacheOrElseCall(
+		c, ctx, &height,
+		generateCacheKey("GetBlock", height),
+		func() (*consensus.Block, error) { return c.consensusApi.GetBlock(ctx, height) },
+	)
 }
 
 func (c *FileConsensusApiLite) GetTransactionsWithResults(ctx context.Context, height int64) ([]nodeapi.TransactionWithResults, error) {
-	if height == consensus.HeightLatest {
-		if c.consensusApi != nil {
+	return fetchSliceFromCacheOrElseCall(
+		c, ctx, &height,
+		generateCacheKey("GetTransactionsWithResults", height),
+		func() ([]nodeapi.TransactionWithResults, error) {
 			return c.consensusApi.GetTransactionsWithResults(ctx, height)
-		}
-		return nil, ErrUnstableRPCMethod
-	}
-	key := generateCacheKey("GetTransactionsWithResults", height)
-	if c.consensusApi != nil {
-		if err := c.updateCache(key, func() (interface{}, error) { return c.consensusApi.GetTransactionsWithResults(ctx, height) }); err != nil {
-			return nil, err
-		}
-	}
-	txs := []nodeapi.TransactionWithResults{}
-	raw, err := c.db.Get(key)
-	if err != nil {
-		return nil, err
-	}
-	err = cbor.Unmarshal(raw, &txs)
-	if err != nil {
-		return nil, err
-	}
-	return txs, nil
+		},
+	)
 }
 
 func (c *FileConsensusApiLite) GetEpoch(ctx context.Context, height int64) (beacon.EpochTime, error) {
-	if height == consensus.HeightLatest {
-		if c.consensusApi != nil {
-			return c.consensusApi.GetEpoch(ctx, height)
-		}
-		return beacon.EpochInvalid, ErrUnstableRPCMethod
-	}
-	key := generateCacheKey("GetEpoch", height)
-	if c.consensusApi != nil {
-		if err := c.updateCache(key, func() (interface{}, error) { return c.consensusApi.GetEpoch(ctx, height) }); err != nil {
-			return beacon.EpochInvalid, err
-		}
-	}
-	var epoch beacon.EpochTime
-	raw, err := c.db.Get(key)
-	if err != nil {
-		return beacon.EpochInvalid, err
-	}
-	err = cbor.Unmarshal(raw, &epoch)
-	if err != nil {
-		return beacon.EpochInvalid, err
-	}
-	return epoch, nil
+	time, err := fetchFromCacheOrElseCall(
+		c, ctx, &height,
+		generateCacheKey("GetEpoch", height),
+		func() (*beacon.EpochTime, error) {
+			time, err := c.consensusApi.GetEpoch(ctx, height)
+			return &time, err
+		},
+	)
+	return *time, err
 }
 
 func (c *FileConsensusApiLite) RegistryEvents(ctx context.Context, height int64) ([]nodeapi.Event, error) {
-	if height == consensus.HeightLatest {
-		if c.consensusApi != nil {
-			return c.consensusApi.RegistryEvents(ctx, height)
-		}
-		return nil, ErrUnstableRPCMethod
-	}
-	key := generateCacheKey("RegistryEvents", height)
-	if c.consensusApi != nil {
-		if err := c.updateCache(key, func() (interface{}, error) { return c.consensusApi.RegistryEvents(ctx, height) }); err != nil {
-			return nil, err
-		}
-	}
-	events := []nodeapi.Event{}
-	raw, err := c.db.Get(key)
-	if err != nil {
-		return nil, err
-	}
-	err = cbor.Unmarshal(raw, &events)
-	if err != nil {
-		return nil, err
-	}
-	return events, nil
+	return fetchSliceFromCacheOrElseCall(
+		c, ctx, &height,
+		generateCacheKey("RegistryEvents", height),
+		func() ([]nodeapi.Event, error) { return c.consensusApi.RegistryEvents(ctx, height) },
+	)
 }
 
 func (c *FileConsensusApiLite) StakingEvents(ctx context.Context, height int64) ([]nodeapi.Event, error) {
-	if height == consensus.HeightLatest {
-		if c.consensusApi != nil {
-			return c.consensusApi.StakingEvents(ctx, height)
-		}
-		return nil, ErrUnstableRPCMethod
-	}
-	key := generateCacheKey("StakingEvents", height)
-	if c.consensusApi != nil {
-		if err := c.updateCache(key, func() (interface{}, error) { return c.consensusApi.StakingEvents(ctx, height) }); err != nil {
-			return nil, err
-		}
-	}
-	events := []nodeapi.Event{}
-	raw, err := c.db.Get(key)
-	if err != nil {
-		return nil, err
-	}
-	err = cbor.Unmarshal(raw, &events)
-	if err != nil {
-		return nil, err
-	}
-	return events, nil
+	return fetchSliceFromCacheOrElseCall(
+		c, ctx, &height,
+		generateCacheKey("StakingEvents", height),
+		func() ([]nodeapi.Event, error) { return c.consensusApi.StakingEvents(ctx, height) },
+	)
 }
 
 func (c *FileConsensusApiLite) GovernanceEvents(ctx context.Context, height int64) ([]nodeapi.Event, error) {
-	if height == consensus.HeightLatest {
-		if c.consensusApi != nil {
-			return c.consensusApi.GovernanceEvents(ctx, height)
-		}
-		return nil, ErrUnstableRPCMethod
-	}
-	key := generateCacheKey("GovernanceEvents", height)
-	if c.consensusApi != nil {
-		if err := c.updateCache(key, func() (interface{}, error) { return c.consensusApi.GovernanceEvents(ctx, height) }); err != nil {
-			return nil, err
-		}
-	}
-	events := []nodeapi.Event{}
-	raw, err := c.db.Get(key)
-	if err != nil {
-		return nil, err
-	}
-	err = cbor.Unmarshal(raw, &events)
-	if err != nil {
-		return nil, err
-	}
-	return events, nil
+	return fetchSliceFromCacheOrElseCall(
+		c, ctx, &height,
+		generateCacheKey("GovernanceEvents", height),
+		func() ([]nodeapi.Event, error) { return c.consensusApi.GovernanceEvents(ctx, height) },
+	)
 }
 
 func (c *FileConsensusApiLite) RoothashEvents(ctx context.Context, height int64) ([]nodeapi.Event, error) {
-	if height == consensus.HeightLatest {
-		if c.consensusApi != nil {
-			return c.consensusApi.RoothashEvents(ctx, height)
-		}
-		return nil, ErrUnstableRPCMethod
-	}
-	key := generateCacheKey("RoothashEvents", height)
-	if c.consensusApi != nil {
-		if err := c.updateCache(key, func() (interface{}, error) { return c.consensusApi.RoothashEvents(ctx, height) }); err != nil {
-			return nil, err
-		}
-	}
-	events := []nodeapi.Event{}
-	raw, err := c.db.Get(key)
-	if err != nil {
-		return nil, err
-	}
-	err = cbor.Unmarshal(raw, &events)
-	if err != nil {
-		return nil, err
-	}
-	return events, nil
+	return fetchSliceFromCacheOrElseCall(
+		c, ctx, &height,
+		generateCacheKey("RoothashEvents", height),
+		func() ([]nodeapi.Event, error) { return c.consensusApi.RoothashEvents(ctx, height) },
+	)
 }
 
 func (c *FileConsensusApiLite) GetValidators(ctx context.Context, height int64) ([]nodeapi.Validator, error) {
-	if height == consensus.HeightLatest {
-		if c.consensusApi != nil {
-			return c.consensusApi.GetValidators(ctx, height)
-		}
-		return nil, ErrUnstableRPCMethod
-	}
-	key := generateCacheKey("GetValidators", height)
-	if c.consensusApi != nil {
-		if err := c.updateCache(key, func() (interface{}, error) { return c.consensusApi.GetValidators(ctx, height) }); err != nil {
-			return nil, err
-		}
-	}
-	validators := []nodeapi.Validator{}
-	raw, err := c.db.Get(key)
-	if err != nil {
-		return nil, err
-	}
-	err = cbor.Unmarshal(raw, &validators)
-	if err != nil {
-		return nil, err
-	}
-	return validators, nil
+	return fetchSliceFromCacheOrElseCall(
+		c, ctx, &height,
+		generateCacheKey("GetValidators", height),
+		func() ([]nodeapi.Validator, error) { return c.consensusApi.GetValidators(ctx, height) },
+	)
 }
 
 func (c *FileConsensusApiLite) GetCommittees(ctx context.Context, height int64, runtimeID coreCommon.Namespace) ([]nodeapi.Committee, error) {
-	if height == consensus.HeightLatest {
-		if c.consensusApi != nil {
-			return c.consensusApi.GetCommittees(ctx, height, runtimeID)
-		}
-		return nil, ErrUnstableRPCMethod
-	}
-	key := generateCacheKey("GetCommittees", height, runtimeID)
-	if c.consensusApi != nil {
-		if err := c.updateCache(key, func() (interface{}, error) { return c.consensusApi.GetCommittees(ctx, height, runtimeID) }); err != nil {
-			return nil, err
-		}
-	}
-	committees := []nodeapi.Committee{}
-	raw, err := c.db.Get(key)
-	if err != nil {
-		return nil, err
-	}
-	err = cbor.Unmarshal(raw, &committees)
-	if err != nil {
-		return nil, err
-	}
-	return committees, nil
+	return fetchSliceFromCacheOrElseCall(
+		c, ctx, &height,
+		generateCacheKey("GetCommittee", height, runtimeID),
+		func() ([]nodeapi.Committee, error) { return c.consensusApi.GetCommittees(ctx, height, runtimeID) },
+	)
 }
 
 func (c *FileConsensusApiLite) GetProposal(ctx context.Context, height int64, proposalID uint64) (*nodeapi.Proposal, error) {
-	if height == consensus.HeightLatest {
-		if c.consensusApi != nil {
-			return c.consensusApi.GetProposal(ctx, height, proposalID)
-		}
-		return nil, ErrUnstableRPCMethod
-	}
-	key := generateCacheKey("GetProposal", height, proposalID)
-	if c.consensusApi != nil {
-		if err := c.updateCache(key, func() (interface{}, error) { return c.consensusApi.GetProposal(ctx, height, proposalID) }); err != nil {
-			return nil, err
-		}
-	}
-	var proposal nodeapi.Proposal
-	raw, err := c.db.Get(key)
-	if err != nil {
-		return nil, err
-	}
-	err = cbor.Unmarshal(raw, &proposal)
-	if err != nil {
-		return nil, err
-	}
-	return &proposal, nil
+	return fetchFromCacheOrElseCall(
+		c, ctx, &height,
+		generateCacheKey("GetProposal", height, proposalID),
+		func() (*nodeapi.Proposal, error) { return c.consensusApi.GetProposal(ctx, height, proposalID) },
+	)
 }
