@@ -20,8 +20,8 @@ type RuntimeApiMethod func() (interface{}, error)
 
 var _ nodeapi.RuntimeApiLite = (*FileRuntimeApiLite)(nil)
 
-func NewFileRuntimeApiLite(runtime string, filename string, runtimeApi nodeapi.RuntimeApiLite) (*FileRuntimeApiLite, error) {
-	db, err := pogreb.Open(filename, &pogreb.Options{BackgroundSyncInterval: -1})
+func NewFileRuntimeApiLite(runtime string, cacheDir string, runtimeApi nodeapi.RuntimeApiLite) (*FileRuntimeApiLite, error) {
+	db, err := pogreb.Open(cacheDir, &pogreb.Options{BackgroundSyncInterval: -1})
 	if err != nil {
 		return nil, err
 	}
