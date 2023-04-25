@@ -8,8 +8,6 @@ import (
 	"strings"
 
 	"github.com/jackc/pgx/v5/pgtype"
-	sdkConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
-
 	"github.com/oasisprotocol/oasis-core/go/common/quantity"
 )
 
@@ -141,25 +139,6 @@ func (cn ChainName) String() string {
 	return string(cn)
 }
 
-// FromChainContext identifies a Network using its ChainContext.
-func FromChainContext(chainContext string) (Network, error) {
-	// TODO: Remove this hardcoded value once indexer config supports multiple nodes.
-	if chainContext == "53852332637bacb61b91b6411ab4095168ba02a50be4c3f82448438826f23898" {
-		return NetworkMainnet, nil // cobalt mainnet
-	}
-	var network Network
-	for name, nw := range sdkConfig.DefaultNetworks.All {
-		if nw.ChainContext == chainContext {
-			if err := network.Set(name); err != nil {
-				return NetworkUnknown, err
-			}
-			return network, nil
-		}
-	}
-
-	return NetworkUnknown, ErrNetworkUnknown
-}
-
 // Runtime is an identifier for a runtime on the Oasis Network.
 type Runtime string
 
@@ -173,21 +152,4 @@ const (
 // String returns the string representation of a runtime.
 func (r Runtime) String() string {
 	return string(r)
-}
-
-// ID returns the ID for a Runtime on the provided network.
-func (r Runtime) ID(n Network) (string, error) {
-	for nname, nw := range sdkConfig.DefaultNetworks.All {
-		if nname == n.String() {
-			for pname, pt := range nw.ParaTimes.All {
-				if pname == r.String() {
-					return pt.ID, nil
-				}
-			}
-
-			return "", ErrRuntimeUnknown
-		}
-	}
-
-	return "", ErrRuntimeUnknown
 }

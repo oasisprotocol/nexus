@@ -8,16 +8,18 @@ import (
 	"testing"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/oasisprotocol/oasis-indexer/log"
-	"github.com/oasisprotocol/oasis-indexer/storage"
-	"github.com/oasisprotocol/oasis-indexer/storage/postgres"
 	oasisConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/connection"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/oasisprotocol/oasis-indexer/common"
+	"github.com/oasisprotocol/oasis-indexer/log"
+	"github.com/oasisprotocol/oasis-indexer/storage"
+	"github.com/oasisprotocol/oasis-indexer/storage/postgres"
 )
 
 const (
-	MainnetChainContext = "b11b369e0da5bb230b220127f5e7b242d385ef8c6f54906243f30af63c815535"
+	ChainName = common.ChainNameMainnet
 )
 
 func newTargetClient(t *testing.T) (*postgres.Client, error) {
