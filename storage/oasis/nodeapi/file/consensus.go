@@ -35,24 +35,6 @@ func NewFileConsensusApiLite(filename string, consensusApi nodeapi.ConsensusApiL
 	}, nil
 }
 
-// ensureCacheKey ensures that the given key exists in the cache. If the key already
-// exists, it does nothing; otherwise, it fills it with the return value of `method`.
-func (c *FileConsensusApiLite) ensureCacheKey(key []byte, method NodeApiMethod) error {
-	exists, err := c.db.Has(key)
-	if err != nil {
-		return err
-	}
-	if exists {
-		return nil
-	}
-	val, err := method()
-	if err != nil {
-		return err
-	}
-
-	return c.db.Put(key, cbor.Marshal(val))
-}
-
 // fetchFromCacheOrElseCall fetches the value of `cacheKey` from the cache if it exists,
 // interpreted as a `Response`. If it does not exist, it calls `backingApiFunc` to get the
 // value, and caches it before returning it.
@@ -61,31 +43,32 @@ func (c *FileConsensusApiLite) ensureCacheKey(key []byte, method NodeApiMethod) 
 func fetchFromCacheOrElseCall[Response any](c *FileConsensusApiLite, ctx context.Context, height *int64, cacheKey []byte, backingApiFunc func() (*Response, error)) (*Response, error) {
 	// If the latest height was requested, the response is not cacheable, so we have to hit the backing API.
 	if height != nil && *height == consensus.HeightLatest {
-		if c.consensusApi != nil {
-			return backingApiFunc()
-		}
-		return nil, ErrUnstableRPCMethod
+		return backingApiFunc()
 	}
 
-	// Warm the cache if possible.
-	// XXX: Assumes that `backingApiFunc` uses `c.consensusApi`.
-	if c.consensusApi != nil {
-		if err := c.ensureCacheKey(cacheKey, func() (interface{}, error) { return backingApiFunc() }); err != nil {
+	// If the value is cached, return it.
+	isCached, err := c.db.Has(cacheKey)
+	if err != nil {
+		return nil, err
+	}
+	if isCached {
+		raw, err := c.db.Get(cacheKey)
+		if err != nil {
 			return nil, err
 		}
+		var result *Response
+		err = cbor.Unmarshal(raw, &result)
+		return result, err
 	}
 
-	// Fetch the response from the cache.
-	var result *Response
-	raw, err := c.db.Get(cacheKey)
+	// Otherwise, the value is not cached. Call the backing API to get it.
+	result, err := backingApiFunc()
 	if err != nil {
 		return nil, err
 	}
-	err = cbor.Unmarshal(raw, &result)
-	if err != nil {
-		return nil, err
-	}
-	return result, nil
+
+	// Store value in cache for later use.
+	return result, c.db.Put(cacheKey, cbor.Marshal(result))
 }
 
 // Like fetchFromCacheOrElseCall, but for slice-typed return values.
