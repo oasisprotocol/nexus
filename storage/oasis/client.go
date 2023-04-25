@@ -66,9 +66,9 @@ func NewRuntimeClient(ctx context.Context, sourceConfig *config.SourceConfig, ru
 	if sourceConfig.Cache != nil {
 		cachePath := filepath.Join(sourceConfig.Cache.CacheDir, runtime.String())
 		if sourceConfig.Cache.QueryOnCacheMiss {
-			nodeApi, err = file.NewFileRuntimeApiLite(runtime.String(), cachePath, nodeApi)
+			nodeApi, err = file.NewFileRuntimeApiLite(runtime, cachePath, nodeApi)
 		} else {
-			nodeApi, err = file.NewFileRuntimeApiLite(runtime.String(), cachePath, nil)
+			nodeApi, err = file.NewFileRuntimeApiLite(runtime, cachePath, nil)
 		}
 		if err != nil {
 			return nil, fmt.Errorf("error instantiating cache-based runtimeApi: %w", err)

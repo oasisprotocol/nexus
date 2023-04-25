@@ -6,11 +6,12 @@ import (
 	"github.com/akrylysov/pogreb"
 	roothash "github.com/oasisprotocol/oasis-core/go/roothash/api"
 
+	"github.com/oasisprotocol/oasis-indexer/common"
 	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
 )
 
 type FileRuntimeApiLite struct {
-	runtime    string
+	runtime    common.Runtime
 	db         KVStore
 	runtimeApi nodeapi.RuntimeApiLite
 }
@@ -19,7 +20,7 @@ type RuntimeApiMethod func() (interface{}, error)
 
 var _ nodeapi.RuntimeApiLite = (*FileRuntimeApiLite)(nil)
 
-func NewFileRuntimeApiLite(runtime string, cacheDir string, runtimeApi nodeapi.RuntimeApiLite) (*FileRuntimeApiLite, error) {
+func NewFileRuntimeApiLite(runtime common.Runtime, cacheDir string, runtimeApi nodeapi.RuntimeApiLite) (*FileRuntimeApiLite, error) {
 	db, err := pogreb.Open(cacheDir, &pogreb.Options{BackgroundSyncInterval: -1})
 	if err != nil {
 		return nil, err

@@ -37,7 +37,7 @@ const (
 // StorageClient is a wrapper around a storage.TargetStorage
 // with knowledge of network semantics.
 type StorageClient struct {
-	chainName string
+	chainName common.ChainName
 	db        storage.TargetStorage
 
 	blockCache *ristretto.Cache
@@ -47,13 +47,13 @@ type StorageClient struct {
 }
 
 // runtimeNameToID returns the runtime ID for the given network and runtime name.
-func runtimeNameToID(networkName string, name string) (string, error) {
-	network, exists := oasisConfig.DefaultNetworks.All[networkName]
+func runtimeNameToID(chainName common.ChainName, name common.Runtime) (string, error) {
+	network, exists := oasisConfig.DefaultNetworks.All[chainName.String()]
 	if !exists {
-		return "", fmt.Errorf("unknown network: %s", networkName)
+		return "", fmt.Errorf("unknown network: %s", chainName)
 	}
 
-	paratime, exists := network.ParaTimes.All[name]
+	paratime, exists := network.ParaTimes.All[name.String()]
 	if !exists {
 		return "", fmt.Errorf("unknown runtime: %s", name)
 	}
@@ -75,9 +75,9 @@ func toString(b *BigInt) *string {
 	return &s
 }
 
-func runtimeFromCtx(ctx context.Context) string {
+func runtimeFromCtx(ctx context.Context) common.Runtime {
 	// Extract the runtime name. It's populated by a middleware based on the URL.
-	runtime, ok := ctx.Value(common.RuntimeContextKey).(string)
+	runtime, ok := ctx.Value(common.RuntimeContextKey).(common.Runtime)
 	if !ok {
 		// We're being called from a non-runtime-specific endpoint.
 		// This shouldn't happen. Return a dummy value, let the caller deal with it.
@@ -87,7 +87,7 @@ func runtimeFromCtx(ctx context.Context) string {
 }
 
 // NewStorageClient creates a new storage client.
-func NewStorageClient(chainName string, db storage.TargetStorage, l *log.Logger) (*StorageClient, error) {
+func NewStorageClient(chainName common.ChainName, db storage.TargetStorage, l *log.Logger) (*StorageClient, error) {
 	blockCache, err := ristretto.NewCache(&ristretto.Config{
 		NumCounters:        1024 * 10,
 		MaxCost:            1024,
