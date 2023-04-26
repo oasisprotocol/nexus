@@ -29,7 +29,7 @@ func generateCacheKey(methodName string, params ...interface{}) []byte {
 	return buf.Bytes()
 }
 
-type KVStore struct{ pogreb.DB }
+type KVStore struct{ *pogreb.DB }
 
 // getFromCacheOrCall fetches the value of `cacheKey` from the cache if it exists,
 // interpreted as a `Value`. If it does not exist, it calls `valueFunc` to get the
@@ -47,13 +47,13 @@ func GetFromCacheOrCall[Value any](cache KVStore, volatile bool, cacheKey []byte
 		return nil, err
 	}
 	if isCached {
-		raw, err := cache.Get(cacheKey)
-		if err != nil {
-			return nil, err
+		raw, err2 := cache.Get(cacheKey)
+		if err2 != nil {
+			return nil, err2
 		}
 		var result *Value
-		err = cbor.Unmarshal(raw, &result)
-		return result, err
+		err2 = cbor.Unmarshal(raw, &result)
+		return result, err2
 	}
 
 	// Otherwise, the value is not cached. Call the backing API to get it.

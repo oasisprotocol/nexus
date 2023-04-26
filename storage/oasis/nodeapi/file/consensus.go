@@ -29,7 +29,7 @@ func NewFileConsensusApiLite(filename string, consensusApi nodeapi.ConsensusApiL
 		return nil, err
 	}
 	return &FileConsensusApiLite{
-		db:           KVStore{*db},
+		db:           KVStore{db},
 		consensusApi: consensusApi,
 	}, nil
 }

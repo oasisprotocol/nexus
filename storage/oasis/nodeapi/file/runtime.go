@@ -26,7 +26,7 @@ func NewFileRuntimeApiLite(runtime string, cacheDir string, runtimeApi nodeapi.R
 	}
 	return &FileRuntimeApiLite{
 		runtime:    runtime,
-		db:         KVStore{*db},
+		db:         KVStore{db},
 		runtimeApi: runtimeApi,
 	}, nil
 }
