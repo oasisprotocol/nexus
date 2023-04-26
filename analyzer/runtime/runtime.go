@@ -69,8 +69,8 @@ func NewRuntimeAnalyzer(
 		runtime: runtime,
 		cfg:     ac,
 		target:  target,
-		logger:  logger.With("analyzer", runtime.String()),
-		metrics: metrics.NewDefaultDatabaseMetrics(runtime.String()),
+		logger:  logger.With("analyzer", runtime),
+		metrics: metrics.NewDefaultDatabaseMetrics(string(runtime)),
 	}, nil
 }
 
@@ -145,7 +145,7 @@ func (m *Main) Start() {
 
 // Name returns the name of the Main.
 func (m *Main) Name() string {
-	return m.runtime.String()
+	return string(m.runtime)
 }
 
 // latestRound returns the latest round processed by the consensus analyzer.
@@ -156,7 +156,7 @@ func (m *Main) latestRound(ctx context.Context) (uint64, error) {
 		queries.LatestBlock,
 		// ^analyzers should only analyze for a single chain ID, and we anchor this
 		// at the starting round.
-		m.runtime.String(),
+		m.runtime,
 	).Scan(&latest); err != nil {
 		return 0, err
 	}
@@ -216,10 +216,10 @@ func (m *Main) processRound(ctx context.Context, round uint64) error {
 	batch.Queue(
 		queries.IndexingProgress,
 		round,
-		m.runtime.String(),
+		m.runtime,
 	)
 
-	opName := fmt.Sprintf("process_block_%s", m.runtime.String())
+	opName := fmt.Sprintf("process_block_%s", m.runtime)
 	timer := m.metrics.DatabaseTimer(m.target.Name(), opName)
 	defer timer.ObserveDuration()
 

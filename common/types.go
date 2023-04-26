@@ -135,10 +135,6 @@ const (
 	ChainNameUnknown ChainName = "unknown"
 )
 
-func (cn ChainName) String() string {
-	return string(cn)
-}
-
 // Runtime is an identifier for a runtime on the Oasis Network.
 type Runtime string
 
@@ -148,8 +144,3 @@ const (
 	RuntimeSapphire Runtime = "sapphire"
 	RuntimeUnknown  Runtime = "unknown"
 )
-
-// String returns the string representation of a runtime.
-func (r Runtime) String() string {
-	return string(r)
-}

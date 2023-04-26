@@ -29,7 +29,7 @@ var (
 		ChainName: ChainName,
 		Nodes: map[string]*config.NodeConfig{
 			CurrentArchiveName: {
-				RPC: sdkConfig.DefaultNetworks.All[ChainName.String()].RPC,
+				RPC: sdkConfig.DefaultNetworks.All[string(ChainName)].RPC,
 			},
 		},
 		FastStartup: false,

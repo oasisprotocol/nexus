@@ -54,7 +54,7 @@ func NewConsensusClient(ctx context.Context, sourceConfig *config.SourceConfig) 
 
 // NewRuntimeClient creates a new RuntimeClient.
 func NewRuntimeClient(ctx context.Context, sourceConfig *config.SourceConfig, runtime common.Runtime) (*RuntimeClient, error) {
-	sdkPT := sourceConfig.SDKNetwork().ParaTimes.All[runtime.String()]
+	sdkPT := sourceConfig.SDKNetwork().ParaTimes.All[string(runtime)]
 	var nodeApi nodeapi.RuntimeApiLite
 	nodeApi, err := history.NewHistoryRuntimeApiLite(ctx, sourceConfig.History(), sdkPT, sourceConfig.Nodes, sourceConfig.FastStartup, runtime)
 	if err != nil {
@@ -64,7 +64,7 @@ func NewRuntimeClient(ctx context.Context, sourceConfig *config.SourceConfig, ru
 	// todo: short circuit if using purely a file-based backend and avoid connecting
 	// to the node at all. this requires storing runtime info offline.
 	if sourceConfig.Cache != nil {
-		cachePath := filepath.Join(sourceConfig.Cache.CacheDir, runtime.String())
+		cachePath := filepath.Join(sourceConfig.Cache.CacheDir, string(runtime))
 		if sourceConfig.Cache.QueryOnCacheMiss {
 			nodeApi, err = file.NewFileRuntimeApiLite(runtime, cachePath, nodeApi)
 		} else {

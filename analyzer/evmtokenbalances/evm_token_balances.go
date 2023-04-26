@@ -111,7 +111,7 @@ func NewMain(
 		runtime: runtime,
 		cfg:     ac,
 		target:  target,
-		logger:  logger.With("analyzer", EvmTokenBalancesAnalyzerPrefix+runtime.String()),
+		logger:  logger.With("analyzer", EvmTokenBalancesAnalyzerPrefix+runtime),
 	}, nil
 }
 
@@ -295,5 +295,5 @@ func (m Main) Start() {
 }
 
 func (m Main) Name() string {
-	return EvmTokenBalancesAnalyzerPrefix + m.runtime.String()
+	return EvmTokenBalancesAnalyzerPrefix + string(m.runtime)
 }

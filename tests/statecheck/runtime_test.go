@@ -34,8 +34,8 @@ func testRuntimeAccounts(t *testing.T, runtime common.Runtime) {
 
 	ctx := context.Background()
 
-	sdkNet := sdkConfig.DefaultNetworks.All[ChainName.String()]
-	sdkPT := sdkNet.ParaTimes.All[runtime.String()]
+	sdkNet := sdkConfig.DefaultNetworks.All[string(ChainName)]
+	sdkPT := sdkNet.ParaTimes.All[string(runtime)]
 	t.Log("Runtime ID determined", "runtime", runtime, "runtime_id", sdkPT.ID)
 
 	conn, err := newSdkConnection(ctx)
@@ -46,7 +46,7 @@ func testRuntimeAccounts(t *testing.T, runtime common.Runtime) {
 	assert.Nil(t, err)
 
 	t.Log("Creating snapshot for runtime tables...")
-	height, err := snapshotBackends(postgresClient, runtime.String(), RuntimeTables)
+	height, err := snapshotBackends(postgresClient, string(runtime), RuntimeTables)
 	assert.Nil(t, err)
 
 	t.Logf("Fetching accounts information at height %d...", height)

@@ -68,7 +68,7 @@ func NewMain(
 		runtime: runtime,
 		cfg:     ac,
 		target:  target,
-		logger:  logger.With("analyzer", EvmTokensAnalyzerPrefix+runtime.String()),
+		logger:  logger.With("analyzer", EvmTokensAnalyzerPrefix+runtime),
 	}, nil
 }
 
@@ -237,5 +237,5 @@ func (m Main) Start() {
 }
 
 func (m Main) Name() string {
-	return EvmTokensAnalyzerPrefix + m.runtime.String()
+	return EvmTokensAnalyzerPrefix + string(m.runtime)
 }

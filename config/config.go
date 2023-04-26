@@ -148,7 +148,7 @@ func (sc *SourceConfig) History() *History {
 
 func (sc *SourceConfig) SDKNetwork() *sdkConfig.Network {
 	if sc.ChainName != "" {
-		return sdkConfig.DefaultNetworks.All[sc.ChainName.String()]
+		return sdkConfig.DefaultNetworks.All[string(sc.ChainName)]
 	}
 	return sc.CustomChain.SDKNetwork
 }

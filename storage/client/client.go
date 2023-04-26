@@ -48,12 +48,12 @@ type StorageClient struct {
 
 // runtimeNameToID returns the runtime ID for the given network and runtime name.
 func runtimeNameToID(chainName common.ChainName, name common.Runtime) (string, error) {
-	network, exists := oasisConfig.DefaultNetworks.All[chainName.String()]
+	network, exists := oasisConfig.DefaultNetworks.All[string(chainName)]
 	if !exists {
 		return "", fmt.Errorf("unknown network: %s", chainName)
 	}
 
-	paratime, exists := network.ParaTimes.All[name.String()]
+	paratime, exists := network.ParaTimes.All[string(name)]
 	if !exists {
 		return "", fmt.Errorf("unknown runtime: %s", name)
 	}
