@@ -134,6 +134,7 @@ require (
 )
 
 require (
+	github.com/akrylysov/pogreb v0.10.1
 	github.com/deepmap/oapi-codegen v1.12.4
 	github.com/oasisprotocol/metadata-registry-tools v0.0.0-20220406100644-7e9a2b991920
 	github.com/rs/cors v1.8.3

@@ -73,14 +73,14 @@ trap 'trap - SIGTERM && kill -- -$$' SIGINT SIGTERM EXIT
 
 # Start the API server.
 make oasis-indexer
-./oasis-indexer --config="${SCRIPT_DIR}/e2e_config.yaml" serve &
+./oasis-indexer --config="${SCRIPT_DIR}/e2e_config.yml" serve &
 while ! curl --silent localhost:8008/v1/ >/dev/null; do
   echo "Waiting for API server to start..."
   sleep 1
 done
 
 # Run the test cases.
-seen=()
+seen=("placeholder") # avoids 'seen[*]: unbound variable' error on zsh
 for (( i=0; i<nCases; i++ )); do
   name="$(echo "${testCases[$i]}" | awk '{print $1}')"
   url="$(echo "${testCases[$i]}" | awk '{print $2}')"
@@ -103,7 +103,7 @@ for (( i=0; i<nCases; i++ )); do
     >/tmp/pretty 2>/dev/null \
   && cp /tmp/pretty "$outDir/$name.body" || true
   # Sanitize the current timestamp out of the response header so that diffs are stable
-  sed -E -i 's/^(Date|Content-Length|Last-Modified): .*/\1: UNINTERESTING/g' "$outDir/$name.headers"
+  sed -E -i='' 's/^(Date|Content-Length|Last-Modified): .*/\1: UNINTERESTING/g' "$outDir/$name.headers"
 done
 
 diff --recursive "$SCRIPT_DIR/expected" "$outDir" >/dev/null || {

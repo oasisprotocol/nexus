@@ -99,31 +99,31 @@ func (rc *UniversalRuntimeApiLite) GetBlockHeader(ctx context.Context, round uin
 	return &header, nil
 }
 
-func (rc *UniversalRuntimeApiLite) GetTransactionsWithResults(ctx context.Context, round uint64) ([]*RuntimeTransactionWithResults, error) {
+func (rc *UniversalRuntimeApiLite) GetTransactionsWithResults(ctx context.Context, round uint64) ([]RuntimeTransactionWithResults, error) {
 	rsp, err := rc.sdkClient.GetTransactionsWithResults(ctx, round)
 	if err != nil {
 		return nil, err
 	}
 
 	// Convert to indexer-internal type.
-	txrs := make([]*RuntimeTransactionWithResults, len(rsp))
+	txrs := make([]RuntimeTransactionWithResults, len(rsp))
 	for i, txr := range rsp {
-		txrs[i] = (*RuntimeTransactionWithResults)(txr)
+		txrs[i] = (RuntimeTransactionWithResults)(*txr)
 	}
 
 	return txrs, nil
 }
 
-func (rc *UniversalRuntimeApiLite) GetEventsRaw(ctx context.Context, round uint64) ([]*RuntimeEvent, error) {
+func (rc *UniversalRuntimeApiLite) GetEventsRaw(ctx context.Context, round uint64) ([]RuntimeEvent, error) {
 	rsp, err := rc.sdkClient.GetEventsRaw(ctx, round)
 	if err != nil {
 		return nil, err
 	}
 
 	// Convert to indexer-internal type.
-	evs := make([]*RuntimeEvent, len(rsp))
+	evs := make([]RuntimeEvent, len(rsp))
 	for i, ev := range rsp {
-		evs[i] = (*RuntimeEvent)(ev)
+		evs[i] = (RuntimeEvent)(*ev)
 	}
 
 	return evs, nil

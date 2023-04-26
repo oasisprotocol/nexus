@@ -2,6 +2,7 @@ package nodeapi
 
 import (
 	"context"
+	"encoding/json"
 	"time"
 
 	beacon "github.com/oasisprotocol/oasis-core/go/beacon/api"
@@ -82,9 +83,14 @@ type Event struct {
 	Height int64
 	TxHash hash.Hash
 
-	// The fine-grained Event struct directly from oasis-core; corresponds to
-	// at most one of the fields below (StakingTransfer, StakingBurn, etc.).
-	Body interface{}
+	// The body of the Event struct as it was received from oasis-core. For most
+	// event types, a summary of the event (containing only indexer-relevant fields)
+	// will be present in one of the fields below (StakingTransfer, StakingBurn, etc.).
+	// For event types that the indexer doesn't process beyond logging, only this
+	// field will be populated.
+	// We convert to JSON and effectively erase the type here in order to decouple
+	// oasis-core types (which vary between versions) from the indexer.
+	RawBodyJSON json.RawMessage
 
 	// Called "Kind" in oasis-core but "Type" in indexer APIs and DBs.
 	Type apiTypes.ConsensusEventType
@@ -192,10 +198,10 @@ type Proposal governance.Proposal
 
 // Like ConsensusApiLite, but for the runtime API.
 type RuntimeApiLite interface {
-	GetEventsRaw(ctx context.Context, round uint64) ([]*RuntimeEvent, error)
+	GetEventsRaw(ctx context.Context, round uint64) ([]RuntimeEvent, error)
 	EVMSimulateCall(ctx context.Context, round uint64, gasPrice []byte, gasLimit uint64, caller []byte, address []byte, value []byte, data []byte) ([]byte, error)
 	GetBlockHeader(ctx context.Context, round uint64) (*RuntimeBlockHeader, error)
-	GetTransactionsWithResults(ctx context.Context, round uint64) ([]*RuntimeTransactionWithResults, error)
+	GetTransactionsWithResults(ctx context.Context, round uint64) ([]RuntimeTransactionWithResults, error)
 }
 
 type (

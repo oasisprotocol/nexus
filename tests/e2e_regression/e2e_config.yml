@@ -1,32 +1,33 @@
-# Indexer configuration for non-synthetic e2e regression tests implemented in this directory.
-
 analysis:
   source:
+    cache:
+      cache_dir: tests/e2e_regression/data
+      query_on_cache_miss: true
     chain_name: mainnet
     nodes:
       damask:
         rpc: unix:/tmp/node.sock
     fast_startup: true
   analyzers:
-    consensus:
-      from: 8_048_956  # Damask genesis
-      to: 8_049_056  # 100 blocks; fast enough for early testing
-    emerald:
-      from: 1_003_298  # round at Damask genesis
-      to: 1_003_398  # 100 blocks; fast enough for early testing
-    evm_tokens: {}
-    aggregate_stats:
-      tx_volume_interval: 5m
     metadata_registry:
       interval: 5m
+    aggregate_stats:
+      tx_volume_interval: 5m
+    consensus:
+      from: 8_048_956  # Damask genesis
+      to: 8_049_056 # 100 blocks; fast enough for early testing
+    emerald:
+      from: 1_003_298  # round at Damask genesis
+      to: 1_003_398 
+    # sapphire:
+    #   from: 0  # first round in Damask
   storage:
-    endpoint: postgresql://rwuser:password@localhost:5432/indexer?sslmode=disable
     backend: postgres
+    endpoint: postgresql://rwuser:password@localhost:5432/indexer?sslmode=disable
     DANGER__WIPE_STORAGE_ON_STARTUP: true
     migrations: file://storage/migrations
 
 server:
-  chain_id: oasis-3
   chain_name: mainnet
   endpoint: localhost:8008
   storage:

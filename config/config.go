@@ -117,6 +117,9 @@ type AnalyzersList struct {
 
 // SourceConfig has some controls about what chain we're analyzing and how to connect.
 type SourceConfig struct {
+	// Cache holds the configuration for a file-based caching backend.
+	Cache *CacheConfig `koanf:"cache"`
+
 	// ChainName is the name of the chain (e.g. mainnet/testnet). Set
 	// this to use one of the default chains.
 	ChainName string `koanf:"chain_name"`
@@ -166,6 +169,22 @@ func SingleNetworkLookup(rpc string) map[string]*NodeConfig {
 			RPC: rpc,
 		},
 	}
+}
+
+type CacheConfig struct {
+	// CacheDir is the directory where the cache data is stored
+	CacheDir string `koanf:"cache_dir"`
+
+	// If set, the indexer will query the node upon any cache
+	// misses.
+	QueryOnCacheMiss bool `koanf:"query_on_cache_miss"`
+}
+
+func (cfg *CacheConfig) Validate() error {
+	if cfg.CacheDir == "" {
+		return fmt.Errorf("invalid cache filepath")
+	}
+	return nil
 }
 
 type CustomChainConfig struct {

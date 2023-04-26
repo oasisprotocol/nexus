@@ -1,6 +1,7 @@
 package common
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math/big"
@@ -88,6 +89,16 @@ func NumericToBigInt(n pgtype.Numeric) (BigInt, error) {
 
 func Ptr[T any](v T) *T {
 	return &v
+}
+
+// Returns `v` as a JSON string. If `v` cannot be marshaled,
+// returns the string "null" instead.
+func TryAsJSON(v interface{}) json.RawMessage {
+	encoded, err := json.Marshal(v)
+	if err != nil {
+		return json.RawMessage("null")
+	}
+	return json.RawMessage(encoded)
 }
 
 // Key used to set values in a web request context. API uses this to set

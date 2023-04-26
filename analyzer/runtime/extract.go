@@ -248,7 +248,7 @@ func registerTokenDecrease(tokenChanges map[TokenChangeKey]*big.Int, contractAdd
 	change.Sub(change, amount)
 }
 
-func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []*nodeapi.RuntimeTransactionWithResults, rawEvents []*nodeapi.RuntimeEvent, logger *log.Logger) (*BlockData, error) { //nolint:gocyclo
+func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.RuntimeTransactionWithResults, rawEvents []nodeapi.RuntimeEvent, logger *log.Logger) (*BlockData, error) { //nolint:gocyclo
 	blockData := BlockData{
 		Header:              blockHeader,
 		NumTransactions:     len(txrs),
@@ -260,7 +260,7 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []*nodeapi.Runtim
 	}
 
 	// Extract info from non-tx events.
-	rawNonTxEvents := []*nodeapi.RuntimeEvent{}
+	rawNonTxEvents := []nodeapi.RuntimeEvent{}
 	for _, e := range rawEvents {
 		if e.TxHash.String() == util.ZeroTxHash {
 			rawNonTxEvents = append(rawNonTxEvents, e)
@@ -394,9 +394,9 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []*nodeapi.Runtim
 			}
 			blockTransactionData.Amount = common.Ptr(common.BigIntFromQuantity(amount))
 		}
-		txEvents := make([]*nodeapi.RuntimeEvent, len(txr.Events))
+		txEvents := make([]nodeapi.RuntimeEvent, len(txr.Events))
 		for i, e := range txr.Events {
-			txEvents[i] = (*nodeapi.RuntimeEvent)(e)
+			txEvents[i] = (nodeapi.RuntimeEvent)(*e)
 		}
 		extractedTxEvents, err := extractEvents(&blockData, blockTransactionData.RelatedAccountAddresses, txEvents)
 		if err != nil {
@@ -452,7 +452,7 @@ func sumGasUsed(events []*EventData) (sum uint64, foundGasUsedEvent bool) {
 	return
 }
 
-func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Address]bool, eventsRaw []*nodeapi.RuntimeEvent) ([]*EventData, error) {
+func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Address]bool, eventsRaw []nodeapi.RuntimeEvent) ([]*EventData, error) {
 	extractedEvents := []*EventData{}
 	if err := VisitSdkEvents(eventsRaw, &SdkEventHandler{
 		Core: func(event *core.Event) error {
