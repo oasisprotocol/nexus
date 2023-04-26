@@ -3,10 +3,10 @@ package file
 import (
 	"context"
 
-	"github.com/akrylysov/pogreb"
 	roothash "github.com/oasisprotocol/oasis-core/go/roothash/api"
 
 	"github.com/oasisprotocol/oasis-indexer/common"
+	"github.com/oasisprotocol/oasis-indexer/log"
 	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
 )
 
@@ -21,13 +21,16 @@ type RuntimeApiMethod func() (interface{}, error)
 var _ nodeapi.RuntimeApiLite = (*FileRuntimeApiLite)(nil)
 
 func NewFileRuntimeApiLite(runtime common.Runtime, cacheDir string, runtimeApi nodeapi.RuntimeApiLite) (*FileRuntimeApiLite, error) {
-	db, err := pogreb.Open(cacheDir, &pogreb.Options{BackgroundSyncInterval: -1})
+	db, err := OpenKVStore(
+		log.NewDefaultLogger("cached-node-api").With("runtime", runtime),
+		cacheDir,
+	)
 	if err != nil {
 		return nil, err
 	}
 	return &FileRuntimeApiLite{
 		runtime:    runtime,
-		db:         KVStore{db},
+		db:         *db,
 		runtimeApi: runtimeApi,
 	}, nil
 }

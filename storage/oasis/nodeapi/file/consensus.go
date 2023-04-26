@@ -3,12 +3,12 @@ package file
 import (
 	"context"
 
-	"github.com/akrylysov/pogreb"
 	beacon "github.com/oasisprotocol/oasis-core/go/beacon/api"
 	coreCommon "github.com/oasisprotocol/oasis-core/go/common"
 	consensus "github.com/oasisprotocol/oasis-core/go/consensus/api"
 	genesis "github.com/oasisprotocol/oasis-core/go/genesis/api"
 
+	"github.com/oasisprotocol/oasis-indexer/log"
 	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
 )
 
@@ -24,12 +24,15 @@ type FileConsensusApiLite struct {
 var _ nodeapi.ConsensusApiLite = (*FileConsensusApiLite)(nil)
 
 func NewFileConsensusApiLite(cacheDir string, consensusApi nodeapi.ConsensusApiLite) (*FileConsensusApiLite, error) {
-	db, err := pogreb.Open(cacheDir, &pogreb.Options{BackgroundSyncInterval: -1})
+	db, err := OpenKVStore(
+		log.NewDefaultLogger("cached-node-api").With("runtime", "consensus"),
+		cacheDir,
+	)
 	if err != nil {
 		return nil, err
 	}
 	return &FileConsensusApiLite{
-		db:           KVStore{db},
+		db:           *db,
 		consensusApi: consensusApi,
 	}, nil
 }

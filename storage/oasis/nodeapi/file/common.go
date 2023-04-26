@@ -2,6 +2,7 @@ package file
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/akrylysov/pogreb"
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
@@ -16,11 +17,27 @@ func generateCacheKey(methodName string, params ...interface{}) []byte {
 	return cbor.Marshal([]interface{}{methodName, params})
 }
 
-type KVStore struct{ *pogreb.DB }
+type KVStore struct {
+	*pogreb.DB
+
+	path   string
+	logger *log.Logger
+}
 
 func (s KVStore) Close() error {
-	log.NewDefaultLogger("kvstore").Info("closing KVStore")
+	s.logger.Info("closing KVStore", "path", s.path)
 	return s.DB.Close()
+}
+
+func OpenKVStore(logger *log.Logger, path string) (*KVStore, error) {
+	logger.Info("(re)opening KVStore", "path", path)
+	db, err := pogreb.Open(path, &pogreb.Options{BackgroundSyncInterval: -1})
+	if err != nil {
+		return nil, err
+	}
+	logger.Info(fmt.Sprintf("KVStore has %d entries", db.Count()))
+
+	return &KVStore{DB: db, logger: logger, path: path}, nil
 }
 
 // getFromCacheOrCall fetches the value of `cacheKey` from the cache if it exists,
