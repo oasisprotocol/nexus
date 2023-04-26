@@ -5,7 +5,7 @@ package oasis
 import (
 	"context"
 	"fmt"
-	"os"
+	"path/filepath"
 
 	"github.com/oasisprotocol/oasis-indexer/common"
 	"github.com/oasisprotocol/oasis-indexer/config"
@@ -22,10 +22,7 @@ const (
 func NewConsensusClient(ctx context.Context, sourceConfig *config.SourceConfig) (*ConsensusClient, error) {
 	// If we are using purely file-backed indexer, do not connect to the node.
 	if sourceConfig.Cache != nil && !sourceConfig.Cache.QueryOnCacheMiss {
-		cachePath := sourceConfig.Cache.CacheDir + "/consensus"
-		if err := os.MkdirAll(cachePath, os.ModeDir); err != nil {
-			return nil, fmt.Errorf("error creating cache dir for consensusApi: %w", err)
-		}
+		cachePath := filepath.Join(sourceConfig.Cache.CacheDir, "consensus")
 		nodeApi, err := file.NewFileConsensusApiLite(cachePath, nil)
 		if err != nil {
 			return nil, fmt.Errorf("error instantiating cache-based consensusApi: %w", err)
@@ -43,10 +40,7 @@ func NewConsensusClient(ctx context.Context, sourceConfig *config.SourceConfig) 
 		return nil, fmt.Errorf("instantiating history consensus API lite: %w", err)
 	}
 	if sourceConfig.Cache != nil {
-		cachePath := sourceConfig.Cache.CacheDir + "/consensus"
-		if err := os.MkdirAll(cachePath, os.ModeDir); err != nil {
-			return nil, fmt.Errorf("error creating cache dir for consensusApi: %w", err)
-		}
+		cachePath := filepath.Join(sourceConfig.Cache.CacheDir, "consensus")
 		nodeApi, err = file.NewFileConsensusApiLite(cachePath, nodeApi)
 		if err != nil {
 			return nil, fmt.Errorf("error instantiating cache-based consensusApi: %w", err)
@@ -70,10 +64,7 @@ func NewRuntimeClient(ctx context.Context, sourceConfig *config.SourceConfig, ru
 	// todo: short circuit if using purely a file-based backend and avoid connecting
 	// to the node at all. this requires storing runtime info offline.
 	if sourceConfig.Cache != nil {
-		cachePath := sourceConfig.Cache.CacheDir + runtime.String()
-		if err := os.MkdirAll(cachePath, os.ModeDir); err != nil {
-			return nil, fmt.Errorf("error creating cache dir for runtimeApi: %w", err)
-		}
+		cachePath := filepath.Join(sourceConfig.Cache.CacheDir, runtime.String())
 		if sourceConfig.Cache.QueryOnCacheMiss {
 			nodeApi, err = file.NewFileRuntimeApiLite(runtime.String(), cachePath, nodeApi)
 		} else {
