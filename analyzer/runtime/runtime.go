@@ -3,6 +3,8 @@ package runtime
 import (
 	"context"
 	"fmt"
+	"os"
+	"runtime/pprof"
 	"strings"
 	"time"
 
@@ -144,6 +146,13 @@ func (m *Main) Start() {
 		return
 	}
 
+	cpuFile, err := os.Create("cpu.prof")
+	if err != nil {
+		panic(err)
+	}
+	if err = pprof.StartCPUProfile(cpuFile); err != nil {
+		panic(err)
+	}
 	for m.cfg.Range.To == 0 || round <= m.cfg.Range.To {
 		iterationTimer := prometheus.NewTimer(MetricIterationTime)
 		backoff.Wait()
@@ -169,6 +178,10 @@ func (m *Main) Start() {
 		backoff.Success()
 		round++
 		iterationTimer.ObserveDuration()
+	}
+	pprof.StopCPUProfile()
+	if err = cpuFile.Close(); err != nil {
+		panic(err)
 	}
 	m.logger.Info(
 		fmt.Sprintf("finished processing all blocks in the configured range [%d, %d]",

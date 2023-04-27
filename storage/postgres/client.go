@@ -104,7 +104,9 @@ func (c *Client) SendBatchWithOptions(ctx context.Context, batch *storage.QueryB
 	// pgx will report the _first_ query as failing.
 	//
 	// TODO: Remove the first branch if we verify that the performance gain is negligible.
-	if os.Getenv("PGX_FAST_BATCH") == "1" { //nolint:nestif
+	if true {
+		// skip db writes
+	} else if os.Getenv("PGX_FAST_BATCH") == "1" { //nolint:nestif
 		pgxBatch := batch.AsPgxBatch()
 		var batchResults pgx.BatchResults
 		var emptyTxOptions pgx.TxOptions
