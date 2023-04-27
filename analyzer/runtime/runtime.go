@@ -10,6 +10,7 @@ import (
 	sdkConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/rewards"
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
+	"github.com/prometheus/client_golang/prometheus"
 
 	"github.com/oasisprotocol/oasis-indexer/analyzer"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/queries"
@@ -37,6 +38,34 @@ type Main struct {
 }
 
 var _ analyzer.Analyzer = (*Main)(nil)
+
+var (
+	MetricIterationTime     prometheus.Summary
+	MetricSourceStorageTime prometheus.Summary
+	MetricProcessTime       prometheus.Summary
+	MetricTargetStorageTime prometheus.Summary
+)
+
+func registerNewBasicSummary(name string) prometheus.Summary {
+	summary := prometheus.NewSummary(prometheus.SummaryOpts{
+		Name: name,
+		Objectives: map[float64]float64{
+			0.5:  0.05,
+			0.9:  0.01,
+			0.99: 0.001,
+		},
+		MaxAge: 0,
+	})
+	prometheus.DefaultRegisterer.MustRegister(summary)
+	return summary
+}
+
+func init() {
+	MetricIterationTime = registerNewBasicSummary("x_runtime_iteration_time")
+	MetricSourceStorageTime = registerNewBasicSummary("x_runtime_source_storage_time")
+	MetricProcessTime = registerNewBasicSummary("x_runtime_process_time")
+	MetricTargetStorageTime = registerNewBasicSummary("x_runtime_target_storage_time")
+}
 
 // NewRuntimeAnalyzer returns a new main analyzer for a runtime.
 func NewRuntimeAnalyzer(
@@ -116,6 +145,7 @@ func (m *Main) Start() {
 	}
 
 	for m.cfg.Range.To == 0 || round <= m.cfg.Range.To {
+		iterationTimer := prometheus.NewTimer(MetricIterationTime)
 		backoff.Wait()
 		m.logger.Info("attempting block", "round", round)
 
@@ -138,10 +168,14 @@ func (m *Main) Start() {
 		m.logger.Info("processed block", "round", round)
 		backoff.Success()
 		round++
+		iterationTimer.ObserveDuration()
 	}
 	m.logger.Info(
 		fmt.Sprintf("finished processing all blocks in the configured range [%d, %d]",
 			m.cfg.Range.From, m.cfg.Range.To))
+	if err := prometheus.WriteToTextfile("metrics.txt", prometheus.DefaultGatherer); err != nil {
+		panic(err)
+	}
 }
 
 // Name returns the name of the Main.
@@ -208,7 +242,9 @@ func (m *Main) processRound(ctx context.Context, round uint64) error {
 	defer cancel()
 
 	// Fetch all data.
+	sourceStorageTimer := prometheus.NewTimer(MetricSourceStorageTime)
 	data, err := m.cfg.Source.AllData(ctxWithTimeout, round)
+	sourceStorageTimer.ObserveDuration()
 	if err != nil {
 		if strings.Contains(err.Error(), "roothash: block not found") {
 			return analyzer.ErrOutOfRange
@@ -217,6 +253,7 @@ func (m *Main) processRound(ctx context.Context, round uint64) error {
 	}
 
 	// Preprocess data.
+	processTimer := prometheus.NewTimer(MetricProcessTime)
 	blockData, err := ExtractRound(data.BlockHeader, data.TransactionsWithResults, data.RawEvents, m.logger)
 	if err != nil {
 		return err
@@ -234,12 +271,16 @@ func (m *Main) processRound(ctx context.Context, round uint64) error {
 		round,
 		m.runtime,
 	)
+	processTimer.ObserveDuration()
 
 	opName := fmt.Sprintf("process_block_%s", m.runtime)
 	timer := m.metrics.DatabaseTimer(m.target.Name(), opName)
 	defer timer.ObserveDuration()
 
-	if err := m.target.SendBatch(ctx, batch); err != nil {
+	targetStorageTimer := prometheus.NewTimer(MetricTargetStorageTime)
+	err = m.target.SendBatch(ctx, batch)
+	targetStorageTimer.ObserveDuration()
+	if err != nil {
 		m.metrics.DatabaseCounter(m.target.Name(), opName, "failure").Inc()
 		return err
 	}
