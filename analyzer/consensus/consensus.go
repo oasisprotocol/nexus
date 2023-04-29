@@ -37,7 +37,7 @@ type EventType = apiTypes.ConsensusEventType // alias for brevity
 
 type parsedEvent struct {
 	ty               EventType
-	rawBodyJSON      json.RawMessage
+	rawBody          json.RawMessage
 	relatedAddresses []staking.Address
 }
 
@@ -482,7 +482,7 @@ func (m *Main) queueTxEventInserts(batch *storage.QueryBatch, data *storage.Cons
 			eventData := m.extractEventData(event)
 			txAccounts = append(txAccounts, eventData.relatedAddresses...)
 			accounts := extractUniqueAddresses(eventData.relatedAddresses)
-			body, err := json.Marshal(eventData.rawBodyJSON)
+			body, err := json.Marshal(eventData.rawBody)
 			if err != nil {
 				return err
 			}
@@ -915,7 +915,7 @@ func (m *Main) queueGovernanceEventInserts(batch *storage.QueryBatch, data *stor
 
 func (m *Main) queueSingleEventInserts(batch *storage.QueryBatch, eventData *parsedEvent, height int64) error {
 	accounts := extractUniqueAddresses(eventData.relatedAddresses)
-	body, err := json.Marshal(eventData.rawBodyJSON)
+	body, err := json.Marshal(eventData.rawBody)
 	if err != nil {
 		return err
 	}
@@ -950,8 +950,8 @@ func extractUniqueAddresses(accounts []staking.Address) []string {
 // extractEventData extracts the type, the body (JSON-serialized), and the related accounts of an event.
 func (m *Main) extractEventData(event nodeapi.Event) parsedEvent {
 	eventData := parsedEvent{
-		ty:          event.Type,
-		rawBodyJSON: event.RawBodyJSON,
+		ty:      event.Type,
+		rawBody: event.RawBody,
 	}
 
 	// Fill in related accounts.

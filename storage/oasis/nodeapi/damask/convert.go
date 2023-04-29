@@ -22,13 +22,13 @@ func convertEvent(e txResultsDamask.Event) nodeapi.Event {
 		case e.Staking.Transfer != nil:
 			ret = nodeapi.Event{
 				StakingTransfer: (*nodeapi.TransferEvent)(e.Staking.Transfer),
-				RawBodyJSON:     common.TryAsJSON(e.Staking.Transfer),
+				RawBody:         common.TryAsJSON(e.Staking.Transfer),
 				Type:            apiTypes.ConsensusEventTypeStakingTransfer,
 			}
 		case e.Staking.Burn != nil:
 			ret = nodeapi.Event{
 				StakingBurn: (*nodeapi.BurnEvent)(e.Staking.Burn),
-				RawBodyJSON: common.TryAsJSON(e.Staking.Burn),
+				RawBody:     common.TryAsJSON(e.Staking.Burn),
 				Type:        apiTypes.ConsensusEventTypeStakingBurn,
 			}
 		case e.Staking.Escrow != nil:
@@ -36,32 +36,32 @@ func convertEvent(e txResultsDamask.Event) nodeapi.Event {
 			case e.Staking.Escrow.Add != nil:
 				ret = nodeapi.Event{
 					StakingAddEscrow: (*nodeapi.AddEscrowEvent)(e.Staking.Escrow.Add),
-					RawBodyJSON:      common.TryAsJSON(e.Staking.Escrow.Add),
+					RawBody:          common.TryAsJSON(e.Staking.Escrow.Add),
 					Type:             apiTypes.ConsensusEventTypeStakingEscrowAdd,
 				}
 			case e.Staking.Escrow.Take != nil:
 				ret = nodeapi.Event{
 					StakingTakeEscrow: (*nodeapi.TakeEscrowEvent)(e.Staking.Escrow.Take),
-					RawBodyJSON:       common.TryAsJSON(e.Staking.Escrow.Take),
+					RawBody:           common.TryAsJSON(e.Staking.Escrow.Take),
 					Type:              apiTypes.ConsensusEventTypeStakingEscrowTake,
 				}
 			case e.Staking.Escrow.Reclaim != nil:
 				ret = nodeapi.Event{
 					StakingReclaimEscrow: (*nodeapi.ReclaimEscrowEvent)(e.Staking.Escrow.Reclaim),
-					RawBodyJSON:          common.TryAsJSON(e.Staking.Escrow.Reclaim),
+					RawBody:              common.TryAsJSON(e.Staking.Escrow.Reclaim),
 					Type:                 apiTypes.ConsensusEventTypeStakingEscrowReclaim,
 				}
 			case e.Staking.Escrow.DebondingStart != nil:
 				ret = nodeapi.Event{
 					StakingDebondingStart: (*nodeapi.DebondingStartEscrowEvent)(e.Staking.Escrow.DebondingStart),
-					RawBodyJSON:           common.TryAsJSON(e.Staking.Escrow.DebondingStart),
+					RawBody:               common.TryAsJSON(e.Staking.Escrow.DebondingStart),
 					Type:                  apiTypes.ConsensusEventTypeStakingEscrowDebondingStart,
 				}
 			}
 		case e.Staking.AllowanceChange != nil:
 			ret = nodeapi.Event{
 				StakingAllowanceChange: (*nodeapi.AllowanceChangeEvent)(e.Staking.AllowanceChange),
-				RawBodyJSON:            common.TryAsJSON(e.Staking.AllowanceChange),
+				RawBody:                common.TryAsJSON(e.Staking.AllowanceChange),
 				Type:                   apiTypes.ConsensusEventTypeStakingAllowanceChange,
 			}
 		}
@@ -79,13 +79,13 @@ func convertEvent(e txResultsDamask.Event) nodeapi.Event {
 					KeyManager:  e.Registry.RuntimeEvent.Runtime.KeyManager,
 					TEEHardware: e.Registry.RuntimeEvent.Runtime.TEEHardware.String(),
 				},
-				RawBodyJSON: common.TryAsJSON(e.Registry.RuntimeEvent),
-				Type:        apiTypes.ConsensusEventTypeRegistryRuntime,
+				RawBody: common.TryAsJSON(e.Registry.RuntimeEvent),
+				Type:    apiTypes.ConsensusEventTypeRegistryRuntime,
 			}
 		case e.Registry.EntityEvent != nil:
 			ret = nodeapi.Event{
 				RegistryEntity: (*nodeapi.EntityEvent)(e.Registry.EntityEvent),
-				RawBodyJSON:    common.TryAsJSON(e.Registry.EntityEvent),
+				RawBody:        common.TryAsJSON(e.Registry.EntityEvent),
 				Type:           apiTypes.ConsensusEventTypeRegistryEntity,
 			}
 		case e.Registry.NodeEvent != nil:
@@ -127,13 +127,13 @@ func convertEvent(e txResultsDamask.Event) nodeapi.Event {
 					Roles:              strings.Split(e.Registry.NodeEvent.Node.Roles.String(), ","),
 					SoftwareVersion:    e.Registry.NodeEvent.Node.SoftwareVersion,
 				},
-				RawBodyJSON: common.TryAsJSON(e.Registry.NodeEvent),
-				Type:        apiTypes.ConsensusEventTypeRegistryNode,
+				RawBody: common.TryAsJSON(e.Registry.NodeEvent),
+				Type:    apiTypes.ConsensusEventTypeRegistryNode,
 			}
 		case e.Registry.NodeUnfrozenEvent != nil:
 			ret = nodeapi.Event{
 				RegistryNodeUnfrozen: (*nodeapi.NodeUnfrozenEvent)(e.Registry.NodeUnfrozenEvent),
-				RawBodyJSON:          common.TryAsJSON(e.Registry.NodeUnfrozenEvent),
+				RawBody:              common.TryAsJSON(e.Registry.NodeUnfrozenEvent),
 				Type:                 apiTypes.ConsensusEventTypeRegistryNodeUnfrozen,
 			}
 		}
@@ -147,18 +147,18 @@ func convertEvent(e txResultsDamask.Event) nodeapi.Event {
 				RoothashExecutorCommitted: &nodeapi.ExecutorCommittedEvent{
 					NodeID: &e.RootHash.ExecutorCommitted.Commit.NodeID,
 				},
-				RawBodyJSON: common.TryAsJSON(e.RootHash.ExecutorCommitted),
-				Type:        apiTypes.ConsensusEventTypeRoothashExecutorCommitted,
+				RawBody: common.TryAsJSON(e.RootHash.ExecutorCommitted),
+				Type:    apiTypes.ConsensusEventTypeRoothashExecutorCommitted,
 			}
 		case e.RootHash.ExecutionDiscrepancyDetected != nil:
 			ret = nodeapi.Event{
-				RawBodyJSON: common.TryAsJSON(e.RootHash.ExecutionDiscrepancyDetected),
-				Type:        apiTypes.ConsensusEventTypeRoothashExecutionDiscrepancy,
+				RawBody: common.TryAsJSON(e.RootHash.ExecutionDiscrepancyDetected),
+				Type:    apiTypes.ConsensusEventTypeRoothashExecutionDiscrepancy,
 			}
 		case e.RootHash.Finalized != nil:
 			ret = nodeapi.Event{
-				RawBodyJSON: common.TryAsJSON(e.RootHash.Finalized),
-				Type:        apiTypes.ConsensusEventTypeRoothashFinalized,
+				RawBody: common.TryAsJSON(e.RootHash.Finalized),
+				Type:    apiTypes.ConsensusEventTypeRoothashFinalized,
 			}
 		}
 		ret.Height = e.RootHash.Height
@@ -169,19 +169,19 @@ func convertEvent(e txResultsDamask.Event) nodeapi.Event {
 		case e.Governance.ProposalSubmitted != nil:
 			ret = nodeapi.Event{
 				GovernanceProposalSubmitted: (*nodeapi.ProposalSubmittedEvent)(e.Governance.ProposalSubmitted),
-				RawBodyJSON:                 common.TryAsJSON(e.Governance.ProposalSubmitted),
+				RawBody:                     common.TryAsJSON(e.Governance.ProposalSubmitted),
 				Type:                        apiTypes.ConsensusEventTypeGovernanceProposalSubmitted,
 			}
 		case e.Governance.ProposalExecuted != nil:
 			ret = nodeapi.Event{
 				GovernanceProposalExecuted: (*nodeapi.ProposalExecutedEvent)(e.Governance.ProposalExecuted),
-				RawBodyJSON:                common.TryAsJSON(e.Governance.ProposalExecuted),
+				RawBody:                    common.TryAsJSON(e.Governance.ProposalExecuted),
 				Type:                       apiTypes.ConsensusEventTypeGovernanceProposalExecuted,
 			}
 		case e.Governance.ProposalFinalized != nil:
 			ret = nodeapi.Event{
 				GovernanceProposalFinalized: (*nodeapi.ProposalFinalizedEvent)(e.Governance.ProposalFinalized),
-				RawBodyJSON:                 common.TryAsJSON(e.Governance.ProposalFinalized),
+				RawBody:                     common.TryAsJSON(e.Governance.ProposalFinalized),
 				Type:                        apiTypes.ConsensusEventTypeGovernanceProposalFinalized,
 			}
 		case e.Governance.Vote != nil:
@@ -191,8 +191,8 @@ func convertEvent(e txResultsDamask.Event) nodeapi.Event {
 					Submitter: e.Governance.Vote.Submitter,
 					Vote:      e.Governance.Vote.Vote.String(),
 				},
-				RawBodyJSON: common.TryAsJSON(e.Governance.Vote),
-				Type:        apiTypes.ConsensusEventTypeGovernanceVote,
+				RawBody: common.TryAsJSON(e.Governance.Vote),
+				Type:    apiTypes.ConsensusEventTypeGovernanceVote,
 			}
 		}
 		ret.Height = e.Governance.Height
