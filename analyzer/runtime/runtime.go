@@ -75,6 +75,8 @@ func NewRuntimeAnalyzer(
 }
 
 func (m *Main) Start(ctx context.Context) {
+	defer m.cleanup()
+
 	if err := m.prework(); err != nil {
 		m.logger.Error("error doing prework",
 			"err", err,
@@ -118,7 +120,6 @@ func (m *Main) Start(ctx context.Context) {
 			// Process next block.
 		case <-ctx.Done():
 			m.logger.Warn("shutting down runtime analyzer", "reason", ctx.Err())
-			m.cleanup()
 			return
 		}
 		m.logger.Info("attempting block", "round", round)
@@ -149,7 +150,11 @@ func (m *Main) Start(ctx context.Context) {
 }
 
 func (m *Main) cleanup() {
-	m.cfg.Source.Close()
+	if err := m.cfg.Source.Close(); err != nil {
+		m.logger.Error("failed to cleanly close consensus data source",
+			"err", err.Error(),
+		)
+	}
 }
 
 // Name returns the name of the Main.

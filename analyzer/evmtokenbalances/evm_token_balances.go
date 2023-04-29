@@ -258,6 +258,8 @@ func (m Main) processBatch(ctx context.Context) (int, error) {
 }
 
 func (m Main) Start(ctx context.Context) {
+	defer m.cleanup()
+
 	backoff, err := util.NewBackoff(
 		100*time.Millisecond,
 		// Cap the timeout at the expected round time. All runtimes currently have the same round time.

@@ -30,7 +30,7 @@ func TestConnect(t *testing.T) {
 
 	client, err := newClient(t)
 	require.Nil(t, err)
-	client.Shutdown()
+	client.Close()
 }
 
 func TestInvalidConnect(t *testing.T) {
@@ -49,7 +49,7 @@ func TestQuery(t *testing.T) {
 
 	client, err := newClient(t)
 	require.Nil(t, err)
-	defer client.Shutdown()
+	defer client.Close()
 
 	rows, err := client.Query(context.Background(), `
 		SELECT * FROM ( VALUES (0),(1),(2) ) AS q;
@@ -73,7 +73,7 @@ func TestInvalidQuery(t *testing.T) {
 
 	client, err := newClient(t)
 	require.Nil(t, err)
-	defer client.Shutdown()
+	defer client.Close()
 
 	_, err = client.Query(context.Background(), `
 		an invalid query
@@ -86,7 +86,7 @@ func TestQueryRow(t *testing.T) {
 
 	client, err := newClient(t)
 	require.Nil(t, err)
-	defer client.Shutdown()
+	defer client.Close()
 
 	var result int
 	err = client.QueryRow(context.Background(), `
@@ -101,7 +101,7 @@ func TestInvalidQueryRow(t *testing.T) {
 
 	client, err := newClient(t)
 	require.Nil(t, err)
-	defer client.Shutdown()
+	defer client.Close()
 
 	var result int
 	err = client.QueryRow(context.Background(), `
@@ -115,7 +115,7 @@ func TestSendBatch(t *testing.T) {
 
 	client, err := newClient(t)
 	require.Nil(t, err)
-	defer client.Shutdown()
+	defer client.Close()
 
 	defer func() {
 		destroy := &storage.QueryBatch{}
@@ -185,7 +185,7 @@ func TestInvalidSendBatch(t *testing.T) {
 
 	client, err := newClient(t)
 	require.Nil(t, err)
-	defer client.Shutdown()
+	defer client.Close()
 
 	invalid := &storage.QueryBatch{}
 	invalid.Queue(`
@@ -198,7 +198,7 @@ func TestInvalidSendBatch(t *testing.T) {
 func TestNumeric(t *testing.T) {
 	client, err := newClient(t)
 	require.Nil(t, err)
-	defer client.Shutdown()
+	defer client.Close()
 
 	// Create custom type, derived from NUMERIC.
 	_, err = client.pool.Exec(context.Background(), `CREATE DOMAIN mynumeric NUMERIC(1000,0) CHECK(VALUE >= 0)`)

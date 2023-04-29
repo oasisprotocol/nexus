@@ -113,7 +113,7 @@ func NewStorageClient(chainName common.ChainName, db storage.TargetStorage, l *l
 
 // Shutdown closes the backing TargetStorage.
 func (c *StorageClient) Shutdown() {
-	c.db.Shutdown()
+	c.db.Close()
 }
 
 // Wraps an error into one of the error types defined by the `common` package, if applicable.

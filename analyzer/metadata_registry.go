@@ -57,7 +57,6 @@ func (a *MetadataRegistryAnalyzer) Start(ctx context.Context) {
 			// Fetch data again.
 		case <-ctx.Done():
 			a.logger.Warn("shutting down metadata analyzer", "reason", ctx.Err())
-			// No clean-up needed.
 			return
 		}
 	}

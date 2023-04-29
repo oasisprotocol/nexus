@@ -239,7 +239,6 @@ func (a *AggregateStatsAnalyzer) dailyActiveAccountsWorker(ctx context.Context) 
 			// Update stats again.
 		case <-ctx.Done():
 			a.logger.Error("shutting down daily active accounts worker", "reason", ctx.Err())
-			// No cleanup needed.
 			return
 		}
 	}

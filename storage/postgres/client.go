@@ -198,8 +198,8 @@ func (c *Client) QueryRow(ctx context.Context, sql string, args ...interface{}) 
 	return c.pool.QueryRow(ctx, sql, args...)
 }
 
-// Shutdown implements the storage.TargetStorage interface for Client.
-func (c *Client) Shutdown() {
+// Close implements the storage.TargetStorage interface for Client.
+func (c *Client) Close() {
 	c.pool.Close()
 }
 
