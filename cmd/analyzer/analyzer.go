@@ -274,14 +274,10 @@ func (a *Service) Start() {
 		a.logger.Info("received interrupt, shutting down")
 		// Cancel the analyzers' context and wait for them to exit cleanly.
 		cancelAnalyzers()
-		select {
-		case <-analyzersDone:
-			a.logger.Info("all analyzers have exited cleanly")
-			return
-		case <-signalChan:
-			a.logger.Info("received second interrupt, forcing exit")
-			return
-		}
+		signal.Stop(signalChan) // Let the default handler handle ctrl+C so people can kill the process in a hurry.
+		<-analyzersDone
+		a.logger.Info("all analyzers have exited cleanly")
+		return
 	}
 }
 
