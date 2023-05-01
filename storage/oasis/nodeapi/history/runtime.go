@@ -44,10 +44,15 @@ func NewHistoryRuntimeApiLite(ctx context.Context, history *config.History, sdkP
 }
 
 func (rc *HistoryRuntimeApiLite) Close() error {
+	var firstErr error
 	for _, api := range rc.APIs {
-		if err := api.Close(); err != nil {
-			return err
+		if err := api.Close(); err != nil && firstErr == nil {
+			firstErr = err
+			// Do not return yet; keep closing others.
 		}
+	}
+	if firstErr != nil {
+		return fmt.Errorf("closing apis failed, first encountered error was: %w", firstErr)
 	}
 	return nil
 }
