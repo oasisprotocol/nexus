@@ -36,7 +36,7 @@ func (m *Main) queueMint(batch *storage.QueryBatch, round uint64, e accounts.Min
 	// Record the event.
 	batch.Queue(
 		queries.RuntimeMintInsert,
-		m.runtime,
+		m.cfg.RuntimeName,
 		round,
 		e.Owner.String(),
 		m.StringifyDenomination(e.Amount.Denomination),
@@ -45,7 +45,7 @@ func (m *Main) queueMint(batch *storage.QueryBatch, round uint64, e accounts.Min
 	// Increase minter's balance.
 	batch.Queue(
 		queries.RuntimeNativeBalanceUpdate,
-		m.runtime,
+		m.cfg.RuntimeName,
 		e.Owner.String(),
 		m.StringifyDenomination(e.Amount.Denomination),
 		e.Amount.Amount.String(),
@@ -56,7 +56,7 @@ func (m *Main) queueBurn(batch *storage.QueryBatch, round uint64, e accounts.Bur
 	// Record the event.
 	batch.Queue(
 		queries.RuntimeBurnInsert,
-		m.runtime,
+		m.cfg.RuntimeName,
 		round,
 		e.Owner.String(),
 		m.StringifyDenomination(e.Amount.Denomination),
@@ -65,7 +65,7 @@ func (m *Main) queueBurn(batch *storage.QueryBatch, round uint64, e accounts.Bur
 	// Decrease burner's balance.
 	batch.Queue(
 		queries.RuntimeNativeBalanceUpdate,
-		m.runtime,
+		m.cfg.RuntimeName,
 		e.Owner.String(),
 		m.StringifyDenomination(e.Amount.Denomination),
 		(&big.Int{}).Neg(e.Amount.Amount.ToBigInt()).String(),
@@ -76,7 +76,7 @@ func (m *Main) queueTransfer(batch *storage.QueryBatch, round uint64, e accounts
 	// Record the event.
 	batch.Queue(
 		queries.RuntimeTransferInsert,
-		m.runtime,
+		m.cfg.RuntimeName,
 		round,
 		e.From.String(),
 		e.To.String(),
@@ -86,7 +86,7 @@ func (m *Main) queueTransfer(batch *storage.QueryBatch, round uint64, e accounts
 	// Increase receiver's balance.
 	batch.Queue(
 		queries.RuntimeNativeBalanceUpdate,
-		m.runtime,
+		m.cfg.RuntimeName,
 		e.To.String(),
 		m.StringifyDenomination(e.Amount.Denomination),
 		e.Amount.Amount.String(),
@@ -94,7 +94,7 @@ func (m *Main) queueTransfer(batch *storage.QueryBatch, round uint64, e accounts
 	// Decrease sender's balance.
 	batch.Queue(
 		queries.RuntimeNativeBalanceUpdate,
-		m.runtime,
+		m.cfg.RuntimeName,
 		e.From.String(),
 		m.StringifyDenomination(e.Amount.Denomination),
 		(&big.Int{}).Neg(e.Amount.Amount.ToBigInt()).String(),

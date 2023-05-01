@@ -1,9 +1,10 @@
 package runtime
 
 import (
+	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/consensusaccounts"
+
 	"github.com/oasisprotocol/oasis-indexer/analyzer/queries"
 	"github.com/oasisprotocol/oasis-indexer/storage"
-	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/consensusaccounts"
 )
 
 // queueConsensusAccountsEvents expands `batch` with DB queries that record the
@@ -38,7 +39,7 @@ func (m *Main) queueDeposit(batch *storage.QueryBatch, round uint64, e consensus
 	errorModule, errorCode := decomposeError(e.Error)
 	batch.Queue(
 		queries.RuntimeDepositInsert,
-		m.runtime,
+		m.cfg.RuntimeName,
 		round,
 		e.From.String(),
 		e.To.String(),
@@ -63,7 +64,7 @@ func (m *Main) queueWithdraw(batch *storage.QueryBatch, round uint64, e consensu
 	errorModule, errorCode := decomposeError(e.Error)
 	batch.Queue(
 		queries.RuntimeWithdrawInsert,
-		m.runtime,
+		m.cfg.RuntimeName,
 		round,
 		e.From.String(),
 		e.To.String(),

@@ -36,10 +36,9 @@ const (
 )
 
 type Main struct {
-	runtime common.Runtime
-	cfg     analyzer.RuntimeConfig
-	target  storage.TargetStorage
-	logger  *log.Logger
+	cfg    analyzer.RuntimeConfig
+	target storage.TargetStorage
+	logger *log.Logger
 }
 
 var _ analyzer.Analyzer = (*Main)(nil)
@@ -61,14 +60,14 @@ func NewMain(
 		return nil, err
 	}
 	ac := analyzer.RuntimeConfig{
-		Source: client,
+		RuntimeName: runtime,
+		Source:      client,
 	}
 
 	return &Main{
-		runtime: runtime,
-		cfg:     ac,
-		target:  target,
-		logger:  logger.With("analyzer", EvmTokensAnalyzerPrefix+runtime),
+		cfg:    ac,
+		target: target,
+		logger: logger.With("analyzer", EvmTokensAnalyzerPrefix+runtime),
 	}, nil
 }
 
@@ -84,7 +83,7 @@ type StaleToken struct {
 
 func (m Main) getStaleTokens(ctx context.Context, limit int) ([]*StaleToken, error) {
 	var staleTokens []*StaleToken
-	rows, err := m.target.Query(ctx, queries.RuntimeEVMTokenAnalysisStale, m.runtime, limit)
+	rows, err := m.target.Query(ctx, queries.RuntimeEVMTokenAnalysisStale, m.cfg.RuntimeName, limit)
 	if err != nil {
 		return nil, fmt.Errorf("querying discovered tokens: %w", err)
 	}
@@ -127,7 +126,7 @@ func (m Main) processStaleToken(ctx context.Context, batch *storage.QueryBatch, 
 		}
 		if tokenData != nil {
 			batch.Queue(queries.RuntimeEVMTokenInsert,
-				m.runtime,
+				m.cfg.RuntimeName,
 				staleToken.Addr,
 				tokenData.Type,
 				tokenData.Name,
@@ -150,13 +149,13 @@ func (m Main) processStaleToken(ctx context.Context, batch *storage.QueryBatch, 
 		}
 		if mutable != nil {
 			batch.Queue(queries.RuntimeEVMTokenUpdate,
-				m.runtime,
+				m.cfg.RuntimeName,
 				staleToken.Addr,
 				mutable.TotalSupply.String(),
 			)
 		}
 	}
-	batch.Queue(queries.RuntimeEVMTokenAnalysisUpdate, m.runtime, staleToken.Addr, staleToken.DownloadRound)
+	batch.Queue(queries.RuntimeEVMTokenAnalysisUpdate, m.cfg.RuntimeName, staleToken.Addr, staleToken.DownloadRound)
 	return nil
 }
 
@@ -237,5 +236,5 @@ func (m Main) Start() {
 }
 
 func (m Main) Name() string {
-	return EvmTokensAnalyzerPrefix + string(m.runtime)
+	return EvmTokensAnalyzerPrefix + string(m.cfg.RuntimeName)
 }

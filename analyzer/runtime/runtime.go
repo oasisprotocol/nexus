@@ -29,7 +29,6 @@ const (
 
 // Main is the main Analyzer for runtimes.
 type Main struct {
-	runtime common.Runtime
 	cfg     analyzer.RuntimeConfig
 	target  storage.TargetStorage
 	logger  *log.Logger
@@ -61,13 +60,13 @@ func NewRuntimeAnalyzer(
 		To:   uint64(cfg.To),
 	}
 	ac := analyzer.RuntimeConfig{
-		ParaTime: sourceConfig.SDKParaTime(runtime),
-		Range:    roundRange,
-		Source:   client,
+		RuntimeName: runtime,
+		ParaTime:    sourceConfig.SDKParaTime(runtime),
+		Range:       roundRange,
+		Source:      client,
 	}
 
 	return &Main{
-		runtime: runtime,
 		cfg:     ac,
 		target:  target,
 		logger:  logger.With("analyzer", runtime),
@@ -146,7 +145,7 @@ func (m *Main) Start() {
 
 // Name returns the name of the Main.
 func (m *Main) Name() string {
-	return string(m.runtime)
+	return string(m.cfg.RuntimeName)
 }
 
 func (m *Main) nativeTokenSymbol() string {
@@ -172,7 +171,7 @@ func (m *Main) latestRound(ctx context.Context) (uint64, error) {
 		queries.LatestBlock,
 		// ^analyzers should only analyze for a single chain ID, and we anchor this
 		// at the starting round.
-		m.runtime,
+		m.cfg.RuntimeName,
 	).Scan(&latest); err != nil {
 		return 0, err
 	}
@@ -232,10 +231,10 @@ func (m *Main) processRound(ctx context.Context, round uint64) error {
 	batch.Queue(
 		queries.IndexingProgress,
 		round,
-		m.runtime,
+		m.cfg.RuntimeName,
 	)
 
-	opName := fmt.Sprintf("process_block_%s", m.runtime)
+	opName := fmt.Sprintf("process_block_%s", m.cfg.RuntimeName)
 	timer := m.metrics.DatabaseTimer(m.target.Name(), opName)
 	defer timer.ObserveDuration()
 
@@ -252,7 +251,7 @@ func (m *Main) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 	// Block metadata.
 	batch.Queue(
 		queries.RuntimeBlockInsert,
-		m.runtime,
+		m.cfg.RuntimeName,
 		data.Header.Round,
 		data.Header.Version,
 		data.Header.Timestamp,
@@ -272,7 +271,7 @@ func (m *Main) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 		for _, signerData := range transactionData.SignerData {
 			batch.Queue(
 				queries.RuntimeTransactionSignerInsert,
-				m.runtime,
+				m.cfg.RuntimeName,
 				data.Header.Round,
 				transactionData.Index,
 				signerData.Index,
@@ -281,7 +280,7 @@ func (m *Main) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 			)
 		}
 		for addr := range transactionData.RelatedAccountAddresses {
-			batch.Queue(queries.RuntimeRelatedTransactionInsert, m.runtime, addr, data.Header.Round, transactionData.Index)
+			batch.Queue(queries.RuntimeRelatedTransactionInsert, m.cfg.RuntimeName, addr, data.Header.Round, transactionData.Index)
 		}
 		var error_module string
 		var error_code uint32
@@ -293,7 +292,7 @@ func (m *Main) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 		}
 		batch.Queue(
 			queries.RuntimeTransactionInsert,
-			m.runtime,
+			m.cfg.RuntimeName,
 			data.Header.Round,
 			transactionData.Index,
 			transactionData.Hash,
@@ -319,7 +318,7 @@ func (m *Main) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 		eventRelatedAddresses := uncategorized.ExtractAddresses(eventData.RelatedAddresses)
 		batch.Queue(
 			queries.RuntimeEventInsert,
-			m.runtime,
+			m.cfg.RuntimeName,
 			data.Header.Round,
 			eventData.TxIndex,
 			eventData.TxHash,
@@ -339,15 +338,15 @@ func (m *Main) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 	// Insert EVM token addresses.
 	for addr, possibleToken := range data.PossibleTokens {
 		if possibleToken.Mutated {
-			batch.Queue(queries.RuntimeEVMTokenAnalysisMutateInsert, m.runtime, addr, data.Header.Round)
+			batch.Queue(queries.RuntimeEVMTokenAnalysisMutateInsert, m.cfg.RuntimeName, addr, data.Header.Round)
 		} else {
-			batch.Queue(queries.RuntimeEVMTokenAnalysisInsert, m.runtime, addr, data.Header.Round)
+			batch.Queue(queries.RuntimeEVMTokenAnalysisInsert, m.cfg.RuntimeName, addr, data.Header.Round)
 		}
 	}
 
 	// Update EVM token balances (dead reckoning).
 	for key, change := range data.TokenBalanceChanges {
-		batch.Queue(queries.RuntimeEVMTokenBalanceUpdate, m.runtime, key.TokenAddress, key.AccountAddress, change.String())
-		batch.Queue(queries.RuntimeEVMTokenBalanceAnalysisInsert, m.runtime, key.TokenAddress, key.AccountAddress, data.Header.Round)
+		batch.Queue(queries.RuntimeEVMTokenBalanceUpdate, m.cfg.RuntimeName, key.TokenAddress, key.AccountAddress, change.String())
+		batch.Queue(queries.RuntimeEVMTokenBalanceAnalysisInsert, m.cfg.RuntimeName, key.TokenAddress, key.AccountAddress, data.Header.Round)
 	}
 }
