@@ -22,14 +22,14 @@ import (
 )
 
 var (
-	ChainName          = "mainnet"
+	ChainName          = common.ChainNameMainnet
 	CurrentArchiveName = config.DefaultChains[ChainName].CurrentRecord().ArchiveName
 	// TODO: Would be nice to have an offline test.
 	PublicSourceConfig = &config.SourceConfig{
 		ChainName: ChainName,
 		Nodes: map[string]*config.NodeConfig{
 			CurrentArchiveName: {
-				RPC: sdkConfig.DefaultNetworks.All[ChainName].RPC,
+				RPC: sdkConfig.DefaultNetworks.All[string(ChainName)].RPC,
 			},
 		},
 		FastStartup: false,

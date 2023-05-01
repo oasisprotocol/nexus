@@ -12,6 +12,7 @@ import (
 	"github.com/knadh/koanf/providers/file"
 	sdkConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 
+	"github.com/oasisprotocol/oasis-indexer/common"
 	"github.com/oasisprotocol/oasis-indexer/log"
 )
 
@@ -122,7 +123,7 @@ type SourceConfig struct {
 
 	// ChainName is the name of the chain (e.g. mainnet/testnet). Set
 	// this to use one of the default chains.
-	ChainName string `koanf:"chain_name"`
+	ChainName common.ChainName `koanf:"chain_name"`
 	// CustomChain is information about a custom chain. Set this to use a
 	// chain other than the default chains, e.g. a local testnet.
 	CustomChain *CustomChainConfig `koanf:"custom_chain"`
@@ -147,9 +148,13 @@ func (sc *SourceConfig) History() *History {
 
 func (sc *SourceConfig) SDKNetwork() *sdkConfig.Network {
 	if sc.ChainName != "" {
-		return sdkConfig.DefaultNetworks.All[sc.ChainName]
+		return sdkConfig.DefaultNetworks.All[string(sc.ChainName)]
 	}
 	return sc.CustomChain.SDKNetwork
+}
+
+func (sc *SourceConfig) SDKParaTime(runtime common.Runtime) *sdkConfig.ParaTime {
+	return sc.SDKNetwork().ParaTimes.All[string(runtime)]
 }
 
 func CustomSingleNetworkSourceConfig(rpc string, chainContext string) *SourceConfig {
@@ -258,8 +263,9 @@ func (cfg *AggregateStatsConfig) Validate() error {
 
 // ServerConfig contains the API server configuration.
 type ServerConfig struct {
-	// ChainName is the name of the chain (e.g. mainnet/testnet/local).
-	ChainName string `koanf:"chain_name"`
+	// ChainName is the name of the chain (i.e. mainnet/testnet). Custom/local nets are not supported.
+	// This is only used for the runtime status endpoint.
+	ChainName common.ChainName `koanf:"chain_name"`
 
 	// Endpoint is the service endpoint from which to serve the API.
 	Endpoint string `koanf:"endpoint"`

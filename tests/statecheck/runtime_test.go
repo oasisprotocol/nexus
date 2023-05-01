@@ -5,16 +5,12 @@ import (
 	"os"
 	"testing"
 
-	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
+	sdkConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	common "github.com/oasisprotocol/oasis-indexer/common"
-)
-
-const (
-	EmeraldName = "emerald"
 )
 
 var RuntimeTables = []string{"runtime_sdk_balances"}
@@ -26,10 +22,10 @@ type TestRuntimeAccount struct {
 }
 
 func TestEmeraldAccounts(t *testing.T) {
-	testRuntimeAccounts(t, EmeraldName)
+	testRuntimeAccounts(t, common.RuntimeEmerald)
 }
 
-func testRuntimeAccounts(t *testing.T, runtime string) {
+func testRuntimeAccounts(t *testing.T, runtime common.Runtime) {
 	if _, ok := os.LookupEnv("OASIS_INDEXER_HEALTHCHECK"); !ok {
 		t.Skip("skipping test since healthcheck tests are not enabled")
 	}
@@ -38,30 +34,19 @@ func testRuntimeAccounts(t *testing.T, runtime string) {
 
 	ctx := context.Background()
 
-	network, err := common.FromChainContext(MainnetChainContext)
-	require.Nil(t, err)
-
-	var runtimeID string
-	switch runtime {
-	case "emerald":
-		runtimeID, err = common.RuntimeEmerald.ID(network)
-	case "sapphire":
-		runtimeID, err = common.RuntimeSapphire.ID(network)
-	}
-	require.Nil(t, err)
-	t.Log("Runtime ID determined", "runtime", runtime, "runtime_id", runtimeID)
+	sdkNet := sdkConfig.DefaultNetworks.All[string(ChainName)]
+	sdkPT := sdkNet.ParaTimes.All[string(runtime)]
+	t.Log("Runtime ID determined", "runtime", runtime, "runtime_id", sdkPT.ID)
 
 	conn, err := newSdkConnection(ctx)
 	require.Nil(t, err)
-	oasisRuntimeClient := conn.Runtime(&config.ParaTime{
-		ID: runtimeID,
-	})
+	oasisRuntimeClient := conn.Runtime(sdkPT)
 
 	postgresClient, err := newTargetClient(t)
 	assert.Nil(t, err)
 
 	t.Log("Creating snapshot for runtime tables...")
-	height, err := snapshotBackends(postgresClient, runtime, RuntimeTables)
+	height, err := snapshotBackends(postgresClient, string(runtime), RuntimeTables)
 	assert.Nil(t, err)
 
 	t.Logf("Fetching accounts information at height %d...", height)
@@ -104,7 +89,7 @@ func testRuntimeAccounts(t *testing.T, runtime string) {
 		balances, err := oasisRuntimeClient.Accounts.Balances(ctx, uint64(height), actualAddr)
 		assert.Nil(t, err)
 		for denom, amount := range balances.Balances {
-			if stringifyDenomination(denom, runtimeID) == a.Symbol {
+			if stringifyDenomination(denom, sdkPT) == a.Symbol {
 				assert.Equal(t, amount.ToBigInt(), a.Balance)
 			}
 			assert.Equal(t, amount.ToBigInt().Int64(), a.Balance)
@@ -121,28 +106,15 @@ func testRuntimeAccounts(t *testing.T, runtime string) {
 	}
 }
 
-func nativeTokenSymbol(runtimeID string) string {
-	// Iterate over all networks and find the one that contains the runtime.
-	// Any network will do; we assume that paratime IDs are unique across networks.
-	// TODO: Remove this assumption; paratime IDs are chosen by the entity that registers them,
-	// so conflicts (particularly intentional/malicious) are possible. Not that
-	// it would hurt the statecheck much, beyond generating a false alarm.
-	// https://github.com/oasisprotocol/oasis-indexer/pull/362#discussion_r1153606360
-	for _, network := range config.DefaultNetworks.All {
-		for _, paratime := range network.ParaTimes.All {
-			if paratime.ID == runtimeID {
-				return paratime.Denominations[config.NativeDenominationKey].Symbol
-			}
-		}
-	}
-	panic("Cannot find native token symbol for runtime")
+func nativeTokenSymbol(sdkPT *sdkConfig.ParaTime) string {
+	return sdkPT.Denominations[sdkConfig.NativeDenominationKey].Symbol
 }
 
 // StringifyDenomination returns a string representation denomination `d`
 // in the context of `runtimeID`. The context matters for the native denomination.
-func stringifyDenomination(d sdkTypes.Denomination, runtimeID string) string {
+func stringifyDenomination(d sdkTypes.Denomination, sdkPT *sdkConfig.ParaTime) string {
 	if d.IsNative() {
-		return nativeTokenSymbol(runtimeID)
+		return nativeTokenSymbol(sdkPT)
 	}
 
 	return d.String()

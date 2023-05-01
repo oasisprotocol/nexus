@@ -8,8 +8,6 @@ import (
 	"strings"
 
 	"github.com/jackc/pgx/v5/pgtype"
-	sdkConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
-
 	"github.com/oasisprotocol/oasis-core/go/common/quantity"
 )
 
@@ -124,70 +122,18 @@ var (
 	ErrRuntimeUnknown = errors.New("runtime unknown")
 )
 
-// ChainID is the ID of a chain.
-type ChainID string
-
-// String returns the string representation of a ChainID.
-func (c ChainID) String() string {
-	return string(c)
-}
-
-// Network is an instance of the Oasis Network.
-type Network uint8
+// ChainName is a name given to a sequence of networks. Used to index
+// config.DefaultChains and sdkConfig.DefaultNetworks.All.
+type ChainName string
 
 const (
-	// NetworkTestnet is the identifier for testnet.
-	NetworkTestnet Network = iota
-	// NetworkMainnet is the identifier for mainnet.
-	NetworkMainnet
-	// NetworkUnknown is the identifier for an unknown network.
-	NetworkUnknown = 255
+	// ChainNameTestnet is the identifier for testnet.
+	ChainNameTestnet ChainName = "testnet"
+	// ChainNameMainnet is the identifier for mainnet.
+	ChainNameMainnet ChainName = "mainnet"
+	// ChainNameUnknown is the identifier for an unknown network.
+	ChainNameUnknown ChainName = "unknown"
 )
-
-// FromChainContext identifies a Network using its ChainContext.
-func FromChainContext(chainContext string) (Network, error) {
-	// TODO: Remove this hardcoded value once indexer config supports multiple nodes.
-	if chainContext == "53852332637bacb61b91b6411ab4095168ba02a50be4c3f82448438826f23898" {
-		return NetworkMainnet, nil // cobalt mainnet
-	}
-	var network Network
-	for name, nw := range sdkConfig.DefaultNetworks.All {
-		if nw.ChainContext == chainContext {
-			if err := network.Set(name); err != nil {
-				return NetworkUnknown, err
-			}
-			return network, nil
-		}
-	}
-
-	return NetworkUnknown, ErrNetworkUnknown
-}
-
-// Set sets the Network to the value specified by the provided string.
-func (n *Network) Set(s string) error {
-	switch strings.ToLower(s) {
-	case "mainnet":
-		*n = NetworkMainnet
-	case "testnet":
-		*n = NetworkTestnet
-	default:
-		return ErrNetworkUnknown
-	}
-
-	return nil
-}
-
-// String returns the string representation of a network.
-func (n Network) String() string {
-	switch n {
-	case NetworkTestnet:
-		return "testnet"
-	case NetworkMainnet:
-		return "mainnet"
-	default:
-		return "unknown"
-	}
-}
 
 // Runtime is an identifier for a runtime on the Oasis Network.
 type Runtime string
@@ -198,25 +144,3 @@ const (
 	RuntimeSapphire Runtime = "sapphire"
 	RuntimeUnknown  Runtime = "unknown"
 )
-
-// String returns the string representation of a runtime.
-func (r Runtime) String() string {
-	return string(r)
-}
-
-// ID returns the ID for a Runtime on the provided network.
-func (r Runtime) ID(n Network) (string, error) {
-	for nname, nw := range sdkConfig.DefaultNetworks.All {
-		if nname == n.String() {
-			for pname, pt := range nw.ParaTimes.All {
-				if pname == r.String() {
-					return pt.ID, nil
-				}
-			}
-
-			return "", ErrRuntimeUnknown
-		}
-	}
-
-	return "", ErrRuntimeUnknown
-}

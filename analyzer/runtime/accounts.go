@@ -3,9 +3,10 @@ package runtime
 import (
 	"math/big"
 
+	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/accounts"
+
 	"github.com/oasisprotocol/oasis-indexer/analyzer/queries"
 	"github.com/oasisprotocol/oasis-indexer/storage"
-	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/accounts"
 )
 
 // queueAccountsEvents expands `batch` with DB queries that record the "effects"
@@ -35,18 +36,18 @@ func (m *Main) queueMint(batch *storage.QueryBatch, round uint64, e accounts.Min
 	// Record the event.
 	batch.Queue(
 		queries.RuntimeMintInsert,
-		m.runtime,
+		m.cfg.RuntimeName,
 		round,
 		e.Owner.String(),
-		m.cfg.Source.StringifyDenomination(e.Amount.Denomination),
+		m.StringifyDenomination(e.Amount.Denomination),
 		e.Amount.Amount.String(),
 	)
 	// Increase minter's balance.
 	batch.Queue(
 		queries.RuntimeNativeBalanceUpdate,
-		m.runtime,
+		m.cfg.RuntimeName,
 		e.Owner.String(),
-		m.cfg.Source.StringifyDenomination(e.Amount.Denomination),
+		m.StringifyDenomination(e.Amount.Denomination),
 		e.Amount.Amount.String(),
 	)
 }
@@ -55,18 +56,18 @@ func (m *Main) queueBurn(batch *storage.QueryBatch, round uint64, e accounts.Bur
 	// Record the event.
 	batch.Queue(
 		queries.RuntimeBurnInsert,
-		m.runtime,
+		m.cfg.RuntimeName,
 		round,
 		e.Owner.String(),
-		m.cfg.Source.StringifyDenomination(e.Amount.Denomination),
+		m.StringifyDenomination(e.Amount.Denomination),
 		e.Amount.Amount.String(),
 	)
 	// Decrease burner's balance.
 	batch.Queue(
 		queries.RuntimeNativeBalanceUpdate,
-		m.runtime,
+		m.cfg.RuntimeName,
 		e.Owner.String(),
-		m.cfg.Source.StringifyDenomination(e.Amount.Denomination),
+		m.StringifyDenomination(e.Amount.Denomination),
 		(&big.Int{}).Neg(e.Amount.Amount.ToBigInt()).String(),
 	)
 }
@@ -75,27 +76,27 @@ func (m *Main) queueTransfer(batch *storage.QueryBatch, round uint64, e accounts
 	// Record the event.
 	batch.Queue(
 		queries.RuntimeTransferInsert,
-		m.runtime,
+		m.cfg.RuntimeName,
 		round,
 		e.From.String(),
 		e.To.String(),
-		m.cfg.Source.StringifyDenomination(e.Amount.Denomination),
+		m.StringifyDenomination(e.Amount.Denomination),
 		e.Amount.Amount.String(),
 	)
 	// Increase receiver's balance.
 	batch.Queue(
 		queries.RuntimeNativeBalanceUpdate,
-		m.runtime,
+		m.cfg.RuntimeName,
 		e.To.String(),
-		m.cfg.Source.StringifyDenomination(e.Amount.Denomination),
+		m.StringifyDenomination(e.Amount.Denomination),
 		e.Amount.Amount.String(),
 	)
 	// Decrease sender's balance.
 	batch.Queue(
 		queries.RuntimeNativeBalanceUpdate,
-		m.runtime,
+		m.cfg.RuntimeName,
 		e.From.String(),
-		m.cfg.Source.StringifyDenomination(e.Amount.Denomination),
+		m.StringifyDenomination(e.Amount.Denomination),
 		(&big.Int{}).Neg(e.Amount.Amount.ToBigInt()).String(),
 	)
 }

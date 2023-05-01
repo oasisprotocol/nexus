@@ -79,10 +79,9 @@ const (
 )
 
 type Main struct {
-	runtime common.Runtime
-	cfg     analyzer.RuntimeConfig
-	target  storage.TargetStorage
-	logger  *log.Logger
+	cfg    analyzer.RuntimeConfig
+	target storage.TargetStorage
+	logger *log.Logger
 }
 
 var _ analyzer.Analyzer = (*Main)(nil)
@@ -104,14 +103,14 @@ func NewMain(
 		return nil, err
 	}
 	ac := analyzer.RuntimeConfig{
-		Source: client,
+		RuntimeName: runtime,
+		Source:      client,
 	}
 
 	return &Main{
-		runtime: runtime,
-		cfg:     ac,
-		target:  target,
-		logger:  logger.With("analyzer", EvmTokenBalancesAnalyzerPrefix+runtime.String()),
+		cfg:    ac,
+		target: target,
+		logger: logger.With("analyzer", EvmTokenBalancesAnalyzerPrefix+runtime),
 	}, nil
 }
 
@@ -131,7 +130,7 @@ type StaleTokenBalance struct {
 
 func (m Main) getStaleTokenBalances(ctx context.Context, limit int) ([]*StaleTokenBalance, error) {
 	var staleTokenBalances []*StaleTokenBalance
-	rows, err := m.target.Query(ctx, queries.RuntimeEVMTokenBalanceAnalysisStale, m.runtime, limit)
+	rows, err := m.target.Query(ctx, queries.RuntimeEVMTokenBalanceAnalysisStale, m.cfg.RuntimeName, limit)
 	if err != nil {
 		return nil, fmt.Errorf("querying stale token balances: %w", err)
 	}
@@ -201,7 +200,7 @@ func (m Main) processStaleTokenBalance(ctx context.Context, batch *storage.Query
 					"correction", correction,
 				)
 				batch.Queue(queries.RuntimeEVMTokenBalanceUpdate,
-					m.runtime,
+					m.cfg.RuntimeName,
 					staleTokenBalance.TokenAddr,
 					staleTokenBalance.AccountAddr,
 					correction.String(),
@@ -210,7 +209,7 @@ func (m Main) processStaleTokenBalance(ctx context.Context, batch *storage.Query
 		}
 	}
 	batch.Queue(queries.RuntimeEVMTokenBalanceAnalysisUpdate,
-		m.runtime,
+		m.cfg.RuntimeName,
 		staleTokenBalance.TokenAddr,
 		staleTokenBalance.AccountAddr,
 		staleTokenBalance.DownloadRound,
@@ -295,5 +294,5 @@ func (m Main) Start() {
 }
 
 func (m Main) Name() string {
-	return EvmTokenBalancesAnalyzerPrefix + m.runtime.String()
+	return EvmTokenBalancesAnalyzerPrefix + string(m.cfg.RuntimeName)
 }

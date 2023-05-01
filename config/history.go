@@ -83,8 +83,8 @@ func SingleRecordHistory(chainContext string) *History {
 	}
 }
 
-var DefaultChains = map[string]*History{
-	"mainnet": {
+var DefaultChains = map[common.ChainName]*History{
+	common.ChainNameMainnet: {
 		Records: []*Record{
 			{
 				// https://github.com/oasisprotocol/mainnet-artifacts/releases/tag/2022-04-11
@@ -126,7 +126,7 @@ var DefaultChains = map[string]*History{
 			},
 		},
 	},
-	"testnet": {
+	common.ChainNameTestnet: {
 		Records: []*Record{
 			// TODO: coalesce compatible records
 			// TODO: rename archives to match compatible API

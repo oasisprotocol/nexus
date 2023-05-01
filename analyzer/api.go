@@ -3,6 +3,9 @@ package analyzer
 import (
 	"errors"
 
+	sdkConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
+
+	"github.com/oasisprotocol/oasis-indexer/common"
 	"github.com/oasisprotocol/oasis-indexer/storage"
 )
 
@@ -53,6 +56,12 @@ type BlockRange struct {
 // RuntimeConfig specifies configuration parameters for
 // processing the runtime layer.
 type RuntimeConfig struct {
+	// RuntimeName is which runtime to analyze.
+	RuntimeName common.Runtime
+
+	// ParaTime is the SDK ParaTime structure describing the runtime.
+	ParaTime *sdkConfig.ParaTime
+
 	// Range is the range of rounds to process.
 	// If this is set, the analyzer analyzes rounds in the provided range.
 	Range RoundRange

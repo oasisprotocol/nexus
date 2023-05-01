@@ -49,8 +49,8 @@ const (
 // by (periodically) querying the `runtime_related_transactions` table.
 var dailyActiveAccountsLayers = []string{
 	layerConsensus,
-	common.RuntimeEmerald.String(),
-	common.RuntimeSapphire.String(),
+	string(common.RuntimeEmerald),
+	string(common.RuntimeSapphire),
 	// RuntimeCipher.String(), // Enable once Cipher is supported by the indexer.
 }
 

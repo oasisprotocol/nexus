@@ -256,16 +256,14 @@ func RuntimeFromURLMiddleware(baseURL string) func(next http.Handler) http.Handl
 
 			// The first part of the path (after the version) determines the runtime.
 			// Recognize only whitelisted runtimes.
-			runtime := ""
+			var runtime common.Runtime
 			switch {
-			case strings.HasPrefix(path, "/consensus/"):
-				runtime = "consensus"
 			case strings.HasPrefix(path, "/emerald/"):
-				runtime = "emerald"
+				runtime = common.RuntimeEmerald
 			case strings.HasPrefix(path, "/sapphire/"):
-				runtime = "sapphire"
+				runtime = common.RuntimeSapphire
 			case strings.HasPrefix(path, "/cipher/"):
-				runtime = "cipher"
+				runtime = common.RuntimeCipher
 			}
 
 			if runtime != "" {

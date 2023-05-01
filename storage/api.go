@@ -11,8 +11,9 @@ import (
 	"github.com/oasisprotocol/oasis-core/go/common"
 	consensus "github.com/oasisprotocol/oasis-core/go/consensus/api"
 	genesisAPI "github.com/oasisprotocol/oasis-core/go/genesis/api"
-	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
+
+	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
 )
 
 type BatchItem struct {
@@ -223,11 +224,6 @@ type RuntimeSourceStorage interface {
 
 	// EVMSimulateCall gets the result of the given EVM simulate call query.
 	EVMSimulateCall(ctx context.Context, round uint64, gasPrice []byte, gasLimit uint64, caller []byte, address []byte, value []byte, data []byte) ([]byte, error)
-
-	// StringifyDenomination returns a string representation of the given denomination.
-	// This is simply the denomination's symbol; notably, for the native denomination,
-	// this is looked up from network config.
-	StringifyDenomination(d sdkTypes.Denomination) string
 }
 
 type RuntimeAllData struct {

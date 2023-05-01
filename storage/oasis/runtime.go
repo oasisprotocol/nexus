@@ -3,9 +3,6 @@ package oasis
 import (
 	"context"
 
-	sdkConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
-	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
-
 	"github.com/oasisprotocol/oasis-indexer/storage"
 	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
 )
@@ -17,7 +14,6 @@ import (
 // TODO: Get rid of this struct, it hardly provides any value.
 type RuntimeClient struct {
 	nodeApi nodeapi.RuntimeApiLite
-	sdkPT   *sdkConfig.ParaTime
 }
 
 // AllData returns all relevant data to the given round.
@@ -46,16 +42,4 @@ func (rc *RuntimeClient) AllData(ctx context.Context, round uint64) (*storage.Ru
 
 func (rc *RuntimeClient) EVMSimulateCall(ctx context.Context, round uint64, gasPrice []byte, gasLimit uint64, caller []byte, address []byte, value []byte, data []byte) ([]byte, error) {
 	return rc.nodeApi.EVMSimulateCall(ctx, round, gasPrice, gasLimit, caller, address, value, data)
-}
-
-func (rc *RuntimeClient) nativeTokenSymbol() string {
-	return rc.sdkPT.Denominations[sdkConfig.NativeDenominationKey].Symbol
-}
-
-func (rc *RuntimeClient) StringifyDenomination(d sdkTypes.Denomination) string {
-	if d.IsNative() {
-		return rc.nativeTokenSymbol()
-	}
-
-	return d.String()
 }
