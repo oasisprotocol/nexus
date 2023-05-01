@@ -1025,7 +1025,7 @@ components:
 
     Status:
       type: object
-      required: [latest_chain_id, latest_block, latest_update]
+      required: [latest_block, latest_update]
       properties:
         latest_block:
           type: integer
