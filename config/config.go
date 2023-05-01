@@ -263,7 +263,8 @@ func (cfg *AggregateStatsConfig) Validate() error {
 
 // ServerConfig contains the API server configuration.
 type ServerConfig struct {
-	// ChainName is the name of the chain (e.g. mainnet/testnet/local).
+	// ChainName is the name of the chain (i.e. mainnet/testnet). Custom/local nets are not supported.
+	// This is only used for the runtime status endpoint.
 	ChainName common.ChainName `koanf:"chain_name"`
 
 	// Endpoint is the service endpoint from which to serve the API.
