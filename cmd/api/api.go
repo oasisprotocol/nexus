@@ -64,7 +64,6 @@ func runServer(cmd *cobra.Command, args []string) {
 	if err != nil {
 		os.Exit(1)
 	}
-	defer service.cleanup()
 
 	service.Start()
 }
