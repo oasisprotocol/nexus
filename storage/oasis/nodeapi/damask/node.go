@@ -36,6 +36,10 @@ func NewDamaskConsensusApiLite(client consensus.ClientBackend) *DamaskConsensusA
 	}
 }
 
+func (c *DamaskConsensusApiLite) Close() error {
+	return nil // Nothing to do; c.client does not expose a Close() method despite containing a gRPC connection.
+}
+
 func (c *DamaskConsensusApiLite) GetGenesisDocument(ctx context.Context) (*genesis.Document, error) {
 	return c.client.GetGenesisDocument(ctx)
 }

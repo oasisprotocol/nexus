@@ -4,7 +4,9 @@ package analyzer
 import (
 	"context"
 	"os"
+	"os/signal"
 	"sync"
+	"syscall"
 
 	migrate "github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres" // postgres driver for golang_migrate
@@ -67,8 +69,6 @@ func runAnalyzer(cmd *cobra.Command, args []string) {
 	if err != nil {
 		os.Exit(1)
 	}
-	defer service.Shutdown()
-
 	service.Start()
 }
 
@@ -126,7 +126,7 @@ func wipeStorage(cfg *config.StorageConfig) error {
 	if err != nil {
 		return err
 	}
-	defer storage.Shutdown()
+	defer storage.Close()
 
 	ctx := context.Background()
 	return storage.Wipe(ctx)
@@ -237,23 +237,53 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) {
 
 // Start starts the analysis service.
 func (a *Service) Start() {
+	defer a.cleanup()
 	a.logger.Info("starting analysis service")
 
+	ctx, cancelAnalyzers := context.WithCancel(context.Background())
+	defer cancelAnalyzers() // Start() only returns when analyzers are done, so this should be a no-op, but it makes the compiler happier.
+
+	// Start all analyzers.
 	var wg sync.WaitGroup
 	for _, an := range a.Analyzers {
 		wg.Add(1)
 		go func(an analyzer.Analyzer) {
 			defer wg.Done()
-			an.Start()
+			an.Start(ctx)
 		}(an)
 	}
 
-	wg.Wait()
+	// Create a channel that will close when all analyzers have completed.
+	analyzersDone := make(chan struct{})
+	go func() {
+		wg.Wait()
+		close(analyzersDone)
+	}()
+
+	// Trap Ctrl+C and SIGTERM; the latter is issued by Kubernetes to request a shutdown.
+	signalChan := make(chan os.Signal, 1)
+	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
+	defer signal.Stop(signalChan) // Stop catching Ctrl+C signals.
+
+	// Wait for analyzers to finish.
+	select {
+	case <-analyzersDone:
+		a.logger.Info("all analyzers have completed")
+		return
+	case <-signalChan:
+		a.logger.Info("received interrupt, shutting down")
+		// Cancel the analyzers' context and wait for them to exit cleanly.
+		cancelAnalyzers()
+		signal.Stop(signalChan) // Let the default handler handle ctrl+C so people can kill the process in a hurry.
+		<-analyzersDone
+		a.logger.Info("all analyzers have exited cleanly")
+		return
+	}
 }
 
-// Shutdown gracefully shuts down the service.
-func (a *Service) Shutdown() {
-	a.target.Shutdown()
+// cleanup cleans up resources used by the service.
+func (a *Service) cleanup() {
+	a.target.Close()
 }
 
 // Register registers the process sub-command.

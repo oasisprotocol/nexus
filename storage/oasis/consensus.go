@@ -27,6 +27,10 @@ type ConsensusClient struct {
 	network *sdkConfig.Network
 }
 
+func (cc *ConsensusClient) Close() error {
+	return cc.nodeApi.Close()
+}
+
 // GenesisDocument returns the original genesis document.
 func (cc *ConsensusClient) GenesisDocument(ctx context.Context) (*genesisAPI.Document, error) {
 	return cc.nodeApi.GetGenesisDocument(ctx)

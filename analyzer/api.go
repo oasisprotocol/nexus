@@ -1,6 +1,7 @@
 package analyzer
 
 import (
+	"context"
 	"errors"
 
 	sdkConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
@@ -22,7 +23,7 @@ var (
 // Analyzer is a worker that analyzes a subset of the Oasis Network.
 type Analyzer interface {
 	// Start starts the analyzer.
-	Start()
+	Start(ctx context.Context)
 
 	// Name returns the name of the analyzer.
 	Name() string

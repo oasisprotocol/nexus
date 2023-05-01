@@ -74,10 +74,10 @@ func NewRuntimeAnalyzer(
 	}, nil
 }
 
-func (m *Main) Start() {
-	ctx := context.Background()
+func (m *Main) Start(ctx context.Context) {
+	defer m.cleanup()
 
-	if err := m.prework(); err != nil {
+	if err := m.prework(ctx); err != nil {
 		m.logger.Error("error doing prework",
 			"err", err,
 		)
@@ -115,7 +115,13 @@ func (m *Main) Start() {
 	}
 
 	for m.cfg.Range.To == 0 || round <= m.cfg.Range.To {
-		backoff.Wait()
+		select {
+		case <-time.After(backoff.Timeout()):
+			// Process next block.
+		case <-ctx.Done():
+			m.logger.Warn("shutting down runtime analyzer", "reason", ctx.Err())
+			return
+		}
 		m.logger.Info("attempting block", "round", round)
 
 		if err := m.processRound(ctx, round); err != nil {
@@ -141,6 +147,14 @@ func (m *Main) Start() {
 	m.logger.Info(
 		fmt.Sprintf("finished processing all blocks in the configured range [%d, %d]",
 			m.cfg.Range.From, m.cfg.Range.To))
+}
+
+func (m *Main) cleanup() {
+	if err := m.cfg.Source.Close(); err != nil {
+		m.logger.Error("failed to cleanly close consensus data source",
+			"err", err.Error(),
+		)
+	}
 }
 
 // Name returns the name of the Main.
@@ -179,9 +193,8 @@ func (m *Main) latestRound(ctx context.Context) (uint64, error) {
 }
 
 // prework performs tasks that need to be done before the main loop starts.
-func (m *Main) prework() error {
+func (m *Main) prework(ctx context.Context) error {
 	batch := &storage.QueryBatch{}
-	ctx := context.Background()
 
 	// Register special addresses.
 	batch.Queue(

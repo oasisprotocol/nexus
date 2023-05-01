@@ -51,6 +51,10 @@ func NewUniversalRuntimeApiLite(runtimeID coreCommon.Namespace, grpcConn *grpc.C
 	}
 }
 
+func (rc *UniversalRuntimeApiLite) Close() error {
+	return rc.grpcConn.Close()
+}
+
 func (rc *UniversalRuntimeApiLite) GetBlockHeader(ctx context.Context, round uint64) (*RuntimeBlockHeader, error) {
 	// Fetch the raw CBOR first, decode later.
 	var rsp cbor.RawMessage

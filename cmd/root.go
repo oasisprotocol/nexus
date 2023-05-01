@@ -30,9 +30,6 @@ var (
 type Service interface {
 	// Start starts the service.
 	Start()
-
-	// Shutdown shuts down the service.
-	Shutdown()
 }
 
 func rootMain(cmd *cobra.Command, args []string) {
@@ -60,7 +57,6 @@ func rootMain(cmd *cobra.Command, args []string) {
 		wg.Add(1)
 		go func(s Service) {
 			defer wg.Done()
-			defer s.Shutdown()
 			s.Start()
 		}(s)
 	}

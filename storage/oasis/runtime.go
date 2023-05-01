@@ -16,6 +16,10 @@ type RuntimeClient struct {
 	nodeApi nodeapi.RuntimeApiLite
 }
 
+func (rc *RuntimeClient) Close() error {
+	return rc.nodeApi.Close()
+}
+
 // AllData returns all relevant data to the given round.
 func (rc *RuntimeClient) AllData(ctx context.Context, round uint64) (*storage.RuntimeAllData, error) {
 	blockHeader, err := rc.nodeApi.GetBlockHeader(ctx, round)

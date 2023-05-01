@@ -64,7 +64,6 @@ func runServer(cmd *cobra.Command, args []string) {
 	if err != nil {
 		os.Exit(1)
 	}
-	defer service.Shutdown()
 
 	service.Start()
 }
@@ -113,6 +112,7 @@ func NewService(cfg *config.ServerConfig) (*Service, error) {
 
 // Start starts the API service.
 func (s *Service) Start() {
+	defer s.cleanup()
 	s.logger.Info("starting api service at " + s.address)
 
 	// Routes to static files (openapi spec).
@@ -169,8 +169,8 @@ func (s *Service) Start() {
 	)
 }
 
-// Shutdown gracefully shuts down the service.
-func (s *Service) Shutdown() {
+// cleanup gracefully shuts down the service.
+func (s *Service) cleanup() {
 	s.target.Shutdown()
 }
 

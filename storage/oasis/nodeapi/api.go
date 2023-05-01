@@ -54,6 +54,7 @@ type ConsensusApiLite interface {
 	GetValidators(ctx context.Context, height int64) ([]Validator, error)
 	GetCommittees(ctx context.Context, height int64, runtimeID coreCommon.Namespace) ([]Committee, error)
 	GetProposal(ctx context.Context, height int64, proposalID uint64) (*Proposal, error)
+	Close() error
 }
 
 // A lightweight subset of `consensus.TransactionsWithResults`.
@@ -202,6 +203,7 @@ type RuntimeApiLite interface {
 	EVMSimulateCall(ctx context.Context, round uint64, gasPrice []byte, gasLimit uint64, caller []byte, address []byte, value []byte, data []byte) ([]byte, error)
 	GetBlockHeader(ctx context.Context, round uint64) (*RuntimeBlockHeader, error)
 	GetTransactionsWithResults(ctx context.Context, round uint64) ([]RuntimeTransactionWithResults, error)
+	Close() error
 }
 
 type (

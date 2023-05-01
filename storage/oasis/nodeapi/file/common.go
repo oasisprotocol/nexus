@@ -1,12 +1,12 @@
 package file
 
 import (
-	"bytes"
-	"encoding/gob"
 	"errors"
+	"fmt"
 
 	"github.com/akrylysov/pogreb"
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
+	"github.com/oasisprotocol/oasis-indexer/log"
 )
 
 type NodeApiMethod func() (interface{}, error)
@@ -14,22 +14,31 @@ type NodeApiMethod func() (interface{}, error)
 var ErrUnstableRPCMethod = errors.New("this method is not cacheable because the RPC return value is not constant")
 
 func generateCacheKey(methodName string, params ...interface{}) []byte {
-	var buf bytes.Buffer
-	enc := gob.NewEncoder(&buf)
-	err := enc.Encode(methodName)
-	if err != nil {
-		panic(err)
-	}
-	for _, p := range params {
-		err = enc.Encode(p)
-		if err != nil {
-			panic(err)
-		}
-	}
-	return buf.Bytes()
+	return cbor.Marshal([]interface{}{methodName, params})
 }
 
-type KVStore struct{ *pogreb.DB }
+type KVStore struct {
+	*pogreb.DB
+
+	path   string
+	logger *log.Logger
+}
+
+func (s KVStore) Close() error {
+	s.logger.Info("closing KVStore", "path", s.path)
+	return s.DB.Close()
+}
+
+func OpenKVStore(logger *log.Logger, path string) (*KVStore, error) {
+	logger.Info("(re)opening KVStore", "path", path)
+	db, err := pogreb.Open(path, &pogreb.Options{BackgroundSyncInterval: -1})
+	if err != nil {
+		return nil, err
+	}
+	logger.Info(fmt.Sprintf("KVStore has %d entries", db.Count()))
+
+	return &KVStore{DB: db, logger: logger, path: path}, nil
+}
 
 // getFromCacheOrCall fetches the value of `cacheKey` from the cache if it exists,
 // interpreted as a `Value`. If it does not exist, it calls `valueFunc` to get the

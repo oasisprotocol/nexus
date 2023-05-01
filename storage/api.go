@@ -126,6 +126,10 @@ type ConsensusSourceStorage interface {
 
 	// Name returns the name of the source storage.
 	Name() string
+
+	// Close instructs the source storage to clean up resources. Calling other
+	// methods after this one results in undefined behavior.
+	Close() error
 }
 
 type ConsensusAllData struct {
@@ -224,6 +228,10 @@ type RuntimeSourceStorage interface {
 
 	// EVMSimulateCall gets the result of the given EVM simulate call query.
 	EVMSimulateCall(ctx context.Context, round uint64, gasPrice []byte, gasLimit uint64, caller []byte, address []byte, value []byte, data []byte) ([]byte, error)
+
+	// Close instructs the source storage to clean up resources. Calling other
+	// methods after this one results in undefined behavior.
+	Close() error
 }
 
 type RuntimeAllData struct {
@@ -256,8 +264,8 @@ type TargetStorage interface {
 	// QueryRow submits a query to fetch a single row of data from target storage.
 	QueryRow(ctx context.Context, sql string, args ...interface{}) QueryResult
 
-	// Shutdown shuts down the target storage client.
-	Shutdown()
+	// Close shuts down the target storage client.
+	Close()
 
 	// Name returns the name of the target storage.
 	Name() string

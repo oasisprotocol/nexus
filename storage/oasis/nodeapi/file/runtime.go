@@ -3,10 +3,10 @@ package file
 import (
 	"context"
 
-	"github.com/akrylysov/pogreb"
 	roothash "github.com/oasisprotocol/oasis-core/go/roothash/api"
 
 	"github.com/oasisprotocol/oasis-indexer/common"
+	"github.com/oasisprotocol/oasis-indexer/log"
 	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
 )
 
@@ -21,15 +21,27 @@ type RuntimeApiMethod func() (interface{}, error)
 var _ nodeapi.RuntimeApiLite = (*FileRuntimeApiLite)(nil)
 
 func NewFileRuntimeApiLite(runtime common.Runtime, cacheDir string, runtimeApi nodeapi.RuntimeApiLite) (*FileRuntimeApiLite, error) {
-	db, err := pogreb.Open(cacheDir, &pogreb.Options{BackgroundSyncInterval: -1})
+	db, err := OpenKVStore(
+		log.NewDefaultLogger("cached-node-api").With("runtime", runtime),
+		cacheDir,
+	)
 	if err != nil {
 		return nil, err
 	}
 	return &FileRuntimeApiLite{
 		runtime:    runtime,
-		db:         KVStore{db},
+		db:         *db,
 		runtimeApi: runtimeApi,
 	}, nil
+}
+
+func (r *FileRuntimeApiLite) Close() error {
+	// Close all resources and return the first encountered error, if any.
+	firstErr := r.runtimeApi.Close()
+	if err := r.db.Close(); err != nil && firstErr == nil {
+		firstErr = err
+	}
+	return firstErr
 }
 
 func (r *FileRuntimeApiLite) GetBlockHeader(ctx context.Context, round uint64) (*nodeapi.RuntimeBlockHeader, error) {

@@ -199,8 +199,8 @@ func (m Main) processBatch(ctx context.Context) (int, error) {
 	return len(staleTokens), nil
 }
 
-func (m Main) Start() {
-	ctx := context.Background()
+func (m Main) Start(ctx context.Context) {
+	defer m.cleanup()
 
 	backoff, err := util.NewBackoff(
 		100*time.Millisecond,
@@ -215,7 +215,13 @@ func (m Main) Start() {
 	}
 
 	for {
-		backoff.Wait()
+		select {
+		case <-time.After(backoff.Timeout()):
+			// Process next block.
+		case <-ctx.Done():
+			m.logger.Warn("shutting down evm_tokens analyzer", "reason", ctx.Err())
+			return
+		}
 
 		numProcessed, err := m.processBatch(ctx)
 		if err != nil {
@@ -232,6 +238,12 @@ func (m Main) Start() {
 		}
 
 		backoff.Success()
+	}
+}
+
+func (m *Main) cleanup() {
+	if err := m.cfg.Source.Close(); err != nil {
+		m.logger.Error("error closing data source", "err", err)
 	}
 }
 

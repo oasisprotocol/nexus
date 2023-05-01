@@ -3,12 +3,12 @@ package file
 import (
 	"context"
 
-	"github.com/akrylysov/pogreb"
 	beacon "github.com/oasisprotocol/oasis-core/go/beacon/api"
 	coreCommon "github.com/oasisprotocol/oasis-core/go/common"
 	consensus "github.com/oasisprotocol/oasis-core/go/consensus/api"
 	genesis "github.com/oasisprotocol/oasis-core/go/genesis/api"
 
+	"github.com/oasisprotocol/oasis-indexer/log"
 	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
 )
 
@@ -23,15 +23,27 @@ type FileConsensusApiLite struct {
 
 var _ nodeapi.ConsensusApiLite = (*FileConsensusApiLite)(nil)
 
-func NewFileConsensusApiLite(filename string, consensusApi nodeapi.ConsensusApiLite) (*FileConsensusApiLite, error) {
-	db, err := pogreb.Open(filename, &pogreb.Options{BackgroundSyncInterval: -1})
+func NewFileConsensusApiLite(cacheDir string, consensusApi nodeapi.ConsensusApiLite) (*FileConsensusApiLite, error) {
+	db, err := OpenKVStore(
+		log.NewDefaultLogger("cached-node-api").With("runtime", "consensus"),
+		cacheDir,
+	)
 	if err != nil {
 		return nil, err
 	}
 	return &FileConsensusApiLite{
-		db:           KVStore{db},
+		db:           *db,
 		consensusApi: consensusApi,
 	}, nil
+}
+
+func (c *FileConsensusApiLite) Close() error {
+	// Close all resources and return the first encountered error, if any.
+	firstErr := c.consensusApi.Close()
+	if err := c.db.Close(); err != nil && firstErr == nil {
+		firstErr = err
+	}
+	return firstErr
 }
 
 func (c *FileConsensusApiLite) GetGenesisDocument(ctx context.Context) (*genesis.Document, error) {
