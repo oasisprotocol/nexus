@@ -77,7 +77,7 @@ func NewRuntimeAnalyzer(
 func (m *Main) Start(ctx context.Context) {
 	defer m.cleanup()
 
-	if err := m.prework(); err != nil {
+	if err := m.prework(ctx); err != nil {
 		m.logger.Error("error doing prework",
 			"err", err,
 		)
@@ -193,9 +193,8 @@ func (m *Main) latestRound(ctx context.Context) (uint64, error) {
 }
 
 // prework performs tasks that need to be done before the main loop starts.
-func (m *Main) prework() error {
+func (m *Main) prework(ctx context.Context) error {
 	batch := &storage.QueryBatch{}
-	ctx := context.Background()
 
 	// Register special addresses.
 	batch.Queue(
