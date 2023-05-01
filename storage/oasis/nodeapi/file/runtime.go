@@ -36,7 +36,12 @@ func NewFileRuntimeApiLite(runtime common.Runtime, cacheDir string, runtimeApi n
 }
 
 func (r *FileRuntimeApiLite) Close() error {
-	return r.db.Close()
+	// Close all resources and return the first encountered error, if any.
+	firstErr := r.runtimeApi.Close()
+	if err := r.db.Close(); err != nil && firstErr == nil {
+		firstErr = err
+	}
+	return firstErr
 }
 
 func (r *FileRuntimeApiLite) GetBlockHeader(ctx context.Context, round uint64) (*nodeapi.RuntimeBlockHeader, error) {

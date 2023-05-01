@@ -38,7 +38,12 @@ func NewFileConsensusApiLite(cacheDir string, consensusApi nodeapi.ConsensusApiL
 }
 
 func (c *FileConsensusApiLite) Close() error {
-	return c.db.Close()
+	// Close all resources and return the first encountered error, if any.
+	firstErr := c.consensusApi.Close()
+	if err := c.db.Close(); err != nil && firstErr == nil {
+		firstErr = err
+	}
+	return firstErr
 }
 
 func (c *FileConsensusApiLite) GetGenesisDocument(ctx context.Context) (*genesis.Document, error) {
