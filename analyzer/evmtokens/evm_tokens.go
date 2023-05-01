@@ -242,7 +242,9 @@ func (m Main) Start(ctx context.Context) {
 }
 
 func (m *Main) cleanup() {
-	m.cfg.Source.Close()
+	if err := m.cfg.Source.Close(); err != nil {
+		m.logger.Error("error closing data source", "err", err)
+	}
 }
 
 func (m Main) Name() string {
