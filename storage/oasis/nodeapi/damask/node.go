@@ -41,21 +41,33 @@ func (c *DamaskConsensusApiLite) Close() error {
 }
 
 func (c *DamaskConsensusApiLite) GetGenesisDocument(ctx context.Context) (*genesis.Document, error) {
-	return c.client.GetGenesisDocument(ctx)
+	rsp, err := c.client.GetGenesisDocument(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("GetGenesisDocument(damask): %w", err)
+	}
+	return rsp, nil
 }
 
 func (c *DamaskConsensusApiLite) StateToGenesis(ctx context.Context, height int64) (*genesis.Document, error) {
-	return c.client.StateToGenesis(ctx, height)
+	rsp, err := c.client.StateToGenesis(ctx, height)
+	if err != nil {
+		return nil, fmt.Errorf("StateToGenesis(%d): %w", height, err)
+	}
+	return rsp, nil
 }
 
 func (c *DamaskConsensusApiLite) GetBlock(ctx context.Context, height int64) (*consensus.Block, error) {
-	return c.client.GetBlock(ctx, height)
+	rsp, err := c.client.GetBlock(ctx, height)
+	if err != nil {
+		return nil, fmt.Errorf("GetBlock(%d): %w", height, err)
+	}
+	return rsp, nil
 }
 
 func (c *DamaskConsensusApiLite) GetTransactionsWithResults(ctx context.Context, height int64) ([]nodeapi.TransactionWithResults, error) {
 	rsp, err := c.client.GetTransactionsWithResults(ctx, height)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("GetTransactionsWithResults(%d): %w", height, err)
 	}
 	txrs := make([]nodeapi.TransactionWithResults, len(rsp.Transactions))
 
@@ -63,10 +75,10 @@ func (c *DamaskConsensusApiLite) GetTransactionsWithResults(ctx context.Context,
 	for i, txBytes := range rsp.Transactions {
 		var tx consensusTx.SignedTransaction
 		if err := cbor.Unmarshal(txBytes, &tx); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("GetTransactionsWithResults(%d): transaction %d (%x): %w", height, i, txBytes, err)
 		}
 		if rsp.Results[i] == nil {
-			return nil, fmt.Errorf("transaction %d (%s) has no result", i, tx.Hash())
+			return nil, fmt.Errorf("GetTransactionsWithResults(%d): transaction %d (%x): has no result", height, i, txBytes)
 		}
 		txrs[i] = nodeapi.TransactionWithResults{
 			Transaction: tx,
@@ -77,13 +89,17 @@ func (c *DamaskConsensusApiLite) GetTransactionsWithResults(ctx context.Context,
 }
 
 func (c *DamaskConsensusApiLite) GetEpoch(ctx context.Context, height int64) (beacon.EpochTime, error) {
-	return c.client.Beacon().GetEpoch(ctx, height)
+	rsp, err := c.client.Beacon().GetEpoch(ctx, height)
+	if err != nil {
+		return beacon.EpochInvalid, fmt.Errorf("GetEpoch(%d): %w", height, err)
+	}
+	return rsp, nil
 }
 
 func (c *DamaskConsensusApiLite) RegistryEvents(ctx context.Context, height int64) ([]nodeapi.Event, error) {
 	rsp, err := c.client.Registry().GetEvents(ctx, height)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("RegistryEvents(%d): %w", height, err)
 	}
 	events := make([]nodeapi.Event, len(rsp))
 	for i, e := range rsp {
@@ -95,7 +111,7 @@ func (c *DamaskConsensusApiLite) RegistryEvents(ctx context.Context, height int6
 func (c *DamaskConsensusApiLite) StakingEvents(ctx context.Context, height int64) ([]nodeapi.Event, error) {
 	rsp, err := c.client.Staking().GetEvents(ctx, height)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("StakingEvents(%d): %w", height, err)
 	}
 	events := make([]nodeapi.Event, len(rsp))
 	for i, e := range rsp {
@@ -107,7 +123,7 @@ func (c *DamaskConsensusApiLite) StakingEvents(ctx context.Context, height int64
 func (c *DamaskConsensusApiLite) GovernanceEvents(ctx context.Context, height int64) ([]nodeapi.Event, error) {
 	rsp, err := c.client.Governance().GetEvents(ctx, height)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("GovernanceEvents(%d): %w", height, err)
 	}
 	events := make([]nodeapi.Event, len(rsp))
 	for i, e := range rsp {
@@ -119,7 +135,7 @@ func (c *DamaskConsensusApiLite) GovernanceEvents(ctx context.Context, height in
 func (c *DamaskConsensusApiLite) RoothashEvents(ctx context.Context, height int64) ([]nodeapi.Event, error) {
 	rsp, err := c.client.RootHash().GetEvents(ctx, height)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("RoothashEvents(%d): %w", height, err)
 	}
 	events := make([]nodeapi.Event, len(rsp))
 	for i, e := range rsp {
@@ -131,7 +147,7 @@ func (c *DamaskConsensusApiLite) RoothashEvents(ctx context.Context, height int6
 func (c *DamaskConsensusApiLite) GetValidators(ctx context.Context, height int64) ([]nodeapi.Validator, error) {
 	rsp, err := c.client.Scheduler().GetValidators(ctx, height)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("GetValidators(%d): %w", height, err)
 	}
 	validators := make([]nodeapi.Validator, len(rsp))
 	for i, v := range rsp {
@@ -146,7 +162,7 @@ func (c *DamaskConsensusApiLite) GetCommittees(ctx context.Context, height int64
 		RuntimeID: runtimeID,
 	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("GetCommittees(%d): %w", height, err)
 	}
 	committees := make([]nodeapi.Committee, len(rsp))
 	for i, c := range rsp {
@@ -161,7 +177,7 @@ func (c *DamaskConsensusApiLite) GetProposal(ctx context.Context, height int64, 
 		ProposalID: proposalID,
 	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("GetProposal(%d, %d): %w", height, proposalID, err)
 	}
 	return (*nodeapi.Proposal)(rsp), nil
 }

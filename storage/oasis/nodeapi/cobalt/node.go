@@ -52,7 +52,7 @@ func (c *CobaltConsensusApiLite) Close() error {
 func (c *CobaltConsensusApiLite) GetGenesisDocument(ctx context.Context) (*genesis.Document, error) {
 	var rsp genesisCobalt.Document
 	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Consensus/GetGenesisDocument", nil, &rsp); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("GetGenesisDocument(cobalt): %w", err)
 	}
 	return ConvertGenesis(rsp), nil
 }
@@ -60,7 +60,7 @@ func (c *CobaltConsensusApiLite) GetGenesisDocument(ctx context.Context) (*genes
 func (c *CobaltConsensusApiLite) StateToGenesis(ctx context.Context, height int64) (*genesis.Document, error) {
 	var rsp genesisCobalt.Document
 	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Consensus/StateToGenesis", height, &rsp); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("StateToGenesis(%d): %w", height, err)
 	}
 	return ConvertGenesis(rsp), nil
 }
@@ -68,7 +68,7 @@ func (c *CobaltConsensusApiLite) StateToGenesis(ctx context.Context, height int6
 func (c *CobaltConsensusApiLite) GetBlock(ctx context.Context, height int64) (*consensus.Block, error) {
 	var rsp consensusCobalt.Block
 	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Consensus/GetBlock", height, &rsp); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("GetBlock(%d): %w", height, err)
 	}
 	return convertBlock(rsp), nil
 }
@@ -76,7 +76,7 @@ func (c *CobaltConsensusApiLite) GetBlock(ctx context.Context, height int64) (*c
 func (c *CobaltConsensusApiLite) GetTransactionsWithResults(ctx context.Context, height int64) ([]nodeapi.TransactionWithResults, error) {
 	var rsp consensusCobalt.TransactionsWithResults
 	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Consensus/GetTransactionsWithResults", height, &rsp); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("GetTransactionsWithResults(%d): %w", height, err)
 	}
 	txrs := make([]nodeapi.TransactionWithResults, len(rsp.Transactions))
 
@@ -84,10 +84,10 @@ func (c *CobaltConsensusApiLite) GetTransactionsWithResults(ctx context.Context,
 	for i, txBytes := range rsp.Transactions {
 		var tx consensusTx.SignedTransaction
 		if err := cbor.Unmarshal(txBytes, &tx); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("GetTransactionsWithResults(%d): transaction %d (%x): %w", height, i, txBytes, err)
 		}
 		if rsp.Results[i] == nil {
-			return nil, fmt.Errorf("transaction %d (%s) has no result", i, tx.Hash())
+			return nil, fmt.Errorf("GetTransactionsWithResults(%d): transaction %d (%x): has no result", height, i, txBytes)
 		}
 		txrs[i] = nodeapi.TransactionWithResults{
 			Transaction: tx,
@@ -100,7 +100,7 @@ func (c *CobaltConsensusApiLite) GetTransactionsWithResults(ctx context.Context,
 func (c *CobaltConsensusApiLite) GetEpoch(ctx context.Context, height int64) (beacon.EpochTime, error) {
 	var rsp beaconCobalt.EpochTime
 	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Beacon/GetEpoch", height, &rsp); err != nil {
-		return beacon.EpochInvalid, err
+		return beacon.EpochInvalid, fmt.Errorf("GetEpoch(%d): %w", height, err)
 	}
 	return rsp, nil
 }
@@ -108,7 +108,7 @@ func (c *CobaltConsensusApiLite) GetEpoch(ctx context.Context, height int64) (be
 func (c *CobaltConsensusApiLite) RegistryEvents(ctx context.Context, height int64) ([]nodeapi.Event, error) {
 	var rsp []*registryCobalt.Event
 	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Registry/GetEvents", height, &rsp); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("RegistryEvents(%d): %w", height, err)
 	}
 	events := make([]nodeapi.Event, len(rsp))
 	for i, e := range rsp {
@@ -120,7 +120,7 @@ func (c *CobaltConsensusApiLite) RegistryEvents(ctx context.Context, height int6
 func (c *CobaltConsensusApiLite) StakingEvents(ctx context.Context, height int64) ([]nodeapi.Event, error) {
 	var rsp []*stakingCobalt.Event
 	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Staking/GetEvents", height, &rsp); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("StakingEvents(%d): %w", height, err)
 	}
 	events := make([]nodeapi.Event, len(rsp))
 	for i, e := range rsp {
@@ -132,7 +132,7 @@ func (c *CobaltConsensusApiLite) StakingEvents(ctx context.Context, height int64
 func (c *CobaltConsensusApiLite) GovernanceEvents(ctx context.Context, height int64) ([]nodeapi.Event, error) {
 	var rsp []*governanceCobalt.Event
 	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Governance/GetEvents", height, &rsp); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("GovernanceEvents(%d): %w", height, err)
 	}
 	events := make([]nodeapi.Event, len(rsp))
 	for i, e := range rsp {
@@ -144,7 +144,7 @@ func (c *CobaltConsensusApiLite) GovernanceEvents(ctx context.Context, height in
 func (c *CobaltConsensusApiLite) RoothashEvents(ctx context.Context, height int64) ([]nodeapi.Event, error) {
 	var rsp []*roothashCobalt.Event
 	if err := c.grpcConn.Invoke(ctx, "/oasis-core.RootHash/GetEvents", height, &rsp); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("RoothashEvents(%d): %w", height, err)
 	}
 	events := make([]nodeapi.Event, len(rsp))
 	for i, e := range rsp {
@@ -156,7 +156,7 @@ func (c *CobaltConsensusApiLite) RoothashEvents(ctx context.Context, height int6
 func (c *CobaltConsensusApiLite) GetValidators(ctx context.Context, height int64) ([]nodeapi.Validator, error) {
 	var rsp []*schedulerCobalt.Validator
 	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Scheduler/GetValidators", height, &rsp); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("GetValidators(%d): %w", height, err)
 	}
 	validators := make([]nodeapi.Validator, len(rsp))
 	for i, v := range rsp {
@@ -171,7 +171,7 @@ func (c *CobaltConsensusApiLite) GetCommittees(ctx context.Context, height int64
 		Height:    height,
 		RuntimeID: runtimeID,
 	}, &rsp); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("GetCommittees(%d): %w", height, err)
 	}
 	committees := make([]nodeapi.Committee, len(rsp))
 	for i, c := range rsp {
@@ -186,7 +186,7 @@ func (c *CobaltConsensusApiLite) GetProposal(ctx context.Context, height int64, 
 		Height:     height,
 		ProposalID: proposalID,
 	}, &rsp); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("GetProposal(%d, %d): %w", height, proposalID, err)
 	}
 	return (*nodeapi.Proposal)(convertProposal(rsp)), nil
 }

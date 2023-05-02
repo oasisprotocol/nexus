@@ -200,7 +200,19 @@ func convertEvent(e txResultsCobalt.Event) nodeapi.Event {
 					RawBody:              common.TryAsJSON(e.Staking.Escrow.Reclaim),
 					Type:                 apiTypes.ConsensusEventTypeStakingEscrowReclaim,
 				}
-				// NOTE: There is no Staking.Escrow.DebondingStart event in Cobalt.
+			case e.Staking.Escrow.DebondingStart != nil: // Note: Event started appearing mid-Cobalt.
+				ret = nodeapi.Event{
+					StakingDebondingStart: &nodeapi.DebondingStartEscrowEvent{
+						Owner:           e.Staking.Escrow.DebondingStart.Owner,
+						Escrow:          e.Staking.Escrow.DebondingStart.Escrow,
+						Amount:          e.Staking.Escrow.DebondingStart.Amount,
+						ActiveShares:    e.Staking.Escrow.DebondingStart.ActiveShares,
+						DebondingShares: e.Staking.Escrow.DebondingStart.DebondingShares,
+						DebondEndTime:   0, // Not provided in Cobalt; added in core v22.0, i.e. the testnet-only Damask precursor.
+					},
+					RawBody: common.TryAsJSON(e.Staking.Escrow.DebondingStart),
+					Type:    apiTypes.ConsensusEventTypeStakingEscrowDebondingStart,
+				}
 			}
 		case e.Staking.AllowanceChange != nil:
 			ret = nodeapi.Event{
