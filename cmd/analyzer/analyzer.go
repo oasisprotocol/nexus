@@ -140,7 +140,7 @@ func wipeStorage(cfg *config.StorageConfig) error {
 
 // Service is Oasis Nexus's analysis service.
 type Service struct {
-	Analyzers map[string]analyzer.Analyzer
+	Analyzers []analyzer.Analyzer
 
 	sources *sourceFactory
 	target  storage.TargetStorage
@@ -212,7 +212,7 @@ type A = analyzer.Analyzer
 // should be fed into subsequent call to the function.
 // As soon as an analyzerGenerator returns an error, all subsequent calls will
 // short-circuit and return the same error, leaving `analyzers` unchanged.
-func addAnalyzer(analyzers map[string]A, errSoFar error, analyzerGenerator func() (A, error)) (map[string]A, error) {
+func addAnalyzer(analyzers []A, errSoFar error, analyzerGenerator func() (A, error)) ([]A, error) {
 	if errSoFar != nil {
 		return analyzers, errSoFar
 	}
@@ -220,7 +220,7 @@ func addAnalyzer(analyzers map[string]A, errSoFar error, analyzerGenerator func(
 	if errSoFar != nil {
 		return analyzers, errSoFar
 	}
-	analyzers[a.Name()] = a
+	analyzers = append(analyzers, a)
 	return analyzers, nil
 }
 
@@ -240,7 +240,7 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) {
 	}
 
 	// Initialize analyzers.
-	analyzers := map[string]A{}
+	analyzers := []A{}
 	if cfg.Analyzers.Consensus != nil {
 		analyzers, err = addAnalyzer(analyzers, err, func() (A, error) {
 			startHeight := int64(cfg.Analyzers.Consensus.From)
