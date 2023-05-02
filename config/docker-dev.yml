@@ -3,7 +3,8 @@ analysis:
     chain_name: mainnet
     nodes:
       damask:
-        rpc: unix:/tmp/node.sock #unix:/node/data/internal.sock
+        default:
+          rpc: unix:/tmp/node.sock #unix:/node/data/internal.sock
   analyzers:
     metadata_registry:
       interval: 1h

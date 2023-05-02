@@ -18,18 +18,18 @@ import (
 
 var _ nodeapi.ConsensusApiLite = (*HistoryConsensusApiLite)(nil)
 
-type APIConstructor func(ctx context.Context, chainContext string, nodeConfig *config.NodeConfig, fastStartup bool) (nodeapi.ConsensusApiLite, error)
+type APIConstructor func(ctx context.Context, chainContext string, archiveConfig *config.ArchiveConfig, fastStartup bool) (nodeapi.ConsensusApiLite, error)
 
 var APIConstructors = map[string]APIConstructor{
-	"damask": func(ctx context.Context, chainContext string, nodeConfig *config.NodeConfig, fastStartup bool) (nodeapi.ConsensusApiLite, error) {
-		sdkConn, err := connections.SDKConnect(ctx, chainContext, nodeConfig, fastStartup)
+	"damask": func(ctx context.Context, chainContext string, archiveConfig *config.ArchiveConfig, fastStartup bool) (nodeapi.ConsensusApiLite, error) {
+		sdkConn, err := connections.SDKConnect(ctx, chainContext, archiveConfig.ResolvedConsensusNode(), fastStartup)
 		if err != nil {
 			return nil, err
 		}
 		return damask.NewDamaskConsensusApiLite(sdkConn.Consensus()), nil
 	},
-	"cobalt": func(ctx context.Context, chainContext string, nodeConfig *config.NodeConfig, fastStartup bool) (nodeapi.ConsensusApiLite, error) {
-		rawConn, err := connections.RawConnect(nodeConfig)
+	"cobalt": func(ctx context.Context, chainContext string, archiveConfig *config.ArchiveConfig, fastStartup bool) (nodeapi.ConsensusApiLite, error) {
+		rawConn, err := connections.RawConnect(archiveConfig.ResolvedConsensusNode())
 		if err != nil {
 			return nil, fmt.Errorf("indexer RawConnect: %w", err)
 		}
@@ -44,15 +44,15 @@ type HistoryConsensusApiLite struct {
 	APIs map[string]nodeapi.ConsensusApiLite
 }
 
-func NewHistoryConsensusApiLite(ctx context.Context, history *config.History, nodes map[string]*config.NodeConfig, fastStartup bool) (*HistoryConsensusApiLite, error) {
+func NewHistoryConsensusApiLite(ctx context.Context, history *config.History, nodes map[string]*config.ArchiveConfig, fastStartup bool) (*HistoryConsensusApiLite, error) {
 	apis := map[string]nodeapi.ConsensusApiLite{}
 	for _, record := range history.Records {
-		if nodeConfig, ok := nodes[record.ArchiveName]; ok {
+		if archiveConfig, ok := nodes[record.ArchiveName]; ok {
 			apiConstructor := APIConstructors[record.ArchiveName]
 			if apiConstructor == nil {
 				return nil, fmt.Errorf("historical API for archive %s not implemented", record.ArchiveName)
 			}
-			api, err := apiConstructor(ctx, record.ChainContext, nodeConfig, fastStartup)
+			api, err := apiConstructor(ctx, record.ChainContext, archiveConfig, fastStartup)
 			if err != nil {
 				return nil, fmt.Errorf("connecting to archive %s: %w", record.ArchiveName, err)
 			}

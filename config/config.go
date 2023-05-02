@@ -131,7 +131,7 @@ type SourceConfig struct {
 	// Nodes describe the oasis-node(s) to connect to. Keys are "archive
 	// names," which are named after mainnet releases, in lowercase e.g.
 	// "cobalt" and "damask."
-	Nodes map[string]*NodeConfig `koanf:"nodes"`
+	Nodes map[string]*ArchiveConfig `koanf:"nodes"`
 
 	// If set, the analyzer will skip some initial checks, e.g. that
 	// `rpc` really serves the chain with the chain context we expect.
@@ -168,10 +168,12 @@ func CustomSingleNetworkSourceConfig(rpc string, chainContext string) *SourceCon
 	}
 }
 
-func SingleNetworkLookup(rpc string) map[string]*NodeConfig {
-	return map[string]*NodeConfig{
+func SingleNetworkLookup(rpc string) map[string]*ArchiveConfig {
+	return map[string]*ArchiveConfig{
 		"damask": {
-			RPC: rpc,
+			DefaultNode: &NodeConfig{
+				RPC: rpc,
+			},
 		},
 	}
 }
@@ -198,6 +200,34 @@ type CustomChainConfig struct {
 	// SDKNetwork is the oasis-sdk Network configuration of the latest
 	// network in the chain.
 	SDKNetwork *sdkConfig.Network `koanf:"sdk_network"`
+}
+
+// ArchiveConfig is information about the nodes for a network.
+type ArchiveConfig struct {
+	// DefaultNode is information about the node to get data from by default.
+	DefaultNode *NodeConfig `koanf:"default"`
+	// ConsensusNode is information about the node to get consensus data from,
+	// instead of the default node.
+	ConsensusNode *NodeConfig `koanf:"consensus"`
+	// RuntimeNodes is the information about the nodes to get runtime data
+	// from, instead of the default node.
+	RuntimeNodes map[common.Runtime]*NodeConfig `koanf:"runtimes"`
+}
+
+func (ac *ArchiveConfig) ResolvedConsensusNode() *NodeConfig {
+	nc := ac.ConsensusNode
+	if nc != nil {
+		return nc
+	}
+	return ac.DefaultNode
+}
+
+func (ac *ArchiveConfig) ResolvedRuntimeNode(runtime common.Runtime) *NodeConfig {
+	nc := ac.RuntimeNodes[runtime]
+	if nc != nil {
+		return nc
+	}
+	return ac.DefaultNode
 }
 
 // NodeConfig is information about one oasis-node to connect to.

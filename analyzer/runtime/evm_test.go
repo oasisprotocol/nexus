@@ -27,9 +27,11 @@ var (
 	// TODO: Would be nice to have an offline test.
 	PublicSourceConfig = &config.SourceConfig{
 		ChainName: ChainName,
-		Nodes: map[string]*config.NodeConfig{
+		Nodes: map[string]*config.ArchiveConfig{
 			CurrentArchiveName: {
-				RPC: sdkConfig.DefaultNetworks.All[string(ChainName)].RPC,
+				DefaultNode: &config.NodeConfig{
+					RPC: sdkConfig.DefaultNetworks.All[string(ChainName)].RPC,
+				},
 			},
 		},
 		FastStartup: false,
