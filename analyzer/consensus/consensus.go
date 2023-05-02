@@ -79,7 +79,6 @@ func NewConsensusAnalyzer(cfg *config.BlockBasedAnalyzerConfig, genesisChainCont
 		Source:              sourceClient,
 	}
 
-	logger.Info("Starting consensus analyzer", "config", ac)
 	return &ConsensusAnalyzer{
 		cfg:     ac,
 		target:  target,

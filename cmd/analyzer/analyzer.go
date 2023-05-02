@@ -224,6 +224,7 @@ func addAnalyzer(analyzers map[string]A, errSoFar error, analyzerGenerator func(
 func NewService(cfg *config.AnalysisConfig) (*Service, error) {
 	ctx := context.Background()
 	logger := cmdCommon.Logger().WithModule(moduleName)
+	logger.Info("initializing analysis service", "config", cfg)
 
 	// Initialize source storage.
 	sources := newSourceFactory(cfg.Source)
