@@ -39,7 +39,10 @@ func NewFileConsensusApiLite(cacheDir string, consensusApi nodeapi.ConsensusApiL
 
 func (c *FileConsensusApiLite) Close() error {
 	// Close all resources and return the first encountered error, if any.
-	firstErr := c.consensusApi.Close()
+	var firstErr error
+	if c.consensusApi != nil {
+		firstErr = c.consensusApi.Close()
+	}
 	if err := c.db.Close(); err != nil && firstErr == nil {
 		firstErr = err
 	}
