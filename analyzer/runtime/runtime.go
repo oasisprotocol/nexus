@@ -41,7 +41,7 @@ var _ analyzer.Analyzer = (*Main)(nil)
 func NewRuntimeAnalyzer(
 	runtime common.Runtime,
 	runtimeMetadata *sdkConfig.ParaTime,
-	cfg *config.BlockBasedAnalyzerConfig,
+	cfg config.BlockRange,
 	sourceClient *source.RuntimeClient,
 	target storage.TargetStorage,
 	logger *log.Logger,

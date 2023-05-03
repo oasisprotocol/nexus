@@ -67,7 +67,7 @@ type ConsensusAnalyzer struct {
 var _ analyzer.Analyzer = (*ConsensusAnalyzer)(nil)
 
 // NewConsensusAnalyzer returns a new main analyzer for the consensus layer.
-func NewConsensusAnalyzer(cfg *config.BlockBasedAnalyzerConfig, genesisChainContext string, sourceClient *source.ConsensusClient, target storage.TargetStorage, logger *log.Logger) (*ConsensusAnalyzer, error) {
+func NewConsensusAnalyzer(cfg config.BlockRange, genesisChainContext string, sourceClient *source.ConsensusClient, target storage.TargetStorage, logger *log.Logger) (*ConsensusAnalyzer, error) {
 	// Configure analyzer.
 	blockRange := analyzer.BlockRange{
 		From: cfg.From,
