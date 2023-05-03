@@ -40,7 +40,8 @@ var _ block.BlockProcessor = (*processor)(nil)
 func NewRuntimeAnalyzer(
 	runtime common.Runtime,
 	runtimeMetadata *sdkConfig.ParaTime,
-	cfg *config.BlockBasedAnalyzerConfig,
+	blockRange config.BlockRange,
+	batchSize uint64,
 	sourceClient nodeapi.RuntimeApiLite,
 	target storage.TargetStorage,
 	logger *log.Logger,
@@ -55,7 +56,7 @@ func NewRuntimeAnalyzer(
 		metrics:         metrics.NewDefaultDatabaseMetrics(string(runtime)),
 	}
 
-	return block.NewAnalyzer(cfg, string(runtime), processor, target, logger, true)
+	return block.NewAnalyzer(blockRange, batchSize, string(runtime), processor, target, logger, true)
 }
 
 func (m *processor) nativeTokenSymbol() string {

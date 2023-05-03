@@ -92,7 +92,13 @@ func setupAnalyzer(t *testing.T, testDb *postgres.Client, p *mockProcessor, cfg 
 	// Initialize the block analyzer.
 	logger, err := log.NewLogger(fmt.Sprintf("test-analyzer-%s", p.name), os.Stdout, log.FmtJSON, log.LevelError)
 	require.NoError(t, err, "log.NewLogger")
-	analyzer, err := block.NewAnalyzer(cfg, p.name, p, testDb, logger, slowSync)
+	var blockRange config.BlockRange
+	if slowSync {
+		blockRange = cfg.SlowSyncRange()
+	} else {
+		blockRange = *cfg.FastSyncRange()
+	}
+	analyzer, err := block.NewAnalyzer(blockRange, cfg.BatchSize, p.name, p, testDb, logger, slowSync)
 	require.NoError(t, err, "block.NewAnalyzer")
 
 	return analyzer

@@ -66,7 +66,7 @@ type processor struct {
 var _ block.BlockProcessor = (*processor)(nil)
 
 // NewAnalyzer returns a new analyzer for the consensus layer.
-func NewAnalyzer(cfg *config.BlockBasedAnalyzerConfig, genesisChainContext string, sourceClient *source.ConsensusClient, target storage.TargetStorage, logger *log.Logger) (analyzer.Analyzer, error) {
+func NewAnalyzer(blockRange config.BlockRange, batchSize uint64, genesisChainContext string, sourceClient *source.ConsensusClient, target storage.TargetStorage, logger *log.Logger) (analyzer.Analyzer, error) {
 	processor := &processor{
 		genesisChainContext: genesisChainContext,
 		source:              sourceClient,
@@ -75,7 +75,7 @@ func NewAnalyzer(cfg *config.BlockBasedAnalyzerConfig, genesisChainContext strin
 		metrics:             metrics.NewDefaultDatabaseMetrics(consensusAnalyzerName),
 	}
 
-	return block.NewAnalyzer(cfg, consensusAnalyzerName, processor, target, logger, true)
+	return block.NewAnalyzer(blockRange, batchSize, consensusAnalyzerName, processor, target, logger, true)
 }
 
 // Implements BlockProcessor interface.

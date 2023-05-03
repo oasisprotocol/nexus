@@ -46,7 +46,8 @@ type BlockProcessor interface {
 var _ analyzer.Analyzer = (*blockBasedAnalyzer)(nil)
 
 type blockBasedAnalyzer struct {
-	config       *config.BlockBasedAnalyzerConfig
+	blockRange   config.BlockRange
+	batchSize    uint64
 	analyzerName string
 
 	processor BlockProcessor
@@ -120,7 +121,7 @@ func (b *blockBasedAnalyzer) fetchBatchForProcessing(ctx context.Context, from u
 			from,
 			to,
 			0,
-			b.config.BatchSize,
+			b.batchSize,
 		)
 	case false:
 		// Fetch and lock blocks for processing.
@@ -131,7 +132,7 @@ func (b *blockBasedAnalyzer) fetchBatchForProcessing(ctx context.Context, from u
 			from,
 			to,
 			lockExpiryMinutes,
-			b.config.BatchSize,
+			b.batchSize,
 		)
 	}
 	if err != nil {
@@ -169,8 +170,8 @@ func (b *blockBasedAnalyzer) Start(ctx context.Context) {
 	// is set to golang's maximum int64 value for convenience.
 	var to uint64 = math.MaxInt64
 	// Clamp the latest block height to the configured range.
-	if b.config.To != 0 {
-		to = b.config.To
+	if b.blockRange.To != 0 {
+		to = b.blockRange.To
 	}
 
 	// Start processing blocks.
@@ -201,8 +202,8 @@ func (b *blockBasedAnalyzer) Start(ctx context.Context) {
 		batchCtx, batchCtxCancel = context.WithTimeout(ctx, lockExpiryMinutes*time.Minute)
 
 		// Pick a batch of blocks to process.
-		b.logger.Info("picking a batch of blocks to process", "from", b.config.From, "to", to)
-		heights, err := b.fetchBatchForProcessing(ctx, b.config.From, to)
+		b.logger.Info("picking a batch of blocks to process", "from", b.blockRange.From, "to", to)
+		heights, err := b.fetchBatchForProcessing(ctx, b.blockRange.From, to)
 		if err != nil {
 			b.logger.Error("failed to pick blocks for processing",
 				"err", err,
@@ -272,8 +273,8 @@ func (b *blockBasedAnalyzer) Start(ctx context.Context) {
 		}
 
 		// Stop processing if end height is set and was reached.
-		if len(heights) == 0 && b.config.To != 0 {
-			if height, err := b.firstUnprocessedBlock(ctx); err == nil && height > b.config.To {
+		if len(heights) == 0 && b.blockRange.To != 0 {
+			if height, err := b.firstUnprocessedBlock(ctx); err == nil && height > b.blockRange.To {
 				break
 			}
 		}
@@ -282,7 +283,7 @@ func (b *blockBasedAnalyzer) Start(ctx context.Context) {
 
 	b.logger.Info(
 		"finished processing all blocks in the configured range",
-		"from", b.config.From, "to", b.config.To,
+		"from", b.blockRange.From, "to", b.blockRange.To,
 	)
 }
 
@@ -296,18 +297,20 @@ func (b *blockBasedAnalyzer) Name() string {
 // slowSync is a flag that indicates that the analyzer is running in slow-sync mode and it should
 // process blocks in order, ignoring locks as it is assumed it is the only analyzer running.
 func NewAnalyzer(
-	config *config.BlockBasedAnalyzerConfig,
+	blockRange config.BlockRange,
+	batchSize uint64,
 	name string,
 	processor BlockProcessor,
 	target storage.TargetStorage,
 	logger *log.Logger,
 	slowSync bool,
 ) (analyzer.Analyzer, error) {
-	if config.BatchSize == 0 {
-		config.BatchSize = defaultBatchSize
+	if batchSize == 0 {
+		batchSize = defaultBatchSize
 	}
 	return &blockBasedAnalyzer{
-		config:       config,
+		blockRange:   blockRange,
+		batchSize:    batchSize,
 		analyzerName: name,
 		processor:    processor,
 		target:       target,
