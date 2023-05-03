@@ -68,6 +68,11 @@ func (cfg *AnalysisConfig) Validate() error {
 	} else if cfg.Source.ChainName != "" && cfg.Source.CustomChain != nil {
 		return fmt.Errorf("source.chain_name and source.custom_chain specified, can only use one")
 	}
+	for archiveName, archiveConfig := range cfg.Source.Nodes {
+		if archiveConfig.DefaultNode == nil && archiveConfig.ConsensusNode == nil && len(archiveConfig.RuntimeNodes) == 0 {
+			return fmt.Errorf("source.nodes[%v] has none of .default, .consensus, or .runtimes", archiveName)
+		}
+	}
 	if cfg.Analyzers.Consensus != nil {
 		if err := cfg.Analyzers.Consensus.Validate(); err != nil {
 			return err
