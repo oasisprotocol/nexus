@@ -84,10 +84,13 @@ CREATE INDEX ix_events_type ON chain.events (type, tx_block);  -- tx_block is fo
 CREATE TABLE chain.epochs
 (
   id           UINT63 PRIMARY KEY,
+  -- Earliest known height that belongs to the epoch.
   start_height UINT63 NOT NULL,
-  end_height   UINT63 CHECK (end_height IS NULL OR end_height >= start_height),
+  -- Max known height that belongs to the epoch.
+  end_height   UINT63 NOT NULL CHECK (end_height >= start_height),
   UNIQUE (start_height, end_height)
 );
+CREATE INDEX ix_epochs_id ON chain.epochs (id);
 
 -- Registry Backend Data
 CREATE TABLE chain.entities

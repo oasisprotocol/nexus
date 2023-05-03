@@ -27,15 +27,13 @@ const (
     INSERT INTO chain.blocks (height, block_hash, time, num_txs, namespace, version, type, root_hash)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
 
-	ConsensusEpochInsert = `
-    INSERT INTO chain.epochs (id, start_height)
-      VALUES ($1, $2)
-    ON CONFLICT (id) DO NOTHING`
-
-	ConsensusEpochUpdate = `
-    UPDATE chain.epochs
-    SET end_height = $2
-      WHERE id = $1 AND end_height IS NULL`
+	ConsensusEpochUpsert = `
+    INSERT INTO chain.epochs AS epochs (id, start_height, end_height)
+      VALUES ($1, $2, $2)
+    ON CONFLICT (id) DO 
+    UPDATE SET
+      start_height = LEAST(excluded.start_height, epochs.start_height),
+      end_height = GREATEST(excluded.end_height, epochs.end_height)`
 
 	ConsensusTransactionInsert = `
     INSERT INTO chain.transactions (block, tx_hash, tx_index, nonce, fee_amount, max_gas, method, sender, body, module, code, message)

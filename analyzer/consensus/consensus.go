@@ -373,19 +373,10 @@ func (m *Main) queueBlockInserts(batch *storage.QueryBatch, data *storage.Consen
 
 func (m *Main) queueEpochInserts(batch *storage.QueryBatch, data *storage.ConsensusBlockData) error {
 	batch.Queue(
-		queries.ConsensusEpochInsert,
+		queries.ConsensusEpochUpsert,
 		data.Epoch,
 		data.BlockHeader.Height,
 	)
-
-	// Conclude previous epoch. Epochs start at index 0.
-	if data.Epoch > 0 {
-		batch.Queue(
-			queries.ConsensusEpochUpdate,
-			data.Epoch-1,
-			data.BlockHeader.Height,
-		)
-	}
 
 	return nil
 }
