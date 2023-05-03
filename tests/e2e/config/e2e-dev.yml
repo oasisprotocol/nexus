@@ -9,7 +9,8 @@ analysis:
       sdk_network: {}
     nodes:
       damask:
-        rpc: unix:/testnet/net-runner/network/validator-0/internal.sock
+        default:
+          rpc: unix:/testnet/net-runner/network/validator-0/internal.sock
   analyzers:
     consensus:
       from: 1

@@ -20,16 +20,16 @@ type HistoryRuntimeApiLite struct {
 	APIs    map[string]nodeapi.RuntimeApiLite
 }
 
-func NewHistoryRuntimeApiLite(ctx context.Context, history *config.History, sdkPT *sdkConfig.ParaTime, nodes map[string]*config.NodeConfig, fastStartup bool, runtime common.Runtime) (*HistoryRuntimeApiLite, error) {
+func NewHistoryRuntimeApiLite(ctx context.Context, history *config.History, sdkPT *sdkConfig.ParaTime, nodes map[string]*config.ArchiveConfig, fastStartup bool, runtime common.Runtime) (*HistoryRuntimeApiLite, error) {
 	apis := map[string]nodeapi.RuntimeApiLite{}
 	for _, record := range history.Records {
-		if nodeConfig, ok := nodes[record.ArchiveName]; ok {
-			sdkConn, err := connections.SDKConnect(ctx, record.ChainContext, nodeConfig, fastStartup)
+		if archiveConfig, ok := nodes[record.ArchiveName]; ok {
+			sdkConn, err := connections.SDKConnect(ctx, record.ChainContext, archiveConfig.ResolvedRuntimeNode(runtime), fastStartup)
 			if err != nil {
 				return nil, err
 			}
 			sdkClient := sdkConn.Runtime(sdkPT)
-			rawConn, err := connections.RawConnect(nodeConfig)
+			rawConn, err := connections.RawConnect(archiveConfig.ResolvedRuntimeNode(runtime))
 			if err != nil {
 				return nil, fmt.Errorf("indexer RawConnect: %w", err)
 			}
