@@ -12,11 +12,10 @@ import (
 	"github.com/oasisprotocol/oasis-indexer/analyzer/runtime"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/util"
 	"github.com/oasisprotocol/oasis-indexer/common"
-	"github.com/oasisprotocol/oasis-indexer/config"
 	"github.com/oasisprotocol/oasis-indexer/log"
 	"github.com/oasisprotocol/oasis-indexer/storage"
 	"github.com/oasisprotocol/oasis-indexer/storage/client"
-	"github.com/oasisprotocol/oasis-indexer/storage/oasis"
+	source "github.com/oasisprotocol/oasis-indexer/storage/oasis"
 )
 
 // The token analyzer (1) gets a list from the database of tokens to download
@@ -45,23 +44,13 @@ var _ analyzer.Analyzer = (*Main)(nil)
 
 func NewMain(
 	runtime common.Runtime,
-	sourceConfig *config.SourceConfig,
+	sourceClient *source.RuntimeClient,
 	target storage.TargetStorage,
 	logger *log.Logger,
 ) (*Main, error) {
-	ctx := context.Background()
-
-	// Initialize source storage.
-	client, err := oasis.NewRuntimeClient(ctx, sourceConfig, runtime)
-	if err != nil {
-		logger.Error("error creating runtime client",
-			"err", err,
-		)
-		return nil, err
-	}
 	ac := analyzer.RuntimeConfig{
 		RuntimeName: runtime,
-		Source:      client,
+		Source:      sourceClient,
 	}
 
 	return &Main{
@@ -200,8 +189,6 @@ func (m Main) processBatch(ctx context.Context) (int, error) {
 }
 
 func (m Main) Start(ctx context.Context) {
-	defer m.cleanup()
-
 	backoff, err := util.NewBackoff(
 		100*time.Millisecond,
 		// Cap the timeout at the expected round time. All runtimes currently have the same round time.
@@ -238,12 +225,6 @@ func (m Main) Start(ctx context.Context) {
 		}
 
 		backoff.Success()
-	}
-}
-
-func (m *Main) cleanup() {
-	if err := m.cfg.Source.Close(); err != nil {
-		m.logger.Error("error closing data source", "err", err)
 	}
 }
 

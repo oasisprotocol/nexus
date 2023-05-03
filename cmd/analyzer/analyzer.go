@@ -3,6 +3,7 @@ package analyzer
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"os/signal"
 	"sync"
@@ -24,6 +25,7 @@ import (
 	"github.com/oasisprotocol/oasis-indexer/config"
 	"github.com/oasisprotocol/oasis-indexer/log"
 	"github.com/oasisprotocol/oasis-indexer/storage"
+	source "github.com/oasisprotocol/oasis-indexer/storage/oasis"
 )
 
 const (
@@ -136,8 +138,67 @@ func wipeStorage(cfg *config.StorageConfig) error {
 type Service struct {
 	Analyzers map[string]analyzer.Analyzer
 
-	target storage.TargetStorage
-	logger *log.Logger
+	sources *sourceFactory
+	target  storage.TargetStorage
+	logger  *log.Logger
+}
+
+// sourceFactory stores singletons of the sources used by all the analyzers in a Service.
+// This enables re-use of node connections as well as graceful shutdown.
+// Note: NOT thread safe.
+type sourceFactory struct {
+	cfg config.SourceConfig
+
+	consensus *source.ConsensusClient
+	runtimes  map[common.Runtime]*source.RuntimeClient
+}
+
+func newSourceFactory(cfg config.SourceConfig) *sourceFactory {
+	return &sourceFactory{
+		cfg:      cfg,
+		runtimes: make(map[common.Runtime]*source.RuntimeClient),
+	}
+}
+
+func (s *sourceFactory) Close() error {
+	var firstErr error
+	if s.consensus != nil {
+		if err := s.consensus.Close(); err != nil {
+			firstErr = err
+		}
+	}
+	for _, runtimeClient := range s.runtimes {
+		if err := runtimeClient.Close(); err != nil && firstErr == nil {
+			firstErr = err
+		}
+	}
+
+	return firstErr
+}
+
+func (s *sourceFactory) Consensus(ctx context.Context) (*source.ConsensusClient, error) {
+	if s.consensus == nil {
+		client, err := source.NewConsensusClient(ctx, &s.cfg)
+		if err != nil {
+			return nil, fmt.Errorf("error creating consensus client: %w", err)
+		}
+		s.consensus = client
+	}
+
+	return s.consensus, nil
+}
+
+func (s *sourceFactory) Runtime(ctx context.Context, runtime common.Runtime) (*source.RuntimeClient, error) {
+	_, ok := s.runtimes[runtime]
+	if !ok {
+		client, err := source.NewRuntimeClient(ctx, &s.cfg, runtime)
+		if err != nil {
+			return nil, fmt.Errorf("error creating %s client: %w", string(runtime), err)
+		}
+		s.runtimes[runtime] = client
+	}
+
+	return s.runtimes[runtime], nil
 }
 
 type A = analyzer.Analyzer
@@ -161,10 +222,14 @@ func addAnalyzer(analyzers map[string]A, errSoFar error, analyzerGenerator func(
 
 // NewService creates new Service.
 func NewService(cfg *config.AnalysisConfig) (*Service, error) {
+	ctx := context.Background()
 	logger := cmdCommon.Logger().WithModule(moduleName)
 
+	// Initialize source storage.
+	sources := newSourceFactory(cfg.Source)
+
 	// Initialize target storage.
-	client, err := cmdCommon.NewClient(cfg.Storage, logger)
+	dbClient, err := cmdCommon.NewClient(cfg.Storage, logger)
 	if err != nil {
 		return nil, err
 	}
@@ -173,52 +238,88 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) {
 	analyzers := map[string]A{}
 	if cfg.Analyzers.Consensus != nil {
 		analyzers, err = addAnalyzer(analyzers, err, func() (A, error) {
-			return consensus.NewMain(&cfg.Source, cfg.Analyzers.Consensus, client, logger)
+			genesisChainContext := cfg.Source.History().CurrentRecord().ChainContext
+			sourceClient, err1 := sources.Consensus(ctx)
+			if err1 != nil {
+				return nil, err1
+			}
+			return consensus.NewMain(cfg.Analyzers.Consensus, genesisChainContext, sourceClient, dbClient, logger)
 		})
 	}
 	if cfg.Analyzers.Emerald != nil {
 		analyzers, err = addAnalyzer(analyzers, err, func() (A, error) {
-			return runtime.NewRuntimeAnalyzer(common.RuntimeEmerald, &cfg.Source, cfg.Analyzers.Emerald, client, logger)
+			runtimeMetadata := cfg.Source.SDKParaTime(common.RuntimeEmerald)
+			sourceClient, err1 := sources.Runtime(ctx, common.RuntimeEmerald)
+			if err1 != nil {
+				return nil, err1
+			}
+			return runtime.NewRuntimeAnalyzer(common.RuntimeEmerald, runtimeMetadata, cfg.Analyzers.Emerald, sourceClient, dbClient, logger)
 		})
 	}
 	if cfg.Analyzers.Sapphire != nil {
 		analyzers, err = addAnalyzer(analyzers, err, func() (A, error) {
-			return runtime.NewRuntimeAnalyzer(common.RuntimeSapphire, &cfg.Source, cfg.Analyzers.Sapphire, client, logger)
+			runtimeMetadata := cfg.Source.SDKParaTime(common.RuntimeSapphire)
+			sourceClient, err1 := sources.Runtime(ctx, common.RuntimeSapphire)
+			if err1 != nil {
+				return nil, err1
+			}
+			return runtime.NewRuntimeAnalyzer(common.RuntimeSapphire, runtimeMetadata, cfg.Analyzers.Sapphire, sourceClient, dbClient, logger)
 		})
 	}
 	if cfg.Analyzers.Cipher != nil {
 		analyzers, err = addAnalyzer(analyzers, err, func() (A, error) {
-			return runtime.NewRuntimeAnalyzer(common.RuntimeCipher, &cfg.Source, cfg.Analyzers.Cipher, client, logger)
+			runtimeMetadata := cfg.Source.SDKParaTime(common.RuntimeCipher)
+			sourceClient, err1 := sources.Runtime(ctx, common.RuntimeCipher)
+			if err1 != nil {
+				return nil, err1
+			}
+			return runtime.NewRuntimeAnalyzer(common.RuntimeCipher, runtimeMetadata, cfg.Analyzers.Cipher, sourceClient, dbClient, logger)
 		})
 	}
 	if cfg.Analyzers.EmeraldEvmTokens != nil {
 		analyzers, err = addAnalyzer(analyzers, err, func() (A, error) {
-			return evmtokens.NewMain(common.RuntimeEmerald, &cfg.Source, client, logger)
+			sourceClient, err1 := sources.Runtime(ctx, common.RuntimeEmerald)
+			if err1 != nil {
+				return nil, err1
+			}
+			return evmtokens.NewMain(common.RuntimeEmerald, sourceClient, dbClient, logger)
 		})
 	}
 	if cfg.Analyzers.SapphireEvmTokens != nil {
 		analyzers, err = addAnalyzer(analyzers, err, func() (A, error) {
-			return evmtokens.NewMain(common.RuntimeSapphire, &cfg.Source, client, logger)
+			sourceClient, err1 := sources.Runtime(ctx, common.RuntimeSapphire)
+			if err1 != nil {
+				return nil, err1
+			}
+			return evmtokens.NewMain(common.RuntimeSapphire, sourceClient, dbClient, logger)
 		})
 	}
 	if cfg.Analyzers.EmeraldEvmTokenBalances != nil {
 		analyzers, err = addAnalyzer(analyzers, err, func() (A, error) {
-			return evmtokenbalances.NewMain(common.RuntimeEmerald, &cfg.Source, client, logger)
+			sourceClient, err1 := sources.Runtime(ctx, common.RuntimeEmerald)
+			if err1 != nil {
+				return nil, err1
+			}
+			return evmtokenbalances.NewMain(common.RuntimeEmerald, sourceClient, dbClient, logger)
 		})
 	}
 	if cfg.Analyzers.SapphireEvmTokenBalances != nil {
 		analyzers, err = addAnalyzer(analyzers, err, func() (A, error) {
-			return evmtokenbalances.NewMain(common.RuntimeSapphire, &cfg.Source, client, logger)
+			sourceClient, err1 := sources.Runtime(ctx, common.RuntimeSapphire)
+			if err1 != nil {
+				return nil, err1
+			}
+			return evmtokenbalances.NewMain(common.RuntimeSapphire, sourceClient, dbClient, logger)
 		})
 	}
 	if cfg.Analyzers.MetadataRegistry != nil {
 		analyzers, err = addAnalyzer(analyzers, err, func() (A, error) {
-			return analyzer.NewMetadataRegistryAnalyzer(cfg.Analyzers.MetadataRegistry, client, logger)
+			return analyzer.NewMetadataRegistryAnalyzer(cfg.Analyzers.MetadataRegistry, dbClient, logger)
 		})
 	}
 	if cfg.Analyzers.AggregateStats != nil {
 		analyzers, err = addAnalyzer(analyzers, err, func() (A, error) {
-			return analyzer.NewAggregateStatsAnalyzer(cfg.Analyzers.AggregateStats, client, logger)
+			return analyzer.NewAggregateStatsAnalyzer(cfg.Analyzers.AggregateStats, dbClient, logger)
 		})
 	}
 	if err != nil {
@@ -230,8 +331,9 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) {
 	return &Service{
 		Analyzers: analyzers,
 
-		target: client,
-		logger: logger,
+		sources: sources,
+		target:  dbClient,
+		logger:  logger,
 	}, nil
 }
 
@@ -283,7 +385,14 @@ func (a *Service) Start() {
 
 // cleanup cleans up resources used by the service.
 func (a *Service) cleanup() {
+	if err := a.sources.Close(); err != nil {
+		a.logger.Error("failed to cleanly close data source",
+			"firstErr", err.Error(),
+		)
+	}
+	a.logger.Info("all source connections have closed cleanly")
 	a.target.Close()
+	a.logger.Info("indexer db connection closed cleanly")
 }
 
 // Register registers the process sub-command.

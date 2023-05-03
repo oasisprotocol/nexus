@@ -20,7 +20,7 @@ import (
 	"github.com/oasisprotocol/oasis-indexer/log"
 	"github.com/oasisprotocol/oasis-indexer/metrics"
 	"github.com/oasisprotocol/oasis-indexer/storage"
-	"github.com/oasisprotocol/oasis-indexer/storage/oasis"
+	source "github.com/oasisprotocol/oasis-indexer/storage/oasis"
 )
 
 const (
@@ -40,30 +40,21 @@ var _ analyzer.Analyzer = (*Main)(nil)
 // NewRuntimeAnalyzer returns a new main analyzer for a runtime.
 func NewRuntimeAnalyzer(
 	runtime common.Runtime,
-	sourceConfig *config.SourceConfig,
+	runtimeMetadata *sdkConfig.ParaTime,
 	cfg *config.BlockBasedAnalyzerConfig,
+	sourceClient *source.RuntimeClient,
 	target storage.TargetStorage,
 	logger *log.Logger,
 ) (*Main, error) {
-	ctx := context.Background()
-
-	// Initialize source storage.
-	client, err := oasis.NewRuntimeClient(ctx, sourceConfig, runtime)
-	if err != nil {
-		logger.Error("error creating runtime client",
-			"err", err,
-		)
-		return nil, err
-	}
 	roundRange := analyzer.RoundRange{
 		From: uint64(cfg.From),
 		To:   uint64(cfg.To),
 	}
 	ac := analyzer.RuntimeConfig{
 		RuntimeName: runtime,
-		ParaTime:    sourceConfig.SDKParaTime(runtime),
+		ParaTime:    runtimeMetadata,
 		Range:       roundRange,
-		Source:      client,
+		Source:      sourceClient,
 	}
 
 	return &Main{
@@ -75,8 +66,6 @@ func NewRuntimeAnalyzer(
 }
 
 func (m *Main) Start(ctx context.Context) {
-	defer m.cleanup()
-
 	if err := m.prework(ctx); err != nil {
 		m.logger.Error("error doing prework",
 			"err", err,
@@ -147,14 +136,6 @@ func (m *Main) Start(ctx context.Context) {
 	m.logger.Info(
 		fmt.Sprintf("finished processing all blocks in the configured range [%d, %d]",
 			m.cfg.Range.From, m.cfg.Range.To))
-}
-
-func (m *Main) cleanup() {
-	if err := m.cfg.Source.Close(); err != nil {
-		m.logger.Error("failed to cleanly close consensus data source",
-			"err", err.Error(),
-		)
-	}
 }
 
 // Name returns the name of the Main.

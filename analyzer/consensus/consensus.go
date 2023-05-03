@@ -67,27 +67,16 @@ type Main struct {
 var _ analyzer.Analyzer = (*Main)(nil)
 
 // NewMain returns a new main analyzer for the consensus layer.
-func NewMain(sourceConfig *config.SourceConfig, cfg *config.BlockBasedAnalyzerConfig, target storage.TargetStorage, logger *log.Logger) (*Main, error) {
-	ctx := context.Background()
-
-	// Initialize source storage.
-	client, err := source.NewConsensusClient(ctx, sourceConfig)
-	if err != nil {
-		logger.Error("error creating consensus client",
-			"err", err.Error(),
-		)
-		return nil, err
-	}
-
+func NewMain(cfg *config.BlockBasedAnalyzerConfig, genesisChainContext string, sourceClient *source.ConsensusClient, target storage.TargetStorage, logger *log.Logger) (*Main, error) {
 	// Configure analyzer.
 	blockRange := analyzer.BlockRange{
 		From: cfg.From,
 		To:   cfg.To,
 	}
 	ac := analyzer.ConsensusConfig{
-		GenesisChainContext: sourceConfig.History().CurrentRecord().ChainContext,
+		GenesisChainContext: genesisChainContext,
 		Range:               blockRange,
-		Source:              client,
+		Source:              sourceClient,
 	}
 
 	logger.Info("Starting consensus analyzer", "config", ac)
@@ -101,8 +90,6 @@ func NewMain(sourceConfig *config.SourceConfig, cfg *config.BlockBasedAnalyzerCo
 
 // Start starts the main consensus analyzer.
 func (m *Main) Start(ctx context.Context) {
-	defer m.cleanup()
-
 	// Get block to be indexed.
 	var height int64
 
@@ -180,14 +167,6 @@ func (m *Main) Start(ctx context.Context) {
 	m.logger.Info(
 		fmt.Sprintf("finished processing all blocks in the configured range [%d, %d]",
 			m.cfg.Range.From, m.cfg.Range.To))
-}
-
-func (m *Main) cleanup() {
-	if err := m.cfg.Source.Close(); err != nil {
-		m.logger.Error("failed to cleanly close consensus data source",
-			"err", err.Error(),
-		)
-	}
 }
 
 // Name returns the name of the Main.
