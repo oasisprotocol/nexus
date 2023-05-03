@@ -369,9 +369,9 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 				EVMCreate: func(body *evm.Create, ok *[]byte) error {
 					blockTransactionData.Body = body
 					amount = uncategorized.QuantityFromBytes(body.Value)
-					if !txr.Result.IsUnknown() && txr.Result.IsSuccess() && len(*ok) == 32 {
+					if !txr.Result.IsUnknown() && txr.Result.IsSuccess() && len(*ok) == 20 {
 						// todo: is this rigorous enough?
-						if to, err = registerRelatedEthAddress(blockData.AddressPreimages, blockTransactionData.RelatedAccountAddresses, uncategorized.SliceEthAddress(*ok)); err != nil {
+						if to, err = registerRelatedEthAddress(blockData.AddressPreimages, blockTransactionData.RelatedAccountAddresses, *ok); err != nil {
 							return fmt.Errorf("created contract: %w", err)
 						}
 					}
