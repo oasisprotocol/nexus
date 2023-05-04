@@ -140,7 +140,8 @@ func wipeStorage(cfg *config.StorageConfig) error {
 
 // Service is Oasis Nexus's analysis service.
 type Service struct {
-	Analyzers []analyzer.Analyzer
+	analyzers         []analyzer.Analyzer
+	fastSyncAnalyzers []analyzer.Analyzer
 
 	sources *sourceFactory
 	target  storage.TargetStorage
@@ -225,7 +226,7 @@ func addAnalyzer(analyzers []A, errSoFar error, analyzerGenerator func() (A, err
 }
 
 // NewService creates new Service.
-func NewService(cfg *config.AnalysisConfig) (*Service, error) {
+func NewService(cfg *config.AnalysisConfig) (*Service, error) { //nolint:gocyclo
 	ctx := context.Background()
 	logger := cmdCommon.Logger().WithModule(moduleName)
 	logger.Info("initializing analysis service", "config", cfg)
@@ -239,7 +240,66 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) {
 		return nil, err
 	}
 
-	// Initialize analyzers.
+	// Initialize fast-sync analyzers.
+	fastSyncAnalyzers := []A{}
+	if cfg.Analyzers.Consensus != nil {
+		if fastRange := cfg.Analyzers.Consensus.FastSyncRange(); fastRange != nil {
+			for i := 0; i < cfg.Analyzers.Consensus.FastSync.Parallelism; i++ {
+				fastSyncAnalyzers, err = addAnalyzer(fastSyncAnalyzers, err, func() (A, error) {
+					chainContext := cfg.Source.History().CurrentRecord().ChainContext
+					sourceClient, err1 := sources.Consensus(ctx)
+					if err1 != nil {
+						return nil, err1
+					}
+					return consensus.NewAnalyzer(*fastRange, cfg.Analyzers.Consensus.BatchSize, chainContext, sourceClient, dbClient, logger)
+				})
+			}
+		}
+	}
+	if cfg.Analyzers.Emerald != nil {
+		if fastRange := cfg.Analyzers.Emerald.FastSyncRange(); fastRange != nil {
+			for i := 0; i < cfg.Analyzers.Emerald.FastSync.Parallelism; i++ {
+				fastSyncAnalyzers, err = addAnalyzer(fastSyncAnalyzers, err, func() (A, error) {
+					sdkPT := cfg.Source.SDKParaTime(common.RuntimeEmerald)
+					sourceClient, err1 := sources.Runtime(ctx, common.RuntimeEmerald)
+					if err1 != nil {
+						return nil, err1
+					}
+					return runtime.NewRuntimeAnalyzer(common.RuntimeEmerald, sdkPT, *fastRange, cfg.Analyzers.Emerald.BatchSize, sourceClient, dbClient, logger)
+				})
+			}
+		}
+	}
+	if cfg.Analyzers.Sapphire != nil {
+		if fastRange := cfg.Analyzers.Sapphire.FastSyncRange(); fastRange != nil {
+			for i := 0; i < cfg.Analyzers.Sapphire.FastSync.Parallelism; i++ {
+				fastSyncAnalyzers, err = addAnalyzer(fastSyncAnalyzers, err, func() (A, error) {
+					sdkPT := cfg.Source.SDKParaTime(common.RuntimeSapphire)
+					sourceClient, err1 := sources.Runtime(ctx, common.RuntimeSapphire)
+					if err1 != nil {
+						return nil, err1
+					}
+					return runtime.NewRuntimeAnalyzer(common.RuntimeSapphire, sdkPT, *fastRange, cfg.Analyzers.Sapphire.BatchSize, sourceClient, dbClient, logger)
+				})
+			}
+		}
+	}
+	if cfg.Analyzers.Cipher != nil {
+		if fastRange := cfg.Analyzers.Cipher.FastSyncRange(); fastRange != nil {
+			for i := 0; i < cfg.Analyzers.Cipher.FastSync.Parallelism; i++ {
+				fastSyncAnalyzers, err = addAnalyzer(fastSyncAnalyzers, err, func() (A, error) {
+					sdkPT := cfg.Source.SDKParaTime(common.RuntimeCipher)
+					sourceClient, err1 := sources.Runtime(ctx, common.RuntimeCipher)
+					if err1 != nil {
+						return nil, err1
+					}
+					return runtime.NewRuntimeAnalyzer(common.RuntimeCipher, sdkPT, *fastRange, cfg.Analyzers.Cipher.BatchSize, sourceClient, dbClient, logger)
+				})
+			}
+		}
+	}
+
+	// Initialize slow-sync analyzers.
 	analyzers := []A{}
 	if cfg.Analyzers.Consensus != nil {
 		analyzers, err = addAnalyzer(analyzers, err, func() (A, error) {
@@ -364,12 +424,23 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) {
 	logger.Info("initialized all analyzers")
 
 	return &Service{
-		Analyzers: analyzers,
+		fastSyncAnalyzers: fastSyncAnalyzers,
+		analyzers:         analyzers,
 
 		sources: sources,
 		target:  dbClient,
 		logger:  logger,
 	}, nil
+}
+
+// closingChannel returns a channel that closes when the wait group `wg` is done.
+func closingChannel(wg *sync.WaitGroup) <-chan struct{} {
+	c := make(chan struct{})
+	go func() {
+		wg.Wait()
+		close(c)
+	}()
+	return c
 }
 
 // Start starts the analysis service.
@@ -380,22 +451,34 @@ func (a *Service) Start() {
 	ctx, cancelAnalyzers := context.WithCancel(context.Background())
 	defer cancelAnalyzers() // Start() only returns when analyzers are done, so this should be a no-op, but it makes the compiler happier.
 
-	// Start all analyzers.
-	var wg sync.WaitGroup
-	for _, an := range a.Analyzers {
-		wg.Add(1)
+	// Start fast-sync analyzers.
+	var fastSyncWg sync.WaitGroup
+	for _, an := range a.fastSyncAnalyzers {
+		fastSyncWg.Add(1)
 		go func(an analyzer.Analyzer) {
-			defer wg.Done()
+			defer fastSyncWg.Done()
 			an.Start(ctx)
 		}(an)
 	}
+	fastSyncAnalyzersDone := closingChannel(&fastSyncWg)
 
-	// Create a channel that will close when all analyzers have completed.
-	analyzersDone := make(chan struct{})
-	go func() {
-		wg.Wait()
-		close(analyzersDone)
-	}()
+	// Prepare slow-sync analyzers (to be started after fast-sync analyzers are done).
+	var wg sync.WaitGroup
+	for _, an := range a.analyzers {
+		wg.Add(1)
+		go func(an analyzer.Analyzer) {
+			defer wg.Done()
+			// Start the analyzer after fast-sync analyzers,
+			// unless the context is canceled first (e.g. by ctrl+C during fast-sync).
+			select {
+			case <-ctx.Done():
+				return
+			case <-fastSyncAnalyzersDone:
+				an.Start(ctx)
+			}
+		}(an)
+	}
+	analyzersDone := closingChannel(&wg)
 
 	// Trap Ctrl+C and SIGTERM; the latter is issued by Kubernetes to request a shutdown.
 	signalChan := make(chan os.Signal, 1)
