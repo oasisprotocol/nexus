@@ -37,7 +37,10 @@ func NewFileRuntimeApiLite(runtime common.Runtime, cacheDir string, runtimeApi n
 
 func (r *FileRuntimeApiLite) Close() error {
 	// Close all resources and return the first encountered error, if any.
-	firstErr := r.runtimeApi.Close()
+	var firstErr error
+	if r.runtimeApi != nil {
+		firstErr = r.runtimeApi.Close()
+	}
 	if err := r.db.Close(); err != nil && firstErr == nil {
 		firstErr = err
 	}
