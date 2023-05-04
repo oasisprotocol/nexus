@@ -77,26 +77,26 @@ const (
 	DownloadTimeout                = 61 * time.Second
 )
 
-type Main struct {
+type evmTokenBalancesAnalyzer struct {
 	cfg    analyzer.RuntimeConfig
 	target storage.TargetStorage
 	logger *log.Logger
 }
 
-var _ analyzer.Analyzer = (*Main)(nil)
+var _ analyzer.Analyzer = (*evmTokenBalancesAnalyzer)(nil)
 
-func NewMain(
+func NewEvmTokenBalancesAnalyzer(
 	runtime common.Runtime,
 	sourceClient *source.RuntimeClient,
 	target storage.TargetStorage,
 	logger *log.Logger,
-) (*Main, error) {
+) (analyzer.Analyzer, error) {
 	ac := analyzer.RuntimeConfig{
 		RuntimeName: runtime,
 		Source:      sourceClient,
 	}
 
-	return &Main{
+	return &evmTokenBalancesAnalyzer{
 		cfg:    ac,
 		target: target,
 		logger: logger.With("analyzer", EvmTokenBalancesAnalyzerPrefix+runtime),
@@ -117,7 +117,7 @@ type StaleTokenBalance struct {
 	DownloadRound                uint64
 }
 
-func (m Main) getStaleTokenBalances(ctx context.Context, limit int) ([]*StaleTokenBalance, error) {
+func (m evmTokenBalancesAnalyzer) getStaleTokenBalances(ctx context.Context, limit int) ([]*StaleTokenBalance, error) {
 	var staleTokenBalances []*StaleTokenBalance
 	rows, err := m.target.Query(ctx, queries.RuntimeEVMTokenBalanceAnalysisStale, m.cfg.RuntimeName, limit)
 	if err != nil {
@@ -148,7 +148,7 @@ func (m Main) getStaleTokenBalances(ctx context.Context, limit int) ([]*StaleTok
 	return staleTokenBalances, nil
 }
 
-func (m Main) processStaleTokenBalance(ctx context.Context, batch *storage.QueryBatch, staleTokenBalance *StaleTokenBalance) error {
+func (m evmTokenBalancesAnalyzer) processStaleTokenBalance(ctx context.Context, batch *storage.QueryBatch, staleTokenBalance *StaleTokenBalance) error {
 	m.logger.Info("downloading", "stale_token_balance", staleTokenBalance)
 	// todo: assert that token addr and account addr contexts are secp256k1
 	tokenEthAddr, err := client.EVMEthAddrFromPreimage(staleTokenBalance.TokenAddrContextIdentifier, staleTokenBalance.TokenAddrContextVersion, staleTokenBalance.TokenAddrData)
@@ -206,7 +206,7 @@ func (m Main) processStaleTokenBalance(ctx context.Context, batch *storage.Query
 	return nil
 }
 
-func (m Main) processBatch(ctx context.Context) (int, error) {
+func (m evmTokenBalancesAnalyzer) processBatch(ctx context.Context) (int, error) {
 	staleTokenBalances, err := m.getStaleTokenBalances(ctx, MaxDownloadBatch)
 	if err != nil {
 		return 0, fmt.Errorf("getting stale token balances: %w", err)
@@ -246,7 +246,7 @@ func (m Main) processBatch(ctx context.Context) (int, error) {
 	return len(staleTokenBalances), nil
 }
 
-func (m Main) Start(ctx context.Context) {
+func (m evmTokenBalancesAnalyzer) Start(ctx context.Context) {
 	backoff, err := util.NewBackoff(
 		100*time.Millisecond,
 		// Cap the timeout at the expected round time. All runtimes currently have the same round time.
@@ -286,6 +286,6 @@ func (m Main) Start(ctx context.Context) {
 	}
 }
 
-func (m Main) Name() string {
+func (m evmTokenBalancesAnalyzer) Name() string {
 	return EvmTokenBalancesAnalyzerPrefix + string(m.cfg.RuntimeName)
 }

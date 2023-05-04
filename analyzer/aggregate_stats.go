@@ -69,7 +69,7 @@ func (a *AggregateStatsAnalyzer) Name() string {
 	return AggregateStatsAnalyzerName
 }
 
-func NewAggregateStatsAnalyzer(cfg *config.AggregateStatsConfig, target storage.TargetStorage, logger *log.Logger) (*AggregateStatsAnalyzer, error) {
+func NewAggregateStatsAnalyzer(cfg *config.AggregateStatsConfig, target storage.TargetStorage, logger *log.Logger) (Analyzer, error) {
 	logger.Info("starting aggregate_stats analyzer")
 	return &AggregateStatsAnalyzer{
 		target:           target,

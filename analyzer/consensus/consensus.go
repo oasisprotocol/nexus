@@ -56,18 +56,18 @@ func OpenSignedTxNoVerify(signedTx *transaction.SignedTransaction) (*transaction
 	return &tx, nil
 }
 
-// ConsensusAnalyzer is the main Analyzer for the consensus layer.
-type ConsensusAnalyzer struct {
+// consensusAnalyzer is the main Analyzer for the consensus layer.
+type consensusAnalyzer struct {
 	cfg     analyzer.ConsensusConfig
 	target  storage.TargetStorage
 	logger  *log.Logger
 	metrics metrics.DatabaseMetrics
 }
 
-var _ analyzer.Analyzer = (*ConsensusAnalyzer)(nil)
+var _ analyzer.Analyzer = (*consensusAnalyzer)(nil)
 
 // NewConsensusAnalyzer returns a new main analyzer for the consensus layer.
-func NewConsensusAnalyzer(cfg config.BlockRange, genesisChainContext string, sourceClient *source.ConsensusClient, target storage.TargetStorage, logger *log.Logger) (*ConsensusAnalyzer, error) {
+func NewConsensusAnalyzer(cfg config.BlockRange, genesisChainContext string, sourceClient *source.ConsensusClient, target storage.TargetStorage, logger *log.Logger) (analyzer.Analyzer, error) {
 	// Configure analyzer.
 	blockRange := analyzer.BlockRange{
 		From: cfg.From,
@@ -79,7 +79,7 @@ func NewConsensusAnalyzer(cfg config.BlockRange, genesisChainContext string, sou
 		Source:              sourceClient,
 	}
 
-	return &ConsensusAnalyzer{
+	return &consensusAnalyzer{
 		cfg:     ac,
 		target:  target,
 		logger:  logger.With("analyzer", ConsensusAnalyzerName),
@@ -88,7 +88,7 @@ func NewConsensusAnalyzer(cfg config.BlockRange, genesisChainContext string, sou
 }
 
 // Start starts the main consensus analyzer.
-func (m *ConsensusAnalyzer) Start(ctx context.Context) {
+func (m *consensusAnalyzer) Start(ctx context.Context) {
 	// Get block to be indexed.
 	var height int64
 
@@ -169,12 +169,12 @@ func (m *ConsensusAnalyzer) Start(ctx context.Context) {
 }
 
 // Name returns the name of the Main.
-func (m *ConsensusAnalyzer) Name() string {
+func (m *consensusAnalyzer) Name() string {
 	return ConsensusAnalyzerName
 }
 
 // source returns the source storage for the provided block height.
-func (m *ConsensusAnalyzer) source(height int64) (storage.ConsensusSourceStorage, error) {
+func (m *consensusAnalyzer) source(height int64) (storage.ConsensusSourceStorage, error) {
 	r := m.cfg
 	if height >= r.Range.From && (r.Range.To == 0 || height <= r.Range.To) {
 		return r.Source, nil
@@ -184,7 +184,7 @@ func (m *ConsensusAnalyzer) source(height int64) (storage.ConsensusSourceStorage
 }
 
 // latestBlock returns the latest block processed by the consensus analyzer.
-func (m *ConsensusAnalyzer) latestBlock(ctx context.Context) (int64, error) {
+func (m *consensusAnalyzer) latestBlock(ctx context.Context) (int64, error) {
 	var latest int64
 	if err := m.target.QueryRow(
 		ctx,
@@ -198,7 +198,7 @@ func (m *ConsensusAnalyzer) latestBlock(ctx context.Context) (int64, error) {
 	return latest, nil
 }
 
-func (m *ConsensusAnalyzer) isGenesisProcessed(ctx context.Context, chainContext string) (bool, error) {
+func (m *consensusAnalyzer) isGenesisProcessed(ctx context.Context, chainContext string) (bool, error) {
 	var processed bool
 	if err := m.target.QueryRow(
 		ctx,
@@ -210,7 +210,7 @@ func (m *ConsensusAnalyzer) isGenesisProcessed(ctx context.Context, chainContext
 	return processed, nil
 }
 
-func (m *ConsensusAnalyzer) processGenesis(ctx context.Context, chainContext string) error {
+func (m *consensusAnalyzer) processGenesis(ctx context.Context, chainContext string) error {
 	m.logger.Info("fetching genesis document")
 	genesisDoc, err := m.cfg.Source.GenesisDocument(ctx)
 	if err != nil {
@@ -254,7 +254,7 @@ func (m *ConsensusAnalyzer) processGenesis(ctx context.Context, chainContext str
 // processBlock processes the provided block, retrieving all required information
 // from source storage and committing an atomically-executed batch of queries
 // to target storage.
-func (m *ConsensusAnalyzer) processBlock(ctx context.Context, height int64) error {
+func (m *consensusAnalyzer) processBlock(ctx context.Context, height int64) error {
 	ctxWithTimeout, cancel := context.WithTimeout(ctx, ProcessBlockTimeout)
 	defer cancel()
 
@@ -354,7 +354,7 @@ func (m *ConsensusAnalyzer) processBlock(ctx context.Context, height int64) erro
 	return nil
 }
 
-func (m *ConsensusAnalyzer) queueBlockInserts(batch *storage.QueryBatch, data *storage.ConsensusBlockData) error {
+func (m *consensusAnalyzer) queueBlockInserts(batch *storage.QueryBatch, data *storage.ConsensusBlockData) error {
 	batch.Queue(
 		queries.ConsensusBlockInsert,
 		data.BlockHeader.Height,
@@ -370,7 +370,7 @@ func (m *ConsensusAnalyzer) queueBlockInserts(batch *storage.QueryBatch, data *s
 	return nil
 }
 
-func (m *ConsensusAnalyzer) queueEpochInserts(batch *storage.QueryBatch, data *storage.ConsensusBlockData) error {
+func (m *consensusAnalyzer) queueEpochInserts(batch *storage.QueryBatch, data *storage.ConsensusBlockData) error {
 	batch.Queue(
 		queries.ConsensusEpochInsert,
 		data.Epoch,
@@ -389,7 +389,7 @@ func (m *ConsensusAnalyzer) queueEpochInserts(batch *storage.QueryBatch, data *s
 	return nil
 }
 
-func (m *ConsensusAnalyzer) queueTransactionInserts(batch *storage.QueryBatch, data *storage.ConsensusBlockData) error {
+func (m *consensusAnalyzer) queueTransactionInserts(batch *storage.QueryBatch, data *storage.ConsensusBlockData) error {
 	for i, txr := range data.TransactionsWithResults {
 		signedTx := txr.Transaction
 		result := txr.Result
@@ -467,7 +467,7 @@ func (m *ConsensusAnalyzer) queueTransactionInserts(batch *storage.QueryBatch, d
 }
 
 // Enqueue DB statements to store events that were generated as the result of a TX execution.
-func (m *ConsensusAnalyzer) queueTxEventInserts(batch *storage.QueryBatch, data *storage.ConsensusBlockData) error {
+func (m *consensusAnalyzer) queueTxEventInserts(batch *storage.QueryBatch, data *storage.ConsensusBlockData) error {
 	for i, txr := range data.TransactionsWithResults {
 		var txAccounts []staking.Address
 		for _, event := range txr.Result.Events {
@@ -501,7 +501,7 @@ func (m *ConsensusAnalyzer) queueTxEventInserts(batch *storage.QueryBatch, data 
 	return nil
 }
 
-func (m *ConsensusAnalyzer) queueRuntimeRegistrations(batch *storage.QueryBatch, data *storage.RegistryData) error {
+func (m *consensusAnalyzer) queueRuntimeRegistrations(batch *storage.QueryBatch, data *storage.RegistryData) error {
 	for _, runtimeEvent := range data.RuntimeRegisteredEvents {
 		var keyManager *string
 
@@ -522,7 +522,7 @@ func (m *ConsensusAnalyzer) queueRuntimeRegistrations(batch *storage.QueryBatch,
 	return nil
 }
 
-func (m *ConsensusAnalyzer) queueEntityEvents(batch *storage.QueryBatch, data *storage.RegistryData) error {
+func (m *consensusAnalyzer) queueEntityEvents(batch *storage.QueryBatch, data *storage.RegistryData) error {
 	for _, entityEvent := range data.EntityEvents {
 		entityID := entityEvent.Entity.ID.String()
 
@@ -541,7 +541,7 @@ func (m *ConsensusAnalyzer) queueEntityEvents(batch *storage.QueryBatch, data *s
 	return nil
 }
 
-func (m *ConsensusAnalyzer) queueNodeEvents(batch *storage.QueryBatch, data *storage.RegistryData) error {
+func (m *consensusAnalyzer) queueNodeEvents(batch *storage.QueryBatch, data *storage.RegistryData) error {
 	for _, nodeEvent := range data.NodeEvents {
 		if nodeEvent.IsRegistration {
 			// A new node is registered.
@@ -581,7 +581,7 @@ func (m *ConsensusAnalyzer) queueNodeEvents(batch *storage.QueryBatch, data *sto
 	return nil
 }
 
-func (m *ConsensusAnalyzer) queueRegistryEventInserts(batch *storage.QueryBatch, data *storage.RegistryData) error {
+func (m *consensusAnalyzer) queueRegistryEventInserts(batch *storage.QueryBatch, data *storage.RegistryData) error {
 	for _, event := range data.Events {
 		hash := util.SanitizeTxHash(event.TxHash.Hex())
 		if hash != nil {
@@ -598,7 +598,7 @@ func (m *ConsensusAnalyzer) queueRegistryEventInserts(batch *storage.QueryBatch,
 	return nil
 }
 
-func (m *ConsensusAnalyzer) queueRootHashEventInserts(batch *storage.QueryBatch, data *storage.RootHashData) error {
+func (m *consensusAnalyzer) queueRootHashEventInserts(batch *storage.QueryBatch, data *storage.RootHashData) error {
 	for _, event := range data.Events {
 		hash := util.SanitizeTxHash(event.TxHash.Hex())
 		if hash != nil {
@@ -634,15 +634,15 @@ const (
 	TransferTypeOther                   TransferType = "Other"
 )
 
-func (m *ConsensusAnalyzer) queueRegularTransfers(batch *storage.QueryBatch, data *storage.StakingData) error {
+func (m *consensusAnalyzer) queueRegularTransfers(batch *storage.QueryBatch, data *storage.StakingData) error {
 	return m.queueTransfers(batch, data, TransferTypeOther)
 }
 
-func (m *ConsensusAnalyzer) queueDisbursementTransfers(batch *storage.QueryBatch, data *storage.StakingData) error {
+func (m *consensusAnalyzer) queueDisbursementTransfers(batch *storage.QueryBatch, data *storage.StakingData) error {
 	return m.queueTransfers(batch, data, TransferTypeAccumulatorDisbursement)
 }
 
-func (m *ConsensusAnalyzer) queueTransfers(batch *storage.QueryBatch, data *storage.StakingData, targetType TransferType) error {
+func (m *consensusAnalyzer) queueTransfers(batch *storage.QueryBatch, data *storage.StakingData, targetType TransferType) error {
 	for _, transfer := range data.Transfers {
 		// Filter out transfers that are not of the target type.
 		typ := TransferTypeOther // type of the current transfer
@@ -666,7 +666,7 @@ func (m *ConsensusAnalyzer) queueTransfers(batch *storage.QueryBatch, data *stor
 	return nil
 }
 
-func (m *ConsensusAnalyzer) queueBurns(batch *storage.QueryBatch, data *storage.StakingData) error {
+func (m *consensusAnalyzer) queueBurns(batch *storage.QueryBatch, data *storage.StakingData) error {
 	for _, burn := range data.Burns {
 		batch.Queue(queries.ConsensusDecreaseGeneralBalanceUpsert,
 			burn.Owner.String(),
@@ -677,7 +677,7 @@ func (m *ConsensusAnalyzer) queueBurns(batch *storage.QueryBatch, data *storage.
 	return nil
 }
 
-func (m *ConsensusAnalyzer) queueEscrows(batch *storage.QueryBatch, data *storage.StakingData) error {
+func (m *consensusAnalyzer) queueEscrows(batch *storage.QueryBatch, data *storage.StakingData) error {
 	for _, e := range data.AddEscrows {
 		owner := e.Owner.String()
 		escrower := e.Escrow.String()
@@ -744,7 +744,7 @@ func (m *ConsensusAnalyzer) queueEscrows(batch *storage.QueryBatch, data *storag
 	return nil
 }
 
-func (m *ConsensusAnalyzer) queueAllowanceChanges(batch *storage.QueryBatch, data *storage.StakingData) error {
+func (m *consensusAnalyzer) queueAllowanceChanges(batch *storage.QueryBatch, data *storage.StakingData) error {
 	for _, allowanceChange := range data.AllowanceChanges {
 		if allowanceChange.Allowance.IsZero() {
 			batch.Queue(queries.ConsensusAllowanceChangeDelete,
@@ -766,7 +766,7 @@ func (m *ConsensusAnalyzer) queueAllowanceChanges(batch *storage.QueryBatch, dat
 	return nil
 }
 
-func (m *ConsensusAnalyzer) queueStakingEventInserts(batch *storage.QueryBatch, data *storage.StakingData) error {
+func (m *consensusAnalyzer) queueStakingEventInserts(batch *storage.QueryBatch, data *storage.StakingData) error {
 	for _, event := range data.Events {
 		hash := util.SanitizeTxHash(event.TxHash.Hex())
 		if hash != nil {
@@ -783,7 +783,7 @@ func (m *ConsensusAnalyzer) queueStakingEventInserts(batch *storage.QueryBatch, 
 	return nil
 }
 
-func (m *ConsensusAnalyzer) queueValidatorUpdates(batch *storage.QueryBatch, data *storage.SchedulerData) error {
+func (m *consensusAnalyzer) queueValidatorUpdates(batch *storage.QueryBatch, data *storage.SchedulerData) error {
 	for _, validator := range data.Validators {
 		batch.Queue(queries.ConsensusValidatorNodeUpdate,
 			validator.ID.String(),
@@ -794,7 +794,7 @@ func (m *ConsensusAnalyzer) queueValidatorUpdates(batch *storage.QueryBatch, dat
 	return nil
 }
 
-func (m *ConsensusAnalyzer) queueCommitteeUpdates(batch *storage.QueryBatch, data *storage.SchedulerData) error {
+func (m *consensusAnalyzer) queueCommitteeUpdates(batch *storage.QueryBatch, data *storage.SchedulerData) error {
 	batch.Queue(queries.ConsensusCommitteeMembersTruncate)
 	for namespace, committees := range data.Committees {
 		runtime := namespace.String()
@@ -819,7 +819,7 @@ func (m *ConsensusAnalyzer) queueCommitteeUpdates(batch *storage.QueryBatch, dat
 	return nil
 }
 
-func (m *ConsensusAnalyzer) queueSubmissions(batch *storage.QueryBatch, data *storage.GovernanceData) error {
+func (m *consensusAnalyzer) queueSubmissions(batch *storage.QueryBatch, data *storage.GovernanceData) error {
 	for _, submission := range data.ProposalSubmissions {
 		if submission.Content.Upgrade != nil {
 			batch.Queue(queries.ConsensusProposalSubmissionInsert,
@@ -851,7 +851,7 @@ func (m *ConsensusAnalyzer) queueSubmissions(batch *storage.QueryBatch, data *st
 	return nil
 }
 
-func (m *ConsensusAnalyzer) queueExecutions(batch *storage.QueryBatch, data *storage.GovernanceData) error {
+func (m *consensusAnalyzer) queueExecutions(batch *storage.QueryBatch, data *storage.GovernanceData) error {
 	for _, execution := range data.ProposalExecutions {
 		batch.Queue(queries.ConsensusProposalExecutionsUpdate,
 			execution.ID,
@@ -861,7 +861,7 @@ func (m *ConsensusAnalyzer) queueExecutions(batch *storage.QueryBatch, data *sto
 	return nil
 }
 
-func (m *ConsensusAnalyzer) queueFinalizations(batch *storage.QueryBatch, data *storage.GovernanceData) error {
+func (m *consensusAnalyzer) queueFinalizations(batch *storage.QueryBatch, data *storage.GovernanceData) error {
 	for _, finalization := range data.ProposalFinalizations {
 		batch.Queue(queries.ConsensusProposalUpdate,
 			finalization.ID,
@@ -876,7 +876,7 @@ func (m *ConsensusAnalyzer) queueFinalizations(batch *storage.QueryBatch, data *
 	return nil
 }
 
-func (m *ConsensusAnalyzer) queueVotes(batch *storage.QueryBatch, data *storage.GovernanceData) error {
+func (m *consensusAnalyzer) queueVotes(batch *storage.QueryBatch, data *storage.GovernanceData) error {
 	for _, vote := range data.Votes {
 		batch.Queue(queries.ConsensusVoteInsert,
 			vote.ID,
@@ -888,7 +888,7 @@ func (m *ConsensusAnalyzer) queueVotes(batch *storage.QueryBatch, data *storage.
 	return nil
 }
 
-func (m *ConsensusAnalyzer) queueGovernanceEventInserts(batch *storage.QueryBatch, data *storage.GovernanceData) error {
+func (m *consensusAnalyzer) queueGovernanceEventInserts(batch *storage.QueryBatch, data *storage.GovernanceData) error {
 	for _, event := range data.Events {
 		hash := util.SanitizeTxHash(event.TxHash.Hex())
 		if hash != nil {
@@ -905,7 +905,7 @@ func (m *ConsensusAnalyzer) queueGovernanceEventInserts(batch *storage.QueryBatc
 	return nil
 }
 
-func (m *ConsensusAnalyzer) queueSingleEventInserts(batch *storage.QueryBatch, eventData *parsedEvent, height int64) error {
+func (m *consensusAnalyzer) queueSingleEventInserts(batch *storage.QueryBatch, eventData *parsedEvent, height int64) error {
 	accounts := extractUniqueAddresses(eventData.relatedAddresses)
 	body, err := json.Marshal(eventData.rawBody)
 	if err != nil {
@@ -940,7 +940,7 @@ func extractUniqueAddresses(accounts []staking.Address) []string {
 }
 
 // extractEventData extracts the type, the body (JSON-serialized), and the related accounts of an event.
-func (m *ConsensusAnalyzer) extractEventData(event nodeapi.Event) parsedEvent {
+func (m *consensusAnalyzer) extractEventData(event nodeapi.Event) parsedEvent {
 	eventData := parsedEvent{
 		ty:      event.Type,
 		rawBody: event.RawBody,

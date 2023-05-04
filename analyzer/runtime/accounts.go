@@ -15,7 +15,7 @@ import (
 // It does not insert the events themselves; that is done in a
 // module-independent way. It only records effects for which an understanding of
 // the module's semantics is necessary.
-func (m *Main) queueAccountsEvents(batch *storage.QueryBatch, blockData *BlockData) {
+func (m *runtimeAnalyzer) queueAccountsEvents(batch *storage.QueryBatch, blockData *BlockData) {
 	for _, event := range blockData.EventData {
 		if event.WithScope.Accounts == nil {
 			continue
@@ -32,7 +32,7 @@ func (m *Main) queueAccountsEvents(batch *storage.QueryBatch, blockData *BlockDa
 	}
 }
 
-func (m *Main) queueMint(batch *storage.QueryBatch, round uint64, e accounts.MintEvent) {
+func (m *runtimeAnalyzer) queueMint(batch *storage.QueryBatch, round uint64, e accounts.MintEvent) {
 	// Record the event.
 	batch.Queue(
 		queries.RuntimeMintInsert,
@@ -52,7 +52,7 @@ func (m *Main) queueMint(batch *storage.QueryBatch, round uint64, e accounts.Min
 	)
 }
 
-func (m *Main) queueBurn(batch *storage.QueryBatch, round uint64, e accounts.BurnEvent) {
+func (m *runtimeAnalyzer) queueBurn(batch *storage.QueryBatch, round uint64, e accounts.BurnEvent) {
 	// Record the event.
 	batch.Queue(
 		queries.RuntimeBurnInsert,
@@ -72,7 +72,7 @@ func (m *Main) queueBurn(batch *storage.QueryBatch, round uint64, e accounts.Bur
 	)
 }
 
-func (m *Main) queueTransfer(batch *storage.QueryBatch, round uint64, e accounts.TransferEvent) {
+func (m *runtimeAnalyzer) queueTransfer(batch *storage.QueryBatch, round uint64, e accounts.TransferEvent) {
 	// Record the event.
 	batch.Queue(
 		queries.RuntimeTransferInsert,

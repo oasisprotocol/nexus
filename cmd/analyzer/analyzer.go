@@ -343,7 +343,7 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) { //nolint:gocyclo
 			if err1 != nil {
 				return nil, err1
 			}
-			return evmtokens.NewMain(common.RuntimeEmerald, sourceClient, dbClient, logger)
+			return evmtokens.NewEvmTokensAnalyzer(common.RuntimeEmerald, sourceClient, dbClient, logger)
 		})
 	}
 	if cfg.Analyzers.SapphireEvmTokens != nil {
@@ -352,7 +352,7 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) { //nolint:gocyclo
 			if err1 != nil {
 				return nil, err1
 			}
-			return evmtokens.NewMain(common.RuntimeSapphire, sourceClient, dbClient, logger)
+			return evmtokens.NewEvmTokensAnalyzer(common.RuntimeSapphire, sourceClient, dbClient, logger)
 		})
 	}
 	if cfg.Analyzers.EmeraldEvmTokenBalances != nil {
@@ -361,7 +361,7 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) { //nolint:gocyclo
 			if err1 != nil {
 				return nil, err1
 			}
-			return evmtokenbalances.NewMain(common.RuntimeEmerald, sourceClient, dbClient, logger)
+			return evmtokenbalances.NewEvmTokenBalancesAnalyzer(common.RuntimeEmerald, sourceClient, dbClient, logger)
 		})
 	}
 	if cfg.Analyzers.SapphireEvmTokenBalances != nil {
@@ -370,7 +370,7 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) { //nolint:gocyclo
 			if err1 != nil {
 				return nil, err1
 			}
-			return evmtokenbalances.NewMain(common.RuntimeSapphire, sourceClient, dbClient, logger)
+			return evmtokenbalances.NewEvmTokenBalancesAnalyzer(common.RuntimeSapphire, sourceClient, dbClient, logger)
 		})
 	}
 	if cfg.Analyzers.MetadataRegistry != nil {

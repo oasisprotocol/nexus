@@ -27,15 +27,15 @@ const (
 	ProcessRoundTimeout = 61 * time.Second
 )
 
-// Main is the main Analyzer for runtimes.
-type Main struct {
+// runtimeAnalyzer is the main Analyzer for runtimes.
+type runtimeAnalyzer struct {
 	cfg     analyzer.RuntimeConfig
 	target  storage.TargetStorage
 	logger  *log.Logger
 	metrics metrics.DatabaseMetrics
 }
 
-var _ analyzer.Analyzer = (*Main)(nil)
+var _ analyzer.Analyzer = (*runtimeAnalyzer)(nil)
 
 // NewRuntimeAnalyzer returns a new main analyzer for a runtime.
 func NewRuntimeAnalyzer(
@@ -45,7 +45,7 @@ func NewRuntimeAnalyzer(
 	sourceClient *source.RuntimeClient,
 	target storage.TargetStorage,
 	logger *log.Logger,
-) (*Main, error) {
+) (analyzer.Analyzer, error) {
 	roundRange := analyzer.RoundRange{
 		From: uint64(cfg.From),
 		To:   uint64(cfg.To),
@@ -57,7 +57,7 @@ func NewRuntimeAnalyzer(
 		Source:      sourceClient,
 	}
 
-	return &Main{
+	return &runtimeAnalyzer{
 		cfg:     ac,
 		target:  target,
 		logger:  logger.With("analyzer", runtime),
@@ -65,7 +65,7 @@ func NewRuntimeAnalyzer(
 	}, nil
 }
 
-func (m *Main) Start(ctx context.Context) {
+func (m *runtimeAnalyzer) Start(ctx context.Context) {
 	if err := m.prework(ctx); err != nil {
 		m.logger.Error("error doing prework",
 			"err", err,
@@ -139,18 +139,18 @@ func (m *Main) Start(ctx context.Context) {
 }
 
 // Name returns the name of the Main.
-func (m *Main) Name() string {
+func (m *runtimeAnalyzer) Name() string {
 	return string(m.cfg.RuntimeName)
 }
 
-func (m *Main) nativeTokenSymbol() string {
+func (m *runtimeAnalyzer) nativeTokenSymbol() string {
 	return m.cfg.ParaTime.Denominations[sdkConfig.NativeDenominationKey].Symbol
 }
 
 // StringifyDenomination returns a string representation of the given denomination.
 // This is simply the denomination's symbol; notably, for the native denomination,
 // this is looked up from network config.
-func (m *Main) StringifyDenomination(d sdkTypes.Denomination) string {
+func (m *runtimeAnalyzer) StringifyDenomination(d sdkTypes.Denomination) string {
 	if d.IsNative() {
 		return m.nativeTokenSymbol()
 	}
@@ -159,7 +159,7 @@ func (m *Main) StringifyDenomination(d sdkTypes.Denomination) string {
 }
 
 // latestRound returns the latest round processed by the consensus analyzer.
-func (m *Main) latestRound(ctx context.Context) (uint64, error) {
+func (m *runtimeAnalyzer) latestRound(ctx context.Context) (uint64, error) {
 	var latest uint64
 	if err := m.target.QueryRow(
 		ctx,
@@ -174,7 +174,7 @@ func (m *Main) latestRound(ctx context.Context) (uint64, error) {
 }
 
 // prework performs tasks that need to be done before the main loop starts.
-func (m *Main) prework(ctx context.Context) error {
+func (m *runtimeAnalyzer) prework(ctx context.Context) error {
 	batch := &storage.QueryBatch{}
 
 	// Register special addresses.
@@ -196,7 +196,7 @@ func (m *Main) prework(ctx context.Context) error {
 // processRound processes the provided round, retrieving all required information
 // from source storage and committing an atomically-executed batch of queries
 // to target storage.
-func (m *Main) processRound(ctx context.Context, round uint64) error {
+func (m *runtimeAnalyzer) processRound(ctx context.Context, round uint64) error {
 	ctxWithTimeout, cancel := context.WithTimeout(ctx, ProcessRoundTimeout)
 	defer cancel()
 
@@ -241,7 +241,7 @@ func (m *Main) processRound(ctx context.Context, round uint64) error {
 }
 
 // queueDbUpdates extends `batch` with queries that reflect `data`.
-func (m *Main) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
+func (m *runtimeAnalyzer) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 	// Block metadata.
 	batch.Queue(
 		queries.RuntimeBlockInsert,

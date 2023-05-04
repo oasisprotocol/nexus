@@ -34,26 +34,26 @@ const (
 	DownloadTimeout         = 61 * time.Second
 )
 
-type Main struct {
+type evmTokensAnalyzer struct {
 	cfg    analyzer.RuntimeConfig
 	target storage.TargetStorage
 	logger *log.Logger
 }
 
-var _ analyzer.Analyzer = (*Main)(nil)
+var _ analyzer.Analyzer = (*evmTokensAnalyzer)(nil)
 
-func NewMain(
+func NewEvmTokensAnalyzer(
 	runtime common.Runtime,
 	sourceClient *source.RuntimeClient,
 	target storage.TargetStorage,
 	logger *log.Logger,
-) (*Main, error) {
+) (analyzer.Analyzer, error) {
 	ac := analyzer.RuntimeConfig{
 		RuntimeName: runtime,
 		Source:      sourceClient,
 	}
 
-	return &Main{
+	return &evmTokensAnalyzer{
 		cfg:    ac,
 		target: target,
 		logger: logger.With("analyzer", EvmTokensAnalyzerPrefix+runtime),
@@ -70,7 +70,7 @@ type StaleToken struct {
 	DownloadRound         uint64
 }
 
-func (m Main) getStaleTokens(ctx context.Context, limit int) ([]*StaleToken, error) {
+func (m evmTokensAnalyzer) getStaleTokens(ctx context.Context, limit int) ([]*StaleToken, error) {
 	var staleTokens []*StaleToken
 	rows, err := m.target.Query(ctx, queries.RuntimeEVMTokenAnalysisStale, m.cfg.RuntimeName, limit)
 	if err != nil {
@@ -95,7 +95,7 @@ func (m Main) getStaleTokens(ctx context.Context, limit int) ([]*StaleToken, err
 	return staleTokens, nil
 }
 
-func (m Main) processStaleToken(ctx context.Context, batch *storage.QueryBatch, staleToken *StaleToken) error {
+func (m evmTokensAnalyzer) processStaleToken(ctx context.Context, batch *storage.QueryBatch, staleToken *StaleToken) error {
 	m.logger.Info("downloading", "stale_token", staleToken)
 	tokenEthAddr, err := client.EVMEthAddrFromPreimage(staleToken.AddrContextIdentifier, staleToken.AddrContextVersion, staleToken.AddrData)
 	if err != nil {
@@ -148,7 +148,7 @@ func (m Main) processStaleToken(ctx context.Context, batch *storage.QueryBatch, 
 	return nil
 }
 
-func (m Main) processBatch(ctx context.Context) (int, error) {
+func (m evmTokensAnalyzer) processBatch(ctx context.Context) (int, error) {
 	staleTokens, err := m.getStaleTokens(ctx, MaxDownloadBatch)
 	if err != nil {
 		return 0, fmt.Errorf("getting discovered tokens: %w", err)
@@ -188,7 +188,7 @@ func (m Main) processBatch(ctx context.Context) (int, error) {
 	return len(staleTokens), nil
 }
 
-func (m Main) Start(ctx context.Context) {
+func (m evmTokensAnalyzer) Start(ctx context.Context) {
 	backoff, err := util.NewBackoff(
 		100*time.Millisecond,
 		// Cap the timeout at the expected round time. All runtimes currently have the same round time.
@@ -228,6 +228,6 @@ func (m Main) Start(ctx context.Context) {
 	}
 }
 
-func (m Main) Name() string {
+func (m evmTokensAnalyzer) Name() string {
 	return EvmTokensAnalyzerPrefix + string(m.cfg.RuntimeName)
 }

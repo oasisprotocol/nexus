@@ -29,7 +29,7 @@ func (a *MetadataRegistryAnalyzer) Name() string {
 	return MetadataRegistryAnalyzerName
 }
 
-func NewMetadataRegistryAnalyzer(cfg *config.MetadataRegistryConfig, target storage.TargetStorage, logger *log.Logger) (*MetadataRegistryAnalyzer, error) {
+func NewMetadataRegistryAnalyzer(cfg *config.MetadataRegistryConfig, target storage.TargetStorage, logger *log.Logger) (Analyzer, error) {
 	logger.Info("Starting metadata_registry analyzer")
 	return &MetadataRegistryAnalyzer{
 		interval: cfg.Interval,
