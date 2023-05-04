@@ -296,7 +296,7 @@ const (
 			signer0.signer_address AS sender0, -- oh god we didn't even use the same word between the db and the api
 			signer0_preimage.context_identifier AS sender0_preimage_context_identifier,
 			signer0_preimage.context_version AS sender0_preimage_context_version,
-			encode(signer0_preimage.address_data, 'base64') AS sender0_preimage_data,
+			signer0_preimage.address_data AS sender0_preimage_data,
 			signer0.nonce AS nonce0,
 			txs.fee,
 			txs.gas_limit,
@@ -307,7 +307,7 @@ const (
 			txs.to,
 			to_preimage.context_identifier AS to_preimage_context_identifier,
 			to_preimage.context_version AS to_preimage_context_version,
-			encode(to_preimage.address_data, 'base64') AS to_preimage_data,
+			to_preimage.address_data AS to_preimage_data,
 			txs.amount,
 			txs.success,
 			txs.error_module,
