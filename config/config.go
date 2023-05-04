@@ -247,6 +247,7 @@ type BlockBasedAnalyzerConfig struct {
 
 	// If present, the analyzer will run in fast sync mode for
 	// an initial range of blocks, and then switch to slow sync.
+	// If absent, the analyzer will only run in "slow", sequential mode.
 	//
 	// If fast sync mode is enabled:
 	// - DB checks and foreign keys are disabled.
@@ -269,10 +270,7 @@ type BlockBasedAnalyzerConfig struct {
 type FastSyncConfig struct {
 	// To is the block (inclusive) to which the analyzer
 	// will run in fast sync mode. From this block onwards (exclusive),
-	// the analyzer will run in slow mode. If absent, the analyzer will
-	// only run in slow mode.
-	// Omitting this parameter or setting it to 0 means to use the latest
-	// block height at the time of starting the indexer.
+	// the analyzer will run in slow mode.
 	To int64 `koanf:"to"`
 
 	// The number of parallel analyzers to run in fast sync mode.
