@@ -180,7 +180,8 @@ const (
 		OFFSET $3::bigint`
 
 	Epochs = `
-		SELECT id, start_height, end_height
+		SELECT id, start_height, 
+			(CASE id WHEN (SELECT max(id) FROM chain.epochs) THEN NULL ELSE end_height END) AS end_height
 			FROM chain.epochs
 		ORDER BY id DESC
 		LIMIT $1::bigint
