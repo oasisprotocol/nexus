@@ -73,11 +73,6 @@ func (m *mockProcessor) ProcessBlock(ctx context.Context, height uint64) error {
 	return nil
 }
 
-// SourceLatestBlockHeight implements block.BlockProcessor.
-func (m *mockProcessor) SourceLatestBlockHeight(ctx context.Context) (uint64, error) {
-	return m.latestBlockHeight, nil
-}
-
 var _ block.BlockProcessor = (*mockProcessor)(nil)
 
 func setupDB(t *testing.T) *postgres.Client {

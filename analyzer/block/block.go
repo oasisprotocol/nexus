@@ -7,6 +7,7 @@ package block
 import (
 	"context"
 	"fmt"
+	"math"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -40,8 +41,6 @@ type BlockProcessor interface {
 	//
 	// The implementation must commit processed blocks (update the chain.processed_blocks record with processed_time timestamp).
 	ProcessBlock(ctx context.Context, height uint64) error
-	// SourceLatestBlockHeight returns the latest block height available in the source storage.
-	SourceLatestBlockHeight(ctx context.Context) (uint64, error)
 }
 
 var _ analyzer.Analyzer = (*blockBasedAnalyzer)(nil)
@@ -165,6 +164,15 @@ func (b *blockBasedAnalyzer) Start(ctx context.Context) {
 		return
 	}
 
+	// The default max block height that the indexer will process. This value is not
+	// indicative of the maximum height the Oasis blockchain can reach; rather it
+	// is set to golang's maximum int64 value for convenience.
+	var to uint64 = math.MaxInt64
+	// Clamp the latest block height to the configured range.
+	if b.config.To != 0 {
+		to = b.config.To
+	}
+
 	// Start processing blocks.
 	backoff, err := util.NewBackoff(
 		100*time.Millisecond,
@@ -192,23 +200,6 @@ func (b *blockBasedAnalyzer) Start(ctx context.Context) {
 		}
 		batchCtx, batchCtxCancel = context.WithTimeout(ctx, lockExpiryMinutes*time.Minute)
 
-		var to uint64
-		// Get the latest available block on the source.
-		latestBlockHeight, err := b.processor.SourceLatestBlockHeight(ctx)
-		if err != nil {
-			b.logger.Error("failed to query latest block height on source",
-				"err", err,
-			)
-			backoff.Failure()
-			continue
-		}
-		to = latestBlockHeight
-
-		// Clamp the latest block height to the configured range.
-		if b.config.To != 0 && b.config.To < latestBlockHeight {
-			to = b.config.To
-		}
-
 		// Pick a batch of blocks to process.
 		b.logger.Info("picking a batch of blocks to process", "from", b.config.From, "to", to)
 		heights, err := b.fetchBatchForProcessing(ctx, b.config.From, to)
@@ -223,13 +214,41 @@ func (b *blockBasedAnalyzer) Start(ctx context.Context) {
 		// Process blocks.
 		b.logger.Debug("picked blocks for processing", "heights", heights)
 		for _, height := range heights {
+			// If running in slow-sync, we are likely at the tip of the chain and are picking up
+			// blocks that are not yet available. In this case, wait before processing every block,
+			// so that the backoff mechanism can tweak the per-block wait time as needed.
+			//
+			// Note: If the batch size is greater than 50, the time required to process the blocks
+			// in the batch will exceed the current lock expiry of 5min. The analyzer will terminate
+			// the batch early and attempt to refresh the locks for a new batch.
+			if b.slowSync {
+				select {
+				case <-time.After(backoff.Timeout()):
+					// Process the next block
+				case <-batchCtx.Done():
+					b.logger.Info("batch locks expiring; refreshing batch")
+					break
+				case <-ctx.Done():
+					batchCtxCancel()
+					b.logger.Warn("shutting down block analyzer", "reason", ctx.Err())
+					return
+				}
+			}
 			b.logger.Info("processing block", "height", height)
 
 			bCtx, cancel := context.WithTimeout(batchCtx, processBlockTimeout)
 			if err := b.processor.ProcessBlock(bCtx, height); err != nil {
 				cancel()
 				backoff.Failure()
-				b.logger.Error("error processing block", "height", height, "err", err)
+
+				if err == analyzer.ErrOutOfRange {
+					b.logger.Info("no data available; will retry",
+						"height", height,
+						"retry_interval_ms", backoff.Timeout().Milliseconds(),
+					)
+				} else {
+					b.logger.Error("error processing block", "height", height, "err", err)
+				}
 
 				// If running in slow-sync, stop processing the batch on error so that
 				// the blocks are always processed in order.

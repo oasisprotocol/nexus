@@ -3,6 +3,7 @@ package runtime
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	sdkConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/rewards"
@@ -94,6 +95,9 @@ func (m *processor) ProcessBlock(ctx context.Context, round uint64) error {
 	// Fetch all data.
 	data, err := m.source.AllData(ctx, round)
 	if err != nil {
+		if strings.Contains(err.Error(), "roothash: block not found") {
+			return analyzer.ErrOutOfRange
+		}
 		return err
 	}
 
@@ -253,9 +257,4 @@ func (m *processor) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 		batch.Queue(queries.RuntimeEVMTokenBalanceUpdate, m.runtime, key.TokenAddress, key.AccountAddress, change.String())
 		batch.Queue(queries.RuntimeEVMTokenBalanceAnalysisInsert, m.runtime, key.TokenAddress, key.AccountAddress, data.Header.Round)
 	}
-}
-
-// Implements BlockProcessor interface.
-func (m *processor) SourceLatestBlockHeight(ctx context.Context) (uint64, error) {
-	return m.source.LatestBlockHeight(ctx)
 }

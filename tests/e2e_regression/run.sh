@@ -68,12 +68,14 @@ testCases=(
 )
 nCases=${#testCases[@]}
 
-# Kill background processes on exit. (In our case the indexer API server.)
-trap 'trap - SIGTERM && kill -- -$$' SIGINT SIGTERM EXIT
-
 # Start the API server.
 make oasis-indexer
 ./oasis-indexer --config="${SCRIPT_DIR}/e2e_config.yml" serve &
+apiServerPid=$!
+
+# Kill the API server on exit.
+trap "kill $apiServerPid" SIGINT SIGTERM EXIT
+
 while ! curl --silent localhost:8008/v1/ >/dev/null; do
   echo "Waiting for API server to start..."
   sleep 1
@@ -103,21 +105,27 @@ for (( i=0; i<nCases; i++ )); do
     >/tmp/pretty 2>/dev/null \
   && cp /tmp/pretty "$outDir/$name.body" || true
   # Sanitize the current timestamp out of the response header so that diffs are stable
-  sed -E -i='' 's/^(Date|Content-Length|Last-Modified): .*/\1: UNINTERESTING/g' "$outDir/$name.headers"
+  sed -i -E 's/^(Date|Content-Length|Last-Modified): .*/\1: UNINTERESTING/g' "$outDir/$name.headers"
 done
 
 diff --recursive "$SCRIPT_DIR/expected" "$outDir" >/dev/null || {
   echo
   echo "NOTE: $SCRIPT_DIR/expected and $outDir differ."
-  echo "Press enter see the diff, or Ctrl-C to abort."
-  read -r
-  git diff --no-index "$SCRIPT_DIR"/{expected,actual} || true
-  echo
-  echo "To re-view the diff, run:"
-  echo "  git diff --no-index $SCRIPT_DIR/{expected,actual}"
-  echo
-  echo "If the new results are expected, re-run this script after copying the new results into .../expected:"
-  echo "  rm -rf $SCRIPT_DIR/expected; cp -r $SCRIPT_DIR/{actual,expected}"
+  if [[ $- == *i* ]]; then
+    echo "Press enter see the diff, or Ctrl-C to abort."
+    read -r
+    git diff --no-index "$SCRIPT_DIR"/{expected,actual} || true
+    echo
+    echo "To re-view the diff, run:"
+    echo "  git diff --no-index $SCRIPT_DIR/{expected,actual}"
+    echo
+    echo "If the new results are expected, re-run this script after copying the new results into .../expected:"
+    echo "  rm -rf $SCRIPT_DIR/expected; cp -r $SCRIPT_DIR/{actual,expected}"
+  else 
+    # Running in script mode (likely in CI)
+    echo "CI diff:"
+    git diff --no-index "$SCRIPT_DIR"/{expected,actual} || true
+  fi
   exit 1
 }
 

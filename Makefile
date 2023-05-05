@@ -60,11 +60,12 @@ test-e2e:
 
 fill-cache-for-e2e-regression: oasis-indexer
 	cp tests/e2e_regression/e2e_config.yml /tmp/indexer_fill_e2e_regression_cache.yml
-	sed -E -i='' 's/query_on_cache_miss: false/query_on_cache_miss: true/g' /tmp/indexer_fill_e2e_regression_cache.yml
+	sed -i -E 's/query_on_cache_miss: false/query_on_cache_miss: true/g' /tmp/indexer_fill_e2e_regression_cache.yml
 	./oasis-indexer --config /tmp/indexer_fill_e2e_regression_cache.yml analyze
 
 # Run the api tests locally, assuming the environment is set up with an oasis-node that is 
 # accessible as specified in the config file.
+test-e2e-regression: export TZ=UTC
 test-e2e-regression: oasis-indexer
 	./oasis-indexer --config tests/e2e_regression/e2e_config.yml analyze
 	@$(ECHO) "$(CYAN)*** Indexer finished; starting api tests...$(OFF)"
@@ -117,9 +118,9 @@ postgres:
 		-e POSTGRES_PASSWORD=password \
 		-e POSTGRES_DB=indexer \
 		-d postgres -c log_statement=all
-	@sleep 1  # Experimentally enough for postgres to start accepting connections
+	@sleep 3  # Experimentally enough for postgres to start accepting connections
 	# Create a read-only user to mimic the production environment.
-	docker exec -it indexer-postgres psql -U rwuser indexer -c "CREATE ROLE indexer_readonly; CREATE USER api WITH PASSWORD 'password' IN ROLE indexer_readonly;"
+	docker exec indexer-postgres psql -U rwuser indexer -c "CREATE ROLE indexer_readonly; CREATE USER api WITH PASSWORD 'password' IN ROLE indexer_readonly;"
 
 # Attach to the local DB from "make postgres"
 psql:
