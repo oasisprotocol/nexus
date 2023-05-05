@@ -53,6 +53,14 @@ CREATE TABLE chain.runtime_transactions
   "to"        oasis_addr,   -- Exact semantics depend on method. Extracted from body; for convenience only.
   amount      UINT_NUMERIC, -- Exact semantics depend on method. Extracted from body; for convenience only.
 
+  -- Encrypted data in encrypted Ethereum-format transactions.
+  evm_encrypted_format INTEGER,
+  evm_encrypted_public_key BYTEA,
+  evm_encrypted_data_nonce BYTEA,
+  evm_encrypted_data_data BYTEA,
+  evm_encrypted_result_nonce BYTEA,
+  evm_encrypted_result_data BYTEA,
+
   -- Error information.
   success       BOOLEAN,  -- NULL means success is unknown (can happen in confidential runtimes)
   error_module  TEXT,
