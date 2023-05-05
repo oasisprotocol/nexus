@@ -23,3 +23,10 @@ type Analyzer interface {
 	// Name returns the name of the analyzer.
 	Name() string
 }
+
+type BlockAnalysisMode string
+
+const (
+	FastSyncMode BlockAnalysisMode = "fast-sync"
+	SlowSyncMode BlockAnalysisMode = "slow-sync"
+)

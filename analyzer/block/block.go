@@ -299,11 +299,11 @@ func (b *blockBasedAnalyzer) Name() string {
 func NewAnalyzer(
 	blockRange config.BlockRange,
 	batchSize uint64,
+	mode analyzer.BlockAnalysisMode,
 	name string,
 	processor BlockProcessor,
 	target storage.TargetStorage,
 	logger *log.Logger,
-	slowSync bool,
 ) (analyzer.Analyzer, error) {
 	if batchSize == 0 {
 		batchSize = defaultBatchSize
@@ -314,7 +314,7 @@ func NewAnalyzer(
 		analyzerName: name,
 		processor:    processor,
 		target:       target,
-		logger:       logger.With("analyzer", name, "slow_sync", slowSync),
-		slowSync:     slowSync,
+		logger:       logger.With("analyzer", name, "mode", mode),
+		slowSync:     mode == analyzer.SlowSyncMode,
 	}, nil
 }

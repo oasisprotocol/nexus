@@ -28,6 +28,7 @@ import (
 type processor struct {
 	runtime         common.Runtime
 	runtimeMetadata *sdkConfig.ParaTime
+	mode            analyzer.BlockAnalysisMode
 	source          nodeapi.RuntimeApiLite
 	target          storage.TargetStorage
 	logger          *log.Logger
@@ -42,6 +43,7 @@ func NewRuntimeAnalyzer(
 	runtimeMetadata *sdkConfig.ParaTime,
 	blockRange config.BlockRange,
 	batchSize uint64,
+	mode analyzer.BlockAnalysisMode,
 	sourceClient nodeapi.RuntimeApiLite,
 	target storage.TargetStorage,
 	logger *log.Logger,
@@ -50,13 +52,14 @@ func NewRuntimeAnalyzer(
 	processor := &processor{
 		runtime:         runtime,
 		runtimeMetadata: runtimeMetadata,
+		mode:            mode,
 		source:          sourceClient,
 		target:          target,
 		logger:          logger.With("analyzer", runtime),
 		metrics:         metrics.NewDefaultDatabaseMetrics(string(runtime)),
 	}
 
-	return block.NewAnalyzer(blockRange, batchSize, string(runtime), processor, target, logger, true)
+	return block.NewAnalyzer(blockRange, batchSize, mode, string(runtime), processor, target, logger)
 }
 
 func (m *processor) nativeTokenSymbol() string {

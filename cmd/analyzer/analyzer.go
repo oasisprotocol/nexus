@@ -251,7 +251,7 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) { //nolint:gocyclo
 					if err1 != nil {
 						return nil, err1
 					}
-					return consensus.NewAnalyzer(*fastRange, cfg.Analyzers.Consensus.BatchSize, chainContext, sourceClient, dbClient, logger)
+					return consensus.NewAnalyzer(*fastRange, cfg.Analyzers.Consensus.BatchSize, analyzer.FastSyncMode, chainContext, sourceClient, dbClient, logger)
 				})
 			}
 		}
@@ -265,7 +265,7 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) { //nolint:gocyclo
 					if err1 != nil {
 						return nil, err1
 					}
-					return runtime.NewRuntimeAnalyzer(common.RuntimeEmerald, sdkPT, *fastRange, cfg.Analyzers.Emerald.BatchSize, sourceClient, dbClient, logger)
+					return runtime.NewRuntimeAnalyzer(common.RuntimeEmerald, sdkPT, *fastRange, cfg.Analyzers.Emerald.BatchSize, analyzer.FastSyncMode, sourceClient, dbClient, logger)
 				})
 			}
 		}
@@ -279,7 +279,7 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) { //nolint:gocyclo
 					if err1 != nil {
 						return nil, err1
 					}
-					return runtime.NewRuntimeAnalyzer(common.RuntimeSapphire, sdkPT, *fastRange, cfg.Analyzers.Sapphire.BatchSize, sourceClient, dbClient, logger)
+					return runtime.NewRuntimeAnalyzer(common.RuntimeSapphire, sdkPT, *fastRange, cfg.Analyzers.Sapphire.BatchSize, analyzer.FastSyncMode, sourceClient, dbClient, logger)
 				})
 			}
 		}
@@ -293,7 +293,7 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) { //nolint:gocyclo
 					if err1 != nil {
 						return nil, err1
 					}
-					return runtime.NewRuntimeAnalyzer(common.RuntimeCipher, sdkPT, *fastRange, cfg.Analyzers.Cipher.BatchSize, sourceClient, dbClient, logger)
+					return runtime.NewRuntimeAnalyzer(common.RuntimeCipher, sdkPT, *fastRange, cfg.Analyzers.Cipher.BatchSize, analyzer.FastSyncMode, sourceClient, dbClient, logger)
 				})
 			}
 		}
@@ -313,7 +313,7 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) { //nolint:gocyclo
 			if err1 != nil {
 				return nil, err1
 			}
-			return consensus.NewAnalyzer(cfg.Analyzers.Consensus.SlowSyncRange(), cfg.Analyzers.Consensus.BatchSize, genesisChainContext, sourceClient, dbClient, logger)
+			return consensus.NewAnalyzer(cfg.Analyzers.Consensus.SlowSyncRange(), cfg.Analyzers.Consensus.BatchSize, analyzer.SlowSyncMode, genesisChainContext, sourceClient, dbClient, logger)
 		})
 	}
 	if cfg.Analyzers.Emerald != nil {
@@ -323,7 +323,7 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) { //nolint:gocyclo
 			if err1 != nil {
 				return nil, err1
 			}
-			return runtime.NewRuntimeAnalyzer(common.RuntimeEmerald, runtimeMetadata, cfg.Analyzers.Emerald.SlowSyncRange(), cfg.Analyzers.Emerald.BatchSize, sourceClient, dbClient, logger)
+			return runtime.NewRuntimeAnalyzer(common.RuntimeEmerald, runtimeMetadata, cfg.Analyzers.Emerald.SlowSyncRange(), cfg.Analyzers.Emerald.BatchSize, analyzer.SlowSyncMode, sourceClient, dbClient, logger)
 		})
 	}
 	if cfg.Analyzers.Sapphire != nil {
@@ -333,7 +333,7 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) { //nolint:gocyclo
 			if err1 != nil {
 				return nil, err1
 			}
-			return runtime.NewRuntimeAnalyzer(common.RuntimeSapphire, runtimeMetadata, cfg.Analyzers.Sapphire.SlowSyncRange(), cfg.Analyzers.Sapphire.BatchSize, sourceClient, dbClient, logger)
+			return runtime.NewRuntimeAnalyzer(common.RuntimeSapphire, runtimeMetadata, cfg.Analyzers.Sapphire.SlowSyncRange(), cfg.Analyzers.Sapphire.BatchSize, analyzer.SlowSyncMode, sourceClient, dbClient, logger)
 		})
 	}
 	if cfg.Analyzers.Cipher != nil {
@@ -343,7 +343,7 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) { //nolint:gocyclo
 			if err1 != nil {
 				return nil, err1
 			}
-			return runtime.NewRuntimeAnalyzer(common.RuntimeCipher, runtimeMetadata, cfg.Analyzers.Cipher.SlowSyncRange(), cfg.Analyzers.Cipher.BatchSize, sourceClient, dbClient, logger)
+			return runtime.NewRuntimeAnalyzer(common.RuntimeCipher, runtimeMetadata, cfg.Analyzers.Cipher.SlowSyncRange(), cfg.Analyzers.Cipher.BatchSize, analyzer.SlowSyncMode, sourceClient, dbClient, logger)
 		})
 	}
 	if cfg.Analyzers.EmeraldEvmTokens != nil {

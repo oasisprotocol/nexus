@@ -56,6 +56,7 @@ func OpenSignedTxNoVerify(signedTx *transaction.SignedTransaction) (*transaction
 
 // processor is the block processor for the consensus layer.
 type processor struct {
+	mode                analyzer.BlockAnalysisMode
 	genesisChainContext string
 	source              storage.ConsensusSourceStorage
 	target              storage.TargetStorage
@@ -66,8 +67,9 @@ type processor struct {
 var _ block.BlockProcessor = (*processor)(nil)
 
 // NewAnalyzer returns a new analyzer for the consensus layer.
-func NewAnalyzer(blockRange config.BlockRange, batchSize uint64, genesisChainContext string, sourceClient *source.ConsensusClient, target storage.TargetStorage, logger *log.Logger) (analyzer.Analyzer, error) {
+func NewAnalyzer(blockRange config.BlockRange, batchSize uint64, mode analyzer.BlockAnalysisMode, genesisChainContext string, sourceClient *source.ConsensusClient, target storage.TargetStorage, logger *log.Logger) (analyzer.Analyzer, error) {
 	processor := &processor{
+		mode:                mode,
 		genesisChainContext: genesisChainContext,
 		source:              sourceClient,
 		target:              target,
@@ -75,7 +77,7 @@ func NewAnalyzer(blockRange config.BlockRange, batchSize uint64, genesisChainCon
 		metrics:             metrics.NewDefaultDatabaseMetrics(consensusAnalyzerName),
 	}
 
-	return block.NewAnalyzer(blockRange, batchSize, consensusAnalyzerName, processor, target, logger, true)
+	return block.NewAnalyzer(blockRange, batchSize, mode, consensusAnalyzerName, processor, target, logger)
 }
 
 // Implements BlockProcessor interface.
