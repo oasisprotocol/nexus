@@ -86,6 +86,8 @@ func GetFromCacheOrCall[Value any](cache KVStore, volatile bool, key CacheKey, v
 		if err2 != nil {
 			cache.logger.Warn(fmt.Sprintf("failed to unmarshal key %s from cache into %T: %v", key.Pretty(), result, err2))
 		}
+
+		return result, nil
 	}
 
 	// Otherwise, the value is not cached or couldn't be restored from the cache. Call the backing API to get it.
