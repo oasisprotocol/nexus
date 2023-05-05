@@ -8,7 +8,9 @@ import (
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	ethCommon "github.com/ethereum/go-ethereum/common"
+	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 	"github.com/oasisprotocol/oasis-core/go/common/errors"
+	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 
 	"github.com/oasisprotocol/oasis-indexer/analyzer/evmabi"
 	"github.com/oasisprotocol/oasis-indexer/log"
@@ -48,6 +50,15 @@ type EVMTokenBalanceData struct {
 	// integer is *big.Int, and we don't want anyone fainting if they see a
 	// ** in the codebase.
 	Balance *big.Int
+}
+
+type EVMEncryptedData struct {
+	Format      int
+	PublicKey   []byte
+	DataNonce   []byte
+	DataData    []byte
+	ResultNonce []byte
+	ResultData  []byte
 }
 
 type EVMDeterministicError struct {
@@ -289,4 +300,53 @@ func EVMDownloadTokenBalance(ctx context.Context, logger *log.Logger, source sto
 	default:
 		return nil, fmt.Errorf("download stale token balance type %v not handled", tokenType)
 	}
+}
+
+// EVMMaybeUnmarshalEncryptedData breaks down a possibly encrypted data +
+// result into their encryption envelope fields. If the data is not encrypted,
+// it returns nil with no error.
+func EVMMaybeUnmarshalEncryptedData(data []byte, result *[]byte) (*EVMEncryptedData, error) {
+	var encryptedData EVMEncryptedData
+	var call sdkTypes.Call
+	if cbor.Unmarshal(data, &call) != nil {
+		// Invalid CBOR means it's bare Ethereum format data. This is normal.
+		// https://github.com/oasisprotocol/oasis-sdk/blob/runtime-sdk/v0.3.0/runtime-sdk/modules/evm/src/lib.rs#L626
+		return nil, nil
+	}
+	encryptedData.Format = int(call.Format)
+	switch call.Format {
+	case sdkTypes.CallFormatEncryptedX25519DeoxysII:
+		var callEnvelope sdkTypes.CallEnvelopeX25519DeoxysII
+		if err := cbor.Unmarshal(call.Body, &callEnvelope); err != nil {
+			return nil, fmt.Errorf("outer call format %s unmarshal body: %w", call.Format, err)
+		}
+		encryptedData.PublicKey = callEnvelope.Pk[:]
+		encryptedData.DataNonce = callEnvelope.Nonce[:]
+		encryptedData.DataData = callEnvelope.Data
+	default:
+		return nil, fmt.Errorf("outer call format %s (%d) not supported", call.Format, call.Format)
+	}
+	var callResult sdkTypes.CallResult
+	if result != nil {
+		if err := cbor.Unmarshal(*result, &callResult); err != nil {
+			return nil, fmt.Errorf("unmarshal outer call result: %w", err)
+		}
+		if callResult.IsUnknown() {
+			switch call.Format {
+			case sdkTypes.CallFormatEncryptedX25519DeoxysII:
+				var resultEnvelope sdkTypes.ResultEnvelopeX25519DeoxysII
+				if err := cbor.Unmarshal(callResult.Unknown, &resultEnvelope); err != nil {
+					return nil, fmt.Errorf("outer call result unmarshal unknown: %w", err)
+				}
+				encryptedData.ResultNonce = resultEnvelope.Nonce[:]
+				encryptedData.ResultData = resultEnvelope.Data
+			default:
+				// We have already checked when decoding the call envelope,
+				// but I'm keeping this default case here so we don't forget
+				// if this code gets restructured.
+				return nil, fmt.Errorf("outer call format %s (%d) not supported", call.Format, call.Format)
+			}
+		}
+	}
+	return &encryptedData, nil
 }

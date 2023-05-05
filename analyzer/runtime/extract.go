@@ -53,6 +53,7 @@ type BlockTransactionData struct {
 	Body                    interface{}
 	To                      *apiTypes.Address // Extracted from the body for convenience. Semantics vary by tx type.
 	Amount                  *common.BigInt    // Extracted from the body for convenience. Semantics vary by tx type.
+	EVMEncrypted            *EVMEncryptedData
 	Success                 *bool
 	Error                   *TxError
 }
@@ -375,6 +376,18 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 							return fmt.Errorf("created contract: %w", err)
 						}
 					}
+					var evmEncrypted *EVMEncryptedData
+					evmEncrypted, err = EVMMaybeUnmarshalEncryptedData(body.InitCode, ok)
+					if err == nil {
+						blockTransactionData.EVMEncrypted = evmEncrypted
+					} else {
+						logger.Error("error unmarshalling encrypted init code and result, omitting encrypted fields",
+							"round", blockHeader.Round,
+							"tx_index", txIndex,
+							"tx_hash", txr.Tx.Hash(),
+							"err", err,
+						)
+					}
 					return nil
 				},
 				EVMCall: func(body *evm.Call, ok *[]byte) error {
@@ -382,6 +395,18 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 					amount = uncategorized.QuantityFromBytes(body.Value)
 					if to, err = registerRelatedEthAddress(blockData.AddressPreimages, blockTransactionData.RelatedAccountAddresses, body.Address); err != nil {
 						return fmt.Errorf("address: %w", err)
+					}
+					var evmEncrypted *EVMEncryptedData
+					evmEncrypted, err = EVMMaybeUnmarshalEncryptedData(body.Data, ok)
+					if err == nil {
+						blockTransactionData.EVMEncrypted = evmEncrypted
+					} else {
+						logger.Error("error unmarshalling encrypted data and result, omitting encrypted fields",
+							"round", blockHeader.Round,
+							"tx_index", txIndex,
+							"tx_hash", txr.Tx.Hash(),
+							"err", err,
+						)
 					}
 					// todo: maybe parse known token methods
 					return nil
