@@ -54,6 +54,13 @@ type BlockRange struct {
 	To int64
 }
 
+type BlockAnalysisMode string
+
+const (
+	FastSyncMode BlockAnalysisMode = "fast-sync"
+	SlowSyncMode BlockAnalysisMode = "slow-sync"
+)
+
 // RuntimeConfig specifies configuration parameters for
 // processing the runtime layer.
 type RuntimeConfig struct {

@@ -59,6 +59,7 @@ func OpenSignedTxNoVerify(signedTx *transaction.SignedTransaction) (*transaction
 // consensusAnalyzer is the main Analyzer for the consensus layer.
 type consensusAnalyzer struct {
 	cfg     analyzer.ConsensusConfig
+	mode    analyzer.BlockAnalysisMode
 	target  storage.TargetStorage
 	logger  *log.Logger
 	metrics metrics.DatabaseMetrics
@@ -67,7 +68,7 @@ type consensusAnalyzer struct {
 var _ analyzer.Analyzer = (*consensusAnalyzer)(nil)
 
 // NewConsensusAnalyzer returns a new main analyzer for the consensus layer.
-func NewConsensusAnalyzer(cfg config.BlockRange, genesisChainContext string, sourceClient *source.ConsensusClient, target storage.TargetStorage, logger *log.Logger) (analyzer.Analyzer, error) {
+func NewConsensusAnalyzer(cfg config.BlockRange, mode analyzer.BlockAnalysisMode, genesisChainContext string, sourceClient *source.ConsensusClient, target storage.TargetStorage, logger *log.Logger) (analyzer.Analyzer, error) {
 	// Configure analyzer.
 	blockRange := analyzer.BlockRange{
 		From: cfg.From,
@@ -81,6 +82,7 @@ func NewConsensusAnalyzer(cfg config.BlockRange, genesisChainContext string, sou
 
 	return &consensusAnalyzer{
 		cfg:     ac,
+		mode:    mode,
 		target:  target,
 		logger:  logger.With("analyzer", ConsensusAnalyzerName),
 		metrics: metrics.NewDefaultDatabaseMetrics(ConsensusAnalyzerName),

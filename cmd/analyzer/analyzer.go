@@ -247,7 +247,7 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) { //nolint:gocyclo
 					if err1 != nil {
 						return nil, err1
 					}
-					return consensus.NewConsensusAnalyzer(*fastRange, chainContext, sourceClient, dbClient, logger)
+					return consensus.NewConsensusAnalyzer(*fastRange, analyzer.FastSyncMode, chainContext, sourceClient, dbClient, logger)
 				})
 			}
 		}
@@ -261,7 +261,7 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) { //nolint:gocyclo
 					if err1 != nil {
 						return nil, err1
 					}
-					return runtime.NewRuntimeAnalyzer(common.RuntimeEmerald, sdkPT, *fastRange, sourceClient, dbClient, logger)
+					return runtime.NewRuntimeAnalyzer(common.RuntimeEmerald, sdkPT, *fastRange, analyzer.FastSyncMode, sourceClient, dbClient, logger)
 				})
 			}
 		}
@@ -275,7 +275,7 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) { //nolint:gocyclo
 					if err1 != nil {
 						return nil, err1
 					}
-					return runtime.NewRuntimeAnalyzer(common.RuntimeSapphire, sdkPT, *fastRange, sourceClient, dbClient, logger)
+					return runtime.NewRuntimeAnalyzer(common.RuntimeSapphire, sdkPT, *fastRange, analyzer.FastSyncMode, sourceClient, dbClient, logger)
 				})
 			}
 		}
@@ -289,7 +289,7 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) { //nolint:gocyclo
 					if err1 != nil {
 						return nil, err1
 					}
-					return runtime.NewRuntimeAnalyzer(common.RuntimeCipher, sdkPT, *fastRange, sourceClient, dbClient, logger)
+					return runtime.NewRuntimeAnalyzer(common.RuntimeCipher, sdkPT, *fastRange, analyzer.FastSyncMode, sourceClient, dbClient, logger)
 				})
 			}
 		}
@@ -304,7 +304,7 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) { //nolint:gocyclo
 			if err1 != nil {
 				return nil, err1
 			}
-			return consensus.NewConsensusAnalyzer(cfg.Analyzers.Consensus.SlowSyncRange(), genesisChainContext, sourceClient, dbClient, logger)
+			return consensus.NewConsensusAnalyzer(cfg.Analyzers.Consensus.SlowSyncRange(), analyzer.SlowSyncMode, genesisChainContext, sourceClient, dbClient, logger)
 		})
 	}
 	if cfg.Analyzers.Emerald != nil {
@@ -314,7 +314,7 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) { //nolint:gocyclo
 			if err1 != nil {
 				return nil, err1
 			}
-			return runtime.NewRuntimeAnalyzer(common.RuntimeEmerald, runtimeMetadata, cfg.Analyzers.Emerald.SlowSyncRange(), sourceClient, dbClient, logger)
+			return runtime.NewRuntimeAnalyzer(common.RuntimeEmerald, runtimeMetadata, cfg.Analyzers.Emerald.SlowSyncRange(), analyzer.SlowSyncMode, sourceClient, dbClient, logger)
 		})
 	}
 	if cfg.Analyzers.Sapphire != nil {
@@ -324,7 +324,7 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) { //nolint:gocyclo
 			if err1 != nil {
 				return nil, err1
 			}
-			return runtime.NewRuntimeAnalyzer(common.RuntimeSapphire, runtimeMetadata, cfg.Analyzers.Sapphire.SlowSyncRange(), sourceClient, dbClient, logger)
+			return runtime.NewRuntimeAnalyzer(common.RuntimeSapphire, runtimeMetadata, cfg.Analyzers.Sapphire.SlowSyncRange(), analyzer.SlowSyncMode, sourceClient, dbClient, logger)
 		})
 	}
 	if cfg.Analyzers.Cipher != nil {
@@ -334,7 +334,7 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) { //nolint:gocyclo
 			if err1 != nil {
 				return nil, err1
 			}
-			return runtime.NewRuntimeAnalyzer(common.RuntimeCipher, runtimeMetadata, cfg.Analyzers.Cipher.SlowSyncRange(), sourceClient, dbClient, logger)
+			return runtime.NewRuntimeAnalyzer(common.RuntimeCipher, runtimeMetadata, cfg.Analyzers.Cipher.SlowSyncRange(), analyzer.SlowSyncMode, sourceClient, dbClient, logger)
 		})
 	}
 	if cfg.Analyzers.EmeraldEvmTokens != nil {

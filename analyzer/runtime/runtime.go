@@ -30,6 +30,7 @@ const (
 // runtimeAnalyzer is the main Analyzer for runtimes.
 type runtimeAnalyzer struct {
 	cfg     analyzer.RuntimeConfig
+	mode    analyzer.BlockAnalysisMode
 	target  storage.TargetStorage
 	logger  *log.Logger
 	metrics metrics.DatabaseMetrics
@@ -42,6 +43,7 @@ func NewRuntimeAnalyzer(
 	runtime common.Runtime,
 	runtimeMetadata *sdkConfig.ParaTime,
 	cfg config.BlockRange,
+	mode analyzer.BlockAnalysisMode,
 	sourceClient *source.RuntimeClient,
 	target storage.TargetStorage,
 	logger *log.Logger,
@@ -59,6 +61,7 @@ func NewRuntimeAnalyzer(
 
 	return &runtimeAnalyzer{
 		cfg:     ac,
+		mode:    mode,
 		target:  target,
 		logger:  logger.With("analyzer", runtime),
 		metrics: metrics.NewDefaultDatabaseMetrics(string(runtime)),
