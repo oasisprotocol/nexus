@@ -95,10 +95,10 @@ func GetFromCacheOrCall[Value any](cache KVStore, volatile bool, key CacheKey, v
 	}
 
 	// If the value is cached, return it.
-	var result *Value
-	switch err := fetchTypedValue(cache, key, result); err {
+	var cached Value
+	switch err := fetchTypedValue(cache, key, &cached); err {
 	case nil:
-		return result, nil
+		return &cached, nil
 	case errNoSuchKey: // Regular cache miss; continue below.
 	default:
 		// Log unexpected error and continue to call the backing API.
@@ -106,14 +106,13 @@ func GetFromCacheOrCall[Value any](cache KVStore, volatile bool, key CacheKey, v
 	}
 
 	// The value is not cached or couldn't be restored from the cache. Call the backing API to get it.
-	var err error
-	result, err = valueFunc()
+	computed, err := valueFunc()
 	if err != nil {
 		return nil, err
 	}
 
 	// Store value in cache for later use.
-	return result, cache.Put(key, cbor.Marshal(result))
+	return computed, cache.Put(key, cbor.Marshal(computed))
 }
 
 // Like getFromCacheOrCall, but for slice-typed return values.
