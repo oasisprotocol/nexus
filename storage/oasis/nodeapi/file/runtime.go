@@ -30,7 +30,7 @@ func NewFileRuntimeApiLite(runtime common.Runtime, cacheDir string, runtimeApi n
 	}
 	return &FileRuntimeApiLite{
 		runtime:    runtime,
-		db:         *db,
+		db:         db,
 		runtimeApi: runtimeApi,
 	}, nil
 }

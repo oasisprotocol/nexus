@@ -32,7 +32,7 @@ func NewFileConsensusApiLite(cacheDir string, consensusApi nodeapi.ConsensusApiL
 		return nil, err
 	}
 	return &FileConsensusApiLite{
-		db:           *db,
+		db:           db,
 		consensusApi: consensusApi,
 	}, nil
 }
