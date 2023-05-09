@@ -322,13 +322,12 @@ func (c *Client) DisableTriggersAndFKConstraints(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	batch := &storage.QueryBatch{}
 	for _, table := range tables {
 		c.logger.Info("disabling DB triggers on table", "table", table)
-		if _, err = c.pool.Exec(ctx, fmt.Sprintf("ALTER TABLE %s DISABLE TRIGGER ALL;", table)); err != nil {
-			return err
-		}
+		batch.Queue(fmt.Sprintf("ALTER TABLE %s DISABLE TRIGGER ALL;", table))
 	}
-	return nil
+	return c.SendBatch(ctx, batch)
 }
 
 // EnableTriggersAndFKConstraints enables all triggers and foreign key constraints
@@ -340,11 +339,10 @@ func (c *Client) EnableTriggersAndFKConstraints(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	batch := &storage.QueryBatch{}
 	for _, table := range tables {
 		c.logger.Info("enabling DB triggers on table", "table", table)
-		if _, err = c.pool.Exec(ctx, fmt.Sprintf("ALTER TABLE %s ENABLE TRIGGER ALL;", table)); err != nil {
-			return err
-		}
+		batch.Queue(fmt.Sprintf("ALTER TABLE %s ENABLE TRIGGER ALL;", table))
 	}
-	return nil
+	return c.SendBatch(ctx, batch)
 }
