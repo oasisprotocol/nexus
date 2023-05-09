@@ -34,7 +34,7 @@ jobs:
         ports:
           - 5432:5432
     env:
-      CI_TEST_CONN_STRING: "postgresql://postgres:postgres@127.0.0.1:5432/postgres"
+      CI_TEST_CONN_STRING: "postgresql://postgres:postgres@127.0.0.1:5432/postgres?sslmode=disable"
     steps:
       - name: Checkout code
         uses: actions/checkout@v3

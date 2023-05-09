@@ -1,10 +1,9 @@
-package postgres
+package postgres_test
 
 import (
 	"context"
 	"fmt"
 	"io"
-	"os"
 	"strings"
 	"sync"
 	"testing"
@@ -14,22 +13,15 @@ import (
 	"github.com/oasisprotocol/oasis-indexer/common"
 	"github.com/oasisprotocol/oasis-indexer/log"
 	"github.com/oasisprotocol/oasis-indexer/storage"
+	"github.com/oasisprotocol/oasis-indexer/storage/postgres"
+	"github.com/oasisprotocol/oasis-indexer/storage/postgres/testutil"
 	"github.com/oasisprotocol/oasis-indexer/tests"
 )
-
-func newClient(t *testing.T) (*Client, error) {
-	connString := os.Getenv("CI_TEST_CONN_STRING")
-	logger, err := log.NewLogger("postgres-test", io.Discard, log.FmtJSON, log.LevelInfo)
-	require.Nil(t, err)
-
-	return NewClient(connString, logger)
-}
 
 func TestConnect(t *testing.T) {
 	tests.SkipIfShort(t)
 
-	client, err := newClient(t)
-	require.Nil(t, err)
+	client := testutil.NewTestClient(t)
 	client.Close()
 }
 
@@ -38,29 +30,29 @@ func TestInvalidConnect(t *testing.T) {
 
 	connString := "an invalid connstring"
 	logger, err := log.NewLogger("postgres-test", io.Discard, log.FmtJSON, log.LevelInfo)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
-	_, err = NewClient(connString, logger)
-	require.NotNil(t, err)
+	_, err = postgres.NewClient(connString, logger)
+	require.Error(t, err)
 }
 
 func TestQuery(t *testing.T) {
 	tests.SkipIfShort(t)
 
-	client, err := newClient(t)
-	require.Nil(t, err)
+	client := testutil.NewTestClient(t)
 	defer client.Close()
 
 	rows, err := client.Query(context.Background(), `
 		SELECT * FROM ( VALUES (0),(1),(2) ) AS q;
 	`)
-	require.Nil(t, err)
+	require.NoError(t, err)
+	defer rows.Close()
 
 	i := 0
 	for rows.Next() {
 		var result int
 		err = rows.Scan(&result)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.Equal(t, i, result)
 
 		i++
@@ -71,50 +63,46 @@ func TestQuery(t *testing.T) {
 func TestInvalidQuery(t *testing.T) {
 	tests.SkipIfShort(t)
 
-	client, err := newClient(t)
-	require.Nil(t, err)
+	client := testutil.NewTestClient(t)
 	defer client.Close()
 
-	_, err = client.Query(context.Background(), `
+	_, err := client.Query(context.Background(), `
 		an invalid query
 	`)
-	require.NotNil(t, err)
+	require.Error(t, err)
 }
 
 func TestQueryRow(t *testing.T) {
 	tests.SkipIfShort(t)
 
-	client, err := newClient(t)
-	require.Nil(t, err)
+	client := testutil.NewTestClient(t)
 	defer client.Close()
 
 	var result int
-	err = client.QueryRow(context.Background(), `
+	err := client.QueryRow(context.Background(), `
 		SELECT 1+1;
 	`).Scan(&result)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Equal(t, 2, result)
 }
 
 func TestInvalidQueryRow(t *testing.T) {
 	tests.SkipIfShort(t)
 
-	client, err := newClient(t)
-	require.Nil(t, err)
+	client := testutil.NewTestClient(t)
 	defer client.Close()
 
 	var result int
-	err = client.QueryRow(context.Background(), `
+	err := client.QueryRow(context.Background(), `
 		an invalid query
 	`).Scan(&result)
-	require.NotNil(t, err)
+	require.Error(t, err)
 }
 
 func TestSendBatch(t *testing.T) {
 	tests.SkipIfShort(t)
 
-	client, err := newClient(t)
-	require.Nil(t, err)
+	client := testutil.NewTestClient(t)
 	defer client.Close()
 
 	defer func() {
@@ -123,7 +111,7 @@ func TestSendBatch(t *testing.T) {
 			DROP TABLE films;
 		`)
 		err := client.SendBatch(context.Background(), destroy)
-		require.Nil(t, err)
+		require.NoError(t, err)
 	}()
 
 	create := &storage.QueryBatch{}
@@ -133,8 +121,8 @@ func TestSendBatch(t *testing.T) {
 			name TEXT
 		);
 	`)
-	err = client.SendBatch(context.Background(), create)
-	require.Nil(t, err)
+	err := client.SendBatch(context.Background(), create)
+	require.NoError(t, err)
 
 	insert := &storage.QueryBatch{}
 	queueFilms := func(b *storage.QueryBatch, f []string, idOffset int) {
@@ -160,7 +148,7 @@ func TestSendBatch(t *testing.T) {
 	queueFilms(insert, films1, 0)
 	queueFilms(insert, films2, len(films1))
 	err = client.SendBatch(context.Background(), insert)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	var wg sync.WaitGroup
 	for i, film := range append(films1, films2...) {
@@ -183,39 +171,39 @@ func TestSendBatch(t *testing.T) {
 func TestInvalidSendBatch(t *testing.T) {
 	tests.SkipIfShort(t)
 
-	client, err := newClient(t)
-	require.Nil(t, err)
+	client := testutil.NewTestClient(t)
 	defer client.Close()
 
 	invalid := &storage.QueryBatch{}
 	invalid.Queue(`
 		an invalid query
 	`)
-	err = client.SendBatch(context.Background(), invalid)
-	require.NotNil(t, err)
+	err := client.SendBatch(context.Background(), invalid)
+	require.Error(t, err)
 }
 
 func TestNumeric(t *testing.T) {
-	client, err := newClient(t)
-	require.Nil(t, err)
+	tests.SkipIfShort(t)
+	client := testutil.NewTestClient(t)
 	defer client.Close()
 
+	ctx := context.Background()
+
+	// Ensure database is empty before running the test.
+	require.NoError(t, client.Wipe(ctx), "failed to wipe database")
+
 	// Create custom type, derived from NUMERIC.
-	_, err = client.pool.Exec(context.Background(), `CREATE DOMAIN mynumeric NUMERIC(1000,0) CHECK(VALUE >= 0)`)
-	if err != nil {
-		t.Fatal(err.Error())
-	}
+	row, err := client.Query(ctx, `CREATE DOMAIN mynumeric NUMERIC(1000,0) CHECK(VALUE >= 0)`)
+	require.NoError(t, err, "failed to create custom type")
+	row.Close()
 
 	// Test that we can scan both null and non-null values into a *common.BigInt.
 	var mynull *common.BigInt
 	var my2 *common.BigInt
-	err = client.QueryRow(context.Background(), `
+	err = client.QueryRow(ctx, `
 		SELECT null::mynumeric, 2::mynumeric;
 	`).Scan(&mynull, &my2)
-	if err != nil {
-		t.Fatal(err.Error())
-	}
-	require.Nil(t, err)
+	require.NoError(t, err, "failed to scan null and non-null values")
 	require.Nil(t, mynull)
 	require.Equal(t, int64(2), my2.Int64())
 }
