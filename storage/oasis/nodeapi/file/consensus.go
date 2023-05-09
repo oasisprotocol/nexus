@@ -92,7 +92,10 @@ func (c *FileConsensusApiLite) GetEpoch(ctx context.Context, height int64) (beac
 			return &time, err
 		},
 	)
-	return *time, err
+	if err != nil {
+		return beacon.EpochInvalid, err
+	}
+	return *time, nil
 }
 
 func (c *FileConsensusApiLite) RegistryEvents(ctx context.Context, height int64) ([]nodeapi.Event, error) {
