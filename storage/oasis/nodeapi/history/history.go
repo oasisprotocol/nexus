@@ -20,21 +20,34 @@ var _ nodeapi.ConsensusApiLite = (*HistoryConsensusApiLite)(nil)
 
 type APIConstructor func(ctx context.Context, chainContext string, archiveConfig *config.ArchiveConfig, fastStartup bool) (nodeapi.ConsensusApiLite, error)
 
+func damaskAPIConstructor(ctx context.Context, chainContext string, archiveConfig *config.ArchiveConfig, fastStartup bool) (nodeapi.ConsensusApiLite, error) {
+	sdkConn, err := connections.SDKConnect(ctx, chainContext, archiveConfig.ResolvedConsensusNode(), fastStartup)
+	if err != nil {
+		return nil, err
+	}
+	return damask.NewDamaskConsensusApiLite(sdkConn.Consensus()), nil
+}
+
+func cobaltAPIConstructor(ctx context.Context, chainContext string, archiveConfig *config.ArchiveConfig, fastStartup bool) (nodeapi.ConsensusApiLite, error) {
+	rawConn, err := connections.RawConnect(archiveConfig.ResolvedConsensusNode())
+	if err != nil {
+		return nil, fmt.Errorf("indexer RawConnect: %w", err)
+	}
+	return cobalt.NewCobaltConsensusApiLite(rawConn), nil
+}
+
+// APIConstructors map each (indexer-internal) archive name to the API constructor
+// that can talk to that archive. The namespace of archive names is shared
+// between mainnet and testnet for simplicity.
+// The supported archive names come from `config.DefaultChains`. If you want to use
+// a custom set of archives (`custom_chain` in the yaml config), you must reuse
+// a suitable archive name.
 var APIConstructors = map[string]APIConstructor{
-	"damask": func(ctx context.Context, chainContext string, archiveConfig *config.ArchiveConfig, fastStartup bool) (nodeapi.ConsensusApiLite, error) {
-		sdkConn, err := connections.SDKConnect(ctx, chainContext, archiveConfig.ResolvedConsensusNode(), fastStartup)
-		if err != nil {
-			return nil, err
-		}
-		return damask.NewDamaskConsensusApiLite(sdkConn.Consensus()), nil
-	},
-	"cobalt": func(ctx context.Context, chainContext string, archiveConfig *config.ArchiveConfig, fastStartup bool) (nodeapi.ConsensusApiLite, error) {
-		rawConn, err := connections.RawConnect(archiveConfig.ResolvedConsensusNode())
-		if err != nil {
-			return nil, fmt.Errorf("indexer RawConnect: %w", err)
-		}
-		return cobalt.NewCobaltConsensusApiLite(rawConn), nil
-	},
+	// mainnet
+	"damask": damaskAPIConstructor,
+	"cobalt": cobaltAPIConstructor,
+	// testnet
+	"2022-03-03": damaskAPIConstructor,
 }
 
 type HistoryConsensusApiLite struct {

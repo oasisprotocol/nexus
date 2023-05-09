@@ -129,7 +129,6 @@ var DefaultChains = map[common.ChainName]*History{
 	common.ChainNameTestnet: {
 		Records: []*Record{
 			// TODO: coalesce compatible records
-			// TODO: rename archives to match compatible API
 			// TODO: fill in chain context
 			{
 				// https://github.com/oasisprotocol/testnet-artifacts/releases/tag/2022-03-03
