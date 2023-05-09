@@ -1,17 +1,12 @@
 package file
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/akrylysov/pogreb"
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 	"github.com/oasisprotocol/oasis-indexer/log"
 )
-
-type NodeApiMethod func() (interface{}, error)
-
-var ErrUnstableRPCMethod = errors.New("this method is not cacheable because the RPC return value is not constant")
 
 // A key in the KVStore.
 type CacheKey []byte
@@ -20,19 +15,31 @@ func generateCacheKey(methodName string, params ...interface{}) CacheKey {
 	return CacheKey(cbor.Marshal([]interface{}{methodName, params}))
 }
 
-type KVStore struct {
+// A key-value store. Additional method-like functions that give a typed interface
+// to the store (i.e. with typed values/keys instead of []byte) are provided below,
+// taking KVStore as the first argument so they can use generics.
+type KVStore interface {
+	Has(key []byte) (bool, error)
+	Get(key []byte) ([]byte, error)
+	Put(key []byte, value []byte) error
+	Close() error
+}
+
+type pogrebKVStore struct {
 	*pogreb.DB
 
 	path   string
 	logger *log.Logger
 }
 
-func (s KVStore) Close() error {
+var _ KVStore = (*pogrebKVStore)(nil)
+
+func (s pogrebKVStore) Close() error {
 	s.logger.Info("closing KVStore", "path", s.path)
 	return s.DB.Close()
 }
 
-func OpenKVStore(logger *log.Logger, path string) (*KVStore, error) {
+func OpenKVStore(logger *log.Logger, path string) (KVStore, error) {
 	logger.Info("(re)opening KVStore", "path", path)
 	db, err := pogreb.Open(path, &pogreb.Options{BackgroundSyncInterval: -1})
 	if err != nil {
@@ -40,7 +47,7 @@ func OpenKVStore(logger *log.Logger, path string) (*KVStore, error) {
 	}
 	logger.Info(fmt.Sprintf("KVStore has %d entries", db.Count()))
 
-	return &KVStore{DB: db, logger: logger, path: path}, nil
+	return &pogrebKVStore{DB: db, logger: logger, path: path}, nil
 }
 
 // Pretty() returns a pretty-printed, human-readable version of the cache key.
@@ -61,6 +68,29 @@ func (cacheKey CacheKey) Pretty() string {
 	return pretty
 }
 
+var errNoSuchKey = fmt.Errorf("no such key")
+
+// fetchTypedValue fetches the value of `cacheKey` from the cache, interpreted as a `Value`.
+func fetchTypedValue[Value any](cache KVStore, key CacheKey, value *Value) error {
+	isCached, err := cache.Has(key)
+	if err != nil {
+		return err
+	}
+	if !isCached {
+		return errNoSuchKey
+	}
+	raw, err := cache.Get(key)
+	if err != nil {
+		return fmt.Errorf("failed to fetch key %s from cache: %v", key.Pretty(), err)
+	}
+	err = cbor.Unmarshal(raw, value)
+	if err != nil {
+		return fmt.Errorf("failed to unmarshal key %s from cache into %T: %v", key.Pretty(), value, err)
+	}
+
+	return nil
+}
+
 // getFromCacheOrCall fetches the value of `cacheKey` from the cache if it exists,
 // interpreted as a `Value`. If it does not exist, it calls `valueFunc` to get the
 // value, and caches it before returning it.
@@ -72,30 +102,27 @@ func GetFromCacheOrCall[Value any](cache KVStore, volatile bool, key CacheKey, v
 	}
 
 	// If the value is cached, return it.
-	isCached, err := cache.Has(key)
-	if err != nil {
-		return nil, err
-	}
-	if isCached {
-		raw, err2 := cache.Get(key)
-		if err2 != nil {
-			cache.logger.Warn(fmt.Sprintf("failed to fetch key %s from cache: %v", key.Pretty(), err2))
-		}
-		var result *Value
-		err2 = cbor.Unmarshal(raw, &result)
-		if err2 != nil {
-			cache.logger.Warn(fmt.Sprintf("failed to unmarshal key %s from cache into %T: %v", key.Pretty(), result, err2))
+	var cached Value
+	switch err := fetchTypedValue(cache, key, &cached); err {
+	case nil:
+		return &cached, nil
+	case errNoSuchKey: // Regular cache miss; continue below.
+	default:
+		// Log unexpected error and continue to call the backing API.
+		loggingCache, ok := cache.(*pogrebKVStore)
+		if ok {
+			loggingCache.logger.Warn(fmt.Sprintf("error fetching %s from cache: %v", key.Pretty(), err))
 		}
 	}
 
-	// Otherwise, the value is not cached or couldn't be restored from the cache. Call the backing API to get it.
-	result, err := valueFunc()
+	// The value is not cached or couldn't be restored from the cache. Call the backing API to get it.
+	computed, err := valueFunc()
 	if err != nil {
 		return nil, err
 	}
 
 	// Store value in cache for later use.
-	return result, cache.Put(key, cbor.Marshal(result))
+	return computed, cache.Put(key, cbor.Marshal(computed))
 }
 
 // Like getFromCacheOrCall, but for slice-typed return values.
