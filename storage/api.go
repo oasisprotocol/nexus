@@ -272,4 +272,15 @@ type TargetStorage interface {
 
 	// Wipe removes all contents of the target storage.
 	Wipe(ctx context.Context) error
+
+	// DisableTriggersAndFKConstraints disables all triggers and foreign key constraints
+	// in indexer tables. This is useful when inserting blockchain data out of order,
+	// so that later blocks can refer to (yet unindexed) earlier blocks without violating constraints.
+	DisableTriggersAndFKConstraints(ctx context.Context) error
+
+	// EnableTriggersAndFKConstraints enables all triggers and foreign key constraints
+	// in the given schema.
+	// WARNING: This might enable triggers not explicitly disabled by DisableTriggersAndFKConstraints.
+	// WARNING: This does not enforce/check contraints on rows that were inserted while triggers were disabled.
+	EnableTriggersAndFKConstraints(ctx context.Context) error
 }
