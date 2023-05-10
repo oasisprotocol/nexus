@@ -13,6 +13,7 @@ import (
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 
 	"github.com/oasisprotocol/oasis-indexer/analyzer/evmabi"
+	"github.com/oasisprotocol/oasis-indexer/common"
 	"github.com/oasisprotocol/oasis-indexer/log"
 	"github.com/oasisprotocol/oasis-indexer/storage"
 )
@@ -53,7 +54,7 @@ type EVMTokenBalanceData struct {
 }
 
 type EVMEncryptedData struct {
-	Format      int
+	Format      common.CallFormat
 	PublicKey   []byte
 	DataNonce   []byte
 	DataData    []byte
@@ -313,7 +314,7 @@ func EVMMaybeUnmarshalEncryptedData(data []byte, result *[]byte) (*EVMEncryptedD
 		// https://github.com/oasisprotocol/oasis-sdk/blob/runtime-sdk/v0.3.0/runtime-sdk/modules/evm/src/lib.rs#L626
 		return nil, nil
 	}
-	encryptedData.Format = int(call.Format)
+	encryptedData.Format = common.CallFormat(call.Format.String())
 	switch call.Format {
 	case sdkTypes.CallFormatEncryptedX25519DeoxysII:
 		var callEnvelope sdkTypes.CallEnvelopeX25519DeoxysII
@@ -323,6 +324,8 @@ func EVMMaybeUnmarshalEncryptedData(data []byte, result *[]byte) (*EVMEncryptedD
 		encryptedData.PublicKey = callEnvelope.Pk[:]
 		encryptedData.DataNonce = callEnvelope.Nonce[:]
 		encryptedData.DataData = callEnvelope.Data
+	// If you are adding new call formats, remember to add them to the
+	// database call_format enum too.
 	default:
 		return nil, fmt.Errorf("outer call format %s (%d) not supported", call.Format, call.Format)
 	}

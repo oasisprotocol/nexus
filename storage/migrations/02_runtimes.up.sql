@@ -3,6 +3,7 @@
 BEGIN;
 
 CREATE TYPE runtime AS ENUM ('emerald', 'sapphire', 'cipher');
+CREATE TYPE call_format AS ENUM ('encrypted/x25519-deoxysii');
 
 CREATE TABLE chain.runtime_blocks
 (
@@ -54,7 +55,7 @@ CREATE TABLE chain.runtime_transactions
   amount      UINT_NUMERIC, -- Exact semantics depend on method. Extracted from body; for convenience only.
 
   -- Encrypted data in encrypted Ethereum-format transactions.
-  evm_encrypted_format INTEGER,
+  evm_encrypted_format call_format,
   evm_encrypted_public_key BYTEA,
   evm_encrypted_data_nonce BYTEA,
   evm_encrypted_data_data BYTEA,

@@ -144,3 +144,5 @@ const (
 	RuntimeSapphire Runtime = "sapphire"
 	RuntimeUnknown  Runtime = "unknown"
 )
+
+type CallFormat string

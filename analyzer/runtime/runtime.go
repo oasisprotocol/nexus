@@ -277,7 +277,7 @@ func (m *Main) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 			batch.Queue(queries.RuntimeRelatedTransactionInsert, m.cfg.RuntimeName, addr, data.Header.Round, transactionData.Index)
 		}
 		var (
-			evmEncryptedFormat      *int
+			evmEncryptedFormat      *common.CallFormat
 			evmEncryptedPublicKey   *[]byte
 			evmEncryptedDataNonce   *[]byte
 			evmEncryptedDataData    *[]byte
