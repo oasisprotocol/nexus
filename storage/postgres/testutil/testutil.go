@@ -1,7 +1,6 @@
 package testutil
 
 import (
-	"io"
 	"os"
 	"testing"
 
@@ -14,7 +13,7 @@ import (
 // NewTestClient returns a postgres client used in CI tests.
 func NewTestClient(t *testing.T) *postgres.Client {
 	connString := os.Getenv("CI_TEST_CONN_STRING")
-	logger, err := log.NewLogger("postgres-test", io.Discard, log.FmtJSON, log.LevelInfo)
+	logger, err := log.NewLogger("postgres-test", os.Stdout, log.FmtJSON, log.LevelError)
 	require.Nil(t, err, "log.NewLogger")
 
 	client, err := postgres.NewClient(connString, logger)

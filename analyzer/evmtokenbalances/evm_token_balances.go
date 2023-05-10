@@ -78,9 +78,10 @@ const (
 )
 
 type Main struct {
-	cfg    analyzer.RuntimeConfig
-	target storage.TargetStorage
-	logger *log.Logger
+	runtime common.Runtime
+	source  storage.RuntimeSourceStorage
+	target  storage.TargetStorage
+	logger  *log.Logger
 }
 
 var _ analyzer.Analyzer = (*Main)(nil)
@@ -91,15 +92,11 @@ func NewMain(
 	target storage.TargetStorage,
 	logger *log.Logger,
 ) (*Main, error) {
-	ac := analyzer.RuntimeConfig{
-		RuntimeName: runtime,
-		Source:      sourceClient,
-	}
-
 	return &Main{
-		cfg:    ac,
-		target: target,
-		logger: logger.With("analyzer", EvmTokenBalancesAnalyzerPrefix+runtime),
+		runtime: runtime,
+		source:  sourceClient,
+		target:  target,
+		logger:  logger.With("analyzer", EvmTokenBalancesAnalyzerPrefix+runtime),
 	}, nil
 }
 
@@ -119,7 +116,7 @@ type StaleTokenBalance struct {
 
 func (m Main) getStaleTokenBalances(ctx context.Context, limit int) ([]*StaleTokenBalance, error) {
 	var staleTokenBalances []*StaleTokenBalance
-	rows, err := m.target.Query(ctx, queries.RuntimeEVMTokenBalanceAnalysisStale, m.cfg.RuntimeName, limit)
+	rows, err := m.target.Query(ctx, queries.RuntimeEVMTokenBalanceAnalysisStale, m.runtime, limit)
 	if err != nil {
 		return nil, fmt.Errorf("querying stale token balances: %w", err)
 	}
@@ -163,7 +160,7 @@ func (m Main) processStaleTokenBalance(ctx context.Context, batch *storage.Query
 		balanceData, err := runtime.EVMDownloadTokenBalance(
 			ctx,
 			m.logger,
-			m.cfg.Source,
+			m.source,
 			staleTokenBalance.DownloadRound,
 			tokenEthAddr,
 			accountEthAddr,
@@ -189,7 +186,7 @@ func (m Main) processStaleTokenBalance(ctx context.Context, batch *storage.Query
 					"correction", correction,
 				)
 				batch.Queue(queries.RuntimeEVMTokenBalanceUpdate,
-					m.cfg.RuntimeName,
+					m.runtime,
 					staleTokenBalance.TokenAddr,
 					staleTokenBalance.AccountAddr,
 					correction.String(),
@@ -198,7 +195,7 @@ func (m Main) processStaleTokenBalance(ctx context.Context, batch *storage.Query
 		}
 	}
 	batch.Queue(queries.RuntimeEVMTokenBalanceAnalysisUpdate,
-		m.cfg.RuntimeName,
+		m.runtime,
 		staleTokenBalance.TokenAddr,
 		staleTokenBalance.AccountAddr,
 		staleTokenBalance.DownloadRound,
@@ -287,5 +284,5 @@ func (m Main) Start(ctx context.Context) {
 }
 
 func (m Main) Name() string {
-	return EvmTokenBalancesAnalyzerPrefix + string(m.cfg.RuntimeName)
+	return EvmTokenBalancesAnalyzerPrefix + string(m.runtime)
 }

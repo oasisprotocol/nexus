@@ -198,6 +198,11 @@ func (c *Client) QueryRow(ctx context.Context, sql string, args ...interface{}) 
 	return c.pool.QueryRow(ctx, sql, args...)
 }
 
+// Begin implements the storage.TargetStorage interface for Client.
+func (c *Client) Begin(ctx context.Context) (storage.Tx, error) {
+	return c.pool.Begin(ctx)
+}
+
 // Close implements the storage.TargetStorage interface for Client.
 func (c *Client) Close() {
 	c.pool.Close()

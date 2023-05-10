@@ -178,7 +178,7 @@ CREATE TABLE chain.accounts
   -- Escrow Account
   -- TODO: Use UINT_NUMERIC for the next four columns. Their values should always be >=0;
   -- however in Cobalt, the emitted events didn't allow perfect tracking of shares, so
-  -- the indexer can arrive at negative values (https://github.com/oasisprotocol/oasis-indexer/pull/370). 
+  -- the indexer can arrive at negative values (https://github.com/oasisprotocol/oasis-indexer/pull/370).
   escrow_balance_active         NUMERIC(1000,0) NOT NULL DEFAULT 0,
   escrow_total_shares_active    NUMERIC(1000,0) NOT NULL DEFAULT 0,
   escrow_balance_debonding      NUMERIC(1000,0) NOT NULL DEFAULT 0,
@@ -288,10 +288,15 @@ CREATE TABLE chain.processed_blocks
 (
   height         UINT63 NOT NULL,
   analyzer       TEXT NOT NULL,
-  processed_time TIMESTAMP WITH TIME ZONE NOT NULL,
+
+  processed_time TIMESTAMP WITH TIME ZONE, -- NULL if the block is not yet processed.
+  locked_time     TIMESTAMP WITH TIME ZONE NOT NULL,
 
   PRIMARY KEY (analyzer, height)
 );
+
+CREATE INDEX ix_processed_blocks_analyzer_height_locked_unprocessed ON chain.processed_blocks (analyzer, height, locked_time) WHERE processed_time IS NULL; -- Index for efficient query of unprocessed blocks.
+CREATE INDEX ix_processed_blocks_analyzer_height_locked_processed ON chain.processed_blocks (analyzer, height, locked_time, processed_time) WHERE processed_time IS NOT NULL; -- Index for efficient query of processed blocks.
 
 -- Keeps track of chains for which we've already processed the genesis data.
 CREATE TABLE chain.processed_geneses (

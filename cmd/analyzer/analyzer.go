@@ -242,7 +242,7 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) {
 			if err1 != nil {
 				return nil, err1
 			}
-			return consensus.NewMain(cfg.Analyzers.Consensus, genesisChainContext, sourceClient, dbClient, logger)
+			return consensus.NewAnalyzer(cfg.Analyzers.Consensus, genesisChainContext, sourceClient, dbClient, logger)
 		})
 	}
 	if cfg.Analyzers.Emerald != nil {

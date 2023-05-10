@@ -1,11 +1,89 @@
 package queries
 
 const (
-	LatestBlock = `
-    SELECT height FROM chain.processed_blocks
-      WHERE analyzer = $1
-    ORDER BY height DESC
-    LIMIT 1`
+	FirstUnprocessedBlock = `
+    SELECT LEAST( -- LEAST() ignores NULLs
+      (
+        -- The first explicitly tracked unprocessed block (locked but not yet processed).
+        SELECT min(height) FROM chain.processed_blocks
+        WHERE analyzer = $1 AND processed_time IS NULL
+      ),
+      (
+        -- First block after all tracked processed blocks.
+        -- This branch handles the case where there is no unprocessed blocks.
+        SELECT max(height)+1 FROM chain.processed_blocks
+        WHERE analyzer = $1
+      )
+    )`
+
+	UnlockBlockForProcessing = `
+    UPDATE chain.processed_blocks
+    SET locked_time = '-infinity'
+    WHERE analyzer = $1 AND height = $2`
+
+	// TakeXactLock acquires an exclusive lock (with lock ID $1), with custom semantics.
+	// The lock is automatically unlocked at the end of the db transaction.
+	TakeXactLock = `
+    SELECT pg_advisory_xact_lock($1)`
+
+	PickBlocksForProcessing = `
+    -- Locks a range of unprocessed blocks for an analyzer, handling expired locks and updating the lock status.
+    -- Returns the locked blocks.
+    -- Also referred to as the "mega-query".
+    --
+    -- Parameters:
+    -- $1 = analyzer name (text)
+    -- $2 = minimum block height (integer)
+    -- $3 = maximum block height (integer, optional)
+    -- $4 = lock timeout in minutes (integer)
+    -- $5 = number of blocks to lock (integer)
+
+    WITH
+
+    -- Find highest block that is processed (= processed_time set), or being processed (= locked_time set (and not expired)).
+    -- We'll grab the next blocks from this height on.
+    highest_done_block AS (
+      SELECT COALESCE(max(height), -1) as height
+      FROM chain.processed_blocks
+      WHERE analyzer = $1 AND (processed_time IS NOT NULL OR locked_time >= CURRENT_TIMESTAMP - ($4::integer * INTERVAL '1 minute'))
+    ),
+
+    -- Find unprocessed blocks with expired locks (should be few and far between).
+    expired_locks AS (
+        SELECT height
+        FROM chain.processed_blocks
+        WHERE analyzer = $1 AND processed_time IS NULL AND (locked_time < CURRENT_TIMESTAMP - ($4::integer * INTERVAL '1 minute')) AND height >= $2 AND ($3::integer IS NULL OR height <= $3)
+        ORDER BY height
+        LIMIT $5
+    ),
+
+    -- The next $5 blocks from what is already processed or being processed.
+    next_blocks AS (
+        SELECT series_height.height
+        FROM highest_done_block,
+          generate_series(
+            GREATEST(highest_done_block.height+1, $2), -- Don't go below $2
+            LEAST( -- Don't go above $3, unless $3 is NULL.
+              $3,
+              GREATEST(highest_done_block.height+1, $2)+$5
+            )
+          ) AS series_height (height)
+    ),
+
+    -- Find the lowest eligible blocks to lock.
+    blocks_to_lock AS (
+      SELECT * FROM expired_locks
+      UNION
+      SELECT * FROM next_blocks
+      ORDER BY height
+      LIMIT $5
+    )
+
+    -- Lock the blocks. Try to insert a new row into processed_blocks; if a row already exists, update the lock.
+    INSERT INTO chain.processed_blocks (analyzer, height, locked_time)
+    SELECT $1, height, CURRENT_TIMESTAMP FROM blocks_to_lock
+    ON CONFLICT (analyzer, height) DO UPDATE SET locked_time = excluded.locked_time
+    RETURNING height`
 
 	IsGenesisProcessed = `
     SELECT EXISTS (
@@ -14,9 +92,9 @@ const (
     )`
 
 	IndexingProgress = `
-    INSERT INTO chain.processed_blocks (height, analyzer, processed_time)
-      VALUES
-        ($1, $2, CURRENT_TIMESTAMP)`
+    UPDATE chain.processed_blocks
+      SET height = $1, analyzer = $2, processed_time = CURRENT_TIMESTAMP
+      WHERE height = $1 AND analyzer = $2`
 
 	GenesisIndexingProgress = `
     INSERT INTO chain.processed_geneses (chain_context, processed_time)
@@ -30,7 +108,7 @@ const (
 	ConsensusEpochUpsert = `
     INSERT INTO chain.epochs AS epochs (id, start_height, end_height)
       VALUES ($1, $2, $2)
-    ON CONFLICT (id) DO 
+    ON CONFLICT (id) DO
     UPDATE SET
       start_height = LEAST(excluded.start_height, epochs.start_height),
       end_height = GREATEST(excluded.end_height, epochs.end_height)`
@@ -315,7 +393,7 @@ const (
       address_preimages.context_identifier,
       address_preimages.context_version,
       address_preimages.address_data,
-      (SELECT MAX(height) FROM chain.processed_blocks WHERE analyzer = evm_token_analysis.runtime::text) AS download_round
+      (SELECT MAX(height) FROM chain.processed_blocks WHERE analyzer = evm_token_analysis.runtime::text AND processed_time IS NOT NULL) AS download_round
     FROM chain.evm_token_analysis
     LEFT JOIN chain.evm_tokens USING (runtime, token_address)
     LEFT JOIN chain.address_preimages ON
@@ -371,7 +449,7 @@ const (
       account_address_preimage.context_identifier,
       account_address_preimage.context_version,
       account_address_preimage.address_data,
-      (SELECT MAX(height) FROM chain.processed_blocks WHERE analyzer = evm_token_balance_analysis.runtime::text) AS download_round
+      (SELECT MAX(height) FROM chain.processed_blocks WHERE analyzer = evm_token_balance_analysis.runtime::text AND processed_time IS NOT NULL) AS download_round
     FROM chain.evm_token_balance_analysis
     -- No LEFT JOIN; we need to know the token's type to query its balance.
     -- We do not exclude tokens with type=0 (unsupported) so that we can move them off the DB index of stale tokens.

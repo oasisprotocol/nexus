@@ -3,6 +3,8 @@ package oasis
 import (
 	"context"
 
+	clientAPI "github.com/oasisprotocol/oasis-core/go/runtime/client/api"
+
 	"github.com/oasisprotocol/oasis-indexer/storage"
 	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
 )
@@ -44,6 +46,16 @@ func (rc *RuntimeClient) AllData(ctx context.Context, round uint64) (*storage.Ru
 	return &data, nil
 }
 
+// Implements RuntimeSourceStorage interface.
+func (rc *RuntimeClient) LatestBlockHeight(ctx context.Context) (uint64, error) {
+	header, err := rc.nodeApi.GetBlockHeader(ctx, clientAPI.RoundLatest)
+	if err != nil {
+		return 0, err
+	}
+	return header.Round, nil
+}
+
+// Implements RuntimeSourceStorage interface.
 func (rc *RuntimeClient) EVMSimulateCall(ctx context.Context, round uint64, gasPrice []byte, gasLimit uint64, caller []byte, address []byte, value []byte, data []byte) ([]byte, error) {
 	return rc.nodeApi.EVMSimulateCall(ctx, round, gasPrice, gasLimit, caller, address, value, data)
 }

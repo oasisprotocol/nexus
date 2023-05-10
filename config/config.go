@@ -243,13 +243,13 @@ type NodeConfig struct {
 
 type BlockBasedAnalyzerConfig struct {
 	// From is the (inclusive) starting block for this analyzer.
-	From int64 `koanf:"from"`
+	From uint64 `koanf:"from"`
 
 	// To is the (inclusive) ending block for this analyzer.
 	// Omitting this parameter means this analyzer will
 	// continue processing new blocks until the next breaking
 	// upgrade.
-	To int64 `koanf:"to"`
+	To uint64 `koanf:"to"`
 }
 
 type IntervalBasedAnalyzerConfig struct {
@@ -261,7 +261,7 @@ type EvmTokensAnalyzerConfig struct{}
 
 // Validate validates the range configuration.
 func (cfg *BlockBasedAnalyzerConfig) Validate() error {
-	if (cfg.To != 0 && cfg.From > cfg.To) || cfg.To < 0 || cfg.From < 0 {
+	if cfg.To != 0 && cfg.From > cfg.To {
 		return fmt.Errorf("malformed analysis range from %d to %d", cfg.From, cfg.To)
 	}
 	return nil

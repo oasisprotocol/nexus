@@ -35,9 +35,10 @@ const (
 )
 
 type Main struct {
-	cfg    analyzer.RuntimeConfig
-	target storage.TargetStorage
-	logger *log.Logger
+	runtime common.Runtime
+	source  storage.RuntimeSourceStorage
+	target  storage.TargetStorage
+	logger  *log.Logger
 }
 
 var _ analyzer.Analyzer = (*Main)(nil)
@@ -48,15 +49,11 @@ func NewMain(
 	target storage.TargetStorage,
 	logger *log.Logger,
 ) (*Main, error) {
-	ac := analyzer.RuntimeConfig{
-		RuntimeName: runtime,
-		Source:      sourceClient,
-	}
-
 	return &Main{
-		cfg:    ac,
-		target: target,
-		logger: logger.With("analyzer", EvmTokensAnalyzerPrefix+runtime),
+		runtime: runtime,
+		source:  sourceClient,
+		target:  target,
+		logger:  logger.With("analyzer", EvmTokensAnalyzerPrefix+runtime),
 	}, nil
 }
 
@@ -72,7 +69,7 @@ type StaleToken struct {
 
 func (m Main) getStaleTokens(ctx context.Context, limit int) ([]*StaleToken, error) {
 	var staleTokens []*StaleToken
-	rows, err := m.target.Query(ctx, queries.RuntimeEVMTokenAnalysisStale, m.cfg.RuntimeName, limit)
+	rows, err := m.target.Query(ctx, queries.RuntimeEVMTokenAnalysisStale, m.runtime, limit)
 	if err != nil {
 		return nil, fmt.Errorf("querying discovered tokens: %w", err)
 	}
@@ -108,7 +105,7 @@ func (m Main) processStaleToken(ctx context.Context, batch *storage.QueryBatch, 
 		tokenData, err := runtime.EVMDownloadNewToken(
 			ctx,
 			m.logger,
-			m.cfg.Source,
+			m.source,
 			staleToken.DownloadRound,
 			tokenEthAddr,
 		)
@@ -116,7 +113,7 @@ func (m Main) processStaleToken(ctx context.Context, batch *storage.QueryBatch, 
 			return fmt.Errorf("downloading new token %s: %w", staleToken.Addr, err)
 		}
 		batch.Queue(queries.RuntimeEVMTokenInsert,
-			m.cfg.RuntimeName,
+			m.runtime,
 			staleToken.Addr,
 			tokenData.Type,
 			tokenData.Name,
@@ -128,7 +125,7 @@ func (m Main) processStaleToken(ctx context.Context, batch *storage.QueryBatch, 
 		mutable, err := runtime.EVMDownloadMutatedToken(
 			ctx,
 			m.logger,
-			m.cfg.Source,
+			m.source,
 			staleToken.DownloadRound,
 			tokenEthAddr,
 			*staleToken.Type,
@@ -138,13 +135,13 @@ func (m Main) processStaleToken(ctx context.Context, batch *storage.QueryBatch, 
 		}
 		if mutable != nil {
 			batch.Queue(queries.RuntimeEVMTokenUpdate,
-				m.cfg.RuntimeName,
+				m.runtime,
 				staleToken.Addr,
 				mutable.TotalSupply.String(),
 			)
 		}
 	}
-	batch.Queue(queries.RuntimeEVMTokenAnalysisUpdate, m.cfg.RuntimeName, staleToken.Addr, staleToken.DownloadRound)
+	batch.Queue(queries.RuntimeEVMTokenAnalysisUpdate, m.runtime, staleToken.Addr, staleToken.DownloadRound)
 	return nil
 }
 
@@ -229,5 +226,5 @@ func (m Main) Start(ctx context.Context) {
 }
 
 func (m Main) Name() string {
-	return EvmTokensAnalyzerPrefix + string(m.cfg.RuntimeName)
+	return EvmTokensAnalyzerPrefix + string(m.runtime)
 }
