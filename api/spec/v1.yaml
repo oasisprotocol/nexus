@@ -2106,6 +2106,7 @@ components:
 
     RuntimeTransactionEncryptionEnvelope:
       type: object
+      required: [format, public_key, data_nonce, data, result_nonce, result]
       properties:
         format:
           type: integer
@@ -2113,23 +2114,23 @@ components:
         public_key:
           type: string
           format: byte
-          description: The public key used to encrypt the transaction.
+          description: The base64-encoded public key used to encrypt the transaction.
         data_nonce:
           type: string
           format: byte
-          description: The nonce used to encrypt the transaction data.
+          description: The base64-encoded nonce used to encrypt the transaction data.
         data:
           type: string
           format: byte
-          description: The transaction data.
+          description: The base64-encoded transaction data.
         result_nonce:
           type: string
           format: byte
-          description: The nonce used to encrypt the transaction results.
+          description: The base64-encoded nonce used to encrypt the transaction results.
         result:
           type: string
           format: byte
-          description: The result data.
+          description: The base64-encoded result data.
 
     RuntimeAccount:
       type: object
