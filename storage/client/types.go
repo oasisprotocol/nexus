@@ -97,9 +97,10 @@ type RuntimeBlock = api.RuntimeBlock
 
 // RuntimeTransactionList is the storage response for RuntimeTransactions.
 type (
-	RuntimeTransactionList = api.RuntimeTransactionList
-	RuntimeTransaction     = api.RuntimeTransaction
-	TxError                = api.TxError
+	RuntimeTransactionList               = api.RuntimeTransactionList
+	RuntimeTransaction                   = api.RuntimeTransaction
+	RuntimeTransactionEncryptionEnvelope = api.RuntimeTransactionEncryptionEnvelope
+	TxError                              = api.TxError
 )
 
 // RuntimeEventList is the storage response for RuntimeEvents.
