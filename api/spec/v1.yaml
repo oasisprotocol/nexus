@@ -2089,6 +2089,10 @@ components:
             applicable. The meaning varies based on the transaction method.
             Usually in native denomination, ParaTime units. As a string.
           example: "100000001666393459"
+        encryption_envelope:
+          description: |
+            The encrypted transaction envelope.
+          $ref: '#/components/schemas/RuntimeTransactionEncryptionEnvelope'
         success:
           type: boolean
           description: |
@@ -2099,6 +2103,33 @@ components:
           description: Error details of a failed transaction.
       description: |
         A runtime transaction.
+
+    RuntimeTransactionEncryptionEnvelope:
+      type: object
+      properties:
+        format:
+          type: integer
+          description: The format of the encrypted evm transaction envelope
+        public_key:
+          type: string
+          format: byte
+          description: The public key used to encrypt the transaction.
+        data_nonce:
+          type: string
+          format: byte
+          description: The nonce used to encrypt the transaction data.
+        data:
+          type: string
+          format: byte
+          description: The transaction data.
+        result_nonce:
+          type: string
+          format: byte
+          description: The nonce used to encrypt the transaction results.
+        result:
+          type: string
+          format: byte
+          description: The result data.
 
     RuntimeAccount:
       type: object
