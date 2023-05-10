@@ -373,8 +373,9 @@ const (
       account_address_preimage.address_data,
       (SELECT MAX(height) FROM chain.processed_blocks WHERE analyzer = evm_token_balance_analysis.runtime::text) AS download_round
     FROM chain.evm_token_balance_analysis
-    JOIN chain.evm_token_analysis USING (runtime, token_address)
-    LEFT JOIN chain.evm_tokens USING (runtime, token_address)
+    -- No LEFT JOIN; we need to know the token's type to query its balance.
+    -- We do not exclude tokens with type=0 (unsupported) so that we can move them off the DB index of stale tokens.
+    JOIN chain.evm_tokens USING (runtime, token_address)
     LEFT JOIN chain.evm_token_balances USING (runtime, token_address, account_address)
     LEFT JOIN chain.address_preimages AS token_address_preimage ON
       token_address_preimage.address = evm_token_balance_analysis.token_address
@@ -385,8 +386,7 @@ const (
       (
         evm_token_balance_analysis.last_download_round IS NULL OR
         evm_token_balance_analysis.last_mutate_round > evm_token_balance_analysis.last_download_round
-      ) AND
-      evm_token_analysis.last_download_round IS NOT NULL
+      )
     LIMIT $2`
 
 	RuntimeEVMTokenBalanceAnalysisUpdate = `

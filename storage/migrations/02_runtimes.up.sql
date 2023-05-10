@@ -174,7 +174,7 @@ CREATE TABLE chain.evm_tokens
 (
   runtime runtime NOT NULL,
   token_address oasis_addr NOT NULL,
-  token_type INTEGER, -- From https://github.com/oasisprotocol/oasis-indexer/blob/v0.0.7/analyzer/modules/evm.go#L21
+  token_type INTEGER NOT NULL, -- 0 = unsupported, X = ERC-X; full spec at https://github.com/oasisprotocol/oasis-indexer/blob/v0.0.16/analyzer/runtime/evm.go#L21
   token_name TEXT,
   symbol TEXT,
   decimals INTEGER,

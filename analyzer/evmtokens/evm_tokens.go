@@ -101,8 +101,10 @@ func (m Main) processStaleToken(ctx context.Context, batch *storage.QueryBatch, 
 	if err != nil {
 		return fmt.Errorf("token address: %w", err)
 	}
-	//nolint:nestif
-	if staleToken.LastDownloadRound == nil {
+	// These two conditions should be equivalent; only a never-before-downloaded token
+	// can have a nil type, because downloading a token always sets the type.
+	// We check both just in case, because we later dereference the .Type pointer.
+	if staleToken.LastDownloadRound == nil || staleToken.Type == nil {
 		tokenData, err := runtime.EVMDownloadNewToken(
 			ctx,
 			m.logger,
@@ -113,18 +115,16 @@ func (m Main) processStaleToken(ctx context.Context, batch *storage.QueryBatch, 
 		if err != nil {
 			return fmt.Errorf("downloading new token %s: %w", staleToken.Addr, err)
 		}
-		if tokenData != nil {
-			batch.Queue(queries.RuntimeEVMTokenInsert,
-				m.cfg.RuntimeName,
-				staleToken.Addr,
-				tokenData.Type,
-				tokenData.Name,
-				tokenData.Symbol,
-				tokenData.Decimals,
-				tokenData.TotalSupply.String(),
-			)
-		}
-	} else if staleToken.Type != nil {
+		batch.Queue(queries.RuntimeEVMTokenInsert,
+			m.cfg.RuntimeName,
+			staleToken.Addr,
+			tokenData.Type,
+			tokenData.Name,
+			tokenData.Symbol,
+			tokenData.Decimals,
+			tokenData.TotalSupply.String(),
+		)
+	} else if *staleToken.Type != runtime.EVMTokenTypeUnsupported {
 		mutable, err := runtime.EVMDownloadMutatedToken(
 			ctx,
 			m.logger,
