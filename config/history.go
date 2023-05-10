@@ -128,12 +128,11 @@ var DefaultChains = map[common.ChainName]*History{
 	},
 	common.ChainNameTestnet: {
 		Records: []*Record{
-			// TODO: coalesce compatible records
-			// TODO: fill in chain context
 			{
 				// https://github.com/oasisprotocol/testnet-artifacts/releases/tag/2022-03-03
 				ArchiveName:   "2022-03-03",
 				GenesisHeight: 8535081,
+				ChainContext:  "50304f98ddb656620ea817cc1446c401752a05a249b36c9b90dba4616829977a",
 				RuntimeStartRounds: map[common.Runtime]uint64{
 					common.RuntimeCipher:   1675996,
 					common.RuntimeEmerald:  398623,
@@ -144,6 +143,7 @@ var DefaultChains = map[common.ChainName]*History{
 				// https://github.com/oasisprotocol/testnet-artifacts/releases/tag/2021-04-13
 				ArchiveName:   "2021-04-13",
 				GenesisHeight: 3398334,
+				ChainContext:  "5ba68bc5e01e06f755c4c044dd11ec508e4c17f1faf40c0e67874388437a9e55",
 				RuntimeStartRounds: map[common.Runtime]uint64{
 					common.RuntimeCipher:  0,
 					common.RuntimeEmerald: 0,
@@ -153,21 +153,25 @@ var DefaultChains = map[common.ChainName]*History{
 				// https://github.com/oasisprotocol/testnet-artifacts/releases/tag/2021-03-24
 				ArchiveName:   "2021-03-24",
 				GenesisHeight: 3076800,
+				ChainContext:  "TODO-UNKNOWN",
 			},
 			{
 				// https://github.com/oasisprotocol/testnet-artifacts/releases/tag/2021-02-03
 				ArchiveName:   "2021-02-03",
 				GenesisHeight: 2284801,
+				ChainContext:  "TODO-UNKNOWN",
 			},
 			{
 				// https://github.com/oasisprotocol/testnet-artifacts/releases/tag/2020-11-04
 				ArchiveName:   "2020-11-04",
 				GenesisHeight: 811055,
+				ChainContext:  "TODO-UNKNOWN",
 			},
 			{
 				// https://github.com/oasisprotocol/testnet-artifacts/releases/tag/2020-09-15
 				ArchiveName:   "2020-09-15",
 				GenesisHeight: 1,
+				ChainContext:  "TODO-UNKNOWN",
 			},
 		},
 	},
