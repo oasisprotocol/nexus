@@ -74,6 +74,16 @@ func runAnalyzer(cmd *cobra.Command, args []string) {
 	service.Start()
 }
 
+// RunMigrations runs migrations defined in sourceURL against databaseURL.
+func RunMigrations(sourceURL string, databaseURL string) error {
+	m, err := migrate.New(sourceURL, databaseURL)
+	if err != nil {
+		return err
+	}
+
+	return m.Up()
+}
+
 // Init initializes the analysis service.
 func Init(cfg *config.AnalysisConfig) (*Service, error) {
 	logger := cmdCommon.Logger()
@@ -87,18 +97,7 @@ func Init(cfg *config.AnalysisConfig) (*Service, error) {
 		logger.Info("storage wiped")
 	}
 
-	m, err := migrate.New(
-		cfg.Storage.Migrations,
-		cfg.Storage.Endpoint,
-	)
-	if err != nil {
-		logger.Error("migrator failed to start",
-			"error", err,
-		)
-		return nil, err
-	}
-
-	switch err = m.Up(); {
+	switch err := RunMigrations(cfg.Storage.Migrations, cfg.Storage.Endpoint); {
 	case err == migrate.ErrNoChange:
 		logger.Info("no migrations needed to be applied")
 	case err != nil:

@@ -46,7 +46,7 @@ CREATE TABLE chain.runtime_transactions
   gas_used    UINT63 NOT NULL,
 
   size UINT31 NOT NULL,
-  
+
   -- Transaction contents.
   method      TEXT,         -- accounts.Transter, consensus.Deposit, consensus.Withdraw, evm.Create, evm.Call. NULL for malformed and encrypted txs.
   body        JSONB,        -- For EVM txs, the EVM method and args are encoded in here. NULL for malformed and encrypted txs.
