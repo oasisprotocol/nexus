@@ -3,6 +3,7 @@ package runtime
 import (
 	"context"
 	"fmt"
+	"math/big"
 	"strings"
 
 	sdkConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
@@ -254,7 +255,12 @@ func (m *processor) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 
 	// Update EVM token balances (dead reckoning).
 	for key, change := range data.TokenBalanceChanges {
-		batch.Queue(queries.RuntimeEVMTokenBalanceUpdate, m.runtime, key.TokenAddress, key.AccountAddress, change.String())
+		// Update the DB balance only if it's actually changed.
+		if change != big.NewInt(0) {
+			batch.Queue(queries.RuntimeEVMTokenBalanceUpdate, m.runtime, key.TokenAddress, key.AccountAddress, change.String())
+		}
+		// Even for a (suspected) non-change, notify the evm_token_balances analyzer to
+		// verify the correct balance by querying the EVM.
 		batch.Queue(queries.RuntimeEVMTokenBalanceAnalysisInsert, m.runtime, key.TokenAddress, key.AccountAddress, data.Header.Round)
 	}
 }
