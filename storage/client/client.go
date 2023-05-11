@@ -1080,7 +1080,7 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetR
 		t := RuntimeTransaction{
 			Error: &TxError{},
 		}
-		var encryptionEnvelopeFormat *int
+		var encryptionEnvelopeFormat *string
 		var encryptionEnvelopePublicKey []byte
 		var encryptionEnvelopeDataNonce []byte
 		var encryptionEnvelopeData []byte

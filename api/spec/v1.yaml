@@ -2109,7 +2109,7 @@ components:
       required: [format, public_key, data_nonce, data, result_nonce, result]
       properties:
         format:
-          type: integer
+          type: string
           description: The format of the encrypted evm transaction envelope
         public_key:
           type: string
