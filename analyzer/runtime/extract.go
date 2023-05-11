@@ -376,16 +376,14 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 							return fmt.Errorf("created contract: %w", err)
 						}
 					}
-					var evmEncrypted *EVMEncryptedData
-					evmEncrypted, err = EVMMaybeUnmarshalEncryptedData(body.InitCode, ok)
-					if err == nil {
+					if evmEncrypted, err2 := EVMMaybeUnmarshalEncryptedData(body.InitCode, ok); err2 == nil {
 						blockTransactionData.EVMEncrypted = evmEncrypted
 					} else {
 						logger.Error("error unmarshalling encrypted init code and result, omitting encrypted fields",
 							"round", blockHeader.Round,
 							"tx_index", txIndex,
 							"tx_hash", txr.Tx.Hash(),
-							"err", err,
+							"err", err2,
 						)
 					}
 					return nil
@@ -396,16 +394,14 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 					if to, err = registerRelatedEthAddress(blockData.AddressPreimages, blockTransactionData.RelatedAccountAddresses, body.Address); err != nil {
 						return fmt.Errorf("address: %w", err)
 					}
-					var evmEncrypted *EVMEncryptedData
-					evmEncrypted, err = EVMMaybeUnmarshalEncryptedData(body.Data, ok)
-					if err == nil {
+					if evmEncrypted, err2 := EVMMaybeUnmarshalEncryptedData(body.Data, ok); err2 == nil {
 						blockTransactionData.EVMEncrypted = evmEncrypted
 					} else {
 						logger.Error("error unmarshalling encrypted data and result, omitting encrypted fields",
 							"round", blockHeader.Round,
 							"tx_index", txIndex,
 							"tx_hash", txr.Tx.Hash(),
-							"err", err,
+							"err", err2,
 						)
 					}
 					// todo: maybe parse known token methods
