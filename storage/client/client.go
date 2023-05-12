@@ -1082,11 +1082,6 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetR
 		}
 		var encryptionEnvelope RuntimeTransactionEncryptionEnvelope
 		var encryptionEnvelopeFormat *common.CallFormat
-		// var encryptionEnvelopePublicKey []byte
-		// var encryptionEnvelopeDataNonce []byte
-		// var encryptionEnvelopeData []byte
-		// var encryptionEnvelopeResultNonce []byte
-		// var encryptionEnvelopeResult []byte
 		var sender0PreimageContextIdentifier *string
 		var sender0PreimageContextVersion *int
 		var sender0PreimageData []byte
@@ -1121,11 +1116,6 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetR
 			&encryptionEnvelope.Data,
 			&encryptionEnvelope.ResultNonce,
 			&encryptionEnvelope.Result,
-			// &encryptionEnvelopePublicKey,
-			// &encryptionEnvelopeDataNonce,
-			// &encryptionEnvelopeData,
-			// &encryptionEnvelopeResultNonce,
-			// &encryptionEnvelopeResult,
 			&t.Success,
 			&t.Error.Module,
 			&t.Error.Code,
