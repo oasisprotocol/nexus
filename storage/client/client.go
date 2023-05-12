@@ -1080,12 +1080,13 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetR
 		t := RuntimeTransaction{
 			Error: &TxError{},
 		}
-		var encryptionEnvelopeFormat *string
-		var encryptionEnvelopePublicKey []byte
-		var encryptionEnvelopeDataNonce []byte
-		var encryptionEnvelopeData []byte
-		var encryptionEnvelopeResultNonce []byte
-		var encryptionEnvelopeResult []byte
+		var encryptionEnvelope RuntimeTransactionEncryptionEnvelope
+		var encryptionEnvelopeFormat *common.CallFormat
+		// var encryptionEnvelopePublicKey []byte
+		// var encryptionEnvelopeDataNonce []byte
+		// var encryptionEnvelopeData []byte
+		// var encryptionEnvelopeResultNonce []byte
+		// var encryptionEnvelopeResult []byte
 		var sender0PreimageContextIdentifier *string
 		var sender0PreimageContextVersion *int
 		var sender0PreimageData []byte
@@ -1115,11 +1116,16 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetR
 			&toPreimageData,
 			&t.Amount,
 			&encryptionEnvelopeFormat,
-			&encryptionEnvelopePublicKey,
-			&encryptionEnvelopeDataNonce,
-			&encryptionEnvelopeData,
-			&encryptionEnvelopeResultNonce,
-			&encryptionEnvelopeResult,
+			&encryptionEnvelope.PublicKey,
+			&encryptionEnvelope.DataNonce,
+			&encryptionEnvelope.Data,
+			&encryptionEnvelope.ResultNonce,
+			&encryptionEnvelope.Result,
+			// &encryptionEnvelopePublicKey,
+			// &encryptionEnvelopeDataNonce,
+			// &encryptionEnvelopeData,
+			// &encryptionEnvelopeResultNonce,
+			// &encryptionEnvelopeResult,
 			&t.Success,
 			&t.Error.Module,
 			&t.Error.Code,
@@ -1131,14 +1137,8 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetR
 			t.Error = nil
 		}
 		if encryptionEnvelopeFormat != nil { // a rudimentary check to determine if the tx was encrypted
-			t.EncryptionEnvelope = &RuntimeTransactionEncryptionEnvelope{
-				Format:      *encryptionEnvelopeFormat,
-				PublicKey:   encryptionEnvelopePublicKey,
-				DataNonce:   encryptionEnvelopeDataNonce,
-				Data:        encryptionEnvelopeData,
-				ResultNonce: encryptionEnvelopeResultNonce,
-				Result:      encryptionEnvelopeResult,
-			}
+			encryptionEnvelope.Format = *encryptionEnvelopeFormat
+			t.EncryptionEnvelope = &encryptionEnvelope
 		}
 		// TODO: Here we render Ethereum-compatible address preimages. That's
 		// a little odd to do in the database layer. Move this farther out if

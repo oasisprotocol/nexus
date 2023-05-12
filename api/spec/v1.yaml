@@ -153,6 +153,11 @@ x-type-annotations:
     x-go-type: signature.PublicKey
     x-go-type-import: { name: signature, path: "github.com/oasisprotocol/oasis-core/go/common/crypto/signature" }
     description: A base64-encoded ed25519 public key.
+  call-format: &CallFormat
+    type: string
+    example: "encrypted/x25519-deoxysii"
+    x-go-type: common.CallFormat
+    x-go-type-import: { name: common, path: "github.com/oasisprotocol/oasis-indexer/common" }
 
 paths:
   /:
@@ -2060,7 +2065,7 @@ components:
               - "consensus.Withdraw"
               - "evm.Create"
               - "evm.Call"
-            May be null if the transaction was malformed.
+            May be null if the transaction was malformed or encrypted.
           example: "evm.Call"
         body:
           type: object
@@ -2091,7 +2096,10 @@ components:
           example: "100000001666393459"
         encryption_envelope:
           description: |
-            The encrypted transaction envelope.
+            The data relevant to the encrypted transaction. Only present for encrypted 
+            transactions in confidential EVM runtimes like Sapphire.
+            Note: The term "envelope" in this context refers to the [Oasis-style encryption envelopes](https://github.com/oasisprotocol/oasis-sdk/blob/c36a7ee194abf4ca28fdac0edbefe3843b39bf69/runtime-sdk/src/types/callformat.rs)
+            which differ slightly from [digital envelopes](https://nordvpn.com/cybersecurity/glossary/digital-envelope/).
           $ref: '#/components/schemas/RuntimeTransactionEncryptionEnvelope'
         success:
           type: boolean
@@ -2106,11 +2114,11 @@ components:
 
     RuntimeTransactionEncryptionEnvelope:
       type: object
-      required: [format, public_key, data_nonce, data, result_nonce, result]
+      required: [format]
       properties:
         format:
-          type: string
-          description: The format of the encrypted evm transaction envelope
+          <<: *CallFormat
+          description: The format of the encrypted evm transaction envelope.
         public_key:
           type: string
           format: byte
@@ -2122,7 +2130,7 @@ components:
         data:
           type: string
           format: byte
-          description: The base64-encoded transaction data.
+          description: The base64-encoded encrypted transaction data.
         result_nonce:
           type: string
           format: byte
@@ -2130,7 +2138,7 @@ components:
         result:
           type: string
           format: byte
-          description: The base64-encoded result data.
+          description: The base64-encoded encrypted result data.
 
     RuntimeAccount:
       type: object
