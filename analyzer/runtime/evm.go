@@ -21,7 +21,8 @@ import (
 type EVMTokenType int
 
 const (
-	EVMTokenTypeERC20 EVMTokenType = 20
+	EVMTokenTypeUnsupported EVMTokenType = 0 // A smart contract for which we're confident it's not a supported token kind.
+	EVMTokenTypeERC20       EVMTokenType = 20
 )
 
 type EVMPossibleToken struct {
@@ -214,8 +215,8 @@ func evmDownloadTokenERC20(ctx context.Context, logger *log.Logger, source stora
 
 // EVMDownloadNewToken tries to download the data of a given token. If it
 // transiently fails to download the data, it returns with a non-nil error. If
-// it deterministically cannot download the data, it returns nil with nil
-// error as well. Note that this latter case is not considered an error!
+// it deterministically cannot download the data, it returns a struct
+// with the `Type` field set to `EVMTokenTypeUnsupported`.
 func EVMDownloadNewToken(ctx context.Context, logger *log.Logger, source storage.RuntimeSourceStorage, round uint64, tokenEthAddr []byte) (*EVMTokenData, error) {
 	// todo: check ERC-165 0xffffffff compliance
 	// todo: try other token standards based on ERC-165
@@ -234,7 +235,7 @@ func EVMDownloadNewToken(ctx context.Context, logger *log.Logger, source storage
 	// see https://github.com/oasisprotocol/oasis-indexer/issues/225
 
 	// No applicable token discovered.
-	return nil, nil
+	return &EVMTokenData{Type: EVMTokenTypeUnsupported}, nil
 }
 
 // EVMDownloadMutatedToken tries to download the mutable data of a given
