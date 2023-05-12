@@ -3,6 +3,7 @@ package block_test
 import (
 	"context"
 	"fmt"
+	"math/rand"
 	"os"
 	"sync"
 	"testing"
@@ -31,9 +32,10 @@ type mockProcessor struct {
 	name              string
 	latestBlockHeight uint64
 	processedBlocks   map[uint64]struct{}
+	processedOrder    []uint64
 	storage           storage.TargetStorage
 
-	fail bool
+	fail func(uint64) error
 }
 
 // PreWork implements block.BlockProcessor.
@@ -43,13 +45,16 @@ func (*mockProcessor) PreWork(ctx context.Context) error {
 
 // ProcessBlock implements block.BlockProcessor.
 func (m *mockProcessor) ProcessBlock(ctx context.Context, height uint64) error {
-	if m.fail {
-		return fmt.Errorf("mock processor failure")
+	if m.fail != nil {
+		if err := m.fail(height); err != nil {
+			return fmt.Errorf("mock processor failure: %w", err)
+		}
 	}
 	if m.processedBlocks == nil {
 		m.processedBlocks = make(map[uint64]struct{})
 	}
 	m.processedBlocks[height] = struct{}{}
+	m.processedOrder = append(m.processedOrder, height)
 
 	row, err := m.storage.Query(
 		ctx,
@@ -85,11 +90,11 @@ func setupDB(t *testing.T) *postgres.Client {
 	return testDB
 }
 
-func setupAnalyzer(t *testing.T, testDb *postgres.Client, p *mockProcessor, cfg *config.BlockBasedAnalyzerConfig) analyzer.Analyzer {
+func setupAnalyzer(t *testing.T, testDb *postgres.Client, p *mockProcessor, cfg *config.BlockBasedAnalyzerConfig, slowSync bool) analyzer.Analyzer {
 	// Initialize the block analyzer.
 	logger, err := log.NewLogger(fmt.Sprintf("test-analyzer-%s", p.name), os.Stdout, log.FmtJSON, log.LevelError)
 	require.NoError(t, err, "log.NewLogger")
-	analyzer, err := block.NewAnalyzer(cfg, p.name, p, testDb, logger)
+	analyzer, err := block.NewAnalyzer(cfg, p.name, p, testDb, logger, slowSync)
 	require.NoError(t, err, "block.NewAnalyzer")
 
 	return analyzer
@@ -123,13 +128,13 @@ func exactlyOneTrue(bools ...bool) error {
 	return nil
 }
 
-func TestBlockAnalyzer(t *testing.T) {
-	// Test that the block analyzer processes all blocks in the range.
+func TestFastSyncBlockAnalyzer(t *testing.T) {
+	// Test that the fast-sync block analyzer processes all blocks in the range.
 	ctx := context.Background()
 
 	db := setupDB(t)
 	p := &mockProcessor{name: "test-analyzer", latestBlockHeight: 10_000, storage: db}
-	analyzer := setupAnalyzer(t, db, p, &config.BlockBasedAnalyzerConfig{From: 1, To: 1_000})
+	analyzer := setupAnalyzer(t, db, p, &config.BlockBasedAnalyzerConfig{From: 1, To: 1_000}, false)
 
 	// Run the analyzer and ensure all blocks are processed.
 	var wg sync.WaitGroup
@@ -155,8 +160,8 @@ func TestBlockAnalyzer(t *testing.T) {
 	require.Len(t, p.processedBlocks, 1_000, "more blocks processed than expected")
 }
 
-func TestMultipleBlockAnalyzers(t *testing.T) {
-	// Test that multiple block analyzers can run concurrently.
+func TestMultipleFastSyncBlockAnalyzers(t *testing.T) {
+	// Test that multiple fast-sync block analyzers can run concurrently.
 	numAnalyzers := 5
 	ctx := context.Background()
 
@@ -165,7 +170,7 @@ func TestMultipleBlockAnalyzers(t *testing.T) {
 	as := []analyzer.Analyzer{}
 	for i := 0; i < numAnalyzers; i++ {
 		p := &mockProcessor{name: "test-analyzer", latestBlockHeight: 10_000, storage: db}
-		analyzer := setupAnalyzer(t, db, p, &config.BlockBasedAnalyzerConfig{From: 1, To: 1_000})
+		analyzer := setupAnalyzer(t, db, p, &config.BlockBasedAnalyzerConfig{From: 1, To: 1_000}, false)
 		ps = append(ps, p)
 		as = append(as, analyzer)
 	}
@@ -198,8 +203,8 @@ func TestMultipleBlockAnalyzers(t *testing.T) {
 	}
 }
 
-func TestFailingBlockAnalyzers(t *testing.T) {
-	// Test that a failing block analyzer doesn't block other analyzers.
+func TestFailingFastSyncBlockAnalyzers(t *testing.T) {
+	// Test that a failing fast-sync block analyzer doesn't block other analyzers.
 	numAnalyzers := 2
 	ctx := context.Background()
 
@@ -207,8 +212,15 @@ func TestFailingBlockAnalyzers(t *testing.T) {
 	ps := []*mockProcessor{}
 	as := []analyzer.Analyzer{}
 	for i := 0; i < numAnalyzers; i++ {
-		p := &mockProcessor{name: "test-analyzer", latestBlockHeight: 10_000, storage: db, fail: i == numAnalyzers-1}
-		analyzer := setupAnalyzer(t, db, p, &config.BlockBasedAnalyzerConfig{From: 1, To: 1_000})
+		var fail func(uint64) error
+		// The last analyzer fails all blocks.
+		if i == numAnalyzers-1 {
+			fail = func(height uint64) error {
+				return fmt.Errorf("failing analyzer")
+			}
+		}
+		p := &mockProcessor{name: "test-analyzer", latestBlockHeight: 10_000, storage: db, fail: fail}
+		analyzer := setupAnalyzer(t, db, p, &config.BlockBasedAnalyzerConfig{From: 1, To: 1_000}, false)
 		ps = append(ps, p)
 		as = append(as, analyzer)
 	}
@@ -241,8 +253,8 @@ func TestFailingBlockAnalyzers(t *testing.T) {
 	}
 }
 
-func TestDistinctBlockAnalyzers(t *testing.T) {
-	// Test that multiple distinct block analyzers can run concurrently.
+func TestDistinctFastSyncBlockAnalyzers(t *testing.T) {
+	// Test that multiple distinct fast-sync block analyzers can run concurrently.
 	numAnalyzers := 5
 	ctx := context.Background()
 
@@ -251,7 +263,7 @@ func TestDistinctBlockAnalyzers(t *testing.T) {
 	as := []analyzer.Analyzer{}
 	for i := 0; i < numAnalyzers; i++ {
 		p := &mockProcessor{name: fmt.Sprintf("test-analyzer-%d", i), latestBlockHeight: 1_000, storage: db}
-		analyzer := setupAnalyzer(t, db, p, &config.BlockBasedAnalyzerConfig{From: 1, To: 1_000})
+		analyzer := setupAnalyzer(t, db, p, &config.BlockBasedAnalyzerConfig{From: 1, To: 1_000}, false)
 		ps = append(ps, p)
 		as = append(as, analyzer)
 	}
@@ -278,6 +290,120 @@ func TestDistinctBlockAnalyzers(t *testing.T) {
 		for _, p := range ps {
 			_, ok := p.processedBlocks[i]
 			require.True(t, ok, "block %d was not processed by analyzer %s", i, p.name)
+		}
+	}
+}
+
+func TestSlowSyncBlockAnalyzer(t *testing.T) {
+	// Test that the slow-sync block analyzer processes all blocks in the range.
+	ctx := context.Background()
+
+	db := setupDB(t)
+	p := &mockProcessor{name: "test-analyzer", latestBlockHeight: 10_000, storage: db}
+	analyzer := setupAnalyzer(t, db, p, &config.BlockBasedAnalyzerConfig{From: 1, To: 1_000}, true)
+
+	// Run the analyzer and ensure all blocks are processed.
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		analyzer.Start(ctx)
+	}()
+
+	// Wait for all analyzers to finish.
+	analyzersDone := closingChannel(&wg)
+	select {
+	case <-time.After(testsTimeout):
+		t.Fatal("timed out waiting for analyzer to finish")
+	case <-analyzersDone:
+	}
+
+	// Check that all blocks were processed and in order.
+	for i := uint64(1); i <= 1_000; i++ {
+		_, ok := p.processedBlocks[i]
+		require.True(t, ok, "block %d was not processed", i)
+		require.Equal(t, i, p.processedOrder[i-1], "block %d was not processed in order", i)
+	}
+	require.Len(t, p.processedBlocks, 1_000, "more blocks processed than expected")
+}
+
+func TestFailingSlowSyncBlockAnalyzer(t *testing.T) {
+	// Test that the slow-sync block analyzer with some failures processes all blocks in the range.
+	ctx := context.Background()
+
+	db := setupDB(t)
+	p := &mockProcessor{name: "test-analyzer", latestBlockHeight: 10_000, storage: db, fail: func(height uint64) error {
+		// Fail ~5% of the time.
+		if rand.Float64() > 0.95 { // /nolint:gosec // G404: Use of weak random number generator (math/rand instead of crypto/rand).
+			return fmt.Errorf("failed by chance")
+		}
+		return nil
+	}}
+	analyzer := setupAnalyzer(t, db, p, &config.BlockBasedAnalyzerConfig{From: 1, To: 100}, true)
+
+	// Run the analyzer and ensure all blocks are processed.
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		analyzer.Start(ctx)
+	}()
+
+	// Wait for all analyzers to finish.
+	analyzersDone := closingChannel(&wg)
+	select {
+	case <-time.After(testsTimeout):
+		t.Fatal("timed out waiting for analyzer to finish")
+	case <-analyzersDone:
+	}
+
+	// Check that all blocks were processed and in order.
+	for i := uint64(1); i <= 100; i++ {
+		_, ok := p.processedBlocks[i]
+		require.True(t, ok, "block %d was not processed", i)
+		require.Equal(t, i, p.processedOrder[i-1], "block %d was not processed in order", i)
+	}
+	require.Len(t, p.processedBlocks, 100, "more blocks processed than expected")
+}
+
+func TestDistinctSlowSyncBlockAnalyzers(t *testing.T) {
+	// Test that multiple distinct slow-sync block analyzers can run concurrently.
+	numAnalyzers := 5
+	ctx := context.Background()
+
+	db := setupDB(t)
+	ps := []*mockProcessor{}
+	as := []analyzer.Analyzer{}
+	for i := 0; i < numAnalyzers; i++ {
+		p := &mockProcessor{name: fmt.Sprintf("test-analyzer-%d", i), latestBlockHeight: 1_000, storage: db}
+		analyzer := setupAnalyzer(t, db, p, &config.BlockBasedAnalyzerConfig{From: 1, To: 1_000}, true)
+		ps = append(ps, p)
+		as = append(as, analyzer)
+	}
+	// Run the analyzer and ensure all blocks are processed.
+	var wg sync.WaitGroup
+	for _, a := range as {
+		wg.Add(1)
+		go func(a analyzer.Analyzer) {
+			defer wg.Done()
+			a.Start(ctx)
+		}(a)
+	}
+
+	// Wait for all analyzers to finish.
+	analyzersDone := closingChannel(&wg)
+	select {
+	case <-time.After(testsTimeout):
+		t.Fatal("timed out waiting for analyzer to finish")
+	case <-analyzersDone:
+	}
+
+	// Ensure that every block was processed by all analyzers.
+	for i := uint64(1); i <= 1_000; i++ {
+		for _, p := range ps {
+			_, ok := p.processedBlocks[i]
+			require.True(t, ok, "block %d was not processed by analyzer %s", i, p.name)
+			require.Equal(t, i, p.processedOrder[i-1], "block %d was not processed in order", i)
 		}
 	}
 }

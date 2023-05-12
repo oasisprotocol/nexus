@@ -348,6 +348,7 @@ func validateNodes(t *testing.T, genesis *registryAPI.Genesis, source consensusA
 	require.Nil(t, err)
 
 	actualNodes := make(map[string]TestNode)
+	defer rows.Close()
 	for rows.Next() {
 		var n TestNode
 		err = rows.Scan(

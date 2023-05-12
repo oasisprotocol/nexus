@@ -34,7 +34,7 @@ const (
     -- Parameters:
     -- $1 = analyzer name (text)
     -- $2 = minimum block height (integer)
-    -- $3 = maximum block height (integer, optional)
+    -- $3 = maximum block height (integer)
     -- $4 = lock timeout in minutes (integer)
     -- $5 = number of blocks to lock (integer)
 
@@ -52,7 +52,7 @@ const (
     expired_locks AS (
         SELECT height
         FROM chain.processed_blocks
-        WHERE analyzer = $1 AND processed_time IS NULL AND (locked_time < CURRENT_TIMESTAMP - ($4::integer * INTERVAL '1 minute')) AND height >= $2 AND ($3::integer IS NULL OR height <= $3)
+        WHERE analyzer = $1 AND processed_time IS NULL AND (locked_time < CURRENT_TIMESTAMP - ($4::integer * INTERVAL '1 minute')) AND height >= $2 AND height <= $3
         ORDER BY height
         LIMIT $5
     ),
@@ -63,7 +63,7 @@ const (
         FROM highest_done_block,
           generate_series(
             GREATEST(highest_done_block.height+1, $2), -- Don't go below $2
-            LEAST( -- Don't go above $3, unless $3 is NULL.
+            LEAST( -- Don't go above $3.
               $3,
               GREATEST(highest_done_block.height+1, $2)+$5
             )

@@ -51,7 +51,7 @@ func NewRuntimeAnalyzer(
 		metrics:         metrics.NewDefaultDatabaseMetrics(string(runtime)),
 	}
 
-	return block.NewAnalyzer(cfg, string(runtime), processor, target, logger)
+	return block.NewAnalyzer(cfg, string(runtime), processor, target, logger, true)
 }
 
 func (m *processor) nativeTokenSymbol() string {

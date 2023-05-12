@@ -74,7 +74,7 @@ func NewAnalyzer(cfg *config.BlockBasedAnalyzerConfig, genesisChainContext strin
 		metrics:             metrics.NewDefaultDatabaseMetrics(consensusAnalyzerName),
 	}
 
-	return block.NewAnalyzer(cfg, consensusAnalyzerName, processor, target, logger)
+	return block.NewAnalyzer(cfg, consensusAnalyzerName, processor, target, logger, true)
 }
 
 // Implements BlockProcessor interface.
