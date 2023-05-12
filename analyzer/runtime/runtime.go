@@ -276,6 +276,22 @@ func (m *Main) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 		for addr := range transactionData.RelatedAccountAddresses {
 			batch.Queue(queries.RuntimeRelatedTransactionInsert, m.cfg.RuntimeName, addr, data.Header.Round, transactionData.Index)
 		}
+		var (
+			evmEncryptedFormat      *common.CallFormat
+			evmEncryptedPublicKey   *[]byte
+			evmEncryptedDataNonce   *[]byte
+			evmEncryptedDataData    *[]byte
+			evmEncryptedResultNonce *[]byte
+			evmEncryptedResultData  *[]byte
+		)
+		if transactionData.EVMEncrypted != nil {
+			evmEncryptedFormat = &transactionData.EVMEncrypted.Format
+			evmEncryptedPublicKey = &transactionData.EVMEncrypted.PublicKey
+			evmEncryptedDataNonce = &transactionData.EVMEncrypted.DataNonce
+			evmEncryptedDataData = &transactionData.EVMEncrypted.DataData
+			evmEncryptedResultNonce = &transactionData.EVMEncrypted.ResultNonce
+			evmEncryptedResultData = &transactionData.EVMEncrypted.ResultData
+		}
 		var error_module string
 		var error_code uint32
 		var error_message *string
@@ -300,6 +316,12 @@ func (m *Main) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 			transactionData.Body,
 			transactionData.To,
 			transactionData.Amount,
+			evmEncryptedFormat,
+			evmEncryptedPublicKey,
+			evmEncryptedDataNonce,
+			evmEncryptedDataData,
+			evmEncryptedResultNonce,
+			evmEncryptedResultData,
 			transactionData.Success,
 			error_module,
 			error_code,
