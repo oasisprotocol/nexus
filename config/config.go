@@ -98,6 +98,14 @@ func (cfg *AnalysisConfig) Validate() error {
 			return err
 		}
 	}
+	if cfg.Analyzers.NodeStats != nil {
+		if cfg.Analyzers.NodeStats.Interval == 0 {
+			cfg.Analyzers.NodeStats.Interval = 3 * time.Second
+		}
+		if err := cfg.Analyzers.NodeStats.Validate(); err != nil {
+			return err
+		}
+	}
 	if cfg.Analyzers.AggregateStats != nil {
 		if err := cfg.Analyzers.AggregateStats.Validate(); err != nil {
 			return err
@@ -133,6 +141,7 @@ type AnalyzersList struct {
 	SapphireContractCode     *EvmContractCodeAnalyzerConfig `koanf:"evm_contract_code_sapphire"`
 
 	MetadataRegistry     *MetadataRegistryConfig     `koanf:"metadata_registry"`
+	NodeStats            *NodeStatsConfig            `koanf:"node_stats"`
 	AggregateStats       *AggregateStatsConfig       `koanf:"aggregate_stats"`
 	EVMContractsVerifier *EVMContractsVerifierConfig `koanf:"evm_contracts_verifier"`
 }
@@ -396,6 +405,18 @@ type MetadataRegistryConfig struct {
 func (cfg *MetadataRegistryConfig) Validate() error {
 	if cfg.Interval < time.Minute {
 		return fmt.Errorf("metadata registry interval must be at least 1 minute")
+	}
+	return nil
+}
+
+// NodeStatsConfig is the configuration for the node stats analyzer.
+type NodeStatsConfig struct {
+	IntervalBasedAnalyzerConfig `koanf:",squash"`
+}
+
+func (cfg *NodeStatsConfig) Validate() error {
+	if cfg.Interval < time.Second || cfg.Interval > 6*time.Second {
+		return fmt.Errorf("node stats interval must be between 1 and 6 seconds")
 	}
 	return nil
 }

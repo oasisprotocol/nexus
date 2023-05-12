@@ -161,6 +161,15 @@ var (
       SET processed_time = CURRENT_TIMESTAMP, is_fast_sync = $3
       WHERE height = $1 AND analyzer = $2`
 
+	ConsensusNodeHeightUpsert = `
+    INSERT INTO chain.latest_node_heights (layer, height)
+      VALUES
+        ($1, $2)
+      ON CONFLICT (layer) 
+      DO UPDATE 
+        SET 
+        height = excluded.height`
+
 	ConsensusBlockInsert = `
     INSERT INTO chain.blocks (height, block_hash, time, num_txs, namespace, version, type, root_hash)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`

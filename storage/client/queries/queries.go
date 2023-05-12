@@ -18,6 +18,11 @@ const (
 		ORDER BY height DESC
 		LIMIT 1`
 
+	NodeHeight = `
+		SELECT height 
+			FROM chain.latest_node_heights
+			WHERE layer=$1`
+
 	Blocks = `
 		SELECT height, block_hash, time, num_txs
 			FROM chain.blocks

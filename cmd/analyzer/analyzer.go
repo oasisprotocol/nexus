@@ -23,6 +23,7 @@ import (
 	"github.com/oasisprotocol/nexus/analyzer/evmtokenbalances"
 	"github.com/oasisprotocol/nexus/analyzer/evmtokens"
 	"github.com/oasisprotocol/nexus/analyzer/evmverifier"
+	nodestats "github.com/oasisprotocol/nexus/analyzer/node_stats"
 	"github.com/oasisprotocol/nexus/analyzer/runtime"
 	cmdCommon "github.com/oasisprotocol/nexus/cmd/common"
 	"github.com/oasisprotocol/nexus/common"
@@ -378,6 +379,15 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) { //nolint:gocyclo
 	if cfg.Analyzers.MetadataRegistry != nil {
 		analyzers, err = addAnalyzer(analyzers, err, func() (A, error) {
 			return analyzer.NewMetadataRegistryAnalyzer(cfg.Analyzers.MetadataRegistry, dbClient, logger)
+		})
+	}
+	if cfg.Analyzers.NodeStats != nil {
+		analyzers, err = addAnalyzer(analyzers, err, func() (A, error) {
+			sourceClient, err1 := sources.Consensus(ctx)
+			if err1 != nil {
+				return nil, err1
+			}
+			return nodestats.NewMain(cfg.Analyzers.NodeStats, sourceClient, dbClient, logger)
 		})
 	}
 	if cfg.Analyzers.AggregateStats != nil {
