@@ -15,7 +15,7 @@ import (
 // It does not insert the events themselves; that is done in a
 // module-independent way. It only records effects for which an understanding of
 // the module's semantics is necessary.
-func (m *Main) queueAccountsEvents(batch *storage.QueryBatch, blockData *BlockData) {
+func (m *processor) queueAccountsEvents(batch *storage.QueryBatch, blockData *BlockData) {
 	for _, event := range blockData.EventData {
 		if event.WithScope.Accounts == nil {
 			continue
@@ -32,11 +32,11 @@ func (m *Main) queueAccountsEvents(batch *storage.QueryBatch, blockData *BlockDa
 	}
 }
 
-func (m *Main) queueMint(batch *storage.QueryBatch, round uint64, e accounts.MintEvent) {
+func (m *processor) queueMint(batch *storage.QueryBatch, round uint64, e accounts.MintEvent) {
 	// Record the event.
 	batch.Queue(
 		queries.RuntimeMintInsert,
-		m.cfg.RuntimeName,
+		m.runtime,
 		round,
 		e.Owner.String(),
 		m.StringifyDenomination(e.Amount.Denomination),
@@ -45,18 +45,18 @@ func (m *Main) queueMint(batch *storage.QueryBatch, round uint64, e accounts.Min
 	// Increase minter's balance.
 	batch.Queue(
 		queries.RuntimeNativeBalanceUpdate,
-		m.cfg.RuntimeName,
+		m.runtime,
 		e.Owner.String(),
 		m.StringifyDenomination(e.Amount.Denomination),
 		e.Amount.Amount.String(),
 	)
 }
 
-func (m *Main) queueBurn(batch *storage.QueryBatch, round uint64, e accounts.BurnEvent) {
+func (m *processor) queueBurn(batch *storage.QueryBatch, round uint64, e accounts.BurnEvent) {
 	// Record the event.
 	batch.Queue(
 		queries.RuntimeBurnInsert,
-		m.cfg.RuntimeName,
+		m.runtime,
 		round,
 		e.Owner.String(),
 		m.StringifyDenomination(e.Amount.Denomination),
@@ -65,18 +65,18 @@ func (m *Main) queueBurn(batch *storage.QueryBatch, round uint64, e accounts.Bur
 	// Decrease burner's balance.
 	batch.Queue(
 		queries.RuntimeNativeBalanceUpdate,
-		m.cfg.RuntimeName,
+		m.runtime,
 		e.Owner.String(),
 		m.StringifyDenomination(e.Amount.Denomination),
 		(&big.Int{}).Neg(e.Amount.Amount.ToBigInt()).String(),
 	)
 }
 
-func (m *Main) queueTransfer(batch *storage.QueryBatch, round uint64, e accounts.TransferEvent) {
+func (m *processor) queueTransfer(batch *storage.QueryBatch, round uint64, e accounts.TransferEvent) {
 	// Record the event.
 	batch.Queue(
 		queries.RuntimeTransferInsert,
-		m.cfg.RuntimeName,
+		m.runtime,
 		round,
 		e.From.String(),
 		e.To.String(),
@@ -86,7 +86,7 @@ func (m *Main) queueTransfer(batch *storage.QueryBatch, round uint64, e accounts
 	// Increase receiver's balance.
 	batch.Queue(
 		queries.RuntimeNativeBalanceUpdate,
-		m.cfg.RuntimeName,
+		m.runtime,
 		e.To.String(),
 		m.StringifyDenomination(e.Amount.Denomination),
 		e.Amount.Amount.String(),
@@ -94,7 +94,7 @@ func (m *Main) queueTransfer(batch *storage.QueryBatch, round uint64, e accounts
 	// Decrease sender's balance.
 	batch.Queue(
 		queries.RuntimeNativeBalanceUpdate,
-		m.cfg.RuntimeName,
+		m.runtime,
 		e.From.String(),
 		m.StringifyDenomination(e.Amount.Denomination),
 		(&big.Int{}).Neg(e.Amount.Amount.ToBigInt()).String(),

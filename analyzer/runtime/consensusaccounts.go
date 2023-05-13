@@ -13,7 +13,7 @@ import (
 // It does not insert the events themselves; that is done in a
 // module-independent way. It only records effects for which an understanding of
 // the module's semantics is necessary.
-func (m *Main) queueConsensusAccountsEvents(batch *storage.QueryBatch, blockData *BlockData) {
+func (m *processor) queueConsensusAccountsEvents(batch *storage.QueryBatch, blockData *BlockData) {
 	for _, event := range blockData.EventData {
 		if event.WithScope.ConsensusAccounts == nil {
 			continue
@@ -27,7 +27,7 @@ func (m *Main) queueConsensusAccountsEvents(batch *storage.QueryBatch, blockData
 	}
 }
 
-func (m *Main) queueDeposit(batch *storage.QueryBatch, round uint64, e consensusaccounts.DepositEvent) {
+func (m *processor) queueDeposit(batch *storage.QueryBatch, round uint64, e consensusaccounts.DepositEvent) {
 	if !e.Amount.Denomination.IsNative() {
 		// Should never happen.
 		m.logger.Error("non-native denomination in deposit; pretending it is native",
@@ -39,7 +39,7 @@ func (m *Main) queueDeposit(batch *storage.QueryBatch, round uint64, e consensus
 	errorModule, errorCode := decomposeError(e.Error)
 	batch.Queue(
 		queries.RuntimeDepositInsert,
-		m.cfg.RuntimeName,
+		m.runtime,
 		round,
 		e.From.String(),
 		e.To.String(),
@@ -52,7 +52,7 @@ func (m *Main) queueDeposit(batch *storage.QueryBatch, round uint64, e consensus
 	// the deposit will trigger a mint event in the runtime, and we'll update the balance then.
 }
 
-func (m *Main) queueWithdraw(batch *storage.QueryBatch, round uint64, e consensusaccounts.WithdrawEvent) {
+func (m *processor) queueWithdraw(batch *storage.QueryBatch, round uint64, e consensusaccounts.WithdrawEvent) {
 	if !e.Amount.Denomination.IsNative() {
 		// Should never happen.
 		m.logger.Error("non-native denomination in withdraw; pretending it is native",
@@ -64,7 +64,7 @@ func (m *Main) queueWithdraw(batch *storage.QueryBatch, round uint64, e consensu
 	errorModule, errorCode := decomposeError(e.Error)
 	batch.Queue(
 		queries.RuntimeWithdrawInsert,
-		m.cfg.RuntimeName,
+		m.runtime,
 		round,
 		e.From.String(),
 		e.To.String(),

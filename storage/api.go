@@ -38,6 +38,9 @@ type QueryResult = pgx.Row
 // TxOptions encodes the way DB transactions are executed.
 type TxOptions = pgx.TxOptions
 
+// Tx represents a database transaction.
+type Tx = pgx.Tx
+
 // Queue adds query to a batch.
 func (b *QueryBatch) Queue(cmd string, args ...interface{}) {
 	b.mu.Lock()
@@ -94,6 +97,9 @@ type ConsensusSourceStorage interface {
 
 	// AllData returns all data tied to a specific height.
 	AllData(ctx context.Context, height int64) (*ConsensusAllData, error)
+
+	// LatestBlockHeight returns the latest height for which a block is available.
+	LatestBlockHeight(ctx context.Context) (int64, error)
 
 	// BlockData gets block data at the specified height. This includes all
 	// block header information, as well as transactions and events included
@@ -226,6 +232,9 @@ type RuntimeSourceStorage interface {
 	// AllData returns all data tied to a specific round.
 	AllData(ctx context.Context, round uint64) (*RuntimeAllData, error)
 
+	// LatestBlockHeight returns the latest height for which a block is available.
+	LatestBlockHeight(ctx context.Context) (uint64, error)
+
 	// EVMSimulateCall gets the result of the given EVM simulate call query.
 	EVMSimulateCall(ctx context.Context, round uint64, gasPrice []byte, gasLimit uint64, caller []byte, address []byte, value []byte, data []byte) ([]byte, error)
 
@@ -263,6 +272,12 @@ type TargetStorage interface {
 
 	// QueryRow submits a query to fetch a single row of data from target storage.
 	QueryRow(ctx context.Context, sql string, args ...interface{}) QueryResult
+
+	// Begin starts a new transaction.
+	// XXX: Not the nicest that this exposes the underlying pgx.Tx interface. Could instead
+	// return a `TargetStorage`-like interface wrapper, that only exposes Query/QueryRow/SendBatch/SendBatchWithOptions
+	// and Commit/Rollback.
+	Begin(ctx context.Context) (Tx, error)
 
 	// Close shuts down the target storage client.
 	Close()

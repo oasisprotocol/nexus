@@ -198,6 +198,11 @@ func (c *Client) QueryRow(ctx context.Context, sql string, args ...interface{}) 
 	return c.pool.QueryRow(ctx, sql, args...)
 }
 
+// Begin implements the storage.TargetStorage interface for Client.
+func (c *Client) Begin(ctx context.Context) (storage.Tx, error) {
+	return c.pool.Begin(ctx)
+}
+
 // Close implements the storage.TargetStorage interface for Client.
 func (c *Client) Close() {
 	c.pool.Close()
@@ -221,6 +226,7 @@ func (c *Client) listIndexerTables(ctx context.Context) ([]string, error) {
 	}
 
 	tables := []string{}
+	defer rows.Close() // Ensure rows is closed even if we return early.
 	for rows.Next() {
 		var schema, table string
 		if err = rows.Scan(&schema, &table); err != nil {
@@ -257,6 +263,7 @@ func (c *Client) Wipe(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("failed to list types: %w", err)
 	}
+	defer rows.Close() // Ensure rows is closed even if we return early.
 	for rows.Next() {
 		var schema, typ string
 		if err = rows.Scan(&schema, &typ); err != nil {
@@ -278,6 +285,7 @@ func (c *Client) Wipe(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("failed to list functions: %w", err)
 	}
+	defer rows.Close() // Ensure rows is closed even if we return early.
 	for rows.Next() {
 		var schema, fn string
 		if err = rows.Scan(&schema, &fn); err != nil {
@@ -298,6 +306,7 @@ func (c *Client) Wipe(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("failed to list materialized views: %w", err)
 	}
+	defer rows.Close() // Ensure rows is closed even if we return early.
 	for rows.Next() {
 		var schema, view string
 		if err = rows.Scan(&schema, &view); err != nil {

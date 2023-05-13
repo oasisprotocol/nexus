@@ -6,6 +6,7 @@ import (
 
 	beaconAPI "github.com/oasisprotocol/oasis-core/go/beacon/api"
 	"github.com/oasisprotocol/oasis-core/go/common"
+	consensusAPI "github.com/oasisprotocol/oasis-core/go/consensus/api"
 	genesisAPI "github.com/oasisprotocol/oasis-core/go/genesis/api"
 	sdkConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 
@@ -87,6 +88,15 @@ func (cc *ConsensusClient) AllData(ctx context.Context, height int64) (*storage.
 		GovernanceData: governanceData,
 	}
 	return &data, nil
+}
+
+// Implements ConsensusSourceStorage interface.
+func (cc *ConsensusClient) LatestBlockHeight(ctx context.Context) (int64, error) {
+	blk, err := cc.nodeApi.GetBlock(ctx, consensusAPI.HeightLatest)
+	if err != nil {
+		return 0, err
+	}
+	return blk.Height, nil
 }
 
 // BlockData retrieves data about a consensus block at the provided block height.

@@ -3,18 +3,15 @@ package runtime
 import (
 	"context"
 	"fmt"
-	"strings"
-	"time"
 
-	"github.com/jackc/pgx/v5"
 	sdkConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/rewards"
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 
 	"github.com/oasisprotocol/oasis-indexer/analyzer"
+	"github.com/oasisprotocol/oasis-indexer/analyzer/block"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/queries"
 	uncategorized "github.com/oasisprotocol/oasis-indexer/analyzer/uncategorized"
-	"github.com/oasisprotocol/oasis-indexer/analyzer/util"
 	"github.com/oasisprotocol/oasis-indexer/common"
 	"github.com/oasisprotocol/oasis-indexer/config"
 	"github.com/oasisprotocol/oasis-indexer/log"
@@ -23,21 +20,19 @@ import (
 	source "github.com/oasisprotocol/oasis-indexer/storage/oasis"
 )
 
-const (
-	ProcessRoundTimeout = 61 * time.Second
-)
-
-// Main is the main Analyzer for runtimes.
-type Main struct {
-	cfg     analyzer.RuntimeConfig
-	target  storage.TargetStorage
-	logger  *log.Logger
-	metrics metrics.DatabaseMetrics
+// processor is the block processor for runtimes.
+type processor struct {
+	runtime         common.Runtime
+	runtimeMetadata *sdkConfig.ParaTime
+	source          storage.RuntimeSourceStorage
+	target          storage.TargetStorage
+	logger          *log.Logger
+	metrics         metrics.DatabaseMetrics
 }
 
-var _ analyzer.Analyzer = (*Main)(nil)
+var _ block.BlockProcessor = (*processor)(nil)
 
-// NewRuntimeAnalyzer returns a new main analyzer for a runtime.
+// NewRuntimeAnalyzer returns a new runtime analyzer for a runtime.
 func NewRuntimeAnalyzer(
 	runtime common.Runtime,
 	runtimeMetadata *sdkConfig.ParaTime,
@@ -45,112 +40,28 @@ func NewRuntimeAnalyzer(
 	sourceClient *source.RuntimeClient,
 	target storage.TargetStorage,
 	logger *log.Logger,
-) (*Main, error) {
-	roundRange := analyzer.RoundRange{
-		From: uint64(cfg.From),
-		To:   uint64(cfg.To),
-	}
-	ac := analyzer.RuntimeConfig{
-		RuntimeName: runtime,
-		ParaTime:    runtimeMetadata,
-		Range:       roundRange,
-		Source:      sourceClient,
+) (analyzer.Analyzer, error) {
+	// Initialize runtime block processor.
+	processor := &processor{
+		runtime:         runtime,
+		runtimeMetadata: runtimeMetadata,
+		source:          sourceClient,
+		target:          target,
+		logger:          logger.With("analyzer", runtime),
+		metrics:         metrics.NewDefaultDatabaseMetrics(string(runtime)),
 	}
 
-	return &Main{
-		cfg:     ac,
-		target:  target,
-		logger:  logger.With("analyzer", runtime),
-		metrics: metrics.NewDefaultDatabaseMetrics(string(runtime)),
-	}, nil
+	return block.NewAnalyzer(cfg, string(runtime), processor, target, logger, true)
 }
 
-func (m *Main) Start(ctx context.Context) {
-	if err := m.prework(ctx); err != nil {
-		m.logger.Error("error doing prework",
-			"err", err,
-		)
-		return
-	}
-
-	// Get round to be indexed.
-	var round uint64
-
-	latest, err := m.latestRound(ctx)
-	if err != nil {
-		if err != pgx.ErrNoRows {
-			m.logger.Error("last round not found",
-				"err", err,
-			)
-			return
-		}
-		m.logger.Debug("setting round using range config")
-		round = m.cfg.Range.From
-	} else {
-		m.logger.Debug("setting round using latest round")
-		round = latest + 1
-	}
-
-	backoff, err := util.NewBackoff(
-		100*time.Millisecond,
-		// Cap the timeout at the expected round time. All runtimes currently have the same round time.
-		6*time.Second,
-	)
-	if err != nil {
-		m.logger.Error("error configuring indexer backoff policy",
-			"err", err,
-		)
-		return
-	}
-
-	for m.cfg.Range.To == 0 || round <= m.cfg.Range.To {
-		select {
-		case <-time.After(backoff.Timeout()):
-			// Process next block.
-		case <-ctx.Done():
-			m.logger.Warn("shutting down runtime analyzer", "reason", ctx.Err())
-			return
-		}
-		m.logger.Info("attempting block", "round", round)
-
-		if err := m.processRound(ctx, round); err != nil {
-			if err == analyzer.ErrOutOfRange {
-				m.logger.Info("no data available; will retry",
-					"round", round,
-					"retry_interval_ms", backoff.Timeout().Milliseconds(),
-				)
-			} else {
-				m.logger.Error("error processing round",
-					"round", round,
-					"err", err.Error(),
-				)
-			}
-			backoff.Failure()
-			continue
-		}
-
-		m.logger.Info("processed block", "round", round)
-		backoff.Success()
-		round++
-	}
-	m.logger.Info(
-		fmt.Sprintf("finished processing all blocks in the configured range [%d, %d]",
-			m.cfg.Range.From, m.cfg.Range.To))
-}
-
-// Name returns the name of the Main.
-func (m *Main) Name() string {
-	return string(m.cfg.RuntimeName)
-}
-
-func (m *Main) nativeTokenSymbol() string {
-	return m.cfg.ParaTime.Denominations[sdkConfig.NativeDenominationKey].Symbol
+func (m *processor) nativeTokenSymbol() string {
+	return m.runtimeMetadata.Denominations[sdkConfig.NativeDenominationKey].Symbol
 }
 
 // StringifyDenomination returns a string representation of the given denomination.
 // This is simply the denomination's symbol; notably, for the native denomination,
 // this is looked up from network config.
-func (m *Main) StringifyDenomination(d sdkTypes.Denomination) string {
+func (m *processor) StringifyDenomination(d sdkTypes.Denomination) string {
 	if d.IsNative() {
 		return m.nativeTokenSymbol()
 	}
@@ -158,23 +69,8 @@ func (m *Main) StringifyDenomination(d sdkTypes.Denomination) string {
 	return d.String()
 }
 
-// latestRound returns the latest round processed by the consensus analyzer.
-func (m *Main) latestRound(ctx context.Context) (uint64, error) {
-	var latest uint64
-	if err := m.target.QueryRow(
-		ctx,
-		queries.LatestBlock,
-		// ^analyzers should only analyze for a single chain ID, and we anchor this
-		// at the starting round.
-		m.cfg.RuntimeName,
-	).Scan(&latest); err != nil {
-		return 0, err
-	}
-	return latest, nil
-}
-
-// prework performs tasks that need to be done before the main loop starts.
-func (m *Main) prework(ctx context.Context) error {
+// Implements BlockProcessor interface.
+func (m *processor) PreWork(ctx context.Context) error {
 	batch := &storage.QueryBatch{}
 
 	// Register special addresses.
@@ -193,19 +89,11 @@ func (m *Main) prework(ctx context.Context) error {
 	return nil
 }
 
-// processRound processes the provided round, retrieving all required information
-// from source storage and committing an atomically-executed batch of queries
-// to target storage.
-func (m *Main) processRound(ctx context.Context, round uint64) error {
-	ctxWithTimeout, cancel := context.WithTimeout(ctx, ProcessRoundTimeout)
-	defer cancel()
-
+// Implements BlockProcessor interface.
+func (m *processor) ProcessBlock(ctx context.Context, round uint64) error {
 	// Fetch all data.
-	data, err := m.cfg.Source.AllData(ctxWithTimeout, round)
+	data, err := m.source.AllData(ctx, round)
 	if err != nil {
-		if strings.Contains(err.Error(), "roothash: block not found") {
-			return analyzer.ErrOutOfRange
-		}
 		return err
 	}
 
@@ -225,10 +113,10 @@ func (m *Main) processRound(ctx context.Context, round uint64) error {
 	batch.Queue(
 		queries.IndexingProgress,
 		round,
-		m.cfg.RuntimeName,
+		m.runtime,
 	)
 
-	opName := fmt.Sprintf("process_block_%s", m.cfg.RuntimeName)
+	opName := fmt.Sprintf("process_block_%s", m.runtime)
 	timer := m.metrics.DatabaseTimer(m.target.Name(), opName)
 	defer timer.ObserveDuration()
 
@@ -241,11 +129,11 @@ func (m *Main) processRound(ctx context.Context, round uint64) error {
 }
 
 // queueDbUpdates extends `batch` with queries that reflect `data`.
-func (m *Main) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
+func (m *processor) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 	// Block metadata.
 	batch.Queue(
 		queries.RuntimeBlockInsert,
-		m.cfg.RuntimeName,
+		m.runtime,
 		data.Header.Round,
 		data.Header.Version,
 		data.Header.Timestamp,
@@ -265,7 +153,7 @@ func (m *Main) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 		for _, signerData := range transactionData.SignerData {
 			batch.Queue(
 				queries.RuntimeTransactionSignerInsert,
-				m.cfg.RuntimeName,
+				m.runtime,
 				data.Header.Round,
 				transactionData.Index,
 				signerData.Index,
@@ -274,7 +162,7 @@ func (m *Main) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 			)
 		}
 		for addr := range transactionData.RelatedAccountAddresses {
-			batch.Queue(queries.RuntimeRelatedTransactionInsert, m.cfg.RuntimeName, addr, data.Header.Round, transactionData.Index)
+			batch.Queue(queries.RuntimeRelatedTransactionInsert, m.runtime, addr, data.Header.Round, transactionData.Index)
 		}
 		var (
 			evmEncryptedFormat      *common.CallFormat
@@ -302,7 +190,7 @@ func (m *Main) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 		}
 		batch.Queue(
 			queries.RuntimeTransactionInsert,
-			m.cfg.RuntimeName,
+			m.runtime,
 			data.Header.Round,
 			transactionData.Index,
 			transactionData.Hash,
@@ -334,7 +222,7 @@ func (m *Main) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 		eventRelatedAddresses := uncategorized.ExtractAddresses(eventData.RelatedAddresses)
 		batch.Queue(
 			queries.RuntimeEventInsert,
-			m.cfg.RuntimeName,
+			m.runtime,
 			data.Header.Round,
 			eventData.TxIndex,
 			eventData.TxHash,
@@ -354,15 +242,20 @@ func (m *Main) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 	// Insert EVM token addresses.
 	for addr, possibleToken := range data.PossibleTokens {
 		if possibleToken.Mutated {
-			batch.Queue(queries.RuntimeEVMTokenAnalysisMutateInsert, m.cfg.RuntimeName, addr, data.Header.Round)
+			batch.Queue(queries.RuntimeEVMTokenAnalysisMutateInsert, m.runtime, addr, data.Header.Round)
 		} else {
-			batch.Queue(queries.RuntimeEVMTokenAnalysisInsert, m.cfg.RuntimeName, addr, data.Header.Round)
+			batch.Queue(queries.RuntimeEVMTokenAnalysisInsert, m.runtime, addr, data.Header.Round)
 		}
 	}
 
 	// Update EVM token balances (dead reckoning).
 	for key, change := range data.TokenBalanceChanges {
-		batch.Queue(queries.RuntimeEVMTokenBalanceUpdate, m.cfg.RuntimeName, key.TokenAddress, key.AccountAddress, change.String())
-		batch.Queue(queries.RuntimeEVMTokenBalanceAnalysisInsert, m.cfg.RuntimeName, key.TokenAddress, key.AccountAddress, data.Header.Round)
+		batch.Queue(queries.RuntimeEVMTokenBalanceUpdate, m.runtime, key.TokenAddress, key.AccountAddress, change.String())
+		batch.Queue(queries.RuntimeEVMTokenBalanceAnalysisInsert, m.runtime, key.TokenAddress, key.AccountAddress, data.Header.Round)
 	}
+}
+
+// Implements BlockProcessor interface.
+func (m *processor) SourceLatestBlockHeight(ctx context.Context) (uint64, error) {
+	return m.source.LatestBlockHeight(ctx)
 }

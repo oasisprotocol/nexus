@@ -14,7 +14,7 @@ const (
 	Status = `
 		SELECT height, processed_time
 			FROM chain.processed_blocks
-			WHERE analyzer=$1
+			WHERE analyzer=$1 AND processed_time IS NOT NULL
 		ORDER BY processed_time DESC
 		LIMIT 1`
 
@@ -180,7 +180,7 @@ const (
 		OFFSET $3::bigint`
 
 	Epochs = `
-		SELECT id, start_height, 
+		SELECT id, start_height,
 			(CASE id WHEN (SELECT max(id) FROM chain.epochs) THEN NULL ELSE end_height END) AS end_height
 			FROM chain.epochs
 		ORDER BY id DESC
