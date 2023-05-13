@@ -1080,6 +1080,8 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetR
 		t := RuntimeTransaction{
 			Error: &TxError{},
 		}
+		var encryptionEnvelope RuntimeTransactionEncryptionEnvelope
+		var encryptionEnvelopeFormat *common.CallFormat
 		var sender0PreimageContextIdentifier *string
 		var sender0PreimageContextVersion *int
 		var sender0PreimageData []byte
@@ -1108,6 +1110,12 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetR
 			&toPreimageContextVersion,
 			&toPreimageData,
 			&t.Amount,
+			&encryptionEnvelopeFormat,
+			&encryptionEnvelope.PublicKey,
+			&encryptionEnvelope.DataNonce,
+			&encryptionEnvelope.Data,
+			&encryptionEnvelope.ResultNonce,
+			&encryptionEnvelope.Result,
 			&t.Success,
 			&t.Error.Module,
 			&t.Error.Code,
@@ -1117,6 +1125,10 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetR
 		}
 		if t.Success != nil && *t.Success {
 			t.Error = nil
+		}
+		if encryptionEnvelopeFormat != nil { // a rudimentary check to determine if the tx was encrypted
+			encryptionEnvelope.Format = *encryptionEnvelopeFormat
+			t.EncryptionEnvelope = &encryptionEnvelope
 		}
 		// TODO: Here we render Ethereum-compatible address preimages. That's
 		// a little odd to do in the database layer. Move this farther out if
