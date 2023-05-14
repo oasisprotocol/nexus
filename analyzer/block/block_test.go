@@ -28,6 +28,9 @@ const migrationsPath = "file://../../storage/migrations"
 
 const testsTimeout = 10 * time.Second
 
+// Default block based config used in most tests.
+var testBlockBasedConfig = &config.BlockBasedAnalyzerConfig{From: 1, To: 1_000, BatchSize: 100}
+
 type mockProcessor struct {
 	name              string
 	latestBlockHeight uint64
@@ -134,7 +137,7 @@ func TestFastSyncBlockAnalyzer(t *testing.T) {
 
 	db := setupDB(t)
 	p := &mockProcessor{name: "test-analyzer", latestBlockHeight: 10_000, storage: db}
-	analyzer := setupAnalyzer(t, db, p, &config.BlockBasedAnalyzerConfig{From: 1, To: 1_000}, false)
+	analyzer := setupAnalyzer(t, db, p, testBlockBasedConfig, false)
 
 	// Run the analyzer and ensure all blocks are processed.
 	var wg sync.WaitGroup
@@ -170,7 +173,7 @@ func TestMultipleFastSyncBlockAnalyzers(t *testing.T) {
 	as := []analyzer.Analyzer{}
 	for i := 0; i < numAnalyzers; i++ {
 		p := &mockProcessor{name: "test-analyzer", latestBlockHeight: 10_000, storage: db}
-		analyzer := setupAnalyzer(t, db, p, &config.BlockBasedAnalyzerConfig{From: 1, To: 1_000}, false)
+		analyzer := setupAnalyzer(t, db, p, testBlockBasedConfig, false)
 		ps = append(ps, p)
 		as = append(as, analyzer)
 	}
@@ -220,7 +223,7 @@ func TestFailingFastSyncBlockAnalyzers(t *testing.T) {
 			}
 		}
 		p := &mockProcessor{name: "test-analyzer", latestBlockHeight: 10_000, storage: db, fail: fail}
-		analyzer := setupAnalyzer(t, db, p, &config.BlockBasedAnalyzerConfig{From: 1, To: 1_000}, false)
+		analyzer := setupAnalyzer(t, db, p, testBlockBasedConfig, false)
 		ps = append(ps, p)
 		as = append(as, analyzer)
 	}
@@ -263,7 +266,7 @@ func TestDistinctFastSyncBlockAnalyzers(t *testing.T) {
 	as := []analyzer.Analyzer{}
 	for i := 0; i < numAnalyzers; i++ {
 		p := &mockProcessor{name: fmt.Sprintf("test-analyzer-%d", i), latestBlockHeight: 1_000, storage: db}
-		analyzer := setupAnalyzer(t, db, p, &config.BlockBasedAnalyzerConfig{From: 1, To: 1_000}, false)
+		analyzer := setupAnalyzer(t, db, p, testBlockBasedConfig, false)
 		ps = append(ps, p)
 		as = append(as, analyzer)
 	}
@@ -300,7 +303,7 @@ func TestSlowSyncBlockAnalyzer(t *testing.T) {
 
 	db := setupDB(t)
 	p := &mockProcessor{name: "test-analyzer", latestBlockHeight: 10_000, storage: db}
-	analyzer := setupAnalyzer(t, db, p, &config.BlockBasedAnalyzerConfig{From: 1, To: 1_000}, true)
+	analyzer := setupAnalyzer(t, db, p, testBlockBasedConfig, true)
 
 	// Run the analyzer and ensure all blocks are processed.
 	var wg sync.WaitGroup
@@ -339,7 +342,7 @@ func TestFailingSlowSyncBlockAnalyzer(t *testing.T) {
 		}
 		return nil
 	}}
-	analyzer := setupAnalyzer(t, db, p, &config.BlockBasedAnalyzerConfig{From: 1, To: 100}, true)
+	analyzer := setupAnalyzer(t, db, p, &config.BlockBasedAnalyzerConfig{From: 1, To: 100, BatchSize: 100}, true)
 
 	// Run the analyzer and ensure all blocks are processed.
 	var wg sync.WaitGroup
@@ -376,7 +379,7 @@ func TestDistinctSlowSyncBlockAnalyzers(t *testing.T) {
 	as := []analyzer.Analyzer{}
 	for i := 0; i < numAnalyzers; i++ {
 		p := &mockProcessor{name: fmt.Sprintf("test-analyzer-%d", i), latestBlockHeight: 1_000, storage: db}
-		analyzer := setupAnalyzer(t, db, p, &config.BlockBasedAnalyzerConfig{From: 1, To: 1_000}, true)
+		analyzer := setupAnalyzer(t, db, p, testBlockBasedConfig, true)
 		ps = append(ps, p)
 		as = append(as, analyzer)
 	}

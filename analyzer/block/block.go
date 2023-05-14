@@ -22,8 +22,8 @@ import (
 const (
 	// Timeout to process a block.
 	processBlockTimeout = 61 * time.Second
-	// Number of blocks to be processed in a batch.
-	blocksBatchSize = 100
+	// Default number of blocks to be processed in a batch.
+	defaultBatchSize = 1_000
 	// Lock expire timeout for blocks (in minutes). Locked blocks not processed within
 	// this time can be picked again.
 	lockExpiryMinutes = 5
@@ -121,7 +121,7 @@ func (b *blockBasedAnalyzer) fetchBatchForProcessing(ctx context.Context, from u
 			from,
 			to,
 			0,
-			blocksBatchSize,
+			b.config.BatchSize,
 		)
 	case false:
 		// Fetch and lock blocks for processing.
@@ -132,7 +132,7 @@ func (b *blockBasedAnalyzer) fetchBatchForProcessing(ctx context.Context, from u
 			from,
 			to,
 			lockExpiryMinutes,
-			blocksBatchSize,
+			b.config.BatchSize,
 		)
 	}
 	if err != nil {
@@ -284,6 +284,9 @@ func NewAnalyzer(
 	logger *log.Logger,
 	slowSync bool,
 ) (analyzer.Analyzer, error) {
+	if config.BatchSize == 0 {
+		config.BatchSize = defaultBatchSize
+	}
 	return &blockBasedAnalyzer{
 		config:       config,
 		analyzerName: name,
