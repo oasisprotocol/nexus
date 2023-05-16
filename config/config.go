@@ -250,6 +250,15 @@ type BlockBasedAnalyzerConfig struct {
 	// continue processing new blocks until the next breaking
 	// upgrade.
 	To uint64 `koanf:"to"`
+
+	// BatchSize determines the maximum number of blocks the block analyzer
+	// processes per batch. This is relevant only when the analyzer is
+	// still catching up to the latest block.
+	// Optimal value depends on block processing speed. Ideally, it should
+	// be set to the number of blocks processed within 30-60 seconds.
+	//
+	// Uses default value of 1000 if unset/set to 0.
+	BatchSize uint64 `koanf:"batch_size"`
 }
 
 type IntervalBasedAnalyzerConfig struct {
