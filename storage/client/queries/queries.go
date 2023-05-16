@@ -302,6 +302,7 @@ const (
 			txs.fee,
 			txs.gas_limit,
 			txs.gas_used,
+			COALESCE(FLOOR(txs.fee / NULLIF(txs.gas_limit, 0)) * txs.gas_used, 0) AS charged_fee, -- charged_fee=gas_price * gas_used
 			txs.size,
 			txs.method,
 			txs.body,

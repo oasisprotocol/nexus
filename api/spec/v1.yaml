@@ -2051,6 +2051,12 @@ components:
           type: integer
           format: uint64
           description: The total gas used by the transaction.
+        charged_fee:
+          type: string
+          description: |
+            The fee that was charged for the transaction execution (total, native denomination,
+            ParaTime base units, as a string).
+            Calculated as `gas_price * gas_used`, where `gas_price = fee / gas_limit`.
         size:
           type: integer
           format: int32
@@ -2096,7 +2102,7 @@ components:
           example: "100000001666393459"
         encryption_envelope:
           description: |
-            The data relevant to the encrypted transaction. Only present for encrypted 
+            The data relevant to the encrypted transaction. Only present for encrypted
             transactions in confidential EVM runtimes like Sapphire.
             Note: The term "envelope" in this context refers to the [Oasis-style encryption envelopes](https://github.com/oasisprotocol/oasis-sdk/blob/c36a7ee194abf4ca28fdac0edbefe3843b39bf69/runtime-sdk/src/types/callformat.rs)
             which differ slightly from [digital envelopes](hhttps://en.wikipedia.org/wiki/Hybrid_cryptosystem#Envelope_encryption).
