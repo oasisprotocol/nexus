@@ -865,6 +865,8 @@ paths:
             A filter on the hash of the transaction that originated the events.
             Specifying `tx_index` and `round` is an alternative to specifying `tx_hash`;
             either works to fetch events from a specific transaction.
+            This can be an Ethereum transaction hash; the query will compare against
+            both a transaction's regular tx_hash and eth_tx_hash (if it exists).
           example: *tx_hash_1
         - in: query
           name: type
@@ -1912,6 +1914,11 @@ components:
             Hash of this event's originating transaction.
             Absent if the event did not originate from a transaction.
           example: *tx_hash_1
+        eth_tx_hash:
+          type: string
+          description: |
+            Ethereum trasnsaction hash of this event's originating transaction.
+            Absent if the event did not originate from an EVM transaction.
         type:
           description: The type of the event.
           $ref: '#/components/schemas/RuntimeEventType'

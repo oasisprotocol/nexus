@@ -1178,6 +1178,7 @@ func (c *StorageClient) RuntimeEvents(ctx context.Context, p apiTypes.GetRuntime
 			&e.Round,
 			&e.TxIndex,
 			&e.TxHash,
+			&e.EthTxHash,
 			&e.Type,
 			&e.Body,
 			&e.EvmLogName,
