@@ -16,6 +16,8 @@ import (
 	genesis "github.com/oasisprotocol/oasis-core/go/genesis/api"
 	governance "github.com/oasisprotocol/oasis-core/go/governance/api"
 	scheduler "github.com/oasisprotocol/oasis-core/go/scheduler/api"
+
+	"github.com/oasisprotocol/oasis-indexer/log"
 	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
 
 	// data types for Cobalt gRPC APIs.
@@ -84,7 +86,13 @@ func (c *CobaltConsensusApiLite) GetTransactionsWithResults(ctx context.Context,
 	for i, txBytes := range rsp.Transactions {
 		var tx consensusTx.SignedTransaction
 		if err := cbor.Unmarshal(txBytes, &tx); err != nil {
-			return nil, fmt.Errorf("GetTransactionsWithResults(%d): transaction %d (%x): %w", height, i, txBytes, err)
+			log.NewDefaultLogger("cobalt-consensus-api-lite").Error("malformed consensus transaction, leaving empty",
+				"height", height,
+				"index", i,
+				"tx_bytes", txBytes,
+				"err", err,
+			)
+			tx = consensusTx.SignedTransaction{}
 		}
 		if rsp.Results[i] == nil {
 			return nil, fmt.Errorf("GetTransactionsWithResults(%d): transaction %d (%x): has no result", height, i, txBytes)
