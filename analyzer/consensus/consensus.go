@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
+	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
 	"github.com/oasisprotocol/oasis-core/go/consensus/api/transaction"
 	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
 
@@ -96,6 +97,28 @@ func (m *processor) PreWork(ctx context.Context) error {
 		)
 		return err
 	}
+
+	batch := &storage.QueryBatch{}
+
+	// Register special addresses.
+	zeroKey := signature.PublicKey{}
+	zeroKeyAddr := staking.NewAddress(zeroKey).String()
+	zeroKeyData, err := zeroKey.MarshalBinary()
+	if err != nil {
+		panic(fmt.Errorf("zero key marshal binary: %w", err))
+	}
+	batch.Queue(
+		queries.AddressPreimageInsert,
+		zeroKeyAddr,                             // oasis1qpg3hpf3vtuueyl8f8jzgsy8clqqw6qgxgurwfy5
+		staking.AddressV0Context.Identifier,     // context_identifier
+		int32(staking.AddressV0Context.Version), // context_version
+		zeroKeyData,                             // address_data
+	)
+	if err = m.target.SendBatch(ctx, batch); err != nil {
+		return err
+	}
+	m.logger.Info("registered special addresses")
+
 	return nil
 }
 
