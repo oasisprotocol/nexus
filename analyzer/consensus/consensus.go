@@ -337,13 +337,18 @@ func (m *processor) queueTransactionInserts(batch *storage.QueryBatch, data *sto
 			sanitizedMsg := strings.ToValidUTF8(strings.ReplaceAll(result.Error.Message, "\x00", "?"), "?")
 			message = &sanitizedMsg
 		}
+		// Use default values for fee if tx.Fee is absent.
+		fee := &transaction.Fee{}
+		if tx.Fee != nil {
+			fee = tx.Fee
+		}
 		batch.Queue(queries.ConsensusTransactionInsert,
 			data.BlockHeader.Height,
 			signedTx.Hash().Hex(),
 			i,
 			tx.Nonce,
-			tx.Fee.Amount.String(),
-			fmt.Sprintf("%d", tx.Fee.Gas),
+			fee.Amount.String(),
+			fmt.Sprintf("%d", fee.Gas),
 			tx.Method,
 			sender,
 			bodyBytes,
