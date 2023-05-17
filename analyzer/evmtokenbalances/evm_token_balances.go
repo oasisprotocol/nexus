@@ -10,7 +10,7 @@ import (
 
 	"github.com/oasisprotocol/oasis-indexer/analyzer"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/queries"
-	"github.com/oasisprotocol/oasis-indexer/analyzer/runtime"
+	"github.com/oasisprotocol/oasis-indexer/analyzer/runtime/evm"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/util"
 	"github.com/oasisprotocol/oasis-indexer/common"
 	"github.com/oasisprotocol/oasis-indexer/log"
@@ -103,7 +103,7 @@ func NewMain(
 type StaleTokenBalance struct {
 	TokenAddr                    string
 	AccountAddr                  string
-	Type                         *runtime.EVMTokenType
+	Type                         *evm.EVMTokenType
 	Balance                      *big.Int
 	TokenAddrContextIdentifier   string
 	TokenAddrContextVersion      int
@@ -157,7 +157,7 @@ func (m Main) processStaleTokenBalance(ctx context.Context, batch *storage.Query
 		return fmt.Errorf("account address: %w", err)
 	}
 	if staleTokenBalance.Type != nil {
-		balanceData, err := runtime.EVMDownloadTokenBalance(
+		balanceData, err := evm.EVMDownloadTokenBalance(
 			ctx,
 			m.logger,
 			m.source,

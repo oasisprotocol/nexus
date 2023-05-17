@@ -1,4 +1,4 @@
-package runtime
+package evm
 
 import (
 	"context"
@@ -21,9 +21,14 @@ import (
 type EVMTokenType int
 
 const (
-	EVMTokenTypeUnsupported EVMTokenType = 0 // A smart contract for which we're confident it's not a supported token kind.
+	EVMTokenTypeNative      EVMTokenType = -1 // A placeholder type to represent the runtime's native token. No contract should be assigned this type.
+	EVMTokenTypeUnsupported EVMTokenType = 0  // A smart contract for which we're confident it's not a supported token kind.
 	EVMTokenTypeERC20       EVMTokenType = 20
 )
+
+// A fake address that is used to represent the native runtime token in contexts
+// that are primarily intended for tracking EVM tokens (= contract-based tokens).
+const NativeEVMTokenAddress = "oasis1runt1menat1vet0ken0000000000000000000000"
 
 type EVMPossibleToken struct {
 	Mutated bool

@@ -9,7 +9,7 @@ import (
 
 	"github.com/oasisprotocol/oasis-indexer/analyzer"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/queries"
-	"github.com/oasisprotocol/oasis-indexer/analyzer/runtime"
+	"github.com/oasisprotocol/oasis-indexer/analyzer/runtime/evm"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/util"
 	"github.com/oasisprotocol/oasis-indexer/common"
 	"github.com/oasisprotocol/oasis-indexer/log"
@@ -60,7 +60,7 @@ func NewMain(
 type StaleToken struct {
 	Addr                  string
 	LastDownloadRound     *uint64
-	Type                  *runtime.EVMTokenType
+	Type                  *evm.EVMTokenType
 	AddrContextIdentifier string
 	AddrContextVersion    int
 	AddrData              []byte
@@ -102,7 +102,7 @@ func (m Main) processStaleToken(ctx context.Context, batch *storage.QueryBatch, 
 	// can have a nil type, because downloading a token always sets the type.
 	// We check both just in case, because we later dereference the .Type pointer.
 	if staleToken.LastDownloadRound == nil || staleToken.Type == nil {
-		tokenData, err := runtime.EVMDownloadNewToken(
+		tokenData, err := evm.EVMDownloadNewToken(
 			ctx,
 			m.logger,
 			m.source,
@@ -121,8 +121,8 @@ func (m Main) processStaleToken(ctx context.Context, batch *storage.QueryBatch, 
 			tokenData.Decimals,
 			tokenData.TotalSupply.String(),
 		)
-	} else if *staleToken.Type != runtime.EVMTokenTypeUnsupported {
-		mutable, err := runtime.EVMDownloadMutatedToken(
+	} else if *staleToken.Type != evm.EVMTokenTypeUnsupported {
+		mutable, err := evm.EVMDownloadMutatedToken(
 			ctx,
 			m.logger,
 			m.source,
