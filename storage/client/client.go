@@ -1102,6 +1102,7 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetR
 			&t.Fee,
 			&t.GasLimit,
 			&t.GasUsed,
+			&t.ChargedFee,
 			&t.Size,
 			&t.Method,
 			&t.Body,
