@@ -5,6 +5,7 @@ import (
 
 	clientAPI "github.com/oasisprotocol/oasis-core/go/runtime/client/api"
 
+	"github.com/oasisprotocol/oasis-indexer/common"
 	"github.com/oasisprotocol/oasis-indexer/storage"
 	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
 )
@@ -53,6 +54,10 @@ func (rc *RuntimeClient) LatestBlockHeight(ctx context.Context) (uint64, error) 
 		return 0, err
 	}
 	return header.Round, nil
+}
+
+func (rc *RuntimeClient) GetNativeBalance(ctx context.Context, round uint64, addr nodeapi.Address) (*common.BigInt, error) {
+	return rc.nodeApi.GetNativeBalance(ctx, round, addr)
 }
 
 // Implements RuntimeSourceStorage interface.

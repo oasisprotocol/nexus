@@ -12,9 +12,13 @@ import (
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/hash"
 	roothash "github.com/oasisprotocol/oasis-core/go/roothash/api/block"
 	coreRuntimeClient "github.com/oasisprotocol/oasis-core/go/runtime/client/api"
+	common "github.com/oasisprotocol/oasis-indexer/common"
 	cobaltRoothash "github.com/oasisprotocol/oasis-indexer/coreapi/v21.1.1/roothash/api/block"
+	"github.com/oasisprotocol/oasis-indexer/log"
 	connection "github.com/oasisprotocol/oasis-sdk/client-sdk/go/connection"
+	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/accounts"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/evm"
+	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 )
 
 // Implementation of `RuntimeApiLite` that supports all versions of the node ABI
@@ -135,4 +139,17 @@ func (rc *UniversalRuntimeApiLite) GetEventsRaw(ctx context.Context, round uint6
 
 func (rc *UniversalRuntimeApiLite) EVMSimulateCall(ctx context.Context, round uint64, gasPrice []byte, gasLimit uint64, caller []byte, address []byte, value []byte, data []byte) ([]byte, error) {
 	return evm.NewV1(rc.sdkClient).SimulateCall(ctx, round, gasPrice, gasLimit, caller, address, value, data)
+}
+
+func (rc *UniversalRuntimeApiLite) GetNativeBalance(ctx context.Context, round uint64, addr Address) (*common.BigInt, error) {
+	balances, err := accounts.NewV1(rc.sdkClient).Balances(ctx, round, sdkTypes.Address(addr))
+	if err != nil {
+		return nil, err
+	}
+	nativeBalance, ok := balances.Balances[sdkTypes.NativeDenomination]
+	if !ok {
+		log.NewDefaultLogger("nodeapi").Warn("native runtime balance not found", "address", addr)
+		return common.Ptr(common.NewBigInt(0)), nil
+	}
+	return common.Ptr(common.BigIntFromQuantity(nativeBalance)), nil
 }

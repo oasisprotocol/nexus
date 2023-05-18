@@ -73,6 +73,14 @@ func (r *FileRuntimeApiLite) GetEventsRaw(ctx context.Context, round uint64) ([]
 	)
 }
 
+func (r *FileRuntimeApiLite) GetNativeBalance(ctx context.Context, round uint64, addr nodeapi.Address) (*common.BigInt, error) {
+	return GetFromCacheOrCall(
+		r.db, round == roothash.RoundLatest,
+		generateCacheKey("GetNativeBalance", r.runtime, round, addr),
+		func() (*common.BigInt, error) { return r.runtimeApi.GetNativeBalance(ctx, round, addr) },
+	)
+}
+
 func (r *FileRuntimeApiLite) EVMSimulateCall(ctx context.Context, round uint64, gasPrice []byte, gasLimit uint64, caller []byte, address []byte, value []byte, data []byte) ([]byte, error) {
 	return GetSliceFromCacheOrCall(
 		r.db, round == roothash.RoundLatest,
