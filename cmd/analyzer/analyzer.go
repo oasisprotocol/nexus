@@ -294,21 +294,23 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) {
 		})
 	}
 	if cfg.Analyzers.EmeraldEvmTokenBalances != nil {
+		runtimeMetadata := cfg.Source.SDKParaTime(common.RuntimeEmerald)
 		analyzers, err = addAnalyzer(analyzers, err, func() (A, error) {
 			sourceClient, err1 := sources.Runtime(ctx, common.RuntimeEmerald)
 			if err1 != nil {
 				return nil, err1
 			}
-			return evmtokenbalances.NewMain(common.RuntimeEmerald, sourceClient, dbClient, logger)
+			return evmtokenbalances.NewMain(common.RuntimeEmerald, *runtimeMetadata, sourceClient, dbClient, logger)
 		})
 	}
 	if cfg.Analyzers.SapphireEvmTokenBalances != nil {
+		runtimeMetadata := cfg.Source.SDKParaTime(common.RuntimeEmerald)
 		analyzers, err = addAnalyzer(analyzers, err, func() (A, error) {
 			sourceClient, err1 := sources.Runtime(ctx, common.RuntimeSapphire)
 			if err1 != nil {
 				return nil, err1
 			}
-			return evmtokenbalances.NewMain(common.RuntimeSapphire, sourceClient, dbClient, logger)
+			return evmtokenbalances.NewMain(common.RuntimeSapphire, *runtimeMetadata, sourceClient, dbClient, logger)
 		})
 	}
 	if cfg.Analyzers.MetadataRegistry != nil {

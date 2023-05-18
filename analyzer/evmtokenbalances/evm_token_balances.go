@@ -8,6 +8,8 @@ import (
 
 	"golang.org/x/sync/errgroup"
 
+	sdkConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
+
 	"github.com/oasisprotocol/oasis-indexer/analyzer"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/queries"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/runtime/evm"
@@ -78,25 +80,28 @@ const (
 )
 
 type Main struct {
-	runtime common.Runtime
-	source  storage.RuntimeSourceStorage
-	target  storage.TargetStorage
-	logger  *log.Logger
+	runtime         common.Runtime
+	runtimeMetadata sdkConfig.ParaTime
+	source          storage.RuntimeSourceStorage
+	target          storage.TargetStorage
+	logger          *log.Logger
 }
 
 var _ analyzer.Analyzer = (*Main)(nil)
 
 func NewMain(
 	runtime common.Runtime,
+	runtimeMetadata sdkConfig.ParaTime,
 	sourceClient *source.RuntimeClient,
 	target storage.TargetStorage,
 	logger *log.Logger,
 ) (*Main, error) {
 	return &Main{
-		runtime: runtime,
-		source:  sourceClient,
-		target:  target,
-		logger:  logger.With("analyzer", EvmTokenBalancesAnalyzerPrefix+runtime),
+		runtime:         runtime,
+		runtimeMetadata: runtimeMetadata,
+		source:          sourceClient,
+		target:          target,
+		logger:          logger.With("analyzer", EvmTokenBalancesAnalyzerPrefix+runtime),
 	}, nil
 }
 
@@ -285,4 +290,8 @@ func (m Main) Start(ctx context.Context) {
 
 func (m Main) Name() string {
 	return EvmTokenBalancesAnalyzerPrefix + string(m.runtime)
+}
+
+func nativeTokenSymbol(sdkPT *sdkConfig.ParaTime) string {
+	return sdkPT.Denominations[sdkConfig.NativeDenominationKey].Symbol
 }
