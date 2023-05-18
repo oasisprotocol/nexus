@@ -14,7 +14,6 @@ import (
 	coreRuntimeClient "github.com/oasisprotocol/oasis-core/go/runtime/client/api"
 	common "github.com/oasisprotocol/oasis-indexer/common"
 	cobaltRoothash "github.com/oasisprotocol/oasis-indexer/coreapi/v21.1.1/roothash/api/block"
-	"github.com/oasisprotocol/oasis-indexer/log"
 	connection "github.com/oasisprotocol/oasis-sdk/client-sdk/go/connection"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/accounts"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/evm"
@@ -148,7 +147,8 @@ func (rc *UniversalRuntimeApiLite) GetNativeBalance(ctx context.Context, round u
 	}
 	nativeBalance, ok := balances.Balances[sdkTypes.NativeDenomination]
 	if !ok {
-		log.NewDefaultLogger("nodeapi").Warn("native runtime balance not found", "address", addr)
+		// This is normal for accounts that have had no balance activity;
+		// the node returns an empty map.
 		return common.Ptr(common.NewBigInt(0)), nil
 	}
 	return common.Ptr(common.BigIntFromQuantity(nativeBalance)), nil

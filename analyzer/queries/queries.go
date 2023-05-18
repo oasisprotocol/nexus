@@ -1,6 +1,12 @@
 package queries
 
-const (
+import (
+	"fmt"
+
+	"github.com/oasisprotocol/oasis-indexer/analyzer/runtime/evm"
+)
+
+var (
 	FirstUnprocessedBlock = `
     SELECT LEAST( -- LEAST() ignores NULLs
       (
@@ -437,35 +443,76 @@ const (
       runtime = $1 AND
       token_address = $2`
 
-	RuntimeEVMTokenBalanceAnalysisStale = `
-    SELECT
-      evm_token_balance_analysis.token_address,
-      evm_token_balance_analysis.account_address,
-      evm_tokens.token_type,
-      evm_token_balances.balance,
-      token_address_preimage.context_identifier,
-      token_address_preimage.context_version,
-      token_address_preimage.address_data,
-      account_address_preimage.context_identifier,
-      account_address_preimage.context_version,
-      account_address_preimage.address_data,
-      (SELECT MAX(height) FROM chain.processed_blocks WHERE analyzer = evm_token_balance_analysis.runtime::text AND processed_time IS NOT NULL) AS download_round
-    FROM chain.evm_token_balance_analysis
-    -- No LEFT JOIN; we need to know the token's type to query its balance.
-    -- We do not exclude tokens with type=0 (unsupported) so that we can move them off the DB index of stale tokens.
-    JOIN chain.evm_tokens USING (runtime, token_address)
-    LEFT JOIN chain.evm_token_balances USING (runtime, token_address, account_address)
-    LEFT JOIN chain.address_preimages AS token_address_preimage ON
-      token_address_preimage.address = evm_token_balance_analysis.token_address
-    LEFT JOIN chain.address_preimages AS account_address_preimage ON
-      account_address_preimage.address = evm_token_balance_analysis.account_address
-    WHERE
-      evm_token_balance_analysis.runtime = $1 AND
-      (
-        evm_token_balance_analysis.last_download_round IS NULL OR
-        evm_token_balance_analysis.last_mutate_round > evm_token_balance_analysis.last_download_round
+	RuntimeEVMTokenBalanceAnalysisStale = fmt.Sprintf(`
+    WITH
+    stale_evm_tokens AS (
+      SELECT
+        analysis.token_address,
+        analysis.account_address,
+        evm_tokens.token_type,
+        evm_token_balances.balance,
+        token_preimage.context_identifier,
+        token_preimage.context_version,
+        token_preimage.address_data,
+        account_preimage.context_identifier,
+        account_preimage.context_version,
+        account_preimage.address_data,
+        (SELECT MAX(height) FROM chain.processed_blocks WHERE analyzer = analysis.runtime::text AND processed_time IS NOT NULL) AS download_round
+      FROM chain.evm_token_balance_analysis AS analysis
+      -- No LEFT JOIN; we need to know the token's type to query its balance.
+      -- We do not exclude tokens with type=0 (unsupported) so that we can move them off the DB index of stale tokens.
+      JOIN chain.evm_tokens USING (runtime, token_address)
+      LEFT JOIN chain.evm_token_balances USING (runtime, token_address, account_address)
+      LEFT JOIN chain.address_preimages AS token_preimage ON
+        token_preimage.address = analysis.token_address
+      LEFT JOIN chain.address_preimages AS account_preimage ON
+        account_preimage.address = analysis.account_address
+      WHERE
+        analysis.runtime = $1 AND
+        (
+          analysis.last_download_round IS NULL OR
+          analysis.last_mutate_round > analysis.last_download_round
+        )
+    ),
+    
+    stale_native_tokens AS (
+      SELECT
+        analysis.token_address,
+        analysis.account_address,
+        %d AS token_type,
+        COALESCE(balances.balance, 0) AS balance,
+        '' AS token_context_identifier,
+        -1 AS token_context_version,
+        ''::BYTEA AS token_address_data,
+        account_preimage.context_identifier,
+        account_preimage.context_version,
+        account_preimage.address_data,
+        (SELECT MAX(height) FROM chain.processed_blocks WHERE analyzer = analysis.runtime::text AND processed_time IS NOT NULL) AS download_round
+      FROM chain.evm_token_balance_analysis AS analysis
+      LEFT JOIN chain.runtime_sdk_balances AS balances ON (
+        balances.runtime = analysis.runtime AND
+        balances.account_address = analysis.account_address AND
+        balances.symbol = $2
       )
-    LIMIT $2`
+      LEFT JOIN chain.address_preimages AS account_preimage ON
+        account_preimage.address = analysis.account_address
+      WHERE
+        analysis.runtime = $1 AND
+        analysis.token_address = '%s' AND  -- Native token "address"
+        (
+          analysis.last_download_round IS NULL OR
+          analysis.last_mutate_round > analysis.last_download_round
+        )
+    )
+
+    SELECT * FROM (
+      SELECT * FROM stale_evm_tokens
+      UNION ALL
+      SELECT * FROM stale_native_tokens
+    ) foo LIMIT $3`,
+		evm.EVMTokenTypeNative,
+		evm.NativeEVMTokenAddress,
+	)
 
 	RuntimeEVMTokenBalanceAnalysisUpdate = `
     UPDATE chain.evm_token_balance_analysis

@@ -19,6 +19,7 @@ import (
 	"github.com/oasisprotocol/oasis-indexer/storage"
 	"github.com/oasisprotocol/oasis-indexer/storage/client"
 	source "github.com/oasisprotocol/oasis-indexer/storage/oasis"
+	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
 )
 
 // Imagine a timeline starting from a `balanceOf` output `v0` followed by
@@ -121,7 +122,10 @@ type StaleTokenBalance struct {
 
 func (m Main) getStaleTokenBalances(ctx context.Context, limit int) ([]*StaleTokenBalance, error) {
 	var staleTokenBalances []*StaleTokenBalance
-	rows, err := m.target.Query(ctx, queries.RuntimeEVMTokenBalanceAnalysisStale, m.runtime, limit)
+	rows, err := m.target.Query(ctx, queries.RuntimeEVMTokenBalanceAnalysisStale,
+		m.runtime,
+		nativeTokenSymbol(&m.runtimeMetadata),
+		limit)
 	if err != nil {
 		return nil, fmt.Errorf("querying stale token balances: %w", err)
 	}
@@ -151,17 +155,49 @@ func (m Main) getStaleTokenBalances(ctx context.Context, limit int) ([]*StaleTok
 }
 
 func (m Main) processStaleTokenBalance(ctx context.Context, batch *storage.QueryBatch, staleTokenBalance *StaleTokenBalance) error {
-	m.logger.Info("downloading", "stale_token_balance", staleTokenBalance)
-	// todo: assert that token addr and account addr contexts are secp256k1
-	tokenEthAddr, err := client.EVMEthAddrFromPreimage(staleTokenBalance.TokenAddrContextIdentifier, staleTokenBalance.TokenAddrContextVersion, staleTokenBalance.TokenAddrData)
-	if err != nil {
-		return fmt.Errorf("token address: %w", err)
-	}
 	accountEthAddr, err := client.EVMEthAddrFromPreimage(staleTokenBalance.AccountAddrContextIdentifier, staleTokenBalance.AccountAddrContextVersion, staleTokenBalance.AccountAddrData)
 	if err != nil {
 		return fmt.Errorf("account address: %w", err)
 	}
-	if staleTokenBalance.Type != nil {
+	switch *staleTokenBalance.Type {
+	case evm.EVMTokenTypeUnsupported:
+		// Do nothing; we'll just mark this token as processed so we remove it from the queue.
+	case evm.EVMTokenTypeNative:
+		// Query native balance.
+		addr := nodeapi.Address{}
+		if err := addr.UnmarshalText([]byte(staleTokenBalance.AccountAddr)); err != nil {
+			m.logger.Error("invalid account address bech32 '%s': %w", staleTokenBalance.AccountAddr, err)
+			break
+		}
+		balance, err := m.source.GetNativeBalance(ctx, staleTokenBalance.DownloadRound, addr)
+		if err != nil || balance == nil {
+			return fmt.Errorf("getting native runtime balance: %w", err)
+		}
+		if balance.Cmp(staleTokenBalance.Balance) != 0 {
+			correction := (&common.BigInt{}).Sub(&balance.Int, staleTokenBalance.Balance)
+			// Native token balance changes do not produce events, so our dead reckoning
+			// is expected to often be off. Log discrepancies at Info level only.
+			m.logger.Info("correcting reckoned native runtime balance to downloaded balance",
+				"account_addr", staleTokenBalance.AccountAddr,
+				"download_round", staleTokenBalance.DownloadRound,
+				"reckoned_balance", staleTokenBalance.Balance.String(),
+				"downloaded_balance", balance.String(),
+			)
+			batch.Queue(queries.RuntimeNativeBalanceUpdate,
+				m.runtime,
+				staleTokenBalance.AccountAddr,
+				nativeTokenSymbol(&m.runtimeMetadata),
+				correction,
+			)
+		} else {
+			m.logger.Debug("native balance: nothing to correct", "account_addr", staleTokenBalance.AccountAddr, "balance", balance)
+		}
+	default:
+		// All other ERC-X tokens. Query the token contract.
+		tokenEthAddr, err := client.EVMEthAddrFromPreimage(staleTokenBalance.TokenAddrContextIdentifier, staleTokenBalance.TokenAddrContextVersion, staleTokenBalance.TokenAddrData)
+		if err != nil {
+			return fmt.Errorf("token address: %w", err)
+		}
 		balanceData, err := evm.EVMDownloadTokenBalance(
 			ctx,
 			m.logger,
@@ -178,15 +214,12 @@ func (m Main) processStaleTokenBalance(ctx context.Context, batch *storage.Query
 			if balanceData.Balance.Cmp(staleTokenBalance.Balance) != 0 {
 				correction := &big.Int{}
 				correction.Sub(balanceData.Balance, staleTokenBalance.Balance)
-				// Note: This will happen because we currently don't scan
-				// before the beginning of the Dasmask upgrade, so the
-				// reckoning will be wrong about any balances from before
-				// then. It can also happen when contracts misbehave.
+				// Can happen when contracts misbehave, or if we haven't indexed all the runtime blocks from the very first one on.
 				m.logger.Warn("correcting reckoned balance of token to downloaded balance",
 					"token_addr", staleTokenBalance.TokenAddr,
 					"account_addr", staleTokenBalance.AccountAddr,
 					"download_round", staleTokenBalance.DownloadRound,
-					"reckoned_balance", staleTokenBalance.Balance,
+					"reckoned_balance", staleTokenBalance.Balance.String(),
 					"downloaded_balance", balanceData,
 					"correction", correction,
 				)
@@ -197,6 +230,8 @@ func (m Main) processStaleTokenBalance(ctx context.Context, batch *storage.Query
 					correction.String(),
 				)
 			}
+		} else {
+			m.logger.Debug("EVM token balance: nothing to correct", "token_addr", staleTokenBalance.TokenAddr, "account_addr", staleTokenBalance.AccountAddr, "balance", balanceData.Balance)
 		}
 	}
 	batch.Queue(queries.RuntimeEVMTokenBalanceAnalysisUpdate,

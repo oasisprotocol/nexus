@@ -228,7 +228,7 @@ type GovernanceData struct {
 }
 
 // RuntimeSourceStorage defines an interface for retrieving raw block data
-// from the runtime layer.
+// from a specific runtime.
 type RuntimeSourceStorage interface {
 	// AllData returns all data tied to a specific round.
 	AllData(ctx context.Context, round uint64) (*RuntimeAllData, error)
