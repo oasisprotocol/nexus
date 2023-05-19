@@ -176,14 +176,8 @@ func (m *processor) processGenesis(ctx context.Context, chainContext string) err
 }
 
 // Implements BlockProcessor interface.
-func (m *processor) SourceLatestBlockHeight(ctx context.Context) (uint64, error) {
-	h, err := m.source.LatestBlockHeight(ctx)
-	return uint64(h), err
-}
-
-// Implements BlockProcessor interface.
 func (m *processor) ProcessBlock(ctx context.Context, uheight uint64) error {
-	if uheight >= math.MaxInt64 {
+	if uheight > math.MaxInt64 {
 		return fmt.Errorf("height %d is too large", uheight)
 	}
 	height := int64(uheight)
@@ -191,6 +185,9 @@ func (m *processor) ProcessBlock(ctx context.Context, uheight uint64) error {
 	// Fetch all data.
 	data, err := m.source.AllData(ctx, height)
 	if err != nil {
+		if strings.Contains(err.Error(), fmt.Sprintf("%d must be less than or equal to the current blockchain height", height)) {
+			return analyzer.ErrOutOfRange
+		}
 		return err
 	}
 

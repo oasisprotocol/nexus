@@ -4,6 +4,7 @@ package api
 import (
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -35,6 +36,20 @@ var (
 		Run:   runServer,
 	}
 )
+
+// specFileServer is a wrapper around `http.FileServer` that
+// serves files from `rootDir`, and also hardcodes the MIME type for
+// YAML files to `application/x-yaml`. The latter is a hack to
+// make the HTTP headers independent of the OS's MIME type database.
+type specFileServer struct{ rootDir string }
+
+func (srv specFileServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if strings.HasSuffix(r.URL.Path, ".yaml") || strings.HasSuffix(r.URL.Path, ".yml") {
+		w.Header().Set("Content-Type", "application/x-yaml")
+	}
+	// "api/spec" is the local path from which we serve the files.
+	http.FileServer(http.Dir(srv.rootDir)).ServeHTTP(w, r)
+}
 
 func runServer(cmd *cobra.Command, args []string) {
 	// Initialize config.
@@ -118,8 +133,7 @@ func (s *Service) Start() {
 	// Routes to static files (openapi spec).
 	staticFileRouter := chi.NewRouter()
 	staticFileRouter.Route("/v1/spec", func(r chi.Router) {
-		specServer := http.FileServer(http.Dir("api/spec"))
-		r.Handle("/*", http.StripPrefix("/v1/spec", specServer))
+		r.Handle("/*", http.StripPrefix("/v1/spec", specFileServer{rootDir: "api/spec"}))
 	})
 
 	// A "strict handler" that handles the great majority of requests.
