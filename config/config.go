@@ -103,6 +103,19 @@ func (cfg *AnalysisConfig) Validate() error {
 			return err
 		}
 	}
+	if cfg.Analyzers.EVMContractsVerifier != nil {
+		// Use default interval if not specified.
+		if cfg.Analyzers.EVMContractsVerifier.Interval == 0 {
+			cfg.Analyzers.EVMContractsVerifier.Interval = 5 * time.Minute
+		}
+		// Use chain name from source if not specified.
+		if cfg.Analyzers.EVMContractsVerifier.ChainName == "" && cfg.Source.ChainName != "" {
+			cfg.Analyzers.EVMContractsVerifier.ChainName = cfg.Source.ChainName
+		}
+		if err := cfg.Analyzers.EVMContractsVerifier.Validate(); err != nil {
+			return err
+		}
+	}
 	return cfg.Storage.Validate(true /* requireMigrations */)
 }
 
@@ -119,8 +132,9 @@ type AnalyzersList struct {
 	EmeraldContractCode      *EvmContractCodeAnalyzerConfig `koanf:"evm_contract_code_emerald"`
 	SapphireContractCode     *EvmContractCodeAnalyzerConfig `koanf:"evm_contract_code_sapphire"`
 
-	MetadataRegistry *MetadataRegistryConfig `koanf:"metadata_registry"`
-	AggregateStats   *AggregateStatsConfig   `koanf:"aggregate_stats"`
+	MetadataRegistry     *MetadataRegistryConfig     `koanf:"metadata_registry"`
+	AggregateStats       *AggregateStatsConfig       `koanf:"aggregate_stats"`
+	EVMContractsVerifier *EVMContractsVerifierConfig `koanf:"evm_contracts_verifier"`
 }
 
 // SourceConfig has some controls about what chain we're analyzing and how to connect.
@@ -276,6 +290,26 @@ type EvmContractCodeAnalyzerConfig struct{}
 func (cfg *BlockBasedAnalyzerConfig) Validate() error {
 	if cfg.To != 0 && cfg.From > cfg.To {
 		return fmt.Errorf("malformed analysis range from %d to %d", cfg.From, cfg.To)
+	}
+	return nil
+}
+
+// EVMContractsVerifierConfig is the configuration for the EVM contracts verifier analyzer.
+type EVMContractsVerifierConfig struct {
+	IntervalBasedAnalyzerConfig `koanf:",squash"`
+
+	// ChainName is the name of the chain (e.g. mainnet/testnet).
+	// The analyzer only supports testnet/mainnet chains.
+	ChainName common.ChainName `koanf:"chain_name"`
+
+	// SourcifyServerUrl is the base URL of the Sourcify server.
+	SourcifyServerUrl string `koanf:"sourcify_server_url"`
+}
+
+// Validate validates the evm contracts verifier config.
+func (cfg *EVMContractsVerifierConfig) Validate() error {
+	if cfg.Interval < time.Minute {
+		return fmt.Errorf("evm contracts verifier interval must be at least 1 minute to meet Sourcify rate limits")
 	}
 	return nil
 }
