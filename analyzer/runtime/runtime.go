@@ -13,6 +13,7 @@ import (
 	"github.com/oasisprotocol/oasis-indexer/analyzer"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/block"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/queries"
+	evm "github.com/oasisprotocol/oasis-indexer/analyzer/runtime/evm"
 	uncategorized "github.com/oasisprotocol/oasis-indexer/analyzer/uncategorized"
 	"github.com/oasisprotocol/oasis-indexer/common"
 	"github.com/oasisprotocol/oasis-indexer/config"
@@ -257,7 +258,11 @@ func (m *processor) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 	for key, change := range data.TokenBalanceChanges {
 		// Update the DB balance only if it's actually changed.
 		if change != big.NewInt(0) {
-			batch.Queue(queries.RuntimeEVMTokenBalanceUpdate, m.runtime, key.TokenAddress, key.AccountAddress, change.String())
+			if key.TokenAddress == evm.NativeEVMTokenAddress {
+				batch.Queue(queries.RuntimeNativeBalanceUpdate, m.runtime, key.AccountAddress, m.nativeTokenSymbol(), change.String())
+			} else {
+				batch.Queue(queries.RuntimeEVMTokenBalanceUpdate, m.runtime, key.TokenAddress, key.AccountAddress, change.String())
+			}
 		}
 		// Even for a (suspected) non-change, notify the evm_token_balances analyzer to
 		// verify the correct balance by querying the EVM.
