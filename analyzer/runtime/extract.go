@@ -418,9 +418,9 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 						// than to reckon a wrong change (and have a "random" incorrect balance until it is re-queried).
 						reckonedAmount = big.NewInt(0)
 					}
-					registerTokenIncrease(blockData.TokenBalanceChanges, evm.NativeEVMTokenAddress, to, reckonedAmount)
+					registerTokenIncrease(blockData.TokenBalanceChanges, evm.NativeRuntimeTokenAddress, to, reckonedAmount)
 					for _, signer := range blockTransactionData.SignerData {
-						registerTokenDecrease(blockData.TokenBalanceChanges, evm.NativeEVMTokenAddress, signer.Address, reckonedAmount)
+						registerTokenDecrease(blockData.TokenBalanceChanges, evm.NativeRuntimeTokenAddress, signer.Address, reckonedAmount)
 					}
 
 					// TODO: maybe parse known token methods (ERC-20 etc)

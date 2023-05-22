@@ -28,7 +28,7 @@ const (
 
 // A fake address that is used to represent the native runtime token in contexts
 // that are primarily intended for tracking EVM tokens (= contract-based tokens).
-const NativeEVMTokenAddress = "oasis1runt1menat1vet0ken0000000000000000000000"
+const NativeRuntimeTokenAddress = "oasis1runt1menat1vet0ken0000000000000000000000"
 
 type EVMPossibleToken struct {
 	Mutated bool

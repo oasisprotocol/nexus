@@ -511,7 +511,7 @@ var (
       SELECT * FROM stale_native_tokens
     ) foo LIMIT $3`,
 		evm.EVMTokenTypeNative,
-		evm.NativeEVMTokenAddress,
+		evm.NativeRuntimeTokenAddress,
 	)
 
 	RuntimeEVMTokenBalanceAnalysisUpdate = `

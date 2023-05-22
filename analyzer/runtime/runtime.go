@@ -258,7 +258,7 @@ func (m *processor) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 	for key, change := range data.TokenBalanceChanges {
 		// Update the DB balance only if it's actually changed.
 		if change != big.NewInt(0) {
-			if key.TokenAddress == evm.NativeEVMTokenAddress {
+			if key.TokenAddress == evm.NativeRuntimeTokenAddress {
 				batch.Queue(queries.RuntimeNativeBalanceUpdate, m.runtime, key.AccountAddress, m.nativeTokenSymbol(), change.String())
 			} else {
 				batch.Queue(queries.RuntimeEVMTokenBalanceUpdate, m.runtime, key.TokenAddress, key.AccountAddress, change.String())
