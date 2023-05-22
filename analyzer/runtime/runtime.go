@@ -234,9 +234,10 @@ func (m *processor) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 			eventData.TxHash,
 			eventData.Type,
 			eventData.Body,
+			eventRelatedAddresses,
 			eventData.EvmLogName,
 			eventData.EvmLogParams,
-			eventRelatedAddresses,
+			eventData.EvmLogSignature,
 		)
 	}
 

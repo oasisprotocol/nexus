@@ -113,15 +113,16 @@ CREATE TABLE chain.runtime_events
   -- TODO: add link to openapi spec section with runtime event types.
   type TEXT NOT NULL,
   -- The raw event, as returned by the oasis-sdk runtime client.
-  -- `evm.log` events are further parsed into known event types,
-  -- e.g. (ERC20) Transfer, to populate the `evm_log_name` and
-  -- `evm_log_params` fields below.
   body JSONB NOT NULL,
+  related_accounts TEXT[],
+
+  -- The events of type `evm.log` are further parsed into known event types, e.g. (ERC20) Transfer,
+  -- to populate the `evm_log_name`, `evm_log_params`, and `evm_log_signature` fields.
+  -- These fields are populated only when the ABI for the event is known. Typically, this is the
+  -- case for events emitted by verified contracts.
   evm_log_name TEXT,
-  -- The event signature, if it exists, will be the first topic.
-  evm_log_signature TEXT GENERATED ALWAYS AS (body->'topics'->>0) STORED,
   evm_log_params JSONB,
-  related_accounts TEXT[]
+  evm_log_signature BYTEA CHECK (octet_length(evm_log_signature) = 32)
 );
 CREATE INDEX ix_runtime_events_round ON chain.runtime_events(runtime, round);  -- for sorting by round, when there are no filters applied
 CREATE INDEX ix_runtime_events_tx_hash ON chain.runtime_events(tx_hash);

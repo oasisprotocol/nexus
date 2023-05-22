@@ -957,11 +957,9 @@ paths:
           schema:
             type: string
           description: |
-            A filter on the first of `topics` in the EVM log structure, which typically contains the
-            event _signature_, i.e. the keccak256 hash of the event name and parameter types.
-            Note: The filter will match on `topics[0]` even in the rare case of anonymous events
-            when that field does not actually contain the signature.
-          example: '0x27f12abfe35860a9a927b465bb3d4a9c23c8428174b83f278fe45ed7b4da2662'
+            A filter on the evm log signatures.
+            Note: The filter will only match on parsed (verified) EVM events.
+          example: '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'
       responses:
         '200':
           description: |
