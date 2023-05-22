@@ -300,7 +300,7 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) {
 			if err1 != nil {
 				return nil, err1
 			}
-			return evmtokenbalances.NewMain(common.RuntimeEmerald, *runtimeMetadata, sourceClient, dbClient, logger)
+			return evmtokenbalances.NewMain(common.RuntimeEmerald, runtimeMetadata, sourceClient, dbClient, logger)
 		})
 	}
 	if cfg.Analyzers.SapphireEvmTokenBalances != nil {
@@ -310,7 +310,7 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) {
 			if err1 != nil {
 				return nil, err1
 			}
-			return evmtokenbalances.NewMain(common.RuntimeSapphire, *runtimeMetadata, sourceClient, dbClient, logger)
+			return evmtokenbalances.NewMain(common.RuntimeSapphire, runtimeMetadata, sourceClient, dbClient, logger)
 		})
 	}
 	if cfg.Analyzers.MetadataRegistry != nil {

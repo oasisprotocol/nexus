@@ -82,7 +82,7 @@ const (
 
 type Main struct {
 	runtime         common.Runtime
-	runtimeMetadata sdkConfig.ParaTime
+	runtimeMetadata *sdkConfig.ParaTime
 	source          storage.RuntimeSourceStorage
 	target          storage.TargetStorage
 	logger          *log.Logger
@@ -92,7 +92,7 @@ var _ analyzer.Analyzer = (*Main)(nil)
 
 func NewMain(
 	runtime common.Runtime,
-	runtimeMetadata sdkConfig.ParaTime,
+	runtimeMetadata *sdkConfig.ParaTime,
 	sourceClient *source.RuntimeClient,
 	target storage.TargetStorage,
 	logger *log.Logger,
@@ -124,7 +124,7 @@ func (m Main) getStaleTokenBalances(ctx context.Context, limit int) ([]*StaleTok
 	var staleTokenBalances []*StaleTokenBalance
 	rows, err := m.target.Query(ctx, queries.RuntimeEVMTokenBalanceAnalysisStale,
 		m.runtime,
-		nativeTokenSymbol(&m.runtimeMetadata),
+		nativeTokenSymbol(m.runtimeMetadata),
 		limit)
 	if err != nil {
 		return nil, fmt.Errorf("querying stale token balances: %w", err)
@@ -186,7 +186,7 @@ func (m Main) processStaleTokenBalance(ctx context.Context, batch *storage.Query
 			batch.Queue(queries.RuntimeNativeBalanceUpdate,
 				m.runtime,
 				staleTokenBalance.AccountAddr,
-				nativeTokenSymbol(&m.runtimeMetadata),
+				nativeTokenSymbol(m.runtimeMetadata),
 				correction,
 			)
 		} else {
