@@ -109,7 +109,7 @@ func NewMain(
 type StaleTokenBalance struct {
 	TokenAddr                    string
 	AccountAddr                  string
-	Type                         *evm.EVMTokenType
+	Type                         evm.EVMTokenType
 	Balance                      *big.Int
 	TokenAddrContextIdentifier   string
 	TokenAddrContextVersion      int
@@ -159,7 +159,7 @@ func (m Main) processStaleTokenBalance(ctx context.Context, batch *storage.Query
 	if err != nil {
 		return fmt.Errorf("account address: %w", err)
 	}
-	switch *staleTokenBalance.Type {
+	switch staleTokenBalance.Type {
 	case evm.EVMTokenTypeUnsupported:
 		// Do nothing; we'll just mark this token as processed so we remove it from the queue.
 	case evm.EVMTokenTypeNative:
@@ -205,7 +205,7 @@ func (m Main) processStaleTokenBalance(ctx context.Context, batch *storage.Query
 			staleTokenBalance.DownloadRound,
 			tokenEthAddr,
 			accountEthAddr,
-			*staleTokenBalance.Type,
+			staleTokenBalance.Type,
 		)
 		if err != nil {
 			return fmt.Errorf("downloading token balance %s %s: %w", staleTokenBalance.TokenAddr, staleTokenBalance.AccountAddr, err)
