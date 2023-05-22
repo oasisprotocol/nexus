@@ -15,8 +15,6 @@ import (
 	common "github.com/oasisprotocol/oasis-indexer/common"
 	cobaltRoothash "github.com/oasisprotocol/oasis-indexer/coreapi/v21.1.1/roothash/api/block"
 	connection "github.com/oasisprotocol/oasis-sdk/client-sdk/go/connection"
-	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/accounts"
-	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/evm"
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 )
 
@@ -137,11 +135,11 @@ func (rc *UniversalRuntimeApiLite) GetEventsRaw(ctx context.Context, round uint6
 }
 
 func (rc *UniversalRuntimeApiLite) EVMSimulateCall(ctx context.Context, round uint64, gasPrice []byte, gasLimit uint64, caller []byte, address []byte, value []byte, data []byte) ([]byte, error) {
-	return evm.NewV1(rc.sdkClient).SimulateCall(ctx, round, gasPrice, gasLimit, caller, address, value, data)
+	return rc.sdkClient.Evm.SimulateCall(ctx, round, gasPrice, gasLimit, caller, address, value, data)
 }
 
 func (rc *UniversalRuntimeApiLite) GetNativeBalance(ctx context.Context, round uint64, addr Address) (*common.BigInt, error) {
-	balances, err := accounts.NewV1(rc.sdkClient).Balances(ctx, round, sdkTypes.Address(addr))
+	balances, err := rc.sdkClient.Accounts.Balances(ctx, round, sdkTypes.Address(addr))
 	if err != nil {
 		return nil, err
 	}
