@@ -406,21 +406,23 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 						)
 					}
 
-					// Dead-reckon native token balances.
-					// Native token transfers do not generate events. Theoretically, any call can change the balance of any account,
-					// and we do not have a good way of tracking them; we just query them with the evm_token_balances analyzer.
-					// Heuristically, a call is most likely to change the balances of the sender and the receiver, so we create
-					// a (quite possibly incorrect) dead-reckoned change of 0 for those accounts, which will cause the evm_token_balances analyzer
-					// to re-query their real balance.
-					reckonedAmount := amount.ToBigInt() // Calls with an empty body represent a transfer of the native token.
-					if len(body.Data) != 0 || len(blockTransactionData.SignerData) > 1 {
-						// Calls with a non-empty body have no standard impact on native balance. Better to dead-reckon a 0 change (and keep stale balances)
-						// than to reckon a wrong change (and have a "random" incorrect balance until it is re-queried).
-						reckonedAmount = big.NewInt(0)
-					}
-					registerTokenIncrease(blockData.TokenBalanceChanges, evm.NativeRuntimeTokenAddress, to, reckonedAmount)
-					for _, signer := range blockTransactionData.SignerData {
-						registerTokenDecrease(blockData.TokenBalanceChanges, evm.NativeRuntimeTokenAddress, signer.Address, reckonedAmount)
+					if txr.Result.Ok != nil {
+						// Dead-reckon native token balances.
+						// Native token transfers do not generate events. Theoretically, any call can change the balance of any account,
+						// and we do not have a good way of tracking them; we just query them with the evm_token_balances analyzer.
+						// But heuristically, a call is most likely to change the balances of the sender and the receiver, so we create
+						// a (quite possibly incorrect) dead-reckoned change of 0 for those accounts, which will cause the evm_token_balances analyzer
+						// to re-query their real balance.
+						reckonedAmount := amount.ToBigInt() // Calls with an empty body represent a transfer of the native token.
+						if len(body.Data) != 0 || len(blockTransactionData.SignerData) > 1 {
+							// Calls with a non-empty body have no standard impact on native balance. Better to dead-reckon a 0 change (and keep stale balances)
+							// than to reckon a wrong change (and have a "random" incorrect balance until it is re-queried).
+							reckonedAmount = big.NewInt(0)
+						}
+						registerTokenIncrease(blockData.TokenBalanceChanges, evm.NativeRuntimeTokenAddress, to, reckonedAmount)
+						for _, signer := range blockTransactionData.SignerData {
+							registerTokenDecrease(blockData.TokenBalanceChanges, evm.NativeRuntimeTokenAddress, signer.Address, reckonedAmount)
+						}
 					}
 
 					// TODO: maybe parse known token methods (ERC-20 etc)
