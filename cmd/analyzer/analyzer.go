@@ -304,7 +304,7 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) {
 		})
 	}
 	if cfg.Analyzers.SapphireEvmTokenBalances != nil {
-		runtimeMetadata := cfg.Source.SDKParaTime(common.RuntimeEmerald)
+		runtimeMetadata := cfg.Source.SDKParaTime(common.RuntimeSapphire)
 		analyzers, err = addAnalyzer(analyzers, err, func() (A, error) {
 			sourceClient, err1 := sources.Runtime(ctx, common.RuntimeSapphire)
 			if err1 != nil {
