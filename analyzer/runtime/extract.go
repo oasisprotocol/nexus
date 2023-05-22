@@ -20,7 +20,7 @@ import (
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/accounts"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/consensusaccounts"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/core"
-	evm_sdk "github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/evm"
+	sdkEVM "github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/evm"
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 
 	evm "github.com/oasisprotocol/oasis-indexer/analyzer/runtime/evm"
@@ -85,7 +85,7 @@ type ScopedSdkEvent struct {
 	Core              *core.Event
 	Accounts          *accounts.Event
 	ConsensusAccounts *consensusaccounts.Event
-	EVM               *evm_sdk.Event
+	EVM               *sdkEVM.Event
 }
 
 type AddressPreimageData struct {
@@ -368,7 +368,7 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 					}
 					return nil
 				},
-				EVMCreate: func(body *evm_sdk.Create, ok *[]byte) error {
+				EVMCreate: func(body *sdkEVM.Create, ok *[]byte) error {
 					blockTransactionData.Body = body
 					amount = uncategorized.QuantityFromBytes(body.Value)
 					if !txr.Result.IsUnknown() && txr.Result.IsSuccess() && len(*ok) == 20 {
@@ -389,7 +389,7 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 					}
 					return nil
 				},
-				EVMCall: func(body *evm_sdk.Call, ok *[]byte) error {
+				EVMCall: func(body *sdkEVM.Call, ok *[]byte) error {
 					blockTransactionData.Body = body
 					amount = uncategorized.QuantityFromBytes(body.Value)
 					if to, err = registerRelatedEthAddress(blockData.AddressPreimages, blockTransactionData.RelatedAccountAddresses, body.Address); err != nil {
@@ -589,7 +589,7 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 			}
 			return nil
 		},
-		EVM: func(event *evm_sdk.Event) error {
+		EVM: func(event *sdkEVM.Event) error {
 			eventAddr, err1 := registerRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, event.Address)
 			if err1 != nil {
 				return fmt.Errorf("event address: %w", err1)
