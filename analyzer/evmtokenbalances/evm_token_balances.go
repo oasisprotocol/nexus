@@ -171,7 +171,7 @@ func (m Main) processStaleTokenBalance(ctx context.Context, batch *storage.Query
 			break
 		}
 		balance, err := m.source.GetNativeBalance(ctx, staleTokenBalance.DownloadRound, addr)
-		if err != nil || balance == nil {
+		if err != nil {
 			return fmt.Errorf("getting native runtime balance: %w", err)
 		}
 		if balance.Cmp(staleTokenBalance.Balance) != 0 {
