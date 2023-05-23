@@ -98,7 +98,7 @@ func (a *AggregateStatsAnalyzer) Start(ctx context.Context) {
 // txVolumeWorker periodically updates the tx volume stats.
 func (a *AggregateStatsAnalyzer) txVolumeWorker(ctx context.Context) {
 	for {
-		a.logger.Info("updating tx volume stats")
+		a.logger.Info("updating tx volume stats (5-min and daily)")
 
 		// Note: The order matters here! Daily tx volume is a materialized view
 		// that's instantiated from 5 minute tx volume.

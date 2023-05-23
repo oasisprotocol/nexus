@@ -34,6 +34,7 @@ CREATE MATERIALIZED VIEW stats.min5_tx_volume AS
   FROM chain.runtime_blocks AS b
   JOIN chain.runtime_transactions AS t ON (b.round = t.round AND b.runtime = t.runtime)
   GROUP BY 1, 2;
+CREATE UNIQUE INDEX ix_stats_min5_tx_volume_window_start ON stats.min5_tx_volume (layer, window_start); -- A unique index is required for CONCURRENTLY refreshing the view.
 
 -- daily_tx_volume stores the number of transactions per day
 -- at the consensus layer.
@@ -44,6 +45,7 @@ CREATE MATERIALIZED VIEW stats.daily_tx_volume AS
     SUM(sub.tx_volume) AS tx_volume
   FROM stats.min5_tx_volume AS sub
   GROUP BY 1, 2;
+CREATE UNIQUE INDEX ix_stats_daily_tx_volume_window_start ON stats.daily_tx_volume (layer, window_start); -- A unique index is required for CONCURRENTLY refreshing the view.
 
 -- daily_active_accounts stores the sliding widnow for the number of unique accounts per day
 -- that were involved in transactions.
