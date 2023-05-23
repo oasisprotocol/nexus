@@ -70,6 +70,7 @@ CREATE TABLE chain.runtime_transactions
 );
 CREATE INDEX ix_runtime_transactions_tx_hash ON chain.runtime_transactions USING hash (tx_hash);
 CREATE INDEX ix_runtime_transactions_tx_eth_hash ON chain.runtime_transactions USING hash (tx_eth_hash);
+CREATE INDEX ix_runtime_transactions_timestamp ON chain.runtime_transactions (runtime, timestamp);
 
 CREATE TABLE chain.runtime_transaction_signers
 (
