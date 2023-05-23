@@ -215,6 +215,7 @@ CREATE TABLE chain.delegations
 
   PRIMARY KEY (delegatee, delegator)
 );
+CREATE INDEX ix_delegations_delegator ON chain.delegations(delegator);
 
 CREATE TABLE chain.debonding_delegations
 (

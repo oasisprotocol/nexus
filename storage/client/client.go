@@ -666,10 +666,55 @@ func (c *StorageClient) Delegations(ctx context.Context, address staking.Address
 		IsTotalCountClipped: res.isTotalCountClipped,
 	}
 	for res.rows.Next() {
-		var d Delegation
+		d := Delegation{
+			Delegator: address.String(),
+		}
 		var shares, escrowBalanceActive, escrowTotalSharesActive common.BigInt
 		if err := res.rows.Scan(
-			&d.ValidatorAddress,
+			&d.Validator,
+			&shares,
+			&escrowBalanceActive,
+			&escrowTotalSharesActive,
+		); err != nil {
+			return nil, wrapError(err)
+		}
+		amount := new(big.Int).Mul(&shares.Int, &escrowBalanceActive.Int)
+		amount.Quo(amount, &escrowTotalSharesActive.Int)
+		d.Amount = BigInt{Int: *amount}
+		d.Shares = shares
+
+		ds.Delegations = append(ds.Delegations, d)
+	}
+
+	return &ds, nil
+}
+
+// DelegationsTo returns a list of delegations to an address.
+func (c *StorageClient) DelegationsTo(ctx context.Context, address staking.Address, p apiTypes.GetConsensusAccountsAddressDelegationsToParams) (*DelegationList, error) {
+	res, err := c.withTotalCount(
+		ctx,
+		queries.DelegationsTo,
+		address.String(),
+		p.Limit,
+		p.Offset,
+	)
+	if err != nil {
+		return nil, wrapError(err)
+	}
+	defer res.rows.Close()
+
+	ds := DelegationList{
+		Delegations:         []Delegation{},
+		TotalCount:          res.totalCount,
+		IsTotalCountClipped: res.isTotalCountClipped,
+	}
+	for res.rows.Next() {
+		d := Delegation{
+			Validator: address.String(),
+		}
+		var shares, escrowBalanceActive, escrowTotalSharesActive common.BigInt
+		if err := res.rows.Scan(
+			&d.Delegator,
 			&shares,
 			&escrowBalanceActive,
 			&escrowTotalSharesActive,
@@ -707,10 +752,57 @@ func (c *StorageClient) DebondingDelegations(ctx context.Context, address stakin
 		IsTotalCountClipped:  res.isTotalCountClipped,
 	}
 	for res.rows.Next() {
-		var d DebondingDelegation
+		d := DebondingDelegation{
+			Delegator: address.String(),
+		}
 		var shares, escrowBalanceDebonding, escrowTotalSharesDebonding common.BigInt
 		if err := res.rows.Scan(
-			&d.ValidatorAddress,
+			&d.Validator,
+			&shares,
+			&d.DebondEnd,
+			&escrowBalanceDebonding,
+			&escrowTotalSharesDebonding,
+		); err != nil {
+			return nil, wrapError(err)
+		}
+
+		amount := new(big.Int).Mul(&shares.Int, &escrowBalanceDebonding.Int)
+		amount.Quo(amount, &escrowTotalSharesDebonding.Int)
+		d.Amount = BigInt{Int: *amount}
+		d.Shares = shares
+
+		ds.DebondingDelegations = append(ds.DebondingDelegations, d)
+	}
+
+	return &ds, nil
+}
+
+// DebondingDelegationsTo returns a list of debonding delegations to an address.
+func (c *StorageClient) DebondingDelegationsTo(ctx context.Context, address staking.Address, p apiTypes.GetConsensusAccountsAddressDebondingDelegationsToParams) (*DebondingDelegationList, error) {
+	res, err := c.withTotalCount(
+		ctx,
+		queries.DebondingDelegationsTo,
+		address.String(),
+		p.Limit,
+		p.Offset,
+	)
+	if err != nil {
+		return nil, wrapError(err)
+	}
+	defer res.rows.Close()
+
+	ds := DebondingDelegationList{
+		DebondingDelegations: []DebondingDelegation{},
+		TotalCount:           res.totalCount,
+		IsTotalCountClipped:  res.isTotalCountClipped,
+	}
+	for res.rows.Next() {
+		d := DebondingDelegation{
+			Validator: address.String(),
+		}
+		var shares, escrowBalanceDebonding, escrowTotalSharesDebonding common.BigInt
+		if err := res.rows.Scan(
+			&d.Delegator,
 			&shares,
 			&d.DebondEnd,
 			&escrowBalanceDebonding,

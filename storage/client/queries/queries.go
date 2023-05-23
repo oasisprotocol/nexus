@@ -168,7 +168,21 @@ const (
 			FROM chain.delegations
 			JOIN chain.accounts ON chain.delegations.delegatee = chain.accounts.address
 			WHERE delegator = $1::text
-		ORDER BY delegatee, shares
+		ORDER BY shares DESC, delegatee
+		LIMIT $2::bigint
+		OFFSET $3::bigint`
+
+	DelegationsTo = `
+		-- delegatee_info is used to calculate the escrow amount of the delegators in base units
+		WITH delegatee_info AS (
+			SELECT escrow_balance_active, escrow_total_shares_active
+			FROM chain.accounts
+			WHERE address = $1::text
+		)
+		SELECT delegator, shares, delegatee_info.escrow_balance_active, delegatee_info.escrow_total_shares_active
+			FROM chain.delegations, delegatee_info
+			WHERE delegatee = $1::text
+		ORDER BY shares DESC, delegator
 		LIMIT $2::bigint
 		OFFSET $3::bigint`
 
@@ -177,7 +191,21 @@ const (
 			FROM chain.debonding_delegations
 			JOIN chain.accounts ON chain.debonding_delegations.delegatee = chain.accounts.address
 			WHERE delegator = $1::text
-		ORDER BY debond_end
+		ORDER BY debond_end, shares DESC, delegator
+		LIMIT $2::bigint
+		OFFSET $3::bigint`
+
+	DebondingDelegationsTo = `
+		-- delegatee_info is used to calculate the debonding escrow amount of the delegators in base units
+		WITH delegatee_info AS (
+			SELECT escrow_balance_debonding, escrow_total_shares_debonding
+			FROM chain.accounts
+			WHERE address = $1::text
+		)
+		SELECT delegator, shares, debond_end, delegatee_info.escrow_balance_debonding, delegatee_info.escrow_total_shares_debonding
+			FROM chain.debonding_delegations, delegatee_info
+			WHERE delegatee = $1::text
+		ORDER BY debond_end, shares DESC, delegator
 		LIMIT $2::bigint
 		OFFSET $3::bigint`
 
