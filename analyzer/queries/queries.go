@@ -445,6 +445,12 @@ var (
 
 	RuntimeEVMTokenBalanceAnalysisStale = fmt.Sprintf(`
     WITH
+    max_processed_round AS (
+      SELECT MAX(height) AS height
+      FROM chain.processed_blocks
+      WHERE analyzer = ($1::runtime)::text AND processed_time IS NOT NULL
+    ),
+
     stale_evm_tokens AS (
       SELECT
         analysis.token_address,
@@ -457,8 +463,9 @@ var (
         account_preimage.context_identifier,
         account_preimage.context_version,
         account_preimage.address_data,
-        (SELECT MAX(height) FROM chain.processed_blocks WHERE analyzer = analysis.runtime::text AND processed_time IS NOT NULL) AS download_round
-      FROM chain.evm_token_balance_analysis AS analysis
+        max_processed_round.height AS download_round
+      FROM max_processed_round,
+      chain.evm_token_balance_analysis AS analysis
       -- No LEFT JOIN; we need to know the token's type to query its balance.
       -- We do not exclude tokens with type=0 (unsupported) so that we can move them off the DB index of stale tokens.
       JOIN chain.evm_tokens USING (runtime, token_address)
@@ -487,8 +494,9 @@ var (
         account_preimage.context_identifier,
         account_preimage.context_version,
         account_preimage.address_data,
-        (SELECT MAX(height) FROM chain.processed_blocks WHERE analyzer = analysis.runtime::text AND processed_time IS NOT NULL) AS download_round
-      FROM chain.evm_token_balance_analysis AS analysis
+        max_processed_round.height AS download_round
+      FROM max_processed_round,
+      chain.evm_token_balance_analysis AS analysis
       LEFT JOIN chain.runtime_sdk_balances AS balances ON (
         balances.runtime = analysis.runtime AND
         balances.account_address = analysis.account_address AND
