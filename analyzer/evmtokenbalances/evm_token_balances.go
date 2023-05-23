@@ -167,6 +167,7 @@ func (m Main) processStaleTokenBalance(ctx context.Context, batch *storage.Query
 		addr := nodeapi.Address{}
 		if err := addr.UnmarshalText([]byte(staleTokenBalance.AccountAddr)); err != nil {
 			m.logger.Error("invalid account address bech32 '%s': %w", staleTokenBalance.AccountAddr, err)
+			// Do not return; mark this token as processed later on in the func, so we remove it from the DB queue.
 			break
 		}
 		balance, err := m.source.GetNativeBalance(ctx, staleTokenBalance.DownloadRound, addr)
