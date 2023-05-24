@@ -1,15 +1,62 @@
 package logic
 
 import (
+	_ "embed"
 	"encoding/hex"
+	"encoding/json"
 	"math/big"
 	"testing"
 
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	ethCommon "github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
 
 	"github.com/oasisprotocol/nexus/analyzer/evmabi"
 )
+
+//go:embed test_contracts/artifacts/Varied.json
+var artifactVariedJSON []byte
+var Varied *abi.ABI
+
+func init() {
+	type artifact struct {
+		ABI *abi.ABI
+	}
+	var artifactVaried artifact
+	if err := json.Unmarshal(artifactVariedJSON, &artifactVaried); err != nil {
+		panic(err)
+	}
+	Varied = artifactVaried.ABI
+}
+
+func TestEVMParseTypes(t *testing.T) {
+	data, err := hex.DecodeString("a85acffaffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0000000000000000000000000000000000000000000000000000000000000001ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010101010101010101010101010101010101010101010101010101010101010101000000000000000000000000010101010101010101010101010101010101010101010101010101010101010101010101010101010202020200000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000001c00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000024000000000000000000000000000000000000000000000000000000000000002800000000000000000000000000000000000000000000000000000000000000001010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000016100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000016100000000000000000000000000000000000000000000000000000000000000")
+	require.NoError(t, err)
+	method, args, err := EVMParseData(data, Varied)
+	require.NoError(t, err)
+	require.Equal(t, Varied.Methods["test"], *method)
+	jsonExpected := []string{
+		"-1",     // int8
+		"1",      // uint8
+		"\"-1\"", // int256
+		"\"1\"",  // uint256
+		"true",   // bool
+		"\"AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=\"", // bytes32
+		"\"0x0101010101010101010101010101010101010101\"",   // address
+		"\"AQEBAQEBAQEBAQEBAQEBAQEBAQECAgIC\"",             // function (uint16) external returns (uint16)
+		"[1,1]",                                            // uint16[2]
+		"\"AQ==\"",                                         // bytes
+		"\"a\"",                                            // string
+		"[1]",                                              // uint16[]
+		"{\"n\":1,\"s\":\"a\"}",                            // O
+	}
+	for i, input := range method.Inputs {
+		transducedArg := evmPreMarshal(args[i], input.Type)
+		jsonBytesArg, err1 := json.Marshal(transducedArg)
+		require.NoError(t, err1)
+		require.Equal(t, jsonExpected[i], string(jsonBytesArg))
+	}
+}
 
 func TestEVMParseData(t *testing.T) {
 	// https://explorer.emerald.oasis.dev/tx/0x1ac7521df4cda38c87cff56b1311ee9362168bd794230415a37f2aff3a554a5f/internal-transactions

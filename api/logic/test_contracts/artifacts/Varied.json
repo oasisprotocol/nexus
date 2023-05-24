@@ -1,0 +1,142 @@
+{
+  "deploy": {
+    "VM:-": {
+      "linkReferences": {},
+      "autoDeployLib": true
+    },
+    "main:1": {
+      "linkReferences": {},
+      "autoDeployLib": true
+    },
+    "ropsten:3": {
+      "linkReferences": {},
+      "autoDeployLib": true
+    },
+    "rinkeby:4": {
+      "linkReferences": {},
+      "autoDeployLib": true
+    },
+    "kovan:42": {
+      "linkReferences": {},
+      "autoDeployLib": true
+    },
+    "goerli:5": {
+      "linkReferences": {},
+      "autoDeployLib": true
+    },
+    "Custom": {
+      "linkReferences": {},
+      "autoDeployLib": true
+    }
+  },
+  "data": {
+    "bytecode": {
+      "functionDebugData": {},
+      "generatedSources": [],
+      "linkReferences": {},
+      "object": "",
+      "opcodes": "",
+      "sourceMap": ""
+    },
+    "deployedBytecode": {
+      "functionDebugData": {},
+      "generatedSources": [],
+      "immutableReferences": {},
+      "linkReferences": {},
+      "object": "",
+      "opcodes": "",
+      "sourceMap": ""
+    },
+    "gasEstimates": null,
+    "methodIdentifiers": {
+      "test(int8,uint8,int256,uint256,bool,bytes32,address,function,uint16[2],bytes,string,uint16[],(uint16,string))": "a85acffa"
+    }
+  },
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "int8",
+          "name": "i8",
+          "type": "int8"
+        },
+        {
+          "internalType": "uint8",
+          "name": "u8",
+          "type": "uint8"
+        },
+        {
+          "internalType": "int256",
+          "name": "i",
+          "type": "int256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "u",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bool",
+          "name": "b",
+          "type": "bool"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "b32",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "address",
+          "name": "a",
+          "type": "address"
+        },
+        {
+          "internalType": "function (uint16) external returns (uint16)",
+          "name": "f",
+          "type": "function"
+        },
+        {
+          "internalType": "uint16[2]",
+          "name": "xy",
+          "type": "uint16[2]"
+        },
+        {
+          "internalType": "bytes",
+          "name": "buf",
+          "type": "bytes"
+        },
+        {
+          "internalType": "string",
+          "name": "s",
+          "type": "string"
+        },
+        {
+          "internalType": "uint16[]",
+          "name": "l",
+          "type": "uint16[]"
+        },
+        {
+          "components": [
+            {
+              "internalType": "uint16",
+              "name": "n",
+              "type": "uint16"
+            },
+            {
+              "internalType": "string",
+              "name": "s",
+              "type": "string"
+            }
+          ],
+          "internalType": "struct O",
+          "name": "o",
+          "type": "tuple"
+        }
+      ],
+      "name": "test",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ]
+}
