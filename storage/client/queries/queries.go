@@ -24,7 +24,7 @@ const (
 			WHERE ($1::bigint IS NULL OR height >= $1::bigint) AND
 						($2::bigint IS NULL OR height <= $2::bigint) AND
 						($3::timestamptz IS NULL OR time >= $3::timestamptz) AND
-						($4::timestamptz IS NULL OR time <= $4::timestamptz)
+						($4::timestamptz IS NULL OR time < $4::timestamptz)
 		ORDER BY height DESC
 		LIMIT $5::bigint
 		OFFSET $6::bigint`
@@ -61,10 +61,12 @@ const (
 					($4::text IS NULL OR chain.accounts_related_transactions.account_address = $4::text) AND
 					($5::numeric IS NULL OR chain.transactions.fee_amount >= $5::numeric) AND
 					($6::numeric IS NULL OR chain.transactions.fee_amount <= $6::numeric) AND
-					($7::bigint IS NULL OR chain.transactions.code = $7::bigint)
+					($7::bigint IS NULL OR chain.transactions.code = $7::bigint) AND
+					($8::timestamptz IS NULL OR chain.blocks.time >= $8::timestamptz) AND
+					($9::timestamptz IS NULL OR chain.blocks.time < $9::timestamptz)
 			ORDER BY chain.transactions.block DESC, chain.transactions.tx_index
-			LIMIT $8::bigint
-			OFFSET $9::bigint`
+			LIMIT $10::bigint
+			OFFSET $11::bigint`
 
 	Transaction = `
 		SELECT block, tx_index, tx_hash, sender, nonce, fee_amount, method, body, code, module, message, chain.blocks.time
@@ -282,7 +284,7 @@ const (
 						($2::bigint IS NULL OR round >= $2::bigint) AND
 						($3::bigint IS NULL OR round <= $3::bigint) AND
 						($4::timestamptz IS NULL OR timestamp >= $4::timestamptz) AND
-						($5::timestamptz IS NULL OR timestamp <= $5::timestamptz)
+						($5::timestamptz IS NULL OR timestamp < $5::timestamptz)
 		ORDER BY round DESC
 		LIMIT $6::bigint
 		OFFSET $7::bigint`
@@ -350,10 +352,12 @@ const (
 			(txs.runtime = $1) AND
 			($2::bigint IS NULL OR txs.round = $2::bigint) AND
 			($3::text IS NULL OR txs.tx_hash = $3::text OR txs.tx_eth_hash = $3::text) AND
-			($4::text IS NULL OR rel.account_address = $4::text)
+			($4::text IS NULL OR rel.account_address = $4::text) AND
+			($5::timestamptz IS NULL OR txs.timestamp >= $5::timestamptz) AND
+			($6::timestamptz IS NULL OR txs.timestamp < $6::timestamptz)
 		ORDER BY txs.round DESC, txs.tx_index DESC
-		LIMIT $5::bigint
-		OFFSET $6::bigint
+		LIMIT $7::bigint
+		OFFSET $8::bigint
 		`
 
 	RuntimeEvents = `

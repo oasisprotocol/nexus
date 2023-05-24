@@ -34,8 +34,8 @@ const (
 	// The amount of time to wait after a blockchain tx to make sure that the a block with the
 	// tx was produced and the indexer has indexed the block.
 	// The node seems to generate a block per second.
-	// 2 seconds is experimentally enough, 1 second was flaky.
-	indexerDelay = 2 * time.Second
+	// 3 seconds is experimentally enough, 2 second was flaky.
+	indexerDelay = 3 * time.Second
 )
 
 func TestIndexer(t *testing.T) {

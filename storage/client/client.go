@@ -264,6 +264,8 @@ func (c *StorageClient) Transactions(ctx context.Context, p apiTypes.GetConsensu
 		toString(p.MinFee),
 		toString(p.MaxFee),
 		p.Code,
+		p.After,
+		p.Before,
 		p.Limit,
 		p.Offset,
 	)
@@ -1063,6 +1065,8 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetR
 		p.Block,
 		txHash, // tx_hash; used only by GetRuntimeTransactionsTxHash
 		p.Rel,
+		p.After,
+		p.Before,
 		p.Limit,
 		p.Offset,
 	)

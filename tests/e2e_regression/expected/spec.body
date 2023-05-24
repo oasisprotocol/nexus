@@ -205,7 +205,7 @@ paths:
           schema:
             type: string
             format: date-time
-          description: A filter on maximum block time, inclusive.
+          description: A filter on maximum block time, exclusive.
           example: *iso_timestamp_2
       responses:
         '200':
@@ -283,6 +283,20 @@ paths:
           schema:
             type: integer
           description: A filter on transaction status code.
+        - in: query
+          name: after
+          schema:
+            type: string
+            format: date-time
+          description: A filter on minimum transaction time, inclusive.
+          example: *iso_timestamp_1
+        - in: query
+          name: before
+          schema:
+            type: string
+            format: date-time
+          description: A filter on maximum transaction time, exclusive.
+          example: *iso_timestamp_2
       responses:
         '200':
           description: |
@@ -756,7 +770,7 @@ paths:
           schema:
             type: string
             format: date-time
-          description: A filter on maximum block time, inclusive.
+          description: A filter on maximum block time, exclusive.
           example: *iso_timestamp_2
       responses:
         '200':
@@ -781,6 +795,20 @@ paths:
             format: int64
           description: A filter on block round.
           example: *runtime_block_round_1
+        - in: query
+          name: after
+          schema:
+            type: string
+            format: date-time
+          description: A filter on minimum transaction time, inclusive.
+          example: *iso_timestamp_1
+        - in: query
+          name: before
+          schema:
+            type: string
+            format: date-time
+          description: A filter on maximum transaction time, exclusive.
+          example: *iso_timestamp_2
         - in: query
           name: rel
           schema:
