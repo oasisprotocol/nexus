@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # This script is a simple e2e regression test for the indexer.
-# 
+#
 # It fetches a fixed set of URLs from the indexer and saves the responses to files,
 # then check that the responses match expected outputs (from a previous run).
 #
@@ -12,7 +12,7 @@
 # expected outputs.
 
 set -euo pipefail
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 
 # The hostname of the indexer to test
 hostname="http://localhost:8008"
@@ -35,7 +35,10 @@ testCases=(
   'bad_account              /v1/consensus/accounts/oasis1aaaaaaa'
   'account                  /v1/consensus/accounts/oasis1qp0302fv0gz858azasg663ax2epakk5fcssgza7j'
   'runtime-only_account     /v1/consensus/accounts/oasis1qphyxz5csvprhnn09r49nuyzl0jdw0wsj5xpvsg2'
-  'delegations              /v1/consensus/accounts/oasis1qp0302fv0gz858azasg663ax2epakk5fcssgza7j/delegations'
+  'delegations              /v1/consensus/accounts/oasis1qpk366qvtjrfrthjp3xuej5mhvvtnkr8fy02hm2s/delegations'
+  'delegations_to           /v1/consensus/accounts/oasis1qp0j5v5mkxk3eg4kxfdsk8tj6p22g4685qk76fw6/delegations_to'
+  'debonding_delegations    /v1/consensus/accounts/oasis1qpk366qvtjrfrthjp3xuej5mhvvtnkr8fy02hm2s/debonding_delegations'
+  'debonding_delegations_to /v1/consensus/accounts/oasis1qp0j5v5mkxk3eg4kxfdsk8tj6p22g4685qk76fw6/debonding_delegations_to'
   # NOTE: entity-related tests are not stable long-term because their output is a combination of
   # the blockchain at a given height (which is stable) and the _current_ metadata_registry state.
   'entities                 /v1/consensus/entities'
@@ -83,7 +86,7 @@ done
 
 # Run the test cases.
 seen=("placeholder") # avoids 'seen[*]: unbound variable' error on zsh
-for (( i=0; i<nCases; i++ )); do
+for ((i = 0; i < nCases; i++)); do
   name="$(echo "${testCases[$i]}" | awk '{print $1}')"
   url="$(echo "${testCases[$i]}" | awk '{print $2}')"
   url="$hostname$url"
@@ -97,13 +100,13 @@ for (( i=0; i<nCases; i++ )); do
 
   echo "Running test case: $name"
   # Fetch the server response for $url
-  curl --silent --show-error --dump-header "$outDir/$name.headers" "$url" > "$outDir/$name.body"
+  curl --silent --show-error --dump-header "$outDir/$name.headers" "$url" >"$outDir/$name.body"
   # Try to pretty-print and normalize (for stable diffs) the output.
   # If `jq` fails, output was probably not JSON; leave it as-is.
   jq 'if .latest_update? then .latest_update="UNINTERESTING" else . end' \
     <"$outDir/$name.body" \
-    >/tmp/pretty 2>/dev/null \
-  && cp /tmp/pretty "$outDir/$name.body" || true
+    >/tmp/pretty 2>/dev/null &&
+    cp /tmp/pretty "$outDir/$name.body" || true
   # Sanitize the current timestamp out of the response header so that diffs are stable
   sed -i -E 's/^(Date|Content-Length|Last-Modified): .*/\1: UNINTERESTING/g' "$outDir/$name.headers"
 done
@@ -121,7 +124,7 @@ diff --recursive "$SCRIPT_DIR/expected" "$outDir" >/dev/null || {
     echo
     echo "If the new results are expected, re-run this script after copying the new results into .../expected:"
     echo "  rm -rf $SCRIPT_DIR/expected; cp -r $SCRIPT_DIR/{actual,expected}"
-  else 
+  else
     # Running in script mode (likely in CI)
     echo "CI diff:"
     git diff --no-index "$SCRIPT_DIR"/{expected,actual} || true

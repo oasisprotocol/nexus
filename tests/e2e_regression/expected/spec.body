@@ -608,6 +608,27 @@ paths:
                 $ref: '#/components/schemas/DelegationList'
         <<: *common_error_responses
 
+  /consensus/accounts/{address}/delegations_to:
+    get:
+      summary: Returns a list of delegations to an account.
+      parameters:
+        - *limit
+        - *offset
+        - in: path
+          name: address
+          required: true
+          schema:
+            <<: *StakingAddressType
+          description: The staking address of the account that is being delegated to.
+      responses:
+        '200':
+          description: A JSON object containing a list of delegations.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DelegationList'
+        <<: *common_error_responses
+
   /consensus/accounts/{address}/debonding_delegations:
     get:
       summary: Returns an account's debonding delegations.
@@ -620,6 +641,27 @@ paths:
           schema:
             <<: *StakingAddressType
           description: The staking address of the account that delegated.
+      responses:
+        '200':
+          description: A JSON object containing a list of debonding delegations.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DebondingDelegationList'
+        <<: *common_error_responses
+
+  /consensus/accounts/{address}/debonding_delegations_to:
+    get:
+      summary: Returns a list of debonding delegations to an account.
+      parameters:
+        - *limit
+        - *offset
+        - in: path
+          name: address
+          required: true
+          schema:
+            <<: *StakingAddressType
+          description: The staking address of the that is being delegated to.
       responses:
         '200':
           description: A JSON object containing a list of debonding delegations.
@@ -1125,7 +1167,7 @@ components:
 
     Delegation:
       type: object
-      required: [amount, shares, validator_address]
+      required: [amount, shares, validator, delegator]
       properties:
         amount:
           <<: *BigIntType
@@ -1133,10 +1175,14 @@ components:
         shares:
           <<: *BigIntType
           description: The shares of tokens delegated.
-        validator_address:
+        validator:
           type: string
-          description: The delegatee address.
+          description: The delegatee (validator) address.
           example: *staking_address_1
+        delegator:
+          type: string
+          description: The delegator address.
+          example: *staking_address_2
       description: |
         A delegation.
 
@@ -1155,7 +1201,7 @@ components:
 
     DebondingDelegation:
       type: object
-      required: [amount, shares, validator_address, debond_end]
+      required: [amount, shares, validator, delegator, debond_end]
       properties:
         amount:
           <<: *BigIntType
@@ -1163,10 +1209,14 @@ components:
         shares:
           <<: *BigIntType
           description: The shares of tokens delegated.
-        validator_address:
+        validator:
           type: string
-          description: The delegatee address.
+          description: The delegatee (validator) address.
           example: *staking_address_1
+        delegator:
+          type: string
+          description: The delegator address.
+          example: *staking_address_2
         debond_end:
           type: integer
           format: int64

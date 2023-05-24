@@ -62,12 +62,28 @@ func (srv *StrictServerImpl) GetConsensusAccountsAddressDebondingDelegations(ctx
 	return apiTypes.GetConsensusAccountsAddressDebondingDelegations200JSONResponse(*delegations), nil
 }
 
+func (srv *StrictServerImpl) GetConsensusAccountsAddressDebondingDelegationsTo(ctx context.Context, request apiTypes.GetConsensusAccountsAddressDebondingDelegationsToRequestObject) (apiTypes.GetConsensusAccountsAddressDebondingDelegationsToResponseObject, error) {
+	delegations, err := srv.dbClient.DebondingDelegationsTo(ctx, request.Address, request.Params)
+	if err != nil {
+		return nil, err
+	}
+	return apiTypes.GetConsensusAccountsAddressDebondingDelegationsTo200JSONResponse(*delegations), nil
+}
+
 func (srv *StrictServerImpl) GetConsensusAccountsAddressDelegations(ctx context.Context, request apiTypes.GetConsensusAccountsAddressDelegationsRequestObject) (apiTypes.GetConsensusAccountsAddressDelegationsResponseObject, error) {
 	delegations, err := srv.dbClient.Delegations(ctx, request.Address, request.Params)
 	if err != nil {
 		return nil, err
 	}
 	return apiTypes.GetConsensusAccountsAddressDelegations200JSONResponse(*delegations), nil
+}
+
+func (srv *StrictServerImpl) GetConsensusAccountsAddressDelegationsTo(ctx context.Context, request apiTypes.GetConsensusAccountsAddressDelegationsToRequestObject) (apiTypes.GetConsensusAccountsAddressDelegationsToResponseObject, error) {
+	delegations, err := srv.dbClient.DelegationsTo(ctx, request.Address, request.Params)
+	if err != nil {
+		return nil, err
+	}
+	return apiTypes.GetConsensusAccountsAddressDelegationsTo200JSONResponse(*delegations), nil
 }
 
 func (srv *StrictServerImpl) GetConsensusBlocks(ctx context.Context, request apiTypes.GetConsensusBlocksRequestObject) (apiTypes.GetConsensusBlocksResponseObject, error) {
