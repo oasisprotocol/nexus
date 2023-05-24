@@ -6,6 +6,7 @@ import (
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
 	governance "github.com/oasisprotocol/oasis-core/go/governance/api"
 	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
+
 	"github.com/oasisprotocol/oasis-indexer/common"
 )
 

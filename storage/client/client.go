@@ -646,6 +646,13 @@ func (c *StorageClient) Account(ctx context.Context, address staking.Address) (*
 	return &a, nil
 }
 
+// Computes shares worth given total shares and total balance.
+func amountFromShares(shares common.BigInt, totalShares common.BigInt, totalBalance common.BigInt) common.BigInt {
+	amount := new(big.Int).Mul(&shares.Int, &totalBalance.Int)
+	amount.Quo(amount, &totalShares.Int)
+	return common.BigInt{Int: *amount}
+}
+
 // Delegations returns a list of delegations.
 func (c *StorageClient) Delegations(ctx context.Context, address staking.Address, p apiTypes.GetConsensusAccountsAddressDelegationsParams) (*DelegationList, error) {
 	res, err := c.withTotalCount(
@@ -678,9 +685,7 @@ func (c *StorageClient) Delegations(ctx context.Context, address staking.Address
 		); err != nil {
 			return nil, wrapError(err)
 		}
-		amount := new(big.Int).Mul(&shares.Int, &escrowBalanceActive.Int)
-		amount.Quo(amount, &escrowTotalSharesActive.Int)
-		d.Amount = BigInt{Int: *amount}
+		d.Amount = amountFromShares(shares, escrowTotalSharesActive, escrowBalanceActive)
 		d.Shares = shares
 
 		ds.Delegations = append(ds.Delegations, d)
@@ -721,9 +726,7 @@ func (c *StorageClient) DelegationsTo(ctx context.Context, address staking.Addre
 		); err != nil {
 			return nil, wrapError(err)
 		}
-		amount := new(big.Int).Mul(&shares.Int, &escrowBalanceActive.Int)
-		amount.Quo(amount, &escrowTotalSharesActive.Int)
-		d.Amount = BigInt{Int: *amount}
+		d.Amount = amountFromShares(shares, escrowTotalSharesActive, escrowBalanceActive)
 		d.Shares = shares
 
 		ds.Delegations = append(ds.Delegations, d)
@@ -765,10 +768,7 @@ func (c *StorageClient) DebondingDelegations(ctx context.Context, address stakin
 		); err != nil {
 			return nil, wrapError(err)
 		}
-
-		amount := new(big.Int).Mul(&shares.Int, &escrowBalanceDebonding.Int)
-		amount.Quo(amount, &escrowTotalSharesDebonding.Int)
-		d.Amount = BigInt{Int: *amount}
+		d.Amount = amountFromShares(shares, escrowTotalSharesDebonding, escrowBalanceDebonding)
 		d.Shares = shares
 
 		ds.DebondingDelegations = append(ds.DebondingDelegations, d)
@@ -810,10 +810,7 @@ func (c *StorageClient) DebondingDelegationsTo(ctx context.Context, address stak
 		); err != nil {
 			return nil, wrapError(err)
 		}
-
-		amount := new(big.Int).Mul(&shares.Int, &escrowBalanceDebonding.Int)
-		amount.Quo(amount, &escrowTotalSharesDebonding.Int)
-		d.Amount = BigInt{Int: *amount}
+		d.Amount = amountFromShares(shares, escrowTotalSharesDebonding, escrowBalanceDebonding)
 		d.Shares = shares
 
 		ds.DebondingDelegations = append(ds.DebondingDelegations, d)
