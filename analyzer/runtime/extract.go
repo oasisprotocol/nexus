@@ -371,12 +371,24 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 				EVMCreate: func(body *sdkEVM.Create, ok *[]byte) error {
 					blockTransactionData.Body = body
 					amount = uncategorized.QuantityFromBytes(body.Value)
+
 					if !txr.Result.IsUnknown() && txr.Result.IsSuccess() && len(*ok) == 20 {
+						// Decode address of newly-created contract
 						// todo: is this rigorous enough?
 						if to, err = registerRelatedEthAddress(blockData.AddressPreimages, blockTransactionData.RelatedAccountAddresses, *ok); err != nil {
 							return fmt.Errorf("created contract: %w", err)
 						}
+						// Mark sender and contract accounts as having potentially stale balances.
+						// EVMCreate can transfer funds from the sender to the contract.
+						if to != "" {
+							registerTokenIncrease(blockData.TokenBalanceChanges, evm.NativeRuntimeTokenAddress, to, big.NewInt(0))
+						}
+						for _, signer := range blockTransactionData.SignerData {
+							registerTokenDecrease(blockData.TokenBalanceChanges, evm.NativeRuntimeTokenAddress, signer.Address, big.NewInt(0))
+						}
 					}
+
+					// Handle encrypted txs.
 					if evmEncrypted, err2 := evm.EVMMaybeUnmarshalEncryptedData(body.InitCode, ok); err2 == nil {
 						blockTransactionData.EVMEncrypted = evmEncrypted
 					} else {
