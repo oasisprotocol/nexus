@@ -13,6 +13,7 @@ import (
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 
 	"github.com/oasisprotocol/oasis-indexer/analyzer/evmabi"
+	apiTypes "github.com/oasisprotocol/oasis-indexer/api/v1/types"
 	"github.com/oasisprotocol/oasis-indexer/common"
 	"github.com/oasisprotocol/oasis-indexer/log"
 	"github.com/oasisprotocol/oasis-indexer/storage"
@@ -66,6 +67,12 @@ type EVMEncryptedData struct {
 	DataData    []byte
 	ResultNonce []byte
 	ResultData  []byte
+}
+
+type EVMContractData struct {
+	Address          apiTypes.Address
+	CreationBytecode []byte
+	CreationTx       string
 }
 
 type EVMDeterministicError struct {

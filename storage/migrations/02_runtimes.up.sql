@@ -210,6 +210,16 @@ CREATE TABLE chain.evm_token_balance_analysis
 );
 CREATE INDEX ix_evm_token_balance_analysis_stale ON chain.evm_token_balance_analysis (runtime, token_address, account_address) WHERE last_download_round IS NULL OR last_mutate_round > last_download_round;
 
+CREATE TABLE chain.evm_contracts
+(
+  runtime runtime NOT NULL,
+  contract_address oasis_addr NOT NULL,
+  PRIMARY KEY (runtime, contract_address),
+  -- Can be null if the contract was created by another contract; eg through an evm.Call instead of a standard evm.Create. Tracing must be enabled to fill out this information.
+  creation_tx HEX64,
+  creation_bytecode BYTEA
+);
+
 -- -- -- -- -- -- -- -- -- -- -- -- -- Module accounts -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
 -- This table encapsulates transfers, burns, and mints (at the level of the `accounts` SDK module; NOT evm transfers).

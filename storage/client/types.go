@@ -119,6 +119,7 @@ type (
 	AddressDerivationContext = api.AddressDerivationContext
 	RuntimeSdkBalance        = api.RuntimeSdkBalance
 	RuntimeEvmBalance        = api.RuntimeEvmBalance
+	RuntimeEvmContract       = api.RuntimeEvmContract
 )
 
 type RuntimeAccount = api.RuntimeAccount
