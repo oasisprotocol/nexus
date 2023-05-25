@@ -72,8 +72,10 @@ testCases=(
 nCases=${#testCases[@]}
 
 # Start the API server.
+# Set the timezone (TZ=UTC) to have more consistent outputs across different
+# systems, even when not running inside docker.
 make oasis-indexer
-./oasis-indexer --config="${SCRIPT_DIR}/e2e_config.yml" serve &
+TZ=UTC ./oasis-indexer --config="${SCRIPT_DIR}/e2e_config.yml" serve &
 apiServerPid=$!
 
 # Kill the API server on exit.
@@ -123,7 +125,7 @@ diff --recursive "$SCRIPT_DIR/expected" "$outDir" >/dev/null || {
     echo "  git diff --no-index $SCRIPT_DIR/{expected,actual}"
     echo
     echo "If the new results are expected, re-run this script after copying the new results into .../expected:"
-    echo "  rm -rf $SCRIPT_DIR/expected; cp -r $SCRIPT_DIR/{actual,expected}"
+    echo "  make accept-e2e-regression"
   else
     # Running in script mode (likely in CI)
     echo "CI diff:"
