@@ -1078,10 +1078,14 @@ components:
   schemas:
     Layer:
       type: string
+      # NOTE: Change IsValid() in util.go if you change this.
+      # https://github.com/oasisprotocol/oasis-indexer/blob/v0.0.16/api/v1/types/util.go#L40
       enum: [emerald, sapphire, cipher, consensus]
 
     Runtime:
       type: string
+      # NOTE: Change IsValid() in util.go if you change this.
+      # https://github.com/oasisprotocol/oasis-indexer/blob/v0.0.16/api/v1/types/util.go#L49
       enum: [emerald, sapphire, cipher]
 
     List:
