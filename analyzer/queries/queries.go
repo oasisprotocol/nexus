@@ -477,11 +477,11 @@ const (
       account_address = $3`
 
 	RefreshDailyTxVolume = `
-    REFRESH MATERIALIZED VIEW stats.daily_tx_volume
+    REFRESH MATERIALIZED VIEW CONCURRENTLY stats.daily_tx_volume
   `
 
 	RefreshMin5TxVolume = `
-    REFRESH MATERIALIZED VIEW stats.min5_tx_volume
+    REFRESH MATERIALIZED VIEW CONCURRENTLY stats.min5_tx_volume
   `
 
 	// LatestDailyAccountStats is the query to get the timestamp of the latest daily active accounts stat.
