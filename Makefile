@@ -65,11 +65,22 @@ fill-cache-for-e2e-regression: oasis-indexer
 
 # Run the api tests locally, assuming the environment is set up with an oasis-node that is 
 # accessible as specified in the config file.
-test-e2e-regression: export TZ=UTC
 test-e2e-regression: oasis-indexer
 	./oasis-indexer --config tests/e2e_regression/e2e_config.yml analyze
 	@$(ECHO) "$(CYAN)*** Indexer finished; starting api tests...$(OFF)"
 	./tests/e2e_regression/run.sh
+
+# Accept the outputs of the e2e tests as the new expected outputs.
+accept-e2e-regression:
+	@# Delete all old expected files first, in case any test cases were renamed or removed.
+	rm -rf ./tests/e2e_regression/expected
+	@# Copy the actual outputs to the expected outputs.
+	cp -r  ./tests/e2e_regression/{actual,expected}
+	@# The result of the "spec" test is a special case. It should always match the
+	@# current openAPI spec file, so we symlink it to avoid having to update the expected
+	@# output every time the spec changes.
+	rm ./tests/e2e_regression/expected/spec.body
+	ln -s  ../../../api/spec/v1.yaml ./tests/e2e_regression/expected/spec.body
 
 # Format code.
 fmt:
@@ -137,6 +148,10 @@ release-build: codegen-go
 	all build \
 	codegen-go \
 	oasis-indexer \
+	test-e2e \
+	test-e2e-regression \
+	fill-cache-for-e2e-regression \
+	accept-e2e-regression \
 	docker \
 	clean \
 	test \
