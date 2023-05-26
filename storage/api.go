@@ -8,11 +8,12 @@ import (
 	"github.com/jackc/pgx/v5"
 
 	beacon "github.com/oasisprotocol/oasis-core/go/beacon/api"
-	"github.com/oasisprotocol/oasis-core/go/common"
+	coreCommon "github.com/oasisprotocol/oasis-core/go/common"
 	consensus "github.com/oasisprotocol/oasis-core/go/consensus/api"
 	genesisAPI "github.com/oasisprotocol/oasis-core/go/genesis/api"
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 
+	"github.com/oasisprotocol/oasis-indexer/common"
 	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
 )
 
@@ -209,7 +210,7 @@ type SchedulerData struct {
 	Height int64
 
 	Validators []nodeapi.Validator
-	Committees map[common.Namespace][]nodeapi.Committee
+	Committees map[coreCommon.Namespace][]nodeapi.Committee
 }
 
 // GovernanceData represents governance data for proposals at a given height.
@@ -227,7 +228,7 @@ type GovernanceData struct {
 }
 
 // RuntimeSourceStorage defines an interface for retrieving raw block data
-// from the runtime layer.
+// from a specific runtime.
 type RuntimeSourceStorage interface {
 	// AllData returns all data tied to a specific round.
 	AllData(ctx context.Context, round uint64) (*RuntimeAllData, error)
@@ -237,6 +238,9 @@ type RuntimeSourceStorage interface {
 
 	// EVMSimulateCall gets the result of the given EVM simulate call query.
 	EVMSimulateCall(ctx context.Context, round uint64, gasPrice []byte, gasLimit uint64, caller []byte, address []byte, value []byte, data []byte) ([]byte, error)
+
+	// GetNativeBalance gets the native balance of the given account at the given round.
+	GetNativeBalance(ctx context.Context, round uint64, addr nodeapi.Address) (*common.BigInt, error)
 
 	// Close instructs the source storage to clean up resources. Calling other
 	// methods after this one results in undefined behavior.

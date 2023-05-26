@@ -20,9 +20,10 @@ import (
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/accounts"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/consensusaccounts"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/core"
-	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/evm"
+	sdkEVM "github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/evm"
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 
+	evm "github.com/oasisprotocol/oasis-indexer/analyzer/runtime/evm"
 	uncategorized "github.com/oasisprotocol/oasis-indexer/analyzer/uncategorized"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/util"
 	apiTypes "github.com/oasisprotocol/oasis-indexer/api/v1/types"
@@ -53,7 +54,7 @@ type BlockTransactionData struct {
 	Body                    interface{}
 	To                      *apiTypes.Address // Extracted from the body for convenience. Semantics vary by tx type.
 	Amount                  *common.BigInt    // Extracted from the body for convenience. Semantics vary by tx type.
-	EVMEncrypted            *EVMEncryptedData
+	EVMEncrypted            *evm.EVMEncryptedData
 	Success                 *bool
 	Error                   *TxError
 }
@@ -84,7 +85,7 @@ type ScopedSdkEvent struct {
 	Core              *core.Event
 	Accounts          *accounts.Event
 	ConsensusAccounts *consensusaccounts.Event
-	EVM               *evm.Event
+	EVM               *sdkEVM.Event
 }
 
 type AddressPreimageData struct {
@@ -111,7 +112,7 @@ type BlockData struct {
 	EventData           []*EventData
 	AddressPreimages    map[apiTypes.Address]*AddressPreimageData
 	TokenBalanceChanges map[TokenChangeKey]*big.Int
-	PossibleTokens      map[apiTypes.Address]*EVMPossibleToken // key is oasis bech32 address
+	PossibleTokens      map[apiTypes.Address]*evm.EVMPossibleToken // key is oasis bech32 address
 }
 
 // Function naming conventions in this file:
@@ -257,7 +258,7 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 		EventData:           []*EventData{},
 		AddressPreimages:    map[apiTypes.Address]*AddressPreimageData{},
 		TokenBalanceChanges: map[TokenChangeKey]*big.Int{},
-		PossibleTokens:      map[apiTypes.Address]*EVMPossibleToken{},
+		PossibleTokens:      map[apiTypes.Address]*evm.EVMPossibleToken{},
 	}
 
 	// Extract info from non-tx events.
@@ -367,16 +368,28 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 					}
 					return nil
 				},
-				EVMCreate: func(body *evm.Create, ok *[]byte) error {
+				EVMCreate: func(body *sdkEVM.Create, ok *[]byte) error {
 					blockTransactionData.Body = body
 					amount = uncategorized.QuantityFromBytes(body.Value)
+
 					if !txr.Result.IsUnknown() && txr.Result.IsSuccess() && len(*ok) == 20 {
+						// Decode address of newly-created contract
 						// todo: is this rigorous enough?
 						if to, err = registerRelatedEthAddress(blockData.AddressPreimages, blockTransactionData.RelatedAccountAddresses, *ok); err != nil {
 							return fmt.Errorf("created contract: %w", err)
 						}
+						// Mark sender and contract accounts as having potentially stale balances.
+						// EVMCreate can transfer funds from the sender to the contract.
+						if to != "" {
+							registerTokenIncrease(blockData.TokenBalanceChanges, evm.NativeRuntimeTokenAddress, to, big.NewInt(0))
+						}
+						for _, signer := range blockTransactionData.SignerData {
+							registerTokenDecrease(blockData.TokenBalanceChanges, evm.NativeRuntimeTokenAddress, signer.Address, big.NewInt(0))
+						}
 					}
-					if evmEncrypted, err2 := EVMMaybeUnmarshalEncryptedData(body.InitCode, ok); err2 == nil {
+
+					// Handle encrypted txs.
+					if evmEncrypted, err2 := evm.EVMMaybeUnmarshalEncryptedData(body.InitCode, ok); err2 == nil {
 						blockTransactionData.EVMEncrypted = evmEncrypted
 					} else {
 						logger.Error("error unmarshalling encrypted init code and result, omitting encrypted fields",
@@ -388,13 +401,13 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 					}
 					return nil
 				},
-				EVMCall: func(body *evm.Call, ok *[]byte) error {
+				EVMCall: func(body *sdkEVM.Call, ok *[]byte) error {
 					blockTransactionData.Body = body
 					amount = uncategorized.QuantityFromBytes(body.Value)
 					if to, err = registerRelatedEthAddress(blockData.AddressPreimages, blockTransactionData.RelatedAccountAddresses, body.Address); err != nil {
 						return fmt.Errorf("address: %w", err)
 					}
-					if evmEncrypted, err2 := EVMMaybeUnmarshalEncryptedData(body.Data, ok); err2 == nil {
+					if evmEncrypted, err2 := evm.EVMMaybeUnmarshalEncryptedData(body.Data, ok); err2 == nil {
 						blockTransactionData.EVMEncrypted = evmEncrypted
 					} else {
 						logger.Error("error unmarshalling encrypted data and result, omitting encrypted fields",
@@ -404,7 +417,27 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 							"err", err2,
 						)
 					}
-					// todo: maybe parse known token methods
+
+					if txr.Result.Ok != nil {
+						// Dead-reckon native token balances.
+						// Native token transfers do not generate events. Theoretically, any call can change the balance of any account,
+						// and we do not have a good way of tracking them; we just query them with the evm_token_balances analyzer.
+						// But heuristically, a call is most likely to change the balances of the sender and the receiver, so we create
+						// a (quite possibly incorrect) dead-reckoned change of 0 for those accounts, which will cause the evm_token_balances analyzer
+						// to re-query their real balance.
+						reckonedAmount := amount.ToBigInt() // Calls with an empty body represent a transfer of the native token.
+						if len(body.Data) != 0 || len(blockTransactionData.SignerData) > 1 {
+							// Calls with a non-empty body have no standard impact on native balance. Better to dead-reckon a 0 change (and keep stale balances)
+							// than to reckon a wrong change (and have a "random" incorrect balance until it is re-queried).
+							reckonedAmount = big.NewInt(0)
+						}
+						registerTokenIncrease(blockData.TokenBalanceChanges, evm.NativeRuntimeTokenAddress, to, reckonedAmount)
+						for _, signer := range blockTransactionData.SignerData {
+							registerTokenDecrease(blockData.TokenBalanceChanges, evm.NativeRuntimeTokenAddress, signer.Address, reckonedAmount)
+						}
+					}
+
+					// TODO: maybe parse known token methods (ERC-20 etc)
 					return nil
 				},
 			}); err != nil {
@@ -434,7 +467,7 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 			// Early versions of runtimes didn't emit a GasUsed event.
 			if (txr.Result.IsUnknown() || txr.Result.IsSuccess()) && tx != nil {
 				// Treat as if it used all the gas.
-				logger.Info("tx didn't emit a core.GasUsed event, assuming it used max allowed gas", "tx_hash", txr.Tx.Hash(), "assumed_gas_used", tx.AuthInfo.Fee.Gas)
+				logger.Debug("tx didn't emit a core.GasUsed event, assuming it used max allowed gas", "tx_hash", txr.Tx.Hash(), "assumed_gas_used", tx.AuthInfo.Fee.Gas)
 				txGasUsed = tx.AuthInfo.Fee.Gas
 			} else {
 				// Very rough heuristic: Treat as not using any gas.
@@ -445,7 +478,7 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 				//
 				// Beware that some failed txs have an enormous (e.g. MAX_INT64) gas
 				// limit.
-				logger.Info("tx didn't emit a core.GasUsed event and failed, assuming it used no gas", "tx_hash", txr.Tx.Hash(), "assumed_gas_used", 0)
+				logger.Debug("tx didn't emit a core.GasUsed event and failed, assuming it used no gas", "tx_hash", txr.Tx.Hash(), "assumed_gas_used", 0)
 				txGasUsed = 0
 			}
 		}
@@ -568,7 +601,7 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 			}
 			return nil
 		},
-		EVM: func(event *evm.Event) error {
+		EVM: func(event *sdkEVM.Event) error {
 			eventAddr, err1 := registerRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, event.Address)
 			if err1 != nil {
 				return fmt.Errorf("event address: %w", err1)
@@ -602,7 +635,7 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 						registerTokenIncrease(blockData.TokenBalanceChanges, eventAddr, toAddr, amount)
 					}
 					if _, ok := blockData.PossibleTokens[eventAddr]; !ok {
-						blockData.PossibleTokens[eventAddr] = &EVMPossibleToken{}
+						blockData.PossibleTokens[eventAddr] = &evm.EVMPossibleToken{}
 					}
 					// Mark as mutated if transfer is between zero address
 					// and nonzero address (either direction) and nonzero
@@ -649,7 +682,7 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 						eventData.RelatedAddresses[spenderAddr] = true
 					}
 					if _, ok := blockData.PossibleTokens[eventAddr]; !ok {
-						blockData.PossibleTokens[eventAddr] = &EVMPossibleToken{}
+						blockData.PossibleTokens[eventAddr] = &evm.EVMPossibleToken{}
 					}
 					amount := &big.Int{}
 					amount.SetBytes(amountU256)

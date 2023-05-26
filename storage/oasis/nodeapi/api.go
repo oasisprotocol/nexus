@@ -20,6 +20,7 @@ import (
 	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
 
 	apiTypes "github.com/oasisprotocol/oasis-indexer/api/v1/types"
+	common "github.com/oasisprotocol/oasis-indexer/common"
 	sdkClient "github.com/oasisprotocol/oasis-sdk/client-sdk/go/client"
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 )
@@ -74,6 +75,8 @@ func (r *TxResult) IsSuccess() bool {
 }
 
 type TxError consensusResults.Error
+
+type Address = staking.Address
 
 // A lightweight version of "consensus/api/transactions/results".Event.
 //
@@ -203,6 +206,7 @@ type RuntimeApiLite interface {
 	EVMSimulateCall(ctx context.Context, round uint64, gasPrice []byte, gasLimit uint64, caller []byte, address []byte, value []byte, data []byte) ([]byte, error)
 	GetBlockHeader(ctx context.Context, round uint64) (*RuntimeBlockHeader, error)
 	GetTransactionsWithResults(ctx context.Context, round uint64) ([]RuntimeTransactionWithResults, error)
+	GetNativeBalance(ctx context.Context, round uint64, addr Address) (*common.BigInt, error)
 	Close() error
 }
 

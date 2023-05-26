@@ -175,35 +175,37 @@ CREATE TABLE chain.evm_tokens
 (
   runtime runtime NOT NULL,
   token_address oasis_addr NOT NULL,
+  PRIMARY KEY (runtime, token_address),
   token_type INTEGER NOT NULL, -- 0 = unsupported, X = ERC-X; full spec at https://github.com/oasisprotocol/oasis-indexer/blob/v0.0.16/analyzer/runtime/evm.go#L21
   token_name TEXT,
   symbol TEXT,
   decimals INTEGER,
-  total_supply uint_numeric,
-  PRIMARY KEY (runtime, token_address)
+  total_supply uint_numeric
 );
 
 CREATE TABLE chain.evm_token_analysis
 (
   runtime runtime NOT NULL,
   token_address oasis_addr NOT NULL,
+  PRIMARY KEY (runtime, token_address),
   -- Block analyzer bumps this when it sees the mutable fields of the token
   -- change (e.g. total supply) based on dead reckoning.
   last_mutate_round UINT63 NOT NULL,
   -- Token analyzer bumps this when it downloads info about the token.
-  last_download_round UINT63,
-  PRIMARY KEY (runtime, token_address)
+  last_download_round UINT63
 );
 CREATE INDEX ix_evm_token_analysis_stale ON chain.evm_token_analysis (runtime, token_address) WHERE last_download_round IS NULL OR last_mutate_round > last_download_round;
 
 CREATE TABLE chain.evm_token_balance_analysis
 (
   runtime runtime NOT NULL,
+  -- This table is used to track balance querying primarily for EVM tokens (ERC-20, ERC-271, etc), but also for
+  -- the runtime-native token; the latter is represented with a special addr: oasis1runt1menat1vet0ken0000000000000000000000
   token_address oasis_addr NOT NULL,
   account_address oasis_addr NOT NULL,
+  PRIMARY KEY (runtime, token_address, account_address),
   last_mutate_round UINT63 NOT NULL,
-  last_download_round UINT63,
-  PRIMARY KEY (runtime, token_address, account_address)
+  last_download_round UINT63
 );
 CREATE INDEX ix_evm_token_balance_analysis_stale ON chain.evm_token_balance_analysis (runtime, token_address, account_address) WHERE last_download_round IS NULL OR last_mutate_round > last_download_round;
 
