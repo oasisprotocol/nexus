@@ -76,6 +76,7 @@ type EventData struct {
 	Body             EventBody
 	WithScope        ScopedSdkEvent
 	EvmLogName       string
+	EvmLogSignature  ethCommon.Hash
 	EvmLogParams     []*apiTypes.EvmEventParam
 	RelatedAddresses map[apiTypes.Address]bool
 }
@@ -645,6 +646,7 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 						blockData.PossibleTokens[eventAddr].Mutated = true
 					}
 					eventData.EvmLogName = apiTypes.Erc20Transfer
+					eventData.EvmLogSignature = ethCommon.BytesToHash(event.Topics[0])
 					eventData.EvmLogParams = []*apiTypes.EvmEventParam{
 						{
 							Name:    "from",
@@ -687,6 +689,7 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 					amount := &big.Int{}
 					amount.SetBytes(amountU256)
 					eventData.EvmLogName = apiTypes.Erc20Approval
+					eventData.EvmLogSignature = ethCommon.BytesToHash(event.Topics[0])
 					eventData.EvmLogParams = []*apiTypes.EvmEventParam{
 						{
 							Name:    "owner",

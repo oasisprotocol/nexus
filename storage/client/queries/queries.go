@@ -397,7 +397,7 @@ const (
 					($3::integer IS NULL OR evs.tx_index = $3::integer) AND
 					($4::text IS NULL OR evs.tx_hash = $4::text OR txs.tx_eth_hash = $4::text) AND
 					($5::text IS NULL OR evs.type = $5::text) AND
-					($6::text IS NULL OR evs.evm_log_signature = $6::text) AND
+					($6::bytea IS NULL OR evs.evm_log_signature = $6::bytea) AND
 					($7::text IS NULL OR evs.related_accounts @> ARRAY[$7::text])
 			ORDER BY evs.round DESC, evs.tx_index, evs.type, evs.body::text
 			LIMIT $8::bigint

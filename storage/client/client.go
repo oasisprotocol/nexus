@@ -1242,6 +1242,12 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetR
 
 // RuntimeEvents returns a list of runtime events.
 func (c *StorageClient) RuntimeEvents(ctx context.Context, p apiTypes.GetRuntimeEventsParams) (*RuntimeEventList, error) {
+	var evmLogSignature *ethCommon.Hash
+	if p.EvmLogSignature != nil {
+		h := ethCommon.HexToHash(*p.EvmLogSignature)
+		evmLogSignature = &h
+	}
+
 	res, err := c.withTotalCount(
 		ctx,
 		queries.RuntimeEvents,
@@ -1250,7 +1256,7 @@ func (c *StorageClient) RuntimeEvents(ctx context.Context, p apiTypes.GetRuntime
 		p.TxIndex,
 		p.TxHash,
 		p.Type,
-		p.EvmLogSignature,
+		evmLogSignature,
 		p.Rel,
 		p.Limit,
 		p.Offset,

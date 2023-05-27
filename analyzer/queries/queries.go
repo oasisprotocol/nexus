@@ -342,8 +342,8 @@ var (
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24)`
 
 	RuntimeEventInsert = `
-    INSERT INTO chain.runtime_events (runtime, round, tx_index, tx_hash, type, body, evm_log_name, evm_log_params, related_accounts)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`
+    INSERT INTO chain.runtime_events (runtime, round, tx_index, tx_hash, type, body, related_accounts, evm_log_name, evm_log_params, evm_log_signature)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`
 
 	RuntimeMintInsert = `
     INSERT INTO chain.runtime_transfers (runtime, round, sender, receiver, symbol, amount)
