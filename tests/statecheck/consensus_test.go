@@ -142,11 +142,11 @@ func TestGenesisFull(t *testing.T) {
 	oasisClient := conn.Consensus()
 
 	postgresClient, err := newTargetClient(t)
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
 	t.Log("Creating snapshot...")
 	height, err := snapshotBackends(postgresClient, ConsensusName, ConsensusTables)
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
 	t.Logf("Fetching genesis at height %d...", height)
 	genesis := &genesisAPI.Document{}

@@ -10,7 +10,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	oasisConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/connection"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/oasisprotocol/oasis-indexer/common"
 	"github.com/oasisprotocol/oasis-indexer/log"
@@ -25,7 +25,7 @@ const (
 func newTargetClient(t *testing.T) (*postgres.Client, error) {
 	connString := os.Getenv("HEALTHCHECK_TEST_CONN_STRING")
 	logger, err := log.NewLogger("db-test", io.Discard, log.FmtJSON, log.LevelInfo)
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
 	return postgres.NewClient(connString, logger)
 }

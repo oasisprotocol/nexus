@@ -43,15 +43,15 @@ func testRuntimeAccounts(t *testing.T, runtime common.Runtime) {
 	oasisRuntimeClient := conn.Runtime(sdkPT)
 
 	postgresClient, err := newTargetClient(t)
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
 	t.Log("Creating snapshot for runtime tables...")
 	height, err := snapshotBackends(postgresClient, string(runtime), RuntimeTables)
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
 	t.Logf("Fetching accounts information at height %d...", height)
 	addresses, err := oasisRuntimeClient.Accounts.Addresses(ctx, uint64(height), sdkTypes.NativeDenomination)
-	assert.Nil(t, err)
+	require.Nil(t, err)
 	expectedAccts := make(map[sdkTypes.Address]bool)
 	for _, addr := range addresses {
 		expectedAccts[addr] = true
