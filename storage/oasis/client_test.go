@@ -5,7 +5,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/oasisprotocol/oasis-indexer/config"
@@ -61,7 +60,7 @@ func TestGenesisDocument(t *testing.T) {
 	require.NoError(t, err)
 
 	_, err = client.GenesisDocument(ctx)
-	assert.Nil(t, err)
+	require.Nil(t, err)
 }
 
 func TestBlockData(t *testing.T) {
