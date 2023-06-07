@@ -403,6 +403,12 @@ const (
 			LIMIT $8::bigint
 			OFFSET $9::bigint`
 
+	RuntimeEvmContract = `
+		SELECT creation_tx, creation_bytecode
+			FROM chain.evm_contracts
+			WHERE (runtime = $1) AND
+					(contract_address = $2::text)`
+
 	AddressPreimage = `
 		SELECT context_identifier, context_version, address_data
 			FROM chain.address_preimages

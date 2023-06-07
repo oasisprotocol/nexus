@@ -1375,6 +1375,26 @@ func (c *StorageClient) RuntimeAccount(ctx context.Context, address staking.Addr
 		a.EvmBalances = append(a.EvmBalances, b)
 	}
 
+	var evmContract RuntimeEvmContract
+	err = c.db.QueryRow(
+		ctx,
+		queries.RuntimeEvmContract,
+		runtimeFromCtx(ctx),
+		address.String(),
+	).Scan(
+		&evmContract.CreationTx,
+		&evmContract.CreationBytecode,
+	)
+	switch err {
+	case nil:
+		a.EvmContract = &evmContract
+	case pgx.ErrNoRows:
+		// If an account address does not represent a smart contract; skip.
+		a.EvmContract = nil
+	default:
+		return nil, wrapError(err)
+	}
+
 	var totalSent pgtype.Numeric
 	var totalReceived pgtype.Numeric
 	if err = c.db.QueryRow(

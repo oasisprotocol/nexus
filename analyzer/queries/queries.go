@@ -376,6 +376,11 @@ var (
       VALUES ($1, $2, $3, $4)
     ON CONFLICT DO NOTHING`
 
+	RuntimeEVMContractInsert = `
+    INSERT INTO chain.evm_contracts
+      (runtime, contract_address, creation_tx, creation_bytecode)
+    VALUES ($1, $2, $3, $4)`
+
 	RuntimeEVMTokenBalanceUpdate = `
     INSERT INTO chain.evm_token_balances (runtime, token_address, account_address, balance)
       VALUES ($1, $2, $3, $4)

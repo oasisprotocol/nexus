@@ -2058,6 +2058,51 @@ components:
         Values of EVM type `address` and `address payable` are represented as lowercase hex strings with a "0x" prefix.
         Values of EVM type `bytes` and `bytes<N>` are represented as base64 strings.
         Values of other EVM types (integer types, strings, arrays, etc.) are represented as their JSON counterpart.
+      
+    RuntimeEvmContract:
+      type: object
+      properties:
+        creation_tx:
+          type: string
+          description: | 
+            The Oasis cryptographic hash of the transaction that created the smart contract.
+             Can be omitted for contracts that were created by another contract, as opposed 
+             to a direct `Create` call.
+        creation_bytecode:
+          type: string
+          format: byte
+          description: |
+            The creation bytecode of the smart contract. This includes the constructor logic
+            and the constructor parameters. When run, this code generates the runtime bytecode.
+            Can be omitted for contracts that were created by another contract, as opposed 
+            to a direct `Create` call.
+        # runtime_bytecode:
+        #   type: string
+        #   format: byte
+        #   description: |
+        #     The runtime bytecode of the smart contract. This is the code stored on-chain that
+        #     descibes a smart contract.
+        verification:
+          $ref: '#/components/schemas/RuntimeEvmContractVerification'
+          description: |
+            Additional information obtained from contract verification. Only available for smart 
+            contracts that have been verified successfully by Sourcify.
+    
+    RuntimeEvmContractVerification:
+      type: object
+      # properties:
+      #   abi:
+      #     type: object
+      #     description: |
+      #       The smart contract's [ABI](https://github.com/ethereum/wiki/wiki/Ethereum-Contract-ABI), in JSON format as defined by Solidity. Available if 
+      #       and only if the contract has been "verified" through [Sourcify](https://sourcify.dev), i.e. Sourcify has checked 
+      #       and confirmed that the source code and ABI correspond to the contract's creation bytecode.
+      #   compiler_version:
+      #     type: string
+      #     description: |
+      #       The version of the compiler used to verify the smart contract.
+      #     example: 0.8.18+commit.87f61d96
+
     RuntimeTransactionList:
       allOf:
         - $ref: '#/components/schemas/List'
@@ -2252,6 +2297,11 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/RuntimeSdkBalance'
+        evm_contract:
+          description: |
+            Data on the EVM smart contract associated with this account address. Only present for accounts
+            that represent a smart contract on EVM.
+          $ref: '#/components/schemas/RuntimeEvmContract'
         evm_balances:
           description: |
             The balances of this account in each runtime, as managed by EVM smart contracts (notably, ERC-20).

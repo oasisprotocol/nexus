@@ -221,6 +221,16 @@ func (m *processor) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 			error_code,
 			error_message,
 		)
+
+		if transactionData.EVMContract != nil {
+			batch.Queue(
+				queries.RuntimeEVMContractInsert,
+				m.runtime,
+				transactionData.EVMContract.Address,
+				transactionData.EVMContract.CreationTx,
+				transactionData.EVMContract.CreationBytecode,
+			)
+		}
 	}
 
 	// Insert events.

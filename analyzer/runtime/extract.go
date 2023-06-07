@@ -55,6 +55,7 @@ type BlockTransactionData struct {
 	To                      *apiTypes.Address // Extracted from the body for convenience. Semantics vary by tx type.
 	Amount                  *common.BigInt    // Extracted from the body for convenience. Semantics vary by tx type.
 	EVMEncrypted            *evm.EVMEncryptedData
+	EVMContract             *evm.EVMContractData
 	Success                 *bool
 	Error                   *TxError
 }
@@ -379,6 +380,12 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 						if to, err = registerRelatedEthAddress(blockData.AddressPreimages, blockTransactionData.RelatedAccountAddresses, *ok); err != nil {
 							return fmt.Errorf("created contract: %w", err)
 						}
+						blockTransactionData.EVMContract = &evm.EVMContractData{
+							Address:          to,
+							CreationBytecode: body.InitCode,
+							CreationTx:       blockTransactionData.Hash,
+						}
+
 						// Mark sender and contract accounts as having potentially stale balances.
 						// EVMCreate can transfer funds from the sender to the contract.
 						if to != "" {
