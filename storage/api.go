@@ -94,7 +94,7 @@ func (b *QueryBatch) Queries() []*BatchItem {
 // from the consensus layer.
 type ConsensusSourceStorage interface {
 	// GenesisDocument returns the genesis document for the chain.
-	GenesisDocument(ctx context.Context) (*genesisAPI.Document, error)
+	GenesisDocument(ctx context.Context, chainContext string) (*genesisAPI.Document, error)
 
 	// AllData returns all data tied to a specific height.
 	AllData(ctx context.Context, height int64) (*ConsensusAllData, error)

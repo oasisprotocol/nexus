@@ -42,7 +42,7 @@ func (c *DamaskConsensusApiLite) Close() error {
 	return nil // Nothing to do; c.client does not expose a Close() method despite containing a gRPC connection.
 }
 
-func (c *DamaskConsensusApiLite) GetGenesisDocument(ctx context.Context) (*genesis.Document, error) {
+func (c *DamaskConsensusApiLite) GetGenesisDocument(ctx context.Context, chainContext string) (*genesis.Document, error) {
 	rsp, err := c.client.GetGenesisDocument(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("GetGenesisDocument(damask): %w", err)

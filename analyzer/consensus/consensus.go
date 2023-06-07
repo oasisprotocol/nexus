@@ -136,7 +136,7 @@ func (m *processor) isGenesisProcessed(ctx context.Context, chainContext string)
 
 func (m *processor) processGenesis(ctx context.Context, chainContext string) error {
 	m.logger.Info("fetching genesis document")
-	genesisDoc, err := m.source.GenesisDocument(ctx)
+	genesisDoc, err := m.source.GenesisDocument(ctx, chainContext)
 	if err != nil {
 		return err
 	}

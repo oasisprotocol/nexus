@@ -43,7 +43,7 @@ import (
 // places, flattened compared to their counterparts in oasis-core.
 type ConsensusApiLite interface {
 	// TODO: Introduce internal, stripped-down version of `genesis.Document`.
-	GetGenesisDocument(ctx context.Context) (*genesis.Document, error)
+	GetGenesisDocument(ctx context.Context, chainContext string) (*genesis.Document, error)
 	StateToGenesis(ctx context.Context, height int64) (*genesis.Document, error)
 	GetBlock(ctx context.Context, height int64) (*consensus.Block, error)
 	GetTransactionsWithResults(ctx context.Context, height int64) ([]TransactionWithResults, error)
