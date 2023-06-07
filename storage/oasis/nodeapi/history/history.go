@@ -104,14 +104,24 @@ func (c *HistoryConsensusApiLite) APIForHeight(height int64) (nodeapi.ConsensusA
 	return api, nil
 }
 
-func (c *HistoryConsensusApiLite) GetGenesisDocument(ctx context.Context) (*genesis.Document, error) {
-	// Use latest.
-	height := consensus.HeightLatest
-	api, err := c.APIForHeight(height)
+func (c *HistoryConsensusApiLite) APIForChainContext(chainContext string) (nodeapi.ConsensusApiLite, error) {
+	record, err := c.History.RecordForChainContext(chainContext)
 	if err != nil {
-		return nil, fmt.Errorf("getting api for height %d: %w", height, err)
+		return nil, fmt.Errorf("determining archive: %w", err)
 	}
-	return api.GetGenesisDocument(ctx)
+	api, ok := c.APIs[record.ArchiveName]
+	if !ok {
+		return nil, fmt.Errorf("archive %s has no node configured", record.ArchiveName)
+	}
+	return api, nil
+}
+
+func (c *HistoryConsensusApiLite) GetGenesisDocument(ctx context.Context, chainContext string) (*genesis.Document, error) {
+	api, err := c.APIForChainContext(chainContext)
+	if err != nil {
+		return nil, fmt.Errorf("getting api for chain context %s: %w", chainContext, err)
+	}
+	return api.GetGenesisDocument(ctx, chainContext)
 }
 
 func (c *HistoryConsensusApiLite) StateToGenesis(ctx context.Context, height int64) (*genesis.Document, error) {

@@ -52,6 +52,15 @@ func (h *History) RecordForHeight(height int64) (*Record, error) {
 	)
 }
 
+func (h *History) RecordForChainContext(chainContext string) (*Record, error) {
+	for _, r := range h.Records {
+		if r.ChainContext == chainContext {
+			return r, nil
+		}
+	}
+	return nil, fmt.Errorf("chain context %s absent from history", chainContext)
+}
+
 func (h *History) RecordForRuntimeRound(runtime common.Runtime, round uint64) (*Record, error) {
 	if round == runtimeClient.RoundLatest {
 		return h.CurrentRecord(), nil

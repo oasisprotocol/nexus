@@ -51,7 +51,7 @@ func (c *CobaltConsensusApiLite) Close() error {
 	return c.grpcConn.Close()
 }
 
-func (c *CobaltConsensusApiLite) GetGenesisDocument(ctx context.Context) (*genesis.Document, error) {
+func (c *CobaltConsensusApiLite) GetGenesisDocument(ctx context.Context, chainContext string) (*genesis.Document, error) {
 	var rsp genesisCobalt.Document
 	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Consensus/GetGenesisDocument", nil, &rsp); err != nil {
 		return nil, fmt.Errorf("GetGenesisDocument(cobalt): %w", err)

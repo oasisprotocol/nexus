@@ -49,11 +49,11 @@ func (c *FileConsensusApiLite) Close() error {
 	return firstErr
 }
 
-func (c *FileConsensusApiLite) GetGenesisDocument(ctx context.Context) (*genesis.Document, error) {
+func (c *FileConsensusApiLite) GetGenesisDocument(ctx context.Context, chainContext string) (*genesis.Document, error) {
 	return GetFromCacheOrCall(
 		c.db, false,
-		generateCacheKey("GetGenesisDocument"),
-		func() (*genesis.Document, error) { return c.consensusApi.GetGenesisDocument(ctx) },
+		generateCacheKey("GetGenesisDocument", chainContext),
+		func() (*genesis.Document, error) { return c.consensusApi.GetGenesisDocument(ctx, chainContext) },
 	)
 }
 

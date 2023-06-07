@@ -59,7 +59,7 @@ func TestGenesisDocument(t *testing.T) {
 	client, err := NewConsensusClient(ctx, TestSourceConfig)
 	require.NoError(t, err)
 
-	_, err = client.GenesisDocument(ctx)
+	_, err = client.GenesisDocument(ctx, TestSourceConfig.History().CurrentRecord().ChainContext)
 	require.Nil(t, err)
 }
 

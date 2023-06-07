@@ -33,8 +33,8 @@ func (cc *ConsensusClient) Close() error {
 }
 
 // GenesisDocument returns the original genesis document.
-func (cc *ConsensusClient) GenesisDocument(ctx context.Context) (*genesisAPI.Document, error) {
-	return cc.nodeApi.GetGenesisDocument(ctx)
+func (cc *ConsensusClient) GenesisDocument(ctx context.Context, chainContext string) (*genesisAPI.Document, error) {
+	return cc.nodeApi.GetGenesisDocument(ctx, chainContext)
 }
 
 // Name returns the name of the client, for the ConsensusSourceStorage interface.
