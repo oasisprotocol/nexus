@@ -237,7 +237,12 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) {
 	analyzers := map[string]A{}
 	if cfg.Analyzers.Consensus != nil {
 		analyzers, err = addAnalyzer(analyzers, err, func() (A, error) {
-			genesisChainContext := cfg.Source.History().CurrentRecord().ChainContext
+			startHeight := int64(cfg.Analyzers.Consensus.From)
+			startRecord, err1 := cfg.Source.History().RecordForHeight(startHeight)
+			if err1 != nil {
+				return nil, fmt.Errorf("getting history record for consensus starting block %d: %w", startHeight, err1)
+			}
+			genesisChainContext := startRecord.ChainContext
 			sourceClient, err1 := sources.Consensus(ctx)
 			if err1 != nil {
 				return nil, err1
