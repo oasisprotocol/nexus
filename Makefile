@@ -46,11 +46,13 @@ stop-e2e:
 	@docker compose -f tests/e2e/docker-compose.e2e.yml down -v -t 0
 	rm -rf tests/e2e/testnet/net-runner
 
+# Run tests with parallelism set to 1, since tests in multiple packages can use the same DB.
 test:
-	@$(GO) test -short -v ./...
+	@$(GO) test -p 1 -short -v ./...
 
+# Run tests with parallelism set to 1, since tests in multiple packages can use the same DB.
 test-ci:
-	@$(GO) test -race -coverpkg=./... -coverprofile=coverage.txt -covermode=atomic -v ./...
+	@$(GO) test -p 1 -race -coverpkg=./... -coverprofile=coverage.txt -covermode=atomic -v ./...
 
 # Run the e2e tests locally, assuming the environment is already set up.
 # The recommended usage is via the `start-e2e` target which sets up the environment first.
@@ -63,7 +65,7 @@ fill-cache-for-e2e-regression: oasis-indexer
 	sed -i -E 's/query_on_cache_miss: false/query_on_cache_miss: true/g' /tmp/indexer_fill_e2e_regression_cache.yml
 	./oasis-indexer --config /tmp/indexer_fill_e2e_regression_cache.yml analyze
 
-# Run the api tests locally, assuming the environment is set up with an oasis-node that is 
+# Run the api tests locally, assuming the environment is set up with an oasis-node that is
 # accessible as specified in the config file.
 test-e2e-regression: oasis-indexer
 	./oasis-indexer --config tests/e2e_regression/e2e_config.yml analyze
