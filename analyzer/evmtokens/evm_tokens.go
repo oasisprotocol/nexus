@@ -114,7 +114,7 @@ func (m Main) processStaleToken(ctx context.Context, batch *storage.QueryBatch, 
 		}
 		// If the returned token type is unsupported, it will have zero value token data.
 		var totalSupply *string
-		if tokenData.TotalSupply != nil {
+		if tokenData.EVMTokenMutableData != nil && tokenData.TotalSupply != nil {
 			totalSupply = common.Ptr(tokenData.TotalSupply.String())
 		}
 		batch.Queue(queries.RuntimeEVMTokenInsert,
