@@ -2,6 +2,7 @@ package runtime
 
 import (
 	"context"
+	"encoding/hex"
 	"fmt"
 	"math/big"
 	"strings"
@@ -193,6 +194,14 @@ func (m *processor) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 			error_module = transactionData.Error.Module
 			error_code = transactionData.Error.Code
 			error_message = transactionData.Error.Message
+		}
+		if error_message != nil {
+			// Apparently the message does need to be valid UTF-8.
+			// In the rare case it's not, hex encode it.
+			// https://github.com/oasisprotocol/oasis-indexer/issues/439
+			if !storage.IsValidText(*error_message) {
+				*error_message = hex.EncodeToString([]byte(*error_message))
+			}
 		}
 		batch.Queue(
 			queries.RuntimeTransactionInsert,
