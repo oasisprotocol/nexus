@@ -63,11 +63,16 @@ testCases=(
   'validators               /v1/consensus/validators'
   'validator                /v1/consensus/validators/HPeLbzc88IoYEP0TC4nqSxfxdPCPjduLeJqFvmxFye8='
   'emerald_blocks           /v1/emerald/blocks'
-  'emerald_tokens           /v1/emerald/tokens'
+  'emerald_tokens           /v1/emerald/evm_tokens'
   'emerald_txs              /v1/emerald/transactions'
+  'emerald_tx               /v1/emerald/transactions/a6471a9c6f3307087586da9156f3c9876fbbaf4b23910cd9a2ac524a54d0aefe'
+  'emerald_failed_tx        /v1/emerald/transactions/a7e76442c52a3cb81f719bde26c9a6179bd3415f96740d91a93ee8f205b45150'
   'emerald_events           /v1/emerald/events'
   'emerald_events_by_type   /v1/emerald/events?type=sdf'
+  'emerald_account          /v1/emerald/accounts/oasis1qrt0sv2s2x2lkt9e7kmr2mzxgme8m0pzauwztprl'
+  'emerald_contract_account /v1/emerald/accounts/oasis1qrrmuaed6numjju8gajzn68tn2edlvycjc50nfva'
   'emerald_status           /v1/emerald/status'
+  'emerald_tx_volume        /v1/emerald/stats/tx_volume'
 )
 nCases=${#testCases[@]}
 
