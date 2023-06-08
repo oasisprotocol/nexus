@@ -3,7 +3,9 @@ package storage
 
 import (
 	"context"
+	"strings"
 	"sync"
+	"unicode/utf8"
 
 	"github.com/jackc/pgx/v5"
 
@@ -302,4 +304,10 @@ type TargetStorage interface {
 	// WARNING: This might enable triggers not explicitly disabled by DisableTriggersAndFKConstraints.
 	// WARNING: This does not enforce/check contraints on rows that were inserted while triggers were disabled.
 	EnableTriggersAndFKConstraints(ctx context.Context) error
+}
+
+// IsValidText returns true iff the given string is valid UTF-8 and does not contain any NUL bytes.
+// Postgresql TEXT field requires valid UTF8 strings and does not allow NUL bytes.
+func IsValidText(text string) bool {
+	return utf8.ValidString(text) && !strings.ContainsRune(text, '\x00')
 }
