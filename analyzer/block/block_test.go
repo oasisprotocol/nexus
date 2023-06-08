@@ -90,7 +90,7 @@ func setupDB(t *testing.T) *postgres.Client {
 
 func setupAnalyzer(t *testing.T, testDb *postgres.Client, p *mockProcessor, cfg *config.BlockBasedAnalyzerConfig, slowSync bool) analyzer.Analyzer {
 	// Initialize the block analyzer.
-	logger, err := log.NewLogger(fmt.Sprintf("test-analyzer-%s", p.name), os.Stdout, log.FmtJSON, log.LevelError)
+	logger, err := log.NewLogger(fmt.Sprintf("test-analyzer-%s", p.name), os.Stdout, log.FmtJSON, log.LevelDebug)
 	require.NoError(t, err, "log.NewLogger")
 	analyzer, err := block.NewAnalyzer(cfg, p.name, p, testDb, logger, slowSync)
 	require.NoError(t, err, "block.NewAnalyzer")
