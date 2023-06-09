@@ -389,13 +389,12 @@ const (
 		`
 
 	RuntimeEvents = `
-		SELECT evs.round, evs.tx_index, evs.tx_hash, txs.tx_eth_hash, evs.type, evs.body, evs.evm_log_name, evs.evm_log_params
+		SELECT evs.round, evs.tx_index, evs.tx_hash, evs.tx_eth_hash, evs.type, evs.body, evs.evm_log_name, evs.evm_log_params
 			FROM chain.runtime_events as evs
-			LEFT JOIN chain.runtime_transactions as txs USING (runtime, tx_index, round)
 			WHERE (evs.runtime = $1) AND
 					($2::bigint IS NULL OR evs.round = $2::bigint) AND
 					($3::integer IS NULL OR evs.tx_index = $3::integer) AND
-					($4::text IS NULL OR evs.tx_hash = $4::text OR txs.tx_eth_hash = $4::text) AND
+					($4::text IS NULL OR evs.tx_hash = $4::text OR evs.tx_eth_hash = $4::text) AND
 					($5::text IS NULL OR evs.type = $5::text) AND
 					($6::bytea IS NULL OR evs.evm_log_signature = $6::bytea) AND
 					($7::text IS NULL OR evs.related_accounts @> ARRAY[$7::text])

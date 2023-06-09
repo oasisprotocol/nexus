@@ -73,6 +73,7 @@ type EventBody interface{}
 type EventData struct {
 	TxIndex          *int    // nil for non-tx events
 	TxHash           *string // nil for non-tx events
+	TxEthHash        *string // nil for non-evm-tx events
 	Type             apiTypes.RuntimeEventType
 	Body             EventBody
 	WithScope        ScopedSdkEvent
@@ -470,6 +471,7 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 			txIndex := txIndex // const local copy of loop variable
 			eventData.TxIndex = &txIndex
 			eventData.TxHash = &blockTransactionData.Hash
+			eventData.TxEthHash = blockTransactionData.EthHash
 		}
 		if !foundGasUsedEvent {
 			// Early versions of runtimes didn't emit a GasUsed event.
