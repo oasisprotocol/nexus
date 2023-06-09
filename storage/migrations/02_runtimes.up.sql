@@ -110,6 +110,7 @@ CREATE TABLE chain.runtime_events
   FOREIGN KEY (runtime, round, tx_index) REFERENCES chain.runtime_transactions(runtime, round, tx_index) DEFERRABLE INITIALLY DEFERRED,
 
   tx_hash HEX64,
+  tx_eth_hash HEX64,
   -- TODO: add link to openapi spec section with runtime event types.
   type TEXT NOT NULL,
   -- The raw event, as returned by the oasis-sdk runtime client.
@@ -126,6 +127,7 @@ CREATE TABLE chain.runtime_events
 );
 CREATE INDEX ix_runtime_events_round ON chain.runtime_events(runtime, round);  -- for sorting by round, when there are no filters applied
 CREATE INDEX ix_runtime_events_tx_hash ON chain.runtime_events(tx_hash);
+CREATE INDEX ix_runtime_events_tx_eth_hash ON chain.runtime_events(tx_eth_hash);
 CREATE INDEX ix_runtime_events_related_accounts ON chain.runtime_events USING gin(related_accounts);
 CREATE INDEX ix_runtime_events_evm_log_signature ON chain.runtime_events(evm_log_signature);
 CREATE INDEX ix_runtime_events_evm_log_params ON chain.runtime_events USING gin(evm_log_params);
