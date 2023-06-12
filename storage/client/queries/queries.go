@@ -469,7 +469,7 @@ const (
 			balances.balance AS balance,
 			balances.token_address AS token_address,
 			tokens.symbol AS token_symbol,
-			tokens.symbol AS token_name,
+			tokens.token_name AS token_name,
 			'ERC20' AS token_type,  -- TODO: fetch from the table once available
 			tokens.decimals AS token_decimals
 		FROM chain.evm_token_balances AS balances
