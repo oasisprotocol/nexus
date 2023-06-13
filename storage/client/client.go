@@ -627,7 +627,7 @@ func (c *StorageClient) Account(ctx context.Context, address staking.Address) (*
 		address.String(),
 	)
 	if queryErr != nil {
-		return nil, wrapError(err)
+		return nil, wrapError(queryErr)
 	}
 	defer allowanceRows.Close()
 
@@ -1451,7 +1451,7 @@ func (c *StorageClient) RuntimeTokens(ctx context.Context, p apiTypes.GetRuntime
 			&t.Type,
 			&t.NumHolders,
 		); err2 != nil {
-			return nil, wrapError(err)
+			return nil, wrapError(err2)
 		}
 
 		ts.EvmTokens = append(ts.EvmTokens, t)
