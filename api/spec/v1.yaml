@@ -2335,9 +2335,9 @@ components:
       type: string
       enum:
         - ERC20
-        - ERC721
-        - ERC1155
-        - OasisSdk
+        # Desired support in the future, among others:
+        # - ERC721
+        # - ERC1155
       description: |
         The type of a EVM token.
 
