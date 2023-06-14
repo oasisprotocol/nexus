@@ -7,17 +7,16 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 )
 
-//go:embed contracts/artifacts/ERC20.json
-var artifactERC20JSON []byte
-var ERC20 *abi.ABI
-
-func init() {
-	type artifact struct {
+func mustUnmarshalABI(artifactJSON []byte) *abi.ABI {
+	var artifact struct {
 		ABI *abi.ABI
 	}
-	var artifactERC20 artifact
-	if err := json.Unmarshal(artifactERC20JSON, &artifactERC20); err != nil {
+	if err := json.Unmarshal(artifactJSON, &artifact); err != nil {
 		panic(err)
 	}
-	ERC20 = artifactERC20.ABI
+	return artifact.ABI
 }
+
+//go:embed contracts/artifacts/ERC20.json
+var artifactERC20JSON []byte
+var ERC20 = mustUnmarshalABI(artifactERC20JSON)
