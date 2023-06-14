@@ -27,7 +27,13 @@ var (
 
 type ErrStorageError struct{ Err error }
 
-func (e ErrStorageError) Error() string { return fmt.Sprintf("storage error: %s", e.Err.Error()) }
+func (e ErrStorageError) Error() string {
+	if e.Err != nil {
+		return fmt.Sprintf("storage error: %s", e.Err.Error())
+	}
+	// ErrStorageError shouldn't be constructed with a nil Err, but format it just in case.
+	return "storage error: internal bug, incorrectly instantiated error object with nil"
+}
 
 func HttpCodeForError(err error) int {
 	errVal := reflect.ValueOf(err)

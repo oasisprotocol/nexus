@@ -440,14 +440,17 @@ const (
 			tokens.symbol,
 			tokens.decimals,
 			tokens.total_supply,
-			CASE
+			CASE -- NOTE: There are two queries that use this CASE via copy-paste; edit both if changing.
 				WHEN tokens.token_type = 20 THEN 'ERC20'
+				ELSE 'unexpected_other_type' -- Our openapi spec doesn't allow us to output this, but better this than a null value (which causes nil dereference)
 			END AS type,
 			holders.cnt AS num_holders
 		FROM chain.evm_tokens AS tokens
 		JOIN chain.address_preimages AS preimages ON (token_address = preimages.address)
 		JOIN holders USING (token_address)
-		WHERE (tokens.runtime = $1)
+		WHERE
+			(tokens.runtime = $1) AND
+			tokens.token_type != 0 -- exclude unknown-type tokens; they're often just contracts that emitted Transfer events but don't expose the token ticker, name, balance etc.
 		ORDER BY num_holders DESC
 		LIMIT $2::bigint
 		OFFSET $3::bigint`
@@ -470,13 +473,17 @@ const (
 			balances.token_address AS token_address,
 			tokens.symbol AS token_symbol,
 			tokens.token_name AS token_name,
-			'ERC20' AS token_type,  -- TODO: fetch from the table once available
+			CASE -- NOTE: There are two queries that use this CASE via copy-paste; edit both if changing.
+				WHEN tokens.token_type = 20 THEN 'ERC20'
+				ELSE 'unexpected_other_type' -- Our openapi spec doesn't allow us to output this, but better this than a null value (which causes nil dereference)
+			END AS token_type,
 			tokens.decimals AS token_decimals
 		FROM chain.evm_token_balances AS balances
 		JOIN chain.evm_tokens         AS tokens USING (runtime, token_address)
 		WHERE runtime = $1 AND
-			account_address = $2::text AND
-			balance != 0
+			balances.account_address = $2::text AND
+			tokens.token_type != 0 AND -- exclude unknown-type tokens; they're often just contracts that emitted Transfer events but don't expose the token ticker, name, balance etc.
+			balances.balance != 0
 		ORDER BY balance DESC
 		LIMIT 1000  -- To prevent huge responses. Hardcoded because API exposes this as a subfield that does not lend itself to pagination.
 	`
