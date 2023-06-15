@@ -18,7 +18,6 @@ import (
 	"github.com/oasisprotocol/oasis-indexer/log"
 	"github.com/oasisprotocol/oasis-indexer/storage"
 	"github.com/oasisprotocol/oasis-indexer/storage/client"
-	source "github.com/oasisprotocol/oasis-indexer/storage/oasis"
 	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
 )
 
@@ -83,7 +82,7 @@ const (
 type Main struct {
 	runtime         common.Runtime
 	runtimeMetadata *sdkConfig.ParaTime
-	source          storage.RuntimeSourceStorage
+	source          nodeapi.RuntimeApiLite
 	target          storage.TargetStorage
 	logger          *log.Logger
 }
@@ -93,7 +92,7 @@ var _ analyzer.Analyzer = (*Main)(nil)
 func NewMain(
 	runtime common.Runtime,
 	runtimeMetadata *sdkConfig.ParaTime,
-	sourceClient *source.RuntimeClient,
+	sourceClient nodeapi.RuntimeApiLite,
 	target storage.TargetStorage,
 	logger *log.Logger,
 ) (*Main, error) {

@@ -53,7 +53,7 @@ func NewConsensusClient(ctx context.Context, sourceConfig *config.SourceConfig) 
 }
 
 // NewRuntimeClient creates a new RuntimeClient.
-func NewRuntimeClient(ctx context.Context, sourceConfig *config.SourceConfig, runtime common.Runtime) (*RuntimeClient, error) {
+func NewRuntimeClient(ctx context.Context, sourceConfig *config.SourceConfig, runtime common.Runtime) (nodeapi.RuntimeApiLite, error) {
 	// If we are using purely file-backed indexer, do not connect to the node.
 	if sourceConfig.Cache != nil && !sourceConfig.Cache.QueryOnCacheMiss {
 		cachePath := filepath.Join(sourceConfig.Cache.CacheDir, string(runtime))
@@ -61,9 +61,7 @@ func NewRuntimeClient(ctx context.Context, sourceConfig *config.SourceConfig, ru
 		if err != nil {
 			return nil, fmt.Errorf("error instantiating cache-based runtimeApi: %w", err)
 		}
-		return &RuntimeClient{
-			nodeApi: nodeApi,
-		}, nil
+		return nodeApi, nil
 	}
 
 	// Create an API that connects to the real node, then wrap it in a caching layer.
@@ -80,7 +78,5 @@ func NewRuntimeClient(ctx context.Context, sourceConfig *config.SourceConfig, ru
 		}
 	}
 
-	return &RuntimeClient{
-		nodeApi: nodeApi,
-	}, nil
+	return nodeApi, nil
 }

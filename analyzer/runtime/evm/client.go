@@ -16,7 +16,7 @@ import (
 	apiTypes "github.com/oasisprotocol/oasis-indexer/api/v1/types"
 	"github.com/oasisprotocol/oasis-indexer/common"
 	"github.com/oasisprotocol/oasis-indexer/log"
-	"github.com/oasisprotocol/oasis-indexer/storage"
+	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
 )
 
 type EVMTokenType int
@@ -102,7 +102,7 @@ var (
 
 func evmCallWithABICustom(
 	ctx context.Context,
-	source storage.RuntimeSourceStorage,
+	source nodeapi.RuntimeApiLite,
 	round uint64,
 	gasPrice []byte,
 	gasLimit uint64,
@@ -141,7 +141,7 @@ func evmCallWithABICustom(
 // `method`.
 func evmCallWithABI(
 	ctx context.Context,
-	source storage.RuntimeSourceStorage,
+	source nodeapi.RuntimeApiLite,
 	round uint64,
 	contractEthAddr []byte,
 	contractABI *abi.ABI,
@@ -158,7 +158,7 @@ func evmCallWithABI(
 	return evmCallWithABICustom(ctx, source, round, gasPrice, gasLimit, caller, contractEthAddr, value, contractABI, result, method, params...)
 }
 
-func evmDownloadTokenERC20Mutable(ctx context.Context, logger *log.Logger, source storage.RuntimeSourceStorage, round uint64, tokenEthAddr []byte) (*EVMTokenMutableData, error) {
+func evmDownloadTokenERC20Mutable(ctx context.Context, logger *log.Logger, source nodeapi.RuntimeApiLite, round uint64, tokenEthAddr []byte) (*EVMTokenMutableData, error) {
 	var mutable EVMTokenMutableData
 	logError := func(method string, err error) {
 		logger.Info("ERC20 call failed",
@@ -179,7 +179,7 @@ func evmDownloadTokenERC20Mutable(ctx context.Context, logger *log.Logger, sourc
 	return &mutable, nil
 }
 
-func evmDownloadTokenERC20(ctx context.Context, logger *log.Logger, source storage.RuntimeSourceStorage, round uint64, tokenEthAddr []byte) (*EVMTokenData, error) {
+func evmDownloadTokenERC20(ctx context.Context, logger *log.Logger, source nodeapi.RuntimeApiLite, round uint64, tokenEthAddr []byte) (*EVMTokenData, error) {
 	tokenData := EVMTokenData{
 		Type: EVMTokenTypeERC20,
 	}
@@ -229,7 +229,7 @@ func evmDownloadTokenERC20(ctx context.Context, logger *log.Logger, source stora
 // transiently fails to download the data, it returns with a non-nil error. If
 // it deterministically cannot download the data, it returns a struct
 // with the `Type` field set to `EVMTokenTypeUnsupported`.
-func EVMDownloadNewToken(ctx context.Context, logger *log.Logger, source storage.RuntimeSourceStorage, round uint64, tokenEthAddr []byte) (*EVMTokenData, error) {
+func EVMDownloadNewToken(ctx context.Context, logger *log.Logger, source nodeapi.RuntimeApiLite, round uint64, tokenEthAddr []byte) (*EVMTokenData, error) {
 	// todo: check ERC-165 0xffffffff compliance
 	// todo: try other token standards based on ERC-165
 	// see https://github.com/oasisprotocol/oasis-indexer/issues/225
@@ -255,7 +255,7 @@ func EVMDownloadNewToken(ctx context.Context, logger *log.Logger, source storage
 // non-nil error. If it deterministically cannot download the data, it returns
 // nil with nil error as well. Note that this latter case is not considered an
 // error!
-func EVMDownloadMutatedToken(ctx context.Context, logger *log.Logger, source storage.RuntimeSourceStorage, round uint64, tokenEthAddr []byte, tokenType EVMTokenType) (*EVMTokenMutableData, error) {
+func EVMDownloadMutatedToken(ctx context.Context, logger *log.Logger, source nodeapi.RuntimeApiLite, round uint64, tokenEthAddr []byte, tokenType EVMTokenType) (*EVMTokenMutableData, error) {
 	switch tokenType {
 	case EVMTokenTypeERC20:
 		mutable, err := evmDownloadTokenERC20Mutable(ctx, logger, source, round, tokenEthAddr)
@@ -272,7 +272,7 @@ func EVMDownloadMutatedToken(ctx context.Context, logger *log.Logger, source sto
 	}
 }
 
-func evmDownloadTokenBalanceERC20(ctx context.Context, logger *log.Logger, source storage.RuntimeSourceStorage, round uint64, tokenEthAddr []byte, accountEthAddr []byte) (*EVMTokenBalanceData, error) {
+func evmDownloadTokenBalanceERC20(ctx context.Context, logger *log.Logger, source nodeapi.RuntimeApiLite, round uint64, tokenEthAddr []byte, accountEthAddr []byte) (*EVMTokenBalanceData, error) {
 	var balanceData EVMTokenBalanceData
 	logError := func(method string, err error) {
 		logger.Info("ERC20 call failed",
@@ -299,7 +299,7 @@ func evmDownloadTokenBalanceERC20(ctx context.Context, logger *log.Logger, sourc
 // returns with a non-nil error. If it deterministically cannot download the
 // balance, it returns nil with nil error as well. Note that this latter case
 // is not considered an error!
-func EVMDownloadTokenBalance(ctx context.Context, logger *log.Logger, source storage.RuntimeSourceStorage, round uint64, tokenEthAddr []byte, accountEthAddr []byte, tokenType EVMTokenType) (*EVMTokenBalanceData, error) {
+func EVMDownloadTokenBalance(ctx context.Context, logger *log.Logger, source nodeapi.RuntimeApiLite, round uint64, tokenEthAddr []byte, accountEthAddr []byte, tokenType EVMTokenType) (*EVMTokenBalanceData, error) {
 	switch tokenType {
 	case EVMTokenTypeERC20:
 		balance, err := evmDownloadTokenBalanceERC20(ctx, logger, source, round, tokenEthAddr, accountEthAddr)
