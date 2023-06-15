@@ -14,17 +14,17 @@ CREATE TABLE analysis.evm_contract_code (
     runtime runtime NOT NULL,
     contract_candidate oasis_addr NOT NULL,
     PRIMARY KEY (runtime, contract_candidate),
-    -- Meaning of is_downloaded:
+    -- Meaning of is_contract:
     --   TRUE:  downloaded runtime bytecode
     --   FALSE: download failed because `contract_candidate` is not a contract (= does not have code)
     --   NULL:  not yet attempted
-    is_downloaded bool
+    is_contract bool
 );
 -- Allow the analyzer to quickly retrieve addresses that have not been downloaded yet.
-CREATE INDEX ix_evm_contract_code_todo ON analysis.evm_contract_code (runtime, contract_candidate) WHERE is_downloaded IS NULL;
+CREATE INDEX ix_evm_contract_code_todo ON analysis.evm_contract_code (runtime, contract_candidate) WHERE is_contract IS NULL;
 
 -- Bootstrap the table with the set of addresses we known are contracts because they are the result of an evm.Create tx.
-INSERT INTO analysis.evm_contract_code (runtime, contract_candidate, is_downloaded)
+INSERT INTO analysis.evm_contract_code (runtime, contract_candidate, is_contract)
   SELECT runtime, contract_address, NULL
   FROM chain.evm_contracts
 ON CONFLICT (runtime, contract_candidate) DO NOTHING;

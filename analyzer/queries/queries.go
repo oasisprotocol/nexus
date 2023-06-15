@@ -381,10 +381,36 @@ var (
       (runtime, contract_address, creation_tx, creation_bytecode)
     VALUES ($1, $2, $3, $4)`
 
+	RuntimeEVMContractRuntimeBytecodeUpsert = `
+    INSERT INTO chain.evm_contracts(runtime, contract_address, runtime_bytecode)
+    VALUES ($1, $2, $3)
+    ON CONFLICT (runtime, contract_address) DO UPDATE
+    SET runtime_bytecode = $3`
+
 	RuntimeEVMContractCodeAnalysisInsert = `
     INSERT INTO analysis.evm_contract_code(runtime, contract_candidate)
     VALUES ($1, $2)
     ON CONFLICT (runtime, contract_candidate) DO NOTHING`
+
+	RuntimeEVMContractCodeAnalysisSetIsContract = `
+    UPDATE analysis.evm_contract_code
+    SET is_contract = $3
+    WHERE runtime = $1 AND contract_candidate = $2`
+
+	RuntimeEVMContractCodeAnalysisStale = `
+    SELECT
+      code_analysis.contract_candidate,
+      pre.address_data AS eth_contract_candidate,
+      (SELECT MAX(height) FROM chain.processed_blocks WHERE analyzer = $1::runtime::text AND processed_time IS NOT NULL) AS download_round
+    FROM analysis.evm_contract_code AS code_analysis
+    JOIN chain.address_preimages AS pre ON
+      pre.address = code_analysis.contract_candidate AND
+      pre.context_identifier = 'oasis-runtime-sdk/address: secp256k1eth' AND
+      pre.context_version = 0
+    WHERE
+      code_analysis.runtime = $1::runtime AND
+      code_analysis.is_contract IS NULL
+    LIMIT $2`
 
 	RuntimeEVMTokenBalanceUpdate = `
     INSERT INTO chain.evm_token_balances (runtime, token_address, account_address, balance)
