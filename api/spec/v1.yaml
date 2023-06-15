@@ -986,6 +986,26 @@ paths:
                 $ref: '#/components/schemas/EvmTokenList'
         <<: *common_error_responses
 
+  /{runtime}/evm_tokens/{address}:
+    get:
+      summary: Returns info on an EVM (ERC-20, ...) token on the runtime.
+      parameters:
+        - *runtime
+        - in: path
+          name: address
+          required: true
+          schema:
+            <<: *StakingAddressType
+          description: The staking address of the account to return.
+      responses:
+        '200':
+          description: The requested token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvmToken'
+        <<: *common_error_responses
+
   /{runtime}/accounts/{address}:
     get:
       summary: Returns a runtime account.

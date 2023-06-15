@@ -458,10 +458,11 @@ const (
 		JOIN holders USING (token_address)
 		WHERE
 			(tokens.runtime = $1) AND
+			($2::oasis_addr IS NULL OR tokens.token_address = $2::oasis_addr) AND
 			tokens.token_type != 0 -- exclude unknown-type tokens; they're often just contracts that emitted Transfer events but don't expose the token ticker, name, balance etc.
 		ORDER BY num_holders DESC
-		LIMIT $2::bigint
-		OFFSET $3::bigint`
+		LIMIT $3::bigint
+		OFFSET $4::bigint`
 
 	AccountRuntimeSdkBalances = `
 		SELECT

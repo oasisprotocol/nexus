@@ -1423,11 +1423,14 @@ func (c *StorageClient) RuntimeAccount(ctx context.Context, address staking.Addr
 	return &a, nil
 }
 
-func (c *StorageClient) RuntimeTokens(ctx context.Context, p apiTypes.GetRuntimeEvmTokensParams) (*EvmTokenList, error) {
+// If `address` is non-nil, it is used to filter the results to at most 1 token: the one
+// with the correcponding contract address.
+func (c *StorageClient) RuntimeTokens(ctx context.Context, p apiTypes.GetRuntimeEvmTokensParams, address *staking.Address) (*EvmTokenList, error) {
 	res, err := c.withTotalCount(
 		ctx,
 		queries.EvmTokens,
 		runtimeFromCtx(ctx),
+		address,
 		p.Limit,
 		p.Offset,
 	)
