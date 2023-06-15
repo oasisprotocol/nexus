@@ -90,3 +90,13 @@ func (r *FileRuntimeApiLite) EVMSimulateCall(ctx context.Context, round uint64, 
 		},
 	)
 }
+
+func (r *FileRuntimeApiLite) EVMGetCode(ctx context.Context, round uint64, address []byte) ([]byte, error) {
+	return GetSliceFromCacheOrCall(
+		r.db, round == roothash.RoundLatest,
+		generateCacheKey("EVMGetCode", r.runtime, round, address),
+		func() ([]byte, error) {
+			return r.runtimeApi.EVMGetCode(ctx, round, address)
+		},
+	)
+}

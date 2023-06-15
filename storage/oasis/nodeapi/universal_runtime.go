@@ -138,6 +138,10 @@ func (rc *UniversalRuntimeApiLite) EVMSimulateCall(ctx context.Context, round ui
 	return rc.sdkClient.Evm.SimulateCall(ctx, round, gasPrice, gasLimit, caller, address, value, data)
 }
 
+func (rc *UniversalRuntimeApiLite) EVMGetCode(ctx context.Context, round uint64, address []byte) ([]byte, error) {
+	return rc.sdkClient.Evm.Code(ctx, round, address)
+}
+
 func (rc *UniversalRuntimeApiLite) GetNativeBalance(ctx context.Context, round uint64, addr Address) (*common.BigInt, error) {
 	balances, err := rc.sdkClient.Accounts.Balances(ctx, round, sdkTypes.Address(addr))
 	if err != nil {
