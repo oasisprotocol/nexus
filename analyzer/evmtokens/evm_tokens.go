@@ -15,7 +15,7 @@ import (
 	"github.com/oasisprotocol/oasis-indexer/log"
 	"github.com/oasisprotocol/oasis-indexer/storage"
 	"github.com/oasisprotocol/oasis-indexer/storage/client"
-	source "github.com/oasisprotocol/oasis-indexer/storage/oasis"
+	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
 )
 
 // The token analyzer (1) gets a list from the database of tokens to download
@@ -36,7 +36,7 @@ const (
 
 type Main struct {
 	runtime common.Runtime
-	source  storage.RuntimeSourceStorage
+	source  nodeapi.RuntimeApiLite
 	target  storage.TargetStorage
 	logger  *log.Logger
 }
@@ -45,7 +45,7 @@ var _ analyzer.Analyzer = (*Main)(nil)
 
 func NewMain(
 	runtime common.Runtime,
-	sourceClient *source.RuntimeClient,
+	sourceClient nodeapi.RuntimeApiLite,
 	target storage.TargetStorage,
 	logger *log.Logger,
 ) (*Main, error) {

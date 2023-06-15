@@ -20,9 +20,9 @@ import (
 //   - The return types make no effort to closely resemble oasis-core types
 //     in structure. Instead, they are structured in a way that is most convenient
 //     for the analyzer.
-//     TODO: The benefits of this are miniscule, and introduce considerable
-//     boilerplate. Consider removing most types from this package, and
-//     using nodeapi types directly.
+//
+// TODO: The benefits of this abstraction are miniscule, and introduce considerable
+// boilerplate. Consider removing ConsensusClient, and using nodeapi.ConsensusApiLite instead.
 type ConsensusClient struct {
 	nodeApi nodeapi.ConsensusApiLite
 	network *sdkConfig.Network

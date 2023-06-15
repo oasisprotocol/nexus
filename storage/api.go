@@ -13,9 +13,7 @@ import (
 	coreCommon "github.com/oasisprotocol/oasis-core/go/common"
 	consensus "github.com/oasisprotocol/oasis-core/go/consensus/api"
 	genesisAPI "github.com/oasisprotocol/oasis-core/go/genesis/api"
-	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 
-	"github.com/oasisprotocol/oasis-indexer/common"
 	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
 )
 
@@ -227,41 +225,6 @@ type GovernanceData struct {
 	ProposalExecutions    []nodeapi.ProposalExecutedEvent
 	ProposalFinalizations []nodeapi.Proposal
 	Votes                 []nodeapi.VoteEvent
-}
-
-// RuntimeSourceStorage defines an interface for retrieving raw block data
-// from a specific runtime.
-type RuntimeSourceStorage interface {
-	// AllData returns all data tied to a specific round.
-	AllData(ctx context.Context, round uint64) (*RuntimeAllData, error)
-
-	// LatestBlockHeight returns the latest height for which a block is available.
-	LatestBlockHeight(ctx context.Context) (uint64, error)
-
-	// EVMSimulateCall gets the result of the given EVM simulate call query.
-	EVMSimulateCall(ctx context.Context, round uint64, gasPrice []byte, gasLimit uint64, caller []byte, address []byte, value []byte, data []byte) ([]byte, error)
-
-	// GetNativeBalance gets the native balance of the given account at the given round.
-	GetNativeBalance(ctx context.Context, round uint64, addr nodeapi.Address) (*common.BigInt, error)
-
-	// Close instructs the source storage to clean up resources. Calling other
-	// methods after this one results in undefined behavior.
-	Close() error
-}
-
-type RuntimeAllData struct {
-	Round                   uint64
-	BlockHeader             nodeapi.RuntimeBlockHeader
-	RawEvents               []nodeapi.RuntimeEvent
-	TransactionsWithResults []nodeapi.RuntimeTransactionWithResults
-}
-
-// TransactionWithResults contains a verified transaction, and the results of
-// executing that transactions.
-type TransactionWithResults struct {
-	Tx     *sdkTypes.Transaction
-	Result sdkTypes.CallResult
-	Events []*sdkTypes.Event
 }
 
 // TargetStorage defines an interface for reading and writing

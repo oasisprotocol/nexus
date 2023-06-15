@@ -21,14 +21,14 @@ import (
 	"github.com/oasisprotocol/oasis-indexer/log"
 	"github.com/oasisprotocol/oasis-indexer/metrics"
 	"github.com/oasisprotocol/oasis-indexer/storage"
-	source "github.com/oasisprotocol/oasis-indexer/storage/oasis"
+	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
 )
 
 // processor is the block processor for runtimes.
 type processor struct {
 	runtime         common.Runtime
 	runtimeMetadata *sdkConfig.ParaTime
-	source          storage.RuntimeSourceStorage
+	source          nodeapi.RuntimeApiLite
 	target          storage.TargetStorage
 	logger          *log.Logger
 	metrics         metrics.DatabaseMetrics
@@ -41,7 +41,7 @@ func NewRuntimeAnalyzer(
 	runtime common.Runtime,
 	runtimeMetadata *sdkConfig.ParaTime,
 	cfg *config.BlockBasedAnalyzerConfig,
-	sourceClient *source.RuntimeClient,
+	sourceClient nodeapi.RuntimeApiLite,
 	target storage.TargetStorage,
 	logger *log.Logger,
 ) (analyzer.Analyzer, error) {
@@ -96,16 +96,24 @@ func (m *processor) PreWork(ctx context.Context) error {
 // Implements BlockProcessor interface.
 func (m *processor) ProcessBlock(ctx context.Context, round uint64) error {
 	// Fetch all data.
-	data, err := m.source.AllData(ctx, round)
+	blockHeader, err := m.source.GetBlockHeader(ctx, round)
 	if err != nil {
 		if strings.Contains(err.Error(), "roothash: block not found") {
 			return analyzer.ErrOutOfRange
 		}
 		return err
 	}
+	transactionsWithResults, err := m.source.GetTransactionsWithResults(ctx, round)
+	if err != nil {
+		return err
+	}
+	rawEvents, err := m.source.GetEventsRaw(ctx, round)
+	if err != nil {
+		return err
+	}
 
 	// Preprocess data.
-	blockData, err := ExtractRound(data.BlockHeader, data.TransactionsWithResults, data.RawEvents, m.logger)
+	blockData, err := ExtractRound(*blockHeader, transactionsWithResults, rawEvents, m.logger)
 	if err != nil {
 		return err
 	}
