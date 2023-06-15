@@ -32,22 +32,22 @@ const (
 
 type oasisAddress string
 
-type Main struct {
+type main struct {
 	runtime common.Runtime
 	source  nodeapi.RuntimeApiLite
 	target  storage.TargetStorage
 	logger  *log.Logger
 }
 
-var _ analyzer.Analyzer = (*Main)(nil)
+var _ analyzer.Analyzer = (*main)(nil)
 
 func NewMain(
 	runtime common.Runtime,
 	sourceClient nodeapi.RuntimeApiLite,
 	target storage.TargetStorage,
 	logger *log.Logger,
-) (*Main, error) {
-	return &Main{
+) (analyzer.Analyzer, error) {
+	return &main{
 		runtime: runtime,
 		source:  sourceClient,
 		target:  target,
@@ -61,7 +61,7 @@ type ContractCandidate struct {
 	DownloadRound uint64
 }
 
-func (m Main) getContractCandidates(ctx context.Context, limit int) ([]ContractCandidate, error) {
+func (m main) getContractCandidates(ctx context.Context, limit int) ([]ContractCandidate, error) {
 	var candidates []ContractCandidate
 	rows, err := m.target.Query(ctx, queries.RuntimeEVMContractCodeAnalysisStale, m.runtime, limit)
 	if err != nil {
@@ -82,7 +82,7 @@ func (m Main) getContractCandidates(ctx context.Context, limit int) ([]ContractC
 	return candidates, nil
 }
 
-func (m Main) processContractCandidate(ctx context.Context, batch *storage.QueryBatch, candidate ContractCandidate) error {
+func (m main) processContractCandidate(ctx context.Context, batch *storage.QueryBatch, candidate ContractCandidate) error {
 	m.logger.Info("downloading code", "addr", candidate.Addr, "eth_addr", candidate.EthAddr.Hex())
 	code, err := m.source.EVMGetCode(ctx, candidate.DownloadRound, candidate.EthAddr.Bytes())
 	if err != nil {
@@ -113,7 +113,7 @@ func (m Main) processContractCandidate(ctx context.Context, batch *storage.Query
 	return nil
 }
 
-func (m Main) processBatch(ctx context.Context) (int, error) {
+func (m main) processBatch(ctx context.Context) (int, error) {
 	contractCandidates, err := m.getContractCandidates(ctx, maxDownloadBatch)
 	if err != nil {
 		return 0, fmt.Errorf("getting contract candidates: %w", err)
@@ -152,7 +152,7 @@ func (m Main) processBatch(ctx context.Context) (int, error) {
 	return len(contractCandidates), nil
 }
 
-func (m Main) Start(ctx context.Context) {
+func (m main) Start(ctx context.Context) {
 	backoff, err := util.NewBackoff(
 		100*time.Millisecond,
 		// Cap the timeout at the expected round time. All runtimes currently have the same round time.
@@ -192,6 +192,6 @@ func (m Main) Start(ctx context.Context) {
 	}
 }
 
-func (m Main) Name() string {
+func (m main) Name() string {
 	return evmContractCodeAnalyzerPrefix + string(m.runtime)
 }
