@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	ethCommon "github.com/ethereum/go-ethereum/common"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/oasisprotocol/oasis-indexer/analyzer"
@@ -29,8 +30,10 @@ const (
 	DownloadTimeout               = 61 * time.Second
 )
 
-type EthAddress []byte
-type OasisAddress string
+type (
+	EthAddress   = ethCommon.Address
+	OasisAddress string
+)
 
 type Main struct {
 	runtime common.Runtime
@@ -83,8 +86,8 @@ func (m Main) getContractCandidates(ctx context.Context, limit int) ([]ContractC
 }
 
 func (m Main) processContractCandidate(ctx context.Context, batch *storage.QueryBatch, candidate ContractCandidate) error {
-	m.logger.Info("downloading code", "addr", candidate.Addr, "eth_addr", fmt.Sprintf("%x", candidate.EthAddr))
-	code, err := m.source.EVMGetCode(ctx, candidate.DownloadRound, candidate.EthAddr)
+	m.logger.Info("downloading code", "addr", candidate.Addr, "eth_addr", candidate.EthAddr.Hex())
+	code, err := m.source.EVMGetCode(ctx, candidate.DownloadRound, candidate.EthAddr.Bytes())
 	if err != nil {
 		// Write nothing into the DB; we'll try again later.
 		return fmt.Errorf("downloading code for %x: %w", candidate.EthAddr, err)
@@ -130,8 +133,7 @@ func (m Main) processBatch(ctx context.Context) (int, error) {
 	batches := make([]*storage.QueryBatch, 0, len(contractCandidates))
 
 	for _, cc := range contractCandidates {
-		// Redeclare `st` for unclobbered use within goroutine.
-		cc := cc
+		cc := cc // Redeclare for unclobbered use within goroutine.
 		batch := &storage.QueryBatch{}
 		batches = append(batches, batch)
 		group.Go(func() error {
