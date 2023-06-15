@@ -403,7 +403,7 @@ const (
 			OFFSET $9::bigint`
 
 	RuntimeEvmContract = `
-		SELECT creation_tx, creation_bytecode
+		SELECT creation_tx, creation_bytecode, runtime_bytecode
 			FROM chain.evm_contracts
 			WHERE (runtime = $1) AND
 					(contract_address = $2::text)`

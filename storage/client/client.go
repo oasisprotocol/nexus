@@ -1384,6 +1384,7 @@ func (c *StorageClient) RuntimeAccount(ctx context.Context, address staking.Addr
 	).Scan(
 		&evmContract.CreationTx,
 		&evmContract.CreationBytecode,
+		&evmContract.RuntimeBytecode,
 	)
 	switch err {
 	case nil:

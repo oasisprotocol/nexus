@@ -2076,12 +2076,14 @@ components:
             and the constructor parameters. When run, this code generates the runtime bytecode.
             Can be omitted for contracts that were created by another contract, as opposed 
             to a direct `Create` call.
-        # runtime_bytecode:
-        #   type: string
-        #   format: byte
-        #   description: |
-        #     The runtime bytecode of the smart contract. This is the code stored on-chain that
-        #     descibes a smart contract.
+        runtime_bytecode:
+          type: string
+          format: byte
+          description: |
+            The runtime bytecode of the smart contract. This is the code stored on-chain that
+            descibes a smart contract. Every contract has this info, but the indexer fetches
+            it separately, so the field may be missing for very fresh contracts (or if the fetching
+            process is stalled).
         verification:
           $ref: '#/components/schemas/RuntimeEvmContractVerification'
           description: |
