@@ -39,7 +39,7 @@ type BlockProcessor interface {
 	// from source storage and committing an atomically-executed batch of queries
 	// to target storage.
 	//
-	// The implementation must commit processed blocks (update the chain.processed_blocks record with processed_time timestamp).
+	// The implementation must commit processed blocks (update the analysis.processed_blocks record with processed_time timestamp).
 	ProcessBlock(ctx context.Context, height uint64) error
 }
 

@@ -1,7 +1,6 @@
 BEGIN;
 
 -- A schema for keeping track of analyzers' internal state/progess.
--- TODO: Move chain.processed_blocks and chain.*_analysis tables here.
 CREATE SCHEMA IF NOT EXISTS analysis;
 GRANT USAGE ON SCHEMA analysis TO PUBLIC;
 

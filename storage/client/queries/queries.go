@@ -13,7 +13,7 @@ func TotalCountQuery(inner string) string {
 const (
 	Status = `
 		SELECT height, processed_time
-			FROM chain.processed_blocks
+			FROM analysis.processed_blocks
 			WHERE analyzer=$1 AND processed_time IS NOT NULL
 		ORDER BY processed_time DESC
 		LIMIT 1`

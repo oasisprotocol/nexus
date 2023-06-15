@@ -285,7 +285,7 @@ CREATE TABLE chain.accounts_related_transactions
 CREATE INDEX ix_accounts_related_transactions_address_block_index ON chain.accounts_related_transactions (account_address);
 
 -- Indexing Progress Management
-CREATE TABLE chain.processed_blocks
+CREATE TABLE chain.processed_blocks  -- Moved to analysis.processed_blocks in 06_analysis_schema.up.sql
 (
   height         UINT63 NOT NULL,
   analyzer       TEXT NOT NULL,
