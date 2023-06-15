@@ -220,6 +220,7 @@ CREATE TABLE chain.evm_contracts
   -- Can be null if the contract was created by another contract; eg through an evm.Call instead of a standard evm.Create. Tracing must be enabled to fill out this information.
   creation_tx HEX64,
   creation_bytecode BYTEA
+  -- runtime_bytecode BYTEA  -- Added in 05_evm_runtime_bytecode.up.sql
 );
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- Module accounts -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --

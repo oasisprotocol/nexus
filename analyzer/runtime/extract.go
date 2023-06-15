@@ -52,6 +52,7 @@ type BlockTransactionData struct {
 	GasLimit                uint64
 	Method                  string
 	Body                    interface{}
+	ContractCandidate       *apiTypes.Address // If non-nil, an address that was encountered in the tx and might be a contract.
 	To                      *apiTypes.Address // Extracted from the body for convenience. Semantics vary by tx type.
 	Amount                  *common.BigInt    // Extracted from the body for convenience. Semantics vary by tx type.
 	EVMEncrypted            *evm.EVMEncryptedData
@@ -387,6 +388,9 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 							CreationTx:       blockTransactionData.Hash,
 						}
 
+						// The `to` address is a contract; enqueue it for analysis.
+						blockTransactionData.ContractCandidate = &to
+
 						// Mark sender and contract accounts as having potentially stale balances.
 						// EVMCreate can transfer funds from the sender to the contract.
 						if to != "" {
@@ -426,6 +430,9 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 							"err", err2,
 						)
 					}
+
+					// Any recipient of a call might be a contract.
+					blockTransactionData.ContractCandidate = &to
 
 					if txr.Result.Ok != nil {
 						// Dead-reckon native token balances.

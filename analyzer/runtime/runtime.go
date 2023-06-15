@@ -239,6 +239,15 @@ func (m *processor) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 			error_message,
 		)
 
+		if transactionData.ContractCandidate != nil {
+			// Transaction potentially refers to a contract. Enqueue it for fetching its bytecode.
+			batch.Queue(
+				queries.RuntimeEVMContractCodeAnalysisInsert,
+				m.runtime,
+				transactionData.ContractCandidate,
+			)
+		}
+
 		if transactionData.EVMContract != nil {
 			batch.Queue(
 				queries.RuntimeEVMContractInsert,

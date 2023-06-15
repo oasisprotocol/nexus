@@ -381,6 +381,11 @@ var (
       (runtime, contract_address, creation_tx, creation_bytecode)
     VALUES ($1, $2, $3, $4)`
 
+	RuntimeEVMContractCodeAnalysisInsert = `
+    INSERT INTO analysis.evm_contract_code(runtime, contract_candidate)
+    VALUES ($1, $2)
+    ON CONFLICT (runtime, contract_candidate) DO NOTHING`
+
 	RuntimeEVMTokenBalanceUpdate = `
     INSERT INTO chain.evm_token_balances (runtime, token_address, account_address, balance)
       VALUES ($1, $2, $3, $4)
