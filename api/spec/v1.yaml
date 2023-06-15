@@ -972,7 +972,7 @@ paths:
 
   /{runtime}/evm_tokens:
     get:
-      summary: Returns a list of EVM (ERC-20, ...) tokens on Emerald.
+      summary: Returns a list of EVM (ERC-20, ...) tokens on the runtime.
       parameters:
         - *limit
         - *offset
@@ -2403,8 +2403,7 @@ components:
           type: integer
           format: int64
           description: |
-            The number of addresses that have a nonzero balance of this token,
-            as calculated from Transfer events.
+            The number of addresses that have a nonzero balance of this token.
           example: 123
 
     AccountStats:
