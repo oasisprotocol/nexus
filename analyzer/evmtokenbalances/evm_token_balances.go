@@ -74,9 +74,9 @@ import (
 
 const (
 	//nolint:gosec // thinks this is a hardcoded credential
-	EvmTokenBalancesAnalyzerPrefix = "evm_token_balances_"
-	MaxDownloadBatch               = 20
-	DownloadTimeout                = 61 * time.Second
+	evmTokenBalancesAnalyzerPrefix = "evm_token_balances_"
+	maxDownloadBatch               = 20
+	downloadTimeout                = 61 * time.Second
 )
 
 type Main struct {
@@ -101,7 +101,7 @@ func NewMain(
 		runtimeMetadata: runtimeMetadata,
 		source:          sourceClient,
 		target:          target,
-		logger:          logger.With("analyzer", EvmTokenBalancesAnalyzerPrefix+runtime),
+		logger:          logger.With("analyzer", evmTokenBalancesAnalyzerPrefix+runtime),
 	}, nil
 }
 
@@ -244,7 +244,7 @@ func (m Main) processStaleTokenBalance(ctx context.Context, batch *storage.Query
 }
 
 func (m Main) processBatch(ctx context.Context) (int, error) {
-	staleTokenBalances, err := m.getStaleTokenBalances(ctx, MaxDownloadBatch)
+	staleTokenBalances, err := m.getStaleTokenBalances(ctx, maxDownloadBatch)
 	if err != nil {
 		return 0, fmt.Errorf("getting stale token balances: %w", err)
 	}
@@ -253,7 +253,7 @@ func (m Main) processBatch(ctx context.Context) (int, error) {
 		return 0, nil
 	}
 
-	ctxWithTimeout, cancel := context.WithTimeout(ctx, DownloadTimeout)
+	ctxWithTimeout, cancel := context.WithTimeout(ctx, downloadTimeout)
 	defer cancel()
 	group, groupCtx := errgroup.WithContext(ctxWithTimeout)
 
@@ -324,7 +324,7 @@ func (m Main) Start(ctx context.Context) {
 }
 
 func (m Main) Name() string {
-	return EvmTokenBalancesAnalyzerPrefix + string(m.runtime)
+	return evmTokenBalancesAnalyzerPrefix + string(m.runtime)
 }
 
 func nativeTokenSymbol(sdkPT *sdkConfig.ParaTime) string {

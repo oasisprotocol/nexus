@@ -25,15 +25,12 @@ import (
 // Each candidate address only needs to be checked once.
 
 const (
-	EvmContractCodeAnalyzerPrefix = "evm_contract_code_"
-	MaxDownloadBatch              = 20
-	DownloadTimeout               = 61 * time.Second
+	evmContractCodeAnalyzerPrefix = "evm_contract_code_"
+	maxDownloadBatch              = 20
+	downloadTimeout               = 61 * time.Second
 )
 
-type (
-	EthAddress   = ethCommon.Address
-	OasisAddress string
-)
+type oasisAddress string
 
 type Main struct {
 	runtime common.Runtime
@@ -54,13 +51,13 @@ func NewMain(
 		runtime: runtime,
 		source:  sourceClient,
 		target:  target,
-		logger:  logger.With("analyzer", EvmContractCodeAnalyzerPrefix+runtime),
+		logger:  logger.With("analyzer", evmContractCodeAnalyzerPrefix+runtime),
 	}, nil
 }
 
 type ContractCandidate struct {
-	Addr          OasisAddress
-	EthAddr       EthAddress
+	Addr          oasisAddress
+	EthAddr       ethCommon.Address
 	DownloadRound uint64
 }
 
@@ -117,7 +114,7 @@ func (m Main) processContractCandidate(ctx context.Context, batch *storage.Query
 }
 
 func (m Main) processBatch(ctx context.Context) (int, error) {
-	contractCandidates, err := m.getContractCandidates(ctx, MaxDownloadBatch)
+	contractCandidates, err := m.getContractCandidates(ctx, maxDownloadBatch)
 	if err != nil {
 		return 0, fmt.Errorf("getting contract candidates: %w", err)
 	}
@@ -126,7 +123,7 @@ func (m Main) processBatch(ctx context.Context) (int, error) {
 		return 0, nil
 	}
 
-	ctxWithTimeout, cancel := context.WithTimeout(ctx, DownloadTimeout)
+	ctxWithTimeout, cancel := context.WithTimeout(ctx, downloadTimeout)
 	defer cancel()
 	group, groupCtx := errgroup.WithContext(ctxWithTimeout)
 
@@ -196,5 +193,5 @@ func (m Main) Start(ctx context.Context) {
 }
 
 func (m Main) Name() string {
-	return EvmContractCodeAnalyzerPrefix + string(m.runtime)
+	return evmContractCodeAnalyzerPrefix + string(m.runtime)
 }

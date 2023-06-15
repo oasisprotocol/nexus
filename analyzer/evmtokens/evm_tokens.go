@@ -29,9 +29,9 @@ import (
 
 const (
 	//nolint:gosec // thinks this is a hardcoded credential
-	EvmTokensAnalyzerPrefix = "evm_tokens_"
-	MaxDownloadBatch        = 20
-	DownloadTimeout         = 61 * time.Second
+	evmTokensAnalyzerPrefix = "evm_tokens_"
+	maxDownloadBatch        = 20
+	downloadTimeout         = 61 * time.Second
 )
 
 type Main struct {
@@ -53,7 +53,7 @@ func NewMain(
 		runtime: runtime,
 		source:  sourceClient,
 		target:  target,
-		logger:  logger.With("analyzer", EvmTokensAnalyzerPrefix+runtime),
+		logger:  logger.With("analyzer", evmTokensAnalyzerPrefix+runtime),
 	}, nil
 }
 
@@ -151,7 +151,7 @@ func (m Main) processStaleToken(ctx context.Context, batch *storage.QueryBatch, 
 }
 
 func (m Main) processBatch(ctx context.Context) (int, error) {
-	staleTokens, err := m.getStaleTokens(ctx, MaxDownloadBatch)
+	staleTokens, err := m.getStaleTokens(ctx, maxDownloadBatch)
 	if err != nil {
 		return 0, fmt.Errorf("getting discovered tokens: %w", err)
 	}
@@ -160,7 +160,7 @@ func (m Main) processBatch(ctx context.Context) (int, error) {
 		return 0, nil
 	}
 
-	ctxWithTimeout, cancel := context.WithTimeout(ctx, DownloadTimeout)
+	ctxWithTimeout, cancel := context.WithTimeout(ctx, downloadTimeout)
 	defer cancel()
 	group, groupCtx := errgroup.WithContext(ctxWithTimeout)
 
@@ -231,5 +231,5 @@ func (m Main) Start(ctx context.Context) {
 }
 
 func (m Main) Name() string {
-	return EvmTokensAnalyzerPrefix + string(m.runtime)
+	return evmTokensAnalyzerPrefix + string(m.runtime)
 }
