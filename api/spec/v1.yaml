@@ -972,7 +972,7 @@ paths:
 
   /{runtime}/evm_tokens:
     get:
-      summary: Returns a list of EVM (ERC-20, ...) tokens on Emerald.
+      summary: Returns a list of EVM (ERC-20, ...) tokens on the runtime.
       parameters:
         - *limit
         - *offset
@@ -984,6 +984,26 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EvmTokenList'
+        <<: *common_error_responses
+
+  /{runtime}/evm_tokens/{address}:
+    get:
+      summary: Returns info on an EVM (ERC-20, ...) token on the runtime.
+      parameters:
+        - *runtime
+        - in: path
+          name: address
+          required: true
+          schema:
+            <<: *StakingAddressType
+          description: The staking address of the account to return.
+      responses:
+        '200':
+          description: The requested token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvmToken'
         <<: *common_error_responses
 
   /{runtime}/accounts/{address}:
@@ -2403,8 +2423,7 @@ components:
           type: integer
           format: int64
           description: |
-            The number of addresses that have a nonzero balance of this token,
-            as calculated from Transfer events.
+            The number of addresses that have a nonzero balance of this token.
           example: 123
 
     AccountStats:

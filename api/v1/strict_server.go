@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	apiTypes "github.com/oasisprotocol/oasis-indexer/api/v1/types"
+	"github.com/oasisprotocol/oasis-indexer/common"
 	"github.com/oasisprotocol/oasis-indexer/log"
 	"github.com/oasisprotocol/oasis-indexer/storage/client"
 )
@@ -260,11 +261,22 @@ func (srv *StrictServerImpl) GetRuntimeBlocks(ctx context.Context, request apiTy
 }
 
 func (srv *StrictServerImpl) GetRuntimeEvmTokens(ctx context.Context, request apiTypes.GetRuntimeEvmTokensRequestObject) (apiTypes.GetRuntimeEvmTokensResponseObject, error) {
-	tokens, err := srv.dbClient.RuntimeTokens(ctx, request.Params)
+	tokens, err := srv.dbClient.RuntimeTokens(ctx, request.Params, nil)
 	if err != nil {
 		return nil, err
 	}
 	return apiTypes.GetRuntimeEvmTokens200JSONResponse(*tokens), nil
+}
+
+func (srv *StrictServerImpl) GetRuntimeEvmTokensAddress(ctx context.Context, request apiTypes.GetRuntimeEvmTokensAddressRequestObject) (apiTypes.GetRuntimeEvmTokensAddressResponseObject, error) {
+	tokens, err := srv.dbClient.RuntimeTokens(ctx, apiTypes.GetRuntimeEvmTokensParams{Limit: common.Ptr(uint64(1))}, &request.Address)
+	if err != nil {
+		return nil, err
+	}
+	if len(tokens.EvmTokens) != 1 {
+		return apiTypes.GetRuntimeEvmTokensAddress404JSONResponse{}, nil
+	}
+	return apiTypes.GetRuntimeEvmTokensAddress200JSONResponse(tokens.EvmTokens[0]), nil
 }
 
 func (srv *StrictServerImpl) GetRuntimeTransactions(ctx context.Context, request apiTypes.GetRuntimeTransactionsRequestObject) (apiTypes.GetRuntimeTransactionsResponseObject, error) {
