@@ -186,7 +186,7 @@ CREATE TABLE chain.evm_tokens
   total_supply uint_numeric
 );
 
-CREATE TABLE chain.evm_token_analysis
+CREATE TABLE chain.evm_token_analysis  -- Moved to analysis.evm_tokens in 06_analysis_schema.up.sql
 (
   runtime runtime NOT NULL,
   token_address oasis_addr NOT NULL,
@@ -199,7 +199,7 @@ CREATE TABLE chain.evm_token_analysis
 );
 CREATE INDEX ix_evm_token_analysis_stale ON chain.evm_token_analysis (runtime, token_address) WHERE last_download_round IS NULL OR last_mutate_round > last_download_round;
 
-CREATE TABLE chain.evm_token_balance_analysis
+CREATE TABLE chain.evm_token_balance_analysis  -- Moved to analysis.evm_token_balances in 06_analysis_schema.up.sql
 (
   runtime runtime NOT NULL,
   -- This table is used to track balance querying primarily for EVM tokens (ERC-20, ERC-271, etc), but also for
