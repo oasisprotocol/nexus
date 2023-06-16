@@ -403,10 +403,18 @@ const (
 			OFFSET $9::bigint`
 
 	RuntimeEvmContract = `
-		SELECT creation_tx, creation_bytecode
-			FROM chain.evm_contracts
-			WHERE (runtime = $1) AND
-					(contract_address = $2::text)`
+		SELECT
+			creation_tx,
+			(
+				SELECT tx_eth_hash FROM chain.runtime_transactions rtt
+				WHERE (rtt.runtime = $1) AND (rtt.tx_hash = creation_tx)
+				ORDER BY timestamp DESC LIMIT 1  -- Technically more than one tx might share the same hash, but it's so vanishingly rare that this hack is fine.
+			) AS eth_creation_tx,
+			creation_bytecode,
+			runtime_bytecode
+		FROM chain.evm_contracts
+		
+		WHERE (runtime = $1) AND (contract_address = $2::text)`
 
 	AddressPreimage = `
 		SELECT context_identifier, context_version, address_data
