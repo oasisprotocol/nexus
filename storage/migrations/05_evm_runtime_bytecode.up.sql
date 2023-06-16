@@ -18,7 +18,7 @@ CREATE TABLE analysis.evm_contract_code (
     --   TRUE:  downloaded runtime bytecode
     --   FALSE: download failed because `contract_candidate` is not a contract (= does not have code)
     --   NULL:  not yet attempted
-    is_contract bool
+    is_contract BOOLEAN
 );
 -- Allow the analyzer to quickly retrieve addresses that have not been downloaded yet.
 CREATE INDEX ix_evm_contract_code_todo ON analysis.evm_contract_code (runtime, contract_candidate) WHERE is_contract IS NULL;
