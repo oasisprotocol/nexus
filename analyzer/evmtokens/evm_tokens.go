@@ -15,7 +15,7 @@ import (
 	"github.com/oasisprotocol/oasis-indexer/log"
 	"github.com/oasisprotocol/oasis-indexer/storage"
 	"github.com/oasisprotocol/oasis-indexer/storage/client"
-	source "github.com/oasisprotocol/oasis-indexer/storage/oasis"
+	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
 )
 
 // The token analyzer (1) gets a list from the database of tokens to download
@@ -29,31 +29,31 @@ import (
 
 const (
 	//nolint:gosec // thinks this is a hardcoded credential
-	EvmTokensAnalyzerPrefix = "evm_tokens_"
-	MaxDownloadBatch        = 20
-	DownloadTimeout         = 61 * time.Second
+	evmTokensAnalyzerPrefix = "evm_tokens_"
+	maxDownloadBatch        = 20
+	downloadTimeout         = 61 * time.Second
 )
 
-type Main struct {
+type main struct {
 	runtime common.Runtime
-	source  storage.RuntimeSourceStorage
+	source  nodeapi.RuntimeApiLite
 	target  storage.TargetStorage
 	logger  *log.Logger
 }
 
-var _ analyzer.Analyzer = (*Main)(nil)
+var _ analyzer.Analyzer = (*main)(nil)
 
 func NewMain(
 	runtime common.Runtime,
-	sourceClient *source.RuntimeClient,
+	sourceClient nodeapi.RuntimeApiLite,
 	target storage.TargetStorage,
 	logger *log.Logger,
-) (*Main, error) {
-	return &Main{
+) (analyzer.Analyzer, error) {
+	return &main{
 		runtime: runtime,
 		source:  sourceClient,
 		target:  target,
-		logger:  logger.With("analyzer", EvmTokensAnalyzerPrefix+runtime),
+		logger:  logger.With("analyzer", evmTokensAnalyzerPrefix+runtime),
 	}, nil
 }
 
@@ -67,7 +67,7 @@ type StaleToken struct {
 	DownloadRound         uint64
 }
 
-func (m Main) getStaleTokens(ctx context.Context, limit int) ([]*StaleToken, error) {
+func (m main) getStaleTokens(ctx context.Context, limit int) ([]*StaleToken, error) {
 	var staleTokens []*StaleToken
 	rows, err := m.target.Query(ctx, queries.RuntimeEVMTokenAnalysisStale, m.runtime, limit)
 	if err != nil {
@@ -92,7 +92,7 @@ func (m Main) getStaleTokens(ctx context.Context, limit int) ([]*StaleToken, err
 	return staleTokens, nil
 }
 
-func (m Main) processStaleToken(ctx context.Context, batch *storage.QueryBatch, staleToken *StaleToken) error {
+func (m main) processStaleToken(ctx context.Context, batch *storage.QueryBatch, staleToken *StaleToken) error {
 	m.logger.Info("downloading", "stale_token", staleToken)
 	tokenEthAddr, err := client.EVMEthAddrFromPreimage(staleToken.AddrContextIdentifier, staleToken.AddrContextVersion, staleToken.AddrData)
 	if err != nil {
@@ -150,8 +150,8 @@ func (m Main) processStaleToken(ctx context.Context, batch *storage.QueryBatch, 
 	return nil
 }
 
-func (m Main) processBatch(ctx context.Context) (int, error) {
-	staleTokens, err := m.getStaleTokens(ctx, MaxDownloadBatch)
+func (m main) processBatch(ctx context.Context) (int, error) {
+	staleTokens, err := m.getStaleTokens(ctx, maxDownloadBatch)
 	if err != nil {
 		return 0, fmt.Errorf("getting discovered tokens: %w", err)
 	}
@@ -160,7 +160,7 @@ func (m Main) processBatch(ctx context.Context) (int, error) {
 		return 0, nil
 	}
 
-	ctxWithTimeout, cancel := context.WithTimeout(ctx, DownloadTimeout)
+	ctxWithTimeout, cancel := context.WithTimeout(ctx, downloadTimeout)
 	defer cancel()
 	group, groupCtx := errgroup.WithContext(ctxWithTimeout)
 
@@ -190,7 +190,7 @@ func (m Main) processBatch(ctx context.Context) (int, error) {
 	return len(staleTokens), nil
 }
 
-func (m Main) Start(ctx context.Context) {
+func (m main) Start(ctx context.Context) {
 	backoff, err := util.NewBackoff(
 		100*time.Millisecond,
 		// Cap the timeout at the expected round time. All runtimes currently have the same round time.
@@ -230,6 +230,6 @@ func (m Main) Start(ctx context.Context) {
 	}
 }
 
-func (m Main) Name() string {
-	return EvmTokensAnalyzerPrefix + string(m.runtime)
+func (m main) Name() string {
+	return evmTokensAnalyzerPrefix + string(m.runtime)
 }

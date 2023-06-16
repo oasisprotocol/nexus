@@ -17,6 +17,7 @@ import (
 
 	"github.com/oasisprotocol/oasis-indexer/analyzer"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/consensus"
+	"github.com/oasisprotocol/oasis-indexer/analyzer/evmcontractcode"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/evmtokenbalances"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/evmtokens"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/runtime"
@@ -26,6 +27,7 @@ import (
 	"github.com/oasisprotocol/oasis-indexer/log"
 	"github.com/oasisprotocol/oasis-indexer/storage"
 	source "github.com/oasisprotocol/oasis-indexer/storage/oasis"
+	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
 )
 
 const (
@@ -149,13 +151,13 @@ type sourceFactory struct {
 	cfg config.SourceConfig
 
 	consensus *source.ConsensusClient
-	runtimes  map[common.Runtime]*source.RuntimeClient
+	runtimes  map[common.Runtime]nodeapi.RuntimeApiLite
 }
 
 func newSourceFactory(cfg config.SourceConfig) *sourceFactory {
 	return &sourceFactory{
 		cfg:      cfg,
-		runtimes: make(map[common.Runtime]*source.RuntimeClient),
+		runtimes: make(map[common.Runtime]nodeapi.RuntimeApiLite),
 	}
 }
 
@@ -187,7 +189,7 @@ func (s *sourceFactory) Consensus(ctx context.Context) (*source.ConsensusClient,
 	return s.consensus, nil
 }
 
-func (s *sourceFactory) Runtime(ctx context.Context, runtime common.Runtime) (*source.RuntimeClient, error) {
+func (s *sourceFactory) Runtime(ctx context.Context, runtime common.Runtime) (nodeapi.RuntimeApiLite, error) {
 	_, ok := s.runtimes[runtime]
 	if !ok {
 		client, err := source.NewRuntimeClient(ctx, &s.cfg, runtime)
@@ -316,6 +318,24 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) {
 				return nil, err1
 			}
 			return evmtokenbalances.NewMain(common.RuntimeSapphire, runtimeMetadata, sourceClient, dbClient, logger)
+		})
+	}
+	if cfg.Analyzers.EmeraldContractCode != nil {
+		analyzers, err = addAnalyzer(analyzers, err, func() (A, error) {
+			sourceClient, err1 := sources.Runtime(ctx, common.RuntimeEmerald)
+			if err1 != nil {
+				return nil, err1
+			}
+			return evmcontractcode.NewMain(common.RuntimeEmerald, sourceClient, dbClient, logger)
+		})
+	}
+	if cfg.Analyzers.SapphireContractCode != nil {
+		analyzers, err = addAnalyzer(analyzers, err, func() (A, error) {
+			sourceClient, err1 := sources.Runtime(ctx, common.RuntimeSapphire)
+			if err1 != nil {
+				return nil, err1
+			}
+			return evmcontractcode.NewMain(common.RuntimeSapphire, sourceClient, dbClient, logger)
 		})
 	}
 	if cfg.Analyzers.MetadataRegistry != nil {

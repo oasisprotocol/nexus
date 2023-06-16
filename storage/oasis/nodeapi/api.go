@@ -204,6 +204,7 @@ type Proposal governance.Proposal
 type RuntimeApiLite interface {
 	GetEventsRaw(ctx context.Context, round uint64) ([]RuntimeEvent, error)
 	EVMSimulateCall(ctx context.Context, round uint64, gasPrice []byte, gasLimit uint64, caller []byte, address []byte, value []byte, data []byte) ([]byte, error)
+	EVMGetCode(ctx context.Context, round uint64, address []byte) ([]byte, error)
 	GetBlockHeader(ctx context.Context, round uint64) (*RuntimeBlockHeader, error)
 	GetTransactionsWithResults(ctx context.Context, round uint64) ([]RuntimeTransactionWithResults, error)
 	GetNativeBalance(ctx context.Context, round uint64, addr Address) (*common.BigInt, error)

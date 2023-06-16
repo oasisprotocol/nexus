@@ -112,10 +112,12 @@ type AnalyzersList struct {
 	Sapphire  *BlockBasedAnalyzerConfig `koanf:"sapphire"`
 	Cipher    *BlockBasedAnalyzerConfig `koanf:"cipher"`
 
-	EmeraldEvmTokens         *EvmTokensAnalyzerConfig `koanf:"evm_tokens_emerald"`
-	SapphireEvmTokens        *EvmTokensAnalyzerConfig `koanf:"evm_tokens_sapphire"`
-	EmeraldEvmTokenBalances  *EvmTokensAnalyzerConfig `koanf:"evm_token_balances_emerald"`
-	SapphireEvmTokenBalances *EvmTokensAnalyzerConfig `koanf:"evm_token_balances_sapphire"`
+	EmeraldEvmTokens         *EvmTokensAnalyzerConfig       `koanf:"evm_tokens_emerald"`
+	SapphireEvmTokens        *EvmTokensAnalyzerConfig       `koanf:"evm_tokens_sapphire"`
+	EmeraldEvmTokenBalances  *EvmTokensAnalyzerConfig       `koanf:"evm_token_balances_emerald"`
+	SapphireEvmTokenBalances *EvmTokensAnalyzerConfig       `koanf:"evm_token_balances_sapphire"`
+	EmeraldContractCode      *EvmContractCodeAnalyzerConfig `koanf:"evm_contract_code_emerald"`
+	SapphireContractCode     *EvmContractCodeAnalyzerConfig `koanf:"evm_contract_code_sapphire"`
 
 	MetadataRegistry *MetadataRegistryConfig `koanf:"metadata_registry"`
 	AggregateStats   *AggregateStatsConfig   `koanf:"aggregate_stats"`
@@ -267,6 +269,8 @@ type IntervalBasedAnalyzerConfig struct {
 }
 
 type EvmTokensAnalyzerConfig struct{}
+
+type EvmContractCodeAnalyzerConfig struct{}
 
 // Validate validates the range configuration.
 func (cfg *BlockBasedAnalyzerConfig) Validate() error {

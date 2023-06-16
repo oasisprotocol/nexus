@@ -18,7 +18,6 @@ import (
 	"github.com/oasisprotocol/oasis-indexer/log"
 	"github.com/oasisprotocol/oasis-indexer/storage"
 	"github.com/oasisprotocol/oasis-indexer/storage/client"
-	source "github.com/oasisprotocol/oasis-indexer/storage/oasis"
 	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
 )
 
@@ -75,34 +74,34 @@ import (
 
 const (
 	//nolint:gosec // thinks this is a hardcoded credential
-	EvmTokenBalancesAnalyzerPrefix = "evm_token_balances_"
-	MaxDownloadBatch               = 20
-	DownloadTimeout                = 61 * time.Second
+	evmTokenBalancesAnalyzerPrefix = "evm_token_balances_"
+	maxDownloadBatch               = 20
+	downloadTimeout                = 61 * time.Second
 )
 
-type Main struct {
+type main struct {
 	runtime         common.Runtime
 	runtimeMetadata *sdkConfig.ParaTime
-	source          storage.RuntimeSourceStorage
+	source          nodeapi.RuntimeApiLite
 	target          storage.TargetStorage
 	logger          *log.Logger
 }
 
-var _ analyzer.Analyzer = (*Main)(nil)
+var _ analyzer.Analyzer = (*main)(nil)
 
 func NewMain(
 	runtime common.Runtime,
 	runtimeMetadata *sdkConfig.ParaTime,
-	sourceClient *source.RuntimeClient,
+	sourceClient nodeapi.RuntimeApiLite,
 	target storage.TargetStorage,
 	logger *log.Logger,
-) (*Main, error) {
-	return &Main{
+) (analyzer.Analyzer, error) {
+	return &main{
 		runtime:         runtime,
 		runtimeMetadata: runtimeMetadata,
 		source:          sourceClient,
 		target:          target,
-		logger:          logger.With("analyzer", EvmTokenBalancesAnalyzerPrefix+runtime),
+		logger:          logger.With("analyzer", evmTokenBalancesAnalyzerPrefix+runtime),
 	}, nil
 }
 
@@ -120,7 +119,7 @@ type StaleTokenBalance struct {
 	DownloadRound                uint64
 }
 
-func (m Main) getStaleTokenBalances(ctx context.Context, limit int) ([]*StaleTokenBalance, error) {
+func (m main) getStaleTokenBalances(ctx context.Context, limit int) ([]*StaleTokenBalance, error) {
 	var staleTokenBalances []*StaleTokenBalance
 	rows, err := m.target.Query(ctx, queries.RuntimeEVMTokenBalanceAnalysisStale,
 		m.runtime,
@@ -154,7 +153,7 @@ func (m Main) getStaleTokenBalances(ctx context.Context, limit int) ([]*StaleTok
 	return staleTokenBalances, nil
 }
 
-func (m Main) processStaleTokenBalance(ctx context.Context, batch *storage.QueryBatch, staleTokenBalance *StaleTokenBalance) error {
+func (m main) processStaleTokenBalance(ctx context.Context, batch *storage.QueryBatch, staleTokenBalance *StaleTokenBalance) error {
 	accountEthAddr, err := client.EVMEthAddrFromPreimage(staleTokenBalance.AccountAddrContextIdentifier, staleTokenBalance.AccountAddrContextVersion, staleTokenBalance.AccountAddrData)
 	if err != nil {
 		return fmt.Errorf("account address: %w", err)
@@ -244,8 +243,8 @@ func (m Main) processStaleTokenBalance(ctx context.Context, batch *storage.Query
 	return nil
 }
 
-func (m Main) processBatch(ctx context.Context) (int, error) {
-	staleTokenBalances, err := m.getStaleTokenBalances(ctx, MaxDownloadBatch)
+func (m main) processBatch(ctx context.Context) (int, error) {
+	staleTokenBalances, err := m.getStaleTokenBalances(ctx, maxDownloadBatch)
 	if err != nil {
 		return 0, fmt.Errorf("getting stale token balances: %w", err)
 	}
@@ -254,7 +253,7 @@ func (m Main) processBatch(ctx context.Context) (int, error) {
 		return 0, nil
 	}
 
-	ctxWithTimeout, cancel := context.WithTimeout(ctx, DownloadTimeout)
+	ctxWithTimeout, cancel := context.WithTimeout(ctx, downloadTimeout)
 	defer cancel()
 	group, groupCtx := errgroup.WithContext(ctxWithTimeout)
 
@@ -284,7 +283,7 @@ func (m Main) processBatch(ctx context.Context) (int, error) {
 	return len(staleTokenBalances), nil
 }
 
-func (m Main) Start(ctx context.Context) {
+func (m main) Start(ctx context.Context) {
 	backoff, err := util.NewBackoff(
 		100*time.Millisecond,
 		// Cap the timeout at the expected round time. All runtimes currently have the same round time.
@@ -324,8 +323,8 @@ func (m Main) Start(ctx context.Context) {
 	}
 }
 
-func (m Main) Name() string {
-	return EvmTokenBalancesAnalyzerPrefix + string(m.runtime)
+func (m main) Name() string {
+	return evmTokenBalancesAnalyzerPrefix + string(m.runtime)
 }
 
 func nativeTokenSymbol(sdkPT *sdkConfig.ParaTime) string {
