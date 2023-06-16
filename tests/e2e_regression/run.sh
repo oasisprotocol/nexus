@@ -20,6 +20,7 @@ hostname="http://localhost:8008"
 # The directory to store the actual responses in
 outDir="$SCRIPT_DIR/actual"
 mkdir -p "$outDir"
+rm "$outDir"/* || true
 
 testCases=(
   'status                   /v1/'
@@ -121,21 +122,26 @@ done
 diff --recursive "$SCRIPT_DIR/expected" "$outDir" >/dev/null || {
   echo
   echo "NOTE: $SCRIPT_DIR/expected and $outDir differ."
-  if [[ $- == *i* ]]; then
+  {
+    # The expected files contain a symlink, which 'git diff' cannot follow (but regular 'diff' can).
+    # Create a copy of the `expected` dir with the symlink contents materialized; we'll diff against that.
+    rm -rf /tmp/indexer-e2e-expected; cp -r --dereference "$SCRIPT_DIR/expected" /tmp/indexer-e2e-expected;
+  }
+  if [[ -t 1 ]]; then  # Running in a terminal
     echo "Press enter see the diff, or Ctrl-C to abort."
     read -r
-    git diff --no-index "$SCRIPT_DIR"/{expected,actual} || true
+    git diff --no-index /tmp/indexer-e2e-expected "$SCRIPT_DIR/actual" || true
     echo
     echo "To re-view the diff, run:"
-    echo "  git diff --no-index $SCRIPT_DIR/{expected,actual}"
-    echo
-    echo "If the new results are expected, re-run this script after copying the new results into .../expected:"
-    echo "  make accept-e2e-regression"
+    echo "  git diff --no-index /tmp/indexer-e2e-expected $SCRIPT_DIR/actual"
   else
-    # Running in script mode (likely in CI)
+    # Running outside a terminal (likely in CI)
     echo "CI diff:"
     git diff --no-index "$SCRIPT_DIR"/{expected,actual} || true
   fi
+  echo
+  echo "If the new results are expected, copy the new results into .../expected:"
+  echo "  make accept-e2e-regression"
   exit 1
 }
 
