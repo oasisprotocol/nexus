@@ -1383,6 +1383,7 @@ func (c *StorageClient) RuntimeAccount(ctx context.Context, address staking.Addr
 		address.String(),
 	).Scan(
 		&evmContract.CreationTx,
+		&evmContract.EthCreationTx,
 		&evmContract.CreationBytecode,
 		&evmContract.RuntimeBytecode,
 	)
