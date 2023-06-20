@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
-	ethCommon "github.com/ethereum/go-ethereum/common"
 	runtimeClient "github.com/oasisprotocol/oasis-core/go/runtime/client/api"
 	sdkConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 	"github.com/stretchr/testify/require"
@@ -87,12 +86,9 @@ func TestEVMFailDeterministicOutOfGas(t *testing.T) {
 	tokenEthAddr, err := hex.DecodeString("dC19A122e268128B5eE20366299fc7b5b199C8e3")
 	require.NoError(t, err)
 	var name string
-	gasPrice := []byte{1}
 	// Use very low gas to cause out of gas condition.
 	gasLimit := uint64(10)
-	caller := ethCommon.Address{1}.Bytes()
-	value := []byte{0}
-	err = evmCallWithABICustom(ctx, source, runtimeClient.RoundLatest, gasPrice, gasLimit, caller, tokenEthAddr, value, evmabi.ERC20, &name, "name")
+	err = evmCallWithABICustom(ctx, source, runtimeClient.RoundLatest, DefaultGasPrice, gasLimit, DefaultCaller, tokenEthAddr, DefaultValue, evmabi.ERC20, &name, "name")
 	require.Error(t, err)
 	fmt.Printf("query that runs out of gas should fail: %+v\n", err)
 	require.True(t, errors.Is(err, EVMDeterministicError{}))

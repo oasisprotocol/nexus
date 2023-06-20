@@ -134,6 +134,14 @@ func evmCallWithABICustom(
 	return nil
 }
 
+var (
+	// https://github.com/oasisprotocol/oasis-web3-gateway/blob/v3.0.0/rpc/eth/api.go#L403-L408
+	DefaultGasPrice        = []byte{1}
+	DefaultGasLimit uint64 = 30_000_000
+	DefaultCaller          = ethCommon.Address{1}.Bytes()
+	DefaultValue           = []byte{0}
+)
+
 // evmCallWithABI: Given a runtime `source` and `round`, and given an EVM
 // smart contract (at `contractEthAddr`, with `contractABI`) deployed in that
 // runtime, invokes `method(params...)` in that smart contract. The method
@@ -149,13 +157,7 @@ func evmCallWithABI(
 	method string,
 	params ...interface{},
 ) error {
-	// https://github.com/oasisprotocol/oasis-web3-gateway/blob/v3.0.0/rpc/eth/api.go#L403-L408
-	gasPrice := []byte{1}
-	gasLimit := uint64(30_000_000)
-	caller := ethCommon.Address{1}.Bytes()
-	value := []byte{0}
-
-	return evmCallWithABICustom(ctx, source, round, gasPrice, gasLimit, caller, contractEthAddr, value, contractABI, result, method, params...)
+	return evmCallWithABICustom(ctx, source, round, DefaultGasPrice, DefaultGasLimit, DefaultCaller, contractEthAddr, DefaultValue, contractABI, result, method, params...)
 }
 
 func evmDownloadTokenERC20Mutable(ctx context.Context, logger *log.Logger, source nodeapi.RuntimeApiLite, round uint64, tokenEthAddr []byte) (*EVMTokenMutableData, error) {
