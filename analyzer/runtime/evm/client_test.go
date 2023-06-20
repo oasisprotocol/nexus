@@ -37,6 +37,21 @@ var (
 	}
 )
 
+func TestERC165(t *testing.T) {
+	ctx := context.Background()
+	source, err := oasis.NewRuntimeClient(ctx, PublicSourceConfig, common.RuntimeEmerald)
+	require.NoError(t, err)
+	// AI ROSE on Emerald mainnet.
+	tokenEthAddr, err := hex.DecodeString("0f4c5A429166608f9225E094F7E66B0bF68a53B9")
+	require.NoError(t, err)
+	supportsERC165, err := detectERC165(ctx, cmdCommon.Logger(), source, runtimeClient.RoundLatest, tokenEthAddr)
+	require.NoError(t, err)
+	require.True(t, supportsERC165)
+	supportsERC721, err := detectInterface(ctx, cmdCommon.Logger(), source, runtimeClient.RoundLatest, tokenEthAddr, ERC165InterfaceID)
+	require.NoError(t, err)
+	require.True(t, supportsERC721)
+}
+
 func TestEVMDownloadTokenERC20(t *testing.T) {
 	ctx := context.Background()
 	source, err := oasis.NewRuntimeClient(ctx, PublicSourceConfig, common.RuntimeEmerald)

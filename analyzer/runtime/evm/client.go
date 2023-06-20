@@ -177,11 +177,17 @@ func logDeterministicError(logger *log.Logger, round uint64, contractEthAddr []b
 // it deterministically cannot download the data, it returns a struct
 // with the `Type` field set to `EVMTokenTypeUnsupported`.
 func EVMDownloadNewToken(ctx context.Context, logger *log.Logger, source nodeapi.RuntimeApiLite, round uint64, tokenEthAddr []byte) (*EVMTokenData, error) {
-	// todo: check ERC-165 0xffffffff compliance
-	// todo: try other token standards based on ERC-165
-	// see https://github.com/oasisprotocol/nexus/issues/225
+	supportsERC165, err := detectERC165(ctx, logger, source, round, tokenEthAddr)
+	if err != nil {
+		return nil, fmt.Errorf("detect ERC165: %w", err)
+	}
+	if supportsERC165 {
+		// todo: add support for other token types
+		// see https://github.com/oasisprotocol/nexus/issues/225
+	}
 
-	// Check ERC-20.
+	// Check ERC-20. These tokens typically do not implement ERC-165, so do not bother checking for
+	// explicit declaration of support, detect ERC-20 support with heuristics instead.
 	tokenData, err := evmDownloadTokenERC20(ctx, logger, source, round, tokenEthAddr)
 	if err != nil {
 		return nil, fmt.Errorf("download token ERC-20: %w", err)
@@ -189,9 +195,6 @@ func EVMDownloadNewToken(ctx context.Context, logger *log.Logger, source nodeapi
 	if tokenData != nil {
 		return tokenData, nil
 	}
-
-	// todo: add support for other token types
-	// see https://github.com/oasisprotocol/nexus/issues/225
 
 	// No applicable token discovered.
 	return &EVMTokenData{Type: EVMTokenTypeUnsupported}, nil
