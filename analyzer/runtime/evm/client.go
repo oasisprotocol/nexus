@@ -160,22 +160,28 @@ func evmCallWithABI(
 	return evmCallWithABICustom(ctx, source, round, DefaultGasPrice, DefaultGasLimit, DefaultCaller, contractEthAddr, DefaultValue, contractABI, result, method, params...)
 }
 
+// logDeterministicError is for if we know how to handle a deterministic
+// error--in those cases you can use this to make a note of the error. Just in
+// case someone wasn't expecting it, you know?
+func logDeterministicError(logger *log.Logger, round uint64, contractEthAddr []byte, interfaceName string, method string, err error, keyvals ...interface{}) {
+	keyvals = append([]interface{}{
+		"round", round,
+		"contract_eth_addr_hex", hex.EncodeToString(contractEthAddr),
+		"interface_name", interfaceName,
+		"method", method,
+		"err", err,
+	}, keyvals...)
+	logger.Info("call failed", keyvals...)
+}
+
 func evmDownloadTokenERC20Mutable(ctx context.Context, logger *log.Logger, source nodeapi.RuntimeApiLite, round uint64, tokenEthAddr []byte) (*EVMTokenMutableData, error) {
 	var mutable EVMTokenMutableData
-	logError := func(method string, err error) {
-		logger.Info("ERC20 call failed",
-			"round", round,
-			"token_eth_addr_hex", hex.EncodeToString(tokenEthAddr),
-			"method", method,
-			"err", err,
-		)
-	}
 	// These mandatory methods must succeed, or we do not count this as an ERC-20 token.
 	if err := evmCallWithABI(ctx, source, round, tokenEthAddr, evmabi.ERC20, &mutable.TotalSupply, "totalSupply"); err != nil {
-		logError("totalSupply", err)
 		if !errors.Is(err, EVMDeterministicError{}) {
 			return nil, fmt.Errorf("calling totalSupply: %w", err)
 		}
+		logDeterministicError(logger, round, tokenEthAddr, "ERC20", "totalSupply", err)
 		return nil, nil
 	}
 	return &mutable, nil
@@ -185,17 +191,8 @@ func evmDownloadTokenERC20(ctx context.Context, logger *log.Logger, source nodea
 	tokenData := EVMTokenData{
 		Type: EVMTokenTypeERC20,
 	}
-	logError := func(method string, err error) {
-		logger.Info("ERC20 call failed",
-			"round", round,
-			"token_eth_addr_hex", hex.EncodeToString(tokenEthAddr),
-			"method", method,
-			"err", err,
-		)
-	}
 	// These optional methods may fail.
 	if err := evmCallWithABI(ctx, source, round, tokenEthAddr, evmabi.ERC20, &tokenData.Name, "name"); err != nil {
-		logError("name", err)
 		// Propagate the error (so that token-info fetching may be retried
 		// later) only if the error is non-deterministic, e.g. network
 		// failure. Otherwise, accept that the token contract doesn't expose
@@ -203,18 +200,19 @@ func evmDownloadTokenERC20(ctx context.Context, logger *log.Logger, source nodea
 		if !errors.Is(err, EVMDeterministicError{}) {
 			return nil, fmt.Errorf("calling name: %w", err)
 		}
+		logDeterministicError(logger, round, tokenEthAddr, "ERC20", "name", err)
 	}
 	if err := evmCallWithABI(ctx, source, round, tokenEthAddr, evmabi.ERC20, &tokenData.Symbol, "symbol"); err != nil {
-		logError("symbol", err)
 		if !errors.Is(err, EVMDeterministicError{}) {
 			return nil, fmt.Errorf("calling symbol: %w", err)
 		}
+		logDeterministicError(logger, round, tokenEthAddr, "ERC20", "symbol", err)
 	}
 	if err := evmCallWithABI(ctx, source, round, tokenEthAddr, evmabi.ERC20, &tokenData.Decimals, "decimals"); err != nil {
-		logError("decimals", err)
 		if !errors.Is(err, EVMDeterministicError{}) {
 			return nil, fmt.Errorf("calling decimals: %w", err)
 		}
+		logDeterministicError(logger, round, tokenEthAddr, "ERC20", "decimals", err)
 	}
 	mutable, err := evmDownloadTokenERC20Mutable(ctx, logger, source, round, tokenEthAddr)
 	if err != nil {
@@ -276,21 +274,14 @@ func EVMDownloadMutatedToken(ctx context.Context, logger *log.Logger, source nod
 
 func evmDownloadTokenBalanceERC20(ctx context.Context, logger *log.Logger, source nodeapi.RuntimeApiLite, round uint64, tokenEthAddr []byte, accountEthAddr []byte) (*EVMTokenBalanceData, error) {
 	var balanceData EVMTokenBalanceData
-	logError := func(method string, err error) {
-		logger.Info("ERC20 call failed",
-			"round", round,
-			"token_eth_addr_hex", hex.EncodeToString(tokenEthAddr),
-			"account_eth_addr_hex", hex.EncodeToString(accountEthAddr),
-			"method", method,
-			"err", err,
-		)
-	}
 	accountECAddr := ethCommon.BytesToAddress(accountEthAddr)
 	if err := evmCallWithABI(ctx, source, round, tokenEthAddr, evmabi.ERC20, &balanceData.Balance, "balanceOf", accountECAddr); err != nil {
-		logError("balanceOf", err)
 		if !errors.Is(err, EVMDeterministicError{}) {
 			return nil, fmt.Errorf("calling balanceOf: %w", err)
 		}
+		logDeterministicError(logger, round, tokenEthAddr, "ERC20", "balanceOf", err,
+			"account_eth_addr_hex", hex.EncodeToString(accountEthAddr),
+		)
 		return nil, nil
 	}
 	return &balanceData, nil
