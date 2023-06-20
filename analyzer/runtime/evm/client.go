@@ -182,6 +182,19 @@ func EVMDownloadNewToken(ctx context.Context, logger *log.Logger, source nodeapi
 		return nil, fmt.Errorf("detect ERC165: %w", err)
 	}
 	if supportsERC165 {
+		// Note: Per spec, every ERC-721 token has to support ERC-165.
+		supportsERC721, err1 := detectInterface(ctx, logger, source, round, tokenEthAddr, ERC721InterfaceID)
+		if err1 != nil {
+			return nil, fmt.Errorf("checking ERC721 interface: %w", err1)
+		}
+		if supportsERC721 {
+			tokenData, err2 := evmDownloadTokenERC721(ctx, logger, source, round, tokenEthAddr)
+			if err2 != nil {
+				return nil, fmt.Errorf("download token ERC-721: %w", err2)
+			}
+			return tokenData, nil
+		}
+
 		// todo: add support for other token types
 		// see https://github.com/oasisprotocol/nexus/issues/225
 	}

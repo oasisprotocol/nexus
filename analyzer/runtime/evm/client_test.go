@@ -64,6 +64,18 @@ func TestEVMDownloadTokenERC20(t *testing.T) {
 	t.Logf("data %#v", data)
 }
 
+func TestEVMDownloadTokenERC721(t *testing.T) {
+	ctx := context.Background()
+	source, err := oasis.NewRuntimeClient(ctx, PublicSourceConfig, common.RuntimeEmerald)
+	require.NoError(t, err)
+	// AI ROSE on Emerald mainnet.
+	tokenEthAddr, err := hex.DecodeString("0f4c5A429166608f9225E094F7E66B0bF68a53B9")
+	require.NoError(t, err)
+	data, err := evmDownloadTokenERC721(ctx, cmdCommon.Logger(), source, runtimeClient.RoundLatest, tokenEthAddr)
+	require.NoError(t, err)
+	t.Logf("data %#v", data)
+}
+
 func TestEVMDownloadTokenBalanceERC20(t *testing.T) {
 	ctx := context.Background()
 	source, err := oasis.NewRuntimeClient(ctx, PublicSourceConfig, common.RuntimeEmerald)
