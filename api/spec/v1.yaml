@@ -2450,15 +2450,15 @@ components:
 
     EvmToken:
       type: object
-      required: [contract_addr, evm_contract_addr, num_holders, type]
+      required: [contract_addr, num_holders, type]
       properties:
         contract_addr:
           type: string
           description: The Oasis address of this token's contract.
           example: 'oasis1qp2hssandc7dekjdr6ygmtzt783k3gn38uupdeys'
-        evm_contract_addr:
+        eth_contract_addr:
           type: string
-          description: The EVM address of this token's contract.
+          description: The Ethereum address of this token's contract.
           example: *eth_address_1
         name:
           type: string

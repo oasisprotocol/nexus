@@ -1477,7 +1477,7 @@ func (c *StorageClient) RuntimeTokens(ctx context.Context, p apiTypes.GetRuntime
 			return nil, wrapError(err2)
 		}
 
-		t.EvmContractAddr = ethCommon.BytesToAddress(addrPreimage).String()
+		t.EthContractAddr = common.Ptr(ethCommon.BytesToAddress(addrPreimage).String())
 		ts.EvmTokens = append(ts.EvmTokens, t)
 	}
 
