@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/accounts"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/consensusaccounts"
@@ -11,6 +12,7 @@ import (
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/evm"
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 
+	"github.com/oasisprotocol/nexus/analyzer/evmabi"
 	evmCommon "github.com/oasisprotocol/nexus/analyzer/uncategorized"
 	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
 )
@@ -165,12 +167,27 @@ type EVMEventHandler struct {
 	ERC20Approval func(ownerEthAddr []byte, spenderEthAddr []byte, amountU256 []byte) error
 }
 
-func VisitEVMEvent(event *evm.Event, handler *EVMEventHandler) error {
-	if len(event.Topics) == 0 {
-		return nil
+func eventMatches(evmEvent *evm.Event, ethEvent abi.Event) bool {
+	if len(evmEvent.Topics) == 0 || !bytes.Equal(evmEvent.Topics[0], ethEvent.ID.Bytes()) {
+		return false
 	}
+	// Thanks, ERC-721 and ERC-20 having the same signature for Transfer.
+	// Check if it has the right number of topics.
+	numTopics := 0
+	if !ethEvent.Anonymous {
+		numTopics++
+	}
+	for _, input := range ethEvent.Inputs {
+		if input.Indexed {
+			numTopics++
+		}
+	}
+	return len(evmEvent.Topics) == numTopics
+}
+
+func VisitEVMEvent(event *evm.Event, handler *EVMEventHandler) error {
 	switch {
-	case bytes.Equal(event.Topics[0], evmCommon.TopicERC20Transfer) && len(event.Topics) == 3:
+	case eventMatches(event, evmabi.ERC20.Events["Transfer"]):
 		if handler.ERC20Transfer != nil {
 			if err := handler.ERC20Transfer(
 				evmCommon.SliceEthAddress(event.Topics[1]),
@@ -180,7 +197,7 @@ func VisitEVMEvent(event *evm.Event, handler *EVMEventHandler) error {
 				return fmt.Errorf("erc20 transfer: %w", err)
 			}
 		}
-	case bytes.Equal(event.Topics[0], evmCommon.TopicERC20Approval) && len(event.Topics) == 3:
+	case eventMatches(event, evmabi.ERC20.Events["Approval"]):
 		if handler.ERC20Approval != nil {
 			if err := handler.ERC20Approval(
 				evmCommon.SliceEthAddress(event.Topics[1]),
