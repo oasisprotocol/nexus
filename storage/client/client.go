@@ -1463,9 +1463,10 @@ func (c *StorageClient) RuntimeTokens(ctx context.Context, p apiTypes.GetRuntime
 	}
 	for res.rows.Next() {
 		var t EvmToken
+		var addrPreimage []byte
 		if err2 := res.rows.Scan(
 			&t.ContractAddr,
-			&t.EvmContractAddr,
+			&addrPreimage,
 			&t.Name,
 			&t.Symbol,
 			&t.Decimals,
@@ -1476,6 +1477,7 @@ func (c *StorageClient) RuntimeTokens(ctx context.Context, p apiTypes.GetRuntime
 			return nil, wrapError(err2)
 		}
 
+		t.EvmContractAddr = ethCommon.BytesToAddress(addrPreimage).String()
 		ts.EvmTokens = append(ts.EvmTokens, t)
 	}
 
@@ -1503,14 +1505,15 @@ func (c *StorageClient) RuntimeTokenHolders(ctx context.Context, p apiTypes.GetR
 	}
 	for res.rows.Next() {
 		var h BareTokenHolder
+		var addrPreimage []byte
 		if err2 := res.rows.Scan(
 			&h.HolderAddress,
-			&h.EthHolderAddress,
+			&addrPreimage,
 			&h.Balance,
 		); err2 != nil {
 			return nil, wrapError(err2)
 		}
-
+		h.EthHolderAddress = common.Ptr(ethCommon.BytesToAddress(addrPreimage).String())
 		hs.Holders = append(hs.Holders, h)
 	}
 

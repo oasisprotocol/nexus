@@ -450,7 +450,7 @@ const (
 		)
 		SELECT
 			tokens.token_address AS contract_addr,
-			encode(preimages.address_data, 'hex') as eth_contract_addr,
+			preimages.address_data as eth_contract_addr,
 			tokens.token_name AS name,
 			tokens.symbol,
 			tokens.decimals,
@@ -475,7 +475,7 @@ const (
 	EvmTokenHolders = `
 		SELECT
 			balances.account_address AS holder_addr,
-			encode(preimages.address_data, 'hex') as eth_holder_addr,
+			preimages.address_data as eth_holder_addr,
 			balances.balance AS balance
 		FROM chain.evm_token_balances AS balances
 		JOIN chain.address_preimages AS preimages ON (balances.account_address = preimages.address AND preimages.context_identifier = 'oasis-runtime-sdk/address: secp256k1eth' AND preimages.context_version = 0)
