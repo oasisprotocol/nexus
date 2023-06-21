@@ -1482,6 +1482,41 @@ func (c *StorageClient) RuntimeTokens(ctx context.Context, p apiTypes.GetRuntime
 	return &ts, nil
 }
 
+func (c *StorageClient) RuntimeTokenHolders(ctx context.Context, p apiTypes.GetRuntimeEvmTokensAddressHoldersParams, address staking.Address) (*TokenHolderList, error) {
+	res, err := c.withTotalCount(
+		ctx,
+		queries.EvmTokenHolders,
+		runtimeFromCtx(ctx),
+		address,
+		p.Limit,
+		p.Offset,
+	)
+	if err != nil {
+		return nil, wrapError(err)
+	}
+	defer res.rows.Close()
+
+	hs := TokenHolderList{
+		Holders:             []BareTokenHolder{},
+		TotalCount:          res.totalCount,
+		IsTotalCountClipped: res.isTotalCountClipped,
+	}
+	for res.rows.Next() {
+		var h BareTokenHolder
+		if err2 := res.rows.Scan(
+			&h.HolderAddress,
+			&h.EthHolderAddress,
+			&h.Balance,
+		); err2 != nil {
+			return nil, wrapError(err2)
+		}
+
+		hs.Holders = append(hs.Holders, h)
+	}
+
+	return &hs, nil
+}
+
 // RuntimeStatus returns runtime status information.
 func (c *StorageClient) RuntimeStatus(ctx context.Context) (*RuntimeStatus, error) {
 	runtimeName := runtimeFromCtx(ctx)

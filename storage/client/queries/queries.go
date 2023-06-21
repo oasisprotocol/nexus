@@ -471,6 +471,21 @@ const (
 		LIMIT $3::bigint
 		OFFSET $4::bigint`
 
+	//nolint:gosec // Linter suspects a hardcoded credentials token.
+	EvmTokenHolders = `
+		SELECT
+			balances.account_address AS holder_addr,
+			encode(preimages.address_data, 'hex') as eth_holder_addr,
+			balances.balance AS balance
+		FROM chain.evm_token_balances AS balances
+		JOIN chain.address_preimages AS preimages ON (balances.account_address = preimages.address AND preimages.context_identifier = 'oasis-runtime-sdk/address: secp256k1eth' AND preimages.context_version = 0)
+		WHERE
+			(balances.runtime = $1::runtime) AND
+			(balances.token_address = $2::oasis_addr)
+		ORDER BY balance DESC
+		LIMIT $3::bigint
+		OFFSET $4::bigint`
+
 	AccountRuntimeSdkBalances = `
 		SELECT
 			balance AS balance,

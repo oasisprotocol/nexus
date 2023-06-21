@@ -996,7 +996,7 @@ paths:
           required: true
           schema:
             <<: *StakingAddressType
-          description: The staking address of the account to return.
+          description: The staking address of the token contract.
       responses:
         '200':
           description: The requested token.
@@ -1004,6 +1004,30 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EvmToken'
+        <<: *common_error_responses
+
+  /{runtime}/evm_tokens/{address}/holders:
+    get:
+      summary: |
+        Returns the list of holders of an EVM (ERC-20, ...) token. 
+        This endpoint does not verify that `address` is actually an EVM token; if it is not, it will simply return an empty list.
+      parameters:
+        - *limit
+        - *offset
+        - *runtime
+        - in: path
+          name: address
+          required: true
+          schema:
+            <<: *StakingAddressType
+          description: The staking address of the token contract for which to return the holders.
+      responses:
+        '200':
+          description: The requested holders.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenHolderList'
         <<: *common_error_responses
 
   /{runtime}/accounts/{address}:
@@ -1732,6 +1756,38 @@ components:
           type: integer
           description: The number of decimals of precision for this token.
           example: 18
+
+    TokenHolderList:
+      allOf:
+        - $ref: '#/components/schemas/List'
+        - type: object
+          required: [holders]
+          properties:
+            holders:
+              type: array
+              items:
+                $ref: '#/components/schemas/BareTokenHolder'
+          description: |
+            A list of token holders for a specific (implied) runtime and token.
+
+    BareTokenHolder:
+      description: |
+        Balance of an account for a specific (implied) runtime and token.
+      type: object
+      required: [holder_address, balance]
+      properties:
+        holder_address:
+          type: string
+          description: The oasis address of the account holder.
+          example: *staking_address_1
+        eth_holder_address:
+          type: string
+          description: The Ethereum address of the same account holder, if meaningfully defined.
+          example: *eth_address_1
+        balance:
+          <<: *BigIntType
+          description: Number of tokens held, in base units.
+
 
     Account:
       type: object

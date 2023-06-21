@@ -131,6 +131,10 @@ type EvmTokenList = api.EvmTokenList
 
 type EvmToken = api.EvmToken
 
+type BareTokenHolder = api.BareTokenHolder
+
+type TokenHolderList = api.TokenHolderList
+
 // TxVolumeList is the storage response for GetVolumes.
 type TxVolumeList = api.TxVolumeList
 
