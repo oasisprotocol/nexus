@@ -163,8 +163,11 @@ func VisitSdkEvents(events []nodeapi.RuntimeEvent, handler *SdkEventHandler) err
 }
 
 type EVMEventHandler struct {
-	ERC20Transfer func(fromEthAddr []byte, toEthAddr []byte, amountU256 []byte) error
-	ERC20Approval func(ownerEthAddr []byte, spenderEthAddr []byte, amountU256 []byte) error
+	ERC20Transfer        func(fromEthAddr []byte, toEthAddr []byte, amountU256 []byte) error
+	ERC20Approval        func(ownerEthAddr []byte, spenderEthAddr []byte, amountU256 []byte) error
+	ERC721Transfer       func(fromEthAddr []byte, toEthAddr []byte, tokenIDU256 []byte) error
+	ERC721Approval       func(ownerEthAddr []byte, approvedEthAddr []byte, tokenIDU256 []byte) error
+	ERC721ApprovalForAll func(ownerEthAddr []byte, operatorEthAddr []byte, approvedBool []byte) error
 }
 
 func eventMatches(evmEvent *evm.Event, ethEvent abi.Event) bool {
@@ -205,6 +208,36 @@ func VisitEVMEvent(event *evm.Event, handler *EVMEventHandler) error {
 				event.Data,
 			); err != nil {
 				return fmt.Errorf("erc20 approval: %w", err)
+			}
+		}
+	case eventMatches(event, evmabi.ERC721.Events["Transfer"]):
+		if handler.ERC721Transfer != nil {
+			if err := handler.ERC721Transfer(
+				evmCommon.SliceEthAddress(event.Topics[1]),
+				evmCommon.SliceEthAddress(event.Topics[2]),
+				event.Topics[3],
+			); err != nil {
+				return fmt.Errorf("erc721 transfer: %w", err)
+			}
+		}
+	case eventMatches(event, evmabi.ERC721.Events["Approval"]):
+		if handler.ERC721Approval != nil {
+			if err := handler.ERC721Approval(
+				evmCommon.SliceEthAddress(event.Topics[1]),
+				evmCommon.SliceEthAddress(event.Topics[2]),
+				event.Topics[3],
+			); err != nil {
+				return fmt.Errorf("erc721 approval: %w", err)
+			}
+		}
+	case eventMatches(event, evmabi.ERC721.Events["ApprovalForAll"]):
+		if handler.ERC721ApprovalForAll != nil {
+			if err := handler.ERC721ApprovalForAll(
+				evmCommon.SliceEthAddress(event.Topics[1]),
+				evmCommon.SliceEthAddress(event.Topics[2]),
+				event.Data,
+			); err != nil {
+				return fmt.Errorf("erc721 approval for all: %w", err)
 			}
 		}
 	}
