@@ -18,6 +18,12 @@ import (
 	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
 )
 
+// EVMTokenType is a small-ish number that we use to identify what type of
+// token each row of the tokens table is. Values aren't consecutive like in an
+// enum. Prefer to use the number of the ERC if applicable and available, e.g.
+// 20 for ERC-20.
+// "Historical reasons" style note: this has grown to include non-EVM token
+// types as well.
 type EVMTokenType int
 
 const (
