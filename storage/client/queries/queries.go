@@ -411,9 +411,11 @@ const (
 				ORDER BY timestamp DESC LIMIT 1  -- Technically more than one tx might share the same hash, but it's so vanishingly rare that this hack is fine.
 			) AS eth_creation_tx,
 			creation_bytecode,
-			runtime_bytecode
+			runtime_bytecode,
+			compilation_metadata,
+			source_files
 		FROM chain.evm_contracts
-		
+
 		WHERE (runtime = $1) AND (contract_address = $2::text)`
 
 	AddressPreimage = `

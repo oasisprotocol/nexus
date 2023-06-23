@@ -1375,7 +1375,9 @@ func (c *StorageClient) RuntimeAccount(ctx context.Context, address staking.Addr
 		a.EvmBalances = append(a.EvmBalances, b)
 	}
 
-	var evmContract RuntimeEvmContract
+	evmContract := RuntimeEvmContract{
+		Verification: &RuntimeEvmContractVerification{},
+	}
 	err = c.db.QueryRow(
 		ctx,
 		queries.RuntimeEvmContract,
@@ -1386,6 +1388,8 @@ func (c *StorageClient) RuntimeAccount(ctx context.Context, address staking.Addr
 		&evmContract.EthCreationTx,
 		&evmContract.CreationBytecode,
 		&evmContract.RuntimeBytecode,
+		&evmContract.Verification.CompilationMetadata,
+		&evmContract.Verification.SourceFiles,
 	)
 	switch err {
 	case nil:
@@ -1395,6 +1399,10 @@ func (c *StorageClient) RuntimeAccount(ctx context.Context, address staking.Addr
 		a.EvmContract = nil
 	default:
 		return nil, wrapError(err)
+	}
+	// Make verification data null if the contract is not verified.
+	if evmContract.Verification.CompilationMetadata == nil && evmContract.Verification.SourceFiles == nil {
+		evmContract.Verification = nil
 	}
 
 	var totalSent pgtype.Numeric

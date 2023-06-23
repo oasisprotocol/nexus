@@ -567,6 +567,27 @@ var (
       token_address = $2 AND
       account_address = $3`
 
+	RuntimeEVMUnverfiedContracts = `
+    SELECT contracts.contract_address,
+      address_preimages.context_identifier,
+      address_preimages.context_version,
+      address_preimages.address_data
+    FROM chain.evm_contracts AS contracts
+    LEFT JOIN chain.address_preimages AS address_preimages ON
+      address_preimages.address = contracts.contract_address
+    WHERE
+      runtime = $1 AND verification_info_downloaded_at IS NULL`
+
+	RuntimeEVMVerifyContractUpdate = `
+    UPDATE chain.evm_contracts
+    SET
+      verification_info_downloaded_at = CURRENT_TIMESTAMP,
+      abi = $3,
+      compilation_metadata = $4,
+      source_files = $5
+    WHERE
+      runtime = $1 AND contract_address = $2`
+
 	RefreshDailyTxVolume = `
     REFRESH MATERIALIZED VIEW CONCURRENTLY stats.daily_tx_volume
   `

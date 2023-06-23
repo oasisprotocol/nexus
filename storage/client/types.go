@@ -115,11 +115,12 @@ type RuntimeStatus = api.RuntimeStatus
 
 // Types that are a part of the storage response for GetRuntimeAccount.
 type (
-	AddressPreimage          = api.AddressPreimage
-	AddressDerivationContext = api.AddressDerivationContext
-	RuntimeSdkBalance        = api.RuntimeSdkBalance
-	RuntimeEvmBalance        = api.RuntimeEvmBalance
-	RuntimeEvmContract       = api.RuntimeEvmContract
+	AddressPreimage                = api.AddressPreimage
+	AddressDerivationContext       = api.AddressDerivationContext
+	RuntimeSdkBalance              = api.RuntimeSdkBalance
+	RuntimeEvmBalance              = api.RuntimeEvmBalance
+	RuntimeEvmContract             = api.RuntimeEvmContract
+	RuntimeEvmContractVerification = api.RuntimeEvmContractVerification
 )
 
 type RuntimeAccount = api.RuntimeAccount

@@ -217,11 +217,22 @@ CREATE TABLE chain.evm_contracts
   runtime runtime NOT NULL,
   contract_address oasis_addr NOT NULL,
   PRIMARY KEY (runtime, contract_address),
+
   -- Can be null if the contract was created by another contract; eg through an evm.Call instead of a standard evm.Create. Tracing must be enabled to fill out this information.
   creation_tx HEX64,
   creation_bytecode BYTEA
   -- runtime_bytecode BYTEA  -- Added in 05_evm_runtime_bytecode.up.sql
+
+  -- Added in 07_evm_contract_verification.up.sql
+  -- -- Following fields are only filled out for contracts that have been verified.
+  -- verification_info_downloaded_at TIMESTAMP WITH TIME ZONE, -- NULL for unverified contracts.
+  -- abi JSONB,
+   -- -- Contents of metadata.json, typically produced by the Solidity compiler.
+  -- compilation_metadata JSONB,
+  -- -- Each source file is a flat JSON object with keys "name", "content", "path", as returned by Sourcify.
+  -- source_files JSONB CHECK (jsonb_typeof(source_files)='array');
 );
+-- CREATE INDEX ix_evm_contracts_unverified ON chain.evm_contracts (runtime) WHERE verification_info_downloaded_at IS NULL; -- Added in 07_evm_contract_verification.up.sql
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- Module accounts -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 

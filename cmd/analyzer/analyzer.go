@@ -20,6 +20,7 @@ import (
 	"github.com/oasisprotocol/oasis-indexer/analyzer/evmcontractcode"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/evmtokenbalances"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/evmtokens"
+	"github.com/oasisprotocol/oasis-indexer/analyzer/evmverifier"
 	"github.com/oasisprotocol/oasis-indexer/analyzer/runtime"
 	cmdCommon "github.com/oasisprotocol/oasis-indexer/cmd/common"
 	"github.com/oasisprotocol/oasis-indexer/common"
@@ -346,6 +347,11 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) {
 	if cfg.Analyzers.AggregateStats != nil {
 		analyzers, err = addAnalyzer(analyzers, err, func() (A, error) {
 			return analyzer.NewAggregateStatsAnalyzer(cfg.Analyzers.AggregateStats, dbClient, logger)
+		})
+	}
+	if cfg.Analyzers.EVMContractsVerifier != nil {
+		analyzers, err = addAnalyzer(analyzers, err, func() (A, error) {
+			return evmverifier.NewEVMVerifierAnalyzer(cfg.Analyzers.EVMContractsVerifier, dbClient, logger)
 		})
 	}
 	if err != nil {
