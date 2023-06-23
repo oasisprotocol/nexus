@@ -739,6 +739,7 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 							return fmt.Errorf("from: %w", err2)
 						}
 						eventData.RelatedAddresses[fromAddr] = true
+						registerTokenDecrease(blockData.TokenBalanceChanges, eventAddr, fromAddr, big.NewInt(1))
 					}
 					if !toZero {
 						toAddr, err2 := registerRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, toEthAddr)
@@ -746,6 +747,7 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 							return fmt.Errorf("to: %w", err2)
 						}
 						eventData.RelatedAddresses[toAddr] = true
+						registerTokenIncrease(blockData.TokenBalanceChanges, eventAddr, toAddr, big.NewInt(1))
 					}
 					// TODO: Reckon ownership.
 					if _, ok := blockData.PossibleTokens[eventAddr]; !ok {
