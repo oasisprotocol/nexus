@@ -322,6 +322,7 @@ func (c *Client) Wipe(ctx context.Context) error {
 
 	// List, then drop all custom types.
 	// Query from https://stackoverflow.com/questions/3660787/how-to-list-custom-types-using-postgres-information-schema
+	// TODO: Don't delete extensions' types.
 	types, err := c.listNexusTypes(ctx)
 	if err != nil {
 		return err
@@ -334,6 +335,7 @@ func (c *Client) Wipe(ctx context.Context) error {
 	}
 
 	// List, then drop all custom functions.
+	// TODO: Don't delete extensions' functions.
 	functions, err := c.listNexusFunctions(ctx)
 	if err != nil {
 		return err
