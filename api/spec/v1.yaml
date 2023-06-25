@@ -1124,13 +1124,18 @@ components:
 
     Status:
       type: object
-      required: [latest_block, latest_update]
+      required: [latest_block, latest_block_time, latest_update]
       properties:
         latest_block:
           type: integer
           format: int64
           description: The height of the most recent indexed block. Query a synced Oasis node for the latest block produced.
           example: *block_height_1
+        latest_block_time:
+          type: string
+          format: date-time
+          description: The RFC 3339 formatted consensus time of when the most recent block was produced.
+          example: *iso_timestamp_2
         latest_update:
           type: string
           format: date-time
@@ -2342,7 +2347,7 @@ components:
 
     RuntimeStatus:
       type: object
-      required: [active_nodes, latest_block, latest_update]
+      required: [active_nodes, latest_block, latest_block_time, latest_update]
       properties:
         active_nodes:
           type: integer
@@ -2353,6 +2358,11 @@ components:
           format: int64
           description: The height of the most recent indexed block (also sometimes referred to as "round") for this runtime. Query a synced Oasis node for the latest block produced.
           example: *block_height_1
+        latest_block_time:
+          type: string
+          format: date-time
+          description: The RFC 3339 formatted consensus time of when the latest indexed block for this runtime was produced.
+          example: *iso_timestamp_2
         latest_update:
           type: string
           format: date-time
