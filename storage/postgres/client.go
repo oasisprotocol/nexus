@@ -309,6 +309,10 @@ func (c *Client) listNexusMaterializedViews(ctx context.Context) ([]string, erro
 
 // Wipe removes all contents of the database.
 func (c *Client) Wipe(ctx context.Context) error {
+	if _, err := c.pool.Exec(ctx, "DROP EXTENSION IF EXISTS pg_trgm CASCADE;"); err != nil {
+		return err
+	}
+
 	tables, err := c.listNexusTables(ctx)
 	if err != nil {
 		return err
