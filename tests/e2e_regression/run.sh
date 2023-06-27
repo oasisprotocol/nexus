@@ -80,8 +80,8 @@ nCases=${#testCases[@]}
 # Start the API server.
 # Set the timezone (TZ=UTC) to have more consistent outputs across different
 # systems, even when not running inside docker.
-make oasis-indexer
-TZ=UTC ./oasis-indexer --config="${SCRIPT_DIR}/e2e_config.yml" serve &
+make nexus
+TZ=UTC ./nexus --config="${SCRIPT_DIR}/e2e_config.yml" serve &
 apiServerPid=$!
 
 # Kill the API server on exit.

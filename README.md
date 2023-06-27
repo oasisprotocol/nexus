@@ -69,9 +69,9 @@ make psql
 
 ### Indexer
 
-You should be able to `make oasis-indexer` and run `./oasis-indexer --config config/local-dev.yml` from the repository root.
+You should be able to `make nexus` and run `./nexus --config config/local-dev.yml` from the repository root.
 This will start the analyzers and the HTTP server, but you can start each of the constituent services independently as well.
-See `./oasis-indexer --help` for more details.
+See `./nexus --help` for more details.
 
 Once the indexer has started, you can query the Oasis Indexer API
 ```sh
@@ -79,5 +79,5 @@ $ curl -X GET http://localhost:8008/v1
 ```
 
 **Debugging note**: A lot of indexing happens when parsing the genesis data. To see what SQL statements genesis is converted
-into, run `oasis-indexer` with `CONSENSUS_DAMASK_GENESIS_DUMP=/tmp/genesis.sql`. The SQL will be written to the indicated
+into, run `nexus` with `CONSENSUS_DAMASK_GENESIS_DUMP=/tmp/genesis.sql`. The SQL will be written to the indicated
 file, provided that genesis hasn't been parsed into the DB yet. The easiest way to achieve the latter is to wipe the DB.

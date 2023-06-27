@@ -21,7 +21,7 @@ make docker
 ```
 
 #### Run the e2e tests
-This line will clean up any prior runs and start a new run of tests inside the `oasis-indexer` container:
+This line will clean up any prior runs and start a new run of tests inside the `nexus` container:
 
 ```sh
 make stop-e2e && make start-e2e
@@ -32,7 +32,7 @@ make stop-e2e && make start-e2e
 #### Check indexer logs
 
 ```sh
-docker logs oasis-indexer --since 2m -t | less
+docker logs nexus --since 2m -t | less
 ```
 
 This is the dockerized indexer against which the e2e tests ran.

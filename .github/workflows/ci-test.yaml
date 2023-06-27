@@ -46,7 +46,7 @@ jobs:
         run: go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen@v1.12
       - name: Build Go
         run: |
-          make oasis-indexer
+          make nexus
           make test-ci
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v3.1.0
@@ -99,10 +99,10 @@ jobs:
       - name: Confirm containers
         run: docker ps -a
       - name: Test
-        run: docker exec oasis-indexer sh -c "cd /oasis-indexer && make test-e2e"
+        run: docker exec nexus sh -c "cd /nexus && make test-e2e"
       - name: Dump logs and DB contents
         run: |
-          docker logs oasis-indexer | tee /tmp/oasis-indexer.log;
+          docker logs nexus | tee /tmp/nexus.log;
           docker logs indexer-postgres | tee /tmp/indexer-postgres.log;
           docker exec indexer-postgres pg_dump -U indexer --create | tee /tmp/indexer_db.sql;
         if: success() || failure()  # but not if job is manually cancelled
@@ -129,7 +129,7 @@ jobs:
           make codegen-go
       - name: Build Go
         run: |
-          make oasis-indexer
+          make nexus
       - name: Start db
         run: |
           make postgres

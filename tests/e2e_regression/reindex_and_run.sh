@@ -9,8 +9,8 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 # Kill background processes on exit. (In our case the indexer API server.)
 trap 'trap - SIGTERM && kill -- -$$' SIGINT SIGTERM EXIT
 
-make oasis-indexer
-./oasis-indexer --config="${SCRIPT_DIR}/e2e_config.yaml" analyze | tee /tmp/analyze.out &
+make nexus
+./nexus --config="${SCRIPT_DIR}/e2e_config.yaml" analyze | tee /tmp/analyze.out &
 analyzer_pid=$!
 
 # Count how many block analyzers are enabled in the config.

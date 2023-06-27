@@ -5,7 +5,7 @@ before:
     - go mod tidy -compat=1.19
 
 builds:
-  - binary: oasis-indexer
+  - binary: nexus
     env:
       - CGO_ENABLED=0  # build statically-linked binaries
     flags:

@@ -8,7 +8,7 @@ all: build
 
 build:
 	@$(ECHO) "$(CYAN)*** Building...$(OFF)"
-	@$(MAKE) oasis-indexer
+	@$(MAKE) nexus
 	@$(MAKE) docker
 	@$(ECHO) "$(CYAN)*** Everything built successfully!$(OFF)"
 
@@ -22,7 +22,7 @@ codegen-go:
 	oapi-codegen -generate types                    -config /tmp/codegen-config.yaml -templates /tmp/namespaced-templates/ -package types api/spec/v1.yaml >api/v1/types/openapi.gen.go
 	oapi-codegen -generate chi-server,strict-server -config /tmp/codegen-config.yaml -templates /tmp/namespaced-templates/ -package types api/spec/v1.yaml >api/v1/types/server.gen.go
 
-oasis-indexer: codegen-go
+nexus: codegen-go
 	$(GO) build $(GOFLAGS) $(GO_EXTRA_FLAGS)
 
 docker:
@@ -60,15 +60,15 @@ test-e2e: export OASIS_INDEXER_E2E = true
 test-e2e:
 	@$(GO) test -race -coverpkg=./... -coverprofile=coverage.txt -covermode=atomic -v ./tests/e2e
 
-fill-cache-for-e2e-regression: oasis-indexer
+fill-cache-for-e2e-regression: nexus
 	cp tests/e2e_regression/e2e_config.yml /tmp/indexer_fill_e2e_regression_cache.yml
 	sed -i -E 's/query_on_cache_miss: false/query_on_cache_miss: true/g' /tmp/indexer_fill_e2e_regression_cache.yml
-	./oasis-indexer --config /tmp/indexer_fill_e2e_regression_cache.yml analyze
+	./nexus --config /tmp/indexer_fill_e2e_regression_cache.yml analyze
 
 # Run the api tests locally, assuming the environment is set up with an oasis-node that is
 # accessible as specified in the config file.
-test-e2e-regression: oasis-indexer
-	./oasis-indexer --config tests/e2e_regression/e2e_config.yml analyze
+test-e2e-regression: nexus
+	./nexus --config tests/e2e_regression/e2e_config.yml analyze
 	@$(ECHO) "$(CYAN)*** Indexer finished; starting api tests...$(OFF)"
 	./tests/e2e_regression/run.sh
 
@@ -119,7 +119,7 @@ start-docker-e2e:
 	@docker compose -f tests/e2e/docker-compose.e2e.yml up -d
 
 start-e2e: start-docker-e2e
-	docker exec oasis-indexer sh -c "cd /oasis-indexer && make test-e2e"
+	docker exec nexus sh -c "cd /nexus && make test-e2e"
 
 # Run dockerized postgres for local development
 postgres:
@@ -149,7 +149,7 @@ release-build: codegen-go
 .PHONY: \
 	all build \
 	codegen-go \
-	oasis-indexer \
+	nexus \
 	test-e2e \
 	test-e2e-regression \
 	fill-cache-for-e2e-regression \

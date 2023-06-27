@@ -1,4 +1,4 @@
-// Package common implements common oasis-indexer command options.
+// Package common implements common nexus command options.
 package common
 
 import (
@@ -15,7 +15,7 @@ import (
 	"github.com/oasisprotocol/nexus/storage/postgres"
 )
 
-var rootLogger = log.NewDefaultLogger("oasis-indexer")
+var rootLogger = log.NewDefaultLogger("nexus")
 
 // Init initializes the common environment.
 func Init(cfg *config.Config) error {
@@ -25,7 +25,7 @@ func Init(cfg *config.Config) error {
 	coreFormat := coreLogging.FmtJSON   // For oasis-core.
 	coreLevel := coreLogging.LevelDebug // For oasis-core.
 
-	// Initialize oasis-indexer logging.
+	// Initialize nexus logging.
 	if cfg.Log != nil {
 		var err error
 		if w, err = getLoggingStream(cfg.Log); err != nil {
@@ -38,7 +38,7 @@ func Init(cfg *config.Config) error {
 			return err
 		}
 	}
-	logger, err := log.NewLogger("oasis-indexer", w, format, level)
+	logger, err := log.NewLogger("nexus", w, format, level)
 	if err != nil {
 		return err
 	}

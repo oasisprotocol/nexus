@@ -20,7 +20,7 @@ var (
 	configFile string
 
 	rootCmd = &cobra.Command{
-		Use:   "oasis-indexer",
+		Use:   "nexus",
 		Short: "Oasis Indexer",
 		Run:   rootMain,
 	}

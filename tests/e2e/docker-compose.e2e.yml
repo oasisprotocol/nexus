@@ -1,7 +1,7 @@
 services:
   indexer:
     image: oasislabs/oasis-indexer:${USER}-dev
-    container_name: oasis-indexer
+    container_name: nexus
     depends_on:
       indexer-postgres:
         condition: service_healthy
@@ -47,7 +47,7 @@ services:
     volumes:
       - type: bind
         source: ./
-        target: /oasis-indexer
+        target: /nexus
       - type: bind
         source: ./testnet
         target: /testnet
