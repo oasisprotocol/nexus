@@ -8,13 +8,13 @@ CREATE SCHEMA IF NOT EXISTS chain;
 GRANT USAGE ON SCHEMA chain TO PUBLIC;
 
 -- Custom types
-CREATE DOMAIN uint_numeric NUMERIC(1000,0) CHECK(VALUE >= 0);
-CREATE DOMAIN uint63 BIGINT CHECK(VALUE >= 0);
-CREATE DOMAIN uint31 INTEGER CHECK(VALUE >= 0);
-CREATE DOMAIN hex64 TEXT CHECK(VALUE ~ '^[0-9a-f]{64}$');
+CREATE DOMAIN public.uint_numeric NUMERIC(1000,0) CHECK(VALUE >= 0);
+CREATE DOMAIN public.uint63 BIGINT CHECK(VALUE >= 0);
+CREATE DOMAIN public.uint31 INTEGER CHECK(VALUE >= 0);
+CREATE DOMAIN public.hex64 TEXT CHECK(VALUE ~ '^[0-9a-f]{64}$');
 -- base64(ed25519 public key); from https://github.com/oasisprotocol/oasis-core/blob/f95186e3f15ec64bdd36493cde90be359bd17da8/go/common/crypto/signature/signature.go#L90-L90
-CREATE DOMAIN base64_ed25519_pubkey TEXT CHECK(VALUE ~ '^[A-Za-z0-9+/]{43}=$');
-CREATE DOMAIN oasis_addr TEXT CHECK(length(VALUE) = 46 AND VALUE ~ '^oasis1');
+CREATE DOMAIN public.base64_ed25519_pubkey TEXT CHECK(VALUE ~ '^[A-Za-z0-9+/]{43}=$');
+CREATE DOMAIN public.oasis_addr TEXT CHECK(length(VALUE) = 46 AND VALUE ~ '^oasis1');
 
 -- Block Data
 CREATE TABLE chain.blocks
