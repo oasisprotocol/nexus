@@ -317,6 +317,11 @@ const (
 		LIMIT $6::bigint
 		OFFSET $7::bigint`
 
+	RuntimeBlock = `
+		SELECT round, block_hash, timestamp, num_transactions, size, gas_used
+			FROM chain.runtime_blocks
+			WHERE (runtime = $1) AND (round = $2::bigint)`
+
 	RuntimeTransactions = `
 		SELECT
 			txs.round,

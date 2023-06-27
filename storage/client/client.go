@@ -187,6 +187,15 @@ func (c *StorageClient) Status(ctx context.Context) (*Status, error) {
 	// https://github.com/oasisprotocol/oasis-core/blob/5985dc5c2844de28241b7b16b19d91a86e5cbeda/docs/oasis-node/cli.md?plain=1#L41
 	s.LatestUpdate = s.LatestUpdate.Truncate(time.Second)
 
+	// Query latest block for info.
+	if err := c.db.QueryRow(
+		ctx,
+		queries.Block,
+		s.LatestBlock,
+	).Scan(nil, nil, &s.LatestBlockTime, nil); err != nil {
+		return nil, wrapError(err)
+	}
+
 	return &s, nil
 }
 
@@ -1501,6 +1510,16 @@ func (c *StorageClient) RuntimeStatus(ctx context.Context) (*RuntimeStatus, erro
 	// oasis-node control status returns time truncated to the second
 	// https://github.com/oasisprotocol/oasis-core/blob/5985dc5c2844de28241b7b16b19d91a86e5cbeda/docs/oasis-node/cli.md?plain=1#L41
 	s.LatestUpdate = s.LatestUpdate.Truncate(time.Second)
+
+	// Query latest block for info.
+	if err := c.db.QueryRow(
+		ctx,
+		queries.RuntimeBlock,
+		runtimeName,
+		s.LatestBlock,
+	).Scan(nil, nil, &s.LatestBlockTime, nil, nil, nil); err != nil {
+		return nil, wrapError(err)
+	}
 
 	// Query active nodes.
 	if err := c.db.QueryRow(
