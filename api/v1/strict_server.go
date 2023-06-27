@@ -279,6 +279,14 @@ func (srv *StrictServerImpl) GetRuntimeEvmTokensAddress(ctx context.Context, req
 	return apiTypes.GetRuntimeEvmTokensAddress200JSONResponse(tokens.EvmTokens[0]), nil
 }
 
+func (srv *StrictServerImpl) GetRuntimeEvmTokensAddressHolders(ctx context.Context, request apiTypes.GetRuntimeEvmTokensAddressHoldersRequestObject) (apiTypes.GetRuntimeEvmTokensAddressHoldersResponseObject, error) {
+	holders, err := srv.dbClient.RuntimeTokenHolders(ctx, request.Params, request.Address)
+	if err != nil {
+		return nil, err
+	}
+	return apiTypes.GetRuntimeEvmTokensAddressHolders200JSONResponse(*holders), nil
+}
+
 func (srv *StrictServerImpl) GetRuntimeTransactions(ctx context.Context, request apiTypes.GetRuntimeTransactionsRequestObject) (apiTypes.GetRuntimeTransactionsResponseObject, error) {
 	transactions, err := srv.dbClient.RuntimeTransactions(ctx, request.Params, nil)
 	if err != nil {

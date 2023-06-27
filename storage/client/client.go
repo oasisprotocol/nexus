@@ -1463,9 +1463,10 @@ func (c *StorageClient) RuntimeTokens(ctx context.Context, p apiTypes.GetRuntime
 	}
 	for res.rows.Next() {
 		var t EvmToken
+		var addrPreimage []byte
 		if err2 := res.rows.Scan(
 			&t.ContractAddr,
-			&t.EvmContractAddr,
+			&addrPreimage,
 			&t.Name,
 			&t.Symbol,
 			&t.Decimals,
@@ -1476,10 +1477,47 @@ func (c *StorageClient) RuntimeTokens(ctx context.Context, p apiTypes.GetRuntime
 			return nil, wrapError(err2)
 		}
 
+		t.EthContractAddr = common.Ptr(ethCommon.BytesToAddress(addrPreimage).String())
 		ts.EvmTokens = append(ts.EvmTokens, t)
 	}
 
 	return &ts, nil
+}
+
+func (c *StorageClient) RuntimeTokenHolders(ctx context.Context, p apiTypes.GetRuntimeEvmTokensAddressHoldersParams, address staking.Address) (*TokenHolderList, error) {
+	res, err := c.withTotalCount(
+		ctx,
+		queries.EvmTokenHolders,
+		runtimeFromCtx(ctx),
+		address,
+		p.Limit,
+		p.Offset,
+	)
+	if err != nil {
+		return nil, wrapError(err)
+	}
+	defer res.rows.Close()
+
+	hs := TokenHolderList{
+		Holders:             []BareTokenHolder{},
+		TotalCount:          res.totalCount,
+		IsTotalCountClipped: res.isTotalCountClipped,
+	}
+	for res.rows.Next() {
+		var h BareTokenHolder
+		var addrPreimage []byte
+		if err2 := res.rows.Scan(
+			&h.HolderAddress,
+			&addrPreimage,
+			&h.Balance,
+		); err2 != nil {
+			return nil, wrapError(err2)
+		}
+		h.EthHolderAddress = common.Ptr(ethCommon.BytesToAddress(addrPreimage).String())
+		hs.Holders = append(hs.Holders, h)
+	}
+
+	return &hs, nil
 }
 
 // RuntimeStatus returns runtime status information.

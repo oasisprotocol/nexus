@@ -450,7 +450,7 @@ const (
 		)
 		SELECT
 			tokens.token_address AS contract_addr,
-			encode(preimages.address_data, 'hex') as eth_contract_addr,
+			preimages.address_data as eth_contract_addr,
 			tokens.token_name AS name,
 			tokens.symbol,
 			tokens.decimals,
@@ -468,6 +468,21 @@ const (
 			($2::oasis_addr IS NULL OR tokens.token_address = $2::oasis_addr) AND
 			tokens.token_type != 0 -- exclude unknown-type tokens; they're often just contracts that emitted Transfer events but don't expose the token ticker, name, balance etc.
 		ORDER BY num_holders DESC
+		LIMIT $3::bigint
+		OFFSET $4::bigint`
+
+	//nolint:gosec // Linter suspects a hardcoded credentials token.
+	EvmTokenHolders = `
+		SELECT
+			balances.account_address AS holder_addr,
+			preimages.address_data as eth_holder_addr,
+			balances.balance AS balance
+		FROM chain.evm_token_balances AS balances
+		JOIN chain.address_preimages AS preimages ON (balances.account_address = preimages.address AND preimages.context_identifier = 'oasis-runtime-sdk/address: secp256k1eth' AND preimages.context_version = 0)
+		WHERE
+			(balances.runtime = $1::runtime) AND
+			(balances.token_address = $2::oasis_addr)
+		ORDER BY balance DESC
 		LIMIT $3::bigint
 		OFFSET $4::bigint`
 
