@@ -4,7 +4,7 @@ BEGIN;
 CREATE SCHEMA IF NOT EXISTS analysis;
 GRANT USAGE ON SCHEMA analysis TO PUBLIC;
 
-CREATE DOMAIN eth_addr BYTEA CHECK(length(VALUE) = 20);
+CREATE DOMAIN public.eth_addr BYTEA CHECK(length(VALUE) = 20);
 
 -- Used to keep track of potential contract addresses, and our progress in
 -- downloading their runtime bytecode. ("Runtime" in the sense of ETH terminology

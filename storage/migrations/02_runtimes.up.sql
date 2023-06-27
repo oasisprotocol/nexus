@@ -2,8 +2,8 @@
 
 BEGIN;
 
-CREATE TYPE runtime AS ENUM ('emerald', 'sapphire', 'cipher');
-CREATE TYPE call_format AS ENUM ('encrypted/x25519-deoxysii');
+CREATE TYPE public.runtime AS ENUM ('emerald', 'sapphire', 'cipher');
+CREATE TYPE public.call_format AS ENUM ('encrypted/x25519-deoxysii');
 
 CREATE TABLE chain.runtime_blocks
 (
