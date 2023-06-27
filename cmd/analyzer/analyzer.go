@@ -8,6 +8,7 @@ import (
 	"os/signal"
 	"sync"
 	"syscall"
+	"time"
 
 	migrate "github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres" // postgres driver for golang_migrate
@@ -406,11 +407,20 @@ func (a *Service) Start() {
 		return
 	case <-signalChan:
 		a.logger.Info("received interrupt, shutting down")
-		// Cancel the analyzers' context and wait for them to exit cleanly.
+		// Let the default handler handle ctrl+C so people can kill the process in a hurry.
+		signal.Stop(signalChan)
+		// Cancel the analyzers' context and wait for them (but not forever) to exit cleanly.
 		cancelAnalyzers()
-		signal.Stop(signalChan) // Let the default handler handle ctrl+C so people can kill the process in a hurry.
-		<-analyzersDone
-		a.logger.Info("all analyzers have exited cleanly")
+		select {
+		case <-analyzersDone:
+			a.logger.Info("all analyzers have exited cleanly")
+		case <-time.After(10 * time.Second):
+			// Analyzers are taking too long to exit cleanly, don't wait for them any longer or else k8s will force-kill us.
+			// It's important that cleanup() is called, as this closes the KVStore (cache) cleanly;
+			// if it doesn't get closed cleanly, KVStore requires a lenghty recovery process on next startup.
+			a.logger.Warn("timed out waiting for analyzers to exit cleanly; now forcing IO resource cleanup")
+		}
+		// We'll call a.cleanup() via a defer.
 		return
 	}
 }
