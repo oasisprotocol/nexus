@@ -1448,6 +1448,7 @@ func (c *StorageClient) RuntimeTokens(ctx context.Context, p apiTypes.GetRuntime
 		queries.EvmTokens,
 		runtimeFromCtx(ctx),
 		address,
+		p.Name,
 		p.Limit,
 		p.Offset,
 	)

@@ -977,6 +977,11 @@ paths:
         - *limit
         - *offset
         - *runtime
+        - in: query
+          name: name
+          schema:
+            type: string
+          description: A filter on the name, the name must contain this value as a substring.
       responses:
         '200':
           description: The requested tokens.
