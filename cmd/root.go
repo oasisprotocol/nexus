@@ -8,11 +8,11 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/oasisprotocol/oasis-indexer/cmd/analyzer"
-	"github.com/oasisprotocol/oasis-indexer/cmd/api"
-	"github.com/oasisprotocol/oasis-indexer/cmd/common"
-	"github.com/oasisprotocol/oasis-indexer/config"
-	"github.com/oasisprotocol/oasis-indexer/log"
+	"github.com/oasisprotocol/nexus/cmd/analyzer"
+	"github.com/oasisprotocol/nexus/cmd/api"
+	"github.com/oasisprotocol/nexus/cmd/common"
+	"github.com/oasisprotocol/nexus/config"
+	"github.com/oasisprotocol/nexus/log"
 )
 
 var (

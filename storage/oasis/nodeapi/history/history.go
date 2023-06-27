@@ -9,11 +9,11 @@ import (
 	consensus "github.com/oasisprotocol/oasis-core/go/consensus/api"
 	genesis "github.com/oasisprotocol/oasis-core/go/genesis/api"
 
-	"github.com/oasisprotocol/oasis-indexer/config"
-	"github.com/oasisprotocol/oasis-indexer/storage/oasis/connections"
-	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
-	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi/cobalt"
-	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi/damask"
+	"github.com/oasisprotocol/nexus/config"
+	"github.com/oasisprotocol/nexus/storage/oasis/connections"
+	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
+	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi/cobalt"
+	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi/damask"
 )
 
 var _ nodeapi.ConsensusApiLite = (*HistoryConsensusApiLite)(nil)

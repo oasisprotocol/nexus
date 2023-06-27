@@ -7,7 +7,7 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
-	"github.com/oasisprotocol/oasis-indexer/log"
+	"github.com/oasisprotocol/nexus/log"
 )
 
 const (

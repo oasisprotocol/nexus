@@ -2,7 +2,7 @@
 package client
 
 import (
-	api "github.com/oasisprotocol/oasis-indexer/api/v1/types"
+	api "github.com/oasisprotocol/nexus/api/v1/types"
 )
 
 // Status is the storage response for GetStatus.

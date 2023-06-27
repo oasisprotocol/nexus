@@ -61,6 +61,6 @@ release:
   prerelease: auto
 
   footer: |
-    **Full Changelog**: https://github.com/oasislabs/oasis-indexer/compare/{{ .PreviousTag }}...{{ .Tag }}
+    **Full Changelog**: https://github.com/oasisprotocol/nexus/compare/{{ .PreviousTag }}...{{ .Tag }}
     ### Running the indexer
-    https://github.com/oasislabs/oasis-indexer/blob/{{ .Tag }}/README.md#docker-development
+    https://github.com/oasisprotocol/nexus/blob/{{ .Tag }}/README.md#docker-development

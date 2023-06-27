@@ -6,7 +6,7 @@ import (
 	consensus "github.com/oasisprotocol/oasis-core/go/consensus/api"
 	runtimeClient "github.com/oasisprotocol/oasis-core/go/runtime/client/api"
 
-	"github.com/oasisprotocol/oasis-indexer/common"
+	"github.com/oasisprotocol/nexus/common"
 )
 
 type Record struct {

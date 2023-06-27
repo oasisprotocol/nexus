@@ -24,9 +24,9 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	"github.com/oasisprotocol/oasis-indexer/common"
-	storage "github.com/oasisprotocol/oasis-indexer/storage/client"
-	"github.com/oasisprotocol/oasis-indexer/tests"
+	"github.com/oasisprotocol/nexus/common"
+	storage "github.com/oasisprotocol/nexus/storage/client"
+	"github.com/oasisprotocol/nexus/tests"
 )
 
 const (

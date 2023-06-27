@@ -3,8 +3,8 @@ package message
 
 import (
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
-	registry "github.com/oasisprotocol/oasis-indexer/coreapi/v21.1.1/registry/api"
-	staking "github.com/oasisprotocol/oasis-indexer/coreapi/v21.1.1/staking/api"
+	registry "github.com/oasisprotocol/nexus/coreapi/v21.1.1/registry/api"
+	staking "github.com/oasisprotocol/nexus/coreapi/v21.1.1/staking/api"
 )
 
 // Message is a message that can be sent by a runtime.

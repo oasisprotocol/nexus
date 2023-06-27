@@ -1,7 +1,7 @@
 # Oasis Indexer
 
-[![ci-lint](https://github.com/oasislabs/oasis-indexer/actions/workflows/ci-lint.yaml/badge.svg)](https://github.com/oasislabs/oasis-indexer/actions/workflows/ci-lint.yaml)
-[![ci-test](https://github.com/oasislabs/oasis-indexer/actions/workflows/ci-test.yaml/badge.svg)](https://github.com/oasislabs/oasis-indexer/actions/workflows/ci-test.yaml)
+[![ci-lint](https://github.com/oasisprotocol/nexus/actions/workflows/ci-lint.yaml/badge.svg)](https://github.com/oasisprotocol/nexus/actions/workflows/ci-lint.yaml)
+[![ci-test](https://github.com/oasisprotocol/nexus/actions/workflows/ci-test.yaml/badge.svg)](https://github.com/oasisprotocol/nexus/actions/workflows/ci-test.yaml)
 
 The official indexer for the Oasis Network.
 
@@ -38,7 +38,7 @@ Now you can query the Oasis Indexer API
 $ curl -X GET http://0.0.0.0:8008/v1
 ```
 
-For a full list of endpoints see our [API docs](https://github.com/oasislabs/oasis-indexer/blob/main/api/README.md).
+For a full list of endpoints see our [API docs](https://github.com/oasisprotocol/nexus/blob/main/api/README.md).
 
 ## Local Development
 

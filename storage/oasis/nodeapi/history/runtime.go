@@ -6,10 +6,10 @@ import (
 
 	sdkConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 
-	"github.com/oasisprotocol/oasis-indexer/common"
-	"github.com/oasisprotocol/oasis-indexer/config"
-	"github.com/oasisprotocol/oasis-indexer/storage/oasis/connections"
-	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
+	"github.com/oasisprotocol/nexus/common"
+	"github.com/oasisprotocol/nexus/config"
+	"github.com/oasisprotocol/nexus/storage/oasis/connections"
+	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
 )
 
 var _ nodeapi.RuntimeApiLite = (*HistoryRuntimeApiLite)(nil)

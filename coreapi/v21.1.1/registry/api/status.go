@@ -2,7 +2,7 @@ package api
 
 import (
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
-	beacon "github.com/oasisprotocol/oasis-indexer/coreapi/v21.1.1/beacon/api"
+	beacon "github.com/oasisprotocol/nexus/coreapi/v21.1.1/beacon/api"
 )
 
 // FreezeForever is an epoch that can be used to freeze a node for

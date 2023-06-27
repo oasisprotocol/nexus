@@ -6,7 +6,7 @@ import (
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/address"
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 
-	apiTypes "github.com/oasisprotocol/oasis-indexer/api/v1/types"
+	apiTypes "github.com/oasisprotocol/nexus/api/v1/types"
 )
 
 // nearly hungarian notation notes:

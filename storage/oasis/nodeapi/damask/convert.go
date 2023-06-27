@@ -6,9 +6,9 @@ import (
 	// indexer-internal data types.
 	coreCommon "github.com/oasisprotocol/oasis-core/go/common"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
-	apiTypes "github.com/oasisprotocol/oasis-indexer/api/v1/types"
-	"github.com/oasisprotocol/oasis-indexer/common"
-	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
+	apiTypes "github.com/oasisprotocol/nexus/api/v1/types"
+	"github.com/oasisprotocol/nexus/common"
+	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
 
 	// data types for Damask gRPC APIs.
 	txResultsDamask "github.com/oasisprotocol/oasis-core/go/consensus/api/transaction/results"

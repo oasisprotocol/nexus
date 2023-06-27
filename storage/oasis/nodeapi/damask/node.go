@@ -15,8 +15,8 @@ import (
 	governance "github.com/oasisprotocol/oasis-core/go/governance/api"
 	scheduler "github.com/oasisprotocol/oasis-core/go/scheduler/api"
 
-	"github.com/oasisprotocol/oasis-indexer/log"
-	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
+	"github.com/oasisprotocol/nexus/log"
+	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
 
 	// data types for Damask gRPC APIs.
 	txResultsDamask "github.com/oasisprotocol/oasis-core/go/consensus/api/transaction/results"

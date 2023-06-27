@@ -7,7 +7,7 @@ import (
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
 	"github.com/oasisprotocol/oasis-core/go/common/entity"
 	"github.com/oasisprotocol/oasis-core/go/common/node"
-	"github.com/oasisprotocol/oasis-indexer/coreapi/v21.1.1/consensus/api/transaction"
+	"github.com/oasisprotocol/nexus/coreapi/v21.1.1/consensus/api/transaction"
 )
 
 // ModuleName is a unique module name for the registry module.

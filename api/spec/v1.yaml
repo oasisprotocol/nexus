@@ -132,7 +132,7 @@ x-type-annotations:
     format: bigint  # Not used by the indexer; might be helpful to client generators to recognize this type.
     example: "1234567890123456789012"
     x-go-type: common.BigInt
-    x-go-type-import: { name: common, path: "github.com/oasisprotocol/oasis-indexer/common" }
+    x-go-type-import: { name: common, path: "github.com/oasisprotocol/nexus/common" }
   staking-address: &StakingAddressType
     type: string
     pattern: '^oasis1[a-z0-9]{40}$'
@@ -157,7 +157,7 @@ x-type-annotations:
     type: string
     example: "encrypted/x25519-deoxysii"
     x-go-type: common.CallFormat
-    x-go-type-import: { name: common, path: "github.com/oasisprotocol/oasis-indexer/common" }
+    x-go-type-import: { name: common, path: "github.com/oasisprotocol/nexus/common" }
 
 paths:
   /:
@@ -1126,13 +1126,13 @@ components:
     Layer:
       type: string
       # NOTE: Change IsValid() in util.go if you change this.
-      # https://github.com/oasisprotocol/oasis-indexer/blob/v0.0.16/api/v1/types/util.go#L40
+      # https://github.com/oasisprotocol/nexus/blob/v0.0.16/api/v1/types/util.go#L40
       enum: [emerald, sapphire, cipher, consensus]
 
     Runtime:
       type: string
       # NOTE: Change IsValid() in util.go if you change this.
-      # https://github.com/oasisprotocol/oasis-indexer/blob/v0.0.16/api/v1/types/util.go#L49
+      # https://github.com/oasisprotocol/nexus/blob/v0.0.16/api/v1/types/util.go#L49
       enum: [emerald, sapphire, cipher]
 
     List:

@@ -1,4 +1,4 @@
-module github.com/oasisprotocol/oasis-indexer
+module github.com/oasisprotocol/nexus
 
 go 1.19
 

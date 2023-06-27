@@ -18,8 +18,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/oasisprotocol/oasis-indexer/storage/postgres"
-	"github.com/oasisprotocol/oasis-indexer/tests"
+	"github.com/oasisprotocol/nexus/storage/postgres"
+	"github.com/oasisprotocol/nexus/tests"
 )
 
 const (

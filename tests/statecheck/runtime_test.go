@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	common "github.com/oasisprotocol/oasis-indexer/common"
+	common "github.com/oasisprotocol/nexus/common"
 )
 
 var RuntimeTables = []string{"runtime_sdk_balances"}

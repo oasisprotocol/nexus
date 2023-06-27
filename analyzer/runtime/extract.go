@@ -23,13 +23,13 @@ import (
 	sdkEVM "github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/evm"
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 
-	evm "github.com/oasisprotocol/oasis-indexer/analyzer/runtime/evm"
-	uncategorized "github.com/oasisprotocol/oasis-indexer/analyzer/uncategorized"
-	"github.com/oasisprotocol/oasis-indexer/analyzer/util"
-	apiTypes "github.com/oasisprotocol/oasis-indexer/api/v1/types"
-	"github.com/oasisprotocol/oasis-indexer/common"
-	"github.com/oasisprotocol/oasis-indexer/log"
-	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
+	evm "github.com/oasisprotocol/nexus/analyzer/runtime/evm"
+	uncategorized "github.com/oasisprotocol/nexus/analyzer/uncategorized"
+	"github.com/oasisprotocol/nexus/analyzer/util"
+	apiTypes "github.com/oasisprotocol/nexus/api/v1/types"
+	"github.com/oasisprotocol/nexus/common"
+	"github.com/oasisprotocol/nexus/log"
+	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
 )
 
 type BlockTransactionSignerData struct {

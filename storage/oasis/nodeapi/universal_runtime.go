@@ -12,8 +12,8 @@ import (
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/hash"
 	roothash "github.com/oasisprotocol/oasis-core/go/roothash/api/block"
 	coreRuntimeClient "github.com/oasisprotocol/oasis-core/go/runtime/client/api"
-	common "github.com/oasisprotocol/oasis-indexer/common"
-	cobaltRoothash "github.com/oasisprotocol/oasis-indexer/coreapi/v21.1.1/roothash/api/block"
+	common "github.com/oasisprotocol/nexus/common"
+	cobaltRoothash "github.com/oasisprotocol/nexus/coreapi/v21.1.1/roothash/api/block"
 	connection "github.com/oasisprotocol/oasis-sdk/client-sdk/go/connection"
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 )

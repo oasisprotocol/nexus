@@ -3,8 +3,8 @@ package runtime
 import (
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/consensusaccounts"
 
-	"github.com/oasisprotocol/oasis-indexer/analyzer/queries"
-	"github.com/oasisprotocol/oasis-indexer/storage"
+	"github.com/oasisprotocol/nexus/analyzer/queries"
+	"github.com/oasisprotocol/nexus/storage"
 )
 
 // queueConsensusAccountsEvents expands `batch` with DB queries that record the

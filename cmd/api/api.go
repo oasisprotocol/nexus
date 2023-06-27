@@ -10,14 +10,14 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/spf13/cobra"
 
-	api "github.com/oasisprotocol/oasis-indexer/api"
-	v1 "github.com/oasisprotocol/oasis-indexer/api/v1"
-	apiTypes "github.com/oasisprotocol/oasis-indexer/api/v1/types"
-	"github.com/oasisprotocol/oasis-indexer/cmd/common"
-	"github.com/oasisprotocol/oasis-indexer/config"
-	"github.com/oasisprotocol/oasis-indexer/log"
-	"github.com/oasisprotocol/oasis-indexer/metrics"
-	storage "github.com/oasisprotocol/oasis-indexer/storage/client"
+	api "github.com/oasisprotocol/nexus/api"
+	v1 "github.com/oasisprotocol/nexus/api/v1"
+	apiTypes "github.com/oasisprotocol/nexus/api/v1/types"
+	"github.com/oasisprotocol/nexus/cmd/common"
+	"github.com/oasisprotocol/nexus/config"
+	"github.com/oasisprotocol/nexus/log"
+	"github.com/oasisprotocol/nexus/metrics"
+	storage "github.com/oasisprotocol/nexus/storage/client"
 )
 
 const (

@@ -18,13 +18,13 @@ import (
 	oasisConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 
-	"github.com/oasisprotocol/oasis-indexer/analyzer/util"
-	apiCommon "github.com/oasisprotocol/oasis-indexer/api"
-	apiTypes "github.com/oasisprotocol/oasis-indexer/api/v1/types"
-	common "github.com/oasisprotocol/oasis-indexer/common"
-	"github.com/oasisprotocol/oasis-indexer/log"
-	"github.com/oasisprotocol/oasis-indexer/storage"
-	"github.com/oasisprotocol/oasis-indexer/storage/client/queries"
+	"github.com/oasisprotocol/nexus/analyzer/util"
+	apiCommon "github.com/oasisprotocol/nexus/api"
+	apiTypes "github.com/oasisprotocol/nexus/api/v1/types"
+	common "github.com/oasisprotocol/nexus/common"
+	"github.com/oasisprotocol/nexus/log"
+	"github.com/oasisprotocol/nexus/storage"
+	"github.com/oasisprotocol/nexus/storage/client/queries"
 )
 
 const (

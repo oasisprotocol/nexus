@@ -88,7 +88,7 @@ accept-e2e-regression:
 fmt:
 	@$(ECHO) "$(CYAN)*** Running Go formatters...$(OFF)"
 	@gofumpt -w .
-	@goimports -w -local github.com/oasislabs/oasis-indexer .
+	@goimports -w -local github.com/oasisprotocol/nexus .
 
 # Lint code, commits and documentation.
 lint-targets := lint-go lint-go-mod-tidy

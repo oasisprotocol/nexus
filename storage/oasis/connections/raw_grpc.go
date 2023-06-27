@@ -9,7 +9,7 @@ import (
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 
-	"github.com/oasisprotocol/oasis-indexer/config"
+	"github.com/oasisprotocol/nexus/config"
 )
 
 // RawConnect establishes gRPC connection with the target URL,

@@ -5,8 +5,8 @@ import (
 
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/accounts"
 
-	"github.com/oasisprotocol/oasis-indexer/analyzer/queries"
-	"github.com/oasisprotocol/oasis-indexer/storage"
+	"github.com/oasisprotocol/nexus/analyzer/queries"
+	"github.com/oasisprotocol/nexus/storage"
 )
 
 // queueAccountsEvents expands `batch` with DB queries that record the "effects"

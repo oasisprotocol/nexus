@@ -7,7 +7,7 @@ import (
 	governance "github.com/oasisprotocol/oasis-core/go/governance/api"
 	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
 
-	"github.com/oasisprotocol/oasis-indexer/common"
+	"github.com/oasisprotocol/nexus/common"
 )
 
 type BigInt = common.BigInt

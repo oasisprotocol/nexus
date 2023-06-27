@@ -2,7 +2,7 @@ package testvectors
 
 import (
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
-	"github.com/oasisprotocol/oasis-indexer/coreapi/v21.1.1/consensus/api/transaction"
+	"github.com/oasisprotocol/nexus/coreapi/v21.1.1/consensus/api/transaction"
 )
 
 const keySeedPrefix = "oasis-core test vectors: "

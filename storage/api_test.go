@@ -6,9 +6,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/oasisprotocol/oasis-indexer/storage"
-	"github.com/oasisprotocol/oasis-indexer/storage/postgres/testutil"
-	"github.com/oasisprotocol/oasis-indexer/tests"
+	"github.com/oasisprotocol/nexus/storage"
+	"github.com/oasisprotocol/nexus/storage/postgres/testutil"
+	"github.com/oasisprotocol/nexus/tests"
 )
 
 func TestInvalidText(t *testing.T) {

@@ -12,8 +12,8 @@ import (
 	"github.com/knadh/koanf/providers/file"
 	sdkConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 
-	"github.com/oasisprotocol/oasis-indexer/common"
-	"github.com/oasisprotocol/oasis-indexer/log"
+	"github.com/oasisprotocol/nexus/common"
+	"github.com/oasisprotocol/nexus/log"
 )
 
 // Config contains the CLI configuration.

@@ -6,8 +6,8 @@ import (
 
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/hash"
 	"github.com/oasisprotocol/oasis-core/go/common/quantity"
-	beacon "github.com/oasisprotocol/oasis-indexer/coreapi/v21.1.1/beacon/api"
-	"github.com/oasisprotocol/oasis-indexer/coreapi/v21.1.1/consensus/api/transaction"
+	beacon "github.com/oasisprotocol/nexus/coreapi/v21.1.1/beacon/api"
+	"github.com/oasisprotocol/nexus/coreapi/v21.1.1/consensus/api/transaction"
 )
 
 const (

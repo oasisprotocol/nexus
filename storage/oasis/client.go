@@ -7,11 +7,11 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/oasisprotocol/oasis-indexer/common"
-	"github.com/oasisprotocol/oasis-indexer/config"
-	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
-	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi/file"
-	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi/history"
+	"github.com/oasisprotocol/nexus/common"
+	"github.com/oasisprotocol/nexus/config"
+	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
+	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi/file"
+	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi/history"
 )
 
 const (

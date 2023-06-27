@@ -5,9 +5,9 @@ import (
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/hash"
 	"github.com/oasisprotocol/oasis-core/go/common/quantity"
 	upgrade "github.com/oasisprotocol/oasis-core/go/upgrade/api"
-	beacon "github.com/oasisprotocol/oasis-indexer/coreapi/v21.1.1/beacon/api"
-	"github.com/oasisprotocol/oasis-indexer/coreapi/v21.1.1/consensus/api/transaction"
-	staking "github.com/oasisprotocol/oasis-indexer/coreapi/v21.1.1/staking/api"
+	beacon "github.com/oasisprotocol/nexus/coreapi/v21.1.1/beacon/api"
+	"github.com/oasisprotocol/nexus/coreapi/v21.1.1/consensus/api/transaction"
+	staking "github.com/oasisprotocol/nexus/coreapi/v21.1.1/staking/api"
 )
 
 // ModuleName is a unique module name for the governance backend.

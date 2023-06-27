@@ -8,9 +8,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/oasisprotocol/oasis-indexer/common"
-	storage "github.com/oasisprotocol/oasis-indexer/storage/client"
-	"github.com/oasisprotocol/oasis-indexer/tests"
+	"github.com/oasisprotocol/nexus/common"
+	storage "github.com/oasisprotocol/nexus/storage/client"
+	"github.com/oasisprotocol/nexus/tests"
 )
 
 func makeTestBlocks(t *testing.T) []storage.Block {

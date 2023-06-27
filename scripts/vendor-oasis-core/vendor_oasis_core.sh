@@ -54,11 +54,11 @@ rm $(find $OUTDIR/ -name '*_test.go')
 
 # Fix imports
 # for m in "${MODULES[@]}"; do
-#   sed -E -i "s#$m \"github.com/oasisprotocol/oasis-core/go/$m/api([^\"]*)\"#$m \"github.com/oasisprotocol/oasis-indexer/$OUTDIR/$m/api\\1\"#" $(find $OUTDIR/ -type f)
+#   sed -E -i "s#$m \"github.com/oasisprotocol/oasis-core/go/$m/api([^\"]*)\"#$m \"github.com/oasisprotocol/nexus/$OUTDIR/$m/api\\1\"#" $(find $OUTDIR/ -type f)
 # done
 modules_or=$(IFS="|"; echo "${MODULES[*]}")
-sed -E -i "s#github.com/oasisprotocol/oasis-core/go/($modules_or)/api(/[^\"]*)?#github.com/oasisprotocol/oasis-indexer/$OUTDIR/\\1/api\\2#" $(find $OUTDIR/ -type f)
-sed -E -i "s#github.com/oasisprotocol/oasis-core/go/consensus/genesis#github.com/oasisprotocol/oasis-indexer/$OUTDIR/consensus/genesis#" $(find $OUTDIR/ -type f)
+sed -E -i "s#github.com/oasisprotocol/oasis-core/go/($modules_or)/api(/[^\"]*)?#github.com/oasisprotocol/nexus/$OUTDIR/\\1/api\\2#" $(find $OUTDIR/ -type f)
+sed -E -i "s#github.com/oasisprotocol/oasis-core/go/consensus/genesis#github.com/oasisprotocol/nexus/$OUTDIR/consensus/genesis#" $(find $OUTDIR/ -type f)
 
 # Remove functions
 for f in $(find $OUTDIR/ -type f); do

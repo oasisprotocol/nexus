@@ -3,7 +3,7 @@ package queries
 import (
 	"fmt"
 
-	"github.com/oasisprotocol/oasis-indexer/analyzer/runtime/evm"
+	"github.com/oasisprotocol/nexus/analyzer/runtime/evm"
 )
 
 var (

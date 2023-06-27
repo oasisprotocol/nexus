@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/oasisprotocol/oasis-indexer/log"
+	"github.com/oasisprotocol/nexus/log"
 	"github.com/stretchr/testify/require"
 )
 

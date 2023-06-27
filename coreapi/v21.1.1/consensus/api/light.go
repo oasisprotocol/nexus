@@ -1,7 +1,7 @@
 package api
 
 import (
-	"github.com/oasisprotocol/oasis-indexer/coreapi/v21.1.1/consensus/genesis"
+	"github.com/oasisprotocol/nexus/coreapi/v21.1.1/consensus/genesis"
 )
 
 // LightClientBackend is the limited consensus interface used by light clients.

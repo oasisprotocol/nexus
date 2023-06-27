@@ -7,7 +7,7 @@ import (
 	sdkConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/connection"
 
-	"github.com/oasisprotocol/oasis-indexer/config"
+	"github.com/oasisprotocol/nexus/config"
 )
 
 // SDKConnect creates an Oasis SDK Connection to a node running the current
