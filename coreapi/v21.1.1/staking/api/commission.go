@@ -2,6 +2,7 @@ package api
 
 import (
 	"github.com/oasisprotocol/oasis-core/go/common/quantity"
+
 	beacon "github.com/oasisprotocol/nexus/coreapi/v21.1.1/beacon/api"
 )
 

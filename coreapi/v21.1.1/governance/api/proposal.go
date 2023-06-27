@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/oasisprotocol/oasis-core/go/common/quantity"
+
 	beacon "github.com/oasisprotocol/nexus/coreapi/v21.1.1/beacon/api"
 	staking "github.com/oasisprotocol/nexus/coreapi/v21.1.1/staking/api"
 )

@@ -5,6 +5,7 @@ import (
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/hash"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
+
 	"github.com/oasisprotocol/nexus/coreapi/v21.1.1/roothash/api/message"
 )
 

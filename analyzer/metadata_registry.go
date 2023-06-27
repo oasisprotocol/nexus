@@ -7,6 +7,7 @@ import (
 
 	registry "github.com/oasisprotocol/metadata-registry-tools"
 	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
+
 	"github.com/oasisprotocol/nexus/analyzer/queries"
 	"github.com/oasisprotocol/nexus/config"
 	"github.com/oasisprotocol/nexus/log"

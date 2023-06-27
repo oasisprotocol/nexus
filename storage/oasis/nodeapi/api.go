@@ -19,10 +19,11 @@ import (
 	scheduler "github.com/oasisprotocol/oasis-core/go/scheduler/api"
 	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
 
-	apiTypes "github.com/oasisprotocol/nexus/api/v1/types"
-	common "github.com/oasisprotocol/nexus/common"
 	sdkClient "github.com/oasisprotocol/oasis-sdk/client-sdk/go/client"
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
+
+	apiTypes "github.com/oasisprotocol/nexus/api/v1/types"
+	common "github.com/oasisprotocol/nexus/common"
 )
 
 // ....................................................

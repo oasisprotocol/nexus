@@ -5,8 +5,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/oasisprotocol/nexus/log"
 	"github.com/stretchr/testify/require"
+
+	"github.com/oasisprotocol/nexus/log"
 )
 
 // Returns an open KVStore, and a function to clean it up.

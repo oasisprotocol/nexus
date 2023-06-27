@@ -11,6 +11,7 @@ import (
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
 	"github.com/oasisprotocol/oasis-core/go/common/version"
 	mkvsNode "github.com/oasisprotocol/oasis-core/go/storage/mkvs/node"
+
 	beacon "github.com/oasisprotocol/nexus/coreapi/v21.1.1/beacon/api"
 	"github.com/oasisprotocol/nexus/coreapi/v21.1.1/consensus/api/transaction"
 	"github.com/oasisprotocol/nexus/coreapi/v21.1.1/consensus/api/transaction/results"

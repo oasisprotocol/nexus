@@ -5,6 +5,7 @@ import (
 
 	"github.com/akrylysov/pogreb"
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
+
 	"github.com/oasisprotocol/nexus/log"
 )
 

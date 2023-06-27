@@ -2,6 +2,7 @@ package commitment
 
 import (
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
+
 	registry "github.com/oasisprotocol/nexus/coreapi/v21.1.1/registry/api"
 	"github.com/oasisprotocol/nexus/coreapi/v21.1.1/roothash/api/message"
 	scheduler "github.com/oasisprotocol/nexus/coreapi/v21.1.1/scheduler/api"

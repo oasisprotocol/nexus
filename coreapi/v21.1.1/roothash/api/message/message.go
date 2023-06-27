@@ -3,6 +3,7 @@ package message
 
 import (
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
+
 	registry "github.com/oasisprotocol/nexus/coreapi/v21.1.1/registry/api"
 	staking "github.com/oasisprotocol/nexus/coreapi/v21.1.1/staking/api"
 )
