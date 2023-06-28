@@ -36,7 +36,7 @@ jobs:
           build-args: |
             VERSION=${{ env.VERSION }}
           context: .
-          file: docker/indexer/Dockerfile
+          file: docker/nexus/Dockerfile
           tags: |
             oasislabs/oasis-indexer:latest
             oasislabs/oasis-indexer:latest-${{ env.VERSION }}

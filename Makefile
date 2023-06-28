@@ -32,7 +32,7 @@ docker:
 		docker/oasis-node
 	@docker build \
 		--tag oasislabs/oasis-indexer:$(USER)-dev \
-		--file docker/indexer/Dockerfile \
+		--file docker/nexus/Dockerfile \
 		.
 	@docker build \
 		--tag oasislabs/oasis-net-runner:$(USER)-dev \
