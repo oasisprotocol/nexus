@@ -103,8 +103,8 @@ jobs:
       - name: Dump logs and DB contents
         run: |
           docker logs nexus | tee /tmp/nexus.log;
-          docker logs indexer-postgres | tee /tmp/indexer-postgres.log;
-          docker exec indexer-postgres pg_dump -U indexer --create | tee /tmp/indexer_db.sql;
+          docker logs nexus-postgres | tee /tmp/nexus-postgres.log;
+          docker exec nexus-postgres pg_dump -U indexer --create | tee /tmp/indexer_db.sql;
         if: success() || failure()  # but not if job is manually cancelled
       - uses: actions/upload-artifact@v3
         with:

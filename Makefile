@@ -123,9 +123,9 @@ start-e2e: start-docker-e2e
 
 # Run dockerized postgres for local development
 postgres:
-	@docker ps -a --format '{{.Names}}' | grep -q indexer-postgres && docker start indexer-postgres || \
+	@docker ps -a --format '{{.Names}}' | grep -q nexus-postgres && docker start nexus-postgres || \
 	docker run \
-		--name indexer-postgres \
+		--name nexus-postgres \
 		-p 5432:5432 \
 		-e POSTGRES_USER=rwuser \
 		-e POSTGRES_PASSWORD=password \
@@ -133,14 +133,14 @@ postgres:
 		-d postgres -c log_statement=all
 	@sleep 3  # Experimentally enough for postgres to start accepting connections
 	# Create a read-only user to mimic the production environment.
-	docker exec indexer-postgres psql -U rwuser indexer -c "CREATE ROLE indexer_readonly; CREATE USER api WITH PASSWORD 'password' IN ROLE indexer_readonly;"
+	docker exec nexus-postgres psql -U rwuser indexer -c "CREATE ROLE indexer_readonly; CREATE USER api WITH PASSWORD 'password' IN ROLE indexer_readonly;"
 
 # Attach to the local DB from "make postgres"
 psql:
-	@docker exec -it indexer-postgres psql -U rwuser indexer
+	@docker exec -it nexus-postgres psql -U rwuser indexer
 
 shutdown-postgres:
-	@docker rm indexer-postgres --force
+	@docker rm nexus-postgres --force
 
 release-build: codegen-go
 	@goreleaser release --rm-dist
