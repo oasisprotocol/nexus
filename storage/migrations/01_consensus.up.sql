@@ -1,4 +1,4 @@
--- Indexer state initialization for the Damask Upgrade.
+-- State initialization for the Damask Upgrade.
 -- https://github.com/oasisprotocol/mainnet-artifacts/releases/tag/2022-04-11
 
 BEGIN;

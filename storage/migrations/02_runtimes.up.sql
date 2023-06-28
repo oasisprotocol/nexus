@@ -1,4 +1,4 @@
--- Indexer state initialization for the Emerald ParaTime, after the Damask Upgrade.
+-- State initialization for the Emerald ParaTime, after the Damask Upgrade.
 
 BEGIN;
 

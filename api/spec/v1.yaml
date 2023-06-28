@@ -1168,7 +1168,7 @@ components:
         latest_update:
           type: string
           format: date-time
-          description: The RFC 3339 formatted time when the Indexer processed the latest block. Compare with current time for approximate indexing progress with the Oasis Network.
+          description: The RFC 3339 formatted time when Nexus processed the latest block. Compare with current time for approximate indexing progress with the Oasis Network.
           example: *iso_timestamp_1
 
     BlockList:
@@ -2427,7 +2427,7 @@ components:
         latest_update:
           type: string
           format: date-time
-          description: The RFC 3339 formatted time when the Indexer processed the latest block for this runtime. Compare with current time for approximate indexing progress with the Oasis Network.
+          description: The RFC 3339 formatted time when Nexus processed the latest block for this runtime. Compare with current time for approximate indexing progress with the Oasis Network.
           example: *iso_timestamp_1
 
     EvmTokenType:

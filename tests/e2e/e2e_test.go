@@ -38,7 +38,7 @@ const (
 	indexerDelay = 3 * time.Second
 )
 
-func TestIndexer(t *testing.T) {
+func TestConsensusTransfer(t *testing.T) {
 	tests.SkipUnlessE2E(t)
 
 	if err := cmdCommon.Init(); err != nil {
@@ -46,7 +46,7 @@ func TestIndexer(t *testing.T) {
 	}
 	tests.Init()
 
-	// Indexer should be up
+	// API server should be up
 	var status storage.Status
 	err := tests.GetFrom("/", &status)
 	require.Nil(t, err)

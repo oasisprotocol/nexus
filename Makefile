@@ -69,7 +69,7 @@ fill-cache-for-e2e-regression: nexus
 # accessible as specified in the config file.
 test-e2e-regression: nexus
 	./nexus --config tests/e2e_regression/e2e_config.yml analyze
-	@$(ECHO) "$(CYAN)*** Indexer finished; starting api tests...$(OFF)"
+	@$(ECHO) "$(CYAN)*** Analyzers finished; starting api tests...$(OFF)"
 	./tests/e2e_regression/run.sh
 
 # Accept the outputs of the e2e tests as the new expected outputs.
