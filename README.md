@@ -3,11 +3,13 @@
 [![ci-lint](https://github.com/oasisprotocol/nexus/actions/workflows/ci-lint.yaml/badge.svg)](https://github.com/oasisprotocol/nexus/actions/workflows/ci-lint.yaml)
 [![ci-test](https://github.com/oasisprotocol/nexus/actions/workflows/ci-test.yaml/badge.svg)](https://github.com/oasisprotocol/nexus/actions/workflows/ci-test.yaml)
 
-The official indexer for the Oasis Network.
+The official indexer for the Oasis Network. Nexus continuously fetches blockchain data from one or more oasis nodes and related sources ([Sourcify](sourcify.dev), [Oasis Metadata Registry](https://github.com/oasisprotocol/metadata-registry), ...), parses the data and stores it into a heavily indexed SQL database, and provides a JSON-based web API to access the data.
+
+Nexus aims to serve as the backend for explorers and wallets, notably the official [Oasis Explorer](https://github.com/oasisprotocol/explorer/) and [Oasis Wallet](https://github.com/oasisprotocol/oasis-wallet-web).
 
 ## Docker Development
 
-You can create and run Oasis Nexus with [`docker compose`](https://docs.docker.com/compose/).
+You can build and run Oasis Nexus with [`docker compose`](https://docs.docker.com/compose/).
 Keep reading to get started, or take a look at our [Docker docs](docker/README.md) for more detail.
 
 **Configuration**
@@ -81,3 +83,8 @@ $ curl -X GET http://localhost:8008/v1
 **Debugging note**: A lot of indexing happens when parsing the genesis data. To see what SQL statements genesis is converted
 into, run `nexus` with `CONSENSUS_DAMASK_GENESIS_DUMP=/tmp/genesis.sql`. The SQL will be written to the indicated
 file, provided that genesis hasn't been parsed into the DB yet. The easiest way to achieve the latter is to wipe the DB.
+
+## Name Origin
+
+"Nexus" is a Latin word, meaning "connection or series of connections linking two or more things". Similarly, Oasis Nexus connects
+off-chain products with the Oasis blockchain.
