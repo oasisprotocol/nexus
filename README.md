@@ -67,13 +67,13 @@ and later browse the DB with
 make psql
 ```
 
-### Indexer
+### Nexus
 
 You should be able to `make nexus` and run `./nexus --config config/local-dev.yml` from the repository root.
 This will start the analyzers and the HTTP server, but you can start each of the constituent services independently as well.
 See `./nexus --help` for more details.
 
-Once the indexer has started, you can query the Oasis Nexus API
+Once Nexus has started, you can query the Oasis Nexus API
 ```sh
 $ curl -X GET http://localhost:8008/v1
 ```

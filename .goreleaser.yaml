@@ -62,5 +62,5 @@ release:
 
   footer: |
     **Full Changelog**: https://github.com/oasisprotocol/nexus/compare/{{ .PreviousTag }}...{{ .Tag }}
-    ### Running the indexer
+    ### Running Nexus in Docker
     https://github.com/oasisprotocol/nexus/blob/{{ .Tag }}/README.md#docker-development

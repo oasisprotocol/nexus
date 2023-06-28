@@ -1,5 +1,5 @@
 services:
-  indexer:
+  nexus:
     image: oasislabs/oasis-indexer:${USER}-dev
     container_name: nexus
     depends_on:

@@ -61,9 +61,9 @@ test-e2e:
 	@$(GO) test -race -coverpkg=./... -coverprofile=coverage.txt -covermode=atomic -v ./tests/e2e
 
 fill-cache-for-e2e-regression: nexus
-	cp tests/e2e_regression/e2e_config.yml /tmp/indexer_fill_e2e_regression_cache.yml
-	sed -i -E 's/query_on_cache_miss: false/query_on_cache_miss: true/g' /tmp/indexer_fill_e2e_regression_cache.yml
-	./nexus --config /tmp/indexer_fill_e2e_regression_cache.yml analyze
+	cp tests/e2e_regression/e2e_config.yml /tmp/nexus_fill_e2e_regression_cache.yml
+	sed -i -E 's/query_on_cache_miss: false/query_on_cache_miss: true/g' /tmp/nexus_fill_e2e_regression_cache.yml
+	./nexus --config /tmp/nexus_fill_e2e_regression_cache.yml analyze
 
 # Run the api tests locally, assuming the environment is set up with an oasis-node that is
 # accessible as specified in the config file.

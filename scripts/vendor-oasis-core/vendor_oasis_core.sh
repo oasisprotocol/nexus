@@ -4,13 +4,13 @@
 # oasis-core into a local directory, coreapi/$VERSION.
 #
 # The intention is to use them to communicate with archive nodes that use
-# old oasis-core. (The indexer needs to be able to talk to archive nodes
+# old oasis-core. (Nexus needs to be able to talk to archive nodes
 # and the current node; ie cannot directly include multiple versions of
 # oasis-core as a dependency; Go does not support that.)
 #
 # WHEN TO USE:
 # We expect to need it very rarely; only when the gRPC API of the node
-# (which indexer uses to communicate with the node) changes.
+# (which nexus uses to communicate with the node) changes.
 # The gRPC protocol is NOT VERSIONED (!), so technically we'd need to
 # deep-read the oasis-core release notes for every release to see if
 # the gRPC API changed. In practice, it's strongly correlated with 
@@ -20,7 +20,7 @@
 #
 # HOW TO USE:
 # 1) Set an appropriate VERSION below. Run the script.
-# 2) Import the new types into the indexer codebase. Compile.
+# 2) Import the new types into the nexus codebase. Compile.
 # 3) Manually fix any issues that arise. THIS SCRIPT IS FAR FROM FOOLPROOF;
 #    it is a starting point for vendoring a reasonable subset of oasis-core.
 #    Expand the "manual patches" section below; or don't, and just commit

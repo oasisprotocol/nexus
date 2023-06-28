@@ -129,7 +129,7 @@ x-type-annotations:
   big-int: &BigIntType
     type: string
     pattern: '^-?[0-9]+$'
-    format: bigint  # Not used by the indexer; might be helpful to client generators to recognize this type.
+    format: bigint  # Annotation is not used by Nexus's Go codegen; might be helpful to client generators to recognize this type.
     example: "1234567890123456789012"
     x-go-type: common.BigInt
     x-go-type-import: { name: common, path: "github.com/oasisprotocol/nexus/common" }
@@ -163,7 +163,7 @@ paths:
   /:
     get:
       operationId: getStatus
-      summary: Returns the indexer status.
+      summary: Returns the status of indexing.
       responses:
         '200':
           description: A JSON object containing status metadata.
@@ -860,7 +860,7 @@ paths:
             A filter on related accounts. Every returned transaction will refer to
             this account in a way. For example, for an `accounts.Transfer` tx, this will be
             the sender or the recipient of tokens.
-            The indexer detects related accounts inside EVM transactions and events on a
+            Nexus detects related accounts inside EVM transactions and events on a
             best-effort basis. For example, it inspects ERC20 methods inside `evm.Call` txs.
             However, you must provide the oasis-style derived address here, not the Eth address.
             See `AddressPreimage` for more info on oasis-style vs Eth addresses.
@@ -2173,7 +2173,7 @@ components:
           format: byte
           description: |
             The runtime bytecode of the smart contract. This is the code stored on-chain that
-            descibes a smart contract. Every contract has this info, but the indexer fetches
+            descibes a smart contract. Every contract has this info, but Nexus fetches
             it separately, so the field may be missing for very fresh contracts (or if the fetching
             process is stalled).
         verification:
@@ -2291,7 +2291,7 @@ components:
           type: string
           description: |
             The method that was called. Defined by the runtime. In theory, this could be any string as the runtimes evolve.
-            In practice, the indexer currently expects only the following methods:
+            In practice, Nexus currently expects only the following methods:
               - "accounts.Transfer"
               - "consensus.Deposit"
               - "consensus.Withdraw"

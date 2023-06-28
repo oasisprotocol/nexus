@@ -143,7 +143,7 @@ CREATE TABLE chain.nodes
 CREATE TABLE chain.claimed_nodes
 (
   entity_id base64_ed25519_pubkey NOT NULL REFERENCES chain.entities(id) DEFERRABLE INITIALLY DEFERRED,
-  node_id   base64_ed25519_pubkey NOT NULL,  -- No REFERENCES because the node likely does not exist (in the indexer) yet when the entity claims it.
+  node_id   base64_ed25519_pubkey NOT NULL,  -- No REFERENCES because the node likely does not exist (in the DB) yet when the entity claims it.
 
   PRIMARY KEY (entity_id, node_id)
 );
@@ -178,7 +178,7 @@ CREATE TABLE chain.accounts
   -- Escrow Account
   -- TODO: Use UINT_NUMERIC for the next four columns. Their values should always be >=0;
   -- however in Cobalt, the emitted events didn't allow perfect tracking of shares, so
-  -- the indexer can arrive at negative values (https://github.com/oasisprotocol/nexus/pull/370).
+  -- a dead-reckoning analyzer can arrive at negative values (https://github.com/oasisprotocol/nexus/pull/370).
   escrow_balance_active         NUMERIC(1000,0) NOT NULL DEFAULT 0,
   escrow_total_shares_active    NUMERIC(1000,0) NOT NULL DEFAULT 0,
   escrow_balance_debonding      NUMERIC(1000,0) NOT NULL DEFAULT 0,

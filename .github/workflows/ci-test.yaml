@@ -22,7 +22,7 @@ jobs:
   build-go:
     runs-on: ubuntu-20.04
     services:
-      # Generic postgres server; used only for testing our DB client lib. Not used by indexer.
+      # Generic postgres server; used only for testing our DB client lib. Not used by nexus.
       postgres:
         image: postgres:13
         env:
@@ -104,13 +104,13 @@ jobs:
         run: |
           docker logs nexus | tee /tmp/nexus.log;
           docker logs nexus-postgres | tee /tmp/nexus-postgres.log;
-          docker exec nexus-postgres pg_dump -U indexer --create | tee /tmp/indexer_db.sql;
+          docker exec nexus-postgres pg_dump -U indexer --create | tee /tmp/nexus_db.sql;
         if: success() || failure()  # but not if job is manually cancelled
       - uses: actions/upload-artifact@v3
         with:
-          name: indexer_db.sql
+          name: nexus_db.sql
           path: |
-            /tmp/indexer_db.sql
+            /tmp/nexus_db.sql
             /tmp/*.log
         if: success() || failure()  # but not if job is manually cancelled
 
@@ -138,7 +138,7 @@ jobs:
           make test-e2e-regression
       - uses: actions/upload-artifact@v3
         with:
-          name: Actual indexer api responses
+          name: Actual nexus api responses
           path: |
             tests/e2e_regression/actual
         if: failure()  # but not if success or job is manually cancelled
