@@ -1,6 +1,6 @@
 # Docker Development
 
-This folder contains Docker images required for running the Oasis Indexer locally:
+This folder contains Docker images required for running Oasis Nexus locally:
 
 - `oasis-node`
 - `oasis-indexer` (AKA Nexus)

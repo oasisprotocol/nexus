@@ -21,7 +21,7 @@ var (
 
 	rootCmd = &cobra.Command{
 		Use:   "nexus",
-		Short: "Oasis Indexer",
+		Short: "Oasis Nexus",
 		Run:   rootMain,
 	}
 )

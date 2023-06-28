@@ -1,6 +1,6 @@
-# Oasis Indexer Tests
+# Oasis Nexus Tests
 
-This directory contains tests for the Oasis Indexer. They have been organized as follows:
+This directory contains tests for Oasis Nexus. They have been organized as follows:
 
 - `e2e/` contains tests that run against a fake blockchain (provided by `oasis-net-runner`) and a black-box indexer (i.e. only external APIs are accessed).
 - `genesis/` contains tests that validate our database state is correct against `oasis-node` genesis state.

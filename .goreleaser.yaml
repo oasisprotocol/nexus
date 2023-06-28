@@ -1,4 +1,4 @@
-project_name: Oasis Indexer
+project_name: Oasis Nexus
 
 before:
   hooks:

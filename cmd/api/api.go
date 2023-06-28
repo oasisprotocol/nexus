@@ -32,7 +32,7 @@ var (
 
 	apiCmd = &cobra.Command{
 		Use:   "serve",
-		Short: "Serve Oasis Indexer API",
+		Short: "Serve Oasis Nexus API",
 		Run:   runServer,
 	}
 )
@@ -97,7 +97,7 @@ func Init(cfg *config.ServerConfig) (*Service, error) {
 	return service, nil
 }
 
-// Service is the Oasis Indexer's API service.
+// Service is Oasis Nexus's API service.
 type Service struct {
 	address string
 	target  *storage.StorageClient

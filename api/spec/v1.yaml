@@ -2,7 +2,7 @@
 
 openapi: 3.0.3
 info:
-  title: Oasis Indexer API V1
+  title: Oasis Nexus API V1
   description: An API for accessing indexed data from the Oasis Network.
   version: 0.1.0
 
@@ -40,7 +40,7 @@ x-query-params:
       type: integer
       format: int64
     description: |
-      The block height from which to query state. The Oasis Indexer does not
+      The block height from which to query state. Oasis Nexus does not
       make any guarantees about availability of historical state data.
   - &runtime
     in: path

@@ -1,6 +1,6 @@
 # Migrations
 
-This directory contains migrations for the Oasis Indexer target model,
+This directory contains migrations for the Oasis Nexus target model,
 i.e. processed blocks, transactions, and events from the consensus layer and
 each respective runtime.
 

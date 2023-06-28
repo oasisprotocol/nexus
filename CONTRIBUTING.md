@@ -1,6 +1,6 @@
 # Contributing Guidelines
 
-Thank you for your interest in contributing to the Oasis Indexer! There are
+Thank you for your interest in contributing to Oasis Nexus! There are
 many ways to contribute, and this document should not be considered
 encompassing.
 

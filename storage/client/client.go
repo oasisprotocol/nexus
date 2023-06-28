@@ -173,7 +173,7 @@ func (c *StorageClient) withTotalCount(ctx context.Context, sql string, args ...
 	}, nil
 }
 
-// Status returns status information for the Oasis Indexer.
+// Status returns status information for Oasis Nexus.
 func (c *StorageClient) Status(ctx context.Context) (*Status, error) {
 	var s Status
 	if err := c.db.QueryRow(

@@ -1,6 +1,6 @@
 # Versioning
 
-The Oasis Indexer uses [Semantic Versioning 2.0.0] with the following
+Oasis Nexus uses [Semantic Versioning 2.0.0] with the following
 format:
 
 ```text

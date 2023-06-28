@@ -137,7 +137,7 @@ func wipeStorage(cfg *config.StorageConfig) error {
 	return storage.Wipe(ctx)
 }
 
-// Service is the Oasis Indexer's analysis service.
+// Service is Oasis Nexus's analysis service.
 type Service struct {
 	Analyzers map[string]analyzer.Analyzer
 

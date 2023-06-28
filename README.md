@@ -1,4 +1,4 @@
-# Oasis Indexer
+# Oasis Nexus
 
 [![ci-lint](https://github.com/oasisprotocol/nexus/actions/workflows/ci-lint.yaml/badge.svg)](https://github.com/oasisprotocol/nexus/actions/workflows/ci-lint.yaml)
 [![ci-test](https://github.com/oasisprotocol/nexus/actions/workflows/ci-test.yaml/badge.svg)](https://github.com/oasisprotocol/nexus/actions/workflows/ci-test.yaml)
@@ -7,7 +7,7 @@ The official indexer for the Oasis Network.
 
 ## Docker Development
 
-You can create and run the Oasis Indexer with [`docker compose`](https://docs.docker.com/compose/).
+You can create and run Oasis Nexus with [`docker compose`](https://docs.docker.com/compose/).
 Keep reading to get started, or take a look at our [Docker docs](docker/README.md) for more detail.
 
 **Configuration**
@@ -33,7 +33,7 @@ The analyzer will run DB migrations on start (i.e. create empty tables) based on
 
 **Query**
 
-Now you can query the Oasis Indexer API
+Now you can query the Oasis Nexus API
 ```sh
 $ curl -X GET http://0.0.0.0:8008/v1
 ```
@@ -42,12 +42,12 @@ For a full list of endpoints see our [API docs](https://github.com/oasisprotocol
 
 ## Local Development
 
-Below are instructions for running the Oasis Indexer locally, without Docker.
+Below are instructions for running Oasis Nexus locally, without Docker.
 
 ### Oasis Node
 
 You will need to run a local [node](https://docs.oasis.dev/general/run-a-node/set-up-your-node/run-non-validator) for development purposes.
-You will need to set the Unix socket in the `config/local-dev.yaml` file while running an instance of the Oasis Indexer.
+You will need to set the Unix socket in the `config/local-dev.yaml` file while running an instance of Oasis Nexus.
 For example, this will be `unix:/node/data/internal.sock` in Docker.
 
 **Note:** A newly created node takes a while to fully sync with the network.
@@ -73,7 +73,7 @@ You should be able to `make nexus` and run `./nexus --config config/local-dev.ym
 This will start the analyzers and the HTTP server, but you can start each of the constituent services independently as well.
 See `./nexus --help` for more details.
 
-Once the indexer has started, you can query the Oasis Indexer API
+Once the indexer has started, you can query the Oasis Nexus API
 ```sh
 $ curl -X GET http://localhost:8008/v1
 ```
