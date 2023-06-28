@@ -620,8 +620,8 @@ func (c *StorageClient) Account(ctx context.Context, address staking.Address) (*
 			return nil, wrapError(err2)
 		}
 	} else if err == pgx.ErrNoRows {
-		// An address can have no entry in the `accounts` table, which means the indexer
-		// hasn't seen any activity for this address before. However, the address itself is
+		// An address can have no entry in the `accounts` table, which means no analyzer
+		// has seen any activity for this address before. However, the address itself is
 		// still valid, with 0 balance. We rely on type-checking of the input `address` to
 		// ensure that we do not return these responses for malformed oasis addresses.
 		a.Address = address.String()
@@ -1320,8 +1320,8 @@ func (c *StorageClient) RuntimeAccount(ctx context.Context, address staking.Addr
 	if err == nil { //nolint:gocritic
 		a.AddressPreimage.Context = AddressDerivationContext(preimageContext)
 	} else if err == pgx.ErrNoRows {
-		// An address can have no entry in the address preimage table, which means the indexer
-		// hasn't seen any activity for this address before. However, the address itself is
+		// An address can have no entry in the address preimage table, which means no analyzer
+		// has seen any activity for this address before. However, the address itself is
 		// still valid, with 0 balance. We rely on type-checking of the input `address` to
 		// ensure that we do not return these responses for malformed oasis addresses.
 		a.Address = address.String()

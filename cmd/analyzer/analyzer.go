@@ -434,7 +434,7 @@ func (a *Service) cleanup() {
 	}
 	a.logger.Info("all source connections have closed cleanly")
 	a.target.Close()
-	a.logger.Info("indexer db connection closed cleanly")
+	a.logger.Info("target db connection closed cleanly")
 }
 
 // Register registers the process sub-command.

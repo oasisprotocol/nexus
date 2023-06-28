@@ -15,7 +15,7 @@ import (
 // FileConsensusApiLite provides access to the consensus API of an Oasis node.
 // Since FileConsensusApiLite is backed by a file containing the cached responses
 // to `ConsensusApiLite` calls, this data is inherently compatible with the
-// current indexer and can thus handle heights from both Cobalt/Damask.
+// current Nexus and can thus handle heights from both Cobalt/Damask.
 type FileConsensusApiLite struct {
 	db           KVStore
 	consensusApi nodeapi.ConsensusApiLite

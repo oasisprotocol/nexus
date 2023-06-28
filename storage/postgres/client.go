@@ -26,13 +26,13 @@ type Client struct {
 	logger *log.Logger
 }
 
-// pgxLogger is a pgx-compatible logger interface that uses indexer's standard
+// pgxLogger is a pgx-compatible logger interface that uses nexus's standard
 // logger as the backend.
 type pgxLogger struct {
 	logger *log.Logger
 }
 
-// logFuncForLevel maps a pgx log severity level to a corresponding indexer logger function.
+// logFuncForLevel maps a pgx log severity level to a corresponding nexus logger function.
 func (l *pgxLogger) logFuncForLevel(level tracelog.LogLevel) func(string, ...interface{}) {
 	switch level {
 	case tracelog.LogLevelTrace, tracelog.LogLevelDebug:
@@ -49,7 +49,7 @@ func (l *pgxLogger) logFuncForLevel(level tracelog.LogLevel) func(string, ...int
 	}
 }
 
-// Implements pgx.Logger interface. Logs to indexer logger.
+// Implements pgx.Logger interface. Logs to nexus logger.
 func (l *pgxLogger) Log(ctx context.Context, level tracelog.LogLevel, msg string, data map[string]interface{}) {
 	args := []interface{}{}
 	for k, v := range data {
@@ -68,7 +68,7 @@ func NewClient(connString string, l *log.Logger) (*Client, error) {
 	}
 
 	// Set up pgx logging. For a log line to be produced, it needs to be >= the level
-	// specified here, and >= the level of the underlying indexer logger. "Info" level
+	// specified here, and >= the level of the underlying nexus logger. "Info" level
 	// logs every SQL statement executed.
 	config.ConnConfig.Tracer = &tracelog.TraceLog{
 		LogLevel: tracelog.LogLevelWarn,
@@ -90,7 +90,7 @@ func NewClient(connString string, l *log.Logger) (*Client, error) {
 // SendBatch submits a new batch of queries as an atomic transaction to PostgreSQL.
 //
 // For now, updated row counts are discarded as this is not intended to be used
-// by any indexer. We only care about atomic success or failure of the batch of queries
+// by any nexus. We only care about atomic success or failure of the batch of queries
 // corresponding to a new block.
 func (c *Client) SendBatch(ctx context.Context, batch *storage.QueryBatch) error {
 	return c.SendBatchWithOptions(ctx, batch, pgx.TxOptions{})
@@ -215,7 +215,7 @@ func (c *Client) Name() string {
 
 // Returns all tables that are not internal to Postgres. Table names are fully-qualified,
 // i.e. of the form "<schema>.<table>".
-func (c *Client) listIndexerTables(ctx context.Context) ([]string, error) {
+func (c *Client) listNexusTables(ctx context.Context) ([]string, error) {
 	rows, err := c.Query(ctx, `
 		SELECT schemaname, tablename
 		FROM pg_tables
@@ -239,7 +239,7 @@ func (c *Client) listIndexerTables(ctx context.Context) ([]string, error) {
 
 // Wipe removes all contents of the database.
 func (c *Client) Wipe(ctx context.Context) error {
-	tables, err := c.listIndexerTables(ctx)
+	tables, err := c.listNexusTables(ctx)
 	if err != nil {
 		return err
 	}
@@ -322,12 +322,12 @@ func (c *Client) Wipe(ctx context.Context) error {
 }
 
 // DisableTriggersAndFKConstraints disables all triggers and foreign key constraints
-// in indexer tables. This is useful when inserting blockchain data out of order,
+// in nexus tables. This is useful when inserting blockchain data out of order,
 // so that later blocks can refer to (yet unindexed) earlier blocks without violating constraints.
 func (c *Client) DisableTriggersAndFKConstraints(ctx context.Context) error {
 	// List all tables, then drop their triggers.
 	// FK constraints are implemented via triggers, so this also disables FK constraints.
-	tables, err := c.listIndexerTables(ctx)
+	tables, err := c.listNexusTables(ctx)
 	if err != nil {
 		return err
 	}
@@ -344,7 +344,7 @@ func (c *Client) DisableTriggersAndFKConstraints(ctx context.Context) error {
 // WARNING: This might enable triggers not explicitly disabled by DisableTriggersAndFKConstraints.
 // WARNING: This does not enforce/check contraints on rows that were inserted while triggers were disabled.
 func (c *Client) EnableTriggersAndFKConstraints(ctx context.Context) error {
-	tables, err := c.listIndexerTables(ctx)
+	tables, err := c.listNexusTables(ctx)
 	if err != nil {
 		return err
 	}

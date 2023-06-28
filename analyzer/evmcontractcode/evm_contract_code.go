@@ -159,7 +159,7 @@ func (m main) Start(ctx context.Context) {
 		6*time.Second,
 	)
 	if err != nil {
-		m.logger.Error("error configuring indexer backoff policy",
+		m.logger.Error("error configuring backoff policy",
 			"err", err,
 		)
 		return

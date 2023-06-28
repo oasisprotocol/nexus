@@ -8,7 +8,7 @@ import (
 
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 
-	// indexer-internal data types.
+	// nexus-internal data types.
 	beacon "github.com/oasisprotocol/oasis-core/go/beacon/api"
 	"github.com/oasisprotocol/oasis-core/go/common"
 	consensus "github.com/oasisprotocol/oasis-core/go/consensus/api"
@@ -82,7 +82,7 @@ func (c *CobaltConsensusApiLite) GetTransactionsWithResults(ctx context.Context,
 	}
 	txrs := make([]nodeapi.TransactionWithResults, len(rsp.Transactions))
 
-	// convert the response to the indexer-internal data type
+	// convert the response to the nexus-internal data type
 	for i, txBytes := range rsp.Transactions {
 		var tx consensusTx.SignedTransaction
 		if err := cbor.Unmarshal(txBytes, &tx); err != nil {

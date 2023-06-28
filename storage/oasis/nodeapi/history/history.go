@@ -31,12 +31,12 @@ func damaskAPIConstructor(ctx context.Context, chainContext string, archiveConfi
 func cobaltAPIConstructor(ctx context.Context, chainContext string, archiveConfig *config.ArchiveConfig, fastStartup bool) (nodeapi.ConsensusApiLite, error) {
 	rawConn, err := connections.RawConnect(archiveConfig.ResolvedConsensusNode())
 	if err != nil {
-		return nil, fmt.Errorf("indexer RawConnect: %w", err)
+		return nil, fmt.Errorf("oasis-node RawConnect: %w", err)
 	}
 	return cobalt.NewCobaltConsensusApiLite(rawConn), nil
 }
 
-// APIConstructors map each (indexer-internal) archive name to the API constructor
+// APIConstructors map each (nexus-internal) archive name to the API constructor
 // that can talk to that archive. The namespace of archive names is shared
 // between mainnet and testnet for simplicity.
 // The supported archive names come from `config.DefaultChains`. If you want to use

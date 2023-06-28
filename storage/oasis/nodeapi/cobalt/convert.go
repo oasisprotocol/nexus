@@ -8,7 +8,7 @@ import (
 	"github.com/oasisprotocol/oasis-core/go/common/quantity"
 	consensus "github.com/oasisprotocol/oasis-core/go/consensus/api"
 
-	// indexer-internal data types.
+	// nexus-internal data types.
 	coreCommon "github.com/oasisprotocol/oasis-core/go/common"
 	genesis "github.com/oasisprotocol/oasis-core/go/genesis/api"
 	governance "github.com/oasisprotocol/oasis-core/go/governance/api"
@@ -86,9 +86,9 @@ func convertRuntime(r *registryCobalt.Runtime) *registry.Runtime {
 }
 
 // ConvertGenesis converts a genesis document from the Cobalt format to the
-// indexer-internal (= current oasis-core) format.
+// nexus-internal (= current oasis-core) format.
 // WARNING: This is a partial conversion, only the fields that are used by
-// the indexer are filled in the output document.
+// Nexus are filled in the output document.
 func ConvertGenesis(d genesisCobalt.Document) *genesis.Document {
 	proposals := make([]*governance.Proposal, len(d.Governance.Proposals))
 	for i, p := range d.Governance.Proposals {

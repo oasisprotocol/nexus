@@ -258,7 +258,7 @@ type TargetStorage interface {
 	Wipe(ctx context.Context) error
 
 	// DisableTriggersAndFKConstraints disables all triggers and foreign key constraints
-	// in indexer tables. This is useful when inserting blockchain data out of order,
+	// in nexus tables. This is useful when inserting blockchain data out of order,
 	// so that later blocks can refer to (yet unindexed) earlier blocks without violating constraints.
 	DisableTriggersAndFKConstraints(ctx context.Context) error
 

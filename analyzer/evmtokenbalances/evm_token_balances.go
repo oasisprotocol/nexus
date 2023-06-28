@@ -43,7 +43,7 @@ import (
 // 1. Set _download round_ = `last_mutate_round` (= `r1`).
 // 2. Set _reckoned balance_ = `balance` (= `v0` + `d1`).
 // It then tries to download the balance (i.e. call balanceOf) at _download
-// round_. This takes place while the rest of the indexer continues to run.
+// round_. This takes place while the rest of the analyzer continues to run.
 //
 // Suppose the block scanner then reaches round `r2` and encounters a
 // `Transfer` log.
@@ -62,7 +62,7 @@ import (
 //    ^   ^   ^
 //    r0  r1  r2
 // The balance `v1` may not equal _reckoned balance_, as a result of contract
-// misbehavior or the balance changing beyond the indexer's understanding. It
+// misbehavior or the balance changing beyond the analyzer's understanding. It
 // does the following atomically:
 // 1. Update `balance` = `balance` - _reckoned balance_ + `v1` (= (`v0` +
 //    `d1` + `d2`) - (`v0` + `d1`) + `v1` = `v1` + `d2`). This is equivalent
@@ -290,7 +290,7 @@ func (m main) Start(ctx context.Context) {
 		6*time.Second,
 	)
 	if err != nil {
-		m.logger.Error("error configuring indexer backoff policy",
+		m.logger.Error("error configuring backoff policy",
 			"err", err,
 		)
 		return

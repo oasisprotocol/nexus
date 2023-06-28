@@ -111,7 +111,7 @@ func (rc *UniversalRuntimeApiLite) GetTransactionsWithResults(ctx context.Contex
 		return nil, err
 	}
 
-	// Convert to indexer-internal type.
+	// Convert to nexus-internal type.
 	txrs := make([]RuntimeTransactionWithResults, len(rsp))
 	for i, txr := range rsp {
 		txrs[i] = (RuntimeTransactionWithResults)(*txr)
@@ -126,7 +126,7 @@ func (rc *UniversalRuntimeApiLite) GetEventsRaw(ctx context.Context, round uint6
 		return nil, err
 	}
 
-	// Convert to indexer-internal type.
+	// Convert to nexus-internal type.
 	evs := make([]RuntimeEvent, len(rsp))
 	for i, ev := range rsp {
 		evs[i] = (RuntimeEvent)(*ev)

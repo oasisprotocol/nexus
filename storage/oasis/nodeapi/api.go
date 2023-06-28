@@ -35,10 +35,10 @@ import (
 //
 // Each method of this corresponds to a gRPC method of the node. In this sense,
 // this is a reimplementation of convenience gRPC wrapers in oasis-core.
-// However, this interface ONLY supports methods needed by the indexer, and the
+// However, this interface ONLY supports methods needed by Nexus, and the
 // return values (events, genesis doc, ...) are converted to simplified internal
 // types that mirror oasis-core types but contain only the fields relevant to
-// the indexer.
+// Nexus.
 //
 // Since the types are simpler and fewer, their structure is, in
 // places, flattened compared to their counterparts in oasis-core.
@@ -82,22 +82,22 @@ type Address = staking.Address
 // A lightweight version of "consensus/api/transactions/results".Event.
 //
 // NOTE: Not all types of events are expressed as sub-structs, only those that
-// the indexer actively inspects (as opposed to just logging them) to perform
+// Nexus actively inspects (as opposed to just logging them) to perform
 // dead reckoning or similar state updates.
 type Event struct {
 	Height int64
 	TxHash hash.Hash
 
 	// The body of the Event struct as it was received from oasis-core. For most
-	// event types, a summary of the event (containing only indexer-relevant fields)
+	// event types, a summary of the event (containing only nexus-relevant fields)
 	// will be present in one of the fields below (StakingTransfer, StakingBurn, etc.).
-	// For event types that the indexer doesn't process beyond logging, only this
+	// For event types that Nexus doesn't process beyond logging, only this
 	// field will be populated.
 	// We convert to JSON and effectively erase the type here in order to decouple
-	// oasis-core types (which vary between versions) from the indexer.
+	// oasis-core types (which vary between versions) from Nexus.
 	RawBody json.RawMessage
 
-	// Called "Kind" in oasis-core but "Type" in indexer APIs and DBs.
+	// Called "Kind" in oasis-core but "Type" in Nexus APIs and DBs.
 	Type apiTypes.ConsensusEventType
 
 	StakingTransfer             *TransferEvent

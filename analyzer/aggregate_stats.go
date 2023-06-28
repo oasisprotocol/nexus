@@ -51,7 +51,7 @@ var dailyActiveAccountsLayers = []string{
 	layerConsensus,
 	string(common.RuntimeEmerald),
 	string(common.RuntimeSapphire),
-	// RuntimeCipher.String(), // Enable once Cipher is supported by the indexer.
+	// RuntimeCipher.String(), // Enable once Cipher is supported by Nexus.
 }
 
 type AggregateStatsAnalyzer struct {

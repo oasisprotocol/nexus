@@ -41,9 +41,9 @@ type parsedEvent struct {
 
 // OpenSignedTxNoVerify decodes the Transaction inside a Signed transaction
 // without verifying the signature. Callers should be sure to check if the
-// transaction actually succeeded. The indexer trusts its oasis-node to
+// transaction actually succeeded. Nexus trusts its oasis-node to
 // provide the correct transaction result, which will indicate if there was an
-// authentication problem. Skipping the verification saves CPU on the indexer.
+// authentication problem. Skipping the verification saves CPU on the analyzer.
 // Due to the chain context being global, we cannot verify transactions for
 // multiple networks anyway.
 func OpenSignedTxNoVerify(signedTx *transaction.SignedTransaction) (*transaction.Transaction, error) {

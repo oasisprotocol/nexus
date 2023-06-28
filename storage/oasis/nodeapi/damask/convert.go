@@ -3,7 +3,7 @@ package damask
 import (
 	"strings"
 
-	// indexer-internal data types.
+	// nexus-internal data types.
 	coreCommon "github.com/oasisprotocol/oasis-core/go/common"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
 

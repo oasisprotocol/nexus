@@ -26,7 +26,7 @@ var (
 	}
 )
 
-// Service is a service run by the indexer.
+// Service is a service run by Nexus.
 type Service interface {
 	// Start starts the service.
 	Start()

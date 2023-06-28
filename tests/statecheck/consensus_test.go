@@ -311,7 +311,7 @@ func validateNodes(t *testing.T, genesis *registryAPI.Genesis, source consensusA
 		assert.Nil(t, err)
 
 		if n.IsExpired(uint64(epoch)) {
-			// The indexer prunes expired nodes immediately. oasis-client doesn't,
+			// Nexus prunes expired nodes immediately. oasis-client doesn't,
 			// so we prune its output here to prevent false mismatches.
 			continue
 		}
@@ -365,7 +365,7 @@ func validateNodes(t *testing.T, genesis *registryAPI.Genesis, source consensusA
 		assert.Nil(t, err)
 
 		if (&node.Node{Expiration: n.Expiration}).IsExpired(uint64(epoch)) {
-			// The indexer DB stores some nodes that are expired because
+			// Nexus DB stores some nodes that are expired because
 			// an expiration event was never produced for them. Ignore them.
 			continue
 		}
@@ -568,7 +568,7 @@ func validateAccounts(t *testing.T, genesis *stakingAPI.Genesis, target *postgre
 		hasBalance := !acct.General.Balance.IsZero() ||
 			!acct.Escrow.Active.Balance.IsZero() ||
 			!acct.Escrow.Debonding.Balance.IsZero()
-		if !hasBalance { // the indexer doesn't have to know about this acct
+		if !hasBalance { // nexus doesn't have to know about this acct
 			continue
 		}
 

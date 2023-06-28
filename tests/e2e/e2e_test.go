@@ -32,10 +32,10 @@ import (
 const (
 	fundAccountAmount = 10000000000
 	// The amount of time to wait after a blockchain tx to make sure that the a block with the
-	// tx was produced and the indexer has indexed the block.
+	// tx was produced and the consensus analyzer has indexed the block.
 	// The node seems to generate a block per second.
 	// 3 seconds is experimentally enough, 2 second was flaky.
-	indexerDelay = 3 * time.Second
+	analyzerDelay = 3 * time.Second
 )
 
 func TestConsensusTransfer(t *testing.T) {
@@ -119,7 +119,7 @@ func TestConsensusTransfer(t *testing.T) {
 		t.Errorf("account funding failure: %v", err)
 	}
 
-	time.Sleep(indexerDelay)
+	time.Sleep(analyzerDelay)
 	err = tests.GetFrom(fmt.Sprintf("/consensus/accounts/%s", bobAddress), &account)
 	require.Nil(t, err)
 	expected := common.NewBigInt(100000000)
@@ -145,7 +145,7 @@ func TestConsensusTransfer(t *testing.T) {
 	}
 
 	// Bob account has correct delegation balance
-	time.Sleep(indexerDelay)
+	time.Sleep(analyzerDelay)
 	err = tests.GetFrom(fmt.Sprintf("/consensus/accounts/%s", bobAddress), &account)
 	require.Nil(t, err)
 	expectedDelegationsBalance := common.NewBigInt(25000000)
@@ -154,7 +154,7 @@ func TestConsensusTransfer(t *testing.T) {
 	require.Equal(t, expectedAvailable, account.Available)
 
 	// Alice account has correct escrow balance
-	time.Sleep(indexerDelay)
+	time.Sleep(analyzerDelay)
 	err = tests.GetFrom(fmt.Sprintf("/consensus/accounts/%s", aliceAddress), &account)
 	require.Nil(t, err)
 	expectedEscrow := common.NewBigInt(25000000)

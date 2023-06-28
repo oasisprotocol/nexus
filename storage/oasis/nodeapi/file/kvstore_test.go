@@ -12,7 +12,7 @@ import (
 
 // Returns an open KVStore, and a function to clean it up.
 func openTestKVStore(t *testing.T) (KVStore, func()) {
-	path, err := os.MkdirTemp("", "indexer-kv-test")
+	path, err := os.MkdirTemp("", "nexus-kv-test")
 	require.NoError(t, err)
 	kv, err := OpenKVStore(log.NewDefaultLogger("unit-test"), path)
 	require.NoError(t, err)

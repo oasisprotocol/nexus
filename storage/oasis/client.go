@@ -20,7 +20,7 @@ const (
 
 // NewConsensusClient creates a new ConsensusClient.
 func NewConsensusClient(ctx context.Context, sourceConfig *config.SourceConfig) (*ConsensusClient, error) {
-	// If we are using purely file-backed indexer, do not connect to the node.
+	// If we are using purely file-backed analyzers, do not connect to the node.
 	if sourceConfig.Cache != nil && !sourceConfig.Cache.QueryOnCacheMiss {
 		cachePath := filepath.Join(sourceConfig.Cache.CacheDir, "consensus")
 		nodeApi, err := file.NewFileConsensusApiLite(cachePath, nil)
@@ -54,7 +54,7 @@ func NewConsensusClient(ctx context.Context, sourceConfig *config.SourceConfig) 
 
 // NewRuntimeClient creates a new RuntimeClient.
 func NewRuntimeClient(ctx context.Context, sourceConfig *config.SourceConfig, runtime common.Runtime) (nodeapi.RuntimeApiLite, error) {
-	// If we are using purely file-backed indexer, do not connect to the node.
+	// If we are using purely file-backed analyzers, do not connect to the node.
 	if sourceConfig.Cache != nil && !sourceConfig.Cache.QueryOnCacheMiss {
 		cachePath := filepath.Join(sourceConfig.Cache.CacheDir, string(runtime))
 		nodeApi, err := file.NewFileRuntimeApiLite(runtime, cachePath, nil)
