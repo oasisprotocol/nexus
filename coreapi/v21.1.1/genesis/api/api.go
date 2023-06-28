@@ -4,14 +4,14 @@ package api
 import (
 	"time"
 
-	beacon "github.com/oasisprotocol/oasis-indexer/coreapi/v21.1.1/beacon/api"
-	consensus "github.com/oasisprotocol/oasis-indexer/coreapi/v21.1.1/consensus/genesis"
-	governance "github.com/oasisprotocol/oasis-indexer/coreapi/v21.1.1/governance/api"
-	keymanager "github.com/oasisprotocol/oasis-indexer/coreapi/v21.1.1/keymanager/api"
-	registry "github.com/oasisprotocol/oasis-indexer/coreapi/v21.1.1/registry/api"
-	roothash "github.com/oasisprotocol/oasis-indexer/coreapi/v21.1.1/roothash/api"
-	scheduler "github.com/oasisprotocol/oasis-indexer/coreapi/v21.1.1/scheduler/api"
-	staking "github.com/oasisprotocol/oasis-indexer/coreapi/v21.1.1/staking/api"
+	beacon "github.com/oasisprotocol/nexus/coreapi/v21.1.1/beacon/api"
+	consensus "github.com/oasisprotocol/nexus/coreapi/v21.1.1/consensus/genesis"
+	governance "github.com/oasisprotocol/nexus/coreapi/v21.1.1/governance/api"
+	keymanager "github.com/oasisprotocol/nexus/coreapi/v21.1.1/keymanager/api"
+	registry "github.com/oasisprotocol/nexus/coreapi/v21.1.1/registry/api"
+	roothash "github.com/oasisprotocol/nexus/coreapi/v21.1.1/roothash/api"
+	scheduler "github.com/oasisprotocol/nexus/coreapi/v21.1.1/scheduler/api"
+	staking "github.com/oasisprotocol/nexus/coreapi/v21.1.1/staking/api"
 )
 
 const filePerm = 0o600

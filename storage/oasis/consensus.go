@@ -10,8 +10,8 @@ import (
 	genesisAPI "github.com/oasisprotocol/oasis-core/go/genesis/api"
 	sdkConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 
-	"github.com/oasisprotocol/oasis-indexer/storage"
-	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
+	"github.com/oasisprotocol/nexus/storage"
+	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
 )
 
 // ConsensusClient is a client to the consensus methods/data of oasis node. It

@@ -53,7 +53,7 @@ jobs:
           build-args: |
             TAG=${{ env.TAG }}
           context: .
-          file: docker/indexer/Dockerfile
+          file: docker/nexus/Dockerfile
           tags: |
             oasislabs/oasis-indexer:${{ env.TAG }}
           push: true

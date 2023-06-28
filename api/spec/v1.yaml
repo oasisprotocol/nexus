@@ -2,7 +2,7 @@
 
 openapi: 3.0.3
 info:
-  title: Oasis Indexer API V1
+  title: Oasis Nexus API V1
   description: An API for accessing indexed data from the Oasis Network.
   version: 0.1.0
 
@@ -40,7 +40,7 @@ x-query-params:
       type: integer
       format: int64
     description: |
-      The block height from which to query state. The Oasis Indexer does not
+      The block height from which to query state. Oasis Nexus does not
       make any guarantees about availability of historical state data.
   - &runtime
     in: path
@@ -129,10 +129,10 @@ x-type-annotations:
   big-int: &BigIntType
     type: string
     pattern: '^-?[0-9]+$'
-    format: bigint  # Not used by the indexer; might be helpful to client generators to recognize this type.
+    format: bigint  # Annotation is not used by Nexus's Go codegen; might be helpful to client generators to recognize this type.
     example: "1234567890123456789012"
     x-go-type: common.BigInt
-    x-go-type-import: { name: common, path: "github.com/oasisprotocol/oasis-indexer/common" }
+    x-go-type-import: { name: common, path: "github.com/oasisprotocol/nexus/common" }
   staking-address: &StakingAddressType
     type: string
     pattern: '^oasis1[a-z0-9]{40}$'
@@ -157,13 +157,13 @@ x-type-annotations:
     type: string
     example: "encrypted/x25519-deoxysii"
     x-go-type: common.CallFormat
-    x-go-type-import: { name: common, path: "github.com/oasisprotocol/oasis-indexer/common" }
+    x-go-type-import: { name: common, path: "github.com/oasisprotocol/nexus/common" }
 
 paths:
   /:
     get:
       operationId: getStatus
-      summary: Returns the indexer status.
+      summary: Returns the status of indexing.
       responses:
         '200':
           description: A JSON object containing status metadata.
@@ -860,7 +860,7 @@ paths:
             A filter on related accounts. Every returned transaction will refer to
             this account in a way. For example, for an `accounts.Transfer` tx, this will be
             the sender or the recipient of tokens.
-            The indexer detects related accounts inside EVM transactions and events on a
+            Nexus detects related accounts inside EVM transactions and events on a
             best-effort basis. For example, it inspects ERC20 methods inside `evm.Call` txs.
             However, you must provide the oasis-style derived address here, not the Eth address.
             See `AddressPreimage` for more info on oasis-style vs Eth addresses.
@@ -1126,13 +1126,13 @@ components:
     Layer:
       type: string
       # NOTE: Change IsValid() in util.go if you change this.
-      # https://github.com/oasisprotocol/oasis-indexer/blob/v0.0.16/api/v1/types/util.go#L40
+      # https://github.com/oasisprotocol/nexus/blob/v0.0.16/api/v1/types/util.go#L40
       enum: [emerald, sapphire, cipher, consensus]
 
     Runtime:
       type: string
       # NOTE: Change IsValid() in util.go if you change this.
-      # https://github.com/oasisprotocol/oasis-indexer/blob/v0.0.16/api/v1/types/util.go#L49
+      # https://github.com/oasisprotocol/nexus/blob/v0.0.16/api/v1/types/util.go#L49
       enum: [emerald, sapphire, cipher]
 
     List:
@@ -1168,7 +1168,7 @@ components:
         latest_update:
           type: string
           format: date-time
-          description: The RFC 3339 formatted time when the Indexer processed the latest block. Compare with current time for approximate indexing progress with the Oasis Network.
+          description: The RFC 3339 formatted time when Nexus processed the latest block. Compare with current time for approximate indexing progress with the Oasis Network.
           example: *iso_timestamp_1
 
     BlockList:
@@ -2173,7 +2173,7 @@ components:
           format: byte
           description: |
             The runtime bytecode of the smart contract. This is the code stored on-chain that
-            descibes a smart contract. Every contract has this info, but the indexer fetches
+            descibes a smart contract. Every contract has this info, but Nexus fetches
             it separately, so the field may be missing for very fresh contracts (or if the fetching
             process is stalled).
         verification:
@@ -2291,7 +2291,7 @@ components:
           type: string
           description: |
             The method that was called. Defined by the runtime. In theory, this could be any string as the runtimes evolve.
-            In practice, the indexer currently expects only the following methods:
+            In practice, Nexus currently expects only the following methods:
               - "accounts.Transfer"
               - "consensus.Deposit"
               - "consensus.Withdraw"
@@ -2427,7 +2427,7 @@ components:
         latest_update:
           type: string
           format: date-time
-          description: The RFC 3339 formatted time when the Indexer processed the latest block for this runtime. Compare with current time for approximate indexing progress with the Oasis Network.
+          description: The RFC 3339 formatted time when Nexus processed the latest block for this runtime. Compare with current time for approximate indexing progress with the Oasis Network.
           example: *iso_timestamp_1
 
     EvmTokenType:

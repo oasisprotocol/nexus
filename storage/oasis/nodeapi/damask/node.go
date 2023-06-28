@@ -7,7 +7,7 @@ import (
 	"github.com/oasisprotocol/oasis-core/go/common"
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 
-	// indexer-internal data types.
+	// nexus-internal data types.
 	beacon "github.com/oasisprotocol/oasis-core/go/beacon/api"
 	consensus "github.com/oasisprotocol/oasis-core/go/consensus/api"
 	consensusTx "github.com/oasisprotocol/oasis-core/go/consensus/api/transaction"
@@ -15,15 +15,15 @@ import (
 	governance "github.com/oasisprotocol/oasis-core/go/governance/api"
 	scheduler "github.com/oasisprotocol/oasis-core/go/scheduler/api"
 
-	"github.com/oasisprotocol/oasis-indexer/log"
-	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
+	"github.com/oasisprotocol/nexus/log"
+	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
 
 	// data types for Damask gRPC APIs.
 	txResultsDamask "github.com/oasisprotocol/oasis-core/go/consensus/api/transaction/results"
 )
 
 // DamaskConsensusApiLite provides low-level access to the consensus API of a
-// Damask node. Since the indexer is linked against a version of oasis-core that is
+// Damask node. Since Nexus is linked against a version of oasis-core that is
 // compatible with Damask gRPC API, this struct just trivially wraps the
 // convenience methods provided by oasis-core.
 type DamaskConsensusApiLite struct {
@@ -73,7 +73,7 @@ func (c *DamaskConsensusApiLite) GetTransactionsWithResults(ctx context.Context,
 	}
 	txrs := make([]nodeapi.TransactionWithResults, len(rsp.Transactions))
 
-	// convert the response to the indexer-internal data type
+	// convert the response to the nexus-internal data type
 	for i, txBytes := range rsp.Transactions {
 		var tx consensusTx.SignedTransaction
 		if err := cbor.Unmarshal(txBytes, &tx); err != nil {

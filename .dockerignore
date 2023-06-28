@@ -1,5 +1,5 @@
 # Built binaries.
-indexer
+nexus
 
 # Oasis Node data.
 docker/node/data

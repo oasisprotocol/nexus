@@ -1,8 +1,8 @@
-# Oasis Indexer Tests
+# Oasis Nexus Tests
 
-This directory contains tests for the Oasis Indexer. They have been organized as follows:
+This directory contains tests for Oasis Nexus. They have been organized as follows:
 
-- `e2e/` contains tests that run against a fake blockchain (provided by `oasis-net-runner`) and a black-box indexer (i.e. only external APIs are accessed).
+- `e2e/` contains tests that run against a fake blockchain (provided by `oasis-net-runner`) and a black-box Nexus (i.e. only external APIs are accessed).
 - `genesis/` contains tests that validate our database state is correct against `oasis-node` genesis state.
 - `http/` contains tests that validate API endpoints behave as expected and return correct output.
 
@@ -21,7 +21,7 @@ make docker
 ```
 
 #### Run the e2e tests
-This line will clean up any prior runs and start a new run of tests inside the `oasis-indexer` container:
+This line will clean up any prior runs and start a new run of tests inside the `nexus` container:
 
 ```sh
 make stop-e2e && make start-e2e
@@ -29,10 +29,10 @@ make stop-e2e && make start-e2e
 
 `make stop-e2e` wipes the state for `oasis-net-runner`; state left over from previous runs prevents the runner from starting. (Error: `failed to provision entity: oasis/entity: failed to create deterministic identity: signature/signer/file: key already exists`)
 
-#### Check indexer logs
+#### Check Nexus logs
 
 ```sh
-docker logs oasis-indexer --since 2m -t | less
+docker logs nexus --since 2m -t | less
 ```
 
-This is the dockerized indexer against which the e2e tests ran.
+This is the dockerized nexus against which the e2e tests ran.

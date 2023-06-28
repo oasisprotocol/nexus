@@ -12,10 +12,11 @@ import (
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/hash"
 	roothash "github.com/oasisprotocol/oasis-core/go/roothash/api/block"
 	coreRuntimeClient "github.com/oasisprotocol/oasis-core/go/runtime/client/api"
-	common "github.com/oasisprotocol/oasis-indexer/common"
-	cobaltRoothash "github.com/oasisprotocol/oasis-indexer/coreapi/v21.1.1/roothash/api/block"
 	connection "github.com/oasisprotocol/oasis-sdk/client-sdk/go/connection"
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
+
+	common "github.com/oasisprotocol/nexus/common"
+	cobaltRoothash "github.com/oasisprotocol/nexus/coreapi/v21.1.1/roothash/api/block"
 )
 
 // Implementation of `RuntimeApiLite` that supports all versions of the node ABI
@@ -110,7 +111,7 @@ func (rc *UniversalRuntimeApiLite) GetTransactionsWithResults(ctx context.Contex
 		return nil, err
 	}
 
-	// Convert to indexer-internal type.
+	// Convert to nexus-internal type.
 	txrs := make([]RuntimeTransactionWithResults, len(rsp))
 	for i, txr := range rsp {
 		txrs[i] = (RuntimeTransactionWithResults)(*txr)
@@ -125,7 +126,7 @@ func (rc *UniversalRuntimeApiLite) GetEventsRaw(ctx context.Context, round uint6
 		return nil, err
 	}
 
-	// Convert to indexer-internal type.
+	// Convert to nexus-internal type.
 	evs := make([]RuntimeEvent, len(rsp))
 	for i, ev := range rsp {
 		evs[i] = (RuntimeEvent)(*ev)

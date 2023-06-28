@@ -10,10 +10,10 @@ import (
 	"github.com/google/uuid"
 	"github.com/rs/cors"
 
-	apiTypes "github.com/oasisprotocol/oasis-indexer/api/v1/types"
-	"github.com/oasisprotocol/oasis-indexer/common"
-	"github.com/oasisprotocol/oasis-indexer/log"
-	"github.com/oasisprotocol/oasis-indexer/metrics"
+	apiTypes "github.com/oasisprotocol/nexus/api/v1/types"
+	"github.com/oasisprotocol/nexus/common"
+	"github.com/oasisprotocol/nexus/log"
+	"github.com/oasisprotocol/nexus/metrics"
 )
 
 var (
@@ -198,7 +198,7 @@ func jsonName(f reflect.StructField) string {
 // This middleware reproduces a portion of oapi-codegen's param-fetching logic, but then parses
 // the input string with `UnmarshalText()`.
 //
-// LIMITATIONS: The middleware relies on assumptions that happen to hold for oasis-indexer:
+// LIMITATIONS: The middleware relies on assumptions that happen to hold for nexus:
 //   - only works for `*BigInt` (not `BigInt`)
 //   - only works for `*BigInt` fields directly under `Params`, not nested in other structs.
 //   - only works for URL query parameters (like ?myNumber=123), not path parameters

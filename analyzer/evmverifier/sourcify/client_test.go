@@ -12,9 +12,9 @@ import (
 	ethCommon "github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
 
-	"github.com/oasisprotocol/oasis-indexer/analyzer/evmverifier/sourcify"
-	"github.com/oasisprotocol/oasis-indexer/common"
-	"github.com/oasisprotocol/oasis-indexer/log"
+	"github.com/oasisprotocol/nexus/analyzer/evmverifier/sourcify"
+	"github.com/oasisprotocol/nexus/common"
+	"github.com/oasisprotocol/nexus/log"
 )
 
 var (

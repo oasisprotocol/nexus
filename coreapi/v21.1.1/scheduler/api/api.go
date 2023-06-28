@@ -8,7 +8,8 @@ import (
 	"github.com/oasisprotocol/oasis-core/go/common"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
 	"github.com/oasisprotocol/oasis-core/go/common/quantity"
-	beacon "github.com/oasisprotocol/oasis-indexer/coreapi/v21.1.1/beacon/api"
+
+	beacon "github.com/oasisprotocol/nexus/coreapi/v21.1.1/beacon/api"
 )
 
 // ModuleName is a unique module name for the scheduler module.

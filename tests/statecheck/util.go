@@ -12,10 +12,10 @@ import (
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/connection"
 	"github.com/stretchr/testify/require"
 
-	"github.com/oasisprotocol/oasis-indexer/common"
-	"github.com/oasisprotocol/oasis-indexer/log"
-	"github.com/oasisprotocol/oasis-indexer/storage"
-	"github.com/oasisprotocol/oasis-indexer/storage/postgres"
+	"github.com/oasisprotocol/nexus/common"
+	"github.com/oasisprotocol/nexus/log"
+	"github.com/oasisprotocol/nexus/storage"
+	"github.com/oasisprotocol/nexus/storage/postgres"
 )
 
 const (
@@ -59,7 +59,7 @@ func snapshotBackends(target *postgres.Client, analyzer string, tables []string)
 
 	// Create the snapshot using a high level of isolation; we don't want another
 	// tx to be able to modify the tables while this is running, creating a snapshot that
-	// represents indexer state at two (or more) blockchain heights.
+	// represents analyzer state at two (or more) blockchain heights.
 	if err := target.SendBatchWithOptions(ctx, batch, pgx.TxOptions{IsoLevel: pgx.Serializable}); err != nil {
 		return 0, err
 	}

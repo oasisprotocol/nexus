@@ -14,11 +14,11 @@ import (
 	sdkConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 	"github.com/stretchr/testify/require"
 
-	"github.com/oasisprotocol/oasis-indexer/analyzer/evmabi"
-	cmdCommon "github.com/oasisprotocol/oasis-indexer/cmd/common"
-	"github.com/oasisprotocol/oasis-indexer/common"
-	"github.com/oasisprotocol/oasis-indexer/config"
-	"github.com/oasisprotocol/oasis-indexer/storage/oasis"
+	"github.com/oasisprotocol/nexus/analyzer/evmabi"
+	cmdCommon "github.com/oasisprotocol/nexus/cmd/common"
+	"github.com/oasisprotocol/nexus/common"
+	"github.com/oasisprotocol/nexus/config"
+	"github.com/oasisprotocol/nexus/storage/oasis"
 )
 
 var (

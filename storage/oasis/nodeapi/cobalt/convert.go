@@ -8,25 +8,26 @@ import (
 	"github.com/oasisprotocol/oasis-core/go/common/quantity"
 	consensus "github.com/oasisprotocol/oasis-core/go/consensus/api"
 
-	// indexer-internal data types.
+	// nexus-internal data types.
 	coreCommon "github.com/oasisprotocol/oasis-core/go/common"
 	genesis "github.com/oasisprotocol/oasis-core/go/genesis/api"
 	governance "github.com/oasisprotocol/oasis-core/go/governance/api"
 	registry "github.com/oasisprotocol/oasis-core/go/registry/api"
 	scheduler "github.com/oasisprotocol/oasis-core/go/scheduler/api"
 	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
-	apiTypes "github.com/oasisprotocol/oasis-indexer/api/v1/types"
-	"github.com/oasisprotocol/oasis-indexer/common"
-	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
+
+	apiTypes "github.com/oasisprotocol/nexus/api/v1/types"
+	"github.com/oasisprotocol/nexus/common"
+	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
 
 	// data types for Cobalt gRPC APIs.
-	consensusCobalt "github.com/oasisprotocol/oasis-indexer/coreapi/v21.1.1/consensus/api"
-	txResultsCobalt "github.com/oasisprotocol/oasis-indexer/coreapi/v21.1.1/consensus/api/transaction/results"
-	genesisCobalt "github.com/oasisprotocol/oasis-indexer/coreapi/v21.1.1/genesis/api"
-	governanceCobalt "github.com/oasisprotocol/oasis-indexer/coreapi/v21.1.1/governance/api"
-	registryCobalt "github.com/oasisprotocol/oasis-indexer/coreapi/v21.1.1/registry/api"
-	schedulerCobalt "github.com/oasisprotocol/oasis-indexer/coreapi/v21.1.1/scheduler/api"
-	stakingCobalt "github.com/oasisprotocol/oasis-indexer/coreapi/v21.1.1/staking/api"
+	consensusCobalt "github.com/oasisprotocol/nexus/coreapi/v21.1.1/consensus/api"
+	txResultsCobalt "github.com/oasisprotocol/nexus/coreapi/v21.1.1/consensus/api/transaction/results"
+	genesisCobalt "github.com/oasisprotocol/nexus/coreapi/v21.1.1/genesis/api"
+	governanceCobalt "github.com/oasisprotocol/nexus/coreapi/v21.1.1/governance/api"
+	registryCobalt "github.com/oasisprotocol/nexus/coreapi/v21.1.1/registry/api"
+	schedulerCobalt "github.com/oasisprotocol/nexus/coreapi/v21.1.1/scheduler/api"
+	stakingCobalt "github.com/oasisprotocol/nexus/coreapi/v21.1.1/staking/api"
 )
 
 func convertProposal(p *governanceCobalt.Proposal) *governance.Proposal {
@@ -85,9 +86,9 @@ func convertRuntime(r *registryCobalt.Runtime) *registry.Runtime {
 }
 
 // ConvertGenesis converts a genesis document from the Cobalt format to the
-// indexer-internal (= current oasis-core) format.
+// nexus-internal (= current oasis-core) format.
 // WARNING: This is a partial conversion, only the fields that are used by
-// the indexer are filled in the output document.
+// Nexus are filled in the output document.
 func ConvertGenesis(d genesisCobalt.Document) *genesis.Document {
 	proposals := make([]*governance.Proposal, len(d.Governance.Proposals))
 	for i, p := range d.Governance.Proposals {

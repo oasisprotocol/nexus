@@ -9,7 +9,7 @@ import (
 	"os"
 	"testing"
 
-	storage "github.com/oasisprotocol/oasis-indexer/storage/client"
+	storage "github.com/oasisprotocol/nexus/storage/client"
 )
 
 // GetFrom completes an HTTP request and returns the unmarshalled response.

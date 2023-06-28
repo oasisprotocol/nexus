@@ -11,8 +11,8 @@ import (
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/evm"
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 
-	evmCommon "github.com/oasisprotocol/oasis-indexer/analyzer/uncategorized"
-	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
+	evmCommon "github.com/oasisprotocol/nexus/analyzer/uncategorized"
+	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
 )
 
 type CallHandler struct {

@@ -11,7 +11,7 @@ about: Suggest an idea for this project
 - Feature Idea
 
 ##### COMPONENT NAME
-<!--- Write the name of the component the issue applies to (e.g. indexer) below, use your best guess if unsure -->
+<!--- Write the name of the component the issue applies to (e.g. api) below, use your best guess if unsure -->
 
 ##### ADDITIONAL INFORMATION
 <!--- Describe how the feature would be used, why it is needed and what it would solve -->

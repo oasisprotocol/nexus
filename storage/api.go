@@ -14,7 +14,7 @@ import (
 	consensus "github.com/oasisprotocol/oasis-core/go/consensus/api"
 	genesisAPI "github.com/oasisprotocol/oasis-core/go/genesis/api"
 
-	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
+	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
 )
 
 type BatchItem struct {
@@ -258,7 +258,7 @@ type TargetStorage interface {
 	Wipe(ctx context.Context) error
 
 	// DisableTriggersAndFKConstraints disables all triggers and foreign key constraints
-	// in indexer tables. This is useful when inserting blockchain data out of order,
+	// in nexus tables. This is useful when inserting blockchain data out of order,
 	// so that later blocks can refer to (yet unindexed) earlier blocks without violating constraints.
 	DisableTriggersAndFKConstraints(ctx context.Context) error
 

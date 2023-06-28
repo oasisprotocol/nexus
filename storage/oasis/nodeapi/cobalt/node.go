@@ -8,7 +8,7 @@ import (
 
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 
-	// indexer-internal data types.
+	// nexus-internal data types.
 	beacon "github.com/oasisprotocol/oasis-core/go/beacon/api"
 	"github.com/oasisprotocol/oasis-core/go/common"
 	consensus "github.com/oasisprotocol/oasis-core/go/consensus/api"
@@ -17,19 +17,19 @@ import (
 	governance "github.com/oasisprotocol/oasis-core/go/governance/api"
 	scheduler "github.com/oasisprotocol/oasis-core/go/scheduler/api"
 
-	"github.com/oasisprotocol/oasis-indexer/log"
-	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
+	"github.com/oasisprotocol/nexus/log"
+	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
 
 	// data types for Cobalt gRPC APIs.
-	beaconCobalt "github.com/oasisprotocol/oasis-indexer/coreapi/v21.1.1/beacon/api"
-	consensusCobalt "github.com/oasisprotocol/oasis-indexer/coreapi/v21.1.1/consensus/api"
-	txResultsCobalt "github.com/oasisprotocol/oasis-indexer/coreapi/v21.1.1/consensus/api/transaction/results"
-	genesisCobalt "github.com/oasisprotocol/oasis-indexer/coreapi/v21.1.1/genesis/api"
-	governanceCobalt "github.com/oasisprotocol/oasis-indexer/coreapi/v21.1.1/governance/api"
-	registryCobalt "github.com/oasisprotocol/oasis-indexer/coreapi/v21.1.1/registry/api"
-	roothashCobalt "github.com/oasisprotocol/oasis-indexer/coreapi/v21.1.1/roothash/api"
-	schedulerCobalt "github.com/oasisprotocol/oasis-indexer/coreapi/v21.1.1/scheduler/api"
-	stakingCobalt "github.com/oasisprotocol/oasis-indexer/coreapi/v21.1.1/staking/api"
+	beaconCobalt "github.com/oasisprotocol/nexus/coreapi/v21.1.1/beacon/api"
+	consensusCobalt "github.com/oasisprotocol/nexus/coreapi/v21.1.1/consensus/api"
+	txResultsCobalt "github.com/oasisprotocol/nexus/coreapi/v21.1.1/consensus/api/transaction/results"
+	genesisCobalt "github.com/oasisprotocol/nexus/coreapi/v21.1.1/genesis/api"
+	governanceCobalt "github.com/oasisprotocol/nexus/coreapi/v21.1.1/governance/api"
+	registryCobalt "github.com/oasisprotocol/nexus/coreapi/v21.1.1/registry/api"
+	roothashCobalt "github.com/oasisprotocol/nexus/coreapi/v21.1.1/roothash/api"
+	schedulerCobalt "github.com/oasisprotocol/nexus/coreapi/v21.1.1/scheduler/api"
+	stakingCobalt "github.com/oasisprotocol/nexus/coreapi/v21.1.1/staking/api"
 )
 
 // CobaltConsensusApiLite provides low-level access to the consensus API of a
@@ -82,7 +82,7 @@ func (c *CobaltConsensusApiLite) GetTransactionsWithResults(ctx context.Context,
 	}
 	txrs := make([]nodeapi.TransactionWithResults, len(rsp.Transactions))
 
-	// convert the response to the indexer-internal data type
+	// convert the response to the nexus-internal data type
 	for i, txBytes := range rsp.Transactions {
 		var tx consensusTx.SignedTransaction
 		if err := cbor.Unmarshal(txBytes, &tx); err != nil {

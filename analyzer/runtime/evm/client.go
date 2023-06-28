@@ -12,11 +12,11 @@ import (
 	"github.com/oasisprotocol/oasis-core/go/common/errors"
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 
-	"github.com/oasisprotocol/oasis-indexer/analyzer/evmabi"
-	apiTypes "github.com/oasisprotocol/oasis-indexer/api/v1/types"
-	"github.com/oasisprotocol/oasis-indexer/common"
-	"github.com/oasisprotocol/oasis-indexer/log"
-	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
+	"github.com/oasisprotocol/nexus/analyzer/evmabi"
+	apiTypes "github.com/oasisprotocol/nexus/api/v1/types"
+	"github.com/oasisprotocol/nexus/common"
+	"github.com/oasisprotocol/nexus/log"
+	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
 )
 
 type EVMTokenType int
@@ -232,7 +232,7 @@ func evmDownloadTokenERC20(ctx context.Context, logger *log.Logger, source nodea
 func EVMDownloadNewToken(ctx context.Context, logger *log.Logger, source nodeapi.RuntimeApiLite, round uint64, tokenEthAddr []byte) (*EVMTokenData, error) {
 	// todo: check ERC-165 0xffffffff compliance
 	// todo: try other token standards based on ERC-165
-	// see https://github.com/oasisprotocol/oasis-indexer/issues/225
+	// see https://github.com/oasisprotocol/nexus/issues/225
 
 	// Check ERC-20.
 	tokenData, err := evmDownloadTokenERC20(ctx, logger, source, round, tokenEthAddr)
@@ -244,7 +244,7 @@ func EVMDownloadNewToken(ctx context.Context, logger *log.Logger, source nodeapi
 	}
 
 	// todo: add support for other token types
-	// see https://github.com/oasisprotocol/oasis-indexer/issues/225
+	// see https://github.com/oasisprotocol/nexus/issues/225
 
 	// No applicable token discovered.
 	return &EVMTokenData{Type: EVMTokenTypeUnsupported}, nil
@@ -265,7 +265,7 @@ func EVMDownloadMutatedToken(ctx context.Context, logger *log.Logger, source nod
 		return mutable, nil
 
 	// todo: add support for other token types
-	// see https://github.com/oasisprotocol/oasis-indexer/issues/225
+	// see https://github.com/oasisprotocol/nexus/issues/225
 
 	default:
 		return nil, fmt.Errorf("download mutated token type %v not handled", tokenType)
@@ -309,7 +309,7 @@ func EVMDownloadTokenBalance(ctx context.Context, logger *log.Logger, source nod
 		return balance, nil
 
 	// todo: add support for other token types
-	// see https://github.com/oasisprotocol/oasis-indexer/issues/225
+	// see https://github.com/oasisprotocol/nexus/issues/225
 
 	default:
 		return nil, fmt.Errorf("download stale token balance type %v not handled", tokenType)

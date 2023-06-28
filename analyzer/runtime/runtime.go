@@ -11,17 +11,17 @@ import (
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/rewards"
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 
-	"github.com/oasisprotocol/oasis-indexer/analyzer"
-	"github.com/oasisprotocol/oasis-indexer/analyzer/block"
-	"github.com/oasisprotocol/oasis-indexer/analyzer/queries"
-	evm "github.com/oasisprotocol/oasis-indexer/analyzer/runtime/evm"
-	uncategorized "github.com/oasisprotocol/oasis-indexer/analyzer/uncategorized"
-	"github.com/oasisprotocol/oasis-indexer/common"
-	"github.com/oasisprotocol/oasis-indexer/config"
-	"github.com/oasisprotocol/oasis-indexer/log"
-	"github.com/oasisprotocol/oasis-indexer/metrics"
-	"github.com/oasisprotocol/oasis-indexer/storage"
-	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
+	"github.com/oasisprotocol/nexus/analyzer"
+	"github.com/oasisprotocol/nexus/analyzer/block"
+	"github.com/oasisprotocol/nexus/analyzer/queries"
+	evm "github.com/oasisprotocol/nexus/analyzer/runtime/evm"
+	uncategorized "github.com/oasisprotocol/nexus/analyzer/uncategorized"
+	"github.com/oasisprotocol/nexus/common"
+	"github.com/oasisprotocol/nexus/config"
+	"github.com/oasisprotocol/nexus/log"
+	"github.com/oasisprotocol/nexus/metrics"
+	"github.com/oasisprotocol/nexus/storage"
+	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
 )
 
 // processor is the block processor for runtimes.
@@ -206,7 +206,7 @@ func (m *processor) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 		if error_message != nil {
 			// Apparently the message does need to be valid UTF-8.
 			// In the rare case it's not, hex encode it.
-			// https://github.com/oasisprotocol/oasis-indexer/issues/439
+			// https://github.com/oasisprotocol/nexus/issues/439
 			if !storage.IsValidText(*error_message) {
 				*error_message = hex.EncodeToString([]byte(*error_message))
 			}

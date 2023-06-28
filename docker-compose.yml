@@ -1,9 +1,9 @@
 services:
-  indexer:
+  nexus:
     image: oasislabs/oasis-indexer:${USER}-dev
-    container_name: oasis-indexer
+    container_name: nexus
     depends_on:
-      indexer-postgres:
+      nexus-postgres:
         condition: service_healthy
       oasis-node:
         condition: service_healthy
@@ -21,9 +21,9 @@ services:
       - type: bind
         source: ./config
         target: /config
-  indexer-postgres:
+  nexus-postgres:
     image: postgres:13.7
-    container_name: indexer-postgres
+    container_name: nexus-postgres
     ports:
       - 5432:5432
     environment:

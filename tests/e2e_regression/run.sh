@@ -1,20 +1,20 @@
 #!/bin/bash
 
-# This script is a simple e2e regression test for the indexer.
+# This script is a simple e2e regression test for Nexus.
 #
-# It fetches a fixed set of URLs from the indexer and saves the responses to files,
+# It fetches a fixed set of URLs from the API and saves the responses to files,
 # then check that the responses match expected outputs (from a previous run).
 #
 # If the differences are expected, smiply check the new responses into git.
 #
-# NOTE: It is the responsibility of the caller to invoke this script against an
-# indexer that is SYNCED TO THE SAME HEIGHT as in the run that produced the
+# NOTE: It is the responsibility of the caller to invoke this script against a
+# DB that is SYNCED TO THE SAME HEIGHT as in the run that produced the
 # expected outputs.
 
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 
-# The hostname of the indexer to test
+# The hostname of the API server to test
 hostname="http://localhost:8008"
 
 # The directory to store the actual responses in
@@ -80,8 +80,8 @@ nCases=${#testCases[@]}
 # Start the API server.
 # Set the timezone (TZ=UTC) to have more consistent outputs across different
 # systems, even when not running inside docker.
-make oasis-indexer
-TZ=UTC ./oasis-indexer --config="${SCRIPT_DIR}/e2e_config.yml" serve &
+make nexus
+TZ=UTC ./nexus --config="${SCRIPT_DIR}/e2e_config.yml" serve &
 apiServerPid=$!
 
 # Kill the API server on exit.
@@ -125,15 +125,15 @@ diff --recursive "$SCRIPT_DIR/expected" "$outDir" >/dev/null || {
   {
     # The expected files contain a symlink, which 'git diff' cannot follow (but regular 'diff' can).
     # Create a copy of the `expected` dir with the symlink contents materialized; we'll diff against that.
-    rm -rf /tmp/indexer-e2e-expected; cp -r --dereference "$SCRIPT_DIR/expected" /tmp/indexer-e2e-expected;
+    rm -rf /tmp/nexus-e2e-expected; cp -r --dereference "$SCRIPT_DIR/expected" /tmp/nexus-e2e-expected;
   }
   if [[ -t 1 ]]; then  # Running in a terminal
     echo "Press enter see the diff, or Ctrl-C to abort."
     read -r
-    git diff --no-index /tmp/indexer-e2e-expected "$SCRIPT_DIR/actual" || true
+    git diff --no-index /tmp/nexus-e2e-expected "$SCRIPT_DIR/actual" || true
     echo
     echo "To re-view the diff, run:"
-    echo "  git diff --no-index /tmp/indexer-e2e-expected $SCRIPT_DIR/actual"
+    echo "  git diff --no-index /tmp/nexus-e2e-expected $SCRIPT_DIR/actual"
   else
     # Running outside a terminal (likely in CI)
     echo "CI diff:"

@@ -1,9 +1,9 @@
 # Docker Development
 
-This folder contains Docker images required for running the Oasis Indexer locally:
+This folder contains Docker images required for running Oasis Nexus locally:
 
 - `oasis-node`
-- `oasis-indexer`
+- `oasis-indexer` (AKA Nexus)
 
 ## Prebuilt Images
 
@@ -12,7 +12,7 @@ You can select a release of your choosing, or `latest` and specify the appropria
 
 ## Build Image Locally
 
-To build the `oasis-indexer` and `oasis-node` images for Docker development, go to the `oasis-indexer` repository root and run:
+To build the `oasis-indexer` and `oasis-node` images for Docker development, go to the `nexus` repository root and run:
 
 ```sh
 make docker

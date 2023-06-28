@@ -5,8 +5,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	storage "github.com/oasisprotocol/oasis-indexer/storage/client"
-	"github.com/oasisprotocol/oasis-indexer/tests"
+	storage "github.com/oasisprotocol/nexus/storage/client"
+	"github.com/oasisprotocol/nexus/tests"
 )
 
 func TestGetStatus(t *testing.T) {

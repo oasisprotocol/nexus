@@ -3,7 +3,7 @@ package common
 import (
 	"io"
 
-	"github.com/oasisprotocol/oasis-indexer/log"
+	"github.com/oasisprotocol/nexus/log"
 )
 
 func CloseOrLog(c io.Closer, logger *log.Logger) {

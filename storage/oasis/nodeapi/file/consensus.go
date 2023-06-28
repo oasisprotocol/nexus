@@ -8,14 +8,14 @@ import (
 	consensus "github.com/oasisprotocol/oasis-core/go/consensus/api"
 	genesis "github.com/oasisprotocol/oasis-core/go/genesis/api"
 
-	"github.com/oasisprotocol/oasis-indexer/log"
-	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
+	"github.com/oasisprotocol/nexus/log"
+	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
 )
 
 // FileConsensusApiLite provides access to the consensus API of an Oasis node.
 // Since FileConsensusApiLite is backed by a file containing the cached responses
 // to `ConsensusApiLite` calls, this data is inherently compatible with the
-// current indexer and can thus handle heights from both Cobalt/Damask.
+// current Nexus and can thus handle heights from both Cobalt/Damask.
 type FileConsensusApiLite struct {
 	db           KVStore
 	consensusApi nodeapi.ConsensusApiLite

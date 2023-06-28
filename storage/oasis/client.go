@@ -7,11 +7,11 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/oasisprotocol/oasis-indexer/common"
-	"github.com/oasisprotocol/oasis-indexer/config"
-	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
-	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi/file"
-	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi/history"
+	"github.com/oasisprotocol/nexus/common"
+	"github.com/oasisprotocol/nexus/config"
+	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
+	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi/file"
+	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi/history"
 )
 
 const (
@@ -20,7 +20,7 @@ const (
 
 // NewConsensusClient creates a new ConsensusClient.
 func NewConsensusClient(ctx context.Context, sourceConfig *config.SourceConfig) (*ConsensusClient, error) {
-	// If we are using purely file-backed indexer, do not connect to the node.
+	// If we are using purely file-backed analyzers, do not connect to the node.
 	if sourceConfig.Cache != nil && !sourceConfig.Cache.QueryOnCacheMiss {
 		cachePath := filepath.Join(sourceConfig.Cache.CacheDir, "consensus")
 		nodeApi, err := file.NewFileConsensusApiLite(cachePath, nil)
@@ -54,7 +54,7 @@ func NewConsensusClient(ctx context.Context, sourceConfig *config.SourceConfig) 
 
 // NewRuntimeClient creates a new RuntimeClient.
 func NewRuntimeClient(ctx context.Context, sourceConfig *config.SourceConfig, runtime common.Runtime) (nodeapi.RuntimeApiLite, error) {
-	// If we are using purely file-backed indexer, do not connect to the node.
+	// If we are using purely file-backed analyzers, do not connect to the node.
 	if sourceConfig.Cache != nil && !sourceConfig.Cache.QueryOnCacheMiss {
 		cachePath := filepath.Join(sourceConfig.Cache.CacheDir, string(runtime))
 		nodeApi, err := file.NewFileRuntimeApiLite(runtime, cachePath, nil)

@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"reflect"
 
-	apiTypes "github.com/oasisprotocol/oasis-indexer/api/v1/types"
+	apiTypes "github.com/oasisprotocol/nexus/api/v1/types"
 )
 
 var (

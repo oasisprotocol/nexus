@@ -85,7 +85,7 @@ VERSION := $(or \
 )
 
 # Project's version as the linker's string value definition.
-export GOLDFLAGS_VERSION := -X github.com/oasislabs/oasis-indexer/version.Software=$(VERSION)
+export GOLDFLAGS_VERSION := -X github.com/oasisprotocol/nexus/version.Software=$(VERSION)
 
 # Go's linker flags.
 export GOLDFLAGS ?= "$(GOLDFLAGS_VERSION)"

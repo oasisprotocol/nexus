@@ -18,13 +18,13 @@ import (
 	oasisConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 
-	"github.com/oasisprotocol/oasis-indexer/analyzer/util"
-	apiCommon "github.com/oasisprotocol/oasis-indexer/api"
-	apiTypes "github.com/oasisprotocol/oasis-indexer/api/v1/types"
-	common "github.com/oasisprotocol/oasis-indexer/common"
-	"github.com/oasisprotocol/oasis-indexer/log"
-	"github.com/oasisprotocol/oasis-indexer/storage"
-	"github.com/oasisprotocol/oasis-indexer/storage/client/queries"
+	"github.com/oasisprotocol/nexus/analyzer/util"
+	apiCommon "github.com/oasisprotocol/nexus/api"
+	apiTypes "github.com/oasisprotocol/nexus/api/v1/types"
+	common "github.com/oasisprotocol/nexus/common"
+	"github.com/oasisprotocol/nexus/log"
+	"github.com/oasisprotocol/nexus/storage"
+	"github.com/oasisprotocol/nexus/storage/client/queries"
 )
 
 const (
@@ -173,7 +173,7 @@ func (c *StorageClient) withTotalCount(ctx context.Context, sql string, args ...
 	}, nil
 }
 
-// Status returns status information for the Oasis Indexer.
+// Status returns status information for Oasis Nexus.
 func (c *StorageClient) Status(ctx context.Context) (*Status, error) {
 	var s Status
 	if err := c.db.QueryRow(
@@ -620,8 +620,8 @@ func (c *StorageClient) Account(ctx context.Context, address staking.Address) (*
 			return nil, wrapError(err2)
 		}
 	} else if err == pgx.ErrNoRows {
-		// An address can have no entry in the `accounts` table, which means the indexer
-		// hasn't seen any activity for this address before. However, the address itself is
+		// An address can have no entry in the `accounts` table, which means no analyzer
+		// has seen any activity for this address before. However, the address itself is
 		// still valid, with 0 balance. We rely on type-checking of the input `address` to
 		// ensure that we do not return these responses for malformed oasis addresses.
 		a.Address = address.String()
@@ -1320,8 +1320,8 @@ func (c *StorageClient) RuntimeAccount(ctx context.Context, address staking.Addr
 	if err == nil { //nolint:gocritic
 		a.AddressPreimage.Context = AddressDerivationContext(preimageContext)
 	} else if err == pgx.ErrNoRows {
-		// An address can have no entry in the address preimage table, which means the indexer
-		// hasn't seen any activity for this address before. However, the address itself is
+		// An address can have no entry in the address preimage table, which means no analyzer
+		// has seen any activity for this address before. However, the address itself is
 		// still valid, with 0 balance. We rely on type-checking of the input `address` to
 		// ensure that we do not return these responses for malformed oasis addresses.
 		a.Address = address.String()

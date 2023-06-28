@@ -11,15 +11,15 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/oasisprotocol/oasis-indexer/analyzer"
-	"github.com/oasisprotocol/oasis-indexer/analyzer/block"
-	"github.com/oasisprotocol/oasis-indexer/analyzer/queries"
-	analyzerCmd "github.com/oasisprotocol/oasis-indexer/cmd/analyzer"
-	"github.com/oasisprotocol/oasis-indexer/config"
-	"github.com/oasisprotocol/oasis-indexer/log"
-	"github.com/oasisprotocol/oasis-indexer/storage"
-	"github.com/oasisprotocol/oasis-indexer/storage/postgres"
-	pgTestUtil "github.com/oasisprotocol/oasis-indexer/storage/postgres/testutil"
+	"github.com/oasisprotocol/nexus/analyzer"
+	"github.com/oasisprotocol/nexus/analyzer/block"
+	"github.com/oasisprotocol/nexus/analyzer/queries"
+	analyzerCmd "github.com/oasisprotocol/nexus/cmd/analyzer"
+	"github.com/oasisprotocol/nexus/config"
+	"github.com/oasisprotocol/nexus/log"
+	"github.com/oasisprotocol/nexus/storage"
+	"github.com/oasisprotocol/nexus/storage/postgres"
+	pgTestUtil "github.com/oasisprotocol/nexus/storage/postgres/testutil"
 )
 
 // Relative path to the migrations directory when running tests in this file.

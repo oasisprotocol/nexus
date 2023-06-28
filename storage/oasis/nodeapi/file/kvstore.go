@@ -5,7 +5,8 @@ import (
 
 	"github.com/akrylysov/pogreb"
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
-	"github.com/oasisprotocol/oasis-indexer/log"
+
+	"github.com/oasisprotocol/nexus/log"
 )
 
 // A key in the KVStore.

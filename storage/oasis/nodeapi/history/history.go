@@ -9,11 +9,11 @@ import (
 	consensus "github.com/oasisprotocol/oasis-core/go/consensus/api"
 	genesis "github.com/oasisprotocol/oasis-core/go/genesis/api"
 
-	"github.com/oasisprotocol/oasis-indexer/config"
-	"github.com/oasisprotocol/oasis-indexer/storage/oasis/connections"
-	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
-	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi/cobalt"
-	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi/damask"
+	"github.com/oasisprotocol/nexus/config"
+	"github.com/oasisprotocol/nexus/storage/oasis/connections"
+	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
+	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi/cobalt"
+	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi/damask"
 )
 
 var _ nodeapi.ConsensusApiLite = (*HistoryConsensusApiLite)(nil)
@@ -31,12 +31,12 @@ func damaskAPIConstructor(ctx context.Context, chainContext string, archiveConfi
 func cobaltAPIConstructor(ctx context.Context, chainContext string, archiveConfig *config.ArchiveConfig, fastStartup bool) (nodeapi.ConsensusApiLite, error) {
 	rawConn, err := connections.RawConnect(archiveConfig.ResolvedConsensusNode())
 	if err != nil {
-		return nil, fmt.Errorf("indexer RawConnect: %w", err)
+		return nil, fmt.Errorf("oasis-node RawConnect: %w", err)
 	}
 	return cobalt.NewCobaltConsensusApiLite(rawConn), nil
 }
 
-// APIConstructors map each (indexer-internal) archive name to the API constructor
+// APIConstructors map each (nexus-internal) archive name to the API constructor
 // that can talk to that archive. The namespace of archive names is shared
 // between mainnet and testnet for simplicity.
 // The supported archive names come from `config.DefaultChains`. If you want to use

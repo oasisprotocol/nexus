@@ -12,12 +12,12 @@ import (
 
 	"github.com/jackc/pgx/v5"
 
-	"github.com/oasisprotocol/oasis-indexer/analyzer"
-	"github.com/oasisprotocol/oasis-indexer/analyzer/queries"
-	"github.com/oasisprotocol/oasis-indexer/analyzer/util"
-	"github.com/oasisprotocol/oasis-indexer/config"
-	"github.com/oasisprotocol/oasis-indexer/log"
-	"github.com/oasisprotocol/oasis-indexer/storage"
+	"github.com/oasisprotocol/nexus/analyzer"
+	"github.com/oasisprotocol/nexus/analyzer/queries"
+	"github.com/oasisprotocol/nexus/analyzer/util"
+	"github.com/oasisprotocol/nexus/config"
+	"github.com/oasisprotocol/nexus/log"
+	"github.com/oasisprotocol/nexus/storage"
 )
 
 const (
@@ -164,7 +164,7 @@ func (b *blockBasedAnalyzer) Start(ctx context.Context) {
 		return
 	}
 
-	// The default max block height that the indexer will process. This value is not
+	// The default max block height that the analyzer will process. This value is not
 	// indicative of the maximum height the Oasis blockchain can reach; rather it
 	// is set to golang's maximum int64 value for convenience.
 	var to uint64 = math.MaxInt64
@@ -179,7 +179,7 @@ func (b *blockBasedAnalyzer) Start(ctx context.Context) {
 		6*time.Second, // cap the timeout at the expected consensus block time
 	)
 	if err != nil {
-		b.logger.Error("error configuring indexer backoff policy",
+		b.logger.Error("error configuring backoff policy",
 			"err", err.Error(),
 		)
 		return

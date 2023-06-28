@@ -1,11 +1,11 @@
-project_name: Oasis Indexer
+project_name: Oasis Nexus
 
 before:
   hooks:
     - go mod tidy -compat=1.19
 
 builds:
-  - binary: oasis-indexer
+  - binary: nexus
     env:
       - CGO_ENABLED=0  # build statically-linked binaries
     flags:
@@ -61,6 +61,6 @@ release:
   prerelease: auto
 
   footer: |
-    **Full Changelog**: https://github.com/oasislabs/oasis-indexer/compare/{{ .PreviousTag }}...{{ .Tag }}
-    ### Running the indexer
-    https://github.com/oasislabs/oasis-indexer/blob/{{ .Tag }}/README.md#docker-development
+    **Full Changelog**: https://github.com/oasisprotocol/nexus/compare/{{ .PreviousTag }}...{{ .Tag }}
+    ### Running Nexus in Docker
+    https://github.com/oasisprotocol/nexus/blob/{{ .Tag }}/README.md#docker-development

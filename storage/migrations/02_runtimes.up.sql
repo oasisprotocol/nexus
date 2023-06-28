@@ -1,4 +1,4 @@
--- Indexer state initialization for the Emerald ParaTime, after the Damask Upgrade.
+-- State initialization for the Emerald ParaTime, after the Damask Upgrade.
 
 BEGIN;
 
@@ -179,7 +179,7 @@ CREATE TABLE chain.evm_tokens
   runtime runtime NOT NULL,
   token_address oasis_addr NOT NULL,
   PRIMARY KEY (runtime, token_address),
-  token_type INTEGER NOT NULL, -- 0 = unsupported, X = ERC-X; full spec at https://github.com/oasisprotocol/oasis-indexer/blob/v0.0.16/analyzer/runtime/evm.go#L21
+  token_type INTEGER NOT NULL, -- 0 = unsupported, X = ERC-X; full spec at https://github.com/oasisprotocol/nexus/blob/v0.0.16/analyzer/runtime/evm.go#L21
   token_name TEXT,
   symbol TEXT,
   decimals INTEGER,

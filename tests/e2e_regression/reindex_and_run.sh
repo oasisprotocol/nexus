@@ -6,11 +6,11 @@
 set -euo pipefail
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
-# Kill background processes on exit. (In our case the indexer API server.)
+# Kill background processes on exit. (In our case the nexus API server.)
 trap 'trap - SIGTERM && kill -- -$$' SIGINT SIGTERM EXIT
 
-make oasis-indexer
-./oasis-indexer --config="${SCRIPT_DIR}/e2e_config.yaml" analyze | tee /tmp/analyze.out &
+make nexus
+./nexus --config="${SCRIPT_DIR}/e2e_config.yaml" analyze | tee /tmp/analyze.out &
 analyzer_pid=$!
 
 # Count how many block analyzers are enabled in the config.
@@ -21,7 +21,7 @@ for analyzer in consensus emerald sapphire cipher; do
   fi
 done
 
-# Wait for blocks analyzers to be done, then kill the entire indexer.
+# Wait for blocks analyzers to be done, then kill the entire nexus binary.
 # It won't terminate on its own because the evm_tokens analyzer is always looking for more work.
 while (( $(grep --count "finished processing all blocks" /tmp/analyze.out) < n_block_analyzers )); do
   echo "Waiting for $n_block_analyzers block analyzers to finish..."

@@ -1,4 +1,4 @@
-FROM golang:1.19-buster AS oasis-indexer-builder
+FROM golang:1.19-buster AS nexus-builder
 
 WORKDIR /code/go
 
@@ -20,16 +20,16 @@ RUN npx redoc-cli build api/spec/v1.yaml -o api/spec/v1.html
 
 ############
 
-FROM golang:1.19-buster AS oasis-indexer
+FROM golang:1.19-buster AS nexus
 
-WORKDIR /oasis-indexer
+WORKDIR /nexus
 
 RUN apt-get update -q -q && \
   apt-get install --yes apt-transport-https ca-certificates
 
-COPY --from=oasis-indexer-builder /code/go/oasis-indexer /usr/local/bin/oasis-indexer
-COPY --from=oasis-indexer-builder /code/go/storage/migrations /storage/migrations/
-COPY --from=oasis-indexer-builder /code/go/ /oasis-indexer
+COPY --from=nexus-builder /code/go/nexus /usr/local/bin/nexus
+COPY --from=nexus-builder /code/go/storage/migrations /storage/migrations/
+COPY --from=nexus-builder /code/go/ /nexus
 COPY --from=openapi-builder /api/spec/v1.html api/spec/v1.html
 
-ENTRYPOINT ["oasis-indexer"]
+ENTRYPOINT ["nexus"]

@@ -16,20 +16,20 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/github"     // support github scheme for golang_migrate
 	"github.com/spf13/cobra"
 
-	"github.com/oasisprotocol/oasis-indexer/analyzer"
-	"github.com/oasisprotocol/oasis-indexer/analyzer/consensus"
-	"github.com/oasisprotocol/oasis-indexer/analyzer/evmcontractcode"
-	"github.com/oasisprotocol/oasis-indexer/analyzer/evmtokenbalances"
-	"github.com/oasisprotocol/oasis-indexer/analyzer/evmtokens"
-	"github.com/oasisprotocol/oasis-indexer/analyzer/evmverifier"
-	"github.com/oasisprotocol/oasis-indexer/analyzer/runtime"
-	cmdCommon "github.com/oasisprotocol/oasis-indexer/cmd/common"
-	"github.com/oasisprotocol/oasis-indexer/common"
-	"github.com/oasisprotocol/oasis-indexer/config"
-	"github.com/oasisprotocol/oasis-indexer/log"
-	"github.com/oasisprotocol/oasis-indexer/storage"
-	source "github.com/oasisprotocol/oasis-indexer/storage/oasis"
-	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
+	"github.com/oasisprotocol/nexus/analyzer"
+	"github.com/oasisprotocol/nexus/analyzer/consensus"
+	"github.com/oasisprotocol/nexus/analyzer/evmcontractcode"
+	"github.com/oasisprotocol/nexus/analyzer/evmtokenbalances"
+	"github.com/oasisprotocol/nexus/analyzer/evmtokens"
+	"github.com/oasisprotocol/nexus/analyzer/evmverifier"
+	"github.com/oasisprotocol/nexus/analyzer/runtime"
+	cmdCommon "github.com/oasisprotocol/nexus/cmd/common"
+	"github.com/oasisprotocol/nexus/common"
+	"github.com/oasisprotocol/nexus/config"
+	"github.com/oasisprotocol/nexus/log"
+	"github.com/oasisprotocol/nexus/storage"
+	source "github.com/oasisprotocol/nexus/storage/oasis"
+	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
 )
 
 const (
@@ -137,7 +137,7 @@ func wipeStorage(cfg *config.StorageConfig) error {
 	return storage.Wipe(ctx)
 }
 
-// Service is the Oasis Indexer's analysis service.
+// Service is Oasis Nexus's analysis service.
 type Service struct {
 	Analyzers map[string]analyzer.Analyzer
 
@@ -434,7 +434,7 @@ func (a *Service) cleanup() {
 	}
 	a.logger.Info("all source connections have closed cleanly")
 	a.target.Close()
-	a.logger.Info("indexer db connection closed cleanly")
+	a.logger.Info("target db connection closed cleanly")
 }
 
 // Register registers the process sub-command.

@@ -4,11 +4,12 @@ import (
 	"fmt"
 
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
-	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/accounts"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/consensusaccounts"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/core"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/evm"
+
+	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
 )
 
 func DecodeCoreEvent(event *nodeapi.RuntimeEvent) ([]core.Event, error) {

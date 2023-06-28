@@ -7,9 +7,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/oasisprotocol/oasis-indexer/cmd/analyzer"
-	"github.com/oasisprotocol/oasis-indexer/storage/postgres/testutil"
-	"github.com/oasisprotocol/oasis-indexer/tests"
+	"github.com/oasisprotocol/nexus/cmd/analyzer"
+	"github.com/oasisprotocol/nexus/storage/postgres/testutil"
+	"github.com/oasisprotocol/nexus/tests"
 )
 
 // Relative path to the migrations directory when running tests in this file.

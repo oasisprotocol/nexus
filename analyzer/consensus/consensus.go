@@ -14,17 +14,17 @@ import (
 	"github.com/oasisprotocol/oasis-core/go/consensus/api/transaction"
 	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
 
-	"github.com/oasisprotocol/oasis-indexer/analyzer"
-	"github.com/oasisprotocol/oasis-indexer/analyzer/block"
-	"github.com/oasisprotocol/oasis-indexer/analyzer/queries"
-	"github.com/oasisprotocol/oasis-indexer/analyzer/util"
-	apiTypes "github.com/oasisprotocol/oasis-indexer/api/v1/types"
-	"github.com/oasisprotocol/oasis-indexer/config"
-	"github.com/oasisprotocol/oasis-indexer/log"
-	"github.com/oasisprotocol/oasis-indexer/metrics"
-	"github.com/oasisprotocol/oasis-indexer/storage"
-	source "github.com/oasisprotocol/oasis-indexer/storage/oasis"
-	"github.com/oasisprotocol/oasis-indexer/storage/oasis/nodeapi"
+	"github.com/oasisprotocol/nexus/analyzer"
+	"github.com/oasisprotocol/nexus/analyzer/block"
+	"github.com/oasisprotocol/nexus/analyzer/queries"
+	"github.com/oasisprotocol/nexus/analyzer/util"
+	apiTypes "github.com/oasisprotocol/nexus/api/v1/types"
+	"github.com/oasisprotocol/nexus/config"
+	"github.com/oasisprotocol/nexus/log"
+	"github.com/oasisprotocol/nexus/metrics"
+	"github.com/oasisprotocol/nexus/storage"
+	source "github.com/oasisprotocol/nexus/storage/oasis"
+	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
 )
 
 const (
@@ -41,9 +41,9 @@ type parsedEvent struct {
 
 // OpenSignedTxNoVerify decodes the Transaction inside a Signed transaction
 // without verifying the signature. Callers should be sure to check if the
-// transaction actually succeeded. The indexer trusts its oasis-node to
+// transaction actually succeeded. Nexus trusts its oasis-node to
 // provide the correct transaction result, which will indicate if there was an
-// authentication problem. Skipping the verification saves CPU on the indexer.
+// authentication problem. Skipping the verification saves CPU on the analyzer.
 // Due to the chain context being global, we cannot verify transactions for
 // multiple networks anyway.
 func OpenSignedTxNoVerify(signedTx *transaction.SignedTransaction) (*transaction.Transaction, error) {

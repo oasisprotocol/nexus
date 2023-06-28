@@ -8,14 +8,14 @@ import (
 
 	ethCommon "github.com/ethereum/go-ethereum/common"
 
-	"github.com/oasisprotocol/oasis-indexer/analyzer"
-	"github.com/oasisprotocol/oasis-indexer/analyzer/evmverifier/sourcify"
-	"github.com/oasisprotocol/oasis-indexer/analyzer/queries"
-	"github.com/oasisprotocol/oasis-indexer/common"
-	"github.com/oasisprotocol/oasis-indexer/config"
-	"github.com/oasisprotocol/oasis-indexer/log"
-	"github.com/oasisprotocol/oasis-indexer/storage"
-	"github.com/oasisprotocol/oasis-indexer/storage/client"
+	"github.com/oasisprotocol/nexus/analyzer"
+	"github.com/oasisprotocol/nexus/analyzer/evmverifier/sourcify"
+	"github.com/oasisprotocol/nexus/analyzer/queries"
+	"github.com/oasisprotocol/nexus/common"
+	"github.com/oasisprotocol/nexus/config"
+	"github.com/oasisprotocol/nexus/log"
+	"github.com/oasisprotocol/nexus/storage"
+	"github.com/oasisprotocol/nexus/storage/client"
 )
 
 const evmContractsVerifierName = "evmcontracts-verifier"

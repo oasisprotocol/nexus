@@ -1,5 +1,5 @@
 # NOTE: This name appears in GitHub's Checks API and in workflow's status badge.
-name: docker-indexer
+name: docker-nexus
 
 on:
   push:
@@ -36,7 +36,7 @@ jobs:
           build-args: |
             VERSION=${{ env.VERSION }}
           context: .
-          file: docker/indexer/Dockerfile
+          file: docker/nexus/Dockerfile
           tags: |
             oasislabs/oasis-indexer:latest
             oasislabs/oasis-indexer:latest-${{ env.VERSION }}

@@ -1,10 +1,10 @@
 package results
 
 import (
-	governance "github.com/oasisprotocol/oasis-indexer/coreapi/v21.1.1/governance/api"
-	registry "github.com/oasisprotocol/oasis-indexer/coreapi/v21.1.1/registry/api"
-	roothash "github.com/oasisprotocol/oasis-indexer/coreapi/v21.1.1/roothash/api"
-	staking "github.com/oasisprotocol/oasis-indexer/coreapi/v21.1.1/staking/api"
+	governance "github.com/oasisprotocol/nexus/coreapi/v21.1.1/governance/api"
+	registry "github.com/oasisprotocol/nexus/coreapi/v21.1.1/registry/api"
+	roothash "github.com/oasisprotocol/nexus/coreapi/v21.1.1/roothash/api"
+	staking "github.com/oasisprotocol/nexus/coreapi/v21.1.1/staking/api"
 )
 
 // Event is a consensus service event that may be emitted during processing of
