@@ -2173,7 +2173,7 @@ components:
           format: byte
           description: |
             The runtime bytecode of the smart contract. This is the code stored on-chain that
-            descibes a smart contract. Every contract has this info, but Nexus fetches
+            describes a smart contract. Every contract has this info, but Nexus fetches
             it separately, so the field may be missing for very fresh contracts (or if the fetching
             process is stalled).
         verification:
