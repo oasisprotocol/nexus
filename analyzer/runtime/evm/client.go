@@ -12,19 +12,23 @@ import (
 	"github.com/oasisprotocol/oasis-core/go/common/errors"
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 
-	"github.com/oasisprotocol/nexus/analyzer/evmabi"
 	apiTypes "github.com/oasisprotocol/nexus/api/v1/types"
 	"github.com/oasisprotocol/nexus/common"
 	"github.com/oasisprotocol/nexus/log"
 	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
 )
 
+// EVMTokenType is a small-ish number that we use to identify what type of
+// token each row of the tokens table is. Values aren't consecutive like in an
+// enum. Prefer to use the number of the ERC if applicable and available, e.g.
+// 20 for ERC-20.
+// "Historical reasons" style note: this has grown to include non-EVM token
+// types as well.
 type EVMTokenType int
 
 const (
 	EVMTokenTypeNative      EVMTokenType = -1 // A placeholder type to represent the runtime's native token. No contract should be assigned this type.
 	EVMTokenTypeUnsupported EVMTokenType = 0  // A smart contract for which we're confident it's not a supported token kind.
-	EVMTokenTypeERC20       EVMTokenType = 20
 )
 
 // A fake address that is used to represent the native runtime token in contexts
@@ -134,6 +138,14 @@ func evmCallWithABICustom(
 	return nil
 }
 
+var (
+	// https://github.com/oasisprotocol/oasis-web3-gateway/blob/v3.0.0/rpc/eth/api.go#L403-L408
+	DefaultGasPrice        = []byte{1}
+	DefaultGasLimit uint64 = 30_000_000
+	DefaultCaller          = ethCommon.Address{1}.Bytes()
+	DefaultValue           = []byte{0}
+)
+
 // evmCallWithABI: Given a runtime `source` and `round`, and given an EVM
 // smart contract (at `contractEthAddr`, with `contractABI`) deployed in that
 // runtime, invokes `method(params...)` in that smart contract. The method
@@ -149,80 +161,21 @@ func evmCallWithABI(
 	method string,
 	params ...interface{},
 ) error {
-	// https://github.com/oasisprotocol/oasis-web3-gateway/blob/v3.0.0/rpc/eth/api.go#L403-L408
-	gasPrice := []byte{1}
-	gasLimit := uint64(30_000_000)
-	caller := ethCommon.Address{1}.Bytes()
-	value := []byte{0}
-
-	return evmCallWithABICustom(ctx, source, round, gasPrice, gasLimit, caller, contractEthAddr, value, contractABI, result, method, params...)
+	return evmCallWithABICustom(ctx, source, round, DefaultGasPrice, DefaultGasLimit, DefaultCaller, contractEthAddr, DefaultValue, contractABI, result, method, params...)
 }
 
-func evmDownloadTokenERC20Mutable(ctx context.Context, logger *log.Logger, source nodeapi.RuntimeApiLite, round uint64, tokenEthAddr []byte) (*EVMTokenMutableData, error) {
-	var mutable EVMTokenMutableData
-	logError := func(method string, err error) {
-		logger.Info("ERC20 call failed",
-			"round", round,
-			"token_eth_addr_hex", hex.EncodeToString(tokenEthAddr),
-			"method", method,
-			"err", err,
-		)
-	}
-	// These mandatory methods must succeed, or we do not count this as an ERC-20 token.
-	if err := evmCallWithABI(ctx, source, round, tokenEthAddr, evmabi.ERC20, &mutable.TotalSupply, "totalSupply"); err != nil {
-		logError("totalSupply", err)
-		if !errors.Is(err, EVMDeterministicError{}) {
-			return nil, fmt.Errorf("calling totalSupply: %w", err)
-		}
-		return nil, nil
-	}
-	return &mutable, nil
-}
-
-func evmDownloadTokenERC20(ctx context.Context, logger *log.Logger, source nodeapi.RuntimeApiLite, round uint64, tokenEthAddr []byte) (*EVMTokenData, error) {
-	tokenData := EVMTokenData{
-		Type: EVMTokenTypeERC20,
-	}
-	logError := func(method string, err error) {
-		logger.Info("ERC20 call failed",
-			"round", round,
-			"token_eth_addr_hex", hex.EncodeToString(tokenEthAddr),
-			"method", method,
-			"err", err,
-		)
-	}
-	// These optional methods may fail.
-	if err := evmCallWithABI(ctx, source, round, tokenEthAddr, evmabi.ERC20, &tokenData.Name, "name"); err != nil {
-		logError("name", err)
-		// Propagate the error (so that token-info fetching may be retried
-		// later) only if the error is non-deterministic, e.g. network
-		// failure. Otherwise, accept that the token contract doesn't expose
-		// this info.
-		if !errors.Is(err, EVMDeterministicError{}) {
-			return nil, fmt.Errorf("calling name: %w", err)
-		}
-	}
-	if err := evmCallWithABI(ctx, source, round, tokenEthAddr, evmabi.ERC20, &tokenData.Symbol, "symbol"); err != nil {
-		logError("symbol", err)
-		if !errors.Is(err, EVMDeterministicError{}) {
-			return nil, fmt.Errorf("calling symbol: %w", err)
-		}
-	}
-	if err := evmCallWithABI(ctx, source, round, tokenEthAddr, evmabi.ERC20, &tokenData.Decimals, "decimals"); err != nil {
-		logError("decimals", err)
-		if !errors.Is(err, EVMDeterministicError{}) {
-			return nil, fmt.Errorf("calling decimals: %w", err)
-		}
-	}
-	mutable, err := evmDownloadTokenERC20Mutable(ctx, logger, source, round, tokenEthAddr)
-	if err != nil {
-		return nil, err
-	}
-	if mutable == nil {
-		return nil, nil
-	}
-	tokenData.EVMTokenMutableData = mutable
-	return &tokenData, nil
+// logDeterministicError is for if we know how to handle a deterministic
+// error--in those cases you can use this to make a note of the error. Just in
+// case someone wasn't expecting it, you know?
+func logDeterministicError(logger *log.Logger, round uint64, contractEthAddr []byte, interfaceName string, method string, err error, keyvals ...interface{}) {
+	keyvals = append([]interface{}{
+		"round", round,
+		"contract_eth_addr_hex", hex.EncodeToString(contractEthAddr),
+		"interface_name", interfaceName,
+		"method", method,
+		"err", err,
+	}, keyvals...)
+	logger.Info("call failed", keyvals...)
 }
 
 // EVMDownloadNewToken tries to download the data of a given token. If it
@@ -230,11 +183,30 @@ func evmDownloadTokenERC20(ctx context.Context, logger *log.Logger, source nodea
 // it deterministically cannot download the data, it returns a struct
 // with the `Type` field set to `EVMTokenTypeUnsupported`.
 func EVMDownloadNewToken(ctx context.Context, logger *log.Logger, source nodeapi.RuntimeApiLite, round uint64, tokenEthAddr []byte) (*EVMTokenData, error) {
-	// todo: check ERC-165 0xffffffff compliance
-	// todo: try other token standards based on ERC-165
-	// see https://github.com/oasisprotocol/nexus/issues/225
+	supportsERC165, err := detectERC165(ctx, logger, source, round, tokenEthAddr)
+	if err != nil {
+		return nil, fmt.Errorf("detect ERC165: %w", err)
+	}
+	if supportsERC165 {
+		// Note: Per spec, every ERC-721 token has to support ERC-165.
+		supportsERC721, err1 := detectInterface(ctx, logger, source, round, tokenEthAddr, ERC721InterfaceID)
+		if err1 != nil {
+			return nil, fmt.Errorf("checking ERC721 interface: %w", err1)
+		}
+		if supportsERC721 {
+			tokenData, err2 := evmDownloadTokenERC721(ctx, logger, source, round, tokenEthAddr)
+			if err2 != nil {
+				return nil, fmt.Errorf("download token ERC-721: %w", err2)
+			}
+			return tokenData, nil
+		}
 
-	// Check ERC-20.
+		// todo: add support for other token types
+		// see https://github.com/oasisprotocol/nexus/issues/225
+	}
+
+	// Check ERC-20. These tokens typically do not implement ERC-165, so do not bother checking for
+	// explicit declaration of support, detect ERC-20 support with heuristics instead.
 	tokenData, err := evmDownloadTokenERC20(ctx, logger, source, round, tokenEthAddr)
 	if err != nil {
 		return nil, fmt.Errorf("download token ERC-20: %w", err)
@@ -242,9 +214,6 @@ func EVMDownloadNewToken(ctx context.Context, logger *log.Logger, source nodeapi
 	if tokenData != nil {
 		return tokenData, nil
 	}
-
-	// todo: add support for other token types
-	// see https://github.com/oasisprotocol/nexus/issues/225
 
 	// No applicable token discovered.
 	return &EVMTokenData{Type: EVMTokenTypeUnsupported}, nil
@@ -270,28 +239,6 @@ func EVMDownloadMutatedToken(ctx context.Context, logger *log.Logger, source nod
 	default:
 		return nil, fmt.Errorf("download mutated token type %v not handled", tokenType)
 	}
-}
-
-func evmDownloadTokenBalanceERC20(ctx context.Context, logger *log.Logger, source nodeapi.RuntimeApiLite, round uint64, tokenEthAddr []byte, accountEthAddr []byte) (*EVMTokenBalanceData, error) {
-	var balanceData EVMTokenBalanceData
-	logError := func(method string, err error) {
-		logger.Info("ERC20 call failed",
-			"round", round,
-			"token_eth_addr_hex", hex.EncodeToString(tokenEthAddr),
-			"account_eth_addr_hex", hex.EncodeToString(accountEthAddr),
-			"method", method,
-			"err", err,
-		)
-	}
-	accountECAddr := ethCommon.BytesToAddress(accountEthAddr)
-	if err := evmCallWithABI(ctx, source, round, tokenEthAddr, evmabi.ERC20, &balanceData.Balance, "balanceOf", accountECAddr); err != nil {
-		logError("balanceOf", err)
-		if !errors.Is(err, EVMDeterministicError{}) {
-			return nil, fmt.Errorf("calling balanceOf: %w", err)
-		}
-		return nil, nil
-	}
-	return &balanceData, nil
 }
 
 // EVMDownloadTokenBalance tries to download the balance of a given account

@@ -23,6 +23,7 @@ import (
 	sdkEVM "github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/evm"
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 
+	"github.com/oasisprotocol/nexus/analyzer/evmabi"
 	evm "github.com/oasisprotocol/nexus/analyzer/runtime/evm"
 	uncategorized "github.com/oasisprotocol/nexus/analyzer/uncategorized"
 	"github.com/oasisprotocol/nexus/analyzer/util"
@@ -523,7 +524,7 @@ func sumGasUsed(events []*EventData) (sum uint64, foundGasUsedEvent bool) {
 	return
 }
 
-func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Address]bool, eventsRaw []nodeapi.RuntimeEvent) ([]*EventData, error) {
+func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Address]bool, eventsRaw []nodeapi.RuntimeEvent) ([]*EventData, error) { //nolint:gocyclo
 	extractedEvents := []*EventData{}
 	if err := VisitSdkEvents(eventsRaw, &SdkEventHandler{
 		Core: func(event *core.Event) error {
@@ -723,6 +724,144 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 							// JSON supports encoding big integers, but many clients (javascript, jq, etc.)
 							// will incorrectly parse them as floats. So we encode uint256 as a string instead.
 							Value: amount.String(),
+						},
+					}
+					return nil
+				},
+				ERC721Transfer: func(fromEthAddr []byte, toEthAddr []byte, tokenIDU256 []byte) error {
+					tokenID := &big.Int{}
+					tokenID.SetBytes(tokenIDU256)
+					fromZero := bytes.Equal(fromEthAddr, uncategorized.ZeroEthAddr)
+					toZero := bytes.Equal(toEthAddr, uncategorized.ZeroEthAddr)
+					if !fromZero {
+						fromAddr, err2 := registerRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, fromEthAddr)
+						if err2 != nil {
+							return fmt.Errorf("from: %w", err2)
+						}
+						eventData.RelatedAddresses[fromAddr] = true
+					}
+					if !toZero {
+						toAddr, err2 := registerRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, toEthAddr)
+						if err2 != nil {
+							return fmt.Errorf("to: %w", err2)
+						}
+						eventData.RelatedAddresses[toAddr] = true
+					}
+					// TODO: Reckon ownership.
+					if _, ok := blockData.PossibleTokens[eventAddr]; !ok {
+						blockData.PossibleTokens[eventAddr] = &evm.EVMPossibleToken{}
+					}
+					// Mark as mutated if transfer is between zero address
+					// and nonzero address (either direction) and nonzero
+					// amount. These will change the total supply as mint/
+					// burn.
+					if fromZero != toZero && tokenID.Cmp(&big.Int{}) != 0 {
+						blockData.PossibleTokens[eventAddr].Mutated = true
+					}
+					eventData.EvmLogName = evmabi.ERC721.Events["Transfer"].Name
+					eventData.EvmLogSignature = ethCommon.BytesToHash(event.Topics[0])
+					eventData.EvmLogParams = []*apiTypes.EvmEventParam{
+						{
+							Name:    "from",
+							EvmType: "address",
+							Value:   ethCommon.BytesToAddress(fromEthAddr),
+						},
+						{
+							Name:    "to",
+							EvmType: "address",
+							Value:   ethCommon.BytesToAddress(toEthAddr),
+						},
+						{
+							Name:    "tokenID",
+							EvmType: "uint256",
+							// JSON supports encoding big integers, but many clients (javascript, jq, etc.)
+							// will incorrectly parse them as floats. So we encode uint256 as a string instead.
+							Value: tokenID.String(),
+						},
+					}
+					return nil
+				},
+				ERC721Approval: func(ownerEthAddr []byte, approvedEthAddr []byte, tokenIDU256 []byte) error {
+					if !bytes.Equal(ownerEthAddr, uncategorized.ZeroEthAddr) {
+						ownerAddr, err2 := registerRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, ownerEthAddr)
+						if err2 != nil {
+							return fmt.Errorf("owner: %w", err2)
+						}
+						eventData.RelatedAddresses[ownerAddr] = true
+					}
+					if !bytes.Equal(approvedEthAddr, uncategorized.ZeroEthAddr) {
+						approvedAddr, err2 := registerRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, approvedEthAddr)
+						if err2 != nil {
+							return fmt.Errorf("approved: %w", err2)
+						}
+						eventData.RelatedAddresses[approvedAddr] = true
+					}
+					if _, ok := blockData.PossibleTokens[eventAddr]; !ok {
+						blockData.PossibleTokens[eventAddr] = &evm.EVMPossibleToken{}
+					}
+					tokenID := &big.Int{}
+					tokenID.SetBytes(tokenIDU256)
+					eventData.EvmLogName = evmabi.ERC721.Events["Approval"].Name
+					eventData.EvmLogSignature = ethCommon.BytesToHash(event.Topics[0])
+					eventData.EvmLogParams = []*apiTypes.EvmEventParam{
+						{
+							Name:    "owner",
+							EvmType: "address",
+							Value:   ethCommon.BytesToAddress(ownerEthAddr),
+						},
+						{
+							Name:    "approved",
+							EvmType: "address",
+							Value:   ethCommon.BytesToAddress(approvedEthAddr),
+						},
+						{
+							Name:    "tokenID",
+							EvmType: "uint256",
+							// JSON supports encoding big integers, but many clients (javascript, jq, etc.)
+							// will incorrectly parse them as floats. So we encode uint256 as a string instead.
+							Value: tokenID.String(),
+						},
+					}
+					return nil
+				},
+				ERC721ApprovalForAll: func(ownerEthAddr []byte, operatorEthAddr []byte, approvedBool []byte) error {
+					if !bytes.Equal(ownerEthAddr, uncategorized.ZeroEthAddr) {
+						ownerAddr, err2 := registerRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, ownerEthAddr)
+						if err2 != nil {
+							return fmt.Errorf("owner: %w", err2)
+						}
+						eventData.RelatedAddresses[ownerAddr] = true
+					}
+					if !bytes.Equal(operatorEthAddr, uncategorized.ZeroEthAddr) {
+						operatorAddr, err2 := registerRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, operatorEthAddr)
+						if err2 != nil {
+							return fmt.Errorf("operator: %w", err2)
+						}
+						eventData.RelatedAddresses[operatorAddr] = true
+					}
+					if _, ok := blockData.PossibleTokens[eventAddr]; !ok {
+						blockData.PossibleTokens[eventAddr] = &evm.EVMPossibleToken{}
+					}
+					approved := approvedBool[31] != 0
+					eventData.EvmLogName = evmabi.ERC721.Events["ApprovalForAll"].Name
+					eventData.EvmLogSignature = ethCommon.BytesToHash(event.Topics[0])
+					eventData.EvmLogParams = []*apiTypes.EvmEventParam{
+						{
+							Name:    "owner",
+							EvmType: "address",
+							Value:   ethCommon.BytesToAddress(ownerEthAddr),
+						},
+						{
+							Name:    "operator",
+							EvmType: "address",
+							Value:   ethCommon.BytesToAddress(operatorEthAddr),
+						},
+						{
+							Name:    "approved",
+							EvmType: "bool",
+							// JSON supports encoding big integers, but many clients (javascript, jq, etc.)
+							// will incorrectly parse them as floats. So we encode uint256 as a string instead.
+							Value: approved,
 						},
 					}
 					return nil

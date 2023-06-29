@@ -457,6 +457,7 @@ const (
 			tokens.total_supply,
 			CASE -- NOTE: There are two queries that use this CASE via copy-paste; edit both if changing.
 				WHEN tokens.token_type = 20 THEN 'ERC20'
+				WHEN tokens.token_type = 721 THEN 'ERC721'
 				ELSE 'unexpected_other_type' -- Our openapi spec doesn't allow us to output this, but better this than a null value (which causes nil dereference)
 			END AS type,
 			holders.cnt AS num_holders
@@ -507,6 +508,7 @@ const (
 			tokens.token_name AS token_name,
 			CASE -- NOTE: There are two queries that use this CASE via copy-paste; edit both if changing.
 				WHEN tokens.token_type = 20 THEN 'ERC20'
+				WHEN tokens.token_type = 721 THEN 'ERC721'
 				ELSE 'unexpected_other_type' -- Our openapi spec doesn't allow us to output this, but better this than a null value (which causes nil dereference)
 			END AS token_type,
 			tokens.decimals AS token_decimals
