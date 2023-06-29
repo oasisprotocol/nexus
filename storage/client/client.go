@@ -1233,14 +1233,28 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetR
 			encryptionEnvelope.Format = *encryptionEnvelopeFormat
 			t.EncryptionEnvelope = &encryptionEnvelope
 		}
-		// TODO: Here we render Ethereum-compatible address preimages. That's
-		// a little odd to do in the database layer. Move this farther out if
-		// we have the energy.
+
+		// Render Ethereum-compatible address preimages.
+		// TODO: That's a little odd to do in the database layer. Move this farther
+		// out if we have the energy.
 		if sender0PreimageContextIdentifier != nil && sender0PreimageContextVersion != nil {
 			t.Sender0Eth = EthChecksumAddrFromPreimage(*sender0PreimageContextIdentifier, *sender0PreimageContextVersion, sender0PreimageData)
 		}
 		if toPreimageContextIdentifier != nil && toPreimageContextVersion != nil {
 			t.ToEth = EthChecksumAddrFromPreimage(*toPreimageContextIdentifier, *toPreimageContextVersion, toPreimageData)
+		}
+
+		// Heuristically decide if this is a native runtime token transfer.
+		// TODO: Similarly to above, this application logic doesn't belong here (= the DB layer);
+		// move it out if we establish a separate app/logic layer.
+		if t.Method != nil {
+			if *t.Method == "accounts.Transfer" {
+				t.IsLikelyNativeTokenTransfer = common.Ptr(true)
+			} else if *t.Method == "evm.Call" && t.Body != nil && (*t.Body)["data"] == "" {
+				// Note: This demands that the body.data key does exist (as we expect from evm.Call tx bodies),
+				// but has an empty value.
+				t.IsLikelyNativeTokenTransfer = common.Ptr(true)
+			}
 		}
 
 		ts.Transactions = append(ts.Transactions, t)
