@@ -255,6 +255,13 @@ func EVMDownloadTokenBalance(ctx context.Context, logger *log.Logger, source nod
 		}
 		return balance, nil
 
+	case EVMTokenTypeERC721:
+		balance, err := evmDownloadTokenBalanceERC721(ctx, logger, source, round, tokenEthAddr, accountEthAddr)
+		if err != nil {
+			return nil, fmt.Errorf("download token balance ERC-721: %w", err)
+		}
+		return balance, nil
+
 	// todo: add support for other token types
 	// see https://github.com/oasisprotocol/nexus/issues/225
 

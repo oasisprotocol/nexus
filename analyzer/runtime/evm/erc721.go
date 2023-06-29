@@ -2,8 +2,10 @@ package evm
 
 import (
 	"context"
+	"encoding/hex"
 	"fmt"
 
+	ethCommon "github.com/ethereum/go-ethereum/common"
 	"github.com/oasisprotocol/oasis-core/go/common/errors"
 
 	"github.com/oasisprotocol/nexus/analyzer/evmabi"
@@ -58,4 +60,19 @@ func evmDownloadTokenERC721(ctx context.Context, logger *log.Logger, source node
 	}
 	tokenData.EVMTokenMutableData = mutable
 	return &tokenData, nil
+}
+
+func evmDownloadTokenBalanceERC721(ctx context.Context, logger *log.Logger, source nodeapi.RuntimeApiLite, round uint64, tokenEthAddr []byte, accountEthAddr []byte) (*EVMTokenBalanceData, error) {
+	var balanceData EVMTokenBalanceData
+	accountECAddr := ethCommon.BytesToAddress(accountEthAddr)
+	if err := evmCallWithABI(ctx, source, round, tokenEthAddr, evmabi.ERC721, &balanceData.Balance, "balanceOf", accountECAddr); err != nil {
+		if !errors.Is(err, EVMDeterministicError{}) {
+			return nil, fmt.Errorf("calling balanceOf: %w", err)
+		}
+		logDeterministicError(logger, round, tokenEthAddr, "ERC721", "balanceOf", err,
+			"account_eth_addr_hex", hex.EncodeToString(accountEthAddr),
+		)
+		return nil, nil
+	}
+	return &balanceData, nil
 }
