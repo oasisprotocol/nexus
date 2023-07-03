@@ -1,7 +1,6 @@
-import time
 import random
 import requests
-from locust import HttpUser, task, between
+from locust import HttpUser, task, between, events
 
 def getLatestHeight(layer):
     return requests.get(f"https://index.oasislabs.com/v1/{layer}/status").json()['latest_block']
@@ -14,9 +13,10 @@ def getSampleAddrs(layer, n):
     addrs = set()
     offset = 0
     while len(addrs) < n:
+        print(f"addr length: {len(addrs)}, offset: {offset}")
         txs = requests.get(f"https://index.oasislabs.com/v1/{layer}/transactions?limit={n}&offset={offset}").json()['transactions']
         addrs.update({tx['sender_0'] for tx in txs})
-        addrs.update({tx['to'] for tx in txs})
+        addrs.update({tx['to'] for tx in txs if 'to' in tx})
         offset += 100
     
     return list(addrs)[:n]
@@ -27,17 +27,20 @@ SapphireHeight = getLatestHeight("sapphire")
 EmeraldTxs = getLatestTxs("emerald", numSamples)
 SapphireTxs = getLatestTxs("sapphire", numSamples)
 EmeraldAddrs = getSampleAddrs("emerald", numSamples)
-SapphireAddrs = getSampleAddrs("sapphire", numSamples)
+# The early history of sapphire only consists of the Oasis tx_client, 
+# which means there are only 2 active addresses.
+# SapphireAddrs = getSampleAddrs("sapphire", numSamples)
+
+@events.init_command_line_parser.add_listener
+def _(parser):
+    parser.add_argument("--paratime", type=str, env_var="LOCUST_PARATIME", default="emerald", help="The lowercase name of the paratime to query")
 
 class RuntimeUser(HttpUser):
     wait_time = between(1, 5)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if 'paratime' in self.environment:
-            self.paratime = self.environment['paratime']
-        else:
-            self.paratime = 'emerald'
+        self.paratime = self.environment.parsed_options.paratime
 
     # https://explorer.dev.oasis.io/
     @task(5)
@@ -86,7 +89,7 @@ class RuntimeUser(HttpUser):
 
     # https://explorer.dev.oasis.io/mainnet/emerald/block/{height}
     @task(4)
-    def block_detail(self, height):
+    def block_detail(self):
         if self.paratime == "emerald":
             height = random.randint(1, EmeraldHeight)
         else:
