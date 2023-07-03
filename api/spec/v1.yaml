@@ -2303,6 +2303,16 @@ components:
           type: object
           description: The method call body. May be null if the transaction was malformed.
           example: {"address": "t1mAPucIdVnrYBpJOcLV2nZoOFo=", "data": RBo+cAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=", "value": ""}
+        is_likely_native_token_transfer:
+          type: boolean
+          description: |
+            Whether this transaction likely represents a native token transfer.
+            This is based on a heuristic, and can change at any time without warning and possibly without updating the documentation.
+            The current heuristic sets this to `true` for:
+             - Transactions with method "accounts.Transfer". Those are always native token transfers.
+             - Transactions with method "evm.Call" that have no `data` field in their `body`. Those tend to be transfers, but the runtimes provides no reliable visibility into whether a transfer happened.
+            Note: Other transactions with method "evm.Call", and possibly "evm.Create", may also be (or include) native token transfers. The heuristic will be `false` for those.
+          example: true
         to:
           <<: *AddressType
           description: |

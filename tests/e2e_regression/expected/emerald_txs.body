@@ -2011,6 +2011,7 @@
       "gas_used": 22142,
       "hash": "34204265b53f41a253f30651882bf1317739ac694ccfb966d2b57e54a82c8ee2",
       "index": 3,
+      "is_likely_native_token_transfer": true,
       "method": "evm.Call",
       "nonce_0": 60,
       "round": 1003586,
