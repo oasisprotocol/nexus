@@ -90,9 +90,8 @@ func testRuntimeAccounts(t *testing.T, runtime common.Runtime) {
 		assert.Nil(t, err)
 		for denom, amount := range balances.Balances {
 			if stringifyDenomination(denom, sdkPT) == a.Symbol {
-				assert.Equal(t, amount.ToBigInt(), a.Balance)
+				assert.Equal(t, *amount.ToBigInt(), a.Balance.Int, "address: %s", a.Address)
 			}
-			assert.Equal(t, amount.ToBigInt().Int64(), a.Balance)
 		}
 		actualAccts[a.Address] = true
 	}
