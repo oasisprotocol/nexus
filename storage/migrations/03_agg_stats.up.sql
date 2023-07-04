@@ -47,7 +47,7 @@ CREATE MATERIALIZED VIEW stats.daily_tx_volume AS
   GROUP BY 1, 2;
 CREATE UNIQUE INDEX ix_stats_daily_tx_volume_window_start ON stats.daily_tx_volume (layer, window_start); -- A unique index is required for CONCURRENTLY refreshing the view.
 
--- daily_active_accounts stores the sliding widnow for the number of unique accounts per day
+-- daily_active_accounts stores the sliding window for the number of unique accounts per day
 -- that were involved in transactions.
 CREATE TABLE stats.daily_active_accounts
 (

@@ -1598,15 +1598,23 @@ func (c *StorageClient) RuntimeStatus(ctx context.Context) (*RuntimeStatus, erro
 	return &s, nil
 }
 
-// TxVolumes returns a list of transaction volumes per time bucket.
+// TxVolumes returns a list of transaction volumes per time window.
 func (c *StorageClient) TxVolumes(ctx context.Context, layer apiTypes.Layer, p apiTypes.GetLayerStatsTxVolumeParams) (*TxVolumeList, error) {
 	var query string
-	if *p.BucketSizeSeconds == 300 {
+
+	switch {
+	case *p.WindowSizeSeconds == 300 && *p.WindowStepSeconds == 300:
+		// 5 minute window, 5 minute step.
 		query = queries.FineTxVolumes
-	} else {
-		var day uint32 = 86400
-		p.BucketSizeSeconds = &day
-		query = queries.TxVolumes
+	case *p.WindowSizeSeconds == 86400 && *p.WindowStepSeconds == 86400:
+		// 1 day window, 1 day step.
+		query = queries.DailyTxVolumes
+	case *p.WindowSizeSeconds == 86400 && *p.WindowStepSeconds == 300:
+		// 1 day window, 5 minute step.
+		query = queries.FineDailyTxVolumes
+	default:
+		// Unsupported: case *p.WindowSizeSeconds == 300 && *p.WindowStepSeconds == 86400:
+		return nil, fmt.Errorf("invalid window size parameters: %w", apiCommon.ErrBadRequest)
 	}
 
 	rows, err := c.db.Query(
@@ -1622,19 +1630,19 @@ func (c *StorageClient) TxVolumes(ctx context.Context, layer apiTypes.Layer, p a
 	defer rows.Close()
 
 	ts := TxVolumeList{
-		BucketSizeSeconds: *p.BucketSizeSeconds,
-		Buckets:           []apiTypes.TxVolume{},
+		WindowSizeSeconds: *p.WindowSizeSeconds,
+		Windows:           []apiTypes.TxVolume{},
 	}
 	for rows.Next() {
 		var t TxVolume
 		if err := rows.Scan(
-			&t.BucketStart,
+			&t.WindowEnd,
 			&t.TxVolume,
 		); err != nil {
 			return nil, wrapError(err)
 		}
-		t.BucketStart = t.BucketStart.UTC() // Ensure UTC timestamp in response.
-		ts.Buckets = append(ts.Buckets, t)
+		t.WindowEnd = t.WindowEnd.UTC() // Ensure UTC timestamp in response.
+		ts.Windows = append(ts.Windows, t)
 	}
 
 	return &ts, nil

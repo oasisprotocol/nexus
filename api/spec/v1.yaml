@@ -50,16 +50,16 @@ x-query-params:
       $ref: '#/components/schemas/Runtime'
     description: |
       The runtime which to query.
-  - &bucket_size_seconds
+  - &window_size_seconds
     in: query
-    name: bucket_size_seconds
+    name: window_size_seconds
     schema:
       type: integer
       format: uint32
       default: 86400
     description: |
-      The size of buckets into which the statistic is grouped, in seconds.
-      The backend supports a limited number of bucket sizes: 300 (5 minutes) and
+      The size of windows into which the statistic is grouped, in seconds.
+      The backend supports a limited number of window sizes: 300 (5 minutes) and
       86400 (1 day). Requests with other values may be rejected.
   - &window_step_seconds
     in: query
@@ -67,7 +67,6 @@ x-query-params:
     schema:
       type: integer
       format: uint32
-      enum: [300, 86400]
       default: 86400
     description: |
       The size of the step between returned statistic windows, in seconds.
@@ -1014,7 +1013,7 @@ paths:
   /{runtime}/evm_tokens/{address}/holders:
     get:
       summary: |
-        Returns the list of holders of an EVM (ERC-20, ...) token. 
+        Returns the list of holders of an EVM (ERC-20, ...) token.
         This endpoint does not verify that `address` is actually an EVM token; if it is not, it will simply return an empty list.
       parameters:
         - *limit
@@ -1077,7 +1076,8 @@ paths:
       parameters:
         - *limit
         - *offset
-        - *bucket_size_seconds
+        - *window_size_seconds
+        - *window_step_seconds
         - in: path
           name: layer
           required: true
@@ -2563,12 +2563,12 @@ components:
 
     TxVolumeList:
       type: object
-      required: [bucket_size_seconds, buckets]
+      required: [window_size_seconds, windows]
       properties:
-        bucket_size_seconds:
+        window_size_seconds:
           type: integer
           format: uint32
-        buckets:
+        windows:
           type: array
           items:
             $ref: '#/components/schemas/TxVolume'
@@ -2578,17 +2578,17 @@ components:
 
     TxVolume:
       type: object
-      required: [bucket_start, tx_volume]
+      required: [window_end, tx_volume]
       properties:
-        bucket_start:
+        window_end:
           type: string
           format: date-time
-          description: The date for this daily transaction volume measurement.
+          description: The end timestamp for this daily transaction volume measurement.
           example: *iso_timestamp_1
         tx_volume:
           type: integer
           format: uint64
-          description: The transaction volume on this day.
+          description: The transaction volume for this window.
           example: 420
 
     ActiveAccountsList:
@@ -2618,7 +2618,7 @@ components:
         active_accounts:
           type: integer
           format: uint64
-          description: The number of active accounts for the 24hour window starting at bucket_start.
+          description: The number of active accounts for the 24hour window ending at window_end.
           example: 420
 
   responses:

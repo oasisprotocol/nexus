@@ -422,7 +422,7 @@ const (
 		LEFT JOIN chain.evm_tokens as tokens ON
 			(evs.runtime=tokens.runtime) AND
 			(preimages.address=tokens.token_address)
-		WHERE 
+		WHERE
 			(evs.runtime = $1) AND
 			($2::bigint IS NULL OR evs.round = $2::bigint) AND
 			($3::integer IS NULL OR evs.tx_index = $3::integer) AND
@@ -558,22 +558,35 @@ const (
 		WHERE runtime_id = $1::text
 	`
 
+	// FineTxVolumes returns the fine-grained query for 5-minute sampled tx volume windows.
 	FineTxVolumes = `
-		SELECT window_start, tx_volume
+		SELECT window_end, tx_volume
 		FROM stats.min5_tx_volume
 		WHERE layer = $1::text
 		ORDER BY
-			window_start DESC
+			window_end DESC
 		LIMIT $2::bigint
 		OFFSET $3::bigint
 	`
 
-	TxVolumes = `
-		SELECT window_start, tx_volume
+	// FineDailyTxVolumes returns the query for daily tx volume windows.
+	FineDailyTxVolumes = `
+		SELECT window_end, tx_volume
 		FROM stats.daily_tx_volume
 		WHERE layer = $1::text
 		ORDER BY
-			window_start DESC
+			window_end DESC
+		LIMIT $2::bigint
+		OFFSET $3::bigint
+	`
+
+	// DailyTxVolumes returns the query for daily sampled daily tx volume windows.
+	DailyTxVolumes = `
+		SELECT window_end, tx_volume
+		FROM stats.daily_tx_volume
+		WHERE (layer = $1::text AND (window_end AT TIME ZONE 'UTC')::time = '00:00:00')
+		ORDER BY
+			window_end DESC
 		LIMIT $2::bigint
 		OFFSET $3::bigint
 	`
@@ -591,7 +604,7 @@ const (
 
 	// DailyActiveAccounts returns the query for daily sampled daily active account windows.
 	DailyActiveAccounts = `
-		SELECT date_trunc('day', window_end) as window_end, active_accounts
+		SELECT window_end, active_accounts
 		FROM stats.daily_active_accounts
 		WHERE (layer = $1::text AND (window_end AT TIME ZONE 'UTC')::time = '00:00:00')
 		ORDER BY

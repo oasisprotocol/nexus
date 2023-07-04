@@ -44,11 +44,11 @@ func HttpCodeForError(err error) int {
 	errType := errVal.Type()
 
 	switch {
-	case err == ErrBadChainID:
+	case errors.Is(err, ErrBadChainID):
 		return http.StatusNotFound
-	case err == ErrBadRequest:
+	case errors.Is(err, ErrBadRequest):
 		return http.StatusBadRequest
-	case err == ErrNotFound:
+	case errors.Is(err, ErrNotFound):
 		return http.StatusNotFound
 	case errType == reflect.TypeOf(ErrStorageError{}):
 		return http.StatusInternalServerError

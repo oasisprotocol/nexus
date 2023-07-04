@@ -328,18 +328,9 @@ func (cfg *MetadataRegistryConfig) Validate() error {
 }
 
 // AggregateStatsConfig is the configuration for the aggregate stats analyzer.
-type AggregateStatsConfig struct {
-	// TxVolumeInterval is the time interval for recomputing the tx volume aggregate stats.
-	// We would ideally recompute stats (which include 5-min aggregates) every 5 min, but the
-	// current naive implementation is too inefficient for that.
-	TxVolumeInterval time.Duration `koanf:"tx_volume_interval"`
-}
+type AggregateStatsConfig struct{}
 
-// Validate validates the aggregate stats config.
 func (cfg *AggregateStatsConfig) Validate() error {
-	if cfg.TxVolumeInterval < 5*time.Minute {
-		return fmt.Errorf("tx_volume_interval must be at least 5 minutes")
-	}
 	return nil
 }
 

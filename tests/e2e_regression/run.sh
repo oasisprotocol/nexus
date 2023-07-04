@@ -54,8 +54,8 @@ testCases=(
   'proposal                 /v1/consensus/proposals/2'
   'votes                    /v1/consensus/proposals/2/votes'
   'tx_volume                /v1/consensus/stats/tx_volume'
-  'bucket_size              /v1/consensus/stats/tx_volume?bucket_size_seconds=300'
-  'nonstandard_bucket_size  /v1/consensus/stats/tx_volume?bucket_size_seconds=301'
+  'window_size              /v1/consensus/stats/tx_volume?window_size_seconds=300&window_step_seconds=300'
+  'nonstandard_window_size  /v1/consensus/stats/tx_volume?window_size_seconds=301&window_step_seconds=300'
   'active_accounts          /v1/consensus/stats/active_accounts'
   'active_accounts_window   /v1/consensus/stats/active_accounts?window_step_seconds=300'
   'active_accounts_emerald  /v1/emerald/stats/active_accounts'
@@ -127,7 +127,7 @@ diff --recursive "$SCRIPT_DIR/expected" "$outDir" >/dev/null || {
     # Create a copy of the `expected` dir with the symlink contents materialized; we'll diff against that.
     rm -rf /tmp/nexus-e2e-expected; cp -r --dereference "$SCRIPT_DIR/expected" /tmp/nexus-e2e-expected;
   }
-  if [[ -t 1 ]]; then  # Running in a terminal
+  if [[ -t 1 ]]; then # Running in a terminal
     echo "Press enter see the diff, or Ctrl-C to abort."
     read -r
     git diff --no-index /tmp/nexus-e2e-expected "$SCRIPT_DIR/actual" || true

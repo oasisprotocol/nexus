@@ -475,7 +475,7 @@ var (
     INSERT INTO analysis.evm_tokens (runtime, token_address, total_supply, last_mutate_round)
       VALUES ($1, $2, $3, $4)
     ON CONFLICT (runtime, token_address) DO
-      UPDATE SET 
+      UPDATE SET
         total_supply = analysis.evm_tokens.total_supply + $3,
         last_mutate_round = excluded.last_mutate_round`
 
@@ -625,83 +625,4 @@ var (
       source_files = $5
     WHERE
       runtime = $1 AND contract_address = $2`
-
-	RefreshDailyTxVolume = `
-    REFRESH MATERIALIZED VIEW CONCURRENTLY stats.daily_tx_volume
-  `
-
-	RefreshMin5TxVolume = `
-    REFRESH MATERIALIZED VIEW CONCURRENTLY stats.min5_tx_volume
-  `
-
-	// LatestDailyAccountStats is the query to get the timestamp of the latest daily active accounts stat.
-	LatestDailyAccountStats = `
-    SELECT window_end
-    FROM stats.daily_active_accounts
-    WHERE layer = $1
-    ORDER BY window_end DESC
-    LIMIT 1
-  `
-
-	// InsertDailyAccountStats is the query to insert the daily active accounts stat.
-	InsertDailyAccountStats = `
-    INSERT INTO stats.daily_active_accounts (layer, window_end, active_accounts)
-    VALUES ($1, $2, $3)
-  `
-
-	// EarliestConsensusBlockTime is the query to get the timestamp of the earliest
-	// indexed consensus block.
-	EarliestConsensusBlockTime = `
-    SELECT time
-    FROM chain.blocks
-    ORDER BY height
-    LIMIT 1
-  `
-
-	// LatestConsensusBlockTime is the query to get the timestamp of the latest
-	// indexed consensus block.
-	LatestConsensusBlockTime = `
-    SELECT time
-    FROM chain.blocks
-    ORDER BY height DESC
-    LIMIT 1
-  `
-
-	// EarliestRuntimeBlockTime is the query to get the timestamp of the earliest
-	// indexed runtime block.
-	EarliestRuntimeBlockTime = `
-    SELECT timestamp
-    FROM chain.runtime_blocks
-    WHERE (runtime = $1)
-    ORDER BY round
-    LIMIT 1
-  `
-
-	// LatestRuntimeBlockTime is the query to get the timestamp of the latest
-	// indexed runtime block.
-	LatestRuntimeBlockTime = `
-    SELECT timestamp
-    FROM chain.runtime_blocks
-    WHERE (runtime = $1)
-    ORDER BY round DESC
-    LIMIT 1
-  `
-
-	// ConsensusActiveAccounts is the query to get the number of
-	// active accounts in the consensus layer within the given time range.
-	ConsensusActiveAccounts = `
-    SELECT COUNT(DISTINCT account_address)
-    FROM chain.accounts_related_transactions AS art
-    JOIN chain.blocks AS b ON art.tx_block = b.height
-    WHERE (b.time >= $1::timestamptz AND b.time < $2::timestamptz)
-    `
-
-	// RuntimeActiveAccounts is the query to get the number of
-	// active accounts in the runtime layer within the given time range.
-	RuntimeActiveAccounts = `
-    SELECT COUNT(DISTINCT account_address)
-    FROM chain.runtime_related_transactions AS rt
-    JOIN chain.runtime_blocks AS b ON (rt.runtime = b.runtime AND rt.tx_round = b.round)
-    WHERE (rt.runtime = $1 AND b.timestamp >= $2::timestamptz AND b.timestamp < $3::timestamptz)
-  `
 )
