@@ -2460,7 +2460,7 @@ components:
               type: array
               items:
                 $ref: '#/components/schemas/EvmToken'
-              description: A list of L2 EVM tokens (ERC-20, ERC-271, ...).
+              description: A list of L2 EVM tokens (ERC-20, ERC-721, ...).
           description: A list of tokens in a runtime.
 
     EvmToken:
