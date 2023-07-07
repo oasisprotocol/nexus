@@ -233,6 +233,13 @@ func EVMDownloadMutatedToken(ctx context.Context, logger *log.Logger, source nod
 		}
 		return mutable, nil
 
+	case EVMTokenTypeERC721:
+		mutable, err := evmDownloadTokenERC721Mutable(ctx, logger, source, round, tokenEthAddr)
+		if err != nil {
+			return nil, fmt.Errorf("download token ERC-721 mutable: %w", err)
+		}
+		return mutable, nil
+
 	// todo: add support for other token types
 	// see https://github.com/oasisprotocol/nexus/issues/225
 
