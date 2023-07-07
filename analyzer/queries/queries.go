@@ -448,6 +448,16 @@ var (
       )
     LIMIT $2`
 
+	RuntimeEVMTokenAnalysisStaleCount = `
+    SELECT COUNT(*) AS cnt
+    FROM analysis.evm_tokens AS token_analysis
+    WHERE
+      token_analysis.runtime = $1 AND
+      (
+        token_analysis.last_download_round IS NULL OR
+        token_analysis.last_mutate_round > token_analysis.last_download_round
+      )`
+
 	RuntimeEVMTokenAnalysisInsert = `
     INSERT INTO analysis.evm_tokens (runtime, token_address, last_mutate_round)
       VALUES ($1, $2, $3)
