@@ -6,6 +6,7 @@ import (
 	"time"
 
 	ethCommon "github.com/ethereum/go-ethereum/common"
+	"github.com/prometheus/client_golang/prometheus"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/oasisprotocol/nexus/analyzer"
@@ -33,10 +34,11 @@ const (
 type oasisAddress string
 
 type main struct {
-	runtime common.Runtime
-	source  nodeapi.RuntimeApiLite
-	target  storage.TargetStorage
-	logger  *log.Logger
+	runtime           common.Runtime
+	source            nodeapi.RuntimeApiLite
+	target            storage.TargetStorage
+	logger            *log.Logger
+	queueLengthMetric prometheus.Gauge
 }
 
 var _ analyzer.Analyzer = (*main)(nil)
@@ -47,12 +49,18 @@ func NewMain(
 	target storage.TargetStorage,
 	logger *log.Logger,
 ) (analyzer.Analyzer, error) {
-	return &main{
+	m := &main{
 		runtime: runtime,
 		source:  sourceClient,
 		target:  target,
 		logger:  logger.With("analyzer", evmContractCodeAnalyzerPrefix+runtime),
-	}, nil
+		queueLengthMetric: prometheus.NewGauge(prometheus.GaugeOpts{
+			Name: fmt.Sprintf("%s%s_queue_length", evmContractCodeAnalyzerPrefix, runtime),
+			Help: "count of stale analysis.evm_contract_code rows",
+		}),
+	}
+	prometheus.MustRegister(m.queueLengthMetric)
+	return m, nil
 }
 
 type ContractCandidate struct {
@@ -110,6 +118,15 @@ func (m main) processContractCandidate(ctx context.Context, batch *storage.Query
 			code,
 		)
 	}
+	return nil
+}
+
+func (m main) sendQueueLengthMetric(ctx context.Context) error {
+	var queueLength int
+	if err := m.target.QueryRow(ctx, queries.RuntimeEVMContractCodeAnalysisStaleCount, m.runtime).Scan(&queueLength); err != nil {
+		return fmt.Errorf("querying number of stale contract code entries: %w", err)
+	}
+	m.queueLengthMetric.Set(float64(queueLength))
 	return nil
 }
 
@@ -172,6 +189,10 @@ func (m main) Start(ctx context.Context) {
 		case <-ctx.Done():
 			m.logger.Warn("shutting down evm_contract_code analyzer", "reason", ctx.Err())
 			return
+		}
+
+		if err := m.sendQueueLengthMetric(ctx); err != nil {
+			m.logger.Warn("error sending queue length", "err", err)
 		}
 
 		numProcessed, err := m.processBatch(ctx)

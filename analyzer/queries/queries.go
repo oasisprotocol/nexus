@@ -412,6 +412,13 @@ var (
       code_analysis.is_contract IS NULL
     LIMIT $2`
 
+	RuntimeEVMContractCodeAnalysisStaleCount = `
+    SELECT COUNT(*) AS cnt
+    FROM analysis.evm_contract_code AS code_analysis
+    WHERE
+      code_analysis.runtime = $1::runtime AND
+      code_analysis.is_contract IS NULL`
+
 	RuntimeEVMTokenBalanceUpdate = `
     INSERT INTO chain.evm_token_balances (runtime, token_address, account_address, balance)
       VALUES ($1, $2, $3, $4)
