@@ -558,6 +558,16 @@ var (
 		evm.NativeRuntimeTokenAddress,
 	)
 
+	RuntimeEVMTokenBalanceAnalysisStaleCount = `
+    SELECT COUNT(*) AS cnt
+    FROM analysis.evm_token_balances AS balance_analysis
+    WHERE
+      balance_analysis.runtime = $1 AND
+      (
+        balance_analysis.last_download_round IS NULL OR
+        balance_analysis.last_mutate_round > balance_analysis.last_download_round
+      )`
+
 	RuntimeEVMTokenBalanceAnalysisUpdate = `
     UPDATE analysis.evm_token_balances
     SET
