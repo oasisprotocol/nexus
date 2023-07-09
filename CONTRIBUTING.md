@@ -68,7 +68,7 @@ if the issue is not reported yet, [file a new one].
 ### Building and Testing
 
 Building and testing are documented in our
-[README](https://github.com/oasisprotocol/nexus/blob/master/README.md).
+[README](https://github.com/oasisprotocol/nexus/blob/main/README.md).
 
 ### Contributing Code
 
