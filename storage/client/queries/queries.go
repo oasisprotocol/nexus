@@ -15,7 +15,7 @@ const (
 		SELECT height, processed_time
 			FROM analysis.processed_blocks
 			WHERE analyzer=$1 AND processed_time IS NOT NULL
-		ORDER BY processed_time DESC
+		ORDER BY height DESC
 		LIMIT 1`
 
 	Blocks = `
