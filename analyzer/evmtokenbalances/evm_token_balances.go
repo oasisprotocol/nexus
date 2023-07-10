@@ -6,6 +6,7 @@ import (
 	"math/big"
 	"time"
 
+	"github.com/prometheus/client_golang/prometheus"
 	"golang.org/x/sync/errgroup"
 
 	sdkConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
@@ -80,11 +81,12 @@ const (
 )
 
 type main struct {
-	runtime         common.Runtime
-	runtimeMetadata *sdkConfig.ParaTime
-	source          nodeapi.RuntimeApiLite
-	target          storage.TargetStorage
-	logger          *log.Logger
+	runtime           common.Runtime
+	runtimeMetadata   *sdkConfig.ParaTime
+	source            nodeapi.RuntimeApiLite
+	target            storage.TargetStorage
+	logger            *log.Logger
+	queueLengthMetric prometheus.Gauge
 }
 
 var _ analyzer.Analyzer = (*main)(nil)
@@ -96,13 +98,19 @@ func NewMain(
 	target storage.TargetStorage,
 	logger *log.Logger,
 ) (analyzer.Analyzer, error) {
-	return &main{
+	m := &main{
 		runtime:         runtime,
 		runtimeMetadata: runtimeMetadata,
 		source:          sourceClient,
 		target:          target,
 		logger:          logger.With("analyzer", evmTokenBalancesAnalyzerPrefix+runtime),
-	}, nil
+		queueLengthMetric: prometheus.NewGauge(prometheus.GaugeOpts{
+			Name: fmt.Sprintf("%s%s_queue_length", evmTokenBalancesAnalyzerPrefix, runtime),
+			Help: "count of stale analysis.evm_token_balances rows",
+		}),
+	}
+	prometheus.MustRegister(m.queueLengthMetric)
+	return m, nil
 }
 
 type StaleTokenBalance struct {
@@ -243,6 +251,15 @@ func (m main) processStaleTokenBalance(ctx context.Context, batch *storage.Query
 	return nil
 }
 
+func (m main) sendQueueLengthMetric(ctx context.Context) error {
+	var queueLength int
+	if err := m.target.QueryRow(ctx, queries.RuntimeEVMTokenBalanceAnalysisStaleCount, m.runtime).Scan(&queueLength); err != nil {
+		return fmt.Errorf("querying number of stale token balances: %w", err)
+	}
+	m.queueLengthMetric.Set(float64(queueLength))
+	return nil
+}
+
 func (m main) processBatch(ctx context.Context) (int, error) {
 	staleTokenBalances, err := m.getStaleTokenBalances(ctx, maxDownloadBatch)
 	if err != nil {
@@ -303,6 +320,10 @@ func (m main) Start(ctx context.Context) {
 		case <-ctx.Done():
 			m.logger.Warn("shutting down evm_token_balances analyzer", "reason", ctx.Err())
 			return
+		}
+
+		if err := m.sendQueueLengthMetric(ctx); err != nil {
+			m.logger.Warn("error sending queue length", "err", err)
 		}
 
 		numProcessed, err := m.processBatch(ctx)

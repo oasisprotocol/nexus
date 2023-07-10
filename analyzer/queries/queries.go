@@ -412,6 +412,13 @@ var (
       code_analysis.is_contract IS NULL
     LIMIT $2`
 
+	RuntimeEVMContractCodeAnalysisStaleCount = `
+    SELECT COUNT(*) AS cnt
+    FROM analysis.evm_contract_code AS code_analysis
+    WHERE
+      code_analysis.runtime = $1::runtime AND
+      code_analysis.is_contract IS NULL`
+
 	RuntimeEVMTokenBalanceUpdate = `
     INSERT INTO chain.evm_token_balances (runtime, token_address, account_address, balance)
       VALUES ($1, $2, $3, $4)
@@ -447,6 +454,16 @@ var (
         token_analysis.last_mutate_round > token_analysis.last_download_round
       )
     LIMIT $2`
+
+	RuntimeEVMTokenAnalysisStaleCount = `
+    SELECT COUNT(*) AS cnt
+    FROM analysis.evm_tokens AS token_analysis
+    WHERE
+      token_analysis.runtime = $1 AND
+      (
+        token_analysis.last_download_round IS NULL OR
+        token_analysis.last_mutate_round > token_analysis.last_download_round
+      )`
 
 	RuntimeEVMTokenAnalysisInsert = `
     INSERT INTO analysis.evm_tokens (runtime, token_address, last_mutate_round)
@@ -557,6 +574,16 @@ var (
 		evm.EVMTokenTypeNative,
 		evm.NativeRuntimeTokenAddress,
 	)
+
+	RuntimeEVMTokenBalanceAnalysisStaleCount = `
+    SELECT COUNT(*) AS cnt
+    FROM analysis.evm_token_balances AS balance_analysis
+    WHERE
+      balance_analysis.runtime = $1 AND
+      (
+        balance_analysis.last_download_round IS NULL OR
+        balance_analysis.last_mutate_round > balance_analysis.last_download_round
+      )`
 
 	RuntimeEVMTokenBalanceAnalysisUpdate = `
     UPDATE analysis.evm_token_balances
