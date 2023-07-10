@@ -6,7 +6,7 @@ encompassing.
 
 If you have a general question on how to use and deploy our software, please
 read our [General Documentation](https://docs.oasis.dev) or join our
-[community Discord](https://discord.gg/oasisprotocol).
+[community Discord](https://oasis.io/discord).
 
 For concrete feature requests and/or bug reports, please file an issue in this
 repository as described below.
