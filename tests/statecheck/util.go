@@ -53,7 +53,9 @@ func snapshotBackends(target *postgres.Client, analyzer string, tables []string)
 	}
 	batch.Queue(`
 		INSERT INTO snapshot.snapshotted_heights (analyzer, height)
-			SELECT analyzer, height FROM analysis.processed_blocks WHERE analyzer=$1 ORDER BY height DESC, processed_time DESC LIMIT 1
+			SELECT analyzer, height
+			FROM analysis.processed_blocks WHERE analyzer=$1 AND processed_time IS NOT NULL
+			ORDER BY height DESC LIMIT 1
 			ON CONFLICT DO NOTHING;
 	`, analyzer)
 
