@@ -2,19 +2,21 @@ import random
 import requests
 from locust import HttpUser, task, between, events
 
+baseUrl = "https://index-staging.oasislabs.com"
+
 def getLatestHeight(layer):
-    return requests.get(f"https://index.oasislabs.com/v1/{layer}/status").json()['latest_block']
+    return requests.get(f"{baseUrl}/v1/{layer}/status").json()['latest_block']
 
 def getLatestTxs(layer, n):
-    txs = requests.get(f"https://index.oasislabs.com/v1/{layer}/transactions?limit={n}").json()['transactions']
+    txs = requests.get(f"{baseUrl}/v1/{layer}/transactions?limit={n}").json()['transactions']
     return [tx['hash'] for tx in txs]
 
 def getSampleAddrs(layer, n):
     addrs = set()
     offset = 0
     while len(addrs) < n:
-        print(f"addr length: {len(addrs)}, offset: {offset}")
-        txs = requests.get(f"https://index.oasislabs.com/v1/{layer}/transactions?limit={n}&offset={offset}").json()['transactions']
+        print(f"total addrs found: {len(addrs)}, offset: {offset}")
+        txs = requests.get(f"{baseUrl}/v1/{layer}/transactions?limit={n}&offset={offset}").json()['transactions']
         addrs.update({tx['sender_0'] for tx in txs})
         addrs.update({tx['to'] for tx in txs if 'to' in tx})
         offset += 100
@@ -22,13 +24,16 @@ def getSampleAddrs(layer, n):
     return list(addrs)[:n]
 
 numSamples = 200
+# Recent Emerald data
 EmeraldHeight = getLatestHeight("emerald")
-SapphireHeight = getLatestHeight("sapphire")
 EmeraldTxs = getLatestTxs("emerald", numSamples)
-SapphireTxs = getLatestTxs("sapphire", numSamples)
 EmeraldAddrs = getSampleAddrs("emerald", numSamples)
-# The early history of sapphire only consists of the Oasis tx_client, 
-# which means there are only 2 active addresses.
+
+# Recent Sapphire data
+# SapphireHeight = getLatestHeight("sapphire")
+# SapphireTxs = getLatestTxs("sapphire", numSamples)
+# # The early history of sapphire only consists of the Oasis tx_client, 
+# # which means there are only 2 active addresses.
 # SapphireAddrs = getSampleAddrs("sapphire", numSamples)
 
 @events.init_command_line_parser.add_listener

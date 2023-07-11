@@ -24,3 +24,6 @@ api/spec/v1.json
 
 # Coverage reports.
 coverage.txt
+
+# Python build files
+tests/load/__pycache__
