@@ -438,6 +438,7 @@ var (
     SELECT
       token_analysis.token_address,
       token_analysis.last_download_round,
+      token_analysis.total_supply,
       evm_tokens.token_type,
       address_preimages.context_identifier,
       address_preimages.context_version,
@@ -466,15 +467,17 @@ var (
       )`
 
 	RuntimeEVMTokenAnalysisInsert = `
-    INSERT INTO analysis.evm_tokens (runtime, token_address, last_mutate_round)
-      VALUES ($1, $2, $3)
+    INSERT INTO analysis.evm_tokens (runtime, token_address, total_supply, last_mutate_round)
+      VALUES ($1, $2, $3, $4)
     ON CONFLICT (runtime, token_address) DO NOTHING`
 
 	RuntimeEVMTokenAnalysisMutateInsert = `
-    INSERT INTO analysis.evm_tokens (runtime, token_address, last_mutate_round)
-      VALUES ($1, $2, $3)
-    ON CONFLICT (runtime, token_address) DO UPDATE
-      SET last_mutate_round = excluded.last_mutate_round`
+    INSERT INTO analysis.evm_tokens (runtime, token_address, total_supply, last_mutate_round)
+      VALUES ($1, $2, $3, $4)
+    ON CONFLICT (runtime, token_address) DO
+      UPDATE SET 
+        total_supply = analysis.evm_tokens.total_supply + $3,
+        last_mutate_round = excluded.last_mutate_round`
 
 	RuntimeEVMTokenAnalysisUpdate = `
     UPDATE analysis.evm_tokens
@@ -492,6 +495,14 @@ var (
     UPDATE chain.evm_tokens
     SET
       total_supply = $3
+    WHERE
+      runtime = $1 AND
+      token_address = $2`
+
+	RuntimeEVMTokenTotalSupplyChangeUpdate = `
+    UPDATE chain.evm_tokens
+    SET
+      total_supply = total_supply + $3
     WHERE
       runtime = $1 AND
       token_address = $2`

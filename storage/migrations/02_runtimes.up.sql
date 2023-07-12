@@ -190,6 +190,7 @@ CREATE TABLE chain.evm_token_analysis  -- Moved to analysis.evm_tokens in 06_ana
 (
   runtime runtime NOT NULL,
   token_address oasis_addr NOT NULL,
+  total_supply uint_numeric, -- Dead reckons total_supply before token is downloaded.
   PRIMARY KEY (runtime, token_address),
   -- Block analyzer bumps this when it sees the mutable fields of the token
   -- change (e.g. total supply) based on dead reckoning.

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/prometheus/client_golang/prometheus"
 	"golang.org/x/sync/errgroup"
 
@@ -68,6 +69,7 @@ func NewMain(
 type StaleToken struct {
 	Addr                  string
 	LastDownloadRound     *uint64
+	TotalSupply           common.BigInt
 	Type                  *evm.EVMTokenType
 	AddrContextIdentifier string
 	AddrContextVersion    int
@@ -84,9 +86,11 @@ func (m main) getStaleTokens(ctx context.Context, limit int) ([]*StaleToken, err
 	defer rows.Close()
 	for rows.Next() {
 		var staleToken StaleToken
+		var totalSupply pgtype.Numeric
 		if err = rows.Scan(
 			&staleToken.Addr,
 			&staleToken.LastDownloadRound,
+			&totalSupply,
 			&staleToken.Type,
 			&staleToken.AddrContextIdentifier,
 			&staleToken.AddrContextVersion,
@@ -94,6 +98,10 @@ func (m main) getStaleTokens(ctx context.Context, limit int) ([]*StaleToken, err
 			&staleToken.DownloadRound,
 		); err != nil {
 			return nil, fmt.Errorf("scanning discovered token: %w", err)
+		}
+		staleToken.TotalSupply, err = common.NumericToBigInt(totalSupply)
+		if err != nil {
+			return nil, fmt.Errorf("unmarshalling token totalSupply: %w", err)
 		}
 		staleTokens = append(staleTokens, &staleToken)
 	}
@@ -120,10 +128,16 @@ func (m main) processStaleToken(ctx context.Context, batch *storage.QueryBatch, 
 		if err != nil {
 			return fmt.Errorf("downloading new token %s: %w", staleToken.Addr, err)
 		}
+		// Use the totalSupply downloaded directly from the chain if it exists,
+		// else default to the dead-reckoned value in analysis.evm_tokens.
+		totalSupplyBytes, err := staleToken.TotalSupply.MarshalText()
+		if err != nil {
+			return fmt.Errorf("error converting totalSupply: %w", err)
+		}
+		totalSupply := string(totalSupplyBytes)
 		// If the returned token type is unsupported, it will have zero value token data.
-		var totalSupply *string
 		if tokenData.EVMTokenMutableData != nil && tokenData.TotalSupply != nil {
-			totalSupply = common.Ptr(tokenData.TotalSupply.String())
+			totalSupply = tokenData.TotalSupply.String()
 		}
 		batch.Queue(queries.RuntimeEVMTokenInsert,
 			m.runtime,

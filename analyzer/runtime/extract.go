@@ -751,14 +751,23 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 					}
 					// TODO: Reckon ownership.
 					if _, ok := blockData.PossibleTokens[eventAddr]; !ok {
-						blockData.PossibleTokens[eventAddr] = &evm.EVMPossibleToken{}
+						blockData.PossibleTokens[eventAddr] = &evm.EVMPossibleToken{
+							TotalSupplyChange: &big.Int{},
+						}
 					}
 					// Mark as mutated if transfer is between zero address
 					// and nonzero address (either direction) and nonzero
 					// amount. These will change the total supply as mint/
 					// burn.
-					if fromZero != toZero && tokenID.Cmp(&big.Int{}) != 0 {
-						blockData.PossibleTokens[eventAddr].Mutated = true
+					if fromZero && !toZero && tokenID.Cmp(&big.Int{}) != 0 {
+						pt := blockData.PossibleTokens[eventAddr]
+						pt.TotalSupplyChange.Add(pt.TotalSupplyChange, big.NewInt(1))
+						pt.Mutated = true
+					}
+					if !fromZero && toZero && tokenID.Cmp(&big.Int{}) != 0 {
+						pt := blockData.PossibleTokens[eventAddr]
+						pt.TotalSupplyChange.Sub(pt.TotalSupplyChange, big.NewInt(1))
+						pt.Mutated = true
 					}
 					eventData.EvmLogName = evmabi.ERC721.Events["Transfer"].Name
 					eventData.EvmLogSignature = ethCommon.BytesToHash(event.Topics[0])
@@ -861,9 +870,7 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 						{
 							Name:    "approved",
 							EvmType: "bool",
-							// JSON supports encoding big integers, but many clients (javascript, jq, etc.)
-							// will incorrectly parse them as floats. So we encode uint256 as a string instead.
-							Value: approved,
+							Value:   approved,
 						},
 					}
 					return nil
