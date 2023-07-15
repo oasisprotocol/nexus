@@ -48,7 +48,7 @@ about!
 
 If you believe a bug report presents a security risk, please follow
 [responsible disclosure](https://en.wikipedia.org/wiki/Responsible_disclosure)
-and report it directly to security@oasislabs.com instead of filing a public
+and report it directly to security@oasisprotocol.org instead of filing a public
 issue or posting it to a public forum. We will get back to you promptly.
 
 Otherwise, please, first search between [existing issues in our repository] and
