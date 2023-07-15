@@ -7,9 +7,9 @@ info:
   version: 0.1.0
 
 servers:
-  - url: http://index.oasislabs.com/v1
+  - url: http://nexus.oasis.io/v1
     description: Mainnet index endpoint.
-  - url: http://index.testnet.oasislabs.com/v1
+  - url: http://testnet.nexus.oasis.io/v1
     description: Testnet index endpoint.
 
 x-query-params:
