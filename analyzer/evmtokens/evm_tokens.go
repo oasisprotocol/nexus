@@ -160,7 +160,7 @@ func (m main) processStaleToken(ctx context.Context, batch *storage.QueryBatch, 
 		if err != nil {
 			return fmt.Errorf("downloading mutated token %s: %w", staleToken.Addr, err)
 		}
-		if mutable != nil {
+		if mutable != nil && mutable.TotalSupply != nil {
 			batch.Queue(queries.RuntimeEVMTokenUpdate,
 				m.runtime,
 				staleToken.Addr,
