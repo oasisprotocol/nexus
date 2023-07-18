@@ -27,7 +27,6 @@ func evmDownloadTokenERC721Mutable(ctx context.Context, logger *log.Logger, sour
 				return nil, fmt.Errorf("calling totalSupply: %w", err1)
 			}
 			logDeterministicError(logger, round, tokenEthAddr, "ERC721Enumerable", "totalSupply", err1)
-			return nil, nil
 		}
 	}
 	return &mutable, nil
