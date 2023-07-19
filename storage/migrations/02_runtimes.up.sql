@@ -111,6 +111,9 @@ CREATE TABLE chain.runtime_events
 
   tx_hash HEX64,
   tx_eth_hash HEX64,
+  -- Added in 08_runtime_events_timestamp.up.sql
+  -- timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
+  
   -- TODO: add link to openapi spec section with runtime event types.
   type TEXT NOT NULL,
   -- The raw event, as returned by the oasis-sdk runtime client.
