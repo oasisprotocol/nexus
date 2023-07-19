@@ -2060,7 +2060,7 @@ components:
 
     RuntimeEvent:
       type: object
-      required: [round, type, body]
+      required: [round, timestamp, type, body]
       properties:
         round:
           type: integer
@@ -2085,6 +2085,12 @@ components:
           description: |
             Ethereum trasnsaction hash of this event's originating transaction.
             Absent if the event did not originate from an EVM transaction.
+        timestamp:
+          type: string
+          format: date-time
+          description: |
+            The second-granular consensus time this event's block.
+          example: *iso_timestamp_1
         type:
           description: The type of the event.
           $ref: '#/components/schemas/RuntimeEventType'
@@ -2112,6 +2118,8 @@ components:
             The decoded `evm.log` event data. We currently support only two types of evm events, ERC20 `Transfer`
             and `Approve`.
             Absent if the event type is not `evm.log`.
+        evm_log_details:
+          $ref: '#/components/schemas/EvmEventDetails'
       description: An event emitted by the runtime layer
 
     RuntimeEventType:
@@ -2144,6 +2152,26 @@ components:
         Values of EVM type `address` and `address payable` are represented as lowercase hex strings with a "0x" prefix.
         Values of EVM type `bytes` and `bytes<N>` are represented as base64 strings.
         Values of other EVM types (integer types, strings, arrays, etc.) are represented as their JSON counterpart.
+
+    EvmEventDetails:
+      type: object
+      properties:
+        token_type:
+          $ref: '#/components/schemas/EvmTokenType'
+        token_symbol:
+          type: string
+          description: Symbol of the token, as provided by token contract's `symbol()` method.
+          example: USDT
+        token_decimals:
+          type: integer
+          description: |
+            The number of least significant digits in base units that should be displayed as
+            decimals when displaying tokens. `tokens = base_units / (10**decimals)`.
+            Affects display only. Often equals 18, to match ETH.
+          example: 18
+      description: |
+        Additional information related to the event. The semantics of the member fields 
+        depends on the event type.
 
     RuntimeEvmContract:
       type: object
