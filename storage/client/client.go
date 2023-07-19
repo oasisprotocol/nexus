@@ -1296,17 +1296,25 @@ func (c *StorageClient) RuntimeEvents(ctx context.Context, p apiTypes.GetRuntime
 	}
 	for res.rows.Next() {
 		var e RuntimeEvent
+		var ed apiTypes.EvmEventDetails
 		if err := res.rows.Scan(
 			&e.Round,
 			&e.TxIndex,
 			&e.TxHash,
 			&e.EthTxHash,
+			&e.Timestamp,
 			&e.Type,
 			&e.Body,
 			&e.EvmLogName,
 			&e.EvmLogParams,
+			&ed.TokenSymbol,
+			&ed.TokenType,
+			&ed.TokenDecimals,
 		); err != nil {
 			return nil, wrapError(err)
+		}
+		if ed != (apiTypes.EvmEventDetails{}) {
+			e.EvmLogDetails = &ed
 		}
 		es.Events = append(es.Events, e)
 	}
