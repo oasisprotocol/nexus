@@ -108,6 +108,7 @@ CREATE TABLE chain.runtime_events
   round UINT63 NOT NULL,
   tx_index UINT31,
   FOREIGN KEY (runtime, round, tx_index) REFERENCES chain.runtime_transactions(runtime, round, tx_index) DEFERRABLE INITIALLY DEFERRED,
+  timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
 
   tx_hash HEX64,
   tx_eth_hash HEX64,
