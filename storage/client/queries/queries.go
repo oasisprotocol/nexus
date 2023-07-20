@@ -488,7 +488,7 @@ const (
 				ELSE FALSE
 			END AS verified 
 		FROM chain.evm_tokens AS tokens
-		JOIN chain.address_preimages AS preimages ON (token_address = preimages.address)
+		JOIN chain.address_preimages AS preimages ON (token_address = preimages.address AND preimages.context_identifier = 'oasis-runtime-sdk/address: secp256k1eth' AND preimages.context_version = 0)
 		JOIN holders USING (token_address)
 		LEFT JOIN chain.evm_contracts as contracts ON (tokens.runtime = contracts.runtime AND tokens.token_address = contracts.contract_address)
 		WHERE

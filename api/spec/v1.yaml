@@ -2540,7 +2540,10 @@ components:
           example: 123
         verified:
           type: boolean
-          description: Whether the contract has been successfully verified by Sourcify.
+          description: |
+            Whether the contract has been successfully verified by Sourcify. 
+            Additional information on verified contracts is available via 
+            the `/{runtime}/accounts/{address}` endpoint.
           example: false
 
     AccountStats:
