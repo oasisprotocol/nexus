@@ -1345,7 +1345,7 @@ components:
           type: string
           format: date-time
           description: |
-            The second-granular consensus time this tx's block, i.e. roughly when the
+            The second-granular consensus time of this tx's block, i.e. roughly when the
             [block was proposed](https://github.com/tendermint/tendermint/blob/v0.34.x/spec/core/data_structures.md#header).
           example: *iso_timestamp_3
         hash:
@@ -2089,7 +2089,7 @@ components:
           type: string
           format: date-time
           description: |
-            The second-granular consensus time this event's block.
+            The second-granular consensus time of this event's block.
           example: *iso_timestamp_1
         type:
           description: The type of the event.
