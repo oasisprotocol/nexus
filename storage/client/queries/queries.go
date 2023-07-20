@@ -525,7 +525,7 @@ const (
 	AccountRuntimeEvmBalances = `
 		SELECT
 			balances.balance AS balance,
-			balances.token_address AS token_address,
+			preimages.address_data AS token_address,
 			tokens.symbol AS token_symbol,
 			tokens.token_name AS token_name,
 			CASE -- NOTE: There are three queries that use this CASE via copy-paste; edit both if changing.
@@ -535,6 +535,7 @@ const (
 			END AS token_type,
 			tokens.decimals AS token_decimals
 		FROM chain.evm_token_balances AS balances
+		JOIN chain.address_preimages AS preimages ON (preimages.address = balances.token_address AND preimages.context_identifier = 'oasis-runtime-sdk/address: secp256k1eth' AND preimages.context_version = 0)
 		JOIN chain.evm_tokens         AS tokens USING (runtime, token_address)
 		WHERE runtime = $1 AND
 			balances.account_address = $2::text AND
