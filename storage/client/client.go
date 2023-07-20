@@ -1396,6 +1396,7 @@ func (c *StorageClient) RuntimeAccount(ctx context.Context, address staking.Addr
 		var addrPreimage []byte
 		if err = runtimeEvmRows.Scan(
 			&b.Balance,
+			&b.TokenContractAddr,
 			&addrPreimage,
 			&b.TokenSymbol,
 			&b.TokenName,
@@ -1404,7 +1405,7 @@ func (c *StorageClient) RuntimeAccount(ctx context.Context, address staking.Addr
 		); err != nil {
 			return nil, wrapError(err)
 		}
-		b.TokenContractAddr = ethCommon.BytesToAddress(addrPreimage).String()
+		b.TokenContractAddrEth = ethCommon.BytesToAddress(addrPreimage).String()
 		a.EvmBalances = append(a.EvmBalances, b)
 	}
 

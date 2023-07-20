@@ -525,7 +525,8 @@ const (
 	AccountRuntimeEvmBalances = `
 		SELECT
 			balances.balance AS balance,
-			preimages.address_data AS token_address,
+			balances.token_address AS token_address,
+			preimages.address_data AS token_address_eth,
 			tokens.symbol AS token_symbol,
 			tokens.token_name AS token_name,
 			CASE -- NOTE: There are three queries that use this CASE via copy-paste; edit both if changing.
