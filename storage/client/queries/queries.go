@@ -482,10 +482,15 @@ const (
 				WHEN tokens.token_type = 721 THEN 'ERC721'
 				ELSE 'unexpected_other_type' -- Our openapi spec doesn't allow us to output this, but better this than a null value (which causes nil dereference)
 			END AS type,
-			holders.cnt AS num_holders
+			holders.cnt AS num_holders,
+			CASE
+				WHEN contracts.verification_info_downloaded_at IS NOT NULL THEN TRUE
+				ELSE FALSE
+			END AS verified 
 		FROM chain.evm_tokens AS tokens
 		JOIN chain.address_preimages AS preimages ON (token_address = preimages.address)
 		JOIN holders USING (token_address)
+		LEFT JOIN chain.evm_contracts as contracts ON (tokens.runtime = contracts.runtime AND tokens.token_address = contracts.contract_address)
 		WHERE
 			(tokens.runtime = $1) AND
 			($2::oasis_addr IS NULL OR tokens.token_address = $2::oasis_addr) AND
