@@ -405,7 +405,11 @@ const (
 			evs.evm_log_name,
 			evs.evm_log_params,
 			tokens.symbol,
-			tokens.token_type,
+			CASE -- NOTE: There are three queries that use this CASE via copy-paste; edit both if changing.
+				WHEN tokens.token_type = 20 THEN 'ERC20'
+				WHEN tokens.token_type = 721 THEN 'ERC721'
+				ELSE 'unexpected_other_type' -- Our openapi spec doesn't allow us to output this, but better this than a null value (which causes nil dereference)
+			END AS token_type,
 			tokens.decimals
 		FROM chain.runtime_events as evs
 		LEFT JOIN chain.address_preimages AS preimages ON
@@ -473,7 +477,7 @@ const (
 			tokens.symbol,
 			tokens.decimals,
 			tokens.total_supply,
-			CASE -- NOTE: There are two queries that use this CASE via copy-paste; edit both if changing.
+			CASE -- NOTE: There are three queries that use this CASE via copy-paste; edit both if changing.
 				WHEN tokens.token_type = 20 THEN 'ERC20'
 				WHEN tokens.token_type = 721 THEN 'ERC721'
 				ELSE 'unexpected_other_type' -- Our openapi spec doesn't allow us to output this, but better this than a null value (which causes nil dereference)
@@ -524,7 +528,7 @@ const (
 			balances.token_address AS token_address,
 			tokens.symbol AS token_symbol,
 			tokens.token_name AS token_name,
-			CASE -- NOTE: There are two queries that use this CASE via copy-paste; edit both if changing.
+			CASE -- NOTE: There are three queries that use this CASE via copy-paste; edit both if changing.
 				WHEN tokens.token_type = 20 THEN 'ERC20'
 				WHEN tokens.token_type = 721 THEN 'ERC721'
 				ELSE 'unexpected_other_type' -- Our openapi spec doesn't allow us to output this, but better this than a null value (which causes nil dereference)
