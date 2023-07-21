@@ -408,7 +408,7 @@ const (
 			tokens.token_type,
 			tokens.decimals
 		FROM chain.runtime_events as evs
-		JOIN chain.address_preimages AS preimages ON
+		LEFT JOIN chain.address_preimages AS preimages ON
 			DECODE(evs.body ->> 'address', 'base64')=preimages.address_data
 		LEFT JOIN chain.evm_tokens as tokens ON
 			(evs.runtime=tokens.runtime) AND
