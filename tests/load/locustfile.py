@@ -2,16 +2,31 @@ import random
 import requests
 from locust import HttpUser, task, between, events
 
-baseUrl = "https://index-staging.oasislabs.com"
+@events.init_command_line_parser.add_listener
+def _(parser):
+    parser.add_argument("--paratime", type=str, env_var="LOCUST_PARATIME", default="emerald", help="The lowercase name of the paratime to query")
+    parser.add_argument("--sample-pool-size", type=int, env_var="LOCUST_SAMPLE_POOL_SIZE", default=100, help="The n most recent blocks/txs/addrs to query during the load test")
 
-def getLatestHeight(layer):
+@events.test_start.add_listener
+def startup(environment, **kwargs):
+    baseUrl = environment.parsed_options.host
+    paratime = environment.parsed_options.paratime
+    numSamples = environment.parsed_options.sample_pool_size
+    print(f"baseUrl: {baseUrl}, paratime: {paratime}, numSamples: {numSamples}")
+
+    global CurrHeight, TestAddrs, TestTxs
+    CurrHeight = getLatestHeight(baseUrl, paratime)
+    TestTxs = getLatestTxs(baseUrl, paratime, numSamples)
+    TestAddrs = getSampleAddrs(baseUrl, paratime, numSamples)
+
+def getLatestHeight(baseUrl, layer):
     return requests.get(f"{baseUrl}/v1/{layer}/status").json()['latest_block']
 
-def getLatestTxs(layer, n):
+def getLatestTxs(baseUrl, layer, n):
     txs = requests.get(f"{baseUrl}/v1/{layer}/transactions?limit={n}").json()['transactions']
     return [tx['hash'] for tx in txs]
 
-def getSampleAddrs(layer, n):
+def getSampleAddrs(baseUrl, layer, n):
     addrs = set()
     offset = 0
     while len(addrs) < n:
@@ -23,22 +38,6 @@ def getSampleAddrs(layer, n):
     
     return list(addrs)[:n]
 
-numSamples = 200
-# Recent Emerald data
-EmeraldHeight = getLatestHeight("emerald")
-EmeraldTxs = getLatestTxs("emerald", numSamples)
-EmeraldAddrs = getSampleAddrs("emerald", numSamples)
-
-# Recent Sapphire data
-# SapphireHeight = getLatestHeight("sapphire")
-# SapphireTxs = getLatestTxs("sapphire", numSamples)
-# # The early history of sapphire only consists of the Oasis tx_client, 
-# # which means there are only 2 active addresses.
-# SapphireAddrs = getSampleAddrs("sapphire", numSamples)
-
-@events.init_command_line_parser.add_listener
-def _(parser):
-    parser.add_argument("--paratime", type=str, env_var="LOCUST_PARATIME", default="emerald", help="The lowercase name of the paratime to query")
 
 class RuntimeUser(HttpUser):
     wait_time = between(1, 5)
@@ -46,6 +45,7 @@ class RuntimeUser(HttpUser):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.paratime = self.environment.parsed_options.paratime
+        self.numSamples = self.environment.parsed_options.sample_pool_size
 
     # https://explorer.dev.oasis.io/
     @task(5)
@@ -69,11 +69,8 @@ class RuntimeUser(HttpUser):
     # https://explorer.dev.oasis.io/mainnet/emerald/tx/{hash}
     @task(4)
     def tx_detail(self):
-        if self.paratime == "emerald":
-            tx_hash = EmeraldTxs[random.randint(0, numSamples-1)]
-        else:
-            tx_hash = SapphireTxs[random.randint(0, numSamples-1)]
-        
+        tx_hash = TestTxs[random.randint(0, self.numSamples-1)]
+
         self.client.get("/v1/")
         self.client.get(f"/v1/{self.paratime}/status")
         self.client.get(f"/v1/{self.paratime}/transactions/{tx_hash}", name=f"/v1/{self.paratime}/transactions/hash")
@@ -82,11 +79,8 @@ class RuntimeUser(HttpUser):
     # https://explorer.dev.oasis.io/mainnet/emerald/address/{address}
     @task(4)
     def account_detail(self):
-        if self.paratime == "emerald":
-            addr = EmeraldAddrs[random.randint(0, numSamples-1)]
-        else:
-            addr = SapphireAddrs[random.randint(0, numSamples-1)]
-        
+        addr = TestAddrs[random.randint(0, self.numSamples-1)]
+
         self.client.get("/v1/")
         self.client.get(f"/v1/{self.paratime}/status")
         self.client.get(f"/v1/{self.paratime}/transactions?rel={addr}&limit=10&offset=0", name=f"v1/{self.paratime}/transactions?rel=addr")
@@ -95,11 +89,8 @@ class RuntimeUser(HttpUser):
     # https://explorer.dev.oasis.io/mainnet/emerald/block/{height}
     @task(4)
     def block_detail(self):
-        if self.paratime == "emerald":
-            height = random.randint(1, EmeraldHeight)
-        else:
-            height = random.randint(1, SapphireHeight)
-        
+        height = random.randint(1, CurrHeight)
+
         self.client.get("/v1/")
         self.client.get(f"/v1/{self.paratime}/status")
         self.client.get(f"/v1/{self.paratime}/blocks?to={height}&limit=1", name=f"/v1/{self.paratime}/blocks/height")
