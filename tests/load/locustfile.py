@@ -1,3 +1,20 @@
+"""
+This file contains the load test for simulating usage of the paratime
+Explorer pages, currently Emerald and Sapphire. The basic 
+flow begins in startup() which fetches the latest height, recent 
+transactions, and recent addresses from the paratime. These are then
+queried during the load test. 
+
+The core of the load test is the `RuntimeUser` defined below, which 
+simulates usage of the Oasis Explorer. Each method annotated with `@task`
+simulates all the calls to Nexus for a given Explorer page. During the load
+test, each simulated user picks a task chosen at random based on the 
+task weights `@task(weight)`. The pages are currently weighted unequally
+based on expected usage of the Explorer. After the task completes, the user
+waits a random duration defined in `RuntimeUser.wait_time` (currently 
+between 1-5 seconds) before starting another random task.
+"""
+
 import random
 import requests
 from locust import HttpUser, task, between, events
