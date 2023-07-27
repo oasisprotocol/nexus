@@ -22,7 +22,7 @@ from locust import HttpUser, task, between, events
 @events.init_command_line_parser.add_listener
 def _(parser):
     parser.add_argument("--paratime", type=str, env_var="LOCUST_PARATIME", default="emerald", help="The lowercase name of the paratime to query")
-    parser.add_argument("--sample-pool-size", type=int, env_var="LOCUST_SAMPLE_POOL_SIZE", default=100, help="The n most recent blocks/txs/addrs to query during the load test")
+    parser.add_argument("--sample-pool-size", type=int, env_var="LOCUST_SAMPLE_POOL_SIZE", default=100, help="The n most recent txs/addrs to query during the load test")
 
 @events.test_start.add_listener
 def startup(environment, **kwargs):

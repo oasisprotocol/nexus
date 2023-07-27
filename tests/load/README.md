@@ -1,5 +1,5 @@
 ## Summary
-(Locust)[https://locust.io/] is a load testing tool that we use to simulate users of the (Explorer)[https://explorer.oasis.io/]. See the docstring in `locustfile.py` for details.
+[Locust](https://locust.io/) is a load testing tool that we use to simulate users of the [Explorer](https://explorer.oasis.io/). See the docstring in `locustfile.py` for details.
 
 `locust.conf` holds the locust configuration parameters. All of them can be overridden using command-line arguments. Run `locust -h` for more info.
 
