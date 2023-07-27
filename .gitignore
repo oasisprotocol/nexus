@@ -26,4 +26,4 @@ api/spec/v1.json
 coverage.txt
 
 # Python build files
-tests/load/__pycache__
+**/__pycache__
