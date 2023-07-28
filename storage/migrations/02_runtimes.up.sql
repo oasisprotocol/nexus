@@ -239,6 +239,7 @@ CREATE TABLE chain.evm_contracts
   creation_tx HEX64,
   creation_bytecode BYTEA
   -- runtime_bytecode BYTEA  -- Added in 05_evm_runtime_bytecode.up.sql
+  -- gas_used UINT63 -- Added in 11_evm_contract_gas.up.sql
 
   -- Added in 07_evm_contract_verification.up.sql
   -- -- Following fields are only filled out for contracts that have been verified.
