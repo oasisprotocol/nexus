@@ -291,7 +291,7 @@ func (m *processor) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 			totalSupply = possibleToken.TotalSupplyChange.String()
 		}
 		if possibleToken.Mutated {
-			batch.Queue(queries.RuntimeEVMTokenAnalysisMutateInsert, m.runtime, addr, totalSupply, data.Header.Round)
+			batch.Queue(queries.RuntimeEVMTokenAnalysisMutateUpsert, m.runtime, addr, totalSupply, data.Header.Round)
 		} else {
 			batch.Queue(queries.RuntimeEVMTokenAnalysisInsert, m.runtime, addr, totalSupply, data.Header.Round)
 		}

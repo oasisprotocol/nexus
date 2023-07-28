@@ -471,7 +471,7 @@ var (
       VALUES ($1, $2, $3, $4)
     ON CONFLICT (runtime, token_address) DO NOTHING`
 
-	RuntimeEVMTokenAnalysisMutateInsert = `
+	RuntimeEVMTokenAnalysisMutateUpsert = `
     INSERT INTO analysis.evm_tokens (runtime, token_address, total_supply, last_mutate_round)
       VALUES ($1, $2, $3, $4)
     ON CONFLICT (runtime, token_address) DO
