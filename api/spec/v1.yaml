@@ -2496,7 +2496,7 @@ components:
 
     EvmToken:
       type: object
-      required: [contract_addr, num_holders, type]
+      required: [contract_addr, eth_contract_addr, num_holders, type, is_verified]
       properties:
         contract_addr:
           type: string
@@ -2537,6 +2537,13 @@ components:
           description: |
             The number of addresses that have a nonzero balance of this token.
           example: 123
+        is_verified:
+          type: boolean
+          description: |
+            Whether the contract has been successfully verified by Sourcify. 
+            Additional information on verified contracts is available via 
+            the `/{runtime}/accounts/{address}` endpoint.
+          example: false
 
     AccountStats:
       type: object

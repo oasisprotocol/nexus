@@ -1499,11 +1499,12 @@ func (c *StorageClient) RuntimeTokens(ctx context.Context, p apiTypes.GetRuntime
 			&t.TotalSupply,
 			&t.Type,
 			&t.NumHolders,
+			&t.IsVerified,
 		); err2 != nil {
 			return nil, wrapError(err2)
 		}
 
-		t.EthContractAddr = common.Ptr(ethCommon.BytesToAddress(addrPreimage).String())
+		t.EthContractAddr = ethCommon.BytesToAddress(addrPreimage).String()
 		ts.EvmTokens = append(ts.EvmTokens, t)
 	}
 
