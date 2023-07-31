@@ -394,18 +394,40 @@ const (
 		`
 
 	RuntimeEvents = `
-		SELECT evs.round, evs.tx_index, evs.tx_hash, evs.tx_eth_hash, evs.type, evs.body, evs.evm_log_name, evs.evm_log_params
-			FROM chain.runtime_events as evs
-			WHERE (evs.runtime = $1) AND
-					($2::bigint IS NULL OR evs.round = $2::bigint) AND
-					($3::integer IS NULL OR evs.tx_index = $3::integer) AND
-					($4::text IS NULL OR evs.tx_hash = $4::text OR evs.tx_eth_hash = $4::text) AND
-					($5::text IS NULL OR evs.type = $5::text) AND
-					($6::bytea IS NULL OR evs.evm_log_signature = $6::bytea) AND
-					($7::text IS NULL OR evs.related_accounts @> ARRAY[$7::text])
-			ORDER BY evs.round DESC, evs.tx_index, evs.type, evs.body::text
-			LIMIT $8::bigint
-			OFFSET $9::bigint`
+		SELECT
+			evs.round,
+			evs.tx_index,
+			evs.tx_hash,
+			evs.tx_eth_hash,
+			evs.timestamp,
+			evs.type,
+			evs.body,
+			evs.evm_log_name,
+			evs.evm_log_params,
+			tokens.symbol,
+			CASE -- NOTE: There are three queries that use this CASE via copy-paste; edit both if changing.
+				WHEN tokens.token_type = 20 THEN 'ERC20'
+				WHEN tokens.token_type = 721 THEN 'ERC721'
+				ELSE NULL -- Our openapi spec doesn't allow us to output this, but better this than a null value (which causes nil dereference)
+			END AS token_type,
+			tokens.decimals
+		FROM chain.runtime_events as evs
+		LEFT JOIN chain.address_preimages AS preimages ON
+			DECODE(evs.body ->> 'address', 'base64')=preimages.address_data
+		LEFT JOIN chain.evm_tokens as tokens ON
+			(evs.runtime=tokens.runtime) AND
+			(preimages.address=tokens.token_address)
+		WHERE 
+			(evs.runtime = $1) AND
+			($2::bigint IS NULL OR evs.round = $2::bigint) AND
+			($3::integer IS NULL OR evs.tx_index = $3::integer) AND
+			($4::text IS NULL OR evs.tx_hash = $4::text OR evs.tx_eth_hash = $4::text) AND
+			($5::text IS NULL OR evs.type = $5::text) AND
+			($6::bytea IS NULL OR evs.evm_log_signature = $6::bytea) AND
+			($7::text IS NULL OR evs.related_accounts @> ARRAY[$7::text])
+		ORDER BY evs.round DESC, evs.tx_index, evs.type, evs.body::text
+		LIMIT $8::bigint
+		OFFSET $9::bigint`
 
 	RuntimeEvmContract = `
 		SELECT
@@ -420,7 +442,6 @@ const (
 			compilation_metadata,
 			source_files
 		FROM chain.evm_contracts
-
 		WHERE (runtime = $1) AND (contract_address = $2::text)`
 
 	AddressPreimage = `
@@ -455,7 +476,7 @@ const (
 			tokens.symbol,
 			tokens.decimals,
 			tokens.total_supply,
-			CASE -- NOTE: There are two queries that use this CASE via copy-paste; edit both if changing.
+			CASE -- NOTE: There are three queries that use this CASE via copy-paste; edit both if changing.
 				WHEN tokens.token_type = 20 THEN 'ERC20'
 				WHEN tokens.token_type = 721 THEN 'ERC721'
 				ELSE 'unexpected_other_type' -- Our openapi spec doesn't allow us to output this, but better this than a null value (which causes nil dereference)
@@ -506,7 +527,7 @@ const (
 			balances.token_address AS token_address,
 			tokens.symbol AS token_symbol,
 			tokens.token_name AS token_name,
-			CASE -- NOTE: There are two queries that use this CASE via copy-paste; edit both if changing.
+			CASE -- NOTE: There are three queries that use this CASE via copy-paste; edit both if changing.
 				WHEN tokens.token_type = 20 THEN 'ERC20'
 				WHEN tokens.token_type = 721 THEN 'ERC721'
 				ELSE 'unexpected_other_type' -- Our openapi spec doesn't allow us to output this, but better this than a null value (which causes nil dereference)

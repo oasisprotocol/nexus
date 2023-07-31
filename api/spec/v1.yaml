@@ -1345,7 +1345,7 @@ components:
           type: string
           format: date-time
           description: |
-            The second-granular consensus time this tx's block, i.e. roughly when the
+            The second-granular consensus time of this tx's block, i.e. roughly when the
             [block was proposed](https://github.com/tendermint/tendermint/blob/v0.34.x/spec/core/data_structures.md#header).
           example: *iso_timestamp_3
         hash:
@@ -2060,7 +2060,7 @@ components:
 
     RuntimeEvent:
       type: object
-      required: [round, type, body]
+      required: [round, timestamp, type, body]
       properties:
         round:
           type: integer
@@ -2085,6 +2085,12 @@ components:
           description: |
             Ethereum trasnsaction hash of this event's originating transaction.
             Absent if the event did not originate from an EVM transaction.
+        timestamp:
+          type: string
+          format: date-time
+          description: |
+            The second-granular consensus time of this event's block.
+          example: *iso_timestamp_1
         type:
           description: The type of the event.
           $ref: '#/components/schemas/RuntimeEventType'
@@ -2112,6 +2118,8 @@ components:
             The decoded `evm.log` event data. We currently support only two types of evm events, ERC20 `Transfer`
             and `Approve`.
             Absent if the event type is not `evm.log`.
+        evm_token:
+          $ref: '#/components/schemas/EvmEventToken'
       description: An event emitted by the runtime layer
 
     RuntimeEventType:
@@ -2144,6 +2152,25 @@ components:
         Values of EVM type `address` and `address payable` are represented as lowercase hex strings with a "0x" prefix.
         Values of EVM type `bytes` and `bytes<N>` are represented as base64 strings.
         Values of other EVM types (integer types, strings, arrays, etc.) are represented as their JSON counterpart.
+
+    EvmEventToken:
+      type: object
+      properties:
+        type:
+          $ref: '#/components/schemas/EvmTokenType'
+        symbol:
+          type: string
+          description: Symbol of the token, as provided by token contract's `symbol()` method.
+          example: USDT
+        decimals:
+          type: integer
+          description: |
+            The number of least significant digits in base units that should be displayed as
+            decimals when displaying tokens. `tokens = base_units / (10**decimals)`.
+            Affects display only. Often equals 18, to match ETH.
+          example: 18
+      description: |
+        Details about the EVM token involved in the event, if any.
 
     RuntimeEvmContract:
       type: object
