@@ -186,14 +186,19 @@ CREATE TABLE chain.evm_tokens
   token_name TEXT,
   symbol TEXT,
   decimals INTEGER,
-  total_supply uint_numeric
+  -- NOT an uint because a non-conforming token contract could issue a fake burn event,
+  -- causing a negative dead-reckoned total_supply.
+  total_supply uint_numeric -- changed to NUMERIC(1000,0) in 09_evm_token_total_supply.up.sql
 );
 
 CREATE TABLE chain.evm_token_analysis  -- Moved to analysis.evm_tokens in 06_analysis_schema.up.sql
 (
   runtime runtime NOT NULL,
   token_address oasis_addr NOT NULL,
-  total_supply uint_numeric, -- Dead reckons total_supply before token is downloaded.
+  -- Dead-reckoned total_supply before token metadata is downloaded. 
+  -- NOT an uint because a non-conforming token contract could issue a fake burn event,
+  -- causing a negative dead-reckoned total_supply.
+  total_supply uint_numeric, -- changed to NUMERIC(1000,0) in 09_evm_token_total_supply.up.sql
   PRIMARY KEY (runtime, token_address),
   -- Block analyzer bumps this when it sees the mutable fields of the token
   -- change (e.g. total supply) based on dead reckoning.
