@@ -751,9 +751,7 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 					}
 					// TODO: Reckon ownership.
 					if _, ok := blockData.PossibleTokens[eventAddr]; !ok {
-						blockData.PossibleTokens[eventAddr] = &evm.EVMPossibleToken{
-							TotalSupplyChange: &big.Int{},
-						}
+						blockData.PossibleTokens[eventAddr] = &evm.EVMPossibleToken{}
 					}
 					// Mark as mutated if transfer is between zero address
 					// and nonzero address (either direction) and nonzero
@@ -761,12 +759,12 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 					// burn.
 					if fromZero && !toZero && tokenID.Cmp(&big.Int{}) != 0 {
 						pt := blockData.PossibleTokens[eventAddr]
-						pt.TotalSupplyChange.Add(pt.TotalSupplyChange, big.NewInt(1))
+						pt.TotalSupplyChange.Add(&pt.TotalSupplyChange, big.NewInt(1))
 						pt.Mutated = true
 					}
 					if !fromZero && toZero && tokenID.Cmp(&big.Int{}) != 0 {
 						pt := blockData.PossibleTokens[eventAddr]
-						pt.TotalSupplyChange.Sub(pt.TotalSupplyChange, big.NewInt(1))
+						pt.TotalSupplyChange.Sub(&pt.TotalSupplyChange, big.NewInt(1))
 						pt.Mutated = true
 					}
 					eventData.EvmLogName = evmabi.ERC721.Events["Transfer"].Name
