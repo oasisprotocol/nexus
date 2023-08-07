@@ -144,12 +144,12 @@ CREATE INDEX ix_runtime_events_evm_log_params ON chain.runtime_events USING gin(
 -- If you need to go the other way, from context + data to address, you'd 
 -- normally just run the derivation. See oasis-core/go/common/crypto/address/address.go
 -- for details. Consider inserting the preimage here if you're ingesting new 
--- blockchain data though.
+-- blockchain data.
 --
 -- However, we do provide an index going the other way because certain queries 
 -- require computing the derivation within Postgres and implementing/importing 
--- the right hash function will take some work. 
--- TODO: import keccak hash into postgres
+-- the right hash function will take some work.
+-- TODO: import keccak hash into postgres.
 --
 -- Retain this across hard forks as long as the address derivation scheme is
 -- compatible.
