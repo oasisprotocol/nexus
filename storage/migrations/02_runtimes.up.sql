@@ -141,10 +141,15 @@ CREATE INDEX ix_runtime_events_evm_log_params ON chain.runtime_events USING gin(
 -- we've encountered the preimage before to find out what the address was
 -- derived from.
 --
--- If you need to go the other way, from context + data to address, you'd just
--- run the derivation. Thus we don't provide an index for going that way. See
--- oasis-core/go/common/crypto/address/address.go for details. Consider
--- inserting the preimage here if you're ingesting new blockchain data though.
+-- If you need to go the other way, from context + data to address, you'd 
+-- normally just run the derivation. See oasis-core/go/common/crypto/address/address.go
+-- for details. Consider inserting the preimage here if you're ingesting new 
+-- blockchain data though.
+--
+-- However, we do provide an index going the other way because certain queries 
+-- require computing the derivation within Postgres and implementing/importing 
+-- the right hash function will take some work. 
+-- TODO: import keccak hash into postgres
 --
 -- Retain this across hard forks as long as the address derivation scheme is
 -- compatible.
@@ -162,6 +167,9 @@ CREATE TABLE chain.address_preimages
   -- Ethereum address. For a "staking" context, this is the ed25519 pubkey.
   address_data       BYTEA NOT NULL
 );
+-- Added in 10_runtime_address_preimage_idx.up.sql
+-- CREATE INDEX IF NOT EXISTS ix_address_preimages_address_data ON chain.address_preimages (address_data) 
+--     WHERE context_identifier = 'oasis-runtime-sdk/address: secp256k1eth' AND context_version = 0;
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- Module evm -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
