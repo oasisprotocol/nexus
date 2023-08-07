@@ -808,7 +808,9 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 						eventData.RelatedAddresses[approvedAddr] = true
 					}
 					if _, ok := blockData.PossibleTokens[eventAddr]; !ok {
-						blockData.PossibleTokens[eventAddr] = &evm.EVMPossibleToken{}
+						blockData.PossibleTokens[eventAddr] = &evm.EVMPossibleToken{
+							TotalSupplyChange: &big.Int{},
+						}
 					}
 					tokenID := &big.Int{}
 					tokenID.SetBytes(tokenIDU256)
@@ -851,7 +853,9 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 						eventData.RelatedAddresses[operatorAddr] = true
 					}
 					if _, ok := blockData.PossibleTokens[eventAddr]; !ok {
-						blockData.PossibleTokens[eventAddr] = &evm.EVMPossibleToken{}
+						blockData.PossibleTokens[eventAddr] = &evm.EVMPossibleToken{
+							TotalSupplyChange: &big.Int{},
+						}
 					}
 					approved := approvedBool[31] != 0
 					eventData.EvmLogName = evmabi.ERC721.Events["ApprovalForAll"].Name
