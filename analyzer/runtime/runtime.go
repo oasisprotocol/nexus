@@ -286,10 +286,7 @@ func (m *processor) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 
 	// Insert EVM token addresses.
 	for addr, possibleToken := range data.PossibleTokens {
-		totalSupply := "0"
-		if possibleToken.TotalSupplyChange != nil {
-			totalSupply = possibleToken.TotalSupplyChange.String()
-		}
+		totalSupply := possibleToken.TotalSupplyChange.String()
 		if possibleToken.Mutated {
 			batch.Queue(queries.RuntimeEVMTokenAnalysisMutateUpsert, m.runtime, addr, totalSupply, data.Header.Round)
 		} else {
@@ -298,12 +295,12 @@ func (m *processor) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 		// Dead reckon total_supply because it's optional for ERC721 contracts.
 		// If the evm_tokens analyzer is able to fetch the total supply from the node,
 		// it will supersede this.
-		if possibleToken.TotalSupplyChange != nil && possibleToken.TotalSupplyChange.Cmp(&big.Int{}) != 0 {
+		if possibleToken.TotalSupplyChange.Cmp(&big.Int{}) != 0 {
 			batch.Queue(
 				queries.RuntimeEVMTokenTotalSupplyChangeUpdate,
 				m.runtime,
 				addr,
-				possibleToken.TotalSupplyChange.String(),
+				totalSupply,
 			)
 		}
 	}
