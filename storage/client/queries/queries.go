@@ -412,8 +412,13 @@ const (
 			END AS token_type,
 			tokens.decimals
 		FROM chain.runtime_events as evs
+		-- Look up the oasis-style address derived from evs.body.address.
+		-- The derivation is just a keccak hash and we could theoretically compute it instead of looking it up,
+		-- but the implementing/importing the right hash function in postgres would take some work.
 		LEFT JOIN chain.address_preimages AS preimages ON
-			DECODE(evs.body ->> 'address', 'base64')=preimages.address_data
+			DECODE(evs.body ->> 'address', 'base64')=preimages.address_data AND
+			preimages.context_identifier = 'oasis-runtime-sdk/address: secp256k1eth' AND
+			preimages.context_version = 0
 		LEFT JOIN chain.evm_tokens as tokens ON
 			(evs.runtime=tokens.runtime) AND
 			(preimages.address=tokens.token_address)
