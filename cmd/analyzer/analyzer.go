@@ -17,6 +17,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/oasisprotocol/nexus/analyzer"
+	"github.com/oasisprotocol/nexus/analyzer/aggregate_stats"
 	"github.com/oasisprotocol/nexus/analyzer/consensus"
 	"github.com/oasisprotocol/nexus/analyzer/evmcontractcode"
 	"github.com/oasisprotocol/nexus/analyzer/evmtokenbalances"
@@ -347,7 +348,7 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) {
 	}
 	if cfg.Analyzers.AggregateStats != nil {
 		analyzers, err = addAnalyzer(analyzers, err, func() (A, error) {
-			return analyzer.NewAggregateStatsAnalyzer(cfg.Analyzers.AggregateStats, dbClient, logger)
+			return aggregate_stats.NewAggregateStatsAnalyzer(dbClient, logger)
 		})
 	}
 	if cfg.Analyzers.EVMContractsVerifier != nil {

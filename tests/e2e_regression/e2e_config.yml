@@ -11,8 +11,7 @@ analysis:
   analyzers:
     # metadata_registry:
     #   interval: 5m
-    # aggregate_stats:
-    #   tx_volume_interval: 5m
+    # aggregate_stats: {}
     consensus:
       from: 8_048_956  # Damask genesis
       to: 8_049_056    # 100 blocks; fast enough for early testing

@@ -19,7 +19,8 @@ import (
 var (
 	defaultOffset            = uint64(0)
 	defaultLimit             = uint64(100)
-	defaultBucketSizeSeconds = uint32(3600)
+	defaultWindowSizeSeconds = uint32(86400)
+	defaultWindowStepSeconds = uint32(86400)
 	maxLimit                 = uint64(1000)
 )
 
@@ -126,8 +127,10 @@ func fixDefaultsAndLimits(p any) {
 				f.Set(reflect.ValueOf(&defaultLimit))
 			case "Offset":
 				f.Set(reflect.ValueOf(&defaultOffset))
-			case "BucketSizeSeconds":
-				f.Set(reflect.ValueOf(&defaultBucketSizeSeconds))
+			case "WindowSizeSeconds":
+				f.Set(reflect.ValueOf(&defaultWindowSizeSeconds))
+			case "WindowStepSeconds":
+				f.Set(reflect.ValueOf(&defaultWindowStepSeconds))
 			}
 		}
 	}
