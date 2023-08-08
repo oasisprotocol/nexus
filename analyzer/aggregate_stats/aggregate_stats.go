@@ -32,6 +32,10 @@ const (
 	// The workers only computes new data and iteration with no updates are cheap
 	// so it's fine to run this frequently.
 	statsComputationInterval = 1 * time.Minute
+
+	// Interval between stat computation iterations if the aggregate stats worker is catching up
+	// (indicated by the fact that the per iteration batch limit was reached).
+	statsComputationIntervalCatchup = 5 * time.Second
 )
 
 // Layers that are tracked for aggregate stats.
@@ -169,6 +173,8 @@ func (a *aggregateStatsAnalyzer) aggregateStatsWorker(ctx context.Context) {
 	}
 
 	for {
+		// If batch limit was reached, start the next iteration sooner.
+		var batchLimitReached bool
 		for _, statsComputation := range statsComputations {
 			logger := a.logger.With("name", statsComputation.name, "layer", statsComputation.layer)
 
@@ -243,6 +249,7 @@ func (a *aggregateStatsAnalyzer) aggregateStatsWorker(ctx context.Context) {
 				batch.Extend(queries)
 
 				if batch.Len() > statsBatchLimit {
+					batchLimitReached = true
 					break
 				}
 				latestComputed = nextWindow
@@ -253,8 +260,13 @@ func (a *aggregateStatsAnalyzer) aggregateStatsWorker(ctx context.Context) {
 			logger.Info("updated stats", "num_inserts", batch.Len())
 		}
 
+		timeout := statsComputationInterval
+		if batchLimitReached {
+			// Batch limit reached, use the shorter stats-catchup timeout.
+			timeout = statsComputationIntervalCatchup
+		}
 		select {
-		case <-time.After(statsComputationInterval):
+		case <-time.After(timeout):
 			// Update stats again.
 		case <-ctx.Done():
 			a.logger.Error("shutting down aggregate stats worker", "reason", ctx.Err())
