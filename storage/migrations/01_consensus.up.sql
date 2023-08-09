@@ -289,11 +289,11 @@ CREATE TABLE chain.processed_blocks  -- Moved to analysis.processed_blocks in 06
 (
   height         UINT63 NOT NULL,
   analyzer       TEXT NOT NULL,
+  PRIMARY KEY (analyzer, height),
 
   processed_time TIMESTAMP WITH TIME ZONE, -- NULL if the block is not yet processed.
-  locked_time     TIMESTAMP WITH TIME ZONE NOT NULL,
-
-  PRIMARY KEY (analyzer, height)
+  locked_time     TIMESTAMP WITH TIME ZONE NOT NULL
+  -- is_fast_sync BOOL NOT NULL DEFAULT false,  -- Whether the block was analyzed in fast-sync mode or not. Added in 16_fast_sync.sql.
 );
 
 CREATE INDEX ix_processed_blocks_analyzer_height_locked_unprocessed ON chain.processed_blocks (analyzer, height, locked_time) WHERE processed_time IS NULL; -- Index for efficient query of unprocessed blocks.

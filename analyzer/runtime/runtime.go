@@ -133,6 +133,7 @@ func (m *processor) ProcessBlock(ctx context.Context, round uint64) error {
 		queries.IndexingProgress,
 		round,
 		m.runtime,
+		m.mode == analyzer.FastSyncMode,
 	)
 
 	opName := fmt.Sprintf("process_block_%s", m.runtime)

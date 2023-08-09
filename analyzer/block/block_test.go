@@ -71,6 +71,7 @@ func (m *mockProcessor) ProcessBlock(ctx context.Context, height uint64) error {
 		queries.IndexingProgress,
 		height,
 		m.name,
+		false, // is_fast_sync
 	)
 	if err != nil {
 		return err

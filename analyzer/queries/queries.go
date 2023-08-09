@@ -99,7 +99,7 @@ var (
 
 	IndexingProgress = `
     UPDATE analysis.processed_blocks
-      SET height = $1, analyzer = $2, processed_time = CURRENT_TIMESTAMP
+      SET processed_time = CURRENT_TIMESTAMP, is_fast_sync = $3
       WHERE height = $1 AND analyzer = $2`
 
 	GenesisIndexingProgress = `

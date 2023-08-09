@@ -260,6 +260,7 @@ func (m *processor) ProcessBlock(ctx context.Context, uheight uint64) error {
 		queries.IndexingProgress,
 		height,
 		consensusAnalyzerName,
+		m.mode == analyzer.FastSyncMode,
 	)
 
 	// Apply updates to DB.
