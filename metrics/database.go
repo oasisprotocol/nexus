@@ -45,8 +45,8 @@ func NewDefaultDatabaseMetrics(pkg string) DatabaseMetrics {
 			databaseLatencyLabels,
 		),
 	}
-	prometheus.MustRegister(metrics.DatabaseOperations)
-	prometheus.MustRegister(metrics.DatabaseLatencies)
+	metrics.DatabaseOperations = registerOnce(metrics.DatabaseOperations).(*prometheus.CounterVec)
+	metrics.DatabaseLatencies = registerOnce(metrics.DatabaseLatencies).(*prometheus.HistogramVec)
 	return metrics
 }
 
