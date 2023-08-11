@@ -97,6 +97,12 @@ func (m *processor) PreWork(ctx context.Context) error {
 	return nil
 }
 
+// Implements block.BlockProcessor interface.
+func (m *processor) FinalizeFastSync(ctx context.Context, lastFastSyncHeight int64) error {
+	// For runtimes, fast sync does not disable any dead reckoning and does not ignore any updates.
+	return nil
+}
+
 // Implements BlockProcessor interface.
 func (m *processor) ProcessBlock(ctx context.Context, round uint64) error {
 	// Fetch all data.

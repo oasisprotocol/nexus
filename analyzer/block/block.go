@@ -41,6 +41,14 @@ type BlockProcessor interface {
 	//
 	// The implementation must commit processed blocks (update the analysis.processed_blocks record with processed_time timestamp).
 	ProcessBlock(ctx context.Context, height uint64) error
+	// FinalizeFastSync update any data that was neglected during the indexing of blocks
+	// up to and including `lastFastSyncHeight`, e.g. dead-reckoned balances.
+	// It is intended to be used when an analyzer wishes to transition from fast-sync mode
+	// into slow-sync mode. If the analyzer never used fast-sync and is starting from
+	// height 0 in slow-sync mode, `lastFastSyncHeight` will be -1.
+	// The method should be a no-op if all the blocks up to `height` have been analyzed
+	// in slow-sync mode, assuming no bugs in dead reckoning code.
+	FinalizeFastSync(ctx context.Context, lastFastSyncHeight int64) error
 }
 
 var _ analyzer.Analyzer = (*blockBasedAnalyzer)(nil)
@@ -157,6 +165,72 @@ func (b *blockBasedAnalyzer) fetchBatchForProcessing(ctx context.Context, from u
 	return heights, nil
 }
 
+// Returns info about already-processed blocks in the analyzer's configured range:
+// - Whether the already-processed blocks form a contiguous range starting at "to".
+// - Whether any of the blocks were processed by fast-sync.
+// - The height of the highest already-processed block.
+func (b *blockBasedAnalyzer) processedSubrangeInfo(ctx context.Context) (bool, int64, error) {
+	var isContiguous bool
+	var maxProcessedHeight int64
+	if err := b.target.QueryRow(
+		ctx,
+		queries.ProcessedSubrangeInfo,
+		b.analyzerName,
+		b.blockRange.From,
+		b.blockRange.To,
+	).Scan(&isContiguous, &maxProcessedHeight); err != nil {
+		return false, 0, err
+	}
+	return isContiguous, maxProcessedHeight, nil
+}
+
+// Returns true if the block immediately preceding `height` has been processed in slow-sync mode.
+func (b *blockBasedAnalyzer) isBlockProcessedBySlowSync(ctx context.Context, height int64) (bool, error) {
+	var isProcessed bool
+	if err := b.target.QueryRow(
+		ctx,
+		queries.IsBlockProcessedBySlowSync,
+		b.analyzerName,
+		height,
+	).Scan(&isProcessed); err != nil {
+		return false, err
+	}
+	return isProcessed, nil
+}
+
+// Validates assumptions/prerequisites for starting a slow sync analyzer:
+//   - No blocks in the configured [from, to] range have been processed, except possibly a contiguous
+//     subrange [from, X] for some X.
+//   - If the most recently processed block was not processed by slow-sync (i.e. by fast sync, or not
+//     at all), triggers a finalization of the fast-sync process.
+func (b *blockBasedAnalyzer) ensureSlowSyncPrerequisites(ctx context.Context) (ok bool) {
+	isContiguous, maxProcessedHeight, err := b.processedSubrangeInfo(ctx)
+	if err != nil {
+		b.logger.Error("Failed to obtain info about already-processed blocks", "err", err)
+		return false
+	}
+	if !isContiguous {
+		b.logger.Error(fmt.Sprintf("cannot run in slow-sync mode because a non-contiguous subset of blocks in range [%d, %d] has already been processed. Use fast-sync to process to at least height %d.", b.blockRange.From, b.blockRange.To, maxProcessedHeight))
+		return false
+	}
+
+	// If the block before the one we'll attempt has been processed by fast-sync or not at all,
+	// we first refetch the full current state (i.e. genesis or similar).
+	precededBySlowSync, err2 := b.isBlockProcessedBySlowSync(ctx, maxProcessedHeight)
+	if err2 != nil {
+		b.logger.Error("Failed to obtain info about the last processed block", "err", err2, "last_processed_block", maxProcessedHeight)
+		return false
+	}
+	if !precededBySlowSync {
+		if err := b.processor.FinalizeFastSync(ctx, maxProcessedHeight); err != nil {
+			b.logger.Error("failed to finalize the fast-sync phase (i.e. download genesis or similar)", "err", err)
+			return false
+		}
+	}
+
+	return true
+}
+
 // Start starts the block analyzer.
 func (b *blockBasedAnalyzer) Start(ctx context.Context) {
 	// Run prework.
@@ -172,6 +246,11 @@ func (b *blockBasedAnalyzer) Start(ctx context.Context) {
 	// Clamp the latest block height to the configured range.
 	if b.blockRange.To != 0 {
 		to = b.blockRange.To
+	}
+
+	if b.slowSync && !b.ensureSlowSyncPrerequisites(ctx) {
+		// We cannot continue or recover automatically. Logging happens inside the validate function.
+		return
 	}
 
 	// Start processing blocks.

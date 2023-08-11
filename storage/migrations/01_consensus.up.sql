@@ -299,12 +299,6 @@ CREATE TABLE chain.processed_blocks  -- Moved to analysis.processed_blocks in 06
 CREATE INDEX ix_processed_blocks_analyzer_height_locked_unprocessed ON chain.processed_blocks (analyzer, height, locked_time) WHERE processed_time IS NULL; -- Index for efficient query of unprocessed blocks.
 CREATE INDEX ix_processed_blocks_analyzer_height_locked_processed ON chain.processed_blocks (analyzer, height, locked_time, processed_time) WHERE processed_time IS NOT NULL; -- Index for efficient query of processed blocks.
 
--- Keeps track of chains for which we've already processed the genesis data.
-CREATE TABLE chain.processed_geneses (
-    chain_context TEXT NOT NULL PRIMARY KEY,  -- identifies the genesis data; derived from its hash
-    processed_time TIMESTAMP WITH TIME ZONE NOT NULL
-);
-
 -- Grant others read-only use. This does NOT apply to future tables in the schema.
 GRANT SELECT ON ALL TABLES IN SCHEMA chain TO PUBLIC;
 GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA chain TO PUBLIC;

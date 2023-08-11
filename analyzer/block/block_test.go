@@ -53,6 +53,11 @@ func (*mockProcessor) PreWork(ctx context.Context) error {
 	return nil
 }
 
+// PreWork implements block.BlockProcessor.
+func (*mockProcessor) FinalizeFastSync(ctx context.Context, lastFastSyncHeight int64) error {
+	return nil
+}
+
 // ProcessBlock implements block.BlockProcessor.
 func (m *mockProcessor) ProcessBlock(ctx context.Context, height uint64) error {
 	if m.fail != nil {
