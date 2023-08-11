@@ -174,7 +174,12 @@ func (c *DamaskConsensusApiLite) GetCommittees(ctx context.Context, height int64
 	}
 	committees := make([]nodeapi.Committee, len(rsp))
 	for i, c := range rsp {
-		committees[i] = nodeapi.Committee(*c)
+		committees[i] = nodeapi.Committee{
+			Kind:      nodeapi.CommitteeKind(c.Kind), // The enum is compatible between Cobalt and Damask.
+			Members:   c.Members,
+			RuntimeID: c.RuntimeID,
+			ValidFor:  c.ValidFor,
+		}
 	}
 	return committees, nil
 }

@@ -394,7 +394,7 @@ func convertCommittee(c schedulerCobalt.Committee) nodeapi.Committee {
 		}
 	}
 	return nodeapi.Committee{
-		Kind:      scheduler.CommitteeKind(c.Kind), // We assume the enum is backwards-compatible.
+		Kind:      nodeapi.CommitteeKind(c.Kind), // The enum is compatible between Cobalt and Damask.
 		Members:   members,
 		RuntimeID: c.RuntimeID,
 		ValidFor:  c.ValidFor,

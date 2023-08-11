@@ -190,7 +190,12 @@ type (
 
 type (
 	Validator scheduler.Validator
-	Committee scheduler.Committee
+	Committee struct {
+		Kind      CommitteeKind
+		Members   []*scheduler.CommitteeNode
+		RuntimeID coreCommon.Namespace
+		ValidFor  beacon.EpochTime
+	}
 )
 
 // .................... Governance ....................
