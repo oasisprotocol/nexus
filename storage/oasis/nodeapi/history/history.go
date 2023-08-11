@@ -51,10 +51,10 @@ var APIConstructors = map[string]APIConstructor{
 }
 
 type HistoryConsensusApiLite struct {
-	History *config.History
-	// APIs. Keys are "archive names," which are named after mainnet releases,
+	history *config.History
+	// apis. Keys are "archive names," which are named after mainnet releases,
 	// in lowercase e.g. "cobalt" and "damask."
-	APIs map[string]nodeapi.ConsensusApiLite
+	apis map[string]nodeapi.ConsensusApiLite
 }
 
 func NewHistoryConsensusApiLite(ctx context.Context, history *config.History, nodes map[string]*config.ArchiveConfig, fastStartup bool) (*HistoryConsensusApiLite, error) {
@@ -73,14 +73,14 @@ func NewHistoryConsensusApiLite(ctx context.Context, history *config.History, no
 		}
 	}
 	return &HistoryConsensusApiLite{
-		History: history,
-		APIs:    apis,
+		history: history,
+		apis:    apis,
 	}, nil
 }
 
 func (c *HistoryConsensusApiLite) Close() error {
 	var firstErr error
-	for _, api := range c.APIs {
+	for _, api := range c.apis {
 		if err := api.Close(); err != nil && firstErr == nil {
 			firstErr = err
 			// Do not return yet; keep closing others.
@@ -93,11 +93,11 @@ func (c *HistoryConsensusApiLite) Close() error {
 }
 
 func (c *HistoryConsensusApiLite) APIForHeight(height int64) (nodeapi.ConsensusApiLite, error) {
-	record, err := c.History.RecordForHeight(height)
+	record, err := c.history.RecordForHeight(height)
 	if err != nil {
 		return nil, fmt.Errorf("dertermining archive: %w", err)
 	}
-	api, ok := c.APIs[record.ArchiveName]
+	api, ok := c.apis[record.ArchiveName]
 	if !ok {
 		return nil, fmt.Errorf("archive %s has no node configured", record.ArchiveName)
 	}
@@ -105,11 +105,11 @@ func (c *HistoryConsensusApiLite) APIForHeight(height int64) (nodeapi.ConsensusA
 }
 
 func (c *HistoryConsensusApiLite) APIForChainContext(chainContext string) (nodeapi.ConsensusApiLite, error) {
-	record, err := c.History.RecordForChainContext(chainContext)
+	record, err := c.history.RecordForChainContext(chainContext)
 	if err != nil {
 		return nil, fmt.Errorf("determining archive: %w", err)
 	}
-	api, ok := c.APIs[record.ArchiveName]
+	api, ok := c.apis[record.ArchiveName]
 	if !ok {
 		return nil, fmt.Errorf("archive %s has no node configured", record.ArchiveName)
 	}
