@@ -246,12 +246,11 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) { //nolint:gocyclo
 		if fastRange := cfg.Analyzers.Consensus.FastSyncRange(); fastRange != nil {
 			for i := 0; i < cfg.Analyzers.Consensus.FastSync.Parallelism; i++ {
 				fastSyncAnalyzers, err = addAnalyzer(fastSyncAnalyzers, err, func() (A, error) {
-					chainContext := cfg.Source.History().CurrentRecord().ChainContext
 					sourceClient, err1 := sources.Consensus(ctx)
 					if err1 != nil {
 						return nil, err1
 					}
-					return consensus.NewAnalyzer(*fastRange, cfg.Analyzers.Consensus.BatchSize, analyzer.FastSyncMode, chainContext, sourceClient, dbClient, logger)
+					return consensus.NewAnalyzer(*fastRange, cfg.Analyzers.Consensus.BatchSize, analyzer.FastSyncMode, *cfg.Source.History(), sourceClient, dbClient, logger)
 				})
 			}
 		}
@@ -303,17 +302,11 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) { //nolint:gocyclo
 	analyzers := []A{}
 	if cfg.Analyzers.Consensus != nil {
 		analyzers, err = addAnalyzer(analyzers, err, func() (A, error) {
-			startHeight := int64(cfg.Analyzers.Consensus.From)
-			startRecord, err1 := cfg.Source.History().RecordForHeight(startHeight)
-			if err1 != nil {
-				return nil, fmt.Errorf("getting history record for consensus starting block %d: %w", startHeight, err1)
-			}
-			genesisChainContext := startRecord.ChainContext
 			sourceClient, err1 := sources.Consensus(ctx)
 			if err1 != nil {
 				return nil, err1
 			}
-			return consensus.NewAnalyzer(cfg.Analyzers.Consensus.SlowSyncRange(), cfg.Analyzers.Consensus.BatchSize, analyzer.SlowSyncMode, genesisChainContext, sourceClient, dbClient, logger)
+			return consensus.NewAnalyzer(cfg.Analyzers.Consensus.SlowSyncRange(), cfg.Analyzers.Consensus.BatchSize, analyzer.SlowSyncMode, *cfg.Source.History(), sourceClient, dbClient, logger)
 		})
 	}
 	if cfg.Analyzers.Emerald != nil {

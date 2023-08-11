@@ -56,25 +56,25 @@ func OpenSignedTxNoVerify(signedTx *transaction.SignedTransaction) (*transaction
 
 // processor is the block processor for the consensus layer.
 type processor struct {
-	mode                analyzer.BlockAnalysisMode
-	genesisChainContext string
-	source              storage.ConsensusSourceStorage
-	target              storage.TargetStorage
-	logger              *log.Logger
-	metrics             metrics.DatabaseMetrics
+	mode    analyzer.BlockAnalysisMode
+	history config.History
+	source  storage.ConsensusSourceStorage
+	target  storage.TargetStorage
+	logger  *log.Logger
+	metrics metrics.DatabaseMetrics
 }
 
 var _ block.BlockProcessor = (*processor)(nil)
 
 // NewAnalyzer returns a new analyzer for the consensus layer.
-func NewAnalyzer(blockRange config.BlockRange, batchSize uint64, mode analyzer.BlockAnalysisMode, genesisChainContext string, sourceClient *source.ConsensusClient, target storage.TargetStorage, logger *log.Logger) (analyzer.Analyzer, error) {
+func NewAnalyzer(blockRange config.BlockRange, batchSize uint64, mode analyzer.BlockAnalysisMode, history config.History, sourceClient *source.ConsensusClient, target storage.TargetStorage, logger *log.Logger) (analyzer.Analyzer, error) {
 	processor := &processor{
-		mode:                mode,
-		genesisChainContext: genesisChainContext,
-		source:              sourceClient,
-		target:              target,
-		logger:              logger.With("analyzer", consensusAnalyzerName),
-		metrics:             metrics.NewDefaultDatabaseMetrics(consensusAnalyzerName),
+		mode:    mode,
+		history: history,
+		source:  sourceClient,
+		target:  target,
+		logger:  logger.With("analyzer", consensusAnalyzerName),
+		metrics: metrics.NewDefaultDatabaseMetrics(consensusAnalyzerName),
 	}
 
 	return block.NewAnalyzer(blockRange, batchSize, mode, consensusAnalyzerName, processor, target, logger)
@@ -83,7 +83,7 @@ func NewAnalyzer(blockRange config.BlockRange, batchSize uint64, mode analyzer.B
 // Implements BlockProcessor interface.
 func (m *processor) PreWork(ctx context.Context) error {
 	// Process genesis if not yet processed.
-	isGenesisProcessed, err := m.isGenesisProcessed(ctx, m.genesisChainContext)
+	isGenesisProcessed, err := m.isGenesisProcessed(ctx, m.history.CurrentRecord().ChainContext) // FIXME this is not the right chain context
 	if err != nil {
 		m.logger.Error("failed to check if genesis is processed",
 			"err", err,
@@ -93,7 +93,7 @@ func (m *processor) PreWork(ctx context.Context) error {
 	if isGenesisProcessed {
 		return nil
 	}
-	if err = m.processGenesis(ctx, m.genesisChainContext); err != nil {
+	if err = m.processGenesis(ctx, m.history.CurrentRecord().ChainContext); err != nil { // FIXME this is not the right chain context
 		m.logger.Error("failed to process genesis",
 			"err", err,
 		)
