@@ -1422,6 +1422,7 @@ func (c *StorageClient) RuntimeAccount(ctx context.Context, address staking.Addr
 		&evmContract.EthCreationTx,
 		&evmContract.CreationBytecode,
 		&evmContract.RuntimeBytecode,
+		&evmContract.GasUsed,
 		&evmContract.Verification.CompilationMetadata,
 		&evmContract.Verification.SourceFiles,
 	)

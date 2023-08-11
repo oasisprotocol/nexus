@@ -255,6 +255,16 @@ func (m *processor) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 				transactionData.EVMContract.Address,
 				transactionData.EVMContract.CreationTx,
 				transactionData.EVMContract.CreationBytecode,
+				transactionData.GasUsed,
+			)
+		}
+
+		if transactionData.Method == "evm.Call" {
+			// Dead-reckon gas used by contracts
+			batch.Queue(queries.RuntimeEVMContractGasUsedUpdate,
+				m.runtime,
+				transactionData.To,
+				transactionData.GasUsed,
 			)
 		}
 	}

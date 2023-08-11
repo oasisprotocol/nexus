@@ -444,6 +444,7 @@ const (
 			) AS eth_creation_tx,
 			creation_bytecode,
 			runtime_bytecode,
+			gas_used,
 			compilation_metadata,
 			source_files
 		FROM chain.evm_contracts
@@ -463,7 +464,7 @@ const (
 				(SELECT sum(amount) from chain.runtime_transfers where runtime = $1 AND receiver = $2::text)
 				, 0) AS total_received,
 			COALESCE (
-				(SELECT count(*) from chain.runtime_related_transactions where runtime= $1 AND account_address = $2::text)
+				(SELECT count(*) from chain.runtime_related_transactions where runtime = $1 AND account_address = $2::text)
 				, 0) AS num_txns`
 
 	//nolint:gosec // Linter suspects a hardcoded access token.

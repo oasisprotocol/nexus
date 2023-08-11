@@ -2178,6 +2178,7 @@ components:
 
     RuntimeEvmContract:
       type: object
+      required: [gas_used]
       properties:
         creation_tx:
           type: string
@@ -2207,6 +2208,11 @@ components:
             describes a smart contract. Every contract has this info, but Nexus fetches
             it separately, so the field may be missing for very fresh contracts (or if the fetching
             process is stalled).
+        gas_used:
+          description: The total amount of gas used to create or call this contract.
+          type: integer
+          format: uint64
+          example: 153852
         verification:
           $ref: '#/components/schemas/RuntimeEvmContractVerification'
           description: |
@@ -2560,7 +2566,7 @@ components:
           type: integer
           format: uint64
           example: 4184
-
+        
     TxVolumeList:
       type: object
       required: [window_size_seconds, windows]
