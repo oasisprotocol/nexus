@@ -1,6 +1,7 @@
 package pubclient
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"net/http"
@@ -76,4 +77,16 @@ var Client = &http.Client{
 		TLSHandshakeTimeout:   10 * time.Second,
 		ExpectContinueTimeout: 1 * time.Second,
 	},
+}
+
+func getWithContextWithClient(ctx context.Context, client *http.Client, url string) (*http.Response, error) {
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+	return client.Do(req)
+}
+
+func GetWithContext(ctx context.Context, url string) (*http.Response, error) {
+	return getWithContextWithClient(ctx, Client, url)
 }
