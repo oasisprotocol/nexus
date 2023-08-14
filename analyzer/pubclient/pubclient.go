@@ -12,6 +12,12 @@ import (
 	coreCommon "github.com/oasisprotocol/oasis-core/go/common"
 )
 
+// Use this package for connecting to untrusted URLs.
+// It only allows you to connect to globally routable addresses, i.e. public
+// IP addresses, not things on your LAN. So it's a client for public
+// resources. Anyway, be aware when making changes here, your code will be up
+// against untrusted URLs.
+
 var permittedNetworks = map[string]bool{
 	"tcp4": true,
 	"tcp6": true,
