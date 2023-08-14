@@ -32,10 +32,10 @@ func (err NotPermittedError) Is(target error) bool {
 	return false
 }
 
-// Client is an *http.Client that permits HTTP(S) connections to hosts that
+// client is an *http.Client that permits HTTP(S) connections to hosts that
 // oasis-core considers "likely to be globally reachable" on the default
 // HTTP(S) ports and unreserved ports.
-var Client = &http.Client{
+var client = &http.Client{
 	Transport: &http.Transport{
 		// Copied from http.DefaultTransport.
 		Proxy: http.ProxyFromEnvironment,
@@ -88,5 +88,5 @@ func getWithContextWithClient(ctx context.Context, client *http.Client, url stri
 }
 
 func GetWithContext(ctx context.Context, url string) (*http.Response, error) {
-	return getWithContextWithClient(ctx, Client, url)
+	return getWithContextWithClient(ctx, client, url)
 }
