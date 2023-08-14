@@ -77,6 +77,7 @@ var client = &http.Client{
 		TLSHandshakeTimeout:   10 * time.Second,
 		ExpectContinueTimeout: 1 * time.Second,
 	},
+	Timeout: 30 * time.Second,
 }
 
 func getWithContextWithClient(ctx context.Context, client *http.Client, url string) (*http.Response, error) {
