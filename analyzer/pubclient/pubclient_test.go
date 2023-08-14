@@ -34,21 +34,35 @@ func requireNoErrorAndWaste(t *testing.T, resp *http.Response, err error) {
 
 func TestMisc(t *testing.T) {
 	var requested bool
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requested = true
+	})
 	testServer := http.Server{
-		Addr: "127.0.0.1:8001",
-		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			requested = true
-		}),
+		Addr:              "127.0.0.1:8001",
+		Handler:           handler,
 		ReadHeaderTimeout: 30 * time.Second,
 	}
 	serverErr := make(chan error)
 	go func() {
 		serverErr <- testServer.ListenAndServe()
 	}()
+	testServer6 := http.Server{
+		Addr:              "[::1]:8001",
+		Handler:           handler,
+		ReadHeaderTimeout: 30 * time.Second,
+	}
+	serverErr6 := make(chan error)
+	go func() {
+		serverErr6 <- testServer6.ListenAndServe()
+	}()
 	ctx := context.Background()
 
 	// Default client should reach local server. This makes sure the test server is working.
 	resp, err := getWithContextWithClient(ctx, http.DefaultClient, "http://localhost:8001/test.json")
+	requireNoErrorAndWaste(t, resp, err)
+	require.True(t, requested)
+	requested = false
+	resp, err = getWithContextWithClient(ctx, http.DefaultClient, "http://[::1]:8001/test.json")
 	requireNoErrorAndWaste(t, resp, err)
 	require.True(t, requested)
 	requested = false
@@ -64,6 +78,10 @@ func TestMisc(t *testing.T) {
 	requireErrorAndWaste(t, resp, err)
 	require.ErrorIs(t, err, NotPermittedError{})
 	require.False(t, requested)
+	resp, err = GetWithContext(ctx, "http://[::1]:8001/test.json")
+	requireErrorAndWaste(t, resp, err)
+	require.ErrorIs(t, err, NotPermittedError{})
+	require.False(t, requested)
 
 	// Server that redirects to test server
 	// Warning: external network dependency
@@ -71,10 +89,18 @@ func TestMisc(t *testing.T) {
 	requireErrorAndWaste(t, resp, err)
 	require.ErrorIs(t, err, NotPermittedError{})
 	require.False(t, requested)
+	resp, err = GetWithContext(ctx, "https://httpbin.org/redirect-to?url=http%3A%2F%2F%5B%3A%3A1%5D%3A8001%2Ftest.json")
+	requireErrorAndWaste(t, resp, err)
+	require.ErrorIs(t, err, NotPermittedError{})
+	require.False(t, requested)
 
 	// Domain that resolves to test server
 	// Warning: external network dependency
 	resp, err = GetWithContext(ctx, "http://127.0.0.1.nip.io:8001/test.json")
+	requireErrorAndWaste(t, resp, err)
+	require.ErrorIs(t, err, NotPermittedError{})
+	require.False(t, requested)
+	resp, err = GetWithContext(ctx, "http://0--1.sslip.io:8001/test.json")
 	requireErrorAndWaste(t, resp, err)
 	require.ErrorIs(t, err, NotPermittedError{})
 	require.False(t, requested)
@@ -92,4 +118,7 @@ func TestMisc(t *testing.T) {
 	err = testServer.Shutdown(ctx)
 	require.NoError(t, err)
 	require.ErrorIs(t, <-serverErr, http.ErrServerClosed)
+	err = testServer6.Shutdown(ctx)
+	require.NoError(t, err)
+	require.ErrorIs(t, <-serverErr6, http.ErrServerClosed)
 }
