@@ -255,48 +255,28 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) { //nolint:gocyclo
 			}
 		}
 	}
-	if cfg.Analyzers.Emerald != nil {
-		if fastRange := cfg.Analyzers.Emerald.FastSyncRange(); fastRange != nil {
-			for i := 0; i < cfg.Analyzers.Emerald.FastSync.Parallelism; i++ {
-				fastSyncAnalyzers, err = addAnalyzer(fastSyncAnalyzers, err, func() (A, error) {
-					sdkPT := cfg.Source.SDKParaTime(common.RuntimeEmerald)
-					sourceClient, err1 := sources.Runtime(ctx, common.RuntimeEmerald)
-					if err1 != nil {
-						return nil, err1
-					}
-					return runtime.NewRuntimeAnalyzer(common.RuntimeEmerald, sdkPT, *fastRange, cfg.Analyzers.Emerald.BatchSize, analyzer.FastSyncMode, sourceClient, dbClient, logger)
-				})
+	// Helper func that adds N fast-sync analyzers for a given runtime to, with N (and other properties) pulled from the config.
+	// NOTE: The helper extensively reads AND WRITES variables in the parent scope.
+	//       The side-effects (=writes) happen in `fastSyncAnalyzers` and `err`.
+	addFastSyncRuntimeAnalyzers := func(runtimeName common.Runtime, config *config.BlockBasedAnalyzerConfig) {
+		if config != nil {
+			if fastRange := config.FastSyncRange(); fastRange != nil {
+				for i := 0; i < config.FastSync.Parallelism; i++ {
+					fastSyncAnalyzers, err = addAnalyzer(fastSyncAnalyzers, err, func() (A, error) {
+						sdkPT := cfg.Source.SDKParaTime(runtimeName)
+						sourceClient, err1 := sources.Runtime(ctx, runtimeName)
+						if err1 != nil {
+							return nil, err1
+						}
+						return runtime.NewRuntimeAnalyzer(runtimeName, sdkPT, *fastRange, config.BatchSize, analyzer.FastSyncMode, sourceClient, dbClient, logger)
+					})
+				}
 			}
 		}
 	}
-	if cfg.Analyzers.Sapphire != nil {
-		if fastRange := cfg.Analyzers.Sapphire.FastSyncRange(); fastRange != nil {
-			for i := 0; i < cfg.Analyzers.Sapphire.FastSync.Parallelism; i++ {
-				fastSyncAnalyzers, err = addAnalyzer(fastSyncAnalyzers, err, func() (A, error) {
-					sdkPT := cfg.Source.SDKParaTime(common.RuntimeSapphire)
-					sourceClient, err1 := sources.Runtime(ctx, common.RuntimeSapphire)
-					if err1 != nil {
-						return nil, err1
-					}
-					return runtime.NewRuntimeAnalyzer(common.RuntimeSapphire, sdkPT, *fastRange, cfg.Analyzers.Sapphire.BatchSize, analyzer.FastSyncMode, sourceClient, dbClient, logger)
-				})
-			}
-		}
-	}
-	if cfg.Analyzers.Cipher != nil {
-		if fastRange := cfg.Analyzers.Cipher.FastSyncRange(); fastRange != nil {
-			for i := 0; i < cfg.Analyzers.Cipher.FastSync.Parallelism; i++ {
-				fastSyncAnalyzers, err = addAnalyzer(fastSyncAnalyzers, err, func() (A, error) {
-					sdkPT := cfg.Source.SDKParaTime(common.RuntimeCipher)
-					sourceClient, err1 := sources.Runtime(ctx, common.RuntimeCipher)
-					if err1 != nil {
-						return nil, err1
-					}
-					return runtime.NewRuntimeAnalyzer(common.RuntimeCipher, sdkPT, *fastRange, cfg.Analyzers.Cipher.BatchSize, analyzer.FastSyncMode, sourceClient, dbClient, logger)
-				})
-			}
-		}
-	}
+	addFastSyncRuntimeAnalyzers(common.RuntimeEmerald, cfg.Analyzers.Emerald)
+	addFastSyncRuntimeAnalyzers(common.RuntimeSapphire, cfg.Analyzers.Sapphire)
+	addFastSyncRuntimeAnalyzers(common.RuntimeCipher, cfg.Analyzers.Cipher)
 
 	// Initialize slow-sync analyzers.
 	analyzers := []A{}
