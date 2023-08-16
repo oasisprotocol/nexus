@@ -41,7 +41,7 @@ type BlockProcessor interface {
 	//
 	// The implementation must commit processed blocks (update the analysis.processed_blocks record with processed_time timestamp).
 	ProcessBlock(ctx context.Context, height uint64) error
-	// FinalizeFastSync update any data that was neglected during the indexing of blocks
+	// FinalizeFastSync updates any data that was neglected during the indexing of blocks
 	// up to and including `lastFastSyncHeight`, e.g. dead-reckoned balances.
 	// It is intended to be used when an analyzer wishes to transition from fast-sync mode
 	// into slow-sync mode. If the analyzer never used fast-sync and is starting from
@@ -167,7 +167,6 @@ func (b *blockBasedAnalyzer) fetchBatchForProcessing(ctx context.Context, from u
 
 // Returns info about already-processed blocks in the analyzer's configured range:
 // - Whether the already-processed blocks form a contiguous range starting at "to".
-// - Whether any of the blocks were processed by fast-sync.
 // - The height of the highest already-processed block.
 func (b *blockBasedAnalyzer) processedSubrangeInfo(ctx context.Context) (bool, int64, error) {
 	var isContiguous bool
@@ -184,7 +183,7 @@ func (b *blockBasedAnalyzer) processedSubrangeInfo(ctx context.Context) (bool, i
 	return isContiguous, maxProcessedHeight, nil
 }
 
-// Returns true if the block immediately preceding `height` has been processed in slow-sync mode.
+// Returns true if the block at `height` has been processed in slow-sync mode.
 func (b *blockBasedAnalyzer) isBlockProcessedBySlowSync(ctx context.Context, height int64) (bool, error) {
 	var isProcessed bool
 	if err := b.target.QueryRow(
@@ -216,9 +215,9 @@ func (b *blockBasedAnalyzer) ensureSlowSyncPrerequisites(ctx context.Context) (o
 
 	// If the block before the one we'll attempt has been processed by fast-sync or not at all,
 	// we first refetch the full current state (i.e. genesis or similar).
-	precededBySlowSync, err2 := b.isBlockProcessedBySlowSync(ctx, maxProcessedHeight)
-	if err2 != nil {
-		b.logger.Error("Failed to obtain info about the last processed block", "err", err2, "last_processed_block", maxProcessedHeight)
+	precededBySlowSync, err := b.isBlockProcessedBySlowSync(ctx, maxProcessedHeight)
+	if err != nil {
+		b.logger.Error("Failed to obtain info about the last processed block", "err", err, "last_processed_block", maxProcessedHeight)
 		return false
 	}
 	if !precededBySlowSync {

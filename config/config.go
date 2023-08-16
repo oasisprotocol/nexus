@@ -271,8 +271,8 @@ type BlockBasedAnalyzerConfig struct {
 	// - Analyzers do not perform dead reckoning on state (notably, transfers).
 	// After all analyzers finish the fast sync range:
 	// - DB checks and foreign keys are re-enabled.
-	// - State that would normally be dead-reckoned is fetched directly from
-	//	 the node via the StateToGenesis() RPC.
+	// - State that would normally be dead-reckoned is fetched directly from the node
+	//   via the StateToGenesis() RPC, or recalculated from the relevant DB entries.
 	// - A single "slow mode" analyzer (per runtime/consensus) is started, and resumes
 	//   to process blocks sequentially, with dead reckoning enabled.
 	FastSync *FastSyncConfig `koanf:"fast_sync"`
