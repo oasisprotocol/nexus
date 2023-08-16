@@ -70,6 +70,7 @@ type StaleToken struct {
 	Addr                  string
 	LastDownloadRound     *uint64
 	TotalSupply           common.BigInt
+	NumTransfers          uint64
 	Type                  *evm.EVMTokenType
 	AddrContextIdentifier string
 	AddrContextVersion    int
@@ -91,6 +92,7 @@ func (m main) getStaleTokens(ctx context.Context, limit int) ([]*StaleToken, err
 			&staleToken.Addr,
 			&staleToken.LastDownloadRound,
 			&totalSupply,
+			&staleToken.NumTransfers,
 			&staleToken.Type,
 			&staleToken.AddrContextIdentifier,
 			&staleToken.AddrContextVersion,
@@ -147,6 +149,7 @@ func (m main) processStaleToken(ctx context.Context, batch *storage.QueryBatch, 
 			tokenData.Symbol,
 			tokenData.Decimals,
 			totalSupply,
+			staleToken.NumTransfers,
 		)
 	} else if *staleToken.Type != evm.EVMTokenTypeUnsupported {
 		mutable, err := evm.EVMDownloadMutatedToken(
@@ -161,7 +164,7 @@ func (m main) processStaleToken(ctx context.Context, batch *storage.QueryBatch, 
 			return fmt.Errorf("downloading mutated token %s: %w", staleToken.Addr, err)
 		}
 		if mutable != nil && mutable.TotalSupply != nil {
-			batch.Queue(queries.RuntimeEVMTokenUpdate,
+			batch.Queue(queries.RuntimeEVMTokenTotalSupplyUpdate,
 				m.runtime,
 				staleToken.Addr,
 				mutable.TotalSupply.String(),

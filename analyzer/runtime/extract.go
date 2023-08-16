@@ -655,6 +655,8 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 					if _, ok := blockData.PossibleTokens[eventAddr]; !ok {
 						blockData.PossibleTokens[eventAddr] = &evm.EVMPossibleToken{}
 					}
+					// Mints, burns, and zero-value transfers all count as transfers.
+					blockData.PossibleTokens[eventAddr].NumTransfersChange++
 					// Mark as mutated if transfer is between zero address
 					// and nonzero address (either direction) and nonzero
 					// amount. These will change the total supply as mint/
@@ -753,6 +755,8 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 					if _, ok := blockData.PossibleTokens[eventAddr]; !ok {
 						blockData.PossibleTokens[eventAddr] = &evm.EVMPossibleToken{}
 					}
+					// Mints, burns, and zero-value transfers all count as transfers.
+					blockData.PossibleTokens[eventAddr].NumTransfersChange++
 					// Mark as mutated if transfer is between zero address
 					// and nonzero address (either direction) and nonzero
 					// amount. These will change the total supply as mint/

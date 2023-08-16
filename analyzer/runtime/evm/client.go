@@ -36,8 +36,9 @@ const (
 const NativeRuntimeTokenAddress = "oasis1runt1menat1vet0ken0000000000000000000000"
 
 type EVMPossibleToken struct {
-	Mutated           bool
-	TotalSupplyChange big.Int
+	Mutated            bool
+	TotalSupplyChange  big.Int
+	NumTransfersChange uint64
 }
 
 type EVMTokenData struct {

@@ -2537,6 +2537,11 @@ components:
         total_supply:
           <<: *BigIntType
           description: The total number of base units available.
+        num_transfers:
+          type: integer
+          format: int64
+          description: |
+            The total number of transfers of this token.
         num_holders:
           type: integer
           format: int64
