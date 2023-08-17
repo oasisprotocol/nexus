@@ -97,7 +97,7 @@ CREATE TABLE chain.runtime_related_transactions
   tx_index        UINT31 NOT NULL,
   FOREIGN KEY (runtime, tx_round, tx_index) REFERENCES chain.runtime_transactions(runtime, round, tx_index) DEFERRABLE INITIALLY DEFERRED
 );
-CREATE INDEX ix_runtime_related_transactions_address ON chain.runtime_related_transactions (runtime, account_address);
+CREATE INDEX ix_runtime_related_transactions_address ON chain.runtime_related_transactions (runtime, account_address); -- Removed in 13_runtime_indexes.up.sql
 CREATE INDEX ix_runtime_related_transactions_round_index ON chain.runtime_related_transactions (runtime, tx_round, tx_index);
 CREATE INDEX ix_runtime_related_transactions_address_round_index ON chain.runtime_related_transactions (runtime, account_address, tx_round, tx_index);
 
@@ -129,10 +129,10 @@ CREATE TABLE chain.runtime_events
   evm_log_signature BYTEA CHECK (octet_length(evm_log_signature) = 32)
 );
 CREATE INDEX ix_runtime_events_round ON chain.runtime_events(runtime, round);  -- for sorting by round, when there are no filters applied
-CREATE INDEX ix_runtime_events_tx_hash ON chain.runtime_events(tx_hash);
-CREATE INDEX ix_runtime_events_tx_eth_hash ON chain.runtime_events(tx_eth_hash);
-CREATE INDEX ix_runtime_events_related_accounts ON chain.runtime_events USING gin(related_accounts);
-CREATE INDEX ix_runtime_events_evm_log_signature ON chain.runtime_events(evm_log_signature);
+CREATE INDEX ix_runtime_events_tx_hash ON chain.runtime_events/*USING hash */(tx_hash); -- updated in 13_runtime_indexes.up.sql
+CREATE INDEX ix_runtime_events_tx_eth_hash ON chain.runtime_events/*USING hash */(tx_eth_hash); -- updated in 13_runtime_indexes.up.sql
+CREATE INDEX ix_runtime_events_related_accounts ON chain.runtime_events USING gin(related_accounts); -- for fetching account activity for a given account
+CREATE INDEX ix_runtime_events_evm_log_signature ON chain.runtime_events(/* runtime, */evm_log_signature/*, round*/); -- for fetching a certain event type, eg Transfers; updated in 13_runtime_indexes.up.sql
 CREATE INDEX ix_runtime_events_evm_log_params ON chain.runtime_events USING gin(evm_log_params);
 
 -- Oasis addresses are derived from a derivation "context" and a piece of
