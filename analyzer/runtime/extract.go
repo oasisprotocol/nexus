@@ -942,12 +942,12 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 					// and nonzero address (either direction) and nonzero
 					// amount. These will change the total supply as mint/
 					// burn.
-					if fromZero && !toZero && tokenID.Cmp(&big.Int{}) != 0 {
+					if fromZero && !toZero {
 						pt := blockData.PossibleTokens[eventAddr]
 						pt.TotalSupplyChange.Add(&pt.TotalSupplyChange, big.NewInt(1))
 						pt.Mutated = true
 					}
-					if !fromZero && toZero && tokenID.Cmp(&big.Int{}) != 0 {
+					if !fromZero && toZero {
 						pt := blockData.PossibleTokens[eventAddr]
 						pt.TotalSupplyChange.Sub(&pt.TotalSupplyChange, big.NewInt(1))
 						pt.Mutated = true
