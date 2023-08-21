@@ -71,6 +71,7 @@ CREATE TABLE chain.runtime_transactions
 CREATE INDEX ix_runtime_transactions_tx_hash ON chain.runtime_transactions USING hash (tx_hash);
 CREATE INDEX ix_runtime_transactions_tx_eth_hash ON chain.runtime_transactions USING hash (tx_eth_hash);
 CREATE INDEX ix_runtime_transactions_timestamp ON chain.runtime_transactions (runtime, timestamp);
+-- CREATE INDEX ix_runtime_transactions_to ON chain.runtime_transactions(runtime, "to"); -- Added in 12_evm_contract_gas.up.sql
 
 CREATE TABLE chain.runtime_transaction_signers
 (
@@ -197,17 +198,22 @@ CREATE TABLE chain.evm_tokens
   -- NOT an uint because a non-conforming token contract could issue a fake burn event,
   -- causing a negative dead-reckoned total_supply.
   total_supply uint_numeric -- changed to NUMERIC(1000,0) in 09_evm_token_total_supply.up.sql
+  -- Added in 14_evm_token_transfers.up.sql
+  -- num_transfers UINT63 NOT NULL DEFAULT 0,
 );
 
 CREATE TABLE chain.evm_token_analysis  -- Moved to analysis.evm_tokens in 06_analysis_schema.up.sql
 (
   runtime runtime NOT NULL,
   token_address oasis_addr NOT NULL,
+  PRIMARY KEY (runtime, token_address),
   -- Dead-reckoned total_supply before token metadata is downloaded. 
   -- NOT an uint because a non-conforming token contract could issue a fake burn event,
   -- causing a negative dead-reckoned total_supply.
   total_supply uint_numeric, -- changed to NUMERIC(1000,0) in 09_evm_token_total_supply.up.sql
-  PRIMARY KEY (runtime, token_address),
+  -- Added in 14_evm_token_transfers.up.sql
+  -- num_transfers UINT63 NOT NULL DEFAULT 0,
+
   -- Block analyzer bumps this when it sees the mutable fields of the token
   -- change (e.g. total supply) based on dead reckoning.
   last_mutate_round UINT63 NOT NULL,
@@ -239,7 +245,7 @@ CREATE TABLE chain.evm_contracts
   creation_tx HEX64,
   creation_bytecode BYTEA
   -- runtime_bytecode BYTEA  -- Added in 05_evm_runtime_bytecode.up.sql
-  -- gas_used UINT63 -- Added in 11_evm_contract_gas.up.sql
+  -- gas_used UINT63 -- Added in 12_evm_contract_gas.up.sql
 
   -- Added in 07_evm_contract_verification.up.sql
   -- -- Following fields are only filled out for contracts that have been verified.
