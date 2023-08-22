@@ -482,6 +482,7 @@ const (
 			tokens.symbol,
 			tokens.decimals,
 			tokens.total_supply,
+			tokens.num_transfers,
 			CASE -- NOTE: There are three queries that use this CASE via copy-paste; edit both if changing.
 				WHEN tokens.token_type = 20 THEN 'ERC20'
 				WHEN tokens.token_type = 721 THEN 'ERC721'

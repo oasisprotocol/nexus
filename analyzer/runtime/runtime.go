@@ -297,20 +297,24 @@ func (m *processor) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 	// Insert EVM token addresses.
 	for addr, possibleToken := range data.PossibleTokens {
 		totalSupplyChange := possibleToken.TotalSupplyChange.String()
+		numTransfersChange := possibleToken.NumTransfersChange
 		if possibleToken.Mutated {
-			batch.Queue(queries.RuntimeEVMTokenAnalysisMutateUpsert, m.runtime, addr, totalSupplyChange, data.Header.Round)
+			batch.Queue(queries.RuntimeEVMTokenAnalysisMutateUpsert, m.runtime, addr, totalSupplyChange, numTransfersChange, data.Header.Round)
 		} else {
-			batch.Queue(queries.RuntimeEVMTokenAnalysisInsert, m.runtime, addr, totalSupplyChange, data.Header.Round)
+			batch.Queue(queries.RuntimeEVMTokenAnalysisInsert, m.runtime, addr, totalSupplyChange, numTransfersChange, data.Header.Round)
 		}
-		// Dead reckon total_supply because it's optional for ERC721 contracts.
+		// Dead reckon total_supply and num_transfers.
+		// Note that total_supply is optional for ERC721 contracts.
 		// If the evm_tokens analyzer is able to fetch the total supply from the node,
-		// it will supersede this.
-		if possibleToken.TotalSupplyChange.Cmp(&big.Int{}) != 0 {
+		// it will supersede this, but implementing totalSupply() is optional for ERC721 contracts,
+		// so we have to maintain this dead-reckoned fallback.
+		if numTransfersChange != 0 || possibleToken.TotalSupplyChange.Cmp(&big.Int{}) != 0 {
 			batch.Queue(
-				queries.RuntimeEVMTokenTotalSupplyChangeUpdate,
+				queries.RuntimeEVMTokenDeltaUpdate,
 				m.runtime,
 				addr,
 				totalSupplyChange,
+				numTransfersChange,
 			)
 		}
 	}

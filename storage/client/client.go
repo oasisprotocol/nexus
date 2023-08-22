@@ -1498,6 +1498,7 @@ func (c *StorageClient) RuntimeTokens(ctx context.Context, p apiTypes.GetRuntime
 			&t.Symbol,
 			&t.Decimals,
 			&t.TotalSupply,
+			&t.NumTransfers,
 			&t.Type,
 			&t.NumHolders,
 			&t.IsVerified,

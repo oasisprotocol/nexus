@@ -451,6 +451,7 @@ var (
       token_analysis.token_address,
       token_analysis.last_download_round,
       token_analysis.total_supply,
+      token_analysis.num_transfers,
       evm_tokens.token_type,
       address_preimages.context_identifier,
       address_preimages.context_version,
@@ -479,16 +480,19 @@ var (
       )`
 
 	RuntimeEVMTokenAnalysisInsert = `
-    INSERT INTO analysis.evm_tokens (runtime, token_address, total_supply, last_mutate_round)
-      VALUES ($1, $2, $3, $4)
-    ON CONFLICT (runtime, token_address) DO NOTHING`
+    INSERT INTO analysis.evm_tokens (runtime, token_address, total_supply, num_transfers, last_mutate_round)
+      VALUES ($1, $2, $3, $4, $5)
+    ON CONFLICT (runtime, token_address) DO
+      UPDATE SET
+        num_transfers = analysis.evm_tokens.num_transfers + $4`
 
 	RuntimeEVMTokenAnalysisMutateUpsert = `
-    INSERT INTO analysis.evm_tokens (runtime, token_address, total_supply, last_mutate_round)
-      VALUES ($1, $2, $3, $4)
+    INSERT INTO analysis.evm_tokens (runtime, token_address, total_supply, num_transfers, last_mutate_round)
+      VALUES ($1, $2, $3, $4, $5)
     ON CONFLICT (runtime, token_address) DO
       UPDATE SET
         total_supply = analysis.evm_tokens.total_supply + $3,
+        num_transfers = analysis.evm_tokens.num_transfers + $4,
         last_mutate_round = excluded.last_mutate_round`
 
 	RuntimeEVMTokenAnalysisUpdate = `
@@ -500,10 +504,10 @@ var (
       token_address = $2`
 
 	RuntimeEVMTokenInsert = `
-    INSERT INTO chain.evm_tokens (runtime, token_address, token_type, token_name, symbol, decimals, total_supply)
-      VALUES ($1, $2, $3, $4, $5, $6, $7)`
+    INSERT INTO chain.evm_tokens (runtime, token_address, token_type, token_name, symbol, decimals, total_supply, num_transfers)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
 
-	RuntimeEVMTokenUpdate = `
+	RuntimeEVMTokenTotalSupplyUpdate = `
     UPDATE chain.evm_tokens
     SET
       total_supply = $3
@@ -511,10 +515,11 @@ var (
       runtime = $1 AND
       token_address = $2`
 
-	RuntimeEVMTokenTotalSupplyChangeUpdate = `
+	RuntimeEVMTokenDeltaUpdate = `
     UPDATE chain.evm_tokens
     SET
-      total_supply = total_supply + $3
+      total_supply = total_supply + $3,
+      num_transfers = num_transfers + $4
     WHERE
       runtime = $1 AND
       token_address = $2`
