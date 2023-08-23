@@ -178,6 +178,7 @@ func (m *processor) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 		}
 		for addr := range transactionData.RelatedAccountAddresses {
 			batch.Queue(queries.RuntimeRelatedTransactionInsert, m.runtime, addr, data.Header.Round, transactionData.Index)
+			batch.Queue(queries.RuntimeAccountNumTxsUpsert, m.runtime, addr, 1)
 		}
 		var (
 			evmEncryptedFormat      *common.CallFormat
