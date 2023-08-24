@@ -12,6 +12,7 @@ import (
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
 	"github.com/oasisprotocol/oasis-core/go/consensus/api/transaction"
+	genesis "github.com/oasisprotocol/oasis-core/go/genesis/api"
 	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
 
 	"github.com/oasisprotocol/nexus/analyzer"
@@ -56,48 +57,32 @@ func OpenSignedTxNoVerify(signedTx *transaction.SignedTransaction) (*transaction
 
 // processor is the block processor for the consensus layer.
 type processor struct {
-	genesisChainContext string
-	source              storage.ConsensusSourceStorage
-	target              storage.TargetStorage
-	logger              *log.Logger
-	metrics             metrics.DatabaseMetrics
+	mode    analyzer.BlockAnalysisMode
+	history config.History
+	source  storage.ConsensusSourceStorage
+	target  storage.TargetStorage
+	logger  *log.Logger
+	metrics metrics.DatabaseMetrics
 }
 
 var _ block.BlockProcessor = (*processor)(nil)
 
 // NewAnalyzer returns a new analyzer for the consensus layer.
-func NewAnalyzer(cfg *config.BlockBasedAnalyzerConfig, genesisChainContext string, sourceClient *source.ConsensusClient, target storage.TargetStorage, logger *log.Logger) (analyzer.Analyzer, error) {
+func NewAnalyzer(blockRange config.BlockRange, batchSize uint64, mode analyzer.BlockAnalysisMode, history config.History, sourceClient *source.ConsensusClient, target storage.TargetStorage, logger *log.Logger) (analyzer.Analyzer, error) {
 	processor := &processor{
-		genesisChainContext: genesisChainContext,
-		source:              sourceClient,
-		target:              target,
-		logger:              logger.With("analyzer", consensusAnalyzerName),
-		metrics:             metrics.NewDefaultDatabaseMetrics(consensusAnalyzerName),
+		mode:    mode,
+		history: history,
+		source:  sourceClient,
+		target:  target,
+		logger:  logger.With("analyzer", consensusAnalyzerName),
+		metrics: metrics.NewDefaultDatabaseMetrics(consensusAnalyzerName),
 	}
 
-	return block.NewAnalyzer(cfg, consensusAnalyzerName, processor, target, logger, true)
+	return block.NewAnalyzer(blockRange, batchSize, mode, consensusAnalyzerName, processor, target, logger)
 }
 
 // Implements BlockProcessor interface.
 func (m *processor) PreWork(ctx context.Context) error {
-	// Process genesis if not yet processed.
-	isGenesisProcessed, err := m.isGenesisProcessed(ctx, m.genesisChainContext)
-	if err != nil {
-		m.logger.Error("failed to check if genesis is processed",
-			"err", err,
-		)
-		return err
-	}
-	if isGenesisProcessed {
-		return nil
-	}
-	if err = m.processGenesis(ctx, m.genesisChainContext); err != nil {
-		m.logger.Error("failed to process genesis",
-			"err", err,
-		)
-		return err
-	}
-
 	batch := &storage.QueryBatch{}
 
 	// Register special addresses.
@@ -122,25 +107,33 @@ func (m *processor) PreWork(ctx context.Context) error {
 	return nil
 }
 
-func (m *processor) isGenesisProcessed(ctx context.Context, chainContext string) (bool, error) {
-	var processed bool
-	if err := m.target.QueryRow(
-		ctx,
-		queries.IsGenesisProcessed,
-		chainContext,
-	).Scan(&processed); err != nil {
-		return false, err
+// Implements block.BlockProcessor interface. Downloads and processes the genesis document
+// that immediately precedes block `lastFastSyncHeight`+1, i.e. the first slow-sync block
+// we're about to process.
+// If that block is the first block of a chain (cobalt, damask, etc), we download the chain's
+// original genesis document. Otherwise, we download the genesis-formatted state at `lastFastSyncHeight`.
+func (m *processor) FinalizeFastSync(ctx context.Context, lastFastSyncHeight int64) error {
+	firstSlowSyncHeight := lastFastSyncHeight + 1
+	r, err := m.history.RecordForHeight(firstSlowSyncHeight)
+	if err != nil {
+		return fmt.Errorf("no history record for first slow-sync height %d: %w", firstSlowSyncHeight, err)
 	}
-	return processed, nil
-}
-
-func (m *processor) processGenesis(ctx context.Context, chainContext string) error {
-	m.logger.Info("fetching genesis document")
-	genesisDoc, err := m.source.GenesisDocument(ctx, chainContext)
+	var genesisDoc *genesis.Document
+	if r.GenesisHeight == firstSlowSyncHeight {
+		m.logger.Info("fetching genesis document before starting with the first block of a chain", "chain_context", r.ChainContext, "genesis_height", r.GenesisHeight)
+		genesisDoc, err = m.source.GenesisDocument(ctx, r.ChainContext)
+	} else {
+		m.logger.Info("fetching state at last fast-sync height, using StateToGenesis; this can take a while, up to an hour on mainnet", "height", lastFastSyncHeight)
+		genesisDoc, err = m.source.StateToGenesis(ctx, lastFastSyncHeight)
+	}
 	if err != nil {
 		return err
 	}
 
+	return m.processGenesis(ctx, genesisDoc)
+}
+
+func (m *processor) processGenesis(ctx context.Context, genesisDoc *genesis.Document) error {
 	m.logger.Info("processing genesis document")
 	gen := NewGenesisProcessor(m.logger.With("height", "genesis"))
 	batchStr, err := gen.Process(genesisDoc)
@@ -163,10 +156,6 @@ func (m *processor) processGenesis(ctx context.Context, chainContext string) err
 	for _, query := range batchStr {
 		batch.Queue(query)
 	}
-	batch.Queue(
-		queries.GenesisIndexingProgress,
-		chainContext,
-	)
 	if err := m.target.SendBatch(ctx, batch); err != nil {
 		return err
 	}
@@ -258,6 +247,7 @@ func (m *processor) ProcessBlock(ctx context.Context, uheight uint64) error {
 		queries.IndexingProgress,
 		height,
 		consensusAnalyzerName,
+		m.mode == analyzer.FastSyncMode,
 	)
 
 	// Apply updates to DB.

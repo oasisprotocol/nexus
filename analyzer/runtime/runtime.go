@@ -28,6 +28,7 @@ import (
 type processor struct {
 	runtime         common.Runtime
 	runtimeMetadata *sdkConfig.ParaTime
+	mode            analyzer.BlockAnalysisMode
 	source          nodeapi.RuntimeApiLite
 	target          storage.TargetStorage
 	logger          *log.Logger
@@ -40,7 +41,9 @@ var _ block.BlockProcessor = (*processor)(nil)
 func NewRuntimeAnalyzer(
 	runtime common.Runtime,
 	runtimeMetadata *sdkConfig.ParaTime,
-	cfg *config.BlockBasedAnalyzerConfig,
+	blockRange config.BlockRange,
+	batchSize uint64,
+	mode analyzer.BlockAnalysisMode,
 	sourceClient nodeapi.RuntimeApiLite,
 	target storage.TargetStorage,
 	logger *log.Logger,
@@ -49,13 +52,14 @@ func NewRuntimeAnalyzer(
 	processor := &processor{
 		runtime:         runtime,
 		runtimeMetadata: runtimeMetadata,
+		mode:            mode,
 		source:          sourceClient,
 		target:          target,
 		logger:          logger.With("analyzer", runtime),
 		metrics:         metrics.NewDefaultDatabaseMetrics(string(runtime)),
 	}
 
-	return block.NewAnalyzer(cfg, string(runtime), processor, target, logger, true)
+	return block.NewAnalyzer(blockRange, batchSize, mode, string(runtime), processor, target, logger)
 }
 
 func (m *processor) nativeTokenSymbol() string {
@@ -90,6 +94,12 @@ func (m *processor) PreWork(ctx context.Context) error {
 	}
 	m.logger.Info("registered special addresses")
 
+	return nil
+}
+
+// Implements block.BlockProcessor interface.
+func (m *processor) FinalizeFastSync(ctx context.Context, lastFastSyncHeight int64) error {
+	// For runtimes, fast sync does not disable any dead reckoning and does not ignore any updates.
 	return nil
 }
 
@@ -129,6 +139,7 @@ func (m *processor) ProcessBlock(ctx context.Context, round uint64) error {
 		queries.IndexingProgress,
 		round,
 		m.runtime,
+		m.mode == analyzer.FastSyncMode,
 	)
 
 	opName := fmt.Sprintf("process_block_%s", m.runtime)

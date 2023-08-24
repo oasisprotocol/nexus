@@ -91,21 +91,75 @@ var (
     ON CONFLICT (analyzer, height) DO UPDATE SET locked_time = excluded.locked_time
     RETURNING height`
 
-	IsGenesisProcessed = `
-    SELECT EXISTS (
-      SELECT 1 FROM chain.processed_geneses
-      WHERE chain_context = $1
+	// IsAnyBlockInRangeProcessedByFastSync = `
+	//   SELECT EXISTS(
+	//     SELECT 1 FROM analysis.processed_blocks
+	//     WHERE
+	//       analyzer_name = $1 AND
+	//       height >= $2 AND ($3 <= 0 OR height <= $3) AND
+	//       processed_time IS NOT NULL AND
+	//       is_fast_sync
+	//   )`
+
+	ProcessedSubrangeInfo = `
+    -- Returns info about already-processed blocks in the given range; see below for description.
+    -- Parameters:
+    --   $1 = analyzer name (text)
+    --   $2 = minimum block height, inclusive (integer)
+    --   $3 = maximum block height, inclusive (integer; can be 0 or -1 to mean unlimited)
+
+    WITH completed_blocks_in_range AS (
+      SELECT height, is_fast_sync FROM analysis.processed_blocks
+      WHERE
+        analyzer = $1 AND
+        height >= $2 AND ($3 <= 0 OR height <= $3) AND
+        processed_time IS NOT NULL
+      )
+    
+    SELECT 
+      -- Whether the processed subrange is a contiguous range that starts at the input range.
+      COALESCE(
+        (COUNT(*) = MAX(height) - MIN(height) + 1) AND MIN(height) = $2,
+        TRUE -- If there are no processed blocks, we consider the range contiguous.
+      ) AS is_contiguous,
+
+      COALESCE(MAX(height), $2 - 1) AS max_processed_height
+    FROM completed_blocks_in_range`
+
+	IsBlockProcessedBySlowSync = `
+    SELECT EXISTS(
+      SELECT 1 FROM analysis.processed_blocks
+      WHERE
+        analyzer = $1 AND
+        height = $2 AND
+        processed_time IS NOT NULL AND
+        NOT is_fast_sync
     )`
+
+	SoftEnqueueGapsInProcessedBlocks = `
+    -- Soft-enqueues gaps in analysis.processed_blocks, i.e. adds entries with
+    -- expired locks for all heights that are not present in the table but are
+    -- inside the [$2, $3] range and are also lower than the max already-processed height.
+    -- Parameters:
+    --   $1 = analyzer name (text)
+    --   $2, $3 = height range in which to search for gaps (inclusive)
+
+    WITH
+    highest_encountered_block AS ( -- Note: encountered, not necessarily completed
+      SELECT COALESCE(max(height), -1) as height
+      FROM analysis.processed_blocks
+      WHERE analyzer = $1
+    )
+
+    INSERT INTO analysis.processed_blocks (analyzer, height, locked_time)
+    SELECT $1, h, '-infinity'::timestamptz
+    FROM highest_encountered_block, generate_series(GREATEST(1, $2::bigint), LEAST(highest_encountered_block.height, $3::bigint)) AS h
+    ON CONFLICT (analyzer, height) DO NOTHING`
 
 	IndexingProgress = `
     UPDATE analysis.processed_blocks
-      SET height = $1, analyzer = $2, processed_time = CURRENT_TIMESTAMP
+      SET processed_time = CURRENT_TIMESTAMP, is_fast_sync = $3
       WHERE height = $1 AND analyzer = $2`
-
-	GenesisIndexingProgress = `
-    INSERT INTO chain.processed_geneses (chain_context, processed_time)
-      VALUES
-        ($1, CURRENT_TIMESTAMP)`
 
 	ConsensusBlockInsert = `
     INSERT INTO chain.blocks (height, block_hash, time, num_txs, namespace, version, type, root_hash)

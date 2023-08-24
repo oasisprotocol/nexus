@@ -37,6 +37,11 @@ func (cc *ConsensusClient) GenesisDocument(ctx context.Context, chainContext str
 	return cc.nodeApi.GetGenesisDocument(ctx, chainContext)
 }
 
+// StateToGenesis returns a genesis-like struct encoding the state of the chain at the given height.
+func (cc *ConsensusClient) StateToGenesis(ctx context.Context, height int64) (*genesisAPI.Document, error) {
+	return cc.nodeApi.StateToGenesis(ctx, height)
+}
+
 // Name returns the name of the client, for the ConsensusSourceStorage interface.
 func (cc *ConsensusClient) Name() string {
 	return fmt.Sprintf("%s_consensus", moduleName)

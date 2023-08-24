@@ -261,10 +261,25 @@ type BlockBasedAnalyzerConfig struct {
 	// From is the (inclusive) starting block for this analyzer.
 	From uint64 `koanf:"from"`
 
+	// If present, the analyzer will run in fast sync mode for
+	// an initial range of blocks, and then switch to slow sync.
+	// If absent, the analyzer will only run in "slow", sequential mode.
+	//
+	// If fast sync mode is enabled:
+	// - DB checks and foreign keys are disabled.
+	// - Multiple analyzers run in parallel and process blocks out of order.
+	// - Analyzers do not perform dead reckoning on state (notably, transfers).
+	// After all analyzers finish the fast sync range:
+	// - DB checks and foreign keys are re-enabled.
+	// - State that would normally be dead-reckoned is fetched directly from the node
+	//   via the StateToGenesis() RPC, or recalculated from the relevant DB entries.
+	// - A single "slow mode" analyzer (per runtime/consensus) is started, and resumes
+	//   to process blocks sequentially, with dead reckoning enabled.
+	FastSync *FastSyncConfig `koanf:"fast_sync"`
+
 	// To is the (inclusive) ending block for this analyzer.
-	// Omitting this parameter means this analyzer will
-	// continue processing new blocks until the next breaking
-	// upgrade.
+	// Omitting this parameter or setting it to 0 means this analyzer will
+	// continue processing new blocks forever.
 	To uint64 `koanf:"to"`
 
 	// BatchSize determines the maximum number of blocks the block analyzer
@@ -277,6 +292,72 @@ type BlockBasedAnalyzerConfig struct {
 	BatchSize uint64 `koanf:"batch_size"`
 }
 
+type FastSyncConfig struct {
+	// To is the block (inclusive) to which the analyzer
+	// will run in fast sync mode. From this block onwards (exclusive),
+	// the analyzer will run in slow mode.
+	To uint64 `koanf:"to"`
+
+	// The number of parallel analyzers to run in fast sync mode.
+	Parallelism int `koanf:"parallelism"`
+}
+
+func (blockCfg BlockBasedAnalyzerConfig) FastSyncRange() *BlockRange {
+	if blockCfg.FastSync == nil {
+		return nil
+	}
+	return &BlockRange{
+		From: blockCfg.From,
+		To:   blockCfg.FastSync.To,
+	}
+}
+
+func (blockCfg BlockBasedAnalyzerConfig) SlowSyncRange() BlockRange {
+	if blockCfg.FastSync == nil {
+		return BlockRange{
+			From: blockCfg.From,
+			To:   blockCfg.To,
+		}
+	}
+	return BlockRange{
+		From: blockCfg.FastSync.To + 1,
+		To:   blockCfg.To,
+	}
+}
+
+func (blockCfg BlockBasedAnalyzerConfig) Validate() error {
+	// Check non-range constraints.
+	if blockCfg.FastSync != nil && blockCfg.FastSync.To == 0 {
+		return fmt.Errorf("invalid block range: .fast_sync.to must be > 0")
+	}
+	if blockCfg.FastSync != nil && blockCfg.FastSync.Parallelism <= 0 {
+		return fmt.Errorf("invalid parallelism level: must be > 0")
+	}
+
+	// Check that the slow sync range and fast sync range are valid.
+	if err := blockCfg.SlowSyncRange().Validate(); err != nil {
+		return err
+	}
+	if f := blockCfg.FastSyncRange(); f != nil {
+		if err := f.Validate(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+type BlockRange struct {
+	From uint64 // Inclusive.
+	To   uint64 // Inclusive.
+}
+
+func (r BlockRange) Validate() error {
+	if r.To != 0 && r.From > r.To {
+		return fmt.Errorf("invalid block range from %d to %d", r.From, r.To)
+	}
+	return nil
+}
+
 type IntervalBasedAnalyzerConfig struct {
 	// Interval is the time interval at which to run the analyzer.
 	Interval time.Duration `koanf:"interval"`
@@ -285,14 +366,6 @@ type IntervalBasedAnalyzerConfig struct {
 type EvmTokensAnalyzerConfig struct{}
 
 type EvmContractCodeAnalyzerConfig struct{}
-
-// Validate validates the range configuration.
-func (cfg *BlockBasedAnalyzerConfig) Validate() error {
-	if cfg.To != 0 && cfg.From > cfg.To {
-		return fmt.Errorf("malformed analysis range from %d to %d", cfg.From, cfg.To)
-	}
-	return nil
-}
 
 // EVMContractsVerifierConfig is the configuration for the EVM contracts verifier analyzer.
 type EVMContractsVerifierConfig struct {

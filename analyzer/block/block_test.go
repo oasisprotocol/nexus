@@ -28,21 +28,38 @@ const migrationsPath = "file://../../storage/migrations"
 
 const testsTimeout = 10 * time.Second
 
-// Default block based config used in most tests.
+// Default block based config used in slow-sync tests.
 var testBlockBasedConfig = &config.BlockBasedAnalyzerConfig{From: 1, To: 1_000, BatchSize: 100}
 
-type mockProcessor struct {
-	name              string
-	latestBlockHeight uint64
-	processedBlocks   map[uint64]struct{}
-	processedOrder    []uint64
-	storage           storage.TargetStorage
+// Default block based config used in fast-sync tests.
+var testFastSyncBlockBasedConfig = &config.BlockBasedAnalyzerConfig{
+	From: 1, To: 2_000,
+	BatchSize: 100,
+	FastSync:  &config.FastSyncConfig{To: 1_000, Parallelism: 3},
+}
 
+type mockProcessor struct {
+	name       string
+	storage    storage.TargetStorage
+	isFastSync bool // set implicitly by setupAnalyzer()
+
+	// If specified, can simulate a failure at a given block height.
 	fail func(uint64) error
+
+	// Fields for testing; these let us report back what blocks were processed.
+	processedBlocks     map[uint64]struct{}
+	processedOrder      []uint64
+	fastSyncFinalizedAt *int64 // Height at which FinalizeFastSync was called, if any.
 }
 
 // PreWork implements block.BlockProcessor.
 func (*mockProcessor) PreWork(ctx context.Context) error {
+	return nil
+}
+
+// PreWork implements block.BlockProcessor.
+func (m *mockProcessor) FinalizeFastSync(ctx context.Context, lastFastSyncHeight int64) error {
+	m.fastSyncFinalizedAt = &lastFastSyncHeight
 	return nil
 }
 
@@ -64,6 +81,7 @@ func (m *mockProcessor) ProcessBlock(ctx context.Context, height uint64) error {
 		queries.IndexingProgress,
 		height,
 		m.name,
+		m.isFastSync,
 	)
 	if err != nil {
 		return err
@@ -88,11 +106,23 @@ func setupDB(t *testing.T) *postgres.Client {
 	return testDB
 }
 
-func setupAnalyzer(t *testing.T, testDb *postgres.Client, p *mockProcessor, cfg *config.BlockBasedAnalyzerConfig, slowSync bool) analyzer.Analyzer {
+func setupAnalyzer(t *testing.T, testDb *postgres.Client, p *mockProcessor, cfg *config.BlockBasedAnalyzerConfig, mode analyzer.BlockAnalysisMode) analyzer.Analyzer {
+	// Modify the processor in-place (!): make sure the isFastSync field is in agreement with the analyzer's mode.
+	p.isFastSync = (mode == analyzer.FastSyncMode)
+
 	// Initialize the block analyzer.
-	logger, err := log.NewLogger(fmt.Sprintf("test-analyzer-%s", p.name), os.Stdout, log.FmtJSON, log.LevelError)
+	logger, err := log.NewLogger(fmt.Sprintf("test-analyzer-%s", p.name), os.Stdout, log.FmtJSON, log.LevelInfo)
 	require.NoError(t, err, "log.NewLogger")
-	analyzer, err := block.NewAnalyzer(cfg, p.name, p, testDb, logger, slowSync)
+	var blockRange config.BlockRange
+	switch mode {
+	case analyzer.SlowSyncMode:
+		blockRange = cfg.SlowSyncRange()
+	case analyzer.FastSyncMode:
+		blockRange = *cfg.FastSyncRange()
+	default:
+		t.Fatal("invalid block analysis mode")
+	}
+	analyzer, err := block.NewAnalyzer(blockRange, cfg.BatchSize, mode, p.name, p, testDb, logger)
 	require.NoError(t, err, "block.NewAnalyzer")
 
 	return analyzer
@@ -131,8 +161,8 @@ func TestFastSyncBlockAnalyzer(t *testing.T) {
 	ctx := context.Background()
 
 	db := setupDB(t)
-	p := &mockProcessor{name: "test-analyzer", latestBlockHeight: 10_000, storage: db}
-	analyzer := setupAnalyzer(t, db, p, testBlockBasedConfig, false)
+	p := &mockProcessor{name: "test-analyzer", storage: db}
+	analyzer := setupAnalyzer(t, db, p, testBlockBasedConfig, analyzer.SlowSyncMode)
 
 	// Run the analyzer and ensure all blocks are processed.
 	var wg sync.WaitGroup
@@ -167,8 +197,8 @@ func TestMultipleFastSyncBlockAnalyzers(t *testing.T) {
 	ps := []*mockProcessor{}
 	as := []analyzer.Analyzer{}
 	for i := 0; i < numAnalyzers; i++ {
-		p := &mockProcessor{name: "test-analyzer", latestBlockHeight: 10_000, storage: db}
-		analyzer := setupAnalyzer(t, db, p, testBlockBasedConfig, false)
+		p := &mockProcessor{name: "test-analyzer", storage: db}
+		analyzer := setupAnalyzer(t, db, p, testFastSyncBlockBasedConfig, analyzer.FastSyncMode)
 		ps = append(ps, p)
 		as = append(as, analyzer)
 	}
@@ -190,7 +220,7 @@ func TestMultipleFastSyncBlockAnalyzers(t *testing.T) {
 	case <-analyzersDone:
 	}
 
-	// Ensure that every block was processed by exactly one analyzer.
+	// Ensure that every block in the fast-sync range was processed by exactly one analyzer.
 	for i := uint64(1); i <= 1_000; i++ {
 		oks := []bool{}
 		for _, p := range ps {
@@ -217,8 +247,8 @@ func TestFailingFastSyncBlockAnalyzers(t *testing.T) {
 				return fmt.Errorf("failing analyzer")
 			}
 		}
-		p := &mockProcessor{name: "test-analyzer", latestBlockHeight: 10_000, storage: db, fail: fail}
-		analyzer := setupAnalyzer(t, db, p, testBlockBasedConfig, false)
+		p := &mockProcessor{name: "test-analyzer", storage: db, fail: fail}
+		analyzer := setupAnalyzer(t, db, p, testFastSyncBlockBasedConfig, analyzer.FastSyncMode)
 		ps = append(ps, p)
 		as = append(as, analyzer)
 	}
@@ -260,8 +290,8 @@ func TestDistinctFastSyncBlockAnalyzers(t *testing.T) {
 	ps := []*mockProcessor{}
 	as := []analyzer.Analyzer{}
 	for i := 0; i < numAnalyzers; i++ {
-		p := &mockProcessor{name: fmt.Sprintf("test-analyzer-%d", i), latestBlockHeight: 1_000, storage: db}
-		analyzer := setupAnalyzer(t, db, p, testBlockBasedConfig, false)
+		p := &mockProcessor{name: fmt.Sprintf("test-analyzer-%d", i), storage: db}
+		analyzer := setupAnalyzer(t, db, p, testFastSyncBlockBasedConfig, analyzer.FastSyncMode)
 		ps = append(ps, p)
 		as = append(as, analyzer)
 	}
@@ -297,8 +327,8 @@ func TestSlowSyncBlockAnalyzer(t *testing.T) {
 	ctx := context.Background()
 
 	db := setupDB(t)
-	p := &mockProcessor{name: "test-analyzer", latestBlockHeight: 10_000, storage: db}
-	analyzer := setupAnalyzer(t, db, p, testBlockBasedConfig, true)
+	p := &mockProcessor{name: "test-analyzer", storage: db}
+	analyzer := setupAnalyzer(t, db, p, testBlockBasedConfig, analyzer.SlowSyncMode)
 
 	// Run the analyzer and ensure all blocks are processed.
 	var wg sync.WaitGroup
@@ -330,14 +360,14 @@ func TestFailingSlowSyncBlockAnalyzer(t *testing.T) {
 	ctx := context.Background()
 
 	db := setupDB(t)
-	p := &mockProcessor{name: "test-analyzer", latestBlockHeight: 10_000, storage: db, fail: func(height uint64) error {
+	p := &mockProcessor{name: "test-analyzer", storage: db, fail: func(height uint64) error {
 		// Fail ~5% of the time.
 		if rand.Float64() > 0.95 { // /nolint:gosec // G404: Use of weak random number generator (math/rand instead of crypto/rand).
 			return fmt.Errorf("failed by chance")
 		}
 		return nil
 	}}
-	analyzer := setupAnalyzer(t, db, p, &config.BlockBasedAnalyzerConfig{From: 1, To: 100, BatchSize: 100}, true)
+	analyzer := setupAnalyzer(t, db, p, &config.BlockBasedAnalyzerConfig{From: 1, To: 100, BatchSize: 100}, analyzer.SlowSyncMode)
 
 	// Run the analyzer and ensure all blocks are processed.
 	var wg sync.WaitGroup
@@ -373,8 +403,8 @@ func TestDistinctSlowSyncBlockAnalyzers(t *testing.T) {
 	ps := []*mockProcessor{}
 	as := []analyzer.Analyzer{}
 	for i := 0; i < numAnalyzers; i++ {
-		p := &mockProcessor{name: fmt.Sprintf("test-analyzer-%d", i), latestBlockHeight: 1_000, storage: db}
-		analyzer := setupAnalyzer(t, db, p, testBlockBasedConfig, true)
+		p := &mockProcessor{name: fmt.Sprintf("test-analyzer-%d", i), storage: db}
+		analyzer := setupAnalyzer(t, db, p, testBlockBasedConfig, analyzer.SlowSyncMode)
 		ps = append(ps, p)
 		as = append(as, analyzer)
 	}
@@ -404,4 +434,57 @@ func TestDistinctSlowSyncBlockAnalyzers(t *testing.T) {
 			require.Equal(t, i, p.processedOrder[i-1], "block %d was not processed in order", i)
 		}
 	}
+}
+
+func TestFinalizeFastSync(t *testing.T) {
+	// Test that a slow-sync analyzer finalizes the work of the preceding fast-sync analyzers, if any.
+	ctx := context.Background()
+	db := setupDB(t)
+
+	// Run multiple analyzers, each on a separate block range, to simulate past Nexus invocations.
+	// Note: The .Start() call blocks until the analyzer finishes.
+	p := &mockProcessor{name: "consensus", storage: db}
+	setupAnalyzer(t, db, p, &config.BlockBasedAnalyzerConfig{From: 1, To: 10, FastSync: &config.FastSyncConfig{To: 10}}, analyzer.FastSyncMode).Start(ctx)
+	require.Nil(t, p.fastSyncFinalizedAt,
+		fmt.Sprintf("fast-sync analyzer should never finalize fast-sync, but it did at %d", p.fastSyncFinalizedAt))
+
+	p = &mockProcessor{name: "consensus", storage: db}
+	setupAnalyzer(t, db, p, &config.BlockBasedAnalyzerConfig{From: 5, To: 20}, analyzer.SlowSyncMode).Start(ctx)
+	require.NotNil(t, p.fastSyncFinalizedAt,
+		"slow-sync analyzer should have finalized fast sync because it's taking up work from a fast-sync analyzer")
+	require.Equal(t, int64(10), *p.fastSyncFinalizedAt,
+		"slow-sync analyzer should finalize fast-sync at the height of the last fast-processed block")
+
+	p = &mockProcessor{name: "consensus", storage: db}
+	setupAnalyzer(t, db, p, &config.BlockBasedAnalyzerConfig{From: 21, To: 30}, analyzer.SlowSyncMode).Start(ctx)
+	require.Nil(t, p.fastSyncFinalizedAt,
+		"sencond slow-sync analyzer should not finalize fast-sync because its range extends an existing slow-sync-analyzed range")
+}
+
+func TestRefuseSlowSyncOnDirtyRange(t *testing.T) {
+	// Test that slow-sync analyzer won't start if the already-analyzed block range is non-contiguous.
+	ctx := context.Background()
+	db := setupDB(t)
+
+	// Run multiple analyzers, each on a separate block range, to simulate past Nexus invocations.
+	// Note: The .Start() call blocks until the analyzer finishes.
+	p := &mockProcessor{name: "consensus", storage: db}
+	setupAnalyzer(t, db, p, &config.BlockBasedAnalyzerConfig{From: 3, To: 10}, analyzer.SlowSyncMode).Start(ctx)
+
+	p = &mockProcessor{name: "consensus", storage: db}
+	a := setupAnalyzer(t, db, p, &config.BlockBasedAnalyzerConfig{From: 1, To: 15}, analyzer.SlowSyncMode)
+	a.Start(ctx)
+	require.Zero(t, len(p.processedBlocks),
+		"slow-sync analyzer should refuse to process anything because the already-analyzed range is non-contiguous")
+
+	// Patch up the holes with a fast-sync analyzer.
+	fp := &mockProcessor{name: "consensus", storage: db}
+	setupAnalyzer(t, db, fp, &config.BlockBasedAnalyzerConfig{From: 1, To: 10, FastSync: &config.FastSyncConfig{To: 10}}, analyzer.FastSyncMode).Start(ctx)
+	require.Equal(t, fp.processedBlocks, map[uint64]struct{}{1: {}, 2: {}},
+		"fast-sync analyzer should have processed the missing blocks")
+
+	// Try a slow-sync analyzer again
+	a.Start(ctx)
+	require.Equal(t, p.processedBlocks, map[uint64]struct{}{11: {}, 12: {}, 13: {}, 14: {}, 15: {}},
+		"slow-sync analyzer should have processed the missing blocks")
 }
