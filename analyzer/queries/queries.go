@@ -136,6 +136,26 @@ var (
         NOT is_fast_sync
     )`
 
+	SoftEnqueueGapsInProcessedBlocks = `
+    -- Soft-enqueues gaps in analysis.processed_blocks, i.e. adds entries with
+    -- expired locks for all heights that are not present in the table but are
+    -- inside the [$2, $3] range and are also lower than the max already-processed height.
+    -- Parameters:
+    --   $1 = analyzer name (text)
+    --   $2, $3 = height range in which to search for gaps (inclusive)
+
+    WITH
+    highest_encountered_block AS ( -- Note: encountered, not necessarily completed
+      SELECT COALESCE(max(height), -1) as height
+      FROM analysis.processed_blocks
+      WHERE analyzer = $1
+    )
+
+    INSERT INTO analysis.processed_blocks (analyzer, height, locked_time)
+    SELECT $1, h, '-infinity'::timestamptz
+    FROM highest_encountered_block, generate_series(GREATEST(1, $2::bigint), LEAST(highest_encountered_block.height, $3::bigint)) AS h
+    ON CONFLICT (analyzer, height) DO NOTHING`
+
 	IndexingProgress = `
     UPDATE analysis.processed_blocks
       SET processed_time = CURRENT_TIMESTAMP, is_fast_sync = $3

@@ -197,6 +197,31 @@ func (b *blockBasedAnalyzer) isBlockProcessedBySlowSync(ctx context.Context, hei
 	return isProcessed, nil
 }
 
+// Finds any gaps in the range of already-processed blocks, and soft-enqueues them
+// (i.e. adds entries for them in `analysis.processed_blocks`) if they overlap with this
+// analyzer's configured range.
+// This is useful if we're recovering from misconfigured past runs that left gaps in the
+// range of processed blocks. The main block-grabbing loop assumes (for efficiency) that
+// we only ever need to process blocks that are larger than the largest entry in the db,
+// or else explicitly present in the db and marked as not completed. This function ensures
+// that that assumption is valid even in the face of misconfigured past runs, e.g. if we
+// processed the range [1000, 2000] but now want to process [1, infinity).
+func (b *blockBasedAnalyzer) softEnqueueGapsInProcessedBlocks(ctx context.Context) error {
+	batch := &storage.QueryBatch{}
+	batch.Queue(
+		queries.SoftEnqueueGapsInProcessedBlocks,
+		b.analyzerName,
+		b.blockRange.From,
+		b.blockRange.To,
+	)
+	if err := b.target.SendBatch(ctx, batch); err != nil {
+		b.logger.Error("failed to soft-enqueue gaps in already-processed blocks", "err", err, "from", b.blockRange.From, "to", b.blockRange.To)
+		return err
+	}
+	b.logger.Error("ensured that any gaps in the already-processed block range can be picked up later", "from", b.blockRange.From, "to", b.blockRange.To)
+	return nil
+}
+
 // Validates assumptions/prerequisites for starting a slow sync analyzer:
 //   - No blocks in the configured [from, to] range have been processed, except possibly a contiguous
 //     subrange [from, X] for some X.
@@ -252,6 +277,11 @@ func (b *blockBasedAnalyzer) Start(ctx context.Context) {
 		return
 	}
 
+	if !b.slowSync && b.softEnqueueGapsInProcessedBlocks(ctx) != nil {
+		// We cannot continue or recover automatically. Logging happens inside the validate function.
+		return
+	}
+
 	// Start processing blocks.
 	backoff, err := util.NewBackoff(
 		100*time.Millisecond,
@@ -280,7 +310,7 @@ func (b *blockBasedAnalyzer) Start(ctx context.Context) {
 		batchCtx, batchCtxCancel = context.WithTimeout(ctx, lockExpiryMinutes*time.Minute)
 
 		// Pick a batch of blocks to process.
-		b.logger.Info("picking a batch of blocks to process", "from", b.blockRange.From, "to", to)
+		b.logger.Info("picking a batch of blocks to process", "from", b.blockRange.From, "to", to, "is_fast_sync", !b.slowSync)
 		heights, err := b.fetchBatchForProcessing(ctx, b.blockRange.From, to)
 		if err != nil {
 			b.logger.Error("failed to pick blocks for processing",
