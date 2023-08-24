@@ -39,12 +39,17 @@ var testFastSyncBlockBasedConfig = &config.BlockBasedAnalyzerConfig{
 }
 
 type mockProcessor struct {
-	name            string
-	processedBlocks map[uint64]struct{}
-	processedOrder  []uint64
-	storage         storage.TargetStorage
+	name       string
+	storage    storage.TargetStorage
+	isFastSync bool // set implicitly by setupAnalyzer()
 
+	// If specified, can simulate a failure at a given block height.
 	fail func(uint64) error
+
+	// Fields for testing; these let us report back what blocks were processed.
+	processedBlocks     map[uint64]struct{}
+	processedOrder      []uint64
+	fastSyncFinalizedAt *int64 // Height at which FinalizeFastSync was called, if any.
 }
 
 // PreWork implements block.BlockProcessor.
@@ -53,7 +58,8 @@ func (*mockProcessor) PreWork(ctx context.Context) error {
 }
 
 // PreWork implements block.BlockProcessor.
-func (*mockProcessor) FinalizeFastSync(ctx context.Context, lastFastSyncHeight int64) error {
+func (m *mockProcessor) FinalizeFastSync(ctx context.Context, lastFastSyncHeight int64) error {
+	m.fastSyncFinalizedAt = &lastFastSyncHeight
 	return nil
 }
 
@@ -75,7 +81,7 @@ func (m *mockProcessor) ProcessBlock(ctx context.Context, height uint64) error {
 		queries.IndexingProgress,
 		height,
 		m.name,
-		false, // is_fast_sync
+		m.isFastSync,
 	)
 	if err != nil {
 		return err
@@ -101,8 +107,11 @@ func setupDB(t *testing.T) *postgres.Client {
 }
 
 func setupAnalyzer(t *testing.T, testDb *postgres.Client, p *mockProcessor, cfg *config.BlockBasedAnalyzerConfig, mode analyzer.BlockAnalysisMode) analyzer.Analyzer {
+	// Modify the processor in-place (!): make sure the isFastSync field is in agreement with the analyzer's mode.
+	p.isFastSync = (mode == analyzer.FastSyncMode)
+
 	// Initialize the block analyzer.
-	logger, err := log.NewLogger(fmt.Sprintf("test-analyzer-%s", p.name), os.Stdout, log.FmtJSON, log.LevelError)
+	logger, err := log.NewLogger(fmt.Sprintf("test-analyzer-%s", p.name), os.Stdout, log.FmtJSON, log.LevelInfo)
 	require.NoError(t, err, "log.NewLogger")
 	var blockRange config.BlockRange
 	switch mode {
@@ -425,4 +434,57 @@ func TestDistinctSlowSyncBlockAnalyzers(t *testing.T) {
 			require.Equal(t, i, p.processedOrder[i-1], "block %d was not processed in order", i)
 		}
 	}
+}
+
+func TestFinalizeFastSync(t *testing.T) {
+	// Test that a slow-sync analyzer finalizes the work of the preceding fast-sync analyzers, if any.
+	ctx := context.Background()
+	db := setupDB(t)
+
+	// Run multiple analyzers, each on a separate block range, to simulate past Nexus invocations.
+	// Note: The .Start() call blocks until the analyzer finishes.
+	p := &mockProcessor{name: "consensus", storage: db}
+	setupAnalyzer(t, db, p, &config.BlockBasedAnalyzerConfig{From: 1, To: 10, FastSync: &config.FastSyncConfig{To: 10}}, analyzer.FastSyncMode).Start(ctx)
+	require.Nil(t, p.fastSyncFinalizedAt,
+		fmt.Sprintf("fast-sync analyzer should never finalize fast-sync, but it did at %d", p.fastSyncFinalizedAt))
+
+	p = &mockProcessor{name: "consensus", storage: db}
+	setupAnalyzer(t, db, p, &config.BlockBasedAnalyzerConfig{From: 5, To: 20}, analyzer.SlowSyncMode).Start(ctx)
+	require.NotNil(t, p.fastSyncFinalizedAt,
+		"slow-sync analyzer should have finalized fast sync because it's taking up work from a fast-sync analyzer")
+	require.Equal(t, int64(10), *p.fastSyncFinalizedAt,
+		"slow-sync analyzer should finalize fast-sync at the height of the last fast-processed block")
+
+	p = &mockProcessor{name: "consensus", storage: db}
+	setupAnalyzer(t, db, p, &config.BlockBasedAnalyzerConfig{From: 21, To: 30}, analyzer.SlowSyncMode).Start(ctx)
+	require.Nil(t, p.fastSyncFinalizedAt,
+		"sencond slow-sync analyzer should not finalize fast-sync because its range extends an existing slow-sync-analyzed range")
+}
+
+func TestRefuseSlowSyncOnDirtyRange(t *testing.T) {
+	// Test that slow-sync analyzer won't start if the already-analyzed block range is non-contiguous.
+	ctx := context.Background()
+	db := setupDB(t)
+
+	// Run multiple analyzers, each on a separate block range, to simulate past Nexus invocations.
+	// Note: The .Start() call blocks until the analyzer finishes.
+	p := &mockProcessor{name: "consensus", storage: db}
+	setupAnalyzer(t, db, p, &config.BlockBasedAnalyzerConfig{From: 3, To: 10}, analyzer.SlowSyncMode).Start(ctx)
+
+	p = &mockProcessor{name: "consensus", storage: db}
+	a := setupAnalyzer(t, db, p, &config.BlockBasedAnalyzerConfig{From: 1, To: 15}, analyzer.SlowSyncMode)
+	a.Start(ctx)
+	require.Zero(t, len(p.processedBlocks),
+		"slow-sync analyzer should refuse to process anything because the already-analyzed range is non-contiguous")
+
+	// Patch up the holes with a fast-sync analyzer.
+	fp := &mockProcessor{name: "consensus", storage: db}
+	setupAnalyzer(t, db, fp, &config.BlockBasedAnalyzerConfig{From: 1, To: 10, FastSync: &config.FastSyncConfig{To: 10}}, analyzer.FastSyncMode).Start(ctx)
+	require.Equal(t, fp.processedBlocks, map[uint64]struct{}{1: {}, 2: {}},
+		"fast-sync analyzer should have processed the missing blocks")
+
+	// Try a slow-sync analyzer again
+	a.Start(ctx)
+	require.Equal(t, p.processedBlocks, map[uint64]struct{}{11: {}, 12: {}, 13: {}, 14: {}, 15: {}},
+		"slow-sync analyzer should have processed the missing blocks")
 }
