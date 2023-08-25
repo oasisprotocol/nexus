@@ -176,23 +176,53 @@ func (c *StorageClient) withTotalCount(ctx context.Context, sql string, args ...
 // Status returns status information for Oasis Nexus.
 func (c *StorageClient) Status(ctx context.Context) (*Status, error) {
 	var s Status
-	if err := c.db.QueryRow(
+	var latestBlockUpdate time.Time
+	err := c.db.QueryRow(
 		ctx,
 		queries.Status,
 		"consensus",
-	).Scan(&s.LatestBlock, &s.LatestUpdate); err != nil {
+	).Scan(&s.LatestBlock, &latestBlockUpdate)
+	switch err {
+	case nil:
+	case pgx.ErrNoRows:
+		s.LatestBlock = -1
+	default:
 		return nil, wrapError(err)
 	}
-	// oasis-node control status returns time truncated to the second
-	// https://github.com/oasisprotocol/oasis-core/blob/5985dc5c2844de28241b7b16b19d91a86e5cbeda/docs/oasis-node/cli.md?plain=1#L41
-	s.LatestUpdate = s.LatestUpdate.Truncate(time.Second)
+	// Calculate the elapsed time since the last block was processed. We assume that the analyzer and api server
+	// are running on VMs with synced clocks.
+	s.LatestUpdate = time.Since(latestBlockUpdate).String()
 
-	// Query latest block for info.
-	if err := c.db.QueryRow(
+	// Query latest indexed block for info.
+	err = c.db.QueryRow(
 		ctx,
 		queries.Block,
 		s.LatestBlock,
-	).Scan(nil, nil, &s.LatestBlockTime, nil); err != nil {
+	).Scan(nil, nil, &s.LatestBlockTime, nil)
+	switch err {
+	case nil:
+	case pgx.ErrNoRows:
+		s.LatestBlockTime = time.Time{}
+	default:
+		return nil, wrapError(err)
+	}
+
+	// Fetch latest node height.
+	err = c.db.QueryRow(
+		ctx,
+		queries.NodeHeight,
+		"consensus",
+	).Scan(&s.LatestNodeBlock)
+	switch err {
+	case nil:
+		// Current node height is fetched in a separate goroutine, so it's possible for it
+		// to be more out of date than the height of the most recently processed block.
+		if s.LatestNodeBlock < s.LatestBlock {
+			s.LatestNodeBlock = s.LatestBlock
+		}
+	case pgx.ErrNoRows:
+		s.LatestNodeBlock = -1
+	default:
 		return nil, wrapError(err)
 	}
 
@@ -1560,12 +1590,13 @@ func (c *StorageClient) RuntimeStatus(ctx context.Context) (*RuntimeStatus, erro
 	}
 
 	var s apiTypes.RuntimeStatus
+	var latest_block_update time.Time
 	// Query latest block and update time.
 	err = c.db.QueryRow(
 		ctx,
 		queries.Status,
 		runtimeName,
-	).Scan(&s.LatestBlock, &s.LatestUpdate)
+	).Scan(&s.LatestBlock, &latest_block_update)
 	switch err {
 	case nil:
 	case pgx.ErrNoRows:
@@ -1574,9 +1605,9 @@ func (c *StorageClient) RuntimeStatus(ctx context.Context) (*RuntimeStatus, erro
 	default:
 		return nil, wrapError(err)
 	}
-	// oasis-node control status returns time truncated to the second
-	// https://github.com/oasisprotocol/oasis-core/blob/5985dc5c2844de28241b7b16b19d91a86e5cbeda/docs/oasis-node/cli.md?plain=1#L41
-	s.LatestUpdate = s.LatestUpdate.Truncate(time.Second)
+	// Calculate the elapsed time since the last block was processed. We assume that the analyzer and api server
+	// are running on VMs with synced clocks.
+	s.LatestUpdate = time.Since(latest_block_update).String()
 
 	// Query latest block for info.
 	if err := c.db.QueryRow(

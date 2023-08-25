@@ -111,6 +111,8 @@ x-examples:
     - &iso_timestamp_1 '2022-03-01T00:00:00Z'
     - &iso_timestamp_2 '2019-04-01T00:00:00Z'
     - &iso_timestamp_3 '2022-10-15T00:05:34Z'
+  time-duration:
+    - &time_duration_1 '72h3m0.5s'
 
 x-err-responses:
   common-errors: &common_error_responses
@@ -1153,23 +1155,29 @@ components:
 
     Status:
       type: object
-      required: [latest_block, latest_block_time, latest_update]
+      required: [latest_block, latest_node_block, latest_block_time, latest_update]
       properties:
         latest_block:
           type: integer
           format: int64
-          description: The height of the most recent indexed block. Query a synced Oasis node for the latest block produced.
+          description: |
+            The height of the most recent indexed block. Compare with latest_node_block to measure
+            how far behind Nexus is from the chain. 
           example: *block_height_1
+        latest_node_block:
+          type: integer
+          format: int64
+          description: The height of the most recently produced block on-chain as seen by Nexus.
+          example: *block_height_2
         latest_block_time:
           type: string
           format: date-time
-          description: The RFC 3339 formatted consensus time of when the most recent block was produced.
+          description: The RFC 3339 formatted consensus time of when the most recently indexed block was produced.
           example: *iso_timestamp_2
         latest_update:
           type: string
-          format: date-time
-          description: The RFC 3339 formatted time when Nexus processed the latest block. Compare with current time for approximate indexing progress with the Oasis Network.
-          example: *iso_timestamp_1
+          description: The elapsed time duration since Nexus processed the latest block.
+          example: *time_duration_1
 
     BlockList:
       allOf:
@@ -2473,9 +2481,8 @@ components:
           example: *iso_timestamp_2
         latest_update:
           type: string
-          format: date-time
-          description: The RFC 3339 formatted time when Nexus processed the latest block for this runtime. Compare with current time for approximate indexing progress with the Oasis Network.
-          example: *iso_timestamp_1
+          description: The elapsed time duration since Nexus processed the latest block.
+          example: *time_duration_1
 
     EvmTokenType:
       type: string
