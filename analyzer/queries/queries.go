@@ -610,6 +610,13 @@ var (
       runtime = $1 AND
       token_address = $2`
 
+	RuntimeEVMNFTInsert = `
+    INSERT INTO chain.evm_nfts
+      (runtime, token_address, nft_id, last_want_download_round)
+    VALUES
+      ($1, $2, $3, $4)
+    ON CONFLICT (runtime, token_address, nft_id) DO NOTHING`
+
 	RuntimeEVMTokenBalanceAnalysisStale = fmt.Sprintf(`
     WITH
     max_processed_round AS (
