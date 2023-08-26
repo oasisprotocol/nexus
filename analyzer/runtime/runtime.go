@@ -267,13 +267,12 @@ func (m *processor) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 				transactionData.EVMContract.Address,
 				transactionData.EVMContract.CreationTx,
 				transactionData.EVMContract.CreationBytecode,
-				transactionData.GasUsed,
 			)
 		}
 
-		if transactionData.Method == "evm.Call" {
-			// Dead-reckon gas used by contracts
-			batch.Queue(queries.RuntimeEVMContractGasUsedUpdate,
+		if (transactionData.Method == "evm.Call" || transactionData.Method == "evm.Create") && transactionData.To != nil {
+			// Dead-reckon gas used for calling contracts
+			batch.Queue(queries.RuntimeAccountGasForCallingUpsert,
 				m.runtime,
 				transactionData.To,
 				transactionData.GasUsed,

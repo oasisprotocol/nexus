@@ -447,26 +447,20 @@ var (
 
 	RuntimeEVMContractInsert = `
     INSERT INTO chain.evm_contracts
-      (runtime, contract_address, creation_tx, creation_bytecode, gas_used)
-    VALUES ($1, $2, $3, $4, $5)`
+      (runtime, contract_address, creation_tx, creation_bytecode)
+    VALUES ($1, $2, $3, $4)`
 
 	RuntimeEVMContractRuntimeBytecodeUpsert = `
-    WITH
-      contract_gas_used AS (
-        SELECT SUM(gas_used) AS total_gas
-        FROM chain.runtime_transactions
-        WHERE runtime = $1 AND "to" = $2::text
-      )
-    INSERT INTO chain.evm_contracts(runtime, contract_address, runtime_bytecode, gas_used)
-      SELECT $1, $2, $3, COALESCE(contract_gas_used.total_gas, 0)
-      FROM contract_gas_used
+    INSERT INTO chain.evm_contracts(runtime, contract_address, runtime_bytecode)
+    VALUES ($1, $2, $3)
     ON CONFLICT (runtime, contract_address) DO UPDATE
     SET runtime_bytecode = $3`
 
-	RuntimeEVMContractGasUsedUpdate = `
-    UPDATE chain.evm_contracts
-      SET gas_used = gas_used + $3
-      WHERE runtime = $1 AND contract_address = $2`
+	RuntimeAccountGasForCallingUpsert = `
+    INSERT INTO chain.runtime_accounts AS old (runtime, address, num_txs, gas_for_calling)
+    VALUES ($1, $2, 0, $3)
+    ON CONFLICT (runtime, address) DO UPDATE
+    SET gas_for_calling = old.gas_for_calling + $3`
 
 	RuntimeEVMContractCodeAnalysisInsert = `
     INSERT INTO analysis.evm_contract_code(runtime, contract_candidate)
