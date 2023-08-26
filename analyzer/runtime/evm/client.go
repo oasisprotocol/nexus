@@ -5,12 +5,14 @@ import (
 	"encoding/hex"
 	"fmt"
 	"math/big"
+	"time"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	ethCommon "github.com/ethereum/go-ethereum/common"
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 
+	"github.com/oasisprotocol/nexus/analyzer/evmnfts/ipfsclient"
 	apiTypes "github.com/oasisprotocol/nexus/api/v1/types"
 	"github.com/oasisprotocol/nexus/common"
 	"github.com/oasisprotocol/nexus/log"
@@ -54,6 +56,14 @@ type EVMTokenData struct {
 
 type EVMTokenMutableData struct {
 	TotalSupply *big.Int
+}
+
+type EVMNFTData struct {
+	MetadataURI      string
+	MetadataAccessed time.Time
+	Name             string
+	Description      string
+	Image            string
 }
 
 type EVMTokenBalanceData struct {
@@ -239,6 +249,20 @@ func EVMDownloadMutatedToken(ctx context.Context, logger *log.Logger, source nod
 
 	default:
 		return nil, fmt.Errorf("download mutated token type %v not handled", tokenType)
+	}
+}
+
+func EVMDownloadNewNFT(ctx context.Context, logger *log.Logger, source nodeapi.RuntimeApiLite, ipfsClient ipfsclient.Client, round uint64, tokenEthAddr []byte, tokenType EVMTokenType, id *big.Int) (*EVMNFTData, error) {
+	switch tokenType {
+	case EVMTokenTypeERC721:
+		nftData, err := evmDownloadNFTERC721(ctx, logger, source, ipfsClient, round, tokenEthAddr, id)
+		if err != nil {
+			return nil, fmt.Errorf("download NFT ERC-721: %w", err)
+		}
+		return nftData, nil
+
+	default:
+		return nil, fmt.Errorf("download stale nft type %v not handled", tokenType)
 	}
 }
 

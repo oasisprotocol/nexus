@@ -20,6 +20,8 @@ import (
 	"github.com/oasisprotocol/nexus/analyzer/aggregate_stats"
 	"github.com/oasisprotocol/nexus/analyzer/consensus"
 	"github.com/oasisprotocol/nexus/analyzer/evmcontractcode"
+	"github.com/oasisprotocol/nexus/analyzer/evmnfts"
+	"github.com/oasisprotocol/nexus/analyzer/evmnfts/ipfsclient"
 	"github.com/oasisprotocol/nexus/analyzer/evmtokenbalances"
 	"github.com/oasisprotocol/nexus/analyzer/evmtokens"
 	"github.com/oasisprotocol/nexus/analyzer/evmverifier"
@@ -160,6 +162,7 @@ type sourceFactory struct {
 
 	consensus *source.ConsensusClient
 	runtimes  map[common.Runtime]nodeapi.RuntimeApiLite
+	ipfs      ipfsclient.Client
 }
 
 func newSourceFactory(cfg config.SourceConfig) *sourceFactory {
@@ -208,6 +211,17 @@ func (s *sourceFactory) Runtime(ctx context.Context, runtime common.Runtime) (no
 	}
 
 	return s.runtimes[runtime], nil
+}
+
+func (s *sourceFactory) IPFS(_ context.Context) (ipfsclient.Client, error) {
+	if s.ipfs == nil {
+		client, err := ipfsclient.NewGateway(s.cfg.IPFS.Gateway)
+		if err != nil {
+			return nil, fmt.Errorf("error creating ipfs client: %w", err)
+		}
+		s.ipfs = client
+	}
+	return s.ipfs, nil
 }
 
 type A = analyzer.Analyzer
@@ -339,6 +353,19 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) { //nolint:gocyclo
 				return nil, err1
 			}
 			return evmtokens.NewAnalyzer(common.RuntimeSapphire, cfg.Analyzers.SapphireEvmTokens.ItemBasedAnalyzerConfig, sourceClient, dbClient, logger)
+		})
+	}
+	if cfg.Analyzers.EmeraldEvmNfts != nil {
+		analyzers, err = addAnalyzer(analyzers, err, func() (A, error) {
+			sourceClient, err1 := sources.Runtime(ctx, common.RuntimeEmerald)
+			if err1 != nil {
+				return nil, err1
+			}
+			ipfsClient, err1 := sources.IPFS(ctx)
+			if err1 != nil {
+				return nil, err1
+			}
+			return evmnfts.NewAnalyzer(common.RuntimeEmerald, cfg.Analyzers.EmeraldEvmNfts.ItemBasedAnalyzerConfig, sourceClient, ipfsClient, dbClient, logger)
 		})
 	}
 	if cfg.Analyzers.EmeraldEvmTokenBalances != nil {
