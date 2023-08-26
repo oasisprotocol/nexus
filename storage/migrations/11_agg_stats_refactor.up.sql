@@ -28,4 +28,8 @@ CREATE TABLE stats.daily_tx_volume
 -- Index for efficient query of the daily samples.
 CREATE INDEX ix_stats_daily_tx_volume_daily_windows ON stats.daily_tx_volume (layer, window_end) WHERE ((window_end AT TIME ZONE 'UTC')::time = '00:00:00');
 
+-- Grant read-only use for newly-created tables in the schema.
+GRANT SELECT ON ALL TABLES IN SCHEMA stats TO PUBLIC;
+GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA stats TO PUBLIC;
+
 COMMIT;
