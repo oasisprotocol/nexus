@@ -338,7 +338,7 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 				blockTransactionData.Success = nil
 			}
 
-			blockTransactionData.Method = tx.Call.Method
+			blockTransactionData.Method = string(tx.Call.Method)
 			var to apiTypes.Address
 			var amount quantity.Quantity
 			if err = VisitCall(&tx.Call, &txr.Result, &CallHandler{
