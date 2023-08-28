@@ -45,7 +45,7 @@ func decodeExpectCall(
 	tx, err := decodeEthRawTx(rawBytes)
 	require.NoError(t, err)
 	t.Logf("%#v\n", tx)
-	require.Equal(t, tx.Call.Method, "evm.Call")
+	require.Equal(t, tx.Call.Method, sdkTypes.MethodName("evm.Call"))
 	var body evm.Call
 	require.NoError(t, cbor.Unmarshal(tx.Call.Body, &body))
 	expectedToBytes, err := hex.DecodeString(expected.to)
@@ -60,8 +60,7 @@ func decodeExpectCall(
 	require.Equal(t, expectedDataBytes, body.Data)
 	require.Len(t, tx.AuthInfo.SignerInfo, 1)
 	from0xChecksummed := helpers.EthAddressFromPubKey(*tx.AuthInfo.SignerInfo[0].AddressSpec.Signature.Secp256k1Eth)
-	fromChecksummed := from0xChecksummed[2:]
-	from := strings.ToLower(fromChecksummed)
+	from := strings.ToLower(from0xChecksummed.Hex())[2:]
 	require.Equal(t, expected.from, from)
 	require.Equal(t, expected.nonce, tx.AuthInfo.SignerInfo[0].Nonce)
 	feeAmount := quantity.NewFromUint64(expected.gasLimit)
@@ -82,7 +81,7 @@ func decodeExpectCreate(
 	tx, err := decodeEthRawTx(rawBytes)
 	require.NoError(t, err)
 	t.Logf("%#v\n", tx)
-	require.Equal(t, tx.Call.Method, "evm.Create")
+	require.Equal(t, tx.Call.Method, sdkTypes.MethodName("evm.Create"))
 	var body evm.Create
 	require.NoError(t, cbor.Unmarshal(tx.Call.Body, &body))
 	var bodyValueBI big.Int
@@ -94,8 +93,7 @@ func decodeExpectCreate(
 	require.Equal(t, expectedInitCodeBytes, body.InitCode)
 	require.Len(t, tx.AuthInfo.SignerInfo, 1)
 	from0xChecksummed := helpers.EthAddressFromPubKey(*tx.AuthInfo.SignerInfo[0].AddressSpec.Signature.Secp256k1Eth)
-	fromChecksummed := from0xChecksummed[2:]
-	from := strings.ToLower(fromChecksummed)
+	from := strings.ToLower(from0xChecksummed.Hex())[2:]
 	require.Equal(t, expected.from, from)
 	require.Equal(t, expected.nonce, tx.AuthInfo.SignerInfo[0].Nonce)
 	feeAmount := quantity.NewFromUint64(expected.gasLimit)
@@ -127,7 +125,7 @@ func decodeExpectFromMismatch(
 	require.Len(t, tx.AuthInfo.SignerInfo, 1)
 	from0xChecksummed := helpers.EthAddressFromPubKey(*tx.AuthInfo.SignerInfo[0].AddressSpec.Signature.Secp256k1Eth)
 	fromChecksummed := from0xChecksummed[2:]
-	from := strings.ToLower(fromChecksummed)
+	from := strings.ToLower(string(fromChecksummed))
 	require.NotEqual(t, unexpectedFrom, from)
 }
 
