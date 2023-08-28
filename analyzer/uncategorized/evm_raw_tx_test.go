@@ -45,7 +45,7 @@ func decodeExpectCall(
 	tx, err := decodeEthRawTx(rawBytes)
 	require.NoError(t, err)
 	t.Logf("%#v\n", tx)
-	require.Equal(t, tx.Call.Method, "evm.Call")
+	require.Equal(t, tx.Call.Method, sdkTypes.MethodName("evm.Call"))
 	var body evm.Call
 	require.NoError(t, cbor.Unmarshal(tx.Call.Body, &body))
 	expectedToBytes, err := hex.DecodeString(expected.to)
@@ -81,7 +81,7 @@ func decodeExpectCreate(
 	tx, err := decodeEthRawTx(rawBytes)
 	require.NoError(t, err)
 	t.Logf("%#v\n", tx)
-	require.Equal(t, tx.Call.Method, "evm.Create")
+	require.Equal(t, tx.Call.Method, sdkTypes.MethodName("evm.Create"))
 	var body evm.Create
 	require.NoError(t, cbor.Unmarshal(tx.Call.Body, &body))
 	var bodyValueBI big.Int
