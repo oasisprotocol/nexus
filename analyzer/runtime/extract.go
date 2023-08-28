@@ -120,6 +120,11 @@ type NFTKey struct {
 	TokenID      *big.Int
 }
 
+type PossibleNFT struct {
+	NewOwner     *apiTypes.Address
+	NumTransfers int
+}
+
 type BlockData struct {
 	Header              nodeapi.RuntimeBlockHeader
 	NumTransactions     int // Might be different from len(TransactionData) if some transactions are malformed.
@@ -130,7 +135,7 @@ type BlockData struct {
 	AddressPreimages    map[apiTypes.Address]*AddressPreimageData
 	TokenBalanceChanges map[TokenChangeKey]*big.Int
 	PossibleTokens      map[apiTypes.Address]*evm.EVMPossibleToken // key is oasis bech32 address
-	PossibleNFTs        map[NFTKey]struct{}
+	PossibleNFTs        map[NFTKey]*PossibleNFT
 }
 
 // Function naming conventions in this file:
@@ -248,11 +253,24 @@ func registerRelatedEthAddress(addressPreimages map[apiTypes.Address]*AddressPre
 	return addr, nil
 }
 
-func registerNFTExist(possibleNFTs map[NFTKey]struct{}, contractAddr apiTypes.Address, tokenID *big.Int) {
+func findPossibleNFT(possibleNFTs map[NFTKey]*PossibleNFT, contractAddr apiTypes.Address, tokenID *big.Int) *PossibleNFT {
 	key := NFTKey{contractAddr, tokenID}
-	if _, ok := possibleNFTs[key]; !ok {
-		possibleNFTs[key] = struct{}{}
+	possibleNFT, ok := possibleNFTs[key]
+	if !ok {
+		possibleNFT = &PossibleNFT{}
+		possibleNFTs[key] = possibleNFT
 	}
+	return possibleNFT
+}
+
+func registerNFTExist(nftChanges map[NFTKey]*PossibleNFT, contractAddr apiTypes.Address, tokenID *big.Int) {
+	findPossibleNFT(nftChanges, contractAddr, tokenID)
+}
+
+func registerNFTTransfer(nftChanges map[NFTKey]*PossibleNFT, contractAddr apiTypes.Address, tokenID *big.Int, newOwner apiTypes.Address) {
+	possibleNFT := findPossibleNFT(nftChanges, contractAddr, tokenID)
+	possibleNFT.NumTransfers++
+	possibleNFT.NewOwner = &newOwner
 }
 
 func findTokenChange(tokenChanges map[TokenChangeKey]*big.Int, contractAddr apiTypes.Address, accountAddr apiTypes.Address) *big.Int {
@@ -284,7 +302,7 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 		AddressPreimages:    map[apiTypes.Address]*AddressPreimageData{},
 		TokenBalanceChanges: map[TokenChangeKey]*big.Int{},
 		PossibleTokens:      map[apiTypes.Address]*evm.EVMPossibleToken{},
-		PossibleNFTs:        map[NFTKey]struct{}{},
+		PossibleNFTs:        map[NFTKey]*PossibleNFT{},
 	}
 
 	// Extract info from non-tx events.
@@ -930,8 +948,10 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 					tokenID.SetBytes(tokenIDU256)
 					fromZero := bytes.Equal(fromEthAddr, uncategorized.ZeroEthAddr)
 					toZero := bytes.Equal(toEthAddr, uncategorized.ZeroEthAddr)
+					var fromAddr, toAddr apiTypes.Address
 					if !fromZero {
-						fromAddr, err2 := registerRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, fromEthAddr)
+						var err2 error
+						fromAddr, err2 = registerRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, fromEthAddr)
 						if err2 != nil {
 							return fmt.Errorf("from: %w", err2)
 						}
@@ -939,14 +959,14 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 						registerTokenDecrease(blockData.TokenBalanceChanges, eventAddr, fromAddr, big.NewInt(1))
 					}
 					if !toZero {
-						toAddr, err2 := registerRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, toEthAddr)
+						var err2 error
+						toAddr, err2 = registerRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, toEthAddr)
 						if err2 != nil {
 							return fmt.Errorf("to: %w", err2)
 						}
 						eventData.RelatedAddresses[toAddr] = true
 						registerTokenIncrease(blockData.TokenBalanceChanges, eventAddr, toAddr, big.NewInt(1))
 					}
-					// TODO: Reckon ownership.
 					if _, ok := blockData.PossibleTokens[eventAddr]; !ok {
 						blockData.PossibleTokens[eventAddr] = &evm.EVMPossibleToken{}
 					}
@@ -967,6 +987,8 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 						pt.Mutated = true
 					}
 					registerNFTExist(blockData.PossibleNFTs, eventAddr, tokenID)
+					// Mints, burns, and zero-value transfers all count as transfers.
+					registerNFTTransfer(blockData.PossibleNFTs, eventAddr, tokenID, toAddr)
 					eventData.EvmLogName = evmabi.ERC721.Events["Transfer"].Name
 					eventData.EvmLogSignature = ethCommon.BytesToHash(event.Topics[0])
 					eventData.EvmLogParams = []*apiTypes.EvmEventParam{
