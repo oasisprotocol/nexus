@@ -3,7 +3,6 @@ package common
 import (
 	"encoding/hex"
 	"math/big"
-	"strings"
 	"testing"
 
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
@@ -59,8 +58,8 @@ func decodeExpectCall(
 	require.NoError(t, err)
 	require.Equal(t, expectedDataBytes, body.Data)
 	require.Len(t, tx.AuthInfo.SignerInfo, 1)
-	from0xChecksummed := helpers.EthAddressFromPubKey(*tx.AuthInfo.SignerInfo[0].AddressSpec.Signature.Secp256k1Eth)
-	from := strings.ToLower(from0xChecksummed.Hex())[2:]
+	fromECAddr := helpers.EthAddressFromPubKey(*tx.AuthInfo.SignerInfo[0].AddressSpec.Signature.Secp256k1Eth)
+	from := hex.EncodeToString(fromECAddr[:])
 	require.Equal(t, expected.from, from)
 	require.Equal(t, expected.nonce, tx.AuthInfo.SignerInfo[0].Nonce)
 	feeAmount := quantity.NewFromUint64(expected.gasLimit)
@@ -92,8 +91,8 @@ func decodeExpectCreate(
 	require.NoError(t, err)
 	require.Equal(t, expectedInitCodeBytes, body.InitCode)
 	require.Len(t, tx.AuthInfo.SignerInfo, 1)
-	from0xChecksummed := helpers.EthAddressFromPubKey(*tx.AuthInfo.SignerInfo[0].AddressSpec.Signature.Secp256k1Eth)
-	from := strings.ToLower(from0xChecksummed.Hex())[2:]
+	fromECAddr := helpers.EthAddressFromPubKey(*tx.AuthInfo.SignerInfo[0].AddressSpec.Signature.Secp256k1Eth)
+	from := hex.EncodeToString(fromECAddr[:])
 	require.Equal(t, expected.from, from)
 	require.Equal(t, expected.nonce, tx.AuthInfo.SignerInfo[0].Nonce)
 	feeAmount := quantity.NewFromUint64(expected.gasLimit)
@@ -123,9 +122,8 @@ func decodeExpectFromMismatch(
 	require.NoError(t, err)
 	t.Logf("%#v\n", tx)
 	require.Len(t, tx.AuthInfo.SignerInfo, 1)
-	from0xChecksummed := helpers.EthAddressFromPubKey(*tx.AuthInfo.SignerInfo[0].AddressSpec.Signature.Secp256k1Eth)
-	fromChecksummed := from0xChecksummed[2:]
-	from := strings.ToLower(string(fromChecksummed))
+	fromECAddr := helpers.EthAddressFromPubKey(*tx.AuthInfo.SignerInfo[0].AddressSpec.Signature.Secp256k1Eth)
+	from := hex.EncodeToString(fromECAddr[:])
 	require.NotEqual(t, unexpectedFrom, from)
 }
 
