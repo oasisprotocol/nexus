@@ -156,7 +156,7 @@ func VisitSdkEvent(event *nodeapi.RuntimeEvent, handler *SdkEventHandler) error 
 func VisitSdkEvents(events []nodeapi.RuntimeEvent, handler *SdkEventHandler) error {
 	for i := range events {
 		if err := VisitSdkEvent(&events[i], handler); err != nil {
-			return fmt.Errorf("event %d: %w", i, err)
+			return fmt.Errorf("event %d: %w; raw event: %+v", i, err, events[i])
 		}
 	}
 	return nil
