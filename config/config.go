@@ -98,10 +98,17 @@ func (cfg *AnalysisConfig) Validate() error {
 			return err
 		}
 	}
-	if cfg.Analyzers.NodeStats != nil {
-		if cfg.Analyzers.NodeStats.Interval == 0 {
-			cfg.Analyzers.NodeStats.Interval = 3 * time.Second
+	if cfg.Analyzers.EmeraldContractVerifier != nil {
+		if err := cfg.Analyzers.EmeraldContractVerifier.Validate(); err != nil {
+			return err
 		}
+	}
+	if cfg.Analyzers.SapphireContractVerifier != nil {
+		if err := cfg.Analyzers.SapphireContractVerifier.Validate(); err != nil {
+			return err
+		}
+	}
+	if cfg.Analyzers.NodeStats != nil {
 		if err := cfg.Analyzers.NodeStats.Validate(); err != nil {
 			return err
 		}
@@ -111,19 +118,7 @@ func (cfg *AnalysisConfig) Validate() error {
 			return err
 		}
 	}
-	if cfg.Analyzers.EVMContractsVerifier != nil {
-		// Use default interval if not specified.
-		if cfg.Analyzers.EVMContractsVerifier.Interval == 0 {
-			cfg.Analyzers.EVMContractsVerifier.Interval = 5 * time.Minute
-		}
-		// Use chain name from source if not specified.
-		if cfg.Analyzers.EVMContractsVerifier.ChainName == "" && cfg.Source.ChainName != "" {
-			cfg.Analyzers.EVMContractsVerifier.ChainName = cfg.Source.ChainName
-		}
-		if err := cfg.Analyzers.EVMContractsVerifier.Validate(); err != nil {
-			return err
-		}
-	}
+
 	return cfg.Storage.Validate(true /* requireMigrations */)
 }
 
@@ -139,11 +134,12 @@ type AnalyzersList struct {
 	SapphireEvmTokenBalances *EvmTokensAnalyzerConfig       `koanf:"evm_token_balances_sapphire"`
 	EmeraldContractCode      *EvmContractCodeAnalyzerConfig `koanf:"evm_contract_code_emerald"`
 	SapphireContractCode     *EvmContractCodeAnalyzerConfig `koanf:"evm_contract_code_sapphire"`
+	EmeraldContractVerifier  *EVMContractVerifierConfig     `koanf:"evm_contract_verifier_emerald"`
+	SapphireContractVerifier *EVMContractVerifierConfig     `koanf:"evm_contract_verifier_sapphire"`
 
-	MetadataRegistry     *MetadataRegistryConfig     `koanf:"metadata_registry"`
-	NodeStats            *NodeStatsConfig            `koanf:"node_stats"`
-	AggregateStats       *AggregateStatsConfig       `koanf:"aggregate_stats"`
-	EVMContractsVerifier *EVMContractsVerifierConfig `koanf:"evm_contracts_verifier"`
+	MetadataRegistry *MetadataRegistryConfig `koanf:"metadata_registry"`
+	NodeStats        *NodeStatsConfig        `koanf:"node_stats"`
+	AggregateStats   *AggregateStatsConfig   `koanf:"aggregate_stats"`
 }
 
 // SourceConfig has some controls about what chain we're analyzing and how to connect.
@@ -367,18 +363,51 @@ func (r BlockRange) Validate() error {
 	return nil
 }
 
-type IntervalBasedAnalyzerConfig struct {
-	// Interval is the time interval at which to run the analyzer.
+type ItemBasedAnalyzerConfig struct {
+	// BatchSize determines the maximum number of items the item analyzer
+	// processes per batch. This is relevant only when the analyzer
+	// work queue is sufficiently long, most often when the analyzer is first enabled after
+	// the block analyzers have been running for some time.
+	//
+	// Optimal value depends on the item processing speed. Ideally, it should
+	// be set to the number of items that can be processed within 60 seconds.
+	// Note that for some items, the processor will request information from out-of-band
+	// sources such as Sourcify/Github. Care should be taken not to flood them
+	// with too many requests.
+	//
+	// Uses default value of 20 if unset/set to 0.
+	BatchSize uint64 `koanf:"batch_size"`
+
+	// If StopOnEmptyQueue is true, the analyzer will exit the main processing loop when
+	// there are no items left in the work queue. This is useful during testing when
+	// 1) The number of items in the queue is determinate
+	// 2) We want the analyzer to naturally terminate after processing all available work items.
+	//
+	// Defaults to false.
+	StopOnEmptyQueue bool `koanf:"stop_on_empty_queue"`
+
+	// If Interval is set, the analyzer will process batches at a fixed cadence specified by Interval.
+	// Otherwise, the analyzer will use an adaptive backoff to determine the delay between
+	// batches. Note that the backoff will attempt to run as fast as possible.
 	Interval time.Duration `koanf:"interval"`
+
+	// InterItemDelay determines the length of time the analyzer waits between spawning
+	// new goroutines to process items within a batch. This is useful for cases where
+	// processItem() makes out of band requests to rate limited resources.
+	InterItemDelay time.Duration `koanf:"inter_item_delay"`
 }
 
-type EvmTokensAnalyzerConfig struct{}
+type EvmTokensAnalyzerConfig struct {
+	ItemBasedAnalyzerConfig `koanf:",squash"`
+}
 
-type EvmContractCodeAnalyzerConfig struct{}
+type EvmContractCodeAnalyzerConfig struct {
+	ItemBasedAnalyzerConfig `koanf:",squash"`
+}
 
-// EVMContractsVerifierConfig is the configuration for the EVM contracts verifier analyzer.
-type EVMContractsVerifierConfig struct {
-	IntervalBasedAnalyzerConfig `koanf:",squash"`
+// EVMContractVerifierConfig is the configuration for the EVM contracts verifier analyzer.
+type EVMContractVerifierConfig struct {
+	ItemBasedAnalyzerConfig `koanf:",squash"`
 
 	// ChainName is the name of the chain (e.g. mainnet/testnet).
 	// The analyzer only supports testnet/mainnet chains.
@@ -389,16 +418,13 @@ type EVMContractsVerifierConfig struct {
 }
 
 // Validate validates the evm contracts verifier config.
-func (cfg *EVMContractsVerifierConfig) Validate() error {
-	if cfg.Interval < time.Minute {
-		return fmt.Errorf("evm contracts verifier interval must be at least 1 minute to meet Sourcify rate limits")
-	}
+func (cfg *EVMContractVerifierConfig) Validate() error {
 	return nil
 }
 
 // MetadataRegistryConfig is the configuration for the metadata registry analyzer.
 type MetadataRegistryConfig struct {
-	IntervalBasedAnalyzerConfig `koanf:",squash"`
+	ItemBasedAnalyzerConfig `koanf:",squash"`
 }
 
 // Validate validates the configuration.
@@ -411,12 +437,12 @@ func (cfg *MetadataRegistryConfig) Validate() error {
 
 // NodeStatsConfig is the configuration for the node stats analyzer.
 type NodeStatsConfig struct {
-	IntervalBasedAnalyzerConfig `koanf:",squash"`
+	ItemBasedAnalyzerConfig `koanf:",squash"`
 }
 
 func (cfg *NodeStatsConfig) Validate() error {
-	if cfg.Interval < time.Second || cfg.Interval > 6*time.Second {
-		return fmt.Errorf("node stats interval must be between 1 and 6 seconds")
+	if cfg.Interval > 6*time.Second {
+		return fmt.Errorf("node stats interval must be less than or equal to the block time of 6 seconds")
 	}
 	return nil
 }

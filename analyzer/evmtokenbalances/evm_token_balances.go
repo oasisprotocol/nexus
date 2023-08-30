@@ -4,18 +4,15 @@ import (
 	"context"
 	"fmt"
 	"math/big"
-	"time"
-
-	"github.com/prometheus/client_golang/prometheus"
-	"golang.org/x/sync/errgroup"
 
 	sdkConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 
 	"github.com/oasisprotocol/nexus/analyzer"
+	"github.com/oasisprotocol/nexus/analyzer/item"
 	"github.com/oasisprotocol/nexus/analyzer/queries"
 	"github.com/oasisprotocol/nexus/analyzer/runtime/evm"
-	"github.com/oasisprotocol/nexus/analyzer/util"
 	"github.com/oasisprotocol/nexus/common"
+	"github.com/oasisprotocol/nexus/config"
 	"github.com/oasisprotocol/nexus/log"
 	"github.com/oasisprotocol/nexus/storage"
 	"github.com/oasisprotocol/nexus/storage/client"
@@ -76,41 +73,42 @@ import (
 const (
 	//nolint:gosec // thinks this is a hardcoded credential
 	evmTokenBalancesAnalyzerPrefix = "evm_token_balances_"
-	maxDownloadBatch               = 20
-	downloadTimeout                = 61 * time.Second
 )
 
-type main struct {
-	runtime           common.Runtime
-	runtimeMetadata   *sdkConfig.ParaTime
-	source            nodeapi.RuntimeApiLite
-	target            storage.TargetStorage
-	logger            *log.Logger
-	queueLengthMetric prometheus.Gauge
+type processor struct {
+	runtime         common.Runtime
+	runtimeMetadata *sdkConfig.ParaTime
+	source          nodeapi.RuntimeApiLite
+	target          storage.TargetStorage
+	logger          *log.Logger
 }
 
-var _ analyzer.Analyzer = (*main)(nil)
+var _ item.ItemProcessor[*StaleTokenBalance] = (*processor)(nil)
 
-func NewMain(
+func NewAnalyzer(
 	runtime common.Runtime,
+	cfg config.ItemBasedAnalyzerConfig,
 	runtimeMetadata *sdkConfig.ParaTime,
 	sourceClient nodeapi.RuntimeApiLite,
 	target storage.TargetStorage,
 	logger *log.Logger,
 ) (analyzer.Analyzer, error) {
-	m := &main{
+	logger = logger.With("analyzer", evmTokenBalancesAnalyzerPrefix+runtime)
+	p := &processor{
 		runtime:         runtime,
 		runtimeMetadata: runtimeMetadata,
 		source:          sourceClient,
 		target:          target,
-		logger:          logger.With("analyzer", evmTokenBalancesAnalyzerPrefix+runtime),
-		queueLengthMetric: prometheus.NewGauge(prometheus.GaugeOpts{
-			Name: fmt.Sprintf("%s%s_queue_length", evmTokenBalancesAnalyzerPrefix, runtime),
-			Help: "count of stale analysis.evm_token_balances rows",
-		}),
+		logger:          logger,
 	}
-	prometheus.MustRegister(m.queueLengthMetric)
-	return m, nil
+
+	return item.NewAnalyzer[*StaleTokenBalance](
+		evmTokenBalancesAnalyzerPrefix+string(runtime),
+		cfg,
+		p,
+		target,
+		logger,
+	)
 }
 
 type StaleTokenBalance struct {
@@ -127,11 +125,11 @@ type StaleTokenBalance struct {
 	DownloadRound                uint64
 }
 
-func (m main) getStaleTokenBalances(ctx context.Context, limit int) ([]*StaleTokenBalance, error) {
+func (p *processor) GetItems(ctx context.Context, limit uint64) ([]*StaleTokenBalance, error) {
 	var staleTokenBalances []*StaleTokenBalance
-	rows, err := m.target.Query(ctx, queries.RuntimeEVMTokenBalanceAnalysisStale,
-		m.runtime,
-		nativeTokenSymbol(m.runtimeMetadata),
+	rows, err := p.target.Query(ctx, queries.RuntimeEVMTokenBalanceAnalysisStale,
+		p.runtime,
+		nativeTokenSymbol(p.runtimeMetadata),
 		limit)
 	if err != nil {
 		return nil, fmt.Errorf("querying stale token balances: %w", err)
@@ -161,7 +159,7 @@ func (m main) getStaleTokenBalances(ctx context.Context, limit int) ([]*StaleTok
 	return staleTokenBalances, nil
 }
 
-func (m main) processStaleTokenBalance(ctx context.Context, batch *storage.QueryBatch, staleTokenBalance *StaleTokenBalance) error {
+func (p *processor) ProcessItem(ctx context.Context, batch *storage.QueryBatch, staleTokenBalance *StaleTokenBalance) error {
 	accountEthAddr, err := client.EVMEthAddrFromPreimage(staleTokenBalance.AccountAddrContextIdentifier, staleTokenBalance.AccountAddrContextVersion, staleTokenBalance.AccountAddrData)
 	if err != nil {
 		return fmt.Errorf("account address: %w", err)
@@ -173,11 +171,11 @@ func (m main) processStaleTokenBalance(ctx context.Context, batch *storage.Query
 		// Query native balance.
 		addr := nodeapi.Address{}
 		if err := addr.UnmarshalText([]byte(staleTokenBalance.AccountAddr)); err != nil {
-			m.logger.Error("invalid account address bech32 '%s': %w", staleTokenBalance.AccountAddr, err)
+			p.logger.Error("invalid account address bech32 '%s': %w", staleTokenBalance.AccountAddr, err)
 			// Do not return; mark this token as processed later on in the func, so we remove it from the DB queue.
 			break
 		}
-		balance, err := m.source.GetNativeBalance(ctx, staleTokenBalance.DownloadRound, addr)
+		balance, err := p.source.GetNativeBalance(ctx, staleTokenBalance.DownloadRound, addr)
 		if err != nil {
 			return fmt.Errorf("getting native runtime balance: %w", err)
 		}
@@ -185,20 +183,20 @@ func (m main) processStaleTokenBalance(ctx context.Context, batch *storage.Query
 			correction := (&common.BigInt{}).Sub(&balance.Int, staleTokenBalance.Balance)
 			// Native token balance changes do not produce events, so our dead reckoning
 			// is expected to often be off. Log discrepancies at Info level only.
-			m.logger.Info("correcting reckoned native runtime balance to downloaded balance",
+			p.logger.Info("correcting reckoned native runtime balance to downloaded balance",
 				"account_addr", staleTokenBalance.AccountAddr,
 				"download_round", staleTokenBalance.DownloadRound,
 				"reckoned_balance", staleTokenBalance.Balance.String(),
 				"downloaded_balance", balance.String(),
 			)
 			batch.Queue(queries.RuntimeNativeBalanceUpdate,
-				m.runtime,
+				p.runtime,
 				staleTokenBalance.AccountAddr,
-				nativeTokenSymbol(m.runtimeMetadata),
+				nativeTokenSymbol(p.runtimeMetadata),
 				correction,
 			)
 		} else {
-			m.logger.Debug("native balance: nothing to correct", "account_addr", staleTokenBalance.AccountAddr, "balance", balance)
+			p.logger.Debug("native balance: nothing to correct", "account_addr", staleTokenBalance.AccountAddr, "balance", balance)
 		}
 	default:
 		// All other ERC-X tokens. Query the token contract.
@@ -208,8 +206,8 @@ func (m main) processStaleTokenBalance(ctx context.Context, batch *storage.Query
 		}
 		balanceData, err := evm.EVMDownloadTokenBalance(
 			ctx,
-			m.logger,
-			m.source,
+			p.logger,
+			p.source,
 			staleTokenBalance.DownloadRound,
 			tokenEthAddr,
 			accountEthAddr,
@@ -223,7 +221,7 @@ func (m main) processStaleTokenBalance(ctx context.Context, batch *storage.Query
 				correction := &big.Int{}
 				correction.Sub(balanceData.Balance, staleTokenBalance.Balance)
 				// Can happen when contracts misbehave, or if we haven't indexed all the runtime blocks from the very first one on.
-				m.logger.Warn("correcting reckoned balance of token to downloaded balance",
+				p.logger.Warn("correcting reckoned balance of token to downloaded balance",
 					"token_addr", staleTokenBalance.TokenAddr,
 					"account_addr", staleTokenBalance.AccountAddr,
 					"download_round", staleTokenBalance.DownloadRound,
@@ -232,18 +230,18 @@ func (m main) processStaleTokenBalance(ctx context.Context, batch *storage.Query
 					"correction", correction,
 				)
 				batch.Queue(queries.RuntimeEVMTokenBalanceUpdate,
-					m.runtime,
+					p.runtime,
 					staleTokenBalance.TokenAddr,
 					staleTokenBalance.AccountAddr,
 					correction.String(),
 				)
 			}
 		} else {
-			m.logger.Debug("EVM token balance: nothing to correct", "token_addr", staleTokenBalance.TokenAddr, "account_addr", staleTokenBalance.AccountAddr, "balance", balanceData.Balance)
+			p.logger.Debug("EVM token balance: nothing to correct", "token_addr", staleTokenBalance.TokenAddr, "account_addr", staleTokenBalance.AccountAddr, "balance", balanceData.Balance)
 		}
 	}
 	batch.Queue(queries.RuntimeEVMTokenBalanceAnalysisUpdate,
-		m.runtime,
+		p.runtime,
 		staleTokenBalance.TokenAddr,
 		staleTokenBalance.AccountAddr,
 		staleTokenBalance.DownloadRound,
@@ -251,101 +249,12 @@ func (m main) processStaleTokenBalance(ctx context.Context, batch *storage.Query
 	return nil
 }
 
-func (m main) sendQueueLengthMetric(ctx context.Context) error {
+func (p *processor) QueueLength(ctx context.Context) (int, error) {
 	var queueLength int
-	if err := m.target.QueryRow(ctx, queries.RuntimeEVMTokenBalanceAnalysisStaleCount, m.runtime).Scan(&queueLength); err != nil {
-		return fmt.Errorf("querying number of stale token balances: %w", err)
+	if err := p.target.QueryRow(ctx, queries.RuntimeEVMTokenBalanceAnalysisStaleCount, p.runtime).Scan(&queueLength); err != nil {
+		return 0, fmt.Errorf("querying number of stale token balances: %w", err)
 	}
-	m.queueLengthMetric.Set(float64(queueLength))
-	return nil
-}
-
-func (m main) processBatch(ctx context.Context) (int, error) {
-	staleTokenBalances, err := m.getStaleTokenBalances(ctx, maxDownloadBatch)
-	if err != nil {
-		return 0, fmt.Errorf("getting stale token balances: %w", err)
-	}
-	m.logger.Info("processing", "num_stale_token_balances", len(staleTokenBalances))
-	if len(staleTokenBalances) == 0 {
-		return 0, nil
-	}
-
-	ctxWithTimeout, cancel := context.WithTimeout(ctx, downloadTimeout)
-	defer cancel()
-	group, groupCtx := errgroup.WithContext(ctxWithTimeout)
-
-	batches := make([]*storage.QueryBatch, 0, len(staleTokenBalances))
-
-	for _, stb := range staleTokenBalances {
-		// Redeclare `stb` for unclobbered use within goroutine.
-		staleTokenBalance := stb
-		batch := &storage.QueryBatch{}
-		batches = append(batches, batch)
-		group.Go(func() error {
-			return m.processStaleTokenBalance(groupCtx, batch, staleTokenBalance)
-		})
-	}
-
-	if err := group.Wait(); err != nil {
-		return 0, err
-	}
-
-	batch := &storage.QueryBatch{}
-	for _, b := range batches {
-		batch.Extend(b)
-	}
-	if err := m.target.SendBatch(ctx, batch); err != nil {
-		return 0, fmt.Errorf("sending batch: %w", err)
-	}
-	return len(staleTokenBalances), nil
-}
-
-func (m main) Start(ctx context.Context) {
-	backoff, err := util.NewBackoff(
-		100*time.Millisecond,
-		// Cap the timeout at the expected round time. All runtimes currently have the same round time.
-		6*time.Second,
-	)
-	if err != nil {
-		m.logger.Error("error configuring backoff policy",
-			"err", err,
-		)
-		return
-	}
-
-	for {
-		select {
-		case <-time.After(backoff.Timeout()):
-			// Process another batch of token balances.
-		case <-ctx.Done():
-			m.logger.Warn("shutting down evm_token_balances analyzer", "reason", ctx.Err())
-			return
-		}
-
-		if err := m.sendQueueLengthMetric(ctx); err != nil {
-			m.logger.Warn("error sending queue length", "err", err)
-		}
-
-		numProcessed, err := m.processBatch(ctx)
-		if err != nil {
-			m.logger.Error("error processing batch", "err", err)
-			backoff.Failure()
-			continue
-		}
-
-		if numProcessed == 0 {
-			// Count this as a failure to reduce the polling when we are
-			// running faster than the block analyzer can find new tokens.
-			backoff.Failure()
-			continue
-		}
-
-		backoff.Success()
-	}
-}
-
-func (m main) Name() string {
-	return evmTokenBalancesAnalyzerPrefix + string(m.runtime)
+	return queueLength, nil
 }
 
 func nativeTokenSymbol(sdkPT *sdkConfig.ParaTime) string {

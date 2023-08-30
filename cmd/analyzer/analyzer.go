@@ -23,8 +23,10 @@ import (
 	"github.com/oasisprotocol/nexus/analyzer/evmtokenbalances"
 	"github.com/oasisprotocol/nexus/analyzer/evmtokens"
 	"github.com/oasisprotocol/nexus/analyzer/evmverifier"
+	"github.com/oasisprotocol/nexus/analyzer/metadata_registry"
 	nodestats "github.com/oasisprotocol/nexus/analyzer/node_stats"
 	"github.com/oasisprotocol/nexus/analyzer/runtime"
+	"github.com/oasisprotocol/nexus/analyzer/util"
 	cmdCommon "github.com/oasisprotocol/nexus/cmd/common"
 	"github.com/oasisprotocol/nexus/common"
 	"github.com/oasisprotocol/nexus/config"
@@ -103,6 +105,7 @@ func Init(cfg *config.AnalysisConfig) (*Service, error) {
 		logger.Info("storage wiped")
 	}
 
+	logger.Info("checking if migrations need to be applied...")
 	switch err := RunMigrations(cfg.Storage.Migrations, cfg.Storage.Endpoint); {
 	case err == migrate.ErrNoChange:
 		logger.Info("no migrations needed to be applied")
@@ -326,7 +329,7 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) { //nolint:gocyclo
 			if err1 != nil {
 				return nil, err1
 			}
-			return evmtokens.NewMain(common.RuntimeEmerald, sourceClient, dbClient, logger)
+			return evmtokens.NewAnalyzer(common.RuntimeEmerald, cfg.Analyzers.EmeraldEvmTokens.ItemBasedAnalyzerConfig, sourceClient, dbClient, logger)
 		})
 	}
 	if cfg.Analyzers.SapphireEvmTokens != nil {
@@ -335,7 +338,7 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) { //nolint:gocyclo
 			if err1 != nil {
 				return nil, err1
 			}
-			return evmtokens.NewMain(common.RuntimeSapphire, sourceClient, dbClient, logger)
+			return evmtokens.NewAnalyzer(common.RuntimeSapphire, cfg.Analyzers.SapphireEvmTokens.ItemBasedAnalyzerConfig, sourceClient, dbClient, logger)
 		})
 	}
 	if cfg.Analyzers.EmeraldEvmTokenBalances != nil {
@@ -345,7 +348,7 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) { //nolint:gocyclo
 			if err1 != nil {
 				return nil, err1
 			}
-			return evmtokenbalances.NewMain(common.RuntimeEmerald, runtimeMetadata, sourceClient, dbClient, logger)
+			return evmtokenbalances.NewAnalyzer(common.RuntimeEmerald, cfg.Analyzers.EmeraldEvmTokenBalances.ItemBasedAnalyzerConfig, runtimeMetadata, sourceClient, dbClient, logger)
 		})
 	}
 	if cfg.Analyzers.SapphireEvmTokenBalances != nil {
@@ -355,7 +358,7 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) { //nolint:gocyclo
 			if err1 != nil {
 				return nil, err1
 			}
-			return evmtokenbalances.NewMain(common.RuntimeSapphire, runtimeMetadata, sourceClient, dbClient, logger)
+			return evmtokenbalances.NewAnalyzer(common.RuntimeSapphire, cfg.Analyzers.SapphireEvmTokenBalances.ItemBasedAnalyzerConfig, runtimeMetadata, sourceClient, dbClient, logger)
 		})
 	}
 	if cfg.Analyzers.EmeraldContractCode != nil {
@@ -364,7 +367,7 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) { //nolint:gocyclo
 			if err1 != nil {
 				return nil, err1
 			}
-			return evmcontractcode.NewMain(common.RuntimeEmerald, sourceClient, dbClient, logger)
+			return evmcontractcode.NewAnalyzer(common.RuntimeEmerald, cfg.Analyzers.EmeraldContractCode.ItemBasedAnalyzerConfig, sourceClient, dbClient, logger)
 		})
 	}
 	if cfg.Analyzers.SapphireContractCode != nil {
@@ -373,12 +376,22 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) { //nolint:gocyclo
 			if err1 != nil {
 				return nil, err1
 			}
-			return evmcontractcode.NewMain(common.RuntimeSapphire, sourceClient, dbClient, logger)
+			return evmcontractcode.NewAnalyzer(common.RuntimeSapphire, cfg.Analyzers.SapphireContractCode.ItemBasedAnalyzerConfig, sourceClient, dbClient, logger)
+		})
+	}
+	if cfg.Analyzers.EmeraldContractVerifier != nil {
+		analyzers, err = addAnalyzer(analyzers, err, func() (A, error) {
+			return evmverifier.NewAnalyzer(cfg.Source.ChainName, common.RuntimeEmerald, cfg.Analyzers.EmeraldContractVerifier.ItemBasedAnalyzerConfig, cfg.Analyzers.EmeraldContractVerifier.SourcifyServerUrl, dbClient, logger)
+		})
+	}
+	if cfg.Analyzers.SapphireContractVerifier != nil {
+		analyzers, err = addAnalyzer(analyzers, err, func() (A, error) {
+			return evmverifier.NewAnalyzer(cfg.Source.ChainName, common.RuntimeSapphire, cfg.Analyzers.SapphireContractVerifier.ItemBasedAnalyzerConfig, cfg.Analyzers.SapphireContractVerifier.SourcifyServerUrl, dbClient, logger)
 		})
 	}
 	if cfg.Analyzers.MetadataRegistry != nil {
 		analyzers, err = addAnalyzer(analyzers, err, func() (A, error) {
-			return analyzer.NewMetadataRegistryAnalyzer(cfg.Analyzers.MetadataRegistry, dbClient, logger)
+			return metadata_registry.NewAnalyzer(cfg.Analyzers.MetadataRegistry.ItemBasedAnalyzerConfig, dbClient, logger)
 		})
 	}
 	if cfg.Analyzers.NodeStats != nil {
@@ -387,7 +400,7 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) { //nolint:gocyclo
 			if err1 != nil {
 				return nil, err1
 			}
-			return nodestats.NewMain(cfg.Analyzers.NodeStats, sourceClient, dbClient, logger)
+			return nodestats.NewAnalyzer(cfg.Analyzers.NodeStats.ItemBasedAnalyzerConfig, sourceClient, dbClient, logger)
 		})
 	}
 	if cfg.Analyzers.AggregateStats != nil {
@@ -395,11 +408,7 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) { //nolint:gocyclo
 			return aggregate_stats.NewAggregateStatsAnalyzer(dbClient, logger)
 		})
 	}
-	if cfg.Analyzers.EVMContractsVerifier != nil {
-		analyzers, err = addAnalyzer(analyzers, err, func() (A, error) {
-			return evmverifier.NewEVMVerifierAnalyzer(cfg.Analyzers.EVMContractsVerifier, dbClient, logger)
-		})
-	}
+
 	if err != nil {
 		return nil, err
 	}
@@ -414,16 +423,6 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) { //nolint:gocyclo
 		target:  dbClient,
 		logger:  logger,
 	}, nil
-}
-
-// closingChannel returns a channel that closes when the wait group `wg` is done.
-func closingChannel(wg *sync.WaitGroup) <-chan struct{} {
-	c := make(chan struct{})
-	go func() {
-		wg.Wait()
-		close(c)
-	}()
-	return c
 }
 
 // Start starts the analysis service.
@@ -443,7 +442,7 @@ func (a *Service) Start() {
 			an.Start(ctx)
 		}(an)
 	}
-	fastSyncAnalyzersDone := closingChannel(&fastSyncWg)
+	fastSyncAnalyzersDone := util.ClosingChannel(&fastSyncWg)
 
 	// Prepare slow-sync analyzers (to be started after fast-sync analyzers are done).
 	var wg sync.WaitGroup
@@ -461,7 +460,7 @@ func (a *Service) Start() {
 			}
 		}(an)
 	}
-	analyzersDone := closingChannel(&wg)
+	analyzersDone := util.ClosingChannel(&wg)
 
 	// Trap Ctrl+C and SIGTERM; the latter is issued by Kubernetes to request a shutdown.
 	signalChan := make(chan os.Signal, 1)
