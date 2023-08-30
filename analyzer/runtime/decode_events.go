@@ -90,6 +90,30 @@ func DecodeConsensusAccountsEvent(event *nodeapi.RuntimeEvent) ([]consensusaccou
 		for _, ev := range evs {
 			events = append(events, consensusaccounts.Event{Withdraw: ev})
 		}
+	case consensusaccounts.DelegateEventCode:
+		var evs []*consensusaccounts.DelegateEvent
+		if err := unmarshalSingleOrArray(event.Value, &evs); err != nil {
+			return nil, fmt.Errorf("decode consensus accounts delegate event value: %w", err)
+		}
+		for _, ev := range evs {
+			events = append(events, consensusaccounts.Event{Delegate: ev})
+		}
+	case consensusaccounts.UndelegateStartEventCode:
+		var evs []*consensusaccounts.UndelegateStartEvent
+		if err := unmarshalSingleOrArray(event.Value, &evs); err != nil {
+			return nil, fmt.Errorf("decode consensus accounts undelegate start event value: %w", err)
+		}
+		for _, ev := range evs {
+			events = append(events, consensusaccounts.Event{UndelegateStart: ev})
+		}
+	case consensusaccounts.UndelegateDoneEventCode:
+		var evs []*consensusaccounts.UndelegateDoneEvent
+		if err := unmarshalSingleOrArray(event.Value, &evs); err != nil {
+			return nil, fmt.Errorf("decode consensus accounts undelegate done event value: %w", err)
+		}
+		for _, ev := range evs {
+			events = append(events, consensusaccounts.Event{UndelegateDone: ev})
+		}
 	default:
 		return nil, fmt.Errorf("invalid consensus accounts event code: %v", event.Code)
 	}
