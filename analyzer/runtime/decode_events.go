@@ -12,6 +12,15 @@ import (
 	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
 )
 
+// The methods below largely replicate the logic in the SDK's
+// DecodeEvent() functions in various client-sdk/go/modules/<module>/<module>.go.
+//
+// The main difference is that we inject the `unmarshalSingleOrArray()` call
+// instead of a simple `cbor.Unmarshal()` call. This is because early versions
+// of the SDK CBOR-encoded a single event at a time, while later versions
+// encode an array of events. We want to support both so we can index the entire
+// history.
+
 func DecodeCoreEvent(event *nodeapi.RuntimeEvent) ([]core.Event, error) {
 	if event.Module != core.ModuleName {
 		return nil, nil
