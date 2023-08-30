@@ -35,7 +35,11 @@ const (
 // that are primarily intended for tracking EVM tokens (= contract-based tokens).
 const NativeRuntimeTokenAddress = "oasis1runt1menat1vet0ken0000000000000000000000"
 
+// A contract that "looks like" a token contract, e.g. because it emitted a Transfer event.
 type EVMPossibleToken struct {
+	// True if a mutable property of the token (e.g. total_supply) has changed and this
+	// module wants to indicate that the contract should be queried to get the new value
+	// of the mutable property (or ideally just verify it if we'll also dead-reckon it).
 	Mutated            bool
 	TotalSupplyChange  big.Int
 	NumTransfersChange uint64

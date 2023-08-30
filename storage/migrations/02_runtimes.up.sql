@@ -198,8 +198,18 @@ CREATE TABLE chain.evm_tokens
   -- NOT an uint because a non-conforming token contract could issue a fake burn event,
   -- causing a negative dead-reckoned total_supply.
   total_supply uint_numeric -- changed to NUMERIC(1000,0) in 09_evm_token_total_supply.up.sql
+  
   -- Added in 14_evm_token_transfers.up.sql
   -- num_transfers UINT63 NOT NULL DEFAULT 0,
+  
+  -- Added in 18_refactor_dead_reckoning.up.go
+  -- Block analyzer bumps this when it sees the mutable fields of the token
+  -- change (e.g. total supply) based on dead reckoning.
+  -- last_mutate_round UINT63 NOT NULL,
+  
+  -- Added in 18_refactor_dead_reckoning.up.go
+  -- Token analyzer bumps this when it downloads info about the token.
+  -- last_download_round UINT63
 );
 
 CREATE TABLE chain.evm_token_analysis  -- Moved to analysis.evm_tokens in 06_analysis_schema.up.sql

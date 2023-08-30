@@ -305,29 +305,27 @@ func (m *processor) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 		batch.Queue(queries.AddressPreimageInsert, addr, preimageData.ContextIdentifier, preimageData.ContextVersion, preimageData.Data)
 	}
 
-	// Insert EVM token addresses.
+	// Insert EVM token addresses, and possibly dead-reckon its mutable properties (total_supply and num_transfers).
+	// Implementing totalSupply() is optional for ERC721 contracts, so we have to maintain this dead-reckoned fallback.
 	for addr, possibleToken := range data.PossibleTokens {
 		totalSupplyChange := possibleToken.TotalSupplyChange.String()
 		numTransfersChange := possibleToken.NumTransfersChange
-		if possibleToken.Mutated {
-			batch.Queue(queries.RuntimeEVMTokenAnalysisMutateUpsert, m.runtime, addr, totalSupplyChange, numTransfersChange, data.Header.Round)
-		} else {
-			batch.Queue(queries.RuntimeEVMTokenAnalysisInsert, m.runtime, addr, totalSupplyChange, numTransfersChange, data.Header.Round)
+		lastMutateRound := uint64(0)
+		if possibleToken.Mutated || possibleToken.TotalSupplyChange.Cmp(&big.Int{}) != 0 || possibleToken.NumTransfersChange != 0 {
+			// One of the mutable-and-queriable-from-the-runtime properties has changed in this round; mark that in the DB.
+			// NOTE: If _only_ numTransfers (which we cannot query from the EVM) changed, there's seemingly little point in
+			//       requesting a re-download. But in practice, totalSupply will change without an explicit burn/mint event,
+			//       so it's good to re-download the token anyway.
+			lastMutateRound = data.Header.Round
 		}
-		// Dead reckon total_supply and num_transfers.
-		// Note that total_supply is optional for ERC721 contracts.
-		// If the evm_tokens analyzer is able to fetch the total supply from the node,
-		// it will supersede this, but implementing totalSupply() is optional for ERC721 contracts,
-		// so we have to maintain this dead-reckoned fallback.
-		if numTransfersChange != 0 || possibleToken.TotalSupplyChange.Cmp(&big.Int{}) != 0 {
-			batch.Queue(
-				queries.RuntimeEVMTokenDeltaUpdate,
-				m.runtime,
-				addr,
-				totalSupplyChange,
-				numTransfersChange,
-			)
-		}
+		batch.Queue(
+			queries.RuntimeEVMTokenDeltaUpsert,
+			m.runtime,
+			addr,
+			totalSupplyChange,
+			numTransfersChange,
+			lastMutateRound,
+		)
 	}
 
 	// Update EVM token balances (dead reckoning).

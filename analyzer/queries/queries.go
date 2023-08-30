@@ -511,78 +511,67 @@ var (
 
 	RuntimeEVMTokenAnalysisStale = `
     SELECT
-      token_analysis.token_address,
-      token_analysis.last_download_round,
-      token_analysis.total_supply,
-      token_analysis.num_transfers,
-      evm_tokens.token_type,
-      address_preimages.context_identifier,
-      address_preimages.context_version,
-      address_preimages.address_data,
-      (SELECT MAX(height) FROM analysis.processed_blocks WHERE analyzer = token_analysis.runtime::text AND processed_time IS NOT NULL) AS download_round
-    FROM analysis.evm_tokens AS token_analysis
-    LEFT JOIN chain.evm_tokens USING (runtime, token_address)
-    LEFT JOIN chain.address_preimages ON
-      address_preimages.address = token_analysis.token_address
+      t.token_address,
+      t.last_download_round,
+      t.total_supply,
+      t.num_transfers,
+      t.token_type,
+      ap.context_identifier,
+      ap.context_version,
+      ap.address_data,
+      (SELECT MAX(height) FROM analysis.processed_blocks WHERE analyzer = t.runtime::text AND processed_time IS NOT NULL) AS download_round
+    FROM chain.evm_tokens AS t
+    LEFT JOIN chain.address_preimages AS ap ON
+      ap.address = t.token_address
     WHERE
-      token_analysis.runtime = $1 AND
+      t.runtime = $1 AND
       (
-        token_analysis.last_download_round IS NULL OR
-        token_analysis.last_mutate_round > token_analysis.last_download_round
+        t.last_download_round IS NULL OR
+        t.last_mutate_round > t.last_download_round
       )
     LIMIT $2`
 
 	RuntimeEVMTokenAnalysisStaleCount = `
     SELECT COUNT(*) AS cnt
-    FROM analysis.evm_tokens AS token_analysis
+    FROM chain.evm_tokens AS t
     WHERE
-      token_analysis.runtime = $1 AND
+      t.runtime = $1 AND
       (
-        token_analysis.last_download_round IS NULL OR
-        token_analysis.last_mutate_round > token_analysis.last_download_round
+        t.last_download_round IS NULL OR
+        t.last_mutate_round > t.last_download_round
       )`
 
-	RuntimeEVMTokenAnalysisInsert = `
-    INSERT INTO analysis.evm_tokens (runtime, token_address, total_supply, num_transfers, last_mutate_round)
+	// Upserts a new EVM token, but the column values are treated as deltas (!) to the existing values.
+	// NOTE: Passing a 0 for last_mutate round causes that field to not be updated, effectively signalling
+	//       "this upsert does not create a need for a subsequent download of info from the EVM runtime".
+	RuntimeEVMTokenDeltaUpsert = `
+    INSERT INTO chain.evm_tokens AS old (runtime, token_address, total_supply, num_transfers, last_mutate_round)
       VALUES ($1, $2, $3, $4, $5)
     ON CONFLICT (runtime, token_address) DO
       UPDATE SET
-        num_transfers = analysis.evm_tokens.num_transfers + $4`
+        total_supply = old.total_supply + $3,
+        num_transfers = old.num_transfers + $4,
+        last_mutate_round = GREATEST(old.last_mutate_round, $5)`
 
-	RuntimeEVMTokenAnalysisMutateUpsert = `
-    INSERT INTO analysis.evm_tokens (runtime, token_address, total_supply, num_transfers, last_mutate_round)
-      VALUES ($1, $2, $3, $4, $5)
+	// Upserts a new EVM token with information that was downloaded from the EVM runtime (as opposed to dead-reckoned).
+	RuntimeEVMTokenDownloadedUpsert = `
+    INSERT INTO chain.evm_tokens (runtime, token_address, token_type, token_name, symbol, decimals, total_supply, last_download_round)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
     ON CONFLICT (runtime, token_address) DO
       UPDATE SET
-        total_supply = analysis.evm_tokens.total_supply + $3,
-        num_transfers = analysis.evm_tokens.num_transfers + $4,
-        last_mutate_round = excluded.last_mutate_round`
+        token_type = excluded.token_type,
+        token_name = excluded.token_name,
+        symbol = excluded.symbol,
+        decimals = excluded.decimals,
+        total_supply = excluded.total_supply,
+        last_download_round = excluded.last_download_round`
 
-	RuntimeEVMTokenAnalysisUpdate = `
-    UPDATE analysis.evm_tokens
-    SET
-      last_download_round = $3
-    WHERE
-      runtime = $1 AND
-      token_address = $2`
-
-	RuntimeEVMTokenInsert = `
-    INSERT INTO chain.evm_tokens (runtime, token_address, token_type, token_name, symbol, decimals, total_supply, num_transfers)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
-
-	RuntimeEVMTokenTotalSupplyUpdate = `
+	// Updates the total_supply of an EVM token with information that was downloaded from the EVM runtime (as opposed to dead-reckoned).
+	RuntimeEVMTokenDownloadedTotalSupplyUpdate = `
     UPDATE chain.evm_tokens
     SET
-      total_supply = $3
-    WHERE
-      runtime = $1 AND
-      token_address = $2`
-
-	RuntimeEVMTokenDeltaUpdate = `
-    UPDATE chain.evm_tokens
-    SET
-      total_supply = total_supply + $3,
-      num_transfers = num_transfers + $4
+      total_supply = $3,
+      last_download_round = $4
     WHERE
       runtime = $1 AND
       token_address = $2`
@@ -619,6 +608,7 @@ var (
       LEFT JOIN chain.address_preimages AS account_preimage ON
         account_preimage.address = balance_analysis.account_address
       WHERE
+        evm_tokens.token_type IS NOT NULL AND
         balance_analysis.runtime = $1 AND
         (
           balance_analysis.last_download_round IS NULL OR

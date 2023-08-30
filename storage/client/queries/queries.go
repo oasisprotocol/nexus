@@ -413,7 +413,7 @@ const (
 			CASE -- NOTE: There are three queries that use this CASE via copy-paste; edit both if changing.
 				WHEN tokens.token_type = 20 THEN 'ERC20'
 				WHEN tokens.token_type = 721 THEN 'ERC721'
-				ELSE NULL -- Our openapi spec doesn't allow us to output this, but better this than a null value (which causes nil dereference)
+				ELSE NULL
 			END AS token_type,
 			tokens.decimals
 		FROM chain.runtime_events as evs
@@ -426,7 +426,8 @@ const (
 			preimages.context_version = 0
 		LEFT JOIN chain.evm_tokens as tokens ON
 			(evs.runtime=tokens.runtime) AND
-			(preimages.address=tokens.token_address)
+			(preimages.address=tokens.token_address) AND
+			(tokens.token_type IS NOT NULL) -- exclude token _candidates_ that we haven't inspected yet; we have no info about them (name, decimals, etc)
 		WHERE
 			(evs.runtime = $1) AND
 			($2::bigint IS NULL OR evs.round = $2::bigint) AND
@@ -506,6 +507,7 @@ const (
 			(tokens.runtime = $1) AND
 			($2::oasis_addr IS NULL OR tokens.token_address = $2::oasis_addr) AND
 			($3::text IS NULL OR tokens.token_name ILIKE '%' || $3 || '%' OR tokens.symbol ILIKE '%' || $3 || '%') AND
+			tokens.token_type IS NOT NULL AND -- exclude token _candidates_ that we haven't inspected yet			
 			tokens.token_type != 0 -- exclude unknown-type tokens; they're often just contracts that emitted Transfer events but don't expose the token ticker, name, balance etc.
 		ORDER BY num_holders DESC
 		LIMIT $4::bigint
@@ -556,6 +558,7 @@ const (
 		JOIN chain.evm_tokens         AS tokens USING (runtime, token_address)
 		WHERE runtime = $1 AND
 			balances.account_address = $2::text AND
+			tokens.token_type IS NOT NULL AND -- exclude token _candidates_ that we haven't inspected yet
 			tokens.token_type != 0 AND -- exclude unknown-type tokens; they're often just contracts that emitted Transfer events but don't expose the token ticker, name, balance etc.
 			balances.balance != 0
 		ORDER BY balance DESC
