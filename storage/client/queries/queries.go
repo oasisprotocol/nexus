@@ -509,7 +509,7 @@ const (
 			($3::text IS NULL OR tokens.token_name ILIKE '%' || $3 || '%' OR tokens.symbol ILIKE '%' || $3 || '%') AND
 			tokens.token_type IS NOT NULL AND -- exclude token _candidates_ that we haven't inspected yet			
 			tokens.token_type != 0 -- exclude unknown-type tokens; they're often just contracts that emitted Transfer events but don't expose the token ticker, name, balance etc.
-		ORDER BY num_holders DESC
+		ORDER BY num_holders DESC, contract_addr
 		LIMIT $4::bigint
 		OFFSET $5::bigint`
 
