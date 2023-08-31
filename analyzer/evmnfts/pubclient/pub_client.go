@@ -10,6 +10,8 @@ import (
 	"time"
 
 	coreCommon "github.com/oasisprotocol/oasis-core/go/common"
+
+	"github.com/oasisprotocol/nexus/analyzer/evmnfts/httpmisc"
 )
 
 // Use this package for connecting to untrusted URLs.
@@ -83,17 +85,9 @@ var client = &http.Client{
 		TLSHandshakeTimeout:   10 * time.Second,
 		ExpectContinueTimeout: 1 * time.Second,
 	},
-	Timeout: 30 * time.Second,
-}
-
-func getWithContextWithClient(ctx context.Context, client *http.Client, url string) (*http.Response, error) {
-	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
-	if err != nil {
-		return nil, err
-	}
-	return client.Do(req)
+	Timeout: httpmisc.ClientTimeout,
 }
 
 func GetWithContext(ctx context.Context, url string) (*http.Response, error) {
-	return getWithContextWithClient(ctx, client, url)
+	return httpmisc.GetWithContextWithClient(ctx, client, url)
 }

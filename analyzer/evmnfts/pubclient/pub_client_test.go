@@ -8,6 +8,8 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+
+	"github.com/oasisprotocol/nexus/analyzer/evmnfts/httpmisc"
 )
 
 func wasteResp(resp *http.Response) error {
@@ -58,11 +60,11 @@ func TestMisc(t *testing.T) {
 	ctx := context.Background()
 
 	// Default client should reach local server. This makes sure the test server is working.
-	resp, err := getWithContextWithClient(ctx, http.DefaultClient, "http://localhost:8001/test.json")
+	resp, err := httpmisc.GetWithContextWithClient(ctx, http.DefaultClient, "http://localhost:8001/test.json")
 	requireNoErrorAndWaste(t, resp, err)
 	require.True(t, requested)
 	requested = false
-	resp, err = getWithContextWithClient(ctx, http.DefaultClient, "http://[::1]:8001/test.json")
+	resp, err = httpmisc.GetWithContextWithClient(ctx, http.DefaultClient, "http://[::1]:8001/test.json")
 	requireNoErrorAndWaste(t, resp, err)
 	require.True(t, requested)
 	requested = false
