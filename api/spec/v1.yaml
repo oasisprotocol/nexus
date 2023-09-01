@@ -1175,9 +1175,10 @@ components:
           description: The RFC 3339 formatted consensus time of when the most recently indexed block was produced.
           example: *iso_timestamp_2
         latest_update:
-          type: string
-          description: The elapsed time duration since Nexus processed the latest block.
-          example: *time_duration_1
+          type: integer
+          format: int64
+          description: The number of milliseconds since Nexus processed the latest block.
+          example: 352
 
     BlockList:
       allOf:
@@ -2480,9 +2481,10 @@ components:
           description: The RFC 3339 formatted consensus time of when the latest indexed block for this runtime was produced.
           example: *iso_timestamp_2
         latest_update:
-          type: string
-          description: The elapsed time duration since Nexus processed the latest block.
-          example: *time_duration_1
+          type: integer
+          format: int64
+          description: The number of milliseconds since Nexus processed the latest block.
+          example: 352
 
     EvmTokenType:
       type: string
