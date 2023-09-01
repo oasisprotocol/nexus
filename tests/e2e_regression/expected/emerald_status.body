@@ -2,5 +2,5 @@
   "active_nodes": 28,
   "latest_block": 1003598,
   "latest_block_time": "2022-04-11T13:38:14Z",
-  "latest_update": "UNINTERESTING"
+  "latest_update_age_ms": "UNINTERESTING"
 }
