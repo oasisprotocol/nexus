@@ -191,7 +191,7 @@ func (c *StorageClient) Status(ctx context.Context) (*Status, error) {
 	}
 	// Calculate the elapsed time since the last block was processed. We assume that the analyzer and api server
 	// are running on VMs with synced clocks.
-	s.LatestUpdate = time.Since(latestBlockUpdate).Milliseconds()
+	s.LatestUpdateAgeMs = time.Since(latestBlockUpdate).Milliseconds()
 
 	// Query latest indexed block for info.
 	err = c.db.QueryRow(
@@ -1607,7 +1607,7 @@ func (c *StorageClient) RuntimeStatus(ctx context.Context) (*RuntimeStatus, erro
 	}
 	// Calculate the elapsed time since the last block was processed. We assume that the analyzer and api server
 	// are running on VMs with synced clocks.
-	s.LatestUpdate = time.Since(latest_block_update).Milliseconds()
+	s.LatestUpdateAgeMs = time.Since(latest_block_update).Milliseconds()
 
 	// Query latest block for info.
 	if err := c.db.QueryRow(

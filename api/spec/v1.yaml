@@ -1155,7 +1155,7 @@ components:
 
     Status:
       type: object
-      required: [latest_block, latest_node_block, latest_block_time, latest_update]
+      required: [latest_block, latest_node_block, latest_block_time, latest_update_age_ms]
       properties:
         latest_block:
           type: integer
@@ -1174,7 +1174,7 @@ components:
           format: date-time
           description: The RFC 3339 formatted consensus time of when the most recently indexed block was produced.
           example: *iso_timestamp_2
-        latest_update:
+        latest_update_age_ms:
           type: integer
           format: int64
           description: The number of milliseconds since Nexus processed the latest block.
@@ -2464,7 +2464,7 @@ components:
 
     RuntimeStatus:
       type: object
-      required: [active_nodes, latest_block, latest_block_time, latest_update]
+      required: [active_nodes, latest_block, latest_block_time, latest_update_age_ms]
       properties:
         active_nodes:
           type: integer
@@ -2480,7 +2480,7 @@ components:
           format: date-time
           description: The RFC 3339 formatted consensus time of when the latest indexed block for this runtime was produced.
           example: *iso_timestamp_2
-        latest_update:
+        latest_update_age_ms:
           type: integer
           format: int64
           description: The number of milliseconds since Nexus processed the latest block.
