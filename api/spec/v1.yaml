@@ -1036,6 +1036,30 @@ paths:
                 $ref: '#/components/schemas/TokenHolderList'
         <<: *common_error_responses
 
+  /{runtime}/evm_tokens/{address}/nfts:
+    get:
+      summary: |
+        Returns the list of non-fungible token (NFT) instances of an EVM (ERC-721, ...) token.
+        This endpoint does not verify that `address` is actually an EVM token; if it is not, it will simply return an empty list.
+      parameters:
+        - *limit
+        - *offset
+        - *runtime
+        - in: path
+          name: address
+          required: true
+          schema:
+            <<: *StakingAddressType
+          description: The staking address of the token contract for which to return the NFT instances.
+      responses:
+        '200':
+          description: The requested instances.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvmNftList'
+        <<: *common_error_responses
+
   /{runtime}/accounts/{address}:
     get:
       summary: Returns a runtime account.
@@ -2571,6 +2595,47 @@ components:
             Additional information on verified contracts is available via 
             the `/{runtime}/accounts/{address}` endpoint.
           example: false
+
+    EvmNftList:
+      allOf:
+        - $ref: '#/components/schemas/List'
+        - type: object
+          required: [evm_nfts]
+          properties:
+            evm_nfts:
+              type: array
+              items:
+                $ref: '#/components/schemas/EvmNft'
+              description: A list of L2 EVM NFT (ERC-721, ...) instances.
+          description: A list of NFT instances.
+
+    EvmNft:
+      type: object
+      required:
+        - token
+        - contract_addr
+        - id
+      properties:
+        token:
+          $ref: '#/components/schemas/EvmToken'
+        id:
+          <<: *BigIntType
+        metadata_uri:
+          type: string
+        metadata_accessed:
+          type: string
+        name:
+          type: string
+          description: Identifies the asset to which this NFT represents
+        description:
+          type: string
+          description: Describes the asset to which this NFT represents
+        image:
+          type: string
+          description: |
+            A URI pointing to a resource with mime type image/* representing
+            the asset to which this NFT represents. (Additional
+            non-descriptive text from ERC-721 omitted.)
 
     AccountStats:
       type: object
