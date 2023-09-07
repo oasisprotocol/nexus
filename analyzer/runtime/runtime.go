@@ -270,7 +270,7 @@ func (m *processor) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 			)
 		}
 
-		if (transactionData.Method == "evm.Call" || transactionData.Method == "evm.Create") && transactionData.To != nil {
+		if (transactionData.Method == "evm.Call" || transactionData.Method == "evm.Create") && transactionData.To != nil /* is nil for reverted evm.Create */ {
 			// Dead-reckon gas used for calling contracts
 			batch.Queue(queries.RuntimeAccountGasForCallingUpsert,
 				m.runtime,
