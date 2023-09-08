@@ -123,7 +123,7 @@ func (m *processor) FinalizeFastSync(ctx context.Context, lastFastSyncHeight int
 		m.logger.Info("fetching genesis document before starting with the first block of a chain", "chain_context", r.ChainContext, "genesis_height", r.GenesisHeight)
 		genesisDoc, err = m.source.GenesisDocument(ctx, r.ChainContext)
 	} else {
-		m.logger.Info("fetching state at last fast-sync height, using StateToGenesis; this can take a while, up to an hour on mainnet", "height", lastFastSyncHeight)
+		m.logger.Info("fetching state at last fast-sync height, using StateToGenesis; this can take a while, up to an hour on mainnet", "state_to_genesis_height", lastFastSyncHeight, "chain_genesis_height", r.GenesisHeight, "first_slow_sync_height", firstSlowSyncHeight)
 		genesisDoc, err = m.source.StateToGenesis(ctx, lastFastSyncHeight)
 	}
 	if err != nil {

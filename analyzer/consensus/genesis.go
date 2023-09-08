@@ -75,8 +75,8 @@ ON CONFLICT (id) DO UPDATE SET address = EXCLUDED.address;`
 	queries = append(queries, query)
 
 	// Populate nodes.
-	queries = append(queries, `TRUNCATE chain.nodes CASCADE;`)
-	queries = append(queries, `TRUNCATE chain.runtime_nodes CASCADE;`)
+	queries = append(queries, `DELETE FROM chain.nodes;`)
+	queries = append(queries, `DELETE FROM chain.runtime_nodes;`)
 	query = `INSERT INTO chain.nodes (id, entity_id, expiration, tls_pubkey, tls_next_pubkey, p2p_pubkey, consensus_pubkey, roles)
 VALUES
 `
@@ -339,7 +339,7 @@ ON CONFLICT (address) DO UPDATE SET
 	}
 
 	// Populate allowances.
-	queries = append(queries, `TRUNCATE chain.allowances CASCADE;`)
+	queries = append(queries, `DELETE FROM chain.allowances;`)
 	foundAllowances := false // in case allowances are empty
 
 	query = ""
@@ -409,7 +409,7 @@ ON CONFLICT (delegatee, delegator) DO UPDATE SET
 	queries = append(queries, query)
 
 	// Populate debonding delegations.
-	queries = append(queries, `TRUNCATE chain.debonding_delegations CASCADE;`)
+	queries = append(queries, `DELETE FROM chain.debonding_delegations;`)
 	query = `INSERT INTO chain.debonding_delegations (delegatee, delegator, shares, debond_end)
 VALUES
 `
