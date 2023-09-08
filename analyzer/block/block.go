@@ -26,7 +26,8 @@ const (
 	// Default number of blocks to be processed in a batch.
 	defaultBatchSize = 1_000
 	// Lock expire timeout for blocks (in minutes). Locked blocks not processed within
-	// this time can be picked again.
+	// this time can be picked again. Keep strictly > 1; the analyzer stops processing
+	// blocks before the lock expires, by a safety margin of 1 minute.
 	lockExpiryMinutes = 5
 )
 
@@ -77,13 +78,13 @@ func (b *blockBasedAnalyzer) firstUnprocessedBlock(ctx context.Context) (first u
 	return
 }
 
-// unlockBlock unlocks a block.
-func (b *blockBasedAnalyzer) unlockBlock(ctx context.Context, height uint64) {
+// unlockBlocks unlocks the given blocks.
+func (b *blockBasedAnalyzer) unlockBlocks(ctx context.Context, heights []uint64) {
 	rows, err := b.target.Query(
 		ctx,
-		queries.UnlockBlockForProcessing,
+		queries.UnlockBlocksForProcessing,
 		b.analyzerName,
-		height,
+		heights,
 	)
 	if err == nil {
 		rows.Close()
@@ -218,7 +219,7 @@ func (b *blockBasedAnalyzer) softEnqueueGapsInProcessedBlocks(ctx context.Contex
 		b.logger.Error("failed to soft-enqueue gaps in already-processed blocks", "err", err, "from", b.blockRange.From, "to", b.blockRange.To)
 		return err
 	}
-	b.logger.Error("ensured that any gaps in the already-processed block range can be picked up later", "from", b.blockRange.From, "to", b.blockRange.To)
+	b.logger.Info("ensured that any gaps in the already-processed block range can be picked up later", "from", b.blockRange.From, "to", b.blockRange.To)
 	return nil
 }
 
@@ -309,7 +310,9 @@ func (b *blockBasedAnalyzer) Start(ctx context.Context) {
 			b.logger.Warn("shutting down block analyzer", "reason", ctx.Err())
 			return
 		}
-		batchCtx, batchCtxCancel = context.WithTimeout(ctx, lockExpiryMinutes*time.Minute)
+		// The context for processing the batch of blocks is shorter than the lock expiry.
+		// This is to ensure that the batch is processed before the locks expire.
+		batchCtx, batchCtxCancel = context.WithTimeout(ctx, (lockExpiryMinutes-1)*time.Minute)
 
 		// Pick a batch of blocks to process.
 		b.logger.Info("picking a batch of blocks to process", "from", b.blockRange.From, "to", to, "is_fast_sync", !b.slowSync)
@@ -338,10 +341,13 @@ func (b *blockBasedAnalyzer) Start(ctx context.Context) {
 					// Process the next block
 				case <-batchCtx.Done():
 					b.logger.Info("batch locks expiring; refreshing batch")
+					b.unlockBlocks(ctx, heights) // Locks are _about_ to expire, but are not expired yet. Unlock explicitly so blocks can be grabbed sooner.
 					break
 				case <-ctx.Done():
 					batchCtxCancel()
 					b.logger.Warn("shutting down block analyzer", "reason", ctx.Err())
+					b.unlockBlocks(ctx, heights) // Give others a chance to process our blocks even before their locks implicitly expire
+					b.logger.Info("unlocked db rows", "heights", heights)
 					return
 				}
 			}
@@ -368,8 +374,7 @@ func (b *blockBasedAnalyzer) Start(ctx context.Context) {
 				}
 
 				// Unlock a failed block, so it can be retried sooner.
-				// TODO: Could add a hook to unlock all remaining blocks in the batch on graceful shutdown.
-				b.unlockBlock(ctx, height)
+				b.unlockBlocks(ctx, []uint64{height})
 				continue
 			}
 			cancel()

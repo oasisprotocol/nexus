@@ -22,10 +22,10 @@ var (
       )
     )`
 
-	UnlockBlockForProcessing = `
+	UnlockBlocksForProcessing = `
     UPDATE analysis.processed_blocks
     SET locked_time = '-infinity'
-    WHERE analyzer = $1 AND height = $2`
+    WHERE analyzer = $1 AND height = ANY($2::uint63[]) AND processed_time IS NULL`
 
 	// TakeXactLock acquires an exclusive lock (with lock ID $1), with custom semantics.
 	// The lock is automatically unlocked at the end of the db transaction.
