@@ -74,58 +74,6 @@ VALUES
 ON CONFLICT (id) DO UPDATE SET address = EXCLUDED.address;`
 	queries = append(queries, query)
 
-	// Populate nodes.
-	queries = append(queries, `DELETE FROM chain.nodes;`)
-	queries = append(queries, `DELETE FROM chain.runtime_nodes;`)
-	query = `INSERT INTO chain.nodes (id, entity_id, expiration, tls_pubkey, tls_next_pubkey, p2p_pubkey, consensus_pubkey, roles)
-VALUES
-`
-	queryRt := "" // Query for populating the chain.runtime_nodes table.
-
-	for i, signedNode := range document.Registry.Nodes {
-		var node node.Node
-		if err := signedNode.Open(registry.RegisterNodeSignatureContext, &node); err != nil {
-			return nil, err
-		}
-
-		query += fmt.Sprintf(
-			"\t('%s', '%s', %d, '%s', '%s', '%s', '%s', '%s')",
-			node.ID.String(),
-			node.EntityID.String(),
-			node.Expiration,
-			node.TLS.PubKey.String(),
-			node.TLS.NextPubKey.String(),
-			node.P2P.ID.String(),
-			node.Consensus.ID.String(),
-			node.Roles.String(),
-		)
-		if i != len(document.Registry.Nodes)-1 {
-			query += ",\n"
-		}
-
-		for _, runtime := range node.Runtimes {
-			if queryRt != "" {
-				// There's already a values tuple in the query.
-				queryRt += ",\n"
-			}
-			queryRt += fmt.Sprintf(
-				"\t('%s', '%s')",
-				runtime.ID.String(),
-				node.ID.String(),
-			)
-		}
-	}
-	query += ";"
-	queries = append(queries, query)
-
-	// There might be no runtime_nodes to insert; create a query only if there are.
-	if queryRt != "" {
-		queryRt = `INSERT INTO chain.runtime_nodes(runtime_id, node_id) 
-VALUES
-` + queryRt + ";"
-		queries = append(queries, queryRt)
-	}
-
 	// Populate runtimes.
 	if len(document.Registry.Runtimes) > 0 {
 		query = `INSERT INTO chain.runtimes (id, suspended, kind, tee_hardware, key_manager)
@@ -188,6 +136,58 @@ ON CONFLICT (id) DO UPDATE SET
 	tee_hardware = EXCLUDED.tee_hardware,
 	key_manager = EXCLUDED.key_manager;`
 		queries = append(queries, query)
+	}
+
+	// Populate nodes.
+	queries = append(queries, `DELETE FROM chain.nodes;`)
+	queries = append(queries, `DELETE FROM chain.runtime_nodes;`)
+	query = `INSERT INTO chain.nodes (id, entity_id, expiration, tls_pubkey, tls_next_pubkey, p2p_pubkey, consensus_pubkey, roles)
+VALUES
+`
+	queryRt := "" // Query for populating the chain.runtime_nodes table.
+
+	for i, signedNode := range document.Registry.Nodes {
+		var node node.Node
+		if err := signedNode.Open(registry.RegisterNodeSignatureContext, &node); err != nil {
+			return nil, err
+		}
+
+		query += fmt.Sprintf(
+			"\t('%s', '%s', %d, '%s', '%s', '%s', '%s', '%s')",
+			node.ID.String(),
+			node.EntityID.String(),
+			node.Expiration,
+			node.TLS.PubKey.String(),
+			node.TLS.NextPubKey.String(),
+			node.P2P.ID.String(),
+			node.Consensus.ID.String(),
+			node.Roles.String(),
+		)
+		if i != len(document.Registry.Nodes)-1 {
+			query += ",\n"
+		}
+
+		for _, runtime := range node.Runtimes {
+			if queryRt != "" {
+				// There's already a values tuple in the query.
+				queryRt += ",\n"
+			}
+			queryRt += fmt.Sprintf(
+				"\t('%s', '%s')",
+				runtime.ID.String(),
+				node.ID.String(),
+			)
+		}
+	}
+	query += ";"
+	queries = append(queries, query)
+
+	// There might be no runtime_nodes to insert; create a query only if there are.
+	if queryRt != "" {
+		queryRt = `INSERT INTO chain.runtime_nodes(runtime_id, node_id) 
+VALUES
+` + queryRt + ";"
+		queries = append(queries, queryRt)
 	}
 
 	return queries, nil
