@@ -1554,7 +1554,7 @@ func (c *StorageClient) RuntimeTokenHolders(ctx context.Context, p apiTypes.GetR
 func (c *StorageClient) RuntimeEVMNFTs(ctx context.Context, p apiTypes.GetRuntimeEvmTokensAddressNftsParams, address staking.Address) (*EvmNftList, error) {
 	res, err := c.withTotalCount(
 		ctx,
-		"SELECT 1 WHERE FALSE AND $1 = '' AND $2 = '' LIMIT $3 OFFSET $4", // todo: queries.EvmNfts
+		queries.EvmNfts,
 		runtimeFromCtx(ctx),
 		address,
 		p.Limit,
