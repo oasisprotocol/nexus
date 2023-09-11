@@ -59,7 +59,7 @@ func NewMain(
 		logger:  logger.With("analyzer", evmTokensAnalyzerPrefix+runtime),
 		queueLengthMetric: prometheus.NewGauge(prometheus.GaugeOpts{
 			Name: fmt.Sprintf("%s%s_queue_length", evmTokensAnalyzerPrefix, runtime),
-			Help: "count of stale analysis.evm_tokens rows",
+			Help: "count of stale chain.evm_tokens rows",
 		}),
 	}
 	prometheus.MustRegister(m.queueLengthMetric)
@@ -131,17 +131,12 @@ func (m main) processStaleToken(ctx context.Context, batch *storage.QueryBatch, 
 			return fmt.Errorf("downloading new token %s: %w", staleToken.Addr, err)
 		}
 		// Use the totalSupply downloaded directly from the chain if it exists,
-		// else default to the dead-reckoned value in analysis.evm_tokens.
-		totalSupplyBytes, err := staleToken.TotalSupply.MarshalText()
-		if err != nil {
-			return fmt.Errorf("error converting totalSupply: %w", err)
-		}
-		totalSupply := string(totalSupplyBytes)
-		// If the returned token type is unsupported, it will have zero value token data.
+		// else keep the dead-reckoned value.
+		totalSupply := staleToken.TotalSupply.String()
 		if tokenData.EVMTokenMutableData != nil && tokenData.TotalSupply != nil {
 			totalSupply = tokenData.TotalSupply.String()
 		}
-		batch.Queue(queries.RuntimeEVMTokenInsert,
+		batch.Queue(queries.RuntimeEVMTokenDownloadedUpsert,
 			m.runtime,
 			staleToken.Addr,
 			tokenData.Type,
@@ -149,7 +144,7 @@ func (m main) processStaleToken(ctx context.Context, batch *storage.QueryBatch, 
 			tokenData.Symbol,
 			tokenData.Decimals,
 			totalSupply,
-			staleToken.NumTransfers,
+			staleToken.DownloadRound,
 		)
 	} else if *staleToken.Type != evm.EVMTokenTypeUnsupported {
 		mutable, err := evm.EVMDownloadMutatedToken(
@@ -164,14 +159,14 @@ func (m main) processStaleToken(ctx context.Context, batch *storage.QueryBatch, 
 			return fmt.Errorf("downloading mutated token %s: %w", staleToken.Addr, err)
 		}
 		if mutable != nil && mutable.TotalSupply != nil {
-			batch.Queue(queries.RuntimeEVMTokenTotalSupplyUpdate,
+			batch.Queue(queries.RuntimeEVMTokenDownloadedTotalSupplyUpdate,
 				m.runtime,
 				staleToken.Addr,
 				mutable.TotalSupply.String(),
+				staleToken.DownloadRound,
 			)
 		}
 	}
-	batch.Queue(queries.RuntimeEVMTokenAnalysisUpdate, m.runtime, staleToken.Addr, staleToken.DownloadRound)
 	return nil
 }
 

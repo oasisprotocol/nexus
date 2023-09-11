@@ -1,7 +1,7 @@
 BEGIN;
 
 ALTER TABLE chain.evm_contracts
-    ADD COLUMN gas_used UINT63 NOT NULL DEFAULT 0;
+    ADD COLUMN gas_used UINT63 NOT NULL DEFAULT 0; -- moved to chain.runtime_accounts.gas_for_calling in 18_refactor_dead_reckoning.up.sql
 
 -- Used in contract upserts.
 CREATE INDEX ix_runtime_transactions_to ON chain.runtime_transactions(runtime, "to");

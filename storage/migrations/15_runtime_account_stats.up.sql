@@ -7,6 +7,7 @@ CREATE TABLE chain.runtime_accounts
     PRIMARY KEY (runtime, address),
 
     num_txs UINT63 NOT NULL DEFAULT 0
+    -- gas_for_calling UINT63 NOT NULL DEFAULT 0 -- gas used by txs sent to this address -- added in 18_refactor_dead_reckoning.up.sql
 );
 
 -- Backfill chain.runtime_accounts
