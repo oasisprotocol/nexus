@@ -364,13 +364,38 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 					blockTransactionData.Body = body
 					amount = body.Amount.Amount
 					if body.To != nil {
-						// Beware, this is the address of an account in the consensus
-						// layer, not an account in the runtime that generated this event.
+						// This is the address of an account in the consensus
+						// layer, not an account in the runtime that generated this tx.
 						// We do not register it as a preimage.
 						if to, err = uncategorized.StringifySdkAddress(body.To); err != nil {
 							return fmt.Errorf("to: %w", err)
 						}
 					}
+					return nil
+				},
+				ConsensusAccountsDelegate: func(body *consensusaccounts.Delegate) error {
+					blockTransactionData.Body = body
+					amount = body.Amount.Amount
+					// This is the address of an account in the consensus
+					// layer, not an account in the runtime that generated this tx.
+					// We do not register it as a preimage.
+					if to, err = uncategorized.StringifySdkAddress(&body.To); err != nil {
+						return fmt.Errorf("to: %w", err)
+					}
+					return nil
+				},
+				ConsensusAccountsUndelegate: func(body *consensusaccounts.Undelegate) error {
+					blockTransactionData.Body = body
+					// NOTE: The `from` and `to` addresses have swapped semantics compared to most other txs:
+					// Assume R is a runtime address and C is a consensus address. The inverse of Delegate(from=R, to=C) is Undelegate(from=C, to=R).
+					if _, err := registerRelatedSdkAddress(blockTransactionData.RelatedAccountAddresses, &body.From); err != nil {
+						return fmt.Errorf("from: %w", err)
+					}
+					// The `to` is implicitly the account that created this tx. Ref: https://github.com/oasisprotocol/oasis-sdk/blob/eb97a8162f84ae81d11d805e6dceeeb016841c27/runtime-sdk/src/modules/consensus_accounts/mod.rs#L465-L465
+					to = blockTransactionData.SignerData[0].Address
+					// The `amount` (of tokens) is not contained in the body, only `shares` is. We do not have sufficient information
+					// to convert `shares` to `amount`; we'd need the total amount of shares and tokens in the `from` account.
+					// Assign nothing to `amount`.
 					return nil
 				},
 				EVMCreate: func(body *sdkEVM.Create, ok *[]byte) error {
@@ -455,6 +480,10 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 					}
 
 					// TODO: maybe parse known token methods (ERC-20 etc)
+					return nil
+				},
+				UnknownMethod: func(methodName string) error {
+					logger.Warn("unknown tx method, skipping tx-specific analysis", "tx_method", methodName)
 					return nil
 				},
 			}); err != nil {
@@ -548,15 +577,11 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 				if err1 != nil {
 					return fmt.Errorf("to: %w", err1)
 				}
-				eventRelatedAddresses := map[apiTypes.Address]bool{}
-				for _, addr := range []apiTypes.Address{fromAddr, toAddr} {
-					eventRelatedAddresses[addr] = true
-				}
 				eventData := EventData{
 					Type:             apiTypes.RuntimeEventTypeAccountsTransfer,
 					Body:             event.Transfer,
 					WithScope:        ScopedSdkEvent{Accounts: event},
-					RelatedAddresses: eventRelatedAddresses,
+					RelatedAddresses: map[apiTypes.Address]bool{fromAddr: true, toAddr: true},
 				}
 				extractedEvents = append(extractedEvents, &eventData)
 			}
@@ -616,6 +641,57 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 				}
 				extractedEvents = append(extractedEvents, &eventData)
 				// .To is from another chain, so exclude?
+			}
+			if event.Delegate != nil {
+				fromAddr, err1 := registerRelatedSdkAddress(relatedAccountAddresses, &event.Delegate.From)
+				if err1 != nil {
+					return fmt.Errorf("from: %w", err1)
+				}
+				toAddr, err1 := registerRelatedSdkAddress(relatedAccountAddresses, &event.Delegate.To)
+				if err1 != nil {
+					return fmt.Errorf("to: %w", err1)
+				}
+				eventData := EventData{
+					Type:             apiTypes.RuntimeEventTypeConsensusAccountsDelegate,
+					Body:             event.Delegate,
+					WithScope:        ScopedSdkEvent{ConsensusAccounts: event},
+					RelatedAddresses: map[apiTypes.Address]bool{fromAddr: true, toAddr: true},
+				}
+				extractedEvents = append(extractedEvents, &eventData)
+			}
+			if event.UndelegateStart != nil {
+				fromAddr, err1 := registerRelatedSdkAddress(relatedAccountAddresses, &event.UndelegateStart.From)
+				if err1 != nil {
+					return fmt.Errorf("from: %w", err1)
+				}
+				toAddr, err1 := registerRelatedSdkAddress(relatedAccountAddresses, &event.UndelegateStart.To)
+				if err1 != nil {
+					return fmt.Errorf("to: %w", err1)
+				}
+				eventData := EventData{
+					Type:             apiTypes.RuntimeEventTypeConsensusAccountsUndelegateStart,
+					Body:             event.UndelegateStart,
+					WithScope:        ScopedSdkEvent{ConsensusAccounts: event},
+					RelatedAddresses: map[apiTypes.Address]bool{fromAddr: true, toAddr: true},
+				}
+				extractedEvents = append(extractedEvents, &eventData)
+			}
+			if event.UndelegateDone != nil {
+				fromAddr, err1 := registerRelatedSdkAddress(relatedAccountAddresses, &event.UndelegateDone.From)
+				if err1 != nil {
+					return fmt.Errorf("from: %w", err1)
+				}
+				toAddr, err1 := registerRelatedSdkAddress(relatedAccountAddresses, &event.UndelegateDone.To)
+				if err1 != nil {
+					return fmt.Errorf("to: %w", err1)
+				}
+				eventData := EventData{
+					Type:             apiTypes.RuntimeEventTypeConsensusAccountsUndelegateDone,
+					Body:             event.UndelegateDone,
+					WithScope:        ScopedSdkEvent{ConsensusAccounts: event},
+					RelatedAddresses: map[apiTypes.Address]bool{fromAddr: true, toAddr: true},
+				}
+				extractedEvents = append(extractedEvents, &eventData)
 			}
 			return nil
 		},

@@ -2143,6 +2143,9 @@ components:
         - accounts.mint
         - consensus_accounts.deposit
         - consensus_accounts.withdraw
+        - consensus_accounts.delegate
+        - consensus_accounts.undelegate_start
+        - consensus_accounts.undelegate_done
         - core.gas_used
         - evm.log
       example: *runtime_event_type_1
