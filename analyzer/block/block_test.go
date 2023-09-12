@@ -14,6 +14,7 @@ import (
 	"github.com/oasisprotocol/nexus/analyzer"
 	"github.com/oasisprotocol/nexus/analyzer/block"
 	"github.com/oasisprotocol/nexus/analyzer/queries"
+	"github.com/oasisprotocol/nexus/analyzer/util"
 	analyzerCmd "github.com/oasisprotocol/nexus/cmd/analyzer"
 	"github.com/oasisprotocol/nexus/config"
 	"github.com/oasisprotocol/nexus/log"
@@ -128,16 +129,6 @@ func setupAnalyzer(t *testing.T, testDb *postgres.Client, p *mockProcessor, cfg 
 	return analyzer
 }
 
-// closingChannel returns a channel that closes when the wait group `wg` is done.
-func closingChannel(wg *sync.WaitGroup) <-chan struct{} {
-	c := make(chan struct{})
-	go func() {
-		wg.Wait()
-		close(c)
-	}()
-	return c
-}
-
 // exactlyOneTrue checks a list of boolean values and returns an error unless exactly one true.
 func exactlyOneTrue(bools ...bool) error {
 	count := 0
@@ -173,7 +164,7 @@ func TestFastSyncBlockAnalyzer(t *testing.T) {
 	}()
 
 	// Wait for all analyzers to finish.
-	analyzersDone := closingChannel(&wg)
+	analyzersDone := util.ClosingChannel(&wg)
 	select {
 	case <-time.After(testsTimeout):
 		t.Fatal("timed out waiting for analyzer to finish")
@@ -213,7 +204,7 @@ func TestMultipleFastSyncBlockAnalyzers(t *testing.T) {
 	}
 
 	// Wait for all analyzers to finish.
-	analyzersDone := closingChannel(&wg)
+	analyzersDone := util.ClosingChannel(&wg)
 	select {
 	case <-time.After(testsTimeout):
 		t.Fatal("timed out waiting for analyzer to finish")
@@ -263,7 +254,7 @@ func TestFailingFastSyncBlockAnalyzers(t *testing.T) {
 	}
 
 	// Wait for all analyzers to finish.
-	analyzersDone := closingChannel(&wg)
+	analyzersDone := util.ClosingChannel(&wg)
 	select {
 	case <-time.After(testsTimeout):
 		t.Fatal("timed out waiting for analyzer to finish")
@@ -306,7 +297,7 @@ func TestDistinctFastSyncBlockAnalyzers(t *testing.T) {
 	}
 
 	// Wait for all analyzers to finish.
-	analyzersDone := closingChannel(&wg)
+	analyzersDone := util.ClosingChannel(&wg)
 	select {
 	case <-time.After(testsTimeout):
 		t.Fatal("timed out waiting for analyzer to finish")
@@ -339,7 +330,7 @@ func TestSlowSyncBlockAnalyzer(t *testing.T) {
 	}()
 
 	// Wait for all analyzers to finish.
-	analyzersDone := closingChannel(&wg)
+	analyzersDone := util.ClosingChannel(&wg)
 	select {
 	case <-time.After(testsTimeout):
 		t.Fatal("timed out waiting for analyzer to finish")
@@ -378,7 +369,7 @@ func TestFailingSlowSyncBlockAnalyzer(t *testing.T) {
 	}()
 
 	// Wait for all analyzers to finish.
-	analyzersDone := closingChannel(&wg)
+	analyzersDone := util.ClosingChannel(&wg)
 	select {
 	case <-time.After(testsTimeout):
 		t.Fatal("timed out waiting for analyzer to finish")
@@ -419,7 +410,7 @@ func TestDistinctSlowSyncBlockAnalyzers(t *testing.T) {
 	}
 
 	// Wait for all analyzers to finish.
-	analyzersDone := closingChannel(&wg)
+	analyzersDone := util.ClosingChannel(&wg)
 	select {
 	case <-time.After(testsTimeout):
 		t.Fatal("timed out waiting for analyzer to finish")

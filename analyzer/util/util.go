@@ -3,6 +3,7 @@ package util
 
 import (
 	"fmt"
+	"sync"
 	"time"
 
 	beacon "github.com/oasisprotocol/oasis-core/go/beacon/api"
@@ -94,6 +95,16 @@ func (b *Backoff) Reset() {
 // Timeout returns the backoff timeout.
 func (b *Backoff) Timeout() time.Duration {
 	return b.currentTimeout
+}
+
+// closingChannel returns a channel that closes when the wait group `wg` is done.
+func ClosingChannel(wg *sync.WaitGroup) <-chan struct{} {
+	c := make(chan struct{})
+	go func() {
+		wg.Wait()
+		close(c)
+	}()
+	return c
 }
 
 // CurrentBound returns the bound at the latest rate step that has started or nil if no step has started.

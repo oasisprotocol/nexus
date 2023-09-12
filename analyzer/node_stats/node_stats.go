@@ -2,96 +2,78 @@ package nodestats
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/oasisprotocol/nexus/analyzer"
+	"github.com/oasisprotocol/nexus/analyzer/item"
 	"github.com/oasisprotocol/nexus/analyzer/queries"
+	"github.com/oasisprotocol/nexus/common"
 	"github.com/oasisprotocol/nexus/config"
 	"github.com/oasisprotocol/nexus/log"
-	"github.com/oasisprotocol/nexus/metrics"
 	"github.com/oasisprotocol/nexus/storage"
 	source "github.com/oasisprotocol/nexus/storage/oasis"
 )
 
 const (
-	fetchHeightTimeout    = 6 * time.Second // average block time
 	nodeStatsAnalyzerName = "node_stats"
-	consensusLayer        = "consensus"
 )
 
-type main struct {
-	source   storage.ConsensusSourceStorage
-	target   storage.TargetStorage
-	logger   *log.Logger
-	metrics  metrics.DatabaseMetrics
-	interval time.Duration
+type processor struct {
+	source storage.ConsensusSourceStorage
+	target storage.TargetStorage
+	logger *log.Logger
 }
 
-var _ analyzer.Analyzer = (*main)(nil)
+var _ item.ItemProcessor[common.Layer] = (*processor)(nil)
 
-func NewMain(
-	cfg *config.NodeStatsConfig,
+func NewAnalyzer(
+	cfg config.ItemBasedAnalyzerConfig,
 	sourceClient *source.ConsensusClient,
 	target storage.TargetStorage,
 	logger *log.Logger,
 ) (analyzer.Analyzer, error) {
-	m := &main{
-		source:   sourceClient,
-		target:   target,
-		logger:   logger.With("analyzer", nodeStatsAnalyzerName),
-		metrics:  metrics.NewDefaultDatabaseMetrics(nodeStatsAnalyzerName),
-		interval: cfg.Interval,
+	if cfg.Interval == 0 {
+		cfg.Interval = 3 * time.Second
+	}
+	logger = logger.With("analyzer", nodeStatsAnalyzerName)
+	p := &processor{
+		source: sourceClient,
+		target: target,
+		logger: logger.With("analyzer", nodeStatsAnalyzerName),
 	}
 
-	return m, nil
+	return item.NewAnalyzer[common.Layer](
+		nodeStatsAnalyzerName,
+		cfg,
+		p,
+		target,
+		logger)
 }
 
-// Queries oasis-node for its current height.
-func (m main) Start(ctx context.Context) {
-	var (
-		requestCtx       context.Context
-		requestCtxCancel context.CancelFunc = func() {}
+func (p *processor) GetItems(ctx context.Context, limit uint64) ([]common.Layer, error) {
+	return []common.Layer{common.LayerConsensus}, nil
+}
+
+func (p *processor) ProcessItem(ctx context.Context, batch *storage.QueryBatch, layer common.Layer) error {
+	p.logger.Debug("fetching node height", "layer", layer)
+	// We currently only support consensus. Update when this is no longer the case.
+	if layer != common.LayerConsensus {
+		return fmt.Errorf("unsupported layer %s", layer)
+	}
+	height, err := p.source.LatestBlockHeight(ctx)
+	if err != nil {
+		return fmt.Errorf("error fetching latest block height for layer %s, %w", layer, err)
+	}
+	batch.Queue(queries.ConsensusNodeHeightUpsert,
+		layer,
+		height,
 	)
-	for {
-		requestCtxCancel()
-		select {
-		case <-ctx.Done():
-			m.logger.Warn("shutting down node stats analyzer", "reason", ctx.Err())
-			return
-		case <-time.After(m.interval):
-			// Fetch node height
-		}
-		requestCtx, requestCtxCancel = context.WithTimeout(ctx, fetchHeightTimeout)
 
-		m.logger.Debug("fetching node height")
-		height, err := m.source.LatestBlockHeight(requestCtx)
-		if err != nil {
-			m.logger.Error("error fetching latest block height",
-				"err", err.Error(),
-			)
-			continue
-		}
-		batch := &storage.QueryBatch{}
-		batch.Queue(queries.ConsensusNodeHeightUpsert,
-			consensusLayer,
-			height,
-		)
-		// Apply updates to DB.
-		opName := nodeStatsAnalyzerName + "_" + consensusLayer
-		timer := m.metrics.DatabaseTimer(m.target.Name(), opName)
-		defer timer.ObserveDuration()
-
-		if err := m.target.SendBatch(ctx, batch); err != nil {
-			m.metrics.DatabaseCounter(m.target.Name(), opName, "failure").Inc()
-			m.logger.Error("error inserting node height into db",
-				"err", err.Error(),
-			)
-			continue
-		}
-		m.metrics.DatabaseCounter(m.target.Name(), opName, "success").Inc()
-	}
+	return nil
 }
 
-func (m main) Name() string {
-	return nodeStatsAnalyzerName
+func (p *processor) QueueLength(ctx context.Context) (int, error) {
+	// The concept of a work queue does not apply to this analyzer
+	return 0, nil
 }

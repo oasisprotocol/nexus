@@ -135,6 +135,16 @@ const (
 	ChainNameUnknown ChainName = "unknown"
 )
 
+// Layer is an identifier for either Consensus or a network runtime.
+type Layer string
+
+const (
+	LayerConsensus Layer = "consensus"
+	LayerEmerald   Layer = "emerald"
+	LayerCipher    Layer = "cipher"
+	LayerSapphire  Layer = "sapphire"
+)
+
 // Runtime is an identifier for a runtime on the Oasis Network.
 type Runtime string
 
