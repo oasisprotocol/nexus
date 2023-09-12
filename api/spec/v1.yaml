@@ -2344,6 +2344,8 @@ components:
               - "accounts.Transfer"
               - "consensus.Deposit"
               - "consensus.Withdraw"
+              - "consensus.Delegate"
+              - "consensus.Undelegate"
               - "evm.Create"
               - "evm.Call"
             May be null if the transaction was malformed or encrypted.
