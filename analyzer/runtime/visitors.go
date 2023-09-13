@@ -28,7 +28,7 @@ type CallHandler struct {
 	UnknownMethod               func(methodName string) error // Invoked for a tx call that doesn't map to any of the above method names.
 }
 
-//nolint:nestif
+//nolint:nestif,gocyclo
 func VisitCall(call *sdkTypes.Call, result *sdkTypes.CallResult, handler *CallHandler) error {
 	// List of methods: See each of the SDK modules, example for consensus_accounts:
 	//   https://github.com/oasisprotocol/oasis-sdk/blob/client-sdk%2Fgo%2Fv0.6.0/client-sdk/go/modules/consensusaccounts/consensus_accounts.go#L16-L20
