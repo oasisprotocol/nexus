@@ -615,16 +615,20 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 		},
 		ConsensusAccounts: func(event *consensusaccounts.Event) error {
 			if event.Deposit != nil {
-				// .From is from another chain, so exclude?
-				toAddr, err1 := registerRelatedSdkAddress(relatedAccountAddresses, &event.Deposit.To)
+				// NOTE: .From is a _consensus_ addr (not runtime). It's still related though.
+				fromAddr, err1 := registerRelatedSdkAddress(relatedAccountAddresses, &event.Deposit.From)
 				if err1 != nil {
 					return fmt.Errorf("from: %w", err1)
+				}
+				toAddr, err1 := registerRelatedSdkAddress(relatedAccountAddresses, &event.Deposit.To)
+				if err1 != nil {
+					return fmt.Errorf("to: %w", err1)
 				}
 				eventData := EventData{
 					Type:             apiTypes.RuntimeEventTypeConsensusAccountsDeposit,
 					Body:             event.Deposit,
 					WithScope:        ScopedSdkEvent{ConsensusAccounts: event},
-					RelatedAddresses: map[apiTypes.Address]bool{toAddr: true},
+					RelatedAddresses: map[apiTypes.Address]bool{fromAddr: true, toAddr: true},
 				}
 				extractedEvents = append(extractedEvents, &eventData)
 			}
@@ -633,14 +637,18 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 				if err1 != nil {
 					return fmt.Errorf("from: %w", err1)
 				}
+				// NOTE: .To is a _consensus_ addr (not runtime). It's still related though.
+				toAddr, err1 := registerRelatedSdkAddress(relatedAccountAddresses, &event.Withdraw.To)
+				if err1 != nil {
+					return fmt.Errorf("to: %w", err1)
+				}
 				eventData := EventData{
 					Type:             apiTypes.RuntimeEventTypeConsensusAccountsWithdraw,
 					Body:             event.Withdraw,
 					WithScope:        ScopedSdkEvent{ConsensusAccounts: event},
-					RelatedAddresses: map[apiTypes.Address]bool{fromAddr: true},
+					RelatedAddresses: map[apiTypes.Address]bool{fromAddr: true, toAddr: true},
 				}
 				extractedEvents = append(extractedEvents, &eventData)
-				// .To is from another chain, so exclude?
 			}
 			if event.Delegate != nil {
 				fromAddr, err1 := registerRelatedSdkAddress(relatedAccountAddresses, &event.Delegate.From)
