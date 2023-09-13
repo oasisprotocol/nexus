@@ -387,15 +387,17 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 				ConsensusAccountsUndelegate: func(body *consensusaccounts.Undelegate) error {
 					blockTransactionData.Body = body
 					// NOTE: The `from` and `to` addresses have swapped semantics compared to most other txs:
-					// Assume R is a runtime address and C is a consensus address. The inverse of Delegate(from=R, to=C) is Undelegate(from=C, to=R).
-					if _, err := registerRelatedSdkAddress(blockTransactionData.RelatedAccountAddresses, &body.From); err != nil {
+					// Assume R is a runtime address and C is a consensus address (likely a validator). The inverse of Delegate(from=R, to=C) is Undelegate(from=C, to=R).
+					// In Undelegate semantics, the inexistent `body.To` is implicitly the account that created this tx, i.e. the delegator R.
+					// Ref: https://github.com/oasisprotocol/oasis-sdk/blob/eb97a8162f84ae81d11d805e6dceeeb016841c27/runtime-sdk/src/modules/consensus_accounts/mod.rs#L465-L465
+					// However, we instead expose `body.From` as the DB/API `to` for consistency with `Delegate`, and because it is more useful: the delegator R is already indexed in the tx sender field.
+					if to, err = registerRelatedSdkAddress(blockTransactionData.RelatedAccountAddresses, &body.From); err != nil {
 						return fmt.Errorf("from: %w", err)
 					}
-					// The `to` is implicitly the account that created this tx. Ref: https://github.com/oasisprotocol/oasis-sdk/blob/eb97a8162f84ae81d11d805e6dceeeb016841c27/runtime-sdk/src/modules/consensus_accounts/mod.rs#L465-L465
-					to = blockTransactionData.SignerData[0].Address
-					// The `amount` (of tokens) is not contained in the body, only `shares` is. We do not have sufficient information
-					// to convert `shares` to `amount`; we'd need the total amount of shares and tokens in the `from` account.
-					// Assign nothing to `amount`.
+					// The `amount` (of tokens) is not contained in the body, only `shares` is. There isn't sufficient information
+					// to convert `shares` to `amount` until the undelegation actually happens (= UndelegateDone event); in the meantime,
+					// the validator's token pool might change, e.g. because of slashing.
+					// Do not store `body.Shares` in DB's `amount` to avoid confusion. Clients can still look up the shares in the tx body if they really need it.
 					return nil
 				},
 				EVMCreate: func(body *sdkEVM.Create, ok *[]byte) error {
