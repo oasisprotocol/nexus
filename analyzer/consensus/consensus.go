@@ -783,7 +783,7 @@ func (m *processor) queueFinalizations(batch *storage.QueryBatch, data *storage.
 
 func (m *processor) queueVotes(batch *storage.QueryBatch, data *storage.GovernanceData) error {
 	for _, vote := range data.Votes {
-		batch.Queue(queries.ConsensusVoteInsert,
+		batch.Queue(queries.ConsensusVoteUpsert,
 			vote.ID,
 			vote.Submitter.String(),
 			vote.Vote,
