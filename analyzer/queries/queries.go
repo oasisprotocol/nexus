@@ -384,9 +384,11 @@ var (
     SET invalid_votes = $2
       WHERE id = $1`
 
-	ConsensusVoteInsert = `
+	ConsensusVoteUpsert = `
     INSERT INTO chain.votes (proposal, voter, vote)
-      VALUES ($1, $2, $3)`
+      VALUES ($1, $2, $3)
+    ON CONFLICT (proposal, voter) DO UPDATE SET
+	    vote = excluded.vote;`
 
 	RuntimeBlockInsert = `
     INSERT INTO chain.runtime_blocks (runtime, round, version, timestamp, block_hash, prev_block_hash, io_root, state_root, messages_hash, in_messages_hash, num_transactions, gas_used, size)
