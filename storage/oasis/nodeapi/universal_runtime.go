@@ -10,6 +10,7 @@ import (
 	coreCommon "github.com/oasisprotocol/oasis-core/go/common"
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/hash"
+	"github.com/oasisprotocol/oasis-core/go/common/errors"
 	roothash "github.com/oasisprotocol/oasis-core/go/roothash/api/block"
 	coreRuntimeClient "github.com/oasisprotocol/oasis-core/go/runtime/client/api"
 	connection "github.com/oasisprotocol/oasis-sdk/client-sdk/go/connection"
@@ -135,8 +136,27 @@ func (rc *UniversalRuntimeApiLite) GetEventsRaw(ctx context.Context, round uint6
 	return evs, nil
 }
 
-func (rc *UniversalRuntimeApiLite) EVMSimulateCall(ctx context.Context, round uint64, gasPrice []byte, gasLimit uint64, caller []byte, address []byte, value []byte, data []byte) ([]byte, error) {
-	return rc.sdkClient.Evm.SimulateCall(ctx, round, gasPrice, gasLimit, caller, address, value, data)
+// EVMSimulateCall simulates an evm call at a given height. If the node returns a successful
+// response, it is stored in `FallibleResponse.Ok`. If the node returns a deterministic
+// error, eg call_reverted, the error is stored in `FallbileResponse.deterministicErr`.
+// If the call fails due to a nondeterministic error, the error is returned.
+// Note: FallibleResponse should _not_ store transient errors or any error that is not a
+// valid node response.
+func (rc *UniversalRuntimeApiLite) EVMSimulateCall(ctx context.Context, round uint64, gasPrice []byte, gasLimit uint64, caller []byte, address []byte, value []byte, data []byte) (*FallibleResponse, error) {
+	res, err := rc.sdkClient.Evm.SimulateCall(ctx, round, gasPrice, gasLimit, caller, address, value, data)
+	if errors.Is(err, ErrSdkEVMExecutionFailed) || errors.Is(err, ErrSdkEVMReverted) {
+		return &FallibleResponse{
+			DeterministicErr: &DeterministicError{
+				msg: err.Error(),
+			},
+		}, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return &FallibleResponse{
+		Ok: res,
+	}, nil
 }
 
 func (rc *UniversalRuntimeApiLite) EVMGetCode(ctx context.Context, round uint64, address []byte) ([]byte, error) {

@@ -9,7 +9,6 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	ethCommon "github.com/ethereum/go-ethereum/common"
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
-	"github.com/oasisprotocol/oasis-core/go/common/errors"
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 
 	apiTypes "github.com/oasisprotocol/nexus/api/v1/types"
@@ -100,16 +99,6 @@ func (err EVMDeterministicError) Is(target error) bool {
 	return false
 }
 
-// TODO: can we move this to oasis-sdk/client-sdk/go/modules/evm?
-const EVMModuleName = "evm"
-
-var (
-	// https://github.com/oasisprotocol/oasis-sdk/blob/runtime-sdk/v0.2.0/runtime-sdk/modules/evm/src/lib.rs#L123
-	ErrEVMExecutionFailed = errors.New(EVMModuleName, 2, "execution failed")
-	// https://github.com/oasisprotocol/oasis-sdk/blob/runtime-sdk/v0.2.0/runtime-sdk/modules/evm/src/lib.rs#L147
-	ErrEVMReverted = errors.New(EVMModuleName, 8, "reverted")
-)
-
 func evmCallWithABICustom(
 	ctx context.Context,
 	source nodeapi.RuntimeApiLite,
@@ -128,14 +117,13 @@ func evmCallWithABICustom(
 	if err != nil {
 		return fmt.Errorf("packing evm simulate call data: %w", err)
 	}
-	outPacked, err := source.EVMSimulateCall(ctx, round, gasPrice, gasLimit, caller, contractEthAddr, value, inPacked)
+	res, err := source.EVMSimulateCall(ctx, round, gasPrice, gasLimit, caller, contractEthAddr, value, inPacked)
 	if err != nil {
-		err = fmt.Errorf("runtime client evm simulate call: %w", err)
-		if errors.Is(err, ErrEVMExecutionFailed) || errors.Is(err, ErrEVMReverted) {
-			err = EVMDeterministicError{err}
-		}
-		return err
+		return fmt.Errorf("runtime client evm simulate call: %w", err)
+	} else if res.DeterministicErr != nil {
+		return EVMDeterministicError{res.DeterministicErr}
 	}
+	outPacked := res.Ok
 	if err = contractABI.UnpackIntoInterface(result, method, outPacked); err != nil {
 		err = fmt.Errorf("unpacking evm simulate call output: %w", err)
 		err = EVMDeterministicError{err}
