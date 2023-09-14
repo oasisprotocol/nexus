@@ -61,14 +61,19 @@ test-e2e:
 	@$(GO) test -race -coverpkg=./... -coverprofile=coverage.txt -covermode=atomic -v ./tests/e2e
 
 fill-cache-for-e2e-regression: nexus
-	cp tests/e2e_regression/e2e_config.yml /tmp/nexus_fill_e2e_regression_cache.yml
-	sed -i -E 's/query_on_cache_miss: false/query_on_cache_miss: true/g' /tmp/nexus_fill_e2e_regression_cache.yml
-	./nexus --config /tmp/nexus_fill_e2e_regression_cache.yml analyze
+	@./tests/e2e_regression/ensure_consistent_config.sh
+	cp tests/e2e_regression/e2e_config_1.yml /tmp/nexus_fill_e2e_regression_cache_1.yml
+	cp tests/e2e_regression/e2e_config_2.yml /tmp/nexus_fill_e2e_regression_cache_2.yml
+	sed -i -E 's/query_on_cache_miss: false/query_on_cache_miss: true/g' /tmp/nexus_fill_e2e_regression_cache_*.yml
+	./nexus --config /tmp/nexus_fill_e2e_regression_cache_1.yml analyze
+	./nexus --config /tmp/nexus_fill_e2e_regression_cache_2.yml analyze
 
 # Run the api tests locally, assuming the environment is set up with an oasis-node that is
 # accessible as specified in the config file.
 test-e2e-regression: nexus
-	./nexus --config tests/e2e_regression/e2e_config.yml analyze
+	@./tests/e2e_regression/ensure_consistent_config.sh
+	./nexus --config tests/e2e_regression/e2e_config_1.yml analyze
+	./nexus --config tests/e2e_regression/e2e_config_2.yml analyze
 	@$(ECHO) "$(CYAN)*** Analyzers finished; starting api tests...$(OFF)"
 	./tests/e2e_regression/run.sh
 

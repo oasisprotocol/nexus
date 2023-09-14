@@ -41,6 +41,11 @@
           "value": "74746260"
         }
       ],
+      "evm_token": {
+        "decimals": 18,
+        "symbol": "RimSwap-LP",
+        "type": "ERC20"
+      },
       "round": 1003598,
       "timestamp": "2022-04-11T13:38:14Z",
       "tx_hash": "32f44bd9558e89572de93e81fcb0130aa1180e532eeba05be2eb7491ae8fc0ca",
@@ -94,6 +99,11 @@
           "value": "41271866503540515"
         }
       ],
+      "evm_token": {
+        "decimals": 18,
+        "symbol": "RIM",
+        "type": "ERC20"
+      },
       "round": 1003598,
       "timestamp": "2022-04-11T13:38:14Z",
       "tx_hash": "32f44bd9558e89572de93e81fcb0130aa1180e532eeba05be2eb7491ae8fc0ca",
@@ -129,6 +139,11 @@
           "value": "6300000000000000000"
         }
       ],
+      "evm_token": {
+        "decimals": 18,
+        "symbol": "RIM",
+        "type": "ERC20"
+      },
       "round": 1003598,
       "timestamp": "2022-04-11T13:38:14Z",
       "tx_hash": "32f44bd9558e89572de93e81fcb0130aa1180e532eeba05be2eb7491ae8fc0ca",
@@ -164,6 +179,11 @@
           "value": "31500000000000000000"
         }
       ],
+      "evm_token": {
+        "decimals": 18,
+        "symbol": "RIM",
+        "type": "ERC20"
+      },
       "round": 1003598,
       "timestamp": "2022-04-11T13:38:14Z",
       "tx_hash": "32f44bd9558e89572de93e81fcb0130aa1180e532eeba05be2eb7491ae8fc0ca",
@@ -194,6 +214,11 @@
       },
       "eth_tx_hash": "01611b501f7ca379844523d9b40b6d4472ec265373e7ee027666b8206bd579ec",
       "evm_log_name": "",
+      "evm_token": {
+        "decimals": 18,
+        "symbol": "VSLP wROSE-USDT",
+        "type": "ERC20"
+      },
       "round": 1003598,
       "timestamp": "2022-04-11T13:38:14Z",
       "tx_hash": "8130a1005cc6b9d45ee3896f43aec3403996f94a91bead5c9231345764c4784c",
@@ -212,6 +237,11 @@
       },
       "eth_tx_hash": "01611b501f7ca379844523d9b40b6d4472ec265373e7ee027666b8206bd579ec",
       "evm_log_name": "",
+      "evm_token": {
+        "decimals": 18,
+        "symbol": "VSLP USDT-VS",
+        "type": "ERC20"
+      },
       "round": 1003598,
       "timestamp": "2022-04-11T13:38:14Z",
       "tx_hash": "8130a1005cc6b9d45ee3896f43aec3403996f94a91bead5c9231345764c4784c",
@@ -247,6 +277,11 @@
           "value": "116161098"
         }
       ],
+      "evm_token": {
+        "decimals": 6,
+        "symbol": "USDT",
+        "type": "ERC20"
+      },
       "round": 1003598,
       "timestamp": "2022-04-11T13:38:14Z",
       "tx_hash": "8130a1005cc6b9d45ee3896f43aec3403996f94a91bead5c9231345764c4784c",
@@ -263,6 +298,11 @@
       },
       "eth_tx_hash": "01611b501f7ca379844523d9b40b6d4472ec265373e7ee027666b8206bd579ec",
       "evm_log_name": "",
+      "evm_token": {
+        "decimals": 18,
+        "symbol": "VSLP USDT-VS",
+        "type": "ERC20"
+      },
       "round": 1003598,
       "timestamp": "2022-04-11T13:38:14Z",
       "tx_hash": "8130a1005cc6b9d45ee3896f43aec3403996f94a91bead5c9231345764c4784c",
@@ -298,6 +338,11 @@
           "value": "479643286568106137275"
         }
       ],
+      "evm_token": {
+        "decimals": 18,
+        "symbol": "wROSE",
+        "type": "ERC20"
+      },
       "round": 1003598,
       "timestamp": "2022-04-11T13:38:14Z",
       "tx_hash": "8130a1005cc6b9d45ee3896f43aec3403996f94a91bead5c9231345764c4784c",
@@ -333,6 +378,11 @@
           "value": "308967378435105586722"
         }
       ],
+      "evm_token": {
+        "decimals": 18,
+        "symbol": "VS",
+        "type": "ERC20"
+      },
       "round": 1003598,
       "timestamp": "2022-04-11T13:38:14Z",
       "tx_hash": "8130a1005cc6b9d45ee3896f43aec3403996f94a91bead5c9231345764c4784c",
@@ -368,6 +418,11 @@
           "value": "308967378435105586722"
         }
       ],
+      "evm_token": {
+        "decimals": 18,
+        "symbol": "VS",
+        "type": "ERC20"
+      },
       "round": 1003598,
       "timestamp": "2022-04-11T13:38:14Z",
       "tx_hash": "8130a1005cc6b9d45ee3896f43aec3403996f94a91bead5c9231345764c4784c",
@@ -386,6 +441,11 @@
       },
       "eth_tx_hash": "01611b501f7ca379844523d9b40b6d4472ec265373e7ee027666b8206bd579ec",
       "evm_log_name": "",
+      "evm_token": {
+        "decimals": 18,
+        "symbol": "VSLP wROSE-VS",
+        "type": "ERC20"
+      },
       "round": 1003598,
       "timestamp": "2022-04-11T13:38:14Z",
       "tx_hash": "8130a1005cc6b9d45ee3896f43aec3403996f94a91bead5c9231345764c4784c",
@@ -421,6 +481,11 @@
           "value": "479567143383502414000"
         }
       ],
+      "evm_token": {
+        "decimals": 18,
+        "symbol": "wROSE",
+        "type": "ERC20"
+      },
       "round": 1003598,
       "timestamp": "2022-04-11T13:38:14Z",
       "tx_hash": "8130a1005cc6b9d45ee3896f43aec3403996f94a91bead5c9231345764c4784c",
@@ -437,6 +502,11 @@
       },
       "eth_tx_hash": "01611b501f7ca379844523d9b40b6d4472ec265373e7ee027666b8206bd579ec",
       "evm_log_name": "",
+      "evm_token": {
+        "decimals": 18,
+        "symbol": "VSLP wROSE-VS",
+        "type": "ERC20"
+      },
       "round": 1003598,
       "timestamp": "2022-04-11T13:38:14Z",
       "tx_hash": "8130a1005cc6b9d45ee3896f43aec3403996f94a91bead5c9231345764c4784c",
@@ -453,6 +523,11 @@
       },
       "eth_tx_hash": "01611b501f7ca379844523d9b40b6d4472ec265373e7ee027666b8206bd579ec",
       "evm_log_name": "",
+      "evm_token": {
+        "decimals": 18,
+        "symbol": "VSLP wROSE-USDT",
+        "type": "ERC20"
+      },
       "round": 1003598,
       "timestamp": "2022-04-11T13:38:14Z",
       "tx_hash": "8130a1005cc6b9d45ee3896f43aec3403996f94a91bead5c9231345764c4784c",
@@ -500,6 +575,11 @@
           "value": "115792089237316195423570985008687907853269984665640564039284146507913129639935"
         }
       ],
+      "evm_token": {
+        "decimals": 18,
+        "symbol": "xYUZU",
+        "type": "ERC20"
+      },
       "round": 1003598,
       "timestamp": "2022-04-11T13:38:14Z",
       "tx_hash": "c0ddeca3477caa31823f59a92dba843d372d895e4bc75a149e8abc6ff1ea1fee",
@@ -535,6 +615,11 @@
           "value": "0"
         }
       ],
+      "evm_token": {
+        "decimals": 18,
+        "symbol": "YPEDT",
+        "type": "ERC20"
+      },
       "round": 1003598,
       "timestamp": "2022-04-11T13:38:14Z",
       "tx_hash": "c0ddeca3477caa31823f59a92dba843d372d895e4bc75a149e8abc6ff1ea1fee",
@@ -570,6 +655,11 @@
           "value": "0"
         }
       ],
+      "evm_token": {
+        "decimals": 18,
+        "symbol": "YPEDT",
+        "type": "ERC20"
+      },
       "round": 1003598,
       "timestamp": "2022-04-11T13:38:14Z",
       "tx_hash": "c0ddeca3477caa31823f59a92dba843d372d895e4bc75a149e8abc6ff1ea1fee",
@@ -659,6 +749,11 @@
           "value": "600000000000000000"
         }
       ],
+      "evm_token": {
+        "decimals": 18,
+        "symbol": "YUZU",
+        "type": "ERC20"
+      },
       "round": 1003598,
       "timestamp": "2022-04-11T13:38:14Z",
       "tx_hash": "c0ddeca3477caa31823f59a92dba843d372d895e4bc75a149e8abc6ff1ea1fee",
@@ -694,6 +789,11 @@
           "value": "600000000000000000"
         }
       ],
+      "evm_token": {
+        "decimals": 18,
+        "symbol": "YUZU",
+        "type": "ERC20"
+      },
       "round": 1003598,
       "timestamp": "2022-04-11T13:38:14Z",
       "tx_hash": "c0ddeca3477caa31823f59a92dba843d372d895e4bc75a149e8abc6ff1ea1fee",
@@ -729,6 +829,11 @@
           "value": "600000000000000000"
         }
       ],
+      "evm_token": {
+        "decimals": 18,
+        "symbol": "YUZU",
+        "type": "ERC20"
+      },
       "round": 1003598,
       "timestamp": "2022-04-11T13:38:14Z",
       "tx_hash": "c0ddeca3477caa31823f59a92dba843d372d895e4bc75a149e8abc6ff1ea1fee",
@@ -764,6 +869,11 @@
           "value": "4200000000000000000"
         }
       ],
+      "evm_token": {
+        "decimals": 18,
+        "symbol": "YUZU",
+        "type": "ERC20"
+      },
       "round": 1003598,
       "timestamp": "2022-04-11T13:38:14Z",
       "tx_hash": "c0ddeca3477caa31823f59a92dba843d372d895e4bc75a149e8abc6ff1ea1fee",
@@ -799,6 +909,11 @@
           "value": "4200000000000000000"
         }
       ],
+      "evm_token": {
+        "decimals": 18,
+        "symbol": "YUZU",
+        "type": "ERC20"
+      },
       "round": 1003598,
       "timestamp": "2022-04-11T13:38:14Z",
       "tx_hash": "c0ddeca3477caa31823f59a92dba843d372d895e4bc75a149e8abc6ff1ea1fee",
@@ -851,6 +966,11 @@
           "value": "173437500000000000000"
         }
       ],
+      "evm_token": {
+        "decimals": 18,
+        "symbol": "xYUZU",
+        "type": "ERC20"
+      },
       "round": 1003598,
       "timestamp": "2022-04-11T13:38:14Z",
       "tx_hash": "c0ddeca3477caa31823f59a92dba843d372d895e4bc75a149e8abc6ff1ea1fee",
@@ -916,6 +1036,11 @@
           "value": "49073431"
         }
       ],
+      "evm_token": {
+        "decimals": 18,
+        "symbol": "VSLP USDT-USDC",
+        "type": "ERC20"
+      },
       "round": 1003597,
       "timestamp": "2022-04-11T13:38:08Z",
       "tx_hash": "88e31ae2278ab6082dd279b91a08208764e6eed1cfe2ef42f9745fdb42934a1d",
@@ -969,6 +1094,11 @@
           "value": "757606288888307320"
         }
       ],
+      "evm_token": {
+        "decimals": 18,
+        "symbol": "VS",
+        "type": "ERC20"
+      },
       "round": 1003597,
       "timestamp": "2022-04-11T13:38:08Z",
       "tx_hash": "88e31ae2278ab6082dd279b91a08208764e6eed1cfe2ef42f9745fdb42934a1d",
@@ -1004,6 +1134,11 @@
           "value": "110916334661354581673"
         }
       ],
+      "evm_token": {
+        "decimals": 18,
+        "symbol": "VS",
+        "type": "ERC20"
+      },
       "round": 1003597,
       "timestamp": "2022-04-11T13:38:08Z",
       "tx_hash": "88e31ae2278ab6082dd279b91a08208764e6eed1cfe2ef42f9745fdb42934a1d",
@@ -1051,6 +1186,11 @@
           "value": "5769557253533596756334"
         }
       ],
+      "evm_token": {
+        "decimals": 18,
+        "symbol": "VS",
+        "type": "ERC20"
+      },
       "round": 1003597,
       "timestamp": "2022-04-11T13:38:08Z",
       "tx_hash": "e1f2e9b21f8333c0759bcc3c06fd5ad0e3b3c702402b7ae25d374d3ee097bc90",
@@ -1081,6 +1221,11 @@
       },
       "eth_tx_hash": "7b4aaf4dd20eb2b519a1c116c23abb7fe5a1bde258360104ac7ec8d46567e641",
       "evm_log_name": "",
+      "evm_token": {
+        "decimals": 18,
+        "symbol": "VSLP wROSE-USDT",
+        "type": "ERC20"
+      },
       "round": 1003597,
       "timestamp": "2022-04-11T13:38:08Z",
       "tx_hash": "44eda71cb0aa58b27d5df66244a60bae3b3e3aec65a6d61d1515571305a2a2db",
@@ -1099,6 +1244,11 @@
       },
       "eth_tx_hash": "7b4aaf4dd20eb2b519a1c116c23abb7fe5a1bde258360104ac7ec8d46567e641",
       "evm_log_name": "",
+      "evm_token": {
+        "decimals": 18,
+        "symbol": "VSLP USDT-VS",
+        "type": "ERC20"
+      },
       "round": 1003597,
       "timestamp": "2022-04-11T13:38:08Z",
       "tx_hash": "44eda71cb0aa58b27d5df66244a60bae3b3e3aec65a6d61d1515571305a2a2db",
@@ -1134,6 +1284,11 @@
           "value": "117887404"
         }
       ],
+      "evm_token": {
+        "decimals": 6,
+        "symbol": "USDT",
+        "type": "ERC20"
+      },
       "round": 1003597,
       "timestamp": "2022-04-11T13:38:08Z",
       "tx_hash": "44eda71cb0aa58b27d5df66244a60bae3b3e3aec65a6d61d1515571305a2a2db",
@@ -1150,6 +1305,11 @@
       },
       "eth_tx_hash": "7b4aaf4dd20eb2b519a1c116c23abb7fe5a1bde258360104ac7ec8d46567e641",
       "evm_log_name": "",
+      "evm_token": {
+        "decimals": 18,
+        "symbol": "VSLP USDT-VS",
+        "type": "ERC20"
+      },
       "round": 1003597,
       "timestamp": "2022-04-11T13:38:08Z",
       "tx_hash": "44eda71cb0aa58b27d5df66244a60bae3b3e3aec65a6d61d1515571305a2a2db",
@@ -1168,6 +1328,11 @@
       },
       "eth_tx_hash": "7b4aaf4dd20eb2b519a1c116c23abb7fe5a1bde258360104ac7ec8d46567e641",
       "evm_log_name": "",
+      "evm_token": {
+        "decimals": 18,
+        "symbol": "VSLP wROSE-VS",
+        "type": "ERC20"
+      },
       "round": 1003597,
       "timestamp": "2022-04-11T13:38:08Z",
       "tx_hash": "44eda71cb0aa58b27d5df66244a60bae3b3e3aec65a6d61d1515571305a2a2db",
@@ -1203,6 +1368,11 @@
           "value": "486581965268338217000"
         }
       ],
+      "evm_token": {
+        "decimals": 18,
+        "symbol": "wROSE",
+        "type": "ERC20"
+      },
       "round": 1003597,
       "timestamp": "2022-04-11T13:38:08Z",
       "tx_hash": "44eda71cb0aa58b27d5df66244a60bae3b3e3aec65a6d61d1515571305a2a2db",
@@ -1238,6 +1408,11 @@
           "value": "486644037079922143274"
         }
       ],
+      "evm_token": {
+        "decimals": 18,
+        "symbol": "wROSE",
+        "type": "ERC20"
+      },
       "round": 1003597,
       "timestamp": "2022-04-11T13:38:08Z",
       "tx_hash": "44eda71cb0aa58b27d5df66244a60bae3b3e3aec65a6d61d1515571305a2a2db",
@@ -1273,6 +1448,11 @@
           "value": "313550291526760105383"
         }
       ],
+      "evm_token": {
+        "decimals": 18,
+        "symbol": "VS",
+        "type": "ERC20"
+      },
       "round": 1003597,
       "timestamp": "2022-04-11T13:38:08Z",
       "tx_hash": "44eda71cb0aa58b27d5df66244a60bae3b3e3aec65a6d61d1515571305a2a2db",
@@ -1308,6 +1488,11 @@
           "value": "313550291526760105383"
         }
       ],
+      "evm_token": {
+        "decimals": 18,
+        "symbol": "VS",
+        "type": "ERC20"
+      },
       "round": 1003597,
       "timestamp": "2022-04-11T13:38:08Z",
       "tx_hash": "44eda71cb0aa58b27d5df66244a60bae3b3e3aec65a6d61d1515571305a2a2db",
@@ -1324,6 +1509,11 @@
       },
       "eth_tx_hash": "7b4aaf4dd20eb2b519a1c116c23abb7fe5a1bde258360104ac7ec8d46567e641",
       "evm_log_name": "",
+      "evm_token": {
+        "decimals": 18,
+        "symbol": "VSLP wROSE-VS",
+        "type": "ERC20"
+      },
       "round": 1003597,
       "timestamp": "2022-04-11T13:38:08Z",
       "tx_hash": "44eda71cb0aa58b27d5df66244a60bae3b3e3aec65a6d61d1515571305a2a2db",
@@ -1340,6 +1530,11 @@
       },
       "eth_tx_hash": "7b4aaf4dd20eb2b519a1c116c23abb7fe5a1bde258360104ac7ec8d46567e641",
       "evm_log_name": "",
+      "evm_token": {
+        "decimals": 18,
+        "symbol": "VSLP wROSE-USDT",
+        "type": "ERC20"
+      },
       "round": 1003597,
       "timestamp": "2022-04-11T13:38:08Z",
       "tx_hash": "44eda71cb0aa58b27d5df66244a60bae3b3e3aec65a6d61d1515571305a2a2db",
@@ -1435,6 +1630,11 @@
           "value": "90539005"
         }
       ],
+      "evm_token": {
+        "decimals": 6,
+        "symbol": "USDT",
+        "type": "ERC20"
+      },
       "round": 1003597,
       "timestamp": "2022-04-11T13:38:08Z",
       "tx_hash": "a8d10202d0fd60b70680ac7cd59c55e49e46126cc630a3be9441f297056b9a30",
@@ -1453,6 +1653,11 @@
       },
       "eth_tx_hash": "bbdd0f0f15b283f68a5b2d68d571985fce0a259d7e0ed60a9bc2749bcfa57c1f",
       "evm_log_name": "",
+      "evm_token": {
+        "decimals": 18,
+        "symbol": "VSLP wROSE-USDT",
+        "type": "ERC20"
+      },
       "round": 1003597,
       "timestamp": "2022-04-11T13:38:08Z",
       "tx_hash": "a8d10202d0fd60b70680ac7cd59c55e49e46126cc630a3be9441f297056b9a30",
@@ -1488,6 +1693,11 @@
           "value": "376000000000000000000"
         }
       ],
+      "evm_token": {
+        "decimals": 18,
+        "symbol": "wROSE",
+        "type": "ERC20"
+      },
       "round": 1003597,
       "timestamp": "2022-04-11T13:38:08Z",
       "tx_hash": "a8d10202d0fd60b70680ac7cd59c55e49e46126cc630a3be9441f297056b9a30",
@@ -1505,6 +1715,11 @@
       },
       "eth_tx_hash": "bbdd0f0f15b283f68a5b2d68d571985fce0a259d7e0ed60a9bc2749bcfa57c1f",
       "evm_log_name": "",
+      "evm_token": {
+        "decimals": 18,
+        "symbol": "wROSE",
+        "type": "ERC20"
+      },
       "round": 1003597,
       "timestamp": "2022-04-11T13:38:08Z",
       "tx_hash": "a8d10202d0fd60b70680ac7cd59c55e49e46126cc630a3be9441f297056b9a30",
@@ -1521,6 +1736,11 @@
       },
       "eth_tx_hash": "bbdd0f0f15b283f68a5b2d68d571985fce0a259d7e0ed60a9bc2749bcfa57c1f",
       "evm_log_name": "",
+      "evm_token": {
+        "decimals": 18,
+        "symbol": "VSLP wROSE-USDT",
+        "type": "ERC20"
+      },
       "round": 1003597,
       "timestamp": "2022-04-11T13:38:08Z",
       "tx_hash": "a8d10202d0fd60b70680ac7cd59c55e49e46126cc630a3be9441f297056b9a30",
@@ -1568,6 +1788,11 @@
           "value": "1021424930"
         }
       ],
+      "evm_token": {
+        "decimals": 6,
+        "symbol": "USDT",
+        "type": "ERC20"
+      },
       "round": 1003597,
       "timestamp": "2022-04-11T13:38:08Z",
       "tx_hash": "a65e985e85ded530d46e57d5a380e0551ec1eea7e867e169b4b7fa199bc61fa1",
@@ -1586,6 +1811,11 @@
       },
       "eth_tx_hash": "0114f38951e0501ff0bff1826572e40589f1c2c00fd87d44970d7d6fd0cf4d0f",
       "evm_log_name": "",
+      "evm_token": {
+        "decimals": 18,
+        "symbol": "VSLP wROSE-USDT",
+        "type": "ERC20"
+      },
       "round": 1003597,
       "timestamp": "2022-04-11T13:38:08Z",
       "tx_hash": "a65e985e85ded530d46e57d5a380e0551ec1eea7e867e169b4b7fa199bc61fa1",
@@ -1621,6 +1851,11 @@
           "value": "4242501378812948132691"
         }
       ],
+      "evm_token": {
+        "decimals": 18,
+        "symbol": "wROSE",
+        "type": "ERC20"
+      },
       "round": 1003597,
       "timestamp": "2022-04-11T13:38:08Z",
       "tx_hash": "a65e985e85ded530d46e57d5a380e0551ec1eea7e867e169b4b7fa199bc61fa1",
@@ -1656,6 +1891,11 @@
           "value": "4242501378812948132691"
         }
       ],
+      "evm_token": {
+        "decimals": 18,
+        "symbol": "wROSE",
+        "type": "ERC20"
+      },
       "round": 1003597,
       "timestamp": "2022-04-11T13:38:08Z",
       "tx_hash": "a65e985e85ded530d46e57d5a380e0551ec1eea7e867e169b4b7fa199bc61fa1",
@@ -1672,6 +1912,11 @@
       },
       "eth_tx_hash": "0114f38951e0501ff0bff1826572e40589f1c2c00fd87d44970d7d6fd0cf4d0f",
       "evm_log_name": "",
+      "evm_token": {
+        "decimals": 18,
+        "symbol": "VSLP wROSE-USDT",
+        "type": "ERC20"
+      },
       "round": 1003597,
       "timestamp": "2022-04-11T13:38:08Z",
       "tx_hash": "a65e985e85ded530d46e57d5a380e0551ec1eea7e867e169b4b7fa199bc61fa1",
@@ -1719,6 +1964,11 @@
           "value": "0"
         }
       ],
+      "evm_token": {
+        "decimals": 18,
+        "symbol": "YPEDT",
+        "type": "ERC20"
+      },
       "round": 1003597,
       "timestamp": "2022-04-11T13:38:08Z",
       "tx_hash": "983740e5eac8ef3acd067072d4cb7fff6f3c62bdc394b162639cebbe64572bc5",
@@ -1754,6 +2004,11 @@
           "value": "0"
         }
       ],
+      "evm_token": {
+        "decimals": 18,
+        "symbol": "YPEDT",
+        "type": "ERC20"
+      },
       "round": 1003597,
       "timestamp": "2022-04-11T13:38:08Z",
       "tx_hash": "983740e5eac8ef3acd067072d4cb7fff6f3c62bdc394b162639cebbe64572bc5",
@@ -1843,6 +2098,11 @@
           "value": "10200000000000000000"
         }
       ],
+      "evm_token": {
+        "decimals": 18,
+        "symbol": "YUZU",
+        "type": "ERC20"
+      },
       "round": 1003597,
       "timestamp": "2022-04-11T13:38:08Z",
       "tx_hash": "983740e5eac8ef3acd067072d4cb7fff6f3c62bdc394b162639cebbe64572bc5",
@@ -1878,6 +2138,11 @@
           "value": "10200000000000000000"
         }
       ],
+      "evm_token": {
+        "decimals": 18,
+        "symbol": "YUZU",
+        "type": "ERC20"
+      },
       "round": 1003597,
       "timestamp": "2022-04-11T13:38:08Z",
       "tx_hash": "983740e5eac8ef3acd067072d4cb7fff6f3c62bdc394b162639cebbe64572bc5",
@@ -1913,6 +2178,11 @@
           "value": "10200000000000000000"
         }
       ],
+      "evm_token": {
+        "decimals": 18,
+        "symbol": "YUZU",
+        "type": "ERC20"
+      },
       "round": 1003597,
       "timestamp": "2022-04-11T13:38:08Z",
       "tx_hash": "983740e5eac8ef3acd067072d4cb7fff6f3c62bdc394b162639cebbe64572bc5",
@@ -1948,6 +2218,11 @@
           "value": "71400000000000000000"
         }
       ],
+      "evm_token": {
+        "decimals": 18,
+        "symbol": "YUZU",
+        "type": "ERC20"
+      },
       "round": 1003597,
       "timestamp": "2022-04-11T13:38:08Z",
       "tx_hash": "983740e5eac8ef3acd067072d4cb7fff6f3c62bdc394b162639cebbe64572bc5",
@@ -1983,6 +2258,11 @@
           "value": "71400000000000000000"
         }
       ],
+      "evm_token": {
+        "decimals": 18,
+        "symbol": "YUZU",
+        "type": "ERC20"
+      },
       "round": 1003597,
       "timestamp": "2022-04-11T13:38:08Z",
       "tx_hash": "983740e5eac8ef3acd067072d4cb7fff6f3c62bdc394b162639cebbe64572bc5",
@@ -2035,6 +2315,11 @@
           "value": "5817776204670000000000"
         }
       ],
+      "evm_token": {
+        "decimals": 18,
+        "symbol": "LPT",
+        "type": "ERC20"
+      },
       "round": 1003597,
       "timestamp": "2022-04-11T13:38:08Z",
       "tx_hash": "983740e5eac8ef3acd067072d4cb7fff6f3c62bdc394b162639cebbe64572bc5",
@@ -2081,6 +2366,11 @@
       },
       "eth_tx_hash": "8663b15c78d9312be5c3f7b5c72674509ff9e0430221bde6865f1ea45a4c5d5a",
       "evm_log_name": "",
+      "evm_token": {
+        "decimals": 8,
+        "symbol": "fETH",
+        "type": "ERC20"
+      },
       "round": 1003596,
       "timestamp": "2022-04-11T13:38:02Z",
       "tx_hash": "86302d0f785f9cd0e1cae01ccba4087dad85dada43de72b33f488bab0778eecd",
@@ -2134,6 +2424,11 @@
           "value": "3000000000000000000"
         }
       ],
+      "evm_token": {
+        "decimals": 18,
+        "symbol": "WETH",
+        "type": "ERC20"
+      },
       "round": 1003596,
       "timestamp": "2022-04-11T13:38:02Z",
       "tx_hash": "86302d0f785f9cd0e1cae01ccba4087dad85dada43de72b33f488bab0778eecd",
@@ -2150,6 +2445,11 @@
       },
       "eth_tx_hash": "8663b15c78d9312be5c3f7b5c72674509ff9e0430221bde6865f1ea45a4c5d5a",
       "evm_log_name": "",
+      "evm_token": {
+        "decimals": 8,
+        "symbol": "fETH",
+        "type": "ERC20"
+      },
       "round": 1003596,
       "timestamp": "2022-04-11T13:38:02Z",
       "tx_hash": "86302d0f785f9cd0e1cae01ccba4087dad85dada43de72b33f488bab0778eecd",
@@ -2185,6 +2485,11 @@
           "value": "115792089237316195423570985008687907853269984665640564039433883929829088358674"
         }
       ],
+      "evm_token": {
+        "decimals": 18,
+        "symbol": "WETH",
+        "type": "ERC20"
+      },
       "round": 1003596,
       "timestamp": "2022-04-11T13:38:02Z",
       "tx_hash": "86302d0f785f9cd0e1cae01ccba4087dad85dada43de72b33f488bab0778eecd",
@@ -2215,6 +2520,11 @@
       },
       "eth_tx_hash": "6401f8e52743996fcf642b9e91f8681e1578c81d23b4aa8579af69d7b0f6ce9a",
       "evm_log_name": "",
+      "evm_token": {
+        "decimals": 18,
+        "symbol": "VSLP wROSE-USDT",
+        "type": "ERC20"
+      },
       "round": 1003596,
       "timestamp": "2022-04-11T13:38:02Z",
       "tx_hash": "6990763e70c6d36d2a5d9549993a1af6fb740f78b155b0f9055c821d480b804c",
@@ -2250,6 +2560,11 @@
           "value": "14445898"
         }
       ],
+      "evm_token": {
+        "decimals": 6,
+        "symbol": "USDT",
+        "type": "ERC20"
+      },
       "round": 1003596,
       "timestamp": "2022-04-11T13:38:02Z",
       "tx_hash": "6990763e70c6d36d2a5d9549993a1af6fb740f78b155b0f9055c821d480b804c",
@@ -2285,6 +2600,11 @@
           "value": "14445898"
         }
       ],
+      "evm_token": {
+        "decimals": 6,
+        "symbol": "USDT",
+        "type": "ERC20"
+      },
       "round": 1003596,
       "timestamp": "2022-04-11T13:38:02Z",
       "tx_hash": "6990763e70c6d36d2a5d9549993a1af6fb740f78b155b0f9055c821d480b804c",
@@ -2320,6 +2640,11 @@
           "value": "59634292367737099881"
         }
       ],
+      "evm_token": {
+        "decimals": 18,
+        "symbol": "wROSE",
+        "type": "ERC20"
+      },
       "round": 1003596,
       "timestamp": "2022-04-11T13:38:02Z",
       "tx_hash": "6990763e70c6d36d2a5d9549993a1af6fb740f78b155b0f9055c821d480b804c",
@@ -2373,6 +2698,11 @@
           "value": "59504310233692103000"
         }
       ],
+      "evm_token": {
+        "decimals": 18,
+        "symbol": "wROSE",
+        "type": "ERC20"
+      },
       "round": 1003596,
       "timestamp": "2022-04-11T13:38:02Z",
       "tx_hash": "6990763e70c6d36d2a5d9549993a1af6fb740f78b155b0f9055c821d480b804c",
@@ -2405,6 +2735,11 @@
       },
       "eth_tx_hash": "6401f8e52743996fcf642b9e91f8681e1578c81d23b4aa8579af69d7b0f6ce9a",
       "evm_log_name": "",
+      "evm_token": {
+        "decimals": 18,
+        "symbol": "VSLP wROSE-USDT",
+        "type": "ERC20"
+      },
       "round": 1003596,
       "timestamp": "2022-04-11T13:38:02Z",
       "tx_hash": "6990763e70c6d36d2a5d9549993a1af6fb740f78b155b0f9055c821d480b804c",
@@ -2452,6 +2787,11 @@
           "value": "115792089237316195423570985008687907853269984665640564033675219409689517153142"
         }
       ],
+      "evm_token": {
+        "decimals": 18,
+        "symbol": "RIM",
+        "type": "ERC20"
+      },
       "round": 1003596,
       "timestamp": "2022-04-11T13:38:02Z",
       "tx_hash": "14970ba0f96730423e78aed50163739a6c42e21f7c2e027e53bc3608bc08f819",
@@ -2470,6 +2810,11 @@
       },
       "eth_tx_hash": "7e9bc9a46485824bfe3c6f4a7fc8fe4b371dfe306bc5018b1b08601150def22a",
       "evm_log_name": "",
+      "evm_token": {
+        "decimals": 18,
+        "symbol": "RimSwap-LP",
+        "type": "ERC20"
+      },
       "round": 1003596,
       "timestamp": "2022-04-11T13:38:02Z",
       "tx_hash": "14970ba0f96730423e78aed50163739a6c42e21f7c2e027e53bc3608bc08f819",

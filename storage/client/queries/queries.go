@@ -106,7 +106,8 @@ const (
 	EntityNodeIds = `
 		SELECT id
 			FROM chain.nodes
-			WHERE entity_id = $1::text`
+			WHERE entity_id = $1::text
+			ORDER BY id`
 
 	EntityNodes = `
 		SELECT id, entity_id, expiration, tls_pubkey, tls_next_pubkey, p2p_pubkey, consensus_pubkey, roles
@@ -524,7 +525,7 @@ const (
 		WHERE
 			(balances.runtime = $1::runtime) AND
 			(balances.token_address = $2::oasis_addr)
-		ORDER BY balance DESC
+		ORDER BY balance DESC, holder_addr
 		LIMIT $3::bigint
 		OFFSET $4::bigint`
 
