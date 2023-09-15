@@ -364,9 +364,7 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 					blockTransactionData.Body = body
 					amount = body.Amount.Amount
 					if body.To != nil {
-						// This is the address of an account in the consensus
-						// layer, not an account in the runtime that generated this tx.
-						// We do not register it as a preimage.
+						// This is the address of an account in the consensus layer only; we do not register it as a preimage.
 						if to, err = uncategorized.StringifySdkAddress(body.To); err != nil {
 							return fmt.Errorf("to: %w", err)
 						}
@@ -374,11 +372,31 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 					return nil
 				},
 				ConsensusAccountsDelegate: func(body *consensusaccounts.Delegate) error {
+					// LESSON: What (un)delegations look like on the chain.
+					//
+					// Example from Sapphire Testnet:
+					// Round 2378822:
+					//   - tx Delegate(sender: oasis1...nz2f, to: oasis1...8tha)
+					//       Runtime account wants to delegate some funds. Here, nz2f is a runtime address, 8tha is a validator's consensus address.
+					//   - event Transfer(from: nz2f, to: q49r)
+					//       q49r is the special `pending-delegation` system address in the runtime; each runtime has it.
+					//       The reason for this temporary transfer is that delegations (and other consensus-related stuff) are async, which means that
+					//       whether a delegation succeeded can only be known in the following round. So we need to prevent the user from moving the
+					//       tokens after delegating them, which is why we lock the tokens by moving them into the pending delegation address until
+					//       the result is known (in the next block). Then they are either returned (if delegation failed) or burned (if delegation succeeded).
+					// Round 2378823 (= next round):
+					//   - event Delegate(from: nz2f, to: 8tha)
+					//   - event Burn(owner: q49r)
+					//       The runtime has learned (via a Message, a consensus->runtime communication mechanism) that the delegation succeeded at the
+					//       consensus layer, so it burns the tokens inside the runtime, as discussed.
+					// Round 2379853 (triggered by user action):
+					//   - event UndelegateStart(from: 8tha, to: nz2f)
+					// Round 2534792 (= after debonding period):
+					//   - event UndelegateDone(from: 8tha, to: nz2f)
+					//   - event Mint(to: nz2f)
 					blockTransactionData.Body = body
 					amount = body.Amount.Amount
-					// This is the address of an account in the consensus
-					// layer, not an account in the runtime that generated this tx.
-					// We do not register it as a preimage.
+					// This is the address of an account in the consensus layer only; we do not register it as a preimage.
 					if to, err = uncategorized.StringifySdkAddress(&body.To); err != nil {
 						return fmt.Errorf("to: %w", err)
 					}
@@ -653,6 +671,8 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 				extractedEvents = append(extractedEvents, &eventData)
 			}
 			if event.Delegate != nil {
+				// No dead reckoning needed; balance changes are signalled by other, co-emitted events.
+				// See "LESSON" comment in the code that handles the Delegate tx.
 				fromAddr, err1 := registerRelatedSdkAddress(relatedAccountAddresses, &event.Delegate.From)
 				if err1 != nil {
 					return fmt.Errorf("from: %w", err1)

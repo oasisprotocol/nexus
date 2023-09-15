@@ -2373,7 +2373,7 @@ components:
               - For `method = "consensus.Deposit"`, this is the paratime account receiving the funds.
               - For `method = "consensus.Withdraw"`, this is the consensus (!) account receiving the funds.
               - For `method = "consensus.Delegate"`, this is the consensus (!) account receiving the funds.
-              - For `method = "consensus.Undelegate"`, this is the consensus (!) account to which funds were previously delegated. Not that this corresponds with the `.from` field in the transaction body.
+              - For `method = "consensus.Undelegate"`, this is the consensus (!) account to which funds were previously delegated. Note that this corresponds with the `.from` field in the transaction body.
               - For `method = "evm.Create"`, this is the address of the newly created smart contract.
               - For `method = "evm.Call"`, this is the address of the called smart contract
           example: "oasis1qq6ulxmcagnp5nr56ylva7nhmwnxtf0krumg9dkq"
