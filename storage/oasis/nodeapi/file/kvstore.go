@@ -157,7 +157,7 @@ func fetchTypedValue[Value any](cache KVStore, key CacheKey, value *Value) error
 	}
 	err = cbor.Unmarshal(raw, value)
 	if err != nil {
-		return fmt.Errorf("failed to unmarshal key %s from cache into %T: %v", key.Pretty(), value, err)
+		return fmt.Errorf("failed to unmarshal the value for key %s from cache into %T: %v; raw value was %x", key.Pretty(), value, err, raw)
 	}
 
 	return nil

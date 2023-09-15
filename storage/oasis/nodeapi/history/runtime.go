@@ -77,7 +77,7 @@ func (rc *HistoryRuntimeApiLite) GetEventsRaw(ctx context.Context, round uint64)
 	return api.GetEventsRaw(ctx, round)
 }
 
-func (rc *HistoryRuntimeApiLite) EVMSimulateCall(ctx context.Context, round uint64, gasPrice []byte, gasLimit uint64, caller []byte, address []byte, value []byte, data []byte) ([]byte, error) {
+func (rc *HistoryRuntimeApiLite) EVMSimulateCall(ctx context.Context, round uint64, gasPrice []byte, gasLimit uint64, caller []byte, address []byte, value []byte, data []byte) (*nodeapi.FallibleResponse, error) {
 	api, err := rc.APIForRound(round)
 	if err != nil {
 		return nil, fmt.Errorf("getting api for runtime %s round %d: %w", rc.Runtime, round, err)

@@ -81,11 +81,11 @@ func (r *FileRuntimeApiLite) GetNativeBalance(ctx context.Context, round uint64,
 	)
 }
 
-func (r *FileRuntimeApiLite) EVMSimulateCall(ctx context.Context, round uint64, gasPrice []byte, gasLimit uint64, caller []byte, address []byte, value []byte, data []byte) ([]byte, error) {
-	return GetSliceFromCacheOrCall(
+func (r *FileRuntimeApiLite) EVMSimulateCall(ctx context.Context, round uint64, gasPrice []byte, gasLimit uint64, caller []byte, address []byte, value []byte, data []byte) (*nodeapi.FallibleResponse, error) {
+	return GetFromCacheOrCall(
 		r.db, round == roothash.RoundLatest,
 		generateCacheKey("EVMSimulateCall", r.runtime, round, gasPrice, gasLimit, caller, address, value, data),
-		func() ([]byte, error) {
+		func() (*nodeapi.FallibleResponse, error) {
 			return r.runtimeApi.EVMSimulateCall(ctx, round, gasPrice, gasLimit, caller, address, value, data)
 		},
 	)
