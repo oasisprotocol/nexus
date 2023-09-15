@@ -18,15 +18,20 @@ import (
 )
 
 type CallHandler struct {
-	AccountsTransfer          func(body *accounts.Transfer) error
-	ConsensusAccountsDeposit  func(body *consensusaccounts.Deposit) error
-	ConsensusAccountsWithdraw func(body *consensusaccounts.Withdraw) error
-	EVMCreate                 func(body *evm.Create, ok *[]byte) error
-	EVMCall                   func(body *evm.Call, ok *[]byte) error
+	AccountsTransfer            func(body *accounts.Transfer) error
+	ConsensusAccountsDeposit    func(body *consensusaccounts.Deposit) error
+	ConsensusAccountsWithdraw   func(body *consensusaccounts.Withdraw) error
+	ConsensusAccountsDelegate   func(body *consensusaccounts.Delegate) error
+	ConsensusAccountsUndelegate func(body *consensusaccounts.Undelegate) error
+	EVMCreate                   func(body *evm.Create, ok *[]byte) error
+	EVMCall                     func(body *evm.Call, ok *[]byte) error
+	UnknownMethod               func(methodName string) error // Invoked for a tx call that doesn't map to any of the above method names.
 }
 
-//nolint:nestif
+//nolint:nestif,gocyclo
 func VisitCall(call *sdkTypes.Call, result *sdkTypes.CallResult, handler *CallHandler) error {
+	// List of methods: See each of the SDK modules, example for consensus_accounts:
+	//   https://github.com/oasisprotocol/oasis-sdk/blob/client-sdk%2Fgo%2Fv0.6.0/client-sdk/go/modules/consensusaccounts/consensus_accounts.go#L16-L20
 	switch call.Method {
 	case "accounts.Transfer":
 		if handler.AccountsTransfer != nil {
@@ -56,6 +61,26 @@ func VisitCall(call *sdkTypes.Call, result *sdkTypes.CallResult, handler *CallHa
 			}
 			if err := handler.ConsensusAccountsWithdraw(&body); err != nil {
 				return fmt.Errorf("consensus accounts withdraw: %w", err)
+			}
+		}
+	case "consensus.Delegate":
+		if handler.ConsensusAccountsDelegate != nil {
+			var body consensusaccounts.Delegate
+			if err := cbor.Unmarshal(call.Body, &body); err != nil {
+				return fmt.Errorf("unmarshal consensus accounts delegate: %w", err)
+			}
+			if err := handler.ConsensusAccountsDelegate(&body); err != nil {
+				return fmt.Errorf("consensus accounts delegate: %w", err)
+			}
+		}
+	case "consensus.Undelegate":
+		if handler.ConsensusAccountsUndelegate != nil {
+			var body consensusaccounts.Undelegate
+			if err := cbor.Unmarshal(call.Body, &body); err != nil {
+				return fmt.Errorf("unmarshal consensus accounts undelegate: %w", err)
+			}
+			if err := handler.ConsensusAccountsUndelegate(&body); err != nil {
+				return fmt.Errorf("consensus accounts undelegate: %w", err)
 			}
 		}
 	case "evm.Create":
@@ -93,6 +118,10 @@ func VisitCall(call *sdkTypes.Call, result *sdkTypes.CallResult, handler *CallHa
 			if err := handler.EVMCall(&body, okP); err != nil {
 				return fmt.Errorf("evm call: %w", err)
 			}
+		}
+	default:
+		if handler.UnknownMethod != nil {
+			return handler.UnknownMethod(string(call.Method))
 		}
 	}
 	return nil

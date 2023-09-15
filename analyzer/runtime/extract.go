@@ -364,13 +364,58 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 					blockTransactionData.Body = body
 					amount = body.Amount.Amount
 					if body.To != nil {
-						// Beware, this is the address of an account in the consensus
-						// layer, not an account in the runtime that generated this event.
-						// We do not register it as a preimage.
+						// This is the address of an account in the consensus layer only; we do not register it as a preimage.
 						if to, err = uncategorized.StringifySdkAddress(body.To); err != nil {
 							return fmt.Errorf("to: %w", err)
 						}
 					}
+					return nil
+				},
+				ConsensusAccountsDelegate: func(body *consensusaccounts.Delegate) error {
+					// LESSON: What (un)delegations look like on the chain.
+					//
+					// Example from Sapphire Testnet:
+					// Round 2378822:
+					//   - tx Delegate(sender: oasis1...nz2f, to: oasis1...8tha)
+					//       Runtime account wants to delegate some funds. Here, nz2f is a runtime address, 8tha is a validator's consensus address.
+					//   - event Transfer(from: nz2f, to: q49r)
+					//       q49r is the special `pending-delegation` system address in the runtime; each runtime has it.
+					//       The reason for this temporary transfer is that delegations (and other consensus-related stuff) are async, which means that
+					//       whether a delegation succeeded can only be known in the following round. So we need to prevent the user from moving the
+					//       tokens after delegating them, which is why we lock the tokens by moving them into the pending delegation address until
+					//       the result is known (in the next block). Then they are either returned (if delegation failed) or burned (if delegation succeeded).
+					// Round 2378823 (= next round):
+					//   - event Delegate(from: nz2f, to: 8tha)
+					//   - event Burn(owner: q49r)
+					//       The runtime has learned (via a Message, a consensus->runtime communication mechanism) that the delegation succeeded at the
+					//       consensus layer, so it burns the tokens inside the runtime, as discussed.
+					// Round 2379853 (triggered by user action):
+					//   - event UndelegateStart(from: 8tha, to: nz2f)
+					// Round 2534792 (= after debonding period):
+					//   - event UndelegateDone(from: 8tha, to: nz2f)
+					//   - event Mint(to: nz2f)
+					blockTransactionData.Body = body
+					amount = body.Amount.Amount
+					// This is the address of an account in the consensus layer only; we do not register it as a preimage.
+					if to, err = uncategorized.StringifySdkAddress(&body.To); err != nil {
+						return fmt.Errorf("to: %w", err)
+					}
+					return nil
+				},
+				ConsensusAccountsUndelegate: func(body *consensusaccounts.Undelegate) error {
+					blockTransactionData.Body = body
+					// NOTE: The `from` and `to` addresses have swapped semantics compared to most other txs:
+					// Assume R is a runtime address and C is a consensus address (likely a validator). The inverse of Delegate(from=R, to=C) is Undelegate(from=C, to=R).
+					// In Undelegate semantics, the inexistent `body.To` is implicitly the account that created this tx, i.e. the delegator R.
+					// Ref: https://github.com/oasisprotocol/oasis-sdk/blob/eb97a8162f84ae81d11d805e6dceeeb016841c27/runtime-sdk/src/modules/consensus_accounts/mod.rs#L465-L465
+					// However, we instead expose `body.From` as the DB/API `to` for consistency with `Delegate`, and because it is more useful: the delegator R is already indexed in the tx sender field.
+					if to, err = registerRelatedSdkAddress(blockTransactionData.RelatedAccountAddresses, &body.From); err != nil {
+						return fmt.Errorf("from: %w", err)
+					}
+					// The `amount` (of tokens) is not contained in the body, only `shares` is. There isn't sufficient information
+					// to convert `shares` to `amount` until the undelegation actually happens (= UndelegateDone event); in the meantime,
+					// the validator's token pool might change, e.g. because of slashing.
+					// Do not store `body.Shares` in DB's `amount` to avoid confusion. Clients can still look up the shares in the tx body if they really need it.
 					return nil
 				},
 				EVMCreate: func(body *sdkEVM.Create, ok *[]byte) error {
@@ -455,6 +500,10 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 					}
 
 					// TODO: maybe parse known token methods (ERC-20 etc)
+					return nil
+				},
+				UnknownMethod: func(methodName string) error {
+					logger.Warn("unknown tx method, skipping tx-specific analysis", "tx_method", methodName)
 					return nil
 				},
 			}); err != nil {
@@ -548,15 +597,11 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 				if err1 != nil {
 					return fmt.Errorf("to: %w", err1)
 				}
-				eventRelatedAddresses := map[apiTypes.Address]bool{}
-				for _, addr := range []apiTypes.Address{fromAddr, toAddr} {
-					eventRelatedAddresses[addr] = true
-				}
 				eventData := EventData{
 					Type:             apiTypes.RuntimeEventTypeAccountsTransfer,
 					Body:             event.Transfer,
 					WithScope:        ScopedSdkEvent{Accounts: event},
-					RelatedAddresses: eventRelatedAddresses,
+					RelatedAddresses: map[apiTypes.Address]bool{fromAddr: true, toAddr: true},
 				}
 				extractedEvents = append(extractedEvents, &eventData)
 			}
@@ -590,16 +635,20 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 		},
 		ConsensusAccounts: func(event *consensusaccounts.Event) error {
 			if event.Deposit != nil {
-				// .From is from another chain, so exclude?
-				toAddr, err1 := registerRelatedSdkAddress(relatedAccountAddresses, &event.Deposit.To)
+				// NOTE: .From is a _consensus_ addr (not runtime). It's still related though.
+				fromAddr, err1 := registerRelatedSdkAddress(relatedAccountAddresses, &event.Deposit.From)
 				if err1 != nil {
 					return fmt.Errorf("from: %w", err1)
+				}
+				toAddr, err1 := registerRelatedSdkAddress(relatedAccountAddresses, &event.Deposit.To)
+				if err1 != nil {
+					return fmt.Errorf("to: %w", err1)
 				}
 				eventData := EventData{
 					Type:             apiTypes.RuntimeEventTypeConsensusAccountsDeposit,
 					Body:             event.Deposit,
 					WithScope:        ScopedSdkEvent{ConsensusAccounts: event},
-					RelatedAddresses: map[apiTypes.Address]bool{toAddr: true},
+					RelatedAddresses: map[apiTypes.Address]bool{fromAddr: true, toAddr: true},
 				}
 				extractedEvents = append(extractedEvents, &eventData)
 			}
@@ -608,14 +657,71 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 				if err1 != nil {
 					return fmt.Errorf("from: %w", err1)
 				}
+				// NOTE: .To is a _consensus_ addr (not runtime). It's still related though.
+				toAddr, err1 := registerRelatedSdkAddress(relatedAccountAddresses, &event.Withdraw.To)
+				if err1 != nil {
+					return fmt.Errorf("to: %w", err1)
+				}
 				eventData := EventData{
 					Type:             apiTypes.RuntimeEventTypeConsensusAccountsWithdraw,
 					Body:             event.Withdraw,
 					WithScope:        ScopedSdkEvent{ConsensusAccounts: event},
-					RelatedAddresses: map[apiTypes.Address]bool{fromAddr: true},
+					RelatedAddresses: map[apiTypes.Address]bool{fromAddr: true, toAddr: true},
 				}
 				extractedEvents = append(extractedEvents, &eventData)
-				// .To is from another chain, so exclude?
+			}
+			if event.Delegate != nil {
+				// No dead reckoning needed; balance changes are signalled by other, co-emitted events.
+				// See "LESSON" comment in the code that handles the Delegate tx.
+				fromAddr, err1 := registerRelatedSdkAddress(relatedAccountAddresses, &event.Delegate.From)
+				if err1 != nil {
+					return fmt.Errorf("from: %w", err1)
+				}
+				toAddr, err1 := registerRelatedSdkAddress(relatedAccountAddresses, &event.Delegate.To)
+				if err1 != nil {
+					return fmt.Errorf("to: %w", err1)
+				}
+				eventData := EventData{
+					Type:             apiTypes.RuntimeEventTypeConsensusAccountsDelegate,
+					Body:             event.Delegate,
+					WithScope:        ScopedSdkEvent{ConsensusAccounts: event},
+					RelatedAddresses: map[apiTypes.Address]bool{fromAddr: true, toAddr: true},
+				}
+				extractedEvents = append(extractedEvents, &eventData)
+			}
+			if event.UndelegateStart != nil {
+				fromAddr, err1 := registerRelatedSdkAddress(relatedAccountAddresses, &event.UndelegateStart.From)
+				if err1 != nil {
+					return fmt.Errorf("from: %w", err1)
+				}
+				toAddr, err1 := registerRelatedSdkAddress(relatedAccountAddresses, &event.UndelegateStart.To)
+				if err1 != nil {
+					return fmt.Errorf("to: %w", err1)
+				}
+				eventData := EventData{
+					Type:             apiTypes.RuntimeEventTypeConsensusAccountsUndelegateStart,
+					Body:             event.UndelegateStart,
+					WithScope:        ScopedSdkEvent{ConsensusAccounts: event},
+					RelatedAddresses: map[apiTypes.Address]bool{fromAddr: true, toAddr: true},
+				}
+				extractedEvents = append(extractedEvents, &eventData)
+			}
+			if event.UndelegateDone != nil {
+				fromAddr, err1 := registerRelatedSdkAddress(relatedAccountAddresses, &event.UndelegateDone.From)
+				if err1 != nil {
+					return fmt.Errorf("from: %w", err1)
+				}
+				toAddr, err1 := registerRelatedSdkAddress(relatedAccountAddresses, &event.UndelegateDone.To)
+				if err1 != nil {
+					return fmt.Errorf("to: %w", err1)
+				}
+				eventData := EventData{
+					Type:             apiTypes.RuntimeEventTypeConsensusAccountsUndelegateDone,
+					Body:             event.UndelegateDone,
+					WithScope:        ScopedSdkEvent{ConsensusAccounts: event},
+					RelatedAddresses: map[apiTypes.Address]bool{fromAddr: true, toAddr: true},
+				}
+				extractedEvents = append(extractedEvents, &eventData)
 			}
 			return nil
 		},
