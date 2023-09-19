@@ -1,4 +1,4 @@
-package logic
+package abiparse
 
 import (
 	"fmt"
@@ -42,7 +42,7 @@ func evmPreMarshal(v interface{}, t abi.Type) interface{} {
 	return v
 }
 
-func EVMParseData(data []byte, contractABI *abi.ABI) (*abi.Method, []interface{}, error) {
+func ParseData(data []byte, contractABI *abi.ABI) (*abi.Method, []interface{}, error) {
 	if len(data) < 4 {
 		return nil, nil, fmt.Errorf("data (%dB) too short to have method ID", len(data))
 	}
@@ -59,7 +59,7 @@ func EVMParseData(data []byte, contractABI *abi.ABI) (*abi.Method, []interface{}
 	return method, args, nil
 }
 
-func EVMParseEvent(topics [][]byte, data []byte, contractABI *abi.ABI) (*abi.Event, []interface{}, error) {
+func ParseEvent(topics [][]byte, data []byte, contractABI *abi.ABI) (*abi.Event, []interface{}, error) {
 	if len(topics) < 1 {
 		return nil, nil, fmt.Errorf("topics (%d) too short to have event signature", len(topics))
 	}
