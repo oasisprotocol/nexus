@@ -122,15 +122,40 @@ func (m *processor) FinalizeFastSync(ctx context.Context, lastFastSyncHeight int
 	if r.GenesisHeight == firstSlowSyncHeight {
 		m.logger.Info("fetching genesis document before starting with the first block of a chain", "chain_context", r.ChainContext, "genesis_height", r.GenesisHeight)
 		genesisDoc, err = m.source.GenesisDocument(ctx, r.ChainContext)
+		if genesisDoc != nil {
+			m.dumpGenesisJSON(ctx, genesisDoc, r.ArchiveName)
+		}
 	} else {
 		m.logger.Info("fetching state at last fast-sync height, using StateToGenesis; this can take a while, up to an hour on mainnet", "state_to_genesis_height", lastFastSyncHeight, "chain_genesis_height", r.GenesisHeight, "first_slow_sync_height", firstSlowSyncHeight)
 		genesisDoc, err = m.source.StateToGenesis(ctx, lastFastSyncHeight)
+		if genesisDoc != nil {
+			m.dumpGenesisJSON(ctx, genesisDoc, fmt.Sprintf("%d", lastFastSyncHeight))
+		}
 	}
 	if err != nil {
 		return err
 	}
 
 	return m.processGenesis(ctx, genesisDoc)
+}
+
+// Dumps the genesis document to a JSON file if instructed via env variables. For debug only.
+func (m *processor) dumpGenesisJSON(ctx context.Context, genesisDoc *genesis.Document, heightOrName string) {
+	debugPath := os.Getenv("NEXUS_DUMP_GENESIS") // can be templatized with "{{height}}"
+	if debugPath == "" {
+		return
+	}
+	debugPath = strings.ReplaceAll(debugPath, "{{height}}", heightOrName)
+	prettyJSON, err := json.MarshalIndent(genesisDoc, "", "  ")
+	if err != nil {
+		m.logger.Error("failed to marshal genesis document", "err", err)
+		return
+	}
+	if err := os.WriteFile(debugPath, prettyJSON, 0o644 /* Permissions: rw-r--r-- */); err != nil {
+		m.logger.Error("failed to write genesis JSON to file", "err", err)
+	} else {
+		m.logger.Info("wrote genesis JSON to file", "path", debugPath, "height_or_name", heightOrName)
+	}
 }
 
 func (m *processor) processGenesis(ctx context.Context, genesisDoc *genesis.Document) error {
