@@ -152,6 +152,18 @@ func (c *DamaskConsensusApiLite) RoothashEvents(ctx context.Context, height int6
 	return events, nil
 }
 
+func (c *DamaskConsensusApiLite) GetNodes(ctx context.Context, height int64) ([]nodeapi.Node, error) {
+	rsp, err := c.client.Registry().GetNodes(ctx, height)
+	if err != nil {
+		return nil, fmt.Errorf("GetNodes(%d): %w", height, err)
+	}
+	nodes := make([]nodeapi.Node, len(rsp))
+	for i, n := range rsp {
+		nodes[i] = nodeapi.Node(*n)
+	}
+	return nodes, nil
+}
+
 func (c *DamaskConsensusApiLite) GetValidators(ctx context.Context, height int64) ([]nodeapi.Validator, error) {
 	rsp, err := c.client.Scheduler().GetValidators(ctx, height)
 	if err != nil {

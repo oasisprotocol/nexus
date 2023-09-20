@@ -15,6 +15,7 @@ import (
 	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
 
 	"github.com/oasisprotocol/nexus/log"
+	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
 )
 
 const bulkInsertBatchSize = 1000
@@ -29,27 +30,35 @@ func NewGenesisProcessor(logger *log.Logger) *GenesisProcessor {
 	return &GenesisProcessor{logger}
 }
 
-func (mg *GenesisProcessor) Process(document *genesis.Document) ([]string, error) {
+// Process generates SQL statements for indexing the genesis state.
+// `nodesOverride` can be nil; if non-nil, the behavior is as if the genesis document contained that set of nodes instead of whatever it contains.
+func (mg *GenesisProcessor) Process(document *genesis.Document, nodesOverride []nodeapi.Node) ([]string, error) {
 	var queries []string
 
-	for _, f := range []func(*genesis.Document) ([]string, error){
-		mg.addRegistryBackendMigrations,
-		mg.addStakingBackendMigrations,
-		mg.addGovernanceBackendMigrations,
-	} {
-		qs, err := f(document)
-		if err != nil {
-			return nil, err
-		}
-		queries = append(queries, qs...)
+	qs, err := mg.addRegistryBackendMigrations(document, nodesOverride)
+	if err != nil {
+		return nil, err
 	}
+	queries = append(queries, qs...)
+
+	qs, err = mg.addStakingBackendMigrations(document)
+	if err != nil {
+		return nil, err
+	}
+	queries = append(queries, qs...)
+
+	qs, err = mg.addGovernanceBackendMigrations(document)
+	if err != nil {
+		return nil, err
+	}
+	queries = append(queries, qs...)
 
 	mg.logger.Info("generated genesis queries", "count", len(queries))
 
 	return queries, nil
 }
 
-func (mg *GenesisProcessor) addRegistryBackendMigrations(document *genesis.Document) (queries []string, err error) {
+func (mg *GenesisProcessor) addRegistryBackendMigrations(document *genesis.Document, nodesOverride []nodeapi.Node) (queries []string, err error) {
 	// Populate entities.
 	queries = append(queries, "-- Registry Backend Data\n")
 	query := `INSERT INTO chain.entities (id, address)
@@ -146,12 +155,20 @@ VALUES
 `
 	queryRt := "" // Query for populating the chain.runtime_nodes table.
 
-	for i, signedNode := range document.Registry.Nodes {
-		var node node.Node
-		if err := signedNode.Open(registry.RegisterNodeSignatureContext, &node); err != nil {
-			return nil, err
+	var nodes []nodeapi.Node // What we'll work with; either `overrideNodes` or the nodes from the genesis document.
+	if nodesOverride != nil {
+		nodes = nodesOverride
+	} else {
+		for _, signedNode := range document.Registry.Nodes {
+			var node node.Node
+			if err := signedNode.Open(registry.RegisterNodeSignatureContext, &node); err != nil {
+				return nil, err
+			}
+			nodes = append(nodes, nodeapi.Node(node))
 		}
+	}
 
+	for i, node := range nodes {
 		query += fmt.Sprintf(
 			"\t('%s', '%s', %d, '%s', '%s', '%s', '%s', '%s')",
 			node.ID.String(),
@@ -163,7 +180,7 @@ VALUES
 			node.Consensus.ID.String(),
 			node.Roles.String(),
 		)
-		if i != len(document.Registry.Nodes)-1 {
+		if i != len(nodes)-1 {
 			query += ",\n"
 		}
 

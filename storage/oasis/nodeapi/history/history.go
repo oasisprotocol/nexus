@@ -188,6 +188,14 @@ func (c *HistoryConsensusApiLite) RoothashEvents(ctx context.Context, height int
 	return api.RoothashEvents(ctx, height)
 }
 
+func (c *HistoryConsensusApiLite) GetNodes(ctx context.Context, height int64) ([]nodeapi.Node, error) {
+	api, err := c.APIForHeight(height)
+	if err != nil {
+		return nil, fmt.Errorf("getting api for height %d: %w", height, err)
+	}
+	return api.GetNodes(ctx, height)
+}
+
 func (c *HistoryConsensusApiLite) GetValidators(ctx context.Context, height int64) ([]nodeapi.Validator, error) {
 	api, err := c.APIForHeight(height)
 	if err != nil {

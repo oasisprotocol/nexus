@@ -161,6 +161,18 @@ func (c *CobaltConsensusApiLite) RoothashEvents(ctx context.Context, height int6
 	return events, nil
 }
 
+func (c *CobaltConsensusApiLite) GetNodes(ctx context.Context, height int64) ([]nodeapi.Node, error) {
+	var rsp []*nodeapi.Node // ABI is stable across Cobalt and Damask
+	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Registry/GetNodes", height, &rsp); err != nil {
+		return nil, fmt.Errorf("GetNodes(%d): %w", height, err)
+	}
+	nodes := make([]nodeapi.Node, len(rsp))
+	for i, n := range rsp {
+		nodes[i] = nodeapi.Node(*n)
+	}
+	return nodes, nil
+}
+
 func (c *CobaltConsensusApiLite) GetValidators(ctx context.Context, height int64) ([]nodeapi.Validator, error) {
 	var rsp []*schedulerCobalt.Validator
 	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Scheduler/GetValidators", height, &rsp); err != nil {

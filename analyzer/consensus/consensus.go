@@ -119,24 +119,28 @@ func (m *processor) FinalizeFastSync(ctx context.Context, lastFastSyncHeight int
 		return fmt.Errorf("no history record for first slow-sync height %d: %w", firstSlowSyncHeight, err)
 	}
 	var genesisDoc *genesis.Document
+	var nodes []nodeapi.Node
 	if r.GenesisHeight == firstSlowSyncHeight {
 		m.logger.Info("fetching genesis document before starting with the first block of a chain", "chain_context", r.ChainContext, "genesis_height", r.GenesisHeight)
 		genesisDoc, err = m.source.GenesisDocument(ctx, r.ChainContext)
-		if genesisDoc != nil {
-			m.dumpGenesisJSON(ctx, genesisDoc, r.ArchiveName)
+		if err != nil {
+			return err
 		}
+		m.dumpGenesisJSON(ctx, genesisDoc, r.ArchiveName)
 	} else {
 		m.logger.Info("fetching state at last fast-sync height, using StateToGenesis; this can take a while, up to an hour on mainnet", "state_to_genesis_height", lastFastSyncHeight, "chain_genesis_height", r.GenesisHeight, "first_slow_sync_height", firstSlowSyncHeight)
 		genesisDoc, err = m.source.StateToGenesis(ctx, lastFastSyncHeight)
-		if genesisDoc != nil {
-			m.dumpGenesisJSON(ctx, genesisDoc, fmt.Sprintf("%d", lastFastSyncHeight))
+		if err != nil {
+			return err
 		}
-	}
-	if err != nil {
-		return err
+		nodes, err = m.source.GetNodes(ctx, lastFastSyncHeight)
+		if err != nil {
+			return err
+		}
+		m.dumpGenesisJSON(ctx, genesisDoc, fmt.Sprintf("%d", lastFastSyncHeight))
 	}
 
-	return m.processGenesis(ctx, genesisDoc)
+	return m.processGenesis(ctx, genesisDoc, nodes)
 }
 
 // Dumps the genesis document to a JSON file if instructed via env variables. For debug only.
@@ -158,10 +162,12 @@ func (m *processor) dumpGenesisJSON(ctx context.Context, genesisDoc *genesis.Doc
 	}
 }
 
-func (m *processor) processGenesis(ctx context.Context, genesisDoc *genesis.Document) error {
+// Executes SQL queries to index the contents of the genesis document.
+// If nodesOverride is non-nil, it is used instead of the nodes from the genesis document.
+func (m *processor) processGenesis(ctx context.Context, genesisDoc *genesis.Document, nodesOverride []nodeapi.Node) error {
 	m.logger.Info("processing genesis document")
 	gen := NewGenesisProcessor(m.logger.With("height", "genesis"))
-	batchStr, err := gen.Process(genesisDoc)
+	queries, err := gen.Process(genesisDoc, nodesOverride)
 	if err != nil {
 		return err
 	}
@@ -169,7 +175,7 @@ func (m *processor) processGenesis(ctx context.Context, genesisDoc *genesis.Docu
 	// Debug: log the SQL into a file if requested.
 	debugPath := os.Getenv("CONSENSUS_DAMASK_GENESIS_DUMP")
 	if debugPath != "" {
-		sql := strings.Join(batchStr, "\n")
+		sql := strings.Join(queries, "\n")
 		if err := os.WriteFile(debugPath, []byte(sql), 0o600 /* Permissions: rw------- */); err != nil {
 			gen.logger.Error("failed to write genesis sql to file", "err", err)
 		} else {
@@ -178,7 +184,7 @@ func (m *processor) processGenesis(ctx context.Context, genesisDoc *genesis.Docu
 	}
 
 	batch := &storage.QueryBatch{}
-	for _, query := range batchStr {
+	for _, query := range queries {
 		batch.Queue(query)
 	}
 	if err := m.target.SendBatch(ctx, batch); err != nil {

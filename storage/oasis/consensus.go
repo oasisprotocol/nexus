@@ -37,6 +37,11 @@ func (cc *ConsensusClient) GenesisDocument(ctx context.Context, chainContext str
 	return cc.nodeApi.GetGenesisDocument(ctx, chainContext)
 }
 
+// GetNodes returns the list of nodes registered at the given height.
+func (cc *ConsensusClient) GetNodes(ctx context.Context, height int64) ([]nodeapi.Node, error) {
+	return cc.nodeApi.GetNodes(ctx, height)
+}
+
 // StateToGenesis returns a genesis-like struct encoding the state of the chain at the given height.
 func (cc *ConsensusClient) StateToGenesis(ctx context.Context, height int64) (*genesisAPI.Document, error) {
 	return cc.nodeApi.StateToGenesis(ctx, height)

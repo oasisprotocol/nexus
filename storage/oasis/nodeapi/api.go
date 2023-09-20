@@ -10,6 +10,7 @@ import (
 	hash "github.com/oasisprotocol/oasis-core/go/common/crypto/hash"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
 	"github.com/oasisprotocol/oasis-core/go/common/errors"
+	node "github.com/oasisprotocol/oasis-core/go/common/node"
 	consensus "github.com/oasisprotocol/oasis-core/go/consensus/api"
 	consensusTransaction "github.com/oasisprotocol/oasis-core/go/consensus/api/transaction"
 	consensusResults "github.com/oasisprotocol/oasis-core/go/consensus/api/transaction/results"
@@ -54,6 +55,7 @@ type ConsensusApiLite interface {
 	GovernanceEvents(ctx context.Context, height int64) ([]Event, error)
 	RoothashEvents(ctx context.Context, height int64) ([]Event, error)
 	GetValidators(ctx context.Context, height int64) ([]Validator, error)
+	GetNodes(ctx context.Context, height int64) ([]Node, error)
 	GetCommittees(ctx context.Context, height int64, runtimeID coreCommon.Namespace) ([]Committee, error)
 	GetProposal(ctx context.Context, height int64, proposalID uint64) (*Proposal, error)
 	Close() error
@@ -146,8 +148,10 @@ type RuntimeRegisteredEvent struct {
 	TEEHardware string                // enum: "invalid" (= no TEE), "intel-sgx"
 }
 type (
-	EntityEvent registry.EntityEvent
-	NodeEvent   struct {
+	Node              node.Node
+	NodeUnfrozenEvent registry.NodeUnfrozenEvent
+	EntityEvent       registry.EntityEvent
+	NodeEvent         struct {
 		NodeID             signature.PublicKey
 		EntityID           signature.PublicKey
 		Expiration         uint64 // Epoch in which the node expires.
@@ -165,7 +169,6 @@ type (
 		IsRegistration     bool
 	}
 )
-type NodeUnfrozenEvent registry.NodeUnfrozenEvent
 
 // .................... RootHash  ....................
 
