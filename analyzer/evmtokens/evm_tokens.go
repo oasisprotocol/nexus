@@ -157,15 +157,23 @@ func (p *processor) ProcessItem(ctx context.Context, batch *storage.QueryBatch, 
 		if err != nil {
 			return fmt.Errorf("downloading mutated token %s: %w", staleToken.Addr, err)
 		}
+		// We may be unable to download the totalSupply because
+		// of a deterministic error or because the contract may
+		// not provide the data.
 		if mutable != nil && mutable.TotalSupply != nil {
 			batch.Queue(queries.RuntimeEVMTokenDownloadedTotalSupplyUpdate,
 				p.runtime,
 				staleToken.Addr,
 				mutable.TotalSupply.String(),
-				staleToken.DownloadRound,
 			)
 		}
 	}
+	batch.Queue(queries.RuntimeEVMTokenDownloadRoundUpdate,
+		p.runtime,
+		staleToken.Addr,
+		staleToken.DownloadRound,
+	)
+
 	return nil
 }
 

@@ -573,7 +573,15 @@ var (
     UPDATE chain.evm_tokens
     SET
       total_supply = $3,
-      last_download_round = $4
+    WHERE
+      runtime = $1 AND
+      token_address = $2`
+
+	// Updates the last_download_round of an EVM token.
+	RuntimeEVMTokenDownloadRoundUpdate = `
+    UPDATE chain.evm_tokens
+    SET
+      last_download_round = $3
     WHERE
       runtime = $1 AND
       token_address = $2`
