@@ -100,6 +100,8 @@ func TestParseEvent(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, evmabi.ERC20.Events["Approval"], *event)
 	require.Equal(t, []interface{}{
+		ethCommon.HexToAddress("0ecf5262e5b864e1612875f8fc18f151315b5e91"),
+		ethCommon.HexToAddress("250d48c5e78f1e85f7ab07fec61e93ba703ae668"),
 		big.NewInt(4000000000000000000),
 	}, args)
 }
