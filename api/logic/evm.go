@@ -12,6 +12,7 @@ import (
 // evmPreMarshal converts v to a type that gives us the JSON serialization that we like:
 // - large integers are JSON strings instead of JSON numbers
 // - byte array types are JSON strings of base64 instead of JSON arrays of numbers
+// Contrived dot for godot linter: .
 func evmPreMarshal(v interface{}, t abi.Type) interface{} {
 	switch t.T {
 	case abi.IntTy, abi.UintTy:
