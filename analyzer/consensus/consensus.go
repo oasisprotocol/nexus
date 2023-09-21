@@ -227,12 +227,14 @@ func (m *processor) ProcessBlock(ctx context.Context, uheight uint64) error {
 	for _, f := range []func(*storage.QueryBatch, *storage.RegistryData) error{
 		m.queueEntityEvents,
 		m.queueRuntimeRegistrations,
-		m.queueNodeEvents,
 		m.queueRegistryEventInserts,
 	} {
 		if err := f(batch, data.RegistryData); err != nil {
 			return err
 		}
+	}
+	if err := m.queueNodeEvents(batch, data.RegistryData, uint64(data.BlockData.Epoch)); err != nil {
+		return err
 	}
 
 	for _, f := range []func(*storage.QueryBatch, *storage.StakingData) error{
@@ -486,7 +488,8 @@ func (m *processor) queueEntityEvents(batch *storage.QueryBatch, data *storage.R
 	return nil
 }
 
-func (m *processor) queueNodeEvents(batch *storage.QueryBatch, data *storage.RegistryData) error {
+// Performs bookkeeping related to node (de)registrations, ignoring registrations that are already expired.
+func (m *processor) queueNodeEvents(batch *storage.QueryBatch, data *storage.RegistryData, currentEpoch uint64) error {
 	if m.mode == analyzer.FastSyncMode {
 		// Skip node updates during fast sync; this function only modifies chain.nodes and chain.runtime_nodes,
 		// which are both recreated from scratch by the genesis.
@@ -494,8 +497,9 @@ func (m *processor) queueNodeEvents(batch *storage.QueryBatch, data *storage.Reg
 	}
 
 	for _, nodeEvent := range data.NodeEvents {
-		if nodeEvent.IsRegistration {
-			// A new node is registered.
+		if nodeEvent.IsRegistration && nodeEvent.Expiration >= currentEpoch {
+			// A new node is registered; the expiration check above is needed because oasis-node sometimes returns
+			// obsolete registration events, i.e. registrations that are already expired when they are produced.
 			batch.Queue(queries.ConsensusNodeUpsert,
 				nodeEvent.NodeID.String(),
 				nodeEvent.EntityID.String(),

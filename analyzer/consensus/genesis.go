@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strings"
 
+	beacon "github.com/oasisprotocol/oasis-core/go/beacon/api"
 	"github.com/oasisprotocol/oasis-core/go/common/entity"
 	"github.com/oasisprotocol/oasis-core/go/common/node"
 	genesis "github.com/oasisprotocol/oasis-core/go/genesis/api"
@@ -163,6 +164,10 @@ VALUES
 			var node node.Node
 			if err := signedNode.Open(registry.RegisterNodeSignatureContext, &node); err != nil {
 				return nil, err
+			}
+			if beacon.EpochTime(node.Expiration) < document.Beacon.Base {
+				// Node expired before the genesis epoch, skip.
+				continue
 			}
 			nodes = append(nodes, nodeapi.Node(node))
 		}
