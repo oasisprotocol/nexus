@@ -844,7 +844,7 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 				RelatedAddresses: map[apiTypes.Address]bool{eventAddr: true},
 			}
 			if err1 = VisitEVMEvent(event, &EVMEventHandler{
-				ERC20Transfer: func(fromECAddr ethCommon.Address, toECAddr ethCommon.Address, amount *big.Int) error {
+				ERC20Transfer: func(fromECAddr ethCommon.Address, toECAddr ethCommon.Address, value *big.Int) error {
 					fromZero := bytes.Equal(fromECAddr.Bytes(), uncategorized.ZeroEthAddr)
 					toZero := bytes.Equal(toECAddr.Bytes(), uncategorized.ZeroEthAddr)
 					if !fromZero {
@@ -853,7 +853,7 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 							return fmt.Errorf("from: %w", err2)
 						}
 						eventData.RelatedAddresses[fromAddr] = true
-						registerTokenDecrease(blockData.TokenBalanceChanges, eventAddr, fromAddr, amount)
+						registerTokenDecrease(blockData.TokenBalanceChanges, eventAddr, fromAddr, value)
 					}
 					if !toZero {
 						toAddr, err2 := registerRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, toECAddr.Bytes())
@@ -861,7 +861,7 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 							return fmt.Errorf("to: %w", err2)
 						}
 						eventData.RelatedAddresses[toAddr] = true
-						registerTokenIncrease(blockData.TokenBalanceChanges, eventAddr, toAddr, amount)
+						registerTokenIncrease(blockData.TokenBalanceChanges, eventAddr, toAddr, value)
 					}
 					if _, ok := blockData.PossibleTokens[eventAddr]; !ok {
 						blockData.PossibleTokens[eventAddr] = &evm.EVMPossibleToken{}
@@ -872,7 +872,7 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 					// and nonzero address (either direction) and nonzero
 					// amount. These will change the total supply as mint/
 					// burn.
-					if fromZero != toZero && amount.Cmp(&big.Int{}) != 0 {
+					if fromZero != toZero && value.Cmp(&big.Int{}) != 0 {
 						blockData.PossibleTokens[eventAddr].Mutated = true
 					}
 					eventData.EvmLogName = apiTypes.Erc20Transfer
@@ -893,12 +893,12 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 							EvmType: "uint256",
 							// JSON supports encoding big integers, but many clients (javascript, jq, etc.)
 							// will incorrectly parse them as floats. So we encode uint256 as a string instead.
-							Value: amount.String(),
+							Value: value.String(),
 						},
 					}
 					return nil
 				},
-				ERC20Approval: func(ownerECAddr ethCommon.Address, spenderECAddr ethCommon.Address, amount *big.Int) error {
+				ERC20Approval: func(ownerECAddr ethCommon.Address, spenderECAddr ethCommon.Address, value *big.Int) error {
 					if !bytes.Equal(ownerECAddr.Bytes(), uncategorized.ZeroEthAddr) {
 						ownerAddr, err2 := registerRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, ownerECAddr.Bytes())
 						if err2 != nil {
@@ -934,7 +934,7 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 							EvmType: "uint256",
 							// JSON supports encoding big integers, but many clients (javascript, jq, etc.)
 							// will incorrectly parse them as floats. So we encode uint256 as a string instead.
-							Value: amount.String(),
+							Value: value.String(),
 						},
 					}
 					return nil

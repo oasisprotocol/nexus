@@ -194,8 +194,8 @@ func VisitSdkEvents(events []nodeapi.RuntimeEvent, handler *SdkEventHandler) err
 }
 
 type EVMEventHandler struct {
-	ERC20Transfer        func(from ethCommon.Address, to ethCommon.Address, amount *big.Int) error
-	ERC20Approval        func(owner ethCommon.Address, spender ethCommon.Address, amount *big.Int) error
+	ERC20Transfer        func(from ethCommon.Address, to ethCommon.Address, value *big.Int) error
+	ERC20Approval        func(owner ethCommon.Address, spender ethCommon.Address, value *big.Int) error
 	ERC721Transfer       func(from ethCommon.Address, to ethCommon.Address, tokenID *big.Int) error
 	ERC721Approval       func(owner ethCommon.Address, approved ethCommon.Address, tokenID *big.Int) error
 	ERC721ApprovalForAll func(owner ethCommon.Address, operator ethCommon.Address, approved bool) error
