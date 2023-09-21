@@ -59,6 +59,14 @@ func ParseData(data []byte, contractABI *abi.ABI) (*abi.Method, []interface{}, e
 	return method, args, nil
 }
 
+func ParseResult(result []byte, method *abi.Method) ([]interface{}, error) {
+	args, err := method.Outputs.Unpack(result)
+	if err != nil {
+		return nil, fmt.Errorf("method outputs Unpack: %w", err)
+	}
+	return args, nil
+}
+
 func ParseEvent(topics [][]byte, data []byte, contractABI *abi.ABI) (*abi.Event, []interface{}, error) {
 	if len(topics) < 1 {
 		return nil, nil, fmt.Errorf("topics (%d) too short to have event signature", len(topics))
