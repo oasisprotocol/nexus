@@ -237,7 +237,7 @@ func (srv *StrictServerImpl) GetConsensusTransactionsTxHash(ctx context.Context,
 }
 
 func (srv *StrictServerImpl) GetConsensusValidators(ctx context.Context, request apiTypes.GetConsensusValidatorsRequestObject) (apiTypes.GetConsensusValidatorsResponseObject, error) {
-	validators, err := srv.dbClient.Validators(ctx, request.Params)
+	validators, err := srv.dbClient.Validators(ctx, request.Params, nil /*entityID*/)
 	if err != nil {
 		return nil, err
 	}
@@ -245,11 +245,14 @@ func (srv *StrictServerImpl) GetConsensusValidators(ctx context.Context, request
 }
 
 func (srv *StrictServerImpl) GetConsensusValidatorsEntityId(ctx context.Context, request apiTypes.GetConsensusValidatorsEntityIdRequestObject) (apiTypes.GetConsensusValidatorsEntityIdResponseObject, error) {
-	validator, err := srv.dbClient.Validator(ctx, request.EntityId)
+	validators, err := srv.dbClient.Validators(ctx, apiTypes.GetConsensusValidatorsParams{Limit: common.Ptr(uint64(1))}, &request.EntityId)
 	if err != nil {
 		return nil, err
 	}
-	return apiTypes.GetConsensusValidatorsEntityId200JSONResponse(*validator), nil
+	if len(validators.Validators) == 0 {
+		return apiTypes.GetConsensusValidatorsEntityId404JSONResponse{}, nil
+	}
+	return apiTypes.GetConsensusValidatorsEntityId200JSONResponse(validators.Validators[0]), nil
 }
 
 func (srv *StrictServerImpl) GetRuntimeBlocks(ctx context.Context, request apiTypes.GetRuntimeBlocksRequestObject) (apiTypes.GetRuntimeBlocksResponseObject, error) {

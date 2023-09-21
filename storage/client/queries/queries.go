@@ -252,35 +252,6 @@ const (
 		LIMIT $2::bigint
 		OFFSET $3::bigint`
 
-	Validator = `
-		SELECT id, start_height
-			FROM chain.epochs
-		ORDER BY id DESC
-		LIMIT 1`
-
-	ValidatorData = `
-		SELECT
-				chain.entities.id AS entity_id,
-				chain.entities.address AS entity_address,
-				chain.nodes.id AS node_address,
-				chain.accounts.escrow_balance_active AS escrow,
-				COALESCE(chain.commissions.schedule, '{}'::JSONB) AS commissions_schedule,
-				CASE WHEN EXISTS(SELECT null FROM chain.nodes WHERE chain.entities.id = chain.nodes.entity_id AND voting_power > 0) THEN true ELSE false END AS active,
-				CASE WHEN EXISTS(SELECT null FROM chain.nodes WHERE chain.entities.id = chain.nodes.entity_id AND chain.nodes.roles like '%validator%') THEN true ELSE false END AS status,
-				chain.entities.meta AS meta
-			FROM chain.entities
-			JOIN chain.accounts ON chain.entities.address = chain.accounts.address
-			LEFT JOIN chain.commissions ON chain.entities.address = chain.commissions.address
-			JOIN chain.nodes ON chain.entities.id = chain.nodes.entity_id
-				AND chain.nodes.roles like '%validator%'
-				AND chain.nodes.voting_power = (
-					SELECT max(voting_power)
-					FROM chain.nodes
-					WHERE chain.entities.id = chain.nodes.entity_id
-						AND chain.nodes.roles like '%validator%'
-				)
-			WHERE chain.entities.id = $1::text`
-
 	Validators = `
 		SELECT id, start_height
 			FROM chain.epochs
@@ -293,8 +264,8 @@ const (
 				chain.nodes.id AS node_address,
 				chain.accounts.escrow_balance_active AS escrow,
 				COALESCE(chain.commissions.schedule, '{}'::JSONB) AS commissions_schedule,
-				CASE WHEN EXISTS(SELECT NULL FROM chain.nodes WHERE chain.entities.id = chain.nodes.entity_id AND voting_power > 0) THEN true ELSE false END AS active,
-				CASE WHEN EXISTS(SELECT NULL FROM chain.nodes WHERE chain.entities.id = chain.nodes.entity_id AND chain.nodes.roles like '%validator%') THEN true ELSE false END AS status,
+				EXISTS(SELECT NULL FROM chain.nodes WHERE chain.entities.id = chain.nodes.entity_id AND voting_power > 0) AS active,
+				EXISTS(SELECT NULL FROM chain.nodes WHERE chain.entities.id = chain.nodes.entity_id AND chain.nodes.roles like '%validator%') AS status,
 				chain.entities.meta AS meta
 			FROM chain.entities
 			JOIN chain.accounts ON chain.entities.address = chain.accounts.address
@@ -307,9 +278,10 @@ const (
 					WHERE chain.entities.id = chain.nodes.entity_id
 						AND chain.nodes.roles like '%validator%'
 				)
+		WHERE ($1::text IS NULL OR chain.entities.id = $1::text)
 		ORDER BY escrow_balance_active DESC
-		LIMIT $1::bigint
-		OFFSET $2::bigint`
+		LIMIT $2::bigint
+		OFFSET $3::bigint`
 
 	RuntimeBlocks = `
 		SELECT round, block_hash, timestamp, num_transactions, size, gas_used
