@@ -844,13 +844,11 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 				RelatedAddresses: map[apiTypes.Address]bool{eventAddr: true},
 			}
 			if err1 = VisitEVMEvent(event, &EVMEventHandler{
-				ERC20Transfer: func(fromEthAddr []byte, toEthAddr []byte, amountU256 []byte) error {
-					amount := &big.Int{}
-					amount.SetBytes(amountU256)
-					fromZero := bytes.Equal(fromEthAddr, uncategorized.ZeroEthAddr)
-					toZero := bytes.Equal(toEthAddr, uncategorized.ZeroEthAddr)
+				ERC20Transfer: func(fromECAddr ethCommon.Address, toECAddr ethCommon.Address, amount *big.Int) error {
+					fromZero := bytes.Equal(fromECAddr.Bytes(), uncategorized.ZeroEthAddr)
+					toZero := bytes.Equal(toECAddr.Bytes(), uncategorized.ZeroEthAddr)
 					if !fromZero {
-						fromAddr, err2 := registerRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, fromEthAddr)
+						fromAddr, err2 := registerRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, fromECAddr.Bytes())
 						if err2 != nil {
 							return fmt.Errorf("from: %w", err2)
 						}
@@ -858,7 +856,7 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 						registerTokenDecrease(blockData.TokenBalanceChanges, eventAddr, fromAddr, amount)
 					}
 					if !toZero {
-						toAddr, err2 := registerRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, toEthAddr)
+						toAddr, err2 := registerRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, toECAddr.Bytes())
 						if err2 != nil {
 							return fmt.Errorf("to: %w", err2)
 						}
@@ -883,12 +881,12 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 						{
 							Name:    "from",
 							EvmType: "address",
-							Value:   ethCommon.BytesToAddress(fromEthAddr),
+							Value:   fromECAddr,
 						},
 						{
 							Name:    "to",
 							EvmType: "address",
-							Value:   ethCommon.BytesToAddress(toEthAddr),
+							Value:   toECAddr,
 						},
 						{
 							Name:    "value",
@@ -900,16 +898,16 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 					}
 					return nil
 				},
-				ERC20Approval: func(ownerEthAddr []byte, spenderEthAddr []byte, amountU256 []byte) error {
-					if !bytes.Equal(ownerEthAddr, uncategorized.ZeroEthAddr) {
-						ownerAddr, err2 := registerRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, ownerEthAddr)
+				ERC20Approval: func(ownerECAddr ethCommon.Address, spenderECAddr ethCommon.Address, amount *big.Int) error {
+					if !bytes.Equal(ownerECAddr.Bytes(), uncategorized.ZeroEthAddr) {
+						ownerAddr, err2 := registerRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, ownerECAddr.Bytes())
 						if err2 != nil {
 							return fmt.Errorf("owner: %w", err2)
 						}
 						eventData.RelatedAddresses[ownerAddr] = true
 					}
-					if !bytes.Equal(spenderEthAddr, uncategorized.ZeroEthAddr) {
-						spenderAddr, err2 := registerRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, spenderEthAddr)
+					if !bytes.Equal(spenderECAddr.Bytes(), uncategorized.ZeroEthAddr) {
+						spenderAddr, err2 := registerRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, spenderECAddr.Bytes())
 						if err2 != nil {
 							return fmt.Errorf("spender: %w", err2)
 						}
@@ -918,20 +916,18 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 					if _, ok := blockData.PossibleTokens[eventAddr]; !ok {
 						blockData.PossibleTokens[eventAddr] = &evm.EVMPossibleToken{}
 					}
-					amount := &big.Int{}
-					amount.SetBytes(amountU256)
 					eventData.EvmLogName = apiTypes.Erc20Approval
 					eventData.EvmLogSignature = ethCommon.BytesToHash(event.Topics[0])
 					eventData.EvmLogParams = []*apiTypes.EvmEventParam{
 						{
 							Name:    "owner",
 							EvmType: "address",
-							Value:   ethCommon.BytesToAddress(ownerEthAddr),
+							Value:   ownerECAddr,
 						},
 						{
 							Name:    "spender",
 							EvmType: "address",
-							Value:   ethCommon.BytesToAddress(spenderEthAddr),
+							Value:   spenderECAddr,
 						},
 						{
 							Name:    "value",
@@ -943,15 +939,13 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 					}
 					return nil
 				},
-				ERC721Transfer: func(fromEthAddr []byte, toEthAddr []byte, tokenIDU256 []byte) error {
-					tokenID := &big.Int{}
-					tokenID.SetBytes(tokenIDU256)
-					fromZero := bytes.Equal(fromEthAddr, uncategorized.ZeroEthAddr)
-					toZero := bytes.Equal(toEthAddr, uncategorized.ZeroEthAddr)
+				ERC721Transfer: func(fromECAddr ethCommon.Address, toECAddr ethCommon.Address, tokenID *big.Int) error {
+					fromZero := bytes.Equal(fromECAddr.Bytes(), uncategorized.ZeroEthAddr)
+					toZero := bytes.Equal(toECAddr.Bytes(), uncategorized.ZeroEthAddr)
 					var fromAddr, toAddr apiTypes.Address
 					if !fromZero {
 						var err2 error
-						fromAddr, err2 = registerRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, fromEthAddr)
+						fromAddr, err2 = registerRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, fromECAddr.Bytes())
 						if err2 != nil {
 							return fmt.Errorf("from: %w", err2)
 						}
@@ -960,7 +954,7 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 					}
 					if !toZero {
 						var err2 error
-						toAddr, err2 = registerRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, toEthAddr)
+						toAddr, err2 = registerRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, toECAddr.Bytes())
 						if err2 != nil {
 							return fmt.Errorf("to: %w", err2)
 						}
@@ -995,12 +989,12 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 						{
 							Name:    "from",
 							EvmType: "address",
-							Value:   ethCommon.BytesToAddress(fromEthAddr),
+							Value:   fromECAddr,
 						},
 						{
 							Name:    "to",
 							EvmType: "address",
-							Value:   ethCommon.BytesToAddress(toEthAddr),
+							Value:   toECAddr,
 						},
 						{
 							Name:    "tokenID",
@@ -1012,16 +1006,16 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 					}
 					return nil
 				},
-				ERC721Approval: func(ownerEthAddr []byte, approvedEthAddr []byte, tokenIDU256 []byte) error {
-					if !bytes.Equal(ownerEthAddr, uncategorized.ZeroEthAddr) {
-						ownerAddr, err2 := registerRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, ownerEthAddr)
+				ERC721Approval: func(ownerECAddr ethCommon.Address, approvedECAddr ethCommon.Address, tokenID *big.Int) error {
+					if !bytes.Equal(ownerECAddr.Bytes(), uncategorized.ZeroEthAddr) {
+						ownerAddr, err2 := registerRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, ownerECAddr.Bytes())
 						if err2 != nil {
 							return fmt.Errorf("owner: %w", err2)
 						}
 						eventData.RelatedAddresses[ownerAddr] = true
 					}
-					if !bytes.Equal(approvedEthAddr, uncategorized.ZeroEthAddr) {
-						approvedAddr, err2 := registerRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, approvedEthAddr)
+					if !bytes.Equal(approvedECAddr.Bytes(), uncategorized.ZeroEthAddr) {
+						approvedAddr, err2 := registerRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, approvedECAddr.Bytes())
 						if err2 != nil {
 							return fmt.Errorf("approved: %w", err2)
 						}
@@ -1030,8 +1024,6 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 					if _, ok := blockData.PossibleTokens[eventAddr]; !ok {
 						blockData.PossibleTokens[eventAddr] = &evm.EVMPossibleToken{}
 					}
-					tokenID := &big.Int{}
-					tokenID.SetBytes(tokenIDU256)
 					registerNFTExist(blockData.PossibleNFTs, eventAddr, tokenID)
 					eventData.EvmLogName = evmabi.ERC721.Events["Approval"].Name
 					eventData.EvmLogSignature = ethCommon.BytesToHash(event.Topics[0])
@@ -1039,12 +1031,12 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 						{
 							Name:    "owner",
 							EvmType: "address",
-							Value:   ethCommon.BytesToAddress(ownerEthAddr),
+							Value:   ownerECAddr,
 						},
 						{
 							Name:    "approved",
 							EvmType: "address",
-							Value:   ethCommon.BytesToAddress(approvedEthAddr),
+							Value:   approvedECAddr,
 						},
 						{
 							Name:    "tokenID",
@@ -1056,16 +1048,16 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 					}
 					return nil
 				},
-				ERC721ApprovalForAll: func(ownerEthAddr []byte, operatorEthAddr []byte, approvedBool []byte) error {
-					if !bytes.Equal(ownerEthAddr, uncategorized.ZeroEthAddr) {
-						ownerAddr, err2 := registerRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, ownerEthAddr)
+				ERC721ApprovalForAll: func(ownerECAddr ethCommon.Address, operatorECAddr ethCommon.Address, approved bool) error {
+					if !bytes.Equal(ownerECAddr.Bytes(), uncategorized.ZeroEthAddr) {
+						ownerAddr, err2 := registerRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, ownerECAddr.Bytes())
 						if err2 != nil {
 							return fmt.Errorf("owner: %w", err2)
 						}
 						eventData.RelatedAddresses[ownerAddr] = true
 					}
-					if !bytes.Equal(operatorEthAddr, uncategorized.ZeroEthAddr) {
-						operatorAddr, err2 := registerRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, operatorEthAddr)
+					if !bytes.Equal(operatorECAddr.Bytes(), uncategorized.ZeroEthAddr) {
+						operatorAddr, err2 := registerRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, operatorECAddr.Bytes())
 						if err2 != nil {
 							return fmt.Errorf("operator: %w", err2)
 						}
@@ -1074,19 +1066,18 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 					if _, ok := blockData.PossibleTokens[eventAddr]; !ok {
 						blockData.PossibleTokens[eventAddr] = &evm.EVMPossibleToken{}
 					}
-					approved := approvedBool[31] != 0
 					eventData.EvmLogName = evmabi.ERC721.Events["ApprovalForAll"].Name
 					eventData.EvmLogSignature = ethCommon.BytesToHash(event.Topics[0])
 					eventData.EvmLogParams = []*apiTypes.EvmEventParam{
 						{
 							Name:    "owner",
 							EvmType: "address",
-							Value:   ethCommon.BytesToAddress(ownerEthAddr),
+							Value:   ownerECAddr,
 						},
 						{
 							Name:    "operator",
 							EvmType: "address",
-							Value:   ethCommon.BytesToAddress(operatorEthAddr),
+							Value:   operatorECAddr,
 						},
 						{
 							Name:    "approved",
