@@ -572,7 +572,7 @@ var (
 	RuntimeEVMTokenDownloadedTotalSupplyUpdate = `
     UPDATE chain.evm_tokens
     SET
-      total_supply = $3,
+      total_supply = $3
     WHERE
       runtime = $1 AND
       token_address = $2`
