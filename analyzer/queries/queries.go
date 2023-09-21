@@ -350,7 +350,10 @@ var (
     ON CONFLICT (owner, beneficiary) DO
       UPDATE SET allowance = excluded.allowance`
 
-	ConsensusValidatorNodeUpdate = `
+	ConsensusValidatorNodeResetVotingPowers = `
+    UPDATE chain.nodes SET voting_power = 0`
+
+	ConsensusValidatorNodeUpdateVotingPower = `
     UPDATE chain.nodes SET voting_power = $2
       WHERE id = $1`
 

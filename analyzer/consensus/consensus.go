@@ -764,8 +764,11 @@ func (m *processor) queueValidatorUpdates(batch *storage.QueryBatch, data *stora
 		return nil
 	}
 
+	// Set all nodes' voting power to 0; the non-zero ones will be updated below.
+	batch.Queue(queries.ConsensusValidatorNodeResetVotingPowers)
+
 	for _, validator := range data.Validators {
-		batch.Queue(queries.ConsensusValidatorNodeUpdate,
+		batch.Queue(queries.ConsensusValidatorNodeUpdateVotingPower,
 			validator.ID.String(),
 			validator.VotingPower,
 		)
