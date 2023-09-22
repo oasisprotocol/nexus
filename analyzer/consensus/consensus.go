@@ -172,7 +172,7 @@ func (m *processor) ProcessBlock(ctx context.Context, uheight uint64) error {
 	height := int64(uheight)
 
 	// Fetch all data.
-	data, err := m.source.AllData(ctx, height)
+	data, err := m.source.AllData(ctx, height, m.mode == analyzer.FastSyncMode)
 	if err != nil {
 		if strings.Contains(err.Error(), fmt.Sprintf("%d must be less than or equal to the current blockchain height", height)) {
 			return analyzer.ErrOutOfRange
@@ -194,8 +194,8 @@ func (m *processor) ProcessBlock(ctx context.Context, uheight uint64) error {
 	}
 
 	for _, f := range []func(*storage.QueryBatch, *storage.RegistryData) error{
-		m.queueRuntimeRegistrations,
 		m.queueEntityEvents,
+		m.queueRuntimeRegistrations,
 		m.queueNodeEvents,
 		m.queueRegistryEventInserts,
 	} {
@@ -343,10 +343,13 @@ func (m *processor) queueTransactionInserts(batch *storage.QueryBatch, data *sto
 			result.Error.Code,
 			message,
 		)
-		batch.Queue(queries.ConsensusAccountNonceUpsert,
-			sender,
-			tx.Nonce+1,
-		)
+		if m.mode != analyzer.FastSyncMode {
+			// Skip during fast sync; will be provided by the genesis.
+			batch.Queue(queries.ConsensusAccountNonceUpsert,
+				sender,
+				tx.Nonce+1,
+			)
+		}
 
 		// TODO: Use event when available
 		// https://github.com/oasisprotocol/oasis-core/issues/4818
@@ -361,10 +364,13 @@ func (m *processor) queueTransactionInserts(batch *storage.QueryBatch, data *sto
 				return err
 			}
 
-			batch.Queue(queries.ConsensusCommissionsUpsert,
-				staking.NewAddress(signedTx.Signature.PublicKey).String(),
-				string(schedule),
-			)
+			if m.mode != analyzer.FastSyncMode {
+				// Skip during fast sync; will be provided by the genesis.
+				batch.Queue(queries.ConsensusCommissionsUpsert,
+					staking.NewAddress(signedTx.Signature.PublicKey).String(),
+					string(schedule),
+				)
+			}
 		}
 	}
 
@@ -415,13 +421,16 @@ func (m *processor) queueRuntimeRegistrations(batch *storage.QueryBatch, data *s
 			keyManager = &km
 		}
 
-		batch.Queue(queries.ConsensusRuntimeUpsert,
-			runtimeEvent.ID.String(),
-			false,
-			runtimeEvent.Kind,
-			runtimeEvent.TEEHardware,
-			keyManager,
-		)
+		if m.mode != analyzer.FastSyncMode {
+			// Skip during fast sync; will be provided by the genesis.
+			batch.Queue(queries.ConsensusRuntimeUpsert,
+				runtimeEvent.ID.String(),
+				false,
+				runtimeEvent.Kind,
+				runtimeEvent.TEEHardware,
+				keyManager,
+			)
+		}
 	}
 
 	return nil
@@ -437,7 +446,7 @@ func (m *processor) queueEntityEvents(batch *storage.QueryBatch, data *storage.R
 				node.String(),
 			)
 		}
-		batch.Queue(queries.ConsensusEntityUpsert,
+		batch.Queue(queries.ConsensusEntityInsert,
 			entityID,
 			staking.NewAddress(entityEvent.Entity.ID).String(),
 		)
@@ -447,6 +456,12 @@ func (m *processor) queueEntityEvents(batch *storage.QueryBatch, data *storage.R
 }
 
 func (m *processor) queueNodeEvents(batch *storage.QueryBatch, data *storage.RegistryData) error {
+	if m.mode == analyzer.FastSyncMode {
+		// Skip node updates during fast sync; this function only modifies chain.nodes and chain.runtime_nodes,
+		// which are both recreated from scratch by the genesis.
+		return nil
+	}
+
 	for _, nodeEvent := range data.NodeEvents {
 		if nodeEvent.IsRegistration {
 			// A new node is registered.
@@ -548,6 +563,11 @@ func (m *processor) queueDisbursementTransfers(batch *storage.QueryBatch, data *
 }
 
 func (m *processor) queueTransfers(batch *storage.QueryBatch, data *storage.StakingData, targetType TransferType) error {
+	if m.mode == analyzer.FastSyncMode {
+		// Skip dead reckoning of balances during fast sync. Genesis contains consensus balances.
+		return nil
+	}
+
 	for _, transfer := range data.Transfers {
 		// Filter out transfers that are not of the target type.
 		typ := TransferTypeOther // type of the current transfer
@@ -572,6 +592,11 @@ func (m *processor) queueTransfers(batch *storage.QueryBatch, data *storage.Stak
 }
 
 func (m *processor) queueBurns(batch *storage.QueryBatch, data *storage.StakingData) error {
+	if m.mode == analyzer.FastSyncMode {
+		// Skip dead reckoning of balances during fast sync. Genesis contains consensus balances.
+		return nil
+	}
+
 	for _, burn := range data.Burns {
 		batch.Queue(queries.ConsensusDecreaseGeneralBalanceUpsert,
 			burn.Owner.String(),
@@ -583,6 +608,12 @@ func (m *processor) queueBurns(batch *storage.QueryBatch, data *storage.StakingD
 }
 
 func (m *processor) queueEscrows(batch *storage.QueryBatch, data *storage.StakingData) error {
+	if m.mode == analyzer.FastSyncMode {
+		// Skip dead reckoning of escrows during fast sync.
+		// Genesis contains all info on escrow balances (active, debonding) and delegations.
+		return nil
+	}
+
 	for _, e := range data.AddEscrows {
 		owner := e.Owner.String()
 		escrower := e.Escrow.String()
@@ -650,6 +681,12 @@ func (m *processor) queueEscrows(batch *storage.QueryBatch, data *storage.Stakin
 }
 
 func (m *processor) queueAllowanceChanges(batch *storage.QueryBatch, data *storage.StakingData) error {
+	if m.mode == analyzer.FastSyncMode {
+		// Skip tracking of allowances during fast sync.
+		// Genesis contains all info on current allowances, and we don't track the history of allowances.
+		return nil
+	}
+
 	for _, allowanceChange := range data.AllowanceChanges {
 		if allowanceChange.Allowance.IsZero() {
 			batch.Queue(queries.ConsensusAllowanceChangeDelete,
@@ -689,6 +726,13 @@ func (m *processor) queueStakingEventInserts(batch *storage.QueryBatch, data *st
 }
 
 func (m *processor) queueValidatorUpdates(batch *storage.QueryBatch, data *storage.SchedulerData) error {
+	if m.mode == analyzer.FastSyncMode {
+		// Skip validator updates during fast sync.
+		// The state of validators is pulled from the node at every height, and is
+		// self-contained (i.e. does require some previously tracked state to calculate current validators).
+		return nil
+	}
+
 	for _, validator := range data.Validators {
 		batch.Queue(queries.ConsensusValidatorNodeUpdate,
 			validator.ID.String(),
@@ -700,6 +744,13 @@ func (m *processor) queueValidatorUpdates(batch *storage.QueryBatch, data *stora
 }
 
 func (m *processor) queueCommitteeUpdates(batch *storage.QueryBatch, data *storage.SchedulerData) error {
+	if m.mode == analyzer.FastSyncMode {
+		// Skip committee updates during fast sync.
+		// The state of committees is pulled from the node at every height, and is
+		// self-contained (i.e. does require some previously tracked state to calculate current committees).
+		return nil
+	}
+
 	batch.Queue(queries.ConsensusCommitteeMembersTruncate)
 	for namespace, committees := range data.Committees {
 		runtime := namespace.String()
@@ -725,6 +776,12 @@ func (m *processor) queueCommitteeUpdates(batch *storage.QueryBatch, data *stora
 }
 
 func (m *processor) queueSubmissions(batch *storage.QueryBatch, data *storage.GovernanceData) error {
+	if m.mode == analyzer.FastSyncMode {
+		// Skip proposal tracking during fast sync.
+		// The full state of proposals is present in the genesis.
+		return nil
+	}
+
 	for _, submission := range data.ProposalSubmissions {
 		if submission.Content.Upgrade != nil {
 			batch.Queue(queries.ConsensusProposalSubmissionInsert,
@@ -757,6 +814,12 @@ func (m *processor) queueSubmissions(batch *storage.QueryBatch, data *storage.Go
 }
 
 func (m *processor) queueExecutions(batch *storage.QueryBatch, data *storage.GovernanceData) error {
+	if m.mode == analyzer.FastSyncMode {
+		// Skip proposal tracking during fast sync.
+		// The full state of proposals is present in the genesis.
+		return nil
+	}
+
 	for _, execution := range data.ProposalExecutions {
 		batch.Queue(queries.ConsensusProposalExecutionsUpdate,
 			execution.ID,
@@ -767,6 +830,12 @@ func (m *processor) queueExecutions(batch *storage.QueryBatch, data *storage.Gov
 }
 
 func (m *processor) queueFinalizations(batch *storage.QueryBatch, data *storage.GovernanceData) error {
+	if m.mode == analyzer.FastSyncMode {
+		// Skip proposal tracking during fast sync.
+		// The full state of proposals is present in the genesis.
+		return nil
+	}
+
 	for _, finalization := range data.ProposalFinalizations {
 		batch.Queue(queries.ConsensusProposalUpdate,
 			finalization.ID,
@@ -782,6 +851,12 @@ func (m *processor) queueFinalizations(batch *storage.QueryBatch, data *storage.
 }
 
 func (m *processor) queueVotes(batch *storage.QueryBatch, data *storage.GovernanceData) error {
+	if m.mode == analyzer.FastSyncMode {
+		// Skip proposal tracking during fast sync.
+		// The full state of proposals is present in the genesis.
+		return nil
+	}
+
 	for _, vote := range data.Votes {
 		batch.Queue(queries.ConsensusVoteUpsert,
 			vote.ID,

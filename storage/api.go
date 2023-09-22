@@ -99,7 +99,7 @@ type ConsensusSourceStorage interface {
 	StateToGenesis(ctx context.Context, height int64) (*genesisAPI.Document, error)
 
 	// AllData returns all data tied to a specific height.
-	AllData(ctx context.Context, height int64) (*ConsensusAllData, error)
+	AllData(ctx context.Context, height int64, fastSync bool) (*ConsensusAllData, error)
 
 	// LatestBlockHeight returns the latest height for which a block is available.
 	LatestBlockHeight(ctx context.Context) (int64, error)

@@ -225,7 +225,7 @@ var (
     INSERT INTO chain.claimed_nodes (entity_id, node_id) VALUES ($1, $2)
       ON CONFLICT (entity_id, node_id) DO NOTHING`
 
-	ConsensusEntityUpsert = `
+	ConsensusEntityInsert = `
     INSERT INTO chain.entities (id, address) VALUES ($1, $2)
       ON CONFLICT (id) DO
       UPDATE SET
