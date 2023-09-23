@@ -84,6 +84,35 @@ $ curl -X GET http://localhost:8008/v1
 into, run `nexus` with `CONSENSUS_DAMASK_GENESIS_DUMP=/tmp/genesis.sql`. The SQL will be written to the indicated
 file, provided that genesis hasn't been parsed into the DB yet. The easiest way to achieve the latter is to wipe the DB.
 
+### Code quality tools
+
+Here are our recommendations for getting the tools that `make lint` and `make fmt` use.
+
+**golangci-lint**: [use their `curl | sh` installer](https://golangci-lint.run/usage/install/).
+They explain that the tool is in dependency hell and any more structured distribution of it might not work.
+
+```sh
+curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.49.0
+```
+
+**gofumpt**: [go install](https://pkg.go.dev/mvdan.cc/gofumpt)
+
+```sh
+go install mvdan.cc/gofumpt@latest
+```
+
+Note: CI uses gofumpt through golangci-lint, so if there's any discrepancy, look up what gofumpt version golangci-lint uses.
+Beware that we might not be on the latest golangci-lint either.
+
+**goimports**: [go install](https://pkg.go.dev/golang.org/x/tools/cmd/goimports)
+
+```sh
+go install golang.org/x/tools/cmd/goimports@latest
+```
+
+Note: CI uses goimports through golangci-lint, so if there's any discrepancy, look up what `golang.org/x/tools` version golangci-lint uses.
+Beware that we might not be on the latest golangci-lint either.
+
 ## Name Origin
 
 "Nexus" is a Latin word, meaning "connection or series of connections linking two or more things". Similarly, Oasis Nexus connects
