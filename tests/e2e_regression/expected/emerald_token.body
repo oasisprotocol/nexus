@@ -1,0 +1,12 @@
+{
+  "contract_addr": "oasis1qpgcp5jzlgk4hcenaj2x82rqk8rrve2keyuc8aaf",
+  "decimals": 18,
+  "eth_contract_addr": "0x21C718C22D52d0F3a789b752D4c2fD5908a8A733",
+  "is_verified": false,
+  "name": "Wrapped ROSE",
+  "num_holders": 100,
+  "num_transfers": 1066,
+  "symbol": "wROSE",
+  "total_supply": "134219684386002622968078665",
+  "type": "ERC20"
+}

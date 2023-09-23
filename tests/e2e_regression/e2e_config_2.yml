@@ -1,0 +1,41 @@
+analysis:
+  source:
+    cache:
+      cache_dir: tests/e2e_regression/rpc-cache
+      query_on_cache_miss: false
+    chain_name: mainnet
+    nodes:
+      damask:
+        default: { rpc: unix:/tmp/node.sock }
+    fast_startup: true
+  analyzers:
+    # metadata_registry:
+    #   interval: 5m
+    # node_stats: {}
+    # aggregate_stats: {}
+    # consensus:
+    #   from: 8_048_956  # Damask genesis
+    #   to: 8_049_056    # 100 blocks; fast enough for early testing
+    # emerald:
+    #   from: 1_003_298  # round at Damask genesis
+    #   to: 1_003_598
+    # sapphire:
+    #   from: 0  # first round in Damask
+    evm_tokens_emerald:
+      stop_on_empty_queue: true
+    evm_token_balances_emerald:
+      stop_on_empty_queue: true
+    evm_contract_code_emerald:
+      stop_on_empty_queue: true
+  storage:
+    backend: postgres
+    endpoint: postgresql://rwuser:password@localhost:5432/indexer?sslmode=disable
+    # DANGER__WIPE_STORAGE_ON_STARTUP: true
+    migrations: file://storage/migrations
+
+log:
+  level: debug
+  format: json
+
+metrics:
+  pull_endpoint: localhost:8009

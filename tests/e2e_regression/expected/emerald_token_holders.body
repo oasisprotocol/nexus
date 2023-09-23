@@ -1,0 +1,506 @@
+{
+  "holders": [
+    {
+      "balance": "31545785588420374043358115",
+      "eth_holder_address": "0x04A590B38438455792a4B906c9Dc63B7aA0CA316",
+      "holder_address": "oasis1qqcy50uqn7skgcetyysy3fsyn5xuunnxxq8fd96t"
+    },
+    {
+      "balance": "22969863065010742741402010",
+      "eth_holder_address": "0xfb9BD52Abe613A5C4A20e9fC09462A2EC5F2d1B2",
+      "holder_address": "oasis1qqaft65h9j07l4salzrdca4a2k5lnzxc8uu8m6tk"
+    },
+    {
+      "balance": "21024819196254782089222322",
+      "eth_holder_address": "0x28c9D3e689B5d3629aFC2D69ef6a2799578574e0",
+      "holder_address": "oasis1qqehgt8jfnczmku5hazxkkprw5nqqk4nvunx9zf4"
+    },
+    {
+      "balance": "8941107707207560131982114",
+      "eth_holder_address": "0x238396d4d01ba5621E66894a0228f6B3651F1566",
+      "holder_address": "oasis1qzg3nrd697tfq6zvpcvnkhvrj709n3al7u49hhry"
+    },
+    {
+      "balance": "4761844215124511860755358",
+      "eth_holder_address": "0x1de062f069Ff1F1F32FE792C4078D6dDEaB04D99",
+      "holder_address": "oasis1qr42htk98ncwm2cyuk4up6me8emkxeg6kcvzduq9"
+    },
+    {
+      "balance": "4457920615693478415228107",
+      "eth_holder_address": "0x941494A56164eA04d79f9867ddDB0Dd754A625cC",
+      "holder_address": "oasis1qzj2hwfs3yjm20jz5h70yk3etsst0k8s3cnl6l08"
+    },
+    {
+      "balance": "4304015582411594092602011",
+      "eth_holder_address": "0x60BF7989a447C45aaa0aEb86873B50B5a3709b10",
+      "holder_address": "oasis1qzn8n6z368lrvvwmnfqa0xz25nxscgvg65395s8r"
+    },
+    {
+      "balance": "1868549458538737944125925",
+      "eth_holder_address": "0xc1AB2878d289d5c402837600c6Abc03a8a92D890",
+      "holder_address": "oasis1qqt6kmyzv620rmx4mjzqlugy4n0y4nhyzsattr7x"
+    },
+    {
+      "balance": "1782469345177225130149028",
+      "eth_holder_address": "0xD9F3Be6497B26EFBEd163A95912FB5e2F235Fd53",
+      "holder_address": "oasis1qq3q3awrrcl64rzvhxyc6ykjveny7zczkqrm28yp"
+    },
+    {
+      "balance": "1409790911828678845681894",
+      "eth_holder_address": "0x89f5e345b7837E950136811b94af6CcBa199eFa8",
+      "holder_address": "oasis1qr8f54qhsr68qvx35xrwtrx62h7a7ns665wglflu"
+    },
+    {
+      "balance": "1354046725567693137369160",
+      "eth_holder_address": "0x72a06330e81080E5B4844f5b92Ffb5147D82Cd5E",
+      "holder_address": "oasis1qzf24rkgkqxs3qkt2mqe8mcg8hpna45c8y0cqykc"
+    },
+    {
+      "balance": "1138714321682485316417054",
+      "eth_holder_address": "0xe593c42780ccbe7723B67b3E5FD3e0cdd2E25017",
+      "holder_address": "oasis1qrk9appc6lhxnx5xhk0ga2w8http5h6fsylxyau7"
+    },
+    {
+      "balance": "1074717179012005700851078",
+      "eth_holder_address": "0x41953bAca0A634732365093f848CcFc968EF0C69",
+      "holder_address": "oasis1qz4v67vla0sa0394ye5ycfylukxj5l4vlcar249m"
+    },
+    {
+      "balance": "1064868267118500362075755",
+      "eth_holder_address": "0x90Ba41e455818BB1679a49264a6b3d7B107DCD60",
+      "holder_address": "oasis1qz9sdyycylsudurrz2pj35k2klmass390uj7ec6t"
+    },
+    {
+      "balance": "471137115998133829737463",
+      "eth_holder_address": "0x8d82559A91929DD72682f5C6E2EEA3905B6c2A18",
+      "holder_address": "oasis1qpl38f2a8m55ylha8ysdn03ya0mgrftkasmy8wyv"
+    },
+    {
+      "balance": "429959674109350772182639",
+      "eth_holder_address": "0x4389C5a87dbDC1aE1323f4De24d8B1cFCc4E62cA",
+      "holder_address": "oasis1qpp2qztm74z9wjskcpja0er2wgp44sntryzzkag8"
+    },
+    {
+      "balance": "287407797041904219679764",
+      "eth_holder_address": "0x1Ba37943f2346F8D1b7264a65A404D416B3e9eea",
+      "holder_address": "oasis1qzur4dfk9eqenuwyzcpp0p6x4nydfl0nlqt28jsc"
+    },
+    {
+      "balance": "209185000000000000000000",
+      "eth_holder_address": "0x9E1ce7bA1828A14887248DAd5301D1f937958F71",
+      "holder_address": "oasis1qr2nynke2e2wm6jrys3jrwzaem0wqwt6ev2mrmfm"
+    },
+    {
+      "balance": "187308408710694081257796",
+      "eth_holder_address": "0xF6f84C04Df1A68381Fb150191B0684db3bf7d714",
+      "holder_address": "oasis1qqv02n0w2eerustj2m0p3tl69rscvn3x8uwzvxyx"
+    },
+    {
+      "balance": "170850220187246889327354",
+      "eth_holder_address": "0xFb20F9a94D8959B260A13389D940c2010f7a9fb9",
+      "holder_address": "oasis1qpsrh5nh3sv4lqqa54m2z5vvelqem267jcctr7q8"
+    },
+    {
+      "balance": "155597576821822523159553",
+      "eth_holder_address": "0xD316a543df5B9360c6f5eD3bFa17DCE19bc4cE05",
+      "holder_address": "oasis1qp4wveera0cwde5jsxxnr6ld0v6stlskxuglkghg"
+    },
+    {
+      "balance": "134937678355072330531082",
+      "eth_holder_address": "0x08B3BdE2e398B0840c76C78D42bd26B3412706B9",
+      "holder_address": "oasis1qpjaapzc7e3exckszq0n53f0k690wyzy9vz4hmtw"
+    },
+    {
+      "balance": "109332596556005333884083",
+      "eth_holder_address": "0x6c96Abc7F9AF918c8EF8c44c69f7C23bAc82d41C",
+      "holder_address": "oasis1qz2570ua8yrdl6ra3mmdlztynkhz9yccuukywywr"
+    },
+    {
+      "balance": "109142212769668420349826",
+      "eth_holder_address": "0xB963860C513d4f0e441F8b6bF86691aF2d8Db848",
+      "holder_address": "oasis1qz3thwqrq7nq6lljr39k0dhsx375u7yl7c894h4f"
+    },
+    {
+      "balance": "85249021860292377266106",
+      "eth_holder_address": "0x73D3F4dAB518b7bE6f0729fD4E9da677468EFfBd",
+      "holder_address": "oasis1qrsd857j0rjn60sx79ze3r6tv5g5x4u5uq0unkfy"
+    },
+    {
+      "balance": "61055757056562273564127",
+      "eth_holder_address": "0x52DC3a8629dDe9c3001cD8e619301cB0eF6AAe62",
+      "holder_address": "oasis1qpwx3ptmvcceqkd4syjmqf9jmdlf90xmuuy0f6y9"
+    },
+    {
+      "balance": "40523996791359477767925",
+      "eth_holder_address": "0x8cA580272A36135FF27C2db928da24A4dC3c9b6E",
+      "holder_address": "oasis1qq2yx2slnma9gxgzfq3ft9pedqgxzd8klyfslqn6"
+    },
+    {
+      "balance": "37054285124782242865508",
+      "eth_holder_address": "0x0179DA55619dEc63a54BE2e23df51871285A5F64",
+      "holder_address": "oasis1qps0k8k3ugqa8zpsc0c075h9a5lamjzcegshzrnt"
+    },
+    {
+      "balance": "36935109435914189622921",
+      "eth_holder_address": "0xcDB4198Fd739B768aa816A3068662abE958Fa6c4",
+      "holder_address": "oasis1qr3g9759ew429lytjq3a7pe2zpnmqtdueqdszy32"
+    },
+    {
+      "balance": "36508022800820815633143",
+      "eth_holder_address": "0x3992B313c956d058Fae8147EF7Fe20e0cF3f13eB",
+      "holder_address": "oasis1qz46ehkmpf2hupar2nt6fqe3jcdr4gj3psarzyj2"
+    },
+    {
+      "balance": "32884348895595825580290",
+      "eth_holder_address": "0xd483159966Ad9E91aC9DD092FCbB0070Ce9fE31e",
+      "holder_address": "oasis1qrc09jrf544rruyzujxczm502vj8yh35fvr92jdw"
+    },
+    {
+      "balance": "32820157277617301409014",
+      "eth_holder_address": "0x93D34334409f043577fB1c795b41AF0E54b18Efe",
+      "holder_address": "oasis1qqh3qy6uy49kw2l75pw5nkxygsun06k6lueskguy"
+    },
+    {
+      "balance": "30318069231759720252653",
+      "eth_holder_address": "0x5f1412d91eFc8a9bd5c9408B685ADD2d596629dF",
+      "holder_address": "oasis1qqrme0kxj6trd3edjhzpzqnr7lcjvpwr5usumkze"
+    },
+    {
+      "balance": "26274697857945278607253",
+      "eth_holder_address": "0x001cba1d7D5D4cda4b12316dde6CEca5A8420bd2",
+      "holder_address": "oasis1qp6z6cu688mshx0j7q22evutye4ue27xtymrj7fm"
+    },
+    {
+      "balance": "25202977742146788558857",
+      "eth_holder_address": "0xEFB8F5a7479A6532a71f70919C00a18aE8A164d6",
+      "holder_address": "oasis1qqh7mvlge57vsllqu5dnuerscwa22jj9eqwvpmxs"
+    },
+    {
+      "balance": "21976143160086066944758",
+      "eth_holder_address": "0xaC582F0F774B545c31E133Cb52153cE3AEf90632",
+      "holder_address": "oasis1qp2juy5t573y7jtpu3cq7rfm6arppd0eggk6m777"
+    },
+    {
+      "balance": "19028884648429744862409",
+      "eth_holder_address": "0xF6e0656162c471E27bCF23aB6626AD5F66B70E18",
+      "holder_address": "oasis1qpmuy6ly4wmxh8v7z8xzxfyfvjcdgdaw2y4ppdgm"
+    },
+    {
+      "balance": "16354855040138391305681",
+      "eth_holder_address": "0x9148b63658DD5d0B3062A02Acd456238655fdF16",
+      "holder_address": "oasis1qqv2trgv7l5w3ncsp6hk8d2n08k0u83ergm8mmhn"
+    },
+    {
+      "balance": "15222706904195195148493",
+      "eth_holder_address": "0x42D8268F93e2AE4e1F47f4455653739Ea913217b",
+      "holder_address": "oasis1qrgpjt6uvnqayjycrmsrcyse9cult7uze5jc7jth"
+    },
+    {
+      "balance": "13440507290420321581357",
+      "eth_holder_address": "0x3d2fD48371a2a80608Dbb5b8c86A1F2c71533CA0",
+      "holder_address": "oasis1qz52nkfyzjhpq8cas2c44hd72gefcp58qy39zmlp"
+    },
+    {
+      "balance": "12208275934313110044962",
+      "eth_holder_address": "0x2e1357871De67238d6Cd0c7E91E0710eD443EBe8",
+      "holder_address": "oasis1qqxa9s6nd4vnjku9gjdk5ka8aauad962pyqdc7ah"
+    },
+    {
+      "balance": "11636806178125683411117",
+      "eth_holder_address": "0xBF49b1b214ca29d12Fcab6918eE79b6a52A1D2Ac",
+      "holder_address": "oasis1qz972ml825hly2ye23w40rp49ppvhkzp4szqxrw5"
+    },
+    {
+      "balance": "11349444676918477176871",
+      "eth_holder_address": "0x340DeCca6608d58D086d58CbE943419aE8371F92",
+      "holder_address": "oasis1qr9n60433hmx2vm3d9483t3vjyn20t9elq040h4f"
+    },
+    {
+      "balance": "10945850466822636873556",
+      "eth_holder_address": "0x1a7D29455A551Cb778746AecaB43f1d26A262Bc3",
+      "holder_address": "oasis1qra7r3sa3ecpwq2rqa4djue88kpvh3rjkumv9ygl"
+    },
+    {
+      "balance": "7182000000000000000000",
+      "eth_holder_address": "0xe00Fa17eF0a951BD4501A69959fe2396D1C71f4b",
+      "holder_address": "oasis1qp4ea625vm8a8h953m9es09a5kl6kdzlnszk780v"
+    },
+    {
+      "balance": "6215326791541007588027",
+      "eth_holder_address": "0xD9A4488c9517D73604DDf1aE0cD26a2c343BB25E",
+      "holder_address": "oasis1qqfn8t96mhpfyj6wzampgad8hw6nk53tccfw0jv7"
+    },
+    {
+      "balance": "3795513901119908566832",
+      "eth_holder_address": "0x267Dac31680d790ED19b558b804dfd2F3E6C5987",
+      "holder_address": "oasis1qrccd7hrjejmd5pguvtgnec4shmtqk3z45rtxn0g"
+    },
+    {
+      "balance": "2224097559319213628269",
+      "eth_holder_address": "0x9c9db364c442820D1e3A210A06F02920319Fd458",
+      "holder_address": "oasis1qpqwemqq33k222dx7gndg47el46w3fr6dcj9rcws"
+    },
+    {
+      "balance": "855955994195883391645",
+      "eth_holder_address": "0x6Ab2d5789AF8fc628b306d04505de6E5a78ba660",
+      "holder_address": "oasis1qp85mu3t0w2wqk48wmgm56n3cjjaxlz6m50tu4n5"
+    },
+    {
+      "balance": "661397740499418915272",
+      "eth_holder_address": "0x786372eB420e989057213a4729216638f283638c",
+      "holder_address": "oasis1qpyjr44w6886xj5qytfnuue08l76sgjkhsvws67p"
+    },
+    {
+      "balance": "585081220211565538153",
+      "eth_holder_address": "0xe6289d243F2193CCC03E1A1ABcDd54d489Df9bF7",
+      "holder_address": "oasis1qzrtx6zqgr9nxdgdnp7aln5ss4uu60nlgvgn8wqf"
+    },
+    {
+      "balance": "471592578253502916970",
+      "eth_holder_address": "0x5b98A37Eb30F3130e4fF61EcFc7b70602CbAE67B",
+      "holder_address": "oasis1qqatz6uj08mvs4nh4y8cnlzlkfsrgpg98uza0fm3"
+    },
+    {
+      "balance": "271702039381050218666",
+      "eth_holder_address": "0x5D2d61fFEe0A0eb3bF697d1F4DF0C44a2b088De4",
+      "holder_address": "oasis1qpydndh8jupcwg3sd4rz5t6s4udnsaeysgch6nfl"
+    },
+    {
+      "balance": "268476450009306458664",
+      "eth_holder_address": "0x8f047D88D4CBCFF0bEC11c3d4b322A2e8461b1aF",
+      "holder_address": "oasis1qqwaj9pn2hwusrg4057qr9f2lqtsejyaxq3sgk7a"
+    },
+    {
+      "balance": "253550124103709348823",
+      "eth_holder_address": "0x26412c492579dE950507E4bE5a7862bFc448787a",
+      "holder_address": "oasis1qppaum3ckgt3y350m7934v9hzzlvhrndavzdqhss"
+    },
+    {
+      "balance": "220061113848362861370",
+      "eth_holder_address": "0xc0a73bA79CD7d62CCbEA48499FdcCF2f915e3f75",
+      "holder_address": "oasis1qqgmdg5wr2zh350780gp2zehgpvceyxy4swrpvs5"
+    },
+    {
+      "balance": "119629602443218527794",
+      "eth_holder_address": "0xBA5Aa78B8254201D3A88626006E5d9dC2143C034",
+      "holder_address": "oasis1qre25pq009ekmvy0qdyzun06l7v46936rqgzqnh8"
+    },
+    {
+      "balance": "109961347124448744153",
+      "eth_holder_address": "0x4523B9202C044cf8715ED294e0E06148E125e5aD",
+      "holder_address": "oasis1qqamgzpe2wwj3pn2u33fcjxtgpmh7cw4nu4juqdy"
+    },
+    {
+      "balance": "97820431955824397909",
+      "eth_holder_address": "0xe011720ae77469Ab74074D3f783Bf10f369F8761",
+      "holder_address": "oasis1qzd707f54lht9knu8evtxhph8tqsh3r6mqmxt6pl"
+    },
+    {
+      "balance": "76086479250941843109",
+      "eth_holder_address": "0xF7C66eE71955D29A9bDD9F79606dDf6153273590",
+      "holder_address": "oasis1qrufx0224ghm3wy9x3t98j5makhwg2cfc568xj89"
+    },
+    {
+      "balance": "69152131288064990489",
+      "eth_holder_address": "0xE39009aD4562dEf56BC9d13984671DEFB25505dF",
+      "holder_address": "oasis1qpx9hpwca2shu9d09ldt9ylh7vymdxa085saj6yg"
+    },
+    {
+      "balance": "60441702202758590064",
+      "eth_holder_address": "0x9256594D1C7362bDF9bB4906a73a47FB4364376C",
+      "holder_address": "oasis1qpyd6dk6fjefz0tpemwnvaela5png6hla5mjg0c7"
+    },
+    {
+      "balance": "48814800298213656837",
+      "eth_holder_address": "0x1B021758aaf7179634721202bB7cE8689Bdf8379",
+      "holder_address": "oasis1qz6awm5nc8rtyylq7m5p0ufwsmvc5ajreca7v902"
+    },
+    {
+      "balance": "39484003235544295217",
+      "eth_holder_address": "0xDfC759200a374E127fd30766d34284c6e6E6f841",
+      "holder_address": "oasis1qrfqjn9pkyadvuusxzruj6jdq0ykd7dsf5ltdzrc"
+    },
+    {
+      "balance": "31845058784435148256",
+      "eth_holder_address": "0xdeB4dc242436b30f2868d4c2a339CECDE8c62e57",
+      "holder_address": "oasis1qqfdpudtk7d9x6lmlfcfsntfgr2yp7tfz5m6rd4x"
+    },
+    {
+      "balance": "13729769960506609330",
+      "eth_holder_address": "0x2c6cE60445AEb1564A2a0ca0636f7AEA03E4012C",
+      "holder_address": "oasis1qr5ywytpvjed426nsja9ann4yg0tfngrxypcv6ah"
+    },
+    {
+      "balance": "10146044617261364206",
+      "eth_holder_address": "0xF04A65B4f1F53FF56Db57feE8E3e395B3cB1D699",
+      "holder_address": "oasis1qpn4ayjxasuz03y6w2wm45w9en4hg5mf0uz8dgd6"
+    },
+    {
+      "balance": "5004731574738252754",
+      "eth_holder_address": "0x55978F18a1D01C92c72DE87e4eF53018E4B709Eb",
+      "holder_address": "oasis1qzv2qc7ta3d7lpdfrnlxfvwtyvdsdklz2y9c0q6c"
+    },
+    {
+      "balance": "3218213065679247575",
+      "eth_holder_address": "0xF9b07f49de580112B71aAc585dB48eC392c47E0A",
+      "holder_address": "oasis1qpz9qjs2urvlez6ahfhg8dmm8n2kfgsmws9dja9r"
+    },
+    {
+      "balance": "1369144706041514382",
+      "eth_holder_address": "0x0BCd799f697a9CF9542859F1B160c8a5AF07de18",
+      "holder_address": "oasis1qpwas45k8saqg8fjm4hhkh407vy736kc65n94qgm"
+    },
+    {
+      "balance": "314262025227635605",
+      "eth_holder_address": "0x2438510636Fb9D75146D6b12211803De2D66142F",
+      "holder_address": "oasis1qrqewnqd5cflrq2732c5u5dt43ar8g9gsy0t7hpd"
+    },
+    {
+      "balance": "267400542778305050",
+      "eth_holder_address": "0x0482ef6C89b47A398983af81C3929d1B0777ce59",
+      "holder_address": "oasis1qrcwfuzm50lhmwl4tjavs435huz6x446mvfmk09v"
+    },
+    {
+      "balance": "235591290865892702",
+      "eth_holder_address": "0x9BEF9Ff391699190498aA59D9aaaf2D5A1C38AF2",
+      "holder_address": "oasis1qrv6kvaj6z9srp6urk0jezyqupq5qm5njvs52m36"
+    },
+    {
+      "balance": "134410156740882150",
+      "eth_holder_address": "0x70C25A41c97937e010cAa78601814f6052c01b88",
+      "holder_address": "oasis1qzu95smcmt60hkhxjpk47ehclf2v024ntsfhnnsv"
+    },
+    {
+      "balance": "90265667625720378",
+      "eth_holder_address": "0x4A2D8EaaE4Db81C1fb5A1BAAc05ac376C11CC903",
+      "holder_address": "oasis1qqgqw6fs93w0j9mrpxjg4uavqlz6y8fj9s9vv0lk"
+    },
+    {
+      "balance": "960000000005332",
+      "eth_holder_address": "0x08BF55fd5517cF690C1238DFfD7A0407684e59dD",
+      "holder_address": "oasis1qr30k8t3zccgmgz6srj0p0fmww48rq7lr5grh60e"
+    },
+    {
+      "balance": "649000000000000",
+      "eth_holder_address": "0xe7FB984aefD45420Cf36b108D402BeC1791D3a91",
+      "holder_address": "oasis1qqd87pf52vq23f6mljult7a8jk79x99czg43c4wx"
+    },
+    {
+      "balance": "600000000006821",
+      "eth_holder_address": "0x2f93c9F55f75621Fe4D79c71b5E710F4767DE7dC",
+      "holder_address": "oasis1qrqtawexs396hp2txznnjqfgd7a95fkwgudysqgy"
+    },
+    {
+      "balance": "871097709646",
+      "eth_holder_address": "0x92057E6daa156feC9b74A87d8dfB0396023A2ABA",
+      "holder_address": "oasis1qz0mmlh27zkrk062e7daz3wyrk5jftuj6gk8rlya"
+    },
+    {
+      "balance": "0",
+      "eth_holder_address": "0x250d48C5E78f1E85F7AB07FEC61E93ba703aE668",
+      "holder_address": "oasis1qp2z4pf2hl6r88qyglka3hcnjnw2l56sgq72s3yl"
+    },
+    {
+      "balance": "0",
+      "eth_holder_address": "0xd596a73835ec339756d51C91315604B3ca0548a3",
+      "holder_address": "oasis1qp3u8jhn2ewwd0cjyn4f8v08mhjkflm78cx26uzv"
+    },
+    {
+      "balance": "0",
+      "eth_holder_address": "0x971EAF83F1866231acA4A2E5DFb8177C5fC8bB1f",
+      "holder_address": "oasis1qp9u0579vaqg0p09jyf3lhjm7yfv27fcdyeskml4"
+    },
+    {
+      "balance": "0",
+      "eth_holder_address": "0x7646064F876B22D3Dc5e5a0c7aC24E29d8893FB2",
+      "holder_address": "oasis1qpx6ptg39e5drnfeu29qf2zpmnsw5mdufutlxd7a"
+    },
+    {
+      "balance": "0",
+      "eth_holder_address": "0x543d97779ca53d7b4355cA013C853D86B7F558d9",
+      "holder_address": "oasis1qqc5vysfhw00x9h3804q0nzsh2ux8sjthq9umf75"
+    },
+    {
+      "balance": "0",
+      "eth_holder_address": "0x047D2eb90f93D2791b73f7b950bA3A606dd114c6",
+      "holder_address": "oasis1qqcu60uh85gszg0ffy4ycxclhg6fugw935du6u05"
+    },
+    {
+      "balance": "0",
+      "eth_holder_address": "0xE034802841E4EB39407E51E4cC1dC6064f08cc9a",
+      "holder_address": "oasis1qqfkkkmgrg4x775s3em06326z723capfuqdtx0f8"
+    },
+    {
+      "balance": "0",
+      "eth_holder_address": "0x7C0b0a525fc6A2caDf7AE37198119025C6feA28a",
+      "holder_address": "oasis1qqsc4q8umvgcff4dxcpvnw8l80wsls9y6qcn7m42"
+    },
+    {
+      "balance": "0",
+      "eth_holder_address": "0x450b8A3de05c04DAfF8B92E854C9749B55824716",
+      "holder_address": "oasis1qqv90mllks2c3ntq6zjxs3wzqzxy2lwc9vezfmw9"
+    },
+    {
+      "balance": "0",
+      "eth_holder_address": "0x780B3DB437db13Fbdd7488D350a871442ff15498",
+      "holder_address": "oasis1qqzx2z0at6uhvnvqzrkpv70pz6c57uk5qyzfzj5d"
+    },
+    {
+      "balance": "0",
+      "eth_holder_address": "0x78577Ae67bC03CFF9044dd4B2db8528A0Eed573c",
+      "holder_address": "oasis1qr8styzhwcncqa006aj4dzmxhf26qavg5vjexley"
+    },
+    {
+      "balance": "0",
+      "eth_holder_address": "0x6742AD97690AcDf85e51dE8c221dAe3BCe9Fda5a",
+      "holder_address": "oasis1qrg3ghcf4s2y3zjwx3p59k9ypc7h2quccghegq33"
+    },
+    {
+      "balance": "0",
+      "eth_holder_address": "0x09c6C4636972F2d231519b0bC45a9AcAe30fe985",
+      "holder_address": "oasis1qrjx9elfhr6gaw7p7ektj99yldgtsjyjrvzlwaae"
+    },
+    {
+      "balance": "0",
+      "eth_holder_address": "0x01Cb8755BD7889667DabfD1C626C294cA4f38865",
+      "holder_address": "oasis1qru3wpd5msfa99rzva2sskwttph2pl0e5c6wcunp"
+    },
+    {
+      "balance": "0",
+      "eth_holder_address": "0xD5D0e35E65189aD88b7e345b90824F7fb99F4437",
+      "holder_address": "oasis1qrz6udh4shxu03vqun0k9jcwan48qujt4gtvmsm6"
+    },
+    {
+      "balance": "0",
+      "eth_holder_address": "0xca9B48EC610e93AF77f365F49c6579ebDC50f44d",
+      "holder_address": "oasis1qz5xs7musmjshvl6dycdselzeg39ct0utg5lsap7"
+    },
+    {
+      "balance": "0",
+      "eth_holder_address": "0x0A36211F97637D58C2AaD1b61B7b8B9a6f4002Ef",
+      "holder_address": "oasis1qz8yue39vyp65xxcfez5lq6l3ca0xsmvpylh969z"
+    },
+    {
+      "balance": "0",
+      "eth_holder_address": "0x59cE5883625375E8F10caFa890e482fe78396d6e",
+      "holder_address": "oasis1qzckcpra653urw8afjdfpxjyfstu4rxncs2wf6nh"
+    },
+    {
+      "balance": "0",
+      "eth_holder_address": "0xB6BD75C9Cc0f89374eA0DA64Db30CE7326921960",
+      "holder_address": "oasis1qzemcf097zq5l70hfcrg7kyqu0yuzpv8hvrmhdmx"
+    },
+    {
+      "balance": "0",
+      "eth_holder_address": "0x846Fb9E3fB9518673d8983D522110Ce6e1dB1b8C",
+      "holder_address": "oasis1qzfhgk8k0jngpqzdancfnte70usmlnf6zgkwqnys"
+    },
+    {
+      "balance": "0",
+      "eth_holder_address": "0x427a1dE9b1b13EBFD188bFFaAc27c3A85a2FdE89",
+      "holder_address": "oasis1qzghhpvt7zut9dn3n0agzn6hh4fhyek2h5mwaqa0"
+    }
+  ],
+  "is_total_count_clipped": false,
+  "total_count": 100
+}
