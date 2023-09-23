@@ -9,17 +9,13 @@ analysis:
         default: { rpc: unix:/tmp/node.sock }
     fast_startup: true
   analyzers:
-    # metadata_registry:
-    #   interval: 5m
-    # node_stats: {}
-    # aggregate_stats: {}
     consensus:
       from: 8_048_956  # Damask genesis
-      to: 8_049_056    # 100 blocks; fast enough for early testing
+      to: 8_049_955    # 1000 blocks; compromise between fast and comprehensive
     emerald:
       from: 1_003_298  # round at Damask genesis
-      to: 1_003_598
-    # sapphire:
+      to: 1_004_297    # 1000 blocks; compromise between fast and comprehensive
+    # sapphire: # Not tested. Does not use much code that is not covered by emerald.
     #   from: 0  # first round in Damask
   storage:
     backend: postgres
