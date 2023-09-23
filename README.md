@@ -101,11 +101,17 @@ curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/insta
 go install mvdan.cc/gofumpt@latest
 ```
 
+Note: CI uses gofumpt through golangci-lint, so if there's any discrepancy, look up what gofumpt version golangci-lint uses.
+Beware that we might not be on the latest golangci-lint either.
+
 **goimports**: [go install](https://pkg.go.dev/golang.org/x/tools/cmd/goimports)
 
 ```sh
 go install golang.org/x/tools/cmd/goimports@latest
 ```
+
+Note: CI uses goimports through golangci-lint, so if there's any discrepancy, look up what `golang.org/x/tools` version golangci-lint uses.
+Beware that we might not be on the latest golangci-lint either.
 
 ## Name Origin
 
