@@ -599,7 +599,7 @@ var (
         balance_analysis.token_address,
         balance_analysis.account_address,
         evm_tokens.token_type,
-        evm_token_balances.balance,
+        COALESCE(evm_token_balances.balance, 0) AS balance, -- evm_token_balances entry can be absent in fast-sync mode
         token_preimage.context_identifier,
         token_preimage.context_version,
         token_preimage.address_data,
