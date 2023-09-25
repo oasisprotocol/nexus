@@ -6,6 +6,9 @@ CREATE TABLE chain.evm_nfts (
     nft_id uint_numeric NOT NULL,
     PRIMARY KEY (runtime, token_address, nft_id),
 
+    -- Added in 22_evm_nfts_2.up.sql
+    -- owner oasis_addr,
+
     last_want_download_round UINT63 NOT NULL,
     last_download_round UINT63,
 

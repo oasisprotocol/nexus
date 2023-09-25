@@ -1,5 +1,8 @@
 BEGIN;
 
+ALTER TABLE chain.evm_nfts
+    ADD COLUMN owner oasis_addr;
+
 -- Grant others read-only use.
 GRANT SELECT ON ALL TABLES IN SCHEMA chain TO PUBLIC;
 GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA chain TO PUBLIC;
