@@ -1,3 +1,11 @@
+# Config for phase 1 of 2 of e2e regression tests.
+# See also ensure_consistent_config.sh
+#
+# Phase 1 runs all block-based analyzers; phase 2 runs all others. This is a slightly hacky
+# but low-effort way to ensure that all non-block analyzers perform RPCs at a deterministic
+# height and therefore always hit the RPC cache. (Most EVM-related analyzers make RPCs at the
+# maximum height that's been reached by block analyzers by that point.)
+
 analysis:
   source:
     cache:

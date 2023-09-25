@@ -1,3 +1,5 @@
+# Config for phase 2 of e2e regression tests. See e2e_config_1.yml for more info.
+
 analysis:
   source:
     cache:
