@@ -8,6 +8,7 @@ CREATE TABLE chain.evm_nfts (
 
     -- Added in 22_evm_nfts_2.up.sql
     -- owner oasis_addr,
+    -- num_transfers INT NOT NULL,
 
     last_want_download_round UINT63 NOT NULL,
     last_download_round UINT63,
