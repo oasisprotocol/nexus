@@ -1011,8 +1011,8 @@ func (c *StorageClient) ProposalVotes(ctx context.Context, proposalID uint64, p 
 	return &vs, nil
 }
 
-// Validators returns a list of validators.
-func (c *StorageClient) Validators(ctx context.Context, p apiTypes.GetConsensusValidatorsParams) (*ValidatorList, error) {
+// Validators returns a list of validators, or optionally the single validator matching `entityID`.
+func (c *StorageClient) Validators(ctx context.Context, p apiTypes.GetConsensusValidatorsParams, entityID *signature.PublicKey) (*ValidatorList, error) {
 	var epoch Epoch
 	if err := c.db.QueryRow(
 		ctx,
@@ -1024,6 +1024,7 @@ func (c *StorageClient) Validators(ctx context.Context, p apiTypes.GetConsensusV
 	res, err := c.withTotalCount(
 		ctx,
 		queries.ValidatorsData,
+		entityID,
 		p.Limit,
 		p.Offset,
 	)
@@ -1074,55 +1075,6 @@ func (c *StorageClient) Validators(ctx context.Context, p apiTypes.GetConsensusV
 	}
 
 	return &vs, nil
-}
-
-// Validator returns a single validator.
-func (c *StorageClient) Validator(ctx context.Context, entityID signature.PublicKey) (*Validator, error) {
-	var epoch Epoch
-	if err := c.db.QueryRow(
-		ctx,
-		queries.Validator,
-	).Scan(&epoch.ID, &epoch.StartHeight); err != nil {
-		return nil, wrapError(err)
-	}
-
-	var v Validator
-	var schedule staking.CommissionSchedule
-	if err := c.db.QueryRow(
-		ctx,
-		queries.ValidatorData,
-		entityID.String(),
-	).Scan(
-		&v.EntityID,
-		&v.EntityAddress,
-		&v.NodeID,
-		&v.Escrow,
-		&schedule,
-		&v.Active,
-		&v.Status,
-		&v.Media,
-	); err != nil {
-		return nil, wrapError(err)
-	}
-
-	currentRate := schedule.CurrentRate(beacon.EpochTime(epoch.ID))
-	if currentRate != nil {
-		v.CurrentRate = currentRate.ToBigInt().Uint64()
-	}
-	bound, next := util.CurrentBound(schedule, beacon.EpochTime(epoch.ID))
-	if bound != nil {
-		v.CurrentCommissionBound = ValidatorCommissionBound{
-			Lower:      bound.RateMin.ToBigInt().Uint64(),
-			Upper:      bound.RateMax.ToBigInt().Uint64(),
-			EpochStart: uint64(bound.Start),
-		}
-	}
-
-	if next > 0 {
-		v.CurrentCommissionBound.EpochEnd = next
-	}
-
-	return &v, nil
 }
 
 // RuntimeBlocks returns a list of runtime blocks.
