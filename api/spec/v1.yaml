@@ -1080,6 +1080,29 @@ paths:
                 $ref: '#/components/schemas/RuntimeAccount'
         <<: *common_error_responses
 
+  /{runtime}/accounts/{address}/nfts:
+    get:
+      summary: |
+        Returns the list of non-fungible token (NFT) instances owned by an account.
+      parameters:
+        - *limit
+        - *offset
+        - *runtime
+        - in: path
+          name: address
+          required: true
+          schema:
+            <<: *StakingAddressType
+          description: The staking address of the owner of the NFT instances.
+      responses:
+        '200':
+          description: The requested instances.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvmNftList'
+        <<: *common_error_responses
+
   /{runtime}/status:
     get:
       summary: Returns the runtime status.
