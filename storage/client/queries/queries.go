@@ -537,10 +537,11 @@ const (
 			owner_preimage.address = chain.evm_nfts.owner
 		WHERE
 			chain.evm_nfts.runtime = $1::runtime AND
-			chain.evm_nfts.token_address = $2::oasis_addr
+			($2::oasis_addr IS NULL OR chain.evm_nfts.token_address = $2::oasis_addr) AND
+			($3::oasis_addr IS NULL OR chain.evm_nfts.owner = $3::oasis_addr)
 		ORDER BY token_address, nft_id
-		LIMIT $3::bigint
-		OFFSET $4::bigint`
+		LIMIT $4::bigint
+		OFFSET $5::bigint`
 
 	AccountRuntimeSdkBalances = `
 		SELECT

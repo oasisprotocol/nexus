@@ -291,7 +291,7 @@ func (srv *StrictServerImpl) GetRuntimeEvmTokensAddressHolders(ctx context.Conte
 }
 
 func (srv *StrictServerImpl) GetRuntimeEvmTokensAddressNfts(ctx context.Context, request apiTypes.GetRuntimeEvmTokensAddressNftsRequestObject) (apiTypes.GetRuntimeEvmTokensAddressNftsResponseObject, error) {
-	nfts, err := srv.dbClient.RuntimeEVMNFTs(ctx, request.Params, request.Address)
+	nfts, err := srv.dbClient.RuntimeEVMNFTs(ctx, request.Params.Limit, request.Params.Offset, &request.Address, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -334,8 +334,11 @@ func (srv *StrictServerImpl) GetRuntimeAccountsAddress(ctx context.Context, requ
 }
 
 func (srv *StrictServerImpl) GetRuntimeAccountsAddressNfts(ctx context.Context, request apiTypes.GetRuntimeAccountsAddressNftsRequestObject) (apiTypes.GetRuntimeAccountsAddressNftsResponseObject, error) {
-	// TODO implement me
-	panic("implement me")
+	nfts, err := srv.dbClient.RuntimeEVMNFTs(ctx, request.Params.Limit, request.Params.Offset, nil, &request.Address)
+	if err != nil {
+		return nil, err
+	}
+	return apiTypes.GetRuntimeAccountsAddressNfts200JSONResponse(*nfts), nil
 }
 
 func (srv *StrictServerImpl) GetRuntimeStatus(ctx context.Context, request apiTypes.GetRuntimeStatusRequestObject) (apiTypes.GetRuntimeStatusResponseObject, error) {

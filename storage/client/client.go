@@ -1551,14 +1551,15 @@ func (c *StorageClient) RuntimeTokenHolders(ctx context.Context, p apiTypes.GetR
 	return &hs, nil
 }
 
-func (c *StorageClient) RuntimeEVMNFTs(ctx context.Context, p apiTypes.GetRuntimeEvmTokensAddressNftsParams, address staking.Address) (*EvmNftList, error) {
+func (c *StorageClient) RuntimeEVMNFTs(ctx context.Context, limit *uint64, offset *uint64, tokenAddress *staking.Address, ownerAddress *staking.Address) (*EvmNftList, error) {
 	res, err := c.withTotalCount(
 		ctx,
 		queries.EvmNfts,
 		runtimeFromCtx(ctx),
-		address,
-		p.Limit,
-		p.Offset,
+		tokenAddress,
+		ownerAddress,
+		limit,
+		offset,
 	)
 	if err != nil {
 		return nil, wrapError(err)
@@ -1575,10 +1576,10 @@ func (c *StorageClient) RuntimeEVMNFTs(ctx context.Context, p apiTypes.GetRuntim
 		var contractAddrContextIdentifier string
 		var contractAddrContextVersion int
 		var contractAddrData []byte
+		var tokenType sql.NullInt32
 		var ownerAddrContextIdentifier string
 		var ownerAddrContextVersion int
 		var ownerAddrData []byte
-		var tokenType sql.NullInt32
 		var metadataAccessedN sql.NullTime
 		if err = res.rows.Scan(
 			&nft.Token.ContractAddr,
