@@ -5,7 +5,6 @@ import (
 	"context"
 	"strings"
 	"sync"
-	"unicode/utf8"
 
 	"github.com/jackc/pgx/v5"
 
@@ -272,8 +271,7 @@ type TargetStorage interface {
 	EnableTriggersAndFKConstraints(ctx context.Context) error
 }
 
-// IsValidText returns true iff the given string is valid UTF-8 and does not contain any NUL bytes.
-// Postgresql TEXT field requires valid UTF8 strings and does not allow NUL bytes.
-func IsValidText(text string) bool {
-	return utf8.ValidString(text) && !strings.ContainsRune(text, '\x00')
+// Postgres requires valid UTF-8 with no 0x00.
+func SanitizeString(msg string) string {
+	return strings.ToValidUTF8(strings.ReplaceAll(msg, "\x00", "?"), "?")
 }

@@ -2,7 +2,6 @@ package runtime
 
 import (
 	"context"
-	"encoding/hex"
 	"fmt"
 	"math/big"
 	"strings"
@@ -220,18 +219,12 @@ func (m *processor) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 		var error_module string
 		var error_code uint32
 		var error_message *string
+		var error_message_raw *string
 		if transactionData.Error != nil {
 			error_module = transactionData.Error.Module
 			error_code = transactionData.Error.Code
 			error_message = transactionData.Error.Message
-		}
-		if error_message != nil {
-			// Apparently the message does need to be valid UTF-8.
-			// In the rare case it's not, hex encode it.
-			// https://github.com/oasisprotocol/nexus/issues/439
-			if !storage.IsValidText(*error_message) {
-				*error_message = hex.EncodeToString([]byte(*error_message))
-			}
+			error_message_raw = transactionData.Error.RawMessage
 		}
 		batch.Queue(
 			queries.RuntimeTransactionInsert,
@@ -258,6 +251,7 @@ func (m *processor) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 			transactionData.Success,
 			error_module,
 			error_code,
+			error_message_raw,
 			error_message,
 		)
 
