@@ -448,7 +448,12 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 					}
 
 					// Handle encrypted txs.
-					if evmEncrypted, err2 := evm.EVMMaybeUnmarshalEncryptedData(body.InitCode, ok); err2 == nil {
+					// We don't pass the tx result (`ok`) to EVMMaybeUnmarshalEncryptedData because it's the
+					// (unencrypted) address of the created contract. The function expects a CBOR-encoded
+					// encryption envelope as its second argument, so passing the unencrypted address
+					// makes it incorrectly declare the whole tx unencrypted.
+					// Note: The address of the created contract is tracked in blockTransactionData.To.
+					if evmEncrypted, err2 := evm.EVMMaybeUnmarshalEncryptedData(body.InitCode, nil); err2 == nil {
 						blockTransactionData.EVMEncrypted = evmEncrypted
 					} else {
 						logger.Error("error unmarshalling encrypted init code and result, omitting encrypted fields",
