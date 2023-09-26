@@ -168,7 +168,7 @@ func (c *CobaltConsensusApiLite) GetNodes(ctx context.Context, height int64) ([]
 	}
 	nodes := make([]nodeapi.Node, len(rsp))
 	for i, n := range rsp {
-		nodes[i] = nodeapi.Node(*n)
+		nodes[i] = *n
 	}
 	return nodes, nil
 }

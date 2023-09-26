@@ -48,10 +48,7 @@ func (mg *GenesisProcessor) Process(document *genesis.Document, nodesOverride []
 	}
 	queries = append(queries, qs...)
 
-	qs, err = mg.addGovernanceBackendMigrations(document)
-	if err != nil {
-		return nil, err
-	}
+	qs = mg.addGovernanceBackendMigrations(document)
 	queries = append(queries, qs...)
 
 	mg.logger.Info("generated genesis queries", "count", len(queries))
@@ -466,7 +463,7 @@ VALUES
 	return queries, nil
 }
 
-func (mg *GenesisProcessor) addGovernanceBackendMigrations(document *genesis.Document) (queries []string, err error) {
+func (mg *GenesisProcessor) addGovernanceBackendMigrations(document *genesis.Document) (queries []string) {
 	// Populate proposals.
 	queries = append(queries, "-- Governance Backend Data\n")
 
@@ -568,7 +565,7 @@ ON CONFLICT (proposal, voter) DO UPDATE SET
 		queries = append(queries, query)
 	}
 
-	return queries, nil
+	return queries
 }
 
 func sortedIntKeys[V any](m map[uint64]V) []uint64 {
