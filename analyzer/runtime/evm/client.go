@@ -179,7 +179,7 @@ func logDeterministicError(logger *log.Logger, round uint64, contractEthAddr []b
 		"method", method,
 		"err", err,
 	}, keyvals...)
-	logger.Info("call failed", keyvals...)
+	logger.Info("call failed deterministically", keyvals...)
 }
 
 // EVMDownloadNewToken tries to download the data of a given token. If it
