@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -215,7 +216,7 @@ func (s *sourceFactory) Runtime(ctx context.Context, runtime common.Runtime) (no
 
 func (s *sourceFactory) IPFS(_ context.Context) (ipfsclient.Client, error) {
 	if s.ipfs == nil {
-		client, err := ipfsclient.NewGateway(s.cfg.IPFS.Gateway)
+		client, err := ipfsclient.NewGateway(strings.TrimSuffix(s.cfg.IPFS.Gateway, "/"))
 		if err != nil {
 			return nil, fmt.Errorf("error creating ipfs client: %w", err)
 		}
