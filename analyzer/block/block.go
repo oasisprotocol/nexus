@@ -332,7 +332,7 @@ func (b *blockBasedAnalyzer) Start(ctx context.Context) {
 			// blocks that are not yet available. In this case, wait before processing every block,
 			// so that the backoff mechanism can tweak the per-block wait time as needed.
 			//
-			// Note: If the batch size is greater than 50, the time required to process the blocks
+			// Note: If the batch size is too large, the time required to process the blocks
 			// in the batch will exceed the current lock expiry of 5min. The analyzer will terminate
 			// the batch early and attempt to refresh the locks for a new batch.
 			if b.slowSync {
@@ -369,7 +369,8 @@ func (b *blockBasedAnalyzer) Start(ctx context.Context) {
 
 				// If running in slow-sync, stop processing the batch on error so that
 				// the blocks are always processed in order.
-				if b.slowSync {
+				// Also stop processing the batch if the batch context is done (= "expired").
+				if b.slowSync || batchCtx.Err() != nil {
 					break
 				}
 
