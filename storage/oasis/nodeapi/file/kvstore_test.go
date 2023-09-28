@@ -111,3 +111,23 @@ func TestGetFromCacheOrCallTypeMismatch(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 123, *myInt)
 }
+
+func TestPrettyPrint(t *testing.T) {
+	// Generate a complex key
+	myStruct := struct {
+		Words  []string
+		Number int
+	}{
+		Words:  []string{"hello", "world"},
+		Number: 123,
+	}
+	key := generateCacheKey("foo", "bar", myStruct)
+
+	// Pretty-print it
+	reconstructed := key.Pretty()
+
+	// The pretty-printed version should be printf("%+v") of the values that constructed the key.
+	// The exact string format is not so important as it's only used for debug and not guaranteed to be stable,
+	// but it should be human-readable.
+	require.Equal(t, "[foo [bar map[Number:123 Words:[hello world]]]]", reconstructed)
+}

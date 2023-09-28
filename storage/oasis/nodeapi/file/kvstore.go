@@ -125,11 +125,12 @@ func OpenKVStore(logger *log.Logger, path string) (KVStore, error) {
 // Pretty() returns a pretty-printed, human-readable version of the cache key.
 // It tries to interpret it as CBOR and returns the pretty-printed struct, otherwise
 // it returns the key's raw bytes as hex.
+// Intended only for debugging. Not guaranteed to be a stable representation.
 func (cacheKey CacheKey) Pretty() string {
 	var pretty string
 	var parsed interface{}
 	err := cbor.Unmarshal(cacheKey, &parsed)
-	if err != nil {
+	if err == nil {
 		pretty = fmt.Sprintf("%+v", parsed)
 	} else {
 		pretty = fmt.Sprintf("%x", cacheKey)
