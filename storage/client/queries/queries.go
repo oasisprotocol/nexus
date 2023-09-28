@@ -383,11 +383,7 @@ const (
 			evs.evm_log_name,
 			evs.evm_log_params,
 			tokens.symbol,
-			CASE -- NOTE: There are three queries that use this CASE via copy-paste; edit both if changing.
-				WHEN tokens.token_type = 20 THEN 'ERC20'
-				WHEN tokens.token_type = 721 THEN 'ERC721'
-				ELSE NULL
-			END AS token_type,
+			tokens.token_type,
 			tokens.decimals
 		FROM chain.runtime_events as evs
 		-- Look up the oasis-style address derived from evs.body.address.
@@ -465,11 +461,7 @@ const (
 			tokens.decimals,
 			tokens.total_supply,
 			tokens.num_transfers,
-			CASE -- NOTE: There are three queries that use this CASE via copy-paste; edit both if changing.
-				WHEN tokens.token_type = 20 THEN 'ERC20'
-				WHEN tokens.token_type = 721 THEN 'ERC721'
-				ELSE 'unexpected_other_type' -- Our openapi spec doesn't allow us to output this, but better this than a null value (which causes nil dereference)
-			END AS type,
+			tokens.token_type AS type,
 			COALESCE(holders.cnt, 0) AS num_holders,
 			(contracts.verification_info_downloaded_at IS NOT NULL) AS is_verified
 		FROM chain.evm_tokens AS tokens
@@ -521,11 +513,7 @@ const (
 			preimages.address_data AS token_address_eth,
 			tokens.symbol AS token_symbol,
 			tokens.token_name AS token_name,
-			CASE -- NOTE: There are three queries that use this CASE via copy-paste; edit both if changing.
-				WHEN tokens.token_type = 20 THEN 'ERC20'
-				WHEN tokens.token_type = 721 THEN 'ERC721'
-				ELSE 'unexpected_other_type' -- Our openapi spec doesn't allow us to output this, but better this than a null value (which causes nil dereference)
-			END AS token_type,
+			tokens.token_type,
 			tokens.decimals AS token_decimals
 		FROM chain.evm_token_balances AS balances
 		JOIN chain.address_preimages AS preimages ON (preimages.address = balances.token_address AND preimages.context_identifier = 'oasis-runtime-sdk/address: secp256k1eth' AND preimages.context_version = 0)
