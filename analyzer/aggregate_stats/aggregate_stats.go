@@ -75,14 +75,14 @@ func (a *aggregateStatsAnalyzer) Start(ctx context.Context) {
 }
 
 func (a *aggregateStatsAnalyzer) writeToDB(ctx context.Context, batch *storage.QueryBatch, opName string) error {
-	timer := a.metrics.DatabaseTimer(a.target.Name(), opName)
+	timer := a.metrics.DatabaseLatencies(a.target.Name(), opName)
 	defer timer.ObserveDuration()
 
 	if err := a.target.SendBatch(ctx, batch); err != nil {
-		a.metrics.DatabaseCounter(a.target.Name(), opName, "failure").Inc()
+		a.metrics.DatabaseOperations(a.target.Name(), opName, "failure").Inc()
 		return err
 	}
-	a.metrics.DatabaseCounter(a.target.Name(), opName, "success").Inc()
+	a.metrics.DatabaseOperations(a.target.Name(), opName, "success").Inc()
 
 	return nil
 }

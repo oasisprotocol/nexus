@@ -6,21 +6,13 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-var (
-	// Labels to use for partitioning database operations.
-	databaseOperationLabels = []string{"database", "operation", "status"}
-
-	// Labels to use for partitioning database latencies.
-	databaseLatencyLabels = []string{"database", "operation"}
-)
-
 // Default service metrics for database operations.
 type DatabaseMetrics struct {
 	// Counts of database operations
-	DatabaseOperations *prometheus.CounterVec
+	databaseOperations *prometheus.CounterVec
 
 	// Latencies of database operations.
-	DatabaseLatencies *prometheus.HistogramVec
+	databaseLatencies *prometheus.HistogramVec
 }
 
 // NewDefaultDatabaseMetrics creates Prometheus metric instrumentation
@@ -30,43 +22,35 @@ type DatabaseMetrics struct {
 // 2. Latencies for database operations.
 func NewDefaultDatabaseMetrics(pkg string) DatabaseMetrics {
 	metrics := DatabaseMetrics{
-		DatabaseOperations: prometheus.NewCounterVec(
+		databaseOperations: prometheus.NewCounterVec(
 			prometheus.CounterOpts{
 				Name: fmt.Sprintf("%s_db_operations", pkg),
-				Help: "How many database operations occur, partitioned by operation, status, and cause.",
+				Help: "How many database operations occur, partitioned by operation and status.",
 			},
-			databaseOperationLabels,
+			[]string{"database", "operation", "status"}, // Labels.
 		),
-		DatabaseLatencies: prometheus.NewHistogramVec(
+		databaseLatencies: prometheus.NewHistogramVec(
 			prometheus.HistogramOpts{
 				Name: fmt.Sprintf("%s_db_latencies", pkg),
 				Help: "How long database operations take, partitioned by operation.",
 			},
-			databaseLatencyLabels,
+			[]string{"database", "operation"}, // Labels.
 		),
 	}
-	metrics.DatabaseOperations = registerOnce(metrics.DatabaseOperations).(*prometheus.CounterVec)
-	metrics.DatabaseLatencies = registerOnce(metrics.DatabaseLatencies).(*prometheus.HistogramVec)
+	metrics.databaseOperations = registerOnce(metrics.databaseOperations).(*prometheus.CounterVec)
+	metrics.databaseLatencies = registerOnce(metrics.databaseLatencies).(*prometheus.HistogramVec)
 	return metrics
 }
 
-// DatabaseCounter returns the counter for the database operation.
-// Provided labels should be database, operation, status, and cause.
-func (m *DatabaseMetrics) DatabaseCounter(labels ...string) prometheus.Counter {
-	if len(labels) > len(databaseOperationLabels) {
-		labels = labels[:len(databaseOperationLabels)]
-	}
-	labels = append(labels, make([]string, len(databaseOperationLabels)-len(labels))...)
-	return m.DatabaseOperations.WithLabelValues(labels...)
+// DatabaseOperations returns the counter for the database operation.
+// The provided params are used as labels.
+func (m *DatabaseMetrics) DatabaseOperations(db, operation, status string) prometheus.Counter {
+	return m.databaseOperations.WithLabelValues(db, operation, status)
 }
 
-// DatabaseTimer returns a new latency timer for the provided
+// DatabaseLatencies returns a new latency timer for the provided
 // database operation.
-// Provided labels should be database and operation.
-func (m *DatabaseMetrics) DatabaseTimer(labels ...string) *prometheus.Timer {
-	if len(labels) > len(databaseLatencyLabels) {
-		labels = labels[:len(databaseLatencyLabels)]
-	}
-	labels = append(labels, make([]string, len(databaseLatencyLabels)-len(labels))...)
-	return prometheus.NewTimer(m.DatabaseLatencies.WithLabelValues(labels...))
+// The provided params are used as labels.
+func (m *DatabaseMetrics) DatabaseLatencies(db string, operation string) *prometheus.Timer {
+	return prometheus.NewTimer(m.databaseLatencies.WithLabelValues(db, operation))
 }

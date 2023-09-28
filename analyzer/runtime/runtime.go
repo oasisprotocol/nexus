@@ -152,14 +152,14 @@ func (m *processor) ProcessBlock(ctx context.Context, round uint64) error {
 	)
 
 	opName := fmt.Sprintf("process_block_%s", m.runtime)
-	timer := m.metrics.DatabaseTimer(m.target.Name(), opName)
+	timer := m.metrics.DatabaseLatencies(m.target.Name(), opName)
 	defer timer.ObserveDuration()
 
 	if err := m.target.SendBatch(ctx, batch); err != nil {
-		m.metrics.DatabaseCounter(m.target.Name(), opName, "failure").Inc()
+		m.metrics.DatabaseOperations(m.target.Name(), opName, "failure").Inc()
 		return err
 	}
-	m.metrics.DatabaseCounter(m.target.Name(), opName, "success").Inc()
+	m.metrics.DatabaseOperations(m.target.Name(), opName, "success").Inc()
 	return nil
 }
 
