@@ -21,7 +21,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 hostname="http://localhost:8008"
 
 # The command to invoke psql (complete with connection params)
-psql="$(make --dry-run --no-print-directory psql)"
+# HACK: Assuming `make` returns a docker command, sed removes -i and -t flags because we'll be running without a TTY.
+psql="$(make --dry-run --no-print-directory psql | sed -E 's/\s-i?ti?\s/ /')"
 
 # The directory to store the actual responses in
 outDir="$SCRIPT_DIR/actual"
