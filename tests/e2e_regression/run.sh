@@ -2,8 +2,11 @@
 
 # This script is a simple e2e regression test for Nexus.
 #
-# It fetches a fixed set of URLs from the API and saves the responses to files,
-# then check that the responses match expected outputs (from a previous run).
+# It runs
+#  - a fixed set of URLs against the HTTP API
+#  - a fixed set of SQL queries against the DB
+# and saves the responses to files, then check that the responses match
+# the expected outputs (from a previous run).
 #
 # If the differences are expected, smiply check the new responses into git.
 #
@@ -17,12 +20,40 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 # The hostname of the API server to test
 hostname="http://localhost:8008"
 
+# The command to invoke psql (complete with connection params)
+# HACK: Assuming `make` returns a docker command, sed removes -i and -t flags because we'll be running without a TTY.
+psql="$(make --dry-run --no-print-directory psql | sed -E 's/\s-i?ti?\s/ /')"
+
 # The directory to store the actual responses in
 outDir="$SCRIPT_DIR/actual"
 mkdir -p "$outDir"
 rm "$outDir"/* || true
 
+# Each test case is a pair of (name, SQL query or URL).
+# For SQL queries, the regression-tested output is the result of the query against the indexer DB.
+# For URLs, the regression-tested output is the full HTTP response.
 testCases=(
+  ## Consensus.
+  'db__allowances               select * from chain.allowances order by beneficiary, owner'
+  'db__debonding_delegations    select debond_end, delegator, delegatee, shares from chain.debonding_delegations order by debond_end, delegator, delegatee, shares' # column `id` is internal use only, and not stable
+  'db__delegations              select * from chain.delegations where shares != 0 order by delegatee, delegator'
+  'db__epochs                   select * from chain.epochs order by id'
+  'db__entities                 select * from chain.entities order by id'
+  'db__events                   select tx_block, tx_index, tx_hash, type, ARRAY(SELECT unnest(related_accounts) ORDER BY 1) AS sorted_related_accounts, body::text from chain.events order by tx_block, tx_index, type, body::text'
+  'db__nodes                    select id, entity_id, roles, expiration, voting_power from chain.nodes order by id'
+  'db__runtime_nodes            select rn.*, n.roles FROM chain.runtime_nodes rn LEFT JOIN chain.nodes n ON (rn.node_id = n.id) ORDER BY runtime_id, node_id'
+  ## Runtimes.
+  'db__deposits                 select * from chain.runtime_deposits order by runtime, round, sender, nonce'
+  'db__withdraws                select * from chain.runtime_withdraws order by runtime, round, sender, nonce'
+  'db__account_related_txs      select * from chain.runtime_related_transactions order by runtime, tx_round, tx_index, account_address'
+  'db__runtime_transfers        select * from chain.runtime_transfers order by runtime, round, sender, receiver'
+  'db__contract_gas_use         select c.runtime, contract_address, (SELECT gas_for_calling FROM chain.runtime_accounts ra WHERE (ra.runtime = c.runtime) AND (ra.address = c.contract_address)) AS gas_used, timestamp as created_at from chain.evm_contracts c left join chain.runtime_transactions rt on (c.creation_tx = rt.tx_hash) order by runtime, contract_address'
+  # sdk_balances, evm_balances: Do not query zero balances; whether they are stored depends on indexing order and fast-sync.
+  'db__sdk_balances             select * from chain.runtime_sdk_balances where balance != 0 order by runtime, account_address'
+  'db__evm_balances             select * from chain.evm_token_balances where balance != 0 order by runtime, token_address, account_address'
+  'db__evm_tokens               select runtime, token_address, token_type, token_name, symbol, decimals, total_supply, num_transfers from chain.evm_tokens order by token_address'
+  'db__evm_contracts            select runtime, contract_address, creation_tx, md5(abi::text) as abi_md5 from chain.evm_contracts order by runtime, contract_address'
+
   'status                         /v1/'
   'spec                           /v1/spec/v1.yaml'
   'trailing_slash                 /v1/consensus/accounts/?limit=1'
@@ -41,7 +72,8 @@ testCases=(
   'debonding_delegations          /v1/consensus/accounts/oasis1qpk366qvtjrfrthjp3xuej5mhvvtnkr8fy02hm2s/debonding_delegations'
   'debonding_delegations_to       /v1/consensus/accounts/oasis1qp0j5v5mkxk3eg4kxfdsk8tj6p22g4685qk76fw6/debonding_delegations_to'
   # NOTE: entity-related tests are not stable long-term because their output is a combination of
-  # the blockchain at a given height (which is stable) and the _current_ metadata_registry state.
+  #       the blockchain at a given height (which is stable) and the _current_ metadata_registry state.
+  #       We circumvent this by not fetching from metadata_registry at all, so the same metadata (= none) is always present for the test.
   'entities                       /v1/consensus/entities'
   'entity                         /v1/consensus/entities/WazI78lMcmjyCH5+5RKkkfOTUR+XheHIohlqMu+a9As='
   'entity_nodes                   /v1/consensus/entities/WazI78lMcmjyCH5+5RKkkfOTUR+XheHIohlqMu+a9As=/nodes'
@@ -98,9 +130,8 @@ done
 # Run the test cases.
 seen=("placeholder") # avoids 'seen[*]: unbound variable' error on zsh
 for ((i = 0; i < nCases; i++)); do
-  name="$(echo "${testCases[$i]}" | awk '{print $1}')"
-  url="$(echo "${testCases[$i]}" | awk '{print $2}')"
-  url="$hostname$url"
+  name="$(echo "${testCases[$i]}" | cut -d' ' -f1)"
+  param="$(echo "${testCases[$i]}" | cut -d' ' -f2- | sed 's/^ *//')" # URL or SQL query
 
   # Sanity check: testcase name should be unique
   if [[ " ${seen[*]} " =~ " ${name} " ]]; then
@@ -110,16 +141,23 @@ for ((i = 0; i < nCases; i++)); do
   seen+=("$name")
 
   echo "Running test case: $name"
-  # Fetch the server response for $url
-  curl --silent --show-error --dump-header "$outDir/$name.headers" "$url" >"$outDir/$name.body"
-  # Try to pretty-print and normalize (for stable diffs) the output.
-  # If `jq` fails, output was probably not JSON; leave it as-is.
-  jq 'if .latest_update_age_ms? then .latest_update_age_ms="UNINTERESTING" else . end' \
-    <"$outDir/$name.body" \
-    >/tmp/pretty 2>/dev/null &&
-    cp /tmp/pretty "$outDir/$name.body" || true
-  # Sanitize the current timestamp out of the response header so that diffs are stable
-  sed -i -E 's/^(Date|Content-Length|Last-Modified): .*/\1: UNINTERESTING/g' "$outDir/$name.headers"
+  if [[ "$param" = /v1* ]]; then
+    # $param is an URL; fetch the server response
+    url="$hostname$param"
+    curl --silent --show-error --dump-header "$outDir/$name.headers" "$url" >"$outDir/$name.body"
+    # Try to pretty-print and normalize (for stable diffs) the output.
+    # If `jq` fails, output was probably not JSON; leave it as-is.
+    jq 'if .latest_update_age_ms? then .latest_update_age_ms="UNINTERESTING" else . end' \
+      <"$outDir/$name.body" \
+      >/tmp/pretty 2>/dev/null &&
+      cp /tmp/pretty "$outDir/$name.body" || true
+    # Sanitize the current timestamp out of the response header so that diffs are stable
+    sed -i -E 's/^(Date|Content-Length|Last-Modified): .*/\1: UNINTERESTING/g' "$outDir/$name.headers"
+  else
+    # $param is a SQL query; fetch the DB response
+    $psql -A -o /dev/stdout -c "COPY ($param) TO STDOUT CSV HEADER" | sed $'s/\r$//' >"$outDir/$name.csv" \
+      || { cat "$outDir/$name.csv"; exit 1; }  # psql prints the error message on stdout
+  fi
 done
 
 diff --recursive "$SCRIPT_DIR/expected" "$outDir" >/dev/null || {

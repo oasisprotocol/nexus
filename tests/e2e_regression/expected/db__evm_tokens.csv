@@ -1,0 +1,110 @@
+runtime,token_address,token_type,token_name,symbol,decimals,total_supply,num_transfers
+emerald,oasis1qp08422ym35mwp79snn9zyac5gykher6jv5mxmjg,721,Oasis Name Service,ONS,0,1473,2
+emerald,oasis1qp2g4q0yktqh8nyn0zdw7cpyycnq9zhjjqaqps7x,20,ValleySwap LP USDT-USDC,VSLP USDT-USDC,18,41622298488480,61
+emerald,oasis1qp2hssandc7dekjdr6ygmtzt783k3gn38uupdeys,20,Tether USD (Wormhole),USDT,6,13054216560876,624
+emerald,oasis1qp2j5uhxzdqzdpkneslve0gxye0ydjfdsqwyzfc4,20,Ankh,ANKH,18,73473240931747305470252707,30
+emerald,oasis1qp4wveera0cwde5jsxxnr6ld0v6stlskxuglkghg,20,ValleySwap LP wROSE-GG,VSLP wROSE-GG,18,65728904185564503573546,4
+emerald,oasis1qp8u6h300nwywlzgec2z0hmpwzmpy04t8sgp36xn,20,Bitcoin,BTC,8,43915772690,109
+emerald,oasis1qp9kz5m8k2n8qyprpy9usuuwr23gkar2vy5mexvw,20,ValleySwap LP BTC-USDT,VSLP BTC-USDT,18,748596606049,35
+emerald,oasis1qpcv63djqrs3tfr0045rguk4krx4u5lu6sazhdhz,20,Gemkeeper LP Token,GLP,18,2274964085683,5
+emerald,oasis1qpf8k4rqtqzvrppa353nrwnry3pp66062ssvpw45,20,Wormhole ETH,fETH,8,89550741380,11
+emerald,oasis1qpfhzkpwz5qgt0g9mlhqh29u3hyqcu4sygkt4va7,20,Binance-Peg BUSD Token,BUSD,18,415437682567162205796444,45
+emerald,oasis1qpgcp5jzlgk4hcenaj2x82rqk8rrve2keyuc8aaf,20,Wrapped ROSE,wROSE,18,134273688211406143160770252,2113
+emerald,oasis1qpgvjkelzwd0yucjqyfpfzalrp3x74se7y922a7s,20,YuzuParkExtDummyToken,YPEDT,18,10000,124
+emerald,oasis1qphpvuqjsgce3a53q38q7g2cnhcsvfwq6ggp0hja,20,xLizard,xLIZ,18,13058638196763758894130112,2
+emerald,oasis1qpjaapzc7e3exckszq0n53f0k690wyzy9vz4hmtw,20,Tulip LP,tpLP,18,243296295111537245824125,4
+emerald,oasis1qpl38f2a8m55ylha8ysdn03ya0mgrftkasmy8wyv,20,RimSwap LPs,RimSwap-LP,18,226544356878673021,34
+emerald,oasis1qplrz99wkaaaxrz7sl8hj6elvdtprgss3qldsr4r,721,GameryNFT,GameryNFT,0,209,2
+emerald,oasis1qpmuy6ly4wmxh8v7z8xzxfyfvjcdgdaw2y4ppdgm,20,RimSwap LPs,RimSwap-LP,18,91954995577560299765726,31
+emerald,oasis1qpp2qztm74z9wjskcpja0er2wgp44sntryzzkag8,20,YuzuSwap LP Token,LPT,18,1425008573791774767320874,143
+emerald,oasis1qppj4s2vw6fxfghng4gzdqfvv2w3g82hy5y96ntd,20,Wrapped Ether (Wormhole),WETH,18,2765543930000000000,2
+emerald,oasis1qpq3ncr82yaussqdaplwej00lwp6gk6rhvxxk2l2,721,Swarm Teddies,ST,0,1000,1
+emerald,oasis1qpr59huhl7ml5lphfxzp209r3g9m6p8kwy8vxvtj,20,ValleySwap LP USDT-VSN,VSLP USDT-VSN,18,55687330334532907,4
+emerald,oasis1qprjy5xdpa0jrgntt205x67um8sdk698sc3e56fv,20,Wrapped BTC (Wormhole),WBTC,8,125832518,9
+emerald,oasis1qprwghd5hcn4gtmanac3l4nsmcsdj6mwfs7jlckf,20,Spice Yuzu wROSE-YUZU,spiceYuzuwROSE-YUZU,18,35255595883564254684686,1
+emerald,oasis1qpsrh5nh3sv4lqqa54m2z5vvelqem267jcctr7q8,20,RimSwap LPs,RimSwap-LP,18,78854655101104033,19
+emerald,oasis1qpssvkplnlpzdvwxpgmrhf9j5lkyvaylcvujhjhg,20,Fountain Protocol,FTP,18,10000000000000000000000000000,275
+emerald,oasis1qpsxnr8zpacjpd5pdz94qll49z54zyj6ssnhtexg,20,Gemkeeper LP Token,GLP,18,230584427930726946200361,9
+emerald,oasis1qpuqs65me58n6mt05ezd7cnttx7k57w28v36l4ca,20,USD Coin (Celer),ceUSDC,6,1573342584371,62
+emerald,oasis1qpv8julmghfjyd3c0m8n7z4yuzhrsr0gfygafdtz,20,RIM Swap Token,RIM,18,2187248051999999999994986,705
+emerald,oasis1qpvx2al9uua40qc274acvhj3dhx8z7zy75s5t5eg,20,USD Coin (Wormhole),USDC,6,1851558044299,113
+emerald,oasis1qpxytuhzyvx3yx37nz09gmd9u6h92fgpmq78lk9n,20,Fantom (Celer),cfFTM,18,14846424279571419483536,5
+emerald,oasis1qpydndh8jupcwg3sd4rz5t6s4udnsaeysgch6nfl,20,ValleySwap LP wROSE-ETH,VSLP wROSE-ETH,18,2423958859114520743,1
+emerald,oasis1qpyf4aq4ggfsp8nydnda489r44tfdsmjeunl6sva,20,Spice Yuzu USDT-YUZU,spiceYuzuUSDT-YUZU,18,8821905291626004,1
+emerald,oasis1qpyyglghqwzfqpwuvcmvehkxc24r8f5leq3cp3mk,20,ChainLink Token,LINK,18,32743458438016218190813,6
+emerald,oasis1qpzdjjhnhddd2ry46hnemw0ahanf907xdcg77u6q,20,YuzuSwap LP Token,LPT,18,1865432583066016060,29
+emerald,oasis1qpzwxpkarlhe5y9wm0nhel56dps2myuze509yepd,721,visionNFT,vNFT,0,211,1
+emerald,oasis1qq0q90sm07duq3xxn6qx9fc8djsv8nnyf59zjyk4,20,VISION,VSN,18,54870078213685683897946,143
+emerald,oasis1qq23kz2wa47nm930nzklurwtv048wp8p8q48c88k,20,RimSwap LPs,RimSwap-LP,18,51055035300390,2
+emerald,oasis1qq24mmwwfvpmd0v75rd2yx9f5vnnzr4adcru42gn,20,Wrapped SOL (Wormhole),SOL,9,155752147570,5
+emerald,oasis1qq2wua5td6svsdn9s24dn7qar5lrapzj4q2hchvc,20,GemKeeper Finance,BLING,18,34101713728592372809999623,58
+emerald,oasis1qq3jtem5m56xj26duhmlzpp9u4823j59kyynt8tg,20,softbalanced.com,USBL,18,800000000000000000000000000,1
+emerald,oasis1qq3q3awrrcl64rzvhxyc6ykjveny7zczkqrm28yp,20,Gemkeeper LP Token,GLP,18,857865938064949035,23
+emerald,oasis1qq60pyh8rrrmnpv3q222wp0t7qe4q75pavp682zk,721,NonFungibleNanner,NANNER,0,676,0
+emerald,oasis1qq7sakxrkt4rsntlslq4w8jjnyxug73z5qc66hwl,20,UST (Wormhole),UST,6,2611271181960,130
+emerald,oasis1qq9kxt0t49ryrmrs2s3u3hhkujs6damk6u9g6ly4,20,Wormhole USDC,fUSDC,8,256372885620427,1
+emerald,oasis1qq9tq8e35djpuw0nsenu7aufaurycsvlgcv40946,20,ValleySwap LP USDT-VS,VSLP USDT-VS,18,334352134363447218,35
+emerald,oasis1qqaft65h9j07l4salzrdca4a2k5lnzxc8uu8m6tk,20,YuzuSwap LP Token,LPT,18,11218601619932224798,27
+emerald,oasis1qqcy50uqn7skgcetyysy3fsyn5xuunnxxq8fd96t,20,ValleySwap LP wROSE-USDT,VSLP wROSE-USDT,18,331620329583910857,68
+emerald,oasis1qqdgnhr8uzd6jwwsjuzp5khmk32knj383vml9veq,20,Emerald Vault,SAFE,18,1000000000000000000000000,4
+emerald,oasis1qqed7mp902c0n76h5tk4k3fgu3vnhd5yhql4482n,20,ValleySwap Token,VS,18,47786212892072241625772038,1398
+emerald,oasis1qqehgt8jfnczmku5hazxkkprw5nqqk4nvunx9zf4,20,YuzuSwap LP Token,LPT,18,185716658986150670662550,19
+emerald,oasis1qqewaa87rnyshyqs7yutnnpzzetejecgeu005l8u,721,OasisApes,OA,0,3333,16
+emerald,oasis1qqfmvrywd8alavrcddyhx520xsa0mku70vf5e0az,20,YuzuSwap LP Token,LPT,18,184167932234161590,9
+emerald,oasis1qqjv74rz8e6v9q6yn7y76zvf0yv5299ejsaxnjqu,20,xYUZU,xYUZU,18,2427888908358410096145977,36
+emerald,oasis1qqnu9prrj5nddz3ccpnm5vkq92j3cncy5vdasvsm,20,Mirage,MRG,18,100000000000000000000000000000,0
+emerald,oasis1qqsfrwsuhzy9zk089k2gwmcfmhum8f8jzull3lef,20,PETAL,PETAL,18,68473872813786005814055,18
+emerald,oasis1qqt0mrp2nyd7gq4w3c6m9xew4xdsrd608unmkv3r,20,TULIP,TULIP,18,3540645416585757238843737,45
+emerald,oasis1qqt6kmyzv620rmx4mjzqlugy4n0y4nhyzsattr7x,20,Gemkeeper LP Token,GLP,18,16524875311401051706275,20
+emerald,oasis1qqt9wa58vxrgn9eqj3p7zd7z64xevtgv2sgyvznx,20,Oaswap Token,OAS,18,135829725133870904133220,14
+emerald,oasis1qqtepy0lky5k2kswqv2dd3g59vmvc3w05c7k5s3s,20,OasisApesClub,OAPE,18,1000000000000000000000000,1
+emerald,oasis1qqtft7rx4trfzayrm2qhs6xvh48u5qfr6uy7s6x8,20,WePiggy Coin,WPC,18,208300247177667980941883,3
+emerald,oasis1qqvfw8dtvd5e02wds06f0wuxldwwm3tyqqgnswcd,20,Wormhole USDT,fUSDT,8,199471615701294,15
+emerald,oasis1qqx3a57vuy8w3negw5uvs8f7kdq757euwqaysc6u,20,wLUNA,wLUNA,18,1451257061688115882900,45
+emerald,oasis1qqx9xkvknwu63ym0frz8seeewdvg37g345cjfe8t,20,ValleySwap LP USDT-GG,VSLP USDT-GG,18,162000420832797904,1
+emerald,oasis1qqz8706pmf38wmptl6dkcaec8yykw0rvfv7ql6fc,20,YUZUToken,YUZU,18,47350771768707482993195540,3536
+emerald,oasis1qr3g9759ew429lytjq3a7pe2zpnmqtdueqdszy32,20,Oaswap LP Token,OAS-LP,18,339435951526092181688,3
+emerald,oasis1qr42htk98ncwm2cyuk4up6me8emkxeg6kcvzduq9,20,ValleySwap LP wROSE-VS,VSLP wROSE-VS,18,3814219000093528711503929,106
+emerald,oasis1qr8f54qhsr68qvx35xrwtrx62h7a7ns665wglflu,20,Gemkeeper LP Token,GLP,18,682488243314319229,19
+emerald,oasis1qral2wqujcm6xhlj4gfvf6g0my9kqk3mkq3hpfft,20,Wrapped BNB (Wormhole),WBNB,18,22760390550000000000,8
+emerald,oasis1qre2e66m8hxjn9643sdla3txwqs4es9pzs47w7a0,20,ValleySwap LP USDT-ETH,VSLP USDT-ETH,18,65755161804984016,22
+emerald,oasis1qrexkhp5taz8ssw9t3c7ytgu8xkvsyj6uvx6dssc,721,RoseApe,RPE,0,1800,3
+emerald,oasis1qrfphtn2nwfxs82xc7vj9ecqaxsntt66zg4ttqn8,20,Lizard Token,LIZ,18,119691955668163613833699298,186
+emerald,oasis1qrg90d4qlelg5zg4q4sd4y0z8j2lpjpvuspzjlyl,20,Tether USD,USDT,6,96164907280233,1068
+emerald,oasis1qrk8yv2rpvla8k69htae08ndnv37xdga8vdzyg36,20,RimSwap LPs,RimSwap-LP,18,24084061402280257,14
+emerald,oasis1qrk9appc6lhxnx5xhk0ga2w8http5h6fsylxyau7,20,Gemkeeper LP Token,GLP,18,553934401269981282113733,3
+emerald,oasis1qrmtfytxk3exv60rpkv8p8ve99sf3kzp8u9ng4gq,20,Oasis,fROSE,8,6043690038096533,56
+emerald,oasis1qrmvlmawpdx0eq0rxygsgzqyq5m86729jyu6xh0c,20,WePiggy USDT,pUSDT,8,180422996201870,2
+emerald,oasis1qrpyh9akeqfcfg9wwm4paalwc92z66l4xut0ul32,20,Sahara LP Token,SHR-LP,18,54496555205386780141908,3
+emerald,oasis1qrqe5d3r2l8ajar4j9tctg7xt9tfp2947qqkvpm0,20,LUNA (Wormhole),LUNA,6,2581077843,29
+emerald,oasis1qrt7djn35xfexhmhzvnx88l7ngm0sgcd4uf3jafj,20,Sahara LP Token,SHR-LP,18,4748458541641170,1
+emerald,oasis1qrtn6tdgevwyzl0cjulwe8zs285zv60kpq8vks2v,721,AI ROSE,AI ROSE,0,999,5
+emerald,oasis1qrx20nk97ewgqh0fej8kfhekqjp8wkvqay3wpdgj,20,YuzuSwap LP Token,LPT,18,46223298225605251451674,5
+emerald,oasis1qz2570ua8yrdl6ra3mmdlztynkhz9yccuukywywr,20,Lizard LPs,LLP,18,966878882506213034331,3
+emerald,oasis1qz2end9ss38y7x4ds9569zsfn6n4pf7ylq6fajag,20,Sahara LP Token,SHR-LP,18,9715053213053099714897,2
+emerald,oasis1qz3k8dgyujr8khv2da9vmazc8pw96j5gg5ksqntv,20,Gamery Token,GG,18,803970216049940148835615,170
+emerald,oasis1qz3thwqrq7nq6lljr39k0dhsx375u7yl7c894h4f,20,Lizard LPs,LLP,18,52639991645890580,4
+emerald,oasis1qz46ehkmpf2hupar2nt6fqe3jcdr4gj3psarzyj2,20,Lizard LPs,LLP,18,751470773734721983158624,6
+emerald,oasis1qz4v67vla0sa0394ye5ycfylukxj5l4vlcar249m,20,Gemkeeper LP Token,GLP,18,26046581669281800217834,11
+emerald,oasis1qz6uvey3ge99kvj5z8yl4hs635gunehyc54adgk6,20,USD Coin,USDC,6,43352899476011,162
+emerald,oasis1qz7uahtat2pan7mkyqw95pkzycmt9eff6gtq49zz,20,Binance Coin (Celer),cbBNB,18,8440751809893482265,1
+emerald,oasis1qz80vtv9p4sqk75twvj3u822xuw6k59skvdw4vhu,20,Avalanche (Celer),caAVAX,18,168233781314062842144,1
+emerald,oasis1qz9lj4q7mvdluweek4w38svpumtu4we7jcctgglt,20,RimSwap LPs,RimSwap-LP,18,112400070979,20
+emerald,oasis1qzcf8p8asg8htf2ht58khq3hh8j88sct3qtd4whv,20,YuzuSwap LP Token,LPT,18,415664331508951635,44
+emerald,oasis1qzel2watfs6g3cm765dwlukymjs5k3rnhvua4z78,20,Wrapped Ether (Wormhole),WETH,18,2942581461980000000000,277
+emerald,oasis1qzewjyrtamrkjj38wa8znejazq58492saqndkha3,20,RimSwap LPs,RimSwap-LP,18,131960502188,6
+emerald,oasis1qzg3nrd697tfq6zvpcvnkhvrj709n3al7u49hhry,20,YuzuSwap LP Token,LPT,18,4415209689005792846,36
+emerald,oasis1qzh32zjl5gt0tf7hwzkjyk7h70kra2ce3scg5l8n,20,WePiggy ROSE,pROSE,8,7076867760312722,1
+emerald,oasis1qzhsuyvfz3wejykay6aw2dna2c2sa5jm9ced2anm,20,Binance,BNB,18,704606602072472902393,10
+emerald,oasis1qzj2hwfs3yjm20jz5h70yk3etsst0k8s3cnl6l08,20,YuzuSwap LP Token,LPT,18,6679568395379241225171941,87
+emerald,oasis1qzk2nmzdx4mu8c0jaxqrk4lcs5q6j6gag59marct,20,RimSwap LPs,RimSwap-LP,18,23779976525112498,9
+emerald,oasis1qzljkkapwvhlp8ys5x02lpvlu5vyq5dhqg9pt3w3,20,Celer Network,CELR,18,654579100776391514091075,2
+emerald,oasis1qznmqsnk68y9y2uvsnu23djdwc2kc82dryytc8sr,20,Ethereum Token,ETH,18,6068670532300538038252,145
+emerald,oasis1qzpc0chmr742sux0686yce8jvgg6r4krkqzkljky,20,RimSwap LPs,RimSwap-LP,18,1302670619872102,4
+emerald,oasis1qzpxtzc3xphccjq94wxffchfc5sua5t24vc6gvt6,20,Wrapped ROSE,WROSE,18,1273842485449103102844444,52
+emerald,oasis1qzsahvt5ud3kn5uwuqptwggxun30yxazzyum64ks,20,USD Coin,USDC,6,2706121418808,77
+emerald,oasis1qztprn968ygkg0autq4gu2arkv06vlacpc0f4keq,20,Oaswap LP Token,OAS-LP,18,1350940837110559,3
+emerald,oasis1qzur4dfk9eqenuwyzcpp0p6x4nydfl0nlqt28jsc,20,RimSwap LPs,RimSwap-LP,18,2415579907061680698789,41
+emerald,oasis1qzvsgch6ma6qz8h8tjcwwcz8nq4ugq5h4c2hw68k,20,Duneswap LP Token,DLP,18,30873656446773286,8
+emerald,oasis1qzw6wua8kc6jmjef6trm8mndqnuuyg7cpcjxt0e2,20,Duneswap Token,DUNE,18,2198875799607259984495641,39
+emerald,oasis1qzx7zj0nvsfgtw4y4k2ajk72m7q0sfqc8gjqre05,20,RigelToken,RGP,18,3000000000000000000000000,1

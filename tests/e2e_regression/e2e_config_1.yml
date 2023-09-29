@@ -1,3 +1,11 @@
+# Config for phase 1 of 2 of e2e regression tests.
+# See also ensure_consistent_config.sh
+#
+# Phase 1 runs all block-based analyzers; phase 2 runs all others. This is a slightly hacky
+# but low-effort way to ensure that all non-block analyzers perform RPCs at a deterministic
+# height and therefore always hit the RPC cache. (Most EVM-related analyzers make RPCs at the
+# maximum height that's been reached by block analyzers by that point.)
+
 analysis:
   source:
     cache:
@@ -9,17 +17,13 @@ analysis:
         default: { rpc: unix:/tmp/node.sock }
     fast_startup: true
   analyzers:
-    # metadata_registry:
-    #   interval: 5m
-    # node_stats: {}
-    # aggregate_stats: {}
     consensus:
       from: 8_048_956  # Damask genesis
-      to: 8_049_056    # 100 blocks; fast enough for early testing
+      to: 8_049_955    # 1000 blocks; compromise between fast and comprehensive
     emerald:
       from: 1_003_298  # round at Damask genesis
-      to: 1_003_598
-    # sapphire:
+      to: 1_004_297    # 1000 blocks; compromise between fast and comprehensive
+    # sapphire: # Not tested. Does not use much code that is not covered by emerald.
     #   from: 0  # first round in Damask
   storage:
     backend: postgres

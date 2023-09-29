@@ -13,7 +13,7 @@
       "current_rate": 5000,
       "entity_address": "oasis1qq3xrq0urs8qcffhvmhfhz4p0mu7ewc8rscnlwxe",
       "entity_id": "eZuacXy5s3/nolB/E3gF4vqUYdvfOlVaaBXGfZcGwKc=",
-      "escrow": "365733173838702247",
+      "escrow": "365735410866920958",
       "node_id": "ked2iuR80WQdb4g7l+PqbQKGJAvD4+KVPFwuDc5nU6M=",
       "status": true
     },
@@ -28,7 +28,7 @@
       "current_rate": 10000,
       "entity_address": "oasis1qqekv2ymgzmd8j2s2u7g0hhc7e77e654kvwqtjwm",
       "entity_id": "9sAhd+Wi6tG5nAr3LwXD0y9mUKLYqfAbS2+7SZdNHB4=",
-      "escrow": "327531978753038980",
+      "escrow": "327517040581065556",
       "node_id": "6wbL5/OxvFGxi55o7AxcwKmfjXbXGC1hw4lfnEZxBXA=",
       "status": true
     },
@@ -43,7 +43,7 @@
       "current_rate": 15000,
       "entity_address": "oasis1qr0jwz65c29l044a204e3cllvumdg8cmsgt2k3ql",
       "entity_id": "kfr2A6K6TlvhQm4nz88Hczzkd2Aq5PlkxSpnmUUBAFs=",
-      "escrow": "262508155704065722",
+      "escrow": "262511552559600532",
       "node_id": "lbxs4hlud9XNloIOdhJPaCahd7HtiY8QATCgGnFfCM0=",
       "status": true
     },
@@ -58,7 +58,7 @@
       "current_rate": 10000,
       "entity_address": "oasis1qz0ea28d8p4xk8xztems60wq22f9pm2yyyd82tmt",
       "entity_id": "WazI78lMcmjyCH5+5RKkkfOTUR+XheHIohlqMu+a9As=",
-      "escrow": "241218338526495690",
+      "escrow": "241221459891796222",
       "node_id": "xHvUU4I+dQ4oKvlfe4IXoKi8OT8vdAgfszQ5ciPL6HI=",
       "status": true
     },
@@ -73,7 +73,7 @@
       "current_rate": 5000,
       "entity_address": "oasis1qpn83e8hm3gdhvpfv66xj3qsetkj3ulmkugmmxn3",
       "entity_id": "9D+kziTxFhg77+cyt+Fwd6eXREkZ1wHw7WX7VG57MeA=",
-      "escrow": "224559612981579150",
+      "escrow": "224562518782971131",
       "node_id": "SCA1zoR15jpC2eugP1P/CZBQhMjHEtmJ7+hWemgTdWo=",
       "status": true
     },
@@ -88,7 +88,7 @@
       "current_rate": 19000,
       "entity_address": "oasis1qz72lvk2jchk0fjrz7u2swpazj3t5p0edsdv7sf8",
       "entity_id": "ko5wr5SMqhKb+P1kimM1EF/T4SqvW/WjSOwPHigQl+k=",
-      "escrow": "205921253696898473",
+      "escrow": "205912270238498449",
       "node_id": "aJFHeID4Q7qUfMa42dRwaa9PQrZ/cVDiE3WNt4bQjo0=",
       "status": true
     },
@@ -103,7 +103,7 @@
       "current_rate": 19000,
       "entity_address": "oasis1qzm74el4utw4jssrl95ujq87g3ks3xfmjytvtaaa",
       "entity_id": "KVsiBHzBommqe0VwchA2QHqp/JT8B136up4Ru+r/xkg=",
-      "escrow": "166641033162755164",
+      "escrow": "166643189497724290",
       "node_id": "u0ljAJgP5+HyEykOsa+tEqXdKJD41/5bxJ5tAA9eIxg=",
       "status": true
     },
@@ -118,7 +118,7 @@
       "current_rate": 19000,
       "entity_address": "oasis1qz22xm9vyg0uqxncc667m4j4p5mrsj455c743lfn",
       "entity_id": "J2nwlXuYEPNZ0mMH2Phg5RofbZzj65xDvQMNdy9Ji0E=",
-      "escrow": "143016648174963715",
+      "escrow": "143018498810391099",
       "node_id": "ITrwEekdZNqXrEzvw3GT6Q3AtHDd51f19nD2nVU/f0c=",
       "status": true
     },
@@ -138,7 +138,7 @@
       "status": true
     },
     {
-      "active": true,
+      "active": false,
       "current_commission_bound": {
         "epoch_end": 0,
         "epoch_start": 0,
@@ -163,7 +163,7 @@
       "current_rate": 20000,
       "entity_address": "oasis1qrs8zlh0mj37ug0jzlcykz808ylw93xwkvknm7yc",
       "entity_id": "UFXCpcvXBOHbxtObG4psGcn+LgZOedvDDUAqVengpPk=",
-      "escrow": "120871110261229955",
+      "escrow": "120872374060670114",
       "node_id": "RyR58ibjevY8DqFHaqDfJhe1zm0XeY83hPk78qtcUic=",
       "status": true
     },
@@ -178,7 +178,7 @@
       "current_rate": 20000,
       "entity_address": "oasis1qzl99wft8jtt7ppprk7ce7s079z3r3t77s6pf3dd",
       "entity_id": "4gbOOU09bcyvM53Up1lTnP+sLb0feniJu0OcUUPCBSs=",
-      "escrow": "105264777350263442",
+      "escrow": "105265839307957115",
       "node_id": "+zVbgQqOdY90Z2NQKXFByNT0OwLxj/Ho4j4qT5u2yKM=",
       "status": true
     },
@@ -193,7 +193,7 @@
       "current_rate": 20000,
       "entity_address": "oasis1qrdx0n7lgheek24t24vejdks9uqmfldtmgdv7jzz",
       "entity_id": "UkwjS1YvEfHx9b6MMT5Q1WvCY3aWn2lxRDsB/Pw+zGk=",
-      "escrow": "101790322791269193",
+      "escrow": "101791382059599692",
       "node_id": "4bv9f6NqLf4+6+QII+p48KgpagFXk9PgIdefbuo2spA=",
       "status": true
     },
@@ -208,7 +208,7 @@
       "current_rate": 10000,
       "entity_address": "oasis1qq7vyz4ewrdh00yujw0mgkf459et306xmvh2h3zg",
       "entity_id": "FDqRmM1FyhaGas+lquWmGAKgMsU2rj7UESAlnOHtxco=",
-      "escrow": "84979240108061405",
+      "escrow": "84980339739428403",
       "node_id": "5UbIi8RQj4flFn9N8wHjQqp6QwZFJi2QdD2mOYLa/sY=",
       "status": true
     },
@@ -238,7 +238,7 @@
       "current_rate": 3000,
       "entity_address": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp",
       "entity_id": "/AI8TCLc1a5U98yBoxOji5bheVT1pc75v+tGDdM6se4=",
-      "escrow": "76096077025736049",
+      "escrow": "76097061708972762",
       "node_id": "Y7mD0uNLcWvuRRTgIARWsAhFisb669haOdhZJuc9Tvc=",
       "status": true
     },
@@ -253,7 +253,7 @@
       "current_rate": 10000,
       "entity_address": "oasis1qzp8e4ldf9zq27jle847nawll5jwwa9x75y6spaz",
       "entity_id": "7n6AYdYIuGar561yxifDtrR9NVekDavFlpeHVZinCSc=",
-      "escrow": "75487402635153685",
+      "escrow": "75488379442143783",
       "node_id": "HnLtoQyiKOkr2NMcQsQ4UH0HW8qkLRGWn4mgkDLNoEo=",
       "status": true
     },
@@ -268,7 +268,7 @@
       "current_rate": 2000,
       "entity_address": "oasis1qq0xmq7r0z9sdv02t5j9zs7en3n6574gtg8v9fyt",
       "entity_id": "zAhtGrpk1L3bBLaP5enm3natUTCoj7MEFryq9+MG4tE=",
-      "escrow": "75368981020862238",
+      "escrow": "75369956295476647",
       "node_id": "QtzFQlvzg+9999TIUZSCrvvhPUyGKp4HxXC4M1SfgVk=",
       "status": true
     },
@@ -283,7 +283,7 @@
       "current_rate": 20000,
       "entity_address": "oasis1qpjuke27se2wnmvx6e8uc4l5h44yjp9h7g2clqfq",
       "entity_id": "3DRMMM7ye2HREvk8zz06OjMG6BuWjs84PLdSYChNHAw=",
-      "escrow": "68670126320991155",
+      "escrow": "68671014912425748",
       "node_id": "3xkzy9g5wL1sqGY8cnd6A7kFuwFM4yuUt0nEJrdHNJ0=",
       "status": true
     },
@@ -298,12 +298,12 @@
       "current_rate": 15000,
       "entity_address": "oasis1qp4rp7adhegfktyg4aq3w6jelqumx6klfv5t7kvv",
       "entity_id": "jzTWYikeN6NIuMQ6l4iqdDOF9jyfOJG2FcnQaNBn9+s=",
-      "escrow": "67892362905940367",
+      "escrow": "67893241433116369",
       "node_id": "1Eh9S7bnBnYzhdMuRc8W1DtGsjgMptbRktoE7tw/HiA=",
       "status": true
     },
     {
-      "active": false,
+      "active": true,
       "current_commission_bound": {
         "epoch_end": 0,
         "epoch_start": 0,
@@ -328,7 +328,7 @@
       "current_rate": 20000,
       "entity_address": "oasis1qrtq873ddwnnjqyv66ezdc9ql2a07l37d5vae9k0",
       "entity_id": "uxSkvFu6x4MIYV+M1VrDu3m/qbADs/1Ae3mWAcEmnaQ=",
-      "escrow": "63548367926482280",
+      "escrow": "63549190242363248",
       "node_id": "IEkIQb2o8l0xlFIpN47FmOYcBmFch9DsZGs8OuZqQ6g=",
       "status": true
     },
@@ -343,7 +343,7 @@
       "current_rate": 15000,
       "entity_address": "oasis1qz65awwegd9pr8msfxkg7hpwyjemm2qdlysyc8jq",
       "entity_id": "izy38AmUeU4b4L23kVy4BlxbkHGOPy4KPSSLnJglrV0=",
-      "escrow": "61576973057528737",
+      "escrow": "61577769863560101",
       "node_id": "4Tz2fSohCN3mm3I9sA6hAQMv/8nmj4ssIXKoOBnxBek=",
       "status": true
     },
@@ -358,7 +358,7 @@
       "current_rate": 15000,
       "entity_address": "oasis1qzaracvtpgp87frlk9jshdcu8aczpsrz8y94jjg4",
       "entity_id": "a4OjOCh3W8gDV15t2a1VQ2Nz7PABO262435/89jo8pE=",
-      "escrow": "60383320744120776",
+      "escrow": "60384102104291204",
       "node_id": "QOkzQ7D2zdHmMtZa/6qhmopvhe6ZTodb4I1hoHeA1oQ=",
       "status": true
     },
@@ -373,7 +373,7 @@
       "current_rate": 10000,
       "entity_address": "oasis1qzthup6qts0k689z2wy84yvk9ctnht66eyxl7268",
       "entity_id": "GFuNKboc4wNDdYiWZPyL9cvmMI/xhdTh19NEVCB1jxw=",
-      "escrow": "59387062872553914",
+      "escrow": "59387831341147484",
       "node_id": "f1wwQPdE6avSzRoaayfIwEe8PukXdIYOuDdJ9CDQLCE=",
       "status": true
     },
@@ -388,7 +388,7 @@
       "current_rate": 19000,
       "entity_address": "oasis1qram2p9w3yxm4px5nth8n7ugggk5rr6ay5d284at",
       "entity_id": "RZowTXmfT+b6H6Vuz97VECIy2cq8tytTilv8AxbtvO8=",
-      "escrow": "58209566994006392",
+      "escrow": "58210320225803294",
       "node_id": "MnmXWIpf1hEok0rIcynmHfYR6kvWuyH6VdCJARVN5oY=",
       "status": true
     },
@@ -403,7 +403,7 @@
       "current_rate": 18000,
       "entity_address": "oasis1qqnmppt4j5d2yl584euhn6g2cw9gewdswga9frg4",
       "entity_id": "J3ou5m1abrwcbYwTksSj1Hj21QoDjyrSkjB40rEKV4E=",
-      "escrow": "58087648761007871",
+      "escrow": "58088400415182838",
       "node_id": "dMaOtmpPbdB7ukYfXdo+ssTTCjX2Qspmi1YJIg5Hcr0=",
       "status": true
     },
@@ -418,7 +418,7 @@
       "current_rate": 15000,
       "entity_address": "oasis1qrcmmvgf7qt8pmy543dmz0muwcm752kleund8rwr",
       "entity_id": "7nCBfl1vRS4kn7G2yJZeZdwE8OFA4avUphWdCRrFhJM=",
-      "escrow": "57085888876591068",
+      "escrow": "57086627567993131",
       "node_id": "lTC9wxlqYTUvXSV2bJxj0w2JWGdlY6pZFIx68V/qYB4=",
       "status": true
     },
@@ -433,7 +433,7 @@
       "current_rate": 10000,
       "entity_address": "oasis1qzl8w5ka9y3p8a8gqlemqk98hzc33sn0tuezyc8l",
       "entity_id": "EOsC+ZdDFqIyC41QlxSzRem69xfzwIT33hRu0pp4Itg=",
-      "escrow": "56977122258998001",
+      "escrow": "56977859542960032",
       "node_id": "SW5hffFy0nOLvIfmbkFk9to5NFO8w+QxkxiAfx4a094=",
       "status": true
     },
@@ -463,7 +463,7 @@
       "current_rate": 15000,
       "entity_address": "oasis1qqyynj90zkvyhja33w4ltgej45pr48f45ymmnsrx",
       "entity_id": "PrCDIA3uyoLqNOZJ1PrRWdyviFn6K0PWFz91qQ9QyTw=",
-      "escrow": "56320848916981747",
+      "escrow": "56321577708766732",
       "node_id": "QFAWexckwRHNxkIty67NCpY8LHwlrcGp/v0ziDSlgFs=",
       "status": true
     },
@@ -478,7 +478,7 @@
       "current_rate": 15000,
       "entity_address": "oasis1qptk3ydjxuq3eenqwljdy45uxdye5tfg4sqar0fz",
       "entity_id": "RFpWeibJDHnfgoq9mO1BJcxyDbIstDi22ZBhvgXvE1Y=",
-      "escrow": "56115776380019798",
+      "escrow": "56116502518166155",
       "node_id": "ROe9AtvfOFX6bu+5vhRCR87qYXSzp5NfELBqB3Hdgrw=",
       "status": true
     },
@@ -493,7 +493,7 @@
       "current_rate": 19000,
       "entity_address": "oasis1qzugextrcdueshq63w7l9x4xglnusznsgqa95w7e",
       "entity_id": "T5k7PtOR01oZrdnZveDpO9AFpMUhEREZk7WSSfm8Gtg=",
-      "escrow": "55680884077125116",
+      "escrow": "55681604587765073",
       "node_id": "4rUqFOE27urnaltMm2XqyuxcghXs4xRep3AV3mXSTt4=",
       "status": true
     },
@@ -508,7 +508,7 @@
       "current_rate": 17000,
       "entity_address": "oasis1qrmexg6kh67xvnp7k42sx482nja5760stcrcdkhm",
       "entity_id": "LaKJUKndAqH57DVExspTjdRTRNGJOSqArzM0pm8REZw=",
-      "escrow": "54892579254117477",
+      "escrow": "54893289564093025",
       "node_id": "jZ2/EOnpmPCxCfd5wrrLINNdZSPWyhIx9UqJgZ8sHYk=",
       "status": true
     },
@@ -523,7 +523,7 @@
       "current_rate": 15000,
       "entity_address": "oasis1qzzwkrjmyrzey46hyste5xszue3ggy90ag7k3687",
       "entity_id": "BdSzNycR8Y3MdHooxU0vtOEPr3ZG9KD5p8wxHtvueUU=",
-      "escrow": "54855513689398174",
+      "escrow": "54856223519745314",
       "node_id": "lCQsP7Rhw/EdcM2sVDXOzWcUDHx47wGJDBah4xw6c90=",
       "status": true
     },
@@ -538,7 +538,7 @@
       "current_rate": 20000,
       "entity_address": "oasis1qp4f47plgld98n5g2ltalalnndnzz96euv9n89lz",
       "entity_id": "bTok0el8GbmUzTAAgcQ78uww/TsgeWwXpM3N2S49qBQ=",
-      "escrow": "54469121997450401",
+      "escrow": "54469826827889048",
       "node_id": "AVQbWvlbKOHi3z8uibbOVl3xsCJsw2YtWG5XXdbhhpI=",
       "status": true
     },
@@ -553,7 +553,7 @@
       "current_rate": 15000,
       "entity_address": "oasis1qryreqam7w0slj7rhz70g9xvt9rct2024cepgqjj",
       "entity_id": "6XvrCu3wqMKYc5a0d5UZzG7ZGeb3j//MzcqUMUHkMCk=",
-      "escrow": "54227871336690253",
+      "escrow": "54228573045345349",
       "node_id": "nvzaqYTHiG3xo5C5TlfmfyvQgb5aQolfKzsVqT3T/RU=",
       "status": true
     },
@@ -568,7 +568,7 @@
       "current_rate": 15000,
       "entity_address": "oasis1qpg763ex50jp0e34lsu789smlzqvcv7025v7m7yx",
       "entity_id": "6reBpCKHsqMX1Y26o3p5V+95in5ka16I969CWyiRudY=",
-      "escrow": "53670246483576309",
+      "escrow": "53670940976565806",
       "node_id": "UVpVC08tK+uPlx9s5JXbranCodW8q4cPLjrtzY5D7q8=",
       "status": true
     },
@@ -583,7 +583,7 @@
       "current_rate": 19500,
       "entity_address": "oasis1qqlq8jplttrmw982rrhp0svl8054xqevecks5yqr",
       "entity_id": "KmMS+RzjQ9vm9J2aX9YihJnmmSc/IBquCysbhPxVDFM=",
-      "escrow": "53461194652033067",
+      "escrow": "53461886439891864",
       "node_id": "eudq22Uwt0ciC7/BYN3TsUy+MCataTkQjwS/BBlgvJE=",
       "status": true
     },
@@ -613,7 +613,7 @@
       "current_rate": 19000,
       "entity_address": "oasis1qqewwznmvwfvee0dyq9g48acy0wcw890g549pukz",
       "entity_id": "sDi9ZxHYB+rHTpVh4abNFXDMRSecfGe4QzbyGK8ZgQg=",
-      "escrow": "51249677944838002",
+      "escrow": "51250341115670608",
       "node_id": "XanOOptLq+tmEky6Olf3dVO6HZcUJs8f6ESxIvMmO0E=",
       "status": true
     },
@@ -628,7 +628,7 @@
       "current_rate": 20000,
       "entity_address": "oasis1qql4alk30frfa6xua42eu7tynkqf9vd5ug95yqpn",
       "entity_id": "WXs7ElBlm30la2fG4oZDpubeFu5sKkjDVeflWo+YuIA=",
-      "escrow": "51153730498994407",
+      "escrow": "51154392428267063",
       "node_id": "ioLADiyiFmIms+8fib3N36/TX5XEnHrs2vWcH5LxHGo=",
       "status": true
     },
@@ -643,7 +643,7 @@
       "current_rate": 15000,
       "entity_address": "oasis1qresj0vhmwawll6fe2vw2nlapkp6nj6etcx7a32h",
       "entity_id": "1JttHp0rBBBHDOpPl8fAiLTcN9tUzxJGjk7llFcvhZQ=",
-      "escrow": "51062498524302704",
+      "escrow": "51063159273033608",
       "node_id": "p7pJUBSdgF4PfgKrn8JJl4xhVZXMu9h1TfNlAU5VjBU=",
       "status": true
     },
@@ -658,12 +658,12 @@
       "current_rate": 20000,
       "entity_address": "oasis1qpsnzv8qz4fu3lwps2tc3eg5pnryzl4h7cqxruzf",
       "entity_id": "DIbPacWGEiealk+226eYEafYmKJpD98PYoWp/tcPXJI=",
-      "escrow": "50898490640791100",
+      "escrow": "50899149267259991",
       "node_id": "AZJhDCByjr/YdTvA7uFnIeYcg7iuHPGiDrJRKaEOYHA=",
       "status": true
     },
     {
-      "active": true,
+      "active": false,
       "current_commission_bound": {
         "epoch_end": 0,
         "epoch_start": 1698,
@@ -688,12 +688,12 @@
       "current_rate": 15000,
       "entity_address": "oasis1qrzkqzvlw9xgyxhhqps746ssyhn5lkqrmcgz8amq",
       "entity_id": "C7he7BJPrgVrsGRm4m+OFcHlcNYOEPSGeerxvV/BsBA=",
-      "escrow": "49569667329228835",
+      "escrow": "49570308760724075",
       "node_id": "/LlzNoccjtMUbW6fXa/3KKVa6JN+qwnGQrB4u631nR8=",
       "status": true
     },
     {
-      "active": true,
+      "active": false,
       "current_commission_bound": {
         "epoch_end": 0,
         "epoch_start": 0,
@@ -718,7 +718,7 @@
       "current_rate": 19000,
       "entity_address": "oasis1qp6fzgx9zhamsk6c77cwzjeme06xwswffvhk6js2",
       "entity_id": "/ylWdaid2DDlI4BMVkX6gAR6eaBYlLolHbjCmHitrzc=",
-      "escrow": "48094431217299965",
+      "escrow": "48095053559239916",
       "node_id": "JThJEQbC1iFVbdy6nFz6mSwChY5xgnOwbWAV3igG6mE=",
       "status": true
     },
@@ -733,7 +733,7 @@
       "current_rate": 10000,
       "entity_address": "oasis1qz0tqva49ysnjk2p7xe83qfp86khxwms8sc2wf6e",
       "entity_id": "M0EuGvS20xIjGSghpFrKGOTuTC6s8S/NAkun2AVJ1mo=",
-      "escrow": "47794585371938630",
+      "escrow": "47795203833873342",
       "node_id": "0NNKQ47YtOqSioa05EBWgW9Lrh8vQlp2Fe9q3uzdoxk=",
       "status": true
     },
@@ -748,7 +748,7 @@
       "current_rate": 15000,
       "entity_address": "oasis1qzgq240adkyxhm6598ex2jvgs7lyx5wmtg7cszmk",
       "entity_id": "nZoBfua/odt7fZThkfzGQo2oBp8UnEj+VpG52SB8onM=",
-      "escrow": "47686174834618754",
+      "escrow": "47686791893721113",
       "node_id": "y4LZvdQ/k9RBiPLSvBHt/8GhbOVEHY/LfIdgk0iXUho=",
       "status": true
     },
@@ -763,7 +763,7 @@
       "current_rate": 18000,
       "entity_address": "oasis1qzmwdlxy7cltmwt99u9pwqt3g0rdwgsqyvcqymmt",
       "entity_id": "F5eduX4m4O/ot3UcFs3iQk1ZPUuG43kuxGI9sZz95uU=",
-      "escrow": "47658944685933571",
+      "escrow": "47659561392677806",
       "node_id": "I/Vnwyi7FJdROFe64fbaqE3t55OLcUBY8hVK64VNrqc=",
       "status": true
     },
@@ -778,7 +778,7 @@
       "current_rate": 19500,
       "entity_address": "oasis1qppjm5sxqwps4dpyekdvz530sjmq3e5eusp7hdan",
       "entity_id": "3NKMT/Qz11e2xklwSCV/zeawLE3BIO/Rn4LfaV47QJI=",
-      "escrow": "47644112409641672",
+      "escrow": "47644728924456252",
       "node_id": "GrfIMoanLXIPuS91RhqdikNLcebWN26tMM2/iIA8cAE=",
       "status": true
     },
@@ -808,7 +808,7 @@
       "current_rate": 20000,
       "entity_address": "oasis1qr9wccuk6pqcr5ld8t2uf599e4ch5348hqeq53x4",
       "entity_id": "29VJbrrthqvw/ti3Vj7cASwkM9VMVa/RTKiwMBdWDQk=",
-      "escrow": "46483099727758371",
+      "escrow": "46483701219068848",
       "node_id": "+7Jku1SXiunTIHYxYNu4WGNo2g3uSQh2bXych4f1fDc=",
       "status": true
     },
@@ -823,7 +823,7 @@
       "current_rate": 18000,
       "entity_address": "oasis1qqx820g2geqzeyeyfnm5hgz72eaj9emajgqmscy0",
       "entity_id": "tcon38rBr3dHmURuXOTUFpDPKwE4eOU82F121rX9esE=",
-      "escrow": "46428161087012555",
+      "escrow": "46428761867417020",
       "node_id": "ejPrx9xTpKV3GTZgthFQWf3UPMFFBseRtc0A17ak1TU=",
       "status": true
     },
@@ -838,7 +838,7 @@
       "current_rate": 20000,
       "entity_address": "oasis1qrgxl0ylc7lvkj0akv6s32rj4k98nr0f7smf6m4k",
       "entity_id": "BTAJNDyd6/UQ+pfhTDdPGsothzJ+C5/C/g52a3DIlMw=",
-      "escrow": "46187986713403099",
+      "escrow": "46188584385951170",
       "node_id": "Kv7anzrQTWYDQRLCo1/pkMRV65HpvJCvSEjO/R8wHkc=",
       "status": true
     },
@@ -853,7 +853,7 @@
       "current_rate": 17000,
       "entity_address": "oasis1qq4f2h225gv6g8w8w23fm740aze9lke4qun72n59",
       "entity_id": "Vt63FfFzNMgUngrMvnKks+icySi5LwkjniJEJMZAimM=",
-      "escrow": "45187662967204248",
+      "escrow": "45188247695563043",
       "node_id": "LHA2Gbme/AReIFXmxwD9m/Ae8sZ1d2U/DFRfecT72YM=",
       "status": true
     },
@@ -883,7 +883,7 @@
       "current_rate": 18000,
       "entity_address": "oasis1qr5f26k9rnfa2pg6wgsuljyq7lecej3gaqqhyra5",
       "entity_id": "8rh2lgEm7QscCrLkVqcLMkRxfbNDIe+laI4H8nI/d74=",
-      "escrow": "44251691240851548",
+      "escrow": "44252263857736204",
       "node_id": "K5roq8kvag0dzkdauemq4PLfQG/rA4ZeItZ/op2PfGo=",
       "status": true
     },
@@ -898,7 +898,7 @@
       "current_rate": 20000,
       "entity_address": "oasis1qz26ty8q6gwt6zah7dtt8jpepvwnttkg8ssnxjl7",
       "entity_id": "kupW3Pt0XMeERSkdDWyZMU4oZrk0wGysVXVyqX3rylc=",
-      "escrow": "43819516492792773",
+      "escrow": "43820083517336189",
       "node_id": "1TDnq8Ps6agmT5CiS6CdIOj9D8sVWvr+AYX8wQ1u5HQ=",
       "status": true
     },
@@ -913,7 +913,7 @@
       "current_rate": 9000,
       "entity_address": "oasis1qp3rhyfjagkj65cnn6lt8ej305gh3kamsvzspluq",
       "entity_id": "IYoCG9YW+623ri5Mgzr0rcrnJTGaLhTeq/JdOzMx2Mw=",
-      "escrow": "43722095731971645",
+      "escrow": "43722661495890416",
       "node_id": "0/0TJw2+i1XVYn3Z7igQSpdGoZ0cFdyI4GVcopmH2hI=",
       "status": true
     },
@@ -928,7 +928,7 @@
       "current_rate": 5000,
       "entity_address": "oasis1qrxyndkhehffdme39urcp2v7m2t7k06xwsuyaxqq",
       "entity_id": "a/LVFfoI3aRoasZs6tP/Lvn0CbG6RkvEFYHcVR/Vo9M=",
-      "escrow": "42467678626474339",
+      "escrow": "42468228158235765",
       "node_id": "hDQp4FhwWREN09nSGMPJAEYKeCmxG/joQivxfY3vyi8=",
       "status": true
     },
@@ -943,7 +943,7 @@
       "current_rate": 17000,
       "entity_address": "oasis1qzv7a0gkxwpfelv985fvkl24k7jh3arfwy84zw7q",
       "entity_id": "GDWO0+R7qSrWB0bvT+V2Kz6vlHcm6ZnaNQM2/FsFqEA=",
-      "escrow": "42038842196754866",
+      "escrow": "42039386179372892",
       "node_id": "RClDxygiGYEFeO90jnfHAIXm2QrP5TNQ5F50N77zKY4=",
       "status": true
     },
@@ -958,7 +958,7 @@
       "current_rate": 5000,
       "entity_address": "oasis1qqf6wmc0ax3mykd028ltgtqr49h3qffcm50gwag3",
       "entity_id": "D8oCKJab4LtOMQJR0YQZXx+fMw6QHyTiv3YCfN8tM18=",
-      "escrow": "41515849536411738",
+      "escrow": "41516386751504739",
       "node_id": "9R8sWVuwyIoE64JXu2sdDWR6vdqFr/X9aEWvPE8G824=",
       "status": true
     },
@@ -1003,7 +1003,7 @@
       "current_rate": 0,
       "entity_address": "oasis1qz2rxs50p4kn537tcupjhg7ad3zcm9s7uuyrrd9e",
       "entity_id": "aOefxt5MUuXEbErxpD+ZttJWh/3d9if+t+PBTeAgKpo=",
-      "escrow": "32537927924655447",
+      "escrow": "32538348965442792",
       "node_id": "vBGuFf/8tdEMQPiiPggnLlWT9aCbIQgNcRM+EKh2kX0=",
       "status": true
     },
@@ -1048,7 +1048,7 @@
       "current_rate": 14900,
       "entity_address": "oasis1qp2vdltxqvglrwj6qur8s4dw97485vm6actrkcsm",
       "entity_id": "zr4fuyH0KccZZVHsQ/ICJYWTynHiKtbBgzBWjgcCgt4=",
-      "escrow": "14770093141967424",
+      "escrow": "14770284266972681",
       "node_id": "p7+KBgOAk3ztUJrDqjn3NJN+Y725qFNWaGpLcU0H9+E=",
       "status": true
     },
@@ -1063,7 +1063,7 @@
       "current_rate": 20000,
       "entity_address": "oasis1qpwrq93z8s9ytu2hfjtqggc9edgwfadzevs3trvm",
       "entity_id": "1aTTEfSIcVxsPS86uIA7rSD2Jmb+aIVj1grCEjyzlzQ=",
-      "escrow": "13406742042020390",
+      "escrow": "13406915525262413",
       "node_id": "7E5It9hRik5ndQ1QtL3blTAX3pXSoPZPhGfLMQvbA+Q=",
       "status": true
     },
@@ -1078,7 +1078,7 @@
       "current_rate": 5000,
       "entity_address": "oasis1qzrehfnnntdaeshy5f6kfa8v3p35yu7mluaapmgc",
       "entity_id": "YDHYz/R+Y7pCodhmgkCqzoqqN54gzRfVE5fjZriX+RI=",
-      "escrow": "12783277221729320",
+      "escrow": "12783442637336569",
       "node_id": "6XcILTcGhjvVaWI/tRvZfUTp4huxgg6OBvFQrNmx9DY=",
       "status": true
     },
@@ -1093,7 +1093,7 @@
       "current_rate": 20000,
       "entity_address": "oasis1qqs5wnxvsk009swtt7ehm5fslxve96kczszwt47s",
       "entity_id": "VsrHPScBde1FUb+BDWONvLxxwKOKevLB7FRbUAaiF+Y=",
-      "escrow": "9150174496831244",
+      "escrow": "9150292900089232",
       "node_id": "e25jqMK9FwlwuV1VPS/dkriJlYh7zKp+1H9B8xAu2LI=",
       "status": true
     },
@@ -1108,7 +1108,7 @@
       "current_rate": 5000,
       "entity_address": "oasis1qzu358mpd4z5frmrq6vnwq87cqfvdmfxh5ax57cj",
       "entity_id": "32KS5Z9LWTD2UEUOqhRwZyJvb0lb12iiE9UYgoFjsKQ=",
-      "escrow": "8497197189645527",
+      "escrow": "8497307143377161",
       "node_id": "apKOntFDXWhpOfYAn1r84IWDG2KGBBAox4usIDhZcns=",
       "status": true
     },
@@ -1123,7 +1123,7 @@
       "current_rate": 20000,
       "entity_address": "oasis1qzzytegg6jc7hxu6y8feuzkgmr75ms7hc54mz85p",
       "entity_id": "wCGlLKUiTNr9Ba49YA6dDuqm9rdtPcKKsKzHqMBn+rc=",
-      "escrow": "8307046458026292",
+      "escrow": "8307153951207458",
       "node_id": "pjWGVgRla8SJGvBWIP5gPPHgxsr1c2EOsUP5KJvQjgk=",
       "status": true
     },
@@ -1138,7 +1138,7 @@
       "current_rate": 5000,
       "entity_address": "oasis1qpl883gp995zs9n6a279tqsavnaxxf0rzcdlauwu",
       "entity_id": "nw+8VTk+LbrZ4mSmeKYuQGu/swFgAOpPB5ls4STzh1g=",
-      "escrow": "8232565628240416",
+      "escrow": "8232672157639645",
       "node_id": "KqZ9G3aPJebYACkVTSiYxZJ3vJcsyHz+2f4Jyp5E8AM=",
       "status": true
     },
@@ -1153,8 +1153,8 @@
       "current_rate": 15000,
       "entity_address": "oasis1qp0xuvw2a93w4yp8jwthfz93gxy87u7hes9eu2ev",
       "entity_id": "cgXH87+sYoe2mXsdDKWCyRvWZ8JqnVnxJkCq09LlBoI=",
-      "escrow": "7812379511666785",
-      "node_id": "3OLbkel1i+5STFFw4GAH43YIvGB3lmMgf2V0woWRDNU=",
+      "escrow": "7812480603857665",
+      "node_id": "REB7DjPPyYCknxakN3MyAOS746YWJtgE41g9ac+oZXU=",
       "status": true
     },
     {
@@ -1198,7 +1198,7 @@
       "current_rate": 19000,
       "entity_address": "oasis1qpxpnxxk4qcgl7n55tx0yuqmrcw5cy2u5vzjq5u4",
       "entity_id": "klORAmjq81QKiUA0CsXaANxYVesTWM7CKdaSlm7u9tM=",
-      "escrow": "6905524926209925",
+      "escrow": "6905614283702470",
       "node_id": "IdElhqKVZCHY9Lo6222te1wSdhPPAz/OCsoSRkWrXXw=",
       "status": true
     },
@@ -1213,7 +1213,7 @@
       "current_rate": 20000,
       "entity_address": "oasis1qzp84num6xgspdst65yv7yqegln6ndcxmuuq8s9w",
       "entity_id": "xQN6ffLSdc51EfEQ2BzltK1iWYAw6Y1CkBAbFzlhhEQ=",
-      "escrow": "6759320173203700",
+      "escrow": "6759407638806741",
       "node_id": "bOfhQD3tB9nyfyX9WC4J/fZ59HzVAqd6gQ8n+m9DY1g=",
       "status": true
     },
@@ -1243,8 +1243,8 @@
       "current_rate": 15000,
       "entity_address": "oasis1qzf03q57jdgdwp2w7y6a8yww6mak9khuag9qt0kd",
       "entity_id": "oOVxTw2hEYgYvSrTjjKODCt/Soy3OLcQV9YBy/PF/xY=",
-      "escrow": "5940737149096293",
-      "node_id": "sLIgBDXHbMpBCAgKfn3TXaqo86PeX5G1+/fAiNWMcS8=",
+      "escrow": "5940814022235002",
+      "node_id": "jVPUq8aUDKe9jawIs7wPB4NBml27ft5kICIY7SBh/yQ=",
       "status": true
     },
     {
@@ -1258,7 +1258,7 @@
       "current_rate": 17000,
       "entity_address": "oasis1qps9drw07z0gmh5z2pn7zwl3z53ate2yvqf3uzq5",
       "entity_id": "/Foi5kZdBc70HPmlguvY6AzBILNrNiPDgKQLOITuIEI=",
-      "escrow": "5878131522601559",
+      "escrow": "5878207585623461",
       "node_id": "GY1goAIuGGSeVrhjhgVAp4JB0y6l3P5+TnozeBxu/kw=",
       "status": true
     },
@@ -1273,7 +1273,7 @@
       "current_rate": 20000,
       "entity_address": "oasis1qzk6qlmgnq40cq2n3jfkw3307feqngt4gvksfml6",
       "entity_id": "g9UqzvW6JvfKrflRKbCPBpm41rH/O+4apCK+KkD2tG4=",
-      "escrow": "5832725156182827",
+      "escrow": "5832800631646348",
       "node_id": "GYJsEu4Yp+CGEQVjy4owQAG6l6xEvGzcNM1xBHaEv6U=",
       "status": true
     },
@@ -1288,7 +1288,7 @@
       "current_rate": 19000,
       "entity_address": "oasis1qppctxzn8djkqfvrxugak9v7dp25vddq7sxqhkry",
       "entity_id": "9+lM5vQ1g+cVzjaNM78gxw1yUegVj57tHDbpN7DKIvw=",
-      "escrow": "5767468615394577",
+      "escrow": "5767543246438460",
       "node_id": "igLfuIxxqZATg0snKVTFoeRaqrlNq5r69ofncwlUA8I=",
       "status": true
     },
@@ -1303,7 +1303,7 @@
       "current_rate": 19000,
       "entity_address": "oasis1qqr8y5cez0aczdlnfp9fre82whjsdgqgd5xxtv6p",
       "entity_id": "XSQLBoubhOq/X86vKIj4Xzouo1Fhe39+kLF/2PDgKpM=",
-      "escrow": "5727592092285712",
+      "escrow": "5727666207327386",
       "node_id": "e5ebJbZikm11u56wEOM9Ka1uVUS1Pckgc8RGmahs8Ss=",
       "status": true
     },
@@ -1318,7 +1318,7 @@
       "current_rate": 20000,
       "entity_address": "oasis1qp53ud2pcmm73mlf4qywnrr245222mvlz5a2e5ty",
       "entity_id": "N+3/m12DoAqzFS0yF3R/kXSkSj7pZnWhq8nRCo/MKwk=",
-      "escrow": "5707824138845689",
+      "escrow": "5707897998090045",
       "node_id": "6drUHh4qocfbBsA12qM8pTerEcbqhdaHt+v33sEr5kk=",
       "status": true
     },
@@ -1333,7 +1333,7 @@
       "current_rate": 20000,
       "entity_address": "oasis1qr9zuf3n8g3znm786st3sldfw677pk3a6v85w9ds",
       "entity_id": "9yOiPY3NnNMpEzB+6XS/OqahzFwwX8mFhmT2fvbxlVI=",
-      "escrow": "5707307007604603",
+      "escrow": "5707380860157281",
       "node_id": "CPLy/FYKtIVK7JOspFi3G1Afkurqmh2tAtiDq4rnSfI=",
       "status": true
     },
@@ -1348,7 +1348,7 @@
       "current_rate": 20000,
       "entity_address": "oasis1qqw05utlqvf2ska0fyjf5yr7peg2z4tuxcjmqztp",
       "entity_id": "cVGc1fI6xu0WeI2GUrLIwDpH/JtBE3PwD+P66YkSKg8=",
-      "escrow": "5705281079741583",
+      "escrow": "5705354906078754",
       "node_id": "y6LXNa3NMtZzeXnz9GNBj9MZuSCwBvfBLkZu2YG2fU4=",
       "status": true
     },
@@ -1378,7 +1378,7 @@
       "current_rate": 20000,
       "entity_address": "oasis1qqrv4g5wu543wa7fcae76eucqfn2uc77zgqw8fxk",
       "entity_id": "p1VsfSsedbKn/5GzkPsr15XD+/AOIfbPda1/2yT84N4=",
-      "escrow": "5695134924369494",
+      "escrow": "5695208619415415",
       "node_id": "5GNoYx8mSk4PjcXLyi2I50Bw7n1ATsqAtttVjRzTuEY=",
       "status": true
     },
@@ -1393,7 +1393,7 @@
       "current_rate": 17000,
       "entity_address": "oasis1qp334gzlzrap6k2ch6wc9vxxplw9sg3v9cfvvgsy",
       "entity_id": "iNKCs9v4NJCuApCLPD4bRBoqTs/5DBxS0hourBkhxQo=",
-      "escrow": "5533669310565329",
+      "escrow": "5533740916246207",
       "node_id": "VHs9SQr/IC3ElqF1rNxFuCrkx/pWbhy46So19MQlZLE=",
       "status": true
     },
@@ -1408,7 +1408,7 @@
       "current_rate": 18000,
       "entity_address": "oasis1qzt4fvcc6cw9af69tek9p3mfjwn3a5e5vcyrw7ac",
       "entity_id": "L4OY/0mNEduAS9z6jh2xLp72b8gZURgcrd76AOiRIXk=",
-      "escrow": "5507740415626781",
+      "escrow": "5507811685787759",
       "node_id": "HZGW8QfuMUv/JEa1HqT19HrGTdJY3mWH4nogaWrWK+0=",
       "status": true
     },
@@ -1423,7 +1423,7 @@
       "current_rate": 20000,
       "entity_address": "oasis1qp9xlxurlcx3k5h3pkays56mp48zfv9nmcf982kn",
       "entity_id": "RMa2ER0wvraR+4u5QOGOrRTwmMVOYNcOot7sFppPRP0=",
-      "escrow": "5467255487613285",
+      "escrow": "5467326233899294",
       "node_id": "orWbpXiShG+xIy/BxDtokUdZwNCg3A4oNSbqkpjbvZQ=",
       "status": true
     },
@@ -1438,12 +1438,12 @@
       "current_rate": 20000,
       "entity_address": "oasis1qqxqhx9t52rsevhhtfspdxp4gsaft6ewyyeqnqy3",
       "entity_id": "TWLcdgEfahwyFPTC7nN3rZacPO2aXlLfZIDt7uXbzEI=",
-      "escrow": "5077303782869108",
+      "escrow": "5077369483180058",
       "node_id": "MDvOFuiehs/VbW/s0e6DTn5b4fnsteQhCVd9E7T80Hs=",
       "status": true
     },
     {
-      "active": true,
+      "active": false,
       "current_commission_bound": {
         "epoch_end": 0,
         "epoch_start": 0,
@@ -1498,7 +1498,7 @@
       "current_rate": 10000,
       "entity_address": "oasis1qrflth3g7k0ymkut2zrca3ktagw6g882yvqmgzdv",
       "entity_id": "WKCE1sMmJLe+DsdIQBMkPiKEgBpAQO+PjCeWjmLA1EM=",
-      "escrow": "2185498880395325",
+      "escrow": "2185527160750837",
       "node_id": "DGntJaRFwLUKi879qSLbt1uP3w5cE5vMAlYMispiaFE=",
       "status": true
     }

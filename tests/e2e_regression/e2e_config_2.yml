@@ -1,3 +1,5 @@
+# Config for phase 2 of e2e regression tests. See e2e_config_1.yml for more info.
+
 analysis:
   source:
     cache:
@@ -9,24 +11,17 @@ analysis:
         default: { rpc: unix:/tmp/node.sock }
     fast_startup: true
   analyzers:
-    # metadata_registry:
-    #   interval: 5m
-    # node_stats: {}
-    # aggregate_stats: {}
-    # consensus:
-    #   from: 8_048_956  # Damask genesis
-    #   to: 8_049_056    # 100 blocks; fast enough for early testing
-    # emerald:
-    #   from: 1_003_298  # round at Damask genesis
-    #   to: 1_003_598
-    # sapphire:
-    #   from: 0  # first round in Damask
     evm_tokens_emerald:
       stop_on_empty_queue: true
     evm_token_balances_emerald:
       stop_on_empty_queue: true
     evm_contract_code_emerald:
       stop_on_empty_queue: true
+    # Some non-block analyzers are not tested in e2e regressions.
+    # They are largely not worth the trouble as they do not interact with rest of the system much.
+    # metadata_registry: {} # Awkward to inject mock registry responses.
+    # node_stats: {}        # Awkward to inject mock node response using the current paradigm (= reseponse caching).
+    # aggregate_stats: {}   # Awkward to make stop after a single run.
   storage:
     backend: postgres
     endpoint: postgresql://rwuser:password@localhost:5432/indexer?sslmode=disable
