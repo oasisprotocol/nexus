@@ -26,12 +26,12 @@ const MaxMetadataBytes = 10 * 1024 * 1024
 // ERC721AssetMetadata is asset metadata
 // https://eips.ethereum.org/EIPS/eip-721
 type ERC721AssetMetadata struct {
-	// Name identifies the asset to which this NFT represents
+	// Name identifies the asset which this NFT represents
 	Name string `json:"name"`
-	// Description describes the asset to which this NFT represents
+	// Description describes the asset which this NFT represents
 	Description string `json:"description"`
 	// Image is A URI pointing to a resource with mime type image/*
-	// representing the asset to which this NFT represents. (Additional
+	// representing the asset which this NFT represents. (Additional
 	// non-descriptive text from ERC-721 omitted.)
 	Image string `json:"image"`
 }
