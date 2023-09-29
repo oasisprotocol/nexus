@@ -2621,6 +2621,14 @@ components:
         id:
           <<: *BigIntType
           description: The instance ID of this NFT within the collection represented by `token`.
+        owner:
+          <<: *AddressType
+          description: The Oasis address of this NFT instance's owner.
+          example: "oasis1qpclnnm0wu44pn43mt6vv3me59kl8zk9ty7qyj03"
+        owner_eth:
+          type: string
+          description: The Ethereum address of this NFT instance's owner.
+          example: "0xDEF1009df2d6872C214cd9148c6883893B7c4D91"
         metadata_uri:
           type: string
         metadata_accessed:
