@@ -504,9 +504,9 @@ const (
 			)
 		SELECT
 			chain.evm_nfts.token_address,
-			chain.address_preimages.context_identifier,
-			chain.address_preimages.context_version,
-			chain.address_preimages.address_data,
+			token_preimage.context_identifier,
+			token_preimage.context_version,
+			token_preimage.address_data,
 			chain.evm_tokens.token_name,
 			chain.evm_tokens.symbol,
 			chain.evm_tokens.decimals,
@@ -516,19 +516,25 @@ const (
 			COALESCE(token_holders.num_holders, 0) AS num_holders,
 			chain.evm_contracts.verification_info_downloaded_at IS NOT NULL AS is_verified,
 			chain.evm_nfts.nft_id,
+			chain.evm_nfts.owner,
+			owner_preimage.context_identifier,
+			owner_preimage.context_version,
+			owner_preimage.address_data,
 			chain.evm_nfts.metadata_uri,
 			chain.evm_nfts.metadata_accessed,
 			chain.evm_nfts.name,
 			chain.evm_nfts.description,
 			chain.evm_nfts.image
 		FROM chain.evm_nfts
-		LEFT JOIN chain.address_preimages ON
-			chain.address_preimages.address = chain.evm_nfts.token_address
+		LEFT JOIN chain.address_preimages AS token_preimage ON
+			token_preimage.address = chain.evm_nfts.token_address
 		LEFT JOIN chain.evm_tokens USING (runtime, token_address)
 		LEFT JOIN token_holders USING (token_address)
 		LEFT JOIN chain.evm_contracts ON
 			chain.evm_contracts.runtime = chain.evm_tokens.runtime AND
 			chain.evm_contracts.contract_address = chain.evm_tokens.token_address
+		LEFT JOIN chain.address_preimages AS owner_preimage ON
+			owner_preimage.address = chain.evm_nfts.owner
 		WHERE
 			chain.evm_nfts.runtime = $1::runtime AND
 			chain.evm_nfts.token_address = $2::oasis_addr
