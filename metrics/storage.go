@@ -8,6 +8,9 @@ import (
 
 // Default service metrics for database operations.
 type StorageMetrics struct {
+	// Name of the runtime (or "consensus") that is being analyzed.
+	runtime string
+
 	// Counts of database operations
 	databaseOperations *prometheus.CounterVec
 
@@ -21,33 +24,35 @@ type StorageMetrics struct {
 type CacheReadStatus string
 
 const (
-	CacheReadStatusHit     CacheReadStatus = "hit"
-	CacheReadStatusMiss    CacheReadStatus = "miss"
-	CacheReadStatusBadData CacheReadStatus = "bad_data"
+	CacheReadStatusHit      CacheReadStatus = "hit"
+	CacheReadStatusMiss     CacheReadStatus = "miss"
+	CacheReadStatusBadValue CacheReadStatus = "bad_value" // Value in cache was not valid (likely because of mismatched types / CBOR encoding).
+	CacheReadStatusError    CacheReadStatus = "error"     // Other internal error reading from cache.
 )
 
 // NewDefaultStorageMetrics creates Prometheus metric instrumentation
 // for basic metrics common to storage accesses.
-func NewDefaultStorageMetrics(pkg string) StorageMetrics {
+func NewDefaultStorageMetrics(runtime string) StorageMetrics {
 	metrics := StorageMetrics{
+		runtime: runtime,
 		databaseOperations: prometheus.NewCounterVec(
 			prometheus.CounterOpts{
-				Name: fmt.Sprintf("%s_db_operations", pkg),
+				Name: fmt.Sprintf("%s_db_operations", runtime),
 				Help: "How many database operations occur, partitioned by operation and status.",
 			},
 			[]string{"database", "operation", "status"}, // Labels.
 		),
 		databaseLatencies: prometheus.NewHistogramVec(
 			prometheus.HistogramOpts{
-				Name: fmt.Sprintf("%s_db_latencies", pkg),
+				Name: fmt.Sprintf("%s_db_latencies", runtime),
 				Help: "How long database operations take, partitioned by operation.",
 			},
 			[]string{"database", "operation"}, // Labels.
 		),
 		localCacheReads: prometheus.NewCounterVec(
 			prometheus.CounterOpts{
-				Name: fmt.Sprintf("%s_cache_reads", pkg),
-				Help: "How many local cache reads occur, partitioned by status (hit, miss, bad_data).",
+				Name: "local_cache_reads",
+				Help: "How many local cache reads occur, partitioned by status (hit, miss, bad_data, error).",
 			},
 			[]string{"cache", "status"}, // Labels.
 		),
@@ -74,5 +79,5 @@ func (m *StorageMetrics) DatabaseLatencies(db string, operation string) *prometh
 // LocalCacheReads returns the counter for the local cache read.
 // The provided params are used as labels.
 func (m *StorageMetrics) LocalCacheReads(status CacheReadStatus) prometheus.Counter {
-	return m.localCacheReads.WithLabelValues("TODO_runtime", string(status))
+	return m.localCacheReads.WithLabelValues(m.runtime, string(status))
 }

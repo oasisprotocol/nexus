@@ -7,6 +7,7 @@ import (
 
 	"github.com/oasisprotocol/nexus/common"
 	"github.com/oasisprotocol/nexus/log"
+	"github.com/oasisprotocol/nexus/metrics"
 	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
 )
 
@@ -24,6 +25,7 @@ func NewFileRuntimeApiLite(runtime common.Runtime, cacheDir string, runtimeApi n
 	db, err := OpenKVStore(
 		log.NewDefaultLogger("cached-node-api").With("runtime", runtime),
 		cacheDir,
+		common.Ptr(metrics.NewDefaultStorageMetrics(string(runtime))),
 	)
 	if err != nil {
 		return nil, err
