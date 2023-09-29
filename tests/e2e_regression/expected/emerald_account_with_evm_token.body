@@ -8,7 +8,7 @@
   "balances": [],
   "evm_balances": [
     {
-      "balance": "61055757056562273564127",
+      "balance": "61430948072156675279127",
       "token_contract_addr": "oasis1qpgcp5jzlgk4hcenaj2x82rqk8rrve2keyuc8aaf",
       "token_contract_addr_eth": "0x21C718C22D52d0F3a789b752D4c2fD5908a8A733",
       "token_decimals": 18,
@@ -17,7 +17,7 @@
       "token_type": "ERC20"
     },
     {
-      "balance": "39480182353477716916987",
+      "balance": "39239777004883437840271",
       "token_contract_addr": "oasis1qqed7mp902c0n76h5tk4k3fgu3vnhd5yhql4482n",
       "token_contract_addr_eth": "0xBC033203796CC2C8C543a5aAe93a9a643320433D",
       "token_decimals": 18,
@@ -27,7 +27,7 @@
     }
   ],
   "stats": {
-    "num_txns": 10,
+    "num_txns": 17,
     "total_received": "0",
     "total_sent": "0"
   }
