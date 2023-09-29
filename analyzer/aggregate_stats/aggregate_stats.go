@@ -52,7 +52,7 @@ type aggregateStatsAnalyzer struct {
 	target storage.TargetStorage
 
 	logger  *log.Logger
-	metrics metrics.DatabaseMetrics
+	metrics metrics.StorageMetrics
 }
 
 var _ analyzer.Analyzer = (*aggregateStatsAnalyzer)(nil)
@@ -66,7 +66,7 @@ func NewAggregateStatsAnalyzer(target storage.TargetStorage, logger *log.Logger)
 	return &aggregateStatsAnalyzer{
 		target:  target,
 		logger:  logger.With("analyzer", aggregateStatsAnalyzerName),
-		metrics: metrics.NewDefaultDatabaseMetrics(aggregateStatsAnalyzerName),
+		metrics: metrics.NewDefaultStorageMetrics(aggregateStatsAnalyzerName),
 	}, nil
 }
 

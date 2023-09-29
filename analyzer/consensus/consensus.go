@@ -62,7 +62,7 @@ type processor struct {
 	source  storage.ConsensusSourceStorage
 	target  storage.TargetStorage
 	logger  *log.Logger
-	metrics metrics.DatabaseMetrics
+	metrics metrics.StorageMetrics
 }
 
 var _ block.BlockProcessor = (*processor)(nil)
@@ -75,7 +75,7 @@ func NewAnalyzer(blockRange config.BlockRange, batchSize uint64, mode analyzer.B
 		source:  sourceClient,
 		target:  target,
 		logger:  logger.With("analyzer", consensusAnalyzerName),
-		metrics: metrics.NewDefaultDatabaseMetrics(consensusAnalyzerName),
+		metrics: metrics.NewDefaultStorageMetrics(consensusAnalyzerName),
 	}
 
 	return block.NewAnalyzer(blockRange, batchSize, mode, consensusAnalyzerName, processor, target, logger)

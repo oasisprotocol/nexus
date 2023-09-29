@@ -7,21 +7,29 @@ import (
 )
 
 // Default service metrics for database operations.
-type DatabaseMetrics struct {
+type StorageMetrics struct {
 	// Counts of database operations
 	databaseOperations *prometheus.CounterVec
 
 	// Latencies of database operations.
 	databaseLatencies *prometheus.HistogramVec
+
+	// Cache hit rates for the local cache.
+	localCacheReads *prometheus.CounterVec
 }
 
-// NewDefaultDatabaseMetrics creates Prometheus metric instrumentation
-// for basic metrics common to database accesses. Default metrics include:
-//
-// 1. Counts of database operations.
-// 2. Latencies for database operations.
-func NewDefaultDatabaseMetrics(pkg string) DatabaseMetrics {
-	metrics := DatabaseMetrics{
+type CacheReadStatus string
+
+const (
+	CacheReadStatusHit     CacheReadStatus = "hit"
+	CacheReadStatusMiss    CacheReadStatus = "miss"
+	CacheReadStatusBadData CacheReadStatus = "bad_data"
+)
+
+// NewDefaultStorageMetrics creates Prometheus metric instrumentation
+// for basic metrics common to storage accesses.
+func NewDefaultStorageMetrics(pkg string) StorageMetrics {
+	metrics := StorageMetrics{
 		databaseOperations: prometheus.NewCounterVec(
 			prometheus.CounterOpts{
 				Name: fmt.Sprintf("%s_db_operations", pkg),
@@ -36,21 +44,35 @@ func NewDefaultDatabaseMetrics(pkg string) DatabaseMetrics {
 			},
 			[]string{"database", "operation"}, // Labels.
 		),
+		localCacheReads: prometheus.NewCounterVec(
+			prometheus.CounterOpts{
+				Name: fmt.Sprintf("%s_cache_reads", pkg),
+				Help: "How many local cache reads occur, partitioned by status (hit, miss, bad_data).",
+			},
+			[]string{"cache", "status"}, // Labels.
+		),
 	}
 	metrics.databaseOperations = registerOnce(metrics.databaseOperations).(*prometheus.CounterVec)
 	metrics.databaseLatencies = registerOnce(metrics.databaseLatencies).(*prometheus.HistogramVec)
+	metrics.localCacheReads = registerOnce(metrics.localCacheReads).(*prometheus.CounterVec)
 	return metrics
 }
 
 // DatabaseOperations returns the counter for the database operation.
 // The provided params are used as labels.
-func (m *DatabaseMetrics) DatabaseOperations(db, operation, status string) prometheus.Counter {
+func (m *StorageMetrics) DatabaseOperations(db, operation, status string) prometheus.Counter {
 	return m.databaseOperations.WithLabelValues(db, operation, status)
 }
 
 // DatabaseLatencies returns a new latency timer for the provided
 // database operation.
 // The provided params are used as labels.
-func (m *DatabaseMetrics) DatabaseLatencies(db string, operation string) *prometheus.Timer {
+func (m *StorageMetrics) DatabaseLatencies(db string, operation string) *prometheus.Timer {
 	return prometheus.NewTimer(m.databaseLatencies.WithLabelValues(db, operation))
+}
+
+// LocalCacheReads returns the counter for the local cache read.
+// The provided params are used as labels.
+func (m *StorageMetrics) LocalCacheReads(status CacheReadStatus) prometheus.Counter {
+	return m.localCacheReads.WithLabelValues("TODO_runtime", string(status))
 }
