@@ -1,6 +1,6 @@
 {
   "is_total_count_clipped": false,
-  "total_count": 128,
+  "total_count": 124,
   "validators": [
     {
       "active": true,
@@ -123,7 +123,7 @@
       "status": true
     },
     {
-      "active": true,
+      "active": false,
       "current_commission_bound": {
         "epoch_end": 0,
         "epoch_start": 1860,
@@ -168,7 +168,7 @@
       "status": true
     },
     {
-      "active": true,
+      "active": false,
       "current_commission_bound": {
         "epoch_end": 0,
         "epoch_start": 0,
@@ -213,7 +213,7 @@
       "status": true
     },
     {
-      "active": true,
+      "active": false,
       "current_commission_bound": {
         "epoch_end": 0,
         "epoch_start": 0,
@@ -783,7 +783,7 @@
       "status": true
     },
     {
-      "active": true,
+      "active": false,
       "current_commission_bound": {
         "epoch_end": 0,
         "epoch_start": 0,
@@ -858,7 +858,7 @@
       "status": true
     },
     {
-      "active": true,
+      "active": false,
       "current_commission_bound": {
         "epoch_end": 0,
         "epoch_start": 11481,
@@ -963,7 +963,7 @@
       "status": true
     },
     {
-      "active": true,
+      "active": false,
       "current_commission_bound": {
         "epoch_end": 0,
         "epoch_start": 2221,
@@ -978,7 +978,7 @@
       "status": true
     },
     {
-      "active": true,
+      "active": false,
       "current_commission_bound": {
         "epoch_end": 0,
         "epoch_start": 0,
@@ -1008,7 +1008,7 @@
       "status": true
     },
     {
-      "active": true,
+      "active": false,
       "current_commission_bound": {
         "epoch_end": 0,
         "epoch_start": 11751,
@@ -1023,7 +1023,7 @@
       "status": true
     },
     {
-      "active": true,
+      "active": false,
       "current_commission_bound": {
         "epoch_end": 0,
         "epoch_start": 4064,
@@ -1158,7 +1158,7 @@
       "status": true
     },
     {
-      "active": true,
+      "active": false,
       "current_commission_bound": {
         "epoch_end": 0,
         "epoch_start": 11650,
@@ -1218,7 +1218,7 @@
       "status": true
     },
     {
-      "active": true,
+      "active": false,
       "current_commission_bound": {
         "epoch_end": 0,
         "epoch_start": 10923,
@@ -1473,7 +1473,7 @@
       "status": true
     },
     {
-      "active": true,
+      "active": false,
       "current_commission_bound": {
         "epoch_end": 0,
         "epoch_start": 9305,
