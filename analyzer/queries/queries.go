@@ -481,6 +481,21 @@ var (
     ON CONFLICT (runtime, address) DO UPDATE
     SET gas_for_calling = old.gas_for_calling + $3`
 
+	// Recomputes the total gas used for calling every runtime contract in runtime $1.
+	// Inteded for use after fast-sync that ran up to height $2 (inclusive).
+	RuntimeAccountGasForCallingRecompute = `
+    WITH agg AS (
+      SELECT runtime, "to" AS contract_address, SUM(gas_used) as gas_for_calling
+      FROM chain.runtime_transactions
+      WHERE runtime = $1::runtime AND round <= $2::bigint AND method IN ('evm.Call', 'evm.Create')
+      GROUP BY runtime, "to"
+      HAVING "to" IS NOT NULL
+    )
+    INSERT INTO chain.runtime_accounts AS accts (runtime, address, gas_for_calling)
+    SELECT runtime, contract_address, gas_for_calling FROM agg
+    ON CONFLICT (runtime, address) DO UPDATE
+      SET gas_for_calling = EXCLUDED.gas_for_calling`
+
 	RuntimeEVMContractCodeAnalysisInsert = `
     INSERT INTO analysis.evm_contract_code(runtime, contract_candidate)
     VALUES ($1, $2)

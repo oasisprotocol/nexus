@@ -110,8 +110,9 @@ func (m *processor) PreWork(ctx context.Context) error {
 func (m *processor) FinalizeFastSync(ctx context.Context, lastFastSyncHeight int64) error {
 	batch := &storage.QueryBatch{}
 
-	// Recompute the number of transactions for all accounts.
+	// Recompute the account stats for all runtime accounts. (During slow-sync, these are dead-reckoned.)
 	batch.Queue(queries.RuntimeAccountNumTxsRecompute, m.runtime, lastFastSyncHeight)
+	batch.Queue(queries.RuntimeAccountGasForCallingRecompute, m.runtime, lastFastSyncHeight)
 
 	if err := m.target.SendBatch(ctx, batch); err != nil {
 		return err
@@ -289,11 +290,13 @@ func (m *processor) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 
 		if (transactionData.Method == "evm.Call" || transactionData.Method == "evm.Create") && transactionData.To != nil /* is nil for reverted evm.Create */ {
 			// Dead-reckon gas used for calling contracts
-			batch.Queue(queries.RuntimeAccountGasForCallingUpsert,
-				m.runtime,
-				transactionData.To,
-				transactionData.GasUsed,
-			)
+			if m.mode != analyzer.FastSyncMode {
+				batch.Queue(queries.RuntimeAccountGasForCallingUpsert,
+					m.runtime,
+					transactionData.To,
+					transactionData.GasUsed,
+				)
+			}
 		}
 	}
 
