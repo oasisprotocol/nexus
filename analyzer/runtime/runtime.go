@@ -108,7 +108,14 @@ func (m *processor) PreWork(ctx context.Context) error {
 
 // Implements block.BlockProcessor interface.
 func (m *processor) FinalizeFastSync(ctx context.Context, lastFastSyncHeight int64) error {
-	// For runtimes, fast sync does not disable any dead reckoning and does not ignore any updates.
+	batch := &storage.QueryBatch{}
+
+	// Recompute the number of transactions for all accounts.
+	batch.Queue(queries.RuntimeAccountNumTxsRecompute, m.runtime, lastFastSyncHeight)
+
+	if err := m.target.SendBatch(ctx, batch); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -198,7 +205,13 @@ func (m *processor) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 		}
 		for addr := range transactionData.RelatedAccountAddresses {
 			batch.Queue(queries.RuntimeRelatedTransactionInsert, m.runtime, addr, data.Header.Round, transactionData.Index)
-			batch.Queue(queries.RuntimeAccountNumTxsUpsert, m.runtime, addr, 1)
+			if m.mode != analyzer.FastSyncMode {
+				// We do not dead-reckon the number of transactions for accounts in fast sync mode because there are some
+				// "heavy hitter" accounts (system, etc) that are involved in a large fraction of transactions, resulting in
+				// DB deadlocks with as few as 2 parallel analyzers.
+				// We recalculate the number of transactions for all accounts at the end of fast-sync, by aggregating the tx data.
+				batch.Queue(queries.RuntimeAccountNumTxsUpsert, m.runtime, addr, 1)
+			}
 		}
 		var (
 			evmEncryptedFormat      *common.CallFormat
