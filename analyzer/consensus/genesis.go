@@ -493,16 +493,12 @@ VALUES
 				)
 			} else if proposal.Content.CancelUpgrade != nil {
 				query += fmt.Sprintf(
-					"\t(%d, '%s', '%s', %d, '%s', '%s', '%s', '%s', '%s', %d, %d, %d, %d)",
+					"\t(%d, '%s', '%s', %d, NULL, NULL, NULL, NULL, NULL, %d, %d, %d, %d)",
 					proposal.ID,
 					proposal.Submitter.String(),
 					proposal.State.String(),
 					proposal.Deposit.ToBigInt(),
-					"",
-					"",
-					"",
-					"",
-					"",
+					// 5 hardcoded NULLs for the proposal.Content.Upgrade fields.
 					proposal.Content.CancelUpgrade.ProposalID,
 					proposal.CreatedAt,
 					proposal.ClosesAt,
