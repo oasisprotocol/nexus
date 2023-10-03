@@ -37,6 +37,11 @@ func (cc *ConsensusClient) GenesisDocument(ctx context.Context, chainContext str
 	return cc.nodeApi.GetGenesisDocument(ctx, chainContext)
 }
 
+// GetNodes returns the list of nodes registered at the given height.
+func (cc *ConsensusClient) GetNodes(ctx context.Context, height int64) ([]nodeapi.Node, error) {
+	return cc.nodeApi.GetNodes(ctx, height)
+}
+
 // StateToGenesis returns a genesis-like struct encoding the state of the chain at the given height.
 func (cc *ConsensusClient) StateToGenesis(ctx context.Context, height int64) (*genesisAPI.Document, error) {
 	return cc.nodeApi.StateToGenesis(ctx, height)
@@ -53,31 +58,43 @@ func (cc *ConsensusClient) GetEpoch(ctx context.Context, height int64) (beaconAP
 }
 
 // AllData returns all relevant data related to the given height.
-func (cc *ConsensusClient) AllData(ctx context.Context, height int64) (*storage.ConsensusAllData, error) {
+func (cc *ConsensusClient) AllData(ctx context.Context, height int64, fastSync bool) (*storage.ConsensusAllData, error) {
 	blockData, err := cc.BlockData(ctx, height)
 	if err != nil {
 		return nil, err
 	}
+
 	beaconData, err := cc.BeaconData(ctx, height)
 	if err != nil {
 		return nil, err
 	}
+
 	registryData, err := cc.RegistryData(ctx, height)
 	if err != nil {
 		return nil, err
 	}
+
 	stakingData, err := cc.StakingData(ctx, height)
 	if err != nil {
 		return nil, err
 	}
-	schedulerData, err := cc.SchedulerData(ctx, height)
-	if err != nil {
-		return nil, err
+
+	var schedulerData *storage.SchedulerData
+	// Scheduler data is not needed during fast sync. It contains no events,
+	// only a complete snapshot validators/committees. Since we don't store historical data,
+	// any single snapshot during slow-sync is sufficient to reconstruct the state.
+	if !fastSync {
+		schedulerData, err = cc.SchedulerData(ctx, height)
+		if err != nil {
+			return nil, err
+		}
 	}
+
 	governanceData, err := cc.GovernanceData(ctx, height)
 	if err != nil {
 		return nil, err
 	}
+
 	rootHashData, err := cc.RootHashData(ctx, height)
 	if err != nil {
 		return nil, err

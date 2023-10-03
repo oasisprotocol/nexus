@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strings"
 
+	beacon "github.com/oasisprotocol/oasis-core/go/beacon/api"
 	"github.com/oasisprotocol/oasis-core/go/common/entity"
 	"github.com/oasisprotocol/oasis-core/go/common/node"
 	genesis "github.com/oasisprotocol/oasis-core/go/genesis/api"
@@ -15,6 +16,7 @@ import (
 	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
 
 	"github.com/oasisprotocol/nexus/log"
+	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
 )
 
 const bulkInsertBatchSize = 1000
@@ -29,27 +31,32 @@ func NewGenesisProcessor(logger *log.Logger) *GenesisProcessor {
 	return &GenesisProcessor{logger}
 }
 
-func (mg *GenesisProcessor) Process(document *genesis.Document) ([]string, error) {
+// Process generates SQL statements for indexing the genesis state.
+// `nodesOverride` can be nil; if non-nil, the behavior is as if the genesis document contained that set of nodes instead of whatever it contains.
+func (mg *GenesisProcessor) Process(document *genesis.Document, nodesOverride []nodeapi.Node) ([]string, error) {
 	var queries []string
 
-	for _, f := range []func(*genesis.Document) ([]string, error){
-		mg.addRegistryBackendMigrations,
-		mg.addStakingBackendMigrations,
-		mg.addGovernanceBackendMigrations,
-	} {
-		qs, err := f(document)
-		if err != nil {
-			return nil, err
-		}
-		queries = append(queries, qs...)
+	qs, err := mg.addRegistryBackendMigrations(document, nodesOverride)
+	if err != nil {
+		return nil, err
 	}
+	queries = append(queries, qs...)
+
+	qs, err = mg.addStakingBackendMigrations(document)
+	if err != nil {
+		return nil, err
+	}
+	queries = append(queries, qs...)
+
+	qs = mg.addGovernanceBackendMigrations(document)
+	queries = append(queries, qs...)
 
 	mg.logger.Info("generated genesis queries", "count", len(queries))
 
 	return queries, nil
 }
 
-func (mg *GenesisProcessor) addRegistryBackendMigrations(document *genesis.Document) (queries []string, err error) {
+func (mg *GenesisProcessor) addRegistryBackendMigrations(document *genesis.Document, nodesOverride []nodeapi.Node) (queries []string, err error) {
 	// Populate entities.
 	queries = append(queries, "-- Registry Backend Data\n")
 	query := `INSERT INTO chain.entities (id, address)
@@ -73,58 +80,6 @@ VALUES
 	query += `
 ON CONFLICT (id) DO UPDATE SET address = EXCLUDED.address;`
 	queries = append(queries, query)
-
-	// Populate nodes.
-	queries = append(queries, `TRUNCATE chain.nodes CASCADE;`)
-	queries = append(queries, `TRUNCATE chain.runtime_nodes CASCADE;`)
-	query = `INSERT INTO chain.nodes (id, entity_id, expiration, tls_pubkey, tls_next_pubkey, p2p_pubkey, consensus_pubkey, roles)
-VALUES
-`
-	queryRt := "" // Query for populating the chain.runtime_nodes table.
-
-	for i, signedNode := range document.Registry.Nodes {
-		var node node.Node
-		if err := signedNode.Open(registry.RegisterNodeSignatureContext, &node); err != nil {
-			return nil, err
-		}
-
-		query += fmt.Sprintf(
-			"\t('%s', '%s', %d, '%s', '%s', '%s', '%s', '%s')",
-			node.ID.String(),
-			node.EntityID.String(),
-			node.Expiration,
-			node.TLS.PubKey.String(),
-			node.TLS.NextPubKey.String(),
-			node.P2P.ID.String(),
-			node.Consensus.ID.String(),
-			node.Roles.String(),
-		)
-		if i != len(document.Registry.Nodes)-1 {
-			query += ",\n"
-		}
-
-		for _, runtime := range node.Runtimes {
-			if queryRt != "" {
-				// There's already a values tuple in the query.
-				queryRt += ",\n"
-			}
-			queryRt += fmt.Sprintf(
-				"\t('%s', '%s')",
-				runtime.ID.String(),
-				node.ID.String(),
-			)
-		}
-	}
-	query += ";"
-	queries = append(queries, query)
-
-	// There might be no runtime_nodes to insert; create a query only if there are.
-	if queryRt != "" {
-		queryRt = `INSERT INTO chain.runtime_nodes(runtime_id, node_id) 
-VALUES
-` + queryRt + ";"
-		queries = append(queries, queryRt)
-	}
 
 	// Populate runtimes.
 	if len(document.Registry.Runtimes) > 0 {
@@ -188,6 +143,70 @@ ON CONFLICT (id) DO UPDATE SET
 	tee_hardware = EXCLUDED.tee_hardware,
 	key_manager = EXCLUDED.key_manager;`
 		queries = append(queries, query)
+	}
+
+	// Populate nodes.
+	queries = append(queries, `DELETE FROM chain.nodes;`)
+	queries = append(queries, `DELETE FROM chain.runtime_nodes;`)
+	query = `INSERT INTO chain.nodes (id, entity_id, expiration, tls_pubkey, tls_next_pubkey, p2p_pubkey, consensus_pubkey, roles)
+VALUES
+`
+	queryRt := "" // Query for populating the chain.runtime_nodes table.
+
+	var nodes []nodeapi.Node // What we'll work with; either `overrideNodes` or the nodes from the genesis document.
+	if nodesOverride != nil {
+		nodes = nodesOverride
+	} else {
+		for _, signedNode := range document.Registry.Nodes {
+			var node node.Node
+			if err := signedNode.Open(registry.RegisterNodeSignatureContext, &node); err != nil {
+				return nil, err
+			}
+			if beacon.EpochTime(node.Expiration) < document.Beacon.Base {
+				// Node expired before the genesis epoch, skip.
+				continue
+			}
+			nodes = append(nodes, nodeapi.Node(node))
+		}
+	}
+
+	for i, node := range nodes {
+		query += fmt.Sprintf(
+			"\t('%s', '%s', %d, '%s', '%s', '%s', '%s', '%s')",
+			node.ID.String(),
+			node.EntityID.String(),
+			node.Expiration,
+			node.TLS.PubKey.String(),
+			node.TLS.NextPubKey.String(),
+			node.P2P.ID.String(),
+			node.Consensus.ID.String(),
+			node.Roles.String(),
+		)
+		if i != len(nodes)-1 {
+			query += ",\n"
+		}
+
+		for _, runtime := range node.Runtimes {
+			if queryRt != "" {
+				// There's already a values tuple in the query.
+				queryRt += ",\n"
+			}
+			queryRt += fmt.Sprintf(
+				"\t('%s', '%s')",
+				runtime.ID.String(),
+				node.ID.String(),
+			)
+		}
+	}
+	query += ";"
+	queries = append(queries, query)
+
+	// There might be no runtime_nodes to insert; create a query only if there are.
+	if queryRt != "" {
+		queryRt = `INSERT INTO chain.runtime_nodes(runtime_id, node_id) 
+VALUES
+` + queryRt + ";"
+		queries = append(queries, queryRt)
 	}
 
 	return queries, nil
@@ -339,7 +358,7 @@ ON CONFLICT (address) DO UPDATE SET
 	}
 
 	// Populate allowances.
-	queries = append(queries, `TRUNCATE chain.allowances CASCADE;`)
+	queries = append(queries, `DELETE FROM chain.allowances;`)
 	foundAllowances := false // in case allowances are empty
 
 	query = ""
@@ -409,7 +428,7 @@ ON CONFLICT (delegatee, delegator) DO UPDATE SET
 	queries = append(queries, query)
 
 	// Populate debonding delegations.
-	queries = append(queries, `TRUNCATE chain.debonding_delegations CASCADE;`)
+	queries = append(queries, `DELETE FROM chain.debonding_delegations;`)
 	query = `INSERT INTO chain.debonding_delegations (delegatee, delegator, shares, debond_end)
 VALUES
 `
@@ -444,7 +463,7 @@ VALUES
 	return queries, nil
 }
 
-func (mg *GenesisProcessor) addGovernanceBackendMigrations(document *genesis.Document) (queries []string, err error) {
+func (mg *GenesisProcessor) addGovernanceBackendMigrations(document *genesis.Document) (queries []string) {
 	// Populate proposals.
 	queries = append(queries, "-- Governance Backend Data\n")
 
@@ -474,16 +493,12 @@ VALUES
 				)
 			} else if proposal.Content.CancelUpgrade != nil {
 				query += fmt.Sprintf(
-					"\t(%d, '%s', '%s', %d, '%s', '%s', '%s', '%s', '%s', %d, %d, %d, %d)",
+					"\t(%d, '%s', '%s', %d, NULL, NULL, NULL, NULL, NULL, %d, %d, %d, %d)",
 					proposal.ID,
 					proposal.Submitter.String(),
 					proposal.State.String(),
 					proposal.Deposit.ToBigInt(),
-					"",
-					"",
-					"",
-					"",
-					"",
+					// 5 hardcoded NULLs for the proposal.Content.Upgrade fields.
 					proposal.Content.CancelUpgrade.ProposalID,
 					proposal.CreatedAt,
 					proposal.ClosesAt,
@@ -546,7 +561,7 @@ ON CONFLICT (proposal, voter) DO UPDATE SET
 		queries = append(queries, query)
 	}
 
-	return queries, nil
+	return queries
 }
 
 func sortedIntKeys[V any](m map[uint64]V) []uint64 {

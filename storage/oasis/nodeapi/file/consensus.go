@@ -133,6 +133,14 @@ func (c *FileConsensusApiLite) RoothashEvents(ctx context.Context, height int64)
 	)
 }
 
+func (c *FileConsensusApiLite) GetNodes(ctx context.Context, height int64) ([]nodeapi.Node, error) {
+	return GetSliceFromCacheOrCall(
+		c.db, height == consensus.HeightLatest,
+		generateCacheKey("GetNodes", height),
+		func() ([]nodeapi.Node, error) { return c.consensusApi.GetNodes(ctx, height) },
+	)
+}
+
 func (c *FileConsensusApiLite) GetValidators(ctx context.Context, height int64) ([]nodeapi.Validator, error) {
 	return GetSliceFromCacheOrCall(
 		c.db, height == consensus.HeightLatest,

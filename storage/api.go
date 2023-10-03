@@ -98,8 +98,11 @@ type ConsensusSourceStorage interface {
 	// StateToGenesis returns a genesis-like struct encoding the state of the chain at the given height.
 	StateToGenesis(ctx context.Context, height int64) (*genesisAPI.Document, error)
 
+	// GetNodes returns the list of registered nodes at the given height.
+	GetNodes(ctx context.Context, height int64) ([]nodeapi.Node, error)
+
 	// AllData returns all data tied to a specific height.
-	AllData(ctx context.Context, height int64) (*ConsensusAllData, error)
+	AllData(ctx context.Context, height int64, fastSync bool) (*ConsensusAllData, error)
 
 	// LatestBlockHeight returns the latest height for which a block is available.
 	LatestBlockHeight(ctx context.Context) (int64, error)

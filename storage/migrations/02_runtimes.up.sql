@@ -296,58 +296,58 @@ CREATE INDEX ix_runtime_transfers_receiver ON chain.runtime_transfers(receiver);
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- Module consensusaccounts -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
--- Deposits from the consensus layer into the paratime.
-CREATE TABLE chain.runtime_deposits
-(
-  runtime  runtime NOT NULL,
-  round    UINT63 NOT NULL,
-  FOREIGN KEY (runtime, round) REFERENCES chain.runtime_blocks DEFERRABLE INITIALLY DEFERRED,
-  -- The `sender` is a consensus account, so this REFERENCES chain.accounts; we omit the FK so
-  -- that consensus and paratimes can be indexed independently.
-  -- It also REFERENCES chain.address_preimages because the sender signed at least the Deposit tx.
-  sender   oasis_addr NOT NULL REFERENCES chain.address_preimages DEFERRABLE INITIALLY DEFERRED,
-  -- The `receiver` can be any oasis1-form paratime address.
-  -- With EVM paratimes, two types of deposits are common:
-  --  * Deposit intends to credit a hex-form (eth) account. The user first derives the oasis1-form address,
-  --    then uses it as `receiver`. Such a `receiver` address has a secp256k1eth key, an is not valid in
-  --    consensus (which only uses ed25519), meaning there is no FK in chain.addresses.
-  --  * Deposit intends to credit an ed25519-backed account. These accounts do not exist in classic Ethereum.
-  --    The associated hex-form Ethereum address either does not exist or is not knowable.
-  -- Regardless, the `receiver` often REFERENCES chain.address_preimages(address), a notable exception
-  -- being if the target account hasn't signed any txs yet.
-  receiver oasis_addr NOT NULL,
-  amount   UINT_NUMERIC NOT NULL,  -- always in native denomination
-  nonce    UINT63 NOT NULL,
+-- NOTE: Removed in 19_simplify_deposit_withdraw.up.sql
+-- -- Deposits from the consensus layer into the paratime.
+-- CREATE TABLE chain.runtime_deposits
+-- (
+--   runtime  runtime NOT NULL,
+--   round    UINT63 NOT NULL,
+--   FOREIGN KEY (runtime, round) REFERENCES chain.runtime_blocks DEFERRABLE INITIALLY DEFERRED,
+--   -- The `sender` is a consensus account, so this REFERENCES chain.accounts; we omit the FK so
+--   -- that consensus and paratimes can be indexed independently.
+--   -- It also REFERENCES chain.address_preimages because the sender signed at least the Deposit tx.
+--   sender   oasis_addr NOT NULL REFERENCES chain.address_preimages DEFERRABLE INITIALLY DEFERRED,
+--   -- The `receiver` can be any oasis1-form paratime address.
+--   -- With EVM paratimes, two types of deposits are common:
+--   --  * Deposit intends to credit a hex-form (eth) account. The user first derives the oasis1-form address,
+--   --    then uses it as `receiver`. Such a `receiver` address has a secp256k1eth key, an is not valid in
+--   --    consensus (which only uses ed25519), meaning there is no FK in chain.addresses.
+--   --  * Deposit intends to credit an ed25519-backed account. These accounts do not exist in classic Ethereum.
+--   --    The associated hex-form Ethereum address either does not exist or is not knowable.
+--   -- Regardless, the `receiver` often REFERENCES chain.address_preimages(address), a notable exception
+--   -- being if the target account hasn't signed any txs yet.
+--   receiver oasis_addr NOT NULL,
+--   amount   UINT_NUMERIC NOT NULL,  -- always in native denomination
+--   nonce    UINT63 NOT NULL,
+--   -- Optional error data; from https://github.com/oasisprotocol/oasis-sdk/blob/386ba0b99fcd1425c68015e0033a462d9a577835/client-sdk/go/modules/consensusaccounts/types.go#L44-L44
+--   module TEXT,
+--   code   UINT63
+-- );
+-- CREATE INDEX ix_runtime_deposits_sender ON chain.runtime_deposits(sender);
+-- CREATE INDEX ix_runtime_deposits_receiver ON chain.runtime_deposits(receiver);
 
-  -- Optional error data; from https://github.com/oasisprotocol/oasis-sdk/blob/386ba0b99fcd1425c68015e0033a462d9a577835/client-sdk/go/modules/consensusaccounts/types.go#L44-L44
-  module TEXT,
-  code   UINT63
-);
-CREATE INDEX ix_runtime_deposits_sender ON chain.runtime_deposits(sender);
-CREATE INDEX ix_runtime_deposits_receiver ON chain.runtime_deposits(receiver);
-
--- Withdrawals from the paratime into consensus layer.
-CREATE TABLE chain.runtime_withdraws
-(
-  runtime  runtime NOT NULL,
-  round    UINT63 NOT NULL,
-  FOREIGN KEY (runtime, round) REFERENCES chain.runtime_blocks DEFERRABLE INITIALLY DEFERRED,
-  -- The `sender` can be any paratime address. (i.e. secp256k1eth-backed OR ed25519-backed;
-  -- other are options unlikely in an EVM paratime)
-  -- It REFERENCES chain.address_preimages because the sender signed at least the Withdraw tx.
-  sender   oasis_addr NOT NULL REFERENCES chain.address_preimages DEFERRABLE INITIALLY DEFERRED,
-  -- The `receiver` is a consensus account, so this REFERENCES chain.accounts; we omit the FK so
-  -- that consensus and paratimes can be indexed independently.
-  receiver oasis_addr NOT NULL,
-  amount   UINT_NUMERIC NOT NULL,  -- always in native denomination
-  nonce    UINT63 NOT NULL,
-
-  -- Optional error data
-  module TEXT,
-  code   UINT63
-);
-CREATE INDEX ix_runtime_withdraws_sender ON chain.runtime_withdraws(sender);
-CREATE INDEX ix_runtime_withdraws_receiver ON chain.runtime_withdraws(receiver);
+-- NOTE: Removed in 19_simplify_deposit_withdraw.up.sql
+-- -- Withdrawals from the paratime into consensus layer.
+-- CREATE TABLE chain.runtime_withdraws
+-- (
+--   runtime  runtime NOT NULL,
+--   round    UINT63 NOT NULL,
+--   FOREIGN KEY (runtime, round) REFERENCES chain.runtime_blocks DEFERRABLE INITIALLY DEFERRED,
+--   -- The `sender` can be any paratime address. (i.e. secp256k1eth-backed OR ed25519-backed;
+--   -- other are options unlikely in an EVM paratime)
+--   -- It REFERENCES chain.address_preimages because the sender signed at least the Withdraw tx.
+--   sender   oasis_addr NOT NULL REFERENCES chain.address_preimages DEFERRABLE INITIALLY DEFERRED,
+--   -- The `receiver` is a consensus account, so this REFERENCES chain.accounts; we omit the FK so
+--   -- that consensus and paratimes can be indexed independently.
+--   receiver oasis_addr NOT NULL,
+--   amount   UINT_NUMERIC NOT NULL,  -- always in native denomination
+--   nonce    UINT63 NOT NULL,
+--   -- Optional error data
+--   module TEXT,
+--   code   UINT63
+-- );
+-- CREATE INDEX ix_runtime_withdraws_sender ON chain.runtime_withdraws(sender);
+-- CREATE INDEX ix_runtime_withdraws_receiver ON chain.runtime_withdraws(receiver);
 
 -- Balance of the oasis-sdk native tokens (notably ROSE) in paratimes.
 CREATE TABLE chain.runtime_sdk_balances (

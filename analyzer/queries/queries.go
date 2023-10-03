@@ -22,10 +22,10 @@ var (
       )
     )`
 
-	UnlockBlockForProcessing = `
+	UnlockBlocksForProcessing = `
     UPDATE analysis.processed_blocks
     SET locked_time = '-infinity'
-    WHERE analyzer = $1 AND height = $2`
+    WHERE analyzer = $1 AND height = ANY($2::uint63[]) AND processed_time IS NULL`
 
 	// TakeXactLock acquires an exclusive lock (with lock ID $1), with custom semantics.
 	// The lock is automatically unlocked at the end of the db transaction.
@@ -225,7 +225,7 @@ var (
     INSERT INTO chain.claimed_nodes (entity_id, node_id) VALUES ($1, $2)
       ON CONFLICT (entity_id, node_id) DO NOTHING`
 
-	ConsensusEntityUpsert = `
+	ConsensusEntityInsert = `
     INSERT INTO chain.entities (id, address) VALUES ($1, $2)
       ON CONFLICT (id) DO
       UPDATE SET
@@ -350,7 +350,10 @@ var (
     ON CONFLICT (owner, beneficiary) DO
       UPDATE SET allowance = excluded.allowance`
 
-	ConsensusValidatorNodeUpdate = `
+	ConsensusValidatorNodeResetVotingPowers = `
+    UPDATE chain.nodes SET voting_power = 0`
+
+	ConsensusValidatorNodeUpdateVotingPower = `
     UPDATE chain.nodes SET voting_power = $2
       WHERE id = $1`
 
@@ -408,6 +411,20 @@ var (
     ON CONFLICT (runtime, address) DO UPDATE
       SET num_txs = accounts.num_txs + $3;`
 
+	// Recomputes the number of related transactions for all runtime account in runtime $1.
+	// Inteded for use after fast-sync that ran up to height $2 (inclusive).
+	RuntimeAccountNumTxsRecompute = `
+    WITH agg AS (
+      SELECT runtime, account_address, count(*) AS num_txs
+      FROM chain.runtime_related_transactions
+      WHERE runtime = $1::runtime AND tx_round <= $2::bigint
+      GROUP BY 1, 2
+    )
+    INSERT INTO chain.runtime_accounts AS accts (runtime, address, num_txs)
+    SELECT runtime, account_address, num_txs FROM agg
+    ON CONFLICT (runtime, address) DO UPDATE
+      SET num_txs = EXCLUDED.num_txs`
+
 	RuntimeTransactionInsert = `
     INSERT INTO chain.runtime_transactions (runtime, round, tx_index, tx_hash, tx_eth_hash, fee, gas_limit, gas_used, size, timestamp, method, body, "to", amount, evm_encrypted_format, evm_encrypted_public_key, evm_encrypted_data_nonce, evm_encrypted_data_data, evm_encrypted_result_nonce, evm_encrypted_result_data, success, error_module, error_code, error_message_raw, error_message)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25)`
@@ -427,14 +444,6 @@ var (
 	RuntimeTransferInsert = `
     INSERT INTO chain.runtime_transfers (runtime, round, sender, receiver, symbol, amount)
       VALUES ($1, $2, $3, $4, $5, $6)`
-
-	RuntimeDepositInsert = `
-    INSERT INTO chain.runtime_deposits (runtime, round, sender, receiver, amount, nonce, module, code)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
-
-	RuntimeWithdrawInsert = `
-    INSERT INTO chain.runtime_withdraws (runtime, round, sender, receiver, amount, nonce, module, code)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
 
 	RuntimeNativeBalanceUpdate = `
     INSERT INTO chain.runtime_sdk_balances (runtime, account_address, symbol, balance)
@@ -463,6 +472,21 @@ var (
     VALUES ($1, $2, 0, $3)
     ON CONFLICT (runtime, address) DO UPDATE
     SET gas_for_calling = old.gas_for_calling + $3`
+
+	// Recomputes the total gas used for calling every runtime contract in runtime $1.
+	// Inteded for use after fast-sync that ran up to height $2 (inclusive).
+	RuntimeAccountGasForCallingRecompute = `
+    WITH agg AS (
+      SELECT runtime, "to" AS contract_address, SUM(gas_used) as gas_for_calling
+      FROM chain.runtime_transactions
+      WHERE runtime = $1::runtime AND round <= $2::bigint AND method IN ('evm.Call', 'evm.Create')
+      GROUP BY runtime, "to"
+      HAVING "to" IS NOT NULL
+    )
+    INSERT INTO chain.runtime_accounts AS accts (runtime, address, gas_for_calling)
+    SELECT runtime, contract_address, gas_for_calling FROM agg
+    ON CONFLICT (runtime, address) DO UPDATE
+      SET gas_for_calling = EXCLUDED.gas_for_calling`
 
 	RuntimeEVMContractCodeAnalysisInsert = `
     INSERT INTO analysis.evm_contract_code(runtime, contract_candidate)
@@ -599,7 +623,7 @@ var (
         balance_analysis.token_address,
         balance_analysis.account_address,
         evm_tokens.token_type,
-        evm_token_balances.balance,
+        COALESCE(evm_token_balances.balance, 0) AS balance, -- evm_token_balances entry can be absent in fast-sync mode
         token_preimage.context_identifier,
         token_preimage.context_version,
         token_preimage.address_data,

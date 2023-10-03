@@ -108,7 +108,15 @@ func (m *processor) PreWork(ctx context.Context) error {
 
 // Implements block.BlockProcessor interface.
 func (m *processor) FinalizeFastSync(ctx context.Context, lastFastSyncHeight int64) error {
-	// For runtimes, fast sync does not disable any dead reckoning and does not ignore any updates.
+	batch := &storage.QueryBatch{}
+
+	// Recompute the account stats for all runtime accounts. (During slow-sync, these are dead-reckoned.)
+	batch.Queue(queries.RuntimeAccountNumTxsRecompute, m.runtime, lastFastSyncHeight)
+	batch.Queue(queries.RuntimeAccountGasForCallingRecompute, m.runtime, lastFastSyncHeight)
+
+	if err := m.target.SendBatch(ctx, batch); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -141,7 +149,6 @@ func (m *processor) ProcessBlock(ctx context.Context, round uint64) error {
 	batch := &storage.QueryBatch{}
 	m.queueDbUpdates(batch, blockData)
 	m.queueAccountsEvents(batch, blockData)
-	m.queueConsensusAccountsEvents(batch, blockData)
 
 	// Update indexing progress.
 	batch.Queue(
@@ -198,7 +205,13 @@ func (m *processor) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 		}
 		for addr := range transactionData.RelatedAccountAddresses {
 			batch.Queue(queries.RuntimeRelatedTransactionInsert, m.runtime, addr, data.Header.Round, transactionData.Index)
-			batch.Queue(queries.RuntimeAccountNumTxsUpsert, m.runtime, addr, 1)
+			if m.mode != analyzer.FastSyncMode {
+				// We do not dead-reckon the number of transactions for accounts in fast sync mode because there are some
+				// "heavy hitter" accounts (system, etc) that are involved in a large fraction of transactions, resulting in
+				// DB deadlocks with as few as 2 parallel analyzers.
+				// We recalculate the number of transactions for all accounts at the end of fast-sync, by aggregating the tx data.
+				batch.Queue(queries.RuntimeAccountNumTxsUpsert, m.runtime, addr, 1)
+			}
 		}
 		var (
 			evmEncryptedFormat      *common.CallFormat
@@ -276,11 +289,13 @@ func (m *processor) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 
 		if (transactionData.Method == "evm.Call" || transactionData.Method == "evm.Create") && transactionData.To != nil /* is nil for reverted evm.Create */ {
 			// Dead-reckon gas used for calling contracts
-			batch.Queue(queries.RuntimeAccountGasForCallingUpsert,
-				m.runtime,
-				transactionData.To,
-				transactionData.GasUsed,
-			)
+			if m.mode != analyzer.FastSyncMode {
+				batch.Queue(queries.RuntimeAccountGasForCallingUpsert,
+					m.runtime,
+					transactionData.To,
+					transactionData.GasUsed,
+				)
+			}
 		}
 	}
 
@@ -334,8 +349,8 @@ func (m *processor) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 
 	// Update EVM token balances (dead reckoning).
 	for key, change := range data.TokenBalanceChanges {
-		// Update the DB balance only if it's actually changed.
-		if change != big.NewInt(0) {
+		// Update (dead-reckon) the DB balance only if it's actually changed.
+		if change != big.NewInt(0) && m.mode != analyzer.FastSyncMode {
 			if key.TokenAddress == evm.NativeRuntimeTokenAddress {
 				batch.Queue(queries.RuntimeNativeBalanceUpdate, m.runtime, key.AccountAddress, m.nativeTokenSymbol(), change.String())
 			} else {

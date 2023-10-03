@@ -454,7 +454,7 @@ const (
 		WITH holders AS (
 			SELECT token_address, COUNT(*) AS cnt
 			FROM chain.evm_token_balances
-			WHERE (runtime = $1)
+			WHERE (runtime = $1) AND (balance != 0)
 			GROUP BY token_address
 		)
 		SELECT
@@ -470,11 +470,11 @@ const (
 				WHEN tokens.token_type = 721 THEN 'ERC721'
 				ELSE 'unexpected_other_type' -- Our openapi spec doesn't allow us to output this, but better this than a null value (which causes nil dereference)
 			END AS type,
-			holders.cnt AS num_holders,
+			COALESCE(holders.cnt, 0) AS num_holders,
 			(contracts.verification_info_downloaded_at IS NOT NULL) AS is_verified
 		FROM chain.evm_tokens AS tokens
 		JOIN chain.address_preimages AS preimages ON (token_address = preimages.address AND preimages.context_identifier = 'oasis-runtime-sdk/address: secp256k1eth' AND preimages.context_version = 0)
-		JOIN holders USING (token_address)
+		LEFT JOIN holders USING (token_address)
 		LEFT JOIN chain.evm_contracts as contracts ON (tokens.runtime = contracts.runtime AND tokens.token_address = contracts.contract_address)
 		WHERE
 			(tokens.runtime = $1) AND
@@ -496,7 +496,8 @@ const (
 		JOIN chain.address_preimages AS preimages ON (balances.account_address = preimages.address AND preimages.context_identifier = 'oasis-runtime-sdk/address: secp256k1eth' AND preimages.context_version = 0)
 		WHERE
 			(balances.runtime = $1::runtime) AND
-			(balances.token_address = $2::oasis_addr)
+			(balances.token_address = $2::oasis_addr) AND
+			(balances.balance != 0)
 		ORDER BY balance DESC, holder_addr
 		LIMIT $3::bigint
 		OFFSET $4::bigint`
