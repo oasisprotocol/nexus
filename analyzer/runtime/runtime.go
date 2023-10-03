@@ -361,4 +361,9 @@ func (m *processor) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 		// verify the correct balance by querying the EVM.
 		batch.Queue(queries.RuntimeEVMTokenBalanceAnalysisInsert, m.runtime, key.TokenAddress, key.AccountAddress, data.Header.Round)
 	}
+
+	// Insert NFTs.
+	for key := range data.PossibleNFTs {
+		batch.Queue(queries.RuntimeEVMNFTInsert, m.runtime, key.TokenAddress, key.TokenID, data.Header.Round)
+	}
 }

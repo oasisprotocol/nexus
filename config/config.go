@@ -130,6 +130,7 @@ type AnalyzersList struct {
 
 	EmeraldEvmTokens         *EvmTokensAnalyzerConfig       `koanf:"evm_tokens_emerald"`
 	SapphireEvmTokens        *EvmTokensAnalyzerConfig       `koanf:"evm_tokens_sapphire"`
+	EmeraldEvmNfts           *EvmTokensAnalyzerConfig       `koanf:"evm_nfts_emerald"`
 	EmeraldEvmTokenBalances  *EvmTokensAnalyzerConfig       `koanf:"evm_token_balances_emerald"`
 	SapphireEvmTokenBalances *EvmTokensAnalyzerConfig       `koanf:"evm_token_balances_sapphire"`
 	EmeraldContractCode      *EvmContractCodeAnalyzerConfig `koanf:"evm_contract_code_emerald"`
@@ -158,6 +159,9 @@ type SourceConfig struct {
 	// names," which are named after mainnet releases, in lowercase e.g.
 	// "cobalt" and "damask."
 	Nodes map[string]*ArchiveConfig `koanf:"nodes"`
+
+	// IPFS holds the configuration for accessing IPFS.
+	IPFS *IPFSConfig `koanf:"ipfs"`
 
 	// If set, the analyzer will skip some initial checks, e.g. that
 	// `rpc` really serves the chain with the chain context we expect.
@@ -260,6 +264,14 @@ func (ac *ArchiveConfig) ResolvedRuntimeNode(runtime common.Runtime) *NodeConfig
 type NodeConfig struct {
 	// RPC is the node endpoint.
 	RPC string `koanf:"rpc"`
+}
+
+// IPFSConfig is information about accessing IPFS.
+type IPFSConfig struct {
+	// Gateway is the URL prefix of an IPFS HTTP gateway. Do not include a
+	// trailing slash, e.g. `https://ipfs.io`. Something like
+	// `/ipfs/xxxx/n.json` will be appended.
+	Gateway string `koanf:"gateway"`
 }
 
 type BlockBasedAnalyzerConfig struct {

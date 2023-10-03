@@ -610,6 +610,62 @@ var (
       runtime = $1 AND
       token_address = $2`
 
+	RuntimeEVMNFTUpdate = `
+    UPDATE chain.evm_nfts SET
+      last_download_round = $4,
+      metadata_uri = $5,
+      metadata_accessed = $6,
+      name = $7,
+      description = $8,
+      image = $9
+    WHERE
+      runtime = $1 AND
+      token_address = $2 AND
+      nft_id = $3`
+
+	RuntimeEVMNFTInsert = `
+    INSERT INTO chain.evm_nfts
+      (runtime, token_address, nft_id, last_want_download_round)
+    VALUES
+      ($1, $2, $3, $4)
+    ON CONFLICT (runtime, token_address, nft_id) DO NOTHING`
+
+	RuntimeEVMNFTAnalysisStale = `
+    SELECT
+      chain.evm_nfts.token_address,
+      chain.evm_nfts.nft_id,
+      chain.evm_tokens.token_type,
+      chain.address_preimages.context_identifier,
+      chain.address_preimages.context_version,
+      chain.address_preimages.address_data,
+      (
+        SELECT MAX(height)
+        FROM analysis.processed_blocks
+        WHERE
+          analysis.processed_blocks.analyzer = chain.evm_nfts.runtime::TEXT AND
+          processed_time IS NOT NULL
+      ) AS download_round
+    FROM chain.evm_nfts
+    JOIN chain.evm_tokens USING
+      (runtime, token_address)
+    LEFT JOIN chain.address_preimages ON
+      chain.address_preimages.address = chain.evm_nfts.token_address
+    WHERE
+      chain.evm_nfts.runtime = $1 AND
+      (
+          chain.evm_nfts.last_download_round IS NULL OR
+          chain.evm_nfts.last_want_download_round > chain.evm_nfts.last_download_round
+      ) AND
+      chain.evm_tokens.token_type IS NOT NULL
+    LIMIT $2`
+
+	RuntimeEVMNFTAnalysisStaleCount = `
+    SELECT COUNT(*) AS cnt
+    FROM chain.evm_nfts
+    WHERE
+      runtime = $1 AND
+      (last_download_round IS NULL OR last_want_download_round > last_download_round)`
+
 	RuntimeEVMTokenBalanceAnalysisStale = fmt.Sprintf(`
     WITH
     max_processed_round AS (

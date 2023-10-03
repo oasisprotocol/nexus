@@ -5,6 +5,8 @@ analysis:
       damask:
         default:
           rpc: unix:/tmp/node.sock #unix:/node/data/internal.sock
+    ipfs:
+      gateway: https://ipfs.io
   analyzers:
     metadata_registry:
       interval: 1h

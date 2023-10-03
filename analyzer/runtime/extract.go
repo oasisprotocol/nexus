@@ -115,6 +115,11 @@ type TokenChangeKey struct {
 	AccountAddress apiTypes.Address
 }
 
+type NFTKey struct {
+	TokenAddress apiTypes.Address
+	TokenID      *big.Int
+}
+
 type BlockData struct {
 	Header              nodeapi.RuntimeBlockHeader
 	NumTransactions     int // Might be different from len(TransactionData) if some transactions are malformed.
@@ -125,6 +130,7 @@ type BlockData struct {
 	AddressPreimages    map[apiTypes.Address]*AddressPreimageData
 	TokenBalanceChanges map[TokenChangeKey]*big.Int
 	PossibleTokens      map[apiTypes.Address]*evm.EVMPossibleToken // key is oasis bech32 address
+	PossibleNFTs        map[NFTKey]struct{}
 }
 
 // Function naming conventions in this file:
@@ -242,6 +248,13 @@ func registerRelatedEthAddress(addressPreimages map[apiTypes.Address]*AddressPre
 	return addr, nil
 }
 
+func registerNFTExist(possibleNFTs map[NFTKey]struct{}, contractAddr apiTypes.Address, tokenID *big.Int) {
+	key := NFTKey{contractAddr, tokenID}
+	if _, ok := possibleNFTs[key]; !ok {
+		possibleNFTs[key] = struct{}{}
+	}
+}
+
 func findTokenChange(tokenChanges map[TokenChangeKey]*big.Int, contractAddr apiTypes.Address, accountAddr apiTypes.Address) *big.Int {
 	key := TokenChangeKey{contractAddr, accountAddr}
 	change, ok := tokenChanges[key]
@@ -271,6 +284,7 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 		AddressPreimages:    map[apiTypes.Address]*AddressPreimageData{},
 		TokenBalanceChanges: map[TokenChangeKey]*big.Int{},
 		PossibleTokens:      map[apiTypes.Address]*evm.EVMPossibleToken{},
+		PossibleNFTs:        map[NFTKey]struct{}{},
 	}
 
 	// Extract info from non-tx events.
@@ -942,16 +956,17 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 					// and nonzero address (either direction) and nonzero
 					// amount. These will change the total supply as mint/
 					// burn.
-					if fromZero && !toZero && tokenID.Cmp(&big.Int{}) != 0 {
+					if fromZero && !toZero {
 						pt := blockData.PossibleTokens[eventAddr]
 						pt.TotalSupplyChange.Add(&pt.TotalSupplyChange, big.NewInt(1))
 						pt.Mutated = true
 					}
-					if !fromZero && toZero && tokenID.Cmp(&big.Int{}) != 0 {
+					if !fromZero && toZero {
 						pt := blockData.PossibleTokens[eventAddr]
 						pt.TotalSupplyChange.Sub(&pt.TotalSupplyChange, big.NewInt(1))
 						pt.Mutated = true
 					}
+					registerNFTExist(blockData.PossibleNFTs, eventAddr, tokenID)
 					eventData.EvmLogName = evmabi.ERC721.Events["Transfer"].Name
 					eventData.EvmLogSignature = ethCommon.BytesToHash(event.Topics[0])
 					eventData.EvmLogParams = []*apiTypes.EvmEventParam{
@@ -995,6 +1010,7 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 					}
 					tokenID := &big.Int{}
 					tokenID.SetBytes(tokenIDU256)
+					registerNFTExist(blockData.PossibleNFTs, eventAddr, tokenID)
 					eventData.EvmLogName = evmabi.ERC721.Events["Approval"].Name
 					eventData.EvmLogSignature = ethCommon.BytesToHash(event.Topics[0])
 					eventData.EvmLogParams = []*apiTypes.EvmEventParam{
