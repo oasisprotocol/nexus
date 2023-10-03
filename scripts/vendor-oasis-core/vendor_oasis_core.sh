@@ -1,4 +1,5 @@
 #!/bin/bash
+# shellcheck disable=SC2046,SC2044  # quick-n-dirty, for using unquoted `find` output as part of commands
 
 # This script vendors (=clones) type definitions from a given version of
 # oasis-core into a local directory, coreapi/$VERSION.
@@ -29,9 +30,12 @@
 
 set -euo pipefail
 
-VERSION=v21.1.1 # Cobalt
+VERSION="${1:-v22.2.11}" # Damask
 MODULES=(beacon consensus genesis governance keymanager registry roothash scheduler staking)
+if [[ $VERSION == v22.2.11 ]]; then MODULES+=(runtime/client upgrade); fi
 OUTDIR="coreapi/$VERSION"
+
+echo "Vendoring oasis-core $VERSION into $OUTDIR"
 
 # Copy oasis-core
 (
@@ -42,12 +46,12 @@ OUTDIR="coreapi/$VERSION"
     echo "$output"
     exit 1
   fi
-  git checkout "$VERSION"
+  git checkout $VERSION # "850373a2d" # master as of 2023-10-03
 )
 rm -rf $OUTDIR
 for m in "${MODULES[@]}"; do
-  mkdir -p $OUTDIR/$m
-  cp -r ../oasis-core/go/$m/api $OUTDIR/$m
+  mkdir -p "$OUTDIR/$m"
+  cp -r "../oasis-core/go/$m/api" "$OUTDIR/$m"
 done
 cp -r ../oasis-core/go/consensus/genesis $OUTDIR/consensus
 rm $(find $OUTDIR/ -name '*_test.go')
@@ -76,6 +80,9 @@ if [[ $VERSION == v21.1.1 ]]; then
   #    just mark them interface{} so they can be CBOR-decoded.
   sed -i -E 's/\*pvss.[a-zA-Z]+/interface{}/' $OUTDIR/beacon/api/pvss.go
   goimports -w $OUTDIR/
+fi
+
+if [[ $VERSION == v21.1.1 ]] || [[ $VERSION == v22.2.11 ]]; then  
   # 2) Reuse the Address struct from oasis-core.
   >$OUTDIR/staking/api/address.go cat <<EOF
 package api
@@ -87,7 +94,7 @@ import (
 type Address = original.Address
 EOF
   # 3) Reuse EpochTime from oasis-core, and some other minor fixes.
-  for p in scripts/vendor-oasis-core/patches/${VERSION}/*.patch; do
+  for p in scripts/vendor-oasis-core/patches/"$VERSION"/*.patch; do
     echo "Applying patch $p"
     git apply "$p"
   done 

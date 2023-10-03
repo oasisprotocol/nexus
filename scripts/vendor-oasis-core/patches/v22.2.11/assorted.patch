@@ -1,0 +1,240 @@
+---
+ coreapi/v22.2.11/consensus/api/api.go         |  7 ++++++-
+ coreapi/v22.2.11/consensus/api/submission.go  | 10 +---------
+ .../consensus/api/transaction/transaction.go  |  5 ++++-
+ coreapi/v22.2.11/registry/api/api.go          | 18 +++++++++++++++++-
+ coreapi/v22.2.11/roothash/api/block/header.go |  4 +++-
+ coreapi/v22.2.11/runtime/client/api/api.go    | 12 ++++++++++--
+ coreapi/v22.2.11/staking/api/address.go       |  4 +++-
+ coreapi/v22.2.11/staking/api/api.go           | 19 +++++++++++++++++++
+ coreapi/v22.2.11/staking/api/commission.go    | 15 ++++++++++++++-
+ 9 files changed, 77 insertions(+), 17 deletions(-)
+
+diff --git a/coreapi/v22.2.11/consensus/api/api.go b/coreapi/v22.2.11/consensus/api/api.go
+index 43e73727..f8ae18bb 100644
+--- a/coreapi/v22.2.11/consensus/api/api.go
++++ b/coreapi/v22.2.11/consensus/api/api.go
+@@ -161,7 +161,12 @@ type Vote struct {
+ // StatusState is the concise status state of the consensus backend.
+ type StatusState uint8
+ 
+-// removed var block
++var (
++	// StatusStateReady is the ready status state.
++	StatusStateReady StatusState
++	// StatusStateSyncing is the syncing status state.
++	StatusStateSyncing StatusState = 1
++)
+ 
+ // String returns a string representation of a status state.
+ func (s StatusState) String() string {
+diff --git a/coreapi/v22.2.11/consensus/api/submission.go b/coreapi/v22.2.11/consensus/api/submission.go
+index 520718be..8b4f5cdf 100644
+--- a/coreapi/v22.2.11/consensus/api/submission.go
++++ b/coreapi/v22.2.11/consensus/api/submission.go
+@@ -3,7 +3,6 @@ package api
+ import (
+ 	"time"
+ 
+-	"github.com/oasisprotocol/oasis-core/go/common/logging"
+ 	"github.com/oasisprotocol/oasis-core/go/common/quantity"
+ )
+ 
+@@ -31,14 +30,7 @@ type noOpPriceDiscovery struct{}
+ 
+ // SubmissionManager is a transaction submission manager interface.
+ // removed interface
+-
+-type submissionManager struct {
+-	backend        ClientBackend
+-	priceDiscovery PriceDiscovery
+-	maxFee         quantity.Quantity
+-
+-	logger *logging.Logger
+-}
++// removed type
+ 
+ // Implements SubmissionManager.
+ // removed func
+diff --git a/coreapi/v22.2.11/consensus/api/transaction/transaction.go b/coreapi/v22.2.11/consensus/api/transaction/transaction.go
+index d0e9d623..4a788aca 100644
+--- a/coreapi/v22.2.11/consensus/api/transaction/transaction.go
++++ b/coreapi/v22.2.11/consensus/api/transaction/transaction.go
+@@ -2,6 +2,7 @@ package transaction
+ 
+ import (
+ 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
++	"github.com/oasisprotocol/oasis-core/go/common/crypto/hash"
+ 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
+ )
+ 
+@@ -58,7 +59,9 @@ type SignedTransaction struct {
+ }
+ 
+ // Hash returns the cryptographic hash of the encoded transaction.
+-// removed func
++func (s *SignedTransaction) Hash() hash.Hash {
++	return hash.NewFrom(s)
++}
+ 
+ // PrettyPrint writes a pretty-printed representation of the type
+ // to the given writer.
+diff --git a/coreapi/v22.2.11/registry/api/api.go b/coreapi/v22.2.11/registry/api/api.go
+index 7f76b08c..23644d33 100644
+--- a/coreapi/v22.2.11/registry/api/api.go
++++ b/coreapi/v22.2.11/registry/api/api.go
+@@ -8,12 +8,28 @@ import (
+ 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
+ 	"github.com/oasisprotocol/oasis-core/go/common/entity"
+ 	"github.com/oasisprotocol/oasis-core/go/common/node"
++	original "github.com/oasisprotocol/oasis-core/go/registry/api"
+ )
+ 
+ // ModuleName is a unique module name for the registry module.
+ const ModuleName = "registry"
+ 
+-// removed var block
++var (
++	// RegisterEntitySignatureContext is the context used for entity
++	// registration.
++	RegisterEntitySignatureContext = original.RegisterEntitySignatureContext
++
++	// RegisterGenesisEntitySignatureContext is the context used for
++	// entity registration in the genesis document.
++	//
++	// Note: This is identical to non-gensis registrations to support
++	// migrating existing registrations into a new genesis document.
++	RegisterGenesisEntitySignatureContext = RegisterEntitySignatureContext
++
++	// RegisterNodeSignatureContext is the context used for node
++	// registration.
++	RegisterNodeSignatureContext = original.RegisterNodeSignatureContext
++)
+ 
+ // Backend is a registry implementation.
+ // removed interface
+diff --git a/coreapi/v22.2.11/roothash/api/block/header.go b/coreapi/v22.2.11/roothash/api/block/header.go
+index d7803c44..b364d89a 100644
+--- a/coreapi/v22.2.11/roothash/api/block/header.go
++++ b/coreapi/v22.2.11/roothash/api/block/header.go
+@@ -106,7 +106,9 @@ type Header struct { // nolint: maligned
+ // removed func
+ 
+ // EncodedHash returns the encoded cryptographic hash of the header.
+-// removed func
++func (h *Header) EncodedHash() hash.Hash {
++	return hash.NewFrom(h)
++}
+ 
+ // StorageRoots returns the storage roots contained in this header.
+ // removed func
+diff --git a/coreapi/v22.2.11/runtime/client/api/api.go b/coreapi/v22.2.11/runtime/client/api/api.go
+index ab839929..b487ded8 100644
+--- a/coreapi/v22.2.11/runtime/client/api/api.go
++++ b/coreapi/v22.2.11/runtime/client/api/api.go
+@@ -4,7 +4,6 @@ import (
+ 	roothash "github.com/oasisprotocol/nexus/coreapi/v22.2.11/roothash/api"
+ 	"github.com/oasisprotocol/oasis-core/go/common"
+ 	"github.com/oasisprotocol/oasis-core/go/common/crypto/hash"
+-	"github.com/oasisprotocol/oasis-core/go/runtime/host/protocol"
+ )
+ 
+ const (
+@@ -42,7 +41,16 @@ type SubmitTxMetaResponse struct {
+ 	BatchOrder uint32 `json:"batch_order,omitempty"`
+ 
+ 	// CheckTxError is the CheckTx error in case transaction failed the transaction check.
+-	CheckTxError *protocol.Error `json:"check_tx_error,omitempty"`
++	CheckTxError RuntimeHostError `json:"check_tx_error,omitempty"`
++}
++
++// RuntimeHostError is a message body representing an error.
++// NOTE: RENAMED from "Error" and imported from github.com/oasisprotocol/oasis-core/go/runtime/host/protocol
++// as a manual step when vendoring oasis-core v22.2.11.
++type RuntimeHostError struct {
++	Module  string `json:"module,omitempty"`
++	Code    uint32 `json:"code,omitempty"`
++	Message string `json:"message,omitempty"`
+ }
+ 
+ // CheckTxRequest is a CheckTx request.
+diff --git a/coreapi/v22.2.11/staking/api/address.go b/coreapi/v22.2.11/staking/api/address.go
+index 1f706bbe..ea721dce 100644
+--- a/coreapi/v22.2.11/staking/api/address.go
++++ b/coreapi/v22.2.11/staking/api/address.go
+@@ -1,7 +1,9 @@
+ package api
+ 
+ import (
+-        original "github.com/oasisprotocol/oasis-core/go/staking/api"
++	original "github.com/oasisprotocol/oasis-core/go/staking/api"
+ )
+ 
+ type Address = original.Address
++
++var NewAddress = original.NewAddress
+diff --git a/coreapi/v22.2.11/staking/api/api.go b/coreapi/v22.2.11/staking/api/api.go
+index c95b7be7..dd40246b 100644
+--- a/coreapi/v22.2.11/staking/api/api.go
++++ b/coreapi/v22.2.11/staking/api/api.go
+@@ -8,6 +8,7 @@ import (
+ 	"github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api/transaction"
+ 	"github.com/oasisprotocol/oasis-core/go/common/crypto/hash"
+ 	"github.com/oasisprotocol/oasis-core/go/common/quantity"
++	original "github.com/oasisprotocol/oasis-core/go/staking/api"
+ )
+ 
+ const (
+@@ -19,6 +20,24 @@ const (
+ 	LogEventGeneralAdjustment = "staking/general_adjustment"
+ )
+ 
++var (
++	// CommonPoolAddress is the common pool address.
++	// The address is reserved to prevent it being accidentally used in the actual ledger.
++	CommonPoolAddress         = original.CommonPoolAddress
++	FeeAccumulatorAddress     = original.FeeAccumulatorAddress
++	GovernanceDepositsAddress = original.GovernanceDepositsAddress
++)
++
++var (
++	// AddressV0Context is the unique context for v0 staking account addresses.
++	AddressV0Context = original.AddressV0Context
++	// AddressRuntimeV0Context is the unique context for v0 runtime account addresses.
++	AddressRuntimeV0Context = original.AddressRuntimeV0Context
++	// AddressBech32HRP is the unique human readable part of Bech32 encoded
++	// staking account addresses.
++	AddressBech32HRP = original.AddressBech32HRP
++)
++
+ // removed var block
+ 
+ // Backend is a staking implementation.
+diff --git a/coreapi/v22.2.11/staking/api/commission.go b/coreapi/v22.2.11/staking/api/commission.go
+index cb26066c..d379615a 100644
+--- a/coreapi/v22.2.11/staking/api/commission.go
++++ b/coreapi/v22.2.11/staking/api/commission.go
+@@ -106,6 +106,19 @@ type CommissionSchedule struct {
+ // removed func
+ 
+ // CurrentRate returns the rate at the latest rate step that has started or nil if no step has started.
+-// removed func
++func (cs *CommissionSchedule) CurrentRate(now beacon.EpochTime) *quantity.Quantity {
++	var latestStartedStep *CommissionRateStep
++	for i := range cs.Rates {
++		step := &cs.Rates[i]
++		if step.Start > now {
++			break
++		}
++		latestStartedStep = step
++	}
++	if latestStartedStep == nil {
++		return nil
++	}
++	return &latestStartedStep.Rate
++}
+ 
+ // removed func
+-- 
+2.25.1
+
