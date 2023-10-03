@@ -247,12 +247,12 @@ func (b *blockBasedAnalyzer) ensureSlowSyncPrerequisites(ctx context.Context) (o
 		return false
 	}
 	if !precededBySlowSync {
-		b.logger.Error("finalizing the work of previous fast-sync analyzer(s)", "last_fast_sync_height", maxProcessedHeight)
+		b.logger.Info("finalizing the work of previous fast-sync analyzer(s)", "last_fast_sync_height", maxProcessedHeight)
 		if err := b.processor.FinalizeFastSync(ctx, maxProcessedHeight); err != nil {
 			b.logger.Error("failed to finalize the fast-sync phase (i.e. download genesis or similar)", "err", err)
 			return false
 		}
-		b.logger.Error("fast-sync finalization complete; proceeding with regular slow-sync analysis")
+		b.logger.Info("fast-sync finalization complete; proceeding with regular slow-sync analysis")
 	}
 
 	return true
