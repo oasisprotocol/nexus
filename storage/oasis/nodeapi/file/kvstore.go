@@ -9,6 +9,7 @@ import (
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 
 	"github.com/oasisprotocol/nexus/log"
+	"github.com/oasisprotocol/nexus/metrics"
 )
 
 // A key in the KVStore.
@@ -31,8 +32,9 @@ type KVStore interface {
 type pogrebKVStore struct {
 	db *pogreb.DB
 
-	path   string
-	logger *log.Logger
+	path    string
+	logger  *log.Logger
+	metrics *metrics.StorageMetrics // if nil, no metrics are emitted
 
 	// Address of the atomic variable that indicates whether the store is initialized.
 	// Synchronisation is required because the store is opened in background goroutine.
@@ -46,6 +48,8 @@ func (s *pogrebKVStore) isInitialized() bool {
 }
 
 // Get implements KVStore.
+// NOTE: Cache hit/miss metrics are not captured if you call this method directly.
+// Consider using the Get*FromCacheOrCall() methods instead.
 func (s *pogrebKVStore) Get(key []byte) ([]byte, error) {
 	if b := s.isInitialized(); !b {
 		return nil, fmt.Errorf("kvstore: not initialized yet")
@@ -91,10 +95,13 @@ func (s *pogrebKVStore) init() error {
 	return nil
 }
 
-func OpenKVStore(logger *log.Logger, path string) (KVStore, error) {
+// Initializes a new KVStore backed by a database at `path`, or opens an existing one.
+// `metrics` can be `nil`, in which case no metrics are emitted during operation.
+func OpenKVStore(logger *log.Logger, path string, metrics *metrics.StorageMetrics) (KVStore, error) {
 	store := &pogrebKVStore{
-		logger: logger,
-		path:   path,
+		logger:  logger,
+		path:    path,
+		metrics: metrics,
 	}
 
 	// Open the database in background as it is possible it will do a full-reindex on startup after a crash:
@@ -143,23 +150,36 @@ func (cacheKey CacheKey) Pretty() string {
 
 var errNoSuchKey = fmt.Errorf("no such key")
 
+func increaseReadCounter(cache KVStore, status metrics.CacheReadStatus) {
+	// Make sure the cache supports metric-gathering.
+	if metricsCache, ok := cache.(*pogrebKVStore); ok && metricsCache.metrics != nil {
+		// Increase the counter.
+		metricsCache.metrics.LocalCacheReads(status).Inc()
+	}
+}
+
 // fetchTypedValue fetches the value of `cacheKey` from the cache, interpreted as a `Value`.
 func fetchTypedValue[Value any](cache KVStore, key CacheKey, value *Value) error {
 	isCached, err := cache.Has(key)
 	if err != nil {
+		increaseReadCounter(cache, metrics.CacheReadStatusError)
 		return err
 	}
 	if !isCached {
+		increaseReadCounter(cache, metrics.CacheReadStatusMiss)
 		return errNoSuchKey
 	}
 	raw, err := cache.Get(key)
 	if err != nil {
+		increaseReadCounter(cache, metrics.CacheReadStatusError)
 		return fmt.Errorf("failed to fetch key %s from cache: %v", key.Pretty(), err)
 	}
 	err = cbor.Unmarshal(raw, value)
 	if err != nil {
+		increaseReadCounter(cache, metrics.CacheReadStatusBadValue)
 		return fmt.Errorf("failed to unmarshal the value for key %s from cache into %T: %v; raw value was %x", key.Pretty(), value, err, raw)
 	}
+	increaseReadCounter(cache, metrics.CacheReadStatusHit)
 
 	return nil
 }
@@ -182,8 +202,7 @@ func GetFromCacheOrCall[Value any](cache KVStore, volatile bool, key CacheKey, v
 	case errNoSuchKey: // Regular cache miss; continue below.
 	default:
 		// Log unexpected error and continue to call the backing API.
-		loggingCache, ok := cache.(*pogrebKVStore)
-		if ok {
+		if loggingCache, ok := cache.(*pogrebKVStore); ok {
 			loggingCache.logger.Warn(fmt.Sprintf("error fetching %s from cache: %v", key.Pretty(), err))
 		}
 	}

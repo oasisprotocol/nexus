@@ -8,7 +8,9 @@ import (
 	consensus "github.com/oasisprotocol/oasis-core/go/consensus/api"
 	genesis "github.com/oasisprotocol/oasis-core/go/genesis/api"
 
+	"github.com/oasisprotocol/nexus/common"
 	"github.com/oasisprotocol/nexus/log"
+	"github.com/oasisprotocol/nexus/metrics"
 	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
 )
 
@@ -27,6 +29,7 @@ func NewFileConsensusApiLite(cacheDir string, consensusApi nodeapi.ConsensusApiL
 	db, err := OpenKVStore(
 		log.NewDefaultLogger("cached-node-api").With("runtime", "consensus"),
 		cacheDir,
+		common.Ptr(metrics.NewDefaultStorageMetrics("consensus")),
 	)
 	if err != nil {
 		return nil, err

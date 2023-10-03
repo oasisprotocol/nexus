@@ -14,7 +14,7 @@ import (
 func openTestKVStore(t *testing.T) (KVStore, func()) {
 	path, err := os.MkdirTemp("", "nexus-kv-test")
 	require.NoError(t, err)
-	kv, err := OpenKVStore(log.NewDefaultLogger("unit-test"), path)
+	kv, err := OpenKVStore(log.NewDefaultLogger("unit-test"), path, nil)
 	require.NoError(t, err)
 	return kv, func() {
 		err := kv.Close()

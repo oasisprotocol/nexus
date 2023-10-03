@@ -65,7 +65,7 @@ func MetricsMiddleware(m metrics.RequestMetrics, logger log.Logger) func(next ht
 			)
 			t := time.Now()
 			metricName := normalizeEndpoint(r.URL.Path)
-			timer := m.RequestTimer(metricName)
+			timer := m.RequestLatencies(metricName)
 
 			// Serve the request.
 			next.ServeHTTP(w, r.WithContext(
@@ -99,7 +99,7 @@ func MetricsMiddleware(m metrics.RequestMetrics, logger log.Logger) func(next ht
 				statusTxt = "failure_4xx"
 				metricName = "ignored"
 			}
-			m.RequestCounter(metricName, statusTxt).Inc()
+			m.RequestCounts(metricName, statusTxt).Inc()
 		})
 	}
 }

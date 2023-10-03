@@ -62,7 +62,7 @@ type processor struct {
 	source  storage.ConsensusSourceStorage
 	target  storage.TargetStorage
 	logger  *log.Logger
-	metrics metrics.DatabaseMetrics
+	metrics metrics.StorageMetrics
 }
 
 var _ block.BlockProcessor = (*processor)(nil)
@@ -75,7 +75,7 @@ func NewAnalyzer(blockRange config.BlockRange, batchSize uint64, mode analyzer.B
 		source:  sourceClient,
 		target:  target,
 		logger:  logger.With("analyzer", consensusAnalyzerName),
-		metrics: metrics.NewDefaultDatabaseMetrics(consensusAnalyzerName),
+		metrics: metrics.NewDefaultStorageMetrics(consensusAnalyzerName),
 	}
 
 	return block.NewAnalyzer(blockRange, batchSize, mode, consensusAnalyzerName, processor, target, logger)
@@ -252,14 +252,14 @@ func (m *processor) ProcessBlock(ctx context.Context, uheight uint64) error {
 
 	// Apply updates to DB.
 	opName := "process_block_consensus"
-	timer := m.metrics.DatabaseTimer(m.target.Name(), opName)
+	timer := m.metrics.DatabaseLatencies(m.target.Name(), opName)
 	defer timer.ObserveDuration()
 
 	if err := m.target.SendBatch(ctx, batch); err != nil {
-		m.metrics.DatabaseCounter(m.target.Name(), opName, "failure").Inc()
+		m.metrics.DatabaseOperations(m.target.Name(), opName, "failure").Inc()
 		return err
 	}
-	m.metrics.DatabaseCounter(m.target.Name(), opName, "success").Inc()
+	m.metrics.DatabaseOperations(m.target.Name(), opName, "success").Inc()
 	return nil
 }
 
