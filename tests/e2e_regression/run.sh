@@ -43,8 +43,6 @@ testCases=(
   'db__nodes                    select id, entity_id, roles, expiration, voting_power from chain.nodes order by id'
   'db__runtime_nodes            select rn.*, n.roles FROM chain.runtime_nodes rn LEFT JOIN chain.nodes n ON (rn.node_id = n.id) ORDER BY runtime_id, node_id'
   ## Runtimes.
-  'db__deposits                 select * from chain.runtime_deposits order by runtime, round, sender, nonce'
-  'db__withdraws                select * from chain.runtime_withdraws order by runtime, round, sender, nonce'
   'db__account_related_txs      select * from chain.runtime_related_transactions order by runtime, tx_round, tx_index, account_address'
   'db__runtime_accounts         select * from chain.runtime_accounts order by runtime, address'
   'db__runtime_transfers        select * from chain.runtime_transfers order by runtime, round, sender, receiver'

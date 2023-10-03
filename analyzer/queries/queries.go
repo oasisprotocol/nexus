@@ -445,14 +445,6 @@ var (
     INSERT INTO chain.runtime_transfers (runtime, round, sender, receiver, symbol, amount)
       VALUES ($1, $2, $3, $4, $5, $6)`
 
-	RuntimeDepositInsert = `
-    INSERT INTO chain.runtime_deposits (runtime, round, sender, receiver, amount, nonce, module, code)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
-
-	RuntimeWithdrawInsert = `
-    INSERT INTO chain.runtime_withdraws (runtime, round, sender, receiver, amount, nonce, module, code)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
-
 	RuntimeNativeBalanceUpdate = `
     INSERT INTO chain.runtime_sdk_balances (runtime, account_address, symbol, balance)
       VALUES ($1, $2, $3, $4)

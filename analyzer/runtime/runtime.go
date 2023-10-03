@@ -149,7 +149,6 @@ func (m *processor) ProcessBlock(ctx context.Context, round uint64) error {
 	batch := &storage.QueryBatch{}
 	m.queueDbUpdates(batch, blockData)
 	m.queueAccountsEvents(batch, blockData)
-	m.queueConsensusAccountsEvents(batch, blockData)
 
 	// Update indexing progress.
 	batch.Queue(
