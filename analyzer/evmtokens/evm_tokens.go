@@ -70,7 +70,7 @@ type StaleToken struct {
 	LastDownloadRound     *uint64
 	TotalSupply           common.BigInt
 	NumTransfers          uint64
-	Type                  *evm.EVMTokenType
+	Type                  *common.TokenType
 	AddrContextIdentifier string
 	AddrContextVersion    int
 	AddrData              []byte
@@ -145,7 +145,7 @@ func (p *processor) ProcessItem(ctx context.Context, batch *storage.QueryBatch, 
 			totalSupply,
 			staleToken.DownloadRound,
 		)
-	} else if *staleToken.Type != evm.EVMTokenTypeUnsupported {
+	} else if *staleToken.Type != common.TokenTypeUnsupported {
 		mutable, err := evm.EVMDownloadMutatedToken(
 			ctx,
 			p.logger,

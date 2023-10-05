@@ -9,11 +9,10 @@ import (
 	"github.com/oasisprotocol/oasis-core/go/common/errors"
 
 	"github.com/oasisprotocol/nexus/analyzer/evmabi"
+	"github.com/oasisprotocol/nexus/common"
 	"github.com/oasisprotocol/nexus/log"
 	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
 )
-
-const EVMTokenTypeERC20 EVMTokenType = 20
 
 func evmDownloadTokenERC20Mutable(ctx context.Context, logger *log.Logger, source nodeapi.RuntimeApiLite, round uint64, tokenEthAddr []byte) (*EVMTokenMutableData, error) {
 	var mutable EVMTokenMutableData
@@ -30,7 +29,7 @@ func evmDownloadTokenERC20Mutable(ctx context.Context, logger *log.Logger, sourc
 
 func evmDownloadTokenERC20(ctx context.Context, logger *log.Logger, source nodeapi.RuntimeApiLite, round uint64, tokenEthAddr []byte) (*EVMTokenData, error) {
 	tokenData := EVMTokenData{
-		Type: EVMTokenTypeERC20,
+		Type: common.TokenTypeERC20,
 	}
 	// These optional methods may fail.
 	if err := evmCallWithABI(ctx, source, round, tokenEthAddr, evmabi.ERC20, &tokenData.Name, "name"); err != nil {
