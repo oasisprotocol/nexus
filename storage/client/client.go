@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"math/big"
 	"time"
@@ -44,6 +45,17 @@ type StorageClient struct {
 	txCache    *ristretto.Cache
 
 	logger *log.Logger
+}
+
+func translateTokenType(tokenType common.TokenType) apiTypes.EvmTokenType {
+	switch tokenType {
+	case common.TokenTypeERC20:
+		return apiTypes.EvmTokenTypeERC20
+	case common.TokenTypeERC721:
+		return apiTypes.EvmTokenTypeERC721
+	default:
+		return "unexpected_other_type"
+	}
 }
 
 // runtimeNameToID returns the runtime ID for the given network and runtime name.
@@ -1279,6 +1291,7 @@ func (c *StorageClient) RuntimeEvents(ctx context.Context, p apiTypes.GetRuntime
 	for res.rows.Next() {
 		var e RuntimeEvent
 		var et apiTypes.EvmEventToken
+		var tokenType sql.NullInt32
 		if err := res.rows.Scan(
 			&e.Round,
 			&e.TxIndex,
@@ -1290,10 +1303,13 @@ func (c *StorageClient) RuntimeEvents(ctx context.Context, p apiTypes.GetRuntime
 			&e.EvmLogName,
 			&e.EvmLogParams,
 			&et.Symbol,
-			&et.Type,
+			&tokenType,
 			&et.Decimals,
 		); err != nil {
 			return nil, wrapError(err)
+		}
+		if tokenType.Valid {
+			et.Type = common.Ptr(translateTokenType(common.TokenType(tokenType.Int32)))
 		}
 		if et != (apiTypes.EvmEventToken{}) {
 			e.EvmToken = &et
@@ -1376,18 +1392,20 @@ func (c *StorageClient) RuntimeAccount(ctx context.Context, address staking.Addr
 	for runtimeEvmRows.Next() {
 		b := RuntimeEvmBalance{}
 		var addrPreimage []byte
+		var tokenType common.TokenType
 		if err = runtimeEvmRows.Scan(
 			&b.Balance,
 			&b.TokenContractAddr,
 			&addrPreimage,
 			&b.TokenSymbol,
 			&b.TokenName,
-			&b.TokenType,
+			&tokenType,
 			&b.TokenDecimals,
 		); err != nil {
 			return nil, wrapError(err)
 		}
 		b.TokenContractAddrEth = ethCommon.BytesToAddress(addrPreimage).String()
+		b.TokenType = translateTokenType(tokenType)
 		a.EvmBalances = append(a.EvmBalances, b)
 	}
 
@@ -1473,6 +1491,7 @@ func (c *StorageClient) RuntimeTokens(ctx context.Context, p apiTypes.GetRuntime
 	for res.rows.Next() {
 		var t EvmToken
 		var addrPreimage []byte
+		var tokenType common.TokenType
 		if err2 := res.rows.Scan(
 			&t.ContractAddr,
 			&addrPreimage,
@@ -1481,7 +1500,7 @@ func (c *StorageClient) RuntimeTokens(ctx context.Context, p apiTypes.GetRuntime
 			&t.Decimals,
 			&t.TotalSupply,
 			&t.NumTransfers,
-			&t.Type,
+			&tokenType,
 			&t.NumHolders,
 			&t.IsVerified,
 		); err2 != nil {
@@ -1489,6 +1508,7 @@ func (c *StorageClient) RuntimeTokens(ctx context.Context, p apiTypes.GetRuntime
 		}
 
 		t.EthContractAddr = ethCommon.BytesToAddress(addrPreimage).String()
+		t.Type = translateTokenType(tokenType)
 		ts.EvmTokens = append(ts.EvmTokens, t)
 	}
 

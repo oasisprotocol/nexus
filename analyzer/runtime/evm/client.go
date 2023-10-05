@@ -19,19 +19,6 @@ import (
 	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
 )
 
-// EVMTokenType is a small-ish number that we use to identify what type of
-// token each row of the tokens table is. Values aren't consecutive like in an
-// enum. Prefer to use the number of the ERC if applicable and available, e.g.
-// 20 for ERC-20.
-// "Historical reasons" style note: this has grown to include non-EVM token
-// types as well.
-type EVMTokenType int
-
-const (
-	EVMTokenTypeNative      EVMTokenType = -1 // A placeholder type to represent the runtime's native token. No contract should be assigned this type.
-	EVMTokenTypeUnsupported EVMTokenType = 0  // A smart contract for which we're confident it's not a supported token kind.
-)
-
 // A fake address that is used to represent the native runtime token in contexts
 // that are primarily intended for tracking EVM tokens (= contract-based tokens).
 const NativeRuntimeTokenAddress = "oasis1runt1menat1vet0ken0000000000000000000000"
@@ -47,7 +34,7 @@ type EVMPossibleToken struct {
 }
 
 type EVMTokenData struct {
-	Type     EVMTokenType
+	Type     common.TokenType
 	Name     string
 	Symbol   string
 	Decimals uint8
@@ -185,7 +172,7 @@ func logDeterministicError(logger *log.Logger, round uint64, contractEthAddr []b
 // EVMDownloadNewToken tries to download the data of a given token. If it
 // transiently fails to download the data, it returns with a non-nil error. If
 // it deterministically cannot download the data, it returns a struct
-// with the `Type` field set to `EVMTokenTypeUnsupported`.
+// with the `Type` field set to `TokenTypeUnsupported`.
 func EVMDownloadNewToken(ctx context.Context, logger *log.Logger, source nodeapi.RuntimeApiLite, round uint64, tokenEthAddr []byte) (*EVMTokenData, error) {
 	supportsERC165, err := detectERC165(ctx, logger, source, round, tokenEthAddr)
 	if err != nil {
@@ -220,7 +207,7 @@ func EVMDownloadNewToken(ctx context.Context, logger *log.Logger, source nodeapi
 	}
 
 	// No applicable token discovered.
-	return &EVMTokenData{Type: EVMTokenTypeUnsupported}, nil
+	return &EVMTokenData{Type: common.TokenTypeUnsupported}, nil
 }
 
 // EVMDownloadMutatedToken tries to download the mutable data of a given
@@ -228,16 +215,16 @@ func EVMDownloadNewToken(ctx context.Context, logger *log.Logger, source nodeapi
 // non-nil error. If it deterministically cannot download the data, it returns
 // nil with nil error as well. Note that this latter case is not considered an
 // error!
-func EVMDownloadMutatedToken(ctx context.Context, logger *log.Logger, source nodeapi.RuntimeApiLite, round uint64, tokenEthAddr []byte, tokenType EVMTokenType) (*EVMTokenMutableData, error) {
+func EVMDownloadMutatedToken(ctx context.Context, logger *log.Logger, source nodeapi.RuntimeApiLite, round uint64, tokenEthAddr []byte, tokenType common.TokenType) (*EVMTokenMutableData, error) {
 	switch tokenType {
-	case EVMTokenTypeERC20:
+	case common.TokenTypeERC20:
 		mutable, err := evmDownloadTokenERC20Mutable(ctx, logger, source, round, tokenEthAddr)
 		if err != nil {
 			return nil, fmt.Errorf("download token ERC-20 mutable: %w", err)
 		}
 		return mutable, nil
 
-	case EVMTokenTypeERC721:
+	case common.TokenTypeERC721:
 		mutable, err := evmDownloadTokenERC721Mutable(ctx, logger, source, round, tokenEthAddr)
 		if err != nil {
 			return nil, fmt.Errorf("download token ERC-721 mutable: %w", err)
@@ -252,9 +239,9 @@ func EVMDownloadMutatedToken(ctx context.Context, logger *log.Logger, source nod
 	}
 }
 
-func EVMDownloadNewNFT(ctx context.Context, logger *log.Logger, source nodeapi.RuntimeApiLite, ipfsClient ipfsclient.Client, round uint64, tokenEthAddr []byte, tokenType EVMTokenType, id *big.Int) (*EVMNFTData, error) {
+func EVMDownloadNewNFT(ctx context.Context, logger *log.Logger, source nodeapi.RuntimeApiLite, ipfsClient ipfsclient.Client, round uint64, tokenEthAddr []byte, tokenType common.TokenType, id *big.Int) (*EVMNFTData, error) {
 	switch tokenType {
-	case EVMTokenTypeERC721:
+	case common.TokenTypeERC721:
 		nftData, err := evmDownloadNFTERC721(ctx, logger, source, ipfsClient, round, tokenEthAddr, id)
 		if err != nil {
 			return nil, fmt.Errorf("download NFT ERC-721: %w", err)
@@ -271,16 +258,16 @@ func EVMDownloadNewNFT(ctx context.Context, logger *log.Logger, source nodeapi.R
 // returns with a non-nil error. If it deterministically cannot download the
 // balance, it returns nil with nil error as well. Note that this latter case
 // is not considered an error!
-func EVMDownloadTokenBalance(ctx context.Context, logger *log.Logger, source nodeapi.RuntimeApiLite, round uint64, tokenEthAddr []byte, accountEthAddr []byte, tokenType EVMTokenType) (*EVMTokenBalanceData, error) {
+func EVMDownloadTokenBalance(ctx context.Context, logger *log.Logger, source nodeapi.RuntimeApiLite, round uint64, tokenEthAddr []byte, accountEthAddr []byte, tokenType common.TokenType) (*EVMTokenBalanceData, error) {
 	switch tokenType {
-	case EVMTokenTypeERC20:
+	case common.TokenTypeERC20:
 		balance, err := evmDownloadTokenBalanceERC20(ctx, logger, source, round, tokenEthAddr, accountEthAddr)
 		if err != nil {
 			return nil, fmt.Errorf("download token balance ERC-20: %w", err)
 		}
 		return balance, nil
 
-	case EVMTokenTypeERC721:
+	case common.TokenTypeERC721:
 		balance, err := evmDownloadTokenBalanceERC721(ctx, logger, source, round, tokenEthAddr, accountEthAddr)
 		if err != nil {
 			return nil, fmt.Errorf("download token balance ERC-721: %w", err)

@@ -59,7 +59,7 @@ func NewAnalyzer(
 type StaleNFT struct {
 	Addr                  string
 	ID                    common.BigInt
-	Type                  *evm.EVMTokenType
+	Type                  *common.TokenType
 	AddrContextIdentifier string
 	AddrContextVersion    int
 	AddrData              []byte

@@ -15,11 +15,10 @@ import (
 	"github.com/oasisprotocol/nexus/analyzer/evmabi"
 	"github.com/oasisprotocol/nexus/analyzer/evmnfts/ipfsclient"
 	"github.com/oasisprotocol/nexus/analyzer/evmnfts/multiproto"
+	"github.com/oasisprotocol/nexus/common"
 	"github.com/oasisprotocol/nexus/log"
 	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
 )
-
-const EVMTokenTypeERC721 EVMTokenType = 721
 
 const MaxMetadataBytes = 10 * 1024 * 1024
 
@@ -55,7 +54,7 @@ func evmDownloadTokenERC721Mutable(ctx context.Context, logger *log.Logger, sour
 
 func evmDownloadTokenERC721(ctx context.Context, logger *log.Logger, source nodeapi.RuntimeApiLite, round uint64, tokenEthAddr []byte) (*EVMTokenData, error) {
 	tokenData := EVMTokenData{
-		Type: EVMTokenTypeERC721,
+		Type: common.TokenTypeERC721,
 	}
 	supportsMetadata, err := detectInterface(ctx, logger, source, round, tokenEthAddr, ERC721MetadataInterfaceID)
 	if err != nil {

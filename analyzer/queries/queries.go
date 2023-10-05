@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/oasisprotocol/nexus/analyzer/runtime/evm"
+	"github.com/oasisprotocol/nexus/common"
 )
 
 var (
@@ -742,7 +743,7 @@ var (
       UNION ALL
       SELECT * FROM stale_native_tokens
     ) foo LIMIT $3`,
-		evm.EVMTokenTypeNative,
+		common.TokenTypeNative,
 		evm.NativeRuntimeTokenAddress,
 	)
 

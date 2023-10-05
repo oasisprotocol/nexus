@@ -114,7 +114,7 @@ func NewAnalyzer(
 type StaleTokenBalance struct {
 	TokenAddr                    string
 	AccountAddr                  string
-	Type                         evm.EVMTokenType
+	Type                         common.TokenType
 	Balance                      *big.Int
 	TokenAddrContextIdentifier   string
 	TokenAddrContextVersion      int
@@ -165,9 +165,9 @@ func (p *processor) ProcessItem(ctx context.Context, batch *storage.QueryBatch, 
 		return fmt.Errorf("account address: %w", err)
 	}
 	switch staleTokenBalance.Type {
-	case evm.EVMTokenTypeUnsupported:
+	case common.TokenTypeUnsupported:
 		// Do nothing; we'll just mark this token as processed so we remove it from the queue.
-	case evm.EVMTokenTypeNative:
+	case common.TokenTypeNative:
 		// Query native balance.
 		addr := nodeapi.Address{}
 		if err := addr.UnmarshalText([]byte(staleTokenBalance.AccountAddr)); err != nil {
