@@ -336,10 +336,10 @@ const (
 			txs.error_message
 		FROM chain.runtime_transactions AS txs
 		LEFT JOIN chain.runtime_transaction_signers AS signer0 ON
-		    (signer0.runtime = txs.runtime) AND
-		    (signer0.round = txs.round) AND
-		    (signer0.tx_index = txs.tx_index) AND
-		    (signer0.signer_index = 0)
+			(signer0.runtime = txs.runtime) AND
+			(signer0.round = txs.round) AND
+			(signer0.tx_index = txs.tx_index) AND
+			(signer0.signer_index = 0)
 		LEFT JOIN chain.address_preimages AS signer0_preimage ON
 			(signer0.signer_address = signer0_preimage.address) AND
 			-- For now, the only user is the explorer, where we only care
@@ -516,7 +516,7 @@ const (
 			tokens.token_type,
 			tokens.decimals AS token_decimals
 		FROM chain.evm_token_balances AS balances
-		JOIN chain.address_preimages AS preimages ON (preimages.address = balances.token_address AND preimages.context_identifier = 'oasis-runtime-sdk/address: secp256k1eth' AND preimages.context_version = 0)
+		JOIN chain.address_preimages  AS preimages ON (preimages.address = balances.token_address AND preimages.context_identifier = 'oasis-runtime-sdk/address: secp256k1eth' AND preimages.context_version = 0)
 		JOIN chain.evm_tokens         AS tokens USING (runtime, token_address)
 		WHERE runtime = $1 AND
 			balances.account_address = $2::text AND
