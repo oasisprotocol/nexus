@@ -291,7 +291,7 @@ func (srv *StrictServerImpl) GetRuntimeEvmTokensAddressHolders(ctx context.Conte
 }
 
 func (srv *StrictServerImpl) GetRuntimeEvmTokensAddressNfts(ctx context.Context, request apiTypes.GetRuntimeEvmTokensAddressNftsRequestObject) (apiTypes.GetRuntimeEvmTokensAddressNftsResponseObject, error) {
-	nfts, err := srv.dbClient.RuntimeEVMNFTs(ctx, request.Params.Limit, request.Params.Offset, &request.Address, nil)
+	nfts, err := srv.dbClient.RuntimeEVMNFTs(ctx, request.Params.Limit, request.Params.Offset, &request.Address, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -299,8 +299,14 @@ func (srv *StrictServerImpl) GetRuntimeEvmTokensAddressNfts(ctx context.Context,
 }
 
 func (srv *StrictServerImpl) GetRuntimeEvmTokensAddressNftsId(ctx context.Context, request apiTypes.GetRuntimeEvmTokensAddressNftsIdRequestObject) (apiTypes.GetRuntimeEvmTokensAddressNftsIdResponseObject, error) {
-	// TODO implement me
-	panic("implement me")
+	nfts, err := srv.dbClient.RuntimeEVMNFTs(ctx, common.Ptr(uint64(1)), common.Ptr(uint64(0)), &request.Address, &request.Id, nil)
+	if err != nil {
+		return nil, err
+	}
+	if len(nfts.EvmNfts) != 1 {
+		return apiTypes.GetRuntimeEvmTokensAddressNftsId404JSONResponse{}, nil
+	}
+	return apiTypes.GetRuntimeEvmTokensAddressNftsId200JSONResponse(nfts.EvmNfts[0]), nil
 }
 
 func (srv *StrictServerImpl) GetRuntimeTransactions(ctx context.Context, request apiTypes.GetRuntimeTransactionsRequestObject) (apiTypes.GetRuntimeTransactionsResponseObject, error) {
@@ -339,7 +345,7 @@ func (srv *StrictServerImpl) GetRuntimeAccountsAddress(ctx context.Context, requ
 }
 
 func (srv *StrictServerImpl) GetRuntimeAccountsAddressNfts(ctx context.Context, request apiTypes.GetRuntimeAccountsAddressNftsRequestObject) (apiTypes.GetRuntimeAccountsAddressNftsResponseObject, error) {
-	nfts, err := srv.dbClient.RuntimeEVMNFTs(ctx, request.Params.Limit, request.Params.Offset, nil, &request.Address)
+	nfts, err := srv.dbClient.RuntimeEVMNFTs(ctx, request.Params.Limit, request.Params.Offset, nil, nil, &request.Address)
 	if err != nil {
 		return nil, err
 	}
