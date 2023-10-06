@@ -1060,6 +1060,33 @@ paths:
                 $ref: '#/components/schemas/EvmNftList'
         <<: *common_error_responses
 
+  /{runtime}/evm_tokens/{address}/nfts/{id}:
+    get:
+      summary: |
+        Returns the non-fungible token (NFT) instance of an EVM (ERC-721, ...) token.
+      parameters:
+        - *runtime
+        - in: path
+          name: address
+          required: true
+          schema:
+            <<: *StakingAddressType
+          description: The staking address of the token contract of the NFT instance.
+        - in: path
+          name: id
+          required: true
+          schema:
+            <<: *BigIntType
+          description: The ID of the NFT instance.
+      responses:
+        '200':
+          description: The requested instances.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvmNft'
+        <<: *common_error_responses
+
   /{runtime}/accounts/{address}:
     get:
       summary: Returns a runtime account.

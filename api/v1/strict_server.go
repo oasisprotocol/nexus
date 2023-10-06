@@ -298,6 +298,11 @@ func (srv *StrictServerImpl) GetRuntimeEvmTokensAddressNfts(ctx context.Context,
 	return apiTypes.GetRuntimeEvmTokensAddressNfts200JSONResponse(*nfts), nil
 }
 
+func (srv *StrictServerImpl) GetRuntimeEvmTokensAddressNftsId(ctx context.Context, request apiTypes.GetRuntimeEvmTokensAddressNftsIdRequestObject) (apiTypes.GetRuntimeEvmTokensAddressNftsIdResponseObject, error) {
+	// TODO implement me
+	panic("implement me")
+}
+
 func (srv *StrictServerImpl) GetRuntimeTransactions(ctx context.Context, request apiTypes.GetRuntimeTransactionsRequestObject) (apiTypes.GetRuntimeTransactionsResponseObject, error) {
 	transactions, err := srv.dbClient.RuntimeTransactions(ctx, request.Params, nil)
 	if err != nil {
