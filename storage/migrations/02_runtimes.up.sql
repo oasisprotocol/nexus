@@ -54,6 +54,10 @@ CREATE TABLE chain.runtime_transactions
   "to"        oasis_addr,   -- Exact semantics depend on method. Extracted from body; for convenience only.
   amount      UINT_NUMERIC, -- Exact semantics depend on method. Extracted from body; for convenience only.
 
+  -- Added in 26_runtime_abi.up.sql
+  -- evm_fn_name TEXT,
+  -- evm_fn_params JSONB,
+
   -- Encrypted data in encrypted Ethereum-format transactions.
   evm_encrypted_format call_format,
   evm_encrypted_public_key BYTEA,
@@ -67,11 +71,17 @@ CREATE TABLE chain.runtime_transactions
   error_module  TEXT,
   error_code    UINT63,
   error_message TEXT
+  -- Added in 19_runtime_tx_errors.up.sql
+  -- error_message_raw TEXT
+  -- Added in 26_runtime_abi.up.sql
+  -- error_params JSONB
+  -- abi_parsed_at TIMESTAMP WITH TIME ZONE
 );
 CREATE INDEX ix_runtime_transactions_tx_hash ON chain.runtime_transactions USING hash (tx_hash);
 CREATE INDEX ix_runtime_transactions_tx_eth_hash ON chain.runtime_transactions USING hash (tx_eth_hash);
 CREATE INDEX ix_runtime_transactions_timestamp ON chain.runtime_transactions (runtime, timestamp);
 -- CREATE INDEX ix_runtime_transactions_to ON chain.runtime_transactions(runtime, "to"); -- Added in 12_evm_contract_gas.up.sql
+-- CREATE INDEX ix_runtime_transactions_to_abi_parsed_at ON chain.runtime_transactions (runtime, "to", abi_parsed_at); -- Added in 25_runtime_abi.up.sql
 
 CREATE TABLE chain.runtime_transaction_signers
 (
