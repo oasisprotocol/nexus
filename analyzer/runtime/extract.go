@@ -408,6 +408,7 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 						if to, err = uncategorized.StringifySdkAddress(body.To); err != nil {
 							return fmt.Errorf("to: %w", err)
 						}
+						blockTransactionData.RelatedAccountAddresses[to] = true
 					}
 					return nil
 				},
@@ -440,6 +441,7 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 					if to, err = uncategorized.StringifySdkAddress(&body.To); err != nil {
 						return fmt.Errorf("to: %w", err)
 					}
+					blockTransactionData.RelatedAccountAddresses[to] = true
 					return nil
 				},
 				ConsensusAccountsUndelegate: func(body *consensusaccounts.Undelegate) error {
