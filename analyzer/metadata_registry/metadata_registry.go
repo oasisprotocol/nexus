@@ -6,7 +6,7 @@ import (
 	"time"
 
 	registry "github.com/oasisprotocol/metadata-registry-tools"
-	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
+	staking "github.com/oasisprotocol/nexus/coreapi/v22.2.11/staking/api"
 
 	"github.com/oasisprotocol/nexus/analyzer"
 	"github.com/oasisprotocol/nexus/analyzer/item"

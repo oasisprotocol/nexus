@@ -3,7 +3,7 @@ package file
 import (
 	"context"
 
-	roothash "github.com/oasisprotocol/oasis-core/go/roothash/api"
+	roothash "github.com/oasisprotocol/nexus/coreapi/v22.2.11/roothash/api"
 
 	"github.com/oasisprotocol/nexus/common"
 	"github.com/oasisprotocol/nexus/log"

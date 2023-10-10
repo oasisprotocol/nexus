@@ -12,7 +12,7 @@ import (
 	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
 
 	// data types for Damask gRPC APIs.
-	txResultsDamask "github.com/oasisprotocol/oasis-core/go/consensus/api/transaction/results"
+	txResultsDamask "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api/transaction/results"
 )
 
 func convertEvent(e txResultsDamask.Event) nodeapi.Event {

@@ -12,10 +12,10 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 
-	beacon "github.com/oasisprotocol/oasis-core/go/beacon/api"
+	beacon "github.com/oasisprotocol/nexus/coreapi/v22.2.11/beacon/api"
+	staking "github.com/oasisprotocol/nexus/coreapi/v22.2.11/staking/api"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
 	oasisErrors "github.com/oasisprotocol/oasis-core/go/common/errors"
-	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
 	oasisConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 

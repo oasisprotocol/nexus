@@ -6,9 +6,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	beacon "github.com/oasisprotocol/oasis-core/go/beacon/api"
+	beacon "github.com/oasisprotocol/nexus/coreapi/v22.2.11/beacon/api"
+	staking "github.com/oasisprotocol/nexus/coreapi/v22.2.11/staking/api"
 	"github.com/oasisprotocol/oasis-core/go/common/quantity"
-	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
 )
 
 // TestBackoffWait tests if the backoff time is
