@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"google.golang.org/grpc"
+
 	"github.com/oasisprotocol/oasis-core/go/common"
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 
@@ -13,7 +15,10 @@ import (
 	consensusTx "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api/transaction"
 	genesis "github.com/oasisprotocol/nexus/coreapi/v22.2.11/genesis/api"
 	governance "github.com/oasisprotocol/nexus/coreapi/v22.2.11/governance/api"
+	registry "github.com/oasisprotocol/nexus/coreapi/v22.2.11/registry/api"
+	roothash "github.com/oasisprotocol/nexus/coreapi/v22.2.11/roothash/api"
 	scheduler "github.com/oasisprotocol/nexus/coreapi/v22.2.11/scheduler/api"
+	staking "github.com/oasisprotocol/nexus/coreapi/v22.2.11/staking/api"
 
 	"github.com/oasisprotocol/nexus/log"
 	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
@@ -27,48 +32,48 @@ import (
 // compatible with Damask gRPC API, this struct just trivially wraps the
 // convenience methods provided by oasis-core.
 type DamaskConsensusApiLite struct {
-	client consensus.ClientBackend
+	grpcConn *grpc.ClientConn
 }
 
 var _ nodeapi.ConsensusApiLite = (*DamaskConsensusApiLite)(nil)
 
-func NewDamaskConsensusApiLite(client consensus.ClientBackend) *DamaskConsensusApiLite {
+func NewDamaskConsensusApiLite(grpcConn *grpc.ClientConn) *DamaskConsensusApiLite {
 	return &DamaskConsensusApiLite{
-		client: client,
+		grpcConn: grpcConn,
 	}
 }
 
 func (c *DamaskConsensusApiLite) Close() error {
-	return nil // Nothing to do; c.client does not expose a Close() method despite containing a gRPC connection.
+	return c.grpcConn.Close()
 }
 
 func (c *DamaskConsensusApiLite) GetGenesisDocument(ctx context.Context, chainContext string) (*genesis.Document, error) {
-	rsp, err := c.client.GetGenesisDocument(ctx)
-	if err != nil {
+	var rsp genesis.Document
+	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Consensus/GetGenesisDocument", nil, &rsp); err != nil {
 		return nil, fmt.Errorf("GetGenesisDocument(damask): %w", err)
 	}
-	return rsp, nil
+	return &rsp, nil
 }
 
 func (c *DamaskConsensusApiLite) StateToGenesis(ctx context.Context, height int64) (*genesis.Document, error) {
-	rsp, err := c.client.StateToGenesis(ctx, height)
-	if err != nil {
+	var rsp genesis.Document
+	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Consensus/StateToGenesis", height, &rsp); err != nil {
 		return nil, fmt.Errorf("StateToGenesis(%d): %w", height, err)
 	}
-	return rsp, nil
+	return &rsp, nil
 }
 
 func (c *DamaskConsensusApiLite) GetBlock(ctx context.Context, height int64) (*consensus.Block, error) {
-	rsp, err := c.client.GetBlock(ctx, height)
-	if err != nil {
+	var rsp consensus.Block
+	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Consensus/GetBlock", height, &rsp); err != nil {
 		return nil, fmt.Errorf("GetBlock(%d): %w", height, err)
 	}
-	return rsp, nil
+	return &rsp, nil
 }
 
 func (c *DamaskConsensusApiLite) GetTransactionsWithResults(ctx context.Context, height int64) ([]nodeapi.TransactionWithResults, error) {
-	rsp, err := c.client.GetTransactionsWithResults(ctx, height)
-	if err != nil {
+	var rsp consensus.TransactionsWithResults
+	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Consensus/GetTransactionsWithResults", height, &rsp); err != nil {
 		return nil, fmt.Errorf("GetTransactionsWithResults(%d): %w", height, err)
 	}
 	txrs := make([]nodeapi.TransactionWithResults, len(rsp.Transactions))
@@ -97,16 +102,16 @@ func (c *DamaskConsensusApiLite) GetTransactionsWithResults(ctx context.Context,
 }
 
 func (c *DamaskConsensusApiLite) GetEpoch(ctx context.Context, height int64) (beacon.EpochTime, error) {
-	rsp, err := c.client.Beacon().GetEpoch(ctx, height)
-	if err != nil {
+	var rsp beacon.EpochTime
+	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Beacon/GetEpoch", height, &rsp); err != nil {
 		return beacon.EpochInvalid, fmt.Errorf("GetEpoch(%d): %w", height, err)
 	}
 	return rsp, nil
 }
 
 func (c *DamaskConsensusApiLite) RegistryEvents(ctx context.Context, height int64) ([]nodeapi.Event, error) {
-	rsp, err := c.client.Registry().GetEvents(ctx, height)
-	if err != nil {
+	var rsp []*registry.Event
+	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Registry/GetEvents", height, &rsp); err != nil {
 		return nil, fmt.Errorf("RegistryEvents(%d): %w", height, err)
 	}
 	events := make([]nodeapi.Event, len(rsp))
@@ -117,8 +122,8 @@ func (c *DamaskConsensusApiLite) RegistryEvents(ctx context.Context, height int6
 }
 
 func (c *DamaskConsensusApiLite) StakingEvents(ctx context.Context, height int64) ([]nodeapi.Event, error) {
-	rsp, err := c.client.Staking().GetEvents(ctx, height)
-	if err != nil {
+	var rsp []*staking.Event
+	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Staking/GetEvents", height, &rsp); err != nil {
 		return nil, fmt.Errorf("StakingEvents(%d): %w", height, err)
 	}
 	events := make([]nodeapi.Event, len(rsp))
@@ -129,8 +134,8 @@ func (c *DamaskConsensusApiLite) StakingEvents(ctx context.Context, height int64
 }
 
 func (c *DamaskConsensusApiLite) GovernanceEvents(ctx context.Context, height int64) ([]nodeapi.Event, error) {
-	rsp, err := c.client.Governance().GetEvents(ctx, height)
-	if err != nil {
+	var rsp []*governance.Event
+	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Governance/GetEvents", height, &rsp); err != nil {
 		return nil, fmt.Errorf("GovernanceEvents(%d): %w", height, err)
 	}
 	events := make([]nodeapi.Event, len(rsp))
@@ -141,8 +146,8 @@ func (c *DamaskConsensusApiLite) GovernanceEvents(ctx context.Context, height in
 }
 
 func (c *DamaskConsensusApiLite) RoothashEvents(ctx context.Context, height int64) ([]nodeapi.Event, error) {
-	rsp, err := c.client.RootHash().GetEvents(ctx, height)
-	if err != nil {
+	var rsp []*roothash.Event
+	if err := c.grpcConn.Invoke(ctx, "/oasis-core.RootHash/GetEvents", height, &rsp); err != nil {
 		return nil, fmt.Errorf("RoothashEvents(%d): %w", height, err)
 	}
 	events := make([]nodeapi.Event, len(rsp))
@@ -153,20 +158,20 @@ func (c *DamaskConsensusApiLite) RoothashEvents(ctx context.Context, height int6
 }
 
 func (c *DamaskConsensusApiLite) GetNodes(ctx context.Context, height int64) ([]nodeapi.Node, error) {
-	rsp, err := c.client.Registry().GetNodes(ctx, height)
-	if err != nil {
+	var rsp []*nodeapi.Node
+	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Registry/GetNodes", height, &rsp); err != nil {
 		return nil, fmt.Errorf("GetNodes(%d): %w", height, err)
 	}
 	nodes := make([]nodeapi.Node, len(rsp))
 	for i, n := range rsp {
-		nodes[i] = nodeapi.Node(*n)
+		nodes[i] = *n
 	}
 	return nodes, nil
 }
 
 func (c *DamaskConsensusApiLite) GetValidators(ctx context.Context, height int64) ([]nodeapi.Validator, error) {
-	rsp, err := c.client.Scheduler().GetValidators(ctx, height)
-	if err != nil {
+	var rsp []*scheduler.Validator
+	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Scheduler/GetValidators", height, &rsp); err != nil {
 		return nil, fmt.Errorf("GetValidators(%d): %w", height, err)
 	}
 	validators := make([]nodeapi.Validator, len(rsp))
@@ -177,11 +182,11 @@ func (c *DamaskConsensusApiLite) GetValidators(ctx context.Context, height int64
 }
 
 func (c *DamaskConsensusApiLite) GetCommittees(ctx context.Context, height int64, runtimeID common.Namespace) ([]nodeapi.Committee, error) {
-	rsp, err := c.client.Scheduler().GetCommittees(ctx, &scheduler.GetCommitteesRequest{
+	var rsp []*scheduler.Committee
+	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Scheduler/GetCommittees", &scheduler.GetCommitteesRequest{
 		Height:    height,
 		RuntimeID: runtimeID,
-	})
-	if err != nil {
+	}, &rsp); err != nil {
 		return nil, fmt.Errorf("GetCommittees(%d): %w", height, err)
 	}
 	committees := make([]nodeapi.Committee, len(rsp))
@@ -197,11 +202,11 @@ func (c *DamaskConsensusApiLite) GetCommittees(ctx context.Context, height int64
 }
 
 func (c *DamaskConsensusApiLite) GetProposal(ctx context.Context, height int64, proposalID uint64) (*nodeapi.Proposal, error) {
-	rsp, err := c.client.Governance().Proposal(ctx, &governance.ProposalQuery{
+	var rsp *governance.Proposal
+	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Governance/Proposal", &governance.ProposalQuery{
 		Height:     height,
 		ProposalID: proposalID,
-	})
-	if err != nil {
+	}, &rsp); err != nil {
 		return nil, fmt.Errorf("GetProposal(%d, %d): %w", height, proposalID, err)
 	}
 	return (*nodeapi.Proposal)(rsp), nil

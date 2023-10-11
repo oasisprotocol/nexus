@@ -21,11 +21,11 @@ var _ nodeapi.ConsensusApiLite = (*HistoryConsensusApiLite)(nil)
 type APIConstructor func(ctx context.Context, chainContext string, archiveConfig *config.ArchiveConfig, fastStartup bool) (nodeapi.ConsensusApiLite, error)
 
 func damaskAPIConstructor(ctx context.Context, chainContext string, archiveConfig *config.ArchiveConfig, fastStartup bool) (nodeapi.ConsensusApiLite, error) {
-	sdkConn, err := connections.SDKConnect(ctx, chainContext, archiveConfig.ResolvedConsensusNode(), fastStartup)
+	rawConn, err := connections.RawConnect(archiveConfig.ResolvedConsensusNode())
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("oasis-node RawConnect: %w", err)
 	}
-	return damask.NewDamaskConsensusApiLite(sdkConn.Consensus()), nil
+	return damask.NewDamaskConsensusApiLite(rawConn), nil
 }
 
 func cobaltAPIConstructor(ctx context.Context, chainContext string, archiveConfig *config.ArchiveConfig, fastStartup bool) (nodeapi.ConsensusApiLite, error) {
