@@ -336,10 +336,10 @@ const (
 			txs.error_message
 		FROM chain.runtime_transactions AS txs
 		LEFT JOIN chain.runtime_transaction_signers AS signer0 ON
-		    (signer0.runtime = txs.runtime) AND
-		    (signer0.round = txs.round) AND
-		    (signer0.tx_index = txs.tx_index) AND
-		    (signer0.signer_index = 0)
+			(signer0.runtime = txs.runtime) AND
+			(signer0.round = txs.round) AND
+			(signer0.tx_index = txs.tx_index) AND
+			(signer0.signer_index = 0)
 		LEFT JOIN chain.address_preimages AS signer0_preimage ON
 			(signer0.signer_address = signer0_preimage.address) AND
 			-- For now, the only user is the explorer, where we only care
@@ -494,6 +494,48 @@ const (
 		LIMIT $3::bigint
 		OFFSET $4::bigint`
 
+	EvmNfts = `
+		WITH
+			token_holders AS (
+				SELECT token_address, COUNT(*) AS num_holders
+				FROM chain.evm_token_balances
+				WHERE (runtime = $1) AND (balance != 0)
+				GROUP BY token_address
+			)
+		SELECT
+			chain.evm_nfts.token_address,
+			chain.address_preimages.context_identifier,
+			chain.address_preimages.context_version,
+			chain.address_preimages.address_data,
+			chain.evm_tokens.token_name,
+			chain.evm_tokens.symbol,
+			chain.evm_tokens.decimals,
+			chain.evm_tokens.token_type,
+			chain.evm_tokens.total_supply,
+			chain.evm_tokens.num_transfers,
+			COALESCE(token_holders.num_holders, 0) AS num_holders,
+			chain.evm_contracts.verification_info_downloaded_at IS NOT NULL AS is_verified,
+			chain.evm_nfts.nft_id,
+			chain.evm_nfts.metadata_uri,
+			chain.evm_nfts.metadata_accessed,
+			chain.evm_nfts.name,
+			chain.evm_nfts.description,
+			chain.evm_nfts.image
+		FROM chain.evm_nfts
+		LEFT JOIN chain.address_preimages ON
+			chain.address_preimages.address = chain.evm_nfts.token_address
+		LEFT JOIN chain.evm_tokens USING (runtime, token_address)
+		LEFT JOIN token_holders USING (token_address)
+		LEFT JOIN chain.evm_contracts ON
+			chain.evm_contracts.runtime = chain.evm_tokens.runtime AND
+			chain.evm_contracts.contract_address = chain.evm_tokens.token_address
+		WHERE
+			chain.evm_nfts.runtime = $1::runtime AND
+			chain.evm_nfts.token_address = $2::oasis_addr
+		ORDER BY token_address, nft_id
+		LIMIT $3::bigint
+		OFFSET $4::bigint`
+
 	AccountRuntimeSdkBalances = `
 		SELECT
 			balance AS balance,
@@ -516,7 +558,7 @@ const (
 			tokens.token_type,
 			tokens.decimals AS token_decimals
 		FROM chain.evm_token_balances AS balances
-		JOIN chain.address_preimages AS preimages ON (preimages.address = balances.token_address AND preimages.context_identifier = 'oasis-runtime-sdk/address: secp256k1eth' AND preimages.context_version = 0)
+		JOIN chain.address_preimages  AS preimages ON (preimages.address = balances.token_address AND preimages.context_identifier = 'oasis-runtime-sdk/address: secp256k1eth' AND preimages.context_version = 0)
 		JOIN chain.evm_tokens         AS tokens USING (runtime, token_address)
 		WHERE runtime = $1 AND
 			balances.account_address = $2::text AND

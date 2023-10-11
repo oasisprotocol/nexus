@@ -1551,6 +1551,70 @@ func (c *StorageClient) RuntimeTokenHolders(ctx context.Context, p apiTypes.GetR
 	return &hs, nil
 }
 
+func (c *StorageClient) RuntimeEVMNFTs(ctx context.Context, p apiTypes.GetRuntimeEvmTokensAddressNftsParams, address staking.Address) (*EvmNftList, error) {
+	res, err := c.withTotalCount(
+		ctx,
+		queries.EvmNfts,
+		runtimeFromCtx(ctx),
+		address,
+		p.Limit,
+		p.Offset,
+	)
+	if err != nil {
+		return nil, wrapError(err)
+	}
+	defer res.rows.Close()
+
+	nfts := EvmNftList{
+		EvmNfts:             []EvmNft{},
+		TotalCount:          res.totalCount,
+		IsTotalCountClipped: res.isTotalCountClipped,
+	}
+	for res.rows.Next() {
+		var nft EvmNft
+		var contractAddrContextIdentifier string
+		var contractAddrContextVersion int
+		var contractAddrData []byte
+		var tokenType sql.NullInt32
+		var metadataAccessedN sql.NullTime
+		if err = res.rows.Scan(
+			&nft.Token.ContractAddr,
+			&contractAddrContextIdentifier,
+			&contractAddrContextVersion,
+			&contractAddrData,
+			&nft.Token.Name,
+			&nft.Token.Symbol,
+			&nft.Token.Decimals,
+			&tokenType,
+			&nft.Token.TotalSupply,
+			&nft.Token.NumTransfers,
+			&nft.Token.NumHolders,
+			&nft.Token.IsVerified,
+			&nft.Id,
+			&nft.MetadataUri,
+			&metadataAccessedN,
+			&nft.Name,
+			&nft.Description,
+			&nft.Image,
+		); err != nil {
+			return nil, wrapError(err)
+		}
+		if contractEthAddr, err1 := EVMEthAddrFromPreimage(contractAddrContextIdentifier, contractAddrContextVersion, contractAddrData); err1 == nil {
+			contractECAddr := ethCommon.BytesToAddress(contractEthAddr)
+			nft.Token.EthContractAddr = contractECAddr.String()
+		}
+		if tokenType.Valid {
+			nft.Token.Type = translateTokenType(common.TokenType(tokenType.Int32))
+		}
+		if metadataAccessedN.Valid {
+			nft.MetadataAccessed = common.Ptr(metadataAccessedN.Time.String())
+		}
+		nfts.EvmNfts = append(nfts.EvmNfts, nft)
+	}
+
+	return &nfts, nil
+}
+
 // RuntimeStatus returns runtime status information.
 func (c *StorageClient) RuntimeStatus(ctx context.Context) (*RuntimeStatus, error) {
 	runtimeName := runtimeFromCtx(ctx)

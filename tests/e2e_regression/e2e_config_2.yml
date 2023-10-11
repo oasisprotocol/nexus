@@ -9,9 +9,13 @@ analysis:
     nodes:
       damask:
         default: { rpc: unix:/tmp/node.sock }
+    ipfs:
+      gateway: https://ipfs.io
     fast_startup: true
   analyzers:
     evm_tokens_emerald:
+      stop_on_empty_queue: true
+    evm_nfts_emerald:
       stop_on_empty_queue: true
     evm_token_balances_emerald:
       stop_on_empty_queue: true

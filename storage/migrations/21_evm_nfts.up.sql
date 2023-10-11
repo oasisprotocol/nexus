@@ -1,3 +1,5 @@
+BEGIN;
+
 CREATE TABLE chain.evm_nfts (
     runtime runtime NOT NULL,
     token_address oasis_addr NOT NULL,
@@ -14,3 +16,5 @@ CREATE TABLE chain.evm_nfts (
     image TEXT
 );
 CREATE INDEX ix_evm_nfts_stale ON chain.evm_nfts (runtime, token_address, nft_id) WHERE last_download_round IS NULL OR last_want_download_round > last_download_round;
+
+COMMIT;
