@@ -46,45 +46,42 @@ echo "Vendoring oasis-core $VERSION into $OUTDIR"
     echo "$output"
     exit 1
   fi
-  git checkout $VERSION # "850373a2d" # master as of 2023-10-03
+  git checkout "$VERSION" # "850373a2d" # master as of 2023-10-03
 )
-rm -rf $OUTDIR
+rm -rf "$OUTDIR"
 for m in "${MODULES[@]}"; do
   mkdir -p "$OUTDIR/$m"
   cp -r "../oasis-core/go/$m/api" "$OUTDIR/$m"
 done
-cp -r ../oasis-core/go/consensus/genesis $OUTDIR/consensus
-rm $(find $OUTDIR/ -name '*_test.go')
+cp -r ../oasis-core/go/consensus/genesis "$OUTDIR/consensus"
+rm $(find "$OUTDIR/" -name '*_test.go')
 
 # Fix imports
-# for m in "${MODULES[@]}"; do
-#   sed -E -i "s#$m \"github.com/oasisprotocol/oasis-core/go/$m/api([^\"]*)\"#$m \"github.com/oasisprotocol/nexus/$OUTDIR/$m/api\\1\"#" $(find $OUTDIR/ -type f)
-# done
 modules_or=$(IFS="|"; echo "${MODULES[*]}")
-sed -E -i "s#github.com/oasisprotocol/oasis-core/go/($modules_or)/api(/[^\"]*)?#github.com/oasisprotocol/nexus/$OUTDIR/\\1/api\\2#" $(find $OUTDIR/ -type f)
-sed -E -i "s#github.com/oasisprotocol/oasis-core/go/consensus/genesis#github.com/oasisprotocol/nexus/$OUTDIR/consensus/genesis#" $(find $OUTDIR/ -type f)
+sed -E -i "s#github.com/oasisprotocol/oasis-core/go/($modules_or)/api(/[^\"]*)?#github.com/oasisprotocol/nexus/$OUTDIR/\\1/api\\2#" $(find "$OUTDIR/" -type f)
+sed -E -i "s#github.com/oasisprotocol/oasis-core/go/consensus/genesis#github.com/oasisprotocol/nexus/$OUTDIR/consensus/genesis#" $(find "$OUTDIR/" -type f)
 
 # Remove functions
-for f in $(find $OUTDIR/ -type f); do
+for f in $(find "$OUTDIR/" -type f); do
   scripts/vendor-oasis-core/remove_func.py <"$f" >/tmp/nofunc
   mv /tmp/nofunc "$f"
 done
 
 # Clean up
-gofumpt -w $OUTDIR/
-goimports -w $OUTDIR/
+gofumpt -w "$OUTDIR/"
+goimports -w "$OUTDIR/"
 
 # Apply manual patches
 if [[ $VERSION == v21.1.1 ]]; then
   # 1) Remove mentions of pvss from Cobalt. Nexus doesn't use those fields;
   #    just mark them interface{} so they can be CBOR-decoded.
-  sed -i -E 's/\*pvss.[a-zA-Z]+/interface{}/' $OUTDIR/beacon/api/pvss.go
-  goimports -w $OUTDIR/
+  sed -i -E 's/\*pvss.[a-zA-Z]+/interface{}/' "$OUTDIR/beacon/api/pvss.go"
+  goimports -w "$OUTDIR/"
 fi
 
 if [[ $VERSION == v21.1.1 ]] || [[ $VERSION == v22.2.11 ]]; then  
   # 2) Reuse the Address struct from oasis-core.
-  >$OUTDIR/staking/api/address.go cat <<EOF
+  >"$OUTDIR/staking/api/address.go" cat <<EOF
 package api
 
 import (
@@ -108,7 +105,7 @@ whitelisted_imports=(
   github.com/oasisprotocol/oasis-core/go/upgrade
 )
 surprising_core_imports="$(
-  grep --no-filename github.com/oasisprotocol/oasis-core $(find $OUTDIR/ -type f) \
+  grep --no-filename github.com/oasisprotocol/oasis-core $(find "$OUTDIR/" -type f) \
   | grep -v 'original' `# we introduced this dependency intentionally; see above` \
   | grep -oE '"github.com/oasisprotocol/oasis-core/[^"]*"' \
   | sort \
