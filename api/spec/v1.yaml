@@ -2620,6 +2620,7 @@ components:
           $ref: '#/components/schemas/EvmToken'
         id:
           <<: *BigIntType
+          description: The instance ID of this NFT within the collection represented by `token`.
         metadata_uri:
           type: string
         metadata_accessed:
