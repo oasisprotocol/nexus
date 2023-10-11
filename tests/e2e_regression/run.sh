@@ -146,7 +146,11 @@ for ((i = 0; i < nCases; i++)); do
     curl --silent --show-error --dump-header "$outDir/$name.headers" "$url" >"$outDir/$name.body"
     # Try to pretty-print and normalize (for stable diffs) the output.
     # If `jq` fails, output was probably not JSON; leave it as-is.
-    jq 'if .latest_update_age_ms? then .latest_update_age_ms="UNINTERESTING" else . end' \
+    jq \
+      '
+        (if .latest_update_age_ms? then .latest_update_age_ms="UNINTERESTING" else . end) |
+        ((.evm_nfts?[]? | select(.metadata_accessed) | .metadata_accessed) = "UNINTERESTING")
+      ' \
       <"$outDir/$name.body" \
       >/tmp/pretty 2>/dev/null &&
       cp /tmp/pretty "$outDir/$name.body" || true
