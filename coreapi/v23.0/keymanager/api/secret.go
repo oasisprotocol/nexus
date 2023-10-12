@@ -3,9 +3,10 @@ package api
 import (
 	"github.com/oasisprotocol/curve25519-voi/primitives/x25519"
 
-	beacon "github.com/oasisprotocol/nexus/coreapi/v23.0/beacon/api"
 	"github.com/oasisprotocol/oasis-core/go/common"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
+
+	beacon "github.com/oasisprotocol/nexus/coreapi/v23.0/beacon/api"
 )
 
 // minEnclavesPercent is the minimum percentage of key manager enclaves from the key manager

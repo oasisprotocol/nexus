@@ -4,16 +4,17 @@ import (
 	"fmt"
 	"time"
 
-	beacon "github.com/oasisprotocol/nexus/coreapi/v23.0/beacon/api"
-	"github.com/oasisprotocol/nexus/coreapi/v23.0/common/node"
-	scheduler "github.com/oasisprotocol/nexus/coreapi/v23.0/scheduler/api"
-	staking "github.com/oasisprotocol/nexus/coreapi/v23.0/staking/api"
 	"github.com/oasisprotocol/oasis-core/go/common"
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/hash"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
 	"github.com/oasisprotocol/oasis-core/go/common/quantity"
 	"github.com/oasisprotocol/oasis-core/go/common/version"
+
+	beacon "github.com/oasisprotocol/nexus/coreapi/v23.0/beacon/api"
+	"github.com/oasisprotocol/nexus/coreapi/v23.0/common/node"
+	scheduler "github.com/oasisprotocol/nexus/coreapi/v23.0/scheduler/api"
+	staking "github.com/oasisprotocol/nexus/coreapi/v23.0/staking/api"
 )
 
 // removed var block

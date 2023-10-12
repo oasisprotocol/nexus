@@ -1,8 +1,9 @@
 package api
 
 import (
-	"github.com/oasisprotocol/nexus/coreapi/v23.0/common/node"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
+
+	"github.com/oasisprotocol/nexus/coreapi/v23.0/common/node"
 )
 
 // RuntimeAdmissionPolicy is a specification of which nodes are allowed to register for a runtime.

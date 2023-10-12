@@ -1,8 +1,9 @@
 package message
 
 import (
-	staking "github.com/oasisprotocol/nexus/coreapi/v23.0/staking/api"
 	"github.com/oasisprotocol/oasis-core/go/common/quantity"
+
+	staking "github.com/oasisprotocol/nexus/coreapi/v23.0/staking/api"
 )
 
 // IncomingMessage is an incoming message.

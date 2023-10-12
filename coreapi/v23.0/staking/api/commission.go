@@ -1,8 +1,9 @@
 package api
 
 import (
-	beacon "github.com/oasisprotocol/nexus/coreapi/v23.0/beacon/api"
 	"github.com/oasisprotocol/oasis-core/go/common/quantity"
+
+	beacon "github.com/oasisprotocol/nexus/coreapi/v23.0/beacon/api"
 )
 
 // commissionRateDenominatorExponent is the commission rate denominator's

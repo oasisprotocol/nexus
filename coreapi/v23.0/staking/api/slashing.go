@@ -3,8 +3,9 @@ package api
 import (
 	"fmt"
 
-	beacon "github.com/oasisprotocol/nexus/coreapi/v23.0/beacon/api"
 	"github.com/oasisprotocol/oasis-core/go/common/quantity"
+
+	beacon "github.com/oasisprotocol/nexus/coreapi/v23.0/beacon/api"
 )
 
 // SlashReason is the reason why a node was slashed.

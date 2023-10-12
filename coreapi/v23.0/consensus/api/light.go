@@ -3,8 +3,9 @@ package api
 import (
 	"time"
 
-	"github.com/oasisprotocol/nexus/coreapi/v23.0/consensus/genesis"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/hash"
+
+	"github.com/oasisprotocol/nexus/coreapi/v23.0/consensus/genesis"
 )
 
 // LightService is a consensus light client service.

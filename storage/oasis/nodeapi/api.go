@@ -6,12 +6,13 @@ import (
 	"time"
 
 	coreCommon "github.com/oasisprotocol/oasis-core/go/common"
+
 	hash "github.com/oasisprotocol/oasis-core/go/common/crypto/hash"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
 	"github.com/oasisprotocol/oasis-core/go/common/errors"
-	node "github.com/oasisprotocol/oasis-core/go/common/node"
 
 	beacon "github.com/oasisprotocol/nexus/coreapi/v22.2.11/beacon/api"
+	node "github.com/oasisprotocol/nexus/coreapi/v22.2.11/common/node"
 	consensus "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api"
 	consensusTransaction "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api/transaction"
 	consensusResults "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api/transaction/results"

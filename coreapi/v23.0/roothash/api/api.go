@@ -4,16 +4,17 @@ package api
 import (
 	"math"
 
+	"github.com/oasisprotocol/oasis-core/go/common"
+	"github.com/oasisprotocol/oasis-core/go/common/cbor"
+	"github.com/oasisprotocol/oasis-core/go/common/crypto/hash"
+	"github.com/oasisprotocol/oasis-core/go/common/quantity"
+
 	"github.com/oasisprotocol/nexus/coreapi/v23.0/consensus/api/transaction"
 	registry "github.com/oasisprotocol/nexus/coreapi/v23.0/registry/api"
 	"github.com/oasisprotocol/nexus/coreapi/v23.0/roothash/api/block"
 	"github.com/oasisprotocol/nexus/coreapi/v23.0/roothash/api/commitment"
 	scheduler "github.com/oasisprotocol/nexus/coreapi/v23.0/scheduler/api"
 	staking "github.com/oasisprotocol/nexus/coreapi/v23.0/staking/api"
-	"github.com/oasisprotocol/oasis-core/go/common"
-	"github.com/oasisprotocol/oasis-core/go/common/cbor"
-	"github.com/oasisprotocol/oasis-core/go/common/crypto/hash"
-	"github.com/oasisprotocol/oasis-core/go/common/quantity"
 )
 
 const (
