@@ -32,7 +32,8 @@ set -euo pipefail
 
 VERSION="${1:-v22.2.11}" # Damask
 MODULES=(beacon consensus genesis governance keymanager registry roothash scheduler staking)
-if [[ $VERSION == v22.2.11 ]]; then MODULES+=(runtime/client upgrade); fi
+if [[ $VERSION == v22.* ]]; then MODULES+=(runtime/client); fi
+if [[ $VERSION == v22.* ]] || [[ $VERSION == v23.* ]]; then MODULES+=(upgrade); fi
 OUTDIR="coreapi/$VERSION"
 
 echo "Vendoring oasis-core $VERSION into $OUTDIR"
@@ -75,16 +76,15 @@ gofumpt -w "$OUTDIR/"
 goimports -w "$OUTDIR/"
 
 # Apply manual patches
-if [[ $VERSION == v21.1.1 ]]; then
+if [[ $VERSION == v21.* ]]; then
   # 1) Remove mentions of pvss from Cobalt. Nexus doesn't use those fields;
   #    just mark them interface{} so they can be CBOR-decoded.
   sed -i -E 's/\*pvss.[a-zA-Z]+/interface{}/' "$OUTDIR/beacon/api/pvss.go"
   goimports -w "$OUTDIR/"
 fi
 
-if [[ $VERSION == v21.1.1 ]] || [[ $VERSION == v22.2.11 ]]; then  
-  # 2) Reuse the Address struct from oasis-core.
-  >"$OUTDIR/staking/api/address.go" cat <<EOF
+# 2) Reuse the Address struct from oasis-core.
+>"$OUTDIR/staking/api/address.go" cat <<EOF
 package api
 
 import (
@@ -93,12 +93,11 @@ import (
 
 type Address = original.Address
 EOF
-  # 3) Reuse EpochTime from oasis-core, and some other minor fixes.
-  for p in scripts/vendor-oasis-core/patches/"$VERSION"/*.patch; do
-    echo "Applying patch $p"
-    git apply "$p"
-  done 
-fi
+# 3) Reuse EpochTime from oasis-core, and some other minor fixes.
+for p in scripts/vendor-oasis-core/patches/"$VERSION"/*.patch; do
+  echo "Applying patch $p"
+  git apply "$p"
+done 
 
 # Check that no unexpected direct oasis-core imports are left,
 # now that we've removed non-API code and minimized imports.
