@@ -113,7 +113,7 @@ func VisitCall(call *sdkTypes.Call, result *sdkTypes.CallResult, handler *CallHa
 			if !result.IsUnknown() && result.IsSuccess() {
 				var ok []byte
 				if err := cbor.Unmarshal(result.Ok, &ok); err != nil {
-					return fmt.Errorf("unmarshal evm create result: %w", err)
+					return fmt.Errorf("unmarshal evm call result: %w", err)
 				}
 				okP = &ok
 			}
