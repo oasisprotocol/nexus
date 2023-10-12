@@ -138,6 +138,17 @@ var DefaultChains = map[common.ChainName]*History{
 	common.ChainNameTestnet: {
 		Records: []*Record{
 			{
+				// https://github.com/oasisprotocol/testnet-artifacts/releases/tag/2023-10-12
+				ArchiveName:   "2023-10-12",
+				GenesisHeight: 17751681,
+				ChainContext:  "0b91b8e4e44b2003a7c5e23ddadb5e14ef5345c0ebcb3ddcae07fa2f244cab76",
+				RuntimeStartRounds: map[common.Runtime]uint64{
+					common.RuntimeCipher:   1730319,
+					common.RuntimeEmerald:  2627790,
+					common.RuntimeSapphire: 2995927,
+				},
+			},
+			{
 				// https://github.com/oasisprotocol/testnet-artifacts/releases/tag/2022-03-03
 				ArchiveName:   "2022-03-03",
 				GenesisHeight: 8535081,
