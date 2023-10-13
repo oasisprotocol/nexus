@@ -1,9 +1,9 @@
 package api
 
 import (
+	"github.com/oasisprotocol/nexus/coreapi/v22.2.11/common/node"
 	"github.com/oasisprotocol/oasis-core/go/common"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
-	"github.com/oasisprotocol/oasis-core/go/common/node"
 )
 
 // SanityCheck performs a sanity check on the consensus parameters.

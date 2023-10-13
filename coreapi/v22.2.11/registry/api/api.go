@@ -2,12 +2,12 @@
 package api
 
 import (
+	"github.com/oasisprotocol/nexus/coreapi/v22.2.11/common/node"
 	"github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api/transaction"
 	"github.com/oasisprotocol/oasis-core/go/common"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/hash"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
 	"github.com/oasisprotocol/oasis-core/go/common/entity"
-	"github.com/oasisprotocol/oasis-core/go/common/node"
 	original "github.com/oasisprotocol/oasis-core/go/registry/api"
 )
 

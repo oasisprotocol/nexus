@@ -5,13 +5,13 @@ import (
 	"time"
 
 	beacon "github.com/oasisprotocol/nexus/coreapi/v22.2.11/beacon/api"
+	"github.com/oasisprotocol/nexus/coreapi/v22.2.11/common/node"
 	scheduler "github.com/oasisprotocol/nexus/coreapi/v22.2.11/scheduler/api"
 	staking "github.com/oasisprotocol/nexus/coreapi/v22.2.11/staking/api"
 	"github.com/oasisprotocol/oasis-core/go/common"
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/hash"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
-	"github.com/oasisprotocol/oasis-core/go/common/node"
 	"github.com/oasisprotocol/oasis-core/go/common/quantity"
 	"github.com/oasisprotocol/oasis-core/go/common/version"
 )
