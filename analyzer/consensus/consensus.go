@@ -479,7 +479,7 @@ func (m *processor) queueEntityEvents(batch *storage.QueryBatch, data *storage.R
 				node.String(),
 			)
 		}
-		batch.Queue(queries.ConsensusEntityInsert,
+		batch.Queue(queries.ConsensusEntityUpsert,
 			entityID,
 			staking.NewAddress(entityEvent.Entity.ID).String(),
 		)

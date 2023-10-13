@@ -226,7 +226,7 @@ var (
     INSERT INTO chain.claimed_nodes (entity_id, node_id) VALUES ($1, $2)
       ON CONFLICT (entity_id, node_id) DO NOTHING`
 
-	ConsensusEntityInsert = `
+	ConsensusEntityUpsert = `
     INSERT INTO chain.entities (id, address) VALUES ($1, $2)
       ON CONFLICT (id) DO
       UPDATE SET
@@ -527,7 +527,7 @@ var (
     ON CONFLICT (runtime, token_address, account_address) DO
       UPDATE SET balance = chain.evm_token_balances.balance + $4`
 
-	RuntimeEVMTokenBalanceAnalysisInsert = `
+	RuntimeEVMTokenBalanceAnalysisUpsert = `
     INSERT INTO analysis.evm_token_balances
       (runtime, token_address, account_address, last_mutate_round)
     VALUES
