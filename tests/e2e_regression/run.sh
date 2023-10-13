@@ -109,6 +109,7 @@ testCases=(
   'emerald_account_with_evm_token /v1/emerald/accounts/oasis1qpwx3ptmvcceqkd4syjmqf9jmdlf90xmuuy0f6y9'
   'emerald_contract_account       /v1/emerald/accounts/oasis1qrrmuaed6numjju8gajzn68tn2edlvycjc50nfva'
   'emerald_account_nfts           /v1/emerald/accounts/oasis1qq92lk7kpqmvllhjvhlc282zp6v2e2t2rqrwuq2u/nfts'
+  'emerald_account_nfts_token     /v1/emerald/accounts/oasis1qq92lk7kpqmvllhjvhlc282zp6v2e2t2rqrwuq2u/nfts?token_address=oasis1qqewaa87rnyshyqs7yutnnpzzetejecgeu005l8u'
   'emerald_status                 /v1/emerald/status'
   'emerald_tx_volume              /v1/emerald/stats/tx_volume'
 )
