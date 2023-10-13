@@ -104,6 +104,7 @@ testCases=(
   'emerald_token                  /v1/emerald/evm_tokens/oasis1qpgcp5jzlgk4hcenaj2x82rqk8rrve2keyuc8aaf'
   'emerald_token_holders          /v1/emerald/evm_tokens/oasis1qpgcp5jzlgk4hcenaj2x82rqk8rrve2keyuc8aaf/holders'
   'emerald_token_nfts             /v1/emerald/evm_tokens/oasis1qqewaa87rnyshyqs7yutnnpzzetejecgeu005l8u/nfts'
+  'emerald_token_nft              /v1/emerald/evm_tokens/oasis1qqewaa87rnyshyqs7yutnnpzzetejecgeu005l8u/nfts/227'
   'emerald_account_with_rose      /v1/emerald/accounts/oasis1qrt0sv2s2x2lkt9e7kmr2mzxgme8m0pzauwztprl'
   'emerald_account_with_evm_token /v1/emerald/accounts/oasis1qpwx3ptmvcceqkd4syjmqf9jmdlf90xmuuy0f6y9'
   'emerald_contract_account       /v1/emerald/accounts/oasis1qrrmuaed6numjju8gajzn68tn2edlvycjc50nfva'
@@ -151,7 +152,8 @@ for ((i = 0; i < nCases; i++)); do
     jq \
       '
         (if .latest_update_age_ms? then .latest_update_age_ms="UNINTERESTING" else . end) |
-        ((.evm_nfts?[]? | select(.metadata_accessed) | .metadata_accessed) = "UNINTERESTING")
+        ((.evm_nfts?[]? | select(.metadata_accessed) | .metadata_accessed) = "UNINTERESTING") |
+        (if .metadata_accessed? then .metadata_accessed = "UNINTERESTING" end)
       ' \
       <"$outDir/$name.body" \
       >/tmp/pretty 2>/dev/null &&
