@@ -8,13 +8,13 @@ import (
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/hash"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
-	"github.com/oasisprotocol/oasis-core/go/common/node"
 	"github.com/oasisprotocol/oasis-core/go/common/quantity"
 	"github.com/oasisprotocol/oasis-core/go/common/version"
 	storage "github.com/oasisprotocol/oasis-core/go/storage/api"
 
 	scheduler "github.com/oasisprotocol/nexus/coreapi/v21.1.1/scheduler/api"
 	staking "github.com/oasisprotocol/nexus/coreapi/v21.1.1/staking/api"
+	"github.com/oasisprotocol/nexus/coreapi/v22.2.11/common/node" // Borrow the 22.2.11 version of `node` because the 21.1.1 version is identical for serde purposes
 )
 
 // removed var block
