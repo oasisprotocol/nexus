@@ -54,16 +54,19 @@ for m in "${MODULES[@]}"; do
   cp -r "../oasis-core/go/$m/api" "$OUTDIR/$m"
 done
 cp -r ../oasis-core/go/consensus/genesis "$OUTDIR/consensus"
+mkdir -p "$OUTDIR/common/node"
+cp ../oasis-core/go/common/node/*.go "$OUTDIR/common/node"
 rm $(find "$OUTDIR/" -name '*_test.go')
 
-# Fix imports
+# Fix imports: References to the "real" oasis-core must now point to the vendored coutnerpart.
 modules_or=$(IFS="|"; echo "${MODULES[*]}")
 sed -E -i "s#github.com/oasisprotocol/oasis-core/go/($modules_or)/api(/[^\"]*)?#github.com/oasisprotocol/nexus/$OUTDIR/\\1/api\\2#" $(find "$OUTDIR/" -type f)
+sed -E -i "s#github.com/oasisprotocol/oasis-core/go/common/node#github.com/oasisprotocol/nexus/$OUTDIR/common/node#" $(find "$OUTDIR/" -type f)
 sed -E -i "s#github.com/oasisprotocol/oasis-core/go/consensus/genesis#github.com/oasisprotocol/nexus/$OUTDIR/consensus/genesis#" $(find "$OUTDIR/" -type f)
 
-# Remove functions
-for f in $(find "$OUTDIR/" -type f); do
-  scripts/vendor-oasis-core/remove_func.py <"$f" >/tmp/nofunc
+# Remove functions and interfaces. We only need the types.
+for f in $(find "$OUTDIR/" -name "*.go" -type f | sort); do
+  scripts/vendor-oasis-core/remove_func.py <"$f" >/tmp/nofunc || { echo "Failed to remove functions from $f"; exit 1; }
   mv /tmp/nofunc "$f"
 done
 

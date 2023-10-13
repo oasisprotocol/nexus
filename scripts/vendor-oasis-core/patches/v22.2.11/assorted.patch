@@ -83,10 +83,9 @@ diff --git a/coreapi/v22.2.11/registry/api/api.go b/coreapi/v22.2.11/registry/ap
 index 7f76b08c..23644d33 100644
 --- a/coreapi/v22.2.11/registry/api/api.go
 +++ b/coreapi/v22.2.11/registry/api/api.go
-@@ -8,12 +8,28 @@ import (
+@@ -8,11 +8,27 @@ import (
  	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
  	"github.com/oasisprotocol/oasis-core/go/common/entity"
- 	"github.com/oasisprotocol/oasis-core/go/common/node"
 +	original "github.com/oasisprotocol/oasis-core/go/registry/api"
  )
  
