@@ -359,11 +359,19 @@ func (m *processor) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 		}
 		// Even for a (suspected) non-change, notify the evm_token_balances analyzer to
 		// verify the correct balance by querying the EVM.
-		batch.Queue(queries.RuntimeEVMTokenBalanceAnalysisInsert, m.runtime, key.TokenAddress, key.AccountAddress, data.Header.Round)
+		batch.Queue(queries.RuntimeEVMTokenBalanceAnalysisUpsert, m.runtime, key.TokenAddress, key.AccountAddress, data.Header.Round)
 	}
 
 	// Insert NFTs.
-	for key := range data.PossibleNFTs {
-		batch.Queue(queries.RuntimeEVMNFTInsert, m.runtime, key.TokenAddress, key.TokenID, data.Header.Round)
+	for key, possibleNFT := range data.PossibleNFTs {
+		batch.Queue(
+			queries.RuntimeEVMNFTUpsert,
+			m.runtime,
+			key.TokenAddress,
+			key.TokenID,
+			possibleNFT.NewOwner,
+			possibleNFT.NumTransfers,
+			data.Header.Round,
+		)
 	}
 }

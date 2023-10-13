@@ -226,7 +226,7 @@ var (
     INSERT INTO chain.claimed_nodes (entity_id, node_id) VALUES ($1, $2)
       ON CONFLICT (entity_id, node_id) DO NOTHING`
 
-	ConsensusEntityInsert = `
+	ConsensusEntityUpsert = `
     INSERT INTO chain.entities (id, address) VALUES ($1, $2)
       ON CONFLICT (id) DO
       UPDATE SET
@@ -527,7 +527,7 @@ var (
     ON CONFLICT (runtime, token_address, account_address) DO
       UPDATE SET balance = chain.evm_token_balances.balance + $4`
 
-	RuntimeEVMTokenBalanceAnalysisInsert = `
+	RuntimeEVMTokenBalanceAnalysisUpsert = `
     INSERT INTO analysis.evm_token_balances
       (runtime, token_address, account_address, last_mutate_round)
     VALUES
@@ -624,12 +624,15 @@ var (
       token_address = $2 AND
       nft_id = $3`
 
-	RuntimeEVMNFTInsert = `
-    INSERT INTO chain.evm_nfts
-      (runtime, token_address, nft_id, last_want_download_round)
+	RuntimeEVMNFTUpsert = `
+    INSERT INTO chain.evm_nfts AS old
+      (runtime, token_address, nft_id, owner, num_transfers, last_want_download_round)
     VALUES
-      ($1, $2, $3, $4)
-    ON CONFLICT (runtime, token_address, nft_id) DO NOTHING`
+      ($1, $2, $3, $4, $5, $6)
+    ON CONFLICT (runtime, token_address, nft_id) DO UPDATE
+    SET
+      owner = COALESCE(excluded.owner, old.owner),
+      num_transfers = old.num_transfers + excluded.num_transfers`
 
 	RuntimeEVMNFTAnalysisStale = `
     SELECT
