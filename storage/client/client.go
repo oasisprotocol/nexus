@@ -1551,12 +1551,13 @@ func (c *StorageClient) RuntimeTokenHolders(ctx context.Context, p apiTypes.GetR
 	return &hs, nil
 }
 
-func (c *StorageClient) RuntimeEVMNFTs(ctx context.Context, limit *uint64, offset *uint64, tokenAddress *staking.Address, ownerAddress *staking.Address) (*EvmNftList, error) {
+func (c *StorageClient) RuntimeEVMNFTs(ctx context.Context, limit *uint64, offset *uint64, tokenAddress *staking.Address, id *common.BigInt, ownerAddress *staking.Address) (*EvmNftList, error) {
 	res, err := c.withTotalCount(
 		ctx,
 		queries.EvmNfts,
 		runtimeFromCtx(ctx),
 		tokenAddress,
+		id,
 		ownerAddress,
 		limit,
 		offset,
