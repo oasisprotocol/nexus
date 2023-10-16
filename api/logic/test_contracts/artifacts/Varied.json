@@ -49,7 +49,7 @@
     },
     "gasEstimates": null,
     "methodIdentifiers": {
-      "test(int8,uint8,int256,uint256,bool,bytes32,address,function,uint16[2],bytes,string,uint16[],(uint16,string))": "a85acffa"
+      "test(int8,uint8,int256,uint256,bool,bytes32,address,function,uint16[2],uint8[2],bytes,string,uint16[],uint8[],(uint16,string))": "b23a194f"
     }
   },
   "abi": [
@@ -101,6 +101,11 @@
           "type": "uint16[2]"
         },
         {
+          "internalType": "uint8[2]",
+          "name": "xy8",
+          "type": "uint8[2]"
+        },
+        {
           "internalType": "bytes",
           "name": "buf",
           "type": "bytes"
@@ -114,6 +119,11 @@
           "internalType": "uint16[]",
           "name": "l",
           "type": "uint16[]"
+        },
+        {
+          "internalType": "uint8[]",
+          "name": "l8",
+          "type": "uint8[]"
         },
         {
           "components": [
