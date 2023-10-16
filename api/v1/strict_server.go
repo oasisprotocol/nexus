@@ -345,7 +345,7 @@ func (srv *StrictServerImpl) GetRuntimeAccountsAddress(ctx context.Context, requ
 }
 
 func (srv *StrictServerImpl) GetRuntimeAccountsAddressNfts(ctx context.Context, request apiTypes.GetRuntimeAccountsAddressNftsRequestObject) (apiTypes.GetRuntimeAccountsAddressNftsResponseObject, error) {
-	nfts, err := srv.dbClient.RuntimeEVMNFTs(ctx, request.Params.Limit, request.Params.Offset, nil, nil, &request.Address)
+	nfts, err := srv.dbClient.RuntimeEVMNFTs(ctx, request.Params.Limit, request.Params.Offset, request.Params.TokenAddress, nil, &request.Address)
 	if err != nil {
 		return nil, err
 	}

@@ -1121,6 +1121,11 @@ paths:
           schema:
             <<: *StakingAddressType
           description: The staking address of the owner of the NFT instances.
+        - in: query
+          name: token_address
+          schema:
+            <<: *StakingAddressType
+          description: Only return NFT instances from the token contract at the given staking address.
       responses:
         '200':
           description: The requested instances.
