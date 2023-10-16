@@ -41,14 +41,14 @@ func TestEVMParseTypes(t *testing.T) {
 		"\"-1\"", // int256
 		"\"1\"",  // uint256
 		"true",   // bool
-		"\"AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=\"", // bytes32
-		"\"0x0101010101010101010101010101010101010101\"",   // address
-		"\"AQEBAQEBAQEBAQEBAQEBAQEBAQECAgIC\"",             // function (uint16) external returns (uint16)
-		"[1,1]",                                            // uint16[2]
-		"\"AQ==\"",                                         // bytes
-		"\"a\"",                                            // string
-		"[1]",                                              // uint16[]
-		"{\"n\":1,\"s\":\"a\"}",                            // O
+		"\"0x0101010101010101010101010101010101010101010101010101010101010101\"", // bytes32
+		"\"0x0101010101010101010101010101010101010101\"",                         // address
+		"\"0x010101010101010101010101010101010101010102020202\"",                 // function (uint16) external returns (uint16)
+		"[1,1]",                 // uint16[2]
+		"\"0x01\"",              // bytes
+		"\"a\"",                 // string
+		"[1]",                   // uint16[]
+		"{\"n\":1,\"s\":\"a\"}", // O
 	}
 	for i, input := range method.Inputs {
 		transducedArg := evmPreMarshal(args[i], input.Type)

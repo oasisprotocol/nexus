@@ -6,6 +6,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	ethCommon "github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
 // evmPreMarshal converts v to a type that gives us the JSON serialization that we like:
@@ -33,7 +34,9 @@ func evmPreMarshal(v interface{}, t abi.Type) interface{} {
 	case abi.FixedBytesTy, abi.FunctionTy:
 		c := reflect.New(t.GetType()).Elem()
 		c.Set(reflect.ValueOf(v))
-		return c.Bytes()
+		return hexutil.Encode(c.Bytes())
+	case abi.BytesTy:
+		return hexutil.Encode(reflect.ValueOf(v).Bytes())
 	}
 	return v
 }
