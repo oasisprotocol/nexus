@@ -1,6 +1,28 @@
 {
   "evm_nfts": [
     {
+      "description": "Swarm Teddies are the first Teddy Bear-like collection in Oasis Network, coming from space, these awesome creatures are unique, exclusive and hand designed with dedication and love.Born from an original concept, Swarm Teddies consists of 1000 cute bear NFTs that quickly adapted to their favorite themes, these creatures are not here to take part, they are here to take over.",
+      "id": "177",
+      "image": "ipfs://QmctsL3PKCbu3QGNmVfu9opWC3ujFecKR9u2DjuAhWSqkD/Casual-102.png",
+      "metadata_accessed": "UNINTERESTING",
+      "metadata_uri": "ipfs://QmY256sTBaZ9beGAfuc7tM9P4ZagNHbB9HvkudZ5u5zvDT/661",
+      "name": "Swarm Teddies",
+      "owner": "oasis1qq92lk7kpqmvllhjvhlc282zp6v2e2t2rqrwuq2u",
+      "owner_eth": "0x5cC0791892B04c6280F3a2aA64929bf6357544Bc",
+      "token": {
+        "contract_addr": "oasis1qpq3ncr82yaussqdaplwej00lwp6gk6rhvxxk2l2",
+        "decimals": 0,
+        "eth_contract_addr": "0xC69C02C72b2174bf32b57c51B2Ec584337C6b41D",
+        "is_verified": false,
+        "name": "Swarm Teddies",
+        "num_holders": 1,
+        "num_transfers": 1,
+        "symbol": "ST",
+        "total_supply": "1000",
+        "type": "ERC721"
+      }
+    },
+    {
       "description": "The first Ape NFT project on Oasis!",
       "id": "227",
       "image": "ipfs://QmQbbX9ZcA8Dfay94vJZrmvohub1oQfLtZ791DzD8DLmMx/227.png",
@@ -46,28 +68,6 @@
     },
     {
       "description": "The first Ape NFT project on Oasis!",
-      "id": "753",
-      "image": "ipfs://QmQbbX9ZcA8Dfay94vJZrmvohub1oQfLtZ791DzD8DLmMx/753.png",
-      "metadata_accessed": "UNINTERESTING",
-      "metadata_uri": "ipfs://QmPKAuGQnJCM2FVSxkNcyqf1TyDusKuwuD9VnWJN9CF4xA/753.json",
-      "name": " Oasis Apes #753",
-      "owner": "oasis1qqqy6augy6gkpfr5jqj28sjfrntre5s8uv9ptgc7",
-      "owner_eth": "0x8Eac280619b17277AdF5258296Fea04C926730a7",
-      "token": {
-        "contract_addr": "oasis1qqewaa87rnyshyqs7yutnnpzzetejecgeu005l8u",
-        "decimals": 0,
-        "eth_contract_addr": "0x99f43f11CC6b5C378eBc2Cb4eEd7CC4F5F0006C0",
-        "is_verified": false,
-        "name": "OasisApes",
-        "num_holders": 6,
-        "num_transfers": 16,
-        "symbol": "OA",
-        "total_supply": "3333",
-        "type": "ERC721"
-      }
-    },
-    {
-      "description": "The first Ape NFT project on Oasis!",
       "id": "1087",
       "image": "ipfs://QmQbbX9ZcA8Dfay94vJZrmvohub1oQfLtZ791DzD8DLmMx/1087.png",
       "metadata_accessed": "UNINTERESTING",
@@ -97,50 +97,6 @@
       "name": " Oasis Apes #1297",
       "owner": "oasis1qq92lk7kpqmvllhjvhlc282zp6v2e2t2rqrwuq2u",
       "owner_eth": "0x5cC0791892B04c6280F3a2aA64929bf6357544Bc",
-      "token": {
-        "contract_addr": "oasis1qqewaa87rnyshyqs7yutnnpzzetejecgeu005l8u",
-        "decimals": 0,
-        "eth_contract_addr": "0x99f43f11CC6b5C378eBc2Cb4eEd7CC4F5F0006C0",
-        "is_verified": false,
-        "name": "OasisApes",
-        "num_holders": 6,
-        "num_transfers": 16,
-        "symbol": "OA",
-        "total_supply": "3333",
-        "type": "ERC721"
-      }
-    },
-    {
-      "description": "The first Ape NFT project on Oasis!",
-      "id": "1336",
-      "image": "ipfs://QmQbbX9ZcA8Dfay94vJZrmvohub1oQfLtZ791DzD8DLmMx/1336.png",
-      "metadata_accessed": "UNINTERESTING",
-      "metadata_uri": "ipfs://QmPKAuGQnJCM2FVSxkNcyqf1TyDusKuwuD9VnWJN9CF4xA/1336.json",
-      "name": " Oasis Apes #1336",
-      "owner": "oasis1qp4ywl467lsydhuzea4d2nj7647grygd6y4znhk7",
-      "owner_eth": "0x428F07067F7422c736afcA2735556897620Fa899",
-      "token": {
-        "contract_addr": "oasis1qqewaa87rnyshyqs7yutnnpzzetejecgeu005l8u",
-        "decimals": 0,
-        "eth_contract_addr": "0x99f43f11CC6b5C378eBc2Cb4eEd7CC4F5F0006C0",
-        "is_verified": false,
-        "name": "OasisApes",
-        "num_holders": 6,
-        "num_transfers": 16,
-        "symbol": "OA",
-        "total_supply": "3333",
-        "type": "ERC721"
-      }
-    },
-    {
-      "description": "The first Ape NFT project on Oasis!",
-      "id": "1427",
-      "image": "ipfs://QmQbbX9ZcA8Dfay94vJZrmvohub1oQfLtZ791DzD8DLmMx/1427.png",
-      "metadata_accessed": "UNINTERESTING",
-      "metadata_uri": "ipfs://QmPKAuGQnJCM2FVSxkNcyqf1TyDusKuwuD9VnWJN9CF4xA/1427.json",
-      "name": " Oasis Apes #1427",
-      "owner": "oasis1qr5m6rdnrz67uwxf783ct3v0ql32ry8kmsl0ukv4",
-      "owner_eth": "0x3A843a550e02C6D9CBea11fC2775e24B85751406",
       "token": {
         "contract_addr": "oasis1qqewaa87rnyshyqs7yutnnpzzetejecgeu005l8u",
         "decimals": 0,
@@ -243,28 +199,50 @@
       }
     },
     {
-      "description": "The first Ape NFT project on Oasis!",
-      "id": "2546",
-      "image": "ipfs://QmQbbX9ZcA8Dfay94vJZrmvohub1oQfLtZ791DzD8DLmMx/2546.png",
+      "description": "Brutally enhance RoseApe variant - 181",
+      "id": "181",
+      "image": "/181.png",
       "metadata_accessed": "UNINTERESTING",
-      "metadata_uri": "ipfs://QmPKAuGQnJCM2FVSxkNcyqf1TyDusKuwuD9VnWJN9CF4xA/2546.json",
-      "name": " Oasis Apes #2546",
-      "owner": "oasis1qr5m6rdnrz67uwxf783ct3v0ql32ry8kmsl0ukv4",
-      "owner_eth": "0x3A843a550e02C6D9CBea11fC2775e24B85751406",
+      "metadata_uri": "ipfs://QmTymciMsxGjGbG24oVigctR87oDFfZugwKutpP3p5HSGc/181.json",
+      "name": "ROSEAPE#181",
+      "owner": "oasis1qq92lk7kpqmvllhjvhlc282zp6v2e2t2rqrwuq2u",
+      "owner_eth": "0x5cC0791892B04c6280F3a2aA64929bf6357544Bc",
       "token": {
-        "contract_addr": "oasis1qqewaa87rnyshyqs7yutnnpzzetejecgeu005l8u",
+        "contract_addr": "oasis1qrexkhp5taz8ssw9t3c7ytgu8xkvsyj6uvx6dssc",
         "decimals": 0,
-        "eth_contract_addr": "0x99f43f11CC6b5C378eBc2Cb4eEd7CC4F5F0006C0",
+        "eth_contract_addr": "0xA011Ad0c02259019B0a8eF1c6f818191a031adA9",
         "is_verified": false,
-        "name": "OasisApes",
-        "num_holders": 6,
-        "num_transfers": 16,
-        "symbol": "OA",
-        "total_supply": "3333",
+        "name": "RoseApe",
+        "num_holders": 3,
+        "num_transfers": 3,
+        "symbol": "RPE",
+        "total_supply": "1800",
+        "type": "ERC721"
+      }
+    },
+    {
+      "description": "",
+      "id": "862",
+      "image": "",
+      "metadata_accessed": "UNINTERESTING",
+      "metadata_uri": "https://airose.mypinata.cloud/ipfs/QmSEfuX5f33Pxet1HHq536aDwAE6eMFR5kLtBqPDxz9XRH/862",
+      "name": "",
+      "owner": "oasis1qq92lk7kpqmvllhjvhlc282zp6v2e2t2rqrwuq2u",
+      "owner_eth": "0x5cC0791892B04c6280F3a2aA64929bf6357544Bc",
+      "token": {
+        "contract_addr": "oasis1qrtn6tdgevwyzl0cjulwe8zs285zv60kpq8vks2v",
+        "decimals": 0,
+        "eth_contract_addr": "0x0f4c5A429166608f9225E094F7E66B0bF68a53B9",
+        "is_verified": false,
+        "name": "AI ROSE",
+        "num_holders": 2,
+        "num_transfers": 5,
+        "symbol": "AI ROSE",
+        "total_supply": "999",
         "type": "ERC721"
       }
     }
   ],
   "is_total_count_clipped": false,
-  "total_count": 12
+  "total_count": 11
 }

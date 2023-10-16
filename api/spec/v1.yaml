@@ -1080,6 +1080,29 @@ paths:
                 $ref: '#/components/schemas/RuntimeAccount'
         <<: *common_error_responses
 
+  /{runtime}/accounts/{address}/nfts:
+    get:
+      summary: |
+        Returns the list of non-fungible token (NFT) instances owned by an account.
+      parameters:
+        - *limit
+        - *offset
+        - *runtime
+        - in: path
+          name: address
+          required: true
+          schema:
+            <<: *StakingAddressType
+          description: The staking address of the owner of the NFT instances.
+      responses:
+        '200':
+          description: The requested instances.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvmNftList'
+        <<: *common_error_responses
+
   /{runtime}/status:
     get:
       summary: Returns the runtime status.
@@ -2621,6 +2644,14 @@ components:
         id:
           <<: *BigIntType
           description: The instance ID of this NFT within the collection represented by `token`.
+        owner:
+          <<: *AddressType
+          description: The Oasis address of this NFT instance's owner.
+          example: "oasis1qpclnnm0wu44pn43mt6vv3me59kl8zk9ty7qyj03"
+        owner_eth:
+          type: string
+          description: The Ethereum address of this NFT instance's owner.
+          example: "0xDEF1009df2d6872C214cd9148c6883893B7c4D91"
         metadata_uri:
           type: string
         metadata_accessed:

@@ -1551,14 +1551,15 @@ func (c *StorageClient) RuntimeTokenHolders(ctx context.Context, p apiTypes.GetR
 	return &hs, nil
 }
 
-func (c *StorageClient) RuntimeEVMNFTs(ctx context.Context, p apiTypes.GetRuntimeEvmTokensAddressNftsParams, address staking.Address) (*EvmNftList, error) {
+func (c *StorageClient) RuntimeEVMNFTs(ctx context.Context, limit *uint64, offset *uint64, tokenAddress *staking.Address, ownerAddress *staking.Address) (*EvmNftList, error) {
 	res, err := c.withTotalCount(
 		ctx,
 		queries.EvmNfts,
 		runtimeFromCtx(ctx),
-		address,
-		p.Limit,
-		p.Offset,
+		tokenAddress,
+		ownerAddress,
+		limit,
+		offset,
 	)
 	if err != nil {
 		return nil, wrapError(err)
@@ -1576,6 +1577,9 @@ func (c *StorageClient) RuntimeEVMNFTs(ctx context.Context, p apiTypes.GetRuntim
 		var contractAddrContextVersion int
 		var contractAddrData []byte
 		var tokenType sql.NullInt32
+		var ownerAddrContextIdentifier string
+		var ownerAddrContextVersion int
+		var ownerAddrData []byte
 		var metadataAccessedN sql.NullTime
 		if err = res.rows.Scan(
 			&nft.Token.ContractAddr,
@@ -1591,6 +1595,10 @@ func (c *StorageClient) RuntimeEVMNFTs(ctx context.Context, p apiTypes.GetRuntim
 			&nft.Token.NumHolders,
 			&nft.Token.IsVerified,
 			&nft.Id,
+			&nft.Owner,
+			&ownerAddrContextIdentifier,
+			&ownerAddrContextVersion,
+			&ownerAddrData,
 			&nft.MetadataUri,
 			&metadataAccessedN,
 			&nft.Name,
@@ -1605,6 +1613,10 @@ func (c *StorageClient) RuntimeEVMNFTs(ctx context.Context, p apiTypes.GetRuntim
 		}
 		if tokenType.Valid {
 			nft.Token.Type = translateTokenType(common.TokenType(tokenType.Int32))
+		}
+		if ownerEthAddr, err1 := EVMEthAddrFromPreimage(ownerAddrContextIdentifier, ownerAddrContextVersion, ownerAddrData); err1 == nil {
+			ownerECAddr := ethCommon.BytesToAddress(ownerEthAddr)
+			nft.OwnerEth = common.Ptr(ownerECAddr.String())
 		}
 		if metadataAccessedN.Valid {
 			nft.MetadataAccessed = common.Ptr(metadataAccessedN.Time.String())
