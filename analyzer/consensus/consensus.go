@@ -174,7 +174,7 @@ func (m *processor) processGenesis(ctx context.Context, genesisDoc *genesis.Docu
 	}
 
 	// Debug: log the SQL into a file if requested.
-	debugPath := os.Getenv("CONSENSUS_DAMASK_GENESIS_DUMP")
+	debugPath := os.Getenv("NEXUS_DUMP_GENESIS_SQL")
 	if debugPath != "" {
 		sql := strings.Join(queries, "\n")
 		if err := os.WriteFile(debugPath, []byte(sql), 0o600 /* Permissions: rw------- */); err != nil {
