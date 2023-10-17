@@ -9,9 +9,10 @@ import (
 	"strings"
 
 	"github.com/oasisprotocol/oasis-core/go/common/entity"
-	"github.com/oasisprotocol/oasis-core/go/common/node"
 
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
+
+	"github.com/oasisprotocol/oasis-core/go/common/entity"
 
 	beacon "github.com/oasisprotocol/nexus/coreapi/v22.2.11/beacon/api"
 	genesis "github.com/oasisprotocol/nexus/coreapi/v22.2.11/genesis/api"
@@ -161,7 +162,7 @@ VALUES
 		nodes = nodesOverride
 	} else {
 		for _, signedNode := range document.Registry.Nodes {
-			var node node.Node
+			var node nodeapi.Node
 			if err := cbor.Unmarshal(signedNode.Blob, &node); err != nil {
 				// ^ We do not verify the signatures on the Blob; we trust the node that provided the genesis document.
 				//   Also, nexus performs internal lossy data conversions where signatures are lost.

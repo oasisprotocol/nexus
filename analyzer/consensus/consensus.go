@@ -447,7 +447,8 @@ func (m *processor) queueTxEventInserts(batch *storage.QueryBatch, data *storage
 }
 
 func (m *processor) queueRuntimeRegistrations(batch *storage.QueryBatch, data *storage.RegistryData) error {
-	for _, runtimeEvent := range data.RuntimeRegisteredEvents {
+	// Runtime registered or (re)started.
+	for _, runtimeEvent := range data.RuntimeStartedEvents {
 		var keyManager *string
 
 		if runtimeEvent.KeyManager != nil {
@@ -459,7 +460,7 @@ func (m *processor) queueRuntimeRegistrations(batch *storage.QueryBatch, data *s
 			// Skip during fast sync; will be provided by the genesis.
 			batch.Queue(queries.ConsensusRuntimeUpsert,
 				runtimeEvent.ID.String(),
-				false,
+				false, // suspended
 				runtimeEvent.Kind,
 				runtimeEvent.TEEHardware,
 				keyManager,
@@ -467,6 +468,16 @@ func (m *processor) queueRuntimeRegistrations(batch *storage.QueryBatch, data *s
 		}
 	}
 
+	// Runtime got suspended.
+	for _, runtimeEvent := range data.RuntimeSuspendedEvents {
+		if m.mode != analyzer.FastSyncMode {
+			// Skip during fast sync; will be provided by the genesis.
+			batch.Queue(queries.ConsensusRuntimeSuspendedUpdate,
+				runtimeEvent.RuntimeID.String(),
+				true, // suspended
+			)
+		}
+	}
 	return nil
 }
 

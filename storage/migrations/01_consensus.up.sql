@@ -151,7 +151,7 @@ CREATE TABLE chain.claimed_nodes
 CREATE TABLE chain.runtimes
 (
   id           HEX64 PRIMARY KEY,
-  suspended    BOOLEAN NOT NULL DEFAULT false,  -- not tracked as of Dec 2022
+  suspended    BOOLEAN NOT NULL DEFAULT false,
   kind         TEXT NOT NULL,  -- "invalid" | "compute" | "manager"; see https://github.com/oasisprotocol/oasis-core/blob/f95186e3f15ec64bdd36493cde90be359bd17da8/go/registry/api/runtime.go#L54-L54
   tee_hardware TEXT NOT NULL,  -- "invalid" | "intel-sgx"; see https://github.com/oasisprotocol/oasis-core/blob/f95186e3f15ec64bdd36493cde90be359bd17da8/go/common/node/node.go#L474-L474
   key_manager  HEX64

@@ -222,6 +222,11 @@ var (
         tee_hardware = excluded.tee_hardware,
         key_manager = excluded.key_manager`
 
+	ConsensusRuntimeSuspendedUpdate = `
+    UPDATE chain.runtimes
+      SET suspended = $2
+      WHERE id = $1`
+
 	ConsensusClaimedNodeInsert = `
     INSERT INTO chain.claimed_nodes (entity_id, node_id) VALUES ($1, $2)
       ON CONFLICT (entity_id, node_id) DO NOTHING`

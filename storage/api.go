@@ -179,11 +179,12 @@ type BeaconData struct {
 type RegistryData struct {
 	Height int64
 
-	Events                  []nodeapi.Event
-	RuntimeRegisteredEvents []nodeapi.RuntimeRegisteredEvent
-	EntityEvents            []nodeapi.EntityEvent
-	NodeEvents              []nodeapi.NodeEvent
-	NodeUnfrozenEvents      []nodeapi.NodeUnfrozenEvent
+	Events                 []nodeapi.Event
+	RuntimeStartedEvents   []nodeapi.RuntimeStartedEvent
+	RuntimeSuspendedEvents []nodeapi.RuntimeSuspendedEvent
+	EntityEvents           []nodeapi.EntityEvent
+	NodeEvents             []nodeapi.NodeEvent
+	NodeUnfrozenEvents     []nodeapi.NodeUnfrozenEvent
 }
 
 // StakingData represents data for accounts at a given height.

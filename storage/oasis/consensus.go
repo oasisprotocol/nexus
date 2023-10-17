@@ -175,15 +175,18 @@ func (cc *ConsensusClient) RegistryData(ctx context.Context, height int64) (*sto
 		return nil, err
 	}
 
-	var runtimeRegisteredEvents []nodeapi.RuntimeRegisteredEvent
+	var runtimeStartedEvents []nodeapi.RuntimeStartedEvent
+	var runtimeSuspendedEvents []nodeapi.RuntimeSuspendedEvent
 	var entityEvents []nodeapi.EntityEvent
 	var nodeEvents []nodeapi.NodeEvent
 	var nodeUnfrozenEvents []nodeapi.NodeUnfrozenEvent
 
 	for _, event := range events {
 		switch e := event; {
-		case e.RegistryRuntimeRegistered != nil:
-			runtimeRegisteredEvents = append(runtimeRegisteredEvents, *e.RegistryRuntimeRegistered)
+		case e.RegistryRuntimeStarted != nil:
+			runtimeStartedEvents = append(runtimeStartedEvents, *e.RegistryRuntimeStarted)
+		case e.RegistryRuntimeSuspended != nil:
+			runtimeSuspendedEvents = append(runtimeSuspendedEvents, *e.RegistryRuntimeSuspended)
 		case e.RegistryEntity != nil:
 			entityEvents = append(entityEvents, *e.RegistryEntity)
 		case e.RegistryNode != nil:
@@ -194,12 +197,13 @@ func (cc *ConsensusClient) RegistryData(ctx context.Context, height int64) (*sto
 	}
 
 	return &storage.RegistryData{
-		Height:                  height,
-		Events:                  events,
-		RuntimeRegisteredEvents: runtimeRegisteredEvents,
-		EntityEvents:            entityEvents,
-		NodeEvents:              nodeEvents,
-		NodeUnfrozenEvents:      nodeUnfrozenEvents,
+		Height:                 height,
+		Events:                 events,
+		RuntimeStartedEvents:   runtimeStartedEvents,
+		RuntimeSuspendedEvents: runtimeSuspendedEvents,
+		EntityEvents:           entityEvents,
+		NodeEvents:             nodeEvents,
+		NodeUnfrozenEvents:     nodeUnfrozenEvents,
 	}, nil
 }
 

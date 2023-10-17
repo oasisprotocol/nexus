@@ -73,7 +73,7 @@ func convertEvent(e txResultsDamask.Event) nodeapi.Event {
 		switch {
 		case e.Registry.RuntimeEvent != nil && e.Registry.RuntimeEvent.Runtime != nil:
 			ret = nodeapi.Event{
-				RegistryRuntimeRegistered: &nodeapi.RuntimeRegisteredEvent{
+				RegistryRuntimeStarted: &nodeapi.RuntimeStartedEvent{
 					ID:          e.Registry.RuntimeEvent.Runtime.ID,
 					EntityID:    e.Registry.RuntimeEvent.Runtime.EntityID,
 					Kind:        e.Registry.RuntimeEvent.Runtime.Kind.String(),

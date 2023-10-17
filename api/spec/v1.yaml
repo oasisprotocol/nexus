@@ -1500,6 +1500,7 @@ components:
         - registry.node_unfrozen
         - registry.node
         - registry.runtime
+        - registry.runtime_suspended
         - roothash.execution_discrepancy
         - roothash.executor_committed
         - roothash.finalized
