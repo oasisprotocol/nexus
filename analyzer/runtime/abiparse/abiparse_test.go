@@ -49,6 +49,51 @@ func TestParseTypes(t *testing.T) {
 	}
 }
 
+func TestParseTxUnnamed(t *testing.T) {
+	data, err := hex.DecodeString("ee799b1800000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002")
+	require.NoError(t, err)
+	result, err := hex.DecodeString("00000000000000000000000000000000000000000000000000000000000000030000000000000000000000000000000000000000000000000000000000000004")
+	require.NoError(t, err)
+	method, args, err := ParseData(data, Varied)
+	require.NoError(t, err)
+	require.Equal(t, Varied.Methods["testUnnamed"], *method)
+	require.Equal(t, []interface{}{
+		uint16(1),
+		uint16(2),
+	}, args)
+	outArgs, err := ParseResult(result, method)
+	require.NoError(t, err)
+	require.Equal(t, []interface{}{
+		uint16(3),
+		uint16(4),
+	}, outArgs)
+}
+
+func TestParseEventUnnamed(t *testing.T) {
+	topicsHex := []string{
+		"54789e7ea9ad7e0cf2c8e336a0e24206777d784a11ec566b33ae6402ee7c2518",
+		"0000000000000000000000000000000000000000000000000000000000000001",
+		"0000000000000000000000000000000000000000000000000000000000000002",
+	}
+	topics := make([][]byte, 0, len(topicsHex))
+	for _, topicHex := range topicsHex {
+		topic, err := hex.DecodeString(topicHex)
+		require.NoError(t, err)
+		topics = append(topics, topic)
+	}
+	data, err := hex.DecodeString("00000000000000000000000000000000000000000000000000000000000000030000000000000000000000000000000000000000000000000000000000000004")
+	require.NoError(t, err)
+	event, args, err := ParseEvent(topics, data, Varied)
+	require.NoError(t, err)
+	require.Equal(t, Varied.Events["TestUnnamed"], *event)
+	require.Equal(t, []interface{}{
+		uint16(1),
+		uint16(2),
+		uint16(3),
+		uint16(4),
+	}, args)
+}
+
 func TestParseTx(t *testing.T) {
 	// https://explorer.emerald.oasis.dev/tx/0x1ac7521df4cda38c87cff56b1311ee9362168bd794230415a37f2aff3a554a5f/internal-transactions
 	data, err := hex.DecodeString("095ea7b3000000000000000000000000250d48c5e78f1e85f7ab07fec61e93ba703ae6680000000000000000000000000000000000000000000000003782dace9d900000")

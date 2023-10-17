@@ -49,10 +49,42 @@
     },
     "gasEstimates": null,
     "methodIdentifiers": {
-      "test(int8,uint8,int256,uint256,bool,bytes32,address,function,uint16[2],uint8[2],bytes,string,uint16[],uint8[],(uint16,string))": "b23a194f"
+      "test(int8,uint8,int256,uint256,bool,bytes32,address,function,uint16[2],uint8[2],bytes,string,uint16[],uint8[],(uint16,string))": "b23a194f",
+      "testUnnamed(uint16,uint16)": "ee799b18"
     }
   },
   "abi": [
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint16",
+          "name": "",
+          "type": "uint16"
+        },
+        {
+          "indexed": true,
+          "internalType": "uint16",
+          "name": "",
+          "type": "uint16"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint16",
+          "name": "",
+          "type": "uint16"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint16",
+          "name": "",
+          "type": "uint16"
+        }
+      ],
+      "name": "TestUnnamed",
+      "type": "event"
+    },
     {
       "inputs": [
         {
@@ -145,6 +177,35 @@
       ],
       "name": "test",
       "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint16",
+          "name": "",
+          "type": "uint16"
+        },
+        {
+          "internalType": "uint16",
+          "name": "",
+          "type": "uint16"
+        }
+      ],
+      "name": "testUnnamed",
+      "outputs": [
+        {
+          "internalType": "uint16",
+          "name": "",
+          "type": "uint16"
+        },
+        {
+          "internalType": "uint16",
+          "name": "",
+          "type": "uint16"
+        }
+      ],
       "stateMutability": "nonpayable",
       "type": "function"
     }

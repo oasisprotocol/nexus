@@ -28,4 +28,6 @@ interface Varied {
         uint8[] calldata l8,
         O calldata o
     ) external;
+    function testUnnamed(uint16, uint16) external returns (uint16, uint16);
+    event TestUnnamed(uint16 indexed, uint16 indexed, uint16, uint16);
 }
