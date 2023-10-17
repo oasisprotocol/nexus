@@ -319,17 +319,25 @@ func convertEvent(e txResultsEnigma.Event) nodeapi.Event {
 		// End Staking.
 	case e.Registry != nil:
 		switch {
-		case e.Registry.RuntimeEvent != nil && e.Registry.RuntimeEvent.Runtime != nil:
+		case e.Registry.RuntimeStartedEvent != nil:
 			ret = nodeapi.Event{
 				RegistryRuntimeStarted: &nodeapi.RuntimeStartedEvent{
-					ID:          e.Registry.RuntimeEvent.Runtime.ID,
-					EntityID:    e.Registry.RuntimeEvent.Runtime.EntityID,
-					Kind:        e.Registry.RuntimeEvent.Runtime.Kind.String(),
-					KeyManager:  e.Registry.RuntimeEvent.Runtime.KeyManager,
-					TEEHardware: e.Registry.RuntimeEvent.Runtime.TEEHardware.String(),
+					ID:          e.Registry.RuntimeStartedEvent.Runtime.ID,
+					EntityID:    e.Registry.RuntimeStartedEvent.Runtime.EntityID,
+					Kind:        e.Registry.RuntimeStartedEvent.Runtime.Kind.String(),
+					KeyManager:  e.Registry.RuntimeStartedEvent.Runtime.KeyManager,
+					TEEHardware: e.Registry.RuntimeStartedEvent.Runtime.TEEHardware.String(),
 				},
-				RawBody: common.TryAsJSON(e.Registry.RuntimeEvent),
+				RawBody: common.TryAsJSON(e.Registry.RuntimeStartedEvent),
 				Type:    apiTypes.ConsensusEventTypeRegistryRuntime,
+			}
+		case e.Registry.RuntimeSuspendedEvent != nil:
+			ret = nodeapi.Event{
+				RegistryRuntimeSuspended: &nodeapi.RuntimeSuspendedEvent{
+					RuntimeID: e.Registry.RuntimeSuspendedEvent.RuntimeID,
+				},
+				RawBody: common.TryAsJSON(e.Registry.RuntimeSuspendedEvent),
+				Type:    apiTypes.ConsensusEventTypeRegistryRuntimeSuspended,
 			}
 		case e.Registry.EntityEvent != nil:
 			ret = nodeapi.Event{
