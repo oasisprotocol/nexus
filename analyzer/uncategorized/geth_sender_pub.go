@@ -21,12 +21,28 @@ package common
 
 import (
 	"errors"
+	"fmt"
 	"math/big"
 
 	ethCommon "github.com/ethereum/go-ethereum/common"
 	ethTypes "github.com/ethereum/go-ethereum/core/types"
 	ethCrypto "github.com/ethereum/go-ethereum/crypto"
 )
+
+// CancunSenderPub is adapted from cancunSigner.Sender
+func CancunSenderPub(s ethTypes.Signer, tx *ethTypes.Transaction) ([]byte, error) {
+	if tx.Type() != ethTypes.BlobTxType {
+		return LondonSenderPub(s, tx)
+	}
+	V, R, S := tx.RawSignatureValues()
+	// Blob txs are defined to use 0 and 1 as their recovery
+	// id, add 27 to become equivalent to unprotected Homestead signatures.
+	V = new(big.Int).Add(V, big.NewInt(27))
+	if tx.ChainId().Cmp(s.ChainID()) != 0 {
+		return nil, fmt.Errorf("%w: have %d want %d", ethTypes.ErrInvalidChainId, tx.ChainId(), s.ChainID())
+	}
+	return RecoverPlainPub(s.Hash(tx), R, S, V, true)
+}
 
 // LondonSenderPub is adapted from londonSigner.Sender
 func LondonSenderPub(s ethTypes.Signer, tx *ethTypes.Transaction) ([]byte, error) {
@@ -48,11 +64,7 @@ func Eip2930SenderPub(s ethTypes.Signer, tx *ethTypes.Transaction) ([]byte, erro
 	V, R, S := tx.RawSignatureValues()
 	switch tx.Type() {
 	case ethTypes.LegacyTxType:
-		if !tx.Protected() {
-			return HomesteadSenderPub(tx)
-		}
-		V = new(big.Int).Sub(V, new(big.Int).Mul(s.ChainID(), big.NewInt(2)))
-		V.Sub(V, big.NewInt(8))
+		return EIP155SenderPub(s, tx)
 	case ethTypes.AccessListTxType:
 		// AL txs are defined to use 0 and 1 as their recovery
 		// id, add 27 to become equivalent to unprotected Homestead signatures.
@@ -61,8 +73,25 @@ func Eip2930SenderPub(s ethTypes.Signer, tx *ethTypes.Transaction) ([]byte, erro
 		return nil, ethTypes.ErrTxTypeNotSupported
 	}
 	if tx.ChainId().Cmp(s.ChainID()) != 0 {
-		return nil, ethTypes.ErrInvalidChainId
+		return nil, fmt.Errorf("%w: have %d want %d", ethTypes.ErrInvalidChainId, tx.ChainId(), s.ChainID())
 	}
+	return RecoverPlainPub(s.Hash(tx), R, S, V, true)
+}
+
+// EIP155SenderPub is adapted from EIP155Signer.Sender
+func EIP155SenderPub(s ethTypes.Signer, tx *ethTypes.Transaction) ([]byte, error) {
+	if tx.Type() != ethTypes.LegacyTxType {
+		return nil, ethTypes.ErrTxTypeNotSupported
+	}
+	if !tx.Protected() {
+		return HomesteadSenderPub(tx)
+	}
+	if tx.ChainId().Cmp(s.ChainID()) != 0 {
+		return nil, fmt.Errorf("%w: have %d want %d", ethTypes.ErrInvalidChainId, tx.ChainId(), s.ChainID())
+	}
+	V, R, S := tx.RawSignatureValues()
+	V = new(big.Int).Sub(V, new(big.Int).Mul(s.ChainID(), big.NewInt(2)))
+	V.Sub(V, big.NewInt(8))
 	return RecoverPlainPub(s.Hash(tx), R, S, V, true)
 }
 
