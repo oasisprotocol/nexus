@@ -42,6 +42,7 @@ func evmPreMarshal(v interface{}, t abi.Type) interface{} {
 	return v
 }
 
+// ParseData parses call data into the method and its arguments.
 func ParseData(data []byte, contractABI *abi.ABI) (*abi.Method, []interface{}, error) {
 	if len(data) < 4 {
 		return nil, nil, fmt.Errorf("data (%dB) too short to have method ID", len(data))
