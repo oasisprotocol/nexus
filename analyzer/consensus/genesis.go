@@ -8,10 +8,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/oasisprotocol/oasis-core/go/common/entity"
-
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
-
 	"github.com/oasisprotocol/oasis-core/go/common/entity"
 
 	beacon "github.com/oasisprotocol/nexus/coreapi/v22.2.11/beacon/api"
