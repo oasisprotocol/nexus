@@ -8,10 +8,11 @@ import (
 
 	"github.com/jackc/pgx/v5"
 
+	coreCommon "github.com/oasisprotocol/oasis-core/go/common"
+
 	beacon "github.com/oasisprotocol/nexus/coreapi/v22.2.11/beacon/api"
 	consensus "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api"
 	genesisAPI "github.com/oasisprotocol/nexus/coreapi/v22.2.11/genesis/api"
-	coreCommon "github.com/oasisprotocol/oasis-core/go/common"
 
 	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
 )

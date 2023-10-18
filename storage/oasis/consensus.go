@@ -4,11 +4,12 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/oasisprotocol/oasis-core/go/common"
+	sdkConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
+
 	beaconAPI "github.com/oasisprotocol/nexus/coreapi/v22.2.11/beacon/api"
 	consensusAPI "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api"
 	genesisAPI "github.com/oasisprotocol/nexus/coreapi/v22.2.11/genesis/api"
-	"github.com/oasisprotocol/oasis-core/go/common"
-	sdkConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 
 	"github.com/oasisprotocol/nexus/storage"
 	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"

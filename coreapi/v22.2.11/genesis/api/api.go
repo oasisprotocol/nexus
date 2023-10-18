@@ -4,6 +4,8 @@ package api
 import (
 	"time"
 
+	"github.com/oasisprotocol/oasis-core/go/common/crypto/hash"
+
 	beacon "github.com/oasisprotocol/nexus/coreapi/v22.2.11/beacon/api"
 	consensus "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/genesis"
 	governance "github.com/oasisprotocol/nexus/coreapi/v22.2.11/governance/api"
@@ -12,7 +14,6 @@ import (
 	roothash "github.com/oasisprotocol/nexus/coreapi/v22.2.11/roothash/api"
 	scheduler "github.com/oasisprotocol/nexus/coreapi/v22.2.11/scheduler/api"
 	staking "github.com/oasisprotocol/nexus/coreapi/v22.2.11/staking/api"
-	"github.com/oasisprotocol/oasis-core/go/common/crypto/hash"
 )
 
 const filePerm = 0o600

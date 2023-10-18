@@ -1,10 +1,11 @@
 package commitment
 
 import (
+	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
+
 	registry "github.com/oasisprotocol/nexus/coreapi/v22.2.11/registry/api"
 	"github.com/oasisprotocol/nexus/coreapi/v22.2.11/roothash/api/message"
 	scheduler "github.com/oasisprotocol/nexus/coreapi/v22.2.11/scheduler/api"
-	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
 )
 
 // moduleName is the module name used for namespacing errors.

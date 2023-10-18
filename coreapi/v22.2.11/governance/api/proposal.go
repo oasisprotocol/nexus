@@ -3,9 +3,10 @@ package api
 import (
 	"fmt"
 
+	"github.com/oasisprotocol/oasis-core/go/common/quantity"
+
 	beacon "github.com/oasisprotocol/nexus/coreapi/v22.2.11/beacon/api"
 	staking "github.com/oasisprotocol/nexus/coreapi/v22.2.11/staking/api"
-	"github.com/oasisprotocol/oasis-core/go/common/quantity"
 )
 
 // ProposalState is the state of the proposal.

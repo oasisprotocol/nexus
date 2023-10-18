@@ -3,19 +3,21 @@ package cobalt
 import (
 	"strings"
 
-	consensus "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/hash"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
 	"github.com/oasisprotocol/oasis-core/go/common/quantity"
 
+	consensus "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api"
+
 	// nexus-internal data types.
+	coreCommon "github.com/oasisprotocol/oasis-core/go/common"
+
 	genesis "github.com/oasisprotocol/nexus/coreapi/v22.2.11/genesis/api"
 	governance "github.com/oasisprotocol/nexus/coreapi/v22.2.11/governance/api"
 	registry "github.com/oasisprotocol/nexus/coreapi/v22.2.11/registry/api"
 	scheduler "github.com/oasisprotocol/nexus/coreapi/v22.2.11/scheduler/api"
 	staking "github.com/oasisprotocol/nexus/coreapi/v22.2.11/staking/api"
 	upgrade "github.com/oasisprotocol/nexus/coreapi/v22.2.11/upgrade/api"
-	coreCommon "github.com/oasisprotocol/oasis-core/go/common"
 
 	apiTypes "github.com/oasisprotocol/nexus/api/v1/types"
 	"github.com/oasisprotocol/nexus/common"

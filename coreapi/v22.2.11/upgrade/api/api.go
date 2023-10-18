@@ -2,9 +2,10 @@
 package api
 
 import (
-	beacon "github.com/oasisprotocol/nexus/coreapi/v22.2.11/beacon/api"
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 	"github.com/oasisprotocol/oasis-core/go/common/version"
+
+	beacon "github.com/oasisprotocol/nexus/coreapi/v22.2.11/beacon/api"
 )
 
 const (

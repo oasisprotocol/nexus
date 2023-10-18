@@ -9,9 +9,10 @@ import (
 	"testing"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
-	runtimeClient "github.com/oasisprotocol/nexus/coreapi/v22.2.11/runtime/client/api"
 	sdkConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 	"github.com/stretchr/testify/require"
+
+	runtimeClient "github.com/oasisprotocol/nexus/coreapi/v22.2.11/runtime/client/api"
 
 	"github.com/oasisprotocol/nexus/analyzer/evmabi"
 	cmdCommon "github.com/oasisprotocol/nexus/cmd/common"

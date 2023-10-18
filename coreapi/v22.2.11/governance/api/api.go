@@ -2,13 +2,14 @@
 package api
 
 import (
+	"github.com/oasisprotocol/oasis-core/go/common/cbor"
+	"github.com/oasisprotocol/oasis-core/go/common/crypto/hash"
+	"github.com/oasisprotocol/oasis-core/go/common/quantity"
+
 	beacon "github.com/oasisprotocol/nexus/coreapi/v22.2.11/beacon/api"
 	"github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api/transaction"
 	staking "github.com/oasisprotocol/nexus/coreapi/v22.2.11/staking/api"
 	upgrade "github.com/oasisprotocol/nexus/coreapi/v22.2.11/upgrade/api"
-	"github.com/oasisprotocol/oasis-core/go/common/cbor"
-	"github.com/oasisprotocol/oasis-core/go/common/crypto/hash"
-	"github.com/oasisprotocol/oasis-core/go/common/quantity"
 )
 
 // ModuleName is a unique module name for the governance backend.

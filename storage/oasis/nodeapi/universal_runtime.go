@@ -7,14 +7,15 @@ import (
 
 	"google.golang.org/grpc"
 
-	roothash "github.com/oasisprotocol/nexus/coreapi/v22.2.11/roothash/api/block"
-	coreRuntimeClient "github.com/oasisprotocol/nexus/coreapi/v22.2.11/runtime/client/api"
 	coreCommon "github.com/oasisprotocol/oasis-core/go/common"
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/hash"
 	"github.com/oasisprotocol/oasis-core/go/common/errors"
 	connection "github.com/oasisprotocol/oasis-sdk/client-sdk/go/connection"
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
+
+	roothash "github.com/oasisprotocol/nexus/coreapi/v22.2.11/roothash/api/block"
+	coreRuntimeClient "github.com/oasisprotocol/nexus/coreapi/v22.2.11/runtime/client/api"
 
 	common "github.com/oasisprotocol/nexus/common"
 	cobaltRoothash "github.com/oasisprotocol/nexus/coreapi/v21.1.1/roothash/api/block"

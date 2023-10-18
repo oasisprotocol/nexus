@@ -7,15 +7,16 @@ import (
 	"strings"
 	"time"
 
-	beacon "github.com/oasisprotocol/nexus/coreapi/v22.2.11/beacon/api"
-	"github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api/transaction"
-	"github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api/transaction/results"
-	staking "github.com/oasisprotocol/nexus/coreapi/v22.2.11/staking/api"
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/hash"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
 	"github.com/oasisprotocol/oasis-core/go/common/version"
 	mkvsNode "github.com/oasisprotocol/oasis-core/go/storage/mkvs/node"
+
+	beacon "github.com/oasisprotocol/nexus/coreapi/v22.2.11/beacon/api"
+	"github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api/transaction"
+	"github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api/transaction/results"
+	staking "github.com/oasisprotocol/nexus/coreapi/v22.2.11/staking/api"
 )
 
 const (

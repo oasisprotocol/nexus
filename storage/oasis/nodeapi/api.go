@@ -5,6 +5,12 @@ import (
 	"encoding/json"
 	"time"
 
+	coreCommon "github.com/oasisprotocol/oasis-core/go/common"
+	hash "github.com/oasisprotocol/oasis-core/go/common/crypto/hash"
+	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
+	"github.com/oasisprotocol/oasis-core/go/common/errors"
+	node "github.com/oasisprotocol/oasis-core/go/common/node"
+
 	beacon "github.com/oasisprotocol/nexus/coreapi/v22.2.11/beacon/api"
 	consensus "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api"
 	consensusTransaction "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api/transaction"
@@ -14,11 +20,6 @@ import (
 	registry "github.com/oasisprotocol/nexus/coreapi/v22.2.11/registry/api"
 	scheduler "github.com/oasisprotocol/nexus/coreapi/v22.2.11/scheduler/api"
 	staking "github.com/oasisprotocol/nexus/coreapi/v22.2.11/staking/api"
-	coreCommon "github.com/oasisprotocol/oasis-core/go/common"
-	hash "github.com/oasisprotocol/oasis-core/go/common/crypto/hash"
-	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
-	"github.com/oasisprotocol/oasis-core/go/common/errors"
-	node "github.com/oasisprotocol/oasis-core/go/common/node"
 
 	sdkClient "github.com/oasisprotocol/oasis-sdk/client-sdk/go/client"
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"

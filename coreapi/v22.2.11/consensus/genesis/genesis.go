@@ -4,8 +4,9 @@ package genesis
 import (
 	"time"
 
-	"github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api/transaction"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
+
+	"github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api/transaction"
 )
 
 // Genesis contains various consensus config flags that should be part of the genesis state.

@@ -4,10 +4,11 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/oasisprotocol/oasis-core/go/common"
+
 	beacon "github.com/oasisprotocol/nexus/coreapi/v22.2.11/beacon/api"
 	consensus "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api"
 	genesis "github.com/oasisprotocol/nexus/coreapi/v22.2.11/genesis/api"
-	"github.com/oasisprotocol/oasis-core/go/common"
 
 	"github.com/oasisprotocol/nexus/config"
 	"github.com/oasisprotocol/nexus/storage/oasis/connections"

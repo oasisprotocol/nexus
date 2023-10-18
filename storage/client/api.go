@@ -3,9 +3,10 @@ package client
 import (
 	"time"
 
+	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
+
 	governance "github.com/oasisprotocol/nexus/coreapi/v22.2.11/governance/api"
 	staking "github.com/oasisprotocol/nexus/coreapi/v22.2.11/staking/api"
-	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
 
 	"github.com/oasisprotocol/nexus/common"
 )

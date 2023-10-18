@@ -1,9 +1,10 @@
 package api
 
 import (
-	roothash "github.com/oasisprotocol/nexus/coreapi/v22.2.11/roothash/api"
 	"github.com/oasisprotocol/oasis-core/go/common"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/hash"
+
+	roothash "github.com/oasisprotocol/nexus/coreapi/v22.2.11/roothash/api"
 )
 
 const (

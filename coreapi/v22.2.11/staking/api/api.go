@@ -4,11 +4,12 @@ package api
 import (
 	"fmt"
 
-	beacon "github.com/oasisprotocol/nexus/coreapi/v22.2.11/beacon/api"
-	"github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api/transaction"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/hash"
 	"github.com/oasisprotocol/oasis-core/go/common/quantity"
 	original "github.com/oasisprotocol/oasis-core/go/staking/api"
+
+	beacon "github.com/oasisprotocol/nexus/coreapi/v22.2.11/beacon/api"
+	"github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api/transaction"
 )
 
 const (
