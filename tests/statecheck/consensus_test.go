@@ -52,12 +52,11 @@ type TestNode struct {
 	EntityID        string
 	Expiration      uint64
 	TLSPubkey       string
-	TLSNextPubkey   string
 	P2pPubkey       string
 	ConsensusPubkey string
 	VrfPubkey       string
 	Roles           string
-	SoftwareVersion string
+	SoftwareVersion node.SoftwareVersion
 }
 
 type TestRuntime struct {
@@ -316,18 +315,13 @@ func validateNodes(t *testing.T, genesis *registryAPI.Genesis, source consensusA
 			continue
 		}
 
-		vrfPubkey := ""
-		if n.VRF != nil {
-			vrfPubkey = n.VRF.ID.String()
-		}
 		tn := TestNode{
 			ID:              n.ID.String(),
 			EntityID:        n.EntityID.String(),
 			Expiration:      n.Expiration,
 			TLSPubkey:       n.TLS.PubKey.String(),
-			TLSNextPubkey:   n.TLS.NextPubKey.String(),
 			P2pPubkey:       n.P2P.ID.String(),
-			VrfPubkey:       vrfPubkey,
+			VrfPubkey:       n.VRF.ID.String(),
 			Roles:           n.Roles.String(),
 			SoftwareVersion: n.SoftwareVersion,
 		}
@@ -338,7 +332,7 @@ func validateNodes(t *testing.T, genesis *registryAPI.Genesis, source consensusA
 	rows, err := target.Query(ctx, `
 		SELECT
 			id, entity_id, expiration,
-			tls_pubkey, tls_next_pubkey, p2p_pubkey,
+			tls_pubkey, p2p_pubkey,
 			vrf_pubkey, roles, software_version
 		FROM
 			snapshot.nodes
@@ -356,7 +350,6 @@ func validateNodes(t *testing.T, genesis *registryAPI.Genesis, source consensusA
 			&n.EntityID,
 			&n.Expiration,
 			&n.TLSPubkey,
-			&n.TLSNextPubkey,
 			&n.P2pPubkey,
 			&n.VrfPubkey,
 			&n.Roles,
