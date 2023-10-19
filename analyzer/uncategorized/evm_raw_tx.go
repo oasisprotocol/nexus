@@ -25,7 +25,7 @@ func decodeEthRawTx(body []byte) (*sdkTypes.Transaction, error) {
 	}
 	chainIDBI := ethTx.ChainId()
 	signer := ethTypes.LatestSignerForChainID(chainIDBI)
-	pubUncompressed, err := LondonSenderPub(signer, &ethTx)
+	pubUncompressed, err := CancunSenderPub(signer, &ethTx)
 	if err != nil {
 		return nil, fmt.Errorf("recover signer public key: %w", err)
 	}

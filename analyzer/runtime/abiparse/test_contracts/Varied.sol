@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: Apache-2.0
 
-pragma solidity ^0.8.21;
+pragma solidity ^0.8.18;
 
 struct O {
     uint16 n;
     string s;
 }
+
+error E(address a, uint16 n);
 
 interface Varied {
     function test(
@@ -28,4 +30,6 @@ interface Varied {
         uint8[] calldata l8,
         O calldata o
     ) external;
+    function testUnnamed(uint16, uint16) external returns (uint16, uint16);
+    event TestUnnamed(uint16 indexed, uint16 indexed, uint16, uint16);
 }
