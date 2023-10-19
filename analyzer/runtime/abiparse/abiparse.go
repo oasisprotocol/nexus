@@ -136,3 +136,21 @@ func ParseEvent(topics [][]byte, data []byte, contractABI *abi.ABI) (*abi.Event,
 	}
 	return event, args, nil
 }
+
+func ParseError(data []byte, contractABI *abi.ABI) (*abi.Error, []interface{}, error) {
+	if len(data) < 4 {
+		return nil, nil, fmt.Errorf("data (%dB) too short to have error ID", len(data))
+	}
+	var errorID [4]byte
+	copy(errorID[:], data[:4])
+	packedArgs := data[4:]
+	abiError, err := contractABI.ErrorByID(errorID)
+	if err != nil {
+		return nil, nil, fmt.Errorf("contract ABI ErrorById: %w", err)
+	}
+	args, err := abiError.Inputs.Unpack(packedArgs)
+	if err != nil {
+		return nil, nil, fmt.Errorf("error inputs Unpack: %w", err)
+	}
+	return abiError, args, nil
+}
