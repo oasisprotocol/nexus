@@ -369,6 +369,19 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) { //nolint:gocyclo
 			return evmnfts.NewAnalyzer(common.RuntimeEmerald, cfg.Analyzers.EmeraldEvmNfts.ItemBasedAnalyzerConfig, sourceClient, ipfsClient, dbClient, logger)
 		})
 	}
+	if cfg.Analyzers.SapphireEvmNfts != nil {
+		analyzers, err = addAnalyzer(analyzers, err, func() (A, error) {
+			sourceClient, err1 := sources.Runtime(ctx, common.RuntimeSapphire)
+			if err1 != nil {
+				return nil, err1
+			}
+			ipfsClient, err1 := sources.IPFS(ctx)
+			if err1 != nil {
+				return nil, err1
+			}
+			return evmnfts.NewAnalyzer(common.RuntimeSapphire, cfg.Analyzers.SapphireEvmNfts.ItemBasedAnalyzerConfig, sourceClient, ipfsClient, dbClient, logger)
+		})
+	}
 	if cfg.Analyzers.EmeraldEvmTokenBalances != nil {
 		runtimeMetadata := cfg.Source.SDKParaTime(common.RuntimeEmerald)
 		analyzers, err = addAnalyzer(analyzers, err, func() (A, error) {
