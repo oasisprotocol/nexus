@@ -7,6 +7,8 @@ struct O {
     string s;
 }
 
+error E(address a, uint16 n);
+
 interface Varied {
     function test(
         int8 i8,
