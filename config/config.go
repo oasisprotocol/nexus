@@ -131,6 +131,7 @@ type AnalyzersList struct {
 	EmeraldEvmTokens         *EvmTokensAnalyzerConfig       `koanf:"evm_tokens_emerald"`
 	SapphireEvmTokens        *EvmTokensAnalyzerConfig       `koanf:"evm_tokens_sapphire"`
 	EmeraldEvmNfts           *EvmTokensAnalyzerConfig       `koanf:"evm_nfts_emerald"`
+	SapphireEvmNfts          *EvmTokensAnalyzerConfig       `koanf:"evm_nfts_sapphire"`
 	EmeraldEvmTokenBalances  *EvmTokensAnalyzerConfig       `koanf:"evm_token_balances_emerald"`
 	SapphireEvmTokenBalances *EvmTokensAnalyzerConfig       `koanf:"evm_token_balances_sapphire"`
 	EmeraldContractCode      *EvmContractCodeAnalyzerConfig `koanf:"evm_contract_code_emerald"`
