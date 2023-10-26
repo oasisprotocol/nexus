@@ -6,15 +6,18 @@ import (
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/hash"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
 	"github.com/oasisprotocol/oasis-core/go/common/quantity"
-	consensus "github.com/oasisprotocol/oasis-core/go/consensus/api"
+
+	consensus "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api"
 
 	// nexus-internal data types.
 	coreCommon "github.com/oasisprotocol/oasis-core/go/common"
-	genesis "github.com/oasisprotocol/oasis-core/go/genesis/api"
-	governance "github.com/oasisprotocol/oasis-core/go/governance/api"
-	registry "github.com/oasisprotocol/oasis-core/go/registry/api"
-	scheduler "github.com/oasisprotocol/oasis-core/go/scheduler/api"
-	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
+
+	genesis "github.com/oasisprotocol/nexus/coreapi/v22.2.11/genesis/api"
+	governance "github.com/oasisprotocol/nexus/coreapi/v22.2.11/governance/api"
+	registry "github.com/oasisprotocol/nexus/coreapi/v22.2.11/registry/api"
+	scheduler "github.com/oasisprotocol/nexus/coreapi/v22.2.11/scheduler/api"
+	staking "github.com/oasisprotocol/nexus/coreapi/v22.2.11/staking/api"
+	upgrade "github.com/oasisprotocol/nexus/coreapi/v22.2.11/upgrade/api"
 
 	apiTypes "github.com/oasisprotocol/nexus/api/v1/types"
 	"github.com/oasisprotocol/nexus/common"
@@ -42,7 +45,14 @@ func convertProposal(p *governanceCobalt.Proposal) *governance.Proposal {
 		State:     governance.ProposalState(p.State),
 		Deposit:   p.Deposit,
 		Content: governance.ProposalContent{
-			Upgrade:          (*governance.UpgradeProposal)(p.Content.Upgrade),
+			Upgrade: &governance.UpgradeProposal{
+				Descriptor: upgrade.Descriptor{
+					Versioned: p.Content.Upgrade.Descriptor.Versioned,
+					Handler:   upgrade.HandlerName(p.Content.Upgrade.Descriptor.Handler),
+					Target:    p.Content.Upgrade.Descriptor.Target,
+					Epoch:     p.Content.Upgrade.Descriptor.Epoch,
+				},
+			},
 			CancelUpgrade:    (*governance.CancelUpgradeProposal)(p.Content.CancelUpgrade),
 			ChangeParameters: nil, // not present in cobalt
 		},

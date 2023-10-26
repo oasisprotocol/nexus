@@ -1,4 +1,5 @@
 #!/bin/bash
+# shellcheck disable=SC2046,SC2044  # quick-n-dirty, for using unquoted `find` output as part of commands
 
 # This script vendors (=clones) type definitions from a given version of
 # oasis-core into a local directory, coreapi/$VERSION.
@@ -29,9 +30,12 @@
 
 set -euo pipefail
 
-VERSION=v21.1.1 # Cobalt
+VERSION="${1:-v22.2.11}" # Damask
 MODULES=(beacon consensus genesis governance keymanager registry roothash scheduler staking)
+if [[ $VERSION == v22.2.11 ]]; then MODULES+=(runtime/client upgrade); fi
 OUTDIR="coreapi/$VERSION"
+
+echo "Vendoring oasis-core $VERSION into $OUTDIR"
 
 # Copy oasis-core
 (
@@ -42,42 +46,45 @@ OUTDIR="coreapi/$VERSION"
     echo "$output"
     exit 1
   fi
-  git checkout "$VERSION"
+  git checkout "$VERSION" # "850373a2d" # master as of 2023-10-03
 )
-rm -rf $OUTDIR
+rm -rf "$OUTDIR"
 for m in "${MODULES[@]}"; do
-  mkdir -p $OUTDIR/$m
-  cp -r ../oasis-core/go/$m/api $OUTDIR/$m
+  mkdir -p "$OUTDIR/$m"
+  cp -r "../oasis-core/go/$m/api" "$OUTDIR/$m"
 done
-cp -r ../oasis-core/go/consensus/genesis $OUTDIR/consensus
-rm $(find $OUTDIR/ -name '*_test.go')
+cp -r ../oasis-core/go/consensus/genesis "$OUTDIR/consensus"
+mkdir -p "$OUTDIR/common/node"
+cp ../oasis-core/go/common/node/*.go "$OUTDIR/common/node"
+rm $(find "$OUTDIR/" -name '*_test.go')
 
-# Fix imports
-# for m in "${MODULES[@]}"; do
-#   sed -E -i "s#$m \"github.com/oasisprotocol/oasis-core/go/$m/api([^\"]*)\"#$m \"github.com/oasisprotocol/nexus/$OUTDIR/$m/api\\1\"#" $(find $OUTDIR/ -type f)
-# done
+# Fix imports: References to the "real" oasis-core must now point to the vendored coutnerpart.
 modules_or=$(IFS="|"; echo "${MODULES[*]}")
-sed -E -i "s#github.com/oasisprotocol/oasis-core/go/($modules_or)/api(/[^\"]*)?#github.com/oasisprotocol/nexus/$OUTDIR/\\1/api\\2#" $(find $OUTDIR/ -type f)
-sed -E -i "s#github.com/oasisprotocol/oasis-core/go/consensus/genesis#github.com/oasisprotocol/nexus/$OUTDIR/consensus/genesis#" $(find $OUTDIR/ -type f)
+sed -E -i "s#github.com/oasisprotocol/oasis-core/go/($modules_or)/api(/[^\"]*)?#github.com/oasisprotocol/nexus/$OUTDIR/\\1/api\\2#" $(find "$OUTDIR/" -type f)
+sed -E -i "s#github.com/oasisprotocol/oasis-core/go/common/node#github.com/oasisprotocol/nexus/$OUTDIR/common/node#" $(find "$OUTDIR/" -type f)
+sed -E -i "s#github.com/oasisprotocol/oasis-core/go/consensus/genesis#github.com/oasisprotocol/nexus/$OUTDIR/consensus/genesis#" $(find "$OUTDIR/" -type f)
 
-# Remove functions
-for f in $(find $OUTDIR/ -type f); do
-  scripts/vendor-oasis-core/remove_func.py <"$f" >/tmp/nofunc
+# Remove functions and interfaces. We only need the types.
+for f in $(find "$OUTDIR/" -name "*.go" -type f | sort); do
+  scripts/vendor-oasis-core/remove_func.py <"$f" >/tmp/nofunc || { echo "Failed to remove functions from $f"; exit 1; }
   mv /tmp/nofunc "$f"
 done
 
 # Clean up
-gofumpt -w $OUTDIR/
-goimports -w $OUTDIR/
+gofumpt -w "$OUTDIR/"
+goimports -w "$OUTDIR/"
 
 # Apply manual patches
 if [[ $VERSION == v21.1.1 ]]; then
   # 1) Remove mentions of pvss from Cobalt. Nexus doesn't use those fields;
   #    just mark them interface{} so they can be CBOR-decoded.
-  sed -i -E 's/\*pvss.[a-zA-Z]+/interface{}/' $OUTDIR/beacon/api/pvss.go
-  goimports -w $OUTDIR/
+  sed -i -E 's/\*pvss.[a-zA-Z]+/interface{}/' "$OUTDIR/beacon/api/pvss.go"
+  goimports -w "$OUTDIR/"
+fi
+
+if [[ $VERSION == v21.1.1 ]] || [[ $VERSION == v22.2.11 ]]; then  
   # 2) Reuse the Address struct from oasis-core.
-  >$OUTDIR/staking/api/address.go cat <<EOF
+  >"$OUTDIR/staking/api/address.go" cat <<EOF
 package api
 
 import (
@@ -87,7 +94,7 @@ import (
 type Address = original.Address
 EOF
   # 3) Reuse EpochTime from oasis-core, and some other minor fixes.
-  for p in scripts/vendor-oasis-core/patches/${VERSION}/*.patch; do
+  for p in scripts/vendor-oasis-core/patches/"$VERSION"/*.patch; do
     echo "Applying patch $p"
     git apply "$p"
   done 
@@ -101,7 +108,7 @@ whitelisted_imports=(
   github.com/oasisprotocol/oasis-core/go/upgrade
 )
 surprising_core_imports="$(
-  grep --no-filename github.com/oasisprotocol/oasis-core $(find $OUTDIR/ -type f) \
+  grep --no-filename github.com/oasisprotocol/oasis-core $(find "$OUTDIR/" -type f) \
   | grep -v 'original' `# we introduced this dependency intentionally; see above` \
   | grep -oE '"github.com/oasisprotocol/oasis-core/[^"]*"' \
   | sort \

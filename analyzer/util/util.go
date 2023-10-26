@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	beacon "github.com/oasisprotocol/oasis-core/go/beacon/api"
-	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
+	beacon "github.com/oasisprotocol/nexus/coreapi/v22.2.11/beacon/api"
+	staking "github.com/oasisprotocol/nexus/coreapi/v22.2.11/staking/api"
 )
 
 const (

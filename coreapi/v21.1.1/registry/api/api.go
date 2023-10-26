@@ -6,9 +6,9 @@ import (
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/hash"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
 	"github.com/oasisprotocol/oasis-core/go/common/entity"
-	"github.com/oasisprotocol/oasis-core/go/common/node"
 
 	"github.com/oasisprotocol/nexus/coreapi/v21.1.1/consensus/api/transaction"
+	"github.com/oasisprotocol/nexus/coreapi/v22.2.11/common/node" // Borrow the 22.2.11 version of `node` because the 21.1.1 version is identical for serde purposes
 )
 
 // ModuleName is a unique module name for the registry module.

@@ -9,13 +9,14 @@ import (
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 
 	// nexus-internal data types.
-	beacon "github.com/oasisprotocol/oasis-core/go/beacon/api"
 	"github.com/oasisprotocol/oasis-core/go/common"
-	consensus "github.com/oasisprotocol/oasis-core/go/consensus/api"
-	consensusTx "github.com/oasisprotocol/oasis-core/go/consensus/api/transaction"
-	genesis "github.com/oasisprotocol/oasis-core/go/genesis/api"
-	governance "github.com/oasisprotocol/oasis-core/go/governance/api"
-	scheduler "github.com/oasisprotocol/oasis-core/go/scheduler/api"
+
+	beacon "github.com/oasisprotocol/nexus/coreapi/v22.2.11/beacon/api"
+	consensus "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api"
+	consensusTx "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api/transaction"
+	genesis "github.com/oasisprotocol/nexus/coreapi/v22.2.11/genesis/api"
+	governance "github.com/oasisprotocol/nexus/coreapi/v22.2.11/governance/api"
+	scheduler "github.com/oasisprotocol/nexus/coreapi/v22.2.11/scheduler/api"
 
 	"github.com/oasisprotocol/nexus/log"
 	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"

@@ -139,7 +139,7 @@ x-type-annotations:
     pattern: '^oasis1[a-z0-9]{40}$'
     example: "oasis1qpg2xuz46g53737343r20yxeddhlvc2ldqsjh70p"
     x-go-type: staking.Address
-    x-go-type-import: { name: staking, path: "github.com/oasisprotocol/oasis-core/go/staking/api" }
+    x-go-type-import: { name: staking, path: "github.com/oasisprotocol/nexus/coreapi/v22.2.11/staking/api" }
     description: An oasis-style (bech32) address.
   address: &AddressType
     type: string

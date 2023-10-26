@@ -4,10 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	beacon "github.com/oasisprotocol/oasis-core/go/beacon/api"
 	"github.com/oasisprotocol/oasis-core/go/common"
-	consensus "github.com/oasisprotocol/oasis-core/go/consensus/api"
-	genesis "github.com/oasisprotocol/oasis-core/go/genesis/api"
+
+	beacon "github.com/oasisprotocol/nexus/coreapi/v22.2.11/beacon/api"
+	consensus "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api"
+	genesis "github.com/oasisprotocol/nexus/coreapi/v22.2.11/genesis/api"
 
 	"github.com/oasisprotocol/nexus/config"
 	"github.com/oasisprotocol/nexus/storage/oasis/connections"
@@ -21,11 +22,11 @@ var _ nodeapi.ConsensusApiLite = (*HistoryConsensusApiLite)(nil)
 type APIConstructor func(ctx context.Context, chainContext string, archiveConfig *config.ArchiveConfig, fastStartup bool) (nodeapi.ConsensusApiLite, error)
 
 func damaskAPIConstructor(ctx context.Context, chainContext string, archiveConfig *config.ArchiveConfig, fastStartup bool) (nodeapi.ConsensusApiLite, error) {
-	sdkConn, err := connections.SDKConnect(ctx, chainContext, archiveConfig.ResolvedConsensusNode(), fastStartup)
+	rawConn, err := connections.RawConnect(archiveConfig.ResolvedConsensusNode())
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("oasis-node RawConnect: %w", err)
 	}
-	return damask.NewDamaskConsensusApiLite(sdkConn.Consensus()), nil
+	return damask.NewDamaskConsensusApiLite(rawConn), nil
 }
 
 func cobaltAPIConstructor(ctx context.Context, chainContext string, archiveConfig *config.ArchiveConfig, fastStartup bool) (nodeapi.ConsensusApiLite, error) {

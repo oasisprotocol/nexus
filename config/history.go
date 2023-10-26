@@ -3,8 +3,8 @@ package config
 import (
 	"fmt"
 
-	consensus "github.com/oasisprotocol/oasis-core/go/consensus/api"
-	runtimeClient "github.com/oasisprotocol/oasis-core/go/runtime/client/api"
+	consensus "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api"
+	runtimeClient "github.com/oasisprotocol/nexus/coreapi/v22.2.11/runtime/client/api"
 
 	"github.com/oasisprotocol/nexus/common"
 )

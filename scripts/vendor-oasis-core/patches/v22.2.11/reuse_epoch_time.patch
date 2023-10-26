@@ -1,0 +1,24 @@
+diff --git a/coreapi/v22.2.11/beacon/api/api.go b/coreapi/beacon/api/api.go
+index ee5147d..081b036 100644
+--- a/coreapi/v22.2.11/beacon/api/api.go
++++ b/coreapi/v22.2.11/beacon/api/api.go
+@@ -1,6 +1,10 @@
+ // Package api implements the random beacon and time keeping APIs.
+ package api
+ 
++import (
++	original "github.com/oasisprotocol/oasis-core/go/beacon/api"
++)
++
+ const (
+ 	// ModuleName is a unique module name for the beacon module.
+ 	ModuleName = "beacon"
+@@ -24,7 +28,7 @@ const (
+ 
+ // EpochTime is the number of intervals (epochs) since a fixed instant
+ // in time/block height (epoch date/height).
+-type EpochTime uint64
++type EpochTime = original.EpochTime
+ 
+ // AbsDiff returns the absolute difference (in epochs) between two epochtimes.
+ // removed func

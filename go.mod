@@ -18,7 +18,7 @@ require (
 	github.com/prometheus/client_golang v1.14.0
 	github.com/spf13/cobra v1.5.0
 	github.com/stretchr/testify v1.8.4
-	golang.org/x/sync v0.3.0
+	golang.org/x/sync v0.3.0 // indirect
 	google.golang.org/grpc v1.57.0
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
