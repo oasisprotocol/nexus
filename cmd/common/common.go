@@ -6,6 +6,8 @@ import (
 	"io"
 	"os"
 
+	"google.golang.org/grpc/grpclog"
+
 	coreLogging "github.com/oasisprotocol/oasis-core/go/common/logging"
 
 	"github.com/oasisprotocol/nexus/config"
@@ -48,6 +50,19 @@ func Init(cfg *config.Config) error {
 	if err := coreLogging.Initialize(w, coreFormat, coreLevel, nil); err != nil {
 		logger.Error("failed to initialize oasis-core logging", "err", err)
 		return err
+	}
+
+	// Initialize gRPC logging.
+	grpcInfoWriter := io.Discard
+	if level == log.LevelDebug {
+		grpcInfoWriter = os.Stdout
+	}
+	if level == log.LevelDebug {
+		grpclog.SetLoggerV2(grpclog.NewLoggerV2(
+			grpcInfoWriter, // info writer
+			os.Stdout,      // warning writer
+			os.Stdout,      // error writer
+		))
 	}
 
 	// Initialize Prometheus service.
