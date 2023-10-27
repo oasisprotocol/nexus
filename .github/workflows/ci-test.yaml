@@ -104,6 +104,7 @@ jobs:
         run: |
           docker logs nexus | tee /tmp/nexus.log;
           docker logs nexus-postgres | tee /tmp/nexus-postgres.log;
+          docker logs oasis-net-runner | tee /tmp/oasis-net-runner.log;
           docker exec nexus-postgres pg_dump -U indexer --create | tee /tmp/nexus_db.sql;
         if: success() || failure()  # but not if job is manually cancelled
       - uses: actions/upload-artifact@v3
