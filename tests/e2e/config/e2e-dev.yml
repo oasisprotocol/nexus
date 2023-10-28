@@ -3,12 +3,13 @@ analysis:
     custom_chain:
       history:
         records:
-          - archive_name: damask
+          - archive_name: enigma
+            # ^ "Fake" name (because this is not the real chain), but used by nexus to choose the version of the node client
             genesis_height: 1
-            chain_context: 59e65fd10f3057cb8009998c5e6288db40b32a3a37f3c3a7c769fd84ed4c63c9
+            chain_context: 182e2b0cd78c263e276ac127d04b0ab390a421e9b2b7073dd56823f11dd7b853
       sdk_network: {}
     nodes:
-      damask:
+      enigma:
         default:
           rpc: unix:/testnet/net-runner/network/validator-0/internal.sock
   analyzers:

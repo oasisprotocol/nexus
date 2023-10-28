@@ -112,6 +112,7 @@
       "thresholds": {
         "entity": "0",
         "node-compute": "0",
+        "node-observer": "0",
         "node-keymanager": "0",
         "node-validator": "0",
         "runtime-compute": "0",
