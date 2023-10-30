@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"math/big"
+	"strings"
 	"time"
 
 	ethCommon "github.com/ethereum/go-ethereum/common"
@@ -108,8 +109,10 @@ func evmDownloadNFTERC721Metadata(ctx context.Context, logger *log.Logger, sourc
 		return nil
 	}
 	limitedReader := io.LimitReader(rc, MaxMetadataBytes)
+	var metadataBuilder strings.Builder
+	teeReader := io.TeeReader(limitedReader, &metadataBuilder)
 	var metadata ERC721AssetMetadata
-	if err = json.NewDecoder(limitedReader).Decode(&metadata); err != nil {
+	if err = json.NewDecoder(teeReader).Decode(&metadata); err != nil {
 		logger.Info("error decoding token metadata",
 			"uri", nftData.MetadataURI,
 			"err", err,
@@ -118,6 +121,7 @@ func evmDownloadNFTERC721Metadata(ctx context.Context, logger *log.Logger, sourc
 	if err = rc.Close(); err != nil {
 		return fmt.Errorf("closing metadata reader: %w", err)
 	}
+	nftData.Metadata = metadataBuilder.String()
 	nftData.Name = metadata.Name
 	nftData.Description = metadata.Description
 	nftData.Image = metadata.Image

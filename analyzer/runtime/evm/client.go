@@ -48,6 +48,7 @@ type EVMTokenMutableData struct {
 type EVMNFTData struct {
 	MetadataURI      string
 	MetadataAccessed time.Time
+	Metadata         string
 	Name             string
 	Description      string
 	Image            string
