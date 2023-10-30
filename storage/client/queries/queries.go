@@ -522,6 +522,7 @@ const (
 			owner_preimage.address_data,
 			chain.evm_nfts.metadata_uri,
 			chain.evm_nfts.metadata_accessed,
+			chain.evm_nfts.metadata,
 			chain.evm_nfts.name,
 			chain.evm_nfts.description,
 			chain.evm_nfts.image
