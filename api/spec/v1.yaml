@@ -2689,6 +2689,10 @@ components:
           type: string
         metadata_accessed:
           type: string
+        metadata:
+          description: |
+            A metadata document for this NFT instance.
+            Currently only ERC-721 is supported, where the document is an Asset Metadata from the ERC721 Metadata JSON Schema.
         name:
           type: string
           description: Identifies the asset which this NFT represents
