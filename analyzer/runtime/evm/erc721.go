@@ -27,13 +27,13 @@ const MaxMetadataBytes = 10 * 1024 * 1024
 // https://eips.ethereum.org/EIPS/eip-721
 type ERC721AssetMetadata struct {
 	// Name identifies the asset which this NFT represents
-	Name string `json:"name"`
+	Name *string `json:"name"`
 	// Description describes the asset which this NFT represents
-	Description string `json:"description"`
+	Description *string `json:"description"`
 	// Image is A URI pointing to a resource with mime type image/*
 	// representing the asset which this NFT represents. (Additional
 	// non-descriptive text from ERC-721 omitted.)
-	Image string `json:"image"`
+	Image *string `json:"image"`
 }
 
 func evmDownloadTokenERC721Mutable(ctx context.Context, logger *log.Logger, source nodeapi.RuntimeApiLite, round uint64, tokenEthAddr []byte) (*EVMTokenMutableData, error) {
@@ -121,7 +121,7 @@ func evmDownloadNFTERC721Metadata(ctx context.Context, logger *log.Logger, sourc
 	if err = rc.Close(); err != nil {
 		return fmt.Errorf("closing metadata reader: %w", err)
 	}
-	nftData.Metadata = metadataBuilder.String()
+	nftData.Metadata = common.Ptr(metadataBuilder.String())
 	nftData.Name = metadata.Name
 	nftData.Description = metadata.Description
 	nftData.Image = metadata.Image
