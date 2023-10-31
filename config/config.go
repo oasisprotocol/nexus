@@ -212,10 +212,6 @@ func SingleNetworkLookup(rpc string) map[string]*ArchiveConfig {
 type CacheConfig struct {
 	// CacheDir is the directory where the cache data is stored
 	CacheDir string `koanf:"cache_dir"`
-
-	// If set, the analyzer will query the node upon any cache
-	// misses.
-	QueryOnCacheMiss bool `koanf:"query_on_cache_miss"`
 }
 
 func (cfg *CacheConfig) Validate() error {
