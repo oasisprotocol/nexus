@@ -2,7 +2,6 @@ package oasis
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/oasisprotocol/oasis-core/go/common"
 	sdkConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
@@ -46,11 +45,6 @@ func (cc *ConsensusClient) GetNodes(ctx context.Context, height int64) ([]nodeap
 // StateToGenesis returns a genesis-like struct encoding the state of the chain at the given height.
 func (cc *ConsensusClient) StateToGenesis(ctx context.Context, height int64) (*genesisAPI.Document, error) {
 	return cc.nodeApi.StateToGenesis(ctx, height)
-}
-
-// Name returns the name of the client, for the ConsensusSourceStorage interface.
-func (cc *ConsensusClient) Name() string {
-	return fmt.Sprintf("%s_consensus", moduleName)
 }
 
 // GetEpoch returns the epoch number at the specified block height.

@@ -137,9 +137,6 @@ type ConsensusSourceStorage interface {
 	// root hash events.
 	RootHashData(ctx context.Context, height int64) (*RootHashData, error)
 
-	// Name returns the name of the source storage.
-	Name() string
-
 	// Close instructs the source storage to clean up resources. Calling other
 	// methods after this one results in undefined behavior.
 	Close() error
