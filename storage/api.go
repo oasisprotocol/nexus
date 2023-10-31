@@ -12,7 +12,6 @@ import (
 
 	beacon "github.com/oasisprotocol/nexus/coreapi/v22.2.11/beacon/api"
 	consensus "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api"
-	genesisAPI "github.com/oasisprotocol/nexus/coreapi/v22.2.11/genesis/api"
 
 	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
 )
@@ -88,58 +87,6 @@ func (b *QueryBatch) Queries() []*BatchItem {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 	return b.items
-}
-
-// ConsensusSourceStorage defines an interface for retrieving raw block data
-// from the consensus layer.
-type ConsensusSourceStorage interface {
-	// GenesisDocument returns the genesis document for the chain.
-	GenesisDocument(ctx context.Context, chainContext string) (*genesisAPI.Document, error)
-
-	// StateToGenesis returns a genesis-like struct encoding the state of the chain at the given height.
-	StateToGenesis(ctx context.Context, height int64) (*genesisAPI.Document, error)
-
-	// GetNodes returns the list of registered nodes at the given height.
-	GetNodes(ctx context.Context, height int64) ([]nodeapi.Node, error)
-
-	// AllData returns all data tied to a specific height.
-	AllData(ctx context.Context, height int64, fastSync bool) (*ConsensusAllData, error)
-
-	// LatestBlockHeight returns the latest height for which a block is available.
-	LatestBlockHeight(ctx context.Context) (int64, error)
-
-	// BlockData gets block data at the specified height. This includes all
-	// block header information, as well as transactions and events included
-	// within that block.
-	BlockData(ctx context.Context, height int64) (*ConsensusBlockData, error)
-
-	// BeaconData gets beacon data at the specified height. This includes
-	// the epoch number at that height, as well as the beacon state.
-	BeaconData(ctx context.Context, height int64) (*BeaconData, error)
-
-	// RegistryData gets registry data at the specified height. This includes
-	// all registered entities and their controlled nodes and statuses.
-	RegistryData(ctx context.Context, height int64) (*RegistryData, error)
-
-	// StakingData gets staking data at the specified height. This includes
-	// staking backend events to be applied to indexed state.
-	StakingData(ctx context.Context, height int64) (*StakingData, error)
-
-	// SchedulerData gets scheduler data at the specified height. This
-	// includes all validators and runtime committees.
-	SchedulerData(ctx context.Context, height int64) (*SchedulerData, error)
-
-	// GovernanceData gets governance data at the specified height. This
-	// includes all proposals, their respective statuses and voting responses.
-	GovernanceData(ctx context.Context, height int64) (*GovernanceData, error)
-
-	// RootHashData gets root hash data at the specified height. This includes
-	// root hash events.
-	RootHashData(ctx context.Context, height int64) (*RootHashData, error)
-
-	// Close instructs the source storage to clean up resources. Calling other
-	// methods after this one results in undefined behavior.
-	Close() error
 }
 
 type ConsensusAllData struct {
