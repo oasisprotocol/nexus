@@ -27,7 +27,6 @@ import (
 	"github.com/oasisprotocol/nexus/log"
 	"github.com/oasisprotocol/nexus/metrics"
 	"github.com/oasisprotocol/nexus/storage"
-	source "github.com/oasisprotocol/nexus/storage/oasis"
 	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
 )
 
@@ -72,12 +71,12 @@ type processor struct {
 var _ block.BlockProcessor = (*processor)(nil)
 
 // NewAnalyzer returns a new analyzer for the consensus layer.
-func NewAnalyzer(blockRange config.BlockRange, batchSize uint64, mode analyzer.BlockAnalysisMode, history config.History, sourceClient *source.ConsensusClient, target storage.TargetStorage, logger *log.Logger) (analyzer.Analyzer, error) {
+func NewAnalyzer(blockRange config.BlockRange, batchSize uint64, mode analyzer.BlockAnalysisMode, history config.History, source nodeapi.ConsensusApiLite, network sdkConfig.Network, target storage.TargetStorage, logger *log.Logger) (analyzer.Analyzer, error) {
 	processor := &processor{
 		mode:    mode,
 		history: history,
-		source:  sourceClient.NodeApi,
-		network: *sourceClient.Network,
+		source:  source,
+		network: network,
 		target:  target,
 		logger:  logger.With("analyzer", consensusAnalyzerName),
 		metrics: metrics.NewDefaultStorageMetrics(consensusAnalyzerName),
