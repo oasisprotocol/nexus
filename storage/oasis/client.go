@@ -28,8 +28,8 @@ func NewConsensusClient(ctx context.Context, sourceConfig *config.SourceConfig) 
 			return nil, fmt.Errorf("error instantiating cache-based consensusApi: %w", err)
 		}
 		return &ConsensusClient{
-			nodeApi: nodeApi,
-			network: sourceConfig.SDKNetwork(),
+			NodeApi: nodeApi,
+			Network: sourceConfig.SDKNetwork(),
 		}, nil
 	}
 
@@ -47,8 +47,8 @@ func NewConsensusClient(ctx context.Context, sourceConfig *config.SourceConfig) 
 		}
 	}
 	return &ConsensusClient{
-		nodeApi: nodeApi,
-		network: sourceConfig.SDKNetwork(),
+		NodeApi: nodeApi,
+		Network: sourceConfig.SDKNetwork(),
 	}, nil
 }
 

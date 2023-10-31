@@ -12,6 +12,7 @@ import (
 
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
+	sdkConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 
 	"github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api/transaction"
 	genesis "github.com/oasisprotocol/nexus/coreapi/v22.2.11/genesis/api"
@@ -61,7 +62,8 @@ func OpenSignedTxNoVerify(signedTx *transaction.SignedTransaction) (*transaction
 type processor struct {
 	mode    analyzer.BlockAnalysisMode
 	history config.History
-	source  storage.ConsensusSourceStorage
+	source  nodeapi.ConsensusApiLite
+	network sdkConfig.Network
 	target  storage.TargetStorage
 	logger  *log.Logger
 	metrics metrics.StorageMetrics
@@ -74,7 +76,8 @@ func NewAnalyzer(blockRange config.BlockRange, batchSize uint64, mode analyzer.B
 	processor := &processor{
 		mode:    mode,
 		history: history,
-		source:  sourceClient,
+		source:  sourceClient.NodeApi,
+		network: *sourceClient.Network,
 		target:  target,
 		logger:  logger.With("analyzer", consensusAnalyzerName),
 		metrics: metrics.NewDefaultStorageMetrics(consensusAnalyzerName),
@@ -124,7 +127,7 @@ func (m *processor) FinalizeFastSync(ctx context.Context, lastFastSyncHeight int
 	var nodes []nodeapi.Node
 	if r.GenesisHeight == firstSlowSyncHeight {
 		m.logger.Info("fetching genesis document before starting with the first block of a chain", "chain_context", r.ChainContext, "genesis_height", r.GenesisHeight)
-		genesisDoc, err = m.source.GenesisDocument(ctx, r.ChainContext)
+		genesisDoc, err = m.source.GetGenesisDocument(ctx, r.ChainContext)
 		if err != nil {
 			return err
 		}
@@ -205,7 +208,7 @@ func (m *processor) ProcessBlock(ctx context.Context, uheight uint64) error {
 	height := int64(uheight)
 
 	// Fetch all data.
-	data, err := m.source.AllData(ctx, height, m.mode == analyzer.FastSyncMode)
+	data, err := AllData(ctx, m.source, m.network, height, m.mode == analyzer.FastSyncMode)
 	if err != nil {
 		if strings.Contains(err.Error(), fmt.Sprintf("%d must be less than or equal to the current blockchain height", height)) {
 			return analyzer.ErrOutOfRange

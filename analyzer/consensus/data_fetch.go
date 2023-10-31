@@ -1,75 +1,33 @@
-package oasis
+// Package consensus implements an analyzer for the consensus layer.
+package consensus
 
 import (
 	"context"
 
-	"github.com/oasisprotocol/oasis-core/go/common"
-	sdkConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
-
-	beaconAPI "github.com/oasisprotocol/nexus/coreapi/v22.2.11/beacon/api"
-	consensusAPI "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api"
-	genesisAPI "github.com/oasisprotocol/nexus/coreapi/v22.2.11/genesis/api"
-
 	"github.com/oasisprotocol/nexus/storage"
 	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
+	"github.com/oasisprotocol/oasis-core/go/common"
+	sdkConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 )
 
-// ConsensusClient is a client to the consensus methods/data of oasis node. It
-// differs from the nodeapi.ConsensusApiLite in that:
-//   - Its methods may collect data using multiple RPCs each.
-//   - The return types make no effort to closely resemble oasis-core types
-//     in structure. Instead, they are structured in a way that is most convenient
-//     for the analyzer.
-//
-// TODO: The benefits of this abstraction are miniscule, and introduce considerable
-// boilerplate. Consider removing ConsensusClient, and using nodeapi.ConsensusApiLite instead.
-type ConsensusClient struct {
-	NodeApi nodeapi.ConsensusApiLite
-	Network *sdkConfig.Network
-}
-
-func (cc *ConsensusClient) Close() error {
-	return cc.NodeApi.Close()
-}
-
-// GenesisDocument returns the original genesis document.
-func (cc *ConsensusClient) GenesisDocument(ctx context.Context, chainContext string) (*genesisAPI.Document, error) {
-	return cc.NodeApi.GetGenesisDocument(ctx, chainContext)
-}
-
-// GetNodes returns the list of nodes registered at the given height.
-func (cc *ConsensusClient) GetNodes(ctx context.Context, height int64) ([]nodeapi.Node, error) {
-	return cc.NodeApi.GetNodes(ctx, height)
-}
-
-// StateToGenesis returns a genesis-like struct encoding the state of the chain at the given height.
-func (cc *ConsensusClient) StateToGenesis(ctx context.Context, height int64) (*genesisAPI.Document, error) {
-	return cc.NodeApi.StateToGenesis(ctx, height)
-}
-
-// GetEpoch returns the epoch number at the specified block height.
-func (cc *ConsensusClient) GetEpoch(ctx context.Context, height int64) (beaconAPI.EpochTime, error) {
-	return cc.NodeApi.GetEpoch(ctx, height)
-}
-
 // AllData returns all relevant data related to the given height.
-func (cc *ConsensusClient) AllData(ctx context.Context, height int64, fastSync bool) (*storage.ConsensusAllData, error) {
-	blockData, err := cc.BlockData(ctx, height)
+func AllData(ctx context.Context, cc nodeapi.ConsensusApiLite, network sdkConfig.Network, height int64, fastSync bool) (*storage.ConsensusAllData, error) {
+	blockData, err := BlockData(ctx, cc, height)
 	if err != nil {
 		return nil, err
 	}
 
-	beaconData, err := cc.BeaconData(ctx, height)
+	beaconData, err := BeaconData(ctx, cc, height)
 	if err != nil {
 		return nil, err
 	}
 
-	registryData, err := cc.RegistryData(ctx, height)
+	registryData, err := RegistryData(ctx, cc, height)
 	if err != nil {
 		return nil, err
 	}
 
-	stakingData, err := cc.StakingData(ctx, height)
+	stakingData, err := StakingData(ctx, cc, height)
 	if err != nil {
 		return nil, err
 	}
@@ -79,18 +37,18 @@ func (cc *ConsensusClient) AllData(ctx context.Context, height int64, fastSync b
 	// only a complete snapshot validators/committees. Since we don't store historical data,
 	// any single snapshot during slow-sync is sufficient to reconstruct the state.
 	if !fastSync {
-		schedulerData, err = cc.SchedulerData(ctx, height)
+		schedulerData, err = SchedulerData(ctx, cc, network, height)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	governanceData, err := cc.GovernanceData(ctx, height)
+	governanceData, err := GovernanceData(ctx, cc, height)
 	if err != nil {
 		return nil, err
 	}
 
-	rootHashData, err := cc.RootHashData(ctx, height)
+	rootHashData, err := RootHashData(ctx, cc, height)
 	if err != nil {
 		return nil, err
 	}
@@ -107,18 +65,9 @@ func (cc *ConsensusClient) AllData(ctx context.Context, height int64, fastSync b
 	return &data, nil
 }
 
-// Implements ConsensusSourceStorage interface.
-func (cc *ConsensusClient) LatestBlockHeight(ctx context.Context) (int64, error) {
-	blk, err := cc.NodeApi.GetBlock(ctx, consensusAPI.HeightLatest)
-	if err != nil {
-		return 0, err
-	}
-	return blk.Height, nil
-}
-
 // BlockData retrieves data about a consensus block at the provided block height.
-func (cc *ConsensusClient) BlockData(ctx context.Context, height int64) (*storage.ConsensusBlockData, error) {
-	block, err := cc.NodeApi.GetBlock(ctx, height)
+func BlockData(ctx context.Context, cc nodeapi.ConsensusApiLite, height int64) (*storage.ConsensusBlockData, error) {
+	block, err := cc.GetBlock(ctx, height)
 	if err != nil {
 		return nil, err
 	}
@@ -128,7 +77,7 @@ func (cc *ConsensusClient) BlockData(ctx context.Context, height int64) (*storag
 		return nil, err
 	}
 
-	transactionsWithResults, err := cc.NodeApi.GetTransactionsWithResults(ctx, height)
+	transactionsWithResults, err := cc.GetTransactionsWithResults(ctx, height)
 	if err != nil {
 		return nil, err
 	}
@@ -142,7 +91,7 @@ func (cc *ConsensusClient) BlockData(ctx context.Context, height int64) (*storag
 }
 
 // BeaconData retrieves the beacon for the provided block height.
-func (cc *ConsensusClient) BeaconData(ctx context.Context, height int64) (*storage.BeaconData, error) {
+func BeaconData(ctx context.Context, cc nodeapi.ConsensusApiLite, height int64) (*storage.BeaconData, error) {
 	// NOTE: The random beacon endpoint is in flux.
 	// GetBeacon() consistently errors out (at least for heights soon after Damask genesis) with "beacon: random beacon not available".
 	// beacon, err := cc.client.Beacon().GetBeacon(ctx, height)
@@ -163,8 +112,8 @@ func (cc *ConsensusClient) BeaconData(ctx context.Context, height int64) (*stora
 }
 
 // RegistryData retrieves registry events at the provided block height.
-func (cc *ConsensusClient) RegistryData(ctx context.Context, height int64) (*storage.RegistryData, error) {
-	events, err := cc.NodeApi.RegistryEvents(ctx, height)
+func RegistryData(ctx context.Context, cc nodeapi.ConsensusApiLite, height int64) (*storage.RegistryData, error) {
+	events, err := cc.RegistryEvents(ctx, height)
 	if err != nil {
 		return nil, err
 	}
@@ -190,7 +139,7 @@ func (cc *ConsensusClient) RegistryData(ctx context.Context, height int64) (*sto
 		}
 	}
 
-	return &storage.RegistryData{
+	return &registryData{
 		Height:                 height,
 		Events:                 events,
 		RuntimeStartedEvents:   runtimeStartedEvents,
@@ -202,8 +151,8 @@ func (cc *ConsensusClient) RegistryData(ctx context.Context, height int64) (*sto
 }
 
 // StakingData retrieves staking events at the provided block height.
-func (cc *ConsensusClient) StakingData(ctx context.Context, height int64) (*storage.StakingData, error) {
-	events, err := cc.NodeApi.StakingEvents(ctx, height)
+func StakingData(ctx context.Context, cc nodeapi.ConsensusApiLite, height int64) (*storage.StakingData, error) {
+	events, err := cc.StakingEvents(ctx, height)
 	if err != nil {
 		return nil, err
 	}
@@ -255,21 +204,21 @@ func (cc *ConsensusClient) StakingData(ctx context.Context, height int64) (*stor
 }
 
 // SchedulerData retrieves validators and runtime committees at the provided block height.
-func (cc *ConsensusClient) SchedulerData(ctx context.Context, height int64) (*storage.SchedulerData, error) {
-	validators, err := cc.NodeApi.GetValidators(ctx, height)
+func SchedulerData(ctx context.Context, cc nodeapi.ConsensusApiLite, network sdkConfig.Network, height int64) (*storage.SchedulerData, error) {
+	validators, err := cc.GetValidators(ctx, height)
 	if err != nil {
 		return nil, err
 	}
 
-	committees := make(map[common.Namespace][]nodeapi.Committee, len(cc.Network.ParaTimes.All))
+	committees := make(map[common.Namespace][]nodeapi.Committee, len(network.ParaTimes.All))
 
-	for name := range cc.Network.ParaTimes.All {
+	for name := range network.ParaTimes.All {
 		var runtimeID common.Namespace
-		if err := runtimeID.UnmarshalHex(cc.Network.ParaTimes.All[name].ID); err != nil {
+		if err := runtimeID.UnmarshalHex(network.ParaTimes.All[name].ID); err != nil {
 			return nil, err
 		}
 
-		consensusCommittees, err := cc.NodeApi.GetCommittees(ctx, height, runtimeID)
+		consensusCommittees, err := cc.GetCommittees(ctx, height, runtimeID)
 		if err != nil {
 			return nil, err
 		}
@@ -284,8 +233,8 @@ func (cc *ConsensusClient) SchedulerData(ctx context.Context, height int64) (*st
 }
 
 // GovernanceData retrieves governance events at the provided block height.
-func (cc *ConsensusClient) GovernanceData(ctx context.Context, height int64) (*storage.GovernanceData, error) {
-	events, err := cc.NodeApi.GovernanceEvents(ctx, height)
+func GovernanceData(ctx context.Context, cc nodeapi.ConsensusApiLite, height int64) (*storage.GovernanceData, error) {
+	events, err := cc.GovernanceEvents(ctx, height)
 	if err != nil {
 		return nil, err
 	}
@@ -298,7 +247,7 @@ func (cc *ConsensusClient) GovernanceData(ctx context.Context, height int64) (*s
 	for _, event := range events {
 		switch {
 		case event.GovernanceProposalSubmitted != nil:
-			proposal, err := cc.NodeApi.GetProposal(ctx, height, event.GovernanceProposalSubmitted.ID)
+			proposal, err := cc.GetProposal(ctx, height, event.GovernanceProposalSubmitted.ID)
 			if err != nil {
 				return nil, err
 			}
@@ -306,7 +255,7 @@ func (cc *ConsensusClient) GovernanceData(ctx context.Context, height int64) (*s
 		case event.GovernanceProposalExecuted != nil:
 			executions = append(executions, *event.GovernanceProposalExecuted)
 		case event.GovernanceProposalFinalized != nil:
-			proposal, err := cc.NodeApi.GetProposal(ctx, height, event.GovernanceProposalFinalized.ID)
+			proposal, err := cc.GetProposal(ctx, height, event.GovernanceProposalFinalized.ID)
 			if err != nil {
 				return nil, err
 			}
@@ -326,8 +275,8 @@ func (cc *ConsensusClient) GovernanceData(ctx context.Context, height int64) (*s
 }
 
 // RootHashData retrieves roothash events at the provided block height.
-func (cc *ConsensusClient) RootHashData(ctx context.Context, height int64) (*storage.RootHashData, error) {
-	events, err := cc.NodeApi.RoothashEvents(ctx, height)
+func RootHashData(ctx context.Context, cc nodeapi.ConsensusApiLite, height int64) (*storage.RootHashData, error) {
+	events, err := cc.RoothashEvents(ctx, height)
 	if err != nil {
 		return nil, err
 	}

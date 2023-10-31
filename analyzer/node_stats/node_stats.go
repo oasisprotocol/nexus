@@ -13,6 +13,9 @@ import (
 	"github.com/oasisprotocol/nexus/log"
 	"github.com/oasisprotocol/nexus/storage"
 	source "github.com/oasisprotocol/nexus/storage/oasis"
+	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
+
+	consensusAPI "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api"
 )
 
 const (
@@ -20,7 +23,7 @@ const (
 )
 
 type processor struct {
-	source storage.ConsensusSourceStorage
+	source nodeapi.ConsensusApiLite
 	target storage.TargetStorage
 	logger *log.Logger
 }
@@ -38,7 +41,7 @@ func NewAnalyzer(
 	}
 	logger = logger.With("analyzer", nodeStatsAnalyzerName)
 	p := &processor{
-		source: sourceClient,
+		source: sourceClient.NodeApi,
 		target: target,
 		logger: logger.With("analyzer", nodeStatsAnalyzerName),
 	}
@@ -61,13 +64,13 @@ func (p *processor) ProcessItem(ctx context.Context, batch *storage.QueryBatch, 
 	if layer != common.LayerConsensus {
 		return fmt.Errorf("unsupported layer %s", layer)
 	}
-	height, err := p.source.LatestBlockHeight(ctx)
+	latestBlock, err := p.source.GetBlock(ctx, consensusAPI.HeightLatest)
 	if err != nil {
 		return fmt.Errorf("error fetching latest block height for layer %s, %w", layer, err)
 	}
 	batch.Queue(queries.ConsensusNodeHeightUpsert,
 		layer,
-		height,
+		latestBlock.Height,
 	)
 
 	return nil
