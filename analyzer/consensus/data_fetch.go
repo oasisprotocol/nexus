@@ -4,56 +4,58 @@ package consensus
 import (
 	"context"
 
-	"github.com/oasisprotocol/nexus/storage"
-	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
-	"github.com/oasisprotocol/oasis-core/go/common"
+	coreCommon "github.com/oasisprotocol/oasis-core/go/common"
 	sdkConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
+
+	beacon "github.com/oasisprotocol/nexus/coreapi/v22.2.11/beacon/api"
+	consensus "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api"
+	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
 )
 
-// AllData returns all relevant data related to the given height.
-func AllData(ctx context.Context, cc nodeapi.ConsensusApiLite, network sdkConfig.Network, height int64, fastSync bool) (*storage.ConsensusAllData, error) {
-	blockData, err := BlockData(ctx, cc, height)
+// FetchAllData returns all relevant data related to the given height.
+func FetchAllData(ctx context.Context, cc nodeapi.ConsensusApiLite, network sdkConfig.Network, height int64, fastSync bool) (*ConsensusAllData, error) {
+	blockData, err := FetchBlockData(ctx, cc, height)
 	if err != nil {
 		return nil, err
 	}
 
-	beaconData, err := BeaconData(ctx, cc, height)
+	beaconData, err := FetchBeaconData(ctx, cc, height)
 	if err != nil {
 		return nil, err
 	}
 
-	registryData, err := RegistryData(ctx, cc, height)
+	registryData, err := FetchRegistryData(ctx, cc, height)
 	if err != nil {
 		return nil, err
 	}
 
-	stakingData, err := StakingData(ctx, cc, height)
+	stakingData, err := FetchStakingData(ctx, cc, height)
 	if err != nil {
 		return nil, err
 	}
 
-	var schedulerData *storage.SchedulerData
+	var schedulerData *SchedulerData
 	// Scheduler data is not needed during fast sync. It contains no events,
 	// only a complete snapshot validators/committees. Since we don't store historical data,
 	// any single snapshot during slow-sync is sufficient to reconstruct the state.
 	if !fastSync {
-		schedulerData, err = SchedulerData(ctx, cc, network, height)
+		schedulerData, err = FetchSchedulerData(ctx, cc, network, height)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	governanceData, err := GovernanceData(ctx, cc, height)
+	governanceData, err := FetchGovernanceData(ctx, cc, height)
 	if err != nil {
 		return nil, err
 	}
 
-	rootHashData, err := RootHashData(ctx, cc, height)
+	rootHashData, err := FetchRootHashData(ctx, cc, height)
 	if err != nil {
 		return nil, err
 	}
 
-	data := storage.ConsensusAllData{
+	data := ConsensusAllData{
 		BlockData:      blockData,
 		BeaconData:     beaconData,
 		RegistryData:   registryData,
@@ -65,8 +67,8 @@ func AllData(ctx context.Context, cc nodeapi.ConsensusApiLite, network sdkConfig
 	return &data, nil
 }
 
-// BlockData retrieves data about a consensus block at the provided block height.
-func BlockData(ctx context.Context, cc nodeapi.ConsensusApiLite, height int64) (*storage.ConsensusBlockData, error) {
+// FetchBlockData retrieves data about a consensus block at the provided block height.
+func FetchBlockData(ctx context.Context, cc nodeapi.ConsensusApiLite, height int64) (*ConsensusBlockData, error) {
 	block, err := cc.GetBlock(ctx, height)
 	if err != nil {
 		return nil, err
@@ -82,7 +84,7 @@ func BlockData(ctx context.Context, cc nodeapi.ConsensusApiLite, height int64) (
 		return nil, err
 	}
 
-	return &storage.ConsensusBlockData{
+	return &ConsensusBlockData{
 		Height:                  height,
 		BlockHeader:             block,
 		Epoch:                   epoch,
@@ -90,8 +92,8 @@ func BlockData(ctx context.Context, cc nodeapi.ConsensusApiLite, height int64) (
 	}, nil
 }
 
-// BeaconData retrieves the beacon for the provided block height.
-func BeaconData(ctx context.Context, cc nodeapi.ConsensusApiLite, height int64) (*storage.BeaconData, error) {
+// FetchBeaconData retrieves the beacon for the provided block height.
+func FetchBeaconData(ctx context.Context, cc nodeapi.ConsensusApiLite, height int64) (*BeaconData, error) {
 	// NOTE: The random beacon endpoint is in flux.
 	// GetBeacon() consistently errors out (at least for heights soon after Damask genesis) with "beacon: random beacon not available".
 	// beacon, err := cc.client.Beacon().GetBeacon(ctx, height)
@@ -104,15 +106,15 @@ func BeaconData(ctx context.Context, cc nodeapi.ConsensusApiLite, height int64) 
 		return nil, err
 	}
 
-	return &storage.BeaconData{
+	return &BeaconData{
 		Height: height,
 		Epoch:  epoch,
 		Beacon: nil,
 	}, nil
 }
 
-// RegistryData retrieves registry events at the provided block height.
-func RegistryData(ctx context.Context, cc nodeapi.ConsensusApiLite, height int64) (*storage.RegistryData, error) {
+// FetchRegistryData retrieves registry events at the provided block height.
+func FetchRegistryData(ctx context.Context, cc nodeapi.ConsensusApiLite, height int64) (*RegistryData, error) {
 	events, err := cc.RegistryEvents(ctx, height)
 	if err != nil {
 		return nil, err
@@ -150,8 +152,8 @@ func RegistryData(ctx context.Context, cc nodeapi.ConsensusApiLite, height int64
 	}, nil
 }
 
-// StakingData retrieves staking events at the provided block height.
-func StakingData(ctx context.Context, cc nodeapi.ConsensusApiLite, height int64) (*storage.StakingData, error) {
+// FetchStakingData retrieves staking events at the provided block height.
+func FetchStakingData(ctx context.Context, cc nodeapi.ConsensusApiLite, height int64) (*StakingData, error) {
 	events, err := cc.StakingEvents(ctx, height)
 	if err != nil {
 		return nil, err
@@ -189,7 +191,7 @@ func StakingData(ctx context.Context, cc nodeapi.ConsensusApiLite, height int64)
 		}
 	}
 
-	return &storage.StakingData{
+	return &StakingData{
 		Height:                height,
 		Epoch:                 epoch,
 		Events:                events,
@@ -203,17 +205,17 @@ func StakingData(ctx context.Context, cc nodeapi.ConsensusApiLite, height int64)
 	}, nil
 }
 
-// SchedulerData retrieves validators and runtime committees at the provided block height.
-func SchedulerData(ctx context.Context, cc nodeapi.ConsensusApiLite, network sdkConfig.Network, height int64) (*storage.SchedulerData, error) {
+// FetchSchedulerData retrieves validators and runtime committees at the provided block height.
+func FetchSchedulerData(ctx context.Context, cc nodeapi.ConsensusApiLite, network sdkConfig.Network, height int64) (*SchedulerData, error) {
 	validators, err := cc.GetValidators(ctx, height)
 	if err != nil {
 		return nil, err
 	}
 
-	committees := make(map[common.Namespace][]nodeapi.Committee, len(network.ParaTimes.All))
+	committees := make(map[coreCommon.Namespace][]nodeapi.Committee, len(network.ParaTimes.All))
 
 	for name := range network.ParaTimes.All {
-		var runtimeID common.Namespace
+		var runtimeID coreCommon.Namespace
 		if err := runtimeID.UnmarshalHex(network.ParaTimes.All[name].ID); err != nil {
 			return nil, err
 		}
@@ -225,15 +227,15 @@ func SchedulerData(ctx context.Context, cc nodeapi.ConsensusApiLite, network sdk
 		committees[runtimeID] = consensusCommittees
 	}
 
-	return &storage.SchedulerData{
+	return &SchedulerData{
 		Height:     height,
 		Validators: validators,
 		Committees: committees,
 	}, nil
 }
 
-// GovernanceData retrieves governance events at the provided block height.
-func GovernanceData(ctx context.Context, cc nodeapi.ConsensusApiLite, height int64) (*storage.GovernanceData, error) {
+// FetchGovernanceData retrieves governance events at the provided block height.
+func FetchGovernanceData(ctx context.Context, cc nodeapi.ConsensusApiLite, height int64) (*GovernanceData, error) {
 	events, err := cc.GovernanceEvents(ctx, height)
 	if err != nil {
 		return nil, err
@@ -264,7 +266,7 @@ func GovernanceData(ctx context.Context, cc nodeapi.ConsensusApiLite, height int
 			votes = append(votes, *event.GovernanceVote)
 		}
 	}
-	return &storage.GovernanceData{
+	return &GovernanceData{
 		Height:                height,
 		Events:                events,
 		ProposalSubmissions:   submissions,
@@ -274,15 +276,101 @@ func GovernanceData(ctx context.Context, cc nodeapi.ConsensusApiLite, height int
 	}, nil
 }
 
-// RootHashData retrieves roothash events at the provided block height.
-func RootHashData(ctx context.Context, cc nodeapi.ConsensusApiLite, height int64) (*storage.RootHashData, error) {
+// FetchRootHashData retrieves roothash events at the provided block height.
+func FetchRootHashData(ctx context.Context, cc nodeapi.ConsensusApiLite, height int64) (*RootHashData, error) {
 	events, err := cc.RoothashEvents(ctx, height)
 	if err != nil {
 		return nil, err
 	}
 
-	return &storage.RootHashData{
+	return &RootHashData{
 		Height: height,
 		Events: events,
 	}, nil
+}
+
+type ConsensusAllData struct {
+	BlockData      *ConsensusBlockData
+	BeaconData     *BeaconData
+	RegistryData   *RegistryData
+	RootHashData   *RootHashData
+	StakingData    *StakingData
+	SchedulerData  *SchedulerData
+	GovernanceData *GovernanceData
+}
+
+// ConsensusBlockData represents data for a consensus block at a given height.
+type ConsensusBlockData struct {
+	Height int64
+
+	BlockHeader             *consensus.Block
+	Epoch                   beacon.EpochTime
+	TransactionsWithResults []nodeapi.TransactionWithResults
+}
+
+// BeaconData represents data for the random beacon at a given height.
+type BeaconData struct {
+	Height int64
+
+	Epoch  beacon.EpochTime
+	Beacon []byte
+}
+
+// RegistryData represents data for the node registry at a given height.
+type RegistryData struct {
+	Height int64
+
+	Events []nodeapi.Event
+
+	// Below: Same events as in `Events` but grouped by type.
+	RuntimeStartedEvents   []nodeapi.RuntimeStartedEvent
+	RuntimeSuspendedEvents []nodeapi.RuntimeSuspendedEvent
+	EntityEvents           []nodeapi.EntityEvent
+	NodeEvents             []nodeapi.NodeEvent
+	NodeUnfrozenEvents     []nodeapi.NodeUnfrozenEvent
+}
+
+// StakingData represents data for accounts at a given height.
+type StakingData struct {
+	Height int64
+	Epoch  beacon.EpochTime
+
+	Events []nodeapi.Event
+
+	// Below: Same events as in `Events` but grouped by type.
+	Transfers             []nodeapi.TransferEvent
+	Burns                 []nodeapi.BurnEvent
+	AddEscrows            []nodeapi.AddEscrowEvent
+	TakeEscrows           []nodeapi.TakeEscrowEvent
+	ReclaimEscrows        []nodeapi.ReclaimEscrowEvent
+	DebondingStartEscrows []nodeapi.DebondingStartEscrowEvent
+	AllowanceChanges      []nodeapi.AllowanceChangeEvent
+}
+
+// RootHashData represents data for runtime processing at a given height.
+type RootHashData struct {
+	Height int64
+
+	Events []nodeapi.Event
+}
+
+// SchedulerData represents data for elected committees and validators at a given height.
+type SchedulerData struct {
+	Height int64
+
+	Validators []nodeapi.Validator
+	Committees map[coreCommon.Namespace][]nodeapi.Committee
+}
+
+// GovernanceData represents governance data for proposals at a given height.
+type GovernanceData struct {
+	Height int64
+
+	Events []nodeapi.Event
+
+	// Below: Same events as in `Events` but grouped by type.
+	ProposalSubmissions   []nodeapi.Proposal
+	ProposalExecutions    []nodeapi.ProposalExecutedEvent
+	ProposalFinalizations []nodeapi.Proposal
+	Votes                 []nodeapi.VoteEvent
 }

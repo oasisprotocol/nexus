@@ -7,13 +7,6 @@ import (
 	"sync"
 
 	"github.com/jackc/pgx/v5"
-
-	coreCommon "github.com/oasisprotocol/oasis-core/go/common"
-
-	beacon "github.com/oasisprotocol/nexus/coreapi/v22.2.11/beacon/api"
-	consensus "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api"
-
-	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
 )
 
 type BatchItem struct {
@@ -87,95 +80,6 @@ func (b *QueryBatch) Queries() []*BatchItem {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 	return b.items
-}
-
-type ConsensusAllData struct {
-	BlockData      *ConsensusBlockData
-	BeaconData     *BeaconData
-	RegistryData   *RegistryData
-	RootHashData   *RootHashData
-	StakingData    *StakingData
-	SchedulerData  *SchedulerData
-	GovernanceData *GovernanceData
-}
-
-// ConsensusBlockData represents data for a consensus block at a given height.
-type ConsensusBlockData struct {
-	Height int64
-
-	BlockHeader             *consensus.Block
-	Epoch                   beacon.EpochTime
-	TransactionsWithResults []nodeapi.TransactionWithResults
-}
-
-// BeaconData represents data for the random beacon at a given height.
-type BeaconData struct {
-	Height int64
-
-	Epoch  beacon.EpochTime
-	Beacon []byte
-}
-
-// RegistryData represents data for the node registry at a given height.
-//
-// Note: The registry backend supports getting events directly. We support
-// retrieving events as updates to apply when getting data at specific height.
-type RegistryData struct {
-	Height int64
-
-	Events                 []nodeapi.Event
-	RuntimeStartedEvents   []nodeapi.RuntimeStartedEvent
-	RuntimeSuspendedEvents []nodeapi.RuntimeSuspendedEvent
-	EntityEvents           []nodeapi.EntityEvent
-	NodeEvents             []nodeapi.NodeEvent
-	NodeUnfrozenEvents     []nodeapi.NodeUnfrozenEvent
-}
-
-// StakingData represents data for accounts at a given height.
-//
-// Note: The staking backend supports getting events directly. We support
-// retrieving events as updates to apply when getting data at specific height.
-type StakingData struct {
-	Height int64
-	Epoch  beacon.EpochTime
-
-	Events                []nodeapi.Event
-	Transfers             []nodeapi.TransferEvent
-	Burns                 []nodeapi.BurnEvent
-	AddEscrows            []nodeapi.AddEscrowEvent
-	TakeEscrows           []nodeapi.TakeEscrowEvent
-	ReclaimEscrows        []nodeapi.ReclaimEscrowEvent
-	DebondingStartEscrows []nodeapi.DebondingStartEscrowEvent
-	AllowanceChanges      []nodeapi.AllowanceChangeEvent
-}
-
-// RootHashData represents data for runtime processing at a given height.
-type RootHashData struct {
-	Height int64
-
-	Events []nodeapi.Event
-}
-
-// SchedulerData represents data for elected committees and validators at a given height.
-type SchedulerData struct {
-	Height int64
-
-	Validators []nodeapi.Validator
-	Committees map[coreCommon.Namespace][]nodeapi.Committee
-}
-
-// GovernanceData represents governance data for proposals at a given height.
-//
-// Note: The governance backend supports getting events directly. We support
-// retrieving events as updates to apply when getting data at a specific height.
-type GovernanceData struct {
-	Height int64
-
-	Events                []nodeapi.Event
-	ProposalSubmissions   []nodeapi.Proposal
-	ProposalExecutions    []nodeapi.ProposalExecutedEvent
-	ProposalFinalizations []nodeapi.Proposal
-	Votes                 []nodeapi.VoteEvent
 }
 
 // TargetStorage defines an interface for reading and writing
