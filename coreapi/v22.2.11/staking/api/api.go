@@ -117,8 +117,16 @@ type AddEscrowEvent struct {
 // TakeEscrowEvent is the event emitted when stake is taken from an escrow
 // account (i.e. stake is slashed).
 type TakeEscrowEvent struct {
-	Owner  Address           `json:"owner"`
+	Owner Address `json:"owner"`
+	// Total amount slashed across active and debonding stake.
 	Amount quantity.Quantity `json:"amount"`
+	// NOTE: DebondingAmount is not present in Damask; Enigma (v23.0) introduces it.
+	// If this field is `nil`, the amount of active vs debonding _slashed_ stake
+	// needs to be computed and is proportional to the total current active vs debonding
+	// staked amounts; the event itself does not provide enough info. If this field is not
+	// nil, it gives the slashed debonding stake, and `Amount-DebondingAmount` is the slashed
+	// active stake.
+	DebondingAmount *quantity.Quantity `json:"debonding_amount"`
 }
 
 // EventKind returns a string representation of this event's kind.

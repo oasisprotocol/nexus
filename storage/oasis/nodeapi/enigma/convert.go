@@ -280,9 +280,9 @@ func convertEvent(e txResultsEnigma.Event) nodeapi.Event {
 			case e.Staking.Escrow.Take != nil:
 				ret = nodeapi.Event{
 					StakingTakeEscrow: &nodeapi.TakeEscrowEvent{
-						Owner:  e.Staking.Escrow.Take.Owner,
-						Amount: e.Staking.Escrow.Take.Amount,
-						// TODO: Expand signature of TakeEscrowEvent so we can store .DebondingAmount (assuming we care about it)
+						Owner:           e.Staking.Escrow.Take.Owner,
+						Amount:          e.Staking.Escrow.Take.Amount,
+						DebondingAmount: &e.Staking.Escrow.Take.DebondingAmount,
 					},
 					RawBody: common.TryAsJSON(e.Staking.Escrow.Take),
 					Type:    apiTypes.ConsensusEventTypeStakingEscrowTake,

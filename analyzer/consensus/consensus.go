@@ -4,6 +4,7 @@ package consensus
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"math"
 	"os"
@@ -682,10 +683,26 @@ func (m *processor) queueEscrows(batch *storage.QueryBatch, data *storage.Stakin
 		)
 	}
 	for _, e := range data.TakeEscrows {
-		batch.Queue(queries.ConsensusTakeEscrowUpdate,
-			e.Owner.String(),
-			e.Amount.String(),
-		)
+		if e.DebondingAmount == nil {
+			// Old-style event; the breakdown of slashed amount between active vs debonding stake
+			// needs to be computed based current active vs debonding stake balance. Potentially
+			// a source of rounding errors. Only needed for Cobalt and Damask; Emerald introduces
+			// the .DebondingAmount field.
+			if m.mode == analyzer.FastSyncMode {
+				// Superstitious / hyperlocal check: Make double-sure we're not in fast-sync mode.
+				return errors.New("dead-reckoning for an old-style TakeEscrowsEvent cannot be performed in fast-sync as the reckoning operation is not commutative, so blocks must be processed in order")
+			}
+			batch.Queue(queries.ConsensusTakeEscrowUpdateGuessRatio,
+				e.Owner.String(),
+				e.Amount.String(),
+			)
+		} else {
+			batch.Queue(queries.ConsensusTakeEscrowUpdateExact,
+				e.Owner.String(),
+				e.Amount.String(),
+				e.DebondingAmount.String(),
+			)
+		}
 	}
 	for _, e := range data.DebondingStartEscrows {
 		batch.Queue(queries.ConsensusDebondingStartEscrowBalanceUpdate,

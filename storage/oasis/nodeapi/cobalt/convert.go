@@ -201,9 +201,13 @@ func convertEvent(e txResultsCobalt.Event) nodeapi.Event {
 				}
 			case e.Staking.Escrow.Take != nil:
 				ret = nodeapi.Event{
-					StakingTakeEscrow: (*nodeapi.TakeEscrowEvent)(e.Staking.Escrow.Take),
-					RawBody:           common.TryAsJSON(e.Staking.Escrow.Take),
-					Type:              apiTypes.ConsensusEventTypeStakingEscrowTake,
+					StakingTakeEscrow: &nodeapi.TakeEscrowEvent{
+						Owner:           e.Staking.Escrow.Take.Owner,
+						Amount:          e.Staking.Escrow.Take.Amount,
+						DebondingAmount: nil, // Not present in Cobalt and Damask.
+					},
+					RawBody: common.TryAsJSON(e.Staking.Escrow.Take),
+					Type:    apiTypes.ConsensusEventTypeStakingEscrowTake,
 				}
 			case e.Staking.Escrow.Reclaim != nil:
 				ret = nodeapi.Event{

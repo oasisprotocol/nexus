@@ -298,11 +298,18 @@ var (
     ON CONFLICT (delegatee, delegator) DO
       UPDATE SET shares = chain.delegations.shares + $3`
 
-	ConsensusTakeEscrowUpdate = `
+	ConsensusTakeEscrowUpdateGuessRatio = `
     UPDATE chain.accounts
       SET
         escrow_balance_active = escrow_balance_active - FLOOR($2 * escrow_balance_active / (escrow_balance_active + escrow_balance_debonding)),
         escrow_balance_debonding = escrow_balance_debonding - FLOOR($2 * escrow_balance_debonding / (escrow_balance_active + escrow_balance_debonding))
+      WHERE address = $1`
+
+	ConsensusTakeEscrowUpdateExact = `
+    UPDATE chain.accounts
+      SET
+        escrow_balance_active = escrow_balance_active - $2,
+        escrow_balance_debonding = escrow_balance_debonding - $3,
       WHERE address = $1`
 
 	ConsensusDebondingStartEscrowBalanceUpdate = `
