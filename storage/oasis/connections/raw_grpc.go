@@ -1,7 +1,9 @@
 package connections
 
 import (
+	"context"
 	"crypto/tls"
+	"sync"
 
 	cmnGrpc "github.com/oasisprotocol/oasis-core/go/common/grpc"
 	sdkConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
@@ -32,4 +34,57 @@ func RawConnect(nodeConfig *config.NodeConfig) (*grpc.ClientConn, error) {
 	}
 
 	return cmnGrpc.Dial(nodeConfig.RPC, dialOpts...)
+}
+
+func LazyGrpcConnect(nodeConfig config.NodeConfig) *LazyGrpcConn {
+	return &LazyGrpcConn{
+		inner:      nil, // The underlying connection will be initialized lazily.
+		lock:       sync.Mutex{},
+		nodeConfig: nodeConfig,
+	}
+}
+
+type LazyGrpcConn struct {
+	inner *grpc.ClientConn
+	lock  sync.Mutex // For lazy initialization.
+
+	nodeConfig config.NodeConfig // The node to connect to.
+}
+
+func (c *LazyGrpcConn) ensureConn() error {
+	if c.inner != nil {
+		// The connection has already been established; no locking needed.
+		return nil
+	}
+
+	c.lock.Lock()
+	defer c.lock.Unlock()
+
+	if c.inner != nil {
+		return nil
+	}
+
+	// Initialize `inner`.
+	var err error
+	c.inner, err = RawConnect(&c.nodeConfig)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *LazyGrpcConn) Close() error {
+	if c.inner == nil {
+		return nil
+	}
+	return c.inner.Close()
+}
+
+func (c *LazyGrpcConn) Invoke(ctx context.Context, method string, args interface{}, reply interface{}, opts ...grpc.CallOption) error {
+	if err := c.ensureConn(); err != nil {
+		return err
+	}
+
+	return c.inner.Invoke(ctx, method, args, reply, opts...)
 }

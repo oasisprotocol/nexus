@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"google.golang.org/grpc"
-
 	coreCommon "github.com/oasisprotocol/oasis-core/go/common"
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/hash"
@@ -16,6 +14,7 @@ import (
 
 	roothash "github.com/oasisprotocol/nexus/coreapi/v22.2.11/roothash/api/block"
 	coreRuntimeClient "github.com/oasisprotocol/nexus/coreapi/v22.2.11/runtime/client/api"
+	"github.com/oasisprotocol/nexus/storage/oasis/connections"
 
 	common "github.com/oasisprotocol/nexus/common"
 	cobaltRoothash "github.com/oasisprotocol/nexus/coreapi/v21.1.1/roothash/api/block"
@@ -36,7 +35,7 @@ type UniversalRuntimeApiLite struct {
 	// A raw gRPC connection to the node. Used for fetching raw CBOR-encoded
 	// responses for RPCs whose encodings changed over time, and this class
 	// needs to handle the various formats/types.
-	grpcConn *grpc.ClientConn
+	grpcConn *connections.LazyGrpcConn
 
 	// An oasis-sdk managed connection to the node. Used for RPCs that have
 	// had a stable ABI over time. That is the majority of them, and oasis-sdk
@@ -47,7 +46,7 @@ type UniversalRuntimeApiLite struct {
 
 var _ RuntimeApiLite = (*UniversalRuntimeApiLite)(nil)
 
-func NewUniversalRuntimeApiLite(runtimeID coreCommon.Namespace, grpcConn *grpc.ClientConn, sdkClient *connection.RuntimeClient) *UniversalRuntimeApiLite {
+func NewUniversalRuntimeApiLite(runtimeID coreCommon.Namespace, grpcConn *connections.LazyGrpcConn, sdkClient *connection.RuntimeClient) *UniversalRuntimeApiLite {
 	return &UniversalRuntimeApiLite{
 		runtimeID: runtimeID,
 		grpcConn:  grpcConn,
