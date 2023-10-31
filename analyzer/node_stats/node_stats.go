@@ -12,7 +12,6 @@ import (
 	"github.com/oasisprotocol/nexus/config"
 	"github.com/oasisprotocol/nexus/log"
 	"github.com/oasisprotocol/nexus/storage"
-	source "github.com/oasisprotocol/nexus/storage/oasis"
 	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
 
 	consensusAPI "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api"
@@ -32,7 +31,7 @@ var _ item.ItemProcessor[common.Layer] = (*processor)(nil)
 
 func NewAnalyzer(
 	cfg config.ItemBasedAnalyzerConfig,
-	sourceClient *source.ConsensusClient,
+	sourceClient nodeapi.ConsensusApiLite,
 	target storage.TargetStorage,
 	logger *log.Logger,
 ) (analyzer.Analyzer, error) {
@@ -41,7 +40,7 @@ func NewAnalyzer(
 	}
 	logger = logger.With("analyzer", nodeStatsAnalyzerName)
 	p := &processor{
-		source: sourceClient.NodeApi,
+		source: sourceClient,
 		target: target,
 		logger: logger.With("analyzer", nodeStatsAnalyzerName),
 	}

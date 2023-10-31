@@ -161,7 +161,7 @@ type Service struct {
 type sourceFactory struct {
 	cfg config.SourceConfig
 
-	consensus *source.ConsensusClient
+	consensus nodeapi.ConsensusApiLite
 	runtimes  map[common.Runtime]nodeapi.RuntimeApiLite
 	ipfs      ipfsclient.Client
 }
@@ -189,7 +189,7 @@ func (s *sourceFactory) Close() error {
 	return firstErr
 }
 
-func (s *sourceFactory) Consensus(ctx context.Context) (*source.ConsensusClient, error) {
+func (s *sourceFactory) Consensus(ctx context.Context) (nodeapi.ConsensusApiLite, error) {
 	if s.consensus == nil {
 		client, err := source.NewConsensusClient(ctx, &s.cfg)
 		if err != nil {
@@ -269,7 +269,7 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) { //nolint:gocyclo
 					if err1 != nil {
 						return nil, err1
 					}
-					return consensus.NewAnalyzer(*fastRange, cfg.Analyzers.Consensus.BatchSize, analyzer.FastSyncMode, *cfg.Source.History(), sourceClient.NodeApi, *sourceClient.Network, dbClient, logger)
+					return consensus.NewAnalyzer(*fastRange, cfg.Analyzers.Consensus.BatchSize, analyzer.FastSyncMode, *cfg.Source.History(), sourceClient, *cfg.Source.SDKNetwork(), dbClient, logger)
 				})
 			}
 		}
@@ -305,7 +305,7 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) { //nolint:gocyclo
 			if err1 != nil {
 				return nil, err1
 			}
-			return consensus.NewAnalyzer(cfg.Analyzers.Consensus.SlowSyncRange(), cfg.Analyzers.Consensus.BatchSize, analyzer.SlowSyncMode, *cfg.Source.History(), sourceClient.NodeApi, *sourceClient.Network, dbClient, logger)
+			return consensus.NewAnalyzer(cfg.Analyzers.Consensus.SlowSyncRange(), cfg.Analyzers.Consensus.BatchSize, analyzer.SlowSyncMode, *cfg.Source.History(), sourceClient, *cfg.Source.SDKNetwork(), dbClient, logger)
 		})
 	}
 	if cfg.Analyzers.Emerald != nil {
