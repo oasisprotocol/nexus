@@ -184,7 +184,7 @@ func (c *EnigmaConsensusApiLite) GetValidators(ctx context.Context, height int64
 		validators[i] = nodeapi.Validator{
 			ID:          v.ID,
 			VotingPower: v.VotingPower,
-			// TODO: Expand signature of Validator so we can store v.EntityID (assuming we care about it)
+			// Enigma introduces v.EntityID but we have it in the DB already, so no need to track it here also.
 		}
 	}
 	return validators, nil

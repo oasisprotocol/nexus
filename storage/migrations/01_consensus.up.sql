@@ -109,7 +109,7 @@ CREATE TABLE chain.nodes
   -- historically (as per @Yawning), we also allowed node registrations that are signed with the entity signing key,
   -- in which case, the node would be allowed to register without having been pre-claimed by the entity.
   -- For those cases, (id, entity_id) is not a foreign key into chain.claimed_nodes.
-  -- Similarly, an entity can un-claim a node after the node registered, but the node can remain be registered for a while.
+  -- Similarly, an entity can un-claim a node after the node registered, but the node can remain registered for a while.
   entity_id  base64_ed25519_pubkey NOT NULL REFERENCES chain.entities(id),
   expiration UINT63 NOT NULL, -- The epoch in which this node expires.
 
