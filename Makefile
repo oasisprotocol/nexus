@@ -121,7 +121,7 @@ start-docker:
 	@docker compose up --remove-orphans
 
 start-docker-e2e:
-	@docker compose -f tests/e2e/docker-compose.e2e.yml up -d
+	@docker compose -f tests/e2e/docker-compose.e2e.yml up -d --build
 
 start-e2e: start-docker-e2e
 	docker exec nexus sh -c "cd /nexus && make test-e2e"

@@ -81,7 +81,7 @@ $ curl -X GET http://localhost:8008/v1
 ```
 
 **Debugging note**: A lot of indexing happens when parsing the genesis data. To see what SQL statements genesis is converted
-into, run `nexus` with `CONSENSUS_DAMASK_GENESIS_DUMP=/tmp/genesis.sql`. The SQL will be written to the indicated
+into, run `nexus` with `NEXUS_DUMP_GENESIS_SQL=/tmp/genesis.sql`. The SQL will be written to the indicated
 file, provided that genesis hasn't been parsed into the DB yet. The easiest way to achieve the latter is to wipe the DB.
 
 ### Code quality tools

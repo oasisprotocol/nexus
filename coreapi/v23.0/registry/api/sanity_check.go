@@ -3,8 +3,15 @@ package api
 import (
 	"github.com/oasisprotocol/oasis-core/go/common"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
-	"github.com/oasisprotocol/oasis-core/go/common/node"
+
+	"github.com/oasisprotocol/nexus/coreapi/v23.0/common/node"
 )
+
+// SanityCheck performs a sanity check on the consensus parameters.
+// removed func
+
+// SanityCheck performs a sanity check on the consensus parameter changes.
+// removed func
 
 // SanityCheck does basic sanity checking on the genesis state.
 // removed func
@@ -43,10 +50,11 @@ type sanityCheckRuntimeLookup struct {
 
 // removed func
 
+// removed func
+
 // Node lookup used in sanity checks.
 type sanityCheckNodeLookup struct {
-	nodes        map[signature.PublicKey]*node.Node
-	nodesByPoint map[string]*node.Node
+	nodes map[signature.PublicKey]*node.Node
 
 	nodesList []*node.Node
 }

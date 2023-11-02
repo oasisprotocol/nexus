@@ -6,12 +6,13 @@ import (
 	"time"
 
 	coreCommon "github.com/oasisprotocol/oasis-core/go/common"
+
 	hash "github.com/oasisprotocol/oasis-core/go/common/crypto/hash"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
 	"github.com/oasisprotocol/oasis-core/go/common/errors"
-	node "github.com/oasisprotocol/oasis-core/go/common/node"
 
 	beacon "github.com/oasisprotocol/nexus/coreapi/v22.2.11/beacon/api"
+	node "github.com/oasisprotocol/nexus/coreapi/v22.2.11/common/node"
 	consensus "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api"
 	consensusTransaction "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api/transaction"
 	consensusResults "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api/transaction/results"
@@ -112,10 +113,11 @@ type Event struct {
 	StakingDebondingStart       *DebondingStartEscrowEvent // Available starting in Damask.
 	StakingAllowanceChange      *AllowanceChangeEvent
 
-	RegistryRuntimeRegistered *RuntimeRegisteredEvent
-	RegistryEntity            *EntityEvent
-	RegistryNode              *NodeEvent
-	RegistryNodeUnfrozen      *NodeUnfrozenEvent
+	RegistryRuntimeStarted   *RuntimeStartedEvent
+	RegistryRuntimeSuspended *RuntimeSuspendedEvent // Available starting with Enigma.
+	RegistryEntity           *EntityEvent
+	RegistryNode             *NodeEvent
+	RegistryNodeUnfrozen     *NodeUnfrozenEvent
 
 	RoothashExecutorCommitted *ExecutorCommittedEvent
 
@@ -138,15 +140,18 @@ type (
 
 // .................... Registry ....................
 
-// RuntimeRegisteredEvent signifies new runtime registration.
+// RuntimeStartedEvent signifies new runtime registration.
 // This is a stripped-down version of an unfortunately named `registry.RuntimeEvent` (in Cobalt and Damask).
 // Post-Damask, this is replaced by registry.RuntimeStartedEvent.
-type RuntimeRegisteredEvent struct {
+type RuntimeStartedEvent struct {
 	ID          coreCommon.Namespace
 	EntityID    signature.PublicKey   // The Entity controlling the runtime.
 	Kind        string                // enum: "compute", "keymanager"
 	KeyManager  *coreCommon.Namespace // Key manager runtime ID.
 	TEEHardware string                // enum: "invalid" (= no TEE), "intel-sgx"
+}
+type RuntimeSuspendedEvent struct {
+	RuntimeID coreCommon.Namespace
 }
 type (
 	Node              node.Node

@@ -1,6 +1,6 @@
-FROM golang:1.19-buster AS oasis-core
+FROM golang:1.19-bookworm AS oasis-core
 
-ARG OASIS_CORE_VERSION=22.1.10
+ARG OASIS_CORE_VERSION=23.0.2
 
 WORKDIR /code/go
 

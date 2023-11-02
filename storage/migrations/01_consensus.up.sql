@@ -109,7 +109,7 @@ CREATE TABLE chain.nodes
   -- historically (as per @Yawning), we also allowed node registrations that are signed with the entity signing key,
   -- in which case, the node would be allowed to register without having been pre-claimed by the entity.
   -- For those cases, (id, entity_id) is not a foreign key into chain.claimed_nodes.
-  -- Similarly, an entity can un-claim a node after the node registered, but the node can remain be registered for a while.
+  -- Similarly, an entity can un-claim a node after the node registered, but the node can remain registered for a while.
   entity_id  base64_ed25519_pubkey NOT NULL REFERENCES chain.entities(id),
   expiration UINT63 NOT NULL, -- The epoch in which this node expires.
 
@@ -151,7 +151,7 @@ CREATE TABLE chain.claimed_nodes
 CREATE TABLE chain.runtimes
 (
   id           HEX64 PRIMARY KEY,
-  suspended    BOOLEAN NOT NULL DEFAULT false,  -- not tracked as of Dec 2022
+  suspended    BOOLEAN NOT NULL DEFAULT false,
   kind         TEXT NOT NULL,  -- "invalid" | "compute" | "manager"; see https://github.com/oasisprotocol/oasis-core/blob/f95186e3f15ec64bdd36493cde90be359bd17da8/go/registry/api/runtime.go#L54-L54
   tee_hardware TEXT NOT NULL,  -- "invalid" | "intel-sgx"; see https://github.com/oasisprotocol/oasis-core/blob/f95186e3f15ec64bdd36493cde90be359bd17da8/go/common/node/node.go#L474-L474
   key_manager  HEX64

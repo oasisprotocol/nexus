@@ -1,0 +1,67 @@
+diff --git a/coreapi/v23.0/common/node/address.go b/coreapi/v23.0/common/node/address.go
+index 04ae4f5b..2f238247 100644
+--- a/coreapi/v23.0/common/node/address.go
++++ b/coreapi/v23.0/common/node/address.go
+@@ -1,6 +1,8 @@
+ package node
+ 
+ import (
++	"encoding"
++	"errors"
+ 	"fmt"
+ 	"net"
+ 	"strings"
+@@ -8,7 +10,21 @@ import (
+ 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
+ )
+ 
+-// removed var block
++var (
++	// ErrInvalidAddress is the error returned when a transport address is
++	// invalid.
++	ErrInvalidAddress = errors.New("node: invalid transport address")
++	// ErrConsensusAddressNoID is the error returned when a consensus address
++	// doesn't have the ID@ part.
++	ErrConsensusAddressNoID = errors.New("node: consensus address doesn't have ID@ part")
++	// ErrTLSAddressNoPubKey is the error returned when a TLS address doesn't have the PubKey@ part.
++	ErrTLSAddressNoPubKey = errors.New("node: TLS address missing PubKey@ part")
++
++	_ encoding.TextMarshaler   = (*Address)(nil)
++	_ encoding.TextUnmarshaler = (*Address)(nil)
++	_ encoding.TextMarshaler   = (*ConsensusAddress)(nil)
++	_ encoding.TextUnmarshaler = (*ConsensusAddress)(nil)
++)
+ 
+ // Address represents a TCP address for the purpose of node descriptors.
+ type Address struct {
+diff --git a/coreapi/v23.0/common/node/node.go b/coreapi/v23.0/common/node/node.go
+index dfe1416b..0f834fd2 100644
+--- a/coreapi/v23.0/common/node/node.go
++++ b/coreapi/v23.0/common/node/node.go
+@@ -167,7 +167,7 @@ func (m *RolesMask) UnmarshalText(text []byte) error {
+ 			}
+ 			*m |= RoleStorageRPC
+ 		default:
+-			return fmt.Errorf("%w: '%s'", ErrInvalidRole, role)
++			return fmt.Errorf("node: invalid role: '%s'", role)
+ 		}
+ 	}
+ 	return nil
+diff --git a/coreapi/v23.0/common/node/node.go b/coreapi/v23.0/common/node/node.go
+index 0f834fd2..349c5d3b 100644
+--- a/coreapi/v23.0/common/node/node.go
++++ b/coreapi/v23.0/common/node/node.go
+@@ -133,7 +133,12 @@ func (m RolesMask) MarshalText() ([]byte, error) {
+ 	return []byte(m.String()), nil
+ }
+ 
+-// removed func
++func checkDuplicateRole(newRole RolesMask, curRoles RolesMask) error {
++	if curRoles&newRole != 0 {
++		return fmt.Errorf("node: duplicate role: '%s'", newRole)
++	}
++	return nil
++}
+ 
+ // UnmarshalText decodes a text slice into a RolesMask.
+ func (m *RolesMask) UnmarshalText(text []byte) error {
