@@ -48,6 +48,12 @@ jobs:
         run: |
           make nexus
           make test-ci
+      - name: Ensure dependencies are tidied up
+        # NOTE: This should run _after_ the build step, so that oapi-codegen has already run
+        #       and generated the Go code that points to some of the dependencies.
+        run: |
+          go mod tidy -v -x -compat=1.21  # goreleaser does the same; can find lingering issues
+          echo TIDY RESULTS START; git diff || true; echo TIDY RESULTS END
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v3.1.0
         with:
