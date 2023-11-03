@@ -628,9 +628,10 @@ var (
       last_download_round = $4,
       metadata_uri = $5,
       metadata_accessed = $6,
-      name = $7,
-      description = $8,
-      image = $9
+      metadata = $7,
+      name = $8,
+      description = $9,
+      image = $10
     WHERE
       runtime = $1 AND
       token_address = $2 AND

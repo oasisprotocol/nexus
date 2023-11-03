@@ -2,6 +2,65 @@
   "description": "The first Ape NFT project on Oasis!",
   "id": "227",
   "image": "ipfs://QmQbbX9ZcA8Dfay94vJZrmvohub1oQfLtZ791DzD8DLmMx/227.png",
+  "metadata": {
+    "attributes": [
+      {
+        "trait_type": "background",
+        "value": "Oasis"
+      },
+      {
+        "trait_type": "ears",
+        "value": "Round"
+      },
+      {
+        "trait_type": "chest",
+        "value": "chest"
+      },
+      {
+        "trait_type": "fur",
+        "value": "Dark Blue"
+      },
+      {
+        "trait_type": "fur fill",
+        "value": "Fill"
+      },
+      {
+        "trait_type": "lines",
+        "value": "lines"
+      },
+      {
+        "trait_type": "clothing",
+        "value": "Oasis Team"
+      },
+      {
+        "trait_type": "eyes",
+        "value": "Looking Up"
+      },
+      {
+        "trait_type": "mouth",
+        "value": "Squeezed"
+      },
+      {
+        "trait_type": "nose",
+        "value": "Sniff"
+      },
+      {
+        "trait_type": "headwear",
+        "value": "Cowboy Hat"
+      },
+      {
+        "trait_type": "accessories",
+        "value": "None"
+      }
+    ],
+    "compiler": "HashLips Art Engine",
+    "date": 1643225209608,
+    "description": "The first Ape NFT project on Oasis!",
+    "dna": "8d905c51bacf53f91d31a07f4a0f64500434a8ef",
+    "edition": 227,
+    "image": "ipfs://QmQbbX9ZcA8Dfay94vJZrmvohub1oQfLtZ791DzD8DLmMx/227.png",
+    "name": " Oasis Apes #227"
+  },
   "metadata_accessed": "UNINTERESTING",
   "metadata_uri": "ipfs://QmPKAuGQnJCM2FVSxkNcyqf1TyDusKuwuD9VnWJN9CF4xA/227.json",
   "name": " Oasis Apes #227",
