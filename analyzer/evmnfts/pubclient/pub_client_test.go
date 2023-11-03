@@ -1,3 +1,4 @@
+//nolint:bodyclose  // This is a test, we can be sloppy and not close HTTP request bodies.
 package pubclient
 
 import (

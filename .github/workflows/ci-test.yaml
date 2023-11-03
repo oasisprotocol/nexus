@@ -41,13 +41,19 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v3
         with:
-          go-version: 1.19
+          go-version: 1.21.3
       - name: Install Go tools
         run: go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen@v1.12
       - name: Build Go
         run: |
           make nexus
           make test-ci
+      - name: Ensure dependencies are tidied up
+        # NOTE: This should run _after_ the build step, so that oapi-codegen has already run
+        #       and generated the Go code that points to some of the dependencies.
+        run: |
+          go mod tidy -v -x -compat=1.21  # goreleaser does the same; can find lingering issues
+          echo TIDY RESULTS START; git diff || true; echo TIDY RESULTS END
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v3.1.0
         with:
@@ -87,7 +93,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v3
         with:
-          go-version: 1.19
+          go-version: 1.21
       - name: Autogenerate Go code
         run: |
           go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen@v1.12
@@ -123,7 +129,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v3
         with:
-          go-version: 1.19
+          go-version: 1.21
       - name: Autogenerate Go code
         run: |
           go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen@v1.12
