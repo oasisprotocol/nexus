@@ -14,10 +14,6 @@ import (
 	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi/history"
 )
 
-const (
-	moduleName = "storage_oasis"
-)
-
 // NewConsensusClient creates a new ConsensusClient.
 func NewConsensusClient(ctx context.Context, sourceConfig *config.SourceConfig) (nodeapi.ConsensusApiLite, error) {
 	// If we are using purely file-backed analyzers, do not connect to the node.
