@@ -320,6 +320,7 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 
 	// Extract info from transactions.
 	for txIndex, txr := range txrs {
+		txr := txr // For safe usage of `&txr` inside this long loop.
 		var blockTransactionData BlockTransactionData
 		blockTransactionData.Index = txIndex
 		blockTransactionData.Hash = txr.Tx.Hash().Hex()
@@ -345,6 +346,7 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 		if tx != nil { //nolint:nestif
 			blockTransactionData.SignerData = make([]*BlockTransactionSignerData, 0, len(tx.AuthInfo.SignerInfo))
 			for j, si := range tx.AuthInfo.SignerInfo {
+				si := si // we have no dangerous uses of &si, but capture the variable just in case (and to make the linter happy)
 				var blockTransactionSignerData BlockTransactionSignerData
 				blockTransactionSignerData.Index = j
 				addr, err1 := registerRelatedAddressSpec(blockData.AddressPreimages, blockTransactionData.RelatedAccountAddresses, &si.AddressSpec)
@@ -359,7 +361,7 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 			blockTransactionData.GasLimit = tx.AuthInfo.Fee.Gas
 
 			// Parse the success/error status.
-			if fail := txr.Result.Failed; fail != nil { //nolint:gocritic
+			if fail := txr.Result.Failed; fail != nil {
 				blockTransactionData.Success = common.Ptr(false)
 				blockTransactionData.Error = &TxError{
 					Code:   fail.Code,

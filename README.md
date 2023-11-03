@@ -92,7 +92,7 @@ Here are our recommendations for getting the tools that `make lint` and `make fm
 They explain that the tool is in dependency hell and any more structured distribution of it might not work.
 
 ```sh
-curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.49.0
+curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.55.1
 ```
 
 **gofumpt**: [go install](https://pkg.go.dev/mvdan.cc/gofumpt)
