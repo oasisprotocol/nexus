@@ -563,6 +563,10 @@ func (a *Service) Start() {
 
 // cleanup cleans up resources used by the service.
 func (a *Service) cleanup() {
+	if a.sources == nil {
+		return
+	}
+
 	if err := a.sources.Close(); err != nil {
 		a.logger.Error("failed to cleanly close data source",
 			"firstErr", err.Error(),
@@ -577,4 +581,15 @@ func (a *Service) cleanup() {
 func Register(parentCmd *cobra.Command) {
 	analyzeCmd.Flags().StringVar(&configFile, "config", "./config/local.yml", "path to the config.yml file")
 	parentCmd.AddCommand(analyzeCmd)
+}
+
+// For testing purposes only.
+type ServiceTester struct {
+	Service
+}
+
+func (a *ServiceTester) SetAnalyzers(fastSyncAnalyzers []SyncedA, analyzers []SyncedA) {
+	a.fastSyncAnalyzers = fastSyncAnalyzers
+	a.analyzers = analyzers
+	a.logger = log.NewDefaultLogger("analyzer")
 }
