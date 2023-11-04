@@ -55,8 +55,8 @@ func (a *DummyAnalyzer) Name() string {
 	return a.name
 }
 
-func dummyAnalyzer(syncTag string, name string, duration time.Duration, finishLog *[]string) cmdAnalyzer.SyncedA {
-	return cmdAnalyzer.SyncedA{
+func dummyAnalyzer(syncTag string, name string, duration time.Duration, finishLog *[]string) cmdAnalyzer.SyncedAnalyzer {
+	return cmdAnalyzer.SyncedAnalyzer{
 		SyncTag: syncTag,
 		Analyzer: &DummyAnalyzer{
 			name:      name,
@@ -78,8 +78,8 @@ func TestSequencing(t *testing.T) {
 	slowB := dummyAnalyzer("b", "slowB", 1*time.Second, &finishLog)
 	slowX := dummyAnalyzer("", "slowX", 0*time.Second, &finishLog)
 	s.SetAnalyzers(
-		[]cmdAnalyzer.SyncedA{fastA, fastB1, fastB2},
-		[]cmdAnalyzer.SyncedA{slowA, slowB, slowX},
+		[]cmdAnalyzer.SyncedAnalyzer{fastA, fastB1, fastB2},
+		[]cmdAnalyzer.SyncedAnalyzer{slowA, slowB, slowX},
 	)
 
 	s.Start()

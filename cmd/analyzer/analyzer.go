@@ -147,8 +147,8 @@ func wipeStorage(cfg *config.StorageConfig) error {
 
 // Service is Oasis Nexus's analysis service.
 type Service struct {
-	analyzers         []SyncedA
-	fastSyncAnalyzers []SyncedA
+	analyzers         []SyncedAnalyzer
+	fastSyncAnalyzers []SyncedAnalyzer
 
 	sources *sourceFactory
 	target  storage.TargetStorage
@@ -225,23 +225,27 @@ func (s *sourceFactory) IPFS(_ context.Context) (ipfsclient.Client, error) {
 	return s.ipfs, nil
 }
 
-type (
-	A       = analyzer.Analyzer
-	SyncedA struct {
-		Analyzer analyzer.Analyzer
-		SyncTag  string
-	}
-)
+// Shorthand for use within this file.
+type A = analyzer.Analyzer
+
+// An Analyzer that is tagged with a `syncTag`.
+// The `syncTag` is used for sequencing analyzers: For any non-empty tag, nexus will
+// first run all fast-sync analyzers with that tag to completion, and only then start
+// other analyzers with the same tag. The empty tag "" is special; it can be used
+// by slow-sync analyzers that don't need to wait for any fast-sync analyzers to complete.
+// This mechanism is a simple(ish) alternative to supporting a full-blown execution/dependency graph between analyzers.
+type SyncedAnalyzer struct {
+	Analyzer analyzer.Analyzer
+	SyncTag  string
+}
 
 // addAnalyzer adds the analyzer produced by `analyzerGenerator()` to `analyzers`.
 // It expects an initial state (analyzers, errSoFar) and returns the updated state, which
 // should be fed into subsequent call to the function.
 // As soon as an analyzerGenerator returns an error, all subsequent calls will
 // short-circuit and return the same error, leaving `analyzers` unchanged.
-// The `syncTag` is used for sequencing analyzers: For any non-empty tag, nexus will
-// first run all fast-sync analyzers with that tag to completion, and only then start
-// other analyzers with the same tag.
-func addAnalyzer(analyzers []SyncedA, errSoFar error, syncTag string, analyzerGenerator func() (A, error)) ([]SyncedA, error) {
+// See `SyncedAnalyzer` for more info on `syncTag`.
+func addAnalyzer(analyzers []SyncedAnalyzer, errSoFar error, syncTag string, analyzerGenerator func() (A, error)) ([]SyncedAnalyzer, error) {
 	if errSoFar != nil {
 		return analyzers, errSoFar
 	}
@@ -249,7 +253,7 @@ func addAnalyzer(analyzers []SyncedA, errSoFar error, syncTag string, analyzerGe
 	if errSoFar != nil {
 		return analyzers, errSoFar
 	}
-	analyzers = append(analyzers, SyncedA{Analyzer: a, SyncTag: syncTag})
+	analyzers = append(analyzers, SyncedAnalyzer{Analyzer: a, SyncTag: syncTag})
 	return analyzers, nil
 }
 
@@ -276,7 +280,7 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) { //nolint:gocyclo
 	}
 
 	// Initialize fast-sync analyzers.
-	fastSyncAnalyzers := []SyncedA{}
+	fastSyncAnalyzers := []SyncedAnalyzer{}
 	if cfg.Analyzers.Consensus != nil {
 		if fastRange := cfg.Analyzers.Consensus.FastSyncRange(); fastRange != nil {
 			for i := 0; i < cfg.Analyzers.Consensus.FastSync.Parallelism; i++ {
@@ -314,7 +318,7 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) { //nolint:gocyclo
 	addFastSyncRuntimeAnalyzers(common.RuntimeCipher, cfg.Analyzers.Cipher)
 
 	// Initialize slow-sync analyzers.
-	analyzers := []SyncedA{}
+	analyzers := []SyncedAnalyzer{}
 	if cfg.Analyzers.Consensus != nil {
 		analyzers, err = addAnalyzer(analyzers, err, syncTagConsensus, func() (A, error) {
 			sourceClient, err1 := sources.Consensus(ctx)
@@ -499,7 +503,7 @@ func (a *Service) Start() {
 			fastSyncWg[an.SyncTag] = wg
 		}
 		wg.Add(1)
-		go func(an SyncedA) {
+		go func(an SyncedAnalyzer) {
 			defer wg.Done()
 			an.Analyzer.Start(ctx)
 		}(an)
@@ -509,7 +513,7 @@ func (a *Service) Start() {
 	var slowSyncWg sync.WaitGroup
 	for _, an := range a.analyzers {
 		slowSyncWg.Add(1)
-		go func(an SyncedA) {
+		go func(an SyncedAnalyzer) {
 			defer slowSyncWg.Done()
 
 			// Find the wait group for this analyzer's sync tag.
@@ -588,7 +592,7 @@ type ServiceTester struct {
 	Service
 }
 
-func (a *ServiceTester) SetAnalyzers(fastSyncAnalyzers []SyncedA, analyzers []SyncedA) {
+func (a *ServiceTester) SetAnalyzers(fastSyncAnalyzers []SyncedAnalyzer, analyzers []SyncedAnalyzer) {
 	a.fastSyncAnalyzers = fastSyncAnalyzers
 	a.analyzers = analyzers
 	a.logger = log.NewDefaultLogger("analyzer")
