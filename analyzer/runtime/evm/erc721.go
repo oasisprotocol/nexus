@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"math/big"
-	"strings"
 	"time"
 
 	ethCommon "github.com/ethereum/go-ethereum/common"
@@ -108,20 +107,46 @@ func evmDownloadNFTERC721Metadata(ctx context.Context, logger *log.Logger, sourc
 		)
 		return nil
 	}
+	// 1. Read metadata into interface{} to allow any syntactically correct
+	//    JSON value.
+	var metadataAny interface{}
 	limitedReader := io.LimitReader(rc, MaxMetadataBytes)
-	var metadataBuilder strings.Builder
-	teeReader := io.TeeReader(limitedReader, &metadataBuilder)
-	var metadata ERC721AssetMetadata
-	if err = json.NewDecoder(teeReader).Decode(&metadata); err != nil {
-		logger.Info("error decoding token metadata",
+	if err = json.NewDecoder(limitedReader).Decode(&metadataAny); err != nil {
+		logger.Info("error decoding token metadata as any",
 			"uri", nftData.MetadataURI,
 			"err", err,
 		)
+		if err = rc.Close(); err != nil {
+			return fmt.Errorf("closing metadata reader: %w", err)
+		}
+		return nil
 	}
 	if err = rc.Close(); err != nil {
 		return fmt.Errorf("closing metadata reader: %w", err)
 	}
-	nftData.Metadata = common.Ptr(metadataBuilder.String())
+	// 2. Re-serialize into JSON for database. This is to normalize the
+	//    syntax, in case Go and our database have slightly different opinions
+	//    on what's valid JSON.
+	metadataNormalJSONBuf, err := json.Marshal(metadataAny)
+	if err != nil {
+		logger.Info("error re-encoding token metadata",
+			"uri", nftData.MetadataURI,
+			"err", err,
+		)
+		return nil
+	}
+	nftData.Metadata = common.Ptr(string(metadataNormalJSONBuf))
+	// 3. Parse it into the ERC-721 asset metadata schema. There's no function
+	//    to convert these map[string]interface{} things into structs, so
+	//    we'll just parse it again.
+	var metadata ERC721AssetMetadata
+	if err = json.Unmarshal(metadataNormalJSONBuf, &metadata); err != nil {
+		logger.Info("error decoding token metadata as asset metadata",
+			"uri", nftData.MetadataURI,
+			"err", err,
+		)
+		return nil
+	}
 	nftData.Name = metadata.Name
 	nftData.Description = metadata.Description
 	nftData.Image = metadata.Image
