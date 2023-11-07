@@ -51,12 +51,9 @@ type LazyGrpcConn struct {
 	nodeConfig config.NodeConfig // The node to connect to.
 }
 
+// ensureConn initializes `inner` if it hasn't been initialized yet.
+// This function is thread-safe. If it returns nil, `inner` is guaranteed to be non-nil.
 func (c *LazyGrpcConn) ensureConn() error {
-	if c.inner != nil {
-		// The connection has already been established; no locking needed.
-		return nil
-	}
-
 	c.lock.Lock()
 	defer c.lock.Unlock()
 
