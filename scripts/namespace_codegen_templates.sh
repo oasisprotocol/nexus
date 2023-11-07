@@ -8,7 +8,6 @@
 # To use the templates, run oapi-codegen with `-templates /tmp/namespaced-templates`.
 
 set -euo pipefail
-set -x
 
 # Find the local directory of the oapi-codegen templates.
 codegenDir="$(go list -f "{{.Dir}}" github.com/deepmap/oapi-codegen/pkg/codegen)"
