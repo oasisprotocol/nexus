@@ -309,7 +309,7 @@ var (
     UPDATE chain.accounts
       SET
         escrow_balance_active = escrow_balance_active - $2,
-        escrow_balance_debonding = escrow_balance_debonding - $3,
+        escrow_balance_debonding = escrow_balance_debonding - $3
       WHERE address = $1`
 
 	ConsensusDebondingStartEscrowBalanceUpdate = `
