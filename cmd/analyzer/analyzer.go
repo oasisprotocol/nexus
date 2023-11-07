@@ -586,14 +586,3 @@ func Register(parentCmd *cobra.Command) {
 	analyzeCmd.Flags().StringVar(&configFile, "config", "./config/local.yml", "path to the config.yml file")
 	parentCmd.AddCommand(analyzeCmd)
 }
-
-// For testing purposes only.
-type ServiceTester struct {
-	Service
-}
-
-func (a *ServiceTester) SetAnalyzers(fastSyncAnalyzers []SyncedAnalyzer, analyzers []SyncedAnalyzer) {
-	a.fastSyncAnalyzers = fastSyncAnalyzers
-	a.analyzers = analyzers
-	a.logger = log.NewDefaultLogger("analyzer")
-}
