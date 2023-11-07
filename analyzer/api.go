@@ -17,7 +17,8 @@ var (
 
 // Analyzer is a worker that analyzes a subset of the Oasis Network.
 type Analyzer interface {
-	// Start starts the analyzer.
+	// Start starts the analyzer. The method should return once the analyzer
+	// is confident it has (and will have) no more work to do; that's possibly never.
 	Start(ctx context.Context)
 
 	// Name returns the name of the analyzer.

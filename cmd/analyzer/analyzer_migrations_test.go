@@ -7,7 +7,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/oasisprotocol/nexus/cmd/analyzer"
+	cmdAnalyzer "github.com/oasisprotocol/nexus/cmd/analyzer"
 	"github.com/oasisprotocol/nexus/storage/postgres/testutil"
 	"github.com/oasisprotocol/nexus/tests"
 )
@@ -27,5 +27,5 @@ func TestMigrations(t *testing.T) {
 	require.NoError(t, client.Wipe(ctx), "failed to wipe database")
 
 	// Run migrations.
-	require.NoError(t, analyzer.RunMigrations(migrationsPath, os.Getenv("CI_TEST_CONN_STRING")), "failed to run migrations")
+	require.NoError(t, cmdAnalyzer.RunMigrations(migrationsPath, os.Getenv("CI_TEST_CONN_STRING")), "failed to run migrations")
 }
