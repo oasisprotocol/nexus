@@ -449,7 +449,7 @@ func TestFinalizeFastSync(t *testing.T) {
 	p = &mockProcessor{name: "consensus", storage: db}
 	setupAnalyzer(t, db, p, &config.BlockBasedAnalyzerConfig{From: 21, To: 30}, analyzer.SlowSyncMode).Start(ctx)
 	require.Nil(t, p.fastSyncFinalizedAt,
-		"sencond slow-sync analyzer should not finalize fast-sync because its range extends an existing slow-sync-analyzed range")
+		"second slow-sync analyzer should not finalize fast-sync because its range extends an existing slow-sync-analyzed range")
 }
 
 func TestRefuseSlowSyncOnDirtyRange(t *testing.T) {
