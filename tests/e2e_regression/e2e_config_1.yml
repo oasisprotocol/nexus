@@ -8,9 +8,7 @@
 
 analysis:
   source:
-    cache:
-      cache_dir: tests/e2e_regression/rpc-cache
-      query_on_cache_miss: false
+    cache: { cache_dir: tests/e2e_regression/rpc-cache }
     chain_name: mainnet
     nodes:
       damask:

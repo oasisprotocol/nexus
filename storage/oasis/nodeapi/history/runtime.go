@@ -29,10 +29,7 @@ func NewHistoryRuntimeApiLite(ctx context.Context, history *config.History, sdkP
 				return nil, err
 			}
 			sdkClient := sdkConn.Runtime(sdkPT)
-			rawConn, err := connections.RawConnect(archiveConfig.ResolvedRuntimeNode(runtime))
-			if err != nil {
-				return nil, fmt.Errorf("oasis-node RawConnect: %w", err)
-			}
+			rawConn := connections.LazyGrpcConnect(*archiveConfig.ResolvedRuntimeNode(runtime))
 			apis[record.ArchiveName] = nodeapi.NewUniversalRuntimeApiLite(sdkPT.Namespace(), rawConn, &sdkClient)
 		}
 	}

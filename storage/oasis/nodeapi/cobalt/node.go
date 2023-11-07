@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"google.golang.org/grpc"
-
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 
 	// nexus-internal data types.
@@ -19,6 +17,7 @@ import (
 	scheduler "github.com/oasisprotocol/nexus/coreapi/v22.2.11/scheduler/api"
 
 	"github.com/oasisprotocol/nexus/log"
+	"github.com/oasisprotocol/nexus/storage/oasis/connections"
 	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
 
 	// data types for Cobalt gRPC APIs.
@@ -37,12 +36,12 @@ import (
 // Cobalt node. To be able to use the old gRPC API, this struct uses gRPC
 // directly, skipping the convenience wrappers provided by oasis-core.
 type CobaltConsensusApiLite struct {
-	grpcConn *grpc.ClientConn
+	grpcConn *connections.LazyGrpcConn
 }
 
 var _ nodeapi.ConsensusApiLite = (*CobaltConsensusApiLite)(nil)
 
-func NewCobaltConsensusApiLite(grpcConn *grpc.ClientConn) *CobaltConsensusApiLite {
+func NewCobaltConsensusApiLite(grpcConn *connections.LazyGrpcConn) *CobaltConsensusApiLite {
 	return &CobaltConsensusApiLite{
 		grpcConn: grpcConn,
 	}

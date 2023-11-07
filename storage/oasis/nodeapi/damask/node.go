@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"google.golang.org/grpc"
-
 	"github.com/oasisprotocol/oasis-core/go/common"
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 
@@ -21,6 +19,7 @@ import (
 	staking "github.com/oasisprotocol/nexus/coreapi/v22.2.11/staking/api"
 
 	"github.com/oasisprotocol/nexus/log"
+	"github.com/oasisprotocol/nexus/storage/oasis/connections"
 	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
 
 	// data types for Damask gRPC APIs.
@@ -32,12 +31,12 @@ import (
 // compatible with Damask gRPC API, this struct just trivially wraps the
 // convenience methods provided by oasis-core.
 type DamaskConsensusApiLite struct {
-	grpcConn *grpc.ClientConn
+	grpcConn *connections.LazyGrpcConn
 }
 
 var _ nodeapi.ConsensusApiLite = (*DamaskConsensusApiLite)(nil)
 
-func NewDamaskConsensusApiLite(grpcConn *grpc.ClientConn) *DamaskConsensusApiLite {
+func NewDamaskConsensusApiLite(grpcConn *connections.LazyGrpcConn) *DamaskConsensusApiLite {
 	return &DamaskConsensusApiLite{
 		grpcConn: grpcConn,
 	}
