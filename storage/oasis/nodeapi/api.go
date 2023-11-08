@@ -114,7 +114,7 @@ type Event struct {
 	StakingAllowanceChange      *AllowanceChangeEvent
 
 	RegistryRuntimeStarted   *RuntimeStartedEvent
-	RegistryRuntimeSuspended *RuntimeSuspendedEvent // Available starting with Enigma.
+	RegistryRuntimeSuspended *RuntimeSuspendedEvent // Available starting with Eden.
 	RegistryEntity           *EntityEvent
 	RegistryNode             *NodeEvent
 	RegistryNodeUnfrozen     *NodeUnfrozenEvent

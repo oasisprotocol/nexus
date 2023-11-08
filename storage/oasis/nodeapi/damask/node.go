@@ -26,27 +26,27 @@ import (
 	txResultsDamask "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api/transaction/results"
 )
 
-// DamaskConsensusApiLite provides low-level access to the consensus API of a
+// ConsensusApiLite provides low-level access to the consensus API of a
 // Damask node. Since Nexus is linked against a version of oasis-core that is
 // compatible with Damask gRPC API, this struct just trivially wraps the
 // convenience methods provided by oasis-core.
-type DamaskConsensusApiLite struct {
+type ConsensusApiLite struct {
 	grpcConn *connections.LazyGrpcConn
 }
 
-var _ nodeapi.ConsensusApiLite = (*DamaskConsensusApiLite)(nil)
+var _ nodeapi.ConsensusApiLite = (*ConsensusApiLite)(nil)
 
-func NewDamaskConsensusApiLite(grpcConn *connections.LazyGrpcConn) *DamaskConsensusApiLite {
-	return &DamaskConsensusApiLite{
+func NewConsensusApiLite(grpcConn *connections.LazyGrpcConn) *ConsensusApiLite {
+	return &ConsensusApiLite{
 		grpcConn: grpcConn,
 	}
 }
 
-func (c *DamaskConsensusApiLite) Close() error {
+func (c *ConsensusApiLite) Close() error {
 	return c.grpcConn.Close()
 }
 
-func (c *DamaskConsensusApiLite) GetGenesisDocument(ctx context.Context, chainContext string) (*genesis.Document, error) {
+func (c *ConsensusApiLite) GetGenesisDocument(ctx context.Context, chainContext string) (*genesis.Document, error) {
 	var rsp genesis.Document
 	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Consensus/GetGenesisDocument", nil, &rsp); err != nil {
 		return nil, fmt.Errorf("GetGenesisDocument(damask): %w", err)
@@ -54,7 +54,7 @@ func (c *DamaskConsensusApiLite) GetGenesisDocument(ctx context.Context, chainCo
 	return &rsp, nil
 }
 
-func (c *DamaskConsensusApiLite) StateToGenesis(ctx context.Context, height int64) (*genesis.Document, error) {
+func (c *ConsensusApiLite) StateToGenesis(ctx context.Context, height int64) (*genesis.Document, error) {
 	var rsp genesis.Document
 	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Consensus/StateToGenesis", height, &rsp); err != nil {
 		return nil, fmt.Errorf("StateToGenesis(%d): %w", height, err)
@@ -62,7 +62,7 @@ func (c *DamaskConsensusApiLite) StateToGenesis(ctx context.Context, height int6
 	return &rsp, nil
 }
 
-func (c *DamaskConsensusApiLite) GetBlock(ctx context.Context, height int64) (*consensus.Block, error) {
+func (c *ConsensusApiLite) GetBlock(ctx context.Context, height int64) (*consensus.Block, error) {
 	var rsp consensus.Block
 	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Consensus/GetBlock", height, &rsp); err != nil {
 		return nil, fmt.Errorf("GetBlock(%d): %w", height, err)
@@ -70,7 +70,7 @@ func (c *DamaskConsensusApiLite) GetBlock(ctx context.Context, height int64) (*c
 	return &rsp, nil
 }
 
-func (c *DamaskConsensusApiLite) GetTransactionsWithResults(ctx context.Context, height int64) ([]nodeapi.TransactionWithResults, error) {
+func (c *ConsensusApiLite) GetTransactionsWithResults(ctx context.Context, height int64) ([]nodeapi.TransactionWithResults, error) {
 	var rsp consensus.TransactionsWithResults
 	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Consensus/GetTransactionsWithResults", height, &rsp); err != nil {
 		return nil, fmt.Errorf("GetTransactionsWithResults(%d): %w", height, err)
@@ -100,7 +100,7 @@ func (c *DamaskConsensusApiLite) GetTransactionsWithResults(ctx context.Context,
 	return txrs, nil
 }
 
-func (c *DamaskConsensusApiLite) GetEpoch(ctx context.Context, height int64) (beacon.EpochTime, error) {
+func (c *ConsensusApiLite) GetEpoch(ctx context.Context, height int64) (beacon.EpochTime, error) {
 	var rsp beacon.EpochTime
 	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Beacon/GetEpoch", height, &rsp); err != nil {
 		return beacon.EpochInvalid, fmt.Errorf("GetEpoch(%d): %w", height, err)
@@ -108,7 +108,7 @@ func (c *DamaskConsensusApiLite) GetEpoch(ctx context.Context, height int64) (be
 	return rsp, nil
 }
 
-func (c *DamaskConsensusApiLite) RegistryEvents(ctx context.Context, height int64) ([]nodeapi.Event, error) {
+func (c *ConsensusApiLite) RegistryEvents(ctx context.Context, height int64) ([]nodeapi.Event, error) {
 	var rsp []*registry.Event
 	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Registry/GetEvents", height, &rsp); err != nil {
 		return nil, fmt.Errorf("RegistryEvents(%d): %w", height, err)
@@ -120,7 +120,7 @@ func (c *DamaskConsensusApiLite) RegistryEvents(ctx context.Context, height int6
 	return events, nil
 }
 
-func (c *DamaskConsensusApiLite) StakingEvents(ctx context.Context, height int64) ([]nodeapi.Event, error) {
+func (c *ConsensusApiLite) StakingEvents(ctx context.Context, height int64) ([]nodeapi.Event, error) {
 	var rsp []*staking.Event
 	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Staking/GetEvents", height, &rsp); err != nil {
 		return nil, fmt.Errorf("StakingEvents(%d): %w", height, err)
@@ -132,7 +132,7 @@ func (c *DamaskConsensusApiLite) StakingEvents(ctx context.Context, height int64
 	return events, nil
 }
 
-func (c *DamaskConsensusApiLite) GovernanceEvents(ctx context.Context, height int64) ([]nodeapi.Event, error) {
+func (c *ConsensusApiLite) GovernanceEvents(ctx context.Context, height int64) ([]nodeapi.Event, error) {
 	var rsp []*governance.Event
 	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Governance/GetEvents", height, &rsp); err != nil {
 		return nil, fmt.Errorf("GovernanceEvents(%d): %w", height, err)
@@ -144,7 +144,7 @@ func (c *DamaskConsensusApiLite) GovernanceEvents(ctx context.Context, height in
 	return events, nil
 }
 
-func (c *DamaskConsensusApiLite) RoothashEvents(ctx context.Context, height int64) ([]nodeapi.Event, error) {
+func (c *ConsensusApiLite) RoothashEvents(ctx context.Context, height int64) ([]nodeapi.Event, error) {
 	var rsp []*roothash.Event
 	if err := c.grpcConn.Invoke(ctx, "/oasis-core.RootHash/GetEvents", height, &rsp); err != nil {
 		return nil, fmt.Errorf("RoothashEvents(%d): %w", height, err)
@@ -156,7 +156,7 @@ func (c *DamaskConsensusApiLite) RoothashEvents(ctx context.Context, height int6
 	return events, nil
 }
 
-func (c *DamaskConsensusApiLite) GetNodes(ctx context.Context, height int64) ([]nodeapi.Node, error) {
+func (c *ConsensusApiLite) GetNodes(ctx context.Context, height int64) ([]nodeapi.Node, error) {
 	var rsp []*nodeapi.Node
 	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Registry/GetNodes", height, &rsp); err != nil {
 		return nil, fmt.Errorf("GetNodes(%d): %w", height, err)
@@ -168,7 +168,7 @@ func (c *DamaskConsensusApiLite) GetNodes(ctx context.Context, height int64) ([]
 	return nodes, nil
 }
 
-func (c *DamaskConsensusApiLite) GetValidators(ctx context.Context, height int64) ([]nodeapi.Validator, error) {
+func (c *ConsensusApiLite) GetValidators(ctx context.Context, height int64) ([]nodeapi.Validator, error) {
 	var rsp []*scheduler.Validator
 	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Scheduler/GetValidators", height, &rsp); err != nil {
 		return nil, fmt.Errorf("GetValidators(%d): %w", height, err)
@@ -180,7 +180,7 @@ func (c *DamaskConsensusApiLite) GetValidators(ctx context.Context, height int64
 	return validators, nil
 }
 
-func (c *DamaskConsensusApiLite) GetCommittees(ctx context.Context, height int64, runtimeID common.Namespace) ([]nodeapi.Committee, error) {
+func (c *ConsensusApiLite) GetCommittees(ctx context.Context, height int64, runtimeID common.Namespace) ([]nodeapi.Committee, error) {
 	var rsp []*scheduler.Committee
 	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Scheduler/GetCommittees", &scheduler.GetCommitteesRequest{
 		Height:    height,
@@ -200,7 +200,7 @@ func (c *DamaskConsensusApiLite) GetCommittees(ctx context.Context, height int64
 	return committees, nil
 }
 
-func (c *DamaskConsensusApiLite) GetProposal(ctx context.Context, height int64, proposalID uint64) (*nodeapi.Proposal, error) {
+func (c *ConsensusApiLite) GetProposal(ctx context.Context, height int64, proposalID uint64) (*nodeapi.Proposal, error) {
 	var rsp *governance.Proposal
 	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Governance/Proposal", &governance.ProposalQuery{
 		Height:     height,
