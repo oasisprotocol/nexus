@@ -24,12 +24,12 @@ type APIConstructor func(ctx context.Context, chainContext string, archiveConfig
 
 func damaskAPIConstructor(ctx context.Context, chainContext string, archiveConfig *config.ArchiveConfig, fastStartup bool) (nodeapi.ConsensusApiLite, error) {
 	rawConn := connections.LazyGrpcConnect(*archiveConfig.ResolvedConsensusNode())
-	return damask.NewDamaskConsensusApiLite(rawConn), nil
+	return damask.NewConsensusApiLite(rawConn), nil
 }
 
 func cobaltAPIConstructor(ctx context.Context, chainContext string, archiveConfig *config.ArchiveConfig, fastStartup bool) (nodeapi.ConsensusApiLite, error) {
 	rawConn := connections.LazyGrpcConnect(*archiveConfig.ResolvedConsensusNode())
-	return cobalt.NewCobaltConsensusApiLite(rawConn), nil
+	return cobalt.NewConsensusApiLite(rawConn), nil
 }
 
 func edenAPIConstructor(ctx context.Context, chainContext string, archiveConfig *config.ArchiveConfig, fastStartup bool) (nodeapi.ConsensusApiLite, error) {
@@ -37,7 +37,7 @@ func edenAPIConstructor(ctx context.Context, chainContext string, archiveConfig 
 	if err != nil {
 		return nil, fmt.Errorf("oasis-node RawConnect: %w", err)
 	}
-	return eden.NewEdenConsensusApiLite(rawConn), nil
+	return eden.NewConsensusApiLite(rawConn), nil
 }
 
 // APIConstructors map each (nexus-internal) archive name to the API constructor
@@ -50,7 +50,7 @@ var APIConstructors = map[string]APIConstructor{
 	// mainnet
 	"damask": damaskAPIConstructor,
 	"cobalt": cobaltAPIConstructor,
-	"eden": edenAPIConstructor,
+	"eden":   edenAPIConstructor,
 	// testnet
 	"2022-03-03": damaskAPIConstructor,
 	"2023-10-12": edenAPIConstructor,
