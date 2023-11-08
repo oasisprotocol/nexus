@@ -236,7 +236,7 @@ func EVMDownloadMutatedToken(ctx context.Context, logger *log.Logger, source nod
 	// see https://github.com/oasisprotocol/nexus/issues/225
 
 	default:
-		return nil, fmt.Errorf("download mutated token type %v not handled", tokenType)
+		return nil, nil
 	}
 }
 
@@ -250,7 +250,7 @@ func EVMDownloadNewNFT(ctx context.Context, logger *log.Logger, source nodeapi.R
 		return nftData, nil
 
 	default:
-		return nil, fmt.Errorf("download stale nft type %v not handled", tokenType)
+		return &EVMNFTData{}, nil
 	}
 }
 
@@ -279,7 +279,7 @@ func EVMDownloadTokenBalance(ctx context.Context, logger *log.Logger, source nod
 	// see https://github.com/oasisprotocol/nexus/issues/225
 
 	default:
-		return nil, fmt.Errorf("download stale token balance type %v not handled", tokenType)
+		return nil, nil
 	}
 }
 
