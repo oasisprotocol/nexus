@@ -449,7 +449,55 @@ func TestFinalizeFastSync(t *testing.T) {
 	p = &mockProcessor{name: "consensus", storage: db}
 	setupAnalyzer(t, db, p, &config.BlockBasedAnalyzerConfig{From: 21, To: 30}, analyzer.SlowSyncMode).Start(ctx)
 	require.Nil(t, p.fastSyncFinalizedAt,
-		"sencond slow-sync analyzer should not finalize fast-sync because its range extends an existing slow-sync-analyzed range")
+		"second slow-sync analyzer should not finalize fast-sync because its range extends an existing slow-sync-analyzed range")
+}
+
+// Tests the `SoftEnqueueGapsInProcessedBlocks` query.
+func TestSoftEqueueGaps(t *testing.T) {
+	ctx := context.Background()
+	db := setupDB(t)
+
+	// Returns a sorted list of all heights that have an entry in the processed_blocks table (even if not completed).
+	getHeights := func() []uint64 {
+		rows, err := db.Query(ctx, "SELECT height FROM analysis.processed_blocks WHERE analyzer = $1 ORDER BY height", "consensus")
+		require.NoError(t, err)
+		heights := []uint64{}
+		for rows.Next() {
+			var height uint64
+			require.NoError(t, rows.Scan(&height))
+			heights = append(heights, height)
+		}
+		return heights
+	}
+
+	// Inserts a row into the processed_blocks table.
+	markAsProcessed := func(analyzer string, height uint64) {
+		batch := storage.QueryBatch{}
+		batch.Queue("INSERT INTO analysis.processed_blocks (analyzer, height, locked_time) values ($1, $2, '-infinity')", analyzer, height)
+		require.NoError(t, db.SendBatch(ctx, &batch))
+	}
+
+	// Runs the query that we're testing.
+	enqueueGaps := func(from, to int64) {
+		batch := &storage.QueryBatch{}
+		batch.Queue(queries.SoftEnqueueGapsInProcessedBlocks, "consensus", from, to)
+		require.NoError(t, db.SendBatch(ctx, batch))
+	}
+
+	// Sanity check our helper methods.
+	markAsProcessed("some_other_analyzer", 10) // to test that queries are scoped by analyzer
+	require.Equal(t, []uint64{}, getHeights())
+
+	// Pretend some blocks are already processed.
+	markAsProcessed("consensus", 3)
+	markAsProcessed("consensus", 4)
+	markAsProcessed("consensus", 6)
+	require.Equal(t, []uint64{3, 4, 6}, getHeights())
+
+	// Fill the gaps.
+	// NOTE: Only the gaps. Heights above the highest-processed-so-far (i.e. 6) are not enqueued.
+	enqueueGaps(1, 10)
+	require.Equal(t, []uint64{1, 2, 3, 4, 5, 6}, getHeights())
 }
 
 func TestRefuseSlowSyncOnDirtyRange(t *testing.T) {

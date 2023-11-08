@@ -208,6 +208,7 @@ func (b *blockBasedAnalyzer) isBlockProcessedBySlowSync(ctx context.Context, hei
 // that that assumption is valid even in the face of misconfigured past runs, e.g. if we
 // processed the range [1000, 2000] but now want to process [1, infinity).
 func (b *blockBasedAnalyzer) softEnqueueGapsInProcessedBlocks(ctx context.Context) error {
+	b.logger.Info("fast-sync: ensuring that any gaps in the already-processed block range can be picked up later", "from", b.blockRange.From, "to", b.blockRange.To)
 	batch := &storage.QueryBatch{}
 	batch.Queue(
 		queries.SoftEnqueueGapsInProcessedBlocks,
@@ -219,7 +220,7 @@ func (b *blockBasedAnalyzer) softEnqueueGapsInProcessedBlocks(ctx context.Contex
 		b.logger.Error("failed to soft-enqueue gaps in already-processed blocks", "err", err, "from", b.blockRange.From, "to", b.blockRange.To)
 		return err
 	}
-	b.logger.Info("ensured that any gaps in the already-processed block range can be picked up later", "from", b.blockRange.From, "to", b.blockRange.To)
+	b.logger.Info("any potential gaps resolved", "from", b.blockRange.From, "to", b.blockRange.To)
 	return nil
 }
 
