@@ -15,7 +15,7 @@ import (
 	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
 	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi/cobalt"
 	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi/damask"
-	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi/enigma"
+	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi/eden"
 )
 
 var _ nodeapi.ConsensusApiLite = (*HistoryConsensusApiLite)(nil)
@@ -32,12 +32,12 @@ func cobaltAPIConstructor(ctx context.Context, chainContext string, archiveConfi
 	return cobalt.NewCobaltConsensusApiLite(rawConn), nil
 }
 
-func enigmaAPIConstructor(ctx context.Context, chainContext string, archiveConfig *config.ArchiveConfig, fastStartup bool) (nodeapi.ConsensusApiLite, error) {
+func edenAPIConstructor(ctx context.Context, chainContext string, archiveConfig *config.ArchiveConfig, fastStartup bool) (nodeapi.ConsensusApiLite, error) {
 	rawConn, err := connections.RawConnect(archiveConfig.ResolvedConsensusNode())
 	if err != nil {
 		return nil, fmt.Errorf("oasis-node RawConnect: %w", err)
 	}
-	return enigma.NewEnigmaConsensusApiLite(rawConn), nil
+	return eden.NewEdenConsensusApiLite(rawConn), nil
 }
 
 // APIConstructors map each (nexus-internal) archive name to the API constructor
@@ -50,10 +50,10 @@ var APIConstructors = map[string]APIConstructor{
 	// mainnet
 	"damask": damaskAPIConstructor,
 	"cobalt": cobaltAPIConstructor,
-	"enigma": enigmaAPIConstructor,
+	"eden": edenAPIConstructor,
 	// testnet
 	"2022-03-03": damaskAPIConstructor,
-	"2023-10-12": enigmaAPIConstructor,
+	"2023-10-12": edenAPIConstructor,
 }
 
 type HistoryConsensusApiLite struct {

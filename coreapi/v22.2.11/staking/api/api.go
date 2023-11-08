@@ -120,7 +120,7 @@ type TakeEscrowEvent struct {
 	Owner Address `json:"owner"`
 	// Total amount slashed across active and debonding stake.
 	Amount quantity.Quantity `json:"amount"`
-	// NOTE: DebondingAmount is not present in Damask; Enigma (v23.0) introduces it.
+	// NOTE: DebondingAmount is not present in Damask; Eden (v23.0) introduces it.
 	// If this field is `nil`, the amount of active vs debonding _slashed_ stake
 	// needs to be computed and is proportional to the total current active vs debonding
 	// staked amounts; the event itself does not provide enough info. If this field is not

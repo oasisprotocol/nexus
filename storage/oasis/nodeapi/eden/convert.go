@@ -1,4 +1,4 @@
-package enigma
+package eden
 
 import (
 	"strings"
@@ -21,17 +21,17 @@ import (
 	"github.com/oasisprotocol/nexus/common"
 	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
 
-	// data types for Enigma gRPC APIs.
-	nodeEnigma "github.com/oasisprotocol/nexus/coreapi/v23.0/common/node"
-	txResultsEnigma "github.com/oasisprotocol/nexus/coreapi/v23.0/consensus/api/transaction/results"
-	genesisEnigma "github.com/oasisprotocol/nexus/coreapi/v23.0/genesis/api"
-	governanceEnigma "github.com/oasisprotocol/nexus/coreapi/v23.0/governance/api"
-	registryEnigma "github.com/oasisprotocol/nexus/coreapi/v23.0/registry/api"
-	schedulerEnigma "github.com/oasisprotocol/nexus/coreapi/v23.0/scheduler/api"
-	stakingEnigma "github.com/oasisprotocol/nexus/coreapi/v23.0/staking/api"
+	// data types for Eden gRPC APIs.
+	nodeEden "github.com/oasisprotocol/nexus/coreapi/v23.0/common/node"
+	txResultsEden "github.com/oasisprotocol/nexus/coreapi/v23.0/consensus/api/transaction/results"
+	genesisEden "github.com/oasisprotocol/nexus/coreapi/v23.0/genesis/api"
+	governanceEden "github.com/oasisprotocol/nexus/coreapi/v23.0/governance/api"
+	registryEden "github.com/oasisprotocol/nexus/coreapi/v23.0/registry/api"
+	schedulerEden "github.com/oasisprotocol/nexus/coreapi/v23.0/scheduler/api"
+	stakingEden "github.com/oasisprotocol/nexus/coreapi/v23.0/staking/api"
 )
 
-func convertProposal(p *governanceEnigma.Proposal) *governance.Proposal {
+func convertProposal(p *governanceEden.Proposal) *governance.Proposal {
 	results := make(map[governance.Vote]quantity.Quantity)
 	for k, v := range p.Results {
 		results[governance.Vote(k)] = v
@@ -66,7 +66,7 @@ func convertProposal(p *governanceEnigma.Proposal) *governance.Proposal {
 	}
 }
 
-func convertAccount(a *stakingEnigma.Account) *staking.Account {
+func convertAccount(a *stakingEden.Account) *staking.Account {
 	rateSteps := make([]staking.CommissionRateStep, len(a.Escrow.CommissionSchedule.Rates))
 	for i, r := range a.Escrow.CommissionSchedule.Rates {
 		rateSteps[i] = staking.CommissionRateStep(r)
@@ -88,7 +88,7 @@ func convertAccount(a *stakingEnigma.Account) *staking.Account {
 	}
 }
 
-func convertRuntime(r *registryEnigma.Runtime) *registry.Runtime {
+func convertRuntime(r *registryEden.Runtime) *registry.Runtime {
 	return &registry.Runtime{
 		ID:          r.ID,
 		EntityID:    r.EntityID,
@@ -98,7 +98,7 @@ func convertRuntime(r *registryEnigma.Runtime) *registry.Runtime {
 	}
 }
 
-func convertNodeAddresses(addrs []nodeEnigma.Address) []node.Address {
+func convertNodeAddresses(addrs []nodeEden.Address) []node.Address {
 	ret := make([]node.Address, len(addrs))
 	for i, a := range addrs {
 		ret[i] = node.Address(a)
@@ -106,7 +106,7 @@ func convertNodeAddresses(addrs []nodeEnigma.Address) []node.Address {
 	return ret
 }
 
-func convertNodeConsensusAddresses(addrs []nodeEnigma.ConsensusAddress) []node.ConsensusAddress {
+func convertNodeConsensusAddresses(addrs []nodeEden.ConsensusAddress) []node.ConsensusAddress {
 	ret := make([]node.ConsensusAddress, len(addrs))
 	for i, a := range addrs {
 		ret[i] = node.ConsensusAddress{
@@ -117,8 +117,8 @@ func convertNodeConsensusAddresses(addrs []nodeEnigma.ConsensusAddress) []node.C
 	return ret
 }
 
-func convertNode(signedNode *nodeEnigma.MultiSignedNode) (*node.Node, error) {
-	var n nodeEnigma.Node
+func convertNode(signedNode *nodeEden.MultiSignedNode) (*node.Node, error) {
+	var n nodeEden.Node
 	if err := cbor.Unmarshal(signedNode.Blob, &n); err != nil {
 		return nil, err
 	}
@@ -135,7 +135,7 @@ func convertNode(signedNode *nodeEnigma.MultiSignedNode) (*node.Node, error) {
 		Expiration: n.Expiration,
 		TLS: node.TLSInfo{
 			PubKey: n.TLS.PubKey,
-			// `NextPubKey` and `Addresses` are not present in Enigma.
+			// `NextPubKey` and `Addresses` are not present in Eden.
 		},
 		P2P: node.P2PInfo{
 			ID:        n.P2P.ID,
@@ -152,11 +152,11 @@ func convertNode(signedNode *nodeEnigma.MultiSignedNode) (*node.Node, error) {
 	}, nil
 }
 
-// ConvertGenesis converts a genesis document from the Enigma format to the
+// ConvertGenesis converts a genesis document from the Eden format to the
 // nexus-internal format.
 // WARNING: This is a partial conversion, only the fields that are used by
 // Nexus are filled in the output document.
-func ConvertGenesis(d genesisEnigma.Document) (*genesis.Document, error) {
+func ConvertGenesis(d genesisEden.Document) (*genesis.Document, error) {
 	proposals := make([]*governance.Proposal, len(d.Governance.Proposals))
 	for i, p := range d.Governance.Proposals {
 		proposals[i] = convertProposal(p)
@@ -252,7 +252,7 @@ func ConvertGenesis(d genesisEnigma.Document) (*genesis.Document, error) {
 	}, nil
 }
 
-func convertEvent(e txResultsEnigma.Event) nodeapi.Event {
+func convertEvent(e txResultsEden.Event) nodeapi.Event {
 	ret := nodeapi.Event{}
 	switch {
 	case e.Staking != nil:
@@ -366,9 +366,9 @@ func convertEvent(e txResultsEnigma.Event) nodeapi.Event {
 					EntityID:           e.Registry.NodeEvent.Node.EntityID,
 					Expiration:         e.Registry.NodeEvent.Node.Expiration,
 					VRFPubKey:          vrfID,
-					TLSAddresses:       []string{}, // Not used any more in Enigma.
+					TLSAddresses:       []string{}, // Not used any more in Eden.
 					TLSPubKey:          e.Registry.NodeEvent.Node.TLS.PubKey,
-					TLSNextPubKey:      signature.PublicKey{}, // Not used any more in Enigma.
+					TLSNextPubKey:      signature.PublicKey{}, // Not used any more in Eden.
 					P2PID:              e.Registry.NodeEvent.Node.P2P.ID,
 					P2PAddresses:       p2pAddresses,
 					RuntimeIDs:         runtimeIDs,
@@ -433,7 +433,7 @@ func convertEvent(e txResultsEnigma.Event) nodeapi.Event {
 			ret = nodeapi.Event{
 				GovernanceProposalFinalized: &nodeapi.ProposalFinalizedEvent{
 					ID: e.Governance.ProposalFinalized.ID,
-					// The enum is compatible between Enigma and Damask.
+					// The enum is compatible between Eden and Damask.
 					State: governance.ProposalState(e.Governance.ProposalFinalized.State),
 				},
 				RawBody: common.TryAsJSON(e.Governance.ProposalFinalized),
@@ -457,7 +457,7 @@ func convertEvent(e txResultsEnigma.Event) nodeapi.Event {
 	return ret
 }
 
-func convertTxResult(r txResultsEnigma.Result) nodeapi.TxResult {
+func convertTxResult(r txResultsEden.Result) nodeapi.TxResult {
 	events := make([]nodeapi.Event, len(r.Events))
 	for i, e := range r.Events {
 		events[i] = convertEvent(*e)
@@ -469,16 +469,16 @@ func convertTxResult(r txResultsEnigma.Result) nodeapi.TxResult {
 	}
 }
 
-func convertCommittee(c schedulerEnigma.Committee) nodeapi.Committee {
+func convertCommittee(c schedulerEden.Committee) nodeapi.Committee {
 	members := make([]*scheduler.CommitteeNode, len(c.Members))
 	for j, m := range c.Members {
 		members[j] = &scheduler.CommitteeNode{
 			PublicKey: m.PublicKey,
-			Role:      scheduler.Role(m.Role), // The enum is compatible between Enigma and Damask.
+			Role:      scheduler.Role(m.Role), // The enum is compatible between Eden and Damask.
 		}
 	}
 	return nodeapi.Committee{
-		Kind:      nodeapi.CommitteeKind(c.Kind), // The enum is compatible between Enigma and Damask.
+		Kind:      nodeapi.CommitteeKind(c.Kind), // The enum is compatible between Eden and Damask.
 		Members:   members,
 		RuntimeID: c.RuntimeID,
 		ValidFor:  c.ValidFor,

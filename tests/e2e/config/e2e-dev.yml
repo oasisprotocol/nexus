@@ -3,13 +3,13 @@ analysis:
     custom_chain:
       history:
         records:
-          - archive_name: enigma
+          - archive_name: eden
             # ^ "Fake" name (because this is not the real chain), but used by nexus to choose the version of the node client
             genesis_height: 1
             chain_context: 182e2b0cd78c263e276ac127d04b0ab390a421e9b2b7073dd56823f11dd7b853
       sdk_network: {}
     nodes:
-      enigma:
+      eden:
         default:
           rpc: unix:/testnet/net-runner/network/validator-0/internal.sock
   analyzers:
