@@ -33,10 +33,7 @@ func cobaltAPIConstructor(ctx context.Context, chainContext string, archiveConfi
 }
 
 func edenAPIConstructor(ctx context.Context, chainContext string, archiveConfig *config.ArchiveConfig, fastStartup bool) (nodeapi.ConsensusApiLite, error) {
-	rawConn, err := connections.RawConnect(archiveConfig.ResolvedConsensusNode())
-	if err != nil {
-		return nil, fmt.Errorf("oasis-node RawConnect: %w", err)
-	}
+	rawConn := connections.LazyGrpcConnect(*archiveConfig.ResolvedConsensusNode())
 	return eden.NewConsensusApiLite(rawConn), nil
 }
 

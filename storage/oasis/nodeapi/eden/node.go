@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"google.golang.org/grpc"
-
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 
 	// nexus-internal data types.
@@ -37,12 +35,12 @@ import (
 // Eden node. To be able to use the old gRPC API, this struct uses gRPC
 // directly, skipping the convenience wrappers provided by oasis-core.
 type ConsensusApiLite struct {
-	grpcConn *grpc.ClientConn
+	grpcConn *connections.LazyGrpcConn
 }
 
 var _ nodeapi.ConsensusApiLite = (*ConsensusApiLite)(nil)
 
-func NewConsensusApiLite(grpcConn *grpc.ClientConn) *ConsensusApiLite {
+func NewConsensusApiLite(grpcConn *connections.LazyGrpcConn) *ConsensusApiLite {
 	return &ConsensusApiLite{
 		grpcConn: grpcConn,
 	}
