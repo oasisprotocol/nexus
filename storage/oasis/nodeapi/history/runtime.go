@@ -29,7 +29,7 @@ func NewHistoryRuntimeApiLite(ctx context.Context, history *config.History, sdkP
 				return nil, err
 			}
 			sdkClient := sdkConn.Runtime(sdkPT)
-			rawConn := connections.LazyGrpcConnect(*archiveConfig.ResolvedRuntimeNode(runtime))
+			rawConn := connections.NewLazyGrpcConn(*archiveConfig.ResolvedRuntimeNode(runtime))
 			apis[record.ArchiveName] = nodeapi.NewUniversalRuntimeApiLite(sdkPT.Namespace(), rawConn, &sdkClient)
 		}
 	}

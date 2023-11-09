@@ -31,12 +31,12 @@ import (
 // compatible with Damask gRPC API, this struct just trivially wraps the
 // convenience methods provided by oasis-core.
 type ConsensusApiLite struct {
-	grpcConn *connections.LazyGrpcConn
+	grpcConn connections.GrpcConn
 }
 
 var _ nodeapi.ConsensusApiLite = (*ConsensusApiLite)(nil)
 
-func NewConsensusApiLite(grpcConn *connections.LazyGrpcConn) *ConsensusApiLite {
+func NewConsensusApiLite(grpcConn connections.GrpcConn) *ConsensusApiLite {
 	return &ConsensusApiLite{
 		grpcConn: grpcConn,
 	}

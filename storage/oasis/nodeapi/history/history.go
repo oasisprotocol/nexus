@@ -23,17 +23,17 @@ var _ nodeapi.ConsensusApiLite = (*HistoryConsensusApiLite)(nil)
 type APIConstructor func(ctx context.Context, chainContext string, archiveConfig *config.ArchiveConfig, fastStartup bool) (nodeapi.ConsensusApiLite, error)
 
 func damaskAPIConstructor(ctx context.Context, chainContext string, archiveConfig *config.ArchiveConfig, fastStartup bool) (nodeapi.ConsensusApiLite, error) {
-	rawConn := connections.LazyGrpcConnect(*archiveConfig.ResolvedConsensusNode())
+	rawConn := connections.NewLazyGrpcConn(*archiveConfig.ResolvedConsensusNode())
 	return damask.NewConsensusApiLite(rawConn), nil
 }
 
 func cobaltAPIConstructor(ctx context.Context, chainContext string, archiveConfig *config.ArchiveConfig, fastStartup bool) (nodeapi.ConsensusApiLite, error) {
-	rawConn := connections.LazyGrpcConnect(*archiveConfig.ResolvedConsensusNode())
+	rawConn := connections.NewLazyGrpcConn(*archiveConfig.ResolvedConsensusNode())
 	return cobalt.NewConsensusApiLite(rawConn), nil
 }
 
 func edenAPIConstructor(ctx context.Context, chainContext string, archiveConfig *config.ArchiveConfig, fastStartup bool) (nodeapi.ConsensusApiLite, error) {
-	rawConn := connections.LazyGrpcConnect(*archiveConfig.ResolvedConsensusNode())
+	rawConn := connections.NewLazyGrpcConn(*archiveConfig.ResolvedConsensusNode())
 	return eden.NewConsensusApiLite(rawConn), nil
 }
 

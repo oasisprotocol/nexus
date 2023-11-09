@@ -36,12 +36,12 @@ import (
 // Cobalt node. To be able to use the old gRPC API, this struct uses gRPC
 // directly, skipping the convenience wrappers provided by oasis-core.
 type ConsensusApiLite struct {
-	grpcConn *connections.LazyGrpcConn
+	grpcConn connections.GrpcConn
 }
 
 var _ nodeapi.ConsensusApiLite = (*ConsensusApiLite)(nil)
 
-func NewConsensusApiLite(grpcConn *connections.LazyGrpcConn) *ConsensusApiLite {
+func NewConsensusApiLite(grpcConn connections.GrpcConn) *ConsensusApiLite {
 	return &ConsensusApiLite{
 		grpcConn: grpcConn,
 	}
