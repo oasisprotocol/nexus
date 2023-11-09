@@ -12,6 +12,7 @@ import (
 	"github.com/oasisprotocol/nexus/common"
 	"github.com/oasisprotocol/nexus/log"
 	"github.com/oasisprotocol/nexus/metrics"
+	"github.com/oasisprotocol/nexus/storage/oasis/connections"
 	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
 )
 
@@ -164,4 +165,8 @@ func (c *FileConsensusApiLite) GetProposal(ctx context.Context, height int64, pr
 		generateCacheKey("GetProposal", height, proposalID),
 		func() (*nodeapi.Proposal, error) { return c.consensusApi.GetProposal(ctx, height, proposalID) },
 	)
+}
+
+func (c *FileConsensusApiLite) GrpcConn() connections.GrpcConn {
+	return c.consensusApi.GrpcConn()
 }

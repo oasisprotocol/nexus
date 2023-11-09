@@ -214,3 +214,7 @@ func (c *ConsensusApiLite) GetProposal(ctx context.Context, height int64, propos
 	}
 	return (*nodeapi.Proposal)(convertProposal(rsp)), nil
 }
+
+func (c *ConsensusApiLite) GrpcConn() connections.GrpcConn {
+	return c.grpcConn
+}

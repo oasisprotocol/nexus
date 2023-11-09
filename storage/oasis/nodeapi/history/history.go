@@ -222,3 +222,9 @@ func (c *HistoryConsensusApiLite) GetProposal(ctx context.Context, height int64,
 	}
 	return api.GetProposal(ctx, height, proposalID)
 }
+
+func (c *HistoryConsensusApiLite) GrpcConn() connections.GrpcConn {
+	// To access the gRPC connection, you must know the height of the block.
+	// Use APIForHeight(h).GrpcConn() instead.
+	return nil
+}
