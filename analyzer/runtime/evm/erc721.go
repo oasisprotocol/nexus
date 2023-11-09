@@ -83,7 +83,8 @@ func evmDownloadTokenERC721(ctx context.Context, logger *log.Logger, source node
 }
 
 func evmDownloadNFTERC721Metadata(ctx context.Context, logger *log.Logger, source nodeapi.RuntimeApiLite, ipfsClient ipfsclient.Client, nftData *EVMNFTData, round uint64, tokenEthAddr []byte, id *big.Int) error {
-	if err := evmCallWithABI(ctx, source, round, tokenEthAddr, evmabi.ERC721Metadata, &nftData.MetadataURI, "tokenURI", id); err != nil {
+	var metadataURI string
+	if err := evmCallWithABI(ctx, source, round, tokenEthAddr, evmabi.ERC721Metadata, &metadataURI, "tokenURI", id); err != nil {
 		if !errors.Is(err, EVMDeterministicError{}) {
 			return fmt.Errorf("calling tokenURI: %w", err)
 		}
@@ -92,17 +93,18 @@ func evmDownloadNFTERC721Metadata(ctx context.Context, logger *log.Logger, sourc
 		)
 		return nil
 	}
+	nftData.MetadataURI = &metadataURI
 	logger.Info("downloading metadata",
 		"token_eth_addr", hex.EncodeToString(tokenEthAddr),
 		"token_id", id,
-		"uri", nftData.MetadataURI,
+		"uri", metadataURI,
 	)
-	nftData.MetadataAccessed = time.Now()
-	rc, err := multiproto.Get(ctx, ipfsClient, nftData.MetadataURI)
+	nftData.MetadataAccessed = common.Ptr(time.Now())
+	rc, err := multiproto.Get(ctx, ipfsClient, metadataURI)
 	if err != nil {
 		// TODO: Retry on some errors? See #532.
 		logger.Info("error downloading token metadata",
-			"uri", nftData.MetadataURI,
+			"uri", metadataURI,
 			"err", err,
 		)
 		return nil
@@ -113,7 +115,7 @@ func evmDownloadNFTERC721Metadata(ctx context.Context, logger *log.Logger, sourc
 	limitedReader := io.LimitReader(rc, MaxMetadataBytes)
 	if err = json.NewDecoder(limitedReader).Decode(&metadataAny); err != nil {
 		logger.Info("error decoding token metadata as any",
-			"uri", nftData.MetadataURI,
+			"uri", metadataURI,
 			"err", err,
 		)
 		if err = rc.Close(); err != nil {
@@ -130,7 +132,7 @@ func evmDownloadNFTERC721Metadata(ctx context.Context, logger *log.Logger, sourc
 	metadataNormalJSONBuf, err := json.Marshal(metadataAny)
 	if err != nil {
 		logger.Info("error re-encoding token metadata",
-			"uri", nftData.MetadataURI,
+			"uri", metadataURI,
 			"err", err,
 		)
 		return nil
@@ -142,7 +144,7 @@ func evmDownloadNFTERC721Metadata(ctx context.Context, logger *log.Logger, sourc
 	var metadata ERC721AssetMetadata
 	if err = json.Unmarshal(metadataNormalJSONBuf, &metadata); err != nil {
 		logger.Info("error decoding token metadata as asset metadata",
-			"uri", nftData.MetadataURI,
+			"uri", metadataURI,
 			"err", err,
 		)
 		return nil
