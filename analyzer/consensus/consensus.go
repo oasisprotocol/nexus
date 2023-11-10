@@ -700,6 +700,13 @@ func (m *processor) queueEscrows(batch *storage.QueryBatch, data *stakingData) e
 		escrower := e.Escrow.String()
 		amount := e.Amount.String()
 		newShares := e.NewShares.String()
+		if e.NewShares.IsZero() {
+			m.logger.Warn(`
+				AddEscrowEvent with a missing (or explicitly zero) "new_shares" field encountered.
+				The absence of that field makes dead reckoning impossible.
+				Skip over old heights with fast-sync to work around the issue.
+			`, "height", data.Height, "owner", owner, "escrower", escrower, "amount", amount)
+		}
 		batch.Queue(queries.ConsensusDecreaseGeneralBalanceUpsert,
 			owner,
 			amount,
