@@ -208,6 +208,10 @@ func EVMDownloadNewToken(ctx context.Context, logger *log.Logger, source nodeapi
 	}
 
 	// No applicable token discovered.
+	logger.Info("new token did not meet any supported standards",
+		"round", round,
+		"token_eth_addr_hex", hex.EncodeToString(tokenEthAddr),
+	)
 	return &EVMTokenData{Type: common.TokenTypeUnsupported}, nil
 }
 
@@ -236,6 +240,11 @@ func EVMDownloadMutatedToken(ctx context.Context, logger *log.Logger, source nod
 	// see https://github.com/oasisprotocol/nexus/issues/225
 
 	default:
+		logger.Info("mutated token is not from a supported token type",
+			"round", round,
+			"token_eth_addr_hex", hex.EncodeToString(tokenEthAddr),
+			"token_type", tokenType,
+		)
 		return nil, nil
 	}
 }
@@ -250,6 +259,12 @@ func EVMDownloadNewNFT(ctx context.Context, logger *log.Logger, source nodeapi.R
 		return nftData, nil
 
 	default:
+		logger.Info("new NFT is not a supported token type",
+			"round", round,
+			"token_eth_addr_hex", hex.EncodeToString(tokenEthAddr),
+			"id", id,
+			"token_type", tokenType,
+		)
 		return &EVMNFTData{}, nil
 	}
 }
@@ -279,6 +294,12 @@ func EVMDownloadTokenBalance(ctx context.Context, logger *log.Logger, source nod
 	// see https://github.com/oasisprotocol/nexus/issues/225
 
 	default:
+		logger.Info("changed balance is not from a supported token type",
+			"round", round,
+			"token_eth_addr_hex", hex.EncodeToString(tokenEthAddr),
+			"account_eth_addr_hex", hex.EncodeToString(accountEthAddr),
+			"token_type", tokenType,
+		)
 		return nil, nil
 	}
 }
