@@ -48,7 +48,7 @@ func TestERC165(t *testing.T) {
 	supportsERC165, err := detectERC165(ctx, cmdCommon.Logger(), source, runtimeClient.RoundLatest, tokenEthAddr)
 	require.NoError(t, err)
 	require.True(t, supportsERC165)
-	supportsERC721, err := detectInterface(ctx, cmdCommon.Logger(), source, runtimeClient.RoundLatest, tokenEthAddr, ERC165InterfaceID)
+	supportsERC721, err := detectInterface(ctx, cmdCommon.Logger(), source, runtimeClient.RoundLatest, tokenEthAddr, ERC721InterfaceID)
 	require.NoError(t, err)
 	require.True(t, supportsERC721)
 }
