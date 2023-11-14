@@ -48,7 +48,8 @@ func TestGetVerifiedContractAddresses(t *testing.T) {
 	addresses, err := testClient.GetVerifiedContractAddresses(context.Background(), common.RuntimeEmerald)
 	require.NoError(err, "GetVerifiedContractAddresses")
 
-	require.Len(addresses, 15, "GetVerifiedContractAddresses")
+	require.Len(addresses.Full, 15, "GetVerifiedContractAddresses Full")
+	require.Len(addresses.Partial, 0, "GetVerifiedContractAddresses Partial")
 }
 
 func TestGetContractSourceFiles(t *testing.T) {

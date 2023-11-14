@@ -790,14 +790,15 @@ var (
 
 	RuntimeEVMUnverfiedContracts = `
     SELECT contracts.contract_address,
+      contracts.verification_state,
       address_preimages.context_identifier,
       address_preimages.context_version,
-      address_preimages.address_data
+      address_preimages.address_data,
     FROM chain.evm_contracts AS contracts
     LEFT JOIN chain.address_preimages AS address_preimages ON
       address_preimages.address = contracts.contract_address
     WHERE
-      runtime = $1 AND verification_info_downloaded_at IS NULL`
+      runtime = $1 AND verification_state < 2`
 
 	RuntimeEVMVerifyContractUpdate = `
     UPDATE chain.evm_contracts

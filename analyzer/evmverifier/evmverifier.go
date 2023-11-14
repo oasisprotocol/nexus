@@ -79,8 +79,17 @@ func NewAnalyzer(
 	)
 }
 
+type VerificationState uint8
+
+const (
+	VerificationStateUnverified VerificationState = iota
+	VerificationStatePartial
+	VerificationStateFull
+)
+
 type unverifiedContract struct {
 	Addr                  string
+	VerificationState     VerificationState
 	AddrContextIdentifier string
 	AddrContextVersion    int
 	AddrData              []byte
@@ -136,25 +145,25 @@ func (p *processor) getVerifiableContracts(ctx context.Context) ([]*unverifiedCo
 	}
 
 	// Query Sourcify for list of all verified contracts.
-	addresses, err := p.source.GetVerifiedContractAddresses(ctx, p.runtime)
+	response, err := p.source.GetVerifiedContractAddresses(ctx, p.runtime)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get verified contract addresses: %w", err)
 	}
-	p.logger.Debug("got verified contract addresses", "addresses", addresses)
-	if len(addresses) == 0 {
+	p.logger.Debug("got verified contract addresses", "response", response)
+	if len(response.Full) == 0 && len(response.Partial) == 0 {
 		p.logger.Debug("no verified contracts found in Sourcify")
 		return nil, nil
 	}
 	// Create a lookup map of verified contract addresses.
-	sourcifyAddresses := make(map[ethCommon.Address]bool, len(addresses))
-	for _, address := range addresses {
-		sourcifyAddresses[address] = true
+	sourcifyFullAddresses := make(map[ethCommon.Address]bool, len(response.Full))
+	for _, address := range response.Full {
+		sourcifyFullAddresses[address] = true
 	}
 
 	// Pick currently unverified contracts that are present in sourcify.
 	var canBeVerified []*unverifiedContract
 	for _, contract := range unverified {
-		if _, ok := sourcifyAddresses[contract.EthAddr]; ok {
+		if _, ok := sourcifyFullAddresses[contract.EthAddr]; ok {
 			canBeVerified = append(canBeVerified, contract)
 		}
 	}

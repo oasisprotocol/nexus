@@ -263,9 +263,14 @@ CREATE TABLE chain.evm_contracts
    -- -- Contents of metadata.json, typically produced by the Solidity compiler.
   -- compilation_metadata JSONB,
   -- -- Each source file is a flat JSON object with keys "name", "content", "path", as returned by Sourcify.
-  -- source_files JSONB CHECK (jsonb_typeof(source_files)='array');
+  -- source_files JSONB CHECK (jsonb_typeof(source_files)='array'),
+
+  -- Added in 24_evm_contract_partial_verification.up.sql
+  -- verification_state INTEGER NOT NULL DEFAULT 0,
 );
--- CREATE INDEX ix_evm_contracts_unverified ON chain.evm_contracts (runtime) WHERE verification_info_downloaded_at IS NULL; -- Added in 07_evm_contract_verification.up.sql
+-- Added in 07_evm_contract_verification.up.sql
+-- Modified in 24_evm_contract_partial_verification.up.sql
+-- CREATE INDEX ix_evm_contracts_unverified ON chain.evm_contracts (runtime) WHERE verification_state != 2;
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- Module accounts -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
