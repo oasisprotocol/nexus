@@ -14,6 +14,18 @@ import (
 	"github.com/oasisprotocol/nexus/config"
 )
 
+// Minimal interface for gRPC connections.
+type GrpcConn interface {
+	Invoke(ctx context.Context, method string, args interface{}, reply interface{}, opts ...grpc.CallOption) error
+	Close() error
+}
+
+// The minimal interface is implemented by both `grpc.ClientConn` and `LazyGrpcConn`.
+var (
+	_ GrpcConn = (*grpc.ClientConn)(nil)
+	_ GrpcConn = (*LazyGrpcConn)(nil)
+)
+
 // RawConnect establishes gRPC connection with the target URL,
 // omitting the chain context check.
 // This is based on oasis-sdk `ConnectNoVerify()` function,
@@ -36,7 +48,7 @@ func RawConnect(nodeConfig *config.NodeConfig) (*grpc.ClientConn, error) {
 	return cmnGrpc.Dial(nodeConfig.RPC, dialOpts...)
 }
 
-func LazyGrpcConnect(nodeConfig config.NodeConfig) *LazyGrpcConn {
+func NewLazyGrpcConn(nodeConfig config.NodeConfig) *LazyGrpcConn {
 	return &LazyGrpcConn{
 		inner:      nil, // The underlying connection will be initialized lazily.
 		lock:       sync.Mutex{},

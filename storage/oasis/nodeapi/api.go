@@ -21,6 +21,7 @@ import (
 	registry "github.com/oasisprotocol/nexus/coreapi/v22.2.11/registry/api"
 	scheduler "github.com/oasisprotocol/nexus/coreapi/v22.2.11/scheduler/api"
 	staking "github.com/oasisprotocol/nexus/coreapi/v22.2.11/staking/api"
+	"github.com/oasisprotocol/nexus/storage/oasis/connections"
 
 	sdkClient "github.com/oasisprotocol/oasis-sdk/client-sdk/go/client"
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
@@ -61,6 +62,10 @@ type ConsensusApiLite interface {
 	GetCommittees(ctx context.Context, height int64, runtimeID coreCommon.Namespace) ([]Committee, error)
 	GetProposal(ctx context.Context, height int64, proposalID uint64) (*Proposal, error)
 	Close() error
+	// Exposes the underlying gRPC connection, if applicable. Implementations may return nil.
+	// NOTE: Intended only for debugging purposes, e.g. one-off testing of gRPC methods that
+	//       are not exposed via one of the above wrappers.
+	GrpcConn() connections.GrpcConn
 }
 
 // A lightweight subset of `consensus.TransactionsWithResults`.

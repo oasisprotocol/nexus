@@ -23,20 +23,17 @@ var _ nodeapi.ConsensusApiLite = (*HistoryConsensusApiLite)(nil)
 type APIConstructor func(ctx context.Context, chainContext string, archiveConfig *config.ArchiveConfig, fastStartup bool) (nodeapi.ConsensusApiLite, error)
 
 func damaskAPIConstructor(ctx context.Context, chainContext string, archiveConfig *config.ArchiveConfig, fastStartup bool) (nodeapi.ConsensusApiLite, error) {
-	rawConn := connections.LazyGrpcConnect(*archiveConfig.ResolvedConsensusNode())
+	rawConn := connections.NewLazyGrpcConn(*archiveConfig.ResolvedConsensusNode())
 	return damask.NewConsensusApiLite(rawConn), nil
 }
 
 func cobaltAPIConstructor(ctx context.Context, chainContext string, archiveConfig *config.ArchiveConfig, fastStartup bool) (nodeapi.ConsensusApiLite, error) {
-	rawConn := connections.LazyGrpcConnect(*archiveConfig.ResolvedConsensusNode())
+	rawConn := connections.NewLazyGrpcConn(*archiveConfig.ResolvedConsensusNode())
 	return cobalt.NewConsensusApiLite(rawConn), nil
 }
 
 func edenAPIConstructor(ctx context.Context, chainContext string, archiveConfig *config.ArchiveConfig, fastStartup bool) (nodeapi.ConsensusApiLite, error) {
-	rawConn, err := connections.RawConnect(archiveConfig.ResolvedConsensusNode())
-	if err != nil {
-		return nil, fmt.Errorf("oasis-node RawConnect: %w", err)
-	}
+	rawConn := connections.NewLazyGrpcConn(*archiveConfig.ResolvedConsensusNode())
 	return eden.NewConsensusApiLite(rawConn), nil
 }
 
@@ -224,4 +221,10 @@ func (c *HistoryConsensusApiLite) GetProposal(ctx context.Context, height int64,
 		return nil, fmt.Errorf("getting api for height %d: %w", height, err)
 	}
 	return api.GetProposal(ctx, height, proposalID)
+}
+
+func (c *HistoryConsensusApiLite) GrpcConn() connections.GrpcConn {
+	// To access the gRPC connection, you must know the height of the block.
+	// Use APIForHeight(h).GrpcConn() instead.
+	return nil
 }

@@ -35,7 +35,7 @@ type UniversalRuntimeApiLite struct {
 	// A raw gRPC connection to the node. Used for fetching raw CBOR-encoded
 	// responses for RPCs whose encodings changed over time, and this class
 	// needs to handle the various formats/types.
-	grpcConn *connections.LazyGrpcConn
+	grpcConn connections.GrpcConn
 
 	// An oasis-sdk managed connection to the node. Used for RPCs that have
 	// had a stable ABI over time. That is the majority of them, and oasis-sdk
@@ -46,7 +46,7 @@ type UniversalRuntimeApiLite struct {
 
 var _ RuntimeApiLite = (*UniversalRuntimeApiLite)(nil)
 
-func NewUniversalRuntimeApiLite(runtimeID coreCommon.Namespace, grpcConn *connections.LazyGrpcConn, sdkClient *connection.RuntimeClient) *UniversalRuntimeApiLite {
+func NewUniversalRuntimeApiLite(runtimeID coreCommon.Namespace, grpcConn connections.GrpcConn, sdkClient *connection.RuntimeClient) *UniversalRuntimeApiLite {
 	return &UniversalRuntimeApiLite{
 		runtimeID: runtimeID,
 		grpcConn:  grpcConn,
