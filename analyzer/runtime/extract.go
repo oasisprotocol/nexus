@@ -362,18 +362,9 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 
 			// Parse the success/error status.
 			if fail := txr.Result.Failed; fail != nil {
+				txErr := extractTxError(*fail)
+				blockTransactionData.Error = &txErr
 				blockTransactionData.Success = common.Ptr(false)
-				blockTransactionData.Error = &TxError{
-					Code:   fail.Code,
-					Module: fail.Module,
-				}
-				if len(fail.Message) > 0 {
-					// Store raw error message.
-					sanitizedRawMsg := storage.SanitizeString(fail.Message)
-					blockTransactionData.Error.RawMessage = &sanitizedRawMsg
-					// Store parsed error message, if possible.
-					blockTransactionData.Error.Message = tryParseErrorMessage(fail.Module, fail.Code, fail.Message)
-				}
 			} else if txr.Result.Ok != nil {
 				blockTransactionData.Success = common.Ptr(true)
 			} else {
@@ -517,6 +508,14 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 					}
 					if evmEncrypted, err2 := evm.EVMMaybeUnmarshalEncryptedData(body.Data, ok); err2 == nil {
 						blockTransactionData.EVMEncrypted = evmEncrypted
+						// For non-evm txs as well as older Sapphire txs, the outer CallResult may
+						// be unknown and the inner callResult Failed. In this case, we extract the
+						// error fields.
+						if evmEncrypted != nil && evmEncrypted.FailedCallResult != nil {
+							txErr := extractTxError(*evmEncrypted.FailedCallResult)
+							blockTransactionData.Error = &txErr
+							blockTransactionData.Success = common.Ptr(false)
+						}
 					} else {
 						logger.Error("error unmarshalling encrypted data and result, omitting encrypted fields",
 							"round", blockHeader.Round,
@@ -620,6 +619,22 @@ func sumGasUsed(events []*EventData) (sum uint64, foundGasUsedEvent bool) {
 		}
 	}
 	return
+}
+
+func extractTxError(fcr sdkTypes.FailedCallResult) TxError {
+	txErr := &TxError{
+		Code:   fcr.Code,
+		Module: fcr.Module,
+	}
+	if len(fcr.Message) > 0 {
+		// Store raw error message.
+		sanitizedRawMsg := storage.SanitizeString(fcr.Message)
+		txErr.RawMessage = &sanitizedRawMsg
+		// Store parsed error message, if possible.
+		txErr.Message = tryParseErrorMessage(fcr.Module, fcr.Code, fcr.Message)
+	}
+
+	return *txErr
 }
 
 // Attempts to extract the human-readable error message from
