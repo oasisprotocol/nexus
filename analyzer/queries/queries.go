@@ -92,16 +92,6 @@ var (
     ON CONFLICT (analyzer, height) DO UPDATE SET locked_time = excluded.locked_time
     RETURNING height`
 
-	// IsAnyBlockInRangeProcessedByFastSync = `
-	//   SELECT EXISTS(
-	//     SELECT 1 FROM analysis.processed_blocks
-	//     WHERE
-	//       analyzer_name = $1 AND
-	//       height >= $2 AND ($3 <= 0 OR height <= $3) AND
-	//       processed_time IS NOT NULL AND
-	//       is_fast_sync
-	//   )`
-
 	ProcessedSubrangeInfo = `
     -- Returns info about already-processed blocks in the given range; see below for description.
     -- Parameters:
@@ -182,12 +172,27 @@ var (
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
 
 	ConsensusEpochUpsert = `
-    INSERT INTO chain.epochs AS epochs (id, start_height, end_height)
+    INSERT INTO chain.epochs AS old (id, start_height, end_height)
       VALUES ($1, $2, $2)
     ON CONFLICT (id) DO
     UPDATE SET
-      start_height = LEAST(excluded.start_height, epochs.start_height),
-      end_height = GREATEST(excluded.end_height, epochs.end_height)`
+      start_height = LEAST(old.start_height, excluded.start_height),
+      end_height = GREATEST(old.end_height, excluded.end_height)`
+
+	ConsensusFastSyncEpochHeightInsert = `
+    INSERT INTO todo_updates.epochs (epoch, height)
+      VALUES ($1, $2)`
+
+	ConsensusEpochsRecompute = `
+    INSERT INTO chain.epochs AS old (id, start_height, end_height)
+    (
+      SELECT epoch, MIN(height) AS start_height, MAX(height) AS end_height
+      FROM todo_updates.epochs
+      GROUP BY epoch
+    )
+    ON CONFLICT (id) DO UPDATE SET
+      start_height = LEAST(old.start_height, excluded.start_height),
+      end_height = GREATEST(old.end_height, excluded.end_height)`
 
 	ConsensusTransactionInsert = `
     INSERT INTO chain.transactions (block, tx_hash, tx_index, nonce, fee_amount, max_gas, method, sender, body, module, code, message)

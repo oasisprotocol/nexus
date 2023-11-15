@@ -117,6 +117,12 @@ func (m *processor) PreWork(ctx context.Context) error {
 // If that block is the first block of a chain (cobalt, damask, etc), we download the chain's
 // original genesis document. Otherwise, we download the genesis-formatted state at `lastFastSyncHeight`.
 func (m *processor) FinalizeFastSync(ctx context.Context, lastFastSyncHeight int64) error {
+	// Aggregate append-only tables that were used during fast sync.
+	if err := m.aggregateFastSyncTables(ctx); err != nil {
+		return err
+	}
+
+	// Fetch a data snapshot (= genesis doc) from the node; see function docstring.
 	firstSlowSyncHeight := lastFastSyncHeight + 1
 	r, err := m.history.RecordForHeight(firstSlowSyncHeight)
 	if err != nil {
@@ -145,6 +151,21 @@ func (m *processor) FinalizeFastSync(ctx context.Context, lastFastSyncHeight int
 	}
 
 	return m.processGenesis(ctx, genesisDoc, nodes)
+}
+
+// Aggregates rows from the temporary, append-only  `todo_updates.*` tables, and appropriately updates
+// the regular DB tables.
+func (m *processor) aggregateFastSyncTables(ctx context.Context) error {
+	batch := &storage.QueryBatch{}
+
+	m.logger.Info("computing epoch boundaries for epochs scanned during fast-sync")
+	batch.Queue(queries.ConsensusEpochsRecompute)
+	batch.Queue("DELETE FROM todo_updates.epochs")
+
+	if err := m.target.SendBatch(ctx, batch); err != nil {
+		return err
+	}
+	return nil
 }
 
 // Dumps the genesis document to a JSON file if instructed via env variables. For debug only.
@@ -318,11 +339,18 @@ func (m *processor) queueBlockInserts(batch *storage.QueryBatch, data *consensus
 
 func (m *processor) queueEpochInserts(batch *storage.QueryBatch, data *consensusBlockData) error {
 	batch.Queue(
-		queries.ConsensusEpochUpsert,
+		queries.ConsensusFastSyncEpochHeightInsert,
 		data.Epoch,
 		data.BlockHeader.Height,
 	)
 
+	if m.mode != analyzer.FastSyncMode {
+		batch.Queue(
+			queries.ConsensusEpochUpsert,
+			data.Epoch,
+			data.BlockHeader.Height,
+		)
+	}
 	return nil
 }
 

@@ -91,7 +91,6 @@ func RunMigrations(sourceURL string, databaseURL string) error {
 	if err != nil {
 		return err
 	}
-
 	return m.Up()
 }
 
