@@ -550,7 +550,7 @@ var (
     ON CONFLICT (runtime, token_address, account_address) DO
       UPDATE SET balance = chain.evm_token_balances.balance + $4`
 
-	RuntimeEVMTokenBalanceAnalysisUpsert = `
+	RuntimeEVMTokenBalanceAnalysisMutateRoundUpsert = `
     INSERT INTO analysis.evm_token_balances
       (runtime, token_address, account_address, last_mutate_round)
     VALUES
@@ -558,6 +558,27 @@ var (
     ON CONFLICT (runtime, token_address, account_address) DO UPDATE
     SET
       last_mutate_round = excluded.last_mutate_round`
+
+	RuntimeFastSyncEVMTokenBalanceAnalysisMutateRoundInsert = `
+    INSERT INTO todo_updates.evm_token_balances
+      (runtime, token_address, account_address, last_mutate_round)
+    VALUES
+      ($1, $2, $3, $4)`
+
+	// Recomputes the last round at which a token balance was known to mutate.
+	// Inteded for use after fast-sync.
+	RuntimeEVMTokenBalanceAnalysisMutateRoundRecompute = `
+    INSERT INTO analysis.evm_token_balances AS old
+      (runtime, token_address, account_address, last_mutate_round)
+    (
+      SELECT runtime, token_address, account_address, MAX(last_mutate_round)
+      FROM todo_updates.evm_token_balances
+      WHERE runtime = $1
+      GROUP BY 1, 2, 3
+    )
+    ON CONFLICT (runtime, token_address, account_address) DO UPDATE
+    SET
+      last_mutate_round = GREATEST(old.last_mutate_round, excluded.last_mutate_round)`
 
 	RuntimeEVMTokenAnalysisStale = `
     SELECT

@@ -111,8 +111,16 @@ func (m *processor) FinalizeFastSync(ctx context.Context, lastFastSyncHeight int
 	batch := &storage.QueryBatch{}
 
 	// Recompute the account stats for all runtime accounts. (During slow-sync, these are dead-reckoned.)
+	m.logger.Info("recomputing number of txs for every account")
 	batch.Queue(queries.RuntimeAccountNumTxsRecompute, m.runtime, lastFastSyncHeight)
+	m.logger.Info("recomputing gas_for_calling for every contract")
 	batch.Queue(queries.RuntimeAccountGasForCallingRecompute, m.runtime, lastFastSyncHeight)
+
+	// Update tables where fast-sync was not updating their columns in-place, and was instead writing
+	// a log of updates to a temporary table.
+	m.logger.Info("updating last_mutate_round for EVM token balances")
+	batch.Queue(queries.RuntimeEVMTokenBalanceAnalysisMutateRoundRecompute, m.runtime)
+	batch.Queue("DELETE FROM todo_updates.evm_token_balances WHERE runtime = $1", m.runtime)
 
 	if err := m.target.SendBatch(ctx, batch); err != nil {
 		return err
@@ -359,7 +367,19 @@ func (m *processor) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 		}
 		// Even for a (suspected) non-change, notify the evm_token_balances analyzer to
 		// verify the correct balance by querying the EVM.
-		batch.Queue(queries.RuntimeEVMTokenBalanceAnalysisUpsert, m.runtime, key.TokenAddress, key.AccountAddress, data.Header.Round)
+		if m.mode == analyzer.SlowSyncMode {
+			// In slow-sync mode, directly update `last_mutate_round`.
+			batch.Queue(
+				queries.RuntimeEVMTokenBalanceAnalysisMutateRoundUpsert,
+				m.runtime, key.TokenAddress, key.AccountAddress, data.Header.Round,
+			)
+		} else {
+			// In fast-sync mode, just record the intent to update the value.
+			batch.Queue(
+				queries.RuntimeFastSyncEVMTokenBalanceAnalysisMutateRoundInsert,
+				m.runtime, key.TokenAddress, key.AccountAddress, data.Header.Round,
+			)
+		}
 	}
 
 	// Insert NFTs.

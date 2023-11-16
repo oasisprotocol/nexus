@@ -11,6 +11,15 @@ BEGIN;
 --       existing tables at the end of fast sync, not to overwrite them.
 CREATE SCHEMA IF NOT EXISTS todo_updates;
 
-CREATE TABLE todo_updates.epochs(epoch UINT63, height UINT63);
+CREATE TABLE todo_updates.epochs( -- Tracks updates to chain.epochs(first_height,last_height)
+  epoch UINT63,
+  height UINT63
+);
+CREATE TABLE todo_updates.evm_token_balances( -- Tracks updates to analysis.evm_token_balances(last_mutate_round)
+  runtime runtime NOT NULL,
+  token_address oasis_addr NOT NULL,
+  account_address oasis_addr NOT NULL,
+  last_mutate_round UINT63 NOT NULL
+)
 
 COMMIT;
