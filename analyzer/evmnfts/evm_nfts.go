@@ -116,12 +116,13 @@ func (p *processor) ProcessItem(ctx context.Context, batch *storage.QueryBatch, 
 		staleNFT.Addr,
 		staleNFT.ID,
 		staleNFT.DownloadRound,
-		nftData.MetadataURI,
+		storage.SanitizeStringP(nftData.MetadataURI),
 		nftData.MetadataAccessed,
-		nftData.Metadata,
-		nftData.Name,
-		nftData.Description,
-		nftData.Image,
+		// If SanitizeString can affect JSON validity, we're doomed.
+		storage.SanitizeStringP(nftData.Metadata),
+		storage.SanitizeStringP(nftData.Name),
+		storage.SanitizeStringP(nftData.Description),
+		storage.SanitizeStringP(nftData.Image),
 	)
 	return nil
 }
