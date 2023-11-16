@@ -113,6 +113,7 @@ func (m *processor) FinalizeFastSync(ctx context.Context, lastFastSyncHeight int
 	// Recompute the account stats for all runtime accounts. (During slow-sync, these are dead-reckoned.)
 	m.logger.Info("recomputing number of txs for every account")
 	batch.Queue(queries.RuntimeAccountNumTxsRecompute, m.runtime, lastFastSyncHeight)
+
 	m.logger.Info("recomputing gas_for_calling for every contract")
 	batch.Queue(queries.RuntimeAccountGasForCallingRecompute, m.runtime, lastFastSyncHeight)
 
@@ -121,6 +122,10 @@ func (m *processor) FinalizeFastSync(ctx context.Context, lastFastSyncHeight int
 	m.logger.Info("updating last_mutate_round for EVM token balances")
 	batch.Queue(queries.RuntimeEVMTokenBalanceAnalysisMutateRoundRecompute, m.runtime)
 	batch.Queue("DELETE FROM todo_updates.evm_token_balances WHERE runtime = $1", m.runtime)
+
+	m.logger.Info("updating properties for EVM tokens")
+	batch.Queue(queries.RuntimeEVMTokenRecompute, m.runtime)
+	batch.Queue("DELETE FROM todo_updates.evm_tokens WHERE runtime = $1", m.runtime)
 
 	if err := m.target.SendBatch(ctx, batch); err != nil {
 		return err
@@ -345,14 +350,19 @@ func (m *processor) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 			//       so it's good to re-download the token anyway.
 			lastMutateRound = data.Header.Round
 		}
-		batch.Queue(
-			queries.RuntimeEVMTokenDeltaUpsert,
-			m.runtime,
-			addr,
-			totalSupplyChange,
-			numTransfersChange,
-			lastMutateRound,
-		)
+		if m.mode != analyzer.FastSyncMode {
+			// In slow-sync mode, directly update or dead-reckon values.
+			batch.Queue(
+				queries.RuntimeEVMTokenDeltaUpsert,
+				m.runtime, addr, totalSupplyChange, numTransfersChange, lastMutateRound,
+			)
+		} else {
+			// In fast-sync mode, just record the intent to update the values.
+			batch.Queue(
+				queries.RuntimeFastSyncEVMTokenDeltaInsert,
+				m.runtime, addr, totalSupplyChange, numTransfersChange, lastMutateRound,
+			)
+		}
 	}
 
 	// Update EVM token balances (dead reckoning).

@@ -212,7 +212,7 @@ CREATE TABLE chain.evm_tokens
   -- last_download_round UINT63
 );
 
-CREATE TABLE chain.evm_token_analysis  -- Moved to analysis.evm_tokens in 06_analysis_schema.up.sql
+CREATE TABLE chain.evm_token_analysis  -- Moved to analysis.evm_tokens in 06_analysis_schema.up.sql, then dropped (merged into chain.evm_tokens) in 18_refactor_dead_reckoning.up.go
 (
   runtime runtime NOT NULL,
   token_address oasis_addr NOT NULL,

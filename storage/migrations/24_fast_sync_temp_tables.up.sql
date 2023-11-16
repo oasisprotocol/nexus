@@ -20,6 +20,13 @@ CREATE TABLE todo_updates.evm_token_balances( -- Tracks updates to analysis.evm_
   token_address oasis_addr NOT NULL,
   account_address oasis_addr NOT NULL,
   last_mutate_round UINT63 NOT NULL
-)
+);
+CREATE TABLE todo_updates.evm_tokens( -- Tracks updates to chain.evm_tokens(last_mutate_round)
+  runtime runtime NOT NULL,
+  token_address oasis_addr NOT NULL,
+  total_supply NUMERIC(1000,0) NOT NULL DEFAULT 0,
+  num_transfers UINT63 NOT NULL DEFAULT 0,
+  last_mutate_round UINT63 NOT NULL
+);
 
 COMMIT;
