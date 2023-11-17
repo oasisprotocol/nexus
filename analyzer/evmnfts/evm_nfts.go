@@ -116,12 +116,17 @@ func (p *processor) ProcessItem(ctx context.Context, batch *storage.QueryBatch, 
 		staleNFT.Addr,
 		staleNFT.ID,
 		staleNFT.DownloadRound,
-		nftData.MetadataURI,
+		storage.SanitizeStringP(nftData.MetadataURI),
 		nftData.MetadataAccessed,
-		nftData.Metadata,
-		nftData.Name,
-		nftData.Description,
-		nftData.Image,
+		// Metadata has already gone through a round trip of JSON Unmarshal
+		// and Marshal, which should already make it safe for PostgreSQL. But
+		// for consistency, pass it through SanitizeString as well. This
+		// shouldn't have any effect, and if it does, it shouldn't affect the
+		// JSON syntax.
+		storage.SanitizeStringP(nftData.Metadata),
+		storage.SanitizeStringP(nftData.Name),
+		storage.SanitizeStringP(nftData.Description),
+		storage.SanitizeStringP(nftData.Image),
 	)
 	return nil
 }

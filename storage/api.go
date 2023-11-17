@@ -7,6 +7,8 @@ import (
 	"sync"
 
 	"github.com/jackc/pgx/v5"
+
+	"github.com/oasisprotocol/nexus/common"
 )
 
 type BatchItem struct {
@@ -127,4 +129,11 @@ type TargetStorage interface {
 // Postgres requires valid UTF-8 with no 0x00.
 func SanitizeString(msg string) string {
 	return strings.ToValidUTF8(strings.ReplaceAll(msg, "\x00", "?"), "?")
+}
+
+func SanitizeStringP(msg *string) *string {
+	if msg == nil {
+		return nil
+	}
+	return common.Ptr(SanitizeString(*msg))
 }
