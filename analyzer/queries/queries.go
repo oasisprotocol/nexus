@@ -92,16 +92,6 @@ var (
     ON CONFLICT (analyzer, height) DO UPDATE SET locked_time = excluded.locked_time
     RETURNING height`
 
-	// IsAnyBlockInRangeProcessedByFastSync = `
-	//   SELECT EXISTS(
-	//     SELECT 1 FROM analysis.processed_blocks
-	//     WHERE
-	//       analyzer_name = $1 AND
-	//       height >= $2 AND ($3 <= 0 OR height <= $3) AND
-	//       processed_time IS NOT NULL AND
-	//       is_fast_sync
-	//   )`
-
 	ProcessedSubrangeInfo = `
     -- Returns info about already-processed blocks in the given range; see below for description.
     -- Parameters:
@@ -182,12 +172,27 @@ var (
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
 
 	ConsensusEpochUpsert = `
-    INSERT INTO chain.epochs AS epochs (id, start_height, end_height)
+    INSERT INTO chain.epochs AS old (id, start_height, end_height)
       VALUES ($1, $2, $2)
     ON CONFLICT (id) DO
     UPDATE SET
-      start_height = LEAST(excluded.start_height, epochs.start_height),
-      end_height = GREATEST(excluded.end_height, epochs.end_height)`
+      start_height = LEAST(old.start_height, excluded.start_height),
+      end_height = GREATEST(old.end_height, excluded.end_height)`
+
+	ConsensusFastSyncEpochHeightInsert = `
+    INSERT INTO todo_updates.epochs (epoch, height)
+      VALUES ($1, $2)`
+
+	ConsensusEpochsRecompute = `
+    INSERT INTO chain.epochs AS old (id, start_height, end_height)
+    (
+      SELECT epoch, MIN(height) AS start_height, MAX(height) AS end_height
+      FROM todo_updates.epochs
+      GROUP BY epoch
+    )
+    ON CONFLICT (id) DO UPDATE SET
+      start_height = LEAST(old.start_height, excluded.start_height),
+      end_height = GREATEST(old.end_height, excluded.end_height)`
 
 	ConsensusTransactionInsert = `
     INSERT INTO chain.transactions (block, tx_hash, tx_index, nonce, fee_amount, max_gas, method, sender, body, module, code, message)
@@ -545,7 +550,7 @@ var (
     ON CONFLICT (runtime, token_address, account_address) DO
       UPDATE SET balance = chain.evm_token_balances.balance + $4`
 
-	RuntimeEVMTokenBalanceAnalysisUpsert = `
+	RuntimeEVMTokenBalanceAnalysisMutateRoundUpsert = `
     INSERT INTO analysis.evm_token_balances
       (runtime, token_address, account_address, last_mutate_round)
     VALUES
@@ -553,6 +558,27 @@ var (
     ON CONFLICT (runtime, token_address, account_address) DO UPDATE
     SET
       last_mutate_round = excluded.last_mutate_round`
+
+	RuntimeFastSyncEVMTokenBalanceAnalysisMutateRoundInsert = `
+    INSERT INTO todo_updates.evm_token_balances
+      (runtime, token_address, account_address, last_mutate_round)
+    VALUES
+      ($1, $2, $3, $4)`
+
+	// Recomputes the last round at which a token balance was known to mutate.
+	// Inteded for use after fast-sync.
+	RuntimeEVMTokenBalanceAnalysisMutateRoundRecompute = `
+    INSERT INTO analysis.evm_token_balances AS old
+      (runtime, token_address, account_address, last_mutate_round)
+    (
+      SELECT runtime, token_address, account_address, MAX(last_mutate_round)
+      FROM todo_updates.evm_token_balances
+      WHERE runtime = $1
+      GROUP BY runtime, token_address, account_address
+    )
+    ON CONFLICT (runtime, token_address, account_address) DO UPDATE
+    SET
+      last_mutate_round = GREATEST(old.last_mutate_round, excluded.last_mutate_round)`
 
 	RuntimeEVMTokenAnalysisStale = `
     SELECT
@@ -592,11 +618,27 @@ var (
 	RuntimeEVMTokenDeltaUpsert = `
     INSERT INTO chain.evm_tokens AS old (runtime, token_address, total_supply, num_transfers, last_mutate_round)
       VALUES ($1, $2, $3, $4, $5)
-    ON CONFLICT (runtime, token_address) DO
-      UPDATE SET
-        total_supply = old.total_supply + $3,
-        num_transfers = old.num_transfers + $4,
-        last_mutate_round = GREATEST(old.last_mutate_round, $5)`
+    ON CONFLICT (runtime, token_address) DO UPDATE SET
+      total_supply = old.total_supply + $3,
+      num_transfers = old.num_transfers + $4,
+      last_mutate_round = GREATEST(old.last_mutate_round, $5)`
+
+	RuntimeFastSyncEVMTokenDeltaInsert = `
+    INSERT INTO todo_updates.evm_tokens AS old (runtime, token_address, total_supply, num_transfers, last_mutate_round)
+      VALUES ($1, $2, $3, $4, $5)`
+
+	RuntimeEVMTokenRecompute = `
+    INSERT INTO chain.evm_tokens AS old (runtime, token_address, total_supply, num_transfers, last_mutate_round)
+    (
+      SELECT runtime, token_address, SUM(total_supply) AS total_supply, SUM(num_transfers) AS num_transfers, MAX(last_mutate_round) AS last_mutate_round
+      FROM todo_updates.evm_tokens
+      WHERE runtime = $1
+      GROUP BY runtime, token_address
+    )
+    ON CONFLICT (runtime, token_address) DO UPDATE SET
+      total_supply = old.total_supply + excluded.total_supply,
+      num_transfers = old.num_transfers + excluded.num_transfers,
+      last_mutate_round = GREATEST(old.last_mutate_round, excluded.last_mutate_round)`
 
 	// Upserts a new EVM token with information that was downloaded from the EVM runtime (as opposed to dead-reckoned).
 	RuntimeEVMTokenDownloadedUpsert = `
