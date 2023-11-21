@@ -38,6 +38,20 @@ func (b *BigInt) UnmarshalJSON(text []byte) error {
 	return b.Int.UnmarshalJSON([]byte(v))
 }
 
+func (b BigInt) String() string {
+	// *big.Int does have a String() method. But the way the Go language
+	// works, that method on a pointer receiver doesn't get included in
+	// non-pointer BigInt's method set. In some places this doesn't matter,
+	// because *big.Int's methods are included in pointer *BigInt's method
+	// set, and a completely different part of the language set says that
+	// writing b.String() is fine; it's shorthand for (&b).String(). But
+	// reflection-driven code like fmt.Printf only looks at method sets and
+	// not shorthand trickery, so we need this method to make
+	// fmt.Printf("%v\n", b) show a number instead of dumping the internal
+	// bytes.
+	return b.Int.String()
+}
+
 func BigIntFromQuantity(q quantity.Quantity) BigInt {
 	return BigInt{*q.ToBigInt()}
 }
