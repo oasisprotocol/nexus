@@ -574,7 +574,7 @@ var (
       SELECT runtime, token_address, account_address, MAX(last_mutate_round)
       FROM todo_updates.evm_token_balances
       WHERE runtime = $1
-      GROUP BY 1, 2, 3
+      GROUP BY runtime, token_address, account_address
     )
     ON CONFLICT (runtime, token_address, account_address) DO UPDATE
     SET
@@ -633,7 +633,7 @@ var (
       SELECT runtime, token_address, SUM(total_supply) AS total_supply, SUM(num_transfers) AS num_transfers, MAX(last_mutate_round) AS last_mutate_round
       FROM todo_updates.evm_tokens
       WHERE runtime = $1
-      GROUP BY 1, 2
+      GROUP BY runtime, token_address
     )
     ON CONFLICT (runtime, token_address) DO UPDATE SET
       total_supply = old.total_supply + excluded.total_supply,
