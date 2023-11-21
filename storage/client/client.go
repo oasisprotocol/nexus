@@ -1579,8 +1579,9 @@ func (c *StorageClient) RuntimeEVMNFTs(ctx context.Context, limit *uint64, offse
 		var contractAddrContextVersion int
 		var contractAddrData []byte
 		var tokenType sql.NullInt32
-		var ownerAddrContextIdentifier string
-		var ownerAddrContextVersion int
+		// Owner might not be known, so these preimage fields are also nilable.
+		var ownerAddrContextIdentifier *string
+		var ownerAddrContextVersion *int
 		var ownerAddrData []byte
 		var metadataAccessedN sql.NullTime
 		if err = res.rows.Scan(
@@ -1617,9 +1618,11 @@ func (c *StorageClient) RuntimeEVMNFTs(ctx context.Context, limit *uint64, offse
 		if tokenType.Valid {
 			nft.Token.Type = translateTokenType(common.TokenType(tokenType.Int32))
 		}
-		if ownerEthAddr, err1 := EVMEthAddrFromPreimage(ownerAddrContextIdentifier, ownerAddrContextVersion, ownerAddrData); err1 == nil {
-			ownerECAddr := ethCommon.BytesToAddress(ownerEthAddr)
-			nft.OwnerEth = common.Ptr(ownerECAddr.String())
+		if nft.Owner != nil {
+			if ownerEthAddr, err1 := EVMEthAddrFromPreimage(*ownerAddrContextIdentifier, *ownerAddrContextVersion, ownerAddrData); err1 == nil {
+				ownerECAddr := ethCommon.BytesToAddress(ownerEthAddr)
+				nft.OwnerEth = common.Ptr(ownerECAddr.String())
+			}
 		}
 		if metadataAccessedN.Valid {
 			nft.MetadataAccessed = common.Ptr(metadataAccessedN.Time.String())
