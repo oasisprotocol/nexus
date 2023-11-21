@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
-	"strings"
 
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/oasisprotocol/oasis-core/go/common/quantity"
@@ -21,21 +20,21 @@ func NewBigInt(v int64) BigInt {
 	return BigInt{*big.NewInt(v)}
 }
 
-func (b BigInt) MarshalText() ([]byte, error) {
-	return []byte(b.String()), nil
-}
-
-func (b *BigInt) UnmarshalText(text []byte) error {
-	return b.Int.UnmarshalText(text)
-}
-
 func (b BigInt) MarshalJSON() ([]byte, error) {
-	return []byte(fmt.Sprintf(`"%s"`, b.String())), nil
+	t, err := b.MarshalText()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(string(t))
 }
 
 func (b *BigInt) UnmarshalJSON(text []byte) error {
-	v := strings.Trim(string(text), "\"")
-	return b.Int.UnmarshalJSON([]byte(v))
+	var s string
+	err := json.Unmarshal(text, &s)
+	if err != nil {
+		return err
+	}
+	return b.UnmarshalText([]byte(s))
 }
 
 func (b BigInt) String() string {
