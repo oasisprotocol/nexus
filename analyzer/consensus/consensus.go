@@ -338,19 +338,22 @@ func (m *processor) queueBlockInserts(batch *storage.QueryBatch, data *consensus
 }
 
 func (m *processor) queueEpochInserts(batch *storage.QueryBatch, data *consensusBlockData) error {
-	batch.Queue(
-		queries.ConsensusFastSyncEpochHeightInsert,
-		data.Epoch,
-		data.BlockHeader.Height,
-	)
-
-	if m.mode != analyzer.FastSyncMode {
+	if m.mode == analyzer.SlowSyncMode {
+		// In slow-sync mode, update our knowledge about the epoch in-place.
 		batch.Queue(
 			queries.ConsensusEpochUpsert,
 			data.Epoch,
 			data.BlockHeader.Height,
 		)
+	} else {
+		// In fast-sync mode, record the association between the height and the epoch in a temporary table, to reduce write contention.
+		batch.Queue(
+			queries.ConsensusFastSyncEpochHeightInsert,
+			data.Epoch,
+			data.BlockHeader.Height,
+		)
 	}
+
 	return nil
 }
 
