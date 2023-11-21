@@ -105,10 +105,15 @@ type Event struct {
 // AddEscrowEvent is the event emitted when stake is transferred into an escrow
 // account.
 type AddEscrowEvent struct {
-	Owner     Address           `json:"owner"`
-	Escrow    Address           `json:"escrow"`
-	Amount    quantity.Quantity `json:"amount"`
-	NewShares quantity.Quantity `json:"new_shares"`
+	Owner  Address           `json:"owner"`
+	Escrow Address           `json:"escrow"`
+	Amount quantity.Quantity `json:"amount"`
+	// Originally not a pointer. This field is always present in Damask.
+	// We made it a pointer because
+	//  - CBOR doesn't care whether it decodes into a Quantity or *Quantity
+	//  - This lets us (ab)use this struct for nexus-internal purposes too,
+	//    where we want to distinguish between "not present" and "present but zero".
+	NewShares *quantity.Quantity `json:"new_shares"`
 }
 
 // EventKind returns a string representation of this event's kind.
