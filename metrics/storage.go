@@ -2,6 +2,7 @@ package metrics
 
 import (
 	"fmt"
+	"math"
 
 	"github.com/prometheus/client_golang/prometheus"
 )
@@ -36,6 +37,24 @@ const (
 	CacheReadStatusError    CacheReadStatus = "error"     // Other internal error reading from cache.
 )
 
+// defaultTimeBuckets returns a set of buckets for use in a timing histogram.
+// The buckets are logarithmically spaced between two hardcoded thresholds.
+func defaultTimeBuckets() []float64 {
+	const (
+		minThreshold                  = 0.0001
+		maxThreshold                  = 10 // The resulting output might be one bucket short due to rounding errors.
+		thresholdsPerOrderOfMagnitude = 10 // "order of magnitude" being 10x.
+	)
+
+	buckets := []float64{}
+	threshold := minThreshold
+	for threshold <= maxThreshold {
+		buckets = append(buckets, threshold)
+		threshold *= math.Pow(10, 1.0/thresholdsPerOrderOfMagnitude)
+	}
+	return buckets
+}
+
 // NewDefaultAnalysisMetrics creates Prometheus metric instrumentation
 // for basic metrics common to storage accesses.
 func NewDefaultAnalysisMetrics(runtime string) AnalysisMetrics {
@@ -50,8 +69,9 @@ func NewDefaultAnalysisMetrics(runtime string) AnalysisMetrics {
 		),
 		databaseLatencies: prometheus.NewHistogramVec(
 			prometheus.HistogramOpts{
-				Name: fmt.Sprintf("%s_db_latencies", runtime),
-				Help: "How long database operations take, partitioned by operation.",
+				Name:    fmt.Sprintf("%s_db_latencies", runtime),
+				Help:    "How long database operations take, partitioned by operation.",
+				Buckets: defaultTimeBuckets(),
 			},
 			[]string{"database", "operation"}, // Labels.
 		),
@@ -64,15 +84,17 @@ func NewDefaultAnalysisMetrics(runtime string) AnalysisMetrics {
 		),
 		blockAnalysisLatencies: prometheus.NewHistogramVec(
 			prometheus.HistogramOpts{
-				Name: "block_analysis_latencies",
-				Help: "How long it takes to analyze a block, NOT including data fetch (from the node) or writing (to the DB).",
+				Name:    "block_analysis_latencies",
+				Help:    "How long it takes to analyze a block, NOT including data fetch (from the node) or writing (to the DB).",
+				Buckets: defaultTimeBuckets(),
 			},
 			[]string{"layer"}, // Labels.
 		),
 		blockFetchLatencies: prometheus.NewHistogramVec(
 			prometheus.HistogramOpts{
-				Name: "block_fetch_latencies",
-				Help: "How long it takes to fetch data for a block from the node.",
+				Name:    "block_fetch_latencies",
+				Help:    "How long it takes to fetch data for a block from the node (possibly sped up by a local cache).",
+				Buckets: defaultTimeBuckets(),
 			},
 			[]string{"layer"}, // Labels.
 		),
