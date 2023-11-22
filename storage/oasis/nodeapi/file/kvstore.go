@@ -34,7 +34,7 @@ type pogrebKVStore struct {
 
 	path    string
 	logger  *log.Logger
-	metrics *metrics.StorageMetrics // if nil, no metrics are emitted
+	metrics *metrics.AnalysisMetrics // if nil, no metrics are emitted
 
 	// Address of the atomic variable that indicates whether the store is initialized.
 	// Synchronisation is required because the store is opened in background goroutine.
@@ -97,7 +97,7 @@ func (s *pogrebKVStore) init() error {
 
 // Initializes a new KVStore backed by a database at `path`, or opens an existing one.
 // `metrics` can be `nil`, in which case no metrics are emitted during operation.
-func OpenKVStore(logger *log.Logger, path string, metrics *metrics.StorageMetrics) (KVStore, error) {
+func OpenKVStore(logger *log.Logger, path string, metrics *metrics.AnalysisMetrics) (KVStore, error) {
 	store := &pogrebKVStore{
 		logger:  logger,
 		path:    path,

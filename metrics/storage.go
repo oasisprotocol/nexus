@@ -6,8 +6,8 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-// Default service metrics for database operations.
-type StorageMetrics struct {
+// Default service metrics for analyzer operations.
+type AnalysisMetrics struct {
 	// Name of the runtime (or "consensus") that is being analyzed.
 	runtime string
 
@@ -19,6 +19,12 @@ type StorageMetrics struct {
 
 	// Cache hit rates for the local cache.
 	localCacheReads *prometheus.CounterVec
+
+	// Latencies of analysis.
+	blockAnalysisLatencies *prometheus.HistogramVec
+
+	// Latencies of fetching a block's data from the node.
+	blockFetchLatencies *prometheus.HistogramVec
 }
 
 type CacheReadStatus string
@@ -30,10 +36,10 @@ const (
 	CacheReadStatusError    CacheReadStatus = "error"     // Other internal error reading from cache.
 )
 
-// NewDefaultStorageMetrics creates Prometheus metric instrumentation
+// NewDefaultAnalysisMetrics creates Prometheus metric instrumentation
 // for basic metrics common to storage accesses.
-func NewDefaultStorageMetrics(runtime string) StorageMetrics {
-	metrics := StorageMetrics{
+func NewDefaultAnalysisMetrics(runtime string) AnalysisMetrics {
+	metrics := AnalysisMetrics{
 		runtime: runtime,
 		databaseOperations: prometheus.NewCounterVec(
 			prometheus.CounterOpts{
@@ -56,28 +62,52 @@ func NewDefaultStorageMetrics(runtime string) StorageMetrics {
 			},
 			[]string{"cache", "status"}, // Labels.
 		),
+		blockAnalysisLatencies: prometheus.NewHistogramVec(
+			prometheus.HistogramOpts{
+				Name: "block_analysis_latencies",
+				Help: "How long it takes to analyze a block, NOT including data fetch (from the node) or writing (to the DB).",
+			},
+			[]string{"layer"}, // Labels.
+		),
+		blockFetchLatencies: prometheus.NewHistogramVec(
+			prometheus.HistogramOpts{
+				Name: "block_fetch_latencies",
+				Help: "How long it takes to fetch data for a block from the node.",
+			},
+			[]string{"layer"}, // Labels.
+		),
 	}
 	metrics.databaseOperations = registerOnce(metrics.databaseOperations).(*prometheus.CounterVec)
 	metrics.databaseLatencies = registerOnce(metrics.databaseLatencies).(*prometheus.HistogramVec)
 	metrics.localCacheReads = registerOnce(metrics.localCacheReads).(*prometheus.CounterVec)
+	metrics.blockAnalysisLatencies = registerOnce(metrics.blockAnalysisLatencies).(*prometheus.HistogramVec)
+	metrics.blockFetchLatencies = registerOnce(metrics.blockFetchLatencies).(*prometheus.HistogramVec)
 	return metrics
 }
 
 // DatabaseOperations returns the counter for the database operation.
 // The provided params are used as labels.
-func (m *StorageMetrics) DatabaseOperations(db, operation, status string) prometheus.Counter {
+func (m *AnalysisMetrics) DatabaseOperations(db, operation, status string) prometheus.Counter {
 	return m.databaseOperations.WithLabelValues(db, operation, status)
 }
 
 // DatabaseLatencies returns a new latency timer for the provided
 // database operation.
 // The provided params are used as labels.
-func (m *StorageMetrics) DatabaseLatencies(db string, operation string) *prometheus.Timer {
+func (m *AnalysisMetrics) DatabaseLatencies(db string, operation string) *prometheus.Timer {
 	return prometheus.NewTimer(m.databaseLatencies.WithLabelValues(db, operation))
 }
 
 // LocalCacheReads returns the counter for the local cache read.
 // The provided params are used as labels.
-func (m *StorageMetrics) LocalCacheReads(status CacheReadStatus) prometheus.Counter {
+func (m *AnalysisMetrics) LocalCacheReads(status CacheReadStatus) prometheus.Counter {
 	return m.localCacheReads.WithLabelValues(m.runtime, string(status))
+}
+
+func (m *AnalysisMetrics) BlockAnalysisLatencies() *prometheus.Timer {
+	return prometheus.NewTimer(m.blockAnalysisLatencies.WithLabelValues(m.runtime))
+}
+
+func (m *AnalysisMetrics) BlockFetchLatencies() *prometheus.Timer {
+	return prometheus.NewTimer(m.blockFetchLatencies.WithLabelValues(m.runtime))
 }

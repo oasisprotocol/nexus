@@ -31,7 +31,7 @@ type processor struct {
 	source          nodeapi.RuntimeApiLite
 	target          storage.TargetStorage
 	logger          *log.Logger
-	metrics         metrics.StorageMetrics
+	metrics         metrics.AnalysisMetrics
 }
 
 var _ block.BlockProcessor = (*processor)(nil)
@@ -55,7 +55,7 @@ func NewRuntimeAnalyzer(
 		source:          sourceClient,
 		target:          target,
 		logger:          logger.With("analyzer", runtime),
-		metrics:         metrics.NewDefaultStorageMetrics(string(runtime)),
+		metrics:         metrics.NewDefaultAnalysisMetrics(string(runtime)),
 	}
 
 	return block.NewAnalyzer(blockRange, batchSize, mode, string(runtime), processor, target, logger)
