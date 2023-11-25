@@ -106,8 +106,8 @@ var (
         height >= $2 AND ($3 <= 0 OR height <= $3) AND
         processed_time IS NOT NULL
       )
-    
-    SELECT 
+
+    SELECT
       -- Whether the processed subrange is a contiguous range that starts at the input range.
       COALESCE(
         (COUNT(*) = MAX(height) - MIN(height) + 1) AND MIN(height) = $2,
@@ -162,9 +162,9 @@ var (
     INSERT INTO chain.latest_node_heights (layer, height)
       VALUES
         ($1, $2)
-      ON CONFLICT (layer) 
-      DO UPDATE 
-        SET 
+      ON CONFLICT (layer)
+      DO UPDATE
+        SET
         height = excluded.height`
 
 	ConsensusBlockInsert = `
@@ -395,6 +395,10 @@ var (
 	ConsensusProposalSubmissionCancelInsert = `
     INSERT INTO chain.proposals (id, submitter, state, deposit, cancels, created_at, closes_at)
       VALUES ($1, $2, $3, $4, $5, $6, $7)`
+
+	ConsensusProposalSubmissionChangeParametersInsert = `
+    INSERT INTO chain.proposals (id, submitter, state, deposit, parameters_change_module, parameters_change, created_at, closes_at)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
 
 	ConsensusProposalExecutionsUpdate = `
     UPDATE chain.proposals

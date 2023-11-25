@@ -3,6 +3,7 @@
 package consensus
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"sort"
@@ -206,7 +207,7 @@ VALUES
 
 	// There might be no runtime_nodes to insert; create a query only if there are.
 	if queryRt != "" {
-		queryRt = `INSERT INTO chain.runtime_nodes(runtime_id, node_id) 
+		queryRt = `INSERT INTO chain.runtime_nodes(runtime_id, node_id)
 VALUES
 ` + queryRt + ";"
 		queries = append(queries, queryRt)
@@ -472,14 +473,15 @@ func (mg *GenesisProcessor) addGovernanceBackendMigrations(document *genesis.Doc
 
 	if len(document.Governance.Proposals) > 0 {
 		// TODO: Extract `executed` for proposal.
-		query := `INSERT INTO chain.proposals (id, submitter, state, deposit, handler, cp_target_version, rhp_target_version, rcp_target_version, upgrade_epoch, cancels, created_at, closes_at, invalid_votes)
+		query := `INSERT INTO chain.proposals (id, submitter, state, deposit, handler, cp_target_version, rhp_target_version, rcp_target_version, upgrade_epoch, cancels, parameters_change_module, parameters_change, created_at, closes_at, invalid_votes)
 VALUES
 `
 
 		for i, proposal := range document.Governance.Proposals {
-			if proposal.Content.Upgrade != nil {
+			switch {
+			case proposal.Content.Upgrade != nil:
 				query += fmt.Sprintf(
-					"\t(%d, '%s', '%s', %d, '%s', '%s', '%s', '%s', %d, %s, %d, %d, %d)",
+					"\t(%d, '%s', '%s', %d, '%s', '%s', '%s', '%s', %d, NULL, NULL, NULL, %d, %d, %d)",
 					proposal.ID,
 					proposal.Submitter.String(),
 					proposal.State.String(),
@@ -489,24 +491,43 @@ VALUES
 					proposal.Content.Upgrade.Target.RuntimeHostProtocol.String(),
 					proposal.Content.Upgrade.Target.RuntimeCommitteeProtocol.String(),
 					proposal.Content.Upgrade.Epoch,
-					"null",
+					// 1 hardcoded NULL for the proposal.Content.CancelUpgrade.ProposalID field.
+					// 2 hardcoded NULLs for the proposal.Content.ChangeParameters fields.
 					proposal.CreatedAt,
 					proposal.ClosesAt,
 					proposal.InvalidVotes,
 				)
-			} else if proposal.Content.CancelUpgrade != nil {
+			case proposal.Content.CancelUpgrade != nil:
 				query += fmt.Sprintf(
-					"\t(%d, '%s', '%s', %d, NULL, NULL, NULL, NULL, NULL, %d, %d, %d, %d)",
+					"\t(%d, '%s', '%s', %d, NULL, NULL, NULL, NULL, NULL, %d, NULL, NULL, %d, %d, %d)",
 					proposal.ID,
 					proposal.Submitter.String(),
 					proposal.State.String(),
 					proposal.Deposit.ToBigInt(),
 					// 5 hardcoded NULLs for the proposal.Content.Upgrade fields.
 					proposal.Content.CancelUpgrade.ProposalID,
+					// 2 hardcoded NULLs for the proposal.Content.ChangeParameters fields.
 					proposal.CreatedAt,
 					proposal.ClosesAt,
 					proposal.InvalidVotes,
 				)
+			case proposal.Content.ChangeParameters != nil:
+				query += fmt.Sprintf(
+					"\t(%d, '%s', '%s', %d, NULL, NULL, NULL, NULL, NULL, NULL, '%s', decode('%s', 'hex'), %d, %d, %d)",
+					proposal.ID,
+					proposal.Submitter.String(),
+					proposal.State.String(),
+					proposal.Deposit.ToBigInt(),
+					// 5 hardcoded NULLs for the proposal.Content.Upgrade fields.
+					// 1 hardocded NULL for the proposal.Content.CancelUpgrade.ProposalID field.
+					proposal.Content.ChangeParameters.Module,
+					hex.EncodeToString(proposal.Content.ChangeParameters.Changes),
+					proposal.CreatedAt,
+					proposal.ClosesAt,
+					proposal.InvalidVotes,
+				)
+			default:
+				mg.logger.Warn("unknown proposal content type", "proposal_id", proposal.ID, "content", proposal.Content)
 			}
 
 			if i != len(document.Governance.Proposals)-1 {

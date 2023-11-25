@@ -891,7 +891,8 @@ func (m *processor) queueSubmissions(batch *storage.QueryBatch, data *governance
 	}
 
 	for _, submission := range data.ProposalSubmissions {
-		if submission.Content.Upgrade != nil {
+		switch {
+		case submission.Content.Upgrade != nil:
 			batch.Queue(queries.ConsensusProposalSubmissionInsert,
 				submission.ID,
 				submission.Submitter.String(),
@@ -905,7 +906,7 @@ func (m *processor) queueSubmissions(batch *storage.QueryBatch, data *governance
 				submission.CreatedAt,
 				submission.ClosesAt,
 			)
-		} else if submission.Content.CancelUpgrade != nil {
+		case submission.Content.CancelUpgrade != nil:
 			batch.Queue(queries.ConsensusProposalSubmissionCancelInsert,
 				submission.ID,
 				submission.Submitter.String(),
@@ -915,6 +916,19 @@ func (m *processor) queueSubmissions(batch *storage.QueryBatch, data *governance
 				submission.CreatedAt,
 				submission.ClosesAt,
 			)
+		case submission.Content.ChangeParameters != nil:
+			batch.Queue(queries.ConsensusProposalSubmissionChangeParametersInsert,
+				submission.ID,
+				submission.Submitter.String(),
+				submission.State.String(),
+				submission.Deposit.String(),
+				submission.Content.ChangeParameters.Module,
+				[]byte(submission.Content.ChangeParameters.Changes),
+				submission.CreatedAt,
+				submission.ClosesAt,
+			)
+		default:
+			m.logger.Warn("unknown proposal content type", "proposal_id", submission.ID, "content", submission.Content)
 		}
 	}
 
