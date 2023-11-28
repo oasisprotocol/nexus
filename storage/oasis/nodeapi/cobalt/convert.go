@@ -195,9 +195,14 @@ func convertEvent(e txResultsCobalt.Event) nodeapi.Event {
 			switch {
 			case e.Staking.Escrow.Add != nil:
 				ret = nodeapi.Event{
-					StakingAddEscrow: (*nodeapi.AddEscrowEvent)(e.Staking.Escrow.Add),
-					RawBody:          common.TryAsJSON(e.Staking.Escrow.Add),
-					Type:             apiTypes.ConsensusEventTypeStakingEscrowAdd,
+					StakingAddEscrow: &nodeapi.AddEscrowEvent{
+						Owner:     e.Staking.Escrow.Add.Owner,
+						Escrow:    e.Staking.Escrow.Add.Escrow,
+						Amount:    e.Staking.Escrow.Add.Amount,
+						NewShares: nil, // Only present in a part of Cobalt. Pretend it never exists in Cobalt because we cannot distinguish between 0 and not-present.
+					},
+					RawBody: common.TryAsJSON(e.Staking.Escrow.Add),
+					Type:    apiTypes.ConsensusEventTypeStakingEscrowAdd,
 				}
 			case e.Staking.Escrow.Take != nil:
 				ret = nodeapi.Event{
