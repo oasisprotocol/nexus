@@ -40,3 +40,7 @@ var ERC721Metadata = MustUnmarshalABI(artifactERC721MetadataJSON)
 //go:embed contracts/artifacts/ERC721Enumerable.json
 var artifactERC721EnumerableJSON []byte
 var ERC721Enumerable = MustUnmarshalABI(artifactERC721EnumerableJSON)
+
+//go:embed contracts/artifacts/WROSE.json
+var artifactWROSEJSON []byte
+var WROSE = MustUnmarshalABI(artifactWROSEJSON)

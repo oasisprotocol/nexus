@@ -829,6 +829,7 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 					Body:             event.UndelegateStart,
 					WithScope:        ScopedSdkEvent{ConsensusAccounts: event},
 					RelatedAddresses: map[apiTypes.Address]bool{fromAddr: true, toAddr: true},
+					// We cannot set EvmLogSignature here because topics[0] is not the log signature for anonymous events.
 				}
 				extractedEvents = append(extractedEvents, &eventData)
 			}
@@ -1102,6 +1103,87 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 							Name:    "approved",
 							EvmType: "bool",
 							Value:   approved,
+						},
+					}
+					return nil
+				},
+				WROSEDeposit: func(ownerECAddr ethCommon.Address, amount *big.Int) error {
+					wrapperAddr := eventAddr // the WROSE wrapper contract is implicitly the address that emitted the contract
+
+					ownerAddr, err2 := registerRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, ownerECAddr.Bytes())
+					if err2 != nil {
+						return fmt.Errorf("owner: %w", err2)
+					}
+					eventData.RelatedAddresses[ownerAddr] = true
+					registerTokenIncrease(blockData.TokenBalanceChanges, wrapperAddr, ownerAddr, amount)
+					registerTokenIncrease(blockData.TokenBalanceChanges, evm.NativeRuntimeTokenAddress, wrapperAddr, amount)
+					registerTokenDecrease(blockData.TokenBalanceChanges, evm.NativeRuntimeTokenAddress, ownerAddr, amount)
+
+					// ^ The above includes dead-reckoning for the native token because no events are emitted for native token transfers.
+					//
+					// Example: in mainnet Emerald block 7847845, account A withdrew 1 WROSE from the WROSE contract,
+					//   i.e. unwrapped 1 WROSE into ROSE. The effect is that A's WROSE balance decreases by 1,
+					//   and the WROSE contract transfers 1 ROSE to A.
+					//   However, that block shows a single event: evm.log Withdrawal(from=A, value=1000000000000000000)
+					//   Similarly, in block 7847770, A deposited 1 ROSE into the WROSE contract.
+					//   No ROSE events were emitted, only evm.log Deposit(to=A, value=1000000000000000000)
+					//
+					// Details for the above example:
+					//  A = 0x2435ff763095d7c8ABfc1F05d1C4031B44013914
+					//  WROSE = 0x21C718C22D52d0F3a789b752D4c2fD5908a8A733
+
+					if _, ok := blockData.PossibleTokens[eventAddr]; !ok {
+						blockData.PossibleTokens[eventAddr] = &evm.EVMPossibleToken{}
+					}
+
+					eventData.EvmLogName = evmabi.WROSE.Events["Deposit"].Name
+					eventData.EvmLogSignature = ethCommon.BytesToHash(event.Topics[0])
+					eventData.EvmLogParams = []*apiTypes.EvmEventParam{
+						{
+							Name:    "dst",
+							EvmType: "address",
+							Value:   ownerECAddr,
+						},
+						{
+							Name:    "wad",
+							EvmType: "uint256",
+							// JSON supports encoding big integers, but many clients (javascript, jq, etc.)
+							// will incorrectly parse them as floats. So we encode uint256 as a string instead.
+							Value: amount.String(),
+						},
+					}
+					return nil
+				},
+				WROSEWithdrawal: func(ownerECAddr ethCommon.Address, amount *big.Int) error {
+					wrapperAddr := eventAddr // the WROSE wrapper contract is implicitly the address that emitted the contract
+
+					ownerAddr, err2 := registerRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, ownerECAddr.Bytes())
+					if err2 != nil {
+						return fmt.Errorf("owner: %w", err2)
+					}
+					eventData.RelatedAddresses[ownerAddr] = true
+					registerTokenDecrease(blockData.TokenBalanceChanges, wrapperAddr, ownerAddr, amount)
+					registerTokenIncrease(blockData.TokenBalanceChanges, evm.NativeRuntimeTokenAddress, ownerAddr, amount)
+					registerTokenDecrease(blockData.TokenBalanceChanges, evm.NativeRuntimeTokenAddress, wrapperAddr, amount)
+
+					if _, ok := blockData.PossibleTokens[eventAddr]; !ok {
+						blockData.PossibleTokens[eventAddr] = &evm.EVMPossibleToken{}
+					}
+
+					eventData.EvmLogName = evmabi.WROSE.Events["Withdrawal"].Name
+					eventData.EvmLogSignature = ethCommon.BytesToHash(event.Topics[0])
+					eventData.EvmLogParams = []*apiTypes.EvmEventParam{
+						{
+							Name:    "src",
+							EvmType: "address",
+							Value:   ownerECAddr,
+						},
+						{
+							Name:    "wad",
+							EvmType: "uint256",
+							// JSON supports encoding big integers, but many clients (javascript, jq, etc.)
+							// will incorrectly parse them as floats. So we encode uint256 as a string instead.
+							Value: amount.String(),
 						},
 					}
 					return nil
