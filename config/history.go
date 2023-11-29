@@ -80,21 +80,20 @@ func (h *History) RecordForRuntimeRound(runtime common.Runtime, round uint64) (*
 	)
 }
 
-func SingleRecordHistory(chainContext string) *History {
-	return &History{
-		Records: []*Record{
-			{
-				ArchiveName:   "damask",
-				GenesisHeight: 1,
-				ChainContext:  chainContext,
-			},
-		},
-	}
-}
-
 var DefaultChains = map[common.ChainName]*History{
 	common.ChainNameMainnet: {
 		Records: []*Record{
+			{
+				// https://github.com/oasisprotocol/mainnet-artifacts/releases/tag/2023-11-29
+				ArchiveName:   "eden",
+				GenesisHeight: 16817956,
+				RuntimeStartRounds: map[common.Runtime]uint64{
+					common.RuntimeCipher:   44054,
+					common.RuntimeEmerald:  7875129,
+					common.RuntimeSapphire: 1357486,
+				},
+				ChainContext: "bb3d748def55bdfb797a2ac53ee6ee141e54cd2ab2dc2375f4a0703a178e6e55",
+			},
 			{
 				// https://github.com/oasisprotocol/mainnet-artifacts/releases/tag/2022-04-11
 				ArchiveName:   "damask",

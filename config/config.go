@@ -10,6 +10,7 @@ import (
 	"github.com/knadh/koanf/parsers/yaml"
 	"github.com/knadh/koanf/providers/env"
 	"github.com/knadh/koanf/providers/file"
+
 	sdkConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 
 	"github.com/oasisprotocol/nexus/common"
@@ -158,7 +159,7 @@ type SourceConfig struct {
 
 	// Nodes describe the oasis-node(s) to connect to. Keys are "archive
 	// names," which are named after mainnet releases, in lowercase e.g.
-	// "cobalt" and "damask."
+	// "cobalt", "damask" and "eden".
 	Nodes map[string]*ArchiveConfig `koanf:"nodes"`
 
 	// IPFS holds the configuration for accessing IPFS.
@@ -186,27 +187,6 @@ func (sc *SourceConfig) SDKNetwork() *sdkConfig.Network {
 
 func (sc *SourceConfig) SDKParaTime(runtime common.Runtime) *sdkConfig.ParaTime {
 	return sc.SDKNetwork().ParaTimes.All[string(runtime)]
-}
-
-func CustomSingleNetworkSourceConfig(rpc string, chainContext string) *SourceConfig {
-	return &SourceConfig{
-		CustomChain: &CustomChainConfig{
-			History:    SingleRecordHistory(chainContext),
-			SDKNetwork: &sdkConfig.Network{},
-		},
-		Nodes:       SingleNetworkLookup(rpc),
-		FastStartup: true,
-	}
-}
-
-func SingleNetworkLookup(rpc string) map[string]*ArchiveConfig {
-	return map[string]*ArchiveConfig{
-		"damask": {
-			DefaultNode: &NodeConfig{
-				RPC: rpc,
-			},
-		},
-	}
 }
 
 type CacheConfig struct {
