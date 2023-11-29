@@ -301,7 +301,7 @@ CREATE TABLE chain.latest_node_heights
 );
 
 -- Indexing Progress Management
-CREATE TABLE analysis.processed_blocks  -- Moved to analysis.processed_blocks in 06_analysis_schema.up.sql
+CREATE TABLE analysis.processed_blocks
 (
   height         UINT63 NOT NULL,
   analyzer       TEXT NOT NULL,

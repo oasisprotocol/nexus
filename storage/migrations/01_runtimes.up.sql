@@ -243,7 +243,7 @@ CREATE TABLE chain.evm_tokens
   last_download_round UINT63
 );
 
-CREATE TABLE analysis.evm_token_balances -- Moved to analysis.evm_token_balances in 06_analysis_schema.up.sql
+CREATE TABLE analysis.evm_token_balances
 (
   runtime runtime NOT NULL,
   -- This table is used to track balance querying primarily for EVM tokens (ERC-20, ERC-271, etc), but also for
@@ -251,6 +251,7 @@ CREATE TABLE analysis.evm_token_balances -- Moved to analysis.evm_token_balances
   token_address oasis_addr NOT NULL,
   account_address oasis_addr NOT NULL,
   PRIMARY KEY (runtime, token_address, account_address),
+  
   last_mutate_round UINT63 NOT NULL,
   last_download_round UINT63
 );
@@ -303,7 +304,7 @@ CREATE TABLE chain.evm_nfts (
     last_download_round UINT63,
 
     owner oasis_addr,
-    num_transfers INT NOT NULL,
+    num_transfers INT NOT NULL DEFAULT 0,
     metadata JSONB,
     metadata_uri TEXT,
     metadata_accessed TIMESTAMP,
@@ -356,7 +357,7 @@ CREATE TABLE chain.runtime_sdk_balances (
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
 -- Grant others read-only use.
--- (We granted already in 01_consensus.up.sql, but the grant does not apply to new tables.)
+-- (We granted already in 00_consensus.up.sql, but the grant does not apply to new tables.)
 GRANT SELECT ON ALL TABLES IN SCHEMA chain TO PUBLIC;
 GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA chain TO PUBLIC;
 GRANT SELECT ON ALL TABLES IN SCHEMA analysis TO PUBLIC;
