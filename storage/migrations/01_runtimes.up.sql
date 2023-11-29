@@ -13,8 +13,8 @@ CREATE TABLE chain.runtime_blocks
   version   UINT63 NOT NULL,
   timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
 
-  block_hash      HEX64 NOT NULL, -- Hash of this round's block. Does not reference consensus.
-  prev_block_hash HEX64 NOT NULL,
+  block_hash       HEX64 NOT NULL, -- Hash of this round's block. Does not reference consensus.
+  prev_block_hash  HEX64 NOT NULL,
 
   io_root          HEX64 NOT NULL,
   state_root       HEX64 NOT NULL,
@@ -45,7 +45,6 @@ CREATE TABLE chain.runtime_transactions
   fee         UINT_NUMERIC NOT NULL,
   gas_limit   UINT63 NOT NULL,
   gas_used    UINT63 NOT NULL,
-
   size UINT31 NOT NULL,
 
   -- Transaction contents.
@@ -54,9 +53,12 @@ CREATE TABLE chain.runtime_transactions
   "to"        oasis_addr,   -- Exact semantics depend on method. Extracted from body; for convenience only.
   amount      UINT_NUMERIC, -- Exact semantics depend on method. Extracted from body; for convenience only.
 
-  -- Added in 26_runtime_abi.up.sql
-  -- evm_fn_name TEXT,
-  -- evm_fn_params JSONB,
+  -- For evm.Call transactions, we store both the name of the function and
+  -- the function parameters.
+  evm_fn_name TEXT,
+  -- The function parameter values. Refer to the abi to see the parameter
+  -- names. Note that the parameters may be unnamed.
+  evm_fn_params JSONB,
 
   -- Encrypted data in encrypted Ethereum-format transactions.
   evm_encrypted_format call_format,
@@ -70,18 +72,27 @@ CREATE TABLE chain.runtime_transactions
   success       BOOLEAN,  -- NULL means success is unknown (can happen in confidential runtimes)
   error_module  TEXT,
   error_code    UINT63,
-  error_message TEXT
-  -- Added in 19_runtime_tx_errors.up.sql
-  -- error_message_raw TEXT
-  -- Added in 26_runtime_abi.up.sql
-  -- error_params JSONB
-  -- abi_parsed_at TIMESTAMP WITH TIME ZONE
+  error_message TEXT,
+  -- The unparsed transaction error message. The "parsed" version will be 
+  -- identical in the majority of cases. One notable exception are txs that
+  -- were reverted inside the EVM; for those, the raw msg is abi-encoded.
+  error_message_raw TEXT,
+  -- Custom errors may be arbitrarily defined by the contract abi. This field
+  -- stores the full abi-decoded error object. Note that the error name is 
+  -- stored separately in the existing error_message column. For example, if we
+  -- have an error like `InsufficientBalance{available: 4, required: 10}`.
+  -- the error_message column would hold `InsufficientBalance`, and 
+  -- the error_params column would store `{available: 4, required: 10}`.
+  error_params JSONB,
+  -- Internal tracking for parsing evm.Call transactions using the contract
+  -- abi when available.
+  abi_parsed_at TIMESTAMP WITH TIME ZONE
 );
 CREATE INDEX ix_runtime_transactions_tx_hash ON chain.runtime_transactions USING hash (tx_hash);
 CREATE INDEX ix_runtime_transactions_tx_eth_hash ON chain.runtime_transactions USING hash (tx_eth_hash);
 CREATE INDEX ix_runtime_transactions_timestamp ON chain.runtime_transactions (runtime, timestamp);
--- CREATE INDEX ix_runtime_transactions_to ON chain.runtime_transactions(runtime, "to"); -- Added in 12_evm_contract_gas.up.sql
--- CREATE INDEX ix_runtime_transactions_to_abi_parsed_at ON chain.runtime_transactions (runtime, "to", abi_parsed_at); -- Added in 25_runtime_abi.up.sql
+CREATE INDEX ix_runtime_transactions_to ON chain.runtime_transactions(runtime, "to");
+CREATE INDEX ix_runtime_transactions_to_abi_parsed_at ON chain.runtime_transactions (runtime, "to", abi_parsed_at);
 
 CREATE TABLE chain.runtime_transaction_signers
 (
@@ -108,7 +119,6 @@ CREATE TABLE chain.runtime_related_transactions
   tx_index        UINT31 NOT NULL,
   FOREIGN KEY (runtime, tx_round, tx_index) REFERENCES chain.runtime_transactions(runtime, round, tx_index) DEFERRABLE INITIALLY DEFERRED
 );
-CREATE INDEX ix_runtime_related_transactions_address ON chain.runtime_related_transactions (runtime, account_address); -- Removed in 13_runtime_indexes.up.sql
 CREATE INDEX ix_runtime_related_transactions_round_index ON chain.runtime_related_transactions (runtime, tx_round, tx_index);
 CREATE INDEX ix_runtime_related_transactions_address_round_index ON chain.runtime_related_transactions (runtime, account_address, tx_round, tx_index);
 
@@ -122,8 +132,7 @@ CREATE TABLE chain.runtime_events
 
   tx_hash HEX64,
   tx_eth_hash HEX64,
-  -- Added in 08_runtime_events_timestamp.up.sql
-  -- timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
+  timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
   
   -- TODO: add link to openapi spec section with runtime event types.
   type TEXT NOT NULL,
@@ -137,14 +146,30 @@ CREATE TABLE chain.runtime_events
   -- case for events emitted by verified contracts.
   evm_log_name TEXT,
   evm_log_params JSONB,
-  evm_log_signature BYTEA CHECK (octet_length(evm_log_signature) = 32)
+  evm_log_signature BYTEA CHECK (octet_length(evm_log_signature) = 32),
+
+  -- Internal tracking for parsing evm.Call events using the contract
+  -- abi when available.
+  abi_parsed_at TIMESTAMP WITH TIME ZONE
 );
 CREATE INDEX ix_runtime_events_round ON chain.runtime_events(runtime, round);  -- for sorting by round, when there are no filters applied
-CREATE INDEX ix_runtime_events_tx_hash ON chain.runtime_events/*USING hash */(tx_hash); -- updated in 13_runtime_indexes.up.sql
-CREATE INDEX ix_runtime_events_tx_eth_hash ON chain.runtime_events/*USING hash */(tx_eth_hash); -- updated in 13_runtime_indexes.up.sql
+CREATE INDEX ix_runtime_events_tx_hash ON chain.runtime_events USING hash (tx_hash);
+CREATE INDEX ix_runtime_events_tx_eth_hash ON chain.runtime_events USING hash (tx_eth_hash);
 CREATE INDEX ix_runtime_events_related_accounts ON chain.runtime_events USING gin(related_accounts); -- for fetching account activity for a given account
-CREATE INDEX ix_runtime_events_evm_log_signature ON chain.runtime_events(/* runtime, */evm_log_signature/*, round*/); -- for fetching a certain event type, eg Transfers; updated in 13_runtime_indexes.up.sql
+CREATE INDEX ix_runtime_events_evm_log_signature ON chain.runtime_events(runtime, evm_log_signature, round); -- for fetching a certain event type, eg Transfers
 CREATE INDEX ix_runtime_events_evm_log_params ON chain.runtime_events USING gin(evm_log_params);
+CREATE INDEX ix_runtime_events_type ON chain.runtime_events (runtime, type);
+
+CREATE TABLE chain.runtime_accounts
+(
+    runtime runtime NOT NULL,
+    address oasis_addr NOT NULL,
+    PRIMARY KEY (runtime, address),
+
+    num_txs UINT63 NOT NULL DEFAULT 0,
+    -- Total gas used by all txs addressed to this account. Primarily meaningful for accounts that are contracts.
+    gas_for_calling UINT63 NOT NULL DEFAULT 0 -- gas used by txs sent to this address
+);
 
 -- Oasis addresses are derived from a derivation "context" and a piece of
 -- data, such as an ed25519 public key or an Ethereum address. The derivation
@@ -178,9 +203,8 @@ CREATE TABLE chain.address_preimages
   -- Ethereum address. For a "staking" context, this is the ed25519 pubkey.
   address_data       BYTEA NOT NULL
 );
--- Added in 10_runtime_address_preimage_idx.up.sql
--- CREATE INDEX IF NOT EXISTS ix_address_preimages_address_data ON chain.address_preimages (address_data) 
---     WHERE context_identifier = 'oasis-runtime-sdk/address: secp256k1eth' AND context_version = 0;
+CREATE INDEX ix_address_preimages_address_data ON chain.address_preimages (address_data) 
+    WHERE context_identifier = 'oasis-runtime-sdk/address: secp256k1eth' AND context_version = 0;
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- Module evm -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
@@ -201,48 +225,25 @@ CREATE TABLE chain.evm_tokens
   runtime runtime NOT NULL,
   token_address oasis_addr NOT NULL,
   PRIMARY KEY (runtime, token_address),
-  token_type INTEGER NOT NULL, -- 0 = unsupported, X = ERC-X; full spec at https://github.com/oasisprotocol/nexus/blob/v0.0.16/analyzer/runtime/evm.go#L21
+  token_type INTEGER, -- 0 = unsupported, X = ERC-X; full spec at https://github.com/oasisprotocol/nexus/blob/v0.0.16/analyzer/runtime/evm.go#L21
   token_name TEXT,
   symbol TEXT,
   decimals INTEGER,
   -- NOT an uint because a non-conforming token contract could issue a fake burn event,
   -- causing a negative dead-reckoned total_supply.
-  total_supply uint_numeric -- changed to NUMERIC(1000,0) in 09_evm_token_total_supply.up.sql
+  total_supply NUMERIC(1000,0),
   
-  -- Added in 14_evm_token_transfers.up.sql
-  -- num_transfers UINT63 NOT NULL DEFAULT 0,
+  num_transfers UINT63 NOT NULL DEFAULT 0,
   
-  -- Added in 18_refactor_dead_reckoning.up.go
   -- Block analyzer bumps this when it sees the mutable fields of the token
   -- change (e.g. total supply) based on dead reckoning.
-  -- last_mutate_round UINT63 NOT NULL,
+  last_mutate_round UINT63 NOT NULL DEFAULT 0,
   
-  -- Added in 18_refactor_dead_reckoning.up.go
-  -- Token analyzer bumps this when it downloads info about the token.
-  -- last_download_round UINT63
-);
-
-CREATE TABLE chain.evm_token_analysis  -- Moved to analysis.evm_tokens in 06_analysis_schema.up.sql, then dropped (merged into chain.evm_tokens) in 18_refactor_dead_reckoning.up.go
-(
-  runtime runtime NOT NULL,
-  token_address oasis_addr NOT NULL,
-  PRIMARY KEY (runtime, token_address),
-  -- Dead-reckoned total_supply before token metadata is downloaded. 
-  -- NOT an uint because a non-conforming token contract could issue a fake burn event,
-  -- causing a negative dead-reckoned total_supply.
-  total_supply uint_numeric, -- changed to NUMERIC(1000,0) in 09_evm_token_total_supply.up.sql
-  -- Added in 14_evm_token_transfers.up.sql
-  -- num_transfers UINT63 NOT NULL DEFAULT 0,
-
-  -- Block analyzer bumps this when it sees the mutable fields of the token
-  -- change (e.g. total supply) based on dead reckoning.
-  last_mutate_round UINT63 NOT NULL,
   -- Token analyzer bumps this when it downloads info about the token.
   last_download_round UINT63
 );
-CREATE INDEX ix_evm_token_analysis_stale ON chain.evm_token_analysis (runtime, token_address) WHERE last_download_round IS NULL OR last_mutate_round > last_download_round;
 
-CREATE TABLE chain.evm_token_balance_analysis  -- Moved to analysis.evm_token_balances in 06_analysis_schema.up.sql
+CREATE TABLE analysis.evm_token_balances -- Moved to analysis.evm_token_balances in 06_analysis_schema.up.sql
 (
   runtime runtime NOT NULL,
   -- This table is used to track balance querying primarily for EVM tokens (ERC-20, ERC-271, etc), but also for
@@ -253,7 +254,7 @@ CREATE TABLE chain.evm_token_balance_analysis  -- Moved to analysis.evm_token_ba
   last_mutate_round UINT63 NOT NULL,
   last_download_round UINT63
 );
-CREATE INDEX ix_evm_token_balance_analysis_stale ON chain.evm_token_balance_analysis (runtime, token_address, account_address) WHERE last_download_round IS NULL OR last_mutate_round > last_download_round;
+CREATE INDEX ix_evm_token_balance_analysis_stale ON analysis.evm_token_balances (runtime, token_address, account_address) WHERE last_download_round IS NULL OR last_mutate_round > last_download_round;
 
 CREATE TABLE chain.evm_contracts
 (
@@ -263,19 +264,56 @@ CREATE TABLE chain.evm_contracts
 
   -- Can be null if the contract was created by another contract; eg through an evm.Call instead of a standard evm.Create. Tracing must be enabled to fill out this information.
   creation_tx HEX64,
-  creation_bytecode BYTEA
-  -- runtime_bytecode BYTEA  -- Added in 05_evm_runtime_bytecode.up.sql
+  creation_bytecode BYTEA,
+  runtime_bytecode BYTEA,
 
-  -- Added in 07_evm_contract_verification.up.sql
-  -- -- Following fields are only filled out for contracts that have been verified.
-  -- verification_info_downloaded_at TIMESTAMP WITH TIME ZONE, -- NULL for unverified contracts.
-  -- abi JSONB,
-   -- -- Contents of metadata.json, typically produced by the Solidity compiler.
-  -- compilation_metadata JSONB,
-  -- -- Each source file is a flat JSON object with keys "name", "content", "path", as returned by Sourcify.
-  -- source_files JSONB CHECK (jsonb_typeof(source_files)='array');
+  -- Following fields are only filled out for contracts that have been verified.
+  verification_info_downloaded_at TIMESTAMP WITH TIME ZONE, -- NULL for unverified contracts.
+  abi JSONB,
+   -- Contents of metadata.json, typically produced by the Solidity compiler.
+  compilation_metadata JSONB,
+  -- Each source file is a flat JSON object with keys "name", "content", "path", as returned by Sourcify.
+  source_files JSONB CHECK (jsonb_typeof(source_files)='array')
 );
--- CREATE INDEX ix_evm_contracts_unverified ON chain.evm_contracts (runtime) WHERE verification_info_downloaded_at IS NULL; -- Added in 07_evm_contract_verification.up.sql
+CREATE INDEX ix_evm_contracts_unverified ON chain.evm_contracts (runtime) WHERE verification_info_downloaded_at IS NULL;
+
+-- Used to keep track of potential contract addresses, and our progress in
+-- downloading their runtime bytecode. ("Runtime" in the sense of ETH terminology
+-- which talks about a contract's "runtime bytecode" as opposed to "creation bytecode".)
+CREATE TABLE analysis.evm_contract_code (
+    runtime runtime NOT NULL,
+    contract_candidate oasis_addr NOT NULL,
+    PRIMARY KEY (runtime, contract_candidate),
+    -- Meaning of is_contract:
+    --   TRUE:  downloaded runtime bytecode
+    --   FALSE: download failed because `contract_candidate` is not a contract (= does not have code)
+    --   NULL:  not yet attempted
+    is_contract BOOLEAN
+);
+-- Allow the analyzer to quickly retrieve addresses that have not been downloaded yet.
+CREATE INDEX ix_evm_contract_code_todo ON analysis.evm_contract_code (runtime, contract_candidate) WHERE is_contract IS NULL;
+
+CREATE TABLE chain.evm_nfts (
+    runtime runtime NOT NULL,
+    token_address oasis_addr NOT NULL,
+    nft_id uint_numeric NOT NULL,
+    PRIMARY KEY (runtime, token_address, nft_id),
+
+    last_want_download_round UINT63 NOT NULL,
+    last_download_round UINT63,
+
+    owner oasis_addr,
+    num_transfers INT NOT NULL,
+    metadata JSONB,
+    metadata_uri TEXT,
+    metadata_accessed TIMESTAMP,
+    name TEXT,
+    description TEXT,
+    image TEXT
+);
+CREATE INDEX ix_evm_nfts_stale ON chain.evm_nfts (runtime, token_address, nft_id) WHERE last_download_round IS NULL OR last_want_download_round > last_download_round;
+CREATE INDEX ix_evm_nfts_owner ON chain.evm_nfts (runtime, owner, token_address, nft_id);
+
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- Module accounts -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
@@ -306,59 +344,6 @@ CREATE INDEX ix_runtime_transfers_receiver ON chain.runtime_transfers(receiver);
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- Module consensusaccounts -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
--- NOTE: Removed in 19_simplify_deposit_withdraw.up.sql
--- -- Deposits from the consensus layer into the paratime.
--- CREATE TABLE chain.runtime_deposits
--- (
---   runtime  runtime NOT NULL,
---   round    UINT63 NOT NULL,
---   FOREIGN KEY (runtime, round) REFERENCES chain.runtime_blocks DEFERRABLE INITIALLY DEFERRED,
---   -- The `sender` is a consensus account, so this REFERENCES chain.accounts; we omit the FK so
---   -- that consensus and paratimes can be indexed independently.
---   -- It also REFERENCES chain.address_preimages because the sender signed at least the Deposit tx.
---   sender   oasis_addr NOT NULL REFERENCES chain.address_preimages DEFERRABLE INITIALLY DEFERRED,
---   -- The `receiver` can be any oasis1-form paratime address.
---   -- With EVM paratimes, two types of deposits are common:
---   --  * Deposit intends to credit a hex-form (eth) account. The user first derives the oasis1-form address,
---   --    then uses it as `receiver`. Such a `receiver` address has a secp256k1eth key, an is not valid in
---   --    consensus (which only uses ed25519), meaning there is no FK in chain.addresses.
---   --  * Deposit intends to credit an ed25519-backed account. These accounts do not exist in classic Ethereum.
---   --    The associated hex-form Ethereum address either does not exist or is not knowable.
---   -- Regardless, the `receiver` often REFERENCES chain.address_preimages(address), a notable exception
---   -- being if the target account hasn't signed any txs yet.
---   receiver oasis_addr NOT NULL,
---   amount   UINT_NUMERIC NOT NULL,  -- always in native denomination
---   nonce    UINT63 NOT NULL,
---   -- Optional error data; from https://github.com/oasisprotocol/oasis-sdk/blob/386ba0b99fcd1425c68015e0033a462d9a577835/client-sdk/go/modules/consensusaccounts/types.go#L44-L44
---   module TEXT,
---   code   UINT63
--- );
--- CREATE INDEX ix_runtime_deposits_sender ON chain.runtime_deposits(sender);
--- CREATE INDEX ix_runtime_deposits_receiver ON chain.runtime_deposits(receiver);
-
--- NOTE: Removed in 19_simplify_deposit_withdraw.up.sql
--- -- Withdrawals from the paratime into consensus layer.
--- CREATE TABLE chain.runtime_withdraws
--- (
---   runtime  runtime NOT NULL,
---   round    UINT63 NOT NULL,
---   FOREIGN KEY (runtime, round) REFERENCES chain.runtime_blocks DEFERRABLE INITIALLY DEFERRED,
---   -- The `sender` can be any paratime address. (i.e. secp256k1eth-backed OR ed25519-backed;
---   -- other are options unlikely in an EVM paratime)
---   -- It REFERENCES chain.address_preimages because the sender signed at least the Withdraw tx.
---   sender   oasis_addr NOT NULL REFERENCES chain.address_preimages DEFERRABLE INITIALLY DEFERRED,
---   -- The `receiver` is a consensus account, so this REFERENCES chain.accounts; we omit the FK so
---   -- that consensus and paratimes can be indexed independently.
---   receiver oasis_addr NOT NULL,
---   amount   UINT_NUMERIC NOT NULL,  -- always in native denomination
---   nonce    UINT63 NOT NULL,
---   -- Optional error data
---   module TEXT,
---   code   UINT63
--- );
--- CREATE INDEX ix_runtime_withdraws_sender ON chain.runtime_withdraws(sender);
--- CREATE INDEX ix_runtime_withdraws_receiver ON chain.runtime_withdraws(receiver);
-
 -- Balance of the oasis-sdk native tokens (notably ROSE) in paratimes.
 CREATE TABLE chain.runtime_sdk_balances (
   runtime runtime,
@@ -374,5 +359,7 @@ CREATE TABLE chain.runtime_sdk_balances (
 -- (We granted already in 01_consensus.up.sql, but the grant does not apply to new tables.)
 GRANT SELECT ON ALL TABLES IN SCHEMA chain TO PUBLIC;
 GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA chain TO PUBLIC;
+GRANT SELECT ON ALL TABLES IN SCHEMA analysis TO PUBLIC;
+GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA analysis TO PUBLIC;
 
 COMMIT;

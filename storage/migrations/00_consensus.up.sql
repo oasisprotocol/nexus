@@ -3,9 +3,13 @@
 
 BEGIN;
 
--- Create Damask Upgrade Schema with `chain-id`.
+-- A schema for tracking on-chain data.
 CREATE SCHEMA IF NOT EXISTS chain;
 GRANT USAGE ON SCHEMA chain TO PUBLIC;
+
+-- A schema for keeping track of analyzers' internal state/progess.
+CREATE SCHEMA IF NOT EXISTS analysis;
+GRANT USAGE ON SCHEMA analysis TO PUBLIC;
 
 -- Custom types
 CREATE DOMAIN public.uint_numeric NUMERIC(1000,0) CHECK(VALUE >= 0);
@@ -15,6 +19,7 @@ CREATE DOMAIN public.hex64 TEXT CHECK(VALUE ~ '^[0-9a-f]{64}$');
 -- base64(ed25519 public key); from https://github.com/oasisprotocol/oasis-core/blob/f95186e3f15ec64bdd36493cde90be359bd17da8/go/common/crypto/signature/signature.go#L90-L90
 CREATE DOMAIN public.base64_ed25519_pubkey TEXT CHECK(VALUE ~ '^[A-Za-z0-9+/]{43}=$');
 CREATE DOMAIN public.oasis_addr TEXT CHECK(length(VALUE) = 46 AND VALUE ~ '^oasis1');
+CREATE DOMAIN public.eth_addr BYTEA CHECK(length(VALUE) = 20);
 
 -- Block Data
 CREATE TABLE chain.blocks
@@ -259,10 +264,9 @@ CREATE TABLE chain.proposals
   -- If this proposal cancels an existing proposal.
   cancels UINT63 REFERENCES chain.proposals(id) DEFAULT NULL,
 
-  -- Added in 25_consensus_parameters_change_proposals.up.sql
   -- If this proposal is a "ChangeParameters" proposal.
-  -- parameters_change_module TEXT,
-  -- parameters_change BYTEA,
+  parameters_change_module TEXT,
+  parameters_change BYTEA,
 
   created_at    UINT63 NOT NULL,  -- EpochTime, i.e. number of epochs since base epoch
   closes_at     UINT63 NOT NULL,  -- EpochTime, i.e. number of epochs since base epoch
@@ -289,23 +293,31 @@ CREATE TABLE chain.accounts_related_transactions
 );
 CREATE INDEX ix_accounts_related_transactions_address_block_index ON chain.accounts_related_transactions (account_address);
 
+-- Tracks the current (consensus) height of the node.
+CREATE TABLE chain.latest_node_heights
+(
+  layer TEXT NOT NULL PRIMARY KEY,
+  height UINT63 NOT NULL
+);
+
 -- Indexing Progress Management
-CREATE TABLE chain.processed_blocks  -- Moved to analysis.processed_blocks in 06_analysis_schema.up.sql
+CREATE TABLE analysis.processed_blocks  -- Moved to analysis.processed_blocks in 06_analysis_schema.up.sql
 (
   height         UINT63 NOT NULL,
   analyzer       TEXT NOT NULL,
   PRIMARY KEY (analyzer, height),
 
   processed_time TIMESTAMP WITH TIME ZONE, -- NULL if the block is not yet processed.
-  locked_time     TIMESTAMP WITH TIME ZONE NOT NULL
-  -- is_fast_sync BOOL NOT NULL DEFAULT false,  -- Whether the block was analyzed in fast-sync mode or not. Added in 16_fast_sync.sql.
+  locked_time     TIMESTAMP WITH TIME ZONE NOT NULL,
+  is_fast_sync BOOL NOT NULL DEFAULT false  -- Whether the block was analyzed in fast-sync mode or not.
 );
-
-CREATE INDEX ix_processed_blocks_analyzer_height_locked_unprocessed ON chain.processed_blocks (analyzer, height, locked_time) WHERE processed_time IS NULL; -- Index for efficient query of unprocessed blocks.
-CREATE INDEX ix_processed_blocks_analyzer_height_locked_processed ON chain.processed_blocks (analyzer, height, locked_time, processed_time) WHERE processed_time IS NOT NULL; -- Index for efficient query of processed blocks.
+CREATE INDEX ix_processed_blocks_analyzer_height_locked_unprocessed ON analysis.processed_blocks (analyzer, height, locked_time) WHERE processed_time IS NULL; -- Index for efficient query of unprocessed blocks.
+CREATE INDEX ix_processed_blocks_analyzer_height_locked_processed ON analysis.processed_blocks (analyzer, height, locked_time, processed_time) WHERE processed_time IS NOT NULL; -- Index for efficient query of processed blocks.
 
 -- Grant others read-only use. This does NOT apply to future tables in the schema.
 GRANT SELECT ON ALL TABLES IN SCHEMA chain TO PUBLIC;
 GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA chain TO PUBLIC;
+GRANT SELECT ON ALL TABLES IN SCHEMA analysis TO PUBLIC;
+GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA analysis TO PUBLIC;
 
 COMMIT;
