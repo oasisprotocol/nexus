@@ -1,6 +1,18 @@
 {
   "evm_tokens": [
     {
+      "contract_addr": "oasis1qpgcp5jzlgk4hcenaj2x82rqk8rrve2keyuc8aaf",
+      "decimals": 18,
+      "eth_contract_addr": "0x21C718C22D52d0F3a789b752D4c2fD5908a8A733",
+      "is_verified": false,
+      "name": "Wrapped ROSE",
+      "num_holders": 131,
+      "num_transfers": 2113,
+      "symbol": "wROSE",
+      "total_supply": "134273688211406143160770252",
+      "type": "ERC20"
+    },
+    {
       "contract_addr": "oasis1qrg90d4qlelg5zg4q4sd4y0z8j2lpjpvuspzjlyl",
       "decimals": 6,
       "eth_contract_addr": "0x6Cb9750a92643382e020eA9a170AbB83Df05F30B",
@@ -10,18 +22,6 @@
       "num_transfers": 1068,
       "symbol": "USDT",
       "total_supply": "96164907280233",
-      "type": "ERC20"
-    },
-    {
-      "contract_addr": "oasis1qpgcp5jzlgk4hcenaj2x82rqk8rrve2keyuc8aaf",
-      "decimals": 18,
-      "eth_contract_addr": "0x21C718C22D52d0F3a789b752D4c2fD5908a8A733",
-      "is_verified": false,
-      "name": "Wrapped ROSE",
-      "num_holders": 126,
-      "num_transfers": 2113,
-      "symbol": "wROSE",
-      "total_supply": "134273688211406143160770252",
       "type": "ERC20"
     },
     {
