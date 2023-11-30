@@ -1241,7 +1241,7 @@ components:
           format: int64
           description: |
             The height of the most recent indexed block. Compare with latest_node_block to measure
-            how far behind Nexus is from the chain. 
+            how far behind Nexus is from the chain.
           example: *block_height_1
         latest_node_block:
           type: integer
@@ -2040,6 +2040,17 @@ components:
           description: |
             The proposal to cancel, if this proposal proposes
             cancelling an existing proposal.
+        parameters_change_module:
+          type: string
+          description: |
+            The name of the module whose parameters are to be changed
+            by this 'parameters_change' proposal.
+        parameters_change:
+          type: string
+          format: byte
+          description: |
+            The base64 encoded raw cbor representing the updated parameters
+            which are to be changed by this 'parameters_change' proposal.
         created_at:
           type: integer
           format: int64
@@ -2577,7 +2588,7 @@ components:
       type: string
       enum:
         - ERC20
-        - ERC721        
+        - ERC721
         # Desired support in the future, among others:
         # - ERC1155
       description: |
@@ -2647,8 +2658,8 @@ components:
         is_verified:
           type: boolean
           description: |
-            Whether the contract has been successfully verified by Sourcify. 
-            Additional information on verified contracts is available via 
+            Whether the contract has been successfully verified by Sourcify.
+            Additional information on verified contracts is available via
             the `/{runtime}/accounts/{address}` endpoint.
           example: false
 
@@ -2721,7 +2732,7 @@ components:
           type: integer
           format: uint64
           example: 4184
-        
+
     TxVolumeList:
       type: object
       required: [window_size_seconds, windows]

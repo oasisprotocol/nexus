@@ -259,6 +259,11 @@ CREATE TABLE chain.proposals
   -- If this proposal cancels an existing proposal.
   cancels UINT63 REFERENCES chain.proposals(id) DEFAULT NULL,
 
+  -- Added in 25_consensus_parameters_change_proposals.up.sql
+  -- If this proposal is a "ChangeParameters" proposal.
+  -- parameters_change_module TEXT,
+  -- parameters_change BYTEA,
+
   created_at    UINT63 NOT NULL,  -- EpochTime, i.e. number of epochs since base epoch
   closes_at     UINT63 NOT NULL,  -- EpochTime, i.e. number of epochs since base epoch
   invalid_votes UINT_NUMERIC NOT NULL DEFAULT 0 -- uint64 in go; because the value might conceivably be >2^63, we use UINT_NUMERIC over UINT63 here.

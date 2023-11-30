@@ -19,7 +19,7 @@ const (
 		LIMIT 1`
 
 	NodeHeight = `
-		SELECT height 
+		SELECT height
 			FROM chain.latest_node_heights
 			WHERE layer=$1`
 
@@ -230,7 +230,7 @@ const (
 
 	Proposals = `
 		SELECT id, submitter, state, deposit, handler, cp_target_version, rhp_target_version, rcp_target_version,
-				upgrade_epoch, cancels, created_at, closes_at, invalid_votes
+				upgrade_epoch, cancels, parameters_change_module, parameters_change, created_at, closes_at, invalid_votes
 			FROM chain.proposals
 			WHERE ($1::text IS NULL OR submitter = $1::text) AND
 						($2::text IS NULL OR state = $2::text)
@@ -240,7 +240,7 @@ const (
 
 	Proposal = `
 		SELECT id, submitter, state, deposit, handler, cp_target_version, rhp_target_version, rcp_target_version,
-				upgrade_epoch, cancels, created_at, closes_at, invalid_votes
+				upgrade_epoch, cancels, parameters_change_module, parameters_change, created_at, closes_at, invalid_votes
 			FROM chain.proposals
 			WHERE id = $1::bigint`
 
@@ -472,7 +472,7 @@ const (
 			(tokens.runtime = $1) AND
 			($2::oasis_addr IS NULL OR tokens.token_address = $2::oasis_addr) AND
 			($3::text IS NULL OR tokens.token_name ILIKE '%' || $3 || '%' OR tokens.symbol ILIKE '%' || $3 || '%') AND
-			tokens.token_type IS NOT NULL AND -- exclude token _candidates_ that we haven't inspected yet			
+			tokens.token_type IS NOT NULL AND -- exclude token _candidates_ that we haven't inspected yet
 			tokens.token_type != 0 -- exclude unknown-type tokens; they're often just contracts that emitted Transfer events but don't expose the token ticker, name, balance etc.
 		ORDER BY num_holders DESC, contract_addr
 		LIMIT $4::bigint
