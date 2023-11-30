@@ -433,11 +433,23 @@ func (cfg *MetadataRegistryConfig) Validate() error {
 // NodeStatsConfig is the configuration for the node stats analyzer.
 type NodeStatsConfig struct {
 	ItemBasedAnalyzerConfig `koanf:",squash"`
+
+	// Layers is the list of runtimes and/or consensus that the node-stats analyzer
+	// should query for the latest node height.
+	Layers []common.Layer `koanf:"layers"`
 }
 
 func (cfg *NodeStatsConfig) Validate() error {
 	if cfg.Interval > 6*time.Second {
 		return fmt.Errorf("node stats interval must be less than or equal to the block time of 6 seconds")
+	}
+	// Deduplicate layers
+	seen := make(map[common.Layer]struct{})
+	for _, layer := range cfg.Layers {
+		if _, ok := seen[layer]; ok {
+			return fmt.Errorf("duplicate layer detected in layers")
+		}
+		seen[layer] = struct{}{}
 	}
 	return nil
 }

@@ -297,13 +297,13 @@ func (m *processor) ProcessBlock(ctx context.Context, uheight uint64) error {
 	// Fetch all data.
 	fetchTimer := m.metrics.BlockFetchLatencies()
 	data, err := fetchAllData(ctx, m.source, m.network, height, m.mode == analyzer.FastSyncMode)
+	fetchTimer.ObserveDuration()
 	if err != nil {
 		if strings.Contains(err.Error(), fmt.Sprintf("%d must be less than or equal to the current blockchain height", height)) {
 			return analyzer.ErrOutOfRange
 		}
 		return err
 	}
-	fetchTimer.ObserveDuration() // We make no observation in case of a data fetch error; those timings are misleading.
 
 	// Process data, prepare updates.
 	analysisTimer := m.metrics.BlockAnalysisLatencies()
