@@ -557,13 +557,8 @@ var (
 	RuntimeEVMTokenBalanceAnalysisMutateRoundUpsert = `
     INSERT INTO analysis.evm_token_balances
       (runtime, token_address, account_address, last_mutate_round)
-      (
-        SELECT $1, $2, $3, $4
-        -- Insert the row only if $2 is a valid token. The runtime analyzer enqueues for balance re-querying
-        -- every (contract, account) pair that interacts, regardless of whether the contract is a token,
-        -- because the analyzer doesn't have access to that info.
-        WHERE EXISTS (SELECT 1 FROM chain.evm_tokens WHERE runtime = $1::runtime AND token_address = $2::oasis_addr)
-      )    
+    VALUES
+      ($1, $2, $3, $4)
     ON CONFLICT (runtime, token_address, account_address) DO UPDATE
     SET
       last_mutate_round = excluded.last_mutate_round`
@@ -583,8 +578,6 @@ var (
       SELECT runtime, token_address, account_address, MAX(last_mutate_round)
       FROM todo_updates.evm_token_balances
       WHERE runtime = $1
-      -- TODO: Filter out rows where "token_address" is not a token?
-      --       But we don't know yet which contracts are tokens since fast-sync just concluded.
       GROUP BY runtime, token_address, account_address
     )
     ON CONFLICT (runtime, token_address, account_address) DO UPDATE
