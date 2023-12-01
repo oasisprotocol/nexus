@@ -544,6 +544,8 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 						registerTokenIncrease(blockData.TokenBalanceChanges, evm.NativeRuntimeTokenAddress, to, reckonedAmount)
 						for _, signer := range blockTransactionData.SignerData {
 							registerTokenDecrease(blockData.TokenBalanceChanges, evm.NativeRuntimeTokenAddress, signer.Address, reckonedAmount)
+							// In case the contract is an ERC-20, the sender's ERC-20 balance might change as a result of the call. Schedule for re-querying.
+							registerTokenDecrease(blockData.TokenBalanceChanges, to, signer.Address, big.NewInt(0))
 						}
 					}
 
