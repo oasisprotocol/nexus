@@ -973,6 +973,31 @@ paths:
             A filter on the evm log signatures.
             Note: The filter will only match on parsed (verified) EVM events.
           example: '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'
+        - in: query
+          name: contract_address
+          schema:
+            type: string
+          description: |
+            A filter on a smart contract. Every returned event will have been
+            emitted by the contract at this Oasis address.
+          example: *staking_address_1
+        - in: query
+          name: nft_id
+          schema:
+            type: string
+          example: "999"
+          description: |
+            A filter on NFT events. Every returned event will be specifically
+            about this NFT instance ID. You must specify the contract_address
+            filter with this filter.
+            Currently this only supports ERC-721 Transfer events.
+            This may expand to support other event types in the future.
+            If you want only ERC-721 Transfer events, specify
+            evm_log_signature=ddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef
+            to avoid inadvertently getting other event types if they are
+            supported later.
+            Using an evm_log_signature filter with this set to any other value
+            will match no events.
       responses:
         '200':
           description: |
