@@ -2,7 +2,7 @@ analysis:
   source:
     chain_name: mainnet
     nodes:
-      damask:
+      eden:
         default:
           rpc: unix:/tmp/node.sock #unix:/node/data/internal.sock
     ipfs:
@@ -12,11 +12,11 @@ analysis:
       interval: 1h
     aggregate_stats: {}
     consensus:
-      from: 8_048_956  # Damask genesis
+      from: 16_817_956  # Eden genesis
     emerald:
-      from: 1_003_298  # round at Damask genesis
+      from: 7_875_129  # round at Eden genesis
     sapphire:
-      from: 0  # first round in Damask
+      from: 1_357_486  # round at Eden genesis
   storage:
     backend: postgres
     endpoint: postgresql://rwuser:password@nexus-postgres:5432/indexer?sslmode=disable
