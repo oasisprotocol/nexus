@@ -782,7 +782,7 @@ paths:
 
   /{runtime}/blocks:
     get:
-      summary: Returns a list of Emerald blocks.
+      summary: Returns a list of Runtime blocks.
       parameters:
         - *limit
         - *offset
@@ -817,7 +817,7 @@ paths:
           example: *iso_timestamp_2
       responses:
         '200':
-          description: A JSON object containing a list of Emerald blocks.
+          description: A JSON object containing a list of Runtime blocks.
           content:
             application/json:
               schema:
@@ -826,7 +826,7 @@ paths:
 
   /{runtime}/transactions:
     get:
-      summary: Returns a list of Emerald transactions.
+      summary: Returns a list of Runtime transactions.
       parameters:
         - *limit
         - *offset
@@ -868,7 +868,7 @@ paths:
       responses:
         '200':
           description: |
-            A JSON object containing a list of Emerald transactions.
+            A JSON object containing a list of Runtime transactions.
           content:
             application/json:
               schema:
