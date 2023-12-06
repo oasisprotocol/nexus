@@ -3,7 +3,10 @@ package client
 
 import (
 	api "github.com/oasisprotocol/nexus/api/v1/types"
+	"github.com/oasisprotocol/nexus/common"
 )
+
+type BigInt = common.BigInt
 
 // Status is the storage response for GetStatus.
 type Status = api.Status

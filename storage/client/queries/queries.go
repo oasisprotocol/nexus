@@ -29,10 +29,11 @@ const (
 			WHERE ($1::bigint IS NULL OR height >= $1::bigint) AND
 						($2::bigint IS NULL OR height <= $2::bigint) AND
 						($3::timestamptz IS NULL OR time >= $3::timestamptz) AND
-						($4::timestamptz IS NULL OR time < $4::timestamptz)
+						($4::timestamptz IS NULL OR time < $4::timestamptz) AND
+						($5::text IS NULL OR block_hash = $5::text)
 		ORDER BY height DESC
-		LIMIT $5::bigint
-		OFFSET $6::bigint`
+		LIMIT $6::bigint
+		OFFSET $7::bigint`
 
 	Block = `
 		SELECT height, block_hash, time, num_txs
@@ -290,10 +291,11 @@ const (
 						($2::bigint IS NULL OR round >= $2::bigint) AND
 						($3::bigint IS NULL OR round <= $3::bigint) AND
 						($4::timestamptz IS NULL OR timestamp >= $4::timestamptz) AND
-						($5::timestamptz IS NULL OR timestamp < $5::timestamptz)
+						($5::timestamptz IS NULL OR timestamp < $5::timestamptz) AND
+						($6::text IS NULL OR block_hash = $6::text)
 		ORDER BY round DESC
-		LIMIT $6::bigint
-		OFFSET $7::bigint`
+		LIMIT $7::bigint
+		OFFSET $8::bigint`
 
 	RuntimeBlock = `
 		SELECT round, block_hash, timestamp, num_transactions, size, gas_used
