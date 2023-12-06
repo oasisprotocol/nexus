@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"math/big"
+	"strings"
 	"time"
 
 	"github.com/dgraph-io/ristretto"
@@ -12,6 +13,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 
+	"github.com/oasisprotocol/oasis-core/go/common/crypto/hash"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
 	oasisErrors "github.com/oasisprotocol/oasis-core/go/common/errors"
 	oasisConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
@@ -244,6 +246,10 @@ func (c *StorageClient) Status(ctx context.Context) (*Status, error) {
 
 // Blocks returns a list of consensus blocks.
 func (c *StorageClient) Blocks(ctx context.Context, r apiTypes.GetConsensusBlocksParams) (*BlockList, error) {
+	hash, err := canonicalizedHash(r.Hash)
+	if err != nil {
+		return nil, wrapError(err)
+	}
 	res, err := c.withTotalCount(
 		ctx,
 		queries.Blocks,
@@ -251,6 +257,7 @@ func (c *StorageClient) Blocks(ctx context.Context, r apiTypes.GetConsensusBlock
 		r.To,
 		r.After,
 		r.Before,
+		hash,
 		r.Limit,
 		r.Offset,
 	)
@@ -275,6 +282,19 @@ func (c *StorageClient) Blocks(ctx context.Context, r apiTypes.GetConsensusBlock
 	}
 
 	return &bs, nil
+}
+
+func canonicalizedHash(input *string) (*string, error) {
+	if input == nil {
+		return nil, nil
+	}
+	sanitized, _ := strings.CutPrefix(*input, "0x")
+	var h hash.Hash
+	if err := h.UnmarshalHex(sanitized); err != nil {
+		return nil, fmt.Errorf("invalid hash: %w", err)
+	}
+	s := h.String()
+	return &s, nil
 }
 
 // Block returns a consensus block. This endpoint is cached.
@@ -1096,6 +1116,10 @@ func (c *StorageClient) Validators(ctx context.Context, p apiTypes.GetConsensusV
 
 // RuntimeBlocks returns a list of runtime blocks.
 func (c *StorageClient) RuntimeBlocks(ctx context.Context, p apiTypes.GetRuntimeBlocksParams) (*RuntimeBlockList, error) {
+	hash, err := canonicalizedHash(p.Hash)
+	if err != nil {
+		return nil, wrapError(err)
+	}
 	res, err := c.withTotalCount(
 		ctx,
 		queries.RuntimeBlocks,
@@ -1104,6 +1128,7 @@ func (c *StorageClient) RuntimeBlocks(ctx context.Context, p apiTypes.GetRuntime
 		p.To,
 		p.After,
 		p.Before,
+		hash,
 		p.Limit,
 		p.Offset,
 	)

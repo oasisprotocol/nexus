@@ -208,6 +208,12 @@ paths:
             format: date-time
           description: A filter on maximum block time, exclusive.
           example: *iso_timestamp_2
+        - in: query
+          name: hash
+          schema:
+            type: string
+          description: The block hash of the block to return.
+          example: *block_hash_1
       responses:
         '200':
           description: A JSON object containing a list of consensus blocks.
@@ -815,6 +821,12 @@ paths:
             format: date-time
           description: A filter on maximum block time, exclusive.
           example: *iso_timestamp_2
+        - in: query
+          name: hash
+          schema:
+            type: string
+          description: The block hash of the block to return.
+          example: *block_hash_1
       responses:
         '200':
           description: A JSON object containing a list of Runtime blocks.
