@@ -1297,6 +1297,9 @@ func (c *StorageClient) RuntimeEvents(ctx context.Context, p apiTypes.GetRuntime
 		h := ethCommon.HexToHash(*p.EvmLogSignature)
 		evmLogSignature = &h
 	}
+	if p.NftId != nil && p.ContractAddress == nil {
+		return nil, fmt.Errorf("must specify contract_address with nft_id")
+	}
 	var NFTIdB64 *string
 	if p.NftId != nil {
 		erc721TransferTokenIdBI := &big.Int{}
