@@ -121,6 +121,40 @@ define CHECK_GITLINT =
 	gitlint --commits $$BRANCH..HEAD
 endef
 
+# List of non-trivial Change Log fragments.
+CHANGELOG_FRAGMENTS_NON_TRIVIAL := $(filter-out $(wildcard .changelog/*trivial*.md),$(wildcard .changelog/[0-9]*.md))
+
+# List of breaking Change Log fragments.
+CHANGELOG_FRAGMENTS_BREAKING := $(wildcard .changelog/*breaking*.md)
+
+# Helper that checks Change Log fragments with markdownlint-cli.
+# NOTE: Non-zero exit status is recorded but only set at the end so that all
+# markdownlint errors can be seen at once.
+define CHECK_CHANGELOG_FRAGMENTS =
+    exit_status=0; \
+    $(ECHO) "$(CYAN)*** Running markdownlint-cli for Change Log fragments... $(OFF)"; \
+    npx markdownlint-cli --config .changelog/.markdownlint.yml .changelog/ || exit_status=$$?; \
+    exit $$exit_status
+endef
+
+# Helper that builds the Change Log.
+define BUILD_CHANGELOG =
+	if [[ $(ASSUME_YES) != 1 ]]; then \
+		towncrier build --version $(VERSION); \
+	else \
+		towncrier build --version $(VERSION) --yes; \
+	fi
+endef
+
+# Helper that prints a warning when breaking changes are indicated by Change Log
+# fragments.
+define WARN_BREAKING_CHANGES =
+	if [[ -n "$(CHANGELOG_FRAGMENTS_BREAKING)" ]]; then \
+		$(ECHO) "$(RED)Warning: This release contains breaking changes.$(OFF)"; \
+		$(ECHO) "$(RED)         Make sure the version is bumped appropriately.$(OFF)"; \
+	fi
+endef
+
 define newline
 
 
