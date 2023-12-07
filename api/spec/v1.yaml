@@ -212,7 +212,7 @@ paths:
           name: hash
           schema:
             type: string
-          description: The block hash of the block to return.
+          description: A filter on the block hash.
           example: *block_hash_1
       responses:
         '200':
@@ -825,7 +825,7 @@ paths:
           name: hash
           schema:
             type: string
-          description: The block hash of the block to return.
+          description: A filter on the block hash.
           example: *block_hash_1
       responses:
         '200':
