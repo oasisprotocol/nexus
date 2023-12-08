@@ -965,7 +965,19 @@
         ]
       },
       "eth_tx_hash": "e8a911990ef643cb4472855b5810c18e1414d09fb7471ee1ae4c0a270fbafbe2",
-      "evm_log_name": "",
+      "evm_log_name": "Deposit",
+      "evm_log_params": [
+        {
+          "evm_type": "address",
+          "name": "dst",
+          "value": "0x250d48c5e78f1e85f7ab07fec61e93ba703ae668"
+        },
+        {
+          "evm_type": "uint256",
+          "name": "wad",
+          "value": "2000000000000000000"
+        }
+      ],
       "evm_token": {
         "decimals": 18,
         "symbol": "wROSE",

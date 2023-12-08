@@ -199,6 +199,12 @@ type EVMEventHandler struct {
 	ERC721Transfer       func(from ethCommon.Address, to ethCommon.Address, tokenID *big.Int) error
 	ERC721Approval       func(owner ethCommon.Address, approved ethCommon.Address, tokenID *big.Int) error
 	ERC721ApprovalForAll func(owner ethCommon.Address, operator ethCommon.Address, approved bool) error
+	// `owner` wrapped/deposited runtime's native token (ROSE) into the wrapper contract (creating WROSE).
+	// `value` ROSE is transferred from `owner` to the wrapper (= event-emitting contract). Caller's WROSE balance increases by `value`.
+	WROSEDeposit func(owner ethCommon.Address, value *big.Int) error
+	// `owner` unwrapped/withdrew runtime's native token (ROSE) into the wrapper contract (burning WROSE).
+	// Caller's WROSE balance decreases by `value`. `value` ROSE is transferred from the wrapper (= event-emitting contract) to `owner`.
+	WROSEWithdrawal func(owner ethCommon.Address, value *big.Int) error
 }
 
 func eventMatches(evmEvent *evm.Event, ethEvent abi.Event) bool {
@@ -232,7 +238,7 @@ func VisitEVMEvent(event *evm.Event, handler *EVMEventHandler) error {
 				args[1].(ethCommon.Address),
 				args[2].(*big.Int),
 			); err != nil {
-				return fmt.Errorf("erc20 transfer: %w", err)
+				return fmt.Errorf("handle erc20 transfer: %w", err)
 			}
 		}
 	case eventMatches(event, evmabi.ERC20.Events["Approval"]):
@@ -246,7 +252,7 @@ func VisitEVMEvent(event *evm.Event, handler *EVMEventHandler) error {
 				args[1].(ethCommon.Address),
 				args[2].(*big.Int),
 			); err != nil {
-				return fmt.Errorf("erc20 approval: %w", err)
+				return fmt.Errorf("handle erc20 approval: %w", err)
 			}
 		}
 	case eventMatches(event, evmabi.ERC721.Events["Transfer"]):
@@ -260,7 +266,7 @@ func VisitEVMEvent(event *evm.Event, handler *EVMEventHandler) error {
 				args[1].(ethCommon.Address),
 				args[2].(*big.Int),
 			); err != nil {
-				return fmt.Errorf("erc721 transfer: %w", err)
+				return fmt.Errorf("handle erc721 transfer: %w", err)
 			}
 		}
 	case eventMatches(event, evmabi.ERC721.Events["Approval"]):
@@ -274,7 +280,7 @@ func VisitEVMEvent(event *evm.Event, handler *EVMEventHandler) error {
 				args[1].(ethCommon.Address),
 				args[2].(*big.Int),
 			); err != nil {
-				return fmt.Errorf("erc721 approval: %w", err)
+				return fmt.Errorf("handle erc721 approval: %w", err)
 			}
 		}
 	case eventMatches(event, evmabi.ERC721.Events["ApprovalForAll"]):
@@ -288,7 +294,35 @@ func VisitEVMEvent(event *evm.Event, handler *EVMEventHandler) error {
 				args[1].(ethCommon.Address),
 				args[2].(bool),
 			); err != nil {
-				return fmt.Errorf("erc721 approval for all: %w", err)
+				return fmt.Errorf("handle erc721 approval for all: %w", err)
+			}
+		}
+	// Signature: 0xe1fffcc4923d04b559f4d29a8bfc6cda04eb5b0d3c460751c2402c5c5cc9109c (hex) or 4f/8xJI9BLVZ9NKai/xs2gTrWw08RgdRwkAsXFzJEJw= (base64)
+	case eventMatches(event, evmabi.WROSE.Events["Deposit"]):
+		if handler.WROSEDeposit != nil {
+			_, args, err := abiparse.ParseEvent(event.Topics, event.Data, evmabi.WROSE)
+			if err != nil {
+				return fmt.Errorf("parse wrose deposit: %w", err)
+			}
+			if err = handler.WROSEDeposit(
+				args[0].(ethCommon.Address),
+				args[1].(*big.Int),
+			); err != nil {
+				return fmt.Errorf("handle wrose deposit: %w", err)
+			}
+		}
+	// Signature: 0x7fcf532c15f0a6db0bd6d0e038bea71d30d808c7d98cb3bf7268a95bf5081b65 (hex) or f89TLBXwptsL1tDgOL6nHTDYCMfZjLO/cmipW/UIG2U= (base64)
+	case eventMatches(event, evmabi.WROSE.Events["Withdrawal"]):
+		if handler.WROSEWithdrawal != nil {
+			_, args, err := abiparse.ParseEvent(event.Topics, event.Data, evmabi.WROSE)
+			if err != nil {
+				return fmt.Errorf("parse wrose withdrawal: %w", err)
+			}
+			if err = handler.WROSEWithdrawal(
+				args[0].(ethCommon.Address),
+				args[1].(*big.Int),
+			); err != nil {
+				return fmt.Errorf("handle wrose withdrawal: %w", err)
 			}
 		}
 	}
