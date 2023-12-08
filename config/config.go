@@ -417,11 +417,8 @@ type EvmContractCodeAnalyzerConfig struct {
 type EVMContractVerifierConfig struct {
 	ItemBasedAnalyzerConfig `koanf:",squash"`
 
-	// ChainName is the name of the chain (e.g. mainnet/testnet).
-	// The analyzer only supports testnet/mainnet chains.
-	ChainName common.ChainName `koanf:"chain_name"`
-
 	// SourcifyServerUrl is the base URL of the Sourcify server.
+	// Defaults to https://sourcify.dev/server if unset.
 	SourcifyServerUrl string `koanf:"sourcify_server_url"`
 }
 
