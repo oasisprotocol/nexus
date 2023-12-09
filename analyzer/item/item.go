@@ -197,6 +197,26 @@ func (a *itemBasedAnalyzer[Item]) Start(ctx context.Context) {
 	}
 
 	for {
+		// Update queueLength
+		queueLength, err := a.sendQueueLengthMetric(ctx)
+		if err == nil && queueLength == 0 && a.stopOnEmptyQueue {
+			a.logger.Warn("item analyzer work queue is empty; shutting down")
+			return
+		}
+		a.logger.Info("work queue length", "num_items", queueLength)
+
+		numProcessed, err := a.processBatch(ctx)
+		if err != nil { //nolint:gocritic
+			a.logger.Error("error processing batch", "err", err)
+			backoff.Failure()
+		} else if numProcessed == 0 {
+			// We are running faster than work is being created. Reduce needless GetItems() calls.
+			backoff.Failure()
+		} else {
+			backoff.Success()
+		}
+
+		// Sleep a little before the next batch.
 		delay := backoff.Timeout()
 		if a.fixedInterval != 0 {
 			delay = a.fixedInterval
@@ -208,28 +228,6 @@ func (a *itemBasedAnalyzer[Item]) Start(ctx context.Context) {
 			a.logger.Warn("shutting down item analyzer", "reason", ctx.Err())
 			return
 		}
-		// Update queueLength
-		queueLength, err := a.sendQueueLengthMetric(ctx)
-		if err == nil && queueLength == 0 && a.stopOnEmptyQueue {
-			a.logger.Warn("item analyzer work queue is empty; shutting down")
-			return
-		}
-		a.logger.Info("work queue length", "num_items", queueLength)
-
-		numProcessed, err := a.processBatch(ctx)
-		if err != nil {
-			a.logger.Error("error processing batch", "err", err)
-			backoff.Failure()
-			continue
-		}
-		if numProcessed == 0 {
-			// Count this as a failure to reduce the polling when we are
-			// running faster than the block analyzer can find new tokens.
-			backoff.Failure()
-			continue
-		}
-
-		backoff.Success()
 	}
 }
 
