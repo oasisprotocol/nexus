@@ -196,10 +196,13 @@ func (a *itemBasedAnalyzer[Item]) Start(ctx context.Context) {
 		return
 	}
 
-	for {
+	for firstIter := true; ; firstIter = false {
 		delay := backoff.Timeout()
 		if a.fixedInterval != 0 {
 			delay = a.fixedInterval
+		}
+		if firstIter {
+			delay = 0 // Don't sleep before first iteration.
 		}
 		select {
 		case <-time.After(delay):
