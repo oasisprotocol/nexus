@@ -139,6 +139,8 @@ type AnalyzersList struct {
 	SapphireContractCode     *EvmContractCodeAnalyzerConfig `koanf:"evm_contract_code_sapphire"`
 	EmeraldContractVerifier  *EVMContractVerifierConfig     `koanf:"evm_contract_verifier_emerald"`
 	SapphireContractVerifier *EVMContractVerifierConfig     `koanf:"evm_contract_verifier_sapphire"`
+	EmeraldAbi               *EvmAbiAnalyzerConfig          `koanf:"evm_abi_emerald"`
+	SapphireAbi              *EvmAbiAnalyzerConfig          `koanf:"evm_abi_sapphire"`
 
 	MetadataRegistry *MetadataRegistryConfig `koanf:"metadata_registry"`
 	NodeStats        *NodeStatsConfig        `koanf:"node_stats"`
@@ -409,6 +411,10 @@ type EVMContractVerifierConfig struct {
 // Validate validates the evm contracts verifier config.
 func (cfg *EVMContractVerifierConfig) Validate() error {
 	return nil
+}
+
+type EvmAbiAnalyzerConfig struct {
+	ItemBasedAnalyzerConfig `koanf:",squash"`
 }
 
 // MetadataRegistryConfig is the configuration for the metadata registry analyzer.

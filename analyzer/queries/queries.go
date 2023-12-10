@@ -457,9 +457,33 @@ var (
     INSERT INTO chain.runtime_transactions (runtime, round, tx_index, tx_hash, tx_eth_hash, fee, gas_limit, gas_used, size, timestamp, method, body, "to", amount, evm_encrypted_format, evm_encrypted_public_key, evm_encrypted_data_nonce, evm_encrypted_data_data, evm_encrypted_result_nonce, evm_encrypted_result_data, success, error_module, error_code, error_message_raw, error_message)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25)`
 
+	RuntimeTransactionEvmParsedFieldsUpdate = `
+    UPDATE chain.runtime_transactions
+    SET
+      evm_fn_name = $3,
+      evm_fn_params = $4,
+      error_message = $5,
+      error_params = $6,
+      abi_parsed_at = CURRENT_TIMESTAMP
+    WHERE
+      runtime = $1 AND
+      tx_hash = $2`
+
 	RuntimeEventInsert = `
     INSERT INTO chain.runtime_events (runtime, round, tx_index, tx_hash, tx_eth_hash, timestamp, type, body, related_accounts, evm_log_name, evm_log_params, evm_log_signature)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`
+
+	RuntimeEventEvmParsedFieldsUpdate = `
+    UPDATE chain.runtime_events
+    SET
+      evm_log_name = $4,
+      evm_log_params = $5,
+      evm_log_signature = $6,
+      abi_parsed_at = CURRENT_TIMESTAMP
+    WHERE
+      runtime = $1 AND
+      round = $2 AND
+      tx_index = $3`
 
 	RuntimeMintInsert = `
     INSERT INTO chain.runtime_transfers (runtime, round, sender, receiver, symbol, amount)
@@ -841,7 +865,9 @@ var (
       address_preimages.address_data
     FROM chain.evm_contracts AS contracts
     LEFT JOIN chain.address_preimages AS address_preimages ON
-      address_preimages.address = contracts.contract_address
+      address_preimages.address = contracts.contract_address AND
+      address_preimages.context_identifier = 'oasis-runtime-sdk/address: secp256k1eth' AND
+      address_preimages.context_version = 0
     WHERE
       runtime = $1 AND verification_info_downloaded_at IS NULL`
 
@@ -854,4 +880,59 @@ var (
       source_files = $5
     WHERE
       runtime = $1 AND contract_address = $2`
+
+	RuntimeEvmVerifiedContractTxs = `
+    WITH abi_contracts AS (
+      SELECT 
+        runtime,
+        contract_address AS addr,
+        abi
+      FROM chain.evm_contracts
+      WHERE
+        runtime = $1 AND abi IS NOT NULL
+    )
+    SELECT 
+      abi_contracts.addr,
+      abi_contracts.abi,
+      txs.tx_hash,
+      txs.body->'data',
+      txs.error_message_raw
+    FROM abi_contracts 
+    JOIN chain.runtime_transactions as txs ON
+      txs.runtime = abi_contracts.runtime AND
+      txs.to = abi_contracts.addr AND
+      txs.method = 'evm.Call' -- note: does not include evm.Create txs; their payload is never encrypted.
+    WHERE
+      body IS NOT NULL AND
+      abi_parsed_at IS NULL
+    ORDER BY addr
+    LIMIT $2`
+
+	RuntimeEvmVerifiedContractEvents = `
+    WITH abi_contracts AS (
+      SELECT
+        runtime,
+        contract_address AS addr,
+        abi
+      FROM chain.evm_contracts
+      WHERE
+        runtime = $1 AND
+        abi IS NOT NULL
+    )
+    SELECT
+      abi_contracts.addr,
+      abi_contracts.abi,
+      evs.round,
+      evs.tx_index,
+      evs.body
+    FROM abi_contracts
+    JOIN chain.address_preimages as preimages ON
+      abi_contracts.addr = preimages.address
+    JOIN chain.runtime_events as evs ON
+      evs.type = 'evm.log' AND
+      evs.runtime = abi_contracts.runtime AND
+      decode(body->>'address', 'base64') = preimages.address_data
+    WHERE
+      evs.abi_parsed_at IS NULL
+    LIMIT $2`
 )

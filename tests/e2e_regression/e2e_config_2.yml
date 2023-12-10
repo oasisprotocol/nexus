@@ -19,6 +19,8 @@ analysis:
       stop_on_empty_queue: true
     evm_contract_code_emerald:
       stop_on_empty_queue: true
+    evm_abi_emerald:
+      stop_on_empty_queue: true
     # Some non-block analyzers are not tested in e2e regressions.
     # They are largely not worth the trouble as they do not interact with rest of the system much.
     # metadata_registry: {} # Awkward to inject mock registry responses.

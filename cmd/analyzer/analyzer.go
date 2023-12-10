@@ -20,6 +20,7 @@ import (
 	"github.com/oasisprotocol/nexus/analyzer"
 	"github.com/oasisprotocol/nexus/analyzer/aggregate_stats"
 	"github.com/oasisprotocol/nexus/analyzer/consensus"
+	"github.com/oasisprotocol/nexus/analyzer/evmabibackfill"
 	"github.com/oasisprotocol/nexus/analyzer/evmcontractcode"
 	"github.com/oasisprotocol/nexus/analyzer/evmnfts"
 	"github.com/oasisprotocol/nexus/analyzer/evmnfts/ipfsclient"
@@ -447,6 +448,16 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) { //nolint:gocyclo
 	if cfg.Analyzers.SapphireContractVerifier != nil {
 		analyzers, err = addAnalyzer(analyzers, err, syncTagSapphire, func() (A, error) {
 			return evmverifier.NewAnalyzer(cfg.Source.ChainName, common.RuntimeSapphire, cfg.Analyzers.SapphireContractVerifier.ItemBasedAnalyzerConfig, cfg.Analyzers.SapphireContractVerifier.SourcifyServerUrl, dbClient, logger)
+		})
+	}
+	if cfg.Analyzers.EmeraldAbi != nil {
+		analyzers, err = addAnalyzer(analyzers, err, syncTagEmerald, func() (A, error) {
+			return evmabibackfill.NewAnalyzer(common.RuntimeEmerald, cfg.Analyzers.EmeraldAbi.ItemBasedAnalyzerConfig, dbClient, logger)
+		})
+	}
+	if cfg.Analyzers.SapphireAbi != nil {
+		analyzers, err = addAnalyzer(analyzers, err, syncTagSapphire, func() (A, error) {
+			return evmabibackfill.NewAnalyzer(common.RuntimeSapphire, cfg.Analyzers.SapphireAbi.ItemBasedAnalyzerConfig, dbClient, logger)
 		})
 	}
 	if cfg.Analyzers.MetadataRegistry != nil {
