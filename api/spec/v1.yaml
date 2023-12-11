@@ -2734,6 +2734,11 @@ components:
           type: string
           description: The Ethereum address of this NFT instance's owner.
           example: "0xDEF1009df2d6872C214cd9148c6883893B7c4D91"
+        num_transfers:
+          type: integer
+          format: int64
+          description: |
+            The total number of transfers of this NFT instance.
         metadata_uri:
           type: string
         metadata_accessed:

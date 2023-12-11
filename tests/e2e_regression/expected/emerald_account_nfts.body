@@ -4,6 +4,7 @@
       "id": "1",
       "metadata_accessed": "UNINTERESTING",
       "metadata_uri": "ipfs://bafybeidp3o4z5bqgtofrws4tbqpeycsqs55225hci3vkivr6ytpiwml3um/",
+      "num_transfers": 1,
       "owner": "oasis1qzlqgyqp2fjla8r6rf5k3dd0k0qada9n5vyu4h3l",
       "owner_eth": "0xA3BD5b36659781AF4729c95c19003924ca3EF966",
       "token": {
@@ -23,6 +24,7 @@
       "id": "2",
       "metadata_accessed": "UNINTERESTING",
       "metadata_uri": "https://neurosciencenews.com/files/2023/10/ai-walking-robot-neurosicnes.jpg",
+      "num_transfers": 1,
       "owner": "oasis1qzlqgyqp2fjla8r6rf5k3dd0k0qada9n5vyu4h3l",
       "owner_eth": "0xA3BD5b36659781AF4729c95c19003924ca3EF966",
       "token": {

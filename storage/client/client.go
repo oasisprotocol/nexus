@@ -1651,6 +1651,7 @@ func (c *StorageClient) RuntimeEVMNFTs(ctx context.Context, limit *uint64, offse
 			&ownerAddrContextIdentifier,
 			&ownerAddrContextVersion,
 			&ownerAddrData,
+			&nft.NumTransfers,
 			&nft.MetadataUri,
 			&metadataAccessedN,
 			&nft.Metadata,
