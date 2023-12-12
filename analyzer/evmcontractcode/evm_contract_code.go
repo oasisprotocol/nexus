@@ -89,7 +89,7 @@ func (p *processor) GetItems(ctx context.Context, limit uint64) ([]*ContractCand
 }
 
 func (p *processor) ProcessItem(ctx context.Context, batch *storage.QueryBatch, candidate *ContractCandidate) error {
-	p.logger.Info("downloading code", "addr", candidate.Addr, "eth_addr", candidate.EthAddr.Hex())
+	p.logger.Info("downloading code", "addr", candidate.Addr, "eth_addr", candidate.EthAddr.Hex(), "round", candidate.DownloadRound)
 	code, err := p.source.EVMGetCode(ctx, candidate.DownloadRound, candidate.EthAddr.Bytes())
 	if err != nil {
 		// Write nothing into the DB; we'll try again later.
