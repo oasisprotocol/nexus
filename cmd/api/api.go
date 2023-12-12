@@ -130,9 +130,11 @@ func (s *Service) Start() {
 	defer s.cleanup()
 	s.logger.Info("starting api service at " + s.address)
 
+	baseRouter := chi.NewRouter()
+	// Do something useful at the root URL, rather than return 404.
+	baseRouter.Get("/", http.RedirectHandler(v1BaseURL+"/", http.StatusMovedPermanently).ServeHTTP)
 	// Routes to static files (openapi spec).
-	staticFileRouter := chi.NewRouter()
-	staticFileRouter.Route("/v1/spec", func(r chi.Router) {
+	baseRouter.Route("/v1/spec", func(r chi.Router) {
 		r.Handle("/*", http.StripPrefix("/v1/spec", specFileServer{rootDir: "api/spec"}))
 	})
 
@@ -163,7 +165,7 @@ func (s *Service) Start() {
 				api.RuntimeFromURLMiddleware(v1BaseURL),
 				api.CorsMiddleware,
 			},
-			BaseRouter:       staticFileRouter,
+			BaseRouter:       baseRouter,
 			ErrorHandlerFunc: api.HumanReadableJsonErrorHandler,
 		})
 	// Manually apply the metrics middleware; we want it to run always, and at the outermost layer.
