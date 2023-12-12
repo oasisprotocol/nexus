@@ -43,6 +43,11 @@ type SourcifyClient struct {
 	logger     *log.Logger
 }
 
+type VerifiedAddresses struct {
+	Full    []ethCommon.Address `json:"full"`
+	Partial []ethCommon.Address `json:"partial"` // See https://docs.sourcify.dev/docs/full-vs-partial-match/
+}
+
 func (s *SourcifyClient) callAPI(ctx context.Context, method string, url *url.URL) ([]byte, error) {
 	s.logger.Debug("sourcify API call", "method", method, "url", url.String())
 	req, err := http.NewRequestWithContext(ctx, method, url.String(), nil)
@@ -73,7 +78,7 @@ func (s *SourcifyClient) callAPI(ctx context.Context, method string, url *url.UR
 //
 // Note: This uses the free, public server API. If it turns out to be unreliable, we could use the repository API (vis IPFS proxy) instead, e.g.:
 // http://ipfs.default:8080/ipns/repo.sourcify.dev/contracts/full_match/23294
-func (s *SourcifyClient) GetVerifiedContractAddresses(ctx context.Context, runtime common.Runtime) ([]ethCommon.Address, error) {
+func (s *SourcifyClient) GetVerifiedContractAddresses(ctx context.Context, runtime common.Runtime) (*VerifiedAddresses, error) {
 	// Fetch verified contract addresses.
 	u := *s.serverUrl
 	u.Path = path.Join(u.Path, "files/contracts", sourcifyChains[s.chain][runtime])
@@ -83,15 +88,12 @@ func (s *SourcifyClient) GetVerifiedContractAddresses(ctx context.Context, runti
 	}
 
 	// Parse response.
-	var response struct {
-		Full []ethCommon.Address `json:"full"`
-		// XXX: Skip partial matches for now: https://docs.sourcify.dev/docs/full-vs-partial-match/
-	}
+	var response VerifiedAddresses
 	if err := json.Unmarshal(body, &response); err != nil {
 		return nil, fmt.Errorf("failed to parse verified contract addresses: %w (%s)", err, u.String())
 	}
 
-	return response.Full, nil
+	return &response, nil
 }
 
 // GetContractSourceFiles returns the source files for the given contract address that is verified on sourcify.
