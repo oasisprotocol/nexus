@@ -23,7 +23,7 @@ var (
 	//go:embed testdata/get_contract_addresses_response.json
 	mockGetContractAddressesRsponse []byte
 
-	// Source: https://sourcify.dev/server/files/23294/0x127c49aE10e3c18be057106F4d16946E3Ae43975
+	// Source: https://sourcify.dev/server/files/any/23294/0x127c49aE10e3c18be057106F4d16946E3Ae43975
 	//
 	//go:embed testdata/get_contract_source_files_response.json
 	mockGetContractSourceFilesResponse []byte
@@ -48,15 +48,26 @@ func TestGetVerifiedContractAddresses(t *testing.T) {
 	addresses, err := testClient.GetVerifiedContractAddresses(context.Background(), common.RuntimeEmerald)
 	require.NoError(err, "GetVerifiedContractAddresses")
 
-	require.Len(addresses.Full, 15, "GetVerifiedContractAddresses")
-	require.Len(addresses.Partial, 3, "GetVerifiedContractAddresses")
+	nPartial := 0
+	nFull := 0
+	for _, level := range addresses {
+		if level == sourcify.VerificationLevelPartial {
+			nPartial++
+		} else if level == sourcify.VerificationLevelFull {
+			nFull++
+		} else {
+			require.FailNowf("GetVerifiedContractAddresses", "unexpected verification level %s", level)
+		}
+	}
+	require.Equal(15, nFull)
+	require.Equal(3, nPartial)
 }
 
 func TestGetContractSourceFiles(t *testing.T) {
 	require := require.New(t)
 
 	testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if !strings.HasPrefix(r.URL.Path, "/files/42261/0xca2ad74003502af6B727e846Fab40D6cb8Da0035") {
+		if !strings.HasPrefix(r.URL.Path, "/files/any/42261/0xca2ad74003502af6B727e846Fab40D6cb8Da0035") {
 			w.WriteHeader(http.StatusNotFound)
 			return
 		}

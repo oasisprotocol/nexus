@@ -274,7 +274,12 @@ CREATE TABLE chain.evm_contracts
   compilation_metadata JSONB,
   -- Each source file is a flat JSON object with keys "name", "content", "path", as returned by Sourcify.
   source_files JSONB CHECK (jsonb_typeof(source_files)='array')
+   -- Added in 07_partial_contract_verification.up.sql
+   -- verification_level sourcify_level;
 );
+-- Allow the analyzer to quickly retrieve contracts that have not been verified.
+-- XXX: Dropped in 07_partial_contract_verification.up.sql because we only look at contracts that are verified by Sourcify.
+--      Also, the total number of contracts is low (in the 1000s), so we can afford to scan linearly.
 CREATE INDEX ix_evm_contracts_unverified ON chain.evm_contracts (runtime) WHERE verification_info_downloaded_at IS NULL;
 
 -- Used to keep track of potential contract addresses, and our progress in
