@@ -934,14 +934,15 @@ var (
       runtime = $1 AND verification_level IS NOT NULL`
 
 	RuntimeEVMVerifyContractUpsert = `
-    INSERT INTO chain.evm_contracts (runtime, contract_address, verification_info_downloaded_at, abi, compilation_metadata, source_files)
-    VALUES ($1, $2, CURRENT_TIMESTAMP, $3, $4, $5)
+    INSERT INTO chain.evm_contracts (runtime, contract_address, verification_info_downloaded_at, abi, compilation_metadata, source_files, verification_level)
+    VALUES ($1, $2, CURRENT_TIMESTAMP, $3, $4, $5, $6)
     ON CONFLICT (runtime, contract_address) DO UPDATE
     SET
       verification_info_downloaded_at = CURRENT_TIMESTAMP,
       abi = EXCLUDED.abi,
       compilation_metadata = EXCLUDED.compilation_metadata,
-      source_files = EXCLUDED.source_files`
+      source_files = EXCLUDED.source_files,
+      verification_level = EXCLUDED.verification_level`
 
 	RuntimeEvmVerifiedContractTxs = `
     WITH abi_contracts AS (
