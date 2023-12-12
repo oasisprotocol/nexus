@@ -145,10 +145,11 @@ func (p *processor) getVerifiableContracts(ctx context.Context) ([]*unverifiedCo
 	}
 
 	// Query Sourcify for list of all verified contracts.
-	addresses, err := p.source.GetVerifiedContractAddresses(ctx, p.runtime)
+	allVerified, err := p.source.GetVerifiedContractAddresses(ctx, p.runtime)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get verified contract addresses: %w", err)
 	}
+	addresses := allVerified.Full
 	p.logger.Debug("got verified contract addresses", "addresses", addresses)
 	if len(addresses) == 0 {
 		p.logger.Debug("no verified contracts found in Sourcify")
