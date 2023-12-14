@@ -138,7 +138,7 @@ func (a *itemBasedAnalyzer[Item]) processBatch(ctx context.Context) (int, error)
 			batches[idx] = &storage.QueryBatch{} // initialize here to avoid nil entries.
 			batch := storage.QueryBatch{}
 			if err := a.processor.ProcessItem(batchCtx, &batch, item); err != nil {
-				a.logger.Error("failed to process item", "item", item)
+				a.logger.Error("failed to process item", "item", item, "err", err)
 				errors[idx] = err
 				return
 			}
