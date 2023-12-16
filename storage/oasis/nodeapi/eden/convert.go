@@ -416,6 +416,11 @@ func convertEvent(e txResultsEden.Event) nodeapi.Event {
 				RawBody: common.TryAsJSON(e.RootHash.Finalized),
 				Type:    apiTypes.ConsensusEventTypeRoothashFinalized,
 			}
+		case e.RootHash.InMsgProcessed != nil:
+			ret = nodeapi.Event{
+				RawBody: common.TryAsJSON(e.RootHash.InMsgProcessed),
+				Type:    apiTypes.ConsensusEventTypeRoothashInMsgProcessed,
+			}
 		}
 		ret.Height = e.RootHash.Height
 		ret.TxHash = e.RootHash.TxHash
