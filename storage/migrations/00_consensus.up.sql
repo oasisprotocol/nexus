@@ -72,7 +72,7 @@ CREATE TABLE chain.events
   tx_block UINT63 NOT NULL,
   tx_index  UINT31,
 
-  type    TEXT NOT NULL,  -- Enum with many values, see https://github.com/oasisprotocol/nexus/blob/89b68717205809b491d7926533d096444611bd6b/analyzer/api.go#L171-L171
+  type    TEXT NOT NULL,  -- Enum with many values, see ConsensusEventType in api/spec/v1.yaml.
   body    JSONB,
   tx_hash   HEX64, -- could be fetched from `transactions` table; denormalized for efficiency
   related_accounts TEXT[],
