@@ -14,6 +14,7 @@ import (
 	"github.com/oasisprotocol/nexus/analyzer/queries"
 	evm "github.com/oasisprotocol/nexus/analyzer/runtime/evm"
 	uncategorized "github.com/oasisprotocol/nexus/analyzer/uncategorized"
+	apiTypes "github.com/oasisprotocol/nexus/api/v1/types"
 	"github.com/oasisprotocol/nexus/common"
 	"github.com/oasisprotocol/nexus/config"
 	"github.com/oasisprotocol/nexus/log"
@@ -399,9 +400,21 @@ func (m *processor) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 			m.runtime,
 			key.TokenAddress,
 			key.TokenID,
-			possibleNFT.NewOwner,
-			possibleNFT.NumTransfers,
 			data.Header.Round,
 		)
+		if possibleNFT.NumTransfers > 0 {
+			var newOwner *apiTypes.Address
+			if possibleNFT.NewOwner != "" {
+				newOwner = &possibleNFT.NewOwner
+			}
+			batch.Queue(
+				queries.RuntimeEVMNFTUpdateTransfer,
+				m.runtime,
+				key.TokenAddress,
+				key.TokenID,
+				newOwner,
+				possibleNFT.NumTransfers,
+			)
+		}
 	}
 }

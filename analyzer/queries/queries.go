@@ -715,13 +715,19 @@ var (
 
 	RuntimeEVMNFTUpsert = `
     INSERT INTO chain.evm_nfts AS old
-      (runtime, token_address, nft_id, owner, num_transfers, last_want_download_round)
+      (runtime, token_address, nft_id, num_transfers, last_want_download_round)
     VALUES
-      ($1, $2, $3, $4, $5, $6)
-    ON CONFLICT (runtime, token_address, nft_id) DO UPDATE
-    SET
-      owner = COALESCE(excluded.owner, old.owner),
-      num_transfers = old.num_transfers + excluded.num_transfers`
+      ($1, $2, $3, 0, $4)
+    ON CONFLICT (runtime, token_address, nft_id) DO NOTHING`
+
+	RuntimeEVMNFTUpdateTransfer = `
+    UPDATE chain.evm_nfts SET
+      owner = $4,
+      num_transfers = num_transfers + $5
+    WHERE
+      runtime = $1 AND
+      token_address = $2 AND
+      nft_id = $3`
 
 	RuntimeEVMNFTAnalysisStale = `
     SELECT
