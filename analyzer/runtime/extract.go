@@ -121,7 +121,11 @@ type NFTKey struct {
 }
 
 type PossibleNFT struct {
-	NewOwner     *apiTypes.Address
+	// NewOwner has the latest owner if .NumTransfers is more than zero. If
+	// the last transfer burned this NFT instance, then it's the empty string.
+	NewOwner apiTypes.Address
+	// NumTransfers is how many times we saw it transferred. If it's more than
+	// zero, the new owner is in .NewOwner.
 	NumTransfers int
 }
 
@@ -270,7 +274,7 @@ func registerNFTExist(nftChanges map[NFTKey]*PossibleNFT, contractAddr apiTypes.
 func registerNFTTransfer(nftChanges map[NFTKey]*PossibleNFT, contractAddr apiTypes.Address, tokenID *big.Int, newOwner apiTypes.Address) {
 	possibleNFT := findPossibleNFT(nftChanges, contractAddr, tokenID)
 	possibleNFT.NumTransfers++
-	possibleNFT.NewOwner = &newOwner
+	possibleNFT.NewOwner = newOwner
 }
 
 func findTokenChange(tokenChanges map[TokenChangeKey]*big.Int, contractAddr apiTypes.Address, accountAddr apiTypes.Address) *big.Int {
