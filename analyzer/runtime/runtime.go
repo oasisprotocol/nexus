@@ -404,7 +404,7 @@ func (m *processor) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 		)
 		if possibleNFT.NumTransfers > 0 {
 			var newOwner *apiTypes.Address
-			if possibleNFT.NewOwner != "" {
+			if !possibleNFT.Burned {
 				newOwner = &possibleNFT.NewOwner
 			}
 			batch.Queue(
@@ -412,8 +412,8 @@ func (m *processor) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 				m.runtime,
 				key.TokenAddress,
 				key.TokenID,
-				newOwner,
 				possibleNFT.NumTransfers,
+				newOwner,
 			)
 		}
 	}

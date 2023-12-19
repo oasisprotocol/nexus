@@ -121,12 +121,14 @@ type NFTKey struct {
 }
 
 type PossibleNFT struct {
-	// NewOwner has the latest owner if .NumTransfers is more than zero. If
-	// the last transfer burned this NFT instance, then it's the empty string.
-	NewOwner apiTypes.Address
 	// NumTransfers is how many times we saw it transferred. If it's more than
-	// zero, the new owner is in .NewOwner.
+	// zero, Burned or NewOwner will be set.
 	NumTransfers int
+	// Burned is true if NumTransfers is more than zero and the NFT instance
+	// was burned.
+	Burned bool
+	// NewOwner has the latest owner if NumTransfers is more than zero.
+	NewOwner apiTypes.Address
 }
 
 type BlockData struct {
@@ -271,9 +273,10 @@ func registerNFTExist(nftChanges map[NFTKey]*PossibleNFT, contractAddr apiTypes.
 	findPossibleNFT(nftChanges, contractAddr, tokenID)
 }
 
-func registerNFTTransfer(nftChanges map[NFTKey]*PossibleNFT, contractAddr apiTypes.Address, tokenID *big.Int, newOwner apiTypes.Address) {
+func registerNFTTransfer(nftChanges map[NFTKey]*PossibleNFT, contractAddr apiTypes.Address, tokenID *big.Int, burned bool, newOwner apiTypes.Address) {
 	possibleNFT := findPossibleNFT(nftChanges, contractAddr, tokenID)
 	possibleNFT.NumTransfers++
+	possibleNFT.Burned = burned
 	possibleNFT.NewOwner = newOwner
 }
 
@@ -1006,7 +1009,7 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 					}
 					registerNFTExist(blockData.PossibleNFTs, eventAddr, tokenID)
 					// Mints, burns, and zero-value transfers all count as transfers.
-					registerNFTTransfer(blockData.PossibleNFTs, eventAddr, tokenID, toAddr)
+					registerNFTTransfer(blockData.PossibleNFTs, eventAddr, tokenID, toZero, toAddr)
 					eventData.EvmLogName = evmabi.ERC721.Events["Transfer"].Name
 					eventData.EvmLogSignature = ethCommon.BytesToHash(event.Topics[0])
 					eventData.EvmLogParams = []*apiTypes.EvmEventParam{
