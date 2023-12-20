@@ -722,8 +722,8 @@ var (
 
 	RuntimeEVMNFTUpdateTransfer = `
     UPDATE chain.evm_nfts SET
-      owner = $4,
-      num_transfers = num_transfers + $5
+      num_transfers = num_transfers + $4,
+      owner = $5
     WHERE
       runtime = $1 AND
       token_address = $2 AND
