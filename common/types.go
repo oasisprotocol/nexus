@@ -20,6 +20,55 @@ func NewBigInt(v int64) BigInt {
 	return BigInt{*big.NewInt(v)}
 }
 
+func (b BigInt) Plus(other BigInt) BigInt {
+	result := big.Int{}
+	result.Set(&b.Int) // creates a copy of b.Int
+	result.Add(&result, &other.Int)
+	return BigInt{result}
+}
+
+func (b BigInt) Times(other BigInt) BigInt {
+	result := big.Int{}
+	result.Set(&b.Int) // creates a copy of b.Int
+	result.Mul(&result, &other.Int)
+	return BigInt{result}
+}
+
+func (b BigInt) MarshalText() ([]byte, error) {
+	return b.Int.MarshalText()
+}
+
+func (b *BigInt) UnmarshalText(text []byte) error {
+	return b.Int.UnmarshalText(text)
+}
+
+// Used by the `cbor` library.
+func (b BigInt) MarshalBinary() ([]byte, error) {
+	var sign byte = 1
+	if b.Int.Sign() == -1 {
+		sign = 255
+	}
+	return append([]byte{sign}, b.Bytes()...), nil // big.Int only supports serializing the abs value
+}
+
+func (b *BigInt) UnmarshalBinary(data []byte) error {
+	if len(data) == 0 {
+		return errors.New("empty data")
+	}
+	var inner big.Int
+	inner.SetBytes(data[1:])
+	switch data[0] {
+	case 1:
+		// do nothing
+	case 255:
+		inner.Neg(&inner)
+	default:
+		return fmt.Errorf("invalid sign byte: %d", data[0])
+	}
+	b.Int = inner
+	return nil
+}
+
 func (b BigInt) MarshalJSON() ([]byte, error) {
 	t, err := b.MarshalText()
 	if err != nil {
