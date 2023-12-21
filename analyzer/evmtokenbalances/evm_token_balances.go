@@ -237,7 +237,7 @@ func (p *processor) ProcessItem(ctx context.Context, batch *storage.QueryBatch, 
 				)
 			}
 		} else {
-			p.logger.Debug("EVM token balance: nothing to correct", "token_addr", staleTokenBalance.TokenAddr, "account_addr", staleTokenBalance.AccountAddr, "balance", balanceData.Balance)
+			p.logger.Debug("EVM token balance: nothing to correct", "token_addr", staleTokenBalance.TokenAddr, "account_addr", staleTokenBalance.AccountAddr, "balance", staleTokenBalance.Balance.String())
 		}
 	}
 	batch.Queue(queries.RuntimeEVMTokenBalanceAnalysisUpdate,
