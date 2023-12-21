@@ -4,7 +4,10 @@ import (
 	"math/big"
 
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/accounts"
+	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
+	"golang.org/x/exp/slices"
 
+	"github.com/oasisprotocol/nexus/analyzer"
 	"github.com/oasisprotocol/nexus/analyzer/queries"
 	"github.com/oasisprotocol/nexus/storage"
 )
@@ -32,6 +35,13 @@ func (m *processor) queueAccountsEvents(batch *storage.QueryBatch, blockData *Bl
 	}
 }
 
+// Accounts whose balance changes in most blocks.
+// We don't update their balance during fast-sync, or else the db sees lots of deadlocks.
+var veryHighTrafficAccounts = []sdkTypes.Address{
+	sdkTypes.NewAddressFromBech32("oasis1qz78phkdan64g040cvqvqpwkplfqf6tj6uwcsh30"), // common pool
+	sdkTypes.NewAddressFromBech32("oasis1qp3r8hgsnphajmfzfuaa8fhjag7e0yt35cjxq0u4"), // fee accumulator
+}
+
 func (m *processor) queueMint(batch *storage.QueryBatch, round uint64, e accounts.MintEvent) {
 	// Record the event.
 	batch.Queue(
@@ -43,13 +53,15 @@ func (m *processor) queueMint(batch *storage.QueryBatch, round uint64, e account
 		e.Amount.Amount.String(),
 	)
 	// Increase minter's balance.
-	batch.Queue(
-		queries.RuntimeNativeBalanceUpdate,
-		m.runtime,
-		e.Owner.String(),
-		m.StringifyDenomination(e.Amount.Denomination),
-		e.Amount.Amount.String(),
-	)
+	if !(m.mode == analyzer.FastSyncMode && slices.Contains(veryHighTrafficAccounts, e.Owner)) {
+		batch.Queue(
+			queries.RuntimeNativeBalanceUpsert,
+			m.runtime,
+			e.Owner.String(),
+			m.StringifyDenomination(e.Amount.Denomination),
+			e.Amount.Amount.String(),
+		)
+	}
 }
 
 func (m *processor) queueBurn(batch *storage.QueryBatch, round uint64, e accounts.BurnEvent) {
@@ -63,13 +75,15 @@ func (m *processor) queueBurn(batch *storage.QueryBatch, round uint64, e account
 		e.Amount.Amount.String(),
 	)
 	// Decrease burner's balance.
-	batch.Queue(
-		queries.RuntimeNativeBalanceUpdate,
-		m.runtime,
-		e.Owner.String(),
-		m.StringifyDenomination(e.Amount.Denomination),
-		(&big.Int{}).Neg(e.Amount.Amount.ToBigInt()).String(),
-	)
+	if !(m.mode == analyzer.FastSyncMode && slices.Contains(veryHighTrafficAccounts, e.Owner)) {
+		batch.Queue(
+			queries.RuntimeNativeBalanceUpsert,
+			m.runtime,
+			e.Owner.String(),
+			m.StringifyDenomination(e.Amount.Denomination),
+			(&big.Int{}).Neg(e.Amount.Amount.ToBigInt()).String(),
+		)
+	}
 }
 
 func (m *processor) queueTransfer(batch *storage.QueryBatch, round uint64, e accounts.TransferEvent) {
@@ -84,19 +98,23 @@ func (m *processor) queueTransfer(batch *storage.QueryBatch, round uint64, e acc
 		e.Amount.Amount.String(),
 	)
 	// Increase receiver's balance.
-	batch.Queue(
-		queries.RuntimeNativeBalanceUpdate,
-		m.runtime,
-		e.To.String(),
-		m.StringifyDenomination(e.Amount.Denomination),
-		e.Amount.Amount.String(),
-	)
+	if !(m.mode == analyzer.FastSyncMode && slices.Contains(veryHighTrafficAccounts, e.To)) {
+		batch.Queue(
+			queries.RuntimeNativeBalanceUpsert,
+			m.runtime,
+			e.To.String(),
+			m.StringifyDenomination(e.Amount.Denomination),
+			e.Amount.Amount.String(),
+		)
+	}
 	// Decrease sender's balance.
-	batch.Queue(
-		queries.RuntimeNativeBalanceUpdate,
-		m.runtime,
-		e.From.String(),
-		m.StringifyDenomination(e.Amount.Denomination),
-		(&big.Int{}).Neg(e.Amount.Amount.ToBigInt()).String(),
-	)
+	if !(m.mode == analyzer.FastSyncMode && slices.Contains(veryHighTrafficAccounts, e.From)) {
+		batch.Queue(
+			queries.RuntimeNativeBalanceUpsert,
+			m.runtime,
+			e.From.String(),
+			m.StringifyDenomination(e.Amount.Denomination),
+			(&big.Int{}).Neg(e.Amount.Amount.ToBigInt()).String(),
+		)
+	}
 }

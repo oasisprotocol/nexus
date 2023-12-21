@@ -107,6 +107,25 @@ func (m *processor) PreWork(ctx context.Context) error {
 	return nil
 }
 
+func (m *processor) UpdateHighTrafficAccounts(ctx context.Context, batch *storage.QueryBatch, height int64) error {
+	for _, addr := range veryHighTrafficAccounts {
+		balance, err := m.source.GetNativeBalance(ctx, uint64(height), nodeapi.Address(addr))
+		if err != nil {
+			return fmt.Errorf("failed to get native balance for %s: %w", addr, err)
+		}
+
+		batch.Queue(
+			queries.RuntimeNativeBalanceAbsoluteUpsert,
+			m.runtime,
+			addr,
+			m.nativeTokenSymbol(),
+			balance.String(),
+		)
+	}
+
+	return nil
+}
+
 // Implements block.BlockProcessor interface.
 func (m *processor) FinalizeFastSync(ctx context.Context, lastFastSyncHeight int64) error {
 	batch := &storage.QueryBatch{}
@@ -117,6 +136,12 @@ func (m *processor) FinalizeFastSync(ctx context.Context, lastFastSyncHeight int
 
 	m.logger.Info("recomputing gas_for_calling for every contract")
 	batch.Queue(queries.RuntimeAccountGasForCallingRecompute, m.runtime, lastFastSyncHeight)
+
+	// Re-fetch the balance for high-traffic accounts. (Those are ignored during fast-sync)
+	m.logger.Info("fetching current balance of high-traffic accounts")
+	if err := m.UpdateHighTrafficAccounts(ctx, batch, lastFastSyncHeight); err != nil {
+		return err
+	}
 
 	// Update tables where fast-sync was not updating their columns in-place, and was instead writing
 	// a log of updates to a temporary table.
@@ -375,7 +400,7 @@ func (m *processor) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 		// Update (dead-reckon) the DB balance only if it's actually changed.
 		if change != big.NewInt(0) && m.mode != analyzer.FastSyncMode {
 			if key.TokenAddress == evm.NativeRuntimeTokenAddress {
-				batch.Queue(queries.RuntimeNativeBalanceUpdate, m.runtime, key.AccountAddress, m.nativeTokenSymbol(), change.String())
+				batch.Queue(queries.RuntimeNativeBalanceUpsert, m.runtime, key.AccountAddress, m.nativeTokenSymbol(), change.String())
 			} else {
 				batch.Queue(queries.RuntimeEVMTokenBalanceUpdate, m.runtime, key.TokenAddress, key.AccountAddress, change.String())
 			}
