@@ -4,9 +4,9 @@
   "eth_contract_addr": "0x21C718C22D52d0F3a789b752D4c2fD5908a8A733",
   "is_verified": false,
   "name": "Wrapped ROSE",
-  "num_holders": 131,
-  "num_transfers": 2113,
+  "num_holders": 14,
+  "num_transfers": 48,
   "symbol": "wROSE",
-  "total_supply": "134273688211406143160770252",
+  "total_supply": "11110528749907675559457292",
   "type": "ERC20"
 }

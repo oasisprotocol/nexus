@@ -2,6 +2,22 @@
   "is_total_count_clipped": false,
   "proposals": [
     {
+      "closes_at": 27815,
+      "created_at": 27647,
+      "deposit": "10000000000000",
+      "epoch": 28017,
+      "handler": "mainnet-upgrade-2023-11-29",
+      "id": 3,
+      "invalid_votes": "0",
+      "state": "passed",
+      "submitter": "oasis1qqxc9fnn8fftwfexrn98k52s9lvwu33d3c2pksal",
+      "target": {
+        "consensus_protocol": "7.0.0",
+        "runtime_committee_protocol": "5.0.0",
+        "runtime_host_protocol": "5.1.0"
+      }
+    },
+    {
       "closes_at": 13152,
       "created_at": 12984,
       "deposit": "10000000000000",
@@ -34,5 +50,5 @@
       }
     }
   ],
-  "total_count": 2
+  "total_count": 3
 }

@@ -1,37 +1,17 @@
 {
-  "entity_id": "WazI78lMcmjyCH5+5RKkkfOTUR+XheHIohlqMu+a9As=",
+  "entity_id": "9sAhd+Wi6tG5nAr3LwXD0y9mUKLYqfAbS2+7SZdNHB4=",
   "is_total_count_clipped": false,
   "nodes": [
     {
-      "consensus_pubkey": "1TDdhVK+R8N6KYNAvGFV4LeFQfp06+sjJI7SgTsN35c=",
-      "entity_id": "WazI78lMcmjyCH5+5RKkkfOTUR+XheHIohlqMu+a9As=",
-      "expiration": 13405,
-      "id": "LuIdtuiEPLBJefXVieVruy4kf04jjp5CBJFWVes0ZuE=",
-      "p2p_pubkey": "W/iGCS2wHYqxPjUB+wK+q8DFhymLMIxbSPEBD1QkO4Q=",
-      "roles": "compute",
-      "tls_next_pubkey": "7VvUfIcPciWeXNZyqQz2UcXSVQoBxIRm4cghFj1e5Fo=",
-      "tls_pubkey": "IcGZnvXruY0+y5AVzFzXHtwP2Jet0HXof/N4rrTdIGQ="
-    },
-    {
-      "consensus_pubkey": "V8PF2bY+1EKjgk/MQxtxdPyF2Kj66rCVf6VNHXCSG1w=",
-      "entity_id": "WazI78lMcmjyCH5+5RKkkfOTUR+XheHIohlqMu+a9As=",
-      "expiration": 13405,
-      "id": "uvPTOOyC+Kb+Hl3Pw34S3/YC9IerAdZncyW08LIaTtw=",
-      "p2p_pubkey": "YrSq7bhag+QhX4DE2uzTUMmv7EfZX1ktA6IYhZgVlrQ=",
-      "roles": "compute",
-      "tls_next_pubkey": "XQCOx+WBCsTDef96G2xCpARURZSuDijcrtvZ8k6nrMA=",
-      "tls_pubkey": "Mtq/fnIqB1DGzwioOOFzMz01pvTOj0zCxXyo7kvV0vI="
-    },
-    {
-      "consensus_pubkey": "Wi2puzTqR/ss2O1iUZRRRPIHwsEQQ4L6zGxbsIvcqjw=",
-      "entity_id": "WazI78lMcmjyCH5+5RKkkfOTUR+XheHIohlqMu+a9As=",
-      "expiration": 13405,
-      "id": "xHvUU4I+dQ4oKvlfe4IXoKi8OT8vdAgfszQ5ciPL6HI=",
-      "p2p_pubkey": "L9njkTv8GrEPbPn2TxdNTSFRmF3a3cDggii29VGwXvE=",
+      "consensus_pubkey": "6ONtIyX2bgz7QguQ438LrZhKllVP5nop3ISP07SRcKE=",
+      "entity_id": "9sAhd+Wi6tG5nAr3LwXD0y9mUKLYqfAbS2+7SZdNHB4=",
+      "expiration": 28020,
+      "id": "6wbL5/OxvFGxi55o7AxcwKmfjXbXGC1hw4lfnEZxBXA=",
+      "p2p_pubkey": "dahESDdpsnCfsgfytNBdHv41i5WB09zZ5HmONAw4hts=",
       "roles": "validator",
-      "tls_next_pubkey": "52ZmKed7r9RRIt2I+ZjgFlG64Zi5/FtG8ph9LS+S1zQ=",
-      "tls_pubkey": "WA2bFtWds2zjRDk6CfofWuuiL5VTGlL+Q94h2F+z6No="
+      "tls_next_pubkey": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+      "tls_pubkey": "NG0yM75XO8ys4HPgT+fKZkoIrz15oufwUp33RxQAKuU="
     }
   ],
-  "total_count": 3
+  "total_count": 1
 }
