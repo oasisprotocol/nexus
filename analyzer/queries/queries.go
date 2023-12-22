@@ -140,17 +140,11 @@ var (
       SELECT COALESCE(max(height), -1) as height
       FROM analysis.processed_blocks
       WHERE analyzer = $1
-    ),
-    gaps AS (
-      SELECT h
-      FROM highest_encountered_block, generate_series(GREATEST(1, $2::bigint), LEAST(highest_encountered_block.height, $3::bigint)) AS h
-      EXCEPT
-      SELECT height FROM analysis.processed_blocks WHERE analyzer = $1
     )
 
     INSERT INTO analysis.processed_blocks (analyzer, height, locked_time)
     SELECT $1, h, '-infinity'::timestamptz
-    FROM gaps
+    FROM highest_encountered_block, generate_series(GREATEST(1, $2::bigint), LEAST(highest_encountered_block.height, $3::bigint)) AS h
     ON CONFLICT (analyzer, height) DO NOTHING`
 
 	IndexingProgress = `
