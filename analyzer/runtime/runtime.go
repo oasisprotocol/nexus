@@ -31,7 +31,7 @@ type processor struct {
 	source          nodeapi.RuntimeApiLite
 	target          storage.TargetStorage
 	logger          *log.Logger
-	metrics         metrics.StorageMetrics
+	metrics         metrics.AnalysisMetrics
 }
 
 var _ block.BlockProcessor = (*processor)(nil)
@@ -55,7 +55,7 @@ func NewRuntimeAnalyzer(
 		source:          sourceClient,
 		target:          target,
 		logger:          logger.With("analyzer", runtime),
-		metrics:         metrics.NewDefaultStorageMetrics(string(runtime)),
+		metrics:         metrics.NewDefaultAnalysisMetrics(string(runtime)),
 	}
 
 	return block.NewAnalyzer(blockRange, batchSize, mode, string(runtime), processor, target, logger)
@@ -137,6 +137,7 @@ func (m *processor) FinalizeFastSync(ctx context.Context, lastFastSyncHeight int
 // Implements BlockProcessor interface.
 func (m *processor) ProcessBlock(ctx context.Context, round uint64) error {
 	// Fetch all data.
+	fetchTimer := m.metrics.BlockFetchLatencies()
 	blockHeader, err := m.source.GetBlockHeader(ctx, round)
 	if err != nil {
 		if strings.Contains(err.Error(), "roothash: block not found") {
@@ -152,8 +153,10 @@ func (m *processor) ProcessBlock(ctx context.Context, round uint64) error {
 	if err != nil {
 		return err
 	}
+	fetchTimer.ObserveDuration() // We make no observation in case of a data fetch error; those timings are misleading.
 
 	// Preprocess data.
+	analysisTimer := m.metrics.BlockAnalysisLatencies()
 	blockData, err := ExtractRound(*blockHeader, transactionsWithResults, rawEvents, m.logger)
 	if err != nil {
 		return err
@@ -163,6 +166,7 @@ func (m *processor) ProcessBlock(ctx context.Context, round uint64) error {
 	batch := &storage.QueryBatch{}
 	m.queueDbUpdates(batch, blockData)
 	m.queueAccountsEvents(batch, blockData)
+	analysisTimer.ObserveDuration()
 
 	// Update indexing progress.
 	batch.Queue(

@@ -25,7 +25,7 @@ func NewFileRuntimeApiLite(runtime common.Runtime, cacheDir string, runtimeApi n
 	db, err := OpenKVStore(
 		log.NewDefaultLogger("cached-node-api").With("runtime", runtime),
 		cacheDir,
-		common.Ptr(metrics.NewDefaultStorageMetrics(string(runtime))),
+		common.Ptr(metrics.NewDefaultAnalysisMetrics(string(runtime))),
 	)
 	if err != nil {
 		return nil, err

@@ -65,7 +65,7 @@ type processor struct {
 	network sdkConfig.Network
 	target  storage.TargetStorage
 	logger  *log.Logger
-	metrics metrics.StorageMetrics
+	metrics metrics.AnalysisMetrics
 }
 
 var _ block.BlockProcessor = (*processor)(nil)
@@ -79,7 +79,7 @@ func NewAnalyzer(blockRange config.BlockRange, batchSize uint64, mode analyzer.B
 		network: network,
 		target:  target,
 		logger:  logger.With("analyzer", consensusAnalyzerName),
-		metrics: metrics.NewDefaultStorageMetrics(consensusAnalyzerName),
+		metrics: metrics.NewDefaultAnalysisMetrics(consensusAnalyzerName),
 	}
 
 	return block.NewAnalyzer(blockRange, batchSize, mode, consensusAnalyzerName, processor, target, logger)
@@ -220,24 +220,8 @@ func (m *processor) processGenesis(ctx context.Context, genesisDoc *genesis.Docu
 	return nil
 }
 
-// Implements BlockProcessor interface.
-func (m *processor) ProcessBlock(ctx context.Context, uheight uint64) error {
-	if uheight > math.MaxInt64 {
-		return fmt.Errorf("height %d is too large", uheight)
-	}
-	height := int64(uheight)
-
-	// Fetch all data.
-	data, err := fetchAllData(ctx, m.source, m.network, height, m.mode == analyzer.FastSyncMode)
-	if err != nil {
-		if strings.Contains(err.Error(), fmt.Sprintf("%d must be less than or equal to the current blockchain height", height)) {
-			return analyzer.ErrOutOfRange
-		}
-		return err
-	}
-
-	// Process data, prepare updates.
-	batch := &storage.QueryBatch{}
+// Expands `batch` with DB statements that reflect the contents of `data`.
+func (m *processor) queueDbUpdates(batch *storage.QueryBatch, data allData) error {
 	for _, f := range []func(*storage.QueryBatch, *consensusBlockData) error{
 		m.queueBlockInserts,
 		m.queueEpochInserts,
@@ -297,6 +281,36 @@ func (m *processor) ProcessBlock(ctx context.Context, uheight uint64) error {
 	}
 
 	if err := m.queueRootHashEventInserts(batch, data.RootHashData); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Implements BlockProcessor interface.
+func (m *processor) ProcessBlock(ctx context.Context, uheight uint64) error {
+	if uheight > math.MaxInt64 {
+		return fmt.Errorf("height %d is too large", uheight)
+	}
+	height := int64(uheight)
+
+	// Fetch all data.
+	fetchTimer := m.metrics.BlockFetchLatencies()
+	data, err := fetchAllData(ctx, m.source, m.network, height, m.mode == analyzer.FastSyncMode)
+	if err != nil {
+		if strings.Contains(err.Error(), fmt.Sprintf("%d must be less than or equal to the current blockchain height", height)) {
+			return analyzer.ErrOutOfRange
+		}
+		return err
+	}
+	fetchTimer.ObserveDuration() // We make no observation in case of a data fetch error; those timings are misleading.
+
+	// Process data, prepare updates.
+	analysisTimer := m.metrics.BlockAnalysisLatencies()
+	batch := &storage.QueryBatch{}
+	err = m.queueDbUpdates(batch, *data)
+	analysisTimer.ObserveDuration()
+	if err != nil {
 		return err
 	}
 

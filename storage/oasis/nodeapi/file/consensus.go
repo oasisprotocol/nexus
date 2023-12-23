@@ -31,7 +31,7 @@ func NewFileConsensusApiLite(cacheDir string, consensusApi nodeapi.ConsensusApiL
 	db, err := OpenKVStore(
 		log.NewDefaultLogger("cached-node-api").With("runtime", "consensus"),
 		cacheDir,
-		common.Ptr(metrics.NewDefaultStorageMetrics("consensus")),
+		common.Ptr(metrics.NewDefaultAnalysisMetrics("consensus")),
 	)
 	if err != nil {
 		return nil, err
