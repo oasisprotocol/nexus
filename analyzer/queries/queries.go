@@ -502,10 +502,14 @@ var (
       VALUES ($1, $2, $3, $4)
     ON CONFLICT DO NOTHING`
 
-	RuntimeEVMContractInsert = `
+	RuntimeEVMContractCreationUpsert = `
     INSERT INTO chain.evm_contracts
       (runtime, contract_address, creation_tx, creation_bytecode)
-    VALUES ($1, $2, $3, $4)`
+    VALUES ($1, $2, $3, $4)
+    ON CONFLICT (runtime, contract_address) DO UPDATE
+    SET
+      creation_tx = $3,
+      creation_bytecode = $4`
 
 	RuntimeEVMContractRuntimeBytecodeUpsert = `
     INSERT INTO chain.evm_contracts(runtime, contract_address, runtime_bytecode)

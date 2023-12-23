@@ -293,7 +293,7 @@ func (m *processor) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 
 		if transactionData.EVMContract != nil {
 			batch.Queue(
-				queries.RuntimeEVMContractInsert,
+				queries.RuntimeEVMContractCreationUpsert,
 				m.runtime,
 				transactionData.EVMContract.Address,
 				transactionData.EVMContract.CreationTx,
