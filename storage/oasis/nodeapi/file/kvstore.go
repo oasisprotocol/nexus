@@ -77,6 +77,12 @@ func (s *pogrebKVStore) Put(key []byte, value []byte) error {
 
 // Close implements KVStore.
 func (s pogrebKVStore) Close() error {
+	if !s.isInitialized() {
+		// If pogreb is in the middle of recovery in the background, it will
+		// die and have to start over next time.
+		s.logger.Warn("skipping closing uninitialized KVStore")
+		return nil
+	}
 	s.logger.Info("closing KVStore", "path", s.path)
 	return s.db.Close()
 }
