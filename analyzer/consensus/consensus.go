@@ -1088,6 +1088,7 @@ func (m *processor) extractEventData(event nodeapi.Event) parsedEvent {
 		eventData.relatedRuntime = RuntimeFromID(event.RoothashExecutorCommitted.RuntimeID, m.network)
 		eventData.relatedRuntimeRound = &event.RoothashExecutorCommitted.Round
 		if event.RoothashExecutorCommitted.NodeID != nil {
+			// TODO: preimage?
 			nodeAddr := staking.NewAddress(*event.RoothashExecutorCommitted.NodeID)
 			eventData.relatedAddresses = []staking.Address{nodeAddr}
 		}
