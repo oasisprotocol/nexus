@@ -320,7 +320,7 @@ func convertEvent(e txResultsCobalt.Event) nodeapi.Event {
 		case e.RootHash.ExecutorCommitted != nil:
 			ret = nodeapi.Event{
 				RoothashExecutorCommitted: &nodeapi.ExecutorCommittedEvent{
-					NodeID: nil, // Not available in Cobalt.
+					NodeID: &e.RootHash.ExecutorCommitted.Commit.Signature.PublicKey,
 				},
 				RawBody: common.TryAsJSON(e.RootHash.ExecutorCommitted),
 				Type:    apiTypes.ConsensusEventTypeRoothashExecutorCommitted,
