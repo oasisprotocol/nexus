@@ -335,6 +335,11 @@ func convertEvent(e txResultsCobalt.Event) nodeapi.Event {
 				RawBody: common.TryAsJSON(e.RootHash.Finalized),
 				Type:    apiTypes.ConsensusEventTypeRoothashFinalized,
 			}
+		case e.RootHash.Message != nil:
+			ret = nodeapi.Event{
+				RawBody: common.TryAsJSON(e.RootHash.Message),
+				Type:    apiTypes.ConsensusEventTypeRoothashMessage,
+			}
 		}
 		ret.Height = e.RootHash.Height
 		ret.TxHash = e.RootHash.TxHash

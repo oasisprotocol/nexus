@@ -1557,6 +1557,10 @@ components:
         - roothash.execution_discrepancy
         - roothash.executor_committed
         - roothash.finalized
+        # Note: roothash.message is no longer used as an event since Damask.
+        # Message results are now in RoundResults.
+        # The MessageEvent structure remains and is used in RoundResults.
+        - roothash.message
         - staking.allowance_change
         - staking.burn
         - staking.escrow.add
