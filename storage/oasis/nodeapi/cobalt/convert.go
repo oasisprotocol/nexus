@@ -3,6 +3,7 @@ package cobalt
 import (
 	"strings"
 
+	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/hash"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
 	"github.com/oasisprotocol/oasis-core/go/common/quantity"
@@ -28,6 +29,7 @@ import (
 	genesisCobalt "github.com/oasisprotocol/nexus/coreapi/v21.1.1/genesis/api"
 	governanceCobalt "github.com/oasisprotocol/nexus/coreapi/v21.1.1/governance/api"
 	registryCobalt "github.com/oasisprotocol/nexus/coreapi/v21.1.1/registry/api"
+	commitmentCobalt "github.com/oasisprotocol/nexus/coreapi/v21.1.1/roothash/api/commitment"
 	schedulerCobalt "github.com/oasisprotocol/nexus/coreapi/v21.1.1/scheduler/api"
 	stakingCobalt "github.com/oasisprotocol/nexus/coreapi/v21.1.1/staking/api"
 )
@@ -318,29 +320,46 @@ func convertEvent(e txResultsCobalt.Event) nodeapi.Event {
 	case e.RootHash != nil:
 		switch {
 		case e.RootHash.ExecutorCommitted != nil:
+			var computeBody commitmentCobalt.ComputeBody
+			if err := cbor.Unmarshal(e.RootHash.ExecutorCommitted.Commit.Blob, &computeBody); err != nil {
+				logger.Error("convert event: roothash executor committed: commit error unmarshaling",
+					"event", e,
+					"err", err,
+				)
+			}
 			ret = nodeapi.Event{
 				RoothashExecutorCommitted: &nodeapi.ExecutorCommittedEvent{
-					NodeID: &e.RootHash.ExecutorCommitted.Commit.Signature.PublicKey,
+					RuntimeID: e.RootHash.RuntimeID,
+					Round:     computeBody.Header.Round,
+					NodeID:    &e.RootHash.ExecutorCommitted.Commit.Signature.PublicKey,
 				},
 				RawBody: common.TryAsJSON(e.RootHash.ExecutorCommitted),
 				Type:    apiTypes.ConsensusEventTypeRoothashExecutorCommitted,
 			}
 		case e.RootHash.ExecutionDiscrepancyDetected != nil:
 			ret = nodeapi.Event{
+				RoothashMisc: &nodeapi.RoothashEvent{
+					RuntimeID: e.RootHash.RuntimeID,
+				},
 				RawBody: common.TryAsJSON(e.RootHash.ExecutionDiscrepancyDetected),
 				Type:    apiTypes.ConsensusEventTypeRoothashExecutionDiscrepancy,
 			}
 		case e.RootHash.Finalized != nil:
 			ret = nodeapi.Event{
+				RoothashMisc: &nodeapi.RoothashEvent{
+					RuntimeID: e.RootHash.RuntimeID,
+					Round:     &e.RootHash.Finalized.Round,
+				},
 				RawBody: common.TryAsJSON(e.RootHash.Finalized),
 				Type:    apiTypes.ConsensusEventTypeRoothashFinalized,
 			}
 		case e.RootHash.Message != nil:
 			ret = nodeapi.Event{
 				RoothashMessage: &nodeapi.MessageEvent{
-					Module: e.RootHash.Message.Module,
-					Code:   e.RootHash.Message.Code,
-					Index:  e.RootHash.Message.Index,
+					RuntimeID: e.RootHash.RuntimeID,
+					Module:    e.RootHash.Message.Module,
+					Code:      e.RootHash.Message.Code,
+					Index:     e.RootHash.Message.Index,
 				},
 				RawBody: common.TryAsJSON(e.RootHash.Message),
 				Type:    apiTypes.ConsensusEventTypeRoothashMessage,

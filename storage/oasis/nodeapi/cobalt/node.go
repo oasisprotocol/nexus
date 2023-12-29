@@ -32,6 +32,8 @@ import (
 	stakingCobalt "github.com/oasisprotocol/nexus/coreapi/v21.1.1/staking/api"
 )
 
+var logger = cmdCommon.RootLogger().WithModule("cobalt-consensus-api-lite")
+
 // ConsensusApiLite provides low-level access to the consensus API of a
 // Cobalt node. To be able to use the old gRPC API, this struct uses gRPC
 // directly, skipping the convenience wrappers provided by oasis-core.
@@ -86,7 +88,7 @@ func (c *ConsensusApiLite) GetTransactionsWithResults(ctx context.Context, heigh
 	for i, txBytes := range rsp.Transactions {
 		var tx consensusTx.SignedTransaction
 		if err := cbor.Unmarshal(txBytes, &tx); err != nil {
-			cmdCommon.RootLogger().WithModule("cobalt-consensus-api-lite").Error("malformed consensus transaction, leaving empty",
+			logger.Error("malformed consensus transaction, leaving empty",
 				"height", height,
 				"index", i,
 				"tx_bytes", txBytes,

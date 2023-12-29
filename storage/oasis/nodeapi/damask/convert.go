@@ -150,23 +150,36 @@ func convertEvent(e txResultsDamask.Event) nodeapi.Event {
 		case e.RootHash.ExecutorCommitted != nil:
 			ret = nodeapi.Event{
 				RoothashExecutorCommitted: &nodeapi.ExecutorCommittedEvent{
-					NodeID: &e.RootHash.ExecutorCommitted.Commit.NodeID,
+					RuntimeID: e.RootHash.RuntimeID,
+					Round:     e.RootHash.ExecutorCommitted.Commit.Header.Round,
+					NodeID:    &e.RootHash.ExecutorCommitted.Commit.NodeID,
 				},
 				RawBody: common.TryAsJSON(e.RootHash.ExecutorCommitted),
 				Type:    apiTypes.ConsensusEventTypeRoothashExecutorCommitted,
 			}
 		case e.RootHash.ExecutionDiscrepancyDetected != nil:
 			ret = nodeapi.Event{
+				RoothashMisc: &nodeapi.RoothashEvent{
+					RuntimeID: e.RootHash.RuntimeID,
+				},
 				RawBody: common.TryAsJSON(e.RootHash.ExecutionDiscrepancyDetected),
 				Type:    apiTypes.ConsensusEventTypeRoothashExecutionDiscrepancy,
 			}
 		case e.RootHash.Finalized != nil:
 			ret = nodeapi.Event{
+				RoothashMisc: &nodeapi.RoothashEvent{
+					RuntimeID: e.RootHash.RuntimeID,
+					Round:     &e.RootHash.Finalized.Round,
+				},
 				RawBody: common.TryAsJSON(e.RootHash.Finalized),
 				Type:    apiTypes.ConsensusEventTypeRoothashFinalized,
 			}
 		case e.RootHash.InMsgProcessed != nil:
 			ret = nodeapi.Event{
+				RoothashMisc: &nodeapi.RoothashEvent{
+					RuntimeID: e.RootHash.RuntimeID,
+					Round:     &e.RootHash.InMsgProcessed.Round,
+				},
 				RawBody: common.TryAsJSON(e.RootHash.InMsgProcessed),
 				Type:    apiTypes.ConsensusEventTypeRoothashInMsgProcessed,
 			}
