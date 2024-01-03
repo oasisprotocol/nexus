@@ -473,7 +473,16 @@ func (c *StorageClient) Events(ctx context.Context, p apiTypes.GetConsensusEvent
 
 	for res.rows.Next() {
 		var e Event
-		if err := res.rows.Scan(&e.Block, &e.TxIndex, &e.TxHash, &e.Type, &e.Body); err != nil {
+		if err := res.rows.Scan(
+			&e.Block,
+			&e.TxIndex,
+			&e.TxHash,
+			&e.RoothashRuntimeId,
+			&e.RelatedRuntime,
+			&e.RelatedRuntimeRound,
+			&e.Type,
+			&e.Body,
+		); err != nil {
 			return nil, wrapError(err)
 		}
 		es.Events = append(es.Events, e)

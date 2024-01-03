@@ -1606,6 +1606,26 @@ components:
             Hash of this event's originating transaction.
             Absent if the event did not originate from a transaction.
           example: *tx_hash_1
+        roothash_runtime_id:
+          type: string
+          description: |
+            The ID of the runtime to which the event relates, encoded in hex.
+            Present only for events of type `roothash.*`.
+          example: 000000000000000000000000000000000000000000000000e2eaa99fc008f87f
+        related_runtime:
+          allOf: [$ref: '#/components/schemas/Runtime']
+          description: |
+            The runtime to which the event relates.
+            Present only for events of type `roothash.*`.
+          example: emerald
+        related_runtime_round:
+          type: integer
+          format: int64
+          description: |
+            When applicable, the round in the runtime to which this event
+            relates.
+            Present only for events of type `roothash.*` except for
+            `roothash.execution_discrepancy` before Eden.
         type:
           allOf: [$ref: '#/components/schemas/ConsensusEventType']
           description: The type of the event.
