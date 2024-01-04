@@ -71,7 +71,7 @@ func TestListProposals(t *testing.T) {
 
 	var list storage.ProposalList
 	err := tests.GetFrom("/consensus/proposals", &list)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Equal(t, 2, len(list.Proposals))
 
 	for i, proposal := range list.Proposals {
@@ -90,7 +90,7 @@ func TestGetProposal(t *testing.T) {
 	for i, testProposal := range testProposals {
 		var proposal storage.Proposal
 		err := tests.GetFrom(fmt.Sprintf("/consensus/proposals/%d", i+1), &proposal)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.Equal(t, testProposal, proposal)
 	}
 }
@@ -106,7 +106,7 @@ func TestGetProposalVotes(t *testing.T) {
 	for i, expected := range expectedVotes {
 		var votes storage.ProposalVotes
 		err := tests.GetFrom(fmt.Sprintf("/consensus/proposals/%d/votes", i+1), &votes)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.Equal(t, uint64(i+1), votes.ProposalID)
 		require.Equal(t, expected, len(votes.Votes))
 	}

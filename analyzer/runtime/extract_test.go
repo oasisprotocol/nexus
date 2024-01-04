@@ -117,7 +117,7 @@ func TestExtractSuccessfulEncryptedTx(t *testing.T) {
 		Error:   nil,
 	}
 	blockData, err := ExtractRound(nodeapi.RuntimeBlockHeader{}, txrs, []nodeapi.RuntimeEvent{}, log.NewDefaultLogger("testing"))
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	verifyTxData(t, &expected, blockData.TransactionData[0])
 }
@@ -165,7 +165,7 @@ func TestExtractFailedEncryptedTx(t *testing.T) {
 		},
 	}
 	blockData, err := ExtractRound(nodeapi.RuntimeBlockHeader{}, txrs, []nodeapi.RuntimeEvent{}, log.NewDefaultLogger("testing"))
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	verifyTxData(t, &expected, blockData.TransactionData[0])
 }
@@ -198,7 +198,7 @@ func TestExtractSuccessfulUnecryptedTx(t *testing.T) {
 		Error:        nil,
 	}
 	blockData, err := ExtractRound(nodeapi.RuntimeBlockHeader{}, txrs, []nodeapi.RuntimeEvent{}, log.NewDefaultLogger("testing"))
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	verifyTxData(t, &expected, blockData.TransactionData[0])
 }
@@ -239,7 +239,7 @@ func TestExtractFailedUnecryptedTx(t *testing.T) {
 		},
 	}
 	blockData, err := ExtractRound(nodeapi.RuntimeBlockHeader{}, txrs, []nodeapi.RuntimeEvent{}, log.NewDefaultLogger("testing"))
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	verifyTxData(t, &expected, blockData.TransactionData[0])
 }

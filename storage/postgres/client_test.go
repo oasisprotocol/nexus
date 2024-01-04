@@ -161,7 +161,7 @@ func TestSendBatch(t *testing.T) {
 			err := client.QueryRow(context.Background(), `
 				SELECT name FROM films WHERE fid = $1;
 			`, i).Scan(&result)
-			require.Nil(t, err)
+			require.NoError(t, err)
 			require.Equal(t, film, result)
 		}(i, film)
 	}
