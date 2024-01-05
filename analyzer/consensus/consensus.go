@@ -286,8 +286,13 @@ func (m *processor) queueDbUpdates(batch *storage.QueryBatch, data allData) erro
 		}
 	}
 
-	if err := m.queueRootHashEventInserts(batch, data.RootHashData); err != nil {
-		return err
+	for _, f := range []func(*storage.QueryBatch, *rootHashData) error{
+		m.queueRootHashMessageUpserts,
+		m.queueRootHashEventInserts,
+	} {
+		if err := f(batch, data.RootHashData); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -642,6 +647,41 @@ func (m *processor) queueRegistryEventInserts(batch *storage.QueryBatch, data *r
 
 		if err := m.queueSingleEventInserts(batch, &eventData, data.Height); err != nil {
 			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *processor) queueRootHashMessageUpserts(batch *storage.QueryBatch, data *rootHashData) error {
+	for _, event := range data.Events {
+		switch {
+		case event.RoothashExecutorCommitted != nil:
+			runtime := RuntimeFromID(event.RoothashExecutorCommitted.RuntimeID, m.network)
+			if runtime == nil {
+				break
+			}
+			round := event.RoothashExecutorCommitted.Round
+			for i, message := range event.RoothashExecutorCommitted.Messages {
+				messageData := extractMessageData(m.logger.With(
+					"height", data.Height,
+					"runtime", runtime,
+					"round", round,
+					"message_index", i,
+				), message)
+				var relatedAddresses []apiTypes.Address
+				for addr := range messageData.relatedAddresses {
+					relatedAddresses = append(relatedAddresses, addr)
+				}
+				batch.Queue(queries.ConsensusRoothashMessageScheduleUpsert,
+					runtime,
+					round,
+					i,
+					messageData.messageType,
+					messageData.body,
+					relatedAddresses,
+				)
+			}
 		}
 	}
 
