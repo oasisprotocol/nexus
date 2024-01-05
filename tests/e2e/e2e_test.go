@@ -49,37 +49,37 @@ func TestConsensusTransfer(t *testing.T) {
 	// API server should be up
 	var status storage.Status
 	err := tests.GetFrom("/", &status)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	connString := "unix:/testnet/net-runner/network/validator-0/internal.sock"
 	conn, err := oasisGrpc.Dial(connString, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	ctx := context.Background()
 	cnsc := consensus.NewConsensusClient(conn)
 	doc, err := cnsc.GetGenesisDocument(ctx)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	doc.SetChainContext()
 
 	hash := crypto.SHA512
 	seed := []byte("seeeeeeeeeeeeeeeeeeeeeeeeeeeeeed")
 	name := "transfer"
 	src, err := drbg.New(hash, seed, nil, []byte(fmt.Sprintf("txsource workload generator v1, workload %s", name)))
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	rng := rand.New(mathrand.New(src)) //nolint:gosec // G404: Use of weak random number generator (math/rand instead of crypto/rand)
 
 	fundingAccount, err := memorySigner.NewFactory().Generate(signature.SignerEntity, rng)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	t.Log("Funding account address: ", staking.NewAddress(fundingAccount.Public()))
 
 	fac := memorySigner.NewFactory()
 
 	aliceAccount, err := fac.Generate(signature.SignerEntity, rng)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	bobAccount, err := fac.Generate(signature.SignerEntity, rng)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	aliceAddress := staking.NewAddress(aliceAccount.Public())
 	bobAddress := staking.NewAddress(bobAccount.Public())
 
@@ -87,11 +87,11 @@ func TestConsensusTransfer(t *testing.T) {
 	t.Log("Bob address: ", bobAddress)
 
 	pd, err := consensus.NewStaticPriceDiscovery(uint64(0))
-	require.Nil(t, err)
+	require.NoError(t, err)
 	sm := consensus.NewSubmissionManager(cnsc, pd, 0)
 
 	_, testEntitySigner, err := entity.TestEntity()
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	// Seed Alice account
 	bw := workload.NewBaseWorkload("funding")
@@ -106,7 +106,7 @@ func TestConsensusTransfer(t *testing.T) {
 	// Bob account "does not exist". Technically, every valid account exists, but it has no balance or activity.
 	var account storage.Account
 	err = tests.GetFrom(fmt.Sprintf("/consensus/accounts/%s", bobAddress), &account)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Equal(t, account.Address, bobAddress.String())
 	require.Zero(t, account.Nonce)
 	require.Zero(t, account.Available)
@@ -121,7 +121,7 @@ func TestConsensusTransfer(t *testing.T) {
 
 	time.Sleep(analyzerDelay)
 	err = tests.GetFrom(fmt.Sprintf("/consensus/accounts/%s", bobAddress), &account)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	expected := common.NewBigInt(100000000)
 	require.Equal(t, expected, account.Available)
 
@@ -147,7 +147,7 @@ func TestConsensusTransfer(t *testing.T) {
 	// Bob account has correct delegation balance
 	time.Sleep(analyzerDelay)
 	err = tests.GetFrom(fmt.Sprintf("/consensus/accounts/%s", bobAddress), &account)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	expectedDelegationsBalance := common.NewBigInt(25000000)
 	expectedAvailable := common.NewBigInt(75000000)
 	require.Equal(t, expectedDelegationsBalance, *account.DelegationsBalance)
@@ -156,7 +156,7 @@ func TestConsensusTransfer(t *testing.T) {
 	// Alice account has correct escrow balance
 	time.Sleep(analyzerDelay)
 	err = tests.GetFrom(fmt.Sprintf("/consensus/accounts/%s", aliceAddress), &account)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	expectedEscrow := common.NewBigInt(25000000)
 	expectedAvailable = common.NewBigInt(9900000000)
 	require.Equal(t, expectedEscrow, account.Escrow)

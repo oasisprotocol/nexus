@@ -41,7 +41,7 @@ func TestListAccounts(t *testing.T) {
 
 	var list storage.AccountList
 	err := tests.GetFrom("/consensus/accounts?minAvailable=1000000000000000000", &list)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Equal(t, 1, len(list.Accounts))
 
 	// The big kahuna (Binance Staking).
@@ -60,7 +60,7 @@ func TestGetAccount(t *testing.T) {
 	for _, testAccount := range testAccounts {
 		var account storage.Account
 		err := tests.GetFrom(fmt.Sprintf("/consensus/accounts/%s", testAccount.Address), &account)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.Equal(t, testAccount, account)
 	}
 }

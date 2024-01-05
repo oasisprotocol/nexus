@@ -52,7 +52,7 @@ func makeTestBlocks(t *testing.T) []storage.Block {
 
 	for i := 0; i < len(blocks); i++ {
 		timestamp, err := time.Parse(time.RFC3339, timestamps[i])
-		require.Nil(t, err)
+		require.NoError(t, err)
 		blocks[i].Timestamp = timestamp
 	}
 	return blocks
@@ -120,7 +120,7 @@ func TestListBlocks(t *testing.T) {
 
 	var list storage.BlockList
 	err := tests.GetFrom(fmt.Sprintf("/consensus/blocks?from=%d&to=%d", tests.GenesisHeight, endHeight), &list)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Equal(t, len(testBlocks), len(list.Blocks))
 
 	for i, block := range list.Blocks {
@@ -139,7 +139,7 @@ func TestGetBlock(t *testing.T) {
 
 	var block storage.Block
 	err := tests.GetFrom(fmt.Sprintf("/consensus/blocks/%d", endHeight), &block)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Equal(t, testBlocks[len(testBlocks)-1], block)
 }
 
@@ -154,7 +154,7 @@ func TestListTransactions(t *testing.T) {
 
 	var list storage.TransactionList
 	err := tests.GetFrom(fmt.Sprintf("/consensus/transactions?block=%d", testTransactions[0].Block), &list)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Equal(t, len(testTransactions), len(list.Transactions))
 
 	// Get a consistent ordering.
@@ -179,7 +179,7 @@ func TestGetTransaction(t *testing.T) {
 
 	var transaction storage.Transaction
 	err := tests.GetFrom(fmt.Sprintf("/consensus/transactions/%s", testTransactions[0].Hash), &transaction)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.NotNil(t, transaction.Body)
 	transaction.Body = nil
 	require.Equal(t, testTransactions[0], transaction)

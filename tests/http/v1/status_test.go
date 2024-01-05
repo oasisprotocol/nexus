@@ -18,7 +18,7 @@ func TestGetStatus(t *testing.T) {
 
 	var status storage.Status
 	err := tests.GetFrom("/", &status)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	require.LessOrEqual(t, tests.GenesisHeight, status.LatestBlock)
 }

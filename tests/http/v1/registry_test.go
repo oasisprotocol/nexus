@@ -52,7 +52,7 @@ func TestListEntities(t *testing.T) {
 
 	var list storage.EntityList
 	err := tests.GetFrom("/consensus/entities", &list)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	check := func(e storage.Entity) bool {
 		for _, entity := range list.Entities {
@@ -80,7 +80,7 @@ func TestGetEntity(t *testing.T) {
 
 	var entity storage.Entity
 	err := tests.GetFrom(fmt.Sprintf("/consensus/entities/%s", escape(testEntities[0].ID)), &entity)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	require.Equal(t, testEntities[0].ID, entity.ID)
 	require.Equal(t, testEntities[0].Address, entity.Address)
@@ -98,7 +98,7 @@ func TestListEntityNodes(t *testing.T) {
 
 	var list storage.NodeList
 	err := tests.GetFrom(fmt.Sprintf("/consensus/entities/%s/nodes", escape(testNodes[0].EntityID)), &list)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Equal(t, len(testNodes), len(list.Nodes))
 
 	for i, node := range list.Nodes {
@@ -119,7 +119,7 @@ func TestGetEntityNode(t *testing.T) {
 
 	var node storage.Node
 	err := tests.GetFrom(fmt.Sprintf("/consensus/entities/%s/nodes/%s", escape(testNodes[0].EntityID), escape(testNodes[0].ID)), &node)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	// The expiration is dynamic, until we have oasis-net-runner with a halt epoch.
 	testNodes[0].Expiration = node.Expiration
 	require.Equal(t, testNodes[0], node)

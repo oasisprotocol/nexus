@@ -14,7 +14,7 @@ const tsRegex = `\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{0,9}Z`
 func TestLoggerLogfmt(t *testing.T) {
 	var b bytes.Buffer
 	l, err := NewLogger("log-test", &b, FmtLogfmt, LevelDebug)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	l.Debug("a statement")
 	require.Regexp(t, regexp.MustCompile(
@@ -25,7 +25,7 @@ func TestLoggerLogfmt(t *testing.T) {
 func TestLoggerJSON(t *testing.T) {
 	var b bytes.Buffer
 	l, err := NewLogger("log-test", &b, FmtJSON, LevelDebug)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	l.Debug("a statement")
 	//nolint:goconst
@@ -43,7 +43,7 @@ func TestLoggerInvalid(t *testing.T) {
 func TestWith(t *testing.T) {
 	var b bytes.Buffer
 	l, err := NewLogger("log-test", &b, FmtJSON, LevelDebug)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	l.With("height", 8000000).Debug("a statement")
 	require.Regexp(t, regexp.MustCompile(
@@ -54,7 +54,7 @@ func TestWith(t *testing.T) {
 func TestWithModule(t *testing.T) {
 	var b bytes.Buffer
 	l, err := NewLogger("log-test", &b, FmtJSON, LevelDebug)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	l.WithModule("log-test-2").Debug("a statement")
 	require.Regexp(t, regexp.MustCompile(
@@ -65,13 +65,13 @@ func TestWithModule(t *testing.T) {
 func TestDebug(t *testing.T) {
 	var b bytes.Buffer
 	l, err := NewLogger("log-test", &b, FmtJSON, LevelInfo)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	l.Debug("a statement")
 	require.Equal(t, 0, b.Len())
 
 	l, err = NewLogger("log-test", &b, FmtJSON, LevelDebug)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	l.Debug("another statement")
 	require.NotEqual(t, 0, b.Len())
@@ -80,13 +80,13 @@ func TestDebug(t *testing.T) {
 func TestInfo(t *testing.T) {
 	var b bytes.Buffer
 	l, err := NewLogger("log-test", &b, FmtJSON, LevelWarn)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	l.Info("a statement")
 	require.Equal(t, 0, b.Len())
 
 	l, err = NewLogger("log-test", &b, FmtJSON, LevelInfo)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	l.Info("another statement")
 	require.NotEqual(t, 0, b.Len())
@@ -95,13 +95,13 @@ func TestInfo(t *testing.T) {
 func TestWarn(t *testing.T) {
 	var b bytes.Buffer
 	l, err := NewLogger("log-test", &b, FmtJSON, LevelError)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	l.Warn("a statement")
 	require.Equal(t, 0, b.Len())
 
 	l, err = NewLogger("log-test", &b, FmtJSON, LevelWarn)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	l.Warn("another statement")
 	require.NotEqual(t, 0, b.Len())
@@ -110,7 +110,7 @@ func TestWarn(t *testing.T) {
 func TestError(t *testing.T) {
 	var b bytes.Buffer
 	l, err := NewLogger("log-test", &b, FmtJSON, LevelError)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	l.Error("a statement")
 	require.NotEqual(t, 0, b.Len())
@@ -122,7 +122,7 @@ func TestLevel(t *testing.T) {
 
 	for _, l := range strings.Split(ls[1:len(ls)-1], ",") {
 		err := lvl.Set(l)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.Equal(t, l, lvl.String())
 	}
 	err := lvl.Set("invalid")
@@ -138,7 +138,7 @@ func TestFormat(t *testing.T) {
 
 	for _, f := range strings.Split(fs[1:len(fs)-1], ",") {
 		err := fmt.Set(f)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.Equal(t, f, fmt.String())
 	}
 	err := fmt.Set("invalid")

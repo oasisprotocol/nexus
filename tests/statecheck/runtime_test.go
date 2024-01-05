@@ -5,10 +5,11 @@ import (
 	"os"
 	"testing"
 
-	sdkConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
-	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	sdkConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
+	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 
 	common "github.com/oasisprotocol/nexus/common"
 )
@@ -39,19 +40,19 @@ func testRuntimeAccounts(t *testing.T, runtime common.Runtime) {
 	t.Log("Runtime ID determined", "runtime", runtime, "runtime_id", sdkPT.ID)
 
 	conn, err := newSdkConnection(ctx)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	oasisRuntimeClient := conn.Runtime(sdkPT)
 
 	postgresClient, err := newTargetClient(t)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	t.Log("Creating snapshot for runtime tables...")
 	height, err := snapshotBackends(postgresClient, string(runtime), RuntimeTables)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	t.Logf("Fetching accounts information at height %d...", height)
 	addresses, err := oasisRuntimeClient.Accounts.Addresses(ctx, uint64(height), sdkTypes.NativeDenomination)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	expectedAccts := make(map[sdkTypes.Address]bool)
 	for _, addr := range addresses {
 		expectedAccts[addr] = true
@@ -63,7 +64,7 @@ func testRuntimeAccounts(t *testing.T, runtime common.Runtime) {
 			FROM snapshot.runtime_sdk_balances
 			WHERE runtime=$1`, runtime,
 	)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	actualAccts := make(map[string]bool)
 	for acctRows.Next() {
 		var a TestRuntimeAccount
@@ -72,12 +73,13 @@ func testRuntimeAccounts(t *testing.T, runtime common.Runtime) {
 			&a.Balance,
 			&a.Symbol,
 		)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 
 		// Check that the account exists.
 		var actualAddr sdkTypes.Address
 		err = actualAddr.UnmarshalText([]byte(a.Address))
-		assert.Nil(t, err)
+		assert.NoError(t, err)
+
 		_, ok := expectedAccts[actualAddr]
 		if !ok {
 			t.Logf("address %s found, but not expected", a.Address)
@@ -87,7 +89,7 @@ func testRuntimeAccounts(t *testing.T, runtime common.Runtime) {
 
 		// Check that the account balance is accurate.
 		balances, err := oasisRuntimeClient.Accounts.Balances(ctx, uint64(height), actualAddr)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		for denom, amount := range balances.Balances {
 			if stringifyDenomination(denom, sdkPT) == a.Symbol {
 				assert.Equal(t, *amount.ToBigInt(), a.Balance.Int, "address: %s", a.Address)

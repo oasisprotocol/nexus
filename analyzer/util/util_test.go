@@ -16,7 +16,7 @@ import (
 // updated correctly.
 func TestBackoffWait(t *testing.T) {
 	backoff, err := NewBackoff(time.Millisecond, 10*time.Second)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	for i := 0; i < 10; i++ {
 		backoff.Failure()
@@ -28,7 +28,7 @@ func TestBackoffWait(t *testing.T) {
 // reset correctly.
 func TestBackoffReset(t *testing.T) {
 	backoff, err := NewBackoff(time.Millisecond, 10*time.Second)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	backoff.Failure()
 	backoff.Reset()
@@ -39,7 +39,7 @@ func TestBackoffReset(t *testing.T) {
 // appropriately upper bounded.
 func TestBackoffMaximum(t *testing.T) {
 	backoff, err := NewBackoff(time.Millisecond, 10*time.Millisecond)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	for i := 0; i < 10; i++ {
 		backoff.Failure()
@@ -51,7 +51,7 @@ func TestBackoffMaximum(t *testing.T) {
 // appropriately lower bounded.
 func TestBackoffMinimum(t *testing.T) {
 	backoff, err := NewBackoff(time.Millisecond, 10*time.Millisecond)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	backoff.Failure()
 	for i := 0; i < 100; i++ {
@@ -63,7 +63,7 @@ func TestBackoffMinimum(t *testing.T) {
 // TestBackoff tests the backoff logic.
 func TestBackoff(t *testing.T) {
 	backoff, err := NewBackoff(100*time.Millisecond, 6*time.Second)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	for i := 0; i < 2; i++ {
 		backoff.Failure()

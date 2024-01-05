@@ -108,19 +108,19 @@ func TestBlocksSanityCheck(t *testing.T) {
 	ctx := context.Background()
 
 	postgresClient, err := newTargetClient(t)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	var latestHeight int64
 	err = postgresClient.QueryRow(ctx,
 		`SELECT height FROM chain.blocks ORDER BY height DESC LIMIT 1;`,
 	).Scan(&latestHeight)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	var actualHeightSum int64
 	err = postgresClient.QueryRow(ctx,
 		`SELECT SUM(height) FROM chain.blocks WHERE height <= $1;`,
 		latestHeight).Scan(&actualHeightSum)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	// Using formula for sum of first k natural numbers.
 	expectedHeightSum := latestHeight*(latestHeight+1)/2 - (tests.GenesisHeight-1)*tests.GenesisHeight/2
@@ -137,35 +137,31 @@ func TestGenesisFull(t *testing.T) {
 	ctx := context.Background()
 
 	conn, err := newSdkConnection(ctx)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	oasisClient := conn.Consensus()
 
 	postgresClient, err := newTargetClient(t)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	t.Log("Creating snapshot...")
 	height, err := snapshotBackends(postgresClient, ConsensusName, ConsensusTables)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	t.Logf("Fetching genesis at height %d...", height)
 	genesis := &genesisAPI.Document{}
 	if genesisPath := os.Getenv("OASIS_GENESIS_DUMP"); genesisPath != "" {
 		t.Log("Reading genesis from dump at", genesisPath)
 		gensisJSON, err := os.ReadFile(genesisPath)
-		if err != nil {
-			require.Nil(t, err)
-		}
+		require.NoError(t, err)
 		err = json.Unmarshal(gensisJSON, genesis)
-		if err != nil {
-			require.Nil(t, err)
-		}
+		require.NoError(t, err)
 		if genesis.Height != height {
-			require.Nil(t, fmt.Errorf("height mismatch: %d (in genesis dump) != %d (in DB)", genesis.Height, height))
+			require.NoError(t, fmt.Errorf("height mismatch: %d (in genesis dump) != %d (in DB)", genesis.Height, height))
 		}
 	} else {
 		t.Log("Fetching state dump at height", height, "from node")
 		genesis, err = oasisClient.StateToGenesis(ctx, height)
-		require.Nil(t, err)
+		require.NoError(t, err)
 	}
 	registryGenesis := &genesis.Registry
 	stakingGenesis := &genesis.Staking
@@ -198,7 +194,7 @@ func validateEntities(t *testing.T, genesis *registryAPI.Genesis, target *postgr
 		}
 		var e entity.Entity
 		err := se.Open(registryAPI.RegisterEntitySignatureContext, &e)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 
 		te := TestEntity{
 			ID:    e.ID.String(),
@@ -217,7 +213,7 @@ func validateEntities(t *testing.T, genesis *registryAPI.Genesis, target *postgr
 	entityRows, err := target.Query(ctx,
 		`SELECT id FROM snapshot.entities`,
 	)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	actualEntities := make(map[string]TestEntity)
 	for entityRows.Next() {
@@ -225,7 +221,7 @@ func validateEntities(t *testing.T, genesis *registryAPI.Genesis, target *postgr
 		err = entityRows.Scan(
 			&e.ID,
 		)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 
 		nodeMap := make(map[string]bool)
 
@@ -236,26 +232,26 @@ func validateEntities(t *testing.T, genesis *registryAPI.Genesis, target *postgr
 		nodeRowsFromEntity, err := target.Query(ctx,
 			`SELECT node_id FROM snapshot.claimed_nodes WHERE entity_id = $1`,
 			e.ID)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		for nodeRowsFromEntity.Next() {
 			var nid string
 			err = nodeRowsFromEntity.Scan(
 				&nid,
 			)
-			assert.Nil(t, err)
+			assert.NoError(t, err)
 			nodeMap[nid] = true
 		}
 
 		nodeRowsFromNode, err := target.Query(ctx,
 			`SELECT id FROM snapshot.nodes WHERE entity_id = $1`,
 			e.ID)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		for nodeRowsFromNode.Next() {
 			var nid string
 			err = nodeRowsFromNode.Scan(
 				&nid,
 			)
-			assert.Nil(t, err)
+			assert.NoError(t, err)
 			nodeMap[nid] = true
 		}
 
@@ -298,7 +294,7 @@ func validateNodes(t *testing.T, genesis *registryAPI.Genesis, source consensusA
 	ctx := context.Background()
 
 	epoch, err := source.Beacon().GetEpoch(ctx, height)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	expectedNodes := make(map[string]TestNode)
 	for _, sn := range genesis.Nodes {
@@ -307,7 +303,7 @@ func validateNodes(t *testing.T, genesis *registryAPI.Genesis, source consensusA
 		}
 		var n node.Node
 		err := sn.Open(registryAPI.RegisterNodeSignatureContext, &n)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 
 		if n.IsExpired(uint64(epoch)) {
 			// Nexus prunes expired nodes immediately. oasis-client doesn't,
@@ -339,7 +335,7 @@ func validateNodes(t *testing.T, genesis *registryAPI.Genesis, source consensusA
 		WHERE
 			roles LIKE '%validator%'
 	`)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	actualNodes := make(map[string]TestNode)
 	defer rows.Close()
@@ -355,7 +351,7 @@ func validateNodes(t *testing.T, genesis *registryAPI.Genesis, source consensusA
 			&n.Roles,
 			&n.SoftwareVersion,
 		)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 
 		if (&node.Node{Expiration: n.Expiration}).IsExpired(uint64(epoch)) {
 			// Nexus DB stores some nodes that are expired because
@@ -432,7 +428,7 @@ func validateRuntimes(t *testing.T, genesis *registryAPI.Genesis, target *postgr
 	runtimeRows, err := target.Query(ctx,
 		`SELECT id, suspended, kind, tee_hardware, COALESCE(key_manager, 'none') FROM snapshot.runtimes`,
 	)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	actualRuntimes := make(map[string]TestRuntime)
 	for runtimeRows.Next() {
@@ -446,7 +442,7 @@ func validateRuntimes(t *testing.T, genesis *registryAPI.Genesis, target *postgr
 		)
 		if err != nil {
 			// We want to display err.Error(), or else the message is incomprehensible when it fails.
-			require.Nil(t, err, "error scanning runtime row", "errMsg", err.Error())
+			require.NoError(t, err, "error scanning runtime row", "errMsg", err.Error())
 		}
 
 		actualRuntimes[tr.ID] = tr
@@ -487,7 +483,7 @@ func validateAccounts(t *testing.T, genesis *stakingAPI.Genesis, target *postgre
 		`SELECT address, nonce, general_balance, escrow_balance_active, escrow_balance_debonding
 				FROM snapshot.accounts`,
 	)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	actualAccts := make(map[string]bool)
 	for acctRows.Next() {
 		var a TestAccount
@@ -498,7 +494,7 @@ func validateAccounts(t *testing.T, genesis *stakingAPI.Genesis, target *postgre
 			&a.Escrow,
 			&a.Debonding,
 		)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		actualAccts[a.Address] = true
 
 		isReservedAddress := a.Address == stakingAPI.CommonPoolAddress.String() ||
@@ -518,7 +514,7 @@ func validateAccounts(t *testing.T, genesis *stakingAPI.Genesis, target *postgre
 			`,
 			a.Address,
 		)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		for allowanceRows.Next() {
 			var beneficiary string
 			var amount uint64
@@ -526,14 +522,14 @@ func validateAccounts(t *testing.T, genesis *stakingAPI.Genesis, target *postgre
 				&beneficiary,
 				&amount,
 			)
-			assert.Nil(t, err)
+			assert.NoError(t, err)
 			actualAllowances[beneficiary] = amount
 		}
 		a.Allowances = actualAllowances
 
 		var address stakingAPI.Address
 		err = address.UnmarshalText([]byte(a.Address))
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 
 		acct, ok := genesis.Ledger[address]
 		if !ok {
@@ -629,7 +625,7 @@ func validateProposals(t *testing.T, genesis *governanceAPI.Genesis, target *pos
 				created_at, closes_at, invalid_votes
 		FROM snapshot.proposals`,
 	)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	actualProposals := make(map[uint64]TestProposal)
 	for proposalRows.Next() {
@@ -650,7 +646,7 @@ func validateProposals(t *testing.T, genesis *governanceAPI.Genesis, target *pos
 			&p.ClosesAt,
 			&p.InvalidVotes,
 		)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		actualProposals[p.ID] = p
 	}
 
@@ -686,7 +682,7 @@ func validateVotes(t *testing.T, genesis *governanceAPI.Genesis, target *postgre
 	}
 
 	voteRows, err := target.Query(ctx, `SELECT proposal, voter, vote FROM snapshot.votes`)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	actualVotes := make(map[string]TestVote)
 	for voteRows.Next() {
@@ -696,7 +692,7 @@ func validateVotes(t *testing.T, genesis *governanceAPI.Genesis, target *postgre
 			&v.Voter,
 			&v.Vote,
 		)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		actualVotes[makeProposalKey(v)] = v
 	}
 
