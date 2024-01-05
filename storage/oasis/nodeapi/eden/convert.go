@@ -13,6 +13,7 @@ import (
 	genesis "github.com/oasisprotocol/nexus/coreapi/v22.2.11/genesis/api"
 	governance "github.com/oasisprotocol/nexus/coreapi/v22.2.11/governance/api"
 	registry "github.com/oasisprotocol/nexus/coreapi/v22.2.11/registry/api"
+	"github.com/oasisprotocol/nexus/coreapi/v22.2.11/roothash/api/message"
 	scheduler "github.com/oasisprotocol/nexus/coreapi/v22.2.11/scheduler/api"
 	staking "github.com/oasisprotocol/nexus/coreapi/v22.2.11/staking/api"
 	upgrade "github.com/oasisprotocol/nexus/coreapi/v22.2.11/upgrade/api"
@@ -404,11 +405,23 @@ func convertRoothashEvent(e roothashEden.Event) nodeapi.Event {
 	ret := nodeapi.Event{}
 	switch {
 	case e.ExecutorCommitted != nil:
+		messages := make([]message.Message, len(e.ExecutorCommitted.Commit.Messages))
+		for i, messageEden := range e.ExecutorCommitted.Commit.Messages {
+			messageCBOR := cbor.Marshal(messageEden)
+			if err := cbor.Unmarshal(messageCBOR, &messages[i]); err != nil {
+				logger.Error("convert event: roothash executor committed: commit message error unmarshaling",
+					"event", e,
+					"message_index", i,
+					"err", err,
+				)
+			}
+		}
 		ret = nodeapi.Event{
 			RoothashExecutorCommitted: &nodeapi.ExecutorCommittedEvent{
 				RuntimeID: e.RuntimeID,
 				Round:     e.ExecutorCommitted.Commit.Header.Header.Round,
 				NodeID:    &e.ExecutorCommitted.Commit.NodeID,
+				Messages:  messages,
 			},
 			RawBody: common.TryAsJSON(e.ExecutorCommitted),
 			Type:    apiTypes.ConsensusEventTypeRoothashExecutorCommitted,

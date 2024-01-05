@@ -30,6 +30,8 @@ import (
 	stakingEden "github.com/oasisprotocol/nexus/coreapi/v23.0/staking/api"
 )
 
+var logger = cmdCommon.RootLogger().WithModule("eden-consensus-api-lite")
+
 // ConsensusApiLite provides low-level access to the consensus API of a
 // Eden node. To be able to use the old gRPC API, this struct uses gRPC
 // directly, skipping the convenience wrappers provided by oasis-core.

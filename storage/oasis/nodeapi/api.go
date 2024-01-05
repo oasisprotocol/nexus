@@ -19,6 +19,7 @@ import (
 	genesis "github.com/oasisprotocol/nexus/coreapi/v22.2.11/genesis/api"
 	governance "github.com/oasisprotocol/nexus/coreapi/v22.2.11/governance/api"
 	registry "github.com/oasisprotocol/nexus/coreapi/v22.2.11/registry/api"
+	"github.com/oasisprotocol/nexus/coreapi/v22.2.11/roothash/api/message"
 	scheduler "github.com/oasisprotocol/nexus/coreapi/v22.2.11/scheduler/api"
 	staking "github.com/oasisprotocol/nexus/coreapi/v22.2.11/staking/api"
 	"github.com/oasisprotocol/nexus/storage/oasis/connections"
@@ -203,6 +204,7 @@ type ExecutorCommittedEvent struct {
 	RuntimeID coreCommon.Namespace
 	Round     uint64
 	NodeID    *signature.PublicKey // Available starting in Damask.
+	Messages  []message.Message
 }
 
 type MessageEvent struct {
