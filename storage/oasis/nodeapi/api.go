@@ -203,6 +203,7 @@ type ExecutorCommittedEvent struct {
 	RuntimeID coreCommon.Namespace
 	Round     uint64
 	NodeID    *signature.PublicKey // Available starting in Damask.
+	Messages  []json.RawMessage
 }
 
 type MessageEvent struct {
