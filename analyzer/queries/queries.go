@@ -214,6 +214,17 @@ var (
     INSERT INTO chain.events (type, body, tx_block, tx_hash, tx_index, related_accounts, roothash_runtime_id, roothash_runtime, roothash_runtime_round)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`
 
+	ConsensusRoothashMessageScheduleUpsert = `
+    INSERT INTO chain.roothash_messages
+      (runtime, round, message_index, type, body, related_accounts)
+    VALUES
+      ($1, $2, $3, $4, $5, $6)
+    ON CONFLICT (runtime, round, message_index) DO UPDATE
+    SET
+      type = excluded.type,
+      body = excluded.body,
+      related_accounts = excluded.related_accounts`
+
 	ConsensusAccountRelatedTransactionInsert = `
     INSERT INTO chain.accounts_related_transactions (account_address, tx_block, tx_index)
       VALUES ($1, $2, $3)`
