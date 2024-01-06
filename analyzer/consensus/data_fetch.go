@@ -9,6 +9,7 @@ import (
 
 	beacon "github.com/oasisprotocol/nexus/coreapi/v22.2.11/beacon/api"
 	consensus "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api"
+	roothash "github.com/oasisprotocol/nexus/coreapi/v22.2.11/roothash/api"
 	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
 )
 
@@ -50,7 +51,7 @@ func fetchAllData(ctx context.Context, cc nodeapi.ConsensusApiLite, network sdkC
 		return nil, err
 	}
 
-	rootHashData, err := fetchRootHashData(ctx, cc, height)
+	rootHashData, err := fetchRootHashData(ctx, cc, network, height)
 	if err != nil {
 		return nil, err
 	}
@@ -276,16 +277,33 @@ func fetchGovernanceData(ctx context.Context, cc nodeapi.ConsensusApiLite, heigh
 	}, nil
 }
 
-// fetchRootHashData retrieves roothash events at the provided block height.
-func fetchRootHashData(ctx context.Context, cc nodeapi.ConsensusApiLite, height int64) (*rootHashData, error) {
+// fetchRootHashData retrieves roothash events and last round results at the
+// provided block height.
+func fetchRootHashData(ctx context.Context, cc nodeapi.ConsensusApiLite, network sdkConfig.Network, height int64) (*rootHashData, error) {
 	events, err := cc.RoothashEvents(ctx, height)
 	if err != nil {
 		return nil, err
 	}
 
+	lastRoundResults := make(map[coreCommon.Namespace]*roothash.RoundResults, len(network.ParaTimes.All))
+
+	for name := range network.ParaTimes.All {
+		var runtimeID coreCommon.Namespace
+		if err1 := runtimeID.UnmarshalHex(network.ParaTimes.All[name].ID); err1 != nil {
+			return nil, err1
+		}
+
+		res, err1 := cc.RoothashLastRoundResults(ctx, height, runtimeID)
+		if err1 != nil {
+			return nil, err1
+		}
+		lastRoundResults[runtimeID] = res
+	}
+
 	return &rootHashData{
-		Height: height,
-		Events: events,
+		Height:           height,
+		Events:           events,
+		LastRoundResults: lastRoundResults,
 	}, nil
 }
 
@@ -352,6 +370,8 @@ type rootHashData struct {
 	Height int64
 
 	Events []nodeapi.Event
+
+	LastRoundResults map[coreCommon.Namespace]*roothash.RoundResults
 }
 
 // schedulerData represents data for elected committees and validators at a given height.
