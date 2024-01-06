@@ -10,6 +10,7 @@ import (
 	beacon "github.com/oasisprotocol/nexus/coreapi/v22.2.11/beacon/api"
 	consensus "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api"
 	genesis "github.com/oasisprotocol/nexus/coreapi/v22.2.11/genesis/api"
+	roothash "github.com/oasisprotocol/nexus/coreapi/v22.2.11/roothash/api"
 
 	"github.com/oasisprotocol/nexus/cache/kvstore"
 	"github.com/oasisprotocol/nexus/common"
@@ -136,6 +137,16 @@ func (c *FileConsensusApiLite) RoothashEvents(ctx context.Context, height int64)
 		// v3: Updated roothash events conversion to retain roothash messages.
 		kvstore.GenerateCacheKey("RoothashEvents.v3", height),
 		func() ([]nodeapi.Event, error) { return c.consensusApi.RoothashEvents(ctx, height) },
+	)
+}
+
+func (c *FileConsensusApiLite) RoothashLastRoundResults(ctx context.Context, height int64, runtimeID coreCommon.Namespace) (*roothash.RoundResults, error) {
+	return kvstore.GetFromCacheOrCall(
+		c.db, height == consensus.HeightLatest,
+		kvstore.GenerateCacheKey("RoothashLastRoundResults", height, runtimeID),
+		func() (*roothash.RoundResults, error) {
+			return c.consensusApi.RoothashLastRoundResults(ctx, height, runtimeID)
+		},
 	)
 }
 

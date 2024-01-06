@@ -15,6 +15,7 @@ import (
 	consensusTx "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api/transaction"
 	genesis "github.com/oasisprotocol/nexus/coreapi/v22.2.11/genesis/api"
 	governance "github.com/oasisprotocol/nexus/coreapi/v22.2.11/governance/api"
+	roothash "github.com/oasisprotocol/nexus/coreapi/v22.2.11/roothash/api"
 	scheduler "github.com/oasisprotocol/nexus/coreapi/v22.2.11/scheduler/api"
 
 	"github.com/oasisprotocol/nexus/storage/oasis/connections"
@@ -161,6 +162,13 @@ func (c *ConsensusApiLite) RoothashEvents(ctx context.Context, height int64) ([]
 		events[i] = convertEvent(txResultsCobalt.Event{RootHash: e})
 	}
 	return events, nil
+}
+
+func (c *ConsensusApiLite) RoothashLastRoundResults(ctx context.Context, height int64, runtimeID common.Namespace) (*roothash.RoundResults, error) {
+	// Cobalt didn't have this API. Always return empty.
+	// Results of roothash messages were instead reported in MessageEvent,
+	// which we retrieve with the other events.
+	return &roothash.RoundResults{}, nil
 }
 
 func (c *ConsensusApiLite) GetNodes(ctx context.Context, height int64) ([]nodeapi.Node, error) {

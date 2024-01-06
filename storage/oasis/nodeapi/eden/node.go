@@ -14,6 +14,7 @@ import (
 	consensus "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api"
 	consensusTx "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api/transaction"
 	genesis "github.com/oasisprotocol/nexus/coreapi/v22.2.11/genesis/api"
+	roothash "github.com/oasisprotocol/nexus/coreapi/v22.2.11/roothash/api"
 
 	"github.com/oasisprotocol/nexus/storage/oasis/connections"
 	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
@@ -159,6 +160,19 @@ func (c *ConsensusApiLite) RoothashEvents(ctx context.Context, height int64) ([]
 		events[i] = convertEvent(txResultsEden.Event{RootHash: e})
 	}
 	return events, nil
+}
+
+func (c *ConsensusApiLite) RoothashLastRoundResults(ctx context.Context, height int64, runtimeID common.Namespace) (*roothash.RoundResults, error) {
+	// We are extending the Damask vendored structure to make it compatible
+	// with new features from Eden.
+	var rsp roothash.RoundResults
+	if err := c.grpcConn.Invoke(ctx, "/oasis-core.RootHash/GetLastRoundResults", &roothashEden.RuntimeRequest{
+		Height:    height,
+		RuntimeID: runtimeID,
+	}, &rsp); err != nil {
+		return nil, fmt.Errorf("RoothashLastRoundResults(%d, %v): %w", height, runtimeID, err)
+	}
+	return &rsp, nil
 }
 
 func (c *ConsensusApiLite) GetNodes(ctx context.Context, height int64) ([]nodeapi.Node, error) {
