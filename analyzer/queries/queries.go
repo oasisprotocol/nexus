@@ -225,6 +225,17 @@ var (
       body = excluded.body,
       related_accounts = excluded.related_accounts`
 
+	ConsensusRoothashMessageFinalizeUpsert = `
+    INSERT INTO chain.roothash_messages
+      (runtime, round, message_index, error_module, error_code, result)
+    VALUES
+      ($1, $2, $3, $4, $5, $6)
+    ON CONFLICT (runtime, round, message_index) DO UPDATE
+    SET
+      error_module = excluded.error_module,
+      error_code = excluded.error_code,
+      result = excluded.result`
+
 	ConsensusAccountRelatedTransactionInsert = `
     INSERT INTO chain.accounts_related_transactions (account_address, tx_block, tx_index)
       VALUES ($1, $2, $3)`
