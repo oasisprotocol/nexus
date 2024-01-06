@@ -14,8 +14,6 @@ import (
 	consensus "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api"
 	consensusTx "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api/transaction"
 	genesis "github.com/oasisprotocol/nexus/coreapi/v22.2.11/genesis/api"
-	governance "github.com/oasisprotocol/nexus/coreapi/v22.2.11/governance/api"
-	scheduler "github.com/oasisprotocol/nexus/coreapi/v22.2.11/scheduler/api"
 
 	"github.com/oasisprotocol/nexus/storage/oasis/connections"
 	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
@@ -191,7 +189,7 @@ func (c *ConsensusApiLite) GetValidators(ctx context.Context, height int64) ([]n
 
 func (c *ConsensusApiLite) GetCommittees(ctx context.Context, height int64, runtimeID common.Namespace) ([]nodeapi.Committee, error) {
 	var rsp []*schedulerEden.Committee
-	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Scheduler/GetCommittees", &scheduler.GetCommitteesRequest{
+	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Scheduler/GetCommittees", &schedulerEden.GetCommitteesRequest{
 		Height:    height,
 		RuntimeID: runtimeID,
 	}, &rsp); err != nil {
@@ -206,7 +204,7 @@ func (c *ConsensusApiLite) GetCommittees(ctx context.Context, height int64, runt
 
 func (c *ConsensusApiLite) GetProposal(ctx context.Context, height int64, proposalID uint64) (*nodeapi.Proposal, error) {
 	var rsp *governanceEden.Proposal
-	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Governance/Proposal", &governance.ProposalQuery{
+	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Governance/Proposal", &governanceEden.ProposalQuery{
 		Height:     height,
 		ProposalID: proposalID,
 	}, &rsp); err != nil {
