@@ -1,3 +1,12 @@
 {
-  "msg": "item not found"
+  "block": 16818955,
+  "body": "omJ0b1UAGFXafz9TY1hQE753oi4R3pU4/HpmYW1vdW50RAL68IA=",
+  "fee": "0",
+  "hash": "142d43e5194b738ab2223f8d0b42326fab06edd714a8cefc59a078b89b5de057",
+  "index": 0,
+  "method": "staking.Transfer",
+  "nonce": 20711,
+  "sender": "oasis1qzrycs7qhh455dj0nwzfd3y5um4m7f2p75yksjvh",
+  "success": true,
+  "timestamp": "2023-11-29T18:09:59Z"
 }

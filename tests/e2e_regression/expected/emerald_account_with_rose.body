@@ -1,16 +1,10 @@
 {
   "address": "oasis1qrt0sv2s2x2lkt9e7kmr2mzxgme8m0pzauwztprl",
-  "balances": [
-    {
-      "balance": "6592000000000000000000",
-      "token_decimals": 18,
-      "token_symbol": "ROSE"
-    }
-  ],
+  "balances": [],
   "evm_balances": [],
   "stats": {
-    "num_txns": 2,
-    "total_received": "6592000000000000000000",
+    "num_txns": 0,
+    "total_received": "0",
     "total_sent": "0"
   }
 }

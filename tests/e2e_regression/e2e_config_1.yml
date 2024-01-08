@@ -11,20 +11,23 @@ analysis:
     cache: { cache_dir: tests/e2e_regression/rpc-cache }
     chain_name: mainnet
     nodes:
-      damask:
-        default: { rpc: unix:/tmp/node.sock }
+      # Node will be accessed only when the filling up the cache.
+      # In CI, the cache is expected to have all the node responses as the node is not reachable.
+      eden: { default: { rpc: grpc.oasis.dev:443 } }
     ipfs:
       gateway: https://ipfs.io
     fast_startup: true
   analyzers:
     consensus:
-      from: 8_048_956  # Damask genesis
-      to: 8_049_955    # 1000 blocks; compromise between fast and comprehensive
+      from: 16_817_956  # Eden genesis
+      to: 16_818_955    # 1000 blocks; compromise between fast and comprehensive
     emerald:
-      from: 1_003_298  # round at Damask genesis
-      to: 1_004_297    # 1000 blocks; compromise between fast and comprehensive
-    # sapphire: # Not tested. Does not use much code that is not covered by emerald.
-    #   from: 0  # first round in Damask
+      #from: 7_875_130  # round at Eden genesis, plus 1 (so that in finalizeFastSync we don't need Damask)
+      #to: 7_876_129    # 1000 blocks; compromise between fast and comprehensive
+      from: 8_059_340  # An NFT was created at 8059343; ERC20s were created at 7984382, 7984824, 8075695, 8166988
+      to: 8_060_339    # 1000 blocks; compromise between fast and comprehensive
+    # We do not test Sapphire; the node only makes recent rounds queryable, so it's awkward to test reproducibly.
+    # Also, sapphire does not use much code that is not covered by emerald.
   storage:
     backend: postgres
     endpoint: postgresql://rwuser:password@localhost:5432/indexer?sslmode=disable
