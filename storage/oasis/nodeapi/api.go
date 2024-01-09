@@ -125,6 +125,7 @@ type Event struct {
 	RegistryNodeUnfrozen     *NodeUnfrozenEvent
 
 	RoothashExecutorCommitted *ExecutorCommittedEvent
+	RoothashMessage           *MessageEvent // Available only in Cobalt.
 
 	GovernanceProposalSubmitted *ProposalSubmittedEvent
 	GovernanceProposalExecuted  *ProposalExecutedEvent
@@ -185,6 +186,12 @@ type (
 
 type ExecutorCommittedEvent struct {
 	NodeID *signature.PublicKey // Available starting in Damask.
+}
+
+type MessageEvent struct {
+	Module string
+	Code   uint32
+	Index  uint32
 }
 
 // .................... Governance ....................
