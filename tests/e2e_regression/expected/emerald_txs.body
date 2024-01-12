@@ -347,7 +347,7 @@
         },
         "to": "oasis1qzypxmt5xg8039329zvre7hxe7kn0vxfugsknqtw"
       },
-      "charged_fee": "6131500000000000",
+      "charged_fee": "6132100000000000",
       "fee": "6132100000000000",
       "gas_limit": 61321,
       "gas_used": 61315,
@@ -683,7 +683,7 @@
         },
         "to": "oasis1qr5vpvmhxgymefgxx66mn5heayeyec69xgvzr5p9"
       },
-      "charged_fee": "6131400000000000",
+      "charged_fee": "7000000000000000",
       "fee": "7000000000000000",
       "gas_limit": 70000,
       "gas_used": 61314,
@@ -812,7 +812,7 @@
         },
         "to": "oasis1qzypxmt5xg8039329zvre7hxe7kn0vxfugsknqtw"
       },
-      "charged_fee": "6131400000000000",
+      "charged_fee": "6132100000000000",
       "fee": "6132100000000000",
       "gas_limit": 61321,
       "gas_used": 61314,
@@ -1302,7 +1302,7 @@
         },
         "to": "oasis1qzypxmt5xg8039329zvre7hxe7kn0vxfugsknqtw"
       },
-      "charged_fee": "6131500000000000",
+      "charged_fee": "6132100000000000",
       "fee": "6132100000000000",
       "gas_limit": 61321,
       "gas_used": 61315,
@@ -1716,7 +1716,7 @@
         },
         "to": "oasis1qzypxmt5xg8039329zvre7hxe7kn0vxfugsknqtw"
       },
-      "charged_fee": "6131500000000000",
+      "charged_fee": "6132100000000000",
       "fee": "6132100000000000",
       "gas_limit": 61321,
       "gas_used": 61315,
@@ -2181,7 +2181,7 @@
         },
         "to": "oasis1qzypxmt5xg8039329zvre7hxe7kn0vxfugsknqtw"
       },
-      "charged_fee": "6131500000000000",
+      "charged_fee": "6132100000000000",
       "fee": "6132100000000000",
       "gas_limit": 61321,
       "gas_used": 61315,
