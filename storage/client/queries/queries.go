@@ -317,7 +317,10 @@ const (
 			txs.fee,
 			txs.gas_limit,
 			txs.gas_used,
-			COALESCE(FLOOR(txs.fee / NULLIF(txs.gas_limit, 0)) * txs.gas_used, 0) AS charged_fee, -- charged_fee=gas_price * gas_used
+			CASE
+				WHEN txs.tx_eth_hash IS NULL THEN txs.fee 				     -- charged_fee=fee for non-EVM txs
+				ELSE COALESCE(FLOOR(txs.fee / NULLIF(txs.gas_limit, 0)) * txs.gas_used, 0)   -- charged_fee=gas_price * gas_used for EVM txs
+			END AS charged_fee,
 			txs.size,
 			txs.method,
 			txs.body,
