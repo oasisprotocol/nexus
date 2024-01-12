@@ -66,6 +66,8 @@ func testRuntimeAccounts(t *testing.T, runtime common.Runtime) {
 	)
 	require.NoError(t, err)
 	actualAccts := make(map[string]bool)
+	var allBalances uint64
+	var balanceDiscrepancies uint64
 	for acctRows.Next() {
 		var a TestRuntimeAccount
 		err = acctRows.Scan(
@@ -92,11 +94,15 @@ func testRuntimeAccounts(t *testing.T, runtime common.Runtime) {
 		assert.NoError(t, err)
 		for denom, amount := range balances.Balances {
 			if stringifyDenomination(denom, sdkPT) == a.Symbol {
-				assert.Equal(t, *amount.ToBigInt(), a.Balance.Int, "address: %s", a.Address)
+				allBalances++
+				if !assert.Equal(t, *amount.ToBigInt(), a.Balance.Int, "address: %s", a.Address) {
+					balanceDiscrepancies++
+				}
 			}
 		}
 		actualAccts[a.Address] = true
 	}
+	t.Logf("Number of discrepancies in account balances: %d (out of: %d)", balanceDiscrepancies, allBalances)
 
 	for _, addr := range addresses {
 		_, ok := actualAccts[addr.String()]
