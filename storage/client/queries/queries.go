@@ -537,6 +537,7 @@ const (
 			owner_preimage.context_identifier,
 			owner_preimage.context_version,
 			owner_preimage.address_data,
+			chain.evm_nfts.num_transfers,
 			chain.evm_nfts.metadata_uri,
 			chain.evm_nfts.metadata_accessed,
 			chain.evm_nfts.metadata,
