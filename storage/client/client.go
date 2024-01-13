@@ -3,12 +3,14 @@ package client
 import (
 	"context"
 	"database/sql"
+	"encoding/base64"
 	"fmt"
 	"math/big"
 	"strings"
 	"time"
 
 	"github.com/dgraph-io/ristretto"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	ethCommon "github.com/ethereum/go-ethereum/common"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -19,6 +21,7 @@ import (
 	oasisConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 
+	"github.com/oasisprotocol/nexus/analyzer/evmabi"
 	beacon "github.com/oasisprotocol/nexus/coreapi/v22.2.11/beacon/api"
 	staking "github.com/oasisprotocol/nexus/coreapi/v22.2.11/staking/api"
 
@@ -1294,6 +1297,21 @@ func (c *StorageClient) RuntimeEvents(ctx context.Context, p apiTypes.GetRuntime
 		h := ethCommon.HexToHash(*p.EvmLogSignature)
 		evmLogSignature = &h
 	}
+	if p.NftId != nil && p.ContractAddress == nil {
+		return nil, fmt.Errorf("must specify contract_address with nft_id")
+	}
+	var NFTIdB64 *string
+	if p.NftId != nil {
+		erc721TransferTokenIdBI := &big.Int{}
+		if err := erc721TransferTokenIdBI.UnmarshalText([]byte(*p.NftId)); err != nil {
+			return nil, fmt.Errorf("unmarshalling erc721_transfer_token_id: %w", err)
+		}
+		erc721TransferTokenIdBuf, err := abi.Arguments{evmabi.ERC721.Events["Transfer"].Inputs[2]}.Pack(erc721TransferTokenIdBI)
+		if err != nil {
+			return nil, fmt.Errorf("ABI-packing erc721_transfer_token_id: %w", err)
+		}
+		NFTIdB64 = common.Ptr(base64.StdEncoding.EncodeToString(erc721TransferTokenIdBuf))
+	}
 
 	res, err := c.withTotalCount(
 		ctx,
@@ -1305,6 +1323,8 @@ func (c *StorageClient) RuntimeEvents(ctx context.Context, p apiTypes.GetRuntime
 		p.Type,
 		evmLogSignature,
 		p.Rel,
+		p.ContractAddress,
+		NFTIdB64,
 		p.Limit,
 		p.Offset,
 	)

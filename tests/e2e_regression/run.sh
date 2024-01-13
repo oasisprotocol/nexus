@@ -100,6 +100,7 @@ testCases=(
   'emerald_failed_tx              /v1/emerald/transactions/35fdc8261dd81be8187c858aa9a623085494baf0565d414f48562a856147c093'
   'emerald_events                 /v1/emerald/events'
   'emerald_events_by_type         /v1/emerald/events?type=sdf'
+  'emerald_events_by_nft          /v1/emerald/events?contract_address=oasis1qz29t7nxkwfqgfk36uqqs9pzuzdt8zmrjud5mehx&nft_id=1'
   'emerald_tokens                 /v1/emerald/evm_tokens'
   'emerald_token                  /v1/emerald/evm_tokens/oasis1qpgcp5jzlgk4hcenaj2x82rqk8rrve2keyuc8aaf'
   'emerald_token_holders          /v1/emerald/evm_tokens/oasis1qpgcp5jzlgk4hcenaj2x82rqk8rrve2keyuc8aaf/holders'

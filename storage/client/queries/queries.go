@@ -409,10 +409,22 @@ const (
 			($4::text IS NULL OR evs.tx_hash = $4::text OR evs.tx_eth_hash = $4::text) AND
 			($5::text IS NULL OR evs.type = $5::text) AND
 			($6::bytea IS NULL OR evs.evm_log_signature = $6::bytea) AND
-			($7::text IS NULL OR evs.related_accounts @> ARRAY[$7::text])
+			($7::text IS NULL OR evs.related_accounts @> ARRAY[$7::text]) AND
+			($8::text IS NULL OR (
+				-- Currently this only supports EVM smart contracts.
+				evs.type = 'evm.log' AND
+				evs.body ->> 'address' = encode(eth_preimage($8::oasis_addr), 'base64')
+			)) AND
+			($9::text IS NULL OR (
+				-- Currently this only supports ERC-721 Transfer events.
+				evs.type = 'evm.log' AND
+				evs.evm_log_signature = '\xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef' AND
+				jsonb_array_length(evs.body -> 'topics') = 4 AND
+				evs.body -> 'topics' ->> 3 = $9::text
+			))
 		ORDER BY evs.round DESC, evs.tx_index, evs.type, evs.body::text
-		LIMIT $8::bigint
-		OFFSET $9::bigint`
+		LIMIT $10::bigint
+		OFFSET $11::bigint`
 
 	RuntimeEvmContract = `
 		SELECT

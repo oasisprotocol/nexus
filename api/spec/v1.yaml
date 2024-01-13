@@ -140,13 +140,13 @@ x-type-annotations:
     example: "oasis1qpg2xuz46g53737343r20yxeddhlvc2ldqsjh70p"
     x-go-type: staking.Address
     x-go-type-import: { name: staking, path: "github.com/oasisprotocol/nexus/coreapi/v22.2.11/staking/api" }
-    description: An oasis-style (bech32) address.
+    description: An Oasis-style (bech32) address.
   address: &AddressType
     type: string
     pattern: '^oasis1[a-z0-9]{40}$'
     example: "oasis1qpg2xuz46g53737343r20yxeddhlvc2ldqsjh70p"
     x-go-type: Address
-    description: An oasis-style (bech32) address.
+    description: An Oasis-style (bech32) address.
   pubkey: &Ed25519PubKeyType
     type: string
     format: byte  # means base64-encoded raw bytes
@@ -875,8 +875,8 @@ paths:
             the sender or the recipient of tokens.
             Nexus detects related accounts inside EVM transactions and events on a
             best-effort basis. For example, it inspects ERC20 methods inside `evm.Call` txs.
-            However, you must provide the oasis-style derived address here, not the Eth address.
-            See `AddressPreimage` for more info on oasis-style vs Eth addresses.
+            However, you must provide the Oasis-style derived address here, not the Eth address.
+            See `AddressPreimage` for more info on Oasis-style vs Eth addresses.
       responses:
         '200':
           description: |
@@ -973,6 +973,31 @@ paths:
             A filter on the evm log signatures.
             Note: The filter will only match on parsed (verified) EVM events.
           example: '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'
+        - in: query
+          name: contract_address
+          schema:
+            type: string
+          description: |
+            A filter on a smart contract. Every returned event will have been
+            emitted by the contract at this Oasis address.
+          example: *staking_address_1
+        - in: query
+          name: nft_id
+          schema:
+            type: string
+          example: "999"
+          description: |
+            A filter on NFT events. Every returned event will be specifically
+            about this NFT instance ID. You must specify the contract_address
+            filter with this filter.
+            Currently this only supports ERC-721 Transfer events.
+            This may expand to support other event types in the future.
+            If you want only ERC-721 Transfer events, specify
+            evm_log_signature=ddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef
+            to avoid inadvertently getting other event types if they are
+            supported later.
+            Using an evm_log_signature filter with this set to any other value
+            will match no events.
       responses:
         '200':
           description: |
@@ -1786,18 +1811,18 @@ components:
       description: |
         The data from which a consensus-style address (`oasis1...`)
         was derived. Notably, for EVM runtimes like Sapphire,
-        this links the oasis address and the Ethereum address.
+        this links the Oasis address and the Ethereum address.
 
         Oasis addresses are derived from a piece of data, such as an ed25519
         public key or an Ethereum address. For example, [this](https://github.com/oasisprotocol/oasis-sdk/blob/b37e6da699df331f5a2ac62793f8be099c68469c/client-sdk/go/helpers/address.go#L90-L91)
-        is how an Ethereum is converted to an oasis address. The type of underlying data usually also
+        is how an Ethereum is converted to an Oasis address. The type of underlying data usually also
         determines how the signatuers for this address are verified.
 
         Consensus supports only "staking addresses" (`context="oasis-core/address: staking"`
         below; always ed25519-backed).
         Runtimes support all types. This means that every consensus address is also
         valid in every runtime. For example, in EVM runtimes, you can use staking
-        addresses, but only with oasis tools (e.g. a wallet); EVM contracts such as
+        addresses, but only with Oasis tools (e.g. a wallet); EVM contracts such as
         ERC20 tokens or tools such as Metamask cannot interact with staking addresses.
       type: object
       required: [context, address_data]
@@ -1805,7 +1830,7 @@ components:
         context:
           $ref: "#/components/schemas/AddressDerivationContext"
           description: |
-            The method by which the oasis address was derived from `address_data`.
+            The method by which the Oasis address was derived from `address_data`.
           example: "oasis-runtime-sdk/address: secp256k1eth"
         context_version:
           type: integer
@@ -1816,7 +1841,7 @@ components:
           type: string
           format: byte
           description: |
-            The base64-encoded data from which the oasis address was derived.
+            The base64-encoded data from which the Oasis address was derived.
             When `context = "oasis-runtime-sdk/address: secp256k1eth"`, this
             is the Ethereum address (in base64, not hex!).
           example: 'INLp2Ih3YIdcA+zFNhM+SIGyFgKsYYc9SKQeKRKe2uI='
@@ -1848,7 +1873,7 @@ components:
           description: Number of tokens held, in base units.
         token_contract_addr:
           type: string
-          description: The oasis address of this token's contract.
+          description: The Oasis address of this token's contract.
           example: 'oasis1qzk5pr2x8ah04lgjee3lv06fmyvqvz45egjv4ps0'
         token_contract_addr_eth:
           type: string
@@ -1888,7 +1913,7 @@ components:
       properties:
         holder_address:
           type: string
-          description: The oasis address of the account holder.
+          description: The Oasis address of the account holder.
           example: *staking_address_1
         eth_holder_address:
           type: string
