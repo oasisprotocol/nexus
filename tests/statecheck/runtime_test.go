@@ -26,6 +26,10 @@ func TestEmeraldAccounts(t *testing.T) {
 	testRuntimeAccounts(t, common.RuntimeEmerald)
 }
 
+func TestSapphireAccounts(t *testing.T) {
+	testRuntimeAccounts(t, common.RuntimeSapphire)
+}
+
 func testRuntimeAccounts(t *testing.T, runtime common.Runtime) {
 	if _, ok := os.LookupEnv("OASIS_INDEXER_HEALTHCHECK"); !ok {
 		t.Skip("skipping test since healthcheck tests are not enabled")
