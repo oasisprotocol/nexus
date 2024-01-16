@@ -557,7 +557,7 @@ const (
 		WHERE
 			chain.evm_nfts.runtime = $1::runtime AND
 			($2::oasis_addr IS NULL OR chain.evm_nfts.token_address = $2::oasis_addr) AND
-			($3::bigint IS NULL OR chain.evm_nfts.nft_id = $3::bigint) AND
+			($3::bigint IS NULL OR chain.evm_nfts.nft_id = $3::uint_numeric) AND
 			($4::oasis_addr IS NULL OR chain.evm_nfts.owner = $4::oasis_addr)
 		ORDER BY token_address, nft_id
 		LIMIT $5::bigint
