@@ -26,6 +26,9 @@ type AnalysisMetrics struct {
 
 	// Latencies of fetching a block's data from the node.
 	blockFetchLatencies *prometheus.HistogramVec
+
+	// Queue length of analyzer.
+	queueLengths *prometheus.GaugeVec
 }
 
 type CacheReadStatus string
@@ -98,12 +101,20 @@ func NewDefaultAnalysisMetrics(runtime string) AnalysisMetrics {
 			},
 			[]string{"layer"}, // Labels.
 		),
+		queueLengths: prometheus.NewGaugeVec(
+			prometheus.GaugeOpts{
+				Name: fmt.Sprintf("%s_queue_length", runtime),
+				Help: "How many blocks or items are left to process, partitioned by analyzer",
+			},
+			[]string{"analyzer"}, // Labels
+		),
 	}
 	metrics.databaseOperations = registerOnce(metrics.databaseOperations).(*prometheus.CounterVec)
 	metrics.databaseLatencies = registerOnce(metrics.databaseLatencies).(*prometheus.HistogramVec)
 	metrics.localCacheReads = registerOnce(metrics.localCacheReads).(*prometheus.CounterVec)
 	metrics.blockAnalysisLatencies = registerOnce(metrics.blockAnalysisLatencies).(*prometheus.HistogramVec)
 	metrics.blockFetchLatencies = registerOnce(metrics.blockFetchLatencies).(*prometheus.HistogramVec)
+	metrics.queueLengths = registerOnce(metrics.queueLengths).(*prometheus.GaugeVec)
 	return metrics
 }
 
@@ -132,4 +143,8 @@ func (m *AnalysisMetrics) BlockAnalysisLatencies() *prometheus.Timer {
 
 func (m *AnalysisMetrics) BlockFetchLatencies() *prometheus.Timer {
 	return prometheus.NewTimer(m.blockFetchLatencies.WithLabelValues(m.runtime))
+}
+
+func (m *AnalysisMetrics) QueueLength(analyzer string) prometheus.Gauge {
+	return m.queueLengths.WithLabelValues(analyzer)
 }

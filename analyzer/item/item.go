@@ -12,12 +12,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/prometheus/client_golang/prometheus"
-
 	"github.com/oasisprotocol/nexus/analyzer"
 	"github.com/oasisprotocol/nexus/analyzer/util"
 	"github.com/oasisprotocol/nexus/config"
 	"github.com/oasisprotocol/nexus/log"
+	"github.com/oasisprotocol/nexus/metrics"
 	"github.com/oasisprotocol/nexus/storage"
 )
 
@@ -41,9 +40,9 @@ type itemBasedAnalyzer[Item any] struct {
 
 	processor ItemProcessor[Item]
 
-	target            storage.TargetStorage
-	logger            *log.Logger
-	queueLengthMetric prometheus.Gauge
+	target  storage.TargetStorage
+	logger  *log.Logger
+	metrics metrics.AnalysisMetrics
 }
 
 var _ analyzer.Analyzer = (*itemBasedAnalyzer[any])(nil)
@@ -88,12 +87,8 @@ func NewAnalyzer[Item any](
 		processor,
 		target,
 		logger,
-		prometheus.NewGauge(prometheus.GaugeOpts{
-			Name: fmt.Sprintf("%s_queue_length", name),
-			Help: fmt.Sprintf("count of items in the work queue for the %s analyzer", name),
-		}),
+		metrics.NewDefaultAnalysisMetrics(name),
 	}
-	prometheus.MustRegister(a.queueLengthMetric)
 
 	return a, nil
 }
@@ -105,7 +100,7 @@ func (a *itemBasedAnalyzer[Item]) sendQueueLengthMetric(ctx context.Context) (in
 		a.logger.Warn("error fetching queue length", "err", err)
 		return 0, err
 	}
-	a.queueLengthMetric.Set(float64(queueLength))
+	a.metrics.QueueLength(a.analyzerName).Set(float64(queueLength))
 	return queueLength, nil
 }
 

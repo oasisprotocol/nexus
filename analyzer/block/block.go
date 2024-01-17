@@ -17,6 +17,7 @@ import (
 	"github.com/oasisprotocol/nexus/analyzer/util"
 	"github.com/oasisprotocol/nexus/config"
 	"github.com/oasisprotocol/nexus/log"
+	"github.com/oasisprotocol/nexus/metrics"
 	"github.com/oasisprotocol/nexus/storage"
 )
 
@@ -61,8 +62,9 @@ type blockBasedAnalyzer struct {
 
 	processor BlockProcessor
 
-	target storage.TargetStorage
-	logger *log.Logger
+	target  storage.TargetStorage
+	logger  *log.Logger
+	metrics metrics.AnalysisMetrics
 
 	slowSync bool
 }
@@ -259,6 +261,31 @@ func (b *blockBasedAnalyzer) ensureSlowSyncPrerequisites(ctx context.Context) (o
 	return true
 }
 
+// sendQueueLengthMetric updates the relevant Prometheus metric with an approximation
+// of the number of known blocks that require processing, calculated as the difference
+// between the analyzer's highest processed block and the current block height
+// on-chain (fetched by the node-stats analyzer).
+// Note that the true count may be higher during fast-sync.
+func (b *blockBasedAnalyzer) sendQueueLengthMetric(queueLength uint64) {
+	// For block-based analyzers, the analyzer name is identical to the layer name.
+	b.metrics.QueueLength(b.analyzerName).Set(float64(queueLength))
+}
+
+// Returns the chain height of the layer this analyzer is processing.
+// The heights are fetched and added to the database by the node-stats analyzer.
+func (b *blockBasedAnalyzer) nodeHeight(ctx context.Context) (int, error) {
+	var nodeHeight int
+	err := b.target.QueryRow(ctx, queries.NodeHeight, b.analyzerName).Scan(&nodeHeight)
+	switch err {
+	case nil:
+		return nodeHeight, nil
+	case pgx.ErrNoRows:
+		return -1, nil
+	default:
+		return -1, fmt.Errorf("error fetching chain height for consensus: %w", err)
+	}
+}
+
 // Start starts the block analyzer.
 func (b *blockBasedAnalyzer) Start(ctx context.Context) {
 	// Run prework.
@@ -325,6 +352,10 @@ func (b *blockBasedAnalyzer) Start(ctx context.Context) {
 			backoff.Failure()
 			continue
 		}
+		nodeHeight, err := b.nodeHeight(ctx)
+		if err != nil {
+			b.logger.Warn("error fetching current node height: %w", err)
+		}
 
 		// Process blocks.
 		b.logger.Debug("picked blocks for processing", "heights", heights)
@@ -337,6 +368,12 @@ func (b *blockBasedAnalyzer) Start(ctx context.Context) {
 			// in the batch will exceed the current lock expiry of 5min. The analyzer will terminate
 			// the batch early and attempt to refresh the locks for a new batch.
 			if b.slowSync {
+				// In slow-sync mode, we update the node-height at each block for a more
+				// precise measurement.
+				nodeHeight, err = b.nodeHeight(ctx)
+				if err != nil {
+					b.logger.Warn("error fetching current node height: %w", err)
+				}
 				select {
 				case <-time.After(backoff.Timeout()):
 					// Process the next block
@@ -378,6 +415,10 @@ func (b *blockBasedAnalyzer) Start(ctx context.Context) {
 				// Unlock a failed block, so it can be retried sooner.
 				b.unlockBlocks(ctx, []uint64{height})
 				continue
+			}
+			// If we successfully fetched the node height earlier, update the estimated queue length.
+			if nodeHeight != -1 {
+				b.sendQueueLengthMetric(uint64(nodeHeight) - height)
 			}
 			cancel()
 			backoff.Success()
@@ -425,13 +466,16 @@ func NewAnalyzer(
 	if batchSize == 0 {
 		batchSize = defaultBatchSize
 	}
-	return &blockBasedAnalyzer{
+	a := &blockBasedAnalyzer{
 		blockRange:   blockRange,
 		batchSize:    batchSize,
 		analyzerName: name,
 		processor:    processor,
 		target:       target,
 		logger:       logger.With("analyzer", name, "mode", mode),
+		metrics:      metrics.NewDefaultAnalysisMetrics(name),
 		slowSync:     mode == analyzer.SlowSyncMode,
-	}, nil
+	}
+
+	return a, nil
 }

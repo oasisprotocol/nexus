@@ -112,7 +112,7 @@ func setupAnalyzer(t *testing.T, testDb *postgres.Client, p *mockProcessor, cfg 
 	p.isFastSync = (mode == analyzer.FastSyncMode)
 
 	// Initialize the block analyzer.
-	logger, err := log.NewLogger(fmt.Sprintf("test-analyzer-%s", p.name), os.Stdout, log.FmtJSON, log.LevelInfo)
+	logger, err := log.NewLogger(fmt.Sprintf("test_analyzer-%s", p.name), os.Stdout, log.FmtJSON, log.LevelInfo)
 	require.NoError(t, err, "log.NewLogger")
 	var blockRange config.BlockRange
 	switch mode {
@@ -152,7 +152,7 @@ func TestFastSyncBlockAnalyzer(t *testing.T) {
 	ctx := context.Background()
 
 	db := setupDB(t)
-	p := &mockProcessor{name: "test-analyzer", storage: db}
+	p := &mockProcessor{name: "test_analyzer", storage: db}
 	analyzer := setupAnalyzer(t, db, p, testBlockBasedConfig, analyzer.SlowSyncMode)
 
 	// Run the analyzer and ensure all blocks are processed.
@@ -188,7 +188,7 @@ func TestMultipleFastSyncBlockAnalyzers(t *testing.T) {
 	ps := []*mockProcessor{}
 	as := []analyzer.Analyzer{}
 	for i := 0; i < numAnalyzers; i++ {
-		p := &mockProcessor{name: "test-analyzer", storage: db}
+		p := &mockProcessor{name: "test_analyzer", storage: db}
 		analyzer := setupAnalyzer(t, db, p, testFastSyncBlockBasedConfig, analyzer.FastSyncMode)
 		ps = append(ps, p)
 		as = append(as, analyzer)
@@ -238,7 +238,7 @@ func TestFailingFastSyncBlockAnalyzers(t *testing.T) {
 				return fmt.Errorf("failing analyzer")
 			}
 		}
-		p := &mockProcessor{name: "test-analyzer", storage: db, fail: fail}
+		p := &mockProcessor{name: "test_analyzer", storage: db, fail: fail}
 		analyzer := setupAnalyzer(t, db, p, testFastSyncBlockBasedConfig, analyzer.FastSyncMode)
 		ps = append(ps, p)
 		as = append(as, analyzer)
@@ -281,7 +281,7 @@ func TestDistinctFastSyncBlockAnalyzers(t *testing.T) {
 	ps := []*mockProcessor{}
 	as := []analyzer.Analyzer{}
 	for i := 0; i < numAnalyzers; i++ {
-		p := &mockProcessor{name: fmt.Sprintf("test-analyzer-%d", i), storage: db}
+		p := &mockProcessor{name: fmt.Sprintf("test_analyzer_%d", i), storage: db}
 		analyzer := setupAnalyzer(t, db, p, testFastSyncBlockBasedConfig, analyzer.FastSyncMode)
 		ps = append(ps, p)
 		as = append(as, analyzer)
@@ -318,7 +318,7 @@ func TestSlowSyncBlockAnalyzer(t *testing.T) {
 	ctx := context.Background()
 
 	db := setupDB(t)
-	p := &mockProcessor{name: "test-analyzer", storage: db}
+	p := &mockProcessor{name: "test_analyzer", storage: db}
 	analyzer := setupAnalyzer(t, db, p, testBlockBasedConfig, analyzer.SlowSyncMode)
 
 	// Run the analyzer and ensure all blocks are processed.
@@ -351,7 +351,7 @@ func TestFailingSlowSyncBlockAnalyzer(t *testing.T) {
 	ctx := context.Background()
 
 	db := setupDB(t)
-	p := &mockProcessor{name: "test-analyzer", storage: db, fail: func(height uint64) error {
+	p := &mockProcessor{name: "test_analyzer", storage: db, fail: func(height uint64) error {
 		// Fail ~5% of the time.
 		if rand.Float64() > 0.95 { // /nolint:gosec // G404: Use of weak random number generator (math/rand instead of crypto/rand).
 			return fmt.Errorf("failed by chance")
@@ -394,7 +394,7 @@ func TestDistinctSlowSyncBlockAnalyzers(t *testing.T) {
 	ps := []*mockProcessor{}
 	as := []analyzer.Analyzer{}
 	for i := 0; i < numAnalyzers; i++ {
-		p := &mockProcessor{name: fmt.Sprintf("test-analyzer-%d", i), storage: db}
+		p := &mockProcessor{name: fmt.Sprintf("test_analyzer_%d", i), storage: db}
 		analyzer := setupAnalyzer(t, db, p, testBlockBasedConfig, analyzer.SlowSyncMode)
 		ps = append(ps, p)
 		as = append(as, analyzer)

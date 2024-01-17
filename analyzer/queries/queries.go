@@ -152,7 +152,12 @@ var (
       SET processed_time = CURRENT_TIMESTAMP, is_fast_sync = $3
       WHERE height = $1 AND analyzer = $2`
 
-	ConsensusNodeHeightUpsert = `
+	NodeHeight = `
+    SELECT height
+    FROM chain.latest_node_heights
+    WHERE layer = $1`
+
+	NodeHeightUpsert = `
     INSERT INTO chain.latest_node_heights (layer, height)
       VALUES
         ($1, $2)
