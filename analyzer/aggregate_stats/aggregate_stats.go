@@ -23,10 +23,13 @@ const (
 	// This limits database batch sizes in cases if the stats analyzer would be far behind
 	// latest indexed block (e.g. if it would not be enabled during initial sync).
 	// Likely never the case in normal operation.
-	statsBatchLimit = 1_000
+	statsBatchLimit = 100
 
 	// Name of the consensus layer.
 	layerConsensus = "consensus"
+
+	// Timeout when processing a single batch of a single statistic.
+	statsComputationTimeout = 3 * time.Minute
 
 	// Interval between stat computation iterations.
 	// The workers only computes new data and iteration with no updates are cheap
@@ -173,9 +176,11 @@ func (a *aggregateStatsAnalyzer) aggregateStatsWorker(ctx context.Context) {
 	}
 
 	for {
-		// If batch limit was reached, start the next iteration sooner.
-		var batchLimitReached bool
+		// If batch limit was reached, or the batch timeout was reached, start the next iteration sooner.
+		var useCatchupTimeout bool
 		for _, statsComputation := range statsComputations {
+			statCtx, cancel := context.WithTimeout(ctx, statsComputationTimeout)
+			statEndTime := time.Now().Add(statsComputationTimeout)
 			logger := a.logger.With("name", statsComputation.name, "layer", statsComputation.layer)
 
 			windowSize := statsComputation.windowSize
@@ -191,40 +196,45 @@ func (a *aggregateStatsAnalyzer) aggregateStatsWorker(ctx context.Context) {
 			// First we find the start and end timestamps for which we can compute stats.
 			// Start at the latest already computed window, or at the earliest indexed
 			// block if no stats have been computed yet.
-			latestComputed, err := statsComputation.LatestComputedTs(ctx)
+			latestComputed, err := statsComputation.LatestComputedTs(statCtx)
 			switch {
 			case err == nil:
 				// Continues below.
 			case errors.Is(pgx.ErrNoRows, err):
 				// No stats yet. Start at the earliest indexed block.
 				var earliestBlockTs *time.Time
-				earliestBlockTs, err = a.earliestBlockTs(ctx, statsComputation.layer)
+				earliestBlockTs, err = a.earliestBlockTs(statCtx, statsComputation.layer)
 				switch {
 				case err == nil:
 					latestComputed = floorWindow(earliestBlockTs)
 				case errors.Is(pgx.ErrNoRows, err):
 					// No data log a debug only log.
 					logger.Debug("no stats available yet, skipping iteration")
+					cancel()
 					continue
 				default:
 					logger.Error("failed querying earliest indexed block timestamp", "err", err)
+					cancel()
 					continue
 				}
 			default:
 				logger.Error("failed querying latest computed stats window", "err", err)
+				cancel()
 				continue
 			}
 
 			// End at the latest available data timestamp rounded down to the windowStep interval.
-			latestPossibleWindow, err := statsComputation.latestAvailableDataTs(ctx, a.target)
+			latestPossibleWindow, err := statsComputation.latestAvailableDataTs(statCtx, a.target)
 			switch {
 			case err == nil:
 				// Continues below.
 			case errors.Is(pgx.ErrNoRows, err):
 				logger.Debug("no stats available yet, skipping iteration")
+				cancel()
 				continue
 			default:
 				logger.Error("failed querying the latest possible window, skipping iteration", "err", err)
+				cancel()
 				continue
 			}
 			latestPossibleWindow = common.Ptr(floorWindow(latestPossibleWindow))
@@ -241,7 +251,7 @@ func (a *aggregateStatsAnalyzer) aggregateStatsWorker(ctx context.Context) {
 				windowEnd := nextWindow
 
 				// Compute stats for the provided time window.
-				queries, err := statsComputation.ComputeStats(ctx, windowStart, windowEnd)
+				queries, err := statsComputation.ComputeStats(statCtx, windowStart, windowEnd)
 				if err != nil {
 					logger.Error("failed to compute stat for the window", "window_start", windowStart, "window_end", windowEnd, "err", err)
 					break
@@ -249,20 +259,26 @@ func (a *aggregateStatsAnalyzer) aggregateStatsWorker(ctx context.Context) {
 				batch.Extend(queries)
 
 				if batch.Len() > statsBatchLimit {
-					batchLimitReached = true
+					useCatchupTimeout = true
 					break
 				}
 				latestComputed = nextWindow
 			}
+			cancel()
+			// If the computation was limited by the timeout; start the next computation sooner.
+			if time.Now().After(statEndTime) {
+				useCatchupTimeout = true
+			}
 			if err := a.writeToDB(ctx, batch, fmt.Sprintf("update_stats_%s", a.Name())); err != nil {
 				logger.Error("failed to insert computed stats update", "err", err)
+				continue
 			}
 			logger.Info("updated stats", "num_inserts", batch.Len())
 		}
 
 		timeout := statsComputationInterval
-		if batchLimitReached {
-			// Batch limit reached, use the shorter stats-catchup timeout.
+		if useCatchupTimeout {
+			// Batch limit reached, or batch timeout was exceeded.
 			timeout = statsComputationIntervalCatchup
 		}
 		select {

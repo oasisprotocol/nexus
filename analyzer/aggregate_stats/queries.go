@@ -82,11 +82,21 @@ const (
 
 	// QueryRuntimeActiveAccounts is the query to get the number of
 	// active accounts in the runtime layer within the given time range.
+	//
+	// Note: We explicitly convert the timestamp range to a round range
+	// to force postgres to use the corresponding index on the
+	// chain.runtime_related_transactions table. Without this conversion,
+	// postgres does not realize that the timestamps correspond to a sequential
+	// set of rounds and does a full table scan.
 	QueryRuntimeActiveAccounts = `
+		WITH relevant_rounds AS (
+			SELECT min(round) as min_round, max(round) as max_round
+			FROM chain.runtime_blocks AS b
+			WHERE (b.runtime = $1 AND b.timestamp >= $2::timestamptz AND b.timestamp < $3::timestamptz)
+		)
 		SELECT COUNT(DISTINCT account_address)
-		FROM chain.runtime_related_transactions AS rt
-		JOIN chain.runtime_blocks AS b ON (rt.runtime = b.runtime AND rt.tx_round = b.round)
-		WHERE (rt.runtime = $1 AND b.timestamp >= $2::timestamptz AND b.timestamp < $3::timestamptz)
+		FROM chain.runtime_related_transactions AS rt, relevant_rounds
+		WHERE (rt.runtime = $1 AND tx_round >= relevant_rounds.min_round AND tx_round <= relevant_rounds.max_round)
 	`
 
 	// QueryDailyTxVolume is the query to get the number of transactions within the given

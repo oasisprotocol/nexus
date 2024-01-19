@@ -291,7 +291,8 @@ CREATE TABLE chain.accounts_related_transactions
   tx_index UINT31 NOT NULL,
   FOREIGN KEY (tx_block, tx_index) REFERENCES chain.transactions(block, tx_index) DEFERRABLE INITIALLY DEFERRED
 );
-CREATE INDEX ix_accounts_related_transactions_address_block_index ON chain.accounts_related_transactions (account_address);
+CREATE INDEX ix_accounts_related_transactions_address ON chain.accounts_related_transactions (account_address);
+CREATE INDEX ix_accounts_related_transactions_block ON chain.accounts_related_transactions (tx_block);
 
 -- Tracks the current (consensus) height of the node.
 CREATE TABLE chain.latest_node_heights
