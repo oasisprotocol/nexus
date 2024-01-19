@@ -6,7 +6,7 @@ BEGIN;
 -- via lookups in the address_preimages table.
 
 -- Convenience function for retrieving the ethereum address associated with a given oasis address.
-CREATE OR REPLACE FUNCTION eth_preimage(addr oasis_addr)
+CREATE OR REPLACE FUNCTION public.eth_preimage(addr oasis_addr)
 RETURNS BYTEA
 LANGUAGE plpgsql
 AS $$
@@ -25,7 +25,7 @@ END;
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION derive_oasis_addr(eth_addr bytea)
+CREATE OR REPLACE FUNCTION public.derive_oasis_addr(eth_addr bytea)
 RETURNS TEXT
 LANGUAGE plpgsql
 AS $$
