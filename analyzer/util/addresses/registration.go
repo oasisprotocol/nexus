@@ -5,6 +5,7 @@ import (
 
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/address"
+	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 
 	"github.com/oasisprotocol/nexus/analyzer/util/eth"
@@ -103,6 +104,28 @@ func RegisterRelatedSdkAddress(relatedAddresses map[apiTypes.Address]struct{}, s
 
 func RegisterRelatedAddressSpec(addressPreimages map[apiTypes.Address]*PreimageData, relatedAddresses map[apiTypes.Address]struct{}, as *sdkTypes.AddressSpec) (apiTypes.Address, error) {
 	addr, err := registerAddressSpec(addressPreimages, as)
+	if err != nil {
+		return "", err
+	}
+
+	relatedAddresses[addr] = struct{}{}
+
+	return addr, nil
+}
+
+func RegisterRelatedOCAddress(relatedAddresses map[apiTypes.Address]struct{}, ocAddr address.Address) (apiTypes.Address, error) {
+	addr, err := FromOCAddress(ocAddr)
+	if err != nil {
+		return "", err
+	}
+
+	relatedAddresses[addr] = struct{}{}
+
+	return addr, nil
+}
+
+func RegisterRelatedOCSAddress(relatedAddresses map[apiTypes.Address]struct{}, ocsAddr staking.Address) (apiTypes.Address, error) {
+	addr, err := FromOCSAddress(ocsAddr)
 	if err != nil {
 		return "", err
 	}

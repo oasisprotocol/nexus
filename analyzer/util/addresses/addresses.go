@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/address"
+	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 
 	apiTypes "github.com/oasisprotocol/nexus/api/v1/types"
@@ -13,7 +14,8 @@ import (
 // ethAddr -> []byte len-20 slice
 // ecAddr -> go-ethereum type binary address
 // ocAddr -> oasis-core type binary oasis address
-// sdkAddr -> oasis-sdk type binary oasis address
+// ocsAddr -> oasis-core type binary oasis address, but staking api wrapper
+// sdkAddr -> oasis-sdk type binary oasis address, but sdk wrapper
 // addr -> bech32 string oasis address
 // addrTextBytes -> bech32 []byte oasis address
 
@@ -36,6 +38,14 @@ func FromAddressSpec(as *sdkTypes.AddressSpec) (apiTypes.Address, error) {
 func FromOCAddress(ocAddr address.Address) (apiTypes.Address, error) {
 	sdkAddr := (sdkTypes.Address)(ocAddr)
 	return FromSdkAddress(&sdkAddr)
+}
+
+func FromOCSAddress(ocsAddr staking.Address) (apiTypes.Address, error) {
+	addrTextBytes, err := ocsAddr.MarshalText()
+	if err != nil {
+		return "", fmt.Errorf("address marshal text: %w", err)
+	}
+	return apiTypes.Address(addrTextBytes), nil
 }
 
 func FromEthAddress(ethAddr []byte) (apiTypes.Address, error) {
