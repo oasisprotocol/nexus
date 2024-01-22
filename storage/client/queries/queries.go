@@ -336,9 +336,12 @@ const (
 			txs.evm_encrypted_result_nonce,
 			txs.evm_encrypted_result_data,
 			txs.success,
+			txs.evm_fn_name,
+			txs.evm_fn_params,
 			txs.error_module,
 			txs.error_code,
-			txs.error_message
+			txs.error_message,
+			txs.error_params
 		FROM chain.runtime_transactions AS txs
 		LEFT JOIN chain.runtime_transaction_signers AS signer0 ON
 			(signer0.runtime = txs.runtime) AND

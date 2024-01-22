@@ -54,11 +54,10 @@ CREATE TABLE chain.runtime_transactions
   amount      UINT_NUMERIC, -- Exact semantics depend on method. Extracted from body; for convenience only.
 
   -- For evm.Call transactions, we store both the name of the function and
-  -- the function parameters.
+  -- the function parameters. The parameters are stored in an ordered JSON array,
+  -- and each each parameter is a JSON object: {name: ..., evm_type: ..., value: ...}
   evm_fn_name TEXT,
-  -- The function parameter values. Refer to the abi to see the parameter
-  -- names. Note that the parameters may be unnamed.
-  evm_fn_params JSONB,
+  evm_fn_params JSONB CHECK (jsonb_typeof(evm_fn_params)='array'),
 
   -- Encrypted data in encrypted Ethereum-format transactions.
   evm_encrypted_format call_format,

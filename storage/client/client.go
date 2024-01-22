@@ -1247,9 +1247,12 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetR
 			&encryptionEnvelope.ResultNonce,
 			&encryptionEnvelope.Result,
 			&t.Success,
+			&t.EvmFnName,
+			&t.EvmFnParams,
 			&t.Error.Module,
 			&t.Error.Code,
 			&t.Error.Message,
+			&t.Error.RevertParams,
 		); err != nil {
 			return nil, wrapError(err)
 		}

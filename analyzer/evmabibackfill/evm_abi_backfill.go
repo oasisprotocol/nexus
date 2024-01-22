@@ -14,6 +14,7 @@ import (
 	"github.com/oasisprotocol/nexus/analyzer"
 	"github.com/oasisprotocol/nexus/analyzer/item"
 	"github.com/oasisprotocol/nexus/analyzer/queries"
+	"github.com/oasisprotocol/nexus/analyzer/runtime"
 	"github.com/oasisprotocol/nexus/analyzer/runtime/abiparse"
 	"github.com/oasisprotocol/nexus/common"
 	"github.com/oasisprotocol/nexus/config"
@@ -162,7 +163,7 @@ func (p *processor) GetItems(ctx context.Context, limit uint64) ([]*abiEncodedIt
 // See the docstring of tryParseErrorMessage in analyzer/runtime/extract.go
 // for more info.
 func cleanTxRevertReason(raw string) ([]byte, error) {
-	s := strings.TrimPrefix(raw, "reverted: ")
+	s := strings.TrimPrefix(raw, runtime.TxRevertErrPrefix)
 	return base64.StdEncoding.DecodeString(s)
 }
 
@@ -238,7 +239,7 @@ func (p *processor) ProcessItem(ctx context.Context, batch *storage.QueryBatch, 
 				p.logger.Warn("error processing tx error using abi", "contract address", item.ContractAddr, "err", err)
 				return nil
 			}
-			abiErrName = abiErr.Name
+			abiErrName = runtime.TxRevertErrPrefix + abiErr.Name + prettyPrintArgs(abiErrArgs)
 			errArgs, err = marshalArgs(abiErr.Inputs, abiErrArgs)
 			if err != nil {
 				queueIncompatibleTxUpdate(batch, p.runtime, item.Tx.TxHash)
@@ -308,6 +309,20 @@ func marshalArgs(abiArgs abi.Arguments, argVals []interface{}) ([]*abiEncodedArg
 	}
 
 	return args, nil
+}
+
+func prettyPrintArgs(argVals []interface{}) string {
+	var sb strings.Builder
+	sb.WriteString("(")
+	for i, v := range argVals {
+		if i == len(argVals)-1 {
+			sb.WriteString(fmt.Sprintf("%v", v))
+		} else {
+			sb.WriteString(fmt.Sprintf("%v,", v))
+		}
+	}
+	sb.WriteString(")")
+	return sb.String()
 }
 
 func (p *processor) QueueLength(ctx context.Context) (int, error) {
