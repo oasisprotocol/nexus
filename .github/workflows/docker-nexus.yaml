@@ -16,7 +16,6 @@ jobs:
         with:
           # We need history to determine oasis-indexer version from git tag.
           fetch-depth: '0'
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
