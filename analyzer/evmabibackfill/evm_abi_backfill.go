@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
+	ethCommon "github.com/ethereum/go-ethereum/common"
 	sdkEVM "github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/evm"
 
 	"github.com/oasisprotocol/nexus/analyzer"
@@ -167,6 +168,72 @@ func cleanTxRevertReason(raw string) ([]byte, error) {
 	return base64.StdEncoding.DecodeString(s)
 }
 
+// Attempts to parse the raw event body into the event name, args, and signature
+// as defined by the abi of the contract that emitted this event.
+func (p *processor) parseEvent(ev *abiEncodedEvent, contractAbi abi.ABI) (*string, []*abiEncodedArg, *ethCommon.Hash) {
+	abiEvent, abiEventArgs, err := abiparse.ParseEvent(ev.EventBody.Topics, ev.EventBody.Data, &contractAbi)
+	if err != nil {
+		p.logger.Warn("error processing event using abi", "err", err)
+		return nil, nil, nil
+	}
+	eventArgs, err := marshalArgs(abiEvent.Inputs, abiEventArgs)
+	if err != nil {
+		p.logger.Warn("error processing event args using abi", "err", err)
+		return nil, nil, nil
+	}
+
+	return &abiEvent.Name, eventArgs, &abiEvent.ID
+}
+
+// Attempts to parse the raw evm.Call transaction data into the transaction
+// method name and arguments as defined by the abi of the contract that was called.
+func (p *processor) parseTxCall(tx *abiEncodedTx, contractAbi abi.ABI) (*string, []*abiEncodedArg) {
+	method, abiTxArgs, err := abiparse.ParseData(tx.TxData, &contractAbi)
+	if err != nil {
+		p.logger.Warn("error processing tx using abi", "err", err)
+		return nil, nil
+	}
+	txArgs, err := marshalArgs(method.Inputs, abiTxArgs)
+	if err != nil {
+		p.logger.Warn("error processing tx args using abi", "err", err)
+		return nil, nil
+	}
+
+	return &method.RawName, txArgs
+}
+
+// Attempts to parse the transaction revert reason into the error name and args
+// as defined by the abi of the contract that was called.
+func (p *processor) parseTxErr(tx *abiEncodedTx, contractAbi abi.ABI) (*string, []*abiEncodedArg) {
+	var abiErrMsg string
+	var abiErr *abi.Error
+	var abiErrArgs []interface{}
+	var errArgs []*abiEncodedArg
+	if tx.TxRevertReason != nil {
+		txrr, err := cleanTxRevertReason(*tx.TxRevertReason)
+		if err != nil {
+			// This is most likely an older tx with a plaintext revert reason, such
+			// as "reverted: Ownable: caller is not the owner". In this case, we do
+			// not parse the error with the abi.
+			p.logger.Info("encountered likely old-style reverted transaction", "revert reason", tx.TxRevertReason, "tx hash", tx.TxHash, "err", err)
+			return nil, nil
+		}
+		abiErr, abiErrArgs, err = abiparse.ParseError(txrr, &contractAbi)
+		if err != nil || abiErr == nil {
+			p.logger.Warn("error processing tx error using abi", "contract address", "err", err)
+			return nil, nil
+		}
+		abiErrMsg = runtime.TxRevertErrPrefix + abiErr.Name + prettyPrintArgs(abiErrArgs)
+		errArgs, err = marshalArgs(abiErr.Inputs, abiErrArgs)
+		if err != nil {
+			p.logger.Warn("error processing tx error args", "err", err)
+			return nil, nil
+		}
+	}
+
+	return &abiErrMsg, errArgs
+}
+
 func (p *processor) ProcessItem(ctx context.Context, batch *storage.QueryBatch, item *abiEncodedItem) error {
 	// Unmarshal abi
 	contractAbi, err := abi.JSON(bytes.NewReader(item.Abi))
@@ -174,125 +241,33 @@ func (p *processor) ProcessItem(ctx context.Context, batch *storage.QueryBatch, 
 		return fmt.Errorf("error unmarshalling abi: %w", err)
 	}
 	// Parse data
-	if item.Event != nil { //nolint:nestif // has complex nested blocks (complexity: 12) (nestif)
-		abiEvent, abiEventArgs, err := abiparse.ParseEvent(item.Event.EventBody.Topics, item.Event.EventBody.Data, &contractAbi)
-		if err != nil {
-			queueIncompatibleEventUpdate(batch, p.runtime, item.Event.Round, item.Event.TxIndex)
-			p.logger.Warn("error processing event using abi", "contract address", item.ContractAddr, "err", err)
-			return nil
-		}
-		eventArgs, err := marshalArgs(abiEvent.Inputs, abiEventArgs)
-		if err != nil {
-			queueIncompatibleEventUpdate(batch, p.runtime, item.Event.Round, item.Event.TxIndex)
-			p.logger.Warn("error processing event args using abi", "contract address", item.ContractAddr, "err", err)
-			return nil
-		}
-
+	p.logger.Debug("processing item using abi", "contract_address", item.ContractAddr)
+	if item.Event != nil {
+		eventName, eventArgs, eventSig := p.parseEvent(item.Event, contractAbi)
 		batch.Queue(
 			queries.RuntimeEventEvmParsedFieldsUpdate,
 			p.runtime,
 			item.Event.Round,
 			item.Event.TxIndex,
-			abiEvent.RawName,
+			eventName,
 			eventArgs,
-			abiEvent.ID,
+			eventSig,
 		)
 	} else if item.Tx != nil {
-		method, abiTxArgs, err := abiparse.ParseData(item.Tx.TxData, &contractAbi)
-		if err != nil {
-			queueIncompatibleTxUpdate(batch, p.runtime, item.Tx.TxHash)
-			p.logger.Warn("error processing tx using abi", "contract address", item.ContractAddr, "err", err)
-			return nil
-		}
-		txArgs, err := marshalArgs(method.Inputs, abiTxArgs)
-		if err != nil {
-			queueIncompatibleTxUpdate(batch, p.runtime, item.Tx.TxHash)
-			p.logger.Warn("error processing tx args using abi", "contract address", item.ContractAddr, "err", err)
-			return nil
-		}
-		var abiErrName string
-		var abiErr *abi.Error
-		var abiErrArgs []interface{}
-		var errArgs []*abiEncodedArg
-		if item.Tx.TxRevertReason != nil {
-			txrr, err := cleanTxRevertReason(*item.Tx.TxRevertReason)
-			if err != nil {
-				// This is most likely an older tx with a plaintext revert reason, such
-				// as "reverted: Ownable: caller is not the owner". In this case, we do
-				// not parse the error with the abi, but we still update the tx table with
-				// the method and args.
-				batch.Queue(
-					queries.RuntimeTransactionEvmParsedFieldsUpdate,
-					p.runtime,
-					item.Tx.TxHash,
-					method.RawName,
-					txArgs,
-					nil, // error name
-					nil, // error args
-				)
-				p.logger.Info("encountered likely old-style reverted transaction", "revert reason", item.Tx.TxRevertReason, "tx hash", item.Tx.TxHash, "contract address", item.ContractAddr, "err", err)
-				return nil
-			}
-			abiErr, abiErrArgs, err = abiparse.ParseError(txrr, &contractAbi)
-			if err != nil || abiErr == nil {
-				queueIncompatibleTxUpdate(batch, p.runtime, item.Tx.TxHash)
-				p.logger.Warn("error processing tx error using abi", "contract address", item.ContractAddr, "err", err)
-				return nil
-			}
-			abiErrName = runtime.TxRevertErrPrefix + abiErr.Name + prettyPrintArgs(abiErrArgs)
-			errArgs, err = marshalArgs(abiErr.Inputs, abiErrArgs)
-			if err != nil {
-				queueIncompatibleTxUpdate(batch, p.runtime, item.Tx.TxHash)
-				p.logger.Warn("error processing tx error args", "contract address", item.ContractAddr, "err", err)
-				return nil
-			}
-		}
+		methodName, methodArgs := p.parseTxCall(item.Tx, contractAbi)
+		errMsg, errArgs := p.parseTxErr(item.Tx, contractAbi)
 		batch.Queue(
 			queries.RuntimeTransactionEvmParsedFieldsUpdate,
 			p.runtime,
 			item.Tx.TxHash,
-			method.RawName,
-			txArgs,
-			abiErrName,
+			methodName,
+			methodArgs,
+			errMsg,
 			errArgs,
 		)
 	}
 
 	return nil
-}
-
-// If abi processing of an event fails, it is likely due to incompatible
-// data+abi, which is the event's fault. We thus mark the incompatible
-// event as processed and continue.
-//
-// Note that if the abi is ever updated, we may need to revisit these events.
-func queueIncompatibleEventUpdate(batch *storage.QueryBatch, runtime common.Runtime, round uint64, txIndex *int) {
-	batch.Queue(
-		queries.RuntimeEventEvmParsedFieldsUpdate,
-		runtime,
-		round,
-		txIndex,
-		nil, // event name
-		nil, // event args
-		nil, // event signature
-	)
-}
-
-// If abi processing of an transaction fails, it is likely due to incompatible
-// data+abi, which is the transaction's fault. We thus mark the incompatible
-// transaction as processed and continue.
-//
-// Note that if the abi is ever updated, we may need to revisit these txs.
-func queueIncompatibleTxUpdate(batch *storage.QueryBatch, runtime common.Runtime, txHash string) {
-	batch.Queue(
-		queries.RuntimeTransactionEvmParsedFieldsUpdate,
-		runtime,
-		txHash,
-		nil, // method name
-		nil, // method args
-		nil, // error name
-		nil, // error args
-	)
 }
 
 func marshalArgs(abiArgs abi.Arguments, argVals []interface{}) ([]*abiEncodedArg, error) {
