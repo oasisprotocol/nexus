@@ -456,13 +456,29 @@ var (
     INSERT INTO chain.runtime_transactions (runtime, round, tx_index, tx_hash, tx_eth_hash, fee, gas_limit, gas_used, size, timestamp, method, body, "to", amount, evm_encrypted_format, evm_encrypted_public_key, evm_encrypted_data_nonce, evm_encrypted_data_data, evm_encrypted_result_nonce, evm_encrypted_result_data, success, error_module, error_code, error_message_raw, error_message)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25)`
 
-	RuntimeTransactionEvmParsedFieldsUpdate = `
+	RuntimeTransactionEvmParsedFnUpdate = `
     UPDATE chain.runtime_transactions
     SET
       evm_fn_name = $3,
       evm_fn_params = $4,
-      error_message = $5,
-      error_params = $6,
+      abi_parsed_at = CURRENT_TIMESTAMP
+    WHERE
+      runtime = $1 AND
+      tx_hash = $2`
+
+	RuntimeTransactionEvmParsedErrorUpdate = `
+    UPDATE chain.runtime_transactions
+    SET
+      error_message = $3,
+      error_params = $4,
+      abi_parsed_at = CURRENT_TIMESTAMP
+    WHERE
+      runtime = $1 AND
+      tx_hash = $2`
+
+	RuntimeTransactionEvmParsedUpdate = `
+    UPDATE chain.runtime_transactions
+    SET
       abi_parsed_at = CURRENT_TIMESTAMP
     WHERE
       runtime = $1 AND
@@ -478,6 +494,15 @@ var (
       evm_log_name = $4,
       evm_log_params = $5,
       evm_log_signature = $6,
+      abi_parsed_at = CURRENT_TIMESTAMP
+    WHERE
+      runtime = $1 AND
+      round = $2 AND
+      tx_index = $3`
+
+	RuntimeEventEvmParsedUpdate = `
+    UPDATE chain.runtime_events
+    SET
       abi_parsed_at = CURRENT_TIMESTAMP
     WHERE
       runtime = $1 AND

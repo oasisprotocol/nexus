@@ -198,6 +198,7 @@ func (p *processor) ProcessItem(ctx context.Context, batch *storage.QueryBatch, 
 			abiEvent.ID,
 		)
 	} else if item.Tx != nil {
+		// Parse fn call.
 		method, abiTxArgs, err := abiparse.ParseData(item.Tx.TxData, &contractAbi)
 		if err != nil {
 			queueIncompatibleTxUpdate(batch, p.runtime, item.Tx.TxHash)
@@ -210,52 +211,46 @@ func (p *processor) ProcessItem(ctx context.Context, batch *storage.QueryBatch, 
 			p.logger.Warn("error processing tx args using abi", "contract address", item.ContractAddr, "err", err)
 			return nil
 		}
-		var abiErrName string
-		var abiErr *abi.Error
-		var abiErrArgs []interface{}
-		var errArgs []*abiEncodedArg
+		batch.Queue(
+			queries.RuntimeTransactionEvmParsedFnUpdate,
+			p.runtime,
+			item.Tx.TxHash,
+			method.RawName,
+			txArgs,
+		)
+		// Parse tx error, if it exists.
 		if item.Tx.TxRevertReason != nil {
 			txrr, err := cleanTxRevertReason(*item.Tx.TxRevertReason)
 			if err != nil {
 				// This is most likely an older tx with a plaintext revert reason, such
 				// as "reverted: Ownable: caller is not the owner". In this case, we do
-				// not parse the error with the abi, but we still update the tx table with
-				// the method and args.
-				batch.Queue(
-					queries.RuntimeTransactionEvmParsedFieldsUpdate,
-					p.runtime,
-					item.Tx.TxHash,
-					method.RawName,
-					txArgs,
-					nil, // error name
-					nil, // error args
-				)
+				// not parse the error with the abi.
+				//
+				// Note: Here and below, we do not need to call `queueIncompatibleTxUpdate`
+				// because the RuntimeTransactionEvmParsedFnUpdate query above will
+				// mark the transaction as processed.
 				p.logger.Info("encountered likely old-style reverted transaction", "revert reason", item.Tx.TxRevertReason, "tx hash", item.Tx.TxHash, "contract address", item.ContractAddr, "err", err)
 				return nil
 			}
-			abiErr, abiErrArgs, err = abiparse.ParseError(txrr, &contractAbi)
+			abiErr, abiErrArgs, err := abiparse.ParseError(txrr, &contractAbi)
 			if err != nil || abiErr == nil {
-				queueIncompatibleTxUpdate(batch, p.runtime, item.Tx.TxHash)
 				p.logger.Warn("error processing tx error using abi", "contract address", item.ContractAddr, "err", err)
 				return nil
 			}
-			abiErrName = runtime.TxRevertErrPrefix + abiErr.Name + prettyPrintArgs(abiErrArgs)
-			errArgs, err = marshalArgs(abiErr.Inputs, abiErrArgs)
+			abiErrName := runtime.TxRevertErrPrefix + abiErr.Name + prettyPrintArgs(abiErrArgs)
+			errArgs, err := marshalArgs(abiErr.Inputs, abiErrArgs)
 			if err != nil {
-				queueIncompatibleTxUpdate(batch, p.runtime, item.Tx.TxHash)
 				p.logger.Warn("error processing tx error args", "contract address", item.ContractAddr, "err", err)
 				return nil
 			}
+			batch.Queue(
+				queries.RuntimeTransactionEvmParsedErrorUpdate,
+				p.runtime,
+				item.Tx.TxHash,
+				abiErrName,
+				errArgs,
+			)
 		}
-		batch.Queue(
-			queries.RuntimeTransactionEvmParsedFieldsUpdate,
-			p.runtime,
-			item.Tx.TxHash,
-			method.RawName,
-			txArgs,
-			abiErrName,
-			errArgs,
-		)
 	}
 
 	return nil
@@ -268,13 +263,10 @@ func (p *processor) ProcessItem(ctx context.Context, batch *storage.QueryBatch, 
 // Note that if the abi is ever updated, we may need to revisit these events.
 func queueIncompatibleEventUpdate(batch *storage.QueryBatch, runtime common.Runtime, round uint64, txIndex *int) {
 	batch.Queue(
-		queries.RuntimeEventEvmParsedFieldsUpdate,
+		queries.RuntimeEventEvmParsedUpdate,
 		runtime,
 		round,
 		txIndex,
-		nil, // event name
-		nil, // event args
-		nil, // event signature
 	)
 }
 
@@ -285,13 +277,9 @@ func queueIncompatibleEventUpdate(batch *storage.QueryBatch, runtime common.Runt
 // Note that if the abi is ever updated, we may need to revisit these txs.
 func queueIncompatibleTxUpdate(batch *storage.QueryBatch, runtime common.Runtime, txHash string) {
 	batch.Queue(
-		queries.RuntimeTransactionEvmParsedFieldsUpdate,
+		queries.RuntimeTransactionEvmParsedUpdate,
 		runtime,
 		txHash,
-		nil, // method name
-		nil, // method args
-		nil, // error name
-		nil, // error args
 	)
 }
 
