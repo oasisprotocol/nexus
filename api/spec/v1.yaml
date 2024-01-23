@@ -724,12 +724,12 @@ paths:
           name: submitter
           schema:
             <<: *StakingAddressType
-          description: The submitter of the proposal.
+          description: Filter on the submitter of the proposal.
         - in: query
           name: state
           schema:
-            type: string
-          description: The state of the proposal.
+            $ref: '#/components/schemas/ProposalState'
+          description: Filter on the state of the proposal.
           example: *proposal_state_1
       responses:
         '200':
@@ -2058,6 +2058,12 @@ components:
           type: string
       description: The target propotocol versions for this upgrade proposal.
 
+    ProposalState:
+      type: string
+      enum: [active, passed, failed, rejected]
+      description: The state of the proposal.
+      example: 'active'
+
     Proposal:
       type: object
       # TODO: Revise required fields. Most fields are required for actual proposals, and only absent
@@ -2076,9 +2082,7 @@ components:
           description: The staking address of the proposal submitter.
           example: *staking_address_1
         state:
-          type: string
-          description: The state of the proposal.
-          example: 'active'
+          $ref: '#/components/schemas/ProposalState'
         deposit:
           <<: *BigIntType
           description: The deposit attached to this proposal.
