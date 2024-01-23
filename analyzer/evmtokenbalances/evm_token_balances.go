@@ -189,7 +189,7 @@ func (p *processor) ProcessItem(ctx context.Context, batch *storage.QueryBatch, 
 				"reckoned_balance", staleTokenBalance.Balance.String(),
 				"downloaded_balance", balance.String(),
 			)
-			batch.Queue(queries.RuntimeNativeBalanceUpdate,
+			batch.Queue(queries.RuntimeNativeBalanceUpsert,
 				p.runtime,
 				staleTokenBalance.AccountAddr,
 				nativeTokenSymbol(p.runtimeMetadata),

@@ -496,11 +496,17 @@ var (
     INSERT INTO chain.runtime_transfers (runtime, round, sender, receiver, symbol, amount)
       VALUES ($1, $2, $3, $4, $5, $6)`
 
-	RuntimeNativeBalanceUpdate = `
+	RuntimeNativeBalanceUpsert = `
+    INSERT INTO chain.runtime_sdk_balances AS old (runtime, account_address, symbol, balance)
+      VALUES ($1, $2, $3, $4)
+    ON CONFLICT (runtime, account_address, symbol) DO
+    UPDATE SET balance = old.balance + $4`
+
+	RuntimeNativeBalanceAbsoluteUpsert = `
     INSERT INTO chain.runtime_sdk_balances (runtime, account_address, symbol, balance)
       VALUES ($1, $2, $3, $4)
     ON CONFLICT (runtime, account_address, symbol) DO
-    UPDATE SET balance = chain.runtime_sdk_balances.balance + $4`
+    UPDATE SET balance = $4`
 
 	AddressPreimageInsert = `
     INSERT INTO chain.address_preimages (address, context_identifier, context_version, address_data)

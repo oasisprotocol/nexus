@@ -439,10 +439,10 @@ const (
 			) AS eth_creation_tx,
 			creation_bytecode,
 			runtime_bytecode,
-			(
+			COALESCE((
 				SELECT gas_for_calling FROM chain.runtime_accounts ra
 				WHERE (ra.runtime = $1) AND (ra.address = $2::text)
-			) AS gas_for_calling,
+			), 0) AS gas_for_calling,
 			compilation_metadata,
 			source_files
 		FROM chain.evm_contracts
