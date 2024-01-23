@@ -38,8 +38,8 @@ func (m *processor) queueAccountsEvents(batch *storage.QueryBatch, blockData *Bl
 // Accounts whose balance changes in most blocks.
 // We don't update their balance during fast-sync, or else the db sees lots of deadlocks.
 var veryHighTrafficAccounts = []sdkTypes.Address{
-	sdkTypes.NewAddressFromBech32("oasis1qz78phkdan64g040cvqvqpwkplfqf6tj6uwcsh30"), // common pool
-	sdkTypes.NewAddressFromBech32("oasis1qp3r8hgsnphajmfzfuaa8fhjag7e0yt35cjxq0u4"), // fee accumulator
+	accountsCommonPool.address,     // oasis1qz78phkdan64g040cvqvqpwkplfqf6tj6uwcsh30
+	accountsFeeAccumulator.address, // oasis1qp3r8hgsnphajmfzfuaa8fhjag7e0yt35cjxq0u4
 }
 
 func (m *processor) queueMint(batch *storage.QueryBatch, round uint64, e accounts.MintEvent) {

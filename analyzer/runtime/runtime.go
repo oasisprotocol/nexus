@@ -78,13 +78,13 @@ func (m *processor) StringifyDenomination(d sdkTypes.Denomination) string {
 
 // Extends `batch` with a query that will register a module address derived from "<module>.<kind>".
 // See `Address::from_module` in runtime-sdk (Rust) or equivalently NewAddressForModule in client-sdk (Go).
-func registerModuleAddress(batch *storage.QueryBatch, module string, kind string) {
+func registerModuleAddress(batch *storage.QueryBatch, daddr derivedAddr) {
 	batch.Queue(
 		queries.AddressPreimageInsert,
-		sdkTypes.NewAddressForModule(module, []byte(kind)), // address.            This is how the actual runtime derives its own special addresses. The computed value is often not exposed in client-sdk.
-		sdkTypes.AddressV0ModuleContext.Identifier,         // context_identifier. Input to the derivation.
-		int32(sdkTypes.AddressV0ModuleContext.Version),     // context_version.    Input to the derivation.
-		module+"."+kind,                                    // address_data.       Input to the derivation; the part that's the most interesting to human readers.
+		daddr.address,                                  // address.            This is how the actual runtime derives its own special addresses. The computed value is often not exposed in client-sdk.
+		sdkTypes.AddressV0ModuleContext.Identifier,     // context_identifier. Input to the derivation.
+		int32(sdkTypes.AddressV0ModuleContext.Version), // context_version.    Input to the derivation.
+		daddr.module+"."+daddr.kind,                    // address_data.       Input to the derivation; the part that's the most interesting to human readers.
 	)
 }
 
@@ -92,12 +92,13 @@ func registerModuleAddress(batch *storage.QueryBatch, module string, kind string
 func (m *processor) PreWork(ctx context.Context) error {
 	batch := &storage.QueryBatch{}
 
-	// Register special addresses. Not all of these are exposed in the Go client SDK; search runtime-sdk (Rust) for `Address::from_module`.
-	registerModuleAddress(batch, "rewards", "reward-pool")                   // oasis1qp7x0q9qahahhjas0xde8w0v04ctp4pqzu5mhjav
-	registerModuleAddress(batch, "consensus_accounts", "pending-withdrawal") // oasis1qr677rv0dcnh7ys4yanlynysvnjtk9gnsyhvm6ln
-	registerModuleAddress(batch, "consensus_accounts", "pending-delegation") // oasis1qzcdegtf7aunxr5n5pw7n5xs3u7cmzlz9gwmq49r
-	registerModuleAddress(batch, "accounts", "common-pool")                  // oasis1qz78phkdan64g040cvqvqpwkplfqf6tj6uwcsh30
-	registerModuleAddress(batch, "accounts", "fee-accumulator")              // oasis1qp3r8hgsnphajmfzfuaa8fhjag7e0yt35cjxq0u4
+	// Register special addresses.
+	registerModuleAddress(batch, rewardsRewardPool)
+	registerModuleAddress(batch, consensusAccountsPendingWithdrawal)
+	registerModuleAddress(batch, consensusAccountsPendingDelegation)
+	registerModuleAddress(batch, accountsCommonPool)
+	registerModuleAddress(batch, accountsFeeAccumulator)
+	// (Another "special" address: ethereum 0x0 derives to oasis1qq2v39p9fqk997vk6742axrzqyu9v2ncyuqt8uek. In practice, it is registered because people submitted txs to it.)
 
 	if err := m.target.SendBatch(ctx, batch); err != nil {
 		return err
