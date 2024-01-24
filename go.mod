@@ -173,7 +173,7 @@ require (
 	github.com/akrylysov/pogreb v0.10.1
 	github.com/deepmap/oapi-codegen v1.12.4
 	github.com/oasisprotocol/curve25519-voi v0.0.0-20230904125328-1f23a7beb09a
-	github.com/oasisprotocol/metadata-registry-tools v0.0.0-20220406100644-7e9a2b991920
+	github.com/oasisprotocol/metadata-registry-tools v0.0.0-20230424075921-93d132769e14
 	github.com/rs/cors v1.8.3
 	golang.org/x/crypto v0.14.0
 )
