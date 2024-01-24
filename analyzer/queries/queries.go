@@ -456,13 +456,14 @@ var (
     INSERT INTO chain.runtime_transactions (runtime, round, tx_index, tx_hash, tx_eth_hash, fee, gas_limit, gas_used, size, timestamp, method, body, "to", amount, evm_encrypted_format, evm_encrypted_public_key, evm_encrypted_data_nonce, evm_encrypted_data_data, evm_encrypted_result_nonce, evm_encrypted_result_data, success, error_module, error_code, error_message_raw, error_message)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25)`
 
+	// We use COALESCE here to avoid overwriting existing data with null values.
 	RuntimeTransactionEvmParsedFieldsUpdate = `
     UPDATE chain.runtime_transactions
     SET
-      evm_fn_name = $3,
-      evm_fn_params = $4,
-      error_message = $5,
-      error_params = $6,
+      evm_fn_name = COALESCE($3, evm_fn_name),
+      evm_fn_params = COALESCE($4, evm_fn_params),
+      error_message = COALESCE($5, error_message),
+      error_params = COALESCE($6, error_params),
       abi_parsed_at = CURRENT_TIMESTAMP
     WHERE
       runtime = $1 AND
@@ -472,12 +473,13 @@ var (
     INSERT INTO chain.runtime_events (runtime, round, tx_index, tx_hash, tx_eth_hash, timestamp, type, body, related_accounts, evm_log_name, evm_log_params, evm_log_signature)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`
 
+	// We use COALESCE here to avoid overwriting existing data with null values.
 	RuntimeEventEvmParsedFieldsUpdate = `
     UPDATE chain.runtime_events
     SET
-      evm_log_name = $4,
-      evm_log_params = $5,
-      evm_log_signature = $6,
+      evm_log_name = COALESCE($4, evm_log_name),
+      evm_log_params = COALESCE($5, evm_log_params),
+      evm_log_signature = COALESCE($6, evm_log_signature),
       abi_parsed_at = CURRENT_TIMESTAMP
     WHERE
       runtime = $1 AND
