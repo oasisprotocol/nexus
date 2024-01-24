@@ -211,7 +211,7 @@ func validateEntities(t *testing.T, genesis *registryAPI.Genesis, target *postgr
 	}
 
 	entityRows, err := target.Query(ctx,
-		`SELECT id FROM snapshot.entities`,
+		`SELECT id FROM snapshot_consensus.entities`,
 	)
 	require.NoError(t, err)
 
@@ -230,7 +230,7 @@ func validateEntities(t *testing.T, genesis *registryAPI.Genesis, target *postgr
 		//
 		// Registry backend `StateToGenesis` returns the union of these nodes.
 		nodeRowsFromEntity, err := target.Query(ctx,
-			`SELECT node_id FROM snapshot.claimed_nodes WHERE entity_id = $1`,
+			`SELECT node_id FROM snapshot_consensus.claimed_nodes WHERE entity_id = $1`,
 			e.ID)
 		assert.NoError(t, err)
 		for nodeRowsFromEntity.Next() {
@@ -243,7 +243,7 @@ func validateEntities(t *testing.T, genesis *registryAPI.Genesis, target *postgr
 		}
 
 		nodeRowsFromNode, err := target.Query(ctx,
-			`SELECT id FROM snapshot.nodes WHERE entity_id = $1`,
+			`SELECT id FROM snapshot_consensus.nodes WHERE entity_id = $1`,
 			e.ID)
 		assert.NoError(t, err)
 		for nodeRowsFromNode.Next() {
@@ -331,7 +331,7 @@ func validateNodes(t *testing.T, genesis *registryAPI.Genesis, source consensusA
 			tls_pubkey, p2p_pubkey,
 			vrf_pubkey, roles, software_version
 		FROM
-			snapshot.nodes
+			snapshot_consensus.nodes
 		WHERE
 			roles LIKE '%validator%'
 	`)
@@ -426,7 +426,7 @@ func validateRuntimes(t *testing.T, genesis *registryAPI.Genesis, target *postgr
 	}
 
 	runtimeRows, err := target.Query(ctx,
-		`SELECT id, suspended, kind, tee_hardware, COALESCE(key_manager, 'none') FROM snapshot.runtimes`,
+		`SELECT id, suspended, kind, tee_hardware, COALESCE(key_manager, 'none') FROM snapshot_consensus.runtimes`,
 	)
 	require.NoError(t, err)
 
@@ -481,7 +481,7 @@ func validateAccounts(t *testing.T, genesis *stakingAPI.Genesis, target *postgre
 
 	acctRows, err := target.Query(ctx,
 		`SELECT address, nonce, general_balance, escrow_balance_active, escrow_balance_debonding
-				FROM snapshot.accounts`,
+				FROM snapshot_consensus.accounts`,
 	)
 	require.NoError(t, err)
 	actualAccts := make(map[string]bool)
@@ -509,7 +509,7 @@ func validateAccounts(t *testing.T, genesis *stakingAPI.Genesis, target *postgre
 		actualAllowances := make(map[string]uint64)
 		allowanceRows, err := target.Query(ctx, `
 			SELECT beneficiary, allowance
-				FROM snapshot.allowances
+				FROM snapshot_consensus.allowances
 				WHERE owner = $1
 			`,
 			a.Address,
@@ -623,7 +623,7 @@ func validateProposals(t *testing.T, genesis *governanceAPI.Genesis, target *pos
 		SELECT id, submitter, state, executed, deposit,
 				handler, cp_target_version, rhp_target_version, rcp_target_version, upgrade_epoch, cancels,
 				created_at, closes_at, invalid_votes
-		FROM snapshot.proposals`,
+		FROM snapshot_consensus.proposals`,
 	)
 	require.NoError(t, err)
 
@@ -681,7 +681,7 @@ func validateVotes(t *testing.T, genesis *governanceAPI.Genesis, target *postgre
 		}
 	}
 
-	voteRows, err := target.Query(ctx, `SELECT proposal, voter, vote FROM snapshot.votes`)
+	voteRows, err := target.Query(ctx, `SELECT proposal, voter, vote FROM snapshot_consensus.votes`)
 	require.NoError(t, err)
 
 	actualVotes := make(map[string]TestVote)
