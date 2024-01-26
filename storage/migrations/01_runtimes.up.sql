@@ -339,8 +339,8 @@ CREATE TABLE chain.runtime_transfers
 
   CHECK (NOT (sender IS NULL AND receiver IS NULL))
 );
-CREATE INDEX ix_runtime_transfers_sender ON chain.runtime_transfers(sender);
-CREATE INDEX ix_runtime_transfers_receiver ON chain.runtime_transfers(receiver);
+CREATE INDEX ix_runtime_transfers_sender ON chain.runtime_transfers(runtime, sender);
+CREATE INDEX ix_runtime_transfers_receiver ON chain.runtime_transfers(runtime, receiver);
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- Module consensusaccounts -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
