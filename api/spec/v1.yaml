@@ -355,6 +355,38 @@ paths:
                 $ref: '#/components/schemas/ConsensusEventList'
         <<: *common_error_responses
 
+  /consensus/roothash_messages:
+    get:
+      parameters:
+        - *limit
+        - *offset
+        - in: query
+          name: runtime
+          schema:
+            allOf: [$ref: '#/components/schemas/Runtime']
+        - in: query
+          name: round
+          schema:
+            type: integer
+            format: int64
+        - in: query
+          name: type
+          schema:
+            type: string
+        - in: query
+          name: rel
+          schema:
+            allOf: [$ref: '#/components/schemas/StakingAddress']
+      responses:
+        '200':
+          description: |
+            A JSON object containing a list of roothash messages.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoothashMessageList'
+        <<: *common_error_responses
+
   /consensus/entities:
     get:
       summary: Returns a list of entities registered at the consensus layer.
@@ -1637,6 +1669,40 @@ components:
             the hierarchy, e.g. `TransferEvent` from `Event > staking.Event > TransferEvent`
       description: |
         An event emitted by the consensus layer.
+
+    RoothashMessageList:
+      allOf:
+        - $ref: '#/components/schemas/List'
+        - type: object
+          required: [roothash_messages]
+          properties:
+            roothash_messages:
+              type: array
+              items:
+                allOf: [$ref: '#/components/schemas/RoothashMessage']
+
+    RoothashMessage:
+      type: object
+      required: [runtime, round, index]
+      properties:
+        runtime:
+          type: string
+        round:
+          type: integer
+          format: int64
+        index:
+          type: integer
+          format: int32
+        type:
+          type: string
+        body:
+          type: object
+        error_module:
+          type: string
+        error_code:
+          type: integer
+          format: int32
+        result: {}
 
     EntityList:
       allOf:

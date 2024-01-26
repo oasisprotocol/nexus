@@ -103,6 +103,14 @@ func (srv *StrictServerImpl) GetConsensusBlocksHeight(ctx context.Context, reque
 	return apiTypes.GetConsensusBlocksHeight200JSONResponse(*block), nil
 }
 
+func (srv *StrictServerImpl) GetConsensusRoothashMessages(ctx context.Context, request apiTypes.GetConsensusRoothashMessagesRequestObject) (apiTypes.GetConsensusRoothashMessagesResponseObject, error) {
+	roothashMessages, err := srv.dbClient.RoothashMessages(ctx, request.Params)
+	if err != nil {
+		return nil, err
+	}
+	return apiTypes.GetConsensusRoothashMessages200JSONResponse(*roothashMessages), nil
+}
+
 func (srv *StrictServerImpl) GetConsensusEntities(ctx context.Context, request apiTypes.GetConsensusEntitiesRequestObject) (apiTypes.GetConsensusEntitiesResponseObject, error) {
 	entities, err := srv.dbClient.Entities(ctx, request.Params)
 	if err != nil {

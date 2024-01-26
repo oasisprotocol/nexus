@@ -491,6 +491,59 @@ func (c *StorageClient) Events(ctx context.Context, p apiTypes.GetConsensusEvent
 	return &es, nil
 }
 
+func (c *StorageClient) RoothashMessages(ctx context.Context, p apiTypes.GetConsensusRoothashMessagesParams) (*apiTypes.RoothashMessageList, error) {
+	if p.Round != nil && p.Runtime == nil {
+		return nil, fmt.Errorf("must specify runtime with round")
+	}
+	res, err := c.withTotalCount(
+		ctx,
+		queries.RoothashMessages,
+		p.Runtime,
+		p.Round,
+		p.Type,
+		p.Rel,
+		p.Limit,
+		p.Offset,
+	)
+	if err != nil {
+		return nil, wrapError(err)
+	}
+	defer res.rows.Close()
+
+	ms := RoothashMessageList{
+		RoothashMessages:    []RoothashMessage{},
+		TotalCount:          res.totalCount,
+		IsTotalCountClipped: res.isTotalCountClipped,
+	}
+
+	for res.rows.Next() {
+		var m RoothashMessage
+		var resultCBOR *[]byte
+		if err := res.rows.Scan(
+			&m.Runtime,
+			&m.Round,
+			&m.Index,
+			&m.Type,
+			&m.Body,
+			&m.ErrorModule,
+			&m.ErrorCode,
+			&resultCBOR,
+		); err != nil {
+			return nil, wrapError(err)
+		}
+		if resultCBOR != nil && m.Type != nil {
+			result, err := extractMessageResult(*resultCBOR, *m.Type)
+			if err != nil {
+				return nil, wrapError(err)
+			}
+			m.Result = &result
+		}
+		ms.RoothashMessages = append(ms.RoothashMessages, m)
+	}
+
+	return &ms, nil
+}
+
 // Entities returns a list of registered entities.
 func (c *StorageClient) Entities(ctx context.Context, p apiTypes.GetConsensusEntitiesParams) (*EntityList, error) {
 	res, err := c.withTotalCount(
