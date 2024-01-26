@@ -634,7 +634,7 @@ var (
       ($1, $2, $3, $4)
     ON CONFLICT (runtime, token_address, account_address) DO UPDATE
     SET
-      last_mutate_round = excluded.last_mutate_round`
+      last_mutate_round = GREATEST(excluded.last_mutate_round, analysis.evm_token_balances.last_mutate_round)`
 
 	RuntimeFastSyncEVMTokenBalanceAnalysisMutateRoundInsert = `
     INSERT INTO todo_updates.evm_token_balances
@@ -947,7 +947,7 @@ var (
 
 	RuntimeEvmVerifiedContractTxs = `
     WITH abi_contracts AS (
-      SELECT 
+      SELECT
         runtime,
         contract_address AS addr,
         abi,
@@ -956,13 +956,13 @@ var (
       WHERE
         runtime = $1 AND abi IS NOT NULL
     )
-    SELECT 
+    SELECT
       abi_contracts.addr,
       abi_contracts.abi,
       txs.tx_hash,
       decode(txs.body->>'data', 'base64'),
       txs.error_message_raw
-    FROM abi_contracts 
+    FROM abi_contracts
     JOIN chain.runtime_transactions as txs ON
       txs.runtime = abi_contracts.runtime AND
       txs.to = abi_contracts.addr AND

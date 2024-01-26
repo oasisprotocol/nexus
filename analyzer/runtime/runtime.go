@@ -13,6 +13,7 @@ import (
 	"github.com/oasisprotocol/nexus/analyzer/block"
 	"github.com/oasisprotocol/nexus/analyzer/queries"
 	evm "github.com/oasisprotocol/nexus/analyzer/runtime/evm"
+	"github.com/oasisprotocol/nexus/analyzer/runtime/static"
 	uncategorized "github.com/oasisprotocol/nexus/analyzer/uncategorized"
 	apiTypes "github.com/oasisprotocol/nexus/api/v1/types"
 	"github.com/oasisprotocol/nexus/common"
@@ -25,6 +26,7 @@ import (
 
 // processor is the block processor for runtimes.
 type processor struct {
+	chain           common.ChainName
 	runtime         common.Runtime
 	runtimeMetadata *sdkConfig.ParaTime
 	mode            analyzer.BlockAnalysisMode
@@ -38,6 +40,7 @@ var _ block.BlockProcessor = (*processor)(nil)
 
 // NewRuntimeAnalyzer returns a new runtime analyzer for a runtime.
 func NewRuntimeAnalyzer(
+	chain common.ChainName,
 	runtime common.Runtime,
 	runtimeMetadata *sdkConfig.ParaTime,
 	blockRange config.BlockRange,
@@ -49,6 +52,7 @@ func NewRuntimeAnalyzer(
 ) (analyzer.Analyzer, error) {
 	// Initialize runtime block processor.
 	processor := &processor{
+		chain:           chain,
 		runtime:         runtime,
 		runtimeMetadata: runtimeMetadata,
 		mode:            mode,
@@ -157,6 +161,12 @@ func (m *processor) FinalizeFastSync(ctx context.Context, lastFastSyncHeight int
 	m.logger.Info("fetching current native balances of high-traffic accounts")
 	if err := m.UpdateHighTrafficAccounts(ctx, batch, lastFastSyncHeight); err != nil {
 		return err
+	}
+
+	// Queue to refetch the balances of known-to-be-stale accounts.
+	m.logger.Info("queueing known-to-be-stale (as of roughly Eden genesis heights) EVM accounts for re-query")
+	if err := static.QueueEVMKnownStaleAccounts(batch, m.chain, m.runtime); err != nil {
+		return fmt.Errorf("queue eden accounts: %w", err)
 	}
 
 	// Update tables where fast-sync was not updating their columns in-place, and was instead writing
