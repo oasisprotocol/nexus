@@ -61,6 +61,12 @@ func (m *processor) queueMint(batch *storage.QueryBatch, round uint64, e account
 			m.StringifyDenomination(e.Amount.Denomination),
 			e.Amount.Amount.String(),
 		)
+		batch.Queue(
+			queries.RuntimeAccountTotalReceivedUpsert,
+			m.runtime,
+			e.Owner.String(),
+			e.Amount.Amount.String(),
+		)
 	}
 }
 
@@ -82,6 +88,12 @@ func (m *processor) queueBurn(batch *storage.QueryBatch, round uint64, e account
 			e.Owner.String(),
 			m.StringifyDenomination(e.Amount.Denomination),
 			(&big.Int{}).Neg(e.Amount.Amount.ToBigInt()).String(),
+		)
+		batch.Queue(
+			queries.RuntimeAccountTotalSentUpsert,
+			m.runtime,
+			e.Owner.String(),
+			e.Amount.Amount.String(),
 		)
 	}
 }
@@ -106,6 +118,12 @@ func (m *processor) queueTransfer(batch *storage.QueryBatch, round uint64, e acc
 			m.StringifyDenomination(e.Amount.Denomination),
 			e.Amount.Amount.String(),
 		)
+		batch.Queue(
+			queries.RuntimeAccountTotalReceivedUpsert,
+			m.runtime,
+			e.To.String(),
+			e.Amount.Amount.String(),
+		)
 	}
 	// Decrease sender's balance.
 	if !(m.mode == analyzer.FastSyncMode && slices.Contains(veryHighTrafficAccounts, e.From)) {
@@ -115,6 +133,12 @@ func (m *processor) queueTransfer(batch *storage.QueryBatch, round uint64, e acc
 			e.From.String(),
 			m.StringifyDenomination(e.Amount.Denomination),
 			(&big.Int{}).Neg(e.Amount.Amount.ToBigInt()).String(),
+		)
+		batch.Queue(
+			queries.RuntimeAccountTotalSentUpsert,
+			m.runtime,
+			e.From.String(),
+			e.Amount.Amount.String(),
 		)
 	}
 }
