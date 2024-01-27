@@ -27,5 +27,10 @@ CREATE TABLE chain.roothash_messages (
     result BYTEA,
     related_accounts oasis_addr[]
 );
+CREATE INDEX ix_roothash_messages_type
+    ON chain.roothash_messages (type);
+CREATE INDEX ix_roothash_messages_related_accounts
+    ON chain.roothash_messages
+        USING gin(related_accounts);
 
 COMMIT;
