@@ -9,6 +9,7 @@ import (
 
 	"github.com/oasisprotocol/nexus/common"
 	"github.com/oasisprotocol/nexus/config"
+	"github.com/oasisprotocol/nexus/log"
 	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
 	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi/file"
 	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi/history"
@@ -24,9 +25,13 @@ func NewConsensusClient(ctx context.Context, sourceConfig *config.SourceConfig) 
 	}
 	if sourceConfig.Cache != nil {
 		cachePath := filepath.Join(sourceConfig.Cache.CacheDir, "consensus")
-		nodeApi, err = file.NewFileConsensusApiLite(cachePath, nodeApi)
+		wrappedNodeApi, err := file.NewFileConsensusApiLite(cachePath, nodeApi)
 		if err != nil {
-			return nil, fmt.Errorf("error instantiating cache-based consensusApi: %w", err)
+			// Continue without a cache, but warn.
+			// (The "analyzer" tag is not technically true as we're not in an analyzer, but is helpful when reading logs)
+			log.NewDefaultLogger("init").With("analyzer", "consensus").Warn("error instantiating cache-based consensusApi, continuing without a cache", "kvstore_err", err)
+		} else {
+			nodeApi = wrappedNodeApi
 		}
 	}
 	return nodeApi, nil
@@ -41,9 +46,13 @@ func NewRuntimeClient(ctx context.Context, sourceConfig *config.SourceConfig, ru
 	}
 	if sourceConfig.Cache != nil {
 		cachePath := filepath.Join(sourceConfig.Cache.CacheDir, string(runtime))
-		nodeApi, err = file.NewFileRuntimeApiLite(runtime, cachePath, nodeApi)
+		wrappedNodeApi, err := file.NewFileRuntimeApiLite(runtime, cachePath, nodeApi)
 		if err != nil {
-			return nil, fmt.Errorf("error instantiating cache-based runtimeApi: %w", err)
+			// Continue without a cache, but warn.
+			// (The "analyzer" tag is not technically true as we're not in an analyzer, but is helpful when reading logs)
+			log.NewDefaultLogger("init").With("analyzer", "consensus").Warn("error instantiating cache-based runtimeApi, continuing without a cache", "kvstore_err", err)
+		} else {
+			nodeApi = wrappedNodeApi
 		}
 	}
 

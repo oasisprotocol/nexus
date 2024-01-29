@@ -37,7 +37,7 @@ type pogrebKVStore struct {
 	metrics *metrics.AnalysisMetrics // if nil, no metrics are emitted
 
 	// Address of the atomic variable that indicates whether the store is initialized.
-	// Synchronisation is required because the store is opened in background goroutine.
+	// Synchronisation is required because the store is opened in a background goroutine.
 	initialized uint32
 }
 
@@ -104,10 +104,14 @@ func (s *pogrebKVStore) init() error {
 // Initializes a new KVStore backed by a database at `path`, or opens an existing one.
 // `metrics` can be `nil`, in which case no metrics are emitted during operation.
 func OpenKVStore(logger *log.Logger, path string, metrics *metrics.AnalysisMetrics) (KVStore, error) {
+	// An unitialized `pogrebKVStore`. Its methods can still be used, they just do nothing:
+	// Reads will indicate a cache miss, and writes will fail.
 	store := &pogrebKVStore{
-		logger:  logger,
-		path:    path,
-		metrics: metrics,
+		path:        path,
+		logger:      logger,
+		metrics:     metrics,
+		db:          nil, // to be constructed during init()
+		initialized: 0,
 	}
 
 	// Open the database in background as it is possible it will do a full-reindex on startup after a crash:
