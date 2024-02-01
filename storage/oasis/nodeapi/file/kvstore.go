@@ -125,6 +125,7 @@ func glob(patterns []string, antipatterns []string) ([]string, error) {
 }
 
 // Moves all files that match the src glob patterns to the destination directory.
+// NOTE: If multiple source files have the same filename, one will clobber the others when moved!
 func moveFiles(srcPatterns []string, srcAntipatters []string, dst string) error {
 	files, err := glob(srcPatterns, srcAntipatters)
 	if err != nil {
@@ -161,7 +162,7 @@ func deleteFiles(pattern string) error {
 }
 
 // Gets rid of excessively backed-up pogreb index files.
-// If we know pogreb will reindex, delete or possibl .
+// If we know pogreb will reindex, this deletes or possibly backs up the old index files.
 func (s *pogrebKVStore) preBackup() {
 	backupNeeded := pathExists(filepath.Join(s.path, "lock"))
 	backupDir := filepath.Join(filepath.Dir(s.path), filepath.Base(s.path)+".backup")
