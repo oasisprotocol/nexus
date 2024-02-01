@@ -81,15 +81,6 @@ func NewAnalyzer(
 	)
 }
 
-// Transaction data is canonically represented as a byte array. However,
-// the transaction body is stored as a JSONB column in postgres, which
-// causes the tx body->>data to be returned as a base64-encoded string
-// enclosed by escaped double quote characters.
-func cleanTxData(raw string) ([]byte, error) {
-	s := strings.TrimPrefix(strings.TrimSuffix(raw, "\""), "\"")
-	return base64.StdEncoding.DecodeString(s)
-}
-
 func (p *processor) GetItems(ctx context.Context, limit uint64) ([]*abiEncodedItem, error) {
 	// There are two types of data we process using a contract abi: transactions and events.
 	// Within a transaction, we process the call data and the revert reason. Since they are
@@ -101,7 +92,6 @@ func (p *processor) GetItems(ctx context.Context, limit uint64) ([]*abiEncodedIt
 	}
 	defer txRows.Close()
 	for txRows.Next() {
-		var rawTxData string
 		var tx abiEncodedTx
 		var item abiEncodedItem
 		item.Tx = &tx
@@ -109,13 +99,10 @@ func (p *processor) GetItems(ctx context.Context, limit uint64) ([]*abiEncodedIt
 			&item.ContractAddr,
 			&item.Abi,
 			&tx.TxHash,
-			&rawTxData,
+			&tx.TxData,
 			&tx.TxRevertReason,
 		); err != nil {
 			return nil, fmt.Errorf("scanning verified contract tx: %w", err)
-		}
-		if tx.TxData, err = cleanTxData(rawTxData); err != nil {
-			return nil, fmt.Errorf("error decoding tx data from db: %w", err)
 		}
 		items = append(items, &item)
 	}
