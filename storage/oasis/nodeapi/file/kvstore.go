@@ -2,6 +2,8 @@ package file
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"sync/atomic"
 	"time"
 
@@ -87,7 +89,115 @@ func (s pogrebKVStore) Close() error {
 	return s.db.Close()
 }
 
+// Returns true if path exists. Uses simplified error handling
+// to match pogreb's behavior.
+func pathExists(path string) bool {
+	_, err := os.Stat(path)
+	return err == nil
+}
+
+// Returns a list of files that match any of the patterns, but do not match any of the antipatterns.
+func glob(patterns []string, antipatterns []string) ([]string, error) {
+	files := map[string]struct{}{}
+	for _, pattern := range patterns {
+		matches, err := filepath.Glob(pattern)
+		if err != nil {
+			return nil, err
+		}
+		for _, match := range matches {
+			files[match] = struct{}{}
+		}
+	}
+	for _, antipattern := range antipatterns {
+		matches, err := filepath.Glob(antipattern)
+		if err != nil {
+			return nil, err
+		}
+		for _, match := range matches {
+			delete(files, match)
+		}
+	}
+	filesArr := make([]string, 0, len(files))
+	for k := range files {
+		filesArr = append(filesArr, k)
+	}
+	return filesArr, nil
+}
+
+// Moves all files that match the src glob patterns to the destination directory.
+func moveFiles(srcPatterns []string, srcAntipatters []string, dst string) error {
+	files, err := glob(srcPatterns, srcAntipatters)
+	if err != nil {
+		return fmt.Errorf("unable to glob for files to move: %w", err)
+	}
+
+	// Create the destination directory.
+	if err := os.MkdirAll(dst, 0o700); err != nil {
+		return fmt.Errorf("unable to create destination directory %s: %w", dst, err)
+	}
+
+	for _, srcFile := range files {
+		dstFile := filepath.Join(dst, filepath.Base(srcFile))
+		if err := os.Rename(srcFile, dstFile); err != nil {
+			return fmt.Errorf("unable to move file %s to %s: %w", srcFile, dstFile, err)
+		}
+	}
+	return nil
+}
+
+// Deletes all files that match the glob pattern.
+func deleteFiles(pattern string) error {
+	files, err := filepath.Glob(pattern)
+	if err != nil {
+		return fmt.Errorf("unable to glob for files %s to delete: %w", pattern, err)
+	}
+	var lastErr error
+	for _, f := range files {
+		if err := os.Remove(f); err != nil {
+			lastErr = fmt.Errorf("unable to delete file %s: %w", f, err)
+		}
+	}
+	return lastErr
+}
+
+// Gets rid of excessively backed-up pogreb index files.
+// If we know pogreb will reindex, delete or possibl .
+func (s *pogrebKVStore) preBackup() {
+	backupNeeded := pathExists(filepath.Join(s.path, "lock"))
+	backupDir := filepath.Join(filepath.Dir(s.path), filepath.Base(s.path)+".backup")
+	if backupNeeded {
+		// pogreb is sure to try to back up its indexes and build new ones.
+		s.logger.Info("pogreb lock file found; preemptively deleting or backing up indexes", "path", s.path, "backup_path", backupDir)
+		if !pathExists(backupDir) { // If an older backup exists, keep that one.
+			err := moveFiles(
+				[]string{filepath.Join(s.path, "*")},
+				[]string{
+					filepath.Join(s.path, "*.psg"), // the data that needs to be reindexed
+					filepath.Join(s.path, "lock"),  // will trigger a reindex
+				},
+				backupDir,
+			)
+			if err != nil {
+				s.logger.Warn("failed to move pogreb index files to backup directory", "err", err, "path", s.path, "backup_path", backupDir)
+			}
+		}
+	}
+	// In rare cases, pogreb might still back up indexes even if "lock" is not present.
+	// Also, our moving operation might have left files behind, e.g. because older backups existed.
+	// Prevent build-up of extensively-long .bac.bac.bac.... filenames.
+	if err := deleteFiles(filepath.Join(s.path, "*.bac.bac")); err != nil {
+		s.logger.Warn("failed to delete excessively backed-up pogreb index files", "err", err)
+	}
+}
+
 func (s *pogrebKVStore) init() error {
+	// Pogreb backs up its indices into <oldname>.bac. ".bac" becomes ".bac.bac", etc.
+	// If nexus loop-crashes in k8s, the filenames grow too long for the filesystem
+	// and pogreb is then unable to initialize without manual intervention.
+	// Prevent this by cleaning up the backup files before opening the store.
+	s.preBackup()
+
+	// Open the DB. If a reindex is needed, this can take hours.
 	s.logger.Info("(re)opening KVStore", "path", s.path)
 	db, err := pogreb.Open(s.path, &pogreb.Options{BackgroundSyncInterval: -1})
 	if err != nil {
