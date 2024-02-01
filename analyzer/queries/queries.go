@@ -958,7 +958,7 @@ var (
       abi_contracts.addr,
       abi_contracts.abi,
       txs.tx_hash,
-      txs.body->'data',
+      decode(txs.body->>'data', 'base64'),
       txs.error_message_raw
     FROM abi_contracts 
     JOIN chain.runtime_transactions as txs ON
