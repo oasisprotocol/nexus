@@ -62,8 +62,8 @@ func Init(cfg *config.Config) error {
 	return nil
 }
 
-// Logger returns the logger defined by logging flags.
-func Logger() *log.Logger {
+// RootLogger returns the logger defined by logging flags.
+func RootLogger() *log.Logger {
 	return rootLogger
 }
 

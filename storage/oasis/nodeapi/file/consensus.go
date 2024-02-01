@@ -5,12 +5,13 @@ import (
 
 	coreCommon "github.com/oasisprotocol/oasis-core/go/common"
 
+	cmdCommon "github.com/oasisprotocol/nexus/cmd/common"
+
 	beacon "github.com/oasisprotocol/nexus/coreapi/v22.2.11/beacon/api"
 	consensus "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api"
 	genesis "github.com/oasisprotocol/nexus/coreapi/v22.2.11/genesis/api"
 
 	"github.com/oasisprotocol/nexus/common"
-	"github.com/oasisprotocol/nexus/log"
 	"github.com/oasisprotocol/nexus/metrics"
 	"github.com/oasisprotocol/nexus/storage/oasis/connections"
 	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
@@ -29,7 +30,7 @@ var _ nodeapi.ConsensusApiLite = (*FileConsensusApiLite)(nil)
 
 func NewFileConsensusApiLite(cacheDir string, consensusApi nodeapi.ConsensusApiLite) (*FileConsensusApiLite, error) {
 	db, err := OpenKVStore(
-		log.NewDefaultLogger("cached-node-api").With("runtime", "consensus"),
+		cmdCommon.RootLogger().WithModule("file-consensus-api-lite").With("runtime", "consensus"),
 		cacheDir,
 		common.Ptr(metrics.NewDefaultAnalysisMetrics("consensus")),
 	)

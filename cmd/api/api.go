@@ -68,7 +68,7 @@ func runServer(cmd *cobra.Command, args []string) {
 		)
 		os.Exit(1)
 	}
-	logger := common.Logger()
+	logger := common.RootLogger()
 
 	if cfg.Server == nil {
 		logger.Error("server config not provided")
@@ -85,7 +85,7 @@ func runServer(cmd *cobra.Command, args []string) {
 
 // Init initializes the API service.
 func Init(cfg *config.ServerConfig) (*Service, error) {
-	logger := common.Logger()
+	logger := common.RootLogger()
 
 	service, err := NewService(cfg)
 	if err != nil {
@@ -106,7 +106,7 @@ type Service struct {
 
 // NewService creates a new API service.
 func NewService(cfg *config.ServerConfig) (*Service, error) {
-	logger := common.Logger().WithModule(moduleName)
+	logger := common.RootLogger().WithModule(moduleName)
 
 	// Initialize target storage.
 	backing, err := common.NewClient(cfg.Storage, logger)

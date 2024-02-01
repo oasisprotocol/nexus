@@ -53,7 +53,7 @@ func rootMain(cmd *cobra.Command, args []string) {
 		)
 		os.Exit(1)
 	}
-	logger := common.Logger()
+	logger := common.RootLogger()
 
 	// Initialize services.
 	var wg sync.WaitGroup

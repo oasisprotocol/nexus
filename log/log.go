@@ -18,6 +18,7 @@ type Logger struct {
 }
 
 // NewDefaultLogger initializes a new logger instance with default settings.
+// For usage outside tests, prefer RootLogger() from package `cmd/common`.
 func NewDefaultLogger(module string) *Logger {
 	logger, err := NewLogger(module, os.Stdout, FmtJSON, LevelInfo)
 	if err != nil {
