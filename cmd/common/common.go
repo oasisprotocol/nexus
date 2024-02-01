@@ -4,8 +4,10 @@ package common
 import (
 	"fmt"
 	"io"
+	stdLog "log"
 	"os"
 
+	"github.com/akrylysov/pogreb"
 	coreLogging "github.com/oasisprotocol/oasis-core/go/common/logging"
 
 	"github.com/oasisprotocol/nexus/config"
@@ -50,6 +52,10 @@ func Init(cfg *config.Config) error {
 		return err
 	}
 
+	// Initialize pogreb logging.
+	pogrebLogger := RootLogger().WithModule("pogreb").WithCallerUnwind(7)
+	pogreb.SetLogger(stdLog.New(log.WriterIntoLogger(*pogrebLogger), "", 0))
+
 	// Initialize Prometheus service.
 	if cfg.Metrics != nil {
 		promServer, err := metrics.NewPullService(cfg.Metrics.PullEndpoint, rootLogger)
@@ -62,8 +68,8 @@ func Init(cfg *config.Config) error {
 	return nil
 }
 
-// Logger returns the logger defined by logging flags.
-func Logger() *log.Logger {
+// RootLogger returns the logger defined by logging flags.
+func RootLogger() *log.Logger {
 	return rootLogger
 }
 

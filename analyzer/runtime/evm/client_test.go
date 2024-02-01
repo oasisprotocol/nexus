@@ -45,10 +45,10 @@ func TestERC165(t *testing.T) {
 	// AI ROSE on Emerald mainnet.
 	tokenEthAddr, err := hex.DecodeString("0f4c5A429166608f9225E094F7E66B0bF68a53B9")
 	require.NoError(t, err)
-	supportsERC165, err := detectERC165(ctx, cmdCommon.Logger(), source, runtimeClient.RoundLatest, tokenEthAddr)
+	supportsERC165, err := detectERC165(ctx, cmdCommon.RootLogger(), source, runtimeClient.RoundLatest, tokenEthAddr)
 	require.NoError(t, err)
 	require.True(t, supportsERC165)
-	supportsERC721, err := detectInterface(ctx, cmdCommon.Logger(), source, runtimeClient.RoundLatest, tokenEthAddr, ERC721InterfaceID)
+	supportsERC721, err := detectInterface(ctx, cmdCommon.RootLogger(), source, runtimeClient.RoundLatest, tokenEthAddr, ERC721InterfaceID)
 	require.NoError(t, err)
 	require.True(t, supportsERC721)
 }
@@ -60,7 +60,7 @@ func TestEVMDownloadTokenERC20(t *testing.T) {
 	// Wormhole bridged USDT on Emerald mainnet.
 	tokenEthAddr, err := hex.DecodeString("dC19A122e268128B5eE20366299fc7b5b199C8e3")
 	require.NoError(t, err)
-	data, err := evmDownloadTokenERC20(ctx, cmdCommon.Logger(), source, runtimeClient.RoundLatest, tokenEthAddr)
+	data, err := evmDownloadTokenERC20(ctx, cmdCommon.RootLogger(), source, runtimeClient.RoundLatest, tokenEthAddr)
 	require.NoError(t, err)
 	t.Logf("data %#v", data)
 }
@@ -72,7 +72,7 @@ func TestEVMDownloadTokenERC721(t *testing.T) {
 	// AI ROSE on Emerald mainnet.
 	tokenEthAddr, err := hex.DecodeString("0f4c5A429166608f9225E094F7E66B0bF68a53B9")
 	require.NoError(t, err)
-	data, err := evmDownloadTokenERC721(ctx, cmdCommon.Logger(), source, runtimeClient.RoundLatest, tokenEthAddr)
+	data, err := evmDownloadTokenERC721(ctx, cmdCommon.RootLogger(), source, runtimeClient.RoundLatest, tokenEthAddr)
 	require.NoError(t, err)
 	t.Logf("data %#v", data)
 }
@@ -87,7 +87,7 @@ func TestEVMDownloadTokenBalanceERC20(t *testing.T) {
 	// An address that possesses no USDT.
 	accountEthAddr, err := hex.DecodeString("5555555555555555555555555555555555555555")
 	require.NoError(t, err)
-	balanceData, err := evmDownloadTokenBalanceERC20(ctx, cmdCommon.Logger(), source, runtimeClient.RoundLatest, tokenEthAddr, accountEthAddr)
+	balanceData, err := evmDownloadTokenBalanceERC20(ctx, cmdCommon.RootLogger(), source, runtimeClient.RoundLatest, tokenEthAddr, accountEthAddr)
 	require.NoError(t, err)
 	t.Logf("balance %#v", balanceData)
 }

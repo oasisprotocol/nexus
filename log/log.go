@@ -18,6 +18,7 @@ type Logger struct {
 }
 
 // NewDefaultLogger initializes a new logger instance with default settings.
+// For usage outside tests, prefer RootLogger() from package `cmd/common`.
 func NewDefaultLogger(module string) *Logger {
 	logger, err := NewLogger(module, os.Stdout, FmtJSON, LevelInfo)
 	if err != nil {
@@ -111,7 +112,40 @@ func (l *Logger) WithModule(module string) *Logger {
 	}
 }
 
+// WithCallerUnwind returns a clone of the logger where the `caller`
+// value will show the n-th entry on the call stack at the time of logging.
+func (l *Logger) WithCallerUnwind(n int) *Logger {
+	return &Logger{
+		logger: log.With(l.logger, "caller", log.Caller(n)),
+		level:  l.level,
+		module: l.module,
+	}
+}
+
 // Level is the logging level.
 func (l *Logger) Level() Level {
 	return l.level
+}
+
+// An io.Writer impl that writes every string to the backing logger `l` at Info level.
+type writerIntoLoggerImpl struct {
+	Logger
+}
+
+var _ io.Writer = (*writerIntoLoggerImpl)(nil)
+
+func (l *writerIntoLoggerImpl) Write(msg []byte) (n int, err error) {
+	// Strip trailing newlines from message.
+	origLen := len(msg)
+	for len(msg) > 0 && msg[len(msg)-1] == '\n' {
+		msg = msg[:len(msg)-1]
+	}
+
+	// Write message to backing logger.
+	l.Info(string(msg))
+	return origLen, nil
+}
+
+func WriterIntoLogger(l Logger) io.Writer {
+	return &writerIntoLoggerImpl{l}
 }

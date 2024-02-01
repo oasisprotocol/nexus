@@ -72,7 +72,7 @@ func runAnalyzer(cmd *cobra.Command, args []string) {
 		)
 		os.Exit(1)
 	}
-	logger := cmdCommon.Logger()
+	logger := cmdCommon.RootLogger()
 
 	if cfg.Analysis == nil {
 		logger.Error("analysis config not provided")
@@ -97,7 +97,7 @@ func RunMigrations(sourceURL string, databaseURL string) error {
 
 // Init initializes the analysis service.
 func Init(cfg *config.AnalysisConfig) (*Service, error) {
-	logger := cmdCommon.Logger()
+	logger := cmdCommon.RootLogger()
 
 	logger.Info("initializing analysis service", "config", cfg)
 	if cfg.Storage.WipeStorage {
@@ -132,7 +132,7 @@ func Init(cfg *config.AnalysisConfig) (*Service, error) {
 }
 
 func wipeStorage(cfg *config.StorageConfig) error {
-	logger := cmdCommon.Logger().WithModule(moduleName)
+	logger := cmdCommon.RootLogger().WithModule(moduleName)
 
 	// Initialize target storage.
 	storage, err := cmdCommon.NewClient(cfg, logger)
@@ -267,7 +267,7 @@ var (
 // NewService creates new Service.
 func NewService(cfg *config.AnalysisConfig) (*Service, error) { //nolint:gocyclo
 	ctx := context.Background()
-	logger := cmdCommon.Logger().WithModule(moduleName)
+	logger := cmdCommon.RootLogger().WithModule(moduleName)
 	logger.Info("initializing analysis service", "config", cfg)
 
 	// Initialize source storage.

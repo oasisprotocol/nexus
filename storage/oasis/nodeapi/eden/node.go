@@ -4,11 +4,12 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/oasisprotocol/oasis-core/go/common"
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 
-	// nexus-internal data types.
-	"github.com/oasisprotocol/oasis-core/go/common"
+	cmdCommon "github.com/oasisprotocol/nexus/cmd/common"
 
+	// nexus-internal data types.
 	beacon "github.com/oasisprotocol/nexus/coreapi/v22.2.11/beacon/api"
 	consensus "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api"
 	consensusTx "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api/transaction"
@@ -16,7 +17,6 @@ import (
 	governance "github.com/oasisprotocol/nexus/coreapi/v22.2.11/governance/api"
 	scheduler "github.com/oasisprotocol/nexus/coreapi/v22.2.11/scheduler/api"
 
-	"github.com/oasisprotocol/nexus/log"
 	"github.com/oasisprotocol/nexus/storage/oasis/connections"
 	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
 
@@ -86,7 +86,7 @@ func (c *ConsensusApiLite) GetTransactionsWithResults(ctx context.Context, heigh
 	for i, txBytes := range rsp.Transactions {
 		var tx consensusTx.SignedTransaction
 		if err := cbor.Unmarshal(txBytes, &tx); err != nil {
-			log.NewDefaultLogger("eden-consensus-api-lite").Error("malformed consensus transaction, leaving empty",
+			cmdCommon.RootLogger().WithModule("eden-consensus-api-lite").Error("malformed consensus transaction, leaving empty",
 				"height", height,
 				"index", i,
 				"tx_bytes", txBytes,
