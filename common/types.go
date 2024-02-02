@@ -161,6 +161,13 @@ func TryAsJSON(v interface{}) json.RawMessage {
 	return json.RawMessage(encoded)
 }
 
+func StringOrNil[T fmt.Stringer](v *T) *string {
+	if v == nil {
+		return nil
+	}
+	return Ptr((*v).String())
+}
+
 // Key used to set values in a web request context. API uses this to set
 // values, backend uses this to retrieve values.
 type ContextKey string
