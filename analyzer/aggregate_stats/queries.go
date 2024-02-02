@@ -88,15 +88,16 @@ const (
 	// chain.runtime_related_transactions table. Without this conversion,
 	// postgres does not realize that the timestamps correspond to a sequential
 	// set of rounds and does a full table scan.
+	//
+	// Note 2: The subselects push postgres to use the `timestamp` index
+	// on `runtime_blocks`.
 	QueryRuntimeActiveAccounts = `
-		WITH relevant_rounds AS (
-			SELECT min(round) as min_round, max(round) as max_round
-			FROM chain.runtime_blocks AS b
-			WHERE (b.runtime = $1 AND b.timestamp >= $2::timestamptz AND b.timestamp < $3::timestamptz)
-		)
 		SELECT COUNT(DISTINCT account_address)
-		FROM chain.runtime_related_transactions AS rt, relevant_rounds
-		WHERE (rt.runtime = $1 AND tx_round >= relevant_rounds.min_round AND tx_round <= relevant_rounds.max_round)
+		FROM chain.runtime_related_transactions
+		WHERE
+			runtime = $1 AND
+			tx_round >= (SELECT round FROM chain.runtime_blocks WHERE runtime = $1 AND timestamp >= $2::timestamptz ORDER BY timestamp ASC LIMIT 1) AND
+			tx_round <= (SELECT round FROM chain.runtime_blocks WHERE runtime = $1 AND timestamp < $3::timestamptz ORDER BY timestamp DESC LIMIT 1)
 	`
 
 	// QueryDailyTxVolume is the query to get the number of transactions within the given
