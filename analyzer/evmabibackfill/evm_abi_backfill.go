@@ -157,36 +157,33 @@ func cleanTxRevertReason(raw string) ([]byte, error) {
 
 // Attempts to parse the raw event body into the event name, args, and signature
 // as defined by the abi of the contract that emitted this event.
-func (p *processor) parseEvent(ev *abiEncodedEvent, contractAbi abi.ABI) (*string, []*abiEncodedArg, *ethCommon.Hash) {
+func (p *processor) parseEvent(ev *abiEncodedEvent, contractAbi abi.ABI) (*string, []*abiEncodedArg, *ethCommon.Hash, error) {
 	abiEvent, abiEventArgs, err := abiparse.ParseEvent(ev.EventBody.Topics, ev.EventBody.Data, &contractAbi)
 	if err != nil {
-		p.logger.Warn("error processing event using abi", "err", err)
-		return nil, nil, nil
+		return nil, nil, nil, fmt.Errorf("error processing event using abi: %w", err)
 	}
 	eventArgs, err := marshalArgs(abiEvent.Inputs, abiEventArgs)
 	if err != nil {
 		p.logger.Warn("error processing event args using abi", "err", err)
-		return nil, nil, nil
+		return nil, nil, nil, fmt.Errorf("error processing event args using abi: %w", err)
 	}
 
-	return &abiEvent.Name, eventArgs, &abiEvent.ID
+	return &abiEvent.Name, eventArgs, &abiEvent.ID, nil
 }
 
 // Attempts to parse the raw evm.Call transaction data into the transaction
 // method name and arguments as defined by the abi of the contract that was called.
-func (p *processor) parseTxCall(tx *abiEncodedTx, contractAbi abi.ABI) (*string, []*abiEncodedArg) {
+func (p *processor) parseTxCall(tx *abiEncodedTx, contractAbi abi.ABI) (*string, []*abiEncodedArg, error) {
 	method, abiTxArgs, err := abiparse.ParseData(tx.TxData, &contractAbi)
 	if err != nil {
-		p.logger.Warn("error processing tx using abi", "err", err)
-		return nil, nil
+		return nil, nil, fmt.Errorf("error processing tx using abi: %w", err)
 	}
 	txArgs, err := marshalArgs(method.Inputs, abiTxArgs)
 	if err != nil {
-		p.logger.Warn("error processing tx args using abi", "err", err)
-		return nil, nil
+		return nil, nil, fmt.Errorf("error processing tx args using abi: %w", err)
 	}
 
-	return &method.RawName, txArgs
+	return &method.RawName, txArgs, nil
 }
 
 // Attempts to parse the transaction revert reason into the error name and args
@@ -230,7 +227,11 @@ func (p *processor) ProcessItem(ctx context.Context, batch *storage.QueryBatch, 
 	// Parse data
 	p.logger.Debug("processing item using abi", "contract_address", item.ContractAddr)
 	if item.Event != nil {
-		eventName, eventArgs, eventSig := p.parseEvent(item.Event, contractAbi)
+		eventName, eventArgs, eventSig, err := p.parseEvent(item.Event, contractAbi)
+		if err != nil {
+			p.logger.Warn("error parsing event with abi", "err", err, "contract_address", item.ContractAddr, "event_round", item.Event.Round, "event_tx_index", item.Event.TxIndex)
+			// Write to the DB regardless of error so we don't keep retrying the same item.
+		}
 		batch.Queue(
 			queries.RuntimeEventEvmParsedFieldsUpdate,
 			p.runtime,
@@ -242,7 +243,11 @@ func (p *processor) ProcessItem(ctx context.Context, batch *storage.QueryBatch, 
 			eventSig,
 		)
 	} else if item.Tx != nil {
-		methodName, methodArgs := p.parseTxCall(item.Tx, contractAbi)
+		methodName, methodArgs, err := p.parseTxCall(item.Tx, contractAbi)
+		if err != nil {
+			p.logger.Warn("error parsing tx with abi", "err", err, "contract_address", item.ContractAddr, "tx_hash", item.Tx.TxHash)
+			// Write to the DB regardless of error so we don't keep retrying the same item.
+		}
 		errMsg, errArgs := p.parseTxErr(item.Tx, contractAbi)
 		batch.Queue(
 			queries.RuntimeTransactionEvmParsedFieldsUpdate,
