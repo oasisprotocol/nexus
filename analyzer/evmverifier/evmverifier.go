@@ -160,6 +160,19 @@ func (p *processor) GetItems(ctx context.Context, limit uint64) ([]contract, err
 	return items, nil
 }
 
+func extractABI(metadataJSON json.RawMessage) (*json.RawMessage, error) {
+	type metadataStruct struct { // A subset of the metadata type; focuses only on ABI.
+		Output struct {
+			ABI json.RawMessage `json:"abi"`
+		} `json:"output"`
+	}
+	var parsedMeta metadataStruct
+	if err := json.Unmarshal(metadataJSON, &parsedMeta); err != nil {
+		return nil, err
+	}
+	return &parsedMeta.Output.ABI, nil
+}
+
 // In inputs, item.VerificationLevel indicates the level on *Sourcify*.
 func (p *processor) ProcessItem(ctx context.Context, batch *storage.QueryBatch, item contract) error {
 	p.logger.Debug("verifying contract", "address", item.Addr, "eth_address", item.EthAddr)
@@ -174,14 +187,8 @@ func (p *processor) ProcessItem(ctx context.Context, batch *storage.QueryBatch, 
 		return fmt.Errorf("failed to marshal source files: %w, eth_address: %s, address: %s", err, item.EthAddr, item.Addr)
 	}
 
-	// Parse ABI from the metadata.
-	type abiStruct struct {
-		Output struct {
-			ABI json.RawMessage `json:"abi"`
-		} `json:"output"`
-	}
-	var abi abiStruct
-	if err = json.Unmarshal(metadata, &abi); err != nil {
+	var abi *json.RawMessage
+	if abi, err = extractABI(metadata); err != nil {
 		p.logger.Warn("failed to parse ABI from metadata", "err", err, "eth_address", item.EthAddr, "address", item.Addr)
 	}
 
@@ -195,7 +202,7 @@ func (p *processor) ProcessItem(ctx context.Context, batch *storage.QueryBatch, 
 		queries.RuntimeEVMVerifyContractUpsert,
 		p.runtime,
 		item.Addr,
-		abi.Output.ABI,
+		abi,
 		metadata,
 		sourceFilesJSON,
 		item.VerificationLevel,
