@@ -913,7 +913,8 @@ var (
       SELECT 
         runtime,
         contract_address AS addr,
-        abi
+        abi,
+        verification_info_downloaded_at
       FROM chain.evm_contracts
       WHERE
         runtime = $1 AND abi IS NOT NULL
@@ -930,8 +931,8 @@ var (
       txs.to = abi_contracts.addr AND
       txs.method = 'evm.Call' -- note: does not include evm.Create txs; their payload is never encrypted.
     WHERE
-      body IS NOT NULL AND
-      abi_parsed_at IS NULL
+      txs.body IS NOT NULL AND
+      (txs.abi_parsed_at IS NULL OR txs.abi_parsed_at < abi_contracts.verification_info_downloaded_at)
     ORDER BY addr
     LIMIT $2`
 
@@ -940,7 +941,8 @@ var (
       SELECT
         runtime,
         contract_address AS addr,
-        abi
+        abi,
+        verification_info_downloaded_at
       FROM chain.evm_contracts
       WHERE
         runtime = $1 AND
@@ -960,6 +962,6 @@ var (
       evs.runtime = abi_contracts.runtime AND
       decode(body->>'address', 'base64') = preimages.address_data
     WHERE
-      evs.abi_parsed_at IS NULL
+      (evs.abi_parsed_at IS NULL OR evs.abi_parsed_at < abi_contracts.verification_info_downloaded_at)
     LIMIT $2`
 )
