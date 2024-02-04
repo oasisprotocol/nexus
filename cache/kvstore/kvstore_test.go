@@ -1,4 +1,4 @@
-package file
+package kvstore
 
 import (
 	"fmt"
@@ -55,19 +55,19 @@ func TestGetFromCacheOrCallSuccess(t *testing.T) {
 	}
 
 	// First call should call the function.
-	val, err := GetFromCacheOrCall(kv, false /*volatile*/, generateCacheKey("mykey"), generator)
+	val, err := GetFromCacheOrCall(kv, false /*volatile*/, GenerateCacheKey("mykey"), generator)
 	require.NoError(t, err)
 	require.Equal(t, "myval", *val)
 	require.Equal(t, 1, callCount)
 
 	// Second call should not call the function.
-	val, err = GetFromCacheOrCall(kv, false /*volatile*/, generateCacheKey("mykey"), generator)
+	val, err = GetFromCacheOrCall(kv, false /*volatile*/, GenerateCacheKey("mykey"), generator)
 	require.NoError(t, err)
 	require.Equal(t, "myval", *val)
 	require.Equal(t, 1, callCount)
 
 	// If a key is marked volatile, the function should be called every time.
-	val, err = GetFromCacheOrCall(kv, true /*volatile*/, generateCacheKey("mykey"), generator)
+	val, err = GetFromCacheOrCall(kv, true /*volatile*/, GenerateCacheKey("mykey"), generator)
 	require.NoError(t, err)
 	require.Equal(t, "myval", *val)
 	require.Equal(t, 2, callCount)
@@ -83,7 +83,7 @@ func TestGetFromCacheOrCallError(t *testing.T) {
 	}
 
 	// The call should propagate the generator function error.
-	val, err := GetFromCacheOrCall(kv, false /*volatile*/, generateCacheKey("mykey"), generator)
+	val, err := GetFromCacheOrCall(kv, false /*volatile*/, GenerateCacheKey("mykey"), generator)
 	require.Error(t, err)
 	require.Nil(t, val)
 }
@@ -102,12 +102,12 @@ func TestGetFromCacheOrCallTypeMismatch(t *testing.T) {
 	}
 
 	// Put a string into the cache.
-	_, err := GetFromCacheOrCall(kv, false /*volatile*/, generateCacheKey("mykey"), stringGenerator)
+	_, err := GetFromCacheOrCall(kv, false /*volatile*/, GenerateCacheKey("mykey"), stringGenerator)
 	require.NoError(t, err)
 
 	// Try to fetch it and interpret it as an int.
 	// It should log a warning but recover by calling the generator function.
-	myInt, err := GetFromCacheOrCall(kv, false /*volatile*/, generateCacheKey("mykey"), intGenerator)
+	myInt, err := GetFromCacheOrCall(kv, false /*volatile*/, GenerateCacheKey("mykey"), intGenerator)
 	require.NoError(t, err)
 	require.Equal(t, 123, *myInt)
 }
@@ -121,7 +121,7 @@ func TestPrettyPrint(t *testing.T) {
 		Words:  []string{"hello", "world"},
 		Number: 123,
 	}
-	key := generateCacheKey("foo", "bar", myStruct)
+	key := GenerateCacheKey("foo", "bar", myStruct)
 
 	// Pretty-print it
 	reconstructed := key.Pretty()
