@@ -45,8 +45,8 @@ const (
 func defaultTimeBuckets() []float64 {
 	const (
 		minThreshold                  = 0.0001
-		maxThreshold                  = 10 // The resulting output might be one bucket short due to rounding errors.
-		thresholdsPerOrderOfMagnitude = 10 // "order of magnitude" being 10x.
+		maxThreshold                  = 1000 // The resulting output might be one bucket short due to rounding errors.
+		thresholdsPerOrderOfMagnitude = 10   // "Order of magnitude" being 10x.
 	)
 
 	buckets := []float64{}
