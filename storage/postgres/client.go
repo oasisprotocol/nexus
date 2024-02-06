@@ -122,7 +122,7 @@ func (c *Client) sendBatchWithOptionsFast(ctx context.Context, batch *storage.Qu
 	}
 	defer common.CloseOrLog(batchResults, c.logger)
 
-	// Exec indiviual queries in the batch.
+	// Read the results of indiviual queries in the batch.
 	for i := 0; i < pgxBatch.Len(); i++ {
 		if _, err := batchResults.Exec(); err != nil {
 			rollbackErr := ""
@@ -170,21 +170,26 @@ func (c *Client) sendBatchWithOptionsSlow(ctx context.Context, batch *storage.Qu
 	// Commit the transaction.
 	err = tx.Commit(ctx)
 	if err != nil {
-		c.logger.Error("failed to submit tx",
-			"error", err,
-			"batch", batch.Queries(),
-		)
 		return err
 	}
 	return nil
 }
 
 func (c *Client) SendBatchWithOptions(ctx context.Context, batch *storage.QueryBatch, opts pgx.TxOptions) error {
-	if err := c.sendBatchWithOptionsFast(ctx, batch, opts); err == nil {
+	var err error
+	if err = c.sendBatchWithOptionsFast(ctx, batch, opts); err == nil {
 		// The fast path succeeded. This should happen most of the time.
 		return nil
 	}
-	// There was an error. The tx was reverted, so we can resubmit. This time, use the slow method for better error msgs.
+
+	// There was an error. The tx was reverted(*), so we can resubmit.
+	//   (*) Theoretically it's possible that the tx was committed but the confirmation of commit
+	//       didn't reach us due to networking issues. We don't handle this case.
+	// This time, use the slow method for better error msgs.
+	c.logger.Warn("failed to submit tx using the fast path; falling back to slow path",
+		"error", err,
+		"batch", batch.Queries(),
+	)
 	return c.sendBatchWithOptionsSlow(ctx, batch, opts)
 }
 
