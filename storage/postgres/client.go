@@ -100,6 +100,15 @@ func (c *Client) SendBatch(ctx context.Context, batch *storage.QueryBatch) error
 // However, it reports errors poorly: If _any_ query is syntactically
 // malformed, called with the wrong number of args, or has a type conversion problem,
 // pgx will report the _first_ query as failing.
+//
+// For efficiency and simplicity, the method does not use explicit transactions
+// with BEGIN/COMMIT unless required by the tx options. Even so, the batch is processed
+// atomically, because:
+//  1) We use pgx in its default QueryExecMode.
+//  2) This in turn makes pgx use postgresql in pipeline mode.
+//  3) Postgresql pipeline mode implies transactions-like behavior:
+//     https://www.postgresql.org/docs/15/libpq-pipeline-mode.html#LIBPQ-PIPELINE-ERRORS
+
 func (c *Client) sendBatchWithOptionsFast(ctx context.Context, batch *storage.QueryBatch, opts pgx.TxOptions) error {
 	pgxBatch := batch.AsPgxBatch()
 	var batchResults pgx.BatchResults
@@ -108,7 +117,7 @@ func (c *Client) sendBatchWithOptionsFast(ctx context.Context, batch *storage.Qu
 	var err error
 
 	// Begin a transaction.
-	useExplicitTx := opts != emptyTxOptions
+	useExplicitTx := opts != emptyTxOptions // see function docstring for more info
 	if useExplicitTx {
 		// set up our own tx with the specified options
 		tx, err = c.pool.BeginTx(ctx, opts)
