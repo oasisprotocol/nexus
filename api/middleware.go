@@ -62,6 +62,7 @@ func MetricsMiddleware(m metrics.RequestMetrics, logger log.Logger) func(next ht
 			logger.Info("starting request",
 				"endpoint", r.URL.Path,
 				"request_id", requestID,
+				"remote_addr", r.RemoteAddr,
 			)
 			t := time.Now()
 			metricName := normalizeEndpoint(r.URL.Path)
