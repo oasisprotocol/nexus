@@ -216,6 +216,27 @@ func (c *Client) Query(ctx context.Context, sql string, args ...interface{}) (pg
 	return rows, nil
 }
 
+// Query submits a new read query to PostgreSQL, wrapped in a custom tx.
+func (c *Client) QueryWithOptions(ctx context.Context, txOpts pgx.TxOptions, sql string, args ...interface{}) (pgx.Rows, error) {
+	tx, err := c.pool.BeginTx(ctx, txOpts)
+	if err != nil {
+		return nil, fmt.Errorf("cannot start a tx: %w", err)
+	}
+	rows, err := tx.Query(ctx, sql, args...)
+	if err == nil {
+		err = tx.Commit(ctx)
+	}
+	if err != nil {
+		c.logger.Error("failed to query db",
+			"error", err,
+			"query_cmd", sql,
+			"query_args", args,
+		)
+		return nil, err
+	}
+	return rows, nil
+}
+
 // QueryRow submits a new read query for a single row to PostgreSQL.
 func (c *Client) QueryRow(ctx context.Context, sql string, args ...interface{}) pgx.Row {
 	return c.pool.QueryRow(ctx, sql, args...)

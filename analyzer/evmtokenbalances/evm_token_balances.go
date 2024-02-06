@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math/big"
 
+	"github.com/jackc/pgx/v5"
 	sdkConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 
 	"github.com/oasisprotocol/nexus/analyzer"
@@ -127,7 +128,11 @@ type StaleTokenBalance struct {
 
 func (p *processor) GetItems(ctx context.Context, limit uint64) ([]*StaleTokenBalance, error) {
 	var staleTokenBalances []*StaleTokenBalance
-	rows, err := p.target.Query(ctx, queries.RuntimeEVMTokenBalanceAnalysisStale,
+	rows, err := p.target.QueryWithOptions(ctx,
+		// Use strict isolation; cannot afford non-repeatable reads where the token balance and the download round would be read
+		// before and after the block analyzer adds a new block, respectively.
+		pgx.TxOptions{IsoLevel: pgx.Serializable, AccessMode: pgx.ReadOnly},
+		queries.RuntimeEVMTokenBalanceAnalysisStale,
 		p.runtime,
 		nativeTokenSymbol(p.runtimeMetadata),
 		limit)

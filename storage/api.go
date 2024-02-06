@@ -96,6 +96,9 @@ type TargetStorage interface {
 	// Query submits a query to fetch data from target storage.
 	Query(ctx context.Context, sql string, args ...interface{}) (QueryResults, error)
 
+	// Query submits a query to fetch data from target storage, with custom tx options.
+	QueryWithOptions(ctx context.Context, txOpts pgx.TxOptions, sql string, args ...interface{}) (QueryResults, error)
+
 	// QueryRow submits a query to fetch a single row of data from target storage.
 	QueryRow(ctx context.Context, sql string, args ...interface{}) QueryResult
 

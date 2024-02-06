@@ -154,7 +154,14 @@ func (a *itemBasedAnalyzer[Item]) processBatch(ctx context.Context) (int, error)
 	// Commit the changes from all successfully processed items to the database.
 	batch := &storage.QueryBatch{}
 	for _, b := range batches {
+		// Each item's batch is wrapped in a transaction because:
+		//  - This makes txs smaller, reducing the impact of deadlocks.
+		//  - We can specify a high isolation level. Item analyzers run in parallel with block analyzers,
+		//    and might need a consistent view of the database. E.g. the `evm_token_balances` analyzer
+		//    needs to read the latest height and the balance at that height.
+		batch.Queue("BEGIN TRANSACTION ISOLATION LEVEL SERIALIZABLE")
 		batch.Extend(b)
+		batch.Queue("COMMIT")
 	}
 	if err := a.target.SendBatch(ctx, batch); err != nil {
 		return 0, fmt.Errorf("sending batch: %w", err)

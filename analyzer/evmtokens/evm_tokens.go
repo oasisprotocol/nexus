@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 
 	"github.com/oasisprotocol/nexus/analyzer"
@@ -79,7 +80,13 @@ type StaleToken struct {
 
 func (p *processor) GetItems(ctx context.Context, limit uint64) ([]*StaleToken, error) {
 	var staleTokens []*StaleToken
-	rows, err := p.target.Query(ctx, queries.RuntimeEVMTokenAnalysisStale, p.runtime, limit)
+	// Use strict isolation; cannot afford non-repeatable reads where the total supply and the download round would be read
+	// before and after the block analyzer adds a new block, respectively.
+	rows, err := p.target.QueryWithOptions(
+		ctx,
+		pgx.TxOptions{IsoLevel: pgx.Serializable, AccessMode: pgx.ReadOnly},
+		queries.RuntimeEVMTokenAnalysisStale, p.runtime, limit,
+	)
 	if err != nil {
 		return nil, fmt.Errorf("querying discovered tokens: %w", err)
 	}
