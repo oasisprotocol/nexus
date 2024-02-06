@@ -108,7 +108,7 @@ func Init(cfg *config.AnalysisConfig) (*Service, error) {
 		logger.Info("storage wiped")
 	}
 
-	logger.Info("checking if migrations need to be applied...")
+	logger.Info("applying relevant DB migrations, if any ...")
 	switch err := RunMigrations(cfg.Storage.Migrations, cfg.Storage.Endpoint); {
 	case err == migrate.ErrNoChange:
 		logger.Info("no migrations needed to be applied")
