@@ -50,10 +50,10 @@ const (
 
 // Default item based config.
 var testItemBasedConfig = &config.ItemBasedAnalyzerConfig{
-	BatchSize:        3,
-	StopOnEmptyQueue: true,
-	Interval:         0, // use backoff
-	InterItemDelay:   0,
+	BatchSize:           3,
+	StopIfQueueEmptyFor: time.Second,
+	Interval:            0, // use backoff
+	InterItemDelay:      0,
 }
 
 type mockItem struct {

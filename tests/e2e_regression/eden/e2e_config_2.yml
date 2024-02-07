@@ -22,7 +22,7 @@ analysis:
     # Some non-block analyzers are not tested in e2e regressions.
     # They are largely not worth the trouble as they do not interact with rest of the system much.
     # metadata_registry: {} # Awkward to inject mock registry responses.
-    # node_stats: {}        # Awkward to inject mock node response using the current paradigm (= reseponse caching).
+    # node_stats: {}        # Awkward to inject mock node response using the current paradigm (= response caching).
     # aggregate_stats: {}   # Awkward to make stop after a single run.
   storage:
     backend: postgres
