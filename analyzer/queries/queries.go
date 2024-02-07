@@ -889,15 +889,23 @@ var (
     WHERE
       runtime = $1 AND verification_info_downloaded_at IS NULL`
 
-	RuntimeEVMVerifyContractUpdate = `
-    UPDATE chain.evm_contracts
+	RuntimeEVMVerifiedContracts = `
+    SELECT 
+      contracts.contract_address,
+      contracts.verification_level
+    FROM chain.evm_contracts AS contracts
+    WHERE
+      runtime = $1 AND verification_level IS NOT NULL`
+
+	RuntimeEVMVerifyContractUpsert = `
+    INSERT INTO chain.evm_contracts (runtime, contract_address, verification_info_downloaded_at, abi, compilation_metadata, source_files)
+    VALUES ($1, $2, CURRENT_TIMESTAMP, $3, $4, $5)
+    ON CONFLICT (runtime, contract_address) DO UPDATE
     SET
       verification_info_downloaded_at = CURRENT_TIMESTAMP,
-      abi = $3,
-      compilation_metadata = $4,
-      source_files = $5
-    WHERE
-      runtime = $1 AND contract_address = $2`
+      abi = EXCLUDED.abi,
+      compilation_metadata = EXCLUDED.compilation_metadata,
+      source_files = EXCLUDED.source_files`
 
 	RuntimeEvmVerifiedContractTxs = `
     WITH abi_contracts AS (
