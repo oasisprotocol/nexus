@@ -477,14 +477,15 @@ var (
 	RuntimeEventEvmParsedFieldsUpdate = `
     UPDATE chain.runtime_events
     SET
-      evm_log_name = COALESCE($4, evm_log_name),
-      evm_log_params = COALESCE($5, evm_log_params),
-      evm_log_signature = COALESCE($6, evm_log_signature),
+      evm_log_name = COALESCE($5, evm_log_name),
+      evm_log_params = COALESCE($6, evm_log_params),
+      evm_log_signature = COALESCE($7, evm_log_signature),
       abi_parsed_at = CURRENT_TIMESTAMP
     WHERE
       runtime = $1 AND
       round = $2 AND
-      tx_index = $3`
+      tx_index = $3 AND
+      body = $4`
 
 	RuntimeMintInsert = `
     INSERT INTO chain.runtime_transfers (runtime, round, sender, receiver, symbol, amount)
