@@ -10,7 +10,7 @@ docker/node/etc/genesis.json
 
 # Testing data
 tests/e2e/testnet/net-runner
-tests/e2e_regression/actual/*
+tests/e2e_regression/*/actual/*
 
 # Log output.
 **/*.log

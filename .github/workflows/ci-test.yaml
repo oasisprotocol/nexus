@@ -125,7 +125,7 @@ jobs:
             /tmp/*.log
         if: success() || failure()  # but not if job is manually cancelled
 
-  test-e2e-regression:
+  test-e2e-regression-eden:
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout code
@@ -148,10 +148,41 @@ jobs:
           make postgres
       - name: Run e2e regression tests
         run : |
-          make test-e2e-regression
+          make test-e2e-regression-eden
       - uses: actions/upload-artifact@v3
         with:
           name: Actual nexus api responses
           path: |
-            tests/e2e_regression/actual
+            tests/e2e_regression/eden/actual
+        if: failure()  # but not if success or job is manually cancelled
+
+  test-e2e-regression-damask:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          lfs: true
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.21
+      - name: Autogenerate Go code
+        run: |
+          go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen@v1.12
+          make codegen-go
+      - name: Build Go
+        run: |
+          make nexus
+      - name: Start db
+        run: |
+          make postgres
+      - name: Run e2e regression tests
+        run : |
+          make test-e2e-regression-damask
+      - uses: actions/upload-artifact@v3
+        with:
+          name: Actual nexus api responses
+          path: |
+            tests/e2e_regression/damask/actual
         if: failure()  # but not if success or job is manually cancelled

@@ -1,0 +1,38 @@
+{
+  "is_total_count_clipped": false,
+  "proposals": [
+    {
+      "closes_at": 13152,
+      "created_at": 12984,
+      "deposit": "10000000000000",
+      "epoch": 13402,
+      "handler": "mainnet-upgrade-2022-04-11",
+      "id": 2,
+      "invalid_votes": "0",
+      "state": "passed",
+      "submitter": "oasis1qpydpeyjrneq20kh2jz2809lew6d9p64yymutlee",
+      "target": {
+        "consensus_protocol": "5.0.0",
+        "runtime_committee_protocol": "4.0.0",
+        "runtime_host_protocol": "5.0.0"
+      }
+    },
+    {
+      "closes_at": 7876,
+      "created_at": 7708,
+      "deposit": "10000000000000",
+      "epoch": 8049,
+      "handler": "consensus-params-update-2021-08",
+      "id": 1,
+      "invalid_votes": "0",
+      "state": "passed",
+      "submitter": "oasis1qpydpeyjrneq20kh2jz2809lew6d9p64yymutlee",
+      "target": {
+        "consensus_protocol": "4.0.0",
+        "runtime_committee_protocol": "2.0.0",
+        "runtime_host_protocol": "3.0.0"
+      }
+    }
+  ],
+  "total_count": 2
+}

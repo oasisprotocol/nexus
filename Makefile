@@ -60,31 +60,65 @@ test-e2e: export OASIS_INDEXER_E2E = true
 test-e2e:
 	@$(GO) test -race -coverpkg=./... -coverprofile=coverage.txt -covermode=atomic -v ./tests/e2e
 
-fill-cache-for-e2e-regression: nexus
+fill-cache-for-e2e-regression:
+	@$(MAKE) fill-cache-for-e2e-regression-eden
+	@$(MAKE) fill-cache-for-e2e-regression-damask
+
+fill-cache-for-e2e-regression-eden: nexus
 	@./tests/e2e_regression/ensure_consistent_config.sh
-	./nexus --config tests/e2e_regression/e2e_config_1.yml analyze
-	./nexus --config tests/e2e_regression/e2e_config_2.yml analyze
+	./nexus --config tests/e2e_regression/eden/e2e_config_1.yml analyze
+	./nexus --config tests/e2e_regression/eden/e2e_config_2.yml analyze
+
+fill-cache-for-e2e-regression-damask: nexus
+	@./tests/e2e_regression/ensure_consistent_config.sh
+	./nexus --config tests/e2e_regression/damask/e2e_config_1.yml analyze
+	./nexus --config tests/e2e_regression/damask/e2e_config_2.yml analyze
 
 # Run the api tests locally, assuming the environment is set up with an oasis-node that is
 # accessible as specified in the config file.
-test-e2e-regression: nexus
+test-e2e-regression:
+	@$(MAKE) test-e2e-regression-eden
+	@$(MAKE) test-e2e-regression-damask
+
+test-e2e-regression-eden: nexus
 	@./tests/e2e_regression/ensure_consistent_config.sh
-	./nexus --config tests/e2e_regression/e2e_config_1.yml analyze
-	./nexus --config tests/e2e_regression/e2e_config_2.yml analyze
+	./nexus --config tests/e2e_regression/eden/e2e_config_1.yml analyze
+	./nexus --config tests/e2e_regression/eden/e2e_config_2.yml analyze
 	@$(ECHO) "$(CYAN)*** Analyzers finished; starting api tests...$(OFF)"
-	./tests/e2e_regression/run.sh
+	./tests/e2e_regression/run.sh eden
+
+
+test-e2e-regression-damask: nexus
+	@./tests/e2e_regression/ensure_consistent_config.sh
+	./nexus --config tests/e2e_regression/damask/e2e_config_1.yml analyze
+	./nexus --config tests/e2e_regression/damask/e2e_config_2.yml analyze
+	@$(ECHO) "$(CYAN)*** Analyzers finished; starting api tests...$(OFF)"
+	./tests/e2e_regression/run.sh damask
 
 # Accept the outputs of the e2e tests as the new expected outputs.
 accept-e2e-regression:
+	@$(MAKE) accept-e2e-regression-eden
+	@$(MAKE) accept-e2e-regression-damask
+
+accept-e2e-regression-eden:
+	SUITE=eden $(MAKE) accept-e2e-regression-suite
+
+accept-e2e-regression-damask:
+	SUITE=damask $(MAKE) accept-e2e-regression-suite
+
+accept-e2e-regression-suite:
+ifndef SUITE
+	$(error SUITE is undefined)
+endif
 	@# Delete all old expected files first, in case any test cases were renamed or removed.
-	rm -rf ./tests/e2e_regression/expected
+	rm -rf ./tests/e2e_regression/$(SUITE)/expected
 	@# Copy the actual outputs to the expected outputs.
-	cp -r  ./tests/e2e_regression/{actual,expected}
+	cp -r  ./tests/e2e_regression/$(SUITE)/{actual,expected}
 	@# The result of the "spec" test is a special case. It should always match the
 	@# current openAPI spec file, so we symlink it to avoid having to update the expected
 	@# output every time the spec changes.
-	rm ./tests/e2e_regression/expected/spec.body
-	ln -s  ../../../api/spec/v1.yaml ./tests/e2e_regression/expected/spec.body
+	rm ./tests/e2e_regression/$(SUITE)/expected/spec.body
+	ln -s  ../../../../api/spec/v1.yaml ./tests/e2e_regression/$(SUITE)/expected/spec.body
 
 # Format code.
 fmt:
