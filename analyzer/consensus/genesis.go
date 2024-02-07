@@ -60,7 +60,6 @@ func (mg *GenesisProcessor) Process(document *genesis.Document, nodesOverride []
 
 func (mg *GenesisProcessor) addRegistryBackendMigrations(document *genesis.Document, nodesOverride []nodeapi.Node) (queries []string, err error) {
 	// Populate entities.
-	queries = append(queries, "-- Registry Backend Data\n")
 	query := `INSERT INTO chain.entities (id, address)
 VALUES
 `
@@ -219,7 +218,6 @@ VALUES
 //nolint:gocyclo
 func (mg *GenesisProcessor) addStakingBackendMigrations(document *genesis.Document) (queries []string, err error) {
 	// Populate accounts.
-	queries = append(queries, "-- Staking Backend Data\n")
 
 	// Populate special accounts with reserved addresses.
 	query := `-- Reserved addresses
@@ -469,7 +467,6 @@ VALUES
 
 func (mg *GenesisProcessor) addGovernanceBackendMigrations(document *genesis.Document) (queries []string) {
 	// Populate proposals.
-	queries = append(queries, "-- Governance Backend Data\n")
 
 	if len(document.Governance.Proposals) > 0 {
 		// TODO: Extract `executed` for proposal.
