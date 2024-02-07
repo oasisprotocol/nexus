@@ -385,13 +385,14 @@ type ItemBasedAnalyzerConfig struct {
 	// Uses default value of 20 if unset/set to 0.
 	BatchSize uint64 `koanf:"batch_size"`
 
-	// If StopOnEmptyQueue is true, the analyzer will exit the main processing loop when
-	// there are no items left in the work queue. This is useful during testing when
-	// 1) The number of items in the queue is determinate
+	// If StopIfQueueEmptyFor is a non-zero duration, the analyzer will terminate when
+	// there are no items left in the work queue for this specified amount of time.
+	// This is useful during testing when
+	// 1) The number of items in the queue is determinate.
 	// 2) We want the analyzer to naturally terminate after processing all available work items.
 	//
-	// Defaults to false.
-	StopOnEmptyQueue bool `koanf:"stop_on_empty_queue"`
+	// Defaults to 0, i.e. the analyzer never terminates.
+	StopIfQueueEmptyFor time.Duration `koanf:"stop_if_queue_empty_for"`
 
 	// If Interval is set, the analyzer will process batches at a fixed cadence specified by Interval.
 	// Otherwise, the analyzer will use an adaptive backoff to determine the delay between
