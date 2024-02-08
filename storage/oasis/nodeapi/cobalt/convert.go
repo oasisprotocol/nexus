@@ -7,11 +7,10 @@ import (
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
 	"github.com/oasisprotocol/oasis-core/go/common/quantity"
 
-	consensus "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api"
-
 	// nexus-internal data types.
 	coreCommon "github.com/oasisprotocol/oasis-core/go/common"
 
+	consensus "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api"
 	genesis "github.com/oasisprotocol/nexus/coreapi/v22.2.11/genesis/api"
 	governance "github.com/oasisprotocol/nexus/coreapi/v22.2.11/governance/api"
 	registry "github.com/oasisprotocol/nexus/coreapi/v22.2.11/registry/api"
