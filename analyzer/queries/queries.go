@@ -197,6 +197,20 @@ var (
     INSERT INTO chain.transactions (block, tx_hash, tx_index, nonce, fee_amount, max_gas, method, sender, body, module, code, message)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`
 
+	ConsensusAccountUpsert = `
+    INSERT INTO chain.accounts
+      (address, general_balance, nonce, escrow_balance_active, escrow_total_shares_active, escrow_balance_debonding, escrow_total_shares_debonding)
+    VALUES
+      ($1, $2, $3, $4, $5, $6, $7)
+    ON CONFLICT (address) DO UPDATE
+    SET
+      general_balance = excluded.general_balance,
+      nonce = excluded.nonce,
+      escrow_balance_active = excluded.escrow_balance_active,
+      escrow_total_shares_active = excluded.escrow_total_shares_active,
+      escrow_balance_debonding = excluded.escrow_balance_debonding,
+      escrow_total_shares_debonding = excluded.escrow_total_shares_debonding`
+
 	ConsensusAccountNonceUpsert = `
     INSERT INTO chain.accounts(address, nonce)
     VALUES ($1, $2)
@@ -324,6 +338,15 @@ var (
         escrow_balance_active = chain.accounts.escrow_balance_active + $2,
         escrow_total_shares_active = chain.accounts.escrow_total_shares_active + $3`
 
+	ConsensusAddDelegationsUpsertReplace = `
+    INSERT INTO chain.delegations
+      (delegatee, delegator, shares)
+    VALUES
+      ($1, $2, $3)
+    ON CONFLICT (delegatee, delegator) DO UPDATE
+    SET
+      shares = excluded.shares`
+
 	ConsensusAddDelegationsUpsert = `
     INSERT INTO chain.delegations (delegatee, delegator, shares)
       VALUES ($1, $2, $3)
@@ -410,16 +433,16 @@ var (
     TRUNCATE chain.committee_members`
 
 	ConsensusProposalSubmissionInsert = `
-    INSERT INTO chain.proposals (id, submitter, state, deposit, handler, cp_target_version, rhp_target_version, rcp_target_version, upgrade_epoch, created_at, closes_at)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`
+    INSERT INTO chain.proposals (id, submitter, state, deposit, handler, cp_target_version, rhp_target_version, rcp_target_version, upgrade_epoch, created_at, closes_at, invalid_votes)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`
 
 	ConsensusProposalSubmissionCancelInsert = `
-    INSERT INTO chain.proposals (id, submitter, state, deposit, cancels, created_at, closes_at)
-      VALUES ($1, $2, $3, $4, $5, $6, $7)`
+    INSERT INTO chain.proposals (id, submitter, state, deposit, cancels, created_at, closes_at, invalid_votes)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
 
 	ConsensusProposalSubmissionChangeParametersInsert = `
-    INSERT INTO chain.proposals (id, submitter, state, deposit, parameters_change_module, parameters_change, created_at, closes_at)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
+    INSERT INTO chain.proposals (id, submitter, state, deposit, parameters_change_module, parameters_change, created_at, closes_at, invalid_votes)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`
 
 	ConsensusProposalExecutionsUpdate = `
     UPDATE chain.proposals

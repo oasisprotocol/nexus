@@ -199,7 +199,7 @@ func (m *processor) debugDumpGenesisJSON(genesisDoc *genesis.Document, heightOrN
 func (m *processor) processGenesis(ctx context.Context, genesisDoc *genesis.Document, nodesOverride []nodeapi.Node) error {
 	m.logger.Info("processing genesis document")
 	gen := NewGenesisProcessor(m.logger.With("height", "genesis"))
-	queries, err := gen.Process(genesisDoc, nodesOverride)
+	batch, err := gen.Process(genesisDoc, nodesOverride)
 	if err != nil {
 		return err
 	}
@@ -207,18 +207,17 @@ func (m *processor) processGenesis(ctx context.Context, genesisDoc *genesis.Docu
 	// Debug: log the SQL into a file if requested.
 	debugPath := os.Getenv("NEXUS_DUMP_GENESIS_SQL")
 	if debugPath != "" {
-		sql := strings.Join(queries, "\n")
-		if err := os.WriteFile(debugPath, []byte(sql), 0o600 /* Permissions: rw------- */); err != nil {
-			gen.logger.Error("failed to write genesis sql to file", "err", err)
+		queries, err := json.Marshal(batch.Queries())
+		if err != nil {
+			return err
+		}
+		if err := os.WriteFile(debugPath, queries, 0o600 /* Permissions: rw------- */); err != nil {
+			gen.logger.Error("failed to write genesis queries to file", "err", err)
 		} else {
-			gen.logger.Info("wrote genesis sql to file", "path", debugPath)
+			gen.logger.Info("wrote genesis queries to file", "path", debugPath)
 		}
 	}
 
-	batch := &storage.QueryBatch{}
-	for _, query := range queries {
-		batch.Queue(query)
-	}
 	if err := m.target.SendBatch(ctx, batch); err != nil {
 		return err
 	}
@@ -1070,6 +1069,7 @@ func (m *processor) queueSubmissions(batch *storage.QueryBatch, data *governance
 				submission.Content.Upgrade.Epoch,
 				submission.CreatedAt,
 				submission.ClosesAt,
+				0,
 			)
 		case submission.Content.CancelUpgrade != nil:
 			batch.Queue(queries.ConsensusProposalSubmissionCancelInsert,
@@ -1080,6 +1080,7 @@ func (m *processor) queueSubmissions(batch *storage.QueryBatch, data *governance
 				submission.Content.CancelUpgrade.ProposalID,
 				submission.CreatedAt,
 				submission.ClosesAt,
+				0,
 			)
 		case submission.Content.ChangeParameters != nil:
 			batch.Queue(queries.ConsensusProposalSubmissionChangeParametersInsert,
@@ -1091,6 +1092,7 @@ func (m *processor) queueSubmissions(batch *storage.QueryBatch, data *governance
 				[]byte(submission.Content.ChangeParameters.Changes),
 				submission.CreatedAt,
 				submission.ClosesAt,
+				0,
 			)
 		default:
 			m.logger.Warn("unknown proposal content type", "proposal_id", submission.ID, "content", submission.Content)
