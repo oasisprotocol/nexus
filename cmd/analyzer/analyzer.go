@@ -4,6 +4,7 @@ package analyzer
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"os"
 	"os/signal"
 	"strings"
@@ -31,6 +32,7 @@ import (
 	nodestats "github.com/oasisprotocol/nexus/analyzer/node_stats"
 	"github.com/oasisprotocol/nexus/analyzer/runtime"
 	"github.com/oasisprotocol/nexus/analyzer/util"
+	"github.com/oasisprotocol/nexus/cache/httpproxy"
 	cmdCommon "github.com/oasisprotocol/nexus/cmd/common"
 	"github.com/oasisprotocol/nexus/common"
 	"github.com/oasisprotocol/nexus/config"
@@ -149,6 +151,7 @@ func wipeStorage(cfg *config.StorageConfig) error {
 type Service struct {
 	analyzers         []SyncedAnalyzer
 	fastSyncAnalyzers []SyncedAnalyzer
+	helpers           []*http.Server
 
 	sources *sourceFactory
 	target  storage.TargetStorage
@@ -277,6 +280,16 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) { //nolint:gocyclo
 	dbClient, err := cmdCommon.NewClient(cfg.Storage, logger)
 	if err != nil {
 		return nil, err
+	}
+
+	// Initialize analyzer helpers.
+	helpers := []*http.Server{}
+	for _, proxyCfg := range cfg.Helpers.CachingProxies {
+		helper, err2 := httpproxy.NewHttpServer(*cfg.Source.Cache, proxyCfg)
+		if err2 != nil {
+			return nil, err2
+		}
+		helpers = append(helpers, helper)
 	}
 
 	// Initialize fast-sync analyzers.
@@ -497,6 +510,7 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) { //nolint:gocyclo
 	return &Service{
 		fastSyncAnalyzers: fastSyncAnalyzers,
 		analyzers:         analyzers,
+		helpers:           helpers,
 
 		sources: sources,
 		target:  dbClient,
@@ -511,6 +525,16 @@ func (a *Service) Start() {
 
 	ctx, cancelAnalyzers := context.WithCancel(context.Background())
 	defer cancelAnalyzers() // Start() only returns when analyzers are done, so this should be a no-op, but it makes the compiler happier.
+
+	// Start helpers.
+	for _, helper := range a.helpers {
+		helper := helper
+		go func() {
+			if err := helper.ListenAndServe(); err != nil {
+				a.logger.Error("helper server failed", "server_addr", helper.Addr, "error", err.Error())
+			}
+		}()
+	}
 
 	// Start fast-sync analyzers.
 	fastSyncWg := map[string]*sync.WaitGroup{} // syncTag -> wg with all fast-sync analyzers with that tag

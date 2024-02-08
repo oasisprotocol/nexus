@@ -197,7 +197,6 @@ func (c *Client) SendBatchWithOptions(ctx context.Context, batch *storage.QueryB
 	// This time, use the slow method for better error msgs.
 	c.logger.Warn("failed to submit tx using the fast path; falling back to slow path",
 		"error", err,
-		"batch", batch.Queries(),
 	)
 	return c.sendBatchWithOptionsSlow(ctx, batch, opts)
 }
