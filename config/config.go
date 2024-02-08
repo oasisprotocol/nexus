@@ -59,6 +59,10 @@ type AnalysisConfig struct {
 	// Analyzers is the analyzer configs.
 	Analyzers AnalyzersList `koanf:"analyzers"`
 
+	// Helpers is the configuration for various helper services.
+	// They are instantiated if and only if analyzers are instantiated.
+	Helpers HelperList `koanf:"helpers"`
+
 	Storage *StorageConfig `koanf:"storage"`
 }
 
@@ -152,6 +156,18 @@ type AnalyzersList struct {
 	MetadataRegistry *MetadataRegistryConfig `koanf:"metadata_registry"`
 	NodeStats        *NodeStatsConfig        `koanf:"node_stats"`
 	AggregateStats   *AggregateStatsConfig   `koanf:"aggregate_stats"`
+}
+
+type HelperList struct {
+	CachingProxies []HttpCachingProxyConfig `koanf:"caching_proxies"`
+}
+
+// Config for a HTTP proxy that caches all responses, and serves cached data indefinitely.
+// The cache directory is inferred from the global `source` config.
+type HttpCachingProxyConfig struct {
+	HostAddr string `koanf:"host_addr"` // The TCP address for the server to listen on, in the form "host:port"
+	// The base URL of the server to which we'll proxy.
+	TargetURL string `koanf:"target"`
 }
 
 // SourceConfig has some controls about what chain we're analyzing and how to connect.
