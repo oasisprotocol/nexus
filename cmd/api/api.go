@@ -125,6 +125,20 @@ func NewService(cfg *config.ServerConfig) (*Service, error) {
 	}, nil
 }
 
+// HACK HACK HACK
+// Temporarily in place for frontend to test the PontusX endpoints.
+// Remove once pontusx support is properly implemented.
+func rewritePontusxToSapphireMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if strings.HasPrefix(r.URL.Path, "/v1/pontusx/") {
+			r.URL.Path = strings.Replace(r.URL.Path, "/v1/pontusx/", "/v1/sapphire/", 1)
+			r.RequestURI = ""
+		}
+		// Call the next handler in the chain.
+		next.ServeHTTP(w, r)
+	})
+}
+
 // Start starts the API service.
 func (s *Service) Start() {
 	defer s.cleanup()
@@ -171,6 +185,7 @@ func (s *Service) Start() {
 	// Manually apply the metrics middleware; we want it to run always, and at the outermost layer.
 	// HandlerWithOptions() above does not apply it to some requests (404 URLs, requests with bad params, etc.).
 	handler = api.MetricsMiddleware(metrics.NewDefaultRequestMetrics(moduleName), *s.logger)(handler)
+	handler = rewritePontusxToSapphireMiddleware(handler)
 
 	server := &http.Server{
 		Addr:           s.address,
