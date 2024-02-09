@@ -477,9 +477,9 @@ var (
 	RuntimeEventEvmParsedFieldsUpdate = `
     UPDATE chain.runtime_events
     SET
-      evm_log_name = COALESCE($5, evm_log_name),
-      evm_log_params = COALESCE($6, evm_log_params),
-      evm_log_signature = COALESCE($7, evm_log_signature),
+      evm_log_name = $5,
+      evm_log_params = $6,
+      evm_log_signature = $7,
       abi_parsed_at = CURRENT_TIMESTAMP
     WHERE
       runtime = $1 AND
