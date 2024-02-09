@@ -953,4 +953,14 @@ var (
     WHERE
       evs.abi_parsed_at IS NULL
     LIMIT $2`
+
+	RuntimeEvmEvents = `
+    SELECT
+      round, tx_index, body
+    FROM chain.runtime_events
+    WHERE
+      runtime = $1 AND
+      type = 'evm.log' AND
+      abi_parsed_at IS NULL
+    LIMIT $2`
 )
