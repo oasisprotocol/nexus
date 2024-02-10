@@ -110,7 +110,7 @@ testCases=(
   'emerald_token_nft              /v1/emerald/evm_tokens/oasis1qz29t7nxkwfqgfk36uqqs9pzuzdt8zmrjud5mehx/nfts/2'
   'emerald_account_with_rose      /v1/emerald/accounts/oasis1qrt0sv2s2x2lkt9e7kmr2mzxgme8m0pzauwztprl'
   'emerald_account_with_evm_token /v1/emerald/accounts/oasis1qpwx3ptmvcceqkd4syjmqf9jmdlf90xmuuy0f6y9'
-  'emerald_contract_account       /v1/emerald/accounts/oasis1qrrmuaed6numjju8gajzn68tn2edlvycjc50nfva'
+  'emerald_contract_account       /v1/emerald/accounts/oasis1qz2rynvcmrkwd57v00298uc2vtzgatde3cjpy72f'
   'emerald_account_nfts           /v1/emerald/accounts/oasis1qzlqgyqp2fjla8r6rf5k3dd0k0qada9n5vyu4h3l/nfts'
   'emerald_account_nfts_token     /v1/emerald/accounts/oasis1qzlqgyqp2fjla8r6rf5k3dd0k0qada9n5vyu4h3l/nfts?token_address=oasis1qz29t7nxkwfqgfk36uqqs9pzuzdt8zmrjud5mehx'
   'emerald_status                 /v1/emerald/status'

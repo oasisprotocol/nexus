@@ -2383,9 +2383,19 @@ components:
             Additional information obtained from contract verification. Only available for smart
             contracts that have been verified successfully by Sourcify.
 
+    VerificationLevel:
+      type: string
+      enum: [partial, full]
+      description: |
+        The level of verification of a smart contract, as defined by Sourcify.
+        An absence of this field means that the contract has not been verified.
+        See also https://docs.sourcify.dev/docs/full-vs-partial-match/
+
     RuntimeEvmContractVerification:
       type: object
       properties:
+        verification_level:
+          $ref: '#/components/schemas/VerificationLevel'
         compilation_metadata:
           type: object
           description: |
@@ -2736,7 +2746,10 @@ components:
             Whether the contract has been successfully verified by Sourcify.
             Additional information on verified contracts is available via
             the `/{runtime}/accounts/{address}` endpoint.
+            DEPRECATED: This field will be removed in the future in favor of verification_level
           example: false
+        verification_level:
+          $ref: '#/components/schemas/VerificationLevel'
 
     EvmNftList:
       allOf:
