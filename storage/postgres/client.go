@@ -4,6 +4,7 @@ package postgres
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/jackc/pgx/v5"
@@ -72,7 +73,7 @@ func NewClient(connString string, l *log.Logger) (*Client, error) {
 	config.ConnConfig.Tracer = &tracelog.TraceLog{
 		LogLevel: tracelog.LogLevelWarn,
 		Logger: &pgxLogger{
-			logger: l.WithModule(moduleName).With("db", config.ConnConfig.Database),
+			logger: l.WithModule(moduleName).With("db", config.ConnConfig.Database).WithCallerUnwind(10),
 		},
 	}
 
@@ -95,6 +96,35 @@ func (c *Client) SendBatch(ctx context.Context, batch *storage.QueryBatch) error
 	return c.SendBatchWithOptions(ctx, batch, pgx.TxOptions{})
 }
 
+// Starts a new DB transaction and runs fn() with it. Takes care of committing
+// or rolling back the transaction: If fn() returns an error, the transaction is
+// rolled back, otherwise, it is committed.
+// Adapted from https://github.com/jackc/pgx/blob/v4.18.1/tx.go#L108
+func (c *Client) WithTx(
+	ctx context.Context,
+	txOptions pgx.TxOptions,
+	fn func(pgx.Tx) error,
+) error {
+	tx, err := c.pool.BeginTx(ctx, txOptions)
+	if err != nil {
+		return err
+	}
+
+	if fErr := fn(tx); fErr != nil {
+		_ = tx.Rollback(ctx) // ignore rollback error as there is already an error to return
+		return fErr
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		rollbackErr := tx.Rollback(ctx)
+		if rollbackErr != nil && !errors.Is(rollbackErr, pgx.ErrTxClosed) {
+			return rollbackErr
+		}
+		return err
+	}
+	return nil
+}
+
 // Submits a new batch. Under the hood, uses `tx.SendBatch(batch.AsPgxBatch())`,
 // which is more efficient as it happens in a single roundtrip to the server.
 // However, it reports errors poorly: If _any_ query is syntactically
@@ -102,63 +132,36 @@ func (c *Client) SendBatch(ctx context.Context, batch *storage.QueryBatch) error
 // pgx will report the _first_ query as failing.
 func (c *Client) sendBatchWithOptionsFast(ctx context.Context, batch *storage.QueryBatch, opts pgx.TxOptions) error {
 	pgxBatch := batch.AsPgxBatch()
-	var batchResults pgx.BatchResults
-	var tx pgx.Tx
-	var err error
-
-	// Begin a transaction.
-	if tx, err = c.pool.BeginTx(ctx, opts); err != nil {
-		return fmt.Errorf("failed to begin tx: %w", err)
-	}
-	batchResults = tx.SendBatch(ctx, &pgxBatch)
-	defer common.CloseOrLog(batchResults, c.logger)
-
-	// Read the results of indiviual queries in the batch.
-	for i := 0; i < pgxBatch.Len(); i++ {
-		if _, err2 := batchResults.Exec(); err2 != nil {
-			rollbackErr := ""
-			err3 := tx.Rollback(ctx)
-			if err3 != nil {
-				rollbackErr = fmt.Sprintf("; also failed to roll back tx: %s", err3.Error())
+	return c.WithTx(ctx, opts, func(tx pgx.Tx) error {
+		// Read the results of indiviual queries in the batch.
+		batchResults := tx.SendBatch(ctx, &pgxBatch)
+		defer common.CloseOrLog(batchResults, c.logger)
+		for i := 0; i < pgxBatch.Len(); i++ {
+			if _, err2 := batchResults.Exec(); err2 != nil {
+				return fmt.Errorf("query %d %v: %w", i, batch.Queries()[i], err2)
 			}
-			return fmt.Errorf("query %d %v: %w%s", i, batch.Queries()[i], err2, rollbackErr)
 		}
-	}
-
-	// Commit the tx.
-	if err = tx.Commit(ctx); err != nil {
-		return fmt.Errorf("failed to commit tx: %w", err)
-	}
-	return nil
+		return nil
+	})
 }
 
 // Submits a new batch of queries, sending one query at a time. Compared with `sendBatchWithOptionsSlow`, this
 // gives slower performance but better error reporting.
 func (c *Client) sendBatchWithOptionsSlow(ctx context.Context, batch *storage.QueryBatch, opts pgx.TxOptions) error {
-	// Begin a transaction.
-	tx, err := c.pool.BeginTx(ctx, opts)
-	if err != nil {
-		return fmt.Errorf("failed to begin tx: %w", err)
-	}
-
-	// Exec indiviual queries in the batch.
-	for i, q := range batch.Queries() {
-		if _, err2 := tx.Exec(ctx, q.Cmd, q.Args...); err2 != nil {
-			rollbackErr := ""
-			err3 := tx.Rollback(ctx)
-			if err3 != nil {
-				rollbackErr = fmt.Sprintf("; also failed to rollback tx: %s", err3.Error())
+	return c.WithTx(ctx, opts, func(tx pgx.Tx) error {
+		// Exec indiviual queries in the batch.
+		for i, q := range batch.Queries() {
+			if _, err2 := tx.Exec(ctx, q.Cmd, q.Args...); err2 != nil {
+				rollbackErr := ""
+				err3 := tx.Rollback(ctx)
+				if err3 != nil {
+					rollbackErr = fmt.Sprintf("; also failed to rollback tx: %s", err3.Error())
+				}
+				return fmt.Errorf("query %d %v: %w%s", i, q, err2, rollbackErr)
 			}
-			return fmt.Errorf("query %d %v: %w%s", i, q, err2, rollbackErr)
 		}
-	}
-
-	// Commit the transaction.
-	err = tx.Commit(ctx)
-	if err != nil {
-		return err
-	}
-	return nil
+		return nil
+	})
 }
 
 func (c *Client) SendBatchWithOptions(ctx context.Context, batch *storage.QueryBatch, opts pgx.TxOptions) error {
@@ -174,7 +177,6 @@ func (c *Client) SendBatchWithOptions(ctx context.Context, batch *storage.QueryB
 	// This time, use the slow method for better error msgs.
 	c.logger.Warn("failed to submit tx using the fast path; falling back to slow path",
 		"error", err,
-		"batch", batch.Queries(),
 	)
 	return c.sendBatchWithOptionsSlow(ctx, batch, opts)
 }
