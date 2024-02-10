@@ -444,7 +444,8 @@ const (
 				WHERE (ra.runtime = $1) AND (ra.address = $2::text)
 			), 0) AS gas_for_calling,
 			compilation_metadata,
-			source_files
+			source_files,
+			verification_level
 		FROM chain.evm_contracts
 		WHERE (runtime = $1) AND (contract_address = $2::text)`
 
@@ -479,7 +480,7 @@ const (
 			tokens.num_transfers,
 			tokens.token_type AS type,
 			COALESCE(holders.cnt, 0) AS num_holders,
-			(contracts.verification_info_downloaded_at IS NOT NULL) AS is_verified
+			contracts.verification_level
 		FROM chain.evm_tokens AS tokens
 		JOIN chain.address_preimages AS preimages ON (token_address = preimages.address AND preimages.context_identifier = 'oasis-runtime-sdk/address: secp256k1eth' AND preimages.context_version = 0)
 		LEFT JOIN holders USING (token_address)
@@ -530,7 +531,7 @@ const (
 			chain.evm_tokens.total_supply,
 			chain.evm_tokens.num_transfers,
 			COALESCE(token_holders.num_holders, 0) AS num_holders,
-			chain.evm_contracts.verification_info_downloaded_at IS NOT NULL AS is_verified,
+			chain.evm_contracts.verification_level,
 			chain.evm_nfts.nft_id,
 			chain.evm_nfts.owner,
 			owner_preimage.context_identifier,

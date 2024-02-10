@@ -1483,6 +1483,7 @@ func (c *StorageClient) RuntimeAccount(ctx context.Context, address staking.Addr
 		&evmContract.GasUsed,
 		&evmContract.Verification.CompilationMetadata,
 		&evmContract.Verification.SourceFiles,
+		&evmContract.Verification.VerificationLevel,
 	)
 	switch err {
 	case nil:
@@ -1559,11 +1560,12 @@ func (c *StorageClient) RuntimeTokens(ctx context.Context, p apiTypes.GetRuntime
 			&t.NumTransfers,
 			&tokenType,
 			&t.NumHolders,
-			&t.IsVerified,
+			&t.VerificationLevel,
 		); err2 != nil {
 			return nil, wrapError(err2)
 		}
 
+		t.IsVerified = (t.VerificationLevel != nil)
 		t.EthContractAddr = ethCommon.BytesToAddress(addrPreimage).String()
 		t.Type = translateTokenType(tokenType)
 		ts.EvmTokens = append(ts.EvmTokens, t)
@@ -1652,7 +1654,7 @@ func (c *StorageClient) RuntimeEVMNFTs(ctx context.Context, limit *uint64, offse
 			&nft.Token.TotalSupply,
 			&nft.Token.NumTransfers,
 			&nft.Token.NumHolders,
-			&nft.Token.IsVerified,
+			&nft.Token.VerificationLevel,
 			&nft.Id,
 			&nft.Owner,
 			&ownerAddrContextIdentifier,
@@ -1668,6 +1670,7 @@ func (c *StorageClient) RuntimeEVMNFTs(ctx context.Context, limit *uint64, offse
 		); err != nil {
 			return nil, wrapError(err)
 		}
+		nft.Token.IsVerified = (nft.Token.VerificationLevel != nil)
 		if contractEthAddr, err1 := EVMEthAddrFromPreimage(contractAddrContextIdentifier, contractAddrContextVersion, contractAddrData); err1 == nil {
 			contractECAddr := ethCommon.BytesToAddress(contractEthAddr)
 			nft.Token.EthContractAddr = contractECAddr.String()

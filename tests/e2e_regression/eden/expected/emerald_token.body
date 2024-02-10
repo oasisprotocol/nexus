@@ -8,5 +8,6 @@
   "num_transfers": 48,
   "symbol": "wROSE",
   "total_supply": "11110528749907675559457292",
-  "type": "ERC20"
+  "type": "ERC20",
+  "verification_level": "partial"
 }
