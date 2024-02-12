@@ -960,7 +960,9 @@ var (
     FROM chain.runtime_events
     WHERE
       runtime = $1 AND
+      round >= $2 AND
       type = 'evm.log' AND
       abi_parsed_at IS NULL
-    LIMIT $2`
+    ORDER BY round ASC
+    LIMIT $3`
 )

@@ -29,6 +29,8 @@ type processor struct {
 	runtime common.Runtime
 	target  storage.TargetStorage
 	logger  *log.Logger
+
+	currRound uint64
 }
 
 var _ item.ItemProcessor[*abiEncodedItem] = (*processor)(nil)
@@ -69,6 +71,7 @@ func NewAnalyzer(
 		runtime,
 		target,
 		logger,
+		0,
 	}
 	return item.NewAnalyzer[*abiEncodedItem](
 		evmAbiAnalyzerPrefix+string(runtime),
@@ -84,11 +87,12 @@ func (p *processor) GetItems(ctx context.Context, limit uint64) ([]*abiEncodedIt
 	// Within a transaction, we process the call data and the revert reason. Since they are
 	// colocated in the same table we can fetch them using a single query.
 	var items []*abiEncodedItem
-	eventRows, err := p.target.Query(ctx, queries.RuntimeEvmEvents, p.runtime, limit)
+	eventRows, err := p.target.Query(ctx, queries.RuntimeEvmEvents, p.runtime, p.currRound, limit)
 	if err != nil {
 		return nil, fmt.Errorf("querying evs: %w", err)
 	}
 	defer eventRows.Close()
+	firstEv := true
 	for eventRows.Next() {
 		var ev abiEncodedEvent
 		var item abiEncodedItem
@@ -99,6 +103,10 @@ func (p *processor) GetItems(ctx context.Context, limit uint64) ([]*abiEncodedIt
 			&ev.EventBody,
 		); err != nil {
 			return nil, fmt.Errorf("scanning verified contract event: %w", err)
+		}
+		if firstEv {
+			p.currRound = ev.Round - 100 // margin of safety
+			firstEv = false
 		}
 		items = append(items, &item)
 	}
@@ -295,14 +303,10 @@ func (p *processor) ProcessItem(ctx context.Context, batch *storage.QueryBatch, 
 }
 
 func (p *processor) QueueLength(ctx context.Context) (int, error) {
-	var txQueueLength int
-	if err := p.target.QueryRow(ctx, fmt.Sprintf("SELECT COUNT(*) FROM (%s) subquery", queries.RuntimeEvmVerifiedContractTxs), p.runtime, 1000).Scan(&txQueueLength); err != nil {
-		return 0, fmt.Errorf("querying number of verified abi txs: %w", err)
-	}
 	var evQueueLength int
 	// We limit the event count for performance reasons since the query requires a join of the transactions and events tables.
-	if err := p.target.QueryRow(ctx, fmt.Sprintf("SELECT COUNT(*) FROM (%s) subquery", queries.RuntimeEvmVerifiedContractEvents), p.runtime, 1000).Scan(&evQueueLength); err != nil {
+	if err := p.target.QueryRow(ctx, fmt.Sprintf("SELECT COUNT(*) FROM (%s) subquery", queries.RuntimeEvmEvents), p.runtime, p.currRound, 1000).Scan(&evQueueLength); err != nil {
 		return 0, fmt.Errorf("querying number of verified abi events: %w", err)
 	}
-	return txQueueLength + evQueueLength, nil
+	return evQueueLength, nil
 }
