@@ -542,7 +542,11 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) { //nolint:gocyclo
 			if err1 != nil {
 				return nil, err1
 			}
-			return nodestats.NewAnalyzer(cfg.Analyzers.NodeStats.ItemBasedAnalyzerConfig, cfg.Analyzers.NodeStats.Layers, sourceClient, emeraldClient, sapphireClient, dbClient, logger)
+			pontusxClient, err1 := sources.Runtime(ctx, common.RuntimePontusx)
+			if err1 != nil {
+				return nil, err1
+			}
+			return nodestats.NewAnalyzer(cfg.Analyzers.NodeStats.ItemBasedAnalyzerConfig, cfg.Analyzers.NodeStats.Layers, sourceClient, emeraldClient, sapphireClient, pontusxClient, dbClient, logger)
 		})
 	}
 	if cfg.Analyzers.AggregateStats != nil {
