@@ -195,6 +195,26 @@ func (sc *SourceConfig) SDKNetwork() *sdkConfig.Network {
 }
 
 func (sc *SourceConfig) SDKParaTime(runtime common.Runtime) *sdkConfig.ParaTime {
+	// XXX Remove once https://github.com/oasisprotocol/oasis-sdk/pull/1638 is merged.
+	// This hardcodes the pontusx paratime config until then.
+	if runtime == common.RuntimePontusx {
+		return &sdkConfig.ParaTime{
+			Description: "Pontus-X Testnet",
+			ID:          "0000000000000000000000000000000000000000000000004febe52eb412b421",
+			Denominations: map[string]*sdkConfig.DenominationInfo{
+				sdkConfig.NativeDenominationKey: {
+					Symbol:   "EUROe",
+					Decimals: 18,
+				},
+				// The consensus layer denomination when deposited into the runtime.
+				"TEST": {
+					Symbol:   "TEST",
+					Decimals: 18,
+				},
+			},
+		}
+	}
+
 	return sc.SDKNetwork().ParaTimes.All[string(runtime)]
 }
 
