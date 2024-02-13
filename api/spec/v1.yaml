@@ -134,13 +134,6 @@ x-type-annotations:
     example: "1234567890123456789012"
     x-go-type: common.BigInt
     x-go-type-import: { name: common, path: "github.com/oasisprotocol/nexus/common" }
-  staking-address: &StakingAddressType
-    type: string
-    pattern: '^oasis1[a-z0-9]{40}$'
-    example: "oasis1qpg2xuz46g53737343r20yxeddhlvc2ldqsjh70p"
-    x-go-type: staking.Address
-    x-go-type-import: { name: staking, path: "github.com/oasisprotocol/nexus/coreapi/v22.2.11/staking/api" }
-    description: An Oasis-style (bech32) address.
   address: &AddressType
     type: string
     pattern: '^oasis1[a-z0-9]{40}$'
@@ -265,7 +258,7 @@ paths:
         - in: query
           name: sender
           schema:
-            <<: *StakingAddressType
+            $ref: '#/components/schemas/StakingAddressType'
           description: A filter on transaction sender.
         - in: query
           name: rel
@@ -371,7 +364,7 @@ paths:
         - in: query
           name: rel
           schema:
-            <<: *StakingAddressType
+            $ref: '#/components/schemas/StakingAddressType'
           description: |
             A filter on related accounts. Every returned event will refer to
             this account. For example, for a `Transfer` event, this will be the
@@ -583,7 +576,7 @@ paths:
           name: address
           required: true
           schema:
-            <<: *StakingAddressType
+            $ref: '#/components/schemas/StakingAddressType'
           description: The staking address of the account to return.
       responses:
         '200':
@@ -604,7 +597,7 @@ paths:
           name: address
           required: true
           schema:
-            <<: *StakingAddressType
+            $ref: '#/components/schemas/StakingAddressType'
           description: The staking address of the account that delegated.
       responses:
         '200':
@@ -625,7 +618,7 @@ paths:
           name: address
           required: true
           schema:
-            <<: *StakingAddressType
+            $ref: '#/components/schemas/StakingAddressType'
           description: The staking address of the account that is being delegated to.
       responses:
         '200':
@@ -646,7 +639,7 @@ paths:
           name: address
           required: true
           schema:
-            <<: *StakingAddressType
+            $ref: '#/components/schemas/StakingAddressType'
           description: The staking address of the account that delegated.
       responses:
         '200':
@@ -667,7 +660,7 @@ paths:
           name: address
           required: true
           schema:
-            <<: *StakingAddressType
+            $ref: '#/components/schemas/StakingAddressType'
           description: The staking address of the that is being delegated to.
       responses:
         '200':
@@ -723,7 +716,7 @@ paths:
         - in: query
           name: submitter
           schema:
-            <<: *StakingAddressType
+            $ref: '#/components/schemas/StakingAddressType'
           description: Filter on the submitter of the proposal.
         - in: query
           name: state
@@ -867,7 +860,7 @@ paths:
         - in: query
           name: rel
           schema:
-            <<: *StakingAddressType
+            $ref: '#/components/schemas/StakingAddressType'
           # TODO: Implement autodetection of Eth addresses, get rid of last sentence.
           description: |
             A filter on related accounts. Every returned transaction will refer to
@@ -1038,7 +1031,7 @@ paths:
           name: address
           required: true
           schema:
-            <<: *StakingAddressType
+            $ref: '#/components/schemas/StakingAddressType'
           description: The staking address of the token contract.
       responses:
         '200':
@@ -1062,7 +1055,7 @@ paths:
           name: address
           required: true
           schema:
-            <<: *StakingAddressType
+            $ref: '#/components/schemas/StakingAddressType'
           description: The staking address of the token contract for which to return the holders.
       responses:
         '200':
@@ -1086,7 +1079,7 @@ paths:
           name: address
           required: true
           schema:
-            <<: *StakingAddressType
+            $ref: '#/components/schemas/StakingAddressType'
           description: The staking address of the token contract for which to return the NFT instances.
       responses:
         '200':
@@ -1107,7 +1100,7 @@ paths:
           name: address
           required: true
           schema:
-            <<: *StakingAddressType
+            $ref: '#/components/schemas/StakingAddressType'
           description: The staking address of the token contract of the NFT instance.
         - in: path
           name: id
@@ -1133,7 +1126,7 @@ paths:
           name: address
           required: true
           schema:
-            <<: *StakingAddressType
+            $ref: '#/components/schemas/StakingAddressType'
           description: The staking address of the account to return.
       responses:
         '200':
@@ -1156,12 +1149,12 @@ paths:
           name: address
           required: true
           schema:
-            <<: *StakingAddressType
+            $ref: '#/components/schemas/StakingAddressType'
           description: The staking address of the owner of the NFT instances.
         - in: query
           name: token_address
           schema:
-            <<: *StakingAddressType
+            $ref: '#/components/schemas/StakingAddressType'
           description: Only return NFT instances from the token contract at the given staking address.
       responses:
         '200':
@@ -1241,6 +1234,14 @@ paths:
 
 components:
   schemas:
+    StakingAddressType:
+      type: string
+      pattern: '^oasis1[a-z0-9]{40}$'
+      example: "oasis1qpg2xuz46g53737343r20yxeddhlvc2ldqsjh70p"
+      x-go-type: staking.Address
+      x-go-type-import: { name: staking, path: "github.com/oasisprotocol/nexus/coreapi/v22.2.11/staking/api" }
+      description: An Oasis-style (bech32) address.
+
     Layer:
       type: string
       # NOTE: Change IsValid() in util.go if you change this.
