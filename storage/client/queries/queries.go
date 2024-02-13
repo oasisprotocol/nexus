@@ -455,15 +455,11 @@ const (
 
 	RuntimeAccountStats = `
 		SELECT
-			COALESCE (
-				(SELECT sum(amount) from chain.runtime_transfers where runtime = $1 AND sender = $2::text)
-				, 0) AS total_sent,
-			COALESCE (
-				(SELECT sum(amount) from chain.runtime_transfers where runtime = $1 AND receiver = $2::text)
-				, 0) AS total_received,
-			COALESCE (
-				(SELECT num_txs from chain.runtime_accounts where runtime = $1 AND address = $2::text)
-				, 0) AS num_txs`
+			total_sent, total_received, num_txs
+		FROM chain.runtime_accounts
+		WHERE
+			(runtime = $1) AND
+			(address = $2::text)`
 
 	//nolint:gosec // Linter suspects a hardcoded access token.
 	EvmTokens = `

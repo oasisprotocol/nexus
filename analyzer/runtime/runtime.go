@@ -135,6 +135,12 @@ func (m *processor) FinalizeFastSync(ctx context.Context, lastFastSyncHeight int
 	m.logger.Info("recomputing number of txs for every account")
 	batch.Queue(queries.RuntimeAccountNumTxsRecompute, m.runtime, lastFastSyncHeight)
 
+	m.logger.Info("recomputing total_sent for every account")
+	batch.Queue(queries.RuntimeAccountTotalSentRecompute, m.runtime, lastFastSyncHeight)
+
+	m.logger.Info("recomputing total_received for every account")
+	batch.Queue(queries.RuntimeAccountTotalReceivedRecompute, m.runtime, lastFastSyncHeight)
+
 	m.logger.Info("recomputing gas_for_calling for every contract")
 	batch.Queue(queries.RuntimeAccountGasForCallingRecompute, m.runtime, lastFastSyncHeight)
 

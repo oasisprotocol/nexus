@@ -1493,26 +1493,25 @@ func (c *StorageClient) RuntimeAccount(ctx context.Context, address staking.Addr
 		evmContract.Verification = nil
 	}
 
-	var totalSent pgtype.Numeric
-	var totalReceived pgtype.Numeric
-	if err = c.db.QueryRow(
+	err = c.db.QueryRow(
 		ctx,
 		queries.RuntimeAccountStats,
 		runtimeFromCtx(ctx),
 		address.String(),
 	).Scan(
-		&totalSent,
-		&totalReceived,
+		&a.Stats.TotalSent,
+		&a.Stats.TotalReceived,
 		&a.Stats.NumTxns,
-	); err != nil {
-		return nil, wrapError(err)
-	}
-	a.Stats.TotalSent, err = common.NumericToBigInt(totalSent)
-	if err != nil {
-		return nil, wrapError(err)
-	}
-	a.Stats.TotalReceived, err = common.NumericToBigInt(totalReceived)
-	if err != nil {
+	)
+
+	switch err {
+	case nil:
+	case pgx.ErrNoRows:
+		// If an account address has no activity, default to 0.
+		a.Stats.TotalSent = common.NewBigInt(0)
+		a.Stats.TotalReceived = common.NewBigInt(0)
+		a.Stats.NumTxns = 0
+	default:
 		return nil, wrapError(err)
 	}
 

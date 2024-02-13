@@ -452,6 +452,42 @@ var (
     ON CONFLICT (runtime, address) DO UPDATE
       SET num_txs = EXCLUDED.num_txs`
 
+	RuntimeAccountTotalSentUpsert = `
+    INSERT INTO chain.runtime_accounts as accounts (runtime, address, total_sent)
+      VALUES ($1, $2, $3)
+    ON CONFLICT (runtime, address) DO UPDATE
+      SET total_sent = accounts.total_sent + $3`
+
+	RuntimeAccountTotalSentRecompute = `
+    WITH agg AS (
+      SELECT runtime, sender, sum(amount) AS total_sent
+      FROM chain.runtime_transfers
+      WHERE runtime = $1::runtime AND round <= $2::bigint AND sender IS NOT NULL
+      GROUP BY 1, 2
+    )
+    INSERT INTO chain.runtime_accounts as accts (runtime, address, total_sent)
+    SELECT runtime, sender, total_sent FROM agg
+    ON CONFLICT (runtime, address) DO UPDATE
+      SET total_sent = EXCLUDED.total_sent`
+
+	RuntimeAccountTotalReceivedUpsert = `
+    INSERT INTO chain.runtime_accounts as accounts (runtime, address, total_received)
+      VALUES ($1, $2, $3)
+    ON CONFLICT (runtime, address) DO UPDATE
+      SET total_received = accounts.total_received + $3`
+
+	RuntimeAccountTotalReceivedRecompute = `
+    WITH agg AS (
+      SELECT runtime, receiver, sum(amount) AS total_received
+      FROM chain.runtime_transfers
+      WHERE runtime = $1::runtime AND round <= $2::bigint AND receiver IS NOT NULL
+      GROUP BY 1, 2
+    )
+    INSERT INTO chain.runtime_accounts as accts (runtime, address, total_received)
+    SELECT runtime, receiver, total_received FROM agg
+    ON CONFLICT (runtime, address) DO UPDATE
+      SET total_received = EXCLUDED.total_received`
+
 	RuntimeTransactionInsert = `
     INSERT INTO chain.runtime_transactions (runtime, round, tx_index, tx_hash, tx_eth_hash, fee, gas_limit, gas_used, size, timestamp, method, body, "to", amount, evm_encrypted_format, evm_encrypted_public_key, evm_encrypted_data_nonce, evm_encrypted_data_data, evm_encrypted_result_nonce, evm_encrypted_result_data, success, error_module, error_code, error_message_raw, error_message)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25)`
