@@ -126,33 +126,6 @@ x-err-responses:
       $ref: '#/components/responses/HumanReadableError'
       description: A server error occurred.
 
-x-type-annotations:
-  big-int: &BigIntType
-    type: string
-    pattern: '^-?[0-9]+$'
-    format: bigint  # Annotation is not used by Nexus's Go codegen; might be helpful to client generators to recognize this type.
-    example: "1234567890123456789012"
-    x-go-type: common.BigInt
-    x-go-type-import: { name: common, path: "github.com/oasisprotocol/nexus/common" }
-  address: &AddressType
-    type: string
-    pattern: '^oasis1[a-z0-9]{40}$'
-    example: "oasis1qpg2xuz46g53737343r20yxeddhlvc2ldqsjh70p"
-    x-go-type: Address
-    description: An Oasis-style (bech32) address.
-  pubkey: &Ed25519PubKeyType
-    type: string
-    format: byte  # means base64-encoded raw bytes
-    example: "lbxs4hlud9XNloIOdhJPaCahd7HtiY8QATCgGnFfCM0="
-    x-go-type: signature.PublicKey
-    x-go-type-import: { name: signature, path: "github.com/oasisprotocol/oasis-core/go/common/crypto/signature" }
-    description: A base64-encoded ed25519 public key.
-  call-format: &CallFormat
-    type: string
-    example: "encrypted/x25519-deoxysii"
-    x-go-type: common.CallFormat
-    x-go-type-import: { name: common, path: "github.com/oasisprotocol/nexus/common" }
-
 paths:
   /:
     get:
@@ -269,13 +242,13 @@ paths:
         - in: query
           name: minFee
           schema:
-            <<: *BigIntType
+            $ref: '#/components/schemas/BigIntType'
           description: A filter on minimum transaction fee, inclusive.
           example: "1000"
         - in: query
           name: maxFee
           schema:
-            <<: *BigIntType
+            $ref: '#/components/schemas/BigIntType'
           description: A filter on maximum transaction fee, inclusive.
           example: "100000000000000000000000"
         - in: query
@@ -410,7 +383,7 @@ paths:
           name: entity_id
           required: true
           schema:
-            <<: *Ed25519PubKeyType
+            $ref: '#/components/schemas/Ed25519PubKeyType'
           description: The entity ID of the entity to return.
       responses:
         '200':
@@ -433,7 +406,7 @@ paths:
           name: entity_id
           required: true
           schema:
-            <<: *Ed25519PubKeyType
+            $ref: '#/components/schemas/Ed25519PubKeyType'
           description: |
             The entity ID of the controlling entity of the nodes to return.
       responses:
@@ -454,7 +427,7 @@ paths:
           name: entity_id
           required: true
           schema:
-            <<: *Ed25519PubKeyType
+            $ref: '#/components/schemas/Ed25519PubKeyType'
           description: |
             The entity ID of the entity controlling the node to return.
           example: *entity_id_1
@@ -462,7 +435,7 @@ paths:
           name: node_id
           required: true
           schema:
-            <<: *Ed25519PubKeyType
+            $ref: '#/components/schemas/Ed25519PubKeyType'
           description: The node ID of the node to return.
       responses:
         '200':
@@ -499,7 +472,7 @@ paths:
           name: entity_id
           required: true
           schema:
-            <<: *Ed25519PubKeyType
+            $ref: '#/components/schemas/Ed25519PubKeyType'
           description: The entity ID of the entity to return.
       responses:
         '200':
@@ -521,42 +494,42 @@ paths:
         - in: query
           name: minAvailable
           schema:
-            <<: *BigIntType
+            $ref: '#/components/schemas/BigIntType'
           description: A filter on the minimum available account balance.
         - in: query
           name: maxAvailable
           schema:
-            <<: *BigIntType
+            $ref: '#/components/schemas/BigIntType'
           description: A filter on the maximum available account balance.
         - in: query
           name: minEscrow
           schema:
-            <<: *BigIntType
+            $ref: '#/components/schemas/BigIntType'
           description: A filter on the minimum active escrow account balance.
         - in: query
           name: maxEscrow
           schema:
-            <<: *BigIntType
+            $ref: '#/components/schemas/BigIntType'
           description: A filter on the maximum active escrow account balance.
         - in: query
           name: minDebonding
           schema:
-            <<: *BigIntType
+            $ref: '#/components/schemas/BigIntType'
           description: A filter on the minimum debonding account balance.
         - in: query
           name: maxDebonding
           schema:
-            <<: *BigIntType
+            $ref: '#/components/schemas/BigIntType'
           description: A filter on the maximum debonding account balance.
         - in: query
           name: minTotalBalance
           schema:
-            <<: *BigIntType
+            $ref: '#/components/schemas/BigIntType'
           description: A filter on the minimum total account balance.
         - in: query
           name: maxTotalBalance
           schema:
-            <<: *BigIntType
+            $ref: '#/components/schemas/BigIntType'
           description: A filter on the maximum total account balance.
       responses:
         '200':
@@ -1106,7 +1079,7 @@ paths:
           name: id
           required: true
           schema:
-            <<: *BigIntType
+            $ref: '#/components/schemas/BigIntType'
           description: The ID of the NFT instance.
       responses:
         '200':
@@ -1234,14 +1207,6 @@ paths:
 
 components:
   schemas:
-    StakingAddressType:
-      type: string
-      pattern: '^oasis1[a-z0-9]{40}$'
-      example: "oasis1qpg2xuz46g53737343r20yxeddhlvc2ldqsjh70p"
-      x-go-type: staking.Address
-      x-go-type-import: { name: staking, path: "github.com/oasisprotocol/nexus/coreapi/v22.2.11/staking/api" }
-      description: An Oasis-style (bech32) address.
-
     Layer:
       type: string
       # NOTE: Change IsValid() in util.go if you change this.
@@ -1253,6 +1218,39 @@ components:
       # NOTE: Change IsValid() in util.go if you change this.
       # https://github.com/oasisprotocol/nexus/blob/v0.0.16/api/v1/types/util.go#L49
       enum: [emerald, sapphire, cipher]
+
+    StakingAddressType:
+      type: string
+      pattern: '^oasis1[a-z0-9]{40}$'
+      example: "oasis1qpg2xuz46g53737343r20yxeddhlvc2ldqsjh70p"
+      x-go-type: staking.Address
+      x-go-type-import: { name: staking, path: "github.com/oasisprotocol/nexus/coreapi/v22.2.11/staking/api" }
+      description: An Oasis-style (bech32) address.
+    BigIntType:
+      type: string
+      pattern: '^-?[0-9]+$'
+      format: bigint  # Annotation is not used by Nexus's Go codegen; might be helpful to client generators to recognize this type.
+      example: "1234567890123456789012"
+      x-go-type: common.BigInt
+      x-go-type-import: { name: common, path: "github.com/oasisprotocol/nexus/common" }
+    AddressType:
+      type: string
+      pattern: '^oasis1[a-z0-9]{40}$'
+      example: "oasis1qpg2xuz46g53737343r20yxeddhlvc2ldqsjh70p"
+      x-go-type: Address
+      description: An Oasis-style (bech32) address.
+    Ed25519PubKeyType:
+      type: string
+      format: byte  # means base64-encoded raw bytes
+      example: "lbxs4hlud9XNloIOdhJPaCahd7HtiY8QATCgGnFfCM0="
+      x-go-type: signature.PublicKey
+      x-go-type-import: { name: signature, path: "github.com/oasisprotocol/oasis-core/go/common/crypto/signature" }
+      description: A base64-encoded ed25519 public key.
+    CallFormat:
+      type: string
+      example: "encrypted/x25519-deoxysii"
+      x-go-type: common.CallFormat
+      x-go-type-import: { name: common, path: "github.com/oasisprotocol/nexus/common" }
 
     List:
       type: object
@@ -1352,10 +1350,10 @@ components:
       required: [amount, shares, validator, delegator]
       properties:
         amount:
-          <<: *BigIntType
+          $ref: '#/components/schemas/BigIntType'
           description: The amount of tokens delegated in base units.
         shares:
-          <<: *BigIntType
+          $ref: '#/components/schemas/BigIntType'
           description: The shares of tokens delegated.
         validator:
           type: string
@@ -1386,10 +1384,10 @@ components:
       required: [amount, shares, validator, delegator, debond_end]
       properties:
         amount:
-          <<: *BigIntType
+          $ref: '#/components/schemas/BigIntType'
           description: The amount of tokens delegated in base units.
         shares:
-          <<: *BigIntType
+          $ref: '#/components/schemas/BigIntType'
           description: The shares of tokens delegated.
         validator:
           type: string
@@ -1488,7 +1486,7 @@ components:
           description: The nonce used with this transaction, to prevent replay.
           example: 0
         fee:
-          <<: *BigIntType
+          $ref: '#/components/schemas/BigIntType'
           description: |
             The fee that this transaction's sender committed
             to pay to execute it.
@@ -1729,7 +1727,7 @@ components:
           description: The public key identifying this Validator's node.
           example: *node_id_1
         escrow:
-          <<: *BigIntType
+          $ref: '#/components/schemas/BigIntType'
           description: The amount staked.
         active:
           type: boolean
@@ -1874,7 +1872,7 @@ components:
       required: [balance, token_symbol, token_decimals]
       properties:
         balance:
-          <<: *BigIntType
+          $ref: '#/components/schemas/BigIntType'
           description: Number of tokens held, in base units.
         token_symbol:
           type: string
@@ -1891,7 +1889,7 @@ components:
       required: [balance, token_contract_addr, token_contract_addr_eth, token_decimals, token_type]
       properties:
         balance:
-          <<: *BigIntType
+          $ref: '#/components/schemas/BigIntType'
           description: Number of tokens held, in base units.
         token_contract_addr:
           type: string
@@ -1942,7 +1940,7 @@ components:
           description: The Ethereum address of the same account holder, if meaningfully defined.
           example: *eth_address_1
         balance:
-          <<: *BigIntType
+          $ref: '#/components/schemas/BigIntType'
           description: Number of tokens held, in base units.
 
 
@@ -1960,21 +1958,21 @@ components:
           description: A nonce used to prevent replay.
           example: 0
         available:
-          <<: *BigIntType
+          $ref: '#/components/schemas/BigIntType'
           description: The available balance, in base units.
         escrow:
-          <<: *BigIntType
+          $ref: '#/components/schemas/BigIntType'
           description: The active escrow balance, in base units.
         debonding:
-          <<: *BigIntType
+          $ref: '#/components/schemas/BigIntType'
           description: The debonding escrow balance, in base units.
         delegations_balance:
-          <<: *BigIntType
+          $ref: '#/components/schemas/BigIntType'
           description: |
             The delegations balance, in base units.
             For efficiency, this field is omitted when listing multiple-accounts.
         debonding_delegations_balance:
-          <<: *BigIntType
+          $ref: '#/components/schemas/BigIntType'
           description: |
             The debonding delegations balance, in base units.
             For efficiency, this field is omitted when listing multiple-accounts.
@@ -1996,7 +1994,7 @@ components:
           description: The allowed account.
           example: *staking_address_2
         amount:
-          <<: *BigIntType
+          $ref: '#/components/schemas/BigIntType'
           description: The amount allowed for the allowed account.
 
     EpochList:
@@ -2085,7 +2083,7 @@ components:
         state:
           $ref: '#/components/schemas/ProposalState'
         deposit:
-          <<: *BigIntType
+          $ref: '#/components/schemas/BigIntType'
           description: The deposit attached to this proposal.
         handler:
           type: string
@@ -2125,7 +2123,7 @@ components:
           description: The epoch at which voting for this proposal will close.
           example: *epoch_2
         invalid_votes:
-          <<: *BigIntType
+          $ref: '#/components/schemas/BigIntType'
           description: |
             The number of invalid votes for this proposal, after tallying.
       description: |
@@ -2444,7 +2442,7 @@ components:
             Absent for non-Ethereum-format transactions.
           example: 9e6a5837c6366d4a7e477c71ffe32d40915cdef7ef209792259e5ee70caf2705
         sender_0:
-          <<: *AddressType
+          $ref: '#/components/schemas/AddressType'
           description: |
             The Oasis address of this transaction's 0th signer.
             Unlike Ethereum, Oasis natively supports multiple-signature transactions.
@@ -2519,7 +2517,7 @@ components:
             Note: Other transactions with method "evm.Call", and possibly "evm.Create", may also be (or include) native token transfers. The heuristic will be `false` for those.
           example: true
         to:
-          <<: *AddressType
+          $ref: '#/components/schemas/AddressType'
           description: |
             A reasonable "to" Oasis address associated with this transaction,
             if applicable. The meaning varies based on the transaction method. Some notable examples:
@@ -2579,7 +2577,7 @@ components:
       required: [format]
       properties:
         format:
-          <<: *CallFormat
+          $ref: '#/components/schemas/CallFormat'
           description: The format of the encrypted evm transaction envelope.
         public_key:
           type: string
@@ -2718,7 +2716,7 @@ components:
             ERC-1363 token might be labeled as ERC-20 here. If the type cannot be
             detected or is not supported, this field will be null/absent.
         total_supply:
-          <<: *BigIntType
+          $ref: '#/components/schemas/BigIntType'
           description: The total number of base units available.
         num_transfers:
           type: integer
@@ -2762,10 +2760,10 @@ components:
         token:
           $ref: '#/components/schemas/EvmToken'
         id:
-          <<: *BigIntType
+          $ref: '#/components/schemas/BigIntType'
           description: The instance ID of this NFT within the collection represented by `token`.
         owner:
-          <<: *AddressType
+          $ref: '#/components/schemas/AddressType'
           description: The Oasis address of this NFT instance's owner.
           example: "oasis1qpclnnm0wu44pn43mt6vv3me59kl8zk9ty7qyj03"
         owner_eth:
@@ -2804,10 +2802,10 @@ components:
       properties:
         total_sent:
           description: The total number of tokens sent, in base units.
-          <<: *BigIntType
+          $ref: '#/components/schemas/BigIntType'
         total_received:
           description: The total number of tokens received, in base units.
-          <<: *BigIntType
+          $ref: '#/components/schemas/BigIntType'
         num_txns:
           description: The total number of transactions this account was involved with.
           type: integer
