@@ -267,6 +267,8 @@ func RuntimeFromURLMiddleware(baseURL string) func(next http.Handler) http.Handl
 				runtime = common.RuntimeSapphire
 			case strings.HasPrefix(path, "/cipher/"):
 				runtime = common.RuntimeCipher
+			case strings.HasPrefix(path, "/pontusx/"):
+				runtime = common.RuntimePontusx
 			}
 
 			if runtime != "" {

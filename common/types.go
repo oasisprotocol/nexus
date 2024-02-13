@@ -212,6 +212,7 @@ const (
 	LayerEmerald   Layer = "emerald"
 	LayerCipher    Layer = "cipher"
 	LayerSapphire  Layer = "sapphire"
+	LayerPontusx   Layer = "pontusx"
 )
 
 // Runtime is an identifier for a runtime on the Oasis Network.
@@ -221,7 +222,7 @@ const (
 	RuntimeEmerald  Runtime = "emerald"
 	RuntimeCipher   Runtime = "cipher"
 	RuntimeSapphire Runtime = "sapphire"
-	RuntimeUnknown  Runtime = "unknown"
+	RuntimePontusx  Runtime = "pontusx"
 )
 
 type CallFormat string

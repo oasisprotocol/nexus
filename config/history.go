@@ -145,6 +145,7 @@ var DefaultChains = map[common.ChainName]*History{
 					common.RuntimeCipher:   1730319,
 					common.RuntimeEmerald:  2627790,
 					common.RuntimeSapphire: 2995927,
+					common.RuntimePontusx:  0,
 				},
 			},
 			{

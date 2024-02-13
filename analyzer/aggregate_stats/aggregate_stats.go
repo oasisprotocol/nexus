@@ -48,6 +48,7 @@ var statsLayers = []string{
 	layerConsensus,
 	string(common.RuntimeEmerald),
 	string(common.RuntimeSapphire),
+	string(common.RuntimePontusx),
 	string(common.RuntimeCipher),
 }
 
