@@ -86,8 +86,8 @@ type EventData struct {
 	Type             apiTypes.RuntimeEventType
 	Body             EventBody
 	WithScope        ScopedSdkEvent
-	EvmLogName       string
-	EvmLogSignature  ethCommon.Hash
+	EvmLogName       *string
+	EvmLogSignature  *ethCommon.Hash
 	EvmLogParams     []*apiTypes.EvmAbiParam
 	RelatedAddresses map[apiTypes.Address]bool
 }
@@ -902,8 +902,8 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 					if fromZero != toZero && value.Cmp(&big.Int{}) != 0 {
 						blockData.PossibleTokens[eventAddr].Mutated = true
 					}
-					eventData.EvmLogName = apiTypes.Erc20Transfer
-					eventData.EvmLogSignature = ethCommon.BytesToHash(event.Topics[0])
+					eventData.EvmLogName = common.Ptr(apiTypes.Erc20Transfer)
+					eventData.EvmLogSignature = common.Ptr(ethCommon.BytesToHash(event.Topics[0]))
 					eventData.EvmLogParams = []*apiTypes.EvmAbiParam{
 						{
 							Name:    "from",
@@ -943,8 +943,8 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 					if _, ok := blockData.PossibleTokens[eventAddr]; !ok {
 						blockData.PossibleTokens[eventAddr] = &evm.EVMPossibleToken{}
 					}
-					eventData.EvmLogName = apiTypes.Erc20Approval
-					eventData.EvmLogSignature = ethCommon.BytesToHash(event.Topics[0])
+					eventData.EvmLogName = common.Ptr(apiTypes.Erc20Approval)
+					eventData.EvmLogSignature = common.Ptr(ethCommon.BytesToHash(event.Topics[0]))
 					eventData.EvmLogParams = []*apiTypes.EvmAbiParam{
 						{
 							Name:    "owner",
@@ -1010,8 +1010,8 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 					registerNFTExist(blockData.PossibleNFTs, eventAddr, tokenID)
 					// Mints, burns, and zero-value transfers all count as transfers.
 					registerNFTTransfer(blockData.PossibleNFTs, eventAddr, tokenID, toZero, toAddr)
-					eventData.EvmLogName = evmabi.ERC721.Events["Transfer"].Name
-					eventData.EvmLogSignature = ethCommon.BytesToHash(event.Topics[0])
+					eventData.EvmLogName = common.Ptr(evmabi.ERC721.Events["Transfer"].Name)
+					eventData.EvmLogSignature = common.Ptr(ethCommon.BytesToHash(event.Topics[0]))
 					eventData.EvmLogParams = []*apiTypes.EvmAbiParam{
 						{
 							Name:    "from",
@@ -1052,8 +1052,8 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 						blockData.PossibleTokens[eventAddr] = &evm.EVMPossibleToken{}
 					}
 					registerNFTExist(blockData.PossibleNFTs, eventAddr, tokenID)
-					eventData.EvmLogName = evmabi.ERC721.Events["Approval"].Name
-					eventData.EvmLogSignature = ethCommon.BytesToHash(event.Topics[0])
+					eventData.EvmLogName = common.Ptr(evmabi.ERC721.Events["Approval"].Name)
+					eventData.EvmLogSignature = common.Ptr(ethCommon.BytesToHash(event.Topics[0]))
 					eventData.EvmLogParams = []*apiTypes.EvmAbiParam{
 						{
 							Name:    "owner",
@@ -1093,8 +1093,8 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 					if _, ok := blockData.PossibleTokens[eventAddr]; !ok {
 						blockData.PossibleTokens[eventAddr] = &evm.EVMPossibleToken{}
 					}
-					eventData.EvmLogName = evmabi.ERC721.Events["ApprovalForAll"].Name
-					eventData.EvmLogSignature = ethCommon.BytesToHash(event.Topics[0])
+					eventData.EvmLogName = common.Ptr(evmabi.ERC721.Events["ApprovalForAll"].Name)
+					eventData.EvmLogSignature = common.Ptr(ethCommon.BytesToHash(event.Topics[0]))
 					eventData.EvmLogParams = []*apiTypes.EvmAbiParam{
 						{
 							Name:    "owner",
@@ -1143,8 +1143,8 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 						blockData.PossibleTokens[eventAddr] = &evm.EVMPossibleToken{}
 					}
 
-					eventData.EvmLogName = evmabi.WROSE.Events["Deposit"].Name
-					eventData.EvmLogSignature = ethCommon.BytesToHash(event.Topics[0])
+					eventData.EvmLogName = common.Ptr(evmabi.WROSE.Events["Deposit"].Name)
+					eventData.EvmLogSignature = common.Ptr(ethCommon.BytesToHash(event.Topics[0]))
 					eventData.EvmLogParams = []*apiTypes.EvmAbiParam{
 						{
 							Name:    "dst",
@@ -1177,8 +1177,8 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 						blockData.PossibleTokens[eventAddr] = &evm.EVMPossibleToken{}
 					}
 
-					eventData.EvmLogName = evmabi.WROSE.Events["Withdrawal"].Name
-					eventData.EvmLogSignature = ethCommon.BytesToHash(event.Topics[0])
+					eventData.EvmLogName = common.Ptr(evmabi.WROSE.Events["Withdrawal"].Name)
+					eventData.EvmLogSignature = common.Ptr(ethCommon.BytesToHash(event.Topics[0]))
 					eventData.EvmLogParams = []*apiTypes.EvmAbiParam{
 						{
 							Name:    "src",
