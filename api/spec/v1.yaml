@@ -231,7 +231,7 @@ paths:
         - in: query
           name: sender
           schema:
-            allOf: [$ref: '#/components/schemas/StakingAddressType']
+            allOf: [$ref: '#/components/schemas/StakingAddress']
           description: A filter on transaction sender.
         - in: query
           name: rel
@@ -242,13 +242,13 @@ paths:
         - in: query
           name: minFee
           schema:
-            allOf: [$ref: '#/components/schemas/BigIntType']
+            allOf: [$ref: '#/components/schemas/BigInt']
           description: A filter on minimum transaction fee, inclusive.
           example: "1000"
         - in: query
           name: maxFee
           schema:
-            allOf: [$ref: '#/components/schemas/BigIntType']
+            allOf: [$ref: '#/components/schemas/BigInt']
           description: A filter on maximum transaction fee, inclusive.
           example: "100000000000000000000000"
         - in: query
@@ -337,7 +337,7 @@ paths:
         - in: query
           name: rel
           schema:
-            allOf: [$ref: '#/components/schemas/StakingAddressType']
+            allOf: [$ref: '#/components/schemas/StakingAddress']
           description: |
             A filter on related accounts. Every returned event will refer to
             this account. For example, for a `Transfer` event, this will be the
@@ -383,7 +383,7 @@ paths:
           name: entity_id
           required: true
           schema:
-            allOf: [$ref: '#/components/schemas/Ed25519PubKeyType']
+            allOf: [$ref: '#/components/schemas/Ed25519PubKey']
           description: The entity ID of the entity to return.
       responses:
         '200':
@@ -406,7 +406,7 @@ paths:
           name: entity_id
           required: true
           schema:
-            allOf: [$ref: '#/components/schemas/Ed25519PubKeyType']
+            allOf: [$ref: '#/components/schemas/Ed25519PubKey']
           description: |
             The entity ID of the controlling entity of the nodes to return.
       responses:
@@ -427,7 +427,7 @@ paths:
           name: entity_id
           required: true
           schema:
-            allOf: [$ref: '#/components/schemas/Ed25519PubKeyType']
+            allOf: [$ref: '#/components/schemas/Ed25519PubKey']
           description: |
             The entity ID of the entity controlling the node to return.
           example: *entity_id_1
@@ -435,7 +435,7 @@ paths:
           name: node_id
           required: true
           schema:
-            allOf: [$ref: '#/components/schemas/Ed25519PubKeyType']
+            allOf: [$ref: '#/components/schemas/Ed25519PubKey']
           description: The node ID of the node to return.
       responses:
         '200':
@@ -472,7 +472,7 @@ paths:
           name: entity_id
           required: true
           schema:
-            allOf: [$ref: '#/components/schemas/Ed25519PubKeyType']
+            allOf: [$ref: '#/components/schemas/Ed25519PubKey']
           description: The entity ID of the entity to return.
       responses:
         '200':
@@ -494,42 +494,42 @@ paths:
         - in: query
           name: minAvailable
           schema:
-            allOf: [$ref: '#/components/schemas/BigIntType']
+            allOf: [$ref: '#/components/schemas/BigInt']
           description: A filter on the minimum available account balance.
         - in: query
           name: maxAvailable
           schema:
-            allOf: [$ref: '#/components/schemas/BigIntType']
+            allOf: [$ref: '#/components/schemas/BigInt']
           description: A filter on the maximum available account balance.
         - in: query
           name: minEscrow
           schema:
-            allOf: [$ref: '#/components/schemas/BigIntType']
+            allOf: [$ref: '#/components/schemas/BigInt']
           description: A filter on the minimum active escrow account balance.
         - in: query
           name: maxEscrow
           schema:
-            allOf: [$ref: '#/components/schemas/BigIntType']
+            allOf: [$ref: '#/components/schemas/BigInt']
           description: A filter on the maximum active escrow account balance.
         - in: query
           name: minDebonding
           schema:
-            allOf: [$ref: '#/components/schemas/BigIntType']
+            allOf: [$ref: '#/components/schemas/BigInt']
           description: A filter on the minimum debonding account balance.
         - in: query
           name: maxDebonding
           schema:
-            allOf: [$ref: '#/components/schemas/BigIntType']
+            allOf: [$ref: '#/components/schemas/BigInt']
           description: A filter on the maximum debonding account balance.
         - in: query
           name: minTotalBalance
           schema:
-            allOf: [$ref: '#/components/schemas/BigIntType']
+            allOf: [$ref: '#/components/schemas/BigInt']
           description: A filter on the minimum total account balance.
         - in: query
           name: maxTotalBalance
           schema:
-            allOf: [$ref: '#/components/schemas/BigIntType']
+            allOf: [$ref: '#/components/schemas/BigInt']
           description: A filter on the maximum total account balance.
       responses:
         '200':
@@ -549,7 +549,7 @@ paths:
           name: address
           required: true
           schema:
-            allOf: [$ref: '#/components/schemas/StakingAddressType']
+            allOf: [$ref: '#/components/schemas/StakingAddress']
           description: The staking address of the account to return.
       responses:
         '200':
@@ -570,7 +570,7 @@ paths:
           name: address
           required: true
           schema:
-            allOf: [$ref: '#/components/schemas/StakingAddressType']
+            allOf: [$ref: '#/components/schemas/StakingAddress']
           description: The staking address of the account that delegated.
       responses:
         '200':
@@ -591,7 +591,7 @@ paths:
           name: address
           required: true
           schema:
-            allOf: [$ref: '#/components/schemas/StakingAddressType']
+            allOf: [$ref: '#/components/schemas/StakingAddress']
           description: The staking address of the account that is being delegated to.
       responses:
         '200':
@@ -612,7 +612,7 @@ paths:
           name: address
           required: true
           schema:
-            allOf: [$ref: '#/components/schemas/StakingAddressType']
+            allOf: [$ref: '#/components/schemas/StakingAddress']
           description: The staking address of the account that delegated.
       responses:
         '200':
@@ -633,7 +633,7 @@ paths:
           name: address
           required: true
           schema:
-            allOf: [$ref: '#/components/schemas/StakingAddressType']
+            allOf: [$ref: '#/components/schemas/StakingAddress']
           description: The staking address of the that is being delegated to.
       responses:
         '200':
@@ -689,7 +689,7 @@ paths:
         - in: query
           name: submitter
           schema:
-            allOf: [$ref: '#/components/schemas/StakingAddressType']
+            allOf: [$ref: '#/components/schemas/StakingAddress']
           description: Filter on the submitter of the proposal.
         - in: query
           name: state
@@ -833,7 +833,7 @@ paths:
         - in: query
           name: rel
           schema:
-            $ref: '#/components/schemas/StakingAddressType'
+            $ref: '#/components/schemas/StakingAddress'
           # TODO: Implement autodetection of Eth addresses, get rid of last sentence.
           description: |
             A filter on related accounts. Every returned transaction will refer to
@@ -1004,7 +1004,7 @@ paths:
           name: address
           required: true
           schema:
-            allOf: [$ref: '#/components/schemas/StakingAddressType']
+            allOf: [$ref: '#/components/schemas/StakingAddress']
           description: The staking address of the token contract.
       responses:
         '200':
@@ -1028,7 +1028,7 @@ paths:
           name: address
           required: true
           schema:
-            allOf: [$ref: '#/components/schemas/StakingAddressType']
+            allOf: [$ref: '#/components/schemas/StakingAddress']
           description: The staking address of the token contract for which to return the holders.
       responses:
         '200':
@@ -1052,7 +1052,7 @@ paths:
           name: address
           required: true
           schema:
-            allOf: [$ref: '#/components/schemas/StakingAddressType']
+            allOf: [$ref: '#/components/schemas/StakingAddress']
           description: The staking address of the token contract for which to return the NFT instances.
       responses:
         '200':
@@ -1073,13 +1073,13 @@ paths:
           name: address
           required: true
           schema:
-            allOf: [$ref: '#/components/schemas/StakingAddressType']
+            allOf: [$ref: '#/components/schemas/StakingAddress']
           description: The staking address of the token contract of the NFT instance.
         - in: path
           name: id
           required: true
           schema:
-            allOf: [$ref: '#/components/schemas/BigIntType']
+            allOf: [$ref: '#/components/schemas/BigInt']
           description: The ID of the NFT instance.
       responses:
         '200':
@@ -1099,7 +1099,7 @@ paths:
           name: address
           required: true
           schema:
-            allOf: [$ref: '#/components/schemas/StakingAddressType']
+            allOf: [$ref: '#/components/schemas/StakingAddress']
           description: The staking address of the account to return.
       responses:
         '200':
@@ -1122,12 +1122,12 @@ paths:
           name: address
           required: true
           schema:
-            allOf: [$ref: '#/components/schemas/StakingAddressType']
+            allOf: [$ref: '#/components/schemas/StakingAddress']
           description: The staking address of the owner of the NFT instances.
         - in: query
           name: token_address
           schema:
-            allOf: [$ref: '#/components/schemas/StakingAddressType']
+            allOf: [$ref: '#/components/schemas/StakingAddress']
           description: Only return NFT instances from the token contract at the given staking address.
       responses:
         '200':
@@ -1219,27 +1219,26 @@ components:
       # https://github.com/oasisprotocol/nexus/blob/v0.0.16/api/v1/types/util.go#L49
       enum: [emerald, sapphire, cipher]
 
-    StakingAddressType:
+    StakingAddress:
       type: string
       pattern: '^oasis1[a-z0-9]{40}$'
       example: "oasis1qpg2xuz46g53737343r20yxeddhlvc2ldqsjh70p"
       x-go-type: staking.Address
       x-go-type-import: { name: staking, path: "github.com/oasisprotocol/nexus/coreapi/v22.2.11/staking/api" }
       description: An Oasis-style (bech32) address.
-    BigIntType:
+    BigInt:
       type: string
       pattern: '^-?[0-9]+$'
       format: bigint  # Annotation is not used by Nexus's Go codegen; might be helpful to client generators to recognize this type.
       example: "1234567890123456789012"
       x-go-type: common.BigInt
       x-go-type-import: { name: common, path: "github.com/oasisprotocol/nexus/common" }
-    AddressType:
+    Address:
       type: string
       pattern: '^oasis1[a-z0-9]{40}$'
       example: "oasis1qpg2xuz46g53737343r20yxeddhlvc2ldqsjh70p"
-      x-go-type: Address
       description: An Oasis-style (bech32) address.
-    Ed25519PubKeyType:
+    Ed25519PubKey:
       type: string
       format: byte  # means base64-encoded raw bytes
       example: "lbxs4hlud9XNloIOdhJPaCahd7HtiY8QATCgGnFfCM0="
@@ -1350,10 +1349,10 @@ components:
       required: [amount, shares, validator, delegator]
       properties:
         amount:
-          allOf: [$ref: '#/components/schemas/BigIntType']
+          allOf: [$ref: '#/components/schemas/BigInt']
           description: The amount of tokens delegated in base units.
         shares:
-          allOf: [$ref: '#/components/schemas/BigIntType']
+          allOf: [$ref: '#/components/schemas/BigInt']
           description: The shares of tokens delegated.
         validator:
           type: string
@@ -1384,10 +1383,10 @@ components:
       required: [amount, shares, validator, delegator, debond_end]
       properties:
         amount:
-          allOf: [$ref: '#/components/schemas/BigIntType']
+          allOf: [$ref: '#/components/schemas/BigInt']
           description: The amount of tokens delegated in base units.
         shares:
-          allOf: [$ref: '#/components/schemas/BigIntType']
+          allOf: [$ref: '#/components/schemas/BigInt']
           description: The shares of tokens delegated.
         validator:
           type: string
@@ -1486,7 +1485,7 @@ components:
           description: The nonce used with this transaction, to prevent replay.
           example: 0
         fee:
-          allOf: [$ref: '#/components/schemas/BigIntType']
+          allOf: [$ref: '#/components/schemas/BigInt']
           description: |
             The fee that this transaction's sender committed
             to pay to execute it.
@@ -1727,7 +1726,7 @@ components:
           description: The public key identifying this Validator's node.
           example: *node_id_1
         escrow:
-          allOf: [$ref: '#/components/schemas/BigIntType']
+          allOf: [$ref: '#/components/schemas/BigInt']
           description: The amount staked.
         active:
           type: boolean
@@ -1872,7 +1871,7 @@ components:
       required: [balance, token_symbol, token_decimals]
       properties:
         balance:
-          allOf: [$ref: '#/components/schemas/BigIntType']
+          allOf: [$ref: '#/components/schemas/BigInt']
           description: Number of tokens held, in base units.
         token_symbol:
           type: string
@@ -1889,7 +1888,7 @@ components:
       required: [balance, token_contract_addr, token_contract_addr_eth, token_decimals, token_type]
       properties:
         balance:
-          allOf: [$ref: '#/components/schemas/BigIntType']
+          allOf: [$ref: '#/components/schemas/BigInt']
           description: Number of tokens held, in base units.
         token_contract_addr:
           type: string
@@ -1940,7 +1939,7 @@ components:
           description: The Ethereum address of the same account holder, if meaningfully defined.
           example: *eth_address_1
         balance:
-          allOf: [$ref: '#/components/schemas/BigIntType']
+          allOf: [$ref: '#/components/schemas/BigInt']
           description: Number of tokens held, in base units.
 
 
@@ -1958,21 +1957,21 @@ components:
           description: A nonce used to prevent replay.
           example: 0
         available:
-          allOf: [$ref: '#/components/schemas/BigIntType']
+          allOf: [$ref: '#/components/schemas/BigInt']
           description: The available balance, in base units.
         escrow:
-          allOf: [$ref: '#/components/schemas/BigIntType']
+          allOf: [$ref: '#/components/schemas/BigInt']
           description: The active escrow balance, in base units.
         debonding:
-          allOf: [$ref: '#/components/schemas/BigIntType']
+          allOf: [$ref: '#/components/schemas/BigInt']
           description: The debonding escrow balance, in base units.
         delegations_balance:
-          allOf: [$ref: '#/components/schemas/BigIntType']
+          allOf: [$ref: '#/components/schemas/BigInt']
           description: |
             The delegations balance, in base units.
             For efficiency, this field is omitted when listing multiple-accounts.
         debonding_delegations_balance:
-          allOf: [$ref: '#/components/schemas/BigIntType']
+          allOf: [$ref: '#/components/schemas/BigInt']
           description: |
             The debonding delegations balance, in base units.
             For efficiency, this field is omitted when listing multiple-accounts.
@@ -1994,7 +1993,7 @@ components:
           description: The allowed account.
           example: *staking_address_2
         amount:
-          allOf: [$ref: '#/components/schemas/BigIntType']
+          allOf: [$ref: '#/components/schemas/BigInt']
           description: The amount allowed for the allowed account.
 
     EpochList:
@@ -2083,7 +2082,7 @@ components:
         state:
           $ref: '#/components/schemas/ProposalState'
         deposit:
-          allOf: [$ref: '#/components/schemas/BigIntType']
+          allOf: [$ref: '#/components/schemas/BigInt']
           description: The deposit attached to this proposal.
         handler:
           type: string
@@ -2123,7 +2122,7 @@ components:
           description: The epoch at which voting for this proposal will close.
           example: *epoch_2
         invalid_votes:
-          allOf: [$ref: '#/components/schemas/BigIntType']
+          allOf: [$ref: '#/components/schemas/BigInt']
           description: |
             The number of invalid votes for this proposal, after tallying.
       description: |
@@ -2442,7 +2441,7 @@ components:
             Absent for non-Ethereum-format transactions.
           example: 9e6a5837c6366d4a7e477c71ffe32d40915cdef7ef209792259e5ee70caf2705
         sender_0:
-          allOf: [$ref: '#/components/schemas/AddressType']
+          allOf: [$ref: '#/components/schemas/Address']
           description: |
             The Oasis address of this transaction's 0th signer.
             Unlike Ethereum, Oasis natively supports multiple-signature transactions.
@@ -2517,7 +2516,7 @@ components:
             Note: Other transactions with method "evm.Call", and possibly "evm.Create", may also be (or include) native token transfers. The heuristic will be `false` for those.
           example: true
         to:
-          allOf: [$ref: '#/components/schemas/AddressType']
+          allOf: [$ref: '#/components/schemas/Address']
           description: |
             A reasonable "to" Oasis address associated with this transaction,
             if applicable. The meaning varies based on the transaction method. Some notable examples:
@@ -2716,7 +2715,7 @@ components:
             ERC-1363 token might be labeled as ERC-20 here. If the type cannot be
             detected or is not supported, this field will be null/absent.
         total_supply:
-          allOf: [$ref: '#/components/schemas/BigIntType']
+          allOf: [$ref: '#/components/schemas/BigInt']
           description: The total number of base units available.
         num_transfers:
           type: integer
@@ -2760,10 +2759,10 @@ components:
         token:
           $ref: '#/components/schemas/EvmToken'
         id:
-          allOf: [$ref: '#/components/schemas/BigIntType']
+          allOf: [$ref: '#/components/schemas/BigInt']
           description: The instance ID of this NFT within the collection represented by `token`.
         owner:
-          allOf: [$ref: '#/components/schemas/AddressType']
+          allOf: [$ref: '#/components/schemas/Address']
           description: The Oasis address of this NFT instance's owner.
           example: "oasis1qpclnnm0wu44pn43mt6vv3me59kl8zk9ty7qyj03"
         owner_eth:
@@ -2801,10 +2800,10 @@ components:
       required: [total_sent, total_received, num_txns]
       properties:
         total_sent:
-          allOf: [$ref: '#/components/schemas/BigIntType']
+          allOf: [$ref: '#/components/schemas/BigInt']
           description: The total number of tokens sent, in base units.
         total_received:
-          allOf: [$ref: '#/components/schemas/BigIntType']
+          allOf: [$ref: '#/components/schemas/BigInt']
           description: The total number of tokens received, in base units.
         num_txns:
           description: The total number of transactions this account was involved with.

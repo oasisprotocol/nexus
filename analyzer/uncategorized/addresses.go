@@ -48,7 +48,7 @@ func ExtractAddresses(accounts map[apiTypes.Address]bool) []string {
 	addrs := make([]string, len(accounts))
 	i := 0
 	for a := range accounts {
-		addrs[i] = string(a)
+		addrs[i] = a
 		i++
 	}
 	return addrs
