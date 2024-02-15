@@ -151,7 +151,7 @@ func wipeStorage(cfg *config.StorageConfig) error {
 type Service struct {
 	analyzers         []SyncedAnalyzer
 	fastSyncAnalyzers []SyncedAnalyzer
-	helpers           []*http.Server
+	cachingProxies    []*http.Server
 
 	sources *sourceFactory
 	target  storage.TargetStorage
@@ -283,14 +283,14 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) { //nolint:gocyclo
 		return nil, err
 	}
 
-	// Initialize analyzer helpers.
-	helpers := []*http.Server{}
+	// Initialize analyzer cachingProxies.
+	cachingProxies := []*http.Server{}
 	for _, proxyCfg := range cfg.Helpers.CachingProxies {
-		helper, err2 := httpproxy.NewHttpServer(*cfg.Source.Cache, proxyCfg)
+		proxy, err2 := httpproxy.NewHttpServer(*cfg.Source.Cache, proxyCfg)
 		if err2 != nil {
 			return nil, err2
 		}
-		helpers = append(helpers, helper)
+		cachingProxies = append(cachingProxies, proxy)
 	}
 
 	// Initialize fast-sync analyzers.
@@ -577,7 +577,7 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) { //nolint:gocyclo
 	return &Service{
 		fastSyncAnalyzers: fastSyncAnalyzers,
 		analyzers:         analyzers,
-		helpers:           helpers,
+		cachingProxies:    cachingProxies,
 
 		sources: sources,
 		target:  dbClient,
@@ -593,12 +593,12 @@ func (a *Service) Start() {
 	ctx, cancelAnalyzers := context.WithCancel(context.Background())
 	defer cancelAnalyzers() // Start() only returns when analyzers are done, so this should be a no-op, but it makes the compiler happier.
 
-	// Start helpers.
-	for _, helper := range a.helpers {
-		helper := helper
+	// Start caching proxies.
+	for _, proxy := range a.cachingProxies {
+		proxy := proxy
 		go func() {
-			if err := helper.ListenAndServe(); err != nil {
-				a.logger.Error("helper server failed", "server_addr", helper.Addr, "error", err.Error())
+			if err := proxy.ListenAndServe(); err != nil {
+				a.logger.Error("caching proxy server failed", "server_addr", proxy.Addr, "error", err.Error())
 			}
 		}()
 	}
