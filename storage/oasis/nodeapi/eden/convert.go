@@ -412,7 +412,7 @@ func convertEvent(e txResultsEden.Event) nodeapi.Event {
 			ret = nodeapi.Event{
 				RoothashMisc: &nodeapi.RoothashEvent{
 					RuntimeID: e.RootHash.RuntimeID,
-					// TODO: Round in oasis-core 23.0.3+
+					Round:     e.RootHash.ExecutionDiscrepancyDetected.Round,
 				},
 				RawBody: common.TryAsJSON(e.RootHash.ExecutionDiscrepancyDetected),
 				Type:    apiTypes.ConsensusEventTypeRoothashExecutionDiscrepancy,
