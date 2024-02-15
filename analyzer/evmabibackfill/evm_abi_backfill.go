@@ -272,7 +272,7 @@ func marshalArgs(abiArgs abi.Arguments, argVals []interface{}) ([]*abiEncodedArg
 		args = append(args, &abiEncodedArg{
 			Name:    abiArgs[i].Name,
 			EvmType: abiArgs[i].Type.String(),
-			Value:   v,
+			Value:   abiparse.EvmPreMarshal(v, abiArgs[i].Type),
 		})
 	}
 
