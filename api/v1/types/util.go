@@ -37,7 +37,7 @@ func (c ConsensusEventType) IsValid() bool {
 
 func (c Layer) IsValid() bool {
 	switch c {
-	case LayerConsensus, LayerCipher, LayerEmerald, LayerSapphire:
+	case LayerConsensus, LayerCipher, LayerEmerald, LayerSapphire, LayerPontusx:
 		return true
 	default:
 		return false
@@ -46,7 +46,7 @@ func (c Layer) IsValid() bool {
 
 func (c Runtime) IsValid() bool {
 	switch c {
-	case RuntimeCipher, RuntimeEmerald, RuntimeSapphire:
+	case RuntimeCipher, RuntimeEmerald, RuntimeSapphire, RuntimePontusx:
 		return true
 	default:
 		return false

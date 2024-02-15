@@ -1211,13 +1211,13 @@ components:
       type: string
       # NOTE: Change IsValid() in util.go if you change this.
       # https://github.com/oasisprotocol/nexus/blob/v0.0.16/api/v1/types/util.go#L40
-      enum: [emerald, sapphire, cipher, consensus]
+      enum: [emerald, sapphire, pontusx, cipher, consensus]
 
     Runtime:
       type: string
       # NOTE: Change IsValid() in util.go if you change this.
       # https://github.com/oasisprotocol/nexus/blob/v0.0.16/api/v1/types/util.go#L49
-      enum: [emerald, sapphire, cipher]
+      enum: [emerald, sapphire, pontusx, cipher]
 
     StakingAddress:
       type: string
