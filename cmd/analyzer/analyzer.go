@@ -658,6 +658,8 @@ func (a *Service) Start() {
 		a.logger.Info("received interrupt, shutting down")
 		// Let the default handler handle ctrl+C so people can kill the process in a hurry.
 		signal.Stop(signalChan)
+		// Shutdown the caching proxies.
+		a.shutdownCachingProxies(1 * time.Second)
 		// Cancel the analyzers' context and wait for them (but not forever) to exit cleanly.
 		cancelAnalyzers()
 		select {
@@ -674,20 +676,39 @@ func (a *Service) Start() {
 	}
 }
 
+// Attempt to gracefully shutdown the caching proxies within the given timeout.
+func (a *Service) shutdownCachingProxies(timeout time.Duration) {
+	ctx, cancelFunc := context.WithTimeout(context.Background(), timeout)
+	defer cancelFunc()
+	for _, proxy := range a.cachingProxies {
+		if err := proxy.Shutdown(ctx); err != nil {
+			a.logger.Error("failed to cleanly shutdown caching proxy", "server_addr", proxy.Addr, "error", err.Error())
+		}
+	}
+}
+
 // cleanup cleans up resources used by the service.
 func (a *Service) cleanup() {
-	if a.sources == nil {
-		return
+	if a.sources != nil {
+		if err := a.sources.Close(); err != nil {
+			a.logger.Error("failed to cleanly close data source",
+				"firstErr", err.Error(),
+			)
+		}
+		a.logger.Info("all source connections have closed cleanly")
 	}
 
-	if err := a.sources.Close(); err != nil {
-		a.logger.Error("failed to cleanly close data source",
-			"firstErr", err.Error(),
-		)
+	if a.cachingProxies != nil {
+		for _, proxy := range a.cachingProxies {
+			_ = proxy.Close()
+		}
+		a.logger.Info("all caching proxy connections have closed")
 	}
-	a.logger.Info("all source connections have closed cleanly")
-	a.target.Close()
-	a.logger.Info("target db connection closed cleanly")
+
+	if a.target != nil {
+		a.target.Close()
+		a.logger.Info("target db connection closed cleanly")
+	}
 }
 
 // Register registers the process sub-command.
