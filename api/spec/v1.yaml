@@ -242,13 +242,13 @@ paths:
         - in: query
           name: minFee
           schema:
-            allOf: [$ref: '#/components/schemas/BigInt']
+            allOf: [$ref: '#/components/schemas/TextBigInt']
           description: A filter on minimum transaction fee, inclusive.
           example: "1000"
         - in: query
           name: maxFee
           schema:
-            allOf: [$ref: '#/components/schemas/BigInt']
+            allOf: [$ref: '#/components/schemas/TextBigInt']
           description: A filter on maximum transaction fee, inclusive.
           example: "100000000000000000000000"
         - in: query
@@ -494,42 +494,42 @@ paths:
         - in: query
           name: minAvailable
           schema:
-            allOf: [$ref: '#/components/schemas/BigInt']
+            allOf: [$ref: '#/components/schemas/TextBigInt']
           description: A filter on the minimum available account balance.
         - in: query
           name: maxAvailable
           schema:
-            allOf: [$ref: '#/components/schemas/BigInt']
+            allOf: [$ref: '#/components/schemas/TextBigInt']
           description: A filter on the maximum available account balance.
         - in: query
           name: minEscrow
           schema:
-            allOf: [$ref: '#/components/schemas/BigInt']
+            allOf: [$ref: '#/components/schemas/TextBigInt']
           description: A filter on the minimum active escrow account balance.
         - in: query
           name: maxEscrow
           schema:
-            allOf: [$ref: '#/components/schemas/BigInt']
+            allOf: [$ref: '#/components/schemas/TextBigInt']
           description: A filter on the maximum active escrow account balance.
         - in: query
           name: minDebonding
           schema:
-            allOf: [$ref: '#/components/schemas/BigInt']
+            allOf: [$ref: '#/components/schemas/TextBigInt']
           description: A filter on the minimum debonding account balance.
         - in: query
           name: maxDebonding
           schema:
-            allOf: [$ref: '#/components/schemas/BigInt']
+            allOf: [$ref: '#/components/schemas/TextBigInt']
           description: A filter on the maximum debonding account balance.
         - in: query
           name: minTotalBalance
           schema:
-            allOf: [$ref: '#/components/schemas/BigInt']
+            allOf: [$ref: '#/components/schemas/TextBigInt']
           description: A filter on the minimum total account balance.
         - in: query
           name: maxTotalBalance
           schema:
-            allOf: [$ref: '#/components/schemas/BigInt']
+            allOf: [$ref: '#/components/schemas/TextBigInt']
           description: A filter on the maximum total account balance.
       responses:
         '200':
@@ -1079,7 +1079,7 @@ paths:
           name: id
           required: true
           schema:
-            allOf: [$ref: '#/components/schemas/BigInt']
+            allOf: [$ref: '#/components/schemas/TextBigInt']
           description: The ID of the NFT instance.
       responses:
         '200':
@@ -1226,7 +1226,7 @@ components:
       x-go-type: staking.Address
       x-go-type-import: { name: staking, path: "github.com/oasisprotocol/nexus/coreapi/v22.2.11/staking/api" }
       description: An Oasis-style (bech32) address.
-    BigInt:
+    TextBigInt:
       type: string
       pattern: '^-?[0-9]+$'
       format: bigint  # Annotation is not used by Nexus's Go codegen; might be helpful to client generators to recognize this type.
@@ -1349,10 +1349,10 @@ components:
       required: [amount, shares, validator, delegator]
       properties:
         amount:
-          allOf: [$ref: '#/components/schemas/BigInt']
+          allOf: [$ref: '#/components/schemas/TextBigInt']
           description: The amount of tokens delegated in base units.
         shares:
-          allOf: [$ref: '#/components/schemas/BigInt']
+          allOf: [$ref: '#/components/schemas/TextBigInt']
           description: The shares of tokens delegated.
         validator:
           type: string
@@ -1383,10 +1383,10 @@ components:
       required: [amount, shares, validator, delegator, debond_end]
       properties:
         amount:
-          allOf: [$ref: '#/components/schemas/BigInt']
+          allOf: [$ref: '#/components/schemas/TextBigInt']
           description: The amount of tokens delegated in base units.
         shares:
-          allOf: [$ref: '#/components/schemas/BigInt']
+          allOf: [$ref: '#/components/schemas/TextBigInt']
           description: The shares of tokens delegated.
         validator:
           type: string
@@ -1485,7 +1485,7 @@ components:
           description: The nonce used with this transaction, to prevent replay.
           example: 0
         fee:
-          allOf: [$ref: '#/components/schemas/BigInt']
+          allOf: [$ref: '#/components/schemas/TextBigInt']
           description: |
             The fee that this transaction's sender committed
             to pay to execute it.
@@ -1726,7 +1726,7 @@ components:
           description: The public key identifying this Validator's node.
           example: *node_id_1
         escrow:
-          allOf: [$ref: '#/components/schemas/BigInt']
+          allOf: [$ref: '#/components/schemas/TextBigInt']
           description: The amount staked.
         active:
           type: boolean
@@ -1871,7 +1871,7 @@ components:
       required: [balance, token_symbol, token_decimals]
       properties:
         balance:
-          allOf: [$ref: '#/components/schemas/BigInt']
+          allOf: [$ref: '#/components/schemas/TextBigInt']
           description: Number of tokens held, in base units.
         token_symbol:
           type: string
@@ -1888,7 +1888,7 @@ components:
       required: [balance, token_contract_addr, token_contract_addr_eth, token_decimals, token_type]
       properties:
         balance:
-          allOf: [$ref: '#/components/schemas/BigInt']
+          allOf: [$ref: '#/components/schemas/TextBigInt']
           description: Number of tokens held, in base units.
         token_contract_addr:
           type: string
@@ -1939,7 +1939,7 @@ components:
           description: The Ethereum address of the same account holder, if meaningfully defined.
           example: *eth_address_1
         balance:
-          allOf: [$ref: '#/components/schemas/BigInt']
+          allOf: [$ref: '#/components/schemas/TextBigInt']
           description: Number of tokens held, in base units.
 
 
@@ -1957,21 +1957,21 @@ components:
           description: A nonce used to prevent replay.
           example: 0
         available:
-          allOf: [$ref: '#/components/schemas/BigInt']
+          allOf: [$ref: '#/components/schemas/TextBigInt']
           description: The available balance, in base units.
         escrow:
-          allOf: [$ref: '#/components/schemas/BigInt']
+          allOf: [$ref: '#/components/schemas/TextBigInt']
           description: The active escrow balance, in base units.
         debonding:
-          allOf: [$ref: '#/components/schemas/BigInt']
+          allOf: [$ref: '#/components/schemas/TextBigInt']
           description: The debonding escrow balance, in base units.
         delegations_balance:
-          allOf: [$ref: '#/components/schemas/BigInt']
+          allOf: [$ref: '#/components/schemas/TextBigInt']
           description: |
             The delegations balance, in base units.
             For efficiency, this field is omitted when listing multiple-accounts.
         debonding_delegations_balance:
-          allOf: [$ref: '#/components/schemas/BigInt']
+          allOf: [$ref: '#/components/schemas/TextBigInt']
           description: |
             The debonding delegations balance, in base units.
             For efficiency, this field is omitted when listing multiple-accounts.
@@ -1993,7 +1993,7 @@ components:
           description: The allowed account.
           example: *staking_address_2
         amount:
-          allOf: [$ref: '#/components/schemas/BigInt']
+          allOf: [$ref: '#/components/schemas/TextBigInt']
           description: The amount allowed for the allowed account.
 
     EpochList:
@@ -2082,7 +2082,7 @@ components:
         state:
           $ref: '#/components/schemas/ProposalState'
         deposit:
-          allOf: [$ref: '#/components/schemas/BigInt']
+          allOf: [$ref: '#/components/schemas/TextBigInt']
           description: The deposit attached to this proposal.
         handler:
           type: string
@@ -2122,7 +2122,7 @@ components:
           description: The epoch at which voting for this proposal will close.
           example: *epoch_2
         invalid_votes:
-          allOf: [$ref: '#/components/schemas/BigInt']
+          allOf: [$ref: '#/components/schemas/TextBigInt']
           description: |
             The number of invalid votes for this proposal, after tallying.
       description: |
@@ -2715,7 +2715,7 @@ components:
             ERC-1363 token might be labeled as ERC-20 here. If the type cannot be
             detected or is not supported, this field will be null/absent.
         total_supply:
-          allOf: [$ref: '#/components/schemas/BigInt']
+          allOf: [$ref: '#/components/schemas/TextBigInt']
           description: The total number of base units available.
         num_transfers:
           type: integer
@@ -2759,7 +2759,7 @@ components:
         token:
           $ref: '#/components/schemas/EvmToken'
         id:
-          allOf: [$ref: '#/components/schemas/BigInt']
+          allOf: [$ref: '#/components/schemas/TextBigInt']
           description: The instance ID of this NFT within the collection represented by `token`.
         owner:
           allOf: [$ref: '#/components/schemas/Address']
@@ -2800,10 +2800,10 @@ components:
       required: [total_sent, total_received, num_txns]
       properties:
         total_sent:
-          allOf: [$ref: '#/components/schemas/BigInt']
+          allOf: [$ref: '#/components/schemas/TextBigInt']
           description: The total number of tokens sent, in base units.
         total_received:
-          allOf: [$ref: '#/components/schemas/BigInt']
+          allOf: [$ref: '#/components/schemas/TextBigInt']
           description: The total number of tokens received, in base units.
         num_txns:
           description: The total number of transactions this account was involved with.
