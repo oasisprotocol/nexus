@@ -47,7 +47,7 @@ x-query-params:
     name: runtime
     required: true
     schema:
-      $ref: '#/components/schemas/Runtime'
+      allOf: [$ref: '#/components/schemas/Runtime']
     description: |
       The runtime which to query.
   - &window_size_seconds
@@ -125,40 +125,6 @@ x-err-responses:
     '500':
       $ref: '#/components/responses/HumanReadableError'
       description: A server error occurred.
-
-x-type-annotations:
-  big-int: &BigIntType
-    type: string
-    pattern: '^-?[0-9]+$'
-    format: bigint  # Annotation is not used by Nexus's Go codegen; might be helpful to client generators to recognize this type.
-    example: "1234567890123456789012"
-    x-go-type: common.BigInt
-    x-go-type-import: { name: common, path: "github.com/oasisprotocol/nexus/common" }
-  staking-address: &StakingAddressType
-    type: string
-    pattern: '^oasis1[a-z0-9]{40}$'
-    example: "oasis1qpg2xuz46g53737343r20yxeddhlvc2ldqsjh70p"
-    x-go-type: staking.Address
-    x-go-type-import: { name: staking, path: "github.com/oasisprotocol/nexus/coreapi/v22.2.11/staking/api" }
-    description: An Oasis-style (bech32) address.
-  address: &AddressType
-    type: string
-    pattern: '^oasis1[a-z0-9]{40}$'
-    example: "oasis1qpg2xuz46g53737343r20yxeddhlvc2ldqsjh70p"
-    x-go-type: Address
-    description: An Oasis-style (bech32) address.
-  pubkey: &Ed25519PubKeyType
-    type: string
-    format: byte  # means base64-encoded raw bytes
-    example: "lbxs4hlud9XNloIOdhJPaCahd7HtiY8QATCgGnFfCM0="
-    x-go-type: signature.PublicKey
-    x-go-type-import: { name: signature, path: "github.com/oasisprotocol/oasis-core/go/common/crypto/signature" }
-    description: A base64-encoded ed25519 public key.
-  call-format: &CallFormat
-    type: string
-    example: "encrypted/x25519-deoxysii"
-    x-go-type: common.CallFormat
-    x-go-type-import: { name: common, path: "github.com/oasisprotocol/nexus/common" }
 
 paths:
   /:
@@ -260,12 +226,12 @@ paths:
         - in: query
           name: method
           schema:
-            $ref: '#/components/schemas/ConsensusTxMethod'
+            allOf: [$ref: '#/components/schemas/ConsensusTxMethod']
           description: A filter on transaction method.
         - in: query
           name: sender
           schema:
-            <<: *StakingAddressType
+            allOf: [$ref: '#/components/schemas/StakingAddress']
           description: A filter on transaction sender.
         - in: query
           name: rel
@@ -276,13 +242,13 @@ paths:
         - in: query
           name: minFee
           schema:
-            <<: *BigIntType
+            allOf: [$ref: '#/components/schemas/TextBigInt']
           description: A filter on minimum transaction fee, inclusive.
           example: "1000"
         - in: query
           name: maxFee
           schema:
-            <<: *BigIntType
+            allOf: [$ref: '#/components/schemas/TextBigInt']
           description: A filter on maximum transaction fee, inclusive.
           example: "100000000000000000000000"
         - in: query
@@ -371,7 +337,7 @@ paths:
         - in: query
           name: rel
           schema:
-            <<: *StakingAddressType
+            allOf: [$ref: '#/components/schemas/StakingAddress']
           description: |
             A filter on related accounts. Every returned event will refer to
             this account. For example, for a `Transfer` event, this will be the
@@ -379,7 +345,7 @@ paths:
         - in: query
           name: type
           schema:
-            $ref: '#/components/schemas/ConsensusEventType'
+            allOf: [$ref: '#/components/schemas/ConsensusEventType']
           description: A filter on the event type.
           example: *event_type_1
       responses:
@@ -417,7 +383,7 @@ paths:
           name: entity_id
           required: true
           schema:
-            <<: *Ed25519PubKeyType
+            allOf: [$ref: '#/components/schemas/Ed25519PubKey']
           description: The entity ID of the entity to return.
       responses:
         '200':
@@ -440,7 +406,7 @@ paths:
           name: entity_id
           required: true
           schema:
-            <<: *Ed25519PubKeyType
+            allOf: [$ref: '#/components/schemas/Ed25519PubKey']
           description: |
             The entity ID of the controlling entity of the nodes to return.
       responses:
@@ -461,7 +427,7 @@ paths:
           name: entity_id
           required: true
           schema:
-            <<: *Ed25519PubKeyType
+            allOf: [$ref: '#/components/schemas/Ed25519PubKey']
           description: |
             The entity ID of the entity controlling the node to return.
           example: *entity_id_1
@@ -469,7 +435,7 @@ paths:
           name: node_id
           required: true
           schema:
-            <<: *Ed25519PubKeyType
+            allOf: [$ref: '#/components/schemas/Ed25519PubKey']
           description: The node ID of the node to return.
       responses:
         '200':
@@ -506,7 +472,7 @@ paths:
           name: entity_id
           required: true
           schema:
-            <<: *Ed25519PubKeyType
+            allOf: [$ref: '#/components/schemas/Ed25519PubKey']
           description: The entity ID of the entity to return.
       responses:
         '200':
@@ -528,42 +494,42 @@ paths:
         - in: query
           name: minAvailable
           schema:
-            <<: *BigIntType
+            allOf: [$ref: '#/components/schemas/TextBigInt']
           description: A filter on the minimum available account balance.
         - in: query
           name: maxAvailable
           schema:
-            <<: *BigIntType
+            allOf: [$ref: '#/components/schemas/TextBigInt']
           description: A filter on the maximum available account balance.
         - in: query
           name: minEscrow
           schema:
-            <<: *BigIntType
+            allOf: [$ref: '#/components/schemas/TextBigInt']
           description: A filter on the minimum active escrow account balance.
         - in: query
           name: maxEscrow
           schema:
-            <<: *BigIntType
+            allOf: [$ref: '#/components/schemas/TextBigInt']
           description: A filter on the maximum active escrow account balance.
         - in: query
           name: minDebonding
           schema:
-            <<: *BigIntType
+            allOf: [$ref: '#/components/schemas/TextBigInt']
           description: A filter on the minimum debonding account balance.
         - in: query
           name: maxDebonding
           schema:
-            <<: *BigIntType
+            allOf: [$ref: '#/components/schemas/TextBigInt']
           description: A filter on the maximum debonding account balance.
         - in: query
           name: minTotalBalance
           schema:
-            <<: *BigIntType
+            allOf: [$ref: '#/components/schemas/TextBigInt']
           description: A filter on the minimum total account balance.
         - in: query
           name: maxTotalBalance
           schema:
-            <<: *BigIntType
+            allOf: [$ref: '#/components/schemas/TextBigInt']
           description: A filter on the maximum total account balance.
       responses:
         '200':
@@ -583,7 +549,7 @@ paths:
           name: address
           required: true
           schema:
-            <<: *StakingAddressType
+            allOf: [$ref: '#/components/schemas/StakingAddress']
           description: The staking address of the account to return.
       responses:
         '200':
@@ -604,7 +570,7 @@ paths:
           name: address
           required: true
           schema:
-            <<: *StakingAddressType
+            allOf: [$ref: '#/components/schemas/StakingAddress']
           description: The staking address of the account that delegated.
       responses:
         '200':
@@ -625,7 +591,7 @@ paths:
           name: address
           required: true
           schema:
-            <<: *StakingAddressType
+            allOf: [$ref: '#/components/schemas/StakingAddress']
           description: The staking address of the account that is being delegated to.
       responses:
         '200':
@@ -646,7 +612,7 @@ paths:
           name: address
           required: true
           schema:
-            <<: *StakingAddressType
+            allOf: [$ref: '#/components/schemas/StakingAddress']
           description: The staking address of the account that delegated.
       responses:
         '200':
@@ -667,7 +633,7 @@ paths:
           name: address
           required: true
           schema:
-            <<: *StakingAddressType
+            allOf: [$ref: '#/components/schemas/StakingAddress']
           description: The staking address of the that is being delegated to.
       responses:
         '200':
@@ -723,12 +689,12 @@ paths:
         - in: query
           name: submitter
           schema:
-            <<: *StakingAddressType
+            allOf: [$ref: '#/components/schemas/StakingAddress']
           description: Filter on the submitter of the proposal.
         - in: query
           name: state
           schema:
-            $ref: '#/components/schemas/ProposalState'
+            allOf: [$ref: '#/components/schemas/ProposalState']
           description: Filter on the state of the proposal.
           example: *proposal_state_1
       responses:
@@ -867,7 +833,7 @@ paths:
         - in: query
           name: rel
           schema:
-            <<: *StakingAddressType
+            $ref: '#/components/schemas/StakingAddress'
           # TODO: Implement autodetection of Eth addresses, get rid of last sentence.
           description: |
             A filter on related accounts. Every returned transaction will refer to
@@ -954,7 +920,7 @@ paths:
         - in: query
           name: type
           schema:
-            $ref: '#/components/schemas/RuntimeEventType'
+            allOf: [$ref: '#/components/schemas/RuntimeEventType']
           description: A filter on the event type.
         - in: query
           name: rel
@@ -1038,7 +1004,7 @@ paths:
           name: address
           required: true
           schema:
-            <<: *StakingAddressType
+            allOf: [$ref: '#/components/schemas/StakingAddress']
           description: The staking address of the token contract.
       responses:
         '200':
@@ -1062,7 +1028,7 @@ paths:
           name: address
           required: true
           schema:
-            <<: *StakingAddressType
+            allOf: [$ref: '#/components/schemas/StakingAddress']
           description: The staking address of the token contract for which to return the holders.
       responses:
         '200':
@@ -1086,7 +1052,7 @@ paths:
           name: address
           required: true
           schema:
-            <<: *StakingAddressType
+            allOf: [$ref: '#/components/schemas/StakingAddress']
           description: The staking address of the token contract for which to return the NFT instances.
       responses:
         '200':
@@ -1107,13 +1073,13 @@ paths:
           name: address
           required: true
           schema:
-            <<: *StakingAddressType
+            allOf: [$ref: '#/components/schemas/StakingAddress']
           description: The staking address of the token contract of the NFT instance.
         - in: path
           name: id
           required: true
           schema:
-            <<: *BigIntType
+            allOf: [$ref: '#/components/schemas/TextBigInt']
           description: The ID of the NFT instance.
       responses:
         '200':
@@ -1133,7 +1099,7 @@ paths:
           name: address
           required: true
           schema:
-            <<: *StakingAddressType
+            allOf: [$ref: '#/components/schemas/StakingAddress']
           description: The staking address of the account to return.
       responses:
         '200':
@@ -1156,12 +1122,12 @@ paths:
           name: address
           required: true
           schema:
-            <<: *StakingAddressType
+            allOf: [$ref: '#/components/schemas/StakingAddress']
           description: The staking address of the owner of the NFT instances.
         - in: query
           name: token_address
           schema:
-            <<: *StakingAddressType
+            allOf: [$ref: '#/components/schemas/StakingAddress']
           description: Only return NFT instances from the token contract at the given staking address.
       responses:
         '200':
@@ -1200,7 +1166,7 @@ paths:
           name: layer
           required: true
           schema:
-            $ref: '#/components/schemas/Layer'
+            allOf: [$ref: '#/components/schemas/Layer']
           description: |
             The layer for which to return the transaction volume timeline.
       responses:
@@ -1226,7 +1192,7 @@ paths:
           name: layer
           required: true
           schema:
-            $ref: '#/components/schemas/Layer'
+            allOf: [$ref: '#/components/schemas/Layer']
           description: |
             The layer for which to return the active accounts timeline.
       responses:
@@ -1252,6 +1218,38 @@ components:
       # NOTE: Change IsValid() in util.go if you change this.
       # https://github.com/oasisprotocol/nexus/blob/v0.0.16/api/v1/types/util.go#L49
       enum: [emerald, sapphire, cipher]
+
+    StakingAddress:
+      type: string
+      pattern: '^oasis1[a-z0-9]{40}$'
+      example: "oasis1qpg2xuz46g53737343r20yxeddhlvc2ldqsjh70p"
+      x-go-type: staking.Address
+      x-go-type-import: { name: staking, path: "github.com/oasisprotocol/nexus/coreapi/v22.2.11/staking/api" }
+      description: An Oasis-style (bech32) address.
+    TextBigInt:
+      type: string
+      pattern: '^-?[0-9]+$'
+      format: bigint  # Annotation is not used by Nexus's Go codegen; might be helpful to client generators to recognize this type.
+      example: "1234567890123456789012"
+      x-go-type: common.BigInt
+      x-go-type-import: { name: common, path: "github.com/oasisprotocol/nexus/common" }
+    Address:
+      type: string
+      pattern: '^oasis1[a-z0-9]{40}$'
+      example: "oasis1qpg2xuz46g53737343r20yxeddhlvc2ldqsjh70p"
+      description: An Oasis-style (bech32) address.
+    Ed25519PubKey:
+      type: string
+      format: byte  # means base64-encoded raw bytes
+      example: "lbxs4hlud9XNloIOdhJPaCahd7HtiY8QATCgGnFfCM0="
+      x-go-type: signature.PublicKey
+      x-go-type-import: { name: signature, path: "github.com/oasisprotocol/oasis-core/go/common/crypto/signature" }
+      description: A base64-encoded ed25519 public key.
+    CallFormat:
+      type: string
+      example: "encrypted/x25519-deoxysii"
+      x-go-type: common.CallFormat
+      x-go-type-import: { name: common, path: "github.com/oasisprotocol/nexus/common" }
 
     List:
       type: object
@@ -1305,7 +1303,7 @@ components:
             blocks:
               type: array
               items:
-                $ref: '#/components/schemas/Block'
+                allOf: [$ref: '#/components/schemas/Block']
       description: |
         A list of consensus blocks.
 
@@ -1351,10 +1349,10 @@ components:
       required: [amount, shares, validator, delegator]
       properties:
         amount:
-          <<: *BigIntType
+          allOf: [$ref: '#/components/schemas/TextBigInt']
           description: The amount of tokens delegated in base units.
         shares:
-          <<: *BigIntType
+          allOf: [$ref: '#/components/schemas/TextBigInt']
           description: The shares of tokens delegated.
         validator:
           type: string
@@ -1376,7 +1374,7 @@ components:
             delegations:
               type: array
               items:
-                $ref: '#/components/schemas/Delegation'
+                allOf: [$ref: '#/components/schemas/Delegation']
           description: |
             A list of delegations.
 
@@ -1385,10 +1383,10 @@ components:
       required: [amount, shares, validator, delegator, debond_end]
       properties:
         amount:
-          <<: *BigIntType
+          allOf: [$ref: '#/components/schemas/TextBigInt']
           description: The amount of tokens delegated in base units.
         shares:
-          <<: *BigIntType
+          allOf: [$ref: '#/components/schemas/TextBigInt']
           description: The shares of tokens delegated.
         validator:
           type: string
@@ -1414,7 +1412,7 @@ components:
             debonding_delegations:
               type: array
               items:
-                $ref: '#/components/schemas/DebondingDelegation'
+                allOf: [$ref: '#/components/schemas/DebondingDelegation']
           description: |
             A list of debonding delegations.
 
@@ -1448,7 +1446,7 @@ components:
             transactions:
               type: array
               items:
-                $ref: '#/components/schemas/Transaction'
+                allOf: [$ref: '#/components/schemas/Transaction']
           description: |
             A list of consensus transactions.
 
@@ -1487,13 +1485,13 @@ components:
           description: The nonce used with this transaction, to prevent replay.
           example: 0
         fee:
-          <<: *BigIntType
+          allOf: [$ref: '#/components/schemas/TextBigInt']
           description: |
             The fee that this transaction's sender committed
             to pay to execute it.
           example: 1000
         method:
-          $ref: '#/components/schemas/ConsensusTxMethod'
+          allOf: [$ref: '#/components/schemas/ConsensusTxMethod']
           description: The method that was called.
         body:
           type: string
@@ -1506,7 +1504,7 @@ components:
           type: boolean
           description: Whether this transaction successfully executed.
         error:
-          $ref: '#/components/schemas/TxError'
+          allOf: [$ref: '#/components/schemas/TxError']
           description: Error details of a failed transaction.
       description: |
         A consensus transaction.
@@ -1538,7 +1536,7 @@ components:
         revert_params:
           type: array
           items:
-            $ref: '#/components/schemas/EvmAbiParam'
+            allOf: [$ref: '#/components/schemas/EvmAbiParam']
           description: |
             The error parameters, as decoded using the contract abi. Present only when
             - the error originated from within a smart contract (e.g. via `revert` in Solidity), and 
@@ -1580,7 +1578,7 @@ components:
             events:
               type: array
               items:
-                $ref: '#/components/schemas/ConsensusEvent'
+                allOf: [$ref: '#/components/schemas/ConsensusEvent']
           description: |
             A list of consensus events.
 
@@ -1609,8 +1607,8 @@ components:
             Absent if the event did not originate from a transaction.
           example: *tx_hash_1
         type:
+          allOf: [$ref: '#/components/schemas/ConsensusEventType']
           description: The type of the event.
-          $ref: '#/components/schemas/ConsensusEventType'
         body:
           type: object
           description: |
@@ -1630,7 +1628,7 @@ components:
             entities:
               type: array
               items:
-                $ref: '#/components/schemas/Entity'
+                allOf: [$ref: '#/components/schemas/Entity']
           description: |
             A list of entities registered at the consensus layer.
 
@@ -1664,7 +1662,7 @@ components:
             validators:
               type: array
               items:
-                $ref: '#/components/schemas/Validator'
+                allOf: [$ref: '#/components/schemas/Validator']
           description: |
             A list of validators registered at the consensus layer.
 
@@ -1728,7 +1726,7 @@ components:
           description: The public key identifying this Validator's node.
           example: *node_id_1
         escrow:
-          <<: *BigIntType
+          allOf: [$ref: '#/components/schemas/TextBigInt']
           description: The amount staked.
         active:
           type: boolean
@@ -1743,7 +1741,7 @@ components:
           format: uint64
           description: Commission rate.
         current_commission_bound:
-          $ref: '#/components/schemas/ValidatorCommissionBound'
+          allOf: [$ref: '#/components/schemas/ValidatorCommissionBound']
       description: |
         An validator registered at the consensus layer.
 
@@ -1759,7 +1757,7 @@ components:
             nodes:
               type: array
               items:
-                $ref: '#/components/schemas/Node'
+                allOf: [$ref: '#/components/schemas/Node']
           description: |
             A list of nodes registered at the consensus layer.
 
@@ -1814,7 +1812,7 @@ components:
             accounts:
               type: array
               items:
-                $ref: '#/components/schemas/Account'
+                allOf: [$ref: '#/components/schemas/Account']
           description: |
             A list of consensus layer accounts.
 
@@ -1873,7 +1871,7 @@ components:
       required: [balance, token_symbol, token_decimals]
       properties:
         balance:
-          <<: *BigIntType
+          allOf: [$ref: '#/components/schemas/TextBigInt']
           description: Number of tokens held, in base units.
         token_symbol:
           type: string
@@ -1890,7 +1888,7 @@ components:
       required: [balance, token_contract_addr, token_contract_addr_eth, token_decimals, token_type]
       properties:
         balance:
-          <<: *BigIntType
+          allOf: [$ref: '#/components/schemas/TextBigInt']
           description: Number of tokens held, in base units.
         token_contract_addr:
           type: string
@@ -1922,7 +1920,7 @@ components:
             holders:
               type: array
               items:
-                $ref: '#/components/schemas/BareTokenHolder'
+                allOf: [$ref: '#/components/schemas/BareTokenHolder']
           description: |
             A list of token holders for a specific (implied) runtime and token.
 
@@ -1941,7 +1939,7 @@ components:
           description: The Ethereum address of the same account holder, if meaningfully defined.
           example: *eth_address_1
         balance:
-          <<: *BigIntType
+          allOf: [$ref: '#/components/schemas/TextBigInt']
           description: Number of tokens held, in base units.
 
 
@@ -1959,21 +1957,21 @@ components:
           description: A nonce used to prevent replay.
           example: 0
         available:
-          <<: *BigIntType
+          allOf: [$ref: '#/components/schemas/TextBigInt']
           description: The available balance, in base units.
         escrow:
-          <<: *BigIntType
+          allOf: [$ref: '#/components/schemas/TextBigInt']
           description: The active escrow balance, in base units.
         debonding:
-          <<: *BigIntType
+          allOf: [$ref: '#/components/schemas/TextBigInt']
           description: The debonding escrow balance, in base units.
         delegations_balance:
-          <<: *BigIntType
+          allOf: [$ref: '#/components/schemas/TextBigInt']
           description: |
             The delegations balance, in base units.
             For efficiency, this field is omitted when listing multiple-accounts.
         debonding_delegations_balance:
-          <<: *BigIntType
+          allOf: [$ref: '#/components/schemas/TextBigInt']
           description: |
             The debonding delegations balance, in base units.
             For efficiency, this field is omitted when listing multiple-accounts.
@@ -1981,7 +1979,7 @@ components:
         allowances:
           type: array
           items:
-            $ref: '#/components/schemas/Allowance'
+            allOf: [$ref: '#/components/schemas/Allowance']
           description: The allowances made by this account.
       description: |
         A consensus layer account.
@@ -1995,7 +1993,7 @@ components:
           description: The allowed account.
           example: *staking_address_2
         amount:
-          <<: *BigIntType
+          allOf: [$ref: '#/components/schemas/TextBigInt']
           description: The amount allowed for the allowed account.
 
     EpochList:
@@ -2007,7 +2005,7 @@ components:
             epochs:
               type: array
               items:
-                $ref: '#/components/schemas/Epoch'
+                allOf: [$ref: '#/components/schemas/Epoch']
           description: |
             A list of consensus epochs.
 
@@ -2043,7 +2041,7 @@ components:
             proposals:
               type: array
               items:
-                $ref: '#/components/schemas/Proposal'
+                allOf: [$ref: '#/components/schemas/Proposal']
           description: |
             A list of governance proposals.
 
@@ -2084,7 +2082,7 @@ components:
         state:
           $ref: '#/components/schemas/ProposalState'
         deposit:
-          <<: *BigIntType
+          allOf: [$ref: '#/components/schemas/TextBigInt']
           description: The deposit attached to this proposal.
         handler:
           type: string
@@ -2124,7 +2122,7 @@ components:
           description: The epoch at which voting for this proposal will close.
           example: *epoch_2
         invalid_votes:
-          <<: *BigIntType
+          allOf: [$ref: '#/components/schemas/TextBigInt']
           description: |
             The number of invalid votes for this proposal, after tallying.
       description: |
@@ -2144,7 +2142,7 @@ components:
             votes:
               type: array
               items:
-                $ref: '#/components/schemas/ProposalVote'
+                allOf: [$ref: '#/components/schemas/ProposalVote']
               description: The list of votes for the proposal.
           description: |
             A list of votes for a governance proposal.
@@ -2171,7 +2169,7 @@ components:
             blocks:
               type: array
               items:
-                $ref: '#/components/schemas/RuntimeBlock'
+                allOf: [$ref: '#/components/schemas/RuntimeBlock']
           description: |
             A list of consensus blocks.
 
@@ -2220,7 +2218,7 @@ components:
             events:
               type: array
               items:
-                $ref: '#/components/schemas/RuntimeEvent'
+                allOf: [$ref: '#/components/schemas/RuntimeEvent']
           description: |
             A list of runtime events.
 
@@ -2258,8 +2256,8 @@ components:
             The second-granular consensus time of this event's block.
           example: *iso_timestamp_1
         type:
+          allOf: [$ref: '#/components/schemas/RuntimeEventType']
           description: The type of the event.
-          $ref: '#/components/schemas/RuntimeEventType'
         body:
           type: object
           description: |
@@ -2279,12 +2277,12 @@ components:
         evm_log_params:
           type: array
           items:
-            $ref: '#/components/schemas/EvmAbiParam'
+            allOf: [$ref: '#/components/schemas/EvmAbiParam']
           description: |
             The decoded `evm.log` event data.
             Absent if the event type is not `evm.log`.
         evm_token:
-          $ref: '#/components/schemas/EvmEventToken'
+          allOf: [$ref: '#/components/schemas/EvmEventToken']
       description: An event emitted by the runtime layer
 
     RuntimeEventType:
@@ -2378,7 +2376,7 @@ components:
           format: uint64
           example: 153852
         verification:
-          $ref: '#/components/schemas/RuntimeEvmContractVerification'
+          allOf: [$ref: '#/components/schemas/RuntimeEvmContractVerification']
           description: |
             Additional information obtained from contract verification. Only available for smart
             contracts that have been verified successfully by Sourcify.
@@ -2407,7 +2405,7 @@ components:
             transactions:
               type: array
               items:
-                $ref: '#/components/schemas/RuntimeTransaction'
+                allOf: [$ref: '#/components/schemas/RuntimeTransaction']
           description: |
             A list of runtime transactions.
 
@@ -2443,7 +2441,7 @@ components:
             Absent for non-Ethereum-format transactions.
           example: 9e6a5837c6366d4a7e477c71ffe32d40915cdef7ef209792259e5ee70caf2705
         sender_0:
-          <<: *AddressType
+          allOf: [$ref: '#/components/schemas/Address']
           description: |
             The Oasis address of this transaction's 0th signer.
             Unlike Ethereum, Oasis natively supports multiple-signature transactions.
@@ -2518,7 +2516,7 @@ components:
             Note: Other transactions with method "evm.Call", and possibly "evm.Create", may also be (or include) native token transfers. The heuristic will be `false` for those.
           example: true
         to:
-          <<: *AddressType
+          allOf: [$ref: '#/components/schemas/Address']
           description: |
             A reasonable "to" Oasis address associated with this transaction,
             if applicable. The meaning varies based on the transaction method. Some notable examples:
@@ -2543,12 +2541,12 @@ components:
             Usually in native denomination, ParaTime units. As a string.
           example: "100000001666393459"
         encryption_envelope:
+          allOf: [$ref: '#/components/schemas/RuntimeTransactionEncryptionEnvelope']
           description: |
             The data relevant to the encrypted transaction. Only present for encrypted
             transactions in confidential EVM runtimes like Sapphire.
             Note: The term "envelope" in this context refers to the [Oasis-style encryption envelopes](https://github.com/oasisprotocol/oasis-sdk/blob/c36a7ee194abf4ca28fdac0edbefe3843b39bf69/runtime-sdk/src/types/callformat.rs)
             which differ slightly from [digital envelopes](hhttps://en.wikipedia.org/wiki/Hybrid_cryptosystem#Envelope_encryption).
-          $ref: '#/components/schemas/RuntimeTransactionEncryptionEnvelope'
         success:
           type: boolean
           description: |
@@ -2563,12 +2561,12 @@ components:
         evm_fn_params:
           type: array
           items:
-            $ref: '#/components/schemas/EvmAbiParam'
+            allOf: [$ref: '#/components/schemas/EvmAbiParam']
           description: |
             The decoded parameters with which the smart contract function was called.
             Only present for `evm.log` transaction calls to contracts that have been verified.
         error:
-          $ref: '#/components/schemas/TxError'
+          allOf: [$ref: '#/components/schemas/TxError']
           description: Error details of a failed transaction.
       description: |
         A runtime transaction.
@@ -2578,7 +2576,7 @@ components:
       required: [format]
       properties:
         format:
-          <<: *CallFormat
+          allOf: [$ref: '#/components/schemas/CallFormat']
           description: The format of the encrypted evm transaction envelope.
         public_key:
           type: string
@@ -2621,10 +2619,10 @@ components:
           items:
             $ref: '#/components/schemas/RuntimeSdkBalance'
         evm_contract:
+          allOf: [$ref: '#/components/schemas/RuntimeEvmContract']
           description: |
             Data on the EVM smart contract associated with this account address. Only present for accounts
             that represent a smart contract on EVM.
-          $ref: '#/components/schemas/RuntimeEvmContract'
         evm_balances:
           description: |
             The balances of this account in each runtime, as managed by EVM smart contracts (notably, ERC-20).
@@ -2678,7 +2676,7 @@ components:
             evm_tokens:
               type: array
               items:
-                $ref: '#/components/schemas/EvmToken'
+                allOf: [$ref: '#/components/schemas/EvmToken']
               description: A list of L2 EVM tokens (ERC-20, ERC-721, ...).
           description: A list of tokens in a runtime.
 
@@ -2710,14 +2708,14 @@ components:
             Affects display only. Often equals 18, to match ETH.
           example: 18
         type:
-          $ref: '#/components/schemas/EvmTokenType'
+          allOf: [$ref: '#/components/schemas/EvmTokenType']
           description: |
             The heuristically determined interface that the token contract implements.
             A less specialized variant of the token might be detected; for example, an
             ERC-1363 token might be labeled as ERC-20 here. If the type cannot be
             detected or is not supported, this field will be null/absent.
         total_supply:
-          <<: *BigIntType
+          allOf: [$ref: '#/components/schemas/TextBigInt']
           description: The total number of base units available.
         num_transfers:
           type: integer
@@ -2747,7 +2745,7 @@ components:
             evm_nfts:
               type: array
               items:
-                $ref: '#/components/schemas/EvmNft'
+                allOf: [$ref: '#/components/schemas/EvmNft']
               description: A list of L2 EVM NFT (ERC-721, ...) instances.
           description: A list of NFT instances.
 
@@ -2761,10 +2759,10 @@ components:
         token:
           $ref: '#/components/schemas/EvmToken'
         id:
-          <<: *BigIntType
+          allOf: [$ref: '#/components/schemas/TextBigInt']
           description: The instance ID of this NFT within the collection represented by `token`.
         owner:
-          <<: *AddressType
+          allOf: [$ref: '#/components/schemas/Address']
           description: The Oasis address of this NFT instance's owner.
           example: "oasis1qpclnnm0wu44pn43mt6vv3me59kl8zk9ty7qyj03"
         owner_eth:
@@ -2802,11 +2800,11 @@ components:
       required: [total_sent, total_received, num_txns]
       properties:
         total_sent:
+          allOf: [$ref: '#/components/schemas/TextBigInt']
           description: The total number of tokens sent, in base units.
-          <<: *BigIntType
         total_received:
+          allOf: [$ref: '#/components/schemas/TextBigInt']
           description: The total number of tokens received, in base units.
-          <<: *BigIntType
         num_txns:
           description: The total number of transactions this account was involved with.
           type: integer
@@ -2823,7 +2821,7 @@ components:
         windows:
           type: array
           items:
-            $ref: '#/components/schemas/TxVolume'
+            allOf: [$ref: '#/components/schemas/TxVolume']
           description: The list of daily transaction volumes.
       description: |
         A list of daily transaction volumes.
@@ -2853,7 +2851,7 @@ components:
         windows:
           type: array
           items:
-            $ref: '#/components/schemas/ActiveAccounts'
+            allOf: [$ref: '#/components/schemas/ActiveAccounts']
           description: The list of daily unique active account windows.
       description: |
         A list of daily unique active account windows.

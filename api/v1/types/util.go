@@ -9,8 +9,6 @@ const (
 	Erc20Approval = "Approval"
 )
 
-type Address string
-
 func (c ConsensusEventType) IsValid() bool {
 	switch c {
 	case ConsensusEventTypeStakingTransfer,
