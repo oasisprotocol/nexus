@@ -397,6 +397,11 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 						if to, err = registerRelatedSdkAddress(blockTransactionData.RelatedAccountAddresses, body.To); err != nil {
 							return fmt.Errorf("to: %w", err)
 						}
+					} else {
+						// A missing `body.To` implies that deposited-to runtime address is the same as the sender, i.e. deposited-from address.
+						// (The sender is technically also a runtime address because Deposit is a runtime tx, but the runtime verifies that the address also corresponds to a valid consensus account.)
+						// Ref: https://github.com/oasisprotocol/oasis-sdk/blob/runtime-sdk/v0.8.4/runtime-sdk/src/modules/consensus_accounts/mod.rs#L418
+						to = blockTransactionData.SignerData[0].Address
 					}
 					return nil
 				},
@@ -408,8 +413,12 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 						if to, err = uncategorized.StringifySdkAddress(body.To); err != nil {
 							return fmt.Errorf("to: %w", err)
 						}
-						blockTransactionData.RelatedAccountAddresses[to] = true
+					} else {
+						// A missing `body.To` implies that the withdrawn-to consensus address is the same as the withdrawn-from runtime address.
+						// Ref: https://github.com/oasisprotocol/oasis-sdk/blob/runtime-sdk/v0.8.4/runtime-sdk/src/modules/consensus_accounts/mod.rs#L462
+						to = blockTransactionData.SignerData[0].Address
 					}
+					blockTransactionData.RelatedAccountAddresses[to] = true
 					return nil
 				},
 				ConsensusAccountsDelegate: func(body *consensusaccounts.Delegate) error {
