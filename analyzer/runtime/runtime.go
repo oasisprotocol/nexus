@@ -154,18 +154,18 @@ func (m *processor) FinalizeFastSync(ctx context.Context, lastFastSyncHeight int
 	batch.Queue(queries.RuntimeAccountGasForCallingRecompute, m.runtime, lastFastSyncHeight)
 
 	// Re-fetch the balance for high-traffic accounts. (Those are ignored during fast-sync)
-	m.logger.Info("fetching current balance of high-traffic accounts")
+	m.logger.Info("fetching current native balances of high-traffic accounts")
 	if err := m.UpdateHighTrafficAccounts(ctx, batch, lastFastSyncHeight); err != nil {
 		return err
 	}
 
 	// Update tables where fast-sync was not updating their columns in-place, and was instead writing
 	// a log of updates to a temporary table.
-	m.logger.Info("updating last_mutate_round for EVM token balances")
+	m.logger.Info("recomputing last_mutate_round for EVM token balances")
 	batch.Queue(queries.RuntimeEVMTokenBalanceAnalysisMutateRoundRecompute, m.runtime)
 	batch.Queue("DELETE FROM todo_updates.evm_token_balances WHERE runtime = $1", m.runtime)
 
-	m.logger.Info("updating properties for EVM tokens")
+	m.logger.Info("recomputing properties for EVM tokens")
 	batch.Queue(queries.RuntimeEVMTokenRecompute, m.runtime)
 	batch.Queue("DELETE FROM todo_updates.evm_tokens WHERE runtime = $1", m.runtime)
 
