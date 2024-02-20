@@ -27,10 +27,12 @@ var sourcifyChains = map[common.ChainName]map[common.Runtime]string{
 	common.ChainNameTestnet: {
 		common.RuntimeEmerald:  "42261",
 		common.RuntimeSapphire: "23295",
+		common.RuntimePontusx:  "23295", // XXX: We're stealing sapphire data here. TODO: use dedicated verifications.
 	},
 	common.ChainNameMainnet: {
 		common.RuntimeEmerald:  "42262",
 		common.RuntimeSapphire: "23294",
+		common.RuntimePontusx:  "23294", // XXX: We're stealing sapphire data here. TODO: use dedicated verifications.
 	},
 }
 

@@ -23,12 +23,11 @@ const (
 )
 
 type processor struct {
-	layers         []common.Layer
-	source         nodeapi.ConsensusApiLite
-	emeraldSource  nodeapi.RuntimeApiLite
-	sapphireSource nodeapi.RuntimeApiLite
-	target         storage.TargetStorage
-	logger         *log.Logger
+	layers          []common.Layer
+	consensusSource nodeapi.ConsensusApiLite
+	runtimeSources  map[common.Runtime]nodeapi.RuntimeApiLite
+	target          storage.TargetStorage
+	logger          *log.Logger
 }
 
 var _ item.ItemProcessor[common.Layer] = (*processor)(nil)
@@ -36,9 +35,10 @@ var _ item.ItemProcessor[common.Layer] = (*processor)(nil)
 func NewAnalyzer(
 	cfg config.ItemBasedAnalyzerConfig,
 	layers []common.Layer,
-	sourceClient nodeapi.ConsensusApiLite,
+	consensusClient nodeapi.ConsensusApiLite,
 	emeraldClient nodeapi.RuntimeApiLite,
 	sapphireClient nodeapi.RuntimeApiLite,
+	pontusxClient nodeapi.RuntimeApiLite,
 	target storage.TargetStorage,
 	logger *log.Logger,
 ) (analyzer.Analyzer, error) {
@@ -46,17 +46,20 @@ func NewAnalyzer(
 		cfg.Interval = 3 * time.Second
 	}
 	logger = logger.With("analyzer", nodeStatsAnalyzerName)
-	// Default to [consensus, emerald, sapphire] if layers is not specified.
+	// Default to [consensus, emerald, sapphire, pontusx] if layers is not specified.
 	if len(layers) == 0 {
-		layers = []common.Layer{common.LayerConsensus, common.LayerEmerald, common.LayerSapphire}
+		layers = []common.Layer{common.LayerConsensus, common.LayerEmerald, common.LayerSapphire, common.LayerPontusx}
 	}
 	p := &processor{
-		layers:         layers,
-		source:         sourceClient,
-		emeraldSource:  emeraldClient,
-		sapphireSource: sapphireClient,
-		target:         target,
-		logger:         logger.With("analyzer", nodeStatsAnalyzerName),
+		layers:          layers,
+		consensusSource: consensusClient,
+		runtimeSources: map[common.Runtime]nodeapi.RuntimeApiLite{
+			common.RuntimeEmerald:  emeraldClient,
+			common.RuntimeSapphire: sapphireClient,
+			common.RuntimePontusx:  pontusxClient,
+		},
+		target: target,
+		logger: logger.With("analyzer", nodeStatsAnalyzerName),
 	}
 
 	return item.NewAnalyzer[common.Layer](
@@ -74,27 +77,22 @@ func (p *processor) GetItems(ctx context.Context, limit uint64) ([]common.Layer,
 func (p *processor) ProcessItem(ctx context.Context, batch *storage.QueryBatch, layer common.Layer) error {
 	p.logger.Debug("fetching node height", "layer", layer)
 	latestHeight := uint64(0) // will be fetched from the node
-	switch layer {
-	case common.LayerConsensus:
-		latestBlock, err := p.source.GetBlock(ctx, consensusAPI.HeightLatest)
+	if layer == common.LayerConsensus {
+		latestBlock, err := p.consensusSource.GetBlock(ctx, consensusAPI.HeightLatest)
 		if err != nil {
 			return fmt.Errorf("error fetching latest block height for layer %s: %w", layer, err)
 		}
 		latestHeight = uint64(latestBlock.Height)
-	case common.LayerEmerald:
-		latestBlock, err := p.emeraldSource.GetBlockHeader(ctx, runtimeAPI.RoundLatest)
+	} else { // the layer is a runtime
+		runtimeClient, ok := p.runtimeSources[common.Runtime(layer)]
+		if !ok || runtimeClient == nil {
+			return fmt.Errorf("unsupported layer %s", layer)
+		}
+		latestBlock, err := runtimeClient.GetBlockHeader(ctx, runtimeAPI.RoundLatest)
 		if err != nil {
 			return fmt.Errorf("error fetching latest block height for layer %s: %w", layer, err)
 		}
 		latestHeight = latestBlock.Round
-	case common.LayerSapphire:
-		latestBlock, err := p.sapphireSource.GetBlockHeader(ctx, runtimeAPI.RoundLatest)
-		if err != nil {
-			return fmt.Errorf("error fetching latest block height for layer %s: %w", layer, err)
-		}
-		latestHeight = latestBlock.Round
-	default:
-		return fmt.Errorf("unsupported layer %s", layer)
 	}
 	batch.Queue(queries.NodeHeightUpsert,
 		layer,

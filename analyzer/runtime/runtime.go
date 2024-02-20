@@ -109,6 +109,9 @@ func (m *processor) PreWork(ctx context.Context) error {
 }
 
 func (m *processor) UpdateHighTrafficAccounts(ctx context.Context, batch *storage.QueryBatch, height int64) error {
+	if height < 0 {
+		panic(fmt.Sprintf("negative height: %d", height))
+	}
 	for _, addr := range veryHighTrafficAccounts {
 		balance, err := m.source.GetNativeBalance(ctx, uint64(height), nodeapi.Address(addr))
 		if err != nil {
@@ -129,6 +132,12 @@ func (m *processor) UpdateHighTrafficAccounts(ctx context.Context, batch *storag
 
 // Implements block.BlockProcessor interface.
 func (m *processor) FinalizeFastSync(ctx context.Context, lastFastSyncHeight int64) error {
+	// Runtimes don't have a genesis document. So if we're starting slow sync at the beginning
+	// of the chain (round 0), there's no pre-work to do.
+	if lastFastSyncHeight == -1 {
+		return nil
+	}
+
 	batch := &storage.QueryBatch{}
 
 	// Recompute the account stats for all runtime accounts. (During slow-sync, these are dead-reckoned.)

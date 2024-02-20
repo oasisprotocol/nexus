@@ -127,20 +127,27 @@ type AnalyzersList struct {
 	Consensus *BlockBasedAnalyzerConfig `koanf:"consensus"`
 	Emerald   *BlockBasedAnalyzerConfig `koanf:"emerald"`
 	Sapphire  *BlockBasedAnalyzerConfig `koanf:"sapphire"`
+	Pontusx   *BlockBasedAnalyzerConfig `koanf:"pontusx"`
 	Cipher    *BlockBasedAnalyzerConfig `koanf:"cipher"`
 
 	EmeraldEvmTokens         *EvmTokensAnalyzerConfig       `koanf:"evm_tokens_emerald"`
 	SapphireEvmTokens        *EvmTokensAnalyzerConfig       `koanf:"evm_tokens_sapphire"`
+	PontusxEvmTokens         *EvmTokensAnalyzerConfig       `koanf:"evm_tokens_pontusx"`
 	EmeraldEvmNfts           *EvmTokensAnalyzerConfig       `koanf:"evm_nfts_emerald"`
 	SapphireEvmNfts          *EvmTokensAnalyzerConfig       `koanf:"evm_nfts_sapphire"`
+	PontusxEvmNfts           *EvmTokensAnalyzerConfig       `koanf:"evm_nfts_pontusx"`
 	EmeraldEvmTokenBalances  *EvmTokensAnalyzerConfig       `koanf:"evm_token_balances_emerald"`
 	SapphireEvmTokenBalances *EvmTokensAnalyzerConfig       `koanf:"evm_token_balances_sapphire"`
+	PontusxEvmTokenBalances  *EvmTokensAnalyzerConfig       `koanf:"evm_token_balances_pontusx"`
 	EmeraldContractCode      *EvmContractCodeAnalyzerConfig `koanf:"evm_contract_code_emerald"`
 	SapphireContractCode     *EvmContractCodeAnalyzerConfig `koanf:"evm_contract_code_sapphire"`
+	PontusxContractCode      *EvmContractCodeAnalyzerConfig `koanf:"evm_contract_code_pontusx"`
 	EmeraldContractVerifier  *EVMContractVerifierConfig     `koanf:"evm_contract_verifier_emerald"`
 	SapphireContractVerifier *EVMContractVerifierConfig     `koanf:"evm_contract_verifier_sapphire"`
+	PontusxContractVerifier  *EVMContractVerifierConfig     `koanf:"evm_contract_verifier_pontusx"`
 	EmeraldAbi               *EvmAbiAnalyzerConfig          `koanf:"evm_abi_emerald"`
 	SapphireAbi              *EvmAbiAnalyzerConfig          `koanf:"evm_abi_sapphire"`
+	PontusxAbi               *EvmAbiAnalyzerConfig          `koanf:"evm_abi_pontusx"`
 
 	MetadataRegistry *MetadataRegistryConfig `koanf:"metadata_registry"`
 	NodeStats        *NodeStatsConfig        `koanf:"node_stats"`
@@ -188,6 +195,26 @@ func (sc *SourceConfig) SDKNetwork() *sdkConfig.Network {
 }
 
 func (sc *SourceConfig) SDKParaTime(runtime common.Runtime) *sdkConfig.ParaTime {
+	// XXX Remove once https://github.com/oasisprotocol/oasis-sdk/pull/1638 is merged.
+	// This hardcodes the pontusx paratime config until then.
+	if runtime == common.RuntimePontusx {
+		return &sdkConfig.ParaTime{
+			Description: "Pontus-X Testnet",
+			ID:          "0000000000000000000000000000000000000000000000004febe52eb412b421",
+			Denominations: map[string]*sdkConfig.DenominationInfo{
+				sdkConfig.NativeDenominationKey: {
+					Symbol:   "EUROe",
+					Decimals: 18,
+				},
+				// The consensus layer denomination when deposited into the runtime.
+				"TEST": {
+					Symbol:   "TEST",
+					Decimals: 18,
+				},
+			},
+		}
+	}
+
 	return sc.SDKNetwork().ParaTimes.All[string(runtime)]
 }
 
