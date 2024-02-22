@@ -1594,14 +1594,12 @@ components:
         tx_index:
           type: integer
           format: int32
-          nullable: true
           description: |
             0-based index of this event's originating transaction within its block.
             Absent if the event did not originate from a transaction.
           example: 5
         tx_hash:
           type: string
-          nullable: true
           description: |
             Hash of this event's originating transaction.
             Absent if the event did not originate from a transaction.
@@ -1853,7 +1851,6 @@ components:
           example: "oasis-runtime-sdk/address: secp256k1eth"
         context_version:
           type: integer
-          nullable: true
           default: 0
           description: Version of the `context`.
         address_data:
@@ -2239,7 +2236,6 @@ components:
             Absent if the event did not originate from a transaction.
         tx_hash:
           type: string
-          nullable: true
           description: |
             Hash of this event's originating transaction.
             Absent if the event did not originate from a transaction.
@@ -2268,7 +2264,6 @@ components:
             OR `evm > Event`.
         evm_log_name:
           type: string
-          nullable: true
           description: |
             If the event type is `evm.log`, this field describes the human-readable type of 
             evm event, e.g. `Transfer`. 
