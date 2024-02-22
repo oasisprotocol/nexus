@@ -1,0 +1,12 @@
+{
+  "delegations": [
+    {
+      "amount": "1067242292",
+      "delegator": "oasis1qpk366qvtjrfrthjp3xuej5mhvvtnkr8fy02hm2s",
+      "shares": "950559978",
+      "validator": "oasis1qp0j5v5mkxk3eg4kxfdsk8tj6p22g4685qk76fw6"
+    }
+  ],
+  "is_total_count_clipped": false,
+  "total_count": 1
+}

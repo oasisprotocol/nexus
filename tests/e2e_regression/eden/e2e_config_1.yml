@@ -1,0 +1,49 @@
+# Config for phase 1 of 2 of e2e regression tests.
+# See also ensure_consistent_config.sh
+#
+# Phase 1 runs all block-based analyzers; phase 2 runs all others. This is a slightly hacky
+# but low-effort way to ensure that all non-block analyzers perform RPCs at a deterministic
+# height and therefore always hit the RPC cache. (Most EVM-related analyzers make RPCs at the
+# maximum height that's been reached by block analyzers by that point.)
+
+analysis:
+  source:
+    cache: { cache_dir: tests/e2e_regression/eden/rpc-cache }
+    chain_name: mainnet
+    nodes:
+      # Node will be accessed only when the filling up the cache.
+      # In CI, the cache is expected to have all the node responses as the node is not reachable.
+      eden: { default: { rpc: grpc.oasis.dev:443 } }
+    ipfs:
+      gateway: https://ipfs.io
+    fast_startup: true
+  analyzers:
+    consensus:
+      from: 16_817_956  # Eden genesis
+      to: 16_818_955    # 1000 blocks; compromise between fast and comprehensive
+    emerald:
+      #from: 7_875_130  # round at Eden genesis, plus 1 (so that in finalizeFastSync we don't need Damask)
+      #to: 7_876_129    # 1000 blocks; compromise between fast and comprehensive
+      from: 8_059_340  # An NFT was created at 8059343; ERC20s were created at 7984382, 7984824, 8075695, 8166988
+      to: 8_060_339    # 1000 blocks; compromise between fast and comprehensive
+    # We do not test Sapphire; the node only makes recent rounds queryable, so it's awkward to test reproducibly.
+    # Also, sapphire does not use much code that is not covered by emerald.
+  storage:
+    backend: postgres
+    endpoint: postgresql://rwuser:password@localhost:5432/indexer?sslmode=disable
+    DANGER__WIPE_STORAGE_ON_STARTUP: true
+    migrations: file://storage/migrations
+
+server:
+  chain_name: mainnet
+  endpoint: localhost:8008
+  storage:
+    endpoint: postgresql://api:password@localhost:5432/indexer?sslmode=disable
+    backend: postgres
+
+log:
+  level: debug
+  format: json
+
+metrics:
+  pull_endpoint: localhost:8009

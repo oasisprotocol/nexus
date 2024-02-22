@@ -1,0 +1,10 @@
+{
+  "consensus_pubkey": "1TDdhVK+R8N6KYNAvGFV4LeFQfp06+sjJI7SgTsN35c=",
+  "entity_id": "WazI78lMcmjyCH5+5RKkkfOTUR+XheHIohlqMu+a9As=",
+  "expiration": 13405,
+  "id": "LuIdtuiEPLBJefXVieVruy4kf04jjp5CBJFWVes0ZuE=",
+  "p2p_pubkey": "W/iGCS2wHYqxPjUB+wK+q8DFhymLMIxbSPEBD1QkO4Q=",
+  "roles": "compute",
+  "tls_next_pubkey": "7VvUfIcPciWeXNZyqQz2UcXSVQoBxIRm4cghFj1e5Fo=",
+  "tls_pubkey": "IcGZnvXruY0+y5AVzFzXHtwP2Jet0HXof/N4rrTdIGQ="
+}

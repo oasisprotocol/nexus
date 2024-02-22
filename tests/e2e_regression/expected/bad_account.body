@@ -1,3 +1,0 @@
-{
-  "msg": "Invalid format for parameter address: error unmarshalling 'oasis1aaaaaaa' text as *api.Address: address: decoding from bech32 failed: decoding bech32 failed: invalid checksum (expected w4lzrs got aaaaaa)"
-}
