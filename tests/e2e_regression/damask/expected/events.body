@@ -7,8 +7,6 @@
         "from": "oasis1qqnv3peudzvekhulf8v3ht29z4cthkhy7gkxmph5",
         "to": "oasis1qrmufhkkyyf79s5za2r8yga9gnk4t446dcy3a5zm"
       },
-      "tx_hash": null,
-      "tx_index": null,
       "type": "staking.transfer"
     },
     {
@@ -40,8 +38,6 @@
         "from": "oasis1qqnv3peudzvekhulf8v3ht29z4cthkhy7gkxmph5",
         "to": "oasis1qps7mh7usg7u4t35ujr0l8dxjs2ly2swhu9v0mr0"
       },
-      "tx_hash": null,
-      "tx_index": null,
       "type": "staking.transfer"
     },
     {
