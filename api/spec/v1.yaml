@@ -118,13 +118,10 @@ x-err-responses:
   common-errors: &common_error_responses
     '400':
       $ref: '#/components/responses/HumanReadableError'
-      description: Invalid request.
     '404':
       $ref: '#/components/responses/NotFoundError'
-      description: The requested resource was not found.
     '500':
       $ref: '#/components/responses/HumanReadableError'
-      description: A server error occurred.
 
 paths:
   /:
@@ -1707,7 +1704,7 @@ components:
 
     Validator:
       type: object
-      required: [entity_address, entity_id, name, node_id, escrow, active, status, current_rate, current_commission_bound]
+      required: [entity_address, entity_id, node_id, escrow, active, status, current_rate, current_commission_bound]
       properties:
         entity_address:
             type: string
@@ -1845,7 +1842,7 @@ components:
       required: [context, address_data]
       properties:
         context:
-          $ref: "#/components/schemas/AddressDerivationContext"
+          allOf: [$ref: "#/components/schemas/AddressDerivationContext"]
           description: |
             The method by which the Oasis address was derived from `address_data`.
           example: "oasis-runtime-sdk/address: secp256k1eth"
@@ -2596,7 +2593,7 @@ components:
 
     RuntimeAccount:
       type: object
-      required: [address, runtime, balances, evm_balances, stats]
+      required: [address, balances, evm_balances, stats]
       properties:
         address:
           type: string
@@ -2748,7 +2745,6 @@ components:
       type: object
       required:
         - token
-        - contract_addr
         - id
       properties:
         token:
