@@ -65,17 +65,21 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+      - name: Install dependencies
+        run: |
+          VERSION=v4.30.5
+          wget https://github.com/mikefarah/yq/releases/download/${VERSION}/yq_linux_amd64 -q -O ./yq
+          chmod +x ./yq
+
+          VERSION=0.9.9
+          wget https://github.com/daveshanley/vacuum/releases/download/v${VERSION}/vacuum_${VERSION}_linux_x86_64.tar.gz -q -O- | tar -xzv
       - name: Normalize YAML
         run: |
-          VERSION=v4.30.5 BINARY=yq_linux_amd64
-          wget https://github.com/mikefarah/yq/releases/download/${VERSION}/${BINARY} -O ./yq
-          chmod +x ./yq
           # OpenAPI parser fails to parse YAML templates (*, <<:). Expand them out here.
           <api/spec/v1.yaml ./yq --output-format json | ./yq --output-format yaml --input-format json >api/spec/v1-normalized.yaml
       - name: Validate OpenAPI definition
-        uses: char0n/swagger-editor-validate@v1
-        with:
-          definition-file: api/spec/v1-normalized.yaml
+        run: |
+          ./vacuum lint --ruleset .vacuum.yaml --errors api/spec/v1-normalized.yaml
 
   validate-migrations:
     runs-on: ubuntu-20.04
