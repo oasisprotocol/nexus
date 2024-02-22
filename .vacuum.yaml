@@ -1,0 +1,7 @@
+# Config for vacuum, the openapi spec linter.
+
+extends: [[spectral:oas, recommended]]
+rules:
+  # This rule requires an operationId attribute for every endpoint.
+  # However, openapi spec says it's an optional attribute.
+  operation-operationId: false
