@@ -10,8 +10,7 @@
       "num_transfers": 108,
       "symbol": "YUZU",
       "total_supply": "324996573618707482993195360",
-      "type": "ERC20",
-      "verification_level": "partial"
+      "type": "ERC20"
     },
     {
       "contract_addr": "oasis1qpgcp5jzlgk4hcenaj2x82rqk8rrve2keyuc8aaf",
@@ -23,8 +22,7 @@
       "num_transfers": 48,
       "symbol": "wROSE",
       "total_supply": "11110528749907675559457292",
-      "type": "ERC20",
-      "verification_level": "partial"
+      "type": "ERC20"
     },
     {
       "contract_addr": "oasis1qp2hssandc7dekjdr6ygmtzt783k3gn38uupdeys",
@@ -48,8 +46,7 @@
       "num_transfers": 2,
       "symbol": "LPT",
       "total_supply": "5515821744343857173275622",
-      "type": "ERC20",
-      "verification_level": "partial"
+      "type": "ERC20"
     },
     {
       "contract_addr": "oasis1qpuqs65me58n6mt05ezd7cnttx7k57w28v36l4ca",
@@ -73,8 +70,7 @@
       "num_transfers": 1,
       "symbol": "LPT",
       "total_supply": "8543198732792740426556",
-      "type": "ERC20",
-      "verification_level": "partial"
+      "type": "ERC20"
     },
     {
       "contract_addr": "oasis1qzel2watfs6g3cm765dwlukymjs5k3rnhvua4z78",
@@ -146,8 +142,7 @@
       "num_transfers": 1,
       "symbol": "WROSE",
       "total_supply": "370854109276538025377920",
-      "type": "ERC20",
-      "verification_level": "partial"
+      "type": "ERC20"
     },
     {
       "contract_addr": "oasis1qzxx6htc6cceayd492mqt6lqc8l3eda29cnscx67",
