@@ -13,24 +13,25 @@ import (
 	"github.com/oasisprotocol/nexus/analyzer/evmverifier/sourcify"
 	"github.com/oasisprotocol/nexus/analyzer/item"
 	"github.com/oasisprotocol/nexus/analyzer/queries"
+	uncategorized "github.com/oasisprotocol/nexus/analyzer/uncategorized"
 	"github.com/oasisprotocol/nexus/common"
 	"github.com/oasisprotocol/nexus/config"
 	"github.com/oasisprotocol/nexus/log"
 	"github.com/oasisprotocol/nexus/storage"
-	"github.com/oasisprotocol/nexus/storage/client"
 )
 
 const evmContractsVerifierAnalyzerPrefix = "evm_contract_verifier_"
 
 type processor struct {
-	chain   common.ChainName
-	runtime common.Runtime
-	source  *sourcify.SourcifyClient
-	target  storage.TargetStorage
-	logger  *log.Logger
+	chain            common.ChainName
+	runtime          common.Runtime
+	source           *sourcify.SourcifyClient
+	target           storage.TargetStorage
+	logger           *log.Logger
+	queueLengthCache int // Cache the queue length to avoid querying Sourcify too often.
 }
 
-var _ item.ItemProcessor[*unverifiedContract] = (*processor)(nil)
+var _ item.ItemProcessor[contract] = (*processor)(nil)
 
 func NewAnalyzer(
 	chain common.ChainName,
@@ -79,7 +80,7 @@ func NewAnalyzer(
 		logger:  logger,
 	}
 
-	return item.NewAnalyzer[*unverifiedContract](
+	return item.NewAnalyzer[contract](
 		evmContractsVerifierAnalyzerPrefix+string(runtime),
 		cfg,
 		p,
@@ -88,101 +89,92 @@ func NewAnalyzer(
 	)
 }
 
-type unverifiedContract struct {
-	Addr                  string
+type oasisAddress string
+
+// A smart contract, and info on verification progress.
+type contract struct {
+	Addr                  oasisAddress
 	AddrContextIdentifier string
 	AddrContextVersion    int
 	AddrData              []byte
 	EthAddr               ethCommon.Address
+	VerificationLevel     sourcify.VerificationLevel // Status on Sourcify OR in Nexus; context-dependent.
 }
 
-func (p *processor) getUnverifiedContracts(ctx context.Context) ([]*unverifiedContract, error) {
-	var unverifiedContracts []*unverifiedContract
-	rows, err := p.target.Query(ctx, queries.RuntimeEVMUnverfiedContracts, p.runtime)
+func (p *processor) getNexusVerifiedContracts(ctx context.Context) (map[oasisAddress]sourcify.VerificationLevel, error) {
+	rows, err := p.target.Query(ctx, queries.RuntimeEVMVerifiedContracts, p.runtime)
 	if err != nil {
-		return nil, fmt.Errorf("querying unverified contracts: %w", err)
+		return nil, fmt.Errorf("querying verified contracts: %w", err)
 	}
 	defer rows.Close()
 
+	nexusVerifiedContracts := map[oasisAddress]sourcify.VerificationLevel{}
 	for rows.Next() {
-		var contract unverifiedContract
-		if err = rows.Scan(
-			&contract.Addr,
-			&contract.AddrContextIdentifier,
-			&contract.AddrContextVersion,
-			&contract.AddrData,
-		); err != nil {
-			return nil, fmt.Errorf("scanning unverified contracts: %w", err)
+		var addr oasisAddress
+		var level sourcify.VerificationLevel
+		if err = rows.Scan(&addr, &level); err != nil {
+			return nil, fmt.Errorf("scanning verified contracts: %w", err)
 		}
-
-		// Compute the eth address from the preimage.
-		ethAddress, err := client.EVMEthAddrFromPreimage(contract.AddrContextIdentifier, contract.AddrContextVersion, contract.AddrData)
-		if err != nil {
-			return nil, fmt.Errorf("contract eth address: %w", err)
-		}
-		contract.EthAddr = ethCommon.BytesToAddress(ethAddress)
-
-		unverifiedContracts = append(unverifiedContracts, &contract)
-
-		// The analyzer is not overly optimized to handle a large amount of unverified contracts.
-		// Log a warning in case this happens to refactor the analyzer if that ever happens.
-		if len(unverifiedContracts) == 100_000 {
-			p.logger.Warn("Unexpectedly high number of unverified contracts. Consider refactoring the analyzer", "runtime", p.runtime)
-		}
+		nexusVerifiedContracts[addr] = level
 	}
-	return unverifiedContracts, nil
+	return nexusVerifiedContracts, nil
 }
 
-func (p *processor) getVerifiableContracts(ctx context.Context) ([]*unverifiedContract, error) {
-	// Load all non-verified contracts from the DB.
-	unverified, err := p.getUnverifiedContracts(ctx)
+func (p *processor) GetItems(ctx context.Context, limit uint64) ([]contract, error) {
+	// Load all nexus-verified contracts from the DB.
+	nexusLevels, err := p.getNexusVerifiedContracts(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get unverified contracts: %w", err)
-	}
-	if len(unverified) == 0 {
-		p.logger.Debug("no unverified contracts in Nexus database")
-		return nil, nil
+		return nil, fmt.Errorf("failed to get nexus verified contracts: %w", err)
 	}
 
 	// Query Sourcify for list of all verified contracts.
-	addresses, err := p.source.GetVerifiedContractAddresses(ctx, p.runtime)
+	sourcifyLevels, err := p.source.GetVerifiedContractAddresses(ctx, p.runtime)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get verified contract addresses: %w", err)
 	}
-	p.logger.Debug("got verified contract addresses", "addresses", addresses)
-	if len(addresses) == 0 {
-		p.logger.Debug("no verified contracts found in Sourcify")
-		return nil, nil
-	}
-	// Create a lookup map of verified contract addresses.
-	sourcifyAddresses := make(map[ethCommon.Address]bool, len(addresses))
-	for _, address := range addresses {
-		sourcifyAddresses[address] = true
-	}
+	p.logger.Debug("got verified contract addresses", "addresses", sourcifyLevels)
 
-	// Pick currently unverified contracts that are present in sourcify.
-	var canBeVerified []*unverifiedContract
-	for _, contract := range unverified {
-		if _, ok := sourcifyAddresses[contract.EthAddr]; ok {
-			canBeVerified = append(canBeVerified, contract)
+	// Find contracts that are verified in Sourcify and not yet verified in Nexus.
+	var items []contract
+	for ethAddr, sourcifyLevel := range sourcifyLevels {
+		oasisAddr, err := uncategorized.StringifyEthAddress(ethAddr.Bytes())
+		if err != nil {
+			p.logger.Warn("failed to stringify eth address from sourcify", "err", err, "eth_address", ethAddr)
+			continue
+		}
+
+		nexusLevel, isKnownToNexus := nexusLevels[oasisAddress(oasisAddr)]
+		if !isKnownToNexus || (nexusLevel == sourcify.VerificationLevelPartial && sourcifyLevel == sourcify.VerificationLevelFull) {
+			items = append(items, contract{
+				Addr:              oasisAddress(oasisAddr),
+				EthAddr:           ethAddr,
+				VerificationLevel: sourcifyLevel,
+			})
 		}
 	}
 
-	return canBeVerified, nil
+	p.queueLengthCache = len(items)
+	if uint64(len(items)) > limit {
+		items = items[:limit]
+	}
+	return items, nil
 }
 
-func (p *processor) GetItems(ctx context.Context, limit uint64) ([]*unverifiedContract, error) {
-	verifiableContracts, err := p.getVerifiableContracts(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get verifiable contracts: %w", err)
+func extractABI(metadataJSON json.RawMessage) (*json.RawMessage, error) {
+	type metadataStruct struct { // A subset of the metadata type; focuses only on ABI.
+		Output struct {
+			ABI json.RawMessage `json:"abi"`
+		} `json:"output"`
 	}
-	if len(verifiableContracts) > int(limit) {
-		verifiableContracts = verifiableContracts[:limit]
+	var parsedMeta metadataStruct
+	if err := json.Unmarshal(metadataJSON, &parsedMeta); err != nil {
+		return nil, err
 	}
-	return verifiableContracts, nil
+	return &parsedMeta.Output.ABI, nil
 }
 
-func (p *processor) ProcessItem(ctx context.Context, batch *storage.QueryBatch, item *unverifiedContract) error {
+// In inputs, item.VerificationLevel indicates the level on *Sourcify*.
+func (p *processor) ProcessItem(ctx context.Context, batch *storage.QueryBatch, item contract) error {
 	p.logger.Debug("verifying contract", "address", item.Addr, "eth_address", item.EthAddr)
 
 	// Load contract source files.
@@ -190,17 +182,17 @@ func (p *processor) ProcessItem(ctx context.Context, batch *storage.QueryBatch, 
 	if err != nil {
 		return fmt.Errorf("failed to get contract source files: %w, eth_address: %s, address: %s", err, item.EthAddr, item.Addr)
 	}
-
-	// Parse ABI from the metadata.
-	type abiStruct struct {
-		Output struct {
-			ABI json.RawMessage `json:"abi"`
-		} `json:"output"`
+	sourceFilesJSON, err := json.Marshal(sourceFiles)
+	if err != nil {
+		return fmt.Errorf("failed to marshal source files: %w, eth_address: %s, address: %s", err, item.EthAddr, item.Addr)
 	}
-	var abi abiStruct
-	if err = json.Unmarshal(metadata, &abi); err != nil {
+
+	var abi *json.RawMessage
+	if abi, err = extractABI(metadata); err != nil {
 		p.logger.Warn("failed to parse ABI from metadata", "err", err, "eth_address", item.EthAddr, "address", item.Addr)
 	}
+
+	p.logger.Info("verified contract", "address", item.Addr, "eth_address", item.EthAddr, "verification_level", item.VerificationLevel)
 
 	batch.Queue(
 		// NOTE: This also updates `verification_info_downloaded_at`, causing the `evm_abi` to re-parse
@@ -210,18 +202,15 @@ func (p *processor) ProcessItem(ctx context.Context, batch *storage.QueryBatch, 
 		queries.RuntimeEVMVerifyContractUpsert,
 		p.runtime,
 		item.Addr,
-		abi.Output.ABI,
+		abi,
 		metadata,
-		sourceFiles,
+		sourceFilesJSON,
+		item.VerificationLevel,
 	)
 
 	return nil
 }
 
 func (p *processor) QueueLength(ctx context.Context) (int, error) {
-	verifiableContracts, err := p.getVerifiableContracts(ctx)
-	if err != nil {
-		return 0, fmt.Errorf("failed to get verifiable contracts: %w", err)
-	}
-	return len(verifiableContracts), nil
+	return p.queueLengthCache, nil
 }

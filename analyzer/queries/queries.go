@@ -934,21 +934,23 @@ var (
       runtime = $1 AND verification_level IS NOT NULL`
 
 	RuntimeEVMVerifyContractUpsert = `
-    INSERT INTO chain.evm_contracts (runtime, contract_address, verification_info_downloaded_at, abi, compilation_metadata, source_files)
-    VALUES ($1, $2, CURRENT_TIMESTAMP, $3, $4, $5)
+    INSERT INTO chain.evm_contracts (runtime, contract_address, verification_info_downloaded_at, abi, compilation_metadata, source_files, verification_level)
+    VALUES ($1, $2, CURRENT_TIMESTAMP, $3, $4, $5, $6)
     ON CONFLICT (runtime, contract_address) DO UPDATE
     SET
       verification_info_downloaded_at = CURRENT_TIMESTAMP,
       abi = EXCLUDED.abi,
       compilation_metadata = EXCLUDED.compilation_metadata,
-      source_files = EXCLUDED.source_files`
+      source_files = EXCLUDED.source_files,
+      verification_level = EXCLUDED.verification_level`
 
 	RuntimeEvmVerifiedContractTxs = `
     WITH abi_contracts AS (
       SELECT 
         runtime,
         contract_address AS addr,
-        abi
+        abi,
+        verification_info_downloaded_at
       FROM chain.evm_contracts
       WHERE
         runtime = $1 AND abi IS NOT NULL
@@ -957,7 +959,7 @@ var (
       abi_contracts.addr,
       abi_contracts.abi,
       txs.tx_hash,
-      txs.body->'data',
+      decode(txs.body->>'data', 'base64'),
       txs.error_message_raw
     FROM abi_contracts 
     JOIN chain.runtime_transactions as txs ON
@@ -965,8 +967,8 @@ var (
       txs.to = abi_contracts.addr AND
       txs.method = 'evm.Call' -- note: does not include evm.Create txs; their payload is never encrypted.
     WHERE
-      body IS NOT NULL AND
-      abi_parsed_at IS NULL
+      txs.body IS NOT NULL AND
+      (txs.abi_parsed_at IS NULL OR txs.abi_parsed_at < abi_contracts.verification_info_downloaded_at)
     ORDER BY addr
     LIMIT $2`
 
@@ -975,7 +977,8 @@ var (
       SELECT
         runtime,
         contract_address AS addr,
-        abi
+        abi,
+        verification_info_downloaded_at
       FROM chain.evm_contracts
       WHERE
         runtime = $1 AND
@@ -995,6 +998,6 @@ var (
       evs.runtime = abi_contracts.runtime AND
       decode(body->>'address', 'base64') = preimages.address_data
     WHERE
-      evs.abi_parsed_at IS NULL
+      (evs.abi_parsed_at IS NULL OR evs.abi_parsed_at < abi_contracts.verification_info_downloaded_at)
     LIMIT $2`
 )
