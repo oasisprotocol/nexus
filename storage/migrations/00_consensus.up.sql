@@ -158,6 +158,8 @@ CREATE TABLE chain.nodes
 
   -- Consensus Info
   consensus_pubkey  TEXT NOT NULL,
+  -- added in 14_block_meta.up.sql
+  -- consensus_pubkey_address TEXT,
   consensus_address TEXT,
 
   -- VRF Info
@@ -171,6 +173,8 @@ CREATE TABLE chain.nodes
 
   -- TODO: Track node status.
 );
+-- added in 14_block_meta.up.sql
+-- CREATE INDEX ix_nodes_consensus_pubkey_address ON chain.nodes (consensus_pubkey_address);
 
 -- Claims of entities that they own nodes. Each entity claims 0 or more nodes when it registers.
 -- A node can only register if it declares itself to be owned by an entity that previously claimed it.
