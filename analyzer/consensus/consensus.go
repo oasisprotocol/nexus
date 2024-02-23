@@ -14,6 +14,7 @@ import (
 	coreCommon "github.com/oasisprotocol/oasis-core/go/common"
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
+	"github.com/oasisprotocol/oasis-core/go/consensus/cometbft/crypto"
 	sdkConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 
 	"github.com/oasisprotocol/nexus/analyzer/consensus/static"
@@ -650,6 +651,7 @@ func (m *processor) queueNodeEvents(batch *storage.QueryBatch, data *registryDat
 				nodeEvent.P2PID.String(),
 				nodeEvent.P2PAddresses,
 				nodeEvent.ConsensusID.String(),
+				crypto.PublicKeyToCometBFT(common.Ptr(nodeEvent.ConsensusID)).Address().String(),
 				strings.Join(nodeEvent.ConsensusAddresses, ","), // TODO: store as array
 				nodeEvent.VRFPubKey,
 				strings.Join(nodeEvent.Roles, ","), // TODO: store as array
