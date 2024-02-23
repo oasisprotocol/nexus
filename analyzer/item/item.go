@@ -32,11 +32,11 @@ const (
 var ErrEmptyBatch = errors.New("no items in batch")
 
 type itemBasedAnalyzer[Item any] struct {
-	maxBatchSize     uint64
-	stopOnEmptyQueue bool
-	fixedInterval    time.Duration
-	interItemDelay   time.Duration
-	analyzerName     string
+	maxBatchSize        uint64
+	stopIfQueueEmptyFor time.Duration
+	fixedInterval       time.Duration
+	interItemDelay      time.Duration
+	analyzerName        string
 
 	processor ItemProcessor[Item]
 
@@ -61,8 +61,8 @@ type ItemProcessor[Item any] interface {
 
 // NewAnalyzer returns a new item based analyzer using the provided item processor.
 //
-// If stopOnEmptyQueue is true, the analyzer will process batches of items until its
-// work queue is empty, at which point it will terminate and return. Likely to
+// If stopIfQueueEmptyFor is a non-zero duration, the analyzer will process batches of items until its
+// work queue is empty for `stopIfQueueEmptyFor`, at which point it will terminate and return. Likely to
 // be used in the regression tests.
 //
 // If fixedInterval is provided, the analyzer will process one batch every fixedInterval.
@@ -79,15 +79,15 @@ func NewAnalyzer[Item any](
 		cfg.BatchSize = defaultBatchSize
 	}
 	a := &itemBasedAnalyzer[Item]{
-		cfg.BatchSize,
-		cfg.StopOnEmptyQueue,
-		cfg.Interval,
-		cfg.InterItemDelay,
-		name,
-		processor,
-		target,
-		logger,
-		metrics.NewDefaultAnalysisMetrics(name),
+		maxBatchSize:        cfg.BatchSize,
+		stopIfQueueEmptyFor: cfg.StopIfQueueEmptyFor,
+		fixedInterval:       cfg.Interval,
+		interItemDelay:      cfg.InterItemDelay,
+		analyzerName:        name,
+		processor:           processor,
+		target:              target,
+		logger:              logger,
+		metrics:             metrics.NewDefaultAnalysisMetrics(name),
 	}
 
 	return a, nil
@@ -195,8 +195,34 @@ func (a *itemBasedAnalyzer[Item]) Start(ctx context.Context) {
 		)
 		return
 	}
+	mostRecentTask := time.Now()
 
 	for {
+		// Update queueLength
+		queueLength, err := a.sendQueueLengthMetric(ctx)
+		// Stop if queue has been empty for a while, and configured to do so.
+		if err == nil && queueLength == 0 && a.stopIfQueueEmptyFor != 0 && time.Since(mostRecentTask) > a.stopIfQueueEmptyFor {
+			a.logger.Warn("item analyzer work queue has been empty for a while; shutting down",
+				"queue_empty_since", mostRecentTask,
+				"queue_empty_for", time.Since(mostRecentTask),
+				"stop_if_queue_empty_for", a.stopIfQueueEmptyFor)
+			return
+		}
+		a.logger.Info("work queue length", "num_items", queueLength)
+
+		numProcessed, err := a.processBatch(ctx)
+		if err != nil { //nolint:gocritic
+			a.logger.Error("error processing batch", "err", err)
+			backoff.Failure()
+		} else if numProcessed == 0 {
+			// We are running faster than work is being created. Reduce needless GetItems() calls.
+			backoff.Failure()
+		} else {
+			mostRecentTask = time.Now()
+			backoff.Success()
+		}
+
+		// Sleep a little before the next batch.
 		delay := backoff.Timeout()
 		if a.fixedInterval != 0 {
 			delay = a.fixedInterval
@@ -208,28 +234,6 @@ func (a *itemBasedAnalyzer[Item]) Start(ctx context.Context) {
 			a.logger.Warn("shutting down item analyzer", "reason", ctx.Err())
 			return
 		}
-		// Update queueLength
-		queueLength, err := a.sendQueueLengthMetric(ctx)
-		if err == nil && queueLength == 0 && a.stopOnEmptyQueue {
-			a.logger.Warn("item analyzer work queue is empty; shutting down")
-			return
-		}
-		a.logger.Info("work queue length", "num_items", queueLength)
-
-		numProcessed, err := a.processBatch(ctx)
-		if err != nil {
-			a.logger.Error("error processing batch", "err", err)
-			backoff.Failure()
-			continue
-		}
-		if numProcessed == 0 {
-			// Count this as a failure to reduce the polling when we are
-			// running faster than the block analyzer can find new tokens.
-			backoff.Failure()
-			continue
-		}
-
-		backoff.Success()
 	}
 }
 

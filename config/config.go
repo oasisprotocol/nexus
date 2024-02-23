@@ -59,6 +59,10 @@ type AnalysisConfig struct {
 	// Analyzers is the analyzer configs.
 	Analyzers AnalyzersList `koanf:"analyzers"`
 
+	// Helpers is the configuration for various helper services.
+	// They are instantiated if and only if analyzers are instantiated.
+	Helpers HelperList `koanf:"helpers"`
+
 	Storage *StorageConfig `koanf:"storage"`
 }
 
@@ -152,6 +156,18 @@ type AnalyzersList struct {
 	MetadataRegistry *MetadataRegistryConfig `koanf:"metadata_registry"`
 	NodeStats        *NodeStatsConfig        `koanf:"node_stats"`
 	AggregateStats   *AggregateStatsConfig   `koanf:"aggregate_stats"`
+}
+
+type HelperList struct {
+	CachingProxies []HttpCachingProxyConfig `koanf:"caching_proxies"`
+}
+
+// Config for a HTTP proxy that caches all responses, and serves cached data indefinitely.
+// The cache directory is inferred from the global `source` config.
+type HttpCachingProxyConfig struct {
+	HostAddr string `koanf:"host_addr"` // The TCP address for the server to listen on, in the form "host:port"
+	// The base URL of the server to which we'll proxy.
+	TargetURL string `koanf:"target"`
 }
 
 // SourceConfig has some controls about what chain we're analyzing and how to connect.
@@ -396,13 +412,14 @@ type ItemBasedAnalyzerConfig struct {
 	// Uses default value of 20 if unset/set to 0.
 	BatchSize uint64 `koanf:"batch_size"`
 
-	// If StopOnEmptyQueue is true, the analyzer will exit the main processing loop when
-	// there are no items left in the work queue. This is useful during testing when
-	// 1) The number of items in the queue is determinate
+	// If StopIfQueueEmptyFor is a non-zero duration, the analyzer will terminate when
+	// there are no items left in the work queue for this specified amount of time.
+	// This is useful during testing when
+	// 1) The number of items in the queue is determinate.
 	// 2) We want the analyzer to naturally terminate after processing all available work items.
 	//
-	// Defaults to false.
-	StopOnEmptyQueue bool `koanf:"stop_on_empty_queue"`
+	// Defaults to 0, i.e. the analyzer never terminates.
+	StopIfQueueEmptyFor time.Duration `koanf:"stop_if_queue_empty_for"`
 
 	// If Interval is set, the analyzer will process batches at a fixed cadence specified by Interval.
 	// Otherwise, the analyzer will use an adaptive backoff to determine the delay between

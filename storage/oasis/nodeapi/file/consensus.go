@@ -11,6 +11,7 @@ import (
 	consensus "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api"
 	genesis "github.com/oasisprotocol/nexus/coreapi/v22.2.11/genesis/api"
 
+	"github.com/oasisprotocol/nexus/cache/kvstore"
 	"github.com/oasisprotocol/nexus/common"
 	"github.com/oasisprotocol/nexus/metrics"
 	"github.com/oasisprotocol/nexus/storage/oasis/connections"
@@ -22,14 +23,14 @@ import (
 // to `ConsensusApiLite` calls, this data is inherently compatible with the
 // current Nexus and can thus handle heights from both Cobalt/Damask.
 type FileConsensusApiLite struct {
-	db           KVStore
+	db           kvstore.KVStore
 	consensusApi nodeapi.ConsensusApiLite
 }
 
 var _ nodeapi.ConsensusApiLite = (*FileConsensusApiLite)(nil)
 
 func NewFileConsensusApiLite(cacheDir string, consensusApi nodeapi.ConsensusApiLite) (*FileConsensusApiLite, error) {
-	db, err := OpenKVStore(
+	db, err := kvstore.OpenKVStore(
 		cmdCommon.RootLogger().WithModule("file-consensus-api-lite").With("runtime", "consensus"),
 		cacheDir,
 		common.Ptr(metrics.NewDefaultAnalysisMetrics("consensus")),
@@ -56,33 +57,33 @@ func (c *FileConsensusApiLite) Close() error {
 }
 
 func (c *FileConsensusApiLite) GetGenesisDocument(ctx context.Context, chainContext string) (*genesis.Document, error) {
-	return GetFromCacheOrCall(
+	return kvstore.GetFromCacheOrCall(
 		c.db, false,
-		generateCacheKey("GetGenesisDocument", chainContext),
+		kvstore.GenerateCacheKey("GetGenesisDocument", chainContext),
 		func() (*genesis.Document, error) { return c.consensusApi.GetGenesisDocument(ctx, chainContext) },
 	)
 }
 
 func (c *FileConsensusApiLite) StateToGenesis(ctx context.Context, height int64) (*genesis.Document, error) {
-	return GetFromCacheOrCall(
+	return kvstore.GetFromCacheOrCall(
 		c.db, height == consensus.HeightLatest,
-		generateCacheKey("StateToGenesis", height),
+		kvstore.GenerateCacheKey("StateToGenesis", height),
 		func() (*genesis.Document, error) { return c.consensusApi.StateToGenesis(ctx, height) },
 	)
 }
 
 func (c *FileConsensusApiLite) GetBlock(ctx context.Context, height int64) (*consensus.Block, error) {
-	return GetFromCacheOrCall(
+	return kvstore.GetFromCacheOrCall(
 		c.db, height == consensus.HeightLatest,
-		generateCacheKey("GetBlock", height),
+		kvstore.GenerateCacheKey("GetBlock", height),
 		func() (*consensus.Block, error) { return c.consensusApi.GetBlock(ctx, height) },
 	)
 }
 
 func (c *FileConsensusApiLite) GetTransactionsWithResults(ctx context.Context, height int64) ([]nodeapi.TransactionWithResults, error) {
-	return GetSliceFromCacheOrCall(
+	return kvstore.GetSliceFromCacheOrCall(
 		c.db, height == consensus.HeightLatest,
-		generateCacheKey("GetTransactionsWithResults", height),
+		kvstore.GenerateCacheKey("GetTransactionsWithResults", height),
 		func() ([]nodeapi.TransactionWithResults, error) {
 			return c.consensusApi.GetTransactionsWithResults(ctx, height)
 		},
@@ -90,9 +91,9 @@ func (c *FileConsensusApiLite) GetTransactionsWithResults(ctx context.Context, h
 }
 
 func (c *FileConsensusApiLite) GetEpoch(ctx context.Context, height int64) (beacon.EpochTime, error) {
-	time, err := GetFromCacheOrCall(
+	time, err := kvstore.GetFromCacheOrCall(
 		c.db, height == consensus.HeightLatest,
-		generateCacheKey("GetEpoch", height),
+		kvstore.GenerateCacheKey("GetEpoch", height),
 		func() (*beacon.EpochTime, error) {
 			time, err := c.consensusApi.GetEpoch(ctx, height)
 			return &time, err
@@ -105,65 +106,65 @@ func (c *FileConsensusApiLite) GetEpoch(ctx context.Context, height int64) (beac
 }
 
 func (c *FileConsensusApiLite) RegistryEvents(ctx context.Context, height int64) ([]nodeapi.Event, error) {
-	return GetSliceFromCacheOrCall(
+	return kvstore.GetSliceFromCacheOrCall(
 		c.db, height == consensus.HeightLatest,
-		generateCacheKey("RegistryEvents", height),
+		kvstore.GenerateCacheKey("RegistryEvents", height),
 		func() ([]nodeapi.Event, error) { return c.consensusApi.RegistryEvents(ctx, height) },
 	)
 }
 
 func (c *FileConsensusApiLite) StakingEvents(ctx context.Context, height int64) ([]nodeapi.Event, error) {
-	return GetSliceFromCacheOrCall(
+	return kvstore.GetSliceFromCacheOrCall(
 		c.db, height == consensus.HeightLatest,
-		generateCacheKey("StakingEvents", height),
+		kvstore.GenerateCacheKey("StakingEvents", height),
 		func() ([]nodeapi.Event, error) { return c.consensusApi.StakingEvents(ctx, height) },
 	)
 }
 
 func (c *FileConsensusApiLite) GovernanceEvents(ctx context.Context, height int64) ([]nodeapi.Event, error) {
-	return GetSliceFromCacheOrCall(
+	return kvstore.GetSliceFromCacheOrCall(
 		c.db, height == consensus.HeightLatest,
-		generateCacheKey("GovernanceEvents", height),
+		kvstore.GenerateCacheKey("GovernanceEvents", height),
 		func() ([]nodeapi.Event, error) { return c.consensusApi.GovernanceEvents(ctx, height) },
 	)
 }
 
 func (c *FileConsensusApiLite) RoothashEvents(ctx context.Context, height int64) ([]nodeapi.Event, error) {
-	return GetSliceFromCacheOrCall(
+	return kvstore.GetSliceFromCacheOrCall(
 		c.db, height == consensus.HeightLatest,
-		generateCacheKey("RoothashEvents", height),
+		kvstore.GenerateCacheKey("RoothashEvents", height),
 		func() ([]nodeapi.Event, error) { return c.consensusApi.RoothashEvents(ctx, height) },
 	)
 }
 
 func (c *FileConsensusApiLite) GetNodes(ctx context.Context, height int64) ([]nodeapi.Node, error) {
-	return GetSliceFromCacheOrCall(
+	return kvstore.GetSliceFromCacheOrCall(
 		c.db, height == consensus.HeightLatest,
-		generateCacheKey("GetNodes", height),
+		kvstore.GenerateCacheKey("GetNodes", height),
 		func() ([]nodeapi.Node, error) { return c.consensusApi.GetNodes(ctx, height) },
 	)
 }
 
 func (c *FileConsensusApiLite) GetValidators(ctx context.Context, height int64) ([]nodeapi.Validator, error) {
-	return GetSliceFromCacheOrCall(
+	return kvstore.GetSliceFromCacheOrCall(
 		c.db, height == consensus.HeightLatest,
-		generateCacheKey("GetValidators", height),
+		kvstore.GenerateCacheKey("GetValidators", height),
 		func() ([]nodeapi.Validator, error) { return c.consensusApi.GetValidators(ctx, height) },
 	)
 }
 
 func (c *FileConsensusApiLite) GetCommittees(ctx context.Context, height int64, runtimeID coreCommon.Namespace) ([]nodeapi.Committee, error) {
-	return GetSliceFromCacheOrCall(
+	return kvstore.GetSliceFromCacheOrCall(
 		c.db, height == consensus.HeightLatest,
-		generateCacheKey("GetCommittee", height, runtimeID),
+		kvstore.GenerateCacheKey("GetCommittee", height, runtimeID),
 		func() ([]nodeapi.Committee, error) { return c.consensusApi.GetCommittees(ctx, height, runtimeID) },
 	)
 }
 
 func (c *FileConsensusApiLite) GetProposal(ctx context.Context, height int64, proposalID uint64) (*nodeapi.Proposal, error) {
-	return GetFromCacheOrCall(
+	return kvstore.GetFromCacheOrCall(
 		c.db, height == consensus.HeightLatest,
-		generateCacheKey("GetProposal", height, proposalID),
+		kvstore.GenerateCacheKey("GetProposal", height, proposalID),
 		func() (*nodeapi.Proposal, error) { return c.consensusApi.GetProposal(ctx, height, proposalID) },
 	)
 }

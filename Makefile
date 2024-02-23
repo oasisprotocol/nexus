@@ -110,14 +110,15 @@ accept-e2e-regression-suite:
 ifndef SUITE
 	$(error SUITE is undefined)
 endif
-	@# Delete all old expected files first, in case any test cases were renamed or removed.
-	rm -rf ./tests/e2e_regression/$(SUITE)/expected
-	@# Copy the actual outputs to the expected outputs.
-	cp -r  ./tests/e2e_regression/$(SUITE)/{actual,expected}
-	@# The result of the "spec" test is a special case. It should always match the
-	@# current openAPI spec file, so we symlink it to avoid having to update the expected
-	@# output every time the spec changes.
-	rm ./tests/e2e_regression/$(SUITE)/expected/spec.body
+	[[ -d ./tests/e2e_regression/$(SUITE)/actual ]] || { echo "Note: No actual outputs found for suite $(SUITE). Nothing to accept."; exit 0; } \
+	# Delete all old expected files first, in case any test cases were renamed or removed. \
+	rm -rf ./tests/e2e_regression/$(SUITE)/expected; \
+	# Copy the actual outputs to the expected outputs. \
+	cp -r  ./tests/e2e_regression/$(SUITE)/{actual,expected}; \
+	# The result of the "spec" test is a special case. It should always match the \
+	# current openAPI spec file, so we symlink it to avoid having to update the expected \
+	# output every time the spec changes. \
+	rm -f ./tests/e2e_regression/$(SUITE)/expected/spec.body; \
 	ln -s  ../../../../api/spec/v1.yaml ./tests/e2e_regression/$(SUITE)/expected/spec.body
 
 # Format code.

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	ethCommon "github.com/ethereum/go-ethereum/common"
@@ -44,20 +45,28 @@ func NewAnalyzer(
 		logger.Warn("EVM contracts verifier only supports testnet/mainnet, stopping", "chain_name", chain)
 		return nil, fmt.Errorf("invalid chainName %s, expected one of testnet/mainnet", chain)
 	}
-	// Default interval is 5 minutes.
-	if cfg.Interval == 0 {
-		cfg.Interval = 5 * time.Minute
+
+	// Assuming we're running against "real" Sourcify, impose conservative request rates so we don't get banned.
+	// If we're running against localhost, assume it's backed by a local cache and proceed quickly.
+	// NOTE: We might hit Sourcify at very high rates if the local cache is empty, and the default intervals (0) are used.
+	//       In my experiment with 26 contracts, that was not a problem - Sourcify did not have time to ban me.
+	if !(strings.Contains(sourcifyServerUrl, "localhost") || strings.Contains(sourcifyServerUrl, "127.0.0.1")) {
+		// Default interval is 5 minutes.
+		if cfg.Interval == 0 {
+			cfg.Interval = 5 * time.Minute
+		}
+		if cfg.Interval < time.Minute {
+			return nil, fmt.Errorf("invalid interval %s, evm contracts verifier interval must be at least 1 minute to meet Sourcify rate limits", cfg.Interval.String())
+		}
+		// interItemDelay should be at least 1 second to meet Sourcify rate limits.
+		if cfg.InterItemDelay == 0 {
+			cfg.InterItemDelay = time.Second
+		}
+		if cfg.InterItemDelay < time.Second {
+			return nil, fmt.Errorf("invalid interItemDelay %s, evm contracts verifier inter item delay must be at least 1 second to meet sourcify rate limits", cfg.InterItemDelay.String())
+		}
 	}
-	if cfg.Interval < time.Minute {
-		return nil, fmt.Errorf("invalid interval %s, evm contracts verifier interval must be at least 1 minute to meet Sourcify rate limits", cfg.Interval.String())
-	}
-	// interItemDelay should be at least 1 second to meet Sourcify rate limits.
-	if cfg.InterItemDelay == 0 {
-		cfg.InterItemDelay = time.Second
-	}
-	if cfg.InterItemDelay < time.Second {
-		return nil, fmt.Errorf("invalid interItemDelay %s, evm contracts verifier inter item delay must be at least 1 second to meet sourcify rate limits", cfg.InterItemDelay.String())
-	}
+
 	client, err := sourcify.NewClient(sourcifyServerUrl, chain, logger)
 	if err != nil {
 		return nil, err
@@ -194,7 +203,11 @@ func (p *processor) ProcessItem(ctx context.Context, batch *storage.QueryBatch, 
 	}
 
 	batch.Queue(
-		queries.RuntimeEVMVerifyContractUpdate,
+		// NOTE: This also updates `verification_info_downloaded_at`, causing the `evm_abi` to re-parse
+		//       the contract's txs and events.
+		// NOTE: We upsert rather than update; if the contract is not in the db yet, UPDATE would ignore the
+		//       contract and this analyzer would keep retrying it on every iteration.
+		queries.RuntimeEVMVerifyContractUpsert,
 		p.runtime,
 		item.Addr,
 		abi.Output.ABI,

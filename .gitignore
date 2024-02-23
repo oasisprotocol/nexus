@@ -14,7 +14,6 @@ tests/e2e_regression/*/actual/*
 
 # Log output.
 **/*.log
-/cache
 /logs
 
 # API files.

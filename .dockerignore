@@ -9,6 +9,5 @@ docker/node/etc/genesis.json
 tests/e2e/testnet/net-runner
 
 # Local workdirs
-cache
 .*
 *.log

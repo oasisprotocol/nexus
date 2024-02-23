@@ -55,11 +55,12 @@ func TestSequencing(t *testing.T) {
 	// Slow analyzers
 	slowA := dummyAnalyzer("a", "slowA", 1*time.Second, &finishLog)
 	slowB := dummyAnalyzer("b", "slowB", 1*time.Second, &finishLog)
-	slowX := dummyAnalyzer("", "slowX", 0*time.Second, &finishLog)
+	slowC := dummyAnalyzer("c", "slowC", 1500*time.Millisecond, &finishLog) // depends on fastC, which does not exist
+	slowX := dummyAnalyzer("", "slowX", 0*time.Second, &finishLog)          // depends on no fast analyzers
 
 	s := Service{
 		fastSyncAnalyzers: []SyncedAnalyzer{fastA, fastB1, fastB2},
-		analyzers:         []SyncedAnalyzer{slowA, slowB, slowX},
+		analyzers:         []SyncedAnalyzer{slowA, slowB, slowC, slowX},
 		logger:            log.NewDefaultLogger("analyzer"),
 	}
 
@@ -68,6 +69,7 @@ func TestSequencing(t *testing.T) {
 		"slowX",  // finishes immediately, at t=0s, because it depends on no fast analyzers
 		"fastB1", // finishes at t=0.5s
 		"fastA",  // finishes at t=1s
+		"slowC",  // finishes at t=1.5s because it doesn't need to wait for any fast analyzers; we're making sure it starts at all
 		"slowA",  // finishes at t=2s because it waits for fastA (1s), then runs for 1s
 		"fastB2", // finishes at t=3s
 		"slowB",  // finishes at t=4s because it waits for fastB1+fastB2 (3s), then runs for 1s

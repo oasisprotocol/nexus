@@ -1,4 +1,4 @@
-package file
+package kvstore
 
 import (
 	"fmt"
@@ -17,7 +17,7 @@ import (
 // A key in the KVStore.
 type CacheKey []byte
 
-func generateCacheKey(methodName string, params ...interface{}) CacheKey {
+func GenerateCacheKey(methodName string, params ...interface{}) CacheKey {
 	return CacheKey(cbor.Marshal([]interface{}{methodName, params}))
 }
 
