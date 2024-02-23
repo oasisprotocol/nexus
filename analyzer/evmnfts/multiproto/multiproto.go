@@ -1,10 +1,13 @@
 package multiproto
 
 import (
+	"bytes"
 	"context"
+	"encoding/base64"
 	"fmt"
 	"io"
 	"net/url"
+	"strings"
 
 	"github.com/oasisprotocol/nexus/analyzer/evmnfts/httpmisc"
 	"github.com/oasisprotocol/nexus/analyzer/evmnfts/ipfsclient"
@@ -39,6 +42,16 @@ func Get(ctx context.Context, ipfsClient ipfsclient.Client, whyDidTheyNameTheirL
 			return nil, fmt.Errorf("IPFS get: %w", err1)
 		}
 		return rc, nil
+	case "data":
+		// A few NFTs publish their metadata directly in data URIs that look like
+		// `data:application/json;base64,eyJuYW1lIjogIkZh....`
+		// In this case we return the base64 encoded data
+		enc := strings.TrimPrefix(parsed.Opaque, "application/json;base64,")
+		raw, err1 := base64.StdEncoding.DecodeString(enc)
+		if err1 != nil {
+			return nil, fmt.Errorf("unable to b64 decode data: %w", err1)
+		}
+		return io.NopCloser(bytes.NewReader(raw)), nil
 	default:
 		return nil, fmt.Errorf("unsupported protocol %s", parsed.Scheme)
 	}
