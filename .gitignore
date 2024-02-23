@@ -12,12 +12,6 @@ docker/node/etc/genesis.json
 tests/e2e/testnet/net-runner
 tests/e2e_regression/*/actual/*
 
-# Index files for `pogreb` kvstore/cache.
-# They can be auto-reconstructed from .psg files. They sometimes change for no obvious reason.
-tests/e2e_regression/**/rpc-cache/**/*.pmt
-tests/e2e_regression/**/rpc-cache/**/*.pix
-tests/e2e_regression/**/rpc-cache/**/lock
-
 # Log output.
 **/*.log
 /logs
