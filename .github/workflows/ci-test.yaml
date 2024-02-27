@@ -79,7 +79,7 @@ jobs:
           <api/spec/v1.yaml ./yq --output-format json | ./yq --output-format yaml --input-format json >api/spec/v1-normalized.yaml
       - name: Validate OpenAPI definition
         run: |
-          ./vacuum lint --ruleset .vacuum.yaml --errors api/spec/v1-normalized.yaml
+          ./vacuum lint --ruleset .vacuum.yaml --details --snippets --errors api/spec/v1-normalized.yaml
 
   validate-migrations:
     runs-on: ubuntu-20.04
