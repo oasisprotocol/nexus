@@ -9,11 +9,11 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
-// evmPreMarshal converts v to a type that gives us the JSON serialization that we like:
+// EvmPreMarshal converts v to a type that gives us the JSON serialization that we like:
 // - large integers are JSON strings instead of JSON numbers
 // - byte array types are JSON strings of base64 instead of JSON arrays of numbers
 // Contrived dot for godot linter: .
-func evmPreMarshal(v interface{}, t abi.Type) interface{} {
+func EvmPreMarshal(v interface{}, t abi.Type) interface{} {
 	switch t.T {
 	case abi.IntTy, abi.UintTy:
 		if t.Size > 32 {
@@ -23,14 +23,14 @@ func evmPreMarshal(v interface{}, t abi.Type) interface{} {
 		rv := reflect.ValueOf(v)
 		slice := make([]interface{}, 0, rv.Len())
 		for i := 0; i < rv.Len(); i++ {
-			slice = append(slice, evmPreMarshal(rv.Index(i).Interface(), *t.Elem))
+			slice = append(slice, EvmPreMarshal(rv.Index(i).Interface(), *t.Elem))
 		}
 		return slice
 	case abi.TupleTy:
 		rv := reflect.ValueOf(v)
 		m := map[string]interface{}{}
 		for i, fieldName := range t.TupleRawNames {
-			m[fieldName] = evmPreMarshal(rv.Field(i).Interface(), *t.TupleElems[i])
+			m[fieldName] = EvmPreMarshal(rv.Field(i).Interface(), *t.TupleElems[i])
 		}
 	case abi.FixedBytesTy, abi.FunctionTy:
 		c := reflect.New(t.GetType()).Elem()

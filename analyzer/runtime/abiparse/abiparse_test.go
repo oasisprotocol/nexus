@@ -46,7 +46,7 @@ func TestParseTypes(t *testing.T) {
 		"{\"n\":1,\"s\":\"a\"}", // O
 	}
 	for i, input := range method.Inputs {
-		transducedArg := evmPreMarshal(args[i], input.Type)
+		transducedArg := EvmPreMarshal(args[i], input.Type)
 		jsonBytesArg, err1 := json.Marshal(transducedArg)
 		require.NoError(t, err1)
 		require.Equal(t, jsonExpected[i], string(jsonBytesArg))
