@@ -76,9 +76,10 @@ func TestUnknownError(t *testing.T) {
 }
 
 func TestEmptyError(t *testing.T) {
-	input := &mockError{module: "evm", code: 8, message: "reverted: "}
-	msg := tryParseErrorMessage(input.module, input.code, input.message)
-	require.Nil(t, msg, "tryParseErrorMessage extracted a message when it should not have")
+	emptyErr := mockError{module: "evm", code: 8, message: "reverted: "}
+	msg := tryParseErrorMessage(emptyErr.module, emptyErr.code, emptyErr.message)
+	require.NotNil(t, msg, "failed to extract default error message")
+	require.Equal(t, DefaultTxRevertErrMsg, *msg, "tryParseErrorMessage extracted a message that differed from the expected default error message")
 }
 
 func TestExtractSuccessfulEncryptedTx(t *testing.T) {
