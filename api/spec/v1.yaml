@@ -1612,13 +1612,13 @@ components:
             The ID of the runtime to which the event relates, encoded in hex.
             Present only for events of type `roothash.*`.
           example: 000000000000000000000000000000000000000000000000e2eaa99fc008f87f
-        related_runtime:
+        roothash_runtime:
           allOf: [$ref: '#/components/schemas/Runtime']
           description: |
             The runtime to which the event relates.
             Present only for events of type `roothash.*`.
           example: emerald
-        related_runtime_round:
+        roothash_runtime_round:
           type: integer
           format: int64
           description: |

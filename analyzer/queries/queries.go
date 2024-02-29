@@ -211,7 +211,7 @@ var (
         schedule = excluded.schedule`
 
 	ConsensusEventInsert = `
-    INSERT INTO chain.events (type, body, tx_block, tx_hash, tx_index, related_accounts, roothash_runtime_id, related_runtime, related_runtime_round)
+    INSERT INTO chain.events (type, body, tx_block, tx_hash, tx_index, related_accounts, roothash_runtime_id, roothash_runtime, roothash_runtime_round)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`
 
 	ConsensusAccountRelatedTransactionInsert = `

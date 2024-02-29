@@ -478,8 +478,8 @@ func (c *StorageClient) Events(ctx context.Context, p apiTypes.GetConsensusEvent
 			&e.TxIndex,
 			&e.TxHash,
 			&e.RoothashRuntimeId,
-			&e.RelatedRuntime,
-			&e.RelatedRuntimeRound,
+			&e.RoothashRuntime,
+			&e.RoothashRuntimeRound,
 			&e.Type,
 			&e.Body,
 		); err != nil {

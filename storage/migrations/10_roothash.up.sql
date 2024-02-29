@@ -16,17 +16,17 @@ ALTER TABLE chain.events
     ADD COLUMN roothash_runtime_id HEX64,
     -- This is a nexus runtime name, for example `sapphire`. This is only set
     -- for supported runtimes.
-    ADD COLUMN related_runtime runtime,
-    ADD COLUMN related_runtime_round UINT63;
+    ADD COLUMN roothash_runtime runtime,
+    ADD COLUMN roothash_runtime_round UINT63;
 
 -- ix_events_roothash is the link between runtime blocks and consensus blocks.
 -- Given a runtime block (runtime, round), you can look up the roothash events
 -- with this index and find the events when the block was proposed (first
 -- executor commit), committed to, and finalized.
 CREATE INDEX ix_events_roothash
-    ON chain.events (related_runtime, related_runtime_round)
+    ON chain.events (roothash_runtime, roothash_runtime_round)
     WHERE
-        related_runtime IS NOT NULL AND
-        related_runtime_round IS NOT NULL;
+        roothash_runtime IS NOT NULL AND
+        roothash_runtime_round IS NOT NULL;
 
 COMMIT;

@@ -81,7 +81,7 @@ const (
 			WHERE tx_hash = $1::text`
 
 	Events = `
-		SELECT tx_block, tx_index, tx_hash, roothash_runtime_id, related_runtime, related_runtime_round, type, body
+		SELECT tx_block, tx_index, tx_hash, roothash_runtime_id, roothash_runtime, roothash_runtime_round, type, body
 			FROM chain.events
 			WHERE ($1::bigint IS NULL OR tx_block = $1::bigint) AND
 					($2::integer IS NULL OR tx_index = $2::integer) AND
