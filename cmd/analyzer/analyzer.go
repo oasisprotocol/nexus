@@ -370,7 +370,7 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) { //nolint:gocyclo
 			if err1 != nil {
 				return nil, err1
 			}
-			return runtime.NewRuntimeAnalyzer(common.RuntimePontusx, runtimeMetadata, cfg.Analyzers.Pontusx.SlowSyncRange(), cfg.Analyzers.Pontusx.BatchSize, analyzer.SlowSyncMode, sourceClient, dbClient, logger)
+			return runtime.NewRuntimeAnalyzer(cfg.Source.ChainName, common.RuntimePontusx, runtimeMetadata, cfg.Analyzers.Pontusx.SlowSyncRange(), cfg.Analyzers.Pontusx.BatchSize, analyzer.SlowSyncMode, sourceClient, dbClient, logger)
 		})
 	}
 	if cfg.Analyzers.Cipher != nil {
