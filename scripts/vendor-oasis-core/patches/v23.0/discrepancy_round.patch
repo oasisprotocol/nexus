@@ -1,0 +1,13 @@
+diff --git a/coreapi/v23.0/roothash/api/api.go b/coreapi/v23.0/roothash/api/api.go
+index e7653d7d..e6a88db5 100644
+--- a/coreapi/v23.0/roothash/api/api.go
++++ b/coreapi/v23.0/roothash/api/api.go
+@@ -192,6 +192,8 @@ type ExecutorCommittedEvent struct {
+
+ // ExecutionDiscrepancyDetectedEvent is an execute discrepancy detected event.
+ type ExecutionDiscrepancyDetectedEvent struct {
++       // Round is the round in which the discrepancy was detected.
++       Round *uint64 `json:"round,omitempty"`
+        // Rank is the rank of the transaction scheduler.
+        Rank uint64 `json:"rank"`
+        // Timeout signals whether the discrepancy was due to a timeout.

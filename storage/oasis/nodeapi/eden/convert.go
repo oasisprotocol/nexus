@@ -27,6 +27,7 @@ import (
 	genesisEden "github.com/oasisprotocol/nexus/coreapi/v23.0/genesis/api"
 	governanceEden "github.com/oasisprotocol/nexus/coreapi/v23.0/governance/api"
 	registryEden "github.com/oasisprotocol/nexus/coreapi/v23.0/registry/api"
+	roothashEden "github.com/oasisprotocol/nexus/coreapi/v23.0/roothash/api"
 	schedulerEden "github.com/oasisprotocol/nexus/coreapi/v23.0/scheduler/api"
 	stakingEden "github.com/oasisprotocol/nexus/coreapi/v23.0/staking/api"
 )
@@ -252,214 +253,253 @@ func ConvertGenesis(d genesisEden.Document) (*genesis.Document, error) {
 	}, nil
 }
 
-func convertEvent(e txResultsEden.Event) nodeapi.Event {
+func convertStakingEvent(e stakingEden.Event) nodeapi.Event {
 	ret := nodeapi.Event{}
 	switch {
-	case e.Staking != nil:
+	case e.Transfer != nil:
+		ret = nodeapi.Event{
+			StakingTransfer: (*nodeapi.TransferEvent)(e.Transfer),
+			RawBody:         common.TryAsJSON(e.Transfer),
+			Type:            apiTypes.ConsensusEventTypeStakingTransfer,
+		}
+	case e.Burn != nil:
+		ret = nodeapi.Event{
+			StakingBurn: (*nodeapi.BurnEvent)(e.Burn),
+			RawBody:     common.TryAsJSON(e.Burn),
+			Type:        apiTypes.ConsensusEventTypeStakingBurn,
+		}
+	case e.Escrow != nil:
 		switch {
-		case e.Staking.Transfer != nil:
+		case e.Escrow.Add != nil:
 			ret = nodeapi.Event{
-				StakingTransfer: (*nodeapi.TransferEvent)(e.Staking.Transfer),
-				RawBody:         common.TryAsJSON(e.Staking.Transfer),
-				Type:            apiTypes.ConsensusEventTypeStakingTransfer,
+				StakingAddEscrow: &nodeapi.AddEscrowEvent{
+					Owner:     e.Escrow.Add.Owner,
+					Escrow:    e.Escrow.Add.Escrow,
+					Amount:    e.Escrow.Add.Amount,
+					NewShares: &e.Escrow.Add.NewShares,
+				},
+				RawBody: common.TryAsJSON(e.Escrow.Add),
+				Type:    apiTypes.ConsensusEventTypeStakingEscrowAdd,
 			}
-		case e.Staking.Burn != nil:
+		case e.Escrow.Take != nil:
 			ret = nodeapi.Event{
-				StakingBurn: (*nodeapi.BurnEvent)(e.Staking.Burn),
-				RawBody:     common.TryAsJSON(e.Staking.Burn),
-				Type:        apiTypes.ConsensusEventTypeStakingBurn,
+				StakingTakeEscrow: &nodeapi.TakeEscrowEvent{
+					Owner:           e.Escrow.Take.Owner,
+					Amount:          e.Escrow.Take.Amount,
+					DebondingAmount: &e.Escrow.Take.DebondingAmount,
+				},
+				RawBody: common.TryAsJSON(e.Escrow.Take),
+				Type:    apiTypes.ConsensusEventTypeStakingEscrowTake,
 			}
-		case e.Staking.Escrow != nil:
-			switch {
-			case e.Staking.Escrow.Add != nil:
-				ret = nodeapi.Event{
-					StakingAddEscrow: &nodeapi.AddEscrowEvent{
-						Owner:     e.Staking.Escrow.Add.Owner,
-						Escrow:    e.Staking.Escrow.Add.Escrow,
-						Amount:    e.Staking.Escrow.Add.Amount,
-						NewShares: &e.Staking.Escrow.Add.NewShares,
-					},
-					RawBody: common.TryAsJSON(e.Staking.Escrow.Add),
-					Type:    apiTypes.ConsensusEventTypeStakingEscrowAdd,
-				}
-			case e.Staking.Escrow.Take != nil:
-				ret = nodeapi.Event{
-					StakingTakeEscrow: &nodeapi.TakeEscrowEvent{
-						Owner:           e.Staking.Escrow.Take.Owner,
-						Amount:          e.Staking.Escrow.Take.Amount,
-						DebondingAmount: &e.Staking.Escrow.Take.DebondingAmount,
-					},
-					RawBody: common.TryAsJSON(e.Staking.Escrow.Take),
-					Type:    apiTypes.ConsensusEventTypeStakingEscrowTake,
-				}
-			case e.Staking.Escrow.Reclaim != nil:
-				ret = nodeapi.Event{
-					StakingReclaimEscrow: (*nodeapi.ReclaimEscrowEvent)(e.Staking.Escrow.Reclaim),
-					RawBody:              common.TryAsJSON(e.Staking.Escrow.Reclaim),
-					Type:                 apiTypes.ConsensusEventTypeStakingEscrowReclaim,
-				}
-			case e.Staking.Escrow.DebondingStart != nil:
-				ret = nodeapi.Event{
-					StakingDebondingStart: &nodeapi.DebondingStartEscrowEvent{
-						Owner:           e.Staking.Escrow.DebondingStart.Owner,
-						Escrow:          e.Staking.Escrow.DebondingStart.Escrow,
-						Amount:          e.Staking.Escrow.DebondingStart.Amount,
-						ActiveShares:    e.Staking.Escrow.DebondingStart.ActiveShares,
-						DebondingShares: e.Staking.Escrow.DebondingStart.DebondingShares,
-						DebondEndTime:   e.Staking.Escrow.DebondingStart.DebondEndTime,
-					},
-					RawBody: common.TryAsJSON(e.Staking.Escrow.DebondingStart),
-					Type:    apiTypes.ConsensusEventTypeStakingEscrowDebondingStart,
-				}
-			}
-		case e.Staking.AllowanceChange != nil:
+		case e.Escrow.Reclaim != nil:
 			ret = nodeapi.Event{
-				StakingAllowanceChange: (*nodeapi.AllowanceChangeEvent)(e.Staking.AllowanceChange),
-				RawBody:                common.TryAsJSON(e.Staking.AllowanceChange),
-				Type:                   apiTypes.ConsensusEventTypeStakingAllowanceChange,
+				StakingReclaimEscrow: (*nodeapi.ReclaimEscrowEvent)(e.Escrow.Reclaim),
+				RawBody:              common.TryAsJSON(e.Escrow.Reclaim),
+				Type:                 apiTypes.ConsensusEventTypeStakingEscrowReclaim,
+			}
+		case e.Escrow.DebondingStart != nil:
+			ret = nodeapi.Event{
+				StakingDebondingStart: &nodeapi.DebondingStartEscrowEvent{
+					Owner:           e.Escrow.DebondingStart.Owner,
+					Escrow:          e.Escrow.DebondingStart.Escrow,
+					Amount:          e.Escrow.DebondingStart.Amount,
+					ActiveShares:    e.Escrow.DebondingStart.ActiveShares,
+					DebondingShares: e.Escrow.DebondingStart.DebondingShares,
+					DebondEndTime:   e.Escrow.DebondingStart.DebondEndTime,
+				},
+				RawBody: common.TryAsJSON(e.Escrow.DebondingStart),
+				Type:    apiTypes.ConsensusEventTypeStakingEscrowDebondingStart,
 			}
 		}
-		ret.Height = e.Staking.Height
-		ret.TxHash = e.Staking.TxHash
-		// End Staking.
-	case e.Registry != nil:
-		switch {
-		case e.Registry.RuntimeStartedEvent != nil:
-			ret = nodeapi.Event{
-				RegistryRuntimeStarted: &nodeapi.RuntimeStartedEvent{
-					ID:          e.Registry.RuntimeStartedEvent.Runtime.ID,
-					EntityID:    e.Registry.RuntimeStartedEvent.Runtime.EntityID,
-					Kind:        e.Registry.RuntimeStartedEvent.Runtime.Kind.String(),
-					KeyManager:  e.Registry.RuntimeStartedEvent.Runtime.KeyManager,
-					TEEHardware: e.Registry.RuntimeStartedEvent.Runtime.TEEHardware.String(),
-				},
-				RawBody: common.TryAsJSON(e.Registry.RuntimeStartedEvent),
-				Type:    apiTypes.ConsensusEventTypeRegistryRuntime,
-			}
-		case e.Registry.RuntimeSuspendedEvent != nil:
-			ret = nodeapi.Event{
-				RegistryRuntimeSuspended: &nodeapi.RuntimeSuspendedEvent{
-					RuntimeID: e.Registry.RuntimeSuspendedEvent.RuntimeID,
-				},
-				RawBody: common.TryAsJSON(e.Registry.RuntimeSuspendedEvent),
-				Type:    apiTypes.ConsensusEventTypeRegistryRuntimeSuspended,
-			}
-		case e.Registry.EntityEvent != nil:
-			ret = nodeapi.Event{
-				RegistryEntity: (*nodeapi.EntityEvent)(e.Registry.EntityEvent),
-				RawBody:        common.TryAsJSON(e.Registry.EntityEvent),
-				Type:           apiTypes.ConsensusEventTypeRegistryEntity,
-			}
-		case e.Registry.NodeEvent != nil:
-			var vrfID *signature.PublicKey
-			vrfID = &e.Registry.NodeEvent.Node.VRF.ID
-			runtimeIDs := make([]coreCommon.Namespace, len(e.Registry.NodeEvent.Node.Runtimes))
-			for i, r := range e.Registry.NodeEvent.Node.Runtimes {
-				runtimeIDs[i] = r.ID
-			}
-			p2pAddresses := make([]string, len(e.Registry.NodeEvent.Node.P2P.Addresses))
-			for i, a := range e.Registry.NodeEvent.Node.P2P.Addresses {
-				p2pAddresses[i] = a.String()
-			}
-			consensusAddresses := make([]string, len(e.Registry.NodeEvent.Node.Consensus.Addresses))
-			for i, a := range e.Registry.NodeEvent.Node.Consensus.Addresses {
-				consensusAddresses[i] = a.String()
-			}
-			ret = nodeapi.Event{
-				RegistryNode: &nodeapi.NodeEvent{
-					NodeID:             e.Registry.NodeEvent.Node.ID,
-					EntityID:           e.Registry.NodeEvent.Node.EntityID,
-					Expiration:         e.Registry.NodeEvent.Node.Expiration,
-					VRFPubKey:          vrfID,
-					TLSAddresses:       []string{}, // Not used any more in Eden.
-					TLSPubKey:          e.Registry.NodeEvent.Node.TLS.PubKey,
-					TLSNextPubKey:      signature.PublicKey{}, // Not used any more in Eden.
-					P2PID:              e.Registry.NodeEvent.Node.P2P.ID,
-					P2PAddresses:       p2pAddresses,
-					RuntimeIDs:         runtimeIDs,
-					ConsensusID:        e.Registry.NodeEvent.Node.Consensus.ID,
-					ConsensusAddresses: consensusAddresses,
-					IsRegistration:     e.Registry.NodeEvent.IsRegistration,
-					Roles:              strings.Split(e.Registry.NodeEvent.Node.Roles.String(), ","),
-					SoftwareVersion:    string(e.Registry.NodeEvent.Node.SoftwareVersion),
-				},
-				RawBody: common.TryAsJSON(e.Registry.NodeEvent),
-				Type:    apiTypes.ConsensusEventTypeRegistryNode,
-			}
-		case e.Registry.NodeUnfrozenEvent != nil:
-			ret = nodeapi.Event{
-				RegistryNodeUnfrozen: (*nodeapi.NodeUnfrozenEvent)(e.Registry.NodeUnfrozenEvent),
-				RawBody:              common.TryAsJSON(e.Registry.NodeUnfrozenEvent),
-				Type:                 apiTypes.ConsensusEventTypeRegistryNodeUnfrozen,
-			}
+	case e.AllowanceChange != nil:
+		ret = nodeapi.Event{
+			StakingAllowanceChange: (*nodeapi.AllowanceChangeEvent)(e.AllowanceChange),
+			RawBody:                common.TryAsJSON(e.AllowanceChange),
+			Type:                   apiTypes.ConsensusEventTypeStakingAllowanceChange,
 		}
-		ret.Height = e.Registry.Height
-		ret.TxHash = e.Registry.TxHash
-		// End Registry.
-	case e.RootHash != nil:
-		switch {
-		case e.RootHash.ExecutorCommitted != nil:
-			ret = nodeapi.Event{
-				RoothashExecutorCommitted: &nodeapi.ExecutorCommittedEvent{
-					NodeID: &e.RootHash.ExecutorCommitted.Commit.NodeID,
-				},
-				RawBody: common.TryAsJSON(e.RootHash.ExecutorCommitted),
-				Type:    apiTypes.ConsensusEventTypeRoothashExecutorCommitted,
-			}
-		case e.RootHash.ExecutionDiscrepancyDetected != nil:
-			ret = nodeapi.Event{
-				RawBody: common.TryAsJSON(e.RootHash.ExecutionDiscrepancyDetected),
-				Type:    apiTypes.ConsensusEventTypeRoothashExecutionDiscrepancy,
-			}
-		case e.RootHash.Finalized != nil:
-			ret = nodeapi.Event{
-				RawBody: common.TryAsJSON(e.RootHash.Finalized),
-				Type:    apiTypes.ConsensusEventTypeRoothashFinalized,
-			}
-		}
-		ret.Height = e.RootHash.Height
-		ret.TxHash = e.RootHash.TxHash
-		// End RootHash.
-	case e.Governance != nil:
-		switch {
-		case e.Governance.ProposalSubmitted != nil:
-			ret = nodeapi.Event{
-				GovernanceProposalSubmitted: (*nodeapi.ProposalSubmittedEvent)(e.Governance.ProposalSubmitted),
-				RawBody:                     common.TryAsJSON(e.Governance.ProposalSubmitted),
-				Type:                        apiTypes.ConsensusEventTypeGovernanceProposalSubmitted,
-			}
-		case e.Governance.ProposalExecuted != nil:
-			ret = nodeapi.Event{
-				GovernanceProposalExecuted: (*nodeapi.ProposalExecutedEvent)(e.Governance.ProposalExecuted),
-				RawBody:                    common.TryAsJSON(e.Governance.ProposalExecuted),
-				Type:                       apiTypes.ConsensusEventTypeGovernanceProposalExecuted,
-			}
-		case e.Governance.ProposalFinalized != nil:
-			ret = nodeapi.Event{
-				GovernanceProposalFinalized: &nodeapi.ProposalFinalizedEvent{
-					ID: e.Governance.ProposalFinalized.ID,
-					// The enum is compatible between Eden and Damask.
-					State: governance.ProposalState(e.Governance.ProposalFinalized.State),
-				},
-				RawBody: common.TryAsJSON(e.Governance.ProposalFinalized),
-				Type:    apiTypes.ConsensusEventTypeGovernanceProposalFinalized,
-			}
-		case e.Governance.Vote != nil:
-			ret = nodeapi.Event{
-				GovernanceVote: &nodeapi.VoteEvent{
-					ID:        e.Governance.Vote.ID,
-					Submitter: e.Governance.Vote.Submitter,
-					Vote:      e.Governance.Vote.Vote.String(),
-				},
-				RawBody: common.TryAsJSON(e.Governance.Vote),
-				Type:    apiTypes.ConsensusEventTypeGovernanceVote,
-			}
-		}
-		ret.Height = e.Governance.Height
-		ret.TxHash = e.Governance.TxHash
-		// End Governance.
 	}
+	ret.Height = e.Height
+	ret.TxHash = e.TxHash
 	return ret
+}
+
+func convertRegistryEvent(e registryEden.Event) nodeapi.Event {
+	ret := nodeapi.Event{}
+	switch {
+	case e.RuntimeStartedEvent != nil:
+		ret = nodeapi.Event{
+			RegistryRuntimeStarted: &nodeapi.RuntimeStartedEvent{
+				ID:          e.RuntimeStartedEvent.Runtime.ID,
+				EntityID:    e.RuntimeStartedEvent.Runtime.EntityID,
+				Kind:        e.RuntimeStartedEvent.Runtime.Kind.String(),
+				KeyManager:  e.RuntimeStartedEvent.Runtime.KeyManager,
+				TEEHardware: e.RuntimeStartedEvent.Runtime.TEEHardware.String(),
+			},
+			RawBody: common.TryAsJSON(e.RuntimeStartedEvent),
+			Type:    apiTypes.ConsensusEventTypeRegistryRuntime,
+		}
+	case e.RuntimeSuspendedEvent != nil:
+		ret = nodeapi.Event{
+			RegistryRuntimeSuspended: &nodeapi.RuntimeSuspendedEvent{
+				RuntimeID: e.RuntimeSuspendedEvent.RuntimeID,
+			},
+			RawBody: common.TryAsJSON(e.RuntimeSuspendedEvent),
+			Type:    apiTypes.ConsensusEventTypeRegistryRuntimeSuspended,
+		}
+	case e.EntityEvent != nil:
+		ret = nodeapi.Event{
+			RegistryEntity: (*nodeapi.EntityEvent)(e.EntityEvent),
+			RawBody:        common.TryAsJSON(e.EntityEvent),
+			Type:           apiTypes.ConsensusEventTypeRegistryEntity,
+		}
+	case e.NodeEvent != nil:
+		var vrfID *signature.PublicKey
+		vrfID = &e.NodeEvent.Node.VRF.ID
+		runtimeIDs := make([]coreCommon.Namespace, len(e.NodeEvent.Node.Runtimes))
+		for i, r := range e.NodeEvent.Node.Runtimes {
+			runtimeIDs[i] = r.ID
+		}
+		p2pAddresses := make([]string, len(e.NodeEvent.Node.P2P.Addresses))
+		for i, a := range e.NodeEvent.Node.P2P.Addresses {
+			p2pAddresses[i] = a.String()
+		}
+		consensusAddresses := make([]string, len(e.NodeEvent.Node.Consensus.Addresses))
+		for i, a := range e.NodeEvent.Node.Consensus.Addresses {
+			consensusAddresses[i] = a.String()
+		}
+		ret = nodeapi.Event{
+			RegistryNode: &nodeapi.NodeEvent{
+				NodeID:             e.NodeEvent.Node.ID,
+				EntityID:           e.NodeEvent.Node.EntityID,
+				Expiration:         e.NodeEvent.Node.Expiration,
+				VRFPubKey:          vrfID,
+				TLSAddresses:       []string{}, // Not used any more in Eden.
+				TLSPubKey:          e.NodeEvent.Node.TLS.PubKey,
+				TLSNextPubKey:      signature.PublicKey{}, // Not used any more in Eden.
+				P2PID:              e.NodeEvent.Node.P2P.ID,
+				P2PAddresses:       p2pAddresses,
+				RuntimeIDs:         runtimeIDs,
+				ConsensusID:        e.NodeEvent.Node.Consensus.ID,
+				ConsensusAddresses: consensusAddresses,
+				IsRegistration:     e.NodeEvent.IsRegistration,
+				Roles:              strings.Split(e.NodeEvent.Node.Roles.String(), ","),
+				SoftwareVersion:    string(e.NodeEvent.Node.SoftwareVersion),
+			},
+			RawBody: common.TryAsJSON(e.NodeEvent),
+			Type:    apiTypes.ConsensusEventTypeRegistryNode,
+		}
+	case e.NodeUnfrozenEvent != nil:
+		ret = nodeapi.Event{
+			RegistryNodeUnfrozen: (*nodeapi.NodeUnfrozenEvent)(e.NodeUnfrozenEvent),
+			RawBody:              common.TryAsJSON(e.NodeUnfrozenEvent),
+			Type:                 apiTypes.ConsensusEventTypeRegistryNodeUnfrozen,
+		}
+	}
+	ret.Height = e.Height
+	ret.TxHash = e.TxHash
+	return ret
+}
+
+func convertRoothashEvent(e roothashEden.Event) nodeapi.Event {
+	ret := nodeapi.Event{}
+	switch {
+	case e.ExecutorCommitted != nil:
+		ret = nodeapi.Event{
+			RoothashExecutorCommitted: &nodeapi.ExecutorCommittedEvent{
+				RuntimeID: e.RuntimeID,
+				Round:     e.ExecutorCommitted.Commit.Header.Header.Round,
+				NodeID:    &e.ExecutorCommitted.Commit.NodeID,
+			},
+			RawBody: common.TryAsJSON(e.ExecutorCommitted),
+			Type:    apiTypes.ConsensusEventTypeRoothashExecutorCommitted,
+		}
+	case e.ExecutionDiscrepancyDetected != nil:
+		ret = nodeapi.Event{
+			RoothashMisc: &nodeapi.RoothashEvent{
+				RuntimeID: e.RuntimeID,
+				Round:     e.ExecutionDiscrepancyDetected.Round,
+			},
+			RawBody: common.TryAsJSON(e.ExecutionDiscrepancyDetected),
+			Type:    apiTypes.ConsensusEventTypeRoothashExecutionDiscrepancy,
+		}
+	case e.Finalized != nil:
+		ret = nodeapi.Event{
+			RoothashMisc: &nodeapi.RoothashEvent{
+				RuntimeID: e.RuntimeID,
+				Round:     &e.Finalized.Round,
+			},
+			RawBody: common.TryAsJSON(e.Finalized),
+			Type:    apiTypes.ConsensusEventTypeRoothashFinalized,
+		}
+	case e.InMsgProcessed != nil:
+		ret = nodeapi.Event{
+			RoothashMisc: &nodeapi.RoothashEvent{
+				RuntimeID: e.RuntimeID,
+				Round:     &e.InMsgProcessed.Round,
+			},
+			RawBody: common.TryAsJSON(e.InMsgProcessed),
+			Type:    apiTypes.ConsensusEventTypeRoothashInMsgProcessed,
+		}
+	}
+	ret.Height = e.Height
+	ret.TxHash = e.TxHash
+	return ret
+}
+
+func convertGovernanceEvent(e governanceEden.Event) nodeapi.Event {
+	ret := nodeapi.Event{}
+	switch {
+	case e.ProposalSubmitted != nil:
+		ret = nodeapi.Event{
+			GovernanceProposalSubmitted: (*nodeapi.ProposalSubmittedEvent)(e.ProposalSubmitted),
+			RawBody:                     common.TryAsJSON(e.ProposalSubmitted),
+			Type:                        apiTypes.ConsensusEventTypeGovernanceProposalSubmitted,
+		}
+	case e.ProposalExecuted != nil:
+		ret = nodeapi.Event{
+			GovernanceProposalExecuted: (*nodeapi.ProposalExecutedEvent)(e.ProposalExecuted),
+			RawBody:                    common.TryAsJSON(e.ProposalExecuted),
+			Type:                       apiTypes.ConsensusEventTypeGovernanceProposalExecuted,
+		}
+	case e.ProposalFinalized != nil:
+		ret = nodeapi.Event{
+			GovernanceProposalFinalized: &nodeapi.ProposalFinalizedEvent{
+				ID: e.ProposalFinalized.ID,
+				// The enum is compatible between Eden and Damask.
+				State: governance.ProposalState(e.ProposalFinalized.State),
+			},
+			RawBody: common.TryAsJSON(e.ProposalFinalized),
+			Type:    apiTypes.ConsensusEventTypeGovernanceProposalFinalized,
+		}
+	case e.Vote != nil:
+		ret = nodeapi.Event{
+			GovernanceVote: &nodeapi.VoteEvent{
+				ID:        e.Vote.ID,
+				Submitter: e.Vote.Submitter,
+				Vote:      e.Vote.Vote.String(),
+			},
+			RawBody: common.TryAsJSON(e.Vote),
+			Type:    apiTypes.ConsensusEventTypeGovernanceVote,
+		}
+	}
+	ret.Height = e.Height
+	ret.TxHash = e.TxHash
+	return ret
+}
+
+func convertEvent(e txResultsEden.Event) nodeapi.Event {
+	switch {
+	case e.Staking != nil:
+		return convertStakingEvent(*e.Staking)
+	case e.Registry != nil:
+		return convertRegistryEvent(*e.Registry)
+	case e.RootHash != nil:
+		return convertRoothashEvent(*e.RootHash)
+	case e.Governance != nil:
+		return convertGovernanceEvent(*e.Governance)
+	default:
+		return nodeapi.Event{}
+	}
 }
 
 func convertTxResult(r txResultsEden.Result) nodeapi.TxResult {

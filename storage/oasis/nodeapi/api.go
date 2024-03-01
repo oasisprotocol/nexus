@@ -124,7 +124,9 @@ type Event struct {
 	RegistryNode             *NodeEvent
 	RegistryNodeUnfrozen     *NodeUnfrozenEvent
 
+	RoothashMisc              *RoothashEvent
 	RoothashExecutorCommitted *ExecutorCommittedEvent
+	RoothashMessage           *MessageEvent // Available only in Cobalt.
 
 	GovernanceProposalSubmitted *ProposalSubmittedEvent
 	GovernanceProposalExecuted  *ProposalExecutedEvent
@@ -183,8 +185,33 @@ type (
 
 // .................... RootHash  ....................
 
+// RoothashEvent is a subset of various roothash.(...)Event subfields.
+// Contains just the attributes we care to expose via the API in a parsed
+// form.
+// Used to represent events of disparate types; depending on the type of the
+// event, not all fields are populated.
+type RoothashEvent struct {
+	// RuntimeID is RuntimeID from the roothash/api `Event` that would be
+	// around this event body. We're flattening it in here to preserve it.
+	RuntimeID coreCommon.Namespace
+	Round     *uint64
+}
+
 type ExecutorCommittedEvent struct {
-	NodeID *signature.PublicKey // Available starting in Damask.
+	// RuntimeID is RuntimeID from the roothash/api `Event` that would be
+	// around this event body. We're flattening it in here to preserve it.
+	RuntimeID coreCommon.Namespace
+	Round     uint64
+	NodeID    *signature.PublicKey // Available starting in Damask.
+}
+
+type MessageEvent struct {
+	// RuntimeID is RuntimeID from the roothash/api `Event` that would be
+	// around this event body. We're flattening it in here to preserve it.
+	RuntimeID coreCommon.Namespace
+	Module    string
+	Code      uint32
+	Index     uint32
 }
 
 // .................... Governance ....................
