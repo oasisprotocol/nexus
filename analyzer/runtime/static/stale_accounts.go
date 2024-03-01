@@ -1,12 +1,58 @@
 package static
 
 import (
+	"embed"
+	"path"
+	"path/filepath"
+	"strconv"
+	"strings"
+
 	"github.com/oasisprotocol/nexus/analyzer/queries"
 	"github.com/oasisprotocol/nexus/analyzer/runtime/evm"
-	apiTypes "github.com/oasisprotocol/nexus/api/v1/types"
 	"github.com/oasisprotocol/nexus/common"
 	"github.com/oasisprotocol/nexus/storage"
 )
+
+//go:embed pre_eden
+var preEdenStaleAcctsFS embed.FS
+var preEdenStaleAccts = make(map[staleAcctsKey][]string) // Parsed version of embed.FS
+
+type staleAcctsKey struct {
+	chain   common.ChainName
+	runtime common.Runtime
+	height  uint64
+}
+
+// Parses a file with a list of stale accounts. The accounts are parsed from the file (one per line);
+// the metadata is parsed from the filename, which should be of the form "<chainName>_<runtime>_<height>_*".
+func readStaleAccts(path string) (chain common.ChainName, runtime common.Runtime, height uint64, accts []string) {
+	content, err := preEdenStaleAcctsFS.ReadFile(path)
+	if err != nil {
+		panic(err)
+	}
+	accts = strings.Split(strings.TrimSpace(string(content)), "\n")
+
+	nameParts := strings.Split(filepath.Base(path), "_")
+	chain = common.ChainName(nameParts[0])
+	runtime = common.Runtime(nameParts[1])
+	height, err = strconv.ParseUint(strings.Split(nameParts[2], ".")[0], 10, 64)
+	if err != nil {
+		panic(err)
+	}
+	return
+}
+
+func init() {
+	root := "pre_eden"
+	files, err := preEdenStaleAcctsFS.ReadDir(root)
+	if err != nil {
+		panic(err)
+	}
+	for _, file := range files {
+		chainName, runtime, height, accts := readStaleAccts(path.Join(root, file.Name()))
+		preEdenStaleAccts[staleAcctsKey{chainName, runtime, height}] = accts
+	}
+}
 
 func staleAccountsList(chainName common.ChainName, runtime common.Runtime) (uint64, []string) {
 	// TODO: probably use embed.FS to keep these long list in files, but
@@ -56,8 +102,8 @@ func staleAccountsList(chainName common.ChainName, runtime common.Runtime) (uint
 // This list also helps partially mitigating the issue of accounts that have only ever interacted within internal EVM transactions (e.g. transfers within evm.Call).
 // This is an ongoing issue where Nexus cannot known about the existence of these accounts as Nexus is unable to simulate EVM transactions.
 // With these lists we at least know about all such accounts at Eden genesis time.
-func QueueEVMKnownStaleAccounts(batch *storage.QueryBatch, chainName common.ChainName, rt common.Runtime) error {
-	round, accounts := staleAccountsList(chainName, rt)
+func QueueEVMKnownStaleAccounts(batch *storage.QueryBatch, chainName common.ChainName, runtime common.Runtime, height int64) error {
+	accounts := preEdenStaleAccts[staleAcctsKey{chainName, runtime, height}]
 	if len(accounts) == 0 {
 		return nil
 	}
@@ -72,7 +118,7 @@ func QueueEVMKnownStaleAccounts(batch *storage.QueryBatch, chainName common.Chai
 		//     until the round is reached so that `download_round` >= `last_mutated_round`.
 		batch.Queue(
 			queries.RuntimeEVMTokenBalanceAnalysisMutateRoundUpsert,
-			rt, evm.NativeRuntimeTokenAddress, apiTypes.Address(account), round,
+			runtime, evm.NativeRuntimeTokenAddress, account, round,
 		)
 	}
 
