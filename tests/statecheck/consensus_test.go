@@ -18,6 +18,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/oasisprotocol/nexus/common"
 	"github.com/oasisprotocol/nexus/storage/postgres"
 	"github.com/oasisprotocol/nexus/tests"
 )
@@ -41,6 +42,8 @@ var ConsensusTables = []string{
 	"proposals",
 	"votes",
 }
+
+type BigInt = common.BigInt
 
 type TestEntity struct {
 	ID    string
@@ -70,11 +73,11 @@ type TestRuntime struct {
 type TestAccount struct {
 	Address   string
 	Nonce     uint64
-	Available uint64
-	Escrow    uint64
-	Debonding uint64
+	Available BigInt
+	Escrow    BigInt
+	Debonding BigInt
 
-	Allowances map[string]uint64
+	Allowances map[string]BigInt
 }
 
 type TestProposal struct {
@@ -82,7 +85,7 @@ type TestProposal struct {
 	Submitter        string
 	State            string
 	Executed         bool
-	Deposit          uint64
+	Deposit          BigInt
 	Handler          *string
 	CpTargetVersion  *string
 	RhpTargetVersion *string
@@ -506,7 +509,7 @@ func validateAccounts(t *testing.T, genesis *stakingAPI.Genesis, target *postgre
 			continue
 		}
 
-		actualAllowances := make(map[string]uint64)
+		actualAllowances := make(map[string]BigInt)
 		allowanceRows, err := target.Query(ctx, `
 			SELECT beneficiary, allowance
 				FROM snapshot_consensus.allowances
@@ -517,7 +520,7 @@ func validateAccounts(t *testing.T, genesis *stakingAPI.Genesis, target *postgre
 		assert.NoError(t, err)
 		for allowanceRows.Next() {
 			var beneficiary string
-			var amount uint64
+			var amount BigInt
 			err = allowanceRows.Scan(
 				&beneficiary,
 				&amount,
@@ -538,17 +541,17 @@ func validateAccounts(t *testing.T, genesis *stakingAPI.Genesis, target *postgre
 			continue
 		}
 
-		expectedAllowances := make(map[string]uint64)
+		expectedAllowances := make(map[string]BigInt)
 		for beneficiary, amount := range acct.General.Allowances {
-			expectedAllowances[beneficiary.String()] = amount.ToBigInt().Uint64()
+			expectedAllowances[beneficiary.String()] = common.BigIntFromQuantity(amount)
 		}
 
 		e := TestAccount{
 			Address:    address.String(),
 			Nonce:      acct.General.Nonce,
-			Available:  acct.General.Balance.ToBigInt().Uint64(),
-			Escrow:     acct.Escrow.Active.Balance.ToBigInt().Uint64(),
-			Debonding:  acct.Escrow.Debonding.Balance.ToBigInt().Uint64(),
+			Available:  common.BigIntFromQuantity(acct.General.Balance),
+			Escrow:     common.BigIntFromQuantity(acct.Escrow.Active.Balance),
+			Debonding:  common.BigIntFromQuantity(acct.Escrow.Debonding.Balance),
 			Allowances: expectedAllowances,
 		}
 		assert.Equal(t, e, a)
@@ -590,7 +593,7 @@ func validateProposals(t *testing.T, genesis *governanceAPI.Genesis, target *pos
 		ep.ID = p.ID
 		ep.Submitter = p.Submitter.String()
 		ep.State = p.State.String()
-		ep.Deposit = p.Deposit.ToBigInt().Uint64()
+		ep.Deposit = common.BigIntFromQuantity(p.Deposit)
 
 		switch {
 		case p.Content.Upgrade != nil:
