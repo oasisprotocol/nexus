@@ -277,7 +277,7 @@ func validateEntities(t *testing.T, genesis *registryAPI.Genesis, target *postgr
 	for ke, ve := range expectedEntities {
 		va, ok := actualEntities[ke]
 		if !ok {
-			t.Logf("entity %s expected, but not found", ke)
+			t.Logf("entity %s is missing in nexus", ke)
 			continue
 		}
 		assert.Equal(t, ve, va)
@@ -285,7 +285,7 @@ func validateEntities(t *testing.T, genesis *registryAPI.Genesis, target *postgr
 	for ka, va := range actualEntities {
 		ve, ok := expectedEntities[ka]
 		if !ok {
-			t.Logf("entity %s found, but not expected", ka)
+			t.Logf("entity %s found in nexus but not on the chain", ka)
 			continue
 		}
 		assert.Equal(t, ve, va)
@@ -369,7 +369,7 @@ func validateNodes(t *testing.T, genesis *registryAPI.Genesis, source consensusA
 	for ke, ve := range expectedNodes {
 		va, ok := actualNodes[ke]
 		if !ok {
-			t.Logf("node %s expected, but not found", ke)
+			t.Logf("node %s is missing in nexus", ke)
 			continue
 		}
 		assert.Equal(t, ve, va)
@@ -377,7 +377,7 @@ func validateNodes(t *testing.T, genesis *registryAPI.Genesis, source consensusA
 	for ka, va := range actualNodes {
 		ve, ok := expectedNodes[ka]
 		if !ok {
-			t.Logf("node %s found, but not expected", ka)
+			t.Logf("node %s found in nexus but not on the chain", ka)
 			continue
 		}
 		assert.Equal(t, ve, va)
@@ -455,7 +455,7 @@ func validateRuntimes(t *testing.T, genesis *registryAPI.Genesis, target *postgr
 	for ke, ve := range expectedRuntimes {
 		va, ok := actualRuntimes[ke]
 		if !ok {
-			t.Logf("runtime %s expected, but not found", ke)
+			t.Logf("runtime %s is missing in nexus", ke)
 			continue
 		}
 		assert.Equal(t, ve, va)
@@ -463,7 +463,7 @@ func validateRuntimes(t *testing.T, genesis *registryAPI.Genesis, target *postgr
 	for ka, va := range expectedRuntimes {
 		ve, ok := actualRuntimes[ka]
 		if !ok {
-			t.Logf("runtime %s expected, but not found", ka)
+			t.Logf("runtime %s is missing in nexus", ka)
 			continue
 		}
 		assert.Equal(t, ve, va)
@@ -489,21 +489,21 @@ func validateAccounts(t *testing.T, genesis *stakingAPI.Genesis, target *postgre
 	require.NoError(t, err)
 	actualAccts := make(map[string]bool)
 	for acctRows.Next() {
-		var a TestAccount
+		var actualAcct TestAccount
 		err = acctRows.Scan(
-			&a.Address,
-			&a.Nonce,
-			&a.Available,
-			&a.Escrow,
-			&a.Debonding,
+			&actualAcct.Address,
+			&actualAcct.Nonce,
+			&actualAcct.Available,
+			&actualAcct.Escrow,
+			&actualAcct.Debonding,
 		)
 		assert.NoError(t, err)
-		actualAccts[a.Address] = true
+		actualAccts[actualAcct.Address] = true
 
-		isReservedAddress := a.Address == stakingAPI.CommonPoolAddress.String() ||
-			a.Address == stakingAPI.FeeAccumulatorAddress.String() ||
-			a.Address == stakingAPI.GovernanceDepositsAddress.String() ||
-			a.Address == "oasis1qzq8u7xs328puu2jy524w3fygzs63rv3u5967970" // == stakingAPI.BurnAddress.String(); not yet exposed in the released stakingAPI
+		isReservedAddress := actualAcct.Address == stakingAPI.CommonPoolAddress.String() ||
+			actualAcct.Address == stakingAPI.FeeAccumulatorAddress.String() ||
+			actualAcct.Address == stakingAPI.GovernanceDepositsAddress.String() ||
+			actualAcct.Address == "oasis1qzq8u7xs328puu2jy524w3fygzs63rv3u5967970" // == stakingAPI.BurnAddress.String(); not yet exposed in the released stakingAPI
 		if isReservedAddress {
 			// Reserved addresses are explicitly not included in the ledger (and thus in the genesis dump).
 			continue
@@ -515,7 +515,7 @@ func validateAccounts(t *testing.T, genesis *stakingAPI.Genesis, target *postgre
 				FROM snapshot_consensus.allowances
 				WHERE owner = $1
 			`,
-			a.Address,
+			actualAcct.Address,
 		)
 		assert.NoError(t, err)
 		for allowanceRows.Next() {
@@ -528,44 +528,44 @@ func validateAccounts(t *testing.T, genesis *stakingAPI.Genesis, target *postgre
 			assert.NoError(t, err)
 			actualAllowances[beneficiary] = amount
 		}
-		a.Allowances = actualAllowances
+		actualAcct.Allowances = actualAllowances
 
 		var address stakingAPI.Address
-		err = address.UnmarshalText([]byte(a.Address))
+		err = address.UnmarshalText([]byte(actualAcct.Address))
 		assert.NoError(t, err)
 
-		acct, ok := genesis.Ledger[address]
+		genesisAcct, ok := genesis.Ledger[address]
 		if !ok {
-			t.Logf("address %s found, but not expected", address.String())
+			t.Logf("address %s found in nexus but not on the chain", address.String())
 			t.Fail()
 			continue
 		}
 
 		expectedAllowances := make(map[string]BigInt)
-		for beneficiary, amount := range acct.General.Allowances {
+		for beneficiary, amount := range genesisAcct.General.Allowances {
 			expectedAllowances[beneficiary.String()] = common.BigIntFromQuantity(amount)
 		}
 
-		e := TestAccount{
+		expectedAcct := TestAccount{
 			Address:    address.String(),
-			Nonce:      acct.General.Nonce,
-			Available:  common.BigIntFromQuantity(acct.General.Balance),
-			Escrow:     common.BigIntFromQuantity(acct.Escrow.Active.Balance),
-			Debonding:  common.BigIntFromQuantity(acct.Escrow.Debonding.Balance),
+			Nonce:      genesisAcct.General.Nonce,
+			Available:  common.BigIntFromQuantity(genesisAcct.General.Balance),
+			Escrow:     common.BigIntFromQuantity(genesisAcct.Escrow.Active.Balance),
+			Debonding:  common.BigIntFromQuantity(genesisAcct.Escrow.Debonding.Balance),
 			Allowances: expectedAllowances,
 		}
-		assert.Equal(t, e, a)
+		assert.Equal(t, expectedAcct, actualAcct)
 	}
-	for addr, acct := range genesis.Ledger {
-		hasBalance := !acct.General.Balance.IsZero() ||
-			!acct.Escrow.Active.Balance.IsZero() ||
-			!acct.Escrow.Debonding.Balance.IsZero()
-		if !hasBalance && acct.General.Nonce == 0 { // nexus doesn't have to know about this acct
+	for addr, genesisAcct := range genesis.Ledger {
+		hasBalance := !genesisAcct.General.Balance.IsZero() ||
+			!genesisAcct.Escrow.Active.Balance.IsZero() ||
+			!genesisAcct.Escrow.Debonding.Balance.IsZero()
+		if !hasBalance && genesisAcct.General.Nonce == 0 { // nexus doesn't have to know about this acct
 			continue
 		}
 
 		if !actualAccts[addr.String()] {
-			t.Logf("address %s expected, but not found", addr.String())
+			t.Logf("address %s is missing in nexus", addr.String())
 			t.Fail()
 		}
 	}
@@ -657,7 +657,7 @@ func validateProposals(t *testing.T, genesis *governanceAPI.Genesis, target *pos
 	for ke, ve := range expectedProposals {
 		va, ok := actualProposals[ke]
 		if !ok {
-			t.Logf("proposal %d expected, but not found", ke)
+			t.Logf("proposal %d is missing in nexus", ke)
 			continue
 		}
 		assert.Equal(t, ve, va)
@@ -703,7 +703,7 @@ func validateVotes(t *testing.T, genesis *governanceAPI.Genesis, target *postgre
 	for ke, ve := range expectedVotes {
 		va, ok := actualVotes[ke]
 		if !ok {
-			t.Logf("vote %s expected, but not found", ke)
+			t.Logf("vote %s is missing in nexus", ke)
 			continue
 		}
 		assert.Equal(t, ve, va)
