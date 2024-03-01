@@ -560,7 +560,7 @@ func validateAccounts(t *testing.T, genesis *stakingAPI.Genesis, target *postgre
 		hasBalance := !acct.General.Balance.IsZero() ||
 			!acct.Escrow.Active.Balance.IsZero() ||
 			!acct.Escrow.Debonding.Balance.IsZero()
-		if !hasBalance { // nexus doesn't have to know about this acct
+		if !hasBalance && acct.General.Nonce == 0 { // nexus doesn't have to know about this acct
 			continue
 		}
 
