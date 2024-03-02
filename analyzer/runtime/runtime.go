@@ -163,12 +163,6 @@ func (m *processor) FinalizeFastSync(ctx context.Context, lastFastSyncHeight int
 		return err
 	}
 
-	// Queue to refetch the balances of known-to-be-stale accounts.
-	m.logger.Info("queueing known-to-be-stale (as of roughly Eden genesis heights) EVM accounts for re-query")
-	if err := static.QueueEVMKnownStaleAccounts(batch, m.chain, m.runtime); err != nil {
-		return fmt.Errorf("queue eden accounts: %w", err)
-	}
-
 	// Update tables where fast-sync was not updating their columns in-place, and was instead writing
 	// a log of updates to a temporary table.
 	m.logger.Info("recomputing last_mutate_round for EVM token balances")
@@ -226,6 +220,11 @@ func (m *processor) ProcessBlock(ctx context.Context, round uint64) error {
 		m.runtime,
 		m.mode == analyzer.FastSyncMode,
 	)
+
+	// Perform one-off fixes: Refetch native balances that are known to be stale at a fixed height.
+	if err := static.QueueEVMKnownStaleAccounts(batch, m.chain, m.runtime, round, m.logger); err != nil {
+		return fmt.Errorf("queue eden accounts: %w", err)
+	}
 
 	opName := fmt.Sprintf("process_block_%s", m.runtime)
 	timer := m.metrics.DatabaseLatencies(m.target.Name(), opName)
