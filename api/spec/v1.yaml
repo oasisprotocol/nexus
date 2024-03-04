@@ -1973,7 +1973,7 @@ components:
         nonce:
           type: integer
           format: int64
-          description: A nonce used to prevent replay.
+          description: The expected nonce for the next transaction (= last used nonce + 1)
           example: 0
         available:
           allOf: [$ref: '#/components/schemas/TextBigInt']

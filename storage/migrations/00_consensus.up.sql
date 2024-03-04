@@ -188,7 +188,7 @@ CREATE TABLE chain.accounts
 
   -- General Account
   general_balance UINT_NUMERIC DEFAULT 0,
-  nonce           UINT63 NOT NULL DEFAULT 0,
+  nonce           UINT63 NOT NULL DEFAULT 0, -- expected nonce for the next transaction (= last used nonce + 1)
 
   -- Escrow Account
   -- TODO: Use UINT_NUMERIC for the next four columns. Their values should always be >=0;

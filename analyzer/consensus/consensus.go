@@ -430,12 +430,14 @@ func (m *processor) queueTransactionInserts(batch *storage.QueryBatch, data *con
 			result.Error.Code,
 			message,
 		)
-		if m.mode != analyzer.FastSyncMode {
-			// Skip during fast sync; will be provided by the genesis.
-			batch.Queue(queries.ConsensusAccountNonceUpsert,
-				sender,
-				tx.Nonce+1,
-			)
+		// Bump the nonce.
+		if m.mode != analyzer.FastSyncMode { // Skip during fast sync; nonce will be provided by the genesis.
+			if tx.Method != "consensus.Meta" { // consensus.Meta is a special internal tx that doesn't affect the nonce.
+				batch.Queue(queries.ConsensusAccountNonceUpsert,
+					sender,
+					tx.Nonce+1,
+				)
+			}
 		}
 
 		// TODO: Use event when available
