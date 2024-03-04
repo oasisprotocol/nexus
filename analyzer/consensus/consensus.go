@@ -10,10 +10,12 @@ import (
 	"os"
 	"strings"
 
+	coreCommon "github.com/oasisprotocol/oasis-core/go/common"
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
 	sdkConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 
+	"github.com/oasisprotocol/nexus/common"
 	"github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api/transaction"
 	genesis "github.com/oasisprotocol/nexus/coreapi/v22.2.11/genesis/api"
 	staking "github.com/oasisprotocol/nexus/coreapi/v22.2.11/staking/api"
@@ -37,9 +39,12 @@ const (
 type EventType = apiTypes.ConsensusEventType // alias for brevity
 
 type parsedEvent struct {
-	ty               EventType
-	rawBody          json.RawMessage
-	relatedAddresses []staking.Address
+	ty                   EventType
+	rawBody              json.RawMessage
+	roothashRuntimeID    *coreCommon.Namespace
+	roothashRuntime      *common.Runtime
+	roothashRuntimeRound *uint64
+	relatedAddresses     []staking.Address
 }
 
 // OpenSignedTxNoVerify decodes the Transaction inside a Signed transaction
@@ -481,6 +486,9 @@ func (m *processor) queueTxEventInserts(batch *storage.QueryBatch, data *consens
 				txr.Transaction.Hash().Hex(),
 				i,
 				accounts,
+				common.StringOrNil(eventData.roothashRuntimeID),
+				eventData.roothashRuntime,
+				eventData.roothashRuntimeRound,
 			)
 		}
 		uniqueTxAccounts := extractUniqueAddresses(txAccounts)
@@ -1037,6 +1045,9 @@ func (m *processor) queueSingleEventInserts(batch *storage.QueryBatch, eventData
 		nil,
 		nil,
 		accounts,
+		common.StringOrNil(eventData.roothashRuntimeID),
+		eventData.roothashRuntime,
+		eventData.roothashRuntimeRound,
 	)
 
 	return nil
@@ -1070,9 +1081,22 @@ func (m *processor) extractEventData(event nodeapi.Event) parsedEvent {
 		eventData.relatedAddresses = []staking.Address{event.GovernanceProposalSubmitted.Submitter}
 	case event.GovernanceVote != nil:
 		eventData.relatedAddresses = []staking.Address{event.GovernanceVote.Submitter}
-	case event.RoothashExecutorCommitted != nil && event.RoothashExecutorCommitted.NodeID != nil:
-		nodeAddr := staking.NewAddress(*event.RoothashExecutorCommitted.NodeID)
-		eventData.relatedAddresses = []staking.Address{nodeAddr}
+	case event.RoothashMisc != nil:
+		eventData.roothashRuntimeID = &event.RoothashMisc.RuntimeID
+		eventData.roothashRuntime = RuntimeFromID(event.RoothashMisc.RuntimeID, m.network)
+		eventData.roothashRuntimeRound = event.RoothashMisc.Round
+	case event.RoothashExecutorCommitted != nil:
+		eventData.roothashRuntimeID = &event.RoothashExecutorCommitted.RuntimeID
+		eventData.roothashRuntime = RuntimeFromID(event.RoothashExecutorCommitted.RuntimeID, m.network)
+		eventData.roothashRuntimeRound = &event.RoothashExecutorCommitted.Round
+		if event.RoothashExecutorCommitted.NodeID != nil {
+			// TODO: preimage?
+			nodeAddr := staking.NewAddress(*event.RoothashExecutorCommitted.NodeID)
+			eventData.relatedAddresses = []staking.Address{nodeAddr}
+		}
+	case event.RoothashMessage != nil:
+		eventData.roothashRuntimeID = &event.RoothashMessage.RuntimeID
+		eventData.roothashRuntime = RuntimeFromID(event.RoothashMessage.RuntimeID, m.network)
 	case event.RegistryEntity != nil:
 		addr := staking.NewAddress(event.RegistryEntity.Entity.ID)
 		accounts := []staking.Address{addr}

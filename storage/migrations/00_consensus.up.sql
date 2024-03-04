@@ -76,6 +76,10 @@ CREATE TABLE chain.events
   body    JSONB,
   tx_hash   HEX64, -- could be fetched from `transactions` table; denormalized for efficiency
   related_accounts TEXT[],
+  -- added in 10_roothash.up.sql
+  -- roothash_runtime_id HEX64,
+  -- roothash_runtime runtime,
+  -- roothash_runtime_round UINT63,
 
   FOREIGN KEY (tx_block, tx_index) REFERENCES chain.transactions(block, tx_index) DEFERRABLE INITIALLY DEFERRED
 );
@@ -83,6 +87,12 @@ CREATE INDEX ix_events_related_accounts ON chain.events USING gin(related_accoun
 CREATE INDEX ix_events_tx_block ON chain.events (tx_block);  -- for fetching events without filters
 CREATE INDEX ix_events_tx_hash ON chain.events (tx_hash);
 CREATE INDEX ix_events_type ON chain.events (type, tx_block);  -- tx_block is for sorting the events of a given type by recency
+-- added in 10_roothash.up.sql
+-- CREATE INDEX ix_events_roothash
+--     ON chain.events (roothash_runtime, roothash_runtime_round)
+--     WHERE
+--         roothash_runtime IS NOT NULL AND
+--         roothash_runtime_round IS NOT NULL;
 
 -- Beacon Backend Data
 

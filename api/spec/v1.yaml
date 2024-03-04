@@ -830,7 +830,7 @@ paths:
         - in: query
           name: rel
           schema:
-            $ref: '#/components/schemas/StakingAddress'
+            allOf: [$ref: '#/components/schemas/StakingAddress']
           # TODO: Implement autodetection of Eth addresses, get rid of last sentence.
           description: |
             A filter on related accounts. Every returned transaction will refer to
@@ -1557,6 +1557,11 @@ components:
         - roothash.execution_discrepancy
         - roothash.executor_committed
         - roothash.finalized
+        # Note: roothash.message is no longer used as an event since Damask.
+        # Message results are now in RoundResults.
+        # The MessageEvent structure remains and is used in RoundResults.
+        - roothash.message
+        - roothash.in_msg_processed
         - staking.allowance_change
         - staking.burn
         - staking.escrow.add
@@ -1601,6 +1606,26 @@ components:
             Hash of this event's originating transaction.
             Absent if the event did not originate from a transaction.
           example: *tx_hash_1
+        roothash_runtime_id:
+          type: string
+          description: |
+            The ID of the runtime to which the event relates, encoded in hex.
+            Present only for events of type `roothash.*`.
+          example: 000000000000000000000000000000000000000000000000e2eaa99fc008f87f
+        roothash_runtime:
+          allOf: [$ref: '#/components/schemas/Runtime']
+          description: |
+            The runtime to which the event relates.
+            Present only for events of type `roothash.*`.
+          example: emerald
+        roothash_runtime_round:
+          type: integer
+          format: int64
+          description: |
+            When applicable, the round in the runtime to which this event
+            relates.
+            Present only for events of type `roothash.*` except for
+            `roothash.execution_discrepancy` before Eden.
         type:
           allOf: [$ref: '#/components/schemas/ConsensusEventType']
           description: The type of the event.
@@ -1730,7 +1755,7 @@ components:
           type: boolean
           description: Whether the entity has a node that is registered for being a validator, node is up to date, and has successfully registered itself. It may or may not be part of validator set.
         media:
-          $ref: '#/components/schemas/ValidatorMedia'
+          allOf: [$ref: '#/components/schemas/ValidatorMedia']
         current_rate:
           type: integer
           format: uint64
@@ -1899,7 +1924,7 @@ components:
           type: string
           description: The name of the token. Not guaranteed to be unique across distinct EVM tokens.
         token_type:
-          $ref: "#/components/schemas/EvmTokenType"
+          allOf: [$ref: "#/components/schemas/EvmTokenType"]
         token_decimals:
           type: integer
           description: The number of decimals of precision for this token.
@@ -2074,7 +2099,7 @@ components:
           description: The staking address of the proposal submitter.
           example: *staking_address_1
         state:
-          $ref: '#/components/schemas/ProposalState'
+          allOf: [$ref: '#/components/schemas/ProposalState']
         deposit:
           allOf: [$ref: '#/components/schemas/TextBigInt']
           description: The deposit attached to this proposal.
@@ -2082,7 +2107,7 @@ components:
           type: string
           description: The name of the upgrade handler.
         target:
-          $ref: '#/components/schemas/ProposalTarget'
+          allOf: [$ref: '#/components/schemas/ProposalTarget']
         epoch:
           type: integer
           format: uint64
@@ -2315,7 +2340,7 @@ components:
       type: object
       properties:
         type:
-          $ref: '#/components/schemas/EvmTokenType'
+          allOf: [$ref: '#/components/schemas/EvmTokenType']
         symbol:
           type: string
           description: Symbol of the token, as provided by token contract's `symbol()` method.
@@ -2385,7 +2410,7 @@ components:
       type: object
       properties:
         verification_level:
-          $ref: '#/components/schemas/VerificationLevel'
+          allOf: [$ref: '#/components/schemas/VerificationLevel']
         compilation_metadata:
           type: object
           description: |
@@ -2610,7 +2635,7 @@ components:
           description: The staking address for this account.
           example: *staking_address_1
         address_preimage:
-          $ref: '#/components/schemas/AddressPreimage'
+          allOf: [$ref: '#/components/schemas/AddressPreimage']
         balances:
           description: |
             The balance(s) of this account in this runtime. Most runtimes use only one denomination, and thus
@@ -2619,7 +2644,7 @@ components:
             this does not include ERC-20 tokens
           type: array
           items:
-            $ref: '#/components/schemas/RuntimeSdkBalance'
+            allOf: [$ref: '#/components/schemas/RuntimeSdkBalance']
         evm_contract:
           allOf: [$ref: '#/components/schemas/RuntimeEvmContract']
           description: |
@@ -2631,9 +2656,9 @@ components:
             NOTE: This field is limited to 1000 entries. If you need more, please let us know in a GitHub issue.
           type: array
           items:
-            $ref: '#/components/schemas/RuntimeEvmBalance'
+            allOf: [$ref: '#/components/schemas/RuntimeEvmBalance']
         stats:
-          $ref: '#/components/schemas/AccountStats'
+          allOf: [$ref: '#/components/schemas/AccountStats']
 
     RuntimeStatus:
       type: object
@@ -2739,7 +2764,7 @@ components:
             DEPRECATED: This field will be removed in the future in favor of verification_level
           example: false
         verification_level:
-          $ref: '#/components/schemas/VerificationLevel'
+          allOf: [$ref: '#/components/schemas/VerificationLevel']
 
     EvmNftList:
       allOf:
@@ -2761,7 +2786,7 @@ components:
         - id
       properties:
         token:
-          $ref: '#/components/schemas/EvmToken'
+          allOf: [$ref: '#/components/schemas/EvmToken']
         id:
           allOf: [$ref: '#/components/schemas/TextBigInt']
           description: The instance ID of this NFT within the collection represented by `token`.

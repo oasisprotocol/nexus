@@ -83,7 +83,8 @@ func (c *FileConsensusApiLite) GetBlock(ctx context.Context, height int64) (*con
 func (c *FileConsensusApiLite) GetTransactionsWithResults(ctx context.Context, height int64) ([]nodeapi.TransactionWithResults, error) {
 	return kvstore.GetSliceFromCacheOrCall(
 		c.db, height == consensus.HeightLatest,
-		kvstore.GenerateCacheKey("GetTransactionsWithResults", height),
+		// v2: Updated roothash events conversion to retain more data.
+		kvstore.GenerateCacheKey("GetTransactionsWithResults.v2", height),
 		func() ([]nodeapi.TransactionWithResults, error) {
 			return c.consensusApi.GetTransactionsWithResults(ctx, height)
 		},
@@ -132,7 +133,8 @@ func (c *FileConsensusApiLite) GovernanceEvents(ctx context.Context, height int6
 func (c *FileConsensusApiLite) RoothashEvents(ctx context.Context, height int64) ([]nodeapi.Event, error) {
 	return kvstore.GetSliceFromCacheOrCall(
 		c.db, height == consensus.HeightLatest,
-		kvstore.GenerateCacheKey("RoothashEvents", height),
+		// v2: Updated roothash events conversion to retain more data.
+		kvstore.GenerateCacheKey("RoothashEvents.v2", height),
 		func() ([]nodeapi.Event, error) { return c.consensusApi.RoothashEvents(ctx, height) },
 	)
 }
