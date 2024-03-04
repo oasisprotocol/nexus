@@ -34,6 +34,10 @@ func (b BigInt) Times(other BigInt) BigInt {
 	return BigInt{result}
 }
 
+func (b BigInt) IsZero() bool {
+	return b.Sign() == 0
+}
+
 func (b BigInt) MarshalText() ([]byte, error) {
 	return b.Int.MarshalText()
 }

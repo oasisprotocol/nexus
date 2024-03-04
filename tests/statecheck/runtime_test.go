@@ -122,9 +122,9 @@ func testRuntimeAccounts(t *testing.T, runtime common.Runtime) {
 		_, ok := expectedAccts[actualAddr]
 		if !ok {
 			// If the account is not expected (missing from oasis-node) it should have a zero balance.
-			if a.Balance.Int64() != 0 {
+			if !a.Balance.IsZero() {
 				notExpectedFound++
-				t.Logf("Unexpected address '%s' found, reported balance (Nexus): %d", a.Address, a.Balance.Int64())
+				t.Logf("Unexpected address '%s' found, reported balance (Nexus): %s", a.Address, a.Balance)
 				t.Fail()
 			} else {
 				allBalances++
@@ -160,7 +160,7 @@ func testRuntimeAccounts(t *testing.T, runtime common.Runtime) {
 			for denom, amount := range balances.Balances {
 				if stringifyDenomination(denom, sdkPT) == nativeTokenSymbol(sdkPT) {
 					t.Logf("Balance: %s", amount)
-					if amount.ToBigInt().Int64() > 0 {
+					if !amount.IsZero() {
 						expectedNotFoundNonZero++
 					}
 				}
