@@ -8,7 +8,6 @@ import (
 
 	"github.com/oasisprotocol/nexus/analyzer/queries"
 	"github.com/oasisprotocol/nexus/analyzer/runtime/evm"
-	apiTypes "github.com/oasisprotocol/nexus/api/v1/types"
 	"github.com/oasisprotocol/nexus/common"
 	"github.com/oasisprotocol/nexus/storage"
 )
@@ -18,13 +17,13 @@ var preEdenStaleAcctsFS embed.FS
 var preEdenStaleAccts map[staleAcctsKey][]string // Parsed version of embed.FS
 
 type staleAcctsKey struct {
-	net     common.ChainName
+	chain   common.ChainName
 	runtime common.Runtime
 	height  uint64
 }
 
 // Parses a file with a list of stale accounts. The accounts are parsed from the file (one per line);
-// the metadata is parsed from the filename, which should be of the form {chainName}_{runtime}_{height}_*
+// the metadata is parsed from the filename, which should be of the form "<chainName>_<runtime>_<height>_*".
 func mustReadStaleAccts(path string) (chain common.ChainName, runtime common.Runtime, height uint64, accts []string) {
 	content, err := preEdenStaleAcctsFS.ReadFile(path)
 	if err != nil {
@@ -82,7 +81,7 @@ func QueueEVMKnownStaleAccounts(batch *storage.QueryBatch, chainName common.Chai
 		//     This periodic re-querying might starve other accounts of balance updates though.
 		batch.Queue(
 			queries.RuntimeEVMTokenBalanceAnalysisMutateRoundUpsert,
-			runtime, evm.NativeRuntimeTokenAddress, apiTypes.Address(account), round,
+			runtime, evm.NativeRuntimeTokenAddress, account, round,
 		)
 	}
 
