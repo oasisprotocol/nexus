@@ -14,6 +14,7 @@ import (
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/connection"
 
 	"github.com/oasisprotocol/nexus/common"
+	nexusConfig "github.com/oasisprotocol/nexus/config"
 	"github.com/oasisprotocol/nexus/log"
 	"github.com/oasisprotocol/nexus/storage"
 	"github.com/oasisprotocol/nexus/storage/postgres"
@@ -37,6 +38,19 @@ func newSdkConnection(ctx context.Context) (connection.Connection, error) {
 		RPC:          os.Getenv("HEALTHCHECK_TEST_NODE_RPC"),
 	}
 	return connection.ConnectNoVerify(ctx, net)
+}
+
+// Infers the network name ("mainnet" or "testnet") from the chain context
+// (given as lowercase hex string, with no leading "0x").
+func networkFromChainContext(chainContext string) string {
+	for netName, history := range nexusConfig.DefaultChains {
+		for _, record := range history.Records {
+			if record.ChainContext == chainContext {
+				return string(netName)
+			}
+		}
+	}
+	panic("unknown network (mainnet vs testnet) for chain context \"" + chainContext + "\"")
 }
 
 func snapshotBackends(target *postgres.Client, analyzer string, tables []string) (int64, error) {
