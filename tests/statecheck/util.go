@@ -39,6 +39,17 @@ func newSdkConnection(ctx context.Context) (connection.Connection, error) {
 	return connection.ConnectNoVerify(ctx, net)
 }
 
+// Infers the network name ("mainnet" or "testnet") from the chain context.
+func getNetworkName() string {
+	chainContext := os.Getenv("HEALTHCHECK_TEST_CHAIN_CONTEXT")
+	for netName, net := range oasisConfig.DefaultNetworks.All {
+		if net.ChainContext == chainContext {
+			return netName
+		}
+	}
+	panic("unknown network (mainnet vs testnet) for chain context \"" + chainContext + "\"")
+}
+
 func snapshotBackends(target *postgres.Client, analyzer string, tables []string) (int64, error) {
 	ctx := context.Background()
 

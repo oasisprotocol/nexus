@@ -43,7 +43,7 @@ func testRuntimeAccounts(t *testing.T, runtime common.Runtime) {
 
 	ctx := context.Background()
 
-	sdkNet := sdkConfig.DefaultNetworks.All[string(ChainName)]
+	sdkNet := sdkConfig.DefaultNetworks.All[getNetworkName()]
 	sdkPT := sdkNet.ParaTimes.All[string(runtime)]
 	t.Log("Runtime ID determined", "runtime", runtime, "runtime_id", sdkPT.ID)
 
