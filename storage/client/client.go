@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"math/big"
 	"strings"
@@ -277,6 +278,26 @@ func (c *StorageClient) Status(ctx context.Context) (*Status, error) {
 	return &s, nil
 }
 
+type nodeInfoRow struct {
+	NodeID         *string
+	EntityID       *string
+	EntityAddress  *string
+	EntityMetadata *json.RawMessage
+}
+
+func nodeInfoFromRow(r nodeInfoRow) (apiTypes.NodeInfo, error) {
+	var entityMetadataAny any
+	if r.EntityMetadata != nil {
+		entityMetadataAny = *r.EntityMetadata
+	}
+	return apiTypes.NodeInfo{
+		EntityAddress:  r.EntityAddress,
+		EntityId:       r.EntityID,
+		EntityMetadata: &entityMetadataAny,
+		NodeId:         r.NodeID,
+	}, nil
+}
+
 // Blocks returns a list of consensus blocks.
 func (c *StorageClient) Blocks(ctx context.Context, r apiTypes.GetConsensusBlocksParams) (*BlockList, error) {
 	hash, err := canonicalizedHash(r.Hash)
@@ -306,10 +327,39 @@ func (c *StorageClient) Blocks(ctx context.Context, r apiTypes.GetConsensusBlock
 	}
 	for res.rows.Next() {
 		var b Block
-		if err := res.rows.Scan(&b.Height, &b.Hash, &b.Timestamp, &b.NumTransactions, &b.GasLimit, &b.SizeLimit, &b.Epoch, &b.StateRoot); err != nil {
+		var metadata json.RawMessage
+		var proposerRow nodeInfoRow
+		var signerRows []nodeInfoRow
+		if err := res.rows.Scan(
+			&b.Height,
+			&b.Hash,
+			&b.Timestamp,
+			&b.NumTransactions,
+			&b.GasLimit,
+			&b.SizeLimit,
+			&b.Epoch,
+			&b.StateRoot,
+			&metadata,
+			&proposerRow,
+			&signerRows,
+		); err != nil {
 			return nil, wrapError(err)
 		}
 		b.Timestamp = b.Timestamp.UTC()
+		proposer, err := nodeInfoFromRow(proposerRow)
+		if err != nil {
+			return nil, fmt.Errorf("converting block %d proposer: %w", b.Height, err)
+		}
+		b.Proposer = &proposer
+		signers := make([]apiTypes.NodeInfo, 0, len(signerRows))
+		for i, signerRow := range signerRows {
+			signer, err := nodeInfoFromRow(signerRow)
+			if err != nil {
+				return nil, fmt.Errorf("converting block %d signer %d: %w", b.Height, i, err)
+			}
+			signers = append(signers, signer)
+		}
+		b.Signers = &signers
 
 		bs.Blocks = append(bs.Blocks, b)
 	}
