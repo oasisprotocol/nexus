@@ -1389,6 +1389,12 @@ components:
           type: string
           description: The Merkle root of the state tree after applying the block.
           example: *state_root_1
+        proposer:
+          allOf: [$ref: '#/components/schemas/NodeInfo']
+        signers:
+          type: array
+          items:
+            allOf: [$ref: '#/components/schemas/NodeInfo']
         # TODO: Not available on backend
         # size:
         #   type: integer
@@ -1402,6 +1408,17 @@ components:
         #   example: 123456
       description: |
         A consensus block.
+
+    NodeInfo:
+      type: object
+      properties:
+        node_id:
+          type: string
+        entity_id:
+          type: string
+        entity_address:
+          type: string
+        entity_metadata: {}
 
     Delegation:
       type: object
