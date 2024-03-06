@@ -24,13 +24,22 @@ const (
 			WHERE layer=$1`
 
 	Blocks = `
-		SELECT height, block_hash, time, num_txs, gas_limit, size_limit, epoch, state_root
-			FROM chain.blocks
-			WHERE ($1::bigint IS NULL OR height >= $1::bigint) AND
-						($2::bigint IS NULL OR height <= $2::bigint) AND
-						($3::timestamptz IS NULL OR time >= $3::timestamptz) AND
-						($4::timestamptz IS NULL OR time < $4::timestamptz) AND
-						($5::text IS NULL OR block_hash = $5::text)
+		SELECT
+			height,
+			block_hash,
+			time,
+			num_txs,
+			gas_limit,
+			size_limit,
+			epoch,
+			state_root
+		FROM chain.blocks
+		WHERE
+			($1::bigint IS NULL OR height >= $1::bigint) AND
+			($2::bigint IS NULL OR height <= $2::bigint) AND
+			($3::timestamptz IS NULL OR time >= $3::timestamptz) AND
+			($4::timestamptz IS NULL OR time < $4::timestamptz) AND
+			($5::text IS NULL OR block_hash = $5::text)
 		ORDER BY height DESC
 		LIMIT $6::bigint
 		OFFSET $7::bigint`
