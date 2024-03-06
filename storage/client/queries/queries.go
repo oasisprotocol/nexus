@@ -32,8 +32,29 @@ const (
 			gas_limit,
 			size_limit,
 			epoch,
-			state_root
+			state_root,
+			metadata,
+			ROW(
+			    proposer_node.id,
+			    proposer_node.entity_id,
+			    proposer_entity.address,
+			    proposer_entity.meta
+			) AS proposer_node_info,
+			ARRAY(
+				SELECT
+					ROW(
+						signer_node.id,
+						signer_node.entity_id,
+						signer_entity.address,
+						signer_entity.meta
+					)
+				FROM UNNEST(signer_node_consensus_pubkey_addresses) AS signer_node_consensus_pubkey_address
+				LEFT JOIN chain.nodes AS signer_node ON signer_node.consensus_pubkey_address = signer_node_consensus_pubkey_address
+				LEFT JOIN chain.entities AS signer_entity ON signer_entity.id = signer_node.entity_id
+			) AS signer_node_infos
 		FROM chain.blocks
+		LEFT JOIN chain.nodes AS proposer_node ON proposer_node.consensus_pubkey_address = proposer_node_consensus_pubkey_address
+		LEFT JOIN chain.entities AS proposer_entity ON proposer_entity.id = proposer_node.entity_id
 		WHERE
 			($1::bigint IS NULL OR height >= $1::bigint) AND
 			($2::bigint IS NULL OR height <= $2::bigint) AND
