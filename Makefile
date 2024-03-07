@@ -182,6 +182,37 @@ psql:
 shutdown-postgres:
 	@docker rm nexus-postgres --force
 
+# Fetch all the latest changes (including tags) from the canonical upstream git
+# repository.
+fetch-git:
+	@$(ECHO) "Fetching the latest changes (including tags) from $(GIT_ORIGIN_REMOTE) remote..."
+	@git fetch $(GIT_ORIGIN_REMOTE) --tags
+
+# Used when APP_VERSION is not set and until we have versioning tool in repo.
+NEXT_PATCH_VERSION := $(shell echo $(GIT_VERSION) | awk 'BEGIN{FS=OFS="."} {$$NF = $$NF + 1; print}')
+# Conditionally assign APP_VERSION if it is not already set.
+APP_VERSION ?= $(NEXT_PATCH_VERSION)
+# Git tag of the next release.
+RELEASE_TAG := v$(APP_VERSION)
+
+# Tag the next release.
+release-tag: fetch-git
+	@if [ -z "$(APP_VERSION)" ]; then \
+		echo "Please provide a version number using 'make changelog APP_VERSION=<your_version>'"; \
+		exit 1; \
+	fi
+	@$(ECHO) "Checking if we can tag version $(APP_VERSION) as the next release..."
+	@$(ENSURE_VALID_RELEASE_BRANCH_NAME)
+	@$(ENSURE_RELEASE_TAG_DOES_NOT_EXIST)
+	@$(ENSURE_NO_CHANGELOG_FRAGMENTS)
+	@$(ENSURE_NEXT_RELEASE_IN_CHANGELOG)
+	@$(ECHO) "All checks have passed. Proceeding with tagging the $(GIT_ORIGIN_REMOTE)/$(RELEASE_BRANCH)'s HEAD with tag '$(RELEASE_TAG)'."
+	@$(CONFIRM_ACTION)
+	@$(ECHO) "If this appears to be stuck, you might need to touch your security key for GPG sign operation."
+	@git tag --sign --message="Version $(APP_VERSION)" $(RELEASE_TAG) $(GIT_ORIGIN_REMOTE)/$(RELEASE_BRANCH)
+	@git push $(GIT_ORIGIN_REMOTE) $(RELEASE_TAG)
+	@$(ECHO) "$(CYAN)*** Tag '$(RELEASE_TAG)' has been successfully pushed to $(GIT_ORIGIN_REMOTE) remote.$(OFF)"
+
 release-build: codegen-go
 	@goreleaser release --rm-dist
 
@@ -209,6 +240,8 @@ changelog:
 	test \
 	fmt \
 	changelog \
+	fetch-git \ 
+	release-tag \
 	$(lint-targets) lint \
 	$(docs-targets) docs \
 	run
