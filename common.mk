@@ -205,3 +205,23 @@ define newline
 
 
 endef
+
+# GitHub release text in Markdown format.
+define RELEASE_TEXT =
+For a list of changes in this release, see the [Change Log].
+
+*NOTE: If you are upgrading from an earlier release, please **carefully review**
+the [Change Log] for **Removals and Breaking changes**.*
+
+[Change Log]: https://github.com/oasisprotocol/nexus/blob/v$(VERSION)/CHANGELOG.md
+
+endef
+
+GORELEASER_ARGS ?= release --rm-dist
+# If the appropriate environment variable is set, create a real release.
+ifeq ($(NEXUS_REAL_RELEASE), true)
+# Create temporary file with GitHub release's text.
+_RELEASE_NOTES_FILE := $(shell mktemp /tmp/nexus.XXXXX)
+_ := $(shell printf "$(subst ",\",$(subst $(newline),\n,$(RELEASE_TEXT)))" > $(_RELEASE_NOTES_FILE))
+GORELEASER_ARGS = release --release-notes $(_RELEASE_NOTES_FILE)
+endif

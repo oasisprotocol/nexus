@@ -34,6 +34,11 @@ jobs:
         run: |
           make release-build
         env:
+          # Instruct Make to create a real release.
+          NEXUS_REAL_RELEASE: "true"
+          # Pass automatically created GitHub App installation token to the action.
+          # For more info, see:
+          # https://help.github.com/en/actions/automating-your-workflow-with-github-actions/authenticating-with-the-github_token.
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
       # Prepare the tagged Docker image.

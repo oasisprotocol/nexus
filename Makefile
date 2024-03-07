@@ -215,7 +215,7 @@ release-tag: confirm-version
 	@$(ECHO) "$(CYAN)*** Tag '$(RELEASE_TAG)' has been successfully pushed to $(GIT_ORIGIN_REMOTE) remote.$(OFF)"
 
 release-build: codegen-go
-	@goreleaser release --rm-dist
+	@goreleaser $(GORELEASER_ARGS)
 
 changelog: confirm-version
 	@$(ECHO) "$(CYAN)*** Generating Change Log for version $(RELEASE_TAG)...$(OFF)"
