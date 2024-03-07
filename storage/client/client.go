@@ -1407,7 +1407,6 @@ func (c *StorageClient) RuntimeEvents(ctx context.Context, p apiTypes.GetRuntime
 		}
 		if toPreimageContextIdentifier != nil && toPreimageContextVersion != nil {
 			e.Body["to_eth"] = EthChecksumAddrFromPreimage(*toPreimageContextIdentifier, *toPreimageContextVersion, toPreimageData)
-			c.logger.Info("reached to block")
 		}
 		if ownerPreimageContextIdentifier != nil && ownerPreimageContextVersion != nil {
 			e.Body["owner_eth"] = EthChecksumAddrFromPreimage(*ownerPreimageContextIdentifier, *ownerPreimageContextVersion, ownerPreimageData)
