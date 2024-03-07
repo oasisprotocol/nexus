@@ -1491,11 +1491,12 @@ components:
           allOf: [$ref: '#/components/schemas/ConsensusTxMethod']
           description: The method that was called.
         body:
-          type: string
-          format: byte
-          # TODO: This is a serialzied CBOR blob. Expose as a JSON subtree instead.
-          # Front-end can pull the "recipient" field from here for transactions of a suitable type.
-          description: The method call body.
+          type: object
+          description: The method call body. This spec does not encode the many possible types;
+            instead, see [the Go API](https://pkg.go.dev/github.com/oasisprotocol/oasis-core/go) of oasis-core.
+            This object will conform to one of the types passed to variable instantiations using `NewMethodName` 
+            two levels down the hierarchy, e.g. `MethodTransfer` from `oasis-core/go/staking/api` seen 
+            [here](https://pkg.go.dev/github.com/oasisprotocol/oasis-core/go@v0.2300.10/staking/api#pkg-variables).
           example: *tx_body_1
         success:
           type: boolean

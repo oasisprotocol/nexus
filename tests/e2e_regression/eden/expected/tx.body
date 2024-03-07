@@ -1,6 +1,9 @@
 {
   "block": 16818955,
-  "body": "omJ0b1UAGFXafz9TY1hQE753oi4R3pU4/HpmYW1vdW50RAL68IA=",
+  "body": {
+    "amount": "50000000",
+    "to": "oasis1qqv9tknl8afkxkzszwl80g3wz80f2w8u0g502ewc"
+  },
   "fee": "0",
   "hash": "142d43e5194b738ab2223f8d0b42326fab06edd714a8cefc59a078b89b5de057",
   "index": 0,
