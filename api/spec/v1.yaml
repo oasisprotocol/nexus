@@ -2279,11 +2279,13 @@ components:
         body:
           type: object
           description: |
-            The decoded event contents. This spec does not encode the many possible types;
-            instead, see [the Go API](https://pkg.go.dev/github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules).
+            The decoded event contents, possibly augmented with additional address info.
+            This spec does not encode the many possible types; instead, see [the Go API](https://pkg.go.dev/github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules).
             This object will conform to one of the `*Event` types two levels down
             the hierarchy (e.g. `MintEvent` from `accounts > Event > MintEvent`),
-            OR `evm > Event`.
+            OR `evm > Event`. For object fields that specify an oasis-style address, Nexus
+            will add a field specifying the corresponding Ethereum address, if known. Currently, 
+            the only such possible fields are `from_eth`, `to_eth`, and `owner_eth`.
         evm_log_name:
           type: string
           description: |

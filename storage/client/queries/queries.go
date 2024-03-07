@@ -392,7 +392,16 @@ const (
 			evs.evm_log_params,
 			tokens.symbol,
 			tokens.token_type,
-			tokens.decimals
+			tokens.decimals,
+			pre_from.context_identifier AS from_preimage_context_identifier,
+			pre_from.context_version AS from_preimage_context_version,
+			pre_from.address_data AS from_preimage_address_data,
+			pre_to.context_identifier AS to_preimage_context_identifier,
+			pre_to.context_version AS to_preimage_context_version,
+			pre_to.address_data AS to_preimage_address_data,
+			pre_owner.context_identifier AS owner_preimage_context_identifier,
+			pre_owner.context_version AS owner_preimage_context_version,
+			pre_owner.address_data AS owner_preimage_address_data
 		FROM chain.runtime_events as evs
 		-- Look up the oasis-style address derived from evs.body.address.
 		-- The derivation is just a keccak hash and we could theoretically compute it instead of looking it up,
@@ -401,6 +410,18 @@ const (
 			DECODE(evs.body ->> 'address', 'base64')=preimages.address_data AND
 			preimages.context_identifier = 'oasis-runtime-sdk/address: secp256k1eth' AND
 			preimages.context_version = 0
+		LEFT JOIN chain.address_preimages AS pre_from ON
+			evs.body->>'from' = pre_from.address AND
+			pre_from.context_identifier = 'oasis-runtime-sdk/address: secp256k1eth' AND
+			pre_from.context_version = 0
+		LEFT JOIN chain.address_preimages AS pre_to ON
+			evs.body->>'to' = pre_to.address AND
+			pre_to.context_identifier = 'oasis-runtime-sdk/address: secp256k1eth' AND
+			pre_to.context_version = 0
+		LEFT JOIN chain.address_preimages AS pre_owner ON
+			evs.body->>'owner' = pre_owner.address AND
+			pre_owner.context_identifier = 'oasis-runtime-sdk/address: secp256k1eth' AND
+			pre_owner.context_version = 0
 		LEFT JOIN chain.evm_tokens as tokens ON
 			(evs.runtime=tokens.runtime) AND
 			(preimages.address=tokens.token_address) AND

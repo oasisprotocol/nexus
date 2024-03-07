@@ -1359,6 +1359,15 @@ func (c *StorageClient) RuntimeEvents(ctx context.Context, p apiTypes.GetRuntime
 		var e RuntimeEvent
 		var et apiTypes.EvmEventToken
 		var tokenType sql.NullInt32
+		var fromPreimageContextIdentifier *string
+		var fromPreimageContextVersion *int
+		var fromPreimageData []byte
+		var toPreimageContextIdentifier *string
+		var toPreimageContextVersion *int
+		var toPreimageData []byte
+		var ownerPreimageContextIdentifier *string
+		var ownerPreimageContextVersion *int
+		var ownerPreimageData []byte
 		if err := res.rows.Scan(
 			&e.Round,
 			&e.TxIndex,
@@ -1372,6 +1381,15 @@ func (c *StorageClient) RuntimeEvents(ctx context.Context, p apiTypes.GetRuntime
 			&et.Symbol,
 			&tokenType,
 			&et.Decimals,
+			&fromPreimageContextIdentifier,
+			&fromPreimageContextVersion,
+			&fromPreimageData,
+			&toPreimageContextIdentifier,
+			&toPreimageContextVersion,
+			&toPreimageData,
+			&ownerPreimageContextIdentifier,
+			&ownerPreimageContextVersion,
+			&ownerPreimageData,
 		); err != nil {
 			return nil, wrapError(err)
 		}
@@ -1380,6 +1398,18 @@ func (c *StorageClient) RuntimeEvents(ctx context.Context, p apiTypes.GetRuntime
 		}
 		if et != (apiTypes.EvmEventToken{}) {
 			e.EvmToken = &et
+		}
+		// Render Ethereum-compatible address preimages.
+		// TODO: That's a little odd to do in the database layer. Move this farther
+		// out if we have the energy.
+		if fromPreimageContextIdentifier != nil && fromPreimageContextVersion != nil {
+			e.Body["from_eth"] = EthChecksumAddrFromPreimage(*fromPreimageContextIdentifier, *fromPreimageContextVersion, fromPreimageData)
+		}
+		if toPreimageContextIdentifier != nil && toPreimageContextVersion != nil {
+			e.Body["to_eth"] = EthChecksumAddrFromPreimage(*toPreimageContextIdentifier, *toPreimageContextVersion, toPreimageData)
+		}
+		if ownerPreimageContextIdentifier != nil && ownerPreimageContextVersion != nil {
+			e.Body["owner_eth"] = EthChecksumAddrFromPreimage(*ownerPreimageContextIdentifier, *ownerPreimageContextVersion, ownerPreimageData)
 		}
 		es.Events = append(es.Events, e)
 	}
