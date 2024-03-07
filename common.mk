@@ -140,9 +140,9 @@ endef
 # Helper that builds the Change Log.
 define BUILD_CHANGELOG =
 	if [[ $(ASSUME_YES) != 1 ]]; then \
-		towncrier build --version $(APP_VERSION); \
+		towncrier build --version $(RELEASE_VERSION); \
 	else \
-		towncrier build --version $(APP_VERSION) --yes; \
+		towncrier build --version $(RELEASE_VERSION) --yes; \
 	fi
 endef
 
@@ -173,8 +173,8 @@ endef
 # section for the next release.
 define ENSURE_NEXT_RELEASE_IN_CHANGELOG =
 	if ! ( git show $(GIT_ORIGIN_REMOTE)/$(RELEASE_BRANCH):CHANGELOG.md | \
-			grep --quiet '^## $(APP_VERSION) (.*)' ); then \
-		$(ECHO) "$(RED)Error: Could not locate Change Log section for release $(APP_VERSION) on $(GIT_ORIGIN_REMOTE)/$(RELEASE_BRANCH) branch.$(OFF)"; \
+			grep --quiet '^## $(RELEASE_VERSION) (.*)' ); then \
+		$(ECHO) "$(RED)Error: Could not locate Change Log section for release $(RELEASE_VERSION) on $(GIT_ORIGIN_REMOTE)/$(RELEASE_BRANCH) branch.$(OFF)"; \
 		exit 1; \
 	fi
 endef
