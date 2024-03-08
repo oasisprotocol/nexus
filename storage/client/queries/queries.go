@@ -411,17 +411,11 @@ const (
 			preimages.context_identifier = 'oasis-runtime-sdk/address: secp256k1eth' AND
 			preimages.context_version = 0
 		LEFT JOIN chain.address_preimages AS pre_from ON
-			evs.body->>'from' = pre_from.address AND
-			pre_from.context_identifier = 'oasis-runtime-sdk/address: secp256k1eth' AND
-			pre_from.context_version = 0
+			evs.body->>'from' = pre_from.address
 		LEFT JOIN chain.address_preimages AS pre_to ON
-			evs.body->>'to' = pre_to.address AND
-			pre_to.context_identifier = 'oasis-runtime-sdk/address: secp256k1eth' AND
-			pre_to.context_version = 0
+			evs.body->>'to' = pre_to.address
 		LEFT JOIN chain.address_preimages AS pre_owner ON
-			evs.body->>'owner' = pre_owner.address AND
-			pre_owner.context_identifier = 'oasis-runtime-sdk/address: secp256k1eth' AND
-			pre_owner.context_version = 0
+			evs.body->>'owner' = pre_owner.address
 		LEFT JOIN chain.evm_tokens as tokens ON
 			(evs.runtime=tokens.runtime) AND
 			(preimages.address=tokens.token_address) AND
