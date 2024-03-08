@@ -1403,13 +1403,19 @@ func (c *StorageClient) RuntimeEvents(ctx context.Context, p apiTypes.GetRuntime
 		// TODO: That's a little odd to do in the database layer. Move this farther
 		// out if we have the energy.
 		if fromPreimageContextIdentifier != nil && fromPreimageContextVersion != nil {
-			e.Body["from_eth"] = EthChecksumAddrFromPreimage(*fromPreimageContextIdentifier, *fromPreimageContextVersion, fromPreimageData)
+			if from_eth := EthChecksumAddrFromPreimage(*fromPreimageContextIdentifier, *fromPreimageContextVersion, fromPreimageData); from_eth != nil {
+				e.Body["from_eth"] = from_eth
+			}
 		}
 		if toPreimageContextIdentifier != nil && toPreimageContextVersion != nil {
-			e.Body["to_eth"] = EthChecksumAddrFromPreimage(*toPreimageContextIdentifier, *toPreimageContextVersion, toPreimageData)
+			if to_eth := EthChecksumAddrFromPreimage(*toPreimageContextIdentifier, *toPreimageContextVersion, toPreimageData); to_eth != nil {
+				e.Body["to_eth"] = to_eth
+			}
 		}
 		if ownerPreimageContextIdentifier != nil && ownerPreimageContextVersion != nil {
-			e.Body["owner_eth"] = EthChecksumAddrFromPreimage(*ownerPreimageContextIdentifier, *ownerPreimageContextVersion, ownerPreimageData)
+			if owner_eth := EthChecksumAddrFromPreimage(*ownerPreimageContextIdentifier, *ownerPreimageContextVersion, ownerPreimageData); owner_eth != nil {
+				e.Body["owner_eth"] = owner_eth
+			}
 		}
 		es.Events = append(es.Events, e)
 	}
