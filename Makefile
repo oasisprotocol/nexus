@@ -182,6 +182,11 @@ psql:
 shutdown-postgres:
 	@docker rm nexus-postgres --force
 
+confirm-version: fetch-git
+	@$(ECHO) "Latest published version is $(RED)v$(GIT_VERSION)$(OFF). You are about to publish $(CYAN)$(RELEASE_TAG)$(OFF)."
+	@$(ECHO) "If this is not what you want, re-run this command with VERSION=..." 
+	@$(CONFIRM_ACTION)
+
 # Fetch all the latest changes (including tags) from the canonical upstream git
 # repository.
 fetch-git:
@@ -196,11 +201,7 @@ APP_VERSION ?= $(NEXT_PATCH_VERSION)
 RELEASE_TAG := v$(APP_VERSION)
 
 # Tag the next release.
-release-tag: fetch-git
-	@if [ -z "$(APP_VERSION)" ]; then \
-		echo "Please provide a version number using 'make changelog APP_VERSION=<your_version>'"; \
-		exit 1; \
-	fi
+release-tag: confirm-version
 	@$(ECHO) "Checking if we can tag version $(APP_VERSION) as the next release..."
 	@$(ENSURE_VALID_RELEASE_BRANCH_NAME)
 	@$(ENSURE_RELEASE_TAG_DOES_NOT_EXIST)
@@ -216,11 +217,7 @@ release-tag: fetch-git
 release-build: codegen-go
 	@goreleaser release --rm-dist
 
-changelog:
-	@if [ -z "$(APP_VERSION)" ]; then \
-		echo "Please provide a version number using 'make changelog VERSION=<your_version>'"; \
-		exit 1; \
-	fi
+changelog: confirm-version
 	@$(ECHO) "$(CYAN)*** Generating Change Log for version $(APP_VERSION)...$(OFF)"
 	@$(BUILD_CHANGELOG)
 	@$(ECHO) "Next, review the staged changes, commit them and make a pull request."

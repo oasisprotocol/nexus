@@ -140,9 +140,9 @@ endef
 # Helper that builds the Change Log.
 define BUILD_CHANGELOG =
 	if [[ $(ASSUME_YES) != 1 ]]; then \
-		towncrier build --version $(VERSION); \
+		towncrier build --version $(APP_VERSION); \
 	else \
-		towncrier build --version $(VERSION) --yes; \
+		towncrier build --version $(APP_VERSION) --yes; \
 	fi
 endef
 
