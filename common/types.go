@@ -27,6 +27,13 @@ func (b BigInt) Plus(other BigInt) BigInt {
 	return BigInt{result}
 }
 
+func (b BigInt) Minus(other BigInt) BigInt {
+	result := big.Int{}
+	result.Set(&b.Int) // creates a copy of b.Int
+	result.Sub(&result, &other.Int)
+	return BigInt{result}
+}
+
 func (b BigInt) Times(other BigInt) BigInt {
 	result := big.Int{}
 	result.Set(&b.Int) // creates a copy of b.Int
@@ -36,6 +43,10 @@ func (b BigInt) Times(other BigInt) BigInt {
 
 func (b BigInt) IsZero() bool {
 	return b.Sign() == 0
+}
+
+func (b BigInt) Eq(other BigInt) bool {
+	return b.Minus(other).IsZero()
 }
 
 func (b BigInt) MarshalText() ([]byte, error) {
