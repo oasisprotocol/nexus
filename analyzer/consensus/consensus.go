@@ -1008,6 +1008,7 @@ func (m *processor) queueVotes(batch *storage.QueryBatch, data *governanceData) 
 			vote.ID,
 			vote.Submitter.String(),
 			vote.Vote,
+			data.Height,
 		)
 	}
 

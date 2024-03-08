@@ -246,10 +246,11 @@ const (
 			WHERE id = $1::bigint`
 
 	ProposalVotes = `
-		SELECT voter, vote
-			FROM chain.votes
+		SELECT votes.voter, votes.vote, votes.height, blocks.time
+			FROM chain.votes as votes
+			LEFT JOIN chain.blocks as blocks ON votes.height = blocks.height
 			WHERE proposal = $1::bigint
-		ORDER BY proposal DESC
+		ORDER BY height DESC, voter ASC
 		LIMIT $2::bigint
 		OFFSET $3::bigint`
 

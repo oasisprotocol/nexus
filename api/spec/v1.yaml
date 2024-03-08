@@ -2178,6 +2178,16 @@ components:
           type: string
           description: The vote cast.
           example: 'yes'
+        height:
+          type: integer
+          format: int64
+          description: The block height at which this vote was recorded.
+          example: *block_height_1
+        timestamp:
+          type: string
+          format: date-time
+          description: The second-granular consensus time of the block in which this vote was cast.
+          example: *iso_timestamp_1
 
     RuntimeBlockList:
       allOf:
