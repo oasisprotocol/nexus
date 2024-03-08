@@ -1054,6 +1054,8 @@ func (c *StorageClient) ProposalVotes(ctx context.Context, proposalID uint64, p 
 		if err := res.rows.Scan(
 			&v.Address,
 			&v.Vote,
+			&v.Height,
+			&v.Timestamp,
 		); err != nil {
 			return nil, wrapError(err)
 		}
