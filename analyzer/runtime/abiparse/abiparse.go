@@ -107,6 +107,9 @@ func ParseEvent(topics [][]byte, data []byte, contractABI *abi.ABI) (*abi.Event,
 
 	for i, in := range event.Inputs {
 		if in.Indexed {
+			if nextTopicIndex == len(topicsEC) {
+				return nil, nil, fmt.Errorf("number of indexed inputs exceeds number of event topics")
+			}
 			switch in.Type.T {
 			case abi.StringTy, abi.SliceTy, abi.ArrayTy, abi.TupleTy, abi.BytesTy:
 				// https://docs.soliditylang.org/en/latest/abi-spec.html

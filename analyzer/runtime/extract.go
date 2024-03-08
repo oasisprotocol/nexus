@@ -36,7 +36,10 @@ import (
 	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
 )
 
-const TxRevertErrPrefix = "reverted: "
+const (
+	TxRevertErrPrefix     = "reverted: "
+	DefaultTxRevertErrMsg = "reverted without a message"
+)
 
 type BlockTransactionSignerData struct {
 	Index   int
@@ -678,6 +681,9 @@ func extractTxError(fcr sdkTypes.FailedCallResult) TxError {
 // Otherwise, we optimistically try to decode the error as the prevailing
 // Error(string) type and return the error message if successful.
 //
+// If no revert reason was provided, e.g. the raw error message is
+// "reverted: ", we return a fixed default error message instead.
+//
 // Note that the error type can be any data type specified in the abi.
 // We may not have the abi available now, so in those cases the
 // abi analyzer will extract the error message once the contract
@@ -701,6 +707,10 @@ func tryParseErrorMessage(errorModule string, errorCode uint32, msg string) *str
 		// guarantees that the message is base64-encoded.
 		sanitizedMsg := storage.SanitizeString(msg)
 		return &sanitizedMsg
+	}
+	// Return a default error message if no revert reason was provided.
+	if len(abiEncodedErr) == 0 {
+		return common.Ptr(DefaultTxRevertErrMsg)
 	}
 	// Try to abi decode as Error(string).
 	stringAbi, _ := abi.NewType("string", "", nil)

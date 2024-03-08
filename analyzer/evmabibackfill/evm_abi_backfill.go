@@ -164,7 +164,6 @@ func (p *processor) parseEvent(ev *abiEncodedEvent, contractAbi abi.ABI) (*strin
 	}
 	eventArgs, err := marshalArgs(abiEvent.Inputs, abiEventArgs)
 	if err != nil {
-		p.logger.Warn("error processing event args using abi", "err", err)
 		return nil, nil, nil, fmt.Errorf("error processing event args using abi: %w", err)
 	}
 
@@ -186,9 +185,10 @@ func (p *processor) parseTxCall(tx *abiEncodedTx, contractAbi abi.ABI) (*string,
 	return &method.RawName, txArgs, nil
 }
 
-// Attempts to parse the transaction revert reason into the error name and args
-// as defined by the abi of the contract that was called.
-func (p *processor) parseTxErr(tx *abiEncodedTx, contractAbi abi.ABI) (*string, []*abiEncodedArg) {
+// Attempts to parse the transaction revert reason into the error name (or plaintext message;
+// see chain.runtime_transactions.error_message in DB) and args as defined by the abi of the
+// contract that was called.
+func (p *processor) parseTxErr(tx *abiEncodedTx, contractAbi abi.ABI) (*string, []*abiEncodedArg, error) {
 	var abiErrMsg string
 	var abiErr *abi.Error
 	var abiErrArgs []interface{}
@@ -200,22 +200,30 @@ func (p *processor) parseTxErr(tx *abiEncodedTx, contractAbi abi.ABI) (*string, 
 			// as "reverted: Ownable: caller is not the owner". In this case, we do
 			// not parse the error with the abi.
 			p.logger.Info("encountered likely old-style reverted transaction", "revert reason", tx.TxRevertReason, "tx hash", tx.TxHash, "err", err)
-			return nil, nil
+			return nil, nil, nil
+		}
+		// If no revert reason was provided, we return nil here to skip the update
+		// and preserve the existing error_message, which should be the default
+		// tx error message defined in runtime.DefaultTxRevertErrMsg.
+		//
+		// Note: Although we could return the default error message here, conceptually
+		// the abi analyzer should only update fields that were parsed using the abi.
+		if len(txrr) == 0 {
+			p.logger.Info("no revert reason provided, skipping update")
+			return nil, nil, nil
 		}
 		abiErr, abiErrArgs, err = abiparse.ParseError(txrr, &contractAbi)
 		if err != nil || abiErr == nil {
-			p.logger.Warn("error processing tx error using abi", "contract address", "err", err)
-			return nil, nil
+			return nil, nil, fmt.Errorf("error processing error using abi: %w", err)
 		}
 		abiErrMsg = runtime.TxRevertErrPrefix + abiErr.Name + prettyPrintArgs(abiErrArgs)
 		errArgs, err = marshalArgs(abiErr.Inputs, abiErrArgs)
 		if err != nil {
-			p.logger.Warn("error processing tx error args", "err", err)
-			return nil, nil
+			return nil, nil, fmt.Errorf("error marshalling tx err args: %w", err)
 		}
 	}
 
-	return &abiErrMsg, errArgs
+	return &abiErrMsg, errArgs, nil
 }
 
 func (p *processor) ProcessItem(ctx context.Context, batch *storage.QueryBatch, item *abiEncodedItem) error {
@@ -248,7 +256,11 @@ func (p *processor) ProcessItem(ctx context.Context, batch *storage.QueryBatch, 
 			p.logger.Warn("error parsing tx with abi", "err", err, "contract_address", item.ContractAddr, "tx_hash", item.Tx.TxHash)
 			// Write to the DB regardless of error so we don't keep retrying the same item.
 		}
-		errMsg, errArgs := p.parseTxErr(item.Tx, contractAbi)
+		errMsg, errArgs, err := p.parseTxErr(item.Tx, contractAbi)
+		if err != nil {
+			p.logger.Warn("error parsing tx err with abi", "err", err, "contract_address", item.ContractAddr, "tx_hash", item.Tx.TxHash)
+			// Write to the DB regardless of error so we don't keep retrying the same item.
+		}
 		batch.Queue(
 			queries.RuntimeTransactionEvmParsedFieldsUpdate,
 			p.runtime,
