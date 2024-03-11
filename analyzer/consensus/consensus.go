@@ -8,23 +8,39 @@ import (
 	"fmt"
 	"math"
 	"os"
+	"reflect"
 	"strings"
 
 	coreCommon "github.com/oasisprotocol/oasis-core/go/common"
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
+	"github.com/oasisprotocol/oasis-core/go/common/entity"
 	sdkConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 
-	"github.com/oasisprotocol/nexus/common"
+	beaconCobalt "github.com/oasisprotocol/nexus/coreapi/v21.1.1/beacon/api"
+	governanceCobalt "github.com/oasisprotocol/nexus/coreapi/v21.1.1/governance/api"
+	registryCobalt "github.com/oasisprotocol/nexus/coreapi/v21.1.1/registry/api"
+	roothashCobalt "github.com/oasisprotocol/nexus/coreapi/v21.1.1/roothash/api"
+
+	beacon "github.com/oasisprotocol/nexus/coreapi/v22.2.11/beacon/api"
+	"github.com/oasisprotocol/nexus/coreapi/v22.2.11/common/node"
 	"github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api/transaction"
 	genesis "github.com/oasisprotocol/nexus/coreapi/v22.2.11/genesis/api"
+	governance "github.com/oasisprotocol/nexus/coreapi/v22.2.11/governance/api"
+	keymanager "github.com/oasisprotocol/nexus/coreapi/v22.2.11/keymanager/api"
+	registry "github.com/oasisprotocol/nexus/coreapi/v22.2.11/registry/api"
+	roothash "github.com/oasisprotocol/nexus/coreapi/v22.2.11/roothash/api"
 	staking "github.com/oasisprotocol/nexus/coreapi/v22.2.11/staking/api"
+
+	consensusEden "github.com/oasisprotocol/nexus/coreapi/v23.0/consensus/api"
+	keymanagerEden "github.com/oasisprotocol/nexus/coreapi/v23.0/keymanager/api"
 
 	"github.com/oasisprotocol/nexus/analyzer"
 	"github.com/oasisprotocol/nexus/analyzer/block"
 	"github.com/oasisprotocol/nexus/analyzer/queries"
 	"github.com/oasisprotocol/nexus/analyzer/util"
 	apiTypes "github.com/oasisprotocol/nexus/api/v1/types"
+	"github.com/oasisprotocol/nexus/common"
 	"github.com/oasisprotocol/nexus/config"
 	"github.com/oasisprotocol/nexus/log"
 	"github.com/oasisprotocol/nexus/metrics"
@@ -35,6 +51,46 @@ import (
 const (
 	consensusAnalyzerName = "consensus"
 )
+
+// The Cobalt (v21.1.1) version of oasis-core defines some transaction structs
+// that are incompatible with the structs used in Damask onwards. We track
+// those structs here and use them as a backup if the initial unmarshalling fails.
+var bodyTypeForTxMethodCobalt = map[string]interface{}{
+	"governance.SubmitProposal": governanceCobalt.ProposalContent{},
+	"registry.DeregisterEntity": nil,
+	"registry.RegisterRuntime":  registryCobalt.Runtime{},
+	"roothash.ExecutorCommit":   roothashCobalt.ExecutorCommit{},
+	"roothash.Evidence":         roothashCobalt.Evidence{},
+}
+
+var bodyTypeForTxMethod = map[string]interface{}{
+	"beacon.PVSSCommit":                 beaconCobalt.PVSSCommit{},
+	"beacon.PVSSReveal":                 beaconCobalt.PVSSReveal{},
+	"beacon.VRFProve":                   beacon.VRFProve{},
+	"consensus.Meta":                    consensusEden.BlockMetadata{},
+	"governance.SubmitProposal":         governance.ProposalContent{},
+	"governance.CastVote":               governance.ProposalVote{},
+	"keymanager.PublishMasterSecret":    keymanagerEden.SignedEncryptedMasterSecret{},
+	"keymanager.PublishEphemeralSecret": keymanagerEden.SignedEncryptedEphemeralSecret{},
+	"keymanager.UpdatePolicy":           keymanager.SignedPolicySGX{},
+	"registry.RegisterEntity":           entity.SignedEntity{},
+	"registry.DeregisterEntity":         registry.DeregisterEntity{},
+	"registry.RegisterNode":             node.MultiSignedNode{},
+	"registry.UnfreezeNode":             registry.UnfreezeNode{},
+	"registry.RegisterRuntime":          registry.Runtime{},
+	"registry.ProveFreshness":           registry.Runtime{},
+	"roothash.ExecutorCommit":           roothash.ExecutorCommit{},
+	"roothash.ExecutorProposerTimeout":  roothash.ExecutorProposerTimeoutRequest{},
+	"roothash.Evidence":                 roothash.Evidence{},
+	"roothash.SubmitMsg":                roothash.SubmitMsg{},
+	"staking.Transfer":                  staking.Transfer{},
+	"staking.Burn":                      staking.Burn{},
+	"staking.AddEscrow":                 staking.Escrow{},
+	"staking.ReclaimEscrow":             staking.ReclaimEscrow{},
+	"staking.AmendCommissionSchedule":   staking.AmendCommissionSchedule{},
+	"staking.Allow":                     staking.Allow{},
+	"staking.Withdraw":                  staking.Withdraw{},
+}
 
 type EventType = apiTypes.ConsensusEventType // alias for brevity
 
@@ -376,6 +432,31 @@ func (m *processor) queueEpochInserts(batch *storage.QueryBatch, data *consensus
 	return nil
 }
 
+// Adapted from https://github.com/oasisprotocol/oasis-core/blob/master/go/consensus/api/transaction/transaction.go#L58
+func unpackTxBody(t *transaction.Transaction) (interface{}, error) {
+	bodyType, ok := bodyTypeForTxMethod[string(t.Method)]
+	if !ok {
+		return nil, fmt.Errorf("unknown tx method: %s", t.Method)
+	}
+
+	// Deserialize into correct type.
+	v := reflect.New(reflect.TypeOf(bodyType)).Interface()
+	if err := cbor.Unmarshal(t.Body, v); err != nil {
+		// This may be an older tx from Cobalt; attempt to unmarshal into
+		// the appropriate Cobalt tx type.
+		bodyType, ok = bodyTypeForTxMethodCobalt[string(t.Method)]
+		if !ok {
+			return nil, fmt.Errorf("unable to cbor-decode consensus tx body: %w, body: %x", err, t.Body)
+		}
+		v = reflect.New(reflect.TypeOf(bodyType)).Interface()
+		if err2 := cbor.Unmarshal(t.Body, v); err2 != nil {
+			return nil, fmt.Errorf("unable to cbor-decode consensus tx body into Cobalt type (%w) or newer type (%w), body: %x", err, err2, t.Body)
+		}
+	}
+
+	return v, nil
+}
+
 func (m *processor) queueTransactionInserts(batch *storage.QueryBatch, data *consensusBlockData) error {
 	for i, txr := range data.TransactionsWithResults {
 		signedTx := txr.Transaction
@@ -395,10 +476,9 @@ func (m *processor) queueTransactionInserts(batch *storage.QueryBatch, data *con
 			signedTx.Signature.PublicKey,
 		).String()
 
-		bodyBytes, err := tx.Body.MarshalCBOR()
+		body, err := unpackTxBody(tx)
 		if err != nil {
-			m.logger.Warn("failed to marshal transaction body", "err", err, "tx_hash", signedTx.Hash().Hex(), "height", data.Height)
-			bodyBytes = []byte{}
+			m.logger.Warn("failed to unpack tx body", "err", err, "tx_hash", signedTx.Hash().Hex(), "height", data.Height)
 		}
 		var module *string
 		if len(result.Error.Module) > 0 {
@@ -425,7 +505,7 @@ func (m *processor) queueTransactionInserts(batch *storage.QueryBatch, data *con
 			fmt.Sprintf("%d", fee.Gas),
 			tx.Method,
 			sender,
-			bodyBytes,
+			body,
 			module,
 			result.Error.Code,
 			message,
