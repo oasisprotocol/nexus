@@ -43,7 +43,7 @@ func testRuntimeAccounts(t *testing.T, runtime common.Runtime) {
 
 	ctx := context.Background()
 
-	sdkNet := sdkConfig.DefaultNetworks.All[string(ChainName)]
+	sdkNet := sdkConfig.DefaultNetworks.All[networkFromChainContext(os.Getenv("HEALTHCHECK_TEST_CHAIN_CONTEXT"))]
 	sdkPT := sdkNet.ParaTimes.All[string(runtime)]
 	t.Log("Runtime ID determined", "runtime", runtime, "runtime_id", sdkPT.ID)
 
@@ -138,7 +138,10 @@ func testRuntimeAccounts(t *testing.T, runtime common.Runtime) {
 		for denom, amount := range balances.Balances {
 			if stringifyDenomination(denom, sdkPT) == a.Symbol {
 				allBalances++
-				if !assert.Equal(t, *amount.ToBigInt(), a.Balance.Int, "address: %s", a.Address) {
+
+				if !a.Balance.Eq(common.BigIntFromQuantity(amount)) {
+					t.Errorf("Unexpected %s balance for address '%s': expected (node) %s, actual (Nexus) %s",
+						stringifyDenomination(denom, sdkPT), a.Address, amount.String(), a.Balance.String())
 					balanceDiscrepancies++
 				}
 			}

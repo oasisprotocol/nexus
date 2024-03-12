@@ -235,6 +235,7 @@ func (b *blockBasedAnalyzer) softEnqueueGapsInProcessedBlocks(ctx context.Contex
 //   - If the most recently processed block was not processed by slow-sync (i.e. by fast sync, or not
 //     at all), triggers a finalization of the fast-sync process.
 func (b *blockBasedAnalyzer) ensureSlowSyncPrerequisites(ctx context.Context) (ok bool) {
+	b.logger.Info("slow sync: checking prerequisites: checking that blocks processed so far form a contiguous range")
 	isContiguous, maxProcessedHeight, err := b.processedSubrangeInfo(ctx)
 	if err != nil {
 		b.logger.Error("Failed to obtain info about already-processed blocks", "err", err)

@@ -13,6 +13,7 @@ import (
 	"github.com/oasisprotocol/nexus/analyzer/block"
 	"github.com/oasisprotocol/nexus/analyzer/queries"
 	evm "github.com/oasisprotocol/nexus/analyzer/runtime/evm"
+	"github.com/oasisprotocol/nexus/analyzer/runtime/static"
 	uncategorized "github.com/oasisprotocol/nexus/analyzer/uncategorized"
 	apiTypes "github.com/oasisprotocol/nexus/api/v1/types"
 	"github.com/oasisprotocol/nexus/common"
@@ -25,6 +26,7 @@ import (
 
 // processor is the block processor for runtimes.
 type processor struct {
+	chain           common.ChainName
 	runtime         common.Runtime
 	runtimeMetadata *sdkConfig.ParaTime
 	mode            analyzer.BlockAnalysisMode
@@ -38,6 +40,7 @@ var _ block.BlockProcessor = (*processor)(nil)
 
 // NewRuntimeAnalyzer returns a new runtime analyzer for a runtime.
 func NewRuntimeAnalyzer(
+	chain common.ChainName,
 	runtime common.Runtime,
 	runtimeMetadata *sdkConfig.ParaTime,
 	blockRange config.BlockRange,
@@ -49,6 +52,7 @@ func NewRuntimeAnalyzer(
 ) (analyzer.Analyzer, error) {
 	// Initialize runtime block processor.
 	processor := &processor{
+		chain:           chain,
 		runtime:         runtime,
 		runtimeMetadata: runtimeMetadata,
 		mode:            mode,
@@ -216,6 +220,11 @@ func (m *processor) ProcessBlock(ctx context.Context, round uint64) error {
 		m.runtime,
 		m.mode == analyzer.FastSyncMode,
 	)
+
+	// Perform one-off fixes: Refetch native balances that are known to be stale at a fixed height.
+	if err := static.QueueEVMKnownStaleAccounts(batch, m.chain, m.runtime, round, m.logger); err != nil {
+		return fmt.Errorf("queue eden accounts: %w", err)
+	}
 
 	opName := fmt.Sprintf("process_block_%s", m.runtime)
 	timer := m.metrics.DatabaseLatencies(m.target.Name(), opName)

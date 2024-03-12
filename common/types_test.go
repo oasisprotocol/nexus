@@ -41,6 +41,18 @@ func TestBigIntPlus(t *testing.T) {
 	require.EqualValues(t, 11, b.Int64())
 }
 
+func TestBigIntMinus(t *testing.T) {
+	a := NewBigInt(10)
+	b := a.Minus(NewBigInt(1))
+	require.EqualValues(t, 10, a.Int64())
+	require.EqualValues(t, 9, b.Int64())
+}
+
+func TestBigEq(t *testing.T) {
+	require.True(t, NewBigInt(10).Eq(NewBigInt(10)))
+	require.False(t, NewBigInt(10).Eq(NewBigInt(-10)))
+}
+
 func TestBigIntTimes(t *testing.T) {
 	a := NewBigInt(10)
 	b := a.Times(NewBigInt(-2))

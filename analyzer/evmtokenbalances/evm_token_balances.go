@@ -112,17 +112,19 @@ func NewAnalyzer(
 }
 
 type StaleTokenBalance struct {
-	TokenAddr                    string
-	AccountAddr                  string
-	Type                         common.TokenType
-	Balance                      *big.Int
-	TokenAddrContextIdentifier   string
-	TokenAddrContextVersion      int
-	TokenAddrData                []byte
-	AccountAddrContextIdentifier string
-	AccountAddrContextVersion    int
+	TokenAddr                  string
+	AccountAddr                string
+	Type                       common.TokenType
+	Balance                    *big.Int
+	TokenAddrContextIdentifier string
+	TokenAddrContextVersion    int
+	TokenAddrData              []byte
+	DownloadRound              uint64
+
+	// Not necessary for native tokens.
+	AccountAddrContextIdentifier *string
+	AccountAddrContextVersion    *int
 	AccountAddrData              []byte
-	DownloadRound                uint64
 }
 
 func (p *processor) GetItems(ctx context.Context, limit uint64) ([]*StaleTokenBalance, error) {
@@ -160,10 +162,6 @@ func (p *processor) GetItems(ctx context.Context, limit uint64) ([]*StaleTokenBa
 }
 
 func (p *processor) ProcessItem(ctx context.Context, batch *storage.QueryBatch, staleTokenBalance *StaleTokenBalance) error {
-	accountEthAddr, err := client.EVMEthAddrFromPreimage(staleTokenBalance.AccountAddrContextIdentifier, staleTokenBalance.AccountAddrContextVersion, staleTokenBalance.AccountAddrData)
-	if err != nil {
-		return fmt.Errorf("account address: %w", err)
-	}
 	switch staleTokenBalance.Type {
 	case common.TokenTypeUnsupported:
 		// Do nothing; we'll just mark this token as processed so we remove it from the queue.
@@ -203,6 +201,13 @@ func (p *processor) ProcessItem(ctx context.Context, batch *storage.QueryBatch, 
 		tokenEthAddr, err := client.EVMEthAddrFromPreimage(staleTokenBalance.TokenAddrContextIdentifier, staleTokenBalance.TokenAddrContextVersion, staleTokenBalance.TokenAddrData)
 		if err != nil {
 			return fmt.Errorf("token address: %w", err)
+		}
+		if staleTokenBalance.AccountAddrContextIdentifier == nil || staleTokenBalance.AccountAddrContextVersion == nil || staleTokenBalance.AccountAddrData == nil {
+			return fmt.Errorf("account address: missing preimage for: '%s' (token address: '%s')", staleTokenBalance.AccountAddr, staleTokenBalance.TokenAddr)
+		}
+		accountEthAddr, err := client.EVMEthAddrFromPreimage(*staleTokenBalance.AccountAddrContextIdentifier, *staleTokenBalance.AccountAddrContextVersion, staleTokenBalance.AccountAddrData)
+		if err != nil {
+			return fmt.Errorf("account address: %w", err)
 		}
 		balanceData, err := evm.EVMDownloadTokenBalance(
 			ctx,
