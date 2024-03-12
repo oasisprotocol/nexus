@@ -121,7 +121,107 @@ define CHECK_GITLINT =
 	gitlint --commits $$BRANCH..HEAD
 endef
 
+# List of non-trivial Change Log fragments.
+CHANGELOG_FRAGMENTS_NON_TRIVIAL := $(filter-out $(wildcard .changelog/*trivial*.md),$(wildcard .changelog/[0-9]*.md))
+
+# List of breaking Change Log fragments.
+CHANGELOG_FRAGMENTS_BREAKING := $(wildcard .changelog/*breaking*.md)
+
+# Helper that checks Change Log fragments with markdownlint-cli.
+# NOTE: Non-zero exit status is recorded but only set at the end so that all
+# markdownlint errors can be seen at once.
+define CHECK_CHANGELOG_FRAGMENTS =
+    exit_status=0; \
+    $(ECHO) "$(CYAN)*** Running markdownlint-cli for Change Log fragments... $(OFF)"; \
+    npx markdownlint-cli --config .changelog/.markdownlint.yml .changelog/ || exit_status=$$?; \
+    exit $$exit_status
+endef
+
+# Helper that builds the Change Log.
+define BUILD_CHANGELOG =
+	if [[ $(ASSUME_YES) != 1 ]]; then \
+		towncrier build --version $(RELEASE_VERSION); \
+	else \
+		towncrier build --version $(RELEASE_VERSION) --yes; \
+	fi
+endef
+
+# Helper that prints a warning when breaking changes are indicated by Change Log
+# fragments.
+define WARN_BREAKING_CHANGES =
+	if [[ -n "$(CHANGELOG_FRAGMENTS_BREAKING)" ]]; then \
+		$(ECHO) "$(RED)Warning: This release contains breaking changes.$(OFF)"; \
+		$(ECHO) "$(RED)         Make sure the version is bumped appropriately.$(OFF)"; \
+	fi
+endef
+
+# Helper that ensures the origin's release branch's HEAD doesn't contain any
+# Change Log fragments.
+define ENSURE_NO_CHANGELOG_FRAGMENTS =
+	if ! CHANGELOG_FILES=`git ls-tree -r --name-only $(GIT_ORIGIN_REMOTE)/$(RELEASE_BRANCH) .changelog`; then \
+		$(ECHO) "$(RED)Error: Could not obtain Change Log fragments for $(GIT_ORIGIN_REMOTE)/$(RELEASE_BRANCH) branch.$(OFF)"; \
+		exit 1; \
+	fi; \
+	if CHANGELOG_FRAGMENTS=`echo "$$CHANGELOG_FILES" | grep --invert-match --extended-regexp '(README.md|template.md.j2|.markdownlint.yml)'`; then \
+		$(ECHO) "$(RED)Error: Found the following Change Log fragments on $(GIT_ORIGIN_REMOTE)/$(RELEASE_BRANCH) branch:"; \
+		$(ECHO) "$${CHANGELOG_FRAGMENTS}$(OFF)"; \
+		exit 1; \
+	fi
+endef
+
+# Helper that ensures the origin's release branch's HEAD contains a Change Log
+# section for the next release.
+define ENSURE_NEXT_RELEASE_IN_CHANGELOG =
+	if ! ( git show $(GIT_ORIGIN_REMOTE)/$(RELEASE_BRANCH):CHANGELOG.md | \
+			grep --quiet '^## $(RELEASE_VERSION) (.*)' ); then \
+		$(ECHO) "$(RED)Error: Could not locate Change Log section for release $(RELEASE_VERSION) on $(GIT_ORIGIN_REMOTE)/$(RELEASE_BRANCH) branch.$(OFF)"; \
+		exit 1; \
+	fi
+endef
+
+# Helper that ensures the new release's tag doesn't already exist on the origin
+# remote.
+define ENSURE_RELEASE_TAG_DOES_NOT_EXIST =
+	if git ls-remote --exit-code --tags $(GIT_ORIGIN_REMOTE) $(RELEASE_TAG) 1>/dev/null; then \
+		$(ECHO) "$(RED)Error: Tag '$(RELEASE_TAG)' already exists on $(GIT_ORIGIN_REMOTE) remote.$(OFF)"; \
+		exit 1; \
+	fi; \
+	if git show-ref --quiet --tags $(RELEASE_TAG); then \
+		$(ECHO) "$(RED)Error: Tag '$(RELEASE_TAG)' already exists locally.$(OFF)"; \
+		exit 1; \
+	fi
+endef
+
+# Helper that ensures $(RELEASE_BRANCH) variable contains a valid release branch
+# name.
+define ENSURE_VALID_RELEASE_BRANCH_NAME =
+	if [[ ! $(RELEASE_BRANCH) =~ ^(main|(stable/[0-9]+\.[0-9]+\.x$$)) ]]; then \
+		$(ECHO) "$(RED)Error: Invalid release branch name: '$(RELEASE_BRANCH)'."; \
+		exit 1; \
+	fi
+endef
+
 define newline
 
 
 endef
+
+# GitHub release text in Markdown format.
+define RELEASE_TEXT =
+For a list of changes in this release, see the [Change Log].
+
+*NOTE: If you are upgrading from an earlier release, please **carefully review**
+the [Change Log] for **Removals and Breaking changes**.*
+
+[Change Log]: https://github.com/oasisprotocol/nexus/blob/v$(VERSION)/CHANGELOG.md
+
+endef
+
+GORELEASER_ARGS ?= release --rm-dist
+# If the appropriate environment variable is set, create a real release.
+ifeq ($(NEXUS_REAL_RELEASE), true)
+# Create temporary file with GitHub release's text.
+_RELEASE_NOTES_FILE := $(shell mktemp /tmp/nexus.XXXXX)
+_ := $(shell printf "$(subst ",\",$(subst $(newline),\n,$(RELEASE_TEXT)))" > $(_RELEASE_NOTES_FILE))
+GORELEASER_ARGS = release --release-notes $(_RELEASE_NOTES_FILE)
+endif

@@ -32,6 +32,27 @@ jobs:
         uses: actions/setup-python@v3
         with:
           python-version: '3.x'
+        # Needed for Towncrier fork to work with 3.12 and above
+      - name: Install setuptools
+        run: |
+          python -m pip install setuptools
+      - name: Install towncrier
+        run: |
+          python -m pip install https://github.com/oasisprotocol/towncrier/archive/oasis-master.tar.gz
+      - name: Check for presence of a Change Log fragment (only pull requests)
+        # NOTE: The pull request' base branch needs to be fetched so towncrier
+        # is able to compare the current branch with the base branch.
+        # Source: https://github.com/actions/checkout/#fetch-all-branches.
+        run: |
+          git fetch --no-tags origin +refs/heads/${BASE_BRANCH}:refs/remotes/origin/${BASE_BRANCH}
+          towncrier check --compare-with origin/${BASE_BRANCH}
+        env:
+          BASE_BRANCH: ${{ github.base_ref }}
+      - name: Lint Change Log fragments
+        run: |
+          make lint-changelog
+        # Always run this step so that all linting errors can be seen at once.
+        if: always()
       - name: Set up Go
         uses: actions/setup-go@v3
         with:

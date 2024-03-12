@@ -29,38 +29,9 @@ checksum:
 snapshot:
   name_template: "{{ incpatch .Version }}-next"
 
-changelog:
-  sort: asc
-  use: github
-  filters:
-    exclude:
-    - Merge pull request
-    - Merge remote-tracking branch
-    - Merge branch
-  groups:
-    - title: Breaking changes
-      regexp: "^.*breaks[(\\w)]*:+.*$"
-      order: 0
-    - title: New Features
-      regexp: "^.*feat[(\\w)]*:+.*$"
-      order: 5
-    - title: Bug fixes
-      regexp: "^.*fix[(\\w)]*:+.*$"
-      order: 10
-    - title: Dependencies updates
-      regexp: "^.*deps[(\\w)]*:+.*$"
-      order: 500
-    - title: Other changes
-      order: 999
-
 release:
   name_template: "{{.ProjectName}} {{.Version}}"
 
   # If set to auto, will mark the release as not ready for production
   # in case there is an indicator for this in the tag e.g. v1.0.0-rc1.
   prerelease: auto
-
-  footer: |
-    **Full Changelog**: https://github.com/oasisprotocol/nexus/compare/{{ .PreviousTag }}...{{ .Tag }}
-    ### Running Nexus in Docker
-    https://github.com/oasisprotocol/nexus/blob/{{ .Tag }}/README.md#docker-development
