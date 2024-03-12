@@ -14,6 +14,39 @@ The format is inspired by [Keep a Changelog].
 
 ## 0.2.10 (2024-03-12)
 
+Highlights of this release include:
+- Support for contract verification via partial matches
+- Better coverage of consensus-level data and features (with more to come in next releases)
+- (Internal: A new release process, this being the first new-style release)
+
+### Features
+
+* Add Pontus-X support by @mitjat in https://github.com/oasisprotocol/nexus/pull/639
+* Contract verification: Support partially verified contracts by @mitjat in https://github.com/oasisprotocol/nexus/pull/648
+* Handle data uris by @Andrew7234 in https://github.com/oasisprotocol/nexus/pull/649
+* consensus roothash events specialization by @pro-wh in https://github.com/oasisprotocol/nexus/pull/588
+* [api] return evm addresses in event body when available by @Andrew7234 in https://github.com/oasisprotocol/nexus/pull/653
+* [consensus] add height/timestamp to governance votes by @Andrew7234 in https://github.com/oasisprotocol/nexus/pull/656
+* consensus tx body by @Andrew7234 in https://github.com/oasisprotocol/nexus/pull/655
+
+### Bugfixes and Cleanup
+
+* openapi: Use named types everywhere by @mitjat in https://github.com/oasisprotocol/nexus/pull/641
+* [api] remove nullable tags by @Andrew7234 in https://github.com/oasisprotocol/nexus/pull/642
+* openapi: new linting tool, fix lint errors by @mitjat in https://github.com/oasisprotocol/nexus/pull/647
+* analyzer/runtime: Deposit/Withdraw txs: make "to" explicit by @mitjat in https://github.com/oasisprotocol/nexus/pull/645
+* properly evmMarshal evm_log_params by @Andrew7234 in https://github.com/oasisprotocol/nexus/pull/643
+* analyzer/consensus: Do not bump nonce for consensus.Meta txs by @mitjat in https://github.com/oasisprotocol/nexus/pull/651
+* [api] shorten query by @Andrew7234 in https://github.com/oasisprotocol/nexus/pull/658
+* [analyzer] return default message if no revert reason specified by @Andrew7234 in https://github.com/oasisprotocol/nexus/pull/650
+* analyzer/block: Hardcode pre-Eden stale accounts by @mitjat in https://github.com/oasisprotocol/nexus/pull/654
+
+### Internal Improvements
+
+* e2e extension by @Andrew7234 in https://github.com/oasisprotocol/nexus/pull/627
+* e2e regression tests: HTTP caching proxy, new cases by @mitjat in https://github.com/oasisprotocol/nexus/pull/633
+* statecheck: Use BigInt, not uint64, for balances by @mitjat in https://github.com/oasisprotocol/nexus/pull/652
+
 ### Process Changes
 
 - Add Change Log and the Change Log fragments process for assembling it
