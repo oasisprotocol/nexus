@@ -19,8 +19,10 @@ import (
 
 	beaconCobalt "github.com/oasisprotocol/nexus/coreapi/v21.1.1/beacon/api"
 	governanceCobalt "github.com/oasisprotocol/nexus/coreapi/v21.1.1/governance/api"
+	keymanagerCobalt "github.com/oasisprotocol/nexus/coreapi/v21.1.1/keymanager/api"
 	registryCobalt "github.com/oasisprotocol/nexus/coreapi/v21.1.1/registry/api"
 	roothashCobalt "github.com/oasisprotocol/nexus/coreapi/v21.1.1/roothash/api"
+	stakingCobalt "github.com/oasisprotocol/nexus/coreapi/v21.1.1/staking/api"
 
 	beacon "github.com/oasisprotocol/nexus/coreapi/v22.2.11/beacon/api"
 	"github.com/oasisprotocol/nexus/coreapi/v22.2.11/common/node"
@@ -32,9 +34,13 @@ import (
 	roothash "github.com/oasisprotocol/nexus/coreapi/v22.2.11/roothash/api"
 	staking "github.com/oasisprotocol/nexus/coreapi/v22.2.11/staking/api"
 
+	beaconEden "github.com/oasisprotocol/nexus/coreapi/v23.0/beacon/api"
 	consensusEden "github.com/oasisprotocol/nexus/coreapi/v23.0/consensus/api"
+	governanceEden "github.com/oasisprotocol/nexus/coreapi/v23.0/governance/api"
 	keymanagerEden "github.com/oasisprotocol/nexus/coreapi/v23.0/keymanager/api"
+	registryEden "github.com/oasisprotocol/nexus/coreapi/v23.0/registry/api"
 	roothashEden "github.com/oasisprotocol/nexus/coreapi/v23.0/roothash/api"
+	stakingEden "github.com/oasisprotocol/nexus/coreapi/v23.0/staking/api"
 
 	"github.com/oasisprotocol/nexus/analyzer"
 	"github.com/oasisprotocol/nexus/analyzer/block"
@@ -56,7 +62,7 @@ const (
 // The Cobalt (v21.1.1) version of oasis-core defines some transaction structs
 // that are incompatible with the structs used in Damask onwards. We track
 // those structs here and use them as a backup if the initial unmarshalling fails.
-var bodyTypeForTxMethodCobalt = map[string]interface{}{
+var bodyTypeForTxMethodCobaltOld = map[string]interface{}{
 	"governance.SubmitProposal": governanceCobalt.ProposalContent{},
 	"registry.RegisterRuntime":  registryCobalt.Runtime{},
 	"roothash.ExecutorCommit":   roothashCobalt.ExecutorCommit{},
@@ -66,37 +72,79 @@ var bodyTypeForTxMethodCobalt = map[string]interface{}{
 // The Damask (v22.2.11) version of oasis-core defines some transaction structs
 // that are incompatible with the structs used in Eden onwards. We track
 // those structs here and use them as a backup if the initial unmarshalling fails.
-var bodyTypeForTxMethodDamask = map[string]interface{}{
+var bodyTypeForTxMethodDamaskOld = map[string]interface{}{
 	"roothash.ExecutorCommit": roothash.ExecutorCommit{},
 }
+var bodyTypeForTxMethodCobalt = map[string]interface{}{
+	"beacon.PVSSCommit":                beaconCobalt.PVSSCommit{},
+	"beacon.PVSSReveal":                beaconCobalt.PVSSReveal{},
+	"governance.SubmitProposal":        governanceCobalt.ProposalContent{},
+	"governance.CastVote":              governanceCobalt.ProposalVote{},
+	"keymanager.UpdatePolicy":          keymanagerCobalt.SignedPolicySGX{},
+	"registry.RegisterEntity":          entity.SignedEntity{},
+	"registry.RegisterNode":            node.MultiSignedNode{}, // We didn't vendor the cobalt node package since the damask version is identical for serde purposes
+	"registry.UnfreezeNode":            registryCobalt.UnfreezeNode{},
+	"registry.RegisterRuntime":         registryCobalt.Runtime{},
+	"roothash.ExecutorCommit":          roothashCobalt.ExecutorCommit{},
+	"roothash.ExecutorProposerTimeout": roothashCobalt.ExecutorProposerTimeoutRequest{},
+	"roothash.Evidence":                roothashCobalt.Evidence{},
+	"staking.Transfer":                 stakingCobalt.Transfer{},
+	"staking.Burn":                     stakingCobalt.Burn{},
+	"staking.AddEscrow":                stakingCobalt.Escrow{},
+	"staking.ReclaimEscrow":            stakingCobalt.ReclaimEscrow{},
+	"staking.AmendCommissionSchedule":  stakingCobalt.AmendCommissionSchedule{},
+	"staking.Allow":                    stakingCobalt.Allow{},
+	"staking.Withdraw":                 stakingCobalt.Withdraw{},
+}
 
-var bodyTypeForTxMethod = map[string]interface{}{
-	"beacon.PVSSCommit":                 beaconCobalt.PVSSCommit{},
-	"beacon.PVSSReveal":                 beaconCobalt.PVSSReveal{},
-	"beacon.VRFProve":                   beacon.VRFProve{},
+var bodyTypeForTxMethodDamask = map[string]interface{}{
+	"beacon.VRFProve":                  beacon.VRFProve{},
+	"governance.SubmitProposal":        governance.ProposalContent{},
+	"governance.CastVote":              governance.ProposalVote{},
+	"keymanager.UpdatePolicy":          keymanager.SignedPolicySGX{},
+	"registry.RegisterEntity":          entity.SignedEntity{},
+	"registry.DeregisterEntity":        registry.DeregisterEntity{},
+	"registry.RegisterNode":            node.MultiSignedNode{},
+	"registry.UnfreezeNode":            registry.UnfreezeNode{},
+	"registry.RegisterRuntime":         registry.Runtime{},
+	"registry.ProveFreshness":          registry.Runtime{},
+	"roothash.ExecutorCommit":          roothash.ExecutorCommit{},
+	"roothash.ExecutorProposerTimeout": roothash.ExecutorProposerTimeoutRequest{},
+	"roothash.Evidence":                roothash.Evidence{},
+	"roothash.SubmitMsg":               roothash.SubmitMsg{},
+	"staking.Transfer":                 staking.Transfer{},
+	"staking.Burn":                     staking.Burn{},
+	"staking.AddEscrow":                staking.Escrow{},
+	"staking.ReclaimEscrow":            staking.ReclaimEscrow{},
+	"staking.AmendCommissionSchedule":  staking.AmendCommissionSchedule{},
+	"staking.Allow":                    staking.Allow{},
+	"staking.Withdraw":                 staking.Withdraw{},
+}
+
+var bodyTypeForTxMethodEden = map[string]interface{}{
+	"beacon.VRFProve":                   beaconEden.VRFProve{},
 	"consensus.Meta":                    consensusEden.BlockMetadata{},
-	"governance.SubmitProposal":         governance.ProposalContent{},
-	"governance.CastVote":               governance.ProposalVote{},
+	"governance.SubmitProposal":         governanceEden.ProposalContent{},
+	"governance.CastVote":               governanceEden.ProposalVote{},
 	"keymanager.PublishMasterSecret":    keymanagerEden.SignedEncryptedMasterSecret{},
 	"keymanager.PublishEphemeralSecret": keymanagerEden.SignedEncryptedEphemeralSecret{},
-	"keymanager.UpdatePolicy":           keymanager.SignedPolicySGX{},
+	"keymanager.UpdatePolicy":           keymanagerEden.SignedPolicySGX{},
 	"registry.RegisterEntity":           entity.SignedEntity{},
-	"registry.DeregisterEntity":         registry.DeregisterEntity{},
+	"registry.DeregisterEntity":         registryEden.DeregisterEntity{},
 	"registry.RegisterNode":             node.MultiSignedNode{},
-	"registry.UnfreezeNode":             registry.UnfreezeNode{},
-	"registry.RegisterRuntime":          registry.Runtime{},
-	"registry.ProveFreshness":           registry.Runtime{},
+	"registry.UnfreezeNode":             registryEden.UnfreezeNode{},
+	"registry.RegisterRuntime":          registryEden.Runtime{},
+	"registry.ProveFreshness":           registryEden.Runtime{},
 	"roothash.ExecutorCommit":           roothashEden.ExecutorCommit{},
-	"roothash.ExecutorProposerTimeout":  roothash.ExecutorProposerTimeoutRequest{},
-	"roothash.Evidence":                 roothash.Evidence{},
-	"roothash.SubmitMsg":                roothash.SubmitMsg{},
-	"staking.Transfer":                  staking.Transfer{},
-	"staking.Burn":                      staking.Burn{},
-	"staking.AddEscrow":                 staking.Escrow{},
-	"staking.ReclaimEscrow":             staking.ReclaimEscrow{},
-	"staking.AmendCommissionSchedule":   staking.AmendCommissionSchedule{},
-	"staking.Allow":                     staking.Allow{},
-	"staking.Withdraw":                  staking.Withdraw{},
+	"roothash.Evidence":                 roothashEden.Evidence{},
+	"roothash.SubmitMsg":                roothashEden.SubmitMsg{},
+	"staking.Transfer":                  stakingEden.Transfer{},
+	"staking.Burn":                      stakingEden.Burn{},
+	"staking.AddEscrow":                 stakingEden.Escrow{},
+	"staking.ReclaimEscrow":             stakingEden.ReclaimEscrow{},
+	"staking.AmendCommissionSchedule":   stakingEden.AmendCommissionSchedule{},
+	"staking.Allow":                     stakingEden.Allow{},
+	"staking.Withdraw":                  stakingEden.Withdraw{},
 }
 
 type EventType = apiTypes.ConsensusEventType // alias for brevity
@@ -442,7 +490,7 @@ func (m *processor) queueEpochInserts(batch *storage.QueryBatch, data *consensus
 // Adapted from https://github.com/oasisprotocol/oasis-core/blob/master/go/consensus/api/transaction/transaction.go#L58
 func unpackTxBody(t *transaction.Transaction) (interface{}, error) {
 	var err error
-	for _, mapping := range []map[string]interface{}{bodyTypeForTxMethod, bodyTypeForTxMethodDamask, bodyTypeForTxMethodCobalt} {
+	for _, mapping := range []map[string]interface{}{bodyTypeForTxMethodEden, bodyTypeForTxMethodDamask, bodyTypeForTxMethodCobalt} {
 		bodyType, ok := mapping[string(t.Method)]
 		if !ok {
 			continue
