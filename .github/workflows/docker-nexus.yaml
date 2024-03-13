@@ -1,10 +1,17 @@
-# NOTE: This name appears in GitHub's Checks API and in workflow's status badge.
-name: docker-nexus
+name: docker-nexus # This name appears in GitHub's Checks API and in workflow's status badge.
+
+# THIS WORKFLOW:
+#   Builds and pushes a Docker image at the current commit.
+#   This image is only offered for manual testing/debugging of a given PR/commit.
+#   It is not a dependency of any automated process.
 
 on:
   push:
     branches:
       - main
+    paths-ignore: # Do not trigger if _only_ these files were changed.
+      - .changelog/*.md
+      - CHANGELOG.md
   workflow_dispatch:  # manual; for debugging workflow before merging branch into `main`
 
 jobs:
