@@ -10,7 +10,6 @@ on:
     paths-ignore: # Do not trigger if _only_ these files were changed.
       - .changelog/*.md
       - CHANGELOG.md
-      - ".github/**"
   # Or when a pull request event occurs for a pull request against one of the
   # matched branches.
   pull_request:
@@ -19,7 +18,6 @@ on:
     paths-ignore: # Do not trigger if _only_ these files were changed.
       - .changelog/*.md
       - CHANGELOG.md
-      - ".github/**"
 
 # Cancel in-progress jobs on same branch.
 concurrency:

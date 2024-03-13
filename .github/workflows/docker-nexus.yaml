@@ -12,7 +12,6 @@ on:
     paths-ignore: # Do not trigger if _only_ these files were changed.
       - .changelog/*.md
       - CHANGELOG.md
-      - ".github/**"
   workflow_dispatch:  # manual; for debugging workflow before merging branch into `main`
 
 jobs:
