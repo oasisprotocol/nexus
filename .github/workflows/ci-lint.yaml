@@ -54,6 +54,9 @@ jobs:
           towncrier check --compare-with origin/${BASE_BRANCH}
         env:
           BASE_BRANCH: ${{ github.base_ref }}
+        if: |
+          github.event_name == 'pull_request' &&
+          github.actor != 'dependabot[bot]'
       - name: Lint Change Log fragments
         run: |
           make lint-changelog
