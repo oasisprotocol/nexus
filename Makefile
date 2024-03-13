@@ -128,12 +128,15 @@ fmt:
 	@goimports -w -local github.com/oasisprotocol/nexus .
 
 # Lint code, commits and documentation.
-lint-targets := lint-go lint-go-mod-tidy lint-changelog
+lint-targets := lint-go lint-go-mod-tidy lint-changelog lint-git
 
 lint-go: codegen-go
 	@$(ECHO) "$(CYAN)*** Running Go linters...$(OFF)"
 	@env -u GOPATH golangci-lint run
 
+lint-git:
+	@$(CHECK_GITLINT)
+	
 lint-changelog:
 	@$(CHECK_CHANGELOG_FRAGMENTS)
 
