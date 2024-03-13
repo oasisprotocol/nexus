@@ -34,6 +34,7 @@ import (
 
 	consensusEden "github.com/oasisprotocol/nexus/coreapi/v23.0/consensus/api"
 	keymanagerEden "github.com/oasisprotocol/nexus/coreapi/v23.0/keymanager/api"
+	roothashEden "github.com/oasisprotocol/nexus/coreapi/v23.0/roothash/api"
 
 	"github.com/oasisprotocol/nexus/analyzer"
 	"github.com/oasisprotocol/nexus/analyzer/block"
@@ -57,10 +58,16 @@ const (
 // those structs here and use them as a backup if the initial unmarshalling fails.
 var bodyTypeForTxMethodCobalt = map[string]interface{}{
 	"governance.SubmitProposal": governanceCobalt.ProposalContent{},
-	"registry.DeregisterEntity": nil,
 	"registry.RegisterRuntime":  registryCobalt.Runtime{},
 	"roothash.ExecutorCommit":   roothashCobalt.ExecutorCommit{},
 	"roothash.Evidence":         roothashCobalt.Evidence{},
+}
+
+// The Damask (v22.2.11) version of oasis-core defines some transaction structs
+// that are incompatible with the structs used in Eden onwards. We track
+// those structs here and use them as a backup if the initial unmarshalling fails.
+var bodyTypeForTxMethodDamask = map[string]interface{}{
+	"roothash.ExecutorCommit": roothash.ExecutorCommit{},
 }
 
 var bodyTypeForTxMethod = map[string]interface{}{
@@ -79,7 +86,7 @@ var bodyTypeForTxMethod = map[string]interface{}{
 	"registry.UnfreezeNode":             registry.UnfreezeNode{},
 	"registry.RegisterRuntime":          registry.Runtime{},
 	"registry.ProveFreshness":           registry.Runtime{},
-	"roothash.ExecutorCommit":           roothash.ExecutorCommit{},
+	"roothash.ExecutorCommit":           roothashEden.ExecutorCommit{},
 	"roothash.ExecutorProposerTimeout":  roothash.ExecutorProposerTimeoutRequest{},
 	"roothash.Evidence":                 roothash.Evidence{},
 	"roothash.SubmitMsg":                roothash.SubmitMsg{},
@@ -434,27 +441,20 @@ func (m *processor) queueEpochInserts(batch *storage.QueryBatch, data *consensus
 
 // Adapted from https://github.com/oasisprotocol/oasis-core/blob/master/go/consensus/api/transaction/transaction.go#L58
 func unpackTxBody(t *transaction.Transaction) (interface{}, error) {
-	bodyType, ok := bodyTypeForTxMethod[string(t.Method)]
-	if !ok {
-		return nil, fmt.Errorf("unknown tx method: %s", t.Method)
-	}
-
-	// Deserialize into correct type.
-	v := reflect.New(reflect.TypeOf(bodyType)).Interface()
-	if err := cbor.Unmarshal(t.Body, v); err != nil {
-		// This may be an older tx from Cobalt; attempt to unmarshal into
-		// the appropriate Cobalt tx type.
-		bodyType, ok = bodyTypeForTxMethodCobalt[string(t.Method)]
+	var err error
+	for _, mapping := range []map[string]interface{}{bodyTypeForTxMethod, bodyTypeForTxMethodDamask, bodyTypeForTxMethodCobalt} {
+		bodyType, ok := mapping[string(t.Method)]
 		if !ok {
-			return nil, fmt.Errorf("unable to cbor-decode consensus tx body: %w, body: %x", err, t.Body)
+			continue
 		}
-		v = reflect.New(reflect.TypeOf(bodyType)).Interface()
-		if err2 := cbor.Unmarshal(t.Body, v); err2 != nil {
-			return nil, fmt.Errorf("unable to cbor-decode consensus tx body into Cobalt type (%w) or newer type (%w), body: %x", err, err2, t.Body)
+		v := reflect.New(reflect.TypeOf(bodyType)).Interface()
+		if err = cbor.Unmarshal(t.Body, v); err != nil {
+			continue
 		}
+		return v, nil
 	}
 
-	return v, nil
+	return nil, fmt.Errorf("unable to cbor-decode consensus tx body: %w, method: %s, body: %x", err, t.Method, t.Body)
 }
 
 func (m *processor) queueTransactionInserts(batch *storage.QueryBatch, data *consensusBlockData) error {
