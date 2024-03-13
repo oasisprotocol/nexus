@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"math"
 	"os"
-	"reflect"
 	"strings"
 
 	coreCommon "github.com/oasisprotocol/oasis-core/go/common"
@@ -487,23 +486,35 @@ func (m *processor) queueEpochInserts(batch *storage.QueryBatch, data *consensus
 	return nil
 }
 
-// Adapted from https://github.com/oasisprotocol/oasis-core/blob/master/go/consensus/api/transaction/transaction.go#L58
 func unpackTxBody(t *transaction.Transaction) (interface{}, error) {
-	var err error
-	for _, mapping := range []map[string]interface{}{bodyTypeForTxMethodEden, bodyTypeForTxMethodDamask, bodyTypeForTxMethodCobalt} {
-		bodyType, ok := mapping[string(t.Method)]
-		if !ok {
-			continue
-		}
-		v := reflect.New(reflect.TypeOf(bodyType)).Interface()
-		if err = cbor.Unmarshal(t.Body, v); err != nil {
-			continue
-		}
-		return v, nil
+	var v interface{}
+	if err := cbor.UnmarshalRPC(t.Body, &v); err != nil {
+		return nil, fmt.Errorf("unable to cbor-decode consensus tx body: %w, method: %s, body: %x", err, t.Method, t.Body)
 	}
-
-	return nil, fmt.Errorf("unable to cbor-decode consensus tx body: %w, method: %s, body: %x", err, t.Method, t.Body)
+	vJson, err := json.Marshal(v)
+	if err != nil {
+		return nil, fmt.Errorf("unable to json-marshal the consensus body")
+	}
+	return vJson, nil
 }
+
+// // Adapted from https://github.com/oasisprotocol/oasis-core/blob/master/go/consensus/api/transaction/transaction.go#L58
+// func unpackTxBody(t *transaction.Transaction) (interface{}, error) {
+// 	var err error
+// 	for _, mapping := range []map[string]interface{}{bodyTypeForTxMethodEden, bodyTypeForTxMethodDamask, bodyTypeForTxMethodCobalt} {
+// 		bodyType, ok := mapping[string(t.Method)]
+// 		if !ok {
+// 			continue
+// 		}
+// 		v := reflect.New(reflect.TypeOf(bodyType)).Interface()
+// 		if err = cbor.Unmarshal(t.Body, v); err != nil {
+// 			continue
+// 		}
+// 		return v, nil
+// 	}
+
+// 	return nil, fmt.Errorf("unable to cbor-decode consensus tx body: %w, method: %s, body: %x", err, t.Method, t.Body)
+// }
 
 func (m *processor) queueTransactionInserts(batch *storage.QueryBatch, data *consensusBlockData) error {
 	for i, txr := range data.TransactionsWithResults {
