@@ -1,0 +1,36 @@
+{
+  "is_total_count_clipped": false,
+  "total_count": 1,
+  "transactions": [
+    {
+      "amount": "0",
+      "body": {
+        "address": "3Any9EDX2pOp/ZJd5KCkJpfveYE=",
+        "data": "SLdQRAAAAAAAAAAAAAAAAEnFbiYXRLt+OTWdQuE5gSy1olnDAAAAAAAAAAAAAAAAcnToovjFmaEmVlEDfg2mjF7KBr0=",
+        "value": ""
+      },
+      "charged_fee": "3828400000000000",
+      "error": {
+        "code": 8,
+        "message": "reverted: PaymentSplitter: account is not due payment",
+        "module": "evm"
+      },
+      "eth_hash": "2331e2a065609a7b6537cfd990386a585c132116d608af0719918eb511283bc7",
+      "fee": "30000000000000000",
+      "gas_limit": 300000,
+      "gas_used": 38284,
+      "hash": "35fdc8261dd81be8187c858aa9a623085494baf0565d414f48562a856147c093",
+      "index": 0,
+      "method": "evm.Call",
+      "nonce_0": 31228,
+      "round": 8059465,
+      "sender_0": "oasis1qr9ak7ck2fs3pscs635gapk96ncl02yyxggrqgq5",
+      "sender_0_eth": "0x7274e8a2F8C599a1265651037e0da68C5ECa06bD",
+      "size": 205,
+      "success": false,
+      "timestamp": "2023-12-12T08:40:35Z",
+      "to": "oasis1qpc5cf65jykyxeu9kmnyexftwmxaz07wvypkjny6",
+      "to_eth": "0xDc09f2f440d7da93a9Fd925dE4a0A42697Ef7981"
+    }
+  ]
+}
