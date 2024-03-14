@@ -9,26 +9,27 @@
 # the expected outputs (from a previous run).
 #
 # If the differences are expected, simply check the new responses into git.
-#
-# NOTE: It is the responsibility of the caller to invoke this script against a
-# DB that is SYNCED TO THE SAME HEIGHT as in the run that produced the
-# expected outputs.
 
 set -euo pipefail
 
+E2E_REGRESSION_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+
 # Read arg
 suite="${1:-}"
-if [[ "$suite" != "eden" &&  "$suite" != "damask"  ]]; then
-  echo "Usage: $0 [eden|damask]"
+TEST_DIR="$E2E_REGRESSION_DIR/$suite"
+if [[ -z "$suite" || ! -e "$TEST_DIR/e2e_config_1.yml" ]]; then
+  echo >&2 "Usage: $0 <suite>"
   exit 1
 fi
 
-# Load test cases
-source tests/e2e_regression/test_cases.sh
-testCasesName="${suite}TestCases[@]"
-testCases=( "${!testCasesName}" )
+# Analyze
+./nexus --config "$TEST_DIR/e2e_config_1.yml" analyze
+./nexus --config "$TEST_DIR/e2e_config_2.yml" analyze
 
-TEST_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)/$suite"
+echo "*** Analyzers finished; starting api tests..."
+
+# Load test cases
+source "$TEST_DIR/test_cases.sh"
 
 # The hostname of the API server to test
 hostname="http://localhost:8008"
@@ -47,7 +48,6 @@ nCases=${#testCases[@]}
 # Start the API server.
 # Set the timezone (TZ=UTC) to have more consistent outputs across different
 # systems, even when not running inside docker.
-make nexus
 TZ=UTC ./nexus --config="${TEST_DIR}/e2e_config_1.yml" serve &
 apiServerPid=$!
 
@@ -100,26 +100,27 @@ done
 diff --recursive "$TEST_DIR/expected" "$outDir" >/dev/null || {
   echo
   echo "NOTE: $TEST_DIR/expected and $outDir differ."
-  {
-    # The expected files contain a symlink, which 'git diff' cannot follow (but regular 'diff' can).
-    # Create a copy of the `expected` dir with the symlink contents materialized; we'll diff against that.
-    rm -rf /tmp/nexus-e2e-expected; cp -r --dereference "$TEST_DIR/expected" /tmp/nexus-e2e-expected;
-  }
+  # The expected files contain a symlink, which 'git diff' cannot follow (but regular 'diff' can).
+  # Create a copy of the `expected` dir with the symlink contents materialized; we'll diff against that.
+  expectedDerefDir="/tmp/nexus-e2e-expected-$suite"
+  rm -rf "$expectedDerefDir"
+  cp -r --dereference "$TEST_DIR/expected" "$expectedDerefDir"
   if [[ -t 1 ]]; then # Running in a terminal
     echo "Press enter see the diff, or Ctrl-C to abort."
     read -r
-    git diff --no-index /tmp/nexus-e2e-expected "$TEST_DIR/actual" || true
-    echo
-    echo "To re-view the diff, run:"
-    echo "  git diff --no-index /tmp/nexus-e2e-expected $TEST_DIR/actual"
   else
     # Running outside a terminal (likely in CI)
     echo "CI diff:"
-    git diff --no-index "$TEST_DIR"/{expected,actual} || true
   fi
-  echo
-  echo "If the new results are expected, copy the new results into .../expected:"
-  echo "  make accept-e2e-regression"
+  git diff --no-index "$expectedDerefDir" "$outDir" || true
+  if [[ -t 1 ]]; then # Running in a terminal
+    echo
+    echo "To re-view the diff, run:"
+    echo "  git diff --no-index $expectedDerefDir $outDir"
+    echo
+    echo "If the new results are expected, copy the new results into .../expected:"
+    echo "  $E2E_REGRESSION_DIR/accept.sh $suite"
+  fi
   exit 1
 }
 

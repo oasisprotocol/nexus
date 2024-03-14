@@ -1,7 +1,6 @@
 #!/bin/bash
 
-# This file holds the test cases for the e2e_regression tests defined in run.sh. Tests
-# are grouped into suites, which often overlap.
+# This file holds common test cases for the e2e_regression tests.
 #
 # Each test case is a pair of (name, SQL query or URL).
 # For SQL queries, the regression-tested output is the result of the query against the indexer DB.
@@ -75,41 +74,4 @@ commonTestCases=(
   'emerald_contract_account       /v1/emerald/accounts/oasis1qz2rynvcmrkwd57v00298uc2vtzgatde3cjpy72f'
   'emerald_status                 /v1/emerald/status'
   'emerald_tx_volume              /v1/emerald/stats/tx_volume'
-)
-
-edenTestCases=(
-  "${commonTestCases[@]}"
-  'block                          /v1/consensus/blocks/16818000'
-  'entity                         /v1/consensus/entities/9sAhd+Wi6tG5nAr3LwXD0y9mUKLYqfAbS2+7SZdNHB4='
-  'entity_nodes                   /v1/consensus/entities/9sAhd+Wi6tG5nAr3LwXD0y9mUKLYqfAbS2+7SZdNHB4=/nodes'
-  'node                           /v1/consensus/entities/9sAhd+Wi6tG5nAr3LwXD0y9mUKLYqfAbS2+7SZdNHB4=/nodes/6wbL5%2fOxvFGxi55o7AxcwKmfjXbXGC1hw4lfnEZxBXA='
-  'bad_node                       /v1/consensus/entities/9sAhd+Wi6tG5nAr3LwXD0y9mUKLYqfAbS2+7SZdNHB4=/nodes/NOTANODE'
-  'epoch                          /v1/consensus/epochs/28017'
-  'tx                             /v1/consensus/transactions/142d43e5194b738ab2223f8d0b42326fab06edd714a8cefc59a078b89b5de057'
-  'validator                      /v1/consensus/validators/9sAhd+Wi6tG5nAr3LwXD0y9mUKLYqfAbS2+7SZdNHB4='
-  'emerald_tx                     /v1/emerald/transactions/ec1173a69272c67f126f18012019d19cd25199e831f9417b6206fb7844406f9d'
-  'emerald_failed_tx              /v1/emerald/transactions/35fdc8261dd81be8187c858aa9a623085494baf0565d414f48562a856147c093'
-  'emerald_events_by_nft          /v1/emerald/events?contract_address=oasis1qz29t7nxkwfqgfk36uqqs9pzuzdt8zmrjud5mehx&nft_id=1'
-  'emerald_token_nfts             /v1/emerald/evm_tokens/oasis1qz29t7nxkwfqgfk36uqqs9pzuzdt8zmrjud5mehx/nfts'
-  'emerald_token_nft              /v1/emerald/evm_tokens/oasis1qz29t7nxkwfqgfk36uqqs9pzuzdt8zmrjud5mehx/nfts/2'
-  'emerald_account_nfts           /v1/emerald/accounts/oasis1qzlqgyqp2fjla8r6rf5k3dd0k0qada9n5vyu4h3l/nfts'
-  'emerald_account_nfts_token     /v1/emerald/accounts/oasis1qzlqgyqp2fjla8r6rf5k3dd0k0qada9n5vyu4h3l/nfts?token_address=oasis1qz29t7nxkwfqgfk36uqqs9pzuzdt8zmrjud5mehx'
-)
-
-damaskTestCases=(
-  "${commonTestCases[@]}"
-  'block                          /v1/consensus/blocks/8049500'
-  'entity                         /v1/consensus/entities/WazI78lMcmjyCH5+5RKkkfOTUR+XheHIohlqMu+a9As='
-  'entity_nodes                   /v1/consensus/entities/WazI78lMcmjyCH5+5RKkkfOTUR+XheHIohlqMu+a9As=/nodes'
-  'node                           /v1/consensus/entities/WazI78lMcmjyCH5+5RKkkfOTUR+XheHIohlqMu+a9As=/nodes/LuIdtuiEPLBJefXVieVruy4kf04jjp5CBJFWVes0ZuE='
-  'bad_node                       /v1/consensus/entities/WazI78lMcmjyCH5+5RKkkfOTUR+XheHIohlqMu+a9As=/nodes/NOTANODE'
-  'epoch                          /v1/consensus/epochs/13403'
-  'tx                             /v1/consensus/transactions/f7a03e0912d355901ee794e5fec79a6b4c91363fc27d953596ee6de5c1492798'
-  'validator                      /v1/consensus/validators/HPeLbzc88IoYEP0TC4nqSxfxdPCPjduLeJqFvmxFye8='
-  'emerald_tx                     /v1/emerald/transactions/a6471a9c6f3307087586da9156f3c9876fbbaf4b23910cd9a2ac524a54d0aefe'
-  'emerald_failed_tx              /v1/emerald/transactions/a7e76442c52a3cb81f719bde26c9a6179bd3415f96740d91a93ee8f205b45150'
-  'emerald_token_nfts             /v1/emerald/evm_tokens/oasis1qqewaa87rnyshyqs7yutnnpzzetejecgeu005l8u/nfts'
-  'emerald_token_nft              /v1/emerald/evm_tokens/oasis1qqewaa87rnyshyqs7yutnnpzzetejecgeu005l8u/nfts/227'
-  'emerald_account_nfts           /v1/emerald/accounts/oasis1qq92lk7kpqmvllhjvhlc282zp6v2e2t2rqrwuq2u/nfts'
-  'emerald_account_nfts_token     /v1/emerald/accounts/oasis1qq92lk7kpqmvllhjvhlc282zp6v2e2t2rqrwuq2u/nfts?token_address=oasis1qqewaa87rnyshyqs7yutnnpzzetejecgeu005l8u'
 )
