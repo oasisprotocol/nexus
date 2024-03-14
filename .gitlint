@@ -10,6 +10,9 @@ ignore-fixup-commits=false
 ignore-squash-commits=false
 ignore=body-is-missing
 contrib=contrib-disallow-cleanup-commits
+# Upcoming default; make it explicit here to avoid warnings on every gitlint run. 
+# More info: https://jorisroovers.com/gitlint/latest/configuration/general_options/#regex-style-search
+regex-style-search=true
 
 [title-max-length]
 line-length=72
