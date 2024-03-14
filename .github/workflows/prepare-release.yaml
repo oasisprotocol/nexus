@@ -1,0 +1,58 @@
+name: mock # This name appears in GitHub's Checks API and in workflow's status badge.
+
+# THIS WORKFLOW:
+#   Is special, and only a workaround for limitations in Github's CI config.
+#   When a PR touches only changelog .md files, most CI workflows do not run.
+#   However, our branch protection rules still require that the jobs in those
+#   workflows _pass_; them being skipped is not good enough for Github.
+#
+#   This workflow creates mock success statuses for all the jobs that would 
+#   otherwise run in regular CI workflows, and triggers exactly when the regular
+#   CI workflows don't.
+
+on:
+  # A push occurs to one of the matched branches.
+  push:
+    branches:
+      - main
+    paths: # Trigger if _only_ these files were changed.
+      - .changelog/*.md
+      - CHANGELOG.md
+  # Or when a pull request event occurs for a pull request against one of the
+  # matched branches.
+  pull_request:
+    branches:
+      - main
+    paths: # Trigger if _only_ these files were changed.
+      - .changelog/*.md
+      - CHANGELOG.md
+
+jobs:
+  build-go:
+    name: build-go
+    runs-on: ubuntu-20.04
+    steps: [{name: "fake success", run: "exit 0"}]
+  lint-go:
+    name: lint-go
+    runs-on: ubuntu-20.04
+    steps: [{name: "fake success", run: "exit 0"}]
+  validate-openapi:
+    name: validate-openapi
+    runs-on: ubuntu-20.04
+    steps: [{name: "fake success", run: "exit 0"}]
+  validate-migrations:
+    name: validate-migrations
+    runs-on: ubuntu-20.04
+    steps: [{name: "fake success", run: "exit 0"}]
+  test-e2e-localnet:
+    name: test-e2e-localnet
+    runs-on: ubuntu-20.04
+    steps: [{name: "fake success", run: "exit 0"}]
+  test-e2e-regression-damask:
+    name: test-e2e-regression-damask
+    runs-on: ubuntu-20.04
+    steps: [{name: "fake success", run: "exit 0"}]
+  test-e2e-regression-eden:
+    name: test-e2e-regression-eden
+    runs-on: ubuntu-20.04
+    steps: [{name: "fake success", run: "exit 0"}]
