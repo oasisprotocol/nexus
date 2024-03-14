@@ -6,11 +6,12 @@
 # height and therefore always hit the RPC cache. (Most EVM-related analyzers make RPCs at the
 # maximum height that's been reached by block analyzers by that point.)
 #
-# Keep most changes in sync with the edenfast suite.
+# The edenfast suite is the same as the eden suite, but with fast sync on the
+# first half of the blocks. Keep most changes in sync with the eden suite.
 
 analysis:
   source:
-    cache: { cache_dir: tests/e2e_regression/eden/rpc-cache }
+    cache: { cache_dir: tests/e2e_regression/edenfast/rpc-cache }
     chain_name: mainnet
     nodes:
       # Node will be accessed only when the filling up the cache.
@@ -23,16 +24,24 @@ analysis:
     consensus:
       from: 16_817_956  # Eden genesis
       to: 16_818_955    # 1000 blocks; compromise between fast and comprehensive
+      batch_size: 50
+      fast_sync:
+        to: 16_818_455  # Halfway
+        parallelism: 10
     emerald:
       #from: 7_875_130  # round at Eden genesis, plus 1 (so that in finalizeFastSync we don't need Damask)
       #to: 7_876_129    # 1000 blocks; compromise between fast and comprehensive
       from: 8_059_340  # An NFT was created at 8059343; ERC20s were created at 7984382, 7984824, 8075695, 8166988
       to: 8_060_339    # 1000 blocks; compromise between fast and comprehensive
+      batch_size: 50
+      fast_sync:
+        to: 8_059_839  # Halfway
+        parallelism: 10
     # We do not test Sapphire; the node only makes recent rounds queryable, so it's awkward to test reproducibly.
     # Also, sapphire does not use much code that is not covered by emerald.
   storage:
     backend: postgres
-    endpoint: postgresql://rwuser:password@localhost:5432/indexer?sslmode=disable
+    endpoint: postgresql://rwuser:password@172.17.0.2:5432/indexer?sslmode=disable
     DANGER__WIPE_STORAGE_ON_STARTUP: true
     migrations: file://storage/migrations
 
@@ -40,7 +49,7 @@ server:
   chain_name: mainnet
   endpoint: localhost:8008
   storage:
-    endpoint: postgresql://api:password@localhost:5432/indexer?sslmode=disable
+    endpoint: postgresql://rwuser:password@172.17.0.2:5432/indexer?sslmode=disable
     backend: postgres
 
 log:
