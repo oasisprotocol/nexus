@@ -139,6 +139,7 @@ jobs:
         suite:
           - damask
           - eden
+          - edenfast
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout code
