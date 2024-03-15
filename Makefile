@@ -60,19 +60,21 @@ test-e2e: export OASIS_INDEXER_E2E = true
 test-e2e:
 	@$(GO) test -race -coverpkg=./... -coverprofile=coverage.txt -covermode=atomic -v ./tests/e2e
 
-e2e_regression_suites := eden damask
+# To run specific suites, do e.g.
+# make E2E_REGRESSION_SUITES='suite1 suite2' test-e2e-regression
+E2E_REGRESSION_SUITES := eden damask
 
 ensure-consistent-config-for-e2e-regression:
-	for suite in $(e2e_regression_suites); do ./tests/e2e_regression/ensure_consistent_config.sh $$suite; done
+	for suite in $(E2E_REGRESSION_SUITES); do ./tests/e2e_regression/ensure_consistent_config.sh $$suite; done
 
 # Run the api tests locally, assuming the environment is set up with an oasis-node that is
 # accessible as specified in the config file.
 test-e2e-regression: nexus ensure-consistent-config-for-e2e-regression
-	for suite in $(e2e_regression_suites); do ./tests/e2e_regression/run.sh -a $$suite; done
+	for suite in $(E2E_REGRESSION_SUITES); do ./tests/e2e_regression/run.sh -a $$suite; done
 
 # Accept the outputs of the e2e tests as the new expected outputs.
 accept-e2e-regression:
-	for suite in $(e2e_regression_suites); do ./tests/e2e_regression/accept.sh $$suite; done
+	for suite in $(E2E_REGRESSION_SUITES); do ./tests/e2e_regression/accept.sh $$suite; done
 
 # Format code.
 fmt:
