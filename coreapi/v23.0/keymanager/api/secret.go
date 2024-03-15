@@ -1,6 +1,9 @@
 package api
 
 import (
+	"encoding/base64"
+	"encoding/json"
+
 	"github.com/oasisprotocol/curve25519-voi/primitives/x25519"
 
 	"github.com/oasisprotocol/oasis-core/go/common"
@@ -29,6 +32,22 @@ type EncryptedSecret struct {
 
 	// Ciphertexts is the map of REK encrypted secrets.
 	Ciphertexts map[x25519.PublicKey][]byte `json:"ciphertexts"`
+}
+
+// XXX: Nexus-specific addition/hack.
+// We implement MarshalJSON here because the the encoding/json library
+// does not recognize the x25519.PublicKey type as a valid map key.
+func (es *EncryptedSecret) MarshalJSON() ([]byte, error) {
+	ciphertexts := make(map[string][]byte)
+	for pubkey, ciphertext := range es.Ciphertexts {
+		ciphertexts[base64.StdEncoding.EncodeToString(pubkey[:])] = ciphertext
+	}
+	esJSON := make(map[string]interface{})
+	esJSON["checksum"] = es.Checksum
+	esJSON["pub_key"] = es.PubKey
+	esJSON["ciphertexts"] = ciphertexts
+
+	return json.Marshal(esJSON)
 }
 
 // SanityCheck performs a sanity check on the encrypted secret.

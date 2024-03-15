@@ -78,7 +78,7 @@ func TestMalformedTxBody(t *testing.T) {
 	parsed, err := unpackTxBody(&tx)
 	require.Nil(t, parsed)
 	require.NotNil(t, err)
-	require.Equal(t, "unable to cbor-decode consensus tx body: cbor: invalid additional information 30 for type tag, body: deadbeef", err.Error())
+	require.Equal(t, "unable to cbor-decode consensus tx body: cbor: invalid additional information 30 for type tag, method: staking.Allow, body: deadbeef", err.Error())
 }
 
 func TestMalformedTxMethod(t *testing.T) {
@@ -97,5 +97,5 @@ func TestMalformedTxMethod(t *testing.T) {
 	parsed, err := unpackTxBody(&tx)
 	require.Nil(t, parsed)
 	require.NotNil(t, err)
-	require.Equal(t, "unknown tx method: not_a_valid_method", err.Error())
+	require.Equal(t, "unable to cbor-decode consensus tx body: unknown tx method, method: not_a_valid_method, body: deadbeef", err.Error())
 }
