@@ -68,7 +68,7 @@ ensure-consistent-config-for-e2e-regression:
 # Run the api tests locally, assuming the environment is set up with an oasis-node that is
 # accessible as specified in the config file.
 test-e2e-regression: nexus ensure-consistent-config-for-e2e-regression
-	for suite in $(e2e_regression_suites); do ./tests/e2e_regression/run.sh $$suite; done
+	for suite in $(e2e_regression_suites); do ./tests/e2e_regression/run.sh -a $$suite; done
 
 # Accept the outputs of the e2e tests as the new expected outputs.
 accept-e2e-regression:

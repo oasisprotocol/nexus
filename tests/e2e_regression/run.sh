@@ -14,19 +14,40 @@ set -euo pipefail
 
 E2E_REGRESSION_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 
+build=
+analyze=
+while getopts ba opt; do
+  case $opt in
+    b) build=1;;
+    a) analyze=1;;
+  esac
+done
+shift "$((OPTIND - 1))"
+
 # Read arg
 suite="${1:-}"
 TEST_DIR="$E2E_REGRESSION_DIR/$suite"
 if [[ -z "$suite" || ! -e "$TEST_DIR/e2e_config_1.yml" ]]; then
-  echo >&2 "Usage: $0 <suite>"
+  cat >&2 <<EOF
+Usage: $0 [-ba] <suite>
+
+  -b  Build nexus
+  -a  Run analysis steps
+EOF
   exit 1
 fi
 
-# Analyze
-./nexus --config "$TEST_DIR/e2e_config_1.yml" analyze
-./nexus --config "$TEST_DIR/e2e_config_2.yml" analyze
+# Build
+if [[ -n "$build" ]]; then
+  make nexus
+fi
 
-echo "*** Analyzers finished; starting api tests..."
+# Analyze
+if [[ -n "$analyze" ]]; then
+  ./nexus --config "$TEST_DIR/e2e_config_1.yml" analyze
+  ./nexus --config "$TEST_DIR/e2e_config_2.yml" analyze
+  echo "*** Analyzers finished; starting api tests..."
+fi
 
 # Load test cases
 source "$TEST_DIR/test_cases.sh"
