@@ -1,8 +1,7 @@
 # Contributing Guidelines
 
-Thank you for your interest in contributing to Oasis Nexus! There are
-many ways to contribute, and this document should not be considered
-encompassing.
+Thank you for your interest in contributing to Oasis Nexus! There are many ways
+to contribute, and this document should not be considered encompassing.
 
 If you have a general question on how to use and deploy our software, please
 read our [General Documentation](https://docs.oasis.dev) or join our
@@ -48,8 +47,8 @@ about!
 
 If you believe a bug report presents a security risk, please follow
 [responsible disclosure](https://en.wikipedia.org/wiki/Responsible_disclosure)
-and report it directly to security@oasisprotocol.org instead of filing a public
-issue or posting it to a public forum. We will get back to you promptly.
+and report it directly to <security@oasisprotocol.org> instead of filing a
+public issue or posting it to a public forum. We will get back to you promptly.
 
 Otherwise, please, first search between [existing issues in our repository] and
 if the issue is not reported yet, [file a new one].
@@ -95,11 +94,6 @@ Building and testing are documented in our
     ```
 
     _Note that you are allowed to force push into your development branches._
-
-- **Use draft pull requests for work-in-progress:**
-
-  - The draft state signals that the code is not ready for review, but still
-    gives a nice URL to track the ongoing work.
 
 - _main_ branch is protected and will require at least 1 code review approval
   from a code owner before it can be merged.
@@ -158,23 +152,49 @@ Building and testing are documented in our
 
 ### Style Guides
 
+Style consistency is largely enforced by linters in CI. This section reviews
+some of the rules and gives tips on how to auto-fix most linting errors.
+
 #### Git Commit Messages
 
 A quick summary:
 
 - Separate subject from body with a blank line.
-- Limit the subject line to 80 characters.
-- Prefix the subject line with one of:
-  - "breaks:" if commit implements a non-backward compatible breaking change
-  - "fix:" if commit implements a bugfix
-  - "feat:" if commit implements a new feature
-  - "deps:" if commit updates a dependency
-  - "other:" if commit doesn't fall in any of the above categories
+- Keep the subject line and body lines short (see gitlint config).
 - Do not end the subject line with a period.
-- Wrap the body at 80 characters.
-- Use the body to explain _what_ and _why_ vs. _how_.
+- Use the body to explain _what_ and _why_ changed, more so than _how_. This
+  applies especially to PR descriptions, but also large commits.
+
+For potentially useful git hooks that lint (and autoformat!) locally, see
+[scripts/git-hooks](scripts/git-hooks/README.md).
 
 #### Go Style Guide
 
-Go code should use the [`gofumpt`](https://github.com/mvdan/gofumpt) 
-formatting style. Be sure to run `make fmt` before pushing any code.
+Go code should use the [`gofumpt`](https://github.com/mvdan/gofumpt) formatting
+style. Be sure to run `make fmt` before pushing any code.
+
+It is a good idea to set up "Format on save", available in most editors.
+
+#### Markdown
+
+Configuration to auto-format markdown in VSCode as much as possible:
+
+- In your personal settings:
+
+  ```json
+  "editor.codeActionsOnSave": {
+    "source.fixAll.markdownlint": "always"
+  },
+  "[markdown]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  ```
+
+  The former will auto-fix lots of issues around consistent indentation, inline
+  markers, etc. The latter will auto-wrap the lines. However, you do need to
+  also configure Prettier. Install the `esbenp.prettier-vscode` extension, then
+  in its settings, set
+
+  - `prettier.proseWrap` to `always` (default: `preserve`)
+  - `prettier.printWidth` to 80 (or whatever `.markdownlint.yml` prescribes)
