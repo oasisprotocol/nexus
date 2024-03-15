@@ -1,0 +1,30 @@
+#!/bin/bash
+
+# Auto-wraps the commit message body to the length allowed by gitlint.
+# Does not special-case the commit title because it cannot be fixed automatically;
+# wrapping is not allowed there. If needed, gitlint's `commit-msg` hook will
+# give us a chance to edit interactively.
+#
+# This runs after the commit message has been entered (even if with "git commit -m ...")
+# but before gitlint runs in the commit-msg hook.
+
+COMMIT_MSG_FILE=$1
+_COMMIT_SOURCE=$2
+_SHA1=$3
+
+WIDTH=80
+
+# Re-wraps file $1 to $WIDTH characters per line, using prettier, in-place.
+rewrap() {
+  # Suppress the output of prettier, as it's overly verbose. Show only on failure.
+  prettier --no-config --no-editorconfig --prose-wrap always --print-width "$WIDTH" --write "$1" >/tmp/prettier.out \
+    || { cat /tmp/prettier.out; exit 1; }
+}
+
+# If gitlint is already happy, do nothing
+gitlint <"$COMMIT_MSG_FILE" >/tmp/gitlint.out 2>&1 && exit 0
+
+# If this is a fixup commit, do nothing
+<"$1" head -n1 | grep -q 'fixup!' && exit 0
+
+echo "Rewrapping \"$(<"$COMMIT_MSG_FILE" head -n1 | cut -c-50)[...]\" to $WIDTH chars per line"
