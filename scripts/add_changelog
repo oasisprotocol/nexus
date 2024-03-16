@@ -1,0 +1,141 @@
+#!/usr/bin/env python3
+
+import os
+import subprocess
+import sys
+import textwrap
+import time
+from typing import List, Optional, Tuple
+
+def popen_full(cmd: List[str]) -> Tuple[str, str, int]:
+  "Runs `cmd` and returns (stdout, stderr, exit_code)"
+  process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+  stdout, stderr = process.communicate()
+  exit_code = process.wait()
+  return stdout.decode(), stderr.decode(), exit_code
+
+def run_or_die(cmd: str) -> None:
+  "Runs `cmd` (reusing current stdout, stderr) and dies if it fails."
+  exit_code = os.system(cmd)
+  if exit_code != 0:
+    sys.exit(exit_code)
+
+def find_pr(branch: str) -> Optional[str]:
+  "Returns the PR number for the given branch, or None if no PR exists."
+  out, err, exit_code = popen_full(['gh', 'pr', 'view', '--json', 'number', '--jq', '.number', branch])
+  if exit_code != 0:
+    if 'no pull requests found for branch' in err:
+      return None
+    else:
+      raise f"Error using GitHub CLI: {err}. Is `gh` installed and you've completed `gh auth login`?"
+  return out.strip()
+
+# Determine the type of fragment to create
+if len(sys.argv) < 2:
+    print(textwrap.dedent("""
+      Usage: add_changelog <type>
+      where <type> is one of
+        process (Process Change)    breaking (Breaking Change)       cfg (Config Change)
+        feature (New Feature)       bugfix (Bug Fix or Improvement)  doc (Documentation Improvements)
+        internal (Internal Change)  trivial (no changelog entry)
+    """))
+    sys.exit(1)
+fragment_type = sys.argv[1]
+
+# If we're not in a tty, refuse to run.
+if not sys.stdin.isatty():
+  print("This program can only be run interactively, in a TTY")
+  sys.exit(1)
+
+# Move to the root of the repository
+os.chdir(os.popen('git rev-parse --show-toplevel').read().strip())
+
+# If markdownlint is not installed, refuse to run.
+if os.popen('which markdownlint').read().strip() == "":
+    print("markdownlint is not installed; please install it with `npm install -g markdownlint-cli`.")
+    sys.exit(1)
+
+# Find the current branch name
+branch = os.popen('git rev-parse --abbrev-ref HEAD').read().strip()
+if branch == "HEAD" or branch == "":
+    print("You are not on a named branch.")
+    sys.exit(1)
+
+# Fetch the PR number for current branch (if any) from GitHub API.
+# `pr` will be empty if there's no PR yet.
+pr = find_pr(branch)
+
+# Create a PR if needed.
+if not pr:
+    print("Creating a draft PR to obtain a PR number.")
+    run_or_die('git push -f origin HEAD')
+    run_or_die(f"gh pr create --draft --title 'WIP: {branch}; created to obtain a PR number' --fill-verbose")
+    while not pr:   # wait for the PR to be created
+      time.sleep(1)
+      pr = find_pr(branch)
+
+# If we still don't have a PR number, refuse to run.
+if not pr:
+    print("Could not find or create a PR for the current branch.")
+    sys.exit(1)
+
+# Create a fragment file of the form .changelog/<pr>.<fragment_type>.<seq>.md
+# where <seq> is a sequence number starting at 1, taking existing files into account.
+os.makedirs('.changelog', exist_ok=True)
+seq = 1
+while os.path.exists(f'.changelog/{pr}.{fragment_type}.{seq}.md'):
+    seq += 1
+filename = f'.changelog/{pr}.{fragment_type}.{seq}.md'
+
+# Keep offering to edit the file until changelog linters pass.
+while True:
+    if fragment_type == 'trivial':
+        # Create an empty file
+        open(filename, 'w').close()
+    else:
+        # Prepopulate the changelog with the most recent commit msg
+        out, err, code = popen_full(['git', 'log', '-1', '--pretty=format:%B']) # %B is the subject+body of the commit message
+        if code == 0:
+            with open(filename, 'w') as f:
+                f.write(out)
+        else:
+            print(err)
+        # Launch the default editor on the file
+        subprocess.run([os.environ.get("EDITOR", "vi"), filename])
+    
+    # If the user didn't create the changelog file, abort.
+    if not os.path.isfile(filename):
+      sys.exit(1)
+
+    # Auto-format
+    out, err, code = popen_full('prettier --no-config --no-editorconfig --prose-wrap always --print-width 80 --write'.split() + [filename])
+    if code != 0:
+        print(out)
+        print(err)
+    _out, _err, _code = popen_full(['markdownlint', '--fix', filename])
+
+    # Check if linters pass
+    out, err, exit_code = popen_full(['make', 'lint-changelog'])
+    if exit_code == 0:
+        break  # no linting issues
+    print(out)
+    print(err)
+    answer = input('Do you want to re-edit the fragments? ([y]es, [n]o)')
+    if not answer.lower().startswith('y'):
+        break
+
+print(f"Changelog fragment written to {filename}")
+
+answer = input('Create a commit with changelog fragment(s) and push it to origin?  ([Y]es/[n]o)')
+if not (answer.lower().startswith('y') or answer == ''):
+  sys.exit(0)
+
+# If the staging area is not empty, refuse to continue; we'll about to create a commit.
+if os.popen('git diff --cached --name-only').read().strip():
+    print("The staging area is not empty; aborting.")
+    sys.exit(1)
+
+# Add the fragment files to the staging area
+run_or_die(f'git add .changelog/*.md')
+run_or_die(f'git commit -m "Add changelog fragment"')
+run_or_die(f'git push -f origin HEAD')
