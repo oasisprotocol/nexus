@@ -44,6 +44,9 @@ define CONFIRM_ACTION =
 	fi
 endef
 
+# Version of the markdownlint-cli package to use.
+MARKDOWNLINT_CLI_VERSION := 0.26.0
+
 # Name of git remote pointing to the canonical upstream git repository, i.e.
 # git@github.com:oasisprotocol/<repo-name>.git.
 GIT_ORIGIN_REMOTE ?= origin
@@ -131,10 +134,18 @@ CHANGELOG_FRAGMENTS_BREAKING := $(wildcard .changelog/*breaking*.md)
 # NOTE: Non-zero exit status is recorded but only set at the end so that all
 # markdownlint errors can be seen at once.
 define CHECK_CHANGELOG_FRAGMENTS =
-    exit_status=0; \
-    $(ECHO) "$(CYAN)*** Running markdownlint-cli for Change Log fragments... $(OFF)"; \
-    npx markdownlint-cli --config .changelog/.markdownlint.yml .changelog/ || exit_status=$$?; \
-    exit $$exit_status
+	exit_status=0; \
+	$(ECHO) "$(CYAN)*** Running markdownlint-cli for Change Log fragments... $(OFF)"; \
+	[[ "$$(markdownlint --version || true)" == $(MARKDOWNLINT_CLI_VERSION) ]] && \
+		mdlint_bin=markdownlint || \
+		{ mdlint_bin="npx markdownlint-cli@$(MARKDOWNLINT_CLI_VERSION)"; $(ECHO) "$(RED)Note: Install markdownlint locally with "'`npm install -g markdownlint-cli@$(MARKDOWNLINT_CLI_VERSION)`'" to speed up linting.$(OFF)"; }; \
+	$$mdlint_bin --config .changelog/.markdownlint.yml .changelog/ || exit_status=$$?; \
+	$(ECHO) "$(CYAN)*** Running gitlint for Change Log fragments: $(OFF)"; \
+	for fragment in $(CHANGELOG_FRAGMENTS_NON_TRIVIAL); do \
+		$(ECHO) "- $$fragment"; \
+		true TODO: USE GITLINT WHEN AVAILABLE IN CI gitlint --msg-filename $$fragment -c title-max-length.line-length=78 || exit_status=$$?; \
+	done; \
+	exit $$exit_status
 endef
 
 # Helper that builds the Change Log.
