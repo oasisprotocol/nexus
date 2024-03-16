@@ -143,7 +143,7 @@ define CHECK_CHANGELOG_FRAGMENTS =
 	$(ECHO) "$(CYAN)*** Running gitlint for Change Log fragments: $(OFF)"; \
 	for fragment in $(CHANGELOG_FRAGMENTS_NON_TRIVIAL); do \
 		$(ECHO) "- $$fragment"; \
-		true TODO: USE GITLINT WHEN AVAILABLE IN CI gitlint --msg-filename $$fragment -c title-max-length.line-length=78 || exit_status=$$?; \
+		true TODO: USE GITLINT WHEN AVAILABLE IN CI gitlint --msg-filename $$fragment -c title-max-length.line-length=78 --staged || exit_status=$$?; \
 	done; \
 	exit $$exit_status
 endef
