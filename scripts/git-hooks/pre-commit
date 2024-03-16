@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# Auto-formats any changelog fragments present in this commit,
+# using "markdownlint --fix" and forced rewrapping. Adds the edits
+# to the commit. Does not support partially staged changelog files.
+
+# It is more expensive to run the full `make lint-changelog` (and possibly
+# skip reformatting) than it is to just reformat no matter what.
+# make lint-changelog >/dev/null 2>&1 && exit 0
+
+# Find the list of files in .changelog/ that are staged.
+staged_fragments="$(git diff --cached --name-only -- .changelog/*.md)"
+
+# Re-wraps file $1 to 80 characters per line, using prettier, in-place.
+rewrap() {
+  # Suppress the output of prettier, as it's overly verbose. Show only on errors.
+  prettier --no-config --no-editorconfig --prose-wrap always --print-width 80 --write "$f" >/tmp/prettier.out \
+    || { cat /tmp/prettier.out; exit 1; }
+}
+
+for f in $staged_fragments; do
+  echo "Auto-formatting $f"
+  markdownlint --fix "$f" >/dev/null 2>&1  # any non-fixable errors will be re-shown when linting later
+  rewrap "$f"
+  git add "$f"
+done
+
