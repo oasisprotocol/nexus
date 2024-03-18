@@ -60,7 +60,8 @@ func (c *FileConsensusApiLite) Close() error {
 func (c *FileConsensusApiLite) GetGenesisDocument(ctx context.Context, chainContext string) (*genesis.Document, error) {
 	return kvstore.GetFromCacheOrCall(
 		c.db, false,
-		kvstore.GenerateCacheKey("GetGenesisDocument", chainContext),
+		// v2: Added debond end time.
+		kvstore.GenerateCacheKey("GetGenesisDocument.v2", chainContext),
 		func() (*genesis.Document, error) { return c.consensusApi.GetGenesisDocument(ctx, chainContext) },
 	)
 }
