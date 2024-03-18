@@ -141,7 +141,8 @@ func ConvertGenesis(d genesisCobalt.Document) *genesis.Document {
 			debondingDelegations[k][k2] = make([]*staking.DebondingDelegation, len(v2))
 			for i, v3 := range v2 {
 				debondingDelegations[k][k2][i] = &staking.DebondingDelegation{
-					Shares: v3.Shares,
+					Shares:        v3.Shares,
+					DebondEndTime: v3.DebondEndTime,
 				}
 			}
 		}
