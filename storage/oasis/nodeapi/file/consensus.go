@@ -68,7 +68,8 @@ func (c *FileConsensusApiLite) GetGenesisDocument(ctx context.Context, chainCont
 func (c *FileConsensusApiLite) StateToGenesis(ctx context.Context, height int64) (*genesis.Document, error) {
 	return kvstore.GetFromCacheOrCall(
 		c.db, height == consensus.HeightLatest,
-		kvstore.GenerateCacheKey("StateToGenesis", height),
+		// v2: Added debond end time.
+		kvstore.GenerateCacheKey("StateToGenesis.v2", height),
 		func() (*genesis.Document, error) { return c.consensusApi.StateToGenesis(ctx, height) },
 	)
 }
