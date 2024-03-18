@@ -6,7 +6,7 @@ name: mock # This name appears in GitHub's Checks API and in workflow's status b
 #   However, our branch protection rules still require that the jobs in those
 #   workflows _pass_; them being skipped is not good enough for Github.
 #
-#   This workflow creates mock success statuses for all the jobs that would 
+#   This workflow creates mock success statuses for all the jobs that would
 #   otherwise run in regular CI workflows, and triggers exactly when the regular
 #   CI workflows don't.
 
@@ -16,6 +16,7 @@ on:
     branches:
       - main
     paths: # Trigger if _only_ these files were changed.
+      - .punch_version.py
       - .changelog/*.md
       - CHANGELOG.md
   # Or when a pull request event occurs for a pull request against one of the
@@ -24,6 +25,7 @@ on:
     branches:
       - main
     paths: # Trigger if _only_ these files were changed.
+      - .punch_version.py
       - .changelog/*.md
       - CHANGELOG.md
 

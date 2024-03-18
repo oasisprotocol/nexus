@@ -60,6 +60,17 @@ GIT_VERSION := $(subst v,,$(shell \
 	echo undefined \
 ))
 
+PUNCH_CONFIG_FILE := $(abspath $(SELF_DIR).punch_config.py)
+PUNCH_VERSION_FILE := $(abspath $(SELF_DIR).punch_version.py)
+# Obtain project's version as tracked by the Punch tool.
+# NOTE: The Punch tool doesn't have the ability fo print project's version to
+# stdout yet.
+# For more details, see: https://github.com/lgiordani/punch/issues/42.
+PUNCH_VERSION := $(shell \
+	python3 -c "exec(open('$(PUNCH_VERSION_FILE)').read()); \
+		print(f'{major}.{minor}.{patch}')" \
+)
+
 # Determine project's version.
 # If the current git commit is exactly a tag and it equals the Punch version,
 # then the project's version is that.
@@ -80,9 +91,47 @@ GO := env -u GOPATH $(OASIS_GO)
 GOFLAGS ?= -trimpath -v
 
 VERSION := $(or \
-	$(and $(call eq,$(GIT_COMMIT_EXACT_TAG),YES), $(GIT_VERSION)), \
-	$(shell git describe --tags --abbrev=0)-git$(shell git describe --always --match '' --dirty=+dirty 2>/dev/null) \
+	$(and $(call eq,$(GIT_COMMIT_EXACT_TAG),YES), $(call eq,$(GIT_VERSION),$(PUNCH_VERSION))), \
+	$(PUNCH_VERSION)-git$(shell git describe --always --match '' --dirty=+dirty 2>/dev/null) \
 )
+
+# Helper that bumps project's version with the Punch tool.
+define PUNCH_BUMP_VERSION =
+	PART=patch; \
+	if [[ "$(RELEASE_BRANCH)" == main ]]; then \
+		if [[ -n "$(CHANGELOG_FRAGMENTS_BREAKING)" ]]; then \
+			PART=major; \
+		elif [[ -n "$(CHANGELOG_FRAGMENTS_FEATURES)" ]]; then \
+			PART=minor; \
+		fi; \
+	elif [[ "$(RELEASE_BRANCH)" == stable/* ]]; then \
+		if [[ -n "$(CHANGELOG_FRAGMENTS_BREAKING)" ]]; then \
+	        $(ECHO) "$(RED)Error: There shouldn't be breaking changes in a release on a stable branch.$(OFF)"; \
+			$(ECHO) "List of detected breaking changes:"; \
+			for fragment in "$(CHANGELOG_FRAGMENTS_BREAKING)"; do \
+				$(ECHO) "- $$fragment"; \
+			done; \
+			exit 1; \
+		else \
+			PART=patch; \
+		fi; \
+    else \
+	    $(ECHO) "$(RED)Error: Unsupported release branch: '$(RELEASE_BRANCH)'.$(OFF)"; \
+		exit 1; \
+	fi; \
+	punch --config-file $(PUNCH_CONFIG_FILE) --version-file $(PUNCH_VERSION_FILE) --part $$PART --quiet
+endef
+
+# Helper that ensures project's version determined from git equals project's
+# version as tracked by the Punch tool.
+define ENSURE_GIT_VERSION_EQUALS_PUNCH_VERSION =
+	if [[ "$(GIT_VERSION)" != "$(PUNCH_VERSION)" ]]; then \
+		$(ECHO) "$(RED)Error: Project's version for $(GIT_ORIGIN_REMOTE)/$(RELEASE_BRANCH) \
+			determined from git ($(GIT_VERSION)) doesn't equal project's version in \
+			$(PUNCH_VERSION_FILE) ($(PUNCH_VERSION)).$(OFF)"; \
+		exit 1; \
+	fi
+endef
 
 # Project's version as the linker's string value definition.
 export GOLDFLAGS_VERSION := -X github.com/oasisprotocol/nexus/version.Software=$(VERSION)
@@ -124,6 +173,9 @@ endef
 # List of non-trivial Change Log fragments.
 CHANGELOG_FRAGMENTS_NON_TRIVIAL := $(filter-out $(wildcard .changelog/*trivial*.md),$(wildcard .changelog/[0-9]*.md))
 
+# List of minor Change Log fragments.
+CHANGELOG_FRAGMENTS_FEATURES := $(wildcard .changelog/*feature*.md)
+
 # List of breaking Change Log fragments.
 CHANGELOG_FRAGMENTS_BREAKING := $(wildcard .changelog/*breaking*.md)
 
@@ -140,9 +192,9 @@ endef
 # Helper that builds the Change Log.
 define BUILD_CHANGELOG =
 	if [[ $(ASSUME_YES) != 1 ]]; then \
-		towncrier build --version $(RELEASE_VERSION); \
+		towncrier build --version $(PUNCH_VERSION); \
 	else \
-		towncrier build --version $(RELEASE_VERSION) --yes; \
+		towncrier build --version $(PUNCH_VERSION) --yes; \
 	fi
 endef
 
@@ -173,8 +225,20 @@ endef
 # section for the next release.
 define ENSURE_NEXT_RELEASE_IN_CHANGELOG =
 	if ! ( git show $(GIT_ORIGIN_REMOTE)/$(RELEASE_BRANCH):CHANGELOG.md | \
-			grep --quiet '^## $(RELEASE_VERSION) (.*)' ); then \
-		$(ECHO) "$(RED)Error: Could not locate Change Log section for release $(RELEASE_VERSION) on $(GIT_ORIGIN_REMOTE)/$(RELEASE_BRANCH) branch.$(OFF)"; \
+			grep --quiet '^## $(PUNCH_VERSION) (.*)' ); then \
+		$(ECHO) "$(RED)Error: Could not locate Change Log section for release $(PUNCH_VERSION) on $(GIT_ORIGIN_REMOTE)/$(RELEASE_BRANCH) branch.$(OFF)"; \
+		exit 1; \
+	fi
+endef
+
+# Git tag of the next release.
+RELEASE_TAG := v$(PUNCH_VERSION)
+
+# Helper that ensures the new release's tag doesn't already exist on the origin
+# remote.
+define ENSURE_RELEASE_TAG_EXISTS =
+	if ! git ls-remote --exit-code --tags $(GIT_ORIGIN_REMOTE) $(RELEASE_TAG) 1>/dev/null; then \
+		$(ECHO) "$(RED)Error: Tag '$(RELEASE_TAG)' doesn't exist on $(GIT_ORIGIN_REMOTE) remote.$(OFF)"; \
 		exit 1; \
 	fi
 endef
