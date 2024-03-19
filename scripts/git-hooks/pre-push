@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# Prints a warning if the files in the current commit do not include
+# a changelog fragment yet.
+
+if [[ -z "$(git diff main --name-only -- .changelog)" ]]; then
+  echo -e "\033[1;33mNOTE:\033[0m Your branch does not include a changelog fragment yet."
+  echo "      You can add one with 'scripts/add_changelog' or manually."
+  echo ""
+  exit 0
+fi
