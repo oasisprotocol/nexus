@@ -23,6 +23,7 @@ import (
 
 	"github.com/oasisprotocol/nexus/analyzer/evmabi"
 	beacon "github.com/oasisprotocol/nexus/coreapi/v22.2.11/beacon/api"
+	roothash "github.com/oasisprotocol/nexus/coreapi/v22.2.11/roothash/api"
 	staking "github.com/oasisprotocol/nexus/coreapi/v22.2.11/staking/api"
 
 	"github.com/oasisprotocol/nexus/analyzer/util"
@@ -32,6 +33,7 @@ import (
 	"github.com/oasisprotocol/nexus/log"
 	"github.com/oasisprotocol/nexus/storage"
 	"github.com/oasisprotocol/nexus/storage/client/queries"
+	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
 )
 
 const (
@@ -44,8 +46,9 @@ const (
 // StorageClient is a wrapper around a storage.TargetStorage
 // with knowledge of network semantics.
 type StorageClient struct {
-	chainName common.ChainName
-	db        storage.TargetStorage
+	chainName      common.ChainName
+	db             storage.TargetStorage
+	runtimeClients map[common.Runtime]nodeapi.RuntimeApiLite
 
 	blockCache *ristretto.Cache
 	txCache    *ristretto.Cache
@@ -110,7 +113,7 @@ func runtimeFromCtx(ctx context.Context) common.Runtime {
 }
 
 // NewStorageClient creates a new storage client.
-func NewStorageClient(chainName common.ChainName, db storage.TargetStorage, l *log.Logger) (*StorageClient, error) {
+func NewStorageClient(chainName common.ChainName, db storage.TargetStorage, runtimeClients map[common.Runtime]nodeapi.RuntimeApiLite, l *log.Logger) (*StorageClient, error) {
 	blockCache, err := ristretto.NewCache(&ristretto.Config{
 		NumCounters:        1024 * 10,
 		MaxCost:            1024,
@@ -131,7 +134,7 @@ func NewStorageClient(chainName common.ChainName, db storage.TargetStorage, l *l
 		l.Error("api client: failed to create tx cache: %w", err)
 		return nil, err
 	}
-	return &StorageClient{chainName, db, blockCache, txCache, l}, nil
+	return &StorageClient{chainName, db, runtimeClients, blockCache, txCache, l}, nil
 }
 
 // Shutdown closes the backing TargetStorage.
@@ -1425,6 +1428,22 @@ func (c *StorageClient) RuntimeEvents(ctx context.Context, p apiTypes.GetRuntime
 	return &es, nil
 }
 
+func (c *StorageClient) fetchAccountBalanceFromNode(ctx context.Context, ch chan *common.BigInt, runtime common.Runtime, address staking.Address) {
+	runtimeApi, ok := c.runtimeClients[runtime]
+	if !ok {
+		c.logger.Warn("no runtime api configured to fetch account balances", "runtime", runtime)
+		close(ch)
+		return
+	}
+	balance, err := runtimeApi.GetNativeBalance(ctx, roothash.RoundLatest, address)
+	if err != nil {
+		c.logger.Error("failed to fetch balance from node", "address", address.String(), "runtime", runtime, "round", roothash.RoundLatest, "err", err)
+		close(ch)
+		return
+	}
+	ch <- balance
+}
+
 func (c *StorageClient) RuntimeAccount(ctx context.Context, address staking.Address) (*RuntimeAccount, error) {
 	a := RuntimeAccount{
 		Address:         address.String(),
@@ -1432,6 +1451,11 @@ func (c *StorageClient) RuntimeAccount(ctx context.Context, address staking.Addr
 		Balances:        []RuntimeSdkBalance{},
 		EvmBalances:     []RuntimeEvmBalance{},
 	}
+	ctx2, cancel := context.WithTimeout(ctx, 500*time.Millisecond)
+	defer cancel()
+	ch := make(chan *common.BigInt)
+	go c.fetchAccountBalanceFromNode(ctx2, ch, runtimeFromCtx(ctx), address)
+
 	var preimageContext string
 	err := c.db.QueryRow(
 		ctx,
@@ -1566,6 +1590,17 @@ func (c *StorageClient) RuntimeAccount(ctx context.Context, address staking.Addr
 		a.Stats.NumTxns = 0
 	default:
 		return nil, wrapError(err)
+	}
+
+	// Reconcile sdk balance from node with the balance fetched from the db.
+	nodeBalance := <-ch
+	if nodeBalance != nil {
+		if len(a.Balances) != 1 {
+			c.logger.Warn("multiple sdk balance denominations detected; skipping node balance check", "address", address)
+		} else if !nodeBalance.Eq(a.Balances[0].Balance) {
+			c.logger.Warn("sdk balance from node differed from dead-reckoned balance; defaulting to node balance", "address", address, "height", roothash.RoundLatest, "node_balance", nodeBalance.String(), "db_balance", a.Balances[0].Balance.String())
+			a.Balances[0].Balance = *nodeBalance
+		}
 	}
 
 	return &a, nil
