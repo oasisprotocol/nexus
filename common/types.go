@@ -8,6 +8,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/oasisprotocol/oasis-core/go/common/quantity"
+	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 )
 
 // Arbitrary-precision integer. Wrapper around big.Int to allow for
@@ -241,3 +242,13 @@ const (
 )
 
 type CallFormat string
+
+func NativeBalance(balances map[sdkTypes.Denomination]BigInt) BigInt {
+	nativeBalance, ok := balances[sdkTypes.NativeDenomination]
+	if !ok {
+		// This is normal for accounts that have had no balance activity;
+		// the node returns an empty map.
+		return NewBigInt(0)
+	}
+	return nativeBalance
+}

@@ -173,10 +173,11 @@ func (p *processor) ProcessItem(ctx context.Context, batch *storage.QueryBatch, 
 			// Do not return; mark this token as processed later on in the func, so we remove it from the DB queue.
 			break
 		}
-		balance, err := p.source.GetNativeBalance(ctx, staleTokenBalance.DownloadRound, addr)
+		balances, err := p.source.GetBalances(ctx, staleTokenBalance.DownloadRound, addr)
 		if err != nil {
 			return fmt.Errorf("getting native runtime balance: %w", err)
 		}
+		balance := common.NativeBalance(balances)
 		if balance.Cmp(staleTokenBalance.Balance) != 0 {
 			correction := (&common.BigInt{}).Sub(&balance.Int, staleTokenBalance.Balance)
 			// Native token balance changes do not produce events, so our dead reckoning

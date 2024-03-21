@@ -258,7 +258,7 @@ type RuntimeApiLite interface {
 	EVMGetCode(ctx context.Context, round uint64, address []byte) ([]byte, error)
 	GetBlockHeader(ctx context.Context, round uint64) (*RuntimeBlockHeader, error)
 	GetTransactionsWithResults(ctx context.Context, round uint64) ([]RuntimeTransactionWithResults, error)
-	GetNativeBalance(ctx context.Context, round uint64, addr Address) (*common.BigInt, error)
+	GetBalances(ctx context.Context, round uint64, addr Address) (map[sdkTypes.Denomination]common.BigInt, error)
 	Close() error
 }
 

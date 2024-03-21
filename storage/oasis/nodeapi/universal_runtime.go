@@ -163,16 +163,15 @@ func (rc *UniversalRuntimeApiLite) EVMGetCode(ctx context.Context, round uint64,
 	return rc.sdkClient.Evm.Code(ctx, round, address)
 }
 
-func (rc *UniversalRuntimeApiLite) GetNativeBalance(ctx context.Context, round uint64, addr Address) (*common.BigInt, error) {
-	balances, err := rc.sdkClient.Accounts.Balances(ctx, round, sdkTypes.Address(addr))
+func (rc *UniversalRuntimeApiLite) GetBalances(ctx context.Context, round uint64, addr Address) (map[sdkTypes.Denomination]common.BigInt, error) {
+	nodeBalances, err := rc.sdkClient.Accounts.Balances(ctx, round, sdkTypes.Address(addr))
 	if err != nil {
 		return nil, err
 	}
-	nativeBalance, ok := balances.Balances[sdkTypes.NativeDenomination]
-	if !ok {
-		// This is normal for accounts that have had no balance activity;
-		// the node returns an empty map.
-		return common.Ptr(common.NewBigInt(0)), nil
+	balances := make(map[sdkTypes.Denomination]common.BigInt)
+	for denom, amount := range nodeBalances.Balances {
+		balances[denom] = common.BigIntFromQuantity(amount)
 	}
-	return common.Ptr(common.BigIntFromQuantity(nativeBalance)), nil
+
+	return balances, nil
 }
