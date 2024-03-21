@@ -5,12 +5,13 @@ import (
 
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 
+	apiTypes "github.com/oasisprotocol/nexus/api/v1/types"
 	governance "github.com/oasisprotocol/nexus/coreapi/v22.2.11/governance/api"
 	registry "github.com/oasisprotocol/nexus/coreapi/v22.2.11/registry/api"
 	staking "github.com/oasisprotocol/nexus/coreapi/v22.2.11/staking/api"
 )
 
-func extractMessageResult(resultRaw cbor.RawMessage, messageType string) (interface{}, error) {
+func extractMessageResult(resultRaw cbor.RawMessage, messageType apiTypes.RoothashMessageType) (interface{}, error) {
 	switch messageType {
 	case "staking.transfer":
 		var result staking.TransferResult

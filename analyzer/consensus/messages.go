@@ -10,7 +10,7 @@ import (
 )
 
 type MessageData struct {
-	messageType      string
+	messageType      apiTypes.RoothashMessageType
 	body             json.RawMessage
 	addressPreimages map[apiTypes.Address]*addresses.PreimageData
 	relatedAddresses map[apiTypes.Address]struct{}
@@ -25,7 +25,7 @@ func extractMessageData(logger *log.Logger, m message.Message) MessageData {
 	case m.Staking != nil:
 		switch {
 		case m.Staking.Transfer != nil:
-			messageData.messageType = "staking.transfer"
+			messageData.messageType = apiTypes.RoothashMessageTypeStakingTransfer
 			body, err := json.Marshal(m.Staking.Transfer)
 			if err != nil {
 				logger.Info("marshal message body failed",
@@ -43,7 +43,7 @@ func extractMessageData(logger *log.Logger, m message.Message) MessageData {
 				)
 			}
 		case m.Staking.Withdraw != nil:
-			messageData.messageType = "staking.withdraw"
+			messageData.messageType = apiTypes.RoothashMessageTypeStakingWithdraw
 			body, err := json.Marshal(m.Staking.Withdraw)
 			if err != nil {
 				logger.Info("marshal message body failed",
@@ -61,7 +61,7 @@ func extractMessageData(logger *log.Logger, m message.Message) MessageData {
 				)
 			}
 		case m.Staking.AddEscrow != nil:
-			messageData.messageType = "staking.add_escrow"
+			messageData.messageType = apiTypes.RoothashMessageTypeStakingAddEscrow
 			body, err := json.Marshal(m.Staking.AddEscrow)
 			if err != nil {
 				logger.Info("marshal message body failed",
@@ -79,7 +79,7 @@ func extractMessageData(logger *log.Logger, m message.Message) MessageData {
 				)
 			}
 		case m.Staking.ReclaimEscrow != nil:
-			messageData.messageType = "staking.reclaim_escrow"
+			messageData.messageType = apiTypes.RoothashMessageTypeStakingReclaimEscrow
 			body, err := json.Marshal(m.Staking.ReclaimEscrow)
 			if err != nil {
 				logger.Info("marshal message body failed",
@@ -104,7 +104,7 @@ func extractMessageData(logger *log.Logger, m message.Message) MessageData {
 	case m.Registry != nil:
 		switch {
 		case m.Registry.UpdateRuntime != nil:
-			messageData.messageType = "registry.update_runtime"
+			messageData.messageType = apiTypes.RoothashMessageTypeRegistryUpdateRuntime
 			body, err := json.Marshal(m.Registry.UpdateRuntime)
 			if err != nil {
 				logger.Info("marshal message body failed",
@@ -118,7 +118,7 @@ func extractMessageData(logger *log.Logger, m message.Message) MessageData {
 	case m.Governance != nil:
 		switch {
 		case m.Governance.CastVote != nil:
-			messageData.messageType = "governance.cast_vote"
+			messageData.messageType = apiTypes.RoothashMessageTypeGovernanceCastVote
 			body, err := json.Marshal(m.Governance.CastVote)
 			if err != nil {
 				logger.Info("marshal message body failed",
@@ -129,7 +129,7 @@ func extractMessageData(logger *log.Logger, m message.Message) MessageData {
 			}
 			messageData.body = body
 		case m.Governance.SubmitProposal != nil:
-			messageData.messageType = "governance.submit_proposal"
+			messageData.messageType = apiTypes.RoothashMessageTypeGovernanceSubmitProposal
 			body, err := json.Marshal(m.Governance.SubmitProposal)
 			if err != nil {
 				logger.Info("marshal message body failed",
