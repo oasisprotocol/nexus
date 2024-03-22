@@ -109,10 +109,11 @@ see what SQL statements genesis is converted into, run `nexus` with
 indicated file, provided that genesis hasn't been parsed into the DB yet. The
 easiest way to achieve the latter is to wipe the DB.
 
-### Code quality tools
+### Code Quality Tools / Dependencies
 
 Here are our recommendations for getting the tools that `make lint` and
-`make fmt` use.
+`make fmt` use. None of these are strictly needed to compile Nexus or even to
+create a PR, but without them, you're at the mercy of CI.
 
 - **golangci-lint**:
   [use their `curl | sh` installer](https://golangci-lint.run/usage/install/).
@@ -124,26 +125,38 @@ Here are our recommendations for getting the tools that `make lint` and
   | sh -s -- -b $(go env GOPATH)/bin v1.55.1
   ```
 
-- **gofumpt**: [go install](https://pkg.go.dev/mvdan.cc/gofumpt)
+  - **gofumpt**: `go install mvdan.cc/gofumpt@latest`
 
-  ```sh
-  go install mvdan.cc/gofumpt@latest
-  ```
+    Note: CI uses gofumpt through golangci-lint, so if there's any discrepancy,
+    look up what gofumpt version golangci-lint uses. Beware that we might not be
+    on the latest golangci-lint either.
 
-  Note: CI uses gofumpt through golangci-lint, so if there's any discrepancy,
-  look up what gofumpt version golangci-lint uses. Beware that we might not be
-  on the latest golangci-lint either.
+  - **goimports**: `go install golang.org/x/tools/cmd/goimports@latest`
 
-- **goimports**:
-  [go install](https://pkg.go.dev/golang.org/x/tools/cmd/goimports)
+    Note: CI uses goimports through golangci-lint, so if there's any
+    discrepancy, look up what `golang.org/x/tools` version golangci-lint uses.
+    Beware that we might not be on the latest golangci-lint either.
 
-  ```sh
-  go install golang.org/x/tools/cmd/goimports@latest
-  ```
+- **gitlint**: `pip install gitlint`
 
-  Note: CI uses goimports through golangci-lint, so if there's any discrepancy,
-  look up what `golang.org/x/tools` version golangci-lint uses. Beware that we
-  might not be on the latest golangci-lint either.
+  For linting commit messages. Used by [git hooks](scripts/git-hooks) and
+  `make lint-git`.
+
+- **gh**: `brew install gh` or
+  [see official instructions](https://github.com/cli/cli?tab=readme-ov-file#installation)
+  for Linux. After installation, `gh auth login`.
+
+  GitHub CLI. Used by [git hooks](scripts/git-hooks).
+
+- **punch.py**: `pip install punch.py`
+
+  Keeps track of the most recently released version.
+
+- **prettier**: `npm install --save-dev --save-exact -g prettier`
+
+  For rewrapping (and some other normalization?) of Markdown files (including
+  changelogs) and commit messages. Used by [git hooks](scripts/git-hooks) and
+  recommended as autoformatter in your text editor (setup not covered here).
 
 ## Name Origin
 
