@@ -29,6 +29,12 @@ server:
   storage:
     endpoint: postgresql://rwuser:password@localhost:5432/indexer?sslmode=disable
     backend: postgres
+  node:
+    chain_name: mainnet
+    nodes:
+      eden:
+        default:
+          rpc: unix:/tmp/node.sock #unix:/node/data/internal.sock
 
 log:
   level: info
