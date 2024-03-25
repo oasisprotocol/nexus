@@ -48,12 +48,21 @@ const (
 type StorageClient struct {
 	chainName      common.ChainName
 	db             storage.TargetStorage
-	runtimeClients map[common.Runtime]nodeapi.RuntimeApiLite
+	runtimeClients map[common.Runtime]RuntimeClient
 
 	blockCache *ristretto.Cache
 	txCache    *ristretto.Cache
 
 	logger *log.Logger
+}
+
+// RuntimeClient is a wrapper around the runtime api client with
+// additional runtime-specific information
+type RuntimeClient struct {
+	Runtime common.Runtime
+	Client  nodeapi.RuntimeApiLite
+
+	NativeTokenSymbol string
 }
 
 func translateTokenType(tokenType common.TokenType) apiTypes.EvmTokenType {
@@ -113,7 +122,7 @@ func runtimeFromCtx(ctx context.Context) common.Runtime {
 }
 
 // NewStorageClient creates a new storage client.
-func NewStorageClient(chainName common.ChainName, db storage.TargetStorage, runtimeClients map[common.Runtime]nodeapi.RuntimeApiLite, l *log.Logger) (*StorageClient, error) {
+func NewStorageClient(chainName common.ChainName, db storage.TargetStorage, runtimeClients map[common.Runtime]RuntimeClient, l *log.Logger) (*StorageClient, error) {
 	blockCache, err := ristretto.NewCache(&ristretto.Config{
 		NumCounters:        1024 * 10,
 		MaxCost:            1024,
@@ -1428,20 +1437,45 @@ func (c *StorageClient) RuntimeEvents(ctx context.Context, p apiTypes.GetRuntime
 	return &es, nil
 }
 
-func (c *StorageClient) fetchAccountBalanceFromNode(ctx context.Context, ch chan *common.BigInt, runtime common.Runtime, address staking.Address) {
+func (c *StorageClient) fetchAccountBalanceFromNode(ctx context.Context, ch chan *RuntimeSdkBalance, runtime common.Runtime, address staking.Address) {
 	runtimeApi, ok := c.runtimeClients[runtime]
 	if !ok {
 		c.logger.Warn("no runtime api configured to fetch account balances", "runtime", runtime)
 		close(ch)
 		return
 	}
-	balance, err := runtimeApi.GetNativeBalance(ctx, roothash.RoundLatest, address)
+	balances, err := runtimeApi.Client.GetBalances(ctx, roothash.RoundLatest, address)
 	if err != nil {
-		c.logger.Error("failed to fetch balance from node", "address", address.String(), "runtime", runtime, "round", roothash.RoundLatest, "err", err)
+		c.logger.Error("failed to fetch balances from node", "address", address.String(), "runtime", runtime, "round", roothash.RoundLatest, "err", err)
 		close(ch)
 		return
 	}
-	ch <- balance
+	foundNativeBalance := false
+	for denom, amount := range balances {
+		balance := RuntimeSdkBalance{
+			Balance: amount,
+			// HACK: 18 is accurate for Emerald and Sapphire, but Cipher has 9.
+			// Once we add a non-18-decimals runtime, we'll need to query the runtime for this
+			// at analysis time and store it in a table, similar to how we store the EVM token metadata.
+			TokenDecimals: 18,
+			TokenSymbol:   denom.String(),
+		}
+		if denom.IsNative() {
+			foundNativeBalance = true
+			balance.TokenSymbol = runtimeApi.NativeTokenSymbol
+		}
+		ch <- &balance
+	}
+	// Default to 0 native balance if not specified by the node. Matches the
+	// behavior of GetNativeBalance in nodeapi/universal_runtime.go
+	if !foundNativeBalance {
+		ch <- &RuntimeSdkBalance{
+			Balance:       common.NewBigInt(0),
+			TokenDecimals: 18,
+			TokenSymbol:   runtimeApi.NativeTokenSymbol,
+		}
+	}
+	close(ch)
 }
 
 func (c *StorageClient) RuntimeAccount(ctx context.Context, address staking.Address) (*RuntimeAccount, error) {
@@ -1453,7 +1487,7 @@ func (c *StorageClient) RuntimeAccount(ctx context.Context, address staking.Addr
 	}
 	ctx2, cancel := context.WithTimeout(ctx, 500*time.Millisecond)
 	defer cancel()
-	ch := make(chan *common.BigInt)
+	ch := make(chan *RuntimeSdkBalance)
 	go c.fetchAccountBalanceFromNode(ctx2, ch, runtimeFromCtx(ctx), address)
 
 	var preimageContext string
@@ -1593,13 +1627,23 @@ func (c *StorageClient) RuntimeAccount(ctx context.Context, address staking.Addr
 	}
 
 	// Reconcile sdk balance from node with the balance fetched from the db.
-	nodeBalance := <-ch
-	if nodeBalance != nil {
-		if len(a.Balances) != 1 {
-			c.logger.Warn("multiple sdk balance denominations detected; skipping node balance check", "address", address)
-		} else if !nodeBalance.Eq(a.Balances[0].Balance) {
-			c.logger.Warn("sdk balance from node differed from dead-reckoned balance; defaulting to node balance", "address", address, "height", roothash.RoundLatest, "node_balance", nodeBalance.String(), "db_balance", a.Balances[0].Balance.String())
-			a.Balances[0].Balance = *nodeBalance
+	for nb := range ch {
+		found := false
+		// If the node balance differs from the balance in Nexus, defer to the node balance.
+		for i, b := range a.Balances {
+			if b.TokenSymbol == nb.TokenSymbol {
+				found = true
+				if !b.Balance.Eq(nb.Balance) {
+					c.logger.Warn("sdk balance from node differed from dead-reckoned balance; defaulting to node balance", "address", address, "height", roothash.RoundLatest, "node_balance", nb.Balance.String(), "db_balance", b.Balance.String())
+					bPtr := &a.Balances[i]
+					bPtr.Balance = nb.Balance
+				}
+			}
+		}
+		// If the balance doesn't exist in Nexus, add it.
+		if !found {
+			c.logger.Warn("node returned balance that doesn't exist in nexus", "symbol", nb)
+			a.Balances = append(a.Balances, *nb)
 		}
 	}
 

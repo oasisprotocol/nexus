@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	sdkConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 	"github.com/spf13/cobra"
 
 	api "github.com/oasisprotocol/nexus/api"
@@ -21,7 +22,6 @@ import (
 	"github.com/oasisprotocol/nexus/metrics"
 	storage "github.com/oasisprotocol/nexus/storage/client"
 	source "github.com/oasisprotocol/nexus/storage/oasis"
-	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
 )
 
 const (
@@ -118,7 +118,7 @@ func NewService(cfg *config.ServerConfig) (*Service, error) {
 	if err != nil {
 		return nil, err
 	}
-	runtimeClients := make(map[common.Runtime]nodeapi.RuntimeApiLite)
+	runtimeClients := make(map[common.Runtime]storage.RuntimeClient)
 	if cfg.Node != nil {
 		apiRuntimes := []common.Runtime{common.RuntimeEmerald, common.RuntimeSapphire}
 		for _, runtime := range apiRuntimes {
@@ -126,7 +126,11 @@ func NewService(cfg *config.ServerConfig) (*Service, error) {
 			if err != nil {
 				return nil, err
 			}
-			runtimeClients[runtime] = client
+			runtimeClients[runtime] = storage.RuntimeClient{
+				Runtime:           runtime,
+				Client:            client,
+				NativeTokenSymbol: cfg.Node.SDKNetwork().ParaTimes.All[string(runtime)].Denominations[sdkConfig.NativeDenominationKey].Symbol,
+			}
 		}
 	}
 	client, err := storage.NewStorageClient(cfg.ChainName, backing, runtimeClients, logger)

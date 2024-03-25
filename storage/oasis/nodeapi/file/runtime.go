@@ -5,6 +5,7 @@ import (
 
 	"github.com/oasisprotocol/nexus/cache/kvstore"
 	roothash "github.com/oasisprotocol/nexus/coreapi/v22.2.11/roothash/api"
+	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 
 	"github.com/oasisprotocol/nexus/common"
 	"github.com/oasisprotocol/nexus/log"
@@ -81,6 +82,16 @@ func (r *FileRuntimeApiLite) GetNativeBalance(ctx context.Context, round uint64,
 		r.db, round == roothash.RoundLatest,
 		kvstore.GenerateCacheKey("GetNativeBalance", r.runtime, round, addr),
 		func() (*common.BigInt, error) { return r.runtimeApi.GetNativeBalance(ctx, round, addr) },
+	)
+}
+
+func (r *FileRuntimeApiLite) GetBalances(ctx context.Context, round uint64, addr nodeapi.Address) (map[sdkTypes.Denomination]common.BigInt, error) {
+	return kvstore.GetMapFromCacheOrCall[sdkTypes.Denomination, common.BigInt](
+		r.db, round == roothash.RoundLatest,
+		kvstore.GenerateCacheKey("GetBalances", r.runtime, round, addr),
+		func() (map[sdkTypes.Denomination]common.BigInt, error) {
+			return r.runtimeApi.GetBalances(ctx, round, addr)
+		},
 	)
 }
 
