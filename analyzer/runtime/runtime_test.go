@@ -111,6 +111,11 @@ func (*mockNode) GetNativeBalance(ctx context.Context, round uint64, addr api.Ad
 	return common.Ptr(common.NewBigInt(0)), nil
 }
 
+// GetBalances implements nodeapi.RuntimeApiLite.
+func (*mockNode) GetBalances(ctx context.Context, round uint64, addr api.Address) (map[sdkTypes.Denomination]common.BigInt, error) {
+	return nil, nil
+}
+
 // GetTransactionsWithResults implements nodeapi.RuntimeApiLite.
 func (mock *mockNode) GetTransactionsWithResults(ctx context.Context, round uint64) ([]nodeapi.RuntimeTransactionWithResults, error) {
 	return mock.Txs[round], nil
