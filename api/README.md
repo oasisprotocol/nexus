@@ -1,6 +1,8 @@
 # Oasis Nexus API
 
-The Oasis Nexus API follows the [OpenAPI 3.0 Specification](https://swagger.io/specification/) for API documentation.
+The Oasis Nexus API follows the
+[OpenAPI 3.0 Specification](https://swagger.io/specification/) for API
+documentation.
 
 ## Render
 
