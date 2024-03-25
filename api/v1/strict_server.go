@@ -272,7 +272,11 @@ func (srv *StrictServerImpl) GetRuntimeEvmTokens(ctx context.Context, request ap
 }
 
 func (srv *StrictServerImpl) GetRuntimeEvmTokensAddress(ctx context.Context, request apiTypes.GetRuntimeEvmTokensAddressRequestObject) (apiTypes.GetRuntimeEvmTokensAddressResponseObject, error) {
-	tokens, err := srv.dbClient.RuntimeTokens(ctx, apiTypes.GetRuntimeEvmTokensParams{Limit: common.Ptr(uint64(1))}, &request.Address)
+	ocAddr, err := apiTypes.UnmarshalToOcAddress(&request.Address)
+	if err != nil {
+		return nil, err
+	}
+	tokens, err := srv.dbClient.RuntimeTokens(ctx, apiTypes.GetRuntimeEvmTokensParams{Limit: common.Ptr(uint64(1))}, ocAddr)
 	if err != nil {
 		return nil, err
 	}
@@ -283,7 +287,16 @@ func (srv *StrictServerImpl) GetRuntimeEvmTokensAddress(ctx context.Context, req
 }
 
 func (srv *StrictServerImpl) GetRuntimeEvmTokensAddressHolders(ctx context.Context, request apiTypes.GetRuntimeEvmTokensAddressHoldersRequestObject) (apiTypes.GetRuntimeEvmTokensAddressHoldersResponseObject, error) {
-	holders, err := srv.dbClient.RuntimeTokenHolders(ctx, request.Params, request.Address)
+	ocAddr, err := apiTypes.UnmarshalToOcAddress(&request.Address)
+	if err != nil {
+		return nil, err
+	}
+	// request.Address is a required field and so ocAddr should never be nil
+	// Nevertheless, we check again for clarity.
+	if ocAddr == nil {
+		return nil, fmt.Errorf("missing required param: address")
+	}
+	holders, err := srv.dbClient.RuntimeTokenHolders(ctx, request.Params, *ocAddr)
 	if err != nil {
 		return nil, err
 	}
@@ -291,7 +304,11 @@ func (srv *StrictServerImpl) GetRuntimeEvmTokensAddressHolders(ctx context.Conte
 }
 
 func (srv *StrictServerImpl) GetRuntimeEvmTokensAddressNfts(ctx context.Context, request apiTypes.GetRuntimeEvmTokensAddressNftsRequestObject) (apiTypes.GetRuntimeEvmTokensAddressNftsResponseObject, error) {
-	nfts, err := srv.dbClient.RuntimeEVMNFTs(ctx, request.Params.Limit, request.Params.Offset, &request.Address, nil, nil)
+	ocAddr, err := apiTypes.UnmarshalToOcAddress(&request.Address)
+	if err != nil {
+		return nil, err
+	}
+	nfts, err := srv.dbClient.RuntimeEVMNFTs(ctx, request.Params.Limit, request.Params.Offset, ocAddr, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -299,7 +316,11 @@ func (srv *StrictServerImpl) GetRuntimeEvmTokensAddressNfts(ctx context.Context,
 }
 
 func (srv *StrictServerImpl) GetRuntimeEvmTokensAddressNftsId(ctx context.Context, request apiTypes.GetRuntimeEvmTokensAddressNftsIdRequestObject) (apiTypes.GetRuntimeEvmTokensAddressNftsIdResponseObject, error) {
-	nfts, err := srv.dbClient.RuntimeEVMNFTs(ctx, common.Ptr(uint64(1)), common.Ptr(uint64(0)), &request.Address, &request.Id, nil)
+	ocAddr, err := apiTypes.UnmarshalToOcAddress(&request.Address)
+	if err != nil {
+		return nil, err
+	}
+	nfts, err := srv.dbClient.RuntimeEVMNFTs(ctx, common.Ptr(uint64(1)), common.Ptr(uint64(0)), ocAddr, &request.Id, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -337,7 +358,16 @@ func (srv *StrictServerImpl) GetRuntimeEvents(ctx context.Context, request apiTy
 }
 
 func (srv *StrictServerImpl) GetRuntimeAccountsAddress(ctx context.Context, request apiTypes.GetRuntimeAccountsAddressRequestObject) (apiTypes.GetRuntimeAccountsAddressResponseObject, error) {
-	account, err := srv.dbClient.RuntimeAccount(ctx, request.Address)
+	ocAddr, err := apiTypes.UnmarshalToOcAddress(&request.Address)
+	if err != nil {
+		return nil, err
+	}
+	// request.Address is a required field and so ocAddr should never be nil
+	// Nevertheless, we check again for clarity.
+	if ocAddr == nil {
+		return nil, fmt.Errorf("missing required param: address")
+	}
+	account, err := srv.dbClient.RuntimeAccount(ctx, *ocAddr)
 	if err != nil {
 		return nil, err
 	}
@@ -345,7 +375,15 @@ func (srv *StrictServerImpl) GetRuntimeAccountsAddress(ctx context.Context, requ
 }
 
 func (srv *StrictServerImpl) GetRuntimeAccountsAddressNfts(ctx context.Context, request apiTypes.GetRuntimeAccountsAddressNftsRequestObject) (apiTypes.GetRuntimeAccountsAddressNftsResponseObject, error) {
-	nfts, err := srv.dbClient.RuntimeEVMNFTs(ctx, request.Params.Limit, request.Params.Offset, request.Params.TokenAddress, nil, &request.Address)
+	ocAddrOwner, err := apiTypes.UnmarshalToOcAddress(&request.Address)
+	if err != nil {
+		return nil, err
+	}
+	ocAddrToken, err := apiTypes.UnmarshalToOcAddress(request.Params.TokenAddress)
+	if err != nil {
+		return nil, err
+	}
+	nfts, err := srv.dbClient.RuntimeEVMNFTs(ctx, request.Params.Limit, request.Params.Offset, ocAddrToken, nil, ocAddrOwner)
 	if err != nil {
 		return nil, err
 	}
