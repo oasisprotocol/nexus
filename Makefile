@@ -83,7 +83,7 @@ fmt:
 	@goimports -w -local github.com/oasisprotocol/nexus .
 
 # Lint code, commits and documentation.
-lint-targets := lint-go lint-go-mod-tidy lint-changelog lint-git
+lint-targets := lint-go lint-go-mod-tidy lint-changelog lint-git lint-docs
 
 lint-go: codegen-go
 	@$(ECHO) "$(CYAN)*** Running Go linters...$(OFF)"
@@ -91,6 +91,10 @@ lint-go: codegen-go
 
 lint-git:
 	@$(CHECK_GITLINT)
+
+lint-docs:
+	@$(ECHO) "$(CYAN)*** Running markdownlint-cli...$(OFF)"
+	@npx markdownlint-cli '**/*.md' --ignore .changelog/
 	
 lint-changelog:
 	@$(CHECK_CHANGELOG_FRAGMENTS)

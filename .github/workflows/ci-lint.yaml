@@ -67,6 +67,11 @@ jobs:
           make lint-git
         # Always run this step so that all linting errors can be seen at once, but skip for dependabot
         if: always() && github.actor != 'dependabot[bot]'
+      - name: Lint documentation
+        run: |
+          make lint-docs
+        # Always run this step so that all linting errors can be seen at once.
+        if: always()
       - name: Lint Change Log fragments
         run: |
           make lint-changelog
