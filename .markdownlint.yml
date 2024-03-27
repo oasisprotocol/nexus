@@ -8,9 +8,9 @@
 # Enable all rules.
 default: true
 
-line-length:
-  # Line length checking is not strict by default.
-  strict: true
+line-length: # https://github.com/DavidAnson/markdownlint/blob/v0.34.0/doc/md013.md
+  # "strict" disallows long lines even if they have spaces. It's not the default.
+  strict: false  
   line_length: 80
   # Allow longer lines for code blocks.
   code_block_line_length: 100
