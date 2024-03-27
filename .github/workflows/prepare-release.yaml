@@ -58,3 +58,7 @@ jobs:
     name: test-e2e-regression-eden
     runs-on: ubuntu-20.04
     steps: [{name: "fake success", run: "exit 0"}]
+  test-e2e-regression-edenfast:
+    name: test-e2e-regression-edenfast
+    runs-on: ubuntu-20.04
+    steps: [{name: "fake success", run: "exit 0"}]

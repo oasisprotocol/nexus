@@ -1,0 +1,14 @@
+runtime,token_address,token_type,token_name,symbol,decimals,total_supply,num_transfers
+emerald,oasis1qp2hssandc7dekjdr6ygmtzt783k3gn38uupdeys,20,Tether USD,USDT,6,690015441212,33
+emerald,oasis1qpgcp5jzlgk4hcenaj2x82rqk8rrve2keyuc8aaf,20,Wrapped ROSE,wROSE,18,11110528749907675559457292,48
+emerald,oasis1qpgvjkelzwd0yucjqyfpfzalrp3x74se7y922a7s,20,YuzuParkExtDummyToken,YPEDT,18,10000,2
+emerald,oasis1qpuqs65me58n6mt05ezd7cnttx7k57w28v36l4ca,20,USD Coin (Celer),ceUSDC,6,160671058631,6
+emerald,oasis1qqehgt8jfnczmku5hazxkkprw5nqqk4nvunx9zf4,20,YuzuSwap LP Token,LPT,18,8543198732792740426556,1
+emerald,oasis1qqjv74rz8e6v9q6yn7y76zvf0yv5299ejsaxnjqu,20,xYUZU,xYUZU,18,72707317251766251839614070,1
+emerald,oasis1qqz8706pmf38wmptl6dkcaec8yykw0rvfv7ql6fc,20,YUZUToken,YUZU,18,324996573618707482993195360,108
+emerald,oasis1qrsl7tgujttvscfe2k268s7q2s7kdu9tyv9qv2tx,20,Wrapped BTC,WBTC,8,175579512,2
+emerald,oasis1qz29t7nxkwfqgfk36uqqs9pzuzdt8zmrjud5mehx,721,MyNFT,MNFT,0,2,2
+emerald,oasis1qzel2watfs6g3cm765dwlukymjs5k3rnhvua4z78,20,Wrapped Ether,WETH,18,153212215450000000000,2
+emerald,oasis1qzj2hwfs3yjm20jz5h70yk3etsst0k8s3cnl6l08,20,YuzuSwap LP Token,LPT,18,5515821744343857173275622,2
+emerald,oasis1qzpxtzc3xphccjq94wxffchfc5sua5t24vc6gvt6,20,Wrapped ROSE,WROSE,18,370854109276538025377920,1
+emerald,oasis1qzxx6htc6cceayd492mqt6lqc8l3eda29cnscx67,20,YuzuSwap LP Token,LPT,18,3454145239972177,4
