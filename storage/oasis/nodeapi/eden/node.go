@@ -14,8 +14,7 @@ import (
 	consensus "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api"
 	consensusTx "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api/transaction"
 	genesis "github.com/oasisprotocol/nexus/coreapi/v22.2.11/genesis/api"
-	governance "github.com/oasisprotocol/nexus/coreapi/v22.2.11/governance/api"
-	scheduler "github.com/oasisprotocol/nexus/coreapi/v22.2.11/scheduler/api"
+	roothash "github.com/oasisprotocol/nexus/coreapi/v22.2.11/roothash/api"
 
 	"github.com/oasisprotocol/nexus/storage/oasis/connections"
 	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
@@ -161,6 +160,18 @@ func (c *ConsensusApiLite) RoothashEvents(ctx context.Context, height int64) ([]
 	return events, nil
 }
 
+func (c *ConsensusApiLite) RoothashLastRoundResults(ctx context.Context, height int64, runtimeID common.Namespace) (*roothash.RoundResults, error) {
+	// Hack: deserialize into nodeapi (Damask) structure.
+	var rsp roothash.RoundResults
+	if err := c.grpcConn.Invoke(ctx, "/oasis-core.RootHash/GetLastRoundResults", &roothashEden.RuntimeRequest{
+		Height:    height,
+		RuntimeID: runtimeID,
+	}, &rsp); err != nil {
+		return nil, fmt.Errorf("RoothashLastRoundResults(%d, %v): %w", height, runtimeID, err)
+	}
+	return &rsp, nil
+}
+
 func (c *ConsensusApiLite) GetNodes(ctx context.Context, height int64) ([]nodeapi.Node, error) {
 	var rsp []*nodeapi.Node // ABI is stable across Eden and Damask
 	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Registry/GetNodes", height, &rsp); err != nil {
@@ -191,7 +202,7 @@ func (c *ConsensusApiLite) GetValidators(ctx context.Context, height int64) ([]n
 
 func (c *ConsensusApiLite) GetCommittees(ctx context.Context, height int64, runtimeID common.Namespace) ([]nodeapi.Committee, error) {
 	var rsp []*schedulerEden.Committee
-	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Scheduler/GetCommittees", &scheduler.GetCommitteesRequest{
+	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Scheduler/GetCommittees", &schedulerEden.GetCommitteesRequest{
 		Height:    height,
 		RuntimeID: runtimeID,
 	}, &rsp); err != nil {
@@ -206,7 +217,7 @@ func (c *ConsensusApiLite) GetCommittees(ctx context.Context, height int64, runt
 
 func (c *ConsensusApiLite) GetProposal(ctx context.Context, height int64, proposalID uint64) (*nodeapi.Proposal, error) {
 	var rsp *governanceEden.Proposal
-	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Governance/Proposal", &governance.ProposalQuery{
+	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Governance/Proposal", &governanceEden.ProposalQuery{
 		Height:     height,
 		ProposalID: proposalID,
 	}, &rsp); err != nil {

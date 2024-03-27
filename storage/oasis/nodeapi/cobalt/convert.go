@@ -1,6 +1,7 @@
 package cobalt
 
 import (
+	"encoding/json"
 	"strings"
 
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
@@ -140,7 +141,8 @@ func ConvertGenesis(d genesisCobalt.Document) *genesis.Document {
 			debondingDelegations[k][k2] = make([]*staking.DebondingDelegation, len(v2))
 			for i, v3 := range v2 {
 				debondingDelegations[k][k2][i] = &staking.DebondingDelegation{
-					Shares: v3.Shares,
+					Shares:        v3.Shares,
+					DebondEndTime: v3.DebondEndTime,
 				}
 			}
 		}
@@ -332,12 +334,24 @@ func convertRoothashEvent(e roothashCobalt.Event) nodeapi.Event {
 				"err", err,
 			)
 		}
-
+		messagesRaw := make([]json.RawMessage, len(computeBody.Messages))
+		for i, message := range computeBody.Messages {
+			messageJSON, err := json.Marshal(message)
+			if err != nil {
+				logger.Error("convert event: roothash executor committed: compute body message error marshaling",
+					"event", e,
+					"message_index", i,
+					"err", err,
+				)
+			}
+			messagesRaw[i] = messageJSON
+		}
 		ret = nodeapi.Event{
 			RoothashExecutorCommitted: &nodeapi.ExecutorCommittedEvent{
 				RuntimeID: e.RuntimeID,
 				Round:     computeBody.Header.Round,
 				NodeID:    &e.ExecutorCommitted.Commit.Signature.PublicKey,
+				Messages:  messagesRaw,
 			},
 			RawBody: common.TryAsJSON(e.ExecutorCommitted),
 			Type:    apiTypes.ConsensusEventTypeRoothashExecutorCommitted,

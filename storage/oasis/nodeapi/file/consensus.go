@@ -10,6 +10,7 @@ import (
 	beacon "github.com/oasisprotocol/nexus/coreapi/v22.2.11/beacon/api"
 	consensus "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api"
 	genesis "github.com/oasisprotocol/nexus/coreapi/v22.2.11/genesis/api"
+	roothash "github.com/oasisprotocol/nexus/coreapi/v22.2.11/roothash/api"
 
 	"github.com/oasisprotocol/nexus/cache/kvstore"
 	"github.com/oasisprotocol/nexus/common"
@@ -59,7 +60,8 @@ func (c *FileConsensusApiLite) Close() error {
 func (c *FileConsensusApiLite) GetGenesisDocument(ctx context.Context, chainContext string) (*genesis.Document, error) {
 	return kvstore.GetFromCacheOrCall(
 		c.db, false,
-		kvstore.GenerateCacheKey("GetGenesisDocument", chainContext),
+		// v2: Added debond end time.
+		kvstore.GenerateCacheKey("GetGenesisDocument.v2", chainContext),
 		func() (*genesis.Document, error) { return c.consensusApi.GetGenesisDocument(ctx, chainContext) },
 	)
 }
@@ -67,7 +69,8 @@ func (c *FileConsensusApiLite) GetGenesisDocument(ctx context.Context, chainCont
 func (c *FileConsensusApiLite) StateToGenesis(ctx context.Context, height int64) (*genesis.Document, error) {
 	return kvstore.GetFromCacheOrCall(
 		c.db, height == consensus.HeightLatest,
-		kvstore.GenerateCacheKey("StateToGenesis", height),
+		// v2: Added debond end time.
+		kvstore.GenerateCacheKey("StateToGenesis.v2", height),
 		func() (*genesis.Document, error) { return c.consensusApi.StateToGenesis(ctx, height) },
 	)
 }
@@ -83,8 +86,8 @@ func (c *FileConsensusApiLite) GetBlock(ctx context.Context, height int64) (*con
 func (c *FileConsensusApiLite) GetTransactionsWithResults(ctx context.Context, height int64) ([]nodeapi.TransactionWithResults, error) {
 	return kvstore.GetSliceFromCacheOrCall(
 		c.db, height == consensus.HeightLatest,
-		// v2: Updated roothash events conversion to retain more data.
-		kvstore.GenerateCacheKey("GetTransactionsWithResults.v2", height),
+		// v3: Updated roothash events conversion to retain roothash messages.
+		kvstore.GenerateCacheKey("GetTransactionsWithResults.v3", height),
 		func() ([]nodeapi.TransactionWithResults, error) {
 			return c.consensusApi.GetTransactionsWithResults(ctx, height)
 		},
@@ -133,9 +136,19 @@ func (c *FileConsensusApiLite) GovernanceEvents(ctx context.Context, height int6
 func (c *FileConsensusApiLite) RoothashEvents(ctx context.Context, height int64) ([]nodeapi.Event, error) {
 	return kvstore.GetSliceFromCacheOrCall(
 		c.db, height == consensus.HeightLatest,
-		// v2: Updated roothash events conversion to retain more data.
-		kvstore.GenerateCacheKey("RoothashEvents.v2", height),
+		// v3: Updated roothash events conversion to retain roothash messages.
+		kvstore.GenerateCacheKey("RoothashEvents.v3", height),
 		func() ([]nodeapi.Event, error) { return c.consensusApi.RoothashEvents(ctx, height) },
+	)
+}
+
+func (c *FileConsensusApiLite) RoothashLastRoundResults(ctx context.Context, height int64, runtimeID coreCommon.Namespace) (*roothash.RoundResults, error) {
+	return kvstore.GetFromCacheOrCall(
+		c.db, height == consensus.HeightLatest,
+		kvstore.GenerateCacheKey("RoothashLastRoundResults", height, runtimeID),
+		func() (*roothash.RoundResults, error) {
+			return c.consensusApi.RoothashLastRoundResults(ctx, height, runtimeID)
+		},
 	)
 }
 

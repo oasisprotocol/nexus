@@ -29,6 +29,10 @@ type EventList = api.ConsensusEventList
 // Event is a consensus event.
 type Event = api.ConsensusEvent
 
+type RoothashMessageList = api.RoothashMessageList
+
+type RoothashMessage = api.RoothashMessage
+
 // EntityList is the storage response for ListEntities.
 type EntityList = api.EntityList
 

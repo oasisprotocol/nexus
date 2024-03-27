@@ -1,6 +1,7 @@
 package damask
 
 import (
+	"encoding/json"
 	"strings"
 
 	// nexus-internal data types.
@@ -156,11 +157,16 @@ func convertRoothashEvent(e roothashDamask.Event) nodeapi.Event {
 	ret := nodeapi.Event{}
 	switch {
 	case e.ExecutorCommitted != nil:
+		messagesRaw := make([]json.RawMessage, len(e.ExecutorCommitted.Commit.Messages))
+		for i, message := range e.ExecutorCommitted.Commit.Messages {
+			messagesRaw[i] = common.TryAsJSON(message)
+		}
 		ret = nodeapi.Event{
 			RoothashExecutorCommitted: &nodeapi.ExecutorCommittedEvent{
 				RuntimeID: e.RuntimeID,
 				Round:     e.ExecutorCommitted.Commit.Header.Round,
 				NodeID:    &e.ExecutorCommitted.Commit.NodeID,
+				Messages:  messagesRaw,
 			},
 			RawBody: common.TryAsJSON(e.ExecutorCommitted),
 			Type:    apiTypes.ConsensusEventTypeRoothashExecutorCommitted,

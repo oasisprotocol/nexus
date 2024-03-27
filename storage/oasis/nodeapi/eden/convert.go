@@ -1,6 +1,7 @@
 package eden
 
 import (
+	"encoding/json"
 	"strings"
 
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
@@ -196,7 +197,8 @@ func ConvertGenesis(d genesisEden.Document) (*genesis.Document, error) {
 			debondingDelegations[k][k2] = make([]*staking.DebondingDelegation, len(v2))
 			for i, v3 := range v2 {
 				debondingDelegations[k][k2][i] = &staking.DebondingDelegation{
-					Shares: v3.Shares,
+					Shares:        v3.Shares,
+					DebondEndTime: v3.DebondEndTime,
 				}
 			}
 		}
@@ -404,11 +406,16 @@ func convertRoothashEvent(e roothashEden.Event) nodeapi.Event {
 	ret := nodeapi.Event{}
 	switch {
 	case e.ExecutorCommitted != nil:
+		messagesRaw := make([]json.RawMessage, len(e.ExecutorCommitted.Commit.Messages))
+		for i, message := range e.ExecutorCommitted.Commit.Messages {
+			messagesRaw[i] = common.TryAsJSON(message)
+		}
 		ret = nodeapi.Event{
 			RoothashExecutorCommitted: &nodeapi.ExecutorCommittedEvent{
 				RuntimeID: e.RuntimeID,
 				Round:     e.ExecutorCommitted.Commit.Header.Header.Round,
 				NodeID:    &e.ExecutorCommitted.Commit.NodeID,
+				Messages:  messagesRaw,
 			},
 			RawBody: common.TryAsJSON(e.ExecutorCommitted),
 			Type:    apiTypes.ConsensusEventTypeRoothashExecutorCommitted,

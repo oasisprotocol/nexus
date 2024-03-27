@@ -88,6 +88,8 @@ x-examples:
     - &epoch_2 8048966
   event-type:
     - &event_type_1 'staking.escrow.take'
+  roothash-message-type:
+    - &roothash_message_type_1 'staking.transfer'
   entity-id:
     - &entity_id_1 'gb8SHLeDc69Elk7OTfqhtVgE2sqxrBCDQI84xKR+Bjg='
   node-id:
@@ -353,6 +355,36 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ConsensusEventList'
+        <<: *common_error_responses
+
+  /consensus/roothash_messages:
+    get:
+      parameters:
+        - *limit
+        - *offset
+        - in: query
+          name: runtime
+          schema:
+            allOf: [$ref: '#/components/schemas/Runtime']
+        - in: query
+          name: round
+          schema:
+            type: integer
+            format: int64
+        - in: query
+          name: type
+          schema:
+            allOf: [$ref: '#/components/schemas/RoothashMessageType']
+        - in: query
+          name: rel
+          schema:
+            allOf: [$ref: '#/components/schemas/StakingAddress']
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoothashMessageList'
         <<: *common_error_responses
 
   /consensus/entities:
@@ -1639,6 +1671,52 @@ components:
             the hierarchy, e.g. `TransferEvent` from `Event > staking.Event > TransferEvent`
       description: |
         An event emitted by the consensus layer.
+
+    RoothashMessageType:
+      type: string
+      enum:
+        - staking.transfer
+        - staking.withdraw
+        - staking.add_escrow
+        - staking.reclaim_escrow
+        - registry.update_runtime
+        - governance.cast_vote
+        - governance.submit_proposal
+      example: *roothash_message_type_1
+
+    RoothashMessageList:
+      allOf:
+        - $ref: '#/components/schemas/List'
+        - type: object
+          required: [roothash_messages]
+          properties:
+            roothash_messages:
+              type: array
+              items:
+                allOf: [$ref: '#/components/schemas/RoothashMessage']
+
+    RoothashMessage:
+      type: object
+      required: [runtime, round, index]
+      properties:
+        runtime:
+          type: string
+        round:
+          type: integer
+          format: int64
+        index:
+          type: integer
+          format: int32
+        type:
+          allOf: [$ref: '#/components/schemas/RoothashMessageType']
+        body:
+          type: object
+        error_module:
+          type: string
+        error_code:
+          type: integer
+          format: int32
+        result: {}
 
     EntityList:
       allOf:
