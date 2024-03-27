@@ -477,11 +477,12 @@ var (
     ON CONFLICT (runtime, address) DO UPDATE
       SET total_received = accounts.total_received + $3`
 
+	// $3 should be the symbol of the _native_ token.
 	RuntimeAccountTotalReceivedRecompute = `
     WITH agg AS (
       SELECT runtime, receiver, sum(amount) AS total_received
       FROM chain.runtime_transfers
-      WHERE runtime = $1::runtime AND round <= $2::bigint AND receiver IS NOT NULL
+      WHERE runtime = $1::runtime AND round <= $2::bigint AND receiver IS NOT NULL AND symbol = $3
       GROUP BY 1, 2
     )
     INSERT INTO chain.runtime_accounts as accts (runtime, address, total_received)
