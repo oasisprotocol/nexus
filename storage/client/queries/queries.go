@@ -92,6 +92,26 @@ const (
 			LIMIT $6::bigint
 			OFFSET $7::bigint`
 
+	RoothashMessages = `
+		SELECT
+		    runtime,
+			round,
+			message_index,
+			type,
+			body,
+			error_module,
+			error_code,
+			result
+		FROM chain.roothash_messages
+		WHERE
+			($1::runtime IS NULL OR runtime = $1) AND
+			($2::bigint IS NULL OR round = $2) AND
+			($3::text IS NULL OR type = $3) AND
+			($4::oasis_addr IS NULL OR related_accounts @> ARRAY[$4])
+		ORDER BY round DESC, message_index DESC
+		LIMIT $5
+		OFFSET $6`
+
 	Entities = `
 		SELECT id, address
 			FROM chain.entities
