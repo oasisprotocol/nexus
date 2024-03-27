@@ -82,10 +82,13 @@ func MetricsMiddleware(m metrics.RequestMetrics, logger log.Logger) func(next ht
 				// like we're doing here if we don't want to use it.
 				timer.ObserveDuration()
 			}
+			latency := time.Since(t)
 			logger.Info("ending request",
-				"endpoint", r.URL.Path,
+				"query_path", r.URL.Path,
+				"query_params", r.URL.RawQuery,
 				"request_id", requestID,
-				"time", time.Since(t),
+				"latency", latency,
+				"latency_bin", binQueryLatency(latency),
 				"status_code", httpStatus,
 			)
 
@@ -101,6 +104,23 @@ func MetricsMiddleware(m metrics.RequestMetrics, logger log.Logger) func(next ht
 			}
 			m.RequestCounts(metricName, statusTxt).Inc()
 		})
+	}
+}
+
+// Bin request durations to make it easier to search
+// for slow queries in Nexus logs.
+func binQueryLatency(t time.Duration) string {
+	switch {
+	case t < 100*time.Millisecond:
+		return "<100ms"
+	case t < 300*time.Millisecond:
+		return "100-300ms"
+	case t < 500*time.Millisecond:
+		return "300-500ms"
+	case t < 1000*time.Millisecond:
+		return "500-1000ms"
+	default:
+		return ">1000ms"
 	}
 }
 
