@@ -93,12 +93,9 @@ type oasisAddress string
 
 // A smart contract, and info on verification progress.
 type contract struct {
-	Addr                  oasisAddress
-	AddrContextIdentifier string
-	AddrContextVersion    int
-	AddrData              []byte
-	EthAddr               ethCommon.Address
-	VerificationLevel     sourcify.VerificationLevel // Status on Sourcify OR in Nexus; context-dependent.
+	Addr              oasisAddress
+	EthAddr           ethCommon.Address
+	VerificationLevel sourcify.VerificationLevel // Status on Sourcify OR in Nexus; context-dependent.
 }
 
 func (p *processor) getNexusVerifiedContracts(ctx context.Context) (map[oasisAddress]sourcify.VerificationLevel, error) {

@@ -103,7 +103,7 @@ diff --recursive "$TEST_DIR/expected" "$outDir" >/dev/null || {
   {
     # The expected files contain a symlink, which 'git diff' cannot follow (but regular 'diff' can).
     # Create a copy of the `expected` dir with the symlink contents materialized; we'll diff against that.
-    rm -rf /tmp/nexus-e2e-expected; cp -r --dereference "$TEST_DIR/expected" /tmp/nexus-e2e-expected;
+    rm -rf /tmp/nexus-e2e-expected; cp -rL "$TEST_DIR/expected" /tmp/nexus-e2e-expected;
   }
   if [[ -t 1 ]]; then # Running in a terminal
     echo "Press enter see the diff, or Ctrl-C to abort."
