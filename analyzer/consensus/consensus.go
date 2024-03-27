@@ -66,6 +66,7 @@ func OpenSignedTxNoVerify(signedTx *transaction.SignedTransaction) (*transaction
 
 // processor is the block processor for the consensus layer.
 type processor struct {
+	chain   common.ChainName
 	mode    analyzer.BlockAnalysisMode
 	history config.History
 	source  nodeapi.ConsensusApiLite
@@ -78,8 +79,9 @@ type processor struct {
 var _ block.BlockProcessor = (*processor)(nil)
 
 // NewAnalyzer returns a new analyzer for the consensus layer.
-func NewAnalyzer(blockRange config.BlockRange, batchSize uint64, mode analyzer.BlockAnalysisMode, history config.History, source nodeapi.ConsensusApiLite, network sdkConfig.Network, target storage.TargetStorage, logger *log.Logger) (analyzer.Analyzer, error) {
+func NewAnalyzer(chain common.ChainName, blockRange config.BlockRange, batchSize uint64, mode analyzer.BlockAnalysisMode, history config.History, source nodeapi.ConsensusApiLite, network sdkConfig.Network, target storage.TargetStorage, logger *log.Logger) (analyzer.Analyzer, error) {
 	processor := &processor{
+		chain:   chain,
 		mode:    mode,
 		history: history,
 		source:  source,
@@ -305,25 +307,29 @@ func (m *processor) ProcessBlock(ctx context.Context, uheight uint64) error {
 		return fmt.Errorf("height %d is too large", uheight)
 	}
 	height := int64(uheight)
-
-	// Fetch all data.
-	fetchTimer := m.metrics.BlockFetchLatencies()
-	data, err := fetchAllData(ctx, m.source, m.network, height, m.mode == analyzer.FastSyncMode)
-	fetchTimer.ObserveDuration()
-	if err != nil {
-		if strings.Contains(err.Error(), fmt.Sprintf("%d must be less than or equal to the current blockchain height", height)) {
-			return analyzer.ErrOutOfRange
-		}
-		return err
-	}
-
-	// Process data, prepare updates.
-	analysisTimer := m.metrics.BlockAnalysisLatencies()
 	batch := &storage.QueryBatch{}
-	err = m.queueDbUpdates(batch, *data)
-	analysisTimer.ObserveDuration()
-	if err != nil {
-		return err
+
+	isBlockAbsent := m.chain == common.ChainNameMainnet && height == 8048955 // Block does not exist due to mishap during upgrade to Damask.
+
+	if !isBlockAbsent {
+		// Fetch all data.
+		fetchTimer := m.metrics.BlockFetchLatencies()
+		data, err := fetchAllData(ctx, m.source, m.network, height, m.mode == analyzer.FastSyncMode)
+		fetchTimer.ObserveDuration()
+		if err != nil {
+			if strings.Contains(err.Error(), fmt.Sprintf("%d must be less than or equal to the current blockchain height", height)) {
+				return analyzer.ErrOutOfRange
+			}
+			return err
+		}
+
+		// Process data, prepare updates.
+		analysisTimer := m.metrics.BlockAnalysisLatencies()
+		err = m.queueDbUpdates(batch, *data)
+		analysisTimer.ObserveDuration()
+		if err != nil {
+			return err
+		}
 	}
 
 	// Update indexing progress.
