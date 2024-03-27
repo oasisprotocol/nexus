@@ -176,3 +176,16 @@ func (rc *UniversalRuntimeApiLite) GetNativeBalance(ctx context.Context, round u
 	}
 	return common.Ptr(common.BigIntFromQuantity(nativeBalance)), nil
 }
+
+func (rc *UniversalRuntimeApiLite) GetBalances(ctx context.Context, round uint64, addr Address) (map[sdkTypes.Denomination]common.BigInt, error) {
+	nodeBalances, err := rc.sdkClient.Accounts.Balances(ctx, round, sdkTypes.Address(addr))
+	if err != nil {
+		return nil, err
+	}
+	balances := make(map[sdkTypes.Denomination]common.BigInt)
+	for denom, amount := range nodeBalances.Balances {
+		balances[denom] = common.BigIntFromQuantity(amount)
+	}
+
+	return balances, nil
+}

@@ -351,3 +351,20 @@ func GetSliceFromCacheOrCall[Response any](cache KVStore, volatile bool, key Cac
 	// Undo the pointer wrapping.
 	return *responsePtr, err
 }
+
+func GetMapFromCacheOrCall[Key comparable, Value any](cache KVStore, volatile bool, key CacheKey, valueFunc func() (map[Key]Value, error)) (map[Key]Value, error) {
+	// Use `getFromCacheOrCall()` to avoid duplicating the cache update logic.
+	responsePtr, err := GetFromCacheOrCall(cache, volatile, key, func() (*map[Key]Value, error) {
+		response, err := valueFunc()
+		if response == nil {
+			return nil, err
+		}
+		// Return the response wrapped in a pointer to conform to the signature of `getFromCacheOrCall()`.
+		return &response, err
+	})
+	if responsePtr == nil {
+		return nil, err
+	}
+	// Undo the pointer wrapping.
+	return *responsePtr, err
+}

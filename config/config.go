@@ -68,15 +68,8 @@ type AnalysisConfig struct {
 
 // Validate validates the analysis configuration.
 func (cfg *AnalysisConfig) Validate() error {
-	if cfg.Source.ChainName == "" && cfg.Source.CustomChain == nil {
-		return fmt.Errorf("source not configured, specify either source.chain_name or source.custom_chain")
-	} else if cfg.Source.ChainName != "" && cfg.Source.CustomChain != nil {
-		return fmt.Errorf("source.chain_name and source.custom_chain specified, can only use one")
-	}
-	for archiveName, archiveConfig := range cfg.Source.Nodes {
-		if archiveConfig.DefaultNode == nil && archiveConfig.ConsensusNode == nil && len(archiveConfig.RuntimeNodes) == 0 {
-			return fmt.Errorf("source.nodes[%v] has none of .default, .consensus, or .runtimes", archiveName)
-		}
+	if err := cfg.Source.Validate(); err != nil {
+		return err
 	}
 	if cfg.Analyzers.Consensus != nil {
 		if err := cfg.Analyzers.Consensus.Validate(); err != nil {
@@ -194,6 +187,20 @@ type SourceConfig struct {
 	// `rpc` really serves the chain with the chain context we expect.
 	// NOT RECOMMENDED in production; intended for faster testing.
 	FastStartup bool `koanf:"fast_startup"`
+}
+
+func (sc *SourceConfig) Validate() error {
+	if sc.ChainName == "" && sc.CustomChain == nil {
+		return fmt.Errorf("source not configured, specify either source.chain_name or source.custom_chain")
+	} else if sc.ChainName != "" && sc.CustomChain != nil {
+		return fmt.Errorf("source.chain_name and source.custom_chain specified, can only use one")
+	}
+	for archiveName, archiveConfig := range sc.Nodes {
+		if archiveConfig.DefaultNode == nil && archiveConfig.ConsensusNode == nil && len(archiveConfig.RuntimeNodes) == 0 {
+			return fmt.Errorf("source.nodes[%v] has none of .default, .consensus, or .runtimes", archiveName)
+		}
+	}
+	return nil
 }
 
 func (sc *SourceConfig) History() *History {
@@ -512,6 +519,9 @@ type ServerConfig struct {
 	Endpoint string `koanf:"endpoint"`
 
 	Storage *StorageConfig `koanf:"storage"`
+
+	// Node is the configuration for accessing oasis-node(s).
+	Node *SourceConfig `koanf:"node"`
 }
 
 // Validate validates the server configuration.
@@ -524,6 +534,11 @@ func (cfg *ServerConfig) Validate() error {
 	}
 	if cfg.ChainName == "" {
 		return fmt.Errorf("no chain name provided")
+	}
+	if cfg.Node != nil {
+		if err := cfg.Node.Validate(); err != nil {
+			return err
+		}
 	}
 
 	return cfg.Storage.Validate(false /* requireMigrations */)

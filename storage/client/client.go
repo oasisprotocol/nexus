@@ -23,6 +23,7 @@ import (
 
 	"github.com/oasisprotocol/nexus/analyzer/evmabi"
 	beacon "github.com/oasisprotocol/nexus/coreapi/v22.2.11/beacon/api"
+	roothash "github.com/oasisprotocol/nexus/coreapi/v22.2.11/roothash/api"
 	staking "github.com/oasisprotocol/nexus/coreapi/v22.2.11/staking/api"
 
 	"github.com/oasisprotocol/nexus/analyzer/util"
@@ -32,6 +33,7 @@ import (
 	"github.com/oasisprotocol/nexus/log"
 	"github.com/oasisprotocol/nexus/storage"
 	"github.com/oasisprotocol/nexus/storage/client/queries"
+	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
 )
 
 const (
@@ -44,13 +46,23 @@ const (
 // StorageClient is a wrapper around a storage.TargetStorage
 // with knowledge of network semantics.
 type StorageClient struct {
-	chainName common.ChainName
-	db        storage.TargetStorage
+	chainName      common.ChainName
+	db             storage.TargetStorage
+	runtimeClients map[common.Runtime]RuntimeClient
 
 	blockCache *ristretto.Cache
 	txCache    *ristretto.Cache
 
 	logger *log.Logger
+}
+
+// RuntimeClient is a wrapper around the runtime api client with
+// additional runtime-specific information
+type RuntimeClient struct {
+	Runtime common.Runtime
+	Client  nodeapi.RuntimeApiLite
+
+	NativeTokenSymbol string
 }
 
 func translateTokenType(tokenType common.TokenType) apiTypes.EvmTokenType {
@@ -110,7 +122,7 @@ func runtimeFromCtx(ctx context.Context) common.Runtime {
 }
 
 // NewStorageClient creates a new storage client.
-func NewStorageClient(chainName common.ChainName, db storage.TargetStorage, l *log.Logger) (*StorageClient, error) {
+func NewStorageClient(chainName common.ChainName, db storage.TargetStorage, runtimeClients map[common.Runtime]RuntimeClient, l *log.Logger) (*StorageClient, error) {
 	blockCache, err := ristretto.NewCache(&ristretto.Config{
 		NumCounters:        1024 * 10,
 		MaxCost:            1024,
@@ -131,7 +143,7 @@ func NewStorageClient(chainName common.ChainName, db storage.TargetStorage, l *l
 		l.Error("api client: failed to create tx cache: %w", err)
 		return nil, err
 	}
-	return &StorageClient{chainName, db, blockCache, txCache, l}, nil
+	return &StorageClient{chainName, db, runtimeClients, blockCache, txCache, l}, nil
 }
 
 // Shutdown closes the backing TargetStorage.
@@ -1425,6 +1437,47 @@ func (c *StorageClient) RuntimeEvents(ctx context.Context, p apiTypes.GetRuntime
 	return &es, nil
 }
 
+func (c *StorageClient) fetchAccountBalanceFromNode(ctx context.Context, ch chan *RuntimeSdkBalance, runtime common.Runtime, address staking.Address) {
+	runtimeApi, ok := c.runtimeClients[runtime]
+	if !ok {
+		c.logger.Warn("no runtime api configured to fetch account balances", "runtime", runtime)
+		close(ch)
+		return
+	}
+	balances, err := runtimeApi.Client.GetBalances(ctx, roothash.RoundLatest, address)
+	if err != nil {
+		c.logger.Error("failed to fetch balances from node", "address", address.String(), "runtime", runtime, "round", roothash.RoundLatest, "err", err)
+		close(ch)
+		return
+	}
+	foundNativeBalance := false
+	for denom, amount := range balances {
+		balance := RuntimeSdkBalance{
+			Balance: amount,
+			// HACK: 18 is accurate for Emerald and Sapphire, but Cipher has 9.
+			// Once we add a non-18-decimals runtime, we'll need to query the runtime for this
+			// at analysis time and store it in a table, similar to how we store the EVM token metadata.
+			TokenDecimals: 18,
+			TokenSymbol:   denom.String(),
+		}
+		if denom.IsNative() {
+			foundNativeBalance = true
+			balance.TokenSymbol = runtimeApi.NativeTokenSymbol
+		}
+		ch <- &balance
+	}
+	// Default to 0 native balance if not specified by the node. Matches the
+	// behavior of GetNativeBalance in nodeapi/universal_runtime.go
+	if !foundNativeBalance {
+		ch <- &RuntimeSdkBalance{
+			Balance:       common.NewBigInt(0),
+			TokenDecimals: 18,
+			TokenSymbol:   runtimeApi.NativeTokenSymbol,
+		}
+	}
+	close(ch)
+}
+
 func (c *StorageClient) RuntimeAccount(ctx context.Context, address staking.Address) (*RuntimeAccount, error) {
 	a := RuntimeAccount{
 		Address:         address.String(),
@@ -1432,6 +1485,11 @@ func (c *StorageClient) RuntimeAccount(ctx context.Context, address staking.Addr
 		Balances:        []RuntimeSdkBalance{},
 		EvmBalances:     []RuntimeEvmBalance{},
 	}
+	ctx2, cancel := context.WithTimeout(ctx, 500*time.Millisecond)
+	defer cancel()
+	ch := make(chan *RuntimeSdkBalance)
+	go c.fetchAccountBalanceFromNode(ctx2, ch, runtimeFromCtx(ctx), address)
+
 	var preimageContext string
 	err := c.db.QueryRow(
 		ctx,
@@ -1566,6 +1624,27 @@ func (c *StorageClient) RuntimeAccount(ctx context.Context, address staking.Addr
 		a.Stats.NumTxns = 0
 	default:
 		return nil, wrapError(err)
+	}
+
+	// Reconcile sdk balance from node with the balance fetched from the db.
+	for nb := range ch {
+		found := false
+		// If the node balance differs from the balance in Nexus, defer to the node balance.
+		for i, b := range a.Balances {
+			if b.TokenSymbol == nb.TokenSymbol {
+				found = true
+				if !b.Balance.Eq(nb.Balance) {
+					c.logger.Warn("sdk balance from node differed from dead-reckoned balance; defaulting to node balance", "address", address, "height", roothash.RoundLatest, "node_balance", nb.Balance.String(), "db_balance", b.Balance.String())
+					bPtr := &a.Balances[i]
+					bPtr.Balance = nb.Balance
+				}
+			}
+		}
+		// If the balance doesn't exist in Nexus, add it.
+		if !found {
+			c.logger.Warn("node returned balance that doesn't exist in nexus", "symbol", nb)
+			a.Balances = append(a.Balances, *nb)
+		}
 	}
 
 	return &a, nil
