@@ -2,33 +2,57 @@
 
 # This script is a simple e2e regression test for Nexus.
 #
-# It runs
-#  - a fixed set of URLs against the HTTP API
-#  - a fixed set of SQL queries against the DB
+# It takes the name of a test suite, and
+#  - builds nexus (if -b is given) and indexes (if -a is given) the block
+#    range defined by the suite
+#  - runs a fixed set of URLs against the HTTP API
+#  - runs a fixed set of SQL queries against the DB
 # and saves the responses to files, then check that the responses match
 # the expected outputs (from a previous run).
 #
 # If the differences are expected, simply check the new responses into git.
-#
-# NOTE: It is the responsibility of the caller to invoke this script against a
-# DB that is SYNCED TO THE SAME HEIGHT as in the run that produced the
-# expected outputs.
 
 set -euo pipefail
 
+E2E_REGRESSION_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+
+build=
+analyze=
+while getopts ba opt; do
+  case $opt in
+    b) build=1;;
+    a) analyze=1;;
+  esac
+done
+shift "$((OPTIND - 1))"
+
 # Read arg
 suite="${1:-}"
-if [[ "$suite" != "eden" &&  "$suite" != "damask"  ]]; then
-  echo "Usage: $0 [eden|damask]"
+TEST_DIR="$E2E_REGRESSION_DIR/$suite"
+if [[ -z "$suite" || ! -e "$TEST_DIR/e2e_config_1.yml" ]]; then
+  cat >&2 <<EOF
+Usage: $0 [-ba] <suite>
+
+  -b  Build nexus
+  -a  Run analysis steps
+EOF
   exit 1
 fi
 
-# Load test cases
-source tests/e2e_regression/test_cases.sh
-testCasesName="${suite}TestCases[@]"
-testCases=( "${!testCasesName}" )
+# Build
+if [[ -n "$build" ]]; then
+  make nexus
+fi
 
-TEST_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)/$suite"
+# Analyze
+if [[ -n "$analyze" ]]; then
+  ./nexus --config "$TEST_DIR/e2e_config_1.yml" analyze
+  ./nexus --config "$TEST_DIR/e2e_config_2.yml" analyze
+  echo "*** Analyzers finished; starting api tests..."
+fi
+
+# Load test cases
+source "$TEST_DIR/test_cases.sh"
 
 # The hostname of the API server to test
 hostname="http://localhost:8008"
@@ -47,7 +71,6 @@ nCases=${#testCases[@]}
 # Start the API server.
 # Set the timezone (TZ=UTC) to have more consistent outputs across different
 # systems, even when not running inside docker.
-make nexus
 TZ=UTC ./nexus --config="${TEST_DIR}/e2e_config_1.yml" serve &
 apiServerPid=$!
 
@@ -100,26 +123,27 @@ done
 diff --recursive "$TEST_DIR/expected" "$outDir" >/dev/null || {
   echo
   echo "NOTE: $TEST_DIR/expected and $outDir differ."
-  {
-    # The expected files contain a symlink, which 'git diff' cannot follow (but regular 'diff' can).
-    # Create a copy of the `expected` dir with the symlink contents materialized; we'll diff against that.
-    rm -rf /tmp/nexus-e2e-expected; cp -r --dereference "$TEST_DIR/expected" /tmp/nexus-e2e-expected;
-  }
+  # The expected files contain a symlink, which 'git diff' cannot follow (but regular 'diff' can).
+  # Create a copy of the `expected` dir with the symlink contents materialized; we'll diff against that.
+  expectedDerefDir="/tmp/nexus-e2e-expected-$suite"
+  rm -rf "$expectedDerefDir"
+  cp -r --dereference "$TEST_DIR/expected" "$expectedDerefDir"
   if [[ -t 1 ]]; then # Running in a terminal
     echo "Press enter see the diff, or Ctrl-C to abort."
     read -r
-    git diff --no-index /tmp/nexus-e2e-expected "$TEST_DIR/actual" || true
-    echo
-    echo "To re-view the diff, run:"
-    echo "  git diff --no-index /tmp/nexus-e2e-expected $TEST_DIR/actual"
   else
     # Running outside a terminal (likely in CI)
     echo "CI diff:"
-    git diff --no-index "$TEST_DIR"/{expected,actual} || true
   fi
-  echo
-  echo "If the new results are expected, copy the new results into .../expected:"
-  echo "  make accept-e2e-regression"
+  git diff --no-index "$expectedDerefDir" "$outDir" || true
+  if [[ -t 1 ]]; then # Running in a terminal
+    echo
+    echo "To re-view the diff, run:"
+    echo "  git diff --no-index $expectedDerefDir $outDir"
+    echo
+    echo "If the new results are expected, copy the new results into .../expected:"
+    echo "  $E2E_REGRESSION_DIR/accept.sh $suite"
+  fi
   exit 1
 }
 
