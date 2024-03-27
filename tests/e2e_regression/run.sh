@@ -2,9 +2,11 @@
 
 # This script is a simple e2e regression test for Nexus.
 #
-# It runs
-#  - a fixed set of URLs against the HTTP API
-#  - a fixed set of SQL queries against the DB
+# It takes the name of a test suite, and
+#  - builds nexus (if -b is given) and indexes (if -a is given) the block
+#    range defined by the suite
+#  - runs a fixed set of URLs against the HTTP API
+#  - runs a fixed set of SQL queries against the DB
 # and saves the responses to files, then check that the responses match
 # the expected outputs (from a previous run).
 #
