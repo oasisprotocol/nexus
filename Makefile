@@ -62,7 +62,7 @@ test-e2e:
 
 # To run specific suites, do e.g.
 # make E2E_REGRESSION_SUITES='suite1 suite2' test-e2e-regression
-E2E_REGRESSION_SUITES := eden damask
+E2E_REGRESSION_SUITES := eden damask edenfast
 
 ensure-consistent-config-for-e2e-regression:
 	for suite in $(E2E_REGRESSION_SUITES); do ./tests/e2e_regression/ensure_consistent_config.sh $$suite; done
