@@ -9,6 +9,7 @@ import (
 	beacon "github.com/oasisprotocol/nexus/coreapi/v22.2.11/beacon/api"
 	consensus "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api"
 	genesis "github.com/oasisprotocol/nexus/coreapi/v22.2.11/genesis/api"
+	roothash "github.com/oasisprotocol/nexus/coreapi/v22.2.11/roothash/api"
 
 	"github.com/oasisprotocol/nexus/config"
 	"github.com/oasisprotocol/nexus/storage/oasis/connections"
@@ -189,6 +190,14 @@ func (c *HistoryConsensusApiLite) RoothashEvents(ctx context.Context, height int
 		return nil, fmt.Errorf("getting api for height %d: %w", height, err)
 	}
 	return api.RoothashEvents(ctx, height)
+}
+
+func (c *HistoryConsensusApiLite) RoothashLastRoundResults(ctx context.Context, height int64, runtimeID common.Namespace) (*roothash.RoundResults, error) {
+	api, err := c.APIForHeight(height)
+	if err != nil {
+		return nil, fmt.Errorf("getting api for height %d: %w", height, err)
+	}
+	return api.RoothashLastRoundResults(ctx, height, runtimeID)
 }
 
 func (c *HistoryConsensusApiLite) GetNodes(ctx context.Context, height int64) ([]nodeapi.Node, error) {

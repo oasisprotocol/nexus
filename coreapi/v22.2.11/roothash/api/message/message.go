@@ -4,14 +4,16 @@ package message
 import (
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 
+	governance "github.com/oasisprotocol/nexus/coreapi/v22.2.11/governance/api"
 	registry "github.com/oasisprotocol/nexus/coreapi/v22.2.11/registry/api"
 	staking "github.com/oasisprotocol/nexus/coreapi/v22.2.11/staking/api"
 )
 
 // Message is a message that can be sent by a runtime.
 type Message struct {
-	Staking  *StakingMessage  `json:"staking,omitempty"`
-	Registry *RegistryMessage `json:"registry,omitempty"`
+	Staking    *StakingMessage    `json:"staking,omitempty"`
+	Registry   *RegistryMessage   `json:"registry,omitempty"`
+	Governance *GovernanceMessage `json:"governance,omitempty"`
 }
 
 // ValidateBasic performs basic validation of the runtime message.
@@ -41,4 +43,15 @@ type RegistryMessage struct {
 }
 
 // ValidateBasic performs basic validation of the runtime message.
+// removed func
+
+// GovernanceMessage is a governance message that allows a runtime to perform governance operations.
+type GovernanceMessage struct {
+	cbor.Versioned
+
+	CastVote       *governance.ProposalVote    `json:"cast_vote,omitempty"`
+	SubmitProposal *governance.ProposalContent `json:"submit_proposal,omitempty"`
+}
+
+// ValidateBasic performs basic validation of a governance message.
 // removed func

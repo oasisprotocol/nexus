@@ -157,6 +157,17 @@ func (c *ConsensusApiLite) RoothashEvents(ctx context.Context, height int64) ([]
 	return events, nil
 }
 
+func (c *ConsensusApiLite) RoothashLastRoundResults(ctx context.Context, height int64, runtimeID common.Namespace) (*roothash.RoundResults, error) {
+	var rsp roothash.RoundResults
+	if err := c.grpcConn.Invoke(ctx, "/oasis-core.RootHash/GetLastRoundResults", &roothash.RuntimeRequest{
+		Height:    height,
+		RuntimeID: runtimeID,
+	}, &rsp); err != nil {
+		return nil, fmt.Errorf("RoothashLastRoundResults(%d, %v): %w", height, runtimeID, err)
+	}
+	return &rsp, nil
+}
+
 func (c *ConsensusApiLite) GetNodes(ctx context.Context, height int64) ([]nodeapi.Node, error) {
 	var rsp []*nodeapi.Node
 	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Registry/GetNodes", height, &rsp); err != nil {
