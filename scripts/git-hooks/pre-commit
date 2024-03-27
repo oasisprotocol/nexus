@@ -14,7 +14,7 @@ staged_fragments="$(git diff --cached --name-only -- .changelog/*.md)"
 # Re-wraps file $1 to 80 characters per line, using prettier, in-place.
 rewrap() {
   # Suppress the output of prettier, as it's overly verbose. Show only on errors.
-  prettier --no-config --no-editorconfig --prose-wrap always --print-width 80 --write "$f" >/tmp/prettier.out \
+  prettier --no-config --no-editorconfig --prose-wrap always --print-width 78 --write "$f" >/tmp/prettier.out \
     || { cat /tmp/prettier.out; exit 1; }
 }
 

@@ -2841,10 +2841,10 @@ components:
       properties:
         total_sent:
           allOf: [$ref: '#/components/schemas/TextBigInt']
-          description: The total number of tokens sent, in base units.
+          description: The total amount of native tokens sent, in base units.
         total_received:
           allOf: [$ref: '#/components/schemas/TextBigInt']
-          description: The total number of tokens received, in base units.
+          description: The total amount of native tokens received, in base units.
         num_txns:
           description: The total number of transactions this account was involved with.
           type: integer
