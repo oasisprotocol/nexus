@@ -1199,13 +1199,17 @@ func EthChecksumAddrFromPreimage(contextIdentifier string, contextVersion int, d
 
 // RuntimeTransactions returns a list of runtime transactions.
 func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetRuntimeTransactionsParams, txHash *string) (*RuntimeTransactionList, error) {
+	ocAddrRel, err := apiTypes.UnmarshalToOcAddress(p.Rel)
+	if err != nil {
+		return nil, err
+	}
 	res, err := c.withTotalCount(
 		ctx,
 		queries.RuntimeTransactions,
 		runtimeFromCtx(ctx),
 		p.Block,
 		txHash, // tx_hash; used only by GetRuntimeTransactionsTxHash
-		p.Rel,
+		ocAddrRel,
 		p.After,
 		p.Before,
 		p.Limit,
@@ -1319,15 +1323,23 @@ func (c *StorageClient) RuntimeEvents(ctx context.Context, p apiTypes.GetRuntime
 	if p.NftId != nil && p.ContractAddress == nil {
 		return nil, fmt.Errorf("must specify contract_address with nft_id")
 	}
+	ocAddrContract, err := apiTypes.UnmarshalToOcAddress(p.ContractAddress)
+	if err != nil {
+		return nil, err
+	}
+	ocAddrRel, err := apiTypes.UnmarshalToOcAddress(p.Rel)
+	if err != nil {
+		return nil, err
+	}
 	var NFTIdB64 *string
 	if p.NftId != nil {
 		erc721TransferTokenIdBI := &big.Int{}
-		if err := erc721TransferTokenIdBI.UnmarshalText([]byte(*p.NftId)); err != nil {
-			return nil, fmt.Errorf("unmarshalling erc721_transfer_token_id: %w", err)
+		if err2 := erc721TransferTokenIdBI.UnmarshalText([]byte(*p.NftId)); err2 != nil {
+			return nil, fmt.Errorf("unmarshalling erc721_transfer_token_id: %w", err2)
 		}
-		erc721TransferTokenIdBuf, err := abi.Arguments{evmabi.ERC721.Events["Transfer"].Inputs[2]}.Pack(erc721TransferTokenIdBI)
-		if err != nil {
-			return nil, fmt.Errorf("ABI-packing erc721_transfer_token_id: %w", err)
+		erc721TransferTokenIdBuf, err2 := abi.Arguments{evmabi.ERC721.Events["Transfer"].Inputs[2]}.Pack(erc721TransferTokenIdBI)
+		if err2 != nil {
+			return nil, fmt.Errorf("ABI-packing erc721_transfer_token_id: %w", err2)
 		}
 		NFTIdB64 = common.Ptr(base64.StdEncoding.EncodeToString(erc721TransferTokenIdBuf))
 	}
@@ -1341,8 +1353,8 @@ func (c *StorageClient) RuntimeEvents(ctx context.Context, p apiTypes.GetRuntime
 		p.TxHash,
 		p.Type,
 		evmLogSignature,
-		p.Rel,
-		p.ContractAddress,
+		ocAddrRel,
+		ocAddrContract,
 		NFTIdB64,
 		p.Limit,
 		p.Offset,

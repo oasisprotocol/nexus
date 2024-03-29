@@ -829,17 +829,14 @@ paths:
           example: *iso_timestamp_2
         - in: query
           name: rel
-          schema:
-            allOf: [$ref: '#/components/schemas/StakingAddress']
-          # TODO: Implement autodetection of Eth addresses, get rid of last sentence.
+          schema: { allOf: [$ref: '#/components/schemas/EthOrOasisAddress'] }
+          examples: { eth: { $ref: '#/components/examples/EthAddress' }, oasis: { $ref: '#/components/examples/StakingAddress' } }
           description: |
             A filter on related accounts. Every returned transaction will refer to
             this account in a way. For example, for an `accounts.Transfer` tx, this will be
             the sender or the recipient of tokens.
             Nexus detects related accounts inside EVM transactions and events on a
             best-effort basis. For example, it inspects ERC20 methods inside `evm.Call` txs.
-            However, you must provide the Oasis-style derived address here, not the Eth address.
-            See `AddressPreimage` for more info on Oasis-style vs Eth addresses.
       responses:
         '200':
           description: |
@@ -921,13 +918,12 @@ paths:
           description: A filter on the event type.
         - in: query
           name: rel
-          schema:
-            type: string
+          schema: { allOf: [$ref: '#/components/schemas/EthOrOasisAddress'] }
+          examples: { eth: { $ref: '#/components/examples/EthAddress' }, oasis: { $ref: '#/components/examples/StakingAddress' } }
           description: |
             A filter on related accounts. Every returned event will refer to
             this account. For example, for a `accounts.Transfer` event, this will be
             the sender or the recipient of tokens.
-          example: *staking_address_1
         - in: query
           name: evm_log_signature
           schema:
@@ -938,12 +934,11 @@ paths:
           example: '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'
         - in: query
           name: contract_address
-          schema:
-            type: string
+          schema: { allOf: [$ref: '#/components/schemas/EthOrOasisAddress'] }
+          examples: { eth: { $ref: '#/components/examples/EthAddress' }, oasis: { $ref: '#/components/examples/StakingAddress' } }
           description: |
             A filter on a smart contract. Every returned event will have been
-            emitted by the contract at this Oasis address.
-          example: *staking_address_1
+            emitted by the contract at this address.
         - in: query
           name: nft_id
           schema:
@@ -1000,8 +995,8 @@ paths:
         - in: path
           name: address
           required: true
-          schema:
-            allOf: [$ref: '#/components/schemas/StakingAddress']
+          schema: { allOf: [$ref: '#/components/schemas/EthOrOasisAddress'] }
+          examples: { eth: { $ref: '#/components/examples/EthAddress' }, oasis: { $ref: '#/components/examples/StakingAddress' } }
           description: The staking address of the token contract.
       responses:
         '200':
@@ -1024,8 +1019,8 @@ paths:
         - in: path
           name: address
           required: true
-          schema:
-            allOf: [$ref: '#/components/schemas/StakingAddress']
+          schema: { allOf: [$ref: '#/components/schemas/EthOrOasisAddress'] }
+          examples: { eth: { $ref: '#/components/examples/EthAddress' }, oasis: { $ref: '#/components/examples/StakingAddress' } }
           description: The staking address of the token contract for which to return the holders.
       responses:
         '200':
@@ -1048,8 +1043,8 @@ paths:
         - in: path
           name: address
           required: true
-          schema:
-            allOf: [$ref: '#/components/schemas/StakingAddress']
+          schema: { allOf: [$ref: '#/components/schemas/EthOrOasisAddress'] }
+          examples: { eth: { $ref: '#/components/examples/EthAddress' }, oasis: { $ref: '#/components/examples/StakingAddress' } }
           description: The staking address of the token contract for which to return the NFT instances.
       responses:
         '200':
@@ -1069,8 +1064,8 @@ paths:
         - in: path
           name: address
           required: true
-          schema:
-            allOf: [$ref: '#/components/schemas/StakingAddress']
+          schema: { allOf: [$ref: '#/components/schemas/EthOrOasisAddress'] }
+          examples: { eth: { $ref: '#/components/examples/EthAddress' }, oasis: { $ref: '#/components/examples/StakingAddress' } }
           description: The staking address of the token contract of the NFT instance.
         - in: path
           name: id
@@ -1095,8 +1090,8 @@ paths:
         - in: path
           name: address
           required: true
-          schema:
-            allOf: [$ref: '#/components/schemas/StakingAddress']
+          schema: 
+            allOf: [$ref: '#/components/schemas/EthOrOasisAddress']
           description: The staking address of the account to return.
       responses:
         '200':
@@ -1118,13 +1113,13 @@ paths:
         - in: path
           name: address
           required: true
-          schema:
-            allOf: [$ref: '#/components/schemas/StakingAddress']
+          schema: { allOf: [$ref: '#/components/schemas/EthOrOasisAddress'] }
+          examples: { eth: { $ref: '#/components/examples/EthAddress' }, oasis: { $ref: '#/components/examples/StakingAddress' } }
           description: The staking address of the owner of the NFT instances.
         - in: query
           name: token_address
-          schema:
-            allOf: [$ref: '#/components/schemas/StakingAddress']
+          schema: { allOf: [$ref: '#/components/schemas/EthOrOasisAddress'] }
+          examples: { eth: { $ref: '#/components/examples/EthAddress' }, oasis: { $ref: '#/components/examples/StakingAddress' } }
           description: Only return NFT instances from the token contract at the given staking address.
       responses:
         '200':
@@ -1235,6 +1230,9 @@ components:
       pattern: '^oasis1[a-z0-9]{40}$'
       example: "oasis1qpg2xuz46g53737343r20yxeddhlvc2ldqsjh70p"
       description: An Oasis-style (bech32) address.
+    EthOrOasisAddress:
+      type: string
+      pattern: '^oasis1[a-z0-9]{40}$|^(0x)?[0-9a-fA-F]{40}$'
     Ed25519PubKey:
       type: string
       format: byte  # means base64-encoded raw bytes
@@ -2931,3 +2929,12 @@ components:
       content:
         application/json:
           schema: {}
+
+  # TODO: Migrate most of examples from the "x-examples" tree into the standard "examples" tree.
+  examples:
+    StakingAddress:
+      value: "oasis1qp2hssandc7dekjdr6ygmtzt783k3gn38uupdeys"
+      description: A native Oasis address, bech32-encoded.
+    EthAddress:
+      value: "0xDEF1009df2d6872C214cd9148c6883893B7c4D91"
+      description: An Ethereum-compatible address, hex-encoded. Capitalization does not matter.
