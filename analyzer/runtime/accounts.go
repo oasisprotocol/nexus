@@ -61,12 +61,14 @@ func (m *processor) queueMint(batch *storage.QueryBatch, round uint64, e account
 			m.StringifyDenomination(e.Amount.Denomination),
 			e.Amount.Amount.String(),
 		)
-		batch.Queue(
-			queries.RuntimeAccountTotalReceivedUpsert,
-			m.runtime,
-			e.Owner.String(),
-			e.Amount.Amount.String(),
-		)
+		if e.Amount.Denomination.IsNative() {
+			batch.Queue(
+				queries.RuntimeAccountTotalReceivedUpsert,
+				m.runtime,
+				e.Owner.String(),
+				e.Amount.Amount.String(),
+			)
+		}
 	}
 }
 
@@ -89,12 +91,14 @@ func (m *processor) queueBurn(batch *storage.QueryBatch, round uint64, e account
 			m.StringifyDenomination(e.Amount.Denomination),
 			(&big.Int{}).Neg(e.Amount.Amount.ToBigInt()).String(),
 		)
-		batch.Queue(
-			queries.RuntimeAccountTotalSentUpsert,
-			m.runtime,
-			e.Owner.String(),
-			e.Amount.Amount.String(),
-		)
+		if e.Amount.Denomination.IsNative() {
+			batch.Queue(
+				queries.RuntimeAccountTotalSentUpsert,
+				m.runtime,
+				e.Owner.String(),
+				e.Amount.Amount.String(),
+			)
+		}
 	}
 }
 

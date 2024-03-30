@@ -152,7 +152,7 @@ func (m *processor) FinalizeFastSync(ctx context.Context, lastFastSyncHeight int
 	batch.Queue(queries.RuntimeAccountTotalSentRecompute, m.runtime, lastFastSyncHeight)
 
 	m.logger.Info("recomputing total_received for every account")
-	batch.Queue(queries.RuntimeAccountTotalReceivedRecompute, m.runtime, lastFastSyncHeight)
+	batch.Queue(queries.RuntimeAccountTotalReceivedRecompute, m.runtime, lastFastSyncHeight, m.nativeTokenSymbol())
 
 	m.logger.Info("recomputing gas_for_calling for every contract")
 	batch.Queue(queries.RuntimeAccountGasForCallingRecompute, m.runtime, lastFastSyncHeight)
