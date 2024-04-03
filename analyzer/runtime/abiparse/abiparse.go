@@ -87,7 +87,7 @@ func ParseEvent(topics [][]byte, data []byte, contractABI *abi.ABI) (*abi.Event,
 	}
 	event, err := contractABI.EventByID(topicsEC[0])
 	if err != nil {
-		return nil, nil, fmt.Errorf("contract ABI EventByID: %w", err)
+		return nil, nil, fmt.Errorf("contract ABI EventByID: %w, eventID: %s", err, topicsEC[0].Hex())
 	}
 
 	argsFromData, err := event.Inputs.Unpack(data)
