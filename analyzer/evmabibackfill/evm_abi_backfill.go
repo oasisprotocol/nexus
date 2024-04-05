@@ -227,10 +227,35 @@ func (p *processor) parseTxErr(tx *abiEncodedTx, contractAbi abi.ABI) (*string, 
 }
 
 func (p *processor) ProcessItem(ctx context.Context, batch *storage.QueryBatch, item *abiEncodedItem) error {
-	// Unmarshal abi
+	// Unmarshal abi. Note that if the abi unmarshalling fails, we log a warning and proceed to
+	// mark the item as processed so that the analyzer is not blocked. If and when the abi is
+	// redownloaded, the analyzer will re-process the relevant items.
 	contractAbi, err := abi.JSON(bytes.NewReader(item.Abi))
 	if err != nil {
-		return fmt.Errorf("error unmarshalling abi: %w", err)
+		p.logger.Warn("error unmarshalling abi", "err", err, "contract_address", item.ContractAddr)
+		if item.Event != nil {
+			batch.Queue(
+				queries.RuntimeEventEvmParsedFieldsUpdate,
+				p.runtime,
+				item.Event.Round,
+				item.Event.TxIndex,
+				item.Event.EventBody,
+				nil,
+				nil,
+				nil,
+			)
+		} else if item.Tx != nil {
+			batch.Queue(
+				queries.RuntimeTransactionEvmParsedFieldsUpdate,
+				p.runtime,
+				item.Tx.TxHash,
+				nil,
+				nil,
+				nil,
+				nil,
+			)
+		}
+		return nil
 	}
 	// Parse data
 	p.logger.Debug("processing item using abi", "contract_address", item.ContractAddr)
