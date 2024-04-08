@@ -14,7 +14,7 @@ import (
 	"github.com/oasisprotocol/nexus/analyzer/queries"
 	evm "github.com/oasisprotocol/nexus/analyzer/runtime/evm"
 	"github.com/oasisprotocol/nexus/analyzer/runtime/static"
-	uncategorized "github.com/oasisprotocol/nexus/analyzer/uncategorized"
+	"github.com/oasisprotocol/nexus/analyzer/util/addresses"
 	apiTypes "github.com/oasisprotocol/nexus/api/v1/types"
 	"github.com/oasisprotocol/nexus/common"
 	"github.com/oasisprotocol/nexus/config"
@@ -369,7 +369,7 @@ func (m *processor) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 
 	// Insert events.
 	for _, eventData := range data.EventData {
-		eventRelatedAddresses := uncategorized.ExtractAddresses(eventData.RelatedAddresses)
+		eventRelatedAddresses := addresses.Extract(eventData.RelatedAddresses)
 		batch.Queue(
 			queries.RuntimeEventInsert,
 			m.runtime,

@@ -29,6 +29,7 @@ import (
 	evm "github.com/oasisprotocol/nexus/analyzer/runtime/evm"
 	uncategorized "github.com/oasisprotocol/nexus/analyzer/uncategorized"
 	"github.com/oasisprotocol/nexus/analyzer/util"
+	"github.com/oasisprotocol/nexus/analyzer/util/addresses"
 	apiTypes "github.com/oasisprotocol/nexus/api/v1/types"
 	"github.com/oasisprotocol/nexus/common"
 	"github.com/oasisprotocol/nexus/log"
@@ -196,7 +197,7 @@ func extractAddressPreimage(as *sdkTypes.AddressSpec) (*AddressPreimageData, err
 }
 
 func registerAddressSpec(addressPreimages map[apiTypes.Address]*AddressPreimageData, as *sdkTypes.AddressSpec) (apiTypes.Address, error) {
-	addr, err := uncategorized.StringifyAddressSpec(as)
+	addr, err := addresses.FromAddressSpec(as)
 	if err != nil {
 		return "", err
 	}
@@ -213,7 +214,7 @@ func registerAddressSpec(addressPreimages map[apiTypes.Address]*AddressPreimageD
 }
 
 func registerEthAddress(addressPreimages map[apiTypes.Address]*AddressPreimageData, ethAddr []byte) (apiTypes.Address, error) {
-	addr, err := uncategorized.StringifyEthAddress(ethAddr)
+	addr, err := addresses.FromEthAddress(ethAddr)
 	if err != nil {
 		return "", err
 	}
@@ -230,7 +231,7 @@ func registerEthAddress(addressPreimages map[apiTypes.Address]*AddressPreimageDa
 }
 
 func registerRelatedSdkAddress(relatedAddresses map[apiTypes.Address]bool, sdkAddr *sdkTypes.Address) (apiTypes.Address, error) {
-	addr, err := uncategorized.StringifySdkAddress(sdkAddr)
+	addr, err := addresses.FromSdkAddress(sdkAddr)
 	if err != nil {
 		return "", err
 	}
@@ -413,7 +414,7 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 					amount = body.Amount.Amount
 					if body.To != nil {
 						// This is the address of an account in the consensus layer only; we do not register it as a preimage.
-						if to, err = uncategorized.StringifySdkAddress(body.To); err != nil {
+						if to, err = addresses.FromSdkAddress(body.To); err != nil {
 							return fmt.Errorf("to: %w", err)
 						}
 					} else {
@@ -450,7 +451,7 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 					blockTransactionData.Body = body
 					amount = body.Amount.Amount
 					// This is the address of an account in the consensus layer only; we do not register it as a preimage.
-					if to, err = uncategorized.StringifySdkAddress(&body.To); err != nil {
+					if to, err = addresses.FromSdkAddress(&body.To); err != nil {
 						return fmt.Errorf("to: %w", err)
 					}
 					blockTransactionData.RelatedAccountAddresses[to] = true

@@ -13,7 +13,7 @@ import (
 	"github.com/oasisprotocol/nexus/analyzer/evmverifier/sourcify"
 	"github.com/oasisprotocol/nexus/analyzer/item"
 	"github.com/oasisprotocol/nexus/analyzer/queries"
-	uncategorized "github.com/oasisprotocol/nexus/analyzer/uncategorized"
+	"github.com/oasisprotocol/nexus/analyzer/util/addresses"
 	"github.com/oasisprotocol/nexus/common"
 	"github.com/oasisprotocol/nexus/config"
 	"github.com/oasisprotocol/nexus/log"
@@ -137,7 +137,7 @@ func (p *processor) GetItems(ctx context.Context, limit uint64) ([]contract, err
 	// Find contracts that are verified in Sourcify and not yet verified in Nexus.
 	var items []contract
 	for ethAddr, sourcifyLevel := range sourcifyLevels {
-		oasisAddr, err := uncategorized.StringifyEthAddress(ethAddr.Bytes())
+		oasisAddr, err := addresses.FromEthAddress(ethAddr.Bytes())
 		if err != nil {
 			p.logger.Warn("failed to stringify eth address from sourcify", "err", err, "eth_address", ethAddr)
 			continue

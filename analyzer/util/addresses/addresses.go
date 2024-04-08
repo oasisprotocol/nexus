@@ -1,4 +1,4 @@
-package common
+package addresses
 
 import (
 	"fmt"
@@ -17,7 +17,7 @@ import (
 // addr -> bech32 string oasis address
 // addrTextBytes -> bech32 []byte oasis address
 
-func StringifySdkAddress(sdkAddr *sdkTypes.Address) (apiTypes.Address, error) {
+func FromSdkAddress(sdkAddr *sdkTypes.Address) (apiTypes.Address, error) {
 	addrTextBytes, err := sdkAddr.MarshalText()
 	if err != nil {
 		return "", fmt.Errorf("address marshal text: %w", err)
@@ -25,26 +25,26 @@ func StringifySdkAddress(sdkAddr *sdkTypes.Address) (apiTypes.Address, error) {
 	return apiTypes.Address(addrTextBytes), nil
 }
 
-func StringifyAddressSpec(as *sdkTypes.AddressSpec) (apiTypes.Address, error) {
+func FromAddressSpec(as *sdkTypes.AddressSpec) (apiTypes.Address, error) {
 	sdkAddr, err := as.Address()
 	if err != nil {
 		return "", fmt.Errorf("derive address: %w", err)
 	}
-	return StringifySdkAddress(&sdkAddr)
+	return FromSdkAddress(&sdkAddr)
 }
 
-func StringifyOcAddress(ocAddr address.Address) (apiTypes.Address, error) {
+func FromOCAddress(ocAddr address.Address) (apiTypes.Address, error) {
 	sdkAddr := (sdkTypes.Address)(ocAddr)
-	return StringifySdkAddress(&sdkAddr)
+	return FromSdkAddress(&sdkAddr)
 }
 
-func StringifyEthAddress(ethAddr []byte) (apiTypes.Address, error) {
+func FromEthAddress(ethAddr []byte) (apiTypes.Address, error) {
 	ctx := sdkTypes.AddressV0Secp256k1EthContext
 	ocAddr := address.NewAddress(ctx, ethAddr)
-	return StringifyOcAddress(ocAddr)
+	return FromOCAddress(ocAddr)
 }
 
-func ExtractAddresses(accounts map[apiTypes.Address]bool) []string {
+func Extract(accounts map[apiTypes.Address]bool) []string {
 	addrs := make([]string, len(accounts))
 	i := 0
 	for a := range accounts {
