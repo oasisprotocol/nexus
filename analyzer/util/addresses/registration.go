@@ -7,7 +7,7 @@ import (
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/address"
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 
-	"github.com/oasisprotocol/nexus/analyzer/uncategorized"
+	"github.com/oasisprotocol/nexus/analyzer/util/eth"
 	apiTypes "github.com/oasisprotocol/nexus/api/v1/types"
 )
 
@@ -35,7 +35,7 @@ func extractAddressPreimage(as *sdkTypes.AddressSpec) (*PreimageData, error) {
 			// Use a scheme such that we can compute Secp256k1 addresses from Ethereum
 			// addresses as this makes things more interoperable.
 			untaggedPk, _ := spec.Secp256k1Eth.MarshalBinaryUncompressedUntagged()
-			data = common.SliceEthAddress(common.Keccak256(untaggedPk))
+			data = eth.SliceEthAddress(eth.Keccak256(untaggedPk))
 		case spec.Sr25519 != nil:
 			ctx = sdkTypes.AddressV0Sr25519Context
 			data, _ = spec.Sr25519.MarshalBinary()

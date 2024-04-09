@@ -29,6 +29,7 @@ import (
 	uncategorized "github.com/oasisprotocol/nexus/analyzer/uncategorized"
 	"github.com/oasisprotocol/nexus/analyzer/util"
 	"github.com/oasisprotocol/nexus/analyzer/util/addresses"
+	"github.com/oasisprotocol/nexus/analyzer/util/eth"
 	apiTypes "github.com/oasisprotocol/nexus/api/v1/types"
 	"github.com/oasisprotocol/nexus/common"
 	"github.com/oasisprotocol/nexus/log"
@@ -223,7 +224,7 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 		blockTransactionData.Index = txIndex
 		blockTransactionData.Hash = txr.Tx.Hash().Hex()
 		if len(txr.Tx.AuthProofs) == 1 && txr.Tx.AuthProofs[0].Module == "evm.ethereum.v0" {
-			ethHash := hex.EncodeToString(uncategorized.Keccak256(txr.Tx.Body))
+			ethHash := hex.EncodeToString(eth.Keccak256(txr.Tx.Body))
 			blockTransactionData.EthHash = &ethHash
 		}
 		blockTransactionData.Raw = cbor.Marshal(txr.Tx)
@@ -779,8 +780,8 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 			}
 			if err1 = VisitEVMEvent(event, &EVMEventHandler{
 				ERC20Transfer: func(fromECAddr ethCommon.Address, toECAddr ethCommon.Address, value *big.Int) error {
-					fromZero := bytes.Equal(fromECAddr.Bytes(), uncategorized.ZeroEthAddr)
-					toZero := bytes.Equal(toECAddr.Bytes(), uncategorized.ZeroEthAddr)
+					fromZero := bytes.Equal(fromECAddr.Bytes(), eth.ZeroEthAddr)
+					toZero := bytes.Equal(toECAddr.Bytes(), eth.ZeroEthAddr)
 					if !fromZero {
 						fromAddr, err2 := addresses.RegisterRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, fromECAddr.Bytes())
 						if err2 != nil {
@@ -833,14 +834,14 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 					return nil
 				},
 				ERC20Approval: func(ownerECAddr ethCommon.Address, spenderECAddr ethCommon.Address, value *big.Int) error {
-					if !bytes.Equal(ownerECAddr.Bytes(), uncategorized.ZeroEthAddr) {
+					if !bytes.Equal(ownerECAddr.Bytes(), eth.ZeroEthAddr) {
 						ownerAddr, err2 := addresses.RegisterRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, ownerECAddr.Bytes())
 						if err2 != nil {
 							return fmt.Errorf("owner: %w", err2)
 						}
 						eventData.RelatedAddresses[ownerAddr] = struct{}{}
 					}
-					if !bytes.Equal(spenderECAddr.Bytes(), uncategorized.ZeroEthAddr) {
+					if !bytes.Equal(spenderECAddr.Bytes(), eth.ZeroEthAddr) {
 						spenderAddr, err2 := addresses.RegisterRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, spenderECAddr.Bytes())
 						if err2 != nil {
 							return fmt.Errorf("spender: %w", err2)
@@ -874,8 +875,8 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 					return nil
 				},
 				ERC721Transfer: func(fromECAddr ethCommon.Address, toECAddr ethCommon.Address, tokenID *big.Int) error {
-					fromZero := bytes.Equal(fromECAddr.Bytes(), uncategorized.ZeroEthAddr)
-					toZero := bytes.Equal(toECAddr.Bytes(), uncategorized.ZeroEthAddr)
+					fromZero := bytes.Equal(fromECAddr.Bytes(), eth.ZeroEthAddr)
+					toZero := bytes.Equal(toECAddr.Bytes(), eth.ZeroEthAddr)
 					var fromAddr, toAddr apiTypes.Address
 					if !fromZero {
 						var err2 error
@@ -941,14 +942,14 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 					return nil
 				},
 				ERC721Approval: func(ownerECAddr ethCommon.Address, approvedECAddr ethCommon.Address, tokenID *big.Int) error {
-					if !bytes.Equal(ownerECAddr.Bytes(), uncategorized.ZeroEthAddr) {
+					if !bytes.Equal(ownerECAddr.Bytes(), eth.ZeroEthAddr) {
 						ownerAddr, err2 := addresses.RegisterRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, ownerECAddr.Bytes())
 						if err2 != nil {
 							return fmt.Errorf("owner: %w", err2)
 						}
 						eventData.RelatedAddresses[ownerAddr] = struct{}{}
 					}
-					if !bytes.Equal(approvedECAddr.Bytes(), uncategorized.ZeroEthAddr) {
+					if !bytes.Equal(approvedECAddr.Bytes(), eth.ZeroEthAddr) {
 						approvedAddr, err2 := addresses.RegisterRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, approvedECAddr.Bytes())
 						if err2 != nil {
 							return fmt.Errorf("approved: %w", err2)
@@ -983,14 +984,14 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 					return nil
 				},
 				ERC721ApprovalForAll: func(ownerECAddr ethCommon.Address, operatorECAddr ethCommon.Address, approved bool) error {
-					if !bytes.Equal(ownerECAddr.Bytes(), uncategorized.ZeroEthAddr) {
+					if !bytes.Equal(ownerECAddr.Bytes(), eth.ZeroEthAddr) {
 						ownerAddr, err2 := addresses.RegisterRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, ownerECAddr.Bytes())
 						if err2 != nil {
 							return fmt.Errorf("owner: %w", err2)
 						}
 						eventData.RelatedAddresses[ownerAddr] = struct{}{}
 					}
-					if !bytes.Equal(operatorECAddr.Bytes(), uncategorized.ZeroEthAddr) {
+					if !bytes.Equal(operatorECAddr.Bytes(), eth.ZeroEthAddr) {
 						operatorAddr, err2 := addresses.RegisterRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, operatorECAddr.Bytes())
 						if err2 != nil {
 							return fmt.Errorf("operator: %w", err2)

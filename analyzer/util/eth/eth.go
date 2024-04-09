@@ -1,4 +1,4 @@
-package common
+package eth
 
 import (
 	"golang.org/x/crypto/sha3"
