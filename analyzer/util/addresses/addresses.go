@@ -44,7 +44,7 @@ func FromEthAddress(ethAddr []byte) (apiTypes.Address, error) {
 	return FromOCAddress(ocAddr)
 }
 
-func Extract(accounts map[apiTypes.Address]bool) []string {
+func Extract(accounts map[apiTypes.Address]struct{}) []string {
 	addrs := make([]string, len(accounts))
 	i := 0
 	for a := range accounts {
