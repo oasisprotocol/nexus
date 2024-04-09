@@ -12,11 +12,13 @@ import (
 type MessageData struct {
 	messageType      string
 	body             json.RawMessage
+	addressPreimages map[apiTypes.Address]*addresses.PreimageData
 	relatedAddresses map[apiTypes.Address]struct{}
 }
 
 func extractMessageData(logger *log.Logger, m message.Message) MessageData {
 	messageData := MessageData{
+		addressPreimages: map[apiTypes.Address]*addresses.PreimageData{},
 		relatedAddresses: map[apiTypes.Address]struct{}{},
 	}
 	switch {

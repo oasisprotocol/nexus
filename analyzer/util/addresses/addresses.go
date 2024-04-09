@@ -3,6 +3,7 @@ package addresses
 import (
 	"fmt"
 
+	coreCommon "github.com/oasisprotocol/oasis-core/go/common"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/address"
 	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
@@ -52,6 +53,11 @@ func FromEthAddress(ethAddr []byte) (apiTypes.Address, error) {
 	ctx := sdkTypes.AddressV0Secp256k1EthContext
 	ocAddr := address.NewAddress(ctx, ethAddr)
 	return FromOCAddress(ocAddr)
+}
+
+func FromRuntimeID(id coreCommon.Namespace) (apiTypes.Address, error) {
+	ocsAddr := staking.NewRuntimeAddress(id)
+	return FromOCSAddress(ocsAddr)
 }
 
 func SliceFromSet(accounts map[apiTypes.Address]struct{}) []string {

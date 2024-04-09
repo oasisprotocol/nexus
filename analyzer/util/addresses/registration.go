@@ -3,6 +3,7 @@ package addresses
 import (
 	"fmt"
 
+	coreCommon "github.com/oasisprotocol/oasis-core/go/common"
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/address"
 	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
@@ -91,6 +92,27 @@ func registerEthAddress(addressPreimages map[apiTypes.Address]*PreimageData, eth
 	return addr, nil
 }
 
+func registerRuntimeAddress(addressPreimages map[apiTypes.Address]*PreimageData, id coreCommon.Namespace) (apiTypes.Address, error) {
+	addr, err := FromRuntimeID(id)
+	if err != nil {
+		return "", err
+	}
+
+	if _, ok := addressPreimages[addr]; !ok {
+		data, err1 := id.MarshalBinary()
+		if err1 != nil {
+			return "", err1
+		}
+		addressPreimages[addr] = &PreimageData{
+			ContextIdentifier: staking.AddressRuntimeV0Context.Identifier,
+			ContextVersion:    int(staking.AddressRuntimeV0Context.Version),
+			Data:              data,
+		}
+	}
+
+	return addr, nil
+}
+
 func RegisterRelatedSdkAddress(relatedAddresses map[apiTypes.Address]struct{}, sdkAddr *sdkTypes.Address) (apiTypes.Address, error) {
 	addr, err := FromSdkAddress(sdkAddr)
 	if err != nil {
@@ -137,6 +159,17 @@ func RegisterRelatedOCSAddress(relatedAddresses map[apiTypes.Address]struct{}, o
 
 func RegisterRelatedEthAddress(addressPreimages map[apiTypes.Address]*PreimageData, relatedAddresses map[apiTypes.Address]struct{}, ethAddr []byte) (apiTypes.Address, error) {
 	addr, err := registerEthAddress(addressPreimages, ethAddr)
+	if err != nil {
+		return "", err
+	}
+
+	relatedAddresses[addr] = struct{}{}
+
+	return addr, nil
+}
+
+func RegisterRelatedRuntimeAddress(addressPreimages map[apiTypes.Address]*PreimageData, relatedAddresses map[apiTypes.Address]struct{}, id coreCommon.Namespace) (apiTypes.Address, error) {
+	addr, err := registerRuntimeAddress(addressPreimages, id)
 	if err != nil {
 		return "", err
 	}
