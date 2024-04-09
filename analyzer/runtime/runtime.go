@@ -369,7 +369,7 @@ func (m *processor) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 
 	// Insert events.
 	for _, eventData := range data.EventData {
-		eventRelatedAddresses := addresses.Extract(eventData.RelatedAddresses)
+		eventRelatedAddresses := addresses.SliceFromSet(eventData.RelatedAddresses)
 		batch.Queue(
 			queries.RuntimeEventInsert,
 			m.runtime,
