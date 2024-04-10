@@ -655,6 +655,11 @@ func (m *processor) queueRegistryEventInserts(batch *storage.QueryBatch, data *r
 }
 
 func (m *processor) queueRootHashMessageUpserts(batch *storage.QueryBatch, data *rootHashData) error {
+	// Collect (I) roothash messages being scheduled and (II) roothash
+	// messages being finalized. They're always scheduled in the first
+	// ExecutorCommitedEvent (i.e. the proposal). They're finalized in (a)
+	// MessageEvent in Cobalt and in (b) the last round results in Damask and
+	// later.
 	finalized := map[coreCommon.Namespace]uint64{}
 	var roothashMessageEvents []nodeapi.Event
 	for _, event := range data.Events {
@@ -662,6 +667,9 @@ func (m *processor) queueRootHashMessageUpserts(batch *storage.QueryBatch, data 
 		case event.RoothashMisc != nil:
 			switch event.Type { //nolint:gocritic,exhaustive // singleCaseSwitch, no special handling for other types
 			case apiTypes.ConsensusEventTypeRoothashFinalized:
+				// (II.a) MessageEvent does not have its own Round field, so
+				// use the value from the FinalizedEvent that happens at the
+				// same time.
 				finalized[event.RoothashMisc.RuntimeID] = *event.RoothashMisc.Round
 			}
 		case event.RoothashExecutorCommitted != nil:
@@ -670,6 +678,9 @@ func (m *processor) queueRootHashMessageUpserts(batch *storage.QueryBatch, data 
 				break
 			}
 			round := event.RoothashExecutorCommitted.Round
+			// (I) Extract roothash messages from the ExecutorCommittedEvent.
+			// Only the proposal has the messages, so the other commits will
+			// harmlessly skip over this part.
 			for i, message := range event.RoothashExecutorCommitted.Messages {
 				logger := m.logger.With(
 					"height", data.Height,
@@ -705,6 +716,7 @@ func (m *processor) queueRootHashMessageUpserts(batch *storage.QueryBatch, data 
 				)
 			}
 		case event.RoothashMessage != nil:
+			// (II.a) Extract message results from the MessageEvents.
 			// Save these for after we collect all roothash finalized events.
 			roothashMessageEvents = append(roothashMessageEvents, event)
 		}
@@ -734,6 +746,7 @@ func (m *processor) queueRootHashMessageUpserts(batch *storage.QueryBatch, data 
 		if !ok {
 			continue
 		}
+		// (II.b) Extract message results from the last round results.
 		for _, message := range results.Messages {
 			batch.Queue(queries.ConsensusRoothashMessageFinalizeUpsert,
 				runtime,
