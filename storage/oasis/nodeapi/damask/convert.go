@@ -161,6 +161,7 @@ func convertRoothashEvent(e roothashDamask.Event) nodeapi.Event {
 				RuntimeID: e.RuntimeID,
 				Round:     e.ExecutorCommitted.Commit.Header.Round,
 				NodeID:    &e.ExecutorCommitted.Commit.NodeID,
+				Messages:  e.ExecutorCommitted.Commit.Messages,
 			},
 			RawBody: common.TryAsJSON(e.ExecutorCommitted),
 			Type:    apiTypes.ConsensusEventTypeRoothashExecutorCommitted,

@@ -19,6 +19,8 @@ import (
 	genesis "github.com/oasisprotocol/nexus/coreapi/v22.2.11/genesis/api"
 	governance "github.com/oasisprotocol/nexus/coreapi/v22.2.11/governance/api"
 	registry "github.com/oasisprotocol/nexus/coreapi/v22.2.11/registry/api"
+	roothash "github.com/oasisprotocol/nexus/coreapi/v22.2.11/roothash/api"
+	"github.com/oasisprotocol/nexus/coreapi/v22.2.11/roothash/api/message"
 	scheduler "github.com/oasisprotocol/nexus/coreapi/v22.2.11/scheduler/api"
 	staking "github.com/oasisprotocol/nexus/coreapi/v22.2.11/staking/api"
 	"github.com/oasisprotocol/nexus/storage/oasis/connections"
@@ -57,6 +59,7 @@ type ConsensusApiLite interface {
 	StakingEvents(ctx context.Context, height int64) ([]Event, error)
 	GovernanceEvents(ctx context.Context, height int64) ([]Event, error)
 	RoothashEvents(ctx context.Context, height int64) ([]Event, error)
+	RoothashLastRoundResults(ctx context.Context, height int64, runtimeID coreCommon.Namespace) (*roothash.RoundResults, error)
 	GetValidators(ctx context.Context, height int64) ([]Validator, error)
 	GetNodes(ctx context.Context, height int64) ([]Node, error)
 	GetCommittees(ctx context.Context, height int64, runtimeID coreCommon.Namespace) ([]Committee, error)
@@ -203,6 +206,7 @@ type ExecutorCommittedEvent struct {
 	RuntimeID coreCommon.Namespace
 	Round     uint64
 	NodeID    *signature.PublicKey // Available starting in Damask.
+	Messages  []message.Message
 }
 
 type MessageEvent struct {

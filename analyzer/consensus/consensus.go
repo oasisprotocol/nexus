@@ -16,6 +16,7 @@ import (
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
 	sdkConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 
+	"github.com/oasisprotocol/nexus/analyzer/util/addresses"
 	"github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api/transaction"
 	genesis "github.com/oasisprotocol/nexus/coreapi/v22.2.11/genesis/api"
 	staking "github.com/oasisprotocol/nexus/coreapi/v22.2.11/staking/api"
@@ -286,8 +287,13 @@ func (m *processor) queueDbUpdates(batch *storage.QueryBatch, data allData) erro
 		}
 	}
 
-	if err := m.queueRootHashEventInserts(batch, data.RootHashData); err != nil {
-		return err
+	for _, f := range []func(*storage.QueryBatch, *rootHashData) error{
+		m.queueRootHashMessageUpserts,
+		m.queueRootHashEventInserts,
+	} {
+		if err := f(batch, data.RootHashData); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -642,6 +648,114 @@ func (m *processor) queueRegistryEventInserts(batch *storage.QueryBatch, data *r
 
 		if err := m.queueSingleEventInserts(batch, &eventData, data.Height); err != nil {
 			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *processor) queueRootHashMessageUpserts(batch *storage.QueryBatch, data *rootHashData) error {
+	// Collect (I) roothash messages being scheduled and (II) roothash
+	// messages being finalized. They're always scheduled in the first
+	// ExecutorCommitedEvent (i.e. the proposal). They're finalized in (a)
+	// MessageEvent in Cobalt and in (b) the last round results in Damask and
+	// later.
+	finalized := map[coreCommon.Namespace]uint64{}
+	var roothashMessageEvents []nodeapi.Event
+	for _, event := range data.Events {
+		switch {
+		case event.RoothashMisc != nil:
+			switch event.Type { //nolint:gocritic,exhaustive // singleCaseSwitch, no special handling for other types
+			case apiTypes.ConsensusEventTypeRoothashFinalized:
+				// (II.a) MessageEvent does not have its own Round field, so
+				// use the value from the FinalizedEvent that happens at the
+				// same time.
+				finalized[event.RoothashMisc.RuntimeID] = *event.RoothashMisc.Round
+			}
+		case event.RoothashExecutorCommitted != nil:
+			runtime := RuntimeFromID(event.RoothashExecutorCommitted.RuntimeID, m.network)
+			if runtime == nil {
+				break
+			}
+			round := event.RoothashExecutorCommitted.Round
+			// (I) Extract roothash messages from the ExecutorCommittedEvent.
+			// Only the proposal has the messages, so the other commits will
+			// harmlessly skip over this part.
+			for i, message := range event.RoothashExecutorCommitted.Messages {
+				logger := m.logger.With(
+					"height", data.Height,
+					"runtime", runtime,
+					"round", round,
+					"message_index", i,
+				)
+				messageData := extractMessageData(logger, message)
+				// The runtime has its own staking account, which is what
+				// performs these actions, e.g. when sending or receiving the
+				// consensus token. Register that as related to the message.
+				if _, err := addresses.RegisterRelatedRuntimeAddress(messageData.addressPreimages, messageData.relatedAddresses, event.RoothashExecutorCommitted.RuntimeID); err != nil {
+					logger.Info("register runtime address failed",
+						"runtime_id", event.RoothashExecutorCommitted.RuntimeID,
+						"err", err,
+					)
+				}
+				for addr, preimageData := range messageData.addressPreimages {
+					batch.Queue(queries.AddressPreimageInsert,
+						addr,
+						preimageData.ContextIdentifier,
+						preimageData.ContextVersion,
+						preimageData.Data,
+					)
+				}
+				batch.Queue(queries.ConsensusRoothashMessageScheduleUpsert,
+					runtime,
+					round,
+					i,
+					messageData.messageType,
+					messageData.body,
+					addresses.SliceFromSet(messageData.relatedAddresses),
+				)
+			}
+		case event.RoothashMessage != nil:
+			// (II.a) Extract message results from the MessageEvents.
+			// Save these for after we collect all roothash finalized events.
+			roothashMessageEvents = append(roothashMessageEvents, event)
+		}
+	}
+	for _, event := range roothashMessageEvents {
+		runtime := RuntimeFromID(event.RoothashMessage.RuntimeID, m.network)
+		if runtime == nil {
+			continue
+		}
+		batch.Queue(queries.ConsensusRoothashMessageFinalizeUpsert,
+			runtime,
+			finalized[event.RoothashMessage.RuntimeID],
+			event.RoothashMessage.Index,
+			event.RoothashMessage.Module,
+			event.RoothashMessage.Code,
+			nil,
+		)
+	}
+	for rtid, results := range data.LastRoundResults {
+		runtime := RuntimeFromID(rtid, m.network)
+		if runtime == nil {
+			// We shouldn't even have gathered last round results for unknown
+			// runtimes. But prevent nil-runtime inserts anyway.
+			continue
+		}
+		round, ok := finalized[rtid]
+		if !ok {
+			continue
+		}
+		// (II.b) Extract message results from the last round results.
+		for _, message := range results.Messages {
+			batch.Queue(queries.ConsensusRoothashMessageFinalizeUpsert,
+				runtime,
+				round,
+				message.Index,
+				message.Module,
+				message.Code,
+				cbor.Marshal(message.Result),
+			)
 		}
 	}
 

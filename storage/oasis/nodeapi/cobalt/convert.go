@@ -15,6 +15,7 @@ import (
 	genesis "github.com/oasisprotocol/nexus/coreapi/v22.2.11/genesis/api"
 	governance "github.com/oasisprotocol/nexus/coreapi/v22.2.11/governance/api"
 	registry "github.com/oasisprotocol/nexus/coreapi/v22.2.11/registry/api"
+	"github.com/oasisprotocol/nexus/coreapi/v22.2.11/roothash/api/message"
 	scheduler "github.com/oasisprotocol/nexus/coreapi/v22.2.11/scheduler/api"
 	staking "github.com/oasisprotocol/nexus/coreapi/v22.2.11/staking/api"
 	upgrade "github.com/oasisprotocol/nexus/coreapi/v22.2.11/upgrade/api"
@@ -332,12 +333,23 @@ func convertRoothashEvent(e roothashCobalt.Event) nodeapi.Event {
 				"err", err,
 			)
 		}
-
+		messages := make([]message.Message, len(computeBody.Messages))
+		for i, messageCobalt := range computeBody.Messages {
+			messageCBOR := cbor.Marshal(messageCobalt)
+			if err := cbor.Unmarshal(messageCBOR, &messages[i]); err != nil {
+				logger.Error("convert event: roothash executor committed: compute body message error unmarshaling",
+					"event", e,
+					"message_index", i,
+					"err", err,
+				)
+			}
+		}
 		ret = nodeapi.Event{
 			RoothashExecutorCommitted: &nodeapi.ExecutorCommittedEvent{
 				RuntimeID: e.RuntimeID,
 				Round:     computeBody.Header.Round,
 				NodeID:    &e.ExecutorCommitted.Commit.Signature.PublicKey,
+				Messages:  messages,
 			},
 			RawBody: common.TryAsJSON(e.ExecutorCommitted),
 			Type:    apiTypes.ConsensusEventTypeRoothashExecutorCommitted,
