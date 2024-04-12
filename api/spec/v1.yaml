@@ -364,6 +364,10 @@ paths:
         - *offset
         - in: query
           name: runtime
+          # There's only an index on (runtime, round) for now. Feel free to
+          # index on consensus height and make this parameter optional if we
+          # want to get recent messages from any indexed runtime.
+          required: true
           schema:
             allOf: [$ref: '#/components/schemas/Runtime']
         - in: query

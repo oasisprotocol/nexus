@@ -492,9 +492,6 @@ func (c *StorageClient) Events(ctx context.Context, p apiTypes.GetConsensusEvent
 }
 
 func (c *StorageClient) RoothashMessages(ctx context.Context, p apiTypes.GetConsensusRoothashMessagesParams) (*apiTypes.RoothashMessageList, error) {
-	if p.Round != nil && p.Runtime == nil {
-		return nil, fmt.Errorf("must specify runtime with round")
-	}
 	res, err := c.withTotalCount(
 		ctx,
 		queries.RoothashMessages,
