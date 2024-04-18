@@ -1,4 +1,4 @@
-FROM golang:1.21-bookworm AS nexus-builder
+FROM golang:1.22-bookworm AS nexus-builder
 
 WORKDIR /code/go
 
@@ -20,7 +20,7 @@ RUN npx redoc-cli build api/spec/v1.yaml -o api/spec/v1.html
 
 ############
 
-FROM golang:1.21-bookworm AS nexus
+FROM golang:1.22-bookworm AS nexus
 
 WORKDIR /nexus
 
