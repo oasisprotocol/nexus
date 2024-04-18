@@ -88,6 +88,8 @@ x-examples:
     - &epoch_2 8048966
   event-type:
     - &event_type_1 'staking.escrow.take'
+  roothash-message-type:
+    - &roothash_message_type_1 'staking.transfer'
   entity-id:
     - &entity_id_1 'gb8SHLeDc69Elk7OTfqhtVgE2sqxrBCDQI84xKR+Bjg='
   node-id:
@@ -353,6 +355,42 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ConsensusEventList'
+        <<: *common_error_responses
+
+  /consensus/roothash_messages:
+    get:
+      parameters:
+        - *limit
+        - *offset
+        - in: query
+          name: runtime
+          # There's only an index on (runtime, round) for now. Feel free to
+          # index on consensus height and make this parameter optional if we
+          # want to get recent messages from any indexed runtime.
+          required: true
+          schema:
+            allOf: [$ref: '#/components/schemas/Runtime']
+        - in: query
+          name: round
+          schema:
+            type: integer
+            format: int64
+        - in: query
+          name: type
+          schema:
+            allOf: [$ref: '#/components/schemas/RoothashMessageType']
+        - in: query
+          name: rel
+          schema:
+            allOf: [$ref: '#/components/schemas/StakingAddress']
+      responses:
+        '200':
+          description: |
+            A JSON object containing a list of roothash messages.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoothashMessageList'
         <<: *common_error_responses
 
   /consensus/entities:
@@ -1637,6 +1675,97 @@ components:
             the hierarchy, e.g. `TransferEvent` from `Event > staking.Event > TransferEvent`
       description: |
         An event emitted by the consensus layer.
+
+    RoothashMessageType:
+      type: string
+      enum:
+        - staking.transfer
+        - staking.withdraw
+        - staking.add_escrow
+        - staking.reclaim_escrow
+        - registry.update_runtime
+        - governance.cast_vote
+        - governance.submit_proposal
+      example: *roothash_message_type_1
+
+    RoothashMessageList:
+      allOf:
+        - $ref: '#/components/schemas/List'
+        - type: object
+          required: [roothash_messages]
+          properties:
+            roothash_messages:
+              type: array
+              items:
+                allOf: [$ref: '#/components/schemas/RoothashMessage']
+
+    RoothashMessage:
+      type: object
+      required: [runtime, round, index]
+      properties:
+        runtime:
+          type: string
+          description: |
+            The runtime that sent this message.
+          example: sapphire
+        round:
+          type: integer
+          format: int64
+          description: |
+            The block round when the runtime sent this message.
+          example: 1357490
+        index:
+          type: integer
+          format: int32
+          description: |
+            The 0-based index of this message in the block.
+          example: 0
+        type:
+          allOf: [$ref: '#/components/schemas/RoothashMessageType']
+          description: |
+            The type of thies message.
+          example: staking.withdraw
+        body:
+          type: object
+          description: |
+            The "body" of a message is a structure within the
+            `github.com/oasisprotocol/oasis-core/go/roothash/api/message`
+            `Message` structure
+            (https://pkg.go.dev/github.com/oasisprotocol/oasis-core/go/roothash/api/message#Message).
+            For example, if the type is `staking.withdraw`, the body is the Go
+            `Message` structure's `.Staking.Withdraw` field, which is a
+            `github.com/oasisprotocol/oasis-core/go/staking/api` `Withdraw`
+            structure
+            (https://pkg.go.dev/github.com/oasisprotocol/oasis-core/go/staking/api#Withdraw),
+            with `from` and `amount` fields in JSON.
+          example: {"from": "oasis1qqzjq6lqjf8d07ehhvu5ytc47dck8w7a6qgn7efh", "amount": "500000000"}
+        error_module:
+          type: string
+          description: |
+            If executing this message resulted in an error, this is the
+            error's module.
+          example: staking
+        error_code:
+          type: integer
+          format: int32
+          description: |
+            If executing this message resulted in an error, this is the
+            error's code.
+          example: 3
+        result:
+          description: |
+            A result value that consensus provided after executing this
+            message. These aren't centrally registered anywhere, so look at
+            the consensus apps' `ExecuteMessage`
+            (https://pkg.go.dev/github.com/oasisprotocol/oasis-core/go/consensus/cometbft/api#MessageSubscriber)
+            implementations to see what they return. For example, a
+            `staking.withdraw` type message gives a
+            `github.com/oasisprotocol/oasis-core/go/staking/api`
+            `WithdrawResult` structure as its result
+            (`https://pkg.go.dev/github.com/oasisprotocol/oasis-core/go/staking/api#WithdrawResult`)
+            with `owner`, `beneficiary`, `allowance`, and `amount_change`
+            fields.
+          example: {"owner":"oasis1qqzjq6lqjf8d07ehhvu5ytc47dck8w7a6qgn7efh","beneficiary":"oasis1qrd3mnzhhgst26hsp96uf45yhq6zlax0cuzdgcfc","allowance":"97000000000","amount_change":"500000000"}
 
     EntityList:
       allOf:
