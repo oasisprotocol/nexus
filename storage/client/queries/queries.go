@@ -122,26 +122,32 @@ const (
 	Entity = `
 		SELECT id, address
 			FROM chain.entities
-			WHERE id = $1::text`
+			WHERE address = $1::text`
 
 	EntityNodeIds = `
-		SELECT id
-			FROM chain.nodes
-			WHERE entity_id = $1::text
-			ORDER BY id`
+		SELECT nodes.id
+		FROM chain.nodes as nodes
+		JOIN chain.entities as entities
+			ON entities.id = nodes.entity_id
+		WHERE entities.address = $1::text
+			ORDER BY nodes.id`
 
 	EntityNodes = `
-		SELECT id, entity_id, expiration, tls_pubkey, tls_next_pubkey, p2p_pubkey, consensus_pubkey, roles
-			FROM chain.nodes
-			WHERE entity_id = $1::text
+		SELECT nodes.id, entity_id, expiration, tls_pubkey, tls_next_pubkey, p2p_pubkey, consensus_pubkey, roles
+		FROM chain.nodes as nodes
+		JOIN chain.entities as entities
+			ON entities.id = nodes.entity_id
+		WHERE entities.address = $1::text
 		ORDER BY id
 		LIMIT $2::bigint
 		OFFSET $3::bigint`
 
 	EntityNode = `
-		SELECT id, entity_id, expiration, tls_pubkey, tls_next_pubkey, p2p_pubkey, consensus_pubkey, roles
-			FROM chain.nodes
-			WHERE entity_id = $1::text AND id = $2::text`
+		SELECT nodes.id, entity_id, expiration, tls_pubkey, tls_next_pubkey, p2p_pubkey, consensus_pubkey, roles
+		FROM chain.nodes
+		JOIN chain.entities
+			ON nodes.entity_id = entities.id
+		WHERE entities.address = $1::text AND nodes.id = $2::text`
 
 	Accounts = `
 		SELECT
@@ -300,7 +306,7 @@ const (
 					WHERE chain.entities.id = chain.nodes.entity_id
 						AND chain.nodes.roles like '%validator%'
 				)
-		WHERE ($1::text IS NULL OR chain.entities.id = $1::text)
+		WHERE ($1::text IS NULL OR chain.entities.address = $1::text)
 		ORDER BY escrow_balance_active DESC
 		LIMIT $2::bigint
 		OFFSET $3::bigint`

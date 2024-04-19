@@ -119,28 +119,28 @@ func (srv *StrictServerImpl) GetConsensusEntities(ctx context.Context, request a
 	return apiTypes.GetConsensusEntities200JSONResponse(*entities), nil
 }
 
-func (srv *StrictServerImpl) GetConsensusEntitiesEntityId(ctx context.Context, request apiTypes.GetConsensusEntitiesEntityIdRequestObject) (apiTypes.GetConsensusEntitiesEntityIdResponseObject, error) {
-	entity, err := srv.dbClient.Entity(ctx, request.EntityId)
+func (srv *StrictServerImpl) GetConsensusEntitiesAddress(ctx context.Context, request apiTypes.GetConsensusEntitiesAddressRequestObject) (apiTypes.GetConsensusEntitiesAddressResponseObject, error) {
+	entity, err := srv.dbClient.Entity(ctx, request.Address)
 	if err != nil {
 		return nil, err
 	}
-	return apiTypes.GetConsensusEntitiesEntityId200JSONResponse(*entity), nil
+	return apiTypes.GetConsensusEntitiesAddress200JSONResponse(*entity), nil
 }
 
-func (srv *StrictServerImpl) GetConsensusEntitiesEntityIdNodes(ctx context.Context, request apiTypes.GetConsensusEntitiesEntityIdNodesRequestObject) (apiTypes.GetConsensusEntitiesEntityIdNodesResponseObject, error) {
-	nodes, err := srv.dbClient.EntityNodes(ctx, request.EntityId, request.Params)
+func (srv *StrictServerImpl) GetConsensusEntitiesAddressNodes(ctx context.Context, request apiTypes.GetConsensusEntitiesAddressNodesRequestObject) (apiTypes.GetConsensusEntitiesAddressNodesResponseObject, error) {
+	nodes, err := srv.dbClient.EntityNodes(ctx, request.Address, request.Params)
 	if err != nil {
 		return nil, err
 	}
-	return apiTypes.GetConsensusEntitiesEntityIdNodes200JSONResponse(*nodes), nil
+	return apiTypes.GetConsensusEntitiesAddressNodes200JSONResponse(*nodes), nil
 }
 
-func (srv *StrictServerImpl) GetConsensusEntitiesEntityIdNodesNodeId(ctx context.Context, request apiTypes.GetConsensusEntitiesEntityIdNodesNodeIdRequestObject) (apiTypes.GetConsensusEntitiesEntityIdNodesNodeIdResponseObject, error) {
-	node, err := srv.dbClient.EntityNode(ctx, request.EntityId, request.NodeId)
+func (srv *StrictServerImpl) GetConsensusEntitiesAddressNodesNodeId(ctx context.Context, request apiTypes.GetConsensusEntitiesAddressNodesNodeIdRequestObject) (apiTypes.GetConsensusEntitiesAddressNodesNodeIdResponseObject, error) {
+	node, err := srv.dbClient.EntityNode(ctx, request.Address, request.NodeId)
 	if err != nil {
 		return nil, err
 	}
-	return apiTypes.GetConsensusEntitiesEntityIdNodesNodeId200JSONResponse(*node), nil
+	return apiTypes.GetConsensusEntitiesAddressNodesNodeId200JSONResponse(*node), nil
 }
 
 func (srv *StrictServerImpl) GetConsensusEpochs(ctx context.Context, request apiTypes.GetConsensusEpochsRequestObject) (apiTypes.GetConsensusEpochsResponseObject, error) {
@@ -252,15 +252,15 @@ func (srv *StrictServerImpl) GetConsensusValidators(ctx context.Context, request
 	return apiTypes.GetConsensusValidators200JSONResponse(*validators), nil
 }
 
-func (srv *StrictServerImpl) GetConsensusValidatorsEntityId(ctx context.Context, request apiTypes.GetConsensusValidatorsEntityIdRequestObject) (apiTypes.GetConsensusValidatorsEntityIdResponseObject, error) {
-	validators, err := srv.dbClient.Validators(ctx, apiTypes.GetConsensusValidatorsParams{Limit: common.Ptr(uint64(1))}, &request.EntityId)
+func (srv *StrictServerImpl) GetConsensusValidatorsAddress(ctx context.Context, request apiTypes.GetConsensusValidatorsAddressRequestObject) (apiTypes.GetConsensusValidatorsAddressResponseObject, error) {
+	validators, err := srv.dbClient.Validators(ctx, apiTypes.GetConsensusValidatorsParams{Limit: common.Ptr(uint64(1))}, &request.Address)
 	if err != nil {
 		return nil, err
 	}
 	if len(validators.Validators) == 0 {
-		return apiTypes.GetConsensusValidatorsEntityId404JSONResponse{}, nil
+		return apiTypes.GetConsensusValidatorsAddress404JSONResponse{}, nil
 	}
-	return apiTypes.GetConsensusValidatorsEntityId200JSONResponse(validators.Validators[0]), nil
+	return apiTypes.GetConsensusValidatorsAddress200JSONResponse(validators.Validators[0]), nil
 }
 
 func (srv *StrictServerImpl) GetRuntimeBlocks(ctx context.Context, request apiTypes.GetRuntimeBlocksRequestObject) (apiTypes.GetRuntimeBlocksResponseObject, error) {

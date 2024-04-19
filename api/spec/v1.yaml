@@ -410,16 +410,16 @@ paths:
                 $ref: '#/components/schemas/EntityList'
         <<: *common_error_responses
 
-  /consensus/entities/{entity_id}:
+  /consensus/entities/{address}:
     get:
       summary: Returns an entity registered at the consensus layer.
       parameters:
         - in: path
-          name: entity_id
+          name: address
           required: true
           schema:
-            allOf: [$ref: '#/components/schemas/Ed25519PubKey']
-          description: The entity ID of the entity to return.
+            allOf: [$ref: '#/components/schemas/StakingAddress']
+          description: The address of the entity to return.
       responses:
         '200':
           description: |
@@ -431,19 +431,19 @@ paths:
                 $ref: '#/components/schemas/Entity'
         <<: *common_error_responses
 
-  /consensus/entities/{entity_id}/nodes:
+  /consensus/entities/{address}/nodes:
     get:
       summary: Returns a list of nodes registered at the consensus layer.
       parameters:
         - *limit
         - *offset
         - in: path
-          name: entity_id
+          name: address
           required: true
           schema:
-            allOf: [$ref: '#/components/schemas/Ed25519PubKey']
+            allOf: [$ref: '#/components/schemas/StakingAddress']
           description: |
-            The entity ID of the controlling entity of the nodes to return.
+            The address of the controlling entity of the nodes to return.
       responses:
         '200':
           description: |
@@ -454,18 +454,18 @@ paths:
                 $ref: '#/components/schemas/NodeList'
         <<: *common_error_responses
 
-  /consensus/entities/{entity_id}/nodes/{node_id}:
+  /consensus/entities/{address}/nodes/{node_id}:
     get:
       summary: Returns a node registered at the consensus layer.
       parameters:
         - in: path
-          name: entity_id
+          name: address
           required: true
           schema:
-            allOf: [$ref: '#/components/schemas/Ed25519PubKey']
+            allOf: [$ref: '#/components/schemas/StakingAddress']
           description: |
             The entity ID of the entity controlling the node to return.
-          example: *entity_id_1
+          example: *staking_address_1
         - in: path
           name: node_id
           required: true
@@ -499,15 +499,15 @@ paths:
                 $ref: '#/components/schemas/ValidatorList'
         <<: *common_error_responses
 
-  /consensus/validators/{entity_id}:
+  /consensus/validators/{address}:
     get:
       summary: Returns a validator registered at the consensus layer.
       parameters:
         - in: path
-          name: entity_id
+          name: address
           required: true
           schema:
-            allOf: [$ref: '#/components/schemas/Ed25519PubKey']
+            allOf: [$ref: '#/components/schemas/StakingAddress']
           description: The entity ID of the entity to return.
       responses:
         '200':
