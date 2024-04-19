@@ -45,11 +45,11 @@ jobs:
       CI_TEST_CONN_STRING: "postgresql://postgres:postgres@127.0.0.1:5432/postgres?sslmode=disable"
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Set up Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v5
         with:
-          go-version: 1.21.3
+          go-version: 1.22.x
       - name: Install Go tools
         run: go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen@v1.12
       - name: Build Go
@@ -60,7 +60,7 @@ jobs:
         # NOTE: This should run _after_ the build step, so that oapi-codegen has already run
         #       and generated the Go code that points to some of the dependencies.
         run: |
-          go mod tidy -v -x -compat=1.21  # goreleaser does the same; can find lingering issues
+          go mod tidy -v -x -compat=1.22  # goreleaser does the same; can find lingering issues
           echo TIDY RESULTS START; git diff || true; echo TIDY RESULTS END
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v3.1.0
@@ -101,11 +101,11 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Set up Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v5
         with:
-          go-version: 1.21
+          go-version: 1.22.x
       - name: Autogenerate Go code
         run: |
           go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen@v1.12
@@ -137,13 +137,13 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           lfs: true
       - name: Set up Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v5
         with:
-          go-version: 1.21
+          go-version: 1.22.x
       - name: Autogenerate Go code
         run: |
           go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen@v1.12
@@ -168,13 +168,13 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           lfs: true
       - name: Set up Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v5
         with:
-          go-version: 1.21
+          go-version: 1.22.x
       - name: Autogenerate Go code
         run: |
           go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen@v1.12
