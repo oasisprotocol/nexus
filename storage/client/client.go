@@ -23,6 +23,7 @@ import (
 
 	"github.com/oasisprotocol/nexus/analyzer/evmabi"
 	beacon "github.com/oasisprotocol/nexus/coreapi/v22.2.11/beacon/api"
+	roothash "github.com/oasisprotocol/nexus/coreapi/v22.2.11/roothash/api"
 	staking "github.com/oasisprotocol/nexus/coreapi/v22.2.11/staking/api"
 
 	"github.com/oasisprotocol/nexus/analyzer/util"
@@ -32,6 +33,7 @@ import (
 	"github.com/oasisprotocol/nexus/log"
 	"github.com/oasisprotocol/nexus/storage"
 	"github.com/oasisprotocol/nexus/storage/client/queries"
+	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
 )
 
 const (
@@ -44,8 +46,10 @@ const (
 // StorageClient is a wrapper around a storage.TargetStorage
 // with knowledge of network semantics.
 type StorageClient struct {
-	chainName common.ChainName
-	db        storage.TargetStorage
+	chainName      common.ChainName
+	db             storage.TargetStorage
+	runtimeClients map[common.Runtime]nodeapi.RuntimeApiLite
+	networkConfig  *oasisConfig.Network
 
 	blockCache *ristretto.Cache
 	txCache    *ristretto.Cache
@@ -110,7 +114,7 @@ func runtimeFromCtx(ctx context.Context) common.Runtime {
 }
 
 // NewStorageClient creates a new storage client.
-func NewStorageClient(chainName common.ChainName, db storage.TargetStorage, l *log.Logger) (*StorageClient, error) {
+func NewStorageClient(chainName common.ChainName, db storage.TargetStorage, runtimeClients map[common.Runtime]nodeapi.RuntimeApiLite, networkConfig *oasisConfig.Network, l *log.Logger) (*StorageClient, error) {
 	blockCache, err := ristretto.NewCache(&ristretto.Config{
 		NumCounters:        1024 * 10,
 		MaxCost:            1024,
@@ -131,12 +135,36 @@ func NewStorageClient(chainName common.ChainName, db storage.TargetStorage, l *l
 		l.Error("api client: failed to create tx cache: %w", err)
 		return nil, err
 	}
-	return &StorageClient{chainName, db, blockCache, txCache, l}, nil
+	return &StorageClient{chainName, db, runtimeClients, networkConfig, blockCache, txCache, l}, nil
 }
 
 // Shutdown closes the backing TargetStorage.
 func (c *StorageClient) Shutdown() {
 	c.db.Close()
+}
+
+// Returns the native token symbol of the specified runtime in the network
+// specified by the networkConfig.
+func (c *StorageClient) nativeTokenSymbol(runtime common.Runtime) string {
+	if c.networkConfig == nil {
+		c.logger.Warn("no network config available; unable to determine native token symbol", "runtime", runtime)
+		return ""
+	} else if c.networkConfig.ParaTimes.All[string(runtime)] == nil || c.networkConfig.ParaTimes.All[string(runtime)].Denominations[oasisConfig.NativeDenominationKey] == nil {
+		c.logger.Warn("unknown runtime or denomination", "runtime", runtime, "denomination", oasisConfig.NativeDenominationKey)
+		return ""
+	}
+	return c.networkConfig.ParaTimes.All[string(runtime)].Denominations[oasisConfig.NativeDenominationKey].Symbol
+}
+
+func (c *StorageClient) tokenDecimals(runtime common.Runtime, denom string) int {
+	if c.networkConfig == nil {
+		c.logger.Warn("no network config available; unable to determine native token decimals", "runtime", runtime)
+		return 0
+	} else if c.networkConfig.ParaTimes.All[string(runtime)] == nil || c.networkConfig.ParaTimes.All[string(runtime)].Denominations[denom] == nil {
+		c.logger.Warn("unknown runtime denomination", "runtime", runtime, "denomination", denom)
+		return 0
+	}
+	return int(c.networkConfig.ParaTimes.All[string(runtime)].Denominations[denom].Decimals)
 }
 
 // Wraps an error into one of the error types defined by the `common` package, if applicable.
@@ -1487,6 +1515,79 @@ func (c *StorageClient) RuntimeEvents(ctx context.Context, p apiTypes.GetRuntime
 	return &es, nil
 }
 
+// Fetch account balances from the node and pass them back via the channel. Note that if the input context
+// times out or we encounter an error, we explicitly close the channel and return. This enables the calling
+// function to create a context with a timeout and then listen to the channel with the expectation that the
+// channel will return values and/or close approximately within the timeout.
+func (c *StorageClient) fetchAccountBalancesFromNode(ctx context.Context, ch chan *RuntimeSdkBalance, runtime common.Runtime, address staking.Address) {
+	var latestIndexedHeight uint64
+	// Query latest block.
+	err := c.db.QueryRow(
+		ctx,
+		queries.Status,
+		runtime,
+	).Scan(&latestIndexedHeight, nil)
+	switch err {
+	case nil:
+	case pgx.ErrNoRows:
+		// No runtime blocks indexed yet; return a 0 native balance.
+		ch <- &RuntimeSdkBalance{
+			Balance:       common.NewBigInt(0),
+			TokenDecimals: c.tokenDecimals(runtime, oasisConfig.NativeDenominationKey),
+			TokenSymbol:   c.nativeTokenSymbol(runtime),
+		}
+		close(ch)
+		return
+	default:
+		c.logger.Warn("error fetching latest indexed height", "err", err, "runtime", runtime)
+		close(ch)
+		return
+	}
+
+	runtimeApi, ok := c.runtimeClients[runtime]
+	if !ok {
+		c.logger.Warn("no runtime api configured to fetch account balances", "runtime", runtime)
+		close(ch)
+		return
+	}
+	balances, err := runtimeApi.GetBalances(ctx, latestIndexedHeight, address)
+	if err != nil {
+		c.logger.Warn("failed to fetch balances from node", "address", address.String(), "runtime", runtime, "round", latestIndexedHeight, "err", err)
+		close(ch)
+		return
+	}
+	foundNativeBalance := false
+	for denom, amount := range balances {
+		var balance RuntimeSdkBalance
+		if denom.IsNative() {
+			foundNativeBalance = true
+			// Assumption: we have a native token symbol for every runtime in runtimeClients.
+			balance = RuntimeSdkBalance{
+				Balance:       amount,
+				TokenDecimals: c.tokenDecimals(runtime, oasisConfig.NativeDenominationKey),
+				TokenSymbol:   c.nativeTokenSymbol(runtime),
+			}
+		} else {
+			balance = RuntimeSdkBalance{
+				Balance:       amount,
+				TokenDecimals: c.tokenDecimals(runtime, denom.String()),
+				TokenSymbol:   denom.String(),
+			}
+		}
+
+		ch <- &balance
+	}
+	// Default to 0 native balance if not specified by the node.
+	if !foundNativeBalance {
+		ch <- &RuntimeSdkBalance{
+			Balance:       common.NewBigInt(0),
+			TokenDecimals: c.tokenDecimals(runtime, oasisConfig.NativeDenominationKey),
+			TokenSymbol:   c.nativeTokenSymbol(runtime),
+		}
+	}
+	close(ch)
+}
+
 func (c *StorageClient) RuntimeAccount(ctx context.Context, address staking.Address) (*RuntimeAccount, error) {
 	a := RuntimeAccount{
 		Address:         address.String(),
@@ -1494,6 +1595,11 @@ func (c *StorageClient) RuntimeAccount(ctx context.Context, address staking.Addr
 		Balances:        []RuntimeSdkBalance{},
 		EvmBalances:     []RuntimeEvmBalance{},
 	}
+	nodeFetchCtx, cancel := context.WithTimeout(ctx, 500*time.Millisecond)
+	defer cancel()
+	ch := make(chan *RuntimeSdkBalance)
+	go c.fetchAccountBalancesFromNode(nodeFetchCtx, ch, runtimeFromCtx(ctx), address)
+
 	var preimageContext string
 	err := c.db.QueryRow(
 		ctx,
@@ -1630,7 +1736,34 @@ func (c *StorageClient) RuntimeAccount(ctx context.Context, address staking.Addr
 		return nil, wrapError(err)
 	}
 
+	// Reconcile sdk balance(s) from node with the balance(s) fetched from the db.
+	c.upsertBalances(ch, &a)
+
 	return &a, nil
+}
+
+// Reads node sdk balances from ch and upserts them into acct.Balances, logging a
+// warning if the balances are mismatched.
+func (c *StorageClient) upsertBalances(ch chan *RuntimeSdkBalance, acct *RuntimeAccount) {
+	for nb := range ch {
+		found := false
+		// If the node balance differs from the balance in Nexus, defer to the node balance.
+		for i, b := range acct.Balances {
+			if b.TokenSymbol == nb.TokenSymbol {
+				found = true
+				if !b.Balance.Eq(nb.Balance) {
+					c.logger.Warn("sdk balance from node differed from dead-reckoned balance; defaulting to node balance", "address", acct.Address, "height", roothash.RoundLatest, "node_balance", nb.Balance.String(), "db_balance", b.Balance.String())
+					bPtr := &acct.Balances[i]
+					bPtr.Balance = nb.Balance
+				}
+			}
+		}
+		// If the balance doesn't exist in Nexus, add it.
+		if !found {
+			c.logger.Warn("node returned balance that doesn't exist in nexus", "symbol", nb)
+			acct.Balances = append(acct.Balances, *nb)
+		}
+	}
 }
 
 // If `address` is non-nil, it is used to filter the results to at most 1 token: the one

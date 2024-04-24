@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	sdkConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
+	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 
 	"github.com/oasisprotocol/nexus/common"
 	"github.com/oasisprotocol/nexus/config"
@@ -98,12 +99,12 @@ func (rc *HistoryRuntimeApiLite) GetBlockHeader(ctx context.Context, round uint6
 	return api.GetBlockHeader(ctx, round)
 }
 
-func (rc *HistoryRuntimeApiLite) GetNativeBalance(ctx context.Context, round uint64, addr nodeapi.Address) (*common.BigInt, error) {
+func (rc *HistoryRuntimeApiLite) GetBalances(ctx context.Context, round uint64, addr nodeapi.Address) (map[sdkTypes.Denomination]common.BigInt, error) {
 	api, err := rc.APIForRound(round)
 	if err != nil {
 		return nil, fmt.Errorf("getting api for runtime %s round %d: %w", rc.Runtime, round, err)
 	}
-	return api.GetNativeBalance(ctx, round, addr)
+	return api.GetBalances(ctx, round, addr)
 }
 
 func (rc *HistoryRuntimeApiLite) GetTransactionsWithResults(ctx context.Context, round uint64) ([]nodeapi.RuntimeTransactionWithResults, error) {

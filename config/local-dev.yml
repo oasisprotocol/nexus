@@ -1,7 +1,7 @@
 analysis:
   source:
     chain_name: mainnet
-    nodes:
+    nodes: &src
       eden:
         default:
           rpc: unix:/tmp/node.sock #unix:/node/data/internal.sock
@@ -29,6 +29,9 @@ server:
   storage:
     endpoint: postgresql://rwuser:password@localhost:5432/indexer?sslmode=disable
     backend: postgres
+  source:
+    chain_name: mainnet
+    nodes: *src
 
 log:
   level: info

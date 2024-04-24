@@ -2,6 +2,7 @@
 package api
 
 import (
+	"context"
 	"net/http"
 	"os"
 	"strings"
@@ -10,14 +11,19 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/spf13/cobra"
 
+	sdkConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
+
 	api "github.com/oasisprotocol/nexus/api"
 	v1 "github.com/oasisprotocol/nexus/api/v1"
 	apiTypes "github.com/oasisprotocol/nexus/api/v1/types"
-	"github.com/oasisprotocol/nexus/cmd/common"
+	cmdCommon "github.com/oasisprotocol/nexus/cmd/common"
+	"github.com/oasisprotocol/nexus/common"
 	"github.com/oasisprotocol/nexus/config"
 	"github.com/oasisprotocol/nexus/log"
 	"github.com/oasisprotocol/nexus/metrics"
 	storage "github.com/oasisprotocol/nexus/storage/client"
+	source "github.com/oasisprotocol/nexus/storage/oasis"
+	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
 )
 
 const (
@@ -62,13 +68,13 @@ func runServer(cmd *cobra.Command, args []string) {
 	}
 
 	// Initialize common environment.
-	if err = common.Init(cfg); err != nil {
+	if err = cmdCommon.Init(cfg); err != nil {
 		log.NewDefaultLogger("init").Error("init failed",
 			"error", err,
 		)
 		os.Exit(1)
 	}
-	logger := common.RootLogger()
+	logger := cmdCommon.RootLogger()
 
 	if cfg.Server == nil {
 		logger.Error("server config not provided")
@@ -85,7 +91,7 @@ func runServer(cmd *cobra.Command, args []string) {
 
 // Init initializes the API service.
 func Init(cfg *config.ServerConfig) (*Service, error) {
-	logger := common.RootLogger()
+	logger := cmdCommon.RootLogger()
 
 	service, err := NewService(cfg)
 	if err != nil {
@@ -106,14 +112,28 @@ type Service struct {
 
 // NewService creates a new API service.
 func NewService(cfg *config.ServerConfig) (*Service, error) {
-	logger := common.RootLogger().WithModule(moduleName)
+	ctx := context.Background()
+	logger := cmdCommon.RootLogger().WithModule(moduleName)
 
 	// Initialize target storage.
-	backing, err := common.NewClient(cfg.Storage, logger)
+	backing, err := cmdCommon.NewClient(cfg.Storage, logger)
 	if err != nil {
 		return nil, err
 	}
-	client, err := storage.NewStorageClient(cfg.ChainName, backing, logger)
+	runtimeClients := make(map[common.Runtime]nodeapi.RuntimeApiLite)
+	var networkConfig *sdkConfig.Network
+	if cfg.Source != nil {
+		networkConfig = cfg.Source.SDKNetwork()
+		apiRuntimes := []common.Runtime{common.RuntimeEmerald, common.RuntimeSapphire, common.RuntimePontusx}
+		for _, runtime := range apiRuntimes {
+			client, err2 := source.NewRuntimeClient(ctx, cfg.Source, runtime)
+			if err2 != nil {
+				logger.Warn("unable to instantiate runtime client for api server", "runtime", runtime, "err", err2)
+			}
+			runtimeClients[runtime] = client
+		}
+	}
+	client, err := storage.NewStorageClient(cfg.ChainName, backing, runtimeClients, networkConfig, logger)
 	if err != nil {
 		return nil, err
 	}

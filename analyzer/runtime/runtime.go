@@ -117,10 +117,11 @@ func (m *processor) UpdateHighTrafficAccounts(ctx context.Context, batch *storag
 		panic(fmt.Sprintf("negative height: %d", height))
 	}
 	for _, addr := range veryHighTrafficAccounts {
-		balance, err := m.source.GetNativeBalance(ctx, uint64(height), nodeapi.Address(addr))
+		balances, err := m.source.GetBalances(ctx, uint64(height), nodeapi.Address(addr))
 		if err != nil {
 			return fmt.Errorf("failed to get native balance for %s: %w", addr, err)
 		}
+		balance := common.NativeBalance(balances)
 
 		batch.Queue(
 			queries.RuntimeNativeBalanceAbsoluteUpsert,
