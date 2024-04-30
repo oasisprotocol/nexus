@@ -278,10 +278,11 @@ var (
       ON CONFLICT (entity_id, node_id) DO NOTHING`
 
 	ConsensusEntityUpsert = `
-    INSERT INTO chain.entities (id, address) VALUES ($1, $2)
-      ON CONFLICT (id) DO
-      UPDATE SET
-        address = excluded.address`
+    INSERT INTO chain.entities AS old (id, address, start_block) 
+      VALUES ($1, $2::text, $3)
+    ON CONFLICT (id) DO
+    UPDATE SET
+      start_block = LEAST(old.start_block, excluded.start_block)`
 
 	ConsensusNodeUpsert = `
     INSERT INTO chain.nodes (id, entity_id, expiration, tls_pubkey, tls_next_pubkey, tls_addresses, p2p_pubkey, p2p_addresses, consensus_pubkey, consensus_address, vrf_pubkey, roles, software_version, voting_power)

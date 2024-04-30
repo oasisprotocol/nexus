@@ -59,7 +59,7 @@ commonTestCases=(
   'active_accounts_window             /v1/consensus/stats/active_accounts?window_step_seconds=300'
   'active_accounts_emerald            /v1/emerald/stats/active_accounts'
   'txs                                /v1/consensus/transactions'
-  'validators                         /v1/consensus/validators'
+  'validators                         /v1/consensus/validators?limit=200'
   'emerald_blocks                     /v1/emerald/blocks'
   'emerald_txs                        /v1/emerald/transactions'
   'emerald_events                     /v1/emerald/events'

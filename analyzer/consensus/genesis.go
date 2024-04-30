@@ -62,6 +62,7 @@ func (mg *GenesisProcessor) addRegistryBackendMigrations(batch *storage.QueryBat
 		batch.Queue(queries.ConsensusEntityUpsert,
 			entity.ID.String(),
 			staking.NewAddress(entity.ID).String(),
+			document.Height,
 		)
 	}
 

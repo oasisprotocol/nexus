@@ -1233,6 +1233,7 @@ func (c *StorageClient) Validators(ctx context.Context, p apiTypes.GetConsensusV
 		ctx,
 		queries.ValidatorsData,
 		address,
+		p.Name,
 		p.Limit,
 		p.Offset,
 	)
@@ -1247,17 +1248,29 @@ func (c *StorageClient) Validators(ctx context.Context, p apiTypes.GetConsensusV
 		IsTotalCountClipped: res.isTotalCountClipped,
 	}
 	for res.rows.Next() {
-		var v Validator
+		v := Validator{
+			Escrow: apiTypes.Escrow{},
+		}
 		var schedule staking.CommissionSchedule
 		var logoUrl *string
 		if err := res.rows.Scan(
 			&v.EntityID,
 			&v.EntityAddress,
 			&v.NodeID,
-			&v.Escrow,
+			&v.Escrow.ActiveBalance,
+			&v.Escrow.ActiveShares,
+			&v.Escrow.DebondingBalance,
+			&v.Escrow.DebondingShares,
+			&v.Escrow.SelfDelegationBalance,
+			&v.Escrow.SelfDelegationShares,
+			&v.Escrow.NumDelegators,
+			&v.VotingPower,
+			&v.VotingPowerTotal,
 			&schedule,
+			&v.StartDate,
+			&v.Rank,
 			&v.Active,
-			&v.Status,
+			&v.InValidatorSet,
 			&v.Media,
 			&logoUrl,
 		); err != nil {

@@ -473,10 +473,17 @@ paths:
 
   /consensus/validators:
     get:
-      summary: Returns a list of validators registered at the consensus layer.
+      summary: Returns a list of validators registered at the consensus layer (the list includes all registered entities, even those without a currently active validator node).
       parameters:
         - *limit
         - *offset
+        - in: query
+          name: name
+          schema:
+            type: string
+          description: | 
+            A filter on the validator name. Every returned validator will have
+            a name that is a superstring of the input param.
       responses:
         '200':
           description: |
@@ -1851,12 +1858,12 @@ components:
 
     Validator:
       type: object
-      required: [entity_address, entity_id, node_id, escrow, active, status, current_rate, current_commission_bound]
+      required: [entity_address, entity_id, escrow, voting_power, voting_power_total, active, start_date, rank, in_validator_set, current_rate, current_commission_bound]
       properties:
         entity_address:
-            type: string
-            description: The staking address identifying this Validator.
-            example: *staking_address_1
+          type: string
+          description: The staking address identifying this Validator.
+          example: *staking_address_1
         entity_id:
           x-go-name: EntityID
           type: string
@@ -1868,14 +1875,31 @@ components:
           description: The public key identifying this Validator's node.
           example: *node_id_1
         escrow:
-          allOf: [$ref: '#/components/schemas/TextBigInt']
-          description: The amount staked.
+          allOf: [$ref: '#/components/schemas/Escrow']
+          description: The escrow account data for this validator.
+        voting_power:
+          type: integer
+          format: int64
+          description: The voting power of this Validator.
+        voting_power_total:
+          type: integer
+          format: int64
+          description: The total voting power across all Validators.
         active:
           type: boolean
-          description: Whether the entity is part of validator set (top <scheduler.params.max_validators> by stake).
-        status:
-          type: boolean
           description: Whether the entity has a node that is registered for being a validator, node is up to date, and has successfully registered itself. It may or may not be part of validator set.
+        start_date:
+          type: string
+          format: date-time
+          description: The second-granular consensus time.
+          example: *iso_timestamp_3
+        rank:
+          type: integer
+          format: uint64
+          description: The rank of the Validator, determined by voting power.
+        in_validator_set:
+          type: boolean
+          description: Whether the entity is part of the validator set (top <scheduler.params.max_validators> by stake among active entities).
         media:
           allOf: [$ref: '#/components/schemas/ValidatorMedia']
           example: *validator_media_1
@@ -1888,6 +1912,32 @@ components:
       description: |
         An validator registered at the consensus layer.
 
+    Escrow:
+      type: object
+      properties:
+        active_balance:
+          allOf: [$ref: '#/components/schemas/TextBigInt']
+          description: The amount of tokens that are delegated to this validator account, and are NOT in the process of debonding.
+        active_shares:
+          allOf: [$ref: '#/components/schemas/TextBigInt']
+          description: The shares of tokens that are delegated to this validator account, and are NOT in the process of debonding.
+        debonding_balance:
+          allOf: [$ref: '#/components/schemas/TextBigInt']
+          description: The amount of tokens that are delegated to this validator account, but are also in the process of debonding (i.e. they will be unstaked within ~2 weeks).
+        debonding_shares:
+          allOf: [$ref: '#/components/schemas/TextBigInt']
+          description: The shares of tokens that are delegated to this validator account, but are also in the process of debonding (i.e. they will be unstaked within ~2 weeks).
+        self_delegation_balance:
+          allOf: [$ref: '#/components/schemas/TextBigInt']
+          description: The amount of token this validator has delegated to itself, and are NOT in the process of debonding.
+        self_delegation_shares:
+          allOf: [$ref: '#/components/schemas/TextBigInt']
+          description: The shares of tokens this validator has delegated to itself, and are NOT in the process of debonding.
+        num_delegators:
+          type: integer
+          format: uint64
+          description: The number of accounts that have delegated token to this account.
+          
     NodeList:
       allOf:
         - $ref: '#/components/schemas/List'
