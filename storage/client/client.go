@@ -1182,11 +1182,20 @@ func (c *StorageClient) Validators(ctx context.Context, p apiTypes.GetConsensusV
 	for res.rows.Next() {
 		var v Validator
 		var schedule staking.CommissionSchedule
+		var e apiTypes.Escrow
 		if err := res.rows.Scan(
 			&v.EntityID,
 			&v.EntityAddress,
 			&v.NodeID,
-			&v.Escrow,
+			&e.ActiveBalance,
+			&e.ActiveShares,
+			&e.ActiveBalanceTotal,
+			&e.DebondingBalance,
+			&e.DebondingShares,
+			&e.SelfDelegationBalance,
+			&e.SelfDelegationShares,
+			&v.VotingPower,
+			&v.VotingPowerTotal,
 			&schedule,
 			&v.Active,
 			&v.Status,

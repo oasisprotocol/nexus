@@ -1920,6 +1920,9 @@ components:
         self_delegation_balance:
           allOf: [$ref: '#/components/schemas/TextBigInt']
           description: The amount of token this validator has delegated to itself.
+        self_delegation_shares:
+          allOf: [$ref: '#/components/schemas/TextBigInt']
+          description: The shares of tokens the validator has delegated to itself.
           
     NodeList:
       allOf:

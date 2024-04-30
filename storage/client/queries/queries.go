@@ -286,11 +286,34 @@ const (
 			ORDER BY id DESC`
 
 	ValidatorsData = `
+		WITH self_delegation AS (
+			SELECT SUM(shares) AS shares
+				FROM chain.delegations
+				WHERE delegator = $1::text AND delegatee = $1::text
+		)
 		SELECT
 				chain.entities.id AS entity_id,
 				chain.entities.address AS entity_address,
 				chain.nodes.id AS node_address,
-				chain.accounts.escrow_balance_active AS escrow,
+				chain.accounts.escrow_balance_active AS active_balance,
+				chain.accounts.escrow_total_shares_active AS active_shares,
+				COALESCE (
+					SUM(escrow_balance_active)
+				, 0) AS active_balance_total,
+				chain.accounts.escrow_balance_debonding AS debonding_balance,
+				chain.accounts.escrow_total_shares_debonding AS debonding_shares,
+				COALESCE (
+					(COALESCE(self_delegation.shares, 0) * chain.accounts.escrow_balance_active / NULLIF(chain.accounts.escrow_total_shares_active, 0))
+				, 0) AS self_delegation_balance,
+				COALESCE (
+					self_delegation.shares
+				, 0) AS self_delegation_shares,
+				chain.nodes.voting_power,
+				COALESCE (
+					(SELECT SUM(voting_power) as total_voting_power
+					FROM chain.nodes
+					WHERE chain.nodes.roles LIKE '%validator%')
+				, 0) AS total_voting_power,
 				COALESCE(chain.commissions.schedule, '{}'::JSONB) AS commissions_schedule,
 				EXISTS(SELECT NULL FROM chain.nodes WHERE chain.entities.id = chain.nodes.entity_id AND voting_power > 0) AS active,
 				EXISTS(SELECT NULL FROM chain.nodes WHERE chain.entities.id = chain.nodes.entity_id AND chain.nodes.roles like '%validator%') AS status,
