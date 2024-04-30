@@ -66,7 +66,6 @@ func OpenSignedTxNoVerify(signedTx *transaction.SignedTransaction) (*transaction
 
 // processor is the block processor for the consensus layer.
 type processor struct {
-	chain   common.ChainName
 	mode    analyzer.BlockAnalysisMode
 	history config.History
 	source  nodeapi.ConsensusApiLite
@@ -79,9 +78,8 @@ type processor struct {
 var _ block.BlockProcessor = (*processor)(nil)
 
 // NewAnalyzer returns a new analyzer for the consensus layer.
-func NewAnalyzer(chain common.ChainName, blockRange config.BlockRange, batchSize uint64, mode analyzer.BlockAnalysisMode, history config.History, source nodeapi.ConsensusApiLite, network sdkConfig.Network, target storage.TargetStorage, logger *log.Logger) (analyzer.Analyzer, error) {
+func NewAnalyzer(blockRange config.BlockRange, batchSize uint64, mode analyzer.BlockAnalysisMode, history config.History, source nodeapi.ConsensusApiLite, network sdkConfig.Network, target storage.TargetStorage, logger *log.Logger) (analyzer.Analyzer, error) {
 	processor := &processor{
-		chain:   chain,
 		mode:    mode,
 		history: history,
 		source:  source,
@@ -309,9 +307,7 @@ func (m *processor) ProcessBlock(ctx context.Context, uheight uint64) error {
 	height := int64(uheight)
 	batch := &storage.QueryBatch{}
 
-	isBlockAbsent := m.chain == common.ChainNameMainnet && height == 8048955 // Block does not exist due to mishap during upgrade to Damask.
-
-	if !isBlockAbsent {
+	if _, isBlockAbsent := m.history.MissingBlocks[uheight]; !isBlockAbsent {
 		// Fetch all data.
 		fetchTimer := m.metrics.BlockFetchLatencies()
 		data, err := fetchAllData(ctx, m.source, m.network, height, m.mode == analyzer.FastSyncMode)
