@@ -600,12 +600,12 @@ func (c *StorageClient) Entities(ctx context.Context, p apiTypes.GetConsensusEnt
 }
 
 // Entity returns a registered entity.
-func (c *StorageClient) Entity(ctx context.Context, entityID signature.PublicKey) (*Entity, error) {
+func (c *StorageClient) Entity(ctx context.Context, address staking.Address) (*Entity, error) {
 	var e Entity
 	if err := c.db.QueryRow(
 		ctx,
 		queries.Entity,
-		entityID.String(),
+		address.String(),
 	).Scan(&e.ID, &e.Address); err != nil {
 		return nil, wrapError(err)
 	}
@@ -613,7 +613,7 @@ func (c *StorageClient) Entity(ctx context.Context, entityID signature.PublicKey
 	nodeRows, err := c.db.Query(
 		ctx,
 		queries.EntityNodeIds,
-		entityID.String(),
+		address.String(),
 	)
 	if err != nil {
 		return nil, wrapError(err)
@@ -633,11 +633,11 @@ func (c *StorageClient) Entity(ctx context.Context, entityID signature.PublicKey
 }
 
 // EntityNodes returns a list of nodes controlled by the provided entity.
-func (c *StorageClient) EntityNodes(ctx context.Context, entityID signature.PublicKey, r apiTypes.GetConsensusEntitiesEntityIdNodesParams) (*NodeList, error) {
+func (c *StorageClient) EntityNodes(ctx context.Context, address staking.Address, r apiTypes.GetConsensusEntitiesAddressNodesParams) (*NodeList, error) {
 	res, err := c.withTotalCount(
 		ctx,
 		queries.EntityNodes,
-		entityID.String(),
+		address.String(),
 		r.Limit,
 		r.Offset,
 	)
@@ -668,18 +668,25 @@ func (c *StorageClient) EntityNodes(ctx context.Context, entityID signature.Publ
 
 		ns.Nodes = append(ns.Nodes, n)
 	}
-	ns.EntityID = entityID.String()
+
+	if err := c.db.QueryRow(
+		ctx,
+		queries.Entity,
+		address.String(),
+	).Scan(&ns.EntityID, nil); err != nil {
+		return nil, wrapError(err)
+	}
 
 	return &ns, nil
 }
 
 // EntityNode returns a node controlled by the provided entity.
-func (c *StorageClient) EntityNode(ctx context.Context, entityID signature.PublicKey, nodeID signature.PublicKey) (*Node, error) {
+func (c *StorageClient) EntityNode(ctx context.Context, entityAddress staking.Address, nodeID signature.PublicKey) (*Node, error) {
 	var n Node
 	if err := c.db.QueryRow(
 		ctx,
 		queries.EntityNode,
-		entityID.String(),
+		entityAddress.String(),
 		nodeID.String(),
 	).Scan(
 		&n.ID,
@@ -1145,8 +1152,8 @@ func (c *StorageClient) ProposalVotes(ctx context.Context, proposalID uint64, p 
 	return &vs, nil
 }
 
-// Validators returns a list of validators, or optionally the single validator matching `entityID`.
-func (c *StorageClient) Validators(ctx context.Context, p apiTypes.GetConsensusValidatorsParams, entityID *signature.PublicKey) (*ValidatorList, error) {
+// Validators returns a list of validators, or optionally the single validator matching `address`.
+func (c *StorageClient) Validators(ctx context.Context, p apiTypes.GetConsensusValidatorsParams, address *staking.Address) (*ValidatorList, error) {
 	var epoch Epoch
 	if err := c.db.QueryRow(
 		ctx,
@@ -1158,7 +1165,7 @@ func (c *StorageClient) Validators(ctx context.Context, p apiTypes.GetConsensusV
 	res, err := c.withTotalCount(
 		ctx,
 		queries.ValidatorsData,
-		entityID,
+		address,
 		p.Limit,
 		p.Offset,
 	)

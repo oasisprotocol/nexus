@@ -11,13 +11,13 @@ source "$E2E_REGRESSION_DIR/common_test_cases.sh"
 testCases=(
   "${commonTestCases[@]}"
   'block                              /v1/consensus/blocks/16818000'
-  'entity                             /v1/consensus/entities/9sAhd+Wi6tG5nAr3LwXD0y9mUKLYqfAbS2+7SZdNHB4='
-  'entity_nodes                       /v1/consensus/entities/9sAhd+Wi6tG5nAr3LwXD0y9mUKLYqfAbS2+7SZdNHB4=/nodes'
-  'node                               /v1/consensus/entities/9sAhd+Wi6tG5nAr3LwXD0y9mUKLYqfAbS2+7SZdNHB4=/nodes/6wbL5%2fOxvFGxi55o7AxcwKmfjXbXGC1hw4lfnEZxBXA='
-  'bad_node                           /v1/consensus/entities/9sAhd+Wi6tG5nAr3LwXD0y9mUKLYqfAbS2+7SZdNHB4=/nodes/NOTANODE'
+  'entity                             /v1/consensus/entities/oasis1qqekv2ymgzmd8j2s2u7g0hhc7e77e654kvwqtjwm'
+  'entity_nodes                       /v1/consensus/entities/oasis1qqekv2ymgzmd8j2s2u7g0hhc7e77e654kvwqtjwm/nodes'
+  'node                               /v1/consensus/entities/oasis1qqekv2ymgzmd8j2s2u7g0hhc7e77e654kvwqtjwm/nodes/6wbL5%2fOxvFGxi55o7AxcwKmfjXbXGC1hw4lfnEZxBXA='
+  'bad_node                           /v1/consensus/entities/oasis1qqekv2ymgzmd8j2s2u7g0hhc7e77e654kvwqtjwm/nodes/NOTANODE'
   'epoch                              /v1/consensus/epochs/28017'
   'tx                                 /v1/consensus/transactions/142d43e5194b738ab2223f8d0b42326fab06edd714a8cefc59a078b89b5de057'
-  'validator                          /v1/consensus/validators/9sAhd+Wi6tG5nAr3LwXD0y9mUKLYqfAbS2+7SZdNHB4='
+  'validator                          /v1/consensus/validators/oasis1qqekv2ymgzmd8j2s2u7g0hhc7e77e654kvwqtjwm'
   'emerald_tx                         /v1/emerald/transactions/ec1173a69272c67f126f18012019d19cd25199e831f9417b6206fb7844406f9d'
   'emerald_failed_tx                  /v1/emerald/transactions/35fdc8261dd81be8187c858aa9a623085494baf0565d414f48562a856147c093'
   'emerald_events_by_nft              /v1/emerald/events?contract_address=oasis1qz29t7nxkwfqgfk36uqqs9pzuzdt8zmrjud5mehx&nft_id=1'
