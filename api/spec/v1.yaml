@@ -1860,9 +1860,9 @@ components:
       required: [entity_address, entity_id, node_id, escrow, active, status, current_rate, current_commission_bound]
       properties:
         entity_address:
-            type: string
-            description: The staking address identifying this Validator.
-            example: *staking_address_1
+          type: string
+          description: The staking address identifying this Validator.
+          example: *staking_address_1
         entity_id:
           x-go-name: EntityID
           type: string
@@ -1885,6 +1885,10 @@ components:
         active:
           type: boolean
           description: Whether the entity is part of validator set (top <scheduler.params.max_validators> by stake).
+        rank:
+          type: integer
+          format: uint64
+          description: The rank of the Validator, determined by voting power.
         status:
           type: boolean
           description: Whether the entity has a node that is registered for being a validator, node is up to date, and has successfully registered itself. It may or may not be part of validator set.
@@ -1923,6 +1927,10 @@ components:
         self_delegation_shares:
           allOf: [$ref: '#/components/schemas/TextBigInt']
           description: The shares of tokens the validator has delegated to itself.
+        num_delegators:
+          type: integer
+          format: uint64
+          description: The number of accounts that have delegated token to this account.
           
     NodeList:
       allOf:
