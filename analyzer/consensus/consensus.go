@@ -305,25 +305,27 @@ func (m *processor) ProcessBlock(ctx context.Context, uheight uint64) error {
 		return fmt.Errorf("height %d is too large", uheight)
 	}
 	height := int64(uheight)
-
-	// Fetch all data.
-	fetchTimer := m.metrics.BlockFetchLatencies()
-	data, err := fetchAllData(ctx, m.source, m.network, height, m.mode == analyzer.FastSyncMode)
-	fetchTimer.ObserveDuration()
-	if err != nil {
-		if strings.Contains(err.Error(), fmt.Sprintf("%d must be less than or equal to the current blockchain height", height)) {
-			return analyzer.ErrOutOfRange
-		}
-		return err
-	}
-
-	// Process data, prepare updates.
-	analysisTimer := m.metrics.BlockAnalysisLatencies()
 	batch := &storage.QueryBatch{}
-	err = m.queueDbUpdates(batch, *data)
-	analysisTimer.ObserveDuration()
-	if err != nil {
-		return err
+
+	if _, isBlockAbsent := m.history.MissingBlocks[uheight]; !isBlockAbsent {
+		// Fetch all data.
+		fetchTimer := m.metrics.BlockFetchLatencies()
+		data, err := fetchAllData(ctx, m.source, m.network, height, m.mode == analyzer.FastSyncMode)
+		fetchTimer.ObserveDuration()
+		if err != nil {
+			if strings.Contains(err.Error(), fmt.Sprintf("%d must be less than or equal to the current blockchain height", height)) {
+				return analyzer.ErrOutOfRange
+			}
+			return err
+		}
+
+		// Process data, prepare updates.
+		analysisTimer := m.metrics.BlockAnalysisLatencies()
+		err = m.queueDbUpdates(batch, *data)
+		analysisTimer.ObserveDuration()
+		if err != nil {
+			return err
+		}
 	}
 
 	// Update indexing progress.

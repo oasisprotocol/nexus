@@ -23,7 +23,8 @@ type Record struct {
 }
 
 type History struct {
-	Records []*Record `koanf:"records"`
+	Records       []*Record           `koanf:"records"`
+	MissingBlocks map[uint64]struct{} `koanf:"missing_blocks"`
 }
 
 func (h *History) CurrentRecord() *Record {
@@ -82,6 +83,8 @@ func (h *History) RecordForRuntimeRound(runtime common.Runtime, round uint64) (*
 
 var DefaultChains = map[common.ChainName]*History{
 	common.ChainNameMainnet: {
+		// Block does not exist due to mishap during upgrade to Damask.
+		MissingBlocks: map[uint64]struct{}{8048955: {}},
 		Records: []*Record{
 			{
 				// https://github.com/oasisprotocol/mainnet-artifacts/releases/tag/2023-11-29
@@ -135,6 +138,7 @@ var DefaultChains = map[common.ChainName]*History{
 		},
 	},
 	common.ChainNameTestnet: {
+		MissingBlocks: map[uint64]struct{}{},
 		Records: []*Record{
 			{
 				// https://github.com/oasisprotocol/testnet-artifacts/releases/tag/2023-10-12
