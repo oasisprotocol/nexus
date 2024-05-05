@@ -1,0 +1,37 @@
+[
+    {
+        "Name": "Common Pool",
+        "Address": "oasis1qrmufhkkyyf79s5za2r8yga9gnk4t446dcy3a5zm",
+        "Description": "This account contains pre-mined and confiscated tokens due to slashing and is used to reward token stakers."
+    },
+    {
+        "Name": "Fee Accumulator",
+        "Address": "oasis1qqnv3peudzvekhulf8v3ht29z4cthkhy7gkxmph5",
+        "Description": "This account collects transaction fees of each consensus block that are distributed among the validators."
+    },
+    {
+        "Name": "Governance Escrow",
+        "Address": "oasis1qp65laz8zsa9a305wxeslpnkh9x4dv2h2qhjz0ec",
+        "Description": "Contains deposited tokens required for confirming the governance transactions of the validators."
+    },
+    {
+        "Name": "Burn Address",
+        "Address": "oasis1qzq8u7xs328puu2jy524w3fygzs63rv3u5967970",
+        "Description": "Reserved address for all irreversibly burnt tokens."
+    },
+    {
+        "Name": "Sapphire",
+        "Address": "oasis1qqczuf3x6glkgjuf0xgtcpjjw95r3crf7y2323xd",
+        "Description": "Address of the Sapphire account on consensus."
+    },
+    {
+        "Name": "Emerald",
+        "Address": "oasis1qr629x0tg9gm5fyhedgs9lw5eh3d8ycdnsxf0run",
+        "Description": "Address of the Emerald account on consensus."
+    },
+    {
+        "Name": "Cipher",
+        "Address": "oasis1qqdn25n5a2jtet2s5amc7gmchsqqgs4j0qcg5k0t",
+        "Description": "Address of the Cipher account on consensus."
+    }
+]
