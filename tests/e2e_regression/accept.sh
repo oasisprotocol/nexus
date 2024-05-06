@@ -12,6 +12,12 @@ if [[ -z "$suite" || ! -e "$TEST_DIR/e2e_config_1.yml" ]]; then
   exit 1
 fi
 
+[[ -L "$TEST_DIR/expected" ]] && {
+  echo >&2 "$suite/expected is a symbolic link to $(readlink "$TEST_DIR/expected")."
+  echo >&2 "Use $0 on that suite instead."
+  exit 1
+}
+
 [[ -d "$TEST_DIR/actual" ]] || {
   echo "Note: No actual outputs found for suite $suite. Nothing to accept."
   exit 0

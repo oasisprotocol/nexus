@@ -50,11 +50,7 @@ jobs:
     name: test-e2e-localnet
     runs-on: ubuntu-20.04
     steps: [{name: "fake success", run: "exit 0"}]
-  test-e2e-regression-damask:
-    name: test-e2e-regression-damask
-    runs-on: ubuntu-20.04
-    steps: [{name: "fake success", run: "exit 0"}]
-  test-e2e-regression-eden:
-    name: test-e2e-regression-eden
+  test-e2e-regression:
+    name: test-e2e-regression
     runs-on: ubuntu-20.04
     steps: [{name: "fake success", run: "exit 0"}]
