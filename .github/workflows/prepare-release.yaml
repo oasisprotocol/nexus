@@ -51,6 +51,12 @@ jobs:
     runs-on: ubuntu-20.04
     steps: [{name: "fake success", run: "exit 0"}]
   test-e2e-regression:
+    strategy:
+      matrix:
+        suite:
+          - damask
+          - eden
+          - edenfast
     name: test-e2e-regression
     runs-on: ubuntu-20.04
     steps: [{name: "fake success", run: "exit 0"}]
