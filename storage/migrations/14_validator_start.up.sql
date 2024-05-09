@@ -3,6 +3,7 @@ BEGIN;
 ALTER TABLE chain.entities
     ADD start_date TIMESTAMP WITH TIME ZONE;
 
+-- Backfill entities.start_date
 WITH entity_starts AS (
     SELECT entities.address, MIN(blocks.time) AS start
     FROM chain.entities AS entities 

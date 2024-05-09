@@ -279,10 +279,17 @@ var (
 
 	ConsensusEntityUpsert = `
     INSERT INTO chain.entities (id, address, start_date) 
-    SELECT ($1, $2, (SELECT time FROM chain.blocks WHERE height = $3))
-      ON CONFLICT (id) DO
-      UPDATE SET
-        address = excluded.address`
+    SELECT
+      $1,
+      $2::text,
+      (SELECT MIN(time) FROM chain.blocks as blocks
+        JOIN chain.transactions as txs ON
+        blocks.height = txs.block AND
+        txs.sender = $2::text AND
+        txs.method = 'registry.RegisterEntity')
+    ON CONFLICT (id) DO
+    UPDATE SET
+      address = excluded.address`
 
 	ConsensusNodeUpsert = `
     INSERT INTO chain.nodes (id, entity_id, expiration, tls_pubkey, tls_next_pubkey, tls_addresses, p2p_pubkey, p2p_addresses, consensus_pubkey, consensus_address, vrf_pubkey, roles, software_version, voting_power)

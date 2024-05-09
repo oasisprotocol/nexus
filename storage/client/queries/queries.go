@@ -314,7 +314,7 @@ const (
 			chain.accounts.escrow_balance_debonding AS debonding_balance,
 			chain.accounts.escrow_total_shares_debonding AS debonding_shares,
 			COALESCE (
-				(COALESCE(self_delegations.shares, 0) * chain.accounts.escrow_balance_active / NULLIF(chain.accounts.escrow_total_shares_active, 0))
+				ROUND(COALESCE(self_delegations.shares, 0) * chain.accounts.escrow_balance_active / NULLIF(chain.accounts.escrow_total_shares_active, 0))
 			, 0) AS self_delegation_balance,
 			COALESCE (
 				self_delegations.shares
@@ -322,7 +322,7 @@ const (
 			COALESCE (
 				delegators_count.count
 			, 0) AS num_delegators,
-			chain.nodes.voting_power,
+			active_nodes.voting_power,
 			COALESCE (
 				(SELECT SUM(voting_power)
 				FROM active_nodes)

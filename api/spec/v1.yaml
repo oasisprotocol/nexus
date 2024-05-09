@@ -1857,7 +1857,7 @@ components:
 
     Validator:
       type: object
-      required: [entity_address, entity_id, node_id, escrow, voting_power, voting_power_total, active, start_date, rank, status, current_rate, current_commission_bound]
+      required: [entity_address, entity_id, node_id, escrow, voting_power, voting_power_total, active, rank, status, current_rate, current_commission_bound]
       properties:
         entity_address:
           type: string
@@ -1877,10 +1877,12 @@ components:
           allOf: [$ref: '#/components/schemas/Escrow']
           description: The escrow account data for this validator.
         voting_power:
-          allOf: [$ref: '#/components/schemas/TextBigInt']
+          type: integer
+          format: int64
           description: The voting power of this Validator.
         voting_power_total:
-          allOf: [$ref: '#/components/schemas/TextBigInt']
+          type: integer
+          format: int64
           description: The total voting power across all Validators.
         active:
           type: boolean
