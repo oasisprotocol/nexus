@@ -584,6 +584,7 @@ func (m *processor) queueEntityEvents(batch *storage.QueryBatch, data *registryD
 		batch.Queue(queries.ConsensusEntityUpsert,
 			entityID,
 			staking.NewAddress(entityEvent.Entity.ID).String(),
+			data.Height,
 		)
 	}
 

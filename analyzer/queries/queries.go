@@ -278,7 +278,8 @@ var (
       ON CONFLICT (entity_id, node_id) DO NOTHING`
 
 	ConsensusEntityUpsert = `
-    INSERT INTO chain.entities (id, address) VALUES ($1, $2)
+    INSERT INTO chain.entities (id, address, start_date) 
+    SELECT ($1, $2, (SELECT time FROM chain.blocks WHERE height = $3))
       ON CONFLICT (id) DO
       UPDATE SET
         address = excluded.address`

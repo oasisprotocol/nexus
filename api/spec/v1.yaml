@@ -1857,7 +1857,7 @@ components:
 
     Validator:
       type: object
-      required: [entity_address, entity_id, node_id, escrow, active, status, current_rate, current_commission_bound]
+      required: [entity_address, entity_id, node_id, escrow, voting_power, voting_power_total, active, start_date, rank, status, current_rate, current_commission_bound]
       properties:
         entity_address:
           type: string
@@ -1885,6 +1885,11 @@ components:
         active:
           type: boolean
           description: Whether the entity is part of validator set (top <scheduler.params.max_validators> by stake).
+        start_date:
+          type: string
+          format: date-time
+          description: The second-granular consensus time.
+          example: *iso_timestamp_3
         rank:
           type: integer
           format: uint64
@@ -1912,9 +1917,6 @@ components:
         active_shares:
           allOf: [$ref: '#/components/schemas/TextBigInt']
           description: The shares of tokens delegated to this account.
-        active_balance_total:
-          allOf: [$ref: '#/components/schemas/TextBigInt']
-          description: The total amount of token staked to active validators in the network.
         debonding_balance:
           allOf: [$ref: '#/components/schemas/TextBigInt']
           description: The amount of token currently being undelegated (debonded) from this account.
