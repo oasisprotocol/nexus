@@ -12,6 +12,114 @@ The format is inspired by [Keep a Changelog].
 
 <!-- TOWNCRIER -->
 
+## 0.3.0 (2024-05-10)
+
+### Process Changes
+
+- Tweak ci-lint workflow
+  ([#662](https://github.com/oasisprotocol/nexus/issues/662))
+
+  - limit towncrier check to pull_request event to fix an issue with failing
+    workflow for merge commits triggered by push event
+  - enable gitlint
+  - prevent dependabot issues related to gitlint and towncrier checks
+
+- Enable markdownlint in CI
+  ([#674](https://github.com/oasisprotocol/nexus/issues/674))
+
+### Removals and Breaking Changes
+
+- api: query entities by address instead of pubkey
+  ([#685](https://github.com/oasisprotocol/nexus/issues/685))
+
+### Features
+
+- consensus: roothash messages
+  ([#599](https://github.com/oasisprotocol/nexus/issues/599))
+
+- api: add roothash messages
+  ([#616](https://github.com/oasisprotocol/nexus/issues/616))
+
+- api: query account balances from node
+  ([#670](https://github.com/oasisprotocol/nexus/issues/670))
+
+- runtime api: query by eth address
+  ([#675](https://github.com/oasisprotocol/nexus/issues/675))
+
+### Bug Fixes and Improvements
+
+- storage: retain debond end time when converting genesis
+  ([#669](https://github.com/oasisprotocol/nexus/issues/669))
+
+- analyzer/consensus: Skip nonexistent mainnet block 8048955
+  ([#677](https://github.com/oasisprotocol/nexus/issues/677))
+
+  Nexus can now reindex the whole range of blocks without getting stuck on this
+  block.
+
+- analyzer/runtime: limit total\_{received,sent} to native denomination
+  ([#679](https://github.com/oasisprotocol/nexus/issues/679))
+
+  Previously, those metrics tracked the sum of all SDK denominations. This bug
+  did not impact Sapphire, Emerald, or Cipher; they each only have one SDK
+  denomination, i.e. the native one.
+
+- abi analyzzer: handle malformed abis
+  ([#680](https://github.com/oasisprotocol/nexus/issues/680))
+
+### Internal Changes
+
+- consensus: use batch for genesis queries
+  ([#630](https://github.com/oasisprotocol/nexus/issues/630))
+
+- tests: restructure e2e_regression
+  ([#665](https://github.com/oasisprotocol/nexus/issues/665))
+
+- Tool for faster adding of Changelog fragments
+  ([#666](https://github.com/oasisprotocol/nexus/issues/666))
+
+  The new Changelog flow can be cumbersome as it requires developers to
+
+  - remember to always create a fragment
+  - adhere to strict linting rules when writing the fragment
+  - use the PR number in the fragment name even though it might not exist yet
+
+  The script takes most of this tedium away by autoformatting and auto-fetching
+  (or creating) the PR number.
+
+- Pre-push reminder to add a changelog fragment if PR doesn't have one yet
+  ([#666](https://github.com/oasisprotocol/nexus/issues/666))
+
+- Git commit-time hooks for autoformating commit messages
+  ([#666](https://github.com/oasisprotocol/nexus/issues/666))
+
+- Git commit-time hooks for autoformating changelog fragments
+  ([#666](https://github.com/oasisprotocol/nexus/issues/666))
+
+- tests: e2e_regression add edenfast suite
+  ([#667](https://github.com/oasisprotocol/nexus/issues/667))
+
+- Use [Punch] tool for tracking and bumping project's version
+  ([#668](https://github.com/oasisprotocol/nexus/issues/668))
+
+  [Punch]: https://github.com/lgiordani/punch
+
+- Improve api request logging
+  ([#676](https://github.com/oasisprotocol/nexus/issues/676))
+
+  - log binned request latencies
+  - log request query params
+
+- analyzer: move some uncategorized code into new packages
+  ([#681](https://github.com/oasisprotocol/nexus/issues/681))
+
+- bump oasis-sdk version
+  ([#683](https://github.com/oasisprotocol/nexus/issues/683))
+
+- Add data about known addresses
+  ([#687](https://github.com/oasisprotocol/nexus/issues/687))
+
+
 ## v0.2.11 (2024-03-21)
 
 ### Bug Fixes and Improvements
