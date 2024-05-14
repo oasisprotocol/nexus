@@ -342,10 +342,11 @@ const (
 		JOIN chain.nodes ON chain.entities.id = chain.nodes.entity_id
 			AND chain.nodes.roles like '%validator%'
 			AND chain.nodes.voting_power = active_nodes.voting_power
-		WHERE ($1::text IS NULL OR chain.entities.address = $1::text)
+		WHERE ($1::text IS NULL OR chain.entities.address = $1::text) AND
+				($2::text IS NULL OR chain.entities.meta->>'name' LIKE '%' || $2::text || '%')
 		ORDER BY escrow_balance_active DESC
-		LIMIT $2::bigint
-		OFFSET $3::bigint`
+		LIMIT $3::bigint
+		OFFSET $4::bigint`
 
 	RuntimeBlocks = `
 		SELECT round, block_hash, timestamp, num_transactions, size, gas_used

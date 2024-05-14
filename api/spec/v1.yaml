@@ -488,6 +488,13 @@ paths:
       parameters:
         - *limit
         - *offset
+        - in: query
+          name: name
+          schema:
+            type: string
+          description: | 
+            A filter on the validator name. Every returned validator will have
+            a name that is a superstring of the input param.
       responses:
         '200':
           description: |
