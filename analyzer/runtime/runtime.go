@@ -476,4 +476,27 @@ func (m *processor) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 			)
 		}
 	}
+
+	// Insert swap pairs.
+	for creationKey, creation := range data.SwapCreations {
+		batch.Queue(
+			queries.RuntimeEVMSwapPairUpsertCreated,
+			m.runtime,
+			creationKey.Factory,
+			creationKey.Token0,
+			creationKey.Token1,
+			creation.Pair,
+			data.Header.Round,
+		)
+	}
+	for pairAddress, sync := range data.SwapSyncs {
+		batch.Queue(
+			queries.RuntimeEVMSwapPairUpsertSync,
+			m.runtime,
+			pairAddress,
+			sync.Reserve0,
+			sync.Reserve1,
+			data.Header.Round,
+		)
+	}
 }
