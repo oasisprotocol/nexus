@@ -65,7 +65,6 @@ func MetricsMiddleware(m metrics.RequestMetrics, logger log.Logger) func(next ht
 			)
 			t := time.Now()
 			metricName := normalizeEndpoint(r.URL.Path)
-			timer := m.RequestLatencies(metricName)
 
 			// Serve the request.
 			next.ServeHTTP(w, r.WithContext(
@@ -74,14 +73,6 @@ func MetricsMiddleware(m metrics.RequestMetrics, logger log.Logger) func(next ht
 
 			// Observe results and log/record them.
 			httpStatus := reflect.ValueOf(w).Elem().FieldByName("status").Int()
-			if httpStatus < 400 || httpStatus >= 500 {
-				// Only observe the request timing if it's not going to be
-				// ignored (see below).
-				// Timers are reported to Prometheus only after they're
-				// observed, so it's OK to create it above and then ignore it
-				// like we're doing here if we don't want to use it.
-				timer.ObserveDuration()
-			}
 			latency := time.Since(t)
 			logger.Info("ending request",
 				"query_path", r.URL.Path,
@@ -103,6 +94,7 @@ func MetricsMiddleware(m metrics.RequestMetrics, logger log.Logger) func(next ht
 				metricName = "ignored"
 			}
 			m.RequestCounts(metricName, statusTxt).Inc()
+			m.RequestLatencies(metricName).Observe(latency.Seconds())
 		})
 	}
 }
