@@ -43,7 +43,7 @@ func evmDownloadTokenERC721Mutable(ctx context.Context, logger *log.Logger, sour
 	}
 	if supportsEnumerable {
 		if err1 := evmCallWithABI(ctx, source, round, tokenEthAddr, evmabi.ERC721Enumerable, &mutable.TotalSupply, "totalSupply"); err1 != nil {
-			if !errors.Is(err, EVMDeterministicError{}) {
+			if !errors.Is(err1, EVMDeterministicError{}) {
 				return nil, fmt.Errorf("calling totalSupply: %w", err1)
 			}
 			logDeterministicError(logger, round, tokenEthAddr, "ERC721Enumerable", "totalSupply", err1)
@@ -62,14 +62,14 @@ func evmDownloadTokenERC721(ctx context.Context, logger *log.Logger, source node
 	}
 	if supportsMetadata { //nolint:nestif
 		if err1 := evmCallWithABI(ctx, source, round, tokenEthAddr, evmabi.ERC721Metadata, &tokenData.Name, "name"); err1 != nil {
-			if !errors.Is(err, EVMDeterministicError{}) {
-				return nil, fmt.Errorf("calling name: %w", err)
+			if !errors.Is(err1, EVMDeterministicError{}) {
+				return nil, fmt.Errorf("calling name: %w", err1)
 			}
 			logDeterministicError(logger, round, tokenEthAddr, "ERC721Metadata", "name", err1)
 		}
 		if err1 := evmCallWithABI(ctx, source, round, tokenEthAddr, evmabi.ERC721Metadata, &tokenData.Symbol, "symbol"); err1 != nil {
-			if !errors.Is(err, EVMDeterministicError{}) {
-				return nil, fmt.Errorf("calling symbol: %w", err)
+			if !errors.Is(err1, EVMDeterministicError{}) {
+				return nil, fmt.Errorf("calling symbol: %w", err1)
 			}
 			logDeterministicError(logger, round, tokenEthAddr, "ERC721Metadata", "symbol", err1)
 		}
