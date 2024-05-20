@@ -119,7 +119,6 @@ The format is inspired by [Keep a Changelog].
 - Add data about known addresses
   ([#687](https://github.com/oasisprotocol/nexus/issues/687))
 
-
 ## v0.2.11 (2024-03-21)
 
 ### Bug Fixes and Improvements
