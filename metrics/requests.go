@@ -48,7 +48,9 @@ func (m *RequestMetrics) RequestCounts(endpoint, status string) prometheus.Count
 	return m.requestCounts.WithLabelValues(endpoint, status)
 }
 
-// RequestLatencies creates a new latency timer for the provided request endpoint.
-func (m *RequestMetrics) RequestLatencies(endpoint string) *prometheus.Timer {
-	return prometheus.NewTimer(m.requestLatencies.WithLabelValues(endpoint))
+// RequestLatencies fetches the Histogram Observer for the given endpoint
+// If it doesn't exist, a new one is created.
+// This creates 12 (with DefBuckets) empty tables in the prometheus database.
+func (m *RequestMetrics) RequestLatencies(endpoint string) prometheus.Observer {
+	return m.requestLatencies.WithLabelValues(endpoint)
 }
