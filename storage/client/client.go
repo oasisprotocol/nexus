@@ -70,11 +70,6 @@ func translateTokenType(tokenType common.TokenType) apiTypes.EvmTokenType {
 
 // runtimeNameToID returns the runtime ID for the given network and runtime name.
 func runtimeNameToID(chainName common.ChainName, name common.Runtime) (string, error) {
-	// XXX Remove once https://github.com/oasisprotocol/oasis-sdk/pull/1638 is merged.
-	if name == common.RuntimePontusx {
-		return "0000000000000000000000000000000000000000000000004febe52eb412b421", nil
-	}
-
 	network, exists := oasisConfig.DefaultNetworks.All[string(chainName)]
 	if !exists {
 		return "", fmt.Errorf("unknown network: %s", chainName)
