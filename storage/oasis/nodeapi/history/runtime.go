@@ -25,6 +25,10 @@ func NewHistoryRuntimeApiLite(ctx context.Context, history *config.History, sdkP
 	apis := map[string]nodeapi.RuntimeApiLite{}
 	for _, record := range history.Records {
 		if archiveConfig, ok := nodes[record.ArchiveName]; ok {
+			// If sdkPT is nil, the subsequent sdkConn.Runtime() call will panic
+			if sdkPT == nil {
+				return nil, fmt.Errorf("no paratime specified")
+			}
 			sdkConn, err := connections.SDKConnect(ctx, record.ChainContext, archiveConfig.ResolvedRuntimeNode(runtime), fastStartup)
 			if err != nil {
 				return nil, err

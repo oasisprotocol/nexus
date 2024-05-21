@@ -547,19 +547,20 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) { //nolint:gocyclo
 			if err1 != nil {
 				return nil, err1
 			}
-			emeraldClient, err1 := sources.Runtime(ctx, common.RuntimeEmerald)
-			if err1 != nil {
-				return nil, err1
+			runtimeClients := map[common.Runtime]nodeapi.RuntimeApiLite{}
+			// We attempt to provide the analyzer with all runtime clients. This may
+			// fail if the node does not support the runtime, which is valid. If
+			// the analyzer expects the node to support the runtime but it does not,
+			// the analyzer will log an error.
+			for _, runtime := range []common.Runtime{common.RuntimeEmerald, common.RuntimeCipher, common.RuntimeSapphire, common.RuntimePontusx} {
+				client, err2 := sources.Runtime(ctx, runtime)
+				if err2 != nil {
+					logger.Warn("unable to instantiate runtime client for node stats analyzer", "runtime", runtime)
+					continue
+				}
+				runtimeClients[runtime] = client
 			}
-			sapphireClient, err1 := sources.Runtime(ctx, common.RuntimeSapphire)
-			if err1 != nil {
-				return nil, err1
-			}
-			pontusxClient, err1 := sources.Runtime(ctx, common.RuntimePontusx)
-			if err1 != nil {
-				return nil, err1
-			}
-			return nodestats.NewAnalyzer(cfg.Analyzers.NodeStats.ItemBasedAnalyzerConfig, cfg.Analyzers.NodeStats.Layers, sourceClient, emeraldClient, sapphireClient, pontusxClient, dbClient, logger)
+			return nodestats.NewAnalyzer(cfg.Analyzers.NodeStats.ItemBasedAnalyzerConfig, cfg.Analyzers.NodeStats.Layers, sourceClient, runtimeClients, dbClient, logger)
 		})
 	}
 	if cfg.Analyzers.AggregateStats != nil {

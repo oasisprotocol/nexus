@@ -36,9 +36,7 @@ func NewAnalyzer(
 	cfg config.ItemBasedAnalyzerConfig,
 	layers []common.Layer,
 	consensusClient nodeapi.ConsensusApiLite,
-	emeraldClient nodeapi.RuntimeApiLite,
-	sapphireClient nodeapi.RuntimeApiLite,
-	pontusxClient nodeapi.RuntimeApiLite,
+	runtimeClients map[common.Runtime]nodeapi.RuntimeApiLite,
 	target storage.TargetStorage,
 	logger *log.Logger,
 ) (analyzer.Analyzer, error) {
@@ -53,13 +51,9 @@ func NewAnalyzer(
 	p := &processor{
 		layers:          layers,
 		consensusSource: consensusClient,
-		runtimeSources: map[common.Runtime]nodeapi.RuntimeApiLite{
-			common.RuntimeEmerald:  emeraldClient,
-			common.RuntimeSapphire: sapphireClient,
-			common.RuntimePontusx:  pontusxClient,
-		},
-		target: target,
-		logger: logger.With("analyzer", nodeStatsAnalyzerName),
+		runtimeSources:  runtimeClients,
+		target:          target,
+		logger:          logger.With("analyzer", nodeStatsAnalyzerName),
 	}
 
 	return item.NewAnalyzer[common.Layer](
