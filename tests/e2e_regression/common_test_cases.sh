@@ -40,6 +40,7 @@ commonTestCases=(
   'blocks                             /v1/consensus/blocks'
   'bad_account                        /v1/consensus/accounts/oasis1aaaaaaa'
   'account                            /v1/consensus/accounts/oasis1qp0302fv0gz858azasg663ax2epakk5fcssgza7j'
+  'account_with_tx                    /v1/consensus/accounts/oasis1qpn83e8hm3gdhvpfv66xj3qsetkj3ulmkugmmxn3'
   'runtime-only_account               /v1/consensus/accounts/oasis1qphyxz5csvprhnn09r49nuyzl0jdw0wsj5xpvsg2'
   'delegations                        /v1/consensus/accounts/oasis1qpk366qvtjrfrthjp3xuej5mhvvtnkr8fy02hm2s/delegations'
   'delegations_to                     /v1/consensus/accounts/oasis1qp0j5v5mkxk3eg4kxfdsk8tj6p22g4685qk76fw6/delegations_to'

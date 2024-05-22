@@ -2092,7 +2092,7 @@ components:
 
     Account:
       type: object
-      required: [address, nonce, available, escrow, debonding, allowances]
+      required: [address, nonce, available, escrow, debonding, allowances, stats]
       properties:
         address:
           type: string
@@ -2128,6 +2128,8 @@ components:
           items:
             allOf: [$ref: '#/components/schemas/Allowance']
           description: The allowances made by this account.
+        stats:
+          allOf: [$ref: '#/components/schemas/AccountStats']
       description: |
         A consensus layer account.
 
@@ -2966,7 +2968,7 @@ components:
 
     AccountStats:
       type: object
-      required: [total_sent, total_received, num_txns]
+      required: [num_txns]
       properties:
         total_sent:
           allOf: [$ref: '#/components/schemas/TextBigInt']

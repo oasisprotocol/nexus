@@ -817,6 +817,17 @@ func (c *StorageClient) Account(ctx context.Context, address staking.Address) (*
 		a.Allowances = append(a.Allowances, al)
 	}
 
+	err = c.db.QueryRow(
+		ctx,
+		queries.AccountStats,
+		address.String(),
+	).Scan(
+		&a.Stats.NumTxns,
+	)
+	if err != nil {
+		return nil, wrapError(err)
+	}
+
 	return &a, nil
 }
 
@@ -1736,8 +1747,8 @@ func (c *StorageClient) RuntimeAccount(ctx context.Context, address staking.Addr
 	case nil:
 	case pgx.ErrNoRows:
 		// If an account address has no activity, default to 0.
-		a.Stats.TotalSent = common.NewBigInt(0)
-		a.Stats.TotalReceived = common.NewBigInt(0)
+		a.Stats.TotalSent = common.Ptr(common.NewBigInt(0))
+		a.Stats.TotalReceived = common.Ptr(common.NewBigInt(0))
 		a.Stats.NumTxns = 0
 	default:
 		return nil, wrapError(err)

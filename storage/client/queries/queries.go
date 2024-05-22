@@ -191,6 +191,12 @@ const (
 		FROM chain.accounts
 		WHERE address = $1::text`
 
+	AccountStats = `
+		SELECT
+			COUNT(*)
+		FROM chain.accounts_related_transactions
+		WHERE account_address = $1::text`
+
 	AccountAllowances = `
 		SELECT beneficiary, allowance
 			FROM chain.allowances
