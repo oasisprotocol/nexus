@@ -6,5 +6,8 @@
   "debonding_delegations_balance": "0",
   "delegations_balance": "0",
   "escrow": "0",
-  "nonce": 0
+  "nonce": 0,
+  "stats": {
+    "num_txns": 0
+  }
 }

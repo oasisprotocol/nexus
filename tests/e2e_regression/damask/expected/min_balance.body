@@ -6,7 +6,10 @@
       "available": "1200000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 0
+      "nonce": 0,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp0052pu6cdst4grc9htdx4c5cc42hx99sufv6f5",
@@ -14,7 +17,10 @@
       "available": "1500000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 9
+      "nonce": 9,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp0088hdxzs8r94ae048rhrpv4m0taumcqanhe4u",
@@ -22,7 +28,10 @@
       "available": "175000000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 1
+      "nonce": 1,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp00eh8k8nywj9qqjy7sw9e7ml3g2ffylgcd0954",
@@ -30,7 +39,10 @@
       "available": "1100000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 0
+      "nonce": 0,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp00fnd2q8xmjvavt0j09ywazcu2gkd2duw6f9th",
@@ -38,7 +50,10 @@
       "available": "1128000000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 0
+      "nonce": 0,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp00gh2xzswsddks578q2w3xv8ayzuxmc5luanl7",
@@ -46,7 +61,10 @@
       "available": "330467776570",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 14
+      "nonce": 14,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp00gl2xnaly8nhxp8wxes805ekmmknhc59gugy6",
@@ -54,7 +72,10 @@
       "available": "2000000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 0
+      "nonce": 0,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp00myl9jglx33q6p6azxsqx0xswqhffr5dnt5vp",
@@ -62,7 +83,10 @@
       "available": "1100000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 0
+      "nonce": 0,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp00nyjtvahwlp5452ndca5l82jvcfr8xqratswg",
@@ -70,7 +94,10 @@
       "available": "916795745",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 8
+      "nonce": 8,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp00ra8zwdrqmptdh3xwepj4jmf4ceeqzcd0dsgz",
@@ -78,7 +105,10 @@
       "available": "11900000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 2
+      "nonce": 2,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp00rue5tygytj39hgk0ygmwze39clx7egqlz8h4",
@@ -86,7 +116,10 @@
       "available": "1100000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 0
+      "nonce": 0,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp00s6dkgulsxc8vycjxwupwwlh02x38xsua4z57",
@@ -94,7 +127,10 @@
       "available": "100000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 5
+      "nonce": 5,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp00sdw3f85dykwgq4hjtct43fn6gda295uauwlf",
@@ -102,7 +138,10 @@
       "available": "2475125000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 2
+      "nonce": 2,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp00ul440fjeuq58qv95p3et3erz026c8q86uj5v",
@@ -110,7 +149,10 @@
       "available": "5900000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 0
+      "nonce": 0,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp00w0xae4lfegn8g76apusnzjzgjd0upyx7vsnj",
@@ -118,7 +160,10 @@
       "available": "308067746400",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 0
+      "nonce": 0,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp00wltgunnj9w982hkmwe4lpc5zg6eq3sdhds90",
@@ -126,7 +171,10 @@
       "available": "31900000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 0
+      "nonce": 0,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp0207jnr57604q9f4wk7tkxqssg6ex9furl2mns",
@@ -134,7 +182,10 @@
       "available": "4900000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 0
+      "nonce": 0,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp022pmrltefaj2a87faj34zf465zz54rqwehsk5",
@@ -142,7 +193,10 @@
       "available": "29928000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 0
+      "nonce": 0,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp02466fxnecqe8s8ghe5estg3f4gpjf9srywzcv",
@@ -150,7 +204,10 @@
       "available": "408800000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 6
+      "nonce": 6,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp028tzl3mudsug9j2eh9hkrjzllmmc6u5pn2kvj",
@@ -158,7 +215,10 @@
       "available": "31400000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 5
+      "nonce": 5,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp0297t4m5eqhucezc5kf70ney5256gensqlv7ax",
@@ -166,7 +226,10 @@
       "available": "100000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 1
+      "nonce": 1,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp02c0zt8jj4j4l0j495qncq02mcxxg3hy6pd6yv",
@@ -174,7 +237,10 @@
       "available": "1100000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 0
+      "nonce": 0,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp02fmhltqdhhgg06ycw6q4n6kkx8kppyys3lucp",
@@ -182,7 +248,10 @@
       "available": "1200000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 0
+      "nonce": 0,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp02fre745kazh7k277tnkq7csngpcgjvggrnmqg",
@@ -190,7 +259,10 @@
       "available": "100000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 1
+      "nonce": 1,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp02ggy3qs6aw63frtmvuu0hphuftgylnvpunw0f",
@@ -198,7 +270,10 @@
       "available": "497057401",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 4
+      "nonce": 4,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp02jzag8kq9gyxvk67hz7d3uc9hg6x05qtttw26",
@@ -206,7 +281,10 @@
       "available": "5000000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 2
+      "nonce": 2,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp02kh4zlx5z8vrkwndh4dq4em5j5d3xuvrwa6fd",
@@ -214,7 +292,10 @@
       "available": "1100000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 0
+      "nonce": 0,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp02maxhquje0sjaus86xvnehxj27ctkjy4u7qpt",
@@ -222,7 +303,10 @@
       "available": "1100000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 0
+      "nonce": 0,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp02mr4e0atk388zzjmwzgmqv06xc0ygfc5sug7u",
@@ -230,7 +314,10 @@
       "available": "11000000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 0
+      "nonce": 0,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp02n3yn3pfn8ssyjaq6c9j9nrekrmkvhyewqeau",
@@ -238,7 +325,10 @@
       "available": "4900000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 3
+      "nonce": 3,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp02n4zy9ujsvgvkzp7cvqnu7r6t5dhxqg3ls8ty",
@@ -246,7 +336,10 @@
       "available": "3413684872332",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 0
+      "nonce": 0,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp02n9lrth0sxp57raez0te2gdsxw9tts5xtwn9e",
@@ -254,7 +347,10 @@
       "available": "1900000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 0
+      "nonce": 0,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp02tdch2tdzvcayrydrkcx3qp4kjwdgfsdn827g",
@@ -262,7 +358,10 @@
       "available": "3900000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 0
+      "nonce": 0,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp02u763rg5y5ec4s3ppzxhgy2ucznp4tsretuau",
@@ -270,7 +369,10 @@
       "available": "1100000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 0
+      "nonce": 0,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp02ucem2cfjsqnxev5hmr4rckzqdtk33c6cvev8",
@@ -278,7 +380,10 @@
       "available": "189900000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 0
+      "nonce": 0,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp0302fv0gz858azasg663ax2epakk5fcssgza7j",
@@ -286,7 +391,10 @@
       "available": "744704363502",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 5
+      "nonce": 5,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp030grkp04yl7l2mjcskk79z20vrct62ua5m3pw",
@@ -294,7 +402,10 @@
       "available": "1900000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 0
+      "nonce": 0,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp032gakpngap7zv30kjm7pp6tx084ktvgajjzzw",
@@ -302,7 +413,10 @@
       "available": "1000000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 1
+      "nonce": 1,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp035mtxqmt5uamqj35xp0sg0pmh4s6x95ngvt5v",
@@ -310,7 +424,10 @@
       "available": "1100000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 0
+      "nonce": 0,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp036vwpy7hkye0fxmxa2vuhc49r0nv0yyjrh0ss",
@@ -318,7 +435,10 @@
       "available": "300000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 6
+      "nonce": 6,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp037gd08rnpry2pm6lr4u6qgsysdd26dsfsc7x9",
@@ -326,7 +446,10 @@
       "available": "411900000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 0
+      "nonce": 0,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp0394v5dyugnlakjsm4vdhgm374sj2usu3ay00z",
@@ -334,7 +457,10 @@
       "available": "1200000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 0
+      "nonce": 0,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp03ans0jzzn4vak3y2mvl5af5qwcngxcs8h25xl",
@@ -342,7 +468,10 @@
       "available": "1900000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 0
+      "nonce": 0,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp03ap4ps8d204nw4y335lc5zyxw9l7g8vespy98",
@@ -350,7 +479,10 @@
       "available": "2538835787150",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 0
+      "nonce": 0,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp03awwuh9ygldhaujfqhsntxw7f7wrx4vtrv3gq",
@@ -358,7 +490,10 @@
       "available": "1100000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 0
+      "nonce": 0,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp03ecafgzkdek22trj399j3xn5qlxwgxvxlt82q",
@@ -366,7 +501,10 @@
       "available": "400000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 1
+      "nonce": 1,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp03ejsn62rd6uguadgfhyhgu7dpnq5xvqzahh3w",
@@ -374,7 +512,10 @@
       "available": "500000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 0
+      "nonce": 0,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp03el2l2zunt8kjnnaels9vghpq2zwjdynn6zwf",
@@ -382,7 +523,10 @@
       "available": "50000000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 0
+      "nonce": 0,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp03grg6l57h56ev2fltkyjnqqjntg5yrg3jadc3",
@@ -390,7 +534,10 @@
       "available": "6488000000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 0
+      "nonce": 0,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp03gtguq6xl2dnajtmh9ghae8sfzp3a4ywq7alw",
@@ -398,7 +545,10 @@
       "available": "95900000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 0
+      "nonce": 0,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp03m7huvzgmh0350ck03yv6dtnx7242kve5t3wx",
@@ -406,7 +556,10 @@
       "available": "400000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 7
+      "nonce": 7,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp03pqs447zzt497ndcxkz842g4gnujju5fv8vxz",
@@ -414,7 +567,10 @@
       "available": "6900000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 0
+      "nonce": 0,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp03pw8222vkxn59x8qvcykl6n7qh44ryctktnmp",
@@ -422,7 +578,10 @@
       "available": "2900000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 0
+      "nonce": 0,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp03tr0fulqq5st52kemdr5humlrsfw98smhvf2g",
@@ -430,7 +589,10 @@
       "available": "10000000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 0
+      "nonce": 0,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp03vvx0retvarq5495fmdcwy6eudk9vevmak4kt",
@@ -438,7 +600,10 @@
       "available": "9300000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 8
+      "nonce": 8,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp03yyvems3s5jtgvtzwn5jqurhjj3f9cq89p470",
@@ -446,7 +611,10 @@
       "available": "1100000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 0
+      "nonce": 0,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp0442kh0p7fuya4nqp7qek702rrvvphqqv00sce",
@@ -454,7 +622,10 @@
       "available": "99900000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 2
+      "nonce": 2,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp044p7qp2l9h6kwgla5svc9qzltp5grlcchhjs3",
@@ -462,7 +633,10 @@
       "available": "20000000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 1
+      "nonce": 1,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp0457rvj592ukwwftk95uq2yes2cq244skc005u",
@@ -470,7 +644,10 @@
       "available": "1200000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 0
+      "nonce": 0,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp048vzvyf8cdjqhru23zmpgc4vf0hxwese26647",
@@ -478,7 +655,10 @@
       "available": "6900000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 0
+      "nonce": 0,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp0493zz44duzs5xa8tjg5g0q20067ltzqevfsy6",
@@ -486,7 +666,10 @@
       "available": "2693400000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 6
+      "nonce": 6,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp04aptwxv3pmcqy3k6n7wpgnmejdmjjasls7ac2",
@@ -494,7 +677,10 @@
       "available": "1100000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 0
+      "nonce": 0,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp04aue9kupt28sdpknrx44zdq9snpk7hugkchc3",
@@ -502,7 +688,10 @@
       "available": "699999999",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 3
+      "nonce": 3,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp04dsx8j95vxpv39dy0na4qc6y759cnmu37dmva",
@@ -510,7 +699,10 @@
       "available": "1100000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 0
+      "nonce": 0,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp04gvy3xv7d0dzdv8zn3jnnslh725uymsl48te6",
@@ -518,7 +710,10 @@
       "available": "21000000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 1
+      "nonce": 1,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp04lry8wzpawhq48r2sfn8a2w2edyt75gtggsmx",
@@ -526,7 +721,10 @@
       "available": "8531100000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 2
+      "nonce": 2,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp04n4y79vkjf36xpumt9ae8t24t53a20u7573rv",
@@ -534,7 +732,10 @@
       "available": "695866468",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 7
+      "nonce": 7,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp04q4ra4wg87jnndevummkq9sm229kjxvmqg5ze",
@@ -542,7 +743,10 @@
       "available": "300000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 4
+      "nonce": 4,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp04upjaw3m6gktracvrrdrvwzdcxgl3cvc9qc24",
@@ -550,7 +754,10 @@
       "available": "37464974260",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 3
+      "nonce": 3,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp04z4fsw57td5ahsdp6ffx6eups2fcrjvh9ft3l",
@@ -558,7 +765,10 @@
       "available": "1300000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 0
+      "nonce": 0,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp04z7tuyuasa69vzseqkluh7zya4f35xv6g38ym",
@@ -566,7 +776,10 @@
       "available": "100000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 1
+      "nonce": 1,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp052dtymzwleem7nlkxrnzp9lxhcaze5gpdq66z",
@@ -574,7 +787,10 @@
       "available": "12000000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 0
+      "nonce": 0,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp0538ytpt0wtxyy924jlfyhuz94tm5skspfy6mx",
@@ -582,7 +798,10 @@
       "available": "1200000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 0
+      "nonce": 0,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp055zsmnpewaaa4ddz0rzvjqjdhxrc0356v0cmd",
@@ -590,7 +809,10 @@
       "available": "4918700000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 0
+      "nonce": 0,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp059yspjx7nuhs85kup6k99rz3c7wt7fgmgk4hz",
@@ -598,7 +820,10 @@
       "available": "6500000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 11
+      "nonce": 11,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp05a338jeqxrhdakpdh9k5q2efvnhmvgymk7fna",
@@ -606,7 +831,10 @@
       "available": "400000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 1
+      "nonce": 1,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp05d3n92xyjwwnm82vdqmghrtl7l8r5eyn2gnzw",
@@ -614,7 +842,10 @@
       "available": "2900000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 1
+      "nonce": 1,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp05elhgff6n34t758efy6y0drhy7lqw4sj80gg4",
@@ -622,7 +853,10 @@
       "available": "10000000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 1
+      "nonce": 1,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp05j5jd9ragpp9w3q98ddcnnxdda7l0hut0t47n",
@@ -630,7 +864,10 @@
       "available": "610087903",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 9
+      "nonce": 9,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp05l3hl8tm893rweh3ez4pa2u5rv6mcvy676mrs",
@@ -638,7 +875,10 @@
       "available": "3000000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 0
+      "nonce": 0,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp05mn83rr70jh5s3lwfyusrnu4xg429vyahz5mj",
@@ -646,7 +886,10 @@
       "available": "25900000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 0
+      "nonce": 0,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp05ndmmylmdjjwc34zqv0e6vq2l59hl65cuezqw",
@@ -654,7 +897,10 @@
       "available": "4900000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 1
+      "nonce": 1,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp05nj9nwkvfmxcm9u7asv739qku8ek3es9gmha5",
@@ -662,7 +908,10 @@
       "available": "4707284760",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 2
+      "nonce": 2,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp05ut8dwkk00f0k33pjvh24qs5wu9tyv5uyflxp",
@@ -670,7 +919,10 @@
       "available": "1100000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 0
+      "nonce": 0,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp05v0umf4t79fkj9ckcn2vn66056sjd5grf9udf",
@@ -678,7 +930,10 @@
       "available": "100000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 1
+      "nonce": 1,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp05v7gexfp7nh9z9pqtwzrkvldjspraecmjgyte",
@@ -686,7 +941,10 @@
       "available": "800000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 4
+      "nonce": 4,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp05wp5nwz29fpvnwvdxpplyhllcrfmvqq8ulepz",
@@ -694,7 +952,10 @@
       "available": "800000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 2
+      "nonce": 2,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp05x4ssvjg9867m8rjkludk43re0y480c5r2y8n",
@@ -702,7 +963,10 @@
       "available": "1900000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 0
+      "nonce": 0,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp05xzre088lr95ryfvsn86hquuntqvxly4sc3m3",
@@ -710,7 +974,10 @@
       "available": "513124520",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 3
+      "nonce": 3,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp05yrvh8wtxylphmwfgkgtswy797tzd2u564n0m",
@@ -718,7 +985,10 @@
       "available": "1100000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 0
+      "nonce": 0,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp064n4qpe2mfnkkqytdx6n5q2v285ngnsewweku",
@@ -726,7 +996,10 @@
       "available": "3530230228850",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 1
+      "nonce": 1,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp065ghs5wfcsmwq98daw83zmjq4kxmjtckur50j",
@@ -734,7 +1007,10 @@
       "available": "2000000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 1
+      "nonce": 1,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp066as3fwjhjw8wjv3p0rafjxnhmt7ad5qmfyfq",
@@ -742,7 +1018,10 @@
       "available": "3187279137713",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 0
+      "nonce": 0,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp067ekdegws80fhsemu8xv0dkyq3ahvmynhqdfe",
@@ -750,7 +1029,10 @@
       "available": "9726415410",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 0
+      "nonce": 0,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp06fecjzkwdfwzzcal7yzea5xvuqza8ugnnp90n",
@@ -758,7 +1040,10 @@
       "available": "16562900000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 0
+      "nonce": 0,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp06femjaryl3924uugflmq2ecfsqcjn4y4xy4ah",
@@ -766,7 +1051,10 @@
       "available": "500000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 1
+      "nonce": 1,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp06fvu7qnzud4cla44nwst635vv8rg43sxhx4ep",
@@ -774,7 +1062,10 @@
       "available": "1400000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 7
+      "nonce": 7,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp06j9auxaaskc7f7fafy5cuhvwjdyna4gryan3n",
@@ -782,7 +1073,10 @@
       "available": "215937477601",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 12
+      "nonce": 12,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp06mjhl3cqdsdgy3re3zk22py6te7kq25mxxv40",
@@ -790,7 +1084,10 @@
       "available": "6986000210",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 9
+      "nonce": 9,
+      "stats": {
+        "num_txns": 0
+      }
     },
     {
       "address": "oasis1qp06nz9xht0ndsfn0l8yu39rv5eympekhcu8hhdp",
@@ -798,7 +1095,10 @@
       "available": "1000000000",
       "debonding": "0",
       "escrow": "0",
-      "nonce": 1
+      "nonce": 1,
+      "stats": {
+        "num_txns": 0
+      }
     }
   ],
   "is_total_count_clipped": true,
