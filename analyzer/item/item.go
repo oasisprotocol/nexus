@@ -22,7 +22,7 @@ import (
 
 const (
 	// Timeout to process a single batch.
-	processBatchTimeout = 61 * time.Second
+	processBatchTimeout = 6001 * time.Second
 	// Default number of items processed in a batch.
 	defaultBatchSize = 20
 )

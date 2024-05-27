@@ -165,9 +165,10 @@ type AnalyzersList struct {
 	PontusxTestAbi              *EvmAbiAnalyzerConfig          `koanf:"evm_abi_pontusx_test"`
 	PontusxDevAbi               *EvmAbiAnalyzerConfig          `koanf:"evm_abi_pontusx_dev"`
 
-	MetadataRegistry *MetadataRegistryConfig `koanf:"metadata_registry"`
-	NodeStats        *NodeStatsConfig        `koanf:"node_stats"`
-	AggregateStats   *AggregateStatsConfig   `koanf:"aggregate_stats"`
+	MetadataRegistry        *MetadataRegistryConfig        `koanf:"metadata_registry"`
+	ValidatorStakingHistory *ValidatorStakingHistoryConfig `koanf:"validator_staking_history"`
+	NodeStats               *NodeStatsConfig               `koanf:"node_stats"`
+	AggregateStats          *AggregateStatsConfig          `koanf:"aggregate_stats"`
 }
 
 type HelperList struct {
@@ -473,6 +474,23 @@ type MetadataRegistryConfig struct {
 func (cfg *MetadataRegistryConfig) Validate() error {
 	if cfg.Interval < time.Minute {
 		return fmt.Errorf("metadata registry interval must be at least 1 minute")
+	}
+	return nil
+}
+
+// ValidatorStakingHistoryConfig is the configuration for the validator balances analyzer.
+type ValidatorStakingHistoryConfig struct {
+	ItemBasedAnalyzerConfig `koanf:",squash"`
+
+	// StartHeight is the height at which the analyzer should start constructing validator
+	// history from. Note: We use a uint64 to match the consensus block config types, but
+	// the analyzer will refuse to start if StartHeight > math.MaxInt64.
+	StartHeight uint64 `koanf:"start_height"`
+}
+
+func (cfg *ValidatorStakingHistoryConfig) Validate() error {
+	if cfg.StartHeight == 0 {
+		return fmt.Errorf("validator staking startHeight must be set, preferably to the consensus analyzer start height")
 	}
 	return nil
 }

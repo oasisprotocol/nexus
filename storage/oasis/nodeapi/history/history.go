@@ -239,6 +239,22 @@ func (c *HistoryConsensusApiLite) GetProposal(ctx context.Context, height int64,
 	return api.GetProposal(ctx, height, proposalID)
 }
 
+func (c *HistoryConsensusApiLite) GetAccount(ctx context.Context, height int64, address nodeapi.Address) (*nodeapi.Account, error) {
+	api, err := c.APIForHeight(height)
+	if err != nil {
+		return nil, fmt.Errorf("getting api for height %d: %w", height, err)
+	}
+	return api.GetAccount(ctx, height, address)
+}
+
+func (c *HistoryConsensusApiLite) DelegationsTo(ctx context.Context, height int64, address nodeapi.Address) (map[nodeapi.Address]*nodeapi.Delegation, error) {
+	api, err := c.APIForHeight(height)
+	if err != nil {
+		return nil, fmt.Errorf("getting api for height %d: %w", height, err)
+	}
+	return api.DelegationsTo(ctx, height, address)
+}
+
 func (c *HistoryConsensusApiLite) GrpcConn() connections.GrpcConn {
 	// To access the gRPC connection, you must know the height of the block.
 	// Use APIForHeight(h).GrpcConn() instead.

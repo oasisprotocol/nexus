@@ -11,11 +11,12 @@ commonTestCases=(
   'db__allowances                     select * from chain.allowances order by beneficiary, owner'
   'db__debonding_delegations          select debond_end, delegator, delegatee, shares from chain.debonding_delegations order by debond_end, delegator, delegatee, shares' # column `id` is internal use only, and not stable
   'db__delegations                    select * from chain.delegations where shares != 0 order by delegatee, delegator'
-  'db__epochs                         select * from chain.epochs order by id'
+  'db__epochs                         select id, start_height, end_height, ARRAY(SELECT unnest(validators) ORDER BY 1) AS sorted_validators from chain.epochs order by id'
   'db__entities                       select * from chain.entities order by id'
   'db__events                         select tx_block, tx_index, tx_hash, type, ARRAY(SELECT unnest(related_accounts) ORDER BY 1) AS sorted_related_accounts, body::text from chain.events order by tx_block, tx_index, type, body::text'
   'db__nodes                          select id, entity_id, roles, expiration, voting_power from chain.nodes order by id'
   'db__runtime_nodes                  select rn.*, n.roles FROM chain.runtime_nodes rn LEFT JOIN chain.nodes n ON (rn.node_id = n.id) ORDER BY runtime_id, node_id'
+  'db__validator_staking_history      select * from history.validators order by epoch, id'
   ## Runtimes.
   'db__account_related_txs            select * from chain.runtime_related_transactions order by runtime, tx_round, tx_index, account_address'
   'db__runtime_accounts               select * from chain.runtime_accounts order by runtime, address'

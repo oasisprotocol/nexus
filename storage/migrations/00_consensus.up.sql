@@ -118,6 +118,9 @@ CREATE TABLE chain.epochs
   -- Max known height that belongs to the epoch.
   end_height   UINT63 NOT NULL CHECK (end_height >= start_height),
   UNIQUE (start_height, end_height)
+
+  -- Added in 25_validator_staking_history.up.sql
+  -- validators base64_ed25519_pubkey[]
 );
 CREATE INDEX ix_epochs_id ON chain.epochs (id);
 
