@@ -124,7 +124,7 @@ func NewService(cfg *config.ServerConfig) (*Service, error) {
 	var networkConfig *sdkConfig.Network
 	if cfg.Source != nil {
 		networkConfig = cfg.Source.SDKNetwork()
-		apiRuntimes := []common.Runtime{common.RuntimeEmerald, common.RuntimeSapphire, common.RuntimePontusx}
+		apiRuntimes := []common.Runtime{common.RuntimeEmerald, common.RuntimeSapphire, common.RuntimePontusx, common.RuntimePontusxDev}
 		for _, runtime := range apiRuntimes {
 			client, err2 := source.NewRuntimeClient(ctx, cfg.Source, runtime)
 			if err2 != nil {

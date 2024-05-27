@@ -281,6 +281,8 @@ func RuntimeFromURLMiddleware(baseURL string) func(next http.Handler) http.Handl
 				runtime = common.RuntimeCipher
 			case strings.HasPrefix(path, "/pontusx/"):
 				runtime = common.RuntimePontusx
+			case strings.HasPrefix(path, "/pontusxdev/"):
+				runtime = common.RuntimePontusxDev
 			}
 
 			if runtime != "" {
