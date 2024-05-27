@@ -184,6 +184,14 @@ func (c *FileConsensusApiLite) GetProposal(ctx context.Context, height int64, pr
 	)
 }
 
+func (c *FileConsensusApiLite) GetAccount(ctx context.Context, height int64, address nodeapi.Address) (*nodeapi.Account, error) {
+	return kvstore.GetFromCacheOrCall(
+		c.db, height == consensus.HeightLatest,
+		kvstore.GenerateCacheKey("GetAccount", height, address),
+		func() (*nodeapi.Account, error) { return c.consensusApi.GetAccount(ctx, height, address) },
+	)
+}
+
 func (c *FileConsensusApiLite) GrpcConn() connections.GrpcConn {
 	return c.consensusApi.GrpcConn()
 }

@@ -221,6 +221,17 @@ func (c *ConsensusApiLite) GetProposal(ctx context.Context, height int64, propos
 	return (*nodeapi.Proposal)(convertProposal(rsp)), nil
 }
 
+func (c *ConsensusApiLite) GetAccount(ctx context.Context, height int64, address nodeapi.Address) (*nodeapi.Account, error) {
+	var rsp *stakingCobalt.Account
+	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Staking/Account", &stakingCobalt.OwnerQuery{
+		Height: height,
+		Owner:  address,
+	}, &rsp); err != nil {
+		return nil, fmt.Errorf("GetAccount(%d, %s): %w", height, address, err)
+	}
+	return (*nodeapi.Account)(convertAccount(rsp)), nil
+}
+
 func (c *ConsensusApiLite) GrpcConn() connections.GrpcConn {
 	return c.grpcConn
 }
