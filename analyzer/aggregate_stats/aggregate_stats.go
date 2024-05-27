@@ -49,7 +49,7 @@ var statsLayers = []string{
 	string(common.RuntimeEmerald),
 	string(common.RuntimeSapphire),
 	string(common.RuntimePontusx),
-	string(common.RuntimePontusxdev),
+	string(common.RuntimePontusxDev),
 	string(common.RuntimeCipher),
 }
 

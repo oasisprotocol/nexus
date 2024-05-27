@@ -229,7 +229,7 @@ const (
 	LayerCipher     Layer = "cipher"
 	LayerSapphire   Layer = "sapphire"
 	LayerPontusx    Layer = "pontusx"
-	LayerPontusxdev Layer = "pontusxdev"
+	LayerPontusxDev Layer = "pontusx_dev"
 )
 
 // Runtime is an identifier for a runtime on the Oasis Network.
@@ -240,7 +240,7 @@ const (
 	RuntimeCipher     Runtime = "cipher"
 	RuntimeSapphire   Runtime = "sapphire"
 	RuntimePontusx    Runtime = "pontusx"
-	RuntimePontusxdev Runtime = "pontusxdev"
+	RuntimePontusxDev Runtime = "pontusx_dev"
 )
 
 type CallFormat string
