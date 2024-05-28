@@ -12,6 +12,33 @@ The format is inspired by [Keep a Changelog].
 
 <!-- TOWNCRIER -->
 
+## 0.3.1 (2024-05-27)
+
+### Features
+
+- add support for pontusx_test, rename existing pontusx runtime to pontusx_dev
+  ([#696](https://github.com/oasisprotocol/nexus/issues/696))
+
+- api: add num_txns stat for consensus accounts
+  ([#698](https://github.com/oasisprotocol/nexus/issues/698))
+
+### Bug Fixes and Improvements
+
+- metrics: dont create new 'api_request_latencies_buckets' for 404s
+  ([#692](https://github.com/oasisprotocol/nexus/issues/692))
+
+- analyzer: make node stats analyzer more robust to unsupported runtimes
+  ([#693](https://github.com/oasisprotocol/nexus/issues/693))
+
+- evm_tokens: use right error struct
+  ([#694](https://github.com/oasisprotocol/nexus/issues/694))
+
+- tests/e2e_regression/edenfast: copy sourcify rpc-cache from eden
+  ([#695](https://github.com/oasisprotocol/nexus/issues/695))
+
+- db: augment accounts_related_transactions_address index
+  ([#697](https://github.com/oasisprotocol/nexus/issues/697))
+
 ## 0.3.0 (2024-05-10)
 
 ### Process Changes
