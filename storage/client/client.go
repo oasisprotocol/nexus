@@ -68,13 +68,33 @@ func translateTokenType(tokenType common.TokenType) apiTypes.EvmTokenType {
 	}
 }
 
+// The apiTypes Layers may be named differently from Nexus-internal Layers
+// to make the api more ergonomic.
+func translateLayer(layer apiTypes.Layer) common.Layer {
+	switch layer {
+	case apiTypes.LayerConsensus:
+		return common.LayerConsensus
+	case apiTypes.LayerCipher:
+		return common.LayerCipher
+	case apiTypes.LayerEmerald:
+		return common.LayerEmerald
+	case apiTypes.LayerSapphire:
+		return common.LayerSapphire
+	case apiTypes.LayerPontusxtest:
+		return common.LayerPontusxTest
+	case apiTypes.LayerPontusxdev:
+		return common.LayerPontusxDev
+	default:
+		return "unexpected_layer"
+	}
+}
+
 // runtimeNameToID returns the runtime ID for the given network and runtime name.
 func runtimeNameToID(chainName common.ChainName, name common.Runtime) (string, error) {
 	network, exists := oasisConfig.DefaultNetworks.All[string(chainName)]
 	if !exists {
 		return "", fmt.Errorf("unknown network: %s", chainName)
 	}
-
 	paratime, exists := network.ParaTimes.All[string(name)]
 	if !exists {
 		return "", fmt.Errorf("unknown runtime: %s", name)
@@ -2030,7 +2050,7 @@ func (c *StorageClient) TxVolumes(ctx context.Context, layer apiTypes.Layer, p a
 	rows, err := c.db.Query(
 		ctx,
 		query,
-		layer,
+		translateLayer(layer),
 		p.Limit,
 		p.Offset,
 	)
@@ -2071,7 +2091,7 @@ func (c *StorageClient) DailyActiveAccounts(ctx context.Context, layer apiTypes.
 	rows, err := c.db.Query(
 		ctx,
 		query,
-		layer,
+		translateLayer(layer),
 		p.Limit,
 		p.Offset,
 	)
