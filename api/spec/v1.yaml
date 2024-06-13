@@ -1128,7 +1128,7 @@ paths:
         - in: path
           name: address
           required: true
-          schema: 
+          schema:
             allOf: [$ref: '#/components/schemas/EthOrOasisAddress']
           description: The staking address of the account to return.
       responses:
@@ -1530,8 +1530,8 @@ components:
           type: object
           description: The method call body. This spec does not encode the many possible types;
             instead, see [the Go API](https://pkg.go.dev/github.com/oasisprotocol/oasis-core/go) of oasis-core.
-            This object will conform to one of the types passed to variable instantiations using `NewMethodName` 
-            two levels down the hierarchy, e.g. `MethodTransfer` from `oasis-core/go/staking/api` seen 
+            This object will conform to one of the types passed to variable instantiations using `NewMethodName`
+            two levels down the hierarchy, e.g. `MethodTransfer` from `oasis-core/go/staking/api` seen
             [here](https://pkg.go.dev/github.com/oasisprotocol/oasis-core/go@v0.2300.10/staking/api#pkg-variables).
           example: *tx_body_1
         success:
@@ -1561,9 +1561,9 @@ components:
             This field, like `code` and `module`, can represent an error that originated
             anywhere in the paratime, i.e. either inside or outside a smart contract.
 
-            A common special case worth calling out: When the paratime is 
-            EVM-compatible (e.g. Emerald or Sapphire) and the error originates 
-            inside a smart contract (using `revert` in solidity), the following 
+            A common special case worth calling out: When the paratime is
+            EVM-compatible (e.g. Emerald or Sapphire) and the error originates
+            inside a smart contract (using `revert` in solidity), the following
             will be true:
             - `module` will be "evm" and `code` will be 8; see [here](https://github.com/oasisprotocol/oasis-sdk/blob/runtime-sdk/v0.8.3/runtime-sdk/modules/evm/src/lib.rs#L128) for other possible errors in the `evm` module.
             - `message` will contain the best-effort human-readable revert reason.
@@ -1573,12 +1573,12 @@ components:
             allOf: [$ref: '#/components/schemas/EvmAbiParam']
           description: |
             The error parameters, as decoded using the contract abi. Present only when
-            - the error originated from within a smart contract (e.g. via `revert` in Solidity), and 
+            - the error originated from within a smart contract (e.g. via `revert` in Solidity), and
             - the contract is verified or the revert reason is a plain String.
             If this field is present, `message` will include the name of the error, e.g. 'InsufficentBalance'.
             Note that users should be cautious when evaluating error data since the
             data origin is not tracked and error information can be faked.
-            
+
     ConsensusEventType:
       type: string
       enum:
@@ -1835,21 +1835,18 @@ components:
       type: object
       # All of the fields are optional.
       properties:
-        website_link:
+        url:
           type: string
           description: An URL associated with the entity.
-        email_address:
+        email:
           type: string
-          description: An email address for the validator.
-        twitter_acc:
+          description: An email address associated with the entity.
+        twitter:
           type: string
-          description: A Twitter handle.
-        tg_chat:
+          description: Twitter handle.
+        keybase:
           type: string
-          description: An Telegram handle.
-        logotype:
-          type: string
-          description: A logo type.
+          description: Keybase handle.
         name:
           type: string
           description: The human-readable name of this validator.
@@ -2424,13 +2421,13 @@ components:
             This object will conform to one of the `*Event` types two levels down
             the hierarchy (e.g. `MintEvent` from `accounts > Event > MintEvent`),
             OR `evm > Event`. For object fields that specify an oasis-style address, Nexus
-            will add a field specifying the corresponding Ethereum address, if known. Currently, 
+            will add a field specifying the corresponding Ethereum address, if known. Currently,
             the only such possible fields are `from_eth`, `to_eth`, and `owner_eth`.
         evm_log_name:
           type: string
           description: |
-            If the event type is `evm.log`, this field describes the human-readable type of 
-            evm event, e.g. `Transfer`. 
+            If the event type is `evm.log`, this field describes the human-readable type of
+            evm event, e.g. `Transfer`.
             Absent if the event type is not `evm.log`.
           example: 'Transfer'
         evm_log_params:
