@@ -1452,22 +1452,32 @@ components:
     ConsensusTxMethod:
       type: string
       enum:
-        - staking.Transfer
-        - staking.AddEscrow
-        - staking.ReclaimEscrow
-        - staking.AmendCommissionSchedule
-        - staking.Allow
-        - staking.Withdraw
-        - roothash.ExecutorCommit
-        - roothash.ExecutorProposerTimeout
-        - registry.RegisterEntity
-        - registry.RegisterNode
-        - registry.RegisterRuntime
-        - governance.CastVote
-        - governance.SubmitProposal
         - beacon.PVSSCommit
         - beacon.PVSSReveal
         - beacon.VRFProve
+        - consensus.Meta
+        - governance.CastVote
+        - governance.SubmitProposal
+        - keymanager.PublishEphemeralSecret
+        - keymanager.PublishMasterSecret
+        - keymanager.UpdatePolicy
+        - registry.DeregisterEntity
+        - registry.ProveFreshness
+        - registry.RegisterEntity
+        - registry.RegisterNode
+        - registry.RegisterRuntime
+        - registry.UnfreezeNode
+        - roothash.Evidence
+        - roothash.ExecutorCommit
+        - roothash.ExecutorProposerTimeout
+        - roothash.SubmitMsg
+        - staking.AddEscrow
+        - staking.Allow
+        - staking.AmendCommissionSchedule
+        - staking.Burn
+        - staking.ReclaimEscrow
+        - staking.Transfer
+        - staking.Withdraw
       example: staking.Transfer
 
     TransactionList:
