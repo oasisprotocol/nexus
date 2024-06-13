@@ -1849,8 +1849,11 @@ components:
           description: Keybase handle.
         name:
           type: string
-          description: The human-readable name of this validator.
+          description: The human-readable name of this entity.
           example: WhaleStake
+        logoUrl:
+          type: string
+          description: URL to a logo image for the entity.
 
     Validator:
       type: object

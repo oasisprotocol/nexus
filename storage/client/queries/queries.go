@@ -300,7 +300,8 @@ const (
 				COALESCE(chain.commissions.schedule, '{}'::JSONB) AS commissions_schedule,
 				EXISTS(SELECT NULL FROM chain.nodes WHERE chain.entities.id = chain.nodes.entity_id AND voting_power > 0) AS active,
 				EXISTS(SELECT NULL FROM chain.nodes WHERE chain.entities.id = chain.nodes.entity_id AND chain.nodes.roles like '%validator%') AS status,
-				chain.entities.meta AS meta
+				chain.entities.meta AS meta,
+				chain.entities.logo_url as logo_url
 			FROM chain.entities
 			JOIN chain.accounts ON chain.entities.address = chain.accounts.address
 			LEFT JOIN chain.commissions ON chain.entities.address = chain.commissions.address
