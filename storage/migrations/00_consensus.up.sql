@@ -66,6 +66,7 @@ CREATE TABLE chain.transactions
 -- Queries by sender and/or tx_hash are available via the API.
 CREATE INDEX ix_transactions_sender ON chain.transactions (sender);
 CREATE INDEX ix_transactions_tx_hash ON chain.transactions (tx_hash);
+-- CREATE INDEX ix_transactions_method_block ON chain.transactions (method, block); -- added in 17_consensus_tx_idxs.up.sql
 
 CREATE TABLE chain.events
 (

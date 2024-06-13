@@ -65,14 +65,11 @@ const (
 					($2::text IS NULL OR chain.transactions.method = $2::text) AND
 					($3::text IS NULL OR chain.transactions.sender = $3::text) AND
 					($4::text IS NULL OR chain.accounts_related_transactions.account_address = $4::text) AND
-					($5::numeric IS NULL OR chain.transactions.fee_amount >= $5::numeric) AND
-					($6::numeric IS NULL OR chain.transactions.fee_amount <= $6::numeric) AND
-					($7::bigint IS NULL OR chain.transactions.code = $7::bigint) AND
-					($8::timestamptz IS NULL OR chain.blocks.time >= $8::timestamptz) AND
-					($9::timestamptz IS NULL OR chain.blocks.time < $9::timestamptz)
+					($5::timestamptz IS NULL OR chain.blocks.time >= $5::timestamptz) AND
+					($6::timestamptz IS NULL OR chain.blocks.time < $6::timestamptz)
 			ORDER BY chain.transactions.block DESC, chain.transactions.tx_index
-			LIMIT $10::bigint
-			OFFSET $11::bigint`
+			LIMIT $7::bigint
+			OFFSET $8::bigint`
 
 	Transaction = `
 		SELECT block, tx_index, tx_hash, sender, nonce, fee_amount, method, body, code, module, message, chain.blocks.time

@@ -239,23 +239,6 @@ paths:
           description: A filter on related accounts.
           example: *staking_address_1
         - in: query
-          name: minFee
-          schema:
-            allOf: [$ref: '#/components/schemas/TextBigInt']
-          description: A filter on minimum transaction fee, inclusive.
-          example: "1000"
-        - in: query
-          name: maxFee
-          schema:
-            allOf: [$ref: '#/components/schemas/TextBigInt']
-          description: A filter on maximum transaction fee, inclusive.
-          example: "100000000000000000000000"
-        - in: query
-          name: code
-          schema:
-            type: integer
-          description: A filter on transaction status code.
-        - in: query
           name: after
           schema:
             type: string
