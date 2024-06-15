@@ -2,7 +2,10 @@ package metadata_registry
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"io"
+	"net/url"
 	"time"
 
 	registry "github.com/oasisprotocol/metadata-registry-tools"
@@ -10,11 +13,18 @@ import (
 	staking "github.com/oasisprotocol/nexus/coreapi/v22.2.11/staking/api"
 
 	"github.com/oasisprotocol/nexus/analyzer"
+	"github.com/oasisprotocol/nexus/analyzer/httpmisc"
 	"github.com/oasisprotocol/nexus/analyzer/item"
+	"github.com/oasisprotocol/nexus/analyzer/pubclient"
 	"github.com/oasisprotocol/nexus/analyzer/queries"
 	"github.com/oasisprotocol/nexus/config"
 	"github.com/oasisprotocol/nexus/log"
 	"github.com/oasisprotocol/nexus/storage"
+)
+
+const (
+	keybaseMaxResponseSize = 10 * 1024 * 1024 // 10 MiB.
+	keybaseLookupUrl       = "https://keybase.io/_/api/1.0/user/lookup.json?fields=pictures&usernames="
 )
 
 const MetadataRegistryAnalyzerName = "metadata_registry"
@@ -70,11 +80,24 @@ func (p *processor) ProcessItem(ctx context.Context, batch *storage.QueryBatch, 
 	}
 
 	for id, meta := range entities {
+		var logoUrl string
+		if meta.Keybase != "" {
+			logoUrl, err = fetchKeybaseLogoUrl(ctx, meta.Keybase)
+			if err != nil {
+				p.logger.Warn("failed to fetch keybase url", "err", err, "handle", meta.Keybase)
+			}
+			if ctx.Err() != nil {
+				// Exit early if the context is done.
+				return ctx.Err()
+			}
+		}
+
 		batch.Queue(
 			queries.ConsensusEntityMetaUpsert,
 			id.String(),
 			staking.NewAddress(id).String(),
 			meta,
+			logoUrl,
 		)
 	}
 
@@ -84,4 +107,38 @@ func (p *processor) ProcessItem(ctx context.Context, batch *storage.QueryBatch, 
 func (p *processor) QueueLength(ctx context.Context) (int, error) {
 	// The concept of a work queue does not apply to this analyzer.
 	return 0, nil
+}
+
+func fetchKeybaseLogoUrl(ctx context.Context, handle string) (string, error) {
+	resp, err := pubclient.GetWithContext(ctx, keybaseLookupUrl+url.QueryEscape(handle))
+	if err != nil {
+		return "", err
+	}
+	if err = httpmisc.ResponseOK(resp); err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	return parseKeybaseLogoUrl(io.LimitReader(resp.Body, keybaseMaxResponseSize))
+}
+
+func parseKeybaseLogoUrl(r io.Reader) (string, error) {
+	var response struct {
+		Them []struct {
+			Id       string `json:"id"`
+			Pictures *struct {
+				Primary struct {
+					Url string `json:"url"`
+				} `json:"primary"`
+			} `json:"pictures"`
+		} `json:"them"`
+	}
+	if err := json.NewDecoder(r).Decode(&response); err != nil {
+		return "", err
+	}
+
+	if len(response.Them) > 0 && response.Them[0].Pictures != nil {
+		return response.Them[0].Pictures.Primary.Url, nil
+	}
+	return "", nil
 }

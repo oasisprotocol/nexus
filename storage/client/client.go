@@ -1188,6 +1188,7 @@ func (c *StorageClient) Validators(ctx context.Context, p apiTypes.GetConsensusV
 	for res.rows.Next() {
 		var v Validator
 		var schedule staking.CommissionSchedule
+		var logoUrl *string
 		if err := res.rows.Scan(
 			&v.EntityID,
 			&v.EntityAddress,
@@ -1197,10 +1198,17 @@ func (c *StorageClient) Validators(ctx context.Context, p apiTypes.GetConsensusV
 			&v.Active,
 			&v.Status,
 			&v.Media,
+			&logoUrl,
 		); err != nil {
 			return nil, wrapError(err)
 		}
 
+		if logoUrl != nil && *logoUrl != "" {
+			if v.Media == nil {
+				v.Media = &ValidatorMedia{}
+			}
+			v.Media.LogoUrl = logoUrl
+		}
 		currentRate := schedule.CurrentRate(beacon.EpochTime(epoch.ID))
 		if currentRate != nil {
 			v.CurrentRate = currentRate.ToBigInt().Uint64()

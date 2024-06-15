@@ -313,8 +313,8 @@ var (
     DELETE FROM chain.nodes WHERE id = $1`
 
 	ConsensusEntityMetaUpsert = `
-    INSERT INTO chain.entities(id, address, meta)
-      VALUES ($1, $2, $3)
+    INSERT INTO chain.entities(id, address, meta, logo_url)
+      VALUES ($1, $2, $3, $4)
     ON CONFLICT (id) DO UPDATE SET
       meta = excluded.meta`
 
@@ -973,7 +973,7 @@ var (
       runtime = $1 AND verification_info_downloaded_at IS NULL`
 
 	RuntimeEVMVerifiedContracts = `
-    SELECT 
+    SELECT
       contracts.contract_address,
       contracts.verification_level
     FROM chain.evm_contracts AS contracts

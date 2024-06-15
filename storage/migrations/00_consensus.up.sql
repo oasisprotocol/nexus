@@ -110,9 +110,10 @@ CREATE INDEX ix_epochs_id ON chain.epochs (id);
 -- Registry Backend Data
 CREATE TABLE chain.entities
 (
-  id      base64_ed25519_pubkey PRIMARY KEY,
-  address oasis_addr NOT NULL, -- Deterministically derived from the ID.
-  meta    JSONB  -- Signed statements about the entity from https://github.com/oasisprotocol/metadata-registry
+  id       base64_ed25519_pubkey PRIMARY KEY,
+  address  oasis_addr NOT NULL, -- Deterministically derived from the ID.
+  meta     JSONB  -- Signed statements about the entity from https://github.com/oasisprotocol/metadata-registry
+  -- logo_url TEXT -- Added in 16_entity_logo.up.sql.
 );
 
 CREATE TABLE chain.nodes
