@@ -11,7 +11,7 @@ import (
 
 	coreCommon "github.com/oasisprotocol/oasis-core/go/common"
 
-	"github.com/oasisprotocol/nexus/analyzer/evmnfts/httpmisc"
+	"github.com/oasisprotocol/nexus/analyzer/httpmisc"
 )
 
 // Use this package for connecting to untrusted URLs.

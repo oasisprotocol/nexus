@@ -9,9 +9,9 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/oasisprotocol/nexus/analyzer/evmnfts/httpmisc"
 	"github.com/oasisprotocol/nexus/analyzer/evmnfts/ipfsclient"
-	"github.com/oasisprotocol/nexus/analyzer/evmnfts/pubclient"
+	"github.com/oasisprotocol/nexus/analyzer/httpmisc"
+	"github.com/oasisprotocol/nexus/analyzer/pubclient"
 )
 
 // multiproto gets a file from a URL by looking at the URL's scheme and

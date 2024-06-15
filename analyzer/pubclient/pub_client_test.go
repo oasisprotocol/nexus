@@ -10,7 +10,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/oasisprotocol/nexus/analyzer/evmnfts/httpmisc"
+	"github.com/oasisprotocol/nexus/analyzer/httpmisc"
 )
 
 func wasteResp(resp *http.Response) error {

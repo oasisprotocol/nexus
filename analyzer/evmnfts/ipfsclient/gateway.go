@@ -6,7 +6,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/oasisprotocol/nexus/analyzer/evmnfts/httpmisc"
+	"github.com/oasisprotocol/nexus/analyzer/httpmisc"
 )
 
 // gatewayHTTPClient is an *http.Client to use for accessing gateways.
