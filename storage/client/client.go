@@ -1004,6 +1004,7 @@ func (c *StorageClient) Epochs(ctx context.Context, p apiTypes.GetConsensusEpoch
 	res, err := c.withTotalCount(
 		ctx,
 		queries.Epochs,
+		nil,
 		p.Limit,
 		p.Offset,
 	)
@@ -1033,8 +1034,10 @@ func (c *StorageClient) Epoch(ctx context.Context, epoch int64) (*Epoch, error) 
 	var e Epoch
 	if err := c.db.QueryRow(
 		ctx,
-		queries.Epoch,
+		queries.Epochs,
 		epoch,
+		1,
+		0,
 	).Scan(&e.ID, &e.StartHeight, &e.EndHeight); err != nil {
 		return nil, wrapError(err)
 	}
