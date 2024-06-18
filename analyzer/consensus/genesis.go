@@ -3,7 +3,6 @@
 package consensus
 
 import (
-	"encoding/hex"
 	"encoding/json"
 	"sort"
 
@@ -296,7 +295,7 @@ func (mg *GenesisProcessor) addGovernanceBackendMigrations(batch *storage.QueryB
 				proposal.State.String(),
 				proposal.Deposit.ToBigInt(),
 				proposal.Content.ChangeParameters.Module,
-				hex.EncodeToString(proposal.Content.ChangeParameters.Changes),
+				proposal.Content.ChangeParameters.Changes,
 				proposal.CreatedAt,
 				proposal.ClosesAt,
 				proposal.InvalidVotes,

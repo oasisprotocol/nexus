@@ -83,6 +83,8 @@ x-examples:
     - &tx_hash_1 '0d0531d6b8a468c07440182b1cdda517f5a076d69fb2199126a83082ecfc0f41'
   tx-body:
     - &tx_body_1 '{"amount":"1000000000","account":"oasis1qpg2xuz46g53737343r20yxeddhlvc2ldqsjh70p"}'
+  parameters-change:
+    - &parameters_change_1 '{"min_validators":null,"max_validators":"120","voting_power_distribution":null}'
   epoch:
     - &epoch_1 8048956
     - &epoch_2 8048966
@@ -2259,11 +2261,11 @@ components:
             The name of the module whose parameters are to be changed
             by this 'parameters_change' proposal.
         parameters_change:
-          type: string
-          format: byte
-          description: |
-            The base64 encoded raw cbor representing the updated parameters
-            which are to be changed by this 'parameters_change' proposal.
+          description: The parameters change proposal body. This spec does not encode the many possible types;
+            instead, see [the Go API](https://pkg.go.dev/github.com/oasisprotocol/oasis-core/go) of oasis-core.
+            This object will conform to one of the `ConsensusParameterChanges` types,
+            depending on the `parameters_change_module`.
+          example: *parameters_change_1
         created_at:
           type: integer
           format: int64
