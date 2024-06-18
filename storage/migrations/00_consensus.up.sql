@@ -64,9 +64,12 @@ CREATE TABLE chain.transactions
   PRIMARY KEY (block, tx_index)
 );
 -- Queries by sender and/or tx_hash are available via the API.
-CREATE INDEX ix_transactions_sender ON chain.transactions (sender);
+CREATE INDEX ix_transactions_sender ON chain.transactions (sender); -- removed in 18_consensus_tx_idxs.up.sql
+--`sender` is a possible external API parameter; `block` lets us efficiently retrieve the most recent N txs with a given method.
+-- CREATE INDEX ix_transactions_sender_block ON chain.transactions (sender, block); -- added in 18_consensus_tx_idxs.up.sql
 CREATE INDEX ix_transactions_tx_hash ON chain.transactions (tx_hash);
--- CREATE INDEX ix_transactions_method_block ON chain.transactions (method, block); -- added in 17_consensus_tx_idxs.up.sql
+--`method` is a possible external API parameter; `block` lets us efficiently retrieve the most recent N txs with a given method.
+-- CREATE INDEX ix_transactions_method_block ON chain.transactions (method, block); -- added in 18_consensus_tx_idxs.up.sql
 
 CREATE TABLE chain.events
 (
