@@ -921,6 +921,33 @@ func (m *processor) queueEscrows(batch *storage.QueryBatch, data *stakingData) e
 			e.Owner.String(),
 			e.ActiveShares.String(),
 		)
+		// Ideally this would be merged with the ConsensusDebondingStartDelegationsUpdate query above,
+		// something like:
+		//
+		// ```
+		//   WITH updated AS (
+		//       UPDATE chain.delegations
+		//       SET shares = shares - $3
+		//       WHERE delegatee = $1 AND delegator = $2
+		//       RETURNING delegatee, delegator, shares
+		//   )
+		//
+		//   -- Delete the delegation if the shares are now 0.
+		//   DELETE FROM chain.delegations
+		//     USING updated
+		//     WHERE chain.delegations.delegatee = updated.delegatee
+		//       AND chain.delegations.delegator = updated.delegator
+		//       AND updated.shares = 0`
+		// ```
+		//
+		// but it is not possible since CTE's cannot handle updating the same row twice:
+		// https://www.postgresql.org/docs/current/queries-with.html#QUERIES-WITH-MODIFYING
+		//
+		// So we need to issue a separate query to delete if zero.
+		batch.Queue(queries.ConsensusDelegationDeleteIfZeroShares,
+			e.Escrow.String(),
+			e.Owner.String(),
+		)
 		batch.Queue(queries.ConsensusDebondingStartDebondingDelegationsInsert,
 			e.Escrow.String(),
 			e.Owner.String(),
