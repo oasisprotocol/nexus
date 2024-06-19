@@ -338,15 +338,6 @@ var (
         escrow_balance_active = chain.accounts.escrow_balance_active + $2,
         escrow_total_shares_active = chain.accounts.escrow_total_shares_active + $3`
 
-	ConsensusAddDelegationsUpsertReplace = `
-    INSERT INTO chain.delegations
-      (delegatee, delegator, shares)
-    VALUES
-      ($1, $2, $3)
-    ON CONFLICT (delegatee, delegator) DO UPDATE
-    SET
-      shares = excluded.shares`
-
 	ConsensusAddDelegationsUpsert = `
     INSERT INTO chain.delegations (delegatee, delegator, shares)
       VALUES ($1, $2, $3)
@@ -380,6 +371,10 @@ var (
     UPDATE chain.delegations
       SET shares = shares - $3
         WHERE delegatee = $1 AND delegator = $2`
+
+	ConsensusDelegationDeleteIfZeroShares = `
+    DELETE FROM chain.delegations
+      WHERE delegatee = $1 AND delegator = $2 AND shares = 0`
 
 	ConsensusDebondingStartDebondingDelegationsInsert = `
     INSERT INTO chain.debonding_delegations (delegatee, delegator, shares, debond_end)
