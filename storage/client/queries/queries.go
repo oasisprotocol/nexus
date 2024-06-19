@@ -252,14 +252,10 @@ const (
 		SELECT id, start_height,
 			(CASE id WHEN (SELECT max(id) FROM chain.epochs) THEN NULL ELSE end_height END) AS end_height
 			FROM chain.epochs
+		WHERE ($1::bigint IS NULL OR id = $1::bigint)
 		ORDER BY id DESC
-		LIMIT $1::bigint
-		OFFSET $2::bigint`
-
-	Epoch = `
-		SELECT id, start_height, end_height
-			FROM chain.epochs
-			WHERE id = $1::bigint`
+		LIMIT $2::bigint
+		OFFSET $3::bigint`
 
 	Proposals = `
 		SELECT id, submitter, state, deposit, handler, cp_target_version, rhp_target_version, rcp_target_version,
