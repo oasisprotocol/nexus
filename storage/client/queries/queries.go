@@ -51,6 +51,7 @@ const (
 				FROM UNNEST(signer_node_consensus_pubkey_addresses) AS signer_node_consensus_pubkey_address
 				LEFT JOIN chain.nodes AS signer_node ON signer_node.consensus_pubkey_address = signer_node_consensus_pubkey_address
 				LEFT JOIN chain.entities AS signer_entity ON signer_entity.id = signer_node.entity_id
+				ORDER BY signer_entity.address
 			) AS signer_node_infos
 		FROM chain.blocks
 		LEFT JOIN chain.nodes AS proposer_node ON proposer_node.consensus_pubkey_address = proposer_node_consensus_pubkey_address
