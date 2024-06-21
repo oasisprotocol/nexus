@@ -377,9 +377,11 @@ var (
     DELETE FROM chain.delegations
       WHERE delegatee = $1 AND delegator = $2 AND shares = 0`
 
-	ConsensusDebondingStartDebondingDelegationsInsert = `
+	ConsensusDebondingStartDebondingDelegationsUpsert = `
     INSERT INTO chain.debonding_delegations (delegatee, delegator, shares, debond_end)
-      VALUES ($1, $2, $3, $4)`
+      VALUES ($1, $2, $3, $4)
+    ON CONFLICT (delegatee, delegator, debond_end) DO
+      UPDATE SET shares = chain.debonding_delegations.shares + $3`
 
 	ConsensusReclaimEscrowBalanceUpdate = `
     UPDATE chain.accounts
@@ -388,16 +390,14 @@ var (
         escrow_total_shares_debonding = escrow_total_shares_debonding - $3
       WHERE address = $1`
 
-	// Network upgrades delays debonding by 1 epoch.
+	// debond_end IN ($4::bigint, $4::bigint - 1, 0) is used because:
+	// - Network upgrades delays debonding by 1 epoch.
+	// - Some very old events might not have the debond_end set, so we have 0 in the Db.
+	//   This should not be problematic in practice since nowadays we have fast-sync where
+	//   we skip inserting debonding delegations for old epochs, so we should not encounter this.
 	ConsensusDeleteDebondingDelegations = `
     DELETE FROM chain.debonding_delegations
-      WHERE id = (
-        SELECT id
-        FROM chain.debonding_delegations
-        WHERE
-          delegator = $1 AND delegatee = $2 AND shares = $3 AND debond_end IN ($4::bigint, $4::bigint - 1)
-        LIMIT 1
-      )`
+      WHERE delegator = $1 AND delegatee = $2 AND shares = $3 AND debond_end IN ($4::bigint, $4::bigint - 1, 0)`
 
 	ConsensusAllowanceChangeDelete = `
     DELETE FROM chain.allowances

@@ -243,7 +243,7 @@ func (mg *GenesisProcessor) addStakingBackendMigrations(batch *storage.QueryBatc
 		for _, delegator := range sortedAddressKeys(escrows) {
 			debondingDelegations := escrows[delegator]
 			for _, debondingDelegation := range debondingDelegations {
-				batch.Queue(queries.ConsensusDebondingStartDebondingDelegationsInsert,
+				batch.Queue(queries.ConsensusDebondingStartDebondingDelegationsUpsert,
 					delegatee.String(),
 					delegator.String(),
 					debondingDelegation.Shares.ToBigInt(),
