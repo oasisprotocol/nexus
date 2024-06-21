@@ -115,6 +115,8 @@ x-examples:
     - &iso_timestamp_3 '2022-10-15T00:05:34Z'
   time-duration:
     - &time_duration_1 '72h3m0.5s'
+  validator-media:
+    - &validator_media_1 '{"email":"validator@example.net","keybase":"validator_keybase","name":"Example Validator","twitter":"validator_twitter","url":"https://example.com","logoUrl": "https://example.com/logo.png"}'
 
 x-err-responses:
   common-errors: &common_error_responses
@@ -1877,6 +1879,7 @@ components:
           description: Whether the entity has a node that is registered for being a validator, node is up to date, and has successfully registered itself. It may or may not be part of validator set.
         media:
           allOf: [$ref: '#/components/schemas/ValidatorMedia']
+          example: *validator_media_1
         current_rate:
           type: integer
           format: uint64
