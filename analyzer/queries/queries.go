@@ -316,7 +316,8 @@ var (
     INSERT INTO chain.entities(id, address, meta, logo_url)
       VALUES ($1, $2, $3, $4)
     ON CONFLICT (id) DO UPDATE SET
-      meta = excluded.meta`
+      meta = excluded.meta,
+      logo_url = excluded.logo_url`
 
 	ConsensusIncreaseGeneralBalanceUpsert = `
     INSERT INTO chain.accounts (address, general_balance)
