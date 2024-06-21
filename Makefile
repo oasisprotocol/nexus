@@ -74,7 +74,11 @@ test-e2e-regression: nexus ensure-consistent-config-for-e2e-regression
 
 # Accept the outputs of the e2e tests as the new expected outputs.
 accept-e2e-regression:
-	for suite in $(E2E_REGRESSION_SUITES); do ./tests/e2e_regression/accept.sh $$suite; done
+	@# edenfast test cases and outputs are clones of eden (are in fact symlinked)
+	for suite in $(E2E_REGRESSION_SUITES); do \
+		[ "$$suite" == "edenfast" ] && continue; \
+		./tests/e2e_regression/accept.sh $$suite; \
+	done
 
 # Format code.
 fmt:
