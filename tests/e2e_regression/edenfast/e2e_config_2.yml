@@ -26,7 +26,7 @@ analysis:
     # aggregate_stats: {}   # Awkward to make stop after a single run.
   storage:
     backend: postgres
-    endpoint: postgresql://rwuser:password@172.17.0.2:5432/indexer?sslmode=disable
+    endpoint: postgresql://rwuser:password@localhost:5432/indexer?sslmode=disable
     # DANGER__WIPE_STORAGE_ON_STARTUP: true
     migrations: file://storage/migrations
 
