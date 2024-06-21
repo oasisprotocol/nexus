@@ -881,11 +881,17 @@ func (m *processor) queueEscrows(batch *storage.QueryBatch, data *stakingData) e
 			amount,
 			newShares,
 		)
-		batch.Queue(queries.ConsensusAddDelegationsUpsert,
-			escrower,
-			owner,
-			newShares,
-		)
+		if newShares != "0" {
+			// When rewards are distributed, an `AddEscrowEvent` with `new_shares` set to 0 is emitted. This makes sense,
+			// since rewards increase the Escrow balance without adding new shares - it increases the existing shares price.
+			//
+			// Do not track these as delegations.
+			batch.Queue(queries.ConsensusAddDelegationsUpsert,
+				escrower,
+				owner,
+				newShares,
+			)
+		}
 	}
 	for _, e := range data.TakeEscrows {
 		if e.DebondingAmount == nil {
