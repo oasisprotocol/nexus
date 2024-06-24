@@ -1463,6 +1463,14 @@ components:
         - staking.ReclaimEscrow
         - staking.Transfer
         - staking.Withdraw
+        # Added in v24.0.
+        - keymanager/churp.Apply
+        - keymanager/churp.Confirm
+        - keymanager/churp.Create
+        - keymanager/churp.Update
+        - vault.AuthorizeAction
+        - vault.CancelAction
+        - vault.Create
       example: staking.Transfer
 
     TransactionList:
