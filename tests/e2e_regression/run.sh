@@ -148,4 +148,4 @@ diff --recursive "$TEST_DIR/expected" "$outDir" >/dev/null || {
 }
 
 echo
-echo "E2E regression tests passed!"
+echo "E2E regression test suite \"$suite\" passed!"

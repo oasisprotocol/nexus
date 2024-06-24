@@ -682,7 +682,8 @@ func (a *Service) Start() {
 		}(an)
 	}
 
-	// Prepare slow-sync analyzers (to be started after fast-sync analyzers are done).
+	// Prepare non-fast-sync analyzers (= item analyzers, slow-sync block analyzers);
+	// they will be started after fast-sync analyzers are done.
 	var slowSyncWg sync.WaitGroup
 	for _, an := range a.analyzers {
 		slowSyncWg.Add(1)
