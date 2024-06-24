@@ -1,0 +1,18 @@
+diff --git a/coreapi/v24.0/consensus/api/api.go b/coreapi/v24.0/consensus/api/api.go
+index 7a8a20b..c4eedeb 100644
+--- a/coreapi/v24.0/consensus/api/api.go
++++ b/coreapi/v24.0/consensus/api/api.go
+@@ -112,7 +112,12 @@ type Vote struct {
+ // StatusState is the concise status state of the consensus backend.
+ type StatusState uint8
+
+-// removed var block
++var (
++	// StatusStateReady is the ready status state.
++	StatusStateReady StatusState
++	// StatusStateSyncing is the syncing status state.
++	StatusStateSyncing StatusState = 1
++)
+
+ // String returns a string representation of a status state.
+ func (s StatusState) String() string {
