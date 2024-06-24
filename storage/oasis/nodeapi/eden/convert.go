@@ -23,14 +23,14 @@ import (
 	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
 
 	// data types for Eden gRPC APIs.
-	nodeEden "github.com/oasisprotocol/nexus/coreapi/v23.0/common/node"
-	txResultsEden "github.com/oasisprotocol/nexus/coreapi/v23.0/consensus/api/transaction/results"
-	genesisEden "github.com/oasisprotocol/nexus/coreapi/v23.0/genesis/api"
-	governanceEden "github.com/oasisprotocol/nexus/coreapi/v23.0/governance/api"
-	registryEden "github.com/oasisprotocol/nexus/coreapi/v23.0/registry/api"
-	roothashEden "github.com/oasisprotocol/nexus/coreapi/v23.0/roothash/api"
-	schedulerEden "github.com/oasisprotocol/nexus/coreapi/v23.0/scheduler/api"
-	stakingEden "github.com/oasisprotocol/nexus/coreapi/v23.0/staking/api"
+	nodeEden "github.com/oasisprotocol/nexus/coreapi/v24.0/common/node"
+	txResultsEden "github.com/oasisprotocol/nexus/coreapi/v24.0/consensus/api/transaction/results"
+	genesisEden "github.com/oasisprotocol/nexus/coreapi/v24.0/genesis/api"
+	governanceEden "github.com/oasisprotocol/nexus/coreapi/v24.0/governance/api"
+	registryEden "github.com/oasisprotocol/nexus/coreapi/v24.0/registry/api"
+	roothashEden "github.com/oasisprotocol/nexus/coreapi/v24.0/roothash/api"
+	schedulerEden "github.com/oasisprotocol/nexus/coreapi/v24.0/scheduler/api"
+	stakingEden "github.com/oasisprotocol/nexus/coreapi/v24.0/staking/api"
 )
 
 func convertProposal(p *governanceEden.Proposal) *governance.Proposal {
@@ -78,7 +78,11 @@ func convertAccount(a *stakingEden.Account) *staking.Account {
 		rateBoundSteps[i] = staking.CommissionRateBoundStep(r)
 	}
 	return &staking.Account{
-		General: staking.GeneralAccount(a.General),
+		General: staking.GeneralAccount{
+			Balance:    a.General.Balance,
+			Nonce:      a.General.Nonce,
+			Allowances: a.General.Allowances,
+		},
 		Escrow: staking.EscrowAccount{
 			Active:    staking.SharePool(a.Escrow.Active),
 			Debonding: staking.SharePool(a.Escrow.Debonding),

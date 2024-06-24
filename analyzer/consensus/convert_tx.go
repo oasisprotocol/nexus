@@ -20,13 +20,13 @@ import (
 	roothash "github.com/oasisprotocol/nexus/coreapi/v22.2.11/roothash/api"
 	staking "github.com/oasisprotocol/nexus/coreapi/v22.2.11/staking/api"
 
-	beaconEden "github.com/oasisprotocol/nexus/coreapi/v23.0/beacon/api"
-	consensusEden "github.com/oasisprotocol/nexus/coreapi/v23.0/consensus/api"
-	governanceEden "github.com/oasisprotocol/nexus/coreapi/v23.0/governance/api"
-	keymanagerEden "github.com/oasisprotocol/nexus/coreapi/v23.0/keymanager/api"
-	registryEden "github.com/oasisprotocol/nexus/coreapi/v23.0/registry/api"
-	roothashEden "github.com/oasisprotocol/nexus/coreapi/v23.0/roothash/api"
-	stakingEden "github.com/oasisprotocol/nexus/coreapi/v23.0/staking/api"
+	beaconEden "github.com/oasisprotocol/nexus/coreapi/v24.0/beacon/api"
+	consensusEden "github.com/oasisprotocol/nexus/coreapi/v24.0/consensus/api"
+	governanceEden "github.com/oasisprotocol/nexus/coreapi/v24.0/governance/api"
+	keymanagerEden "github.com/oasisprotocol/nexus/coreapi/v24.0/keymanager/api"
+	registryEden "github.com/oasisprotocol/nexus/coreapi/v24.0/registry/api"
+	roothashEden "github.com/oasisprotocol/nexus/coreapi/v24.0/roothash/api"
+	stakingEden "github.com/oasisprotocol/nexus/coreapi/v24.0/staking/api"
 )
 
 var bodyTypeForTxMethodCobalt = map[string]interface{}{

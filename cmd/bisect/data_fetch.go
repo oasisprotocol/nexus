@@ -7,7 +7,7 @@ import (
 	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi/history"
 	"github.com/oasisprotocol/nexus/storage/postgres"
 
-	staking "github.com/oasisprotocol/nexus/coreapi/v23.0/staking/api"
+	staking "github.com/oasisprotocol/nexus/coreapi/v24.0/staking/api"
 )
 
 // Returns number of shares delegated by `delegator` to `delegatee` at `height`.
