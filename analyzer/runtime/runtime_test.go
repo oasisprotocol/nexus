@@ -124,7 +124,7 @@ func setupAnalyzer(t *testing.T, testDb *postgres.Client, node *mockNode) analyz
 	sourceConfig := config.SourceConfig{
 		ChainName: "testnet",
 	}
-	runtimeMetadata := sourceConfig.SDKParaTime("pontusx")
+	runtimeMetadata := sourceConfig.SDKParaTime("pontusx_dev")
 
 	// Determine the min and max rounds at which the mock node has data.
 	minRound := math.MaxInt64
@@ -148,7 +148,7 @@ func setupAnalyzer(t *testing.T, testDb *postgres.Client, node *mockNode) analyz
 
 	analyzer, err := runtime.NewRuntimeAnalyzer(
 		"testnet",
-		"pontusx", // We borrow a real runtime's name to comply with DB's enums.
+		"pontusx_dev", // We borrow a real runtime's name to comply with DB's enums.
 		runtimeMetadata,
 		config.BlockRange{From: uint64(minRound), To: uint64(maxRound)},
 		10 /*batchSize*/, analyzer.SlowSyncMode, node, testDb, logger)

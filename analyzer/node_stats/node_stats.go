@@ -44,9 +44,9 @@ func NewAnalyzer(
 		cfg.Interval = 3 * time.Second
 	}
 	logger = logger.With("analyzer", nodeStatsAnalyzerName)
-	// Default to [consensus, emerald, sapphire, pontusx] if layers is not specified.
+	// Default to [consensus, emerald, sapphire, pontusx_test, pontusx_dev] if layers is not specified.
 	if len(layers) == 0 {
-		layers = []common.Layer{common.LayerConsensus, common.LayerEmerald, common.LayerSapphire, common.LayerPontusx}
+		layers = []common.Layer{common.LayerConsensus, common.LayerEmerald, common.LayerSapphire, common.LayerPontusxTest, common.LayerPontusxDev}
 	}
 	p := &processor{
 		layers:          layers,

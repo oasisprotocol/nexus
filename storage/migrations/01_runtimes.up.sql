@@ -2,7 +2,7 @@
 
 BEGIN;
 
-CREATE TYPE public.runtime AS ENUM ('emerald', 'sapphire', 'cipher'); -- 'pontusx' and 'pontusx_dev' added in subsequent migrations.
+CREATE TYPE public.runtime AS ENUM ('emerald', 'sapphire', 'cipher'); -- 'pontusx_test' and 'pontusx_dev' added in subsequent migrations.
 CREATE TYPE public.call_format AS ENUM ('encrypted/x25519-deoxysii');
 
 CREATE TABLE chain.runtime_blocks

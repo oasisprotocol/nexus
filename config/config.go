@@ -91,8 +91,8 @@ func (cfg *AnalysisConfig) Validate() error {
 			return err
 		}
 	}
-	if cfg.Analyzers.Pontusx != nil {
-		if err := cfg.Analyzers.Pontusx.Validate(); err != nil {
+	if cfg.Analyzers.PontusxTest != nil {
+		if err := cfg.Analyzers.PontusxTest.Validate(); err != nil {
 			return err
 		}
 	}
@@ -131,37 +131,37 @@ func (cfg *AnalysisConfig) Validate() error {
 }
 
 type AnalyzersList struct {
-	Consensus  *BlockBasedAnalyzerConfig `koanf:"consensus"`
-	Emerald    *BlockBasedAnalyzerConfig `koanf:"emerald"`
-	Sapphire   *BlockBasedAnalyzerConfig `koanf:"sapphire"`
-	Pontusx    *BlockBasedAnalyzerConfig `koanf:"pontusx"`
-	PontusxDev *BlockBasedAnalyzerConfig `koanf:"pontusx_dev"`
-	Cipher     *BlockBasedAnalyzerConfig `koanf:"cipher"`
+	Consensus   *BlockBasedAnalyzerConfig `koanf:"consensus"`
+	Emerald     *BlockBasedAnalyzerConfig `koanf:"emerald"`
+	Sapphire    *BlockBasedAnalyzerConfig `koanf:"sapphire"`
+	PontusxTest *BlockBasedAnalyzerConfig `koanf:"pontusx_test"`
+	PontusxDev  *BlockBasedAnalyzerConfig `koanf:"pontusx_dev"`
+	Cipher      *BlockBasedAnalyzerConfig `koanf:"cipher"`
 
-	EmeraldEvmTokens           *EvmTokensAnalyzerConfig       `koanf:"evm_tokens_emerald"`
-	SapphireEvmTokens          *EvmTokensAnalyzerConfig       `koanf:"evm_tokens_sapphire"`
-	PontusxEvmTokens           *EvmTokensAnalyzerConfig       `koanf:"evm_tokens_pontusx"`
-	PontusxDevEvmTokens        *EvmTokensAnalyzerConfig       `koanf:"evm_tokens_pontusx_dev"`
-	EmeraldEvmNfts             *EvmTokensAnalyzerConfig       `koanf:"evm_nfts_emerald"`
-	SapphireEvmNfts            *EvmTokensAnalyzerConfig       `koanf:"evm_nfts_sapphire"`
-	PontusxEvmNfts             *EvmTokensAnalyzerConfig       `koanf:"evm_nfts_pontusx"`
-	PontusxDevEvmNfts          *EvmTokensAnalyzerConfig       `koanf:"evm_nfts_pontusx_dev"`
-	EmeraldEvmTokenBalances    *EvmTokensAnalyzerConfig       `koanf:"evm_token_balances_emerald"`
-	SapphireEvmTokenBalances   *EvmTokensAnalyzerConfig       `koanf:"evm_token_balances_sapphire"`
-	PontusxEvmTokenBalances    *EvmTokensAnalyzerConfig       `koanf:"evm_token_balances_pontusx"`
-	PontusxDevEvmTokenBalances *EvmTokensAnalyzerConfig       `koanf:"evm_token_balances_pontusx_dev"`
-	EmeraldContractCode        *EvmContractCodeAnalyzerConfig `koanf:"evm_contract_code_emerald"`
-	SapphireContractCode       *EvmContractCodeAnalyzerConfig `koanf:"evm_contract_code_sapphire"`
-	PontusxContractCode        *EvmContractCodeAnalyzerConfig `koanf:"evm_contract_code_pontusx"`
-	PontusxDevContractCode     *EvmContractCodeAnalyzerConfig `koanf:"evm_contract_code_pontusx_dev"`
-	EmeraldContractVerifier    *EVMContractVerifierConfig     `koanf:"evm_contract_verifier_emerald"`
-	SapphireContractVerifier   *EVMContractVerifierConfig     `koanf:"evm_contract_verifier_sapphire"`
-	PontusxContractVerifier    *EVMContractVerifierConfig     `koanf:"evm_contract_verifier_pontusx"`
-	PontusxDevContractVerifier *EVMContractVerifierConfig     `koanf:"evm_contract_verifier_pontusx_dev"`
-	EmeraldAbi                 *EvmAbiAnalyzerConfig          `koanf:"evm_abi_emerald"`
-	SapphireAbi                *EvmAbiAnalyzerConfig          `koanf:"evm_abi_sapphire"`
-	PontusxAbi                 *EvmAbiAnalyzerConfig          `koanf:"evm_abi_pontusx"`
-	PontusxDevAbi              *EvmAbiAnalyzerConfig          `koanf:"evm_abi_pontusx_dev"`
+	EmeraldEvmTokens            *EvmTokensAnalyzerConfig       `koanf:"evm_tokens_emerald"`
+	SapphireEvmTokens           *EvmTokensAnalyzerConfig       `koanf:"evm_tokens_sapphire"`
+	PontusxTestEvmTokens        *EvmTokensAnalyzerConfig       `koanf:"evm_tokens_pontusx_test"`
+	PontusxDevEvmTokens         *EvmTokensAnalyzerConfig       `koanf:"evm_tokens_pontusx_dev"`
+	EmeraldEvmNfts              *EvmTokensAnalyzerConfig       `koanf:"evm_nfts_emerald"`
+	SapphireEvmNfts             *EvmTokensAnalyzerConfig       `koanf:"evm_nfts_sapphire"`
+	PontusxTestEvmNfts          *EvmTokensAnalyzerConfig       `koanf:"evm_nfts_pontusx_test"`
+	PontusxDevEvmNfts           *EvmTokensAnalyzerConfig       `koanf:"evm_nfts_pontusx_dev"`
+	EmeraldEvmTokenBalances     *EvmTokensAnalyzerConfig       `koanf:"evm_token_balances_emerald"`
+	SapphireEvmTokenBalances    *EvmTokensAnalyzerConfig       `koanf:"evm_token_balances_sapphire"`
+	PontusxTestEvmTokenBalances *EvmTokensAnalyzerConfig       `koanf:"evm_token_balances_pontusx_test"`
+	PontusxDevEvmTokenBalances  *EvmTokensAnalyzerConfig       `koanf:"evm_token_balances_pontusx_dev"`
+	EmeraldContractCode         *EvmContractCodeAnalyzerConfig `koanf:"evm_contract_code_emerald"`
+	SapphireContractCode        *EvmContractCodeAnalyzerConfig `koanf:"evm_contract_code_sapphire"`
+	PontusxTestContractCode     *EvmContractCodeAnalyzerConfig `koanf:"evm_contract_code_pontusx_test"`
+	PontusxDevContractCode      *EvmContractCodeAnalyzerConfig `koanf:"evm_contract_code_pontusx_dev"`
+	EmeraldContractVerifier     *EVMContractVerifierConfig     `koanf:"evm_contract_verifier_emerald"`
+	SapphireContractVerifier    *EVMContractVerifierConfig     `koanf:"evm_contract_verifier_sapphire"`
+	PontusxTestContractVerifier *EVMContractVerifierConfig     `koanf:"evm_contract_verifier_pontusx_test"`
+	PontusxDevContractVerifier  *EVMContractVerifierConfig     `koanf:"evm_contract_verifier_pontusx_dev"`
+	EmeraldAbi                  *EvmAbiAnalyzerConfig          `koanf:"evm_abi_emerald"`
+	SapphireAbi                 *EvmAbiAnalyzerConfig          `koanf:"evm_abi_sapphire"`
+	PontusxTestAbi              *EvmAbiAnalyzerConfig          `koanf:"evm_abi_pontusx_test"`
+	PontusxDevAbi               *EvmAbiAnalyzerConfig          `koanf:"evm_abi_pontusx_dev"`
 
 	MetadataRegistry *MetadataRegistryConfig `koanf:"metadata_registry"`
 	NodeStats        *NodeStatsConfig        `koanf:"node_stats"`
@@ -235,12 +235,7 @@ func (sc *SourceConfig) SDKNetwork() *sdkConfig.Network {
 }
 
 func (sc *SourceConfig) SDKParaTime(runtime common.Runtime) *sdkConfig.ParaTime {
-	// TODO: remove this shim once pontusx_test is renamed to pontusx
-	sdkRuntimeName := string(runtime)
-	if sc.ChainName == "testnet" && runtime == common.RuntimePontusx {
-		sdkRuntimeName = "pontusx_test"
-	}
-	return sc.SDKNetwork().ParaTimes.All[sdkRuntimeName]
+	return sc.SDKNetwork().ParaTimes.All[string(runtime)]
 }
 
 type CacheConfig struct {
