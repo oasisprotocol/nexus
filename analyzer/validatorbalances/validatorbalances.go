@@ -16,7 +16,11 @@ import (
 
 // The validator balance analyzer (1) gets a list of epochs to download validator
 // balance info for, (2) downloads that info, and (3) saves the info in the database.
-
+//
+// WARNING: This analyzer SHOULD NOT run while block analyzers are in fast sync. This analyzer expects that
+// when a row appears in `chain.epochs`, its first block is already processed. In fast sync, blocks are processed
+// out of order. (As of 2024-06, fast-sync actually does not update chain.epochs directly so it might not cause bugs 
+// when running in parallel with this analyzer, but that's by chance rather than by design.)
 const (
 	//nolint:gosec // thinks this is a hardcoded credential
 	validatorBalanceAnalyzerName = "validator_balance_"
