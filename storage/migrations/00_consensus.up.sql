@@ -213,6 +213,7 @@ CREATE TABLE chain.accounts
 
   -- TODO: Track commission schedule and staking accumulator.
 );
+-- CREATE INDEX ix_chain_accounts_general_balance ON chain.accounts(general_balance); -- Useful for sorting accounts by balance. Added in 19_consensus_acc_index.up.sql.
 
 CREATE TABLE chain.allowances
 (

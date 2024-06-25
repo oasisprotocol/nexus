@@ -109,14 +109,6 @@ type rowsWithCount struct {
 	isTotalCountClipped bool
 }
 
-func toString(b *BigInt) *string {
-	if b == nil {
-		return nil
-	}
-	s := b.String()
-	return &s
-}
-
 func runtimeFromCtx(ctx context.Context) common.Runtime {
 	// Extract the runtime name. It's populated by a middleware based on the URL.
 	runtime, ok := ctx.Value(common.RuntimeContextKey).(common.Runtime)
@@ -723,14 +715,7 @@ func (c *StorageClient) Accounts(ctx context.Context, r apiTypes.GetConsensusAcc
 	res, err := c.withTotalCount(
 		ctx,
 		queries.Accounts,
-		toString(r.MinAvailable),
-		toString(r.MaxAvailable),
-		toString(r.MinEscrow),
-		toString(r.MaxEscrow),
-		toString(r.MinDebonding),
-		toString(r.MaxDebonding),
-		toString(r.MinTotalBalance),
-		toString(r.MaxTotalBalance),
+		nil,
 		r.Limit,
 		r.Offset,
 	)
@@ -745,14 +730,33 @@ func (c *StorageClient) Accounts(ctx context.Context, r apiTypes.GetConsensusAcc
 		IsTotalCountClipped: res.isTotalCountClipped,
 	}
 	for res.rows.Next() {
-		var a Account
+		a := Account{
+			// Initialize optional fields to empty values to avoid null pointer dereferences
+			// when filling them from the database.
+			DelegationsBalance:          &common.BigInt{},
+			DebondingDelegationsBalance: &common.BigInt{},
+		}
+		var delegationsBalanceNum pgtype.Numeric
+		var debondingDelegationsBalanceNum pgtype.Numeric
 		if err := res.rows.Scan(
 			&a.Address,
 			&a.Nonce,
 			&a.Available,
 			&a.Escrow,
 			&a.Debonding,
+			&delegationsBalanceNum,
+			&debondingDelegationsBalanceNum,
 		); err != nil {
+			return nil, wrapError(err)
+		}
+
+		// Convert numeric values to big.Int. pgx has a bug where it doesn't support reading into *big.Int.
+		*a.DelegationsBalance, err = common.NumericToBigInt(delegationsBalanceNum)
+		if err != nil {
+			return nil, wrapError(err)
+		}
+		*a.DebondingDelegationsBalance, err = common.NumericToBigInt(debondingDelegationsBalanceNum)
+		if err != nil {
 			return nil, wrapError(err)
 		}
 
@@ -776,8 +780,10 @@ func (c *StorageClient) Account(ctx context.Context, address staking.Address) (*
 	var debondingDelegationsBalanceNum pgtype.Numeric
 	err := c.db.QueryRow(
 		ctx,
-		queries.Account,
+		queries.Accounts,
 		address.String(),
+		nil,
+		nil,
 	).Scan(
 		&a.Address,
 		&a.Nonce,
@@ -787,24 +793,29 @@ func (c *StorageClient) Account(ctx context.Context, address staking.Address) (*
 		&delegationsBalanceNum,
 		&debondingDelegationsBalanceNum,
 	)
-	if err == nil { //nolint:gocritic
-		var err2 error
-		// Convert numeric values to big.Int. pgx has a bug where it doesn't support reading into *big.Int.
-		*a.DelegationsBalance, err2 = common.NumericToBigInt(delegationsBalanceNum)
-		if err2 != nil {
-			return nil, wrapError(err2)
-		}
-		*a.DebondingDelegationsBalance, err2 = common.NumericToBigInt(debondingDelegationsBalanceNum)
-		if err2 != nil {
-			return nil, wrapError(err2)
-		}
-	} else if err == pgx.ErrNoRows {
+	switch {
+	case err == nil:
+		// Continues below.
+	case err == pgx.ErrNoRows:
 		// An address can have no entry in the `accounts` table, which means no analyzer
 		// has seen any activity for this address before. However, the address itself is
 		// still valid, with 0 balance. We rely on type-checking of the input `address` to
 		// ensure that we do not return these responses for malformed oasis addresses.
 		a.Address = address.String()
-	} else {
+		// If we have no entry in the accounts table, the stats below is likely also empty,
+		// so we can return early here.
+		return &a, nil
+	default:
+		return nil, wrapError(err)
+	}
+
+	// Convert numeric values to big.Int. pgx has a bug where it doesn't support reading into *big.Int.
+	*a.DelegationsBalance, err = common.NumericToBigInt(delegationsBalanceNum)
+	if err != nil {
+		return nil, wrapError(err)
+	}
+	*a.DebondingDelegationsBalance, err = common.NumericToBigInt(debondingDelegationsBalanceNum)
+	if err != nil {
 		return nil, wrapError(err)
 	}
 
