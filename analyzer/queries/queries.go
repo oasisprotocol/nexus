@@ -462,7 +462,7 @@ var (
 	    vote = excluded.vote,
       height = excluded.height;`
 
-	ConsensusValidatorEpochs = `
+	ValidatorBalancesUnprocessedEpochs = `
     SELECT epochs.id, epochs.start_height
     FROM chain.epochs as epochs
     LEFT JOIN chain.validator_balance_history as history
@@ -472,10 +472,10 @@ var (
     LIMIT $1`
 
 	ConsensusValidatorBalanceInsert = `
-    INSERT INTO chain.validator_balance_history (id, epoch, escrow_balance_active, escrow_balance_debonding)
-      VALUES ($1, $2, $3, $4)`
+    INSERT INTO chain.validator_balance_history (id, epoch, escrow_balance_active, escrow_balance_debonding, escrow_total_shares_active, escrow_total_shares_debonding)
+      VALUES ($1, $2, $3, $4, $5, $6)`
 
-	ConsensusValidatorEpochsCount = `
+	ValidatorBalancesUnprocessedCount = `
     SELECT COUNT(*)
     FROM chain.epochs AS epochs
     LEFT JOIN chain.validator_balance_history AS history

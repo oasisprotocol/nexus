@@ -65,6 +65,7 @@ type ConsensusApiLite interface {
 	GetCommittees(ctx context.Context, height int64, runtimeID coreCommon.Namespace) ([]Committee, error)
 	GetProposal(ctx context.Context, height int64, proposalID uint64) (*Proposal, error)
 	GetAccount(ctx context.Context, height int64, address Address) (*Account, error)
+	DelegationsTo(ctx context.Context, height int64, address Address) (map[Address]*Delegation, error)
 	Close() error
 	// Exposes the underlying gRPC connection, if applicable. Implementations may return nil.
 	// NOTE: Intended only for debugging purposes, e.g. one-off testing of gRPC methods that
@@ -148,6 +149,7 @@ type (
 	ReclaimEscrowEvent        staking.ReclaimEscrowEvent
 	AllowanceChangeEvent      staking.AllowanceChangeEvent
 	Account                   staking.Account
+	Delegation                staking.Delegation
 )
 
 // .................... Registry ....................

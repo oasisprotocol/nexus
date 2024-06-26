@@ -192,6 +192,16 @@ func (c *FileConsensusApiLite) GetAccount(ctx context.Context, height int64, add
 	)
 }
 
+func (c *FileConsensusApiLite) DelegationsTo(ctx context.Context, height int64, address nodeapi.Address) (map[nodeapi.Address]*nodeapi.Delegation, error) {
+	return kvstore.GetMapFromCacheOrCall[nodeapi.Address, *nodeapi.Delegation](
+		c.db, height == consensus.HeightLatest,
+		kvstore.GenerateCacheKey("DelegationsTo", height, address),
+		func() (map[nodeapi.Address]*nodeapi.Delegation, error) {
+			return c.consensusApi.DelegationsTo(ctx, height, address)
+		},
+	)
+}
+
 func (c *FileConsensusApiLite) GrpcConn() connections.GrpcConn {
 	return c.consensusApi.GrpcConn()
 }
