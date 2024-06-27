@@ -20,15 +20,15 @@ import (
 	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
 
 	// data types for Eden gRPC APIs.
-	beaconEden "github.com/oasisprotocol/nexus/coreapi/v23.0/beacon/api"
-	consensusEden "github.com/oasisprotocol/nexus/coreapi/v23.0/consensus/api"
-	txResultsEden "github.com/oasisprotocol/nexus/coreapi/v23.0/consensus/api/transaction/results"
-	genesisEden "github.com/oasisprotocol/nexus/coreapi/v23.0/genesis/api"
-	governanceEden "github.com/oasisprotocol/nexus/coreapi/v23.0/governance/api"
-	registryEden "github.com/oasisprotocol/nexus/coreapi/v23.0/registry/api"
-	roothashEden "github.com/oasisprotocol/nexus/coreapi/v23.0/roothash/api"
-	schedulerEden "github.com/oasisprotocol/nexus/coreapi/v23.0/scheduler/api"
-	stakingEden "github.com/oasisprotocol/nexus/coreapi/v23.0/staking/api"
+	beaconEden "github.com/oasisprotocol/nexus/coreapi/v24.0/beacon/api"
+	consensusEden "github.com/oasisprotocol/nexus/coreapi/v24.0/consensus/api"
+	txResultsEden "github.com/oasisprotocol/nexus/coreapi/v24.0/consensus/api/transaction/results"
+	genesisEden "github.com/oasisprotocol/nexus/coreapi/v24.0/genesis/api"
+	governanceEden "github.com/oasisprotocol/nexus/coreapi/v24.0/governance/api"
+	registryEden "github.com/oasisprotocol/nexus/coreapi/v24.0/registry/api"
+	roothashEden "github.com/oasisprotocol/nexus/coreapi/v24.0/roothash/api"
+	schedulerEden "github.com/oasisprotocol/nexus/coreapi/v24.0/scheduler/api"
+	stakingEden "github.com/oasisprotocol/nexus/coreapi/v24.0/staking/api"
 )
 
 var logger = cmdCommon.RootLogger().WithModule("eden-consensus-api-lite")

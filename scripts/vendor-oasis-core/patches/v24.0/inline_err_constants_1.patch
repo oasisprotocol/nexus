@@ -1,0 +1,22 @@
+diff --git a/coreapi/v24.0/registry/api/runtime.go b/coreapi/v24.0/registry/api/runtime.go
+index 6909eb7..4d1bc4e 100644
+--- a/coreapi/v24.0/registry/api/runtime.go
++++ b/coreapi/v24.0/registry/api/runtime.go
+@@ -279,7 +279,7 @@ func (gm RuntimeGovernanceModel) MarshalText() ([]byte, error) {
+ 	case GovernanceConsensus:
+ 		return []byte(gmConsensus), nil
+ 	default:
+-		return nil, ErrUnsupportedRuntimeGovernanceModel
++		return nil, fmt.Errorf("unspported runtime governance model: %d", gm)
+ 	}
+ }
+
+@@ -292,7 +292,7 @@ func (gm *RuntimeGovernanceModel) UnmarshalText(text []byte) error {
+ 	case gmConsensus:
+ 		*gm = GovernanceConsensus
+ 	default:
+-		return fmt.Errorf("%w: '%s'", ErrUnsupportedRuntimeGovernanceModel, string(text))
++		return fmt.Errorf("unspported runtime governance model: '%s'", string(text))
+ 	}
+
+ 	return nil

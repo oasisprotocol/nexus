@@ -20,13 +20,15 @@ import (
 	roothash "github.com/oasisprotocol/nexus/coreapi/v22.2.11/roothash/api"
 	staking "github.com/oasisprotocol/nexus/coreapi/v22.2.11/staking/api"
 
-	beaconEden "github.com/oasisprotocol/nexus/coreapi/v23.0/beacon/api"
-	consensusEden "github.com/oasisprotocol/nexus/coreapi/v23.0/consensus/api"
-	governanceEden "github.com/oasisprotocol/nexus/coreapi/v23.0/governance/api"
-	keymanagerEden "github.com/oasisprotocol/nexus/coreapi/v23.0/keymanager/api"
-	registryEden "github.com/oasisprotocol/nexus/coreapi/v23.0/registry/api"
-	roothashEden "github.com/oasisprotocol/nexus/coreapi/v23.0/roothash/api"
-	stakingEden "github.com/oasisprotocol/nexus/coreapi/v23.0/staking/api"
+	beaconEden "github.com/oasisprotocol/nexus/coreapi/v24.0/beacon/api"
+	consensusEden "github.com/oasisprotocol/nexus/coreapi/v24.0/consensus/api"
+	governanceEden "github.com/oasisprotocol/nexus/coreapi/v24.0/governance/api"
+	keymanagerChurpEden "github.com/oasisprotocol/nexus/coreapi/v24.0/keymanager/churp"
+	keymanagerSecretsEden "github.com/oasisprotocol/nexus/coreapi/v24.0/keymanager/secrets"
+	registryEden "github.com/oasisprotocol/nexus/coreapi/v24.0/registry/api"
+	roothashEden "github.com/oasisprotocol/nexus/coreapi/v24.0/roothash/api"
+	stakingEden "github.com/oasisprotocol/nexus/coreapi/v24.0/staking/api"
+	vaultEden "github.com/oasisprotocol/nexus/coreapi/v24.0/vault/api"
 )
 
 var bodyTypeForTxMethodCobalt = map[string]interface{}{
@@ -80,9 +82,9 @@ var bodyTypeForTxMethodEden = map[string]interface{}{
 	"consensus.Meta":                    consensusEden.BlockMetadata{},
 	"governance.SubmitProposal":         governanceEden.ProposalContent{},
 	"governance.CastVote":               governanceEden.ProposalVote{},
-	"keymanager.PublishMasterSecret":    keymanagerEden.SignedEncryptedMasterSecret{},
-	"keymanager.PublishEphemeralSecret": keymanagerEden.SignedEncryptedEphemeralSecret{},
-	"keymanager.UpdatePolicy":           keymanagerEden.SignedPolicySGX{},
+	"keymanager.PublishMasterSecret":    keymanagerSecretsEden.SignedEncryptedMasterSecret{},
+	"keymanager.PublishEphemeralSecret": keymanagerSecretsEden.SignedEncryptedEphemeralSecret{},
+	"keymanager.UpdatePolicy":           keymanagerSecretsEden.SignedPolicySGX{},
 	"registry.RegisterEntity":           entity.SignedEntity{},
 	"registry.DeregisterEntity":         registryEden.DeregisterEntity{},
 	"registry.RegisterNode":             node.MultiSignedNode{},
@@ -99,6 +101,14 @@ var bodyTypeForTxMethodEden = map[string]interface{}{
 	"staking.AmendCommissionSchedule":   stakingEden.AmendCommissionSchedule{},
 	"staking.Allow":                     stakingEden.Allow{},
 	"staking.Withdraw":                  stakingEden.Withdraw{},
+	// Added in v24.0.
+	"keymanager/churp.Apply":   keymanagerChurpEden.ApplicationRequest{},
+	"keymanager/churp.Confirm": keymanagerChurpEden.ConfirmationRequest{},
+	"keymanager/churp.Create":  keymanagerChurpEden.CreateRequest{},
+	"keymanager/churp.Update":  keymanagerChurpEden.UpdateRequest{},
+	"vault.AuthorizeAction":    vaultEden.AuthorizeAction{},
+	"vault.CancelAction":       vaultEden.CancelAction{},
+	"vault.Create":             vaultEden.Create{},
 }
 
 type freshnessProofEden struct {

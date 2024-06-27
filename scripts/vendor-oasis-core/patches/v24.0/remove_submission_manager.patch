@@ -1,0 +1,35 @@
+diff --git a/coreapi/v24.0/consensus/api/submission.go b/coreapi/v24.0/consensus/api/submission.go
+index fcd0610..9ca7ce8 100644
+--- a/coreapi/v24.0/consensus/api/submission.go
++++ b/coreapi/v24.0/consensus/api/submission.go
+@@ -1,12 +1,7 @@
+ package api
+
+ import (
+-	"sync"
+ 	"time"
+-
+-	staking "github.com/oasisprotocol/nexus/coreapi/v24.0/staking/api"
+-	"github.com/oasisprotocol/oasis-core/go/common/logging"
+-	"github.com/oasisprotocol/oasis-core/go/common/quantity"
+ )
+
+ const (
+@@ -20,16 +15,7 @@ const (
+ // SubmissionManager is a transaction submission manager interface.
+ // removed interface
+
+-type submissionManager struct {
+-	backend        ClientBackend
+-	priceDiscovery PriceDiscovery
+-	maxFee         quantity.Quantity
+-
+-	noncesLock sync.Mutex
+-	nonces     map[staking.Address]uint64
+-
+-	logger *logging.Logger
+-}
++// removed type
+
+ // Implements SubmissionManager.
+ // removed func

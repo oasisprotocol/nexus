@@ -14,7 +14,7 @@
 # (which nexus uses to communicate with the node) changes.
 # The gRPC protocol is NOT VERSIONED (!), so technically we'd need to
 # deep-read the oasis-core release notes for every release to see if
-# the gRPC API changed. In practice, it's strongly correlated with 
+# the gRPC API changed. In practice, it's strongly correlated with
 # the consensus version (listed on top of release notes). Also in practice,
 # we needed to vendor types exactly once for each named release
 # (Beta, Cobalt, Damask, etc).
@@ -33,7 +33,9 @@ set -euo pipefail
 VERSION="${1:-v22.2.11}" # Damask
 MODULES=(beacon consensus genesis governance keymanager registry roothash scheduler staking)
 if [[ $VERSION == v22.* ]]; then MODULES+=(runtime/client); fi
-if [[ $VERSION == v22.* ]] || [[ $VERSION == v23.* ]]; then MODULES+=(upgrade); fi
+if [[ $VERSION == v22.* ]] || [[ $VERSION == v23.* ]] || [[ $VERSION == v24.* ]]; then MODULES+=(upgrade); fi
+if [[ $VERSION == v24.* ]]; then MODULES+=(vault); fi
+
 OUTDIR="coreapi/$VERSION"
 
 echo "Vendoring oasis-core $VERSION into $OUTDIR"
@@ -57,6 +59,13 @@ done
 cp -r ../oasis-core/go/consensus/genesis "$OUTDIR/consensus"
 mkdir -p "$OUTDIR/common/node"
 cp ../oasis-core/go/common/node/*.go "$OUTDIR/common/node"
+
+# Copy keymanager/secrets package for v24, and fix imports.
+if [[ $VERSION == v24.* ]]; then
+  cp -r ../oasis-core/go/keymanager/secrets "$OUTDIR/keymanager/secrets"
+  cp -r ../oasis-core/go/keymanager/churp "$OUTDIR/keymanager/churp"
+fi
+
 rm $(find "$OUTDIR/" -name '*_test.go')
 
 # Fix imports: References to the "real" oasis-core must now point to the vendored coutnerpart.
@@ -64,6 +73,8 @@ modules_or=$(IFS="|"; echo "${MODULES[*]}")
 sed -E -i "s#github.com/oasisprotocol/oasis-core/go/($modules_or)/api(/[^\"]*)?#github.com/oasisprotocol/nexus/$OUTDIR/\\1/api\\2#" $(find "$OUTDIR/" -type f)
 sed -E -i "s#github.com/oasisprotocol/oasis-core/go/common/node#github.com/oasisprotocol/nexus/$OUTDIR/common/node#" $(find "$OUTDIR/" -type f)
 sed -E -i "s#github.com/oasisprotocol/oasis-core/go/consensus/genesis#github.com/oasisprotocol/nexus/$OUTDIR/consensus/genesis#" $(find "$OUTDIR/" -type f)
+sed -E -i "s#github.com/oasisprotocol/oasis-core/go/keymanager/secrets#github.com/oasisprotocol/nexus/$OUTDIR/keymanager/secrets#" $(find "$OUTDIR/" -type f)
+sed -E -i "s#github.com/oasisprotocol/oasis-core/go/keymanager/churp#github.com/oasisprotocol/nexus/$OUTDIR/keymanager/churp#" $(find "$OUTDIR/" -type f)
 
 # Remove functions and interfaces. We only need the types.
 for f in $(find "$OUTDIR/" -name "*.go" -type f | sort); do
@@ -97,7 +108,7 @@ EOF
 for p in scripts/vendor-oasis-core/patches/"$VERSION"/*.patch; do
   echo "Applying patch $p"
   git apply "$p"
-done 
+done
 
 # Check that no unexpected direct oasis-core imports are left,
 # now that we've removed non-API code and minimized imports.

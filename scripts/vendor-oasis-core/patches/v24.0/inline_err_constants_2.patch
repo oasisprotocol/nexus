@@ -1,0 +1,13 @@
+diff --git a/coreapi/v24.0/staking/api/api.go b/coreapi/v24.0/staking/api/api.go
+index f6a98a8..b0d2fed 100644
+--- a/coreapi/v24.0/staking/api/api.go
++++ b/coreapi/v24.0/staking/api/api.go
+@@ -435,7 +435,7 @@ func (k *ThresholdKind) UnmarshalText(text []byte) error {
+ 	case KindKeyManagerChurpName:
+ 		*k = KindKeyManagerChurp
+ 	default:
+-		return fmt.Errorf("%w: %s", ErrInvalidThreshold, string(text))
++		return fmt.Errorf("%w: %s", fmt.Errorf("invalid threshold"), string(text))
+ 	}
+ 	return nil
+ }
