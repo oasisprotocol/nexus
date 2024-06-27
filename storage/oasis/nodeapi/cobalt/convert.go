@@ -62,7 +62,7 @@ func convertProposal(p *governanceCobalt.Proposal) *governance.Proposal {
 		CreatedAt:    p.CreatedAt,
 		ClosesAt:     p.ClosesAt,
 		Results:      results,
-		InvalidVotes: 0,
+		InvalidVotes: p.InvalidVotes,
 	}
 }
 
