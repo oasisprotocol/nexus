@@ -715,7 +715,6 @@ func (c *StorageClient) Accounts(ctx context.Context, r apiTypes.GetConsensusAcc
 	res, err := c.withTotalCount(
 		ctx,
 		queries.Accounts,
-		nil,
 		r.Limit,
 		r.Offset,
 	)
@@ -738,7 +737,7 @@ func (c *StorageClient) Accounts(ctx context.Context, r apiTypes.GetConsensusAcc
 		}
 		var delegationsBalanceNum pgtype.Numeric
 		var debondingDelegationsBalanceNum pgtype.Numeric
-		if err := res.rows.Scan(
+		if err = res.rows.Scan(
 			&a.Address,
 			&a.Nonce,
 			&a.Available,
@@ -780,10 +779,8 @@ func (c *StorageClient) Account(ctx context.Context, address staking.Address) (*
 	var debondingDelegationsBalanceNum pgtype.Numeric
 	err := c.db.QueryRow(
 		ctx,
-		queries.Accounts,
+		queries.Account,
 		address.String(),
-		nil,
-		nil,
 	).Scan(
 		&a.Address,
 		&a.Nonce,

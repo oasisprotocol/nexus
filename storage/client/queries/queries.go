@@ -147,63 +147,42 @@ const (
 			ON nodes.entity_id = entities.id
 		WHERE entities.address = $1::text AND nodes.id = $2::text`
 
-	Accounts = `
-		WITH
-		-- Filter requested accounts.
-		filtered_accounts AS (
-			SELECT
-				address,
-				COALESCE(nonce, 0),
-				COALESCE(general_balance, 0),
-				COALESCE(escrow_balance_active, 0),
-				COALESCE(escrow_balance_debonding, 0)
-			FROM chain.accounts
-			WHERE ($1::text IS NULL OR address = $1::text)
-			ORDER BY address -- TODO: maybe order by account balance?
-			LIMIT $2::bigint
-			OFFSET $3::bigint
-		),
-		-- Filtered accounts delegations delegatee's account infos.
-		active_delegations AS (
-			SELECT
-				d.delegator,
-				d.shares,
-				a.escrow_balance_active,
-				a.escrow_total_shares_active
-			FROM chain.delegations d
-			JOIN chain.accounts a ON d.delegatee = da.address
-			WHERE
-				d.delegator IN (SELECT address FROM filtered_accounts)
-		),
-		-- Filtered accounts debonding delegations delegatee's account infos.
-		debonding_delegations AS (
-			SELECT
-				dd.delegator,
-				dd.shares,
-				a.escrow_balance_debonding,
-				a.escrow_total_shares_debonding
-			FROM chain.debonding_delegations dd
-			JOIN chain.accounts a ON dd.delegatee = dda.address
-			WHERE
-				dd.delegator IN (SELECT address FROM filtered_accounts)
-		)
+	Account = `
 		SELECT
-			fa.address,
-			fa.nonce,
-			fa.general_balance,
-			fa.escrow_balance_active,
-			fa.escrow_balance_debonding,
-			COALESCE(ROUND(SUM(ad.shares * ad.escrow_balance_active / NULLIF(ad.escrow_total_shares_active, 0))), 0) AS delegations_balance,
-			COALESCE(ROUND(SUM(dd.shares * dd.escrow_balance_debonding / NULLIF(dd.escrow_total_shares_debonding, 0))), 0) AS debonding_delegations_balance
+			address,
+			COALESCE(nonce, 0),
+			COALESCE(general_balance, 0),
+			COALESCE(escrow_balance_active, 0),
+			COALESCE(escrow_balance_debonding, 0),
+			COALESCE (
+				(SELECT COALESCE(ROUND(SUM(shares * escrow_balance_active / escrow_total_shares_active)), 0) AS delegations_balance
+				FROM chain.delegations
+				JOIN chain.accounts ON chain.accounts.address = chain.delegations.delegatee
+				WHERE delegator = $1::text AND escrow_total_shares_active != 0)
+			, 0) AS delegations_balance,
+			COALESCE (
+				(SELECT COALESCE(ROUND(SUM(shares * escrow_balance_debonding / escrow_total_shares_debonding)), 0) AS debonding_delegations_balance
+				FROM chain.debonding_delegations
+				JOIN chain.accounts ON chain.accounts.address = chain.debonding_delegations.delegatee
+				WHERE delegator = $1::text AND escrow_total_shares_debonding != 0)
+			, 0) AS debonding_delegations_balance
+		FROM chain.accounts
+		WHERE address = $1::text`
+
+	// Uses periodically computed view (already sorted by total balance).
+	Accounts = `
+		SELECT
+			address,
+			nonce,
+			general_balance,
+			escrow_balance_active,
+			escrow_balance_debonding,
+			delegations_balance,
+			debonding_delegations_balance
 		FROM
-			filtered_accounts fa
-		LEFT JOIN
-			active_delegations ad ON fa.address = ad.delegator
-		LEFT JOIN
-			debonding_delegations dd ON fa.address = dd.delegator
-		GROUP BY
-			fa.address, fa.nonce, fa.general_balance, fa.escrow_balance_active, fa.escrow_balance_debonding
-		ORDER BY fa.address` // TODO: rather order by account balance maybe?
+			views.accounts_list
+		LIMIT $1::bigint
+		OFFSET $2::bigint`
 
 	AccountStats = `
 		SELECT
