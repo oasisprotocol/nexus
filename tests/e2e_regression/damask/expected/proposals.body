@@ -8,7 +8,7 @@
       "epoch": 13402,
       "handler": "mainnet-upgrade-2022-04-11",
       "id": 2,
-      "invalid_votes": "0",
+      "invalid_votes": "1",
       "state": "passed",
       "submitter": "oasis1qpydpeyjrneq20kh2jz2809lew6d9p64yymutlee",
       "target": {
@@ -24,7 +24,7 @@
       "epoch": 8049,
       "handler": "consensus-params-update-2021-08",
       "id": 1,
-      "invalid_votes": "0",
+      "invalid_votes": "2",
       "state": "passed",
       "submitter": "oasis1qpydpeyjrneq20kh2jz2809lew6d9p64yymutlee",
       "target": {

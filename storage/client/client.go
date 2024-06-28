@@ -1084,7 +1084,7 @@ func (c *StorageClient) Proposals(ctx context.Context, p apiTypes.GetConsensusPr
 	}
 	for res.rows.Next() {
 		p := Proposal{Target: &ProposalTarget{}}
-		var invalidVotesNum pgtype.Numeric
+		var parametersChangeCBOR *[]byte
 		if err := res.rows.Scan(
 			&p.ID,
 			&p.Submitter,
@@ -1097,12 +1097,19 @@ func (c *StorageClient) Proposals(ctx context.Context, p apiTypes.GetConsensusPr
 			&p.Epoch,
 			&p.Cancels,
 			&p.ParametersChangeModule,
-			&p.ParametersChange,
+			&parametersChangeCBOR,
 			&p.CreatedAt,
 			&p.ClosesAt,
-			&invalidVotesNum,
+			&p.InvalidVotes,
 		); err != nil {
 			return nil, wrapError(err)
+		}
+		if parametersChangeCBOR != nil && p.ParametersChangeModule != nil {
+			res, err := extractProposalParametersChange(*parametersChangeCBOR, *p.ParametersChangeModule)
+			if err != nil {
+				return nil, wrapError(err)
+			}
+			p.ParametersChange = &res
 		}
 
 		ps.Proposals = append(ps.Proposals, p)
@@ -1114,6 +1121,7 @@ func (c *StorageClient) Proposals(ctx context.Context, p apiTypes.GetConsensusPr
 // Proposal returns a governance proposal.
 func (c *StorageClient) Proposal(ctx context.Context, proposalID uint64) (*Proposal, error) {
 	p := Proposal{Target: &ProposalTarget{}}
+	var parametersChangeCBOR *[]byte
 	if err := c.db.QueryRow(
 		ctx,
 		queries.Proposal,
@@ -1130,12 +1138,19 @@ func (c *StorageClient) Proposal(ctx context.Context, proposalID uint64) (*Propo
 		&p.Epoch,
 		&p.Cancels,
 		&p.ParametersChangeModule,
-		&p.ParametersChange,
+		&parametersChangeCBOR,
 		&p.CreatedAt,
 		&p.ClosesAt,
 		&p.InvalidVotes,
 	); err != nil {
 		return nil, wrapError(err)
+	}
+	if parametersChangeCBOR != nil && p.ParametersChangeModule != nil {
+		res, err := extractProposalParametersChange(*parametersChangeCBOR, *p.ParametersChangeModule)
+		if err != nil {
+			return nil, wrapError(err)
+		}
+		p.ParametersChange = &res
 	}
 
 	return &p, nil

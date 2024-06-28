@@ -60,8 +60,8 @@ func (c *FileConsensusApiLite) Close() error {
 func (c *FileConsensusApiLite) GetGenesisDocument(ctx context.Context, chainContext string) (*genesis.Document, error) {
 	return kvstore.GetFromCacheOrCall(
 		c.db, false,
-		// v2: Added debond end time.
-		kvstore.GenerateCacheKey("GetGenesisDocument.v2", chainContext),
+		// v3: Added proposal invalid votes.
+		kvstore.GenerateCacheKey("GetGenesisDocument.v3", chainContext),
 		func() (*genesis.Document, error) { return c.consensusApi.GetGenesisDocument(ctx, chainContext) },
 	)
 }
@@ -69,8 +69,8 @@ func (c *FileConsensusApiLite) GetGenesisDocument(ctx context.Context, chainCont
 func (c *FileConsensusApiLite) StateToGenesis(ctx context.Context, height int64) (*genesis.Document, error) {
 	return kvstore.GetFromCacheOrCall(
 		c.db, height == consensus.HeightLatest,
-		// v2: Added debond end time.
-		kvstore.GenerateCacheKey("StateToGenesis.v2", height),
+		// v3: Added proposal invalid votes.
+		kvstore.GenerateCacheKey("StateToGenesis.v3", height),
 		func() (*genesis.Document, error) { return c.consensusApi.StateToGenesis(ctx, height) },
 	)
 }
