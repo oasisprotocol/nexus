@@ -163,9 +163,10 @@ type AnalyzersList struct {
 	PontusxTestAbi              *EvmAbiAnalyzerConfig          `koanf:"evm_abi_pontusx_test"`
 	PontusxDevAbi               *EvmAbiAnalyzerConfig          `koanf:"evm_abi_pontusx_dev"`
 
-	MetadataRegistry *MetadataRegistryConfig `koanf:"metadata_registry"`
-	NodeStats        *NodeStatsConfig        `koanf:"node_stats"`
-	AggregateStats   *AggregateStatsConfig   `koanf:"aggregate_stats"`
+	MetadataRegistry  *MetadataRegistryConfig  `koanf:"metadata_registry"`
+	ValidatorBalances *ValidatorBalancesConfig `koanf:"validator_balances"`
+	NodeStats         *NodeStatsConfig         `koanf:"node_stats"`
+	AggregateStats    *AggregateStatsConfig    `koanf:"aggregate_stats"`
 }
 
 type HelperList struct {
@@ -473,6 +474,11 @@ func (cfg *MetadataRegistryConfig) Validate() error {
 		return fmt.Errorf("metadata registry interval must be at least 1 minute")
 	}
 	return nil
+}
+
+// ValidatorBalancesConfig is the configuration for the validator balances analyzer.
+type ValidatorBalancesConfig struct {
+	ItemBasedAnalyzerConfig `koanf:",squash"`
 }
 
 // NodeStatsConfig is the configuration for the node stats analyzer.
