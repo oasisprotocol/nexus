@@ -954,7 +954,7 @@ func (m *processor) queueEscrows(batch *storage.QueryBatch, data *stakingData) e
 			e.Escrow.String(),
 			e.Owner.String(),
 		)
-		batch.Queue(queries.ConsensusDebondingStartDebondingDelegationsInsert,
+		batch.Queue(queries.ConsensusDebondingStartDebondingDelegationsUpsert,
 			e.Escrow.String(),
 			e.Owner.String(),
 			e.DebondingShares.String(),

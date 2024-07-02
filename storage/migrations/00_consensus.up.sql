@@ -239,7 +239,7 @@ CREATE INDEX ix_delegations_delegator ON chain.delegations(delegator);
 
 CREATE TABLE chain.debonding_delegations
 (
-  id         BIGSERIAL PRIMARY KEY,  -- index-internal ID
+  id         BIGSERIAL PRIMARY KEY,  -- index-internal ID -- removed in 20_consensus_debonding_delegations_id_remove.up.sql.
   delegatee  oasis_addr NOT NULL REFERENCES chain.accounts(address) DEFERRABLE INITIALLY DEFERRED,
   delegator  oasis_addr NOT NULL REFERENCES chain.accounts(address) DEFERRABLE INITIALLY DEFERRED,
   shares     UINT_NUMERIC NOT NULL,
