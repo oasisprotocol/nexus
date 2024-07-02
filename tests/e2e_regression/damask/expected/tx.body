@@ -10,6 +10,7 @@
     "module": "staking"
   },
   "fee": "0",
+  "gas_limit": "1263",
   "hash": "f7a03e0912d355901ee794e5fec79a6b4c91363fc27d953596ee6de5c1492798",
   "index": 0,
   "method": "staking.Transfer",

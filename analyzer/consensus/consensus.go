@@ -501,7 +501,13 @@ func (m *processor) queueTransactionInserts(batch *storage.QueryBatch, data *con
 // Enqueue DB statements to store events that were generated as the result of a TX execution.
 func (m *processor) queueTxEventInserts(batch *storage.QueryBatch, data *consensusBlockData) error {
 	for i, txr := range data.TransactionsWithResults {
-		var txAccounts []staking.Address
+		txAccounts := []staking.Address{
+			// Always insert sender as a related address, some transactions (e.g. failed ones) might not have
+			// any events associated.
+			// TODO: this could also track the receiver (when applicable), but currently we don't do
+			// much transaction parsing, where we could extract it for each transaction type.
+			staking.NewAddress(txr.Transaction.Signature.PublicKey),
+		}
 		for _, event := range txr.Result.Events {
 			eventData := m.extractEventData(event)
 			txAccounts = append(txAccounts, eventData.relatedAddresses...)

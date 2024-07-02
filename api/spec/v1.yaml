@@ -1490,7 +1490,7 @@ components:
 
     Transaction:
       type: object
-      required: [block, index, timestamp, hash, sender, nonce, fee, method, body, success]
+      required: [block, index, timestamp, hash, sender, nonce, fee, gas_limit, method, body, success]
       properties:
         block:
           type: integer
@@ -1528,6 +1528,10 @@ components:
             The fee that this transaction's sender committed
             to pay to execute it.
           example: 1000
+        gas_limit:
+          allOf: [$ref: '#/components/schemas/TextBigInt']
+          description: |
+            The maximum gas that a transaction can use.
         method:
           allOf: [$ref: '#/components/schemas/ConsensusTxMethod']
           description: The method that was called.
