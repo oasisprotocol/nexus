@@ -1350,6 +1350,12 @@ components:
           format: int32
           description: Number of transactions in the block.
           example: 17
+        proposer:
+          allOf: [$ref: '#/components/schemas/NodeInfo']
+        signers:
+          type: array
+          items:
+            allOf: [$ref: '#/components/schemas/NodeInfo']
         # TODO: Not available on backend
         # size:
         #   type: integer
@@ -1363,6 +1369,17 @@ components:
         #   example: 123456
       description: |
         A consensus block.
+
+    NodeInfo:
+      type: object
+      properties:
+        node_id:
+          type: string
+        entity_id:
+          type: string
+        entity_address:
+          type: string
+        entity_metadata: {}
 
     Delegation:
       type: object

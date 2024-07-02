@@ -25,18 +25,22 @@ CREATE DOMAIN public.eth_addr BYTEA CHECK(length(VALUE) = 20);
 CREATE TABLE chain.blocks
 (
   height     UINT63 PRIMARY KEY,
-  block_hash HEX64 NOT NULL,
-  time       TIMESTAMP WITH TIME ZONE NOT NULL,
-  num_txs    UINT31 NOT NULL,
+  block_hash HEX64 NOT NULL,  -- NULL in 19_block_meta.up.sql
+  time       TIMESTAMP WITH TIME ZONE NOT NULL,  -- NULL in 19_block_meta.up.sql
+  num_txs    UINT31 NOT NULL,  -- NULL in 19_block_meta.up.sql
 
   -- State Root Info
-  namespace TEXT NOT NULL,
-  version   UINT63 NOT NULL,
-  type      TEXT NOT NULL,  -- "invalid" | "state-root" | "io-root"; From https://github.com/oasisprotocol/oasis-core/blob/f95186e3f15ec64bdd36493cde90be359bd17da8/go/storage/mkvs/node/node.go#L68-L68
-  root_hash HEX64 NOT NULL,
+  namespace TEXT NOT NULL,  -- NULL in 19_block_meta.up.sql
+  version   UINT63 NOT NULL,  -- NULL in 19_block_meta.up.sql
+  type      TEXT NOT NULL,  -- "invalid" | "state-root" | "io-root"; From https://github.com/oasisprotocol/oasis-core/blob/f95186e3f15ec64bdd36493cde90be359bd17da8/go/storage/mkvs/node/node.go#L68-L68  -- NULL in 19_block_meta.up.sql
+  root_hash HEX64 NOT NULL,  -- NULL in 19_block_meta.up.sql
 
   beacon     BYTEA,
   metadata   JSONB
+
+  -- added in 19_block_meta.up.sql
+  -- proposer_node_consensus_pubkey_address TEXT,
+  -- signer_node_consensus_pubkey_addresses TEXT[]
 );
 CREATE INDEX ix_blocks_time ON chain.blocks (time);
 
@@ -144,6 +148,8 @@ CREATE TABLE chain.nodes
 
   -- Consensus Info
   consensus_pubkey  TEXT NOT NULL,
+  -- added in 19_block_meta.up.sql
+  -- consensus_pubkey_address TEXT,
   consensus_address TEXT,
 
   -- VRF Info
@@ -157,6 +163,8 @@ CREATE TABLE chain.nodes
 
   -- TODO: Track node status.
 );
+-- added in 19_block_meta.up.sql
+-- CREATE INDEX ix_nodes_consensus_pubkey_address ON chain.nodes (consensus_pubkey_address);
 
 -- Claims of entities that they own nodes. Each entity claims 0 or more nodes when it registers.
 -- A node can only register if it declares itself to be owned by an entity that previously claimed it.
