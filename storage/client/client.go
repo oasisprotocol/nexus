@@ -844,10 +844,19 @@ func (c *StorageClient) Account(ctx context.Context, address staking.Address) (*
 }
 
 // Computes shares worth given total shares and total balance.
-func amountFromShares(shares common.BigInt, totalShares common.BigInt, totalBalance common.BigInt) common.BigInt {
+func amountFromShares(shares common.BigInt, totalShares common.BigInt, totalBalance common.BigInt) (common.BigInt, error) {
+	if shares.IsZero() {
+		return common.NewBigInt(0), nil
+	}
+	if totalShares.IsZero() {
+		// Shouldn't happen unless there is an invalid DB state. Don't panic since this is exposed
+		// in a public API.
+		return common.NewBigInt(0), fmt.Errorf("total shares is zero")
+	}
+
 	amount := new(big.Int).Mul(&shares.Int, &totalBalance.Int)
 	amount.Quo(amount, &totalShares.Int)
-	return common.BigInt{Int: *amount}
+	return common.BigInt{Int: *amount}, nil
 }
 
 // Delegations returns a list of delegations.
@@ -874,7 +883,7 @@ func (c *StorageClient) Delegations(ctx context.Context, address staking.Address
 			Delegator: address.String(),
 		}
 		var shares, escrowBalanceActive, escrowTotalSharesActive common.BigInt
-		if err := res.rows.Scan(
+		if err = res.rows.Scan(
 			&d.Validator,
 			&shares,
 			&escrowBalanceActive,
@@ -882,7 +891,17 @@ func (c *StorageClient) Delegations(ctx context.Context, address staking.Address
 		); err != nil {
 			return nil, wrapError(err)
 		}
-		d.Amount = amountFromShares(shares, escrowTotalSharesActive, escrowBalanceActive)
+		d.Amount, err = amountFromShares(shares, escrowTotalSharesActive, escrowBalanceActive)
+		if err != nil {
+			c.logger.Error("failed to compute delegated amount from shares (inconsistent DB state?)",
+				"delegator", address.String(),
+				"delegatee", d.Validator,
+				"shares", shares,
+				"total_shares", escrowTotalSharesActive,
+				"total_balance", escrowBalanceActive,
+				"err", err,
+			)
+		}
 		d.Shares = shares
 
 		ds.Delegations = append(ds.Delegations, d)
@@ -915,7 +934,7 @@ func (c *StorageClient) DelegationsTo(ctx context.Context, address staking.Addre
 			Validator: address.String(),
 		}
 		var shares, escrowBalanceActive, escrowTotalSharesActive common.BigInt
-		if err := res.rows.Scan(
+		if err = res.rows.Scan(
 			&d.Delegator,
 			&shares,
 			&escrowBalanceActive,
@@ -923,7 +942,17 @@ func (c *StorageClient) DelegationsTo(ctx context.Context, address staking.Addre
 		); err != nil {
 			return nil, wrapError(err)
 		}
-		d.Amount = amountFromShares(shares, escrowTotalSharesActive, escrowBalanceActive)
+		d.Amount, err = amountFromShares(shares, escrowTotalSharesActive, escrowBalanceActive)
+		if err != nil {
+			c.logger.Error("failed to compute delegated amount from shares (inconsistent DB state?)",
+				"delegator", address.String(),
+				"delegatee", d.Validator,
+				"shares", shares,
+				"total_shares", escrowTotalSharesActive,
+				"total_balance", escrowBalanceActive,
+				"err", err,
+			)
+		}
 		d.Shares = shares
 
 		ds.Delegations = append(ds.Delegations, d)
@@ -956,7 +985,7 @@ func (c *StorageClient) DebondingDelegations(ctx context.Context, address stakin
 			Delegator: address.String(),
 		}
 		var shares, escrowBalanceDebonding, escrowTotalSharesDebonding common.BigInt
-		if err := res.rows.Scan(
+		if err = res.rows.Scan(
 			&d.Validator,
 			&shares,
 			&d.DebondEnd,
@@ -965,7 +994,17 @@ func (c *StorageClient) DebondingDelegations(ctx context.Context, address stakin
 		); err != nil {
 			return nil, wrapError(err)
 		}
-		d.Amount = amountFromShares(shares, escrowTotalSharesDebonding, escrowBalanceDebonding)
+		d.Amount, err = amountFromShares(shares, escrowTotalSharesDebonding, escrowBalanceDebonding)
+		if err != nil {
+			c.logger.Error("failed to compute debonding delegated amount from shares (inconsistent DB state?)",
+				"delegator", address.String(),
+				"delegatee", d.Validator,
+				"shares", shares,
+				"total_shares_debonding", escrowTotalSharesDebonding,
+				"total_balance_debonding", escrowBalanceDebonding,
+				"err", err,
+			)
+		}
 		d.Shares = shares
 
 		ds.DebondingDelegations = append(ds.DebondingDelegations, d)
@@ -998,7 +1037,7 @@ func (c *StorageClient) DebondingDelegationsTo(ctx context.Context, address stak
 			Validator: address.String(),
 		}
 		var shares, escrowBalanceDebonding, escrowTotalSharesDebonding common.BigInt
-		if err := res.rows.Scan(
+		if err = res.rows.Scan(
 			&d.Delegator,
 			&shares,
 			&d.DebondEnd,
@@ -1007,7 +1046,17 @@ func (c *StorageClient) DebondingDelegationsTo(ctx context.Context, address stak
 		); err != nil {
 			return nil, wrapError(err)
 		}
-		d.Amount = amountFromShares(shares, escrowTotalSharesDebonding, escrowBalanceDebonding)
+		d.Amount, err = amountFromShares(shares, escrowTotalSharesDebonding, escrowBalanceDebonding)
+		if err != nil {
+			c.logger.Error("failed to compute debonding delegated amount from shares (inconsistent DB state?)",
+				"delegator", address.String(),
+				"delegatee", d.Validator,
+				"shares", shares,
+				"total_shares_debonding", escrowTotalSharesDebonding,
+				"total_balance_debonding", escrowBalanceDebonding,
+				"err", err,
+			)
+		}
 		d.Shares = shares
 
 		ds.DebondingDelegations = append(ds.DebondingDelegations, d)
