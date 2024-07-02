@@ -48,6 +48,7 @@ const (
 				chain.transactions.sender as sender,
 				chain.transactions.nonce as nonce,
 				chain.transactions.fee_amount as fee_amount,
+				chain.transactions.max_gas as gas_limit,
 				chain.transactions.method as method,
 				chain.transactions.body as body,
 				chain.transactions.code as code,
@@ -72,7 +73,7 @@ const (
 			OFFSET $8::bigint`
 
 	Transaction = `
-		SELECT block, tx_index, tx_hash, sender, nonce, fee_amount, method, body, code, module, message, chain.blocks.time
+		SELECT block, tx_index, tx_hash, sender, nonce, fee_amount, max_gas, method, body, code, module, message, chain.blocks.time
 			FROM chain.transactions
 			JOIN chain.blocks ON chain.transactions.block = chain.blocks.height
 			WHERE tx_hash = $1::text`
