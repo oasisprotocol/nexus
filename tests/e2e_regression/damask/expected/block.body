@@ -1,6 +1,9 @@
 {
+  "epoch": 13402,
+  "gas_limit": "0",
   "hash": "3cabeb4dd3b9a17c17e2447d2456b3446cabf569621886f51545605c272fd31d",
   "height": 8049500,
   "num_transactions": 1,
+  "state_root": "1f12ddd0dd816d03f32dc583cd00093c32bc87cec97257d077ecfcf2e643b373",
   "timestamp": "2022-04-11T12:00:33Z"
 }
