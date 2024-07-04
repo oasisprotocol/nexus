@@ -13,7 +13,6 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	ethCommon "github.com/ethereum/go-ethereum/common"
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgtype"
 
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/hash"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
@@ -729,36 +728,18 @@ func (c *StorageClient) Accounts(ctx context.Context, r apiTypes.GetConsensusAcc
 		IsTotalCountClipped: res.isTotalCountClipped,
 	}
 	for res.rows.Next() {
-		a := Account{
-			// Initialize optional fields to empty values to avoid null pointer dereferences
-			// when filling them from the database.
-			DelegationsBalance:          &common.BigInt{},
-			DebondingDelegationsBalance: &common.BigInt{},
-		}
-		var delegationsBalanceNum pgtype.Numeric
-		var debondingDelegationsBalanceNum pgtype.Numeric
+		a := Account{}
 		if err = res.rows.Scan(
 			&a.Address,
 			&a.Nonce,
 			&a.Available,
 			&a.Escrow,
 			&a.Debonding,
-			&delegationsBalanceNum,
-			&debondingDelegationsBalanceNum,
+			&a.DelegationsBalance,
+			&a.DebondingDelegationsBalance,
 		); err != nil {
 			return nil, wrapError(err)
 		}
-
-		// Convert numeric values to big.Int. pgx has a bug where it doesn't support reading into *big.Int.
-		*a.DelegationsBalance, err = common.NumericToBigInt(delegationsBalanceNum)
-		if err != nil {
-			return nil, wrapError(err)
-		}
-		*a.DebondingDelegationsBalance, err = common.NumericToBigInt(debondingDelegationsBalanceNum)
-		if err != nil {
-			return nil, wrapError(err)
-		}
-
 		as.Accounts = append(as.Accounts, a)
 	}
 
@@ -771,12 +752,8 @@ func (c *StorageClient) Account(ctx context.Context, address staking.Address) (*
 	a := Account{
 		// Initialize optional fields to empty values to avoid null pointer dereferences
 		// when filling them from the database.
-		Allowances:                  []Allowance{},
-		DelegationsBalance:          &common.BigInt{},
-		DebondingDelegationsBalance: &common.BigInt{},
+		Allowances: []Allowance{},
 	}
-	var delegationsBalanceNum pgtype.Numeric
-	var debondingDelegationsBalanceNum pgtype.Numeric
 	err := c.db.QueryRow(
 		ctx,
 		queries.Account,
@@ -787,8 +764,8 @@ func (c *StorageClient) Account(ctx context.Context, address staking.Address) (*
 		&a.Available,
 		&a.Escrow,
 		&a.Debonding,
-		&delegationsBalanceNum,
-		&debondingDelegationsBalanceNum,
+		&a.DelegationsBalance,
+		&a.DebondingDelegationsBalance,
 	)
 	switch {
 	case err == nil:
@@ -803,16 +780,6 @@ func (c *StorageClient) Account(ctx context.Context, address staking.Address) (*
 		// so we can return early here.
 		return &a, nil
 	default:
-		return nil, wrapError(err)
-	}
-
-	// Convert numeric values to big.Int. pgx has a bug where it doesn't support reading into *big.Int.
-	*a.DelegationsBalance, err = common.NumericToBigInt(delegationsBalanceNum)
-	if err != nil {
-		return nil, wrapError(err)
-	}
-	*a.DebondingDelegationsBalance, err = common.NumericToBigInt(debondingDelegationsBalanceNum)
-	if err != nil {
 		return nil, wrapError(err)
 	}
 

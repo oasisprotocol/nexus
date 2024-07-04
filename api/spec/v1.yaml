@@ -511,7 +511,11 @@ paths:
 
   /consensus/accounts:
     get:
-      summary: Returns a list of consensus layer accounts.
+      summary: |
+        Returns a list of consensus layer accounts.
+        Note that for performance reasons, the info returned by this endpoint
+        may be slightly stale (<2 minutes). For the most up-to-date account state,
+        query the single-account endpoint.
       parameters:
         - *limit
         - *offset
@@ -2079,7 +2083,7 @@ components:
 
     Account:
       type: object
-      required: [address, nonce, available, escrow, debonding, allowances, stats]
+      required: [address, nonce, available, escrow, debonding, delegations_balance, debonding_delegations_balance, allowances, stats]
       properties:
         address:
           type: string
@@ -2101,10 +2105,11 @@ components:
           description: The debonding escrow balance, in base units.
         delegations_balance:
           allOf: [$ref: '#/components/schemas/TextBigInt']
-          description: The balance of accounts' (outgoing) delegations, in base units.
+          description: The balance of this accounts' (outgoing) delegations, in base units.
+          example: 10000000000
         debonding_delegations_balance:
           allOf: [$ref: '#/components/schemas/TextBigInt']
-          description: The balance of accounts' (outgoing) debonding delegations, in base units.
+          description: The balance of this accounts' (outgoing) debonding delegations, in base units.
           example: 10000000000
         allowances:
           type: array
@@ -2112,7 +2117,7 @@ components:
             allOf: [$ref: '#/components/schemas/Allowance']
           description: |
             The allowances made by this account.
-            This field is omitted when listing multiple-accounts.
+            This field is omitted when listing multiple accounts.
         stats:
           allOf: [$ref: '#/components/schemas/AccountStats']
       description: |
@@ -2130,7 +2135,7 @@ components:
           allOf: [$ref: '#/components/schemas/TextBigInt']
           description: |
             The amount allowed for the allowed account.
-            This field is omitted when listing multiple-accounts.
+            This field is omitted when listing multiple accounts.
 
     EpochList:
       allOf:

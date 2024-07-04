@@ -110,8 +110,8 @@ func TestConsensusTransfer(t *testing.T) {
 	require.Equal(t, account.Address, bobAddress.String())
 	require.Zero(t, account.Nonce)
 	require.Zero(t, account.Available)
-	require.Zero(t, *account.DelegationsBalance)
-	require.Zero(t, *account.DebondingDelegationsBalance)
+	require.Zero(t, account.DelegationsBalance)
+	require.Zero(t, account.DebondingDelegationsBalance)
 	require.Zero(t, account.Escrow)
 
 	// Transfer to Bob account
@@ -150,7 +150,7 @@ func TestConsensusTransfer(t *testing.T) {
 	require.NoError(t, err)
 	expectedDelegationsBalance := common.NewBigInt(25000000)
 	expectedAvailable := common.NewBigInt(75000000)
-	require.Equal(t, expectedDelegationsBalance, *account.DelegationsBalance)
+	require.Equal(t, expectedDelegationsBalance, account.DelegationsBalance)
 	require.Equal(t, expectedAvailable, account.Available)
 
 	// Alice account has correct escrow balance
