@@ -80,6 +80,11 @@ func fetchBlockData(ctx context.Context, cc nodeapi.ConsensusApiLite, height int
 		return nil, err
 	}
 
+	params, err := cc.GetConsensusParameters(ctx, height)
+	if err != nil {
+		return nil, err
+	}
+
 	transactionsWithResults, err := cc.GetTransactionsWithResults(ctx, height)
 	if err != nil {
 		return nil, err
@@ -89,6 +94,7 @@ func fetchBlockData(ctx context.Context, cc nodeapi.ConsensusApiLite, height int
 		Height:                  height,
 		BlockHeader:             block,
 		Epoch:                   epoch,
+		GasLimit:                params.MaxBlockGas,
 		TransactionsWithResults: transactionsWithResults,
 	}, nil
 }
@@ -323,6 +329,7 @@ type consensusBlockData struct {
 
 	BlockHeader             *consensus.Block
 	Epoch                   beacon.EpochTime
+	GasLimit                uint64
 	TransactionsWithResults []nodeapi.TransactionWithResults
 }
 

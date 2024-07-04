@@ -52,6 +52,7 @@ type ConsensusApiLite interface {
 	// TODO: Introduce internal, stripped-down version of `genesis.Document`.
 	GetGenesisDocument(ctx context.Context, chainContext string) (*genesis.Document, error)
 	StateToGenesis(ctx context.Context, height int64) (*genesis.Document, error)
+	GetConsensusParameters(ctx context.Context, height int64) (*ConsensusParameters, error)
 	GetBlock(ctx context.Context, height int64) (*consensus.Block, error)
 	GetTransactionsWithResults(ctx context.Context, height int64) ([]TransactionWithResults, error)
 	GetEpoch(ctx context.Context, height int64) (beacon.EpochTime, error)
@@ -69,6 +70,11 @@ type ConsensusApiLite interface {
 	// NOTE: Intended only for debugging purposes, e.g. one-off testing of gRPC methods that
 	//       are not exposed via one of the above wrappers.
 	GrpcConn() connections.GrpcConn
+}
+
+// A lightweight subset of `consensus.Parameters`.
+type ConsensusParameters struct {
+	MaxBlockGas uint64 `json:"max_block_gas"`
 }
 
 // A lightweight subset of `consensus.TransactionsWithResults`.

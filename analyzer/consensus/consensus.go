@@ -357,8 +357,9 @@ func (m *processor) queueBlockInserts(batch *storage.QueryBatch, data *consensus
 		len(data.TransactionsWithResults),
 		data.BlockHeader.StateRoot.Namespace.String(),
 		int64(data.BlockHeader.StateRoot.Version),
-		data.BlockHeader.StateRoot.Type.String(),
 		data.BlockHeader.StateRoot.Hash.Hex(),
+		data.Epoch,
+		data.GasLimit,
 	)
 
 	return nil

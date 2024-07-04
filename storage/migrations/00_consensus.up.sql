@@ -32,13 +32,20 @@ CREATE TABLE chain.blocks
   -- State Root Info
   namespace TEXT NOT NULL,
   version   UINT63 NOT NULL,
-  type      TEXT NOT NULL,  -- "invalid" | "state-root" | "io-root"; From https://github.com/oasisprotocol/oasis-core/blob/f95186e3f15ec64bdd36493cde90be359bd17da8/go/storage/mkvs/node/node.go#L68-L68
-  root_hash HEX64 NOT NULL,
+  root_hash HEX64 NOT NULL, -- Renamed to `state_root` in 21_consensus_block.up.sql.
 
+  -- removed in 21_consensus_block.up.sql
+  type      TEXT NOT NULL, -- for consensus blocks, this is always "state-root".
   beacon     BYTEA,
+
+  -- added in 21_consensus_block.up.sql.
+  -- gas_limit UINT_NUMERIC NOT NULL, -- uint64 in go; because the value might conceivably be >2^63, we use UINT_NUMERIC over UINT63 here.
+  -- epoch UINT63 NOT NULL,
+
   metadata   JSONB
 );
 CREATE INDEX ix_blocks_time ON chain.blocks (time);
+-- CREATE INDEX ix_blocks_block_hash ON chain.blocks (block_hash); -- Needed to lookup blocks by hash. -- added in 21_consensus_block_hash.up.sql
 
 CREATE TABLE chain.transactions
 (

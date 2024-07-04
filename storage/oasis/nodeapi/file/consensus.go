@@ -75,6 +75,16 @@ func (c *FileConsensusApiLite) StateToGenesis(ctx context.Context, height int64)
 	)
 }
 
+func (c *FileConsensusApiLite) GetConsensusParameters(ctx context.Context, height int64) (*nodeapi.ConsensusParameters, error) {
+	return kvstore.GetFromCacheOrCall(
+		c.db, height == consensus.HeightLatest,
+		kvstore.GenerateCacheKey("ConsensusParameters", height),
+		func() (*nodeapi.ConsensusParameters, error) {
+			return c.consensusApi.GetConsensusParameters(ctx, height)
+		},
+	)
+}
+
 func (c *FileConsensusApiLite) GetBlock(ctx context.Context, height int64) (*consensus.Block, error) {
 	return kvstore.GetFromCacheOrCall(
 		c.db, height == consensus.HeightLatest,

@@ -136,6 +136,14 @@ func (c *HistoryConsensusApiLite) StateToGenesis(ctx context.Context, height int
 	return api.StateToGenesis(ctx, height)
 }
 
+func (c *HistoryConsensusApiLite) GetConsensusParameters(ctx context.Context, height int64) (*nodeapi.ConsensusParameters, error) {
+	api, err := c.APIForHeight(height)
+	if err != nil {
+		return nil, fmt.Errorf("getting api for height %d: %w", height, err)
+	}
+	return api.GetConsensusParameters(ctx, height)
+}
+
 func (c *HistoryConsensusApiLite) GetBlock(ctx context.Context, height int64) (*consensus.Block, error) {
 	api, err := c.APIForHeight(height)
 	if err != nil {
