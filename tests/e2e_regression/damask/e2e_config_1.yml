@@ -20,6 +20,9 @@ analysis:
     consensus:
       from: 8_048_956  # Damask genesis
       to: 8_049_955    # 1000 blocks; compromise between fast and comprehensive
+      account_list_refresh:
+        interval: 5s # Use a short interval since we need to wait for one more iteration after all blocks are processed.
+        stop_if_queue_empty_for: 1s
     # TODO: Re-enable Emerald once our internal Emerald node is fixed (likely via deploying https://github.com/oasisprotocol/oasis-core/pull/5540)
     # emerald:
     #   from: 1_003_298  # round at Damask genesis

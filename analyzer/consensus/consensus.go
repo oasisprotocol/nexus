@@ -10,8 +10,6 @@ import (
 	"os"
 	"reflect"
 	"strings"
-	"sync"
-	"time"
 
 	coreCommon "github.com/oasisprotocol/oasis-core/go/common"
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
@@ -38,12 +36,6 @@ import (
 
 const (
 	consensusAnalyzerName = "consensus"
-
-	// The query takes ~20 second to run on mainnet at the time of implementing this.
-	accountListViewRefreshInterval = 2 * time.Minute
-	accountsListViewRefreshTimeout = 2 * time.Minute
-	accountListViewRefreshQuery    = `REFRESH MATERIALIZED VIEW CONCURRENTLY views.accounts_list`
-	accountListOpName              = "consensus_account_list_refresh"
 )
 
 type EventType = apiTypes.ConsensusEventType // alias for brevity
@@ -74,16 +66,13 @@ func OpenSignedTxNoVerify(signedTx *transaction.SignedTransaction) (*transaction
 
 // processor is the block processor for the consensus layer.
 type processor struct {
-	blockRange config.BlockRange
-	mode       analyzer.BlockAnalysisMode
-	history    config.History
-	source     nodeapi.ConsensusApiLite
-	network    sdkConfig.Network
-	target     storage.TargetStorage
-	logger     *log.Logger
-	metrics    metrics.AnalysisMetrics
-
-	accountListWorkerOnce sync.Once
+	mode    analyzer.BlockAnalysisMode
+	history config.History
+	source  nodeapi.ConsensusApiLite
+	network sdkConfig.Network
+	target  storage.TargetStorage
+	logger  *log.Logger
+	metrics metrics.AnalysisMetrics
 }
 
 var _ block.BlockProcessor = (*processor)(nil)
@@ -91,48 +80,16 @@ var _ block.BlockProcessor = (*processor)(nil)
 // NewAnalyzer returns a new analyzer for the consensus layer.
 func NewAnalyzer(blockRange config.BlockRange, batchSize uint64, mode analyzer.BlockAnalysisMode, history config.History, source nodeapi.ConsensusApiLite, network sdkConfig.Network, target storage.TargetStorage, logger *log.Logger) (analyzer.Analyzer, error) {
 	processor := &processor{
-		blockRange: blockRange,
-		mode:       mode,
-		history:    history,
-		source:     source,
-		network:    network,
-		target:     target,
-		logger:     logger.With("analyzer", consensusAnalyzerName),
-		metrics:    metrics.NewDefaultAnalysisMetrics(consensusAnalyzerName),
+		mode:    mode,
+		history: history,
+		source:  source,
+		network: network,
+		target:  target,
+		logger:  logger.With("analyzer", consensusAnalyzerName),
+		metrics: metrics.NewDefaultAnalysisMetrics(consensusAnalyzerName),
 	}
 
 	return block.NewAnalyzer(blockRange, batchSize, mode, consensusAnalyzerName, processor, target, logger)
-}
-
-func (m *processor) refreshAccountList(ctx context.Context) {
-	batch := &storage.QueryBatch{}
-	batch.Queue(accountListViewRefreshQuery)
-
-	timer := m.metrics.DatabaseLatencies(m.target.Name(), accountListOpName)
-	defer timer.ObserveDuration()
-
-	if err := m.target.SendBatch(ctx, batch); err != nil {
-		m.metrics.DatabaseOperations(m.target.Name(), accountListOpName, "failure").Inc()
-		m.logger.Error("failed to refresh accounts_list view", "err", err)
-		return
-	}
-	m.metrics.DatabaseOperations(m.target.Name(), accountListOpName, "success").Inc()
-}
-
-func (m *processor) accountListViewWorker(ctx context.Context) {
-	for {
-		bCtx, cancel := context.WithTimeout(ctx, accountsListViewRefreshTimeout)
-		m.refreshAccountList(bCtx)
-		cancel()
-
-		select {
-		case <-time.After(accountListViewRefreshInterval):
-			// Continue.
-		case <-ctx.Done():
-			m.logger.Error("shutting down refresh account_lists worker", "reason", ctx.Err())
-			return
-		}
-	}
 }
 
 // Implements BlockProcessor interface.
@@ -157,13 +114,6 @@ func (m *processor) PreWork(ctx context.Context) error {
 		return err
 	}
 	m.logger.Info("registered special addresses")
-
-	// If not in FastSync mode, start the views.accounts_list materialized view refresh worker.
-	if m.mode != analyzer.FastSyncMode {
-		m.accountListWorkerOnce.Do(func() {
-			go m.accountListViewWorker(ctx)
-		})
-	}
 
 	return nil
 }
@@ -395,14 +345,6 @@ func (m *processor) ProcessBlock(ctx context.Context, uheight uint64) error {
 		return err
 	}
 	m.metrics.DatabaseOperations(m.target.Name(), opName, "success").Inc()
-
-	// If we processed the last block, notify the account list worker to refresh the view.
-	// This is mostly useful for tests, so that we force account list view refresh as soon
-	// as the last block is processed.
-	if height == int64(m.blockRange.To) && m.mode != analyzer.FastSyncMode {
-		m.refreshAccountList(ctx)
-	}
-
 	return nil
 }
 

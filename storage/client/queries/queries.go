@@ -169,7 +169,7 @@ const (
 		FROM chain.accounts
 		WHERE address = $1::text`
 
-	// Uses periodically computed view (already sorted by total balance).
+	// Uses periodically computed view.
 	Accounts = `
 		SELECT
 			address,
@@ -181,6 +181,7 @@ const (
 			debonding_delegations_balance
 		FROM
 			views.accounts_list
+		ORDER BY total_balance DESC, address
 		LIMIT $1::bigint
 		OFFSET $2::bigint`
 

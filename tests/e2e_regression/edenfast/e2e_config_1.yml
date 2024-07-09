@@ -28,6 +28,9 @@ analysis:
       fast_sync:
         to: 16_818_455  # Halfway
         parallelism: 10
+      account_list_refresh:
+        interval: 5s # Use a short interval since we need to wait for one more iteration after all blocks are processed.
+        stop_if_queue_empty_for: 1s
     emerald:
       #from: 7_875_130  # round at Eden genesis, plus 1 (so that in finalizeFastSync we don't need Damask)
       #to: 7_876_129    # 1000 blocks; compromise between fast and comprehensive
