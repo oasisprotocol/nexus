@@ -2925,6 +2925,7 @@ components:
             The number of addresses that have a nonzero balance of this token.
           example: 123
         is_verified:
+          deprecated: true
           type: boolean
           description: |
             Whether the contract has been successfully verified by Sourcify.
