@@ -63,6 +63,14 @@ func (c *ConsensusApiLite) StateToGenesis(ctx context.Context, height int64) (*g
 	return &rsp, nil
 }
 
+func (c *ConsensusApiLite) GetConsensusParameters(ctx context.Context, height int64) (*nodeapi.ConsensusParameters, error) {
+	// All needed consensus parameters were static in Damask, so avoid querying the node.
+	return &nodeapi.ConsensusParameters{
+		// Max block gas was 0 (unlimited), the network limited only on max block size in bytes.
+		MaxBlockGas: uint64(0),
+	}, nil
+}
+
 func (c *ConsensusApiLite) GetBlock(ctx context.Context, height int64) (*consensus.Block, error) {
 	var rsp consensus.Block
 	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Consensus/GetBlock", height, &rsp); err != nil {

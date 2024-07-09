@@ -167,8 +167,8 @@ var (
         height = excluded.height`
 
 	ConsensusBlockInsert = `
-    INSERT INTO chain.blocks (height, block_hash, time, num_txs, namespace, version, type, root_hash)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
+    INSERT INTO chain.blocks (height, block_hash, time, num_txs, namespace, version, state_root, epoch, gas_limit)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`
 
 	ConsensusEpochUpsert = `
     INSERT INTO chain.epochs AS old (id, start_height, end_height)

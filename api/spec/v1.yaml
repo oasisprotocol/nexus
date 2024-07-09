@@ -79,6 +79,8 @@ x-examples:
     - &block_height_2 8049555
   block-hash:
     - &block_hash_1 '0a29ac21fa69bb9e43e5cb25d10826ff3946f1ce977e82f99a2614206a50765c'
+  state-root:
+    - &state_root_1 '8e39bf193f8a954ab8f8d7cb6388c591fd0785ea060bbd8e3752e266b54499d3'
   tx-hash:
     - &tx_hash_1 '0d0531d6b8a468c07440182b1cdda517f5a076d69fb2199126a83082ecfc0f41'
   tx-body:
@@ -1329,7 +1331,7 @@ components:
 
     Block:
       type: object
-      required: [height, hash, timestamp, num_transactions] # TODO: size, gas_used
+      required: [height, hash, timestamp, num_transactions, gas_limit, epoch, state_root] # TODO: proposer, size, gas_used
       properties:
         height:
           type: integer
@@ -1350,6 +1352,21 @@ components:
           format: int32
           description: Number of transactions in the block.
           example: 17
+        gas_limit:
+          allOf: [$ref: '#/components/schemas/TextBigInt']
+          description: |
+            The gas limit for the block. A gas limit 0 means that the max block gas was unlimited.
+            Blocks from Cobalt, Damask, and early Eden had no gas limit as their sizes were only
+            restricted by byte size until an upgrade during Eden introduced a gas limit.
+        epoch:
+          type: integer
+          format: int64
+          description: The epoch number of the epoch in which the block was produced.
+          example: *epoch_1
+        state_root:
+          type: string
+          description: The Merkle root of the state tree after applying the block.
+          example: *state_root_1
         # TODO: Not available on backend
         # size:
         #   type: integer

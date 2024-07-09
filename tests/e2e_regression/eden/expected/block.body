@@ -1,6 +1,9 @@
 {
+  "epoch": 28017,
+  "gas_limit": "0",
   "hash": "4077b66baf5e1391d4d127d3a31ad890f87d8bd55bce5f26d49a309ae215ac63",
   "height": 16818000,
   "num_transactions": 1,
+  "state_root": "e9e95db16c04ff56b5d93efbaa82ee28e98be0dbbe46eae32a6cddd9ad7f7e94",
   "timestamp": "2023-11-29T11:31:10Z"
 }
