@@ -11,8 +11,6 @@ import (
 
 	"github.com/oasisprotocol/nexus/analyzer/queries"
 	"github.com/oasisprotocol/nexus/common"
-	beacon "github.com/oasisprotocol/nexus/coreapi/v22.2.11/beacon/api"
-	genesis "github.com/oasisprotocol/nexus/coreapi/v22.2.11/genesis/api"
 	registry "github.com/oasisprotocol/nexus/coreapi/v22.2.11/registry/api"
 	staking "github.com/oasisprotocol/nexus/coreapi/v22.2.11/staking/api"
 	"github.com/oasisprotocol/nexus/storage"
@@ -33,7 +31,7 @@ func NewGenesisProcessor(logger *log.Logger) *GenesisProcessor {
 
 // Process generates SQL statements for indexing the genesis state.
 // `nodesOverride` can be nil; if non-nil, the behavior is as if the genesis document contained that set of nodes instead of whatever it contains.
-func (mg *GenesisProcessor) Process(document *genesis.Document, nodesOverride []nodeapi.Node) (*storage.QueryBatch, error) {
+func (mg *GenesisProcessor) Process(document *nodeapi.GenesisDocument, nodesOverride []nodeapi.Node) (*storage.QueryBatch, error) {
 	batch := &storage.QueryBatch{}
 
 	if err := mg.addRegistryBackendMigrations(batch, document, nodesOverride); err != nil {
@@ -51,7 +49,7 @@ func (mg *GenesisProcessor) Process(document *genesis.Document, nodesOverride []
 	return batch, nil
 }
 
-func (mg *GenesisProcessor) addRegistryBackendMigrations(batch *storage.QueryBatch, document *genesis.Document, nodesOverride []nodeapi.Node) error {
+func (mg *GenesisProcessor) addRegistryBackendMigrations(batch *storage.QueryBatch, document *nodeapi.GenesisDocument, nodesOverride []nodeapi.Node) error {
 	// Populate entities.
 	for _, signedEntity := range document.Registry.Entities {
 		var entity entity.Entity
@@ -102,7 +100,7 @@ func (mg *GenesisProcessor) addRegistryBackendMigrations(batch *storage.QueryBat
 				//   Also, nexus performs internal lossy data conversions where signatures are lost.
 				return err
 			}
-			if beacon.EpochTime(node.Expiration) < document.Beacon.Base {
+			if node.Expiration < document.BaseEpoch {
 				// Node expired before the genesis epoch, skip.
 				continue
 			}
@@ -139,7 +137,7 @@ func (mg *GenesisProcessor) addRegistryBackendMigrations(batch *storage.QueryBat
 	return nil
 }
 
-func (mg *GenesisProcessor) addStakingBackendMigrations(batch *storage.QueryBatch, document *genesis.Document) error {
+func (mg *GenesisProcessor) addStakingBackendMigrations(batch *storage.QueryBatch, document *nodeapi.GenesisDocument) error {
 	// Populate accounts.
 
 	// Populate special accounts with reserved addresses.
@@ -259,11 +257,17 @@ func (mg *GenesisProcessor) addStakingBackendMigrations(batch *storage.QueryBatc
 	return nil
 }
 
-func (mg *GenesisProcessor) addGovernanceBackendMigrations(batch *storage.QueryBatch, document *genesis.Document) {
+func (mg *GenesisProcessor) addGovernanceBackendMigrations(batch *storage.QueryBatch, document *nodeapi.GenesisDocument) {
 	// Populate proposals.
 
 	// TODO: Extract `executed` for proposal.
 	for _, proposal := range document.Governance.Proposals {
+		var title, description *string
+		if proposal.Content.Metadata != nil {
+			title = &proposal.Content.Metadata.Title
+			description = &proposal.Content.Metadata.Description
+		}
+
 		switch {
 		case proposal.Content.Upgrade != nil:
 			batch.Queue(queries.ConsensusProposalSubmissionInsert,
@@ -271,6 +275,8 @@ func (mg *GenesisProcessor) addGovernanceBackendMigrations(batch *storage.QueryB
 				proposal.Submitter.String(),
 				proposal.State.String(),
 				proposal.Deposit.ToBigInt(),
+				title,
+				description,
 				proposal.Content.Upgrade.Handler,
 				proposal.Content.Upgrade.Target.ConsensusProtocol.String(),
 				proposal.Content.Upgrade.Target.RuntimeHostProtocol.String(),
@@ -286,6 +292,8 @@ func (mg *GenesisProcessor) addGovernanceBackendMigrations(batch *storage.QueryB
 				proposal.Submitter.String(),
 				proposal.State.String(),
 				proposal.Deposit.ToBigInt(),
+				title,
+				description,
 				proposal.Content.CancelUpgrade.ProposalID,
 				proposal.CreatedAt,
 				proposal.ClosesAt,
@@ -297,6 +305,8 @@ func (mg *GenesisProcessor) addGovernanceBackendMigrations(batch *storage.QueryB
 				proposal.Submitter.String(),
 				proposal.State.String(),
 				proposal.Deposit.ToBigInt(),
+				title,
+				description,
 				proposal.Content.ChangeParameters.Module,
 				proposal.Content.ChangeParameters.Changes,
 				proposal.CreatedAt,

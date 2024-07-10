@@ -9,7 +9,6 @@ import (
 
 	beacon "github.com/oasisprotocol/nexus/coreapi/v22.2.11/beacon/api"
 	consensus "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api"
-	genesis "github.com/oasisprotocol/nexus/coreapi/v22.2.11/genesis/api"
 	roothash "github.com/oasisprotocol/nexus/coreapi/v22.2.11/roothash/api"
 
 	"github.com/oasisprotocol/nexus/cache/kvstore"
@@ -57,21 +56,21 @@ func (c *FileConsensusApiLite) Close() error {
 	return firstErr
 }
 
-func (c *FileConsensusApiLite) GetGenesisDocument(ctx context.Context, chainContext string) (*genesis.Document, error) {
+func (c *FileConsensusApiLite) GetGenesisDocument(ctx context.Context, chainContext string) (*nodeapi.GenesisDocument, error) {
 	return kvstore.GetFromCacheOrCall(
 		c.db, false,
-		// v3: Added proposal invalid votes.
-		kvstore.GenerateCacheKey("GetGenesisDocument.v3", chainContext),
-		func() (*genesis.Document, error) { return c.consensusApi.GetGenesisDocument(ctx, chainContext) },
+		// v4: Introduced nexus-internal GenesisDocument type.
+		kvstore.GenerateCacheKey("GetGenesisDocument.v4", chainContext),
+		func() (*nodeapi.GenesisDocument, error) { return c.consensusApi.GetGenesisDocument(ctx, chainContext) },
 	)
 }
 
-func (c *FileConsensusApiLite) StateToGenesis(ctx context.Context, height int64) (*genesis.Document, error) {
+func (c *FileConsensusApiLite) StateToGenesis(ctx context.Context, height int64) (*nodeapi.GenesisDocument, error) {
 	return kvstore.GetFromCacheOrCall(
 		c.db, height == consensus.HeightLatest,
-		// v3: Added proposal invalid votes.
-		kvstore.GenerateCacheKey("StateToGenesis.v3", height),
-		func() (*genesis.Document, error) { return c.consensusApi.StateToGenesis(ctx, height) },
+		// v4: Introduced nexus-internal GenesisDocument type.
+		kvstore.GenerateCacheKey("StateToGenesis.v4", height),
+		func() (*nodeapi.GenesisDocument, error) { return c.consensusApi.StateToGenesis(ctx, height) },
 	)
 }
 

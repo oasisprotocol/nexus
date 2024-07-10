@@ -457,16 +457,16 @@ var (
     TRUNCATE chain.committee_members`
 
 	ConsensusProposalSubmissionInsert = `
-    INSERT INTO chain.proposals (id, submitter, state, deposit, handler, cp_target_version, rhp_target_version, rcp_target_version, upgrade_epoch, created_at, closes_at, invalid_votes)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`
+    INSERT INTO chain.proposals (id, submitter, state, deposit, title, description, handler, cp_target_version, rhp_target_version, rcp_target_version, upgrade_epoch, created_at, closes_at, invalid_votes)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`
 
 	ConsensusProposalSubmissionCancelInsert = `
-    INSERT INTO chain.proposals (id, submitter, state, deposit, cancels, created_at, closes_at, invalid_votes)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
+    INSERT INTO chain.proposals (id, submitter, state, deposit, title, description, cancels, created_at, closes_at, invalid_votes)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`
 
 	ConsensusProposalSubmissionChangeParametersInsert = `
-    INSERT INTO chain.proposals (id, submitter, state, deposit, parameters_change_module, parameters_change, created_at, closes_at, invalid_votes)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`
+    INSERT INTO chain.proposals (id, submitter, state, deposit, title, description, parameters_change_module, parameters_change, created_at, closes_at, invalid_votes)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`
 
 	ConsensusProposalExecutionsUpdate = `
     UPDATE chain.proposals

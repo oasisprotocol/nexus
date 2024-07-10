@@ -13,7 +13,6 @@ import (
 	beacon "github.com/oasisprotocol/nexus/coreapi/v22.2.11/beacon/api"
 	consensus "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api"
 	consensusTx "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api/transaction"
-	genesis "github.com/oasisprotocol/nexus/coreapi/v22.2.11/genesis/api"
 	roothash "github.com/oasisprotocol/nexus/coreapi/v22.2.11/roothash/api"
 
 	"github.com/oasisprotocol/nexus/storage/oasis/connections"
@@ -52,7 +51,7 @@ func (c *ConsensusApiLite) Close() error {
 	return c.grpcConn.Close()
 }
 
-func (c *ConsensusApiLite) GetGenesisDocument(ctx context.Context, chainContext string) (*genesis.Document, error) {
+func (c *ConsensusApiLite) GetGenesisDocument(ctx context.Context, chainContext string) (*nodeapi.GenesisDocument, error) {
 	var rsp genesisEden.Document
 	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Consensus/GetGenesisDocument", nil, &rsp); err != nil {
 		return nil, fmt.Errorf("GetGenesisDocument(eden): %w", err)
@@ -60,7 +59,7 @@ func (c *ConsensusApiLite) GetGenesisDocument(ctx context.Context, chainContext 
 	return ConvertGenesis(rsp)
 }
 
-func (c *ConsensusApiLite) StateToGenesis(ctx context.Context, height int64) (*genesis.Document, error) {
+func (c *ConsensusApiLite) StateToGenesis(ctx context.Context, height int64) (*nodeapi.GenesisDocument, error) {
 	var rsp genesisEden.Document
 	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Consensus/StateToGenesis", height, &rsp); err != nil {
 		return nil, fmt.Errorf("StateToGenesis(%d): %w", height, err)
@@ -237,7 +236,7 @@ func (c *ConsensusApiLite) GetProposal(ctx context.Context, height int64, propos
 	}, &rsp); err != nil {
 		return nil, fmt.Errorf("GetProposal(%d, %d): %w", height, proposalID, err)
 	}
-	return (*nodeapi.Proposal)(convertProposal(rsp)), nil
+	return (*nodeapi.Proposal)(rsp), nil
 }
 
 func (c *ConsensusApiLite) GrpcConn() connections.GrpcConn {

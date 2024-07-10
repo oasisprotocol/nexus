@@ -5,18 +5,15 @@ import (
 
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
-	"github.com/oasisprotocol/oasis-core/go/common/quantity"
 
 	coreCommon "github.com/oasisprotocol/oasis-core/go/common"
 
 	"github.com/oasisprotocol/nexus/coreapi/v22.2.11/common/node"
-	genesis "github.com/oasisprotocol/nexus/coreapi/v22.2.11/genesis/api"
 	governance "github.com/oasisprotocol/nexus/coreapi/v22.2.11/governance/api"
 	registry "github.com/oasisprotocol/nexus/coreapi/v22.2.11/registry/api"
 	"github.com/oasisprotocol/nexus/coreapi/v22.2.11/roothash/api/message"
 	scheduler "github.com/oasisprotocol/nexus/coreapi/v22.2.11/scheduler/api"
 	staking "github.com/oasisprotocol/nexus/coreapi/v22.2.11/staking/api"
-	upgrade "github.com/oasisprotocol/nexus/coreapi/v22.2.11/upgrade/api"
 
 	apiTypes "github.com/oasisprotocol/nexus/api/v1/types"
 	"github.com/oasisprotocol/nexus/common"
@@ -32,41 +29,6 @@ import (
 	schedulerEden "github.com/oasisprotocol/nexus/coreapi/v24.0/scheduler/api"
 	stakingEden "github.com/oasisprotocol/nexus/coreapi/v24.0/staking/api"
 )
-
-func convertProposal(p *governanceEden.Proposal) *governance.Proposal {
-	results := make(map[governance.Vote]quantity.Quantity)
-	for k, v := range p.Results {
-		results[governance.Vote(k)] = v
-	}
-
-	var up *governance.UpgradeProposal
-	if p.Content.Upgrade != nil {
-		up = &governance.UpgradeProposal{
-			Descriptor: upgrade.Descriptor{
-				Versioned: p.Content.Upgrade.Descriptor.Versioned,
-				Handler:   upgrade.HandlerName(p.Content.Upgrade.Descriptor.Handler),
-				Target:    p.Content.Upgrade.Descriptor.Target,
-				Epoch:     p.Content.Upgrade.Descriptor.Epoch,
-			},
-		}
-	}
-
-	return &governance.Proposal{
-		ID:        p.ID,
-		Submitter: p.Submitter,
-		State:     governance.ProposalState(p.State),
-		Deposit:   p.Deposit,
-		Content: governance.ProposalContent{
-			Upgrade:          up,
-			CancelUpgrade:    (*governance.CancelUpgradeProposal)(p.Content.CancelUpgrade),
-			ChangeParameters: (*governance.ChangeParametersProposal)(p.Content.ChangeParameters),
-		},
-		CreatedAt:    p.CreatedAt,
-		ClosesAt:     p.ClosesAt,
-		Results:      results,
-		InvalidVotes: p.InvalidVotes,
-	}
-}
 
 func convertAccount(a *stakingEden.Account) *staking.Account {
 	rateSteps := make([]staking.CommissionRateStep, len(a.Escrow.CommissionSchedule.Rates))
@@ -162,12 +124,7 @@ func convertNode(signedNode *nodeEden.MultiSignedNode) (*node.Node, error) {
 // nexus-internal format.
 // WARNING: This is a partial conversion, only the fields that are used by
 // Nexus are filled in the output document.
-func ConvertGenesis(d genesisEden.Document) (*genesis.Document, error) {
-	proposals := make([]*governance.Proposal, len(d.Governance.Proposals))
-	for i, p := range d.Governance.Proposals {
-		proposals[i] = convertProposal(p)
-	}
-
+func ConvertGenesis(d genesisEden.Document) (*nodeapi.GenesisDocument, error) {
 	voteEntries := make(map[uint64][]*governance.VoteEntry, len(d.Governance.VoteEntries))
 	for k, v := range d.Governance.VoteEntries {
 		voteEntries[k] = make([]*governance.VoteEntry, len(v))
@@ -234,14 +191,12 @@ func ConvertGenesis(d genesisEden.Document) (*genesis.Document, error) {
 		}
 	}
 
-	return &genesis.Document{
-		Height:  d.Height,
-		Time:    d.Time,
-		ChainID: d.ChainID,
-		Governance: governance.Genesis{
-			Proposals:   proposals,
-			VoteEntries: voteEntries,
-		},
+	return &nodeapi.GenesisDocument{
+		Height:     d.Height,
+		Time:       d.Time,
+		ChainID:    d.ChainID,
+		BaseEpoch:  uint64(d.Beacon.Base),
+		Governance: d.Governance,
 		Registry: registry.Genesis{
 			Entities:          d.Registry.Entities,
 			Runtimes:          runtimes,
@@ -481,13 +436,9 @@ func convertGovernanceEvent(e governanceEden.Event) nodeapi.Event {
 		}
 	case e.ProposalFinalized != nil:
 		ret = nodeapi.Event{
-			GovernanceProposalFinalized: &nodeapi.ProposalFinalizedEvent{
-				ID: e.ProposalFinalized.ID,
-				// The enum is compatible between Eden and Damask.
-				State: governance.ProposalState(e.ProposalFinalized.State),
-			},
-			RawBody: common.TryAsJSON(e.ProposalFinalized),
-			Type:    apiTypes.ConsensusEventTypeGovernanceProposalFinalized,
+			GovernanceProposalFinalized: (*nodeapi.ProposalFinalizedEvent)(e.ProposalFinalized),
+			RawBody:                     common.TryAsJSON(e.ProposalExecuted),
+			Type:                        apiTypes.ConsensusEventTypeGovernanceProposalExecuted,
 		}
 	case e.Vote != nil:
 		ret = nodeapi.Event{

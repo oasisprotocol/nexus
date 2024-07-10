@@ -282,6 +282,10 @@ CREATE TABLE chain.proposals
   executed      BOOLEAN NOT NULL DEFAULT false,
   deposit       UINT_NUMERIC NOT NULL,
 
+  -- Added in 27_proposals_metadata.up.sql.
+  -- title TEXT,
+  -- description TEXT,
+
   -- If this proposal is a new proposal.
   handler            TEXT,
   cp_target_version  TEXT,

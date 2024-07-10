@@ -2286,6 +2286,12 @@ components:
         deposit:
           allOf: [$ref: '#/components/schemas/TextBigInt']
           description: The deposit attached to this proposal.
+        title:
+          type: string
+          description: The (optional) title of the proposal.
+        description:
+          type: string
+          description: The (optional) description of the proposal.
         handler:
           type: string
           description: The name of the upgrade handler.

@@ -254,7 +254,7 @@ const (
 		OFFSET $3::bigint`
 
 	Proposals = `
-		SELECT id, submitter, state, deposit, handler, cp_target_version, rhp_target_version, rcp_target_version,
+		SELECT id, submitter, state, deposit, title, description, handler, cp_target_version, rhp_target_version, rcp_target_version,
 				upgrade_epoch, cancels, parameters_change_module, parameters_change, created_at, closes_at, invalid_votes
 			FROM chain.proposals
 			WHERE ($1::text IS NULL OR submitter = $1::text) AND
@@ -264,7 +264,7 @@ const (
 		OFFSET $4::bigint`
 
 	Proposal = `
-		SELECT id, submitter, state, deposit, handler, cp_target_version, rhp_target_version, rcp_target_version,
+		SELECT id, submitter, state, deposit, title, description, handler, cp_target_version, rhp_target_version, rcp_target_version,
 				upgrade_epoch, cancels, parameters_change_module, parameters_change, created_at, closes_at, invalid_votes
 			FROM chain.proposals
 			WHERE id = $1::bigint`

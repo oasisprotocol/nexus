@@ -6,18 +6,54 @@ import (
 	// nexus-internal data types.
 	coreCommon "github.com/oasisprotocol/oasis-core/go/common"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
+	"github.com/oasisprotocol/oasis-core/go/common/quantity"
 
 	apiTypes "github.com/oasisprotocol/nexus/api/v1/types"
 	"github.com/oasisprotocol/nexus/common"
 	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
 
+	governance "github.com/oasisprotocol/nexus/coreapi/v24.0/governance/api"
+	upgrade "github.com/oasisprotocol/nexus/coreapi/v24.0/upgrade/api"
+
 	// data types for Damask gRPC APIs.
 	txResultsDamask "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api/transaction/results"
+	genesisDamask "github.com/oasisprotocol/nexus/coreapi/v22.2.11/genesis/api"
 	governanceDamask "github.com/oasisprotocol/nexus/coreapi/v22.2.11/governance/api"
 	registryDamask "github.com/oasisprotocol/nexus/coreapi/v22.2.11/registry/api"
 	roothashDamask "github.com/oasisprotocol/nexus/coreapi/v22.2.11/roothash/api"
 	stakingDamask "github.com/oasisprotocol/nexus/coreapi/v22.2.11/staking/api"
 )
+
+func convertProposal(p *governanceDamask.Proposal) *governance.Proposal {
+	results := make(map[governance.Vote]quantity.Quantity)
+	for k, v := range p.Results {
+		results[governance.Vote(k)] = v
+	}
+
+	return &governance.Proposal{
+		ID:        p.ID,
+		Submitter: p.Submitter,
+		State:     governance.ProposalState(p.State),
+		Deposit:   p.Deposit,
+		Content: governance.ProposalContent{
+			Metadata: nil, // Not present in Damask.
+			Upgrade: &governance.UpgradeProposal{
+				Descriptor: upgrade.Descriptor{
+					Versioned: p.Content.Upgrade.Descriptor.Versioned,
+					Handler:   upgrade.HandlerName(p.Content.Upgrade.Descriptor.Handler),
+					Target:    p.Content.Upgrade.Descriptor.Target,
+					Epoch:     p.Content.Upgrade.Descriptor.Epoch,
+				},
+			},
+			CancelUpgrade:    (*governance.CancelUpgradeProposal)(p.Content.CancelUpgrade),
+			ChangeParameters: (*governance.ChangeParametersProposal)(p.Content.ChangeParameters),
+		},
+		CreatedAt:    p.CreatedAt,
+		ClosesAt:     p.ClosesAt,
+		Results:      results,
+		InvalidVotes: p.InvalidVotes,
+	}
+}
 
 func convertStakingEvent(e stakingDamask.Event) nodeapi.Event {
 	ret := nodeapi.Event{}
@@ -215,9 +251,13 @@ func convertGovernanceEvent(e governanceDamask.Event) nodeapi.Event {
 		}
 	case e.ProposalFinalized != nil:
 		ret = nodeapi.Event{
-			GovernanceProposalFinalized: (*nodeapi.ProposalFinalizedEvent)(e.ProposalFinalized),
-			RawBody:                     common.TryAsJSON(e.ProposalFinalized),
-			Type:                        apiTypes.ConsensusEventTypeGovernanceProposalFinalized,
+			GovernanceProposalFinalized: &nodeapi.ProposalFinalizedEvent{
+				ID: e.ProposalFinalized.ID,
+				// This assumes that the ProposalState enum is backwards-compatible
+				State: governance.ProposalState(e.ProposalFinalized.State),
+			},
+			RawBody: common.TryAsJSON(e.ProposalFinalized),
+			Type:    apiTypes.ConsensusEventTypeGovernanceProposalFinalized,
 		}
 	case e.Vote != nil:
 		ret = nodeapi.Event{
@@ -259,5 +299,50 @@ func convertTxResult(r txResultsDamask.Result) nodeapi.TxResult {
 	return nodeapi.TxResult{
 		Error:  nodeapi.TxError(r.Error),
 		Events: events,
+	}
+}
+
+// ConvertGenesis converts a genesis document from the Damask format to the
+// nexus-internal (= current oasis-core) format.
+func ConvertGenesis(d genesisDamask.Document) *nodeapi.GenesisDocument {
+	proposals := make([]*governance.Proposal, len(d.Governance.Proposals))
+	for i, p := range d.Governance.Proposals {
+		proposals[i] = convertProposal(p)
+	}
+
+	voteEntries := make(map[uint64][]*governance.VoteEntry, len(d.Governance.VoteEntries))
+	for k, v := range d.Governance.VoteEntries {
+		voteEntries[k] = make([]*governance.VoteEntry, len(v))
+		for i, ve := range v {
+			voteEntries[k][i] = &governance.VoteEntry{
+				Voter: ve.Voter,
+				Vote:  governance.Vote(ve.Vote),
+			}
+		}
+	}
+
+	return &nodeapi.GenesisDocument{
+		Height:    d.Height,
+		Time:      d.Time,
+		ChainID:   d.ChainID,
+		BaseEpoch: uint64(d.Beacon.Base),
+		Governance: governance.Genesis{
+			Proposals:   proposals,
+			VoteEntries: voteEntries,
+		},
+		Registry: registryDamask.Genesis{
+			Entities:          d.Registry.Entities,
+			Runtimes:          d.Registry.Runtimes,
+			SuspendedRuntimes: d.Registry.SuspendedRuntimes,
+			Nodes:             d.Registry.Nodes,
+		},
+		Staking: stakingDamask.Genesis{
+			CommonPool:           d.Staking.CommonPool,
+			LastBlockFees:        d.Staking.LastBlockFees,
+			GovernanceDeposits:   d.Staking.GovernanceDeposits,
+			Ledger:               d.Staking.Ledger,
+			Delegations:          d.Staking.Delegations,
+			DebondingDelegations: d.Staking.DebondingDelegations,
+		},
 	}
 }
