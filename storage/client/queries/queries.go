@@ -24,7 +24,7 @@ const (
 			WHERE layer=$1`
 
 	Blocks = `
-		SELECT height, block_hash, time, num_txs, gas_limit, epoch, state_root
+		SELECT height, block_hash, time, num_txs, gas_limit, size_limit, epoch, state_root
 			FROM chain.blocks
 			WHERE ($1::bigint IS NULL OR height >= $1::bigint) AND
 						($2::bigint IS NULL OR height <= $2::bigint) AND
@@ -36,7 +36,7 @@ const (
 		OFFSET $7::bigint`
 
 	Block = `
-		SELECT height, block_hash, time, num_txs, gas_limit, epoch, state_root
+		SELECT height, block_hash, time, num_txs, gas_limit, size_limit, epoch, state_root
 			FROM chain.blocks
 			WHERE height = $1::bigint`
 

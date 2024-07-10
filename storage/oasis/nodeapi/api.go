@@ -74,7 +74,8 @@ type ConsensusApiLite interface {
 
 // A lightweight subset of `consensus.Parameters`.
 type ConsensusParameters struct {
-	MaxBlockGas uint64 `json:"max_block_gas"`
+	MaxBlockGas  uint64 `json:"max_block_gas"`
+	MaxBlockSize uint64 `json:"max_block_size"`
 }
 
 // A lightweight subset of `consensus.TransactionsWithResults`.

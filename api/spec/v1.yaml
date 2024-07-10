@@ -1322,6 +1322,10 @@ components:
             The gas limit for the block. A gas limit 0 means that the max block gas was unlimited.
             Blocks from Cobalt, Damask, and early Eden had no gas limit as their sizes were only
             restricted by byte size until an upgrade during Eden introduced a gas limit.
+        size_limit:
+          allOf: [$ref: '#/components/schemas/TextBigInt']
+          description: |
+            The size limit for the block in bytes.
         epoch:
           type: integer
           format: int64

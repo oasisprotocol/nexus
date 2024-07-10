@@ -68,6 +68,8 @@ func (c *ConsensusApiLite) GetConsensusParameters(ctx context.Context, height in
 	return &nodeapi.ConsensusParameters{
 		// Max block gas was 0 (unlimited), the network limited only on max block size in bytes.
 		MaxBlockGas: uint64(0),
+		// Max block size was 21MB in Damask (and before).
+		MaxBlockSize: uint64(22020096),
 	}, nil
 }
 

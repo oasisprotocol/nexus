@@ -360,6 +360,7 @@ func (m *processor) queueBlockInserts(batch *storage.QueryBatch, data *consensus
 		data.BlockHeader.StateRoot.Hash.Hex(),
 		data.Epoch,
 		data.GasLimit,
+		data.SizeLimit,
 	)
 
 	return nil
