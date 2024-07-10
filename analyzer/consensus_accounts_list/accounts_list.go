@@ -1,12 +1,8 @@
-package accounts_list
+package consensus_accounts_list
 
 import (
 	"context"
-	"errors"
-	"fmt"
 	"time"
-
-	"github.com/jackc/pgx/v5"
 
 	"github.com/oasisprotocol/nexus/analyzer"
 	"github.com/oasisprotocol/nexus/analyzer/item"
@@ -22,16 +18,6 @@ const (
 	defaultInterval = 2 * time.Minute
 
 	accountListViewRefreshQuery = `REFRESH MATERIALIZED VIEW CONCURRENTLY views.accounts_list`
-
-	accountListStatusQuery = `
-		SELECT
-			COALESCE((SELECT computed_height FROM views.accounts_list LIMIT 1), 0) AS computed_height,
-			b.height AS latest_block_height
-		FROM
-			chain.blocks b
-		ORDER BY
-			b.height DESC
-		LIMIT 1`
 )
 
 type processor struct {
@@ -77,22 +63,6 @@ func (p *processor) ProcessItem(ctx context.Context, batch *storage.QueryBatch, 
 }
 
 func (p *processor) QueueLength(ctx context.Context) (int, error) {
-	var latestViewHeight, latestHeight uint64
-	err := p.target.QueryRow(ctx, accountListStatusQuery).Scan(&latestViewHeight, &latestHeight)
-	switch {
-	case err == nil:
-		// Continues below.
-	case errors.Is(err, pgx.ErrNoRows):
-		// If there are no blocks, return non-empty queue so that analyzer won't get shut-down
-		// due to inactivity even before the first block is processed.
-		return 1, nil
-	default:
-		return 0, fmt.Errorf("failed to get latest account view status: %w", err)
-	}
-
-	// If there are new blocks, we have "1" item in queue.
-	if latestViewHeight < latestHeight {
-		return 1, nil
-	}
+	// The concept of a work queue does not apply to this analyzer
 	return 0, nil
 }

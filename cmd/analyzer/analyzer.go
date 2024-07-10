@@ -21,7 +21,7 @@ import (
 	"github.com/oasisprotocol/nexus/analyzer"
 	"github.com/oasisprotocol/nexus/analyzer/aggregate_stats"
 	"github.com/oasisprotocol/nexus/analyzer/consensus"
-	"github.com/oasisprotocol/nexus/analyzer/consensus/accounts_list"
+	"github.com/oasisprotocol/nexus/analyzer/consensus_accounts_list"
 	"github.com/oasisprotocol/nexus/analyzer/evmabibackfill"
 	"github.com/oasisprotocol/nexus/analyzer/evmcontractcode"
 	"github.com/oasisprotocol/nexus/analyzer/evmnfts"
@@ -345,14 +345,14 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) { //nolint:gocyclo
 			}
 			return consensus.NewAnalyzer(cfg.Analyzers.Consensus.SlowSyncRange(), cfg.Analyzers.Consensus.BatchSize, analyzer.SlowSyncMode, *cfg.Source.History(), sourceClient, *cfg.Source.SDKNetwork(), dbClient, logger)
 		})
-
-		// Account list refresh analyzer.
+	}
+	if cfg.Analyzers.ConsensusAccountsList != nil {
 		analyzers, err = addAnalyzer(analyzers, err, syncTagConsensus, func() (A, error) {
 			sourceClient, err1 := sources.Consensus(ctx)
 			if err1 != nil {
 				return nil, err1
 			}
-			return accounts_list.NewAnalyzer(cfg.Analyzers.Consensus.AccountListRefresh, sourceClient, dbClient, logger)
+			return consensus_accounts_list.NewAnalyzer(*cfg.Analyzers.ConsensusAccountsList, sourceClient, dbClient, logger)
 		})
 	}
 	if cfg.Analyzers.Emerald != nil {

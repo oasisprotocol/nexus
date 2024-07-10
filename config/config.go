@@ -131,12 +131,14 @@ func (cfg *AnalysisConfig) Validate() error {
 }
 
 type AnalyzersList struct {
-	Consensus   *ConsensusAnalyzerConfig  `koanf:"consensus"`
+	Consensus   *BlockBasedAnalyzerConfig `koanf:"consensus"`
 	Emerald     *BlockBasedAnalyzerConfig `koanf:"emerald"`
 	Sapphire    *BlockBasedAnalyzerConfig `koanf:"sapphire"`
 	PontusxTest *BlockBasedAnalyzerConfig `koanf:"pontusx_test"`
 	PontusxDev  *BlockBasedAnalyzerConfig `koanf:"pontusx_dev"`
 	Cipher      *BlockBasedAnalyzerConfig `koanf:"cipher"`
+
+	ConsensusAccountsList *ItemBasedAnalyzerConfig `koanf:"consensus_accounts_list"`
 
 	EmeraldEvmTokens            *EvmTokensAnalyzerConfig       `koanf:"evm_tokens_emerald"`
 	SapphireEvmTokens           *EvmTokensAnalyzerConfig       `koanf:"evm_tokens_sapphire"`
@@ -399,13 +401,6 @@ func (r BlockRange) Validate() error {
 		return fmt.Errorf("invalid block range from %d to %d", r.From, r.To)
 	}
 	return nil
-}
-
-type ConsensusAnalyzerConfig struct {
-	BlockBasedAnalyzerConfig `koanf:",squash"`
-
-	// AccountListRefresh is the config for the account list refresh analyzer.
-	AccountListRefresh ItemBasedAnalyzerConfig `koanf:"account_list_refresh"`
 }
 
 type ItemBasedAnalyzerConfig struct {
