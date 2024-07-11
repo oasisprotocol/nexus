@@ -138,6 +138,8 @@ type AnalyzersList struct {
 	PontusxDev  *BlockBasedAnalyzerConfig `koanf:"pontusx_dev"`
 	Cipher      *BlockBasedAnalyzerConfig `koanf:"cipher"`
 
+	ConsensusAccountsList *ItemBasedAnalyzerConfig `koanf:"consensus_accounts_list"`
+
 	EmeraldEvmTokens            *EvmTokensAnalyzerConfig       `koanf:"evm_tokens_emerald"`
 	SapphireEvmTokens           *EvmTokensAnalyzerConfig       `koanf:"evm_tokens_sapphire"`
 	PontusxTestEvmTokens        *EvmTokensAnalyzerConfig       `koanf:"evm_tokens_pontusx_test"`

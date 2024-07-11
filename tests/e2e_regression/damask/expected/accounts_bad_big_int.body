@@ -1,3 +1,0 @@
-{
-  "msg": "Invalid format for parameter minTotalBalance: math/big: cannot unmarshal \"NA\" into a *big.Int"
-}

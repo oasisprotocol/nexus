@@ -147,26 +147,6 @@ const (
 			ON nodes.entity_id = entities.id
 		WHERE entities.address = $1::text AND nodes.id = $2::text`
 
-	Accounts = `
-		SELECT
-			address,
-			COALESCE(nonce, 0),
-			COALESCE(general_balance, 0),
-			COALESCE(escrow_balance_active, 0),
-			COALESCE(escrow_balance_debonding, 0)
-		FROM chain.accounts
-		WHERE ($1::numeric IS NULL OR general_balance >= $1::numeric) AND
-					($2::numeric IS NULL OR general_balance <= $2::numeric) AND
-					($3::numeric IS NULL OR escrow_balance_active >= $3::numeric) AND
-					($4::numeric IS NULL OR escrow_balance_active <= $4::numeric) AND
-					($5::numeric IS NULL OR escrow_balance_debonding >= $5::numeric) AND
-					($6::numeric IS NULL OR escrow_balance_debonding <= $6::numeric) AND
-					($7::numeric IS NULL OR general_balance + escrow_balance_active + escrow_balance_debonding >= $7::numeric) AND
-					($8::numeric IS NULL OR general_balance + escrow_balance_active + escrow_balance_debonding <= $8::numeric)
-		ORDER BY address
-		LIMIT $9::bigint
-		OFFSET $10::bigint`
-
 	Account = `
 		SELECT
 			address,
@@ -188,6 +168,22 @@ const (
 			, 0) AS debonding_delegations_balance
 		FROM chain.accounts
 		WHERE address = $1::text`
+
+	// Uses periodically computed view.
+	Accounts = `
+		SELECT
+			address,
+			nonce,
+			general_balance,
+			escrow_balance_active,
+			escrow_balance_debonding,
+			delegations_balance,
+			debonding_delegations_balance
+		FROM
+			views.accounts_list
+		ORDER BY total_balance DESC, address
+		LIMIT $1::bigint
+		OFFSET $2::bigint`
 
 	AccountStats = `
 		SELECT
