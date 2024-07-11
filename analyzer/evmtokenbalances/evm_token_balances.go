@@ -76,11 +76,11 @@ const (
 )
 
 type processor struct {
-	runtime         common.Runtime
-	runtimeMetadata *sdkConfig.ParaTime
-	source          nodeapi.RuntimeApiLite
-	target          storage.TargetStorage
-	logger          *log.Logger
+	runtime common.Runtime
+	sdkPT   *sdkConfig.ParaTime
+	source  nodeapi.RuntimeApiLite
+	target  storage.TargetStorage
+	logger  *log.Logger
 }
 
 var _ item.ItemProcessor[*StaleTokenBalance] = (*processor)(nil)
@@ -88,18 +88,18 @@ var _ item.ItemProcessor[*StaleTokenBalance] = (*processor)(nil)
 func NewAnalyzer(
 	runtime common.Runtime,
 	cfg config.ItemBasedAnalyzerConfig,
-	runtimeMetadata *sdkConfig.ParaTime,
+	sdkPT *sdkConfig.ParaTime,
 	sourceClient nodeapi.RuntimeApiLite,
 	target storage.TargetStorage,
 	logger *log.Logger,
 ) (analyzer.Analyzer, error) {
 	logger = logger.With("analyzer", evmTokenBalancesAnalyzerPrefix+runtime)
 	p := &processor{
-		runtime:         runtime,
-		runtimeMetadata: runtimeMetadata,
-		source:          sourceClient,
-		target:          target,
-		logger:          logger,
+		runtime: runtime,
+		sdkPT:   sdkPT,
+		source:  sourceClient,
+		target:  target,
+		logger:  logger,
 	}
 
 	return item.NewAnalyzer[*StaleTokenBalance](
@@ -131,7 +131,7 @@ func (p *processor) GetItems(ctx context.Context, limit uint64) ([]*StaleTokenBa
 	var staleTokenBalances []*StaleTokenBalance
 	rows, err := p.target.Query(ctx, queries.RuntimeEVMTokenBalanceAnalysisStale,
 		p.runtime,
-		nativeTokenSymbol(p.runtimeMetadata),
+		nativeTokenSymbol(p.sdkPT),
 		limit)
 	if err != nil {
 		return nil, fmt.Errorf("querying stale token balances: %w", err)
@@ -191,7 +191,7 @@ func (p *processor) ProcessItem(ctx context.Context, batch *storage.QueryBatch, 
 			batch.Queue(queries.RuntimeNativeBalanceUpsert,
 				p.runtime,
 				staleTokenBalance.AccountAddr,
-				nativeTokenSymbol(p.runtimeMetadata),
+				nativeTokenSymbol(p.sdkPT),
 				correction,
 			)
 		} else {

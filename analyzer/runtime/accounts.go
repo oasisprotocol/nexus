@@ -49,7 +49,7 @@ func (m *processor) queueMint(batch *storage.QueryBatch, round uint64, e account
 		m.runtime,
 		round,
 		e.Owner.String(),
-		m.StringifyDenomination(e.Amount.Denomination),
+		stringifyDenomination(m.sdkPT, e.Amount.Denomination),
 		e.Amount.Amount.String(),
 	)
 	// Increase minter's balance.
@@ -58,7 +58,7 @@ func (m *processor) queueMint(batch *storage.QueryBatch, round uint64, e account
 			queries.RuntimeNativeBalanceUpsert,
 			m.runtime,
 			e.Owner.String(),
-			m.StringifyDenomination(e.Amount.Denomination),
+			stringifyDenomination(m.sdkPT, e.Amount.Denomination),
 			e.Amount.Amount.String(),
 		)
 		if e.Amount.Denomination.IsNative() {
@@ -79,7 +79,7 @@ func (m *processor) queueBurn(batch *storage.QueryBatch, round uint64, e account
 		m.runtime,
 		round,
 		e.Owner.String(),
-		m.StringifyDenomination(e.Amount.Denomination),
+		stringifyDenomination(m.sdkPT, e.Amount.Denomination),
 		e.Amount.Amount.String(),
 	)
 	// Decrease burner's balance.
@@ -88,7 +88,7 @@ func (m *processor) queueBurn(batch *storage.QueryBatch, round uint64, e account
 			queries.RuntimeNativeBalanceUpsert,
 			m.runtime,
 			e.Owner.String(),
-			m.StringifyDenomination(e.Amount.Denomination),
+			stringifyDenomination(m.sdkPT, e.Amount.Denomination),
 			(&big.Int{}).Neg(e.Amount.Amount.ToBigInt()).String(),
 		)
 		if e.Amount.Denomination.IsNative() {
@@ -110,7 +110,7 @@ func (m *processor) queueTransfer(batch *storage.QueryBatch, round uint64, e acc
 		round,
 		e.From.String(),
 		e.To.String(),
-		m.StringifyDenomination(e.Amount.Denomination),
+		stringifyDenomination(m.sdkPT, e.Amount.Denomination),
 		e.Amount.Amount.String(),
 	)
 	// Increase receiver's balance.
@@ -119,7 +119,7 @@ func (m *processor) queueTransfer(batch *storage.QueryBatch, round uint64, e acc
 			queries.RuntimeNativeBalanceUpsert,
 			m.runtime,
 			e.To.String(),
-			m.StringifyDenomination(e.Amount.Denomination),
+			stringifyDenomination(m.sdkPT, e.Amount.Denomination),
 			e.Amount.Amount.String(),
 		)
 		batch.Queue(
@@ -135,7 +135,7 @@ func (m *processor) queueTransfer(batch *storage.QueryBatch, round uint64, e acc
 			queries.RuntimeNativeBalanceUpsert,
 			m.runtime,
 			e.From.String(),
-			m.StringifyDenomination(e.Amount.Denomination),
+			stringifyDenomination(m.sdkPT, e.Amount.Denomination),
 			(&big.Int{}).Neg(e.Amount.Amount.ToBigInt()).String(),
 		)
 		batch.Queue(

@@ -2627,7 +2627,7 @@ components:
     RuntimeTransaction:
       type: object
       # NOTE: Not guaranteed to be present: eth_hash, to, amount.
-      required: [round, index, timestamp, hash, sender_0, nonce_0, fee, charged_fee, gas_limit, gas_used, size]
+      required: [round, index, timestamp, hash, sender_0, nonce_0, fee, fee_symbol, charged_fee, gas_limit, gas_used, size]
       properties:
         round:
           type: integer
@@ -2678,8 +2678,12 @@ components:
           type: string
           description: |
             The fee that this transaction's sender committed to pay to execute
-            it (total, native denomination, ParaTime base units, as a string).
+            it (total ParaTime base units, as a string).
           example: "3000000000000000"
+        fee_symbol:
+          type: string
+          description: |
+            The denomination of the fee.
         gas_limit:
           type: integer
           format: uint64
@@ -2755,6 +2759,11 @@ components:
             applicable. The meaning varies based on the transaction method.
             Usually in native denomination, ParaTime units. As a string.
           example: "100000001666393459"
+        amount_symbol:
+          type: string
+          description: |
+            The denomination of the "amount" associated with this transaction, if applicable.
+          example: "ROSE"
         encryption_envelope:
           allOf: [$ref: '#/components/schemas/RuntimeTransactionEncryptionEnvelope']
           description: |

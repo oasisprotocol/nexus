@@ -18,6 +18,7 @@ import (
 	ethCommon "github.com/ethereum/go-ethereum/common"
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 	"github.com/oasisprotocol/oasis-core/go/common/quantity"
+	sdkConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/accounts"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/consensusaccounts"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/core"
@@ -59,12 +60,14 @@ type BlockTransactionData struct {
 	SignerData              []*BlockTransactionSignerData
 	RelatedAccountAddresses map[apiTypes.Address]struct{}
 	Fee                     common.BigInt
+	FeeSymbol               string
 	GasLimit                uint64
 	Method                  string
 	Body                    interface{}
 	ContractCandidate       *apiTypes.Address // If non-nil, an address that was encountered in the tx and might be a contract.
 	To                      *apiTypes.Address // Extracted from the body for convenience. Semantics vary by tx type.
 	Amount                  *common.BigInt    // Extracted from the body for convenience. Semantics vary by tx type.
+	AmountSymbol            *string           // Extracted from the body for convenience.
 	EVMEncrypted            *evm.EVMEncryptedData
 	EVMContract             *evm.EVMContractData
 	Success                 *bool
@@ -192,7 +195,7 @@ func registerTokenDecrease(tokenChanges map[TokenChangeKey]*big.Int, contractAdd
 	change.Sub(change, amount)
 }
 
-func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.RuntimeTransactionWithResults, rawEvents []nodeapi.RuntimeEvent, logger *log.Logger) (*BlockData, error) { //nolint:gocyclo
+func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.RuntimeTransactionWithResults, rawEvents []nodeapi.RuntimeEvent, sdkPT *sdkConfig.ParaTime, logger *log.Logger) (*BlockData, error) { //nolint:gocyclo
 	blockData := BlockData{
 		Header:              blockHeader,
 		NumTransactions:     len(txrs),
@@ -257,6 +260,7 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 				blockTransactionData.SignerData = append(blockTransactionData.SignerData, &blockTransactionSignerData)
 			}
 			blockTransactionData.Fee = common.BigIntFromQuantity(tx.AuthInfo.Fee.Amount.Amount)
+			blockTransactionData.FeeSymbol = stringifyDenomination(sdkPT, tx.AuthInfo.Fee.Amount.Denomination)
 			blockTransactionData.GasLimit = tx.AuthInfo.Fee.Gas
 
 			// Parse the success/error status.
@@ -277,6 +281,7 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 				AccountsTransfer: func(body *accounts.Transfer) error {
 					blockTransactionData.Body = body
 					amount = body.Amount.Amount
+					blockTransactionData.AmountSymbol = common.Ptr(stringifyDenomination(sdkPT, body.Amount.Denomination))
 					if to, err = addresses.RegisterRelatedSdkAddress(blockTransactionData.RelatedAccountAddresses, &body.To); err != nil {
 						return fmt.Errorf("to: %w", err)
 					}
@@ -285,6 +290,7 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 				ConsensusAccountsDeposit: func(body *consensusaccounts.Deposit) error {
 					blockTransactionData.Body = body
 					amount = body.Amount.Amount
+					blockTransactionData.AmountSymbol = common.Ptr(stringifyDenomination(sdkPT, body.Amount.Denomination))
 					if body.To != nil {
 						if to, err = addresses.RegisterRelatedSdkAddress(blockTransactionData.RelatedAccountAddresses, body.To); err != nil {
 							return fmt.Errorf("to: %w", err)
@@ -300,6 +306,7 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 				ConsensusAccountsWithdraw: func(body *consensusaccounts.Withdraw) error {
 					blockTransactionData.Body = body
 					amount = body.Amount.Amount
+					blockTransactionData.AmountSymbol = common.Ptr(stringifyDenomination(sdkPT, body.Amount.Denomination))
 					if body.To != nil {
 						// This is the address of an account in the consensus layer only; we do not register it as a preimage.
 						if to, err = addresses.FromSdkAddress(body.To); err != nil {
@@ -338,6 +345,7 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 					//   - event Mint(to: nz2f)
 					blockTransactionData.Body = body
 					amount = body.Amount.Amount
+					blockTransactionData.AmountSymbol = common.Ptr(stringifyDenomination(sdkPT, body.Amount.Denomination))
 					// This is the address of an account in the consensus layer only; we do not register it as a preimage.
 					if to, err = addresses.FromSdkAddress(&body.To); err != nil {
 						return fmt.Errorf("to: %w", err)

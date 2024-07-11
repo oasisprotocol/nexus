@@ -12,6 +12,7 @@
       "charged_fee": "2213600000000000",
       "eth_hash": "8a5b6cd62141f380e4b481a48814fea9c40f7f382cd819d9d49e021af76ca6d8",
       "fee": "2230600000000000",
+      "fee_symbol": "ROSE",
       "gas_limit": 22306,
       "gas_used": 22136,
       "hash": "ec1173a69272c67f126f18012019d19cd25199e831f9417b6206fb7844406f9d",
