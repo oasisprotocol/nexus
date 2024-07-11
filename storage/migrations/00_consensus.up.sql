@@ -42,6 +42,9 @@ CREATE TABLE chain.blocks
   -- gas_limit UINT_NUMERIC NOT NULL, -- uint64 in go; because the value might conceivably be >2^63, we use UINT_NUMERIC over UINT63 here.
   -- epoch UINT63 NOT NULL,
 
+  -- added in 23_consensus_block_size_limit.up.sql
+  -- size_limit UINT_NUMERIC NOT NULL, -- uint64 in go; because the value might conceivably be >2^63, we use UINT_NUMERIC over UINT63 here.
+
   metadata   JSONB
 );
 CREATE INDEX ix_blocks_time ON chain.blocks (time);

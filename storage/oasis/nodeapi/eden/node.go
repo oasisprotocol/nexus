@@ -73,7 +73,10 @@ func (c *ConsensusApiLite) GetConsensusParameters(ctx context.Context, height in
 	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Consensus/GetParameters", nil, &rsp); err != nil {
 		return nil, fmt.Errorf("GetParameters(eden): %w", err)
 	}
-	return &nodeapi.ConsensusParameters{MaxBlockGas: uint64(rsp.Parameters.MaxBlockGas)}, nil
+	return &nodeapi.ConsensusParameters{
+		MaxBlockGas:  uint64(rsp.Parameters.MaxBlockGas),
+		MaxBlockSize: rsp.Parameters.MaxBlockSize,
+	}, nil
 }
 
 func (c *ConsensusApiLite) GetBlock(ctx context.Context, height int64) (*consensus.Block, error) {

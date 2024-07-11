@@ -255,7 +255,7 @@ func (c *StorageClient) Status(ctx context.Context) (*Status, error) {
 		ctx,
 		queries.Block,
 		s.LatestBlock,
-	).Scan(nil, nil, &s.LatestBlockTime, nil, nil, nil, nil)
+	).Scan(nil, nil, &s.LatestBlockTime, nil, nil, nil, nil, nil)
 	switch err {
 	case nil:
 	case pgx.ErrNoRows:
@@ -315,7 +315,7 @@ func (c *StorageClient) Blocks(ctx context.Context, r apiTypes.GetConsensusBlock
 	}
 	for res.rows.Next() {
 		var b Block
-		if err := res.rows.Scan(&b.Height, &b.Hash, &b.Timestamp, &b.NumTransactions, &b.GasLimit, &b.Epoch, &b.StateRoot); err != nil {
+		if err := res.rows.Scan(&b.Height, &b.Hash, &b.Timestamp, &b.NumTransactions, &b.GasLimit, &b.SizeLimit, &b.Epoch, &b.StateRoot); err != nil {
 			return nil, wrapError(err)
 		}
 		b.Timestamp = b.Timestamp.UTC()
@@ -352,7 +352,7 @@ func (c *StorageClient) Block(ctx context.Context, height int64) (*Block, error)
 		ctx,
 		queries.Block,
 		height,
-	).Scan(&b.Height, &b.Hash, &b.Timestamp, &b.NumTransactions, &b.GasLimit, &b.Epoch, &b.StateRoot); err != nil {
+	).Scan(&b.Height, &b.Hash, &b.Timestamp, &b.NumTransactions, &b.GasLimit, &b.SizeLimit, &b.Epoch, &b.StateRoot); err != nil {
 		return nil, wrapError(err)
 	}
 	b.Timestamp = b.Timestamp.UTC()
