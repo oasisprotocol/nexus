@@ -128,6 +128,7 @@ CREATE TABLE chain.entities
   address  oasis_addr NOT NULL, -- Deterministically derived from the ID.
   meta     JSONB  -- Signed statements about the entity from https://github.com/oasisprotocol/metadata-registry
   -- logo_url TEXT -- Added in 16_entity_logo.up.sql.
+  -- start_block UINT63 -- Added in 24_validator_start.up.sql
 );
 
 CREATE TABLE chain.nodes

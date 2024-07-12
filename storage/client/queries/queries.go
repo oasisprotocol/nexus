@@ -282,31 +282,90 @@ const (
 			ORDER BY id DESC`
 
 	ValidatorsData = `
-		SELECT
-				chain.entities.id AS entity_id,
-				chain.entities.address AS entity_address,
-				chain.nodes.id AS node_address,
-				chain.accounts.escrow_balance_active AS escrow,
-				COALESCE(chain.commissions.schedule, '{}'::JSONB) AS commissions_schedule,
-				EXISTS(SELECT NULL FROM chain.nodes WHERE chain.entities.id = chain.nodes.entity_id AND voting_power > 0) AS active,
-				EXISTS(SELECT NULL FROM chain.nodes WHERE chain.entities.id = chain.nodes.entity_id AND chain.nodes.roles like '%validator%') AS status,
-				chain.entities.meta AS meta,
-				chain.entities.logo_url as logo_url
+		WITH
+		-- Find all self-delegations for all accounts with active delegations.
+		self_delegations AS (
+			SELECT delegatee AS address, shares AS shares
+				FROM chain.delegations
+				WHERE delegator = delegatee
+				GROUP BY delegator, delegatee
+		),
+		-- Compute the number of delegators for all accounts with active delegations.
+		delegators_count AS (
+			SELECT delegatee AS address, COUNT(*) AS count
+				FROM chain.delegations
+				GROUP BY delegatee
+		),
+		-- Each entity can have multiple nodes. For each entity, find the validator node with
+		-- the highest voting power. Only one node per entity will have nonzero voting power.
+		validator_nodes AS (
+			SELECT entities.address, COALESCE(MAX(nodes.voting_power), 0) AS voting_power
+				FROM chain.entities AS entities
+				JOIN chain.nodes AS nodes ON
+					entities.id = nodes.entity_id AND
+					nodes.roles LIKE '%validator%'
+				GROUP BY entities.address
+		),
+		-- Compute validator rank by in_validator_set desc, is_active desc, escrow balance active desc, entity_id desc, in a subquery to support querying a single validator by address.
+		validator_rank AS (
+			SELECT
+				chain.entities.address,
+				RANK() OVER (ORDER BY
+					EXISTS(SELECT NULL FROM chain.nodes WHERE chain.entities.id = chain.nodes.entity_id AND voting_power > 0) DESC,
+					EXISTS(SELECT NULL FROM chain.nodes WHERE chain.entities.id = chain.nodes.entity_id AND chain.nodes.roles LIKE '%validator%') DESC,
+					chain.accounts.escrow_balance_active DESC,
+					chain.entities.id DESC
+				) AS rank
 			FROM chain.entities
 			JOIN chain.accounts ON chain.entities.address = chain.accounts.address
-			LEFT JOIN chain.commissions ON chain.entities.address = chain.commissions.address
-			JOIN chain.nodes ON chain.entities.id = chain.nodes.entity_id
-				AND chain.nodes.roles like '%validator%'
-				AND chain.nodes.voting_power = (
-					SELECT max(voting_power)
-					FROM chain.nodes
-					WHERE chain.entities.id = chain.nodes.entity_id
-						AND chain.nodes.roles like '%validator%'
-				)
-		WHERE ($1::text IS NULL OR chain.entities.address = $1::text)
-		ORDER BY escrow_balance_active DESC
-		LIMIT $2::bigint
-		OFFSET $3::bigint`
+		)
+		SELECT
+			chain.entities.id AS entity_id,
+			chain.entities.address AS entity_address,
+			chain.nodes.id AS node_id,
+			chain.accounts.escrow_balance_active AS active_balance,
+			chain.accounts.escrow_total_shares_active AS active_shares,
+			chain.accounts.escrow_balance_debonding AS debonding_balance,
+			chain.accounts.escrow_total_shares_debonding AS debonding_shares,
+			COALESCE (
+				ROUND(COALESCE(self_delegations.shares, 0) * chain.accounts.escrow_balance_active / NULLIF(chain.accounts.escrow_total_shares_active, 0))
+			, 0) AS self_delegation_balance,
+			COALESCE (
+				self_delegations.shares
+			, 0) AS self_delegation_shares,
+			COALESCE (
+				delegators_count.count
+			, 0) AS num_delegators,
+			COALESCE (
+				validator_nodes.voting_power
+			, 0) AS voting_power,
+			COALESCE (
+				(SELECT SUM(voting_power)
+				FROM validator_nodes)
+			, 0) AS total_voting_power,
+			COALESCE(chain.commissions.schedule, '{}'::JSONB) AS commissions_schedule,
+			chain.blocks.time AS start_date,
+			validator_rank.rank AS rank,
+			EXISTS(SELECT NULL FROM chain.nodes WHERE chain.entities.id = chain.nodes.entity_id AND chain.nodes.roles LIKE '%validator%') AS active,
+			EXISTS(SELECT NULL FROM chain.nodes WHERE chain.entities.id = chain.nodes.entity_id AND voting_power > 0) AS in_validator_set,
+			chain.entities.meta AS meta,
+			chain.entities.logo_url as logo_url
+		FROM chain.entities
+		JOIN chain.accounts ON chain.entities.address = chain.accounts.address
+		JOIN chain.blocks ON chain.entities.start_block = chain.blocks.height
+		LEFT JOIN chain.commissions ON chain.entities.address = chain.commissions.address
+		LEFT JOIN self_delegations ON chain.entities.address = self_delegations.address
+		LEFT JOIN delegators_count ON chain.entities.address = delegators_count.address
+		LEFT JOIN validator_nodes ON validator_nodes.address = entities.address
+		JOIN validator_rank ON chain.entities.address = validator_rank.address
+		LEFT JOIN chain.nodes ON chain.entities.id = chain.nodes.entity_id
+			AND chain.nodes.roles LIKE '%validator%'
+			AND chain.nodes.voting_power = validator_nodes.voting_power
+		WHERE ($1::text IS NULL OR chain.entities.address = $1::text) AND
+				($2::text IS NULL OR chain.entities.meta->>'name' LIKE '%' || $2::text || '%')
+		ORDER BY rank
+		LIMIT $3::bigint
+		OFFSET $4::bigint`
 
 	RuntimeBlocks = `
 		SELECT round, block_hash, timestamp, num_transactions, size, gas_used

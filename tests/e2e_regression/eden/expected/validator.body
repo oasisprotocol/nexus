@@ -9,7 +9,19 @@
   "current_rate": 10000,
   "entity_address": "oasis1qqekv2ymgzmd8j2s2u7g0hhc7e77e654kvwqtjwm",
   "entity_id": "9sAhd+Wi6tG5nAr3LwXD0y9mUKLYqfAbS2+7SZdNHB4=",
-  "escrow": "510451387625537252",
+  "escrow": {
+    "active_balance": "510451387625537252",
+    "active_shares": "409179768799490790",
+    "debonding_balance": "3665408095574550",
+    "debonding_shares": "3665408095574550",
+    "num_delegators": 10333,
+    "self_delegation_balance": "2732659347000638",
+    "self_delegation_shares": "2190510099335361"
+  },
+  "in_validator_set": true,
   "node_id": "6wbL5/OxvFGxi55o7AxcwKmfjXbXGC1hw4lfnEZxBXA=",
-  "status": true
+  "rank": 1,
+  "start_date": "2023-11-29T10:02:19Z",
+  "voting_power": 31903165146578016,
+  "voting_power_total": 261234553964856260
 }
