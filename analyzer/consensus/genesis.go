@@ -175,6 +175,7 @@ func (mg *GenesisProcessor) addStakingBackendMigrations(batch *storage.QueryBatc
 			account.Escrow.Active.TotalShares.ToBigInt(),
 			account.Escrow.Debonding.Balance.ToBigInt(),
 			account.Escrow.Debonding.TotalShares.ToBigInt(),
+			document.Time.UTC(),
 		)
 	}
 
@@ -188,6 +189,7 @@ func (mg *GenesisProcessor) addStakingBackendMigrations(batch *storage.QueryBatc
 			account.Escrow.Active.TotalShares.ToBigInt(),
 			account.Escrow.Debonding.Balance.ToBigInt(),
 			account.Escrow.Debonding.TotalShares.ToBigInt(),
+			document.Time.UTC(),
 		)
 	}
 

@@ -37,6 +37,7 @@ CREATE MATERIALIZED VIEW views.accounts_list AS
 		COALESCE(ad.delegations_balance, 0) AS delegations_balance,
 		COALESCE(dd.debonding_delegations_balance, 0) AS debonding_delegations_balance,
 		a.general_balance + COALESCE(ad.delegations_balance, 0) + COALESCE(dd.debonding_delegations_balance, 0) AS total_balance,
+		a.first_activity,
 		(SELECT height FROM max_block_height) AS computed_height
 	FROM
 		chain.accounts a

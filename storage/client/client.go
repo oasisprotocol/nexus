@@ -737,6 +737,7 @@ func (c *StorageClient) Accounts(ctx context.Context, r apiTypes.GetConsensusAcc
 			&a.Debonding,
 			&a.DelegationsBalance,
 			&a.DebondingDelegationsBalance,
+			&a.FirstActivity,
 		); err != nil {
 			return nil, wrapError(err)
 		}
@@ -766,6 +767,7 @@ func (c *StorageClient) Account(ctx context.Context, address staking.Address) (*
 		&a.Debonding,
 		&a.DelegationsBalance,
 		&a.DebondingDelegationsBalance,
+		&a.FirstActivity,
 	)
 	switch {
 	case err == nil:

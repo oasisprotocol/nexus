@@ -2165,6 +2165,13 @@ components:
           allOf: [$ref: '#/components/schemas/TextBigInt']
           description: The balance of this accounts' (outgoing) debonding delegations, in base units.
           example: 10000000000
+        first_activity:
+          type: string
+          format: date-time
+          description: |
+            The second-granular consensus time of the block in which this account was first active.
+            Dates before Cobalt (2021-04-28) are approximate.
+          example: *iso_timestamp_1
         allowances:
           type: array
           items:
