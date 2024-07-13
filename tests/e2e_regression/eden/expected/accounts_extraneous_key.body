@@ -8,6 +8,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "581177576573387993",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 132,
       "stats": {
         "num_txns": 0
@@ -21,6 +22,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "883157427264399986",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 189,
       "stats": {
         "num_txns": 0
@@ -34,6 +36,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "0",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 0,
       "stats": {
         "num_txns": 0
@@ -47,6 +50,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "695628324338660768",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 287,
       "stats": {
         "num_txns": 0
@@ -60,6 +64,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "368377069891926509",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 125,
       "stats": {
         "num_txns": 0
@@ -73,6 +78,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "312014283062984445",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 83,
       "stats": {
         "num_txns": 0
@@ -86,6 +92,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "155055672",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 61,
       "stats": {
         "num_txns": 0
@@ -99,6 +106,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "190157526502906630",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 155,
       "stats": {
         "num_txns": 0
@@ -112,6 +120,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "119062799735445902",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 269,
       "stats": {
         "num_txns": 0
@@ -125,6 +134,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "104091963050038997",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 13,
       "stats": {
         "num_txns": 0
@@ -138,6 +148,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "0",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 0,
       "stats": {
         "num_txns": 0
@@ -151,6 +162,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "0",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 1,
       "stats": {
         "num_txns": 0
@@ -164,6 +176,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "0",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 0,
       "stats": {
         "num_txns": 0
@@ -177,6 +190,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "0",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 0,
       "stats": {
         "num_txns": 0
@@ -190,6 +204,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "0",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 1,
       "stats": {
         "num_txns": 0
@@ -203,6 +218,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "0",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 0,
       "stats": {
         "num_txns": 0
@@ -216,6 +232,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "56602251729342520",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 87,
       "stats": {
         "num_txns": 0
@@ -229,6 +246,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "21818528355983457",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 6,
       "stats": {
         "num_txns": 0
@@ -242,6 +260,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "0",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 4731,
       "stats": {
         "num_txns": 0
@@ -255,6 +274,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "18456225740166927",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 4,
       "stats": {
         "num_txns": 0
@@ -268,6 +288,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "51441815843259313",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 30,
       "stats": {
         "num_txns": 0
@@ -281,6 +302,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "0",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 0,
       "stats": {
         "num_txns": 0
@@ -294,6 +316,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "44676569255648851",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 44,
       "stats": {
         "num_txns": 0
@@ -307,6 +330,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "0",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 0,
       "stats": {
         "num_txns": 0
@@ -320,6 +344,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "44246594576879506",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 31,
       "stats": {
         "num_txns": 0
@@ -333,6 +358,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "0",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 22987,
       "stats": {
         "num_txns": 0
@@ -346,6 +372,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "0",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 4905,
       "stats": {
         "num_txns": 0
@@ -359,6 +386,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "0",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 5,
       "stats": {
         "num_txns": 0
@@ -372,6 +400,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "36076878528300031",
       "escrow": "3710770171287",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 8,
       "stats": {
         "num_txns": 0
@@ -385,6 +414,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "34642798660770628",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 141,
       "stats": {
         "num_txns": 0
@@ -398,6 +428,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "0",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 0,
       "stats": {
         "num_txns": 0
@@ -411,6 +442,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "0",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 2,
       "stats": {
         "num_txns": 0
@@ -424,6 +456,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "7511812317759196",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 14,
       "stats": {
         "num_txns": 0
@@ -437,6 +470,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "0",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 1,
       "stats": {
         "num_txns": 0
@@ -450,6 +484,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "0",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 2,
       "stats": {
         "num_txns": 0
@@ -463,6 +498,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "0",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 2,
       "stats": {
         "num_txns": 0
@@ -476,6 +512,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "0",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 0,
       "stats": {
         "num_txns": 0
@@ -489,6 +526,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "16863191621906338",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 15,
       "stats": {
         "num_txns": 0
@@ -502,6 +540,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "0",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 91691,
       "stats": {
         "num_txns": 0
@@ -515,6 +554,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "5594435834200584",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 32,
       "stats": {
         "num_txns": 0
@@ -528,6 +568,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "0",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 0,
       "stats": {
         "num_txns": 0
@@ -541,6 +582,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "22841722845453385",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 4,
       "stats": {
         "num_txns": 0
@@ -554,6 +596,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "22324817339775350",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 134,
       "stats": {
         "num_txns": 0
@@ -567,6 +610,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "0",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 2384,
       "stats": {
         "num_txns": 0
@@ -580,6 +624,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "20757797614445910",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 9,
       "stats": {
         "num_txns": 0
@@ -593,6 +638,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "0",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 146,
       "stats": {
         "num_txns": 0
@@ -606,6 +652,7 @@
       "debonding_delegations_balance": "20093910818263073",
       "delegations_balance": "0",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 6,
       "stats": {
         "num_txns": 0
@@ -619,6 +666,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "19966735455553628",
       "escrow": "96097681933147726",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 34,
       "stats": {
         "num_txns": 0
@@ -632,6 +680,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "19923475991758752",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 14,
       "stats": {
         "num_txns": 0
@@ -645,6 +694,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "0",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 2,
       "stats": {
         "num_txns": 0
@@ -658,6 +708,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "0",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 1,
       "stats": {
         "num_txns": 0
@@ -671,6 +722,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "0",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 2,
       "stats": {
         "num_txns": 0
@@ -684,6 +736,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "0",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 0,
       "stats": {
         "num_txns": 0
@@ -697,6 +750,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "0",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 0,
       "stats": {
         "num_txns": 0
@@ -710,6 +764,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "15356302714560360",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 4,
       "stats": {
         "num_txns": 0
@@ -723,6 +778,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "15207991072335993",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 26,
       "stats": {
         "num_txns": 0
@@ -736,6 +792,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "0",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 7,
       "stats": {
         "num_txns": 0
@@ -749,6 +806,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "13962336400988891",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 19,
       "stats": {
         "num_txns": 0
@@ -762,6 +820,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "0",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 0,
       "stats": {
         "num_txns": 0
@@ -775,6 +834,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "0",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 0,
       "stats": {
         "num_txns": 0
@@ -788,6 +848,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "5798969998843852",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 18,
       "stats": {
         "num_txns": 0
@@ -801,6 +862,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "0",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 0,
       "stats": {
         "num_txns": 0
@@ -814,6 +876,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "0",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 0,
       "stats": {
         "num_txns": 0
@@ -827,6 +890,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "0",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 0,
       "stats": {
         "num_txns": 0
@@ -840,6 +904,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "0",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 0,
       "stats": {
         "num_txns": 0
@@ -853,6 +918,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "0",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 0,
       "stats": {
         "num_txns": 0
@@ -866,6 +932,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "0",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 0,
       "stats": {
         "num_txns": 0
@@ -879,6 +946,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "0",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 0,
       "stats": {
         "num_txns": 0
@@ -892,6 +960,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "0",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 3,
       "stats": {
         "num_txns": 0
@@ -905,6 +974,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "0",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 1,
       "stats": {
         "num_txns": 0
@@ -918,6 +988,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "0",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 4,
       "stats": {
         "num_txns": 0
@@ -931,6 +1002,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "0",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 0,
       "stats": {
         "num_txns": 0
@@ -944,6 +1016,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "12051234827769505",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 9,
       "stats": {
         "num_txns": 0
@@ -957,6 +1030,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "0",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 0,
       "stats": {
         "num_txns": 0
@@ -970,6 +1044,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "0",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 0,
       "stats": {
         "num_txns": 0
@@ -983,6 +1058,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "0",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 0,
       "stats": {
         "num_txns": 0
@@ -996,6 +1072,7 @@
       "debonding_delegations_balance": "578540912348436",
       "delegations_balance": "8235887013244758",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 109,
       "stats": {
         "num_txns": 0
@@ -1009,6 +1086,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "0",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 0,
       "stats": {
         "num_txns": 0
@@ -1022,6 +1100,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "0",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 14,
       "stats": {
         "num_txns": 0
@@ -1035,6 +1114,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "0",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 3,
       "stats": {
         "num_txns": 0
@@ -1048,6 +1128,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "0",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 3,
       "stats": {
         "num_txns": 0
@@ -1061,6 +1142,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "0",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 12,
       "stats": {
         "num_txns": 0
@@ -1074,6 +1156,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "10994960764209142",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 1,
       "stats": {
         "num_txns": 0
@@ -1087,6 +1170,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "0",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 10,
       "stats": {
         "num_txns": 0
@@ -1100,6 +1184,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "0",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 2,
       "stats": {
         "num_txns": 0
@@ -1113,6 +1198,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "10331306590425697",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 2,
       "stats": {
         "num_txns": 0
@@ -1126,6 +1212,7 @@
       "debonding_delegations_balance": "5024368792645277",
       "delegations_balance": "5020032632728946",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 4,
       "stats": {
         "num_txns": 0
@@ -1139,6 +1226,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "0",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 2,
       "stats": {
         "num_txns": 0
@@ -1152,6 +1240,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "8844393511461616",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 6,
       "stats": {
         "num_txns": 0
@@ -1165,6 +1254,7 @@
       "debonding_delegations_balance": "2900008326079998",
       "delegations_balance": "5886459103137642",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 26,
       "stats": {
         "num_txns": 0
@@ -1178,6 +1268,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "8759210009614329",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 14,
       "stats": {
         "num_txns": 0
@@ -1191,6 +1282,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "6192313163887335",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 9,
       "stats": {
         "num_txns": 0
@@ -1204,6 +1296,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "8257164944733239",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 62,
       "stats": {
         "num_txns": 0
@@ -1217,6 +1310,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "0",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 0,
       "stats": {
         "num_txns": 0
@@ -1230,6 +1324,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "0",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 1,
       "stats": {
         "num_txns": 0
@@ -1243,6 +1338,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "0",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 1,
       "stats": {
         "num_txns": 0
@@ -1256,6 +1352,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "0",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 1,
       "stats": {
         "num_txns": 0
@@ -1269,6 +1366,7 @@
       "debonding_delegations_balance": "65999999999999",
       "delegations_balance": "7217765586946518",
       "escrow": "110381226413094551",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 63,
       "stats": {
         "num_txns": 0
@@ -1282,6 +1380,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "0",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 1,
       "stats": {
         "num_txns": 0
@@ -1295,6 +1394,7 @@
       "debonding_delegations_balance": "0",
       "delegations_balance": "0",
       "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
       "nonce": 0,
       "stats": {
         "num_txns": 0

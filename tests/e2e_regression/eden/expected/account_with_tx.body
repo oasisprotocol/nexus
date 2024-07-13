@@ -6,6 +6,7 @@
   "debonding_delegations_balance": "0",
   "delegations_balance": "2037661421211704",
   "escrow": "281559416810441006",
+  "first_activity": "NONDETERMINISTIC",
   "nonce": 22,
   "stats": {
     "num_txns": 3
