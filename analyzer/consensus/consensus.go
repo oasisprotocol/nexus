@@ -67,29 +67,27 @@ func OpenSignedTxNoVerify(signedTx *transaction.SignedTransaction) (*transaction
 
 // processor is the block processor for the consensus layer.
 type processor struct {
-	chainName common.ChainName
-	mode      analyzer.BlockAnalysisMode
-	history   config.History
-	source    nodeapi.ConsensusApiLite
-	network   sdkConfig.Network
-	target    storage.TargetStorage
-	logger    *log.Logger
-	metrics   metrics.AnalysisMetrics
+	mode    analyzer.BlockAnalysisMode
+	history config.History
+	source  nodeapi.ConsensusApiLite
+	network sdkConfig.Network
+	target  storage.TargetStorage
+	logger  *log.Logger
+	metrics metrics.AnalysisMetrics
 }
 
 var _ block.BlockProcessor = (*processor)(nil)
 
 // NewAnalyzer returns a new analyzer for the consensus layer.
-func NewAnalyzer(chainName common.ChainName, blockRange config.BlockRange, batchSize uint64, mode analyzer.BlockAnalysisMode, history config.History, source nodeapi.ConsensusApiLite, network sdkConfig.Network, target storage.TargetStorage, logger *log.Logger) (analyzer.Analyzer, error) {
+func NewAnalyzer(blockRange config.BlockRange, batchSize uint64, mode analyzer.BlockAnalysisMode, history config.History, source nodeapi.ConsensusApiLite, network sdkConfig.Network, target storage.TargetStorage, logger *log.Logger) (analyzer.Analyzer, error) {
 	processor := &processor{
-		chainName: chainName,
-		mode:      mode,
-		history:   history,
-		source:    source,
-		network:   network,
-		target:    target,
-		logger:    logger.With("analyzer", consensusAnalyzerName),
-		metrics:   metrics.NewDefaultAnalysisMetrics(consensusAnalyzerName),
+		mode:    mode,
+		history: history,
+		source:  source,
+		network: network,
+		target:  target,
+		logger:  logger.With("analyzer", consensusAnalyzerName),
+		metrics: metrics.NewDefaultAnalysisMetrics(consensusAnalyzerName),
 	}
 
 	return block.NewAnalyzer(blockRange, batchSize, mode, consensusAnalyzerName, processor, target, logger)
@@ -120,7 +118,7 @@ func (m *processor) PreWork(ctx context.Context) error {
 
 	// Insert static account first activity timestamps.
 	batch = &storage.QueryBatch{}
-	if err = static.QueueConsensusAccountsFirstActivity(batch, m.chainName, m.logger); err != nil {
+	if err = static.QueueConsensusAccountsFirstActivity(batch, m.history.ChainName, m.logger); err != nil {
 		return err
 	}
 	if err = m.target.SendBatch(ctx, batch); err != nil {

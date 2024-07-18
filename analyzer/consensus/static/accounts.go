@@ -83,7 +83,7 @@ func init() {
 //
 // We need these static lists because we do not have access to the transaction history all the way back
 // to the initial chain (pre-Cobalt). Therefore we use static lists of accounts existing at the network
-// dump-restore upgrades for each pre-Cobalt upgrade and insert their approximate first_activity dates.
+// dump-restore upgrades for each pre-Cobalt upgrade and insert their approximate first_activity date.
 func QueueConsensusAccountsFirstActivity(batch *storage.QueryBatch, chainName common.ChainName, logger *log.Logger) error {
 	var accounts *accounts
 	switch chainName {

@@ -23,6 +23,7 @@ type Record struct {
 }
 
 type History struct {
+	ChainName     common.ChainName    `koanf:"chain_name"`
 	Records       []*Record           `koanf:"records"`
 	MissingBlocks map[uint64]struct{} `koanf:"missing_blocks"`
 }
@@ -83,6 +84,7 @@ func (h *History) RecordForRuntimeRound(runtime common.Runtime, round uint64) (*
 
 var DefaultChains = map[common.ChainName]*History{
 	common.ChainNameMainnet: {
+		ChainName: common.ChainNameMainnet,
 		// Block does not exist due to mishap during upgrade to Damask.
 		MissingBlocks: map[uint64]struct{}{8048955: {}},
 		Records: []*Record{
@@ -138,6 +140,7 @@ var DefaultChains = map[common.ChainName]*History{
 		},
 	},
 	common.ChainNameTestnet: {
+		ChainName:     common.ChainNameTestnet,
 		MissingBlocks: map[uint64]struct{}{},
 		Records: []*Record{
 			{

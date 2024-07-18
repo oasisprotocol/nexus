@@ -305,7 +305,7 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) { //nolint:gocyclo
 					if err1 != nil {
 						return nil, err1
 					}
-					return consensus.NewAnalyzer(cfg.Source.ChainName, *fastRange, cfg.Analyzers.Consensus.BatchSize, analyzer.FastSyncMode, *cfg.Source.History(), sourceClient, *cfg.Source.SDKNetwork(), dbClient, logger)
+					return consensus.NewAnalyzer(*fastRange, cfg.Analyzers.Consensus.BatchSize, analyzer.FastSyncMode, *cfg.Source.History(), sourceClient, *cfg.Source.SDKNetwork(), dbClient, logger)
 				})
 			}
 		}
@@ -343,7 +343,7 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) { //nolint:gocyclo
 			if err1 != nil {
 				return nil, err1
 			}
-			return consensus.NewAnalyzer(cfg.Source.ChainName, cfg.Analyzers.Consensus.SlowSyncRange(), cfg.Analyzers.Consensus.BatchSize, analyzer.SlowSyncMode, *cfg.Source.History(), sourceClient, *cfg.Source.SDKNetwork(), dbClient, logger)
+			return consensus.NewAnalyzer(cfg.Analyzers.Consensus.SlowSyncRange(), cfg.Analyzers.Consensus.BatchSize, analyzer.SlowSyncMode, *cfg.Source.History(), sourceClient, *cfg.Source.SDKNetwork(), dbClient, logger)
 		})
 	}
 	if cfg.Analyzers.ConsensusAccountsList != nil {
