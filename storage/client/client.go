@@ -1422,6 +1422,7 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetR
 			&sender0PreimageData,
 			&t.Nonce0,
 			&t.Fee,
+			&t.FeeSymbol,
 			&t.GasLimit,
 			&t.GasUsed,
 			&t.ChargedFee,
@@ -1433,6 +1434,7 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetR
 			&toPreimageContextVersion,
 			&toPreimageData,
 			&t.Amount,
+			&t.AmountSymbol,
 			&encryptionEnvelopeFormat,
 			&encryptionEnvelope.PublicKey,
 			&encryptionEnvelope.DataNonce,
@@ -1471,7 +1473,7 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetR
 		// TODO: Similarly to above, this application logic doesn't belong here (= the DB layer);
 		// move it out if we establish a separate app/logic layer.
 		if t.Method != nil {
-			if *t.Method == "accounts.Transfer" {
+			if *t.Method == "accounts.Transfer" && t.AmountSymbol != nil && *t.AmountSymbol == c.nativeTokenSymbol(runtimeFromCtx(ctx)) {
 				t.IsLikelyNativeTokenTransfer = common.Ptr(true)
 			} else if *t.Method == "evm.Call" && t.Body != nil && (*t.Body)["data"] == "" {
 				// Note: This demands that the body.data key does exist (as we expect from evm.Call tx bodies),

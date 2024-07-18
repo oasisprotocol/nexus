@@ -26,14 +26,14 @@ import (
 
 // processor is the block processor for runtimes.
 type processor struct {
-	chain           common.ChainName
-	runtime         common.Runtime
-	runtimeMetadata *sdkConfig.ParaTime
-	mode            analyzer.BlockAnalysisMode
-	source          nodeapi.RuntimeApiLite
-	target          storage.TargetStorage
-	logger          *log.Logger
-	metrics         metrics.AnalysisMetrics
+	chain   common.ChainName
+	runtime common.Runtime
+	sdkPT   *sdkConfig.ParaTime
+	mode    analyzer.BlockAnalysisMode
+	source  nodeapi.RuntimeApiLite
+	target  storage.TargetStorage
+	logger  *log.Logger
+	metrics metrics.AnalysisMetrics
 }
 
 var _ block.BlockProcessor = (*processor)(nil)
@@ -42,7 +42,7 @@ var _ block.BlockProcessor = (*processor)(nil)
 func NewRuntimeAnalyzer(
 	chain common.ChainName,
 	runtime common.Runtime,
-	runtimeMetadata *sdkConfig.ParaTime,
+	sdkPT *sdkConfig.ParaTime,
 	blockRange config.BlockRange,
 	batchSize uint64,
 	mode analyzer.BlockAnalysisMode,
@@ -52,29 +52,29 @@ func NewRuntimeAnalyzer(
 ) (analyzer.Analyzer, error) {
 	// Initialize runtime block processor.
 	processor := &processor{
-		chain:           chain,
-		runtime:         runtime,
-		runtimeMetadata: runtimeMetadata,
-		mode:            mode,
-		source:          sourceClient,
-		target:          target,
-		logger:          logger.With("analyzer", runtime),
-		metrics:         metrics.NewDefaultAnalysisMetrics(string(runtime)),
+		chain:   chain,
+		runtime: runtime,
+		sdkPT:   sdkPT,
+		mode:    mode,
+		source:  sourceClient,
+		target:  target,
+		logger:  logger.With("analyzer", runtime),
+		metrics: metrics.NewDefaultAnalysisMetrics(string(runtime)),
 	}
 
 	return block.NewAnalyzer(blockRange, batchSize, mode, string(runtime), processor, target, logger)
 }
 
-func (m *processor) nativeTokenSymbol() string {
-	return m.runtimeMetadata.Denominations[sdkConfig.NativeDenominationKey].Symbol
+func nativeTokenSymbol(sdkPT *sdkConfig.ParaTime) string {
+	return sdkPT.Denominations[sdkConfig.NativeDenominationKey].Symbol
 }
 
-// StringifyDenomination returns a string representation of the given denomination.
+// stringifyDenomination returns a string representation of the given denomination.
 // This is simply the denomination's symbol; notably, for the native denomination,
 // this is looked up from network config.
-func (m *processor) StringifyDenomination(d sdkTypes.Denomination) string {
+func stringifyDenomination(sdkPT *sdkConfig.ParaTime, d sdkTypes.Denomination) string {
 	if d.IsNative() {
-		return m.nativeTokenSymbol()
+		return nativeTokenSymbol(sdkPT)
 	}
 
 	return d.String()
@@ -127,7 +127,7 @@ func (m *processor) UpdateHighTrafficAccounts(ctx context.Context, batch *storag
 			queries.RuntimeNativeBalanceAbsoluteUpsert,
 			m.runtime,
 			addr,
-			m.nativeTokenSymbol(),
+			nativeTokenSymbol(m.sdkPT),
 			balance.String(),
 		)
 	}
@@ -153,7 +153,7 @@ func (m *processor) FinalizeFastSync(ctx context.Context, lastFastSyncHeight int
 	batch.Queue(queries.RuntimeAccountTotalSentRecompute, m.runtime, lastFastSyncHeight)
 
 	m.logger.Info("recomputing total_received for every account")
-	batch.Queue(queries.RuntimeAccountTotalReceivedRecompute, m.runtime, lastFastSyncHeight, m.nativeTokenSymbol())
+	batch.Queue(queries.RuntimeAccountTotalReceivedRecompute, m.runtime, lastFastSyncHeight, nativeTokenSymbol(m.sdkPT))
 
 	m.logger.Info("recomputing gas_for_calling for every contract")
 	batch.Queue(queries.RuntimeAccountGasForCallingRecompute, m.runtime, lastFastSyncHeight)
@@ -203,7 +203,7 @@ func (m *processor) ProcessBlock(ctx context.Context, round uint64) error {
 
 	// Preprocess data.
 	analysisTimer := m.metrics.BlockAnalysisLatencies()
-	blockData, err := ExtractRound(*blockHeader, transactionsWithResults, rawEvents, m.logger)
+	blockData, err := ExtractRound(*blockHeader, transactionsWithResults, rawEvents, m.sdkPT, m.logger)
 	if err != nil {
 		return err
 	}
@@ -316,6 +316,7 @@ func (m *processor) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 			transactionData.Hash,
 			transactionData.EthHash,
 			&transactionData.Fee, // pgx bug? Needs a *BigInt (not BigInt) to know how to serialize.
+			transactionData.FeeSymbol,
 			transactionData.GasLimit,
 			transactionData.GasUsed,
 			transactionData.Size,
@@ -324,6 +325,7 @@ func (m *processor) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 			transactionData.Body,
 			transactionData.To,
 			transactionData.Amount,
+			transactionData.AmountSymbol,
 			evmEncryptedFormat,
 			evmEncryptedPublicKey,
 			evmEncryptedDataNonce,
@@ -426,7 +428,7 @@ func (m *processor) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 		// Update (dead-reckon) the DB balance only if it's actually changed.
 		if change != big.NewInt(0) && m.mode != analyzer.FastSyncMode {
 			if key.TokenAddress == evm.NativeRuntimeTokenAddress {
-				batch.Queue(queries.RuntimeNativeBalanceUpsert, m.runtime, key.AccountAddress, m.nativeTokenSymbol(), change.String())
+				batch.Queue(queries.RuntimeNativeBalanceUpsert, m.runtime, key.AccountAddress, nativeTokenSymbol(m.sdkPT), change.String())
 			} else {
 				batch.Queue(queries.RuntimeEVMTokenBalanceUpdate, m.runtime, key.TokenAddress, key.AccountAddress, change.String())
 			}

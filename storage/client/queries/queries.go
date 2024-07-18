@@ -398,6 +398,7 @@ const (
 			signer0_preimage.address_data AS sender0_preimage_data,
 			signer0.nonce AS nonce0,
 			txs.fee,
+			txs.fee_symbol,
 			txs.gas_limit,
 			txs.gas_used,
 			CASE
@@ -412,6 +413,7 @@ const (
 			to_preimage.context_version AS to_preimage_context_version,
 			to_preimage.address_data AS to_preimage_data,
 			txs.amount,
+			txs.amount_symbol,
 			txs.evm_encrypted_format,
 			txs.evm_encrypted_public_key,
 			txs.evm_encrypted_data_nonce,

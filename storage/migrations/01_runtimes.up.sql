@@ -43,6 +43,8 @@ CREATE TABLE chain.runtime_transactions
   -- NOTE: The signer(s) and their nonce(s) are stored separately in runtime_transaction_signers.
 
   fee         UINT_NUMERIC NOT NULL,
+  -- Added in 25_runtime_tx_denoms.up.sql
+  -- fee_symbol  TEXT NOT NULL,
   gas_limit   UINT63 NOT NULL,
   gas_used    UINT63 NOT NULL,
   size UINT31 NOT NULL,
@@ -52,6 +54,8 @@ CREATE TABLE chain.runtime_transactions
   body        JSONB,        -- For EVM txs, the EVM method and args are encoded in here. NULL for malformed and encrypted txs.
   "to"        oasis_addr,   -- Exact semantics depend on method. Extracted from body; for convenience only.
   amount      UINT_NUMERIC, -- Exact semantics depend on method. Extracted from body; for convenience only.
+  -- Added in 25_runtime_tx_denoms.up.sql
+  -- amount_symbol  TEXT,         -- The denomination of the transaction amount. Extracted from body; for convenience only. called `Denomination` in the SDK
 
   -- For evm.Call transactions, we store both the name of the function and
   -- the function parameters. The parameters are stored in an ordered JSON array,

@@ -17,6 +17,7 @@
       },
       "eth_hash": "2331e2a065609a7b6537cfd990386a585c132116d608af0719918eb511283bc7",
       "fee": "30000000000000000",
+      "fee_symbol": "ROSE",
       "gas_limit": 300000,
       "gas_used": 38284,
       "hash": "35fdc8261dd81be8187c858aa9a623085494baf0565d414f48562a856147c093",

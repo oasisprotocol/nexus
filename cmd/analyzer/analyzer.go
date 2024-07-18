@@ -357,52 +357,52 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) { //nolint:gocyclo
 	}
 	if cfg.Analyzers.Emerald != nil {
 		analyzers, err = addAnalyzer(analyzers, err, syncTagEmerald, func() (A, error) {
-			runtimeMetadata := cfg.Source.SDKParaTime(common.RuntimeEmerald)
+			sdkPT := cfg.Source.SDKParaTime(common.RuntimeEmerald)
 			sourceClient, err1 := sources.Runtime(ctx, common.RuntimeEmerald)
 			if err1 != nil {
 				return nil, err1
 			}
-			return runtime.NewRuntimeAnalyzer(cfg.Source.ChainName, common.RuntimeEmerald, runtimeMetadata, cfg.Analyzers.Emerald.SlowSyncRange(), cfg.Analyzers.Emerald.BatchSize, analyzer.SlowSyncMode, sourceClient, dbClient, logger)
+			return runtime.NewRuntimeAnalyzer(cfg.Source.ChainName, common.RuntimeEmerald, sdkPT, cfg.Analyzers.Emerald.SlowSyncRange(), cfg.Analyzers.Emerald.BatchSize, analyzer.SlowSyncMode, sourceClient, dbClient, logger)
 		})
 	}
 	if cfg.Analyzers.Sapphire != nil {
 		analyzers, err = addAnalyzer(analyzers, err, syncTagSapphire, func() (A, error) {
-			runtimeMetadata := cfg.Source.SDKParaTime(common.RuntimeSapphire)
+			sdkPT := cfg.Source.SDKParaTime(common.RuntimeSapphire)
 			sourceClient, err1 := sources.Runtime(ctx, common.RuntimeSapphire)
 			if err1 != nil {
 				return nil, err1
 			}
-			return runtime.NewRuntimeAnalyzer(cfg.Source.ChainName, common.RuntimeSapphire, runtimeMetadata, cfg.Analyzers.Sapphire.SlowSyncRange(), cfg.Analyzers.Sapphire.BatchSize, analyzer.SlowSyncMode, sourceClient, dbClient, logger)
+			return runtime.NewRuntimeAnalyzer(cfg.Source.ChainName, common.RuntimeSapphire, sdkPT, cfg.Analyzers.Sapphire.SlowSyncRange(), cfg.Analyzers.Sapphire.BatchSize, analyzer.SlowSyncMode, sourceClient, dbClient, logger)
 		})
 	}
 	if cfg.Analyzers.PontusxTest != nil {
 		analyzers, err = addAnalyzer(analyzers, err, syncTagPontusxTest, func() (A, error) {
-			runtimeMetadata := cfg.Source.SDKParaTime(common.RuntimePontusxTest)
+			sdkPT := cfg.Source.SDKParaTime(common.RuntimePontusxTest)
 			sourceClient, err1 := sources.Runtime(ctx, common.RuntimePontusxTest)
 			if err1 != nil {
 				return nil, err1
 			}
-			return runtime.NewRuntimeAnalyzer(cfg.Source.ChainName, common.RuntimePontusxTest, runtimeMetadata, cfg.Analyzers.PontusxTest.SlowSyncRange(), cfg.Analyzers.PontusxTest.BatchSize, analyzer.SlowSyncMode, sourceClient, dbClient, logger)
+			return runtime.NewRuntimeAnalyzer(cfg.Source.ChainName, common.RuntimePontusxTest, sdkPT, cfg.Analyzers.PontusxTest.SlowSyncRange(), cfg.Analyzers.PontusxTest.BatchSize, analyzer.SlowSyncMode, sourceClient, dbClient, logger)
 		})
 	}
 	if cfg.Analyzers.PontusxDev != nil {
 		analyzers, err = addAnalyzer(analyzers, err, syncTagPontusxDev, func() (A, error) {
-			runtimeMetadata := cfg.Source.SDKParaTime(common.RuntimePontusxDev)
+			sdkPT := cfg.Source.SDKParaTime(common.RuntimePontusxDev)
 			sourceClient, err1 := sources.Runtime(ctx, common.RuntimePontusxDev)
 			if err1 != nil {
 				return nil, err1
 			}
-			return runtime.NewRuntimeAnalyzer(cfg.Source.ChainName, common.RuntimePontusxDev, runtimeMetadata, cfg.Analyzers.PontusxDev.SlowSyncRange(), cfg.Analyzers.PontusxDev.BatchSize, analyzer.SlowSyncMode, sourceClient, dbClient, logger)
+			return runtime.NewRuntimeAnalyzer(cfg.Source.ChainName, common.RuntimePontusxDev, sdkPT, cfg.Analyzers.PontusxDev.SlowSyncRange(), cfg.Analyzers.PontusxDev.BatchSize, analyzer.SlowSyncMode, sourceClient, dbClient, logger)
 		})
 	}
 	if cfg.Analyzers.Cipher != nil {
 		analyzers, err = addAnalyzer(analyzers, err, syncTagCipher, func() (A, error) {
-			runtimeMetadata := cfg.Source.SDKParaTime(common.RuntimeCipher)
+			sdkPT := cfg.Source.SDKParaTime(common.RuntimeCipher)
 			sourceClient, err1 := sources.Runtime(ctx, common.RuntimeCipher)
 			if err1 != nil {
 				return nil, err1
 			}
-			return runtime.NewRuntimeAnalyzer(cfg.Source.ChainName, common.RuntimeCipher, runtimeMetadata, cfg.Analyzers.Cipher.SlowSyncRange(), cfg.Analyzers.Cipher.BatchSize, analyzer.SlowSyncMode, sourceClient, dbClient, logger)
+			return runtime.NewRuntimeAnalyzer(cfg.Source.ChainName, common.RuntimeCipher, sdkPT, cfg.Analyzers.Cipher.SlowSyncRange(), cfg.Analyzers.Cipher.BatchSize, analyzer.SlowSyncMode, sourceClient, dbClient, logger)
 		})
 	}
 	if cfg.Analyzers.EmeraldEvmTokens != nil {
@@ -494,43 +494,43 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) { //nolint:gocyclo
 		})
 	}
 	if cfg.Analyzers.EmeraldEvmTokenBalances != nil {
-		runtimeMetadata := cfg.Source.SDKParaTime(common.RuntimeEmerald)
+		sdkPT := cfg.Source.SDKParaTime(common.RuntimeEmerald)
 		analyzers, err = addAnalyzer(analyzers, err, syncTagEmerald, func() (A, error) {
 			sourceClient, err1 := sources.Runtime(ctx, common.RuntimeEmerald)
 			if err1 != nil {
 				return nil, err1
 			}
-			return evmtokenbalances.NewAnalyzer(common.RuntimeEmerald, cfg.Analyzers.EmeraldEvmTokenBalances.ItemBasedAnalyzerConfig, runtimeMetadata, sourceClient, dbClient, logger)
+			return evmtokenbalances.NewAnalyzer(common.RuntimeEmerald, cfg.Analyzers.EmeraldEvmTokenBalances.ItemBasedAnalyzerConfig, sdkPT, sourceClient, dbClient, logger)
 		})
 	}
 	if cfg.Analyzers.SapphireEvmTokenBalances != nil {
-		runtimeMetadata := cfg.Source.SDKParaTime(common.RuntimeSapphire)
+		sdkPT := cfg.Source.SDKParaTime(common.RuntimeSapphire)
 		analyzers, err = addAnalyzer(analyzers, err, syncTagSapphire, func() (A, error) {
 			sourceClient, err1 := sources.Runtime(ctx, common.RuntimeSapphire)
 			if err1 != nil {
 				return nil, err1
 			}
-			return evmtokenbalances.NewAnalyzer(common.RuntimeSapphire, cfg.Analyzers.SapphireEvmTokenBalances.ItemBasedAnalyzerConfig, runtimeMetadata, sourceClient, dbClient, logger)
+			return evmtokenbalances.NewAnalyzer(common.RuntimeSapphire, cfg.Analyzers.SapphireEvmTokenBalances.ItemBasedAnalyzerConfig, sdkPT, sourceClient, dbClient, logger)
 		})
 	}
 	if cfg.Analyzers.PontusxTestEvmTokenBalances != nil {
-		runtimeMetadata := cfg.Source.SDKParaTime(common.RuntimePontusxTest)
+		sdkPT := cfg.Source.SDKParaTime(common.RuntimePontusxTest)
 		analyzers, err = addAnalyzer(analyzers, err, syncTagPontusxTest, func() (A, error) {
 			sourceClient, err1 := sources.Runtime(ctx, common.RuntimePontusxTest)
 			if err1 != nil {
 				return nil, err1
 			}
-			return evmtokenbalances.NewAnalyzer(common.RuntimePontusxTest, cfg.Analyzers.PontusxTestEvmTokenBalances.ItemBasedAnalyzerConfig, runtimeMetadata, sourceClient, dbClient, logger)
+			return evmtokenbalances.NewAnalyzer(common.RuntimePontusxTest, cfg.Analyzers.PontusxTestEvmTokenBalances.ItemBasedAnalyzerConfig, sdkPT, sourceClient, dbClient, logger)
 		})
 	}
 	if cfg.Analyzers.PontusxDevEvmTokenBalances != nil {
-		runtimeMetadata := cfg.Source.SDKParaTime(common.RuntimePontusxDev)
+		sdkPT := cfg.Source.SDKParaTime(common.RuntimePontusxDev)
 		analyzers, err = addAnalyzer(analyzers, err, syncTagPontusxDev, func() (A, error) {
 			sourceClient, err1 := sources.Runtime(ctx, common.RuntimePontusxDev)
 			if err1 != nil {
 				return nil, err1
 			}
-			return evmtokenbalances.NewAnalyzer(common.RuntimePontusxDev, cfg.Analyzers.PontusxDevEvmTokenBalances.ItemBasedAnalyzerConfig, runtimeMetadata, sourceClient, dbClient, logger)
+			return evmtokenbalances.NewAnalyzer(common.RuntimePontusxDev, cfg.Analyzers.PontusxDevEvmTokenBalances.ItemBasedAnalyzerConfig, sdkPT, sourceClient, dbClient, logger)
 		})
 	}
 	if cfg.Analyzers.EmeraldContractCode != nil {

@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
+	sdkConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 	"github.com/stretchr/testify/require"
 
@@ -12,6 +13,9 @@ import (
 	"github.com/oasisprotocol/nexus/log"
 	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
 )
+
+// Use sapphire paratime config for testing.
+var sapphireParatime = sdkConfig.DefaultNetworks.All["mainnet"].ParaTimes.All["sapphire"]
 
 type mockError struct {
 	module  string
@@ -117,7 +121,7 @@ func TestExtractSuccessfulEncryptedTx(t *testing.T) {
 		Success: common.Ptr(true),
 		Error:   nil,
 	}
-	blockData, err := ExtractRound(nodeapi.RuntimeBlockHeader{}, txrs, []nodeapi.RuntimeEvent{}, log.NewDefaultLogger("testing"))
+	blockData, err := ExtractRound(nodeapi.RuntimeBlockHeader{}, txrs, []nodeapi.RuntimeEvent{}, sapphireParatime, log.NewDefaultLogger("testing"))
 	require.NoError(t, err)
 
 	verifyTxData(t, &expected, blockData.TransactionData[0])
@@ -165,7 +169,7 @@ func TestExtractFailedEncryptedTx(t *testing.T) {
 			Message:    common.Ptr("reverted: too late to submit"),
 		},
 	}
-	blockData, err := ExtractRound(nodeapi.RuntimeBlockHeader{}, txrs, []nodeapi.RuntimeEvent{}, log.NewDefaultLogger("testing"))
+	blockData, err := ExtractRound(nodeapi.RuntimeBlockHeader{}, txrs, []nodeapi.RuntimeEvent{}, sapphireParatime, log.NewDefaultLogger("testing"))
 	require.NoError(t, err)
 
 	verifyTxData(t, &expected, blockData.TransactionData[0])
@@ -198,7 +202,7 @@ func TestExtractSuccessfulUnecryptedTx(t *testing.T) {
 		Success:      common.Ptr(true),
 		Error:        nil,
 	}
-	blockData, err := ExtractRound(nodeapi.RuntimeBlockHeader{}, txrs, []nodeapi.RuntimeEvent{}, log.NewDefaultLogger("testing"))
+	blockData, err := ExtractRound(nodeapi.RuntimeBlockHeader{}, txrs, []nodeapi.RuntimeEvent{}, sapphireParatime, log.NewDefaultLogger("testing"))
 	require.NoError(t, err)
 
 	verifyTxData(t, &expected, blockData.TransactionData[0])
@@ -239,7 +243,7 @@ func TestExtractFailedUnecryptedTx(t *testing.T) {
 			Message:    common.Ptr("execution failed: out of gas"),
 		},
 	}
-	blockData, err := ExtractRound(nodeapi.RuntimeBlockHeader{}, txrs, []nodeapi.RuntimeEvent{}, log.NewDefaultLogger("testing"))
+	blockData, err := ExtractRound(nodeapi.RuntimeBlockHeader{}, txrs, []nodeapi.RuntimeEvent{}, sapphireParatime, log.NewDefaultLogger("testing"))
 	require.NoError(t, err)
 
 	verifyTxData(t, &expected, blockData.TransactionData[0])
