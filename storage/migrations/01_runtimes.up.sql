@@ -1,9 +1,6 @@
--- State initialization for the Emerald ParaTime, after the Damask Upgrade.
+-- State initialization for paratimes.
 
 BEGIN;
-
-CREATE TYPE public.runtime AS ENUM ('emerald', 'sapphire', 'cipher'); -- 'pontusx_test' and 'pontusx_dev' added in subsequent migrations.
-CREATE TYPE public.call_format AS ENUM ('encrypted/x25519-deoxysii');
 
 CREATE TABLE chain.runtime_blocks
 (
@@ -43,11 +40,9 @@ CREATE TABLE chain.runtime_transactions
   -- NOTE: The signer(s) and their nonce(s) are stored separately in runtime_transaction_signers.
 
   fee         UINT_NUMERIC NOT NULL,
-  -- Added in 25_runtime_tx_denoms.up.sql
-  -- fee_symbol  TEXT NOT NULL,
-  -- Added in 29_rofl_tx_fees.up.sql
-  -- fee_proxy_module TEXT
-  -- fee_proxy_id TEXT
+  fee_symbol  TEXT NOT NULL DEFAULT '',
+  fee_proxy_module TEXT,
+  fee_proxy_id BYTEA,
   gas_limit   UINT63 NOT NULL,
   gas_used    UINT63 NOT NULL,
   size UINT31 NOT NULL,
@@ -66,8 +61,7 @@ CREATE TABLE chain.runtime_transactions
   body        JSONB,        -- For EVM txs, the EVM method and args are encoded in here. NULL for malformed and encrypted txs.
   "to"        oasis_addr,   -- Exact semantics depend on method. Extracted from body; for convenience only.
   amount      UINT_NUMERIC, -- Exact semantics depend on method. Extracted from body; for convenience only.
-  -- Added in 25_runtime_tx_denoms.up.sql
-  -- amount_symbol  TEXT,         -- The denomination of the transaction amount. Extracted from body; for convenience only. called `Denomination` in the SDK
+  amount_symbol  TEXT,      -- The denomination of the transaction amount. Extracted from body; for convenience only. called `Denomination` in the SDK
 
   -- For evm.Call transactions, we store both the name of the function and
   -- the function parameters. The parameters are stored in an ordered JSON array,
@@ -82,6 +76,14 @@ CREATE TABLE chain.runtime_transactions
   evm_encrypted_data_data BYTEA,
   evm_encrypted_result_nonce BYTEA,
   evm_encrypted_result_data BYTEA,
+
+  -- Encrypted data in encrypted Oasis-format transactions.
+  oasis_encrypted_format call_format,
+  oasis_encrypted_public_key BYTEA,
+  oasis_encrypted_data_nonce BYTEA,
+  oasis_encrypted_data_data BYTEA,
+  oasis_encrypted_result_nonce BYTEA,
+  oasis_encrypted_result_data BYTEA,
 
   -- Error information.
   success       BOOLEAN,  -- NULL means success is unknown (can happen in confidential runtimes)
@@ -174,6 +176,40 @@ CREATE INDEX ix_runtime_events_related_accounts ON chain.runtime_events USING gi
 CREATE INDEX ix_runtime_events_evm_log_signature ON chain.runtime_events(runtime, evm_log_signature, round); -- for fetching a certain event type, eg Transfers
 CREATE INDEX ix_runtime_events_evm_log_params ON chain.runtime_events USING gin(evm_log_params);
 CREATE INDEX ix_runtime_events_type ON chain.runtime_events (runtime, type);
+CREATE INDEX ix_runtime_events_nft_transfers ON chain.runtime_events (runtime, (body ->> 'address'), (body -> 'topics' ->> 3), round)
+    WHERE
+        type = 'evm.log' AND
+        evm_log_signature = '\xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef' AND
+        jsonb_array_length(body -> 'topics') = 4;
+
+-- Roothash messages are small structures that a runtime can send to
+-- communicate with the consensus layer. They are agreed upon for each runtime
+-- block. We'll see the messages themselves in the proposal for that block,
+-- i.e. in the first executor commit for the round. The consensus layer
+-- processes these messages when the block gets finalized, which produces a
+-- result for each message.
+--
+-- In Cobalt and below, the roothash consensus app emits an event for each
+-- message. In Damask and up, the results are stored on chain, and you use a
+-- roothash "get last round results" query to look up the results.
+--
+-- This table has tracked runtimes' messages and results. Either of the
+-- message or result may be absent, as they can be disseminated in different
+-- consensus blocks.
+CREATE TABLE chain.roothash_messages (
+    runtime runtime NOT NULL,
+    round UINT63 NOT NULL,
+    message_index UINT31 NOT NULL,
+    PRIMARY KEY (runtime, round, message_index),
+    type TEXT,
+    body JSONB,
+    error_module TEXT,
+    error_code UINT31,
+    result BYTEA,
+    related_accounts oasis_addr[]
+);
+CREATE INDEX ix_roothash_messages_type ON chain.roothash_messages (type);
+CREATE INDEX ix_roothash_messages_related_accounts ON chain.roothash_messages USING gin(related_accounts);
 
 CREATE TABLE chain.runtime_accounts
 (
@@ -183,7 +219,9 @@ CREATE TABLE chain.runtime_accounts
 
     num_txs UINT63 NOT NULL DEFAULT 0,
     -- Total gas used by all txs addressed to this account. Primarily meaningful for accounts that are contracts.
-    gas_for_calling UINT63 NOT NULL DEFAULT 0 -- gas used by txs sent to this address
+    gas_for_calling UINT63 NOT NULL DEFAULT 0,
+    total_sent UINT_NUMERIC NOT NULL DEFAULT 0,
+    total_received UINT_NUMERIC NOT NULL DEFAULT 0
 );
 
 -- Oasis addresses are derived from a derivation "context" and a piece of
@@ -289,14 +327,9 @@ CREATE TABLE chain.evm_contracts
    -- Contents of metadata.json, typically produced by the Solidity compiler.
   compilation_metadata JSONB,
   -- Each source file is a flat JSON object with keys "name", "content", "path", as returned by Sourcify.
-  source_files JSONB CHECK (jsonb_typeof(source_files)='array')
-   -- Added in 09_partial_contract_verification.up.sql
-   -- verification_level sourcify_level;
+  source_files JSONB CHECK (jsonb_typeof(source_files)='array'),
+  verification_level sourcify_level
 );
--- Allow the analyzer to quickly retrieve contracts that have not been verified.
--- XXX: Dropped in 09_partial_contract_verification.up.sql because we only look at contracts that are verified by Sourcify.
---      Also, the total number of contracts is low (in the 1000s), so we can afford to scan linearly.
-CREATE INDEX ix_evm_contracts_unverified ON chain.evm_contracts (runtime) WHERE verification_info_downloaded_at IS NULL;
 
 -- Used to keep track of potential contract addresses, and our progress in
 -- downloading their runtime bytecode. ("Runtime" in the sense of ETH terminology
@@ -335,6 +368,24 @@ CREATE TABLE chain.evm_nfts (
 CREATE INDEX ix_evm_nfts_stale ON chain.evm_nfts (runtime, token_address, nft_id) WHERE last_download_round IS NULL OR last_want_download_round > last_download_round;
 CREATE INDEX ix_evm_nfts_owner ON chain.evm_nfts (runtime, owner, token_address, nft_id);
 
+CREATE TABLE chain.evm_swap_pair_creations (
+    runtime runtime NOT NULL,
+    factory_address oasis_addr NOT NULL,
+    token0_address oasis_addr NOT NULL,
+    token1_address oasis_addr NOT NULL,
+    pair_address oasis_addr NOT NULL,
+    create_round UINT63 NOT NULL,
+    PRIMARY KEY (runtime, factory_address, token0_address, token1_address)
+);
+
+CREATE TABLE chain.evm_swap_pairs (
+    runtime runtime NOT NULL,
+    pair_address oasis_addr NOT NULL,
+    PRIMARY KEY (runtime, pair_address),
+    reserve0 uint_numeric NOT NULL,
+    reserve1 uint_numeric NOT NULL,
+    last_sync_round UINT63 NOT NULL
+);
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- Module accounts -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
@@ -360,8 +411,6 @@ CREATE TABLE chain.runtime_transfers
 
   CHECK (NOT (sender IS NULL AND receiver IS NULL))
 );
-CREATE INDEX ix_runtime_transfers_sender ON chain.runtime_transfers(sender);
-CREATE INDEX ix_runtime_transfers_receiver ON chain.runtime_transfers(receiver);
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- Module consensusaccounts -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 

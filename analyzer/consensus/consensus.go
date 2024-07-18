@@ -416,12 +416,12 @@ func (m *processor) queueBlockInserts(batch *storage.QueryBatch, data *consensus
 		data.BlockHeader.Hash.Hex(),
 		data.BlockHeader.Time.UTC(),
 		len(data.TransactionsWithResults),
+		data.GasLimit,
+		data.SizeLimit,
+		data.Epoch,
 		data.BlockHeader.StateRoot.Namespace.String(),
 		int64(data.BlockHeader.StateRoot.Version),
 		data.BlockHeader.StateRoot.Hash.Hex(),
-		data.Epoch,
-		data.GasLimit,
-		data.SizeLimit,
 		proposerAddr,
 	)
 
