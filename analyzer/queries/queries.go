@@ -199,9 +199,9 @@ var (
 
 	ConsensusAccountUpsert = `
     INSERT INTO chain.accounts
-      (address, general_balance, nonce, escrow_balance_active, escrow_total_shares_active, escrow_balance_debonding, escrow_total_shares_debonding)
+      (address, general_balance, nonce, escrow_balance_active, escrow_total_shares_active, escrow_balance_debonding, escrow_total_shares_debonding, first_activity)
     VALUES
-      ($1, $2, $3, $4, $5, $6, $7)
+      ($1, $2, $3, $4, $5, $6, $7, $8)
     ON CONFLICT (address) DO UPDATE
     SET
       general_balance = excluded.general_balance,
@@ -209,13 +209,40 @@ var (
       escrow_balance_active = excluded.escrow_balance_active,
       escrow_total_shares_active = excluded.escrow_total_shares_active,
       escrow_balance_debonding = excluded.escrow_balance_debonding,
-      escrow_total_shares_debonding = excluded.escrow_total_shares_debonding`
+      escrow_total_shares_debonding = excluded.escrow_total_shares_debonding,
+      first_activity = LEAST(COALESCE(chain.accounts.first_activity, excluded.first_activity), excluded.first_activity)`
 
 	ConsensusAccountNonceUpsert = `
     INSERT INTO chain.accounts(address, nonce)
     VALUES ($1, $2)
     ON CONFLICT (address) DO UPDATE
       SET nonce = $2`
+
+	ConsensusAccountFirstActivityUpsert = `
+    INSERT INTO chain.accounts(address, first_activity)
+    VALUES ($1, $2)
+    ON CONFLICT (address) DO UPDATE
+      SET first_activity = LEAST(chain.accounts.first_activity, excluded.first_activity)`
+
+	ConsensusAccountsFirstActivityRecompute = `
+    WITH min_tx_block AS (
+        SELECT art.account_address, MIN(art.tx_block) AS min_block
+        FROM chain.accounts_related_transactions art
+        GROUP BY art.account_address
+    ),
+    min_block_time AS (
+        SELECT m.account_address, b.time AS min_time
+        FROM min_tx_block m
+        JOIN chain.blocks b ON m.min_block = b.height
+    )
+    INSERT INTO chain.accounts (address, first_activity)
+    SELECT mbt.account_address, mbt.min_time
+    FROM min_block_time mbt
+    ON CONFLICT (address) DO UPDATE
+    SET first_activity = LEAST(
+        COALESCE(chain.accounts.first_activity, excluded.first_activity),
+        excluded.first_activity
+    )`
 
 	ConsensusCommissionsUpsert = `
     INSERT INTO chain.commissions (address, schedule)
@@ -278,7 +305,7 @@ var (
       ON CONFLICT (entity_id, node_id) DO NOTHING`
 
 	ConsensusEntityUpsert = `
-    INSERT INTO chain.entities AS old (id, address, start_block) 
+    INSERT INTO chain.entities AS old (id, address, start_block)
       VALUES ($1, $2::text, $3)
     ON CONFLICT (id) DO
     UPDATE SET

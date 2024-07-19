@@ -1,0 +1,6 @@
+BEGIN;
+
+ALTER TABLE chain.accounts
+	ADD COLUMN first_activity TIMESTAMP WITH TIME ZONE;
+
+COMMIT;

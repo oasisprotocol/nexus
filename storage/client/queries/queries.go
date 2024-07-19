@@ -165,7 +165,8 @@ const (
 				FROM chain.debonding_delegations
 				JOIN chain.accounts ON chain.accounts.address = chain.debonding_delegations.delegatee
 				WHERE delegator = $1::text AND escrow_total_shares_debonding != 0)
-			, 0) AS debonding_delegations_balance
+			, 0) AS debonding_delegations_balance,
+			first_activity
 		FROM chain.accounts
 		WHERE address = $1::text`
 
@@ -178,7 +179,8 @@ const (
 			escrow_balance_active,
 			escrow_balance_debonding,
 			delegations_balance,
-			debonding_delegations_balance
+			debonding_delegations_balance,
+			first_activity
 		FROM
 			views.accounts_list
 		ORDER BY total_balance DESC, address

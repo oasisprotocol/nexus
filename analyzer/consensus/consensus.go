@@ -16,6 +16,7 @@ import (
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
 	sdkConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 
+	"github.com/oasisprotocol/nexus/analyzer/consensus/static"
 	"github.com/oasisprotocol/nexus/analyzer/util/addresses"
 	"github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api/transaction"
 	genesis "github.com/oasisprotocol/nexus/coreapi/v22.2.11/genesis/api"
@@ -115,6 +116,16 @@ func (m *processor) PreWork(ctx context.Context) error {
 	}
 	m.logger.Info("registered special addresses")
 
+	// Insert static account first activity timestamps.
+	batch = &storage.QueryBatch{}
+	if err = static.QueueConsensusAccountsFirstActivity(batch, m.history.ChainName, m.logger); err != nil {
+		return err
+	}
+	if err = m.target.SendBatch(ctx, batch); err != nil {
+		return err
+	}
+	m.logger.Info("inserted static account first active timestamps")
+
 	return nil
 }
 
@@ -127,6 +138,14 @@ func (m *processor) FinalizeFastSync(ctx context.Context, lastFastSyncHeight int
 	// Aggregate append-only tables that were used during fast sync.
 	if err := m.aggregateFastSyncTables(ctx); err != nil {
 		return err
+	}
+
+	// Recompute account first activity for all accounts scanned during fast-sync.
+	batch := &storage.QueryBatch{}
+	m.logger.Info("computing account first activity for all accounts scanned during fast-sync")
+	batch.Queue(queries.ConsensusAccountsFirstActivityRecompute)
+	if err := m.target.SendBatch(ctx, batch); err != nil {
+		return fmt.Errorf("recomputing consensus accounts first activity: %w", err)
 	}
 
 	// Fetch a data snapshot (= genesis doc) from the node; see function docstring.
@@ -172,6 +191,7 @@ func (m *processor) aggregateFastSyncTables(ctx context.Context) error {
 	if err := m.target.SendBatch(ctx, batch); err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -538,6 +558,16 @@ func (m *processor) queueTxEventInserts(batch *storage.QueryBatch, data *consens
 				data.Height,
 				i,
 			)
+
+			if m.mode != analyzer.FastSyncMode {
+				// Set the first activity for sender if not set yet.
+				// Skip in fast sync mode; it will be recomputed at fast-sync finalization.
+				batch.Queue(
+					queries.ConsensusAccountFirstActivityUpsert,
+					addr,
+					data.BlockHeader.Time.UTC(),
+				)
+			}
 		}
 	}
 

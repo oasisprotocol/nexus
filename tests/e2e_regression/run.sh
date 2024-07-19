@@ -102,11 +102,18 @@ for ((i = 0; i < nCases; i++)); do
     curl --silent --show-error --dump-header "$outDir/$name.headers" "$url" >"$outDir/$name.body"
     # Try to pretty-print and normalize (for stable diffs) the output.
     # If `jq` fails, output was probably not JSON; leave it as-is.
+    #
+    # .first_activity is ignored, because its not deterministic between fast-sync and slow-sync.
+    #  - this is due the fact that we start tests at the middle of the chain and the first activity
+    #    for accounts depends on when the genesis is processed. Fast-sync only fetches the genesis
+    #    at the height when slow-sync starts, so the first_activity for accounts in genesis is different.
     jq \
       '
         (if .latest_update_age_ms? then .latest_update_age_ms="UNINTERESTING" else . end) |
         ((.evm_nfts?[]? | select(.metadata_accessed) | .metadata_accessed) = "UNINTERESTING") |
-        (if .metadata_accessed? then .metadata_accessed = "UNINTERESTING" else . end)
+        (if .metadata_accessed? then .metadata_accessed = "UNINTERESTING" else . end) |
+        (if .first_activity? then .first_activity = "NONDETERMINISTIC" else . end) |
+        ((.accounts?[]? | select(.first_activity) | .first_activity) = "NONDETERMINISTIC")
       ' \
       <"$outDir/$name.body" \
       >/tmp/pretty 2>/dev/null &&

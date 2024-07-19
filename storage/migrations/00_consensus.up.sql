@@ -215,6 +215,8 @@ CREATE TABLE chain.accounts
   escrow_balance_debonding      NUMERIC(1000,0) NOT NULL DEFAULT 0,
   escrow_total_shares_debonding NUMERIC(1000,0) NOT NULL DEFAULT 0
 
+  -- first_activity TIMESTAMP WITH TIME ZONE, -- Added in 22_consensus_accounts_first_activity.up.sql
+
   -- TODO: Track commission schedule and staking accumulator.
 );
 
