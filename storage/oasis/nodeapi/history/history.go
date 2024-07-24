@@ -8,7 +8,6 @@ import (
 
 	beacon "github.com/oasisprotocol/nexus/coreapi/v22.2.11/beacon/api"
 	consensus "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api"
-	genesis "github.com/oasisprotocol/nexus/coreapi/v22.2.11/genesis/api"
 	roothash "github.com/oasisprotocol/nexus/coreapi/v22.2.11/roothash/api"
 
 	"github.com/oasisprotocol/nexus/config"
@@ -120,7 +119,7 @@ func (c *HistoryConsensusApiLite) APIForChainContext(chainContext string) (nodea
 	return api, nil
 }
 
-func (c *HistoryConsensusApiLite) GetGenesisDocument(ctx context.Context, chainContext string) (*genesis.Document, error) {
+func (c *HistoryConsensusApiLite) GetGenesisDocument(ctx context.Context, chainContext string) (*nodeapi.GenesisDocument, error) {
 	api, err := c.APIForChainContext(chainContext)
 	if err != nil {
 		return nil, fmt.Errorf("getting api for chain context %s: %w", chainContext, err)
@@ -128,7 +127,7 @@ func (c *HistoryConsensusApiLite) GetGenesisDocument(ctx context.Context, chainC
 	return api.GetGenesisDocument(ctx, chainContext)
 }
 
-func (c *HistoryConsensusApiLite) StateToGenesis(ctx context.Context, height int64) (*genesis.Document, error) {
+func (c *HistoryConsensusApiLite) StateToGenesis(ctx context.Context, height int64) (*nodeapi.GenesisDocument, error) {
 	api, err := c.APIForHeight(height)
 	if err != nil {
 		return nil, fmt.Errorf("getting api for height %d: %w", height, err)

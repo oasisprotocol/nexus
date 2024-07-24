@@ -19,7 +19,6 @@ import (
 	"github.com/oasisprotocol/nexus/analyzer/consensus/static"
 	"github.com/oasisprotocol/nexus/analyzer/util/addresses"
 	"github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api/transaction"
-	genesis "github.com/oasisprotocol/nexus/coreapi/v22.2.11/genesis/api"
 	staking "github.com/oasisprotocol/nexus/coreapi/v22.2.11/staking/api"
 
 	"github.com/oasisprotocol/nexus/analyzer"
@@ -154,7 +153,7 @@ func (m *processor) FinalizeFastSync(ctx context.Context, lastFastSyncHeight int
 	if err != nil {
 		return fmt.Errorf("no history record for first slow-sync height %d: %w", firstSlowSyncHeight, err)
 	}
-	var genesisDoc *genesis.Document
+	var genesisDoc *nodeapi.GenesisDocument
 	var nodes []nodeapi.Node
 	if r.GenesisHeight == firstSlowSyncHeight {
 		m.logger.Info("fetching genesis document before starting with the first block of a chain", "chain_context", r.ChainContext, "genesis_height", r.GenesisHeight)
@@ -196,7 +195,7 @@ func (m *processor) aggregateFastSyncTables(ctx context.Context) error {
 }
 
 // Dumps the genesis document to a JSON file if instructed via env variables. For debug only.
-func (m *processor) debugDumpGenesisJSON(genesisDoc *genesis.Document, heightOrName string) {
+func (m *processor) debugDumpGenesisJSON(genesisDoc *nodeapi.GenesisDocument, heightOrName string) {
 	debugPath := os.Getenv("NEXUS_DUMP_GENESIS") // can be templatized with "{{height}}"
 	if debugPath == "" {
 		return
@@ -216,7 +215,7 @@ func (m *processor) debugDumpGenesisJSON(genesisDoc *genesis.Document, heightOrN
 
 // Executes SQL queries to index the contents of the genesis document.
 // If nodesOverride is non-nil, it is used instead of the nodes from the genesis document.
-func (m *processor) processGenesis(ctx context.Context, genesisDoc *genesis.Document, nodesOverride []nodeapi.Node) error {
+func (m *processor) processGenesis(ctx context.Context, genesisDoc *nodeapi.GenesisDocument, nodesOverride []nodeapi.Node) error {
 	m.logger.Info("processing genesis document")
 	gen := NewGenesisProcessor(m.logger.With("height", "genesis"))
 	batch, err := gen.Process(genesisDoc, nodesOverride)
@@ -1127,6 +1126,13 @@ func (m *processor) queueSubmissions(batch *storage.QueryBatch, data *governance
 	}
 
 	for _, submission := range data.ProposalSubmissions {
+		var title, description *string
+		if submission.Content.Metadata != nil {
+			metadata := submission.Content.Metadata
+			title = &metadata.Title
+			description = &metadata.Description
+		}
+
 		switch {
 		case submission.Content.Upgrade != nil:
 			batch.Queue(queries.ConsensusProposalSubmissionInsert,
@@ -1134,6 +1140,8 @@ func (m *processor) queueSubmissions(batch *storage.QueryBatch, data *governance
 				submission.Submitter.String(),
 				submission.State.String(),
 				submission.Deposit.String(),
+				title,
+				description,
 				submission.Content.Upgrade.Handler,
 				submission.Content.Upgrade.Target.ConsensusProtocol.String(),
 				submission.Content.Upgrade.Target.RuntimeHostProtocol.String(),
@@ -1149,6 +1157,8 @@ func (m *processor) queueSubmissions(batch *storage.QueryBatch, data *governance
 				submission.Submitter.String(),
 				submission.State.String(),
 				submission.Deposit.String(),
+				title,
+				description,
 				submission.Content.CancelUpgrade.ProposalID,
 				submission.CreatedAt,
 				submission.ClosesAt,
@@ -1160,6 +1170,8 @@ func (m *processor) queueSubmissions(batch *storage.QueryBatch, data *governance
 				submission.Submitter.String(),
 				submission.State.String(),
 				submission.Deposit.String(),
+				title,
+				description,
 				submission.Content.ChangeParameters.Module,
 				[]byte(submission.Content.ChangeParameters.Changes),
 				submission.CreatedAt,

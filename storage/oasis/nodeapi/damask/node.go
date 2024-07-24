@@ -47,20 +47,20 @@ func (c *ConsensusApiLite) Close() error {
 	return c.grpcConn.Close()
 }
 
-func (c *ConsensusApiLite) GetGenesisDocument(ctx context.Context, chainContext string) (*genesis.Document, error) {
+func (c *ConsensusApiLite) GetGenesisDocument(ctx context.Context, chainContext string) (*nodeapi.GenesisDocument, error) {
 	var rsp genesis.Document
 	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Consensus/GetGenesisDocument", nil, &rsp); err != nil {
 		return nil, fmt.Errorf("GetGenesisDocument(damask): %w", err)
 	}
-	return &rsp, nil
+	return ConvertGenesis(rsp), nil
 }
 
-func (c *ConsensusApiLite) StateToGenesis(ctx context.Context, height int64) (*genesis.Document, error) {
+func (c *ConsensusApiLite) StateToGenesis(ctx context.Context, height int64) (*nodeapi.GenesisDocument, error) {
 	var rsp genesis.Document
 	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Consensus/StateToGenesis", height, &rsp); err != nil {
 		return nil, fmt.Errorf("StateToGenesis(%d): %w", height, err)
 	}
-	return &rsp, nil
+	return ConvertGenesis(rsp), nil
 }
 
 func (c *ConsensusApiLite) GetConsensusParameters(ctx context.Context, height int64) (*nodeapi.ConsensusParameters, error) {
@@ -230,7 +230,7 @@ func (c *ConsensusApiLite) GetProposal(ctx context.Context, height int64, propos
 	}, &rsp); err != nil {
 		return nil, fmt.Errorf("GetProposal(%d, %d): %w", height, proposalID, err)
 	}
-	return (*nodeapi.Proposal)(rsp), nil
+	return (*nodeapi.Proposal)(convertProposal(rsp)), nil
 }
 
 func (c *ConsensusApiLite) GrpcConn() connections.GrpcConn {

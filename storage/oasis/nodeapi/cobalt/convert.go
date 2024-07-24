@@ -12,13 +12,12 @@ import (
 	coreCommon "github.com/oasisprotocol/oasis-core/go/common"
 
 	consensus "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api"
-	genesis "github.com/oasisprotocol/nexus/coreapi/v22.2.11/genesis/api"
-	governance "github.com/oasisprotocol/nexus/coreapi/v22.2.11/governance/api"
 	registry "github.com/oasisprotocol/nexus/coreapi/v22.2.11/registry/api"
 	"github.com/oasisprotocol/nexus/coreapi/v22.2.11/roothash/api/message"
 	scheduler "github.com/oasisprotocol/nexus/coreapi/v22.2.11/scheduler/api"
 	staking "github.com/oasisprotocol/nexus/coreapi/v22.2.11/staking/api"
-	upgrade "github.com/oasisprotocol/nexus/coreapi/v22.2.11/upgrade/api"
+	governance "github.com/oasisprotocol/nexus/coreapi/v24.0/governance/api"
+	upgrade "github.com/oasisprotocol/nexus/coreapi/v24.0/upgrade/api"
 
 	apiTypes "github.com/oasisprotocol/nexus/api/v1/types"
 	"github.com/oasisprotocol/nexus/common"
@@ -48,6 +47,7 @@ func convertProposal(p *governanceCobalt.Proposal) *governance.Proposal {
 		State:     governance.ProposalState(p.State),
 		Deposit:   p.Deposit,
 		Content: governance.ProposalContent{
+			Metadata: nil, // Not present in Damask.
 			Upgrade: &governance.UpgradeProposal{
 				Descriptor: upgrade.Descriptor{
 					Versioned: p.Content.Upgrade.Descriptor.Versioned,
@@ -102,7 +102,7 @@ func convertRuntime(r *registryCobalt.Runtime) *registry.Runtime {
 // nexus-internal (= current oasis-core) format.
 // WARNING: This is a partial conversion, only the fields that are used by
 // Nexus are filled in the output document.
-func ConvertGenesis(d genesisCobalt.Document) *genesis.Document {
+func ConvertGenesis(d genesisCobalt.Document) *nodeapi.GenesisDocument {
 	proposals := make([]*governance.Proposal, len(d.Governance.Proposals))
 	for i, p := range d.Governance.Proposals {
 		proposals[i] = convertProposal(p)
@@ -153,18 +153,24 @@ func ConvertGenesis(d genesisCobalt.Document) *genesis.Document {
 		runtimes[i] = convertRuntime(r)
 	}
 
-	return &genesis.Document{
-		Height:  d.Height,
-		Time:    d.Time,
-		ChainID: d.ChainID,
+	suspendedRuntimes := make([]*registry.Runtime, len(d.Registry.SuspendedRuntimes))
+	for i, r := range d.Registry.SuspendedRuntimes {
+		suspendedRuntimes[i] = convertRuntime(r)
+	}
+
+	return &nodeapi.GenesisDocument{
+		Height:    d.Height,
+		Time:      d.Time,
+		ChainID:   d.ChainID,
+		BaseEpoch: uint64(d.Beacon.Base),
 		Governance: governance.Genesis{
 			Proposals:   proposals,
 			VoteEntries: voteEntries,
 		},
 		Registry: registry.Genesis{
 			Entities:          d.Registry.Entities,
-			Runtimes:          []*registry.Runtime{},
-			SuspendedRuntimes: []*registry.Runtime{},
+			Runtimes:          runtimes,
+			SuspendedRuntimes: suspendedRuntimes,
 			Nodes:             d.Registry.Nodes,
 		},
 		Staking: staking.Genesis{

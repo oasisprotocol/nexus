@@ -1,3 +1,15 @@
+// Due to the (sometimes breaking) changes in the types used by different
+// evolutions of oasis-core over the Cobalt, Damask, and Eden upgrades,
+// Nexus defines its own set of internal types here.
+//
+// The types that it exposes are mostly simplified versions of the types exposed by
+// oasis-core Damask: The top-level type structs are defined in this file, and
+// the types of their fields are almost universally directly the types exposed
+// by oasis-core Damask. The reason is that as oasis-core evolves, Damask types
+// are mostly able to represent all the information from Cobalt, plus some. However,
+// there are a few exceptions where we use oasis-core Eden types instead, e.g. in the
+// `governance` module. Over time, types should be migrated to newer versions, e.g. Eden
+// or later, as needed.
 package nodeapi
 
 import (
@@ -16,13 +28,12 @@ import (
 	consensus "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api"
 	consensusTransaction "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api/transaction"
 	consensusResults "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api/transaction/results"
-	genesis "github.com/oasisprotocol/nexus/coreapi/v22.2.11/genesis/api"
-	governance "github.com/oasisprotocol/nexus/coreapi/v22.2.11/governance/api"
 	registry "github.com/oasisprotocol/nexus/coreapi/v22.2.11/registry/api"
 	roothash "github.com/oasisprotocol/nexus/coreapi/v22.2.11/roothash/api"
 	"github.com/oasisprotocol/nexus/coreapi/v22.2.11/roothash/api/message"
 	scheduler "github.com/oasisprotocol/nexus/coreapi/v22.2.11/scheduler/api"
 	staking "github.com/oasisprotocol/nexus/coreapi/v22.2.11/staking/api"
+	governance "github.com/oasisprotocol/nexus/coreapi/v24.0/governance/api"
 	"github.com/oasisprotocol/nexus/storage/oasis/connections"
 
 	sdkClient "github.com/oasisprotocol/oasis-sdk/client-sdk/go/client"
@@ -49,9 +60,8 @@ import (
 // Since the types are simpler and fewer, their structure is, in
 // places, flattened compared to their counterparts in oasis-core.
 type ConsensusApiLite interface {
-	// TODO: Introduce internal, stripped-down version of `genesis.Document`.
-	GetGenesisDocument(ctx context.Context, chainContext string) (*genesis.Document, error)
-	StateToGenesis(ctx context.Context, height int64) (*genesis.Document, error)
+	GetGenesisDocument(ctx context.Context, chainContext string) (*GenesisDocument, error)
+	StateToGenesis(ctx context.Context, height int64) (*GenesisDocument, error)
 	GetConsensusParameters(ctx context.Context, height int64) (*ConsensusParameters, error)
 	GetBlock(ctx context.Context, height int64) (*consensus.Block, error)
 	GetTransactionsWithResults(ctx context.Context, height int64) ([]TransactionWithResults, error)
@@ -292,4 +302,22 @@ type RuntimeBlockHeader struct { //nolint: maligned
 	StateRoot      hash.Hash
 	MessagesHash   hash.Hash
 	InMessagesHash hash.Hash // NOTE: Available starting in Damask.
+}
+
+// GenesisDocument is a stripped-down version of `genesis.Document`.
+type GenesisDocument struct {
+	// Height is the block height at which the document was generated.
+	Height int64 `json:"height"`
+	// Time is the time the genesis block was constructed.
+	Time time.Time `json:"genesis_time"`
+	// ChainID is the ID of the chain.
+	ChainID string `json:"chain_id"`
+	// BaseEpoch is the base epoch for the chain.
+	BaseEpoch uint64 `json:"base_epoch"`
+	// Registry is the registry genesis state.
+	Registry registry.Genesis `json:"registry"`
+	// RootHash is the roothash genesis state.
+	Staking staking.Genesis `json:"staking"`
+	// Governance is the governance genesis state.
+	Governance governance.Genesis `json:"governance"`
 }
