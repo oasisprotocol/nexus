@@ -33,5 +33,15 @@
         "Name": "Cipher",
         "Address": "oasis1qqdn25n5a2jtet2s5amc7gmchsqqgs4j0qcg5k0t",
         "Description": "Address of the Cipher account on consensus."
+    },
+    {
+        "Name": "Pontus-X Testnet",
+        "Address": "oasis1qrg6c89655pmdxeel08qkngs02jnrfll5v9c508v",
+        "Description": "Address of the Pontus-X Testnet account on consensus."
+    },
+    {
+        "Name": "Pontus-X Devnet",
+        "Address": "oasis1qr02702pr8ecjuff2z3es254pw9xl6z2yg9qcc6c",
+        "Description": "Address of the Pontus-X Devnet account on consensus."
     }
 ]
