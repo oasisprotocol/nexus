@@ -18,6 +18,7 @@ testCases=(
   'epoch                              /v1/consensus/epochs/28017'
   'tx                                 /v1/consensus/transactions/142d43e5194b738ab2223f8d0b42326fab06edd714a8cefc59a078b89b5de057'
   'validator                          /v1/consensus/validators/oasis1qqekv2ymgzmd8j2s2u7g0hhc7e77e654kvwqtjwm'
+  'validator_history                  /v1/consensus/validators/oasis1qqekv2ymgzmd8j2s2u7g0hhc7e77e654kvwqtjwm/history'
   'emerald_tx                         /v1/emerald/transactions/ec1173a69272c67f126f18012019d19cd25199e831f9417b6206fb7844406f9d'
   'emerald_failed_tx                  /v1/emerald/transactions/35fdc8261dd81be8187c858aa9a623085494baf0565d414f48562a856147c093'
   'emerald_events_by_nft              /v1/emerald/events?contract_address=oasis1qz29t7nxkwfqgfk36uqqs9pzuzdt8zmrjud5mehx&nft_id=1'

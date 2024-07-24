@@ -96,6 +96,12 @@ type ValidatorMedia = api.ValidatorMedia
 // ValidatorCommissionBound is the commission bound for a validator.
 type ValidatorCommissionBound = api.ValidatorCommissionBound
 
+// ValidatorHistory is the storage response for GetValidatorHistory.
+type ValidatorHistory = api.ValidatorHistory
+
+// ValidatorHistoryPoint is the escrow information for a validator at a given epoch.
+type ValidatorHistoryPoint = api.ValidatorHistoryPoint
+
 // RuntimeBlockList is the storage response for RuntimeListBlocks.
 type RuntimeBlockList = api.RuntimeBlockList
 

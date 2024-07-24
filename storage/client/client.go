@@ -1269,6 +1269,7 @@ func (c *StorageClient) Validators(ctx context.Context, p apiTypes.GetConsensusV
 			&v.Escrow.DebondingShares,
 			&v.Escrow.SelfDelegationBalance,
 			&v.Escrow.SelfDelegationShares,
+			&v.Escrow.ActiveBalance24,
 			&v.Escrow.NumDelegators,
 			&v.VotingPower,
 			&v.VotingPowerTotal,
@@ -1310,6 +1311,44 @@ func (c *StorageClient) Validators(ctx context.Context, p apiTypes.GetConsensusV
 	}
 
 	return &vs, nil
+}
+
+func (c *StorageClient) ValidatorHistory(ctx context.Context, address staking.Address, p apiTypes.GetConsensusValidatorsAddressHistoryParams) (*ValidatorHistory, error) {
+	res, err := c.withTotalCount(
+		ctx,
+		queries.ValidatorHistory,
+		address.String(),
+		p.From,
+		p.To,
+		p.Limit,
+		p.Offset,
+	)
+	if err != nil {
+		return nil, wrapError(err)
+	}
+	defer res.rows.Close()
+
+	h := ValidatorHistory{
+		History:             []ValidatorHistoryPoint{},
+		TotalCount:          res.totalCount,
+		IsTotalCountClipped: res.isTotalCountClipped,
+	}
+	for res.rows.Next() {
+		b := ValidatorHistoryPoint{}
+		if err = res.rows.Scan(
+			&b.Epoch,
+			&b.ActiveBalance,
+			&b.ActiveShares,
+			&b.DebondingBalance,
+			&b.DebondingShares,
+			&b.NumDelegators,
+		); err != nil {
+			return nil, wrapError(err)
+		}
+		h.History = append(h.History, b)
+	}
+
+	return &h, nil
 }
 
 // RuntimeBlocks returns a list of runtime blocks.
