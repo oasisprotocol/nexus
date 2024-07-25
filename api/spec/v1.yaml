@@ -3101,6 +3101,16 @@ components:
           description: |
             The number of addresses that have a nonzero balance of this token.
           example: 123
+        ref_swap:
+          allOf: [$ref: '#/components/schemas/EvmTokenSwap']
+        relative_token_address:
+          type: string
+        relative_price:
+          type: number
+          format: double
+        relative_total_value:
+          type: number
+          format: double
         is_verified:
           deprecated: true
           type: boolean
@@ -3112,6 +3122,37 @@ components:
           example: false
         verification_level:
           allOf: [$ref: '#/components/schemas/VerificationLevel']
+
+    EvmTokenSwap:
+      type: object
+      required: [pair_address]
+      properties:
+        pair_address:
+          type: string
+        pair_address_eth:
+          type: string
+        factory_address:
+          type: string
+        factory_address_eth:
+          type: string
+        token0_address:
+          type: string
+        token0_address_eth:
+          type: string
+        token1_address:
+          type: string
+        token1_address_eth:
+          type: string
+        create_round:
+          type: integer
+          format: int64
+        reserve0:
+          allOf: [$ref: '#/components/schemas/TextBigInt']
+        reserve1:
+          allOf: [$ref: '#/components/schemas/TextBigInt']
+        last_sync_round:
+          type: integer
+          format: int64
 
     EvmNftList:
       allOf:

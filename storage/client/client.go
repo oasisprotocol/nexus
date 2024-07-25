@@ -21,6 +21,7 @@ import (
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 
 	"github.com/oasisprotocol/nexus/analyzer/evmabi"
+	"github.com/oasisprotocol/nexus/config"
 	beacon "github.com/oasisprotocol/nexus/coreapi/v22.2.11/beacon/api"
 	roothash "github.com/oasisprotocol/nexus/coreapi/v22.2.11/roothash/api"
 	staking "github.com/oasisprotocol/nexus/coreapi/v22.2.11/staking/api"
@@ -1926,12 +1927,21 @@ func (c *StorageClient) upsertBalances(ch chan *RuntimeSdkBalance, acct *Runtime
 // If `address` is non-nil, it is used to filter the results to at most 1 token: the one
 // with the correcponding contract address.
 func (c *StorageClient) RuntimeTokens(ctx context.Context, p apiTypes.GetRuntimeEvmTokensParams, address *staking.Address) (*EvmTokenList, error) {
+	runtime := runtimeFromCtx(ctx)
+	var refSwapFactoryAddr *apiTypes.Address
+	var refSwapTokenAddr *apiTypes.Address
+	if rs, ok := config.DefaultReferenceSwaps[c.chainName][runtime]; ok {
+		refSwapFactoryAddr = &rs.FactoryAddr
+		refSwapTokenAddr = &rs.ReferenceTokenAddr
+	}
 	res, err := c.withTotalCount(
 		ctx,
 		queries.EvmTokens,
-		runtimeFromCtx(ctx),
+		runtime,
 		address,
 		p.Name,
+		refSwapFactoryAddr,
+		refSwapTokenAddr,
 		p.Limit,
 		p.Offset,
 	)
@@ -1949,6 +1959,12 @@ func (c *StorageClient) RuntimeTokens(ctx context.Context, p apiTypes.GetRuntime
 		var t EvmToken
 		var addrPreimage []byte
 		var tokenType common.TokenType
+		var refSwapPairAddr *string
+		var refSwap apiTypes.EvmTokenSwap
+		var refSwapPairEthAddr []byte
+		var refSwapFactoryEthAddr []byte
+		var refSwapToken0EthAddr []byte
+		var refSwapToken1EthAddr []byte
 		if err2 := res.rows.Scan(
 			&t.ContractAddr,
 			&addrPreimage,
@@ -1959,6 +1975,18 @@ func (c *StorageClient) RuntimeTokens(ctx context.Context, p apiTypes.GetRuntime
 			&t.NumTransfers,
 			&tokenType,
 			&t.NumHolders,
+			&refSwapPairAddr,
+			&refSwapPairEthAddr,
+			&refSwap.FactoryAddress,
+			&refSwapFactoryEthAddr,
+			&refSwap.Token0Address,
+			&refSwapToken0EthAddr,
+			&refSwap.Token1Address,
+			&refSwapToken1EthAddr,
+			&refSwap.CreateRound,
+			&refSwap.Reserve0,
+			&refSwap.Reserve1,
+			&refSwap.LastSyncRound,
 			&t.VerificationLevel,
 		); err2 != nil {
 			return nil, wrapError(err2)
@@ -1967,6 +1995,44 @@ func (c *StorageClient) RuntimeTokens(ctx context.Context, p apiTypes.GetRuntime
 		t.IsVerified = (t.VerificationLevel != nil)
 		t.EthContractAddr = ethCommon.BytesToAddress(addrPreimage).String()
 		t.Type = translateTokenType(tokenType)
+		if refSwapPairAddr != nil {
+			refSwap.PairAddress = *refSwapPairAddr
+			t.RefSwap = &refSwap
+			if refSwapPairEthAddr != nil {
+				t.RefSwap.PairAddressEth = common.Ptr(ethCommon.BytesToAddress(refSwapPairEthAddr).String())
+			}
+			if refSwapFactoryEthAddr != nil {
+				t.RefSwap.FactoryAddressEth = common.Ptr(ethCommon.BytesToAddress(refSwapFactoryEthAddr).String())
+			}
+			if refSwapToken0EthAddr != nil {
+				t.RefSwap.Token0AddressEth = common.Ptr(ethCommon.BytesToAddress(refSwapToken0EthAddr).String())
+			}
+			if refSwapToken1EthAddr != nil {
+				t.RefSwap.Token1AddressEth = common.Ptr(ethCommon.BytesToAddress(refSwapToken1EthAddr).String())
+			}
+			if refSwapTokenAddr != nil {
+				if t.ContractAddr == *refSwapTokenAddr {
+					t.RelativePrice = common.Ptr(1.0)
+				} else if t.RefSwap.Token0Address != nil && t.RefSwap.Token1Address != nil && t.RefSwap.Reserve0 != nil && t.RefSwap.Reserve1 != nil {
+					reserve0f, _ := t.RefSwap.Reserve0.Float64()
+					reserve1f, _ := t.RefSwap.Reserve1.Float64()
+					if reserve0f > 0 && reserve1f > 0 {
+						if t.ContractAddr == *t.RefSwap.Token0Address {
+							t.RelativePrice = common.Ptr(reserve1f / reserve0f)
+						} else {
+							t.RelativePrice = common.Ptr(reserve0f / reserve1f)
+						}
+					}
+				}
+				if t.RelativePrice != nil {
+					t.RelativeTokenAddress = refSwapTokenAddr
+					if t.TotalSupply != nil {
+						totalSuppplyF, _ := t.TotalSupply.Float64()
+						t.RelativeTotalValue = common.Ptr(*t.RelativePrice * totalSuppplyF)
+					}
+				}
+			}
+		}
 		ts.EvmTokens = append(ts.EvmTokens, t)
 	}
 
