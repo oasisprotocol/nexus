@@ -578,11 +578,34 @@ const (
 			tokens.num_transfers,
 			tokens.token_type AS type,
 			COALESCE(holders.cnt, 0) AS num_holders,
+			ref_swap_pairs.pair_address AS ref_swap_pair_address,
+			eth_preimage(ref_swap_pairs.pair_address) AS ref_swap_pair_address_eth,
+			ref_swap_pairs.factory_address AS ref_swap_factory_address,
+			eth_preimage(ref_swap_pairs.factory_address) AS ref_swap_factory_address_eth,
+			ref_swap_pairs.token0_address AS ref_swap_token0_address,
+			eth_preimage(ref_swap_pairs.token0_address) AS ref_swap_token0_address_eth,
+			ref_swap_pairs.token1_address AS ref_swap_token1_address,
+			eth_preimage(ref_swap_pairs.token1_address) AS ref_swap_token1_address_eth,
+			ref_swap_pairs.create_round AS ref_swap_create_round,
+			swap_create_blocks.timestamp AS ref_swap_create_block_timestamp,
+			ref_swap_pairs.reserve0 AS ref_swap_reserve0,
+			ref_swap_pairs.reserve1 AS ref_swap_reserve1,
+			ref_swap_pairs.last_sync_round AS ref_swap_last_sync_round,
+			swap_last_sync_blocks.timestamp AS ref_swap_last_sync_block_timestamp,
 			contracts.verification_level
 		FROM chain.evm_tokens AS tokens
 		JOIN chain.address_preimages AS preimages ON (token_address = preimages.address AND preimages.context_identifier = 'oasis-runtime-sdk/address: secp256k1eth' AND preimages.context_version = 0)
 		LEFT JOIN holders USING (token_address)
 		LEFT JOIN chain.evm_contracts as contracts ON (tokens.runtime = contracts.runtime AND tokens.token_address = contracts.contract_address)
+		LEFT JOIN chain.evm_swap_pairs AS ref_swap_pairs ON
+			ref_swap_pairs.runtime = $1 AND
+			ref_swap_pairs.factory_address = $4 AND
+			(
+				(ref_swap_pairs.token0_address = tokens.token_address AND ref_swap_pairs.token1_address = $5) OR
+				(ref_swap_pairs.token0_address = $5 AND ref_swap_pairs.token1_address = tokens.token_address)
+			)
+		LEFT JOIN chain.runtime_blocks AS swap_create_blocks ON ref_swap_pairs.create_round = swap_create_blocks.round
+		LEFT JOIN chain.runtime_blocks AS swap_last_sync_blocks ON ref_swap_pairs.last_sync_round = swap_last_sync_blocks.round
 		WHERE
 			(tokens.runtime = $1) AND
 			($2::oasis_addr IS NULL OR tokens.token_address = $2::oasis_addr) AND
@@ -590,8 +613,8 @@ const (
 			tokens.token_type IS NOT NULL AND -- exclude token _candidates_ that we haven't inspected yet
 			tokens.token_type != 0 -- exclude unknown-type tokens; they're often just contracts that emitted Transfer events but don't expose the token ticker, name, balance etc.
 		ORDER BY num_holders DESC, contract_addr
-		LIMIT $4::bigint
-		OFFSET $5::bigint`
+		LIMIT $6::bigint
+		OFFSET $7::bigint`
 
 	//nolint:gosec // Linter suspects a hardcoded credentials token.
 	EvmTokenHolders = `
