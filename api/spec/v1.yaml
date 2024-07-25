@@ -11,9 +11,9 @@ info:
   version: 0.1.0
 
 servers:
-  - url: http://nexus.oasis.io/v1
+  - url: https://nexus.oasis.io/v1
     description: Mainnet index endpoint.
-  - url: http://testnet.nexus.oasis.io/v1
+  - url: https://testnet.nexus.oasis.io/v1
     description: Testnet index endpoint.
 
 x-query-params:
