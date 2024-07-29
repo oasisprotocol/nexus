@@ -233,6 +233,28 @@ func (c *ConsensusApiLite) GetProposal(ctx context.Context, height int64, propos
 	return (*nodeapi.Proposal)(convertProposal(rsp)), nil
 }
 
+func (c *ConsensusApiLite) GetAccount(ctx context.Context, height int64, address nodeapi.Address) (*nodeapi.Account, error) {
+	var rsp *nodeapi.Account
+	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Staking/Account", &staking.OwnerQuery{
+		Height: height,
+		Owner:  address,
+	}, &rsp); err != nil {
+		return nil, fmt.Errorf("GetAccount(%d, %s): %w", height, address, err)
+	}
+	return rsp, nil
+}
+
+func (c *ConsensusApiLite) DelegationsTo(ctx context.Context, height int64, address nodeapi.Address) (map[nodeapi.Address]*nodeapi.Delegation, error) {
+	var rsp map[nodeapi.Address]*nodeapi.Delegation
+	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Staking/DelegationsTo", &staking.OwnerQuery{
+		Height: height,
+		Owner:  address,
+	}, &rsp); err != nil {
+		return nil, fmt.Errorf("DelegationsTo(%d, %s): %w", height, address, err)
+	}
+	return rsp, nil
+}
+
 func (c *ConsensusApiLite) GrpcConn() connections.GrpcConn {
 	return c.grpcConn
 }

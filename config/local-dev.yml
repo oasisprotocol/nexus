@@ -4,23 +4,25 @@ analysis:
     nodes: &src
       eden:
         default:
-          rpc: unix:/tmp/node.sock #unix:/node/data/internal.sock
+          rpc: grpc.prd.oasis.io:1443 #unix:/tmp/node.sock #unix:/node/data/internal.sock
+        sapphire: { rpc: grpc.opf.oasis.io:443 }
     ipfs:
       gateway: https://ipfs.io
   analyzers:
-    metadata_registry:
-      interval: 1h
+    # metadata_registry:
+    #   interval: 1h
     node_stats: {}
     aggregate_stats: {}
     consensus:
       from: 16_817_956  # Eden genesis
-    emerald:
-      from: 7_875_129  # round at Eden genesis
-    sapphire:
-      from: 1_357_486  # round at Eden genesis
+    # emerald:
+    #   from: 7_875_129  # round at Eden genesis
+    # sapphire:
+    #   from: 1_357_486  # round at Eden genesis
   storage:
     backend: postgres
     endpoint: postgresql://rwuser:password@localhost:5432/indexer?sslmode=disable
+    DANGER__WIPE_STORAGE_ON_STARTUP: true
     migrations: file://storage/migrations
 
 server:

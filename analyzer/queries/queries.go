@@ -490,6 +490,37 @@ var (
 	    vote = excluded.vote,
       height = excluded.height;`
 
+	ValidatorStakingHistoryUnprocessedEpochs = `
+    SELECT epochs.id, epochs.start_height, prev_epoch.validators
+    FROM chain.epochs as epochs
+    LEFT JOIN history.validators as history
+      ON epochs.id = history.epoch 
+    LEFT JOIN chain.epochs as prev_epoch
+      ON epochs.id = prev_epoch.id + 1
+    WHERE 
+      history.epoch IS NULL AND
+      epochs.id >= $1
+    ORDER BY epochs.id
+    LIMIT $2`
+
+	ValidatorBalanceInsert = `
+    INSERT INTO history.validators (id, epoch, escrow_balance_active, escrow_balance_debonding, escrow_total_shares_active, escrow_total_shares_debonding, num_delegators)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)`
+
+	EpochValidatorsUpdate = `
+    UPDATE chain.epochs
+    SET validators = $2
+      WHERE id = $1`
+
+	ValidatorStakingHistoryUnprocessedCount = `
+    SELECT COUNT(*)
+    FROM chain.epochs AS epochs
+    LEFT JOIN history.validators AS history
+      ON epochs.id = history.epoch
+    WHERE 
+      history.epoch IS NULL AND
+      epochs.id >= $1`
+
 	RuntimeBlockInsert = `
     INSERT INTO chain.runtime_blocks (runtime, round, version, timestamp, block_hash, prev_block_hash, io_root, state_root, messages_hash, in_messages_hash, num_transactions, gas_used, size)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`

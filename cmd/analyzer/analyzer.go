@@ -33,6 +33,7 @@ import (
 	nodestats "github.com/oasisprotocol/nexus/analyzer/node_stats"
 	"github.com/oasisprotocol/nexus/analyzer/runtime"
 	"github.com/oasisprotocol/nexus/analyzer/util"
+	"github.com/oasisprotocol/nexus/analyzer/validatorstakinghistory"
 	"github.com/oasisprotocol/nexus/cache/httpproxy"
 	cmdCommon "github.com/oasisprotocol/nexus/cmd/common"
 	"github.com/oasisprotocol/nexus/common"
@@ -612,6 +613,19 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) { //nolint:gocyclo
 	if cfg.Analyzers.MetadataRegistry != nil {
 		analyzers, err = addAnalyzer(analyzers, err, "" /*syncTag*/, func() (A, error) {
 			return metadata_registry.NewAnalyzer(cfg.Analyzers.MetadataRegistry.ItemBasedAnalyzerConfig, dbClient, logger)
+		})
+	}
+	if cfg.Analyzers.ValidatorStakingHistory != nil {
+		analyzers, err = addAnalyzer(analyzers, err, syncTagConsensus, func() (A, error) {
+			sourceClient, err1 := sources.Consensus(ctx)
+			if err1 != nil {
+				return nil, err1
+			}
+			startHeight := cfg.Analyzers.ValidatorStakingHistory.StartHeight
+			if startHeight == 0 && cfg.Analyzers.Consensus.From != 0 {
+				startHeight = cfg.Analyzers.Consensus.From
+			}
+			return validatorstakinghistory.NewAnalyzer(ctx, cfg.Analyzers.ValidatorStakingHistory.ItemBasedAnalyzerConfig, startHeight, sourceClient, dbClient, logger)
 		})
 	}
 	if cfg.Analyzers.NodeStats != nil {
