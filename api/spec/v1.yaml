@@ -3,13 +3,17 @@
 openapi: 3.0.3
 info:
   title: Oasis Nexus API V1
-  description: An API for accessing indexed data from the Oasis Network.
+  description: |
+    An API for accessing indexed data from the Oasis Network.
+
+    <!-- Acts as a separator after search in sidebar -->
+    # Endpoints
   version: 0.1.0
 
 servers:
-  - url: http://nexus.oasis.io/v1
+  - url: https://nexus.oasis.io/v1
     description: Mainnet index endpoint.
-  - url: http://testnet.nexus.oasis.io/v1
+  - url: https://testnet.nexus.oasis.io/v1
     description: Testnet index endpoint.
 
 x-query-params:
@@ -481,7 +485,7 @@ paths:
           name: name
           schema:
             type: string
-          description: | 
+          description: |
             A filter on the validator name. Every returned validator will have
             a name that is a superstring of the input param.
       responses:
@@ -1937,7 +1941,7 @@ components:
           type: integer
           format: uint64
           description: The number of accounts that have delegated token to this account.
-          
+
     NodeList:
       allOf:
         - $ref: '#/components/schemas/List'
