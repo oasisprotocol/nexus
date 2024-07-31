@@ -3,5 +3,6 @@ Accept-Ranges: bytes
 Content-Length: UNINTERESTING
 Content-Type: application/x-yaml
 Last-Modified: UNINTERESTING
+Vary: Origin
 Date: UNINTERESTING
 

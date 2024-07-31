@@ -183,11 +183,13 @@ func (s *Service) Start() {
 			BaseURL: v1BaseURL,
 			Middlewares: []apiTypes.MiddlewareFunc{
 				api.RuntimeFromURLMiddleware(v1BaseURL),
-				api.CorsMiddleware,
 			},
 			BaseRouter:       baseRouter,
 			ErrorHandlerFunc: api.HumanReadableJsonErrorHandler,
 		})
+	// Manually apply the CORS middleware; we want it to run always.
+	// HandlerWithOptions() above does not apply it to some requests (404 URLs, requests with bad params, etc.).
+	handler = api.CorsMiddleware(handler)
 	// Manually apply the metrics middleware; we want it to run always, and at the outermost layer.
 	// HandlerWithOptions() above does not apply it to some requests (404 URLs, requests with bad params, etc.).
 	handler = api.MetricsMiddleware(metrics.NewDefaultRequestMetrics(moduleName), *s.logger)(handler)
