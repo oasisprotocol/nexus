@@ -14,6 +14,8 @@ import (
 	coreCommon "github.com/oasisprotocol/oasis-core/go/common"
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
+	cometbft "github.com/oasisprotocol/oasis-core/go/consensus/cometbft/api"
+	"github.com/oasisprotocol/oasis-core/go/consensus/cometbft/crypto"
 	sdkConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 
 	"github.com/oasisprotocol/nexus/analyzer/consensus/static"
@@ -368,8 +370,24 @@ func (m *processor) ProcessBlock(ctx context.Context, uheight uint64) error {
 }
 
 func (m *processor) queueBlockInserts(batch *storage.QueryBatch, data *consensusBlockData) error {
+	var cmtMeta cometbft.BlockMeta
+	if err := cbor.Unmarshal(data.BlockHeader.Meta, &cmtMeta); err != nil {
+		m.logger.Warn("could not unmarshal block meta, may be incompatible version",
+			"height", data.BlockHeader.Height,
+			"err", err,
+		)
+		// We only try to unmarshal into the current version of the metadata
+		// structure (oasis-core Eden + CometBFT at time of writing). This may
+		// fail on blocks from an incompatible earlier version. Skip indexing
+		// the block metadata in that case.
+	}
+
+	var proposerAddr *string
+	if cmtMeta.Header != nil {
+		proposerAddr = common.Ptr(cmtMeta.Header.ProposerAddress.String())
+	}
 	batch.Queue(
-		queries.ConsensusBlockInsert,
+		queries.ConsensusBlockUpsert,
 		data.BlockHeader.Height,
 		data.BlockHeader.Hash.Hex(),
 		data.BlockHeader.Time.UTC(),
@@ -380,7 +398,23 @@ func (m *processor) queueBlockInserts(batch *storage.QueryBatch, data *consensus
 		data.Epoch,
 		data.GasLimit,
 		data.SizeLimit,
+		proposerAddr,
 	)
+
+	if cmtMeta.LastCommit != nil && cmtMeta.LastCommit.BlockID.IsComplete() {
+		prevSigners := make([]string, 0, len(cmtMeta.LastCommit.Signatures))
+		for _, cs := range cmtMeta.LastCommit.Signatures {
+			if cs.Absent() {
+				continue
+			}
+			prevSigners = append(prevSigners, cs.ValidatorAddress.String())
+		}
+		batch.Queue(
+			queries.ConsensusBlockSignersUpsert,
+			cmtMeta.LastCommit.Height,
+			prevSigners,
+		)
+	}
 
 	return nil
 }
@@ -650,6 +684,7 @@ func (m *processor) queueNodeEvents(batch *storage.QueryBatch, data *registryDat
 				nodeEvent.P2PID.String(),
 				nodeEvent.P2PAddresses,
 				nodeEvent.ConsensusID.String(),
+				crypto.PublicKeyToCometBFT(common.Ptr(nodeEvent.ConsensusID)).Address().String(),
 				strings.Join(nodeEvent.ConsensusAddresses, ","), // TODO: store as array
 				nodeEvent.VRFPubKey,
 				strings.Join(nodeEvent.Roles, ","), // TODO: store as array
