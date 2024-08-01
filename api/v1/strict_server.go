@@ -263,6 +263,14 @@ func (srv *StrictServerImpl) GetConsensusValidatorsAddress(ctx context.Context, 
 	return apiTypes.GetConsensusValidatorsAddress200JSONResponse(validators.Validators[0]), nil
 }
 
+func (srv *StrictServerImpl) GetConsensusValidatorsAddressHistory(ctx context.Context, request apiTypes.GetConsensusValidatorsAddressHistoryRequestObject) (apiTypes.GetConsensusValidatorsAddressHistoryResponseObject, error) {
+	history, err := srv.dbClient.ValidatorHistory(ctx, request.Address, request.Params)
+	if err != nil {
+		return nil, err
+	}
+	return apiTypes.GetConsensusValidatorsAddressHistory200JSONResponse(*history), nil
+}
+
 func (srv *StrictServerImpl) GetRuntimeBlocks(ctx context.Context, request apiTypes.GetRuntimeBlocksRequestObject) (apiTypes.GetRuntimeBlocksResponseObject, error) {
 	blocks, err := srv.dbClient.RuntimeBlocks(ctx, request.Params)
 	if err != nil {

@@ -335,6 +335,7 @@ const (
 			COALESCE (
 				self_delegations.shares
 			, 0) AS self_delegation_shares,
+			history.validators.escrow_balance_active AS active_balance_24,
 			COALESCE (
 				delegators_count.count
 			, 0) AS num_delegators,
@@ -357,6 +358,11 @@ const (
 		JOIN chain.blocks ON chain.entities.start_block = chain.blocks.height
 		LEFT JOIN chain.commissions ON chain.entities.address = chain.commissions.address
 		LEFT JOIN self_delegations ON chain.entities.address = self_delegations.address
+		LEFT JOIN history.validators ON chain.entities.id = history.validators.id
+			-- Find the epoch id from 24 hours ago. Each epoch is ~1hr.
+			AND history.validators.epoch = (SELECT id - 24 from chain.epochs
+				ORDER BY id DESC
+				LIMIT 1)
 		LEFT JOIN delegators_count ON chain.entities.address = delegators_count.address
 		LEFT JOIN validator_nodes ON validator_nodes.address = entities.address
 		JOIN validator_rank ON chain.entities.address = validator_rank.address
@@ -368,6 +374,23 @@ const (
 		ORDER BY rank
 		LIMIT $3::bigint
 		OFFSET $4::bigint`
+
+	ValidatorHistory = `
+		SELECT 
+			epoch,
+			escrow_balance_active,
+			escrow_total_shares_active,
+			escrow_balance_debonding,
+			escrow_total_shares_debonding,
+			num_delegators
+		FROM chain.entities
+		JOIN history.validators ON chain.entities.id = history.validators.id
+		WHERE (chain.entities.address = $1::text) AND
+				($2::bigint IS NULL OR history.validators.epoch >= $2::bigint) AND
+				($3::bigint IS NULL OR history.validators.epoch <= $3::bigint)
+		ORDER BY epoch DESC
+		LIMIT $4::bigint
+		OFFSET $5::bigint`
 
 	RuntimeBlocks = `
 		SELECT round, block_hash, timestamp, num_transactions, size, gas_used

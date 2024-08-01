@@ -92,8 +92,8 @@ x-examples:
   parameters-change:
     - &parameters_change_1 '{"min_validators":null,"max_validators":"120","voting_power_distribution":null}'
   epoch:
-    - &epoch_1 8048956
-    - &epoch_2 8048966
+    - &epoch_1 13402
+    - &epoch_2 13403
   event-type:
     - &event_type_1 'staking.escrow.take'
   roothash-message-type:
@@ -508,7 +508,7 @@ paths:
           required: true
           schema:
             allOf: [$ref: '#/components/schemas/StakingAddress']
-          description: The entity ID of the entity to return.
+          description: The address of the entity to return.
       responses:
         '200':
           description: |
@@ -518,6 +518,43 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Validator'
+        <<: *common_error_responses
+
+  /consensus/validators/{address}/history:
+    get:
+      summary: Returns historical information for a single validator.
+      parameters:
+        - *limit
+        - *offset
+        - in: query
+          name: from
+          schema:
+            type: integer
+            format: int64
+          description: A filter on minimum epoch number, inclusive.
+          example: *epoch_1
+        - in: query
+          name: to
+          schema:
+            type: integer
+            format: int64
+          description: A filter on maximum epoch number, inclusive.
+          example: *epoch_2
+        - in: path
+          name: address
+          required: true
+          schema:
+            allOf: [$ref: '#/components/schemas/StakingAddress']
+          description: The address of the entity to return.
+      responses:
+        '200':
+          description: |
+            A JSON object containing historical information for a 
+            validator, grouped by epoch in reverse chronological order.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidatorHistory'
         <<: *common_error_responses
 
   /consensus/accounts:
@@ -1866,17 +1903,17 @@ components:
       properties:
         entity_address:
           type: string
-          description: The staking address identifying this Validator.
+          description: The staking address identifying this validator.
           example: *staking_address_1
         entity_id:
           x-go-name: EntityID
           type: string
-          description: The public key identifying this Validator.
+          description: The public key identifying this validator.
           example: *entity_id_1
         node_id:
           x-go-name: NodeID
           type: string
-          description: The public key identifying this Validator's node.
+          description: The public key identifying this validator's node.
           example: *node_id_1
         escrow:
           allOf: [$ref: '#/components/schemas/Escrow']
@@ -1884,11 +1921,11 @@ components:
         voting_power:
           type: integer
           format: int64
-          description: The voting power of this Validator.
+          description: The voting power of this validator.
         voting_power_total:
           type: integer
           format: int64
-          description: The total voting power across all Validators.
+          description: The total voting power across all validators.
         active:
           type: boolean
           description: Whether the entity has a node that is registered for being a validator, node is up to date, and has successfully registered itself. It may or may not be part of validator set.
@@ -1900,7 +1937,7 @@ components:
         rank:
           type: integer
           format: uint64
-          description: The rank of the Validator, determined by voting power.
+          description: The rank of the validator, determined by voting power.
         in_validator_set:
           type: boolean
           description: Whether the entity is part of the validator set (top <scheduler.params.max_validators> by stake among active entities).
@@ -1937,6 +1974,61 @@ components:
         self_delegation_shares:
           allOf: [$ref: '#/components/schemas/TextBigInt']
           description: The shares of tokens this validator has delegated to itself, and are NOT in the process of debonding.
+        active_balance_24:
+          allOf: [$ref: '#/components/schemas/TextBigInt']
+          description: The active_balance of this validator account 24 hours ago.
+        num_delegators:
+          type: integer
+          format: uint64
+          description: The number of accounts that have delegated token to this account.
+    
+    ValidatorHistory:
+      allOf:
+        - $ref: '#/components/schemas/List'
+        - type: object
+          required: [history]
+          properties:
+            address:
+              type: string
+              description: The staking address of the validator.
+              example: *staking_address_1
+            history:
+              type: array
+              items:
+                allOf: [$ref: '#/components/schemas/ValidatorHistoryPoint']
+          description: Historical escrow balance data for a single address.
+
+    ValidatorHistoryPoint:
+      type: object
+      required: [epoch]
+      properties:
+        epoch:
+          type: integer
+          format: int64
+          description: The epoch number.
+          example: *epoch_1
+        active_balance:
+          allOf: [$ref: '#/components/schemas/TextBigInt']
+          description: |
+            The amount of tokens that were delegated to this validator account, 
+            at the start of this epoch, and are NOT in the process of debonding.
+        active_shares:
+          allOf: [$ref: '#/components/schemas/TextBigInt']
+          description: |
+            The shares of tokens that were delegated to this validator account, 
+            at the start of this epoch, and are NOT in the process of debonding.
+        debonding_balance:
+          allOf: [$ref: '#/components/schemas/TextBigInt']
+          description: |
+            The amount of tokens that were delegated to this validator account
+            at the start of this epoch, but are also in the process of debonding 
+            (i.e. they will be unstaked within ~2 weeks).
+        debonding_shares:
+          allOf: [$ref: '#/components/schemas/TextBigInt']
+          description: |
+            The shares of tokens that were delegated to this validator account
+            at the start of this epoch, but are also in the process of debonding 
+            (i.e. they will be unstaked within ~2 weeks).
         num_delegators:
           type: integer
           format: uint64

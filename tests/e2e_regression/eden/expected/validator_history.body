@@ -1,0 +1,22 @@
+{
+  "history": [
+    {
+      "active_balance": "510452102234085399",
+      "active_shares": "409180341632413967",
+      "debonding_balance": "3664693487026403",
+      "debonding_shares": "3664693487026403",
+      "epoch": 28018,
+      "num_delegators": 10334
+    },
+    {
+      "active_balance": "510450642345248292",
+      "active_shares": "409180224607170953",
+      "debonding_balance": "3664847637026402",
+      "debonding_shares": "3664847637026402",
+      "epoch": 28017,
+      "num_delegators": 10334
+    }
+  ],
+  "is_total_count_clipped": false,
+  "total_count": 2
+}
