@@ -167,7 +167,7 @@ var (
         height = excluded.height`
 
 	ConsensusBlockUpsert = `
-    INSERT INTO chain.blocks (height, block_hash, time, num_txs, namespace, version, state_root, epoch, gas_limit, size_limit, proposer_node_consensus_pubkey_address)
+    INSERT INTO chain.blocks (height, block_hash, time, num_txs, namespace, version, state_root, epoch, gas_limit, size_limit, proposer_entity_id)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
     ON CONFLICT (height) DO UPDATE
     SET
@@ -180,16 +180,12 @@ var (
       epoch = excluded.epoch,
       gas_limit = excluded.gas_limit,
       size_limit = excluded.size_limit,
-      proposer_node_consensus_pubkey_address = excluded.proposer_node_consensus_pubkey_address`
+      proposer_entity_id = excluded.proposer_entity_id`
 
-	ConsensusBlockSignersUpsert = `
-    INSERT INTO chain.blocks
-      (height, signer_node_consensus_pubkey_addresses)
-    VALUES
-      ($1, $2)
-    ON CONFLICT (height) DO UPDATE
-    SET
-      signer_node_consensus_pubkey_addresses = excluded.signer_node_consensus_pubkey_addresses`
+	ConsensusBlockAddSigners = `
+    UPDATE chain.blocks
+      SET signer_entity_ids = $2
+      WHERE height = $1`
 
 	ConsensusEpochUpsert = `
     INSERT INTO chain.epochs AS old (id, start_height, end_height)
@@ -333,8 +329,8 @@ var (
       start_block = LEAST(old.start_block, excluded.start_block)`
 
 	ConsensusNodeUpsert = `
-    INSERT INTO chain.nodes (id, entity_id, expiration, tls_pubkey, tls_next_pubkey, tls_addresses, p2p_pubkey, p2p_addresses, consensus_pubkey, consensus_pubkey_address, consensus_address, vrf_pubkey, roles, software_version, voting_power)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+    INSERT INTO chain.nodes (id, entity_id, expiration, tls_pubkey, tls_next_pubkey, tls_addresses, p2p_pubkey, p2p_addresses, consensus_pubkey, consensus_address, vrf_pubkey, roles, software_version, voting_power)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
     ON CONFLICT (id) DO UPDATE
     SET
       entity_id = excluded.entity_id,
@@ -345,7 +341,6 @@ var (
       p2p_pubkey = excluded.p2p_pubkey,
       p2p_addresses = excluded.p2p_addresses,
       consensus_pubkey = excluded.consensus_pubkey,
-      consensus_pubkey_address = excluded.consensus_pubkey_address,
       consensus_address = excluded.consensus_address,
       vrf_pubkey = excluded.vrf_pubkey,
       roles = excluded.roles,

@@ -48,8 +48,8 @@ CREATE TABLE chain.blocks
   metadata   JSONB
 
   -- added in 32_block_meta.up.sql
-  -- proposer_node_consensus_pubkey_address TEXT,
-  -- signer_node_consensus_pubkey_addresses TEXT[]
+  -- proposer_entity_id base64_ed25519_pubkey,
+  -- signer_entity_ids base64_ed25519_pubkey[]
 );
 CREATE INDEX ix_blocks_time ON chain.blocks (time);
 -- CREATE INDEX ix_blocks_block_hash ON chain.blocks (block_hash); -- Needed to lookup blocks by hash. -- added in 21_consensus_block_hash.up.sql

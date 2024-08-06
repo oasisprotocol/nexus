@@ -1390,11 +1390,13 @@ components:
           description: The Merkle root of the state tree after applying the block.
           example: *state_root_1
         proposer:
-          allOf: [$ref: '#/components/schemas/NodeInfo']
+          allOf: [$ref: '#/components/schemas/EntityInfo']
+          description: The entity that proposed this block.
         signers:
           type: array
           items:
-            allOf: [$ref: '#/components/schemas/NodeInfo']
+            allOf: [$ref: '#/components/schemas/EntityInfo']
+          description: A list of the entities that signed the block.
         # TODO: Not available on backend
         # size:
         #   type: integer
@@ -1409,16 +1411,43 @@ components:
       description: |
         A consensus block.
 
-    NodeInfo:
+    EntityInfo:
       type: object
+      description: Light-weight entity information, containing only its ID, address and registry metadata.
       properties:
-        node_id:
-          type: string
         entity_id:
           type: string
+          description: The ID of the entity owning the node; this corresponds to the entity's public key in base64.
+          example: "`TqUyj5Q+9vZtqu10yw6Zw7HEX3Ywe0JQA9vHyzY47TU=`"
         entity_address:
           type: string
-        entity_metadata: {}
+          description: Address of the entity owning the node, in Bech32 format (`oasis1...`).
+          example: "`oasis1qzzd6khm3acqskpxlk9vd5044cmmcce78y5l6000`"
+        entity_metadata:
+          description: |
+            Metadata about an entity, if available. See [the metadata registry](https://github.com/oasisprotocol/metadata-registry) for details.
+            
+            When available, it is an object with some subset of the following fields:
+            
+            - `v`: The version of the metadata structure (always present).
+            - `serial`: The serial number of the metadata statement (always present).
+            - `name`: The name of the entity.
+            - `url`: The URL associated with the entity.
+            - `email`: The email address associated with the entity.
+            - `keybase`: Tne entity's keybase.io handle.
+            - `twitter`: The twitter handle associated with the entity.
+          example: |
+            An entity with all fields:
+            
+                {
+                  "v": 1,
+                  "serial": 1,
+                  "name": "Entity display name",
+                  "url": "https://example.org/entity",
+                  "email": "entity@example.org",
+                  "keybase": "keybase_handle",
+                  "twitter": "twitter_handle"
+                }
 
     Delegation:
       type: object

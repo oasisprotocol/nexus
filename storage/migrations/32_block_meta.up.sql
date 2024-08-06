@@ -1,18 +1,10 @@
 BEGIN;
 
-ALTER TABLE chain.nodes
-    ADD COLUMN consensus_pubkey_address TEXT;
-
-CREATE INDEX ix_nodes_consensus_pubkey_address ON chain.nodes (consensus_pubkey_address);
-
 ALTER TABLE chain.blocks
-    ALTER COLUMN block_hash DROP NOT NULL,
-    ALTER COLUMN time DROP NOT NULL,
-    ALTER COLUMN num_txs DROP NOT NULL,
-    ALTER COLUMN namespace DROP NOT NULL,
-    ALTER COLUMN version DROP NOT NULL,
-    ALTER COLUMN state_root DROP NOT NULL,
-    ADD COLUMN proposer_node_consensus_pubkey_address TEXT,
-    ADD COLUMN signer_node_consensus_pubkey_addresses TEXT[];
+    ADD COLUMN proposer_entity_id base64_ed25519_pubkey,
+    ADD COLUMN signer_entity_ids base64_ed25519_pubkey[];
+
+CREATE INDEX ix_blocks_proposer_entity_id ON chain.blocks (proposer_entity_id);
+CREATE INDEX ix_blocks_signer_entity_ids ON chain.blocks USING gin(signer_entity_ids);
 
 COMMIT;

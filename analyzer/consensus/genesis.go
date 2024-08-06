@@ -8,7 +8,6 @@ import (
 
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 	"github.com/oasisprotocol/oasis-core/go/common/entity"
-	"github.com/oasisprotocol/oasis-core/go/consensus/cometbft/crypto"
 
 	"github.com/oasisprotocol/nexus/analyzer/queries"
 	"github.com/oasisprotocol/nexus/common"
@@ -120,7 +119,6 @@ func (mg *GenesisProcessor) addRegistryBackendMigrations(batch *storage.QueryBat
 			node.P2P.ID.String(),
 			nil,
 			node.Consensus.ID.String(),
-			crypto.PublicKeyToCometBFT(common.Ptr(node.Consensus.ID)).Address().String(),
 			nil,
 			nil,
 			node.Roles.String(),
