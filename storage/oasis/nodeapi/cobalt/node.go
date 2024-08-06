@@ -230,6 +230,17 @@ func (c *ConsensusApiLite) GetProposal(ctx context.Context, height int64, propos
 	return (*nodeapi.Proposal)(convertProposal(rsp)), nil
 }
 
+func (c *ConsensusApiLite) GetNodeByConsensusAddress(ctx context.Context, height int64, address []byte) (*nodeapi.Node, error) {
+	var rsp *nodeapi.Node
+	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Registry/GetNodeByConsensusAddress", &registryCobalt.ConsensusAddressQuery{
+		Height: height,
+		Address: address,
+	}, &rsp); err != nil {
+		return nil, fmt.Errorf("GetNodeByConsensusAddress(%d, %v): %w", height, address, err)
+	}
+	return rsp, nil
+}
+
 func (c *ConsensusApiLite) GrpcConn() connections.GrpcConn {
 	return c.grpcConn
 }

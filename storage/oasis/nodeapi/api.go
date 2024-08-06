@@ -75,6 +75,7 @@ type ConsensusApiLite interface {
 	GetNodes(ctx context.Context, height int64) ([]Node, error)
 	GetCommittees(ctx context.Context, height int64, runtimeID coreCommon.Namespace) ([]Committee, error)
 	GetProposal(ctx context.Context, height int64, proposalID uint64) (*Proposal, error)
+	GetNodeByConsensusAddress(ctx context.Context, height int64, address []byte) (*Node, error)
 	Close() error
 	// Exposes the underlying gRPC connection, if applicable. Implementations may return nil.
 	// NOTE: Intended only for debugging purposes, e.g. one-off testing of gRPC methods that

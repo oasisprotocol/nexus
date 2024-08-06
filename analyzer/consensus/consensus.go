@@ -16,6 +16,7 @@ import (
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
 	cometbft "github.com/oasisprotocol/oasis-core/go/consensus/cometbft/api"
 	"github.com/oasisprotocol/oasis-core/go/consensus/cometbft/crypto"
+	coreStaking "github.com/oasisprotocol/oasis-core/go/staking/api"
 	sdkConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 
 	"github.com/oasisprotocol/nexus/analyzer/consensus/static"
@@ -248,14 +249,14 @@ func (m *processor) processGenesis(ctx context.Context, genesisDoc *nodeapi.Gene
 }
 
 // Expands `batch` with DB statements that reflect the contents of `data`.
-func (m *processor) queueDbUpdates(batch *storage.QueryBatch, data allData) error {
-	for _, f := range []func(*storage.QueryBatch, *consensusBlockData) error{
+func (m *processor) queueDbUpdates(ctx context.Context, batch *storage.QueryBatch, data allData) error {
+	for _, f := range []func(context.Context, *storage.QueryBatch, *consensusBlockData) error{
 		m.queueBlockInserts,
 		m.queueEpochInserts,
 		m.queueTransactionInserts,
 		m.queueTxEventInserts,
 	} {
-		if err := f(batch, data.BlockData); err != nil {
+		if err := f(ctx, batch, data.BlockData); err != nil {
 			return err
 		}
 	}
@@ -341,7 +342,7 @@ func (m *processor) ProcessBlock(ctx context.Context, uheight uint64) error {
 
 		// Process data, prepare updates.
 		analysisTimer := m.metrics.BlockAnalysisLatencies()
-		err = m.queueDbUpdates(batch, *data)
+		err = m.queueDbUpdates(ctx, batch, *data)
 		analysisTimer.ObserveDuration()
 		if err != nil {
 			return err
@@ -369,7 +370,7 @@ func (m *processor) ProcessBlock(ctx context.Context, uheight uint64) error {
 	return nil
 }
 
-func (m *processor) queueBlockInserts(batch *storage.QueryBatch, data *consensusBlockData) error {
+func (m *processor) queueBlockInserts(ctx context.Context, batch *storage.QueryBatch, data *consensusBlockData) error {
 	var cmtMeta cometbft.BlockMeta
 	if err := cbor.Unmarshal(data.BlockHeader.Meta, &cmtMeta); err != nil {
 		m.logger.Warn("could not unmarshal block meta, may be incompatible version",
@@ -384,7 +385,17 @@ func (m *processor) queueBlockInserts(batch *storage.QueryBatch, data *consensus
 
 	var proposerAddr *string
 	if cmtMeta.Header != nil {
-		proposerAddr = common.Ptr(cmtMeta.Header.ProposerAddress.String())
+		node, err := m.source.GetNodeByConsensusAddress(ctx, data.Height, []byte(cmtMeta.Header.ProposerAddress))
+		if err != nil {
+			m.logger.Warn("could not convert block proposer address to bech32 string",
+				"height", data.BlockHeader.Height,
+				"proposer", cmtMeta.Header.ProposerAddress.String(),
+				"err", err,
+			)
+		} else {
+			oasisAddress := coreStaking.NewAddress(node.EntityID)
+			proposerAddr = common.Ptr(oasisAddress.String())
+		}
 	}
 	batch.Queue(
 		queries.ConsensusBlockUpsert,
@@ -419,7 +430,7 @@ func (m *processor) queueBlockInserts(batch *storage.QueryBatch, data *consensus
 	return nil
 }
 
-func (m *processor) queueEpochInserts(batch *storage.QueryBatch, data *consensusBlockData) error {
+func (m *processor) queueEpochInserts(ctx context.Context, batch *storage.QueryBatch, data *consensusBlockData) error {
 	if m.mode == analyzer.SlowSyncMode {
 		// In slow-sync mode, update our knowledge about the epoch in-place.
 		batch.Queue(
@@ -457,7 +468,7 @@ func unpackTxBody(t *transaction.Transaction) (interface{}, error) {
 	return nil, fmt.Errorf("unable to cbor-decode consensus tx body: %w, method: %s, body: %x", err, t.Method, t.Body)
 }
 
-func (m *processor) queueTransactionInserts(batch *storage.QueryBatch, data *consensusBlockData) error {
+func (m *processor) queueTransactionInserts(ctx context.Context, batch *storage.QueryBatch, data *consensusBlockData) error {
 	for i, txr := range data.TransactionsWithResults {
 		signedTx := txr.Transaction
 		result := txr.Result
@@ -554,7 +565,7 @@ func (m *processor) queueTransactionInserts(batch *storage.QueryBatch, data *con
 }
 
 // Enqueue DB statements to store events that were generated as the result of a TX execution.
-func (m *processor) queueTxEventInserts(batch *storage.QueryBatch, data *consensusBlockData) error {
+func (m *processor) queueTxEventInserts(ctx context.Context, batch *storage.QueryBatch, data *consensusBlockData) error {
 	for i, txr := range data.TransactionsWithResults {
 		txAccounts := []staking.Address{
 			// Always insert sender as a related address, some transactions (e.g. failed ones) might not have
