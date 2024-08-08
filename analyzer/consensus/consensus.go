@@ -387,14 +387,18 @@ func (m *processor) queueBlockInserts(ctx context.Context, batch *storage.QueryB
 	if cmtMeta.Header != nil {
 		node, err := m.source.GetNodeByConsensusAddress(ctx, data.Height, []byte(cmtMeta.Header.ProposerAddress))
 		if err != nil {
-			m.logger.Warn("could not convert block proposer address to bech32 string",
+			m.logger.Warn("could not convert block proposer address to oasis address",
 				"height", data.BlockHeader.Height,
 				"proposer", cmtMeta.Header.ProposerAddress.String(),
 				"err", err,
 			)
 		} else {
-			oasisAddress := coreStaking.NewAddress(node.EntityID)
-			proposerAddr = common.Ptr(oasisAddress.String())
+			proposerAddr = common.Ptr(cmtMeta.Header.ProposerAddress.String())
+			batch.Queue(
+				queries.ConsensusBlockNodeUpsert,
+				cmtMeta.Header.ProposerAddress.String(),
+				coreStaking.NewAddress(node.EntityID).String(),
+			)
 		}
 	}
 	batch.Queue(
@@ -413,18 +417,25 @@ func (m *processor) queueBlockInserts(ctx context.Context, batch *storage.QueryB
 	)
 
 	if cmtMeta.LastCommit != nil && cmtMeta.LastCommit.BlockID.IsComplete() {
-		prevSigners := make([]string, 0, len(cmtMeta.LastCommit.Signatures))
 		for _, cs := range cmtMeta.LastCommit.Signatures {
 			if cs.Absent() {
 				continue
 			}
-			prevSigners = append(prevSigners, cs.ValidatorAddress.String())
+			node, err := m.source.GetNodeByConsensusAddress(ctx, data.Height, []byte(cs.ValidatorAddress))
+			if err != nil {
+				m.logger.Warn("could not convert block signer address to oasis address",
+					"height", data.BlockHeader.Height,
+					"signer", cs.ValidatorAddress.String(),
+					"err", err,
+				)
+				continue
+			}
+			batch.Queue(
+				queries.ConsensusBlockNodeUpsert,
+				cs.ValidatorAddress.String(),
+				coreStaking.NewAddress(node.EntityID).String(),
+			)
 		}
-		batch.Queue(
-			queries.ConsensusBlockSignersUpsert,
-			cmtMeta.LastCommit.Height,
-			prevSigners,
-		)
 	}
 
 	return nil

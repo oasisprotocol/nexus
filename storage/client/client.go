@@ -336,7 +336,6 @@ func (c *StorageClient) Blocks(ctx context.Context, r apiTypes.GetConsensusBlock
 	}
 	for res.rows.Next() {
 		var b Block
-		var metadata json.RawMessage
 		var proposerRow nodeInfoRow
 		var signerRows []nodeInfoRow
 		if err := res.rows.Scan(
@@ -348,7 +347,6 @@ func (c *StorageClient) Blocks(ctx context.Context, r apiTypes.GetConsensusBlock
 			&b.SizeLimit,
 			&b.Epoch,
 			&b.StateRoot,
-			&metadata,
 			&proposerRow,
 			&signerRows,
 		); err != nil {

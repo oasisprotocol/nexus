@@ -33,7 +33,6 @@ const (
 			size_limit,
 			epoch,
 			state_root,
-			metadata,
 			ROW(
 			    proposer_node.id,
 			    proposer_node.entity_id,

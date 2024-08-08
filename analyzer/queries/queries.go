@@ -166,8 +166,13 @@ var (
         SET
         height = excluded.height`
 
+        ConsensusBlockNodeUpsert = `
+    INSERT INTO chain.block_nodes (id, address)
+      VALUES ($1, $2)
+    ON CONFLICT DO NOTHING`
+
 	ConsensusBlockUpsert = `
-    INSERT INTO chain.blocks (height, block_hash, time, num_txs, namespace, version, state_root, epoch, gas_limit, size_limit, proposer_node_consensus_pubkey_address)
+    INSERT INTO chain.blocks (height, block_hash, time, num_txs, namespace, version, state_root, epoch, gas_limit, size_limit)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
     ON CONFLICT (height) DO UPDATE
     SET
@@ -181,15 +186,6 @@ var (
       gas_limit = excluded.gas_limit,
       size_limit = excluded.size_limit,
       proposer_node_consensus_pubkey_address = excluded.proposer_node_consensus_pubkey_address`
-
-	ConsensusBlockSignersUpsert = `
-    INSERT INTO chain.blocks
-      (height, signer_node_consensus_pubkey_addresses)
-    VALUES
-      ($1, $2)
-    ON CONFLICT (height) DO UPDATE
-    SET
-      signer_node_consensus_pubkey_addresses = excluded.signer_node_consensus_pubkey_addresses`
 
 	ConsensusEpochUpsert = `
     INSERT INTO chain.epochs AS old (id, start_height, end_height)
