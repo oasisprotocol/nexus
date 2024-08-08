@@ -3061,6 +3061,46 @@ components:
           description: |
             The number of addresses that have a nonzero balance of this token.
           example: 123
+        ref_swap_pair_address:
+          type: string
+        ref_swap_pair_address_eth:
+          type: string
+        ref_swap_factory_address:
+          type: string
+        ref_swap_factory_address_eth:
+          type: string
+        ref_swap_token0_address:
+          type: string
+        ref_swap_token0_address_eth:
+          type: string
+        ref_swap_token1_address:
+          type: string
+        ref_swap_token1_address_eth:
+          type: string
+        ref_swap_create_round:
+          type: integer
+          format: int64
+        ref_swap_create_block_timestamp:
+          type: string
+          format: date-time
+        ref_swap_reserve0:
+          allOf: [$ref: '#/components/schemas/TextBigInt']
+        ref_swap_reserve1:
+          allOf: [$ref: '#/components/schemas/TextBigInt']
+        ref_swap_last_sync_round:
+          type: integer
+          format: int64
+        ref_swap_last_sync_block_timestamp:
+          type: string
+          format: date-time
+        relative_token_address:
+          type: string
+        relative_price:
+          type: number
+          format: double
+        relative_total_value:
+          type: number
+          format: double
         is_verified:
           deprecated: true
           type: boolean

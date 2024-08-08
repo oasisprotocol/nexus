@@ -132,6 +132,17 @@ type PossibleNFT struct {
 	NewOwner apiTypes.Address
 }
 
+type PossibleSwapPair struct {
+	Factory apiTypes.Address
+	Token0  apiTypes.Address
+	Token1  apiTypes.Address
+}
+
+type PossibleSwapSync struct {
+	Reserve0 *big.Int
+	Reserve1 *big.Int
+}
+
 type BlockData struct {
 	Header              nodeapi.RuntimeBlockHeader
 	NumTransactions     int // Might be different from len(TransactionData) if some transactions are malformed.
@@ -143,6 +154,8 @@ type BlockData struct {
 	TokenBalanceChanges map[TokenChangeKey]*big.Int
 	PossibleTokens      map[apiTypes.Address]*evm.EVMPossibleToken // key is oasis bech32 address
 	PossibleNFTs        map[NFTKey]*PossibleNFT
+	SwapPairs           map[apiTypes.Address]*PossibleSwapPair
+	SwapSyncs           map[apiTypes.Address]*PossibleSwapSync
 }
 
 // Function naming conventions in this file:
@@ -205,6 +218,8 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 		TokenBalanceChanges: map[TokenChangeKey]*big.Int{},
 		PossibleTokens:      map[apiTypes.Address]*evm.EVMPossibleToken{},
 		PossibleNFTs:        map[NFTKey]*PossibleNFT{},
+		SwapPairs:           map[apiTypes.Address]*PossibleSwapPair{},
+		SwapSyncs:           map[apiTypes.Address]*PossibleSwapSync{},
 	}
 
 	// Extract info from non-tx events.
@@ -1027,6 +1042,67 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 							EvmType: "bool",
 							Value:   approved,
 						},
+					}
+					return nil
+				},
+				IUniswapV2FactoryPairCreated: func(token0ECAddr ethCommon.Address, token1ECAddr ethCommon.Address, pairECAddr ethCommon.Address, allPairsLength *big.Int) error {
+					token0Addr, err := addresses.RegisterRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, token0ECAddr.Bytes())
+					if err != nil {
+						return fmt.Errorf("token0: %w", err)
+					}
+					token1Addr, err := addresses.RegisterRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, token1ECAddr.Bytes())
+					if err != nil {
+						return fmt.Errorf("token1: %w", err)
+					}
+					pairAddr, err := addresses.RegisterRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, pairECAddr.Bytes())
+					if err != nil {
+						return fmt.Errorf("pair: %w", err)
+					}
+					blockData.SwapPairs[pairAddr] = &PossibleSwapPair{
+						Factory: eventAddr,
+						Token0:  token0Addr,
+						Token1:  token1Addr,
+					}
+					return nil
+				},
+				IUniswapV2PairMint: func(senderECAddr ethCommon.Address, amount0 *big.Int, amount1 *big.Int) error {
+					senderAddr, err := addresses.RegisterRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, senderECAddr.Bytes())
+					if err != nil {
+						return fmt.Errorf("sender: %w", err)
+					}
+					_ = senderAddr
+					return nil
+				},
+				IUniswapV2PairBurn: func(senderECAddr ethCommon.Address, amount0 *big.Int, amount1 *big.Int, toECAddr ethCommon.Address) error {
+					senderAddr, err := addresses.RegisterRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, senderECAddr.Bytes())
+					if err != nil {
+						return fmt.Errorf("sender: %w", err)
+					}
+					_ = senderAddr
+					toAddr, err := addresses.RegisterRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, toECAddr.Bytes())
+					if err != nil {
+						return fmt.Errorf("to: %w", err)
+					}
+					_ = toAddr
+					return nil
+				},
+				IUniswapV2PairSwap: func(senderECAddr ethCommon.Address, amount0In *big.Int, amount1In *big.Int, amount0Out *big.Int, amount1Out *big.Int, toECAddr ethCommon.Address) error {
+					senderAddr, err := addresses.RegisterRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, senderECAddr.Bytes())
+					if err != nil {
+						return fmt.Errorf("sender: %w", err)
+					}
+					_ = senderAddr
+					toAddr, err := addresses.RegisterRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, toECAddr.Bytes())
+					if err != nil {
+						return fmt.Errorf("to: %w", err)
+					}
+					_ = toAddr
+					return nil
+				},
+				IUniswapV2PairSync: func(reserve0 *big.Int, reserve1 *big.Int) error {
+					blockData.SwapSyncs[eventAddr] = &PossibleSwapSync{
+						Reserve0: reserve0,
+						Reserve1: reserve1,
 					}
 					return nil
 				},
