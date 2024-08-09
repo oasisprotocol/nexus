@@ -1468,6 +1468,8 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetR
 			&t.Nonce0,
 			&t.Fee,
 			&t.FeeSymbol,
+			&t.FeeProxyModule,
+			&t.FeeProxyId,
 			&t.GasLimit,
 			&t.GasUsed,
 			&t.ChargedFee,

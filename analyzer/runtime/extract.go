@@ -61,6 +61,8 @@ type BlockTransactionData struct {
 	RelatedAccountAddresses map[apiTypes.Address]struct{}
 	Fee                     common.BigInt
 	FeeSymbol               string
+	FeeProxyModule          *string
+	FeeProxyID              *[]byte
 	GasLimit                uint64
 	Method                  string
 	Body                    interface{}
@@ -241,6 +243,7 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 				"round", blockHeader.Round,
 				"tx_index", txIndex,
 				"tx_hash", txr.Tx.Hash(),
+				"tx_body_cbor", hex.EncodeToString(txr.Tx.Body),
 				"err", err,
 			)
 			tx = nil
@@ -261,6 +264,10 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 			}
 			blockTransactionData.Fee = common.BigIntFromQuantity(tx.AuthInfo.Fee.Amount.Amount)
 			blockTransactionData.FeeSymbol = stringifyDenomination(sdkPT, tx.AuthInfo.Fee.Amount.Denomination)
+			if tx.AuthInfo.Fee.Proxy != nil {
+				blockTransactionData.FeeProxyModule = &tx.AuthInfo.Fee.Proxy.Module
+				blockTransactionData.FeeProxyID = common.Ptr(tx.AuthInfo.Fee.Proxy.ID)
+			}
 			blockTransactionData.GasLimit = tx.AuthInfo.Fee.Gas
 
 			// Parse the success/error status.

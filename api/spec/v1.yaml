@@ -2793,6 +2793,15 @@ components:
           type: string
           description: |
             The denomination of the fee.
+        fee_proxy_module:
+          type: string
+          description: |
+            The module of the fee proxy.
+        fee_proxy_id:
+          type: string
+          format: byte
+          description: |
+            the base64-encoded id of the fee proxy.
         gas_limit:
           type: integer
           format: uint64

@@ -45,6 +45,9 @@ CREATE TABLE chain.runtime_transactions
   fee         UINT_NUMERIC NOT NULL,
   -- Added in 25_runtime_tx_denoms.up.sql
   -- fee_symbol  TEXT NOT NULL,
+  -- Added in 29_rofl_tx_fees.up.sql
+  -- fee_proxy_module TEXT
+  -- fee_proxy_id TEXT
   gas_limit   UINT63 NOT NULL,
   gas_used    UINT63 NOT NULL,
   size UINT31 NOT NULL,
