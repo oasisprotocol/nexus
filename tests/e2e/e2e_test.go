@@ -38,6 +38,25 @@ const (
 	analyzerDelay = 3 * time.Second
 )
 
+// Taken from https://github.com/oasisprotocol/oasis-core/blob/v23.0.11/go/consensus/api/submission.go#L31
+type staticPriceDiscovery struct {
+	price quantity.Quantity
+}
+
+// NewStaticPriceDiscovery creates a price discovery mechanism which always returns the same static
+// price specified at construction time.
+func NewStaticPriceDiscovery(price uint64) (consensus.PriceDiscovery, error) {
+	pd := &staticPriceDiscovery{}
+	if err := pd.price.FromUint64(price); err != nil {
+		return nil, fmt.Errorf("submission: failed to convert gas price: %w", err)
+	}
+	return pd, nil
+}
+
+func (pd *staticPriceDiscovery) GasPrice() (*quantity.Quantity, error) {
+	return pd.price.Clone(), nil
+}
+
 func TestConsensusTransfer(t *testing.T) {
 	tests.SkipUnlessE2E(t)
 
@@ -86,7 +105,7 @@ func TestConsensusTransfer(t *testing.T) {
 	t.Log("Alice address: ", aliceAddress)
 	t.Log("Bob address: ", bobAddress)
 
-	pd, err := consensus.NewStaticPriceDiscovery(uint64(0))
+	pd, err := NewStaticPriceDiscovery(uint64(0))
 	require.NoError(t, err)
 	sm := consensus.NewSubmissionManager(cnsc, pd, 0)
 

@@ -424,6 +424,8 @@ const (
 			signer0.nonce AS nonce0,
 			txs.fee,
 			txs.fee_symbol,
+			txs.fee_proxy_module,
+			txs.fee_proxy_id,
 			txs.gas_limit,
 			txs.gas_used,
 			CASE

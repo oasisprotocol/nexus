@@ -317,6 +317,8 @@ func (m *processor) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 			transactionData.EthHash,
 			&transactionData.Fee, // pgx bug? Needs a *BigInt (not BigInt) to know how to serialize.
 			transactionData.FeeSymbol,
+			transactionData.FeeProxyModule,
+			transactionData.FeeProxyID,
 			transactionData.GasLimit,
 			transactionData.GasUsed,
 			transactionData.Size,
