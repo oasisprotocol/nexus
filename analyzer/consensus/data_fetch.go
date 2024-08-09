@@ -4,6 +4,8 @@ package consensus
 import (
 	"context"
 
+	"golang.org/x/sync/errgroup"
+
 	coreCommon "github.com/oasisprotocol/oasis-core/go/common"
 	sdkConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 
@@ -15,56 +17,81 @@ import (
 
 // fetchAllData returns all relevant data related to the given height.
 func fetchAllData(ctx context.Context, cc nodeapi.ConsensusApiLite, network sdkConfig.Network, height int64, fastSync bool) (*allData, error) {
-	blockData, err := fetchBlockData(ctx, cc, height)
-	if err != nil {
-		return nil, err
-	}
+	eg, fetchCtx := errgroup.WithContext(ctx)
+	data := allData{}
 
-	beaconData, err := fetchBeaconData(ctx, cc, height)
-	if err != nil {
-		return nil, err
-	}
+	eg.Go(func() error {
+		blockData, err := fetchBlockData(fetchCtx, cc, height)
+		if err != nil {
+			return err
+		}
+		data.BlockData = blockData
+		return nil
+	})
 
-	registryData, err := fetchRegistryData(ctx, cc, height)
-	if err != nil {
-		return nil, err
-	}
+	eg.Go(func() error {
+		beaconData, err := fetchBeaconData(fetchCtx, cc, height)
+		if err != nil {
+			return err
+		}
+		data.BeaconData = beaconData
+		return nil
+	})
 
-	stakingData, err := fetchStakingData(ctx, cc, height)
-	if err != nil {
-		return nil, err
-	}
+	eg.Go(func() error {
+		registryData, err := fetchRegistryData(fetchCtx, cc, height)
+		if err != nil {
+			return err
+		}
+		data.RegistryData = registryData
+		return nil
+	})
 
-	var schedulerData *schedulerData
+	eg.Go(func() error {
+		stakingData, err := fetchStakingData(fetchCtx, cc, height)
+		if err != nil {
+			return err
+		}
+		data.StakingData = stakingData
+		return nil
+	})
+
 	// Scheduler data is not needed during fast sync. It contains no events,
 	// only a complete snapshot validators/committees. Since we don't store historical data,
 	// any single snapshot during slow-sync is sufficient to reconstruct the state.
 	if !fastSync {
-		schedulerData, err = fetchSchedulerData(ctx, cc, network, height)
+		eg.Go(func() error {
+			schedulerData, err := fetchSchedulerData(fetchCtx, cc, network, height)
+			if err != nil {
+				return err
+			}
+			data.SchedulerData = schedulerData
+			return nil
+		})
+	}
+
+	eg.Go(func() error {
+		governanceData, err := fetchGovernanceData(fetchCtx, cc, height)
 		if err != nil {
-			return nil, err
+			return err
 		}
-	}
+		data.GovernanceData = governanceData
+		return nil
+	})
 
-	governanceData, err := fetchGovernanceData(ctx, cc, height)
-	if err != nil {
+	eg.Go(func() error {
+		rootHashData, err := fetchRootHashData(fetchCtx, cc, network, height)
+		if err != nil {
+			return err
+		}
+		data.RootHashData = rootHashData
+		return nil
+	})
+
+	if err := eg.Wait(); err != nil {
 		return nil, err
 	}
 
-	rootHashData, err := fetchRootHashData(ctx, cc, network, height)
-	if err != nil {
-		return nil, err
-	}
-
-	data := allData{
-		BlockData:      blockData,
-		BeaconData:     beaconData,
-		RegistryData:   registryData,
-		RootHashData:   rootHashData,
-		StakingData:    stakingData,
-		SchedulerData:  schedulerData,
-		GovernanceData: governanceData,
-	}
 	return &data, nil
 }
 
