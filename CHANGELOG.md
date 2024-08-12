@@ -12,6 +12,116 @@ The format is inspired by [Keep a Changelog].
 
 <!-- TOWNCRIER -->
 
+## 0.3.2 (2024-08-12)
+
+### Removals and Breaking Changes
+
+- api/proposals: json encode `parameters_change` instead of cbor
+  ([#710](https://github.com/oasisprotocol/nexus/issues/710))
+
+### Features
+
+- api: expose gas limit for consensus transactions
+  ([#1](https://github.com/oasisprotocol/nexus/issues/1))
+
+- api: add validator information
+  ([#686](https://github.com/oasisprotocol/nexus/issues/686))
+
+- consensus: track validator escrow history
+  ([#703](https://github.com/oasisprotocol/nexus/issues/703))
+
+- Validator media updates
+  ([#707](https://github.com/oasisprotocol/nexus/issues/707))
+
+  Adds `LogoUrl` field to the `ValidatorMedia` type.
+  Also updates `ValidatorMedia` fields to match `RegistryMetadata`:
+
+  - `website_link` -> `url`
+  - `email_address` -> `email`
+  - `twitter_acc` -> `twitter`
+  - `tg_chat` removed
+  - `keybase` added
+
+- /consensus/transactions: Add index for transaction type
+  ([#708](https://github.com/oasisprotocol/nexus/issues/708))
+
+  Additionally remove `minFee`, `maxFee` and `code` query filters. These
+  were not all that useful, and also don't have the necessary indexes
+  set to be usable in practice.
+
+- consensus/accounts: Use a database view to compute the needed data
+  ([#717](https://github.com/oasisprotocol/nexus/issues/717))
+
+  Uses a materialized view to periodically compute the view needed for
+  consensus/accounts endpoint. With this change, the account list now
+  sorted by total balance (balance + outgoing delegations +
+  outgoing debonding delegations). Additionally the endpoint now returns
+  the outgoing delegations data for each acount, which was previously
+  omitted.
+
+  Additionally removes unneeded filters for consensus/accounts endpoint.
+
+- consensus/blocks: Adds gas_limit, epoch, state_root to blocks endpoint
+  ([#721](https://github.com/oasisprotocol/nexus/issues/721))
+
+- consensus/api: add block size_limit
+  ([#724](https://github.com/oasisprotocol/nexus/issues/724))
+
+- consensus/proposals: Add support for proposal metadata
+  ([#725](https://github.com/oasisprotocol/nexus/issues/725))
+
+- runtime: Add denomination fields for runtime txs
+  ([#726](https://github.com/oasisprotocol/nexus/issues/726))
+
+- consensus: accounts first activity
+  ([#727](https://github.com/oasisprotocol/nexus/issues/727))
+
+- consensus/api: add validator staking history
+  ([#732](https://github.com/oasisprotocol/nexus/issues/732))
+
+- consensus: add rofl fee proxy support
+  ([#735](https://github.com/oasisprotocol/nexus/issues/735))
+
+### Bug Fixes and Improvements
+
+- consensus/transactions: track related accounts for failed transactions
+  ([#2](https://github.com/oasisprotocol/nexus/issues/2))
+
+- handle edge case for pontusx_test to pontusx rename
+  ([#701](https://github.com/oasisprotocol/nexus/issues/701))
+
+- api: Add missing cases to `ConsensusTxMethod` enum
+  ([#706](https://github.com/oasisprotocol/nexus/issues/706))
+
+- `/api/consensus/<epoch>`: Do not return end_height for currently active epoch
+  ([#709](https://github.com/oasisprotocol/nexus/issues/709))
+
+- Fix handling of multiple debonding-delegations ending in the same epoch
+  ([#712](https://github.com/oasisprotocol/nexus/issues/712))
+
+- delegations: do not track rewards as delegations
+  ([#713](https://github.com/oasisprotocol/nexus/issues/713))
+
+- storage/client: don't crash on delegations with 0 shares
+  ([#719](https://github.com/oasisprotocol/nexus/issues/719))
+
+### Documentation Improvements
+
+- Add a warning to total_sent and total_received fields in API docs
+  ([#730](https://github.com/oasisprotocol/nexus/issues/730))
+
+### Internal Changes
+
+- consensus analyzer: parallelize data fetch
+  ([#736](https://github.com/oasisprotocol/nexus/issues/736))
+
+- delegations: delete delegations with 0 shares
+  ([#711](https://github.com/oasisprotocol/nexus/issues/711))
+
+- Vendor oasis-core v24.0
+  ([#716](https://github.com/oasisprotocol/nexus/issues/716))
+
+
 ## 0.3.1 (2024-05-27)
 
 ### Features
