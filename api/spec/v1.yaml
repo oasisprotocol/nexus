@@ -496,7 +496,8 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ValidatorList'
+                  $ref: '#/components/schemas/ValidatorList'
+                
         <<: *common_error_responses
 
   /consensus/validators/{address}:
@@ -517,7 +518,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Validator'
+                $ref: '#/components/schemas/ValidatorList'
         <<: *common_error_responses
 
   /consensus/validators/{address}/history:
@@ -1843,18 +1844,48 @@ components:
       description: |
         An entity registered at the consensus layer.
 
+    ValidatorsResponse:
+      type: object
+      required: [validator_list, stats]
+      properties:
+        validator_list:
+          allOf: [$ref: '#/components/schemas/ValidatorList'] 
+        stats:
+          allOf: [$ref: '#/components/schemas/ValidatorAggStats']
+          description: Summary statistics across all consensus validators.
+
     ValidatorList:
       allOf:
         - $ref: '#/components/schemas/List'
         - type: object
-          required: [validators]
+          required: [validators, stats]
           properties:
             validators:
               type: array
               items:
                 allOf: [$ref: '#/components/schemas/Validator']
+            stats:
+              allOf: [$ref: '#/components/schemas/ValidatorAggStats']
+              description: Summary statistics across all consensus validators.
           description: |
-            A list of validators registered at the consensus layer.
+            A list of validators registered at the consensus layer, plus summary
+            statistics across all consensus validators.
+    
+    ValidatorAggStats:
+      type: object
+      required: [total_voting_power, total_delegators, total_staked_balance]
+      properties:
+        total_voting_power:
+          type: integer
+          format: int64
+          description: The total voting power across all validators.
+        total_delegators:
+          type: integer
+          format: uint64
+          description: The total number of delegators in the network.
+        total_staked_balance:
+          allOf: [$ref: '#/components/schemas/TextBigInt']
+          description: The total amount of token staked to validators.
 
     ValidatorCommissionBound:
       type: object
@@ -1899,7 +1930,7 @@ components:
 
     Validator:
       type: object
-      required: [entity_address, entity_id, escrow, voting_power, voting_power_total, active, start_date, rank, in_validator_set, current_rate, current_commission_bound]
+      required: [entity_address, entity_id, escrow, voting_power, active, start_date, rank, in_validator_set, current_rate, current_commission_bound]
       properties:
         entity_address:
           type: string
@@ -1922,10 +1953,6 @@ components:
           type: integer
           format: int64
           description: The voting power of this validator.
-        voting_power_total:
-          type: integer
-          format: int64
-          description: The total voting power across all validators.
         active:
           type: boolean
           description: Whether the entity has a node that is registered for being a validator, node is up to date, and has successfully registered itself. It may or may not be part of validator set.

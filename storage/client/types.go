@@ -84,8 +84,11 @@ type ProposalVotes = api.ProposalVotes
 
 type ProposalVote = api.ProposalVote
 
-// ValidatorList is the storage response for GetValidators.
+// ValidatorList is the list of consensus validators.
 type ValidatorList = api.ValidatorList
+
+// ValidatorAggStats holds summary statistics for network validators.
+type ValidatorAggStats = api.ValidatorAggStats
 
 // Validator is the storage response for GetValidator.
 type Validator = api.Validator

@@ -260,7 +260,11 @@ func (srv *StrictServerImpl) GetConsensusValidatorsAddress(ctx context.Context, 
 	if len(validators.Validators) == 0 {
 		return apiTypes.GetConsensusValidatorsAddress404JSONResponse{}, nil
 	}
-	return apiTypes.GetConsensusValidatorsAddress200JSONResponse(validators.Validators[0]), nil
+	// Truncate ValidatorList to only include the top matching validator.
+	if len(validators.Validators) > 1 {
+		validators.Validators = validators.Validators[:1]
+	}
+	return apiTypes.GetConsensusValidatorsAddress200JSONResponse(*validators), nil
 }
 
 func (srv *StrictServerImpl) GetConsensusValidatorsAddressHistory(ctx context.Context, request apiTypes.GetConsensusValidatorsAddressHistoryRequestObject) (apiTypes.GetConsensusValidatorsAddressHistoryResponseObject, error) {

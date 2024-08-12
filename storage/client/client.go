@@ -1230,8 +1230,20 @@ func (c *StorageClient) Validators(ctx context.Context, p apiTypes.GetConsensusV
 	var epoch Epoch
 	if err := c.db.QueryRow(
 		ctx,
-		queries.Validators,
+		queries.LatestEpochStart,
 	).Scan(&epoch.ID, &epoch.StartHeight); err != nil {
+		return nil, wrapError(err)
+	}
+
+	var stats ValidatorAggStats
+	if err := c.db.QueryRow(
+		ctx,
+		queries.ValidatorsAggStats,
+	).Scan(
+		&stats.TotalVotingPower,
+		&stats.TotalDelegators,
+		&stats.TotalStakedBalance,
+	); err != nil {
 		return nil, wrapError(err)
 	}
 
@@ -1250,6 +1262,7 @@ func (c *StorageClient) Validators(ctx context.Context, p apiTypes.GetConsensusV
 
 	vs := ValidatorList{
 		Validators:          []Validator{},
+		Stats:               stats,
 		TotalCount:          res.totalCount,
 		IsTotalCountClipped: res.isTotalCountClipped,
 	}
@@ -1272,7 +1285,6 @@ func (c *StorageClient) Validators(ctx context.Context, p apiTypes.GetConsensusV
 			&v.Escrow.ActiveBalance24,
 			&v.Escrow.NumDelegators,
 			&v.VotingPower,
-			&v.VotingPowerTotal,
 			&schedule,
 			&v.StartDate,
 			&v.Rank,
