@@ -48,6 +48,7 @@ const (
 type StorageClient struct {
 	chainName      common.ChainName
 	db             storage.TargetStorage
+	referenceSwaps map[common.Runtime]config.ReferenceSwap
 	runtimeClients map[common.Runtime]nodeapi.RuntimeApiLite
 	networkConfig  *oasisConfig.Network
 
@@ -121,7 +122,7 @@ func runtimeFromCtx(ctx context.Context) common.Runtime {
 }
 
 // NewStorageClient creates a new storage client.
-func NewStorageClient(chainName common.ChainName, db storage.TargetStorage, runtimeClients map[common.Runtime]nodeapi.RuntimeApiLite, networkConfig *oasisConfig.Network, l *log.Logger) (*StorageClient, error) {
+func NewStorageClient(chainName common.ChainName, db storage.TargetStorage, referenceSwaps map[common.Runtime]config.ReferenceSwap, runtimeClients map[common.Runtime]nodeapi.RuntimeApiLite, networkConfig *oasisConfig.Network, l *log.Logger) (*StorageClient, error) {
 	blockCache, err := ristretto.NewCache(&ristretto.Config{
 		NumCounters:        1024 * 10,
 		MaxCost:            1024,
@@ -142,7 +143,7 @@ func NewStorageClient(chainName common.ChainName, db storage.TargetStorage, runt
 		l.Error("api client: failed to create tx cache: %w", err)
 		return nil, err
 	}
-	return &StorageClient{chainName, db, runtimeClients, networkConfig, blockCache, txCache, l}, nil
+	return &StorageClient{chainName, db, referenceSwaps, runtimeClients, networkConfig, blockCache, txCache, l}, nil
 }
 
 // Shutdown closes the backing TargetStorage.
@@ -1930,7 +1931,7 @@ func (c *StorageClient) RuntimeTokens(ctx context.Context, p apiTypes.GetRuntime
 	runtime := runtimeFromCtx(ctx)
 	var refSwapFactoryAddr *apiTypes.Address
 	var refSwapTokenAddr *apiTypes.Address
-	if rs, ok := config.DefaultReferenceSwaps[c.chainName][runtime]; ok {
+	if rs, ok := c.referenceSwaps[runtime]; ok {
 		refSwapFactoryAddr = &rs.FactoryAddr
 		refSwapTokenAddr = &rs.ReferenceTokenAddr
 	}

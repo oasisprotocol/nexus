@@ -120,9 +120,11 @@ func NewService(cfg *config.ServerConfig) (*Service, error) {
 	if err != nil {
 		return nil, err
 	}
+	referenceSwaps := map[common.Runtime]config.ReferenceSwap{}
 	runtimeClients := make(map[common.Runtime]nodeapi.RuntimeApiLite)
 	var networkConfig *sdkConfig.Network
 	if cfg.Source != nil {
+		referenceSwaps = cfg.Source.ReferenceSwaps()
 		networkConfig = cfg.Source.SDKNetwork()
 		apiRuntimes := []common.Runtime{common.RuntimeEmerald, common.RuntimeSapphire, common.RuntimePontusxTest, common.RuntimePontusxDev}
 		for _, runtime := range apiRuntimes {
@@ -133,7 +135,7 @@ func NewService(cfg *config.ServerConfig) (*Service, error) {
 			runtimeClients[runtime] = client
 		}
 	}
-	client, err := storage.NewStorageClient(cfg.ChainName, backing, runtimeClients, networkConfig, logger)
+	client, err := storage.NewStorageClient(cfg.ChainName, backing, referenceSwaps, runtimeClients, networkConfig, logger)
 	if err != nil {
 		return nil, err
 	}

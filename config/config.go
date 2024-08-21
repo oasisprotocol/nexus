@@ -230,6 +230,13 @@ func (sc *SourceConfig) History() *History {
 	return sc.CustomChain.History
 }
 
+func (sc *SourceConfig) ReferenceSwaps() map[common.Runtime]ReferenceSwap {
+	if sc.ChainName != "" {
+		return DefaultReferenceSwaps[sc.ChainName]
+	}
+	return sc.CustomChain.ReferenceSwaps
+}
+
 func (sc *SourceConfig) SDKNetwork() *sdkConfig.Network {
 	if sc.ChainName != "" {
 		return sdkConfig.DefaultNetworks.All[string(sc.ChainName)]
@@ -256,6 +263,10 @@ func (cfg *CacheConfig) Validate() error {
 type CustomChainConfig struct {
 	// History is the sequence of networks in the chain.
 	History *History `koanf:"history"`
+	// ReferenceSwaps is the selected reference swap for each runtime.
+	// See reference_swaps.go for an explanation of what a reference swap is
+	// and how Nexus uses them.
+	ReferenceSwaps map[common.Runtime]ReferenceSwap `koanf:"reference_swaps"`
 	// SDKNetwork is the oasis-sdk Network configuration of the latest
 	// network in the chain.
 	SDKNetwork *sdkConfig.Network `koanf:"sdk_network"`
@@ -537,7 +548,8 @@ type ServerConfig struct {
 
 	Storage *StorageConfig `koanf:"storage"`
 
-	// Source is the configuration for accessing oasis-node(s).
+	// Source is the configuration for accessing oasis-node(s) and chain
+	// information.
 	Source *SourceConfig `koanf:"source"`
 }
 
