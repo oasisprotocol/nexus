@@ -1061,20 +1061,49 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 					if err != nil {
 						return fmt.Errorf("token0: %w", err)
 					}
+					eventData.RelatedAddresses[token0Addr] = struct{}{}
 					token1Addr, err := addresses.RegisterRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, token1ECAddr.Bytes())
 					if err != nil {
 						return fmt.Errorf("token1: %w", err)
 					}
+					eventData.RelatedAddresses[token1Addr] = struct{}{}
 					pairAddr, err := addresses.RegisterRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, pairECAddr.Bytes())
 					if err != nil {
 						return fmt.Errorf("pair: %w", err)
 					}
+					eventData.RelatedAddresses[pairAddr] = struct{}{}
 					blockData.SwapCreations[SwapCreationKey{
 						Factory: eventAddr,
 						Token0:  token0Addr,
 						Token1:  token1Addr,
 					}] = &PossibleSwapCreation{
 						Pair: pairAddr,
+					}
+					eventData.EvmLogName = common.Ptr(evmabi.IUniswapV2Factory.Events["PairCreated"].Name)
+					eventData.EvmLogSignature = common.Ptr(ethCommon.BytesToHash(event.Topics[0]))
+					eventData.EvmLogParams = []*apiTypes.EvmAbiParam{
+						{
+							Name:    "token0",
+							EvmType: "address",
+							Value:   token0ECAddr,
+						},
+						{
+							Name:    "token1",
+							EvmType: "address",
+							Value:   token1ECAddr,
+						},
+						{
+							Name:    "pair",
+							EvmType: "address",
+							Value:   pairECAddr,
+						},
+						{
+							Name:    "",
+							EvmType: "uint256",
+							// JSON supports encoding big integers, but many clients (javascript, jq, etc.)
+							// will incorrectly parse them as floats. So we encode uint256 as a string instead.
+							Value: allPairsLength.String(),
+						},
 					}
 					return nil
 				},
@@ -1083,7 +1112,30 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 					if err != nil {
 						return fmt.Errorf("sender: %w", err)
 					}
-					_ = senderAddr
+					eventData.RelatedAddresses[senderAddr] = struct{}{}
+					eventData.EvmLogName = common.Ptr(evmabi.IUniswapV2Pair.Events["Mint"].Name)
+					eventData.EvmLogSignature = common.Ptr(ethCommon.BytesToHash(event.Topics[0]))
+					eventData.EvmLogParams = []*apiTypes.EvmAbiParam{
+						{
+							Name:    "sender",
+							EvmType: "address",
+							Value:   senderECAddr,
+						},
+						{
+							Name:    "amount0",
+							EvmType: "uint256",
+							// JSON supports encoding big integers, but many clients (javascript, jq, etc.)
+							// will incorrectly parse them as floats. So we encode uint256 as a string instead.
+							Value: amount0.String(),
+						},
+						{
+							Name:    "amount1",
+							EvmType: "uint256",
+							// JSON supports encoding big integers, but many clients (javascript, jq, etc.)
+							// will incorrectly parse them as floats. So we encode uint256 as a string instead.
+							Value: amount1.String(),
+						},
+					}
 					return nil
 				},
 				IUniswapV2PairBurn: func(senderECAddr ethCommon.Address, amount0 *big.Int, amount1 *big.Int, toECAddr ethCommon.Address) error {
@@ -1091,12 +1143,40 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 					if err != nil {
 						return fmt.Errorf("sender: %w", err)
 					}
-					_ = senderAddr
+					eventData.RelatedAddresses[senderAddr] = struct{}{}
 					toAddr, err := addresses.RegisterRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, toECAddr.Bytes())
 					if err != nil {
 						return fmt.Errorf("to: %w", err)
 					}
-					_ = toAddr
+					eventData.RelatedAddresses[toAddr] = struct{}{}
+					eventData.EvmLogName = common.Ptr(evmabi.IUniswapV2Pair.Events["Burn"].Name)
+					eventData.EvmLogSignature = common.Ptr(ethCommon.BytesToHash(event.Topics[0]))
+					eventData.EvmLogParams = []*apiTypes.EvmAbiParam{
+						{
+							Name:    "sender",
+							EvmType: "address",
+							Value:   senderECAddr,
+						},
+						{
+							Name:    "amount0",
+							EvmType: "uint256",
+							// JSON supports encoding big integers, but many clients (javascript, jq, etc.)
+							// will incorrectly parse them as floats. So we encode uint256 as a string instead.
+							Value: amount0.String(),
+						},
+						{
+							Name:    "amount1",
+							EvmType: "uint256",
+							// JSON supports encoding big integers, but many clients (javascript, jq, etc.)
+							// will incorrectly parse them as floats. So we encode uint256 as a string instead.
+							Value: amount1.String(),
+						},
+						{
+							Name:    "to",
+							EvmType: "address",
+							Value:   toECAddr,
+						},
+					}
 					return nil
 				},
 				IUniswapV2PairSwap: func(senderECAddr ethCommon.Address, amount0In *big.Int, amount1In *big.Int, amount0Out *big.Int, amount1Out *big.Int, toECAddr ethCommon.Address) error {
@@ -1104,18 +1184,78 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 					if err != nil {
 						return fmt.Errorf("sender: %w", err)
 					}
-					_ = senderAddr
+					eventData.RelatedAddresses[senderAddr] = struct{}{}
 					toAddr, err := addresses.RegisterRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, toECAddr.Bytes())
 					if err != nil {
 						return fmt.Errorf("to: %w", err)
 					}
-					_ = toAddr
+					eventData.RelatedAddresses[toAddr] = struct{}{}
+					eventData.EvmLogName = common.Ptr(evmabi.IUniswapV2Pair.Events["Swap"].Name)
+					eventData.EvmLogSignature = common.Ptr(ethCommon.BytesToHash(event.Topics[0]))
+					eventData.EvmLogParams = []*apiTypes.EvmAbiParam{
+						{
+							Name:    "sender",
+							EvmType: "address",
+							Value:   senderECAddr,
+						},
+						{
+							Name:    "amount0In",
+							EvmType: "uint256",
+							// JSON supports encoding big integers, but many clients (javascript, jq, etc.)
+							// will incorrectly parse them as floats. So we encode uint256 as a string instead.
+							Value: amount0In.String(),
+						},
+						{
+							Name:    "amount1In",
+							EvmType: "uint256",
+							// JSON supports encoding big integers, but many clients (javascript, jq, etc.)
+							// will incorrectly parse them as floats. So we encode uint256 as a string instead.
+							Value: amount1In.String(),
+						},
+						{
+							Name:    "amount0Out",
+							EvmType: "uint256",
+							// JSON supports encoding big integers, but many clients (javascript, jq, etc.)
+							// will incorrectly parse them as floats. So we encode uint256 as a string instead.
+							Value: amount0Out.String(),
+						},
+						{
+							Name:    "amount1Out",
+							EvmType: "uint256",
+							// JSON supports encoding big integers, but many clients (javascript, jq, etc.)
+							// will incorrectly parse them as floats. So we encode uint256 as a string instead.
+							Value: amount1Out.String(),
+						},
+						{
+							Name:    "to",
+							EvmType: "address",
+							Value:   toECAddr,
+						},
+					}
 					return nil
 				},
 				IUniswapV2PairSync: func(reserve0 *big.Int, reserve1 *big.Int) error {
 					blockData.SwapSyncs[eventAddr] = &PossibleSwapSync{
 						Reserve0: reserve0,
 						Reserve1: reserve1,
+					}
+					eventData.EvmLogName = common.Ptr(evmabi.IUniswapV2Pair.Events["Sync"].Name)
+					eventData.EvmLogSignature = common.Ptr(ethCommon.BytesToHash(event.Topics[0]))
+					eventData.EvmLogParams = []*apiTypes.EvmAbiParam{
+						{
+							Name:    "reserve0",
+							EvmType: "uint112",
+							// JSON supports encoding big integers, but many clients (javascript, jq, etc.)
+							// will incorrectly parse them as floats. So we encode uint256 as a string instead.
+							Value: reserve0.String(),
+						},
+						{
+							Name:    "reserve1",
+							EvmType: "uint112",
+							// JSON supports encoding big integers, but many clients (javascript, jq, etc.)
+							// will incorrectly parse them as floats. So we encode uint256 as a string instead.
+							Value: reserve1.String(),
+						},
 					}
 					return nil
 				},
