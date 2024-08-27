@@ -1966,6 +1966,8 @@ func (c *StorageClient) RuntimeTokens(ctx context.Context, p apiTypes.GetRuntime
 		var refSwapFactoryEthAddr []byte
 		var refSwapToken0EthAddr []byte
 		var refSwapToken1EthAddr []byte
+		var refToken apiTypes.EvmRefToken
+		var refTokenType *common.TokenType
 		if err2 := res.rows.Scan(
 			&t.ContractAddr,
 			&addrPreimage,
@@ -1988,6 +1990,10 @@ func (c *StorageClient) RuntimeTokens(ctx context.Context, p apiTypes.GetRuntime
 			&refSwap.Reserve0,
 			&refSwap.Reserve1,
 			&refSwap.LastSyncRound,
+			&refTokenType,
+			&refToken.Name,
+			&refToken.Symbol,
+			&refToken.Decimals,
 			&t.VerificationLevel,
 		); err2 != nil {
 			return nil, wrapError(err2)
@@ -2033,6 +2039,10 @@ func (c *StorageClient) RuntimeTokens(ctx context.Context, p apiTypes.GetRuntime
 					}
 				}
 			}
+		}
+		if refTokenType != nil {
+			refToken.Type = translateTokenType(*refTokenType)
+			t.RefToken = &refToken
 		}
 		ts.EvmTokens = append(ts.EvmTokens, t)
 	}

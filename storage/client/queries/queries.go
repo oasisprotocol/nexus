@@ -634,6 +634,10 @@ const (
 			ref_swap_pairs.reserve0 AS ref_swap_reserve0,
 			ref_swap_pairs.reserve1 AS ref_swap_reserve1,
 			ref_swap_pairs.last_sync_round AS ref_swap_last_sync_round,
+			ref_tokens.token_type AS ref_token_type,
+			ref_tokens.token_name AS ref_token_name,
+			ref_tokens.symbol AS ref_token_symbol,
+			ref_tokens.decimals AS ref_token_decimals,
 			contracts.verification_level
 		FROM chain.evm_tokens AS tokens
 		JOIN chain.address_preimages AS preimages ON (token_address = preimages.address AND preimages.context_identifier = 'oasis-runtime-sdk/address: secp256k1eth' AND preimages.context_version = 0)
@@ -648,6 +652,9 @@ const (
 		LEFT JOIN chain.evm_swap_pairs AS ref_swap_pairs ON
 			ref_swap_pairs.runtime = tokens.runtime AND
 			ref_swap_pairs.pair_address = ref_swap_pair_creations.pair_address
+		LEFT JOIN chain.evm_tokens AS ref_tokens ON
+		    ref_tokens.runtime = tokens.runtime AND
+		    ref_tokens.token_address = $5
 		LEFT JOIN chain.evm_contracts as contracts ON (tokens.runtime = contracts.runtime AND tokens.token_address = contracts.contract_address)
 		WHERE
 			(tokens.runtime = $1) AND

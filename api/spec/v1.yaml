@@ -3107,6 +3107,12 @@ components:
             Information about a swap contract between this token and a
             reference token. The relative price and relative total value of
             this token are estimated based on this swap contract.
+        ref_token:
+          allOf: [$ref: '#/components/schemas/EvmRefToken']
+          description: |
+            Information about the reference token. The relative price and
+            relative total value are exprsesed in this reference token's base
+            unit.
         relative_token_address:
           type: string
           description: |
@@ -3190,6 +3196,33 @@ components:
           format: int64
           description: |
             The round when this swap pair last updated its reserves.
+
+    EvmRefToken:
+      type: object
+      required: [type]
+      properties:
+        type:
+          allOf: [ $ref: '#/components/schemas/EvmTokenType' ]
+          description: |
+            The heuristically determined interface that the token contract implements.
+            A less specialized variant of the token might be detected; for example, an
+            ERC-1363 token might be labeled as ERC-20 here. If the type cannot be
+            detected or is not supported, this field will be null/absent.
+        name:
+          type: string
+          description: Name of the token, as provided by token contract's `name()` method.
+          example: Wrapped ROSE
+        symbol:
+          type: string
+          description: Symbol of the token, as provided by token contract's `symbol()` method.
+          example: wROSE
+        decimals:
+          type: integer
+          description: |
+            The number of least significant digits in base units that should be displayed as
+            decimals when displaying tokens. `tokens = base_units / (10**decimals)`.
+            Affects display only. Often equals 18, to match ETH.
+          example: 18
 
     EvmNftList:
       allOf:
