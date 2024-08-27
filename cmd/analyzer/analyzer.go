@@ -621,11 +621,11 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) { //nolint:gocyclo
 			if err1 != nil {
 				return nil, err1
 			}
-			startHeight := cfg.Analyzers.ValidatorStakingHistory.StartHeight
-			if startHeight == 0 && cfg.Analyzers.Consensus.From != 0 {
-				startHeight = cfg.Analyzers.Consensus.From
+			from := cfg.Analyzers.ValidatorStakingHistory.From
+			if from == 0 && cfg.Analyzers.Consensus != nil && cfg.Analyzers.Consensus.From != 0 {
+				from = cfg.Analyzers.Consensus.From
 			}
-			return validatorstakinghistory.NewAnalyzer(ctx, cfg.Analyzers.ValidatorStakingHistory.ItemBasedAnalyzerConfig, startHeight, sourceClient, dbClient, logger)
+			return validatorstakinghistory.NewAnalyzer(ctx, cfg.Analyzers.ValidatorStakingHistory.ItemBasedAnalyzerConfig, from, sourceClient, dbClient, logger)
 		})
 	}
 	if cfg.Analyzers.NodeStats != nil {

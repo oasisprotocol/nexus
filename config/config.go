@@ -482,14 +482,14 @@ func (cfg *MetadataRegistryConfig) Validate() error {
 type ValidatorStakingHistoryConfig struct {
 	ItemBasedAnalyzerConfig `koanf:",squash"`
 
-	// StartHeight is the height at which the analyzer should start constructing validator
+	// From is the height at which the analyzer should start constructing validator
 	// history from. Note: We use a uint64 to match the consensus block config types, but
-	// the analyzer will refuse to start if StartHeight > math.MaxInt64.
-	StartHeight uint64 `koanf:"start_height"`
+	// the analyzer will refuse to start if From > math.MaxInt64.
+	From uint64 `koanf:"from"`
 }
 
 func (cfg *ValidatorStakingHistoryConfig) Validate() error {
-	if cfg.StartHeight == 0 {
+	if cfg.From == 0 {
 		return fmt.Errorf("validator staking startHeight must be set, preferably to the consensus analyzer start height")
 	}
 	return nil
