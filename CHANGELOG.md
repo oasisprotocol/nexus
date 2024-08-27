@@ -121,7 +121,6 @@ The format is inspired by [Keep a Changelog].
 - Vendor oasis-core v24.0
   ([#716](https://github.com/oasisprotocol/nexus/issues/716))
 
-
 ## 0.3.1 (2024-05-27)
 
 ### Features
