@@ -278,10 +278,26 @@ const (
 		LIMIT $2::bigint
 		OFFSET $3::bigint`
 
-	Validators = `
+	LatestEpochStart = `
 		SELECT id, start_height
 			FROM chain.epochs
 			ORDER BY id DESC`
+
+	ValidatorsAggStats = `
+		SELECT
+			COALESCE (
+				(SELECT SUM(voting_power)
+				FROM chain.nodes)
+			, 0) AS total_voting_power,
+			COALESCE (
+				(SELECT COUNT(*)
+				FROM (SELECT DISTINCT delegator FROM chain.delegations) AS _)
+			, 0) AS total_delegators,
+			COALESCE (
+				(SELECT SUM(accts.escrow_balance_active)
+				FROM chain.entities AS entities
+				JOIN chain.accounts AS accts ON entities.address = accts.address)
+			, 0) AS total_staked_balance`
 
 	ValidatorsData = `
 		WITH
@@ -342,10 +358,6 @@ const (
 			COALESCE (
 				validator_nodes.voting_power
 			, 0) AS voting_power,
-			COALESCE (
-				(SELECT SUM(voting_power)
-				FROM validator_nodes)
-			, 0) AS total_voting_power,
 			COALESCE(chain.commissions.schedule, '{}'::JSONB) AS commissions_schedule,
 			chain.blocks.time AS start_date,
 			validator_rank.rank AS rank,
