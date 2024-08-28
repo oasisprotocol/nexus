@@ -31,7 +31,8 @@
       "node_id": "wqd9Yy3n7TWKfYRn2bI9Hd6/623CfC7NCUoRbQ5UkR8=",
       "rank": 92,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 34834350461211
+      "voting_power": 34834350461211,
+      "voting_power_cumulative": 34834350461211
     }
   ]
 }

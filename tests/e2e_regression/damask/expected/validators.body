@@ -31,7 +31,8 @@
       "node_id": "ked2iuR80WQdb4g7l+PqbQKGJAvD4+KVPFwuDc5nU6M=",
       "rank": 1,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 22858167394496476
+      "voting_power": 22858167394496476,
+      "voting_power_cumulative": 22858167394496476
     },
     {
       "active": true,
@@ -57,7 +58,8 @@
       "node_id": "6wbL5/OxvFGxi55o7AxcwKmfjXbXGC1hw4lfnEZxBXA=",
       "rank": 2,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 20469550347833610
+      "voting_power": 20469550347833610,
+      "voting_power_cumulative": 43327717742330080
     },
     {
       "active": true,
@@ -83,7 +85,8 @@
       "node_id": "lbxs4hlud9XNloIOdhJPaCahd7HtiY8QATCgGnFfCM0=",
       "rank": 3,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 16406759731504108
+      "voting_power": 16406759731504108,
+      "voting_power_cumulative": 59734477473834190
     },
     {
       "active": true,
@@ -109,7 +112,8 @@
       "node_id": "xHvUU4I+dQ4oKvlfe4IXoKi8OT8vdAgfszQ5ciPL6HI=",
       "rank": 4,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 15076146157905980
+      "voting_power": 15076146157905980,
+      "voting_power_cumulative": 74810623631740180
     },
     {
       "active": true,
@@ -135,7 +139,8 @@
       "node_id": "SCA1zoR15jpC2eugP1P/CZBQhMjHEtmJ7+hWemgTdWo=",
       "rank": 5,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 14034975811348696
+      "voting_power": 14034975811348696,
+      "voting_power_cumulative": 88845599443088860
     },
     {
       "active": true,
@@ -161,7 +166,8 @@
       "node_id": "aJFHeID4Q7qUfMa42dRwaa9PQrZ/cVDiE3WNt4bQjo0=",
       "rank": 6,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 12870128481056154
+      "voting_power": 12870128481056154,
+      "voting_power_cumulative": 101715727924145020
     },
     {
       "active": true,
@@ -187,7 +193,8 @@
       "node_id": "u0ljAJgP5+HyEykOsa+tEqXdKJD41/5bxJ5tAA9eIxg=",
       "rank": 7,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 10415064572672196
+      "voting_power": 10415064572672196,
+      "voting_power_cumulative": 112130792496817220
     },
     {
       "active": true,
@@ -213,7 +220,8 @@
       "node_id": "ITrwEekdZNqXrEzvw3GT6Q3AtHDd51f19nD2nVU/f0c=",
       "rank": 8,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 8938540510935232
+      "voting_power": 8938540510935232,
+      "voting_power_cumulative": 121069333007752450
     },
     {
       "active": true,
@@ -239,7 +247,8 @@
       "node_id": "RyR58ibjevY8DqFHaqDfJhe1zm0XeY83hPk78qtcUic=",
       "rank": 9,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 7554425624524300
+      "voting_power": 7554425624524300,
+      "voting_power_cumulative": 128623758632276750
     },
     {
       "active": true,
@@ -265,7 +274,8 @@
       "node_id": "4bv9f6NqLf4+6+QII+p48KgpagFXk9PgIdefbuo2spA=",
       "rank": 10,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 6361879056009996
+      "voting_power": 6361879056009996,
+      "voting_power_cumulative": 134985637688286750
     },
     {
       "active": true,
@@ -291,7 +301,8 @@
       "node_id": "5UbIi8RQj4flFn9N8wHjQqp6QwZFJi2QdD2mOYLa/sY=",
       "rank": 11,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 5311202506753837
+      "voting_power": 5311202506753837,
+      "voting_power_cumulative": 140296840195040580
     },
     {
       "active": true,
@@ -317,7 +328,8 @@
       "node_id": "Y7mD0uNLcWvuRRTgIARWsAhFisb669haOdhZJuc9Tvc=",
       "rank": 12,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 4756004814108503
+      "voting_power": 4756004814108503,
+      "voting_power_cumulative": 145052845009149100
     },
     {
       "active": true,
@@ -343,7 +355,8 @@
       "node_id": "HnLtoQyiKOkr2NMcQsQ4UH0HW8qkLRGWn4mgkDLNoEo=",
       "rank": 13,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 4717962664697105
+      "voting_power": 4717962664697105,
+      "voting_power_cumulative": 149770807673846180
     },
     {
       "active": true,
@@ -369,7 +382,8 @@
       "node_id": "QtzFQlvzg+9999TIUZSCrvvhPUyGKp4HxXC4M1SfgVk=",
       "rank": 14,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 4710561313803889
+      "voting_power": 4710561313803889,
+      "voting_power_cumulative": 154481368987650080
     },
     {
       "active": true,
@@ -395,7 +409,8 @@
       "node_id": "3xkzy9g5wL1sqGY8cnd6A7kFuwFM4yuUt0nEJrdHNJ0=",
       "rank": 15,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 4291882895061947
+      "voting_power": 4291882895061947,
+      "voting_power_cumulative": 158773251882712030
     },
     {
       "active": true,
@@ -421,7 +436,8 @@
       "node_id": "1Eh9S7bnBnYzhdMuRc8W1DtGsjgMptbRktoE7tw/HiA=",
       "rank": 16,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 4243272681621272
+      "voting_power": 4243272681621272,
+      "voting_power_cumulative": 163016524564333300
     },
     {
       "active": true,
@@ -447,7 +463,8 @@
       "node_id": "+CS8pbR8HUix6kGpUQjCv/QxMLVp9J8MkFuV+w6yRbM=",
       "rank": 17,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 4125023347841469
+      "voting_power": 4125023347841469,
+      "voting_power_cumulative": 167141547912174750
     },
     {
       "active": true,
@@ -473,7 +490,8 @@
       "node_id": "IEkIQb2o8l0xlFIpN47FmOYcBmFch9DsZGs8OuZqQ6g=",
       "rank": 18,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 3971772995405142
+      "voting_power": 3971772995405142,
+      "voting_power_cumulative": 171113320907579900
     },
     {
       "active": true,
@@ -499,7 +517,8 @@
       "node_id": "4Tz2fSohCN3mm3I9sA6hAQMv/8nmj4ssIXKoOBnxBek=",
       "rank": 19,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 3848560816095546
+      "voting_power": 3848560816095546,
+      "voting_power_cumulative": 174961881723675460
     },
     {
       "active": true,
@@ -525,7 +544,8 @@
       "node_id": "QOkzQ7D2zdHmMtZa/6qhmopvhe6ZTodb4I1hoHeA1oQ=",
       "rank": 20,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 3773957546507548
+      "voting_power": 3773957546507548,
+      "voting_power_cumulative": 178735839270183000
     },
     {
       "active": true,
@@ -551,7 +571,8 @@
       "node_id": "f1wwQPdE6avSzRoaayfIwEe8PukXdIYOuDdJ9CDQLCE=",
       "rank": 21,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 3711691429534619
+      "voting_power": 3711691429534619,
+      "voting_power_cumulative": 182447530699717630
     },
     {
       "active": true,
@@ -577,7 +598,8 @@
       "node_id": "MnmXWIpf1hEok0rIcynmHfYR6kvWuyH6VdCJARVN5oY=",
       "rank": 22,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 3638097937125399
+      "voting_power": 3638097937125399,
+      "voting_power_cumulative": 186085628636843000
     },
     {
       "active": true,
@@ -603,7 +625,8 @@
       "node_id": "dMaOtmpPbdB7ukYfXdo+ssTTCjX2Qspmi1YJIg5Hcr0=",
       "rank": 23,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 3630478047562991
+      "voting_power": 3630478047562991,
+      "voting_power_cumulative": 189716106684406000
     },
     {
       "active": true,
@@ -629,7 +652,8 @@
       "node_id": "lTC9wxlqYTUvXSV2bJxj0w2JWGdlY6pZFIx68V/qYB4=",
       "rank": 24,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 3567868054786941
+      "voting_power": 3567868054786941,
+      "voting_power_cumulative": 193283974739192960
     },
     {
       "active": true,
@@ -655,7 +679,8 @@
       "node_id": "SW5hffFy0nOLvIfmbkFk9to5NFO8w+QxkxiAfx4a094=",
       "rank": 25,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 3561070141187375
+      "voting_power": 3561070141187375,
+      "voting_power_cumulative": 196845044880380320
     },
     {
       "active": true,
@@ -681,7 +706,8 @@
       "node_id": "25hzSeb4IPl2+wsn2LPe7hw9IlLmfj1aTdO36XAaB1s=",
       "rank": 26,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 3547358222021774
+      "voting_power": 3547358222021774,
+      "voting_power_cumulative": 200392403102402100
     },
     {
       "active": true,
@@ -707,7 +733,8 @@
       "node_id": "QFAWexckwRHNxkIty67NCpY8LHwlrcGp/v0ziDSlgFs=",
       "rank": 27,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 3520053057311359
+      "voting_power": 3520053057311359,
+      "voting_power_cumulative": 203912456159713470
     },
     {
       "active": true,
@@ -733,7 +760,8 @@
       "node_id": "ROe9AtvfOFX6bu+5vhRCR87qYXSzp5NfELBqB3Hdgrw=",
       "rank": 28,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 3507236023751237
+      "voting_power": 3507236023751237,
+      "voting_power_cumulative": 207419692183464700
     },
     {
       "active": true,
@@ -759,7 +787,8 @@
       "node_id": "4rUqFOE27urnaltMm2XqyuxcghXs4xRep3AV3mXSTt4=",
       "rank": 29,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 3480055254820319
+      "voting_power": 3480055254820319,
+      "voting_power_cumulative": 210899747438285020
     },
     {
       "active": true,
@@ -785,7 +814,8 @@
       "node_id": "jZ2/EOnpmPCxCfd5wrrLINNdZSPWyhIx9UqJgZ8sHYk=",
       "rank": 30,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 3430786203382342
+      "voting_power": 3430786203382342,
+      "voting_power_cumulative": 214330533641667360
     },
     {
       "active": true,
@@ -811,7 +841,8 @@
       "node_id": "lCQsP7Rhw/EdcM2sVDXOzWcUDHx47wGJDBah4xw6c90=",
       "rank": 31,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 3428469605587385
+      "voting_power": 3428469605587385,
+      "voting_power_cumulative": 217759003247254750
     },
     {
       "active": true,
@@ -837,7 +868,8 @@
       "node_id": "AVQbWvlbKOHi3z8uibbOVl3xsCJsw2YtWG5XXdbhhpI=",
       "rank": 32,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 3404320124840650
+      "voting_power": 3404320124840650,
+      "voting_power_cumulative": 221163323372095400
     },
     {
       "active": true,
@@ -863,7 +895,8 @@
       "node_id": "nvzaqYTHiG3xo5C5TlfmfyvQgb5aQolfKzsVqT3T/RU=",
       "rank": 33,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 3389241958543140
+      "voting_power": 3389241958543140,
+      "voting_power_cumulative": 224552565330638530
     },
     {
       "active": true,
@@ -889,7 +922,8 @@
       "node_id": "UVpVC08tK+uPlx9s5JXbranCodW8q4cPLjrtzY5D7q8=",
       "rank": 34,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 3354390405223519
+      "voting_power": 3354390405223519,
+      "voting_power_cumulative": 227906955735862050
     },
     {
       "active": true,
@@ -915,7 +949,8 @@
       "node_id": "eudq22Uwt0ciC7/BYN3TsUy+MCataTkQjwS/BBlgvJE=",
       "rank": 35,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 3341324665752066
+      "voting_power": 3341324665752066,
+      "voting_power_cumulative": 231248280401614100
     },
     {
       "active": true,
@@ -941,7 +976,8 @@
       "node_id": "jezrY6n61D/wD39nZKC+LpYfOZt5AN8gZ5SWu9vypD8=",
       "rank": 36,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 3322778310817539
+      "voting_power": 3322778310817539,
+      "voting_power_cumulative": 234571058712431650
     },
     {
       "active": true,
@@ -967,7 +1003,8 @@
       "node_id": "XanOOptLq+tmEky6Olf3dVO6HZcUJs8f6ESxIvMmO0E=",
       "rank": 37,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 3203104871552375
+      "voting_power": 3203104871552375,
+      "voting_power_cumulative": 237774163583984030
     },
     {
       "active": true,
@@ -993,7 +1030,8 @@
       "node_id": "ioLADiyiFmIms+8fib3N36/TX5XEnHrs2vWcH5LxHGo=",
       "rank": 38,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 3197108156187150
+      "voting_power": 3197108156187150,
+      "voting_power_cumulative": 240971271740171170
     },
     {
       "active": true,
@@ -1019,7 +1057,8 @@
       "node_id": "p7pJUBSdgF4PfgKrn8JJl4xhVZXMu9h1TfNlAU5VjBU=",
       "rank": 39,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 3191406157768919
+      "voting_power": 3191406157768919,
+      "voting_power_cumulative": 244162677897940100
     },
     {
       "active": true,
@@ -1045,7 +1084,8 @@
       "node_id": "AZJhDCByjr/YdTvA7uFnIeYcg7iuHPGiDrJRKaEOYHA=",
       "rank": 40,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 3181155665049443
+      "voting_power": 3181155665049443,
+      "voting_power_cumulative": 247343833562989540
     },
     {
       "active": true,
@@ -1071,7 +1111,8 @@
       "node_id": "/LlzNoccjtMUbW6fXa/3KKVa6JN+qwnGQrB4u631nR8=",
       "rank": 41,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 3098104208076802
+      "voting_power": 3098104208076802,
+      "voting_power_cumulative": 250441937771066340
     },
     {
       "active": true,
@@ -1097,7 +1138,8 @@
       "node_id": "JThJEQbC1iFVbdy6nFz6mSwChY5xgnOwbWAV3igG6mE=",
       "rank": 42,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 3005901951081247
+      "voting_power": 3005901951081247,
+      "voting_power_cumulative": 253447839722147600
     },
     {
       "active": true,
@@ -1123,7 +1165,8 @@
       "node_id": "0NNKQ47YtOqSioa05EBWgW9Lrh8vQlp2Fe9q3uzdoxk=",
       "rank": 43,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 2987161585746164
+      "voting_power": 2987161585746164,
+      "voting_power_cumulative": 256435001307893760
     },
     {
       "active": true,
@@ -1149,7 +1192,8 @@
       "node_id": "y4LZvdQ/k9RBiPLSvBHt/8GhbOVEHY/LfIdgk0iXUho=",
       "rank": 44,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 2980385927163672
+      "voting_power": 2980385927163672,
+      "voting_power_cumulative": 259415387235057440
     },
     {
       "active": true,
@@ -1175,7 +1219,8 @@
       "node_id": "I/Vnwyi7FJdROFe64fbaqE3t55OLcUBY8hVK64VNrqc=",
       "rank": 45,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 2978684042870848
+      "voting_power": 2978684042870848,
+      "voting_power_cumulative": 262394071277928300
     },
     {
       "active": true,
@@ -1201,7 +1246,8 @@
       "node_id": "GrfIMoanLXIPuS91RhqdikNLcebWN26tMM2/iIA8cAE=",
       "rank": 46,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 2977757025602604
+      "voting_power": 2977757025602604,
+      "voting_power_cumulative": 265371828303530880
     },
     {
       "active": true,
@@ -1227,7 +1273,8 @@
       "node_id": "+7Jku1SXiunTIHYxYNu4WGNo2g3uSQh2bXych4f1fDc=",
       "rank": 47,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 2905193732984898
+      "voting_power": 2905193732984898,
+      "voting_power_cumulative": 268277022036515780
     },
     {
       "active": true,
@@ -1253,7 +1300,8 @@
       "node_id": "ejPrx9xTpKV3GTZgthFQWf3UPMFFBseRtc0A17ak1TU=",
       "rank": 48,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 2901760067938284
+      "voting_power": 2901760067938284,
+      "voting_power_cumulative": 271178782104454050
     },
     {
       "active": true,
@@ -1279,7 +1327,8 @@
       "node_id": "Kv7anzrQTWYDQRLCo1/pkMRV65HpvJCvSEjO/R8wHkc=",
       "rank": 49,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 2886749169587693
+      "voting_power": 2886749169587693,
+      "voting_power_cumulative": 274065531274041760
     },
     {
       "active": true,
@@ -1305,7 +1354,8 @@
       "node_id": "LHA2Gbme/AReIFXmxwD9m/Ae8sZ1d2U/DFRfecT72YM=",
       "rank": 50,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 2824228935450265
+      "voting_power": 2824228935450265,
+      "voting_power_cumulative": 276889760209492030
     },
     {
       "active": true,
@@ -1331,7 +1381,8 @@
       "node_id": "K5roq8kvag0dzkdauemq4PLfQG/rA4ZeItZ/op2PfGo=",
       "rank": 51,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 2765730702553221
+      "voting_power": 2765730702553221,
+      "voting_power_cumulative": 279655490912045250
     },
     {
       "active": true,
@@ -1357,7 +1408,8 @@
       "node_id": "1TDnq8Ps6agmT5CiS6CdIOj9D8sVWvr+AYX8wQ1u5HQ=",
       "rank": 52,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 2738719780799548
+      "voting_power": 2738719780799548,
+      "voting_power_cumulative": 282394210692844800
     },
     {
       "active": true,
@@ -1383,7 +1435,8 @@
       "node_id": "0/0TJw2+i1XVYn3Z7igQSpdGoZ0cFdyI4GVcopmH2hI=",
       "rank": 53,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 2732630983248227
+      "voting_power": 2732630983248227,
+      "voting_power_cumulative": 285126841676093020
     },
     {
       "active": true,
@@ -1409,7 +1462,8 @@
       "node_id": "hDQp4FhwWREN09nSGMPJAEYKeCmxG/joQivxfY3vyi8=",
       "rank": 54,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 2654229914154646
+      "voting_power": 2654229914154646,
+      "voting_power_cumulative": 287781071590247650
     },
     {
       "active": true,
@@ -1435,7 +1489,8 @@
       "node_id": "RClDxygiGYEFeO90jnfHAIXm2QrP5TNQ5F50N77zKY4=",
       "rank": 55,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 2627427637297179
+      "voting_power": 2627427637297179,
+      "voting_power_cumulative": 290408499227544800
     },
     {
       "active": true,
@@ -1461,7 +1516,8 @@
       "node_id": "9R8sWVuwyIoE64JXu2sdDWR6vdqFr/X9aEWvPE8G824=",
       "rank": 56,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 2594740596025733
+      "voting_power": 2594740596025733,
+      "voting_power_cumulative": 293003239823570560
     },
     {
       "active": true,
@@ -1487,7 +1543,8 @@
       "node_id": "vBGuFf/8tdEMQPiiPggnLlWT9aCbIQgNcRM+EKh2kX0=",
       "rank": 57,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 2033620495290965
+      "voting_power": 2033620495290965,
+      "voting_power_cumulative": 295036860318861600
     },
     {
       "active": true,
@@ -1513,7 +1570,8 @@
       "node_id": "p7+KBgOAk3ztUJrDqjn3NJN+Y725qFNWaGpLcU0H9+E=",
       "rank": 58,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 923130821372964
+      "voting_power": 923130821372964,
+      "voting_power_cumulative": 295959991140234500
     },
     {
       "active": true,
@@ -1539,7 +1597,8 @@
       "node_id": "7E5It9hRik5ndQ1QtL3blTAX3pXSoPZPhGfLMQvbA+Q=",
       "rank": 59,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 837921377626274
+      "voting_power": 837921377626274,
+      "voting_power_cumulative": 296797912517860800
     },
     {
       "active": true,
@@ -1565,7 +1624,8 @@
       "node_id": "6XcILTcGhjvVaWI/tRvZfUTp4huxgg6OBvFQrNmx9DY=",
       "rank": 60,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 798954826358082
+      "voting_power": 798954826358082,
+      "voting_power_cumulative": 297596867344218900
     },
     {
       "active": true,
@@ -1591,7 +1651,8 @@
       "node_id": "e25jqMK9FwlwuV1VPS/dkriJlYh7zKp+1H9B8xAu2LI=",
       "rank": 61,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 571885906051952
+      "voting_power": 571885906051952,
+      "voting_power_cumulative": 298168753250270800
     },
     {
       "active": true,
@@ -1617,7 +1678,8 @@
       "node_id": "apKOntFDXWhpOfYAn1r84IWDG2KGBBAox4usIDhZcns=",
       "rank": 62,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 531074824352845
+      "voting_power": 531074824352845,
+      "voting_power_cumulative": 298699828074623700
     },
     {
       "active": true,
@@ -1643,7 +1705,8 @@
       "node_id": "pjWGVgRla8SJGvBWIP5gPPHgxsr1c2EOsUP5KJvQjgk=",
       "rank": 63,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 519190403626643
+      "voting_power": 519190403626643,
+      "voting_power_cumulative": 299219018478250300
     },
     {
       "active": true,
@@ -1669,7 +1732,8 @@
       "node_id": "KqZ9G3aPJebYACkVTSiYxZJ3vJcsyHz+2f4Jyp5E8AM=",
       "rank": 64,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 514535351765026
+      "voting_power": 514535351765026,
+      "voting_power_cumulative": 299733553830015300
     },
     {
       "active": true,
@@ -1695,7 +1759,8 @@
       "node_id": "REB7DjPPyYCknxakN3MyAOS746YWJtgE41g9ac+oZXU=",
       "rank": 65,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 488273719479174
+      "voting_power": 488273719479174,
+      "voting_power_cumulative": 300221827549494500
     },
     {
       "active": true,
@@ -1721,7 +1786,8 @@
       "node_id": "h8I6YXqxPe9f7zjDcObn/lnhMyPEMyPglpGpHunOx50=",
       "rank": 66,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 433267137463139
+      "voting_power": 433267137463139,
+      "voting_power_cumulative": 300655094686957630
     },
     {
       "active": true,
@@ -1747,7 +1813,8 @@
       "node_id": "IdElhqKVZCHY9Lo6222te1wSdhPPAz/OCsoSRkWrXXw=",
       "rank": 67,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 431595307888120
+      "voting_power": 431595307888120,
+      "voting_power_cumulative": 301086689994845760
     },
     {
       "active": true,
@@ -1773,7 +1840,8 @@
       "node_id": "bOfhQD3tB9nyfyX9WC4J/fZ59HzVAqd6gQ8n+m9DY1g=",
       "rank": 68,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 422457510825231
+      "voting_power": 422457510825231,
+      "voting_power_cumulative": 301509147505671000
     },
     {
       "active": true,
@@ -1799,7 +1867,8 @@
       "node_id": "jVPUq8aUDKe9jawIs7wPB4NBml27ft5kICIY7SBh/yQ=",
       "rank": 69,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 371296071818518
+      "voting_power": 371296071818518,
+      "voting_power_cumulative": 301880443577489540
     },
     {
       "active": true,
@@ -1825,7 +1894,8 @@
       "node_id": "GY1goAIuGGSeVrhjhgVAp4JB0y6l3P5+TnozeBxu/kw=",
       "rank": 70,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 367383220162597
+      "voting_power": 367383220162597,
+      "voting_power_cumulative": 302247826797652100
     },
     {
       "active": true,
@@ -1851,7 +1921,8 @@
       "node_id": "GYJsEu4Yp+CGEQVjy4owQAG6l6xEvGzcNM1xBHaEv6U=",
       "rank": 71,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 364545322261426
+      "voting_power": 364545322261426,
+      "voting_power_cumulative": 302612372119913540
     },
     {
       "active": true,
@@ -1877,7 +1948,8 @@
       "node_id": "igLfuIxxqZATg0snKVTFoeRaqrlNq5r69ofncwlUA8I=",
       "rank": 72,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 360466788462161
+      "voting_power": 360466788462161,
+      "voting_power_cumulative": 302972838908375700
     },
     {
       "active": true,
@@ -1903,7 +1975,8 @@
       "node_id": "e5ebJbZikm11u56wEOM9Ka1uVUS1Pckgc8RGmahs8Ss=",
       "rank": 73,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 357974505767857
+      "voting_power": 357974505767857,
+      "voting_power_cumulative": 303330813414143550
     },
     {
       "active": true,
@@ -1929,7 +2002,8 @@
       "node_id": "6drUHh4qocfbBsA12qM8pTerEcbqhdaHt+v33sEr5kk=",
       "rank": 74,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 356739008677855
+      "voting_power": 356739008677855,
+      "voting_power_cumulative": 303687552422821400
     },
     {
       "active": true,
@@ -1955,7 +2029,8 @@
       "node_id": "CPLy/FYKtIVK7JOspFi3G1Afkurqmh2tAtiDq4rnSfI=",
       "rank": 75,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 356706687975287
+      "voting_power": 356706687975287,
+      "voting_power_cumulative": 304044259110796700
     },
     {
       "active": true,
@@ -1981,7 +2056,8 @@
       "node_id": "y6LXNa3NMtZzeXnz9GNBj9MZuSCwBvfBLkZu2YG2fU4=",
       "rank": 76,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 356580067483848
+      "voting_power": 356580067483848,
+      "voting_power_cumulative": 304400839178280500
     },
     {
       "active": true,
@@ -2007,7 +2083,8 @@
       "node_id": "Y/wwhwec6KZFgmM25vKNCTw1FS71/9iv5Q2lWtFX2PA=",
       "rank": 77,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 356552034291065
+      "voting_power": 356552034291065,
+      "voting_power_cumulative": 304757391212571600
     },
     {
       "active": true,
@@ -2033,7 +2110,8 @@
       "node_id": "5GNoYx8mSk4PjcXLyi2I50Bw7n1ATsqAtttVjRzTuEY=",
       "rank": 78,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 355945932773093
+      "voting_power": 355945932773093,
+      "voting_power_cumulative": 305113337145344700
     },
     {
       "active": true,
@@ -2059,7 +2137,8 @@
       "node_id": "VHs9SQr/IC3ElqF1rNxFuCrkx/pWbhy46So19MQlZLE=",
       "rank": 79,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 345854331910333
+      "voting_power": 345854331910333,
+      "voting_power_cumulative": 305459191477255040
     },
     {
       "active": true,
@@ -2085,7 +2164,8 @@
       "node_id": "HZGW8QfuMUv/JEa1HqT19HrGTdJY3mWH4nogaWrWK+0=",
       "rank": 80,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 344233775976673
+      "voting_power": 344233775976673,
+      "voting_power_cumulative": 305803425253231700
     },
     {
       "active": true,
@@ -2111,7 +2191,8 @@
       "node_id": "orWbpXiShG+xIy/BxDtokUdZwNCg3A4oNSbqkpjbvZQ=",
       "rank": 81,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 341703467975830
+      "voting_power": 341703467975830,
+      "voting_power_cumulative": 306145128721207550
     },
     {
       "active": true,
@@ -2137,7 +2218,8 @@
       "node_id": "MDvOFuiehs/VbW/s0e6DTn5b4fnsteQhCVd9E7T80Hs=",
       "rank": 82,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 317331486429319
+      "voting_power": 317331486429319,
+      "voting_power_cumulative": 306462460207636860
     },
     {
       "active": true,
@@ -2163,7 +2245,8 @@
       "node_id": "mRRMUc8eU8zbqUWAiHDiBeRo6wqVImqQs91TxkGjuuU=",
       "rank": 83,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 224612925141865
+      "voting_power": 224612925141865,
+      "voting_power_cumulative": 306687073132778700
     },
     {
       "active": true,
@@ -2189,7 +2272,8 @@
       "node_id": "DGntJaRFwLUKi879qSLbt1uP3w5cE5vMAlYMispiaFE=",
       "rank": 84,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 136593680024707
+      "voting_power": 136593680024707,
+      "voting_power_cumulative": 306823666812803460
     },
     {
       "active": true,
@@ -2215,7 +2299,8 @@
       "node_id": "oFa261SRphbFBQ+QW6xcd9SZBMJrzsmDrYecSblNHv0=",
       "rank": 85,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 135661752518371
+      "voting_power": 135661752518371,
+      "voting_power_cumulative": 306959328565321800
     },
     {
       "active": true,
@@ -2241,7 +2326,8 @@
       "node_id": "jqnsVyewFRvmYhhf4y0HoKXlMJkKQtdsnglqoOaAr2c=",
       "rank": 86,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 107133224178086
+      "voting_power": 107133224178086,
+      "voting_power_cumulative": 307066461789499900
     },
     {
       "active": true,
@@ -2267,7 +2353,8 @@
       "node_id": "pnzDjfjrjsN+7TZJSw/HzZq+jA6HN3jPsSEOkh9kKWE=",
       "rank": 87,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 98799710438406
+      "voting_power": 98799710438406,
+      "voting_power_cumulative": 307165261499938300
     },
     {
       "active": true,
@@ -2293,7 +2380,8 @@
       "node_id": "U7xmDzxndm9uL4qfFWau6d1dadgeH2yEP6q1L332lTE=",
       "rank": 88,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 96314157065928
+      "voting_power": 96314157065928,
+      "voting_power_cumulative": 307261575657004200
     },
     {
       "active": true,
@@ -2319,7 +2407,8 @@
       "node_id": "ao6m4qMGefemuUiwr6GoqxaeWoX14uQ7YTxTajKADQg=",
       "rank": 89,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 90515510647488
+      "voting_power": 90515510647488,
+      "voting_power_cumulative": 307352091167651700
     },
     {
       "active": true,
@@ -2345,7 +2434,8 @@
       "node_id": "5RIMVgnsN1D/HdvNxXCpE+lWH5U/SGYUrYsvhsTMbyA=",
       "rank": 90,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 80856677863643
+      "voting_power": 80856677863643,
+      "voting_power_cumulative": 307432947845515300
     },
     {
       "active": true,
@@ -2371,7 +2461,8 @@
       "node_id": "hM2SObJhWRiFvIsGnplNPP9TgUkMMAD6Aynu+D0ry1E=",
       "rank": 91,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 76202824283500
+      "voting_power": 76202824283500,
+      "voting_power_cumulative": 307509150669798850
     },
     {
       "active": true,
@@ -2397,7 +2488,8 @@
       "node_id": "wqd9Yy3n7TWKfYRn2bI9Hd6/623CfC7NCUoRbQ5UkR8=",
       "rank": 92,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 34834350461211
+      "voting_power": 34834350461211,
+      "voting_power_cumulative": 307543985020260030
     },
     {
       "active": true,
@@ -2423,7 +2515,8 @@
       "node_id": "2cCzBxxmU/xnZwBf7aEoPiKXx5JWURZrkfHHXML8bmk=",
       "rank": 93,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 8949562500000
+      "voting_power": 8949562500000,
+      "voting_power_cumulative": 307552934582760060
     },
     {
       "active": true,
@@ -2449,7 +2542,8 @@
       "node_id": "e4QCCt29Klvx1d8NsuJIUwxBmvq/soDhx6zSXG35IDo=",
       "rank": 94,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 1625000000000
+      "voting_power": 1625000000000,
+      "voting_power_cumulative": 307554559582760060
     },
     {
       "active": true,
@@ -2475,7 +2569,8 @@
       "node_id": "IE9harmC4ZLU5fU9viDwuR4MKwuNVy7Di8mV51K39oM=",
       "rank": 95,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 200000000000
+      "voting_power": 200000000000,
+      "voting_power_cumulative": 307554759582760060
     },
     {
       "active": true,
@@ -2501,7 +2596,8 @@
       "node_id": "g1N1PdE7dBT5yYyhCbVa44637hhsIpIH8EF8gFlmiIQ=",
       "rank": 96,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 14375000000
+      "voting_power": 14375000000,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": true,
@@ -2527,7 +2623,8 @@
       "node_id": "Wb0BR+Ih7yuYgC+m4tFqtPP8G4jDH79iJaYkgNx6DY4=",
       "rank": 97,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": true,
@@ -2553,7 +2650,8 @@
       "node_id": "ZsA76RMHOOMS4tJhoCM0X1T6TN+JmFyXGWz54WBnw14=",
       "rank": 98,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": true,
@@ -2579,7 +2677,8 @@
       "node_id": "+zVbgQqOdY90Z2NQKXFByNT0OwLxj/Ho4j4qT5u2yKM=",
       "rank": 99,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": true,
@@ -2605,7 +2704,8 @@
       "node_id": "skPNqlh8lnR83RyK2clbAscktu5jY/fWq5OzcSZL6Iw=",
       "rank": 100,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": true,
@@ -2631,7 +2731,8 @@
       "node_id": "/6Dm7sBPDRXL4maL+RVHFHb3JCxZw5u6Fn0cfSxeolg=",
       "rank": 101,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": true,
@@ -2657,7 +2758,8 @@
       "node_id": "GWBXv2OxowCLsRGyT/cND2TKEs9kpo4xtvr1JTsB8R0=",
       "rank": 102,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": true,
@@ -2683,7 +2785,8 @@
       "node_id": "qHFe9LJXRDRERZgyJFCzbd4YSwqekUrrkkVb9AWaHXQ=",
       "rank": 103,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": true,
@@ -2709,7 +2812,8 @@
       "node_id": "c7ycVhiEqHbQfOdeeaj965nuxN8Hsb4BxMPbaPIipRw=",
       "rank": 104,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": true,
@@ -2735,7 +2839,8 @@
       "node_id": "CfdTYbSw5r7lgm2oNKIv8uHeJFmvl5q9iFcV1P5zFS0=",
       "rank": 105,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": true,
@@ -2761,7 +2866,8 @@
       "node_id": "axFry86SMrw5X4ITO+YHLLrVqW6N1vcaTgrTOJfQPCc=",
       "rank": 106,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": true,
@@ -2787,7 +2893,8 @@
       "node_id": "DudLYGDVKMgh/OZ0rOsoxeCNzSxalm4bvQsrsE/H9XA=",
       "rank": 107,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": true,
@@ -2813,7 +2920,8 @@
       "node_id": "FFKV7PJ9eyTwGjAf5CjO/l0Ec1mfeE2ViXwxTYcwmPo=",
       "rank": 108,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": true,
@@ -2839,7 +2947,8 @@
       "node_id": "bsq05GjUhJU7CdNOGrI2satPmpAUjRmT0gAGbWyfhLw=",
       "rank": 109,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": true,
@@ -2865,7 +2974,8 @@
       "node_id": "+isN1pgldZUB/ayTb8e1rbD4vXWiOsFKxOjZlZKvcEU=",
       "rank": 110,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": true,
@@ -2891,7 +3001,8 @@
       "node_id": "POpjxTxuw2cJsgtgzgfhrkPD3hVh2oYkHmELHonPgpQ=",
       "rank": 111,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": true,
@@ -2917,7 +3028,8 @@
       "node_id": "kilLHKVgCJC5T62styokgO0IHWmLClT85XzFDSBCjok=",
       "rank": 112,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": true,
@@ -2943,7 +3055,8 @@
       "node_id": "bbkPZRl8KA//0joD1R9HPnucJ4GklCoAtUoJrincsoo=",
       "rank": 113,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": true,
@@ -2969,7 +3082,8 @@
       "node_id": "ONNtkoEg0gKzrYd+ERdUz5Xq/D7S72IyCGbc6lJQcZk=",
       "rank": 114,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": true,
@@ -2995,7 +3109,8 @@
       "node_id": "vVcKIFmjqLRSp/sjKeX3yPQ3R/jf3lU2hAzXYd+4wnk=",
       "rank": 115,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": true,
@@ -3021,7 +3136,8 @@
       "node_id": "1Ofik7xZJ3Tb/JE+zHKNe3l8NbSK9h/92fjynrW7xw0=",
       "rank": 116,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": true,
@@ -3047,7 +3163,8 @@
       "node_id": "g/gNUJ3L8NbJilg+ivA0JHXFoCpzXwedqSLO3Xd0FSM=",
       "rank": 117,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": true,
@@ -3073,7 +3190,8 @@
       "node_id": "J2vFhYaht7l1B++dBUTzqubT72WfOeeBkI8rOamrgGc=",
       "rank": 118,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": true,
@@ -3099,7 +3217,8 @@
       "node_id": "NwJb7kl/uJUbhnYoxJXWpcc2zmbRVW6Norps326dz+k=",
       "rank": 119,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": true,
@@ -3125,7 +3244,8 @@
       "node_id": "Eeze8MB6KgnOs8rE1E90QX5i6JFq+z3e0dkTcxIzF5Y=",
       "rank": 120,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": true,
@@ -3151,7 +3271,8 @@
       "node_id": "TK0FcEOwv/hU5TI8PqWrhQiOy8VfP0vc8m7QViD4VMo=",
       "rank": 121,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": true,
@@ -3177,7 +3298,8 @@
       "node_id": "gsZZ8tBnXsNGUFjCtxaWba98fzzgQG5cmUW+Ag/aW4g=",
       "rank": 122,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": true,
@@ -3203,7 +3325,8 @@
       "node_id": "o+KFxCWnNyUstx2iCbMDvTsf+P/pDCC4lLxlljtOUeM=",
       "rank": 123,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": true,
@@ -3229,7 +3352,8 @@
       "node_id": "HwsTYDWFD/V6+DFRWxSfmKffLjzxLJjO45BNHk1gvZw=",
       "rank": 124,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": false,
@@ -3254,7 +3378,8 @@
       "in_validator_set": false,
       "rank": 125,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": false,
@@ -3279,7 +3404,8 @@
       "in_validator_set": false,
       "rank": 126,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": false,
@@ -3304,7 +3430,8 @@
       "in_validator_set": false,
       "rank": 127,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": false,
@@ -3329,7 +3456,8 @@
       "in_validator_set": false,
       "rank": 128,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": false,
@@ -3354,7 +3482,8 @@
       "in_validator_set": false,
       "rank": 129,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": false,
@@ -3379,7 +3508,8 @@
       "in_validator_set": false,
       "rank": 130,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": false,
@@ -3404,7 +3534,8 @@
       "in_validator_set": false,
       "rank": 131,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": false,
@@ -3429,7 +3560,8 @@
       "in_validator_set": false,
       "rank": 132,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": false,
@@ -3454,7 +3586,8 @@
       "in_validator_set": false,
       "rank": 133,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": false,
@@ -3479,7 +3612,8 @@
       "in_validator_set": false,
       "rank": 134,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": false,
@@ -3504,7 +3638,8 @@
       "in_validator_set": false,
       "rank": 135,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": false,
@@ -3529,7 +3664,8 @@
       "in_validator_set": false,
       "rank": 136,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": false,
@@ -3554,7 +3690,8 @@
       "in_validator_set": false,
       "rank": 137,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": false,
@@ -3579,7 +3716,8 @@
       "in_validator_set": false,
       "rank": 138,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": false,
@@ -3604,7 +3742,8 @@
       "in_validator_set": false,
       "rank": 139,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": false,
@@ -3629,7 +3768,8 @@
       "in_validator_set": false,
       "rank": 140,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": false,
@@ -3654,7 +3794,8 @@
       "in_validator_set": false,
       "rank": 141,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": false,
@@ -3679,7 +3820,8 @@
       "in_validator_set": false,
       "rank": 142,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": false,
@@ -3704,7 +3846,8 @@
       "in_validator_set": false,
       "rank": 143,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": false,
@@ -3729,7 +3872,8 @@
       "in_validator_set": false,
       "rank": 144,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": false,
@@ -3754,7 +3898,8 @@
       "in_validator_set": false,
       "rank": 145,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": false,
@@ -3779,7 +3924,8 @@
       "in_validator_set": false,
       "rank": 146,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": false,
@@ -3804,7 +3950,8 @@
       "in_validator_set": false,
       "rank": 147,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": false,
@@ -3829,7 +3976,8 @@
       "in_validator_set": false,
       "rank": 148,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": false,
@@ -3854,7 +4002,8 @@
       "in_validator_set": false,
       "rank": 149,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": false,
@@ -3879,7 +4028,8 @@
       "in_validator_set": false,
       "rank": 150,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": false,
@@ -3904,7 +4054,8 @@
       "in_validator_set": false,
       "rank": 151,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": false,
@@ -3929,7 +4080,8 @@
       "in_validator_set": false,
       "rank": 152,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": false,
@@ -3954,7 +4106,8 @@
       "in_validator_set": false,
       "rank": 153,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": false,
@@ -3979,7 +4132,8 @@
       "in_validator_set": false,
       "rank": 154,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": false,
@@ -4004,7 +4158,8 @@
       "in_validator_set": false,
       "rank": 155,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": false,
@@ -4029,7 +4184,8 @@
       "in_validator_set": false,
       "rank": 156,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": false,
@@ -4054,7 +4210,8 @@
       "in_validator_set": false,
       "rank": 157,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": false,
@@ -4079,7 +4236,8 @@
       "in_validator_set": false,
       "rank": 158,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": false,
@@ -4104,7 +4262,8 @@
       "in_validator_set": false,
       "rank": 159,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": false,
@@ -4129,7 +4288,8 @@
       "in_validator_set": false,
       "rank": 160,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": false,
@@ -4154,7 +4314,8 @@
       "in_validator_set": false,
       "rank": 161,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": false,
@@ -4179,7 +4340,8 @@
       "in_validator_set": false,
       "rank": 162,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": false,
@@ -4204,7 +4366,8 @@
       "in_validator_set": false,
       "rank": 163,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": false,
@@ -4229,7 +4392,8 @@
       "in_validator_set": false,
       "rank": 164,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": false,
@@ -4254,7 +4418,8 @@
       "in_validator_set": false,
       "rank": 165,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": false,
@@ -4279,7 +4444,8 @@
       "in_validator_set": false,
       "rank": 166,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": false,
@@ -4304,7 +4470,8 @@
       "in_validator_set": false,
       "rank": 167,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": false,
@@ -4329,7 +4496,8 @@
       "in_validator_set": false,
       "rank": 168,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": false,
@@ -4354,7 +4522,8 @@
       "in_validator_set": false,
       "rank": 169,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": false,
@@ -4379,7 +4548,8 @@
       "in_validator_set": false,
       "rank": 170,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": false,
@@ -4404,7 +4574,8 @@
       "in_validator_set": false,
       "rank": 171,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": false,
@@ -4429,7 +4600,8 @@
       "in_validator_set": false,
       "rank": 172,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     },
     {
       "active": false,
@@ -4454,7 +4626,8 @@
       "in_validator_set": false,
       "rank": 173,
       "start_date": "2022-04-11T09:30:00Z",
-      "voting_power": 0
+      "voting_power": 0,
+      "voting_power_cumulative": 307554773957760060
     }
   ]
 }
