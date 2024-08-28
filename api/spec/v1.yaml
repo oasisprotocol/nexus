@@ -1953,6 +1953,10 @@ components:
           type: integer
           format: int64
           description: The voting power of this validator.
+        voting_power_cumulative:
+          type: integer
+          format: int64
+          description: The cumulative voting power of this validator and all other validators ranked higher than itself. 
         active:
           type: boolean
           description: Whether the entity has a node that is registered for being a validator, node is up to date, and has successfully registered itself. It may or may not be part of validator set.

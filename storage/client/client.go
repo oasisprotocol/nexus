@@ -1285,6 +1285,7 @@ func (c *StorageClient) Validators(ctx context.Context, p apiTypes.GetConsensusV
 			&v.Escrow.ActiveBalance24,
 			&v.Escrow.NumDelegators,
 			&v.VotingPower,
+			&v.VotingPowerCumulative,
 			&schedule,
 			&v.StartDate,
 			&v.Rank,

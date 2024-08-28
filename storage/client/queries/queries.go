@@ -358,6 +358,8 @@ const (
 			COALESCE (
 				validator_nodes.voting_power
 			, 0) AS voting_power,
+			SUM(validator_nodes.voting_power) 
+				OVER (ORDER BY validator_rank.rank) AS voting_power_cumulative,
 			COALESCE(chain.commissions.schedule, '{}'::JSONB) AS commissions_schedule,
 			chain.blocks.time AS start_date,
 			validator_rank.rank AS rank,

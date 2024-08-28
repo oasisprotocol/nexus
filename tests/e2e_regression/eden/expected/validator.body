@@ -31,7 +31,8 @@
       "node_id": "6wbL5/OxvFGxi55o7AxcwKmfjXbXGC1hw4lfnEZxBXA=",
       "rank": 1,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 31903165146578016
+      "voting_power": 31903165146578016,
+      "voting_power_cumulative": 31903165146578016
     }
   ]
 }
