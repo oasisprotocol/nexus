@@ -12,6 +12,30 @@ The format is inspired by [Keep a Changelog].
 
 <!-- TOWNCRIER -->
 
+## 0.3.3 (2024-08-28)
+
+### Features
+
+- api: add total delegators to /validators
+  ([#738](https://github.com/oasisprotocol/nexus/issues/738))
+
+- api: add cumulative_voting_power to validators endpoint
+  ([#742](https://github.com/oasisprotocol/nexus/issues/742))
+
+### Bug Fixes and Improvements
+
+- post 0.3.2 fixes
+  ([#739](https://github.com/oasisprotocol/nexus/issues/739))
+
+  api: filters out old rofl txs that were not parsed properly
+  during a 2 week span in early July.
+  db: retroactively updates the runtime tx fee denom to default to ''.
+
+### Internal Changes
+
+- analyzer: rename validator_staking_history config option
+  ([#740](https://github.com/oasisprotocol/nexus/issues/740))
+
 ## 0.3.2 (2024-08-12)
 
 ### Removals and Breaking Changes
