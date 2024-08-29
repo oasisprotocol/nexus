@@ -230,7 +230,7 @@ func eventMatches(evmEvent *evm.Event, ethEvent abi.Event) bool {
 	return len(evmEvent.Topics) == numTopics
 }
 
-func VisitEVMEvent(event *evm.Event, handler *EVMEventHandler) error {
+func VisitEVMEvent(event *evm.Event, handler *EVMEventHandler) error { //nolint:gocyclo
 	switch {
 	case eventMatches(event, evmabi.ERC20.Events["Transfer"]):
 		if handler.ERC20Transfer != nil {
