@@ -3101,6 +3101,35 @@ components:
           description: |
             The number of addresses that have a nonzero balance of this token.
           example: 123
+        ref_swap:
+          allOf: [$ref: '#/components/schemas/EvmTokenSwap']
+          description: |
+            Information about a swap contract between this token and a
+            reference token. The relative price and relative total value of
+            this token are estimated based on this swap contract.
+        ref_token:
+          allOf: [$ref: '#/components/schemas/EvmRefToken']
+          description: |
+            Information about the reference token. The relative price and
+            relative total value are exprsesed in this reference token's base
+            unit.
+        relative_token_address:
+          type: string
+          description: |
+            The relative price and relative total value are expressed in this
+            reference token's base unit.
+        relative_price:
+          type: number
+          format: double
+          description: |
+            The relative price of one base unit of this token is this many of
+            the relative token's base unit.
+        relative_total_value:
+          type: number
+          format: double
+          description: |
+            The relative price of this token multiplied by this token's total
+            supply, in the relative token's base unit.
         is_verified:
           deprecated: true
           type: boolean
@@ -3112,6 +3141,88 @@ components:
           example: false
         verification_level:
           allOf: [$ref: '#/components/schemas/VerificationLevel']
+
+    EvmTokenSwap:
+      type: object
+      required: [pair_address]
+      properties:
+        pair_address:
+          type: string
+          description: |
+            The Oasis address of the swap pair contract.
+        pair_address_eth:
+          type: string
+          description: |
+            The Ethereum-compatible address of the swap pair contract.
+        factory_address:
+          type: string
+          description: |
+            The Oasis address of the swap factory contract.
+        factory_address_eth:
+          type: string
+          description: |
+            The Ethereum-compatible address of the swap factory contract.
+        token0_address:
+          type: string
+          description: |
+            The Oasis address of the first token in this swap.
+        token0_address_eth:
+          type: string
+          description: |
+            The Ethereum-compatible address of the first token in this swap
+        token1_address:
+          type: string
+          description: |
+            The Oasis address of the second token in this swap.
+        token1_address_eth:
+          type: string
+          description: |
+            The Ethereum-compatible address of the second token in this swap.
+        create_round:
+          type: integer
+          format: int64
+          description: |
+            The round when this swap pair was created.
+        reserve0:
+          allOf: [$ref: '#/components/schemas/TextBigInt']
+          description: |
+            The swap's liquidity pool of the first token, in that token's base units.
+        reserve1:
+          allOf: [$ref: '#/components/schemas/TextBigInt']
+          description: |
+            The swap's liquidity pool of the second token, in that token's base units.
+        last_sync_round:
+          type: integer
+          format: int64
+          description: |
+            The round when this swap pair last updated its reserves.
+
+    EvmRefToken:
+      type: object
+      required: [type]
+      properties:
+        type:
+          allOf: [ $ref: '#/components/schemas/EvmTokenType' ]
+          description: |
+            The heuristically determined interface that the token contract implements.
+            A less specialized variant of the token might be detected; for example, an
+            ERC-1363 token might be labeled as ERC-20 here. If the type cannot be
+            detected or is not supported, this field will be null/absent.
+        name:
+          type: string
+          description: Name of the token, as provided by token contract's `name()` method.
+          example: Wrapped ROSE
+        symbol:
+          type: string
+          description: Symbol of the token, as provided by token contract's `symbol()` method.
+          example: wROSE
+        decimals:
+          type: integer
+          description: |
+            The number of least significant digits in base units that should be displayed as
+            decimals when displaying tokens. `tokens = base_units / (10**decimals)`.
+            Affects display only. Often equals 18, to match ETH.
+          example: 18
 
     EvmNftList:
       allOf:

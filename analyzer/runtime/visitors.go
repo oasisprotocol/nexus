@@ -194,11 +194,16 @@ func VisitSdkEvents(events []nodeapi.RuntimeEvent, handler *SdkEventHandler) err
 }
 
 type EVMEventHandler struct {
-	ERC20Transfer        func(from ethCommon.Address, to ethCommon.Address, value *big.Int) error
-	ERC20Approval        func(owner ethCommon.Address, spender ethCommon.Address, value *big.Int) error
-	ERC721Transfer       func(from ethCommon.Address, to ethCommon.Address, tokenID *big.Int) error
-	ERC721Approval       func(owner ethCommon.Address, approved ethCommon.Address, tokenID *big.Int) error
-	ERC721ApprovalForAll func(owner ethCommon.Address, operator ethCommon.Address, approved bool) error
+	ERC20Transfer                func(from ethCommon.Address, to ethCommon.Address, value *big.Int) error
+	ERC20Approval                func(owner ethCommon.Address, spender ethCommon.Address, value *big.Int) error
+	ERC721Transfer               func(from ethCommon.Address, to ethCommon.Address, tokenID *big.Int) error
+	ERC721Approval               func(owner ethCommon.Address, approved ethCommon.Address, tokenID *big.Int) error
+	ERC721ApprovalForAll         func(owner ethCommon.Address, operator ethCommon.Address, approved bool) error
+	IUniswapV2FactoryPairCreated func(token0 ethCommon.Address, token1 ethCommon.Address, pair ethCommon.Address, allPairsLength *big.Int) error
+	IUniswapV2PairMint           func(sender ethCommon.Address, amount0 *big.Int, amount1 *big.Int) error
+	IUniswapV2PairBurn           func(sender ethCommon.Address, amount0 *big.Int, amount1 *big.Int, to ethCommon.Address) error
+	IUniswapV2PairSwap           func(sender ethCommon.Address, amount0In *big.Int, amount1In *big.Int, amount0Out *big.Int, amount1Out *big.Int, to ethCommon.Address) error
+	IUniswapV2PairSync           func(reserve0 *big.Int, reserve1 *big.Int) error
 	// `owner` wrapped/deposited runtime's native token (ROSE) into the wrapper contract (creating WROSE).
 	// `value` ROSE is transferred from `owner` to the wrapper (= event-emitting contract). Caller's WROSE balance increases by `value`.
 	WROSEDeposit func(owner ethCommon.Address, value *big.Int) error
@@ -225,7 +230,7 @@ func eventMatches(evmEvent *evm.Event, ethEvent abi.Event) bool {
 	return len(evmEvent.Topics) == numTopics
 }
 
-func VisitEVMEvent(event *evm.Event, handler *EVMEventHandler) error {
+func VisitEVMEvent(event *evm.Event, handler *EVMEventHandler) error { //nolint:gocyclo
 	switch {
 	case eventMatches(event, evmabi.ERC20.Events["Transfer"]):
 		if handler.ERC20Transfer != nil {
@@ -295,6 +300,80 @@ func VisitEVMEvent(event *evm.Event, handler *EVMEventHandler) error {
 				args[2].(bool),
 			); err != nil {
 				return fmt.Errorf("handle erc721 approval for all: %w", err)
+			}
+		}
+	case eventMatches(event, evmabi.IUniswapV2Factory.Events["PairCreated"]):
+		if handler.IUniswapV2FactoryPairCreated != nil {
+			_, args, err := abiparse.ParseEvent(event.Topics, event.Data, evmabi.IUniswapV2Factory)
+			if err != nil {
+				return fmt.Errorf("parse uniswap v2 factory pair created: %w", err)
+			}
+			if err = handler.IUniswapV2FactoryPairCreated(
+				args[0].(ethCommon.Address),
+				args[1].(ethCommon.Address),
+				args[2].(ethCommon.Address),
+				args[3].(*big.Int),
+			); err != nil {
+				return fmt.Errorf("handle uniswap v2 factory pair created: %w", err)
+			}
+		}
+	case eventMatches(event, evmabi.IUniswapV2Pair.Events["Mint"]):
+		if handler.IUniswapV2PairMint != nil {
+			_, args, err := abiparse.ParseEvent(event.Topics, event.Data, evmabi.IUniswapV2Pair)
+			if err != nil {
+				return fmt.Errorf("parse uniswap v2 pair mint: %w", err)
+			}
+			if err = handler.IUniswapV2PairMint(
+				args[0].(ethCommon.Address),
+				args[1].(*big.Int),
+				args[2].(*big.Int),
+			); err != nil {
+				return fmt.Errorf("handle uniswap v2 pair mint: %w", err)
+			}
+		}
+	case eventMatches(event, evmabi.IUniswapV2Pair.Events["Burn"]):
+		if handler.IUniswapV2PairBurn != nil {
+			_, args, err := abiparse.ParseEvent(event.Topics, event.Data, evmabi.IUniswapV2Pair)
+			if err != nil {
+				return fmt.Errorf("parse uniswap v2 pair burn: %w", err)
+			}
+			if err = handler.IUniswapV2PairBurn(
+				args[0].(ethCommon.Address),
+				args[1].(*big.Int),
+				args[2].(*big.Int),
+				args[3].(ethCommon.Address),
+			); err != nil {
+				return fmt.Errorf("handle uniswap v2 pair burn: %w", err)
+			}
+		}
+	case eventMatches(event, evmabi.IUniswapV2Pair.Events["Swap"]):
+		if handler.IUniswapV2PairSwap != nil {
+			_, args, err := abiparse.ParseEvent(event.Topics, event.Data, evmabi.IUniswapV2Pair)
+			if err != nil {
+				return fmt.Errorf("parse uniswap v2 pair swap: %w", err)
+			}
+			if err = handler.IUniswapV2PairSwap(
+				args[0].(ethCommon.Address),
+				args[1].(*big.Int),
+				args[2].(*big.Int),
+				args[3].(*big.Int),
+				args[4].(*big.Int),
+				args[5].(ethCommon.Address),
+			); err != nil {
+				return fmt.Errorf("handle uniswap v2 pair swap: %w", err)
+			}
+		}
+	case eventMatches(event, evmabi.IUniswapV2Pair.Events["Sync"]):
+		if handler.IUniswapV2PairSync != nil {
+			_, args, err := abiparse.ParseEvent(event.Topics, event.Data, evmabi.IUniswapV2Pair)
+			if err != nil {
+				return fmt.Errorf("parse uniswap v2 pair sync: %w", err)
+			}
+			if err = handler.IUniswapV2PairSync(
+				args[0].(*big.Int),
+				args[1].(*big.Int),
+			); err != nil {
+				return fmt.Errorf("handle uniswap v2 pair sync: %w", err)
 			}
 		}
 	// Signature: 0xe1fffcc4923d04b559f4d29a8bfc6cda04eb5b0d3c460751c2402c5c5cc9109c (hex) or 4f/8xJI9BLVZ9NKai/xs2gTrWw08RgdRwkAsXFzJEJw= (base64)

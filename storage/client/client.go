@@ -21,6 +21,7 @@ import (
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 
 	"github.com/oasisprotocol/nexus/analyzer/evmabi"
+	"github.com/oasisprotocol/nexus/config"
 	beacon "github.com/oasisprotocol/nexus/coreapi/v22.2.11/beacon/api"
 	roothash "github.com/oasisprotocol/nexus/coreapi/v22.2.11/roothash/api"
 	staking "github.com/oasisprotocol/nexus/coreapi/v22.2.11/staking/api"
@@ -47,6 +48,7 @@ const (
 type StorageClient struct {
 	chainName      common.ChainName
 	db             storage.TargetStorage
+	referenceSwaps map[common.Runtime]config.ReferenceSwap
 	runtimeClients map[common.Runtime]nodeapi.RuntimeApiLite
 	networkConfig  *oasisConfig.Network
 
@@ -120,7 +122,7 @@ func runtimeFromCtx(ctx context.Context) common.Runtime {
 }
 
 // NewStorageClient creates a new storage client.
-func NewStorageClient(chainName common.ChainName, db storage.TargetStorage, runtimeClients map[common.Runtime]nodeapi.RuntimeApiLite, networkConfig *oasisConfig.Network, l *log.Logger) (*StorageClient, error) {
+func NewStorageClient(chainName common.ChainName, db storage.TargetStorage, referenceSwaps map[common.Runtime]config.ReferenceSwap, runtimeClients map[common.Runtime]nodeapi.RuntimeApiLite, networkConfig *oasisConfig.Network, l *log.Logger) (*StorageClient, error) {
 	blockCache, err := ristretto.NewCache(&ristretto.Config{
 		NumCounters:        1024 * 10,
 		MaxCost:            1024,
@@ -141,7 +143,7 @@ func NewStorageClient(chainName common.ChainName, db storage.TargetStorage, runt
 		l.Error("api client: failed to create tx cache: %w", err)
 		return nil, err
 	}
-	return &StorageClient{chainName, db, runtimeClients, networkConfig, blockCache, txCache, l}, nil
+	return &StorageClient{chainName, db, referenceSwaps, runtimeClients, networkConfig, blockCache, txCache, l}, nil
 }
 
 // Shutdown closes the backing TargetStorage.
@@ -1428,6 +1430,24 @@ func EthChecksumAddrFromPreimage(contextIdentifier string, contextVersion int, d
 	return &ethChecksumAddr
 }
 
+// EthChecksumAddrFromBarePreimage gives the friendly Ethereum-style
+// mixed-case checksum address (see ERC-55) for an address preimage without
+// checking the preimage context.
+func EthChecksumAddrFromBarePreimage(data []byte) string {
+	return ethCommon.BytesToAddress(data).String()
+}
+
+// EthChecksumAddrPtrFromBarePreimage gives the friendly Ethereum-style
+// mixed-case checksum address (see ERC-55) for an address preimage without
+// checking the preimage context. This one returns nil if the input was nil.
+func EthChecksumAddrPtrFromBarePreimage(data []byte) *string {
+	if data == nil {
+		return nil
+	}
+	ethChecksumAddr := ethCommon.BytesToAddress(data).String()
+	return &ethChecksumAddr
+}
+
 // RuntimeTransactions returns a list of runtime transactions.
 func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetRuntimeTransactionsParams, txHash *string) (*RuntimeTransactionList, error) {
 	ocAddrRel, err := apiTypes.UnmarshalToOcAddress(p.Rel)
@@ -1834,7 +1854,7 @@ func (c *StorageClient) RuntimeAccount(ctx context.Context, address staking.Addr
 		); err != nil {
 			return nil, wrapError(err)
 		}
-		b.TokenContractAddrEth = ethCommon.BytesToAddress(addrPreimage).String()
+		b.TokenContractAddrEth = EthChecksumAddrFromBarePreimage(addrPreimage)
 		b.TokenType = translateTokenType(tokenType)
 		a.EvmBalances = append(a.EvmBalances, b)
 	}
@@ -1923,15 +1943,51 @@ func (c *StorageClient) upsertBalances(ch chan *RuntimeSdkBalance, acct *Runtime
 	}
 }
 
+func fillInPriceFromReserves(t EvmToken) {
+	reserve0f, _ := t.RefSwap.Reserve0.Float64()
+	reserve1f, _ := t.RefSwap.Reserve1.Float64()
+	if reserve0f > 0 && reserve1f > 0 {
+		if t.ContractAddr == *t.RefSwap.Token0Address {
+			t.RelativePrice = common.Ptr(reserve1f / reserve0f)
+		} else {
+			t.RelativePrice = common.Ptr(reserve0f / reserve1f)
+		}
+	}
+}
+
+func fillInPrice(t EvmToken, refSwapTokenAddr *apiTypes.Address) {
+	if t.ContractAddr == *refSwapTokenAddr {
+		t.RelativePrice = common.Ptr(1.0)
+	} else if t.RefSwap.Token0Address != nil && t.RefSwap.Token1Address != nil && t.RefSwap.Reserve0 != nil && t.RefSwap.Reserve1 != nil {
+		fillInPriceFromReserves(t)
+	}
+	if t.RelativePrice != nil {
+		t.RelativeTokenAddress = refSwapTokenAddr
+		if t.TotalSupply != nil {
+			totalSuppplyF, _ := t.TotalSupply.Float64()
+			t.RelativeTotalValue = common.Ptr(*t.RelativePrice * totalSuppplyF)
+		}
+	}
+}
+
 // If `address` is non-nil, it is used to filter the results to at most 1 token: the one
 // with the correcponding contract address.
 func (c *StorageClient) RuntimeTokens(ctx context.Context, p apiTypes.GetRuntimeEvmTokensParams, address *staking.Address) (*EvmTokenList, error) {
+	runtime := runtimeFromCtx(ctx)
+	var refSwapFactoryAddr *apiTypes.Address
+	var refSwapTokenAddr *apiTypes.Address
+	if rs, ok := c.referenceSwaps[runtime]; ok {
+		refSwapFactoryAddr = &rs.FactoryAddr
+		refSwapTokenAddr = &rs.ReferenceTokenAddr
+	}
 	res, err := c.withTotalCount(
 		ctx,
 		queries.EvmTokens,
-		runtimeFromCtx(ctx),
+		runtime,
 		address,
 		p.Name,
+		refSwapFactoryAddr,
+		refSwapTokenAddr,
 		p.Limit,
 		p.Offset,
 	)
@@ -1949,6 +2005,14 @@ func (c *StorageClient) RuntimeTokens(ctx context.Context, p apiTypes.GetRuntime
 		var t EvmToken
 		var addrPreimage []byte
 		var tokenType common.TokenType
+		var refSwapPairAddr *string
+		var refSwap apiTypes.EvmTokenSwap
+		var refSwapPairEthAddr []byte
+		var refSwapFactoryEthAddr []byte
+		var refSwapToken0EthAddr []byte
+		var refSwapToken1EthAddr []byte
+		var refToken apiTypes.EvmRefToken
+		var refTokenType *common.TokenType
 		if err2 := res.rows.Scan(
 			&t.ContractAddr,
 			&addrPreimage,
@@ -1959,14 +2023,45 @@ func (c *StorageClient) RuntimeTokens(ctx context.Context, p apiTypes.GetRuntime
 			&t.NumTransfers,
 			&tokenType,
 			&t.NumHolders,
+			&refSwapPairAddr,
+			&refSwapPairEthAddr,
+			&refSwap.FactoryAddress,
+			&refSwapFactoryEthAddr,
+			&refSwap.Token0Address,
+			&refSwapToken0EthAddr,
+			&refSwap.Token1Address,
+			&refSwapToken1EthAddr,
+			&refSwap.CreateRound,
+			&refSwap.Reserve0,
+			&refSwap.Reserve1,
+			&refSwap.LastSyncRound,
+			&refTokenType,
+			&refToken.Name,
+			&refToken.Symbol,
+			&refToken.Decimals,
 			&t.VerificationLevel,
 		); err2 != nil {
 			return nil, wrapError(err2)
 		}
 
 		t.IsVerified = (t.VerificationLevel != nil)
-		t.EthContractAddr = ethCommon.BytesToAddress(addrPreimage).String()
+		t.EthContractAddr = EthChecksumAddrFromBarePreimage(addrPreimage)
 		t.Type = translateTokenType(tokenType)
+		if refSwapPairAddr != nil {
+			refSwap.PairAddress = *refSwapPairAddr
+			t.RefSwap = &refSwap
+			t.RefSwap.PairAddressEth = EthChecksumAddrPtrFromBarePreimage(refSwapPairEthAddr)
+			t.RefSwap.FactoryAddressEth = EthChecksumAddrPtrFromBarePreimage(refSwapFactoryEthAddr)
+			t.RefSwap.Token0AddressEth = EthChecksumAddrPtrFromBarePreimage(refSwapToken0EthAddr)
+			t.RefSwap.Token1AddressEth = EthChecksumAddrPtrFromBarePreimage(refSwapToken1EthAddr)
+			if refSwapTokenAddr != nil {
+				fillInPrice(t, refSwapTokenAddr)
+			}
+		}
+		if refTokenType != nil {
+			refToken.Type = translateTokenType(*refTokenType)
+			t.RefToken = &refToken
+		}
 		ts.EvmTokens = append(ts.EvmTokens, t)
 	}
 
@@ -2002,7 +2097,7 @@ func (c *StorageClient) RuntimeTokenHolders(ctx context.Context, p apiTypes.GetR
 		); err2 != nil {
 			return nil, wrapError(err2)
 		}
-		h.EthHolderAddress = common.Ptr(ethCommon.BytesToAddress(addrPreimage).String())
+		h.EthHolderAddress = EthChecksumAddrPtrFromBarePreimage(addrPreimage)
 		hs.Holders = append(hs.Holders, h)
 	}
 
@@ -2070,6 +2165,13 @@ func (c *StorageClient) RuntimeEVMNFTs(ctx context.Context, limit *uint64, offse
 			return nil, wrapError(err)
 		}
 		nft.Token.IsVerified = (nft.Token.VerificationLevel != nil)
+		contractEthChecksumAddrPtr := EthChecksumAddrFromPreimage(contractAddrContextIdentifier, contractAddrContextVersion, contractAddrData)
+		// API says this is required, but this was refactored from some code
+		// that doesn't crash if preimage context is wrong, and I'm keeping
+		// that robustness in this version.
+		if contractEthChecksumAddrPtr != nil {
+			nft.Token.EthContractAddr = *contractEthChecksumAddrPtr
+		}
 		if contractEthAddr, err1 := EVMEthAddrFromPreimage(contractAddrContextIdentifier, contractAddrContextVersion, contractAddrData); err1 == nil {
 			contractECAddr := ethCommon.BytesToAddress(contractEthAddr)
 			nft.Token.EthContractAddr = contractECAddr.String()
@@ -2078,10 +2180,7 @@ func (c *StorageClient) RuntimeEVMNFTs(ctx context.Context, limit *uint64, offse
 			nft.Token.Type = translateTokenType(common.TokenType(tokenType.Int32))
 		}
 		if nft.Owner != nil {
-			if ownerEthAddr, err1 := EVMEthAddrFromPreimage(*ownerAddrContextIdentifier, *ownerAddrContextVersion, ownerAddrData); err1 == nil {
-				ownerECAddr := ethCommon.BytesToAddress(ownerEthAddr)
-				nft.OwnerEth = common.Ptr(ownerECAddr.String())
-			}
+			nft.OwnerEth = EthChecksumAddrFromPreimage(*ownerAddrContextIdentifier, *ownerAddrContextVersion, ownerAddrData)
 		}
 		if metadataAccessedN.Valid {
 			nft.MetadataAccessed = common.Ptr(metadataAccessedN.Time.String())

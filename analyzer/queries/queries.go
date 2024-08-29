@@ -1014,6 +1014,23 @@ var (
       token_address = $2 AND
       account_address = $3`
 
+	RuntimeEVMSwapPairUpsertCreated = `
+    INSERT INTO chain.evm_swap_pair_creations (runtime, factory_address, token0_address, token1_address, pair_address, create_round)
+    VALUES ($1, $2, $3, $4, $5, $6)
+    ON CONFLICT (runtime, factory_address, token0_address, token1_address) DO UPDATE
+    SET
+      pair_address = excluded.pair_address,
+      create_round = excluded.create_round`
+
+	RuntimeEVMSwapPairUpsertSync = `
+    INSERT INTO chain.evm_swap_pairs (runtime, pair_address, reserve0, reserve1, last_sync_round)
+    VALUES ($1, $2, $3, $4, $5)
+    ON CONFLICT (runtime, pair_address) DO UPDATE
+    SET
+      reserve0 = excluded.reserve0,
+      reserve1 = excluded.reserve1,
+      last_sync_round = excluded.last_sync_round`
+
 	RuntimeEVMUnverfiedContracts = `
     SELECT contracts.contract_address,
       address_preimages.context_identifier,

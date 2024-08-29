@@ -60,9 +60,10 @@ test-e2e: export OASIS_INDEXER_E2E = true
 test-e2e:
 	@$(GO) test -race -coverpkg=./... -coverprofile=coverage.txt -covermode=atomic -v ./tests/e2e
 
+E2E_REGRESSION_SUITES_NO_LINKS := eden damask
 # To run specific suites, do e.g.
 # make E2E_REGRESSION_SUITES='suite1 suite2' test-e2e-regression
-E2E_REGRESSION_SUITES := eden damask edenfast
+E2E_REGRESSION_SUITES := $(E2E_REGRESSION_SUITES_NO_LINKS) edenfast
 
 ensure-consistent-config-for-e2e-regression:
 	for suite in $(E2E_REGRESSION_SUITES); do ./tests/e2e_regression/ensure_consistent_config.sh $$suite; done
@@ -74,7 +75,7 @@ test-e2e-regression: nexus ensure-consistent-config-for-e2e-regression
 
 # Accept the outputs of the e2e tests as the new expected outputs.
 accept-e2e-regression:
-	for suite in $(E2E_REGRESSION_SUITES); do ./tests/e2e_regression/accept.sh $$suite; done
+	for suite in $(E2E_REGRESSION_SUITES_NO_LINKS); do ./tests/e2e_regression/accept.sh $$suite; done
 
 # Format code.
 fmt:
