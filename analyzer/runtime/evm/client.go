@@ -411,7 +411,7 @@ func EVMDownloadTokenBalance(ctx context.Context, logger *log.Logger, source nod
 //   * Success Result: Encryption envelope stored in either sapphire outer
 //                     CallResult.Ok (new) or CallResult.Unknown (old)
 //   * Failure Result: Stored in either the sapphire outer CallResult.Failed (old)
-//                     or the outer CallResult.Failed (new)
+//                     or the outer oasis CallResult.Failed (new)
 // * Sapphire Plain(0)
 //   * Tx Body: Stored in the sapphire outer Call.Body
 //   * Success Result: Stored in outer oasis CallResult.Ok
@@ -467,13 +467,13 @@ func EVMMaybeUnmarshalEncryptedData(data []byte, result *[]byte) (*EVMEncryptedD
 				if err := cbor.Unmarshal(callResult.Ok, &resultEnvelope); err != nil {
 					return nil, fmt.Errorf("outer call result unmarshal ok: %w", err)
 				}
-			// For non-evm txs as well as older Sapphire txs, the outer callResult may
-			// be Unknown and the inner callResult Failed. In this case, we extract the
-			// failed callResult.
+			// For older Sapphire txs, the outer oasis CallResult may be Ok
+			// and the outer sapphire CallResult Failed. In this case, we
+			// extract the failed callResult.
 			case callResult.Failed != nil:
 				encryptedData.FailedCallResult = callResult.Failed
 			default:
-				return nil, fmt.Errorf("unknown inner callResult type")
+				return nil, fmt.Errorf("outer call result unsupported variant")
 			}
 			encryptedData.ResultNonce = resultEnvelope.Nonce[:]
 			encryptedData.ResultData = resultEnvelope.Data
@@ -481,7 +481,7 @@ func EVMMaybeUnmarshalEncryptedData(data []byte, result *[]byte) (*EVMEncryptedD
 			// We have already checked when decoding the call envelope,
 			// but I'm keeping this default case here so we don't forget
 			// if this code gets restructured.
-			return nil, fmt.Errorf("outer call format %s (%d) not supported", call.Format, call.Format)
+			return nil, fmt.Errorf("outer call result format %s (%d) not supported", call.Format, call.Format)
 		}
 	}
 	return &encryptedData, nil
