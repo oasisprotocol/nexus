@@ -1480,6 +1480,8 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetR
 		t := RuntimeTransaction{
 			Error: &TxError{},
 		}
+		var oasisEncryptionEnvelope RuntimeTransactionEncryptionEnvelope
+		var oasisEncryptionEnvelopeFormat *common.CallFormat
 		var evmEncryptionEnvelope RuntimeTransactionEncryptionEnvelope
 		var evmEncryptionEnvelopeFormat *common.CallFormat
 		var sender0PreimageContextIdentifier *string
@@ -1508,6 +1510,12 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetR
 			&t.GasUsed,
 			&t.ChargedFee,
 			&t.Size,
+			&oasisEncryptionEnvelopeFormat,
+			&oasisEncryptionEnvelope.PublicKey,
+			&oasisEncryptionEnvelope.DataNonce,
+			&oasisEncryptionEnvelope.Data,
+			&oasisEncryptionEnvelope.ResultNonce,
+			&oasisEncryptionEnvelope.Result,
 			&t.Method,
 			&t.Body,
 			&t.To,
@@ -1540,6 +1548,10 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetR
 			t.Error = nil
 		} else if errorCode != nil {
 			t.Error.Code = *errorCode
+		}
+		if oasisEncryptionEnvelopeFormat != nil { // a rudimentary check to determine if the tx was encrypted
+			oasisEncryptionEnvelope.Format = *oasisEncryptionEnvelopeFormat
+			t.OasisEncryptionEnvelope = &oasisEncryptionEnvelope
 		}
 		if evmEncryptionEnvelopeFormat != nil { // a rudimentary check to determine if the tx was encrypted
 			evmEncryptionEnvelope.Format = *evmEncryptionEnvelopeFormat
