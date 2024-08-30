@@ -283,6 +283,22 @@ func (m *processor) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 			}
 		}
 		var (
+			oasisEncryptedFormat      *common.CallFormat
+			oasisEncryptedPublicKey   *[]byte
+			oasisEncryptedDataNonce   *[]byte
+			oasisEncryptedDataData    *[]byte
+			oasisEncryptedResultNonce *[]byte
+			oasisEncryptedResultData  *[]byte
+		)
+		if transactionData.OasisEncrypted != nil {
+			oasisEncryptedFormat = &transactionData.OasisEncrypted.Format
+			oasisEncryptedPublicKey = &transactionData.OasisEncrypted.PublicKey
+			oasisEncryptedDataNonce = &transactionData.OasisEncrypted.DataNonce
+			oasisEncryptedDataData = &transactionData.OasisEncrypted.DataData
+			oasisEncryptedResultNonce = &transactionData.OasisEncrypted.ResultNonce
+			oasisEncryptedResultData = &transactionData.OasisEncrypted.ResultData
+		}
+		var (
 			evmEncryptedFormat      *common.CallFormat
 			evmEncryptedPublicKey   *[]byte
 			evmEncryptedDataNonce   *[]byte
@@ -323,6 +339,12 @@ func (m *processor) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 			transactionData.GasUsed,
 			transactionData.Size,
 			data.Header.Timestamp,
+			oasisEncryptedFormat,
+			oasisEncryptedPublicKey,
+			oasisEncryptedDataNonce,
+			oasisEncryptedDataData,
+			oasisEncryptedResultNonce,
+			oasisEncryptedResultData,
 			transactionData.Method,
 			transactionData.Body,
 			transactionData.To,
