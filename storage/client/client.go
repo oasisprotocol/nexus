@@ -1531,7 +1531,11 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetR
 		); err != nil {
 			return nil, wrapError(err)
 		}
-		if t.Success != nil && *t.Success {
+		// If success field is unset (i.e. encrypted "Unknown" result) or
+		// successful, some database versions have non-null error module/code
+		// from when the analyzer would insert ""/0 instead. There's no error
+		// information, so empty this stuff out.
+		if t.Success == nil || *t.Success {
 			t.Error = nil
 		}
 		if encryptionEnvelopeFormat != nil { // a rudimentary check to determine if the tx was encrypted
