@@ -65,13 +65,14 @@ type BlockTransactionData struct {
 	FeeProxyModule          *string
 	FeeProxyID              *[]byte
 	GasLimit                uint64
+	OasisEncrypted          *encryption.EncryptedData
 	Method                  string
 	Body                    interface{}
 	ContractCandidate       *apiTypes.Address // If non-nil, an address that was encountered in the tx and might be a contract.
 	To                      *apiTypes.Address // Extracted from the body for convenience. Semantics vary by tx type.
 	Amount                  *common.BigInt    // Extracted from the body for convenience. Semantics vary by tx type.
 	AmountSymbol            *string           // Extracted from the body for convenience.
-	EVMEncrypted            *encryption.EVMEncryptedData
+	EVMEncrypted            *encryption.EncryptedData
 	EVMContract             *evm.EVMContractData
 	Success                 *bool
 	Error                   *TxError
@@ -299,6 +300,17 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 				blockTransactionData.Success = common.Ptr(true)
 			} else {
 				blockTransactionData.Success = nil
+			}
+
+			if oasisEncrypted, err1 := OasisMaybeUnmarshalEncryptedData(&tx.Call, &txr.Result); err1 == nil {
+				blockTransactionData.OasisEncrypted = oasisEncrypted
+			} else {
+				logger.Error("error unmarshalling encrypted transaction and result, omitting encrypted fields",
+					"round", blockHeader.Round,
+					"tx_index", txIndex,
+					"tx_hash", txr.Tx.Hash(),
+					"err", err1,
+				)
 			}
 
 			blockTransactionData.Method = string(tx.Call.Method)

@@ -4,7 +4,7 @@ import (
 	"github.com/oasisprotocol/nexus/common"
 )
 
-type EVMEncryptedData struct {
+type EncryptedData struct {
 	Format      common.CallFormat
 	PublicKey   []byte
 	DataNonce   []byte

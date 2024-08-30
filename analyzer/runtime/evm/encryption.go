@@ -23,7 +23,8 @@ import (
 //
 // Transaction payloads may be encrypted in oasis. To express that, the
 // Transaction.Call field of the transaction would have a call format set, e.g.
-//     Call.Format: 'encrypted/x25519-deoxysii'
+//
+//	Call.Format: 'encrypted/x25519-deoxysii'
 //
 // This gives rise to the concept of outer/inner calls for oasis-format
 // transactions, where the inner call would be encrypted and stored in the
@@ -99,28 +100,31 @@ import (
 // CallResult.
 //
 // Outer oasis Call.Body
-//   -> inner oasis Call
-//   -> evm.Call
-//        -> sapphire outer Call.Body
-//             -> sapphire inner Call
+//
+//	-> inner oasis Call
+//	-> evm.Call
+//	     -> sapphire outer Call.Body
+//	          -> sapphire inner Call
 //
 // To summarize:
 // * Non-Sapphire
-//   * Tx Body: Stored in oasis outer Call.Body
-//   * Success Result: Stored in outer oasis CallResult.Ok
-//   * Failure Result: Stored in outer oasis CallResult.Failed
+//   - Tx Body: Stored in oasis outer Call.Body
+//   - Success Result: Stored in outer oasis CallResult.Ok
+//   - Failure Result: Stored in outer oasis CallResult.Failed
+//
 // * Sapphire Encrypted
-//   * Tx Body: Encryption envelope stored in sapphire outer Call.Body
-//   * Success Result: Encryption envelope stored in either sapphire outer
-//                     CallResult.Ok (new) or CallResult.Unknown (old)
-//   * Failure Result: Stored in either the sapphire outer CallResult.Failed (old)
-//                     or the outer oasis CallResult.Failed (new)
+//   - Tx Body: Encryption envelope stored in sapphire outer Call.Body
+//   - Success Result: Encryption envelope stored in either sapphire outer
+//     CallResult.Ok (new) or CallResult.Unknown (old)
+//   - Failure Result: Stored in either the sapphire outer CallResult.Failed (old)
+//     or the outer oasis CallResult.Failed (new)
+//
 // * Sapphire Plain(0)
-//   * Tx Body: Stored in the sapphire outer Call.Body
-//   * Success Result: Stored in outer oasis CallResult.Ok
-//   * Failure Result: Stored in outer oasis CallResult.Failed
-func EVMMaybeUnmarshalEncryptedData(data []byte, result *[]byte) (*encryption.EVMEncryptedData, *sdkTypes.FailedCallResult, error) {
-	var encryptedData encryption.EVMEncryptedData
+//   - Tx Body: Stored in the sapphire outer Call.Body
+//   - Success Result: Stored in outer oasis CallResult.Ok
+//   - Failure Result: Stored in outer oasis CallResult.Failed
+func EVMMaybeUnmarshalEncryptedData(data []byte, result *[]byte) (*encryption.EncryptedData, *sdkTypes.FailedCallResult, error) {
+	var encryptedData encryption.EncryptedData
 	var call sdkTypes.Call
 	if cbor.Unmarshal(data, &call) != nil {
 		// Invalid CBOR means it's bare Ethereum format data. This is normal.
