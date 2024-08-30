@@ -2,7 +2,7 @@
     {
         "Name": "Common Pool",
         "Address": "oasis1qrmufhkkyyf79s5za2r8yga9gnk4t446dcy3a5zm",
-        "Description": "This account contains pre-mined and confiscated tokens due to slashing and is used to reward token stakers."
+        "Description": "This account contains tokens allocated for staking rewards."
     },
     {
         "Name": "Fee Accumulator",
@@ -12,12 +12,17 @@
     {
         "Name": "Governance Escrow",
         "Address": "oasis1qp65laz8zsa9a305wxeslpnkh9x4dv2h2qhjz0ec",
-        "Description": "Contains deposited tokens required for confirming the governance transactions of the validators."
+        "Description": "Contains deposited tokens required for confirming governance transactions."
     },
     {
         "Name": "Burn Address",
         "Address": "oasis1qzq8u7xs328puu2jy524w3fygzs63rv3u5967970",
         "Description": "Reserved address for all irreversibly burnt tokens."
+    },
+    {
+        "Name": "Faucet Address",
+        "Address": "oasis1qzna6nq9kuktjmxx2s84z38eysqyts84jc9lgdg2",
+        "Description": "This account contains TEST tokens distributed by the faucet."
     },
     {
         "Name": "Sapphire",
