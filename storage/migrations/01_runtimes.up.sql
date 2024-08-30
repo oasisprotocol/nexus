@@ -52,6 +52,15 @@ CREATE TABLE chain.runtime_transactions
   gas_used    UINT63 NOT NULL,
   size UINT31 NOT NULL,
 
+  -- Added in 31_runtime_txs_oasis_encryption.up.sql
+  -- Encrypted data in encrypted Oasis-format transactions.
+  -- oasis_encrypted_format call_format,
+  -- oasis_encrypted_public_key BYTEA,
+  -- oasis_encrypted_data_nonce BYTEA,
+  -- oasis_encrypted_data_data BYTEA,
+  -- oasis_encrypted_result_nonce BYTEA,
+  -- oasis_encrypted_result_data BYTEA,
+
   -- Transaction contents.
   method      TEXT,         -- accounts.Transfer, consensus.Deposit, consensus.Withdraw, evm.Create, evm.Call. NULL for malformed and encrypted txs.
   body        JSONB,        -- For EVM txs, the EVM method and args are encoded in here. NULL for malformed and encrypted txs.
