@@ -1488,6 +1488,7 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetR
 		var toPreimageContextIdentifier *string
 		var toPreimageContextVersion *int
 		var toPreimageData []byte
+		var errorCode *uint32
 		if err := res.rows.Scan(
 			&t.Round,
 			&t.Index,
@@ -1525,7 +1526,7 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetR
 			&t.EvmFnName,
 			&t.EvmFnParams,
 			&t.Error.Module,
-			&t.Error.Code,
+			&errorCode,
 			&t.Error.Message,
 			&t.Error.RevertParams,
 		); err != nil {
@@ -1537,6 +1538,8 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetR
 		// information, so empty this stuff out.
 		if t.Success == nil || *t.Success {
 			t.Error = nil
+		} else if errorCode != nil {
+			t.Error.Code = *errorCode
 		}
 		if encryptionEnvelopeFormat != nil { // a rudimentary check to determine if the tx was encrypted
 			encryptionEnvelope.Format = *encryptionEnvelopeFormat

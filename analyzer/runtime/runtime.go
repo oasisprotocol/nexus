@@ -298,15 +298,15 @@ func (m *processor) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 			evmEncryptedResultNonce = &transactionData.EVMEncrypted.ResultNonce
 			evmEncryptedResultData = &transactionData.EVMEncrypted.ResultData
 		}
-		var error_module string
-		var error_code uint32
-		var error_message *string
-		var error_message_raw *string
+		var errorModule *string
+		var errorCode *uint32
+		var errorMessage *string
+		var errorMessageRaw *string
 		if transactionData.Error != nil {
-			error_module = transactionData.Error.Module
-			error_code = transactionData.Error.Code
-			error_message = transactionData.Error.Message
-			error_message_raw = transactionData.Error.RawMessage
+			errorModule = &transactionData.Error.Module
+			errorCode = &transactionData.Error.Code
+			errorMessage = transactionData.Error.Message
+			errorMessageRaw = transactionData.Error.RawMessage
 		}
 		batch.Queue(
 			queries.RuntimeTransactionInsert,
@@ -335,10 +335,10 @@ func (m *processor) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 			evmEncryptedResultNonce,
 			evmEncryptedResultData,
 			transactionData.Success,
-			error_module,
-			error_code,
-			error_message_raw,
-			error_message,
+			errorModule,
+			errorCode,
+			errorMessageRaw,
+			errorMessage,
 		)
 
 		if transactionData.ContractCandidate != nil {
