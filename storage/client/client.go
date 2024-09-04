@@ -53,7 +53,6 @@ type StorageClient struct {
 	networkConfig  *oasisConfig.Network
 
 	blockCache *ristretto.Cache
-	txCache    *ristretto.Cache
 
 	logger *log.Logger
 }
@@ -133,17 +132,7 @@ func NewStorageClient(chainName common.ChainName, db storage.TargetStorage, refe
 		l.Error("api client: failed to create block cache: %w", err)
 		return nil, err
 	}
-	txCache, err := ristretto.NewCache(&ristretto.Config{
-		NumCounters:        1024 * 10,
-		MaxCost:            1024,
-		BufferItems:        64,
-		IgnoreInternalCost: true,
-	})
-	if err != nil {
-		l.Error("api client: failed to create tx cache: %w", err)
-		return nil, err
-	}
-	return &StorageClient{chainName, db, referenceSwaps, runtimeClients, networkConfig, blockCache, txCache, l}, nil
+	return &StorageClient{chainName, db, referenceSwaps, runtimeClients, networkConfig, blockCache, l}, nil
 }
 
 // Shutdown closes the backing TargetStorage.
@@ -369,10 +358,11 @@ func (c *StorageClient) cacheBlock(blk *Block) {
 }
 
 // Transactions returns a list of consensus transactions.
-func (c *StorageClient) Transactions(ctx context.Context, p apiTypes.GetConsensusTransactionsParams) (*TransactionList, error) {
+func (c *StorageClient) Transactions(ctx context.Context, p apiTypes.GetConsensusTransactionsParams, txHash *string) (*TransactionList, error) {
 	res, err := c.withTotalCount(
 		ctx,
 		queries.Transactions,
+		txHash, // used for /consensus/transactions/{tx_hash}.
 		p.Block,
 		p.Method,
 		p.Sender,
@@ -428,58 +418,6 @@ func (c *StorageClient) Transactions(ctx context.Context, p apiTypes.GetConsensu
 	}
 
 	return &ts, nil
-}
-
-// Transaction returns a consensus transaction. This endpoint is cached.
-func (c *StorageClient) Transaction(ctx context.Context, txHash string) (*Transaction, error) {
-	// Check cache
-	untypedTx, ok := c.txCache.Get(txHash)
-	if ok {
-		return untypedTx.(*Transaction), nil
-	}
-
-	var t Transaction
-	var code uint32
-	var module *string
-	var message *string
-	if err := c.db.QueryRow(
-		ctx,
-		queries.Transaction,
-		txHash,
-	).Scan(
-		&t.Block,
-		&t.Index,
-		&t.Hash,
-		&t.Sender,
-		&t.Nonce,
-		&t.Fee,
-		&t.GasLimit,
-		&t.Method,
-		&t.Body,
-		&code,
-		&module,
-		&message,
-		&t.Timestamp,
-	); err != nil {
-		return nil, wrapError(err)
-	}
-	if code == oasisErrors.CodeNoError {
-		t.Success = true
-	} else {
-		t.Error = &apiTypes.TxError{
-			Code:    code,
-			Module:  module,
-			Message: message,
-		}
-	}
-
-	c.cacheTx(&t)
-	return &t, nil
-}
-
-// cacheTx adds a transaction to the client's transaction cache.
-func (c *StorageClient) cacheTx(tx *Transaction) {
-	c.txCache.Set(tx.Hash, tx, txCost)
 }
 
 // Events returns a list of events.
