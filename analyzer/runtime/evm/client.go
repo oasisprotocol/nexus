@@ -450,13 +450,15 @@ func EVMMaybeUnmarshalEncryptedData(data []byte, result *[]byte) (*EVMEncryptedD
 		}
 		switch call.Format {
 		case sdkTypes.CallFormatEncryptedX25519DeoxysII:
-			var resultEnvelope sdkTypes.ResultEnvelopeX25519DeoxysII
 			switch {
 			// The result is encrypted, in which case it is stored in callResult.Unknown
 			case callResult.IsUnknown():
+				var resultEnvelope sdkTypes.ResultEnvelopeX25519DeoxysII
 				if err := cbor.Unmarshal(callResult.Unknown, &resultEnvelope); err != nil {
 					return nil, fmt.Errorf("outer call result unmarshal unknown: %w", err)
 				}
+				encryptedData.ResultNonce = resultEnvelope.Nonce[:]
+				encryptedData.ResultData = resultEnvelope.Data
 			// The result may be unencrypted, in which case it is stored in callResult.Ok
 			//
 			// Note: IsUnknown() is already checked above, but we keep it here to make the
@@ -464,9 +466,12 @@ func EVMMaybeUnmarshalEncryptedData(data []byte, result *[]byte) (*EVMEncryptedD
 			// when the call succeeded and when it is unknown. However, we want this case
 			// to run iff the call succeeded.
 			case callResult.IsSuccess() && !callResult.IsUnknown():
+				var resultEnvelope sdkTypes.ResultEnvelopeX25519DeoxysII
 				if err := cbor.Unmarshal(callResult.Ok, &resultEnvelope); err != nil {
 					return nil, fmt.Errorf("outer call result unmarshal ok: %w", err)
 				}
+				encryptedData.ResultNonce = resultEnvelope.Nonce[:]
+				encryptedData.ResultData = resultEnvelope.Data
 			// For older Sapphire txs, the outer oasis CallResult may be Ok
 			// and the outer sapphire CallResult Failed. In this case, we
 			// extract the failed callResult.
@@ -475,8 +480,6 @@ func EVMMaybeUnmarshalEncryptedData(data []byte, result *[]byte) (*EVMEncryptedD
 			default:
 				return nil, fmt.Errorf("outer call result unsupported variant")
 			}
-			encryptedData.ResultNonce = resultEnvelope.Nonce[:]
-			encryptedData.ResultData = resultEnvelope.Data
 		default:
 			// We have already checked when decoding the call envelope,
 			// but I'm keeping this default case here so we don't forget
