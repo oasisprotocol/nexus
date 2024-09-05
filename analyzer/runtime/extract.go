@@ -26,6 +26,7 @@ import (
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 
 	"github.com/oasisprotocol/nexus/analyzer/evmabi"
+	"github.com/oasisprotocol/nexus/analyzer/runtime/encryption"
 	evm "github.com/oasisprotocol/nexus/analyzer/runtime/evm"
 	uncategorized "github.com/oasisprotocol/nexus/analyzer/uncategorized"
 	"github.com/oasisprotocol/nexus/analyzer/util"
@@ -70,7 +71,7 @@ type BlockTransactionData struct {
 	To                      *apiTypes.Address // Extracted from the body for convenience. Semantics vary by tx type.
 	Amount                  *common.BigInt    // Extracted from the body for convenience. Semantics vary by tx type.
 	AmountSymbol            *string           // Extracted from the body for convenience.
-	EVMEncrypted            *evm.EVMEncryptedData
+	EVMEncrypted            *encryption.EVMEncryptedData
 	EVMContract             *evm.EVMContractData
 	Success                 *bool
 	Error                   *TxError
