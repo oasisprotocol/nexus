@@ -12,7 +12,9 @@ import (
 
 // EVMMaybeUnmarshalEncryptedData breaks down a possibly encrypted data +
 // result into their encryption envelope fields. If the data is not encrypted,
-// it returns nil with no error.
+// it returns nil with no error. This may uncover an encapsulated failed
+// result in certain old Sapphire-style encrypted transactions, which it will
+// return.
 //
 // LESSON: Oasis paratime transaction structure.
 //
@@ -117,36 +119,37 @@ import (
 //   * Tx Body: Stored in the sapphire outer Call.Body
 //   * Success Result: Stored in outer oasis CallResult.Ok
 //   * Failure Result: Stored in outer oasis CallResult.Failed
-func EVMMaybeUnmarshalEncryptedData(data []byte, result *[]byte) (*encryption.EVMEncryptedData, error) {
+func EVMMaybeUnmarshalEncryptedData(data []byte, result *[]byte) (*encryption.EVMEncryptedData, *sdkTypes.FailedCallResult, error) {
 	var encryptedData encryption.EVMEncryptedData
 	var call sdkTypes.Call
 	if cbor.Unmarshal(data, &call) != nil {
 		// Invalid CBOR means it's bare Ethereum format data. This is normal.
 		// https://github.com/oasisprotocol/oasis-sdk/blob/runtime-sdk/v0.3.0/runtime-sdk/modules/evm/src/lib.rs#L626
-		return nil, nil
+		return nil, nil, nil
 	}
 	encryptedData.Format = common.CallFormat(call.Format.String())
 	switch call.Format {
 	case sdkTypes.CallFormatEncryptedX25519DeoxysII:
 		var callEnvelope sdkTypes.CallEnvelopeX25519DeoxysII
 		if err := cbor.Unmarshal(call.Body, &callEnvelope); err != nil {
-			return nil, fmt.Errorf("outer call format %s unmarshal body: %w", call.Format, err)
+			return nil, nil, fmt.Errorf("outer call format %s unmarshal body: %w", call.Format, err)
 		}
 		encryptedData.PublicKey = callEnvelope.Pk[:]
 		encryptedData.DataNonce = callEnvelope.Nonce[:]
 		encryptedData.DataData = callEnvelope.Data
 	// Plain txs have no encrypted fields to extract.
 	case sdkTypes.CallFormatPlain:
-		return nil, nil
+		return nil, nil, nil
 	// If you are adding new call formats, remember to add them to the
 	// database call_format enum too.
 	default:
-		return nil, fmt.Errorf("outer call format %s (%d) not supported", call.Format, call.Format)
+		return nil, nil, fmt.Errorf("outer call format %s (%d) not supported", call.Format, call.Format)
 	}
 	var callResult sdkTypes.CallResult
+	var failedCallResult *sdkTypes.FailedCallResult
 	if result != nil {
 		if err := cbor.Unmarshal(*result, &callResult); err != nil {
-			return nil, fmt.Errorf("unmarshal outer call result: %w", err)
+			return nil, nil, fmt.Errorf("unmarshal outer call result: %w", err)
 		}
 		switch call.Format {
 		case sdkTypes.CallFormatEncryptedX25519DeoxysII:
@@ -155,7 +158,7 @@ func EVMMaybeUnmarshalEncryptedData(data []byte, result *[]byte) (*encryption.EV
 			case callResult.IsUnknown():
 				var resultEnvelope sdkTypes.ResultEnvelopeX25519DeoxysII
 				if err := cbor.Unmarshal(callResult.Unknown, &resultEnvelope); err != nil {
-					return nil, fmt.Errorf("outer call result unmarshal unknown: %w", err)
+					return nil, nil, fmt.Errorf("outer call result unmarshal unknown: %w", err)
 				}
 				encryptedData.ResultNonce = resultEnvelope.Nonce[:]
 				encryptedData.ResultData = resultEnvelope.Data
@@ -168,7 +171,7 @@ func EVMMaybeUnmarshalEncryptedData(data []byte, result *[]byte) (*encryption.EV
 			case callResult.IsSuccess() && !callResult.IsUnknown():
 				var resultEnvelope sdkTypes.ResultEnvelopeX25519DeoxysII
 				if err := cbor.Unmarshal(callResult.Ok, &resultEnvelope); err != nil {
-					return nil, fmt.Errorf("outer call result unmarshal ok: %w", err)
+					return nil, nil, fmt.Errorf("outer call result unmarshal ok: %w", err)
 				}
 				encryptedData.ResultNonce = resultEnvelope.Nonce[:]
 				encryptedData.ResultData = resultEnvelope.Data
@@ -176,16 +179,16 @@ func EVMMaybeUnmarshalEncryptedData(data []byte, result *[]byte) (*encryption.EV
 			// and the outer sapphire CallResult Failed. In this case, we
 			// extract the failed callResult.
 			case callResult.Failed != nil:
-				encryptedData.FailedCallResult = callResult.Failed
+				failedCallResult = callResult.Failed
 			default:
-				return nil, fmt.Errorf("outer call result unsupported variant")
+				return nil, nil, fmt.Errorf("outer call result unsupported variant")
 			}
 		default:
 			// We have already checked when decoding the call envelope,
 			// but I'm keeping this default case here so we don't forget
 			// if this code gets restructured.
-			return nil, fmt.Errorf("outer call result format %s (%d) not supported", call.Format, call.Format)
+			return nil, nil, fmt.Errorf("outer call result format %s (%d) not supported", call.Format, call.Format)
 		}
 	}
-	return &encryptedData, nil
+	return &encryptedData, failedCallResult, nil
 }

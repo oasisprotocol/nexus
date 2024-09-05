@@ -431,7 +431,7 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 					// encryption envelope as its second argument, so passing the unencrypted address
 					// makes it incorrectly declare the whole tx unencrypted.
 					// Note: The address of the created contract is tracked in blockTransactionData.To.
-					if evmEncrypted, err2 := evm.EVMMaybeUnmarshalEncryptedData(body.InitCode, nil); err2 == nil {
+					if evmEncrypted, _, err2 := evm.EVMMaybeUnmarshalEncryptedData(body.InitCode, nil); err2 == nil {
 						blockTransactionData.EVMEncrypted = evmEncrypted
 					} else {
 						logger.Error("error unmarshalling encrypted init code and result, omitting encrypted fields",
@@ -449,13 +449,13 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 					if to, err = addresses.RegisterRelatedEthAddress(blockData.AddressPreimages, blockTransactionData.RelatedAccountAddresses, body.Address); err != nil {
 						return fmt.Errorf("address: %w", err)
 					}
-					if evmEncrypted, err2 := evm.EVMMaybeUnmarshalEncryptedData(body.Data, ok); err2 == nil {
+					if evmEncrypted, failedCallResult, err2 := evm.EVMMaybeUnmarshalEncryptedData(body.Data, ok); err2 == nil {
 						blockTransactionData.EVMEncrypted = evmEncrypted
 						// For non-evm txs as well as older Sapphire txs, the outer CallResult may
 						// be unknown and the inner callResult Failed. In this case, we extract the
 						// error fields.
-						if evmEncrypted != nil && evmEncrypted.FailedCallResult != nil {
-							txErr := extractTxError(*evmEncrypted.FailedCallResult)
+						if failedCallResult != nil {
+							txErr := extractTxError(*failedCallResult)
 							blockTransactionData.Error = &txErr
 							blockTransactionData.Success = common.Ptr(false)
 						}
