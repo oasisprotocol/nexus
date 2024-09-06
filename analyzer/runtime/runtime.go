@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math/big"
 	"strings"
+	"time"
 
 	sdkConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
@@ -239,6 +240,89 @@ func (m *processor) ProcessBlock(ctx context.Context, round uint64) error {
 	return nil
 }
 
+func (m *processor) queueTransactionInsert(batch *storage.QueryBatch, round uint64, timestamp time.Time, transactionData *BlockTransactionData) {
+	var (
+		oasisEncryptedFormat      *common.CallFormat
+		oasisEncryptedPublicKey   *[]byte
+		oasisEncryptedDataNonce   *[]byte
+		oasisEncryptedDataData    *[]byte
+		oasisEncryptedResultNonce *[]byte
+		oasisEncryptedResultData  *[]byte
+	)
+	if transactionData.OasisEncrypted != nil {
+		oasisEncryptedFormat = &transactionData.OasisEncrypted.Format
+		oasisEncryptedPublicKey = &transactionData.OasisEncrypted.PublicKey
+		oasisEncryptedDataNonce = &transactionData.OasisEncrypted.DataNonce
+		oasisEncryptedDataData = &transactionData.OasisEncrypted.DataData
+		oasisEncryptedResultNonce = &transactionData.OasisEncrypted.ResultNonce
+		oasisEncryptedResultData = &transactionData.OasisEncrypted.ResultData
+	}
+	var (
+		evmEncryptedFormat      *common.CallFormat
+		evmEncryptedPublicKey   *[]byte
+		evmEncryptedDataNonce   *[]byte
+		evmEncryptedDataData    *[]byte
+		evmEncryptedResultNonce *[]byte
+		evmEncryptedResultData  *[]byte
+	)
+	if transactionData.EVMEncrypted != nil {
+		evmEncryptedFormat = &transactionData.EVMEncrypted.Format
+		evmEncryptedPublicKey = &transactionData.EVMEncrypted.PublicKey
+		evmEncryptedDataNonce = &transactionData.EVMEncrypted.DataNonce
+		evmEncryptedDataData = &transactionData.EVMEncrypted.DataData
+		evmEncryptedResultNonce = &transactionData.EVMEncrypted.ResultNonce
+		evmEncryptedResultData = &transactionData.EVMEncrypted.ResultData
+	}
+	var errorModule *string
+	var errorCode *uint32
+	var errorMessage *string
+	var errorMessageRaw *string
+	if transactionData.Error != nil {
+		errorModule = &transactionData.Error.Module
+		errorCode = &transactionData.Error.Code
+		errorMessage = transactionData.Error.Message
+		errorMessageRaw = transactionData.Error.RawMessage
+	}
+	batch.Queue(
+		queries.RuntimeTransactionInsert,
+		m.runtime,
+		round,
+		transactionData.Index,
+		transactionData.Hash,
+		transactionData.EthHash,
+		&transactionData.Fee, // pgx bug? Needs a *BigInt (not BigInt) to know how to serialize.
+		transactionData.FeeSymbol,
+		transactionData.FeeProxyModule,
+		transactionData.FeeProxyID,
+		transactionData.GasLimit,
+		transactionData.GasUsed,
+		transactionData.Size,
+		timestamp,
+		oasisEncryptedFormat,
+		oasisEncryptedPublicKey,
+		oasisEncryptedDataNonce,
+		oasisEncryptedDataData,
+		oasisEncryptedResultNonce,
+		oasisEncryptedResultData,
+		transactionData.Method,
+		transactionData.Body,
+		transactionData.To,
+		transactionData.Amount,
+		transactionData.AmountSymbol,
+		evmEncryptedFormat,
+		evmEncryptedPublicKey,
+		evmEncryptedDataNonce,
+		evmEncryptedDataData,
+		evmEncryptedResultNonce,
+		evmEncryptedResultData,
+		transactionData.Success,
+		errorModule,
+		errorCode,
+		errorMessageRaw,
+		errorMessage,
+	)
+}
+
 // queueDbUpdates extends `batch` with queries that reflect `data`.
 func (m *processor) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 	// Block metadata.
@@ -282,64 +366,7 @@ func (m *processor) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 				batch.Queue(queries.RuntimeAccountNumTxsUpsert, m.runtime, addr, 1)
 			}
 		}
-		var (
-			evmEncryptedFormat      *common.CallFormat
-			evmEncryptedPublicKey   *[]byte
-			evmEncryptedDataNonce   *[]byte
-			evmEncryptedDataData    *[]byte
-			evmEncryptedResultNonce *[]byte
-			evmEncryptedResultData  *[]byte
-		)
-		if transactionData.EVMEncrypted != nil {
-			evmEncryptedFormat = &transactionData.EVMEncrypted.Format
-			evmEncryptedPublicKey = &transactionData.EVMEncrypted.PublicKey
-			evmEncryptedDataNonce = &transactionData.EVMEncrypted.DataNonce
-			evmEncryptedDataData = &transactionData.EVMEncrypted.DataData
-			evmEncryptedResultNonce = &transactionData.EVMEncrypted.ResultNonce
-			evmEncryptedResultData = &transactionData.EVMEncrypted.ResultData
-		}
-		var errorModule *string
-		var errorCode *uint32
-		var errorMessage *string
-		var errorMessageRaw *string
-		if transactionData.Error != nil {
-			errorModule = &transactionData.Error.Module
-			errorCode = &transactionData.Error.Code
-			errorMessage = transactionData.Error.Message
-			errorMessageRaw = transactionData.Error.RawMessage
-		}
-		batch.Queue(
-			queries.RuntimeTransactionInsert,
-			m.runtime,
-			data.Header.Round,
-			transactionData.Index,
-			transactionData.Hash,
-			transactionData.EthHash,
-			&transactionData.Fee, // pgx bug? Needs a *BigInt (not BigInt) to know how to serialize.
-			transactionData.FeeSymbol,
-			transactionData.FeeProxyModule,
-			transactionData.FeeProxyID,
-			transactionData.GasLimit,
-			transactionData.GasUsed,
-			transactionData.Size,
-			data.Header.Timestamp,
-			transactionData.Method,
-			transactionData.Body,
-			transactionData.To,
-			transactionData.Amount,
-			transactionData.AmountSymbol,
-			evmEncryptedFormat,
-			evmEncryptedPublicKey,
-			evmEncryptedDataNonce,
-			evmEncryptedDataData,
-			evmEncryptedResultNonce,
-			evmEncryptedResultData,
-			transactionData.Success,
-			errorModule,
-			errorCode,
-			errorMessageRaw,
-			errorMessage,
-		)
+		m.queueTransactionInsert(batch, data.Header.Round, data.Header.Timestamp, transactionData)
 
 		if transactionData.ContractCandidate != nil {
 			// Transaction potentially refers to a contract. Enqueue it for fetching its bytecode.

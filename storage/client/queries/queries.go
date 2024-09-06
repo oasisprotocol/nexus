@@ -447,6 +447,12 @@ const (
 				ELSE COALESCE(FLOOR(txs.fee / NULLIF(txs.gas_limit, 0)) * txs.gas_used, 0)   -- charged_fee=gas_price * gas_used for EVM txs
 			END AS charged_fee,
 			txs.size,
+			txs.oasis_encrypted_format,
+			txs.oasis_encrypted_public_key,
+			txs.oasis_encrypted_data_nonce,
+			txs.oasis_encrypted_data_data,
+			txs.oasis_encrypted_result_nonce,
+			txs.oasis_encrypted_result_data,
 			txs.method,
 			txs.body,
 			txs.to,

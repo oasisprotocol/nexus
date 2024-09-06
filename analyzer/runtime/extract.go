@@ -26,6 +26,7 @@ import (
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 
 	"github.com/oasisprotocol/nexus/analyzer/evmabi"
+	"github.com/oasisprotocol/nexus/analyzer/runtime/encryption"
 	evm "github.com/oasisprotocol/nexus/analyzer/runtime/evm"
 	uncategorized "github.com/oasisprotocol/nexus/analyzer/uncategorized"
 	"github.com/oasisprotocol/nexus/analyzer/util"
@@ -64,13 +65,14 @@ type BlockTransactionData struct {
 	FeeProxyModule          *string
 	FeeProxyID              *[]byte
 	GasLimit                uint64
+	OasisEncrypted          *encryption.EncryptedData
 	Method                  string
 	Body                    interface{}
 	ContractCandidate       *apiTypes.Address // If non-nil, an address that was encountered in the tx and might be a contract.
 	To                      *apiTypes.Address // Extracted from the body for convenience. Semantics vary by tx type.
 	Amount                  *common.BigInt    // Extracted from the body for convenience. Semantics vary by tx type.
 	AmountSymbol            *string           // Extracted from the body for convenience.
-	EVMEncrypted            *evm.EVMEncryptedData
+	EVMEncrypted            *encryption.EncryptedData
 	EVMContract             *evm.EVMContractData
 	Success                 *bool
 	Error                   *TxError
@@ -300,6 +302,17 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 				blockTransactionData.Success = nil
 			}
 
+			if oasisEncrypted, err1 := OasisMaybeUnmarshalEncryptedData(&tx.Call, &txr.Result); err1 == nil {
+				blockTransactionData.OasisEncrypted = oasisEncrypted
+			} else {
+				logger.Error("error unmarshalling encrypted transaction and result, omitting encrypted fields",
+					"round", blockHeader.Round,
+					"tx_index", txIndex,
+					"tx_hash", txr.Tx.Hash(),
+					"err", err1,
+				)
+			}
+
 			blockTransactionData.Method = string(tx.Call.Method)
 			var to apiTypes.Address
 			var amount quantity.Quantity
@@ -430,7 +443,7 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 					// encryption envelope as its second argument, so passing the unencrypted address
 					// makes it incorrectly declare the whole tx unencrypted.
 					// Note: The address of the created contract is tracked in blockTransactionData.To.
-					if evmEncrypted, err2 := evm.EVMMaybeUnmarshalEncryptedData(body.InitCode, nil); err2 == nil {
+					if evmEncrypted, _, err2 := evm.EVMMaybeUnmarshalEncryptedData(body.InitCode, nil); err2 == nil {
 						blockTransactionData.EVMEncrypted = evmEncrypted
 					} else {
 						logger.Error("error unmarshalling encrypted init code and result, omitting encrypted fields",
@@ -448,13 +461,13 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 					if to, err = addresses.RegisterRelatedEthAddress(blockData.AddressPreimages, blockTransactionData.RelatedAccountAddresses, body.Address); err != nil {
 						return fmt.Errorf("address: %w", err)
 					}
-					if evmEncrypted, err2 := evm.EVMMaybeUnmarshalEncryptedData(body.Data, ok); err2 == nil {
+					if evmEncrypted, failedCallResult, err2 := evm.EVMMaybeUnmarshalEncryptedData(body.Data, ok); err2 == nil {
 						blockTransactionData.EVMEncrypted = evmEncrypted
 						// For non-evm txs as well as older Sapphire txs, the outer CallResult may
 						// be unknown and the inner callResult Failed. In this case, we extract the
 						// error fields.
-						if evmEncrypted != nil && evmEncrypted.FailedCallResult != nil {
-							txErr := extractTxError(*evmEncrypted.FailedCallResult)
+						if failedCallResult != nil {
+							txErr := extractTxError(*failedCallResult)
 							blockTransactionData.Error = &txErr
 							blockTransactionData.Success = common.Ptr(false)
 						}

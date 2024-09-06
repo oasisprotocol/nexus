@@ -1480,8 +1480,10 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetR
 		t := RuntimeTransaction{
 			Error: &TxError{},
 		}
-		var encryptionEnvelope RuntimeTransactionEncryptionEnvelope
-		var encryptionEnvelopeFormat *common.CallFormat
+		var oasisEncryptionEnvelope RuntimeTransactionEncryptionEnvelope
+		var oasisEncryptionEnvelopeFormat *common.CallFormat
+		var evmEncryptionEnvelope RuntimeTransactionEncryptionEnvelope
+		var evmEncryptionEnvelopeFormat *common.CallFormat
 		var sender0PreimageContextIdentifier *string
 		var sender0PreimageContextVersion *int
 		var sender0PreimageData []byte
@@ -1508,6 +1510,12 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetR
 			&t.GasUsed,
 			&t.ChargedFee,
 			&t.Size,
+			&oasisEncryptionEnvelopeFormat,
+			&oasisEncryptionEnvelope.PublicKey,
+			&oasisEncryptionEnvelope.DataNonce,
+			&oasisEncryptionEnvelope.Data,
+			&oasisEncryptionEnvelope.ResultNonce,
+			&oasisEncryptionEnvelope.Result,
 			&t.Method,
 			&t.Body,
 			&t.To,
@@ -1516,12 +1524,12 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetR
 			&toPreimageData,
 			&t.Amount,
 			&t.AmountSymbol,
-			&encryptionEnvelopeFormat,
-			&encryptionEnvelope.PublicKey,
-			&encryptionEnvelope.DataNonce,
-			&encryptionEnvelope.Data,
-			&encryptionEnvelope.ResultNonce,
-			&encryptionEnvelope.Result,
+			&evmEncryptionEnvelopeFormat,
+			&evmEncryptionEnvelope.PublicKey,
+			&evmEncryptionEnvelope.DataNonce,
+			&evmEncryptionEnvelope.Data,
+			&evmEncryptionEnvelope.ResultNonce,
+			&evmEncryptionEnvelope.Result,
 			&t.Success,
 			&t.EvmFnName,
 			&t.EvmFnParams,
@@ -1541,9 +1549,13 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetR
 		} else if errorCode != nil {
 			t.Error.Code = *errorCode
 		}
-		if encryptionEnvelopeFormat != nil { // a rudimentary check to determine if the tx was encrypted
-			encryptionEnvelope.Format = *encryptionEnvelopeFormat
-			t.EncryptionEnvelope = &encryptionEnvelope
+		if oasisEncryptionEnvelopeFormat != nil { // a rudimentary check to determine if the tx was encrypted
+			oasisEncryptionEnvelope.Format = *oasisEncryptionEnvelopeFormat
+			t.OasisEncryptionEnvelope = &oasisEncryptionEnvelope
+		}
+		if evmEncryptionEnvelopeFormat != nil { // a rudimentary check to determine if the tx was encrypted
+			evmEncryptionEnvelope.Format = *evmEncryptionEnvelopeFormat
+			t.EncryptionEnvelope = &evmEncryptionEnvelope
 		}
 
 		// Render Ethereum-compatible address preimages.
