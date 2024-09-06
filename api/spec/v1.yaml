@@ -274,22 +274,27 @@ paths:
 
   /consensus/transactions/{tx_hash}:
     get:
-      summary: Returns a consensus transaction.
+      summary: Returns consensus transactions with the given transaction hash.
       parameters:
         - in: path
           name: tx_hash
           required: true
           schema:
             type: string
-          description: The transaction hash of the transaction to return.
+          description: |
+            The transaction hash of the transaction(s) to return.
+            This endpoint can return multiple transactions in cases,
+            where an already processed transaction is re-sent. In such cases
+            only a single transaction will be sucesfully proccessed, others
+            will have a failed status (e.g. 'Invlaid nonce').
           example: *tx_hash_1
       responses:
         '200':
-          description: A JSON object containing a consensus transaction.
+          description: The requested consensus transaction(s).
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Transaction'
+                $ref: '#/components/schemas/TransactionList'
         <<: *common_error_responses
 
   /consensus/events:
@@ -497,7 +502,7 @@ paths:
             application/json:
               schema:
                   $ref: '#/components/schemas/ValidatorList'
-                
+
         <<: *common_error_responses
 
   /consensus/validators/{address}:
@@ -550,7 +555,7 @@ paths:
       responses:
         '200':
           description: |
-            A JSON object containing historical information for a 
+            A JSON object containing historical information for a
             validator, grouped by epoch in reverse chronological order.
           content:
             application/json:
@@ -1849,7 +1854,7 @@ components:
       required: [validator_list, stats]
       properties:
         validator_list:
-          allOf: [$ref: '#/components/schemas/ValidatorList'] 
+          allOf: [$ref: '#/components/schemas/ValidatorList']
         stats:
           allOf: [$ref: '#/components/schemas/ValidatorAggStats']
           description: Summary statistics across all consensus validators.
@@ -1870,7 +1875,7 @@ components:
           description: |
             A list of validators registered at the consensus layer, plus summary
             statistics across all consensus validators.
-    
+
     ValidatorAggStats:
       type: object
       required: [total_voting_power, total_delegators, total_staked_balance]
@@ -1956,7 +1961,7 @@ components:
         voting_power_cumulative:
           type: integer
           format: int64
-          description: The cumulative voting power of this validator and all other validators ranked higher than itself. 
+          description: The cumulative voting power of this validator and all other validators ranked higher than itself.
         active:
           type: boolean
           description: Whether the entity has a node that is registered for being a validator, node is up to date, and has successfully registered itself. It may or may not be part of validator set.
@@ -2012,7 +2017,7 @@ components:
           type: integer
           format: uint64
           description: The number of accounts that have delegated token to this account.
-    
+
     ValidatorHistory:
       allOf:
         - $ref: '#/components/schemas/List'
@@ -2041,24 +2046,24 @@ components:
         active_balance:
           allOf: [$ref: '#/components/schemas/TextBigInt']
           description: |
-            The amount of tokens that were delegated to this validator account, 
+            The amount of tokens that were delegated to this validator account,
             at the start of this epoch, and are NOT in the process of debonding.
         active_shares:
           allOf: [$ref: '#/components/schemas/TextBigInt']
           description: |
-            The shares of tokens that were delegated to this validator account, 
+            The shares of tokens that were delegated to this validator account,
             at the start of this epoch, and are NOT in the process of debonding.
         debonding_balance:
           allOf: [$ref: '#/components/schemas/TextBigInt']
           description: |
             The amount of tokens that were delegated to this validator account
-            at the start of this epoch, but are also in the process of debonding 
+            at the start of this epoch, but are also in the process of debonding
             (i.e. they will be unstaked within ~2 weeks).
         debonding_shares:
           allOf: [$ref: '#/components/schemas/TextBigInt']
           description: |
             The shares of tokens that were delegated to this validator account
-            at the start of this epoch, but are also in the process of debonding 
+            at the start of this epoch, but are also in the process of debonding
             (i.e. they will be unstaked within ~2 weeks).
         num_delegators:
           type: integer

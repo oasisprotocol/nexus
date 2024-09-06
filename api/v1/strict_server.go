@@ -229,7 +229,7 @@ func (srv *StrictServerImpl) GetLayerStatsActiveAccounts(ctx context.Context, re
 }
 
 func (srv *StrictServerImpl) GetConsensusTransactions(ctx context.Context, request apiTypes.GetConsensusTransactionsRequestObject) (apiTypes.GetConsensusTransactionsResponseObject, error) {
-	txs, err := srv.dbClient.Transactions(ctx, request.Params)
+	txs, err := srv.dbClient.Transactions(ctx, request.Params, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -237,11 +237,14 @@ func (srv *StrictServerImpl) GetConsensusTransactions(ctx context.Context, reque
 }
 
 func (srv *StrictServerImpl) GetConsensusTransactionsTxHash(ctx context.Context, request apiTypes.GetConsensusTransactionsTxHashRequestObject) (apiTypes.GetConsensusTransactionsTxHashResponseObject, error) {
-	tx, err := srv.dbClient.Transaction(ctx, request.TxHash)
+	txs, err := srv.dbClient.Transactions(ctx, apiTypes.GetConsensusTransactionsParams{}, &request.TxHash)
 	if err != nil {
 		return nil, err
 	}
-	return apiTypes.GetConsensusTransactionsTxHash200JSONResponse(*tx), nil
+	if len(txs.Transactions) == 0 {
+		return apiTypes.GetConsensusTransactionsTxHash404JSONResponse{}, nil
+	}
+	return apiTypes.GetConsensusTransactionsTxHash200JSONResponse(*txs), nil
 }
 
 func (srv *StrictServerImpl) GetConsensusValidators(ctx context.Context, request apiTypes.GetConsensusValidatorsRequestObject) (apiTypes.GetConsensusValidatorsResponseObject, error) {

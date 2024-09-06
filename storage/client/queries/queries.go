@@ -62,21 +62,16 @@ const (
 				-- When related_address ($4) is NULL and hence we do no filtering on it, avoid the join altogether.
 				-- Otherwise, every tx will be returned as many times as there are related addresses for it.
 				AND $4::text IS NOT NULL
-			WHERE ($1::bigint IS NULL OR chain.transactions.block = $1::bigint) AND
-					($2::text IS NULL OR chain.transactions.method = $2::text) AND
-					($3::text IS NULL OR chain.transactions.sender = $3::text) AND
-					($4::text IS NULL OR chain.accounts_related_transactions.account_address = $4::text) AND
-					($5::timestamptz IS NULL OR chain.blocks.time >= $5::timestamptz) AND
-					($6::timestamptz IS NULL OR chain.blocks.time < $6::timestamptz)
+			WHERE ($1::text IS NULL OR chain.transactions.tx_hash = $1::text) AND
+					($2::bigint IS NULL OR chain.transactions.block = $2::bigint) AND
+					($3::text IS NULL OR chain.transactions.method = $3::text) AND
+					($4::text IS NULL OR chain.transactions.sender = $4::text) AND
+					($5::text IS NULL OR chain.accounts_related_transactions.account_address = $5::text) AND
+					($6::timestamptz IS NULL OR chain.blocks.time >= $6::timestamptz) AND
+					($7::timestamptz IS NULL OR chain.blocks.time < $7::timestamptz)
 			ORDER BY chain.transactions.block DESC, chain.transactions.tx_index
-			LIMIT $7::bigint
-			OFFSET $8::bigint`
-
-	Transaction = `
-		SELECT block, tx_index, tx_hash, sender, nonce, fee_amount, max_gas, method, body, code, module, message, chain.blocks.time
-			FROM chain.transactions
-			JOIN chain.blocks ON chain.transactions.block = chain.blocks.height
-			WHERE tx_hash = $1::text`
+			LIMIT $8::bigint
+			OFFSET $9::bigint`
 
 	Events = `
 		SELECT tx_block, tx_index, tx_hash, roothash_runtime_id, roothash_runtime, roothash_runtime_round, type, body
@@ -358,7 +353,7 @@ const (
 			COALESCE (
 				validator_nodes.voting_power
 			, 0) AS voting_power,
-			SUM(validator_nodes.voting_power) 
+			SUM(validator_nodes.voting_power)
 				OVER (ORDER BY validator_rank.rank) AS voting_power_cumulative,
 			COALESCE(chain.commissions.schedule, '{}'::JSONB) AS commissions_schedule,
 			chain.blocks.time AS start_date,
@@ -390,7 +385,7 @@ const (
 		OFFSET $4::bigint`
 
 	ValidatorHistory = `
-		SELECT 
+		SELECT
 			epoch,
 			escrow_balance_active,
 			escrow_total_shares_active,

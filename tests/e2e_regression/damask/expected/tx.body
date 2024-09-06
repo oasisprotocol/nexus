@@ -1,21 +1,27 @@
 {
-  "block": 8049424,
-  "body": {
-    "amount": "100000",
-    "to": "oasis1qp6pu7sr822u3mecyt3vtzm54wq2rl5ezg5gutvz"
-  },
-  "error": {
-    "code": 9,
-    "message": "staking: amount is lower than the minimum transfer amount",
-    "module": "staking"
-  },
-  "fee": "0",
-  "gas_limit": "1263",
-  "hash": "f7a03e0912d355901ee794e5fec79a6b4c91363fc27d953596ee6de5c1492798",
-  "index": 0,
-  "method": "staking.Transfer",
-  "nonce": 11,
-  "sender": "oasis1qqnk4au603zs94k0d0n7c0hkx8t4p6r87s60axru",
-  "success": false,
-  "timestamp": "2022-04-11T11:52:24Z"
+  "is_total_count_clipped": false,
+  "total_count": 1,
+  "transactions": [
+    {
+      "block": 8049424,
+      "body": {
+        "amount": "100000",
+        "to": "oasis1qp6pu7sr822u3mecyt3vtzm54wq2rl5ezg5gutvz"
+      },
+      "error": {
+        "code": 9,
+        "message": "staking: amount is lower than the minimum transfer amount",
+        "module": "staking"
+      },
+      "fee": "0",
+      "gas_limit": "1263",
+      "hash": "f7a03e0912d355901ee794e5fec79a6b4c91363fc27d953596ee6de5c1492798",
+      "index": 0,
+      "method": "staking.Transfer",
+      "nonce": 11,
+      "sender": "oasis1qqnk4au603zs94k0d0n7c0hkx8t4p6r87s60axru",
+      "success": false,
+      "timestamp": "2022-04-11T11:52:24Z"
+    }
+  ]
 }

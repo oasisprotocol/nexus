@@ -1,16 +1,22 @@
 {
-  "block": 16818955,
-  "body": {
-    "amount": "50000000",
-    "to": "oasis1qqv9tknl8afkxkzszwl80g3wz80f2w8u0g502ewc"
-  },
-  "fee": "0",
-  "gas_limit": "1259",
-  "hash": "142d43e5194b738ab2223f8d0b42326fab06edd714a8cefc59a078b89b5de057",
-  "index": 0,
-  "method": "staking.Transfer",
-  "nonce": 20711,
-  "sender": "oasis1qzrycs7qhh455dj0nwzfd3y5um4m7f2p75yksjvh",
-  "success": true,
-  "timestamp": "2023-11-29T18:09:59Z"
+  "is_total_count_clipped": false,
+  "total_count": 1,
+  "transactions": [
+    {
+      "block": 16818955,
+      "body": {
+        "amount": "50000000",
+        "to": "oasis1qqv9tknl8afkxkzszwl80g3wz80f2w8u0g502ewc"
+      },
+      "fee": "0",
+      "gas_limit": "1259",
+      "hash": "142d43e5194b738ab2223f8d0b42326fab06edd714a8cefc59a078b89b5de057",
+      "index": 0,
+      "method": "staking.Transfer",
+      "nonce": 20711,
+      "sender": "oasis1qzrycs7qhh455dj0nwzfd3y5um4m7f2p75yksjvh",
+      "success": true,
+      "timestamp": "2023-11-29T18:09:59Z"
+    }
+  ]
 }
