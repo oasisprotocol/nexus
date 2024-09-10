@@ -28,5 +28,10 @@
         "Name": "Zero Address",
         "Address": "oasis1qq2v39p9fqk997vk6742axrzqyu9v2ncyuqt8uek",
         "Description": "This address is the oasis-standard derivation/counterpart of the Ethereum address 0x0. Sometimes used in internal data representations to indicate the absence of an account. For example, token mints are encoded as transfers from this address, and token burns as transfers to this address."
+    },
+    {
+        "Name": "Subcall Precompile",
+        "Address": "oasis1qzr543mmela3xwflqtz3e0l8jzp8tupf3v59r6qn",
+        "Description": "Interacts with Oasis Runtime SDK modules. Some transactions are performed in two steps and emit event in the next block."
     }
 ]
