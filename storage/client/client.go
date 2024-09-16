@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"math/big"
 	"strings"
@@ -277,6 +278,24 @@ func (c *StorageClient) Status(ctx context.Context) (*Status, error) {
 	return &s, nil
 }
 
+type entityInfoRow struct {
+	EntityID       *string
+	EntityAddress  *string
+	EntityMetadata *json.RawMessage
+}
+
+func entityInfoFromRow(r entityInfoRow) apiTypes.EntityInfo {
+	var entityMetadataAny any
+	if r.EntityMetadata != nil {
+		entityMetadataAny = *r.EntityMetadata
+	}
+	return apiTypes.EntityInfo{
+		EntityAddress:  r.EntityAddress,
+		EntityId:       r.EntityID,
+		EntityMetadata: &entityMetadataAny,
+	}
+}
+
 // Blocks returns a list of consensus blocks.
 func (c *StorageClient) Blocks(ctx context.Context, r apiTypes.GetConsensusBlocksParams) (*BlockList, error) {
 	hash, err := canonicalizedHash(r.Hash)
@@ -306,10 +325,31 @@ func (c *StorageClient) Blocks(ctx context.Context, r apiTypes.GetConsensusBlock
 	}
 	for res.rows.Next() {
 		var b Block
-		if err := res.rows.Scan(&b.Height, &b.Hash, &b.Timestamp, &b.NumTransactions, &b.GasLimit, &b.SizeLimit, &b.Epoch, &b.StateRoot); err != nil {
+		var proposerRow entityInfoRow
+		var signerRows []entityInfoRow
+		if err := res.rows.Scan(
+			&b.Height,
+			&b.Hash,
+			&b.Timestamp,
+			&b.NumTransactions,
+			&b.GasLimit,
+			&b.SizeLimit,
+			&b.Epoch,
+			&b.StateRoot,
+			&proposerRow,
+			&signerRows,
+		); err != nil {
 			return nil, wrapError(err)
 		}
 		b.Timestamp = b.Timestamp.UTC()
+		proposer := entityInfoFromRow(proposerRow)
+		b.Proposer = &proposer
+		signers := make([]apiTypes.EntityInfo, 0, len(signerRows))
+		for _, signerRow := range signerRows {
+			signer := entityInfoFromRow(signerRow)
+			signers = append(signers, signer)
+		}
+		b.Signers = &signers
 
 		bs.Blocks = append(bs.Blocks, b)
 	}

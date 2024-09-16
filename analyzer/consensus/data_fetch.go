@@ -97,6 +97,11 @@ func fetchAllData(ctx context.Context, cc nodeapi.ConsensusApiLite, network sdkC
 
 // fetchBlockData retrieves data about a consensus block at the provided block height.
 func fetchBlockData(ctx context.Context, cc nodeapi.ConsensusApiLite, height int64) (*consensusBlockData, error) {
+	nodes, err := cc.GetNodes(ctx, height)
+	if err != nil {
+		return nil, err
+	}
+
 	block, err := cc.GetBlock(ctx, height)
 	if err != nil {
 		return nil, err
@@ -119,6 +124,7 @@ func fetchBlockData(ctx context.Context, cc nodeapi.ConsensusApiLite, height int
 
 	return &consensusBlockData{
 		Height:                  height,
+		Nodes:                   nodes,
 		BlockHeader:             block,
 		Epoch:                   epoch,
 		GasLimit:                params.MaxBlockGas,
@@ -354,6 +360,8 @@ type allData struct {
 // consensusBlockData represents data for a consensus block at a given height.
 type consensusBlockData struct {
 	Height int64
+
+	Nodes []nodeapi.Node
 
 	BlockHeader             *consensus.Block
 	Epoch                   beacon.EpochTime

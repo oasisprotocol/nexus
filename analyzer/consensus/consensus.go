@@ -14,6 +14,8 @@ import (
 	coreCommon "github.com/oasisprotocol/oasis-core/go/common"
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
+	cometbft "github.com/oasisprotocol/oasis-core/go/consensus/cometbft/api"
+	"github.com/oasisprotocol/oasis-core/go/consensus/cometbft/crypto"
 	sdkConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 
 	"github.com/oasisprotocol/nexus/analyzer/consensus/static"
@@ -368,8 +370,48 @@ func (m *processor) ProcessBlock(ctx context.Context, uheight uint64) error {
 }
 
 func (m *processor) queueBlockInserts(batch *storage.QueryBatch, data *consensusBlockData) error {
+	// Prepare a mapping of node consensus addresses.
+	//
+	// CometBFT (formerly Tendermint) uses a truncated hash of the entity's
+	// public key as its address format. Specifically, the address (a
+	// [20]byte) is the first 20 bytes of the SHA-256 of the public key.
+	// Since CometBFT is what oasis-core uses for its consensus mechanism,
+	// these addresses are what we're given in the block metadata for the
+	// proposer and signers. Because the address derivation is one-way, we
+	// need a map to convert them to Oasis-style addresses (base64 public
+	// keys).
+	consensusToEntity := map[string]signature.PublicKey{}
+	for _, n := range data.Nodes {
+		consensusAddress := crypto.PublicKeyToCometBFT(common.Ptr(n.Consensus.ID)).Address().String()
+		consensusToEntity[consensusAddress] = n.EntityID
+	}
+
+	var cmtMeta cometbft.BlockMeta
+	if err := cbor.Unmarshal(data.BlockHeader.Meta, &cmtMeta); err != nil {
+		m.logger.Warn("could not unmarshal block meta, may be incompatible version",
+			"height", data.BlockHeader.Height,
+			"err", err,
+		)
+		// We only try to unmarshal into the current version of the metadata
+		// structure (oasis-core Eden + CometBFT at time of writing). This may
+		// fail on blocks from an incompatible earlier version. Skip indexing
+		// the block metadata in that case.
+	}
+
+	var proposerAddr *string
+	if cmtMeta.Header != nil {
+		entity, ok := consensusToEntity[cmtMeta.Header.ProposerAddress.String()]
+		if !ok {
+			m.logger.Warn("could not convert block proposer address to entity id (address not found)",
+				"height", data.BlockHeader.Height,
+				"proposer", cmtMeta.Header.ProposerAddress.String(),
+			)
+		} else {
+			proposerAddr = common.Ptr(entity.String())
+		}
+	}
 	batch.Queue(
-		queries.ConsensusBlockInsert,
+		queries.ConsensusBlockUpsert,
 		data.BlockHeader.Height,
 		data.BlockHeader.Hash.Hex(),
 		data.BlockHeader.Time.UTC(),
@@ -380,7 +422,31 @@ func (m *processor) queueBlockInserts(batch *storage.QueryBatch, data *consensus
 		data.Epoch,
 		data.GasLimit,
 		data.SizeLimit,
+		proposerAddr,
 	)
+
+	if cmtMeta.LastCommit != nil && cmtMeta.LastCommit.BlockID.IsComplete() {
+		prevSigners := make([]string, 0, len(cmtMeta.LastCommit.Signatures))
+		for _, cs := range cmtMeta.LastCommit.Signatures {
+			if cs.Absent() {
+				continue
+			}
+			entity, ok := consensusToEntity[cs.ValidatorAddress.String()]
+			if !ok {
+				m.logger.Warn("could not convert block signer address to entity id (address not found)",
+					"height", data.BlockHeader.Height,
+					"signer", cs.ValidatorAddress.String(),
+				)
+				continue
+			}
+			prevSigners = append(prevSigners, entity.String())
+		}
+		batch.Queue(
+			queries.ConsensusBlockAddSigners,
+			cmtMeta.LastCommit.Height,
+			prevSigners,
+		)
+	}
 
 	return nil
 }

@@ -24,13 +24,39 @@ const (
 			WHERE layer=$1`
 
 	Blocks = `
-		SELECT height, block_hash, time, num_txs, gas_limit, size_limit, epoch, state_root
-			FROM chain.blocks
-			WHERE ($1::bigint IS NULL OR height >= $1::bigint) AND
-						($2::bigint IS NULL OR height <= $2::bigint) AND
-						($3::timestamptz IS NULL OR time >= $3::timestamptz) AND
-						($4::timestamptz IS NULL OR time < $4::timestamptz) AND
-						($5::text IS NULL OR block_hash = $5::text)
+		SELECT
+			height,
+			block_hash,
+			time,
+			num_txs,
+			gas_limit,
+			size_limit,
+			epoch,
+			state_root,
+			ROW(
+			    proposer_entity.id,
+			    proposer_entity.address,
+			    proposer_entity.meta
+			) AS proposer_entity_info,
+			ARRAY( -- Select block signers and map them into an array column named signer_node_infos.
+				SELECT
+					ROW(
+						signer_entity.id,
+						signer_entity.address,
+						signer_entity.meta
+					)
+				FROM UNNEST(signer_entity_ids) AS signer_entity_id
+				LEFT JOIN chain.entities AS signer_entity ON signer_entity.id = signer_entity_id
+				ORDER BY signer_entity.address
+			) AS signer_node_infos
+		FROM chain.blocks
+		LEFT JOIN chain.entities AS proposer_entity ON proposer_entity.id = proposer_entity_id
+		WHERE
+			($1::bigint IS NULL OR height >= $1::bigint) AND
+			($2::bigint IS NULL OR height <= $2::bigint) AND
+			($3::timestamptz IS NULL OR time >= $3::timestamptz) AND
+			($4::timestamptz IS NULL OR time < $4::timestamptz) AND
+			($5::text IS NULL OR block_hash = $5::text)
 		ORDER BY height DESC
 		LIMIT $6::bigint
 		OFFSET $7::bigint`

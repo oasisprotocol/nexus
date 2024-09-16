@@ -166,9 +166,26 @@ var (
         SET
         height = excluded.height`
 
-	ConsensusBlockInsert = `
-    INSERT INTO chain.blocks (height, block_hash, time, num_txs, namespace, version, state_root, epoch, gas_limit, size_limit)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`
+	ConsensusBlockUpsert = `
+    INSERT INTO chain.blocks (height, block_hash, time, num_txs, namespace, version, state_root, epoch, gas_limit, size_limit, proposer_entity_id)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+    ON CONFLICT (height) DO UPDATE
+    SET
+      block_hash = excluded.block_hash,
+      time = excluded.time,
+      num_txs = excluded.num_txs,
+      namespace = excluded.namespace,
+      version = excluded.version,
+      state_root = excluded.state_root,
+      epoch = excluded.epoch,
+      gas_limit = excluded.gas_limit,
+      size_limit = excluded.size_limit,
+      proposer_entity_id = excluded.proposer_entity_id`
+
+	ConsensusBlockAddSigners = `
+    UPDATE chain.blocks
+      SET signer_entity_ids = $2
+      WHERE height = $1`
 
 	ConsensusEpochUpsert = `
     INSERT INTO chain.epochs AS old (id, start_height, end_height)

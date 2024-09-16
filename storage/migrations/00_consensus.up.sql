@@ -25,14 +25,14 @@ CREATE DOMAIN public.eth_addr BYTEA CHECK(length(VALUE) = 20);
 CREATE TABLE chain.blocks
 (
   height     UINT63 PRIMARY KEY,
-  block_hash HEX64 NOT NULL,
-  time       TIMESTAMP WITH TIME ZONE NOT NULL,
-  num_txs    UINT31 NOT NULL,
+  block_hash HEX64 NOT NULL,  -- NULL in 32_block_meta.up.sql
+  time       TIMESTAMP WITH TIME ZONE NOT NULL,  -- NULL in 32_block_meta.up.sql
+  num_txs    UINT31 NOT NULL,  -- NULL in 32_block_meta.up.sql
 
   -- State Root Info
-  namespace TEXT NOT NULL,
-  version   UINT63 NOT NULL,
-  root_hash HEX64 NOT NULL, -- Renamed to `state_root` in 21_consensus_block.up.sql.
+  namespace TEXT NOT NULL,  -- NULL in 32_block_meta.up.sql
+  version   UINT63 NOT NULL,  -- NULL in 32_block_meta.up.sql
+  root_hash HEX64 NOT NULL, -- Renamed to `state_root` in 21_consensus_block.up.sql, NULL in 32_block_meta.up.sql
 
   -- removed in 21_consensus_block.up.sql
   type      TEXT NOT NULL, -- for consensus blocks, this is always "state-root".
@@ -46,6 +46,10 @@ CREATE TABLE chain.blocks
   -- size_limit UINT_NUMERIC NOT NULL, -- uint64 in go; because the value might conceivably be >2^63, we use UINT_NUMERIC over UINT63 here.
 
   metadata   JSONB
+
+  -- added in 32_block_meta.up.sql
+  -- proposer_entity_id base64_ed25519_pubkey,
+  -- signer_entity_ids base64_ed25519_pubkey[]
 );
 CREATE INDEX ix_blocks_time ON chain.blocks (time);
 -- CREATE INDEX ix_blocks_block_hash ON chain.blocks (block_hash); -- Needed to lookup blocks by hash. -- added in 21_consensus_block_hash.up.sql
@@ -158,6 +162,8 @@ CREATE TABLE chain.nodes
 
   -- Consensus Info
   consensus_pubkey  TEXT NOT NULL,
+  -- added in 32_block_meta.up.sql
+  -- consensus_pubkey_address TEXT,
   consensus_address TEXT,
 
   -- VRF Info
@@ -171,6 +177,8 @@ CREATE TABLE chain.nodes
 
   -- TODO: Track node status.
 );
+-- added in 32_block_meta.up.sql
+-- CREATE INDEX ix_nodes_consensus_pubkey_address ON chain.nodes (consensus_pubkey_address);
 
 -- Claims of entities that they own nodes. Each entity claims 0 or more nodes when it registers.
 -- A node can only register if it declares itself to be owned by an entity that previously claimed it.
