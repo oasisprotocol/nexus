@@ -272,6 +272,10 @@ var (
     INSERT INTO chain.events (type, body, tx_block, tx_hash, tx_index, related_accounts, roothash_runtime_id, roothash_runtime, roothash_runtime_round)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`
 
+	ConsensusEscrowEventInsert = `
+    INSERT INTO history.escrow_events (tx_block, epoch, type, delegatee, delegator, shares, amount, debonding_amount)
+    VALUES ($1, $2, $3, $4, $5, $6, $7)`
+
 	ConsensusRoothashMessageScheduleUpsert = `
     INSERT INTO chain.roothash_messages
       (runtime, round, message_index, type, body, related_accounts)
@@ -523,6 +527,13 @@ var (
 	ValidatorBalanceInsert = `
     INSERT INTO history.validators (id, epoch, escrow_balance_active, escrow_balance_debonding, escrow_total_shares_active, escrow_total_shares_debonding, num_delegators)
       VALUES ($1, $2, $3, $4, $5, $6, $7)`
+
+	ValidatorStakingRewardUpdate = `
+    UPDATE history.validators
+    SET staking_rewards = $3
+    WHERE 
+      id = $1 AND
+      epoch = $2`
 
 	EpochValidatorsUpdate = `
     UPDATE chain.epochs

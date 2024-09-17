@@ -148,6 +148,17 @@ func (p *processor) ProcessItem(ctx context.Context, batch *storage.QueryBatch, 
 			validators[vID] = struct{}{}
 		}
 	}
+	// Download staking events for the first block, which includes validator staking rewards.
+	stakingEvents, err := p.source.StakingEvents(ctx, epoch.startHeight)
+	if err != nil {
+		return fmt.Errorf("downloading staking events for height %d", epoch.startHeight)
+	}
+	stakingRewards := make(map[nodeapi.Address]nodeapi.AddEscrowEvent)
+	for _, e := range stakingEvents {
+		if e.StakingAddEscrow != nil && e.StakingAddEscrow.NewShares != nil && e.StakingAddEscrow.NewShares.IsZero() {
+			stakingRewards[e.StakingAddEscrow.Escrow] = *e.StakingAddEscrow
+		}
+	}
 	// Download info for each validator.
 	validatorIDs := []string{}
 	for vID := range validators {
@@ -171,6 +182,14 @@ func (p *processor) ProcessItem(ctx context.Context, batch *storage.QueryBatch, 
 			acct.Escrow.Debonding.TotalShares,
 			len(delegations),
 		)
+		// Update staking rewards for this validator in the previous epoch.
+		if ev, exists := stakingRewards[addr]; exists {
+			batch.Queue(queries.ValidatorStakingRewardUpdate,
+				vID.String(),
+				epoch.epoch-1, // previous epoch
+				ev.Amount,
+			)
+		}
 		p.logger.Info("processed validator", "addr", addr, "height", epoch.startHeight)
 	}
 

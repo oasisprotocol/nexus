@@ -957,12 +957,6 @@ func (m *processor) queueBurns(batch *storage.QueryBatch, data *stakingData) err
 }
 
 func (m *processor) queueEscrows(batch *storage.QueryBatch, data *stakingData) error {
-	if m.mode == analyzer.FastSyncMode {
-		// Skip dead reckoning of escrows during fast sync.
-		// Genesis contains all info on escrow balances (active, debonding) and delegations.
-		return nil
-	}
-
 	for _, e := range data.AddEscrows {
 		owner := e.Owner.String()
 		escrower := e.Escrow.String()
@@ -976,111 +970,155 @@ func (m *processor) queueEscrows(batch *storage.QueryBatch, data *stakingData) e
 		} else {
 			newShares = e.NewShares.String()
 		}
-		batch.Queue(queries.ConsensusDecreaseGeneralBalanceUpsert,
-			owner,
-			amount,
-		)
-		batch.Queue(queries.ConsensusAddEscrowBalanceUpsert,
+		batch.Queue(queries.ConsensusEscrowEventInsert,
+			data.Height,
+			data.Epoch,
+			apiTypes.ConsensusEventTypeStakingEscrowAdd,
 			escrower,
-			amount,
+			owner,
 			newShares,
+			amount,
 		)
-		if newShares != "0" {
-			// When rewards are distributed, an `AddEscrowEvent` with `new_shares` set to 0 is emitted. This makes sense,
-			// since rewards increase the Escrow balance without adding new shares - it increases the existing shares price.
-			//
-			// Do not track these as delegations.
-			batch.Queue(queries.ConsensusAddDelegationsUpsert,
-				escrower,
+		// Update dead-reckoned accounts/delegations tables if in slow-sync mode.
+		if m.mode == analyzer.SlowSyncMode {
+			batch.Queue(queries.ConsensusDecreaseGeneralBalanceUpsert,
 				owner,
+				amount,
+			)
+			batch.Queue(queries.ConsensusAddEscrowBalanceUpsert,
+				escrower,
+				amount,
 				newShares,
 			)
+			if newShares != "0" {
+				// When rewards are distributed, an `AddEscrowEvent` with `new_shares` set to 0 is emitted. This makes sense,
+				// since rewards increase the Escrow balance without adding new shares - it increases the existing shares price.
+				//
+				// Do not track these as delegations.
+				batch.Queue(queries.ConsensusAddDelegationsUpsert,
+					escrower,
+					owner,
+					newShares,
+				)
+			}
 		}
 	}
 	for _, e := range data.TakeEscrows {
-		if e.DebondingAmount == nil {
-			// Old-style event; the breakdown of slashed amount between active vs debonding stake
-			// needs to be computed based current active vs debonding stake balance. Potentially
-			// a source of rounding errors. Only needed for Cobalt and Damask; Emerald introduces
-			// the .DebondingAmount field.
-			if m.mode == analyzer.FastSyncMode {
-				// Superstitious / hyperlocal check: Make double-sure we're not in fast-sync mode.
-				return errors.New("dead-reckoning for an old-style TakeEscrowsEvent cannot be performed in fast-sync as the reckoning operation is not commutative, so blocks must be processed in order")
+		var debondingAmount string
+		if e.DebondingAmount != nil {
+			debondingAmount = e.DebondingAmount.String()
+		}
+		batch.Queue(queries.ConsensusEscrowEventInsert,
+			data.Height,
+			data.Epoch,
+			apiTypes.ConsensusEventTypeStakingEscrowTake,
+			e.Owner.String(),
+			nil, // delegator
+			nil,
+			e.Amount.String(),
+			debondingAmount,
+		)
+		// Update dead-reckoned accounts/delegations tables if in slow-sync mode.
+		if m.mode == analyzer.SlowSyncMode {
+			if e.DebondingAmount == nil {
+				// Old-style event; the breakdown of slashed amount between active vs debonding stake
+				// needs to be computed based current active vs debonding stake balance. Potentially
+				// a source of rounding errors. Only needed for Cobalt and Damask; Emerald introduces
+				// the .DebondingAmount field.
+				if m.mode == analyzer.FastSyncMode {
+					// Superstitious / hyperlocal check: Make double-sure we're not in fast-sync mode.
+					return errors.New("dead-reckoning for an old-style TakeEscrowsEvent cannot be performed in fast-sync as the reckoning operation is not commutative, so blocks must be processed in order")
+				}
+				batch.Queue(queries.ConsensusTakeEscrowUpdateGuessRatio,
+					e.Owner.String(),
+					e.Amount.String(),
+				)
+			} else {
+				batch.Queue(queries.ConsensusTakeEscrowUpdateExact,
+					e.Owner.String(),
+					e.Amount.String(),
+					e.DebondingAmount.String(),
+				)
 			}
-			batch.Queue(queries.ConsensusTakeEscrowUpdateGuessRatio,
-				e.Owner.String(),
-				e.Amount.String(),
-			)
-		} else {
-			batch.Queue(queries.ConsensusTakeEscrowUpdateExact,
-				e.Owner.String(),
-				e.Amount.String(),
-				e.DebondingAmount.String(),
-			)
 		}
 	}
 	for _, e := range data.DebondingStartEscrows {
-		batch.Queue(queries.ConsensusDebondingStartEscrowBalanceUpdate,
+		batch.Queue(queries.ConsensusEscrowEventInsert,
+			data.Epoch,
+			data.Height,
+			apiTypes.ConsensusEventTypeStakingEscrowDebondingStart,
 			e.Escrow.String(),
+			e.Owner.String(),
+			e.ActiveShares.String(),
 			e.Amount.String(),
-			e.ActiveShares.String(),
-			e.DebondingShares.String(),
 		)
-		batch.Queue(queries.ConsensusDebondingStartDelegationsUpdate,
-			e.Escrow.String(),
-			e.Owner.String(),
-			e.ActiveShares.String(),
-		)
-		// Ideally this would be merged with the ConsensusDebondingStartDelegationsUpdate query above,
-		// something like:
-		//
-		// ```
-		//   WITH updated AS (
-		//       UPDATE chain.delegations
-		//       SET shares = shares - $3
-		//       WHERE delegatee = $1 AND delegator = $2
-		//       RETURNING delegatee, delegator, shares
-		//   )
-		//
-		//   -- Delete the delegation if the shares are now 0.
-		//   DELETE FROM chain.delegations
-		//     USING updated
-		//     WHERE chain.delegations.delegatee = updated.delegatee
-		//       AND chain.delegations.delegator = updated.delegator
-		//       AND updated.shares = 0`
-		// ```
-		//
-		// but it is not possible since CTE's cannot handle updating the same row twice:
-		// https://www.postgresql.org/docs/current/queries-with.html#QUERIES-WITH-MODIFYING
-		//
-		// So we need to issue a separate query to delete if zero.
-		batch.Queue(queries.ConsensusDelegationDeleteIfZeroShares,
-			e.Escrow.String(),
-			e.Owner.String(),
-		)
-		batch.Queue(queries.ConsensusDebondingStartDebondingDelegationsUpsert,
-			e.Escrow.String(),
-			e.Owner.String(),
-			e.DebondingShares.String(),
-			e.DebondEndTime,
-		)
+		// Update dead-reckoned accounts/delegations tables if in slow-sync mode.
+		if m.mode == analyzer.SlowSyncMode {
+			batch.Queue(queries.ConsensusDebondingStartEscrowBalanceUpdate,
+				e.Escrow.String(),
+				e.Amount.String(),
+				e.ActiveShares.String(),
+				e.DebondingShares.String(),
+			)
+			batch.Queue(queries.ConsensusDebondingStartDelegationsUpdate,
+				e.Escrow.String(),
+				e.Owner.String(),
+				e.ActiveShares.String(),
+			)
+			// Ideally this would be merged with the ConsensusDebondingStartDelegationsUpdate query above,
+			// something like:
+			//
+			// ```
+			//   WITH updated AS (
+			//       UPDATE chain.delegations
+			//       SET shares = shares - $3
+			//       WHERE delegatee = $1 AND delegator = $2
+			//       RETURNING delegatee, delegator, shares
+			//   )
+			//
+			//   -- Delete the delegation if the shares are now 0.
+			//   DELETE FROM chain.delegations
+			//     USING updated
+			//     WHERE chain.delegations.delegatee = updated.delegatee
+			//       AND chain.delegations.delegator = updated.delegator
+			//       AND updated.shares = 0`
+			// ```
+			//
+			// but it is not possible since CTE's cannot handle updating the same row twice:
+			// https://www.postgresql.org/docs/current/queries-with.html#QUERIES-WITH-MODIFYING
+			//
+			// So we need to issue a separate query to delete if zero.
+			batch.Queue(queries.ConsensusDelegationDeleteIfZeroShares,
+				e.Escrow.String(),
+				e.Owner.String(),
+			)
+			batch.Queue(queries.ConsensusDebondingStartDebondingDelegationsUpsert,
+				e.Escrow.String(),
+				e.Owner.String(),
+				e.DebondingShares.String(),
+				e.DebondEndTime,
+			)
+		}
 	}
 	for _, e := range data.ReclaimEscrows {
-		batch.Queue(queries.ConsensusIncreaseGeneralBalanceUpsert,
-			e.Owner.String(),
-			e.Amount.String(),
-		)
-		batch.Queue(queries.ConsensusReclaimEscrowBalanceUpdate,
-			e.Escrow.String(),
-			e.Amount.String(),
-			e.Shares.String(),
-		)
-		batch.Queue(queries.ConsensusDeleteDebondingDelegations,
-			e.Owner.String(),
-			e.Escrow.String(),
-			e.Shares.String(),
-			data.Epoch,
-		)
+		// Update dead-reckoned accounts/delegations tables if in slow-sync mode.
+		if m.mode == analyzer.SlowSyncMode {
+			batch.Queue(queries.ConsensusIncreaseGeneralBalanceUpsert,
+				e.Owner.String(),
+				e.Amount.String(),
+			)
+			batch.Queue(queries.ConsensusReclaimEscrowBalanceUpdate,
+				e.Escrow.String(),
+				e.Amount.String(),
+				e.Shares.String(),
+			)
+			batch.Queue(queries.ConsensusDeleteDebondingDelegations,
+				e.Owner.String(),
+				e.Escrow.String(),
+				e.Shares.String(),
+				data.Epoch,
+			)
+		}
 	}
 
 	return nil
