@@ -285,8 +285,8 @@ paths:
             The transaction hash of the transaction(s) to return.
             This endpoint can return multiple transactions in cases,
             where an already processed transaction is re-sent. In such cases
-            only a single transaction will be sucesfully proccessed, others
-            will have a failed status (e.g. 'Invlaid nonce').
+            only a single transaction will be successfully processed, others
+            will have a failed status (e.g. 'Invalid nonce').
           example: *tx_hash_1
       responses:
         '200':
@@ -1426,9 +1426,9 @@ components:
         entity_metadata:
           description: |
             Metadata about an entity, if available. See [the metadata registry](https://github.com/oasisprotocol/metadata-registry) for details.
-            
+
             When available, it is an object with some subset of the following fields:
-            
+
             - `v`: The version of the metadata structure (always present).
             - `serial`: The serial number of the metadata statement (always present).
             - `name`: The name of the entity.
@@ -1438,7 +1438,7 @@ components:
             - `twitter`: The twitter handle associated with the entity.
           example: |
             An entity with all fields:
-            
+
                 {
                   "v": 1,
                   "serial": 1,
@@ -1669,7 +1669,7 @@ components:
             The error parameters, as decoded using the contract abi. Present only when
             - the error originated from within a smart contract (e.g. via `revert` in Solidity), and
             - the contract is verified or the revert reason is a plain String.
-            If this field is present, `message` will include the name of the error, e.g. 'InsufficentBalance'.
+            If this field is present, `message` will include the name of the error, e.g. 'InsufficientBalance'.
             Note that users should be cautious when evaluating error data since the
             data origin is not tracked and error information can be faked.
 
@@ -1817,7 +1817,7 @@ components:
         type:
           allOf: [$ref: '#/components/schemas/RoothashMessageType']
           description: |
-            The type of thies message.
+            The type of this message.
           example: staking.withdraw
         body:
           type: object
@@ -2206,7 +2206,7 @@ components:
         Oasis addresses are derived from a piece of data, such as an ed25519
         public key or an Ethereum address. For example, [this](https://github.com/oasisprotocol/oasis-sdk/blob/b37e6da699df331f5a2ac62793f8be099c68469c/client-sdk/go/helpers/address.go#L90-L91)
         is how an Ethereum is converted to an Oasis address. The type of underlying data usually also
-        determines how the signatuers for this address are verified.
+        determines how the signatures for this address are verified.
 
         Consensus supports only "staking addresses" (`context="oasis-core/address: staking"`
         below; always ed25519-backed).
@@ -2434,7 +2434,7 @@ components:
           type: string
         runtime_committee_protocol:
           type: string
-      description: The target propotocol versions for this upgrade proposal.
+      description: The target protocol versions for this upgrade proposal.
 
     ProposalState:
       type: string
@@ -2642,7 +2642,7 @@ components:
         eth_tx_hash:
           type: string
           description: |
-            Ethereum trasnsaction hash of this event's originating transaction.
+            Ethereum transaction hash of this event's originating transaction.
             Absent if the event did not originate from an EVM transaction.
         timestamp:
           type: string
@@ -2911,7 +2911,7 @@ components:
           description: |
             The data relevant to the Oasis-style encrypted transaction.
             Note: The term "envelope" in this context refers to the [Oasis-style encryption envelopes](https://github.com/oasisprotocol/oasis-sdk/blob/c36a7ee194abf4ca28fdac0edbefe3843b39bf69/runtime-sdk/src/types/callformat.rs)
-            which differ slightly from [digital envelopes](hhttps://en.wikipedia.org/wiki/Hybrid_cryptosystem#Envelope_encryption).
+            which differ slightly from [digital envelopes](https://en.wikipedia.org/wiki/Hybrid_cryptosystem#Envelope_encryption).
         method:
           type: string
           description: |
@@ -2976,7 +2976,7 @@ components:
             The data relevant to the EVM encrypted transaction. Only present for encrypted
             transactions in confidential EVM runtimes like Sapphire.
             Note: The term "envelope" in this context refers to the [Oasis-style encryption envelopes](https://github.com/oasisprotocol/oasis-sdk/blob/c36a7ee194abf4ca28fdac0edbefe3843b39bf69/runtime-sdk/src/types/callformat.rs)
-            which differ slightly from [digital envelopes](hhttps://en.wikipedia.org/wiki/Hybrid_cryptosystem#Envelope_encryption).
+            which differ slightly from [digital envelopes](https://en.wikipedia.org/wiki/Hybrid_cryptosystem#Envelope_encryption).
         success:
           type: boolean
           description: |
@@ -3168,7 +3168,7 @@ components:
           allOf: [$ref: '#/components/schemas/EvmRefToken']
           description: |
             Information about the reference token. The relative price and
-            relative total value are exprsesed in this reference token's base
+            relative total value are expressed in this reference token's base
             unit.
         relative_token_address:
           type: string
