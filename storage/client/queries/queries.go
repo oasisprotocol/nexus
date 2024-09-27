@@ -680,8 +680,8 @@ const (
 			ref_swap_pairs.runtime = tokens.runtime AND
 			ref_swap_pairs.pair_address = ref_swap_pair_creations.pair_address
 		LEFT JOIN chain.evm_tokens AS ref_tokens ON
-		    ref_tokens.runtime = tokens.runtime AND
-		    ref_tokens.token_address = $5
+			ref_tokens.runtime = tokens.runtime AND
+			ref_tokens.token_address = $5
 		LEFT JOIN chain.evm_contracts as contracts ON (tokens.runtime = contracts.runtime AND tokens.token_address = contracts.contract_address)
 		WHERE
 			(tokens.runtime = $1) AND
