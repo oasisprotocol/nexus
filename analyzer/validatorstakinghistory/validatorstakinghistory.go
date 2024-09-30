@@ -60,7 +60,7 @@ func NewAnalyzer(
 	}
 	epoch, err := sourceClient.GetEpoch(initCtx, int64(startHeight))
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch epoch for startHeight %d", startHeight)
+		return nil, fmt.Errorf("failed to fetch epoch for startHeight %d: %w", startHeight, err)
 	}
 	p := &processor{
 		source:     sourceClient,
@@ -125,11 +125,11 @@ func (p *processor) ProcessItem(ctx context.Context, batch *storage.QueryBatch, 
 	p.logger.Info("downloading validator balances", "epoch", epoch.epoch, "height", epoch.startHeight, "prev_validators", epoch.prevValidators)
 	currValidators, err := p.source.GetValidators(ctx, epoch.startHeight)
 	if err != nil {
-		return fmt.Errorf("downloading validators for height %d", epoch.startHeight)
+		return fmt.Errorf("downloading validators for height %d: %w", epoch.startHeight, err)
 	}
 	nodes, err := p.source.GetNodes(ctx, epoch.startHeight)
 	if err != nil {
-		return fmt.Errorf("downloading nodes for height %d", epoch.startHeight)
+		return fmt.Errorf("downloading nodes for height %d: %w", epoch.startHeight, err)
 	}
 	nodeToEntity := make(map[signature.PublicKey]signature.PublicKey)
 	for _, n := range nodes {
@@ -148,6 +148,17 @@ func (p *processor) ProcessItem(ctx context.Context, batch *storage.QueryBatch, 
 			validators[vID] = struct{}{}
 		}
 	}
+	// Download staking events for the first block, which includes validator staking rewards.
+	stakingEvents, err := p.source.StakingEvents(ctx, epoch.startHeight)
+	if err != nil {
+		return fmt.Errorf("downloading staking events for height %d: %w", epoch.startHeight, err)
+	}
+	stakingRewards := make(map[nodeapi.Address]nodeapi.AddEscrowEvent)
+	for _, e := range stakingEvents {
+		if e.StakingAddEscrow != nil && e.StakingAddEscrow.NewShares != nil && e.StakingAddEscrow.NewShares.IsZero() {
+			stakingRewards[e.StakingAddEscrow.Escrow] = *e.StakingAddEscrow
+		}
+	}
 	// Download info for each validator.
 	validatorIDs := []string{}
 	for vID := range validators {
@@ -156,11 +167,11 @@ func (p *processor) ProcessItem(ctx context.Context, batch *storage.QueryBatch, 
 		validatorIDs = append(validatorIDs, vID.String())
 		acct, err1 := p.source.GetAccount(ctx, epoch.startHeight, addr)
 		if err1 != nil {
-			return fmt.Errorf("fetching account info for %s at height %d", addr.String(), epoch.startHeight)
+			return fmt.Errorf("fetching account info for %s at height %d: %w", addr.String(), epoch.startHeight, err)
 		}
 		delegations, err1 := p.source.DelegationsTo(ctx, epoch.startHeight, addr)
 		if err1 != nil {
-			return fmt.Errorf("fetching delegations to account %s at height %d", addr.String(), epoch.startHeight)
+			return fmt.Errorf("fetching delegations to account %s at height %d: %w", addr.String(), epoch.startHeight, err)
 		}
 		batch.Queue(queries.ValidatorBalanceInsert,
 			vID.String(),
@@ -171,6 +182,14 @@ func (p *processor) ProcessItem(ctx context.Context, batch *storage.QueryBatch, 
 			acct.Escrow.Debonding.TotalShares,
 			len(delegations),
 		)
+		// Update staking rewards for this validator in the previous epoch.
+		if ev, exists := stakingRewards[addr]; exists {
+			batch.Queue(queries.ValidatorStakingRewardUpdate,
+				vID.String(),
+				epoch.epoch-1, // previous epoch
+				ev.Amount,
+			)
+		}
 		p.logger.Info("processed validator", "addr", addr, "height", epoch.startHeight)
 	}
 
