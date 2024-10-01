@@ -680,8 +680,8 @@ const (
 			ref_swap_pairs.runtime = tokens.runtime AND
 			ref_swap_pairs.pair_address = ref_swap_pair_creations.pair_address
 		LEFT JOIN chain.evm_tokens AS ref_tokens ON
-		    ref_tokens.runtime = tokens.runtime AND
-		    ref_tokens.token_address = $5
+			ref_tokens.runtime = tokens.runtime AND
+			ref_tokens.token_address = $5
 		LEFT JOIN chain.evm_contracts as contracts ON (tokens.runtime = contracts.runtime AND tokens.token_address = contracts.contract_address)
 		WHERE
 			(tokens.runtime = $1) AND
@@ -689,7 +689,36 @@ const (
 			($3::text IS NULL OR tokens.token_name ILIKE '%' || $3 || '%' OR tokens.symbol ILIKE '%' || $3 || '%') AND
 			tokens.token_type IS NOT NULL AND -- exclude token _candidates_ that we haven't inspected yet
 			tokens.token_type != 0 -- exclude unknown-type tokens; they're often just contracts that emitted Transfer events but don't expose the token ticker, name, balance etc.
-		ORDER BY num_holders DESC, contract_addr
+		ORDER BY
+			(
+				CASE
+					-- For the reference token itself, it is 1:1 in value with, you know, itself.
+					WHEN
+						tokens.token_address = $5
+					THEN 1.0
+					-- The pool keeps a proportion of reserves so that reserve0 of token0 is worth about as much as reserve1 of token1.
+					-- When token0 is the reference token, more reserve0 means token1 is worth more than the reference token.
+					WHEN
+						ref_swap_pair_creations.token0_address = $5 AND
+						ref_swap_pairs.reserve0 IS NOT NULL AND
+						ref_swap_pairs.reserve0 > 0 AND
+						ref_swap_pairs.reserve1 IS NOT NULL AND
+						ref_swap_pairs.reserve1 > 0
+					THEN ref_swap_pairs.reserve0::REAL / ref_swap_pairs.reserve1::REAL
+					-- When token1 is the reference token, more reserve1 means token0 is worth more than the reference token.
+					WHEN
+						ref_swap_pair_creations.token1_address = $5 AND
+						ref_swap_pairs.reserve0 IS NOT NULL AND
+						ref_swap_pairs.reserve0 > 0 AND
+						ref_swap_pairs.reserve1 IS NOT NULL AND
+						ref_swap_pairs.reserve1 > 0
+					THEN ref_swap_pairs.reserve1::REAL / ref_swap_pairs.reserve0::REAL
+					ELSE 0.0
+				END *
+				COALESCE(tokens.total_supply, 0)
+			) DESC,
+		    num_holders DESC,
+		    contract_addr
 		LIMIT $6::bigint
 		OFFSET $7::bigint`
 

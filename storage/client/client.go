@@ -1940,7 +1940,7 @@ func (c *StorageClient) upsertBalances(ch chan *RuntimeSdkBalance, acct *Runtime
 	}
 }
 
-func fillInPriceFromReserves(t EvmToken) {
+func fillInPriceFromReserves(t *EvmToken) {
 	reserve0f, _ := t.RefSwap.Reserve0.Float64()
 	reserve1f, _ := t.RefSwap.Reserve1.Float64()
 	if reserve0f > 0 && reserve1f > 0 {
@@ -1952,7 +1952,7 @@ func fillInPriceFromReserves(t EvmToken) {
 	}
 }
 
-func fillInPrice(t EvmToken, refSwapTokenAddr *apiTypes.Address) {
+func fillInPrice(t *EvmToken, refSwapTokenAddr *apiTypes.Address) {
 	if t.ContractAddr == *refSwapTokenAddr {
 		t.RelativePrice = common.Ptr(1.0)
 	} else if t.RefSwap.Token0Address != nil && t.RefSwap.Token1Address != nil && t.RefSwap.Reserve0 != nil && t.RefSwap.Reserve1 != nil {
@@ -2052,7 +2052,7 @@ func (c *StorageClient) RuntimeTokens(ctx context.Context, p apiTypes.GetRuntime
 			t.RefSwap.Token0AddressEth = EthChecksumAddrPtrFromBarePreimage(refSwapToken0EthAddr)
 			t.RefSwap.Token1AddressEth = EthChecksumAddrPtrFromBarePreimage(refSwapToken1EthAddr)
 			if refSwapTokenAddr != nil {
-				fillInPrice(t, refSwapTokenAddr)
+				fillInPrice(&t, refSwapTokenAddr)
 			}
 		}
 		if refTokenType != nil {
