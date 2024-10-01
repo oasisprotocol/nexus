@@ -1252,7 +1252,7 @@ func (c *StorageClient) Validators(ctx context.Context, p apiTypes.GetConsensusV
 		}
 		var schedule staking.CommissionSchedule
 		var logoUrl *string
-		if err := res.rows.Scan(
+		if err = res.rows.Scan(
 			&v.EntityID,
 			&v.EntityAddress,
 			&v.NodeID,
@@ -1301,6 +1301,29 @@ func (c *StorageClient) Validators(ctx context.Context, p apiTypes.GetConsensusV
 		}
 
 		vs.Validators = append(vs.Validators, v)
+	}
+
+	// When querying for a single validator, include the detailed block sign data for last 100 blocks.
+	if address != nil && len(vs.Validators) == 1 {
+		rows, err := c.db.Query(ctx, queries.ValidatorLast100BlocksSigned, vs.Validators[0].EntityID)
+		if err != nil {
+			return nil, wrapError(err)
+		}
+		defer rows.Close()
+
+		signedBlocks := []ValidatorSignedBlock{}
+		for rows.Next() {
+			var height int64
+			var signed bool
+			if err = rows.Scan(
+				&height,
+				&signed,
+			); err != nil {
+				return nil, wrapError(err)
+			}
+			signedBlocks = append(signedBlocks, ValidatorSignedBlock{Height: height, Signed: signed})
+		}
+		vs.Validators[0].SignedBlocks = &signedBlocks
 	}
 
 	return &vs, nil

@@ -320,6 +320,12 @@ const (
 				JOIN chain.accounts AS accts ON entities.address = accts.address)
 			, 0) AS total_staked_balance`
 
+	ValidatorLast100BlocksSigned = `
+		SELECT height, COALESCE($1 = ANY(signer_entity_ids), FALSE)
+			FROM chain.blocks
+		ORDER BY height DESC
+		LIMIT 100`
+
 	ValidatorsData = `
 		WITH
 		-- Find all self-delegations for all accounts with active delegations.
