@@ -167,7 +167,7 @@ var (
         height = excluded.height`
 
 	ConsensusBlockUpsert = `
-    INSERT INTO chain.blocks (height, block_hash, time, num_txs, namespace, version, state_root, epoch, gas_limit, size_limit, proposer_entity_id)
+    INSERT INTO chain.blocks (height, block_hash, time, num_txs, gas_limit, size_limit, epoch, namespace, version, state_root, proposer_entity_id)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
     ON CONFLICT (height) DO UPDATE
     SET

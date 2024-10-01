@@ -1,3 +1,5 @@
+-- Initialization of materialized views for efficient querying of Nexus data.
+
 BEGIN;
 
 CREATE SCHEMA IF NOT EXISTS views;

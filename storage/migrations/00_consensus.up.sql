@@ -1,11 +1,14 @@
--- State initialization for the Damask Upgrade.
--- https://github.com/oasisprotocol/mainnet-artifacts/releases/tag/2022-04-11
+-- State initialization for the consensus layer.
 
 BEGIN;
 
 -- A schema for tracking on-chain data.
 CREATE SCHEMA IF NOT EXISTS chain;
 GRANT USAGE ON SCHEMA chain TO PUBLIC;
+
+-- A schema for tracking historical information.
+CREATE SCHEMA IF NOT EXISTS history;
+GRANT USAGE ON SCHEMA history TO PUBLIC;
 
 -- A schema for keeping track of analyzers' internal state/progess.
 CREATE SCHEMA IF NOT EXISTS analysis;
@@ -21,38 +24,33 @@ CREATE DOMAIN public.base64_ed25519_pubkey TEXT CHECK(VALUE ~ '^[A-Za-z0-9+/]{43
 CREATE DOMAIN public.oasis_addr TEXT CHECK(length(VALUE) = 46 AND VALUE ~ '^oasis1');
 CREATE DOMAIN public.eth_addr BYTEA CHECK(length(VALUE) = 20);
 
+CREATE TYPE public.runtime AS ENUM ('emerald', 'sapphire', 'cipher', 'pontusx_dev', 'pontusx_test');
+CREATE TYPE public.call_format AS ENUM ('encrypted/x25519-deoxysii');
+CREATE TYPE public.sourcify_level AS ENUM ('partial', 'full');
+
 -- Block Data
 CREATE TABLE chain.blocks
 (
   height     UINT63 PRIMARY KEY,
-  block_hash HEX64 NOT NULL,  -- NULL in 32_block_meta.up.sql
-  time       TIMESTAMP WITH TIME ZONE NOT NULL,  -- NULL in 32_block_meta.up.sql
-  num_txs    UINT31 NOT NULL,  -- NULL in 32_block_meta.up.sql
+  block_hash HEX64 NOT NULL,
+  time       TIMESTAMP WITH TIME ZONE NOT NULL,
+  num_txs    UINT31 NOT NULL,
+  gas_limit  UINT_NUMERIC NOT NULL DEFAULT 0, -- uint64 in go; because the value might conceivably be >2^63, we use UINT_NUMERIC over UINT63 here.
+  size_limit UINT_NUMERIC NOT NULL DEFAULT 0, -- uint64 in go; because the value might conceivably be >2^63, we use UINT_NUMERIC over UINT63 here.
+  epoch      UINT63 NOT NULL DEFAULT 0,
 
   -- State Root Info
-  namespace TEXT NOT NULL,  -- NULL in 32_block_meta.up.sql
-  version   UINT63 NOT NULL,  -- NULL in 32_block_meta.up.sql
-  root_hash HEX64 NOT NULL, -- Renamed to `state_root` in 21_consensus_block.up.sql, NULL in 32_block_meta.up.sql
-
-  -- removed in 21_consensus_block.up.sql
-  type      TEXT NOT NULL, -- for consensus blocks, this is always "state-root".
-  beacon     BYTEA,
-
-  -- added in 21_consensus_block.up.sql.
-  -- gas_limit UINT_NUMERIC NOT NULL, -- uint64 in go; because the value might conceivably be >2^63, we use UINT_NUMERIC over UINT63 here.
-  -- epoch UINT63 NOT NULL,
-
-  -- added in 23_consensus_block_size_limit.up.sql
-  -- size_limit UINT_NUMERIC NOT NULL, -- uint64 in go; because the value might conceivably be >2^63, we use UINT_NUMERIC over UINT63 here.
-
-  metadata   JSONB
-
-  -- added in 32_block_meta.up.sql
-  -- proposer_entity_id base64_ed25519_pubkey,
-  -- signer_entity_ids base64_ed25519_pubkey[]
+  namespace TEXT NOT NULL,
+  version   UINT63 NOT NULL,
+  state_root HEX64 NOT NULL,
+  
+  proposer_entity_id base64_ed25519_pubkey,
+  signer_entity_ids base64_ed25519_pubkey[]
 );
 CREATE INDEX ix_blocks_time ON chain.blocks (time);
--- CREATE INDEX ix_blocks_block_hash ON chain.blocks (block_hash); -- Needed to lookup blocks by hash. -- added in 21_consensus_block_hash.up.sql
+CREATE INDEX ix_blocks_block_hash ON chain.blocks (block_hash); -- Needed to lookup blocks by hash.
+CREATE INDEX ix_blocks_proposer_entity_id ON chain.blocks (proposer_entity_id);
+CREATE INDEX ix_blocks_signer_entity_ids ON chain.blocks USING gin(signer_entity_ids);
 
 CREATE TABLE chain.transactions
 (
@@ -65,7 +63,7 @@ CREATE TABLE chain.transactions
   max_gas    UINT_NUMERIC, -- uint64 in go; because the value might conceivably be >2^63, we use UINT_NUMERIC over UINT63 here.
   method     TEXT NOT NULL,
   sender     oasis_addr NOT NULL,
-  body       BYTEA NOT NULL,
+  body       JSONB,
 
   -- Error Fields
   -- This includes an encoding of no error.
@@ -78,12 +76,11 @@ CREATE TABLE chain.transactions
   PRIMARY KEY (block, tx_index)
 );
 -- Queries by sender and/or tx_hash are available via the API.
-CREATE INDEX ix_transactions_sender ON chain.transactions (sender); -- removed in 18_consensus_tx_idxs.up.sql
 --`sender` is a possible external API parameter; `block` lets us efficiently retrieve the most recent N txs with a given method.
--- CREATE INDEX ix_transactions_sender_block ON chain.transactions (sender, block); -- added in 18_consensus_tx_idxs.up.sql
+CREATE INDEX ix_transactions_sender_block ON chain.transactions (sender, block);
 CREATE INDEX ix_transactions_tx_hash ON chain.transactions (tx_hash);
 --`method` is a possible external API parameter; `block` lets us efficiently retrieve the most recent N txs with a given method.
--- CREATE INDEX ix_transactions_method_block ON chain.transactions (method, block); -- added in 18_consensus_tx_idxs.up.sql
+CREATE INDEX ix_transactions_method_height ON chain.transactions (method, block);
 
 CREATE TABLE chain.events
 (
@@ -94,10 +91,21 @@ CREATE TABLE chain.events
   body    JSONB,
   tx_hash   HEX64, -- could be fetched from `transactions` table; denormalized for efficiency
   related_accounts TEXT[],
-  -- added in 10_roothash.up.sql
-  -- roothash_runtime_id HEX64,
-  -- roothash_runtime runtime,
-  -- roothash_runtime_round UINT63,
+  -- There's some mismatch between oasis-core's style in Go and nexus's
+  -- style in SQL and JSON. oasis-core likes structures filled with nilable
+  -- pointers, where one pointer is non-nil. nexus likes a type string plus
+  -- a "body" blob. In roothash events though, the roothash/api Event
+  -- structure additionally has a RuntimeID field, which nexus otherwise
+  -- loses when it extracts the one non-nil event next to it. In the nexus,
+  -- database, we're storing that runtime identifier in a column.
+  --
+  -- This is a runtime identifier, which is a binary "namespace," e.g.
+  -- `000000000000000000000000000000000000000000000000f80306c9858e7279` for
+  -- Sapphire on Mainnet. This is taken from the event from the node, and it
+  -- is set even for runtimes that nexus isn't configured to analyze.
+  roothash_runtime_id HEX64,
+  roothash_runtime runtime,
+  roothash_runtime_round UINT63,
 
   FOREIGN KEY (tx_block, tx_index) REFERENCES chain.transactions(block, tx_index) DEFERRABLE INITIALLY DEFERRED
 );
@@ -105,12 +113,14 @@ CREATE INDEX ix_events_related_accounts ON chain.events USING gin(related_accoun
 CREATE INDEX ix_events_tx_block ON chain.events (tx_block);  -- for fetching events without filters
 CREATE INDEX ix_events_tx_hash ON chain.events (tx_hash);
 CREATE INDEX ix_events_type ON chain.events (type, tx_block);  -- tx_block is for sorting the events of a given type by recency
--- added in 10_roothash.up.sql
--- CREATE INDEX ix_events_roothash
---     ON chain.events (roothash_runtime, roothash_runtime_round)
---     WHERE
---         roothash_runtime IS NOT NULL AND
---         roothash_runtime_round IS NOT NULL;
+-- ix_events_roothash is the link between runtime blocks and consensus blocks.
+-- Given a runtime block (runtime, round), you can look up the roothash events
+-- with this index and find the events when the block was proposed (first
+-- executor commit), committed to, and finalized.
+CREATE INDEX ix_events_roothash ON chain.events (roothash_runtime, roothash_runtime_round)
+    WHERE
+        roothash_runtime IS NOT NULL AND
+        roothash_runtime_round IS NOT NULL;
 
 -- Beacon Backend Data
 
@@ -121,21 +131,21 @@ CREATE TABLE chain.epochs
   start_height UINT63 NOT NULL,
   -- Max known height that belongs to the epoch.
   end_height   UINT63 NOT NULL CHECK (end_height >= start_height),
-  UNIQUE (start_height, end_height)
+  UNIQUE (start_height, end_height),
 
-  -- Added in 25_validator_staking_history.up.sql
-  -- validators base64_ed25519_pubkey[]
+  validators base64_ed25519_pubkey[]
 );
 CREATE INDEX ix_epochs_id ON chain.epochs (id);
 
 -- Registry Backend Data
+
 CREATE TABLE chain.entities
 (
   id       base64_ed25519_pubkey PRIMARY KEY,
   address  oasis_addr NOT NULL, -- Deterministically derived from the ID.
-  meta     JSONB  -- Signed statements about the entity from https://github.com/oasisprotocol/metadata-registry
-  -- logo_url TEXT -- Added in 16_entity_logo.up.sql.
-  -- start_block UINT63 -- Added in 24_validator_start.up.sql
+  meta     JSONB,  -- Signed statements about the entity from https://github.com/oasisprotocol/metadata-registry
+  logo_url TEXT,
+  start_block UINT63
 );
 
 CREATE TABLE chain.nodes
@@ -224,9 +234,9 @@ CREATE TABLE chain.accounts
   escrow_balance_active         NUMERIC(1000,0) NOT NULL DEFAULT 0,
   escrow_total_shares_active    NUMERIC(1000,0) NOT NULL DEFAULT 0,
   escrow_balance_debonding      NUMERIC(1000,0) NOT NULL DEFAULT 0,
-  escrow_total_shares_debonding NUMERIC(1000,0) NOT NULL DEFAULT 0
+  escrow_total_shares_debonding NUMERIC(1000,0) NOT NULL DEFAULT 0,
 
-  -- first_activity TIMESTAMP WITH TIME ZONE, -- Added in 22_consensus_accounts_first_activity.up.sql
+  first_activity TIMESTAMP WITH TIME ZONE
 
   -- TODO: Track commission schedule and staking accumulator.
 );
@@ -263,11 +273,11 @@ CREATE INDEX ix_delegations_delegator ON chain.delegations(delegator);
 
 CREATE TABLE chain.debonding_delegations
 (
-  id         BIGSERIAL PRIMARY KEY,  -- index-internal ID -- removed in 20_consensus_debonding_delegations_id_remove.up.sql.
   delegatee  oasis_addr NOT NULL REFERENCES chain.accounts(address) DEFERRABLE INITIALLY DEFERRED,
   delegator  oasis_addr NOT NULL REFERENCES chain.accounts(address) DEFERRABLE INITIALLY DEFERRED,
+  debond_end UINT63 NOT NULL,  -- EpochTime, i.e. number of epochs since base epoch
   shares     UINT_NUMERIC NOT NULL,
-  debond_end UINT63 NOT NULL  -- EpochTime, i.e. number of epochs since base epoch
+  PRIMARY KEY (delegatee, delegator, debond_end)
 );
 
 -- Scheduler Backend Data
@@ -293,9 +303,8 @@ CREATE TABLE chain.proposals
   executed      BOOLEAN NOT NULL DEFAULT false,
   deposit       UINT_NUMERIC NOT NULL,
 
-  -- Added in 27_proposals_metadata.up.sql.
-  -- title TEXT,
-  -- description TEXT,
+  title TEXT,
+  description TEXT,
 
   -- If this proposal is a new proposal.
   handler            TEXT,
@@ -321,6 +330,7 @@ CREATE TABLE chain.votes
   proposal UINT63 NOT NULL REFERENCES chain.proposals(id) DEFERRABLE INITIALLY DEFERRED,
   voter    oasis_addr NOT NULL,
   vote     TEXT,  -- "yes" | "no" | "abstain"; see https://github.com/oasisprotocol/oasis-core/blob/f95186e3f15ec64bdd36493cde90be359bd17da8/go/registry/api/runtime.go#L54-L54
+  height UINT63, -- Can be NULL; when the vote comes from a genesis file, height is unknown.
 
   PRIMARY KEY (proposal, voter)
 );
@@ -334,16 +344,41 @@ CREATE TABLE chain.accounts_related_transactions
   tx_index UINT31 NOT NULL,
   FOREIGN KEY (tx_block, tx_index) REFERENCES chain.transactions(block, tx_index) DEFERRABLE INITIALLY DEFERRED
 );
-CREATE INDEX ix_accounts_related_transactions_address ON chain.accounts_related_transactions (account_address); -- Removed in 14_accounts_rel_tx_index.up.sql
--- Added in 14_accounts_rel_tx_index.up.sql
--- CREATE INDEX ix_accounts_related_transactions_address_block ON chain.accounts_related_transactions(account_address, tx_block);
 CREATE INDEX ix_accounts_related_transactions_block ON chain.accounts_related_transactions (tx_block);
+CREATE INDEX ix_accounts_related_transactions_address_block ON chain.accounts_related_transactions(account_address, tx_block);
 
 -- Tracks the current (consensus) height of the node.
 CREATE TABLE chain.latest_node_heights
 (
   layer TEXT NOT NULL PRIMARY KEY,
   height UINT63 NOT NULL
+);
+
+-- Historical State Tracking
+
+CREATE TABLE history.validators
+(
+    id base64_ed25519_pubkey NOT NULL,
+    epoch UINT63 NOT NULL,
+    PRIMARY KEY (id, epoch),
+    escrow_balance_active UINT_NUMERIC NOT NULL,
+    escrow_balance_debonding UINT_NUMERIC NOT NULL,
+    escrow_total_shares_active UINT_NUMERIC NOT NULL,
+    escrow_total_shares_debonding UINT_NUMERIC NOT NULL,
+    num_delegators UINT63,
+    staking_rewards UINT_NUMERIC -- Note: staking rewards are granted in the first block of the subsequent epoch
+);
+
+CREATE TABLE history.escrow_events
+(
+  tx_block UINT63 NOT NULL,
+  epoch UINT63 NOT NULL,
+  type TEXT NOT NULL,
+  delegatee oasis_addr NOT NULL,
+  delegator oasis_addr NOT NULL,
+  shares    UINT_NUMERIC,
+  amount UINT_NUMERIC,
+  debonding_amount UINT_NUMERIC -- for slashing events
 );
 
 -- Indexing Progress Management
@@ -365,5 +400,7 @@ GRANT SELECT ON ALL TABLES IN SCHEMA chain TO PUBLIC;
 GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA chain TO PUBLIC;
 GRANT SELECT ON ALL TABLES IN SCHEMA analysis TO PUBLIC;
 GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA analysis TO PUBLIC;
+GRANT SELECT ON ALL TABLES IN SCHEMA history TO PUBLIC;
+GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA history TO PUBLIC;
 
 COMMIT;
