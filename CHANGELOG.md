@@ -12,6 +12,38 @@ The format is inspired by [Keep a Changelog].
 
 <!-- TOWNCRIER -->
 
+## 0.4.0 (2024-10-01)
+
+### Features
+
+- consensus: save block metadata
+  ([#646](https://github.com/oasisprotocol/nexus/issues/646))
+
+- ERC-20 token prices
+  ([#691](https://github.com/oasisprotocol/nexus/issues/691))
+
+- Oasis-style encryption envelope
+  ([#747](https://github.com/oasisprotocol/nexus/issues/747))
+
+- runtime: store NULL error module/code when no error
+  ([#748](https://github.com/oasisprotocol/nexus/issues/748))
+
+### Bug Fixes and Improvements
+
+- storage: nil out transaction .Error on unknown result
+  ([#704](https://github.com/oasisprotocol/nexus/issues/704))
+
+- consensus/api: Handle duplicated consensus transaction hashes
+  ([#749](https://github.com/oasisprotocol/nexus/issues/749))
+
+### Internal Changes
+
+- db: consolidate migrations
+  ([#728](https://github.com/oasisprotocol/nexus/issues/728))
+
+- analyzer: track staking event history
+  ([#752](https://github.com/oasisprotocol/nexus/issues/752))
+
 ## 0.3.3 (2024-08-28)
 
 ### Features
