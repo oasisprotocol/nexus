@@ -30,6 +30,408 @@
       "in_validator_set": true,
       "node_id": "wqd9Yy3n7TWKfYRn2bI9Hd6/623CfC7NCUoRbQ5UkR8=",
       "rank": 92,
+      "signed_blocks": [
+        {
+          "height": 8049955,
+          "signed": false
+        },
+        {
+          "height": 8049954,
+          "signed": true
+        },
+        {
+          "height": 8049953,
+          "signed": true
+        },
+        {
+          "height": 8049952,
+          "signed": true
+        },
+        {
+          "height": 8049951,
+          "signed": true
+        },
+        {
+          "height": 8049950,
+          "signed": true
+        },
+        {
+          "height": 8049949,
+          "signed": true
+        },
+        {
+          "height": 8049948,
+          "signed": true
+        },
+        {
+          "height": 8049947,
+          "signed": true
+        },
+        {
+          "height": 8049946,
+          "signed": true
+        },
+        {
+          "height": 8049945,
+          "signed": true
+        },
+        {
+          "height": 8049944,
+          "signed": true
+        },
+        {
+          "height": 8049943,
+          "signed": true
+        },
+        {
+          "height": 8049942,
+          "signed": true
+        },
+        {
+          "height": 8049941,
+          "signed": true
+        },
+        {
+          "height": 8049940,
+          "signed": true
+        },
+        {
+          "height": 8049939,
+          "signed": true
+        },
+        {
+          "height": 8049938,
+          "signed": true
+        },
+        {
+          "height": 8049937,
+          "signed": true
+        },
+        {
+          "height": 8049936,
+          "signed": true
+        },
+        {
+          "height": 8049935,
+          "signed": true
+        },
+        {
+          "height": 8049934,
+          "signed": true
+        },
+        {
+          "height": 8049933,
+          "signed": true
+        },
+        {
+          "height": 8049932,
+          "signed": true
+        },
+        {
+          "height": 8049931,
+          "signed": true
+        },
+        {
+          "height": 8049930,
+          "signed": true
+        },
+        {
+          "height": 8049929,
+          "signed": true
+        },
+        {
+          "height": 8049928,
+          "signed": true
+        },
+        {
+          "height": 8049927,
+          "signed": true
+        },
+        {
+          "height": 8049926,
+          "signed": true
+        },
+        {
+          "height": 8049925,
+          "signed": true
+        },
+        {
+          "height": 8049924,
+          "signed": true
+        },
+        {
+          "height": 8049923,
+          "signed": true
+        },
+        {
+          "height": 8049922,
+          "signed": true
+        },
+        {
+          "height": 8049921,
+          "signed": true
+        },
+        {
+          "height": 8049920,
+          "signed": true
+        },
+        {
+          "height": 8049919,
+          "signed": true
+        },
+        {
+          "height": 8049918,
+          "signed": true
+        },
+        {
+          "height": 8049917,
+          "signed": true
+        },
+        {
+          "height": 8049916,
+          "signed": true
+        },
+        {
+          "height": 8049915,
+          "signed": true
+        },
+        {
+          "height": 8049914,
+          "signed": true
+        },
+        {
+          "height": 8049913,
+          "signed": true
+        },
+        {
+          "height": 8049912,
+          "signed": true
+        },
+        {
+          "height": 8049911,
+          "signed": true
+        },
+        {
+          "height": 8049910,
+          "signed": true
+        },
+        {
+          "height": 8049909,
+          "signed": true
+        },
+        {
+          "height": 8049908,
+          "signed": true
+        },
+        {
+          "height": 8049907,
+          "signed": true
+        },
+        {
+          "height": 8049906,
+          "signed": true
+        },
+        {
+          "height": 8049905,
+          "signed": true
+        },
+        {
+          "height": 8049904,
+          "signed": true
+        },
+        {
+          "height": 8049903,
+          "signed": true
+        },
+        {
+          "height": 8049902,
+          "signed": true
+        },
+        {
+          "height": 8049901,
+          "signed": true
+        },
+        {
+          "height": 8049900,
+          "signed": true
+        },
+        {
+          "height": 8049899,
+          "signed": true
+        },
+        {
+          "height": 8049898,
+          "signed": true
+        },
+        {
+          "height": 8049897,
+          "signed": true
+        },
+        {
+          "height": 8049896,
+          "signed": true
+        },
+        {
+          "height": 8049895,
+          "signed": true
+        },
+        {
+          "height": 8049894,
+          "signed": true
+        },
+        {
+          "height": 8049893,
+          "signed": true
+        },
+        {
+          "height": 8049892,
+          "signed": true
+        },
+        {
+          "height": 8049891,
+          "signed": true
+        },
+        {
+          "height": 8049890,
+          "signed": true
+        },
+        {
+          "height": 8049889,
+          "signed": true
+        },
+        {
+          "height": 8049888,
+          "signed": true
+        },
+        {
+          "height": 8049887,
+          "signed": true
+        },
+        {
+          "height": 8049886,
+          "signed": true
+        },
+        {
+          "height": 8049885,
+          "signed": true
+        },
+        {
+          "height": 8049884,
+          "signed": true
+        },
+        {
+          "height": 8049883,
+          "signed": true
+        },
+        {
+          "height": 8049882,
+          "signed": true
+        },
+        {
+          "height": 8049881,
+          "signed": true
+        },
+        {
+          "height": 8049880,
+          "signed": true
+        },
+        {
+          "height": 8049879,
+          "signed": true
+        },
+        {
+          "height": 8049878,
+          "signed": true
+        },
+        {
+          "height": 8049877,
+          "signed": true
+        },
+        {
+          "height": 8049876,
+          "signed": true
+        },
+        {
+          "height": 8049875,
+          "signed": true
+        },
+        {
+          "height": 8049874,
+          "signed": true
+        },
+        {
+          "height": 8049873,
+          "signed": true
+        },
+        {
+          "height": 8049872,
+          "signed": true
+        },
+        {
+          "height": 8049871,
+          "signed": true
+        },
+        {
+          "height": 8049870,
+          "signed": true
+        },
+        {
+          "height": 8049869,
+          "signed": true
+        },
+        {
+          "height": 8049868,
+          "signed": true
+        },
+        {
+          "height": 8049867,
+          "signed": true
+        },
+        {
+          "height": 8049866,
+          "signed": true
+        },
+        {
+          "height": 8049865,
+          "signed": true
+        },
+        {
+          "height": 8049864,
+          "signed": true
+        },
+        {
+          "height": 8049863,
+          "signed": true
+        },
+        {
+          "height": 8049862,
+          "signed": true
+        },
+        {
+          "height": 8049861,
+          "signed": true
+        },
+        {
+          "height": 8049860,
+          "signed": true
+        },
+        {
+          "height": 8049859,
+          "signed": true
+        },
+        {
+          "height": 8049858,
+          "signed": true
+        },
+        {
+          "height": 8049857,
+          "signed": true
+        },
+        {
+          "height": 8049856,
+          "signed": true
+        }
+      ],
       "start_date": "2022-04-11T09:30:00Z",
       "voting_power": 34834350461211,
       "voting_power_cumulative": 34834350461211

@@ -30,6 +30,408 @@
       "in_validator_set": true,
       "node_id": "6wbL5/OxvFGxi55o7AxcwKmfjXbXGC1hw4lfnEZxBXA=",
       "rank": 1,
+      "signed_blocks": [
+        {
+          "height": 16818955,
+          "signed": false
+        },
+        {
+          "height": 16818954,
+          "signed": true
+        },
+        {
+          "height": 16818953,
+          "signed": true
+        },
+        {
+          "height": 16818952,
+          "signed": true
+        },
+        {
+          "height": 16818951,
+          "signed": true
+        },
+        {
+          "height": 16818950,
+          "signed": true
+        },
+        {
+          "height": 16818949,
+          "signed": true
+        },
+        {
+          "height": 16818948,
+          "signed": true
+        },
+        {
+          "height": 16818947,
+          "signed": true
+        },
+        {
+          "height": 16818946,
+          "signed": true
+        },
+        {
+          "height": 16818945,
+          "signed": true
+        },
+        {
+          "height": 16818944,
+          "signed": true
+        },
+        {
+          "height": 16818943,
+          "signed": true
+        },
+        {
+          "height": 16818942,
+          "signed": true
+        },
+        {
+          "height": 16818941,
+          "signed": true
+        },
+        {
+          "height": 16818940,
+          "signed": true
+        },
+        {
+          "height": 16818939,
+          "signed": true
+        },
+        {
+          "height": 16818938,
+          "signed": true
+        },
+        {
+          "height": 16818937,
+          "signed": true
+        },
+        {
+          "height": 16818936,
+          "signed": true
+        },
+        {
+          "height": 16818935,
+          "signed": true
+        },
+        {
+          "height": 16818934,
+          "signed": true
+        },
+        {
+          "height": 16818933,
+          "signed": true
+        },
+        {
+          "height": 16818932,
+          "signed": true
+        },
+        {
+          "height": 16818931,
+          "signed": true
+        },
+        {
+          "height": 16818930,
+          "signed": true
+        },
+        {
+          "height": 16818929,
+          "signed": true
+        },
+        {
+          "height": 16818928,
+          "signed": true
+        },
+        {
+          "height": 16818927,
+          "signed": true
+        },
+        {
+          "height": 16818926,
+          "signed": true
+        },
+        {
+          "height": 16818925,
+          "signed": true
+        },
+        {
+          "height": 16818924,
+          "signed": true
+        },
+        {
+          "height": 16818923,
+          "signed": true
+        },
+        {
+          "height": 16818922,
+          "signed": true
+        },
+        {
+          "height": 16818921,
+          "signed": true
+        },
+        {
+          "height": 16818920,
+          "signed": true
+        },
+        {
+          "height": 16818919,
+          "signed": true
+        },
+        {
+          "height": 16818918,
+          "signed": true
+        },
+        {
+          "height": 16818917,
+          "signed": true
+        },
+        {
+          "height": 16818916,
+          "signed": true
+        },
+        {
+          "height": 16818915,
+          "signed": true
+        },
+        {
+          "height": 16818914,
+          "signed": true
+        },
+        {
+          "height": 16818913,
+          "signed": true
+        },
+        {
+          "height": 16818912,
+          "signed": true
+        },
+        {
+          "height": 16818911,
+          "signed": true
+        },
+        {
+          "height": 16818910,
+          "signed": true
+        },
+        {
+          "height": 16818909,
+          "signed": true
+        },
+        {
+          "height": 16818908,
+          "signed": true
+        },
+        {
+          "height": 16818907,
+          "signed": true
+        },
+        {
+          "height": 16818906,
+          "signed": true
+        },
+        {
+          "height": 16818905,
+          "signed": true
+        },
+        {
+          "height": 16818904,
+          "signed": true
+        },
+        {
+          "height": 16818903,
+          "signed": true
+        },
+        {
+          "height": 16818902,
+          "signed": true
+        },
+        {
+          "height": 16818901,
+          "signed": true
+        },
+        {
+          "height": 16818900,
+          "signed": true
+        },
+        {
+          "height": 16818899,
+          "signed": true
+        },
+        {
+          "height": 16818898,
+          "signed": true
+        },
+        {
+          "height": 16818897,
+          "signed": true
+        },
+        {
+          "height": 16818896,
+          "signed": true
+        },
+        {
+          "height": 16818895,
+          "signed": true
+        },
+        {
+          "height": 16818894,
+          "signed": true
+        },
+        {
+          "height": 16818893,
+          "signed": true
+        },
+        {
+          "height": 16818892,
+          "signed": true
+        },
+        {
+          "height": 16818891,
+          "signed": true
+        },
+        {
+          "height": 16818890,
+          "signed": true
+        },
+        {
+          "height": 16818889,
+          "signed": true
+        },
+        {
+          "height": 16818888,
+          "signed": true
+        },
+        {
+          "height": 16818887,
+          "signed": true
+        },
+        {
+          "height": 16818886,
+          "signed": true
+        },
+        {
+          "height": 16818885,
+          "signed": true
+        },
+        {
+          "height": 16818884,
+          "signed": true
+        },
+        {
+          "height": 16818883,
+          "signed": true
+        },
+        {
+          "height": 16818882,
+          "signed": true
+        },
+        {
+          "height": 16818881,
+          "signed": true
+        },
+        {
+          "height": 16818880,
+          "signed": true
+        },
+        {
+          "height": 16818879,
+          "signed": true
+        },
+        {
+          "height": 16818878,
+          "signed": true
+        },
+        {
+          "height": 16818877,
+          "signed": true
+        },
+        {
+          "height": 16818876,
+          "signed": true
+        },
+        {
+          "height": 16818875,
+          "signed": true
+        },
+        {
+          "height": 16818874,
+          "signed": true
+        },
+        {
+          "height": 16818873,
+          "signed": true
+        },
+        {
+          "height": 16818872,
+          "signed": true
+        },
+        {
+          "height": 16818871,
+          "signed": true
+        },
+        {
+          "height": 16818870,
+          "signed": true
+        },
+        {
+          "height": 16818869,
+          "signed": true
+        },
+        {
+          "height": 16818868,
+          "signed": true
+        },
+        {
+          "height": 16818867,
+          "signed": true
+        },
+        {
+          "height": 16818866,
+          "signed": true
+        },
+        {
+          "height": 16818865,
+          "signed": true
+        },
+        {
+          "height": 16818864,
+          "signed": true
+        },
+        {
+          "height": 16818863,
+          "signed": true
+        },
+        {
+          "height": 16818862,
+          "signed": true
+        },
+        {
+          "height": 16818861,
+          "signed": true
+        },
+        {
+          "height": 16818860,
+          "signed": true
+        },
+        {
+          "height": 16818859,
+          "signed": true
+        },
+        {
+          "height": 16818858,
+          "signed": true
+        },
+        {
+          "height": 16818857,
+          "signed": true
+        },
+        {
+          "height": 16818856,
+          "signed": true
+        }
+      ],
       "start_date": "2023-11-29T10:02:19Z",
       "voting_power": 31903165146578016,
       "voting_power_cumulative": 31903165146578016
