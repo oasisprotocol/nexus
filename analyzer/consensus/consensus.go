@@ -517,7 +517,7 @@ func (m *processor) queueTransactionInserts(batch *storage.QueryBatch, data *con
 		var bodyJSON []byte
 		bodyJSON, err = json.Marshal(body)
 		if err != nil {
-			m.logger.Warn("error json-marshalling struct: %w", err)
+			m.logger.Warn("error json-marshalling struct", "err", err, "tx_hash", signedTx.Hash().Hex(), "height", data.Height)
 		}
 		var module *string
 		if len(result.Error.Module) > 0 {
