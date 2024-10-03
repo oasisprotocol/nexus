@@ -2,6 +2,8 @@
 package consensus
 
 import (
+	jsoniter "github.com/json-iterator/go" // Supports marshalling map[interface{}]interface{}, unlike encoding/json
+
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 	"github.com/oasisprotocol/oasis-core/go/common/entity"
 
@@ -32,8 +34,8 @@ import (
 )
 
 var bodyTypeForTxMethodCobalt = map[string]interface{}{
-	"beacon.PVSSCommit":                beaconCobalt.PVSSCommit{},
-	"beacon.PVSSReveal":                beaconCobalt.PVSSReveal{},
+	"beacon.PVSSCommit":                pvssCommitCobalt{},
+	"beacon.PVSSReveal":                pvssRevealCobalt{},
 	"governance.SubmitProposal":        governanceCobalt.ProposalContent{},
 	"governance.CastVote":              governanceCobalt.ProposalVote{},
 	"keymanager.UpdatePolicy":          keymanagerCobalt.SignedPolicySGX{},
@@ -109,6 +111,40 @@ var bodyTypeForTxMethodEden = map[string]interface{}{
 	"vault.AuthorizeAction":    vaultEden.AuthorizeAction{},
 	"vault.CancelAction":       vaultEden.CancelAction{},
 	"vault.Create":             vaultEden.Create{},
+}
+
+type pvssCommitCobalt struct {
+	inner beaconCobalt.PVSSCommit
+}
+
+func (pc *pvssCommitCobalt) UnmarshalCBOR(data []byte) error {
+	var c beaconCobalt.PVSSCommit
+	if err := cbor.Unmarshal(data, &c); err != nil {
+		return err
+	}
+	pc.inner = c
+	return nil
+}
+
+func (pc *pvssCommitCobalt) MarshalJSON() ([]byte, error) {
+	return jsoniter.Marshal(pc.inner)
+}
+
+type pvssRevealCobalt struct {
+	inner beaconCobalt.PVSSReveal
+}
+
+func (pc *pvssRevealCobalt) UnmarshalCBOR(data []byte) error {
+	var c beaconCobalt.PVSSReveal
+	if err := cbor.Unmarshal(data, &c); err != nil {
+		return err
+	}
+	pc.inner = c
+	return nil
+}
+
+func (pc *pvssRevealCobalt) MarshalJSON() ([]byte, error) {
+	return jsoniter.Marshal(pc.inner)
 }
 
 type freshnessProofEden struct {
