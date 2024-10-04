@@ -87,12 +87,7 @@ gofumpt -w "$OUTDIR/"
 goimports -w "$OUTDIR/"
 
 # Apply manual patches
-if [[ $VERSION == v21.* ]]; then
-  # 1) Remove mentions of pvss from Cobalt. Nexus doesn't use those fields;
-  #    just mark them interface{} so they can be CBOR-decoded.
-  sed -i -E 's/\*pvss.[a-zA-Z]+/interface{}/' "$OUTDIR/beacon/api/pvss.go"
-  goimports -w "$OUTDIR/"
-fi
+# None
 
 # 2) Reuse the Address struct from oasis-core.
 >"$OUTDIR/staking/api/address.go" cat <<EOF

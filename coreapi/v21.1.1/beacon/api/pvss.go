@@ -4,6 +4,8 @@ import (
 	"fmt"
 
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
+
+	pvss "github.com/oasisprotocol/nexus/coreapi/v21.1.1/common/crypto/pvss"
 )
 
 // removed var block
@@ -25,7 +27,7 @@ type PVSSCommit struct {
 	Epoch EpochTime `json:"epoch"`
 	Round uint64    `json:"round"`
 
-	Commit interface{} `json:"commit,omitempty"`
+	Commit pvss.Commit `json:"commit,omitempty"`
 }
 
 // Implements transaction.MethodMetadataProvider.
@@ -36,7 +38,7 @@ type PVSSReveal struct {
 	Epoch EpochTime `json:"epoch"`
 	Round uint64    `json:"round"`
 
-	Reveal interface{} `json:"reveal,omitempty"`
+	Reveal pvss.Reveal `json:"reveal,omitempty"`
 }
 
 // Implements transaction.MethodMetadataProvider.
