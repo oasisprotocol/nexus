@@ -14,9 +14,9 @@ build:
 
 # Generate Go types from the openapi spec.
 # To install the tool, run:
-#   go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen@v1.12
+#   go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@v2.4.1
 codegen-go:
-	@oapi-codegen --version | grep -qE '^v1.12.' || echo "ERROR: Installed oapi-codegen is not v1.12.x. See Makefile."
+	@oapi-codegen --version | grep -qE '^v2.4' || echo "ERROR: Installed oapi-codegen is not v2.4.x. See Makefile."
 	@scripts/namespace_codegen_templates.sh
 	@echo $$'compatibility:\n  always-prefix-enum-values: true' > /tmp/codegen-config.yaml
 	oapi-codegen -generate types                    -config /tmp/codegen-config.yaml -templates /tmp/namespaced-templates/ -package types api/spec/v1.yaml >api/v1/types/openapi.gen.go
