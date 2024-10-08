@@ -191,6 +191,11 @@ paths:
             type: string
           description: A filter on the block hash.
           example: *block_hash_1
+        - in: query
+          name: proposed_by
+          schema:
+            allOf: [$ref: '#/components/schemas/StakingAddress']
+          description: A filter on the proposer of the block.
       responses:
         '200':
           description: A JSON object containing a list of consensus blocks.
