@@ -296,6 +296,7 @@ func (c *StorageClient) Blocks(ctx context.Context, r apiTypes.GetConsensusBlock
 		r.After,
 		r.Before,
 		hash,
+		r.ProposedBy,
 		r.Limit,
 		r.Offset,
 	)

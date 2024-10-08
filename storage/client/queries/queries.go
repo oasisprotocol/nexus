@@ -56,10 +56,16 @@ const (
 			($2::bigint IS NULL OR height <= $2::bigint) AND
 			($3::timestamptz IS NULL OR time >= $3::timestamptz) AND
 			($4::timestamptz IS NULL OR time < $4::timestamptz) AND
-			($5::text IS NULL OR block_hash = $5::text)
+			($5::text IS NULL OR block_hash = $5::text) AND
+			($6::text IS NULL OR proposer_entity_id = COALESCE((
+				SELECT id
+				FROM chain.entities
+				WHERE address = $6::text
+				LIMIT 1
+			), 'none'))
 		ORDER BY height DESC
-		LIMIT $6::bigint
-		OFFSET $7::bigint`
+		LIMIT $7::bigint
+		OFFSET $8::bigint`
 
 	Block = `
 		SELECT height, block_hash, time, num_txs, gas_limit, size_limit, epoch, state_root
