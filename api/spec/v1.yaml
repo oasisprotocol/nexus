@@ -151,6 +151,8 @@ paths:
 
   /consensus/blocks:
     get:
+      tags: [Experimental]
+      deprecated: true
       summary: Returns a list of consensus blocks, sorted from most to least recent.
       parameters:
         - *limit
@@ -200,6 +202,8 @@ paths:
 
   /consensus/blocks/{height}:
     get:
+      tags: [Experimental]
+      deprecated: true
       summary: Returns a consensus block.
       parameters:
         - in: path
@@ -221,6 +225,8 @@ paths:
 
   /consensus/transactions:
     get:
+      tags: [Experimental]
+      deprecated: true
       summary: Returns a list of consensus transactions.
       parameters:
         - *limit
@@ -274,6 +280,8 @@ paths:
 
   /consensus/transactions/{tx_hash}:
     get:
+      tags: [Experimental]
+      deprecated: true
       summary: Returns consensus transactions with the given transaction hash.
       parameters:
         - in: path
@@ -299,6 +307,8 @@ paths:
 
   /consensus/events:
     get:
+      tags: [Experimental]
+      deprecated: true
       summary: Returns a list of consensus events.
       parameters:
         - *limit
@@ -357,6 +367,8 @@ paths:
 
   /consensus/roothash_messages:
     get:
+      tags: [Experimental]
+      deprecated: true
       parameters:
         - *limit
         - *offset
@@ -393,6 +405,8 @@ paths:
 
   /consensus/entities:
     get:
+      tags: [Experimental]
+      deprecated: true
       summary: Returns a list of entities registered at the consensus layer.
       parameters:
         - *limit
@@ -410,6 +424,8 @@ paths:
 
   /consensus/entities/{address}:
     get:
+      tags: [Experimental]
+      deprecated: true
       summary: Returns an entity registered at the consensus layer.
       parameters:
         - in: path
@@ -431,6 +447,8 @@ paths:
 
   /consensus/entities/{address}/nodes:
     get:
+      tags: [Experimental]
+      deprecated: true
       summary: Returns a list of nodes registered at the consensus layer.
       parameters:
         - *limit
@@ -454,6 +472,8 @@ paths:
 
   /consensus/entities/{address}/nodes/{node_id}:
     get:
+      tags: [Experimental]
+      deprecated: true
       summary: Returns a node registered at the consensus layer.
       parameters:
         - in: path
@@ -482,6 +502,8 @@ paths:
 
   /consensus/validators:
     get:
+      tags: [Experimental]
+      deprecated: true
       summary: Returns a list of validators registered at the consensus layer (the list includes all registered entities, even those without a currently active validator node).
       parameters:
         - *limit
@@ -507,6 +529,8 @@ paths:
 
   /consensus/validators/{address}:
     get:
+      tags: [Experimental]
+      deprecated: true
       summary: Returns a validator registered at the consensus layer.
       parameters:
         - in: path
@@ -528,6 +552,8 @@ paths:
 
   /consensus/validators/{address}/history:
     get:
+      tags: [Experimental]
+      deprecated: true
       summary: Returns historical information for a single validator.
       parameters:
         - *limit
@@ -565,6 +591,8 @@ paths:
 
   /consensus/accounts:
     get:
+      tags: [Experimental]
+      deprecated: true
       summary: |
         Returns a list of consensus layer accounts.
         Note that for performance reasons, the info returned by this endpoint
@@ -585,6 +613,8 @@ paths:
 
   /consensus/accounts/{address}:
     get:
+      tags: [Experimental]
+      deprecated: true
       summary: Returns a consensus layer account.
       parameters:
         - in: path
@@ -604,6 +634,8 @@ paths:
 
   /consensus/accounts/{address}/delegations:
     get:
+      tags: [Experimental]
+      deprecated: true
       summary: Returns an account's delegations.
       parameters:
         - *limit
@@ -625,6 +657,8 @@ paths:
 
   /consensus/accounts/{address}/delegations_to:
     get:
+      tags: [Experimental]
+      deprecated: true
       summary: Returns a list of delegations to an account.
       parameters:
         - *limit
@@ -646,6 +680,8 @@ paths:
 
   /consensus/accounts/{address}/debonding_delegations:
     get:
+      tags: [Experimental]
+      deprecated: true
       summary: Returns an account's debonding delegations.
       parameters:
         - *limit
@@ -667,6 +703,8 @@ paths:
 
   /consensus/accounts/{address}/debonding_delegations_to:
     get:
+      tags: [Experimental]
+      deprecated: true
       summary: Returns a list of debonding delegations to an account.
       parameters:
         - *limit
@@ -688,6 +726,8 @@ paths:
 
   /consensus/epochs:
     get:
+      tags: [Experimental]
+      deprecated: true
       summary: Returns a list of consensus epochs.
       parameters:
         - *limit
@@ -703,6 +743,8 @@ paths:
 
   /consensus/epochs/{epoch}:
     get:
+      tags: [Experimental]
+      deprecated: true
       summary: Returns a consensus epoch.
       parameters:
         - in: path
@@ -724,6 +766,8 @@ paths:
 
   /consensus/proposals:
     get:
+      tags: [Experimental]
+      deprecated: true
       summary: Returns a list of governance proposals.
       parameters:
         - *limit
@@ -750,6 +794,8 @@ paths:
 
   /consensus/proposals/{proposal_id}:
     get:
+      tags: [Experimental]
+      deprecated: true
       summary: Returns a governance proposal.
       parameters:
         - in: path
@@ -771,6 +817,8 @@ paths:
 
   /consensus/proposals/{proposal_id}/votes:
     get:
+      tags: [Experimental]
+      deprecated: true
       summary: Returns a list of votes for a governance proposal.
       parameters:
         - *limit
