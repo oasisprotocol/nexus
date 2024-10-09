@@ -1005,7 +1005,7 @@ func (m *processor) queueEscrows(batch *storage.QueryBatch, data *stakingData) e
 		}
 	}
 	for _, e := range data.TakeEscrows {
-		var debondingAmount string
+		debondingAmount := "0"
 		if e.DebondingAmount != nil {
 			debondingAmount = e.DebondingAmount.String()
 		}
