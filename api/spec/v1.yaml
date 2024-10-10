@@ -2080,8 +2080,28 @@ components:
           description: Commission rate.
         current_commission_bound:
           allOf: [$ref: '#/components/schemas/ValidatorCommissionBound']
+        signed_blocks:
+          type: array
+          description: An array containing details of the last 100 consensus blocks, indicating whether each block was signed by the validator. Only available when querying a single validator.
+          items:
+            allOf: [$ref: '#/components/schemas/ValidatorSignedBlock']
       description: |
         An validator registered at the consensus layer.
+
+    ValidatorSignedBlock:
+      type: object
+      required: [height, signed]
+      properties:
+        height:
+          type: integer
+          format: int64
+          description: The block height.
+          example: *block_height_1
+        signed:
+          type: boolean
+          description: Whether the validator signed the block.
+      description: |
+        Information whether a block was signed by the validator.
 
     Escrow:
       type: object

@@ -99,6 +99,9 @@ type ValidatorMedia = api.ValidatorMedia
 // ValidatorCommissionBound is the commission bound for a validator.
 type ValidatorCommissionBound = api.ValidatorCommissionBound
 
+// ValidatorSignedBlock is the information weather a validator has signed a specific block.
+type ValidatorSignedBlock = api.ValidatorSignedBlock
+
 // ValidatorHistory is the storage response for GetValidatorHistory.
 type ValidatorHistory = api.ValidatorHistory
 
