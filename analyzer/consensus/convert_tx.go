@@ -2,6 +2,8 @@
 package consensus
 
 import (
+	// Supports marshalling map[interface{}]interface{}, unlike encoding/json
+
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 	"github.com/oasisprotocol/oasis-core/go/common/entity"
 

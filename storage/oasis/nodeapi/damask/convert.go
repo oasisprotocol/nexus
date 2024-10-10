@@ -30,21 +30,26 @@ func convertProposal(p *governanceDamask.Proposal) *governance.Proposal {
 		results[governance.Vote(k)] = v
 	}
 
+	var up *governance.UpgradeProposal
+	if p.Content.Upgrade != nil {
+		up = &governance.UpgradeProposal{
+			Descriptor: upgrade.Descriptor{
+				Versioned: p.Content.Upgrade.Descriptor.Versioned,
+				Handler:   upgrade.HandlerName(p.Content.Upgrade.Descriptor.Handler),
+				Target:    p.Content.Upgrade.Descriptor.Target,
+				Epoch:     p.Content.Upgrade.Descriptor.Epoch,
+			},
+		}
+	}
+
 	return &governance.Proposal{
 		ID:        p.ID,
 		Submitter: p.Submitter,
 		State:     governance.ProposalState(p.State),
 		Deposit:   p.Deposit,
 		Content: governance.ProposalContent{
-			Metadata: nil, // Not present in Damask.
-			Upgrade: &governance.UpgradeProposal{
-				Descriptor: upgrade.Descriptor{
-					Versioned: p.Content.Upgrade.Descriptor.Versioned,
-					Handler:   upgrade.HandlerName(p.Content.Upgrade.Descriptor.Handler),
-					Target:    p.Content.Upgrade.Descriptor.Target,
-					Epoch:     p.Content.Upgrade.Descriptor.Epoch,
-				},
-			},
+			Metadata:         nil, // Not present in Damask.
+			Upgrade:          up,
 			CancelUpgrade:    (*governance.CancelUpgradeProposal)(p.Content.CancelUpgrade),
 			ChangeParameters: (*governance.ChangeParametersProposal)(p.Content.ChangeParameters),
 		},

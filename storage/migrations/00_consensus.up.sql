@@ -375,7 +375,7 @@ CREATE TABLE history.escrow_events
   epoch UINT63 NOT NULL,
   type TEXT NOT NULL,
   delegatee oasis_addr NOT NULL,
-  delegator oasis_addr NOT NULL,
+  delegator oasis_addr NOT NULL, -- NULL in 06_escrow_history_delegator.up.sql
   shares    UINT_NUMERIC,
   amount UINT_NUMERIC,
   debonding_amount UINT_NUMERIC -- for slashing events

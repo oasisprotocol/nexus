@@ -16,12 +16,10 @@ require (
 	github.com/ethereum/go-ethereum v1.14.0
 	github.com/go-chi/chi/v5 v5.0.7
 	github.com/go-kit/log v0.2.1
-	github.com/golang-migrate/migrate/v4 v4.15.2
+	github.com/golang-migrate/migrate/v4 v4.15.0
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.5.4
 	github.com/knadh/koanf v1.4.1
-	github.com/oasisprotocol/oasis-core/go v0.2401.0
-	github.com/oasisprotocol/oasis-sdk/client-sdk/go v0.10.1
 	github.com/prometheus/client_golang v1.19.0
 	github.com/spf13/cobra v1.8.0
 	github.com/stretchr/testify v1.9.0
@@ -44,7 +42,7 @@ require (
 	github.com/cenkalti/backoff/v4 v4.2.1 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/cloudflare/circl v1.3.7 // indirect
-	github.com/cometbft/cometbft v0.37.7 // indirect
+	github.com/cometbft/cometbft v0.37.9 // indirect
 	github.com/consensys/bavard v0.1.13 // indirect
 	github.com/consensys/gnark-crypto v0.12.1 // indirect
 	github.com/cosmos/gogoproto v1.4.1 // indirect
@@ -74,7 +72,7 @@ require (
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/golang/snappy v0.0.5-0.20220116011046-fa5810519dcb // indirect
 	github.com/google/flatbuffers v2.0.8+incompatible // indirect
-	github.com/google/go-github/v39 v39.2.0 // indirect
+	github.com/google/go-github/v35 v35.2.0 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/gtank/merlin v0.1.1 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
@@ -151,17 +149,16 @@ require (
 	github.com/valyala/fasttemplate v1.2.2 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	github.com/xanzy/ssh-agent v0.3.3 // indirect
+	go.dedis.ch/fixbuf v1.0.3 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect
 	golang.org/x/mod v0.17.0 // indirect
 	golang.org/x/net v0.24.0 // indirect
-	golang.org/x/oauth2 v0.18.0 // indirect
 	golang.org/x/sys v0.20.0 // indirect
 	golang.org/x/text v0.15.0 // indirect
 	golang.org/x/tools v0.20.0 // indirect
-	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240227224415-6ceb2ff114de // indirect
 	google.golang.org/grpc/security/advancedtls v0.0.0-20221004221323-12db695f1648 // indirect
 	google.golang.org/protobuf v1.33.0 // indirect
@@ -177,8 +174,11 @@ require (
 	github.com/deepmap/oapi-codegen v1.12.4
 	github.com/fxamacker/cbor/v2 v2.4.0
 	github.com/oasisprotocol/curve25519-voi v0.0.0-20230904125328-1f23a7beb09a
-	github.com/oasisprotocol/metadata-registry-tools v0.0.0-20230424075921-93d132769e14
+	github.com/oasisprotocol/metadata-registry-tools v0.0.0-20240304080528-3218befba9ca
+	github.com/oasisprotocol/oasis-core/go v0.2402.0
+	github.com/oasisprotocol/oasis-sdk/client-sdk/go v0.10.3
 	github.com/rs/cors v1.8.3
+	go.dedis.ch/kyber/v3 v3.1.0
 	golang.org/x/crypto v0.23.0
 	golang.org/x/exp v0.0.0-20240325151524-a685a6edb6d8
 )
