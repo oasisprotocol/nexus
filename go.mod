@@ -33,6 +33,7 @@ require (
 	github.com/Microsoft/go-winio v0.6.1 // indirect
 	github.com/ProtonMail/go-crypto v0.0.0-20230828082145-3c4c8a2d2371 // indirect
 	github.com/a8m/envsubst v1.4.2 // indirect
+	github.com/apapsch/go-jsonmerge/v2 v2.0.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bits-and-blooms/bitset v1.13.0 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.3.3 // indirect
@@ -170,7 +171,7 @@ require (
 
 require (
 	github.com/akrylysov/pogreb v0.10.1
-	github.com/deepmap/oapi-codegen v1.8.3
+	github.com/deepmap/oapi-codegen v1.12.4
 	github.com/fxamacker/cbor/v2 v2.4.0
 	github.com/oasisprotocol/curve25519-voi v0.0.0-20230904125328-1f23a7beb09a
 	github.com/oasisprotocol/metadata-registry-tools v0.0.0-20240304080528-3218befba9ca
