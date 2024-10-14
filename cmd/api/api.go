@@ -120,22 +120,22 @@ func NewService(cfg *config.ServerConfig) (*Service, error) {
 	if err != nil {
 		return nil, err
 	}
-	referenceSwaps := map[common.Runtime]config.ReferenceSwap{}
+
+	// Runtime clients.
 	runtimeClients := make(map[common.Runtime]nodeapi.RuntimeApiLite)
 	var networkConfig *sdkConfig.Network
-	if cfg.Source != nil {
-		referenceSwaps = cfg.Source.ReferenceSwaps()
-		networkConfig = cfg.Source.SDKNetwork()
-		apiRuntimes := []common.Runtime{common.RuntimeEmerald, common.RuntimeSapphire, common.RuntimePontusxTest, common.RuntimePontusxDev}
-		for _, runtime := range apiRuntimes {
-			client, err2 := source.NewRuntimeClient(ctx, cfg.Source, runtime)
-			if err2 != nil {
-				logger.Warn("unable to instantiate runtime client for api server", "runtime", runtime, "err", err2)
-			}
-			runtimeClients[runtime] = client
+	referenceSwaps := cfg.Source.ReferenceSwaps()
+	networkConfig = cfg.Source.SDKNetwork()
+	apiRuntimes := []common.Runtime{common.RuntimeEmerald, common.RuntimeSapphire, common.RuntimePontusxTest, common.RuntimePontusxDev}
+	for _, runtime := range apiRuntimes {
+		client, err2 := source.NewRuntimeClient(ctx, cfg.Source, runtime)
+		if err2 != nil {
+			logger.Warn("unable to instantiate runtime client for api server", "runtime", runtime, "err", err2)
 		}
+		runtimeClients[runtime] = client
 	}
-	client, err := storage.NewStorageClient(cfg.ChainName, backing, referenceSwaps, runtimeClients, networkConfig, logger)
+
+	client, err := storage.NewStorageClient(*cfg.Source, backing, referenceSwaps, runtimeClients, networkConfig, logger)
 	if err != nil {
 		return nil, err
 	}

@@ -23,7 +23,8 @@ analysis:
     migrations: file://storage/migrations
 
 server:
-  chain_name: mainnet
+  source:
+    chain_name: mainnet
   endpoint: 0.0.0.0:8008
   storage:
     endpoint: postgresql://rwuser:password@nexus-postgres:5432/indexer?sslmode=disable
