@@ -215,6 +215,14 @@ func (sc *SourceConfig) Validate() error {
 	} else if sc.ChainName != "" && sc.CustomChain != nil {
 		return fmt.Errorf("source.chain_name and source.custom_chain specified, can only use one")
 	}
+	if sc.CustomChain != nil {
+		if sc.CustomChain.History == nil {
+			return fmt.Errorf("source.custom_chain.history not specified")
+		}
+		if sc.CustomChain.SDKNetwork == nil {
+			return fmt.Errorf("source.custom_chain.sdk_network not specified")
+		}
+	}
 	for archiveName, archiveConfig := range sc.Nodes {
 		if archiveConfig.DefaultNode == nil && archiveConfig.ConsensusNode == nil && len(archiveConfig.RuntimeNodes) == 0 {
 			return fmt.Errorf("source.nodes[%v] has none of .default, .consensus, or .runtimes", archiveName)
@@ -246,6 +254,37 @@ func (sc *SourceConfig) SDKNetwork() *sdkConfig.Network {
 
 func (sc *SourceConfig) SDKParaTime(runtime common.Runtime) *sdkConfig.ParaTime {
 	return sc.SDKNetwork().ParaTimes.All[string(runtime)]
+}
+
+func (sc *SourceConfig) ResolveRuntimeID(runtime common.Runtime) (string, error) {
+	// Default chain.
+	if sc.ChainName != "" {
+		network, exists := sdkConfig.DefaultNetworks.All[string(sc.ChainName)]
+		if !exists {
+			return "", fmt.Errorf("unknown default chain name %s", sc.ChainName)
+		}
+		rt, exists := network.ParaTimes.All[string(runtime)]
+		if !exists {
+			return "", fmt.Errorf("unknown runtime %s for default chain %s", runtime, sc.ChainName)
+		}
+		return rt.ID, nil
+	}
+
+	// Custom chain.
+	if sc.CustomChain == nil {
+		return "", fmt.Errorf("no custom chain specified")
+	}
+	if sc.CustomChain.SDKNetwork == nil {
+		return "", fmt.Errorf("no SDK network specified for custom chain")
+	}
+	if sc.CustomChain.SDKNetwork.ParaTimes.All == nil {
+		return "", fmt.Errorf("no runtimes specified for custom chain")
+	}
+	rt, exists := sc.CustomChain.SDKNetwork.ParaTimes.All[string(runtime)]
+	if !exists {
+		return "", fmt.Errorf("unknown runtime %s for custom chain", runtime)
+	}
+	return rt.ID, nil
 }
 
 type CacheConfig struct {
@@ -539,10 +578,6 @@ func (cfg *AggregateStatsConfig) Validate() error {
 
 // ServerConfig contains the API server configuration.
 type ServerConfig struct {
-	// ChainName is the name of the chain (i.e. mainnet/testnet). Custom/local nets are not supported.
-	// This is only used for the runtime status endpoint.
-	ChainName common.ChainName `koanf:"chain_name"`
-
 	// Endpoint is the service endpoint from which to serve the API.
 	Endpoint string `koanf:"endpoint"`
 
@@ -561,16 +596,14 @@ func (cfg *ServerConfig) Validate() error {
 	if cfg.Storage == nil {
 		return fmt.Errorf("no storage config provided")
 	}
-	if cfg.ChainName == "" {
-		return fmt.Errorf("no chain name provided")
+	if cfg.Source == nil {
+		return fmt.Errorf("no source config provided")
 	}
-	if cfg.Source != nil {
-		if err := cfg.Source.Validate(); err != nil {
-			return err
-		}
-		if cfg.Source.Cache != nil {
-			return fmt.Errorf("server config should not have a cache configured")
-		}
+	if err := cfg.Source.Validate(); err != nil {
+		return err
+	}
+	if cfg.Source.Cache != nil {
+		return fmt.Errorf("server config should not have a cache configured")
 	}
 
 	return cfg.Storage.Validate(false /* requireMigrations */)

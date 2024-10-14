@@ -22,6 +22,9 @@ type HistoryRuntimeApiLite struct {
 }
 
 func NewHistoryRuntimeApiLite(ctx context.Context, history *config.History, sdkPT *sdkConfig.ParaTime, nodes map[string]*config.ArchiveConfig, fastStartup bool, runtime common.Runtime) (*HistoryRuntimeApiLite, error) {
+	if history == nil {
+		return nil, fmt.Errorf("history config not provided")
+	}
 	apis := map[string]nodeapi.RuntimeApiLite{}
 	for _, record := range history.Records {
 		if archiveConfig, ok := nodes[record.ArchiveName]; ok {

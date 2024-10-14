@@ -47,7 +47,7 @@ const (
 // StorageClient is a wrapper around a storage.TargetStorage
 // with knowledge of network semantics.
 type StorageClient struct {
-	chainName      common.ChainName
+	sourceCfg      config.SourceConfig
 	db             storage.TargetStorage
 	referenceSwaps map[common.Runtime]config.ReferenceSwap
 	runtimeClients map[common.Runtime]nodeapi.RuntimeApiLite
@@ -90,20 +90,6 @@ func translateLayer(layer apiTypes.Layer) common.Layer {
 	}
 }
 
-// runtimeNameToID returns the runtime ID for the given network and runtime name.
-func runtimeNameToID(chainName common.ChainName, name common.Runtime) (string, error) {
-	network, exists := oasisConfig.DefaultNetworks.All[string(chainName)]
-	if !exists {
-		return "", fmt.Errorf("unknown network: %s", chainName)
-	}
-	paratime, exists := network.ParaTimes.All[string(name)]
-	if !exists {
-		return "", fmt.Errorf("unknown runtime: %s", name)
-	}
-
-	return paratime.ID, nil
-}
-
 type rowsWithCount struct {
 	rows                pgx.Rows
 	totalCount          uint64
@@ -122,7 +108,7 @@ func runtimeFromCtx(ctx context.Context) common.Runtime {
 }
 
 // NewStorageClient creates a new storage client.
-func NewStorageClient(chainName common.ChainName, db storage.TargetStorage, referenceSwaps map[common.Runtime]config.ReferenceSwap, runtimeClients map[common.Runtime]nodeapi.RuntimeApiLite, networkConfig *oasisConfig.Network, l *log.Logger) (*StorageClient, error) {
+func NewStorageClient(sourceCfg config.SourceConfig, db storage.TargetStorage, referenceSwaps map[common.Runtime]config.ReferenceSwap, runtimeClients map[common.Runtime]nodeapi.RuntimeApiLite, networkConfig *oasisConfig.Network, l *log.Logger) (*StorageClient, error) {
 	blockCache, err := ristretto.NewCache(&ristretto.Config{
 		NumCounters:        1024 * 10,
 		MaxCost:            1024,
@@ -133,7 +119,7 @@ func NewStorageClient(chainName common.ChainName, db storage.TargetStorage, refe
 		l.Error("api client: failed to create block cache: %w", err)
 		return nil, err
 	}
-	return &StorageClient{chainName, db, referenceSwaps, runtimeClients, networkConfig, blockCache, l}, nil
+	return &StorageClient{sourceCfg, db, referenceSwaps, runtimeClients, networkConfig, blockCache, l}, nil
 }
 
 // Shutdown closes the backing TargetStorage.
@@ -2214,10 +2200,10 @@ func (c *StorageClient) RuntimeEVMNFTs(ctx context.Context, limit *uint64, offse
 // RuntimeStatus returns runtime status information.
 func (c *StorageClient) RuntimeStatus(ctx context.Context) (*RuntimeStatus, error) {
 	runtimeName := runtimeFromCtx(ctx)
-	runtimeID, err := runtimeNameToID(c.chainName, runtimeName)
+	runtimeID, err := c.sourceCfg.ResolveRuntimeID(runtimeName)
 	if err != nil {
 		// Return a generic error here and log the detailed error. This is most likely a misconfiguration of the server.
-		c.logger.Error("runtime name to ID failure", "runtime", runtimeName, "chain", c.chainName, "err", err)
+		c.logger.Error("runtime name to ID failure", "runtime", runtimeName, "err", err)
 		return nil, apiCommon.ErrBadRuntime
 	}
 

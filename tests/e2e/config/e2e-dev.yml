@@ -22,7 +22,10 @@ analysis:
     migrations: file:///storage/migrations
 
 server:
-  chain_name: localnet  # unused
+  source:
+    custom_chain:
+      history: {}
+      sdk_network: {}
   endpoint: 0.0.0.0:8008
   storage:
     endpoint: postgresql://indexer:password@nexus-postgres:5432/indexer?sslmode=disable
