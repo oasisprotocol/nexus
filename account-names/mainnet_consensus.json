@@ -33,5 +33,440 @@
         "Name": "Cipher",
         "Address": "oasis1qrnu9yhwzap7rqh6tdcdcpz0zf86hwhycchkhvt8",
         "Description": "Address of the Cipher account on consensus."
+    },
+    {
+        "Name": "stakefish",
+        "Address": "oasis1qq3xrq0urs8qcffhvmhfhz4p0mu7ewc8rscnlwxe",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "Kiln",
+        "Address": "oasis1qqtmpsavs44vz8868p008uwjulfq03pcjswslutz",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "Mars Staking | Long term fee 1%",
+        "Address": "oasis1qq0xmq7r0z9sdv02t5j9zs7en3n6574gtg8v9fyt",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "Simply Staking",
+        "Address": "oasis1qz0ea28d8p4xk8xztems60wq22f9pm2yyyd82tmt",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "Bit Cat🐱",
+        "Address": "oasis1qrdx0n7lgheek24t24vejdks9uqmfldtmgdv7jzz",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "SerGo",
+        "Address": "oasis1qp53ud2pcmm73mlf4qywnrr245222mvlz5a2e5ty",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "Munay Network",
+        "Address": "oasis1qpwrq93z8s9ytu2hfjtqggc9edgwfadzevs3trvm",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "Princess Stake",
+        "Address": "oasis1qpl883gp995zs9n6a279tqsavnaxxf0rzcdlauwu",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "Kumaji",
+        "Address": "oasis1qz8vfnkcc48grazt83gstfm6yjwyptalny8cywtp",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "Spectrum Staking",
+        "Address": "oasis1qzf03q57jdgdwp2w7y6a8yww6mak9khuag9qt0kd",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "Validatrium.com",
+        "Address": "oasis1qrugz89g5esmhs0ezer0plsfvmcgctge35n32vmr",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "Appload",
+        "Address": "oasis1qpaygvzwd5ffh2f5p4qdqylymgqcvl7sp5gxyrl3",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "Alexander (aka Bambarello) Validator",
+        "Address": "oasis1qzugextrcdueshq63w7l9x4xglnusznsgqa95w7e",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "Jr",
+        "Address": "oasis1qz26ty8q6gwt6zah7dtt8jpepvwnttkg8ssnxjl7",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "Dobrynya Hukutu4",
+        "Address": "oasis1qpqz8g88kvw49m402k8m2r6nv4p62vsdkv5d0u6r",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "RedHead",
+        "Address": "oasis1qqw05utlqvf2ska0fyjf5yr7peg2z4tuxcjmqztp",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "Lusia",
+        "Address": "oasis1qqrv4g5wu543wa7fcae76eucqfn2uc77zgqw8fxk",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "glebanyy",
+        "Address": "oasis1qr9zuf3n8g3znm786st3sldfw677pk3a6v85w9ds",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "Forbole",
+        "Address": "oasis1qrtq873ddwnnjqyv66ezdc9ql2a07l37d5vae9k0",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "Magic Rose",
+        "Address": "oasis1qpcz9k0q3nzq4289rzq2hw2pwgep0ygnysa5pjdj",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "RoseOnline",
+        "Address": "oasis1qrtz5ywlwjx9gca7qqxdr5f5s7sh7dkhks44cpvx",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "Fast Rose",
+        "Address": "oasis1qq2stnud2we0gfkvrf2stgg96qxhsh3fyc9mxt82",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "ELYSIUM",
+        "Address": "oasis1qp9xlxurlcx3k5h3pkays56mp48zfv9nmcf982kn",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "Bitoven",
+        "Address": "oasis1qrs8zlh0mj37ug0jzlcykz808ylw93xwkvknm7yc",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "GateOmega",
+        "Address": "oasis1qzk6qlmgnq40cq2n3jfkw3307feqngt4gvksfml6",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "Doorgod",
+        "Address": "oasis1qzzytegg6jc7hxu6y8feuzkgmr75ms7hc54mz85p",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "Tessellated Geometry",
+        "Address": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "Chloris Network",
+        "Address": "oasis1qpntrlgxp5tt36pkdezdjt5d27fzkvp22y46qura",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "Julia-Ju",
+        "Address": "oasis1qp4f47plgld98n5g2ltalalnndnzz96euv9n89lz",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "Ocean Stake",
+        "Address": "oasis1qz72lvk2jchk0fjrz7u2swpazj3t5p0edsdv7sf8",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "Wanderer Staking",
+        "Address": "oasis1qqewwznmvwfvee0dyq9g48acy0wcw890g549pukz",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "University of Malta - Centre for DLT",
+        "Address": "oasis1qzrehfnnntdaeshy5f6kfa8v3p35yu7mluaapmgc",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "Breathe and Stake",
+        "Address": "oasis1qql4alk30frfa6xua42eu7tynkqf9vd5ug95yqpn",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "Stardust",
+        "Address": "oasis1qp0xuvw2a93w4yp8jwthfz93gxy87u7hes9eu2ev",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "AutoStake 🛡️ Slash Protected",
+        "Address": "oasis1qpg5vq3jt6djfw5rq9l8kcwkt4s7vmjn4vvxujwv",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "Realizable",
+        "Address": "oasis1qram2p9w3yxm4px5nth8n7ugggk5rr6ay5d284at",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "Perfect Stake",
+        "Address": "oasis1qpxpnxxk4qcgl7n55tx0yuqmrcw5cy2u5vzjq5u4",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "alexandr0",
+        "Address": "oasis1qzmwdlxy7cltmwt99u9pwqt3g0rdwgsqyvcqymmt",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "Spherical One",
+        "Address": "oasis1qpavd66xsezz8s4wjw2fyycxw8jm2nlpnuejlg2g",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "max999",
+        "Address": "oasis1qqx820g2geqzeyeyfnm5hgz72eaj9emajgqmscy0",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "ou812",
+        "Address": "oasis1qqf6wmc0ax3mykd028ltgtqr49h3qffcm50gwag3",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "Staking Fund",
+        "Address": "oasis1qr0jwz65c29l044a204e3cllvumdg8cmsgt2k3ql",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "Making.Cash Validator",
+        "Address": "oasis1qp6fzgx9zhamsk6c77cwzjeme06xwswffvhk6js2",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "itokenpool",
+        "Address": "oasis1qrgxl0ylc7lvkj0akv6s32rj4k98nr0f7smf6m4k",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "ushakov",
+        "Address": "oasis1qrmexg6kh67xvnp7k42sx482nja5760stcrcdkhm",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "WeHaveServers.com",
+        "Address": "oasis1qp7626tphkh9784tpf2lhdmskjmrk7p2ds40e9me",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "BroMyb",
+        "Address": "oasis1qqr8y5cez0aczdlnfp9fre82whjsdgqgd5xxtv6p",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "cherkes",
+        "Address": "oasis1qps9drw07z0gmh5z2pn7zwl3z53ate2yvqf3uzq5",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "Tuzem",
+        "Address": "oasis1qppctxzn8djkqfvrxugak9v7dp25vddq7sxqhkry",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "StakeService",
+        "Address": "oasis1qzt4fvcc6cw9af69tek9p3mfjwn3a5e5vcyrw7ac",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "WolfEdge Capital",
+        "Address": "oasis1qqyynj90zkvyhja33w4ltgej45pr48f45ymmnsrx",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "Alive29",
+        "Address": "oasis1qp334gzlzrap6k2ch6wc9vxxplw9sg3v9cfvvgsy",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "AnkaStake",
+        "Address": "oasis1qz0pvg26eudajp60835wl3jxhdxqz03q5qt9us34",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "LDV",
+        "Address": "oasis1qqxqhx9t52rsevhhtfspdxp4gsaft6ewyyeqnqy3",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "0base.vc",
+        "Address": "oasis1qpsnzv8qz4fu3lwps2tc3eg5pnryzl4h7cqxruzf",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "Strata One",
+        "Address": "oasis1qp4tj3u9qkcgjqrrjvwljrqcyx3g5ygjqgtm37t3",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "Orion",
+        "Address": "oasis1qqlckx8uus05llpl5jdcsck6zceal06zgg3ll75t",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "BlockOG Capital",
+        "Address": "oasis1qpg763ex50jp0e34lsu789smlzqvcv7025v7m7yx",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "RoseDrop",
+        "Address": "oasis1qrjwzudz53vfy2vfqe5tavae370tukt9fulj27l0",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "Wetez",
+        "Address": "oasis1qz65awwegd9pr8msfxkg7hpwyjemm2qdlysyc8jq",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "w3coins",
+        "Address": "oasis1qpv6xr9zf4epy67wycy9llqtspjfaxpzs5u2e0lv",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "InfStones",
+        "Address": "oasis1qryc94hn6hucev6ex79ceheve2pjesenc50svvvp",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "Datax Staking",
+        "Address": "oasis1qrflth3g7k0ymkut2zrca3ktagw6g882yvqmgzdv",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "Validator.ONE | 0% Fee to 2026 | High Self-Stake",
+        "Address": "oasis1qp9q8g56dwuak0nwsmnykyzsfahj6z49xczp6d8c",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "Aptemuyc🌹",
+        "Address": "oasis1qq2kqzr4q942x44st97n66nmmyh7dhsuvsqyc22u",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "hybridx.exchange",
+        "Address": "oasis1qzp84num6xgspdst65yv7yqegln6ndcxmuuq8s9w",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "Ubik Capital",
+        "Address": "oasis1qppjm5sxqwps4dpyekdvz530sjmq3e5eusp7hdan",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "gunray",
+        "Address": "oasis1qq4f2h225gv6g8w8w23fm740aze9lke4qun72n59",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "01node",
+        "Address": "oasis1qpfcsun7zju6ku7d2mdh54j9nsmxvj76uqk35w57",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "AndromedaPool | Zero fee to 2025",
+        "Address": "oasis1qpjwv9r7v7y9tw2j4xskck90mkggv9geuy748fqg",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "huglester.com",
+        "Address": "oasis1qzv7a0gkxwpfelv985fvkl24k7jh3arfwy84zw7q",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "PoS Node",
+        "Address": "oasis1qpjk62axdvn2g97felfa9jpxxrptqzm4mgwh540r",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "RockX",
+        "Address": "oasis1qpjuke27se2wnmvx6e8uc4l5h44yjp9h7g2clqfq",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "Witval",
+        "Address": "oasis1qzc687uuywnel4eqtdn6x3t9hkdvf6sf2gtv4ye9",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "Terminet",
+        "Address": "oasis1qqc35xprrs0x595d9s0hrz0p60aey4cm8ya8at66",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "Maria Mirabella❤️ ROSE ",
+        "Address": "oasis1qq3fq8hxrlq6pedw0q3f57daea43a6v7q5rwf0ll",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "CryptoSJ.net",
+        "Address": "oasis1qrw8xd7sewarn0qm3jc5km4e0j2l3qdhfqexqqry",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "Esya's node",
+        "Address": "oasis1qp0j5v5mkxk3eg4kxfdsk8tj6p22g4685qk76fw6",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "Second State",
+        "Address": "oasis1qztpm422n7v98f4s7ja0wt5jey7fy3xpg5ye2vtl",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "Oxnode",
+        "Address": "oasis1qp3rhyfjagkj65cnn6lt8ej305gh3kamsvzspluq",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "Moonstake",
+        "Address": "oasis1qq4jqh66ga62pe9td5zsnfge3c9rfp6zucjr03q8",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "LaunchGarden",
+        "Address": "oasis1qr5dfqd9qw4k9829ajt2xa873gwuwjdmusc0smdh",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "Based",
+        "Address": "oasis1qzm74el4utw4jssrl95ujq87g3ks3xfmjytvtaaa",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "Kraymerica",
+        "Address": "oasis1qpxcfulzydlj6hzc2w5tsaxajdmk47raa5ydg0ac",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "SpaceStake",
+        "Address": "oasis1qzu6fvune28lsa8tllsc3t3nk2s0gcpllv8am6tk",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "ptr",
+        "Address": "oasis1qq49hl4c08rtnclqhzzql4v8ymkueq2c0595t9pl",
+        "Description": "The address of a network validator."
+    },
+    {
+        "Name": "Colossus",
+        "Address": "oasis1qq3df975et3rwst0qfc5dq4lmygp8hxjzq9z3hlt",
+        "Description": "The address of a network validator."
     }
 ]
