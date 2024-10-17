@@ -122,7 +122,7 @@ func (s *SourcifyClient) GetAllAddressPages(ctx context.Context, u *url.URL) ([]
 	for {
 		// https://sourcify.dev/server/api-docs/#/Repository/get_files_contracts_any__chain_
 		q := u.Query()
-		q.Set("page", string(page))
+		q.Set("page", fmt.Sprintf("%d", page))
 		u.RawQuery = q.Encode()
 
 		body, err := s.callAPI(ctx, http.MethodGet, u)
@@ -134,6 +134,7 @@ func (s *SourcifyClient) GetAllAddressPages(ctx context.Context, u *url.URL) ([]
 			Results    []ethCommon.Address `json:"results"`
 			Pagination SourcifyPagination  `json:"pagination"`
 		}
+
 		if err := json.Unmarshal(body, &response); err != nil {
 			return nil, fmt.Errorf("failed to parse fully verified contract addresses: %w (%s)", err, u.String())
 		}
