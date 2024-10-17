@@ -42,8 +42,6 @@ commonTestCases=(
   'runtime-only_account               /v1/consensus/accounts/oasis1qphyxz5csvprhnn09r49nuyzl0jdw0wsj5xpvsg2'
   'delegations                        /v1/consensus/accounts/oasis1qpk366qvtjrfrthjp3xuej5mhvvtnkr8fy02hm2s/delegations'
   'delegations_to                     /v1/consensus/accounts/oasis1qp0j5v5mkxk3eg4kxfdsk8tj6p22g4685qk76fw6/delegations_to'
-  'debonding_delegations              /v1/consensus/accounts/oasis1qpk366qvtjrfrthjp3xuej5mhvvtnkr8fy02hm2s/debonding_delegations'
-  'debonding_delegations_to           /v1/consensus/accounts/oasis1qp0j5v5mkxk3eg4kxfdsk8tj6p22g4685qk76fw6/debonding_delegations_to'
   # NOTE: entity-related tests are not stable long-term because their output is a combination of
   #       the blockchain at a given height (which is stable) and the _current_ metadata_registry state.
   #       We circumvent this by not fetching from metadata_registry at all, so the same metadata (= none) is always present for the test.

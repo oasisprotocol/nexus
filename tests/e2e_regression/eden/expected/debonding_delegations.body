@@ -1,5 +1,34 @@
 {
-  "debonding_delegations": [],
+  "debonding_delegations": [
+    {
+      "amount": "7321186162286",
+      "debond_end": 28333,
+      "delegator": "oasis1qr9qgkgdg6l05ggzue04n5t3mlh05aycuq8nt0l7",
+      "shares": "7321186162286",
+      "validator": "oasis1qrs8zlh0mj37ug0jzlcykz808ylw93xwkvknm7yc"
+    },
+    {
+      "amount": "4626773823723",
+      "debond_end": 28333,
+      "delegator": "oasis1qr9qgkgdg6l05ggzue04n5t3mlh05aycuq8nt0l7",
+      "shares": "4626773823723",
+      "validator": "oasis1qr0jwz65c29l044a204e3cllvumdg8cmsgt2k3ql"
+    },
+    {
+      "amount": "3925266858529",
+      "debond_end": 28333,
+      "delegator": "oasis1qr9qgkgdg6l05ggzue04n5t3mlh05aycuq8nt0l7",
+      "shares": "3925266858529",
+      "validator": "oasis1qz72lvk2jchk0fjrz7u2swpazj3t5p0edsdv7sf8"
+    },
+    {
+      "amount": "53398",
+      "debond_end": 28333,
+      "delegator": "oasis1qr9qgkgdg6l05ggzue04n5t3mlh05aycuq8nt0l7",
+      "shares": "53398",
+      "validator": "oasis1qp4rp7adhegfktyg4aq3w6jelqumx6klfv5t7kvv"
+    }
+  ],
   "is_total_count_clipped": false,
-  "total_count": 0
+  "total_count": 4
 }

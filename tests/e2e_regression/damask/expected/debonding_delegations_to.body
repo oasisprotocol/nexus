@@ -1,5 +1,706 @@
 {
-  "debonding_delegations": [],
+  "debonding_delegations": [
+    {
+      "amount": "49999999999",
+      "debond_end": 13407,
+      "delegator": "oasis1qp4py87ml0u9em6e39uz482v4zj5d02vkqq4ah3m",
+      "shares": "49999999999",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "209171709602",
+      "debond_end": 13411,
+      "delegator": "oasis1qrmus7z0xqhh0y8q4u25tsw5cmp7as4ctg0ll5y6",
+      "shares": "209171709602",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "204000000000",
+      "debond_end": 13411,
+      "delegator": "oasis1qq7v4w6aqqceqgvpndh5tv7pen80efq96yveqfsq",
+      "shares": "204000000000",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "201790309937",
+      "debond_end": 13412,
+      "delegator": "oasis1qq694k4d0s5yuqypmh9f2hqmn54snfa5jqchs06w",
+      "shares": "201790309937",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "267402366200",
+      "debond_end": 13414,
+      "delegator": "oasis1qzqww3arcmxwsff72ay3033q8xqdg3w45cmwxngz",
+      "shares": "267402366200",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "446681537534",
+      "debond_end": 13415,
+      "delegator": "oasis1qpgsmeskswc40euvlpgglsywfcgdz8vtjg4d4dpc",
+      "shares": "446681537534",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "136359999999",
+      "debond_end": 13430,
+      "delegator": "oasis1qpp6d49g7yh45yx6qdc880c69ealvc3j4syewk28",
+      "shares": "136359999999",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "114424000000",
+      "debond_end": 13430,
+      "delegator": "oasis1qz7we92k7uc62xxv545yauu8ztwvvdtaky8u9mkd",
+      "shares": "114424000000",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "114418999999",
+      "debond_end": 13430,
+      "delegator": "oasis1qpdv5g40kly4msxkudp058r36p574uugzqzrjrl9",
+      "shares": "114418999999",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "114418999999",
+      "debond_end": 13430,
+      "delegator": "oasis1qq3umdyetucun9ptls0803sverz5u0cxucvhgp58",
+      "shares": "114418999999",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "114418999999",
+      "debond_end": 13430,
+      "delegator": "oasis1qr5hh7z03588c9fdpl8qkd4p0yl5fh2aavnv2myk",
+      "shares": "114418999999",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "114418999999",
+      "debond_end": 13430,
+      "delegator": "oasis1qra8tqxt3s3spvjht7e4lsv8eemycvyts55e47uf",
+      "shares": "114418999999",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "114418999999",
+      "debond_end": 13430,
+      "delegator": "oasis1qrd2kt95q4zapfa7ux6sdgprae7jke2st5wlcg9d",
+      "shares": "114418999999",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "114418999999",
+      "debond_end": 13430,
+      "delegator": "oasis1qrdmz2sflxl02atk29572n55spy4vu5m2q67efjs",
+      "shares": "114418999999",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "114418999999",
+      "debond_end": 13430,
+      "delegator": "oasis1qzz8gf8na8czddka3d2rp7e6292c86ags5e8z9vu",
+      "shares": "114418999999",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "109410999999",
+      "debond_end": 13430,
+      "delegator": "oasis1qrj0nf8p5ewmucx260n67n8sfcds54ceusqantp4",
+      "shares": "109410999999",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "109410999999",
+      "debond_end": 13430,
+      "delegator": "oasis1qz70flm3yahchf2579kup20vsej0aj2qjyrwe5k2",
+      "shares": "109410999999",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "109410000000",
+      "debond_end": 13430,
+      "delegator": "oasis1qr94c4qfhz4y3f63x93m2pwcrcz2s2rtt5fhc43m",
+      "shares": "109410000000",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "109410000000",
+      "debond_end": 13430,
+      "delegator": "oasis1qzk5sw467m0e9t70k80ra79h90c9gnpd3vq0u0jq",
+      "shares": "109410000000",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "109382999999",
+      "debond_end": 13430,
+      "delegator": "oasis1qp9a2fstqnw62wyxfeyunvxrt290ue0pqc64y9x7",
+      "shares": "109382999999",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "109382999999",
+      "debond_end": 13430,
+      "delegator": "oasis1qqvzfazv3jvw5630wfcpmryjvj2k9uu7gsvw363n",
+      "shares": "109382999999",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "109382999999",
+      "debond_end": 13430,
+      "delegator": "oasis1qrkmwhju23lfrwp8d4cryacfg520psyp9cnwnlwc",
+      "shares": "109382999999",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "109382999999",
+      "debond_end": 13430,
+      "delegator": "oasis1qznce8a86w70c4fu9c6079v09e8zuz0x2y6ww84f",
+      "shares": "109382999999",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "109213999999",
+      "debond_end": 13430,
+      "delegator": "oasis1qrdc4hwv2wpl64q6krtpuuhy8f78nrwxsylzse6d",
+      "shares": "109213999999",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "105246000000",
+      "debond_end": 13430,
+      "delegator": "oasis1qqlceuguyu0malwq8d3hnq9k694e0e9pnvvzpzwg",
+      "shares": "105246000000",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "109215370831",
+      "debond_end": 13431,
+      "delegator": "oasis1qz62xvrgu7lyp6umw0vkyrl5g486u3f7zssl7tqj",
+      "shares": "109215370831",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "109215000000",
+      "debond_end": 13431,
+      "delegator": "oasis1qp2as30y25vwakx79xt8qygn48au0432kq8fc5rf",
+      "shares": "109215000000",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "109215000000",
+      "debond_end": 13431,
+      "delegator": "oasis1qp8egzsqn686qv32lrqj0jdfyhj92fjv5u0tlmwm",
+      "shares": "109215000000",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "109215000000",
+      "debond_end": 13431,
+      "delegator": "oasis1qpcncc6g3d60k340r4jnal7dx5h5z6u8ccfyxces",
+      "shares": "109215000000",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "109215000000",
+      "debond_end": 13431,
+      "delegator": "oasis1qpfgrnx4su5pvgfwt3w5fx28y74qzd6kwudaj4yr",
+      "shares": "109215000000",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "109215000000",
+      "debond_end": 13431,
+      "delegator": "oasis1qpq9f4fels8kkr0nrzvj46n4ut9tl6faxcm49mj0",
+      "shares": "109215000000",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "109215000000",
+      "debond_end": 13431,
+      "delegator": "oasis1qqajvhny0plexpdlnh3j59s0r9yntr2vhvmrk5n5",
+      "shares": "109215000000",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "109215000000",
+      "debond_end": 13431,
+      "delegator": "oasis1qqasja994xcuekdff5xvjwdeh7xvtdlk7capgknk",
+      "shares": "109215000000",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "109215000000",
+      "debond_end": 13431,
+      "delegator": "oasis1qqejkjauk97x5acjhfhyr9u95asy4l0syvjuh9h4",
+      "shares": "109215000000",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "109215000000",
+      "debond_end": 13431,
+      "delegator": "oasis1qqg0qee8rz4c30yzzw36g58ql4gvj06zvc2f20pm",
+      "shares": "109215000000",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "109215000000",
+      "debond_end": 13431,
+      "delegator": "oasis1qqhl5ghucvq2qwt7qwlxd7435xvky6uc05ssv7rg",
+      "shares": "109215000000",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "109215000000",
+      "debond_end": 13431,
+      "delegator": "oasis1qqpzvkc4cgsuuwrc8ken2m2jxk0xkwrh7gght567",
+      "shares": "109215000000",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "109215000000",
+      "debond_end": 13431,
+      "delegator": "oasis1qqqvfy4axuk53nfsx6lpm27gtadnq40g2vep2ssh",
+      "shares": "109215000000",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "109215000000",
+      "debond_end": 13431,
+      "delegator": "oasis1qqu98nv3qdsdqj7k8yjvdtmucv90hellucmqapl5",
+      "shares": "109215000000",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "109215000000",
+      "debond_end": 13431,
+      "delegator": "oasis1qqzakwh36q9kwq0yzs36ywm95eagg4zxtv0cmaea",
+      "shares": "109215000000",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "109215000000",
+      "debond_end": 13431,
+      "delegator": "oasis1qr3y7nnh08xsptru79lrqk5z5wjwxdpsr550fkm4",
+      "shares": "109215000000",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "109215000000",
+      "debond_end": 13431,
+      "delegator": "oasis1qr7jhc96zzlff92frwuap9zksczftkap7g22wp8u",
+      "shares": "109215000000",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "109215000000",
+      "debond_end": 13431,
+      "delegator": "oasis1qr8sqefns2jk8zs7t0mrx7kgcp2n7p84j5f9sn0v",
+      "shares": "109215000000",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "109215000000",
+      "debond_end": 13431,
+      "delegator": "oasis1qrfctugggcgp4t95f36ud8n6g8t3gvqezgflresv",
+      "shares": "109215000000",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "109215000000",
+      "debond_end": 13431,
+      "delegator": "oasis1qrh48fdd05cskafxra97jf34xxyg8wfx4gkhclzu",
+      "shares": "109215000000",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "109215000000",
+      "debond_end": 13431,
+      "delegator": "oasis1qrk9vr9yzlgxjk9mwqlt3wyshynx7nxtkc5wx9fv",
+      "shares": "109215000000",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "109215000000",
+      "debond_end": 13431,
+      "delegator": "oasis1qrkt5vdxc8ggatan3vkskcg4y4ew2szacc8kvwy3",
+      "shares": "109215000000",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "109215000000",
+      "debond_end": 13431,
+      "delegator": "oasis1qz27v0qwx9zr8x6sz6qy9s2xvmkyh8xe7q22s4h9",
+      "shares": "109215000000",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "109215000000",
+      "debond_end": 13431,
+      "delegator": "oasis1qzemvpkrvutuz5w0xxeecnw2z48qzyrlpueahxyu",
+      "shares": "109215000000",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "109215000000",
+      "debond_end": 13431,
+      "delegator": "oasis1qzfyrx9mlvyfxdpxt4dh7n49uz8jh0xcmuvqng8h",
+      "shares": "109215000000",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "109215000000",
+      "debond_end": 13431,
+      "delegator": "oasis1qzmdsh8c9jevshhuzmjamkfrwmzf76x4yqqf0vcp",
+      "shares": "109215000000",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "109215000000",
+      "debond_end": 13431,
+      "delegator": "oasis1qzrum97mthhs33yyqdzltwg7ww0x7g38gqgn72kv",
+      "shares": "109215000000",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "109215000000",
+      "debond_end": 13431,
+      "delegator": "oasis1qzsn6rtjah54hhs0n803n2tttq7mtp3yzgas07yv",
+      "shares": "109215000000",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "109215000000",
+      "debond_end": 13431,
+      "delegator": "oasis1qzv3xjncp3t2r36f8j80h6q4h5hrkrl7hu2nhg5d",
+      "shares": "109215000000",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "849866641562",
+      "debond_end": 13435,
+      "delegator": "oasis1qzha8le2fe8fvmlydk8acs8glaf9xs0d3yhj487g",
+      "shares": "849866641562",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "19999969063",
+      "debond_end": 13438,
+      "delegator": "oasis1qr8ncmxj52atjgqu0drwgexy4u6sd0evqsreq9tr",
+      "shares": "19999969063",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "448054183822",
+      "debond_end": 13439,
+      "delegator": "oasis1qrjqemlvvya49gw732jwypn4cxc3kslay5umv944",
+      "shares": "448054183822",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "128999999930046",
+      "debond_end": 13459,
+      "delegator": "oasis1qqq83h890gslys5tjkfm3ssvjdy7n6v7cu7z7dl5",
+      "shares": "128999999930046",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "301549917245",
+      "debond_end": 13461,
+      "delegator": "oasis1qzspv6497hr90j7cvmn6yz5flmeypptzlgy5p2qz",
+      "shares": "301549917245",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "25293616111918",
+      "debond_end": 13468,
+      "delegator": "oasis1qzmkv2lp4pw08fesuuhzdf45n0eyp4wa6ywnxlvm",
+      "shares": "25293616111918",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "351668228681",
+      "debond_end": 13475,
+      "delegator": "oasis1qpfw0pwzqq4zqduw2ycdm4pfg05t2ce9vgmtndks",
+      "shares": "351668228681",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "927969999999",
+      "debond_end": 13481,
+      "delegator": "oasis1qq0wl7wcrp6w84wrlrt0yuwsylmse73ztsmr7e6t",
+      "shares": "927969999999",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "102220629391",
+      "debond_end": 13485,
+      "delegator": "oasis1qraul8yr0dhnyhgvllwngdanpjuzesx6ps954hz7",
+      "shares": "102220629391",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "117234706256",
+      "debond_end": 13488,
+      "delegator": "oasis1qryhtgde5wnkn55mf4dumax3v6k66w7emul4d3xq",
+      "shares": "117234706256",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "4122069892619",
+      "debond_end": 13506,
+      "delegator": "oasis1qr6fvtyk3222dcxn2c3mvltj8zqs6pws0uzm6n22",
+      "shares": "4122069892619",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "3638141441400",
+      "debond_end": 13511,
+      "delegator": "oasis1qrvv0s2s04szyfkcl20x9l7dcntrr2uwwydd3ndm",
+      "shares": "3638141441400",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "4038719874041",
+      "debond_end": 13521,
+      "delegator": "oasis1qphndvx3fxt3mj9zwv6x8gswzfnnv2kuq5lncyaq",
+      "shares": "4038719874041",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "916427600000",
+      "debond_end": 13525,
+      "delegator": "oasis1qpynz7vnwnuq8l9prhp9ph4w76naq7wwngyhfx37",
+      "shares": "916427600000",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "49999875792",
+      "debond_end": 13527,
+      "delegator": "oasis1qztjs4vzp7c6hnnnrwlfdr9km2skrwp7qg0zu0v2",
+      "shares": "49999875792",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "277144099665073",
+      "debond_end": 13529,
+      "delegator": "oasis1qzf4gyj2we756uaxmawey05epgqsp79k7scpsxny",
+      "shares": "277144099665073",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "3561018799999",
+      "debond_end": 13547,
+      "delegator": "oasis1qr436l0xrjwlvftvexfc07fakp6mmc45gg2xtfxa",
+      "shares": "3561018799999",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "111050163068",
+      "debond_end": 13547,
+      "delegator": "oasis1qzedh4snktw8lwa62teyyx0rrklaruppgcxjtd77",
+      "shares": "111050163068",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "66645000000000",
+      "debond_end": 13550,
+      "delegator": "oasis1qr2g24c4p5x5u2sqfwlrhn8lmhcrff2f8urfyn3s",
+      "shares": "66645000000000",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "4413234999999",
+      "debond_end": 13550,
+      "delegator": "oasis1qqwflh9y2m4kxkj3486fl5hjkfupjxhmrv77zmxx",
+      "shares": "4413234999999",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "3268781924756",
+      "debond_end": 13568,
+      "delegator": "oasis1qz9d0n9gay0ac8ec6qa68j0l9ruaeejzjc4adevy",
+      "shares": "3268781924756",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "1026026293230",
+      "debond_end": 13568,
+      "delegator": "oasis1qz0jner3j5gaz9s6czne5kxxmz73497v6uhj900w",
+      "shares": "1026026293230",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "122443772198",
+      "debond_end": 13572,
+      "delegator": "oasis1qr9pewsyrlhwpqmv6ljnz6mcm7nu4kc7459lqpfy",
+      "shares": "122443772198",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "20884380930236",
+      "debond_end": 13578,
+      "delegator": "oasis1qzytdnzw7q6k895cn0mn9df0dz9xl6t7ncnur3j9",
+      "shares": "20884380930236",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "1230015438713",
+      "debond_end": 13580,
+      "delegator": "oasis1qrajyc9jj65qkt3l9v24a4pff0yj4h04fg4zq8vx",
+      "shares": "1230015438713",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "2237959999999",
+      "debond_end": 13582,
+      "delegator": "oasis1qp2hed0hkq9s36ar0n097jgussnrkx782q99fafr",
+      "shares": "2237959999999",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "203000100000",
+      "debond_end": 13593,
+      "delegator": "oasis1qptm5xhhvvukkw5mgeaqvj5jhp065rvv8c6uasuw",
+      "shares": "203000100000",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "100990180278",
+      "debond_end": 13595,
+      "delegator": "oasis1qq0p3u2nq0jua3gqufjzzxzcvw93prns4sqxn5uc",
+      "shares": "100990180278",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "20124143600000",
+      "debond_end": 13597,
+      "delegator": "oasis1qza43q4qkajr3465s4v3epyerj2xuamwwsx0q8jy",
+      "shares": "20124143600000",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "3190550400076",
+      "debond_end": 13598,
+      "delegator": "oasis1qp6f57xkaz5uhdvcuwjxhfs3c8tsj4lkrga3sqqr",
+      "shares": "3190550400076",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "505819000000001",
+      "debond_end": 13605,
+      "delegator": "oasis1qz4ww8x27wa564eg8e4hu9x796ukf8x7tqva0xqf",
+      "shares": "505819000000001",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "3363937239660",
+      "debond_end": 13611,
+      "delegator": "oasis1qzn38q8k6f88snd7hqfffu5c2rtcvrqf8558k8ku",
+      "shares": "3363937239660",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "1257661070000",
+      "debond_end": 13621,
+      "delegator": "oasis1qrwz9af59l0h8lvt4x0ltvu8t0dvnrkp5s35wnes",
+      "shares": "1257661070000",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "51588705830",
+      "debond_end": 13631,
+      "delegator": "oasis1qzs8cjxldlgxw6m3j2ec73phcm4fxahcqy25k77a",
+      "shares": "51588705830",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "24435821396809",
+      "debond_end": 13648,
+      "delegator": "oasis1qpmhn2mrtzr7pudn9366jc6spdkfhwyk6c9puuc0",
+      "shares": "24435821396809",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "4135752884095",
+      "debond_end": 13648,
+      "delegator": "oasis1qpvggwl2wxt9yat2063tks7ad9ez5hgpuqsqq2jq",
+      "shares": "4135752884095",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "303273597800",
+      "debond_end": 13649,
+      "delegator": "oasis1qzztuugenp3yxxvjr442rl870437v3g8pyy4u9hs",
+      "shares": "303273597800",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "589766566890",
+      "debond_end": 13651,
+      "delegator": "oasis1qrw5nw38gw7w72cnkz98da7lmv72m72l4vd02u7r",
+      "shares": "589766566890",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "102019612876",
+      "debond_end": 13668,
+      "delegator": "oasis1qrkwvw5srlfrazgyl5504aj6tef8mv3j3y0x3gux",
+      "shares": "102019612876",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "2066553100",
+      "debond_end": 13669,
+      "delegator": "oasis1qp8putmfyw87f2sdcg5zzrdmgltmapda3ccyyydh",
+      "shares": "2066553100",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "113011740820",
+      "debond_end": 13686,
+      "delegator": "oasis1qq9437q3ly3jkdc5qgls8r5hcsdj6gpc2vjzgvfj",
+      "shares": "113011740820",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "1026696188416",
+      "debond_end": 13687,
+      "delegator": "oasis1qrktc7th9czj29rvrr7u4pkp6c9e75vsnvrgewan",
+      "shares": "1026696188416",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "132750400000",
+      "debond_end": 13696,
+      "delegator": "oasis1qzdc2w8l7lz89fsppasz9a2r4asp34e975p9szm2",
+      "shares": "132750400000",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "405596694466",
+      "debond_end": 13700,
+      "delegator": "oasis1qzlf3m6pu3nfv8t0hsuvfres27wuukegsqjg9smj",
+      "shares": "405596694466",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "310021881609",
+      "debond_end": 13702,
+      "delegator": "oasis1qzephdpp2uuhg9cr44xajewylh9lkvwp9qvr0acv",
+      "shares": "310021881609",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    },
+    {
+      "amount": "112125883385",
+      "debond_end": 13702,
+      "delegator": "oasis1qql6mtaxc95u3dct7n4lacnjdp0ny4jtlszujwcv",
+      "shares": "112125883385",
+      "validator": "oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp"
+    }
+  ],
   "is_total_count_clipped": false,
-  "total_count": 0
+  "total_count": 105
 }
