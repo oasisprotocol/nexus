@@ -86,33 +86,77 @@ func (s *SourcifyClient) callAPI(ctx context.Context, method string, url *url.UR
 // Note: This uses the free, public server API. If it turns out to be unreliable, we could use the repository API (vis IPFS proxy) instead, e.g.:
 // http://ipfs.default:8080/ipns/repo.sourcify.dev/contracts/full_match/23294
 func (s *SourcifyClient) GetVerifiedContractAddresses(ctx context.Context, runtime common.Runtime) (map[ethCommon.Address]VerificationLevel, error) {
-	// Fetch verified contract addresses.
-	u := *s.serverUrl
-	u.Path = path.Join(u.Path, "files/contracts", sourcifyChains[s.chain][runtime])
-	body, err := s.callAPI(ctx, http.MethodGet, &u)
-	if err != nil {
-		return nil, fmt.Errorf("failed to fetch verified contract addresses: %w (%s)", err, u.String())
-	}
-
-	// Parse response.
-	var response struct {
-		Full    []ethCommon.Address `json:"full"`
-		Partial []ethCommon.Address `json:"partial"` // See https://docs.sourcify.dev/docs/full-vs-partial-match/
-	}
-	if err := json.Unmarshal(body, &response); err != nil {
-		return nil, fmt.Errorf("failed to parse verified contract addresses: %w (%s)", err, u.String())
-	}
-
 	// Build map of addresses.
 	addresses := make(map[ethCommon.Address]VerificationLevel)
-	for _, addr := range response.Full {
+
+	// Fetch fully verified contract addresses.
+	// See https://docs.sourcify.dev/docs/full-vs-partial-match/
+	u := *s.serverUrl
+	u.Path = path.Join(u.Path, "files/contracts/full", sourcifyChains[s.chain][runtime])
+	fullyVerified, err := s.GetAllAddressPages(ctx, &u)
+	if err != nil {
+		return nil, err
+	}
+	for _, addr := range fullyVerified {
 		addresses[addr] = VerificationLevelFull
 	}
-	for _, addr := range response.Partial {
-		addresses[addr] = VerificationLevelPartial
+	// Fetch partially verified contract addresses.
+	u = *s.serverUrl
+	u.Path = path.Join(u.Path, "files/contracts/any", sourcifyChains[s.chain][runtime])
+	allContracts, err := s.GetAllAddressPages(ctx, &u)
+	if err != nil {
+		return nil, err
+	}
+	for _, addr := range allContracts {
+		if _, exists := addresses[addr]; !exists {
+			addresses[addr] = VerificationLevelPartial
+		}
 	}
 
 	return addresses, nil
+}
+
+func (s *SourcifyClient) GetAllAddressPages(ctx context.Context, u *url.URL) ([]ethCommon.Address, error) {
+	page := 0
+	addresses := []ethCommon.Address{}
+	for {
+		// https://sourcify.dev/server/api-docs/#/Repository/get_files_contracts_any__chain_
+		q := u.Query()
+		q.Set("page", fmt.Sprintf("%d", page))
+		u.RawQuery = q.Encode()
+
+		body, err := s.callAPI(ctx, http.MethodGet, u)
+		if err != nil {
+			return nil, fmt.Errorf("failed to fetch fully verified contract addresses from %s: %w", u.String(), err)
+		}
+		// Parse response.
+		var response struct {
+			Results    []ethCommon.Address `json:"results"`
+			Pagination SourcifyPagination  `json:"pagination"`
+		}
+
+		if err := json.Unmarshal(body, &response); err != nil {
+			return nil, fmt.Errorf("failed to parse fully verified contract addresses: %w (%s)", err, u.String())
+		}
+		addresses = append(addresses, response.Results...)
+		// Check pagination and increment if necessary.
+		if !response.Pagination.HasNextPage {
+			break
+		}
+		page++
+	}
+
+	return addresses, nil
+}
+
+type SourcifyPagination struct {
+	CurrentPage        uint64 `json:"currentPage"`
+	TotalPages         uint64 `json:"totalPages"`
+	ResultsPerPage     uint64 `json:"resultsPerPage"`
+	ResultsCurrentPage uint64 `json:"resultsCurrentPage"`
+	TotalResults       uint64 `json:"totalResults"`
+	HasNextPage        bool   `json:"hasNextPage"`
+	HasPreviousPage    bool   `json:"hasPreviousPage"`
 }
 
 type SourceFile struct {
