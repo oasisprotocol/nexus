@@ -127,7 +127,7 @@ func (s *SourcifyClient) GetAllAddressPages(ctx context.Context, u *url.URL) ([]
 
 		body, err := s.callAPI(ctx, http.MethodGet, u)
 		if err != nil {
-			return nil, fmt.Errorf("failed to fetch fully verified contract addresses: %w (%s)", err, u.String())
+			return nil, fmt.Errorf("failed to fetch fully verified contract addresses from %s: %w", u.String(), err)
 		}
 		// Parse response.
 		var response struct {
