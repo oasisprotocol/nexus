@@ -37,15 +37,16 @@ type CacheableResponse struct {
 
 func (p cachingHttpProxy) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	// Rewrite the request URL to new host
-	targetURL, _ := url.JoinPath(p.targetHost, req.URL.RequestURI())
-	req, err := http.NewRequestWithContext(req.Context(), req.Method, targetURL, req.Body)
+	targetURL, _ := url.JoinPath(p.targetHost, req.URL.Path)
+	proxyReq, err := http.NewRequestWithContext(req.Context(), req.Method, targetURL, req.Body)
 	if err != nil {
 		panic(fmt.Sprintf("error rewriting request to %s %s: %v", req.Method, req.URL.String(), err))
 	}
+	proxyReq.URL.RawQuery = req.URL.Query().Encode()
 
 	// Get the response to the modified request (via cache)
-	cResp, err := kvstore.GetFromCacheOrCall(p.cache, false, kvstore.CacheKey(req.URL.RequestURI()), func() (*CacheableResponse, error) {
-		resp, err2 := p.client.Do(req)
+	cResp, err := kvstore.GetFromCacheOrCall(p.cache, false, kvstore.CacheKey(proxyReq.URL.RequestURI()), func() (*CacheableResponse, error) {
+		resp, err2 := p.client.Do(proxyReq)
 		if err2 != nil {
 			return nil, err2
 		}
