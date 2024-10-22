@@ -1,5 +1,62 @@
 {
-  "debonding_delegations": [],
+  "debonding_delegations": [
+    {
+      "amount": "3881781080423",
+      "debond_end": 13423,
+      "delegator": "oasis1qp4f47plgld98n5g2ltalalnndnzz96euv9n89lz",
+      "shares": "3881781080423",
+      "validator": "oasis1qp4f47plgld98n5g2ltalalnndnzz96euv9n89lz"
+    },
+    {
+      "amount": "3614391707325",
+      "debond_end": 13447,
+      "delegator": "oasis1qp4f47plgld98n5g2ltalalnndnzz96euv9n89lz",
+      "shares": "3614391707325",
+      "validator": "oasis1qp4f47plgld98n5g2ltalalnndnzz96euv9n89lz"
+    },
+    {
+      "amount": "3029318071277",
+      "debond_end": 13471,
+      "delegator": "oasis1qp4f47plgld98n5g2ltalalnndnzz96euv9n89lz",
+      "shares": "3029318071277",
+      "validator": "oasis1qp4f47plgld98n5g2ltalalnndnzz96euv9n89lz"
+    },
+    {
+      "amount": "3479511250738",
+      "debond_end": 13494,
+      "delegator": "oasis1qp4f47plgld98n5g2ltalalnndnzz96euv9n89lz",
+      "shares": "3479511250738",
+      "validator": "oasis1qp4f47plgld98n5g2ltalalnndnzz96euv9n89lz"
+    },
+    {
+      "amount": "3927561565018",
+      "debond_end": 13518,
+      "delegator": "oasis1qp4f47plgld98n5g2ltalalnndnzz96euv9n89lz",
+      "shares": "3927561565018",
+      "validator": "oasis1qp4f47plgld98n5g2ltalalnndnzz96euv9n89lz"
+    },
+    {
+      "amount": "3577175607733",
+      "debond_end": 13542,
+      "delegator": "oasis1qp4f47plgld98n5g2ltalalnndnzz96euv9n89lz",
+      "shares": "3577175607733",
+      "validator": "oasis1qp4f47plgld98n5g2ltalalnndnzz96euv9n89lz"
+    },
+    {
+      "amount": "3636914529688",
+      "debond_end": 13568,
+      "delegator": "oasis1qp4f47plgld98n5g2ltalalnndnzz96euv9n89lz",
+      "shares": "3636914529688",
+      "validator": "oasis1qp4f47plgld98n5g2ltalalnndnzz96euv9n89lz"
+    },
+    {
+      "amount": "3421781914775",
+      "debond_end": 13590,
+      "delegator": "oasis1qp4f47plgld98n5g2ltalalnndnzz96euv9n89lz",
+      "shares": "3421781914775",
+      "validator": "oasis1qp4f47plgld98n5g2ltalalnndnzz96euv9n89lz"
+    }
+  ],
   "is_total_count_clipped": false,
-  "total_count": 0
+  "total_count": 8
 }
