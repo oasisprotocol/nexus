@@ -3,8 +3,8 @@
   "balances": [
     {
       "balance": "0",
-      "token_decimals": 0,
-      "token_symbol": ""
+      "token_decimals": 18,
+      "token_symbol": "ROSE"
     }
   ],
   "evm_balances": [],
