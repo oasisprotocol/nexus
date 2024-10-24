@@ -122,8 +122,7 @@ func (c *FileConsensusApiLite) GetEpoch(ctx context.Context, height int64) (beac
 func (c *FileConsensusApiLite) RegistryEvents(ctx context.Context, height int64) ([]nodeapi.Event, error) {
 	return kvstore.GetSliceFromCacheOrCall(
 		c.db, height == consensus.HeightLatest,
-		// v2: Renamed some event fields.
-		kvstore.GenerateCacheKey("RegistryEvents.v2", height),
+		kvstore.GenerateCacheKey("RegistryEvents", height),
 		func() ([]nodeapi.Event, error) { return c.consensusApi.RegistryEvents(ctx, height) },
 	)
 }
