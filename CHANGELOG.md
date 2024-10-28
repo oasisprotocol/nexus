@@ -12,6 +12,59 @@ The format is inspired by [Keep a Changelog].
 
 <!-- TOWNCRIER -->
 
+## 0.4.1 (2024-10-25)
+
+### Features
+
+- storage: sort tokens by total value
+  ([#755](https://github.com/oasisprotocol/nexus/issues/755))
+
+- api/consensus/valudators: Expose validator signed blocks info
+  ([#760](https://github.com/oasisprotocol/nexus/issues/760))
+
+- config/server: clean-up chainName and reuse source config
+  ([#766](https://github.com/oasisprotocol/nexus/issues/766))
+
+  Required config change:
+
+  Old:
+
+  ```yaml
+  server:
+    chain_name: mainnet
+  ```
+
+  New:
+
+  ```yaml
+  server:
+    source:
+      chain_name: mainnet
+  ```
+
+### Bug Fixes and Improvements
+
+- post-reindex fixes
+  ([#761](https://github.com/oasisprotocol/nexus/issues/761))
+
+  This PR combines several minor fixes that were applied during
+  the reindex of production.
+
+  1. Damask-style proposals are now unmarshalled correctly
+  2. Cobalt PVSS txs are now unmarshalled correctly using vendored
+  oasis-core types.
+  3. TakeEscrow events are now indexed properly.
+  4. minor bump in oapi-codegen version to v1.12. A subsequent PR
+  will bump it to v2
+
+- evmverifier: update to use current sourcify api
+  ([#768](https://github.com/oasisprotocol/nexus/issues/768))
+
+### Documentation Improvements
+
+- openapi: mark unreleased consensus endpoints as experimental/deprecated
+  ([#762](https://github.com/oasisprotocol/nexus/issues/762))
+
 ## 0.4.0 (2024-10-01)
 
 ### Features
