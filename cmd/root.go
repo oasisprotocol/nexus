@@ -9,6 +9,7 @@ import (
 	"runtime/pprof"
 	"sync"
 	"syscall"
+	"time"
 
 	"github.com/spf13/cobra"
 
@@ -99,22 +100,43 @@ func rootMain(cmd *cobra.Command, args []string) {
 	}
 
 	logger.Info("started all services")
-	wg.Wait()
-
 	// Collect memory profile.
 	if cfg.Metrics.MemProfile != "" {
-		logger.Info("Writing memory profile", "dest", cfg.Metrics.MemProfile)
-		memF, err := os.Create(cfg.Metrics.MemProfile)
-		if err != nil {
-			logger.Error("failed to create memory profile", "err", err)
-			os.Exit(1)
+		go collectMemProfiles(cfg.Metrics.MemProfile, logger)
+	}
+	wg.Wait()
+}
+
+func collectMemProfiles(dest string, logger *log.Logger) {
+	signalChan := make(chan os.Signal, 1)
+	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
+	defer signal.Stop(signalChan) // Stop catching Ctrl+C signals.
+
+	for {
+		select {
+		case <-time.After(5 * time.Minute):
+			logMemProfile(dest, logger)
+		case <-signalChan:
+			logger.Info("received interrupt, shutting down")
+			// Let the default handler handle ctrl+C so people can kill the process in a hurry.
+			signal.Stop(signalChan)
+			return
 		}
-		defer memF.Close()
-		// runtime.GC()
-		if err := pprof.WriteHeapProfile(memF); err != nil {
-			logger.Error("failed to write memory profile", "err", err)
-			os.Exit(1)
-		}
+	}
+}
+
+func logMemProfile(dest string, logger *log.Logger) {
+	logger.Info("Writing memory profile", "dest", dest)
+	memF, err := os.Create(dest)
+	if err != nil {
+		logger.Error("failed to create memory profile", "err", err)
+		os.Exit(1)
+	}
+	defer memF.Close()
+	// runtime.GC()
+	if err := pprof.WriteHeapProfile(memF); err != nil {
+		logger.Error("failed to write memory profile", "err", err)
+		os.Exit(1)
 	}
 }
 
