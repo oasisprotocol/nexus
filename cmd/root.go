@@ -55,6 +55,22 @@ func rootMain(cmd *cobra.Command, args []string) {
 	}
 	logger := common.RootLogger()
 
+	// Initialize cpu profiling.
+	if cfg.Metrics.CpuProfile != "" {
+		logger.Warn("CPU profiling is enabled, this will impact performance (negatively)", "dest", cfg.Metrics.CpuProfile)
+		cpuF, err := os.Create(cfg.Metrics.CpuProfile)
+		if err != nil {
+			logger.Error("failed to initialize cpu profile", "err", err)
+			os.Exit(1)
+		}
+		defer cpuF.Close()
+		if err := pprof.StartCPUProfile(cpuF); err != nil {
+			logger.Error("could not start cpu profile", "err", err)
+			os.Exit(1)
+		}
+		defer pprof.StopCPUProfile()
+	}
+
 	// Initialize services.
 	var wg sync.WaitGroup
 	runInWG := func(s Service) {
@@ -84,6 +100,22 @@ func rootMain(cmd *cobra.Command, args []string) {
 
 	logger.Info("started all services")
 	wg.Wait()
+
+	// Collect memory profile.
+	if cfg.Metrics.MemProfile != "" {
+		logger.Info("Writing memory profile", "dest", cfg.Metrics.MemProfile)
+		memF, err := os.Create(cfg.Metrics.MemProfile)
+		if err != nil {
+			logger.Error("failed to create memory profile", "err", err)
+			os.Exit(1)
+		}
+		defer memF.Close()
+		// runtime.GC()
+		if err := pprof.WriteHeapProfile(memF); err != nil {
+			logger.Error("failed to write memory profile", "err", err)
+			os.Exit(1)
+		}
+	}
 }
 
 // Execute spawns the main entry point after handing the config file.
