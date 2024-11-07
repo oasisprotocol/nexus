@@ -49,6 +49,7 @@ var APIConstructors = map[string]APIConstructor{
 	"cobalt": cobaltAPIConstructor,
 	"eden":   edenAPIConstructor,
 	// testnet
+	"2021-04-13": cobaltAPIConstructor,
 	"2022-03-03": damaskAPIConstructor,
 	"2023-10-12": edenAPIConstructor,
 }
