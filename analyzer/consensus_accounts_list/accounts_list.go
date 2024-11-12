@@ -17,11 +17,13 @@ const (
 	analyzerName = "consensus_account_list"
 
 	defaultInterval = 2 * time.Minute
+	vacuumInterval  = 2 * time.Hour
 
-	vacuumInterval = 2 * time.Hour
-
-	accountListViewRefreshQuery = `REFRESH MATERIALIZED VIEW CONCURRENTLY views.accounts_list`
 	accountsListVacuumQuery     = `VACUUM ANALYZE views.accounts_list`
+	accountListViewRefreshQuery = `REFRESH MATERIALIZED VIEW CONCURRENTLY views.accounts_list`
+
+	validatorUptimesVacuumQuery      = `VACUUM ANALYZE views.validator_uptimes`
+	validatorUptimesViewRefreshQuery = `REFRESH MATERIALIZED VIEW CONCURRENTLY views.validator_uptimes`
 )
 
 type processor struct {
@@ -66,11 +68,17 @@ func (p *processor) GetItems(ctx context.Context, limit uint64) ([]struct{}, err
 
 func (p *processor) ProcessItem(ctx context.Context, batch *storage.QueryBatch, item struct{}) error {
 	batch.Queue(accountListViewRefreshQuery)
+	batch.Queue(validatorUptimesViewRefreshQuery)
 
 	if time.Since(p.lastVacuum) > vacuumInterval {
 		_, err := p.target.Exec(ctx, accountsListVacuumQuery)
 		if err != nil {
 			p.logger.Error("failed to vacuum accounts list view", "error", err)
+			return nil
+		}
+		_, err = p.target.Exec(ctx, validatorUptimesVacuumQuery)
+		if err != nil {
+			p.logger.Error("failed to vacuum validator uptimes view", "error", err)
 			return nil
 		}
 		p.lastVacuum = time.Now()

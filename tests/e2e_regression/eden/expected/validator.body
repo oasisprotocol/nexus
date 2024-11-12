@@ -438,6 +438,25 @@
         }
       ],
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          999,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 999
+      },
       "voting_power": 31903165146578016,
       "voting_power_cumulative": 31903165146578016
     }

@@ -461,12 +461,17 @@ const (
 			EXISTS(SELECT NULL FROM chain.nodes WHERE chain.entities.id = chain.nodes.entity_id AND chain.nodes.roles LIKE '%validator%') AS active,
 			EXISTS(SELECT NULL FROM chain.nodes WHERE chain.entities.id = chain.nodes.entity_id AND voting_power > 0) AS in_validator_set,
 			chain.entities.meta AS meta,
-			chain.entities.logo_url as logo_url
+			chain.entities.logo_url as logo_url,
+			uptimes.window_length,
+			uptimes.segment_length,
+			uptimes.window_signed,
+			uptimes.segments_signed
 		FROM chain.entities
 		JOIN chain.accounts ON chain.entities.address = chain.accounts.address
 		JOIN chain.blocks ON chain.entities.start_block = chain.blocks.height
 		LEFT JOIN chain.commissions ON chain.entities.address = chain.commissions.address
 		LEFT JOIN self_delegations ON chain.entities.address = self_delegations.address
+		LEFT JOIN views.validator_uptimes as uptimes ON chain.entities.id = uptimes.signer_entity_id
 		LEFT JOIN history.validators ON chain.entities.id = history.validators.id
 			-- Find the epoch id from 24 hours ago. Each epoch is ~1hr.
 			AND history.validators.epoch = (SELECT id - 24 from chain.epochs
