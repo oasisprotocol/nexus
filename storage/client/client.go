@@ -1121,6 +1121,181 @@ func (c *StorageClient) DebondingDelegationsTo(ctx context.Context, address stak
 	return &ds, nil
 }
 
+// StakingRewards returns a list of consensus staking rewards for a given account.
+func (c *StorageClient) StakingRewards(ctx context.Context, address staking.Address, year uint64, p apiTypes.GetConsensusAccountsAddressStakingRewardsYearParams) (*StakingRewardList, error) {
+	// Validate year, find starting snapshot of account's delegations at year start
+	// Fetch all escrow events where delegator==address from that year, this includes staking reward disbursements which have newShares == 0
+	// since disbursements don't name addr explicitly, need to fetch all epochs from that year along with validator escrow shares history
+	// Sliding window throughout year to calculate staking rewards for each epoch, given initial delegations state.
+	yearStarts := map[uint64]int64{
+		2021: 3_027_601,
+		2022: 6_608_893,
+		2023: 11_910_446,
+		2024: 17_291_958,
+	}
+	yearEpochStarts := map[uint64]int64{
+		2021: 5_048,
+		2022: 11_006,
+		2023: 19_838,
+		2024: 28_808,
+	}
+	if _, ok := yearStarts[year]; !ok {
+		return &StakingRewardList{}, nil
+	}
+	startBlock := yearStarts[year]
+	startEpoch := yearEpochStarts[year]
+	var endBlock int64
+	var endEpoch int64
+	if startBlock == 2024 {
+		endBlock = 23_500_000 // estimate
+		endEpoch = 37_900     // estimate
+	} else {
+		endBlock = yearStarts[year+1]
+		endEpoch = yearEpochStarts[year+1]
+	}
+	// Get account delegations at start of year.
+	initialStateRows, err := c.db.Query(ctx, queries.DelegationsHistory, address, startBlock)
+	if err != nil {
+		return nil, wrapError(err)
+	}
+	escrowState := map[string]common.BigInt{}
+	validators := map[string]struct{}{}
+	for initialStateRows.Next() {
+		var valAddr string
+		var shares common.BigInt
+		if err := initialStateRows.Scan(&valAddr, &shares); err != nil {
+			return nil, wrapError(err)
+		}
+		if _, ok := validators[valAddr]; !ok {
+			validators[valAddr] = struct{}{}
+		}
+		escrowState[valAddr] = shares
+	}
+	// Get all escrow activity for this account.
+	accountEventsRows, err := c.db.Query(ctx, queries.DelegatorEscrowEventHistory, address, startBlock, endBlock)
+	if err != nil {
+		return nil, wrapError(err)
+	}
+	accountEvents := map[string][]stakingEvent{}
+	for accountEventsRows.Next() {
+		se := stakingEvent{}
+		if err := accountEventsRows.Scan(&se.block, &se.epoch, &se.eventType, &se.delegatee, &se.shares, &se.amount, &se.timestamp); err != nil {
+			return nil, wrapError(err)
+		}
+		if _, ok := validators[se.delegatee]; !ok {
+			validators[se.delegatee] = struct{}{}
+		}
+		accountEvents[se.delegatee] = append(accountEvents[se.delegatee], se)
+	}
+	// Process validator by validator.
+	res := StakingRewardList{}
+	for v := range validators {
+		validatorEvents := []stakingEvent{}
+		validatorEventRows, err := c.db.Query(ctx, queries.ValidatorEscrowEventHistory, v, startBlock, endBlock)
+		if err != nil {
+			return nil, wrapError(err)
+		}
+		for validatorEventRows.Next() {
+			var se stakingEvent
+			if err := accountEventsRows.Scan(&se.block, &se.epoch, &se.eventType, &se.delegatee, &se.shares, &se.amount, &se.timestamp); err != nil {
+				return nil, wrapError(err)
+			}
+			validatorEvents = append(validatorEvents, se)
+		}
+		validatorHistory := map[int64]common.BigInt{}
+		vhRows, err := c.db.Query(ctx, queries.ValidatorHistory, v, startEpoch, endEpoch)
+		if err != nil {
+			return nil, wrapError(err)
+		}
+		for vhRows.Next() {
+			var epoch int64
+			var activeShares common.BigInt
+			if err := vhRows.Scan(&epoch, nil, &activeShares, nil, nil, nil); err != nil {
+				return nil, wrapError(err)
+			}
+			validatorHistory[epoch] = activeShares
+		}
+		// Ok now we have the init state, validator history (escrow balances), and any account escrow interactions with the validator
+		// possible events: validator rewards granted; slashing; delegator add escrow, delegator start debonding
+		validatorEvents = zipStakingEvents(validatorEvents, accountEvents[v])
+		stakingRewards := []StakingReward{}
+		var escrowShares common.BigInt
+		if balance, ok := escrowState[v]; ok {
+			escrowShares = balance
+		} else {
+			escrowShares = common.NewBigInt(0)
+		}
+		for _, ve := range validatorEvents {
+			switch ve.eventType {
+			case apiTypes.ConsensusEventTypeStakingEscrowAdd:
+				if ve.shares.IsZero() {
+					// staking rewards were granted.
+					amt, err := amountFromShares(escrowShares, validatorHistory[ve.epoch], ve.amount)
+					if err != nil {
+						return nil, wrapError(err)
+					}
+					stakingRewards = append(stakingRewards, StakingReward{
+						Amount:    amt,
+						Epoch:     ve.epoch,
+						Timestamp: ve.timestamp,
+						Validator: v,
+					})
+				} else {
+					escrowShares.Plus(ve.shares)
+				}
+			case apiTypes.ConsensusEventTypeStakingEscrowDebondingStart:
+				escrowShares.Minus(ve.shares)
+			case apiTypes.ConsensusEventTypeStakingEscrowTake:
+				amt, err := amountFromShares(escrowShares, validatorHistory[ve.epoch], ve.amount)
+				if err != nil {
+					return nil, wrapError(err)
+				}
+				stakingRewards = append(stakingRewards, StakingReward{
+					Amount:    amt,
+					Epoch:     ve.epoch,
+					Timestamp: ve.timestamp,
+					Validator: v,
+				})
+			}
+		}
+		res.Rewards = append(res.Rewards, stakingRewards...)
+	}
+
+	return &res, nil
+}
+
+// Zips two arrays of stakingEvents together according to stakingEvent.block. In the event
+// of a tie, events from arr1 have priority.
+func zipStakingEvents(arr1 []stakingEvent, arr2 []stakingEvent) []stakingEvent {
+	res := make([]stakingEvent, 0, len(arr1)+len(arr2))
+	var i, j = 0, 0
+	for i < len(arr1) && j < len(arr2) {
+		if arr1[i].block <= arr2[j].block {
+			res = append(res, arr1[i])
+			i += 1
+		} else {
+			res = append(res, arr2[j])
+			j += 1
+		}
+	}
+	if i == len(arr1) {
+		res = append(res, arr2[j:]...)
+	} else {
+		res = append(res, arr1[i:]...)
+	}
+	return res
+}
+
+type stakingEvent struct {
+	block     int64
+	epoch     int64
+	eventType apiTypes.ConsensusEventType
+	delegatee string
+	shares    common.BigInt
+	amount    common.BigInt
+	timestamp time.Time
+}
+
 // Epochs returns a list of consensus epochs.
 func (c *StorageClient) Epochs(ctx context.Context, p apiTypes.GetConsensusEpochsParams) (*EpochList, error) {
 	res, err := c.withTotalCount(

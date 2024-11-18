@@ -399,6 +399,11 @@ var (
     ON CONFLICT (delegatee, delegator) DO
       UPDATE SET shares = chain.delegations.shares + $3`
 
+	ConsensusDelegationsHistoryInsert = `
+    INSERT INTO history.delegations_snapshots (block, delegatee, delegator, shares)
+      VALUES ($1, $2, $3, $4)
+    ON CONFLICT (block, delegatee, delegator) DO NOTHING`
+
 	ConsensusTakeEscrowUpdateGuessRatio = `
     UPDATE chain.accounts
       SET

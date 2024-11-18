@@ -718,6 +718,38 @@ paths:
               schema:
                 $ref: '#/components/schemas/DebondingDelegationList'
         <<: *common_error_responses
+  
+  /consensus/accounts/{address}/staking_rewards/{year}:
+    get:
+      tags: [Experimental]
+      deprecated: true
+      summary: Returns a list of staking rewards granted to this account for the given year.
+      parameters:
+        - *limit
+        - *offset
+        - in: path
+          name: address
+          required: true
+          schema:
+            allOf: [$ref: '#/components/schemas/StakingAddress']
+          description: The staking address of the that is being delegated to.
+        - in: path
+          name: year
+          required: true
+          schema:
+            type: integer
+            format: uint64
+          description: The staking address of the that is being delegated to.
+      responses:
+        '200':
+          description: |
+            A JSON object containing a list of staking rewards granted to this account
+            at each epoch over the given year.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StakingRewardList'
+        <<: *common_error_responses
 
   /consensus/epochs:
     get:
@@ -1583,6 +1615,42 @@ components:
                 allOf: [$ref: '#/components/schemas/DebondingDelegation']
           description: |
             A list of debonding delegations.
+    
+    StakingReward:
+      type: object
+      required: [epoch, timestamp, validator, amount]
+      properties:
+        epoch:
+          type: integer
+          format: int64
+          description: The epoch at which the rewards were granted. Rewards are granted at the beginning of each epoch.
+        timestamp:
+          type: string
+          format: date-time
+          description: |
+            The second-granular consensus time of the block in which the rewards were granted, i.e. roughly when the
+            [block was proposed](https://github.com/tendermint/tendermint/blob/v0.34.x/spec/core/data_structures.md#header).
+          example: *iso_timestamp_3
+        amount:
+          allOf: [$ref: '#/components/schemas/TextBigInt']
+          description: The amount of tokens delegated in base units.
+        validator:
+          type: string
+          description: The delegatee (validator) address.
+          example: *staking_address_1        
+
+    StakingRewardList:
+      allOf:
+        - $ref: '#/components/schemas/List'
+        - type: object
+          required: [rewards]
+          properties:
+            rewards:
+              type: array
+              items:
+                allOf: [$ref: '#/components/schemas/StakingReward']
+          description: |
+            A list of staking rewards.
 
     ConsensusTxMethod:
       type: string

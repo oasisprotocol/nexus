@@ -297,6 +297,35 @@ const (
 		LIMIT $2::bigint
 		OFFSET $3::bigint`
 
+	DelegationsHistory = `
+		SELECT delegatee, shares
+			FROM history.delegations_snapshots
+			WHERE delegator = $1::text AND
+				block = $2::bigint
+		ORDER BY shares DESC, delegatee`
+
+	DelegatorEscrowEventHistory = `
+		SELECT tx_block, events.epoch, type, delegatee, shares, amount, time
+			FROM history.escrow_events AS events
+			JOIN chain.blocks ON chain.blocks.height = events.tx_block
+			WHERE delegator = $1::text AND
+				($2::bigint IS NULL OR tx_block >= $2::bigint) AND
+				($3::bigint IS NULL OR tx_block < $3::bigint)
+			ORDER BY tx_block, delegatee`
+
+	ValidatorEscrowEventHistory = `
+		SELECT tx_block, events.epoch, type, delegatee, shares, amount, time
+			FROM history.escrow_events AS events
+			JOIN chain.blocks ON chain.blocks.height = events.tx_block
+			WHERE delegatee = $1::text AND
+				($2::bigint IS NULL OR tx_block >= $2::bigint) AND
+				($3::bigint IS NULL OR tx_block < $3::bigint) AND
+				(
+					(type = 'staking.escrow.add' AND shares = 0) OR
+					(type = 'staking.escrow.take')
+				)
+			ORDER BY tx_block`
+
 	Epochs = `
 		SELECT id, start_height,
 			(CASE id WHEN (SELECT max(id) FROM chain.epochs) THEN NULL ELSE end_height END) AS end_height
