@@ -91,9 +91,9 @@ const (
 			JOIN chain.blocks ON chain.transactions.block = chain.blocks.height
 			LEFT JOIN chain.accounts_related_transactions ON chain.transactions.block = chain.accounts_related_transactions.tx_block
 				AND chain.transactions.tx_index = chain.accounts_related_transactions.tx_index
-				-- When related_address ($4) is NULL and hence we do no filtering on it, avoid the join altogether.
+				-- When related_address ($5) is NULL and hence we do no filtering on it, avoid the join altogether.
 				-- Otherwise, every tx will be returned as many times as there are related addresses for it.
-				AND $4::text IS NOT NULL
+				AND $5::text IS NOT NULL
 			WHERE ($1::text IS NULL OR chain.transactions.tx_hash = $1::text) AND
 					($2::bigint IS NULL OR chain.transactions.block = $2::bigint) AND
 					($3::text IS NULL OR chain.transactions.method = $3::text) AND
