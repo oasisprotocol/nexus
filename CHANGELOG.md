@@ -12,6 +12,30 @@ The format is inspired by [Keep a Changelog].
 
 <!-- TOWNCRIER -->
 
+## 0.4.2 (2024-11-22)
+
+### Bug Fixes and Improvements
+
+- api: update consensus/tx rel filter
+  ([#802](https://github.com/oasisprotocol/nexus/issues/802))
+
+## 0.4.2 (2024-11-21)
+
+### Features
+
+- api/consensus: support filtering blocks by proposer
+  ([#764](https://github.com/oasisprotocol/nexus/issues/764))
+
+### Bug Fixes and Improvements
+
+- api: add 2021 testnet constructor
+  ([#797](https://github.com/oasisprotocol/nexus/issues/797))
+
+### Internal Changes
+
+- internal: update codeowners
+  ([#758](https://github.com/oasisprotocol/nexus/issues/758))
+
 ## 0.4.1 (2024-10-25)
 
 ### Features
