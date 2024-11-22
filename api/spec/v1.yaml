@@ -2090,8 +2090,33 @@ components:
           description: An array containing details of the last 100 consensus blocks, indicating whether each block was signed by the validator. Only available when querying a single validator.
           items:
             allOf: [$ref: '#/components/schemas/ValidatorSignedBlock']
+        uptime:
+          allOf: [$ref: '#/components/schemas/ValidatorUptime']
+          description: The validator's uptime statistics for a period of time up to now.
       description: |
-        An validator registered at the consensus layer.
+        A validator registered at the consensus layer.
+
+    ValidatorUptime:
+      type: object
+      properties:
+        window_length:
+          type: integer
+          format: uint64
+          description: The length of the window this object describes, in blocks.
+        partial_length:
+          type: integer
+          format: uint64
+          description: The length of the partial windows within window_length, in blocks.
+        overall_uptime:
+          type: integer
+          format: uint64
+          description: The number of blocks signed by the validator out of the last window_length blocks.
+        partial_uptimes:
+          type: array
+          description: An array showing the signed block counts for each partial slot within window_length.
+          items:
+            type: integer
+            format: uint64
 
     ValidatorSignedBlock:
       type: object
