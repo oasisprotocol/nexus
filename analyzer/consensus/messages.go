@@ -35,13 +35,14 @@ func extractMessageData(logger *log.Logger, m message.Message) MessageData {
 				break
 			}
 			messageData.body = body
-			_, err = addresses.RegisterRelatedOCSAddress(messageData.relatedAddresses, m.Staking.Transfer.To)
+			to, err := addresses.FromOCSAddress(m.Staking.Transfer.To)
 			if err != nil {
 				logger.Info("register related address 'to' failed",
 					"message_type", messageData.messageType,
 					"err", err,
 				)
 			}
+			messageData.relatedAddresses[to] = struct{}{}
 		case m.Staking.Withdraw != nil:
 			messageData.messageType = apiTypes.RoothashMessageTypeStakingWithdraw
 			body, err := json.Marshal(m.Staking.Withdraw)
@@ -53,13 +54,14 @@ func extractMessageData(logger *log.Logger, m message.Message) MessageData {
 				break
 			}
 			messageData.body = body
-			_, err = addresses.RegisterRelatedOCSAddress(messageData.relatedAddresses, m.Staking.Withdraw.From)
+			from, err := addresses.FromOCSAddress(m.Staking.Withdraw.From)
 			if err != nil {
 				logger.Info("register related address 'from' failed",
 					"message_type", messageData.messageType,
 					"err", err,
 				)
 			}
+			messageData.relatedAddresses[from] = struct{}{}
 		case m.Staking.AddEscrow != nil:
 			messageData.messageType = apiTypes.RoothashMessageTypeStakingAddEscrow
 			body, err := json.Marshal(m.Staking.AddEscrow)
@@ -71,13 +73,14 @@ func extractMessageData(logger *log.Logger, m message.Message) MessageData {
 				break
 			}
 			messageData.body = body
-			_, err = addresses.RegisterRelatedOCSAddress(messageData.relatedAddresses, m.Staking.AddEscrow.Account)
+			account, err := addresses.FromOCSAddress(m.Staking.AddEscrow.Account)
 			if err != nil {
 				logger.Info("register related address 'account' failed",
 					"message_type", messageData.messageType,
 					"err", err,
 				)
 			}
+			messageData.relatedAddresses[account] = struct{}{}
 		case m.Staking.ReclaimEscrow != nil:
 			messageData.messageType = apiTypes.RoothashMessageTypeStakingReclaimEscrow
 			body, err := json.Marshal(m.Staking.ReclaimEscrow)
@@ -89,13 +92,14 @@ func extractMessageData(logger *log.Logger, m message.Message) MessageData {
 				break
 			}
 			messageData.body = body
-			_, err = addresses.RegisterRelatedOCSAddress(messageData.relatedAddresses, m.Staking.ReclaimEscrow.Account)
+			account, err := addresses.FromOCSAddress(m.Staking.ReclaimEscrow.Account)
 			if err != nil {
 				logger.Info("register related address 'account' failed",
 					"message_type", messageData.messageType,
 					"err", err,
 				)
 			}
+			messageData.relatedAddresses[account] = struct{}{}
 		default:
 			logger.Info("unhandled staking message",
 				"staking_message", m.Staking,

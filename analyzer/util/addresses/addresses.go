@@ -60,7 +60,7 @@ func FromRuntimeID(id coreCommon.Namespace) (apiTypes.Address, error) {
 	return FromOCSAddress(ocsAddr)
 }
 
-func SliceFromSet(accounts map[apiTypes.Address]struct{}) []string {
+func SliceFromSet(accounts map[apiTypes.Address]struct{}) []apiTypes.Address {
 	addrs := make([]string, len(accounts))
 	i := 0
 	for a := range accounts {

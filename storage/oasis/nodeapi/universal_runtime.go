@@ -130,7 +130,10 @@ func (rc *UniversalRuntimeApiLite) GetEventsRaw(ctx context.Context, round uint6
 	// Convert to nexus-internal type.
 	evs := make([]RuntimeEvent, len(rsp))
 	for i, ev := range rsp {
-		evs[i] = (RuntimeEvent)(*ev)
+		evs[i] = RuntimeEvent{
+			Event: ev,
+			Index: uint64(i),
+		}
 	}
 
 	return evs, nil
