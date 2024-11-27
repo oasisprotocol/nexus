@@ -34,7 +34,6 @@ func unmarshalEvmEvent(t *testing.T, body []byte) *abiEncodedEvent {
 	require.Nil(t, err)
 	return &abiEncodedEvent{
 		Round:     0,
-		TxIndex:   nil,
 		EventBody: ev,
 	}
 }

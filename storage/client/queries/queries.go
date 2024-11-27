@@ -640,6 +640,12 @@ const (
 			(evs.runtime=tokens.runtime) AND
 			(preimages.address=tokens.token_address) AND
 			(tokens.token_type IS NOT NULL) -- exclude token _candidates_ that we haven't inspected yet; we have no info about them (name, decimals, etc)
+		LEFT JOIN chain.runtime_events_related_accounts as rel ON
+			evs.runtime = rel.runtime AND
+			evs.round = rel.round AND
+			evs.event_index = rel.event_index AND
+			-- When related_address ($7) is NULL and hence we do no filtering on it, avoid the join altogether.
+			($7::text IS NOT NULL)
 		WHERE
 			(evs.runtime = $1) AND
 			($2::bigint IS NULL OR evs.round = $2::bigint) AND
@@ -647,7 +653,7 @@ const (
 			($4::text IS NULL OR evs.tx_hash = $4::text OR evs.tx_eth_hash = $4::text) AND
 			($5::text IS NULL OR evs.type = $5::text) AND
 			($6::bytea IS NULL OR evs.evm_log_signature = $6::bytea) AND
-			($7::text IS NULL OR evs.related_accounts @> ARRAY[$7::text]) AND
+			($7::text IS NULL OR rel.account_address = $7::text) AND
 			($8::text IS NULL OR (
 				-- Currently this only supports EVM smart contracts.
 				evs.type = 'evm.log' AND

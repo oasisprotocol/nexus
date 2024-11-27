@@ -797,12 +797,15 @@ func (m *processor) queueRootHashMessageUpserts(batch *storage.QueryBatch, data 
 				// The runtime has its own staking account, which is what
 				// performs these actions, e.g. when sending or receiving the
 				// consensus token. Register that as related to the message.
-				if _, err := addresses.RegisterRelatedRuntimeAddress(messageData.addressPreimages, messageData.relatedAddresses, event.RoothashExecutorCommitted.RuntimeID); err != nil {
+				if runtimeAddr, err := addresses.RegisterRuntimeAddress(messageData.addressPreimages, event.RoothashExecutorCommitted.RuntimeID); err != nil {
 					logger.Info("register runtime address failed",
 						"runtime_id", event.RoothashExecutorCommitted.RuntimeID,
 						"err", err,
 					)
+				} else {
+					messageData.relatedAddresses[runtimeAddr] = struct{}{}
 				}
+
 				for addr, preimageData := range messageData.addressPreimages {
 					batch.Queue(queries.AddressPreimageInsert,
 						addr,
