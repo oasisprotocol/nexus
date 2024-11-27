@@ -401,21 +401,29 @@ func (m *processor) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 
 	// Insert events.
 	for _, eventData := range data.EventData {
-		eventRelatedAddresses := addresses.SliceFromSet(eventData.RelatedAddresses)
 		batch.Queue(
 			queries.RuntimeEventInsert,
 			m.runtime,
 			data.Header.Round,
+			eventData.EventIndex,
 			eventData.TxIndex,
 			eventData.TxHash,
 			eventData.TxEthHash,
 			data.Header.Timestamp,
 			eventData.Type,
 			eventData.Body,
-			eventRelatedAddresses,
 			eventData.EvmLogName,
 			eventData.EvmLogParams,
 			eventData.EvmLogSignature,
+		)
+
+		eventRelatedAddresses := addresses.SliceFromSet(eventData.RelatedAddresses)
+		batch.Queue(
+			queries.RuntimeEventRelatedAccountsInsert,
+			m.runtime,
+			data.Header.Round,
+			eventData.EventIndex,
+			eventRelatedAddresses,
 		)
 	}
 
