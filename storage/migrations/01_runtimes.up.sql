@@ -146,15 +146,19 @@ CREATE TABLE chain.runtime_events
   tx_index UINT31,
   FOREIGN KEY (runtime, round, tx_index) REFERENCES chain.runtime_transactions(runtime, round, tx_index) DEFERRABLE INITIALLY DEFERRED,
 
+  -- Added in 13_runtime_events_related_accounts.up.sql.
+  -- event_index UINT31 NOT NULL, -- Unique event index within the block. We need this so that we can uniquely reference events.
+  -- PRIMARY KEY (runtime, round, event_index),
+
   tx_hash HEX64,
   tx_eth_hash HEX64,
   timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
 
-  -- TODO: add link to openapi spec section with runtime event types.
-  type TEXT NOT NULL,
+
   -- The raw event, as returned by the oasis-sdk runtime client.
+  type TEXT NOT NULL,
   body JSONB NOT NULL,
-  related_accounts TEXT[],
+  related_accounts TEXT[], -- Removed in 13_runtime_events_related_accounts.up.sql.
 
   -- The events of type `evm.log` are further parsed into known event types, e.g. (ERC20) Transfer,
   -- to populate the `evm_log_name`, `evm_log_params`, and `evm_log_signature` fields.
@@ -171,7 +175,7 @@ CREATE TABLE chain.runtime_events
 CREATE INDEX ix_runtime_events_round ON chain.runtime_events(runtime, round);  -- for sorting by round, when there are no filters applied
 CREATE INDEX ix_runtime_events_tx_hash ON chain.runtime_events USING hash (tx_hash);
 CREATE INDEX ix_runtime_events_tx_eth_hash ON chain.runtime_events USING hash (tx_eth_hash);
-CREATE INDEX ix_runtime_events_related_accounts ON chain.runtime_events USING gin(related_accounts); -- for fetching account activity for a given account
+CREATE INDEX ix_runtime_events_related_accounts ON chain.runtime_events USING gin(related_accounts); -- for fetching account activity for a given account -- Removed in 13_runtime_events_related_accounts.up.sql.
 CREATE INDEX ix_runtime_events_evm_log_signature ON chain.runtime_events(runtime, evm_log_signature, round); -- for fetching a certain event type, eg Transfers
 CREATE INDEX ix_runtime_events_evm_log_params ON chain.runtime_events USING gin(evm_log_params);
 CREATE INDEX ix_runtime_events_type ON chain.runtime_events (runtime, type);
@@ -180,11 +184,26 @@ CREATE INDEX ix_runtime_events_nft_transfers ON chain.runtime_events (runtime, (
         type = 'evm.log' AND
         evm_log_signature = '\xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef' AND
         jsonb_array_length(body -> 'topics') = 4;
+
 -- Added in 07_runtime_events_evm_contracts_events.up.sql
 -- Index used for fetching events emitted by a specific contract.
 -- CREATE INDEX ix_runtime_events_evm_contract_events ON chain.runtime_events (runtime, (body ->> 'address'), evm_log_signature, round)
 --     WHERE
 --         type = 'evm.log';
+
+-- Added in 13_runtime_events_related_accounts.up.sql.
+-- CREATE TABLE chain.runtime_events_related_accounts
+-- (
+--     runtime runtime NOT NULL,
+--     round UINT63 NOT NULL,
+--     tx_index UINT31 NOT NULL,
+--     type TEXT NOT NULL,
+--     type_index UINT31 NOT NULL,
+
+--     account_address oasis_addr NOT NULL,
+--     FOREIGN KEY (runtime, round, tx_index, type, type_index) REFERENCES chain.runtime_events(runtime, round, tx_index, type, type_index) DEFERRABLE INITIALLY DEFERRED
+-- );
+-- CREATE INDEX ix_runtime_events_related_accounts_related_account_round ON chain.runtime_events_related_accounts(runtime, account_address, round);
 
 -- Roothash messages are small structures that a runtime can send to
 -- communicate with the consensus layer. They are agreed upon for each runtime
