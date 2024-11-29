@@ -23,6 +23,7 @@ testCases=(
   'emerald_tx                         /v1/emerald/transactions/ec1173a69272c67f126f18012019d19cd25199e831f9417b6206fb7844406f9d'
   'emerald_failed_tx                  /v1/emerald/transactions/35fdc8261dd81be8187c858aa9a623085494baf0565d414f48562a856147c093'
   'emerald_events_by_nft              /v1/emerald/events?contract_address=oasis1qz29t7nxkwfqgfk36uqqs9pzuzdt8zmrjud5mehx&nft_id=1'
+  'emerald_transfer_events_of_token   /v1/emerald/events?evm_log_signature=ddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef&contract_address=0xf02b3e437304892105992512539F769423a515Cb'
   'emerald_token                      /v1/emerald/evm_tokens/oasis1qpgcp5jzlgk4hcenaj2x82rqk8rrve2keyuc8aaf'
   'emerald_token_eth                  /v1/emerald/evm_tokens/0x21C718C22D52d0F3a789b752D4c2fD5908a8A733'
   'emerald_token_holders              /v1/emerald/evm_tokens/oasis1qpgcp5jzlgk4hcenaj2x82rqk8rrve2keyuc8aaf/holders'
