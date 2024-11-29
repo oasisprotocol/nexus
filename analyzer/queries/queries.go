@@ -515,10 +515,10 @@ var (
     SELECT epochs.id, epochs.start_height, prev_epoch.validators
     FROM chain.epochs as epochs
     LEFT JOIN history.validators as history
-      ON epochs.id = history.epoch 
+      ON epochs.id = history.epoch
     LEFT JOIN chain.epochs as prev_epoch
       ON epochs.id = prev_epoch.id + 1
-    WHERE 
+    WHERE
       history.epoch IS NULL AND
       epochs.id >= $1
     ORDER BY epochs.id
@@ -531,7 +531,7 @@ var (
 	ValidatorStakingRewardUpdate = `
     UPDATE history.validators
     SET staking_rewards = $3
-    WHERE 
+    WHERE
       id = $1 AND
       epoch = $2`
 
@@ -545,7 +545,7 @@ var (
     FROM chain.epochs AS epochs
     LEFT JOIN history.validators AS history
       ON epochs.id = history.epoch
-    WHERE 
+    WHERE
       history.epoch IS NULL AND
       epochs.id >= $1`
 
@@ -636,8 +636,12 @@ var (
       tx_hash = $2`
 
 	RuntimeEventInsert = `
-    INSERT INTO chain.runtime_events (runtime, round, tx_index, tx_hash, tx_eth_hash, timestamp, type, body, related_accounts, evm_log_name, evm_log_params, evm_log_signature)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`
+    INSERT INTO chain.runtime_events (runtime, round, tx_index, tx_hash, tx_eth_hash, timestamp, type, body, evm_log_name, evm_log_params, evm_log_signature)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`
+
+	RuntimeEventRelatedAccountsInsert = `
+    INSERT INTO chain.runtime_events_related_accounts (runtime, round, tx_index, related_account)
+      SELECT $1::runtime, $2::UINT63, $3::UINT31, unnest($4::TEXT[])`
 
 	// We use COALESCE here to avoid overwriting existing data with null values.
 	RuntimeEventEvmParsedFieldsUpdate = `

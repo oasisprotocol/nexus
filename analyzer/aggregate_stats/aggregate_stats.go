@@ -202,14 +202,14 @@ func (a *aggregateStatsAnalyzer) aggregateStatsWorker(ctx context.Context) {
 			switch {
 			case err == nil:
 				// Continues below.
-			case errors.Is(pgx.ErrNoRows, err):
+			case errors.Is(err, pgx.ErrNoRows):
 				// No stats yet. Start at the earliest indexed block.
 				var earliestBlockTs *time.Time
 				earliestBlockTs, err = a.earliestBlockTs(statCtx, statsComputation.layer)
 				switch {
 				case err == nil:
 					latestComputed = floorWindow(earliestBlockTs)
-				case errors.Is(pgx.ErrNoRows, err):
+				case errors.Is(err, pgx.ErrNoRows):
 					// No data log a debug only log.
 					logger.Debug("no stats available yet, skipping iteration")
 					cancel()
@@ -230,7 +230,7 @@ func (a *aggregateStatsAnalyzer) aggregateStatsWorker(ctx context.Context) {
 			switch {
 			case err == nil:
 				// Continues below.
-			case errors.Is(pgx.ErrNoRows, err):
+			case errors.Is(err, pgx.ErrNoRows):
 				logger.Debug("no stats available yet, skipping iteration")
 				cancel()
 				continue

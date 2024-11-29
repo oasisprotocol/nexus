@@ -1583,7 +1583,12 @@ func (c *StorageClient) RuntimeEvents(ctx context.Context, p apiTypes.GetRuntime
 		evmLogSignature = &h
 	}
 	if p.NftId != nil && p.ContractAddress == nil {
-		return nil, fmt.Errorf("must specify contract_address with nft_id")
+		return nil, fmt.Errorf("'nft_id' can only be used in combination with 'contract_address'")
+	}
+	if p.ContractAddress != nil {
+		if p.NftId == nil && p.EvmLogSignature == nil {
+			return nil, fmt.Errorf("'contract_address' can only be used in combination with either 'nft_id' or 'evm_log_signature'")
+		}
 	}
 	ocAddrContract, err := apiTypes.UnmarshalToOcAddress(p.ContractAddress)
 	if err != nil {

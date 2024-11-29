@@ -70,12 +70,40 @@ func (r *FileRuntimeApiLite) GetTransactionsWithResults(ctx context.Context, rou
 	)
 }
 
+// nodeapi.RuntimeEvent changed from being an alias of sdkTypes.Event, to a struct which additionally contains the index of the event.
+// To avoid invalidating the cache (causing the need to re-index all events), we keep using the old type in the caching backend and convert between
+// the types on the fly. This is possible since the index of the event is the order in which the event is returned by the GetEventsRaw method.
 func (r *FileRuntimeApiLite) GetEventsRaw(ctx context.Context, round uint64) ([]nodeapi.RuntimeEvent, error) {
-	return kvstore.GetSliceFromCacheOrCall(
+	type CachedRuntimeEvent = sdkTypes.Event
+
+	cachedEvents, err := kvstore.GetSliceFromCacheOrCall(
 		r.db, round == roothash.RoundLatest,
 		kvstore.GenerateCacheKey("GetEventsRaw", r.runtime, round),
-		func() ([]nodeapi.RuntimeEvent, error) { return r.runtimeApi.GetEventsRaw(ctx, round) },
+		func() ([]CachedRuntimeEvent, error) {
+			rawEvents, err := r.runtimeApi.GetEventsRaw(ctx, round)
+			if err != nil {
+				return nil, err
+			}
+			cachedEvents := make([]CachedRuntimeEvent, len(rawEvents))
+			for i, ev := range rawEvents {
+				cachedEvents[i] = *ev.Event
+			}
+			return cachedEvents, nil
+		},
 	)
+	if err != nil {
+		return nil, err
+	}
+
+	// Convert to nexus-internal type.
+	evs := make([]nodeapi.RuntimeEvent, len(cachedEvents))
+	for i, ev := range cachedEvents {
+		evs[i] = nodeapi.RuntimeEvent{
+			Event: &ev,
+			Index: uint64(i),
+		}
+	}
+	return evs, nil
 }
 
 func (r *FileRuntimeApiLite) GetBalances(ctx context.Context, round uint64, addr nodeapi.Address) (map[sdkTypes.Denomination]common.BigInt, error) {

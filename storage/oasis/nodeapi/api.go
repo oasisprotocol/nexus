@@ -284,9 +284,13 @@ type RuntimeApiLite interface {
 }
 
 type (
-	RuntimeEvent                  sdkTypes.Event
 	RuntimeTransactionWithResults sdkClient.TransactionWithResults
 )
+
+type RuntimeEvent struct {
+	*sdkTypes.Event
+	Index uint64
+}
 
 // Derived from oasis-core: roothash/api/block/header.go
 // Expanded to include the precomputed hash of the header;
