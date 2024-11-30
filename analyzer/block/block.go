@@ -39,7 +39,9 @@ const (
 // block based analyzer.
 type BlockProcessor interface {
 	// PreWork performs tasks that need to be done before the main processing loop starts.
+	// In parallel mode, this method is called by a single instance.
 	PreWork(ctx context.Context) error
+
 	// ProcessBlock processes the provided block, retrieving all required information
 	// from source storage and committing an atomically-executed batch of queries
 	// to target storage.
@@ -299,14 +301,29 @@ func expiresWithin(ctx context.Context, margin time.Duration) bool {
 	return time.Until(deadline) < margin
 }
 
-// Start starts the block analyzer.
-func (b *blockBasedAnalyzer) Start(ctx context.Context) {
-	// Run prework.
-	if err := b.processor.PreWork(ctx); err != nil {
-		b.logger.Error("prework failed", "err", err)
-		return
+func (b *blockBasedAnalyzer) PreWork(ctx context.Context) error {
+	// Run processor-specific pre-work first.
+	err := b.processor.PreWork(ctx)
+	if err != nil {
+		return fmt.Errorf("processor pre-work failed: %w", err)
 	}
 
+	// Run general block-based analyzer pre-work.
+	if b.slowSync && !b.ensureSlowSyncPrerequisites(ctx) {
+		// We cannot continue or recover automatically. Logging happens inside the validate function.
+		return fmt.Errorf("failed to validate prerequisites for slow-sync mode")
+	}
+
+	if !b.slowSync && b.softEnqueueGapsInProcessedBlocks(ctx) != nil {
+		// We cannot continue or recover automatically. Logging happens inside the validate function.
+		return fmt.Errorf("failed to soft-enqueue gaps in already-processed blocks")
+	}
+
+	return nil
+}
+
+// Start starts the block analyzer.
+func (b *blockBasedAnalyzer) Start(ctx context.Context) {
 	// The default max block height that the analyzer will process. This value is not
 	// indicative of the maximum height the Oasis blockchain can reach; rather it
 	// is set to golang's maximum int64 value for convenience.
@@ -314,16 +331,6 @@ func (b *blockBasedAnalyzer) Start(ctx context.Context) {
 	// Clamp the latest block height to the configured range.
 	if b.blockRange.To != 0 {
 		to = b.blockRange.To
-	}
-
-	if b.slowSync && !b.ensureSlowSyncPrerequisites(ctx) {
-		// We cannot continue or recover automatically. Logging happens inside the validate function.
-		return
-	}
-
-	if !b.slowSync && b.softEnqueueGapsInProcessedBlocks(ctx) != nil {
-		// We cannot continue or recover automatically. Logging happens inside the validate function.
-		return
 	}
 
 	// Start processing blocks.

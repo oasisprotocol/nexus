@@ -694,14 +694,29 @@ func (a *Service) Start() {
 	// Start fast-sync analyzers.
 	fastSyncWg := map[string]*sync.WaitGroup{} // syncTag -> wg with all fast-sync analyzers with that tag
 	for _, an := range a.fastSyncAnalyzers {
+		var runPreWork bool
 		wg, ok := fastSyncWg[an.SyncTag]
 		if !ok {
 			wg = &sync.WaitGroup{}
 			fastSyncWg[an.SyncTag] = wg
+
+			// This is the first fast-sync analyzer with this SyncTag, so PreWork should be run.
+			// This relies on the assumption that each distinct 'type' of fast-sync analyzer uses a unique `SyncTag`.
+			// This assumption holds true at the moment.
+			runPreWork = true
 		}
 		wg.Add(1)
 		go func(an SyncedAnalyzer) {
 			defer wg.Done()
+
+			if runPreWork {
+				a.logger.Info("running pre-work for analyzer", "analyzer", an.Analyzer.Name())
+				if err := an.Analyzer.PreWork(ctx); err != nil {
+					a.logger.Error("fast-sync analyzer failed pre-work", "analyzer", an.Analyzer.Name(), "error", err.Error())
+					return
+				}
+			}
+
 			an.Analyzer.Start(ctx)
 		}(an)
 	}
@@ -727,6 +742,10 @@ func (a *Service) Start() {
 			case <-ctx.Done():
 				return
 			case <-util.ClosingChannel(prereqWg):
+				if err := an.Analyzer.PreWork(ctx); err != nil {
+					a.logger.Error("slow-sync analyzer failed pre-work", "analyzer", an.Analyzer.Name(), "error", err.Error())
+					return
+				}
 				an.Analyzer.Start(ctx)
 			}
 		}(an)

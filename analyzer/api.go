@@ -17,6 +17,10 @@ var (
 
 // Analyzer is a worker that analyzes a subset of the Oasis Network.
 type Analyzer interface {
+	// PreWork is called before the analyzer starts its work.
+	// When running parallel analyzers, this method will only be called once.
+	PreWork(ctx context.Context) error
+
 	// Start starts the analyzer. The method should return once the analyzer
 	// is confident it has (and will have) no more work to do; that's possibly never.
 	Start(ctx context.Context)

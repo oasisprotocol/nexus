@@ -23,6 +23,10 @@ var _ analyzer.Analyzer = (*DummyAnalyzer)(nil)
 
 var finishLogLock = &sync.Mutex{} // for use by all DummyAnalyzer instances
 
+func (a *DummyAnalyzer) PreWork(ctx context.Context) error {
+	return nil
+}
+
 func (a *DummyAnalyzer) Start(ctx context.Context) {
 	time.Sleep(a.duration)
 	finishLogLock.Lock()
