@@ -2,5 +2,5 @@ HTTP/1.1 200 OK
 Content-Type: application/json
 Vary: Origin
 Date: UNINTERESTING
-Content-Length: UNINTERESTING
+Transfer-Encoding: chunked
 

@@ -1516,6 +1516,9 @@ components:
           type: string
           description: The delegatee (validator) address.
           example: *staking_address_1
+        validator_name:
+          type: string
+          description: The name of the validator entity.
         delegator:
           type: string
           description: The delegator address.
@@ -1550,6 +1553,9 @@ components:
           type: string
           description: The delegatee (validator) address.
           example: *staking_address_1
+        validator_name:
+          type: string
+          description: The name of the validator entity.
         delegator:
           type: string
           description: The delegator address.
