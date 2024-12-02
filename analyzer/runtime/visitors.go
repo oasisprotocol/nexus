@@ -12,6 +12,7 @@ import (
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/consensusaccounts"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/core"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/evm"
+	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/rofl"
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 
 	"github.com/oasisprotocol/nexus/analyzer/evmabi"
@@ -27,6 +28,10 @@ type CallHandler struct {
 	ConsensusAccountsUndelegate func(body *consensusaccounts.Undelegate) error
 	EVMCreate                   func(body *evm.Create, ok *[]byte) error
 	EVMCall                     func(body *evm.Call, ok *[]byte) error
+	RoflCreate                  func(body *rofl.Create) error
+	RoflUpdate                  func(body *rofl.Update) error
+	RoflRemove                  func(body *rofl.Remove) error
+	RoflRegister                func(body *rofl.Register) error
 	UnknownMethod               func(methodName string) error // Invoked for a tx call that doesn't map to any of the above method names.
 }
 
@@ -121,6 +126,46 @@ func VisitCall(call *sdkTypes.Call, result *sdkTypes.CallResult, handler *CallHa
 				return fmt.Errorf("evm call: %w", err)
 			}
 		}
+	case "rofl.Create":
+		if handler.RoflCreate != nil {
+			var body rofl.Create
+			if err := cbor.Unmarshal(call.Body, &body); err != nil {
+				return fmt.Errorf("unmarshal rofl create: %w", err)
+			}
+			if err := handler.RoflCreate(&body); err != nil {
+				return fmt.Errorf("rofl create: %w", err)
+			}
+		}
+	case "rofl.Update":
+		if handler.RoflUpdate != nil {
+			var body rofl.Update
+			if err := cbor.Unmarshal(call.Body, &body); err != nil {
+				return fmt.Errorf("unmarshal rofl update: %w", err)
+			}
+			if err := handler.RoflUpdate(&body); err != nil {
+				return fmt.Errorf("rofl update: %w", err)
+			}
+		}
+	case "rofl.Remove":
+		if handler.RoflRemove != nil {
+			var body rofl.Remove
+			if err := cbor.Unmarshal(call.Body, &body); err != nil {
+				return fmt.Errorf("unmarshal rofl remove: %w", err)
+			}
+			if err := handler.RoflRemove(&body); err != nil {
+				return fmt.Errorf("rofl remove: %w", err)
+			}
+		}
+	case "rofl.Register":
+		if handler.RoflRegister != nil {
+			var body rofl.Register
+			if err := cbor.Unmarshal(call.Body, &body); err != nil {
+				return fmt.Errorf("unmarshal rofl register: %w", err)
+			}
+			if err := handler.RoflRegister(&body); err != nil {
+				return fmt.Errorf("rofl register: %w", err)
+			}
+		}
 	default:
 		if handler.UnknownMethod != nil {
 			return handler.UnknownMethod(string(call.Method))
@@ -134,6 +179,7 @@ type SdkEventHandler struct {
 	Accounts          func(event *accounts.Event) error
 	ConsensusAccounts func(event *consensusaccounts.Event) error
 	EVM               func(event *evm.Event) error
+	Rofl              func(event *rofl.Event) error
 }
 
 func VisitSdkEvent(event *nodeapi.RuntimeEvent, handler *SdkEventHandler) error {
@@ -178,6 +224,17 @@ func VisitSdkEvent(event *nodeapi.RuntimeEvent, handler *SdkEventHandler) error 
 		for i := range evmEvents {
 			if err = handler.EVM(&evmEvents[i]); err != nil {
 				return fmt.Errorf("decoded event %d evm: %w", i, err)
+			}
+		}
+	}
+	if handler.Rofl != nil {
+		roflEvents, err := DecodeRoflEvent(event)
+		if err != nil {
+			return fmt.Errorf("decode rofl: %w", err)
+		}
+		for i := range roflEvents {
+			if err = handler.Rofl(&roflEvents[i]); err != nil {
+				return fmt.Errorf("decoded event %d rofl: %w", i, err)
 			}
 		}
 	}

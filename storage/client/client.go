@@ -53,7 +53,7 @@ type StorageClient struct {
 	runtimeClients map[common.Runtime]nodeapi.RuntimeApiLite
 	networkConfig  *oasisConfig.Network
 
-	blockCache *ristretto.Cache
+	blockCache *ristretto.Cache[int64, *Block]
 
 	logger *log.Logger
 }
@@ -109,7 +109,7 @@ func runtimeFromCtx(ctx context.Context) common.Runtime {
 
 // NewStorageClient creates a new storage client.
 func NewStorageClient(sourceCfg config.SourceConfig, db storage.TargetStorage, referenceSwaps map[common.Runtime]config.ReferenceSwap, runtimeClients map[common.Runtime]nodeapi.RuntimeApiLite, networkConfig *oasisConfig.Network, l *log.Logger) (*StorageClient, error) {
-	blockCache, err := ristretto.NewCache(&ristretto.Config{
+	blockCache, err := ristretto.NewCache(&ristretto.Config[int64, *Block]{
 		NumCounters:        1024 * 10,
 		MaxCost:            1024,
 		BufferItems:        64,
@@ -360,9 +360,9 @@ func canonicalizedHash(input *string) (*string, error) {
 // Block returns a consensus block. This endpoint is cached.
 func (c *StorageClient) Block(ctx context.Context, height int64) (*Block, error) {
 	// Check cache
-	untypedBlock, ok := c.blockCache.Get(height)
+	block, ok := c.blockCache.Get(height)
 	if ok {
-		return untypedBlock.(*Block), nil
+		return block, nil
 	}
 
 	var b Block
