@@ -181,6 +181,11 @@ CREATE INDEX ix_runtime_events_nft_transfers ON chain.runtime_events (runtime, (
         type = 'evm.log' AND
         evm_log_signature = '\xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef' AND
         jsonb_array_length(body -> 'topics') = 4;
+-- Added in 07_runtime_events_evm_contracts_events.up.sql
+-- Index used for fetching events emitted by a specific contract.
+-- CREATE INDEX ix_runtime_events_evm_contract_events ON chain.runtime_events (runtime, (body ->> 'address'), evm_log_signature, round)
+--     WHERE
+--         type = 'evm.log';
 
 -- Roothash messages are small structures that a runtime can send to
 -- communicate with the consensus layer. They are agreed upon for each runtime

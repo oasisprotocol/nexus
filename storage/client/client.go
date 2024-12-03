@@ -1582,9 +1582,17 @@ func (c *StorageClient) RuntimeEvents(ctx context.Context, p apiTypes.GetRuntime
 		h := ethCommon.HexToHash(*p.EvmLogSignature)
 		evmLogSignature = &h
 	}
-	if p.NftId != nil && p.ContractAddress == nil {
-		return nil, fmt.Errorf("must specify contract_address with nft_id")
+
+	// Validate query parameter constraints.
+	// Due to DB indexes setup, other query combinations are inefficient and not supported.
+	switch {
+	case p.NftId != nil && p.ContractAddress == nil:
+		return nil, fmt.Errorf("'nft_id' must be used with 'contract_address'")
+	case p.ContractAddress != nil && p.NftId == nil && p.EvmLogSignature == nil:
+		return nil, fmt.Errorf("'contract_address' must be used with either 'nft_id' or 'evm_log_signature'")
+	default:
 	}
+
 	ocAddrContract, err := apiTypes.UnmarshalToOcAddress(p.ContractAddress)
 	if err != nil {
 		return nil, err
