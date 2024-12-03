@@ -4,11 +4,13 @@ import (
 	"math/big"
 
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/accounts"
+	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/consensusaccounts"
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 	"golang.org/x/exp/slices"
 
 	"github.com/oasisprotocol/nexus/analyzer"
 	"github.com/oasisprotocol/nexus/analyzer/queries"
+	"github.com/oasisprotocol/nexus/common"
 	"github.com/oasisprotocol/nexus/storage"
 )
 
@@ -143,6 +145,82 @@ func (m *processor) queueTransfer(batch *storage.QueryBatch, round uint64, e acc
 			m.runtime,
 			e.From.String(),
 			e.Amount.Amount.String(),
+		)
+	}
+}
+
+func (m *processor) queueConsensusAccountsEvents(batch *storage.QueryBatch, blockData *BlockData) {
+	for _, event := range blockData.EventData {
+		if event.WithScope.ConsensusAccounts == nil {
+			continue
+		}
+		if e := event.WithScope.ConsensusAccounts.Deposit; e != nil {
+			m.queueTransactionStatusUpdate(batch, blockData.Header.Round, "consensus.Deposit", e.From, e.Nonce, e.Error)
+		}
+		if e := event.WithScope.ConsensusAccounts.Withdraw; e != nil {
+			m.queueTransactionStatusUpdate(batch, blockData.Header.Round, "consensus.Withdraw", e.From, e.Nonce, e.Error)
+		}
+		if e := event.WithScope.ConsensusAccounts.Delegate; e != nil {
+			m.queueTransactionStatusUpdate(batch, blockData.Header.Round, "consensus.Delegate", e.From, e.Nonce, e.Error)
+		}
+		if e := event.WithScope.ConsensusAccounts.UndelegateStart; e != nil {
+			m.queueTransactionStatusUpdate(batch, blockData.Header.Round, "consensus.Undelegate", e.From, e.Nonce, e.Error)
+		}
+		// Nothing to do for 'UndelegateEnd'.
+	}
+}
+
+// Updates the status of a transaction based on the event result.
+// These transactions are special in the way that the actual action is executed in the next round.
+func (m *processor) queueTransactionStatusUpdate(
+	batch *storage.QueryBatch,
+	round uint64,
+	methodName string,
+	sender sdkTypes.Address,
+	nonce uint64,
+	e *consensusaccounts.ConsensusError,
+) {
+	// We can only do this in slow-sync, because the event affects a transaction in previous round.
+	// For fast-sync, this is handled in the FinalizeFastSync step.
+	var errorModule *string
+	var errorCode *uint32
+	var errorMessage *string
+	status := TxStatusSuccess
+	if e != nil {
+		errorModule = &e.Module
+		errorCode = &e.Code
+		// The event doesn't contain the error message, so construct a human readable one here.
+		// TODO: We could try loading the error message, but Nexus currently doesn't have a mapping
+		// from error codes to error messages. This can also be done on the frontend.
+		errorMessage = common.Ptr("Consensus error: " + e.Module)
+		status = TxStatusFailed
+	}
+	switch m.mode {
+	case analyzer.FastSyncMode:
+		batch.Queue(
+			queries.RuntimeConsensusAccountTransactionStatusUpdateFastSync,
+			m.runtime,
+			round,
+			methodName,
+			sender,
+			nonce,
+			status,
+			errorModule,
+			errorCode,
+			errorMessage,
+		)
+	case analyzer.SlowSyncMode:
+		batch.Queue(
+			queries.RuntimeConsensusAccountTransactionStatusUpdate,
+			m.runtime,
+			round,
+			methodName,
+			sender,
+			nonce,
+			status,
+			errorModule,
+			errorCode,
+			errorMessage,
 		)
 	}
 }

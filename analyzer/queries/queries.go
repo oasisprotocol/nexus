@@ -515,10 +515,10 @@ var (
     SELECT epochs.id, epochs.start_height, prev_epoch.validators
     FROM chain.epochs as epochs
     LEFT JOIN history.validators as history
-      ON epochs.id = history.epoch 
+      ON epochs.id = history.epoch
     LEFT JOIN chain.epochs as prev_epoch
       ON epochs.id = prev_epoch.id + 1
-    WHERE 
+    WHERE
       history.epoch IS NULL AND
       epochs.id >= $1
     ORDER BY epochs.id
@@ -531,7 +531,7 @@ var (
 	ValidatorStakingRewardUpdate = `
     UPDATE history.validators
     SET staking_rewards = $3
-    WHERE 
+    WHERE
       id = $1 AND
       epoch = $2`
 
@@ -545,7 +545,7 @@ var (
     FROM chain.epochs AS epochs
     LEFT JOIN history.validators AS history
       ON epochs.id = history.epoch
-    WHERE 
+    WHERE
       history.epoch IS NULL AND
       epochs.id >= $1`
 
@@ -1147,4 +1147,107 @@ var (
     WHERE
       (evs.abi_parsed_at IS NULL OR evs.abi_parsed_at < abi_contracts.verification_info_downloaded_at)
     LIMIT $2`
+
+	RuntimeConsensusAccountTransactionStatusUpdate = `
+    -- Transaction should have been in the previous successful round.
+    -- We currently don't have the runtime-block status field in the DB, so find
+    -- the previous successful round by taking the first round which has at least one transaction.
+    WITH tx_round AS (
+      SELECT
+        MAX(rt.round) AS round
+      FROM chain.runtime_transactions AS rt
+      WHERE
+        rt.runtime = $1 AND
+        rt.round < $2
+    ),
+    matched_tx AS (
+      SELECT
+        rt.runtime,
+        rt.round,
+        rt.tx_index
+      FROM chain.runtime_transactions AS rt
+      JOIN chain.runtime_transaction_signers AS rts ON
+        rt.runtime = rts.runtime AND
+        rt.round = rts.round AND
+        rt.tx_index = rts.tx_index
+      WHERE
+        rt.runtime = $1 AND
+        rt.round = (SELECT round FROM tx_round) AND
+        rt.method = $3 AND
+        rts.signer_address = $4 AND
+        rts.signer_index = 0 AND
+        rts.nonce = $5
+      LIMIT 1
+    )
+    UPDATE chain.runtime_transactions rt
+    SET
+      success = $6,
+      error_module = $7,
+      error_code = $8,
+      error_message = $9
+    FROM matched_tx
+    WHERE
+      rt.runtime = matched_tx.runtime AND
+      rt.round = matched_tx.round AND
+      rt.tx_index = matched_tx.tx_index`
+
+	RuntimeConsensusAccountTransactionStatusUpdateFastSync = `
+    INSERT INTO todo_updates.transaction_status_updates (runtime, round, method, sender, nonce, success, error_module, error_code, error_message)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`
+
+	RuntimeTransactionStatusUpdatesRecompute = `
+    -- Find the previous successful round for each record in 'todo_updates.transaction_status_updates'.
+    WITH transaction_status_updates_round AS (
+      SELECT
+        tsu.runtime,
+        tsu.round,
+        tsu.method,
+        tsu.sender,
+        tsu.nonce,
+        tsu.success,
+        tsu.error_module,
+        tsu.error_code,
+        tsu.error_message,
+        (
+          SELECT MAX(rt.round)
+          FROM chain.runtime_transactions AS rt
+          WHERE rt.runtime = tsu.runtime
+            AND rt.round < tsu.round
+        ) AS prev_round
+      FROM todo_updates.transaction_status_updates AS tsu
+    ),
+    matched_txs AS (
+      SELECT
+        rt.runtime,
+        rt.round,
+        rt.tx_index,
+        tsu.success,
+        tsu.error_module,
+        tsu.error_code,
+        tsu.error_message
+      FROM transaction_status_updates_round AS tsu
+      JOIN chain.runtime_transactions AS rt
+        ON rt.runtime = tsu.runtime AND
+            rt.method = tsu.method AND
+            rt.round = tsu.prev_round
+      JOIN chain.runtime_transaction_signers AS rts
+        ON rt.runtime = rts.runtime AND
+            rt.round = rts.round AND
+            rt.tx_index = rts.tx_index
+      WHERE
+        rt.runtime = $1 AND
+        rts.signer_address = tsu.sender AND
+        rts.nonce = tsu.nonce
+    )
+    UPDATE chain.runtime_transactions rt
+    SET
+      success = matched_txs.success,
+      error_module = matched_txs.error_module,
+      error_code = matched_txs.error_code,
+      error_message = matched_txs.error_message
+    FROM matched_txs
+    WHERE
+      rt.runtime = matched_txs.runtime
+      AND rt.round = matched_txs.round
+      AND rt.tx_index = matched_txs.tx_index`
 )

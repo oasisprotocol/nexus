@@ -175,6 +175,10 @@ func (m *processor) FinalizeFastSync(ctx context.Context, lastFastSyncHeight int
 	batch.Queue(queries.RuntimeEVMTokenRecompute, m.runtime)
 	batch.Queue("DELETE FROM todo_updates.evm_tokens WHERE runtime = $1", m.runtime)
 
+	m.logger.Info("recomputing transaction statuses from transaction status updates")
+	batch.Queue(queries.RuntimeTransactionStatusUpdatesRecompute, m.runtime)
+	batch.Queue("DELETE from todo_updates.transaction_status_updates WHERE runtime = $1", m.runtime)
+
 	if err := m.target.SendBatch(ctx, batch); err != nil {
 		return err
 	}
@@ -213,6 +217,7 @@ func (m *processor) ProcessBlock(ctx context.Context, round uint64) error {
 	batch := &storage.QueryBatch{}
 	m.queueDbUpdates(batch, blockData)
 	m.queueAccountsEvents(batch, blockData)
+	m.queueConsensusAccountsEvents(batch, blockData)
 	analysisTimer.ObserveDuration()
 
 	// Update indexing progress.
