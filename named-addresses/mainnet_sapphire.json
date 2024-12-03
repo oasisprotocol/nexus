@@ -1,0 +1,187 @@
+[
+    {
+        "Name": "Common Pool",
+        "Address": "oasis1qz78phkdan64g040cvqvqpwkplfqf6tj6uwcsh30",
+        "Description": "ParaTime account for rewarding token stakers."
+    },
+    {
+        "Name": "Fee Accumulator",
+        "Address": "oasis1qp3r8hgsnphajmfzfuaa8fhjag7e0yt35cjxq0u4",
+        "Description": "This account collects transaction fees of each ParaTime block that are distributed among the validators."
+    },
+    {
+        "Name": "Rewards Account",
+        "Address": "oasis1qp7x0q9qahahhjas0xde8w0v04ctp4pqzu5mhjav",
+        "Description": "ParaTime account for rewarding the compute nodes."
+    },
+    {
+        "Name": "Pending Withdrawal Account",
+        "Address": "oasis1qr677rv0dcnh7ys4yanlynysvnjtk9gnsyhvm6ln",
+        "Description": "Withdrawal from the ParaTime is performed in two steps. This account holds the tokens that are still waiting for the consensus transaction to be confirmed."
+    },
+    {
+        "Name": "Pending Delegation Account",
+        "Address": "oasis1qzcdegtf7aunxr5n5pw7n5xs3u7cmzlz9gwmq49r",
+        "Description": "Delegation from the ParaTime is performed in two steps. This account holds the tokens that are still waiting for the consensus transaction to be confirmed."
+    },
+    {
+        "Name": "Zero Address",
+        "Address": "oasis1qq2v39p9fqk997vk6742axrzqyu9v2ncyuqt8uek",
+        "Description": "This address is the oasis-standard derivation/counterpart of the Ethereum address 0x0. Sometimes used in internal data representations to indicate the absence of an account. For example, token mints are encoded as transfers from this address, and token burns as transfers to this address."
+    },
+    {
+        "Name": "Subcall Precompile",
+        "Address": "oasis1qzr543mmela3xwflqtz3e0l8jzp8tupf3v59r6qn",
+        "Description": "Interacts with Oasis Runtime SDK modules. Some transactions are performed in two steps and emit event in the next block."
+    },
+    {
+        "Name": "Rosy",
+        "Address": "oasis1qrysq46guu3lug3mge6vgg7mrtthfuqnucq7rnp0",
+        "Description": "ERC20"
+    },
+    {
+        "Name": "illumineX Token",
+        "Address": "oasis1qzhxwvks20f6fng566rzcs98t65qjnp4pgd5mnvl",
+        "Description": "ERC20"
+    },
+    {
+        "Name": "RA1L",
+        "Address": "oasis1qzvys6j3vpe8sq7az60z3p24xtcxdxyaccjndpdt",
+        "Description": "ERC721"
+    },
+    {
+        "Name": "NFTrout",
+        "Address": "oasis1qpwe6h0hw6s0x4skujhznld065300p83wgxnvu0n",
+        "Description": "ERC721"
+    },
+    {
+        "Name": "Rosalie",
+        "Address": "oasis1qz7uqg8979ucy9c2l9vqudvcnt3p08th4ua7fqhl",
+        "Description": "ERC20"
+    },
+    {
+        "Name": "Ocean Token",
+        "Address": "oasis1qr43dvghx4a75vndjcsg2r9ct2xqftwrgcnt5tge",
+        "Description": "ERC20"
+    },
+    {
+        "Name": "confiTheDog.com",
+        "Address": "oasis1qzdm0aqruaarc0lmdt802sha5sv97um5rcdn8gh5",
+        "Description": "ERC20"
+    },
+    {
+        "Name": "Wrapped ROSE",
+        "Address": "oasis1qpdgv5nv2dhxp4q897cgag6kgnm9qs0dccwnckuu",
+        "Description": "ERC20"
+    },
+    {
+        "Name": "PERRY",
+        "Address": "oasis1qqu9s8uvk7rawj0ugmt7hq3vhehcerdswvjjt9hp",
+        "Description": "ERC20"
+    },
+    {
+        "Name": "illuminex pair",
+        "Address": "oasis1qpaeymv9ly8gqweg2qvpnd2ufcj33vgdyqqlruqw",
+        "Description": "ERC20"
+    },
+    {
+        "Name": "wstROSE",
+        "Address": "oasis1qr2ta7ussnps40fnmp58p04cwn7yvr56eqepa7xh",
+        "Description": "ERC20"
+    },
+    {
+        "Name": "Sapphire Inu",
+        "Address": "oasis1qq4j7hcrjp0qad8r2px3fhfnwh96xny2u5wvhx60",
+        "Description": "ERC20"
+    },
+    {
+        "Name": "ROSEINU",
+        "Address": "oasis1qp2murd9pc2w7utmjtgdqq9duejmm5z2yud5vz22",
+        "Description": "ERC20"
+    },
+    {
+        "Name": "stROSE",
+        "Address": "oasis1qplsw278vcrs6kcam9ffu43dp5wqvdelqvw9gf68",
+        "Description": "ERC20"
+    },
+    {
+        "Name": "CORGI INU",
+        "Address": "oasis1qr2607nmdtm90fs2uf6nq8q7qus2qtw645xw3amy",
+        "Description": "ERC20"
+    },
+    {
+        "Name": "Rose Printer",
+        "Address": "oasis1qrjv7k4htx7gpelhwgh88sazf687pd7leulzlvv5",
+        "Description": "ERC20"
+    },
+    {
+        "Name": "Sapphire PEPE",
+        "Address": "oasis1qrmlrjerxdh5xx5hksvqyvruhjp7a2jl3qzzzkcm",
+        "Description": "ERC20"
+    },
+    {
+        "Name": "ROSKI INU",
+        "Address": "oasis1qpaagkjpmhutpmnpq74p0ntfufja8y5nyyxxh9aq",
+        "Description": "ERC20"
+    },
+    {
+        "Name": "Sapphirus",
+        "Address": "oasis1qp5cxt7nxftt3fcyamu28ms6cr36h0zlmqgyxzkx",
+        "Description": "ERC20"
+    },
+    {
+        "Name": "Cheems on Rose",
+        "Address": "oasis1qqp7swrvgcdzn2ej0wq0yeft5uq845c2ysfezh4n",
+        "Description": "ERC20"
+    },
+    {
+        "Name": "Tether USD",
+        "Address": "oasis1qqtkwl9zp5c9wsyskd7txu8dn4n03enjgympam29",
+        "Description": "ERC20"
+    },
+    {
+        "Name": "Sapphire",
+        "Address": "oasis1qzl3760cyffduveyc3dupv3vf6g5aksskskcar7v",
+        "Description": "ERC20"
+    },
+    {
+        "Name": "The 4th Pillar Token",
+        "Address": "oasis1qrtw0g3ufn29tk3t9s8rxx6mvsep33qd9szzgmct",
+        "Description": "ERC20"
+    },
+    {
+        "Name": "dogewifrose",
+        "Address": "oasis1qpjl0dshk92ve6kmw3kjr0uwr9xrxuuxwc9dzqze",
+        "Description": "ERC20"
+    },
+    {
+        "Name": "ROSECOIN",
+        "Address": "oasis1qpfkldpqp3xlhc23vw4nsvagv6794upmhsgsfrrv",
+        "Description": "ERC20"
+    },
+    {
+        "Name": "TokenForTests",
+        "Address": "oasis1qzpyvqpw4e55wj4wjasp70w30x3kxsp4evy5dtf8",
+        "Description": "ERC20"
+    },
+    {
+        "Name": "RoseX",
+        "Address": "oasis1qqdkzghn9f8745m6gc50zrwtt79ru74wcynp3564",
+        "Description": "ERC20"
+    },
+    {
+        "Name": "Bridged USDC",
+        "Address": "oasis1qr7y034j2srpxq90w20al600a52es8g3xylhvrl6",
+        "Description": "ERC20"
+    },
+    {
+        "Name": "Testarossa",
+        "Address": "oasis1qqgdnzphupr9jgyyfw8pa5av9md7psls9g2dlqhh",
+        "Description": "ERC20"
+    },
+    {
+        "Name": "Testicles",
+        "Address": "oasis1qr5zt78qyhza9a8cx80ntrla0mq60v6nk5qc3hsc",
+        "Description": "ERC20"
+    }
+]
