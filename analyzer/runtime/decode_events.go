@@ -8,6 +8,7 @@ import (
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/consensusaccounts"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/core"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/evm"
+	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/rofl"
 
 	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
 )
@@ -141,6 +142,42 @@ func DecodeEVMEvent(event *nodeapi.RuntimeEvent) ([]evm.Event, error) {
 		}
 	default:
 		return nil, fmt.Errorf("invalid evm event code: %v", event.Code)
+	}
+	return events, nil
+}
+
+func DecodeRoflEvent(event *nodeapi.RuntimeEvent) ([]rofl.Event, error) {
+	if event.Module != rofl.ModuleName {
+		return nil, nil
+	}
+	var events []rofl.Event
+	switch event.Code {
+	case rofl.AppCreatedEventCode:
+		var evs []*rofl.AppCreatedEvent
+		if err := unmarshalSingleOrArray(event.Value, &evs); err != nil {
+			return nil, fmt.Errorf("decode rofl app created event value: %w", err)
+		}
+		for _, ev := range evs {
+			events = append(events, rofl.Event{AppCreated: ev})
+		}
+	case rofl.AppUpdatedEventCode:
+		var evs []*rofl.AppUpdatedEvent
+		if err := unmarshalSingleOrArray(event.Value, &evs); err != nil {
+			return nil, fmt.Errorf("decode rofl app updated event value: %w", err)
+		}
+		for _, ev := range evs {
+			events = append(events, rofl.Event{AppUpdated: ev})
+		}
+	case rofl.AppRemovedEventCode:
+		var evs []*rofl.AppRemovedEvent
+		if err := unmarshalSingleOrArray(event.Value, &evs); err != nil {
+			return nil, fmt.Errorf("decode rofl app removed event value: %w", err)
+		}
+		for _, ev := range evs {
+			events = append(events, rofl.Event{AppRemoved: ev})
+		}
+	default:
+		return nil, fmt.Errorf("invalid rofl event code: %v", event.Code)
 	}
 	return events, nil
 }
