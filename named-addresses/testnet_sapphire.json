@@ -38,5 +38,25 @@
         "Name": "Faucet Address",
         "Address": "oasis1qzna6nq9kuktjmxx2s84z38eysqyts84jc9lgdg2",
         "Description": "This account contains TEST tokens distributed by the faucet."
+    },
+    {
+        "Name": "Wrapped ROSE",
+        "Address": "oasis1qpwrg6784q4y8awyzlhgexm9fsmk72l9xv4z4gxj",
+        "Description": "ERC20"
+    },
+    {
+        "Name": "RA1L",
+        "Address": "oasis1qqxxn2dlcw3ex8wmlkgk58jy90v928qqpqg0x82x",
+        "Description": "ERC721"
+    },
+    {
+        "Name": "TDSS Token",
+        "Address": "oasis1qpndzxy6kfyna6kc706rakyp9a52806x35wqvu7w",
+        "Description": "ERC20"
+    },
+    {
+        "Name": "stROSE",
+        "Address": "oasis1qremjhwd9f3pqwgwz7cqe4y006v9xd099uhvnrw4",
+        "Description": "ERC20"
     }
 ]
