@@ -131,29 +131,29 @@ type Event struct {
 	// Called "Kind" in oasis-core but "Type" in Nexus APIs and DBs.
 	Type apiTypes.ConsensusEventType
 
-	StakingTransfer             *TransferEvent
-	StakingBurn                 *BurnEvent
-	StakingAddEscrow            *AddEscrowEvent
-	StakingTakeEscrow           *TakeEscrowEvent
-	StakingEscrowDebondingStart *DebondingStartEscrowEvent
-	StakingReclaimEscrow        *ReclaimEscrowEvent
-	StakingDebondingStart       *DebondingStartEscrowEvent // Available starting in Damask.
-	StakingAllowanceChange      *AllowanceChangeEvent
+	StakingTransfer             *TransferEvent             `json:",omitempty"`
+	StakingBurn                 *BurnEvent                 `json:",omitempty"`
+	StakingAddEscrow            *AddEscrowEvent            `json:",omitempty"`
+	StakingTakeEscrow           *TakeEscrowEvent           `json:",omitempty"`
+	StakingEscrowDebondingStart *DebondingStartEscrowEvent `json:",omitempty"`
+	StakingReclaimEscrow        *ReclaimEscrowEvent        `json:",omitempty"`
+	StakingDebondingStart       *DebondingStartEscrowEvent `json:",omitempty"` // Available starting in Damask.
+	StakingAllowanceChange      *AllowanceChangeEvent      `json:",omitempty"`
 
-	RegistryRuntimeStarted   *RuntimeStartedEvent
-	RegistryRuntimeSuspended *RuntimeSuspendedEvent // Available starting with Eden.
-	RegistryEntity           *EntityEvent
-	RegistryNode             *NodeEvent
-	RegistryNodeUnfrozen     *NodeUnfrozenEvent
+	RegistryRuntimeStarted   *RuntimeStartedEvent   `json:",omitempty"`
+	RegistryRuntimeSuspended *RuntimeSuspendedEvent `json:",omitempty"` // Available starting with Eden.
+	RegistryEntity           *EntityEvent           `json:",omitempty"`
+	RegistryNode             *NodeEvent             `json:",omitempty"`
+	RegistryNodeUnfrozen     *NodeUnfrozenEvent     `json:",omitempty"`
 
-	RoothashMisc              *RoothashEvent
-	RoothashExecutorCommitted *ExecutorCommittedEvent
-	RoothashMessage           *MessageEvent // Available only in Cobalt.
+	RoothashMisc              *RoothashEvent          `json:",omitempty"`
+	RoothashExecutorCommitted *ExecutorCommittedEvent `json:",omitempty"`
+	RoothashMessage           *MessageEvent           `json:",omitempty"` // Available only in Cobalt.
 
-	GovernanceProposalSubmitted *ProposalSubmittedEvent
-	GovernanceProposalExecuted  *ProposalExecutedEvent
-	GovernanceProposalFinalized *ProposalFinalizedEvent
-	GovernanceVote              *VoteEvent
+	GovernanceProposalSubmitted *ProposalSubmittedEvent `json:",omitempty"`
+	GovernanceProposalExecuted  *ProposalExecutedEvent  `json:",omitempty"`
+	GovernanceProposalFinalized *ProposalFinalizedEvent `json:",omitempty"`
+	GovernanceVote              *VoteEvent              `json:",omitempty"`
 }
 
 // .................... Staking  ....................
