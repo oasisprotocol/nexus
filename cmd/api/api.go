@@ -5,7 +5,9 @@ import (
 	"context"
 	"net/http"
 	"os"
+	"os/signal"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -204,9 +206,27 @@ func (s *Service) Start() {
 		MaxHeaderBytes: 1 << 20,
 	}
 
-	s.logger.Error("shutting down",
-		"error", server.ListenAndServe(),
-	)
+	serverDone := make(chan error)
+	go func() {
+		serverDone <- server.ListenAndServe()
+	}()
+
+	// Trap Ctrl+C and SIGTERM; the latter is issued by Kubernetes to request a shutdown.
+	signalChan := make(chan os.Signal, 1)
+	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
+	defer signal.Stop(signalChan) // Stop catching Ctrl+C signals.
+
+	select {
+	case err := <-serverDone:
+		s.logger.Error("api server shutting down", "err", err)
+		return
+	case <-signalChan:
+		s.logger.Info("received interrupt, shutting down")
+		// Let the default handler handle ctrl+C so people can kill the process in a hurry.
+		signal.Stop(signalChan)
+		// We'll call a.cleanup() via a defer.
+		return
+	}
 }
 
 // cleanup gracefully shuts down the service.

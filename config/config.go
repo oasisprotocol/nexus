@@ -704,6 +704,8 @@ func (cfg *LogConfig) Validate() error {
 // MetricsConfig contains the metrics configuration.
 type MetricsConfig struct {
 	PullEndpoint string `koanf:"pull_endpoint"`
+	CpuProfile   string `koanf:"cpu_prof"`
+	MemProfile   string `koanf:"mem_prof"`
 }
 
 // Validate validates the metrics configuration.
