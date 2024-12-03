@@ -93,6 +93,10 @@ func NewAnalyzer[Item any](
 	return a, nil
 }
 
+func (a *itemBasedAnalyzer[Item]) PreWork(ctx context.Context) error {
+	return nil
+}
+
 // sendQueueLength reports the current number of items in the work queue to Prometheus.
 func (a *itemBasedAnalyzer[Item]) sendQueueLengthMetric(ctx context.Context) (int, error) {
 	queueLength, err := a.processor.QueueLength(ctx)

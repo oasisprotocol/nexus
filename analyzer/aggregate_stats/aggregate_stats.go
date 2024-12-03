@@ -75,6 +75,10 @@ func NewAggregateStatsAnalyzer(target storage.TargetStorage, logger *log.Logger)
 	}, nil
 }
 
+func (a *aggregateStatsAnalyzer) PreWork(ctx context.Context) error {
+	return nil
+}
+
 func (a *aggregateStatsAnalyzer) Start(ctx context.Context) {
 	a.aggregateStatsWorker(ctx)
 }
