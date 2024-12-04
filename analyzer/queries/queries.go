@@ -1149,9 +1149,10 @@ var (
     LIMIT $2`
 
 	RuntimeConsensusAccountTransactionStatusUpdate = `
-    -- Transaction should have been in the previous successful round.
-    -- We currently don't have the runtime-block status field in the DB, so find
-    -- the previous successful round by taking the first round which has at least one transaction.
+    -- First, find the round in which the transaction was submitted.
+    -- This should be the first previous successful round. We currently don't
+    -- have the runtime-block status field in the DB, so we find the previous
+    -- successful round by taking the first round which has at least one transaction.
     WITH tx_round AS (
       SELECT
         MAX(rt.round) AS round

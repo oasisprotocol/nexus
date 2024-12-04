@@ -185,7 +185,7 @@ func (m *processor) queueTransactionStatusUpdate(
 	var errorModule *string
 	var errorCode *uint32
 	var errorMessage *string
-	status := TxStatusSuccess
+	success := true
 	if e != nil {
 		errorModule = &e.Module
 		errorCode = &e.Code
@@ -193,7 +193,7 @@ func (m *processor) queueTransactionStatusUpdate(
 		// TODO: We could try loading the error message, but Nexus currently doesn't have a mapping
 		// from error codes to error messages. This can also be done on the frontend.
 		errorMessage = common.Ptr("Consensus error: " + e.Module)
-		status = TxStatusFailed
+		success = false
 	}
 	switch m.mode {
 	case analyzer.FastSyncMode:
@@ -204,7 +204,7 @@ func (m *processor) queueTransactionStatusUpdate(
 			methodName,
 			sender,
 			nonce,
-			status,
+			success,
 			errorModule,
 			errorCode,
 			errorMessage,
@@ -217,7 +217,7 @@ func (m *processor) queueTransactionStatusUpdate(
 			methodName,
 			sender,
 			nonce,
-			status,
+			success,
 			errorModule,
 			errorCode,
 			errorMessage,

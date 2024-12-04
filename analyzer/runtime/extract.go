@@ -51,14 +51,6 @@ type BlockTransactionSignerData struct {
 	Nonce   int
 }
 
-type TxStatus uint8
-
-const (
-	TxStatusSuccess TxStatus = 0
-	TxStatusFailed  TxStatus = 1
-	TxStatusPending TxStatus = 2
-)
-
 type BlockTransactionData struct {
 	Index                   int
 	Hash                    string
@@ -84,11 +76,7 @@ type BlockTransactionData struct {
 	EVMEncrypted            *encryption.EncryptedData
 	EVMContract             *evm.EVMContractData
 	Success                 *bool
-	// The status of the transaction. This is a higher-level status than the Success field.
-	// Some transactions, where the outcome of the desired action is only known in the next block, are marked as Pending, and later either as Success or Failed
-	// even if the transaction itself was successful. This is the case for ConsensusAccountsDeposit/Withdraw transactions.
-	Status *TxStatus
-	Error  *TxError
+	Error                   *TxError
 }
 
 type TxError struct {
@@ -310,10 +298,8 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 				txErr := extractTxError(*fail)
 				blockTransactionData.Error = &txErr
 				blockTransactionData.Success = common.Ptr(false)
-				blockTransactionData.Status = common.Ptr(TxStatusFailed)
 			} else if txr.Result.Ok != nil {
 				blockTransactionData.Success = common.Ptr(true)
-				blockTransactionData.Status = common.Ptr(TxStatusSuccess)
 			} else {
 				blockTransactionData.Success = nil
 			}
@@ -356,8 +342,8 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 						// Ref: https://github.com/oasisprotocol/oasis-sdk/blob/runtime-sdk/v0.8.4/runtime-sdk/src/modules/consensus_accounts/mod.rs#L418
 						to = blockTransactionData.SignerData[0].Address
 					}
-					// Set the higher-level 'Status' field to 'Pending' for deposits. This is because the outcome of the deposit is only known in the next block.
-					blockTransactionData.Status = common.Ptr(TxStatusPending)
+					// Set the 'Success' field to 'Pending' for deposits. This is because the outcome of the Deposit tx is only known in the next block.
+					blockTransactionData.Success = nil
 
 					return nil
 				},
@@ -376,8 +362,8 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 						to = blockTransactionData.SignerData[0].Address
 					}
 					blockTransactionData.RelatedAccountAddresses[to] = struct{}{}
-					// Set the higher-level 'Status' field to 'Pending' for withdraws. This is because the outcome of the withdraw is only known in the next block.
-					blockTransactionData.Status = common.Ptr(TxStatusPending)
+					// Set the 'Success' field to 'Pending' for withdrawals. This is because the outcome of the Withdraw tx is only known in the next block.
+					blockTransactionData.Success = nil
 
 					return nil
 				},
@@ -412,6 +398,8 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 						return fmt.Errorf("to: %w", err)
 					}
 					blockTransactionData.RelatedAccountAddresses[to] = struct{}{}
+					// Set the 'Success' field to 'Pending' for delegations. This is because the outcome of the Delegate tx is only known in the next block.
+					blockTransactionData.Success = nil
 					return nil
 				},
 				ConsensusAccountsUndelegate: func(body *consensusaccounts.Undelegate) error {
@@ -428,6 +416,9 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 					// to convert `shares` to `amount` until the undelegation actually happens (= UndelegateDone event); in the meantime,
 					// the validator's token pool might change, e.g. because of slashing.
 					// Do not store `body.Shares` in DB's `amount` to avoid confusion. Clients can still look up the shares in the tx body if they really need it.
+
+					// Set the 'Success' field to 'Pending' for undelegations. This is because the outcome of the Undelegate tx is only known in the next block.
+					blockTransactionData.Success = nil
 					return nil
 				},
 				EVMCreate: func(body *sdkEVM.Create, ok *[]byte) error {
@@ -492,7 +483,6 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 							txErr := extractTxError(*failedCallResult)
 							blockTransactionData.Error = &txErr
 							blockTransactionData.Success = common.Ptr(false)
-							blockTransactionData.Status = common.Ptr(TxStatusFailed)
 						}
 					} else {
 						logger.Error("error unmarshalling encrypted data and result, omitting encrypted fields",

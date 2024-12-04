@@ -28,7 +28,7 @@ CREATE TABLE todo_updates.evm_tokens( -- Tracks updates to chain.evm_tokens(last
   num_transfers UINT63 NOT NULL DEFAULT 0,
   last_mutate_round UINT63 NOT NULL
 );
--- Added in 08_fast_sync_temp_transaction_status_updates.up.sql.
+-- Added in 09_fast_sync_temp_transaction_status_updates.up.sql.
 -- CREATE TABLE todo_updates.transaction_status_updates( -- Tracks transaction status updates for consensus-accounts transactions.
 --   runtime runtime NOT NULL,
 --   round UINT63 NOT NULL,
