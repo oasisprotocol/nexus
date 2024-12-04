@@ -86,19 +86,19 @@ CREATE TABLE chain.runtime_transactions
   oasis_encrypted_result_data BYTEA,
 
   -- Error information.
-  success       BOOLEAN,  -- NULL means success is unknown (can happen in confidential runtimes)
+  success       BOOLEAN,  -- NULL means success is unknown (can happen in confidential runtimes, or for 'consensusaccounts' transactions which whose action is known only in the next round)
   error_module  TEXT,
   error_code    UINT63,
   error_message TEXT,
-  -- The unparsed transaction error message. The "parsed" version will be 
+  -- The unparsed transaction error message. The "parsed" version will be
   -- identical in the majority of cases. One notable exception are txs that
   -- were reverted inside the EVM; for those, the raw msg is abi-encoded.
   error_message_raw TEXT,
   -- Custom errors may be arbitrarily defined by the contract abi. This field
-  -- stores the full abi-decoded error object. Note that the error name is 
+  -- stores the full abi-decoded error object. Note that the error name is
   -- stored separately in the existing error_message column. For example, if we
   -- have an error like `InsufficientBalance{available: 4, required: 10}`.
-  -- the error_message column would hold `InsufficientBalance`, and 
+  -- the error_message column would hold `InsufficientBalance`, and
   -- the error_params column would store `{available: 4, required: 10}`.
   error_params JSONB,
   -- Internal tracking for parsing evm.Call transactions using the contract
@@ -150,7 +150,7 @@ CREATE TABLE chain.runtime_events
   tx_hash HEX64,
   tx_eth_hash HEX64,
   timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
-  
+
   -- TODO: add link to openapi spec section with runtime event types.
   type TEXT NOT NULL,
   -- The raw event, as returned by the oasis-sdk runtime client.
@@ -235,13 +235,13 @@ CREATE TABLE chain.runtime_accounts
 -- we've encountered the preimage before to find out what the address was
 -- derived from.
 --
--- If you need to go the other way, from context + data to address, you'd 
+-- If you need to go the other way, from context + data to address, you'd
 -- normally just run the derivation. See oasis-core/go/common/crypto/address/address.go
--- for details. Consider inserting the preimage here if you're ingesting new 
+-- for details. Consider inserting the preimage here if you're ingesting new
 -- blockchain data.
 --
--- However, we do provide an index going the other way because certain queries 
--- require computing the derivation within Postgres and implementing/importing 
+-- However, we do provide an index going the other way because certain queries
+-- require computing the derivation within Postgres and implementing/importing
 -- the right hash function will take some work.
 -- TODO: import keccak hash into postgres.
 --
@@ -261,7 +261,7 @@ CREATE TABLE chain.address_preimages
   -- Ethereum address. For a "staking" context, this is the ed25519 pubkey.
   address_data       BYTEA NOT NULL
 );
-CREATE INDEX ix_address_preimages_address_data ON chain.address_preimages (address_data) 
+CREATE INDEX ix_address_preimages_address_data ON chain.address_preimages (address_data)
     WHERE context_identifier = 'oasis-runtime-sdk/address: secp256k1eth' AND context_version = 0;
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- Module evm -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
@@ -290,13 +290,13 @@ CREATE TABLE chain.evm_tokens
   -- NOT an uint because a non-conforming token contract could issue a fake burn event,
   -- causing a negative dead-reckoned total_supply.
   total_supply NUMERIC(1000,0),
-  
+
   num_transfers UINT63 NOT NULL DEFAULT 0,
-  
+
   -- Block analyzer bumps this when it sees the mutable fields of the token
   -- change (e.g. total supply) based on dead reckoning.
   last_mutate_round UINT63 NOT NULL DEFAULT 0,
-  
+
   -- Token analyzer bumps this when it downloads info about the token.
   last_download_round UINT63
 );
@@ -309,7 +309,7 @@ CREATE TABLE analysis.evm_token_balances
   token_address oasis_addr NOT NULL,
   account_address oasis_addr NOT NULL,
   PRIMARY KEY (runtime, token_address, account_address),
-  
+
   last_mutate_round UINT63 NOT NULL,
   last_download_round UINT63
 );
