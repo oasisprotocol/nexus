@@ -586,6 +586,10 @@ type ServerConfig struct {
 	// Source is the configuration for accessing oasis-node(s) and chain
 	// information.
 	Source *SourceConfig `koanf:"source"`
+
+	// RequestTimeout is the timeout for requests to the storage backend.
+	// If unset, the default timeout is used.
+	RequestTimeout *time.Duration `koanf:"request_timeout"`
 }
 
 // Validate validates the server configuration.
