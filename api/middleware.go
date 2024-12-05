@@ -296,6 +296,18 @@ func RuntimeFromURLMiddleware(baseURL string) func(next http.Handler) http.Handl
 	}
 }
 
+// ContextTimeoutMiddleware cancels the request context after a timeout.
+func ContextTimeoutMiddleware(timeout time.Duration) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			ctx, cancel := context.WithTimeout(r.Context(), timeout)
+			defer cancel()
+			r = r.WithContext(ctx)
+			next.ServeHTTP(w, r)
+		})
+	}
+}
+
 // CorsMiddleware is a restrictive CORS middleware that only allows GET requests.
 //
 // NOTE: To support other methods (e.g. POST), we'd also need to support OPTIONS
