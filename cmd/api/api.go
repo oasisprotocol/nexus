@@ -30,6 +30,8 @@ const (
 	moduleName = "api"
 	// The path portion with which all v1 API endpoints start.
 	v1BaseURL = "/v1"
+
+	requestsTimeout = 10 * time.Second
 )
 
 var (
@@ -173,8 +175,8 @@ func (s *Service) Start() {
 			api.ParseBigIntParamsMiddleware,
 		},
 		apiTypes.StrictHTTPServerOptions{
-			RequestErrorHandlerFunc:  api.HumanReadableJsonErrorHandler,
-			ResponseErrorHandlerFunc: api.HumanReadableJsonErrorHandler,
+			RequestErrorHandlerFunc:  api.HumanReadableJsonErrorHandler(*s.logger),
+			ResponseErrorHandlerFunc: api.HumanReadableJsonErrorHandler(*s.logger),
 		},
 	)
 
@@ -187,11 +189,15 @@ func (s *Service) Start() {
 				api.RuntimeFromURLMiddleware(v1BaseURL),
 			},
 			BaseRouter:       baseRouter,
-			ErrorHandlerFunc: api.HumanReadableJsonErrorHandler,
+			ErrorHandlerFunc: api.HumanReadableJsonErrorHandler(*s.logger),
 		})
 	// Manually apply the CORS middleware; we want it to run always.
 	// HandlerWithOptions() above does not apply it to some requests (404 URLs, requests with bad params, etc.).
 	handler = api.CorsMiddleware(handler)
+	// Request context is not cancelled by the server when write timeout is reached. Ensure the context gets canceled.
+	// Ref: https://github.com/golang/go/issues/59602
+	// Metrics middleware should be applied after timeout, since we do not want to cancel the context for metrics.
+	handler = api.ContextTimeoutMiddleware(requestsTimeout)(handler)
 	// Manually apply the metrics middleware; we want it to run always, and at the outermost layer.
 	// HandlerWithOptions() above does not apply it to some requests (404 URLs, requests with bad params, etc.).
 	handler = api.MetricsMiddleware(metrics.NewDefaultRequestMetrics(moduleName), *s.logger)(handler)
@@ -199,8 +205,8 @@ func (s *Service) Start() {
 	server := &http.Server{
 		Addr:           s.address,
 		Handler:        handler,
-		ReadTimeout:    10 * time.Second,
-		WriteTimeout:   10 * time.Second,
+		ReadTimeout:    requestsTimeout,
+		WriteTimeout:   requestsTimeout,
 		MaxHeaderBytes: 1 << 20,
 	}
 
