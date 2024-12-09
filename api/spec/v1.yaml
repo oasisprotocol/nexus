@@ -1810,6 +1810,12 @@ components:
             relates.
             Present only for events of type `roothash.*` except for
             `roothash.execution_discrepancy` before Eden.
+        timestamp:
+          type: string
+          format: date-time
+          description: |
+            The second-granular consensus time of this event's block.
+          example: *iso_timestamp_1
         type:
           allOf: [$ref: '#/components/schemas/ConsensusEventType']
           description: The type of the event.
