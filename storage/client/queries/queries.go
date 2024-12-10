@@ -106,8 +106,9 @@ const (
 			OFFSET $9::bigint`
 
 	Events = `
-		SELECT tx_block, tx_index, tx_hash, roothash_runtime_id, roothash_runtime, roothash_runtime_round, type, body
+		SELECT tx_block, tx_index, tx_hash, roothash_runtime_id, roothash_runtime, roothash_runtime_round, type, body, b.time
 			FROM chain.events
+			LEFT JOIN chain.blocks b ON tx_block = b.height
 			WHERE ($1::bigint IS NULL OR tx_block = $1::bigint) AND
 					($2::integer IS NULL OR tx_index = $2::integer) AND
 					($3::text IS NULL OR tx_hash = $3::text) AND

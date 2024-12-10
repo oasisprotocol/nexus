@@ -7,6 +7,7 @@
         "from": "oasis1qqnv3peudzvekhulf8v3ht29z4cthkhy7gkxmph5",
         "to": "oasis1qrmufhkkyyf79s5za2r8yga9gnk4t446dcy3a5zm"
       },
+      "timestamp": "2022-04-11T12:44:14Z",
       "type": "staking.transfer"
     },
     {
@@ -16,6 +17,7 @@
         "from": "oasis1qrqnh093w0pv8asfmc37pyal6yn2h4cnwvdqtzm0",
         "to": "oasis1qqnv3peudzvekhulf8v3ht29z4cthkhy7gkxmph5"
       },
+      "timestamp": "2022-04-11T12:44:08Z",
       "tx_hash": "4defe2afa3abbd4668958e360e184c73381e8b99ebb8082b911f6b28c811da97",
       "tx_index": 0,
       "type": "staking.transfer"
@@ -27,6 +29,7 @@
         "from": "oasis1qrqnh093w0pv8asfmc37pyal6yn2h4cnwvdqtzm0",
         "to": "oasis1qz068qtggv6kdstymnvqm46rpv6p6tk6pueffdqu"
       },
+      "timestamp": "2022-04-11T12:44:08Z",
       "tx_hash": "4defe2afa3abbd4668958e360e184c73381e8b99ebb8082b911f6b28c811da97",
       "tx_index": 0,
       "type": "staking.transfer"
@@ -38,6 +41,7 @@
         "from": "oasis1qqnv3peudzvekhulf8v3ht29z4cthkhy7gkxmph5",
         "to": "oasis1qps7mh7usg7u4t35ujr0l8dxjs2ly2swhu9v0mr0"
       },
+      "timestamp": "2022-04-11T12:44:08Z",
       "type": "staking.transfer"
     },
     {
@@ -47,6 +51,7 @@
         "from": "oasis1qrqnh093w0pv8asfmc37pyal6yn2h4cnwvdqtzm0",
         "to": "oasis1qz068qtggv6kdstymnvqm46rpv6p6tk6pueffdqu"
       },
+      "timestamp": "2022-04-11T12:43:05Z",
       "tx_hash": "b40bd05e4f7f0f9700b9934449019ecc340a8af8f505cdebc5adcf3d265c2660",
       "tx_index": 0,
       "type": "staking.transfer"
@@ -93,6 +98,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:40:11Z",
       "tx_hash": "d80b7c0d96ea7dee3ad7f6d144f6aa751a974978e639d38232a0254b6ed6d716",
       "tx_index": 0,
       "type": "registry.node"
@@ -104,6 +110,7 @@
         "from": "oasis1qrqnh093w0pv8asfmc37pyal6yn2h4cnwvdqtzm0",
         "to": "oasis1qrqnh093w0pv8asfmc37pyal6yn2h4cnwvdqtzm0"
       },
+      "timestamp": "2022-04-11T12:38:50Z",
       "tx_hash": "a116e6343d076569695f0a7a539e38990dcd1c553e94ce3149821673e7f6a07c",
       "tx_index": 0,
       "type": "staking.transfer"
@@ -140,6 +147,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:37:52Z",
       "tx_hash": "17bc56f2d5c362d28303c3ea73ed7e1e85acdbfb6c8f1b35f1a991374556122d",
       "tx_index": 0,
       "type": "registry.node"
@@ -176,6 +184,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:34:59Z",
       "tx_hash": "e501b3cd5a1e7a4e9e6b65763dcc6b180b1e083af22cde183c081432a886106d",
       "tx_index": 0,
       "type": "registry.node"
@@ -212,6 +221,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:33:54Z",
       "tx_hash": "67c66a9cd792ea8efb2cd95a8925ba3418971efe88b5294c26e0b8c2eedf3f8b",
       "tx_index": 0,
       "type": "registry.node"
@@ -258,6 +268,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:28:14Z",
       "tx_hash": "ebc441454909b068fd6cd76945d07f8d88a2b4c444c2a96d25345500ad5fba84",
       "tx_index": 0,
       "type": "registry.node"
@@ -310,6 +321,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:28:14Z",
       "tx_hash": "a8f8b74bcdeac961afd7d17c658e031f1b8bbe6ac6182531819c27c6e891ab56",
       "tx_index": 1,
       "type": "registry.node"
@@ -346,6 +358,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:25:03Z",
       "tx_hash": "c5a190d203f85f6f4be04e01e90b32ed05fe91b2182714b29fee52caeb983c25",
       "tx_index": 0,
       "type": "registry.node"
@@ -392,6 +405,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:19:10Z",
       "tx_hash": "7f0d67b40505ebd08640b317a98bd71792fa222c83288f4d1d1abb1f5a6aeaca",
       "tx_index": 0,
       "type": "registry.node"
@@ -406,6 +420,7 @@
         "escrow": "oasis1qz72lvk2jchk0fjrz7u2swpazj3t5p0edsdv7sf8",
         "owner": "oasis1qqmrw7p0srp2kfpacdr4aslac6sv3rgmy5a2dulj"
       },
+      "timestamp": "2022-04-11T12:18:00Z",
       "tx_hash": "aa8ae4c5f498afca3480ee52796761ec74011f90eac866c5eeb2927359f8a277",
       "tx_index": 0,
       "type": "staking.escrow.debonding_start"
@@ -442,6 +457,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:15:53Z",
       "tx_hash": "c1f6d56a80e763ec661568f2c9af5467bca8a31015277bdced0e53692482a74b",
       "tx_index": 0,
       "type": "registry.node"
@@ -478,6 +494,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:14:49Z",
       "tx_hash": "b627c8f147ee2b8a07310883b1d2cbf14d56750ab1739096933b3b0fbd69fe8f",
       "tx_index": 0,
       "type": "registry.node"
@@ -530,6 +547,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:14:09Z",
       "tx_hash": "d0c61ba39bb7f981b1fdc9eede425d1b29de285be1251e235f155ce8da271270",
       "tx_index": 0,
       "type": "registry.node"
@@ -544,6 +562,7 @@
         "escrow": "oasis1qqekv2ymgzmd8j2s2u7g0hhc7e77e654kvwqtjwm",
         "owner": "oasis1qzaq5lcxzu7ct60tx993nfy9qw5xavjhgu57w90x"
       },
+      "timestamp": "2022-04-11T12:11:43Z",
       "tx_hash": "4314d4785f2fe82f461ca613689c10cd38bb5cfecac0ca01f175b97ef31e79f0",
       "tx_index": 0,
       "type": "staking.escrow.debonding_start"
@@ -596,6 +615,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:10:57Z",
       "tx_hash": "4a3d995d60d2031c9d022d2617ace1e17d0d29922986c5c12c9715dd83589599",
       "tx_index": 0,
       "type": "registry.node"
@@ -648,6 +668,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:10:33Z",
       "tx_hash": "f7656525a615815638727ed9f3699bca2531145049f51344d4214bd4c7d83c56",
       "tx_index": 0,
       "type": "registry.node"
@@ -700,6 +721,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:10:33Z",
       "tx_hash": "52ff4f5efa98160d77489a1fed170ad623289595590ec9cbf42103713540a895",
       "tx_index": 1,
       "type": "registry.node"
@@ -736,6 +758,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:09:24Z",
       "tx_hash": "0852cef026fcde50afefaa12a91e154cbf10f80296056afac4dbc859a5a52a7b",
       "tx_index": 0,
       "type": "registry.node"
@@ -772,6 +795,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:09:24Z",
       "tx_hash": "21ff29bcb4b468ecad129f5cc07a30eeba3f3c8f463b5fb370644ef3b550e4fb",
       "tx_index": 1,
       "type": "registry.node"
@@ -808,6 +832,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:09:24Z",
       "tx_hash": "10eff49cc06a4460b4758fc80ea49b4c72b27c744a9573f1a9f4bd2711b97b18",
       "tx_index": 2,
       "type": "registry.node"
@@ -844,6 +869,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:09:24Z",
       "tx_hash": "6f74a54f87e19a2cdcdebdae91c2ad6c73cf7491ae773106e70f0798c9080d26",
       "tx_index": 3,
       "type": "registry.node"
@@ -890,6 +916,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:09:24Z",
       "tx_hash": "cc8ed0c7c4959977e22514d3879caed7da5151a6f05abdfa4b6d5fdbbd995522",
       "tx_index": 4,
       "type": "registry.node"
@@ -926,6 +953,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:09:18Z",
       "tx_hash": "f77f145a8b1d1136167d0e0b97fec94496c164a79b08a57ea0e472b70afb2c54",
       "tx_index": 0,
       "type": "registry.node"
@@ -974,6 +1002,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:09:18Z",
       "tx_hash": "0d371cbb4faa53c3b04082011c72706d1d6acc07cc81a0120572d0c0b7d32e87",
       "tx_index": 1,
       "type": "registry.node"
@@ -1011,6 +1040,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:09:12Z",
       "tx_hash": "e47aab5cbe2a980e4bd71459fa8066491cc8661cdadeaa3c6c256167fafb931a",
       "tx_index": 0,
       "type": "registry.node"
@@ -1047,6 +1077,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:09:12Z",
       "tx_hash": "34c8b874070b056771b887b497290a3550ad8b257c6735fcea659ff4b25aafbf",
       "tx_index": 1,
       "type": "registry.node"
@@ -1083,6 +1114,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:09:06Z",
       "tx_hash": "0aa6c14b6a8aa31c9e3addd2f92c42e2dff1f7d77749a773f4e70aed50d6416c",
       "tx_index": 0,
       "type": "registry.node"
@@ -1119,6 +1151,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:09:06Z",
       "tx_hash": "249cf3ba735738f1845143d96feb2c06ee28af748c9bf1bc8dc304b678e09609",
       "tx_index": 1,
       "type": "registry.node"
@@ -1171,6 +1204,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:09:06Z",
       "tx_hash": "a537f1f549cb77a4aa1d6abfc5dcb9ca17705250749b13a974e46a11451aa239",
       "tx_index": 2,
       "type": "registry.node"
@@ -1219,6 +1253,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:09:01Z",
       "tx_hash": "55eb02526b365dc10384aeecda74524eb618f27806ec30e5f430ce070ccadbc6",
       "tx_index": 0,
       "type": "registry.node"
@@ -1265,6 +1300,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:09:01Z",
       "tx_hash": "c05e319546b57c0276eae79c3eb02fe794184de68f17a5c99464f35cee2cc14f",
       "tx_index": 1,
       "type": "registry.node"
@@ -1301,6 +1337,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:09:01Z",
       "tx_hash": "306164db4b95856699014d7ad666b89c8f146719bfe0f9c798c2167ab09ef02d",
       "tx_index": 2,
       "type": "registry.node"
@@ -1337,6 +1374,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:09:01Z",
       "tx_hash": "353b2a3eafa9f52d85bbef916e8e6b8fee9b714129ca2de83f56849faec860d9",
       "tx_index": 3,
       "type": "registry.node"
@@ -1373,6 +1411,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:08:55Z",
       "tx_hash": "1e69d7958f1e5dde1d57f4f722de0897959063de5af4067bf145ad78321280a9",
       "tx_index": 0,
       "type": "registry.node"
@@ -1425,6 +1464,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:08:55Z",
       "tx_hash": "7a291ae8ab51483f5e3e395c243deec2b7a3e74a477d877c7aff743dfa7cf374",
       "tx_index": 1,
       "type": "registry.node"
@@ -1461,6 +1501,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:08:55Z",
       "tx_hash": "65fd253cd23d753c70ed99419e5661c1c9cf77a4d8b762639950f7ee27d950b3",
       "tx_index": 2,
       "type": "registry.node"
@@ -1507,6 +1548,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:08:55Z",
       "tx_hash": "056f25b4bb3520907bca25ec9ee07f131c9d956f0274871073fd1a8a1aaa115b",
       "tx_index": 3,
       "type": "registry.node"
@@ -1543,6 +1585,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:08:55Z",
       "tx_hash": "dadd0642cce4c2dbf60293ae72a6d17b43cb2cdbf4be22919c7b37d1724c5cbd",
       "tx_index": 4,
       "type": "registry.node"
@@ -1579,6 +1622,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:08:49Z",
       "tx_hash": "dbe2e00b82bb9801b7d4577272fe750983c31e8746f9229ee5fa71ab3aa3d280",
       "tx_index": 0,
       "type": "registry.node"
@@ -1615,6 +1659,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:08:49Z",
       "tx_hash": "b5ed4e6e745601fb25a2ca0dce8e1fc82bf6100b300c9eace188ab052fcb0d57",
       "tx_index": 1,
       "type": "registry.node"
@@ -1651,6 +1696,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:08:49Z",
       "tx_hash": "637d5a92a05813b0155b5c8c5924b17b05b36eb19b79425b8fa28fad80a04b7f",
       "tx_index": 2,
       "type": "registry.node"
@@ -1697,6 +1743,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:08:49Z",
       "tx_hash": "c596d4d6475b7c077b8aa3ec7b35a221d90cf1af6a14d95940cf976a93a46157",
       "tx_index": 3,
       "type": "registry.node"
@@ -1743,6 +1790,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:08:49Z",
       "tx_hash": "dae70442177f476e89a76d7b5251fbddf9b2175ecd0d845e1d93f13afc3fbf3d",
       "tx_index": 4,
       "type": "registry.node"
@@ -1779,6 +1827,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:08:43Z",
       "tx_hash": "47043bae94c03b720f2d259ddb4b7a958faee9330956a153491b3cb1e74b9d26",
       "tx_index": 0,
       "type": "registry.node"
@@ -1827,6 +1876,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:08:43Z",
       "tx_hash": "c1267e671f5c1094f2121fd7f13367ceba2e601e0271cbd67fff91b1e48c9100",
       "tx_index": 1,
       "type": "registry.node"
@@ -1863,6 +1913,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:08:43Z",
       "tx_hash": "891ae449d4cb5abd7a24b681896259bb71aa04cbcc2b0bd7bcbc9b6d732f9e12",
       "tx_index": 2,
       "type": "registry.node"
@@ -1899,6 +1950,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:08:43Z",
       "tx_hash": "f6d87f0997cece308f48207d4087b03d62f6f82ece117c492fdbdeb44cc0d9ad",
       "tx_index": 3,
       "type": "registry.node"
@@ -1951,6 +2003,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:08:43Z",
       "tx_hash": "25299f9de8b9bcd232c0809788a7c02661d4b66eba3557be961d9be09aa39024",
       "tx_index": 4,
       "type": "registry.node"
@@ -1987,6 +2040,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:08:43Z",
       "tx_hash": "a503452db11bc5fe6542d14d8b4c955a7a560c2581079e9028ae020400a1aa10",
       "tx_index": 5,
       "type": "registry.node"
@@ -2023,6 +2077,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:08:37Z",
       "tx_hash": "c7688b81886192274020f3764e9451dfd8b0ca425da03c1314455fdaeed6f4ce",
       "tx_index": 0,
       "type": "registry.node"
@@ -2069,6 +2124,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:08:37Z",
       "tx_hash": "f75abaed277705d0ff7db7679ada041e5bd403a505ba716d26d2c6b59f440d84",
       "tx_index": 1,
       "type": "registry.node"
@@ -2105,6 +2161,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:08:37Z",
       "tx_hash": "2628bd04157ccbde66ccfb4abbb11cd8db5abf0601841b937c69b1d3824d5342",
       "tx_index": 2,
       "type": "registry.node"
@@ -2141,6 +2198,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:08:37Z",
       "tx_hash": "e3eb1ea937865f90209906353acde8185ee640f34b8ba2c4f8d14814eb917a2d",
       "tx_index": 3,
       "type": "registry.node"
@@ -2187,6 +2245,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:08:37Z",
       "tx_hash": "ddacf6d435539e00e7abc62968d4402872b2bd67cced51ceb4662eec2702618b",
       "tx_index": 4,
       "type": "registry.node"
@@ -2223,6 +2282,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:08:37Z",
       "tx_hash": "877a6a7b291f183f26cb0bd2221f8db82964e227444792f2dd7e8773070be62e",
       "tx_index": 5,
       "type": "registry.node"
@@ -2269,6 +2329,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:08:31Z",
       "tx_hash": "07336f80156e340dc2c279fb3c178def7dae988c10b1607a8f89d1d85687ae20",
       "tx_index": 0,
       "type": "registry.node"
@@ -2305,6 +2366,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:08:31Z",
       "tx_hash": "f9b073205713980125f21de7f3701029a84ab35ab1d9fe4c0bdbe1ac45faa1cf",
       "tx_index": 1,
       "type": "registry.node"
@@ -2351,6 +2413,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:08:26Z",
       "tx_hash": "65df5f73861b7cc90ca75ebc79e361d1dcaa960b3527d289ea7b7c25412ca944",
       "tx_index": 0,
       "type": "registry.node"
@@ -2387,6 +2450,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:08:26Z",
       "tx_hash": "832f9f459943a0e888854dc3a8dd7fedd19f47d72918c61d946944242b09a0a2",
       "tx_index": 1,
       "type": "registry.node"
@@ -2433,6 +2497,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:08:26Z",
       "tx_hash": "8b5cbc80dbbacab0489f2df07302ba984b7417739bbc9dffaa2a33b4f9aabeaa",
       "tx_index": 2,
       "type": "registry.node"
@@ -2469,6 +2534,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:08:26Z",
       "tx_hash": "c93ce61fdf27ed5570b9095aad095f02422ed3e01869d669297001d052b9246e",
       "tx_index": 3,
       "type": "registry.node"
@@ -2515,6 +2581,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:08:26Z",
       "tx_hash": "50725bc8eb07a7b1aa91c25619d49e37e8ee338f37d34e9de9cff2097b20159d",
       "tx_index": 4,
       "type": "registry.node"
@@ -2552,6 +2619,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:08:26Z",
       "tx_hash": "3addfb6f73a0f772dff2d9072628edc18c28b39226a40ee5e584a437aeb8daab",
       "tx_index": 5,
       "type": "registry.node"
@@ -2588,6 +2656,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:08:20Z",
       "tx_hash": "7e383398196b6ce7f4a86b40ba0e2c1d431a4f91788e3f2a487d8ff16cf74a48",
       "tx_index": 0,
       "type": "registry.node"
@@ -2624,6 +2693,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:08:20Z",
       "tx_hash": "4ebd49e81407777f785a3df3dbdabc2b862429c2922d7764cbe505d8446dd50c",
       "tx_index": 1,
       "type": "registry.node"
@@ -2672,6 +2742,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:08:20Z",
       "tx_hash": "ab910428949b792839278d843fed887cec27bda88e981ac26f54dd941c871965",
       "tx_index": 2,
       "type": "registry.node"
@@ -2720,6 +2791,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:08:20Z",
       "tx_hash": "25f97fe4499f045c186291c5220e58b3926e827c8bdb189b37db9f1558725875",
       "tx_index": 3,
       "type": "registry.node"
@@ -2756,6 +2828,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:08:14Z",
       "tx_hash": "455207f1d6a7d6b961097294bf13262b413580294263e7f40ef5fa328bac9da7",
       "tx_index": 0,
       "type": "registry.node"
@@ -2792,6 +2865,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:08:14Z",
       "tx_hash": "7e612e583dd418635db43edde2e2eb8942d071a187b7e729b56bca78a22b6eae",
       "tx_index": 1,
       "type": "registry.node"
@@ -2828,6 +2902,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:08:14Z",
       "tx_hash": "ef54af058c1b690973e2de5e22958633fa91c173c05ca82068baeb8ef129bf3c",
       "tx_index": 2,
       "type": "registry.node"
@@ -2864,6 +2939,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:08:14Z",
       "tx_hash": "53ecfb3f7154db95a3d85590405da70a61d34d6bcd3757ab224614de54152636",
       "tx_index": 3,
       "type": "registry.node"
@@ -2900,6 +2976,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:08:14Z",
       "tx_hash": "28ccccfda3b590a95d4a8b788103697fad46f9b6bdb60d2722e35822db9dfb64",
       "tx_index": 4,
       "type": "registry.node"
@@ -2936,6 +3013,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:08:14Z",
       "tx_hash": "fc4c7f7ab12ff69a0b7338ad9a0e8e6cfeefc90b198d0fd56a7e2667dfbc34ae",
       "tx_index": 5,
       "type": "registry.node"
@@ -2973,6 +3051,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:08:14Z",
       "tx_hash": "51db9d780c4438702cf2ade658f48bea9134cf776bbd8476a5c6b4fec76c2ae5",
       "tx_index": 6,
       "type": "registry.node"
@@ -3019,6 +3098,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:08:08Z",
       "tx_hash": "4e69a94f6572a74d0760c676b74a98aa8f43bc4eb1b452032f875f84984ae222",
       "tx_index": 0,
       "type": "registry.node"
@@ -3065,6 +3145,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:08:08Z",
       "tx_hash": "17cf40082d310bc857e1d96e3c6471e3af73618a8f9f64497b28c7b82d4417df",
       "tx_index": 1,
       "type": "registry.node"
@@ -3101,6 +3182,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:08:08Z",
       "tx_hash": "fa66bd24835ab0b6acd3ab2dec7265f5d0f35868b57622b4b01813090a7eac4f",
       "tx_index": 2,
       "type": "registry.node"
@@ -3142,6 +3224,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:08:08Z",
       "tx_hash": "3d45b1a7aa3d8ec25e17b847b2749a0b464b8e6be7fc4d9923262eff8bca3569",
       "tx_index": 3,
       "type": "registry.node"
@@ -3194,6 +3277,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:08:08Z",
       "tx_hash": "8a948670d43821020430d5e750b762058f31f33ef0cb6df691786be5f30c7560",
       "tx_index": 4,
       "type": "registry.node"
@@ -3206,6 +3290,7 @@
         "beneficiary": "oasis1qzvlg0grjxwgjj58tx2xvmv26era6t2csqn22pte",
         "owner": "oasis1qzwt3w0ucve0ytzzyv3y72pcl7wlsd3nygdqdhac"
       },
+      "timestamp": "2022-04-11T12:08:08Z",
       "tx_hash": "6990487a171f9106dc7cfefe15fb5be45240ca26fb3c113a6fe6be75fabf235d",
       "tx_index": 5,
       "type": "staking.allowance_change"
@@ -3242,6 +3327,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:08:02Z",
       "tx_hash": "b9037f0442073996144c209d3f5b6fcf331364dc609aed592a28d03efa488478",
       "tx_index": 0,
       "type": "registry.node"
@@ -3278,6 +3364,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:08:02Z",
       "tx_hash": "d1569eeeebdb10a8f444f1743b13348b2e80abe768c97d5908dcb4998f9fe144",
       "tx_index": 1,
       "type": "registry.node"
@@ -3314,6 +3401,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:08:02Z",
       "tx_hash": "9d80e00c9096d408faf48fb2f63fed4ea147c21a08a9b2f1c888e370d1a3450a",
       "tx_index": 2,
       "type": "registry.node"
@@ -3360,6 +3448,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:08:02Z",
       "tx_hash": "a66e27c7eca15b8c1b29b858af6ee6a0a55bd2582f24810ac2072ac2d7d8bf2e",
       "tx_index": 3,
       "type": "registry.node"
@@ -3396,6 +3485,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:07:56Z",
       "tx_hash": "cb394289c0e014d9edb3ebc1154e3c7abc1ec01185e2fb813a555080784f1157",
       "tx_index": 0,
       "type": "registry.node"
@@ -3432,6 +3522,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:07:56Z",
       "tx_hash": "1f8eaded76d37526bab98982907331474e7b7d388882ac260ed2735e558e81b3",
       "tx_index": 1,
       "type": "registry.node"
@@ -3478,6 +3569,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:07:56Z",
       "tx_hash": "b90e2518499ba84fb6f3fa031643f6f27629816c21d8afc1b28f28491906f319",
       "tx_index": 2,
       "type": "registry.node"
@@ -3514,6 +3606,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:07:56Z",
       "tx_hash": "1dc69d8a7a6861f4c3d2259ee2abdccf5d5949193af486ca9b1e4e7c0a0f3866",
       "tx_index": 3,
       "type": "registry.node"
@@ -3550,6 +3643,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:07:56Z",
       "tx_hash": "4d8b7b8d5cf33d52f2129c8c57c982bcfad854ec830c151b5131b7192398a57f",
       "tx_index": 4,
       "type": "registry.node"
@@ -3586,6 +3680,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:07:50Z",
       "tx_hash": "a280187d2584f46d9a24cf912ae1087f5945e8f59643270fb0d0fe44d0dba56f",
       "tx_index": 0,
       "type": "registry.node"
@@ -3622,6 +3717,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:07:50Z",
       "tx_hash": "906c371ebaa2ebdbc0ff7db7da405012ff229cffcc23980b1ed265f8ca71d54f",
       "tx_index": 1,
       "type": "registry.node"
@@ -3658,6 +3754,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:07:50Z",
       "tx_hash": "ff9fe3ed316563671b14a7ff4aa4ff3d062c492f182e48b203a6aacc6bffcf20",
       "tx_index": 2,
       "type": "registry.node"
@@ -3694,6 +3791,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:07:50Z",
       "tx_hash": "fff818ccd9c8818c3520c66db87e89be5d209f8638effee8c1425ee14f849aaf",
       "tx_index": 3,
       "type": "registry.node"
@@ -3730,6 +3828,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:07:50Z",
       "tx_hash": "d6d1c21b30379f0a4725f26f1382ef21dafdfe760e7733b8adfe3a3c0922a5a1",
       "tx_index": 4,
       "type": "registry.node"
@@ -3766,6 +3865,7 @@
           }
         }
       },
+      "timestamp": "2022-04-11T12:07:50Z",
       "tx_hash": "456ebd64bf89fa0bc556d8eb719956bb00e7ad3560b29bc57e571d3bd940f70b",
       "tx_index": 5,
       "type": "registry.node"
