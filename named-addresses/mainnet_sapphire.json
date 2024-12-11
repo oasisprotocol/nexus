@@ -1,0 +1,97 @@
+[
+    {
+        "Name": "Common Pool",
+        "Address": "oasis1qz78phkdan64g040cvqvqpwkplfqf6tj6uwcsh30",
+        "Description": "ParaTime account for rewarding token stakers."
+    },
+    {
+        "Name": "Fee Accumulator",
+        "Address": "oasis1qp3r8hgsnphajmfzfuaa8fhjag7e0yt35cjxq0u4",
+        "Description": "This account collects transaction fees of each ParaTime block that are distributed among the validators."
+    },
+    {
+        "Name": "Rewards Account",
+        "Address": "oasis1qp7x0q9qahahhjas0xde8w0v04ctp4pqzu5mhjav",
+        "Description": "ParaTime account for rewarding the compute nodes."
+    },
+    {
+        "Name": "Pending Withdrawal Account",
+        "Address": "oasis1qr677rv0dcnh7ys4yanlynysvnjtk9gnsyhvm6ln",
+        "Description": "Withdrawal from the ParaTime is performed in two steps. This account holds the tokens that are still waiting for the consensus transaction to be confirmed."
+    },
+    {
+        "Name": "Pending Delegation Account",
+        "Address": "oasis1qzcdegtf7aunxr5n5pw7n5xs3u7cmzlz9gwmq49r",
+        "Description": "Delegation from the ParaTime is performed in two steps. This account holds the tokens that are still waiting for the consensus transaction to be confirmed."
+    },
+    {
+        "Name": "Zero Address",
+        "Address": "oasis1qq2v39p9fqk997vk6742axrzqyu9v2ncyuqt8uek",
+        "Description": "This address is the oasis-standard derivation/counterpart of the Ethereum address 0x0. Sometimes used in internal data representations to indicate the absence of an account. For example, token mints are encoded as transfers from this address, and token burns as transfers to this address."
+    },
+    {
+        "Name": "Subcall Precompile",
+        "Address": "oasis1qzr543mmela3xwflqtz3e0l8jzp8tupf3v59r6qn",
+        "Description": "Interacts with Oasis Runtime SDK modules. Some transactions are performed in two steps and emit event in the next block."
+    },
+    {
+        "Name": "Rosy",
+        "Address": "oasis1qrysq46guu3lug3mge6vgg7mrtthfuqnucq7rnp0",
+        "Description": "ERC20"
+    },
+    {
+        "Name": "illumineX Token",
+        "Address": "oasis1qzhxwvks20f6fng566rzcs98t65qjnp4pgd5mnvl",
+        "Description": "ERC20"
+    },
+    {
+        "Name": "RA1L",
+        "Address": "oasis1qzvys6j3vpe8sq7az60z3p24xtcxdxyaccjndpdt",
+        "Description": "ERC721"
+    },
+    {
+        "Name": "NFTrout",
+        "Address": "oasis1qpwe6h0hw6s0x4skujhznld065300p83wgxnvu0n",
+        "Description": "ERC721"
+    },
+    {
+        "Name": "Ocean Token",
+        "Address": "oasis1qr43dvghx4a75vndjcsg2r9ct2xqftwrgcnt5tge",
+        "Description": "ERC20"
+    },
+    {
+        "Name": "Wrapped ROSE",
+        "Address": "oasis1qpdgv5nv2dhxp4q897cgag6kgnm9qs0dccwnckuu",
+        "Description": "ERC20"
+    },
+    {
+        "Name": "wstROSE",
+        "Address": "oasis1qr2ta7ussnps40fnmp58p04cwn7yvr56eqepa7xh",
+        "Description": "ERC20"
+    },
+    {
+        "Name": "stROSE",
+        "Address": "oasis1qplsw278vcrs6kcam9ffu43dp5wqvdelqvw9gf68",
+        "Description": "ERC20"
+    },
+    {
+        "Name": "The 4th Pillar Token",
+        "Address": "oasis1qrtw0g3ufn29tk3t9s8rxx6mvsep33qd9szzgmct",
+        "Description": "ERC20"
+    },
+    {
+        "Name": "Bridged USDC",
+        "Address": "oasis1qr7y034j2srpxq90w20al600a52es8g3xylhvrl6",
+        "Description": "ERC20"
+    },
+    {
+        "Name": "RAKESH VILLAGE",
+        "Address": "oasis1qqx805qqxneftz67ywqjs47u23cd8lcjusl3wcrs",
+        "Description": "ERC20"
+    },
+    {
+        "Name": "NEBY",
+        "Address": "oasis1qr5mh6qpl9ql3d202jgk5845eyaggjhjevv9x90k",
+        "Description": "ERC20"
+    }
+]
