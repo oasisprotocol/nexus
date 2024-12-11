@@ -935,6 +935,12 @@ paths:
             the sender or the recipient of tokens.
             Nexus detects related accounts inside EVM transactions and events on a
             best-effort basis. For example, it inspects ERC20 methods inside `evm.Call` txs.
+        - in: query
+          name: method
+          schema:
+            type: string
+          description: A filter on the runtime transaction method.
+          example: 'accounts.Transfer'
       responses:
         '200':
           description: |

@@ -1450,6 +1450,7 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetR
 		p.Block,
 		txHash, // tx_hash; used only by GetRuntimeTransactionsTxHash
 		ocAddrRel,
+		p.Method,
 		p.After,
 		p.Before,
 		p.Limit,

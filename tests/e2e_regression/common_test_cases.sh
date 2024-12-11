@@ -63,6 +63,7 @@ commonTestCases=(
   'validators                         /v1/consensus/validators?limit=200'
   'emerald_blocks                     /v1/emerald/blocks'
   'emerald_txs                        /v1/emerald/transactions'
+  'emerald_txs_by_method              /v1/emerald/transactions?method=consensus.Withdraw'
   'emerald_events                     /v1/emerald/events'
   'emerald_events_by_type             /v1/emerald/events?type=accounts.transfer'
   'emerald_tokens                     /v1/emerald/evm_tokens'
