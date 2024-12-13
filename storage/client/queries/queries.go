@@ -538,12 +538,13 @@ const (
 			($2::bigint IS NULL OR txs.round = $2::bigint) AND
 			($3::text IS NULL OR txs.tx_hash = $3::text OR txs.tx_eth_hash = $3::text) AND
 			($4::text IS NULL OR rel.account_address = $4::text) AND
-			($5::timestamptz IS NULL OR txs.timestamp >= $5::timestamptz) AND
-			($6::timestamptz IS NULL OR txs.timestamp < $6::timestamptz) AND
+			($5::text IS NULL or txs.method = $5::text) AND
+			($6::timestamptz IS NULL OR txs.timestamp >= $6::timestamptz) AND
+			($7::timestamptz IS NULL OR txs.timestamp < $7::timestamptz) AND
 			(signer0.signer_address IS NOT NULL) -- HACK: excludes malformed transactions that do not have the required fields
 		ORDER BY txs.round DESC, txs.tx_index DESC
-		LIMIT $7::bigint
-		OFFSET $8::bigint
+		LIMIT $8::bigint
+		OFFSET $9::bigint
 		`
 
 	RuntimeEvents = `
