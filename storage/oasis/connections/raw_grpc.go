@@ -6,7 +6,6 @@ import (
 	"sync"
 
 	cmnGrpc "github.com/oasisprotocol/oasis-core/go/common/grpc"
-	sdkConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
@@ -32,10 +31,7 @@ var (
 // but returns a raw gRPC connection instead of the oasis-sdk `Connection` wrapper.
 func RawConnect(nodeConfig *config.NodeConfig) (*grpc.ClientConn, error) {
 	var dialOpts []grpc.DialOption
-	fakeSDKNet := &sdkConfig.Network{
-		RPC: nodeConfig.RPC,
-	}
-	switch fakeSDKNet.IsLocalRPC() {
+	switch cmnGrpc.IsLocalAddress(nodeConfig.RPC) {
 	case true:
 		// No TLS needed for local nodes.
 		dialOpts = append(dialOpts, grpc.WithTransportCredentials(insecure.NewCredentials()))

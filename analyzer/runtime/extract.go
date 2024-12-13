@@ -23,6 +23,7 @@ import (
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/consensusaccounts"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/core"
 	sdkEVM "github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/evm"
+	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/rofl"
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 
 	"github.com/oasisprotocol/nexus/analyzer/evmabi"
@@ -109,6 +110,7 @@ type ScopedSdkEvent struct {
 	Accounts          *accounts.Event
 	ConsensusAccounts *consensusaccounts.Event
 	EVM               *sdkEVM.Event
+	Rofl              *rofl.Event
 }
 
 type TokenChangeKey struct {
@@ -503,6 +505,25 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 					}
 
 					// TODO: maybe parse known token methods (ERC-20 etc)
+					return nil
+				},
+				RoflCreate: func(body *rofl.Create) error {
+					blockTransactionData.Body = body
+					return nil
+				},
+				RoflUpdate: func(body *rofl.Update) error {
+					blockTransactionData.Body = body
+					if _, err = addresses.RegisterRelatedSdkAddress(blockTransactionData.RelatedAccountAddresses, body.Admin); err != nil {
+						return fmt.Errorf("rofl.Update admin address: %w", err)
+					}
+					return nil
+				},
+				RoflRemove: func(body *rofl.Remove) error {
+					blockTransactionData.Body = body
+					return nil
+				},
+				RoflRegister: func(body *rofl.Register) error {
+					blockTransactionData.Body = body
 					return nil
 				},
 				UnknownMethod: func(methodName string) error {
@@ -1357,6 +1378,33 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 				return err1
 			}
 			extractedEvents = append(extractedEvents, &eventData)
+			return nil
+		},
+		Rofl: func(event *rofl.Event) error {
+			if event.AppCreated != nil {
+				eventData := EventData{
+					Type:      apiTypes.RuntimeEventTypeRoflAppCreated,
+					Body:      event.AppCreated,
+					WithScope: ScopedSdkEvent{Rofl: event},
+				}
+				extractedEvents = append(extractedEvents, &eventData)
+			}
+			if event.AppRemoved != nil {
+				eventData := EventData{
+					Type:      apiTypes.RuntimeEventTypeRoflAppRemoved,
+					Body:      event.AppRemoved,
+					WithScope: ScopedSdkEvent{Rofl: event},
+				}
+				extractedEvents = append(extractedEvents, &eventData)
+			}
+			if event.AppUpdated != nil {
+				eventData := EventData{
+					Type:      apiTypes.RuntimeEventTypeRoflAppUpdated,
+					Body:      event.AppUpdated,
+					WithScope: ScopedSdkEvent{Rofl: event},
+				}
+				extractedEvents = append(extractedEvents, &eventData)
+			}
 			return nil
 		},
 	}); err != nil {

@@ -2779,6 +2779,9 @@ components:
         - consensus_accounts.undelegate_done
         - core.gas_used
         - evm.log
+        - rofl.app_created
+        - rofl.app_updated
+        - rofl.app_removed
       example: *runtime_event_type_1
 
     EvmAbiParam:
@@ -3009,6 +3012,10 @@ components:
               - "consensus.Undelegate"
               - "evm.Create"
               - "evm.Call"
+              - "rofl.Create"
+              - "rofl.Update"
+              - "rofl.Remove"
+              - "rofl.Register"
             May be null if the transaction was malformed or encrypted.
           example: "evm.Call"
         body:
