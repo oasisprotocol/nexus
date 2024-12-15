@@ -77,7 +77,7 @@ CREATE TABLE chain.runtime_transactions
   oasis_encrypted_result_data BYTEA,
 
   -- Error information.
-  success       BOOLEAN,  -- NULL means success is unknown (can happen in confidential runtimes)
+  success       BOOLEAN,  -- NULL means success is unknown (can happen in confidential runtimes, or for 'consensusaccounts' transactions which whose action is known only in the next round)
   error_module  TEXT,
   error_code    UINT63,
   error_message TEXT,
