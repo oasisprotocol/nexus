@@ -1082,6 +1082,14 @@ paths:
           schema:
             type: string
           description: A filter on the name, the name or symbol must contain this value as a substring.
+        - in: query
+          name: sort_by
+          schema:
+            type: string
+            enum: [total_holders, market_cap]
+          description: |
+            The field to sort the tokens by.
+            If unset, the tokens will be sorted by number of holders.
       responses:
         '200':
           description: The requested tokens.

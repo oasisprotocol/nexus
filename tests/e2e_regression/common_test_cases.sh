@@ -67,6 +67,7 @@ commonTestCases=(
   'emerald_events                     /v1/emerald/events'
   'emerald_events_by_type             /v1/emerald/events?type=accounts.transfer'
   'emerald_tokens                     /v1/emerald/evm_tokens'
+  'emerald_tokens_sort_market_cap     /v1/emerald/evm_tokens?sort_by=market_cap'
   'emerald_status                     /v1/emerald/status'
   'emerald_tx_volume                  /v1/emerald/stats/tx_volume'
   'emerald_contract_account           /v1/emerald/accounts/oasis1qz2rynvcmrkwd57v00298uc2vtzgatde3cjpy72f'

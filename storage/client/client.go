@@ -2005,6 +2005,7 @@ func (c *StorageClient) RuntimeTokens(ctx context.Context, p apiTypes.GetRuntime
 		p.Name,
 		refSwapFactoryAddr,
 		refSwapTokenAddr,
+		p.SortBy,
 		p.Limit,
 		p.Offset,
 	)
