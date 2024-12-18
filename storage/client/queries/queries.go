@@ -704,37 +704,40 @@ const (
 			tokens.token_type IS NOT NULL AND -- exclude token _candidates_ that we haven't inspected yet
 			tokens.token_type != 0 -- exclude unknown-type tokens; they're often just contracts that emitted Transfer events but don't expose the token ticker, name, balance etc.
 		ORDER BY
-			(
-				CASE
-					-- For the reference token itself, it is 1:1 in value with, you know, itself.
-					WHEN
-						tokens.token_address = $5
-					THEN 1.0
-					-- The pool keeps a proportion of reserves so that reserve0 of token0 is worth about as much as reserve1 of token1.
-					-- When token0 is the reference token, more reserve0 means token1 is worth more than the reference token.
-					WHEN
-						ref_swap_pair_creations.token0_address = $5 AND
-						ref_swap_pairs.reserve0 IS NOT NULL AND
-						ref_swap_pairs.reserve0 > 0 AND
-						ref_swap_pairs.reserve1 IS NOT NULL AND
-						ref_swap_pairs.reserve1 > 0
-					THEN ref_swap_pairs.reserve0::REAL / ref_swap_pairs.reserve1::REAL
-					-- When token1 is the reference token, more reserve1 means token0 is worth more than the reference token.
-					WHEN
-						ref_swap_pair_creations.token1_address = $5 AND
-						ref_swap_pairs.reserve0 IS NOT NULL AND
-						ref_swap_pairs.reserve0 > 0 AND
-						ref_swap_pairs.reserve1 IS NOT NULL AND
-						ref_swap_pairs.reserve1 > 0
-					THEN ref_swap_pairs.reserve1::REAL / ref_swap_pairs.reserve0::REAL
-					ELSE 0.0
-				END *
-				COALESCE(tokens.total_supply, 0)
-			) DESC,
+			CASE
+				-- If sort_by is not "market_cap" then we sort by num_holders (below).
+				WHEN $6::text IS NULL OR $6::text != 'market_cap' THEN NULL
+				ELSE
+				-- Otherwise, sort by market cap.
+				(
+					CASE
+						-- For the reference token itself, it is 1:1 in value with, you know, itself.
+						WHEN tokens.token_address = $5 THEN 1.0
+						-- The pool keeps a proportion of reserves so that reserve0 of token0 is worth about as much as reserve1 of token1.
+						-- When token0 is the reference token, more reserve0 means token1 is worth more than the reference token.
+						WHEN
+							ref_swap_pair_creations.token0_address = $5 AND
+							ref_swap_pairs.reserve0 IS NOT NULL AND
+							ref_swap_pairs.reserve0 > 0 AND
+							ref_swap_pairs.reserve1 IS NOT NULL AND
+							ref_swap_pairs.reserve1 > 0
+						THEN ref_swap_pairs.reserve0::REAL / ref_swap_pairs.reserve1::REAL
+						-- When token1 is the reference token, more reserve1 means token0 is worth more than the reference token.
+						WHEN
+							ref_swap_pair_creations.token1_address = $5 AND
+							ref_swap_pairs.reserve0 IS NOT NULL AND
+							ref_swap_pairs.reserve0 > 0 AND
+							ref_swap_pairs.reserve1 IS NOT NULL AND
+							ref_swap_pairs.reserve1 > 0
+						THEN ref_swap_pairs.reserve1::REAL / ref_swap_pairs.reserve0::REAL
+						ELSE 0.0
+					END * COALESCE(tokens.total_supply, 0)
+				)
+			END DESC,
 		    num_holders DESC,
 		    contract_addr
-		LIMIT $6::bigint
-		OFFSET $7::bigint`
+		LIMIT $7::bigint
+		OFFSET $8::bigint`
 
 	//nolint:gosec // Linter suspects a hardcoded credentials token.
 	EvmTokenHolders = `
