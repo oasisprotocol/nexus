@@ -9,7 +9,7 @@
 //     and at which heights. See also docstring for bisect().
 //
 // To connect to the relevant Oasis-internal DB locally, see internal documentation:
-//    https://app.clickup.com/24394368/v/dc/q8em0-18570/q8em0-15212
+//    https://docs.google.com/document/d/1qzN7oDttb9EHkTkbstbfRFyZos2YUjsKFRtLp7wFN5Y/edit?tab=t.1nfzbixewfkx
 //
 // To run:
 //	go run ./cmd/bisect <YAML_CONFIG_FILE>
