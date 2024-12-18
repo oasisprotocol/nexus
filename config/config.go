@@ -487,6 +487,11 @@ type ItemBasedAnalyzerConfig struct {
 	// new goroutines to process items within a batch. This is useful for cases where
 	// processItem() makes out of band requests to rate limited resources.
 	InterItemDelay time.Duration `koanf:"inter_item_delay"`
+
+	// MaxBackoffTime determines the maximum backoff time the analyzer will use when
+	// processing items. This is useful for cases where the expected analyzer cadence
+	// is different from the consensus block time (e.g. 6 seconds).
+	MaxBackoffTime time.Duration `koanf:"max_backoff_time"`
 }
 
 type EvmTokensAnalyzerConfig struct {
