@@ -8,6 +8,8 @@ import (
 	"reflect"
 
 	apiTypes "github.com/oasisprotocol/nexus/api/v1/types"
+	"github.com/oasisprotocol/nexus/common"
+	"github.com/oasisprotocol/nexus/log"
 )
 
 var (
@@ -64,16 +66,29 @@ func HttpCodeForError(err error) int {
 	}
 }
 
-// A simple error handler that renders any error as human-readable JSON to
+// A simple error handler that logs and renders any error as human-readable JSON to
 // the HTTP response stream `w`.
-func HumanReadableJsonErrorHandler(w http.ResponseWriter, r *http.Request, err error) {
-	w.Header().Set("content-type", "application/json; charset=utf-8")
-	w.Header().Set("x-content-type-options", "nosniff")
-	w.WriteHeader(HttpCodeForError(err))
+func HumanReadableJsonErrorHandler(logger log.Logger) func(http.ResponseWriter, *http.Request, error) {
+	return func(w http.ResponseWriter, r *http.Request, err error) {
+		logger.Debug("request failed, handling human readable error",
+			"err", err,
+			"request_id", r.Context().Value(common.RequestIDContextKey),
+			"ctx_err", r.Context().Err(),
+		)
 
-	// Wrap the error into a trivial JSON object as specified in the OpenAPI spec.
-	msg := err.Error()
-	errStruct := apiTypes.HumanReadableError{Msg: msg}
+		// If request context is closed, don't bother writing a response.
+		if r.Context().Err() != nil {
+			return
+		}
 
-	_ = json.NewEncoder(w).Encode(errStruct)
+		w.Header().Set("content-type", "application/json; charset=utf-8")
+		w.Header().Set("x-content-type-options", "nosniff")
+		w.WriteHeader(HttpCodeForError(err))
+
+		// Wrap the error into a trivial JSON object as specified in the OpenAPI spec.
+		msg := err.Error()
+		errStruct := apiTypes.HumanReadableError{Msg: msg}
+
+		_ = json.NewEncoder(w).Encode(errStruct)
+	}
 }

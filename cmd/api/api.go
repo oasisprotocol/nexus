@@ -30,6 +30,8 @@ const (
 	moduleName = "api"
 	// The path portion with which all v1 API endpoints start.
 	v1BaseURL = "/v1"
+
+	defaultRequestHandleTimeout = 10 * time.Second
 )
 
 var (
@@ -108,6 +110,8 @@ type Service struct {
 	address string
 	target  *storage.StorageClient
 	logger  *log.Logger
+
+	requestTimeout time.Duration
 }
 
 // NewService creates a new API service.
@@ -140,10 +144,16 @@ func NewService(cfg *config.ServerConfig) (*Service, error) {
 		return nil, err
 	}
 
+	timeout := defaultRequestHandleTimeout
+	if cfg.RequestTimeout != nil {
+		timeout = *cfg.RequestTimeout
+	}
+
 	return &Service{
-		address: cfg.Endpoint,
-		target:  client,
-		logger:  logger,
+		address:        cfg.Endpoint,
+		target:         client,
+		logger:         logger,
+		requestTimeout: timeout,
 	}, nil
 }
 
@@ -173,8 +183,8 @@ func (s *Service) Start() {
 			api.ParseBigIntParamsMiddleware,
 		},
 		apiTypes.StrictHTTPServerOptions{
-			RequestErrorHandlerFunc:  api.HumanReadableJsonErrorHandler,
-			ResponseErrorHandlerFunc: api.HumanReadableJsonErrorHandler,
+			RequestErrorHandlerFunc:  api.HumanReadableJsonErrorHandler(*s.logger),
+			ResponseErrorHandlerFunc: api.HumanReadableJsonErrorHandler(*s.logger),
 		},
 	)
 
@@ -187,11 +197,16 @@ func (s *Service) Start() {
 				api.RuntimeFromURLMiddleware(v1BaseURL),
 			},
 			BaseRouter:       baseRouter,
-			ErrorHandlerFunc: api.HumanReadableJsonErrorHandler,
+			ErrorHandlerFunc: api.HumanReadableJsonErrorHandler(*s.logger),
 		})
 	// Manually apply the CORS middleware; we want it to run always.
 	// HandlerWithOptions() above does not apply it to some requests (404 URLs, requests with bad params, etc.).
 	handler = api.CorsMiddleware(handler)
+	// By default, request context is not cancelled when write timeout is reached. The connection
+	// is closed, but the handler continues to run. Ref: https://github.com/golang/go/issues/59602
+	// We use `http.TimeoutHandler`, to cancel requests and return a 503 to the client when timeout is reached.
+	// The handler also cancels the downstream request context on timeout.
+	handler = http.TimeoutHandler(handler, s.requestTimeout, "request timed out")
 	// Manually apply the metrics middleware; we want it to run always, and at the outermost layer.
 	// HandlerWithOptions() above does not apply it to some requests (404 URLs, requests with bad params, etc.).
 	handler = api.MetricsMiddleware(metrics.NewDefaultRequestMetrics(moduleName), *s.logger)(handler)
@@ -199,8 +214,8 @@ func (s *Service) Start() {
 	server := &http.Server{
 		Addr:           s.address,
 		Handler:        handler,
-		ReadTimeout:    10 * time.Second,
-		WriteTimeout:   10 * time.Second,
+		ReadTimeout:    5 * time.Second,
+		WriteTimeout:   s.requestTimeout + 5*time.Second, // Should be longer than the request handling timeout.
 		MaxHeaderBytes: 1 << 20,
 	}
 
