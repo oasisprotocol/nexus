@@ -1,6 +1,6 @@
-FROM golang:1.22-bookworm AS oasis-node
+FROM golang:1.23-bookworm AS oasis-node
 
-ARG OASIS_CORE_VERSION=23.0.2
+ARG OASIS_CORE_VERSION=24.3.1
 
 WORKDIR /code/go
 
