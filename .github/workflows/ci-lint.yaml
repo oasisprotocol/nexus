@@ -94,6 +94,6 @@ jobs:
         uses: golangci/golangci-lint-action@v3
         with:
           # Update README.md instructions when bumping this.
-          version: v1.55.1
+          version: v1.62.2
         # Always run this step so that all linting errors can be seen at once.
         if: always()
