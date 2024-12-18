@@ -40,7 +40,7 @@ jobs:
           # For more info, see:
           # https://help.github.com/en/actions/automating-your-workflow-with-github-actions/authenticating-with-the-github_token.
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      
+
       # Prepare the tagged Docker image.
       - name: Set release tag
         run: |
@@ -61,6 +61,29 @@ jobs:
           file: docker/nexus/Dockerfile
           tags: |
             oasislabs/oasis-indexer:${{ env.TAG }}
+          push: true
+          labels: |
+            org.opencontainers.image.source=${{ github.event.repository.html_url }}
+            org.opencontainers.image.revision=${{ github.sha }}
+
+      # Also push the image to ghcr.io/oasisprotocol/nexus.
+      # XXX: In future, we will remove the Dockerhub repository and only push to ghcr.io.
+      - name: Login to ghcr.io
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker to ghcr.io
+        uses: docker/build-push-action@v3
+        with:
+          build-args: |
+            TAG=${{ env.TAG }}
+          context: .
+          file: docker/nexus/Dockerfile
+          tags: |
+            ghcr.io/oasisprotocol/nexus:${{ env.TAG }}
           push: true
           labels: |
             org.opencontainers.image.source=${{ github.event.repository.html_url }}
