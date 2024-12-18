@@ -331,7 +331,9 @@ const (
 		SELECT height, COALESCE($1 = ANY(signer_entity_ids), FALSE)
 			FROM chain.blocks
 		ORDER BY height DESC
-		LIMIT 100`
+		LIMIT 100
+		-- Skip the latest block since signers are only processed in the next block.
+		OFFSET 1`
 
 	ValidatorsData = `
 		WITH

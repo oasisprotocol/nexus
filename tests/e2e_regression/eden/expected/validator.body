@@ -32,10 +32,6 @@
       "rank": 1,
       "signed_blocks": [
         {
-          "height": 16818955,
-          "signed": false
-        },
-        {
           "height": 16818954,
           "signed": true
         },
@@ -429,6 +425,10 @@
         },
         {
           "height": 16818856,
+          "signed": true
+        },
+        {
+          "height": 16818855,
           "signed": true
         }
       ],
