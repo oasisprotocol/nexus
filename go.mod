@@ -170,7 +170,7 @@ require (
 )
 
 require (
-	github.com/akrylysov/pogreb v0.10.1
+	github.com/akrylysov/pogreb v0.10.2
 	github.com/deepmap/oapi-codegen v1.12.4
 	github.com/dgraph-io/ristretto v1.0.0
 	github.com/fxamacker/cbor/v2 v2.4.0
