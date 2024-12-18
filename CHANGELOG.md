@@ -12,6 +12,77 @@ The format is inspired by [Keep a Changelog].
 
 <!-- TOWNCRIER -->
 
+## 0.5.0 (2024-12-18)
+
+### Features
+
+- storage: add index for fetching events emitted by a specific contract
+  ([#808](https://github.com/oasisprotocol/nexus/issues/808))
+
+- feature: Add support for runtime rofl transactions
+  ([#812](https://github.com/oasisprotocol/nexus/issues/812))
+
+  New runtime transactions:
+
+  - `rofl.Create`, `rofl.Update`, `rofl.Remove`, `rofl.Register`
+
+  New runtime events:
+
+  - `rofl.app_created`, `rofl.app_updated`, `rofl.app_removed`
+
+- Improve Status Reporting for Consensus-Accounts Transactions
+  ([#820](https://github.com/oasisprotocol/nexus/issues/820))
+
+  The handling of multi-step runtime transactions (`consensus.Deposit`,
+  `consensus.Withdraw`, `consensus.Delegate`, and `consensus.Undelegate`)
+  has been improved. Previously, these transactions were marked as successful
+  once they were included in a block, even though the second step (executed in
+  the next runtime block) could fail. This could result in misleading statuses
+  for users.
+
+  To address this:
+
+  - These transactions will now be reported without a status until the second
+  step is completed
+
+  - Once the relevant event is received, the transaction status will be updated
+  to either successful or failed
+
+- server: Enforce request timeouts using `http.TimeoutHandler`
+  ([#821](https://github.com/oasisprotocol/nexus/issues/821))
+
+  The request timeout is configurable via the `server.request_timeout` field.
+  By default, it is set to 10 seconds.
+
+- api/consensus/events: Include timestamp in response
+  ([#823](https://github.com/oasisprotocol/nexus/issues/823))
+
+- api/runtime/transactions: Support method filter
+  ([#824](https://github.com/oasisprotocol/nexus/issues/824))
+
+  Example: `/v1/emerald/transactions?method=consensus.Withdraw`.
+
+- Push images to ghcr.io/oasisprotocol/nexus docker repository
+  ([#827](https://github.com/oasisprotocol/nexus/issues/827))
+
+- Add `sort_by` parameter to `/{runtime}/evm_tokens` endpoint.
+  ([#828](https://github.com/oasisprotocol/nexus/issues/828))
+
+  The parameter can be used to configure if results should be sorted by number
+  of total holders, or by the calculated market cap.
+
+### Bug Fixes and Improvements
+
+- fix: Run PreWork once, even for parallel analyzers
+  ([#810](https://github.com/oasisprotocol/nexus/issues/810))
+
+### Deployment Notes
+
+This release includes three migrations that are automatically applied during
+deployment. To prevent downtime, you can manually pre-apply the indexes from
+migrations `07_runtime_events_evm_contracts_events` and
+`08_runtime_transactions_method_idx` before starting the upgrade.
+
 ## 0.4.2 (2024-11-22)
 
 ### Bug Fixes and Improvements
