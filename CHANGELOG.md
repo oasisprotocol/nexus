@@ -12,6 +12,43 @@ The format is inspired by [Keep a Changelog].
 
 <!-- TOWNCRIER -->
 
+## 0.5.1 (2024-12-19)
+
+### Features
+
+- storage: Mark postgresql address helpers functions as STABLE
+  ([#832](https://github.com/oasisprotocol/nexus/issues/832))
+
+  Marking these functions as STABLE allows them to be used in index expressions
+  and enables PostgreSQL to optimize queries by avoiding unnecessary
+  recomputations of the function during query execution.
+
+- analyzers: add configurable `MaxBackoffTimeout`
+  ([#837](https://github.com/oasisprotocol/nexus/issues/837))
+
+### Bug Fixes and Improvements
+
+- consensus/api/validators: Skip latest block in signed blocks info
+  ([#835](https://github.com/oasisprotocol/nexus/issues/835))
+
+  Skip the latest block since signers are only processed in the following block.
+
+- storage: Update block proposer index to include height
+  ([#836](https://github.com/oasisprotocol/nexus/issues/836))
+
+- Optimize `RuntimeEvmVerifiedContractEvents` query
+  ([#838](https://github.com/oasisprotocol/nexus/issues/838))
+
+  Optimizes the query by switching DECODE to ENCODE for address comparison
+  to leverage existing indexes on `chain.runtime_events` table.
+
+### Deployment Notes
+
+This release includes two migrations that are automatically applied during
+deployment. To prevent downtime, you can manually pre-apply the index changes
+from migration `11_blocks_proposer_enitity_height_idx.up.sql` before starting
+the upgrade.
+
 ## 0.5.0 (2024-12-18)
 
 ### Features
