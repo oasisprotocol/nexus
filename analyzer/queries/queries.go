@@ -1143,7 +1143,7 @@ var (
     JOIN chain.runtime_events as evs ON
       evs.type = 'evm.log' AND
       evs.runtime = abi_contracts.runtime AND
-      decode(body->>'address', 'base64') = preimages.address_data
+      body->>'address' = encode(preimages.address_data, 'base64')
     WHERE
       (evs.abi_parsed_at IS NULL OR evs.abi_parsed_at < abi_contracts.verification_info_downloaded_at)
     LIMIT $2`
