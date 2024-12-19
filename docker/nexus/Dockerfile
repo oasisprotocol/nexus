@@ -1,11 +1,11 @@
-FROM golang:1.22-bookworm AS nexus-builder
+FROM golang:1.23-bookworm AS nexus-builder
 
 WORKDIR /code/go
 
 COPY . ./
 
 RUN \
-  go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen@v1.12 && \ 
+  go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen@v1.12 && \
   make codegen-go && \
   go mod download && \
   go build
@@ -20,7 +20,7 @@ RUN npx redoc-cli build api/spec/v1.yaml -o api/spec/v1.html
 
 ############
 
-FROM golang:1.22-bookworm AS nexus
+FROM golang:1.23-bookworm AS nexus
 
 WORKDIR /nexus
 

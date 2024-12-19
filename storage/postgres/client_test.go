@@ -66,7 +66,6 @@ func TestInvalidQuery(t *testing.T) {
 	client := testutil.NewTestClient(t)
 	defer client.Close()
 
-	//nolint:sqlclosecheck
 	_, err := client.Query(context.Background(), `
 		an invalid query
 	`)

@@ -28,7 +28,6 @@ func TestLoggerJSON(t *testing.T) {
 	require.NoError(t, err)
 
 	l.Debug("a statement")
-	//nolint:goconst
 	require.Regexp(t, regexp.MustCompile(
 		`{"caller":"log_test\.go:\d{1,4}","level":"debug","module":"log-test","msg":"a statement","ts":"`+tsRegex+`"}\n`),
 		b.String())
