@@ -43,13 +43,14 @@ CREATE TABLE chain.blocks
   namespace TEXT NOT NULL,
   version   UINT63 NOT NULL,
   state_root HEX64 NOT NULL,
-  
+
   proposer_entity_id base64_ed25519_pubkey,
   signer_entity_ids base64_ed25519_pubkey[]
 );
 CREATE INDEX ix_blocks_time ON chain.blocks (time);
 CREATE INDEX ix_blocks_block_hash ON chain.blocks (block_hash); -- Needed to lookup blocks by hash.
-CREATE INDEX ix_blocks_proposer_entity_id ON chain.blocks (proposer_entity_id);
+CREATE INDEX ix_blocks_proposer_entity_id ON chain.blocks (proposer_entity_id); -- Removed in 11_blocks_proposer_enitity_height_idx.up.sql
+-- CREATE INDEX ix_blocks_proposer_entity_id_height ON chain.blocks (proposer_entity_id, height); -- Added in 11_blocks_proposer_enitity_height_idx.up.sql
 CREATE INDEX ix_blocks_signer_entity_ids ON chain.blocks USING gin(signer_entity_ids);
 
 CREATE TABLE chain.transactions
