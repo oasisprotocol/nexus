@@ -40,7 +40,7 @@ const (
 		GRANT SELECT ON ALL TABLES IN SCHEMA analysis TO PUBLIC`
 
 	testItemInsert = `
-		INSERT INTO analysis.item_analyzer_test(id) 
+		INSERT INTO analysis.item_analyzer_test(id)
 			VALUES ($1)`
 
 	testItemCounts = `
@@ -54,6 +54,7 @@ var testItemBasedConfig = &config.ItemBasedAnalyzerConfig{
 	StopIfQueueEmptyFor: time.Second,
 	Interval:            0, // use backoff
 	InterItemDelay:      0,
+	MaxBackoffTime:      0,
 }
 
 type mockItem struct {

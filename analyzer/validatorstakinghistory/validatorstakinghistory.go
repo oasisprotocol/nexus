@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"math"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
@@ -53,6 +54,12 @@ func NewAnalyzer(
 	logger *log.Logger,
 ) (analyzer.Analyzer, error) {
 	logger = logger.With("analyzer", validatorHistoryAnalyzerName)
+
+	if cfg.MaxBackoffTime == 0 {
+		// Once caught up we will receive work only after epochs are finalized,
+		// so increase the maximum backoff timeout a bit.
+		cfg.MaxBackoffTime = 5 * time.Minute
+	}
 
 	// Find the epoch corresponding to startHeight.
 	if startHeight > math.MaxInt64 {

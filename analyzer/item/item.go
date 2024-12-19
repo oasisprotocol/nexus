@@ -36,6 +36,7 @@ type itemBasedAnalyzer[Item any] struct {
 	stopIfQueueEmptyFor time.Duration
 	fixedInterval       time.Duration
 	interItemDelay      time.Duration
+	maxBackoffTime      time.Duration
 	analyzerName        string
 
 	processor ItemProcessor[Item]
@@ -68,6 +69,10 @@ type ItemProcessor[Item any] interface {
 // If fixedInterval is provided, the analyzer will process one batch every fixedInterval.
 // By default, the analyzer will use a backoff mechanism that will attempt to run as
 // fast as possible until encountering an error.
+//
+// If maxBackoffTime is provided, the backoff mechanism will cap the maximum backoff time
+// to the provided value. By default (if not provided), the maximum backoff time is 6 seconds,
+// which roughly corresponds to the expected consensus block time.
 func NewAnalyzer[Item any](
 	name string,
 	cfg config.ItemBasedAnalyzerConfig,
@@ -83,6 +88,7 @@ func NewAnalyzer[Item any](
 		stopIfQueueEmptyFor: cfg.StopIfQueueEmptyFor,
 		fixedInterval:       cfg.Interval,
 		interItemDelay:      cfg.InterItemDelay,
+		maxBackoffTime:      cfg.MaxBackoffTime,
 		analyzerName:        name,
 		processor:           processor,
 		target:              target,
@@ -188,10 +194,15 @@ func processErrors(errs []error) (int, error) {
 
 // Start starts the item based analyzer.
 func (a *itemBasedAnalyzer[Item]) Start(ctx context.Context) {
+	// Cap the timeout at the expected consensus block time, if not provided.
+	maxBackoff := 6 * time.Second
+	if a.maxBackoffTime != 0 {
+		maxBackoff = a.maxBackoffTime
+	}
+
 	backoff, err := util.NewBackoff(
 		100*time.Millisecond,
-		// Cap the timeout at the expected consensus block time
-		6*time.Second,
+		maxBackoff,
 	)
 	if err != nil {
 		a.logger.Error("error configuring backoff policy",
