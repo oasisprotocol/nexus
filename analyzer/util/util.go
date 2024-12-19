@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	timeoutUpperBound = 60 * time.Second
+	timeoutUpperBound = 60 * time.Minute
 	// SHA256 of empty string.
 	// oasis-core tags event that are not associated with any real transactions.
 	// For example, the DebondingStart escrow event.

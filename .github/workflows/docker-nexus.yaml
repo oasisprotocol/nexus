@@ -15,6 +15,10 @@ on:
       - CHANGELOG.md
   workflow_dispatch:  # manual; for debugging workflow before merging branch into `main`
 
+permissions:
+  packages: write
+  contents: read
+
 jobs:
   build-docker:
     runs-on: ubuntu-20.04
