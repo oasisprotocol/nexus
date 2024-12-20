@@ -832,6 +832,7 @@ func (c *StorageClient) Delegations(ctx context.Context, address staking.Address
 		var shares, escrowBalanceActive, escrowTotalSharesActive common.BigInt
 		if err = res.rows.Scan(
 			&d.Validator,
+			&d.ValidatorName,
 			&shares,
 			&escrowBalanceActive,
 			&escrowTotalSharesActive,
@@ -884,6 +885,7 @@ func (c *StorageClient) DelegationsTo(ctx context.Context, address staking.Addre
 		if err = res.rows.Scan(
 			&d.Delegator,
 			&shares,
+			&d.ValidatorName,
 			&escrowBalanceActive,
 			&escrowTotalSharesActive,
 		); err != nil {
@@ -934,6 +936,7 @@ func (c *StorageClient) DebondingDelegations(ctx context.Context, address stakin
 		var shares, escrowBalanceDebonding, escrowTotalSharesDebonding common.BigInt
 		if err = res.rows.Scan(
 			&d.Validator,
+			&d.ValidatorName,
 			&shares,
 			&d.DebondEnd,
 			&escrowBalanceDebonding,
@@ -988,6 +991,7 @@ func (c *StorageClient) DebondingDelegationsTo(ctx context.Context, address stak
 			&d.Delegator,
 			&shares,
 			&d.DebondEnd,
+			&d.ValidatorName,
 			&escrowBalanceDebonding,
 			&escrowTotalSharesDebonding,
 		); err != nil {
