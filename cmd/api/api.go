@@ -199,14 +199,14 @@ func (s *Service) Start() {
 			BaseRouter:       baseRouter,
 			ErrorHandlerFunc: api.HumanReadableJsonErrorHandler(*s.logger),
 		})
-	// Manually apply the CORS middleware; we want it to run always.
-	// HandlerWithOptions() above does not apply it to some requests (404 URLs, requests with bad params, etc.).
-	handler = api.CorsMiddleware(handler)
 	// By default, request context is not cancelled when write timeout is reached. The connection
 	// is closed, but the handler continues to run. Ref: https://github.com/golang/go/issues/59602
 	// We use `http.TimeoutHandler`, to cancel requests and return a 503 to the client when timeout is reached.
 	// The handler also cancels the downstream request context on timeout.
 	handler = http.TimeoutHandler(handler, s.requestTimeout, "request timed out")
+	// Manually apply the CORS middleware; we want it to run always.
+	// HandlerWithOptions() above does not apply it to some requests (404 URLs, requests with bad params, etc.).
+	handler = api.CorsMiddleware(handler)
 	// Manually apply the metrics middleware; we want it to run always, and at the outermost layer.
 	// HandlerWithOptions() above does not apply it to some requests (404 URLs, requests with bad params, etc.).
 	handler = api.MetricsMiddleware(metrics.NewDefaultRequestMetrics(moduleName), *s.logger)(handler)
