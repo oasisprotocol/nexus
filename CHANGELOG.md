@@ -12,6 +12,16 @@ The format is inspired by [Keep a Changelog].
 
 <!-- TOWNCRIER -->
 
+## 0.5.2 (2024-12-23)
+
+### Bug Fixes and Improvements
+
+- API: Return CORS headers on request timeouts
+  ([#849](https://github.com/oasisprotocol/nexus/issues/849))
+
+  Moved `CorsMiddleware` outside of `TimeoutHandler` to ensure CORS headers are
+  included in responses even when requests time out.
+
 ## 0.5.1 (2024-12-19)
 
 ### Features
