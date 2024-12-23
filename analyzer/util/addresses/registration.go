@@ -58,7 +58,7 @@ func extractAddressPreimage(as *sdkTypes.AddressSpec) (*PreimageData, error) {
 	}, nil
 }
 
-func registerAddressSpec(addressPreimages map[apiTypes.Address]*PreimageData, as *sdkTypes.AddressSpec) (apiTypes.Address, error) {
+func RegisterAddressSpec(addressPreimages map[apiTypes.Address]*PreimageData, as *sdkTypes.AddressSpec) (apiTypes.Address, error) {
 	addr, err := FromAddressSpec(as)
 	if err != nil {
 		return "", err
@@ -75,7 +75,7 @@ func registerAddressSpec(addressPreimages map[apiTypes.Address]*PreimageData, as
 	return addr, nil
 }
 
-func registerEthAddress(addressPreimages map[apiTypes.Address]*PreimageData, ethAddr []byte) (apiTypes.Address, error) {
+func RegisterEthAddress(addressPreimages map[apiTypes.Address]*PreimageData, ethAddr []byte) (apiTypes.Address, error) {
 	addr, err := FromEthAddress(ethAddr)
 	if err != nil {
 		return "", err
@@ -92,7 +92,7 @@ func registerEthAddress(addressPreimages map[apiTypes.Address]*PreimageData, eth
 	return addr, nil
 }
 
-func registerRuntimeAddress(addressPreimages map[apiTypes.Address]*PreimageData, id coreCommon.Namespace) (apiTypes.Address, error) {
+func RegisterRuntimeAddress(addressPreimages map[apiTypes.Address]*PreimageData, id coreCommon.Namespace) (apiTypes.Address, error) {
 	addr, err := FromRuntimeID(id)
 	if err != nil {
 		return "", err
@@ -109,72 +109,6 @@ func registerRuntimeAddress(addressPreimages map[apiTypes.Address]*PreimageData,
 			Data:              data,
 		}
 	}
-
-	return addr, nil
-}
-
-func RegisterRelatedSdkAddress(relatedAddresses map[apiTypes.Address]struct{}, sdkAddr *sdkTypes.Address) (apiTypes.Address, error) {
-	addr, err := FromSdkAddress(sdkAddr)
-	if err != nil {
-		return "", err
-	}
-
-	relatedAddresses[addr] = struct{}{}
-
-	return addr, nil
-}
-
-func RegisterRelatedAddressSpec(addressPreimages map[apiTypes.Address]*PreimageData, relatedAddresses map[apiTypes.Address]struct{}, as *sdkTypes.AddressSpec) (apiTypes.Address, error) {
-	addr, err := registerAddressSpec(addressPreimages, as)
-	if err != nil {
-		return "", err
-	}
-
-	relatedAddresses[addr] = struct{}{}
-
-	return addr, nil
-}
-
-func RegisterRelatedOCAddress(relatedAddresses map[apiTypes.Address]struct{}, ocAddr address.Address) (apiTypes.Address, error) {
-	addr, err := FromOCAddress(ocAddr)
-	if err != nil {
-		return "", err
-	}
-
-	relatedAddresses[addr] = struct{}{}
-
-	return addr, nil
-}
-
-func RegisterRelatedOCSAddress(relatedAddresses map[apiTypes.Address]struct{}, ocsAddr staking.Address) (apiTypes.Address, error) {
-	addr, err := FromOCSAddress(ocsAddr)
-	if err != nil {
-		return "", err
-	}
-
-	relatedAddresses[addr] = struct{}{}
-
-	return addr, nil
-}
-
-func RegisterRelatedEthAddress(addressPreimages map[apiTypes.Address]*PreimageData, relatedAddresses map[apiTypes.Address]struct{}, ethAddr []byte) (apiTypes.Address, error) {
-	addr, err := registerEthAddress(addressPreimages, ethAddr)
-	if err != nil {
-		return "", err
-	}
-
-	relatedAddresses[addr] = struct{}{}
-
-	return addr, nil
-}
-
-func RegisterRelatedRuntimeAddress(addressPreimages map[apiTypes.Address]*PreimageData, relatedAddresses map[apiTypes.Address]struct{}, id coreCommon.Namespace) (apiTypes.Address, error) {
-	addr, err := registerRuntimeAddress(addressPreimages, id)
-	if err != nil {
-		return "", err
-	}
-
-	relatedAddresses[addr] = struct{}{}
 
 	return addr, nil
 }

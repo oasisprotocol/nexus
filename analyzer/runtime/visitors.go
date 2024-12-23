@@ -175,11 +175,11 @@ func VisitCall(call *sdkTypes.Call, result *sdkTypes.CallResult, handler *CallHa
 }
 
 type SdkEventHandler struct {
-	Core              func(event *core.Event) error
-	Accounts          func(event *accounts.Event) error
-	ConsensusAccounts func(event *consensusaccounts.Event) error
-	EVM               func(event *evm.Event) error
-	Rofl              func(event *rofl.Event) error
+	Core              func(event *core.Event, eventIdx int) error
+	Accounts          func(event *accounts.Event, eventIdx int) error
+	ConsensusAccounts func(event *consensusaccounts.Event, eventIdx int) error
+	EVM               func(event *evm.Event, eventIdx int) error
+	Rofl              func(event *rofl.Event, eventIdx int) error
 }
 
 func VisitSdkEvent(event *nodeapi.RuntimeEvent, handler *SdkEventHandler) error {
@@ -189,7 +189,7 @@ func VisitSdkEvent(event *nodeapi.RuntimeEvent, handler *SdkEventHandler) error 
 			return fmt.Errorf("decode core: %w", err)
 		}
 		for i := range coreEvents {
-			if err = handler.Core(&coreEvents[i]); err != nil {
+			if err = handler.Core(&coreEvents[i], i); err != nil {
 				return fmt.Errorf("decoded event %d core: %w", i, err)
 			}
 		}
@@ -200,7 +200,7 @@ func VisitSdkEvent(event *nodeapi.RuntimeEvent, handler *SdkEventHandler) error 
 			return fmt.Errorf("decode accounts: %w", err)
 		}
 		for i := range accountEvents {
-			if err = handler.Accounts(&accountEvents[i]); err != nil {
+			if err = handler.Accounts(&accountEvents[i], i); err != nil {
 				return fmt.Errorf("decoded event %d accounts: %w", i, err)
 			}
 		}
@@ -211,7 +211,7 @@ func VisitSdkEvent(event *nodeapi.RuntimeEvent, handler *SdkEventHandler) error 
 			return fmt.Errorf("decode consensus accounts: %w", err)
 		}
 		for i := range consensusAccountsEvents {
-			if err = handler.ConsensusAccounts(&consensusAccountsEvents[i]); err != nil {
+			if err = handler.ConsensusAccounts(&consensusAccountsEvents[i], i); err != nil {
 				return fmt.Errorf("decoded event %d consensus accounts: %w", i, err)
 			}
 		}
@@ -222,7 +222,7 @@ func VisitSdkEvent(event *nodeapi.RuntimeEvent, handler *SdkEventHandler) error 
 			return fmt.Errorf("decode evm: %w", err)
 		}
 		for i := range evmEvents {
-			if err = handler.EVM(&evmEvents[i]); err != nil {
+			if err = handler.EVM(&evmEvents[i], i); err != nil {
 				return fmt.Errorf("decoded event %d evm: %w", i, err)
 			}
 		}
@@ -233,7 +233,7 @@ func VisitSdkEvent(event *nodeapi.RuntimeEvent, handler *SdkEventHandler) error 
 			return fmt.Errorf("decode rofl: %w", err)
 		}
 		for i := range roflEvents {
-			if err = handler.Rofl(&roflEvents[i]); err != nil {
+			if err = handler.Rofl(&roflEvents[i], i); err != nil {
 				return fmt.Errorf("decoded event %d rofl: %w", i, err)
 			}
 		}
@@ -242,8 +242,9 @@ func VisitSdkEvent(event *nodeapi.RuntimeEvent, handler *SdkEventHandler) error 
 }
 
 func VisitSdkEvents(events []nodeapi.RuntimeEvent, handler *SdkEventHandler) error {
+	var err error
 	for i := range events {
-		if err := VisitSdkEvent(&events[i], handler); err != nil {
+		if err = VisitSdkEvent(&events[i], handler); err != nil {
 			return fmt.Errorf("event %d: %w; raw event: %+v", i, err, events[i])
 		}
 	}

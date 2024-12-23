@@ -42,8 +42,13 @@ type abiEncodedTx struct {
 }
 
 type abiEncodedEvent struct {
+	// Event primary key.
+	Runtime   common.Runtime
 	Round     uint64
 	TxIndex   *int
+	Type      string
+	TypeIndex int
+
 	EventBody sdkEVM.Event
 }
 
@@ -122,8 +127,11 @@ func (p *processor) GetItems(ctx context.Context, limit uint64) ([]*abiEncodedIt
 		if err = eventRows.Scan(
 			&item.ContractAddr,
 			&item.Abi,
+			&ev.Runtime,
 			&ev.Round,
 			&ev.TxIndex,
+			&ev.Type,
+			&ev.TypeIndex,
 			&ev.EventBody,
 		); err != nil {
 			return nil, fmt.Errorf("scanning verified contract event: %w", err)
@@ -236,10 +244,11 @@ func (p *processor) ProcessItem(ctx context.Context, batch *storage.QueryBatch, 
 		if item.Event != nil {
 			batch.Queue(
 				queries.RuntimeEventEvmParsedFieldsUpdate,
-				p.runtime,
+				item.Event.Runtime,
 				item.Event.Round,
 				item.Event.TxIndex,
-				item.Event.EventBody,
+				item.Event.Type,
+				item.Event.TypeIndex,
 				nil,
 				nil,
 				nil,
@@ -267,10 +276,11 @@ func (p *processor) ProcessItem(ctx context.Context, batch *storage.QueryBatch, 
 		}
 		batch.Queue(
 			queries.RuntimeEventEvmParsedFieldsUpdate,
-			p.runtime,
+			item.Event.Runtime,
 			item.Event.Round,
 			item.Event.TxIndex,
-			item.Event.EventBody,
+			item.Event.Type,
+			item.Event.TypeIndex,
 			eventName,
 			eventArgs,
 			eventSig,

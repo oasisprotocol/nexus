@@ -97,9 +97,9 @@ func (mock *mockNode) GetEventsRaw(ctx context.Context, round uint64) ([]nodeapi
 
 	// Include events that were part of transactions.
 	txrs := mock.Txs[round]
-	for _, tx := range txrs {
+	for i, tx := range txrs {
 		for _, ev := range tx.Events {
-			events = append(events, nodeapi.RuntimeEvent(*ev))
+			events = append(events, nodeapi.RuntimeEvent{Event: ev, Index: uint64(i)})
 		}
 	}
 
