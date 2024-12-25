@@ -5,13 +5,14 @@
 
 run:
   timeout: 5m
-  skip-dirs:
+
+issues:
+  exclude-dirs:
     # Contains a cloned subset of oasis-core. Some types are unused, some
     # formatting is haphazard. We don't care much; this code is meant to be
     # frozen in time.
     - coreapi
 
-issues:
   exclude-rules:
     - path: '(.+)_test\.go'
       linters:
@@ -36,7 +37,6 @@ linters:
     - dogsled
     - errcheck
     - exhaustive
-    - exportloopref
     - goconst
     - gocritic
     - gocyclo
@@ -74,7 +74,11 @@ linters-settings:
     default-signifies-exhaustive: true
   govet:
     # Enabled checking for shadowed variables.
-    check-shadowing: true
+    shadow: true
+  gosec:
+    excludes:
+      # https://github.com/securego/gosec#available-rules
+      - G115
   goimports:
     # Put local imports after 3rd-party packages.
     local-prefixes: github.com/oasisprotocol/nexus
