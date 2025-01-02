@@ -636,22 +636,27 @@ var (
       tx_hash = $2`
 
 	RuntimeEventInsert = `
-    INSERT INTO chain.runtime_events (runtime, round, tx_index, tx_hash, tx_eth_hash, timestamp, type, body, related_accounts, evm_log_name, evm_log_params, evm_log_signature)
+    INSERT INTO chain.runtime_events (runtime, round, tx_index, type, type_index, tx_hash, tx_eth_hash, timestamp, body, evm_log_name, evm_log_params, evm_log_signature)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`
+
+	RuntimeEventRelatedAccountsInsert = `
+    INSERT INTO chain.runtime_events_related_accounts (runtime, round, tx_index, type, type_index, account_address)
+      SELECT $1, $2, $3, $4, $5, unnest($6::text[])`
 
 	// We use COALESCE here to avoid overwriting existing data with null values.
 	RuntimeEventEvmParsedFieldsUpdate = `
     UPDATE chain.runtime_events
     SET
-      evm_log_name = COALESCE($5, evm_log_name),
-      evm_log_params = COALESCE($6, evm_log_params),
-      evm_log_signature = COALESCE($7, evm_log_signature),
+      evm_log_name = COALESCE($6, evm_log_name),
+      evm_log_params = COALESCE($7, evm_log_params),
+      evm_log_signature = COALESCE($8, evm_log_signature),
       abi_parsed_at = CURRENT_TIMESTAMP
     WHERE
       runtime = $1 AND
       round = $2 AND
       tx_index = $3 AND
-      body = $4`
+      type = $4 AND
+      type_index = $5`
 
 	RuntimeMintInsert = `
     INSERT INTO chain.runtime_transfers (runtime, round, sender, receiver, symbol, amount)
@@ -1134,8 +1139,11 @@ var (
     SELECT
       abi_contracts.addr,
       abi_contracts.abi,
+      evs.runtime,
       evs.round,
       evs.tx_index,
+      evs.type,
+      evs.type_index,
       evs.body
     FROM abi_contracts
     JOIN chain.address_preimages as preimages ON
