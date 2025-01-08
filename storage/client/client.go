@@ -1571,6 +1571,16 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetR
 			}
 		}
 
+		// Try extracting parsed PCS quote from rofl.Register transaction body.
+		if t.Method != nil && *t.Method == "rofl.Register" {
+			nb, err := extractPCSQuote(t.Body)
+			if err != nil {
+				c.logger.Warn("failed to extract PCS quote from rofl.Register transaction body", "tx_hash", t.Hash, "err", err)
+				// In case of errors, original body is returned.
+			}
+			t.Body = nb
+		}
+
 		ts.Transactions = append(ts.Transactions, t)
 	}
 
