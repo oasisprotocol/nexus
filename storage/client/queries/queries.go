@@ -467,11 +467,11 @@ const (
 			txs.timestamp,
 			txs.tx_hash,
 			txs.tx_eth_hash,
-			signer0.signer_address AS sender0, -- oh god we didn't even use the same word between the db and the api
-			signer0_preimage.context_identifier AS sender0_preimage_context_identifier,
-			signer0_preimage.context_version AS sender0_preimage_context_version,
-			signer0_preimage.address_data AS sender0_preimage_data,
-			signer0.nonce AS nonce0,
+			ARRAY_AGG(signers.signer_address),
+			ARRAY_AGG(signer_preimages.context_identifier),
+			ARRAY_AGG(signer_preimages.context_version),
+			ARRAY_AGG(signer_preimages.address_data),
+			ARRAY_AGG(signers.nonce),
 			txs.fee,
 			txs.fee_symbol,
 			txs.fee_proxy_module,
@@ -479,8 +479,8 @@ const (
 			txs.gas_limit,
 			txs.gas_used,
 			CASE
-				WHEN txs.tx_eth_hash IS NULL THEN txs.fee 				     -- charged_fee=fee for non-EVM txs
-				ELSE COALESCE(FLOOR(txs.fee / NULLIF(txs.gas_limit, 0)) * txs.gas_used, 0)   -- charged_fee=gas_price * gas_used for EVM txs
+				WHEN txs.tx_eth_hash IS NULL THEN txs.fee                                  -- charged_fee=fee for non-EVM txs
+				ELSE COALESCE(FLOOR(txs.fee / NULLIF(txs.gas_limit, 0)) * txs.gas_used, 0) -- charged_fee=gas_price * gas_used for EVM txs
 			END AS charged_fee,
 			txs.size,
 			txs.oasis_encrypted_format,
@@ -511,23 +511,24 @@ const (
 			txs.error_message,
 			txs.error_params
 		FROM chain.runtime_transactions AS txs
-		LEFT JOIN chain.runtime_transaction_signers AS signer0 ON
-			(signer0.runtime = txs.runtime) AND
-			(signer0.round = txs.round) AND
-			(signer0.tx_index = txs.tx_index) AND
-			(signer0.signer_index = 0)
-		LEFT JOIN chain.address_preimages AS signer0_preimage ON
-			(signer0.signer_address = signer0_preimage.address) AND
+		LEFT JOIN chain.runtime_transaction_signers AS signers ON
+			(signers.runtime = txs.runtime) AND
+			(signers.round = txs.round) AND
+			(signers.tx_index = txs.tx_index)
+		LEFT JOIN chain.address_preimages AS signer_preimages ON
+			(signers.signer_address = signer_preimages.address) AND
 			-- For now, the only user is the explorer, where we only care
 			-- about Ethereum-compatible addresses, so only get those. Can
 			-- easily enable for other address types though.
-			(signer0_preimage.context_identifier = 'oasis-runtime-sdk/address: secp256k1eth') AND (signer0_preimage.context_version = 0)
+			(signer_preimages.context_identifier = 'oasis-runtime-sdk/address: secp256k1eth') AND
+			(signer_preimages.context_version = 0)
 		LEFT JOIN chain.address_preimages AS to_preimage ON
 			(txs.to = to_preimage.address) AND
 			-- For now, the only user is the explorer, where we only care
 			-- about Ethereum-compatible addresses, so only get those. Can
 			-- easily enable for other address types though.
-			(to_preimage.context_identifier = 'oasis-runtime-sdk/address: secp256k1eth') AND (to_preimage.context_version = 0)
+			(to_preimage.context_identifier = 'oasis-runtime-sdk/address: secp256k1eth') AND
+			(to_preimage.context_version = 0)
 		LEFT JOIN chain.runtime_related_transactions AS rel ON
 			(txs.round = rel.tx_round) AND
 			(txs.tx_index = rel.tx_index) AND
@@ -542,12 +543,50 @@ const (
 			($4::text IS NULL OR rel.account_address = $4::text) AND
 			($5::text IS NULL or txs.method = $5::text) AND
 			($6::timestamptz IS NULL OR txs.timestamp >= $6::timestamptz) AND
-			($7::timestamptz IS NULL OR txs.timestamp < $7::timestamptz) AND
-			(signer0.signer_address IS NOT NULL) -- HACK: excludes malformed transactions that do not have the required fields
+			($7::timestamptz IS NULL OR txs.timestamp < $7::timestamptz)
+		GROUP BY
+			txs.round,
+			txs.tx_index,
+			txs.timestamp,
+			txs.tx_hash,
+			txs.tx_eth_hash,
+			txs.fee,
+			txs.fee_symbol,
+			txs.fee_proxy_module,
+			txs.fee_proxy_id,
+			txs.gas_limit,
+			txs.gas_used,
+			txs.size,
+			txs.oasis_encrypted_format,
+			txs.oasis_encrypted_public_key,
+			txs.oasis_encrypted_data_nonce,
+			txs.oasis_encrypted_data_data,
+			txs.oasis_encrypted_result_nonce,
+			txs.oasis_encrypted_result_data,
+			txs.method,
+			txs.body,
+			txs.to,
+			to_preimage.context_identifier,
+			to_preimage.context_version,
+			to_preimage.address_data,
+			txs.amount,
+			txs.amount_symbol,
+			txs.evm_encrypted_format,
+			txs.evm_encrypted_public_key,
+			txs.evm_encrypted_data_nonce,
+			txs.evm_encrypted_data_data,
+			txs.evm_encrypted_result_nonce,
+			txs.evm_encrypted_result_data,
+			txs.success,
+			txs.evm_fn_name,
+			txs.evm_fn_params,
+			txs.error_module,
+			txs.error_code,
+			txs.error_message,
+			txs.error_params
 		ORDER BY txs.round DESC, txs.tx_index DESC
 		LIMIT $8::bigint
-		OFFSET $9::bigint
-		`
+		OFFSET $9::bigint`
 
 	RuntimeEvents = `
 		SELECT

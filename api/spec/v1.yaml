@@ -2914,7 +2914,7 @@ components:
     RuntimeTransaction:
       type: object
       # NOTE: Not guaranteed to be present: eth_hash, to, amount.
-      required: [round, index, timestamp, hash, sender_0, nonce_0, fee, fee_symbol, charged_fee, gas_limit, gas_used, size]
+      required: [round, index, timestamp, hash, signers, sender_0, nonce_0, fee, fee_symbol, charged_fee, gas_limit, gas_used, size]
       properties:
         round:
           type: integer
@@ -2942,24 +2942,34 @@ components:
             The Ethereum cryptographic hash of this transaction's encoding.
             Absent for non-Ethereum-format transactions.
           example: 9e6a5837c6366d4a7e477c71ffe32d40915cdef7ef209792259e5ee70caf2705
+        signers:
+          type: array
+          items:
+            allOf: [$ref: '#/components/schemas/RuntimeTransactionSigner']
+          description: The signers of this transaction.
         sender_0:
           allOf: [$ref: '#/components/schemas/Address']
+          deprecated: true
           description: |
             The Oasis address of this transaction's 0th signer.
             Unlike Ethereum, Oasis natively supports multiple-signature transactions.
             However, the great majority of transactions only have a single signer in practice.
-            Retrieving the other signers is currently not supported by this API.
-          # NOTE: To expose the other signers, use the transaction_signers table.
+            DEPRECATED: This field will be removed in the future in favor of the signers field.
           example: oasis1qz670t637yyxshnlxhjj5074wgwl94d0x5x69zqd
         sender_0_eth:
           type: string
+          deprecated: true
           description: |
             The Ethereum address of this transaction's 0th signer.
+            DEPRECATED: This field will be removed in the future in favor of the signers field.
           example: *eth_address_1
         nonce_0:
           type: integer
           format: uint64
-          description: The nonce used with this transaction's 0th signer, to prevent replay.
+          deprecated: true
+          description: |
+            The nonce used with this transaction's 0th signer, to prevent replay.
+            DEPRECATED: This field will be removed in the future in favor of the signers field.
           example: 114194
         fee:
           type: string
@@ -3128,6 +3138,26 @@ components:
           type: string
           format: byte
           description: The base64-encoded encrypted result data.
+
+    RuntimeTransactionSigner:
+      type: object
+      required: [address, nonce]
+      properties:
+        address:
+          allOf: [$ref: '#/components/schemas/Address']
+          description: |
+            The Oasis address of the transaction signer.
+          example: oasis1qz670t637yyxshnlxhjj5074wgwl94d0x5x69zqd
+        address_eth:
+          type: string
+          description: |
+            The Ethereum address of this transaction signer.
+          example: *eth_address_1
+        nonce:
+          type: integer
+          format: uint64
+          description: The transaction signer nonce.
+          example: 114194
 
     RuntimeAccount:
       type: object

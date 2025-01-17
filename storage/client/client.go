@@ -1468,15 +1468,18 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetR
 	}
 	for res.rows.Next() {
 		t := RuntimeTransaction{
-			Error: &TxError{},
+			Error:   &TxError{},
+			Signers: []apiTypes.RuntimeTransactionSigner{},
 		}
 		var oasisEncryptionEnvelope RuntimeTransactionEncryptionEnvelope
 		var oasisEncryptionEnvelopeFormat *common.CallFormat
 		var evmEncryptionEnvelope RuntimeTransactionEncryptionEnvelope
 		var evmEncryptionEnvelopeFormat *common.CallFormat
-		var sender0PreimageContextIdentifier *string
-		var sender0PreimageContextVersion *int
-		var sender0PreimageData []byte
+		var signersAddresses []string
+		var signersPreimageContextIdentifiers []*string
+		var signersPreimageContextVersions []*int
+		var signersPreimageData [][]byte
+		var signersNonces []uint64
 		var toPreimageContextIdentifier *string
 		var toPreimageContextVersion *int
 		var toPreimageData []byte
@@ -1487,11 +1490,11 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetR
 			&t.Timestamp,
 			&t.Hash,
 			&t.EthHash,
-			&t.Sender0,
-			&sender0PreimageContextIdentifier,
-			&sender0PreimageContextVersion,
-			&sender0PreimageData,
-			&t.Nonce0,
+			&signersAddresses,
+			&signersPreimageContextIdentifiers,
+			&signersPreimageContextVersions,
+			&signersPreimageData,
+			&signersNonces,
 			&t.Fee,
 			&t.FeeSymbol,
 			&t.FeeProxyModule,
@@ -1548,12 +1551,25 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetR
 			t.EncryptionEnvelope = &evmEncryptionEnvelope
 		}
 
-		// Render Ethereum-compatible address preimages.
-		// TODO: That's a little odd to do in the database layer. Move this farther
-		// out if we have the energy.
-		if sender0PreimageContextIdentifier != nil && sender0PreimageContextVersion != nil {
-			t.Sender0Eth = EthChecksumAddrFromPreimage(*sender0PreimageContextIdentifier, *sender0PreimageContextVersion, sender0PreimageData)
+		for i := range signersAddresses {
+			t.Signers = append(t.Signers, apiTypes.RuntimeTransactionSigner{
+				Address: signersAddresses[i],
+				Nonce:   signersNonces[i],
+			})
+			// Render Ethereum-compatible address preimage.
+			if signersPreimageContextIdentifiers[i] != nil && signersPreimageContextVersions[i] != nil {
+				t.Signers[i].AddressEth = EthChecksumAddrFromPreimage(*signersPreimageContextIdentifiers[i], *signersPreimageContextVersions[i], signersPreimageData[i])
+			}
+
+			// Deprecated sender_0 fields.
+			if i == 0 {
+				t.Sender0 = t.Signers[0].Address
+				t.Nonce0 = t.Signers[0].Nonce
+				t.Sender0Eth = t.Signers[0].AddressEth
+			}
 		}
+
+		// Render Ethereum-compatible address preimages.
 		if toPreimageContextIdentifier != nil && toPreimageContextVersion != nil {
 			t.ToEth = EthChecksumAddrFromPreimage(*toPreimageContextIdentifier, *toPreimageContextVersion, toPreimageData)
 		}
