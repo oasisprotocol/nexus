@@ -27,6 +27,13 @@
       "round": 8059465,
       "sender_0": "oasis1qr9ak7ck2fs3pscs635gapk96ncl02yyxggrqgq5",
       "sender_0_eth": "0x7274e8a2F8C599a1265651037e0da68C5ECa06bD",
+      "signers": [
+        {
+          "address": "oasis1qr9ak7ck2fs3pscs635gapk96ncl02yyxggrqgq5",
+          "address_eth": "0x7274e8a2F8C599a1265651037e0da68C5ECa06bD",
+          "nonce": 31228
+        }
+      ],
       "size": 205,
       "success": false,
       "timestamp": "2023-12-12T08:40:35Z",
