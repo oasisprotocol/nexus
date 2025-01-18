@@ -32,12 +32,15 @@ const MetadataRegistryAnalyzerName = "metadata_registry"
 type processor struct {
 	target storage.TargetStorage
 	logger *log.Logger
+
+	gitCfg       registry.GitConfig
+	mockLogoUrls bool
 }
 
 var _ item.ItemProcessor[struct{}] = (*processor)(nil)
 
 func NewAnalyzer(
-	cfg config.ItemBasedAnalyzerConfig,
+	cfg config.MetadataRegistryConfig,
 	target storage.TargetStorage,
 	logger *log.Logger,
 ) (analyzer.Analyzer, error) {
@@ -45,18 +48,20 @@ func NewAnalyzer(
 	if cfg.Interval == 0 {
 		cfg.Interval = 2 * time.Minute
 	}
-	if cfg.Interval < time.Minute {
-		return nil, fmt.Errorf("invalid interval %s, metadata registry interval must be at least 1 minute", cfg.Interval)
-	}
 	logger = logger.With("analyzer", MetadataRegistryAnalyzerName)
 	p := &processor{
-		target: target,
-		logger: logger,
+		target:       target,
+		logger:       logger,
+		gitCfg:       registry.NewGitConfig(),
+		mockLogoUrls: cfg.MockLogoUrls,
+	}
+	if cfg.RepositoryBranch != "" {
+		p.gitCfg.Branch = cfg.RepositoryBranch
 	}
 
 	return item.NewAnalyzer[struct{}](
 		MetadataRegistryAnalyzerName,
-		cfg,
+		cfg.ItemBasedAnalyzerConfig,
 		p,
 		target,
 		logger,
@@ -68,7 +73,7 @@ func (p *processor) GetItems(ctx context.Context, limit uint64) ([]struct{}, err
 }
 
 func (p *processor) ProcessItem(ctx context.Context, batch *storage.QueryBatch, item struct{}) error {
-	gp, err := registry.NewGitProvider(registry.NewGitConfig())
+	gp, err := registry.NewGitProvider(p.gitCfg)
 	if err != nil {
 		return fmt.Errorf("failed to create Git registry provider: %s", err)
 	}
@@ -90,6 +95,9 @@ func (p *processor) ProcessItem(ctx context.Context, batch *storage.QueryBatch, 
 				// Exit early if the context is done.
 				return ctx.Err()
 			}
+		}
+		if p.mockLogoUrls {
+			logoUrl = "http:://e2e-tests-mock-static-logo-url"
 		}
 
 		batch.Queue(

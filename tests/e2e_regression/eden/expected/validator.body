@@ -2,7 +2,7 @@
   "is_total_count_clipped": false,
   "stats": {
     "total_delegators": 60793,
-    "total_staked_balance": "4755447159862365014",
+    "total_staked_balance": "4755447485999193387",
     "total_voting_power": 261234553964856260
   },
   "total_count": 1,
@@ -28,6 +28,11 @@
         "self_delegation_shares": "2190510099335361"
       },
       "in_validator_set": true,
+      "media": {
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "BinanceStaking",
+        "url": "https://www.binance.com"
+      },
       "node_id": "6wbL5/OxvFGxi55o7AxcwKmfjXbXGC1hw4lfnEZxBXA=",
       "rank": 1,
       "signed_blocks": [
