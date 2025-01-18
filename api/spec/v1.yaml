@@ -1416,7 +1416,7 @@ components:
 
     Block:
       type: object
-      required: [height, hash, timestamp, num_transactions, gas_limit, epoch, state_root] # TODO: proposer, size, gas_used
+      required: [height, hash, timestamp, num_transactions, gas_limit, epoch, state_root, proposer] # TODO: size, gas_used
       properties:
         height:
           type: integer

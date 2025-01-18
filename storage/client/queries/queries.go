@@ -67,11 +67,6 @@ const (
 		LIMIT $7::bigint
 		OFFSET $8::bigint`
 
-	Block = `
-		SELECT height, block_hash, time, num_txs, gas_limit, size_limit, epoch, state_root
-			FROM chain.blocks
-			WHERE height = $1::bigint`
-
 	Transactions = `
 		SELECT
 				chain.transactions.block as block,
@@ -309,7 +304,8 @@ const (
 	LatestEpochStart = `
 		SELECT id, start_height
 			FROM chain.epochs
-			ORDER BY id DESC`
+			ORDER BY id DESC
+			LIMIT 1`
 
 	ValidatorsAggStats = `
 		SELECT
