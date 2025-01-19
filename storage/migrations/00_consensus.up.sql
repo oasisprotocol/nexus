@@ -81,7 +81,9 @@ CREATE TABLE chain.transactions
 CREATE INDEX ix_transactions_sender_block ON chain.transactions (sender, block);
 CREATE INDEX ix_transactions_tx_hash ON chain.transactions (tx_hash);
 --`method` is a possible external API parameter; `block` lets us efficiently retrieve the most recent N txs with a given method.
-CREATE INDEX ix_transactions_method_height ON chain.transactions (method, block);
+CREATE INDEX ix_transactions_method_height ON chain.transactions (method, block); -- Removed in 12_related_transactions_method_idx.up.sql.
+-- Added in 12_related_transactions_method_idx.up.sql.
+CREATE INDEX ix_transactions_method_block_tx_index ON chain.transactions (method, block DESC, tx_index);
 
 CREATE TABLE chain.events
 (
@@ -346,7 +348,9 @@ CREATE TABLE chain.accounts_related_transactions
   FOREIGN KEY (tx_block, tx_index) REFERENCES chain.transactions(block, tx_index) DEFERRABLE INITIALLY DEFERRED
 );
 CREATE INDEX ix_accounts_related_transactions_block ON chain.accounts_related_transactions (tx_block);
-CREATE INDEX ix_accounts_related_transactions_address_block ON chain.accounts_related_transactions(account_address, tx_block);
+CREATE INDEX ix_accounts_related_transactions_address_block ON chain.accounts_related_transactions(account_address, tx_block); -- Removed in 12_related_transactions_method_idx.up.sql.
+-- Added in 12_related_transactions_method_idx.up.sql.
+-- CREATE INDEX ix_accounts_related_transactions_address_block_desc_tx_index ON chain.accounts_related_transactions (account_address, tx_block DESC, tx_index);
 
 -- Tracks the current (consensus) height of the node.
 CREATE TABLE chain.latest_node_heights
