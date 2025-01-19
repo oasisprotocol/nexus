@@ -31,7 +31,7 @@ const (
 	// The path portion with which all v1 API endpoints start.
 	v1BaseURL = "/v1"
 
-	defaultRequestHandleTimeout = 10 * time.Second
+	defaultRequestHandleTimeout = 20 * time.Second
 )
 
 var (
