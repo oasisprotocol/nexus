@@ -478,8 +478,9 @@ func convertTxResult(r txResultsEden.Result) nodeapi.TxResult {
 	}
 
 	return nodeapi.TxResult{
-		Error:  nodeapi.TxError(r.Error),
-		Events: events,
+		Error:   nodeapi.TxError(r.Error),
+		Events:  events,
+		GasUsed: r.GasUsed,
 	}
 }
 

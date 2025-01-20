@@ -13,7 +13,7 @@ import (
 
 	// nexus-internal data types.
 	beacon "github.com/oasisprotocol/nexus/coreapi/v22.2.11/beacon/api"
-	consensus "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api"
+	consensusDamask "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api"
 	consensusTx "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api/transaction"
 	genesis "github.com/oasisprotocol/nexus/coreapi/v22.2.11/genesis/api"
 	governance "github.com/oasisprotocol/nexus/coreapi/v22.2.11/governance/api"
@@ -21,6 +21,7 @@ import (
 	roothash "github.com/oasisprotocol/nexus/coreapi/v22.2.11/roothash/api"
 	scheduler "github.com/oasisprotocol/nexus/coreapi/v22.2.11/scheduler/api"
 	staking "github.com/oasisprotocol/nexus/coreapi/v22.2.11/staking/api"
+	consensus "github.com/oasisprotocol/nexus/coreapi/v24.0/consensus/api"
 
 	"github.com/oasisprotocol/nexus/storage/oasis/connections"
 	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
@@ -84,7 +85,7 @@ func (c *ConsensusApiLite) GetBlock(ctx context.Context, height int64) (*consens
 }
 
 func (c *ConsensusApiLite) GetTransactionsWithResults(ctx context.Context, height int64) ([]nodeapi.TransactionWithResults, error) {
-	var rsp consensus.TransactionsWithResults
+	var rsp consensusDamask.TransactionsWithResults
 	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Consensus/GetTransactionsWithResults", height, &rsp); err != nil {
 		return nil, fmt.Errorf("GetTransactionsWithResults(%d): %w", height, err)
 	}

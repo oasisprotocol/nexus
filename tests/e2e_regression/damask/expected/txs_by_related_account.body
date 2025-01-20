@@ -30,7 +30,8 @@
         "untrusted_raw_value": "q2F2AmJpZFggSCA1zoR15jpC2eugP1P/CZBQhMjHEtmJ7+hWemgTdWpjcDJwomJpZFggfr+nhykQjIs/ylB9tXG9TPEnn9LWiSJLSgOFhEEY5yhpYWRkcmVzc2Vz9mN0bHOjZ3B1Yl9rZXlYIFZ+W714dA9FED6e+s559Pcq+4bTi7MZZErejFwY1SzIaWFkZHJlc3Nlc/ZsbmV4dF9wdWJfa2V5WCDfGiyyEOtagz53OWe+Xm/rQfynp1ZYkv1L1HE3wGfEamN2cmahYmlkWCD3x7nJybp7q3PnFcNmBZH0nnzN6y9aK7JZOftP8lkEhmVyb2xlcwhocnVudGltZXP2aWNvbnNlbnN1c6JiaWRYIGTtx9AcjFrKHRSGRwu+REw1pCGAdNGQImqJwzjXTd+faWFkZHJlc3Nlc4GiYmlkWCB+v6eHKRCMiz/KUH21cb1M8Sef0taJIktKA4WEQRjnKGdhZGRyZXNzo2JJUFAAAAAAAAAAAAAA//+HtbByZFBvcnQZaCBkWm9uZWBpZW50aXR5X2lkWCD0P6TOJPEWGDvv5zK34XB3p5dESRnXAfDtZftUbnsx4GpleHBpcmF0aW9uGTRdcHNvZnR3YXJlX3ZlcnNpb25mMjIuMS4z"
       },
       "fee": "0",
-      "gas_limit": "1360",
+      "gas_limit": 1360,
+      "gas_used": 0,
       "hash": "8e00f5beb25455a425d7d46f37d3f142d2a6bcc5eda9bf3a93f0e61b70a1258b",
       "index": 1,
       "method": "registry.RegisterNode",
@@ -67,7 +68,8 @@
         "untrusted_raw_value": "q2F2AmJpZFggSCA1zoR15jpC2eugP1P/CZBQhMjHEtmJ7+hWemgTdWpjcDJwomJpZFggfr+nhykQjIs/ylB9tXG9TPEnn9LWiSJLSgOFhEEY5yhpYWRkcmVzc2Vz9mN0bHOjZ3B1Yl9rZXlYIFZ+W714dA9FED6e+s559Pcq+4bTi7MZZErejFwY1SzIaWFkZHJlc3Nlc/ZsbmV4dF9wdWJfa2V5WCDfGiyyEOtagz53OWe+Xm/rQfynp1ZYkv1L1HE3wGfEamN2cmahYmlkWCD3x7nJybp7q3PnFcNmBZH0nnzN6y9aK7JZOftP8lkEhmVyb2xlcwhocnVudGltZXP2aWNvbnNlbnN1c6JiaWRYIGTtx9AcjFrKHRSGRwu+REw1pCGAdNGQImqJwzjXTd+faWFkZHJlc3Nlc4GiYmlkWCB+v6eHKRCMiz/KUH21cb1M8Sef0taJIktKA4WEQRjnKGdhZGRyZXNzo2JJUFAAAAAAAAAAAAAA//+HtbByZFBvcnQZaCBkWm9uZWBpZW50aXR5X2lkWCD0P6TOJPEWGDvv5zK34XB3p5dESRnXAfDtZftUbnsx4GpleHBpcmF0aW9uGTRccHNvZnR3YXJlX3ZlcnNpb25mMjIuMS4z"
       },
       "fee": "0",
-      "gas_limit": "1360",
+      "gas_limit": 1360,
+      "gas_used": 0,
       "hash": "015d61feba5e6647aa52cd9302c567eb7f3c4e9262869793547464ba74a627b5",
       "index": 73,
       "method": "registry.RegisterNode",

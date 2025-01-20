@@ -13,11 +13,11 @@ import (
 
 	cmdCommon "github.com/oasisprotocol/nexus/cmd/common"
 	beacon "github.com/oasisprotocol/nexus/coreapi/v22.2.11/beacon/api"
-	consensus "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api"
 	consensusTx "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api/transaction"
 	governance "github.com/oasisprotocol/nexus/coreapi/v22.2.11/governance/api"
 	roothash "github.com/oasisprotocol/nexus/coreapi/v22.2.11/roothash/api"
 	scheduler "github.com/oasisprotocol/nexus/coreapi/v22.2.11/scheduler/api"
+	consensus "github.com/oasisprotocol/nexus/coreapi/v24.0/consensus/api"
 
 	"github.com/oasisprotocol/nexus/storage/oasis/connections"
 	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"

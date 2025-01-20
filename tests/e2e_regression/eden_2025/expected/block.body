@@ -1,6 +1,7 @@
 {
   "epoch": 40345,
-  "gas_limit": "5000000",
+  "gas_limit": 5000000,
+  "gas_used": 0,
   "hash": "9046baec24096505badcabe65503f3a1f40d3e5c4f32c14e624d627eabb4b5dd",
   "height": 24214831,
   "num_transactions": 27,
@@ -1304,7 +1305,8 @@
       }
     }
   ],
-  "size_limit": "4194304",
+  "size": 0,
+  "size_limit": 4194304,
   "state_root": "91ce246fcc8ce101e3d3329ed149fe7922015e0736b18e8010a4b27983642b4a",
   "timestamp": "2025-04-19T13:59:19Z"
 }

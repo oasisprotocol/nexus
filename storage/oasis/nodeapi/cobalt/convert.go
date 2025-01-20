@@ -11,11 +11,11 @@ import (
 	// nexus-internal data types.
 	coreCommon "github.com/oasisprotocol/oasis-core/go/common"
 
-	consensus "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api"
 	registry "github.com/oasisprotocol/nexus/coreapi/v22.2.11/registry/api"
 	"github.com/oasisprotocol/nexus/coreapi/v22.2.11/roothash/api/message"
 	scheduler "github.com/oasisprotocol/nexus/coreapi/v22.2.11/scheduler/api"
 	staking "github.com/oasisprotocol/nexus/coreapi/v22.2.11/staking/api"
+	consensus "github.com/oasisprotocol/nexus/coreapi/v24.0/consensus/api"
 	governance "github.com/oasisprotocol/nexus/coreapi/v24.0/governance/api"
 	upgrade "github.com/oasisprotocol/nexus/coreapi/v24.0/upgrade/api"
 
@@ -458,8 +458,9 @@ func convertTxResult(r txResultsCobalt.Result) nodeapi.TxResult {
 	}
 
 	return nodeapi.TxResult{
-		Error:  nodeapi.TxError(r.Error),
-		Events: events,
+		Error:   nodeapi.TxError(r.Error),
+		Events:  events,
+		GasUsed: 0, // Not present in Cobalt.,
 	}
 }
 

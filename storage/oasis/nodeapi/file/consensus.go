@@ -10,8 +10,8 @@ import (
 	cmdCommon "github.com/oasisprotocol/nexus/cmd/common"
 
 	beacon "github.com/oasisprotocol/nexus/coreapi/v22.2.11/beacon/api"
-	consensus "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api"
 	roothash "github.com/oasisprotocol/nexus/coreapi/v22.2.11/roothash/api"
+	consensus "github.com/oasisprotocol/nexus/coreapi/v24.0/consensus/api"
 
 	"github.com/oasisprotocol/nexus/cache/kvstore"
 	"github.com/oasisprotocol/nexus/common"

@@ -26,7 +26,8 @@
         "id": "000000000000000000000000000000000000000000000000e2eaa99fc008f87f"
       },
       "fee": "0",
-      "gas_limit": "10776",
+      "gas_limit": 10776,
+      "gas_used": 0,
       "hash": "b3bac3243ad44adcb8829ed17599efd05d9c6dff3477a085d2eaa4032ab73be3",
       "index": 0,
       "method": "roothash.ExecutorCommit",

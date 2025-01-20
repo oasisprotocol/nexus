@@ -269,7 +269,7 @@ func (c *StorageClient) Status(ctx context.Context) (*Status, error) {
 		nil,
 		1,
 		0,
-	).Scan(nil, nil, &s.LatestBlockTime, nil, nil, nil, nil, nil, nil, nil)
+	).Scan(nil, nil, &s.LatestBlockTime, nil, nil, nil, nil, nil, nil, nil, nil, nil)
 	switch err {
 	case nil:
 	case pgx.ErrNoRows:
@@ -419,7 +419,9 @@ func (c *StorageClient) Blocks(ctx context.Context, r apiTypes.GetConsensusBlock
 			&b.Timestamp,
 			&b.NumTransactions,
 			&b.GasLimit,
+			&b.GasUsed,
 			&b.SizeLimit,
+			&b.Size,
 			&b.Epoch,
 			&b.StateRoot,
 			&proposerRow,
@@ -513,6 +515,7 @@ func (c *StorageClient) Transactions(ctx context.Context, p apiTypes.GetConsensu
 			&t.Nonce,
 			&t.Fee,
 			&t.GasLimit,
+			&t.GasUsed,
 			&t.Method,
 			&t.Body,
 			&code,

@@ -35,7 +35,8 @@
         "module": "staking"
       },
       "fee": "0",
-      "gas_limit": "1221",
+      "gas_limit": 1221,
+      "gas_used": 0,
       "hash": "ad590f1452e19b3976fcf23fc050da6ed347abe476491256a56aed766e43e232",
       "index": 0,
       "method": "registry.RegisterNode",

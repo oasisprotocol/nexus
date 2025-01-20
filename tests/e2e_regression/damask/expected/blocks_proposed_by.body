@@ -2,7 +2,8 @@
   "blocks": [
     {
       "epoch": 13403,
-      "gas_limit": "0",
+      "gas_limit": 0,
+      "gas_used": 0,
       "hash": "80b6d169133da6336990b51c5502011d45d3eed155670b5af0e51b7bad13fbb7",
       "height": 8049941,
       "num_transactions": 0,
@@ -1098,13 +1099,15 @@
           }
         }
       ],
-      "size_limit": "22020096",
+      "size": 0,
+      "size_limit": 22020096,
       "state_root": "f24f59066e495916a468928b351ef98a37962ad754680c39b00ed268e37155f8",
       "timestamp": "2022-04-11T12:43:39Z"
     },
     {
       "epoch": 13403,
-      "gas_limit": "0",
+      "gas_limit": 0,
+      "gas_used": 0,
       "hash": "33dba3ff7b0fa80f327050cf9c414ca61e3780b4b44376bb152c36390b56aabf",
       "height": 8049921,
       "num_transactions": 0,
@@ -2200,13 +2203,15 @@
           }
         }
       ],
-      "size_limit": "22020096",
+      "size": 0,
+      "size_limit": 22020096,
       "state_root": "a709cf942786e813b3bcdcad85f7188a29dcae0ec8c9f31c4c7b5a26ec572ea7",
       "timestamp": "2022-04-11T12:41:44Z"
     },
     {
       "epoch": 13403,
-      "gas_limit": "0",
+      "gas_limit": 0,
+      "gas_used": 0,
       "hash": "9da5e56bf4f99e5232e5588bace8dad84f975ed6e46c2b50f51a8db7a6f35a39",
       "height": 8049898,
       "num_transactions": 0,
@@ -3302,13 +3307,15 @@
           }
         }
       ],
-      "size_limit": "22020096",
+      "size": 0,
+      "size_limit": 22020096,
       "state_root": "15b75d9f9322e7fbb8d53635a7f5a7222f74d905b58356394e2fcd01a6904177",
       "timestamp": "2022-04-11T12:39:30Z"
     },
     {
       "epoch": 13403,
-      "gas_limit": "0",
+      "gas_limit": 0,
+      "gas_used": 0,
       "hash": "8c60e837ac3e82a2c877cdae3564cf88b5660582f397d485c8dfabc315e98ec2",
       "height": 8049879,
       "num_transactions": 0,
@@ -4404,13 +4411,15 @@
           }
         }
       ],
-      "size_limit": "22020096",
+      "size": 0,
+      "size_limit": 22020096,
       "state_root": "5e511c39cfae44afe889bbae2dbaa7e0f62bec3e6b2834d23289a28242d6bff2",
       "timestamp": "2022-04-11T12:37:41Z"
     },
     {
       "epoch": 13403,
-      "gas_limit": "0",
+      "gas_limit": 0,
+      "gas_used": 0,
       "hash": "9e4de14c73480d8f8b31cffca844500a7c6dfdfa28910e3d12ba55b092b3c78c",
       "height": 8049858,
       "num_transactions": 0,
@@ -5506,13 +5515,15 @@
           }
         }
       ],
-      "size_limit": "22020096",
+      "size": 0,
+      "size_limit": 22020096,
       "state_root": "eff8ca9d1461255dc07232a152f99a6527d42887c7ab0e178323ae4e02b4b963",
       "timestamp": "2022-04-11T12:35:39Z"
     },
     {
       "epoch": 13403,
-      "gas_limit": "0",
+      "gas_limit": 0,
+      "gas_used": 0,
       "hash": "05157009ba439a09c330380fbf6fe02248d0a3318eecacfeca4008462e9f2bd3",
       "height": 8049838,
       "num_transactions": 0,
@@ -6608,13 +6619,15 @@
           }
         }
       ],
-      "size_limit": "22020096",
+      "size": 0,
+      "size_limit": 22020096,
       "state_root": "60bec8ea48fe2fc1548a9dd4645df152e7b655f176b3ee6b62e55d2f4c306d6f",
       "timestamp": "2022-04-11T12:33:43Z"
     },
     {
       "epoch": 13403,
-      "gas_limit": "0",
+      "gas_limit": 0,
+      "gas_used": 0,
       "hash": "e879313fc3d39a2e64421d6cd43aff2178dca43e2e243edad7ccf6040a0f0164",
       "height": 8049816,
       "num_transactions": 0,
@@ -7710,13 +7723,15 @@
           }
         }
       ],
-      "size_limit": "22020096",
+      "size": 0,
+      "size_limit": 22020096,
       "state_root": "bcbdeec98c02e9d8d41d3a7d30d77f2bbe18c2b6f1644574f55b3387781294f3",
       "timestamp": "2022-04-11T12:31:36Z"
     },
     {
       "epoch": 13403,
-      "gas_limit": "0",
+      "gas_limit": 0,
+      "gas_used": 0,
       "hash": "9d62ee0b0c85b2a87377cec4e0436ce2428dbf427a505ffe7902e5c79d2842a2",
       "height": 8049797,
       "num_transactions": 0,
@@ -8812,13 +8827,15 @@
           }
         }
       ],
-      "size_limit": "22020096",
+      "size": 0,
+      "size_limit": 22020096,
       "state_root": "b288271da35faa84cf5876103b1ca98402450cc87f8cc24bef5db3f89a05a5bd",
       "timestamp": "2022-04-11T12:29:46Z"
     },
     {
       "epoch": 13403,
-      "gas_limit": "0",
+      "gas_limit": 0,
+      "gas_used": 0,
       "hash": "d81b74315af5aec0c975ae7157018f07b88630b723e978aff1001d3ca117ceb2",
       "height": 8049776,
       "num_transactions": 0,
@@ -9914,13 +9931,15 @@
           }
         }
       ],
-      "size_limit": "22020096",
+      "size": 0,
+      "size_limit": 22020096,
       "state_root": "ad9c08fcd4d75c31c91652f405ab32ce27939a96a39020bc00e05f3ca9bdd72a",
       "timestamp": "2022-04-11T12:27:45Z"
     },
     {
       "epoch": 13403,
-      "gas_limit": "0",
+      "gas_limit": 0,
+      "gas_used": 0,
       "hash": "573bdb4e5d434ee1588945af4437faeec160a247714e85fbee57e9185fc9031c",
       "height": 8049755,
       "num_transactions": 0,
@@ -11016,13 +11035,15 @@
           }
         }
       ],
-      "size_limit": "22020096",
+      "size": 0,
+      "size_limit": 22020096,
       "state_root": "1f0f3b6891ff4fc71efc1b5f6ba1574386ce492c25f1e6f400d81a4cebcafe35",
       "timestamp": "2022-04-11T12:25:44Z"
     },
     {
       "epoch": 13403,
-      "gas_limit": "0",
+      "gas_limit": 0,
+      "gas_used": 0,
       "hash": "5de3297063449b542f9d6b92c5c4da0a692efd98eb6862f94dcb701f02ca28a6",
       "height": 8049736,
       "num_transactions": 0,
@@ -12118,13 +12139,15 @@
           }
         }
       ],
-      "size_limit": "22020096",
+      "size": 0,
+      "size_limit": 22020096,
       "state_root": "3ea11bea5a29a88895da96f02091a0c8ddf0346f815fcba8518fc189c4be992f",
       "timestamp": "2022-04-11T12:23:54Z"
     },
     {
       "epoch": 13403,
-      "gas_limit": "0",
+      "gas_limit": 0,
+      "gas_used": 0,
       "hash": "9166859c48158d14281580e9f0f1bb95bdda3076e2ba8c924e68680330fd71d8",
       "height": 8049718,
       "num_transactions": 0,
@@ -13220,13 +13243,15 @@
           }
         }
       ],
-      "size_limit": "22020096",
+      "size": 0,
+      "size_limit": 22020096,
       "state_root": "6e03f3827fe9314a745c6acaee10b42adcf5884e1f46a7c6443d81c83dd7ee09",
       "timestamp": "2022-04-11T12:22:10Z"
     },
     {
       "epoch": 13403,
-      "gas_limit": "0",
+      "gas_limit": 0,
+      "gas_used": 0,
       "hash": "5f246dbb242e2dd7f9bc0d5a16406445b106ceee110e9d310b3cfe1dd09cc1c4",
       "height": 8049695,
       "num_transactions": 0,
@@ -14322,13 +14347,15 @@
           }
         }
       ],
-      "size_limit": "22020096",
+      "size": 0,
+      "size_limit": 22020096,
       "state_root": "b2f4a79bfd083dcc3a03ef4aecc1369e0f439aac66182fcd7e1c689268600941",
       "timestamp": "2022-04-11T12:19:56Z"
     },
     {
       "epoch": 13403,
-      "gas_limit": "0",
+      "gas_limit": 0,
+      "gas_used": 0,
       "hash": "cd3de255ccfaa6301dd784147713e244f90a37d44a00d67fbf3197dddce9e6be",
       "height": 8049675,
       "num_transactions": 1,
@@ -15424,13 +15451,15 @@
           }
         }
       ],
-      "size_limit": "22020096",
+      "size": 0,
+      "size_limit": 22020096,
       "state_root": "0c44a2f3420fb511dff4085c2babdf8a65ebe2cf1a8f4019f6908e468d471520",
       "timestamp": "2022-04-11T12:18:00Z"
     },
     {
       "epoch": 13403,
-      "gas_limit": "0",
+      "gas_limit": 0,
+      "gas_used": 0,
       "hash": "1aa77d42e0d0f6d275dd14f7942c2f0dbd7cfc25f8c361bd6061c26270ab9098",
       "height": 8049656,
       "num_transactions": 0,
@@ -16526,13 +16555,15 @@
           }
         }
       ],
-      "size_limit": "22020096",
+      "size": 0,
+      "size_limit": 22020096,
       "state_root": "7e1976d46b58554b0b4321ea362e61b4876943deb5592c2174530baa3fa658a0",
       "timestamp": "2022-04-11T12:16:11Z"
     },
     {
       "epoch": 13403,
-      "gas_limit": "0",
+      "gas_limit": 0,
+      "gas_used": 0,
       "hash": "160895621c24b4bf14b166e7f0ad9568188fb848c3b73b424f677b8accb24a23",
       "height": 8049634,
       "num_transactions": 0,
@@ -17628,13 +17659,15 @@
           }
         }
       ],
-      "size_limit": "22020096",
+      "size": 0,
+      "size_limit": 22020096,
       "state_root": "9423337cf75f0149f961e394aa3bea2285139ff96e503bf205120a20f7aa70ee",
       "timestamp": "2022-04-11T12:14:03Z"
     },
     {
       "epoch": 13403,
-      "gas_limit": "0",
+      "gas_limit": 0,
+      "gas_used": 0,
       "hash": "a4941863af2fb7d5ea6b5f3cc6ffabd5f6f4ffa836d1a24f1195f327d775a355",
       "height": 8049614,
       "num_transactions": 0,
@@ -18730,13 +18763,15 @@
           }
         }
       ],
-      "size_limit": "22020096",
+      "size": 0,
+      "size_limit": 22020096,
       "state_root": "f356fb107922e800097d43e8e71a228abb2a0c367c910ba39efa4e88e47d9f70",
       "timestamp": "2022-04-11T12:12:07Z"
     },
     {
       "epoch": 13403,
-      "gas_limit": "0",
+      "gas_limit": 0,
+      "gas_used": 0,
       "hash": "be8432e2b78935755e7227d22ace7af6f5fa1c3afbd2469aa1cf7b7196f140ee",
       "height": 8049595,
       "num_transactions": 0,
@@ -19832,13 +19867,15 @@
           }
         }
       ],
-      "size_limit": "22020096",
+      "size": 0,
+      "size_limit": 22020096,
       "state_root": "ce0effdf98aadb108dc666c824f701daf04728f65447239e081f0ea382371214",
       "timestamp": "2022-04-11T12:10:16Z"
     },
     {
       "epoch": 13403,
-      "gas_limit": "0",
+      "gas_limit": 0,
+      "gas_used": 0,
       "hash": "bbcd6c513f64ae51934ce8ee8110e3aacd6842cc52201216091e2611acd23716",
       "height": 8049575,
       "num_transactions": 4,
@@ -20934,13 +20971,15 @@
           }
         }
       ],
-      "size_limit": "22020096",
+      "size": 0,
+      "size_limit": 22020096,
       "state_root": "cb372bb663c018dc16461584de10643340342f09fe6fbc3689af07007ae87a28",
       "timestamp": "2022-04-11T12:08:20Z"
     },
     {
       "epoch": 13402,
-      "gas_limit": "0",
+      "gas_limit": 0,
+      "gas_used": 0,
       "hash": "8a89df21991f03261434f6f1634a48f4d5755a4d10d332e05f35700972e44210",
       "height": 8049553,
       "num_transactions": 0,
@@ -22023,13 +22062,15 @@
           }
         }
       ],
-      "size_limit": "22020096",
+      "size": 0,
+      "size_limit": 22020096,
       "state_root": "dfd41e8d010dfc1aab6f832c106c08b266a6e647ab35cdb30d98c280c001ee12",
       "timestamp": "2022-04-11T12:06:06Z"
     },
     {
       "epoch": 13402,
-      "gas_limit": "0",
+      "gas_limit": 0,
+      "gas_used": 0,
       "hash": "fed9c30a92cf7e13229bbb2ceb0b9678be5de18f075166ed1c3791114902ebd4",
       "height": 8049530,
       "num_transactions": 2,
@@ -23112,13 +23153,15 @@
           }
         }
       ],
-      "size_limit": "22020096",
+      "size": 0,
+      "size_limit": 22020096,
       "state_root": "dd87734d892fb8ed49cdffaf31f77b96fd78db37dd7c54051e7ae73fb61a8602",
       "timestamp": "2022-04-11T12:03:43Z"
     },
     {
       "epoch": 13402,
-      "gas_limit": "0",
+      "gas_limit": 0,
+      "gas_used": 0,
       "hash": "26670bc38c7a5b91c18939290fd31948ec15d423d818435246f4cde9ff9b00dd",
       "height": 8049506,
       "num_transactions": 3,
@@ -24201,13 +24244,15 @@
           }
         }
       ],
-      "size_limit": "22020096",
+      "size": 0,
+      "size_limit": 22020096,
       "state_root": "646dc5bbbcae18d7a2a50577c825c08cfab0cec546548d8360419453f510f7f6",
       "timestamp": "2022-04-11T12:01:13Z"
     },
     {
       "epoch": 13402,
-      "gas_limit": "0",
+      "gas_limit": 0,
+      "gas_used": 0,
       "hash": "fcb035fbd22359c88dd2611a74424582c711c280a3d3277ea13eb97eaac6dbb4",
       "height": 8049482,
       "num_transactions": 2,
@@ -25290,13 +25335,15 @@
           }
         }
       ],
-      "size_limit": "22020096",
+      "size": 0,
+      "size_limit": 22020096,
       "state_root": "7f7005e1e3f4d550cb32f317a0eac5d9e5904b0cae6dcd3868cfe4e822cbe795",
       "timestamp": "2022-04-11T11:58:44Z"
     },
     {
       "epoch": 13402,
-      "gas_limit": "0",
+      "gas_limit": 0,
+      "gas_used": 0,
       "hash": "8ca5e32e71d673801d192e8f07695258f0e8e0c6e3b4feb717063aae8776e34e",
       "height": 8049458,
       "num_transactions": 0,
@@ -26379,13 +26426,15 @@
           }
         }
       ],
-      "size_limit": "22020096",
+      "size": 0,
+      "size_limit": 22020096,
       "state_root": "ae7326e5d69001b13b7e87e56fca53ea2014d46b78dce2fbd019e9b3a8193090",
       "timestamp": "2022-04-11T11:56:01Z"
     },
     {
       "epoch": 13402,
-      "gas_limit": "0",
+      "gas_limit": 0,
+      "gas_used": 0,
       "hash": "3dceb1da386f05528d0e96e3ef2eeddc5fc4dd7961aabd9e82e27c5c5eafea49",
       "height": 8049435,
       "num_transactions": 1,
@@ -27468,13 +27517,15 @@
           }
         }
       ],
-      "size_limit": "22020096",
+      "size": 0,
+      "size_limit": 22020096,
       "state_root": "10062fb847b606367c96764975bc04985774e7adb7cba77a209b00d15996d1d5",
       "timestamp": "2022-04-11T11:53:33Z"
     },
     {
       "epoch": 13402,
-      "gas_limit": "0",
+      "gas_limit": 0,
+      "gas_used": 0,
       "hash": "5c7236d51dd557314f1dc9467c976e216db0656773bac9853931d8bff3c5b8fd",
       "height": 8049412,
       "num_transactions": 1,
@@ -28557,13 +28608,15 @@
           }
         }
       ],
-      "size_limit": "22020096",
+      "size": 0,
+      "size_limit": 22020096,
       "state_root": "ed4453dd67a8acbcf839a6ac4817b3c4038fc11d0ce281950656ffdaf6e7dcb8",
       "timestamp": "2022-04-11T11:51:10Z"
     },
     {
       "epoch": 13402,
-      "gas_limit": "0",
+      "gas_limit": 0,
+      "gas_used": 0,
       "hash": "28f453f282e9a880f70e65eb344ad935a79ed7478f166706170f1c894c48f694",
       "height": 8049387,
       "num_transactions": 1,
@@ -29646,13 +29699,15 @@
           }
         }
       ],
-      "size_limit": "22020096",
+      "size": 0,
+      "size_limit": 22020096,
       "state_root": "8323f74215a2a992f05725d30d6d1d4cae6e4f842dc2de65349b6661a4179c71",
       "timestamp": "2022-04-11T11:48:30Z"
     },
     {
       "epoch": 13402,
-      "gas_limit": "0",
+      "gas_limit": 0,
+      "gas_used": 0,
       "hash": "5b7436d09673f6370fae07485e187b4f89eab4db3aea1680bb560ca3f4760a73",
       "height": 8049364,
       "num_transactions": 0,
@@ -30735,13 +30790,15 @@
           }
         }
       ],
-      "size_limit": "22020096",
+      "size": 0,
+      "size_limit": 22020096,
       "state_root": "7c652ab12d8cbb4d56ce9ee6918d8aa0533336bfeafe83eded3bab7745cf82cd",
       "timestamp": "2022-04-11T11:46:06Z"
     },
     {
       "epoch": 13402,
-      "gas_limit": "0",
+      "gas_limit": 0,
+      "gas_used": 0,
       "hash": "b0f4113eecc1f83e534ca2675df3069097f9b1528e402be2ae7852d58cea98c9",
       "height": 8049340,
       "num_transactions": 0,
@@ -31811,13 +31868,15 @@
           }
         }
       ],
-      "size_limit": "22020096",
+      "size": 0,
+      "size_limit": 22020096,
       "state_root": "f213f358aa8270b126bd5d71ebad61f0e680619753fda1ea1acdb8fe01e61efe",
       "timestamp": "2022-04-11T11:43:37Z"
     },
     {
       "epoch": 13402,
-      "gas_limit": "0",
+      "gas_limit": 0,
+      "gas_used": 0,
       "hash": "66bfdbb7a3a3b912cc1304b168308ab0870febd3eb326a825c2d9e8c04833011",
       "height": 8049339,
       "num_transactions": 2,
@@ -32887,13 +32946,15 @@
           }
         }
       ],
-      "size_limit": "22020096",
+      "size": 0,
+      "size_limit": 22020096,
       "state_root": "4491659501bdcfc378d47d8d7aeb4ce3e3d5197fbdac7b596b17cd424c2be005",
       "timestamp": "2022-04-11T11:43:26Z"
     },
     {
       "epoch": 13402,
-      "gas_limit": "0",
+      "gas_limit": 0,
+      "gas_used": 0,
       "hash": "8c48ae6a343bde3b64e3a1bafbd72801c1ec5d252b8632982f526f507aa58219",
       "height": 8049338,
       "num_transactions": 0,
@@ -33950,13 +34011,15 @@
           }
         }
       ],
-      "size_limit": "22020096",
+      "size": 0,
+      "size_limit": 22020096,
       "state_root": "4b3ede93d23cc6a1fa83c415abbdc4b5a47e875664413775bbb3941ee2d33cd5",
       "timestamp": "2022-04-11T11:43:10Z"
     },
     {
       "epoch": 13402,
-      "gas_limit": "0",
+      "gas_limit": 0,
+      "gas_used": 0,
       "hash": "65ac2686bfca371eb659ebea76518377f5cfefd186aef0698a51fffc844a5bc4",
       "height": 8049317,
       "num_transactions": 0,
@@ -35013,13 +35076,15 @@
           }
         }
       ],
-      "size_limit": "22020096",
+      "size": 0,
+      "size_limit": 22020096,
       "state_root": "606eb3d28bff4cab33ab669f9c8d8431aa8f2b0e857c60ed2ba26eab65561d60",
       "timestamp": "2022-04-11T11:40:59Z"
     },
     {
       "epoch": 13402,
-      "gas_limit": "0",
+      "gas_limit": 0,
+      "gas_used": 0,
       "hash": "26f5a86224f4bf58ac5f26c76f1dd1989a5aaf826148ed8fafb9bf4dc98bbd29",
       "height": 8049294,
       "num_transactions": 0,
@@ -36076,13 +36141,15 @@
           }
         }
       ],
-      "size_limit": "22020096",
+      "size": 0,
+      "size_limit": 22020096,
       "state_root": "a718dc1a93ab53cbb0224f6095dc59e4753511f2cdb7a1cfa868dbc857f51288",
       "timestamp": "2022-04-11T11:38:30Z"
     },
     {
       "epoch": 13402,
-      "gas_limit": "0",
+      "gas_limit": 0,
+      "gas_used": 0,
       "hash": "2a37a5a3b717270ec87a614f11881a2881fcfb3b6615f09911a45f65574f71f6",
       "height": 8049270,
       "num_transactions": 0,
@@ -37139,13 +37206,15 @@
           }
         }
       ],
-      "size_limit": "22020096",
+      "size": 0,
+      "size_limit": 22020096,
       "state_root": "7fddafe3ba51ac279bdb94035d0c91599513911c181b351d1ab584f1d3609c87",
       "timestamp": "2022-04-11T11:36:06Z"
     },
     {
       "epoch": 13402,
-      "gas_limit": "0",
+      "gas_limit": 0,
+      "gas_used": 0,
       "hash": "8105d901767f7042c1a9c7dca8508e473762dc14bef6bc74a37ed1724562d1a0",
       "height": 8049247,
       "num_transactions": 0,
@@ -38202,13 +38271,15 @@
           }
         }
       ],
-      "size_limit": "22020096",
+      "size": 0,
+      "size_limit": 22020096,
       "state_root": "3287f563ba5f6b0e20f2aa892aa91538ca47021b1c2be3a6508bec0132c34b1a",
       "timestamp": "2022-04-11T11:33:29Z"
     },
     {
       "epoch": 13402,
-      "gas_limit": "0",
+      "gas_limit": 0,
+      "gas_used": 0,
       "hash": "02b96c328a612c3b5868b5155a9e3104b90a27fff9b8a9697d1100b7b845415e",
       "height": 8049223,
       "num_transactions": 0,
@@ -39254,13 +39325,15 @@
           }
         }
       ],
-      "size_limit": "22020096",
+      "size": 0,
+      "size_limit": 22020096,
       "state_root": "1d81ef934671fb70c1dde0f7c0a5d579b3114f2480f88d31ec03c11443664225",
       "timestamp": "2022-04-11T11:30:55Z"
     },
     {
       "epoch": 13402,
-      "gas_limit": "0",
+      "gas_limit": 0,
+      "gas_used": 0,
       "hash": "292a20c9c1525b689519a9d56eddf364358b9e9c3784cf8092a17a9179de5fd3",
       "height": 8049198,
       "num_transactions": 1,
@@ -40306,13 +40379,15 @@
           }
         }
       ],
-      "size_limit": "22020096",
+      "size": 0,
+      "size_limit": 22020096,
       "state_root": "255b48bcd4addc5524327c58a0b9a2a74afbf23e79c357b4a9e772b993f065f8",
       "timestamp": "2022-04-11T11:28:16Z"
     },
     {
       "epoch": 13402,
-      "gas_limit": "0",
+      "gas_limit": 0,
+      "gas_used": 0,
       "hash": "7639ffa4308f4fdb4c6d505bf7f0630be98dd8a73b738b1274f2032e994405d3",
       "height": 8049174,
       "num_transactions": 0,
@@ -41346,13 +41421,15 @@
           }
         }
       ],
-      "size_limit": "22020096",
+      "size": 0,
+      "size_limit": 22020096,
       "state_root": "48abe63d550f6763fa64b451c4e67201418216d8ca3eab2a6537ce964a3ab166",
       "timestamp": "2022-04-11T11:25:51Z"
     },
     {
       "epoch": 13402,
-      "gas_limit": "0",
+      "gas_limit": 0,
+      "gas_used": 0,
       "hash": "6493cea773d1fb3475f2a5c4bcd3937b5e716955f48cee94836edbd147433b31",
       "height": 8049154,
       "num_transactions": 0,
@@ -42398,13 +42475,15 @@
           }
         }
       ],
-      "size_limit": "22020096",
+      "size": 0,
+      "size_limit": 22020096,
       "state_root": "2d1199b2c28d0ad063878c17623b551dee74f777fa2270fb20f9df0f76d78ad7",
       "timestamp": "2022-04-11T11:23:36Z"
     },
     {
       "epoch": 13402,
-      "gas_limit": "0",
+      "gas_limit": 0,
+      "gas_used": 0,
       "hash": "355863b2da74ab5bacec1f3daafd6bcfcaeeb8661519d3636f6abb4fbf7af0bd",
       "height": 8049129,
       "num_transactions": 0,
@@ -43424,13 +43503,15 @@
           }
         }
       ],
-      "size_limit": "22020096",
+      "size": 0,
+      "size_limit": 22020096,
       "state_root": "49818171d124415f3a06d3aa8b6b112a3b0291a90a49e5a30cce8e96309bf1f1",
       "timestamp": "2022-04-11T11:21:06Z"
     },
     {
       "epoch": 13402,
-      "gas_limit": "0",
+      "gas_limit": 0,
+      "gas_used": 0,
       "hash": "0cfe0fd34a83bd68c05191f7261ae9d48a9bd1f7a679c89c6786515c0b5d179c",
       "height": 8049128,
       "num_transactions": 0,
@@ -44450,13 +44531,15 @@
           }
         }
       ],
-      "size_limit": "22020096",
+      "size": 0,
+      "size_limit": 22020096,
       "state_root": "55a58d3dcde3b8e28ef6d0109075441dbc712271b793ff42ed281d7b627c47e2",
       "timestamp": "2022-04-11T11:20:55Z"
     },
     {
       "epoch": 13402,
-      "gas_limit": "0",
+      "gas_limit": 0,
+      "gas_used": 0,
       "hash": "c22f374e136bfa6d061bb1039b152490cb2136b8756b3e898af82a2bf98b3964",
       "height": 8049106,
       "num_transactions": 0,
@@ -45452,13 +45535,15 @@
           }
         }
       ],
-      "size_limit": "22020096",
+      "size": 0,
+      "size_limit": 22020096,
       "state_root": "30018dbe9354da34f149a1398b71420e36e0324a196146db0f0057e0099d1a36",
       "timestamp": "2022-04-11T11:18:18Z"
     },
     {
       "epoch": 13402,
-      "gas_limit": "0",
+      "gas_limit": 0,
+      "gas_used": 0,
       "hash": "7fcb5067de265ce27fd191a21110ee73dcd85510ad6d2dea8b4a8e753c6aeb32",
       "height": 8049080,
       "num_transactions": 0,
@@ -46441,13 +46526,15 @@
           }
         }
       ],
-      "size_limit": "22020096",
+      "size": 0,
+      "size_limit": 22020096,
       "state_root": "5e9ef194324129d9f27042e2ebf5d68338cd3dc932b6d2f176add8a4fbc0904a",
       "timestamp": "2022-04-11T11:15:38Z"
     },
     {
       "epoch": 13402,
-      "gas_limit": "0",
+      "gas_limit": 0,
+      "gas_used": 0,
       "hash": "a4184b05bff8b48ea7d15efd66817b7d082a244b42ef093871c9bbc072b1c76c",
       "height": 8049058,
       "num_transactions": 0,
@@ -47389,13 +47476,15 @@
           }
         }
       ],
-      "size_limit": "22020096",
+      "size": 0,
+      "size_limit": 22020096,
       "state_root": "56b25f64776cdccf50447a069acada2dc0e5b2759691ad16b801b11bcc77b933",
       "timestamp": "2022-04-11T11:13:04Z"
     },
     {
       "epoch": 13402,
-      "gas_limit": "0",
+      "gas_limit": 0,
+      "gas_used": 0,
       "hash": "59ca9a771ad946b657a781df5d92f2e492b0c7028c321915396f095c44765a2e",
       "height": 8049057,
       "num_transactions": 1,
@@ -48337,13 +48426,15 @@
           }
         }
       ],
-      "size_limit": "22020096",
+      "size": 0,
+      "size_limit": 22020096,
       "state_root": "9fce4d7cab6877efcc6ad5e9723fbe0a265dd66f30f4e3f9def04c3181b13f4a",
       "timestamp": "2022-04-11T11:12:53Z"
     },
     {
       "epoch": 13402,
-      "gas_limit": "0",
+      "gas_limit": 0,
+      "gas_used": 0,
       "hash": "ef4fb93cbfb3656ef0d6ab907202405eeec0062fb416fe987f569ae408abc2c1",
       "height": 8049040,
       "num_transactions": 0,
@@ -49273,13 +49364,15 @@
           }
         }
       ],
-      "size_limit": "22020096",
+      "size": 0,
+      "size_limit": 22020096,
       "state_root": "d421f64c29d8b3269d72655e98a3c2c4b686684c78000502bc2da132fb845c8a",
       "timestamp": "2022-04-11T11:10:44Z"
     },
     {
       "epoch": 13402,
-      "gas_limit": "0",
+      "gas_limit": 0,
+      "gas_used": 0,
       "hash": "d7bad5840ea6d18281094440b381a455892d7c4fdd94f7a34c9297a82b92942b",
       "height": 8049014,
       "num_transactions": 1,
@@ -50173,13 +50266,15 @@
           }
         }
       ],
-      "size_limit": "22020096",
+      "size": 0,
+      "size_limit": 22020096,
       "state_root": "577ade2cd709a486fcf648b22ffbb62a5ea6a002579ab744c8a1918556af833a",
       "timestamp": "2022-04-11T11:07:21Z"
     },
     {
       "epoch": 13402,
-      "gas_limit": "0",
+      "gas_limit": 0,
+      "gas_used": 0,
       "hash": "58a5cfc89237c716cd8fa407a021fbc737b2364a3469f8771f2dfe73074b9a81",
       "height": 8049013,
       "num_transactions": 0,
@@ -51073,13 +51168,15 @@
           }
         }
       ],
-      "size_limit": "22020096",
+      "size": 0,
+      "size_limit": 22020096,
       "state_root": "28904958b3241ec455f371401d4381252b1948a43a674ba93068f164b92636c2",
       "timestamp": "2022-04-11T11:07:11Z"
     },
     {
       "epoch": 13402,
-      "gas_limit": "0",
+      "gas_limit": 0,
+      "gas_used": 0,
       "hash": "c6afaea3bc4c7182d9618ada2b9cb8751301d776c9f7d949f145603e650e8bb0",
       "height": 8049012,
       "num_transactions": 0,
@@ -51960,13 +52057,15 @@
           "entity_metadata": null
         }
       ],
-      "size_limit": "22020096",
+      "size": 0,
+      "size_limit": 22020096,
       "state_root": "15c2890037cd2ee3bcdadb81f601ff1948383919ec8d0fa0fe9cb3f48d23f10c",
       "timestamp": "2022-04-11T11:06:54Z"
     },
     {
       "epoch": 13402,
-      "gas_limit": "0",
+      "gas_limit": 0,
+      "gas_used": 0,
       "hash": "3582e744e47aa8d6310cb02e78fcdd4c0d2dac477703478896c367c99545d295",
       "height": 8048986,
       "num_transactions": 0,
@@ -52809,13 +52908,15 @@
           "entity_metadata": null
         }
       ],
-      "size_limit": "22020096",
+      "size": 0,
+      "size_limit": 22020096,
       "state_root": "cd7b4f3bd3bffaca66e016b148a1abf90be02f996d725e025b3ebbde8ba55ecc",
       "timestamp": "2022-04-11T11:04:00Z"
     },
     {
       "epoch": 13402,
-      "gas_limit": "0",
+      "gas_limit": 0,
+      "gas_used": 0,
       "hash": "a65b5685e02375f7f155f7835d81024b8ce90430b7c98d114081bb1104b4c9ed",
       "height": 8048959,
       "num_transactions": 5,
@@ -53625,7 +53726,8 @@
           "entity_metadata": null
         }
       ],
-      "size_limit": "22020096",
+      "size": 0,
+      "size_limit": 22020096,
       "state_root": "17cb5a8fa3280e26ee0c8cf1b3ba244afecf995355cd7e037763c0645c0c4538",
       "timestamp": "2022-04-11T11:00:33Z"
     }
