@@ -612,7 +612,7 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) { //nolint:gocyclo
 	}
 	if cfg.Analyzers.MetadataRegistry != nil {
 		analyzers, err = addAnalyzer(analyzers, err, "" /*syncTag*/, func() (A, error) {
-			return metadata_registry.NewAnalyzer(cfg.Analyzers.MetadataRegistry.ItemBasedAnalyzerConfig, dbClient, logger)
+			return metadata_registry.NewAnalyzer(*cfg.Analyzers.MetadataRegistry, dbClient, logger)
 		})
 	}
 	if cfg.Analyzers.ValidatorStakingHistory != nil {

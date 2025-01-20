@@ -2,7 +2,7 @@
   "is_total_count_clipped": false,
   "stats": {
     "total_delegators": 35414,
-    "total_staked_balance": "5708092468704383083",
+    "total_staked_balance": "5708092745980859133",
     "total_voting_power": 307554773957760060
   },
   "total_count": 1,
@@ -28,6 +28,14 @@
         "self_delegation_shares": "8422707392134"
       },
       "in_validator_set": true,
+      "media": {
+        "email": "Michael.fairbairn@rmit.edu.au",
+        "keybase": "mikefairbairn",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "RMIT Blockchain Innovation Hub",
+        "twitter": "BlockchainRMIT",
+        "url": "https://rmitblockchain.io"
+      },
       "node_id": "wqd9Yy3n7TWKfYRn2bI9Hd6/623CfC7NCUoRbQ5UkR8=",
       "rank": 92,
       "signed_blocks": [

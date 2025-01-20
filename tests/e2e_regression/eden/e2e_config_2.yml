@@ -21,9 +21,9 @@ analysis:
     evm_abi_emerald:               { stop_if_queue_empty_for: 10s } # Give evm_contract_verifier time to fetch ABIs first. The 10s has been enough in practice, but might need to be tuned in the future, espcially if the caching proxy has an empty cache.
     evm_contract_verifier_emerald: { stop_if_queue_empty_for: 1s, sourcify_server_url: http://localhost:9191 }
     validator_staking_history:     { from: 16_817_956, stop_if_queue_empty_for: 1s, max_backoff_time: 6s }
+    metadata_registry:             { interval: 5s, stop_if_queue_empty_for: 1s, repository_branch: "nexus-e2e", mock_logo_urls: true }
     # Some non-block analyzers are not tested in e2e regressions.
     # They are largely not worth the trouble as they do not interact with rest of the system much.
-    # metadata_registry: {} # Awkward to inject mock registry responses.
     # node_stats: {}        # Awkward to inject mock node response using the current paradigm (= response caching).
     # aggregate_stats: {}   # Awkward to make stop after a single run.
   storage:

@@ -2,7 +2,7 @@
   "is_total_count_clipped": false,
   "stats": {
     "total_delegators": 35414,
-    "total_staked_balance": "5708092468704383083",
+    "total_staked_balance": "5708092745980859133",
     "total_voting_power": 307554773957760060
   },
   "total_count": 173,
@@ -28,6 +28,14 @@
         "self_delegation_shares": "1397769051063837"
       },
       "in_validator_set": true,
+      "media": {
+        "email": "hi@stake.fish",
+        "keybase": "bflabs",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "stakefish",
+        "twitter": "stakefish",
+        "url": "https://stake.fish"
+      },
       "node_id": "ked2iuR80WQdb4g7l+PqbQKGJAvD4+KVPFwuDc5nU6M=",
       "rank": 1,
       "start_date": "2022-04-11T09:30:00Z",
@@ -55,6 +63,11 @@
         "self_delegation_shares": "3654999708106752"
       },
       "in_validator_set": true,
+      "media": {
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "BinanceStaking",
+        "url": "https://www.binance.com"
+      },
       "node_id": "6wbL5/OxvFGxi55o7AxcwKmfjXbXGC1hw4lfnEZxBXA=",
       "rank": 2,
       "start_date": "2022-04-11T09:30:00Z",
@@ -82,6 +95,14 @@
         "self_delegation_shares": "3603441972199371"
       },
       "in_validator_set": true,
+      "media": {
+        "email": "go@staking.fund",
+        "keybase": "StakingFund",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "Staking Fund",
+        "twitter": "StakingFund",
+        "url": "https://staking.fund"
+      },
       "node_id": "lbxs4hlud9XNloIOdhJPaCahd7HtiY8QATCgGnFfCM0=",
       "rank": 3,
       "start_date": "2022-04-11T09:30:00Z",
@@ -109,6 +130,14 @@
         "self_delegation_shares": "5804069969405252"
       },
       "in_validator_set": true,
+      "media": {
+        "email": "staking@simply-vc.com.mt",
+        "keybase": "simplyvc",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "Simply Staking",
+        "twitter": "Simply_VC",
+        "url": "https://simply-vc.com.mt/"
+      },
       "node_id": "xHvUU4I+dQ4oKvlfe4IXoKi8OT8vdAgfszQ5ciPL6HI=",
       "rank": 4,
       "start_date": "2022-04-11T09:30:00Z",
@@ -136,6 +165,14 @@
         "self_delegation_shares": "5029769362541008"
       },
       "in_validator_set": true,
+      "media": {
+        "email": "techops@chorus.one",
+        "keybase": "chorusoneinc",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "Chorus One",
+        "twitter": "ChorusOne",
+        "url": "https://chorus.one/"
+      },
       "node_id": "SCA1zoR15jpC2eugP1P/CZBQhMjHEtmJ7+hWemgTdWo=",
       "rank": 5,
       "start_date": "2022-04-11T09:30:00Z",
@@ -163,6 +200,12 @@
         "self_delegation_shares": "741574483536457"
       },
       "in_validator_set": true,
+      "media": {
+        "keybase": "oceanabcde",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "Ocean Stake",
+        "url": "https://keybase.io/oceanabcde"
+      },
       "node_id": "aJFHeID4Q7qUfMa42dRwaa9PQrZ/cVDiE3WNt4bQjo0=",
       "rank": 6,
       "start_date": "2022-04-11T09:30:00Z",
@@ -190,6 +233,12 @@
         "self_delegation_shares": "280723158275413"
       },
       "in_validator_set": true,
+      "media": {
+        "email": "based.validator@gmail.com",
+        "keybase": "basedvalidator",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "Based"
+      },
       "node_id": "u0ljAJgP5+HyEykOsa+tEqXdKJD41/5bxJ5tAA9eIxg=",
       "rank": 7,
       "start_date": "2022-04-11T09:30:00Z",
@@ -217,6 +266,13 @@
         "self_delegation_shares": "66153577071452"
       },
       "in_validator_set": true,
+      "media": {
+        "keybase": "stake5labs",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "S5",
+        "twitter": "stake5labs",
+        "url": "https://www.stake5labs.com"
+      },
       "node_id": "ITrwEekdZNqXrEzvw3GT6Q3AtHDd51f19nD2nVU/f0c=",
       "rank": 8,
       "start_date": "2022-04-11T09:30:00Z",
@@ -244,6 +300,13 @@
         "self_delegation_shares": "3740710850231689"
       },
       "in_validator_set": true,
+      "media": {
+        "email": "bitoven@protonmail.com",
+        "keybase": "bitoven",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "Bitoven",
+        "url": "https://bitoven.me"
+      },
       "node_id": "RyR58ibjevY8DqFHaqDfJhe1zm0XeY83hPk78qtcUic=",
       "rank": 9,
       "start_date": "2022-04-11T09:30:00Z",
@@ -271,6 +334,14 @@
         "self_delegation_shares": "3761955588880816"
       },
       "in_validator_set": true,
+      "media": {
+        "email": "hi@bitcat365.com",
+        "keybase": "bitcat365",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "Bit Cat🐱",
+        "twitter": "bitcat365",
+        "url": "https://www.bitcat365.com"
+      },
       "node_id": "4bv9f6NqLf4+6+QII+p48KgpagFXk9PgIdefbuo2spA=",
       "rank": 10,
       "start_date": "2022-04-11T09:30:00Z",
@@ -298,6 +369,14 @@
         "self_delegation_shares": "38760264910641"
       },
       "in_validator_set": true,
+      "media": {
+        "email": "p.pavlov@p2p.org",
+        "keybase": "p2p_org_",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "P2P.ORG - P2P Validator",
+        "twitter": "P2Pvalidator",
+        "url": "https://p2p.org/"
+      },
       "node_id": "5UbIi8RQj4flFn9N8wHjQqp6QwZFJi2QdD2mOYLa/sY=",
       "rank": 11,
       "start_date": "2022-04-11T09:30:00Z",
@@ -325,6 +404,14 @@
         "self_delegation_shares": "369009087734247"
       },
       "in_validator_set": true,
+      "media": {
+        "email": "hello@tessellatedgeometry.com",
+        "keybase": "tessellatedgeo",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "Tessellated Geometry",
+        "twitter": "tessellatedgeo",
+        "url": "https://tessellatedgeometry.com"
+      },
       "node_id": "Y7mD0uNLcWvuRRTgIARWsAhFisb669haOdhZJuc9Tvc=",
       "rank": 12,
       "start_date": "2022-04-11T09:30:00Z",
@@ -352,6 +439,14 @@
         "self_delegation_shares": "623409961036854"
       },
       "in_validator_set": true,
+      "media": {
+        "email": "contact@hashed.com",
+        "keybase": "hashed_delight",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "Hashed x DELIGHT",
+        "twitter": "hashed_official",
+        "url": "https://hashed.com"
+      },
       "node_id": "HnLtoQyiKOkr2NMcQsQ4UH0HW8qkLRGWn4mgkDLNoEo=",
       "rank": 13,
       "start_date": "2022-04-11T09:30:00Z",
@@ -379,6 +474,13 @@
         "self_delegation_shares": "464740279253032"
       },
       "in_validator_set": true,
+      "media": {
+        "email": "marssuper@outlook.com",
+        "keybase": "marssuper",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "Mars Staking | Long term fee 1%",
+        "url": "https://linktr.ee/marssuper"
+      },
       "node_id": "QtzFQlvzg+9999TIUZSCrvvhPUyGKp4HxXC4M1SfgVk=",
       "rank": 14,
       "start_date": "2022-04-11T09:30:00Z",
@@ -406,6 +508,14 @@
         "self_delegation_shares": "162069162053385"
       },
       "in_validator_set": true,
+      "media": {
+        "email": "support@rockx.com",
+        "keybase": "rockxrocks",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "RockX",
+        "twitter": "rockx_official",
+        "url": "https://rockx.com"
+      },
       "node_id": "3xkzy9g5wL1sqGY8cnd6A7kFuwFM4yuUt0nEJrdHNJ0=",
       "rank": 15,
       "start_date": "2022-04-11T09:30:00Z",
@@ -433,6 +543,14 @@
         "self_delegation_shares": "82921098441136"
       },
       "in_validator_set": true,
+      "media": {
+        "email": "tequila@moonli.me",
+        "keybase": "y3v63n",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "moonli.me",
+        "twitter": "moonli_me",
+        "url": "https://moonli.me"
+      },
       "node_id": "1Eh9S7bnBnYzhdMuRc8W1DtGsjgMptbRktoE7tw/HiA=",
       "rank": 16,
       "start_date": "2022-04-11T09:30:00Z",
@@ -460,6 +578,14 @@
         "self_delegation_shares": "65721727646490"
       },
       "in_validator_set": true,
+      "media": {
+        "email": "inbox@everstake.one",
+        "keybase": "everstake",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "Everstake",
+        "twitter": "everstake_pool",
+        "url": "https://everstake.one"
+      },
       "node_id": "+CS8pbR8HUix6kGpUQjCv/QxMLVp9J8MkFuV+w6yRbM=",
       "rank": 17,
       "start_date": "2022-04-11T09:30:00Z",
@@ -487,6 +613,14 @@
         "self_delegation_shares": "2217415443539545"
       },
       "in_validator_set": true,
+      "media": {
+        "email": "info@forbole.com",
+        "keybase": "forbole",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "Forbole",
+        "twitter": "forbole",
+        "url": "https://forbole.com"
+      },
       "node_id": "IEkIQb2o8l0xlFIpN47FmOYcBmFch9DsZGs8OuZqQ6g=",
       "rank": 18,
       "start_date": "2022-04-11T09:30:00Z",
@@ -514,6 +648,13 @@
         "self_delegation_shares": "145782069126346"
       },
       "in_validator_set": true,
+      "media": {
+        "keybase": "26FA2B24F46A98EF",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "Wetez",
+        "twitter": "Wetez_wallet",
+        "url": "https://www.wetez.io"
+      },
       "node_id": "4Tz2fSohCN3mm3I9sA6hAQMv/8nmj4ssIXKoOBnxBek=",
       "rank": 19,
       "start_date": "2022-04-11T09:30:00Z",
@@ -595,6 +736,13 @@
         "self_delegation_shares": "1771612338432490"
       },
       "in_validator_set": true,
+      "media": {
+        "email": "info@realizable.com",
+        "keybase": "realizable",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "Realizable",
+        "url": "https://www.realizable.com/"
+      },
       "node_id": "MnmXWIpf1hEok0rIcynmHfYR6kvWuyH6VdCJARVN5oY=",
       "rank": 22,
       "start_date": "2022-04-11T09:30:00Z",
@@ -622,6 +770,14 @@
         "self_delegation_shares": "33833649696905"
       },
       "in_validator_set": true,
+      "media": {
+        "email": "yuanjun@bitopia.cn",
+        "keybase": "bitopia",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "Nodeasy",
+        "twitter": "Nodeasy",
+        "url": "https://www.nodeasy.com"
+      },
       "node_id": "dMaOtmpPbdB7ukYfXdo+ssTTCjX2Qspmi1YJIg5Hcr0=",
       "rank": 23,
       "start_date": "2022-04-11T09:30:00Z",
@@ -676,6 +832,14 @@
         "self_delegation_shares": "180993522827875"
       },
       "in_validator_set": true,
+      "media": {
+        "email": "devops@staked.us",
+        "keybase": "stakedinc",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "Staked",
+        "twitter": "staked_us",
+        "url": "https://staked.us"
+      },
       "node_id": "SW5hffFy0nOLvIfmbkFk9to5NFO8w+QxkxiAfx4a094=",
       "rank": 25,
       "start_date": "2022-04-11T09:30:00Z",
@@ -703,6 +867,13 @@
         "self_delegation_shares": "2807632803213450"
       },
       "in_validator_set": true,
+      "media": {
+        "email": "support@blockdaemon.com",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "Blockdaemon",
+        "twitter": "_blockdaemon",
+        "url": "https://blockdaemon.com"
+      },
       "node_id": "25hzSeb4IPl2+wsn2LPe7hw9IlLmfj1aTdO36XAaB1s=",
       "rank": 26,
       "start_date": "2022-04-11T09:30:00Z",
@@ -730,6 +901,13 @@
         "self_delegation_shares": "1582699624748538"
       },
       "in_validator_set": true,
+      "media": {
+        "email": "hello@wolfedge.capital",
+        "keybase": "wolfedge",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "WolfEdge Capital",
+        "url": "https://wolfedge.capital/"
+      },
       "node_id": "QFAWexckwRHNxkIty67NCpY8LHwlrcGp/v0ziDSlgFs=",
       "rank": 27,
       "start_date": "2022-04-11T09:30:00Z",
@@ -784,6 +962,13 @@
         "self_delegation_shares": "24192849197298"
       },
       "in_validator_set": true,
+      "media": {
+        "email": "bambarello@keybase.io",
+        "keybase": "bambarello",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "Alexander (aka Bambarello) Validator",
+        "url": "https://keybase.io/bambarello"
+      },
       "node_id": "4rUqFOE27urnaltMm2XqyuxcghXs4xRep3AV3mXSTt4=",
       "rank": 29,
       "start_date": "2022-04-11T09:30:00Z",
@@ -811,6 +996,13 @@
         "self_delegation_shares": "117962242750985"
       },
       "in_validator_set": true,
+      "media": {
+        "keybase": "ushakov",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "ushakov",
+        "twitter": "1lucky_star",
+        "url": "https://stake2.me"
+      },
       "node_id": "jZ2/EOnpmPCxCfd5wrrLINNdZSPWyhIx9UqJgZ8sHYk=",
       "rank": 30,
       "start_date": "2022-04-11T09:30:00Z",
@@ -865,6 +1057,12 @@
         "self_delegation_shares": "53877285783907"
       },
       "in_validator_set": true,
+      "media": {
+        "keybase": "julia_ju",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "Julia-Ju",
+        "url": "https://keybase.io/julia_ju"
+      },
       "node_id": "AVQbWvlbKOHi3z8uibbOVl3xsCJsw2YtWG5XXdbhhpI=",
       "rank": 32,
       "start_date": "2022-04-11T09:30:00Z",
@@ -919,6 +1117,13 @@
         "self_delegation_shares": "573742573316710"
       },
       "in_validator_set": true,
+      "media": {
+        "email": "info@blockog.capital",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "BlockOG Capital",
+        "twitter": "prateek_jain321",
+        "url": "https://blockog.capital/"
+      },
       "node_id": "UVpVC08tK+uPlx9s5JXbranCodW8q4cPLjrtzY5D7q8=",
       "rank": 34,
       "start_date": "2022-04-11T09:30:00Z",
@@ -946,6 +1151,13 @@
         "self_delegation_shares": "799111641177122"
       },
       "in_validator_set": true,
+      "media": {
+        "email": "aionsmartstake@gmail.com",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "Smart Stake",
+        "twitter": "smartstake",
+        "url": "https://smartstake.io"
+      },
       "node_id": "eudq22Uwt0ciC7/BYN3TsUy+MCataTkQjwS/BBlgvJE=",
       "rank": 35,
       "start_date": "2022-04-11T09:30:00Z",
@@ -973,6 +1185,14 @@
         "self_delegation_shares": "2542458008637154"
       },
       "in_validator_set": true,
+      "media": {
+        "email": "contact@vitwit.com",
+        "keybase": "vitwiter",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "Witval",
+        "twitter": "vitwit_",
+        "url": "https://www.vitwit.com/"
+      },
       "node_id": "jezrY6n61D/wD39nZKC+LpYfOZt5AN8gZ5SWu9vypD8=",
       "rank": 36,
       "start_date": "2022-04-11T09:30:00Z",
@@ -1000,6 +1220,12 @@
         "self_delegation_shares": "53000148049507"
       },
       "in_validator_set": true,
+      "media": {
+        "keybase": "wanderer_s",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "Wanderer Staking",
+        "url": "https://keybase.io/wanderer_s"
+      },
       "node_id": "XanOOptLq+tmEky6Olf3dVO6HZcUJs8f6ESxIvMmO0E=",
       "rank": 37,
       "start_date": "2022-04-11T09:30:00Z",
@@ -1027,6 +1253,12 @@
         "self_delegation_shares": "29971203264872"
       },
       "in_validator_set": true,
+      "media": {
+        "keybase": "code_breader",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "Breathe and Stake",
+        "url": "https://keybase.io/code_breader"
+      },
       "node_id": "ioLADiyiFmIms+8fib3N36/TX5XEnHrs2vWcH5LxHGo=",
       "rank": 38,
       "start_date": "2022-04-11T09:30:00Z",
@@ -1081,6 +1313,14 @@
         "self_delegation_shares": "1496744463336458"
       },
       "in_validator_set": true,
+      "media": {
+        "email": "0@0base.vc",
+        "keybase": "0basevc",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "0base.vc",
+        "twitter": "0basevc",
+        "url": "https://0base.vc"
+      },
       "node_id": "AZJhDCByjr/YdTvA7uFnIeYcg7iuHPGiDrJRKaEOYHA=",
       "rank": 40,
       "start_date": "2022-04-11T09:30:00Z",
@@ -1135,6 +1375,13 @@
         "self_delegation_shares": "46705721468808"
       },
       "in_validator_set": true,
+      "media": {
+        "email": "info@making.cash",
+        "keybase": "makingcash",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "Making.Cash Validator",
+        "url": "https://www.making.cash"
+      },
       "node_id": "JThJEQbC1iFVbdy6nFz6mSwChY5xgnOwbWAV3igG6mE=",
       "rank": 42,
       "start_date": "2022-04-11T09:30:00Z",
@@ -1162,6 +1409,10 @@
         "self_delegation_shares": "151735948017297"
       },
       "in_validator_set": true,
+      "media": {
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "BlockOps"
+      },
       "node_id": "0NNKQ47YtOqSioa05EBWgW9Lrh8vQlp2Fe9q3uzdoxk=",
       "rank": 43,
       "start_date": "2022-04-11T09:30:00Z",
@@ -1216,6 +1467,12 @@
         "self_delegation_shares": "96208698544173"
       },
       "in_validator_set": true,
+      "media": {
+        "keybase": "Alexandr0",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "alexandr0",
+        "twitter": "padygumuk51"
+      },
       "node_id": "I/Vnwyi7FJdROFe64fbaqE3t55OLcUBY8hVK64VNrqc=",
       "rank": 45,
       "start_date": "2022-04-11T09:30:00Z",
@@ -1243,6 +1500,14 @@
         "self_delegation_shares": "1702134010340006"
       },
       "in_validator_set": true,
+      "media": {
+        "email": "contact@ubik.capital",
+        "keybase": "ubikcosmos",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "Ubik Capital",
+        "twitter": "ubikcapital",
+        "url": "https://ubik.capital"
+      },
       "node_id": "GrfIMoanLXIPuS91RhqdikNLcebWN26tMM2/iIA8cAE=",
       "rank": 46,
       "start_date": "2022-04-11T09:30:00Z",
@@ -1270,6 +1535,14 @@
         "self_delegation_shares": "149195786952388"
       },
       "in_validator_set": true,
+      "media": {
+        "email": "contact@blockscale.net",
+        "keybase": "lukeyoungblood",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "Blockscale - Planet-Scale Blockchain Services",
+        "twitter": "blockscale",
+        "url": "https://blockscale.net/"
+      },
       "node_id": "+7Jku1SXiunTIHYxYNu4WGNo2g3uSQh2bXych4f1fDc=",
       "rank": 47,
       "start_date": "2022-04-11T09:30:00Z",
@@ -1297,6 +1570,12 @@
         "self_delegation_shares": "81222265311548"
       },
       "in_validator_set": true,
+      "media": {
+        "keybase": "sukhov",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "max999",
+        "twitter": "ValyaSukhov"
+      },
       "node_id": "ejPrx9xTpKV3GTZgthFQWf3UPMFFBseRtc0A17ak1TU=",
       "rank": 48,
       "start_date": "2022-04-11T09:30:00Z",
@@ -1324,6 +1603,14 @@
         "self_delegation_shares": "735131791970"
       },
       "in_validator_set": true,
+      "media": {
+        "email": "haizhitiantang1@163.com",
+        "keybase": "haizhitiantang",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "itokenpool",
+        "twitter": "itokenpool",
+        "url": "https://www.itokenpool.com"
+      },
       "node_id": "Kv7anzrQTWYDQRLCo1/pkMRV65HpvJCvSEjO/R8wHkc=",
       "rank": 49,
       "start_date": "2022-04-11T09:30:00Z",
@@ -1351,6 +1638,13 @@
         "self_delegation_shares": "46127949109447"
       },
       "in_validator_set": true,
+      "media": {
+        "email": "staking@gunray.xyz",
+        "keybase": "gunray",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "gunray",
+        "url": "https://gunray.xyz"
+      },
       "node_id": "LHA2Gbme/AReIFXmxwD9m/Ae8sZ1d2U/DFRfecT72YM=",
       "rank": 50,
       "start_date": "2022-04-11T09:30:00Z",
@@ -1378,6 +1672,13 @@
         "self_delegation_shares": "1435863965443792"
       },
       "in_validator_set": true,
+      "media": {
+        "keybase": "CB79CF86DBD56A19",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "HashKey Cloud",
+        "twitter": "HashKeyCloud",
+        "url": "https://www.hashkey.cloud/"
+      },
       "node_id": "K5roq8kvag0dzkdauemq4PLfQG/rA4ZeItZ/op2PfGo=",
       "rank": 51,
       "start_date": "2022-04-11T09:30:00Z",
@@ -1405,6 +1706,14 @@
         "self_delegation_shares": "19553332129065"
       },
       "in_validator_set": true,
+      "media": {
+        "email": "contact@aitivity.com",
+        "keybase": "jrastit",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "Jr",
+        "twitter": "zgenerator",
+        "url": "https://aitivity.com"
+      },
       "node_id": "1TDnq8Ps6agmT5CiS6CdIOj9D8sVWvr+AYX8wQ1u5HQ=",
       "rank": 52,
       "start_date": "2022-04-11T09:30:00Z",
@@ -1432,6 +1741,13 @@
         "self_delegation_shares": "686217951741600"
       },
       "in_validator_set": true,
+      "media": {
+        "email": "oasis@oxnode.org",
+        "keybase": "oxnodeorg",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "Oxnode",
+        "url": "https://oxnode.org"
+      },
       "node_id": "0/0TJw2+i1XVYn3Z7igQSpdGoZ0cFdyI4GVcopmH2hI=",
       "rank": 53,
       "start_date": "2022-04-11T09:30:00Z",
@@ -1486,6 +1802,14 @@
         "self_delegation_shares": "1060201632400238"
       },
       "in_validator_set": true,
+      "media": {
+        "email": "validator@huglester.com",
+        "keybase": "huglester",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "huglester.com",
+        "twitter": "huglester",
+        "url": "https://huglester.com/"
+      },
       "node_id": "RClDxygiGYEFeO90jnfHAIXm2QrP5TNQ5F50N77zKY4=",
       "rank": 55,
       "start_date": "2022-04-11T09:30:00Z",
@@ -1513,6 +1837,12 @@
         "self_delegation_shares": "340667133659588"
       },
       "in_validator_set": true,
+      "media": {
+        "keybase": "thecovertcrypto",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "ou812",
+        "url": "https://www.kruptosnomisma.org/"
+      },
       "node_id": "9R8sWVuwyIoE64JXu2sdDWR6vdqFr/X9aEWvPE8G824=",
       "rank": 56,
       "start_date": "2022-04-11T09:30:00Z",
@@ -1540,6 +1870,14 @@
         "self_delegation_shares": "200000000000"
       },
       "in_validator_set": true,
+      "media": {
+        "email": "hello@staky.io",
+        "keybase": "staky",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "Staky.io",
+        "twitter": "staky_validator",
+        "url": "https://staky.io"
+      },
       "node_id": "vBGuFf/8tdEMQPiiPggnLlWT9aCbIQgNcRM+EKh2kX0=",
       "rank": 57,
       "start_date": "2022-04-11T09:30:00Z",
@@ -1594,6 +1932,12 @@
         "self_delegation_shares": "301579496544393"
       },
       "in_validator_set": true,
+      "media": {
+        "keybase": "munaynetwork",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "Munay Network",
+        "twitter": "MunayNetwork"
+      },
       "node_id": "7E5It9hRik5ndQ1QtL3blTAX3pXSoPZPhGfLMQvbA+Q=",
       "rank": 59,
       "start_date": "2022-04-11T09:30:00Z",
@@ -1621,6 +1965,12 @@
         "self_delegation_shares": "70766803119385"
       },
       "in_validator_set": true,
+      "media": {
+        "email": "dlt@um.edu.mt",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "University of Malta - Centre for DLT",
+        "url": "https://www.um.edu.mt/dlt"
+      },
       "node_id": "6XcILTcGhjvVaWI/tRvZfUTp4huxgg6OBvFQrNmx9DY=",
       "rank": 60,
       "start_date": "2022-04-11T09:30:00Z",
@@ -1675,6 +2025,14 @@
         "self_delegation_shares": "30232730704483"
       },
       "in_validator_set": true,
+      "media": {
+        "email": "support@citadel.one",
+        "keybase": "krewedk0",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "Citadel.one",
+        "twitter": "CitadelDAO",
+        "url": "https://citadel.one"
+      },
       "node_id": "apKOntFDXWhpOfYAn1r84IWDG2KGBBAox4usIDhZcns=",
       "rank": 62,
       "start_date": "2022-04-11T09:30:00Z",
@@ -1702,6 +2060,14 @@
         "self_delegation_shares": "453291237811441"
       },
       "in_validator_set": true,
+      "media": {
+        "email": "doorgod42@gmail.com",
+        "keybase": "doorgod",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "Doorgod",
+        "twitter": "doorgod42",
+        "url": "https://doorgod42.github.io"
+      },
       "node_id": "pjWGVgRla8SJGvBWIP5gPPHgxsr1c2EOsUP5KJvQjgk=",
       "rank": 63,
       "start_date": "2022-04-11T09:30:00Z",
@@ -1729,6 +2095,12 @@
         "self_delegation_shares": "13730798959190"
       },
       "in_validator_set": true,
+      "media": {
+        "keybase": "princess_stake",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "Princess Stake",
+        "url": "https://princess-stake.github.io/"
+      },
       "node_id": "KqZ9G3aPJebYACkVTSiYxZJ3vJcsyHz+2f4Jyp5E8AM=",
       "rank": 64,
       "start_date": "2022-04-11T09:30:00Z",
@@ -1756,6 +2128,14 @@
         "self_delegation_shares": "48270879123243"
       },
       "in_validator_set": true,
+      "media": {
+        "email": "oasis@starduststaking.com",
+        "keybase": "stardust_staking",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "Stardust",
+        "twitter": "DenysK59319343",
+        "url": "https://starduststaking.com"
+      },
       "node_id": "REB7DjPPyYCknxakN3MyAOS746YWJtgE41g9ac+oZXU=",
       "rank": 65,
       "start_date": "2022-04-11T09:30:00Z",
@@ -1783,6 +2163,13 @@
         "self_delegation_shares": "183227834657033"
       },
       "in_validator_set": true,
+      "media": {
+        "email": "info@fs-blockchain.de",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "Frankfurt School Blockchain Center",
+        "twitter": "fsblockchain",
+        "url": "https://fs.de/blockchain"
+      },
       "node_id": "h8I6YXqxPe9f7zjDcObn/lnhMyPEMyPglpGpHunOx50=",
       "rank": 66,
       "start_date": "2022-04-11T09:30:00Z",
@@ -1810,6 +2197,14 @@
         "self_delegation_shares": "97327042861811"
       },
       "in_validator_set": true,
+      "media": {
+        "email": "perfectstake@gmail.com",
+        "keybase": "perfectstake",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "Perfect Stake",
+        "twitter": "perfectstake",
+        "url": "https://perfectstake.com"
+      },
       "node_id": "IdElhqKVZCHY9Lo6222te1wSdhPPAz/OCsoSRkWrXXw=",
       "rank": 67,
       "start_date": "2022-04-11T09:30:00Z",
@@ -1837,6 +2232,14 @@
         "self_delegation_shares": "348463474308221"
       },
       "in_validator_set": true,
+      "media": {
+        "email": "cherideal@gmail.com",
+        "keybase": "hybridxexchange",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "hybridx.exchange",
+        "twitter": "HybridxExchange",
+        "url": "https://hybridx.exchange"
+      },
       "node_id": "bOfhQD3tB9nyfyX9WC4J/fZ59HzVAqd6gQ8n+m9DY1g=",
       "rank": 68,
       "start_date": "2022-04-11T09:30:00Z",
@@ -1864,6 +2267,14 @@
         "self_delegation_shares": "39126200142124"
       },
       "in_validator_set": true,
+      "media": {
+        "email": "info@spectrumstaking.net",
+        "keybase": "spectrum_staking",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "Spectrum Staking",
+        "twitter": "SpectrumStaking",
+        "url": "https://spectrumstaking.net"
+      },
       "node_id": "jVPUq8aUDKe9jawIs7wPB4NBml27ft5kICIY7SBh/yQ=",
       "rank": 69,
       "start_date": "2022-04-11T09:30:00Z",
@@ -1891,6 +2302,12 @@
         "self_delegation_shares": "172554407247046"
       },
       "in_validator_set": true,
+      "media": {
+        "keybase": "cherkes",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "cherkes",
+        "twitter": "CryptoMad77"
+      },
       "node_id": "GY1goAIuGGSeVrhjhgVAp4JB0y6l3P5+TnozeBxu/kw=",
       "rank": 70,
       "start_date": "2022-04-11T09:30:00Z",
@@ -1918,6 +2335,14 @@
         "self_delegation_shares": "71764420038582"
       },
       "in_validator_set": true,
+      "media": {
+        "email": "hello@gateomega.com",
+        "keybase": "gateomega",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "GateOmega",
+        "twitter": "GateOmega",
+        "url": "https://gateomega.com"
+      },
       "node_id": "GYJsEu4Yp+CGEQVjy4owQAG6l6xEvGzcNM1xBHaEv6U=",
       "rank": 71,
       "start_date": "2022-04-11T09:30:00Z",
@@ -1945,6 +2370,13 @@
         "self_delegation_shares": "41151349683749"
       },
       "in_validator_set": true,
+      "media": {
+        "email": "vanya_shakhmin@mail.ru",
+        "keybase": "tuzem",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "Tuzem",
+        "twitter": "Staker445"
+      },
       "node_id": "igLfuIxxqZATg0snKVTFoeRaqrlNq5r69ofncwlUA8I=",
       "rank": 72,
       "start_date": "2022-04-11T09:30:00Z",
@@ -1972,6 +2404,11 @@
         "self_delegation_shares": "40228316826358"
       },
       "in_validator_set": true,
+      "media": {
+        "keybase": "bromyb",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "BroMyb"
+      },
       "node_id": "e5ebJbZikm11u56wEOM9Ka1uVUS1Pckgc8RGmahs8Ss=",
       "rank": 73,
       "start_date": "2022-04-11T09:30:00Z",
@@ -1999,6 +2436,13 @@
         "self_delegation_shares": "1859746677366"
       },
       "in_validator_set": true,
+      "media": {
+        "keybase": "crazysergo",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "SerGo",
+        "twitter": "SGolovatenko",
+        "url": "https://sergo.top/"
+      },
       "node_id": "6drUHh4qocfbBsA12qM8pTerEcbqhdaHt+v33sEr5kk=",
       "rank": 74,
       "start_date": "2022-04-11T09:30:00Z",
@@ -2026,6 +2470,12 @@
         "self_delegation_shares": "3392886048896"
       },
       "in_validator_set": true,
+      "media": {
+        "email": "glebanyy@yandex.ru",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "glebanyy",
+        "url": "https://t.me/glebanyy"
+      },
       "node_id": "CPLy/FYKtIVK7JOspFi3G1Afkurqmh2tAtiDq4rnSfI=",
       "rank": 75,
       "start_date": "2022-04-11T09:30:00Z",
@@ -2053,6 +2503,11 @@
         "self_delegation_shares": "2000345759297"
       },
       "in_validator_set": true,
+      "media": {
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "RedHead",
+        "twitter": "Red__Head"
+      },
       "node_id": "y6LXNa3NMtZzeXnz9GNBj9MZuSCwBvfBLkZu2YG2fU4=",
       "rank": 76,
       "start_date": "2022-04-11T09:30:00Z",
@@ -2080,6 +2535,12 @@
         "self_delegation_shares": "1208677222002"
       },
       "in_validator_set": true,
+      "media": {
+        "email": "rusakhmadeev@gmail.com",
+        "keybase": "hukutu4",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "Dobrynya Hukutu4"
+      },
       "node_id": "Y/wwhwec6KZFgmM25vKNCTw1FS71/9iv5Q2lWtFX2PA=",
       "rank": 77,
       "start_date": "2022-04-11T09:30:00Z",
@@ -2107,6 +2568,11 @@
         "self_delegation_shares": "1719980963798"
       },
       "in_validator_set": true,
+      "media": {
+        "email": "cryptolusia@protonmail.com",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "Lusia"
+      },
       "node_id": "5GNoYx8mSk4PjcXLyi2I50Bw7n1ATsqAtttVjRzTuEY=",
       "rank": 78,
       "start_date": "2022-04-11T09:30:00Z",
@@ -2134,6 +2600,13 @@
         "self_delegation_shares": "38021610307467"
       },
       "in_validator_set": true,
+      "media": {
+        "email": "alive29@yandex.ru",
+        "keybase": "alive29",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "Alive29",
+        "url": "https://keybase.io/alive29"
+      },
       "node_id": "VHs9SQr/IC3ElqF1rNxFuCrkx/pWbhy46So19MQlZLE=",
       "rank": 79,
       "start_date": "2022-04-11T09:30:00Z",
@@ -2161,6 +2634,14 @@
         "self_delegation_shares": "241282706522651"
       },
       "in_validator_set": true,
+      "media": {
+        "email": "tech@stakeservice.com",
+        "keybase": "stakeservice",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "StakeService",
+        "twitter": "stakeservice",
+        "url": "https://stakeservice.com/"
+      },
       "node_id": "HZGW8QfuMUv/JEa1HqT19HrGTdJY3mWH4nogaWrWK+0=",
       "rank": 80,
       "start_date": "2022-04-11T09:30:00Z",
@@ -2188,6 +2669,12 @@
         "self_delegation_shares": "283370244743704"
       },
       "in_validator_set": true,
+      "media": {
+        "keybase": "elysium1",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "ELYSIUM",
+        "twitter": "ceron_trader"
+      },
       "node_id": "orWbpXiShG+xIy/BxDtokUdZwNCg3A4oNSbqkpjbvZQ=",
       "rank": 81,
       "start_date": "2022-04-11T09:30:00Z",
@@ -2215,6 +2702,12 @@
         "self_delegation_shares": "63492163054729"
       },
       "in_validator_set": true,
+      "media": {
+        "keybase": "ludasik",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "LDV",
+        "url": "https://keybase.io/ludasik"
+      },
       "node_id": "MDvOFuiehs/VbW/s0e6DTn5b4fnsteQhCVd9E7T80Hs=",
       "rank": 82,
       "start_date": "2022-04-11T09:30:00Z",
@@ -2242,6 +2735,14 @@
         "self_delegation_shares": "38325124243730"
       },
       "in_validator_set": true,
+      "media": {
+        "email": "tristan.foureur@gmail.com",
+        "keybase": "esya",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "Esya's node",
+        "twitter": "esyacreations",
+        "url": "https://github.com/esya"
+      },
       "node_id": "mRRMUc8eU8zbqUWAiHDiBeRo6wqVImqQs91TxkGjuuU=",
       "rank": 83,
       "start_date": "2022-04-11T09:30:00Z",
@@ -2269,6 +2770,14 @@
         "self_delegation_shares": "5876962776471"
       },
       "in_validator_set": true,
+      "media": {
+        "email": "staking@datax.io",
+        "keybase": "dataxstaking",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "Datax Staking",
+        "twitter": "DataxStaking",
+        "url": "https://datax.io/staking/"
+      },
       "node_id": "DGntJaRFwLUKi879qSLbt1uP3w5cE5vMAlYMispiaFE=",
       "rank": 84,
       "start_date": "2022-04-11T09:30:00Z",
@@ -2296,6 +2805,14 @@
         "self_delegation_shares": "5631174074946"
       },
       "in_validator_set": true,
+      "media": {
+        "email": "validatrium@gmail.com",
+        "keybase": "validatrium",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "Validatrium.com",
+        "twitter": "validatrium",
+        "url": "https://www.validatrium.com"
+      },
       "node_id": "oFa261SRphbFBQ+QW6xcd9SZBMJrzsmDrYecSblNHv0=",
       "rank": 85,
       "start_date": "2022-04-11T09:30:00Z",
@@ -2323,6 +2840,11 @@
         "self_delegation_shares": "1228495606738739"
       },
       "in_validator_set": true,
+      "media": {
+        "keybase": "jcjs",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "Cypherpunk Capital"
+      },
       "node_id": "jqnsVyewFRvmYhhf4y0HoKXlMJkKQtdsnglqoOaAr2c=",
       "rank": 86,
       "start_date": "2022-04-11T09:30:00Z",
@@ -2350,6 +2872,12 @@
         "self_delegation_shares": "0"
       },
       "in_validator_set": true,
+      "media": {
+        "email": "nodes@spherical.one",
+        "keybase": "sphericalone",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "Spherical One"
+      },
       "node_id": "pnzDjfjrjsN+7TZJSw/HzZq+jA6HN3jPsSEOkh9kKWE=",
       "rank": 87,
       "start_date": "2022-04-11T09:30:00Z",
@@ -2377,6 +2905,14 @@
         "self_delegation_shares": "6257206700773"
       },
       "in_validator_set": true,
+      "media": {
+        "email": "hello@01node.com",
+        "keybase": "01node",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "01node",
+        "twitter": "01node",
+        "url": "https://01node.com"
+      },
       "node_id": "U7xmDzxndm9uL4qfFWau6d1dadgeH2yEP6q1L332lTE=",
       "rank": 88,
       "start_date": "2022-04-11T09:30:00Z",
@@ -2404,6 +2940,12 @@
         "self_delegation_shares": "1404029083245174"
       },
       "in_validator_set": true,
+      "media": {
+        "keybase": "kumaji",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "Kumaji",
+        "twitter": "RathBlayde"
+      },
       "node_id": "ao6m4qMGefemuUiwr6GoqxaeWoX14uQ7YTxTajKADQg=",
       "rank": 89,
       "start_date": "2022-04-11T09:30:00Z",
@@ -2431,6 +2973,14 @@
         "self_delegation_shares": "91691395478405"
       },
       "in_validator_set": true,
+      "media": {
+        "email": "support@bi23.com",
+        "keybase": "sunxmldapp",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "Bi23 Labs",
+        "twitter": "bi23com",
+        "url": "https://bi23.com"
+      },
       "node_id": "5RIMVgnsN1D/HdvNxXCpE+lWH5U/SGYUrYsvhsTMbyA=",
       "rank": 90,
       "start_date": "2022-04-11T09:30:00Z",
@@ -2458,6 +3008,14 @@
         "self_delegation_shares": "200000000000"
       },
       "in_validator_set": true,
+      "media": {
+        "email": "support@autostake.net",
+        "keybase": "autostake",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "AutoStake 🛡️ Slash Protected",
+        "twitter": "AutoStake_",
+        "url": "https://autostake.net"
+      },
       "node_id": "hM2SObJhWRiFvIsGnplNPP9TgUkMMAD6Aynu+D0ry1E=",
       "rank": 91,
       "start_date": "2022-04-11T09:30:00Z",
@@ -2485,6 +3043,14 @@
         "self_delegation_shares": "8422707392134"
       },
       "in_validator_set": true,
+      "media": {
+        "email": "Michael.fairbairn@rmit.edu.au",
+        "keybase": "mikefairbairn",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "RMIT Blockchain Innovation Hub",
+        "twitter": "BlockchainRMIT",
+        "url": "https://rmitblockchain.io"
+      },
       "node_id": "wqd9Yy3n7TWKfYRn2bI9Hd6/623CfC7NCUoRbQ5UkR8=",
       "rank": 92,
       "start_date": "2022-04-11T09:30:00Z",
@@ -2512,6 +3078,14 @@
         "self_delegation_shares": "239092644732"
       },
       "in_validator_set": true,
+      "media": {
+        "email": "hello@ankastake.com",
+        "keybase": "ankastake",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "AnkaStake",
+        "twitter": "ankastake",
+        "url": "https://www.ankastake.com/"
+      },
       "node_id": "2cCzBxxmU/xnZwBf7aEoPiKXx5JWURZrkfHHXML8bmk=",
       "rank": 93,
       "start_date": "2022-04-11T09:30:00Z",
@@ -2539,6 +3113,14 @@
         "self_delegation_shares": "500000000000"
       },
       "in_validator_set": true,
+      "media": {
+        "email": "welcome@hackdsystem.com",
+        "keybase": "HackdSystem",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "Hack'dSystem",
+        "twitter": "HackdSystem",
+        "url": "https://hackdsystem.com"
+      },
       "node_id": "e4QCCt29Klvx1d8NsuJIUwxBmvq/soDhx6zSXG35IDo=",
       "rank": 94,
       "start_date": "2022-04-11T09:30:00Z",
@@ -2566,6 +3148,14 @@
         "self_delegation_shares": "3200000000000"
       },
       "in_validator_set": true,
+      "media": {
+        "email": "contact@aitivity.com",
+        "keybase": "jrastit",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "Jr",
+        "twitter": "zgenerator",
+        "url": "https://aitivity.com"
+      },
       "node_id": "IE9harmC4ZLU5fU9viDwuR4MKwuNVy7Di8mV51K39oM=",
       "rank": 95,
       "start_date": "2022-04-11T09:30:00Z",
@@ -2593,6 +3183,13 @@
         "self_delegation_shares": "200000297616"
       },
       "in_validator_set": true,
+      "media": {
+        "keybase": "moonstake",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "Moonstake",
+        "twitter": "moonstake",
+        "url": "https://moonstake.io"
+      },
       "node_id": "g1N1PdE7dBT5yYyhCbVa44637hhsIpIH8EF8gFlmiIQ=",
       "rank": 96,
       "start_date": "2022-04-11T09:30:00Z",
@@ -2647,6 +3244,14 @@
         "self_delegation_shares": "2448321442835035"
       },
       "in_validator_set": false,
+      "media": {
+        "email": "hi@bisontrails.co",
+        "keybase": "coinbasecloud",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "Coinbase Cloud",
+        "twitter": "CoinbaseCloud",
+        "url": "https://coinbase.com/cloud"
+      },
       "node_id": "ZsA76RMHOOMS4tJhoCM0X1T6TN+JmFyXGWz54WBnw14=",
       "rank": 98,
       "start_date": "2022-04-11T09:30:00Z",
@@ -2674,6 +3279,14 @@
         "self_delegation_shares": "551230617554431"
       },
       "in_validator_set": false,
+      "media": {
+        "email": "dcccapital123@gmail.com",
+        "keybase": "dcccapital",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "DCC Capital",
+        "twitter": "dcccapital",
+        "url": "https://dcc.capital/"
+      },
       "node_id": "+zVbgQqOdY90Z2NQKXFByNT0OwLxj/Ho4j4qT5u2yKM=",
       "rank": 99,
       "start_date": "2022-04-11T09:30:00Z",
@@ -2701,6 +3314,14 @@
         "self_delegation_shares": "33186757363179"
       },
       "in_validator_set": false,
+      "media": {
+        "email": "contact@infstones.com",
+        "keybase": "infstones",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "InfStones",
+        "twitter": "infstones",
+        "url": "https://infstones.com"
+      },
       "node_id": "skPNqlh8lnR83RyK2clbAscktu5jY/fWq5OzcSZL6Iw=",
       "rank": 100,
       "start_date": "2022-04-11T09:30:00Z",
@@ -2728,6 +3349,12 @@
         "self_delegation_shares": "1533084290762491"
       },
       "in_validator_set": false,
+      "media": {
+        "email": "huobipool@huobi.com",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "HuobiPool",
+        "url": "https://huobipool.com"
+      },
       "node_id": "/6Dm7sBPDRXL4maL+RVHFHb3JCxZw5u6Fn0cfSxeolg=",
       "rank": 101,
       "start_date": "2022-04-11T09:30:00Z",
@@ -2755,6 +3382,13 @@
         "self_delegation_shares": "3436277070240210"
       },
       "in_validator_set": false,
+      "media": {
+        "email": "contact@secondstate.io",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "Second State",
+        "twitter": "secondstateinc",
+        "url": "https://www.secondstate.io"
+      },
       "node_id": "GWBXv2OxowCLsRGyT/cND2TKEs9kpo4xtvr1JTsB8R0=",
       "rank": 102,
       "start_date": "2022-04-11T09:30:00Z",
@@ -2863,6 +3497,14 @@
         "self_delegation_shares": "1207219270654921"
       },
       "in_validator_set": false,
+      "media": {
+        "email": "support@daylightnetwork.org",
+        "keybase": "daylightnetwork",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "Daylight Network",
+        "twitter": "daylight_net",
+        "url": "https://daylightnetwork.org"
+      },
       "node_id": "axFry86SMrw5X4ITO+YHLLrVqW6N1vcaTgrTOJfQPCc=",
       "rank": 106,
       "start_date": "2022-04-11T09:30:00Z",
@@ -2890,6 +3532,13 @@
         "self_delegation_shares": "15236471088619537"
       },
       "in_validator_set": false,
+      "media": {
+        "email": "GoStaking8@gmail.com",
+        "keybase": "gostaking",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "GoStaking",
+        "twitter": "StakingGo"
+      },
       "node_id": "DudLYGDVKMgh/OZ0rOsoxeCNzSxalm4bvQsrsE/H9XA=",
       "rank": 107,
       "start_date": "2022-04-11T09:30:00Z",
@@ -2944,6 +3593,13 @@
         "self_delegation_shares": "68861191219849"
       },
       "in_validator_set": false,
+      "media": {
+        "email": "dmytro.rozum@gmail.com",
+        "keybase": "dimaro",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "Appload",
+        "url": "https://t.me/dimaro"
+      },
       "node_id": "bsq05GjUhJU7CdNOGrI2satPmpAUjRmT0gAGbWyfhLw=",
       "rank": 109,
       "start_date": "2022-04-11T09:30:00Z",
@@ -2971,6 +3627,14 @@
         "self_delegation_shares": "9038271218503"
       },
       "in_validator_set": false,
+      "media": {
+        "email": "noderc0411@protonmail.com",
+        "keybase": "amrcstake",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "Trifasicko",
+        "twitter": "amrcstake",
+        "url": "https://www.amrcorp.net/url"
+      },
       "node_id": "+isN1pgldZUB/ayTb8e1rbD4vXWiOsFKxOjZlZKvcEU=",
       "rank": 110,
       "start_date": "2022-04-11T09:30:00Z",
@@ -2998,6 +3662,14 @@
         "self_delegation_shares": "16999137047917"
       },
       "in_validator_set": false,
+      "media": {
+        "email": "lazarev.zahar@yandex.ru",
+        "keybase": "aptemuyc",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "Aptemuyc🌹",
+        "twitter": "g5sliqjq2g92jet",
+        "url": "https://my.entity/url"
+      },
       "node_id": "POpjxTxuw2cJsgtgzgfhrkPD3hVh2oYkHmELHonPgpQ=",
       "rank": 111,
       "start_date": "2022-04-11T09:30:00Z",
@@ -3052,6 +3724,14 @@
         "self_delegation_shares": "1068472186222210"
       },
       "in_validator_set": false,
+      "media": {
+        "email": "info@hyperblocks.pro",
+        "keybase": "hyperblockspro",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "Hyperblockspro",
+        "twitter": "hyper_blocks",
+        "url": "https://hyperblocks.pro/"
+      },
       "node_id": "bbkPZRl8KA//0joD1R9HPnucJ4GklCoAtUoJrincsoo=",
       "rank": 113,
       "start_date": "2022-04-11T09:30:00Z",
@@ -3079,6 +3759,11 @@
         "self_delegation_shares": "8663306220405"
       },
       "in_validator_set": false,
+      "media": {
+        "keybase": "hammerfest",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "Hammerfest"
+      },
       "node_id": "ONNtkoEg0gKzrYd+ERdUz5Xq/D7S72IyCGbc6lJQcZk=",
       "rank": 114,
       "start_date": "2022-04-11T09:30:00Z",
@@ -3106,6 +3791,13 @@
         "self_delegation_shares": "3293466276966"
       },
       "in_validator_set": false,
+      "media": {
+        "email": "zwang@ece.ubc.ca",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "Oasis@UBC",
+        "twitter": "blockchainubc",
+        "url": "https://blockchain.ubc.ca/"
+      },
       "node_id": "vVcKIFmjqLRSp/sjKeX3yPQ3R/jf3lU2hAzXYd+4wnk=",
       "rank": 115,
       "start_date": "2022-04-11T09:30:00Z",
@@ -3160,6 +3852,14 @@
         "self_delegation_shares": "2600964258074"
       },
       "in_validator_set": false,
+      "media": {
+        "email": "cryptotigernews@gmail.com",
+        "keybase": "99F133D04EF7B568",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "NodeWorks",
+        "twitter": "cryptotigernews",
+        "url": "https://node.works"
+      },
       "node_id": "g/gNUJ3L8NbJilg+ivA0JHXFoCpzXwedqSLO3Xd0FSM=",
       "rank": 117,
       "start_date": "2022-04-11T09:30:00Z",
@@ -3187,6 +3887,10 @@
         "self_delegation_shares": "124249449906438"
       },
       "in_validator_set": false,
+      "media": {
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "StakeHaven"
+      },
       "node_id": "J2vFhYaht7l1B++dBUTzqubT72WfOeeBkI8rOamrgGc=",
       "rank": 118,
       "start_date": "2022-04-11T09:30:00Z",
@@ -3214,6 +3918,14 @@
         "self_delegation_shares": "272917652292"
       },
       "in_validator_set": false,
+      "media": {
+        "email": "info@lux8.net",
+        "keybase": "ama31337",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "lux8.net",
+        "twitter": "lux8net",
+        "url": "https://lux8.net"
+      },
       "node_id": "NwJb7kl/uJUbhnYoxJXWpcc2zmbRVW6Norps326dz+k=",
       "rank": 119,
       "start_date": "2022-04-11T09:30:00Z",
@@ -3241,6 +3953,13 @@
         "self_delegation_shares": "14994667757082"
       },
       "in_validator_set": false,
+      "media": {
+        "email": "slavaa129@gmail.com",
+        "keybase": "vitassim",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "ViTAssIM|BrAzZzeRs ",
+        "twitter": "tHWunE7JUkFY5F8"
+      },
       "node_id": "Eeze8MB6KgnOs8rE1E90QX5i6JFq+z3e0dkTcxIzF5Y=",
       "rank": 120,
       "start_date": "2022-04-11T09:30:00Z",
@@ -3268,6 +3987,13 @@
         "self_delegation_shares": "12478721733506"
       },
       "in_validator_set": false,
+      "media": {
+        "email": "icomun01@yandex.ru",
+        "keybase": "ostrovmaria",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "Maria Mirabella❤️ ROSE ",
+        "twitter": "Alenka_kitty_00"
+      },
       "node_id": "TK0FcEOwv/hU5TI8PqWrhQiOy8VfP0vc8m7QViD4VMo=",
       "rank": 121,
       "start_date": "2022-04-11T09:30:00Z",
@@ -3295,6 +4021,12 @@
         "self_delegation_shares": "200000000000"
       },
       "in_validator_set": false,
+      "media": {
+        "keybase": "kikifinance",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "KiKi Finance",
+        "url": "https://kiki.finance/"
+      },
       "node_id": "gsZZ8tBnXsNGUFjCtxaWba98fzzgQG5cmUW+Ag/aW4g=",
       "rank": 122,
       "start_date": "2022-04-11T09:30:00Z",
@@ -3322,6 +4054,14 @@
         "self_delegation_shares": "200000000000"
       },
       "in_validator_set": false,
+      "media": {
+        "email": "securite@stakelab.fr",
+        "keybase": "stakelab",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "StakeLab",
+        "twitter": "StakeLab",
+        "url": "https://stakelab.fr"
+      },
       "node_id": "o+KFxCWnNyUstx2iCbMDvTsf+P/pDCC4lLxlljtOUeM=",
       "rank": 123,
       "start_date": "2022-04-11T09:30:00Z",
@@ -3376,6 +4116,14 @@
         "self_delegation_shares": "0"
       },
       "in_validator_set": false,
+      "media": {
+        "email": "blockscape-dev@mwaysolutions.com",
+        "keybase": "blockscapeval",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "blockscape",
+        "twitter": "BlockscapeLab",
+        "url": "https://blockscape.network/"
+      },
       "rank": 125,
       "start_date": "2022-04-11T09:30:00Z",
       "voting_power": 0,
@@ -3428,6 +4176,10 @@
         "self_delegation_shares": "255621913383629"
       },
       "in_validator_set": false,
+      "media": {
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "A"
+      },
       "rank": 127,
       "start_date": "2022-04-11T09:30:00Z",
       "voting_power": 0,
@@ -3454,6 +4206,12 @@
         "self_delegation_shares": "228857831862826"
       },
       "in_validator_set": false,
+      "media": {
+        "keybase": "hashfabric",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "HashFabric",
+        "url": "https://hashfabric.net"
+      },
       "rank": 128,
       "start_date": "2022-04-11T09:30:00Z",
       "voting_power": 0,
@@ -3480,6 +4238,13 @@
         "self_delegation_shares": "0"
       },
       "in_validator_set": false,
+      "media": {
+        "email": "support@blockdaemon.com",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "Blockdaemon 2",
+        "twitter": "_blockdaemon",
+        "url": "https://blockdaemon.com/"
+      },
       "rank": 129,
       "start_date": "2022-04-11T09:30:00Z",
       "voting_power": 0,
@@ -3532,6 +4297,13 @@
         "self_delegation_shares": "321247363415"
       },
       "in_validator_set": false,
+      "media": {
+        "email": "contact@parastate.io",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "ParaState",
+        "twitter": "_parastate",
+        "url": "https://www.parastate.io/"
+      },
       "rank": 131,
       "start_date": "2022-04-11T09:30:00Z",
       "voting_power": 0,
@@ -3636,6 +4408,13 @@
         "self_delegation_shares": "18332276259852"
       },
       "in_validator_set": false,
+      "media": {
+        "email": "labs@londonblockchainlabs.com",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "londonblockchainlabs (imperial)",
+        "twitter": "ldnlabs",
+        "url": "https://londonblockchainlabs.com"
+      },
       "rank": 135,
       "start_date": "2022-04-11T09:30:00Z",
       "voting_power": 0,
@@ -3662,6 +4441,12 @@
         "self_delegation_shares": "1319419665555"
       },
       "in_validator_set": false,
+      "media": {
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "SeaStake",
+        "twitter": "SeaStake",
+        "url": "https://seastake.com"
+      },
       "rank": 136,
       "start_date": "2022-04-11T09:30:00Z",
       "voting_power": 0,
@@ -3714,6 +4499,12 @@
         "self_delegation_shares": "12249"
       },
       "in_validator_set": false,
+      "media": {
+        "keybase": "staca",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "staca-co",
+        "url": "https://www.staca.co"
+      },
       "rank": 138,
       "start_date": "2022-04-11T09:30:00Z",
       "voting_power": 0,
@@ -3740,6 +4531,14 @@
         "self_delegation_shares": "1250615913692"
       },
       "in_validator_set": false,
+      "media": {
+        "email": "bigweb118@gmail.com",
+        "keybase": "bigweb",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "Oasis.N次方",
+        "twitter": "mlook4u",
+        "url": "https://www.novanode.io"
+      },
       "rank": 139,
       "start_date": "2022-04-11T09:30:00Z",
       "voting_power": 0,
@@ -3766,6 +4565,13 @@
         "self_delegation_shares": "0"
       },
       "in_validator_set": false,
+      "media": {
+        "email": "contact@feel-mining.com",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "Feel Mining",
+        "twitter": "FeelMining",
+        "url": "https://feel-mining.com/"
+      },
       "rank": 140,
       "start_date": "2022-04-11T09:30:00Z",
       "voting_power": 0,
@@ -3792,6 +4598,10 @@
         "self_delegation_shares": "989594972627"
       },
       "in_validator_set": false,
+      "media": {
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "Sunny"
+      },
       "rank": 141,
       "start_date": "2022-04-11T09:30:00Z",
       "voting_power": 0,
@@ -3870,6 +4680,10 @@
         "self_delegation_shares": "799802770406"
       },
       "in_validator_set": false,
+      "media": {
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "Fast"
+      },
       "rank": 144,
       "start_date": "2022-04-11T09:30:00Z",
       "voting_power": 0,
@@ -4000,6 +4814,14 @@
         "self_delegation_shares": "215728064931"
       },
       "in_validator_set": false,
+      "media": {
+        "email": "regis@grousset.com",
+        "keybase": "groussettech",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "Columbia",
+        "twitter": "Grousset_Techno",
+        "url": "https://oasis.grousset.com"
+      },
       "rank": 149,
       "start_date": "2022-04-11T09:30:00Z",
       "voting_power": 0,
@@ -4208,6 +5030,14 @@
         "self_delegation_shares": "199000000000"
       },
       "in_validator_set": false,
+      "media": {
+        "email": "business@provalidator.com",
+        "keybase": "Provalidator",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "Provalidator",
+        "twitter": "Provalidator",
+        "url": "https://provalidator.com"
+      },
       "rank": 157,
       "start_date": "2022-04-11T09:30:00Z",
       "voting_power": 0,
@@ -4234,6 +5064,12 @@
         "self_delegation_shares": "290000000000"
       },
       "in_validator_set": false,
+      "media": {
+        "keybase": "Adorid",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "Adorid",
+        "twitter": "Adorid3"
+      },
       "rank": 158,
       "start_date": "2022-04-11T09:30:00Z",
       "voting_power": 0,
@@ -4312,6 +5148,14 @@
         "self_delegation_shares": "200000000000"
       },
       "in_validator_set": false,
+      "media": {
+        "email": "florian@grousset.com",
+        "keybase": "groussettech",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "Atlantis",
+        "twitter": "fgratx",
+        "url": "https://www.grousset.com"
+      },
       "rank": 161,
       "start_date": "2022-04-11T09:30:00Z",
       "voting_power": 0,
@@ -4338,6 +5182,12 @@
         "self_delegation_shares": "200000000001"
       },
       "in_validator_set": false,
+      "media": {
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "StakeFAQ",
+        "twitter": "StakeFAQ",
+        "url": "https://stakefaq.com"
+      },
       "rank": 162,
       "start_date": "2022-04-11T09:30:00Z",
       "voting_power": 0,
@@ -4572,6 +5422,12 @@
         "self_delegation_shares": "200000000000"
       },
       "in_validator_set": false,
+      "media": {
+        "keybase": "staketartare",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "StakeTartare",
+        "twitter": "StakeTartare"
+      },
       "rank": 171,
       "start_date": "2022-04-11T09:30:00Z",
       "voting_power": 0,
@@ -4598,6 +5454,13 @@
         "self_delegation_shares": "175049148040"
       },
       "in_validator_set": false,
+      "media": {
+        "email": "labs@londonblockchainlabs.com",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "londonblockchainlabs (ucl)",
+        "twitter": "ldnlabs",
+        "url": "https://londonblockchainlabs.com"
+      },
       "rank": 172,
       "start_date": "2022-04-11T09:30:00Z",
       "voting_power": 0,
@@ -4624,7 +5487,14 @@
         "self_delegation_shares": "157867685252"
       },
       "in_validator_set": false,
-      "rank": 173,
+      "media": {
+        "email": "labs@londonblockchainlabs.com",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "londonblockchainlabs (lse)",
+        "twitter": "ldnlabs",
+        "url": "https://londonblockchainlabs.com"
+      },
+      "rank": 174,
       "start_date": "2022-04-11T09:30:00Z",
       "voting_power": 0,
       "voting_power_cumulative": 307554773957760060

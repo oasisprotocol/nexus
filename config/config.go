@@ -523,13 +523,20 @@ type EvmAbiAnalyzerConfig struct {
 // MetadataRegistryConfig is the configuration for the metadata registry analyzer.
 type MetadataRegistryConfig struct {
 	ItemBasedAnalyzerConfig `koanf:",squash"`
+
+	// RepositoryBranch is the branch of the metadata registry repository to fetch.
+	// If unset, the default (production) branch is used. This is useful for E2E tests,
+	// where we use the 'nexus-e2e' branch, which remains stable.
+	RepositoryBranch string `koanf:"repository_branch"`
+
+	// MockLogoUrls is a flag to use mock URLs instead of keybase fetched URLs for logos.
+	// Useful to ensure static data for E2E testing since logo URLs can be updated without
+	// changes to the registry.
+	MockLogoUrls bool `koanf:"mock_logo_urls"`
 }
 
 // Validate validates the configuration.
 func (cfg *MetadataRegistryConfig) Validate() error {
-	if cfg.Interval < time.Minute {
-		return fmt.Errorf("metadata registry interval must be at least 1 minute")
-	}
 	return nil
 }
 
