@@ -103,6 +103,13 @@ CREATE INDEX ix_runtime_transactions_to ON chain.runtime_transactions(runtime, "
 CREATE INDEX ix_runtime_transactions_to_abi_parsed_at ON chain.runtime_transactions (runtime, "to", abi_parsed_at);
 -- CREATE INDEX ix_runtime_transactions_method_round ON chain.runtime_transactions (runtime, method, round, tx_index); -- Added in 08_runtime_transactions_method_idx.up.sql
 
+-- Added in 12_related_transactions_method_idx.up.sql.
+-- Indexes for efficient query of 'likely native transfers':
+-- EVM Calls, where the body is an empty data field (likely native transfers)
+-- CREATE INDEX ix_runtime_transactions_evm_call_empty_data ON chain.runtime_transactions (runtime, round, tx_index) WHERE method = 'evm.Call' AND (body ->> 'data') = '';
+-- EVM Calls, where the body is non-empty data field (likely not native transfers).
+-- CREATE INDEX ix_runtime_transactions_evm_call_non_empty_data ON chain.runtime_transactions (runtime, round, tx_index) WHERE method = 'evm.Call' AND (body ->> 'data') != '';
+
 CREATE TABLE chain.runtime_transaction_signers
 (
   runtime        runtime NOT NULL,
