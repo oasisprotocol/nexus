@@ -537,7 +537,22 @@ const (
 			($2::bigint IS NULL OR txs.round = $2::bigint) AND
 			($3::text IS NULL OR txs.tx_hash = $3::text OR txs.tx_eth_hash = $3::text) AND
 			($4::text IS NULL OR rel.account_address = $4::text) AND
-			($5::text IS NULL or txs.method = $5::text) AND
+			(
+				CASE
+					-- No filtering on method.
+					WHEN $5::text IS NULL THEN
+						TRUE
+					-- Special case to return are 'likely to be native transfers'.
+					WHEN $5::text = 'native_transfers' THEN
+						(txs.method = 'accounts.Transfer' OR (txs.method = 'evm.Call' AND (txs.body ->> 'data') = ''))
+					-- Special case to return all evm.Calls that are likely not native transfers.
+					WHEN $5::text = 'evm.Call_no_native' THEN
+						(txs.method = 'evm.Call' AND (txs.body ->> 'data') != '')
+					-- Regular case.
+					ELSE
+						(txs.method = $5::text)
+				END
+			) AND
 			($6::timestamptz IS NULL OR txs.timestamp >= $6::timestamptz) AND
 			($7::timestamptz IS NULL OR txs.timestamp < $7::timestamptz)
 		GROUP BY

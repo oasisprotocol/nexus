@@ -939,7 +939,14 @@ paths:
           name: method
           schema:
             type: string
-          description: A filter on the runtime transaction method.
+          description: |
+            A filter on the runtime transaction method.
+
+            In addition to the existing method names, the following special values are supported:
+              - 'native_transfers': Returns transactions "likely to be native transfers".
+                - These include accounts.Transfer transactions and evm.Calls with an empty 'body' field.
+
+              - 'evm.Call_no_native': Returns EVM calls that are "not likely to be native transfers".
           example: 'accounts.Transfer'
       responses:
         '200':
