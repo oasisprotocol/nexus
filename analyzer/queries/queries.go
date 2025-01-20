@@ -167,8 +167,8 @@ var (
         height = excluded.height`
 
 	ConsensusBlockUpsert = `
-    INSERT INTO chain.blocks (height, block_hash, time, num_txs, gas_limit, size_limit, epoch, namespace, version, state_root, proposer_entity_id)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+    INSERT INTO chain.blocks (height, block_hash, time, num_txs, gas_limit, gas_used, size_limit, size, epoch, namespace, version, state_root, proposer_entity_id)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
     ON CONFLICT (height) DO UPDATE
     SET
       block_hash = excluded.block_hash,
@@ -179,7 +179,9 @@ var (
       state_root = excluded.state_root,
       epoch = excluded.epoch,
       gas_limit = excluded.gas_limit,
+      gas_used = excluded.gas_used,
       size_limit = excluded.size_limit,
+      size = excluded.size,
       proposer_entity_id = excluded.proposer_entity_id`
 
 	ConsensusBlockAddSigners = `
@@ -211,8 +213,8 @@ var (
       end_height = GREATEST(old.end_height, excluded.end_height)`
 
 	ConsensusTransactionInsert = `
-    INSERT INTO chain.transactions (block, tx_hash, tx_index, nonce, fee_amount, max_gas, method, sender, body, module, code, message)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`
+    INSERT INTO chain.transactions (block, tx_hash, tx_index, nonce, fee_amount, max_gas, method, sender, body, module, code, message, gas_used)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`
 
 	ConsensusAccountUpsert = `
     INSERT INTO chain.accounts

@@ -25,7 +25,6 @@ import (
 
 	beacon "github.com/oasisprotocol/nexus/coreapi/v22.2.11/beacon/api"
 	node "github.com/oasisprotocol/nexus/coreapi/v22.2.11/common/node"
-	consensus "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api"
 	consensusTransaction "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api/transaction"
 	consensusResults "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api/transaction/results"
 	registry "github.com/oasisprotocol/nexus/coreapi/v22.2.11/registry/api"
@@ -33,6 +32,7 @@ import (
 	"github.com/oasisprotocol/nexus/coreapi/v22.2.11/roothash/api/message"
 	scheduler "github.com/oasisprotocol/nexus/coreapi/v22.2.11/scheduler/api"
 	staking "github.com/oasisprotocol/nexus/coreapi/v22.2.11/staking/api"
+	consensus "github.com/oasisprotocol/nexus/coreapi/v24.0/consensus/api"
 	governance "github.com/oasisprotocol/nexus/coreapi/v24.0/governance/api"
 	"github.com/oasisprotocol/nexus/storage/oasis/connections"
 
@@ -92,13 +92,14 @@ type ConsensusParameters struct {
 
 // A lightweight subset of `consensus.TransactionsWithResults`.
 type TransactionWithResults struct {
-	Transaction consensusTransaction.SignedTransaction
-	Result      TxResult
+	Transaction consensusTransaction.SignedTransaction `json:"transaction"`
+	Result      TxResult                               `json:"result"`
 }
 
 type TxResult struct {
-	Error  TxError
-	Events []Event
+	Error   TxError `json:"error"`
+	Events  []Event `json:"events"`
+	GasUsed uint64  `json:"gas_used,omitempty"` // Added in 24.3.
 }
 
 // IsSuccess returns true if transaction execution was successful.
@@ -116,8 +117,8 @@ type Address = staking.Address
 // Nexus actively inspects (as opposed to just logging them) to perform
 // dead reckoning or similar state updates.
 type Event struct {
-	Height int64
-	TxHash hash.Hash
+	Height int64     `json:"height"`
+	TxHash hash.Hash `json:"tx_hash"`
 
 	// The body of the Event struct as it was received from oasis-core. For most
 	// event types, a summary of the event (containing only nexus-relevant fields)
@@ -126,34 +127,34 @@ type Event struct {
 	// field will be populated.
 	// We convert to JSON and effectively erase the type here in order to decouple
 	// oasis-core types (which vary between versions) from Nexus.
-	RawBody json.RawMessage
+	RawBody json.RawMessage `json:"raw_body"`
 
 	// Called "Kind" in oasis-core but "Type" in Nexus APIs and DBs.
-	Type apiTypes.ConsensusEventType
+	Type apiTypes.ConsensusEventType `json:"type"`
 
-	StakingTransfer             *TransferEvent
-	StakingBurn                 *BurnEvent
-	StakingAddEscrow            *AddEscrowEvent
-	StakingTakeEscrow           *TakeEscrowEvent
-	StakingEscrowDebondingStart *DebondingStartEscrowEvent
-	StakingReclaimEscrow        *ReclaimEscrowEvent
-	StakingDebondingStart       *DebondingStartEscrowEvent // Available starting in Damask.
-	StakingAllowanceChange      *AllowanceChangeEvent
+	StakingTransfer             *TransferEvent             `json:"staking_transfer,omitempty"`
+	StakingBurn                 *BurnEvent                 `json:"staking_burn,omitempty"`
+	StakingAddEscrow            *AddEscrowEvent            `json:"staking_add_escrow,omitempty"`
+	StakingTakeEscrow           *TakeEscrowEvent           `json:"staking_take_escrow,omitempty"`
+	StakingEscrowDebondingStart *DebondingStartEscrowEvent `json:"staking_escrow_debonding_start,omitempty"`
+	StakingReclaimEscrow        *ReclaimEscrowEvent        `json:"staking_reclaim_escrow,omitempty"`
+	StakingDebondingStart       *DebondingStartEscrowEvent `json:"staking_debonding_start,omitempty"` // Available starting in Damask.
+	StakingAllowanceChange      *AllowanceChangeEvent      `json:"staking_allowance_change,omitempty"`
 
-	RegistryRuntimeStarted   *RuntimeStartedEvent
-	RegistryRuntimeSuspended *RuntimeSuspendedEvent // Available starting with Eden.
-	RegistryEntity           *EntityEvent
-	RegistryNode             *NodeEvent
-	RegistryNodeUnfrozen     *NodeUnfrozenEvent
+	RegistryRuntimeStarted   *RuntimeStartedEvent   `json:"registry_runtime_registered,omitempty"`
+	RegistryRuntimeSuspended *RuntimeSuspendedEvent `json:"registry_runtime_suspended,omitempty"` // Available starting with Eden.
+	RegistryEntity           *EntityEvent           `json:"registry_entity,omitempty"`
+	RegistryNode             *NodeEvent             `json:"registry_node,omitempty"`
+	RegistryNodeUnfrozen     *NodeUnfrozenEvent     `json:"registry_node_unfrozen,omitempty"`
 
-	RoothashMisc              *RoothashEvent
-	RoothashExecutorCommitted *ExecutorCommittedEvent
-	RoothashMessage           *MessageEvent // Available only in Cobalt.
+	RoothashMisc              *RoothashEvent          `json:"roothash_misc,omitempty"`
+	RoothashExecutorCommitted *ExecutorCommittedEvent `json:"roothash_executor_committed,omitempty"`
+	RoothashMessage           *MessageEvent           `json:"roothash_message,omitempty"` // Available only in Cobalt.
 
-	GovernanceProposalSubmitted *ProposalSubmittedEvent
-	GovernanceProposalExecuted  *ProposalExecutedEvent
-	GovernanceProposalFinalized *ProposalFinalizedEvent
-	GovernanceVote              *VoteEvent
+	GovernanceProposalSubmitted *ProposalSubmittedEvent `json:"governance_proposal_submitted,omitempty"`
+	GovernanceProposalExecuted  *ProposalExecutedEvent  `json:"governance_proposal_executed,omitempty"`
+	GovernanceProposalFinalized *ProposalFinalizedEvent `json:"governance_proposal_finalized,omitempty"`
+	GovernanceVote              *VoteEvent              `json:"governance_vote,omitempty"`
 }
 
 // .................... Staking  ....................
@@ -175,35 +176,35 @@ type (
 // This is a stripped-down version of an unfortunately named `registry.RuntimeEvent` (in Cobalt and Damask).
 // Post-Damask, this is replaced by registry.RuntimeStartedEvent.
 type RuntimeStartedEvent struct {
-	ID          coreCommon.Namespace
-	EntityID    signature.PublicKey   // The Entity controlling the runtime.
-	Kind        string                // enum: "compute", "keymanager"
-	KeyManager  *coreCommon.Namespace // Key manager runtime ID.
-	TEEHardware string                // enum: "invalid" (= no TEE), "intel-sgx"
+	ID          coreCommon.Namespace  `json:"id"`
+	EntityID    signature.PublicKey   `json:"entity_id"`             // The Entity controlling the runtime.
+	Kind        string                `json:"kind"`                  // enum: "compute", "keymanager"
+	KeyManager  *coreCommon.Namespace `json:"key_manager,omitempty"` // Key manager runtime ID.
+	TEEHardware string                `json:"tee_hardware"`          // enum: "invalid" (= no TEE), "intel-sgx"
 }
 type RuntimeSuspendedEvent struct {
-	RuntimeID coreCommon.Namespace
+	RuntimeID coreCommon.Namespace `json:"runtime_id"`
 }
 type (
 	Node              node.Node
 	NodeUnfrozenEvent registry.NodeUnfrozenEvent
 	EntityEvent       registry.EntityEvent
 	NodeEvent         struct {
-		NodeID             signature.PublicKey
-		EntityID           signature.PublicKey
-		Expiration         uint64 // Epoch in which the node expires.
-		RuntimeIDs         []coreCommon.Namespace
-		VRFPubKey          *signature.PublicKey
-		TLSAddresses       []string // TCP addresses of the node's TLS-enabled gRPC endpoint.
-		TLSPubKey          signature.PublicKey
-		TLSNextPubKey      signature.PublicKey
-		P2PID              signature.PublicKey
-		P2PAddresses       []string // TCP addresses of the node's P2P endpoint.
-		ConsensusID        signature.PublicKey
-		ConsensusAddresses []string // TCP addresses of the node's tendermint endpoint.
-		Roles              []string // enum: "compute", "key-manager", "validator", "consensus-rpc", "storage-rpc"
-		SoftwareVersion    string
-		IsRegistration     bool
+		NodeID             signature.PublicKey    `json:"node_id"`
+		EntityID           signature.PublicKey    `json:"entity_id"`
+		Expiration         uint64                 `json:"expiration"` // Epoch in which the node expires.
+		RuntimeIDs         []coreCommon.Namespace `json:"runtime_ids"`
+		VRFPubKey          *signature.PublicKey   `json:"vrf_pub_key,omitempty"`
+		TLSAddresses       []string               `json:"tls_addresses"` // TCP addresses of the node's TLS-enabled gRPC endpoint.
+		TLSPubKey          signature.PublicKey    `json:"tls_pub_key"`
+		TLSNextPubKey      signature.PublicKey    `json:"tls_next_pub_key,omitempty"`
+		P2PID              signature.PublicKey    `json:"p2p_id"`
+		P2PAddresses       []string               `json:"p2p_addresses"` // TCP addresses of the node's P2P endpoint.
+		ConsensusID        signature.PublicKey    `json:"consensus_id"`
+		ConsensusAddresses []string               `json:"consensus_addresses"` // TCP addresses of the node's tendermint endpoint.
+		Roles              []string               `json:"roles"`               // enum: "compute", "key-manager", "validator", "consensus-rpc", "storage-rpc"
+		SoftwareVersion    string                 `json:"software_version"`
+		IsRegistration     bool                   `json:"is_registration"`
 	}
 )
 
@@ -246,9 +247,9 @@ type (
 	ProposalExecutedEvent  governance.ProposalExecutedEvent
 	ProposalFinalizedEvent governance.ProposalFinalizedEvent
 	VoteEvent              struct {
-		ID        uint64
-		Submitter staking.Address
-		Vote      string // enum: "yes", "no", "abstain"
+		ID        uint64          `json:"id"`
+		Submitter staking.Address `json:"submitter"`
+		Vote      string          `json:"vote"` // enum: "yes", "no", "abstain"
 	}
 )
 
