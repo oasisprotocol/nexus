@@ -88,7 +88,7 @@ func (srv *StrictServerImpl) GetConsensusAccountsAddressDelegationsTo(ctx contex
 }
 
 func (srv *StrictServerImpl) GetConsensusBlocks(ctx context.Context, request apiTypes.GetConsensusBlocksRequestObject) (apiTypes.GetConsensusBlocksResponseObject, error) {
-	blocks, err := srv.dbClient.Blocks(ctx, request.Params)
+	blocks, err := srv.dbClient.Blocks(ctx, request.Params, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -96,11 +96,14 @@ func (srv *StrictServerImpl) GetConsensusBlocks(ctx context.Context, request api
 }
 
 func (srv *StrictServerImpl) GetConsensusBlocksHeight(ctx context.Context, request apiTypes.GetConsensusBlocksHeightRequestObject) (apiTypes.GetConsensusBlocksHeightResponseObject, error) {
-	block, err := srv.dbClient.Block(ctx, request.Height)
+	blocks, err := srv.dbClient.Blocks(ctx, apiTypes.GetConsensusBlocksParams{}, &request.Height)
 	if err != nil {
 		return nil, err
 	}
-	return apiTypes.GetConsensusBlocksHeight200JSONResponse(*block), nil
+	if len(blocks.Blocks) == 0 {
+		return apiTypes.GetConsensusBlocksHeight404JSONResponse{}, nil
+	}
+	return apiTypes.GetConsensusBlocksHeight200JSONResponse(blocks.Blocks[0]), nil
 }
 
 func (srv *StrictServerImpl) GetConsensusRoothashMessages(ctx context.Context, request apiTypes.GetConsensusRoothashMessagesRequestObject) (apiTypes.GetConsensusRoothashMessagesResponseObject, error) {

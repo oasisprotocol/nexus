@@ -39,7 +39,6 @@ import (
 
 const (
 	blockCost = 1
-	txCost    = 1
 
 	maxTotalCount = 1000
 )
@@ -109,6 +108,10 @@ func runtimeFromCtx(ctx context.Context) common.Runtime {
 
 // NewStorageClient creates a new storage client.
 func NewStorageClient(sourceCfg config.SourceConfig, db storage.TargetStorage, referenceSwaps map[common.Runtime]config.ReferenceSwap, runtimeClients map[common.Runtime]nodeapi.RuntimeApiLite, networkConfig *oasisConfig.Network, l *log.Logger) (*StorageClient, error) {
+	// The API currently uses an in-memory block cache for a specific endpoint and no other cases.
+	// This somewhat arbitrary choice seems to have been made historically.
+	// Instead, we should review common queries and responses to implement a more consistent and general caching strategy.
+	// https://github.com/oasisprotocol/nexus/issues/887
 	blockCache, err := ristretto.NewCache(&ristretto.Config[int64, *Block]{
 		NumCounters:        1024 * 10,
 		MaxCost:            1024,
@@ -231,9 +234,16 @@ func (c *StorageClient) Status(ctx context.Context) (*Status, error) {
 	// Query latest indexed block for info.
 	err = c.db.QueryRow(
 		ctx,
-		queries.Block,
+		queries.Blocks,
 		s.LatestBlock,
-	).Scan(nil, nil, &s.LatestBlockTime, nil, nil, nil, nil, nil)
+		s.LatestBlock,
+		nil,
+		nil,
+		nil,
+		nil,
+		1,
+		0,
+	).Scan(nil, nil, &s.LatestBlockTime, nil, nil, nil, nil, nil, nil, nil)
 	switch err {
 	case nil:
 	case pgx.ErrNoRows:
@@ -283,7 +293,25 @@ func entityInfoFromRow(r entityInfoRow) apiTypes.EntityInfo {
 }
 
 // Blocks returns a list of consensus blocks.
-func (c *StorageClient) Blocks(ctx context.Context, r apiTypes.GetConsensusBlocksParams) (*BlockList, error) {
+func (c *StorageClient) Blocks(ctx context.Context, r apiTypes.GetConsensusBlocksParams, height *int64) (*BlockList, error) {
+	if height != nil {
+		// Querying a single block by height, check cache.
+		// XXX: This cache is somewhat arbitrary and likely not very useful in practice.
+		// It has been kept for now to avoid regressions: https://github.com/oasisprotocol/nexus/issues/887
+		block, ok := c.blockCache.Get(*height)
+		if ok {
+			return &BlockList{
+				Blocks: []Block{*block},
+			}, nil
+		}
+
+		// Otherwise continue with the query below.
+		r.From = height
+		r.To = height
+		r.Limit = common.Ptr(uint64(1))
+		r.Offset = common.Ptr(uint64(0))
+	}
+
 	hash, err := canonicalizedHash(r.Hash)
 	if err != nil {
 		return nil, wrapError(err)
@@ -330,7 +358,7 @@ func (c *StorageClient) Blocks(ctx context.Context, r apiTypes.GetConsensusBlock
 		}
 		b.Timestamp = b.Timestamp.UTC()
 		proposer := entityInfoFromRow(proposerRow)
-		b.Proposer = &proposer
+		b.Proposer = proposer
 		signers := make([]apiTypes.EntityInfo, 0, len(signerRows))
 		for _, signerRow := range signerRows {
 			signer := entityInfoFromRow(signerRow)
@@ -339,6 +367,11 @@ func (c *StorageClient) Blocks(ctx context.Context, r apiTypes.GetConsensusBlock
 		b.Signers = &signers
 
 		bs.Blocks = append(bs.Blocks, b)
+	}
+
+	// Cache the block if we queried a single block.
+	if height != nil && len(bs.Blocks) > 0 {
+		c.blockCache.Set(*height, &bs.Blocks[0], blockCost)
 	}
 
 	return &bs, nil
@@ -355,33 +388,6 @@ func canonicalizedHash(input *string) (*string, error) {
 	}
 	s := h.String()
 	return &s, nil
-}
-
-// Block returns a consensus block. This endpoint is cached.
-func (c *StorageClient) Block(ctx context.Context, height int64) (*Block, error) {
-	// Check cache
-	block, ok := c.blockCache.Get(height)
-	if ok {
-		return block, nil
-	}
-
-	var b Block
-	if err := c.db.QueryRow(
-		ctx,
-		queries.Block,
-		height,
-	).Scan(&b.Height, &b.Hash, &b.Timestamp, &b.NumTransactions, &b.GasLimit, &b.SizeLimit, &b.Epoch, &b.StateRoot); err != nil {
-		return nil, wrapError(err)
-	}
-	b.Timestamp = b.Timestamp.UTC()
-
-	c.cacheBlock(&b)
-	return &b, nil
-}
-
-// cacheBlock adds a block to the client's block cache.
-func (c *StorageClient) cacheBlock(blk *Block) {
-	c.blockCache.Set(blk.Height, blk, blockCost)
 }
 
 // Transactions returns a list of consensus transactions.
