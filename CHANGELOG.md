@@ -12,6 +12,68 @@ The format is inspired by [Keep a Changelog].
 
 <!-- TOWNCRIER -->
 
+## 0.5.3 (2025-01-21)
+
+### Features
+
+- runtime: Add conditional SGX attestation parsing for rofl.Register txs
+  ([#876](https://github.com/oasisprotocol/nexus/issues/876))
+
+- api/runtime/transactions: Add signers field to response
+  ([#885](https://github.com/oasisprotocol/nexus/issues/885))
+
+  Signers contain information about the transaction signers. Existing sender_0,
+  sender_0_eth and nonce_0 fields are deprecated and will be removed in future.
+
+- Enable metadata_registry in the E2E regression tests
+  ([#889](https://github.com/oasisprotocol/nexus/issues/889))
+
+- storage/consensus: Update indexes to better serve the related accounts queries
+  ([#890](https://github.com/oasisprotocol/nexus/issues/890))
+
+- storage/runtime: Support method filter for native transfers
+  ([#890](https://github.com/oasisprotocol/nexus/issues/890))
+
+  Two special values for `method` filter are added:
+
+  - `method=native_transfers`: Returns "likely to be native" transactions
+    - All accounts.Transfer transactions and EVM Calls with empty data
+
+  - `method=evm.Call_no_native`: Returns EVM Calls which are not "likely to be
+  native" transfers
+
+- Bump oasis-sdk to v0.12.1
+  ([#892](https://github.com/oasisprotocol/nexus/issues/892))
+
+### Bug Fixes and Improvements
+
+- api/consensus/block: Fix response when querying a single block
+  ([#888](https://github.com/oasisprotocol/nexus/issues/888))
+
+  When querying a single block by height the response was missing the proposer
+  and signers fields.
+
+### Internal Changes
+
+- deps: update pogreb to v0.10.2
+  ([#833](https://github.com/oasisprotocol/nexus/issues/833))
+
+- Update Go to v1.23.3
+  ([#834](https://github.com/oasisprotocol/nexus/issues/834))
+
+- Remove deprecated account-named folder
+  ([#879](https://github.com/oasisprotocol/nexus/issues/879))
+
+- Update actions/upload-artifact action to v4
+  ([#880](https://github.com/oasisprotocol/nexus/issues/880))
+
+### Deployment Notes
+
+This release contains a migration that is automatically applied during
+deployment. To prevent downtime, you can manually pre-apply the index updates
+from migration `12_related_transactions_method_idx.up.sql` before starting the
+upgrade.
+
 ## 0.5.2 (2024-12-23)
 
 ### Bug Fixes and Improvements
