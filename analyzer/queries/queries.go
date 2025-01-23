@@ -303,8 +303,8 @@ var (
       result = excluded.result`
 
 	ConsensusAccountRelatedTransactionInsert = `
-    INSERT INTO chain.accounts_related_transactions (account_address, tx_block, tx_index)
-      VALUES ($1, $2, $3)`
+    INSERT INTO chain.accounts_related_transactions (account_address, method, tx_block, tx_index)
+      VALUES ($1, $2, $3, $4)`
 
 	ConsensusAccountRelatedEventInsert = `
     INSERT INTO chain.accounts_related_events (account_address, event_block, tx_index, tx_hash, type, body)
@@ -562,8 +562,8 @@ var (
       VALUES ($1, $2, $3, $4, $5, $6)`
 
 	RuntimeRelatedTransactionInsert = `
-    INSERT INTO chain.runtime_related_transactions (runtime, account_address, tx_round, tx_index)
-      VALUES ($1, $2, $3, $4)`
+    INSERT INTO chain.runtime_related_transactions (runtime, account_address, tx_round, tx_index, method, likely_native_transfer)
+      VALUES ($1, $2, $3, $4, $5, $6)`
 
 	RuntimeAccountNumTxsUpsert = `
     INSERT INTO chain.runtime_accounts as accounts (runtime, address, num_txs)
@@ -623,8 +623,8 @@ var (
       SET total_received = EXCLUDED.total_received`
 
 	RuntimeTransactionInsert = `
-    INSERT INTO chain.runtime_transactions (runtime, round, tx_index, tx_hash, tx_eth_hash, fee, fee_symbol, fee_proxy_module, fee_proxy_id, gas_limit, gas_used, size, timestamp, oasis_encrypted_format, oasis_encrypted_public_key, oasis_encrypted_data_nonce, oasis_encrypted_data_data, oasis_encrypted_result_nonce, oasis_encrypted_result_data, method, body, "to", amount, amount_symbol, evm_encrypted_format, evm_encrypted_public_key, evm_encrypted_data_nonce, evm_encrypted_data_data, evm_encrypted_result_nonce, evm_encrypted_result_data, success, error_module, error_code, error_message_raw, error_message)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35)`
+    INSERT INTO chain.runtime_transactions (runtime, round, tx_index, tx_hash, tx_eth_hash, fee, fee_symbol, fee_proxy_module, fee_proxy_id, gas_limit, gas_used, size, timestamp, oasis_encrypted_format, oasis_encrypted_public_key, oasis_encrypted_data_nonce, oasis_encrypted_data_data, oasis_encrypted_result_nonce, oasis_encrypted_result_data, method, body, "to", amount, amount_symbol, evm_encrypted_format, evm_encrypted_public_key, evm_encrypted_data_nonce, evm_encrypted_data_data, evm_encrypted_result_nonce, evm_encrypted_result_data, success, error_module, error_code, error_message_raw, error_message, likely_native_transfer)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36)`
 
 	// We use COALESCE here to avoid overwriting existing data with null values.
 	RuntimeTransactionEvmParsedFieldsUpdate = `

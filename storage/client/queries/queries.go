@@ -69,34 +69,38 @@ const (
 
 	Transactions = `
 		SELECT
-				chain.transactions.block as block,
-				chain.transactions.tx_index as tx_index,
-				chain.transactions.tx_hash as tx_hash,
-				chain.transactions.sender as sender,
-				chain.transactions.nonce as nonce,
-				chain.transactions.fee_amount as fee_amount,
-				chain.transactions.max_gas as gas_limit,
-				chain.transactions.method as method,
-				chain.transactions.body as body,
-				chain.transactions.code as code,
-				chain.transactions.module as module,
-				chain.transactions.message as message,
-				chain.blocks.time as time
-			FROM chain.transactions
-			JOIN chain.blocks ON chain.transactions.block = chain.blocks.height
-			LEFT JOIN chain.accounts_related_transactions ON chain.transactions.block = chain.accounts_related_transactions.tx_block
-				AND chain.transactions.tx_index = chain.accounts_related_transactions.tx_index
+				t.block as block,
+				t.tx_index as tx_index,
+				t.tx_hash as tx_hash,
+				t.sender as sender,
+				t.nonce as nonce,
+				t.fee_amount as fee_amount,
+				t.max_gas as gas_limit,
+				t.method as method,
+				t.body as body,
+				t.code as code,
+				t.module as module,
+				t.message as message,
+				b.time as time
+			FROM chain.transactions AS t
+			JOIN chain.blocks AS b ON
+				t.block = b.height
+			LEFT JOIN chain.accounts_related_transactions AS art ON
+				(t.block = art.tx_block) AND
+				(t.tx_index = art.tx_index) AND
+				($3::text IS NULL OR t.method = art.method) AND
 				-- When related_address ($5) is NULL and hence we do no filtering on it, avoid the join altogether.
 				-- Otherwise, every tx will be returned as many times as there are related addresses for it.
-				AND $5::text IS NOT NULL
-			WHERE ($1::text IS NULL OR chain.transactions.tx_hash = $1::text) AND
-					($2::bigint IS NULL OR chain.transactions.block = $2::bigint) AND
-					($3::text IS NULL OR chain.transactions.method = $3::text) AND
-					($4::text IS NULL OR chain.transactions.sender = $4::text) AND
-					($5::text IS NULL OR chain.accounts_related_transactions.account_address = $5::text) AND
-					($6::timestamptz IS NULL OR chain.blocks.time >= $6::timestamptz) AND
-					($7::timestamptz IS NULL OR chain.blocks.time < $7::timestamptz)
-			ORDER BY chain.transactions.block DESC, chain.transactions.tx_index
+				($5::text IS NOT NULL)
+			WHERE
+				($1::text IS NULL OR t.tx_hash = $1::text) AND
+				($2::bigint IS NULL OR t.block = $2::bigint) AND
+				($3::text IS NULL OR t.method = $3::text) AND
+				($4::text IS NULL OR t.sender = $4::text) AND
+				($5::text IS NULL OR art.account_address = $5::text) AND
+				($6::timestamptz IS NULL OR b.time >= $6::timestamptz) AND
+				($7::timestamptz IS NULL OR b.time < $7::timestamptz)
+			ORDER BY t.block DESC, t.tx_index
 			LIMIT $8::bigint
 			OFFSET $9::bigint`
 
@@ -500,6 +504,7 @@ const (
 			txs.oasis_encrypted_result_nonce,
 			txs.oasis_encrypted_result_data,
 			txs.method,
+			txs.likely_native_transfer,
 			txs.body,
 			txs.to,
 			to_preimage.context_identifier AS to_preimage_context_identifier,
@@ -521,7 +526,7 @@ const (
 			txs.error_message,
 			txs.error_params
 		FROM chain.runtime_transactions AS txs
-		LEFT JOIN chain.runtime_transaction_signers AS signers ON
+		JOIN chain.runtime_transaction_signers AS signers ON
 			(signers.runtime = txs.runtime) AND
 			(signers.round = txs.round) AND
 			(signers.tx_index = txs.tx_index)
@@ -540,9 +545,10 @@ const (
 			(to_preimage.context_identifier = 'oasis-runtime-sdk/address: secp256k1eth') AND
 			(to_preimage.context_version = 0)
 		LEFT JOIN chain.runtime_related_transactions AS rel ON
+			(txs.runtime = rel.runtime) AND
 			(txs.round = rel.tx_round) AND
 			(txs.tx_index = rel.tx_index) AND
-			(txs.runtime = rel.runtime) AND
+			($5::text IS NULL OR txs.method = rel.method AND txs.likely_native_transfer = rel.likely_native_transfer) AND
 			-- When related_address ($4) is NULL and hence we do no filtering on it, avoid the join altogether.
 			-- Otherwise, every tx will be returned as many times as there are related addresses for it.
 			($4::text IS NOT NULL)
@@ -558,10 +564,10 @@ const (
 						TRUE
 					-- Special case to return are 'likely to be native transfers'.
 					WHEN $5::text = 'native_transfers' THEN
-						(txs.method = 'accounts.Transfer' OR (txs.method = 'evm.Call' AND (txs.body ->> 'data') = ''))
+						(txs.likely_native_transfer = TRUE)
 					-- Special case to return all evm.Calls that are likely not native transfers.
 					WHEN $5::text = 'evm.Call_no_native' THEN
-						(txs.method = 'evm.Call' AND (txs.body ->> 'data') != '')
+						(txs.method = 'evm.Call' AND txs.likely_native_transfer = FALSE)
 					-- Regular case.
 					ELSE
 						(txs.method = $5::text)
@@ -589,6 +595,7 @@ const (
 			txs.oasis_encrypted_result_nonce,
 			txs.oasis_encrypted_result_data,
 			txs.method,
+			txs.likely_native_transfer,
 			txs.body,
 			txs.to,
 			to_preimage.context_identifier,
