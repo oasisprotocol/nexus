@@ -22,6 +22,7 @@
       "gas_used": 38284,
       "hash": "35fdc8261dd81be8187c858aa9a623085494baf0565d414f48562a856147c093",
       "index": 0,
+      "is_likely_native_token_transfer": false,
       "method": "evm.Call",
       "nonce_0": 31228,
       "round": 8059465,
