@@ -1616,6 +1616,7 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetR
 			&oasisEncryptionEnvelope.ResultNonce,
 			&oasisEncryptionEnvelope.Result,
 			&t.Method,
+			&t.IsLikelyNativeTokenTransfer,
 			&t.Body,
 			&t.To,
 			&toPreimageContextIdentifier,
@@ -1678,19 +1679,6 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetR
 		// Render Ethereum-compatible address preimages.
 		if toPreimageContextIdentifier != nil && toPreimageContextVersion != nil {
 			t.ToEth = EthChecksumAddrFromPreimage(*toPreimageContextIdentifier, *toPreimageContextVersion, toPreimageData)
-		}
-
-		// Heuristically decide if this is a native runtime token transfer.
-		// TODO: Similarly to above, this application logic doesn't belong here (= the DB layer);
-		// move it out if we establish a separate app/logic layer.
-		if t.Method != nil {
-			if *t.Method == "accounts.Transfer" && t.AmountSymbol != nil && *t.AmountSymbol == c.nativeTokenSymbol(runtimeFromCtx(ctx)) {
-				t.IsLikelyNativeTokenTransfer = common.Ptr(true)
-			} else if *t.Method == "evm.Call" && t.Body != nil && (*t.Body)["data"] == "" {
-				// Note: This demands that the body.data key does exist (as we expect from evm.Call tx bodies),
-				// but has an empty value.
-				t.IsLikelyNativeTokenTransfer = common.Ptr(true)
-			}
 		}
 
 		// Try extracting parsed PCS quote from rofl.Register transaction body.

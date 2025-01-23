@@ -325,6 +325,7 @@ func (m *processor) queueTransactionInsert(batch *storage.QueryBatch, round uint
 		errorCode,
 		errorMessageRaw,
 		errorMessage,
+		transactionData.IsLikelyTokenTransfer,
 	)
 }
 
@@ -362,7 +363,7 @@ func (m *processor) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 			)
 		}
 		for addr := range transactionData.RelatedAccountAddresses {
-			batch.Queue(queries.RuntimeRelatedTransactionInsert, m.runtime, addr, data.Header.Round, transactionData.Index)
+			batch.Queue(queries.RuntimeRelatedTransactionInsert, m.runtime, addr, data.Header.Round, transactionData.Index, transactionData.Method, transactionData.IsLikelyTokenTransfer)
 			if m.mode != analyzer.FastSyncMode {
 				// We do not dead-reckon the number of transactions for accounts in fast sync mode because there are some
 				// "heavy hitter" accounts (system, etc) that are involved in a large fraction of transactions, resulting in
