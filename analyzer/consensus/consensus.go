@@ -596,6 +596,16 @@ func (m *processor) queueTransactionInserts(batch *storage.QueryBatch, data *con
 // Enqueue DB statements to store events that were generated as the result of a TX execution.
 func (m *processor) queueTxEventInserts(batch *storage.QueryBatch, data *allData) error {
 	for i, txr := range data.BlockData.TransactionsWithResults {
+		tx, err := OpenSignedTxNoVerify(&txr.Transaction)
+		if err != nil {
+			m.logger.Info("couldn't parse transaction",
+				"err", err,
+				"height", data.BlockData.Height,
+				"tx_index", i,
+			)
+			continue
+		}
+
 		txAccounts := []staking.Address{
 			// Always insert sender as a related address, some transactions (e.g. failed ones) might not have
 			// any events associated.
@@ -664,6 +674,7 @@ func (m *processor) queueTxEventInserts(batch *storage.QueryBatch, data *allData
 		for _, addr := range uniqueTxAccounts {
 			batch.Queue(queries.ConsensusAccountRelatedTransactionInsert,
 				addr,
+				tx.Method,
 				data.BlockData.Height,
 				i,
 			)
