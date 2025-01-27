@@ -90,12 +90,13 @@ CREATE INDEX ix_transactions_method_block_tx_index ON chain.transactions (method
 CREATE TABLE chain.events
 (
   tx_block UINT63 NOT NULL,
+  -- event_index UINT31 NOT NULL, -- Added in 14_events_related_accounts.up.sql
   tx_index  UINT31,
 
   type    TEXT NOT NULL,  -- Enum with many values, see ConsensusEventType in api/spec/v1.yaml.
   body    JSONB,
   tx_hash   HEX64, -- could be fetched from `transactions` table; denormalized for efficiency
-  related_accounts TEXT[],
+  related_accounts TEXT[], -- Removed in 14_events_related_accounts.up.sql
   -- There's some mismatch between oasis-core's style in Go and nexus's
   -- style in SQL and JSON. oasis-core likes structures filled with nilable
   -- pointers, where one pointer is non-nil. nexus likes a type string plus
@@ -114,7 +115,7 @@ CREATE TABLE chain.events
 
   FOREIGN KEY (tx_block, tx_index) REFERENCES chain.transactions(block, tx_index) DEFERRABLE INITIALLY DEFERRED
 );
-CREATE INDEX ix_events_related_accounts ON chain.events USING gin(related_accounts);
+CREATE INDEX ix_events_related_accounts ON chain.events USING gin(related_accounts); -- Removed in 14_events_related_accounts.up.sql
 CREATE INDEX ix_events_tx_block ON chain.events (tx_block);  -- for fetching events without filters
 CREATE INDEX ix_events_tx_hash ON chain.events (tx_hash);
 CREATE INDEX ix_events_type ON chain.events (type, tx_block);  -- tx_block is for sorting the events of a given type by recency

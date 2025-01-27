@@ -155,8 +155,8 @@ CREATE TABLE chain.runtime_events
   timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
 
 
-  -- The raw event, as returned by the oasis-sdk runtime client.
   type TEXT NOT NULL,
+  -- The raw event, as returned by the oasis-sdk runtime client.
   body JSONB NOT NULL,
   related_accounts TEXT[], -- Removed in 13_runtime_events_related_accounts.up.sql.
 
@@ -196,14 +196,14 @@ CREATE INDEX ix_runtime_events_nft_transfers ON chain.runtime_events (runtime, (
 -- (
 --     runtime runtime NOT NULL,
 --     round UINT63 NOT NULL,
---     tx_index UINT31 NOT NULL,
---     type TEXT NOT NULL,
---     type_index UINT31 NOT NULL,
+--     event_index UINT31 NOT NULL,
 
+--     tx_index UINT31,
+--     type TEXT NOT NULL,
 --     account_address oasis_addr NOT NULL,
---     FOREIGN KEY (runtime, round, tx_index, type, type_index) REFERENCES chain.runtime_events(runtime, round, tx_index, type, type_index) DEFERRABLE INITIALLY DEFERRED
+--     FOREIGN KEY (runtime, round, event_index) REFERENCES chain.runtime_events(runtime, round, event_index) DEFERRABLE INITIALLY DEFERRED
 -- );
--- CREATE INDEX ix_runtime_events_related_accounts_related_account_round ON chain.runtime_events_related_accounts(runtime, account_address, round);
+-- CREATE INDEX ix_runtime_events_related_accounts_account_address_round ON chain.runtime_events_related_accounts(runtime, account_address, round, tx_index);
 
 -- Roothash messages are small structures that a runtime can send to
 -- communicate with the consensus layer. They are agreed upon for each runtime

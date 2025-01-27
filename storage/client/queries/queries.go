@@ -113,15 +113,29 @@ const (
 			OFFSET $9::bigint`
 
 	Events = `
-		SELECT tx_block, tx_index, tx_hash, roothash_runtime_id, roothash_runtime, roothash_runtime_round, type, body, b.time
+		SELECT
+				chain.events.tx_block,
+				chain.events.tx_index,
+				chain.events.tx_hash,
+				chain.events.roothash_runtime_id,
+				chain.events.roothash_runtime,
+				chain.events.roothash_runtime_round,
+				chain.events.type,
+				chain.events.body,
+				b.time
 			FROM chain.events
 			LEFT JOIN chain.blocks b ON tx_block = b.height
-			WHERE ($1::bigint IS NULL OR tx_block = $1::bigint) AND
-					($2::integer IS NULL OR tx_index = $2::integer) AND
-					($3::text IS NULL OR tx_hash = $3::text) AND
-					($4::text IS NULL OR type = $4::text) AND
-					($5::text IS NULL OR ARRAY[$5::text] <@ related_accounts)
-			ORDER BY tx_block DESC, tx_index
+			LEFT JOIN chain.events_related_accounts rel ON
+				chain.events.tx_block = rel.tx_block AND
+				chain.events.event_index = rel.event_index AND
+				-- When related_address ($5) is NULL and hence we do no filtering on it, avoid the join altogether.
+				($5::text IS NOT NULL)
+			WHERE ($1::bigint IS NULL OR chain.events.tx_block = $1::bigint) AND
+					($2::integer IS NULL OR chain.events.tx_index = $2::integer) AND
+					($3::text IS NULL OR chain.events.tx_hash = $3::text) AND
+					($4::text IS NULL OR chain.events.type = $4::text) AND
+					($5::text IS NULL OR rel.account_address = $5::text)
+			ORDER BY chain.events.tx_block DESC, chain.events.tx_index
 			LIMIT $6::bigint
 			OFFSET $7::bigint`
 
