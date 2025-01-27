@@ -43,6 +43,7 @@ const (
 type EventType = apiTypes.ConsensusEventType // alias for brevity
 
 type parsedEvent struct {
+	eventIdx             int
 	ty                   EventType
 	rawBody              json.RawMessage
 	roothashRuntimeID    *coreCommon.Namespace
@@ -253,11 +254,13 @@ func (m *processor) queueDbUpdates(batch *storage.QueryBatch, data allData) erro
 		m.queueBlockInserts,
 		m.queueEpochInserts,
 		m.queueTransactionInserts,
-		m.queueTxEventInserts,
 	} {
 		if err := f(batch, data.BlockData); err != nil {
 			return err
 		}
+	}
+	if err := m.queueTxEventInserts(batch, &data); err != nil {
+		return err
 	}
 
 	for _, f := range []func(*storage.QueryBatch, *registryData) error{
@@ -586,8 +589,8 @@ func (m *processor) queueTransactionInserts(batch *storage.QueryBatch, data *con
 }
 
 // Enqueue DB statements to store events that were generated as the result of a TX execution.
-func (m *processor) queueTxEventInserts(batch *storage.QueryBatch, data *consensusBlockData) error {
-	for i, txr := range data.TransactionsWithResults {
+func (m *processor) queueTxEventInserts(batch *storage.QueryBatch, data *allData) error {
+	for i, txr := range data.BlockData.TransactionsWithResults {
 		txAccounts := []staking.Address{
 			// Always insert sender as a related address, some transactions (e.g. failed ones) might not have
 			// any events associated.
@@ -595,7 +598,36 @@ func (m *processor) queueTxEventInserts(batch *storage.QueryBatch, data *consens
 			// much transaction parsing, where we could extract it for each transaction type.
 			staking.NewAddress(txr.Transaction.Signature.PublicKey),
 		}
-		for _, event := range txr.Result.Events {
+
+		// Find all events associated with transaction.
+		// We don't use txr.Result.Events, because those do not have the event index unique within the block.
+		txEvents := make([]nodeapi.Event, 0, len(txr.Result.Events))
+		for _, event := range data.GovernanceData.Events {
+			if event.TxHash == txr.Transaction.Hash() {
+				txEvents = append(txEvents, event)
+			}
+		}
+		for _, event := range data.RegistryData.Events {
+			if event.TxHash == txr.Transaction.Hash() {
+				txEvents = append(txEvents, event)
+			}
+		}
+		for _, event := range data.RootHashData.Events {
+			if event.TxHash == txr.Transaction.Hash() {
+				txEvents = append(txEvents, event)
+			}
+		}
+		for _, event := range data.StakingData.Events {
+			if event.TxHash == txr.Transaction.Hash() {
+				txEvents = append(txEvents, event)
+			}
+		}
+		// Sanity check that the number of event matches.
+		if len(txEvents) != len(txr.Result.Events) {
+			return fmt.Errorf("transaction %s has %d events, but only %d were found", txr.Transaction.Hash().Hex(), len(txr.Result.Events), len(txEvents))
+		}
+
+		for _, event := range txEvents {
 			eventData := m.extractEventData(event)
 			txAccounts = append(txAccounts, eventData.relatedAddresses...)
 			accounts := extractUniqueAddresses(eventData.relatedAddresses)
@@ -605,22 +637,29 @@ func (m *processor) queueTxEventInserts(batch *storage.QueryBatch, data *consens
 			}
 
 			batch.Queue(queries.ConsensusEventInsert,
+				data.BlockData.Height,
 				string(eventData.ty),
+				eventData.eventIdx,
 				string(body),
-				data.Height,
 				txr.Transaction.Hash().Hex(),
 				i,
-				accounts,
 				common.StringOrNil(eventData.roothashRuntimeID),
 				eventData.roothashRuntime,
 				eventData.roothashRuntimeRound,
+			)
+			batch.Queue(queries.ConsensusEventRelatedAccountsInsert,
+				data.BlockData.Height,
+				string(eventData.ty),
+				eventData.eventIdx,
+				i,
+				accounts,
 			)
 		}
 		uniqueTxAccounts := extractUniqueAddresses(txAccounts)
 		for _, addr := range uniqueTxAccounts {
 			batch.Queue(queries.ConsensusAccountRelatedTransactionInsert,
 				addr,
-				data.Height,
+				data.BlockData.Height,
 				i,
 			)
 
@@ -630,7 +669,7 @@ func (m *processor) queueTxEventInserts(batch *storage.QueryBatch, data *consens
 				batch.Queue(
 					queries.ConsensusAccountFirstActivityUpsert,
 					addr,
-					data.BlockHeader.Time.UTC(),
+					data.BlockData.BlockHeader.Time.UTC(),
 				)
 			}
 		}
@@ -1376,15 +1415,22 @@ func (m *processor) queueSingleEventInserts(batch *storage.QueryBatch, eventData
 	}
 
 	batch.Queue(queries.ConsensusEventInsert,
-		string(eventData.ty),
-		string(body),
 		height,
+		string(eventData.ty),
+		eventData.eventIdx,
+		string(body),
 		nil,
 		nil,
-		accounts,
 		common.StringOrNil(eventData.roothashRuntimeID),
 		eventData.roothashRuntime,
 		eventData.roothashRuntimeRound,
+	)
+	batch.Queue(queries.ConsensusEventRelatedAccountsInsert,
+		height,
+		string(eventData.ty),
+		eventData.eventIdx,
+		nil,
+		accounts,
 	)
 
 	return nil
@@ -1408,8 +1454,9 @@ func extractUniqueAddresses(accounts []staking.Address) []string {
 // extractEventData extracts the type, the body (JSON-serialized), and the related accounts of an event.
 func (m *processor) extractEventData(event nodeapi.Event) parsedEvent {
 	eventData := parsedEvent{
-		ty:      event.Type,
-		rawBody: event.RawBody,
+		eventIdx: event.EventIdx,
+		ty:       event.Type,
+		rawBody:  event.RawBody,
 	}
 
 	// Fill in related accounts.

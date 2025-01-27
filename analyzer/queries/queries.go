@@ -269,8 +269,12 @@ var (
         schedule = excluded.schedule`
 
 	ConsensusEventInsert = `
-    INSERT INTO chain.events (type, body, tx_block, tx_hash, tx_index, related_accounts, roothash_runtime_id, roothash_runtime, roothash_runtime_round)
+    INSERT INTO chain.events (tx_block, type, event_index, body, tx_hash, tx_index, roothash_runtime_id, roothash_runtime, roothash_runtime_round)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`
+
+	ConsensusEventRelatedAccountsInsert = `
+    INSERT INTO chain.events_related_accounts (tx_block, type, event_index, tx_index, account_address)
+      SELECT $1, $2, $3, $4, unnest($5::text[])`
 
 	ConsensusEscrowEventInsert = `
     INSERT INTO history.escrow_events (tx_block, epoch, type, delegatee, delegator, shares, amount, debonding_amount)
