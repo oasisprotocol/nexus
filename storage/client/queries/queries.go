@@ -30,7 +30,9 @@ const (
 			time,
 			num_txs,
 			gas_limit,
+			gas_used,
 			size_limit,
+			size,
 			epoch,
 			state_root,
 			ROW(
@@ -76,12 +78,13 @@ const (
 				chain.transactions.nonce as nonce,
 				chain.transactions.fee_amount as fee_amount,
 				chain.transactions.max_gas as gas_limit,
+				chain.transactions.gas_used as gas_used,
 				chain.transactions.method as method,
 				chain.transactions.body as body,
 				chain.transactions.code as code,
 				chain.transactions.module as module,
 				chain.transactions.message as message,
-				chain.blocks.time as time
+				chain.blocks.time as time,
 			FROM chain.transactions
 			JOIN chain.blocks ON chain.transactions.block = chain.blocks.height
 			LEFT JOIN chain.accounts_related_transactions ON chain.transactions.block = chain.accounts_related_transactions.tx_block

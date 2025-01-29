@@ -410,6 +410,12 @@ func (m *processor) queueBlockInserts(batch *storage.QueryBatch, data *consensus
 			proposerAddr = common.Ptr(entity.String())
 		}
 	}
+
+	var gasUsed uint64
+	for _, txr := range data.TransactionsWithResults {
+		gasUsed += txr.Result.GasUsed
+	}
+
 	batch.Queue(
 		queries.ConsensusBlockUpsert,
 		data.BlockHeader.Height,
@@ -417,7 +423,9 @@ func (m *processor) queueBlockInserts(batch *storage.QueryBatch, data *consensus
 		data.BlockHeader.Time.UTC(),
 		len(data.TransactionsWithResults),
 		data.GasLimit,
+		gasUsed,
 		data.SizeLimit,
+		data.BlockHeader.Size,
 		data.Epoch,
 		data.BlockHeader.StateRoot.Namespace.String(),
 		int64(data.BlockHeader.StateRoot.Version),
@@ -548,6 +556,7 @@ func (m *processor) queueTransactionInserts(batch *storage.QueryBatch, data *con
 			module,
 			result.Error.Code,
 			message,
+			result.GasUsed,
 		)
 		// Bump the nonce.
 		if m.mode != analyzer.FastSyncMode { // Skip during fast sync; nonce will be provided by the genesis.
