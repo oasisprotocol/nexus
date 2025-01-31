@@ -2,6 +2,9 @@ BEGIN;
 
 ALTER TABLE chain.events ADD COLUMN event_index UINT31;
 
+-- Disable triggers for faster updates.
+ALTER TABLE chain.events DISABLE TRIGGER ALL;
+
 -- Populate the event_index column with sequential values for each tx_block to ensure uniqueness.
 DO $$
 DECLARE
@@ -28,13 +31,15 @@ BEGIN
   END LOOP;
 END $$;
 
+-- Re-enable triggers.
+ALTER TABLE chain.events ENABLE TRIGGER ALL;
+
 ALTER TABLE chain.events
     ALTER COLUMN event_index SET NOT NULL;
 
 -- Primary key for runtime events.
 ALTER TABLE chain.events
     ADD CONSTRAINT pk_events PRIMARY KEY (tx_block, type, event_index);
-
 
 -- Create events related accounts table.
 CREATE TABLE chain.events_related_accounts
@@ -49,21 +54,27 @@ CREATE TABLE chain.events_related_accounts
     FOREIGN KEY (tx_block, type, event_index) REFERENCES chain.events(tx_block, type, event_index) DEFERRABLE INITIALLY DEFERRED
 );
 
--- Populate the events_related_accounts table.
-INSERT INTO
-    chain.events_related_accounts (tx_block, type, event_index, tx_index, account_address)
-SELECT
-    tx_block, type, event_index, tx_index, unnest(related_accounts) AS account_address
-FROM
-    chain.events
-WHERE
-    related_accounts IS NOT NULL
-    AND array_length(related_accounts, 1) > 0;
+-- Disable logging for faster insertion.
+ALTER TABLE chain.events_related_accounts SET UNLOGGED;
 
+-- Populate the events_related_accounts table.
+COPY chain.events_related_accounts (tx_block, type, event_index, tx_index, account_address)
+FROM PROGRAM '
+    psql -XtA -c "
+    SELECT tx_block, type, event_index, tx_index, unnest(related_accounts) AS account_address
+    FROM chain.events
+    WHERE related_accounts IS NOT NULL
+    AND array_length(related_accounts, 1) > 0
+    "'
+WITH (FORMAT csv);
+
+-- Restore logging.
+ALTER TABLE chain.events_related_accounts SET LOGGED;
 
 -- Used for fetching all events related to an account (sorted by round).
 CREATE INDEX ix_events_related_accounts_account_address_block ON chain.events_related_accounts(account_address, tx_block DESC, tx_index); -- TODO: maybe also event index?
 
+-- Clean up.
 DROP INDEX chain.ix_events_related_accounts;
 ALTER TABLE chain.events DROP COLUMN related_accounts;
 
