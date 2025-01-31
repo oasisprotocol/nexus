@@ -30,7 +30,6 @@ import (
 	"github.com/oasisprotocol/nexus/analyzer/runtime/encryption"
 	evm "github.com/oasisprotocol/nexus/analyzer/runtime/evm"
 	uncategorized "github.com/oasisprotocol/nexus/analyzer/uncategorized"
-	"github.com/oasisprotocol/nexus/analyzer/util"
 	"github.com/oasisprotocol/nexus/analyzer/util/addresses"
 	"github.com/oasisprotocol/nexus/analyzer/util/eth"
 	apiTypes "github.com/oasisprotocol/nexus/api/v1/types"
@@ -95,6 +94,7 @@ type EventData struct {
 	TxIndex          *int    // nil for non-tx events
 	TxHash           *string // nil for non-tx events
 	TxEthHash        *string // nil for non-evm-tx events
+	EventIdx         int     // Unique event index within the block.
 	Type             apiTypes.RuntimeEventType
 	Body             EventBody
 	WithScope        ScopedSdkEvent
@@ -232,22 +232,18 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 		SwapSyncs:           map[apiTypes.Address]*PossibleSwapSync{},
 	}
 
-	// Extract info from non-tx events.
-	rawNonTxEvents := []nodeapi.RuntimeEvent{}
-	for _, e := range rawEvents {
-		if e.TxHash.String() == util.ZeroTxHash {
-			rawNonTxEvents = append(rawNonTxEvents, e)
-		}
-	}
-	nonTxEvents, err := extractEvents(&blockData, map[apiTypes.Address]struct{}{}, rawNonTxEvents)
+	extractedEvents, err := extractEvents(&blockData, rawEvents)
 	if err != nil {
 		return nil, fmt.Errorf("extract non-tx events: %w", err)
 	}
-	blockData.EventData = nonTxEvents
+	for _, event := range extractedEvents {
+		if event.TxHash == nil {
+			blockData.EventData = append(blockData.EventData, event)
+		}
+	}
 
 	// Extract info from transactions.
 	for txIndex, txr := range txrs {
-		txr := txr // For safe usage of `&txr` inside this long loop.
 		var blockTransactionData BlockTransactionData
 		blockTransactionData.Index = txIndex
 		blockTransactionData.Hash = txr.Tx.Hash().Hex()
@@ -277,10 +273,11 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 				si := si // we have no dangerous uses of &si, but capture the variable just in case (and to make the linter happy)
 				var blockTransactionSignerData BlockTransactionSignerData
 				blockTransactionSignerData.Index = j
-				addr, err1 := addresses.RegisterRelatedAddressSpec(blockData.AddressPreimages, blockTransactionData.RelatedAccountAddresses, &si.AddressSpec)
+				addr, err1 := addresses.RegisterAddressSpec(blockData.AddressPreimages, &si.AddressSpec)
 				if err1 != nil {
 					return nil, fmt.Errorf("tx %d signer %d visit address spec: %w", txIndex, j, err1)
 				}
+				blockTransactionData.RelatedAccountAddresses[addr] = struct{}{}
 				blockTransactionSignerData.Address = addr
 				blockTransactionSignerData.Nonce = int(si.Nonce)
 				blockTransactionData.SignerData = append(blockTransactionData.SignerData, &blockTransactionSignerData)
@@ -323,9 +320,10 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 					blockTransactionData.Body = body
 					amount = body.Amount.Amount
 					blockTransactionData.AmountSymbol = common.Ptr(stringifyDenomination(sdkPT, body.Amount.Denomination))
-					if to, err = addresses.RegisterRelatedSdkAddress(blockTransactionData.RelatedAccountAddresses, &body.To); err != nil {
+					if to, err = addresses.FromSdkAddress(&body.To); err != nil {
 						return fmt.Errorf("to: %w", err)
 					}
+					blockTransactionData.RelatedAccountAddresses[to] = struct{}{}
 					return nil
 				},
 				ConsensusAccountsDeposit: func(body *consensusaccounts.Deposit) error {
@@ -333,7 +331,7 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 					amount = body.Amount.Amount
 					blockTransactionData.AmountSymbol = common.Ptr(stringifyDenomination(sdkPT, body.Amount.Denomination))
 					if body.To != nil {
-						if to, err = addresses.RegisterRelatedSdkAddress(blockTransactionData.RelatedAccountAddresses, body.To); err != nil {
+						if to, err = addresses.FromSdkAddress(body.To); err != nil {
 							return fmt.Errorf("to: %w", err)
 						}
 					} else {
@@ -344,7 +342,7 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 					}
 					// Set the 'Success' field to 'Pending' for deposits. This is because the outcome of the Deposit tx is only known in the next block.
 					blockTransactionData.Success = nil
-
+					blockTransactionData.RelatedAccountAddresses[to] = struct{}{}
 					return nil
 				},
 				ConsensusAccountsWithdraw: func(body *consensusaccounts.Withdraw) error {
@@ -409,9 +407,10 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 					// In Undelegate semantics, the inexistent `body.To` is implicitly the account that created this tx, i.e. the delegator R.
 					// Ref: https://github.com/oasisprotocol/oasis-sdk/blob/eb97a8162f84ae81d11d805e6dceeeb016841c27/runtime-sdk/src/modules/consensus_accounts/mod.rs#L465-L465
 					// However, we instead expose `body.From` as the DB/API `to` for consistency with `Delegate`, and because it is more useful: the delegator R is already indexed in the tx sender field.
-					if to, err = addresses.RegisterRelatedSdkAddress(blockTransactionData.RelatedAccountAddresses, &body.From); err != nil {
+					if to, err = addresses.FromSdkAddress(&body.From); err != nil {
 						return fmt.Errorf("from: %w", err)
 					}
+					blockTransactionData.RelatedAccountAddresses[to] = struct{}{}
 					// The `amount` (of tokens) is not contained in the body, only `shares` is. There isn't sufficient information
 					// to convert `shares` to `amount` until the undelegation actually happens (= UndelegateDone event); in the meantime,
 					// the validator's token pool might change, e.g. because of slashing.
@@ -428,9 +427,10 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 					if !txr.Result.IsUnknown() && txr.Result.IsSuccess() && len(*ok) == 20 {
 						// Decode address of newly-created contract
 						// todo: is this rigorous enough?
-						if to, err = addresses.RegisterRelatedEthAddress(blockData.AddressPreimages, blockTransactionData.RelatedAccountAddresses, *ok); err != nil {
+						if to, err = addresses.RegisterEthAddress(blockData.AddressPreimages, *ok); err != nil {
 							return fmt.Errorf("created contract: %w", err)
 						}
+						blockTransactionData.RelatedAccountAddresses[to] = struct{}{}
 						blockTransactionData.EVMContract = &evm.EVMContractData{
 							Address:          to,
 							CreationBytecode: body.InitCode,
@@ -471,9 +471,10 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 				EVMCall: func(body *sdkEVM.Call, ok *[]byte) error {
 					blockTransactionData.Body = body
 					amount = uncategorized.QuantityFromBytes(body.Value)
-					if to, err = addresses.RegisterRelatedEthAddress(blockData.AddressPreimages, blockTransactionData.RelatedAccountAddresses, body.Address); err != nil {
+					if to, err = addresses.RegisterEthAddress(blockData.AddressPreimages, body.Address); err != nil {
 						return fmt.Errorf("address: %w", err)
 					}
+					blockTransactionData.RelatedAccountAddresses[to] = struct{}{}
 					if evmEncrypted, failedCallResult, err2 := evm.EVMMaybeUnmarshalEncryptedData(body.Data, ok); err2 == nil {
 						blockTransactionData.EVMEncrypted = evmEncrypted
 						// For non-evm txs as well as older Sapphire txs, the outer CallResult may
@@ -524,9 +525,11 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 				},
 				RoflUpdate: func(body *rofl.Update) error {
 					blockTransactionData.Body = body
-					if _, err = addresses.RegisterRelatedSdkAddress(blockTransactionData.RelatedAccountAddresses, body.Admin); err != nil {
-						return fmt.Errorf("rofl.Update admin address: %w", err)
+					admin, err := addresses.FromSdkAddress(body.Admin)
+					if err != nil {
+						return fmt.Errorf("to: %w", err)
 					}
+					blockTransactionData.RelatedAccountAddresses[admin] = struct{}{}
 					return nil
 				},
 				RoflRemove: func(body *rofl.Remove) error {
@@ -549,13 +552,17 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 			}
 			blockTransactionData.Amount = common.Ptr(common.BigIntFromQuantity(amount))
 		}
-		txEvents := make([]nodeapi.RuntimeEvent, len(txr.Events))
-		for i, e := range txr.Events {
-			txEvents[i] = (nodeapi.RuntimeEvent)(*e)
-		}
-		extractedTxEvents, err := extractEvents(&blockData, blockTransactionData.RelatedAccountAddresses, txEvents)
-		if err != nil {
-			return nil, fmt.Errorf("tx %d: %w", txIndex, err)
+
+		// Find extracted events for this tx.
+		var extractedTxEvents []*EventData
+		for _, event := range extractedEvents {
+			if event.TxHash != nil && *event.TxHash == txr.Tx.Hash().String() {
+				extractedTxEvents = append(extractedTxEvents, event)
+				// Register related addresses found in the event for the transaction as well.
+				for addr := range event.RelatedAddresses {
+					blockTransactionData.RelatedAccountAddresses[addr] = struct{}{}
+				}
+			}
 		}
 		txGasUsed, foundGasUsedEvent := sumGasUsed(extractedTxEvents)
 		// Populate eventData with tx-specific data.
@@ -694,12 +701,14 @@ func tryParseErrorMessage(errorModule string, errorCode uint32, msg string) *str
 	return &sanitizedMsg
 }
 
-func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Address]struct{}, eventsRaw []nodeapi.RuntimeEvent) ([]*EventData, error) { //nolint:gocyclo
+func extractEvents(blockData *BlockData, eventsRaw []nodeapi.RuntimeEvent) ([]*EventData, error) { //nolint:gocyclo
 	extractedEvents := []*EventData{}
 	if err := VisitSdkEvents(eventsRaw, &SdkEventHandler{
-		Core: func(event *core.Event) error {
+		Core: func(event *core.Event, eventTxHash *string, eventIdx int) error {
 			if event.GasUsed != nil {
 				eventData := EventData{
+					EventIdx:  eventIdx,
+					TxHash:    eventTxHash,
 					Type:      apiTypes.RuntimeEventTypeCoreGasUsed,
 					Body:      event.GasUsed,
 					WithScope: ScopedSdkEvent{Core: event},
@@ -708,17 +717,19 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 			}
 			return nil
 		},
-		Accounts: func(event *accounts.Event) error {
+		Accounts: func(event *accounts.Event, eventTxHash *string, eventIdx int) error {
 			if event.Transfer != nil {
-				fromAddr, err1 := addresses.RegisterRelatedSdkAddress(relatedAccountAddresses, &event.Transfer.From)
+				fromAddr, err1 := addresses.FromSdkAddress(&event.Transfer.From)
 				if err1 != nil {
 					return fmt.Errorf("from: %w", err1)
 				}
-				toAddr, err1 := addresses.RegisterRelatedSdkAddress(relatedAccountAddresses, &event.Transfer.To)
+				toAddr, err1 := addresses.FromSdkAddress(&event.Transfer.To)
 				if err1 != nil {
 					return fmt.Errorf("to: %w", err1)
 				}
 				eventData := EventData{
+					EventIdx:         eventIdx,
+					TxHash:           eventTxHash,
 					Type:             apiTypes.RuntimeEventTypeAccountsTransfer,
 					Body:             event.Transfer,
 					WithScope:        ScopedSdkEvent{Accounts: event},
@@ -727,11 +738,13 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 				extractedEvents = append(extractedEvents, &eventData)
 			}
 			if event.Burn != nil {
-				ownerAddr, err1 := addresses.RegisterRelatedSdkAddress(relatedAccountAddresses, &event.Burn.Owner)
+				ownerAddr, err1 := addresses.FromSdkAddress(&event.Burn.Owner)
 				if err1 != nil {
 					return fmt.Errorf("owner: %w", err1)
 				}
 				eventData := EventData{
+					EventIdx:         eventIdx,
+					TxHash:           eventTxHash,
 					Type:             apiTypes.RuntimeEventTypeAccountsBurn,
 					Body:             event.Burn,
 					WithScope:        ScopedSdkEvent{Accounts: event},
@@ -740,11 +753,13 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 				extractedEvents = append(extractedEvents, &eventData)
 			}
 			if event.Mint != nil {
-				ownerAddr, err1 := addresses.RegisterRelatedSdkAddress(relatedAccountAddresses, &event.Mint.Owner)
+				ownerAddr, err1 := addresses.FromSdkAddress(&event.Mint.Owner)
 				if err1 != nil {
 					return fmt.Errorf("owner: %w", err1)
 				}
 				eventData := EventData{
+					EventIdx:         eventIdx,
+					TxHash:           eventTxHash,
 					Type:             apiTypes.RuntimeEventTypeAccountsMint,
 					Body:             event.Mint,
 					WithScope:        ScopedSdkEvent{Accounts: event},
@@ -754,18 +769,20 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 			}
 			return nil
 		},
-		ConsensusAccounts: func(event *consensusaccounts.Event) error {
+		ConsensusAccounts: func(event *consensusaccounts.Event, eventTxHash *string, eventIdx int) error {
 			if event.Deposit != nil {
 				// NOTE: .From is a _consensus_ addr (not runtime). It's still related though.
-				fromAddr, err1 := addresses.RegisterRelatedSdkAddress(relatedAccountAddresses, &event.Deposit.From)
+				fromAddr, err1 := addresses.FromSdkAddress(&event.Deposit.From)
 				if err1 != nil {
 					return fmt.Errorf("from: %w", err1)
 				}
-				toAddr, err1 := addresses.RegisterRelatedSdkAddress(relatedAccountAddresses, &event.Deposit.To)
+				toAddr, err1 := addresses.FromSdkAddress(&event.Deposit.To)
 				if err1 != nil {
 					return fmt.Errorf("to: %w", err1)
 				}
 				eventData := EventData{
+					EventIdx:         eventIdx,
+					TxHash:           eventTxHash,
 					Type:             apiTypes.RuntimeEventTypeConsensusAccountsDeposit,
 					Body:             event.Deposit,
 					WithScope:        ScopedSdkEvent{ConsensusAccounts: event},
@@ -774,16 +791,18 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 				extractedEvents = append(extractedEvents, &eventData)
 			}
 			if event.Withdraw != nil {
-				fromAddr, err1 := addresses.RegisterRelatedSdkAddress(relatedAccountAddresses, &event.Withdraw.From)
+				fromAddr, err1 := addresses.FromSdkAddress(&event.Withdraw.From)
 				if err1 != nil {
 					return fmt.Errorf("from: %w", err1)
 				}
 				// NOTE: .To is a _consensus_ addr (not runtime). It's still related though.
-				toAddr, err1 := addresses.RegisterRelatedSdkAddress(relatedAccountAddresses, &event.Withdraw.To)
+				toAddr, err1 := addresses.FromSdkAddress(&event.Withdraw.To)
 				if err1 != nil {
 					return fmt.Errorf("to: %w", err1)
 				}
 				eventData := EventData{
+					EventIdx:         eventIdx,
+					TxHash:           eventTxHash,
 					Type:             apiTypes.RuntimeEventTypeConsensusAccountsWithdraw,
 					Body:             event.Withdraw,
 					WithScope:        ScopedSdkEvent{ConsensusAccounts: event},
@@ -794,15 +813,17 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 			if event.Delegate != nil {
 				// No dead reckoning needed; balance changes are signalled by other, co-emitted events.
 				// See "LESSON" comment in the code that handles the Delegate tx.
-				fromAddr, err1 := addresses.RegisterRelatedSdkAddress(relatedAccountAddresses, &event.Delegate.From)
+				fromAddr, err1 := addresses.FromSdkAddress(&event.Delegate.From)
 				if err1 != nil {
 					return fmt.Errorf("from: %w", err1)
 				}
-				toAddr, err1 := addresses.RegisterRelatedSdkAddress(relatedAccountAddresses, &event.Delegate.To)
+				toAddr, err1 := addresses.FromSdkAddress(&event.Delegate.To)
 				if err1 != nil {
 					return fmt.Errorf("to: %w", err1)
 				}
 				eventData := EventData{
+					EventIdx:         eventIdx,
+					TxHash:           eventTxHash,
 					Type:             apiTypes.RuntimeEventTypeConsensusAccountsDelegate,
 					Body:             event.Delegate,
 					WithScope:        ScopedSdkEvent{ConsensusAccounts: event},
@@ -811,15 +832,17 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 				extractedEvents = append(extractedEvents, &eventData)
 			}
 			if event.UndelegateStart != nil {
-				fromAddr, err1 := addresses.RegisterRelatedSdkAddress(relatedAccountAddresses, &event.UndelegateStart.From)
+				fromAddr, err1 := addresses.FromSdkAddress(&event.UndelegateStart.From)
 				if err1 != nil {
 					return fmt.Errorf("from: %w", err1)
 				}
-				toAddr, err1 := addresses.RegisterRelatedSdkAddress(relatedAccountAddresses, &event.UndelegateStart.To)
+				toAddr, err1 := addresses.FromSdkAddress(&event.UndelegateStart.To)
 				if err1 != nil {
 					return fmt.Errorf("to: %w", err1)
 				}
 				eventData := EventData{
+					EventIdx:         eventIdx,
+					TxHash:           eventTxHash,
 					Type:             apiTypes.RuntimeEventTypeConsensusAccountsUndelegateStart,
 					Body:             event.UndelegateStart,
 					WithScope:        ScopedSdkEvent{ConsensusAccounts: event},
@@ -829,15 +852,17 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 				extractedEvents = append(extractedEvents, &eventData)
 			}
 			if event.UndelegateDone != nil {
-				fromAddr, err1 := addresses.RegisterRelatedSdkAddress(relatedAccountAddresses, &event.UndelegateDone.From)
+				fromAddr, err1 := addresses.FromSdkAddress(&event.UndelegateDone.From)
 				if err1 != nil {
 					return fmt.Errorf("from: %w", err1)
 				}
-				toAddr, err1 := addresses.RegisterRelatedSdkAddress(relatedAccountAddresses, &event.UndelegateDone.To)
+				toAddr, err1 := addresses.FromSdkAddress(&event.UndelegateDone.To)
 				if err1 != nil {
 					return fmt.Errorf("to: %w", err1)
 				}
 				eventData := EventData{
+					EventIdx:         eventIdx,
+					TxHash:           eventTxHash,
 					Type:             apiTypes.RuntimeEventTypeConsensusAccountsUndelegateDone,
 					Body:             event.UndelegateDone,
 					WithScope:        ScopedSdkEvent{ConsensusAccounts: event},
@@ -847,12 +872,14 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 			}
 			return nil
 		},
-		EVM: func(event *sdkEVM.Event) error {
-			eventAddr, err1 := addresses.RegisterRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, event.Address)
+		EVM: func(event *sdkEVM.Event, eventTxHash *string, eventIdx int) error {
+			eventAddr, err1 := addresses.RegisterEthAddress(blockData.AddressPreimages, event.Address)
 			if err1 != nil {
 				return fmt.Errorf("event address: %w", err1)
 			}
 			eventData := EventData{
+				EventIdx:         eventIdx,
+				TxHash:           eventTxHash,
 				Type:             apiTypes.RuntimeEventTypeEvmLog,
 				Body:             event,
 				WithScope:        ScopedSdkEvent{EVM: event},
@@ -863,7 +890,7 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 					fromZero := bytes.Equal(fromECAddr.Bytes(), eth.ZeroEthAddr)
 					toZero := bytes.Equal(toECAddr.Bytes(), eth.ZeroEthAddr)
 					if !fromZero {
-						fromAddr, err2 := addresses.RegisterRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, fromECAddr.Bytes())
+						fromAddr, err2 := addresses.RegisterEthAddress(blockData.AddressPreimages, fromECAddr.Bytes())
 						if err2 != nil {
 							return fmt.Errorf("from: %w", err2)
 						}
@@ -871,7 +898,7 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 						registerTokenDecrease(blockData.TokenBalanceChanges, eventAddr, fromAddr, value)
 					}
 					if !toZero {
-						toAddr, err2 := addresses.RegisterRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, toECAddr.Bytes())
+						toAddr, err2 := addresses.RegisterEthAddress(blockData.AddressPreimages, toECAddr.Bytes())
 						if err2 != nil {
 							return fmt.Errorf("to: %w", err2)
 						}
@@ -915,14 +942,14 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 				},
 				ERC20Approval: func(ownerECAddr ethCommon.Address, spenderECAddr ethCommon.Address, value *big.Int) error {
 					if !bytes.Equal(ownerECAddr.Bytes(), eth.ZeroEthAddr) {
-						ownerAddr, err2 := addresses.RegisterRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, ownerECAddr.Bytes())
+						ownerAddr, err2 := addresses.RegisterEthAddress(blockData.AddressPreimages, ownerECAddr.Bytes())
 						if err2 != nil {
 							return fmt.Errorf("owner: %w", err2)
 						}
 						eventData.RelatedAddresses[ownerAddr] = struct{}{}
 					}
 					if !bytes.Equal(spenderECAddr.Bytes(), eth.ZeroEthAddr) {
-						spenderAddr, err2 := addresses.RegisterRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, spenderECAddr.Bytes())
+						spenderAddr, err2 := addresses.RegisterEthAddress(blockData.AddressPreimages, spenderECAddr.Bytes())
 						if err2 != nil {
 							return fmt.Errorf("spender: %w", err2)
 						}
@@ -960,7 +987,7 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 					var fromAddr, toAddr apiTypes.Address
 					if !fromZero {
 						var err2 error
-						fromAddr, err2 = addresses.RegisterRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, fromECAddr.Bytes())
+						fromAddr, err2 = addresses.RegisterEthAddress(blockData.AddressPreimages, fromECAddr.Bytes())
 						if err2 != nil {
 							return fmt.Errorf("from: %w", err2)
 						}
@@ -969,7 +996,7 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 					}
 					if !toZero {
 						var err2 error
-						toAddr, err2 = addresses.RegisterRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, toECAddr.Bytes())
+						toAddr, err2 = addresses.RegisterEthAddress(blockData.AddressPreimages, toECAddr.Bytes())
 						if err2 != nil {
 							return fmt.Errorf("to: %w", err2)
 						}
@@ -1023,14 +1050,14 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 				},
 				ERC721Approval: func(ownerECAddr ethCommon.Address, approvedECAddr ethCommon.Address, tokenID *big.Int) error {
 					if !bytes.Equal(ownerECAddr.Bytes(), eth.ZeroEthAddr) {
-						ownerAddr, err2 := addresses.RegisterRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, ownerECAddr.Bytes())
+						ownerAddr, err2 := addresses.RegisterEthAddress(blockData.AddressPreimages, ownerECAddr.Bytes())
 						if err2 != nil {
 							return fmt.Errorf("owner: %w", err2)
 						}
 						eventData.RelatedAddresses[ownerAddr] = struct{}{}
 					}
 					if !bytes.Equal(approvedECAddr.Bytes(), eth.ZeroEthAddr) {
-						approvedAddr, err2 := addresses.RegisterRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, approvedECAddr.Bytes())
+						approvedAddr, err2 := addresses.RegisterEthAddress(blockData.AddressPreimages, approvedECAddr.Bytes())
 						if err2 != nil {
 							return fmt.Errorf("approved: %w", err2)
 						}
@@ -1065,14 +1092,14 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 				},
 				ERC721ApprovalForAll: func(ownerECAddr ethCommon.Address, operatorECAddr ethCommon.Address, approved bool) error {
 					if !bytes.Equal(ownerECAddr.Bytes(), eth.ZeroEthAddr) {
-						ownerAddr, err2 := addresses.RegisterRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, ownerECAddr.Bytes())
+						ownerAddr, err2 := addresses.RegisterEthAddress(blockData.AddressPreimages, ownerECAddr.Bytes())
 						if err2 != nil {
 							return fmt.Errorf("owner: %w", err2)
 						}
 						eventData.RelatedAddresses[ownerAddr] = struct{}{}
 					}
 					if !bytes.Equal(operatorECAddr.Bytes(), eth.ZeroEthAddr) {
-						operatorAddr, err2 := addresses.RegisterRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, operatorECAddr.Bytes())
+						operatorAddr, err2 := addresses.RegisterEthAddress(blockData.AddressPreimages, operatorECAddr.Bytes())
 						if err2 != nil {
 							return fmt.Errorf("operator: %w", err2)
 						}
@@ -1103,17 +1130,17 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 					return nil
 				},
 				IUniswapV2FactoryPairCreated: func(token0ECAddr ethCommon.Address, token1ECAddr ethCommon.Address, pairECAddr ethCommon.Address, allPairsLength *big.Int) error {
-					token0Addr, err := addresses.RegisterRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, token0ECAddr.Bytes())
+					token0Addr, err := addresses.RegisterEthAddress(blockData.AddressPreimages, token0ECAddr.Bytes())
 					if err != nil {
 						return fmt.Errorf("token0: %w", err)
 					}
 					eventData.RelatedAddresses[token0Addr] = struct{}{}
-					token1Addr, err := addresses.RegisterRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, token1ECAddr.Bytes())
+					token1Addr, err := addresses.RegisterEthAddress(blockData.AddressPreimages, token1ECAddr.Bytes())
 					if err != nil {
 						return fmt.Errorf("token1: %w", err)
 					}
 					eventData.RelatedAddresses[token1Addr] = struct{}{}
-					pairAddr, err := addresses.RegisterRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, pairECAddr.Bytes())
+					pairAddr, err := addresses.RegisterEthAddress(blockData.AddressPreimages, pairECAddr.Bytes())
 					if err != nil {
 						return fmt.Errorf("pair: %w", err)
 					}
@@ -1154,7 +1181,7 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 					return nil
 				},
 				IUniswapV2PairMint: func(senderECAddr ethCommon.Address, amount0 *big.Int, amount1 *big.Int) error {
-					senderAddr, err := addresses.RegisterRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, senderECAddr.Bytes())
+					senderAddr, err := addresses.RegisterEthAddress(blockData.AddressPreimages, senderECAddr.Bytes())
 					if err != nil {
 						return fmt.Errorf("sender: %w", err)
 					}
@@ -1185,12 +1212,12 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 					return nil
 				},
 				IUniswapV2PairBurn: func(senderECAddr ethCommon.Address, amount0 *big.Int, amount1 *big.Int, toECAddr ethCommon.Address) error {
-					senderAddr, err := addresses.RegisterRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, senderECAddr.Bytes())
+					senderAddr, err := addresses.RegisterEthAddress(blockData.AddressPreimages, senderECAddr.Bytes())
 					if err != nil {
 						return fmt.Errorf("sender: %w", err)
 					}
 					eventData.RelatedAddresses[senderAddr] = struct{}{}
-					toAddr, err := addresses.RegisterRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, toECAddr.Bytes())
+					toAddr, err := addresses.RegisterEthAddress(blockData.AddressPreimages, toECAddr.Bytes())
 					if err != nil {
 						return fmt.Errorf("to: %w", err)
 					}
@@ -1226,12 +1253,12 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 					return nil
 				},
 				IUniswapV2PairSwap: func(senderECAddr ethCommon.Address, amount0In *big.Int, amount1In *big.Int, amount0Out *big.Int, amount1Out *big.Int, toECAddr ethCommon.Address) error {
-					senderAddr, err := addresses.RegisterRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, senderECAddr.Bytes())
+					senderAddr, err := addresses.RegisterEthAddress(blockData.AddressPreimages, senderECAddr.Bytes())
 					if err != nil {
 						return fmt.Errorf("sender: %w", err)
 					}
 					eventData.RelatedAddresses[senderAddr] = struct{}{}
-					toAddr, err := addresses.RegisterRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, toECAddr.Bytes())
+					toAddr, err := addresses.RegisterEthAddress(blockData.AddressPreimages, toECAddr.Bytes())
 					if err != nil {
 						return fmt.Errorf("to: %w", err)
 					}
@@ -1308,7 +1335,7 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 				WROSEDeposit: func(ownerECAddr ethCommon.Address, amount *big.Int) error {
 					wrapperAddr := eventAddr // the WROSE wrapper contract is implicitly the address that emitted the contract
 
-					ownerAddr, err2 := addresses.RegisterRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, ownerECAddr.Bytes())
+					ownerAddr, err2 := addresses.RegisterEthAddress(blockData.AddressPreimages, ownerECAddr.Bytes())
 					if err2 != nil {
 						return fmt.Errorf("owner: %w", err2)
 					}
@@ -1355,7 +1382,7 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 				WROSEWithdrawal: func(ownerECAddr ethCommon.Address, amount *big.Int) error {
 					wrapperAddr := eventAddr // the WROSE wrapper contract is implicitly the address that emitted the contract
 
-					ownerAddr, err2 := addresses.RegisterRelatedEthAddress(blockData.AddressPreimages, relatedAccountAddresses, ownerECAddr.Bytes())
+					ownerAddr, err2 := addresses.RegisterEthAddress(blockData.AddressPreimages, ownerECAddr.Bytes())
 					if err2 != nil {
 						return fmt.Errorf("owner: %w", err2)
 					}
@@ -1392,9 +1419,11 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 			extractedEvents = append(extractedEvents, &eventData)
 			return nil
 		},
-		Rofl: func(event *rofl.Event) error {
+		Rofl: func(event *rofl.Event, eventTxHash *string, eventIdx int) error {
 			if event.AppCreated != nil {
 				eventData := EventData{
+					EventIdx:  eventIdx,
+					TxHash:    eventTxHash,
 					Type:      apiTypes.RuntimeEventTypeRoflAppCreated,
 					Body:      event.AppCreated,
 					WithScope: ScopedSdkEvent{Rofl: event},
@@ -1403,6 +1432,8 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 			}
 			if event.AppRemoved != nil {
 				eventData := EventData{
+					EventIdx:  eventIdx,
+					TxHash:    eventTxHash,
 					Type:      apiTypes.RuntimeEventTypeRoflAppRemoved,
 					Body:      event.AppRemoved,
 					WithScope: ScopedSdkEvent{Rofl: event},
@@ -1411,6 +1442,8 @@ func extractEvents(blockData *BlockData, relatedAccountAddresses map[apiTypes.Ad
 			}
 			if event.AppUpdated != nil {
 				eventData := EventData{
+					EventIdx:  eventIdx,
+					TxHash:    eventTxHash,
 					Type:      apiTypes.RuntimeEventTypeRoflAppUpdated,
 					Body:      event.AppUpdated,
 					WithScope: ScopedSdkEvent{Rofl: event},

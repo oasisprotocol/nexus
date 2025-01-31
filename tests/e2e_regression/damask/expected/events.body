@@ -13,9 +13,9 @@
     {
       "block": 8049946,
       "body": {
-        "amount": "100",
+        "amount": "10000000",
         "from": "oasis1qrqnh093w0pv8asfmc37pyal6yn2h4cnwvdqtzm0",
-        "to": "oasis1qqnv3peudzvekhulf8v3ht29z4cthkhy7gkxmph5"
+        "to": "oasis1qz068qtggv6kdstymnvqm46rpv6p6tk6pueffdqu"
       },
       "timestamp": "2022-04-11T12:44:08Z",
       "tx_hash": "4defe2afa3abbd4668958e360e184c73381e8b99ebb8082b911f6b28c811da97",
@@ -25,9 +25,9 @@
     {
       "block": 8049946,
       "body": {
-        "amount": "10000000",
+        "amount": "100",
         "from": "oasis1qrqnh093w0pv8asfmc37pyal6yn2h4cnwvdqtzm0",
-        "to": "oasis1qz068qtggv6kdstymnvqm46rpv6p6tk6pueffdqu"
+        "to": "oasis1qqnv3peudzvekhulf8v3ht29z4cthkhy7gkxmph5"
       },
       "timestamp": "2022-04-11T12:44:08Z",
       "tx_hash": "4defe2afa3abbd4668958e360e184c73381e8b99ebb8082b911f6b28c811da97",

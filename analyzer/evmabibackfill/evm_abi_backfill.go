@@ -42,8 +42,11 @@ type abiEncodedTx struct {
 }
 
 type abiEncodedEvent struct {
-	Round     uint64
-	TxIndex   *int
+	// Event primary key.
+	Runtime    common.Runtime
+	Round      uint64
+	EventIndex int
+
 	EventBody sdkEVM.Event
 }
 
@@ -122,8 +125,9 @@ func (p *processor) GetItems(ctx context.Context, limit uint64) ([]*abiEncodedIt
 		if err = eventRows.Scan(
 			&item.ContractAddr,
 			&item.Abi,
+			&ev.Runtime,
 			&ev.Round,
-			&ev.TxIndex,
+			&ev.EventIndex,
 			&ev.EventBody,
 		); err != nil {
 			return nil, fmt.Errorf("scanning verified contract event: %w", err)
@@ -236,10 +240,9 @@ func (p *processor) ProcessItem(ctx context.Context, batch *storage.QueryBatch, 
 		if item.Event != nil {
 			batch.Queue(
 				queries.RuntimeEventEvmParsedFieldsUpdate,
-				p.runtime,
+				item.Event.Runtime,
 				item.Event.Round,
-				item.Event.TxIndex,
-				item.Event.EventBody,
+				item.Event.EventIndex,
 				nil,
 				nil,
 				nil,
@@ -262,15 +265,14 @@ func (p *processor) ProcessItem(ctx context.Context, batch *storage.QueryBatch, 
 	if item.Event != nil {
 		eventName, eventArgs, eventSig, err := p.parseEvent(item.Event, contractAbi)
 		if err != nil {
-			p.logger.Warn("error parsing event with abi", "err", err, "contract_address", item.ContractAddr, "event_round", item.Event.Round, "event_tx_index", item.Event.TxIndex)
+			p.logger.Warn("error parsing event with abi", "err", err, "contract_address", item.ContractAddr, "event_round", item.Event.Round, "event_index", item.Event.EventIndex)
 			// Write to the DB regardless of error so we don't keep retrying the same item.
 		}
 		batch.Queue(
 			queries.RuntimeEventEvmParsedFieldsUpdate,
-			p.runtime,
+			item.Event.Runtime,
 			item.Event.Round,
-			item.Event.TxIndex,
-			item.Event.EventBody,
+			item.Event.EventIndex,
 			eventName,
 			eventArgs,
 			eventSig,
