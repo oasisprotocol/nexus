@@ -9,6 +9,7 @@ import (
 	"runtime/pprof"
 	"sync"
 	"syscall"
+	"time"
 
 	"github.com/spf13/cobra"
 
@@ -55,6 +56,22 @@ func rootMain(cmd *cobra.Command, args []string) {
 	}
 	logger := common.RootLogger()
 
+	// Initialize cpu profiling.
+	if cfg.Metrics.CpuProfile != "" {
+		logger.Warn("CPU profiling is enabled, this will impact performance (negatively)", "dest", cfg.Metrics.CpuProfile)
+		cpuF, err := os.Create(cfg.Metrics.CpuProfile)
+		if err != nil {
+			logger.Error("failed to initialize cpu profile", "err", err)
+			os.Exit(1)
+		}
+		defer cpuF.Close()
+		if err := pprof.StartCPUProfile(cpuF); err != nil {
+			logger.Error("could not start cpu profile", "err", err)
+			os.Exit(1)
+		}
+		defer pprof.StopCPUProfile()
+	}
+
 	// Initialize services.
 	var wg sync.WaitGroup
 	runInWG := func(s Service) {
@@ -83,7 +100,44 @@ func rootMain(cmd *cobra.Command, args []string) {
 	}
 
 	logger.Info("started all services")
+	// Collect memory profile.
+	if cfg.Metrics.MemProfile != "" {
+		go collectMemProfiles(cfg.Metrics.MemProfile, logger)
+	}
 	wg.Wait()
+}
+
+func collectMemProfiles(dest string, logger *log.Logger) {
+	signalChan := make(chan os.Signal, 1)
+	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
+	defer signal.Stop(signalChan) // Stop catching Ctrl+C signals.
+
+	for {
+		select {
+		case <-time.After(5 * time.Minute):
+			logMemProfile(dest, logger)
+		case <-signalChan:
+			logger.Info("received interrupt, shutting down")
+			// Let the default handler handle ctrl+C so people can kill the process in a hurry.
+			signal.Stop(signalChan)
+			return
+		}
+	}
+}
+
+func logMemProfile(dest string, logger *log.Logger) {
+	logger.Info("Writing memory profile", "dest", dest)
+	memF, err := os.Create(dest)
+	if err != nil {
+		logger.Error("failed to create memory profile", "err", err)
+		os.Exit(1)
+	}
+	defer memF.Close()
+	// runtime.GC()
+	if err := pprof.WriteHeapProfile(memF); err != nil {
+		logger.Error("failed to write memory profile", "err", err)
+		os.Exit(1)
+	}
 }
 
 // Execute spawns the main entry point after handing the config file.
