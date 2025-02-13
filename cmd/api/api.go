@@ -139,7 +139,15 @@ func NewService(cfg *config.ServerConfig) (*Service, error) {
 		runtimeClients[runtime] = client
 	}
 
-	client, err := storage.NewStorageClient(*cfg.Source, backing, referenceSwaps, runtimeClients, networkConfig, logger)
+	client, err := storage.NewStorageClient(
+		*cfg.Source,
+		backing,
+		referenceSwaps,
+		runtimeClients,
+		cfg.EVMTokensCustomOrdering,
+		networkConfig,
+		logger,
+	)
 	if err != nil {
 		return nil, err
 	}
