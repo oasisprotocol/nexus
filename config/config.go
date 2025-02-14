@@ -602,6 +602,12 @@ type ServerConfig struct {
 	// RequestTimeout is the timeout for requests to the storage backend.
 	// If unset, the default timeout is used.
 	RequestTimeout *time.Duration `koanf:"request_timeout"`
+
+	// EVMTokensCustomOrdering is the configuration for custom ordering of EVM tokens.
+	// The key is the runtime, and the value is a list of groups containing token addresses.
+	// Tokens are ordered by the order of groups, followed by any tokens not listed in any group.
+	// Within each group, tokens are ordered by the default logic.
+	EVMTokensCustomOrdering map[common.Runtime][][]string `koanf:"evm_tokens_custom_ordering"`
 }
 
 // Validate validates the server configuration.
@@ -730,13 +736,12 @@ func (cfg *MetricsConfig) Validate() error {
 	return nil
 }
 
-// InitConfig initializes configuration from file.
-func InitConfig(f string) (*Config, error) {
+func initConfig(p koanf.Provider) (*Config, error) {
 	var config Config
 	k := koanf.New(".")
 
 	// Load configuration from the yaml config.
-	if err := k.Load(file.Provider(f), yaml.Parser()); err != nil {
+	if err := k.Load(p, yaml.Parser()); err != nil {
 		return nil, err
 	}
 
@@ -753,10 +758,18 @@ func InitConfig(f string) (*Config, error) {
 		return nil, err
 	}
 
+	return &config, nil
+}
+
+// InitConfig initializes configuration from file.
+func InitConfig(f string) (*Config, error) {
+	config, err := initConfig(file.Provider(f))
+	if err != nil {
+		return nil, err
+	}
 	// Validate config.
 	if err := config.Validate(); err != nil {
 		return nil, err
 	}
-
-	return &config, nil
+	return config, nil
 }

@@ -43,6 +43,23 @@ server:
   storage:
     endpoint: postgresql://api:password@localhost:5432/indexer?sslmode=disable
     backend: postgres
+  # Configure a custom ordering for evm_tokens endpoint so we test the functionality.
+  evm_tokens_custom_ordering:
+    emerald:
+      - [
+        "0x3223f17957Ba502cbe71401D55A0DB26E5F7c68F",
+        "0x81ECac0D6Be0550A00FF064a4f9dd2400585FE9c",
+        "0x1108A83b867c8b720fEa7261AE7A64DAB17B4159",
+        "0xf5493ea940d12cE8594f81BaB2bB7d4ed81d49e8",
+      ]
+      - [
+        "0xf02b3e437304892105992512539F769423a515Cb"
+      ]
+      - [
+        "0x0487F746B01A663108E7c4E5739F282491a45799",
+        "0x0000000000000000000000000000000000000000",
+        "0x5C78A65AD6D0eC6618788b6E8e211F31729111Ca",
+      ]
 
 log:
   level: debug

@@ -1,6 +1,54 @@
 {
   "evm_tokens": [
     {
+      "contract_addr": "oasis1qpuqs65me58n6mt05ezd7cnttx7k57w28v36l4ca",
+      "decimals": 6,
+      "eth_contract_addr": "0x81ECac0D6Be0550A00FF064a4f9dd2400585FE9c",
+      "is_verified": false,
+      "name": "USD Coin (Celer)",
+      "num_holders": 3,
+      "num_transfers": 6,
+      "symbol": "ceUSDC",
+      "total_supply": "160671058631",
+      "type": "ERC20"
+    },
+    {
+      "contract_addr": "oasis1qzel2watfs6g3cm765dwlukymjs5k3rnhvua4z78",
+      "decimals": 18,
+      "eth_contract_addr": "0x3223f17957Ba502cbe71401D55A0DB26E5F7c68F",
+      "is_verified": false,
+      "name": "Wrapped Ether",
+      "num_holders": 2,
+      "num_transfers": 2,
+      "symbol": "WETH",
+      "total_supply": "153212215450000000000",
+      "type": "ERC20"
+    },
+    {
+      "contract_addr": "oasis1qqjv74rz8e6v9q6yn7y76zvf0yv5299ejsaxnjqu",
+      "decimals": 18,
+      "eth_contract_addr": "0xf5493ea940d12cE8594f81BaB2bB7d4ed81d49e8",
+      "is_verified": false,
+      "name": "xYUZU",
+      "num_holders": 1,
+      "num_transfers": 1,
+      "symbol": "xYUZU",
+      "total_supply": "72707317251766251839614070",
+      "type": "ERC20"
+    },
+    {
+      "contract_addr": "oasis1qz29t7nxkwfqgfk36uqqs9pzuzdt8zmrjud5mehx",
+      "decimals": 0,
+      "eth_contract_addr": "0x1108A83b867c8b720fEa7261AE7A64DAB17B4159",
+      "is_verified": false,
+      "name": "MyNFT",
+      "num_holders": 1,
+      "num_transfers": 2,
+      "symbol": "MNFT",
+      "total_supply": "2",
+      "type": "ERC721"
+    },
+    {
       "contract_addr": "oasis1qqz8706pmf38wmptl6dkcaec8yykw0rvfv7ql6fc",
       "decimals": 18,
       "eth_contract_addr": "0xf02b3e437304892105992512539F769423a515Cb",
@@ -12,6 +60,31 @@
       "total_supply": "324996573618707482993195360",
       "type": "ERC20",
       "verification_level": "partial"
+    },
+    {
+      "contract_addr": "oasis1qzpxtzc3xphccjq94wxffchfc5sua5t24vc6gvt6",
+      "decimals": 18,
+      "eth_contract_addr": "0x5C78A65AD6D0eC6618788b6E8e211F31729111Ca",
+      "is_verified": true,
+      "name": "Wrapped ROSE",
+      "num_holders": 1,
+      "num_transfers": 1,
+      "symbol": "WROSE",
+      "total_supply": "370854109276538025377920",
+      "type": "ERC20",
+      "verification_level": "partial"
+    },
+    {
+      "contract_addr": "oasis1qzxx6htc6cceayd492mqt6lqc8l3eda29cnscx67",
+      "decimals": 18,
+      "eth_contract_addr": "0x0487F746B01A663108E7c4E5739F282491a45799",
+      "is_verified": false,
+      "name": "YuzuSwap LP Token",
+      "num_holders": 1,
+      "num_transfers": 4,
+      "symbol": "LPT",
+      "total_supply": "3454145239972177",
+      "type": "ERC20"
     },
     {
       "contract_addr": "oasis1qpgcp5jzlgk4hcenaj2x82rqk8rrve2keyuc8aaf",
@@ -52,18 +125,6 @@
       "verification_level": "partial"
     },
     {
-      "contract_addr": "oasis1qpuqs65me58n6mt05ezd7cnttx7k57w28v36l4ca",
-      "decimals": 6,
-      "eth_contract_addr": "0x81ECac0D6Be0550A00FF064a4f9dd2400585FE9c",
-      "is_verified": false,
-      "name": "USD Coin (Celer)",
-      "num_holders": 3,
-      "num_transfers": 6,
-      "symbol": "ceUSDC",
-      "total_supply": "160671058631",
-      "type": "ERC20"
-    },
-    {
       "contract_addr": "oasis1qqehgt8jfnczmku5hazxkkprw5nqqk4nvunx9zf4",
       "decimals": 18,
       "eth_contract_addr": "0x28c9D3e689B5d3629aFC2D69ef6a2799578574e0",
@@ -75,18 +136,6 @@
       "total_supply": "8543198732792740426556",
       "type": "ERC20",
       "verification_level": "partial"
-    },
-    {
-      "contract_addr": "oasis1qzel2watfs6g3cm765dwlukymjs5k3rnhvua4z78",
-      "decimals": 18,
-      "eth_contract_addr": "0x3223f17957Ba502cbe71401D55A0DB26E5F7c68F",
-      "is_verified": false,
-      "name": "Wrapped Ether",
-      "num_holders": 2,
-      "num_transfers": 2,
-      "symbol": "WETH",
-      "total_supply": "153212215450000000000",
-      "type": "ERC20"
     },
     {
       "contract_addr": "oasis1qpgvjkelzwd0yucjqyfpfzalrp3x74se7y922a7s",
@@ -101,18 +150,6 @@
       "type": "ERC20"
     },
     {
-      "contract_addr": "oasis1qqjv74rz8e6v9q6yn7y76zvf0yv5299ejsaxnjqu",
-      "decimals": 18,
-      "eth_contract_addr": "0xf5493ea940d12cE8594f81BaB2bB7d4ed81d49e8",
-      "is_verified": false,
-      "name": "xYUZU",
-      "num_holders": 1,
-      "num_transfers": 1,
-      "symbol": "xYUZU",
-      "total_supply": "72707317251766251839614070",
-      "type": "ERC20"
-    },
-    {
       "contract_addr": "oasis1qrsl7tgujttvscfe2k268s7q2s7kdu9tyv9qv2tx",
       "decimals": 8,
       "eth_contract_addr": "0x5D9ab5522c64E1F6ef5e3627ECCc093f56167818",
@@ -122,43 +159,6 @@
       "num_transfers": 2,
       "symbol": "WBTC",
       "total_supply": "175579512",
-      "type": "ERC20"
-    },
-    {
-      "contract_addr": "oasis1qz29t7nxkwfqgfk36uqqs9pzuzdt8zmrjud5mehx",
-      "decimals": 0,
-      "eth_contract_addr": "0x1108A83b867c8b720fEa7261AE7A64DAB17B4159",
-      "is_verified": false,
-      "name": "MyNFT",
-      "num_holders": 1,
-      "num_transfers": 2,
-      "symbol": "MNFT",
-      "total_supply": "2",
-      "type": "ERC721"
-    },
-    {
-      "contract_addr": "oasis1qzpxtzc3xphccjq94wxffchfc5sua5t24vc6gvt6",
-      "decimals": 18,
-      "eth_contract_addr": "0x5C78A65AD6D0eC6618788b6E8e211F31729111Ca",
-      "is_verified": true,
-      "name": "Wrapped ROSE",
-      "num_holders": 1,
-      "num_transfers": 1,
-      "symbol": "WROSE",
-      "total_supply": "370854109276538025377920",
-      "type": "ERC20",
-      "verification_level": "partial"
-    },
-    {
-      "contract_addr": "oasis1qzxx6htc6cceayd492mqt6lqc8l3eda29cnscx67",
-      "decimals": 18,
-      "eth_contract_addr": "0x0487F746B01A663108E7c4E5739F282491a45799",
-      "is_verified": false,
-      "name": "YuzuSwap LP Token",
-      "num_holders": 1,
-      "num_transfers": 4,
-      "symbol": "LPT",
-      "total_supply": "3454145239972177",
       "type": "ERC20"
     }
   ],

@@ -699,7 +699,14 @@ const (
 
 	//nolint:gosec // Linter suspects a hardcoded access token.
 	EvmTokens = `
-		WITH holders AS (
+		WITH
+		-- We use custom ordering groups to prioritize some well known tokens at the top of the list.
+		-- Tokens within the same group are ordered by the default logic.
+		custom_order AS (
+ 			SELECT token_addr, group_order
+  			FROM unnest($7::text[], $8::int[]) AS u(token_addr, group_order)
+		),
+		holders AS (
 			SELECT token_address, COUNT(*) AS cnt
 			FROM chain.evm_token_balances
 			WHERE (runtime = $1) AND (balance != 0)
@@ -731,8 +738,10 @@ const (
 			ref_tokens.token_name AS ref_token_name,
 			ref_tokens.symbol AS ref_token_symbol,
 			ref_tokens.decimals AS ref_token_decimals,
-			contracts.verification_level
+			contracts.verification_level,
+			COALESCE(custom_order.group_order, 9999) AS custom_sort_order
 		FROM chain.evm_tokens AS tokens
+		LEFT JOIN custom_order ON (tokens.token_address = custom_order.token_addr)
 		JOIN chain.address_preimages AS preimages ON (token_address = preimages.address AND preimages.context_identifier = 'oasis-runtime-sdk/address: secp256k1eth' AND preimages.context_version = 0)
 		LEFT JOIN holders USING (token_address)
 		LEFT JOIN chain.evm_swap_pair_creations AS ref_swap_pair_creations ON
@@ -756,6 +765,7 @@ const (
 			tokens.token_type IS NOT NULL AND -- exclude token _candidates_ that we haven't inspected yet
 			tokens.token_type != 0 -- exclude unknown-type tokens; they're often just contracts that emitted Transfer events but don't expose the token ticker, name, balance etc.
 		ORDER BY
+			custom_sort_order,
 			CASE
 				-- If sort_by is not "market_cap" then we sort by num_holders (below).
 				WHEN $6::text IS NULL OR $6::text != 'market_cap' THEN NULL
@@ -788,8 +798,8 @@ const (
 			END DESC,
 		    num_holders DESC,
 		    contract_addr
-		LIMIT $7::bigint
-		OFFSET $8::bigint`
+		LIMIT $9::bigint
+		OFFSET $10::bigint`
 
 	//nolint:gosec // Linter suspects a hardcoded credentials token.
 	EvmTokenHolders = `

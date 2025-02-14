@@ -52,6 +52,9 @@ type StorageClient struct {
 	runtimeClients map[common.Runtime]nodeapi.RuntimeApiLite
 	networkConfig  *oasisConfig.Network
 
+	evmTokensCustomOrderAddresses map[common.Runtime][]*apiTypes.StakingAddress
+	evmTokensCustomOrderGroups    map[common.Runtime][]int
+
 	blockCache *ristretto.Cache[int64, *Block]
 
 	logger *log.Logger
@@ -107,7 +110,15 @@ func runtimeFromCtx(ctx context.Context) common.Runtime {
 }
 
 // NewStorageClient creates a new storage client.
-func NewStorageClient(sourceCfg config.SourceConfig, db storage.TargetStorage, referenceSwaps map[common.Runtime]config.ReferenceSwap, runtimeClients map[common.Runtime]nodeapi.RuntimeApiLite, networkConfig *oasisConfig.Network, l *log.Logger) (*StorageClient, error) {
+func NewStorageClient(
+	sourceCfg config.SourceConfig,
+	db storage.TargetStorage,
+	referenceSwaps map[common.Runtime]config.ReferenceSwap,
+	runtimeClients map[common.Runtime]nodeapi.RuntimeApiLite,
+	evmTokensCustomOrdering map[common.Runtime][][]string,
+	networkConfig *oasisConfig.Network,
+	l *log.Logger,
+) (*StorageClient, error) {
 	// The API currently uses an in-memory block cache for a specific endpoint and no other cases.
 	// This somewhat arbitrary choice seems to have been made historically.
 	// Instead, we should review common queries and responses to implement a more consistent and general caching strategy.
@@ -122,7 +133,40 @@ func NewStorageClient(sourceCfg config.SourceConfig, db storage.TargetStorage, r
 		l.Error("api client: failed to create block cache: %w", err)
 		return nil, err
 	}
-	return &StorageClient{sourceCfg, db, referenceSwaps, runtimeClients, networkConfig, blockCache, l}, nil
+
+	// Parse the provided custom EVM token ordering config into a suitable format for the EVM token query.
+	// Per runtime list of token addresses.
+	evmTokensCustomOrderAddresses := make(map[common.Runtime][]*apiTypes.StakingAddress)
+	// Per runtime order weight of each token address.
+	evmTokensCustomOrderGroups := make(map[common.Runtime][]int)
+	for rt, tokenGroups := range evmTokensCustomOrdering {
+		var customOrderAddresses []*apiTypes.StakingAddress
+		var customOrderGroups []int
+		for i, tokenGroup := range tokenGroups {
+			for _, tokenAddr := range tokenGroup {
+				addr, err := apiTypes.UnmarshalToOcAddress(&tokenAddr)
+				if err != nil {
+					return nil, fmt.Errorf("provided custom EVM token ordering config is malformed, runtime: %s, token group: %d, token address: %s: %w", rt, i, tokenAddr, err)
+				}
+				customOrderAddresses = append(customOrderAddresses, addr)
+				customOrderGroups = append(customOrderGroups, i)
+			}
+		}
+		evmTokensCustomOrderAddresses[rt] = customOrderAddresses
+		evmTokensCustomOrderGroups[rt] = customOrderGroups
+	}
+
+	return &StorageClient{
+		sourceCfg,
+		db,
+		referenceSwaps,
+		runtimeClients,
+		networkConfig,
+		evmTokensCustomOrderAddresses,
+		evmTokensCustomOrderGroups,
+		blockCache,
+		l,
+	}, nil
 }
 
 // Shutdown closes the backing TargetStorage.
@@ -2038,6 +2082,8 @@ func (c *StorageClient) RuntimeTokens(ctx context.Context, p apiTypes.GetRuntime
 		refSwapFactoryAddr,
 		refSwapTokenAddr,
 		p.SortBy,
+		c.evmTokensCustomOrderAddresses[runtime],
+		c.evmTokensCustomOrderGroups[runtime],
 		p.Limit,
 		p.Offset,
 	)
@@ -2090,6 +2136,7 @@ func (c *StorageClient) RuntimeTokens(ctx context.Context, p apiTypes.GetRuntime
 			&refToken.Symbol,
 			&refToken.Decimals,
 			&t.VerificationLevel,
+			nil, // custom_sort_order
 		); err2 != nil {
 			return nil, wrapError(err2)
 		}
