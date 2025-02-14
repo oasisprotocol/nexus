@@ -22,6 +22,7 @@ import (
 	hash "github.com/oasisprotocol/oasis-core/go/common/crypto/hash"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
 	"github.com/oasisprotocol/oasis-core/go/common/errors"
+	"github.com/oasisprotocol/oasis-core/go/common/quantity"
 
 	beacon "github.com/oasisprotocol/nexus/coreapi/v22.2.11/beacon/api"
 	node "github.com/oasisprotocol/nexus/coreapi/v22.2.11/common/node"
@@ -77,6 +78,7 @@ type ConsensusApiLite interface {
 	GetProposal(ctx context.Context, height int64, proposalID uint64) (*Proposal, error)
 	GetAccount(ctx context.Context, height int64, address Address) (*Account, error)
 	DelegationsTo(ctx context.Context, height int64, address Address) (map[Address]*Delegation, error)
+	StakingTotalSupply(ctx context.Context, height int64) (*quantity.Quantity, error)
 	Close() error
 	// Exposes the underlying gRPC connection, if applicable. Implementations may return nil.
 	// NOTE: Intended only for debugging purposes, e.g. one-off testing of gRPC methods that
@@ -108,7 +110,7 @@ func (r *TxResult) IsSuccess() bool {
 
 type TxError consensusResults.Error
 
-type Address = staking.Address
+type Address = common.Address
 
 // A lightweight version of "consensus/api/transactions/results".Event.
 //

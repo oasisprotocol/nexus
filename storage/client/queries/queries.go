@@ -23,6 +23,18 @@ const (
 			FROM chain.latest_node_heights
 			WHERE layer=$1`
 
+	TotalSupply = `
+		SELECT total_supply
+			FROM chain.blocks
+			ORDER BY height DESC
+			LIMIT 1`
+
+	AddressesTotalBalance = `
+		SELECT
+			COALESCE(SUM(general_balance + escrow_balance_active + escrow_balance_debonding), 0) AS total_balance
+			FROM chain.accounts
+			WHERE address = ANY($1)`
+
 	Blocks = `
 		SELECT
 			height,

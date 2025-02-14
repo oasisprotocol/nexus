@@ -8,6 +8,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/oasisprotocol/oasis-core/go/common/quantity"
+	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 )
 
@@ -254,3 +255,9 @@ func NativeBalance(balances map[sdkTypes.Denomination]BigInt) BigInt {
 	}
 	return nativeBalance
 }
+
+// Address is the consensus layer Oasis address.
+type Address = staking.Address
+
+// ConsensusPoolAddress is the address of the consensus consensus pool.
+var ConsensusPoolAddress = staking.CommonPoolAddress

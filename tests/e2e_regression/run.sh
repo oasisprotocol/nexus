@@ -107,17 +107,21 @@ for ((i = 0; i < nCases; i++)); do
     #  - this is due the fact that we start tests at the middle of the chain and the first activity
     #    for accounts depends on when the genesis is processed. Fast-sync only fetches the genesis
     #    at the height when slow-sync starts, so the first_activity for accounts in genesis is different.
-    jq \
-      '
-        (if .latest_update_age_ms? then .latest_update_age_ms="UNINTERESTING" else . end) |
-        ((.evm_nfts?[]? | select(.metadata_accessed) | .metadata_accessed) = "UNINTERESTING") |
-        (if .metadata_accessed? then .metadata_accessed = "UNINTERESTING" else . end) |
-        (if .first_activity? then .first_activity = "NONDETERMINISTIC" else . end) |
-        ((.accounts?[]? | select(.first_activity) | .first_activity) = "NONDETERMINISTIC")
-      ' \
-      <"$outDir/$name.body" \
-      >/tmp/pretty 2>/dev/null &&
-      cp /tmp/pretty "$outDir/$name.body" || true
+    if [[ "$param" = *_raw ]]; then
+      # _raw endpoints return non-JSON responses, we don't sanitize those.
+      echo "Skipping non JSON file: $outDir/$name.body"
+    else
+      jq \
+        ' (if .latest_update_age_ms? then .latest_update_age_ms="UNINTERESTING" else . end) |
+          ((.evm_nfts?[]? | select(.metadata_accessed) | .metadata_accessed) = "UNINTERESTING") |
+          (if .metadata_accessed? then .metadata_accessed = "UNINTERESTING" else . end) |
+          (if .first_activity? then .first_activity = "NONDETERMINISTIC" else . end) |
+          ((.accounts?[]? | select(.first_activity) | .first_activity) = "NONDETERMINISTIC")' \
+        <"$outDir/$name.body" \
+        >/tmp/pretty 2>/dev/null &&
+        cp /tmp/pretty "$outDir/$name.body"
+    fi
+
     # Sanitize the current timestamp out of the response header so that diffs are stable
     sed -i -E 's/^(Date|Content-Length|Last-Modified): .*/\1: UNINTERESTING/g' "$outDir/$name.headers"
   else

@@ -1,0 +1,6 @@
+BEGIN;
+
+ALTER TABLE chain.blocks
+	ADD COLUMN total_supply UINT_NUMERIC;
+
+COMMIT;

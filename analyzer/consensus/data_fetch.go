@@ -7,6 +7,7 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	coreCommon "github.com/oasisprotocol/oasis-core/go/common"
+	"github.com/oasisprotocol/oasis-core/go/common/quantity"
 	sdkConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 
 	beacon "github.com/oasisprotocol/nexus/coreapi/v22.2.11/beacon/api"
@@ -205,6 +206,11 @@ func fetchStakingData(ctx context.Context, cc nodeapi.ConsensusApiLite, height i
 		return nil, err
 	}
 
+	totalSupply, err := cc.StakingTotalSupply(ctx, height)
+	if err != nil {
+		return nil, err
+	}
+
 	var transfers []nodeapi.TransferEvent
 	var burns []nodeapi.BurnEvent
 	var addEscrows []nodeapi.AddEscrowEvent
@@ -235,6 +241,7 @@ func fetchStakingData(ctx context.Context, cc nodeapi.ConsensusApiLite, height i
 	return &stakingData{
 		Height:                height,
 		Epoch:                 epoch,
+		TotalSupply:           totalSupply,
 		Events:                events,
 		Transfers:             transfers,
 		Burns:                 burns,
@@ -394,8 +401,9 @@ type registryData struct {
 
 // stakingData represents data for accounts at a given height.
 type stakingData struct {
-	Height int64
-	Epoch  beacon.EpochTime
+	Height      int64
+	Epoch       beacon.EpochTime
+	TotalSupply *quantity.Quantity
 
 	Events []nodeapi.Event
 

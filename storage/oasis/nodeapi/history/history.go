@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/oasisprotocol/oasis-core/go/common"
+	"github.com/oasisprotocol/oasis-core/go/common/quantity"
 
 	beacon "github.com/oasisprotocol/nexus/coreapi/v22.2.11/beacon/api"
 	consensus "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api"
@@ -254,6 +255,14 @@ func (c *HistoryConsensusApiLite) DelegationsTo(ctx context.Context, height int6
 		return nil, fmt.Errorf("getting api for height %d: %w", height, err)
 	}
 	return api.DelegationsTo(ctx, height, address)
+}
+
+func (c *HistoryConsensusApiLite) StakingTotalSupply(ctx context.Context, height int64) (*quantity.Quantity, error) {
+	api, err := c.APIForHeight(height)
+	if err != nil {
+		return nil, fmt.Errorf("getting api for height %d: %w", height, err)
+	}
+	return api.StakingTotalSupply(ctx, height)
 }
 
 func (c *HistoryConsensusApiLite) GrpcConn() connections.GrpcConn {

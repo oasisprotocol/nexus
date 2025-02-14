@@ -6,6 +6,7 @@ import (
 
 	"github.com/oasisprotocol/oasis-core/go/common"
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
+	"github.com/oasisprotocol/oasis-core/go/common/quantity"
 
 	cmdCommon "github.com/oasisprotocol/nexus/cmd/common"
 
@@ -251,6 +252,14 @@ func (c *ConsensusApiLite) DelegationsTo(ctx context.Context, height int64, addr
 		Owner:  address,
 	}, &rsp); err != nil {
 		return nil, fmt.Errorf("DelegationsTo(%d, %s): %w", height, address, err)
+	}
+	return rsp, nil
+}
+
+func (c *ConsensusApiLite) StakingTotalSupply(ctx context.Context, height int64) (*quantity.Quantity, error) {
+	var rsp *quantity.Quantity
+	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Staking/TotalSupply", height, &rsp); err != nil {
+		return nil, fmt.Errorf("StakingTotalSupply(%d): %w", height, err)
 	}
 	return rsp, nil
 }

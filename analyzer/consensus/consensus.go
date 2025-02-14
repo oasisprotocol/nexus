@@ -14,6 +14,7 @@ import (
 	coreCommon "github.com/oasisprotocol/oasis-core/go/common"
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
+	"github.com/oasisprotocol/oasis-core/go/common/quantity"
 	cometbft "github.com/oasisprotocol/oasis-core/go/consensus/cometbft/api"
 	"github.com/oasisprotocol/oasis-core/go/consensus/cometbft/crypto"
 	sdkConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
@@ -249,8 +250,11 @@ func (m *processor) processGenesis(ctx context.Context, genesisDoc *nodeapi.Gene
 
 // Expands `batch` with DB statements that reflect the contents of `data`.
 func (m *processor) queueDbUpdates(batch *storage.QueryBatch, data allData) error {
+	if err := m.queueBlockInserts(batch, data.BlockData, data.StakingData.TotalSupply); err != nil {
+		return err
+	}
+
 	for _, f := range []func(*storage.QueryBatch, *consensusBlockData) error{
-		m.queueBlockInserts,
 		m.queueEpochInserts,
 		m.queueTransactionInserts,
 		m.queueTxEventInserts,
@@ -369,7 +373,7 @@ func (m *processor) ProcessBlock(ctx context.Context, uheight uint64) error {
 	return nil
 }
 
-func (m *processor) queueBlockInserts(batch *storage.QueryBatch, data *consensusBlockData) error {
+func (m *processor) queueBlockInserts(batch *storage.QueryBatch, data *consensusBlockData, totalSupply *quantity.Quantity) error {
 	// Prepare a mapping of node consensus addresses.
 	//
 	// CometBFT (formerly Tendermint) uses a truncated hash of the entity's
@@ -423,6 +427,7 @@ func (m *processor) queueBlockInserts(batch *storage.QueryBatch, data *consensus
 		int64(data.BlockHeader.StateRoot.Version),
 		data.BlockHeader.StateRoot.Hash.Hex(),
 		proposerAddr,
+		totalSupply,
 	)
 
 	if cmtMeta.LastCommit != nil && cmtMeta.LastCommit.BlockID.IsComplete() {

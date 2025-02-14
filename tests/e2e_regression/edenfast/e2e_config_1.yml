@@ -16,7 +16,7 @@ analysis:
     nodes:
       # Node will be accessed only when the filling up the cache.
       # In CI, the cache is expected to have all the node responses as the node is not reachable.
-      eden: { default: { rpc: grpc.oasis.dev:443 } }
+      eden: { default: { rpc: grpc.oasis.io:443 } }
     ipfs:
       gateway: https://ipfs.io
     fast_startup: true
@@ -69,6 +69,10 @@ server:
         "0x0000000000000000000000000000000000000000",
         "0x5C78A65AD6D0eC6618788b6E8e211F31729111Ca",
       ]
+  # Set some reserved addresses, so that circulating supply functionality is tested.
+  consensus_circulating_supply_exclusions:
+    - oasis1qp3r8hgsnphajmfzfuaa8fhjag7e0yt35cjxq0u4
+    - oasis1qzchk9eh0n4p2raym2e6cyvegrjumxl3lqkfhztr
 
 log:
   level: debug

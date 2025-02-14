@@ -39,6 +39,22 @@ func (srv *StrictServerImpl) GetStatus(ctx context.Context, request apiTypes.Get
 	return apiTypes.GetStatus200JSONResponse(*status), nil
 }
 
+func (srv *StrictServerImpl) GetConsensusTotalSupplyRaw(ctx context.Context, request apiTypes.GetConsensusTotalSupplyRawRequestObject) (apiTypes.GetConsensusTotalSupplyRawResponseObject, error) {
+	totalSupply, err := srv.dbClient.TotalSupply(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return apiTypes.GetConsensusTotalSupplyRaw200TextResponse(totalSupply.String()), nil
+}
+
+func (srv *StrictServerImpl) GetConsensusCirculatingSupplyRaw(ctx context.Context, request apiTypes.GetConsensusCirculatingSupplyRawRequestObject) (apiTypes.GetConsensusCirculatingSupplyRawResponseObject, error) {
+	circulatingSupply, err := srv.dbClient.CirculatingSupply(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return apiTypes.GetConsensusCirculatingSupplyRaw200TextResponse(circulatingSupply.String()), nil
+}
+
 func (srv *StrictServerImpl) GetConsensusAccounts(ctx context.Context, request apiTypes.GetConsensusAccountsRequestObject) (apiTypes.GetConsensusAccountsResponseObject, error) {
 	accounts, err := srv.dbClient.Accounts(ctx, request.Params)
 	if err != nil {

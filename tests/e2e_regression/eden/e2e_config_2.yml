@@ -5,7 +5,7 @@ analysis:
     cache: { cache_dir: tests/e2e_regression/eden/rpc-cache }
     chain_name: mainnet
     nodes:
-      eden: { default: { rpc: grpc.oasis.dev:443 } }
+      eden: { default: { rpc: grpc.oasis.io:443 } }
     ipfs:
       gateway: https://ipfs.io
     fast_startup: true
