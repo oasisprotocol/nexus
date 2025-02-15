@@ -46,6 +46,8 @@ CREATE TABLE chain.blocks
 
   proposer_entity_id base64_ed25519_pubkey,
   signer_entity_ids base64_ed25519_pubkey[]
+
+  -- total_supply UINT_NUMERIC
 );
 CREATE INDEX ix_blocks_time ON chain.blocks (time);
 CREATE INDEX ix_blocks_block_hash ON chain.blocks (block_hash); -- Needed to lookup blocks by hash.

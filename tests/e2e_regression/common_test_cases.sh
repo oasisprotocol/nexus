@@ -32,6 +32,8 @@ commonTestCases=(
 
   'status                             /v1/'
   'spec                               /v1/spec/v1.yaml'
+  'total_supply                       /v1/consensus/total_supply_raw'
+  'circulating_supply                 /v1/consensus/circulating_supply_raw'
   'trailing_slash                     /v1/consensus/accounts/?limit=1'
   'accounts                           /v1/consensus/accounts'
   'accounts_extraneous_key            /v1/consensus/accounts?foo=bar'

@@ -55,6 +55,8 @@ type StorageClient struct {
 	evmTokensCustomOrderAddresses map[common.Runtime][]*apiTypes.StakingAddress
 	evmTokensCustomOrderGroups    map[common.Runtime][]int
 
+	circulatingSupplyExclusions []apiTypes.Address
+
 	blockCache *ristretto.Cache[int64, *Block]
 
 	logger *log.Logger
@@ -111,11 +113,10 @@ func runtimeFromCtx(ctx context.Context) common.Runtime {
 
 // NewStorageClient creates a new storage client.
 func NewStorageClient(
-	sourceCfg config.SourceConfig,
+	cfg *config.ServerConfig,
 	db storage.TargetStorage,
 	referenceSwaps map[common.Runtime]config.ReferenceSwap,
 	runtimeClients map[common.Runtime]nodeapi.RuntimeApiLite,
-	evmTokensCustomOrdering map[common.Runtime][][]string,
 	networkConfig *oasisConfig.Network,
 	l *log.Logger,
 ) (*StorageClient, error) {
@@ -139,7 +140,7 @@ func NewStorageClient(
 	evmTokensCustomOrderAddresses := make(map[common.Runtime][]*apiTypes.StakingAddress)
 	// Per runtime order weight of each token address.
 	evmTokensCustomOrderGroups := make(map[common.Runtime][]int)
-	for rt, tokenGroups := range evmTokensCustomOrdering {
+	for rt, tokenGroups := range cfg.EVMTokensCustomOrdering {
 		var customOrderAddresses []*apiTypes.StakingAddress
 		var customOrderGroups []int
 		for i, tokenGroup := range tokenGroups {
@@ -156,14 +157,29 @@ func NewStorageClient(
 		evmTokensCustomOrderGroups[rt] = customOrderGroups
 	}
 
+	// Prepare the list of reserved addresses for the circulating supply query.
+	circulatingSupplyExclusions := make([]string, 0, len(cfg.ConsensusCirculatingSupplyExclusions))
+	var foundCommonPool bool
+	for _, address := range cfg.ConsensusCirculatingSupplyExclusions {
+		if address == common.ConsensusPoolAddress.String() {
+			foundCommonPool = true
+		}
+		circulatingSupplyExclusions = append(circulatingSupplyExclusions, address)
+	}
+	if !foundCommonPool {
+		// Include the consensus common pool address in the list of reserved address, if it's not already present.
+		circulatingSupplyExclusions = append(circulatingSupplyExclusions, common.ConsensusPoolAddress.String())
+	}
+
 	return &StorageClient{
-		sourceCfg,
+		*cfg.Source,
 		db,
 		referenceSwaps,
 		runtimeClients,
 		networkConfig,
 		evmTokensCustomOrderAddresses,
 		evmTokensCustomOrderGroups,
+		circulatingSupplyExclusions,
 		blockCache,
 		l,
 	}, nil
@@ -316,6 +332,46 @@ func (c *StorageClient) Status(ctx context.Context) (*Status, error) {
 	}
 
 	return &s, nil
+}
+
+func (c *StorageClient) TotalSupply(ctx context.Context) (*common.BigInt, error) {
+	var totalSupply *common.BigInt
+	err := c.db.QueryRow(
+		ctx,
+		queries.TotalSupply,
+	).Scan(&totalSupply)
+	if err != nil {
+		return nil, wrapError(err)
+	}
+	return totalSupply, nil
+}
+
+func (c *StorageClient) CirculatingSupply(ctx context.Context) (*common.BigInt, error) {
+	var totalSupply *common.BigInt
+	err := c.db.QueryRow(
+		ctx,
+		queries.TotalSupply,
+	).Scan(&totalSupply)
+	if err != nil {
+		return nil, wrapError(err)
+	}
+	if totalSupply == nil {
+		return nil, wrapError(fmt.Errorf("total supply not available"))
+	}
+
+	// Subtract the balances of the provided addresses from the total supply.
+	var subtractAmount *common.BigInt
+	err = c.db.QueryRow(
+		ctx,
+		queries.AddressesTotalBalance,
+		c.circulatingSupplyExclusions,
+	).Scan(&subtractAmount)
+	if err != nil {
+		return nil, wrapError(err)
+	}
+	circulatingSupply := totalSupply.Minus(*subtractAmount)
+
+	return &circulatingSupply, nil
 }
 
 type entityInfoRow struct {

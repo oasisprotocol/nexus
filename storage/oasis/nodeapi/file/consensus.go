@@ -4,6 +4,7 @@ import (
 	"context"
 
 	coreCommon "github.com/oasisprotocol/oasis-core/go/common"
+	"github.com/oasisprotocol/oasis-core/go/common/quantity"
 
 	cmdCommon "github.com/oasisprotocol/nexus/cmd/common"
 
@@ -209,6 +210,14 @@ func (c *FileConsensusApiLite) DelegationsTo(ctx context.Context, height int64, 
 		func() (map[nodeapi.Address]*nodeapi.Delegation, error) {
 			return c.consensusApi.DelegationsTo(ctx, height, address)
 		},
+	)
+}
+
+func (c *FileConsensusApiLite) StakingTotalSupply(ctx context.Context, height int64) (*quantity.Quantity, error) {
+	return kvstore.GetFromCacheOrCall(
+		c.db, height == consensus.HeightLatest,
+		kvstore.GenerateCacheKey("StakingTotalSupply", height),
+		func() (*quantity.Quantity, error) { return c.consensusApi.StakingTotalSupply(ctx, height) },
 	)
 }
 

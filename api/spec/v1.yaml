@@ -149,6 +149,30 @@ paths:
                 $ref: '#/components/schemas/Status'
         <<: *common_error_responses
 
+  /consensus/total_supply_raw:
+    get:
+      summary: Returns the total supply of the consensus layer token.
+      responses:
+        '200':
+          description: A single number representing the total supply of the consensus layer token.
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: 42
+
+  /consensus/circulating_supply_raw:
+    get:
+      summary: Returns the circulating supply of the consensus layer token.
+      responses:
+        '200':
+          description: A single number representing the circulating supply of the consensus layer token.
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: 42
+
   /consensus/blocks:
     get:
       summary: Returns a list of consensus blocks, sorted from most to least recent.

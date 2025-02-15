@@ -608,6 +608,11 @@ type ServerConfig struct {
 	// Tokens are ordered by the order of groups, followed by any tokens not listed in any group.
 	// Within each group, tokens are ordered by the default logic.
 	EVMTokensCustomOrdering map[common.Runtime][][]string `koanf:"evm_tokens_custom_ordering"`
+
+	// ConsensusCirculatingSupplyExclusions is the list of consensus addresses that should be excluded from the circulating supply.
+	// This list is used to calculate the circulating supply by subtracting the balances of these addresses from the total supply.
+	// Note that the common pool address is automatically included in these exclusions.
+	ConsensusCirculatingSupplyExclusions []string `koanf:"consensus_circulating_supply_exclusions"`
 }
 
 // Validate validates the server configuration.
@@ -626,6 +631,14 @@ func (cfg *ServerConfig) Validate() error {
 	}
 	if cfg.Source.Cache != nil {
 		return fmt.Errorf("server config should not have a cache configured")
+	}
+	if len(cfg.ConsensusCirculatingSupplyExclusions) > 0 {
+		for _, addr := range cfg.ConsensusCirculatingSupplyExclusions {
+			var apiAddr common.Address
+			if err := apiAddr.UnmarshalText([]byte(addr)); err != nil {
+				return fmt.Errorf("invalid circulating supply reserved address: %s", addr)
+			}
+		}
 	}
 
 	return cfg.Storage.Validate(false /* requireMigrations */)
