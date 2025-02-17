@@ -161,6 +161,10 @@ func fetchRegistryData(ctx context.Context, cc nodeapi.ConsensusApiLite, height 
 	if err != nil {
 		return nil, err
 	}
+	// XXX: We do this here, so that we don't need to invalidate the caches.
+	for i := range events {
+		events[i].EventIdx = i
+	}
 
 	var runtimeStartedEvents []nodeapi.RuntimeStartedEvent
 	var runtimeSuspendedEvents []nodeapi.RuntimeSuspendedEvent
@@ -199,6 +203,10 @@ func fetchStakingData(ctx context.Context, cc nodeapi.ConsensusApiLite, height i
 	events, err := cc.StakingEvents(ctx, height)
 	if err != nil {
 		return nil, err
+	}
+	// XXX: We do this here, so that we don't need to invalidate the caches.
+	for i := range events {
+		events[i].EventIdx = i
 	}
 
 	epoch, err := cc.GetEpoch(ctx, height)
@@ -288,6 +296,10 @@ func fetchGovernanceData(ctx context.Context, cc nodeapi.ConsensusApiLite, heigh
 	if err != nil {
 		return nil, err
 	}
+	// XXX: We do this here, so that we don't need to invalidate the caches.
+	for i := range events {
+		events[i].EventIdx = i
+	}
 
 	var submissions []nodeapi.Proposal
 	var executions []nodeapi.ProposalExecutedEvent
@@ -330,6 +342,10 @@ func fetchRootHashData(ctx context.Context, cc nodeapi.ConsensusApiLite, network
 	events, err := cc.RoothashEvents(ctx, height)
 	if err != nil {
 		return nil, err
+	}
+	// XXX: We do this here, so that we don't need to invalidate the caches.
+	for i := range events {
+		events[i].EventIdx = i
 	}
 
 	lastRoundResults := make(map[coreCommon.Namespace]*roothash.RoundResults, len(network.ParaTimes.All))

@@ -13,7 +13,7 @@ commonTestCases=(
   'db__delegations                    select * from chain.delegations where shares != 0 order by delegatee, delegator'
   'db__epochs                         select id, start_height, end_height, ARRAY(SELECT unnest(validators) ORDER BY 1) AS sorted_validators from chain.epochs order by id'
   'db__entities                       select * from chain.entities order by id'
-  'db__events                         select tx_block, tx_index, tx_hash, type, ARRAY(SELECT unnest(related_accounts) ORDER BY 1) AS sorted_related_accounts, body::text from chain.events order by tx_block, tx_index, type, body::text'
+  'db__events                         select tx_block, tx_index, tx_hash, type, ARRAY(SELECT account_address FROM chain.events_related_accounts ra WHERE ra.tx_block = e.tx_block AND ra.type = e.type AND ra.event_index = e.event_index ORDER BY 1) AS sorted_related_accounts, body::text from chain.events e order by tx_block, tx_index, type, body::text'
   'db__nodes                          select id, entity_id, roles, expiration, voting_power from chain.nodes order by id'
   'db__runtime_nodes                  select rn.*, n.roles FROM chain.runtime_nodes rn LEFT JOIN chain.nodes n ON (rn.node_id = n.id) ORDER BY runtime_id, node_id'
   'db__validator_staking_history      select * from history.validators order by epoch, id'

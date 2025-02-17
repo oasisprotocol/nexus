@@ -91,11 +91,17 @@ CREATE TABLE chain.events
 (
   tx_block UINT63 NOT NULL,
   tx_index  UINT31,
+  FOREIGN KEY (tx_block, tx_index) REFERENCES chain.transactions(block, tx_index) DEFERRABLE INITIALLY DEFERRED,
 
+  -- event_index UINT31 NOT NULL, -- Added in 15_events_related_accounts.up.sql
   type    TEXT NOT NULL,  -- Enum with many values, see ConsensusEventType in api/spec/v1.yaml.
+  -- PRIMARY KEY (tx_block, type, event_index), -- Added in 15_events_related_accounts.up.sql
+
+
   body    JSONB,
   tx_hash   HEX64, -- could be fetched from `transactions` table; denormalized for efficiency
-  related_accounts TEXT[],
+  related_accounts TEXT[], -- Removed in 15_events_related_accounts.up.sql
+
   -- There's some mismatch between oasis-core's style in Go and nexus's
   -- style in SQL and JSON. oasis-core likes structures filled with nilable
   -- pointers, where one pointer is non-nil. nexus likes a type string plus
@@ -110,14 +116,14 @@ CREATE TABLE chain.events
   -- is set even for runtimes that nexus isn't configured to analyze.
   roothash_runtime_id HEX64,
   roothash_runtime runtime,
-  roothash_runtime_round UINT63,
-
-  FOREIGN KEY (tx_block, tx_index) REFERENCES chain.transactions(block, tx_index) DEFERRABLE INITIALLY DEFERRED
+  roothash_runtime_round UINT63
 );
-CREATE INDEX ix_events_related_accounts ON chain.events USING gin(related_accounts);
+CREATE INDEX ix_events_related_accounts ON chain.events USING gin(related_accounts); -- Removed in 15_events_related_accounts.up.sql
 CREATE INDEX ix_events_tx_block ON chain.events (tx_block);  -- for fetching events without filters
 CREATE INDEX ix_events_tx_hash ON chain.events (tx_hash);
-CREATE INDEX ix_events_type ON chain.events (type, tx_block);  -- tx_block is for sorting the events of a given type by recency
+CREATE INDEX ix_events_type ON chain.events (type, tx_block);  -- tx_block is for sorting the events of a given type by recency -- Removed in 15_events_related_accounts.up.sql
+-- CREATE INDEX ix_events_type_block ON chain.events (type, tx_block DESC, tx_index); -- Added in 15_events_related_accounts.up.sql
+
 -- ix_events_roothash is the link between runtime blocks and consensus blocks.
 -- Given a runtime block (runtime, round), you can look up the roothash events
 -- with this index and find the events when the block was proposed (first
@@ -126,6 +132,21 @@ CREATE INDEX ix_events_roothash ON chain.events (roothash_runtime, roothash_runt
     WHERE
         roothash_runtime IS NOT NULL AND
         roothash_runtime_round IS NOT NULL;
+
+-- Added in 15_events_related_accounts.up.sql.
+-- CREATE TABLE chain.events_related_accounts
+-- (
+--     tx_block UINT63 NOT NULL,
+--     type    TEXT NOT NULL,
+--     event_index UINT31 NOT NULL,
+--     FOREIGN KEY (tx_block, type, event_index) REFERENCES chain.events_new(tx_block, type, event_index) DEFERRABLE INITIALLY DEFERRED,
+
+--     account_address oasis_addr NOT NULL,
+--     PRIMARY KEY (tx_block, type, event_index, account_address),
+
+--     tx_index  UINT31
+-- );
+-- CREATE INDEX ix_events_related_accounts_account_address_block ON chain.events_related_accounts(account_address, tx_block DESC, tx_index);
 
 -- Beacon Backend Data
 
@@ -177,8 +198,6 @@ CREATE TABLE chain.nodes
 
   -- Consensus Info
   consensus_pubkey  TEXT NOT NULL,
-  -- added in 32_block_meta.up.sql
-  -- consensus_pubkey_address TEXT,
   consensus_address TEXT,
 
   -- VRF Info
@@ -192,8 +211,6 @@ CREATE TABLE chain.nodes
 
   -- TODO: Track node status.
 );
--- added in 32_block_meta.up.sql
--- CREATE INDEX ix_nodes_consensus_pubkey_address ON chain.nodes (consensus_pubkey_address);
 
 -- Claims of entities that they own nodes. Each entity claims 0 or more nodes when it registers.
 -- A node can only register if it declares itself to be owned by an entity that previously claimed it.

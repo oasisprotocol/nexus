@@ -121,6 +121,10 @@ type Event struct {
 	Height int64
 	TxHash hash.Hash
 
+	// Called "Kind" in oasis-core but "Type" in Nexus APIs and DBs.
+	Type     apiTypes.ConsensusEventType
+	EventIdx int // Index of the event within the same block and event type.
+
 	// The body of the Event struct as it was received from oasis-core. For most
 	// event types, a summary of the event (containing only nexus-relevant fields)
 	// will be present in one of the fields below (StakingTransfer, StakingBurn, etc.).
@@ -129,9 +133,6 @@ type Event struct {
 	// We convert to JSON and effectively erase the type here in order to decouple
 	// oasis-core types (which vary between versions) from Nexus.
 	RawBody json.RawMessage
-
-	// Called "Kind" in oasis-core but "Type" in Nexus APIs and DBs.
-	Type apiTypes.ConsensusEventType
 
 	StakingTransfer             *TransferEvent
 	StakingBurn                 *BurnEvent
