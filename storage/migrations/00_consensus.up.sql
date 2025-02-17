@@ -173,6 +173,7 @@ CREATE TABLE chain.entities
   logo_url TEXT,
   start_block UINT63
 );
+-- CREATE INDEX ix_entities_address ON chain.entities USING hash (address); -- Added in 16_entities_address_idx.up.sql
 
 CREATE TABLE chain.nodes
 (
