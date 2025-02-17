@@ -76,6 +76,7 @@ type BlockTransactionData struct {
 	EVMContract             *evm.EVMContractData
 	Success                 *bool
 	Error                   *TxError
+	IsLikelyTokenTransfer   bool
 }
 
 type TxError struct {
@@ -317,6 +318,7 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 			var amount quantity.Quantity
 			if err = VisitCall(&tx.Call, &txr.Result, &CallHandler{
 				AccountsTransfer: func(body *accounts.Transfer) error {
+					blockTransactionData.IsLikelyTokenTransfer = true
 					blockTransactionData.Body = body
 					amount = body.Amount.Amount
 					blockTransactionData.AmountSymbol = common.Ptr(stringifyDenomination(sdkPT, body.Amount.Denomination))
@@ -469,6 +471,7 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 					return nil
 				},
 				EVMCall: func(body *sdkEVM.Call, ok *[]byte) error {
+					blockTransactionData.IsLikelyTokenTransfer = len(body.Data) == 0 // Calls with empty body are likely native token transfers.
 					blockTransactionData.Body = body
 					amount = uncategorized.QuantityFromBytes(body.Value)
 					if to, err = addresses.RegisterEthAddress(blockData.AddressPreimages, body.Address); err != nil {
