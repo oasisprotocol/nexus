@@ -448,6 +448,11 @@ const (
 		OFFSET $4::bigint`
 
 	ValidatorHistory = `
+		WITH entity AS (
+			SELECT id
+			FROM chain.entities
+			WHERE address = $1::text
+		)
 		SELECT
 			epoch,
 			escrow_balance_active,
@@ -455,11 +460,10 @@ const (
 			escrow_balance_debonding,
 			escrow_total_shares_debonding,
 			num_delegators
-		FROM chain.entities
-		JOIN history.validators ON chain.entities.id = history.validators.id
-		WHERE (chain.entities.address = $1::text) AND
-				($2::bigint IS NULL OR history.validators.epoch >= $2::bigint) AND
-				($3::bigint IS NULL OR history.validators.epoch <= $3::bigint)
+		FROM history.validators
+		WHERE id = (SELECT id FROM entity) AND
+			($2::bigint IS NULL OR epoch >= $2::bigint) AND
+			($3::bigint IS NULL OR epoch <= $3::bigint)
 		ORDER BY epoch DESC
 		LIMIT $4::bigint
 		OFFSET $5::bigint`
