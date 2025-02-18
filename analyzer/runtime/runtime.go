@@ -218,6 +218,7 @@ func (m *processor) ProcessBlock(ctx context.Context, round uint64) error {
 	m.queueDbUpdates(batch, blockData)
 	m.queueAccountsEvents(batch, blockData)
 	m.queueConsensusAccountsEvents(batch, blockData)
+	m.queueRoflStaleApps(batch, blockData)
 	analysisTimer.ObserveDuration()
 
 	// Update indexing progress.
@@ -540,5 +541,55 @@ func (m *processor) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 			sync.Reserve1,
 			data.Header.Round,
 		)
+	}
+}
+
+// queueRoflStaleApps enqueues a refresh of ROFL apps that were updated in this round.
+func (m *processor) queueRoflStaleApps(batch *storage.QueryBatch, blockData *BlockData) {
+	for _, event := range blockData.EventData {
+		if event.WithScope.Rofl == nil {
+			continue
+		}
+
+		if e := event.WithScope.Rofl.AppCreated; e != nil {
+			// Queue a refresh of the app.
+			batch.Queue(
+				queries.RuntimeRoflAppQueueRefresh,
+				m.runtime,
+				e.ID.String(),
+				blockData.Header.Round,
+			)
+		}
+
+		if e := event.WithScope.Rofl.AppRemoved; e != nil {
+			// Queue a refresh of the app.
+			batch.Queue(
+				queries.RuntimeRoflAppQueueRefresh,
+				m.runtime,
+				e.ID.String(),
+				blockData.Header.Round,
+			)
+		}
+
+		if e := event.WithScope.Rofl.AppUpdated; e != nil {
+			// Queue a refresh of the app.
+			batch.Queue(
+				queries.RuntimeRoflAppQueueRefresh,
+				m.runtime,
+				e.ID.String(),
+				blockData.Header.Round,
+			)
+		}
+
+		if e := event.WithScope.Rofl.InstanceRegistered; e != nil {
+			// Queue a refresh of the app.
+			// TODO: could optimize by only refreshing the specific instance.
+			batch.Queue(
+				queries.RuntimeRoflAppQueueRefresh,
+				m.runtime,
+				e.AppID.String(),
+				blockData.Header.Round,
+			)
+		}
 	}
 }

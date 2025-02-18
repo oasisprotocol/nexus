@@ -1260,4 +1260,75 @@ var (
       rt.runtime = matched_txs.runtime
       AND rt.round = matched_txs.round
       AND rt.tx_index = matched_txs.tx_index`
+
+	RuntimeRoflStaleApps = `
+      SELECT
+        chain.rofl_apps.id,
+        chain.rofl_apps.last_queued_round
+      FROM chain.rofl_apps
+      WHERE
+        chain.rofl_apps.runtime = $1 AND
+        (
+            chain.rofl_apps.last_processed_round IS NULL OR
+            chain.rofl_apps.last_queued_round > chain.rofl_apps.last_processed_round
+        )
+      ORDER BY chain.rofl_apps.last_queued_round
+      LIMIT $2`
+
+	RuntimeRoflStaleAppsCount = `
+    SELECT COUNT(*) AS cnt
+    FROM chain.rofl_apps
+    WHERE
+      runtime = $1 AND
+      (last_processed_round IS NULL OR last_queued_round > last_processed_round)`
+
+	RuntimeRoflAppUpdate = `
+    UPDATE chain.rofl_apps
+    SET
+        admin = $3,
+        policy = $4,
+        sek = $5,
+        metadata = $6,
+        secrets = $7,
+        last_processed_round = $8
+    WHERE
+        runtime = $1 AND
+        id = $2`
+
+	RuntimeRoflAppDelete = `
+    DELETE FROM chain.rofl_apps
+    WHERE
+      runtime = $1 AND
+      id = $2`
+
+	RuntimeRoflInstanceUpsert = `
+   INSERT INTO chain.rofl_instances (runtime, app_id, rak, endorsing_node_id, endorsing_entity_id, rek, expiration_epoch, extra_keys)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+    ON CONFLICT (runtime, app_id, rak) DO UPDATE
+    SET
+      endorsing_node_id = excluded.endorsing_node_id,
+      endorsing_entity_id = excluded.endorsing_entity_id,
+      rek = excluded.rek,
+      expiration_epoch = excluded.expiration_epoch,
+      extra_keys = excluded.extra_keys`
+
+	RuntimeRoflAppQueueRefresh = `
+    INSERT INTO chain.rofl_apps (runtime, id, last_queued_round)
+    VALUES ($1, $2, $3)
+    ON CONFLICT (runtime, id) DO UPDATE
+    SET
+      last_queued_round = GREATEST(excluded.last_queued_round, chain.rofl_apps.last_queued_round)`
+
+	RuntimeRoflAppDeleteInstances = `
+    DELETE FROM chain.rofl_instances
+    WHERE
+      runtime = $1 AND
+      app_id = $2`
+
+	// Do we want to delete?
+	RuntimeRoflAppRemove = `
+    DELETE FROM chain.rofl_apps
+    WHERE
+      runtime = $1 AND
+      id = $2`
 )

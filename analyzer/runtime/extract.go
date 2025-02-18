@@ -1423,6 +1423,7 @@ func extractEvents(blockData *BlockData, eventsRaw []nodeapi.RuntimeEvent) ([]*E
 			return nil
 		},
 		Rofl: func(event *rofl.Event, eventTxHash *string, eventIdx int) error {
+			// TODO: eventData.RelatedRofls?
 			if event.AppCreated != nil {
 				eventData := EventData{
 					EventIdx:  eventIdx,
@@ -1449,6 +1450,16 @@ func extractEvents(blockData *BlockData, eventsRaw []nodeapi.RuntimeEvent) ([]*E
 					TxHash:    eventTxHash,
 					Type:      apiTypes.RuntimeEventTypeRoflAppUpdated,
 					Body:      event.AppUpdated,
+					WithScope: ScopedSdkEvent{Rofl: event},
+				}
+				extractedEvents = append(extractedEvents, &eventData)
+			}
+			if event.InstanceRegistered != nil {
+				eventData := EventData{
+					EventIdx:  eventIdx,
+					TxHash:    eventTxHash,
+					Type:      apiTypes.RuntimeEventTypeRoflInstanceRegistered,
+					Body:      event.InstanceRegistered,
 					WithScope: ScopedSdkEvent{Rofl: event},
 				}
 				extractedEvents = append(extractedEvents, &eventData)
