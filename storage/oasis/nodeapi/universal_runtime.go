@@ -175,3 +175,19 @@ func (rc *UniversalRuntimeApiLite) GetBalances(ctx context.Context, round uint64
 
 	return balances, nil
 }
+
+func (rc *UniversalRuntimeApiLite) RoflApp(ctx context.Context, round uint64, id AppID) (*AppConfig, error) {
+	return rc.sdkClient.ROFL.App(ctx, round, id)
+}
+
+func (rc *UniversalRuntimeApiLite) RoflApps(ctx context.Context, round uint64) ([]*AppConfig, error) {
+	return rc.sdkClient.ROFL.Apps(ctx, round)
+}
+
+func (rc *UniversalRuntimeApiLite) RoflAppInstance(ctx context.Context, round uint64, id AppID, rak sdkTypes.PublicKey) (*Registration, error) {
+	return rc.sdkClient.ROFL.AppInstance(ctx, round, id, rak)
+}
+
+func (rc *UniversalRuntimeApiLite) RoflAppInstances(ctx context.Context, round uint64, id AppID) ([]*Registration, error) {
+	return rc.sdkClient.ROFL.AppInstances(ctx, round, id)
+}

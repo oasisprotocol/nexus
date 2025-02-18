@@ -5,7 +5,7 @@ analysis:
     cache: { cache_dir: tests/e2e_regression/damask/rpc-cache }
     chain_name: mainnet
     nodes:
-      damask: { default: { rpc: unix:/tmp/node.sock:443 } }
+      damask: { default: { rpc: unix:/tmp/node.sock } }
     ipfs:
       gateway: https://ipfs.io
     fast_startup: true

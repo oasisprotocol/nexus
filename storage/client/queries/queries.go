@@ -920,8 +920,7 @@ const (
 			account_address = $2::text AND
 			balance != 0
 		ORDER BY balance DESC
-		LIMIT 1000  -- To prevent huge responses. Hardcoded because API exposes this as a subfield that does not lend itself to pagination.
-	`
+		LIMIT 1000  -- To prevent huge responses. Hardcoded because API exposes this as a subfield that does not lend itself to pagination.`
 
 	AccountRuntimeEvmBalances = `
 		SELECT
@@ -941,14 +940,193 @@ const (
 			tokens.token_type != 0 AND -- exclude unknown-type tokens; they're often just contracts that emitted Transfer events but don't expose the token ticker, name, balance etc.
 			balances.balance != 0
 		ORDER BY balance DESC
-		LIMIT 1000  -- To prevent huge responses. Hardcoded because API exposes this as a subfield that does not lend itself to pagination.
-	`
+		LIMIT 1000  -- To prevent huge responses. Hardcoded because API exposes this as a subfield that does not lend itself to pagination.`
 
 	RuntimeActiveNodes = `
 		SELECT COUNT(*) AS active_nodes
 		FROM chain.runtime_nodes
-		WHERE runtime_id = $1::text
-	`
+		WHERE runtime_id = $1::text`
+
+	RuntimeRoflApps = `
+		SELECT
+			ra.id,
+			ra.admin,
+			ra.policy,
+			ra.sek,
+			ra.metadata,
+			ra.secrets,
+			ra.removed,
+			COALESCE(
+				jsonb_agg(
+					jsonb_build_object(
+						'rak', ri.rak,
+						'endorsing_node_id', ri.endorsing_node_id,
+						'endorsing_entity_id', ri.endorsing_entity_id,
+						'rek', ri.rek,
+						'expiration_epoch', ri.expiration_epoch,
+						'extra_keys', ri.extra_keys
+					) ORDER BY ri.expiration_epoch DESC
+				) FILTER (WHERE ri.rak IS NOT NULL),
+				'[]'::jsonb
+			) AS instances
+		FROM chain.rofl_apps AS ra
+		LEFT JOIN LATERAL (
+			SELECT *
+			FROM chain.rofl_instances
+			WHERE runtime = ra.runtime AND app_id = ra.id
+			ORDER BY expiration_epoch DESC
+			LIMIT 10 -- Fetch only the latest 10 instances.
+		) AS ri ON true
+		WHERE ra.runtime = $1::runtime AND
+			($2::text IS NULL OR ra.id = $2::text) AND
+			-- Exclude not yet processed apps.
+			ra.last_processed_round IS NOT NULL
+		GROUP BY ra.id, ra.admin, ra.policy, ra.sek, ra.metadata, ra.secrets, ra.removed
+		ORDER BY ra.id
+		LIMIT $3::bigint
+		OFFSET $4::bigint`
+
+	RuntimeRoflAppInstances = `
+		SELECT
+			rak,
+			endorsing_node_id,
+			endorsing_entity_id,
+			rek,
+			expiration_epoch,
+			extra_keys
+		FROM chain.rofl_instances
+		WHERE runtime = $1::runtime AND
+			app_id = $2::text
+		ORDER BY expiration_epoch DESC
+		LIMIT $3::bigint
+		OFFSET $4::bigint`
+
+	RuntimeRoflAppTransactions = `
+		SELECT
+			txs.round,
+			txs.tx_index,
+			txs.timestamp,
+			txs.tx_hash,
+			txs.tx_eth_hash,
+			ARRAY_AGG(signers.signer_address),
+			ARRAY_AGG(signer_preimages.context_identifier),
+			ARRAY_AGG(signer_preimages.context_version),
+			ARRAY_AGG(signer_preimages.address_data),
+			ARRAY_AGG(signers.nonce),
+			txs.fee,
+			txs.fee_symbol,
+			txs.fee_proxy_module,
+			txs.fee_proxy_id,
+			txs.gas_limit,
+			txs.gas_used,
+			CASE
+				WHEN txs.tx_eth_hash IS NULL THEN txs.fee                                  -- charged_fee=fee for non-EVM txs
+				ELSE COALESCE(FLOOR(txs.fee / NULLIF(txs.gas_limit, 0)) * txs.gas_used, 0) -- charged_fee=gas_price * gas_used for EVM txs
+			END AS charged_fee,
+			txs.size,
+			txs.oasis_encrypted_format,
+			txs.oasis_encrypted_public_key,
+			txs.oasis_encrypted_data_nonce,
+			txs.oasis_encrypted_data_data,
+			txs.oasis_encrypted_result_nonce,
+			txs.oasis_encrypted_result_data,
+			txs.method,
+			txs.likely_native_transfer,
+			txs.body,
+			txs.to,
+			to_preimage.context_identifier AS to_preimage_context_identifier,
+			to_preimage.context_version AS to_preimage_context_version,
+			to_preimage.address_data AS to_preimage_data,
+			txs.amount,
+			txs.amount_symbol,
+			txs.evm_encrypted_format,
+			txs.evm_encrypted_public_key,
+			txs.evm_encrypted_data_nonce,
+			txs.evm_encrypted_data_data,
+			txs.evm_encrypted_result_nonce,
+			txs.evm_encrypted_result_data,
+			txs.success,
+			txs.evm_fn_name,
+			txs.evm_fn_params,
+			txs.error_module,
+			txs.error_code,
+			txs.error_message,
+			txs.error_params
+		FROM chain.runtime_transactions AS txs
+		JOIN chain.runtime_transaction_signers AS signers ON
+			(signers.runtime = txs.runtime) AND
+			(signers.round = txs.round) AND
+			(signers.tx_index = txs.tx_index)
+		LEFT JOIN chain.address_preimages AS signer_preimages ON
+			(signers.signer_address = signer_preimages.address) AND
+			-- For now, the only user is the explorer, where we only care
+			-- about Ethereum-compatible addresses, so only get those. Can
+			-- easily enable for other address types though.
+			(signer_preimages.context_identifier = 'oasis-runtime-sdk/address: secp256k1eth') AND
+			(signer_preimages.context_version = 0)
+		LEFT JOIN chain.address_preimages AS to_preimage ON
+			(txs.to = to_preimage.address) AND
+			-- For now, the only user is the explorer, where we only care
+			-- about Ethereum-compatible addresses, so only get those. Can
+			-- easily enable for other address types though.
+			(to_preimage.context_identifier = 'oasis-runtime-sdk/address: secp256k1eth') AND
+			(to_preimage.context_version = 0)
+		LEFT JOIN chain.rofl_related_transactions AS rel ON
+			(txs.runtime = rel.runtime) AND
+			(txs.round = rel.tx_round) AND
+			(txs.tx_index = rel.tx_index) AND
+			($3::text[] IS NULL OR txs.method = rel.method) AND
+			-- When related_address ($2) is NULL and hence we do no filtering on it, avoid the join altogether.
+			-- Otherwise, every tx will be returned as many times as there are related addresses for it.
+			($2::text IS NOT NULL)
+		WHERE
+			(txs.runtime = $1) AND
+			($2::text IS NULL OR rel.app_id = $2::text) AND
+			($3::text[] IS NULL OR txs.method = ANY($3::text[]))
+		GROUP BY
+			txs.round,
+			txs.tx_index,
+			txs.timestamp,
+			txs.tx_hash,
+			txs.tx_eth_hash,
+			txs.fee,
+			txs.fee_symbol,
+			txs.fee_proxy_module,
+			txs.fee_proxy_id,
+			txs.gas_limit,
+			txs.gas_used,
+			txs.size,
+			txs.oasis_encrypted_format,
+			txs.oasis_encrypted_public_key,
+			txs.oasis_encrypted_data_nonce,
+			txs.oasis_encrypted_data_data,
+			txs.oasis_encrypted_result_nonce,
+			txs.oasis_encrypted_result_data,
+			txs.method,
+			txs.likely_native_transfer,
+			txs.body,
+			txs.to,
+			to_preimage.context_identifier,
+			to_preimage.context_version,
+			to_preimage.address_data,
+			txs.amount,
+			txs.amount_symbol,
+			txs.evm_encrypted_format,
+			txs.evm_encrypted_public_key,
+			txs.evm_encrypted_data_nonce,
+			txs.evm_encrypted_data_data,
+			txs.evm_encrypted_result_nonce,
+			txs.evm_encrypted_result_data,
+			txs.success,
+			txs.evm_fn_name,
+			txs.evm_fn_params,
+			txs.error_module,
+			txs.error_code,
+			txs.error_message,
+			txs.error_params
+		ORDER BY txs.round DESC, txs.tx_index DESC
+		LIMIT $4::bigint
+		OFFSET $5::bigint`
 
 	// FineTxVolumes returns the fine-grained query for 5-minute sampled tx volume windows.
 	FineTxVolumes = `
@@ -958,8 +1136,7 @@ const (
 		ORDER BY
 			window_end DESC
 		LIMIT $2::bigint
-		OFFSET $3::bigint
-	`
+		OFFSET $3::bigint`
 
 	// FineDailyTxVolumes returns the query for daily tx volume windows.
 	FineDailyTxVolumes = `
@@ -969,8 +1146,7 @@ const (
 		ORDER BY
 			window_end DESC
 		LIMIT $2::bigint
-		OFFSET $3::bigint
-	`
+		OFFSET $3::bigint`
 
 	// DailyTxVolumes returns the query for daily sampled daily tx volume windows.
 	DailyTxVolumes = `
@@ -980,8 +1156,7 @@ const (
 		ORDER BY
 			window_end DESC
 		LIMIT $2::bigint
-		OFFSET $3::bigint
-	`
+		OFFSET $3::bigint`
 
 	// FineDailyActiveAccounts returns the fine-grained query for daily active account windows.
 	FineDailyActiveAccounts = `
@@ -991,8 +1166,7 @@ const (
 		ORDER BY
 			window_end DESC
 		LIMIT $2::bigint
-		OFFSET $3::bigint
-	`
+		OFFSET $3::bigint`
 
 	// DailyActiveAccounts returns the query for daily sampled daily active account windows.
 	DailyActiveAccounts = `
@@ -1002,6 +1176,5 @@ const (
 		ORDER BY
 			window_end DESC
 		LIMIT $2::bigint
-		OFFSET $3::bigint
-	`
+		OFFSET $3::bigint`
 )
