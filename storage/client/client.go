@@ -1546,6 +1546,129 @@ func EthChecksumAddrPtrFromBarePreimage(data []byte) *string {
 	return &ethChecksumAddr
 }
 
+func runtimeTransactionFromRow(rows pgx.Rows, logger *log.Logger) (*RuntimeTransaction, error) {
+	t := RuntimeTransaction{
+		Error:   &TxError{},
+		Signers: []apiTypes.RuntimeTransactionSigner{},
+	}
+	var oasisEncryptionEnvelope RuntimeTransactionEncryptionEnvelope
+	var oasisEncryptionEnvelopeFormat *common.CallFormat
+	var evmEncryptionEnvelope RuntimeTransactionEncryptionEnvelope
+	var evmEncryptionEnvelopeFormat *common.CallFormat
+	var signersAddresses []string
+	var signersPreimageContextIdentifiers []*string
+	var signersPreimageContextVersions []*int
+	var signersPreimageData [][]byte
+	var signersNonces []uint64
+	var toPreimageContextIdentifier *string
+	var toPreimageContextVersion *int
+	var toPreimageData []byte
+	var errorCode *uint32
+	if err := rows.Scan(
+		&t.Round,
+		&t.Index,
+		&t.Timestamp,
+		&t.Hash,
+		&t.EthHash,
+		&signersAddresses,
+		&signersPreimageContextIdentifiers,
+		&signersPreimageContextVersions,
+		&signersPreimageData,
+		&signersNonces,
+		&t.Fee,
+		&t.FeeSymbol,
+		&t.FeeProxyModule,
+		&t.FeeProxyId,
+		&t.GasLimit,
+		&t.GasUsed,
+		&t.ChargedFee,
+		&t.Size,
+		&oasisEncryptionEnvelopeFormat,
+		&oasisEncryptionEnvelope.PublicKey,
+		&oasisEncryptionEnvelope.DataNonce,
+		&oasisEncryptionEnvelope.Data,
+		&oasisEncryptionEnvelope.ResultNonce,
+		&oasisEncryptionEnvelope.Result,
+		&t.Method,
+		&t.IsLikelyNativeTokenTransfer,
+		&t.Body,
+		&t.To,
+		&toPreimageContextIdentifier,
+		&toPreimageContextVersion,
+		&toPreimageData,
+		&t.Amount,
+		&t.AmountSymbol,
+		&evmEncryptionEnvelopeFormat,
+		&evmEncryptionEnvelope.PublicKey,
+		&evmEncryptionEnvelope.DataNonce,
+		&evmEncryptionEnvelope.Data,
+		&evmEncryptionEnvelope.ResultNonce,
+		&evmEncryptionEnvelope.Result,
+		&t.Success,
+		&t.EvmFnName,
+		&t.EvmFnParams,
+		&t.Error.Module,
+		&errorCode,
+		&t.Error.Message,
+		&t.Error.RawMessage,
+		&t.Error.RevertParams,
+	); err != nil {
+		return nil, err
+	}
+	// If success field is unset (i.e. encrypted "Unknown" result) or
+	// successful, some database versions have non-null error module/code
+	// from when the analyzer would insert ""/0 instead. There's no error
+	// information, so empty this stuff out.
+	if t.Success == nil || *t.Success {
+		t.Error = nil
+	} else if errorCode != nil {
+		t.Error.Code = *errorCode
+	}
+	if oasisEncryptionEnvelopeFormat != nil { // a rudimentary check to determine if the tx was encrypted
+		oasisEncryptionEnvelope.Format = *oasisEncryptionEnvelopeFormat
+		t.OasisEncryptionEnvelope = &oasisEncryptionEnvelope
+	}
+	if evmEncryptionEnvelopeFormat != nil { // a rudimentary check to determine if the tx was encrypted
+		evmEncryptionEnvelope.Format = *evmEncryptionEnvelopeFormat
+		t.EncryptionEnvelope = &evmEncryptionEnvelope
+	}
+
+	for i := range signersAddresses {
+		t.Signers = append(t.Signers, apiTypes.RuntimeTransactionSigner{
+			Address: signersAddresses[i],
+			Nonce:   signersNonces[i],
+		})
+		// Render Ethereum-compatible address preimage.
+		if signersPreimageContextIdentifiers[i] != nil && signersPreimageContextVersions[i] != nil {
+			t.Signers[i].AddressEth = EthChecksumAddrFromPreimage(*signersPreimageContextIdentifiers[i], *signersPreimageContextVersions[i], signersPreimageData[i])
+		}
+
+		// Deprecated sender_0 fields.
+		if i == 0 {
+			t.Sender0 = t.Signers[0].Address
+			t.Nonce0 = t.Signers[0].Nonce
+			t.Sender0Eth = t.Signers[0].AddressEth
+		}
+	}
+
+	// Render Ethereum-compatible address preimages.
+	if toPreimageContextIdentifier != nil && toPreimageContextVersion != nil {
+		t.ToEth = EthChecksumAddrFromPreimage(*toPreimageContextIdentifier, *toPreimageContextVersion, toPreimageData)
+	}
+
+	// Try extracting parsed PCS quote from rofl.Register transaction body.
+	if t.Method != nil && *t.Method == "rofl.Register" {
+		nb, err := extractPCSQuote(t.Body)
+		if err != nil {
+			logger.Warn("failed to extract PCS quote from rofl.Register transaction body", "tx_hash", t.Hash, "err", err)
+			// In case of errors, original body is returned.
+		}
+		t.Body = nb
+	}
+
+	return &t, nil
+}
+
 // RuntimeTransactions returns a list of runtime transactions.
 func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetRuntimeTransactionsParams, txHash *string) (*RuntimeTransactionList, error) {
 	ocAddrRel, err := apiTypes.UnmarshalToOcAddress(p.Rel)
@@ -1560,8 +1683,10 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetR
 		queries.RuntimeTransactions,
 		runtimeFromCtx(ctx),
 		p.Block,
+		nil,
 		txHash, // tx_hash; used only by GetRuntimeTransactionsTxHash
 		ocAddrRel,
+		nil,
 		p.Method,
 		p.After,
 		p.Before,
@@ -1579,126 +1704,12 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetR
 		IsTotalCountClipped: res.isTotalCountClipped,
 	}
 	for res.rows.Next() {
-		t := RuntimeTransaction{
-			Error:   &TxError{},
-			Signers: []apiTypes.RuntimeTransactionSigner{},
-		}
-		var oasisEncryptionEnvelope RuntimeTransactionEncryptionEnvelope
-		var oasisEncryptionEnvelopeFormat *common.CallFormat
-		var evmEncryptionEnvelope RuntimeTransactionEncryptionEnvelope
-		var evmEncryptionEnvelopeFormat *common.CallFormat
-		var signersAddresses []string
-		var signersPreimageContextIdentifiers []*string
-		var signersPreimageContextVersions []*int
-		var signersPreimageData [][]byte
-		var signersNonces []uint64
-		var toPreimageContextIdentifier *string
-		var toPreimageContextVersion *int
-		var toPreimageData []byte
-		var errorCode *uint32
-		if err := res.rows.Scan(
-			&t.Round,
-			&t.Index,
-			&t.Timestamp,
-			&t.Hash,
-			&t.EthHash,
-			&signersAddresses,
-			&signersPreimageContextIdentifiers,
-			&signersPreimageContextVersions,
-			&signersPreimageData,
-			&signersNonces,
-			&t.Fee,
-			&t.FeeSymbol,
-			&t.FeeProxyModule,
-			&t.FeeProxyId,
-			&t.GasLimit,
-			&t.GasUsed,
-			&t.ChargedFee,
-			&t.Size,
-			&oasisEncryptionEnvelopeFormat,
-			&oasisEncryptionEnvelope.PublicKey,
-			&oasisEncryptionEnvelope.DataNonce,
-			&oasisEncryptionEnvelope.Data,
-			&oasisEncryptionEnvelope.ResultNonce,
-			&oasisEncryptionEnvelope.Result,
-			&t.Method,
-			&t.IsLikelyNativeTokenTransfer,
-			&t.Body,
-			&t.To,
-			&toPreimageContextIdentifier,
-			&toPreimageContextVersion,
-			&toPreimageData,
-			&t.Amount,
-			&t.AmountSymbol,
-			&evmEncryptionEnvelopeFormat,
-			&evmEncryptionEnvelope.PublicKey,
-			&evmEncryptionEnvelope.DataNonce,
-			&evmEncryptionEnvelope.Data,
-			&evmEncryptionEnvelope.ResultNonce,
-			&evmEncryptionEnvelope.Result,
-			&t.Success,
-			&t.EvmFnName,
-			&t.EvmFnParams,
-			&t.Error.Module,
-			&errorCode,
-			&t.Error.Message,
-			&t.Error.RawMessage,
-			&t.Error.RevertParams,
-		); err != nil {
+		t, err := runtimeTransactionFromRow(res.rows, c.logger)
+		if err != nil {
+			c.logger.Error("error converting transaction to API response", "err", err)
 			return nil, wrapError(err)
 		}
-		// If success field is unset (i.e. encrypted "Unknown" result) or
-		// successful, some database versions have non-null error module/code
-		// from when the analyzer would insert ""/0 instead. There's no error
-		// information, so empty this stuff out.
-		if t.Success == nil || *t.Success {
-			t.Error = nil
-		} else if errorCode != nil {
-			t.Error.Code = *errorCode
-		}
-		if oasisEncryptionEnvelopeFormat != nil { // a rudimentary check to determine if the tx was encrypted
-			oasisEncryptionEnvelope.Format = *oasisEncryptionEnvelopeFormat
-			t.OasisEncryptionEnvelope = &oasisEncryptionEnvelope
-		}
-		if evmEncryptionEnvelopeFormat != nil { // a rudimentary check to determine if the tx was encrypted
-			evmEncryptionEnvelope.Format = *evmEncryptionEnvelopeFormat
-			t.EncryptionEnvelope = &evmEncryptionEnvelope
-		}
-
-		for i := range signersAddresses {
-			t.Signers = append(t.Signers, apiTypes.RuntimeTransactionSigner{
-				Address: signersAddresses[i],
-				Nonce:   signersNonces[i],
-			})
-			// Render Ethereum-compatible address preimage.
-			if signersPreimageContextIdentifiers[i] != nil && signersPreimageContextVersions[i] != nil {
-				t.Signers[i].AddressEth = EthChecksumAddrFromPreimage(*signersPreimageContextIdentifiers[i], *signersPreimageContextVersions[i], signersPreimageData[i])
-			}
-
-			// Deprecated sender_0 fields.
-			if i == 0 {
-				t.Sender0 = t.Signers[0].Address
-				t.Nonce0 = t.Signers[0].Nonce
-				t.Sender0Eth = t.Signers[0].AddressEth
-			}
-		}
-
-		// Render Ethereum-compatible address preimages.
-		if toPreimageContextIdentifier != nil && toPreimageContextVersion != nil {
-			t.ToEth = EthChecksumAddrFromPreimage(*toPreimageContextIdentifier, *toPreimageContextVersion, toPreimageData)
-		}
-
-		// Try extracting parsed PCS quote from rofl.Register transaction body.
-		if t.Method != nil && *t.Method == "rofl.Register" {
-			nb, err := extractPCSQuote(t.Body)
-			if err != nil {
-				c.logger.Warn("failed to extract PCS quote from rofl.Register transaction body", "tx_hash", t.Hash, "err", err)
-				// In case of errors, original body is returned.
-			}
-			t.Body = nb
-		}
-
-		ts.Transactions = append(ts.Transactions, t)
+		ts.Transactions = append(ts.Transactions, *t)
 	}
 
 	return &ts, nil
@@ -2402,6 +2413,187 @@ func (c *StorageClient) RuntimeStatus(ctx context.Context) (*RuntimeStatus, erro
 	}
 
 	return &s, nil
+}
+
+// RuntimeRoflApps returns a list of ROFL apps.
+func (c *StorageClient) RuntimeRoflApps(ctx context.Context, params apiTypes.GetRuntimeRoflAppsParams, id *string) (*RoflAppList, error) {
+	res, err := c.withTotalCount(
+		ctx,
+		queries.RuntimeRoflApps,
+		runtimeFromCtx(ctx),
+		id,
+		params.Limit,
+		params.Offset,
+	)
+	if err != nil {
+		return nil, wrapError(err)
+	}
+	defer res.rows.Close()
+
+	apps := RoflAppList{
+		RoflApps:            []RoflApp{},
+		TotalCount:          res.totalCount,
+		IsTotalCountClipped: res.isTotalCountClipped,
+	}
+	var lastActivityRound *uint64
+	var lastActivityTxIndex *uint64
+	for res.rows.Next() {
+		var app RoflApp
+		if err := res.rows.Scan(
+			&app.Id,
+			&app.Admin,
+			&app.Stake,
+			&app.Policy,
+			&app.Sek,
+			&app.Metadata,
+			&app.Secrets,
+			&app.Removed,
+			&app.DateCreated,
+			&app.LastActivity,
+			&lastActivityRound,
+			&lastActivityTxIndex,
+			&app.NumActiveInstances,
+			&app.ActiveInstances,
+		); err != nil {
+			return nil, wrapError(err)
+		}
+		apps.RoflApps = append(apps.RoflApps, app)
+	}
+
+	// When querying a single ROFL app, also fetch the latest activity transaction.
+	if id != nil && len(apps.RoflApps) == 1 && lastActivityRound != nil && lastActivityTxIndex != nil {
+		func() {
+			res, err := c.db.Query(ctx, queries.RuntimeTransactions, runtimeFromCtx(ctx), lastActivityRound, lastActivityTxIndex, nil, nil, nil, nil, nil, nil, 1, 0)
+			if err != nil {
+				c.logger.Error("error fetching latest activity transaction", "err", err)
+				return
+			}
+			defer res.Close()
+
+			for res.Next() {
+				tx, err := runtimeTransactionFromRow(res, c.logger)
+				if err != nil {
+					c.logger.Error("error converting transaction to API response", "err", err)
+					return
+				}
+				if tx != nil {
+					apps.RoflApps[0].LastActivityTx = tx
+				}
+			}
+		}()
+	}
+
+	return &apps, nil
+}
+
+// RuntimeRoflAppInstances returns a list of ROFL app instances.
+func (c *StorageClient) RuntimeRoflAppInstances(ctx context.Context, params apiTypes.GetRuntimeRoflAppsIdInstancesParams, id string) (*RoflAppInstanceList, error) {
+	res, err := c.withTotalCount(
+		ctx,
+		queries.RuntimeRoflAppInstances,
+		runtimeFromCtx(ctx),
+		id,
+		params.Limit,
+		params.Offset,
+	)
+	if err != nil {
+		return nil, wrapError(err)
+	}
+	defer res.rows.Close()
+
+	instances := RoflAppInstanceList{
+		Instances:           []apiTypes.RoflInstance{},
+		TotalCount:          res.totalCount,
+		IsTotalCountClipped: res.isTotalCountClipped,
+	}
+	for res.rows.Next() {
+		var instance apiTypes.RoflInstance
+		if err := res.rows.Scan(
+			&instance.Rak,
+			&instance.EndorsingNodeId,
+			&instance.EndorsingEntityId,
+			&instance.Rek,
+			&instance.ExpirationEpoch,
+			&instance.ExtraKeys,
+		); err != nil {
+			return nil, wrapError(err)
+		}
+		instances.Instances = append(instances.Instances, instance)
+	}
+	return &instances, nil
+}
+
+// RuntimeRoflAppTransactions returns a list of ROFL app transactions.
+func (c *StorageClient) RuntimeRoflAppTransactions(ctx context.Context, params apiTypes.GetRuntimeRoflAppsIdTransactionsParams, id string) (*RuntimeTransactionList, error) {
+	res, err := c.withTotalCount(
+		ctx,
+		queries.RuntimeTransactions,
+		runtimeFromCtx(ctx),
+		nil,
+		nil,
+		nil,
+		nil,
+		id,
+		params.Method,
+		nil,
+		nil,
+		params.Limit,
+		params.Offset,
+	)
+	if err != nil {
+		return nil, wrapError(err)
+	}
+	defer res.rows.Close()
+
+	ts := RuntimeTransactionList{
+		Transactions:        []RuntimeTransaction{},
+		TotalCount:          res.totalCount,
+		IsTotalCountClipped: res.isTotalCountClipped,
+	}
+	for res.rows.Next() {
+		t, err := runtimeTransactionFromRow(res.rows, c.logger)
+		if err != nil {
+			c.logger.Error("error converting transaction to API response", "err", err)
+			return nil, wrapError(err)
+		}
+		ts.Transactions = append(ts.Transactions, *t)
+	}
+
+	return &ts, nil
+}
+
+// RuntimeRoflAppInstanceTransactions returns a list of ROFL app instance transactions.
+func (c *StorageClient) RuntimeRoflAppInstanceTransactions(ctx context.Context, method *[]string, limit *uint64, offset *uint64, appId string, rak *string) (*RuntimeTransactionList, error) {
+	res, err := c.withTotalCount(
+		ctx,
+		queries.RuntimeRoflAppInstanceTransactions,
+		runtimeFromCtx(ctx),
+		appId,
+		rak,
+		method,
+		limit,
+		offset,
+	)
+	if err != nil {
+		return nil, wrapError(err)
+	}
+	defer res.rows.Close()
+
+	ts := RuntimeTransactionList{
+		Transactions:        []RuntimeTransaction{},
+		TotalCount:          res.totalCount,
+		IsTotalCountClipped: res.isTotalCountClipped,
+	}
+	for res.rows.Next() {
+		t, err := runtimeTransactionFromRow(res.rows, c.logger)
+		if err != nil {
+			c.logger.Error("error converting transaction to API response", "err", err)
+			return nil, wrapError(err)
+		}
+		ts.Transactions = append(ts.Transactions, *t)
+	}
+
+	return &ts, nil
 }
 
 // TxVolumes returns a list of transaction volumes per time window.

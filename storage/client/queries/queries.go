@@ -567,29 +567,39 @@ const (
 			(txs.runtime = rel.runtime) AND
 			(txs.round = rel.tx_round) AND
 			(txs.tx_index = rel.tx_index) AND
-			($5::text[] IS NULL OR txs.method = rel.method AND txs.likely_native_transfer = rel.likely_native_transfer) AND
-			-- When related_address ($4) is NULL and hence we do no filtering on it, avoid the join altogether.
+			($7::text[] IS NULL OR txs.method = rel.method AND txs.likely_native_transfer = rel.likely_native_transfer) AND
+			-- When related_address ($5) is NULL and hence we do no filtering on it, avoid the join altogether.
 			-- Otherwise, every tx will be returned as many times as there are related addresses for it.
-			($4::text IS NOT NULL)
+			($5::text IS NOT NULL)
+		LEFT JOIN chain.rofl_related_transactions AS rrel ON
+			(txs.runtime = rrel.runtime) AND
+			(txs.round = rrel.tx_round) AND
+			(txs.tx_index = rrel.tx_index) AND
+			($7::text[] IS NULL OR txs.method = rrel.method) AND
+			-- When related_rofl ($6) is NULL and hence we do no filtering on it, avoid the join altogether.
+			-- Otherwise, every tx will be returned as many times as there are related addresses for it.
+			($6::text IS NOT NULL)
 		WHERE
 			(txs.runtime = $1) AND
 			($2::bigint IS NULL OR txs.round = $2::bigint) AND
-			($3::text IS NULL OR txs.tx_hash = $3::text OR txs.tx_eth_hash = $3::text) AND
-			($4::text IS NULL OR rel.account_address = $4::text) AND
+			($3::bigint IS NULL OR txs.tx_index = $3::bigint) AND
+			($4::text IS NULL OR txs.tx_hash = $4::text OR txs.tx_eth_hash = $4::text) AND
+			($5::text IS NULL OR rel.account_address = $5::text) AND
+			($6::text IS NULL OR rrel.app_id = $6::text) AND
 			(
 				-- No filtering on method.
-				$5::text[] IS NULL OR
+				$7::text[] IS NULL OR
 				(
 					-- Special case to return are 'likely to be native transfers'.
-					('native_transfers' = ANY($5::text[]) AND txs.likely_native_transfer) OR
+					('native_transfers' = ANY($7::text[]) AND txs.likely_native_transfer) OR
 					-- Special case to return all evm.Calls that are likely not native transfers.
-					('evm.Call_no_native' = ANY($5::text[]) AND txs.method = 'evm.Call' AND NOT txs.likely_native_transfer) OR
+					('evm.Call_no_native' = ANY($7::text[]) AND txs.method = 'evm.Call' AND NOT txs.likely_native_transfer) OR
 					-- Regular case.
-					(txs.method = ANY($5::text[]))
+					(txs.method = ANY($7::text[]))
 				)
 			) AND
-			($6::timestamptz IS NULL OR txs.timestamp >= $6::timestamptz) AND
-			($7::timestamptz IS NULL OR txs.timestamp < $7::timestamptz)
+			($8::timestamptz IS NULL OR txs.timestamp >= $8::timestamptz) AND
+			($9::timestamptz IS NULL OR txs.timestamp < $9::timestamptz)
 		GROUP BY
 			txs.round,
 			txs.tx_index,
@@ -633,8 +643,8 @@ const (
 			txs.error_message_raw,
 			txs.error_params
 		ORDER BY txs.round DESC, txs.tx_index DESC
-		LIMIT $8::bigint
-		OFFSET $9::bigint`
+		LIMIT $10::bigint
+		OFFSET $11::bigint`
 
 	RuntimeEvents = `
 		SELECT
@@ -922,8 +932,7 @@ const (
 			account_address = $2::text AND
 			balance != 0
 		ORDER BY balance DESC
-		LIMIT 1000  -- To prevent huge responses. Hardcoded because API exposes this as a subfield that does not lend itself to pagination.
-	`
+		LIMIT 1000  -- To prevent huge responses. Hardcoded because API exposes this as a subfield that does not lend itself to pagination.`
 
 	AccountRuntimeEvmBalances = `
 		SELECT
@@ -943,14 +952,265 @@ const (
 			tokens.token_type != 0 AND -- exclude unknown-type tokens; they're often just contracts that emitted Transfer events but don't expose the token ticker, name, balance etc.
 			balances.balance != 0
 		ORDER BY balance DESC
-		LIMIT 1000  -- To prevent huge responses. Hardcoded because API exposes this as a subfield that does not lend itself to pagination.
-	`
+		LIMIT 1000  -- To prevent huge responses. Hardcoded because API exposes this as a subfield that does not lend itself to pagination.`
 
 	RuntimeActiveNodes = `
 		SELECT COUNT(*) AS active_nodes
 		FROM chain.runtime_nodes
-		WHERE runtime_id = $1::text
-	`
+		WHERE runtime_id = $1::text`
+
+	RuntimeRoflApps = `
+		WITH
+			max_epoch AS (
+				SELECT id FROM chain.epochs ORDER BY id DESC LIMIT 1
+			)
+		SELECT
+			ra.id,
+			ra.admin,
+			ra.stake,
+			ra.policy,
+			ra.sek,
+			ra.metadata,
+			ra.secrets,
+			ra.removed,
+			first_blk.timestamp AS date_created,
+			latest_blk.timestamp AS last_activity,
+			latest_tx.tx_round AS last_activity_tx_round,
+			latest_tx.tx_index AS last_activity_tx_index,
+			ri_agg.num_active_instances,
+			COALESCE(
+				jsonb_agg(ri_agg.instance_json ORDER BY ri_agg.expiration_epoch DESC),
+				'[]'::jsonb
+			) AS active_instances
+		FROM chain.rofl_apps AS ra
+
+		-- Fetch active instances.
+		LEFT JOIN LATERAL (
+			SELECT
+				COUNT(*) OVER () AS num_active_instances,
+				jsonb_build_object(
+					'rak', ri.rak,
+					'endorsing_node_id', ri.endorsing_node_id,
+					'endorsing_entity_id', ri.endorsing_entity_id,
+					'rek', ri.rek,
+					'expiration_epoch', ri.expiration_epoch,
+					'extra_keys', ri.extra_keys
+				) AS instance_json,
+				ri.expiration_epoch
+			FROM chain.rofl_instances AS ri, max_epoch
+			WHERE
+				ri.runtime = ra.runtime AND
+				ri.app_id = ra.id AND
+				ri.expiration_epoch > max_epoch.id
+			ORDER BY ri.expiration_epoch DESC
+		) AS ri_agg ON true
+
+		-- Fetch the first transaction round for the app.
+		LEFT JOIN LATERAL (
+			SELECT rrt.tx_round
+			FROM chain.rofl_related_transactions AS rrt
+			WHERE rrt.runtime = ra.runtime AND rrt.app_id = ra.id
+			ORDER BY rrt.tx_round ASC
+			LIMIT 1
+		) AS first_tx ON true
+		-- Fetch the block of the first transaction.
+		LEFT JOIN chain.runtime_blocks AS first_blk
+			ON first_blk.runtime = ra.runtime AND first_blk.round = first_tx.tx_round
+
+		-- Fetch the latest transaction for the app.
+		LEFT JOIN LATERAL (
+			SELECT
+				tx_round,
+				tx_index
+			FROM (
+				SELECT tx_round, tx_index
+				FROM chain.rofl_instance_transactions
+				WHERE runtime = ra.runtime AND app_id = ra.id
+				ORDER BY tx_round DESC, tx_index DESC
+				LIMIT 1
+			) AS rit_sub
+
+			UNION ALL
+
+			SELECT tx_round, tx_index
+			FROM (
+				SELECT tx_round, tx_index
+				FROM chain.rofl_related_transactions
+				WHERE runtime = ra.runtime AND app_id = ra.id
+				ORDER BY tx_round DESC, tx_index DESC
+				LIMIT 1
+			) AS rrt_sub
+
+			ORDER BY tx_round DESC, tx_index DESC
+			LIMIT 1
+		) AS latest_tx ON true
+		-- Fetch the block of the latest transaction.
+		LEFT JOIN chain.runtime_blocks AS latest_blk
+			ON latest_blk.runtime = ra.runtime AND latest_blk.round = latest_tx.tx_round
+
+		LEFT JOIN chain.accounts AS a ON a.address = ra.admin
+
+		WHERE
+			ra.runtime = $1::runtime AND
+			($2::text IS NULL OR ra.id = $2::text) AND
+			-- Exclude not yet processed apps.
+			ra.last_processed_round IS NOT NULL
+		GROUP BY ra.id, ra.admin, ra.stake, ra.policy, ra.sek, ra.metadata, ra.secrets, ra.removed, ri_agg.num_active_instances, first_blk.timestamp, latest_blk.timestamp, latest_tx.tx_round, latest_tx.tx_index
+		ORDER BY ra.id
+		LIMIT $3::bigint
+		OFFSET $4::bigint`
+
+	RuntimeRoflAppInstances = `
+		SELECT
+			rak,
+			endorsing_node_id,
+			endorsing_entity_id,
+			rek,
+			expiration_epoch,
+			extra_keys
+		FROM chain.rofl_instances
+		WHERE runtime = $1::runtime AND
+			app_id = $2::text
+		ORDER BY expiration_epoch DESC
+		LIMIT $3::bigint
+		OFFSET $4::bigint`
+
+	RuntimeRoflAppInstanceTransactions = `
+		SELECT
+			txs.round,
+			txs.tx_index,
+			txs.timestamp,
+			txs.tx_hash,
+			txs.tx_eth_hash,
+			ARRAY_AGG(signers.signer_address),
+			ARRAY_AGG(signer_preimages.context_identifier),
+			ARRAY_AGG(signer_preimages.context_version),
+			ARRAY_AGG(signer_preimages.address_data),
+			ARRAY_AGG(signers.nonce),
+			txs.fee,
+			txs.fee_symbol,
+			txs.fee_proxy_module,
+			txs.fee_proxy_id,
+			txs.gas_limit,
+			txs.gas_used,
+			CASE
+				WHEN txs.tx_eth_hash IS NULL THEN txs.fee                                  -- charged_fee=fee for non-EVM txs
+				ELSE COALESCE(FLOOR(txs.fee / NULLIF(txs.gas_limit, 0)) * txs.gas_used, 0) -- charged_fee=gas_price * gas_used for EVM txs
+			END AS charged_fee,
+			txs.size,
+			txs.oasis_encrypted_format,
+			txs.oasis_encrypted_public_key,
+			txs.oasis_encrypted_data_nonce,
+			txs.oasis_encrypted_data_data,
+			txs.oasis_encrypted_result_nonce,
+			txs.oasis_encrypted_result_data,
+			txs.method,
+			txs.likely_native_transfer,
+			txs.body,
+			txs.to,
+			to_preimage.context_identifier AS to_preimage_context_identifier,
+			to_preimage.context_version AS to_preimage_context_version,
+			to_preimage.address_data AS to_preimage_data,
+			txs.amount,
+			txs.amount_symbol,
+			txs.evm_encrypted_format,
+			txs.evm_encrypted_public_key,
+			txs.evm_encrypted_data_nonce,
+			txs.evm_encrypted_data_data,
+			txs.evm_encrypted_result_nonce,
+			txs.evm_encrypted_result_data,
+			txs.success,
+			txs.evm_fn_name,
+			txs.evm_fn_params,
+			txs.error_module,
+			txs.error_code,
+			txs.error_message,
+			txs.error_message_raw,
+			txs.error_params
+		FROM chain.rofl_instance_transactions AS itxs
+		JOIN chain.runtime_transactions AS txs ON
+			itxs.runtime = txs.runtime AND
+			itxs.tx_round = txs.round AND
+			itxs.tx_index = txs.tx_index
+		JOIN chain.runtime_transaction_signers AS signers ON
+			signers.runtime = txs.runtime AND
+			signers.round = txs.round AND
+			signers.tx_index = txs.tx_index
+		LEFT JOIN chain.address_preimages AS signer_preimages ON
+			signers.signer_address = signer_preimages.address AND
+			-- For now, the only user is the explorer, where we only care
+			-- about Ethereum-compatible addresses, so only get those. Can
+			-- easily enable for other address types though.
+			signer_preimages.context_identifier = 'oasis-runtime-sdk/address: secp256k1eth' AND
+			signer_preimages.context_version = 0
+		LEFT JOIN chain.address_preimages AS to_preimage ON
+			txs.to = to_preimage.address AND
+			-- For now, the only user is the explorer, where we only care
+			-- about Ethereum-compatible addresses, so only get those. Can
+			-- easily enable for other address types though.
+			to_preimage.context_identifier = 'oasis-runtime-sdk/address: secp256k1eth' AND
+			to_preimage.context_version = 0
+		WHERE
+			itxs.runtime = $1 AND
+			itxs.app_id = $2 AND
+			$3::text IS NULL OR itxs.rak = $3::text AND
+			(
+				-- No filtering on method.
+				$4::text[] IS NULL OR
+				(
+					-- Special case to return are 'likely to be native transfers'.
+					('native_transfers' = ANY($4::text[]) AND itxs.likely_native_transfer) OR
+					-- Special case to return all evm.Calls that are likely not native transfers.
+					('evm.Call_no_native' = ANY($4::text[]) AND itxs.method = 'evm.Call' AND NOT itxs.likely_native_transfer) OR
+					-- Regular case.
+					(itxs.method = ANY($4::text[]))
+				)
+			)
+		GROUP BY
+			txs.round,
+			txs.tx_index,
+			txs.timestamp,
+			txs.tx_hash,
+			txs.tx_eth_hash,
+			txs.fee,
+			txs.fee_symbol,
+			txs.fee_proxy_module,
+			txs.fee_proxy_id,
+			txs.gas_limit,
+			txs.gas_used,
+			txs.size,
+			txs.oasis_encrypted_format,
+			txs.oasis_encrypted_public_key,
+			txs.oasis_encrypted_data_nonce,
+			txs.oasis_encrypted_data_data,
+			txs.oasis_encrypted_result_nonce,
+			txs.oasis_encrypted_result_data,
+			txs.method,
+			txs.likely_native_transfer,
+			txs.body,
+			txs.to,
+			to_preimage.context_identifier,
+			to_preimage.context_version,
+			to_preimage.address_data,
+			txs.amount,
+			txs.amount_symbol,
+			txs.evm_encrypted_format,
+			txs.evm_encrypted_public_key,
+			txs.evm_encrypted_data_nonce,
+			txs.evm_encrypted_data_data,
+			txs.evm_encrypted_result_nonce,
+			txs.evm_encrypted_result_data,
+			txs.success,
+			txs.evm_fn_name,
+			txs.evm_fn_params,
+			txs.error_module,
+			txs.error_code,
+			txs.error_message,
+			txs.error_message_raw,
+			txs.error_params
+		ORDER BY txs.round DESC, txs.tx_index DESC
+		LIMIT $5::bigint
+		OFFSET $6::bigint`
 
 	// FineTxVolumes returns the fine-grained query for 5-minute sampled tx volume windows.
 	FineTxVolumes = `
@@ -960,8 +1220,7 @@ const (
 		ORDER BY
 			window_end DESC
 		LIMIT $2::bigint
-		OFFSET $3::bigint
-	`
+		OFFSET $3::bigint`
 
 	// FineDailyTxVolumes returns the query for daily tx volume windows.
 	FineDailyTxVolumes = `
@@ -971,8 +1230,7 @@ const (
 		ORDER BY
 			window_end DESC
 		LIMIT $2::bigint
-		OFFSET $3::bigint
-	`
+		OFFSET $3::bigint`
 
 	// DailyTxVolumes returns the query for daily sampled daily tx volume windows.
 	DailyTxVolumes = `
@@ -982,8 +1240,7 @@ const (
 		ORDER BY
 			window_end DESC
 		LIMIT $2::bigint
-		OFFSET $3::bigint
-	`
+		OFFSET $3::bigint`
 
 	// FineDailyActiveAccounts returns the fine-grained query for daily active account windows.
 	FineDailyActiveAccounts = `
@@ -993,8 +1250,7 @@ const (
 		ORDER BY
 			window_end DESC
 		LIMIT $2::bigint
-		OFFSET $3::bigint
-	`
+		OFFSET $3::bigint`
 
 	// DailyActiveAccounts returns the query for daily sampled daily active account windows.
 	DailyActiveAccounts = `
@@ -1004,6 +1260,5 @@ const (
 		ORDER BY
 			window_end DESC
 		LIMIT $2::bigint
-		OFFSET $3::bigint
-	`
+		OFFSET $3::bigint`
 )

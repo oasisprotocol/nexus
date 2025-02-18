@@ -31,6 +31,8 @@ import (
 	"github.com/oasisprotocol/nexus/analyzer/evmverifier"
 	"github.com/oasisprotocol/nexus/analyzer/metadata_registry"
 	nodestats "github.com/oasisprotocol/nexus/analyzer/node_stats"
+	"github.com/oasisprotocol/nexus/analyzer/rofl"
+	roflinstance "github.com/oasisprotocol/nexus/analyzer/rofl/instance_transactions"
 	"github.com/oasisprotocol/nexus/analyzer/runtime"
 	"github.com/oasisprotocol/nexus/analyzer/util"
 	"github.com/oasisprotocol/nexus/analyzer/validatorstakinghistory"
@@ -466,6 +468,24 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) { //nolint:gocyclo
 				return nil, err1
 			}
 			return evmnfts.NewAnalyzer(common.RuntimeSapphire, cfg.Analyzers.SapphireEvmNfts.ItemBasedAnalyzerConfig, sourceClient, ipfsClient, dbClient, logger)
+		})
+	}
+	if cfg.Analyzers.SapphireRofl != nil {
+		analyzers, err = addAnalyzer(analyzers, err, syncTagSapphire, func() (A, error) {
+			sourceClient, err1 := sources.Runtime(ctx, common.RuntimeSapphire)
+			if err1 != nil {
+				return nil, err1
+			}
+			return rofl.NewAnalyzer(common.RuntimeSapphire, *cfg.Analyzers.SapphireRofl, sourceClient, dbClient, logger)
+		})
+	}
+	if cfg.Analyzers.SapphireRoflInstanceTransactions != nil {
+		analyzers, err = addAnalyzer(analyzers, err, syncTagSapphire, func() (A, error) {
+			sourceClient, err1 := sources.Runtime(ctx, common.RuntimeSapphire)
+			if err1 != nil {
+				return nil, err1
+			}
+			return roflinstance.NewAnalyzer(common.RuntimeSapphire, *cfg.Analyzers.SapphireRoflInstanceTransactions, sourceClient, dbClient, logger)
 		})
 	}
 	if cfg.Analyzers.PontusxTestEvmNfts != nil {

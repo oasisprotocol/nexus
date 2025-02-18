@@ -566,6 +566,10 @@ var (
     INSERT INTO chain.runtime_related_transactions (runtime, account_address, tx_round, tx_index, method, likely_native_transfer)
       VALUES ($1, $2, $3, $4, $5, $6)`
 
+	RuntimeRoflRelatedTransactionInsert = `
+    INSERT INTO chain.rofl_related_transactions (runtime, app_id, tx_round, tx_index, method, likely_native_transfer)
+      VALUES ($1, $2, $3, $4, $5, $6)`
+
 	RuntimeAccountNumTxsUpsert = `
     INSERT INTO chain.runtime_accounts as accounts (runtime, address, num_txs)
       VALUES ($1, $2, $3)
@@ -1260,4 +1264,81 @@ var (
       rt.runtime = matched_txs.runtime
       AND rt.round = matched_txs.round
       AND rt.tx_index = matched_txs.tx_index`
+
+	RuntimeRoflStaleApps = `
+    SELECT
+      chain.rofl_apps.id,
+      chain.rofl_apps.last_queued_round
+    FROM chain.rofl_apps
+    WHERE
+      chain.rofl_apps.runtime = $1 AND
+      (
+          chain.rofl_apps.last_processed_round IS NULL OR
+          chain.rofl_apps.last_queued_round > chain.rofl_apps.last_processed_round
+      )
+    ORDER BY chain.rofl_apps.last_queued_round
+    LIMIT $2`
+
+	RuntimeRoflStaleAppsCount = `
+    SELECT COUNT(*) AS cnt
+    FROM chain.rofl_apps
+    WHERE
+      runtime = $1 AND
+      (last_processed_round IS NULL OR last_queued_round > last_processed_round)`
+
+	RuntimeRoflAppUpdate = `
+    UPDATE chain.rofl_apps
+    SET
+        admin = $3,
+        stake = $4,
+        policy = $5,
+        sek = $6,
+        metadata = $7,
+        secrets = $8,
+        last_processed_round = $9
+    WHERE
+        runtime = $1 AND
+        id = $2`
+
+	RuntimeRoflAppRemoved = `
+    -- Delete the app from the DB if it has not been processed yet.
+    -- In that case the app was deleted before we ever processed it,
+    -- so no reason to keep it in the DB since we do not have any state for it.
+    WITH to_delete AS (
+      DELETE FROM chain.rofl_apps
+      WHERE runtime = $1 AND id = $2 AND last_processed_round IS NULL
+      RETURNING *
+    )
+    -- Otherwise, just mark the app as removed.
+    UPDATE chain.rofl_apps
+    SET
+      removed = TRUE,
+      stake = 0,
+      last_processed_round = $3
+    WHERE
+      runtime = $1
+      AND id = $2
+      AND last_processed_round IS NOT NULL
+      AND NOT EXISTS (SELECT 1 FROM to_delete)`
+
+	RuntimeRoflInstanceUpsert = `
+    INSERT INTO chain.rofl_instances (runtime, app_id, rak, endorsing_node_id, endorsing_entity_id, rek, expiration_epoch, extra_keys, registration_round, last_processed_round)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $9)
+    ON CONFLICT (runtime, app_id, rak) DO UPDATE
+    SET
+      endorsing_node_id = excluded.endorsing_node_id,
+      endorsing_entity_id = excluded.endorsing_entity_id,
+      rek = excluded.rek,
+      expiration_epoch = excluded.expiration_epoch,
+      extra_keys = excluded.extra_keys,
+      -- Not totaly correct, but w/e.
+      registration_round = LEAST(excluded.registration_round, chain.rofl_instances.registration_round),
+      last_processed_round = LEAST(excluded.last_processed_round, chain.rofl_instances.last_processed_round)`
+
+	RuntimeRoflAppQueueRefresh = `
+    INSERT INTO chain.rofl_apps (runtime, id, last_queued_round)
+    VALUES ($1, $2, $3)
+    ON CONFLICT (runtime, id) DO UPDATE
+    SET
+      last_queued_round = GREATEST(excluded.last_queued_round, chain.rofl_apps.last_queued_round)`
 )

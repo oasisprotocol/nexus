@@ -121,3 +121,35 @@ func (rc *HistoryRuntimeApiLite) GetTransactionsWithResults(ctx context.Context,
 	}
 	return api.GetTransactionsWithResults(ctx, round)
 }
+
+func (rc *HistoryRuntimeApiLite) RoflApp(ctx context.Context, round uint64, id nodeapi.AppID) (*nodeapi.AppConfig, error) {
+	api, err := rc.APIForRound(round)
+	if err != nil {
+		return nil, fmt.Errorf("getting api for runtime %s round %d: %w", rc.Runtime, round, err)
+	}
+	return api.RoflApp(ctx, round, id)
+}
+
+func (rc *HistoryRuntimeApiLite) RoflApps(ctx context.Context, round uint64) ([]*nodeapi.AppConfig, error) {
+	api, err := rc.APIForRound(round)
+	if err != nil {
+		return nil, fmt.Errorf("getting api for runtime %s round %d: %w", rc.Runtime, round, err)
+	}
+	return api.RoflApps(ctx, round)
+}
+
+func (rc *HistoryRuntimeApiLite) RoflAppInstance(ctx context.Context, round uint64, id nodeapi.AppID, rak nodeapi.PublicKey) (*nodeapi.Registration, error) {
+	api, err := rc.APIForRound(round)
+	if err != nil {
+		return nil, fmt.Errorf("getting api for runtime %s round %d: %w", rc.Runtime, round, err)
+	}
+	return api.RoflAppInstance(ctx, round, id, rak)
+}
+
+func (rc *HistoryRuntimeApiLite) RoflAppInstances(ctx context.Context, round uint64, id nodeapi.AppID) ([]*nodeapi.Registration, error) {
+	api, err := rc.APIForRound(round)
+	if err != nil {
+		return nil, fmt.Errorf("getting api for runtime %s round %d: %w", rc.Runtime, round, err)
+	}
+	return api.RoflAppInstances(ctx, round, id)
+}

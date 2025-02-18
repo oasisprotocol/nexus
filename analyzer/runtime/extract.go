@@ -60,6 +60,7 @@ type BlockTransactionData struct {
 	RawResult               []byte
 	SignerData              []*BlockTransactionSignerData
 	RelatedAccountAddresses map[apiTypes.Address]struct{}
+	RelatedRoflAddresses    map[nodeapi.AppID]struct{}
 	Fee                     common.BigInt
 	FeeSymbol               string
 	FeeProxyModule          *string
@@ -257,6 +258,8 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 		blockTransactionData.Size = len(blockTransactionData.Raw)
 		blockTransactionData.RawResult = cbor.Marshal(txr.Result)
 		blockTransactionData.RelatedAccountAddresses = map[apiTypes.Address]struct{}{}
+		blockTransactionData.RelatedRoflAddresses = map[nodeapi.AppID]struct{}{}
+		var isRoflCreate bool
 		tx, err := uncategorized.OpenUtxNoVerify(&txr.Tx)
 		if err != nil {
 			logger.Error("error decoding tx, skipping tx-specific analysis",
@@ -524,6 +527,8 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 				},
 				RoflCreate: func(body *rofl.Create) error {
 					blockTransactionData.Body = body
+					// blockTransactionData.RelatedRoflAddresses[] = struct{}{} // We don't have the ID yet here, we need to get it from the event.
+					isRoflCreate = true
 					return nil
 				},
 				RoflUpdate: func(body *rofl.Update) error {
@@ -533,14 +538,17 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 						return fmt.Errorf("to: %w", err)
 					}
 					blockTransactionData.RelatedAccountAddresses[admin] = struct{}{}
+					blockTransactionData.RelatedRoflAddresses[body.ID] = struct{}{}
 					return nil
 				},
 				RoflRemove: func(body *rofl.Remove) error {
 					blockTransactionData.Body = body
+					blockTransactionData.RelatedRoflAddresses[body.ID] = struct{}{}
 					return nil
 				},
 				RoflRegister: func(body *rofl.Register) error {
 					blockTransactionData.Body = body
+					blockTransactionData.RelatedRoflAddresses[body.App] = struct{}{}
 					return nil
 				},
 				UnknownMethod: func(methodName string) error {
@@ -564,6 +572,16 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 				// Register related addresses found in the event for the transaction as well.
 				for addr := range event.RelatedAddresses {
 					blockTransactionData.RelatedAccountAddresses[addr] = struct{}{}
+				}
+
+				// For rofl.Create we need to get the App ID from the event so that we
+				// can mark the transaction related ROFL address.
+				if isRoflCreate {
+					for _, event := range extractedEvents {
+						if event.WithScope.Rofl != nil && event.WithScope.Rofl.AppCreated != nil {
+							blockTransactionData.RelatedRoflAddresses[event.WithScope.Rofl.AppCreated.ID] = struct{}{}
+						}
+					}
 				}
 			}
 		}
