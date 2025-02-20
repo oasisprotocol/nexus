@@ -1132,27 +1132,24 @@ func (c *StorageClient) StakingRewards(ctx context.Context, address staking.Addr
 		2022: 6_608_893,
 		2023: 11_910_446,
 		2024: 17_291_958,
+		2025: 22_621_520,
+		2026: 27_900_000, // estimate
 	}
 	yearEpochStarts := map[uint64]int64{
 		2021: 5_048,
 		2022: 11_006,
 		2023: 19_838,
 		2024: 28_808,
+		2025: 37_690,
+		2026: 46_600, // estimate
 	}
 	if _, ok := yearStarts[year]; !ok {
 		return &StakingRewardList{}, nil
 	}
 	startBlock := yearStarts[year]
 	startEpoch := yearEpochStarts[year]
-	var endBlock int64
-	var endEpoch int64
-	if startBlock == 2024 {
-		endBlock = 23_500_000 // estimate
-		endEpoch = 37_900     // estimate
-	} else {
-		endBlock = yearStarts[year+1]
-		endEpoch = yearEpochStarts[year+1]
-	}
+	endBlock := yearStarts[year+1]
+	endEpoch := yearEpochStarts[year+1]
 	// Get account delegations at start of year.
 	initialStateRows, err := c.db.Query(ctx, queries.DelegationsHistory, address, startBlock)
 	if err != nil {
@@ -1250,6 +1247,7 @@ func (c *StorageClient) StakingRewards(ctx context.Context, address staking.Addr
 				if err != nil {
 					return nil, wrapError(err)
 				}
+				amt.Times(common.NewBigInt(-1))
 				stakingRewards = append(stakingRewards, StakingReward{
 					Amount:    amt,
 					Epoch:     ve.epoch,
