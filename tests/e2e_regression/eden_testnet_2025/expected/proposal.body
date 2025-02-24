@@ -1,0 +1,16 @@
+{
+  "closes_at": 7537,
+  "created_at": 7525,
+  "deposit": "10000000000000",
+  "epoch": 7553,
+  "handler": "consensus-max-allowances-16",
+  "id": 2,
+  "invalid_votes": "0",
+  "state": "passed",
+  "submitter": "oasis1qrs2dl6nz6fcxxr3tq37laxlz6hxk6kuscnr6rxj",
+  "target": {
+    "consensus_protocol": "4.0.0",
+    "runtime_committee_protocol": "2.0.0",
+    "runtime_host_protocol": "3.0.0"
+  }
+}

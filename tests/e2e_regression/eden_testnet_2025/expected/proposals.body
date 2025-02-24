@@ -1,0 +1,187 @@
+{
+  "is_total_count_clipped": false,
+  "proposals": [
+    {
+      "closes_at": 35927,
+      "created_at": 35915,
+      "deposit": "10000000000000",
+      "epoch": 35943,
+      "handler": "consensus240",
+      "id": 11,
+      "invalid_votes": "1",
+      "state": "passed",
+      "submitter": "oasis1qqxxut9x74dutu587f9nj8787qz4dm0ueu05l88c",
+      "target": {
+        "consensus_protocol": "7.0.0",
+        "runtime_committee_protocol": "5.0.0",
+        "runtime_host_protocol": "5.1.0"
+      }
+    },
+    {
+      "closes_at": 33071,
+      "created_at": 33059,
+      "deposit": "10000000000000",
+      "id": 10,
+      "invalid_votes": "1",
+      "parameters_change": {
+        "reward_schedule": [
+          {
+            "until": 90000,
+            "scale": "283"
+          }
+        ],
+        "min_delegation": null,
+        "min_transfer": null,
+        "min_transact_balance": null,
+        "min_commission_rate": null,
+        "fee_split_weight_propose": null,
+        "fee_split_weight_vote": null,
+        "fee_split_weight_next_propose": null,
+        "reward_factor_epoch_signed": null,
+        "reward_factor_block_proposed": null
+      },
+      "parameters_change_module": "staking",
+      "state": "passed",
+      "submitter": "oasis1qqxxut9x74dutu587f9nj8787qz4dm0ueu05l88c",
+      "target": {}
+    },
+    {
+      "closes_at": 30705,
+      "created_at": 30693,
+      "deposit": "10000000000000",
+      "id": 9,
+      "invalid_votes": "1",
+      "parameters_change": {
+        "upgrade_cancel_min_epoch_diff": 15
+      },
+      "parameters_change_module": "governance",
+      "state": "passed",
+      "submitter": "oasis1qrx85mv85k708ylww597rd42enlzhdmeu56wqj72",
+      "target": {}
+    },
+    {
+      "closes_at": 29505,
+      "created_at": 29493,
+      "deposit": "10000000000000",
+      "epoch": 29570,
+      "handler": "testnet-upgrade-2023-10-12",
+      "id": 8,
+      "invalid_votes": "0",
+      "state": "passed",
+      "submitter": "oasis1qpwaggvmhwq5uk40clase3knt655nn2tdy39nz2f",
+      "target": {
+        "consensus_protocol": "7.0.0",
+        "runtime_committee_protocol": "5.0.0",
+        "runtime_host_protocol": "5.1.0"
+      }
+    },
+    {
+      "closes_at": 14994,
+      "created_at": 14982,
+      "deposit": "10000000000000",
+      "epoch": 15056,
+      "handler": "empty",
+      "id": 7,
+      "invalid_votes": "0",
+      "state": "passed",
+      "submitter": "oasis1qrs2dl6nz6fcxxr3tq37laxlz6hxk6kuscnr6rxj",
+      "target": {
+        "consensus_protocol": "6.0.0",
+        "runtime_committee_protocol": "4.0.0",
+        "runtime_host_protocol": "5.0.0"
+      }
+    },
+    {
+      "cancels": 5,
+      "closes_at": 14907,
+      "created_at": 14895,
+      "deposit": "10000000000000",
+      "id": 6,
+      "invalid_votes": "0",
+      "state": "passed",
+      "submitter": "oasis1qrs2dl6nz6fcxxr3tq37laxlz6hxk6kuscnr6rxj",
+      "target": {}
+    },
+    {
+      "closes_at": 14881,
+      "created_at": 14869,
+      "deposit": "10000000000000",
+      "epoch": 25869,
+      "handler": "28032022_testnet_governance_test",
+      "id": 5,
+      "invalid_votes": "0",
+      "state": "passed",
+      "submitter": "oasis1qrs2dl6nz6fcxxr3tq37laxlz6hxk6kuscnr6rxj",
+      "target": {
+        "consensus_protocol": "5.0.0",
+        "runtime_committee_protocol": "4.0.0",
+        "runtime_host_protocol": "5.0.0"
+      }
+    },
+    {
+      "closes_at": 14195,
+      "created_at": 14183,
+      "deposit": "10000000000000",
+      "epoch": 14209,
+      "handler": "03022022_testnet_upgrade",
+      "id": 4,
+      "invalid_votes": "0",
+      "state": "passed",
+      "submitter": "oasis1qrs2dl6nz6fcxxr3tq37laxlz6hxk6kuscnr6rxj",
+      "target": {
+        "consensus_protocol": "5.0.0",
+        "runtime_committee_protocol": "4.0.0",
+        "runtime_host_protocol": "5.0.0"
+      }
+    },
+    {
+      "closes_at": 8829,
+      "created_at": 8817,
+      "deposit": "10000000000000",
+      "epoch": 8844,
+      "handler": "consensus-params-update-2021-08",
+      "id": 3,
+      "invalid_votes": "0",
+      "state": "passed",
+      "submitter": "oasis1qrs2dl6nz6fcxxr3tq37laxlz6hxk6kuscnr6rxj",
+      "target": {
+        "consensus_protocol": "4.0.0",
+        "runtime_committee_protocol": "2.0.0",
+        "runtime_host_protocol": "3.0.0"
+      }
+    },
+    {
+      "closes_at": 7537,
+      "created_at": 7525,
+      "deposit": "10000000000000",
+      "epoch": 7553,
+      "handler": "consensus-max-allowances-16",
+      "id": 2,
+      "invalid_votes": "0",
+      "state": "passed",
+      "submitter": "oasis1qrs2dl6nz6fcxxr3tq37laxlz6hxk6kuscnr6rxj",
+      "target": {
+        "consensus_protocol": "4.0.0",
+        "runtime_committee_protocol": "2.0.0",
+        "runtime_host_protocol": "3.0.0"
+      }
+    },
+    {
+      "closes_at": 5645,
+      "created_at": 5633,
+      "deposit": "10000000000000",
+      "epoch": 5662,
+      "handler": "1304_testnet_upgrade",
+      "id": 1,
+      "invalid_votes": "0",
+      "state": "passed",
+      "submitter": "oasis1qrs2dl6nz6fcxxr3tq37laxlz6hxk6kuscnr6rxj",
+      "target": {
+        "consensus_protocol": "4.0.0",
+        "runtime_committee_protocol": "2.0.0",
+        "runtime_host_protocol": "2.0.0"
+      }
+    }
+  ],
+  "total_count": 11
+}

@@ -1,0 +1,11 @@
+runtime,token_address,token_type,token_name,symbol,decimals,total_supply,num_transfers
+sapphire,oasis1qpdgv5nv2dhxp4q897cgag6kgnm9qs0dccwnckuu,20,Wrapped ROSE,wROSE,18,38184624265742392933334440,9
+sapphire,oasis1qq4xzaxt4kxku5g5c0nx43k3hyhhc6y5wyhe0qea,20,Nautilus Dataservice NFT,NAUTILUS-NFT,0,1,1
+sapphire,oasis1qqe9fr03w0mj8dxk5nqwmhladpugnt067c82qjwz,20,Nautilus Dataservice NFT,NAUTILUS-NFT,0,1,1
+sapphire,oasis1qr43dvghx4a75vndjcsg2r9ct2xqftwrgcnt5tge,20,Ocean Token,OCEAN,18,2312879494545775599602218,4792
+sapphire,oasis1qr5mh6qpl9ql3d202jgk5845eyaggjhjevv9x90k,20,Neby,NEBY,18,449834509005993208089255317,1
+sapphire,oasis1qr6p7q38p5nrhl4e352ksmgzlvqlv80qwvuxpvll,20,Wrapped Ether,WETH,18,11725910344601889899,1
+sapphire,oasis1qr7y034j2srpxq90w20al600a52es8g3xylhvrl6,20,Bridged USDC,USDC.e,6,39969587330,2
+sapphire,oasis1qreufx05k98tuz02tdxsng6udhtp5l7cey3tkem5,20,Nautilus Dataservice NFT,NAUTILUS-NFT,0,1,1
+sapphire,oasis1qrflxnqe4u8wgm89usplxv0qujcf3nrjavc2d8h7,20,Nautilus Dataservice NFT,NAUTILUS-NFT,0,1,1
+sapphire,oasis1qzjaywxsctukphu8u2clyad9709lncpjhqu4mc2n,20,Tether USD,USDT,6,38984369532,1
