@@ -368,12 +368,17 @@ CREATE TABLE chain.accounts_related_transactions
   account_address oasis_addr NOT NULL,
   tx_block UINT63 NOT NULL,
   tx_index UINT31 NOT NULL,
+
+  -- method TEXT NOT NULL, -- Added in 15_related_transactions_method_denorm.up.sql.
+
   FOREIGN KEY (tx_block, tx_index) REFERENCES chain.transactions(block, tx_index) DEFERRABLE INITIALLY DEFERRED
 );
 CREATE INDEX ix_accounts_related_transactions_block ON chain.accounts_related_transactions (tx_block);
 CREATE INDEX ix_accounts_related_transactions_address_block ON chain.accounts_related_transactions(account_address, tx_block); -- Removed in 12_related_transactions_method_idx.up.sql.
 -- Added in 12_related_transactions_method_idx.up.sql.
 -- CREATE INDEX ix_accounts_related_transactions_address_block_desc_tx_index ON chain.accounts_related_transactions (account_address, tx_block DESC, tx_index);
+-- Added in 15_related_transactions_method_denorm.up.sql.
+-- CREATE INDEX ix_accounts_related_transactions_address_method_block_tx_index ON chain.accounts_related_transactions (account_address, method, tx_block DESC, tx_index);
 
 -- Tracks the current (consensus) height of the node.
 CREATE TABLE chain.latest_node_heights

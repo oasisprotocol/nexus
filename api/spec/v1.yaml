@@ -2897,7 +2897,7 @@ components:
     RuntimeTransaction:
       type: object
       # NOTE: Not guaranteed to be present: eth_hash, to, amount.
-      required: [round, index, timestamp, hash, signers, sender_0, nonce_0, fee, fee_symbol, charged_fee, gas_limit, gas_used, size]
+      required: [round, index, timestamp, hash, signers, sender_0, nonce_0, fee, fee_symbol, charged_fee, gas_limit, gas_used, size, is_likely_native_token_transfer]
       properties:
         round:
           type: integer

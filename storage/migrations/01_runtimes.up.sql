@@ -95,6 +95,8 @@ CREATE TABLE chain.runtime_transactions
   -- Internal tracking for parsing evm.Call transactions using the contract
   -- abi when available.
   abi_parsed_at TIMESTAMP WITH TIME ZONE
+
+  -- likely_native_transfer BOOLEAN NOT NULL DEFAULT FALSE -- Added in 18_related_runtime_transactions_method_denorm.up.sql.
 );
 CREATE INDEX ix_runtime_transactions_tx_hash ON chain.runtime_transactions USING hash (tx_hash);
 CREATE INDEX ix_runtime_transactions_tx_eth_hash ON chain.runtime_transactions USING hash (tx_eth_hash);
@@ -103,12 +105,9 @@ CREATE INDEX ix_runtime_transactions_to ON chain.runtime_transactions(runtime, "
 CREATE INDEX ix_runtime_transactions_to_abi_parsed_at ON chain.runtime_transactions (runtime, "to", abi_parsed_at);
 -- CREATE INDEX ix_runtime_transactions_method_round ON chain.runtime_transactions (runtime, method, round, tx_index); -- Added in 08_runtime_transactions_method_idx.up.sql
 
--- Added in 12_related_transactions_method_idx.up.sql.
--- Indexes for efficient query of 'likely native transfers':
--- EVM Calls, where the body is an empty data field (likely native transfers)
--- CREATE INDEX ix_runtime_transactions_evm_call_empty_data ON chain.runtime_transactions (runtime, round, tx_index) WHERE method = 'evm.Call' AND (body ->> 'data') = '';
--- EVM Calls, where the body is non-empty data field (likely not native transfers).
--- CREATE INDEX ix_runtime_transactions_evm_call_non_empty_data ON chain.runtime_transactions (runtime, round, tx_index) WHERE method = 'evm.Call' AND (body ->> 'data') != '';
+-- Added in 18_related_runtime_transactions_method_denorm.up.sql.
+-- CREATE INDEX ix_runtime_transactions_native_transfer_round ON chain.runtime_transactions (runtime, likely_native_transfer, round, tx_index);
+-- CREATE INDEX ix_runtime_transactions_method_native_transfer_round ON chain.runtime_transactions (runtime, method, likely_native_transfer, round, tx_index);
 
 CREATE TABLE chain.runtime_transaction_signers
 (
@@ -133,10 +132,20 @@ CREATE TABLE chain.runtime_related_transactions
   account_address oasis_addr NOT NULL,
   tx_round        UINT63 NOT NULL,
   tx_index        UINT31 NOT NULL,
+
+  -- method TEXT, -- Added in 18_related_runtime_transactions_method_denorm.up.sql.
+  -- likely_native_transfer BOOLEAN NOT NULL DEFAULT FALSE -- Added in 18_related_runtime_transactions_method_denorm.up.sql.
+
   FOREIGN KEY (runtime, tx_round, tx_index) REFERENCES chain.runtime_transactions(runtime, round, tx_index) DEFERRABLE INITIALLY DEFERRED
 );
 CREATE INDEX ix_runtime_related_transactions_round_index ON chain.runtime_related_transactions (runtime, tx_round, tx_index);
 CREATE INDEX ix_runtime_related_transactions_address_round_index ON chain.runtime_related_transactions (runtime, account_address, tx_round, tx_index);
+
+-- Added in 18_related_runtime_transactions_method_denorm.up.sql.
+-- CREATE INDEX ix_runtime_related_transactions_address_method_round ON chain.runtime_related_transactions (runtime, account_address, method, tx_round, tx_index);
+-- CREATE INDEX ix_runtime_related_transactions_address_native_transfer_round ON chain.runtime_related_transactions (runtime, account_address, likely_native_transfer, tx_round, tx_index);
+-- -- This combination is needed, since explorer needs to obtain evm.Call's which are not native transfers.
+-- CREATE INDEX ix_runtime_related_transactions_address_method_native_transfer_round ON chain.runtime_related_transactions (runtime, account_address, method, likely_native_transfer, tx_round, tx_index);
 
 -- Events emitted from the runtimes. Includes deeply-parsed EVM events from EVM runtimes.
 CREATE TABLE chain.runtime_events
