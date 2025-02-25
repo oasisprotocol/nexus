@@ -12,6 +12,50 @@ The format is inspired by [Keep a Changelog].
 
 <!-- TOWNCRIER -->
 
+## 0.6.0 (2025-02-25)
+
+### Deployment Notes
+
+This release contains multiple long-running database migrations that are
+automatically applied during deployment. They will cause significant downtime
+unless proactive measures are taken.
+
+### Features
+
+- storage: split runtime events related accounts into a separate table
+  ([#809](https://github.com/oasisprotocol/nexus/issues/809))
+
+- Support efficient query for related account with method filter
+  ([#809](https://github.com/oasisprotocol/nexus/issues/809))
+
+  - Promote 'likely_native_transfer' to a first-class database field.
+
+  - Denormalize 'method' and 'likely_native_transfer' to create
+  efficient indexes for account filtering
+
+- storage: split consensus event related accounts into a separate table
+  ([#809](https://github.com/oasisprotocol/nexus/issues/809))
+
+- runtime/evm_tokens: Support (partially) curated ordering
+  ([#903](https://github.com/oasisprotocol/nexus/issues/903))
+
+- Add endpoints for total and circulating supplies of consensus token
+  ([#904](https://github.com/oasisprotocol/nexus/issues/904))
+
+  Added `/consensus/total_supply_raw` and `/consensus/circulating_supply_raw`
+  API endpoints which return the total and circulating supply in plain text
+  format.
+
+### Bug Fixes and Improvements
+
+- consensus/validator_history: Optimize validator history query
+  ([#906](https://github.com/oasisprotocol/nexus/issues/906))
+
+### Documentation Improvements
+
+- openapi: remove experimental/deprecated markers from consensus endpoints
+  ([#898](https://github.com/oasisprotocol/nexus/issues/898))
+
 ## 0.5.3 (2025-01-21)
 
 ### Features
