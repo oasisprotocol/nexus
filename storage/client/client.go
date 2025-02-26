@@ -43,6 +43,12 @@ const (
 	maxTotalCount = 1000
 )
 
+var (
+	// These two should be kept the same as in the views.validator_uptimes materialized view.
+	uptimeWindowBlocks = uint64(14400)
+	uptimeSlotBlocks   = uint64(1200)
+)
+
 // StorageClient is a wrapper around a storage.TargetStorage
 // with knowledge of network semantics.
 type StorageClient struct {
@@ -1299,6 +1305,11 @@ func (c *StorageClient) ProposalVotes(ctx context.Context, proposalID uint64, p 
 	return &vs, nil
 }
 
+type validatorBlockCounts struct {
+	OverallCount uint64
+	SlotCounts   []uint64
+}
+
 // Validators returns a list of validators, or optionally the single validator matching `address`.
 func (c *StorageClient) Validators(ctx context.Context, p apiTypes.GetConsensusValidatorsParams, address *staking.Address) (*ValidatorList, error) {
 	var epoch Epoch
@@ -1319,6 +1330,26 @@ func (c *StorageClient) Validators(ctx context.Context, p apiTypes.GetConsensusV
 		&stats.TotalStakedBalance,
 	); err != nil {
 		return nil, wrapError(err)
+	}
+
+	// Prepare validator uptime metadata.
+	uptimes, err := c.withTotalCount(ctx, queries.ValidatorUptimes, address)
+	if err != nil {
+		return nil, wrapError(err)
+	}
+	defer uptimes.rows.Close()
+	uptimesBySigner := map[string]validatorBlockCounts{}
+	for uptimes.rows.Next() {
+		var signerEntityID string
+		var signedSlots []uint64
+		var signedOverall uint64
+		if err = uptimes.rows.Scan(&signerEntityID, &signedSlots, &signedOverall); err != nil {
+			return nil, wrapError(err)
+		}
+		uptimesBySigner[signerEntityID] = validatorBlockCounts{
+			OverallCount: signedOverall,
+			SlotCounts:   signedSlots,
+		}
 	}
 
 	res, err := c.withTotalCount(
@@ -1387,6 +1418,15 @@ func (c *StorageClient) Validators(ctx context.Context, p apiTypes.GetConsensusV
 				Lower:      bound.RateMin.ToBigInt().Uint64(),
 				Upper:      bound.RateMax.ToBigInt().Uint64(),
 				EpochStart: uint64(bound.Start),
+			}
+		}
+
+		if uptime, ok := uptimesBySigner[v.EntityID]; ok {
+			v.Uptime = &apiTypes.ValidatorUptime{
+				OverallUptime:  &uptime.OverallCount,
+				PartialUptimes: &uptime.SlotCounts,
+				WindowLength:   &uptimeWindowBlocks,
+				PartialLength:  &uptimeSlotBlocks,
 			}
 		}
 
