@@ -40,3 +40,5 @@ log:
 
 metrics:
   pull_endpoint: localhost:8009
+  cpu_prof: cpu.prof
+  mem_prof: mem.prof
