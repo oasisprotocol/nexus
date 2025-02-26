@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/google/uuid"
 	"github.com/rs/cors"
@@ -92,6 +93,14 @@ func MetricsMiddleware(m metrics.RequestMetrics, logger log.Logger) func(next ht
 				// we're interested in.
 				statusTxt = "failure_4xx"
 				metricName = "ignored"
+			}
+			// Ensure metric names are valid UTF-8 strings to prevent Prometheus panics.
+			// While the HTTP server should normally handle this, we add a safety check
+			// here as well.
+			if !utf8.ValidString(metricName) {
+				logger.Debug("invalid metric name", "metric_name", metricName)
+				metricName = "ignored"
+				statusTxt = "non_utf8_path"
 			}
 			m.RequestCounts(metricName, statusTxt).Inc()
 			m.RequestLatencies(metricName).Observe(latency.Seconds())
