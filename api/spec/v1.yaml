@@ -263,8 +263,12 @@ paths:
           example: *block_height_1
         - in: query
           name: method
+          style: form
+          explode: false
           schema:
-            allOf: [$ref: '#/components/schemas/ConsensusTxMethod']
+            type: array
+            items:
+              allOf: [$ref: '#/components/schemas/ConsensusTxMethod']
           description: A filter on transaction method.
         - in: query
           name: sender
@@ -913,8 +917,12 @@ paths:
             best-effort basis. For example, it inspects ERC20 methods inside `evm.Call` txs.
         - in: query
           name: method
+          style: form
+          explode: false
           schema:
-            type: string
+            type: array
+            items:
+              type: string
           description: |
             A filter on the runtime transaction method.
 
