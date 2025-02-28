@@ -1,0 +1,18 @@
+{
+  "evm_tokens": [
+    {
+      "contract_addr": "oasis1qz29t7nxkwfqgfk36uqqs9pzuzdt8zmrjud5mehx",
+      "decimals": 0,
+      "eth_contract_addr": "0x1108A83b867c8b720fEa7261AE7A64DAB17B4159",
+      "is_verified": false,
+      "name": "MyNFT",
+      "num_holders": 1,
+      "num_transfers": 2,
+      "symbol": "MNFT",
+      "total_supply": "2",
+      "type": "ERC721"
+    }
+  ],
+  "is_total_count_clipped": false,
+  "total_count": 1
+}

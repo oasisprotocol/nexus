@@ -1073,6 +1073,11 @@ paths:
           description: |
             The field to sort the tokens by.
             If unset, the tokens will be sorted by number of holders.
+        - in: query
+          name: type
+          schema: { allOf: [$ref: '#/components/schemas/EvmTokenType'] }
+          description: |
+            The type of tokens to return.
       responses:
         '200':
           description: The requested tokens.

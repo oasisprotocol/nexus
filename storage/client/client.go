@@ -2117,12 +2117,25 @@ func (c *StorageClient) RuntimeTokens(ctx context.Context, p apiTypes.GetRuntime
 		refSwapFactoryAddr = &rs.FactoryAddr
 		refSwapTokenAddr = &rs.ReferenceTokenAddr
 	}
+	var tokenType *int
+	if p.Type != nil {
+		switch *p.Type {
+		case apiTypes.EvmTokenTypeERC20:
+			tokenType = common.Ptr(20)
+		case apiTypes.EvmTokenTypeERC721:
+			tokenType = common.Ptr(721)
+		default:
+			return nil, fmt.Errorf("invalid token type: %s", *p.Type)
+		}
+	}
+
 	res, err := c.withTotalCount(
 		ctx,
 		queries.EvmTokens,
 		runtime,
 		address,
 		p.Name,
+		tokenType,
 		refSwapFactoryAddr,
 		refSwapTokenAddr,
 		p.SortBy,

@@ -46,9 +46,9 @@ const (
 			epoch,
 			state_root,
 			ROW(
-			    proposer_entity.id,
-			    proposer_entity.address,
-			    proposer_entity.meta
+				proposer_entity.id,
+				proposer_entity.address,
+				proposer_entity.meta
 			) AS proposer_entity_info,
 			ARRAY( -- Select block signers and map them into an array column named signer_node_infos.
 				SELECT
@@ -145,7 +145,7 @@ const (
 
 	RoothashMessages = `
 		SELECT
-		    runtime,
+			runtime,
 			round,
 			message_index,
 			type,
@@ -748,8 +748,8 @@ const (
 		-- We use custom ordering groups to prioritize some well known tokens at the top of the list.
 		-- Tokens within the same group are ordered by the default logic.
 		custom_order AS (
- 			SELECT token_addr, group_order
-  			FROM unnest($7::text[], $8::int[]) AS u(token_addr, group_order)
+			SELECT token_addr, group_order
+			FROM unnest($8::text[], $9::int[]) AS u(token_addr, group_order)
 		),
 		holders AS (
 			SELECT token_address, COUNT(*) AS cnt
@@ -791,39 +791,40 @@ const (
 		LEFT JOIN holders USING (token_address)
 		LEFT JOIN chain.evm_swap_pair_creations AS ref_swap_pair_creations ON
 			ref_swap_pair_creations.runtime = tokens.runtime AND
-			ref_swap_pair_creations.factory_address = $4 AND
+			ref_swap_pair_creations.factory_address = $5 AND
 			(
-				(ref_swap_pair_creations.token0_address = tokens.token_address AND ref_swap_pair_creations.token1_address = $5) OR
-				(ref_swap_pair_creations.token0_address = $5 AND ref_swap_pair_creations.token1_address = tokens.token_address)
+				(ref_swap_pair_creations.token0_address = tokens.token_address AND ref_swap_pair_creations.token1_address = $6) OR
+				(ref_swap_pair_creations.token0_address = $6 AND ref_swap_pair_creations.token1_address = tokens.token_address)
 			)
 		LEFT JOIN chain.evm_swap_pairs AS ref_swap_pairs ON
 			ref_swap_pairs.runtime = tokens.runtime AND
 			ref_swap_pairs.pair_address = ref_swap_pair_creations.pair_address
 		LEFT JOIN chain.evm_tokens AS ref_tokens ON
 			ref_tokens.runtime = tokens.runtime AND
-			ref_tokens.token_address = $5
+			ref_tokens.token_address = $6
 		LEFT JOIN chain.evm_contracts as contracts ON (tokens.runtime = contracts.runtime AND tokens.token_address = contracts.contract_address)
 		WHERE
 			(tokens.runtime = $1) AND
 			($2::oasis_addr IS NULL OR tokens.token_address = $2::oasis_addr) AND
 			($3::text IS NULL OR tokens.token_name ILIKE '%' || $3 || '%' OR tokens.symbol ILIKE '%' || $3 || '%') AND
+			($4::int IS NULL OR tokens.token_type = $4::int) AND
 			tokens.token_type IS NOT NULL AND -- exclude token _candidates_ that we haven't inspected yet
 			tokens.token_type != 0 -- exclude unknown-type tokens; they're often just contracts that emitted Transfer events but don't expose the token ticker, name, balance etc.
 		ORDER BY
 			custom_sort_order,
 			CASE
 				-- If sort_by is not "market_cap" then we sort by num_holders (below).
-				WHEN $6::text IS NULL OR $6::text != 'market_cap' THEN NULL
+				WHEN $7::text IS NULL OR $7::text != 'market_cap' THEN NULL
 				ELSE
 				-- Otherwise, sort by market cap.
 				(
 					CASE
 						-- For the reference token itself, it is 1:1 in value with, you know, itself.
-						WHEN tokens.token_address = $5 THEN 1.0
+						WHEN tokens.token_address = $6 THEN 1.0
 						-- The pool keeps a proportion of reserves so that reserve0 of token0 is worth about as much as reserve1 of token1.
 						-- When token0 is the reference token, more reserve0 means token1 is worth more than the reference token.
 						WHEN
-							ref_swap_pair_creations.token0_address = $5 AND
+							ref_swap_pair_creations.token0_address = $6 AND
 							ref_swap_pairs.reserve0 IS NOT NULL AND
 							ref_swap_pairs.reserve0 > 0 AND
 							ref_swap_pairs.reserve1 IS NOT NULL AND
@@ -831,7 +832,7 @@ const (
 						THEN ref_swap_pairs.reserve0::REAL / ref_swap_pairs.reserve1::REAL
 						-- When token1 is the reference token, more reserve1 means token0 is worth more than the reference token.
 						WHEN
-							ref_swap_pair_creations.token1_address = $5 AND
+							ref_swap_pair_creations.token1_address = $6 AND
 							ref_swap_pairs.reserve0 IS NOT NULL AND
 							ref_swap_pairs.reserve0 > 0 AND
 							ref_swap_pairs.reserve1 IS NOT NULL AND
@@ -841,10 +842,10 @@ const (
 					END * COALESCE(tokens.total_supply, 0)
 				)
 			END DESC,
-		    num_holders DESC,
-		    contract_addr
-		LIMIT $9::bigint
-		OFFSET $10::bigint`
+			num_holders DESC,
+			contract_addr
+		LIMIT $10::bigint
+		OFFSET $11::bigint`
 
 	//nolint:gosec // Linter suspects a hardcoded credentials token.
 	EvmTokenHolders = `
