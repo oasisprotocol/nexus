@@ -1453,6 +1453,16 @@ func extractEvents(blockData *BlockData, eventsRaw []nodeapi.RuntimeEvent) ([]*E
 				}
 				extractedEvents = append(extractedEvents, &eventData)
 			}
+			if event.InstanceRegistered != nil {
+				eventData := EventData{
+					EventIdx:  eventIdx,
+					TxHash:    eventTxHash,
+					Type:      apiTypes.RuntimeEventTypeRoflInstanceRegistered,
+					Body:      event.InstanceRegistered,
+					WithScope: ScopedSdkEvent{Rofl: event},
+				}
+				extractedEvents = append(extractedEvents, &eventData)
+			}
 			return nil
 		},
 	}); err != nil {
