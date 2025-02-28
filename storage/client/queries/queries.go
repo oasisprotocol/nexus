@@ -100,14 +100,14 @@ const (
 			LEFT JOIN chain.accounts_related_transactions AS art ON
 				(t.block = art.tx_block) AND
 				(t.tx_index = art.tx_index) AND
-				($3::text IS NULL OR t.method = art.method) AND
+				($3::text[] IS NULL OR t.method = ANY($3::text[])) AND
 				-- When related_address ($5) is NULL and hence we do no filtering on it, avoid the join altogether.
 				-- Otherwise, every tx will be returned as many times as there are related addresses for it.
 				($5::text IS NOT NULL)
 			WHERE
 				($1::text IS NULL OR t.tx_hash = $1::text) AND
 				($2::bigint IS NULL OR t.block = $2::bigint) AND
-				($3::text IS NULL OR t.method = $3::text) AND
+				($3::text[] IS NULL OR t.method = ANY($3::text[])) AND
 				($4::text IS NULL OR t.sender = $4::text) AND
 				($5::text IS NULL OR art.account_address = $5::text) AND
 				($6::timestamptz IS NULL OR b.time >= $6::timestamptz) AND
@@ -566,7 +566,7 @@ const (
 			(txs.runtime = rel.runtime) AND
 			(txs.round = rel.tx_round) AND
 			(txs.tx_index = rel.tx_index) AND
-			($5::text IS NULL OR txs.method = rel.method AND txs.likely_native_transfer = rel.likely_native_transfer) AND
+			($5::text[] IS NULL OR txs.method = rel.method AND txs.likely_native_transfer = rel.likely_native_transfer) AND
 			-- When related_address ($4) is NULL and hence we do no filtering on it, avoid the join altogether.
 			-- Otherwise, every tx will be returned as many times as there are related addresses for it.
 			($4::text IS NOT NULL)
@@ -576,20 +576,16 @@ const (
 			($3::text IS NULL OR txs.tx_hash = $3::text OR txs.tx_eth_hash = $3::text) AND
 			($4::text IS NULL OR rel.account_address = $4::text) AND
 			(
-				CASE
-					-- No filtering on method.
-					WHEN $5::text IS NULL THEN
-						TRUE
+				-- No filtering on method.
+				$5::text[] IS NULL OR
+				(
 					-- Special case to return are 'likely to be native transfers'.
-					WHEN $5::text = 'native_transfers' THEN
-						txs.likely_native_transfer
+					('native_transfers' = ANY($5::text[]) AND txs.likely_native_transfer) OR
 					-- Special case to return all evm.Calls that are likely not native transfers.
-					WHEN $5::text = 'evm.Call_no_native' THEN
-						(txs.method = 'evm.Call' AND NOT txs.likely_native_transfer)
+					('evm.Call_no_native' = ANY($5::text[]) AND txs.method = 'evm.Call' AND NOT txs.likely_native_transfer) OR
 					-- Regular case.
-					ELSE
-						(txs.method = $5::text)
-				END
+					(txs.method = ANY($5::text[]))
+				)
 			) AND
 			($6::timestamptz IS NULL OR txs.timestamp >= $6::timestamptz) AND
 			($7::timestamptz IS NULL OR txs.timestamp < $7::timestamptz)
