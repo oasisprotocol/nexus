@@ -492,6 +492,9 @@ func canonicalizedHash(input *string) (*string, error) {
 
 // Transactions returns a list of consensus transactions.
 func (c *StorageClient) Transactions(ctx context.Context, p apiTypes.GetConsensusTransactionsParams, txHash *string) (*TransactionList, error) {
+	if p.Method != nil && len(*p.Method) > 20 {
+		return nil, fmt.Errorf("to many methods in the method filter")
+	}
 	res, err := c.withTotalCount(
 		ctx,
 		queries.Transactions,
@@ -1548,6 +1551,9 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetR
 	ocAddrRel, err := apiTypes.UnmarshalToOcAddress(p.Rel)
 	if err != nil {
 		return nil, err
+	}
+	if p.Method != nil && len(*p.Method) > 20 {
+		return nil, fmt.Errorf("to many methods in the method filter")
 	}
 	res, err := c.withTotalCount(
 		ctx,
