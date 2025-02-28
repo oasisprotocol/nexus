@@ -5,8 +5,10 @@ import (
 	"context"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/spf13/cobra"
@@ -45,6 +47,34 @@ var (
 	}
 )
 
+// safeFileSystem is a wrapper around `http.FileServer` that only serves
+// regular files (and not symlinks, directories, etc.).
+type safeFileSystem struct {
+	fs http.Dir
+}
+
+// Open implements `http.FileSystem`.
+func (sfs safeFileSystem) Open(path string) (http.File, error) {
+	// http.Dir already handles directory traversal.
+	f, err := sfs.fs.Open(path)
+	if err != nil {
+		return nil, err
+	}
+
+	// Use `os.Lstat` since it doesn't follow symlinks.
+	info, err := os.Lstat(filepath.Join(string(sfs.fs), path))
+	if err != nil {
+		f.Close()
+		return nil, err
+	}
+	if !info.Mode().IsRegular() {
+		f.Close()
+		return nil, os.ErrPermission
+	}
+
+	return f, nil
+}
+
 // specFileServer is a wrapper around `http.FileServer` that
 // serves files from `rootDir`, and also hardcodes the MIME type for
 // YAML files to `application/x-yaml`. The latter is a hack to
@@ -52,11 +82,23 @@ var (
 type specFileServer struct{ rootDir string }
 
 func (srv specFileServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if !utf8.ValidString(r.URL.Path) {
+		http.Error(w, "Invalid path", http.StatusBadRequest)
+		return
+	}
+	if strings.ContainsRune(r.URL.Path, '\x00') {
+		http.Error(w, "Invalid path", http.StatusBadRequest)
+		return
+	}
+	if len(r.URL.Path) > 10000 {
+		http.Error(w, "Invalid path", http.StatusBadRequest)
+		return
+	}
 	if strings.HasSuffix(r.URL.Path, ".yaml") || strings.HasSuffix(r.URL.Path, ".yml") {
 		w.Header().Set("Content-Type", "application/x-yaml")
 	}
 	// "api/spec" is the local path from which we serve the files.
-	http.FileServer(http.Dir(srv.rootDir)).ServeHTTP(w, r)
+	http.FileServer(safeFileSystem{fs: http.Dir(srv.rootDir)}).ServeHTTP(w, r)
 }
 
 func runServer(cmd *cobra.Command, args []string) {
