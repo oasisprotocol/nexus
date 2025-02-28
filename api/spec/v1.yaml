@@ -2786,6 +2786,7 @@ components:
         - rofl.app_created
         - rofl.app_updated
         - rofl.app_removed
+        - rofl.instance_registered
       example: *runtime_event_type_1
 
     EvmAbiParam:
