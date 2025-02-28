@@ -18,35 +18,27 @@ import (
 )
 
 var (
-	// Source: https://sourcify.dev/server/files/any/23294/0x127c49aE10e3c18be057106F4d16946E3Ae43975
+	// Source: https://sourcify.dev/server/v2/contract/23295/0x8259824f2379ef1473a022cBE074076dF8B88444?fields=sources,metadata
 	//
 	//go:embed testdata/get_contract_source_files_response.json
 	mockGetContractSourceFilesResponse []byte
 
-	// Source: https://sourcify.dev/server/files/contracts/any/23295
+	// Source: https://sourcify.dev/server/v2/contracts/23295?sort=desc&limit=200
+	// Contract 0x229774C75b766C17e8B16B9F3dc891448f40A47B was edited from "exact_match" to "match",
+	// so that we test partial matches as well.
 	//
-	//go:embed testdata/get_contract_addresses_any_0.json
-	mockGetContractAddressesAnyPage0Response []byte
+	//go:embed testdata/get_contracts.json
+	mockGetContracts0Response []byte
 
-	// Source: https://sourcify.dev/server/files/contracts/any/23295?page=1
+	// Source: https://sourcify.dev/server/v2/contracts/23295?sort=desc&limit=200&afterMatchId=6161287
 	//
-	//go:embed testdata/get_contract_addresses_any_1.json
-	mockGetContractAddressesAnyPage1Response []byte
+	//go:embed testdata/get_contracts_after_6161287.json
+	mockGetContractsAfter6161287Response []byte
 
-	// Source: https://sourcify.dev/server/files/contracts/any/23295
+	// Source: https://sourcify.dev/server/v2/contracts/23295?sort=desc&limit=200&afterMatchId=1
 	//
-	//go:embed testdata/get_contract_addresses_full_0.json
-	mockGetContractAddressesFullPage0Response []byte
-
-	// Source: https://sourcify.dev/server/files/contracts/any/23295?page=1
-	//
-	//go:embed testdata/get_contract_addresses_full_1.json
-	mockGetContractAddressesFullPage1Response []byte
-
-	// Source: https://sourcify.dev/server/files/contracts/any/23295?page=2
-	//
-	//go:embed testdata/get_contract_addresses_empty_page.json
-	mockGetContractAddressesEmptyPageResponse []byte
+	//go:embed testdata/get_contracts_empty.json
+	mockGetContractsEmptyResponse []byte
 )
 
 func TestGetVerifiedContractAddresses(t *testing.T) {
@@ -54,30 +46,17 @@ func TestGetVerifiedContractAddresses(t *testing.T) {
 
 	testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch {
-		case strings.HasPrefix(r.URL.Path, "/files/contracts/any"):
+		case strings.HasPrefix(r.URL.Path, "/v2/contracts/"):
 			switch {
-			case !r.URL.Query().Has("page") || r.URL.Query().Get("page") == "0":
+			case !r.URL.Query().Has("afterMatchId"):
 				w.WriteHeader(http.StatusOK)
-				_, _ = w.Write(mockGetContractAddressesAnyPage0Response)
-			case r.URL.Query().Get("page") == "1":
+				_, _ = w.Write(mockGetContracts0Response)
+			case r.URL.Query().Get("afterMatchId") == "6161287":
 				w.WriteHeader(http.StatusOK)
-				_, _ = w.Write(mockGetContractAddressesAnyPage1Response)
+				_, _ = w.Write(mockGetContractsAfter6161287Response)
 			default:
 				w.WriteHeader(http.StatusOK)
-				_, _ = w.Write(mockGetContractAddressesEmptyPageResponse)
-			}
-			return
-		case strings.HasPrefix(r.URL.Path, "/files/contracts/full"):
-			switch {
-			case !r.URL.Query().Has("page") || r.URL.Query().Get("page") == "0":
-				w.WriteHeader(http.StatusOK)
-				_, _ = w.Write(mockGetContractAddressesFullPage0Response)
-			case r.URL.Query().Get("page") == "1":
-				w.WriteHeader(http.StatusOK)
-				_, _ = w.Write(mockGetContractAddressesFullPage1Response)
-			default:
-				w.WriteHeader(http.StatusOK)
-				_, _ = w.Write(mockGetContractAddressesEmptyPageResponse)
+				_, _ = w.Write(mockGetContractsEmptyResponse)
 			}
 			return
 		default:
@@ -104,15 +83,15 @@ func TestGetVerifiedContractAddresses(t *testing.T) {
 			require.FailNowf("GetVerifiedContractAddresses", "unexpected verification level %s", level)
 		}
 	}
-	require.Equal(249, nFull)
-	require.Equal(42, nPartial)
+	require.Equal(399, nFull)
+	require.Equal(1, nPartial)
 }
 
 func TestGetContractSourceFiles(t *testing.T) {
 	require := require.New(t)
 
 	testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if !strings.HasPrefix(r.URL.Path, "/files/any/42261/0xca2ad74003502af6B727e846Fab40D6cb8Da0035") {
+		if !strings.HasPrefix(r.URL.Path, "/v2/contract/42261/0x8259824f2379ef1473a022cBE074076dF8B88444") {
 			w.WriteHeader(http.StatusNotFound)
 			return
 		}
@@ -124,15 +103,15 @@ func TestGetContractSourceFiles(t *testing.T) {
 	testClient, err := sourcify.NewClient(testServer.URL, common.ChainNameTestnet, log.NewDefaultLogger("testing/sourcify"))
 	require.NoError(err, "NewClient")
 
-	addr := ethCommon.HexToAddress("0xca2ad74003502af6B727e846Fab40D6cb8Da0035")
+	addr := ethCommon.HexToAddress("0x8259824f2379ef1473a022cBE074076dF8B88444")
 	sourceFiles, metadata, err := testClient.GetContractSourceFiles(context.Background(), common.RuntimeEmerald, addr)
 	require.NoError(err, "GetContractSourceFiles")
 
 	var metadataMap map[string]interface{}
 	require.NoError(json.Unmarshal(metadata, &metadataMap), "metadata response unmarshal")
 
-	require.Len(sourceFiles, 3, "GetContractSourceFiles")
-	require.Equal(metadataMap["compiler"].(map[string]interface{})["version"], "0.8.18+commit.87f61d96", "Metadata.Compiler.Version")
+	require.Len(sourceFiles, 12, "GetContractSourceFiles")
+	require.Equal(metadataMap["compiler"].(map[string]interface{})["version"], "0.8.24+commit.e11b9ed9", "Metadata.Compiler.Version")
 
 	// Test non-existing contract.
 	_, _, err = testClient.GetContractSourceFiles(context.Background(), common.RuntimeCipher, addr)

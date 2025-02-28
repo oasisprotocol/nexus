@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"net/url"
 	"path"
+	"sort"
+	"strings"
 	"time"
 
 	ethCommon "github.com/ethereum/go-ethereum/common"
@@ -81,82 +83,60 @@ func (s *SourcifyClient) callAPI(ctx context.Context, method string, url *url.UR
 
 // GetVerifiedContractAddresses returns a list of all verified contract addresses for the given runtime.
 //
-// API docs: https://sourcify.dev/server/api-docs/#/Repository/get_files_contracts__chain_
+// API docs: https://docs.sourcify.dev/docs/api/#/Contract%20Lookup/get-v2-contracts-chainId
 //
 // Note: This uses the free, public server API. If it turns out to be unreliable, we could use the repository API (vis IPFS proxy) instead, e.g.:
 // http://ipfs.default:8080/ipns/repo.sourcify.dev/contracts/full_match/23294
 func (s *SourcifyClient) GetVerifiedContractAddresses(ctx context.Context, runtime common.Runtime) (map[ethCommon.Address]VerificationLevel, error) {
-	// Build map of addresses.
-	addresses := make(map[ethCommon.Address]VerificationLevel)
-
-	// Fetch fully verified contract addresses.
-	// See https://docs.sourcify.dev/docs/full-vs-partial-match/
 	u := *s.serverUrl
-	u.Path = path.Join(u.Path, "files/contracts/full", sourcifyChains[s.chain][runtime])
-	fullyVerified, err := s.GetAllAddressPages(ctx, &u)
-	if err != nil {
-		return nil, err
-	}
-	for _, addr := range fullyVerified {
-		addresses[addr] = VerificationLevelFull
-	}
-	// Fetch partially verified contract addresses.
-	u = *s.serverUrl
-	u.Path = path.Join(u.Path, "files/contracts/any", sourcifyChains[s.chain][runtime])
-	allContracts, err := s.GetAllAddressPages(ctx, &u)
-	if err != nil {
-		return nil, err
-	}
-	for _, addr := range allContracts {
-		if _, exists := addresses[addr]; !exists {
-			addresses[addr] = VerificationLevelPartial
-		}
-	}
+	u.Path = path.Join(u.Path, "v2/contracts/", sourcifyChains[s.chain][runtime])
 
-	return addresses, nil
-}
-
-func (s *SourcifyClient) GetAllAddressPages(ctx context.Context, u *url.URL) ([]ethCommon.Address, error) {
-	page := 0
-	addresses := []ethCommon.Address{}
+	addresses := make(map[ethCommon.Address]VerificationLevel)
+	var lastMatchId string
 	for {
-		// https://sourcify.dev/server/api-docs/#/Repository/get_files_contracts_any__chain_
 		q := u.Query()
-		q.Set("page", fmt.Sprintf("%d", page))
+		q.Set("limit", "200")
+		q.Set("sort", "desc")
+		if lastMatchId != "" {
+			q.Set("afterMatchId", lastMatchId)
+		}
 		u.RawQuery = q.Encode()
 
-		body, err := s.callAPI(ctx, http.MethodGet, u)
+		body, err := s.callAPI(ctx, http.MethodGet, &u)
 		if err != nil {
-			return nil, fmt.Errorf("failed to fetch fully verified contract addresses from %s: %w", u.String(), err)
+			return nil, fmt.Errorf("failed to fetch contract addresses from %s: %w", u.String(), err)
 		}
 		// Parse response.
 		var response struct {
-			Results    []ethCommon.Address `json:"results"`
-			Pagination SourcifyPagination  `json:"pagination"`
+			Results []struct {
+				Address ethCommon.Address `json:"address"`
+				Match   string            `json:"match"`
+				MatchId string            `json:"matchId"`
+			} `json:"results"`
 		}
 
 		if err := json.Unmarshal(body, &response); err != nil {
-			return nil, fmt.Errorf("failed to parse fully verified contract addresses: %w (%s)", err, u.String())
+			return nil, fmt.Errorf("failed to parse contract addresses: %w (%s)", err, u.String())
 		}
-		addresses = append(addresses, response.Results...)
-		// Check pagination and increment if necessary.
-		if !response.Pagination.HasNextPage {
+		if len(response.Results) == 0 {
 			break
 		}
-		page++
+		for _, result := range response.Results {
+			switch result.Match {
+			case "exact_match":
+				addresses[result.Address] = VerificationLevelFull
+			case "match":
+				addresses[result.Address] = VerificationLevelPartial
+			default:
+				s.logger.Warn("unknown contract match type", "match", result.Match, "address", result.Address)
+			}
+		}
+
+		lastMatchId = response.Results[len(response.Results)-1].MatchId
+		time.Sleep(100 * time.Millisecond)
 	}
 
 	return addresses, nil
-}
-
-type SourcifyPagination struct {
-	CurrentPage        uint64 `json:"currentPage"`
-	TotalPages         uint64 `json:"totalPages"`
-	ResultsPerPage     uint64 `json:"resultsPerPage"`
-	ResultsCurrentPage uint64 `json:"resultsCurrentPage"`
-	TotalResults       uint64 `json:"totalResults"`
-	HasNextPage        bool   `json:"hasNextPage"`
-	HasPreviousPage    bool   `json:"hasPreviousPage"`
 }
 
 type SourceFile struct {
@@ -170,9 +150,9 @@ type SourceFile struct {
 // - "name": The name of the source file.
 // - "content": The content of the source file.
 // - "path": The path of the source file.
-// For convenience the second return argument is the metadata.json file content as a raw JSON message.
+// The second return argument is the metadata.json file content as a raw JSON message.
 //
-// See https://sourcify.dev/server/api-docs/#/Repository/get_files_any__chain___address_ for more details.
+// See https://docs.sourcify.dev/docs/api/#/Contract%20Lookup/get-contract for more details.
 //
 // Note: This uses the free, public server API. If it turns out to be unreliable, we could use the repository API (vis IPFS proxy) instead, e.g.:
 // - https://docs.sourcify.dev/docs/api/repository/get-file-repository/
@@ -180,7 +160,10 @@ type SourceFile struct {
 func (s *SourcifyClient) GetContractSourceFiles(ctx context.Context, runtime common.Runtime, address ethCommon.Address) ([]SourceFile, json.RawMessage, error) {
 	// Fetch contract source files.
 	u := *s.serverUrl
-	u.Path = path.Join(u.Path, "files/any", sourcifyChains[s.chain][runtime], address.String())
+	u.Path = path.Join(u.Path, "v2/contract/", sourcifyChains[s.chain][runtime], "/", address.String())
+	q := u.Query()
+	q.Set("fields", "sources,metadata")
+	u.RawQuery = q.Encode()
 	body, err := s.callAPI(ctx, http.MethodGet, &u)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to fetch contract source files: %w (%s)", err, u.String())
@@ -188,33 +171,32 @@ func (s *SourcifyClient) GetContractSourceFiles(ctx context.Context, runtime com
 
 	// Ensure response is a valid JSON.
 	var response struct {
-		Files []SourceFile `json:"files"`
+		Sources  map[string]map[string]string `json:"sources"`
+		Metadata json.RawMessage              `json:"metadata"`
 	}
 	if err = json.Unmarshal(body, &response); err != nil {
-		return nil, nil, fmt.Errorf("failed to parse contract source files: %w (%s)", err, u.String())
+		return nil, nil, fmt.Errorf("failed to parse contract data: %w (%s)", err, u.String())
 	}
-
-	// Find metadata.json.
-	var metadata json.RawMessage
-	found := -1
-	for i, file := range response.Files {
-		if file.Name == "metadata.json" {
-			if err = json.Unmarshal([]byte(file.Content), &metadata); err != nil {
-				s.logger.Warn("failed to unmarshal contract metadata", "err", err, "url", u.String())
-				continue
-			}
-			found = i
-			break
+	files := make([]SourceFile, 0, len(response.Sources))
+	for path, content := range response.Sources {
+		// Extract file name from path.
+		name := path
+		parts := strings.Split(name, "/")
+		if len(parts) > 0 {
+			name = parts[len(parts)-1]
 		}
+		files = append(files, SourceFile{
+			Name:    name,
+			Path:    path,
+			Content: content["content"],
+		})
 	}
-	if found == -1 {
-		s.logger.Warn("failed to find metadata.json in source files", "url", u.String())
-	} else {
-		// Remove metadata.json from the source files list.
-		response.Files = append(response.Files[:found], response.Files[found+1:]...)
-	}
+	// Sort files by path to have a consistent order.
+	sort.Slice(files, func(i, j int) bool {
+		return files[i].Path < files[j].Path
+	})
 
-	return response.Files, metadata, nil
+	return files, response.Metadata, nil
 }
 
 // NewClient returns a new Sourcify API client.
