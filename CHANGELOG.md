@@ -12,7 +12,7 @@ The format is inspired by [Keep a Changelog].
 
 <!-- TOWNCRIER -->
 
-## 0.7.0 (2025-02-28)
+## 0.6.1 (2025-02-28)
 
 ### Features
 
