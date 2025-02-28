@@ -923,8 +923,7 @@ const (
 			account_address = $2::text AND
 			balance != 0
 		ORDER BY balance DESC
-		LIMIT 1000  -- To prevent huge responses. Hardcoded because API exposes this as a subfield that does not lend itself to pagination.
-	`
+		LIMIT 1000  -- To prevent huge responses. Hardcoded because API exposes this as a subfield that does not lend itself to pagination.`
 
 	AccountRuntimeEvmBalances = `
 		SELECT
@@ -944,14 +943,45 @@ const (
 			tokens.token_type != 0 AND -- exclude unknown-type tokens; they're often just contracts that emitted Transfer events but don't expose the token ticker, name, balance etc.
 			balances.balance != 0
 		ORDER BY balance DESC
-		LIMIT 1000  -- To prevent huge responses. Hardcoded because API exposes this as a subfield that does not lend itself to pagination.
-	`
+		LIMIT 1000  -- To prevent huge responses. Hardcoded because API exposes this as a subfield that does not lend itself to pagination.`
 
 	RuntimeActiveNodes = `
 		SELECT COUNT(*) AS active_nodes
 		FROM chain.runtime_nodes
-		WHERE runtime_id = $1::text
-	`
+		WHERE runtime_id = $1::text`
+
+	RuntimeRoflApps = `
+		SELECT
+			ra.id,
+			ra.admin,
+			ra.policy,
+			ra.sek,
+			ra.metadata,
+			ra.secrets,
+			COALESCE(
+				jsonb_agg(
+					jsonb_build_object(
+						'rak', ri.rak,
+						'endorsing_node_id', ri.endorsing_node_id,
+						'endorsing_entity_id', ri.endorsing_entity_id,
+						'rek', ri.rek,
+						'expiration_epoch', ri.expiration_epoch,
+						'extra_keys', ri.extra_keys
+					)
+				) FILTER (WHERE ri.rak IS NOT NULL),
+				'[]'::jsonb
+			) AS instances
+		FROM chain.rofl_apps AS ra
+		LEFT JOIN chain.rofl_instances AS ri
+			ON (ri.runtime = ra.runtime AND ri.app_id = ra.id)
+		WHERE ra.runtime = $1::runtime AND
+			($2::text IS NULL OR ra.id = $2::text) AND
+			-- Exclude not yet processed apps.
+			ra.last_processed_round IS NOT NULL
+		GROUP BY ra.id, ra.admin, ra.policy, ra.sek, ra.metadata, ra.secrets
+		ORDER BY ra.id
+		LIMIT $3::bigint
+		OFFSET $4::bigint`
 
 	// FineTxVolumes returns the fine-grained query for 5-minute sampled tx volume windows.
 	FineTxVolumes = `
@@ -961,8 +991,7 @@ const (
 		ORDER BY
 			window_end DESC
 		LIMIT $2::bigint
-		OFFSET $3::bigint
-	`
+		OFFSET $3::bigint`
 
 	// FineDailyTxVolumes returns the query for daily tx volume windows.
 	FineDailyTxVolumes = `
@@ -972,8 +1001,7 @@ const (
 		ORDER BY
 			window_end DESC
 		LIMIT $2::bigint
-		OFFSET $3::bigint
-	`
+		OFFSET $3::bigint`
 
 	// DailyTxVolumes returns the query for daily sampled daily tx volume windows.
 	DailyTxVolumes = `
@@ -983,8 +1011,7 @@ const (
 		ORDER BY
 			window_end DESC
 		LIMIT $2::bigint
-		OFFSET $3::bigint
-	`
+		OFFSET $3::bigint`
 
 	// FineDailyActiveAccounts returns the fine-grained query for daily active account windows.
 	FineDailyActiveAccounts = `
@@ -994,8 +1021,7 @@ const (
 		ORDER BY
 			window_end DESC
 		LIMIT $2::bigint
-		OFFSET $3::bigint
-	`
+		OFFSET $3::bigint`
 
 	// DailyActiveAccounts returns the query for daily sampled daily active account windows.
 	DailyActiveAccounts = `
@@ -1005,6 +1031,5 @@ const (
 		ORDER BY
 			window_end DESC
 		LIMIT $2::bigint
-		OFFSET $3::bigint
-	`
+		OFFSET $3::bigint`
 )

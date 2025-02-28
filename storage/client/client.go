@@ -2384,6 +2384,40 @@ func (c *StorageClient) RuntimeStatus(ctx context.Context) (*RuntimeStatus, erro
 	return &s, nil
 }
 
+// RuntimeRoflApps returns a list of ROFL apps.
+func (c *StorageClient) RuntimeRoflApps(ctx context.Context, params apiTypes.GetRuntimeRoflAppsParams, id *string) (*RoflAppList, error) {
+	rows, err := c.db.Query(
+		ctx,
+		queries.RuntimeRoflApps,
+		runtimeFromCtx(ctx),
+		id,
+		params.Limit,
+		params.Offset,
+	)
+	if err != nil {
+		return nil, wrapError(err)
+	}
+	defer rows.Close()
+
+	apps := RoflAppList{
+		RoflApps: []RoflApp{},
+	}
+	for rows.Next() {
+		var app RoflApp
+		rows.Scan(
+			&app.Id,
+			&app.Admin,
+			&app.Policy,
+			&app.Sek,
+			&app.Metadata,
+			&app.Secrets,
+			&app.Instances,
+		)
+		apps.RoflApps = append(apps.RoflApps, app)
+	}
+	return &apps, nil
+}
+
 // TxVolumes returns a list of transaction volumes per time window.
 func (c *StorageClient) TxVolumes(ctx context.Context, layer apiTypes.Layer, p apiTypes.GetLayerStatsTxVolumeParams) (*TxVolumeList, error) {
 	var query string

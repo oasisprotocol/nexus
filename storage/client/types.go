@@ -166,3 +166,9 @@ type TxVolume = api.TxVolume
 
 // DailyActiveAccountsList is the storage response for GetDailyActiveAccounts.
 type DailyActiveAccountsList = api.ActiveAccountsList
+
+// RoflAppList is the storage response for GetRuntimeRoflApps.
+type RoflAppList = api.RoflAppList
+
+// RoflApp is the storage response for GetRuntimeRoflApp.
+type RoflApp = api.RoflApp

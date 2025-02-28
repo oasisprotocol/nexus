@@ -2,6 +2,8 @@
 
 BEGIN;
 
+CREATE DOMAIN public.rofl_app_id TEXT CHECK(length(VALUE) = 45 AND VALUE ~ '^rofl1');
+
 CREATE TABLE chain.runtime_blocks
 (
   runtime   runtime NOT NULL,
@@ -458,6 +460,45 @@ CREATE TABLE chain.runtime_sdk_balances (
   PRIMARY KEY (runtime, account_address, symbol),
   balance NUMERIC(1000,0) NOT NULL  -- TODO: Use UINT_NUMERIC once we are processing Emerald from round 0.
 );
+
+-- -- -- -- -- -- -- -- -- -- -- -- -- Module rofl -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
+CREATE TABLE chain.rofl_apps
+(
+  runtime  runtime NOT NULL,
+  id rofl_app_id NOT NULL,
+  PRIMARY KEY (runtime, id),
+
+  admin oasis_addr,
+
+  policy JSONB,
+  sek TEXT,
+  metadata JSONB, -- arbitrary key/value pairs.
+  secrets JSONB, -- arbitrary key/value pairs.
+
+  last_queued_round UINT63 NOT NULL,
+  last_processed_round UINT63
+);
+CREATE INDEX ix_rofl_apps_stale ON chain.rofl_apps (runtime, id) WHERE last_processed_round IS NULL OR last_queued_round > last_processed_round;
+-- On the API endpoint we only return apps that have been processed.
+CREATE INDEX ix_rofl_apps_processed ON chain.rofl_apps (runtime, id) WHERE last_processed_round IS NOT NULL;
+
+CREATE TABLE chain.rofl_instances
+(
+  runtime  runtime NOT NULL,
+  app_id rofl_app_id NOT NULL,
+  FOREIGN KEY (runtime, app_id) REFERENCES chain.rofl_apps(runtime, id),
+
+  rak TEXT NOT NULL,
+  PRIMARY KEY (runtime, app_id, rak),
+
+  endorsing_node_id TEXT NOT NULL,
+  endorsing_entity_id TEXT,
+  rek TEXT NOT NULL,
+  expiration_epoch UINT63 NOT NULL,
+  extra_keys TEXT[]
+);
+CREATE INDEX ix_rofl_instances_runtime_app_id_rak_expiration_epoch ON chain.rofl_instances (runtime, app_id, rak, expiration_epoch);
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 

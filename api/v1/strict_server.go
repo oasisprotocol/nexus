@@ -443,3 +443,22 @@ func (srv *StrictServerImpl) GetRuntimeStatus(ctx context.Context, request apiTy
 	}
 	return apiTypes.GetRuntimeStatus200JSONResponse(*status), nil
 }
+
+func (srv *StrictServerImpl) GetRuntimeRoflApps(ctx context.Context, request apiTypes.GetRuntimeRoflAppsRequestObject) (apiTypes.GetRuntimeRoflAppsResponseObject, error) {
+	apps, err := srv.dbClient.RuntimeRoflApps(ctx, request.Params, nil)
+	if err != nil {
+		return nil, err
+	}
+	return apiTypes.GetRuntimeRoflApps200JSONResponse(*apps), nil
+}
+
+func (srv *StrictServerImpl) GetRuntimeRoflAppsId(ctx context.Context, request apiTypes.GetRuntimeRoflAppsIdRequestObject) (apiTypes.GetRuntimeRoflAppsIdResponseObject, error) {
+	apps, err := srv.dbClient.RuntimeRoflApps(ctx, apiTypes.GetRuntimeRoflAppsParams{Limit: common.Ptr(uint64(1)), Offset: common.Ptr(uint64(0))}, &request.Id)
+	if err != nil {
+		return nil, err
+	}
+	if len(apps.RoflApps) != 1 {
+		return apiTypes.GetRuntimeRoflAppsId404JSONResponse{}, nil
+	}
+	return apiTypes.GetRuntimeRoflAppsId200JSONResponse(apps.RoflApps[0]), nil
+}

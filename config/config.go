@@ -146,6 +146,7 @@ type AnalyzersList struct {
 	PontusxDevEvmTokens         *EvmTokensAnalyzerConfig       `koanf:"evm_tokens_pontusx_dev"`
 	EmeraldEvmNfts              *EvmTokensAnalyzerConfig       `koanf:"evm_nfts_emerald"`
 	SapphireEvmNfts             *EvmTokensAnalyzerConfig       `koanf:"evm_nfts_sapphire"`
+	SapphireRofl                *ItemBasedAnalyzerConfig       `koanf:"rofl_sapphire"`
 	PontusxTestEvmNfts          *EvmTokensAnalyzerConfig       `koanf:"evm_nfts_pontusx_test"`
 	PontusxDevEvmNfts           *EvmTokensAnalyzerConfig       `koanf:"evm_nfts_pontusx_dev"`
 	EmeraldEvmTokenBalances     *EvmTokensAnalyzerConfig       `koanf:"evm_token_balances_emerald"`
