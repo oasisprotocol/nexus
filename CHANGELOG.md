@@ -12,6 +12,37 @@ The format is inspired by [Keep a Changelog].
 
 <!-- TOWNCRIER -->
 
+## 0.7.0 (2025-02-28)
+
+### Features
+
+- api/runtime/evm_tokens: Support token-type filters
+  ([#914](https://github.com/oasisprotocol/nexus/issues/914))
+
+- api: Support filtering transaction by multiple method types
+  ([#915](https://github.com/oasisprotocol/nexus/issues/915))
+
+- evmverifier: Update Sourcify client to V2 API
+  ([#916](https://github.com/oasisprotocol/nexus/issues/916))
+
+- rutnime/rofl: Handle Instance Registered event
+  ([#917](https://github.com/oasisprotocol/nexus/issues/917))
+
+### Bug Fixes and Improvements
+
+- api: harden file server security
+  ([#913](https://github.com/oasisprotocol/nexus/issues/913))
+
+  - Metrics Middleware: Now validates metric names for valid UTF-8 to prevent
+  Prometheus panics.
+
+  - Safe File Serving: Introduced a safeFileSystem wrapper that only serves
+  regular files, rejecting symlinks and directories, and added some additional
+  path validation.
+
+  - Added tests covering various edge cases, including invalid UTF-8, null byte
+  injection, and attempts to access restricted paths.
+
 ## 0.6.0 (2025-02-25)
 
 ### Deployment Notes
