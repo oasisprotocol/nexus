@@ -176,6 +176,14 @@ func DecodeRoflEvent(event *nodeapi.RuntimeEvent) ([]rofl.Event, error) {
 		for _, ev := range evs {
 			events = append(events, rofl.Event{AppRemoved: ev})
 		}
+	case rofl.InstanceRegisteredEventCode:
+		var evs []*rofl.InstanceRegisteredEvent
+		if err := unmarshalSingleOrArray(event.Value, &evs); err != nil {
+			return nil, fmt.Errorf("decode rofl instance registered event value: %w", err)
+		}
+		for _, ev := range evs {
+			events = append(events, rofl.Event{InstanceRegistered: ev})
+		}
 	default:
 		return nil, fmt.Errorf("invalid rofl event code: %v", event.Code)
 	}
