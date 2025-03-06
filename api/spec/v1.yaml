@@ -3088,6 +3088,8 @@ components:
           type: boolean
           description: |
             Whether this transaction successfully executed.
+            Is absent in multi-step runtime transactions (`consensus.Deposit`, `consensus.Withdraw`,
+            `consensus.Delegate`, and `consensus.Undelegate`) until the second step is completed.
             Can be absent (meaning "unknown") for confidential runtimes.
         evm_fn_name:
           type: string
