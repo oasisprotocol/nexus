@@ -144,7 +144,7 @@ func initBackends(ctx context.Context) (*history.HistoryConsensusApiLite, *postg
 		os.Exit(1)
 	}
 
-	db, err := postgres.NewClient(cfg.Analysis.Storage.Endpoint, logger)
+	db, err := postgres.NewClient(cfg.Analysis.Storage.Endpoint, logger, cfg.Analysis.Storage.Postgres)
 	if err != nil {
 		logger.Error("cannot connect to DB", "error", err)
 		os.Exit(1)
