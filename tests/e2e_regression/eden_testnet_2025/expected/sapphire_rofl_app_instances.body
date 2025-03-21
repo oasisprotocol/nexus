@@ -1,0 +1,15 @@
+{
+  "instances": [
+    {
+      "endorsing_node_id": "7zI/cYuiUTPz61PL9M7f1Q/7b43nG0xk1w6yGde+msQ=",
+      "expiration_epoch": 42244,
+      "extra_keys": [
+        "{\"secp256k1\":\"A/Mag19KKuAQp2tDIxHvWIPcMzRGnhnyXWxKAbrsbWF6\"}"
+      ],
+      "rak": "nzZocZ7VWvjE1N4Z4Y/6hocqL6wW1XhLvnEruEzkq5o=",
+      "rek": "ecyl1l93+l2zJ7K2oxqNtNSv8hg+pw1lKVAOfEGjzio="
+    }
+  ],
+  "is_total_count_clipped": false,
+  "total_count": 1
+}

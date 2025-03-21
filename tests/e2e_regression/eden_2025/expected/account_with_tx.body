@@ -1,0 +1,14 @@
+{
+  "address": "oasis1qpn83e8hm3gdhvpfv66xj3qsetkj3ulmkugmmxn3",
+  "allowances": [],
+  "available": "65865496952109",
+  "debonding": "724041098020201",
+  "debonding_delegations_balance": "0",
+  "delegations_balance": "98309895773422",
+  "escrow": "100599544770103846",
+  "first_activity": "NONDETERMINISTIC",
+  "nonce": 41,
+  "stats": {
+    "num_txns": 2
+  }
+}

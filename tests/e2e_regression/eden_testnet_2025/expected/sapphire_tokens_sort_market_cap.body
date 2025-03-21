@@ -1,0 +1,18 @@
+{
+  "evm_tokens": [
+    {
+      "contract_addr": "oasis1qzaxvc4sfdcw2mv27tsdmq7gqp6rrkjux55j09fh",
+      "decimals": 18,
+      "eth_contract_addr": "0x1a37E2fF0dCB77853Fa7dD5209BC365AD15CE421",
+      "is_verified": false,
+      "name": "fsklj",
+      "num_holders": 1,
+      "num_transfers": 20,
+      "symbol": "ewjk",
+      "total_supply": "198372000000000000000000",
+      "type": "ERC20"
+    }
+  ],
+  "is_total_count_clipped": false,
+  "total_count": 1
+}
