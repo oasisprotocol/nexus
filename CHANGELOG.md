@@ -12,6 +12,25 @@ The format is inspired by [Keep a Changelog].
 
 <!-- TOWNCRIER -->
 
+## 0.6.2 (2025-03-21)
+
+### Features
+
+- storage/db/config: Support configuring max connections
+  ([#929](https://github.com/oasisprotocol/nexus/issues/929))
+
+  By default, `pgxpool` uses a very conservative limit for the maximum number of
+  connections (`max(num_cpus, 4)`). This change makes it configurable and
+  increases the default to 10.
+
+### Bug Fixes and Improvements
+
+- api/transactions: Limit number of methods provided in the filter
+  ([#919](https://github.com/oasisprotocol/nexus/issues/919))
+
+- rofl: Fix support for Instance Registered event
+  ([#922](https://github.com/oasisprotocol/nexus/issues/922))
+
 ## 0.6.1 (2025-02-28)
 
 ### Features
