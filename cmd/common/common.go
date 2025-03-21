@@ -95,7 +95,7 @@ func NewClient(cfg *config.StorageConfig, logger *log.Logger) (storage.TargetSto
 	var err error
 	switch backend {
 	case config.BackendPostgres:
-		client, err = postgres.NewClient(cfg.Endpoint, logger)
+		client, err = postgres.NewClient(cfg.Endpoint, logger, cfg.Postgres)
 	default:
 		panic(fmt.Sprintf("unsupported storage backend: %v", backend))
 	}

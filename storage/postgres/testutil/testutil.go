@@ -16,7 +16,7 @@ func NewTestClient(t *testing.T) *postgres.Client {
 	logger, err := log.NewLogger("postgres-test", os.Stdout, log.FmtJSON, log.LevelError)
 	require.NoError(t, err, "log.NewLogger")
 
-	client, err := postgres.NewClient(connString, logger)
+	client, err := postgres.NewClient(connString, logger, nil)
 	require.NoError(t, err, "postgres.NewClient")
 	return client
 }
