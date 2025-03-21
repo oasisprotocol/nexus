@@ -1,0 +1,10 @@
+{
+  "address": "oasis1qrf8u55mk9uxwkwuyf5259yc2turgz8nc5nt8n5a",
+  "balances": [],
+  "evm_balances": [],
+  "stats": {
+    "num_txns": 0,
+    "total_received": "0",
+    "total_sent": "0"
+  }
+}

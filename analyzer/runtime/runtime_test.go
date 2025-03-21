@@ -108,7 +108,26 @@ func (mock *mockNode) GetEventsRaw(ctx context.Context, round uint64) ([]nodeapi
 
 // GetBalances implements nodeapi.RuntimeApiLite.
 func (*mockNode) GetBalances(ctx context.Context, round uint64, addr api.Address) (map[sdkTypes.Denomination]common.BigInt, error) {
-	return nil, nil
+	panic("unimplemented") // not needed for testing the block analyzer
+}
+
+// GetRoflApps implements nodeapi.RuntimeApiLite.
+func (*mockNode) RoflApps(ctx context.Context, round uint64) ([]*nodeapi.AppConfig, error) {
+	panic("unimplemented") // not needed for testing the block analyzer
+}
+
+// GetRoflApp implements nodeapi.RuntimeApiLite.
+func (*mockNode) RoflApp(ctx context.Context, round uint64, id nodeapi.AppID) (*nodeapi.AppConfig, error) {
+	panic("unimplemented") // not needed for testing the block analyzer
+}
+
+// GetRoflAppInstances implements nodeapi.RuntimeApiLite.
+func (*mockNode) RoflAppInstances(ctx context.Context, round uint64, id nodeapi.AppID) ([]*nodeapi.Registration, error) {
+	panic("unimplemented") // not needed for testing the block analyzer
+}
+
+func (*mockNode) RoflAppInstance(ctx context.Context, round uint64, id nodeapi.AppID, rak nodeapi.PublicKey) (*nodeapi.Registration, error) {
+	panic("unimplemented") // not needed for testing the block analyzer
 }
 
 // GetTransactionsWithResults implements nodeapi.RuntimeApiLite.

@@ -1,0 +1,27 @@
+{
+  "is_total_count_clipped": false,
+  "proposal_id": 2,
+  "total_count": 5,
+  "votes": [
+    {
+      "address": "oasis1qq2vzcvxn0js5unsch5me2xz4kr43vcasv0d5eq4",
+      "vote": "yes"
+    },
+    {
+      "address": "oasis1qqv25adrld8jjquzxzg769689lgf9jxvwgjs8tha",
+      "vote": "yes"
+    },
+    {
+      "address": "oasis1qr37y56g92chzvsew54kj7gu47cxyly7jytt5rm0",
+      "vote": "yes"
+    },
+    {
+      "address": "oasis1qz2tg4hsatlxfaf8yut9gxgv8990ujaz4sldgmzx",
+      "vote": "yes"
+    },
+    {
+      "address": "oasis1qz424yg28jqmgfq3xvly6ky64jqnmlylfc27d7cp",
+      "vote": "yes"
+    }
+  ]
+}

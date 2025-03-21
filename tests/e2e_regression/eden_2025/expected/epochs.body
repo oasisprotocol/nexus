@@ -1,0 +1,20 @@
+{
+  "epochs": [
+    {
+      "id": 38858,
+      "start_height": 23322556
+    },
+    {
+      "end_height": 23322555,
+      "id": 38857,
+      "start_height": 23321956
+    },
+    {
+      "end_height": 23321955,
+      "id": 38856,
+      "start_height": 23321815
+    }
+  ],
+  "is_total_count_clipped": false,
+  "total_count": 3
+}

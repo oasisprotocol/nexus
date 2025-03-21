@@ -1,0 +1,192 @@
+{
+  "evm_tokens": [
+    {
+      "contract_addr": "oasis1qpdgv5nv2dhxp4q897cgag6kgnm9qs0dccwnckuu",
+      "decimals": 18,
+      "eth_contract_addr": "0x8Bc2B030b299964eEfb5e1e0b36991352E56D2D3",
+      "is_verified": true,
+      "name": "Wrapped ROSE",
+      "num_holders": 6,
+      "num_transfers": 9,
+      "ref_token": {
+        "decimals": 18,
+        "name": "Wrapped ROSE",
+        "symbol": "wROSE",
+        "type": "ERC20"
+      },
+      "symbol": "wROSE",
+      "total_supply": "38184624265742392933334440",
+      "type": "ERC20",
+      "verification_level": "full"
+    },
+    {
+      "contract_addr": "oasis1qr43dvghx4a75vndjcsg2r9ct2xqftwrgcnt5tge",
+      "decimals": 18,
+      "eth_contract_addr": "0x39d22B78A7651A76Ffbde2aaAB5FD92666Aca520",
+      "is_verified": true,
+      "name": "Ocean Token",
+      "num_holders": 53,
+      "num_transfers": 4792,
+      "ref_token": {
+        "decimals": 18,
+        "name": "Wrapped ROSE",
+        "symbol": "wROSE",
+        "type": "ERC20"
+      },
+      "symbol": "OCEAN",
+      "total_supply": "2312879494545775599602218",
+      "type": "ERC20",
+      "verification_level": "full"
+    },
+    {
+      "contract_addr": "oasis1qr5mh6qpl9ql3d202jgk5845eyaggjhjevv9x90k",
+      "decimals": 18,
+      "eth_contract_addr": "0x932Dd32885eeE8dCCDB8E0475Cf2e9bfc8527f9D",
+      "is_verified": true,
+      "name": "Neby",
+      "num_holders": 2,
+      "num_transfers": 1,
+      "ref_token": {
+        "decimals": 18,
+        "name": "Wrapped ROSE",
+        "symbol": "wROSE",
+        "type": "ERC20"
+      },
+      "symbol": "NEBY",
+      "total_supply": "449834509005993208089255317",
+      "type": "ERC20",
+      "verification_level": "full"
+    },
+    {
+      "contract_addr": "oasis1qr6p7q38p5nrhl4e352ksmgzlvqlv80qwvuxpvll",
+      "decimals": 18,
+      "eth_contract_addr": "0xB6dc6C8b71e88642cEAD3be1025565A9eE74d1C6",
+      "is_verified": true,
+      "name": "Wrapped Ether",
+      "num_holders": 2,
+      "num_transfers": 1,
+      "ref_token": {
+        "decimals": 18,
+        "name": "Wrapped ROSE",
+        "symbol": "wROSE",
+        "type": "ERC20"
+      },
+      "symbol": "WETH",
+      "total_supply": "11725910344601889899",
+      "type": "ERC20",
+      "verification_level": "full"
+    },
+    {
+      "contract_addr": "oasis1qr7y034j2srpxq90w20al600a52es8g3xylhvrl6",
+      "decimals": 6,
+      "eth_contract_addr": "0x97eec1c29f745dC7c267F90292AA663d997a601D",
+      "is_verified": true,
+      "name": "Bridged USDC",
+      "num_holders": 2,
+      "num_transfers": 2,
+      "ref_token": {
+        "decimals": 18,
+        "name": "Wrapped ROSE",
+        "symbol": "wROSE",
+        "type": "ERC20"
+      },
+      "symbol": "USDC.e",
+      "total_supply": "39969587330",
+      "type": "ERC20",
+      "verification_level": "full"
+    },
+    {
+      "contract_addr": "oasis1qzjaywxsctukphu8u2clyad9709lncpjhqu4mc2n",
+      "decimals": 6,
+      "eth_contract_addr": "0x8C4aCd74Ff4385f3B7911432FA6787Aa14406f8B",
+      "is_verified": true,
+      "name": "Tether USD",
+      "num_holders": 2,
+      "num_transfers": 1,
+      "ref_token": {
+        "decimals": 18,
+        "name": "Wrapped ROSE",
+        "symbol": "wROSE",
+        "type": "ERC20"
+      },
+      "symbol": "USDT",
+      "total_supply": "38984369532",
+      "type": "ERC20",
+      "verification_level": "full"
+    },
+    {
+      "contract_addr": "oasis1qq4xzaxt4kxku5g5c0nx43k3hyhhc6y5wyhe0qea",
+      "decimals": 0,
+      "eth_contract_addr": "0xEF51eE47A3c2690a25267C7A6ECdab18cbA2dEb6",
+      "is_verified": false,
+      "name": "Nautilus Dataservice NFT",
+      "num_holders": 1,
+      "num_transfers": 1,
+      "ref_token": {
+        "decimals": 18,
+        "name": "Wrapped ROSE",
+        "symbol": "wROSE",
+        "type": "ERC20"
+      },
+      "symbol": "NAUTILUS-NFT",
+      "total_supply": "1",
+      "type": "ERC20"
+    },
+    {
+      "contract_addr": "oasis1qqe9fr03w0mj8dxk5nqwmhladpugnt067c82qjwz",
+      "decimals": 0,
+      "eth_contract_addr": "0xeFf908951AE852CC46b709cA39B554be4d106860",
+      "is_verified": false,
+      "name": "Nautilus Dataservice NFT",
+      "num_holders": 1,
+      "num_transfers": 1,
+      "ref_token": {
+        "decimals": 18,
+        "name": "Wrapped ROSE",
+        "symbol": "wROSE",
+        "type": "ERC20"
+      },
+      "symbol": "NAUTILUS-NFT",
+      "total_supply": "1",
+      "type": "ERC20"
+    },
+    {
+      "contract_addr": "oasis1qreufx05k98tuz02tdxsng6udhtp5l7cey3tkem5",
+      "decimals": 0,
+      "eth_contract_addr": "0xCA02dA85559465B48e4d71705E573496F3368ea0",
+      "is_verified": false,
+      "name": "Nautilus Dataservice NFT",
+      "num_holders": 1,
+      "num_transfers": 1,
+      "ref_token": {
+        "decimals": 18,
+        "name": "Wrapped ROSE",
+        "symbol": "wROSE",
+        "type": "ERC20"
+      },
+      "symbol": "NAUTILUS-NFT",
+      "total_supply": "1",
+      "type": "ERC20"
+    },
+    {
+      "contract_addr": "oasis1qrflxnqe4u8wgm89usplxv0qujcf3nrjavc2d8h7",
+      "decimals": 0,
+      "eth_contract_addr": "0xf42AE093A32bD51C2a221C8232095cee5c858137",
+      "is_verified": false,
+      "name": "Nautilus Dataservice NFT",
+      "num_holders": 1,
+      "num_transfers": 1,
+      "ref_token": {
+        "decimals": 18,
+        "name": "Wrapped ROSE",
+        "symbol": "wROSE",
+        "type": "ERC20"
+      },
+      "symbol": "NAUTILUS-NFT",
+      "total_supply": "1",
+      "type": "ERC20"
+    }
+  ],
+  "is_total_count_clipped": false,
+  "total_count": 10
+}

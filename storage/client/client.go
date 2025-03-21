@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/big"
+	"reflect"
 	"strings"
 	"time"
 
@@ -19,6 +20,9 @@ import (
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
 	oasisErrors "github.com/oasisprotocol/oasis-core/go/common/errors"
 	oasisConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
+	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/crypto/signature/ed25519"
+	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/crypto/signature/secp256k1"
+	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/crypto/signature/sr25519"
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 
 	"github.com/oasisprotocol/nexus/analyzer/evmabi"
@@ -1546,6 +1550,128 @@ func EthChecksumAddrPtrFromBarePreimage(data []byte) *string {
 	return &ethChecksumAddr
 }
 
+func transactionToAPIResponse(rows pgx.Rows, logger *log.Logger) (*RuntimeTransaction, error) {
+	t := RuntimeTransaction{
+		Error:   &TxError{},
+		Signers: []apiTypes.RuntimeTransactionSigner{},
+	}
+	var oasisEncryptionEnvelope RuntimeTransactionEncryptionEnvelope
+	var oasisEncryptionEnvelopeFormat *common.CallFormat
+	var evmEncryptionEnvelope RuntimeTransactionEncryptionEnvelope
+	var evmEncryptionEnvelopeFormat *common.CallFormat
+	var signersAddresses []string
+	var signersPreimageContextIdentifiers []*string
+	var signersPreimageContextVersions []*int
+	var signersPreimageData [][]byte
+	var signersNonces []uint64
+	var toPreimageContextIdentifier *string
+	var toPreimageContextVersion *int
+	var toPreimageData []byte
+	var errorCode *uint32
+	if err := rows.Scan(
+		&t.Round,
+		&t.Index,
+		&t.Timestamp,
+		&t.Hash,
+		&t.EthHash,
+		&signersAddresses,
+		&signersPreimageContextIdentifiers,
+		&signersPreimageContextVersions,
+		&signersPreimageData,
+		&signersNonces,
+		&t.Fee,
+		&t.FeeSymbol,
+		&t.FeeProxyModule,
+		&t.FeeProxyId,
+		&t.GasLimit,
+		&t.GasUsed,
+		&t.ChargedFee,
+		&t.Size,
+		&oasisEncryptionEnvelopeFormat,
+		&oasisEncryptionEnvelope.PublicKey,
+		&oasisEncryptionEnvelope.DataNonce,
+		&oasisEncryptionEnvelope.Data,
+		&oasisEncryptionEnvelope.ResultNonce,
+		&oasisEncryptionEnvelope.Result,
+		&t.Method,
+		&t.IsLikelyNativeTokenTransfer,
+		&t.Body,
+		&t.To,
+		&toPreimageContextIdentifier,
+		&toPreimageContextVersion,
+		&toPreimageData,
+		&t.Amount,
+		&t.AmountSymbol,
+		&evmEncryptionEnvelopeFormat,
+		&evmEncryptionEnvelope.PublicKey,
+		&evmEncryptionEnvelope.DataNonce,
+		&evmEncryptionEnvelope.Data,
+		&evmEncryptionEnvelope.ResultNonce,
+		&evmEncryptionEnvelope.Result,
+		&t.Success,
+		&t.EvmFnName,
+		&t.EvmFnParams,
+		&t.Error.Module,
+		&errorCode,
+		&t.Error.Message,
+		&t.Error.RevertParams,
+	); err != nil {
+		return nil, err
+	}
+	// If success field is unset (i.e. encrypted "Unknown" result) or
+	// successful, some database versions have non-null error module/code
+	// from when the analyzer would insert ""/0 instead. There's no error
+	// information, so empty this stuff out.
+	if t.Success == nil || *t.Success {
+		t.Error = nil
+	} else if errorCode != nil {
+		t.Error.Code = *errorCode
+	}
+	if oasisEncryptionEnvelopeFormat != nil { // a rudimentary check to determine if the tx was encrypted
+		oasisEncryptionEnvelope.Format = *oasisEncryptionEnvelopeFormat
+		t.OasisEncryptionEnvelope = &oasisEncryptionEnvelope
+	}
+	if evmEncryptionEnvelopeFormat != nil { // a rudimentary check to determine if the tx was encrypted
+		evmEncryptionEnvelope.Format = *evmEncryptionEnvelopeFormat
+		t.EncryptionEnvelope = &evmEncryptionEnvelope
+	}
+
+	for i := range signersAddresses {
+		t.Signers = append(t.Signers, apiTypes.RuntimeTransactionSigner{
+			Address: signersAddresses[i],
+			Nonce:   signersNonces[i],
+		})
+		// Render Ethereum-compatible address preimage.
+		if signersPreimageContextIdentifiers[i] != nil && signersPreimageContextVersions[i] != nil {
+			t.Signers[i].AddressEth = EthChecksumAddrFromPreimage(*signersPreimageContextIdentifiers[i], *signersPreimageContextVersions[i], signersPreimageData[i])
+		}
+
+		// Deprecated sender_0 fields.
+		if i == 0 {
+			t.Sender0 = t.Signers[0].Address
+			t.Nonce0 = t.Signers[0].Nonce
+			t.Sender0Eth = t.Signers[0].AddressEth
+		}
+	}
+
+	// Render Ethereum-compatible address preimages.
+	if toPreimageContextIdentifier != nil && toPreimageContextVersion != nil {
+		t.ToEth = EthChecksumAddrFromPreimage(*toPreimageContextIdentifier, *toPreimageContextVersion, toPreimageData)
+	}
+
+	// Try extracting parsed PCS quote from rofl.Register transaction body.
+	if t.Method != nil && *t.Method == "rofl.Register" {
+		nb, err := extractPCSQuote(t.Body)
+		if err != nil {
+			logger.Warn("failed to extract PCS quote from rofl.Register transaction body", "tx_hash", t.Hash, "err", err)
+			// In case of errors, original body is returned.
+		}
+		t.Body = nb
+	}
+
+	return &t, nil
+}
+
 // RuntimeTransactions returns a list of runtime transactions.
 func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetRuntimeTransactionsParams, txHash *string) (*RuntimeTransactionList, error) {
 	ocAddrRel, err := apiTypes.UnmarshalToOcAddress(p.Rel)
@@ -1579,125 +1705,11 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetR
 		IsTotalCountClipped: res.isTotalCountClipped,
 	}
 	for res.rows.Next() {
-		t := RuntimeTransaction{
-			Error:   &TxError{},
-			Signers: []apiTypes.RuntimeTransactionSigner{},
-		}
-		var oasisEncryptionEnvelope RuntimeTransactionEncryptionEnvelope
-		var oasisEncryptionEnvelopeFormat *common.CallFormat
-		var evmEncryptionEnvelope RuntimeTransactionEncryptionEnvelope
-		var evmEncryptionEnvelopeFormat *common.CallFormat
-		var signersAddresses []string
-		var signersPreimageContextIdentifiers []*string
-		var signersPreimageContextVersions []*int
-		var signersPreimageData [][]byte
-		var signersNonces []uint64
-		var toPreimageContextIdentifier *string
-		var toPreimageContextVersion *int
-		var toPreimageData []byte
-		var errorCode *uint32
-		if err := res.rows.Scan(
-			&t.Round,
-			&t.Index,
-			&t.Timestamp,
-			&t.Hash,
-			&t.EthHash,
-			&signersAddresses,
-			&signersPreimageContextIdentifiers,
-			&signersPreimageContextVersions,
-			&signersPreimageData,
-			&signersNonces,
-			&t.Fee,
-			&t.FeeSymbol,
-			&t.FeeProxyModule,
-			&t.FeeProxyId,
-			&t.GasLimit,
-			&t.GasUsed,
-			&t.ChargedFee,
-			&t.Size,
-			&oasisEncryptionEnvelopeFormat,
-			&oasisEncryptionEnvelope.PublicKey,
-			&oasisEncryptionEnvelope.DataNonce,
-			&oasisEncryptionEnvelope.Data,
-			&oasisEncryptionEnvelope.ResultNonce,
-			&oasisEncryptionEnvelope.Result,
-			&t.Method,
-			&t.IsLikelyNativeTokenTransfer,
-			&t.Body,
-			&t.To,
-			&toPreimageContextIdentifier,
-			&toPreimageContextVersion,
-			&toPreimageData,
-			&t.Amount,
-			&t.AmountSymbol,
-			&evmEncryptionEnvelopeFormat,
-			&evmEncryptionEnvelope.PublicKey,
-			&evmEncryptionEnvelope.DataNonce,
-			&evmEncryptionEnvelope.Data,
-			&evmEncryptionEnvelope.ResultNonce,
-			&evmEncryptionEnvelope.Result,
-			&t.Success,
-			&t.EvmFnName,
-			&t.EvmFnParams,
-			&t.Error.Module,
-			&errorCode,
-			&t.Error.Message,
-			&t.Error.RevertParams,
-		); err != nil {
+		t, err := transactionToAPIResponse(res.rows, c.logger)
+		if err != nil {
 			return nil, wrapError(err)
 		}
-		// If success field is unset (i.e. encrypted "Unknown" result) or
-		// successful, some database versions have non-null error module/code
-		// from when the analyzer would insert ""/0 instead. There's no error
-		// information, so empty this stuff out.
-		if t.Success == nil || *t.Success {
-			t.Error = nil
-		} else if errorCode != nil {
-			t.Error.Code = *errorCode
-		}
-		if oasisEncryptionEnvelopeFormat != nil { // a rudimentary check to determine if the tx was encrypted
-			oasisEncryptionEnvelope.Format = *oasisEncryptionEnvelopeFormat
-			t.OasisEncryptionEnvelope = &oasisEncryptionEnvelope
-		}
-		if evmEncryptionEnvelopeFormat != nil { // a rudimentary check to determine if the tx was encrypted
-			evmEncryptionEnvelope.Format = *evmEncryptionEnvelopeFormat
-			t.EncryptionEnvelope = &evmEncryptionEnvelope
-		}
-
-		for i := range signersAddresses {
-			t.Signers = append(t.Signers, apiTypes.RuntimeTransactionSigner{
-				Address: signersAddresses[i],
-				Nonce:   signersNonces[i],
-			})
-			// Render Ethereum-compatible address preimage.
-			if signersPreimageContextIdentifiers[i] != nil && signersPreimageContextVersions[i] != nil {
-				t.Signers[i].AddressEth = EthChecksumAddrFromPreimage(*signersPreimageContextIdentifiers[i], *signersPreimageContextVersions[i], signersPreimageData[i])
-			}
-
-			// Deprecated sender_0 fields.
-			if i == 0 {
-				t.Sender0 = t.Signers[0].Address
-				t.Nonce0 = t.Signers[0].Nonce
-				t.Sender0Eth = t.Signers[0].AddressEth
-			}
-		}
-
-		// Render Ethereum-compatible address preimages.
-		if toPreimageContextIdentifier != nil && toPreimageContextVersion != nil {
-			t.ToEth = EthChecksumAddrFromPreimage(*toPreimageContextIdentifier, *toPreimageContextVersion, toPreimageData)
-		}
-
-		// Try extracting parsed PCS quote from rofl.Register transaction body.
-		if t.Method != nil && *t.Method == "rofl.Register" {
-			nb, err := extractPCSQuote(t.Body)
-			if err != nil {
-				c.logger.Warn("failed to extract PCS quote from rofl.Register transaction body", "tx_hash", t.Hash, "err", err)
-				// In case of errors, original body is returned.
-			}
-			t.Body = nb
-		}
-
-		ts.Transactions = append(ts.Transactions, t)
+		ts.Transactions = append(ts.Transactions, *t)
 	}
 
 	return &ts, nil
@@ -2401,6 +2413,165 @@ func (c *StorageClient) RuntimeStatus(ctx context.Context) (*RuntimeStatus, erro
 	}
 
 	return &s, nil
+}
+
+// RuntimeRoflApps returns a list of ROFL apps.
+func (c *StorageClient) RuntimeRoflApps(ctx context.Context, params apiTypes.GetRuntimeRoflAppsParams, id *string) (*RoflAppList, error) {
+	res, err := c.withTotalCount(
+		ctx,
+		queries.RuntimeRoflApps,
+		runtimeFromCtx(ctx),
+		id,
+		params.Limit,
+		params.Offset,
+	)
+	if err != nil {
+		return nil, wrapError(err)
+	}
+	defer res.rows.Close()
+
+	apps := RoflAppList{
+		RoflApps:            []RoflApp{},
+		TotalCount:          res.totalCount,
+		IsTotalCountClipped: res.isTotalCountClipped,
+	}
+	for res.rows.Next() {
+		var app RoflApp
+		res.rows.Scan(
+			&app.Id,
+			&app.Admin,
+			&app.Policy,
+			&app.Sek,
+			&app.Metadata,
+			&app.Secrets,
+			&app.Removed,
+			&app.Instances,
+		)
+		apps.RoflApps = append(apps.RoflApps, app)
+	}
+
+	// Collect all instance addresses.
+	// TODO: don't do this here, but in separet endpoints:
+	// rofl/id/transactions
+	// rofl/id/instance_transactions
+	// rofl/id/instance/id/transactions
+	// maybe just reuise RuntimeTransactions and use related-addresses for filtering, can update leter to actually sencer?
+
+	instanceAddresses := []string{}
+	for _, app := range apps.RoflApps {
+		for _, instance := range app.Instances {
+			// RAK is an Ed25519 key.
+			var rak ed25519.PublicKey
+			brak, err := base64.StdEncoding.DecodeString(instance.Rak)
+			if err != nil {
+				c.logger.Error("failed to decode RAK, skipping key", "key", instance.Rak, "error", err)
+				continue
+			}
+			if err := rak.UnmarshalBinary(brak); err != nil {
+				c.logger.Error("failed to unmarshal RAK, skipping key", "key", instance.Rak, "error", err)
+				continue
+			}
+			rakAddr := sdkTypes.NewAddress(sdkTypes.NewSignatureAddressSpecEd25519(rak))
+			instanceAddresses = append(instanceAddresses, rakAddr.String())
+
+			// Extra keys.
+			for _, ek := range instance.ExtraKeys {
+				var key sdkTypes.PublicKey
+				if err := key.UnmarshalJSON([]byte(ek)); err != nil {
+					c.logger.Error("failed to unmarshal extra key, skipping", "key", ek, "error", err)
+					continue
+				}
+				// sigspecForSigner.
+				var extraAddress sdkTypes.Address
+				switch pk := key.PublicKey.(type) {
+				case ed25519.PublicKey:
+					extraAddress = sdkTypes.NewAddress(sdkTypes.NewSignatureAddressSpecEd25519(pk))
+				case *ed25519.PublicKey:
+					extraAddress = sdkTypes.NewAddress(sdkTypes.NewSignatureAddressSpecEd25519(*pk))
+				case secp256k1.PublicKey:
+					extraAddress = sdkTypes.NewAddress(sdkTypes.NewSignatureAddressSpecSecp256k1Eth(pk))
+				case *secp256k1.PublicKey:
+					extraAddress = sdkTypes.NewAddress(sdkTypes.NewSignatureAddressSpecSecp256k1Eth(*pk))
+				case sr25519.PublicKey:
+					extraAddress = sdkTypes.NewAddress(sdkTypes.NewSignatureAddressSpecSr25519(pk))
+				case *sr25519.PublicKey:
+					extraAddress = sdkTypes.NewAddress(sdkTypes.NewSignatureAddressSpecSr25519(*pk))
+				default:
+					c.logger.Error("unsupported extra key type", "key", ek, "type", reflect.TypeOf(pk))
+					continue
+				}
+				instanceAddresses = append(instanceAddresses, extraAddress.String())
+			}
+		}
+	}
+	// Now find transactions that were signed by any of these addresses.
+
+	return &apps, nil
+}
+
+func (c *StorageClient) RuntimeRoflAppInstances(ctx context.Context, params apiTypes.GetRuntimeRoflAppsIdInstancesParams, id string) (*RoflAppInstanceList, error) {
+	res, err := c.withTotalCount(
+		ctx,
+		queries.RuntimeRoflAppInstances,
+		runtimeFromCtx(ctx),
+		id,
+		params.Limit,
+		params.Offset,
+	)
+	if err != nil {
+		return nil, wrapError(err)
+	}
+	defer res.rows.Close()
+
+	instances := RoflAppInstanceList{
+		Instances:           []apiTypes.RoflInstance{},
+		TotalCount:          res.totalCount,
+		IsTotalCountClipped: res.isTotalCountClipped,
+	}
+	for res.rows.Next() {
+		var instance apiTypes.RoflInstance
+		res.rows.Scan(
+			&instance.Rak,
+			&instance.EndorsingNodeId,
+			&instance.EndorsingEntityId,
+			&instance.Rek,
+			&instance.ExpirationEpoch,
+			&instance.ExtraKeys,
+		)
+		instances.Instances = append(instances.Instances, instance)
+	}
+	return &instances, nil
+}
+
+func (c *StorageClient) RuntimeRoflAppTransactions(ctx context.Context, params apiTypes.GetRuntimeRoflAppsIdTransactionsParams, id string) (*RuntimeTransactionList, error) {
+	res, err := c.withTotalCount(
+		ctx,
+		queries.RuntimeRoflAppTransactions,
+		runtimeFromCtx(ctx),
+		id,
+		params.Method,
+		params.Limit,
+		params.Offset,
+	)
+	if err != nil {
+		return nil, wrapError(err)
+	}
+	defer res.rows.Close()
+
+	ts := RuntimeTransactionList{
+		Transactions:        []RuntimeTransaction{},
+		TotalCount:          res.totalCount,
+		IsTotalCountClipped: res.isTotalCountClipped,
+	}
+	for res.rows.Next() {
+		t, err := transactionToAPIResponse(res.rows, c.logger)
+		if err != nil {
+			return nil, wrapError(err)
+		}
+		ts.Transactions = append(ts.Transactions, *t)
+	}
+
+	return &ts, nil
 }
 
 // TxVolumes returns a list of transaction volumes per time window.
