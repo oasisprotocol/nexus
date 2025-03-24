@@ -60,7 +60,7 @@ test-e2e: export OASIS_INDEXER_E2E = true
 test-e2e:
 	@$(GO) test -race -coverpkg=./... -coverprofile=coverage.txt -covermode=atomic -v ./tests/e2e
 
-E2E_REGRESSION_SUITES_NO_LINKS := eden damask
+E2E_REGRESSION_SUITES_NO_LINKS := eden_testnet_2025 eden damask
 # To run specific suites, do e.g.
 # make E2E_REGRESSION_SUITES='suite1 suite2' test-e2e-regression
 E2E_REGRESSION_SUITES := $(E2E_REGRESSION_SUITES_NO_LINKS) edenfast
@@ -96,7 +96,7 @@ lint-git:
 lint-docs:
 	@$(ECHO) "$(CYAN)*** Running markdownlint-cli...$(OFF)"
 	@npx markdownlint-cli '**/*.md' --ignore .changelog/
-	
+
 lint-changelog:
 	@$(CHECK_CHANGELOG_FRAGMENTS)
 
@@ -204,7 +204,7 @@ release-build: codegen-go
 	test \
 	fmt \
 	_version-bump _changelog changelog \
-	fetch-git \ 
+	fetch-git \
 	release-tag \
 	$(lint-targets) lint \
 	$(docs-targets) docs \

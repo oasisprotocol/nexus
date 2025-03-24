@@ -39,13 +39,6 @@ commonTestCases=(
   'accounts_extraneous_key            /v1/consensus/accounts?foo=bar'
   'blocks                             /v1/consensus/blocks'
   'bad_account                        /v1/consensus/accounts/oasis1aaaaaaa'
-  'account                            /v1/consensus/accounts/oasis1qp0302fv0gz858azasg663ax2epakk5fcssgza7j'
-  'account_with_tx                    /v1/consensus/accounts/oasis1qpn83e8hm3gdhvpfv66xj3qsetkj3ulmkugmmxn3'
-  'runtime-only_account               /v1/consensus/accounts/oasis1qphyxz5csvprhnn09r49nuyzl0jdw0wsj5xpvsg2'
-  'delegations                        /v1/consensus/accounts/oasis1qpk366qvtjrfrthjp3xuej5mhvvtnkr8fy02hm2s/delegations'
-  'delegations_to                     /v1/consensus/accounts/oasis1qp0j5v5mkxk3eg4kxfdsk8tj6p22g4685qk76fw6/delegations_to'
-  'debonding_delegations              /v1/consensus/accounts/oasis1qpk366qvtjrfrthjp3xuej5mhvvtnkr8fy02hm2s/debonding_delegations'
-  'debonding_delegations_to           /v1/consensus/accounts/oasis1qp0j5v5mkxk3eg4kxfdsk8tj6p22g4685qk76fw6/debonding_delegations_to'
   # NOTE: entity-related tests are not stable long-term because their output is a combination of
   #       the blockchain at a given height (which is stable) and the _current_ metadata_registry state.
   #       We circumvent this by not fetching from metadata_registry at all, so the same metadata (= none) is always present for the test.
@@ -65,6 +58,19 @@ commonTestCases=(
   'txs_by_method                      /v1/consensus/transactions?method=staking.Transfer'
   'txs_by_multiple_methods            /v1/consensus/transactions?method=registry.RegisterNode,staking.Transfer'
   'validators                         /v1/consensus/validators?limit=200'
+)
+
+commonMainnetTestCases=(
+  'account                            /v1/consensus/accounts/oasis1qp0302fv0gz858azasg663ax2epakk5fcssgza7j'
+  'account_with_tx                    /v1/consensus/accounts/oasis1qpn83e8hm3gdhvpfv66xj3qsetkj3ulmkugmmxn3'
+  'runtime-only_account               /v1/consensus/accounts/oasis1qphyxz5csvprhnn09r49nuyzl0jdw0wsj5xpvsg2'
+  'delegations                        /v1/consensus/accounts/oasis1qpk366qvtjrfrthjp3xuej5mhvvtnkr8fy02hm2s/delegations'
+  'delegations_to                     /v1/consensus/accounts/oasis1qp0j5v5mkxk3eg4kxfdsk8tj6p22g4685qk76fw6/delegations_to'
+  'debonding_delegations              /v1/consensus/accounts/oasis1qpk366qvtjrfrthjp3xuej5mhvvtnkr8fy02hm2s/debonding_delegations'
+  'debonding_delegations_to           /v1/consensus/accounts/oasis1qp0j5v5mkxk3eg4kxfdsk8tj6p22g4685qk76fw6/debonding_delegations_to'
+)
+
+commonEmeraldTestCases=(
   'emerald_blocks                     /v1/emerald/blocks'
   'emerald_txs                        /v1/emerald/transactions'
   'emerald_txs_by_method              /v1/emerald/transactions?method=consensus.Withdraw'
@@ -81,4 +87,19 @@ commonTestCases=(
   'emerald_status                     /v1/emerald/status'
   'emerald_tx_volume                  /v1/emerald/stats/tx_volume'
   'emerald_contract_account           /v1/emerald/accounts/oasis1qz2rynvcmrkwd57v00298uc2vtzgatde3cjpy72f'
+)
+
+commonSapphireTestCases=(
+  'sapphire_blocks                    /v1/sapphire/blocks'
+  'sapphire_txs                       /v1/sapphire/transactions'
+  'sapphire_txs_by_method             /v1/sapphire/transactions?method=consensus.Withdraw'
+  'sapphire_txs_native_transfers      /v1/sapphire/transactions?method=native_transfers'
+  'sapphire_txs_evm_call              /v1/sapphire/transactions?method=evm.Call'
+  'sapphire_events                    /v1/sapphire/events'
+  'sapphire_events_by_type            /v1/sapphire/events?type=accounts.transfer'
+  'sapphire_tokens                    /v1/sapphire/evm_tokens'
+  'sapphire_tokens_sort_market_cap    /v1/sapphire/evm_tokens?sort_by=market_cap'
+  'sapphire_status                    /v1/sapphire/status'
+  'sapphire_tx_volume                 /v1/sapphire/stats/tx_volume'
+  'sapphire_rofl_apps                 /v1/sapphire/rofl_apps'
 )
