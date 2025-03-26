@@ -20,7 +20,7 @@
         "Description": "Reserved address for all irreversibly burnt tokens."
     },
     {
-        "Name": "Faucet Address",
+        "Name": "Faucet",
         "Address": "oasis1qzna6nq9kuktjmxx2s84z38eysqyts84jc9lgdg2",
         "Description": "This account contains TEST tokens distributed by the faucet."
     },
