@@ -770,9 +770,16 @@ func initConfig(p koanf.Provider) (*Config, error) {
 	}
 
 	// Load environment variables and merge into the loaded config.
-	if err := k.Load(env.Provider("", ".", func(s string) string {
+	if err := k.Load(env.ProviderWithValue("", ".", func(key string, value string) (string, interface{}) {
 		// `__` is used as a hierarchy delimiter.
-		return strings.ReplaceAll(strings.ToLower(s), "__", ".")
+		key = strings.ReplaceAll(strings.ToLower(key), "__", ".")
+
+		// Support comma separated list for specific keys.
+		if key == "server.consensus_circulating_supply_exclusions" {
+			return key, strings.Split(value, ",")
+		}
+
+		return key, value
 	}), nil); err != nil {
 		return nil, err
 	}
