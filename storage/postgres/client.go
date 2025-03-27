@@ -12,15 +12,12 @@ import (
 	"github.com/jackc/pgx/v5/tracelog"
 
 	common "github.com/oasisprotocol/nexus/analyzer/uncategorized"
-	"github.com/oasisprotocol/nexus/config"
 	"github.com/oasisprotocol/nexus/log"
 	"github.com/oasisprotocol/nexus/storage"
 )
 
 const (
 	moduleName = "postgres"
-
-	defaultMaxConns = 10
 )
 
 // Client is a client for connecting to PostgreSQL.
@@ -64,7 +61,7 @@ func (l *pgxLogger) Log(ctx context.Context, level tracelog.LogLevel, msg string
 }
 
 // NewClient creates a new PostgreSQL client.
-func NewClient(connString string, l *log.Logger, cfg *config.PostgresConfig) (*Client, error) {
+func NewClient(connString string, l *log.Logger) (*Client, error) {
 	config, err := pgxpool.ParseConfig(connString)
 	if err != nil {
 		return nil, err
@@ -78,10 +75,6 @@ func NewClient(connString string, l *log.Logger, cfg *config.PostgresConfig) (*C
 		Logger: &pgxLogger{
 			logger: l.WithModule(moduleName).With("db", config.ConnConfig.Database).WithCallerUnwind(10),
 		},
-	}
-	config.MaxConns = defaultMaxConns
-	if cfg != nil && cfg.MaxConnections != nil {
-		config.MaxConns = *cfg.MaxConnections
 	}
 
 	pool, err := pgxpool.NewWithConfig(context.Background(), config)

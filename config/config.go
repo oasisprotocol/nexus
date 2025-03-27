@@ -707,15 +707,6 @@ type StorageConfig struct {
 	// If true, we'll first delete all tables in the DB to
 	// force a full re-index of the blockchain.
 	WipeStorage bool `koanf:"DANGER__WIPE_STORAGE_ON_STARTUP"`
-
-	// Postgres is the postgres specific configuration to use.
-	Postgres *PostgresConfig `koanf:"postgres"`
-}
-
-// PostgresConfig is the postgres specific configuration to use when using the postgres backend.
-type PostgresConfig struct {
-	// MaxConnections is the maximum number of connections in the database connection pool.
-	MaxConnections *int32 `koanf:"max_connections"`
 }
 
 // Validate validates the storage configuration.
