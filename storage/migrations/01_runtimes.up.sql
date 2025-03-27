@@ -98,7 +98,7 @@ CREATE TABLE chain.runtime_transactions
   error_params JSONB,
   -- Internal tracking for parsing evm.Call transactions using the contract
   -- abi when available.
-  abi_parsed_at TIMESTAMP WITH TIME ZONE
+  abi_parsed_at TIMESTAMP WITH TIME ZONE -- Updated in 34_runtime_abi_parsed_at.up.sql: NOT NULL DEFAULT '0001-01-01'
 
   -- likely_native_transfer BOOLEAN NOT NULL DEFAULT FALSE -- Added in 18_related_runtime_transactions_method_denorm.up.sql.
 );
@@ -106,7 +106,10 @@ CREATE INDEX ix_runtime_transactions_tx_hash ON chain.runtime_transactions USING
 CREATE INDEX ix_runtime_transactions_tx_eth_hash ON chain.runtime_transactions USING hash (tx_eth_hash);
 CREATE INDEX ix_runtime_transactions_timestamp ON chain.runtime_transactions (runtime, timestamp);
 CREATE INDEX ix_runtime_transactions_to ON chain.runtime_transactions(runtime, "to");
-CREATE INDEX ix_runtime_transactions_to_abi_parsed_at ON chain.runtime_transactions (runtime, "to", abi_parsed_at);
+CREATE INDEX ix_runtime_transactions_to_abi_parsed_at ON chain.runtime_transactions (runtime, "to", abi_parsed_at); -- Removed in 34_runtime_abi_parsed_at.up.sql.
+-- Added in 34_runtime_abi_parsed_at.up.sql.
+-- CREATE INDEX ix_runtime_transactions_to_round_abi_parsed_at ON chain.runtime_transactions (runtime, "to", round DESC, abi_parsed_at) WHERE method = 'evm.Call' AND body IS NOT NULL;
+
 -- CREATE INDEX ix_runtime_transactions_method_round ON chain.runtime_transactions (runtime, method, round, tx_index); -- Added in 08_runtime_transactions_method_idx.up.sql
 
 -- Added in 18_related_runtime_transactions_method_denorm.up.sql.
@@ -183,7 +186,7 @@ CREATE TABLE chain.runtime_events
 
   -- Internal tracking for parsing evm.Call events using the contract
   -- abi when available.
-  abi_parsed_at TIMESTAMP WITH TIME ZONE
+  abi_parsed_at TIMESTAMP WITH TIME ZONE -- Added in 34_runtime_abi_parsed_at.up.sql. NOT NULL DEFAULT '0001-01-01'.
 );
 CREATE INDEX ix_runtime_events_round ON chain.runtime_events(runtime, round);  -- Removed in 14_runtime_events_related_accounts.up.sql. (Replaced by the primary key.)
 CREATE INDEX ix_runtime_events_tx_hash ON chain.runtime_events USING hash (tx_hash);
@@ -199,6 +202,8 @@ CREATE INDEX ix_runtime_events_nft_transfers ON chain.runtime_events (runtime, (
         type = 'evm.log' AND
         evm_log_signature = '\xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef' AND
         jsonb_array_length(body -> 'topics') = 4;
+-- Added in 34_runtime_abi_parsed_at.up.sql.
+-- CREATE INDEX ix_runtime_events_abi_parsed_at ON chain.runtime_events (runtime, (body ->> 'address'), round DESC, abi_parsed_at) WHERE type = 'evm.log';
 
 -- Added in 07_runtime_events_evm_contracts_events.up.sql
 -- Index used for fetching events emitted by a specific contract.
