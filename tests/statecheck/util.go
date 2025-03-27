@@ -29,7 +29,7 @@ func newTargetClient(t *testing.T) (*postgres.Client, error) {
 	logger, err := log.NewLogger("db-test", io.Discard, log.FmtJSON, log.LevelInfo)
 	require.NoError(t, err)
 
-	return postgres.NewClient(connString, logger, nil)
+	return postgres.NewClient(connString, logger)
 }
 
 func newSdkConnection(ctx context.Context) (connection.Connection, error) {

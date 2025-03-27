@@ -32,7 +32,7 @@ func TestInvalidConnect(t *testing.T) {
 	logger, err := log.NewLogger("postgres-test", io.Discard, log.FmtJSON, log.LevelInfo)
 	require.NoError(t, err)
 
-	_, err = postgres.NewClient(connString, logger, nil)
+	_, err = postgres.NewClient(connString, logger)
 	require.Error(t, err)
 }
 
