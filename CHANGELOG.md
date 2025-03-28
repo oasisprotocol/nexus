@@ -12,6 +12,45 @@ The format is inspired by [Keep a Changelog].
 
 <!-- TOWNCRIER -->
 
+## 0.6.3 (2025-03-28)
+
+### Features
+
+- Implement support for ROFL applications
+  ([#911](https://github.com/oasisprotocol/nexus/issues/911))
+
+  Two ROFL-related analyzer were added. To enable them, use the `rofl_{runtime}`
+  and `rofl_instance_transactions_{runtime}` config fields.
+
+  Added API endpoints:
+
+  - `{runtime}/rofl_apps` - returns a list of ROFL applications
+
+  - `{runtime}/rofl_apps/{id}` - return a specific ROFL application
+
+  - `/{runtime}/rofl_apps/{id}/transactions` - returns a list of management
+  transactions of the ROFL application
+
+  - `/{runtime}/rofl_apps/{id}/instance_transactions` - returns a list of
+  transactions submitted by instances of the ROFL application
+
+  - `/{runtime}/rofl_apps/{id}/instances` - returns a list of ROFL instances for
+  the given ROFL application
+
+  - `/{runtime}/rofl_apps/{id}/instances/{rak}/transactions` - returns a list of
+  transactions submitted by the given ROFL instance
+
+- config: fix consensus_circulating_supply_exclusions via env
+  ([#933](https://github.com/oasisprotocol/nexus/issues/933))
+
+- api/runtime/transactions: Include raw transaction error message
+  ([#936](https://github.com/oasisprotocol/nexus/issues/936))
+
+### Bug Fixes and Improvements
+
+- storage/db: Remove max connection configuration option
+  ([#912](https://github.com/oasisprotocol/nexus/issues/912))
+
 ## 0.6.2 (2025-03-21)
 
 ### Features
