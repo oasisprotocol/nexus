@@ -54,6 +54,24 @@ x-query-params:
       allOf: [$ref: '#/components/schemas/Runtime']
     description: |
       The runtime which to query.
+  - &runtime_tx_method_filter
+    in: query
+    name: method
+    style: form
+    explode: false
+    schema:
+      type: array
+      items:
+        type: string
+    description: |
+      A filter on the runtime transaction method.
+
+      In addition to the existing method names, the following special values are supported:
+        - 'native_transfers': Returns transactions "likely to be native transfers".
+          - These include accounts.Transfer transactions and evm.Calls with an empty 'body' field.
+
+        - 'evm.Call_no_native': Returns EVM calls that are "not likely to be native transfers".
+    example: 'accounts.Transfer'
   - &window_size_seconds
     in: query
     name: window_size_seconds
@@ -915,23 +933,7 @@ paths:
             the sender or the recipient of tokens.
             Nexus detects related accounts inside EVM transactions and events on a
             best-effort basis. For example, it inspects ERC20 methods inside `evm.Call` txs.
-        - in: query
-          name: method
-          style: form
-          explode: false
-          schema:
-            type: array
-            items:
-              type: string
-          description: |
-            A filter on the runtime transaction method.
-
-            In addition to the existing method names, the following special values are supported:
-              - 'native_transfers': Returns transactions "likely to be native transfers".
-                - These include accounts.Transfer transactions and evm.Calls with an empty 'body' field.
-
-              - 'evm.Call_no_native': Returns EVM calls that are "not likely to be native transfers".
-          example: 'accounts.Transfer'
+        - *runtime_tx_method_filter
       responses:
         '200':
           description: |
@@ -1250,6 +1252,141 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RuntimeStatus'
+        <<: *common_error_responses
+
+  /{runtime}/rofl_apps:
+    get:
+      summary: Returns a list of ROFL apps on the runtime.
+      parameters:
+        - *limit
+        - *offset
+        - *runtime
+      responses:
+        '200':
+          description: A JSON object containing a list of ROFL apps.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoflAppList'
+        <<: *common_error_responses
+
+  /{runtime}/rofl_apps/{id}:
+    get:
+      summary: Returns a specific ROFL app.
+      parameters:
+        - *runtime
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: The ID of the ROFL app to return.
+      responses:
+        '200':
+          description: A JSON object containing a ROFL app.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoflApp'
+        <<: *common_error_responses
+
+  /{runtime}/rofl_apps/{id}/transactions:
+    get:
+      summary: |
+        Returns a list of "managing" transactions of the ROFL app.
+        This does not return transaction submitted by ROFL app instances, for that see
+        the `/rofl_apps/{id}/instance_transactions` endpoint.
+      parameters:
+        - *limit
+        - *offset
+        - *runtime
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: The ID of the ROFL app to return transactions for.
+        - *runtime_tx_method_filter
+      responses:
+        '200':
+          description: A JSON object containing a list of transactions.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RuntimeTransactionList'
+        <<: *common_error_responses
+
+  /{runtime}/rofl_apps/{id}/instance_transactions:
+    get:
+      summary: Returns a list of transactions submitted by instances of the ROFL app.
+      parameters:
+        - *limit
+        - *offset
+        - *runtime
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: The ID of the ROFL app to return transactions for.
+        - *runtime_tx_method_filter
+      responses:
+        '200':
+          description: A JSON object containing a list of transactions.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RuntimeTransactionList'
+        <<: *common_error_responses
+
+  /{runtime}/rofl_apps/{id}/instances:
+    get:
+      summary: Returns a list of instances of the given ROFL app.
+      parameters:
+        - *limit
+        - *offset
+        - *runtime
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: The ID of the ROFL app to return instances for.
+      responses:
+        '200':
+          description: A JSON object containing a list of ROFL app instances.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoflAppInstanceList'
+
+  /{runtime}/rofl_apps/{id}/instances/{rak}/transactions:
+    get:
+      summary: Returns a list of transactions submitted by the given ROFL instance.
+      parameters:
+        - *limit
+        - *offset
+        - *runtime
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: The ID of the ROFL app to return transactions for.
+        - in: path
+          name: rak
+          required: true
+          schema:
+            type: string
+          description: The RAK of the ROFL instance to return transactions for.
+        - *runtime_tx_method_filter
+      responses:
+        '200':
+          description: A JSON object containing a list of transactions.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RuntimeTransactionList'
         <<: *common_error_responses
 
   /{layer}/stats/tx_volume:
@@ -3556,6 +3693,113 @@ components:
           format: uint64
           description: The number of active accounts for the 24hour window ending at window_end.
           example: 420
+
+    RoflAppList:
+      allOf:
+        - $ref: '#/components/schemas/List'
+        - type: object
+          required: [rofl_apps]
+          properties:
+            rofl_apps:
+              type: array
+              items:
+                allOf: [$ref: '#/components/schemas/RoflApp']
+          description: |
+            A list of ROFL apps.
+
+    RoflApp:
+      type: object
+      required: [id, admin, stake, policy, sek, metadata, secrets, removed, date_created, active_instances, num_active_instances]
+      properties:
+        id:
+          type: string
+          description: The identifier of the ROFL application.
+        admin:
+          type: string
+          description: The application administrator address.
+        stake:
+          allOf: [$ref: '#/components/schemas/TextBigInt']
+          description: The amount of stake in escrow by the administrator.
+        policy:
+          type: object
+          description: The application authentication policy.
+        sek:
+          type: string
+          description: The secrets encryption public key.
+        metadata:
+          type: object
+          description: Arbitrary key-value pairs.
+        secrets:
+          type: object
+          description: Arbitrary SEK-encrypted key-value pairs.
+        removed:
+          type: boolean
+          description: Whether the application has been removed.
+        date_created:
+          type: string
+          format: date-time
+          description: The date and time when the application was created.
+          example: *iso_timestamp_1
+        last_activity:
+          type: string
+          format: date-time
+          description: The date and time when the application was last active.
+          example: *iso_timestamp_1
+        last_activity_tx:
+          allOf: [$ref: '#/components/schemas/RuntimeTransaction']
+          description: |
+            The most recent transaction associated with this ROFL app.
+            This field is only present when querying a single ROFL app.
+        num_active_instances:
+          type: integer
+          format: uint64
+          description: The number of currently active instances of the application.
+        active_instances:
+          type: array
+          description: |
+            Registered application instances. Only active instances are returned.
+            Use the `{runtime}/rofl_apps/{id}/instances` endpoint to retrieve all instances.
+          items:
+            allOf: [$ref: '#/components/schemas/RoflInstance']
+
+    RoflInstance:
+      type: object
+      required: [rak, endorsing_node_id, rek, expiration_epoch, extra_keys]
+      properties:
+        rak:
+          type: string
+          description: The runtime attestation public key (Ed25519).
+        rek:
+          type: string
+          description: The runtime encryption public key (x25519).
+        endorsing_node_id:
+          type: string
+          description: The identifier of the endorsing node.
+        endorsing_entity_id:
+          type: string
+          description: The optional identifier of the endorsing entity.
+        expiration_epoch:
+          type: integer
+          format: uint64
+          description: The epoch at which the instance expires.
+        extra_keys:
+          type: array
+          items:
+            type: string
+          description: |
+            The extra endorsed public keys. Extra keys can be Ed25519, Secp256k1, or Sr25519. And
+            are stored as json with included type information.
+
+    RoflAppInstanceList:
+      allOf:
+        - $ref: '#/components/schemas/List'
+        - type: object
+          required: [instances]
+          properties:
+            instances:
+              type: array
+              items:
+                allOf: [$ref: '#/components/schemas/RoflInstance']
 
   responses:
     HumanReadableError:

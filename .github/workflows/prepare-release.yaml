@@ -57,6 +57,7 @@ jobs:
           - damask
           - eden
           - edenfast
+          - eden_testnet_2025
     name: test-e2e-regression
     runs-on: ubuntu-20.04
     steps: [{name: "fake success", run: "exit 0"}]

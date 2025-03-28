@@ -1,0 +1,80 @@
+{
+  "active_instances": [
+    {
+      "endorsing_node_id": "7zI/cYuiUTPz61PL9M7f1Q/7b43nG0xk1w6yGde+msQ=",
+      "expiration_epoch": 42724,
+      "extra_keys": [
+        "{\"secp256k1\":\"A/F6qq+T7UR+BM8s+KdHJ0TiufRTcE7odkURAWXSqafC\"}"
+      ],
+      "rak": "8EUGnz+hAqblEMWh+ZHKyZU7CSItm1wrJqK15dAjlfI=",
+      "rek": "QqMeqt6vnRTRiSJOY/3DeSqaC0GupgkZcBjRtOsIQ0c="
+    }
+  ],
+  "admin": "oasis1qpwaggvmhwq5uk40clase3knt655nn2tdy39nz2f",
+  "date_created": "2025-03-11T16:48:44Z",
+  "id": "rofl1qp55evqls4qg6cjw5fnlv4al9ptc0fsakvxvd9uw",
+  "last_activity": "2025-03-11T19:18:26Z",
+  "last_activity_tx": {
+    "amount": "0",
+    "charged_fee": "20000000000000000",
+    "fee": "20000000000000000",
+    "fee_proxy_id": "AGlMsB+FQI1iTqJn9le/KFeHph2z",
+    "fee_proxy_module": "rofl",
+    "fee_symbol": "TEST",
+    "gas_limit": 200000,
+    "gas_used": 63820,
+    "hash": "7afd70194b4336867e4fdeff85c78936701948ea290f47b488bb4014da56073a",
+    "index": 1,
+    "is_likely_native_token_transfer": false,
+    "method": "",
+    "nonce_0": 1707,
+    "oasis_encryption_envelope": {
+      "data": "yRZb/wQINM+CRJzZZy2+azEcMyWWBEnV3C2TWjPnPZv9Xcq5PFs4ILZTxYe5w6M/a+nGoz2kowjvv34eMqFbnlS7xcocFBaaz9rp493f5njlGicbpRXQED/rQNyNzGB0ClUoxI0BbmniDJ/UNyz8CprrmwnrLAjHut4vth7XXSBEkRF4u/22Gf5q7R83NYVR/UaZ59tscRWvCwlHYCxU",
+      "data_nonce": "ApOFUZyjI+tACO/9t0gL",
+      "format": "encrypted/x25519-deoxysii",
+      "public_key": "KewWi97t4PuSKawE8R2/M6plmaawGtEBu1BLqCM4Exw=",
+      "result": "6m+zNLWa7aVYaEa6UmyZlsZoc6Rg",
+      "result_nonce": "AAAAAACj8LYAAAABAAAA"
+    },
+    "round": 10743991,
+    "sender_0": "oasis1qzf8zl5g2g6awzvvc8xs24jm8ewvp7k205pmsg6j",
+    "sender_0_eth": "0xa194D3118d4ce56f30Eb74DF30Ff06423ABd1F05",
+    "signers": [
+      {
+        "address": "oasis1qzf8zl5g2g6awzvvc8xs24jm8ewvp7k205pmsg6j",
+        "address_eth": "0xa194D3118d4ce56f30Eb74DF30Ff06423ABd1F05",
+        "nonce": 1707
+      }
+    ],
+    "size": 512,
+    "timestamp": "2025-03-11T19:18:26Z"
+  },
+  "metadata": null,
+  "num_active_instances": 1,
+  "policy": {
+    "enclaves": [
+      "pwl5NhdfqHhw9O7pEUUQtPVnPS3D447JH2YEywykCcQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+      "Dl83HSFL3IjplvKGnmmDk9zeD0/Ea4qxHqqrzRIb050AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=="
+    ],
+    "endorsements": [
+      {
+        "any": {}
+      }
+    ],
+    "fees": 2,
+    "max_expiration": 3,
+    "quotes": {
+      "pcs": {
+        "min_tcb_evaluation_data_number": 17,
+        "tcb_validity_period": 30,
+        "tdx": {}
+      }
+    }
+  },
+  "removed": false,
+  "secrets": {
+    "foo": "pGJwa1ggL8WH1uN4duUVQbrxegApzlW4yXd+96ygfpYG8Qdy/DFkbmFtZVNl0HYM2zBxzZS4buSPZWbQV8l+ZW5vbmNlTypzdpiaAo45zHiAqMst5mV2YWx1ZVTFJjKzfthesm/P4tuLPG3AsVkiIA=="
+  },
+  "sek": "438B4/HJ6nmyzg0v50UxvRiBLn9ZJRa8uzDjpsD18Dw=",
+  "stake": "10000000000000000000000"
+}

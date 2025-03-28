@@ -140,6 +140,7 @@ jobs:
           - damask
           - eden
           - edenfast
+          - eden_testnet_2025
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout code

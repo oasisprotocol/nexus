@@ -1,0 +1,490 @@
+{
+  "epoch": 42718,
+  "gas_limit": "5000000",
+  "hash": "605d72d786a40af405defbc660ad35afe91f0534fd9afa0a5bd2622c5ef8c7d4",
+  "height": 25640984,
+  "num_transactions": 23,
+  "proposer": {
+    "entity_address": "oasis1qqv25adrld8jjquzxzg769689lgf9jxvwgjs8tha",
+    "entity_id": "ekP4j+817Qhh3/DruBXVv/8ypI2CAnK1LAfuVxNazNc=",
+    "entity_metadata": null
+  },
+  "signers": [
+    {
+      "entity_address": "oasis1qpc66dgff4wrkj8kac4njrl2uvww3c9m5ycjwar2",
+      "entity_id": "dyh4HqSlTabRSgqUHmcUOUt2bmcjCkmTDL3IAZV9ZCc=",
+      "entity_metadata": {
+        "v": 1,
+        "url": "https://www.forbole.com",
+        "name": "Forbole-Testnet",
+        "serial": 1,
+        "keybase": "forbole",
+        "twitter": "forbole"
+      }
+    },
+    {
+      "entity_address": "oasis1qpgg65qg7r7yy2a0qp2yufvcsyl2lm46lg03g6cp",
+      "entity_id": "LXXBwwqBgwP3Jd3qCAWDpDBYmeMvX0mtmCsCUveGKuk=",
+      "entity_metadata": {
+        "v": 1,
+        "url": "https://keybase.io/code_breader",
+        "name": "Breathe and Stake",
+        "email": "breaderdaily@gmail.com",
+        "serial": 1,
+        "keybase": "code_breader"
+      }
+    },
+    {
+      "entity_address": "oasis1qphcvmsh6mw98vtg0cg4dvdsen5tm0g3e58eqpnp",
+      "entity_id": "oLM78jZoGtkkx/0zN4CLGbucWCreI/N5JbIHP5UJO9k=",
+      "entity_metadata": {
+        "v": 1,
+        "url": "https://t.me/dimaro",
+        "name": "Appload",
+        "email": "dmytro.rozum@gmail.com",
+        "serial": 1,
+        "keybase": "appload"
+      }
+    },
+    {
+      "entity_address": "oasis1qphhz4u08xgt4wk85x4t8xv6g3nxy8fq5ue4htxr",
+      "entity_id": "nt9VYeY++mGIwmjM9wYfnF7lqTqoxNof8MsIkECtLpE=",
+      "entity_metadata": {
+        "v": 1,
+        "name": "Kumaji",
+        "email": "blayde.rath16@gmail.com",
+        "serial": 1,
+        "keybase": "kumaji",
+        "twitter": "RathBlayde"
+      }
+    },
+    {
+      "entity_address": "oasis1qpq97fm6lf87jzms9agd6z902nh7axtxvus6m352",
+      "entity_id": "ogu6Urem5rHBc0BiGYM9nFnohXXARFfYkDyV9liDMBI=",
+      "entity_metadata": {
+        "v": 1,
+        "url": "https://keybase.io/ludasik",
+        "name": "LDV",
+        "email": "hopesanget@gmail.com",
+        "serial": 1,
+        "keybase": "ludasik"
+      }
+    },
+    {
+      "entity_address": "oasis1qpswaz4djukz0zanquyh2vswk59up22emysq5am9",
+      "entity_id": "i8peRo2Ueh6QohfYCyOEkBRSSU1oyVCES/29HZJbLOc=",
+      "entity_metadata": {
+        "v": 1,
+        "url": "https://stakeservice.com/",
+        "name": "StakeService",
+        "email": "tech@stakeservice.com",
+        "serial": 1,
+        "keybase": "stakeservice",
+        "twitter": "stakeservice"
+      }
+    },
+    {
+      "entity_address": "oasis1qpxaq8thpx3y8wumn6hmfx70rvk0j9cxrgz9h27k",
+      "entity_id": "/VHWRrFzXXWAH+tH/DR55Vehchhe4YPPmXh+6IXj3jE=",
+      "entity_metadata": {
+        "v": 1,
+        "url": "https://colossus.digital/",
+        "name": "Colossus",
+        "email": "info@colossus.digital",
+        "serial": 1,
+        "keybase": "colossusdigital",
+        "twitter": "Colossusitaly"
+      }
+    },
+    {
+      "entity_address": "oasis1qq2vdcvkyzdghcrrdhvujk3tvva84wd9yvt68zyx",
+      "entity_id": "WfLM2tJM1E586dI7myztwIEUQ2mFBoQa4lIbMNfDo+A=",
+      "entity_metadata": {
+        "v": 1,
+        "name": "Lusia",
+        "serial": 1,
+        "twitter": "SuperLusia"
+      }
+    },
+    {
+      "entity_address": "oasis1qq2vzcvxn0js5unsch5me2xz4kr43vcasv0d5eq4",
+      "entity_id": "eDSVqk3OC1t5/HzTcdLJH0nZ4FVCv1ikXrY0JMbYgco=",
+      "entity_metadata": null
+    },
+    {
+      "entity_address": "oasis1qq45am6gzaur2rxhk26av9qf7ryhgca6ecg28clu",
+      "entity_id": "ZxJyyH+JPdGNfjy+ZPq+GpFY0fAJKm9VFXZIPwMcKm4=",
+      "entity_metadata": {
+        "v": 1,
+        "url": "https://aitivity.com",
+        "name": "Jr",
+        "email": "contact@aitivity.com",
+        "serial": 1,
+        "keybase": "jrastit",
+        "twitter": "zgenerator"
+      }
+    },
+    {
+      "entity_address": "oasis1qq4fj0fdydz83zvcgt4kn38ea7ncm3dj8qkcfnm4",
+      "entity_id": "Efqu3z0lip+aDXkJUZqL9KfqpUIrgvISgGOdE/3OITw=",
+      "entity_metadata": {
+        "v": 1,
+        "url": "https://github.com/wanderer-cry",
+        "name": "Wanderer Staking",
+        "email": "alawookal@gmail.com",
+        "serial": 1,
+        "keybase": "wanderer_s",
+        "twitter": "ser_wanderer"
+      }
+    },
+    {
+      "entity_address": "oasis1qq60zmsfca0gvmm3v8906pn5zqtt4ee2ssexramg",
+      "entity_id": "ucBShpGap3zSeKqkAo5XRcfeOZrvQYAK37CKUHrCK9A=",
+      "entity_metadata": {
+        "v": 1,
+        "url": "https://www.validatrium.com",
+        "name": "Validatrium",
+        "email": "validatrium@gmail.com",
+        "serial": 1,
+        "keybase": "validatrium",
+        "twitter": "validatrium"
+      }
+    },
+    {
+      "entity_address": "oasis1qq6k7q4uukpucz322m8dhy0pt0gvfdgrvcvrx2rm",
+      "entity_id": "W/Fj1JlO2hAgVSohQZZ3OQDb39Yf9O/jXxcOeW5E6AQ=",
+      "entity_metadata": {
+        "v": 1,
+        "url": "https://spectrumstaking.net/",
+        "name": "Spectrum Staking",
+        "email": "info@spectrumstaking.net",
+        "serial": 1,
+        "keybase": "spectrum_staking",
+        "twitter": "SpectrumStaking"
+      }
+    },
+    {
+      "entity_address": "oasis1qq87z733lxx87zyuutee5xpxcksqk3mj9uq3xvaq",
+      "entity_id": "EHvOdqDElP5ozbICSKy3UOXQlcsvqZr+9rQvAJHcf9k=",
+      "entity_metadata": {
+        "v": 1,
+        "url": "https://www.w3coins.io",
+        "name": "w3coins",
+        "email": "info@w3coins.io",
+        "serial": 3,
+        "keybase": "w3coins",
+        "twitter": "w3coins_io"
+      }
+    },
+    {
+      "entity_address": "oasis1qqgvqelw8kmcd8k4cqypcsyajkl3gq6ppc4t34n2",
+      "entity_id": "dyB+VjBP2/rkIL8/7E4cymsTvC2pW5lkxawGzEP2IMw=",
+      "entity_metadata": {
+        "v": 1,
+        "url": "https://www.ankastake.com/",
+        "name": "AnkaStake",
+        "email": "hello@ankastake.com",
+        "serial": 1,
+        "keybase": "ankastake",
+        "twitter": "ankastake"
+      }
+    },
+    {
+      "entity_address": "oasis1qqsxhxedvzt0et3sahcqcjw02p4kcz92dqtjuzwh",
+      "entity_id": "7C3hcBmlqELviUrYCTRsl0vY8GdwF5cC5ymBPVH8WSU=",
+      "entity_metadata": {
+        "v": 1,
+        "name": "BroMyb",
+        "serial": 1,
+        "keybase": "bromyb"
+      }
+    },
+    {
+      "entity_address": "oasis1qqv25adrld8jjquzxzg769689lgf9jxvwgjs8tha",
+      "entity_id": "ekP4j+817Qhh3/DruBXVv/8ypI2CAnK1LAfuVxNazNc=",
+      "entity_metadata": null
+    },
+    {
+      "entity_address": "oasis1qqxxut9x74dutu587f9nj8787qz4dm0ueu05l88c",
+      "entity_id": "+fzk/Pi4DBmPhCzs8Gsw+jrbv9Z6HMfIdohb/hqWe7g=",
+      "entity_metadata": {
+        "v": 1,
+        "url": "https://princess-stake.github.io/",
+        "name": "Princess Stake",
+        "serial": 2,
+        "keybase": "princess_stake"
+      }
+    },
+    {
+      "entity_address": "oasis1qr2jxg57ch6p3787t2a8973v8zn8g82nxuex0773",
+      "entity_id": "pERaTagl7a57dXiVI3ZzoQbWskX3YmUHppeqcPdCVY8=",
+      "entity_metadata": {
+        "v": 1,
+        "url": "https://doorgod42.github.io",
+        "name": "Doorgod",
+        "email": "doorgod42@gmail.com",
+        "serial": 4,
+        "keybase": "doorgod",
+        "twitter": "doorgod42"
+      }
+    },
+    {
+      "entity_address": "oasis1qr4vsan850vmztuy9r2pex4fj4wxnmhvlgclg500",
+      "entity_id": "h+Tz+tBZ2yjUaDQm8GjnT358tVp0nh3jH+WguJIC2jM=",
+      "entity_metadata": null
+    },
+    {
+      "entity_address": "oasis1qrcf5mwjyu7hahwfjgwmywhy9cjyaqdd5vkj7ah3",
+      "entity_id": "inmsch9/EgTH/b3HLp9icW/q2W+FpWXuZh9HUgDf6zk=",
+      "entity_metadata": {
+        "v": 1,
+        "url": "https://www.kruptosnomisma.org/",
+        "name": "ou812",
+        "serial": 3,
+        "keybase": "thecovertcrypto"
+      }
+    },
+    {
+      "entity_address": "oasis1qrfeessnrnyaggvyvne52aple2f8vaw93vt608sz",
+      "entity_id": "QgG1hFl4On84uVIrd++d3HxwoirdopH6oRmpltAIxxQ=",
+      "entity_metadata": {
+        "v": 1,
+        "url": "https://keybase.io/julia_ju",
+        "name": "Julia-Ju",
+        "serial": 1,
+        "keybase": "julia_ju"
+      }
+    },
+    {
+      "entity_address": "oasis1qrfkdy3unrkfuzg9gedczncdddptddg64gp2txm8",
+      "entity_id": "pGujp9V7L3yrEwv2HiA2bkimjxDPXF/Gbp4HeFlU3nc=",
+      "entity_metadata": null
+    },
+    {
+      "entity_address": "oasis1qrg430wr84xqh2pm6hv609v7jx9j3gt7xykmjl65",
+      "entity_id": "w+RegHqNnDGjEHukprzt4CZGr24ZJ8NY7scX7yuK2R4=",
+      "entity_metadata": {
+        "v": 1,
+        "name": "cherkes",
+        "serial": 1,
+        "keybase": "cherkes",
+        "twitter": "CryptoMad77"
+      }
+    },
+    {
+      "entity_address": "oasis1qrkf98prkpf05kd6he7wcvpzr9sd6gs2jvrn5keh",
+      "entity_id": "Y1FLFDa4o7JbRnjHc53AwvHzUEEShwEicxREwaKkPks=",
+      "entity_metadata": {
+        "v": 1,
+        "url": "https://t.me/glebanyy",
+        "name": "glebanyy",
+        "serial": 1
+      }
+    },
+    {
+      "entity_address": "oasis1qrkwv688m3naejcy8rhycls8r78ga0th4qaun90k",
+      "entity_id": "sKJ7WWqPBgo7Qg03SLb/lgO7J67BybQiFXn1cwMSFjU=",
+      "entity_metadata": {
+        "v": 1,
+        "name": "Tuzem",
+        "email": "vanya_shakhmin@mail.ru",
+        "serial": 1,
+        "keybase": "tuzem",
+        "twitter": "Staker445"
+      }
+    },
+    {
+      "entity_address": "oasis1qrp0cgv0u5mxm7l3ruzqyk57g6ntz6f8muymfe4p",
+      "entity_id": "IRvPVE480/nTZf6WqEaxVhkPxstagLuG8WVO8O8izBg=",
+      "entity_metadata": {
+        "v": 1,
+        "name": "ELYSIUM",
+        "serial": 1,
+        "keybase": "elysium1",
+        "twitter": "ceron_trader"
+      }
+    },
+    {
+      "entity_address": "oasis1qrq7hgvv26003hy89klcmy3mnedrmyd7lvf0k6qn",
+      "entity_id": "eAktV5Y92L53zBVNuS+pVXjlwZ35BbGLjSXgS/niLzM=",
+      "entity_metadata": {
+        "v": 1,
+        "url": "https://perfectstake.com",
+        "name": "Perfect Stake",
+        "email": "perfectstake@gmail.com",
+        "serial": 1,
+        "keybase": "perfectstake",
+        "twitter": "perfectstake"
+      }
+    },
+    {
+      "entity_address": "oasis1qrrggkf3jxa3mqjj0uzfpn8wg5hpsn5hdvusqspc",
+      "entity_id": "WBgzYbX1ks0zB33f92JcBXdb5kVam7Sx1G7uepugqBI=",
+      "entity_metadata": {
+        "v": 1,
+        "url": "https://www.bitcat365.com",
+        "name": "Bit Cat😻 ",
+        "serial": 1,
+        "keybase": "bitcat365",
+        "twitter": "bitcat365"
+      }
+    },
+    {
+      "entity_address": "oasis1qrruwg0y4au55efu0pcgl0nanaq6p3sdwv0jhzv5",
+      "entity_id": "W4mvWjUL27JnIbC3iQOlrKdpsIVFoQ8RDpt6wv1mocw=",
+      "entity_metadata": {
+        "v": 1,
+        "name": "Dobrynya Hukutu4",
+        "email": "rusakhmadeev@gmail.com",
+        "serial": 1,
+        "keybase": "hukutu4"
+      }
+    },
+    {
+      "entity_address": "oasis1qrwncs459lauc77zw23efdn9dmfcp23cxv095l5z",
+      "entity_id": "28aMPjNWp+uKage0NlFpb3W7T/en7HRZfLk4xcZqD0U=",
+      "entity_metadata": {
+        "v": 1,
+        "url": "https://gateomega.com",
+        "name": "GateOmega",
+        "email": "hello@gateomega.com",
+        "serial": 2,
+        "keybase": "gateomega",
+        "twitter": "GateOmega"
+      }
+    },
+    {
+      "entity_address": "oasis1qz2tg4hsatlxfaf8yut9gxgv8990ujaz4sldgmzx",
+      "entity_id": "1vx76faX+ARwAY4sEoEaC9oMgZ/BFWfij17SrSS2iQ0=",
+      "entity_metadata": null
+    },
+    {
+      "entity_address": "oasis1qz424yg28jqmgfq3xvly6ky64jqnmlylfc27d7cp",
+      "entity_id": "/WtQZM18TNzYdWRlLn4SW7Orn/dK3O5iuLXqBsIiaws=",
+      "entity_metadata": null
+    },
+    {
+      "entity_address": "oasis1qz4532s3lhkpju7fd3mxqfvaw98pjq5htss4g4w0",
+      "entity_id": "np5ghSwh8QmA2CwtvgtbQ2p+BDspieZ5u9gu6pczHuo=",
+      "entity_metadata": {
+        "v": 1,
+        "name": "RedHead",
+        "serial": 1,
+        "twitter": "Red__Head"
+      }
+    },
+    {
+      "entity_address": "oasis1qz5zfcaqqud75naqln92ez7czjxf0dpyj5rmtfls",
+      "entity_id": "W51yg1gYW3yRwgnGYyGFGPW6YF/cnVoJYfALZNhWdhk=",
+      "entity_metadata": {
+        "v": 1,
+        "name": "alexandr0",
+        "email": "damiralarionova95@mail.ru",
+        "serial": 1,
+        "keybase": "Alexandr0",
+        "twitter": "padygumuk51"
+      }
+    },
+    {
+      "entity_address": "oasis1qz6tqn2ktffz2jjlj2fwqlhw7f2rwwud5ghh54yv",
+      "entity_id": "h+8UuA74MU55qKDosnQ+mcPkMEbAFfqXnpGBjZQur0Q=",
+      "entity_metadata": {
+        "v": 1,
+        "url": "https://wehaveservers.com",
+        "name": "WeHaveServers.com",
+        "serial": 1,
+        "keybase": "wehaveservers"
+      }
+    },
+    {
+      "entity_address": "oasis1qz8w4erh0kkwpmdtwd3dt9ueaz9hmzfpecjhd7t4",
+      "entity_id": "dXBtIJ1+LMkIaydaSUS3quh4bHFgjf8kSJd6n666lk8=",
+      "entity_metadata": {
+        "v": 1,
+        "url": "https://www.chlorisnetwork.com/",
+        "name": "Chloris Network",
+        "email": "info@chlorisnetwork.com",
+        "serial": 1,
+        "keybase": "chlorisnetwork",
+        "twitter": "chlorisnetwork"
+      }
+    },
+    {
+      "entity_address": "oasis1qz9x0zpja6n25hc5242k2e60l6a7ke2zsq9cqrqz",
+      "entity_id": "/RupFkoz/Hep2Xm1eqtzwuLw+hS2AQNiKVgqQwnMalE=",
+      "entity_metadata": {
+        "v": 1,
+        "url": "https://sergo.top/",
+        "name": "SerGo",
+        "serial": 1,
+        "keybase": "crazysergo",
+        "twitter": "SGolovatenko"
+      }
+    },
+    {
+      "entity_address": "oasis1qzcemlzf7zv2jxsufex4h9mjaqwy4upnzy7qrl7x",
+      "entity_id": "t3jFBQQFkoVajtoje2EHB9oYiHYpoiaARtI2sag3+vU=",
+      "entity_metadata": {
+        "v": 1,
+        "url": "https://making.cash/",
+        "name": "Making.Cash Validator",
+        "email": "tech@making.cash",
+        "serial": 1,
+        "keybase": "makingcash"
+      }
+    },
+    {
+      "entity_address": "oasis1qzlzczsdme4scprjjh4h4vtljnmx3ag4vgpdnqln",
+      "entity_id": "L/xlgKf4Tx1XZogRBnuBmFS52NFoccW6QjMA8VS7g1g=",
+      "entity_metadata": {
+        "v": 1,
+        "url": "https://keybase.io/bambarello",
+        "name": "Alexander (aka Bambarello) Validator",
+        "email": "bambarello@protonmail.com",
+        "serial": 1,
+        "keybase": "bambarello"
+      }
+    },
+    {
+      "entity_address": "oasis1qzwe6xywazp29tp20974wgxhdcpdf6yxfcn2jxvv",
+      "entity_id": "RKCvE04I/BWb7VC6tzAetR3cLSlmPOrshElcoFLCjnk=",
+      "entity_metadata": {
+        "v": 1,
+        "url": "https://simply-vc.com.mt/",
+        "name": "Simply Staking",
+        "email": "staking@simply-vc.com.mt",
+        "serial": 1,
+        "keybase": "simplyvc",
+        "twitter": "Simply_VC"
+      }
+    },
+    {
+      "entity_address": "oasis1qzxtc82d7gmcr5yazlu786gkwcvukz3zvu9ph5la",
+      "entity_id": "LMByxWPjHKNOPuF5p0nigt7qf2P5VWA9OdnGYV6gJt0=",
+      "entity_metadata": {
+        "v": 1,
+        "url": "https://stake2.me",
+        "name": "ushakov",
+        "email": "riddler78@mail.ru",
+        "serial": 1,
+        "keybase": "ushakov",
+        "twitter": "1lucky_star"
+      }
+    },
+    {
+      "entity_address": "oasis1qzz9wdgt4hxfmcelfgyg8ne827a47pvh4g4jamtu",
+      "entity_id": "ZdA1Wc50Pe3eWSUcmiznyOwApRTSHg3xFgjSHuv1Zjo=",
+      "entity_metadata": {
+        "v": 1,
+        "name": "max999",
+        "email": "evseviyadanilova97@mail.ru",
+        "serial": 1,
+        "keybase": "sukhov",
+        "twitter": "ValyaSukhov"
+      }
+    }
+  ],
+  "size_limit": "4194304",
+  "state_root": "21b0af4a839bc5bb4d5a74971759b2415199c9930be19eb205c56317104845e6",
+  "timestamp": "2025-03-11T15:40:32Z"
+}

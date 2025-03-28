@@ -10,6 +10,8 @@ source "$E2E_REGRESSION_DIR/common_test_cases.sh"
 
 testCases=(
   "${commonTestCases[@]}"
+  "${commonMainnetTestCases[@]}"
+  "${commonEmeraldTestCases[@]}"
   'block                              /v1/consensus/blocks/16818000'
   # 'blocks_proposed_by                 /v1/consensus/blocks?proposed_by=oasis1qqekv2ymgzmd8j2s2u7g0hhc7e77e654kvwqtjwm' // Enable once https://github.com/oasisprotocol/nexus/issues/795 is fixed.
   'entity                             /v1/consensus/entities/oasis1qqekv2ymgzmd8j2s2u7g0hhc7e77e654kvwqtjwm'

@@ -107,3 +107,35 @@ func (r *FileRuntimeApiLite) EVMGetCode(ctx context.Context, round uint64, addre
 		},
 	)
 }
+
+func (r *FileRuntimeApiLite) RoflApps(ctx context.Context, round uint64) ([]*nodeapi.AppConfig, error) {
+	return kvstore.GetSliceFromCacheOrCall(
+		r.db, round == roothash.RoundLatest,
+		kvstore.GenerateCacheKey("RoflApps", r.runtime, round),
+		func() ([]*nodeapi.AppConfig, error) { return r.runtimeApi.RoflApps(ctx, round) },
+	)
+}
+
+func (r *FileRuntimeApiLite) RoflApp(ctx context.Context, round uint64, id nodeapi.AppID) (*nodeapi.AppConfig, error) {
+	return kvstore.GetFromCacheOrCall(
+		r.db, round == roothash.RoundLatest,
+		kvstore.GenerateCacheKey("RoflApp", r.runtime, round, id),
+		func() (*nodeapi.AppConfig, error) { return r.runtimeApi.RoflApp(ctx, round, id) },
+	)
+}
+
+func (r *FileRuntimeApiLite) RoflAppInstances(ctx context.Context, round uint64, id nodeapi.AppID) ([]*nodeapi.Registration, error) {
+	return kvstore.GetSliceFromCacheOrCall(
+		r.db, round == roothash.RoundLatest,
+		kvstore.GenerateCacheKey("RoflAppInstances", r.runtime, round, id),
+		func() ([]*nodeapi.Registration, error) { return r.runtimeApi.RoflAppInstances(ctx, round, id) },
+	)
+}
+
+func (r *FileRuntimeApiLite) RoflAppInstance(ctx context.Context, round uint64, id nodeapi.AppID, rak nodeapi.PublicKey) (*nodeapi.Registration, error) {
+	return kvstore.GetFromCacheOrCall(
+		r.db, round == roothash.RoundLatest,
+		kvstore.GenerateCacheKey("RoflAppInstance", r.runtime, round, id, rak),
+		func() (*nodeapi.Registration, error) { return r.runtimeApi.RoflAppInstance(ctx, round, id, rak) },
+	)
+}

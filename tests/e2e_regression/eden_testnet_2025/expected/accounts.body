@@ -1,0 +1,1406 @@
+{
+  "accounts": [
+    {
+      "address": "oasis1qq2xx4pgk0wa73363l287wy48lmaf3v8tymthyhv",
+      "allowances": null,
+      "available": "3301069945443333343",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "33563451494682725",
+      "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 19,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qzn7r7rmnk3w63e3f562x983xrfgr0cklchusgja",
+      "allowances": null,
+      "available": "3320325437343331323",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "11562292901029739",
+      "escrow": "200000000000",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 70,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qrwdwxutpyr9d2m84zh55rzcf99aw0hkts7myvv9",
+      "allowances": null,
+      "available": "1858399196956264329",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "20154794319022541",
+      "escrow": "10000000000000000",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 15,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qrmufhkkyyf79s5za2r8yga9gnk4t446dcy3a5zm",
+      "allowances": null,
+      "available": "1385641469493320969",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "0",
+      "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 0,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qzzfdhgzwhw3sq2lngvtk8da57f7l90amy9z295r",
+      "allowances": null,
+      "available": "57956655000000000",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "30000000000000",
+      "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 5,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qr629x0tg9gm5fyhedgs9lw5eh3d8ycdnsxf0run",
+      "allowances": null,
+      "available": "2590886699343305",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "0",
+      "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 0,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qqczuf3x6glkgjuf0xgtcpjjw95r3crf7y2323xd",
+      "allowances": null,
+      "available": "1462698838676672",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "4144485244365",
+      "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 0,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qq4psu4wa8vt46rkl28nk2yh2k3caav2454qv2we",
+      "allowances": null,
+      "available": "1008439350000000",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "0",
+      "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 29,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qqdcs4gj5g0kykdcy9s32snh8a58swgkhyj6kzdy",
+      "allowances": null,
+      "available": "970545000000000",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "0",
+      "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 2,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qrs2dl6nz6fcxxr3tq37laxlz6hxk6kuscnr6rxj",
+      "allowances": null,
+      "available": "780160000000000",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "95000000000000",
+      "escrow": "15000000000000",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 69,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qrx85mv85k708ylww597rd42enlzhdmeu56wqj72",
+      "allowances": null,
+      "available": "725480000000000",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "77411119949741",
+      "escrow": "5822500000000",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 23,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qr8znzva3h28hausy7n3fput0fn80sajeywmwp5y",
+      "allowances": null,
+      "available": "607322000000000",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "1127118463480",
+      "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 29,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qphd6yc4a3ek2t4r4kpmknnrfdckmqspecfjs6en",
+      "allowances": null,
+      "available": "585495000000000",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "0",
+      "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 82,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qpkse79gkulx6ufuun84xkcwt3twq97lnckenn06",
+      "allowances": null,
+      "available": "60000000000000",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "140000000000000",
+      "escrow": "80000000000000",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 21,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qr0zrwfzlhqtffse6amrymtrk3e2tgnr852mht2t",
+      "allowances": null,
+      "available": "151000000000000",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "0",
+      "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 0,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qqkgm04sr7ukkj7ejuepc774wecad3r535x5ku8m",
+      "allowances": null,
+      "available": "149300000000000",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "229248649774",
+      "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 3,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qq706satr634yu57d9ha3gfwa5sv4h6egs0wa8dh",
+      "allowances": null,
+      "available": "99870120000000",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "0",
+      "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 42,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qpxt6sl3p3n0pgz29tcf23zr4p9m923gcy7jam7x",
+      "allowances": null,
+      "available": "99806180000000",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "0",
+      "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 63,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qpcgked2lv5lg250uvgf0hw6clsx3mjtaq3h7lu2",
+      "allowances": null,
+      "available": "90000000000000",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "0",
+      "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 6,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qpz3xt3emclnzyg95hdqh8g4hwq64acsvywha03p",
+      "allowances": null,
+      "available": "70890000000000",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "0",
+      "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 4,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qz9re9hc0k9qxrhvww7x9zrfv8x8jpr4kcr2twr2",
+      "allowances": null,
+      "available": "50359880000000",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "0",
+      "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 11,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qz4fy4z4mnjnxa9edv765rm6tm44pvwwuvn3ckz2",
+      "allowances": null,
+      "available": "49359000060000",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "700999940000",
+      "escrow": "700999940000",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 38,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qrtsqnrhmf3edemsuqgjtz9lw7x389ptgv09qpzs",
+      "allowances": null,
+      "available": "12000000000000",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "38000000000000",
+      "escrow": "31000000000000",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 30,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qr9ugwvu337v9hcwuc982ccphd0y9yqd4y4gwkgz",
+      "allowances": null,
+      "available": "32385890474412",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "439870302115",
+      "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 687,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qrwncs459lauc77zw23efdn9dmfcp23cxv095l5z",
+      "allowances": null,
+      "available": "141537901759",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "28649798958993",
+      "escrow": "45461481771237",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 6,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qrjcyxa8luk3f85xupyzal3xkasfxwkjrumn86kd",
+      "allowances": null,
+      "available": "28610000000000",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "0",
+      "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 5,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qq7h5u590y8h9aukrvjrf96y7hgnay0zdurrd772",
+      "allowances": null,
+      "available": "18084000000000",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "10486549313141",
+      "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 14,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qzeucz6nf5mwmu9m2ny4slguye5n6d8q7uvxgzex",
+      "allowances": null,
+      "available": "23810000000000",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "227018839181",
+      "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 5,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qqxr0y8xyglfe002h7vxgg3jvwkgagyeuqnvgh4e",
+      "allowances": null,
+      "available": "24000000000000",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "0",
+      "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 0,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qqxxut9x74dutu587f9nj8787qz4dm0ueu05l88c",
+      "allowances": null,
+      "available": "19365593388447",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "3194474328316",
+      "escrow": "3702002054914",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 24,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qqdn25n5a2jtet2s5amc7gmchsqqgs4j0qcg5k0t",
+      "allowances": null,
+      "available": "20986015400800",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "0",
+      "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 0,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qplxhn8edcl9rl49umz85ss8fa59dm89xscs5gd5",
+      "allowances": null,
+      "available": "10140000000000",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "10000000000000",
+      "escrow": "70000000000000",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 221,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qpz8se79lxcpk5memhvw94n5ermujh36kcyfsynx",
+      "allowances": null,
+      "available": "0",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "20100000000000",
+      "escrow": "20100000000000",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 7,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qqd8sfatmpjgdszyqlgeqxkf47l546f8evh7yrg0",
+      "allowances": null,
+      "available": "20000000000000",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "0",
+      "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 1,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qr8592waha8t70mvz5jjzaxprm46mshrtcgtyf9m",
+      "allowances": null,
+      "available": "19812018998999",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "0",
+      "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 8,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qq60zmsfca0gvmm3v8906pn5zqtt4ee2ssexramg",
+      "allowances": null,
+      "available": "1005597174470",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "18342189410879",
+      "escrow": "38890502492632",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 9,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qrxv6r6gdsu3n748u5cc8mp3rxwwsywj7u6eytwf",
+      "allowances": null,
+      "available": "18795999990000",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "101000000000",
+      "escrow": "101000000000",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 11,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qpyax9pgkspa5qa5r5vctrgcnzr6cvmcju8hedy4",
+      "allowances": null,
+      "available": "15100000000000",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "0",
+      "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 0,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qpwaggvmhwq5uk40clase3knt655nn2tdy39nz2f",
+      "allowances": null,
+      "available": "14450000000000",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "0",
+      "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 28,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qzjm0zwfg4egs9kk4d9rkujudzk8pjp5rvxyr3ag",
+      "allowances": null,
+      "available": "1549357083832",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "12866576416948",
+      "escrow": "12866576416948",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 38,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qrs594jx6ytzgqp92uxqlr8n5qdcrpemv5xg4wn4",
+      "allowances": null,
+      "available": "8924570000000",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "5121421196216",
+      "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 20,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qq4mmy3n7us7d5s8mw03xknfxfmcp7d37gexpc6h",
+      "allowances": null,
+      "available": "1999999860000",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "12000000000000",
+      "escrow": "12000000000000",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 6,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qpq97fm6lf87jzms9agd6z902nh7axtxvus6m352",
+      "allowances": null,
+      "available": "2015219367305",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "11830169736937",
+      "escrow": "12035058106341",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 6,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qpc66dgff4wrkj8kac4njrl2uvww3c9m5ycjwar2",
+      "allowances": null,
+      "available": "12605468787868",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "1150209812466",
+      "escrow": "1150209812466",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 19,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qq56gcyelduztrypzfa79y59xt5fmcfzhs2e3g3a",
+      "allowances": null,
+      "available": "1999993000",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "13729533671908",
+      "escrow": "500000000000",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 6,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qrkwv688m3naejcy8rhycls8r78ga0th4qaun90k",
+      "allowances": null,
+      "available": "106037898186",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "13490617902672",
+      "escrow": "13898310925434",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 3,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qrg430wr84xqh2pm6hv609v7jx9j3gt7xykmjl65",
+      "allowances": null,
+      "available": "505020041809",
+      "debonding": "1999999999",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "13036210245609",
+      "escrow": "13256733863240",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 3,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qqsxhxedvzt0et3sahcqcjw02p4kcz92dqtjuzwh",
+      "allowances": null,
+      "available": "1005037892751",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "12469230584256",
+      "escrow": "12469230584256",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 4,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qpz97gfrvj5xzx8jx7x9zweeq0rcf2q6jg4a09qz",
+      "allowances": null,
+      "available": "2004576261438",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "11332289126898",
+      "escrow": "11543673478451",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 5,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qpgg65qg7r7yy2a0qp2yufvcsyl2lm46lg03g6cp",
+      "allowances": null,
+      "available": "2004964999947",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "11312350371230",
+      "escrow": "11312350371230",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 5,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qq4fj0fdydz83zvcgt4kn38ea7ncm3dj8qkcfnm4",
+      "allowances": null,
+      "available": "7005453093388",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "5656786009294",
+      "escrow": "5861535078530",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 5,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qzcemlzf7zv2jxsufex4h9mjaqwy4upnzy7qrl7x",
+      "allowances": null,
+      "available": "7006209045185",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "5646155502760",
+      "escrow": "5839961931061",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 3,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qrq7hgvv26003hy89klcmy3mnedrmyd7lvf0k6qn",
+      "allowances": null,
+      "available": "10026146467359",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "2580703822482",
+      "escrow": "4372500575099",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 4,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qzxtc82d7gmcr5yazlu786gkwcvukz3zvu9ph5la",
+      "allowances": null,
+      "available": "1085537898478",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "11325503448074",
+      "escrow": "11426484578510",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 6,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qq45am6gzaur2rxhk26av9qf7ryhgca6ecg28clu",
+      "allowances": null,
+      "available": "10005003020906",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "2274962609350",
+      "escrow": "2376200120090",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 32,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qrrggkf3jxa3mqjj0uzfpn8wg5hpsn5hdvusqspc",
+      "allowances": null,
+      "available": "11104462542264",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "991855464155",
+      "escrow": "1195562666803",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 7,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qpn86lpgzsfheqcklh6q09axa73uudckvvergdrq",
+      "allowances": null,
+      "available": "1000150161532",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "11000000000000",
+      "escrow": "11000000000000",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 4,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qp5nyn5sq3m4y0jch8kqy58mt4h99pqm65nrypex",
+      "allowances": null,
+      "available": "12000000000000",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "0",
+      "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 0,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qqpevmdwm47fy4jsla2vatxq4raza49eyu6lm6vk",
+      "allowances": null,
+      "available": "12000000000000",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "0",
+      "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 0,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qr2qcntrenlwdnjkmh5hsmlu4p6yn88yg5suqveh",
+      "allowances": null,
+      "available": "12000000000000",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "0",
+      "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 0,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qr349deu6zgyu89tnpjp7f7zlneer5epscat0z27",
+      "allowances": null,
+      "available": "11500000000000",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "500000000000",
+      "escrow": "500000000000",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 3,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qzrrmyeh56kycx4s23yqj3upzfjphc2ddvscp3qq",
+      "allowances": null,
+      "available": "12000000000000",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "0",
+      "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 0,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qzwjuf8eqknnzzv9ffxpfmrmkrqxhpvhmcfnr5q5",
+      "allowances": null,
+      "available": "12000000000000",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "0",
+      "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 0,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qzzh2tsg8fc5xpvuxlhjl6tnma6d6sucqszp36fm",
+      "allowances": null,
+      "available": "11499999998000",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "500000000000",
+      "escrow": "500000000000",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 2,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qp7vs4hsy7r44kjqwx62nm3uxmjx9qlxmggm9pdw",
+      "allowances": null,
+      "available": "11899999996000",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "100000000000",
+      "escrow": "100000000000",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 3,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qp8x2txq8jpk3365uq4afg7jk0cv7xnr2gzqxr55",
+      "allowances": null,
+      "available": "11199999996000",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "800000000000",
+      "escrow": "800000000000",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 5,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qp2n3p0jvtyssc5f76yc75g7hchtt8edvg07vp4a",
+      "allowances": null,
+      "available": "9799999995108",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "2200000000000",
+      "escrow": "2200000000000",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 3,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qrmxuzrz98ch0kfmg9galdm6a57705f0usyraner",
+      "allowances": null,
+      "available": "11599999994500",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "400000000000",
+      "escrow": "400000000000",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 5,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qr69yqr7daz4cz3747zedxtx0cxmh0g8cs6gxq5c",
+      "allowances": null,
+      "available": "11371999986000",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "628000000000",
+      "escrow": "628000000000",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 6,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qqse5y07nl9vxgw8j3ep7a0cmeuwjrk2qvzfnn2d",
+      "allowances": null,
+      "available": "10599999984000",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "1400000000000",
+      "escrow": "1400000000000",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 4,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qz5wsqlvxmllvjz6cap4yvrppghu5vly6gv6fuja",
+      "allowances": null,
+      "available": "7999999976548",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "4000000000000",
+      "escrow": "4000000000000",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 4,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qq6k7q4uukpucz322m8dhy0pt0gvfdgrvcvrx2rm",
+      "allowances": null,
+      "available": "601836112234",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "11087499564610",
+      "escrow": "11112820978248",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 10,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qz2tg4hsatlxfaf8yut9gxgv8990ujaz4sldgmzx",
+      "allowances": null,
+      "available": "222371098872",
+      "debonding": "267014356955",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "11271184634797",
+      "escrow": "11292481323526310",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 14,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qz424yg28jqmgfq3xvly6ky64jqnmlylfc27d7cp",
+      "allowances": null,
+      "available": "228650258509",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "11130044356450",
+      "escrow": "11141286351397257",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 13,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qr2jxg57ch6p3787t2a8973v8zn8g82nxuex0773",
+      "allowances": null,
+      "available": "1036917918434",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "10162324042498",
+      "escrow": "10162324042498",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 11,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qq2vzcvxn0js5unsch5me2xz4kr43vcasv0d5eq4",
+      "allowances": null,
+      "available": "116199449329",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "11062222503435",
+      "escrow": "11074265134861889",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 13,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qzz9wdgt4hxfmcelfgyg8ne827a47pvh4g4jamtu",
+      "allowances": null,
+      "available": "10005037898018",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "1133948422423",
+      "escrow": "1133948422423",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 3,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qz5zfcaqqud75naqln92ez7czjxf0dpyj5rmtfls",
+      "allowances": null,
+      "available": "10005037892462",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "1133692508592",
+      "escrow": "1133692508592",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 3,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qrruwg0y4au55efu0pcgl0nanaq6p3sdwv0jhzv5",
+      "allowances": null,
+      "available": "16744507770",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "11115227077416",
+      "escrow": "11115227077416",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 10,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qrfeessnrnyaggvyvne52aple2f8vaw93vt608sz",
+      "allowances": null,
+      "available": "3004964997902",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "7915568936676",
+      "escrow": "8028096211502",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 5,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qrp0cgv0u5mxm7l3ruzqyk57g6ntz6f8muymfe4p",
+      "allowances": null,
+      "available": "904562614184",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "9857351372646",
+      "escrow": "9857351372646",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 27,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qqzeayvqw95aq2p0s0nfta83klal9wu82u7cplu5",
+      "allowances": null,
+      "available": "5000000000000",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "5731934190900",
+      "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 1,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qqjtkrchxufcyantfzkzgmcjrwygn87f3unytar8",
+      "allowances": null,
+      "available": "18000000000",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "10200000000000",
+      "escrow": "10200000000000",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 12,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qz4532s3lhkpju7fd3mxqfvaw98pjq5htss4g4w0",
+      "allowances": null,
+      "available": "9005037893857",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "1133525677591",
+      "escrow": "1338638117927",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 17,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qpkrrg8rqpc50fwuns8d8vsmksugx9nd55053xqq",
+      "allowances": null,
+      "available": "10002000000009",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "0",
+      "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 7,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qrmeqm709yht440e2ypf672p3h2r3gteyqyn6wcp",
+      "allowances": null,
+      "available": "10000312171110",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "0",
+      "escrow": "170000000000000",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 46,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qqaz80ylc4hspw6rl2vv6pxzmv7umwv3350fcsqp",
+      "allowances": null,
+      "available": "10000280877213",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "0",
+      "escrow": "70000000000000",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 6,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qqsj3memzq7hkmxl0l0y7trzf289x5eheqaqpne5",
+      "allowances": null,
+      "available": "10000000000000",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "0",
+      "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 0,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qr2n0wghy76w484nx852gz4ynnzjg6fvdgx3kxgm",
+      "allowances": null,
+      "available": "10000000000000",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "0",
+      "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 0,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qrmvnatsv6ue476y3sj4jsnwnwuwjxf5uuej7efv",
+      "allowances": null,
+      "available": "10000000000000",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "0",
+      "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 0,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qzy6xjfjn90kvgr66mkprp0yqzvwdsye7yfujccu",
+      "allowances": null,
+      "available": "10000000000000",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "0",
+      "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 0,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qzyu559akkp8euutnwlft5csgpdpptt0qcrn8vj5",
+      "allowances": null,
+      "available": "10000000000000",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "0",
+      "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 0,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qpeylsuzw30jkte4zeex8juhnlfvpky2xchma3zj",
+      "allowances": null,
+      "available": "7799999997974",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "2200000000000",
+      "escrow": "2200000000000",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 11,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qqd6s7v5p5plh73sngzkv0gsfauppqgu7qfwaqp0",
+      "allowances": null,
+      "available": "4999999993996",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "5000000000000",
+      "escrow": "5000000000000",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 7,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qph2tka870gujrpuq6es0625qd62dx2d6u69x3ae",
+      "allowances": null,
+      "available": "6999999969000",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "3000000000000",
+      "escrow": "3000000000000",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 2,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qqk86skatdsuhq8a5qcyt9s8pf37etjrfqsdce5p",
+      "allowances": null,
+      "available": "9985010000000",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "0",
+      "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 3,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qrdevgtw0u0rek6akvvdmj4zvk67efv895kww9l9",
+      "allowances": null,
+      "available": "9798900000001",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "0",
+      "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 5,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qr4x29854yy9xppp8j5vlw6khykxw52f8cs0uvp8",
+      "allowances": null,
+      "available": "8969000000000",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "0",
+      "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 15,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qz9x0zpja6n25hc5242k2e60l6a7ke2zsq9cqrqz",
+      "allowances": null,
+      "available": "3080009375058",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "5737606804806",
+      "escrow": "5840014800406",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 19,
+      "stats": {
+        "num_txns": 0
+      }
+    },
+    {
+      "address": "oasis1qq4qka08epud0v0a0uvrkx3vlx9l8smhcvxs5g4l",
+      "allowances": null,
+      "available": "8500000000000",
+      "debonding": "0",
+      "debonding_delegations_balance": "0",
+      "delegations_balance": "112711846348",
+      "escrow": "0",
+      "first_activity": "NONDETERMINISTIC",
+      "nonce": 6,
+      "stats": {
+        "num_txns": 0
+      }
+    }
+  ],
+  "is_total_count_clipped": true,
+  "total_count": 1000
+}

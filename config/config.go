@@ -141,30 +141,32 @@ type AnalyzersList struct {
 
 	ConsensusAccountsList *ItemBasedAnalyzerConfig `koanf:"consensus_accounts_list"`
 
-	EmeraldEvmTokens            *EvmTokensAnalyzerConfig       `koanf:"evm_tokens_emerald"`
-	SapphireEvmTokens           *EvmTokensAnalyzerConfig       `koanf:"evm_tokens_sapphire"`
-	PontusxTestEvmTokens        *EvmTokensAnalyzerConfig       `koanf:"evm_tokens_pontusx_test"`
-	PontusxDevEvmTokens         *EvmTokensAnalyzerConfig       `koanf:"evm_tokens_pontusx_dev"`
-	EmeraldEvmNfts              *EvmTokensAnalyzerConfig       `koanf:"evm_nfts_emerald"`
-	SapphireEvmNfts             *EvmTokensAnalyzerConfig       `koanf:"evm_nfts_sapphire"`
-	PontusxTestEvmNfts          *EvmTokensAnalyzerConfig       `koanf:"evm_nfts_pontusx_test"`
-	PontusxDevEvmNfts           *EvmTokensAnalyzerConfig       `koanf:"evm_nfts_pontusx_dev"`
-	EmeraldEvmTokenBalances     *EvmTokensAnalyzerConfig       `koanf:"evm_token_balances_emerald"`
-	SapphireEvmTokenBalances    *EvmTokensAnalyzerConfig       `koanf:"evm_token_balances_sapphire"`
-	PontusxTestEvmTokenBalances *EvmTokensAnalyzerConfig       `koanf:"evm_token_balances_pontusx_test"`
-	PontusxDevEvmTokenBalances  *EvmTokensAnalyzerConfig       `koanf:"evm_token_balances_pontusx_dev"`
-	EmeraldContractCode         *EvmContractCodeAnalyzerConfig `koanf:"evm_contract_code_emerald"`
-	SapphireContractCode        *EvmContractCodeAnalyzerConfig `koanf:"evm_contract_code_sapphire"`
-	PontusxTestContractCode     *EvmContractCodeAnalyzerConfig `koanf:"evm_contract_code_pontusx_test"`
-	PontusxDevContractCode      *EvmContractCodeAnalyzerConfig `koanf:"evm_contract_code_pontusx_dev"`
-	EmeraldContractVerifier     *EVMContractVerifierConfig     `koanf:"evm_contract_verifier_emerald"`
-	SapphireContractVerifier    *EVMContractVerifierConfig     `koanf:"evm_contract_verifier_sapphire"`
-	PontusxTestContractVerifier *EVMContractVerifierConfig     `koanf:"evm_contract_verifier_pontusx_test"`
-	PontusxDevContractVerifier  *EVMContractVerifierConfig     `koanf:"evm_contract_verifier_pontusx_dev"`
-	EmeraldAbi                  *EvmAbiAnalyzerConfig          `koanf:"evm_abi_emerald"`
-	SapphireAbi                 *EvmAbiAnalyzerConfig          `koanf:"evm_abi_sapphire"`
-	PontusxTestAbi              *EvmAbiAnalyzerConfig          `koanf:"evm_abi_pontusx_test"`
-	PontusxDevAbi               *EvmAbiAnalyzerConfig          `koanf:"evm_abi_pontusx_dev"`
+	EmeraldEvmTokens                 *EvmTokensAnalyzerConfig       `koanf:"evm_tokens_emerald"`
+	SapphireEvmTokens                *EvmTokensAnalyzerConfig       `koanf:"evm_tokens_sapphire"`
+	PontusxTestEvmTokens             *EvmTokensAnalyzerConfig       `koanf:"evm_tokens_pontusx_test"`
+	PontusxDevEvmTokens              *EvmTokensAnalyzerConfig       `koanf:"evm_tokens_pontusx_dev"`
+	EmeraldEvmNfts                   *EvmTokensAnalyzerConfig       `koanf:"evm_nfts_emerald"`
+	SapphireEvmNfts                  *EvmTokensAnalyzerConfig       `koanf:"evm_nfts_sapphire"`
+	SapphireRofl                     *ItemBasedAnalyzerConfig       `koanf:"rofl_sapphire"`
+	SapphireRoflInstanceTransactions *ItemBasedAnalyzerConfig       `koanf:"rofl_instance_transactions_sapphire"`
+	PontusxTestEvmNfts               *EvmTokensAnalyzerConfig       `koanf:"evm_nfts_pontusx_test"`
+	PontusxDevEvmNfts                *EvmTokensAnalyzerConfig       `koanf:"evm_nfts_pontusx_dev"`
+	EmeraldEvmTokenBalances          *EvmTokensAnalyzerConfig       `koanf:"evm_token_balances_emerald"`
+	SapphireEvmTokenBalances         *EvmTokensAnalyzerConfig       `koanf:"evm_token_balances_sapphire"`
+	PontusxTestEvmTokenBalances      *EvmTokensAnalyzerConfig       `koanf:"evm_token_balances_pontusx_test"`
+	PontusxDevEvmTokenBalances       *EvmTokensAnalyzerConfig       `koanf:"evm_token_balances_pontusx_dev"`
+	EmeraldContractCode              *EvmContractCodeAnalyzerConfig `koanf:"evm_contract_code_emerald"`
+	SapphireContractCode             *EvmContractCodeAnalyzerConfig `koanf:"evm_contract_code_sapphire"`
+	PontusxTestContractCode          *EvmContractCodeAnalyzerConfig `koanf:"evm_contract_code_pontusx_test"`
+	PontusxDevContractCode           *EvmContractCodeAnalyzerConfig `koanf:"evm_contract_code_pontusx_dev"`
+	EmeraldContractVerifier          *EVMContractVerifierConfig     `koanf:"evm_contract_verifier_emerald"`
+	SapphireContractVerifier         *EVMContractVerifierConfig     `koanf:"evm_contract_verifier_sapphire"`
+	PontusxTestContractVerifier      *EVMContractVerifierConfig     `koanf:"evm_contract_verifier_pontusx_test"`
+	PontusxDevContractVerifier       *EVMContractVerifierConfig     `koanf:"evm_contract_verifier_pontusx_dev"`
+	EmeraldAbi                       *EvmAbiAnalyzerConfig          `koanf:"evm_abi_emerald"`
+	SapphireAbi                      *EvmAbiAnalyzerConfig          `koanf:"evm_abi_sapphire"`
+	PontusxTestAbi                   *EvmAbiAnalyzerConfig          `koanf:"evm_abi_pontusx_test"`
+	PontusxDevAbi                    *EvmAbiAnalyzerConfig          `koanf:"evm_abi_pontusx_dev"`
 
 	MetadataRegistry        *MetadataRegistryConfig        `koanf:"metadata_registry"`
 	ValidatorStakingHistory *ValidatorStakingHistoryConfig `koanf:"validator_staking_history"`

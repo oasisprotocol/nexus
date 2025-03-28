@@ -1,0 +1,6 @@
+HTTP/1.1 200 OK
+Content-Type: text/plain
+Vary: Origin
+Date: UNINTERESTING
+Content-Length: UNINTERESTING
+

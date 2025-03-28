@@ -443,3 +443,54 @@ func (srv *StrictServerImpl) GetRuntimeStatus(ctx context.Context, request apiTy
 	}
 	return apiTypes.GetRuntimeStatus200JSONResponse(*status), nil
 }
+
+func (srv *StrictServerImpl) GetRuntimeRoflApps(ctx context.Context, request apiTypes.GetRuntimeRoflAppsRequestObject) (apiTypes.GetRuntimeRoflAppsResponseObject, error) {
+	apps, err := srv.dbClient.RuntimeRoflApps(ctx, request.Params, nil)
+	if err != nil {
+		return nil, err
+	}
+	return apiTypes.GetRuntimeRoflApps200JSONResponse(*apps), nil
+}
+
+func (srv *StrictServerImpl) GetRuntimeRoflAppsId(ctx context.Context, request apiTypes.GetRuntimeRoflAppsIdRequestObject) (apiTypes.GetRuntimeRoflAppsIdResponseObject, error) {
+	apps, err := srv.dbClient.RuntimeRoflApps(ctx, apiTypes.GetRuntimeRoflAppsParams{Limit: common.Ptr(uint64(1)), Offset: common.Ptr(uint64(0))}, &request.Id)
+	if err != nil {
+		return nil, err
+	}
+	if len(apps.RoflApps) != 1 {
+		return apiTypes.GetRuntimeRoflAppsId404JSONResponse{}, nil
+	}
+	return apiTypes.GetRuntimeRoflAppsId200JSONResponse(apps.RoflApps[0]), nil
+}
+
+func (srv *StrictServerImpl) GetRuntimeRoflAppsIdTransactions(ctx context.Context, request apiTypes.GetRuntimeRoflAppsIdTransactionsRequestObject) (apiTypes.GetRuntimeRoflAppsIdTransactionsResponseObject, error) {
+	transactions, err := srv.dbClient.RuntimeRoflAppTransactions(ctx, request.Params, request.Id)
+	if err != nil {
+		return nil, err
+	}
+	return apiTypes.GetRuntimeRoflAppsIdTransactions200JSONResponse(*transactions), nil
+}
+
+func (srv *StrictServerImpl) GetRuntimeRoflAppsIdInstanceTransactions(ctx context.Context, request apiTypes.GetRuntimeRoflAppsIdInstanceTransactionsRequestObject) (apiTypes.GetRuntimeRoflAppsIdInstanceTransactionsResponseObject, error) {
+	transactions, err := srv.dbClient.RuntimeRoflAppInstanceTransactions(ctx, request.Params.Method, request.Params.Limit, request.Params.Offset, request.Id, nil)
+	if err != nil {
+		return nil, err
+	}
+	return apiTypes.GetRuntimeRoflAppsIdInstanceTransactions200JSONResponse(*transactions), nil
+}
+
+func (srv *StrictServerImpl) GetRuntimeRoflAppsIdInstances(ctx context.Context, request apiTypes.GetRuntimeRoflAppsIdInstancesRequestObject) (apiTypes.GetRuntimeRoflAppsIdInstancesResponseObject, error) {
+	instances, err := srv.dbClient.RuntimeRoflAppInstances(ctx, request.Params, request.Id)
+	if err != nil {
+		return nil, err
+	}
+	return apiTypes.GetRuntimeRoflAppsIdInstances200JSONResponse(*instances), nil
+}
+
+func (srv *StrictServerImpl) GetRuntimeRoflAppsIdInstancesRakTransactions(ctx context.Context, request apiTypes.GetRuntimeRoflAppsIdInstancesRakTransactionsRequestObject) (apiTypes.GetRuntimeRoflAppsIdInstancesRakTransactionsResponseObject, error) {
+	transactions, err := srv.dbClient.RuntimeRoflAppInstanceTransactions(ctx, request.Params.Method, request.Params.Limit, request.Params.Offset, request.Id, &request.Rak)
+	if err != nil {
+		return nil, err
+	}
+	return apiTypes.GetRuntimeRoflAppsIdInstancesRakTransactions200JSONResponse(*transactions), nil
+}

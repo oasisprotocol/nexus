@@ -38,6 +38,7 @@ import (
 	"github.com/oasisprotocol/nexus/storage/oasis/connections"
 
 	sdkClient "github.com/oasisprotocol/oasis-sdk/client-sdk/go/client"
+	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/rofl"
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 
 	apiTypes "github.com/oasisprotocol/nexus/api/v1/types"
@@ -283,12 +284,21 @@ type RuntimeApiLite interface {
 	GetBlockHeader(ctx context.Context, round uint64) (*RuntimeBlockHeader, error)
 	GetTransactionsWithResults(ctx context.Context, round uint64) ([]RuntimeTransactionWithResults, error)
 	GetBalances(ctx context.Context, round uint64, addr Address) (map[sdkTypes.Denomination]common.BigInt, error)
+	RoflApp(ctx context.Context, round uint64, id AppID) (*AppConfig, error)
+	RoflApps(ctx context.Context, round uint64) ([]*AppConfig, error)
+	RoflAppInstance(ctx context.Context, round uint64, id AppID, rak PublicKey) (*Registration, error)
+	RoflAppInstances(ctx context.Context, round uint64, id AppID) ([]*Registration, error)
 	Close() error
 }
 
 type (
 	RuntimeEvent                  sdkTypes.Event
 	RuntimeTransactionWithResults sdkClient.TransactionWithResults
+
+	AppID        = rofl.AppID
+	AppConfig    = rofl.AppConfig
+	Registration = rofl.Registration
+	PublicKey    = sdkTypes.PublicKey
 )
 
 // Derived from oasis-core: roothash/api/block/header.go

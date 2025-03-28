@@ -175,3 +175,28 @@ func (rc *UniversalRuntimeApiLite) GetBalances(ctx context.Context, round uint64
 
 	return balances, nil
 }
+
+func (rc *UniversalRuntimeApiLite) RoflApp(ctx context.Context, round uint64, id AppID) (*AppConfig, error) {
+	app, err := rc.sdkClient.ROFL.App(ctx, round, id)
+	if err != nil {
+		module, code := errors.Code(err)
+		if module == "rofl" && code == 2 { // "unknown application"
+			// App doesn't exist, don't return an error so that the response is cached.
+			return &AppConfig{}, nil
+		}
+		return nil, err
+	}
+	return app, nil
+}
+
+func (rc *UniversalRuntimeApiLite) RoflApps(ctx context.Context, round uint64) ([]*AppConfig, error) {
+	return rc.sdkClient.ROFL.Apps(ctx, round)
+}
+
+func (rc *UniversalRuntimeApiLite) RoflAppInstance(ctx context.Context, round uint64, id AppID, rak sdkTypes.PublicKey) (*Registration, error) {
+	return rc.sdkClient.ROFL.AppInstance(ctx, round, id, rak)
+}
+
+func (rc *UniversalRuntimeApiLite) RoflAppInstances(ctx context.Context, round uint64, id AppID) ([]*Registration, error) {
+	return rc.sdkClient.ROFL.AppInstances(ctx, round, id)
+}

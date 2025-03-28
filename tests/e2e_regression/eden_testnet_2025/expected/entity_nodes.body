@@ -1,0 +1,17 @@
+{
+  "entity_id": "ekP4j+817Qhh3/DruBXVv/8ypI2CAnK1LAfuVxNazNc=",
+  "is_total_count_clipped": false,
+  "nodes": [
+    {
+      "consensus_pubkey": "JCLeGvxkrGrgN1hgSFxPj2y6VJjzE4PDsN3EuSc2u9w=",
+      "entity_id": "ekP4j+817Qhh3/DruBXVv/8ypI2CAnK1LAfuVxNazNc=",
+      "expiration": 42724,
+      "id": "qQEtJm4Dyd3k02BFU9V8n6kNnCPAzTvcbxWiPM3t7Xw=",
+      "p2p_pubkey": "0o3t6gQWhDa84uLQlrQgfW9nijnfbvI5UUVs8pQcAJw=",
+      "roles": "validator",
+      "tls_next_pubkey": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+      "tls_pubkey": "AbcVsLefVRf+ikztQsrK/CRfMuDPxo3bx267UImtioM="
+    }
+  ],
+  "total_count": 1
+}
