@@ -967,6 +967,9 @@ const (
 		SELECT
 			ra.id,
 			ra.admin,
+			preimages.context_identifier,
+			preimages.context_version,
+			preimages.address_data,
 			ra.stake,
 			ra.policy,
 			ra.sek,
@@ -983,6 +986,15 @@ const (
 				'[]'::jsonb
 			) AS active_instances
 		FROM chain.rofl_apps AS ra
+
+		LEFT JOIN chain.address_preimages AS preimages ON (
+			preimages.address = ra.admin AND
+			-- For now, the only user is the explorer, where we only care
+			-- about Ethereum-compatible addresses, so only get those. Can
+			-- easily enable for other address types though.
+			preimages.context_identifier = 'oasis-runtime-sdk/address: secp256k1eth' AND
+			preimages.context_version = 0
+		)
 
 		-- Fetch active instances.
 		LEFT JOIN LATERAL (
@@ -1055,7 +1067,7 @@ const (
 			($2::text IS NULL OR ra.id = $2::text) AND
 			-- Exclude not yet processed apps.
 			ra.last_processed_round IS NOT NULL
-		GROUP BY ra.id, ra.admin, ra.stake, ra.policy, ra.sek, ra.metadata, ra.secrets, ra.removed, ri_agg.num_active_instances, first_blk.timestamp, latest_blk.timestamp, latest_tx.tx_round, latest_tx.tx_index
+		GROUP BY ra.id, ra.admin, preimages.address_data, preimages.context_identifier, preimages.context_version, ra.stake, ra.policy, ra.sek, ra.metadata, ra.secrets, ra.removed, ri_agg.num_active_instances, first_blk.timestamp, latest_blk.timestamp, latest_tx.tx_round, latest_tx.tx_index
 		ORDER BY ra.id
 		LIMIT $3::bigint
 		OFFSET $4::bigint`
@@ -1076,6 +1088,31 @@ const (
 		OFFSET $4::bigint`
 
 	RuntimeRoflAppInstanceTransactions = `
+		WITH filtered_itxs AS (
+			SELECT
+				runtime,
+				tx_round,
+				tx_index
+			FROM chain.rofl_instance_transactions
+			WHERE
+				runtime = $1 AND
+				app_id = $2 AND
+				($3::text IS NULL OR rak = $3::text) AND
+				(
+					$4::text[] IS NULL OR
+					(
+						'native_transfers' = ANY($4::text[]) AND likely_native_transfer
+					) OR
+					(
+						'evm.Call_no_native' = ANY($4::text[]) AND method = 'evm.Call' AND NOT likely_native_transfer
+					) OR
+					method = ANY($4::text[])
+				)
+			ORDER BY tx_round DESC, tx_index DESC
+			LIMIT $5::bigint
+			OFFSET $6::bigint
+		)
+
 		SELECT
 			txs.round,
 			txs.tx_index,
@@ -1127,45 +1164,29 @@ const (
 			txs.error_message,
 			txs.error_message_raw,
 			txs.error_params
-		FROM chain.rofl_instance_transactions AS itxs
-		JOIN chain.runtime_transactions AS txs ON
-			itxs.runtime = txs.runtime AND
-			itxs.tx_round = txs.round AND
-			itxs.tx_index = txs.tx_index
-		JOIN chain.runtime_transaction_signers AS signers ON
-			signers.runtime = txs.runtime AND
+		FROM filtered_itxs AS itxs
+		JOIN chain.runtime_transactions AS txs
+			ON txs.runtime = itxs.runtime AND
+			txs.round = itxs.tx_round AND
+			txs.tx_index = itxs.tx_index
+		JOIN chain.runtime_transaction_signers AS signers
+			ON signers.runtime = txs.runtime AND
 			signers.round = txs.round AND
 			signers.tx_index = txs.tx_index
-		LEFT JOIN chain.address_preimages AS signer_preimages ON
-			signers.signer_address = signer_preimages.address AND
+		LEFT JOIN chain.address_preimages AS signer_preimages
+			ON signers.signer_address = signer_preimages.address AND
 			-- For now, the only user is the explorer, where we only care
 			-- about Ethereum-compatible addresses, so only get those. Can
 			-- easily enable for other address types though.
 			signer_preimages.context_identifier = 'oasis-runtime-sdk/address: secp256k1eth' AND
 			signer_preimages.context_version = 0
-		LEFT JOIN chain.address_preimages AS to_preimage ON
-			txs.to = to_preimage.address AND
+		LEFT JOIN chain.address_preimages AS to_preimage
+			ON txs.to = to_preimage.address AND
 			-- For now, the only user is the explorer, where we only care
 			-- about Ethereum-compatible addresses, so only get those. Can
 			-- easily enable for other address types though.
 			to_preimage.context_identifier = 'oasis-runtime-sdk/address: secp256k1eth' AND
 			to_preimage.context_version = 0
-		WHERE
-			itxs.runtime = $1 AND
-			itxs.app_id = $2 AND
-			$3::text IS NULL OR itxs.rak = $3::text AND
-			(
-				-- No filtering on method.
-				$4::text[] IS NULL OR
-				(
-					-- Special case to return are 'likely to be native transfers'.
-					('native_transfers' = ANY($4::text[]) AND itxs.likely_native_transfer) OR
-					-- Special case to return all evm.Calls that are likely not native transfers.
-					('evm.Call_no_native' = ANY($4::text[]) AND itxs.method = 'evm.Call' AND NOT itxs.likely_native_transfer) OR
-					-- Regular case.
-					(itxs.method = ANY($4::text[]))
-				)
-			)
 		GROUP BY
 			txs.round,
 			txs.tx_index,
@@ -1208,9 +1229,7 @@ const (
 			txs.error_message,
 			txs.error_message_raw,
 			txs.error_params
-		ORDER BY txs.round DESC, txs.tx_index DESC
-		LIMIT $5::bigint
-		OFFSET $6::bigint`
+		ORDER BY txs.round DESC, txs.tx_index DESC`
 
 	// FineTxVolumes returns the fine-grained query for 5-minute sampled tx volume windows.
 	FineTxVolumes = `

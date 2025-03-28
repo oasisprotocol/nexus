@@ -3709,7 +3709,7 @@ components:
 
     RoflApp:
       type: object
-      required: [id, admin, stake, policy, sek, metadata, secrets, removed, date_created, active_instances, num_active_instances]
+      required: [id, admin, stake, policy, sek, metadata, secrets, removed, date_created, last_activity, active_instances, num_active_instances]
       properties:
         id:
           type: string
@@ -3717,6 +3717,11 @@ components:
         admin:
           type: string
           description: The application administrator address.
+          example: *staking_address_1
+        admin_eth:
+          type: string
+          description: The Ethereum address of the application administrator (only provided if known).
+          example: *eth_address_1
         stake:
           allOf: [$ref: '#/components/schemas/TextBigInt']
           description: The amount of stake in escrow by the administrator.
