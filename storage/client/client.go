@@ -2437,11 +2437,17 @@ func (c *StorageClient) RuntimeRoflApps(ctx context.Context, params apiTypes.Get
 	}
 	var lastActivityRound *uint64
 	var lastActivityTxIndex *uint64
+	var contractAddrContextIdentifier *string
+	var contractAddrContextVersion *int
+	var contractAddrData []byte
 	for res.rows.Next() {
 		var app RoflApp
 		if err := res.rows.Scan(
 			&app.Id,
 			&app.Admin,
+			&contractAddrContextIdentifier,
+			&contractAddrContextVersion,
+			&contractAddrData,
 			&app.Stake,
 			&app.Policy,
 			&app.Sek,
@@ -2456,6 +2462,9 @@ func (c *StorageClient) RuntimeRoflApps(ctx context.Context, params apiTypes.Get
 			&app.ActiveInstances,
 		); err != nil {
 			return nil, wrapError(err)
+		}
+		if contractAddrContextIdentifier != nil && contractAddrContextVersion != nil && contractAddrData != nil {
+			app.AdminEth = EthChecksumAddrFromPreimage(*contractAddrContextIdentifier, *contractAddrContextVersion, contractAddrData)
 		}
 		apps.RoflApps = append(apps.RoflApps, app)
 	}
