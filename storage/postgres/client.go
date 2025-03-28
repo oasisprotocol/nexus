@@ -311,6 +311,10 @@ func (c *Client) listNexusMaterializedViews(ctx context.Context) ([]string, erro
 
 // Wipe removes all contents of the database.
 func (c *Client) Wipe(ctx context.Context) error {
+	if _, err := c.pool.Exec(ctx, "DROP EXTENSION IF EXISTS pg_trgm CASCADE;"); err != nil {
+		return err
+	}
+
 	tables, err := c.listNexusTables(ctx)
 	if err != nil {
 		return err
@@ -324,6 +328,7 @@ func (c *Client) Wipe(ctx context.Context) error {
 
 	// List, then drop all custom types.
 	// Query from https://stackoverflow.com/questions/3660787/how-to-list-custom-types-using-postgres-information-schema
+	// TODO: Don't delete extensions' types.
 	types, err := c.listNexusTypes(ctx)
 	if err != nil {
 		return err
@@ -336,6 +341,7 @@ func (c *Client) Wipe(ctx context.Context) error {
 	}
 
 	// List, then drop all custom functions.
+	// TODO: Don't delete extensions' functions.
 	functions, err := c.listNexusFunctions(ctx)
 	if err != nil {
 		return err
