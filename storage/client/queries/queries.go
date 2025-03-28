@@ -542,6 +542,7 @@ const (
 			txs.error_module,
 			txs.error_code,
 			txs.error_message,
+			txs.error_message_raw,
 			txs.error_params
 		FROM chain.runtime_transactions AS txs
 		JOIN chain.runtime_transaction_signers AS signers ON
@@ -629,6 +630,7 @@ const (
 			txs.error_module,
 			txs.error_code,
 			txs.error_message,
+			txs.error_message_raw,
 			txs.error_params
 		ORDER BY txs.round DESC, txs.tx_index DESC
 		LIMIT $8::bigint

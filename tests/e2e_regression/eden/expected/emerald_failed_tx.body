@@ -13,7 +13,8 @@
       "error": {
         "code": 8,
         "message": "reverted: PaymentSplitter: account is not due payment",
-        "module": "evm"
+        "module": "evm",
+        "raw_message": "reverted: CMN5oAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACtQYXltZW50U3BsaXR0ZXI6IGFjY291bnQgaXMgbm90IGR1ZSBwYXltZW50AAAAAAAAAAAAAAAAAAAAAAAAAAAA"
       },
       "eth_hash": "2331e2a065609a7b6537cfd990386a585c132116d608af0719918eb511283bc7",
       "fee": "30000000000000000",
