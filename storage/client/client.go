@@ -1642,6 +1642,7 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetR
 			&t.Error.Module,
 			&errorCode,
 			&t.Error.Message,
+			&t.Error.RawMessage,
 			&t.Error.RevertParams,
 		); err != nil {
 			return nil, wrapError(err)

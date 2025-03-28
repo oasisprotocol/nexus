@@ -831,7 +831,8 @@
       "error": {
         "code": 8,
         "message": "reverted: LIZARD::mint: cannot exceed max supply",
-        "module": "evm"
+        "module": "evm",
+        "raw_message": "reverted: CMN5oAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACZMSVpBUkQ6Om1pbnQ6IGNhbm5vdCBleGNlZWQgbWF4IHN1cHBseQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
       },
       "eth_hash": "392521d4c6d52794b257be023a50e6ff2df890ca9e247ae34ca11b9ce448085a",
       "fee": "1425000000000000000",
@@ -1422,7 +1423,8 @@
       "error": {
         "code": 8,
         "message": "reverted: bewbs (. )( .)",
-        "module": "evm"
+        "module": "evm",
+        "raw_message": "reverted: CMN5oAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA5iZXdicyAoLiApKCAuKQAAAAAAAAAAAAAAAAAAAAAAAA=="
       },
       "eth_hash": "2728d50e1520ccddf118e43294f7fb0448d2a10b7a0d46e77c73a34c7d120cd1",
       "fee": "85000100000000000",
@@ -1461,7 +1463,8 @@
       "error": {
         "code": 8,
         "message": "reverted: bewbs (. )( .)",
-        "module": "evm"
+        "module": "evm",
+        "raw_message": "reverted: CMN5oAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA5iZXdicyAoLiApKCAuKQAAAAAAAAAAAAAAAAAAAAAAAA=="
       },
       "eth_hash": "9adc8e3c9a9cd1db9fa5caaa18bc0cc405939720dc31e58cd49958258af01c7e",
       "fee": "85000100000000000",
@@ -1806,7 +1809,8 @@
       "error": {
         "code": 8,
         "message": "reverted: bewbs (. )( .)",
-        "module": "evm"
+        "module": "evm",
+        "raw_message": "reverted: CMN5oAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA5iZXdicyAoLiApKCAuKQAAAAAAAAAAAAAAAAAAAAAAAA=="
       },
       "eth_hash": "812ffc095e9044ffd95c16ab4dc698d3c59cfe7d5e31accd8ff428e9f726c278",
       "fee": "85000100000000000",
@@ -2083,7 +2087,8 @@
       "error": {
         "code": 8,
         "message": "reverted: bewbs (. )( .)",
-        "module": "evm"
+        "module": "evm",
+        "raw_message": "reverted: CMN5oAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA5iZXdicyAoLiApKCAuKQAAAAAAAAAAAAAAAAAAAAAAAA=="
       },
       "eth_hash": "a45f9a86b97d1a0e14bf91dd1d16361b9964b4cc8952c27e06ffa59c6eb26672",
       "fee": "85000100000000000",
@@ -2914,7 +2919,8 @@
       "error": {
         "code": 8,
         "message": "reverted: BB: FAIL_Q",
-        "module": "evm"
+        "module": "evm",
+        "raw_message": "reverted: CMN5oAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAApCQjogRkFJTF9RAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=="
       },
       "eth_hash": "e1dd299f90021dbfc8bed705db1509e46753d6d03d8db4640e5e09731d1e5222",
       "fee": "68684599833812248",
@@ -3429,7 +3435,8 @@
       "error": {
         "code": 8,
         "message": "reverted: BB: FAIL_Q",
-        "module": "evm"
+        "module": "evm",
+        "raw_message": "reverted: CMN5oAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAApCQjogRkFJTF9RAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=="
       },
       "eth_hash": "78d9b96fe46bb46b88551f847789f0ca21fdceb9bc044cf78817a834bc111c05",
       "fee": "58235561678270504",
