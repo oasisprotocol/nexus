@@ -9,6 +9,7 @@ import (
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/core"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/evm"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/rofl"
+	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/roflmarket"
 
 	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
 )
@@ -186,6 +187,90 @@ func DecodeRoflEvent(event *nodeapi.RuntimeEvent) ([]rofl.Event, error) {
 		}
 	default:
 		return nil, fmt.Errorf("invalid rofl event code: %v", event.Code)
+	}
+	return events, nil
+}
+
+func DecodeRoflMarketEvent(event *nodeapi.RuntimeEvent) ([]roflmarket.Event, error) {
+	if event.Module != roflmarket.ModuleName {
+		return nil, nil
+	}
+	var events []roflmarket.Event
+	switch event.Code {
+	case roflmarket.ProviderCreatedEventCode:
+		var evs []*roflmarket.ProviderCreatedEvent
+		if err := unmarshalSingleOrArray(event.Value, &evs); err != nil {
+			return nil, fmt.Errorf("decode rofl market provider created event value: %w", err)
+		}
+		for _, ev := range evs {
+			events = append(events, roflmarket.Event{ProviderCreated: ev})
+		}
+	case roflmarket.ProviderUpdatedEventCode:
+		var evs []*roflmarket.ProviderUpdatedEvent
+		if err := unmarshalSingleOrArray(event.Value, &evs); err != nil {
+			return nil, fmt.Errorf("decode rofl market provider updated event value: %w", err)
+		}
+		for _, ev := range evs {
+			events = append(events, roflmarket.Event{ProviderUpdated: ev})
+		}
+	case roflmarket.ProviderRemovedEventCode:
+		var evs []*roflmarket.ProviderRemovedEvent
+		if err := unmarshalSingleOrArray(event.Value, &evs); err != nil {
+			return nil, fmt.Errorf("decode rofl market provider removed event value: %w", err)
+		}
+		for _, ev := range evs {
+			events = append(events, roflmarket.Event{ProviderRemoved: ev})
+		}
+	case roflmarket.InstanceCreatedEventCode:
+		var evs []*roflmarket.InstanceCreatedEvent
+		if err := unmarshalSingleOrArray(event.Value, &evs); err != nil {
+			return nil, fmt.Errorf("decode rofl market instance created event value: %w", err)
+		}
+		for _, ev := range evs {
+			events = append(events, roflmarket.Event{InstanceCreated: ev})
+		}
+	case roflmarket.InstanceUpdatedEventCode:
+		var evs []*roflmarket.InstanceUpdatedEvent
+		if err := unmarshalSingleOrArray(event.Value, &evs); err != nil {
+			return nil, fmt.Errorf("decode rofl market instance updated event value: %w", err)
+		}
+		for _, ev := range evs {
+			events = append(events, roflmarket.Event{InstanceUpdated: ev})
+		}
+	case roflmarket.InstanceAcceptedEventCode:
+		var evs []*roflmarket.InstanceAcceptedEvent
+		if err := unmarshalSingleOrArray(event.Value, &evs); err != nil {
+			return nil, fmt.Errorf("decode rofl market instance accepted event value: %w", err)
+		}
+		for _, ev := range evs {
+			events = append(events, roflmarket.Event{InstanceAccepted: ev})
+		}
+	case roflmarket.InstanceCancelledEventCode:
+		var evs []*roflmarket.InstanceCancelledEvent
+		if err := unmarshalSingleOrArray(event.Value, &evs); err != nil {
+			return nil, fmt.Errorf("decode rofl market instance cancelled event value: %w", err)
+		}
+		for _, ev := range evs {
+			events = append(events, roflmarket.Event{InstanceCancelled: ev})
+		}
+	case roflmarket.InstanceRemovedEventCode:
+		var evs []*roflmarket.InstanceRemovedEvent
+		if err := unmarshalSingleOrArray(event.Value, &evs); err != nil {
+			return nil, fmt.Errorf("decode rofl market instance removed event value: %w", err)
+		}
+		for _, ev := range evs {
+			events = append(events, roflmarket.Event{InstanceRemoved: ev})
+		}
+	case roflmarket.InstanceCommandQueuedEventCode:
+		var evs []*roflmarket.InstanceCommandQueuedEvent
+		if err := unmarshalSingleOrArray(event.Value, &evs); err != nil {
+			return nil, fmt.Errorf("decode rofl market instance command queued event value: %w", err)
+		}
+		for _, ev := range evs {
+			events = append(events, roflmarket.Event{InstanceCommandQueued: ev})
+		}
+	default:
+		return nil, fmt.Errorf("invalid rofl market event code: %v", event.Code)
 	}
 	return events, nil
 }

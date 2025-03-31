@@ -2929,6 +2929,15 @@ components:
         - rofl.app_updated
         - rofl.app_removed
         - rofl.instance_registered
+        - roflmarket.provider_created
+        - roflmarket.provider_updated
+        - roflmarket.provider_removed
+        - roflmarket.instance_created
+        - roflmarket.instance_updated
+        - roflmarket.instance_accepted
+        - roflmarket.instance_cancelled
+        - roflmarket.instance_removed
+        - roflmarket.instance_command_queued
       example: *runtime_event_type_1
 
     EvmAbiParam:
@@ -3173,6 +3182,13 @@ components:
               - "rofl.Update"
               - "rofl.Remove"
               - "rofl.Register"
+              - "roflmarket.ProviderCreate"
+              - "roflmarket.ProviderUpdate"
+              - "roflmarket.ProviderRemove"
+              - "roflmarket.InstanceCreate"
+              - "roflmarket.InstanceTopUp"
+              - "roflmarket.InstanceCancel"
+              - "roflmarket.InstanceExecuteCmds"
             May be null if the transaction was malformed or encrypted.
           example: "evm.Call"
         body:

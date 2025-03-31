@@ -24,6 +24,7 @@ import (
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/core"
 	sdkEVM "github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/evm"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/rofl"
+	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/roflmarket"
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 
 	"github.com/oasisprotocol/nexus/analyzer/evmabi"
@@ -113,6 +114,7 @@ type ScopedSdkEvent struct {
 	ConsensusAccounts *consensusaccounts.Event
 	EVM               *sdkEVM.Event
 	Rofl              *rofl.Event
+	RoflMarket        *roflmarket.Event
 }
 
 type TokenChangeKey struct {
@@ -218,6 +220,24 @@ func registerTokenIncrease(tokenChanges map[TokenChangeKey]*big.Int, contractAdd
 func registerTokenDecrease(tokenChanges map[TokenChangeKey]*big.Int, contractAddr apiTypes.Address, accountAddr apiTypes.Address, amount *big.Int) {
 	change := findTokenChange(tokenChanges, contractAddr, accountAddr)
 	change.Sub(change, amount)
+}
+
+func registerPaymentAddress(paymentAddress *roflmarket.PaymentAddress, blockTransactionData *BlockTransactionData, blockData *BlockData) error {
+	if paymentAddress.Native != nil {
+		native, err := addresses.FromSdkAddress(paymentAddress.Native)
+		if err != nil {
+			return err
+		}
+		blockTransactionData.RelatedAccountAddresses[native] = struct{}{}
+	}
+	if paymentAddress.Eth != nil {
+		eth, err := addresses.RegisterEthAddress(blockData.AddressPreimages, paymentAddress.Eth[:])
+		if err != nil {
+			return err
+		}
+		blockTransactionData.RelatedAccountAddresses[eth] = struct{}{}
+	}
+	return nil
 }
 
 func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.RuntimeTransactionWithResults, rawEvents []nodeapi.RuntimeEvent, sdkPT *sdkConfig.ParaTime, logger *log.Logger) (*BlockData, error) { //nolint:gocyclo
@@ -533,12 +553,13 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 				},
 				RoflUpdate: func(body *rofl.Update) error {
 					blockTransactionData.Body = body
+					blockTransactionData.RelatedRoflAddresses[body.ID] = struct{}{}
 					admin, err := addresses.FromSdkAddress(body.Admin)
 					if err != nil {
-						return fmt.Errorf("to: %w", err)
+						logger.Warn("failed to convert admin address to native address", "err", err)
+						return nil
 					}
 					blockTransactionData.RelatedAccountAddresses[admin] = struct{}{}
-					blockTransactionData.RelatedRoflAddresses[body.ID] = struct{}{}
 					return nil
 				},
 				RoflRemove: func(body *rofl.Remove) error {
@@ -549,6 +570,95 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 				RoflRegister: func(body *rofl.Register) error {
 					blockTransactionData.Body = body
 					blockTransactionData.RelatedRoflAddresses[body.App] = struct{}{}
+					return nil
+				},
+				RoflMarketProviderCreate: func(body *roflmarket.ProviderCreate) error {
+					blockTransactionData.Body = body
+					blockTransactionData.RelatedRoflAddresses[body.SchedulerApp] = struct{}{}
+					if err := registerPaymentAddress(&body.PaymentAddress, &blockTransactionData, &blockData); err != nil {
+						logger.Warn("failed to register payment address", "err", err)
+					}
+					return nil
+				},
+				RoflMarketProviderUpdate: func(body *roflmarket.ProviderUpdate) error {
+					blockTransactionData.Body = body
+					blockTransactionData.RelatedRoflAddresses[body.SchedulerApp] = struct{}{}
+					if err := registerPaymentAddress(&body.PaymentAddress, &blockTransactionData, &blockData); err != nil {
+						logger.Warn("failed to register payment address", "err", err)
+					}
+					provider, err := addresses.FromSdkAddress(&body.Provider)
+					if err != nil {
+						logger.Warn("failed to convert provider address to native address", "err", err)
+						return nil
+					}
+					blockTransactionData.RelatedAccountAddresses[provider] = struct{}{}
+					return nil
+				},
+				RoflMarketProviderUpdateOffers: func(body *roflmarket.ProviderUpdateOffers) error {
+					blockTransactionData.Body = body
+					provider, err := addresses.FromSdkAddress(&body.Provider)
+					if err != nil {
+						logger.Warn("failed to convert provider address to native address", "err", err)
+					}
+					blockTransactionData.RelatedAccountAddresses[provider] = struct{}{}
+					return nil
+				},
+				RoflMarketProviderRemove: func(body *roflmarket.ProviderRemove) error {
+					blockTransactionData.Body = body
+					provider, err := addresses.FromSdkAddress(&body.Provider)
+					if err != nil {
+						logger.Warn("failed to convert provider address to native address", "err", err)
+					}
+					blockTransactionData.RelatedAccountAddresses[provider] = struct{}{}
+					return nil
+				},
+				RoflMarketInstanceCreate: func(body *roflmarket.InstanceCreate) error {
+					blockTransactionData.Body = body
+					provider, err := addresses.FromSdkAddress(&body.Provider)
+					if err != nil {
+						logger.Warn("failed to convert provider address to native address", "err", err)
+					}
+					blockTransactionData.RelatedAccountAddresses[provider] = struct{}{}
+
+					if body.Admin != nil {
+						admin, err := addresses.FromSdkAddress(body.Admin)
+						if err != nil {
+							logger.Warn("failed to convert admin address to native address", "err", err)
+						} else {
+							blockTransactionData.RelatedAccountAddresses[admin] = struct{}{}
+						}
+					}
+
+					if body.Deployment != nil {
+						blockTransactionData.RelatedRoflAddresses[body.Deployment.AppID] = struct{}{}
+					}
+					return nil
+				},
+				RoflMarketInstanceTopUp: func(body *roflmarket.InstanceTopUp) error {
+					blockTransactionData.Body = body
+					provider, err := addresses.FromSdkAddress(&body.Provider)
+					if err != nil {
+						logger.Warn("failed to convert provider address to native address", "err", err)
+					}
+					blockTransactionData.RelatedAccountAddresses[provider] = struct{}{}
+					return nil
+				},
+				RoflMarketInstanceCancel: func(body *roflmarket.InstanceCancel) error {
+					blockTransactionData.Body = body
+					provider, err := addresses.FromSdkAddress(&body.Provider)
+					if err != nil {
+						logger.Warn("failed to convert provider address to native address", "err", err)
+					}
+					blockTransactionData.RelatedAccountAddresses[provider] = struct{}{}
+					return nil
+				},
+				RoflMarketInstanceExecuteCmds: func(body *roflmarket.InstanceExecuteCmds) error {
+					blockTransactionData.Body = body
+					provider, err := addresses.FromSdkAddress(&body.Provider)
+					if err != nil {
+						logger.Warn("failed to convert provider address to native address", "err", err)
+					}
+					blockTransactionData.RelatedAccountAddresses[provider] = struct{}{}
 					return nil
 				},
 				UnknownMethod: func(methodName string) error {
@@ -1479,6 +1589,153 @@ func extractEvents(blockData *BlockData, eventsRaw []nodeapi.RuntimeEvent) ([]*E
 					Body:      event.InstanceRegistered,
 					WithScope: ScopedSdkEvent{Rofl: event},
 				}
+				extractedEvents = append(extractedEvents, &eventData)
+			}
+			return nil
+		},
+		RoflMarket: func(event *roflmarket.Event, eventTxHash *string, eventIdx int) error {
+			if event.ProviderCreated != nil {
+				eventData := EventData{
+					EventIdx:  eventIdx,
+					TxHash:    eventTxHash,
+					Type:      apiTypes.RuntimeEventTypeRoflmarketProviderCreated,
+					Body:      event.ProviderCreated,
+					WithScope: ScopedSdkEvent{RoflMarket: event},
+				}
+				address, err1 := addresses.FromSdkAddress(&event.ProviderCreated.Address)
+				if err1 != nil {
+					return fmt.Errorf("provider created address: %w", err1)
+				}
+				eventData.RelatedAddresses[address] = struct{}{}
+
+				extractedEvents = append(extractedEvents, &eventData)
+			}
+			if event.ProviderUpdated != nil {
+				eventData := EventData{
+					EventIdx:  eventIdx,
+					TxHash:    eventTxHash,
+					Type:      apiTypes.RuntimeEventTypeRoflmarketProviderUpdated,
+					Body:      event.ProviderUpdated,
+					WithScope: ScopedSdkEvent{RoflMarket: event},
+				}
+				address, err1 := addresses.FromSdkAddress(&event.ProviderUpdated.Address)
+				if err1 != nil {
+					return fmt.Errorf("provider updated address: %w", err1)
+				}
+				eventData.RelatedAddresses[address] = struct{}{}
+
+				extractedEvents = append(extractedEvents, &eventData)
+			}
+			if event.ProviderRemoved != nil {
+				eventData := EventData{
+					EventIdx:  eventIdx,
+					TxHash:    eventTxHash,
+					Type:      apiTypes.RuntimeEventTypeRoflmarketProviderRemoved,
+					Body:      event.ProviderRemoved,
+					WithScope: ScopedSdkEvent{RoflMarket: event},
+				}
+				address, err1 := addresses.FromSdkAddress(&event.ProviderRemoved.Address)
+				if err1 != nil {
+					return fmt.Errorf("provider removed address: %w", err1)
+				}
+				eventData.RelatedAddresses[address] = struct{}{}
+
+				extractedEvents = append(extractedEvents, &eventData)
+			}
+			if event.InstanceCreated != nil {
+				eventData := EventData{
+					EventIdx:  eventIdx,
+					TxHash:    eventTxHash,
+					Type:      apiTypes.RuntimeEventTypeRoflmarketInstanceCreated,
+					Body:      event.InstanceCreated,
+					WithScope: ScopedSdkEvent{RoflMarket: event},
+				}
+				address, err1 := addresses.FromSdkAddress(&event.InstanceCreated.Provider)
+				if err1 != nil {
+					return fmt.Errorf("instance created provider address: %w", err1)
+				}
+				eventData.RelatedAddresses[address] = struct{}{}
+
+				extractedEvents = append(extractedEvents, &eventData)
+			}
+			if event.InstanceUpdated != nil {
+				eventData := EventData{
+					EventIdx:  eventIdx,
+					TxHash:    eventTxHash,
+					Type:      apiTypes.RuntimeEventTypeRoflmarketInstanceUpdated,
+					Body:      event.InstanceUpdated,
+					WithScope: ScopedSdkEvent{RoflMarket: event},
+				}
+				address, err1 := addresses.FromSdkAddress(&event.InstanceUpdated.Provider)
+				if err1 != nil {
+					return fmt.Errorf("instance updated provider address: %w", err1)
+				}
+				eventData.RelatedAddresses[address] = struct{}{}
+
+				extractedEvents = append(extractedEvents, &eventData)
+			}
+			if event.InstanceAccepted != nil {
+				eventData := EventData{
+					EventIdx:  eventIdx,
+					TxHash:    eventTxHash,
+					Type:      apiTypes.RuntimeEventTypeRoflmarketInstanceAccepted,
+					Body:      event.InstanceAccepted,
+					WithScope: ScopedSdkEvent{RoflMarket: event},
+				}
+				address, err1 := addresses.FromSdkAddress(&event.InstanceAccepted.Provider)
+				if err1 != nil {
+					return fmt.Errorf("instance accepted provider address: %w", err1)
+				}
+				eventData.RelatedAddresses[address] = struct{}{}
+
+				extractedEvents = append(extractedEvents, &eventData)
+			}
+			if event.InstanceCancelled != nil {
+				eventData := EventData{
+					EventIdx:  eventIdx,
+					TxHash:    eventTxHash,
+					Type:      apiTypes.RuntimeEventTypeRoflmarketInstanceCancelled,
+					Body:      event.InstanceCancelled,
+					WithScope: ScopedSdkEvent{RoflMarket: event},
+				}
+				address, err1 := addresses.FromSdkAddress(&event.InstanceCancelled.Provider)
+				if err1 != nil {
+					return fmt.Errorf("instance cancelled provider address: %w", err1)
+				}
+				eventData.RelatedAddresses[address] = struct{}{}
+
+				extractedEvents = append(extractedEvents, &eventData)
+			}
+			if event.InstanceRemoved != nil {
+				eventData := EventData{
+					EventIdx:  eventIdx,
+					TxHash:    eventTxHash,
+					Type:      apiTypes.RuntimeEventTypeRoflmarketInstanceRemoved,
+					Body:      event.InstanceRemoved,
+					WithScope: ScopedSdkEvent{RoflMarket: event},
+				}
+				address, err1 := addresses.FromSdkAddress(&event.InstanceRemoved.Provider)
+				if err1 != nil {
+					return fmt.Errorf("instance removed provider address: %w", err1)
+				}
+				eventData.RelatedAddresses[address] = struct{}{}
+
+				extractedEvents = append(extractedEvents, &eventData)
+			}
+			if event.InstanceCommandQueued != nil {
+				eventData := EventData{
+					EventIdx:  eventIdx,
+					TxHash:    eventTxHash,
+					Type:      apiTypes.RuntimeEventTypeRoflmarketInstanceCommandQueued,
+					Body:      event.InstanceCommandQueued,
+					WithScope: ScopedSdkEvent{RoflMarket: event},
+				}
+				address, err1 := addresses.FromSdkAddress(&event.InstanceCommandQueued.Provider)
+				if err1 != nil {
+					return fmt.Errorf("instance command queued provider address: %w", err1)
+				}
+				eventData.RelatedAddresses[address] = struct{}{}
+
 				extractedEvents = append(extractedEvents, &eventData)
 			}
 			return nil
