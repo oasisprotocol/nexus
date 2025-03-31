@@ -12,6 +12,16 @@ The format is inspired by [Keep a Changelog].
 
 <!-- TOWNCRIER -->
 
+## 0.6.4 (2025-03-31)
+
+### Features
+
+- storage/db: Optimize `rofl/instance_transactions` query
+  ([#939](https://github.com/oasisprotocol/nexus/issues/939))
+
+- analyzer/runtime: Initial support for roflmarket module
+  ([#941](https://github.com/oasisprotocol/nexus/issues/941))
+
 ## 0.6.3 (2025-03-28)
 
 ### Features
