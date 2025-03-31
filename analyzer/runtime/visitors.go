@@ -13,6 +13,7 @@ import (
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/core"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/evm"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/rofl"
+	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/roflmarket"
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 
 	"github.com/oasisprotocol/nexus/analyzer/evmabi"
@@ -23,18 +24,26 @@ import (
 )
 
 type CallHandler struct {
-	AccountsTransfer            func(body *accounts.Transfer) error
-	ConsensusAccountsDeposit    func(body *consensusaccounts.Deposit) error
-	ConsensusAccountsWithdraw   func(body *consensusaccounts.Withdraw) error
-	ConsensusAccountsDelegate   func(body *consensusaccounts.Delegate) error
-	ConsensusAccountsUndelegate func(body *consensusaccounts.Undelegate) error
-	EVMCreate                   func(body *evm.Create, ok *[]byte) error
-	EVMCall                     func(body *evm.Call, ok *[]byte) error
-	RoflCreate                  func(body *rofl.Create) error
-	RoflUpdate                  func(body *rofl.Update) error
-	RoflRemove                  func(body *rofl.Remove) error
-	RoflRegister                func(body *rofl.Register) error
-	UnknownMethod               func(methodName string) error // Invoked for a tx call that doesn't map to any of the above method names.
+	AccountsTransfer               func(body *accounts.Transfer) error
+	ConsensusAccountsDeposit       func(body *consensusaccounts.Deposit) error
+	ConsensusAccountsWithdraw      func(body *consensusaccounts.Withdraw) error
+	ConsensusAccountsDelegate      func(body *consensusaccounts.Delegate) error
+	ConsensusAccountsUndelegate    func(body *consensusaccounts.Undelegate) error
+	EVMCreate                      func(body *evm.Create, ok *[]byte) error
+	EVMCall                        func(body *evm.Call, ok *[]byte) error
+	RoflCreate                     func(body *rofl.Create) error
+	RoflUpdate                     func(body *rofl.Update) error
+	RoflRemove                     func(body *rofl.Remove) error
+	RoflRegister                   func(body *rofl.Register) error
+	RoflMarketProviderCreate       func(body *roflmarket.ProviderCreate) error
+	RoflMarketProviderUpdate       func(body *roflmarket.ProviderUpdate) error
+	RoflMarketProviderUpdateOffers func(body *roflmarket.ProviderUpdateOffers) error
+	RoflMarketProviderRemove       func(body *roflmarket.ProviderRemove) error
+	RoflMarketInstanceCreate       func(body *roflmarket.InstanceCreate) error
+	RoflMarketInstanceTopUp        func(body *roflmarket.InstanceTopUp) error
+	RoflMarketInstanceCancel       func(body *roflmarket.InstanceCancel) error
+	RoflMarketInstanceExecuteCmds  func(body *roflmarket.InstanceExecuteCmds) error
+	UnknownMethod                  func(methodName string) error // Invoked for a tx call that doesn't map to any of the above method names.
 }
 
 //nolint:nestif,gocyclo
@@ -168,6 +177,86 @@ func VisitCall(call *sdkTypes.Call, result *sdkTypes.CallResult, handler *CallHa
 				return fmt.Errorf("rofl register: %w", err)
 			}
 		}
+	case "roflmarket.ProviderCreate":
+		if handler.RoflMarketProviderCreate != nil {
+			var body roflmarket.ProviderCreate
+			if err := cbor.Unmarshal(call.Body, &body); err != nil {
+				return fmt.Errorf("unmarshal rofl market provider create: %w", err)
+			}
+			if err := handler.RoflMarketProviderCreate(&body); err != nil {
+				return fmt.Errorf("rofl market provider create: %w", err)
+			}
+		}
+	case "roflmarket.ProviderUpdate":
+		if handler.RoflMarketProviderUpdate != nil {
+			var body roflmarket.ProviderUpdate
+			if err := cbor.Unmarshal(call.Body, &body); err != nil {
+				return fmt.Errorf("unmarshal rofl market provider update: %w", err)
+			}
+			if err := handler.RoflMarketProviderUpdate(&body); err != nil {
+				return fmt.Errorf("rofl market provider update: %w", err)
+			}
+		}
+	case "roflmarket.ProviderUpdateOffers":
+		if handler.RoflMarketProviderUpdateOffers != nil {
+			var body roflmarket.ProviderUpdateOffers
+			if err := cbor.Unmarshal(call.Body, &body); err != nil {
+				return fmt.Errorf("unmarshal rofl market provider update offers: %w", err)
+			}
+			if err := handler.RoflMarketProviderUpdateOffers(&body); err != nil {
+				return fmt.Errorf("rofl market provider update offers: %w", err)
+			}
+		}
+	case "roflmarket.ProviderRemove":
+		if handler.RoflMarketProviderRemove != nil {
+			var body roflmarket.ProviderRemove
+			if err := cbor.Unmarshal(call.Body, &body); err != nil {
+				return fmt.Errorf("unmarshal rofl market provider remove: %w", err)
+			}
+			if err := handler.RoflMarketProviderRemove(&body); err != nil {
+				return fmt.Errorf("rofl market provider remove: %w", err)
+			}
+		}
+	case "roflmarket.InstanceCreate":
+		if handler.RoflMarketInstanceCreate != nil {
+			var body roflmarket.InstanceCreate
+			if err := cbor.Unmarshal(call.Body, &body); err != nil {
+				return fmt.Errorf("unmarshal rofl market instance create: %w", err)
+			}
+			if err := handler.RoflMarketInstanceCreate(&body); err != nil {
+				return fmt.Errorf("rofl market instance create: %w", err)
+			}
+		}
+	case "roflmarket.InstanceTopUp":
+		if handler.RoflMarketInstanceTopUp != nil {
+			var body roflmarket.InstanceTopUp
+			if err := cbor.Unmarshal(call.Body, &body); err != nil {
+				return fmt.Errorf("unmarshal rofl market instance top up: %w", err)
+			}
+			if err := handler.RoflMarketInstanceTopUp(&body); err != nil {
+				return fmt.Errorf("rofl market instance top up: %w", err)
+			}
+		}
+	case "roflmarket.InstanceCancel":
+		if handler.RoflMarketInstanceCancel != nil {
+			var body roflmarket.InstanceCancel
+			if err := cbor.Unmarshal(call.Body, &body); err != nil {
+				return fmt.Errorf("unmarshal rofl market instance cancel: %w", err)
+			}
+			if err := handler.RoflMarketInstanceCancel(&body); err != nil {
+				return fmt.Errorf("rofl market instance cancel: %w", err)
+			}
+		}
+	case "roflmarket.InstanceExecuteCmds":
+		if handler.RoflMarketInstanceExecuteCmds != nil {
+			var body roflmarket.InstanceExecuteCmds
+			if err := cbor.Unmarshal(call.Body, &body); err != nil {
+				return fmt.Errorf("unmarshal rofl market instance execute cmds: %w", err)
+			}
+			if err := handler.RoflMarketInstanceExecuteCmds(&body); err != nil {
+				return fmt.Errorf("rofl market instance execute cmds: %w", err)
+			}
+		}
 	default:
 		if handler.UnknownMethod != nil {
 			return handler.UnknownMethod(string(call.Method))
@@ -182,6 +271,7 @@ type SdkEventHandler struct {
 	ConsensusAccounts func(event *consensusaccounts.Event, eventTxHash *string, eventIdx int) error
 	EVM               func(event *evm.Event, eventTxHash *string, eventIdx int) error
 	Rofl              func(event *rofl.Event, eventTxHash *string, eventIdx int) error
+	RoflMarket        func(event *roflmarket.Event, eventTxHash *string, eventIdx int) error
 }
 
 func VisitSdkEvent(event *nodeapi.RuntimeEvent, handler *SdkEventHandler, eventIdx int) (int, error) {
@@ -246,6 +336,18 @@ func VisitSdkEvent(event *nodeapi.RuntimeEvent, handler *SdkEventHandler, eventI
 		for i := range roflEvents {
 			if err = handler.Rofl(&roflEvents[i], txHash, eventIdx); err != nil {
 				return 0, fmt.Errorf("decoded event %d rofl: %w", i, err)
+			}
+			eventIdx++
+		}
+	}
+	if handler.RoflMarket != nil {
+		roflMarketEvents, err := DecodeRoflMarketEvent(event)
+		if err != nil {
+			return 0, fmt.Errorf("decode rofl market: %w", err)
+		}
+		for i := range roflMarketEvents {
+			if err = handler.RoflMarket(&roflMarketEvents[i], txHash, eventIdx); err != nil {
+				return 0, fmt.Errorf("decoded event %d rofl market: %w", i, err)
 			}
 			eventIdx++
 		}
