@@ -31,8 +31,8 @@ const (
 
 	AddressesTotalBalance = `
 		SELECT
-			COALESCE(SUM(general_balance + escrow_balance_active + escrow_balance_debonding), 0) AS total_balance
-			FROM chain.accounts
+			COALESCE(SUM(total_balance), 0)
+			FROM views.accounts_list
 			WHERE address = ANY($1)`
 
 	Blocks = `
