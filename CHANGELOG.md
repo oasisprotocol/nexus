@@ -12,6 +12,25 @@ The format is inspired by [Keep a Changelog].
 
 <!-- TOWNCRIER -->
 
+## 0.6.5 (2025-04-01)
+
+### Bug Fixes and Improvements
+
+- api/circulating_supply_raw: Fix computing circulating supply
+  ([#944](https://github.com/oasisprotocol/nexus/issues/944))
+
+  Preivosuly, the balance delegated to the address instead of the
+  balance delegated by the address was used when computing the circulating
+  supply.
+
+### Internal Changes
+
+- Bump oapi-codegen to v2.4.1
+  ([#943](https://github.com/oasisprotocol/nexus/issues/943))
+
+- internal: bump CI to ubuntu-22.04
+  ([#945](https://github.com/oasisprotocol/nexus/issues/945))
+
 ## 0.6.4 (2025-03-31)
 
 ### Features
