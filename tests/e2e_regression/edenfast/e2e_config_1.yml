@@ -69,10 +69,11 @@ server:
         "0x0000000000000000000000000000000000000000",
         "0x5C78A65AD6D0eC6618788b6E8e211F31729111Ca",
       ]
-  # Set some reserved addresses, so that circulating supply functionality is tested.
+  # Use some arbitrarly picked addresses, so that circulating supply functionality is tested.
   consensus_circulating_supply_exclusions:
-    - oasis1qp3r8hgsnphajmfzfuaa8fhjag7e0yt35cjxq0u4
-    - oasis1qzchk9eh0n4p2raym2e6cyvegrjumxl3lqkfhztr
+    - oasis1qzgjfk5vrjhucem4qqhx3sghw4cs3h7ctujh4mk0 # Account with general balance and zero escrow.
+    - oasis1qz7mw7fqkr2uj63pqjfnpxjycez2rzf04clplaet # Account with general balance and escrow.
+    - oasis1qpuv67hx8pg9mea6yw4jnhsl2wxnt7znku3xw0aj # Account with escrow and debonding balance and zero general balance.
 
 log:
   level: debug
