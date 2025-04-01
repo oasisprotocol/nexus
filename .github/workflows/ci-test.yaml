@@ -28,7 +28,7 @@ concurrency:
 
 jobs:
   build-go:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     services:
       # Generic postgres server; used only for testing our DB client lib. Not used by nexus.
       postgres:
@@ -69,7 +69,7 @@ jobs:
           file: ./coverage.txt
 
   validate-openapi:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -90,7 +90,7 @@ jobs:
           ./vacuum lint --ruleset .vacuum.yaml --details --snippets --errors api/spec/v1-normalized.yaml
 
   validate-migrations:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -98,7 +98,7 @@ jobs:
         run: scripts/validate_migrations.py --migrations storage/migrations
 
   test-e2e-localnet:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -141,7 +141,7 @@ jobs:
           - eden
           - edenfast
           - eden_testnet_2025
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
