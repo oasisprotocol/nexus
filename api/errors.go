@@ -58,7 +58,7 @@ func HttpCodeForError(err error) int {
 		errType == reflect.TypeOf(apiTypes.RequiredHeaderError{}) ||
 		errType == reflect.TypeOf(apiTypes.RequiredParamError{}) ||
 		errType == reflect.TypeOf(apiTypes.UnescapedCookieParamError{}) ||
-		errType == reflect.TypeOf(apiTypes.UnmarshallingParamError{}) ||
+		errType == reflect.TypeOf(apiTypes.UnmarshalingParamError{}) ||
 		errType == reflect.TypeOf(apiTypes.TooManyValuesForParamError{})):
 		return http.StatusBadRequest
 	default:
