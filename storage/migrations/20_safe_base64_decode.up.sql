@@ -1,0 +1,15 @@
+BEGIN;
+
+CREATE OR REPLACE FUNCTION public.safe_base64_decode(input TEXT)
+RETURNS BYTEA
+LANGUAGE plpgsql
+IMMUTABLE
+AS $$
+BEGIN
+  RETURN DECODE(input, 'base64');
+EXCEPTION WHEN others THEN
+  RETURN NULL;
+END;
+$$;
+
+COMMIT;
