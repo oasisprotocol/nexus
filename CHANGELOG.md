@@ -12,6 +12,13 @@ The format is inspired by [Keep a Changelog].
 
 <!-- TOWNCRIER -->
 
+## 0.6.6 (2025-04-02)
+
+### Bug Fixes and Improvements
+
+- api/rofl_apps: Fix query when app has no instances
+  ([#947](https://github.com/oasisprotocol/nexus/issues/947))
+
 ## 0.6.5 (2025-04-01)
 
 ### Bug Fixes and Improvements
