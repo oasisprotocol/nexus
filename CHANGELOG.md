@@ -12,6 +12,21 @@ The format is inspired by [Keep a Changelog].
 
 <!-- TOWNCRIER -->
 
+## 0.6.7 (2025-04-02)
+
+### Bug Fixes and Improvements
+
+- analyzer/runtime: Fix related address extraction for roflmarket
+  ([#948](https://github.com/oasisprotocol/nexus/issues/948))
+
+- storage/runtime-events: use safe base64 decoding
+  ([#954](https://github.com/oasisprotocol/nexus/issues/954))
+
+### Internal Changes
+
+- internal: bump oasis-sdk to v0.13.1
+  ([#952](https://github.com/oasisprotocol/nexus/issues/952))
+
 ## 0.6.6 (2025-04-02)
 
 ### Bug Fixes and Improvements
