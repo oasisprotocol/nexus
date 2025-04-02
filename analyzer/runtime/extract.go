@@ -1596,11 +1596,12 @@ func extractEvents(blockData *BlockData, eventsRaw []nodeapi.RuntimeEvent) ([]*E
 		RoflMarket: func(event *roflmarket.Event, eventTxHash *string, eventIdx int) error {
 			if event.ProviderCreated != nil {
 				eventData := EventData{
-					EventIdx:  eventIdx,
-					TxHash:    eventTxHash,
-					Type:      apiTypes.RuntimeEventTypeRoflmarketProviderCreated,
-					Body:      event.ProviderCreated,
-					WithScope: ScopedSdkEvent{RoflMarket: event},
+					EventIdx:         eventIdx,
+					TxHash:           eventTxHash,
+					Type:             apiTypes.RuntimeEventTypeRoflmarketProviderCreated,
+					Body:             event.ProviderCreated,
+					WithScope:        ScopedSdkEvent{RoflMarket: event},
+					RelatedAddresses: map[string]struct{}{},
 				}
 				address, err1 := addresses.FromSdkAddress(&event.ProviderCreated.Address)
 				if err1 != nil {
@@ -1612,11 +1613,12 @@ func extractEvents(blockData *BlockData, eventsRaw []nodeapi.RuntimeEvent) ([]*E
 			}
 			if event.ProviderUpdated != nil {
 				eventData := EventData{
-					EventIdx:  eventIdx,
-					TxHash:    eventTxHash,
-					Type:      apiTypes.RuntimeEventTypeRoflmarketProviderUpdated,
-					Body:      event.ProviderUpdated,
-					WithScope: ScopedSdkEvent{RoflMarket: event},
+					EventIdx:         eventIdx,
+					TxHash:           eventTxHash,
+					Type:             apiTypes.RuntimeEventTypeRoflmarketProviderUpdated,
+					Body:             event.ProviderUpdated,
+					WithScope:        ScopedSdkEvent{RoflMarket: event},
+					RelatedAddresses: map[string]struct{}{},
 				}
 				address, err1 := addresses.FromSdkAddress(&event.ProviderUpdated.Address)
 				if err1 != nil {
@@ -1628,11 +1630,12 @@ func extractEvents(blockData *BlockData, eventsRaw []nodeapi.RuntimeEvent) ([]*E
 			}
 			if event.ProviderRemoved != nil {
 				eventData := EventData{
-					EventIdx:  eventIdx,
-					TxHash:    eventTxHash,
-					Type:      apiTypes.RuntimeEventTypeRoflmarketProviderRemoved,
-					Body:      event.ProviderRemoved,
-					WithScope: ScopedSdkEvent{RoflMarket: event},
+					EventIdx:         eventIdx,
+					TxHash:           eventTxHash,
+					Type:             apiTypes.RuntimeEventTypeRoflmarketProviderRemoved,
+					Body:             event.ProviderRemoved,
+					WithScope:        ScopedSdkEvent{RoflMarket: event},
+					RelatedAddresses: map[string]struct{}{},
 				}
 				address, err1 := addresses.FromSdkAddress(&event.ProviderRemoved.Address)
 				if err1 != nil {
@@ -1644,11 +1647,12 @@ func extractEvents(blockData *BlockData, eventsRaw []nodeapi.RuntimeEvent) ([]*E
 			}
 			if event.InstanceCreated != nil {
 				eventData := EventData{
-					EventIdx:  eventIdx,
-					TxHash:    eventTxHash,
-					Type:      apiTypes.RuntimeEventTypeRoflmarketInstanceCreated,
-					Body:      event.InstanceCreated,
-					WithScope: ScopedSdkEvent{RoflMarket: event},
+					EventIdx:         eventIdx,
+					TxHash:           eventTxHash,
+					Type:             apiTypes.RuntimeEventTypeRoflmarketInstanceCreated,
+					Body:             event.InstanceCreated,
+					WithScope:        ScopedSdkEvent{RoflMarket: event},
+					RelatedAddresses: map[string]struct{}{},
 				}
 				address, err1 := addresses.FromSdkAddress(&event.InstanceCreated.Provider)
 				if err1 != nil {
@@ -1660,11 +1664,12 @@ func extractEvents(blockData *BlockData, eventsRaw []nodeapi.RuntimeEvent) ([]*E
 			}
 			if event.InstanceUpdated != nil {
 				eventData := EventData{
-					EventIdx:  eventIdx,
-					TxHash:    eventTxHash,
-					Type:      apiTypes.RuntimeEventTypeRoflmarketInstanceUpdated,
-					Body:      event.InstanceUpdated,
-					WithScope: ScopedSdkEvent{RoflMarket: event},
+					EventIdx:         eventIdx,
+					TxHash:           eventTxHash,
+					Type:             apiTypes.RuntimeEventTypeRoflmarketInstanceUpdated,
+					Body:             event.InstanceUpdated,
+					WithScope:        ScopedSdkEvent{RoflMarket: event},
+					RelatedAddresses: map[string]struct{}{},
 				}
 				address, err1 := addresses.FromSdkAddress(&event.InstanceUpdated.Provider)
 				if err1 != nil {
@@ -1676,11 +1681,12 @@ func extractEvents(blockData *BlockData, eventsRaw []nodeapi.RuntimeEvent) ([]*E
 			}
 			if event.InstanceAccepted != nil {
 				eventData := EventData{
-					EventIdx:  eventIdx,
-					TxHash:    eventTxHash,
-					Type:      apiTypes.RuntimeEventTypeRoflmarketInstanceAccepted,
-					Body:      event.InstanceAccepted,
-					WithScope: ScopedSdkEvent{RoflMarket: event},
+					EventIdx:         eventIdx,
+					TxHash:           eventTxHash,
+					Type:             apiTypes.RuntimeEventTypeRoflmarketInstanceAccepted,
+					Body:             event.InstanceAccepted,
+					WithScope:        ScopedSdkEvent{RoflMarket: event},
+					RelatedAddresses: map[string]struct{}{},
 				}
 				address, err1 := addresses.FromSdkAddress(&event.InstanceAccepted.Provider)
 				if err1 != nil {
@@ -1692,11 +1698,12 @@ func extractEvents(blockData *BlockData, eventsRaw []nodeapi.RuntimeEvent) ([]*E
 			}
 			if event.InstanceCancelled != nil {
 				eventData := EventData{
-					EventIdx:  eventIdx,
-					TxHash:    eventTxHash,
-					Type:      apiTypes.RuntimeEventTypeRoflmarketInstanceCancelled,
-					Body:      event.InstanceCancelled,
-					WithScope: ScopedSdkEvent{RoflMarket: event},
+					EventIdx:         eventIdx,
+					TxHash:           eventTxHash,
+					Type:             apiTypes.RuntimeEventTypeRoflmarketInstanceCancelled,
+					Body:             event.InstanceCancelled,
+					WithScope:        ScopedSdkEvent{RoflMarket: event},
+					RelatedAddresses: map[string]struct{}{},
 				}
 				address, err1 := addresses.FromSdkAddress(&event.InstanceCancelled.Provider)
 				if err1 != nil {
@@ -1708,11 +1715,12 @@ func extractEvents(blockData *BlockData, eventsRaw []nodeapi.RuntimeEvent) ([]*E
 			}
 			if event.InstanceRemoved != nil {
 				eventData := EventData{
-					EventIdx:  eventIdx,
-					TxHash:    eventTxHash,
-					Type:      apiTypes.RuntimeEventTypeRoflmarketInstanceRemoved,
-					Body:      event.InstanceRemoved,
-					WithScope: ScopedSdkEvent{RoflMarket: event},
+					EventIdx:         eventIdx,
+					TxHash:           eventTxHash,
+					Type:             apiTypes.RuntimeEventTypeRoflmarketInstanceRemoved,
+					Body:             event.InstanceRemoved,
+					WithScope:        ScopedSdkEvent{RoflMarket: event},
+					RelatedAddresses: map[string]struct{}{},
 				}
 				address, err1 := addresses.FromSdkAddress(&event.InstanceRemoved.Provider)
 				if err1 != nil {
@@ -1724,11 +1732,12 @@ func extractEvents(blockData *BlockData, eventsRaw []nodeapi.RuntimeEvent) ([]*E
 			}
 			if event.InstanceCommandQueued != nil {
 				eventData := EventData{
-					EventIdx:  eventIdx,
-					TxHash:    eventTxHash,
-					Type:      apiTypes.RuntimeEventTypeRoflmarketInstanceCommandQueued,
-					Body:      event.InstanceCommandQueued,
-					WithScope: ScopedSdkEvent{RoflMarket: event},
+					EventIdx:         eventIdx,
+					TxHash:           eventTxHash,
+					Type:             apiTypes.RuntimeEventTypeRoflmarketInstanceCommandQueued,
+					Body:             event.InstanceCommandQueued,
+					WithScope:        ScopedSdkEvent{RoflMarket: event},
+					RelatedAddresses: map[string]struct{}{},
 				}
 				address, err1 := addresses.FromSdkAddress(&event.InstanceCommandQueued.Provider)
 				if err1 != nil {
