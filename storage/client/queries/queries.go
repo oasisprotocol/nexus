@@ -980,9 +980,10 @@ const (
 			latest_blk.timestamp AS last_activity,
 			latest_tx.tx_round AS last_activity_tx_round,
 			latest_tx.tx_index AS last_activity_tx_index,
-			ri_agg.num_active_instances,
+			COALESCE(ri_agg.num_active_instances, 0) as num_active_instances,
 			COALESCE(
-				jsonb_agg(ri_agg.instance_json ORDER BY ri_agg.expiration_epoch DESC),
+				jsonb_agg(ri_agg.instance_json ORDER BY ri_agg.expiration_epoch DESC)
+					FILTER (WHERE ri_agg.instance_json IS NOT NULL),
 				'[]'::jsonb
 			) AS active_instances
 		FROM chain.rofl_apps AS ra
