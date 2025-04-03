@@ -2562,10 +2562,10 @@ components:
           description: The available balance, in base units.
         escrow:
           allOf: [$ref: '#/components/schemas/TextBigInt']
-          description: The active escrow balance, in base units.
+          description: Amount delegated to this validator, in base units.
         debonding:
           allOf: [$ref: '#/components/schemas/TextBigInt']
-          description: The debonding escrow balance, in base units.
+          description: Amount debonding from this validator, in base units.
         delegations_balance:
           allOf: [$ref: '#/components/schemas/TextBigInt']
           description: The balance of this accounts' (outgoing) delegations, in base units.
