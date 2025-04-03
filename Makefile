@@ -65,12 +65,46 @@ E2E_REGRESSION_SUITES_NO_LINKS := eden_testnet_2025 eden damask
 # make E2E_REGRESSION_SUITES='suite1 suite2' test-e2e-regression
 E2E_REGRESSION_SUITES := $(E2E_REGRESSION_SUITES_NO_LINKS) edenfast
 
+E2E_REGRESSION_ARTIFACTS_VERSION = 2025-04-04
+
+upload-e2e-regression-caches:
+	for suite in $(E2E_REGRESSION_SUITES); do \
+		cache_dir="tests/e2e_regression/$$suite/rpc-cache"; \
+		archive_path="/tmp/$$suite-rpc-cache.tzst"; \
+		echo "Compressing $$cache_dir to $$archive_path..."; \
+		tar -cf "$$archive_path" --exclude='*.backup' -C "$$(dirname $$cache_dir)" "$$(basename $$cache_dir)" \
+			--use-compress-program zstd; \
+		echo "Uploading $$archive_path to S3..."; \
+		aws s3 cp "$$archive_path" \
+			s3://oasis-artifacts/nexus-tests-e2e-regression/$(E2E_REGRESSION_ARTIFACTS_VERSION)/$$suite/rpc-cache.tzst; \
+	done
+
+ensure-e2e-regression-caches:
+	for suite in $(E2E_REGRESSION_SUITES); do \
+		cache_path="tests/e2e_regression/$$suite/rpc-cache"; \
+		archive_url="https://oasis-artifacts.s3.amazonaws.com/nexus-tests-e2e-regression/$(E2E_REGRESSION_ARTIFACTS_VERSION)/$$suite/rpc-cache.tzst"; \
+		archive_tmp="/tmp/$$suite-rpc-cache.tzst"; \
+		if [ "$$FORCE" = "1" ]; then \
+			echo "Forcing download of $$cache_path..."; \
+			rm -rf "$$cache_path"; \
+		fi; \
+		if [ ! -d "$$cache_path" ]; then \
+			echo "Downloading $$archive_url..."; \
+			curl -L -o "$$archive_tmp" "$$archive_url"; \
+			echo "Extracting to $$cache_path..."; \
+			mkdir -p "$$(dirname $$cache_path)"; \
+			tar -xf "$$archive_tmp" -C "$$(dirname $$cache_path)" --use-compress-program unzstd; \
+		else \
+			echo "Cache already exists for $$suite — skipping."; \
+		fi; \
+	done
+
 ensure-consistent-config-for-e2e-regression:
 	for suite in $(E2E_REGRESSION_SUITES); do ./tests/e2e_regression/ensure_consistent_config.sh $$suite; done
 
 # Run the api tests locally, assuming the environment is set up with an oasis-node that is
 # accessible as specified in the config file.
-test-e2e-regression: nexus ensure-consistent-config-for-e2e-regression
+test-e2e-regression: nexus ensure-consistent-config-for-e2e-regression ensure-e2e-regression-caches
 	for suite in $(E2E_REGRESSION_SUITES); do ./tests/e2e_regression/run.sh -a $$suite; done
 
 # Accept the outputs of the e2e tests as the new expected outputs.

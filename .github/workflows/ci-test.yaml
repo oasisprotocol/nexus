@@ -134,6 +134,8 @@ jobs:
         if: success() || failure()  # but not if job is manually cancelled
 
   test-e2e-regression:
+    env:
+      E2E_REGRESSION_ARTIFACTS_VERSION: 2025-04-04
     strategy:
       matrix:
         suite:
@@ -145,31 +147,43 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Cache Test Artifacts
+        uses: actions/cache@v4
         with:
-          lfs: true
+          key: ${{ env.E2E_REGRESSION_ARTIFACTS_VERSION }}-${{ matrix.suite }}-rpc-cache
+          path: |
+            tests/e2e_regression/${{ matrix.suite }}/rpc-cache
+
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
           go-version: 1.23.x
+
       - name: Autogenerate Go code
         run: |
           go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@v2.4.1
           make codegen-go
+
       - name: Build Go
         run: |
           make nexus
+
       - name: Start db
         run: |
           make postgres
+
       - name: Block access to Sourcify
         # Sourcify should not need to be available in CI; we run everything from caches.
         # Enforce unavailability to keep tests confidently reproducible, and to catch
         # any bugs that might cause CI to accidentally use Sourcify.
         run: |
           sudo bash -c 'echo 0.0.0.0 sourcify.dev | tee -a /etc/hosts'
+
       - name: Run e2e regression tests
         run : |
           make E2E_REGRESSION_SUITES=${{ matrix.suite }} test-e2e-regression
+
       - uses: actions/upload-artifact@v4
         with:
           name: Actual nexus api responses
