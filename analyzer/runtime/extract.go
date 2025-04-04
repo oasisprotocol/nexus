@@ -569,12 +569,13 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 				},
 				RoflRegister: func(body *rofl.Register) error {
 					blockTransactionData.Body = body
-					blockTransactionData.RelatedRoflAddresses[body.App] = struct{}{}
+					// RoflRegister transactions are not tracked as "related" to any ROFL address,
+					// since these will already be tracked as the "instance transactions" of the ROFL instance
+					// which is registering.
 					return nil
 				},
 				RoflMarketProviderCreate: func(body *roflmarket.ProviderCreate) error {
 					blockTransactionData.Body = body
-					blockTransactionData.RelatedRoflAddresses[body.SchedulerApp] = struct{}{}
 					if err := registerPaymentAddress(&body.PaymentAddress, &blockTransactionData, &blockData); err != nil {
 						logger.Warn("failed to register payment address", "err", err)
 					}
@@ -582,7 +583,6 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 				},
 				RoflMarketProviderUpdate: func(body *roflmarket.ProviderUpdate) error {
 					blockTransactionData.Body = body
-					blockTransactionData.RelatedRoflAddresses[body.SchedulerApp] = struct{}{}
 					if err := registerPaymentAddress(&body.PaymentAddress, &blockTransactionData, &blockData); err != nil {
 						logger.Warn("failed to register payment address", "err", err)
 					}
