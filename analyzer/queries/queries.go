@@ -243,15 +243,26 @@ var (
       SET first_activity = LEAST(chain.accounts.first_activity, excluded.first_activity)`
 
 	ConsensusAccountsFirstActivityRecompute = `
-    WITH min_tx_block AS (
-        SELECT art.account_address, MIN(art.tx_block) AS min_block
-        FROM chain.accounts_related_transactions art
-        GROUP BY art.account_address
-    ),
-    min_block_time AS (
-        SELECT m.account_address, b.time AS min_time
-        FROM min_tx_block m
-        JOIN chain.blocks b ON m.min_block = b.height
+      WITH min_block_time AS (
+        SELECT
+            account_address,
+            b.time AS min_time
+        FROM (
+            SELECT account_address, MIN(min_block) AS min_block
+            FROM (
+                SELECT art.account_address, MIN(art.tx_block) AS min_block
+                FROM chain.accounts_related_transactions art
+                GROUP BY art.account_address
+
+                UNION ALL
+
+                SELECT era.account_address, MIN(era.tx_block) AS min_block
+                FROM chain.events_related_accounts era
+                GROUP BY era.account_address
+            ) combined_min_blocks
+            GROUP BY account_address
+        ) min_blocks
+        JOIN chain.blocks b ON b.height = min_blocks.min_block
     )
     INSERT INTO chain.accounts (address, first_activity)
     SELECT mbt.account_address, mbt.min_time
@@ -306,10 +317,6 @@ var (
 	ConsensusAccountRelatedTransactionInsert = `
     INSERT INTO chain.accounts_related_transactions (account_address, method, tx_block, tx_index)
       VALUES ($1, $2, $3, $4)`
-
-	ConsensusAccountRelatedEventInsert = `
-    INSERT INTO chain.accounts_related_events (account_address, event_block, tx_index, tx_hash, type, body)
-      VALUES ($1, $2, $3, $4, $5, $6)`
 
 	ConsensusRuntimeUpsert = `
     INSERT INTO chain.runtimes (id, suspended, kind, tee_hardware, key_manager)
@@ -513,7 +520,7 @@ var (
     INSERT INTO chain.votes (proposal, voter, vote, height)
       VALUES ($1, $2, $3, $4)
     ON CONFLICT (proposal, voter) DO UPDATE SET
-	    vote = excluded.vote,
+      vote = excluded.vote,
       height = excluded.height;`
 
 	ValidatorStakingHistoryUnprocessedEpochs = `
