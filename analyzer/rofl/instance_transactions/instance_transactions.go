@@ -133,6 +133,12 @@ func (p *processor) ProcessItem(ctx context.Context, batch *storage.QueryBatch, 
 		instanceAddresses = append(instanceAddresses, extraAddress.String())
 	}
 
+	// Query the latest round here to use it.
+	var latestRound uint64
+	if err := p.target.QueryRow(ctx, RuntimeLatestRound, p.runtime).Scan(&latestRound); err != nil {
+		return fmt.Errorf("querying latest round: %w", err)
+	}
+
 	// Find transactions that were signed by any of these addresses.
 	rows, err := p.target.Query(
 		ctx,
@@ -140,51 +146,32 @@ func (p *processor) ProcessItem(ctx context.Context, batch *storage.QueryBatch, 
 		p.runtime,
 		instanceAddresses,
 		item.LastProcessedRound,
+		latestRound,
 	)
 	if err != nil {
 		return fmt.Errorf("querying rofl instance transactions: %w", err)
 	}
 	defer rows.Close()
 
-	var latestRound uint64
-	var transactions []struct {
-		Round            uint64
-		TxIndex          uint32
-		Method           string
-		IsNativeTransfer bool
-	}
 	for rows.Next() {
 		var round uint64
 		var txIndex uint32
 		var method string
 		var isNativeTransfer bool
-		if err := rows.Scan(&round, &txIndex, &method, &isNativeTransfer, &latestRound); err != nil {
+		if err := rows.Scan(&round, &txIndex, &method, &isNativeTransfer); err != nil {
 			return fmt.Errorf("scanning rofl instance transaction: %w", err)
 		}
-		transactions = append(transactions, struct {
-			Round            uint64
-			TxIndex          uint32
-			Method           string
-			IsNativeTransfer bool
-		}{
-			Round:            round,
-			TxIndex:          txIndex,
-			Method:           method,
-			IsNativeTransfer: isNativeTransfer,
-		})
-	}
 
-	// Insert found transactions into the database.
-	for _, tx := range transactions {
+		// Insert found transactions into the database.
 		batch.Queue(
 			RoflInstanceTransactionsUpsert,
 			p.runtime,
 			item.AppID,
 			item.RAK,
-			tx.Round,
-			tx.TxIndex,
-			tx.Method,
-			tx.IsNativeTransfer,
+			round,
+			txIndex,
+			method,
+			isNativeTransfer,
 		)
 	}
 
