@@ -39,6 +39,8 @@ import (
 
 const (
 	consensusAnalyzerName = "consensus"
+
+	validatorUptimesViewRefreshQuery = `REFRESH MATERIALIZED VIEW CONCURRENTLY views.validator_uptimes`
 )
 
 type EventType = apiTypes.ConsensusEventType // alias for brevity
@@ -321,6 +323,10 @@ func (m *processor) queueDbUpdates(batch *storage.QueryBatch, data allData) erro
 		if err := f(batch, data.RootHashData); err != nil {
 			return err
 		}
+	}
+
+	if m.mode == analyzer.SlowSyncMode {
+		batch.Queue(validatorUptimesViewRefreshQuery)
 	}
 
 	return nil
