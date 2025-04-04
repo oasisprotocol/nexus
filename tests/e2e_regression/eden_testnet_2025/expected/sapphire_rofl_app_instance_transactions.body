@@ -1431,15 +1431,6 @@
           "address": "oasis1qzf8zl5g2g6awzvvc8xs24jm8ewvp7k205pmsg6j",
           "address_eth": "0xa194D3118d4ce56f30Eb74DF30Ff06423ABd1F05",
           "nonce": 1678
-        },
-        {
-          "address": "oasis1qzxx0lznvd6pfeleffqcfwkfu4xptu58e5ekhuzq",
-          "nonce": 34
-        },
-        {
-          "address": "oasis1qzf8zl5g2g6awzvvc8xs24jm8ewvp7k205pmsg6j",
-          "address_eth": "0xa194D3118d4ce56f30Eb74DF30Ff06423ABd1F05",
-          "nonce": 1678
         }
       ],
       "size": 11419,

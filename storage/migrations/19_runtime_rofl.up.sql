@@ -79,6 +79,8 @@ CREATE TABLE chain.rofl_instance_transactions
   tx_round UINT63 NOT NULL,
   tx_index UINT31 NOT NULL,
 
+  -- PRIMARY KEY (runtime, app_id, rak, tx_round, tx_index), -- Added in 21_rofl_related_remove_register.up.sql
+
   method TEXT,
   likely_native_transfer BOOLEAN NOT NULL DEFAULT FALSE,
 
