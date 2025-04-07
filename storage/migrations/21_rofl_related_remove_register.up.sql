@@ -3,7 +3,7 @@ BEGIN;
 -- We don't track rofl.Register transactions as related to any ROFL address anymore.
 -- Clean up such entries.
 DELETE FROM chain.rofl_related_transactions
-  WHERE method = 'rofl.Register' or method = 'roflmarket.ProviderCreate' or method = 'roflmarket.ProviderUpdate';
+  WHERE method = 'rofl.Register' or method = 'roflmarket.ProviderCreate' or method = 'roflmarket.ProviderUpdate' or method = 'roflmarket.InstanceCreate';
 
 -- Due to a bug, there can be A LOT of duplicates in the chain.rofl_instance_transactions table.
 -- Create a new empty table with the same structure, and mark instance to be re-analyzed.
