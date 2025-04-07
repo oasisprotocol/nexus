@@ -1338,9 +1338,8 @@ var (
       rek = excluded.rek,
       expiration_epoch = excluded.expiration_epoch,
       extra_keys = excluded.extra_keys,
-      -- Not totaly correct, but w/e.
       registration_round = LEAST(excluded.registration_round, chain.rofl_instances.registration_round),
-      last_processed_round = LEAST(excluded.last_processed_round, chain.rofl_instances.last_processed_round)`
+      last_processed_round = COALESCE(chain.rofl_instances.last_processed_round, excluded.last_processed_round)`
 
 	RuntimeRoflAppQueueRefresh = `
     INSERT INTO chain.rofl_apps (runtime, id, last_queued_round)

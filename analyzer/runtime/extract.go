@@ -628,10 +628,6 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 							blockTransactionData.RelatedAccountAddresses[admin] = struct{}{}
 						}
 					}
-
-					if body.Deployment != nil {
-						blockTransactionData.RelatedRoflAddresses[body.Deployment.AppID] = struct{}{}
-					}
 					return nil
 				},
 				RoflMarketInstanceTopUp: func(body *roflmarket.InstanceTopUp) error {
