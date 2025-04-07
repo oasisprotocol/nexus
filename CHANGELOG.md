@@ -12,6 +12,30 @@ The format is inspired by [Keep a Changelog].
 
 <!-- TOWNCRIER -->
 
+## 0.6.8 (2025-04-07)
+
+### Bug Fixes and Improvements
+
+- consensus/first_activity: Fix computation in some cases
+  ([#958](https://github.com/oasisprotocol/nexus/issues/958))
+
+  - `Common pool`, `Fee Accumulator` and `Burn` addresses were missing
+  from static `first-activity` lists.
+
+  - Fixes `ConsensusAccountsFirstActivityRecompute` to also look at events.
+
+- rofl: Instance transaction fixes
+  ([#959](https://github.com/oasisprotocol/nexus/issues/959))
+
+  - Fix possible duplications in `rofl_instance_transactions` table
+
+  - Stop tracking `rofl.Register` transactions as ROFL update transactions
+
+### Internal Changes
+
+- tests/e2e_regression: Move test artifacts to s3
+  ([#957](https://github.com/oasisprotocol/nexus/issues/957))
+
 ## 0.6.7 (2025-04-02)
 
 ### Bug Fixes and Improvements
