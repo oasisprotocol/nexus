@@ -1021,10 +1021,29 @@ const (
 
 		-- Fetch the first transaction round for the app.
 		LEFT JOIN LATERAL (
-			SELECT rrt.tx_round
-			FROM chain.rofl_related_transactions AS rrt
-			WHERE rrt.runtime = ra.runtime AND rrt.app_id = ra.id
-			ORDER BY rrt.tx_round ASC
+			SELECT
+				tx_round,
+				tx_index
+			FROM (
+				SELECT tx_round, tx_index
+				FROM chain.rofl_instance_transactions
+				WHERE runtime = ra.runtime AND app_id = ra.id
+				ORDER BY tx_round ASC
+				LIMIT 1
+			) AS rit_sub
+
+			UNION ALL
+
+			SELECT tx_round, tx_index
+			FROM (
+				SELECT tx_round, tx_index
+				FROM chain.rofl_related_transactions
+				WHERE runtime = ra.runtime AND app_id = ra.id
+				ORDER BY tx_round ASC
+				LIMIT 1
+			) AS rrt_sub
+
+			ORDER BY tx_round ASC
 			LIMIT 1
 		) AS first_tx ON true
 		-- Fetch the block of the first transaction.

@@ -79,6 +79,8 @@ CREATE TABLE chain.rofl_instance_transactions
   tx_round UINT63 NOT NULL,
   tx_index UINT31 NOT NULL,
 
+  -- PRIMARY KEY (runtime, app_id, rak, tx_round, tx_index), -- Added in 21_rofl_related_remove_register.up.sql
+
   method TEXT,
   likely_native_transfer BOOLEAN NOT NULL DEFAULT FALSE,
 
@@ -91,7 +93,7 @@ CREATE INDEX ix_rofl_instance_transactions_runtime_app_id_likely_native_transfer
 CREATE INDEX ix_rofl_instance_transactions_runtime_app_id_method_likely_native_transfer_round_index ON chain.rofl_instance_transactions (runtime, app_id, method, likely_native_transfer, tx_round, tx_index);
 
 -- Fetching per-instance transactions.
-CREATE INDEX ix_rofl_instance_transactions_app_id_rak_round_index ON chain.rofl_instance_transactions (runtime, app_id, rak, tx_round, tx_index);
+CREATE INDEX ix_rofl_instance_transactions_app_id_rak_round_index ON chain.rofl_instance_transactions (runtime, app_id, rak, tx_round, tx_index); -- Removed in 21_rofl_related_remove_register.up.sql
 CREATE INDEX ix_rofl_instance_transactions_app_id_rak_method_round_index ON chain.rofl_instance_transactions (runtime, app_id, rak, method, tx_round, tx_index);
 CREATE INDEX ix_rofl_instance_transactions_app_id_rak_likely_native_transfer_round_index ON chain.rofl_instance_transactions (runtime, app_id, rak, likely_native_transfer, tx_round, tx_index);
 CREATE INDEX ix_rofl_instance_transactions_app_id_rak_method_likely_native_transfer_round_index ON chain.rofl_instance_transactions (runtime, app_id, rak, method, likely_native_transfer, tx_round, tx_index);

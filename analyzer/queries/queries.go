@@ -1330,7 +1330,7 @@ var (
 
 	RuntimeRoflInstanceUpsert = `
     INSERT INTO chain.rofl_instances (runtime, app_id, rak, endorsing_node_id, endorsing_entity_id, rek, expiration_epoch, extra_keys, registration_round, last_processed_round)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $9)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
     ON CONFLICT (runtime, app_id, rak) DO UPDATE
     SET
       endorsing_node_id = excluded.endorsing_node_id,

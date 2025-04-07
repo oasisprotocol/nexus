@@ -171,6 +171,7 @@ func (p *processor) queueRoflAppInstancesRefresh(ctx context.Context, batch *sto
 			// transactions, since we will have the wrong registration round in the DB and the rofl_instance_transactions
 			// analyzer relies on it.
 			round,
+			round-1,
 		)
 	}
 	return nil
