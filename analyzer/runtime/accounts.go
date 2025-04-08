@@ -164,7 +164,8 @@ func (m *processor) queueConsensusAccountsEvents(batch *storage.QueryBatch, bloc
 			m.queueTransactionStatusUpdate(batch, blockData.Header.Round, "consensus.Delegate", e.From, e.Nonce, e.Error)
 		}
 		if e := event.WithScope.ConsensusAccounts.UndelegateStart; e != nil {
-			m.queueTransactionStatusUpdate(batch, blockData.Header.Round, "consensus.Undelegate", e.From, e.Nonce, e.Error)
+			// To contains the signer address.
+			m.queueTransactionStatusUpdate(batch, blockData.Header.Round, "consensus.Undelegate", e.To, e.Nonce, e.Error)
 		}
 		// Nothing to do for 'UndelegateEnd'.
 	}

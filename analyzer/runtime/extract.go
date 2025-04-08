@@ -365,8 +365,11 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 						// Ref: https://github.com/oasisprotocol/oasis-sdk/blob/runtime-sdk/v0.8.4/runtime-sdk/src/modules/consensus_accounts/mod.rs#L418
 						to = blockTransactionData.SignerData[0].Address
 					}
-					// Set the 'Success' field to 'Pending' for deposits. This is because the outcome of the Deposit tx is only known in the next block.
-					blockTransactionData.Success = nil
+					// If transaction has not failed, set the 'Success' field to 'Pending' for deposits.
+					// This is because the outcome of the Deposit tx is only known in the next block.
+					if blockTransactionData.Success != nil && *blockTransactionData.Success {
+						blockTransactionData.Success = nil
+					}
 					blockTransactionData.RelatedAccountAddresses[to] = struct{}{}
 					return nil
 				},
@@ -385,8 +388,11 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 						to = blockTransactionData.SignerData[0].Address
 					}
 					blockTransactionData.RelatedAccountAddresses[to] = struct{}{}
-					// Set the 'Success' field to 'Pending' for withdrawals. This is because the outcome of the Withdraw tx is only known in the next block.
-					blockTransactionData.Success = nil
+					// If transaction has not failed, set the 'Success' field to 'Pending' for withdrawals.
+					// This is because the outcome of the Withdraw tx is only known in the next block.
+					if blockTransactionData.Success != nil && *blockTransactionData.Success {
+						blockTransactionData.Success = nil
+					}
 
 					return nil
 				},
@@ -421,8 +427,11 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 						return fmt.Errorf("to: %w", err)
 					}
 					blockTransactionData.RelatedAccountAddresses[to] = struct{}{}
-					// Set the 'Success' field to 'Pending' for delegations. This is because the outcome of the Delegate tx is only known in the next block.
-					blockTransactionData.Success = nil
+					// If transaction has not failed, set the 'Success' field to 'Pending' for delegations.
+					// This is because the outcome of the Delegate tx is only known in the next block.
+					if blockTransactionData.Success != nil && *blockTransactionData.Success {
+						blockTransactionData.Success = nil
+					}
 					return nil
 				},
 				ConsensusAccountsUndelegate: func(body *consensusaccounts.Undelegate) error {
@@ -441,8 +450,11 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 					// the validator's token pool might change, e.g. because of slashing.
 					// Do not store `body.Shares` in DB's `amount` to avoid confusion. Clients can still look up the shares in the tx body if they really need it.
 
-					// Set the 'Success' field to 'Pending' for undelegations. This is because the outcome of the Undelegate tx is only known in the next block.
-					blockTransactionData.Success = nil
+					// If transaction has not failed, set the 'Success' field to 'Pending' for undelegations.
+					// This is because the outcome of the Undelegate tx is only known in the next block.
+					if blockTransactionData.Success != nil && *blockTransactionData.Success {
+						blockTransactionData.Success = nil
+					}
 					return nil
 				},
 				EVMCreate: func(body *sdkEVM.Create, ok *[]byte) error {
