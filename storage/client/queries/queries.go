@@ -962,9 +962,61 @@ const (
 
 	RuntimeRoflApps = `
 		WITH
+			-- Latest epoch, to identify active instances.
 			max_epoch AS (
 				SELECT id FROM chain.epochs ORDER BY id DESC LIMIT 1
+			),
+
+			-- Fetch instance and related transactions.
+			 tx_ranked AS (
+				SELECT
+					app_id,
+					tx_round,
+					tx_index,
+					ROW_NUMBER() OVER (PARTITION BY app_id ORDER BY tx_round ASC, tx_index ASC) AS rn_first,
+					ROW_NUMBER() OVER (PARTITION BY app_id ORDER BY tx_round DESC, tx_index DESC) AS rn_last,
+					COUNT(*) OVER (PARTITION BY app_id) AS num_app_transactions
+				FROM (
+					SELECT app_id, tx_round, tx_index FROM chain.rofl_instance_transactions WHERE runtime = 'sapphire'
+					UNION ALL
+					SELECT app_id, tx_round, tx_index FROM chain.rofl_related_transactions WHERE runtime = 'sapphire'
+				) all_tx
+			),
+
+			-- Aggregate first, last and total transactions per app.
+			tx_stats AS (
+				SELECT
+					app_id,
+					MAX(CASE WHEN rn_first = 1 THEN tx_round END) AS first_tx_round,
+					MAX(CASE WHEN rn_first = 1 THEN tx_index END) AS first_tx_index,
+					MAX(CASE WHEN rn_last = 1 THEN tx_round END) AS last_tx_round,
+					MAX(CASE WHEN rn_last = 1 THEN tx_index END) AS last_tx_index,
+					MAX(num_app_transactions) AS num_app_transactions
+				FROM tx_ranked
+				GROUP BY app_id
+			),
+
+			-- Aggregate active instance data per app.
+			active_instances AS (
+				SELECT
+					ri.app_id,
+					COUNT(*) AS num_active_instances,
+					jsonb_agg(
+						jsonb_build_object(
+						'rak', ri.rak,
+						'endorsing_node_id', ri.endorsing_node_id,
+						'endorsing_entity_id', ri.endorsing_entity_id,
+						'rek', ri.rek,
+						'expiration_epoch', ri.expiration_epoch,
+						'extra_keys', ri.extra_keys
+						) ORDER BY ri.expiration_epoch DESC
+					) AS instance_json
+				FROM chain.rofl_instances ri
+				JOIN max_epoch ON true
+				WHERE ri.expiration_epoch > max_epoch.id
+				GROUP BY ri.app_id
 			)
+
 		SELECT
 			ra.id,
 			ra.admin,
@@ -979,16 +1031,13 @@ const (
 			ra.removed,
 			first_blk.timestamp AS date_created,
 			latest_blk.timestamp AS last_activity,
-			latest_tx.tx_round AS last_activity_tx_round,
-			latest_tx.tx_index AS last_activity_tx_index,
-			COALESCE(ri_agg.num_active_instances, 0) as num_active_instances,
-			COALESCE(
-				jsonb_agg(ri_agg.instance_json ORDER BY ri_agg.expiration_epoch DESC)
-					FILTER (WHERE ri_agg.instance_json IS NOT NULL),
-				'[]'::jsonb
-			) AS active_instances
+			tx_stats.last_tx_round,
+			tx_stats.last_tx_index,
+			COALESCE(ai.num_active_instances, 0) as num_active_instances,
+			COALESCE(ai.instance_json, '[]'::jsonb) AS active_instances
 		FROM chain.rofl_apps AS ra
 
+		-- Resolve admin address preimage.
 		LEFT JOIN chain.address_preimages AS preimages ON (
 			preimages.address = ra.admin AND
 			-- For now, the only user is the explorer, where we only care
@@ -998,88 +1047,19 @@ const (
 			preimages.context_version = 0
 		)
 
-		-- Fetch active instances.
-		LEFT JOIN LATERAL (
-			SELECT
-				COUNT(*) OVER () AS num_active_instances,
-				jsonb_build_object(
-					'rak', ri.rak,
-					'endorsing_node_id', ri.endorsing_node_id,
-					'endorsing_entity_id', ri.endorsing_entity_id,
-					'rek', ri.rek,
-					'expiration_epoch', ri.expiration_epoch,
-					'extra_keys', ri.extra_keys
-				) AS instance_json,
-				ri.expiration_epoch
-			FROM chain.rofl_instances AS ri, max_epoch
-			WHERE
-				ri.runtime = ra.runtime AND
-				ri.app_id = ra.id AND
-				ri.expiration_epoch > max_epoch.id
-			ORDER BY ri.expiration_epoch DESC
-		) AS ri_agg ON true
+		-- Join aggregated active instance data.
+		LEFT JOIN active_instances ai ON ai.app_id = ra.id
 
-		-- Fetch the first transaction round for the app.
-		LEFT JOIN LATERAL (
-			SELECT
-				tx_round,
-				tx_index
-			FROM (
-				SELECT tx_round, tx_index
-				FROM chain.rofl_instance_transactions
-				WHERE runtime = ra.runtime AND app_id = ra.id
-				ORDER BY tx_round ASC
-				LIMIT 1
-			) AS rit_sub
+		-- Join transaction stats.
+		LEFT JOIN tx_stats ON tx_stats.app_id = ra.id
 
-			UNION ALL
-
-			SELECT tx_round, tx_index
-			FROM (
-				SELECT tx_round, tx_index
-				FROM chain.rofl_related_transactions
-				WHERE runtime = ra.runtime AND app_id = ra.id
-				ORDER BY tx_round ASC
-				LIMIT 1
-			) AS rrt_sub
-
-			ORDER BY tx_round ASC
-			LIMIT 1
-		) AS first_tx ON true
 		-- Fetch the block of the first transaction.
 		LEFT JOIN chain.runtime_blocks AS first_blk
-			ON first_blk.runtime = ra.runtime AND first_blk.round = first_tx.tx_round
+		ON first_blk.runtime = ra.runtime AND first_blk.round = tx_stats.first_tx_round
 
-		-- Fetch the latest transaction for the app.
-		LEFT JOIN LATERAL (
-			SELECT
-				tx_round,
-				tx_index
-			FROM (
-				SELECT tx_round, tx_index
-				FROM chain.rofl_instance_transactions
-				WHERE runtime = ra.runtime AND app_id = ra.id
-				ORDER BY tx_round DESC, tx_index DESC
-				LIMIT 1
-			) AS rit_sub
-
-			UNION ALL
-
-			SELECT tx_round, tx_index
-			FROM (
-				SELECT tx_round, tx_index
-				FROM chain.rofl_related_transactions
-				WHERE runtime = ra.runtime AND app_id = ra.id
-				ORDER BY tx_round DESC, tx_index DESC
-				LIMIT 1
-			) AS rrt_sub
-
-			ORDER BY tx_round DESC, tx_index DESC
-			LIMIT 1
-		) AS latest_tx ON true
 		-- Fetch the block of the latest transaction.
 		LEFT JOIN chain.runtime_blocks AS latest_blk
-			ON latest_blk.runtime = ra.runtime AND latest_blk.round = latest_tx.tx_round
+		ON latest_blk.runtime = ra.runtime AND latest_blk.round = tx_stats.last_tx_round
 
 		LEFT JOIN chain.accounts AS a ON a.address = ra.admin
 
@@ -1088,8 +1068,8 @@ const (
 			($2::text IS NULL OR ra.id = $2::text) AND
 			-- Exclude not yet processed apps.
 			ra.last_processed_round IS NOT NULL
-		GROUP BY ra.id, ra.admin, preimages.address_data, preimages.context_identifier, preimages.context_version, ra.stake, ra.policy, ra.sek, ra.metadata, ra.secrets, ra.removed, ri_agg.num_active_instances, first_blk.timestamp, latest_blk.timestamp, latest_tx.tx_round, latest_tx.tx_index
-		ORDER BY ra.id
+
+		ORDER BY num_active_instances DESC, tx_stats.num_app_transactions DESC, ra.id DESC
 		LIMIT $3::bigint
 		OFFSET $4::bigint`
 
