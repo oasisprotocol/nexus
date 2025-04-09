@@ -28,7 +28,7 @@ analysis:
       to: 10_744_000    # ~2000 blocks; compromise between fast and comprehensive
   storage:
     backend: postgres
-    endpoint: postgresql://rwuser:password@localhost:5432/indexer?sslmode=disable
+    endpoint: postgresql://rwuser:password@localhost:5432/indexer?sslmode=disable&pool_max_conns=10
     DANGER__WIPE_STORAGE_ON_STARTUP: true
     migrations: file://storage/migrations
 
@@ -37,7 +37,7 @@ server:
     chain_name: testnet
   endpoint: localhost:8008
   storage:
-    endpoint: postgresql://api:password@localhost:5432/indexer?sslmode=disable
+    endpoint: postgresql://api:password@localhost:5432/indexer?sslmode=disable&pool_max_conns=10
     backend: postgres
 
 log:
