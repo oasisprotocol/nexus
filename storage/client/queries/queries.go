@@ -79,7 +79,8 @@ const (
 		LIMIT $7::bigint
 		OFFSET $8::bigint`
 
-	Transactions = `
+	// Common select for transactions queries.
+	transactionsSelect = `
 		SELECT
 				t.block as block,
 				t.tx_index as tx_index,
@@ -93,28 +94,42 @@ const (
 				t.code as code,
 				t.module as module,
 				t.message as message,
-				b.time as time
+				b.time as time`
+
+	// When no filtering on related account, avoid the join altogether.
+	TransactionsNoRelated = transactionsSelect + `
 			FROM chain.transactions AS t
 			JOIN chain.blocks AS b ON
 				t.block = b.height
-			LEFT JOIN chain.accounts_related_transactions AS art ON
-				(t.block = art.tx_block) AND
-				(t.tx_index = art.tx_index) AND
-				($3::text[] IS NULL OR t.method = ANY($3::text[])) AND
-				-- When related_address ($5) is NULL and hence we do no filtering on it, avoid the join altogether.
-				-- Otherwise, every tx will be returned as many times as there are related addresses for it.
-				($5::text IS NOT NULL)
 			WHERE
 				($1::text IS NULL OR t.tx_hash = $1::text) AND
 				($2::bigint IS NULL OR t.block = $2::bigint) AND
 				($3::text[] IS NULL OR t.method = ANY($3::text[])) AND
 				($4::text IS NULL OR t.sender = $4::text) AND
-				($5::text IS NULL OR art.account_address = $5::text) AND
-				($6::timestamptz IS NULL OR b.time >= $6::timestamptz) AND
-				($7::timestamptz IS NULL OR b.time < $7::timestamptz)
+				($5::timestamptz IS NULL OR b.time >= $5::timestamptz) AND
+				($6::timestamptz IS NULL OR b.time < $6::timestamptz)
 			ORDER BY t.block DESC, t.tx_index
-			LIMIT $8::bigint
-			OFFSET $9::bigint`
+			LIMIT $7::bigint
+			OFFSET $8::bigint`
+
+	// When filtering on related account, filter on the related account table.
+	TransactionsWithRelated = transactionsSelect + `
+		FROM chain.accounts_related_transactions AS art
+		JOIN chain.transactions AS t ON
+			t.block = art.tx_block AND
+			t.tx_index = art.tx_index
+		JOIN chain.blocks AS b ON
+			t.block = b.height
+		WHERE
+			($1::text IS NULL OR t.tx_hash = $1::text) AND
+			($2::bigint IS NULL OR t.block = $2::bigint) AND
+			($3::text[] IS NULL OR art.method = ANY($3::text[])) AND
+			($4::text IS NULL OR art.account_address = $4::text) AND
+			($5::timestamptz IS NULL OR b.time >= $5::timestamptz) AND
+			($6::timestamptz IS NULL OR b.time < $6::timestamptz)
+		ORDER BY t.block DESC, t.tx_index
+		LIMIT $7::bigint
+		OFFSET $8::bigint`
 
 	Events = `
 		SELECT
