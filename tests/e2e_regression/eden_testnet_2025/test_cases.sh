@@ -24,6 +24,8 @@ testCases=(
   'validator_history                            /v1/consensus/validators/oasis1qqv25adrld8jjquzxzg769689lgf9jxvwgjs8tha/history'
   'sapphire_tx                                  /v1/sapphire/transactions/0xd82792e933ef7e843324db7bebe1f0930370e673656f541a2aebc791ead184ec'
   'sapphire_failed_tx                           /v1/sapphire/transactions/0x8368ebf06e2498d5a927a5de81b7b89272693491b0f815a819d2491fc0230198'
+  'sapphire_txs_by_related_account              /v1/sapphire/transactions?rel=oasis1qp0j04msfhsdjrf5jpzr08v8yw9690ts9ycqv4j9'
+  'sapphire_txs_by_related_account_and_method   /v1/sapphire/transactions?rel=oasis1qp0j04msfhsdjrf5jpzr08v8yw9690ts9ycqv4j9&method=consensus.Withdraw'
   'sapphire_transfer_events_of_token            /v1/sapphire/events?evm_log_signature=ddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef&contract_address=0xbAE528E422853AeBD630E8606e312aeA954FA5eB'
   'sapphire_token                               /v1/sapphire/evm_tokens/0xbAE528E422853AeBD630E8606e312aeA954FA5eB'
   'sapphire_token_holders                       /v1/sapphire/evm_tokens/0xbAE528E422853AeBD630E8606e312aeA954FA5eB/holders'
