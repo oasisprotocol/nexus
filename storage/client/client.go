@@ -1688,12 +1688,17 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetR
 	if err != nil {
 		return nil, err
 	}
-	if p.Method != nil && len(*p.Method) > 20 {
-		return nil, fmt.Errorf("to many methods in the method filter")
+	if p.Method != nil && len(*p.Method) > 8 {
+		return nil, fmt.Errorf("too many methods in the method filter")
 	}
+	query := queries.RuntimeTransactionsNoRelated
+	if p.Rel != nil {
+		query = queries.RuntimeTransactionsRelatedAddr
+	}
+
 	res, err := c.withTotalCount(
 		ctx,
-		queries.RuntimeTransactions,
+		query,
 		runtimeFromCtx(ctx),
 		p.Block,
 		nil,
@@ -2485,7 +2490,7 @@ func (c *StorageClient) RuntimeRoflApps(ctx context.Context, params apiTypes.Get
 	// When querying a single ROFL app, also fetch the latest activity transaction.
 	if id != nil && len(apps.RoflApps) == 1 && lastActivityRound != nil && lastActivityTxIndex != nil {
 		func() {
-			res, err := c.db.Query(ctx, queries.RuntimeTransactions, runtimeFromCtx(ctx), lastActivityRound, lastActivityTxIndex, nil, nil, nil, nil, nil, nil, 1, 0)
+			res, err := c.db.Query(ctx, queries.RuntimeTransactionsNoRelated, runtimeFromCtx(ctx), lastActivityRound, lastActivityTxIndex, nil, nil, nil, nil, nil, nil, 1, 0)
 			if err != nil {
 				c.logger.Error("error fetching latest activity transaction", "err", err)
 				return
@@ -2547,9 +2552,12 @@ func (c *StorageClient) RuntimeRoflAppInstances(ctx context.Context, params apiT
 
 // RuntimeRoflAppTransactions returns a list of ROFL app transactions.
 func (c *StorageClient) RuntimeRoflAppTransactions(ctx context.Context, params apiTypes.GetRuntimeRoflAppsIdTransactionsParams, id string) (*RuntimeTransactionList, error) {
+	if params.Method != nil && len(*params.Method) > 8 {
+		return nil, fmt.Errorf("too many methods in the method filter")
+	}
 	res, err := c.withTotalCount(
 		ctx,
-		queries.RuntimeTransactions,
+		queries.RuntimeTransactionsRelatedRofl,
 		runtimeFromCtx(ctx),
 		nil,
 		nil,

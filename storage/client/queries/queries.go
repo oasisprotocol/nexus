@@ -507,18 +507,18 @@ const (
 			FROM chain.runtime_blocks
 			WHERE (runtime = $1) AND (round = $2::bigint)`
 
-	RuntimeTransactions = `
+	runtimeTxSelect = `
 		SELECT
 			txs.round,
 			txs.tx_index,
 			txs.timestamp,
 			txs.tx_hash,
 			txs.tx_eth_hash,
-			ARRAY_AGG(signers.signer_address),
-			ARRAY_AGG(signer_preimages.context_identifier),
-			ARRAY_AGG(signer_preimages.context_version),
-			ARRAY_AGG(signer_preimages.address_data),
-			ARRAY_AGG(signers.nonce),
+			signers_data.signer_addresses,
+			signers_data.signer_context_identifiers,
+			signers_data.signer_context_versions,
+			signers_data.signer_address_data,
+			signers_data.signer_nonces,
 			txs.fee,
 			txs.fee_symbol,
 			txs.fee_proxy_module,
@@ -526,8 +526,8 @@ const (
 			txs.gas_limit,
 			txs.gas_used,
 			CASE
-				WHEN txs.tx_eth_hash IS NULL THEN txs.fee                                  -- charged_fee=fee for non-EVM txs
-				ELSE COALESCE(FLOOR(txs.fee / NULLIF(txs.gas_limit, 0)) * txs.gas_used, 0) -- charged_fee=gas_price * gas_used for EVM txs
+				WHEN txs.tx_eth_hash IS NULL THEN txs.fee
+				ELSE COALESCE(FLOOR(txs.fee / NULLIF(txs.gas_limit, 0)) * txs.gas_used, 0)
 			END AS charged_fee,
 			txs.size,
 			txs.oasis_encrypted_format,
@@ -558,49 +558,43 @@ const (
 			txs.error_code,
 			txs.error_message,
 			txs.error_message_raw,
-			txs.error_params
-		FROM chain.runtime_transactions AS txs
-		JOIN chain.runtime_transaction_signers AS signers ON
-			(signers.runtime = txs.runtime) AND
-			(signers.round = txs.round) AND
-			(signers.tx_index = txs.tx_index)
-		LEFT JOIN chain.address_preimages AS signer_preimages ON
-			(signers.signer_address = signer_preimages.address) AND
-			-- For now, the only user is the explorer, where we only care
-			-- about Ethereum-compatible addresses, so only get those. Can
-			-- easily enable for other address types though.
-			(signer_preimages.context_identifier = 'oasis-runtime-sdk/address: secp256k1eth') AND
-			(signer_preimages.context_version = 0)
+			txs.error_params`
+
+	runtimeTxCommonJoins = `
+		LEFT JOIN LATERAL (
+			SELECT
+				ARRAY_AGG(signers.signer_address) AS signer_addresses,
+				ARRAY_AGG(signer_preimages.context_identifier) AS signer_context_identifiers,
+				ARRAY_AGG(signer_preimages.context_version) AS signer_context_versions,
+				ARRAY_AGG(signer_preimages.address_data) AS signer_address_data,
+				ARRAY_AGG(signers.nonce) AS signer_nonces
+			FROM chain.runtime_transaction_signers AS signers
+			LEFT JOIN chain.address_preimages AS signer_preimages
+				ON signers.signer_address = signer_preimages.address
+				AND signer_preimages.context_identifier = 'oasis-runtime-sdk/address: secp256k1eth'
+				AND signer_preimages.context_version = 0
+			WHERE signers.runtime = txs.runtime AND signers.round = txs.round AND signers.tx_index = txs.tx_index
+		) AS signers_data ON true
 		LEFT JOIN chain.address_preimages AS to_preimage ON
 			(txs.to = to_preimage.address) AND
 			-- For now, the only user is the explorer, where we only care
 			-- about Ethereum-compatible addresses, so only get those. Can
 			-- easily enable for other address types though.
 			(to_preimage.context_identifier = 'oasis-runtime-sdk/address: secp256k1eth') AND
-			(to_preimage.context_version = 0)
-		LEFT JOIN chain.runtime_related_transactions AS rel ON
-			(txs.runtime = rel.runtime) AND
-			(txs.round = rel.tx_round) AND
-			(txs.tx_index = rel.tx_index) AND
-			($7::text[] IS NULL OR txs.method = rel.method AND txs.likely_native_transfer = rel.likely_native_transfer) AND
-			-- When related_address ($5) is NULL and hence we do no filtering on it, avoid the join altogether.
-			-- Otherwise, every tx will be returned as many times as there are related addresses for it.
-			($5::text IS NOT NULL)
-		LEFT JOIN chain.rofl_related_transactions AS rrel ON
-			(txs.runtime = rrel.runtime) AND
-			(txs.round = rrel.tx_round) AND
-			(txs.tx_index = rrel.tx_index) AND
-			($7::text[] IS NULL OR txs.method = rrel.method) AND
-			-- When related_rofl ($6) is NULL and hence we do no filtering on it, avoid the join altogether.
-			-- Otherwise, every tx will be returned as many times as there are related addresses for it.
-			($6::text IS NOT NULL)
+			(to_preimage.context_version = 0)`
+
+	RuntimeTransactionsNoRelated = runtimeTxSelect + `
+		FROM chain.runtime_transactions AS txs` +
+		runtimeTxCommonJoins + `
 		WHERE
-			(txs.runtime = $1) AND
+			txs.runtime = $1 AND
 			($2::bigint IS NULL OR txs.round = $2::bigint) AND
 			($3::bigint IS NULL OR txs.tx_index = $3::bigint) AND
 			($4::text IS NULL OR txs.tx_hash = $4::text OR txs.tx_eth_hash = $4::text) AND
-			($5::text IS NULL OR rel.account_address = $5::text) AND
-			($6::text IS NULL OR rrel.app_id = $6::text) AND
+			-- No filtering on related address.
+			($5::text IS NULL OR true) AND
+			-- No filtering on related rofl.
+			($6::text IS NULL OR true) AND
 			(
 				-- No filtering on method.
 				$7::text[] IS NULL OR
@@ -615,49 +609,73 @@ const (
 			) AND
 			($8::timestamptz IS NULL OR txs.timestamp >= $8::timestamptz) AND
 			($9::timestamptz IS NULL OR txs.timestamp < $9::timestamptz)
-		GROUP BY
-			txs.round,
-			txs.tx_index,
-			txs.timestamp,
-			txs.tx_hash,
-			txs.tx_eth_hash,
-			txs.fee,
-			txs.fee_symbol,
-			txs.fee_proxy_module,
-			txs.fee_proxy_id,
-			txs.gas_limit,
-			txs.gas_used,
-			txs.size,
-			txs.oasis_encrypted_format,
-			txs.oasis_encrypted_public_key,
-			txs.oasis_encrypted_data_nonce,
-			txs.oasis_encrypted_data_data,
-			txs.oasis_encrypted_result_nonce,
-			txs.oasis_encrypted_result_data,
-			txs.method,
-			txs.likely_native_transfer,
-			txs.body,
-			txs.to,
-			to_preimage.context_identifier,
-			to_preimage.context_version,
-			to_preimage.address_data,
-			txs.amount,
-			txs.amount_symbol,
-			txs.evm_encrypted_format,
-			txs.evm_encrypted_public_key,
-			txs.evm_encrypted_data_nonce,
-			txs.evm_encrypted_data_data,
-			txs.evm_encrypted_result_nonce,
-			txs.evm_encrypted_result_data,
-			txs.success,
-			txs.evm_fn_name,
-			txs.evm_fn_params,
-			txs.error_module,
-			txs.error_code,
-			txs.error_message,
-			txs.error_message_raw,
-			txs.error_params
 		ORDER BY txs.round DESC, txs.tx_index DESC
+		LIMIT $10::bigint
+		OFFSET $11::bigint`
+
+	RuntimeTransactionsRelatedAddr = runtimeTxSelect + `
+		FROM chain.runtime_related_transactions AS rel
+		JOIN chain.runtime_transactions AS txs ON
+			rel.runtime = txs.runtime AND
+			rel.tx_round = txs.round AND
+			rel.tx_index = txs.tx_index` +
+		runtimeTxCommonJoins + `
+		WHERE
+			rel.runtime = $1 AND
+			($2::bigint IS NULL OR rel.tx_round = $2::bigint) AND
+			($3::bigint IS NULL OR rel.tx_index = $3::bigint) AND
+			($4::text IS NULL OR txs.tx_hash = $4::text OR txs.tx_eth_hash = $4::text) AND
+			($5::text IS NULL OR rel.account_address = $5::text) AND
+			-- No filtering on related rofl.
+			($6::text IS NULL OR true) AND
+			(
+				-- No filtering on method.
+				$7::text[] IS NULL OR
+				(
+					-- Special case to return are 'likely to be native transfers'.
+					('native_transfers' = ANY($7::text[]) AND rel.likely_native_transfer) OR
+					-- Special case to return all evm.Calls that are likely not native transfers.
+					('evm.Call_no_native' = ANY($7::text[]) AND rel.method = 'evm.Call' AND NOT rel.likely_native_transfer) OR
+					-- Regular case.
+					(rel.method = ANY($7::text[]))
+				)
+			) AND
+			($8::timestamptz IS NULL OR txs.timestamp >= $8::timestamptz) AND
+			($9::timestamptz IS NULL OR txs.timestamp < $9::timestamptz)
+		ORDER BY rel.tx_round DESC, rel.tx_index DESC
+		LIMIT $10::bigint
+		OFFSET $11::bigint`
+
+	RuntimeTransactionsRelatedRofl = runtimeTxSelect + `
+		FROM chain.rofl_related_transactions AS rel
+		JOIN chain.runtime_transactions AS txs ON
+			rel.runtime = txs.runtime AND
+			rel.tx_round = txs.round AND
+			rel.tx_index = txs.tx_index` +
+		runtimeTxCommonJoins + `
+		WHERE
+			rel.runtime = $1 AND
+			($2::bigint IS NULL OR rel.tx_round = $2::bigint) AND
+			($3::bigint IS NULL OR rel.tx_index = $3::bigint) AND
+			($4::text IS NULL OR txs.tx_hash = $4::text OR txs.tx_eth_hash = $4::text) AND
+			-- No filtering on related address.
+			($5::text IS NULL OR true) AND
+			($6::text IS NULL OR rel.app_id = $6::text) AND
+			(
+				-- No filtering on method.
+				$7::text[] IS NULL OR
+				(
+					-- Special case to return are 'likely to be native transfers'.
+					('native_transfers' = ANY($7::text[]) AND rel.likely_native_transfer) OR
+					-- Special case to return all evm.Calls that are likely not native transfers.
+					('evm.Call_no_native' = ANY($7::text[]) AND rel.method = 'evm.Call' AND NOT rel.likely_native_transfer) OR
+					-- Regular case.
+					(rel.method = ANY($7::text[]))
+				)
+			) AND
+			($8::timestamptz IS NULL OR txs.timestamp >= $8::timestamptz) AND
+			($9::timestamptz IS NULL OR txs.timestamp < $9::timestamptz)
+		ORDER BY rel.tx_round DESC, rel.tx_index DESC
 		LIMIT $10::bigint
 		OFFSET $11::bigint`
 
