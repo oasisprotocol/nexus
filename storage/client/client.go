@@ -492,17 +492,30 @@ func canonicalizedHash(input *string) (*string, error) {
 
 // Transactions returns a list of consensus transactions.
 func (c *StorageClient) Transactions(ctx context.Context, p apiTypes.GetConsensusTransactionsParams, txHash *string) (*TransactionList, error) {
-	if p.Method != nil && len(*p.Method) > 20 {
-		return nil, fmt.Errorf("to many methods in the method filter")
+	if p.Method != nil && len(*p.Method) > 8 {
+		return nil, fmt.Errorf("too many methods in the method filter")
+	}
+	if p.Rel != nil && p.Sender != nil {
+		return nil, fmt.Errorf("cannot filter on both related account and sender")
+	}
+
+	// Decide on the query to use, based on whether we are filtering on related account.
+	transactionsQuery := queries.TransactionsNoRelated
+	var addr *string
+	if p.Sender != nil {
+		addr = common.Ptr(p.Sender.String())
+	}
+	if p.Rel != nil {
+		transactionsQuery = queries.TransactionsWithRelated
+		addr = p.Rel
 	}
 	res, err := c.withTotalCount(
 		ctx,
-		queries.Transactions,
+		transactionsQuery,
 		txHash, // used for /consensus/transactions/{tx_hash}.
 		p.Block,
 		p.Method,
-		p.Sender,
-		p.Rel,
+		addr,
 		p.After,
 		p.Before,
 		p.Limit,

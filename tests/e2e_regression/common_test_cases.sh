@@ -68,6 +68,9 @@ commonMainnetTestCases=(
   'delegations_to                     /v1/consensus/accounts/oasis1qp0j5v5mkxk3eg4kxfdsk8tj6p22g4685qk76fw6/delegations_to'
   'debonding_delegations              /v1/consensus/accounts/oasis1qpk366qvtjrfrthjp3xuej5mhvvtnkr8fy02hm2s/debonding_delegations'
   'debonding_delegations_to           /v1/consensus/accounts/oasis1qp0j5v5mkxk3eg4kxfdsk8tj6p22g4685qk76fw6/debonding_delegations_to'
+  'txs_by_related_account             /v1/consensus/transactions?rel=oasis1qpn83e8hm3gdhvpfv66xj3qsetkj3ulmkugmmxn3'
+  'txs_by_related_account_and_method  /v1/consensus/transactions?rel=oasis1qqwllxt8tvqxt8sryeg3r8ts0yulyu8frqr2kzg5&method=staking.Transfer'
+  'txs_by_sender_and_method           /v1/consensus/transactions?sender=oasis1qr85nf4hnsw6crrf9l9ppzq5ucyynnzqqy300cyv&method=staking.Transfer'
 )
 
 commonEmeraldTestCases=(
