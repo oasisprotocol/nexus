@@ -16,7 +16,7 @@ func TestServerConfigJSON(t *testing.T) {
 	cfg := ServerConfig{
 		Endpoint: "localhost:8080",
 		Storage: &StorageConfig{
-			Endpoint:   "postgres://user:pass@localhost:5432/db",
+			Endpoint:   "postgresql://user:pass@localhost:5432/db",
 			Backend:    "postgres",
 			Migrations: "/path/to/migrations",
 		},
@@ -44,7 +44,7 @@ func TestServerConfigJSON(t *testing.T) {
 server:
   endpoint: localhost:8080
   storage:
-    endpoint: postgres://user:pass@localhost:5432/db
+    endpoint: postgresql://user:pass@localhost:5432/db
     backend: postgres
     migrations: /path/to/migrations
     DANGER__WIPE_STORAGE_ON_STARTUP: false

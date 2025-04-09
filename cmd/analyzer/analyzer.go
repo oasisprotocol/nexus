@@ -13,9 +13,11 @@ import (
 	"time"
 
 	migrate "github.com/golang-migrate/migrate/v4"
-	_ "github.com/golang-migrate/migrate/v4/database/postgres" // postgres driver for golang_migrate
-	_ "github.com/golang-migrate/migrate/v4/source/file"       // support file scheme for golang_migrate
-	_ "github.com/golang-migrate/migrate/v4/source/github"     // support github scheme for golang_migrate
+	migratePgx "github.com/golang-migrate/migrate/v4/database/pgx/v5" // postgres pgx driver for golang_migrate
+	_ "github.com/golang-migrate/migrate/v4/source/file"              // support file scheme for golang_migrate
+	_ "github.com/golang-migrate/migrate/v4/source/github"            // support github scheme for golang_migrate
+	"github.com/jackc/pgx/v5/pgxpool"
+	pgxstd "github.com/jackc/pgx/v5/stdlib"
 	"github.com/spf13/cobra"
 
 	"github.com/oasisprotocol/nexus/analyzer"
@@ -94,7 +96,28 @@ func runAnalyzer(cmd *cobra.Command, args []string) {
 
 // RunMigrations runs migrations defined in sourceURL against databaseURL.
 func RunMigrations(sourceURL string, databaseURL string) error {
-	m, err := migrate.New(sourceURL, databaseURL)
+	// Go-migrate supports only basic database URL parameters.
+	// We use pgx to parse the database URL the same way as we do in the indexer
+	// client. That way the config options for migrations and clients are compatible.
+	config, err := pgxpool.ParseConfig(databaseURL)
+	if err != nil {
+		return fmt.Errorf("failed to parse database URL: %w", err)
+	}
+	pool, err := pgxpool.NewWithConfig(context.Background(), config)
+	if err != nil {
+		return fmt.Errorf("failed to create pgx pool: %w", err)
+	}
+	defer pool.Close()
+
+	db := pgxstd.OpenDBFromPool(pool)
+	defer db.Close()
+	driver, err := migratePgx.WithInstance(db, &migratePgx.Config{})
+	if err != nil {
+		return fmt.Errorf("failed to create postgres driver: %w", err)
+	}
+	defer driver.Close()
+
+	m, err := migrate.NewWithDatabaseInstance(sourceURL, config.ConnConfig.Database, driver)
 	if err != nil {
 		return err
 	}
