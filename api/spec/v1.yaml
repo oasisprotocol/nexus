@@ -57,12 +57,8 @@ x-query-params:
   - &runtime_tx_method_filter
     in: query
     name: method
-    style: form
-    explode: false
     schema:
-      type: array
-      items:
-        type: string
+      type: string
     description: |
       A filter on the runtime transaction method.
 
@@ -281,11 +277,7 @@ paths:
           example: *block_height_1
         - in: query
           name: method
-          style: form
-          explode: false
           schema:
-            type: array
-            items:
               allOf: [$ref: '#/components/schemas/ConsensusTxMethod']
           description: A filter on transaction method.
         - in: query

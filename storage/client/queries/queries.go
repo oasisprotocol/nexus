@@ -104,7 +104,7 @@ const (
 			WHERE
 				($1::text IS NULL OR t.tx_hash = $1::text) AND
 				($2::bigint IS NULL OR t.block = $2::bigint) AND
-				($3::text[] IS NULL OR t.method = ANY($3::text[])) AND
+				($3::text IS NULL OR t.method = $3::text) AND
 				($4::text IS NULL OR t.sender = $4::text) AND
 				($5::timestamptz IS NULL OR b.time >= $5::timestamptz) AND
 				($6::timestamptz IS NULL OR b.time < $6::timestamptz)
@@ -113,23 +113,33 @@ const (
 			OFFSET $8::bigint`
 
 	// When filtering on related account, filter on the related account table.
-	TransactionsWithRelated = transactionsSelect + `
-		FROM chain.accounts_related_transactions AS art
+	TransactionsWithRelated = `
+		WITH filtered AS (
+			SELECT
+				art.tx_block, art.tx_index
+			FROM
+				chain.accounts_related_transactions art
+			WHERE
+				($2::bigint IS NULL OR art.tx_block = $2::bigint) AND
+				($3::text IS NULL OR art.method = $3::text) AND
+				($4::text IS NULL OR art.account_address = $4::text)
+			ORDER BY art.tx_block DESC, art.tx_index
+			LIMIT $7::bigint
+			OFFSET $8::bigint
+		)` +
+		transactionsSelect + `
+		FROM filtered AS art
 		JOIN chain.transactions AS t ON
 			t.block = art.tx_block AND
 			t.tx_index = art.tx_index
 		JOIN chain.blocks AS b ON
 			t.block = b.height
 		WHERE
-			($1::text IS NULL OR t.tx_hash = $1::text) AND
-			($2::bigint IS NULL OR t.block = $2::bigint) AND
-			($3::text[] IS NULL OR art.method = ANY($3::text[])) AND
-			($4::text IS NULL OR art.account_address = $4::text) AND
-			($5::timestamptz IS NULL OR b.time >= $5::timestamptz) AND
-			($6::timestamptz IS NULL OR b.time < $6::timestamptz)
-		ORDER BY t.block DESC, t.tx_index
-		LIMIT $7::bigint
-		OFFSET $8::bigint`
+			-- No filtering on tx_hash.
+			($1::text IS NULL OR TRUE) AND
+			-- No filtering on timestamps.
+			($5::timestamptz IS NULL OR TRUE) AND
+			($6::timestamptz IS NULL OR TRUE)`
 
 	Events = `
 		SELECT
@@ -597,14 +607,14 @@ const (
 			($6::text IS NULL OR true) AND
 			(
 				-- No filtering on method.
-				$7::text[] IS NULL OR
+				$7::text IS NULL OR
 				(
 					-- Special case to return are 'likely to be native transfers'.
-					('native_transfers' = ANY($7::text[]) AND txs.likely_native_transfer) OR
+					('native_transfers' = $7::text AND txs.likely_native_transfer) OR
 					-- Special case to return all evm.Calls that are likely not native transfers.
-					('evm.Call_no_native' = ANY($7::text[]) AND txs.method = 'evm.Call' AND NOT txs.likely_native_transfer) OR
+					('evm.Call_no_native' = $7::text AND txs.method = 'evm.Call' AND NOT txs.likely_native_transfer) OR
 					-- Regular case.
-					(txs.method = ANY($7::text[]))
+					(txs.method = $7::text)
 				)
 			) AND
 			($8::timestamptz IS NULL OR txs.timestamp >= $8::timestamptz) AND
@@ -613,71 +623,91 @@ const (
 		LIMIT $10::bigint
 		OFFSET $11::bigint`
 
-	RuntimeTransactionsRelatedAddr = runtimeTxSelect + `
-		FROM chain.runtime_related_transactions AS rel
+	RuntimeTransactionsRelatedAddr = `
+		WITH filtered AS (
+			SELECT
+				rel.runtime, rel.tx_round, rel.tx_index
+			FROM
+				chain.runtime_related_transactions AS rel
+			WHERE
+				rel.runtime = $1::runtime AND
+				($2::bigint IS NULL OR rel.tx_round = $2::bigint) AND
+				($3::bigint IS NULL OR rel.tx_index = $3::bigint) AND
+				($5::text IS NULL OR rel.account_address = $5::text) AND
+				(
+					-- No filtering on method.
+					$7::text IS NULL OR
+					(
+						-- Special case to return are 'likely to be native transfers'.
+						('native_transfers' = $7::text AND rel.likely_native_transfer) OR
+						-- Special case to return all evm.Calls that are likely not native transfers.
+						('evm.Call_no_native' = $7::text AND rel.method = 'evm.Call' AND NOT rel.likely_native_transfer) OR
+						-- Regular case.
+						(rel.method = $7::text)
+					)
+				)
+			ORDER BY rel.tx_round DESC, rel.tx_index DESC
+			LIMIT $10::bigint
+			OFFSET $11::bigint
+		)` +
+		runtimeTxSelect + `
+		FROM filtered AS rel
 		JOIN chain.runtime_transactions AS txs ON
 			rel.runtime = txs.runtime AND
 			rel.tx_round = txs.round AND
 			rel.tx_index = txs.tx_index` +
 		runtimeTxCommonJoins + `
 		WHERE
-			rel.runtime = $1 AND
-			($2::bigint IS NULL OR rel.tx_round = $2::bigint) AND
-			($3::bigint IS NULL OR rel.tx_index = $3::bigint) AND
-			($4::text IS NULL OR txs.tx_hash = $4::text OR txs.tx_eth_hash = $4::text) AND
-			($5::text IS NULL OR rel.account_address = $5::text) AND
+			-- No filtering on tx_hash.
+			($4::text IS NULL OR TRUE) AND
 			-- No filtering on related rofl.
 			($6::text IS NULL OR true) AND
-			(
-				-- No filtering on method.
-				$7::text[] IS NULL OR
-				(
-					-- Special case to return are 'likely to be native transfers'.
-					('native_transfers' = ANY($7::text[]) AND rel.likely_native_transfer) OR
-					-- Special case to return all evm.Calls that are likely not native transfers.
-					('evm.Call_no_native' = ANY($7::text[]) AND rel.method = 'evm.Call' AND NOT rel.likely_native_transfer) OR
-					-- Regular case.
-					(rel.method = ANY($7::text[]))
-				)
-			) AND
-			($8::timestamptz IS NULL OR txs.timestamp >= $8::timestamptz) AND
-			($9::timestamptz IS NULL OR txs.timestamp < $9::timestamptz)
-		ORDER BY rel.tx_round DESC, rel.tx_index DESC
-		LIMIT $10::bigint
-		OFFSET $11::bigint`
+			-- No filtering on timestamps.
+			($8::timestamptz IS NULL OR TRUE) AND
+			($9::timestamptz IS NULL OR TRUE)`
 
-	RuntimeTransactionsRelatedRofl = runtimeTxSelect + `
-		FROM chain.rofl_related_transactions AS rel
+	RuntimeTransactionsRelatedRofl = `
+		WITH filtered AS (
+			SELECT
+				rel.runtime, rel.tx_round, rel.tx_index
+			FROM
+				chain.rofl_related_transactions AS rel
+			WHERE
+				rel.runtime = $1::runtime AND
+				($2::bigint IS NULL OR rel.tx_round = $2::bigint) AND
+				($3::bigint IS NULL OR rel.tx_index = $3::bigint) AND
+				($6::text IS NULL OR rel.app_id = $6::text) AND
+				(
+					-- No filtering on method.
+					$7::text IS NULL OR
+					(
+						-- Special case to return are 'likely to be native transfers'.
+						('native_transfers' = $7::text AND rel.likely_native_transfer) OR
+						-- Special case to return all evm.Calls that are likely not native transfers.
+						('evm.Call_no_native' = $7::text AND rel.method = 'evm.Call' AND NOT rel.likely_native_transfer) OR
+						-- Regular case.
+						(rel.method = $7::text)
+					)
+				)
+			ORDER BY rel.tx_round DESC, rel.tx_index DESC
+			LIMIT $10::bigint
+			OFFSET $11::bigint
+		)` +
+		runtimeTxSelect + `
+		FROM filtered AS rel
 		JOIN chain.runtime_transactions AS txs ON
 			rel.runtime = txs.runtime AND
 			rel.tx_round = txs.round AND
 			rel.tx_index = txs.tx_index` +
 		runtimeTxCommonJoins + `
 		WHERE
-			rel.runtime = $1 AND
-			($2::bigint IS NULL OR rel.tx_round = $2::bigint) AND
-			($3::bigint IS NULL OR rel.tx_index = $3::bigint) AND
-			($4::text IS NULL OR txs.tx_hash = $4::text OR txs.tx_eth_hash = $4::text) AND
+			-- No filtering on tx_hash.
+			($4::text IS NULL OR TRUE) AND
 			-- No filtering on related address.
 			($5::text IS NULL OR true) AND
-			($6::text IS NULL OR rel.app_id = $6::text) AND
-			(
-				-- No filtering on method.
-				$7::text[] IS NULL OR
-				(
-					-- Special case to return are 'likely to be native transfers'.
-					('native_transfers' = ANY($7::text[]) AND rel.likely_native_transfer) OR
-					-- Special case to return all evm.Calls that are likely not native transfers.
-					('evm.Call_no_native' = ANY($7::text[]) AND rel.method = 'evm.Call' AND NOT rel.likely_native_transfer) OR
-					-- Regular case.
-					(rel.method = ANY($7::text[]))
-				)
-			) AND
-			($8::timestamptz IS NULL OR txs.timestamp >= $8::timestamptz) AND
-			($9::timestamptz IS NULL OR txs.timestamp < $9::timestamptz)
-		ORDER BY rel.tx_round DESC, rel.tx_index DESC
-		LIMIT $10::bigint
-		OFFSET $11::bigint`
+			-- No filtering on timestamps.
+			($8::timestamptz IS NULL OR TRUE) AND
+			($9::timestamptz IS NULL OR TRUE)`
 
 	RuntimeEvents = `
 		SELECT
