@@ -12,6 +12,36 @@ The format is inspired by [Keep a Changelog].
 
 <!-- TOWNCRIER -->
 
+## 0.6.9 (2025-04-11)
+
+### Features
+
+- api/rofl_apps: Sort apps by active instances and transactions
+  ([#965](https://github.com/oasisprotocol/nexus/issues/965))
+
+- Optimize Transactions query based on related address filter
+  ([#967](https://github.com/oasisprotocol/nexus/issues/967))
+
+- api/runtime_transactions: Optimize related accounts filtering
+  ([#968](https://github.com/oasisprotocol/nexus/issues/968))
+
+- config: Compatible database cfg between analyzers and server
+  ([#970](https://github.com/oasisprotocol/nexus/issues/970))
+
+- api/{consensus,runtime}/transactions: Drop support for multiple methods
+  ([#971](https://github.com/oasisprotocol/nexus/issues/971))
+
+  It is unfeasible to support it with good performance without number
+  of indexes exploding.
+
+### Bug Fixes and Improvements
+
+- runtime: Fix 'success' field for failed multi-step transactions
+  ([#963](https://github.com/oasisprotocol/nexus/issues/963))
+
+- analyzer/runtime: Fix 'success' field for undelegate transactions
+  ([#963](https://github.com/oasisprotocol/nexus/issues/963))
+
 ## 0.6.8 (2025-04-07)
 
 ### Bug Fixes and Improvements
