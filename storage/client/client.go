@@ -492,11 +492,14 @@ func canonicalizedHash(input *string) (*string, error) {
 
 // Transactions returns a list of consensus transactions.
 func (c *StorageClient) Transactions(ctx context.Context, p apiTypes.GetConsensusTransactionsParams, txHash *string) (*TransactionList, error) {
-	if p.Method != nil && len(*p.Method) > 8 {
-		return nil, fmt.Errorf("too many methods in the method filter")
-	}
 	if p.Rel != nil && p.Sender != nil {
 		return nil, fmt.Errorf("cannot filter on both related account and sender")
+	}
+	if p.Rel != nil && (p.After != nil || p.Before != nil) {
+		return nil, fmt.Errorf("cannot use after/before with related transactions")
+	}
+	if p.Rel != nil && txHash != nil {
+		return nil, fmt.Errorf("cannot use tx_hash with related transactions")
 	}
 
 	// Decide on the query to use, based on whether we are filtering on related account.
@@ -1688,9 +1691,13 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetR
 	if err != nil {
 		return nil, err
 	}
-	if p.Method != nil && len(*p.Method) > 8 {
-		return nil, fmt.Errorf("too many methods in the method filter")
+	if p.Rel != nil && (p.After != nil || p.Before != nil) {
+		return nil, fmt.Errorf("cannot use after/before with related transactions")
 	}
+	if p.Rel != nil && txHash != nil {
+		return nil, fmt.Errorf("cannot use tx_hash with related transactions")
+	}
+
 	query := queries.RuntimeTransactionsNoRelated
 	if p.Rel != nil {
 		query = queries.RuntimeTransactionsRelatedAddr
@@ -2552,9 +2559,6 @@ func (c *StorageClient) RuntimeRoflAppInstances(ctx context.Context, params apiT
 
 // RuntimeRoflAppTransactions returns a list of ROFL app transactions.
 func (c *StorageClient) RuntimeRoflAppTransactions(ctx context.Context, params apiTypes.GetRuntimeRoflAppsIdTransactionsParams, id string) (*RuntimeTransactionList, error) {
-	if params.Method != nil && len(*params.Method) > 8 {
-		return nil, fmt.Errorf("too many methods in the method filter")
-	}
 	res, err := c.withTotalCount(
 		ctx,
 		queries.RuntimeTransactionsRelatedRofl,
@@ -2593,7 +2597,7 @@ func (c *StorageClient) RuntimeRoflAppTransactions(ctx context.Context, params a
 }
 
 // RuntimeRoflAppInstanceTransactions returns a list of ROFL app instance transactions.
-func (c *StorageClient) RuntimeRoflAppInstanceTransactions(ctx context.Context, method *[]string, limit *uint64, offset *uint64, appId string, rak *string) (*RuntimeTransactionList, error) {
+func (c *StorageClient) RuntimeRoflAppInstanceTransactions(ctx context.Context, method *string, limit *uint64, offset *uint64, appId string, rak *string) (*RuntimeTransactionList, error) {
 	res, err := c.withTotalCount(
 		ctx,
 		queries.RuntimeRoflAppInstanceTransactions,

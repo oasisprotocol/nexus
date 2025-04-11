@@ -8,6 +8,8 @@ docker/node/etc/genesis.json
 # Oasis net-runner data.
 tests/e2e/testnet/net-runner
 
+tests/e2e_regression
+
 # Local workdirs
 .*
 *.log

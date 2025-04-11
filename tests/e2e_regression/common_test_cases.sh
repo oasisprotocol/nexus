@@ -56,7 +56,6 @@ commonTestCases=(
   'active_accounts_emerald            /v1/emerald/stats/active_accounts'
   'txs                                /v1/consensus/transactions'
   'txs_by_method                      /v1/consensus/transactions?method=staking.Transfer'
-  'txs_by_multiple_methods            /v1/consensus/transactions?method=registry.RegisterNode,staking.Transfer'
   'validators                         /v1/consensus/validators?limit=200'
 )
 
@@ -80,7 +79,6 @@ commonEmeraldTestCases=(
   'emerald_txs_native_transfers       /v1/emerald/transactions?method=native_transfers'
   'emerald_txs_evm_call_no_native     /v1/emerald/transactions?method=evm.Call_no_native'
   'emerald_txs_evm_call               /v1/emerald/transactions?method=evm.Call'
-  'emerald_txs_by_multiple_methods    /v1/emerald/transactions?method=consensus.Withdraw,evm.Call_no_native'
   'emerald_events                     /v1/emerald/events'
   'emerald_events_by_type             /v1/emerald/events?type=accounts.transfer'
   'emerald_tokens                     /v1/emerald/evm_tokens'
