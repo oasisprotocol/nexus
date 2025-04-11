@@ -267,9 +267,9 @@ const (
 
 	AccountStats = `
 		SELECT
-			COUNT(*)
-		FROM chain.accounts_related_transactions
-		WHERE account_address = $1::text`
+			COALESCE(tx_count, 0)
+		FROM views.accounts_tx_counts
+		WHERE address = $1::text`
 
 	AccountAllowances = `
 		SELECT beneficiary, allowance
