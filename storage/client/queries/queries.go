@@ -244,6 +244,7 @@ const (
 				JOIN chain.accounts ON chain.accounts.address = chain.debonding_delegations.delegatee
 				WHERE delegator = $1::text AND escrow_total_shares_debonding != 0)
 			, 0) AS debonding_delegations_balance,
+			COALESCE(tx_count, 0),
 			first_activity
 		FROM chain.accounts
 		WHERE address = $1::text`
@@ -264,12 +265,6 @@ const (
 		ORDER BY total_balance DESC, address
 		LIMIT $1::bigint
 		OFFSET $2::bigint`
-
-	AccountStats = `
-		SELECT
-			COUNT(*)
-		FROM chain.accounts_related_transactions
-		WHERE account_address = $1::text`
 
 	AccountAllowances = `
 		SELECT beneficiary, allowance

@@ -236,6 +236,23 @@ var (
     ON CONFLICT (address) DO UPDATE
       SET nonce = $2`
 
+	ConsensusAccountTxCountIncrement = `
+    UPDATE chain.accounts
+      SET tx_count = tx_count + 1
+      WHERE address = $1`
+
+	ConsensusAccountTxCountRecompute = `
+    UPDATE chain.accounts AS a
+      SET tx_count = sub.tx_count
+      FROM (
+          SELECT
+              account_address AS address,
+              COUNT(*) AS tx_count
+          FROM chain.accounts_related_transactions
+          GROUP BY account_address
+      ) AS sub
+      WHERE a.address = sub.address`
+
 	ConsensusAccountFirstActivityUpsert = `
     INSERT INTO chain.accounts(address, first_activity)
     VALUES ($1, $2)
