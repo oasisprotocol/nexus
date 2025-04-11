@@ -179,7 +179,7 @@ require (
 	github.com/oasisprotocol/curve25519-voi v0.0.0-20230904125328-1f23a7beb09a
 	github.com/oasisprotocol/metadata-registry-tools v0.0.0-20240304080528-3218befba9ca
 	github.com/oasisprotocol/oasis-core/go v0.2500.0
-	github.com/oasisprotocol/oasis-sdk/client-sdk/go v0.13.1
+	github.com/oasisprotocol/oasis-sdk/client-sdk/go v0.13.2
 	github.com/rs/cors v1.11.1
 	go.dedis.ch/kyber/v3 v3.1.0
 	golang.org/x/crypto v0.32.0
