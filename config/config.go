@@ -497,6 +497,13 @@ type ItemBasedAnalyzerConfig struct {
 	MaxBackoffTime time.Duration `koanf:"max_backoff_time"`
 }
 
+type ConsensusAccountsListAnalyzerConfig struct {
+	ItemBasedAnalyzerConfig `koanf:",squash"`
+
+	// TransactionCountBlocksInterval is the number of blocks between refreshing the transaction count view.
+	TransactionCountBlocksInterval *uint64 `koanf:"transaction_count_blocks_interval"`
+}
+
 type EvmTokensAnalyzerConfig struct {
 	ItemBasedAnalyzerConfig `koanf:",squash"`
 }

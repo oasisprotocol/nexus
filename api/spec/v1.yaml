@@ -3637,7 +3637,10 @@ components:
             DEPRECATED: This field might be inaccurate. Nexus is currently not able to track
             certain actions which subtract/add tokens.
         num_txns:
-          description: The total number of transactions this account was involved with.
+          description: |
+            The total number of transactions this account was involved with.
+            For consensus accounts, this is computed periodically and might show
+            outdated values (~1 hour).
           type: integer
           format: uint64
           example: 4184

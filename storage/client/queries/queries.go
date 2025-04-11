@@ -266,10 +266,11 @@ const (
 		OFFSET $2::bigint`
 
 	AccountStats = `
-		SELECT
-			COUNT(*)
-		FROM chain.accounts_related_transactions
-		WHERE account_address = $1::text`
+		SELECT COALESCE((
+			SELECT tx_count
+			FROM views.accounts_tx_counts
+			WHERE address = $1::text
+		), 0)`
 
 	AccountAllowances = `
 		SELECT beneficiary, allowance
