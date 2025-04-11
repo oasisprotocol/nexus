@@ -18,6 +18,12 @@ const (
 	defaultInterval = 2 * time.Minute
 
 	accountListViewRefreshQuery = `REFRESH MATERIALIZED VIEW CONCURRENTLY views.accounts_list`
+	accountTxCountsRefreshQuery = `REFRESH MATERIALIZED VIEW CONCURRENTLY views.accounts_tx_counts`
+
+	accountTxLastRefreshQuery = `
+		SELECT
+ 	 	  COALESCE((SELECT MAX(height) FROM chain.blocks), 0) AS latest_block,
+   		  COALESCE((SELECT computed_height FROM views.accounts_tx_counts LIMIT 1), 0) AS computed_height`
 )
 
 type processor struct {
@@ -58,7 +64,19 @@ func (p *processor) GetItems(ctx context.Context, limit uint64) ([]struct{}, err
 }
 
 func (p *processor) ProcessItem(ctx context.Context, batch *storage.QueryBatch, item struct{}) error {
+	// Always refresh accounts list view.
 	batch.Queue(accountListViewRefreshQuery)
+
+	// Accounts tx view is more expensive, refresh it ever ~600 blocks (~1 hour).
+	var latestBlock, computedHeight int64
+	err := p.target.QueryRow(ctx, accountTxLastRefreshQuery).Scan(&latestBlock, &computedHeight)
+	if err != nil {
+		return err
+	}
+	if (latestBlock > 0 && computedHeight == 0) || latestBlock-computedHeight > 600 {
+		batch.Queue(accountTxCountsRefreshQuery)
+	}
+
 	return nil
 }
 
