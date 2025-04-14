@@ -17,7 +17,7 @@ The format is inspired by [Keep a Changelog].
 ### Features
 
 - storage/accounts: Add tx_count to chain.accounts table
-  ([#973](https://github.com/oasisprotocol/nexus/issues/973))
+  ([#975](https://github.com/oasisprotocol/nexus/issues/975))
 
   Computing tx count on the fly was causing timeouts when querying
   some specific accounts.
