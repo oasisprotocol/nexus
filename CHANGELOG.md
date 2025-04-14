@@ -12,6 +12,21 @@ The format is inspired by [Keep a Changelog].
 
 <!-- TOWNCRIER -->
 
+## 0.6.10 (2025-04-14)
+
+### Features
+
+- storage/accounts: Add tx_count to chain.accounts table
+  ([#973](https://github.com/oasisprotocol/nexus/issues/973))
+
+  Computing tx count on the fly was causing timeouts when querying
+  some specific accounts.
+
+### Internal Changes
+
+- deps: update oasis-sdk to 0.13.2
+  ([#974](https://github.com/oasisprotocol/nexus/issues/974))
+
 ## 0.6.9 (2025-04-11)
 
 ### Features
