@@ -568,17 +568,18 @@ const (
 	runtimeTxCommonJoins = `
 		LEFT JOIN LATERAL (
 			SELECT
-				ARRAY_AGG(signers.signer_address) AS signer_addresses,
-				ARRAY_AGG(signer_preimages.context_identifier) AS signer_context_identifiers,
-				ARRAY_AGG(signer_preimages.context_version) AS signer_context_versions,
-				ARRAY_AGG(signer_preimages.address_data) AS signer_address_data,
-				ARRAY_AGG(signers.nonce) AS signer_nonces
+				ARRAY_AGG(signers.signer_address ORDER BY signers.signer_index) AS signer_addresses,
+				ARRAY_AGG(signer_preimages.context_identifier ORDER BY signers.signer_index) AS signer_context_identifiers,
+				ARRAY_AGG(signer_preimages.context_version ORDER BY signers.signer_index) AS signer_context_versions,
+				ARRAY_AGG(signer_preimages.address_data ORDER BY signers.signer_index) AS signer_address_data,
+				ARRAY_AGG(signers.nonce ORDER BY signers.signer_index) AS signer_nonces
 			FROM chain.runtime_transaction_signers AS signers
 			LEFT JOIN chain.address_preimages AS signer_preimages
 				ON signers.signer_address = signer_preimages.address
 				AND signer_preimages.context_identifier = 'oasis-runtime-sdk/address: secp256k1eth'
 				AND signer_preimages.context_version = 0
 			WHERE signers.runtime = txs.runtime AND signers.round = txs.round AND signers.tx_index = txs.tx_index
+
 		) AS signers_data ON true
 		LEFT JOIN chain.address_preimages AS to_preimage ON
 			(txs.to = to_preimage.address) AND
@@ -1035,9 +1036,9 @@ const (
 					ROW_NUMBER() OVER (PARTITION BY app_id ORDER BY tx_round DESC, tx_index DESC) AS rn_last,
 					COUNT(*) OVER (PARTITION BY app_id) AS num_app_transactions
 				FROM (
-					SELECT app_id, tx_round, tx_index FROM chain.rofl_instance_transactions WHERE runtime = 'sapphire'
+					SELECT app_id, tx_round, tx_index FROM chain.rofl_instance_transactions WHERE runtime = $1::runtime
 					UNION ALL
-					SELECT app_id, tx_round, tx_index FROM chain.rofl_related_transactions WHERE runtime = 'sapphire'
+					SELECT app_id, tx_round, tx_index FROM chain.rofl_related_transactions WHERE runtime = $1::runtime
 				) all_tx
 			),
 
@@ -1147,148 +1148,38 @@ const (
 		OFFSET $4::bigint`
 
 	RuntimeRoflAppInstanceTransactions = `
-		WITH filtered_itxs AS (
+		WITH filtered AS (
 			SELECT
-				runtime,
-				tx_round,
-				tx_index
-			FROM chain.rofl_instance_transactions
+				rel.runtime, rel.tx_round, rel.tx_index
+			FROM
+				chain.rofl_instance_transactions as rel
 			WHERE
-				runtime = $1 AND
-				app_id = $2 AND
-				($3::text IS NULL OR rak = $3::text) AND
+				rel.runtime = $1 AND
+				rel.app_id = $2::text AND
+				($3::text IS NULL OR rel.rak = $3::text) AND
 				(
-					$4::text[] IS NULL OR
+					-- No filtering on method.
+					$4::text IS NULL OR
 					(
-						'native_transfers' = ANY($4::text[]) AND likely_native_transfer
-					) OR
-					(
-						'evm.Call_no_native' = ANY($4::text[]) AND method = 'evm.Call' AND NOT likely_native_transfer
-					) OR
-					method = ANY($4::text[])
+						-- Special case to return are 'likely to be native transfers'.
+						('native_transfers' = $4::text AND rel.likely_native_transfer) OR
+						-- Special case to return all evm.Calls that are likely not native transfers.
+						('evm.Call_no_native' = $4::text AND rel.method = 'evm.Call' AND NOT rel.likely_native_transfer) OR
+						-- Regular case.
+						(rel.method = $4::text)
+					)
 				)
-			ORDER BY tx_round DESC, tx_index DESC
+			ORDER BY rel.tx_round DESC, rel.tx_index DESC
 			LIMIT $5::bigint
 			OFFSET $6::bigint
-		)
-
-		SELECT
-			txs.round,
-			txs.tx_index,
-			txs.timestamp,
-			txs.tx_hash,
-			txs.tx_eth_hash,
-			ARRAY_AGG(signers.signer_address),
-			ARRAY_AGG(signer_preimages.context_identifier),
-			ARRAY_AGG(signer_preimages.context_version),
-			ARRAY_AGG(signer_preimages.address_data),
-			ARRAY_AGG(signers.nonce),
-			txs.fee,
-			txs.fee_symbol,
-			txs.fee_proxy_module,
-			txs.fee_proxy_id,
-			txs.gas_limit,
-			txs.gas_used,
-			CASE
-				WHEN txs.tx_eth_hash IS NULL THEN txs.fee                                  -- charged_fee=fee for non-EVM txs
-				ELSE COALESCE(FLOOR(txs.fee / NULLIF(txs.gas_limit, 0)) * txs.gas_used, 0) -- charged_fee=gas_price * gas_used for EVM txs
-			END AS charged_fee,
-			txs.size,
-			txs.oasis_encrypted_format,
-			txs.oasis_encrypted_public_key,
-			txs.oasis_encrypted_data_nonce,
-			txs.oasis_encrypted_data_data,
-			txs.oasis_encrypted_result_nonce,
-			txs.oasis_encrypted_result_data,
-			txs.method,
-			txs.likely_native_transfer,
-			txs.body,
-			txs.to,
-			to_preimage.context_identifier AS to_preimage_context_identifier,
-			to_preimage.context_version AS to_preimage_context_version,
-			to_preimage.address_data AS to_preimage_data,
-			txs.amount,
-			txs.amount_symbol,
-			txs.evm_encrypted_format,
-			txs.evm_encrypted_public_key,
-			txs.evm_encrypted_data_nonce,
-			txs.evm_encrypted_data_data,
-			txs.evm_encrypted_result_nonce,
-			txs.evm_encrypted_result_data,
-			txs.success,
-			txs.evm_fn_name,
-			txs.evm_fn_params,
-			txs.error_module,
-			txs.error_code,
-			txs.error_message,
-			txs.error_message_raw,
-			txs.error_params
-		FROM filtered_itxs AS itxs
-		JOIN chain.runtime_transactions AS txs
-			ON txs.runtime = itxs.runtime AND
-			txs.round = itxs.tx_round AND
-			txs.tx_index = itxs.tx_index
-		JOIN chain.runtime_transaction_signers AS signers
-			ON signers.runtime = txs.runtime AND
-			signers.round = txs.round AND
-			signers.tx_index = txs.tx_index
-		LEFT JOIN chain.address_preimages AS signer_preimages
-			ON signers.signer_address = signer_preimages.address AND
-			-- For now, the only user is the explorer, where we only care
-			-- about Ethereum-compatible addresses, so only get those. Can
-			-- easily enable for other address types though.
-			signer_preimages.context_identifier = 'oasis-runtime-sdk/address: secp256k1eth' AND
-			signer_preimages.context_version = 0
-		LEFT JOIN chain.address_preimages AS to_preimage
-			ON txs.to = to_preimage.address AND
-			-- For now, the only user is the explorer, where we only care
-			-- about Ethereum-compatible addresses, so only get those. Can
-			-- easily enable for other address types though.
-			to_preimage.context_identifier = 'oasis-runtime-sdk/address: secp256k1eth' AND
-			to_preimage.context_version = 0
-		GROUP BY
-			txs.round,
-			txs.tx_index,
-			txs.timestamp,
-			txs.tx_hash,
-			txs.tx_eth_hash,
-			txs.fee,
-			txs.fee_symbol,
-			txs.fee_proxy_module,
-			txs.fee_proxy_id,
-			txs.gas_limit,
-			txs.gas_used,
-			txs.size,
-			txs.oasis_encrypted_format,
-			txs.oasis_encrypted_public_key,
-			txs.oasis_encrypted_data_nonce,
-			txs.oasis_encrypted_data_data,
-			txs.oasis_encrypted_result_nonce,
-			txs.oasis_encrypted_result_data,
-			txs.method,
-			txs.likely_native_transfer,
-			txs.body,
-			txs.to,
-			to_preimage.context_identifier,
-			to_preimage.context_version,
-			to_preimage.address_data,
-			txs.amount,
-			txs.amount_symbol,
-			txs.evm_encrypted_format,
-			txs.evm_encrypted_public_key,
-			txs.evm_encrypted_data_nonce,
-			txs.evm_encrypted_data_data,
-			txs.evm_encrypted_result_nonce,
-			txs.evm_encrypted_result_data,
-			txs.success,
-			txs.evm_fn_name,
-			txs.evm_fn_params,
-			txs.error_module,
-			txs.error_code,
-			txs.error_message,
-			txs.error_message_raw,
-			txs.error_params
-		ORDER BY txs.round DESC, txs.tx_index DESC`
+		)` +
+		runtimeTxSelect + `
+		FROM filtered as rel
+		JOIN chain.runtime_transactions AS txs ON
+			txs.runtime = rel.runtime AND
+			txs.round = rel.tx_round AND
+			txs.tx_index = rel.tx_index` +
+		runtimeTxCommonJoins
 
 	// FineTxVolumes returns the fine-grained query for 5-minute sampled tx volume windows.
 	FineTxVolumes = `
