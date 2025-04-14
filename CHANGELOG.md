@@ -12,6 +12,16 @@ The format is inspired by [Keep a Changelog].
 
 <!-- TOWNCRIER -->
 
+## 0.6.11 (2025-04-14)
+
+### Bug Fixes and Improvements
+
+- storage/rofl/instance: Fix instance transactions query
+  ([#978](https://github.com/oasisprotocol/nexus/issues/978))
+
+  Refactor the rofl instance transactions query to reuse the common
+  runtime transaction query code.
+
 ## 0.6.10 (2025-04-14)
 
 ### Features
