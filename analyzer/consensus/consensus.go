@@ -151,6 +151,14 @@ func (m *processor) FinalizeFastSync(ctx context.Context, lastFastSyncHeight int
 		return fmt.Errorf("recomputing consensus accounts first activity: %w", err)
 	}
 
+	// Recompute tx count for all accounts scanned during fast-sync.
+	batch = &storage.QueryBatch{}
+	m.logger.Info("computing tx count for all accounts scanned during fast-sync")
+	batch.Queue(queries.ConsensusAccountTxCountRecompute)
+	if err := m.target.SendBatch(ctx, batch); err != nil {
+		return fmt.Errorf("recomputing consensus accounts tx count: %w", err)
+	}
+
 	// Fetch a data snapshot (= genesis doc) from the node; see function docstring.
 	firstSlowSyncHeight := lastFastSyncHeight + 1
 	r, err := m.history.RecordForHeight(firstSlowSyncHeight)
@@ -680,7 +688,12 @@ func (m *processor) queueTxEventInserts(batch *storage.QueryBatch, data *allData
 			)
 
 			if m.mode != analyzer.FastSyncMode {
-				// Set the first activity for sender if not set yet.
+				// Increment the tx count for the related account.
+				// Skip in fast-sync mode; it will be recomputed at fast-sync finalization.
+				batch.Queue(queries.ConsensusAccountTxCountIncrement,
+					addr,
+				)
+				// Set the first activity for the related account if not set yet.
 				// Skip in fast sync mode; it will be recomputed at fast-sync finalization.
 				batch.Queue(
 					queries.ConsensusAccountFirstActivityUpsert,

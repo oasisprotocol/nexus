@@ -860,6 +860,7 @@ func (c *StorageClient) Account(ctx context.Context, address staking.Address) (*
 		&a.Debonding,
 		&a.DelegationsBalance,
 		&a.DebondingDelegationsBalance,
+		&a.Stats.NumTxns,
 		&a.FirstActivity,
 	)
 	switch {
@@ -899,17 +900,6 @@ func (c *StorageClient) Account(ctx context.Context, address staking.Address) (*
 		}
 
 		a.Allowances = append(a.Allowances, al)
-	}
-
-	err = c.db.QueryRow(
-		ctx,
-		queries.AccountStats,
-		address.String(),
-	).Scan(
-		&a.Stats.NumTxns,
-	)
-	if err != nil {
-		return nil, wrapError(err)
 	}
 
 	return &a, nil
