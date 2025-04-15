@@ -480,11 +480,22 @@ func (srv *StrictServerImpl) GetRuntimeRoflAppsIdInstanceTransactions(ctx contex
 }
 
 func (srv *StrictServerImpl) GetRuntimeRoflAppsIdInstances(ctx context.Context, request apiTypes.GetRuntimeRoflAppsIdInstancesRequestObject) (apiTypes.GetRuntimeRoflAppsIdInstancesResponseObject, error) {
-	instances, err := srv.dbClient.RuntimeRoflAppInstances(ctx, request.Params, request.Id)
+	instances, err := srv.dbClient.RuntimeRoflAppInstances(ctx, request.Params, request.Id, nil)
 	if err != nil {
 		return nil, err
 	}
 	return apiTypes.GetRuntimeRoflAppsIdInstances200JSONResponse(*instances), nil
+}
+
+func (srv *StrictServerImpl) GetRuntimeRoflAppsIdInstancesRak(ctx context.Context, request apiTypes.GetRuntimeRoflAppsIdInstancesRakRequestObject) (apiTypes.GetRuntimeRoflAppsIdInstancesRakResponseObject, error) {
+	instances, err := srv.dbClient.RuntimeRoflAppInstances(ctx, apiTypes.GetRuntimeRoflAppsIdInstancesParams{Limit: common.Ptr(uint64(1)), Offset: common.Ptr(uint64(0))}, request.Id, &request.Rak)
+	if err != nil {
+		return nil, err
+	}
+	if len(instances.Instances) != 1 {
+		return apiTypes.GetRuntimeRoflAppsIdInstancesRak404JSONResponse{}, nil
+	}
+	return apiTypes.GetRuntimeRoflAppsIdInstancesRak200JSONResponse(instances.Instances[0]), nil
 }
 
 func (srv *StrictServerImpl) GetRuntimeRoflAppsIdInstancesRakTransactions(ctx context.Context, request apiTypes.GetRuntimeRoflAppsIdInstancesRakTransactionsRequestObject) (apiTypes.GetRuntimeRoflAppsIdInstancesRakTransactionsResponseObject, error) {

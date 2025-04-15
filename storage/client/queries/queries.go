@@ -1141,11 +1141,13 @@ const (
 			expiration_epoch,
 			extra_keys
 		FROM chain.rofl_instances
-		WHERE runtime = $1::runtime AND
-			app_id = $2::text
+		WHERE
+			runtime = $1::runtime AND
+			app_id = $2::text AND
+			($3::text IS NULL OR rak = $3::text)
 		ORDER BY expiration_epoch DESC
-		LIMIT $3::bigint
-		OFFSET $4::bigint`
+		LIMIT $4::bigint
+		OFFSET $5::bigint`
 
 	RuntimeRoflAppInstanceTransactions = `
 		WITH filtered AS (
