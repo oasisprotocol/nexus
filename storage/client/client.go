@@ -2540,12 +2540,13 @@ func (c *StorageClient) RuntimeRoflApps(ctx context.Context, params apiTypes.Get
 }
 
 // RuntimeRoflAppInstances returns a list of ROFL app instances.
-func (c *StorageClient) RuntimeRoflAppInstances(ctx context.Context, params apiTypes.GetRuntimeRoflAppsIdInstancesParams, id string) (*RoflAppInstanceList, error) {
+func (c *StorageClient) RuntimeRoflAppInstances(ctx context.Context, params apiTypes.GetRuntimeRoflAppsIdInstancesParams, id string, rak *string) (*RoflAppInstanceList, error) {
 	res, err := c.withTotalCount(
 		ctx,
 		queries.RuntimeRoflAppInstances,
 		runtimeFromCtx(ctx),
 		id,
+		rak,
 		params.Limit,
 		params.Offset,
 	)

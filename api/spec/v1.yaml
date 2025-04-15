@@ -1352,6 +1352,32 @@ paths:
               schema:
                 $ref: '#/components/schemas/RoflAppInstanceList'
 
+  /{runtime}/rofl_apps/{id}/instances/{rak}:
+    get:
+      summary: Returns a specific ROFL instance.
+      parameters:
+        - *runtime
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: The ID of the ROFL app to return an instance for.
+        - in: path
+          name: rak
+          required: true
+          schema:
+            type: string
+          description: The RAK of the ROFL instance to return.
+      responses:
+        '200':
+          description: A JSON object containing a ROFL instance.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoflInstance'
+        <<: *common_error_responses
+
   /{runtime}/rofl_apps/{id}/instances/{rak}/transactions:
     get:
       summary: Returns a list of transactions submitted by the given ROFL instance.
