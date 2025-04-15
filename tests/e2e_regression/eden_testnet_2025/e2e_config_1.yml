@@ -39,6 +39,8 @@ server:
   storage:
     endpoint: postgresql://api:password@localhost:5432/indexer?sslmode=disable&pool_max_conns=10
     backend: postgres
+  # Disable the circulating supply endpoint, so that we test the disable functionality.
+  disable_circulating_supply_endpoint: true
 
 log:
   level: debug

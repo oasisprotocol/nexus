@@ -25,6 +25,8 @@ var (
 	// ErrNotFound is returned when handling a request for an item that
 	// does not exist in the DB.
 	ErrNotFound = errors.New("item not found")
+	// ErrUnavailable is returned when the endpoint is disabled.
+	ErrUnavailable = errors.New("unavailable")
 )
 
 type ErrStorageError struct{ Err error }
@@ -52,6 +54,8 @@ func HttpCodeForError(err error) int {
 		return http.StatusBadRequest
 	case errors.Is(err, ErrNotFound):
 		return http.StatusNotFound
+	case errors.Is(err, ErrUnavailable):
+		return http.StatusServiceUnavailable
 	case errType == reflect.TypeOf(ErrStorageError{}):
 		return http.StatusInternalServerError
 	case (errType == reflect.TypeOf(apiTypes.InvalidParamFormatError{}) ||

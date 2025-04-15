@@ -43,6 +43,13 @@ func (b BigInt) Times(other BigInt) BigInt {
 	return BigInt{result}
 }
 
+func (b BigInt) Div(other BigInt) BigInt {
+	result := big.Int{}
+	result.Set(&b.Int) // creates a copy of b.Int
+	result.Div(&result, &other.Int)
+	return BigInt{result}
+}
+
 func (b BigInt) IsZero() bool {
 	return b.Sign() == 0
 }
