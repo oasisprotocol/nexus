@@ -55,6 +55,7 @@ type StorageClient struct {
 	evmTokensCustomOrderAddresses map[common.Runtime][]*apiTypes.StakingAddress
 	evmTokensCustomOrderGroups    map[common.Runtime][]int
 
+	disableCirculatingSupply    bool
 	circulatingSupplyExclusions []apiTypes.Address
 
 	blockCache *ristretto.Cache[int64, *Block]
@@ -179,6 +180,7 @@ func NewStorageClient(
 		networkConfig,
 		evmTokensCustomOrderAddresses,
 		evmTokensCustomOrderGroups,
+		cfg.DisableCirculatingSupplyEndpoint,
 		circulatingSupplyExclusions,
 		blockCache,
 		l,
@@ -212,6 +214,18 @@ func (c *StorageClient) tokenDecimals(runtime common.Runtime, denom string) int 
 		return 0
 	}
 	return int(c.networkConfig.ParaTimes.All[string(runtime)].Denominations[denom].Decimals)
+}
+
+func (c *StorageClient) baseToTokenUnits(baseUnits common.BigInt) (*common.BigInt, error) {
+	if c.networkConfig == nil {
+		return nil, fmt.Errorf("no network config available")
+	}
+	tenPow := new(big.Int).Exp(big.NewInt(10), big.NewInt(int64(c.networkConfig.Denomination.Decimals)), nil)
+	if tenPow.Cmp(big.NewInt(0)) <= 0 {
+		return nil, fmt.Errorf("invalid network config (denomination decimals: %d)", c.networkConfig.Denomination.Decimals)
+	}
+	tokenUnits := baseUnits.Div(common.BigInt{Int: *tenPow})
+	return &tokenUnits, nil
 }
 
 // Wraps an error into one of the error types defined by the `common` package, if applicable.
@@ -335,7 +349,7 @@ func (c *StorageClient) Status(ctx context.Context) (*Status, error) {
 }
 
 func (c *StorageClient) TotalSupply(ctx context.Context) (*common.BigInt, error) {
-	var totalSupply *common.BigInt
+	var totalSupply common.BigInt
 	err := c.db.QueryRow(
 		ctx,
 		queries.TotalSupply,
@@ -343,10 +357,20 @@ func (c *StorageClient) TotalSupply(ctx context.Context) (*common.BigInt, error)
 	if err != nil {
 		return nil, wrapError(err)
 	}
-	return totalSupply, nil
+
+	// The endpoint returns supply in token units.
+	tokenUnits, err := c.baseToTokenUnits(totalSupply)
+	if err != nil {
+		return nil, wrapError(err)
+	}
+	return tokenUnits, nil
 }
 
 func (c *StorageClient) CirculatingSupply(ctx context.Context) (*common.BigInt, error) {
+	if c.disableCirculatingSupply {
+		return nil, apiCommon.ErrUnavailable
+	}
+
 	var totalSupply *common.BigInt
 	err := c.db.QueryRow(
 		ctx,
@@ -371,7 +395,12 @@ func (c *StorageClient) CirculatingSupply(ctx context.Context) (*common.BigInt, 
 	}
 	circulatingSupply := totalSupply.Minus(*subtractAmount)
 
-	return &circulatingSupply, nil
+	// The endpoint returns supply in token units.
+	tokenUnits, err := c.baseToTokenUnits(circulatingSupply)
+	if err != nil {
+		return nil, wrapError(err)
+	}
+	return tokenUnits, nil
 }
 
 type entityInfoRow struct {

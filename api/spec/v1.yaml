@@ -165,7 +165,7 @@ paths:
 
   /consensus/total_supply_raw:
     get:
-      summary: Returns the total supply of the consensus layer token.
+      summary: Returns the total supply of the consensus layer token in token units.
       responses:
         '200':
           description: A single number representing the total supply of the consensus layer token.
@@ -177,7 +177,7 @@ paths:
 
   /consensus/circulating_supply_raw:
     get:
-      summary: Returns the circulating supply of the consensus layer token.
+      summary: Returns the circulating supply of the consensus layer token in token units.
       responses:
         '200':
           description: A single number representing the circulating supply of the consensus layer token.

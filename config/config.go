@@ -617,6 +617,9 @@ type ServerConfig struct {
 	// This list is used to calculate the circulating supply by subtracting the balances of these addresses from the total supply.
 	// Note that the common pool address is automatically included in these exclusions.
 	ConsensusCirculatingSupplyExclusions []string `koanf:"consensus_circulating_supply_exclusions"`
+
+	// DisableCirculatingSupplyEndpoint is a flag to disable the circulating supply endpoint.
+	DisableCirculatingSupplyEndpoint bool `koanf:"disable_circulating_supply_endpoint"`
 }
 
 // Validate validates the server configuration.
