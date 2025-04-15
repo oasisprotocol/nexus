@@ -12,6 +12,25 @@ The format is inspired by [Keep a Changelog].
 
 <!-- TOWNCRIER -->
 
+## 0.6.12 (2025-04-15)
+
+### Features
+
+- api/supply: Return supply in token units
+  ([#968](https://github.com/oasisprotocol/nexus/issues/968))
+
+  `/consensus/total_supply_raw` and `/consensus/circulating_supply_raw`
+  now return results values in token units, instead of base units.
+
+- configuration: Add option to disable circulating supply endpoint
+  ([#968](https://github.com/oasisprotocol/nexus/issues/968))
+
+- api/rofl: Add endpoint for fetching a specific rofl app instance
+  ([#982](https://github.com/oasisprotocol/nexus/issues/982))
+
+  - `/{runtime}/rofl_apps/{id}/instances/{rak}` - returns a specific
+  ROFL app instance
+
 ## 0.6.11 (2025-04-14)
 
 ### Bug Fixes and Improvements
