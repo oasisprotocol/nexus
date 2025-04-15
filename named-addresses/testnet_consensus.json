@@ -27,26 +27,31 @@
     {
         "Name": "Sapphire",
         "Address": "oasis1qqczuf3x6glkgjuf0xgtcpjjw95r3crf7y2323xd",
-        "Description": "Address of the Sapphire account on consensus."
+        "Description": "Address of the Sapphire account on consensus.",
+        "// comment": "000000000000000000000000000000000000000000000000a6d1e3ebf60dff6c"
     },
     {
         "Name": "Emerald",
         "Address": "oasis1qr629x0tg9gm5fyhedgs9lw5eh3d8ycdnsxf0run",
-        "Description": "Address of the Emerald account on consensus."
+        "Description": "Address of the Emerald account on consensus.",
+        "// comment": "00000000000000000000000000000000000000000000000072c8215e60d5bca7"
     },
     {
         "Name": "Cipher",
         "Address": "oasis1qqdn25n5a2jtet2s5amc7gmchsqqgs4j0qcg5k0t",
-        "Description": "Address of the Cipher account on consensus."
+        "Description": "Address of the Cipher account on consensus.",
+        "// comment": "0000000000000000000000000000000000000000000000000000000000000000"
     },
     {
         "Name": "Pontus-X Testnet",
         "Address": "oasis1qrg6c89655pmdxeel08qkngs02jnrfll5v9c508v",
-        "Description": "Address of the Pontus-X Testnet account on consensus."
+        "Description": "Address of the Pontus-X Testnet account on consensus.",
+        "// comment": "00000000000000000000000000000000000000000000000004a6f9071c007069"
     },
     {
         "Name": "Pontus-X Devnet",
         "Address": "oasis1qr02702pr8ecjuff2z3es254pw9xl6z2yg9qcc6c",
-        "Description": "Address of the Pontus-X Devnet account on consensus."
+        "Description": "Address of the Pontus-X Devnet account on consensus.",
+        "// comment": "0000000000000000000000000000000000000000000000004febe52eb412b421"
     }
 ]
