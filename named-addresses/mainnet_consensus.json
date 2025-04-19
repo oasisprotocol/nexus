@@ -22,16 +22,19 @@
     {
         "Name": "Sapphire",
         "Address": "oasis1qrd3mnzhhgst26hsp96uf45yhq6zlax0cuzdgcfc",
-        "Description": "Address of the Sapphire account on consensus."
+        "Description": "Address of the Sapphire account on consensus.",
+        "// comment": "000000000000000000000000000000000000000000000000f80306c9858e7279"
     },
     {
         "Name": "Emerald",
         "Address": "oasis1qzvlg0grjxwgjj58tx2xvmv26era6t2csqn22pte",
-        "Description": "Address of the Emerald account on consensus."
+        "Description": "Address of the Emerald account on consensus.",
+        "// comment": "000000000000000000000000000000000000000000000000e2eaa99fc008f87f"
     },
     {
         "Name": "Cipher",
         "Address": "oasis1qrnu9yhwzap7rqh6tdcdcpz0zf86hwhycchkhvt8",
-        "Description": "Address of the Cipher account on consensus."
+        "Description": "Address of the Cipher account on consensus.",
+        "// comment": "000000000000000000000000000000000000000000000000e199119c992377cb"
     }
 ]
