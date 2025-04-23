@@ -1,0 +1,10 @@
+{
+  "consensus_pubkey": "6ONtIyX2bgz7QguQ438LrZhKllVP5nop3ISP07SRcKE=",
+  "entity_id": "9sAhd+Wi6tG5nAr3LwXD0y9mUKLYqfAbS2+7SZdNHB4=",
+  "expiration": 40350,
+  "id": "6wbL5/OxvFGxi55o7AxcwKmfjXbXGC1hw4lfnEZxBXA=",
+  "p2p_pubkey": "dahESDdpsnCfsgfytNBdHv41i5WB09zZ5HmONAw4hts=",
+  "roles": "validator",
+  "tls_next_pubkey": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+  "tls_pubkey": "NG0yM75XO8ys4HPgT+fKZkoIrz15oufwUp33RxQAKuU="
+}

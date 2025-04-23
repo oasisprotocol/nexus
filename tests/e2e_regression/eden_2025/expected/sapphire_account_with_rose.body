@@ -1,0 +1,21 @@
+{
+  "address": "oasis1qru38k694sl27t399kgn5dptdj2atn3u6v4qvkyw",
+  "address_preimage": {
+    "address_data": "zNcGscMNHG9G90iFw7E+PqKM6K8=",
+    "context": "oasis-runtime-sdk/address: secp256k1eth",
+    "context_version": 0
+  },
+  "balances": [
+    {
+      "balance": "445987007448983153367",
+      "token_decimals": 18,
+      "token_symbol": "ROSE"
+    }
+  ],
+  "evm_balances": [],
+  "stats": {
+    "num_txns": 161,
+    "total_received": "8000000139606124778",
+    "total_sent": "8279358341351201330"
+  }
+}

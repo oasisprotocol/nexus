@@ -1,0 +1,31 @@
+{
+  "address": "oasis1qr0nnrpway737dyctyngmfxhjtk9gxqx5ypa37q9",
+  "address_preimage": {
+    "address_data": "bMT+m6FFq7xDIns9SGD6Ma/SJcs=",
+    "context": "oasis-runtime-sdk/address: secp256k1eth",
+    "context_version": 0
+  },
+  "balances": [
+    {
+      "balance": "35160350476539375000",
+      "token_decimals": 18,
+      "token_symbol": "ROSE"
+    }
+  ],
+  "evm_balances": [
+    {
+      "balance": "38999999999999797429",
+      "token_contract_addr": "oasis1qr43dvghx4a75vndjcsg2r9ct2xqftwrgcnt5tge",
+      "token_contract_addr_eth": "0x39d22B78A7651A76Ffbde2aaAB5FD92666Aca520",
+      "token_decimals": 18,
+      "token_name": "Ocean Token",
+      "token_symbol": "OCEAN",
+      "token_type": "ERC20"
+    }
+  ],
+  "stats": {
+    "num_txns": 513,
+    "total_received": "0",
+    "total_sent": "4013002300000000000"
+  }
+}

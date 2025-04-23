@@ -1,0 +1,39 @@
+{
+  "is_total_count_clipped": false,
+  "total_count": 1,
+  "transactions": [
+    {
+      "block": 24214738,
+      "body": {
+        "commits": [
+          {
+            "header": {
+              "header": {
+                "in_msgs_hash": "c672b8d1ef56ed28ab87c3622c5114069bdd3ad7b8f9737498d0c01ecef0967a",
+                "io_root": "0f9dbb921d285ea1e9b1510aafffaf09d4e41c6122176c65c03eceeb90c13111",
+                "messages_hash": "c672b8d1ef56ed28ab87c3622c5114069bdd3ad7b8f9737498d0c01ecef0967a",
+                "previous_hash": "aa25190b17938d9698f8d9758d273a087939b276880533d8fae1046b951dbded",
+                "round": 15237614,
+                "state_root": "4395cf08dc08b3c9d30090291c50890713cf495d1e5524eb7607baabf20202be"
+              },
+              "rak_sig": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "scheduler_id": "giemTZIHjRmBA3FzYMK01eokfs8L/VmusK3M5+lUdGc="
+            },
+            "node_id": "gbBXhcVDEtUgIpvu7BQhJxeRsNcSYkNtl/RS9hwisds=",
+            "sig": "HI7WsJRErc42f8f2tgo311bR+rDaW85dtERN4DzEXXjCk0hPCYL6iM5xPTU4sdpRch5szexBhVOIwCJBS7nEDw=="
+          }
+        ],
+        "id": "000000000000000000000000000000000000000000000000e2eaa99fc008f87f"
+      },
+      "fee": "0",
+      "gas_limit": "10776",
+      "hash": "b3bac3243ad44adcb8829ed17599efd05d9c6dff3477a085d2eaa4032ab73be3",
+      "index": 0,
+      "method": "roothash.ExecutorCommit",
+      "nonce": 176807,
+      "sender": "oasis1qplwyaycwu0q99d33g6p0urk2m97cjkh4u8cf5xs",
+      "success": true,
+      "timestamp": "2025-04-19T13:50:12Z"
+    }
+  ]
+}

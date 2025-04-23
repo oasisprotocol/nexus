@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	ethCommon "github.com/ethereum/go-ethereum/common"
+
 	sdkConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 
@@ -35,6 +37,8 @@ type processor struct {
 	target  storage.TargetStorage
 	logger  *log.Logger
 	metrics metrics.AnalysisMetrics
+
+	additionalEVMTokenAddresses []ethCommon.Address
 }
 
 var _ block.BlockProcessor = (*processor)(nil)
@@ -45,7 +49,7 @@ func NewRuntimeAnalyzer(
 	runtime common.Runtime,
 	sdkPT *sdkConfig.ParaTime,
 	blockRange config.BlockRange,
-	batchSize uint64,
+	cfg *config.RuntimeAnalyzerConfig,
 	mode analyzer.BlockAnalysisMode,
 	sourceClient nodeapi.RuntimeApiLite,
 	target storage.TargetStorage,
@@ -62,8 +66,11 @@ func NewRuntimeAnalyzer(
 		logger:  logger.With("analyzer", runtime),
 		metrics: metrics.NewDefaultAnalysisMetrics(string(runtime)),
 	}
+	for _, addr := range cfg.AdditionalEVMTokenAddresses {
+		processor.additionalEVMTokenAddresses = append(processor.additionalEVMTokenAddresses, ethCommon.HexToAddress(addr))
+	}
 
-	return block.NewAnalyzer(blockRange, batchSize, mode, string(runtime), processor, target, logger)
+	return block.NewAnalyzer(blockRange, cfg.BatchSize, mode, string(runtime), processor, target, logger)
 }
 
 func nativeTokenSymbol(sdkPT *sdkConfig.ParaTime) string {
@@ -93,6 +100,39 @@ func registerModuleAddress(batch *storage.QueryBatch, daddr derivedAddr) {
 	)
 }
 
+func registerEVMTokenAddress(batch *storage.QueryBatch, runtime common.Runtime, ethAddr ethCommon.Address, mode analyzer.BlockAnalysisMode) error {
+	addr, err := addresses.FromEthAddress(ethAddr.Bytes())
+	if err != nil {
+		return fmt.Errorf("failed to get oasis address from eth address '%s': %w", ethAddr.Hex(), err)
+	}
+	// Insert the preimage for the EVM token address.
+	batch.Queue(
+		queries.AddressPreimageInsert,
+		addr,
+		sdkTypes.AddressV0Secp256k1EthContext.Identifier,
+		int32(sdkTypes.AddressV0Secp256k1EthContext.Version),
+		ethAddr,
+	)
+
+	// Insert the EVM token address for processing.
+	var query string
+	if mode != analyzer.FastSyncMode {
+		query = queries.RuntimeEVMTokenDeltaUpsert
+	} else {
+		query = queries.RuntimeFastSyncEVMTokenDeltaInsert
+	}
+	batch.Queue(
+		query,
+		runtime,
+		addr,
+		0,
+		0,
+		0,
+	)
+
+	return nil
+}
+
 // Implements BlockProcessor interface.
 func (m *processor) PreWork(ctx context.Context) error {
 	batch := &storage.QueryBatch{}
@@ -105,10 +145,17 @@ func (m *processor) PreWork(ctx context.Context) error {
 	registerModuleAddress(batch, accountsFeeAccumulator)
 	// (Another "special" address: ethereum 0x0 derives to oasis1qq2v39p9fqk997vk6742axrzqyu9v2ncyuqt8uek. In practice, it is registered because people submitted txs to it.)
 
+	// Register configured EVM token addresses.
+	for _, addr := range m.additionalEVMTokenAddresses {
+		if err := registerEVMTokenAddress(batch, m.runtime, addr, m.mode); err != nil {
+			return err
+		}
+	}
+
 	if err := m.target.SendBatch(ctx, batch); err != nil {
 		return err
 	}
-	m.logger.Info("registered special addresses")
+	m.logger.Info("finished pre-work")
 
 	return nil
 }

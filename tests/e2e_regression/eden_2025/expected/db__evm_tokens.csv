@@ -1,0 +1,5 @@
+runtime,token_address,token_type,token_name,symbol,decimals,total_supply,num_transfers
+sapphire,oasis1qpdgv5nv2dhxp4q897cgag6kgnm9qs0dccwnckuu,20,Wrapped ROSE,wROSE,18,34612415618290278876942747,11
+sapphire,oasis1qq309j5u6ut8da3fh9ra5k8ky77sqhhr8cmdqzpw,20,BitUSDs,BitUSDs,18,1653477128185483411842062,0
+sapphire,oasis1qq7vtcrmsyzfyf0rtkf99g9psh6ps29gx57nasxp,20,BTC/USDT,BTC/USDT,18,0,3
+sapphire,oasis1qr43dvghx4a75vndjcsg2r9ct2xqftwrgcnt5tge,20,Ocean Token,OCEAN,18,1418576715298904178394593,5948

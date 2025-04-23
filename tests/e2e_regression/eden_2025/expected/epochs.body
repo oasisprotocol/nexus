@@ -1,0 +1,30 @@
+{
+  "epochs": [
+    {
+      "id": 40348,
+      "start_height": 24216556
+    },
+    {
+      "end_height": 24216555,
+      "id": 40347,
+      "start_height": 24215956
+    },
+    {
+      "end_height": 24215955,
+      "id": 40346,
+      "start_height": 24215356
+    },
+    {
+      "end_height": 24215355,
+      "id": 40345,
+      "start_height": 24214756
+    },
+    {
+      "end_height": 24214755,
+      "id": 40344,
+      "start_height": 24214731
+    }
+  ],
+  "is_total_count_clipped": false,
+  "total_count": 5
+}

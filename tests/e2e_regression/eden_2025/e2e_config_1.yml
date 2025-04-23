@@ -1,0 +1,52 @@
+# Config for phase 1 of 2 of e2e regression tests.
+# See also ensure_consistent_config.sh
+#
+# Phase 1 runs all block-based analyzers; phase 2 runs all others. This is a slightly hacky
+# but low-effort way to ensure that all non-block analyzers perform RPCs at a deterministic
+# height and therefore always hit the RPC cache. (Most EVM-related analyzers make RPCs at the
+# maximum height that's been reached by block analyzers by that point.)
+#
+# Keep most changes in sync with the edenfast_2025 suite.
+
+analysis:
+  source:
+    cache: { cache_dir: tests/e2e_regression/eden_2025/rpc-cache }
+    chain_name: mainnet
+    nodes:
+      # Node will be accessed only when the filling up the cache.
+      # In CI, the cache is expected to have all the node responses as the node is not reachable.
+      eden: { default: { rpc: internal-direct.grpc.opf.oasis.io:443 } } # grpc.oasis.io:443 } }
+    ipfs:
+      gateway: https://ipfs.io
+    fast_startup: true
+  analyzers:
+    consensus:
+      from: 24_214_731  # April 19, 2025.
+      to: 24_216_730    # ~2000 blocks; compromise between fast and comprehensive
+    sapphire:
+      from: 8_512_135  #  April 19, 2025.
+      to: 8_514_134    # ~2000 blocks; compromise between fast and comprehensive
+      additional_evm_token_addresses:
+        - "0xA14167756d9F86Aed12b472C29B257BBdD9974C2" # BitUSD
+  storage:
+    backend: postgres
+    endpoint: postgresql://rwuser:password@localhost:5432/indexer?sslmode=disable&pool_max_conns=10
+    DANGER__WIPE_STORAGE_ON_STARTUP: true
+    migrations: file://storage/migrations
+
+server:
+  source:
+    chain_name: mainnet
+  endpoint: localhost:8008
+  storage:
+    endpoint: postgresql://api:password@localhost:5432/indexer?sslmode=disable&pool_max_conns=10
+    backend: postgres
+  # Disable the circulating supply endpoint, so that we test the disable functionality.
+  disable_circulating_supply_endpoint: true
+
+log:
+  level: debug
+  format: json
+
+metrics:
+  pull_endpoint: localhost:8009

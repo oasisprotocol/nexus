@@ -133,11 +133,11 @@ func (cfg *AnalysisConfig) Validate() error {
 
 type AnalyzersList struct {
 	Consensus   *BlockBasedAnalyzerConfig `koanf:"consensus"`
-	Emerald     *BlockBasedAnalyzerConfig `koanf:"emerald"`
-	Sapphire    *BlockBasedAnalyzerConfig `koanf:"sapphire"`
-	PontusxTest *BlockBasedAnalyzerConfig `koanf:"pontusx_test"`
-	PontusxDev  *BlockBasedAnalyzerConfig `koanf:"pontusx_dev"`
-	Cipher      *BlockBasedAnalyzerConfig `koanf:"cipher"`
+	Emerald     *RuntimeAnalyzerConfig    `koanf:"emerald"`
+	Sapphire    *RuntimeAnalyzerConfig    `koanf:"sapphire"`
+	PontusxTest *RuntimeAnalyzerConfig    `koanf:"pontusx_test"`
+	PontusxDev  *RuntimeAnalyzerConfig    `koanf:"pontusx_dev"`
+	Cipher      *RuntimeAnalyzerConfig    `koanf:"cipher"`
 
 	ConsensusAccountsList *ItemBasedAnalyzerConfig `koanf:"consensus_accounts_list"`
 
@@ -354,6 +354,18 @@ type IPFSConfig struct {
 	// trailing slash, e.g. `https://ipfs.io`. Something like
 	// `/ipfs/xxxx/n.json` will be appended.
 	Gateway string `koanf:"gateway"`
+}
+
+type RuntimeAnalyzerConfig struct {
+	BlockBasedAnalyzerConfig `koanf:",squash"`
+
+	// AdditionalEVMTokenAddresses is the list of EVM token addresses to be added as candidates to
+	// the analyzer.
+	//
+	// One example where this is useful, is adding confidential ERC20 token which do implement
+	// part of the spec (decimals, symbol, etc.) but do not emit ERC20 events - therefore are not
+	// ever picked up by the analyzer.
+	AdditionalEVMTokenAddresses []string `koanf:"additional_evm_token_addresses"`
 }
 
 type BlockBasedAnalyzerConfig struct {

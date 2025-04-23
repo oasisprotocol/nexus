@@ -18,7 +18,7 @@ analysis:
     evm_nfts_sapphire:                   { stop_if_queue_empty_for: 1s }
     evm_token_balances_sapphire:         { stop_if_queue_empty_for: 1s }
     evm_contract_code_sapphire:          { stop_if_queue_empty_for: 1s }
-    evm_abi_sapphire:                    { stop_if_queue_empty_for: 30s } # Give evm_contract_verifier time to fetch ABIs first. The 20s has been enough in practice, but might need to be tuned in the future, espcially if the caching proxy has an empty cache.
+    evm_abi_sapphire:                    { stop_if_queue_empty_for: 30s } # Give evm_contract_verifier time to fetch ABIs first. The 20s has been enough in practice, but might need to be tuned in the future, especially if the caching proxy has an empty cache.
     evm_contract_verifier_sapphire:      { stop_if_queue_empty_for: 1s, sourcify_server_url: http://localhost:9191, batch_size: 3_000 }
     rofl_sapphire:                       { stop_if_queue_empty_for: 1s }
     rofl_instance_transactions_sapphire: { stop_if_queue_empty_for: 1s }

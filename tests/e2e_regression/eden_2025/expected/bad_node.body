@@ -1,0 +1,3 @@
+{
+  "msg": "Invalid format for parameter node_id: error unmarshaling 'NOTANODE' text as *signature.PublicKey: signature: malformed public key"
+}
