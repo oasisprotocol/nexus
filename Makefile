@@ -60,12 +60,12 @@ test-e2e: export OASIS_INDEXER_E2E = true
 test-e2e:
 	@$(GO) test -race -coverpkg=./... -coverprofile=coverage.txt -covermode=atomic -v ./tests/e2e
 
-E2E_REGRESSION_SUITES_NO_LINKS := eden_testnet_2025 eden damask
+E2E_REGRESSION_SUITES_NO_LINKS := eden_testnet_2025 eden_2025 eden damask
 # To run specific suites, do e.g.
 # make E2E_REGRESSION_SUITES='suite1 suite2' test-e2e-regression
 E2E_REGRESSION_SUITES := $(E2E_REGRESSION_SUITES_NO_LINKS) edenfast
 
-E2E_REGRESSION_ARTIFACTS_VERSION = 2025-04-04
+E2E_REGRESSION_ARTIFACTS_VERSION = 2025-04-23
 
 upload-e2e-regression-caches:
 	for suite in $(E2E_REGRESSION_SUITES); do \

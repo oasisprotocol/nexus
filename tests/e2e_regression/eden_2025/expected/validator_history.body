@@ -1,0 +1,46 @@
+{
+  "history": [
+    {
+      "active_balance": "237587534660847325",
+      "active_shares": "184567248105074921",
+      "debonding_balance": "137085959187604",
+      "debonding_shares": "137085959187604",
+      "epoch": 40348,
+      "num_delegators": 6697
+    },
+    {
+      "active_balance": "237586862290027045",
+      "active_shares": "184567195872691525",
+      "debonding_balance": "137085959187604",
+      "debonding_shares": "137085959187604",
+      "epoch": 40347,
+      "num_delegators": 6697
+    },
+    {
+      "active_balance": "237586189921109569",
+      "active_shares": "184567143640322912",
+      "debonding_balance": "137085959187604",
+      "debonding_shares": "137085959187604",
+      "epoch": 40346,
+      "num_delegators": 6697
+    },
+    {
+      "active_balance": "237585517554094891",
+      "active_shares": "184567091407969080",
+      "debonding_balance": "137085959187604",
+      "debonding_shares": "137085959187604",
+      "epoch": 40345,
+      "num_delegators": 6697
+    },
+    {
+      "active_balance": "237584845188983007",
+      "active_shares": "184567039175630030",
+      "debonding_balance": "137085959187604",
+      "debonding_shares": "137085959187604",
+      "epoch": 40344,
+      "num_delegators": 6697
+    }
+  ],
+  "is_total_count_clipped": false,
+  "total_count": 5
+}

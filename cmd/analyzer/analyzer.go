@@ -339,7 +339,7 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) { //nolint:gocyclo
 	// Helper func that adds N fast-sync analyzers for a given runtime to, with N (and other properties) pulled from the config.
 	// NOTE: The helper extensively reads AND WRITES variables in the parent scope.
 	//       The side-effects (=writes) happen in `fastSyncAnalyzers` and `err`.
-	addFastSyncRuntimeAnalyzers := func(runtimeName common.Runtime, config *config.BlockBasedAnalyzerConfig) {
+	addFastSyncRuntimeAnalyzers := func(runtimeName common.Runtime, config *config.RuntimeAnalyzerConfig) {
 		if config != nil {
 			if fastRange := config.FastSyncRange(); fastRange != nil {
 				for i := 0; i < config.FastSync.Parallelism; i++ {
@@ -349,7 +349,7 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) { //nolint:gocyclo
 						if err1 != nil {
 							return nil, err1
 						}
-						return runtime.NewRuntimeAnalyzer(cfg.Source.ChainName, runtimeName, sdkPT, *fastRange, config.BatchSize, analyzer.FastSyncMode, sourceClient, dbClient, logger)
+						return runtime.NewRuntimeAnalyzer(cfg.Source.ChainName, runtimeName, sdkPT, *fastRange, config, analyzer.FastSyncMode, sourceClient, dbClient, logger)
 					})
 				}
 			}
@@ -388,7 +388,7 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) { //nolint:gocyclo
 			if err1 != nil {
 				return nil, err1
 			}
-			return runtime.NewRuntimeAnalyzer(cfg.Source.ChainName, common.RuntimeEmerald, sdkPT, cfg.Analyzers.Emerald.SlowSyncRange(), cfg.Analyzers.Emerald.BatchSize, analyzer.SlowSyncMode, sourceClient, dbClient, logger)
+			return runtime.NewRuntimeAnalyzer(cfg.Source.ChainName, common.RuntimeEmerald, sdkPT, cfg.Analyzers.Emerald.SlowSyncRange(), cfg.Analyzers.Emerald, analyzer.SlowSyncMode, sourceClient, dbClient, logger)
 		})
 	}
 	if cfg.Analyzers.Sapphire != nil {
@@ -398,7 +398,7 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) { //nolint:gocyclo
 			if err1 != nil {
 				return nil, err1
 			}
-			return runtime.NewRuntimeAnalyzer(cfg.Source.ChainName, common.RuntimeSapphire, sdkPT, cfg.Analyzers.Sapphire.SlowSyncRange(), cfg.Analyzers.Sapphire.BatchSize, analyzer.SlowSyncMode, sourceClient, dbClient, logger)
+			return runtime.NewRuntimeAnalyzer(cfg.Source.ChainName, common.RuntimeSapphire, sdkPT, cfg.Analyzers.Sapphire.SlowSyncRange(), cfg.Analyzers.Sapphire, analyzer.SlowSyncMode, sourceClient, dbClient, logger)
 		})
 	}
 	if cfg.Analyzers.PontusxTest != nil {
@@ -408,7 +408,7 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) { //nolint:gocyclo
 			if err1 != nil {
 				return nil, err1
 			}
-			return runtime.NewRuntimeAnalyzer(cfg.Source.ChainName, common.RuntimePontusxTest, sdkPT, cfg.Analyzers.PontusxTest.SlowSyncRange(), cfg.Analyzers.PontusxTest.BatchSize, analyzer.SlowSyncMode, sourceClient, dbClient, logger)
+			return runtime.NewRuntimeAnalyzer(cfg.Source.ChainName, common.RuntimePontusxTest, sdkPT, cfg.Analyzers.PontusxTest.SlowSyncRange(), cfg.Analyzers.PontusxTest, analyzer.SlowSyncMode, sourceClient, dbClient, logger)
 		})
 	}
 	if cfg.Analyzers.PontusxDev != nil {
@@ -418,7 +418,7 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) { //nolint:gocyclo
 			if err1 != nil {
 				return nil, err1
 			}
-			return runtime.NewRuntimeAnalyzer(cfg.Source.ChainName, common.RuntimePontusxDev, sdkPT, cfg.Analyzers.PontusxDev.SlowSyncRange(), cfg.Analyzers.PontusxDev.BatchSize, analyzer.SlowSyncMode, sourceClient, dbClient, logger)
+			return runtime.NewRuntimeAnalyzer(cfg.Source.ChainName, common.RuntimePontusxDev, sdkPT, cfg.Analyzers.PontusxDev.SlowSyncRange(), cfg.Analyzers.PontusxDev, analyzer.SlowSyncMode, sourceClient, dbClient, logger)
 		})
 	}
 	if cfg.Analyzers.Cipher != nil {
@@ -428,7 +428,7 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) { //nolint:gocyclo
 			if err1 != nil {
 				return nil, err1
 			}
-			return runtime.NewRuntimeAnalyzer(cfg.Source.ChainName, common.RuntimeCipher, sdkPT, cfg.Analyzers.Cipher.SlowSyncRange(), cfg.Analyzers.Cipher.BatchSize, analyzer.SlowSyncMode, sourceClient, dbClient, logger)
+			return runtime.NewRuntimeAnalyzer(cfg.Source.ChainName, common.RuntimeCipher, sdkPT, cfg.Analyzers.Cipher.SlowSyncRange(), cfg.Analyzers.Cipher, analyzer.SlowSyncMode, sourceClient, dbClient, logger)
 		})
 	}
 	if cfg.Analyzers.EmeraldEvmTokens != nil {

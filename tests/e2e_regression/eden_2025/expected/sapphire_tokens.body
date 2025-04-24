@@ -1,0 +1,81 @@
+{
+  "evm_tokens": [
+    {
+      "contract_addr": "oasis1qr43dvghx4a75vndjcsg2r9ct2xqftwrgcnt5tge",
+      "decimals": 18,
+      "eth_contract_addr": "0x39d22B78A7651A76Ffbde2aaAB5FD92666Aca520",
+      "is_verified": true,
+      "name": "Ocean Token",
+      "num_holders": 52,
+      "num_transfers": 5948,
+      "ref_token": {
+        "decimals": 18,
+        "name": "Wrapped ROSE",
+        "symbol": "wROSE",
+        "type": "ERC20"
+      },
+      "symbol": "OCEAN",
+      "total_supply": "1418576715298904178394593",
+      "type": "ERC20",
+      "verification_level": "full"
+    },
+    {
+      "contract_addr": "oasis1qpdgv5nv2dhxp4q897cgag6kgnm9qs0dccwnckuu",
+      "decimals": 18,
+      "eth_contract_addr": "0x8Bc2B030b299964eEfb5e1e0b36991352E56D2D3",
+      "is_verified": true,
+      "name": "Wrapped ROSE",
+      "num_holders": 2,
+      "num_transfers": 11,
+      "ref_token": {
+        "decimals": 18,
+        "name": "Wrapped ROSE",
+        "symbol": "wROSE",
+        "type": "ERC20"
+      },
+      "symbol": "wROSE",
+      "total_supply": "34612415618290278876942747",
+      "type": "ERC20",
+      "verification_level": "full"
+    },
+    {
+      "contract_addr": "oasis1qq309j5u6ut8da3fh9ra5k8ky77sqhhr8cmdqzpw",
+      "decimals": 18,
+      "eth_contract_addr": "0xA14167756d9F86Aed12b472C29B257BBdD9974C2",
+      "is_verified": true,
+      "name": "BitUSDs",
+      "num_holders": 0,
+      "num_transfers": 0,
+      "ref_token": {
+        "decimals": 18,
+        "name": "Wrapped ROSE",
+        "symbol": "wROSE",
+        "type": "ERC20"
+      },
+      "symbol": "BitUSDs",
+      "total_supply": "1653477128185483411842062",
+      "type": "ERC20",
+      "verification_level": "full"
+    },
+    {
+      "contract_addr": "oasis1qq7vtcrmsyzfyf0rtkf99g9psh6ps29gx57nasxp",
+      "decimals": 18,
+      "eth_contract_addr": "0xe66421fD29fC2D27D0724F161F01b8cbDCd69690",
+      "is_verified": false,
+      "name": "BTC/USDT",
+      "num_holders": 0,
+      "num_transfers": 3,
+      "ref_token": {
+        "decimals": 18,
+        "name": "Wrapped ROSE",
+        "symbol": "wROSE",
+        "type": "ERC20"
+      },
+      "symbol": "BTC/USDT",
+      "total_supply": "0",
+      "type": "ERC20"
+    }
+  ],
+  "is_total_count_clipped": false,
+  "total_count": 4
+}

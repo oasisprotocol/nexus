@@ -165,12 +165,23 @@ func setupAnalyzer(t *testing.T, testDb *postgres.Client, node *mockNode) analyz
 		maxRound = 1
 	}
 
+	cfg := config.RuntimeAnalyzerConfig{
+		BlockBasedAnalyzerConfig: config.BlockBasedAnalyzerConfig{
+			BatchSize: 10,
+		},
+	}
+
 	analyzer, err := runtime.NewRuntimeAnalyzer(
 		"testnet",
 		"pontusx_dev", // We borrow a real runtime's name to comply with DB's enums.
 		sdkPT,
 		config.BlockRange{From: uint64(minRound), To: uint64(maxRound)},
-		10 /*batchSize*/, analyzer.SlowSyncMode, node, testDb, logger)
+		&cfg,
+		analyzer.SlowSyncMode,
+		node,
+		testDb,
+		logger,
+	)
 	require.NoError(t, err, "item.NewAnalyzer")
 
 	return analyzer

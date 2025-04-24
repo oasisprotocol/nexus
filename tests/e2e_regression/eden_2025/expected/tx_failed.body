@@ -1,0 +1,48 @@
+{
+  "is_total_count_clipped": false,
+  "total_count": 1,
+  "transactions": [
+    {
+      "block": 24214737,
+      "body": {
+        "signatures": [
+          {
+            "public_key": "cbr0Qvz15bv3DolO/th7gqgyWYFl8cMl6G4CA5vAvmo=",
+            "signature": "Nx83BiRDkaNcKYPLpGF37beehW0mK4Bd99ro9intCFag92cdUA2QfpXLqjmK40uLttW6muDh2J6ZWyKa6wr6BQ=="
+          },
+          {
+            "public_key": "kCnivcQWGHVNqmPNwAl7MLIfzFGjSABT6q+R9PCMvas=",
+            "signature": "ACDRhV8mKS6WEOuF/O4d411T7cgAUj62LTmauZR+cjUZkklDx5csIqYX5HQI9sHg+Yr0nRhDaWkqNl2Ln2hVBg=="
+          },
+          {
+            "public_key": "TBj5AYTnK3qy+2XLYrNNvsUU45cBdGMX0sQzIsIKOng=",
+            "signature": "vmMJOtU6q3OUQ71xIWsh0c5/+oFXRBTtxJewfz6QIHDTgKHSeJqW19wNYI19SWRpWDif3taUnKBuTWULr8/7BQ=="
+          },
+          {
+            "public_key": "GM8iZqO5dwiLyg+CHIXgpJBAT39RhobLDaAZBTmrnJI=",
+            "signature": "SkBxK8yl+5lq8n+G7kHlLwNzZKrSVqLlhJ7VibtcWfBncoW2DlHbZmbzX4IadrV77YYZbRFs3+40+ZAC28z+BQ=="
+          },
+          {
+            "public_key": "0TcooGMMqt61tSBwcYJin5KVAxNlJEVKEm9PWHL0aK0=",
+            "signature": "yfcqmJ7LLKhEgwgdpJ/U7NfoIYXgQEpw1ZjbssdlrqSAfJpzklycLTcOKciUTjJmFOlS6W1wDe22fpWx3AqcAA=="
+          }
+        ],
+        "untrusted_raw_value": "q2F2A2JpZFggcbr0Qvz15bv3DolO/th7gqgyWYFl8cMl6G4CA5vAvmpjcDJwomJpZFggkCnivcQWGHVNqmPNwAl7MLIfzFGjSABT6q+R9PCMvatpYWRkcmVzc2Vz9mN0bHOhZ3B1Yl9rZXlYINE3KKBjDKretbUgcHGCYp+SlQMTZSRFShJvT1hy9GitY3ZyZqFiaWRYIBjPImajuXcIi8oPghyF4KSQQE9/UYaGyw2gGQU5q5ySZXJvbGVzAmhydW50aW1lc/ZpY29uc2Vuc3VzomJpZFggTBj5AYTnK3qy+2XLYrNNvsUU45cBdGMX0sQzIsIKOnhpYWRkcmVzc2Vz9mllbnRpdHlfaWRYIGEagana2sKX3Td2abR7suF1hVfw4fV4GKrpJ6CHcm5HamV4cGlyYXRpb24ZnZpwc29mdHdhcmVfdmVyc2lvbmYyNC4zLjI="
+      },
+      "error": {
+        "code": 4,
+        "message": "staking: insufficient stake",
+        "module": "staking"
+      },
+      "fee": "0",
+      "gas_limit": "1221",
+      "hash": "ad590f1452e19b3976fcf23fc050da6ed347abe476491256a56aed766e43e232",
+      "index": 0,
+      "method": "registry.RegisterNode",
+      "nonce": 38105,
+      "sender": "oasis1qp04ntjm8cgcljtpnu8vp086g5a75qwlpyyhlhyy",
+      "success": false,
+      "timestamp": "2025-04-19T13:50:06Z"
+    }
+  ]
+}

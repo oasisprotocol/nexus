@@ -1,0 +1,162 @@
+{
+  "delegations": [
+    {
+      "amount": "5207565592573229",
+      "delegator": "oasis1qqjak3gnnnxkc8rm9e6vu3rwt3hm3shq0y47c6zr",
+      "shares": "4131385205941431",
+      "validator": "oasis1qp0j5v5mkxk3eg4kxfdsk8tj6p22g4685qk76fw6"
+    },
+    {
+      "amount": "107839363786061",
+      "delegator": "oasis1qrd3mnzhhgst26hsp96uf45yhq6zlax0cuzdgcfc",
+      "shares": "85553593947863",
+      "validator": "oasis1qp0j5v5mkxk3eg4kxfdsk8tj6p22g4685qk76fw6"
+    },
+    {
+      "amount": "53752595392612",
+      "delegator": "oasis1qrk68l93s4xh5hje9h73hqr4e306rrxj05gwlwnw",
+      "shares": "42644240084600",
+      "validator": "oasis1qp0j5v5mkxk3eg4kxfdsk8tj6p22g4685qk76fw6"
+    },
+    {
+      "amount": "21200656824215",
+      "delegator": "oasis1qzcfu5qvsned4kaqzgun889mtjpead5s65rlmhpq",
+      "shares": "16819390635179",
+      "validator": "oasis1qp0j5v5mkxk3eg4kxfdsk8tj6p22g4685qk76fw6"
+    },
+    {
+      "amount": "15399310425874",
+      "delegator": "oasis1qqy3yanq6u667xxlef49jhkfcw6w785mqqkm98de",
+      "shares": "12216933640911",
+      "validator": "oasis1qp0j5v5mkxk3eg4kxfdsk8tj6p22g4685qk76fw6"
+    },
+    {
+      "amount": "11748628577476",
+      "delegator": "oasis1qp0j5v5mkxk3eg4kxfdsk8tj6p22g4685qk76fw6",
+      "shares": "9320691104556",
+      "validator": "oasis1qp0j5v5mkxk3eg4kxfdsk8tj6p22g4685qk76fw6"
+    },
+    {
+      "amount": "10021050900396",
+      "delegator": "oasis1qr0fufclms6vgjh7r6mtlxpknl0vcd0adstalwzy",
+      "shares": "7950129614676",
+      "validator": "oasis1qp0j5v5mkxk3eg4kxfdsk8tj6p22g4685qk76fw6"
+    },
+    {
+      "amount": "8213456991256",
+      "delegator": "oasis1qpk366qvtjrfrthjp3xuej5mhvvtnkr8fy02hm2s",
+      "shares": "6516087814949",
+      "validator": "oasis1qp0j5v5mkxk3eg4kxfdsk8tj6p22g4685qk76fw6"
+    },
+    {
+      "amount": "8099679847635",
+      "delegator": "oasis1qz8lqyewtcaayglfn50ev5srfs7fs6w3qurj6dhp",
+      "shares": "6425823525508",
+      "validator": "oasis1qp0j5v5mkxk3eg4kxfdsk8tj6p22g4685qk76fw6"
+    },
+    {
+      "amount": "2697229066582",
+      "delegator": "oasis1qqma6mjzldwr96aqhxynesd75zlfd8yz6snnzjsx",
+      "shares": "2139827538343",
+      "validator": "oasis1qp0j5v5mkxk3eg4kxfdsk8tj6p22g4685qk76fw6"
+    },
+    {
+      "amount": "2499996794440",
+      "delegator": "oasis1qplrm2az8h6mh38ujrxcjd5rdpu507ghnv3aqvfu",
+      "shares": "1983354714952",
+      "validator": "oasis1qp0j5v5mkxk3eg4kxfdsk8tj6p22g4685qk76fw6"
+    },
+    {
+      "amount": "2367179631377",
+      "delegator": "oasis1qp46l8dzujks42l866rse09sls2fsnn89u7wh8p3",
+      "shares": "1877985161210",
+      "validator": "oasis1qp0j5v5mkxk3eg4kxfdsk8tj6p22g4685qk76fw6"
+    },
+    {
+      "amount": "1488717320412",
+      "delegator": "oasis1qq26q4yg5s49pkzxyjpull836gn36rtsdsaw0dgc",
+      "shares": "1181063321056",
+      "validator": "oasis1qp0j5v5mkxk3eg4kxfdsk8tj6p22g4685qk76fw6"
+    },
+    {
+      "amount": "1129667156651",
+      "delegator": "oasis1qp7rprn32kyhjuhud59nd9rw2m6e6dwy9vk3q6jm",
+      "shares": "896213421735",
+      "validator": "oasis1qp0j5v5mkxk3eg4kxfdsk8tj6p22g4685qk76fw6"
+    },
+    {
+      "amount": "1008151740781",
+      "delegator": "oasis1qzd67v24rzmr8svr9t0wax92k8gqvkg4tumwlzs2",
+      "shares": "799810028922",
+      "validator": "oasis1qp0j5v5mkxk3eg4kxfdsk8tj6p22g4685qk76fw6"
+    },
+    {
+      "amount": "1006954164837",
+      "delegator": "oasis1qzh7wqdxqpnm9wxgawlz8lkwcg9w6h843g7xyhzc",
+      "shares": "798859940546",
+      "validator": "oasis1qp0j5v5mkxk3eg4kxfdsk8tj6p22g4685qk76fw6"
+    },
+    {
+      "amount": "990782256254",
+      "delegator": "oasis1qzn0lhqjkwf3ukzzjq258s20j0m92nyehymwcmml",
+      "shares": "786030071640",
+      "validator": "oasis1qp0j5v5mkxk3eg4kxfdsk8tj6p22g4685qk76fw6"
+    },
+    {
+      "amount": "210830000023",
+      "delegator": "oasis1qptlnfj9f8j24dlt8el9sswq2zu4n3kjavndcqzy",
+      "shares": "167260484305",
+      "validator": "oasis1qp0j5v5mkxk3eg4kxfdsk8tj6p22g4685qk76fw6"
+    },
+    {
+      "amount": "204821178730",
+      "delegator": "oasis1qpy2jued5txx9z5nedpk3m86jjn95uz8f5yfhcrc",
+      "shares": "162493428576",
+      "validator": "oasis1qp0j5v5mkxk3eg4kxfdsk8tj6p22g4685qk76fw6"
+    },
+    {
+      "amount": "151154645241",
+      "delegator": "oasis1qprdqpwurpys90ac76zgjcsk60e4nyme6vddrr2u",
+      "shares": "119917465092",
+      "validator": "oasis1qp0j5v5mkxk3eg4kxfdsk8tj6p22g4685qk76fw6"
+    },
+    {
+      "amount": "102695160783",
+      "delegator": "oasis1qrd2kz2w6dr7qf4aajs88yyxvhpz8syk3ve3wlye",
+      "shares": "81472477003",
+      "validator": "oasis1qp0j5v5mkxk3eg4kxfdsk8tj6p22g4685qk76fw6"
+    },
+    {
+      "amount": "102484779432",
+      "delegator": "oasis1qp8l5yxkfxhzcqn39htnween4nxdh5ezmu66n0jk",
+      "shares": "81305572451",
+      "validator": "oasis1qp0j5v5mkxk3eg4kxfdsk8tj6p22g4685qk76fw6"
+    },
+    {
+      "amount": "222224994",
+      "delegator": "oasis1qzq5lcm3jv4zrmty6zhy77tfyzs99k6pyul2s2yv",
+      "shares": "176300622",
+      "validator": "oasis1qp0j5v5mkxk3eg4kxfdsk8tj6p22g4685qk76fw6"
+    },
+    {
+      "amount": "7356828",
+      "delegator": "oasis1qquxs0vddf47zp9skwqgv52ha66npnezrqf5fwfv",
+      "shares": "5836488",
+      "validator": "oasis1qp0j5v5mkxk3eg4kxfdsk8tj6p22g4685qk76fw6"
+    },
+    {
+      "amount": "5959097",
+      "delegator": "oasis1qr9tujkc2su4lsjdm46yf2jrs7cq85k4vg5vda6j",
+      "shares": "4727608",
+      "validator": "oasis1qp0j5v5mkxk3eg4kxfdsk8tj6p22g4685qk76fw6"
+    },
+    {
+      "amount": "3647422",
+      "delegator": "oasis1qq7vk7g5mlmn4wv2j302wh2frckcz7nkfg0s6ad4",
+      "shares": "2893657",
+      "validator": "oasis1qp0j5v5mkxk3eg4kxfdsk8tj6p22g4685qk76fw6"
+    }
+  ],
+  "is_total_count_clipped": false,
+  "total_count": 26
+}

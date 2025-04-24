@@ -143,6 +143,7 @@ jobs:
           - eden
           - edenfast
           - eden_testnet_2025
+          - eden_2025
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout code

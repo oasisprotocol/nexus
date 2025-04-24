@@ -1,0 +1,19 @@
+{
+  "contract_addr": "oasis1qq309j5u6ut8da3fh9ra5k8ky77sqhhr8cmdqzpw",
+  "decimals": 18,
+  "eth_contract_addr": "0xA14167756d9F86Aed12b472C29B257BBdD9974C2",
+  "is_verified": true,
+  "name": "BitUSDs",
+  "num_holders": 0,
+  "num_transfers": 0,
+  "ref_token": {
+    "decimals": 18,
+    "name": "Wrapped ROSE",
+    "symbol": "wROSE",
+    "type": "ERC20"
+  },
+  "symbol": "BitUSDs",
+  "total_supply": "1653477128185483411842062",
+  "type": "ERC20",
+  "verification_level": "full"
+}
