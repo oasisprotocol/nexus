@@ -65,7 +65,7 @@ E2E_REGRESSION_SUITES_NO_LINKS := eden_testnet_2025 eden_2025 eden damask
 # make E2E_REGRESSION_SUITES='suite1 suite2' test-e2e-regression
 E2E_REGRESSION_SUITES := $(E2E_REGRESSION_SUITES_NO_LINKS) edenfast
 
-E2E_REGRESSION_ARTIFACTS_VERSION = 2025-04-23
+E2E_REGRESSION_ARTIFACTS_VERSION = 2025-05-16
 
 upload-e2e-regression-caches:
 	for suite in $(E2E_REGRESSION_SUITES); do \

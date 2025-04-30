@@ -1,15 +1,15 @@
 {
   "evm_tokens": [
     {
-      "contract_addr": "oasis1qqck6mclg2ly7wmmjr69rwl2dtpyjn6gpgtv5glw",
-      "decimals": 6,
-      "eth_contract_addr": "0x01D969e5de0534624C11D0452eB07a20596A54E2",
+      "contract_addr": "oasis1qzaxvc4sfdcw2mv27tsdmq7gqp6rrkjux55j09fh",
+      "decimals": 18,
+      "eth_contract_addr": "0x1a37E2fF0dCB77853Fa7dD5209BC365AD15CE421",
       "is_verified": false,
-      "name": "USDC",
-      "num_holders": 2,
-      "num_transfers": 7,
-      "symbol": "USDC",
-      "total_supply": "1022000000000",
+      "name": "fsklj",
+      "num_holders": 1,
+      "num_transfers": 20,
+      "symbol": "ewjk",
+      "total_supply": "198372000000000000000000",
       "type": "ERC20"
     }
   ],

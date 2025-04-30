@@ -21,11 +21,11 @@ analysis:
     fast_startup: true
   analyzers:
     consensus:
-      from: 25_640_954  # March 11, 2025.
-      to: 25_642_954    # ~2000 blocks; compromise between fast and comprehensive
+      from: 26_473_352  # May 6, 2025.
+      to: 26_475_352    # ~2000 blocks; compromise between fast and comprehensive
     sapphire:
-      from: 10_742_000  #  March 11, 2025. Some rofl apps were active in this period.
-      to: 10_744_000    # ~2000 blocks; compromise between fast and comprehensive
+      from: 11_565_500  #  May 6, 2025. Roflmarket was active in this period.
+      to: 11_567_500    # ~2000 blocks; compromise between fast and comprehensive
   storage:
     backend: postgres
     endpoint: postgresql://rwuser:password@localhost:5432/indexer?sslmode=disable&pool_max_conns=10

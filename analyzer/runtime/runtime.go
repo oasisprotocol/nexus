@@ -266,6 +266,7 @@ func (m *processor) ProcessBlock(ctx context.Context, round uint64) error {
 	m.queueAccountsEvents(batch, blockData)
 	m.queueConsensusAccountsEvents(batch, blockData)
 	m.queueRoflStaleApps(batch, blockData)
+	m.queueRoflmarketStale(batch, blockData)
 	analysisTimer.ObserveDuration()
 
 	// Update indexing progress.
@@ -637,6 +638,99 @@ func (m *processor) queueRoflStaleApps(batch *storage.QueryBatch, blockData *Blo
 				queries.RuntimeRoflAppQueueRefresh,
 				m.runtime,
 				e.AppID.String(),
+				blockData.Header.Round,
+			)
+		}
+	}
+}
+
+func (m *processor) queueRoflmarketStale(batch *storage.QueryBatch, blockData *BlockData) {
+	for _, event := range blockData.EventData {
+		if event.WithScope.RoflMarket == nil {
+			continue
+		}
+
+		if e := event.WithScope.RoflMarket.ProviderCreated; e != nil {
+			// Queue a refresh of the provider.
+			batch.Queue(
+				queries.RuntimeRoflmarketProviderQueueRefresh,
+				m.runtime,
+				e.Address,
+				blockData.Header.Round,
+			)
+		}
+
+		if e := event.WithScope.RoflMarket.ProviderUpdated; e != nil {
+			// Queue a refresh of the provider.
+			batch.Queue(
+				queries.RuntimeRoflmarketProviderQueueRefresh,
+				m.runtime,
+				e.Address,
+				blockData.Header.Round,
+			)
+		}
+
+		if e := event.WithScope.RoflMarket.ProviderRemoved; e != nil {
+			// Queue a refresh of the provider.
+			batch.Queue(
+				queries.RuntimeRoflmarketProviderQueueRefresh,
+				m.runtime,
+				e.Address,
+				blockData.Header.Round,
+			)
+		}
+
+		if e := event.WithScope.RoflMarket.InstanceCreated; e != nil {
+			// Queue a refresh of the provider.
+			// XXX: This could be optimized to only refresh the instance, not the whole provider.
+			batch.Queue(
+				queries.RuntimeRoflmarketProviderQueueRefresh,
+				m.runtime,
+				e.Provider,
+				blockData.Header.Round,
+			)
+		}
+
+		if e := event.WithScope.RoflMarket.InstanceUpdated; e != nil {
+			// Queue a refresh of the provider.
+			// XXX: This could be optimized to only refresh the instance, not the whole provider.
+			batch.Queue(
+				queries.RuntimeRoflmarketProviderQueueRefresh,
+				m.runtime,
+				e.Provider,
+				blockData.Header.Round,
+			)
+		}
+
+		if e := event.WithScope.RoflMarket.InstanceAccepted; e != nil {
+			// Queue a refresh of the provider.
+			// XXX: This could be optimized to only refresh the instance, not the whole provider.
+			batch.Queue(
+				queries.RuntimeRoflmarketProviderQueueRefresh,
+				m.runtime,
+				e.Provider,
+				blockData.Header.Round,
+			)
+		}
+
+		if e := event.WithScope.RoflMarket.InstanceRemoved; e != nil {
+			// Queue a refresh of the provider.
+			// XXX: This could be optimized to only refresh the instance, not the whole provider.
+			batch.Queue(
+				queries.RuntimeRoflmarketProviderQueueRefresh,
+				m.runtime,
+				e.Provider,
+				blockData.Header.Round,
+			)
+		}
+
+		if e := event.WithScope.RoflMarket.InstanceCommandQueued; e != nil {
+			// Queue a refresh of the provider.
+			// XXX: This could be optimized to only refresh the instance, not the whole provider.
+			batch.Queue(
+				queries.RuntimeRoflmarketProviderQueueRefresh,
+				m.runtime,
+				e.Provider,
 				blockData.Header.Round,
 			)
 		}

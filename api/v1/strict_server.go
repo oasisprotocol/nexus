@@ -577,3 +577,54 @@ func (srv *StrictServerImpl) GetRuntimeRoflAppsIdInstancesRakTransactions(ctx co
 	}
 	return apiTypes.GetRuntimeRoflAppsIdInstancesRakTransactions200JSONResponse(*transactions), nil
 }
+
+func (srv *StrictServerImpl) GetRuntimeRoflmarketProviders(ctx context.Context, request apiTypes.GetRuntimeRoflmarketProvidersRequestObject) (apiTypes.GetRuntimeRoflmarketProvidersResponseObject, error) {
+	runtime, err := request.Runtime.Validate()
+	if err != nil {
+		return nil, err
+	}
+	providers, err := srv.dbClient.RuntimeRoflmarketProviders(ctx, runtime, request.Params, nil)
+	if err != nil {
+		return nil, err
+	}
+	return apiTypes.GetRuntimeRoflmarketProviders200JSONResponse(*providers), nil
+}
+
+func (srv *StrictServerImpl) GetRuntimeRoflmarketProvidersAddress(ctx context.Context, request apiTypes.GetRuntimeRoflmarketProvidersAddressRequestObject) (apiTypes.GetRuntimeRoflmarketProvidersAddressResponseObject, error) {
+	runtime, err := request.Runtime.Validate()
+	if err != nil {
+		return nil, err
+	}
+	providers, err := srv.dbClient.RuntimeRoflmarketProviders(ctx, runtime, apiTypes.GetRuntimeRoflmarketProvidersParams{Limit: common.Ptr(uint64(1)), Offset: common.Ptr(uint64(0))}, &request.Address)
+	if err != nil {
+		return nil, err
+	}
+	if len(providers.Providers) != 1 {
+		return apiTypes.GetRuntimeRoflmarketProvidersAddress404JSONResponse{}, nil
+	}
+	return apiTypes.GetRuntimeRoflmarketProvidersAddress200JSONResponse(providers.Providers[0]), nil
+}
+
+func (srv *StrictServerImpl) GetRuntimeRoflmarketProvidersAddressOffers(ctx context.Context, request apiTypes.GetRuntimeRoflmarketProvidersAddressOffersRequestObject) (apiTypes.GetRuntimeRoflmarketProvidersAddressOffersResponseObject, error) {
+	runtime, err := request.Runtime.Validate()
+	if err != nil {
+		return nil, err
+	}
+	offers, err := srv.dbClient.RuntimeRoflmarketOffers(ctx, runtime, request.Params, &request.Address)
+	if err != nil {
+		return nil, err
+	}
+	return apiTypes.GetRuntimeRoflmarketProvidersAddressOffers200JSONResponse(*offers), nil
+}
+
+func (srv *StrictServerImpl) GetRuntimeRoflmarketProvidersAddressInstances(ctx context.Context, request apiTypes.GetRuntimeRoflmarketProvidersAddressInstancesRequestObject) (apiTypes.GetRuntimeRoflmarketProvidersAddressInstancesResponseObject, error) {
+	runtime, err := request.Runtime.Validate()
+	if err != nil {
+		return nil, err
+	}
+	instances, err := srv.dbClient.RuntimeRoflmarketInstances(ctx, runtime, request.Params, &request.Address)
+	if err != nil {
+		return nil, err
+	}
+	return apiTypes.GetRuntimeRoflmarketProvidersAddressInstances200JSONResponse(*instances), nil
+}

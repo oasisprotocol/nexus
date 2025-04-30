@@ -2,18 +2,18 @@
   "active_instances": [
     {
       "endorsing_node_id": "7zI/cYuiUTPz61PL9M7f1Q/7b43nG0xk1w6yGde+msQ=",
-      "expiration_epoch": 42724,
+      "expiration_epoch": 44111,
       "extra_keys": [
-        "{\"secp256k1\":\"A/F6qq+T7UR+BM8s+KdHJ0TiufRTcE7odkURAWXSqafC\"}"
+        "{\"secp256k1\":\"Ao3qmFS3aE6iQ122cYON8m1kF0tL6HIUijgeUCGu1GZN\"}"
       ],
-      "rak": "8EUGnz+hAqblEMWh+ZHKyZU7CSItm1wrJqK15dAjlfI=",
-      "rek": "QqMeqt6vnRTRiSJOY/3DeSqaC0GupgkZcBjRtOsIQ0c="
+      "rak": "2ykEN3K2N0hgC5EFkdNiqDX4TLi+Aul3PYHUJX041SE=",
+      "rek": "Z5nJSrh270+0CqUUcjBiSUqEEoGJP2BsyfCzxDCAMWE="
     }
   ],
   "admin": "oasis1qpwaggvmhwq5uk40clase3knt655nn2tdy39nz2f",
-  "date_created": "2025-03-11T18:45:03Z",
+  "date_created": "2025-05-06T15:54:21Z",
   "id": "rofl1qp55evqls4qg6cjw5fnlv4al9ptc0fsakvxvd9uw",
-  "last_activity": "2025-03-11T19:18:26Z",
+  "last_activity": "2025-05-06T16:21:51Z",
   "last_activity_tx": {
     "amount": "0",
     "charged_fee": "20000000000000000",
@@ -22,39 +22,45 @@
     "fee_proxy_module": "rofl",
     "fee_symbol": "TEST",
     "gas_limit": 200000,
-    "gas_used": 63820,
-    "hash": "7afd70194b4336867e4fdeff85c78936701948ea290f47b488bb4014da56073a",
+    "gas_used": 79759,
+    "hash": "1fc7ba040ee936119c2919dbed58ad47b69cdd977f4e0e1a2f3dbbbd43cb0fd5",
     "index": 1,
     "is_likely_native_token_transfer": false,
     "method": "",
-    "nonce_0": 1707,
+    "nonce_0": 250,
     "oasis_encryption_envelope": {
-      "data": "yRZb/wQINM+CRJzZZy2+azEcMyWWBEnV3C2TWjPnPZv9Xcq5PFs4ILZTxYe5w6M/a+nGoz2kowjvv34eMqFbnlS7xcocFBaaz9rp493f5njlGicbpRXQED/rQNyNzGB0ClUoxI0BbmniDJ/UNyz8CprrmwnrLAjHut4vth7XXSBEkRF4u/22Gf5q7R83NYVR/UaZ59tscRWvCwlHYCxU",
-      "data_nonce": "ApOFUZyjI+tACO/9t0gL",
+      "data": "r2Ug87R+3uuytUziXjoMZhgr6E8mk3Cj5rFL/BnFuYt8DlIL03NqcCxztSDItFv8rzErFbftZ5xZR6o3Azf5VD2SSbdImfsXLsPRqsXYVo6I31BwybVIC4Z4jNIFdTsqcsMNS9YE/imD43C9J9Vh4h8nASri8nIXPwrT4u6HvR+2VOm7vFmdYZhLGvtxRkUs2eU3TmjRuAmsyRuOrsUt",
+      "data_nonce": "ZsGCW8ew7sDvhzeqXT8m",
       "format": "encrypted/x25519-deoxysii",
-      "public_key": "KewWi97t4PuSKawE8R2/M6plmaawGtEBu1BLqCM4Exw=",
-      "result": "6m+zNLWa7aVYaEa6UmyZlsZoc6Rg",
-      "result_nonce": "AAAAAACj8LYAAAABAAAA"
+      "public_key": "4IFixeGMoX5O82T5RvCfxWz5uz5iPim0qIhBCNHzDBg=",
+      "result": "SHgX5RExoSI7Mf6kYjulrBsP/3R2",
+      "result_nonce": "AAAAAACwgYMAAAABAAAA"
     },
-    "round": 10743991,
-    "sender_0": "oasis1qzf8zl5g2g6awzvvc8xs24jm8ewvp7k205pmsg6j",
-    "sender_0_eth": "0xa194D3118d4ce56f30Eb74DF30Ff06423ABd1F05",
+    "round": 11567492,
+    "sender_0": "oasis1qqj0g6gkenex03my3p2vg4s3k33d3qll8unugszn",
+    "sender_0_eth": "0x595d40F268b89Cf385d00E75788b51ABea1b99D0",
     "signers": [
       {
-        "address": "oasis1qzf8zl5g2g6awzvvc8xs24jm8ewvp7k205pmsg6j",
-        "address_eth": "0xa194D3118d4ce56f30Eb74DF30Ff06423ABd1F05",
-        "nonce": 1707
+        "address": "oasis1qqj0g6gkenex03my3p2vg4s3k33d3qll8unugszn",
+        "address_eth": "0x595d40F268b89Cf385d00E75788b51ABea1b99D0",
+        "nonce": 250
       }
     ],
     "size": 512,
-    "timestamp": "2025-03-11T19:18:26Z"
+    "timestamp": "2025-05-06T16:21:51Z"
   },
-  "metadata": null,
+  "metadata": {
+    "net.oasis.rofl.author": "Jernej Kos <jernej@kos.mx>",
+    "net.oasis.rofl.license": "Apache-2.0",
+    "net.oasis.rofl.name": "demo-rofl",
+    "net.oasis.rofl.repository": "https://github.com/oasisprotocol/demo-rofl",
+    "net.oasis.rofl.version": "0.1.1"
+  },
   "num_active_instances": 1,
   "policy": {
     "enclaves": [
-      "pwl5NhdfqHhw9O7pEUUQtPVnPS3D447JH2YEywykCcQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-      "Dl83HSFL3IjplvKGnmmDk9zeD0/Ea4qxHqqrzRIb050AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=="
+      "qc98ULKN37r8sZNJlSvM2klZBBAH1sCu09w07HNagH4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+      "HQADK7bsA9jKv+V7eS9OB+smnN6Vf6Wp/zUeIlyZW18AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=="
     ],
     "endorsements": [
       {
@@ -72,9 +78,7 @@
     }
   },
   "removed": false,
-  "secrets": {
-    "foo": "pGJwa1ggL8WH1uN4duUVQbrxegApzlW4yXd+96ygfpYG8Qdy/DFkbmFtZVNl0HYM2zBxzZS4buSPZWbQV8l+ZW5vbmNlTypzdpiaAo45zHiAqMst5mV2YWx1ZVTFJjKzfthesm/P4tuLPG3AsVkiIA=="
-  },
+  "secrets": null,
   "sek": "438B4/HJ6nmyzg0v50UxvRiBLn9ZJRa8uzDjpsD18Dw=",
   "stake": "10000000000000000000000"
 }

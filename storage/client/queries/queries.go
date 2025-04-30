@@ -1183,6 +1183,79 @@ const (
 			txs.tx_index = rel.tx_index` +
 		runtimeTxCommonJoins
 
+	RuntimeRoflmarketProviders = `
+		SELECT
+			address,
+			nodes,
+			scheduler,
+			payment_address,
+			metadata,
+			stake,
+			offers_next_id,
+			offers_count,
+			instances_next_id,
+			instances_count,
+			created_at,
+			updated_at,
+			removed
+		FROM chain.roflmarket_providers
+		WHERE runtime = $1::runtime AND
+			($2::oasis_addr IS NULL OR address = $2::oasis_addr) AND
+			-- Exclude not yet processed providers.
+			last_processed_round IS NOT NULL
+		-- TODO: Should probably sort by something else.
+		ORDER BY address
+		LIMIT $3::bigint
+		OFFSET $4::bigint`
+
+	RuntimeRoflmarketProviderOffers = `
+		SELECT
+			id,
+			provider,
+			resources,
+			payment,
+			capacity,
+			metadata,
+			removed
+		FROM chain.roflmarket_offers
+		WHERE runtime = $1::runtime AND
+			provider = $2::oasis_addr
+		-- TODO: Should probably sort by something else.
+		ORDER BY id DESC
+		LIMIT $3::bigint
+		OFFSET $4::bigint`
+
+	RuntimeRoflmarketProviderInstances = `
+		SELECT
+			id,
+			provider,
+			offer_id,
+			status,
+			creator,
+			admin,
+			node_id,
+			metadata,
+			resources,
+			deployment,
+			created_at,
+			updated_at,
+			paid_from,
+			paid_until,
+			payment,
+			payment_address,
+			refund_data,
+			cmd_next_id,
+			cmd_count,
+			cmds,
+			removed
+		FROM chain.roflmarket_instances
+		WHERE runtime = $1::runtime AND
+			provider = $2::oasis_addr
+		-- TODO: Should probably sort by something else.
+		ORDER BY id DESC
+		LIMIT $3::bigint
+		OFFSET $4::bigint`
+
 	// FineTxVolumes returns the fine-grained query for 5-minute sampled tx volume windows.
 	FineTxVolumes = `
 		SELECT window_end, tx_volume

@@ -39,6 +39,7 @@ import (
 
 	sdkClient "github.com/oasisprotocol/oasis-sdk/client-sdk/go/client"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/rofl"
+	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/roflmarket"
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 
 	apiTypes "github.com/oasisprotocol/nexus/api/v1/types"
@@ -284,10 +285,20 @@ type RuntimeApiLite interface {
 	GetBlockHeader(ctx context.Context, round uint64) (*RuntimeBlockHeader, error)
 	GetTransactionsWithResults(ctx context.Context, round uint64) ([]RuntimeTransactionWithResults, error)
 	GetBalances(ctx context.Context, round uint64, addr Address) (map[sdkTypes.Denomination]common.BigInt, error)
+
 	RoflApp(ctx context.Context, round uint64, id AppID) (*AppConfig, error)
 	RoflApps(ctx context.Context, round uint64) ([]*AppConfig, error)
 	RoflAppInstance(ctx context.Context, round uint64, id AppID, rak PublicKey) (*Registration, error)
 	RoflAppInstances(ctx context.Context, round uint64, id AppID) ([]*Registration, error)
+
+	RoflMarketProvider(ctx context.Context, round uint64, providerAddress sdkTypes.Address) (*Provider, error)
+	RoflMarketProviders(ctx context.Context, round uint64) ([]*Provider, error)
+	RoflMarketOffer(ctx context.Context, round uint64, providerAddress sdkTypes.Address, offerID OfferID) (*Offer, error)
+	RoflMarketOffers(ctx context.Context, round uint64, providerAddress sdkTypes.Address) ([]*Offer, error)
+	RoflMarketInstance(ctx context.Context, round uint64, providerAddress sdkTypes.Address, instanceID InstanceID) (*Instance, error)
+	RoflMarketInstances(ctx context.Context, round uint64, providerAddress sdkTypes.Address) ([]*Instance, error)
+	RoflMarketInstanceCommands(ctx context.Context, round uint64, providerAddress sdkTypes.Address, instanceID InstanceID) ([]*QueuedCommand, error)
+
 	Close() error
 }
 
@@ -299,6 +310,13 @@ type (
 	AppConfig    = rofl.AppConfig
 	Registration = rofl.Registration
 	PublicKey    = sdkTypes.PublicKey
+
+	QueuedCommand = roflmarket.QueuedCommand
+	InstanceID    = roflmarket.InstanceID
+	OfferID       = roflmarket.OfferID
+	Provider      = roflmarket.Provider
+	Offer         = roflmarket.Offer
+	Instance      = roflmarket.Instance
 )
 
 // Derived from oasis-core: roothash/api/block/header.go

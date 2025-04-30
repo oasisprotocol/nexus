@@ -1,46 +1,38 @@
 {
   "history": [
     {
-      "active_balance": "11453202422114058",
-      "active_shares": "10090089847531704",
-      "debonding_balance": "1252068884204",
-      "debonding_shares": "1252068884204",
-      "epoch": 42722,
+      "active_balance": "11498001234781499",
+      "active_shares": "10089874242075457",
+      "debonding_balance": "381001330097",
+      "debonding_shares": "381001330097",
+      "epoch": 44109,
       "num_delegators": 73
     },
     {
-      "active_balance": "11453170009642931",
-      "active_shares": "10090089847531704",
-      "debonding_balance": "1252068884204",
-      "debonding_shares": "1252068884204",
-      "epoch": 42721,
+      "active_balance": "11497968695530091",
+      "active_shares": "10089874242075457",
+      "debonding_balance": "381001330097",
+      "debonding_shares": "381001330097",
+      "epoch": 44108,
       "num_delegators": 73
     },
     {
-      "active_balance": "11453137597263531",
-      "active_shares": "10090089847531704",
-      "debonding_balance": "1252068884204",
-      "debonding_shares": "1252068884204",
-      "epoch": 42720,
+      "active_balance": "11497936156370769",
+      "active_shares": "10089874242075457",
+      "debonding_balance": "381001330097",
+      "debonding_shares": "381001330097",
+      "epoch": 44107,
       "num_delegators": 73
     },
     {
-      "active_balance": "11453105184975858",
-      "active_shares": "10090089847531704",
-      "debonding_balance": "1252068884204",
-      "debonding_shares": "1252068884204",
-      "epoch": 42719,
-      "num_delegators": 73
-    },
-    {
-      "active_balance": "11453072772779912",
-      "active_shares": "10090089847531704",
-      "debonding_balance": "1252068884204",
-      "debonding_shares": "1252068884204",
-      "epoch": 42718,
+      "active_balance": "11497903617303533",
+      "active_shares": "10089874242075457",
+      "debonding_balance": "381001330097",
+      "debonding_shares": "381001330097",
+      "epoch": 44106,
       "num_delegators": 73
     }
   ],
   "is_total_count_clipped": false,
-  "total_count": 5
+  "total_count": 4
 }

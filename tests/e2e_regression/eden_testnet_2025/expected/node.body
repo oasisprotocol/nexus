@@ -1,7 +1,7 @@
 {
   "consensus_pubkey": "JCLeGvxkrGrgN1hgSFxPj2y6VJjzE4PDsN3EuSc2u9w=",
   "entity_id": "ekP4j+817Qhh3/DruBXVv/8ypI2CAnK1LAfuVxNazNc=",
-  "expiration": 42724,
+  "expiration": 44111,
   "id": "qQEtJm4Dyd3k02BFU9V8n6kNnCPAzTvcbxWiPM3t7Xw=",
   "p2p_pubkey": "0o3t6gQWhDa84uLQlrQgfW9nijnfbvI5UUVs8pQcAJw=",
   "roles": "validator",
