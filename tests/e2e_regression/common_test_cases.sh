@@ -104,4 +104,5 @@ commonSapphireTestCases=(
   'sapphire_status                    /v1/sapphire/status'
   'sapphire_tx_volume                 /v1/sapphire/stats/tx_volume'
   'sapphire_rofl_apps                 /v1/sapphire/rofl_apps'
+  'sapphire_roflmarket_providers      /v1/sapphire/roflmarket_providers'
 )

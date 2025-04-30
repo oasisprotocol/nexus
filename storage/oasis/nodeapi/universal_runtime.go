@@ -200,3 +200,57 @@ func (rc *UniversalRuntimeApiLite) RoflAppInstance(ctx context.Context, round ui
 func (rc *UniversalRuntimeApiLite) RoflAppInstances(ctx context.Context, round uint64, id AppID) ([]*Registration, error) {
 	return rc.sdkClient.ROFL.AppInstances(ctx, round, id)
 }
+
+func (rc *UniversalRuntimeApiLite) RoflMarketProvider(ctx context.Context, round uint64, providerAddress sdkTypes.Address) (*Provider, error) {
+	provider, err := rc.sdkClient.ROFLMarket.Provider(ctx, round, providerAddress)
+	if err != nil {
+		module, code := errors.Code(err)
+		if module == "roflmarket" && code == 3 { // "provider not found"
+			// Provider doesn't exist, don't return an error so that the response is cached.
+			return &Provider{}, nil
+		}
+		return nil, err
+	}
+	return provider, nil
+}
+
+func (rc *UniversalRuntimeApiLite) RoflMarketProviders(ctx context.Context, round uint64) ([]*Provider, error) {
+	return rc.sdkClient.ROFLMarket.Providers(ctx, round)
+}
+
+func (rc *UniversalRuntimeApiLite) RoflMarketOffer(ctx context.Context, round uint64, providerAddress sdkTypes.Address, offerID OfferID) (*Offer, error) {
+	offer, err := rc.sdkClient.ROFLMarket.Offer(ctx, round, providerAddress, offerID)
+	if err != nil {
+		module, code := errors.Code(err)
+		if module == "roflmarket" && code == 7 { // "offer not found"
+			// Offer doesn't exist, don't return an error so that the response is cached.
+			return &Offer{}, nil
+		}
+	}
+	return offer, nil
+}
+
+func (rc *UniversalRuntimeApiLite) RoflMarketOffers(ctx context.Context, round uint64, providerAddress sdkTypes.Address) ([]*Offer, error) {
+	return rc.sdkClient.ROFLMarket.Offers(ctx, round, providerAddress)
+}
+
+func (rc *UniversalRuntimeApiLite) RoflMarketInstance(ctx context.Context, round uint64, providerAddress sdkTypes.Address, instanceID InstanceID) (*Instance, error) {
+	instance, err := rc.sdkClient.ROFLMarket.Instance(ctx, round, providerAddress, instanceID)
+	if err != nil {
+		module, code := errors.Code(err)
+		if module == "roflmarket" && code == 8 { // "instance not found"
+			// Instance doesn't exist, don't return an error so that the response is cached.
+			return &Instance{}, nil
+		}
+		return nil, err
+	}
+	return instance, nil
+}
+
+func (rc *UniversalRuntimeApiLite) RoflMarketInstances(ctx context.Context, round uint64, providerAddress sdkTypes.Address) ([]*Instance, error) {
+	return rc.sdkClient.ROFLMarket.Instances(ctx, round, providerAddress)
+}
+
+func (rc *UniversalRuntimeApiLite) RoflMarketInstanceCommands(ctx context.Context, round uint64, providerAddress sdkTypes.Address, instanceID InstanceID) ([]*QueuedCommand, error) {
+	return rc.sdkClient.ROFLMarket.InstanceCommands(ctx, round, providerAddress, instanceID)
+}

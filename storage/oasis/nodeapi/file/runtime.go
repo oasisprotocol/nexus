@@ -139,3 +139,67 @@ func (r *FileRuntimeApiLite) RoflAppInstance(ctx context.Context, round uint64, 
 		func() (*nodeapi.Registration, error) { return r.runtimeApi.RoflAppInstance(ctx, round, id, rak) },
 	)
 }
+
+func (r *FileRuntimeApiLite) RoflMarketProvider(ctx context.Context, round uint64, providerAddress sdkTypes.Address) (*nodeapi.Provider, error) {
+	return kvstore.GetFromCacheOrCall(
+		r.db, round == roothash.RoundLatest,
+		kvstore.GenerateCacheKey("RoflMarketProvider", r.runtime, round, providerAddress),
+		func() (*nodeapi.Provider, error) { return r.runtimeApi.RoflMarketProvider(ctx, round, providerAddress) },
+	)
+}
+
+func (r *FileRuntimeApiLite) RoflMarketProviders(ctx context.Context, round uint64) ([]*nodeapi.Provider, error) {
+	return kvstore.GetSliceFromCacheOrCall(
+		r.db, round == roothash.RoundLatest,
+		kvstore.GenerateCacheKey("RoflMarketProviders", r.runtime, round),
+		func() ([]*nodeapi.Provider, error) { return r.runtimeApi.RoflMarketProviders(ctx, round) },
+	)
+}
+
+func (r *FileRuntimeApiLite) RoflMarketOffer(ctx context.Context, round uint64, providerAddress sdkTypes.Address, offerID nodeapi.OfferID) (*nodeapi.Offer, error) {
+	return kvstore.GetFromCacheOrCall(
+		r.db, round == roothash.RoundLatest,
+		kvstore.GenerateCacheKey("RoflMarketOffer", r.runtime, round, providerAddress, offerID),
+		func() (*nodeapi.Offer, error) {
+			return r.runtimeApi.RoflMarketOffer(ctx, round, providerAddress, offerID)
+		},
+	)
+}
+
+func (r *FileRuntimeApiLite) RoflMarketOffers(ctx context.Context, round uint64, providerAddress sdkTypes.Address) ([]*nodeapi.Offer, error) {
+	return kvstore.GetSliceFromCacheOrCall(
+		r.db, round == roothash.RoundLatest,
+		kvstore.GenerateCacheKey("RoflMarketOffers", r.runtime, round, providerAddress),
+		func() ([]*nodeapi.Offer, error) { return r.runtimeApi.RoflMarketOffers(ctx, round, providerAddress) },
+	)
+}
+
+func (r *FileRuntimeApiLite) RoflMarketInstance(ctx context.Context, round uint64, providerAddress sdkTypes.Address, instanceID nodeapi.InstanceID) (*nodeapi.Instance, error) {
+	return kvstore.GetFromCacheOrCall(
+		r.db, round == roothash.RoundLatest,
+		kvstore.GenerateCacheKey("RoflMarketInstance", r.runtime, round, providerAddress, instanceID),
+		func() (*nodeapi.Instance, error) {
+			return r.runtimeApi.RoflMarketInstance(ctx, round, providerAddress, instanceID)
+		},
+	)
+}
+
+func (r *FileRuntimeApiLite) RoflMarketInstances(ctx context.Context, round uint64, providerAddress sdkTypes.Address) ([]*nodeapi.Instance, error) {
+	return kvstore.GetSliceFromCacheOrCall(
+		r.db, round == roothash.RoundLatest,
+		kvstore.GenerateCacheKey("RoflMarketInstances", r.runtime, round, providerAddress),
+		func() ([]*nodeapi.Instance, error) {
+			return r.runtimeApi.RoflMarketInstances(ctx, round, providerAddress)
+		},
+	)
+}
+
+func (r *FileRuntimeApiLite) RoflMarketInstanceCommands(ctx context.Context, round uint64, providerAddress sdkTypes.Address, instanceID nodeapi.InstanceID) ([]*nodeapi.QueuedCommand, error) {
+	return kvstore.GetSliceFromCacheOrCall(
+		r.db, round == roothash.RoundLatest,
+		kvstore.GenerateCacheKey("RoflMarketInstanceCommands", r.runtime, round, providerAddress, instanceID),
+		func() ([]*nodeapi.QueuedCommand, error) {
+			return r.runtimeApi.RoflMarketInstanceCommands(ctx, round, providerAddress, instanceID)
+		},
+	)
+}

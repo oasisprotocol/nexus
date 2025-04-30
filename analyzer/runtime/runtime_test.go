@@ -130,6 +130,34 @@ func (*mockNode) RoflAppInstance(ctx context.Context, round uint64, id nodeapi.A
 	panic("unimplemented") // not needed for testing the block analyzer
 }
 
+func (*mockNode) RoflMarketProviders(ctx context.Context, round uint64) ([]*nodeapi.Provider, error) {
+	panic("unimplemented") // not needed for testing the block analyzer
+}
+
+func (*mockNode) RoflMarketProvider(ctx context.Context, round uint64, providerAddress sdkTypes.Address) (*nodeapi.Provider, error) {
+	panic("unimplemented") // not needed for testing the block analyzer
+}
+
+func (*mockNode) RoflMarketOffers(ctx context.Context, round uint64, providerAddress sdkTypes.Address) ([]*nodeapi.Offer, error) {
+	panic("unimplemented") // not needed for testing the block analyzer
+}
+
+func (*mockNode) RoflMarketOffer(ctx context.Context, round uint64, providerAddress sdkTypes.Address, offerID nodeapi.OfferID) (*nodeapi.Offer, error) {
+	panic("unimplemented") // not needed for testing the block analyzer
+}
+
+func (*mockNode) RoflMarketInstances(ctx context.Context, round uint64, providerAddress sdkTypes.Address) ([]*nodeapi.Instance, error) {
+	panic("unimplemented") // not needed for testing the block analyzer
+}
+
+func (*mockNode) RoflMarketInstance(ctx context.Context, round uint64, providerAddress sdkTypes.Address, instanceID nodeapi.InstanceID) (*nodeapi.Instance, error) {
+	panic("unimplemented") // not needed for testing the block analyzer
+}
+
+func (*mockNode) RoflMarketInstanceCommands(ctx context.Context, round uint64, providerAddress sdkTypes.Address, instanceID nodeapi.InstanceID) ([]*nodeapi.QueuedCommand, error) {
+	panic("unimplemented") // not needed for testing the block analyzer
+}
+
 // GetTransactionsWithResults implements nodeapi.RuntimeApiLite.
 func (mock *mockNode) GetTransactionsWithResults(ctx context.Context, round uint64) ([]nodeapi.RuntimeTransactionWithResults, error) {
 	return mock.Txs[round], nil
