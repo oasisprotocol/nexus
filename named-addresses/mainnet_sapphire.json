@@ -60,6 +60,7 @@
         "Name": "NFTrout",
         "Address": "oasis1qpwe6h0hw6s0x4skujhznld065300p83wgxnvu0n",
         "Description": "ERC721",
+        "Icon": "https://assets.oasis.io/explorer-tokens/NFTrout.svg",
         "// comment": "0x998633BDF6eE32A9CcA6c9A247F428596e8e65d8"
     },
     {
@@ -67,7 +68,32 @@
         "Address": "oasis1qr43dvghx4a75vndjcsg2r9ct2xqftwrgcnt5tge",
         "Description": "ERC20",
         "Origin": "cBridge",
+        "Icon": "https://assets.oasis.io/explorer-tokens/OCEAN.svg",
         "// comment": "0x39d22B78A7651A76Ffbde2aaAB5FD92666Aca520"
+    },
+    {
+        "Name": "Wrapped Ether",
+        "Address": "oasis1qre2cpkl604jkz6c69x6wcu77n2rgwfpmgjkz7hr",
+        "Description": "ERC20",
+        "Origin": "cBridge",
+        "Icon": "https://assets.oasis.io/explorer-tokens/eth-cbridge.svg",
+        "// comment": "0xfc6b18d694F2D137dB762B152736Ba098F9808d9"
+    },
+    {
+        "Name": "USD Coin",
+        "Address": "oasis1qpac5ezy9999w566vcr9evvsuaaup7lweq90jm32",
+        "Description": "ERC20",
+        "Origin": "cBridge",
+        "Icon": "https://assets.oasis.io/explorer-tokens/usdc-cbridge.svg",
+        "// comment": "0x2c2E3812742Ab2DA53a728A09F5DE670Aba584b6"
+    },
+    {
+        "Name": "Tether USD",
+        "Address": "oasis1qqtkwl9zp5c9wsyskd7txu8dn4n03enjgympam29",
+        "Description": "ERC20",
+        "Origin": "cBridge",
+        "Icon": "https://assets.oasis.io/explorer-tokens/usdt-cbridge.svg",
+        "// comment": "0xE48151964556381B33f93E05E36381Fd53Ec053E"
     },
     {
         "Name": "Wrapped ROSE",
@@ -94,6 +120,7 @@
         "Name": "The 4th Pillar Token",
         "Address": "oasis1qrtw0g3ufn29tk3t9s8rxx6mvsep33qd9szzgmct",
         "Description": "ERC20",
+        "Icon": "https://assets.oasis.io/explorer-tokens/4th-pillar.svg",
         "// comment": "0x9c1da2B647d25B9e71d8aBB83E4DDe236dcb672B"
     },
     {
@@ -101,6 +128,7 @@
         "Address": "oasis1qr7y034j2srpxq90w20al600a52es8g3xylhvrl6",
         "Description": "ERC20",
         "Origin": "Router",
+        "Icon": "https://assets.oasis.io/explorer-tokens/usdc-router.svg",
         "// comment": "0x97eec1c29f745dC7c267F90292AA663d997a601D"
     },
     {
@@ -108,6 +136,7 @@
         "Address": "oasis1qzjaywxsctukphu8u2clyad9709lncpjhqu4mc2n",
         "Description": "ERC20",
         "Origin": "Router",
+        "Icon": "https://assets.oasis.io/explorer-tokens/usdt-router.svg",
         "// comment": "0x8C4aCd74Ff4385f3B7911432FA6787Aa14406f8B"
     },
     {
@@ -122,12 +151,14 @@
         "Name": "RAKESH VILLAGE",
         "Address": "oasis1qqx805qqxneftz67ywqjs47u23cd8lcjusl3wcrs",
         "Description": "ERC20",
+        "Icon": "https://assets.oasis.io/explorer-tokens/rakesh.svg",
         "// comment": "0xE4eA254e07C3403FC67eCe108FB5eB039a246231"
     },
     {
         "Name": "NEBY",
         "Address": "oasis1qr5mh6qpl9ql3d202jgk5845eyaggjhjevv9x90k",
         "Description": "ERC20",
+        "Icon": "https://assets.oasis.io/explorer-tokens/neby.svg",
         "// comment": "0x932Dd32885eeE8dCCDB8E0475Cf2e9bfc8527f9D"
     },
     {
@@ -152,5 +183,13 @@
         "Description": "Optionally-confidential ERC20 with secrecy toggled off, but still not emitting events",
         "Icon": "https://assets.oasis.io/explorer-tokens/bitUSD.svg",
         "// comment": "0xA14167756d9F86Aed12b472C29B257BBdD9974C2"
+    },
+    {
+        "Name": "Midas US Treasury Bill Token",
+        "Address": "oasis1qpktxmu3qz97qm3g6kn4l4aetnfwr2trfv203003",
+        "Description": "",
+        "Icon": "https://assets.oasis.io/explorer-tokens/mtBILL.svg",
+        "// comment": "0xDD629E5241CbC5919847783e6C96B2De4754e438"
     }
+
 ]
