@@ -103,6 +103,14 @@ func (srv *StrictServerImpl) GetConsensusAccountsAddressDelegationsTo(ctx contex
 	return apiTypes.GetConsensusAccountsAddressDelegationsTo200JSONResponse(*delegations), nil
 }
 
+func (srv *StrictServerImpl) GetConsensusAccountsAddressStakingRewardsYear(ctx context.Context, request apiTypes.GetConsensusAccountsAddressStakingRewardsYearRequestObject) (apiTypes.GetConsensusAccountsAddressStakingRewardsYearResponseObject, error) {
+	rewards, err := srv.dbClient.StakingRewards(ctx, request.Address, request.Year, request.Params)
+	if err != nil {
+		return nil, err
+	}
+	return apiTypes.GetConsensusAccountsAddressStakingRewardsYear200JSONResponse(*rewards), nil
+}
+
 func (srv *StrictServerImpl) GetConsensusBlocks(ctx context.Context, request apiTypes.GetConsensusBlocksRequestObject) (apiTypes.GetConsensusBlocksResponseObject, error) {
 	blocks, err := srv.dbClient.Blocks(ctx, request.Params, nil)
 	if err != nil {
