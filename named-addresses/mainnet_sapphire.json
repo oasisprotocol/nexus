@@ -108,6 +108,11 @@
         "Address": "oasis1qpdgv5nv2dhxp4q897cgag6kgnm9qs0dccwnckuu",
         "Description": "ERC20",
         "Icon": "https://assets.oasis.io/explorer-tokens/rose.svg",
+        "Dapp": {
+            "Button": "Use our ROSE (un)wrapper",
+            "Description": "Looking to wrap or unwrap your wROSE?",
+            "Url": "https://rose.oasis.io/wrap"
+        },
         "// comment": "0x8Bc2B030b299964eEfb5e1e0b36991352E56D2D3"
     },
     {
