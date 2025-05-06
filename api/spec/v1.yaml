@@ -51,7 +51,7 @@ x-query-params:
     name: runtime
     required: true
     schema:
-      allOf: [$ref: '#/components/schemas/Runtime']
+      $ref: '#/components/schemas/Runtime'
     description: |
       The runtime which to query.
   - &runtime_tx_method_filter

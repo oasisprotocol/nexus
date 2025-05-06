@@ -57,6 +57,7 @@ commonTestCases=(
   'txs                                /v1/consensus/transactions'
   'txs_by_method                      /v1/consensus/transactions?method=staking.Transfer'
   'validators                         /v1/consensus/validators?limit=200'
+  'invalid_runtime                    /v1/invalid_runtime/transactions'
 )
 
 commonMainnetTestCases=(

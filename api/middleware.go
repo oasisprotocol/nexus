@@ -271,40 +271,6 @@ func ParseBigIntParamsMiddleware(next apiTypes.StrictHandlerFunc, _operationID s
 	}
 }
 
-// RuntimeFromURLMiddleware extracts the runtime from the URL and sets it in the request context.
-// The runtime is expected to be the first part of the path after the `baseURL` (e.g. "/v1").
-func RuntimeFromURLMiddleware(baseURL string) func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			path := strings.TrimPrefix(r.URL.Path, baseURL)
-
-			// The first part of the path (after the version) determines the runtime.
-			// Recognize only whitelisted runtimes.
-			var runtime common.Runtime
-			switch {
-			case strings.HasPrefix(path, "/emerald/"):
-				runtime = common.RuntimeEmerald
-			case strings.HasPrefix(path, "/sapphire/"):
-				runtime = common.RuntimeSapphire
-			case strings.HasPrefix(path, "/cipher/"):
-				runtime = common.RuntimeCipher
-			case strings.HasPrefix(path, "/pontusxtest/"):
-				runtime = common.RuntimePontusxTest
-			case strings.HasPrefix(path, "/pontusxdev/"):
-				runtime = common.RuntimePontusxDev
-			}
-
-			if runtime != "" {
-				next.ServeHTTP(w, r.WithContext(
-					context.WithValue(r.Context(), common.RuntimeContextKey, runtime),
-				))
-			} else {
-				next.ServeHTTP(w, r)
-			}
-		})
-	}
-}
-
 // CorsMiddleware is a restrictive CORS middleware that only allows GET requests.
 //
 // NOTE: To support other methods (e.g. POST), we'd also need to support OPTIONS

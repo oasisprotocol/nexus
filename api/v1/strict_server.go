@@ -298,7 +298,11 @@ func (srv *StrictServerImpl) GetConsensusValidatorsAddressHistory(ctx context.Co
 }
 
 func (srv *StrictServerImpl) GetRuntimeBlocks(ctx context.Context, request apiTypes.GetRuntimeBlocksRequestObject) (apiTypes.GetRuntimeBlocksResponseObject, error) {
-	blocks, err := srv.dbClient.RuntimeBlocks(ctx, request.Params)
+	runtime, err := request.Runtime.Validate()
+	if err != nil {
+		return nil, err
+	}
+	blocks, err := srv.dbClient.RuntimeBlocks(ctx, runtime, request.Params)
 	if err != nil {
 		return nil, err
 	}
@@ -306,7 +310,11 @@ func (srv *StrictServerImpl) GetRuntimeBlocks(ctx context.Context, request apiTy
 }
 
 func (srv *StrictServerImpl) GetRuntimeEvmTokens(ctx context.Context, request apiTypes.GetRuntimeEvmTokensRequestObject) (apiTypes.GetRuntimeEvmTokensResponseObject, error) {
-	tokens, err := srv.dbClient.RuntimeTokens(ctx, request.Params, nil)
+	runtime, err := request.Runtime.Validate()
+	if err != nil {
+		return nil, err
+	}
+	tokens, err := srv.dbClient.RuntimeTokens(ctx, runtime, request.Params, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -318,7 +326,11 @@ func (srv *StrictServerImpl) GetRuntimeEvmTokensAddress(ctx context.Context, req
 	if err != nil {
 		return nil, err
 	}
-	tokens, err := srv.dbClient.RuntimeTokens(ctx, apiTypes.GetRuntimeEvmTokensParams{Limit: common.Ptr(uint64(1))}, ocAddr)
+	runtime, err := request.Runtime.Validate()
+	if err != nil {
+		return nil, err
+	}
+	tokens, err := srv.dbClient.RuntimeTokens(ctx, runtime, apiTypes.GetRuntimeEvmTokensParams{Limit: common.Ptr(uint64(1))}, ocAddr)
 	if err != nil {
 		return nil, err
 	}
@@ -338,7 +350,11 @@ func (srv *StrictServerImpl) GetRuntimeEvmTokensAddressHolders(ctx context.Conte
 	if ocAddr == nil {
 		return nil, fmt.Errorf("missing required param: address")
 	}
-	holders, err := srv.dbClient.RuntimeTokenHolders(ctx, request.Params, *ocAddr)
+	runtime, err := request.Runtime.Validate()
+	if err != nil {
+		return nil, err
+	}
+	holders, err := srv.dbClient.RuntimeTokenHolders(ctx, runtime, request.Params, *ocAddr)
 	if err != nil {
 		return nil, err
 	}
@@ -350,7 +366,11 @@ func (srv *StrictServerImpl) GetRuntimeEvmTokensAddressNfts(ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
-	nfts, err := srv.dbClient.RuntimeEVMNFTs(ctx, request.Params.Limit, request.Params.Offset, ocAddr, nil, nil)
+	runtime, err := request.Runtime.Validate()
+	if err != nil {
+		return nil, err
+	}
+	nfts, err := srv.dbClient.RuntimeEVMNFTs(ctx, runtime, request.Params.Limit, request.Params.Offset, ocAddr, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -362,7 +382,11 @@ func (srv *StrictServerImpl) GetRuntimeEvmTokensAddressNftsId(ctx context.Contex
 	if err != nil {
 		return nil, err
 	}
-	nfts, err := srv.dbClient.RuntimeEVMNFTs(ctx, common.Ptr(uint64(1)), common.Ptr(uint64(0)), ocAddr, &request.Id, nil)
+	runtime, err := request.Runtime.Validate()
+	if err != nil {
+		return nil, err
+	}
+	nfts, err := srv.dbClient.RuntimeEVMNFTs(ctx, runtime, common.Ptr(uint64(1)), common.Ptr(uint64(0)), ocAddr, &request.Id, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -373,7 +397,11 @@ func (srv *StrictServerImpl) GetRuntimeEvmTokensAddressNftsId(ctx context.Contex
 }
 
 func (srv *StrictServerImpl) GetRuntimeTransactions(ctx context.Context, request apiTypes.GetRuntimeTransactionsRequestObject) (apiTypes.GetRuntimeTransactionsResponseObject, error) {
-	transactions, err := srv.dbClient.RuntimeTransactions(ctx, request.Params, nil)
+	runtime, err := request.Runtime.Validate()
+	if err != nil {
+		return nil, err
+	}
+	transactions, err := srv.dbClient.RuntimeTransactions(ctx, runtime, request.Params, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -381,7 +409,11 @@ func (srv *StrictServerImpl) GetRuntimeTransactions(ctx context.Context, request
 }
 
 func (srv *StrictServerImpl) GetRuntimeTransactionsTxHash(ctx context.Context, request apiTypes.GetRuntimeTransactionsTxHashRequestObject) (apiTypes.GetRuntimeTransactionsTxHashResponseObject, error) {
-	transactions, err := srv.dbClient.RuntimeTransactions(ctx, apiTypes.GetRuntimeTransactionsParams{}, &request.TxHash)
+	runtime, err := request.Runtime.Validate()
+	if err != nil {
+		return nil, err
+	}
+	transactions, err := srv.dbClient.RuntimeTransactions(ctx, runtime, apiTypes.GetRuntimeTransactionsParams{}, &request.TxHash)
 	if err != nil {
 		return nil, err
 	}
@@ -392,7 +424,11 @@ func (srv *StrictServerImpl) GetRuntimeTransactionsTxHash(ctx context.Context, r
 }
 
 func (srv *StrictServerImpl) GetRuntimeEvents(ctx context.Context, request apiTypes.GetRuntimeEventsRequestObject) (apiTypes.GetRuntimeEventsResponseObject, error) {
-	events, err := srv.dbClient.RuntimeEvents(ctx, request.Params)
+	runtime, err := request.Runtime.Validate()
+	if err != nil {
+		return nil, err
+	}
+	events, err := srv.dbClient.RuntimeEvents(ctx, runtime, request.Params)
 	if err != nil {
 		return nil, err
 	}
@@ -409,7 +445,11 @@ func (srv *StrictServerImpl) GetRuntimeAccountsAddress(ctx context.Context, requ
 	if ocAddr == nil {
 		return nil, fmt.Errorf("missing required param: address")
 	}
-	account, err := srv.dbClient.RuntimeAccount(ctx, *ocAddr)
+	runtime, err := request.Runtime.Validate()
+	if err != nil {
+		return nil, err
+	}
+	account, err := srv.dbClient.RuntimeAccount(ctx, runtime, *ocAddr)
 	if err != nil {
 		return nil, err
 	}
@@ -425,7 +465,11 @@ func (srv *StrictServerImpl) GetRuntimeAccountsAddressNfts(ctx context.Context, 
 	if err != nil {
 		return nil, err
 	}
-	nfts, err := srv.dbClient.RuntimeEVMNFTs(ctx, request.Params.Limit, request.Params.Offset, ocAddrToken, nil, ocAddrOwner)
+	runtime, err := request.Runtime.Validate()
+	if err != nil {
+		return nil, err
+	}
+	nfts, err := srv.dbClient.RuntimeEVMNFTs(ctx, runtime, request.Params.Limit, request.Params.Offset, ocAddrToken, nil, ocAddrOwner)
 	if err != nil {
 		return nil, err
 	}
@@ -433,11 +477,11 @@ func (srv *StrictServerImpl) GetRuntimeAccountsAddressNfts(ctx context.Context, 
 }
 
 func (srv *StrictServerImpl) GetRuntimeStatus(ctx context.Context, request apiTypes.GetRuntimeStatusRequestObject) (apiTypes.GetRuntimeStatusResponseObject, error) {
-	if !request.Runtime.IsValid() {
-		return nil, &apiTypes.InvalidParamFormatError{ParamName: "runtime", Err: fmt.Errorf("not a valid enum value: %s", request.Runtime)}
+	runtime, err := request.Runtime.Validate()
+	if err != nil {
+		return nil, err
 	}
-
-	status, err := srv.dbClient.RuntimeStatus(ctx)
+	status, err := srv.dbClient.RuntimeStatus(ctx, runtime)
 	if err != nil {
 		return nil, err
 	}
@@ -445,7 +489,11 @@ func (srv *StrictServerImpl) GetRuntimeStatus(ctx context.Context, request apiTy
 }
 
 func (srv *StrictServerImpl) GetRuntimeRoflApps(ctx context.Context, request apiTypes.GetRuntimeRoflAppsRequestObject) (apiTypes.GetRuntimeRoflAppsResponseObject, error) {
-	apps, err := srv.dbClient.RuntimeRoflApps(ctx, request.Params, nil)
+	runtime, err := request.Runtime.Validate()
+	if err != nil {
+		return nil, err
+	}
+	apps, err := srv.dbClient.RuntimeRoflApps(ctx, runtime, request.Params, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -453,7 +501,11 @@ func (srv *StrictServerImpl) GetRuntimeRoflApps(ctx context.Context, request api
 }
 
 func (srv *StrictServerImpl) GetRuntimeRoflAppsId(ctx context.Context, request apiTypes.GetRuntimeRoflAppsIdRequestObject) (apiTypes.GetRuntimeRoflAppsIdResponseObject, error) {
-	apps, err := srv.dbClient.RuntimeRoflApps(ctx, apiTypes.GetRuntimeRoflAppsParams{Limit: common.Ptr(uint64(1)), Offset: common.Ptr(uint64(0))}, &request.Id)
+	runtime, err := request.Runtime.Validate()
+	if err != nil {
+		return nil, err
+	}
+	apps, err := srv.dbClient.RuntimeRoflApps(ctx, runtime, apiTypes.GetRuntimeRoflAppsParams{Limit: common.Ptr(uint64(1)), Offset: common.Ptr(uint64(0))}, &request.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -464,7 +516,11 @@ func (srv *StrictServerImpl) GetRuntimeRoflAppsId(ctx context.Context, request a
 }
 
 func (srv *StrictServerImpl) GetRuntimeRoflAppsIdTransactions(ctx context.Context, request apiTypes.GetRuntimeRoflAppsIdTransactionsRequestObject) (apiTypes.GetRuntimeRoflAppsIdTransactionsResponseObject, error) {
-	transactions, err := srv.dbClient.RuntimeRoflAppTransactions(ctx, request.Params, request.Id)
+	runtime, err := request.Runtime.Validate()
+	if err != nil {
+		return nil, err
+	}
+	transactions, err := srv.dbClient.RuntimeRoflAppTransactions(ctx, runtime, request.Params, request.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -472,7 +528,11 @@ func (srv *StrictServerImpl) GetRuntimeRoflAppsIdTransactions(ctx context.Contex
 }
 
 func (srv *StrictServerImpl) GetRuntimeRoflAppsIdInstanceTransactions(ctx context.Context, request apiTypes.GetRuntimeRoflAppsIdInstanceTransactionsRequestObject) (apiTypes.GetRuntimeRoflAppsIdInstanceTransactionsResponseObject, error) {
-	transactions, err := srv.dbClient.RuntimeRoflAppInstanceTransactions(ctx, request.Params.Method, request.Params.Limit, request.Params.Offset, request.Id, nil)
+	runtime, err := request.Runtime.Validate()
+	if err != nil {
+		return nil, err
+	}
+	transactions, err := srv.dbClient.RuntimeRoflAppInstanceTransactions(ctx, runtime, request.Params.Method, request.Params.Limit, request.Params.Offset, request.Id, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -480,7 +540,11 @@ func (srv *StrictServerImpl) GetRuntimeRoflAppsIdInstanceTransactions(ctx contex
 }
 
 func (srv *StrictServerImpl) GetRuntimeRoflAppsIdInstances(ctx context.Context, request apiTypes.GetRuntimeRoflAppsIdInstancesRequestObject) (apiTypes.GetRuntimeRoflAppsIdInstancesResponseObject, error) {
-	instances, err := srv.dbClient.RuntimeRoflAppInstances(ctx, request.Params, request.Id, nil)
+	runtime, err := request.Runtime.Validate()
+	if err != nil {
+		return nil, err
+	}
+	instances, err := srv.dbClient.RuntimeRoflAppInstances(ctx, runtime, request.Params, request.Id, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -488,7 +552,11 @@ func (srv *StrictServerImpl) GetRuntimeRoflAppsIdInstances(ctx context.Context, 
 }
 
 func (srv *StrictServerImpl) GetRuntimeRoflAppsIdInstancesRak(ctx context.Context, request apiTypes.GetRuntimeRoflAppsIdInstancesRakRequestObject) (apiTypes.GetRuntimeRoflAppsIdInstancesRakResponseObject, error) {
-	instances, err := srv.dbClient.RuntimeRoflAppInstances(ctx, apiTypes.GetRuntimeRoflAppsIdInstancesParams{Limit: common.Ptr(uint64(1)), Offset: common.Ptr(uint64(0))}, request.Id, &request.Rak)
+	runtime, err := request.Runtime.Validate()
+	if err != nil {
+		return nil, err
+	}
+	instances, err := srv.dbClient.RuntimeRoflAppInstances(ctx, runtime, apiTypes.GetRuntimeRoflAppsIdInstancesParams{Limit: common.Ptr(uint64(1)), Offset: common.Ptr(uint64(0))}, request.Id, &request.Rak)
 	if err != nil {
 		return nil, err
 	}
@@ -499,7 +567,11 @@ func (srv *StrictServerImpl) GetRuntimeRoflAppsIdInstancesRak(ctx context.Contex
 }
 
 func (srv *StrictServerImpl) GetRuntimeRoflAppsIdInstancesRakTransactions(ctx context.Context, request apiTypes.GetRuntimeRoflAppsIdInstancesRakTransactionsRequestObject) (apiTypes.GetRuntimeRoflAppsIdInstancesRakTransactionsResponseObject, error) {
-	transactions, err := srv.dbClient.RuntimeRoflAppInstanceTransactions(ctx, request.Params.Method, request.Params.Limit, request.Params.Offset, request.Id, &request.Rak)
+	runtime, err := request.Runtime.Validate()
+	if err != nil {
+		return nil, err
+	}
+	transactions, err := srv.dbClient.RuntimeRoflAppInstanceTransactions(ctx, runtime, request.Params.Method, request.Params.Limit, request.Params.Offset, request.Id, &request.Rak)
 	if err != nil {
 		return nil, err
 	}

@@ -241,10 +241,8 @@ func (s *Service) Start() {
 	handler := apiTypes.HandlerWithOptions(
 		strictHandler,
 		apiTypes.ChiServerOptions{
-			BaseURL: v1BaseURL,
-			Middlewares: []apiTypes.MiddlewareFunc{
-				api.RuntimeFromURLMiddleware(v1BaseURL),
-			},
+			BaseURL:          v1BaseURL,
+			Middlewares:      []apiTypes.MiddlewareFunc{},
 			BaseRouter:       baseRouter,
 			ErrorHandlerFunc: api.HumanReadableJsonErrorHandler(*s.logger),
 		})
