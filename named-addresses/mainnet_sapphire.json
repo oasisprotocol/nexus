@@ -72,6 +72,14 @@
         "// comment": "0x39d22B78A7651A76Ffbde2aaAB5FD92666Aca520"
     },
     {
+        "Name": "Ocean Token",
+        "Address": "oasis1qph82mycj6glhwynqn73kkhtg54ykm3spgpz3gr0",
+        "Description": "ERC20",
+        "Origin": "Router",
+        "Icon": "https://assets.oasis.io/explorer-tokens/ocean-router.svg",
+        "// comment": "0x2F301d3b045544A9D7Ec3FA090CD78986F11f2E7"
+    },
+    {
         "Name": "Wrapped Ether",
         "Address": "oasis1qre2cpkl604jkz6c69x6wcu77n2rgwfpmgjkz7hr",
         "Description": "ERC20",
