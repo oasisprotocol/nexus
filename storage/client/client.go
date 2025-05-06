@@ -101,17 +101,6 @@ type rowsWithCount struct {
 	isTotalCountClipped bool
 }
 
-func runtimeFromCtx(ctx context.Context) common.Runtime {
-	// Extract the runtime name. It's populated by a middleware based on the URL.
-	runtime, ok := ctx.Value(common.RuntimeContextKey).(common.Runtime)
-	if !ok {
-		// We're being called from a non-runtime-specific endpoint.
-		// This shouldn't happen. Return a dummy value, let the caller deal with it.
-		return "__NO_RUNTIME__"
-	}
-	return runtime
-}
-
 // NewStorageClient creates a new storage client.
 func NewStorageClient(
 	cfg *config.ServerConfig,
@@ -1500,7 +1489,7 @@ func (c *StorageClient) ValidatorHistory(ctx context.Context, address staking.Ad
 }
 
 // RuntimeBlocks returns a list of runtime blocks.
-func (c *StorageClient) RuntimeBlocks(ctx context.Context, p apiTypes.GetRuntimeBlocksParams) (*RuntimeBlockList, error) {
+func (c *StorageClient) RuntimeBlocks(ctx context.Context, runtime common.Runtime, p apiTypes.GetRuntimeBlocksParams) (*RuntimeBlockList, error) {
 	hash, err := canonicalizedHash(p.Hash)
 	if err != nil {
 		return nil, wrapError(err)
@@ -1508,7 +1497,7 @@ func (c *StorageClient) RuntimeBlocks(ctx context.Context, p apiTypes.GetRuntime
 	res, err := c.withTotalCount(
 		ctx,
 		queries.RuntimeBlocks,
-		runtimeFromCtx(ctx),
+		runtime,
 		p.From,
 		p.To,
 		p.After,
@@ -1705,7 +1694,7 @@ func runtimeTransactionFromRow(rows pgx.Rows, logger *log.Logger) (*RuntimeTrans
 }
 
 // RuntimeTransactions returns a list of runtime transactions.
-func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetRuntimeTransactionsParams, txHash *string) (*RuntimeTransactionList, error) {
+func (c *StorageClient) RuntimeTransactions(ctx context.Context, runtime common.Runtime, p apiTypes.GetRuntimeTransactionsParams, txHash *string) (*RuntimeTransactionList, error) {
 	ocAddrRel, err := apiTypes.UnmarshalToOcAddress(p.Rel)
 	if err != nil {
 		return nil, err
@@ -1725,7 +1714,7 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetR
 	res, err := c.withTotalCount(
 		ctx,
 		query,
-		runtimeFromCtx(ctx),
+		runtime,
 		p.Block,
 		nil,
 		txHash, // tx_hash; used only by GetRuntimeTransactionsTxHash
@@ -1760,7 +1749,7 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, p apiTypes.GetR
 }
 
 // RuntimeEvents returns a list of runtime events.
-func (c *StorageClient) RuntimeEvents(ctx context.Context, p apiTypes.GetRuntimeEventsParams) (*RuntimeEventList, error) {
+func (c *StorageClient) RuntimeEvents(ctx context.Context, runtime common.Runtime, p apiTypes.GetRuntimeEventsParams) (*RuntimeEventList, error) {
 	var evmLogSignature *ethCommon.Hash
 	if p.EvmLogSignature != nil {
 		h := ethCommon.HexToHash(*p.EvmLogSignature)
@@ -1801,7 +1790,7 @@ func (c *StorageClient) RuntimeEvents(ctx context.Context, p apiTypes.GetRuntime
 	res, err := c.withTotalCount(
 		ctx,
 		queries.RuntimeEvents,
-		runtimeFromCtx(ctx),
+		runtime,
 		p.Block,
 		p.TxIndex,
 		p.TxHash,
@@ -1964,7 +1953,7 @@ func (c *StorageClient) fetchAccountBalancesFromNode(ctx context.Context, ch cha
 	close(ch)
 }
 
-func (c *StorageClient) RuntimeAccount(ctx context.Context, address staking.Address) (*RuntimeAccount, error) {
+func (c *StorageClient) RuntimeAccount(ctx context.Context, runtime common.Runtime, address staking.Address) (*RuntimeAccount, error) {
 	a := RuntimeAccount{
 		Address:         address.String(),
 		AddressPreimage: &AddressPreimage{},
@@ -1974,7 +1963,7 @@ func (c *StorageClient) RuntimeAccount(ctx context.Context, address staking.Addr
 	nodeFetchCtx, cancel := context.WithTimeout(ctx, 500*time.Millisecond)
 	defer cancel()
 	ch := make(chan *RuntimeSdkBalance)
-	go c.fetchAccountBalancesFromNode(nodeFetchCtx, ch, runtimeFromCtx(ctx), address)
+	go c.fetchAccountBalancesFromNode(nodeFetchCtx, ch, runtime, address)
 
 	var preimageContext string
 	err := c.db.QueryRow(
@@ -2003,7 +1992,7 @@ func (c *StorageClient) RuntimeAccount(ctx context.Context, address staking.Addr
 	runtimeSdkRows, queryErr := c.db.Query(
 		ctx,
 		queries.AccountRuntimeSdkBalances,
-		runtimeFromCtx(ctx),
+		runtime,
 		address.String(),
 	)
 	if queryErr != nil {
@@ -2030,7 +2019,7 @@ func (c *StorageClient) RuntimeAccount(ctx context.Context, address staking.Addr
 	runtimeEvmRows, queryErr := c.db.Query(
 		ctx,
 		queries.AccountRuntimeEvmBalances,
-		runtimeFromCtx(ctx),
+		runtime,
 		address.String(),
 	)
 	if queryErr != nil {
@@ -2064,7 +2053,7 @@ func (c *StorageClient) RuntimeAccount(ctx context.Context, address staking.Addr
 	err = c.db.QueryRow(
 		ctx,
 		queries.RuntimeEvmContract,
-		runtimeFromCtx(ctx),
+		runtime,
 		address.String(),
 	).Scan(
 		&evmContract.CreationTx,
@@ -2093,7 +2082,7 @@ func (c *StorageClient) RuntimeAccount(ctx context.Context, address staking.Addr
 	err = c.db.QueryRow(
 		ctx,
 		queries.RuntimeAccountStats,
-		runtimeFromCtx(ctx),
+		runtime,
 		address.String(),
 	).Scan(
 		&a.Stats.TotalSent,
@@ -2171,8 +2160,7 @@ func fillInPrice(t *EvmToken, refSwapTokenAddr *apiTypes.Address) {
 
 // If `address` is non-nil, it is used to filter the results to at most 1 token: the one
 // with the correcponding contract address.
-func (c *StorageClient) RuntimeTokens(ctx context.Context, p apiTypes.GetRuntimeEvmTokensParams, address *staking.Address) (*EvmTokenList, error) {
-	runtime := runtimeFromCtx(ctx)
+func (c *StorageClient) RuntimeTokens(ctx context.Context, runtime common.Runtime, p apiTypes.GetRuntimeEvmTokensParams, address *staking.Address) (*EvmTokenList, error) {
 	var refSwapFactoryAddr *apiTypes.Address
 	var refSwapTokenAddr *apiTypes.Address
 	if rs, ok := c.referenceSwaps[runtime]; ok {
@@ -2284,11 +2272,11 @@ func (c *StorageClient) RuntimeTokens(ctx context.Context, p apiTypes.GetRuntime
 	return &ts, nil
 }
 
-func (c *StorageClient) RuntimeTokenHolders(ctx context.Context, p apiTypes.GetRuntimeEvmTokensAddressHoldersParams, address staking.Address) (*TokenHolderList, error) {
+func (c *StorageClient) RuntimeTokenHolders(ctx context.Context, runtime common.Runtime, p apiTypes.GetRuntimeEvmTokensAddressHoldersParams, address staking.Address) (*TokenHolderList, error) {
 	res, err := c.withTotalCount(
 		ctx,
 		queries.EvmTokenHolders,
-		runtimeFromCtx(ctx),
+		runtime,
 		address,
 		p.Limit,
 		p.Offset,
@@ -2320,11 +2308,11 @@ func (c *StorageClient) RuntimeTokenHolders(ctx context.Context, p apiTypes.GetR
 	return &hs, nil
 }
 
-func (c *StorageClient) RuntimeEVMNFTs(ctx context.Context, limit *uint64, offset *uint64, tokenAddress *staking.Address, id *common.BigInt, ownerAddress *staking.Address) (*EvmNftList, error) {
+func (c *StorageClient) RuntimeEVMNFTs(ctx context.Context, runtime common.Runtime, limit *uint64, offset *uint64, tokenAddress *staking.Address, id *common.BigInt, ownerAddress *staking.Address) (*EvmNftList, error) {
 	res, err := c.withTotalCount(
 		ctx,
 		queries.EvmNfts,
-		runtimeFromCtx(ctx),
+		runtime,
 		tokenAddress,
 		id,
 		ownerAddress,
@@ -2408,12 +2396,11 @@ func (c *StorageClient) RuntimeEVMNFTs(ctx context.Context, limit *uint64, offse
 }
 
 // RuntimeStatus returns runtime status information.
-func (c *StorageClient) RuntimeStatus(ctx context.Context) (*RuntimeStatus, error) {
-	runtimeName := runtimeFromCtx(ctx)
-	runtimeID, err := c.sourceCfg.ResolveRuntimeID(runtimeName)
+func (c *StorageClient) RuntimeStatus(ctx context.Context, runtime common.Runtime) (*RuntimeStatus, error) {
+	runtimeID, err := c.sourceCfg.ResolveRuntimeID(runtime)
 	if err != nil {
 		// Return a generic error here and log the detailed error. This is most likely a misconfiguration of the server.
-		c.logger.Error("runtime name to ID failure", "runtime", runtimeName, "err", err)
+		c.logger.Error("runtime name to ID failure", "runtime", runtime, "err", err)
 		return nil, apiCommon.ErrBadRuntime
 	}
 
@@ -2423,7 +2410,7 @@ func (c *StorageClient) RuntimeStatus(ctx context.Context) (*RuntimeStatus, erro
 	err = c.db.QueryRow(
 		ctx,
 		queries.Status,
-		runtimeName,
+		runtime,
 	).Scan(&s.LatestBlock, &latest_block_update)
 	switch err {
 	case nil:
@@ -2441,7 +2428,7 @@ func (c *StorageClient) RuntimeStatus(ctx context.Context) (*RuntimeStatus, erro
 	if err := c.db.QueryRow(
 		ctx,
 		queries.RuntimeBlock,
-		runtimeName,
+		runtime,
 		s.LatestBlock,
 	).Scan(nil, nil, &s.LatestBlockTime, nil, nil, nil); err != nil {
 		return nil, wrapError(err)
@@ -2460,11 +2447,11 @@ func (c *StorageClient) RuntimeStatus(ctx context.Context) (*RuntimeStatus, erro
 }
 
 // RuntimeRoflApps returns a list of ROFL apps.
-func (c *StorageClient) RuntimeRoflApps(ctx context.Context, params apiTypes.GetRuntimeRoflAppsParams, id *string) (*RoflAppList, error) {
+func (c *StorageClient) RuntimeRoflApps(ctx context.Context, runtime common.Runtime, params apiTypes.GetRuntimeRoflAppsParams, id *string) (*RoflAppList, error) {
 	res, err := c.withTotalCount(
 		ctx,
 		queries.RuntimeRoflApps,
-		runtimeFromCtx(ctx),
+		runtime,
 		id,
 		params.Limit,
 		params.Offset,
@@ -2516,7 +2503,7 @@ func (c *StorageClient) RuntimeRoflApps(ctx context.Context, params apiTypes.Get
 	// When querying a single ROFL app, also fetch the latest activity transaction.
 	if id != nil && len(apps.RoflApps) == 1 && lastActivityRound != nil && lastActivityTxIndex != nil {
 		func() {
-			res, err := c.db.Query(ctx, queries.RuntimeTransactionsNoRelated, runtimeFromCtx(ctx), lastActivityRound, lastActivityTxIndex, nil, nil, nil, nil, nil, nil, 1, 0)
+			res, err := c.db.Query(ctx, queries.RuntimeTransactionsNoRelated, runtime, lastActivityRound, lastActivityTxIndex, nil, nil, nil, nil, nil, nil, 1, 0)
 			if err != nil {
 				c.logger.Error("error fetching latest activity transaction", "err", err)
 				return
@@ -2540,11 +2527,11 @@ func (c *StorageClient) RuntimeRoflApps(ctx context.Context, params apiTypes.Get
 }
 
 // RuntimeRoflAppInstances returns a list of ROFL app instances.
-func (c *StorageClient) RuntimeRoflAppInstances(ctx context.Context, params apiTypes.GetRuntimeRoflAppsIdInstancesParams, id string, rak *string) (*RoflAppInstanceList, error) {
+func (c *StorageClient) RuntimeRoflAppInstances(ctx context.Context, runtime common.Runtime, params apiTypes.GetRuntimeRoflAppsIdInstancesParams, id string, rak *string) (*RoflAppInstanceList, error) {
 	res, err := c.withTotalCount(
 		ctx,
 		queries.RuntimeRoflAppInstances,
-		runtimeFromCtx(ctx),
+		runtime,
 		id,
 		rak,
 		params.Limit,
@@ -2578,11 +2565,11 @@ func (c *StorageClient) RuntimeRoflAppInstances(ctx context.Context, params apiT
 }
 
 // RuntimeRoflAppTransactions returns a list of ROFL app transactions.
-func (c *StorageClient) RuntimeRoflAppTransactions(ctx context.Context, params apiTypes.GetRuntimeRoflAppsIdTransactionsParams, id string) (*RuntimeTransactionList, error) {
+func (c *StorageClient) RuntimeRoflAppTransactions(ctx context.Context, runtime common.Runtime, params apiTypes.GetRuntimeRoflAppsIdTransactionsParams, id string) (*RuntimeTransactionList, error) {
 	res, err := c.withTotalCount(
 		ctx,
 		queries.RuntimeTransactionsRelatedRofl,
-		runtimeFromCtx(ctx),
+		runtime,
 		nil,
 		nil,
 		nil,
@@ -2617,11 +2604,11 @@ func (c *StorageClient) RuntimeRoflAppTransactions(ctx context.Context, params a
 }
 
 // RuntimeRoflAppInstanceTransactions returns a list of ROFL app instance transactions.
-func (c *StorageClient) RuntimeRoflAppInstanceTransactions(ctx context.Context, method *string, limit *uint64, offset *uint64, appId string, rak *string) (*RuntimeTransactionList, error) {
+func (c *StorageClient) RuntimeRoflAppInstanceTransactions(ctx context.Context, runtime common.Runtime, method *string, limit *uint64, offset *uint64, appId string, rak *string) (*RuntimeTransactionList, error) {
 	res, err := c.withTotalCount(
 		ctx,
 		queries.RuntimeRoflAppInstanceTransactions,
-		runtimeFromCtx(ctx),
+		runtime,
 		appId,
 		rak,
 		method,

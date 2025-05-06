@@ -6,6 +6,8 @@ import (
 	ethCommon "github.com/ethereum/go-ethereum/common"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/address"
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
+
+	common "github.com/oasisprotocol/nexus/common"
 )
 
 // Hardcoded event names emitted by ERC-20 contracts.
@@ -56,6 +58,26 @@ func (c Runtime) IsValid() bool {
 		return true
 	default:
 		return false
+	}
+}
+
+func (c Runtime) Validate() (common.Runtime, error) {
+	if !c.IsValid() {
+		return "", &InvalidParamFormatError{ParamName: "runtime", Err: fmt.Errorf("not a valid runtime value: %s", c)}
+	}
+	switch c {
+	case RuntimeCipher:
+		return common.RuntimeCipher, nil
+	case RuntimeEmerald:
+		return common.RuntimeEmerald, nil
+	case RuntimeSapphire:
+		return common.RuntimeSapphire, nil
+	case RuntimePontusxtest:
+		return common.RuntimePontusxTest, nil
+	case RuntimePontusxdev:
+		return common.RuntimePontusxDev, nil
+	default:
+		return "", &InvalidParamFormatError{ParamName: "runtime", Err: fmt.Errorf("not a valid runtime value: %s", c)}
 	}
 }
 

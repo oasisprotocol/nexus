@@ -197,9 +197,6 @@ func StringOrNil[T fmt.Stringer](v *T) *string {
 type ContextKey string
 
 const (
-	// RuntimeContextKey is used to set the relevant runtime name
-	// in a request context.
-	RuntimeContextKey ContextKey = "runtime"
 	// RequestIDContextKey is used to set a request id for tracing
 	// in a request context.
 	RequestIDContextKey ContextKey = "request_id"
