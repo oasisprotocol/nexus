@@ -40,5 +40,17 @@
         "Name": "Faucet",
         "Address": "oasis1qzna6nq9kuktjmxx2s84z38eysqyts84jc9lgdg2",
         "Description": "This account contains TEST tokens distributed by the faucet."
+    },
+    {
+        "Name": "Wrapped ROSE",
+        "Address": "oasis1qpwrg6784q4y8awyzlhgexm9fsmk72l9xv4z4gxj",
+        "Description": "ERC20",
+        "Icon": "https://assets.oasis.io/explorer-tokens/rose.svg",
+        "Dapp": {
+            "Button": "Use our ROSE (un)wrapper",
+            "Description": "Looking to wrap or unwrap your wROSE?",
+            "Url": "https://rose.oasis.io/wrap"
+        },
+        "// comment": "0xB759a0fbc1dA517aF257D5Cf039aB4D86dFB3b94"
     }
 ]

@@ -68,8 +68,16 @@
         "Address": "oasis1qr43dvghx4a75vndjcsg2r9ct2xqftwrgcnt5tge",
         "Description": "ERC20",
         "Origin": "cBridge",
-        "Icon": "https://assets.oasis.io/explorer-tokens/OCEAN.svg",
+        "Icon": "https://assets.oasis.io/explorer-tokens/ocean-cbridge.svg",
         "// comment": "0x39d22B78A7651A76Ffbde2aaAB5FD92666Aca520"
+    },
+    {
+        "Name": "Ocean Token",
+        "Address": "oasis1qph82mycj6glhwynqn73kkhtg54ykm3spgpz3gr0",
+        "Description": "ERC20",
+        "Origin": "Router",
+        "Icon": "https://assets.oasis.io/explorer-tokens/ocean-router.svg",
+        "// comment": "0x2F301d3b045544A9D7Ec3FA090CD78986F11f2E7"
     },
     {
         "Name": "Wrapped Ether",
@@ -100,6 +108,11 @@
         "Address": "oasis1qpdgv5nv2dhxp4q897cgag6kgnm9qs0dccwnckuu",
         "Description": "ERC20",
         "Icon": "https://assets.oasis.io/explorer-tokens/rose.svg",
+        "Dapp": {
+            "Button": "Use our ROSE (un)wrapper",
+            "Description": "Looking to wrap or unwrap your wROSE?",
+            "Url": "https://rose.oasis.io/wrap"
+        },
         "// comment": "0x8Bc2B030b299964eEfb5e1e0b36991352E56D2D3"
     },
     {
