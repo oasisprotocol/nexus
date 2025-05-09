@@ -153,3 +153,59 @@ func (rc *HistoryRuntimeApiLite) RoflAppInstances(ctx context.Context, round uin
 	}
 	return api.RoflAppInstances(ctx, round, id)
 }
+
+func (rc *HistoryRuntimeApiLite) RoflMarketProvider(ctx context.Context, round uint64, providerAddress sdkTypes.Address) (*nodeapi.Provider, error) {
+	api, err := rc.APIForRound(round)
+	if err != nil {
+		return nil, fmt.Errorf("getting api for runtime %s round %d: %w", rc.Runtime, round, err)
+	}
+	return api.RoflMarketProvider(ctx, round, providerAddress)
+}
+
+func (rc *HistoryRuntimeApiLite) RoflMarketProviders(ctx context.Context, round uint64) ([]*nodeapi.Provider, error) {
+	api, err := rc.APIForRound(round)
+	if err != nil {
+		return nil, fmt.Errorf("getting api for runtime %s round %d: %w", rc.Runtime, round, err)
+	}
+	return api.RoflMarketProviders(ctx, round)
+}
+
+func (rc *HistoryRuntimeApiLite) RoflMarketOffer(ctx context.Context, round uint64, providerAddress sdkTypes.Address, offerID nodeapi.OfferID) (*nodeapi.Offer, error) {
+	api, err := rc.APIForRound(round)
+	if err != nil {
+		return nil, fmt.Errorf("getting api for runtime %s round %d: %w", rc.Runtime, round, err)
+	}
+	return api.RoflMarketOffer(ctx, round, providerAddress, offerID)
+}
+
+func (rc *HistoryRuntimeApiLite) RoflMarketOffers(ctx context.Context, round uint64, providerAddress sdkTypes.Address) ([]*nodeapi.Offer, error) {
+	api, err := rc.APIForRound(round)
+	if err != nil {
+		return nil, fmt.Errorf("getting api for runtime %s round %d: %w", rc.Runtime, round, err)
+	}
+	return api.RoflMarketOffers(ctx, round, providerAddress)
+}
+
+func (rc *HistoryRuntimeApiLite) RoflMarketInstance(ctx context.Context, round uint64, providerAddress sdkTypes.Address, instanceID nodeapi.InstanceID) (*nodeapi.Instance, error) {
+	api, err := rc.APIForRound(round)
+	if err != nil {
+		return nil, fmt.Errorf("getting api for runtime %s round %d: %w", rc.Runtime, round, err)
+	}
+	return api.RoflMarketInstance(ctx, round, providerAddress, instanceID)
+}
+
+func (rc *HistoryRuntimeApiLite) RoflMarketInstances(ctx context.Context, round uint64, providerAddress sdkTypes.Address) ([]*nodeapi.Instance, error) {
+	api, err := rc.APIForRound(round)
+	if err != nil {
+		return nil, fmt.Errorf("getting api for runtime %s round %d: %w", rc.Runtime, round, err)
+	}
+	return api.RoflMarketInstances(ctx, round, providerAddress)
+}
+
+func (rc *HistoryRuntimeApiLite) RoflMarketInstanceCommands(ctx context.Context, round uint64, providerAddress sdkTypes.Address, instanceID nodeapi.InstanceID) ([]*nodeapi.QueuedCommand, error) {
+	api, err := rc.APIForRound(round)
+	if err != nil {
+		return nil, fmt.Errorf("getting api for runtime %s round %d: %w", rc.Runtime, round, err)
+	}
+	return api.RoflMarketInstanceCommands(ctx, round, providerAddress, instanceID)
+}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"math/big"
@@ -2635,6 +2636,56 @@ func (c *StorageClient) RuntimeRoflAppInstanceTransactions(ctx context.Context, 
 	}
 
 	return &ts, nil
+}
+
+// RuntimeRoflmarketProviders returns a list of ROFL market providers.
+func (c *StorageClient) RuntimeRoflmarketProviders(ctx context.Context, runtime common.Runtime, params apiTypes.GetRuntimeRoflmarketProvidersParams, address *staking.Address) (*RoflMarketProviderList, error) {
+	res, err := c.withTotalCount(
+		ctx,
+		queries.RuntimeRoflmarketProviders,
+		runtime,
+		address,
+		params.Limit,
+		params.Offset,
+	)
+	if err != nil {
+		return nil, wrapError(err)
+	}
+	defer res.rows.Close()
+
+	providers := RoflMarketProviderList{
+		Providers:           []apiTypes.RoflMarketProvider{},
+		TotalCount:          res.totalCount,
+		IsTotalCountClipped: res.isTotalCountClipped,
+	}
+	for res.rows.Next() {
+		var provider apiTypes.RoflMarketProvider
+
+		var offersNextId []byte
+		var instancesNextId []byte
+		if err := res.rows.Scan(
+			&provider.Address,
+			&provider.Nodes,
+			&provider.Scheduler,
+			&provider.PaymentAddress,
+			&provider.Metadata,
+			&provider.Stake,
+			&offersNextId,
+			&provider.OffersCount,
+			&instancesNextId,
+			&provider.InstancesCount,
+			&provider.CreatedAt,
+			&provider.UpdatedAt,
+			&provider.Removed,
+		); err != nil {
+			return nil, wrapError(err)
+		}
+		provider.OffersNextId = hex.EncodeToString(offersNextId)
+		provider.InstancesNextId = hex.EncodeToString(instancesNextId)
+		providers.Providers = append(providers.Providers, provider)
+	}
+
+	return &providers, nil
 }
 
 // TxVolumes returns a list of transaction volumes per time window.

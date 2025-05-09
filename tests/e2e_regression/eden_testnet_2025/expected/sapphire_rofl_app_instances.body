@@ -2,12 +2,12 @@
   "instances": [
     {
       "endorsing_node_id": "7zI/cYuiUTPz61PL9M7f1Q/7b43nG0xk1w6yGde+msQ=",
-      "expiration_epoch": 42724,
+      "expiration_epoch": 44111,
       "extra_keys": [
-        "{\"secp256k1\":\"A/F6qq+T7UR+BM8s+KdHJ0TiufRTcE7odkURAWXSqafC\"}"
+        "{\"secp256k1\":\"Ao3qmFS3aE6iQ122cYON8m1kF0tL6HIUijgeUCGu1GZN\"}"
       ],
-      "rak": "8EUGnz+hAqblEMWh+ZHKyZU7CSItm1wrJqK15dAjlfI=",
-      "rek": "QqMeqt6vnRTRiSJOY/3DeSqaC0GupgkZcBjRtOsIQ0c="
+      "rak": "2ykEN3K2N0hgC5EFkdNiqDX4TLi+Aul3PYHUJX041SE=",
+      "rek": "Z5nJSrh270+0CqUUcjBiSUqEEoGJP2BsyfCzxDCAMWE="
     }
   ],
   "is_total_count_clipped": false,

@@ -1,9 +1,9 @@
 {
   "is_total_count_clipped": false,
   "stats": {
-    "total_delegators": 324,
-    "total_staked_balance": "56070644310123012",
-    "total_voting_power": 2826223339419879
+    "total_delegators": 325,
+    "total_staked_balance": "56247980277757865",
+    "total_voting_power": 2837298378478640
   },
   "total_count": 0,
   "validators": []

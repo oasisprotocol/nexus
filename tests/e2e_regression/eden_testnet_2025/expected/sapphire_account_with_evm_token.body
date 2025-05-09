@@ -7,15 +7,15 @@
   },
   "balances": [
     {
-      "balance": "6469588025700377321077",
+      "balance": "6164021430600374908912",
       "token_decimals": 18,
       "token_symbol": "TEST"
     }
   ],
   "evm_balances": [],
   "stats": {
-    "num_txns": 693,
-    "total_received": "34600000602633345509",
-    "total_sent": "35468362204375060394"
+    "num_txns": 669,
+    "total_received": "33400000583345269800",
+    "total_sent": "34241790585091812521"
   }
 }
