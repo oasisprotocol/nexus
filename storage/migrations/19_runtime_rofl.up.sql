@@ -14,6 +14,7 @@ CREATE TABLE chain.rofl_apps
   policy JSONB,
   sek TEXT,
   metadata JSONB, -- arbitrary key/value pairs.
+  -- metadata_name TEXT, -- Name, extracted from metadata key `net.oasis.rofl.name`. -- Added in 26_runtime_rofl_metadata_name.up.sql.
   secrets JSONB, -- arbitrary key/value pairs.
 
   removed BOOLEAN NOT NULL DEFAULT FALSE,
@@ -25,6 +26,7 @@ CREATE TABLE chain.rofl_apps
 CREATE INDEX ix_rofl_apps_stale ON chain.rofl_apps (runtime, id) WHERE last_processed_round IS NULL OR last_queued_round > last_processed_round;
 -- On the API endpoint we only ever return apps that have been processed.
 CREATE INDEX ix_rofl_apps_processed ON chain.rofl_apps (runtime, id) WHERE last_processed_round IS NOT NULL;
+-- CREATE INDEX ix_rofl_apps_metadata_name ON chain.rofl_apps (runtime, metadata_name); -- Added in 26_runtime_rofl_metadata_name.up.sql.
 
 CREATE TABLE chain.rofl_instances
 (
