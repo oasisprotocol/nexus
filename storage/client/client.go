@@ -2454,6 +2454,7 @@ func (c *StorageClient) RuntimeRoflApps(ctx context.Context, runtime common.Runt
 		queries.RuntimeRoflApps,
 		runtime,
 		id,
+		params.Name,
 		params.Limit,
 		params.Offset,
 	)

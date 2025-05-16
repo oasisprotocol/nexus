@@ -1125,12 +1125,13 @@ const (
 		WHERE
 			ra.runtime = $1::runtime AND
 			($2::text IS NULL OR ra.id = $2::text) AND
+			($3::text IS NULL OR ra.metadata_name = $3::text) AND
 			-- Exclude not yet processed apps.
 			ra.last_processed_round IS NOT NULL
 
 		ORDER BY num_active_instances DESC, tx_stats.num_app_transactions DESC, ra.id DESC
-		LIMIT $3::bigint
-		OFFSET $4::bigint`
+		LIMIT $4::bigint
+		OFFSET $5::bigint`
 
 	RuntimeRoflAppInstances = `
 		SELECT

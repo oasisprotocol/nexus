@@ -1,0 +1,55 @@
+{
+  "is_total_count_clipped": false,
+  "rofl_apps": [
+    {
+      "active_instances": [
+        {
+          "endorsing_node_id": "7zI/cYuiUTPz61PL9M7f1Q/7b43nG0xk1w6yGde+msQ=",
+          "expiration_epoch": 44111,
+          "extra_keys": [
+            "{\"secp256k1\":\"Ao3qmFS3aE6iQ122cYON8m1kF0tL6HIUijgeUCGu1GZN\"}"
+          ],
+          "rak": "2ykEN3K2N0hgC5EFkdNiqDX4TLi+Aul3PYHUJX041SE=",
+          "rek": "Z5nJSrh270+0CqUUcjBiSUqEEoGJP2BsyfCzxDCAMWE="
+        }
+      ],
+      "admin": "oasis1qpwaggvmhwq5uk40clase3knt655nn2tdy39nz2f",
+      "date_created": "2025-05-06T15:54:21Z",
+      "id": "rofl1qp55evqls4qg6cjw5fnlv4al9ptc0fsakvxvd9uw",
+      "last_activity": "2025-05-06T16:21:51Z",
+      "metadata": {
+        "net.oasis.rofl.author": "Jernej Kos <jernej@kos.mx>",
+        "net.oasis.rofl.license": "Apache-2.0",
+        "net.oasis.rofl.name": "demo-rofl",
+        "net.oasis.rofl.repository": "https://github.com/oasisprotocol/demo-rofl",
+        "net.oasis.rofl.version": "0.1.1"
+      },
+      "num_active_instances": 1,
+      "policy": {
+        "enclaves": [
+          "qc98ULKN37r8sZNJlSvM2klZBBAH1sCu09w07HNagH4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+          "HQADK7bsA9jKv+V7eS9OB+smnN6Vf6Wp/zUeIlyZW18AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=="
+        ],
+        "endorsements": [
+          {
+            "any": {}
+          }
+        ],
+        "fees": 2,
+        "max_expiration": 3,
+        "quotes": {
+          "pcs": {
+            "min_tcb_evaluation_data_number": 17,
+            "tcb_validity_period": 30,
+            "tdx": {}
+          }
+        }
+      },
+      "removed": false,
+      "secrets": null,
+      "sek": "438B4/HJ6nmyzg0v50UxvRiBLn9ZJRa8uzDjpsD18Dw=",
+      "stake": "10000000000000000000000"
+    }
+  ],
+  "total_count": 1
+}

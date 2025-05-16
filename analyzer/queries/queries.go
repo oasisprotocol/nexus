@@ -1318,8 +1318,9 @@ var (
         policy = $5,
         sek = $6,
         metadata = $7,
-        secrets = $8,
-        last_processed_round = $9
+        metadata_name = $8,
+        secrets = $9,
+        last_processed_round = $10
     WHERE
         runtime = $1 AND
         id = $2`

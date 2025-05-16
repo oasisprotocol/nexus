@@ -1253,6 +1253,11 @@ paths:
         - *limit
         - *offset
         - *runtime
+        - in: query
+          name: name
+          schema:
+            type: string
+          description: A filter on the name of the ROFL app.
       responses:
         '200':
           description: A JSON object containing a list of ROFL apps.

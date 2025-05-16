@@ -119,6 +119,12 @@ func (p *processor) queueRoflAppRefresh(ctx context.Context, batch *storage.Quer
 		)
 		return nil
 	}
+	var metadataName *string
+	if app.Metadata != nil {
+		if name, ok := app.Metadata["net.oasis.rofl.name"]; ok {
+			metadataName = &name
+		}
+	}
 	sek := base64.StdEncoding.EncodeToString(app.SEK[:]) // x25519.PublicKey doesn't implement String() method, this matches other public keys string marshalling.
 	batch.Queue(
 		queries.RuntimeRoflAppUpdate,
@@ -129,6 +135,7 @@ func (p *processor) queueRoflAppRefresh(ctx context.Context, batch *storage.Quer
 		app.Policy,
 		sek,
 		app.Metadata,
+		metadataName,
 		app.Secrets,
 		round,
 	)
