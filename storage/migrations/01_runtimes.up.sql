@@ -478,6 +478,8 @@ CREATE TABLE chain.runtime_sdk_balances (
 --   metadata JSONB, -- arbitrary key/value pairs.
 --   secrets JSONB, -- arbitrary key/value pairs.
 
+--   num_transactions UINT63 NOT NULL, -- Added in 27_runtime_rofl_num_transactions.up.sql.
+
 --   removed BOOLEAN NOT NULL DEFAULT FALSE,
 
 --   -- Fields for analyzer tracking.

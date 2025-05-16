@@ -594,6 +594,11 @@ var (
     INSERT INTO chain.rofl_related_transactions (runtime, app_id, tx_round, tx_index, method, likely_native_transfer)
       VALUES ($1, $2, $3, $4, $5, $6)`
 
+	RuntimeRoflNumTransactionsIncrement = `
+    UPDATE chain.rofl_apps
+      SET num_transactions = num_transactions + 1
+      WHERE runtime = $1::runtime AND id = $2`
+
 	RuntimeAccountNumTxsUpsert = `
     INSERT INTO chain.runtime_accounts as accounts (runtime, address, num_txs)
       VALUES ($1, $2, $3)
@@ -1347,8 +1352,21 @@ var (
       AND NOT EXISTS (SELECT 1 FROM to_delete)`
 
 	RuntimeRoflInstanceUpsert = `
+    -- First check if the app exists. It can happen that the app was removed
+    -- and never processed. In that case we should not insert the instance.
+    -- This only happens if the analyzer would be far behind the chain.
+    WITH
+      check_app AS (
+        SELECT 1
+        FROM chain.rofl_apps
+        WHERE runtime = $1::runtime AND id = $2
+      )
+
     INSERT INTO chain.rofl_instances (runtime, app_id, rak, endorsing_node_id, endorsing_entity_id, rek, expiration_epoch, extra_keys, registration_round, last_processed_round)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+    SELECT
+      $1, $2, $3, $4, $5, $6, $7, $8, $9, $10
+    FROM
+      check_app
     ON CONFLICT (runtime, app_id, rak) DO UPDATE
     SET
       endorsing_node_id = excluded.endorsing_node_id,
