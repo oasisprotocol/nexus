@@ -1291,16 +1291,16 @@ var (
 
 	RuntimeRoflStaleApps = `
     SELECT
-      chain.rofl_apps.id,
-      chain.rofl_apps.last_queued_round
+      id,
+      last_queued_round
     FROM chain.rofl_apps
     WHERE
-      chain.rofl_apps.runtime = $1 AND
+      runtime = $1 AND
       (
-          chain.rofl_apps.last_processed_round IS NULL OR
-          chain.rofl_apps.last_queued_round > chain.rofl_apps.last_processed_round
+        last_processed_round IS NULL OR
+        last_queued_round > last_processed_round
       )
-    ORDER BY chain.rofl_apps.last_queued_round
+    ORDER BY last_queued_round
     LIMIT $2`
 
 	RuntimeRoflStaleAppsCount = `
@@ -1364,4 +1364,145 @@ var (
     ON CONFLICT (runtime, id) DO UPDATE
     SET
       last_queued_round = GREATEST(excluded.last_queued_round, chain.rofl_apps.last_queued_round)`
+
+	RuntimeRoflmarketStaleProviders = `
+    SELECT
+      address,
+      last_queued_round
+    FROM chain.roflmarket_providers
+    WHERE
+      runtime = $1 AND
+      (last_processed_round IS NULL OR last_queued_round > last_processed_round)
+    ORDER BY last_queued_round
+    LIMIT $2`
+
+	RuntimeRoflmarketStaleProvidersCount = `
+    SELECT COUNT(*) AS cnt
+    FROM chain.roflmarket_providers
+    WHERE
+      runtime = $1 AND
+      (last_processed_round IS NULL OR last_queued_round > last_processed_round)`
+
+	RuntimeRoflmarketProviderUpdate = `
+    UPDATE chain.roflmarket_providers
+    SET
+      nodes = $3,
+      scheduler = $4,
+      payment_address = $5,
+      metadata = $6,
+      stake = $7,
+      offers_next_id = $8,
+      offers_count = $9,
+      instances_next_id = $10,
+      instances_count = $11,
+      created_at = $12,
+      updated_at = $13,
+      last_processed_round = $14
+    WHERE
+      runtime = $1 AND
+      address = $2`
+
+	RuntimeRoflmarketProviderRemoved = `
+    -- Delete the provider from the DB if it has not been processed yet.
+    -- In that case the provider was deleted before we ever processed it,
+    -- so no reason to keep it in the DB since we do not have any state for it.
+    WITH to_delete AS (
+      DELETE FROM chain.roflmarket_providers
+      WHERE runtime = $1 AND address = $2 AND last_processed_round IS NULL
+      RETURNING *
+    )
+    -- Otherwise, just mark the provider as removed.
+    UPDATE chain.roflmarket_providers
+    SET
+      removed = TRUE,
+      stake = 0,
+      last_processed_round = $3
+    WHERE
+      runtime = $1
+      AND address = $2
+      AND last_processed_round IS NOT NULL
+      AND NOT EXISTS (SELECT 1 FROM to_delete)`
+
+	RuntimeRoflmarketRemoveProviderOffers = `
+    DELETE FROM chain.roflmarket_offers
+    WHERE runtime = $1 AND provider = $2`
+
+	RuntimeRoflmarketRemoveProviderInstances = `
+    DELETE FROM chain.roflmarket_instances
+    WHERE runtime = $1 AND provider = $2`
+
+	RuntimeRoflmarketOfferUpsert = `
+    INSERT INTO chain.roflmarket_offers (runtime, id, provider, resources, payment, capacity, metadata)
+    VALUES ($1, $2, $3, $4, $5, $6, $7)
+    ON CONFLICT (runtime, id) DO UPDATE
+    SET
+      provider = excluded.provider,
+      resources = excluded.resources,
+      payment = excluded.payment,
+      capacity = excluded.capacity,
+      metadata = excluded.metadata`
+
+	RuntimeRoflmarketInstanceUpsert = `
+    INSERT INTO chain.roflmarket_instances (runtime, id, provider, offer_id, status, creator, admin, node_id, metadata, resources, deployment, created_at, updated_at, paid_from, paid_until, payment, payment_address, refund_data, cmd_next_id, cmd_count, cmds)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
+    ON CONFLICT (runtime, id) DO UPDATE
+    SET
+      provider = excluded.provider,
+      offer_id = excluded.offer_id,
+      status = excluded.status,
+      creator = excluded.creator,
+      admin = excluded.admin,
+      node_id = excluded.node_id,
+      metadata = excluded.metadata,
+      resources = excluded.resources,
+      deployment = excluded.deployment,
+      created_at = excluded.created_at,
+      updated_at = excluded.updated_at,
+      paid_from = excluded.paid_from,
+      paid_until = excluded.paid_until,
+      payment = excluded.payment,
+      payment_address = excluded.payment_address,
+      refund_data = excluded.refund_data,
+      cmd_next_id = excluded.cmd_next_id,
+      cmd_count = excluded.cmd_count,
+      cmds = excluded.cmds`
+
+	RuntimeRoflmarketProviderQueueRefresh = `
+    INSERT INTO chain.roflmarket_providers (runtime, address, last_queued_round)
+    VALUES ($1, $2, $3)
+    ON CONFLICT (runtime, address) DO UPDATE
+    SET
+      last_queued_round = GREATEST(excluded.last_queued_round, chain.roflmarket_providers.last_queued_round)`
+
+	RuntimeRoflMarketProviderOfferIds = `
+    SELECT
+      id
+    FROM chain.roflmarket_offers
+    WHERE
+      runtime = $1 AND
+      provider = $2`
+
+	RuntimeRoflMarketProviderInstanceIds = `
+    SELECT
+      id
+    FROM chain.roflmarket_instances
+    WHERE
+      runtime = $1 AND
+      provider = $2`
+
+	RuntimeRoflmarketOfferRemoved = `
+    UPDATE chain.roflmarket_offers
+    SET
+      removed = TRUE
+    WHERE
+      runtime = $1 AND
+      id = $2`
+
+	RuntimeRoflmarketInstanceRemoved = `
+    UPDATE chain.roflmarket_instances
+    SET
+      removed = TRUE
+    WHERE
+      runtime = $1 AND
+      id = $2`
 )

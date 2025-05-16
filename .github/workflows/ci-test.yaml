@@ -135,7 +135,7 @@ jobs:
 
   test-e2e-regression:
     env:
-      E2E_REGRESSION_ARTIFACTS_VERSION: 2025-04-04
+      E2E_REGRESSION_ARTIFACTS_VERSION: 2025-05-16
     strategy:
       matrix:
         suite:

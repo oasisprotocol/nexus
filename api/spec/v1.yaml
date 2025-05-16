@@ -1407,6 +1407,86 @@ paths:
                 $ref: '#/components/schemas/RuntimeTransactionList'
         <<: *common_error_responses
 
+  /{runtime}/roflmarket_providers:
+    get:
+      summary: Returns a list of ROFL market providers.
+      parameters:
+        - *limit
+        - *offset
+        - *runtime
+      responses:
+        '200':
+          description: A JSON object containing a list of ROFL market providers.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoflMarketProviderList'
+        <<: *common_error_responses
+
+  /{runtime}/roflmarket_providers/{address}:
+    get:
+      summary: Returns a specific ROFL market provider.
+      parameters:
+        - *runtime
+        - in: path
+          name: address
+          required: true
+          schema:
+            allOf: [$ref: '#/components/schemas/StakingAddress']
+          description: The address of the ROFL market provider to return.
+      responses:
+        '200':
+          description: A JSON object containing a ROFL market provider.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoflMarketProvider'
+        <<: *common_error_responses
+
+  /{runtime}/roflmarket_providers/{address}/offers:
+    get:
+      summary: Returns a list of ROFL market offers for a specific provider.
+      parameters:
+        - *limit
+        - *offset
+        - *runtime
+        - in: path
+          name: address
+          required: true
+          schema:
+            allOf: [$ref: '#/components/schemas/StakingAddress']
+          description: The address of the ROFL market provider to return offers for.
+      responses:
+        '200':
+          description: A JSON object containing a list of ROFL market offers.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoflMarketOfferList'
+        <<: *common_error_responses
+
+  /{runtime}/roflmarket_providers/{address}/instances:
+    get:
+      summary: Returns a list of ROFL market instances for a specific provider.
+      parameters:
+        - *limit
+        - *offset
+        - *runtime
+        - in: path
+          name: address
+          required: true
+          schema:
+            allOf: [$ref: '#/components/schemas/StakingAddress']
+          description: The address of the ROFL market provider to return instances for.
+      responses:
+        '200':
+          description: A JSON object containing a list of ROFL market instances.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoflMarketInstanceList'
+        <<: *common_error_responses
+
   /{layer}/stats/tx_volume:
     get:
       summary: |
@@ -3839,6 +3919,200 @@ components:
               type: array
               items:
                 allOf: [$ref: '#/components/schemas/RoflInstance']
+
+    RoflMarketProvider:
+      type: object
+      required: [address, nodes, scheduler, payment_address, metadata, stake, offers_next_id, offers_count, instances_next_id, instances_count, created_at, updated_at, removed]
+      properties:
+        address:
+          type: string
+          description: The address of the ROFL market provider.
+        nodes:
+          type: array
+          items:
+            type: string
+          description: The nodes that are part of the ROFL market provider.
+        scheduler:
+          type: string
+          description: The authorized scheduler ROFL app ID for this provider.
+        payment_address:
+          type: object
+          description: The payment address configuration for this provider.
+        metadata:
+          type: object
+          description: Arbitrary metadata key-value pairs, assigned by the provider.
+        stake:
+          allOf: [$ref: '#/components/schemas/TextBigInt']
+          description: The amount staked for provider registration.
+        offers_next_id:
+          type: string
+          description: The next offer ID for this provider.
+        offers_count:
+          type: integer
+          format: uint64
+          description: The number of offers.
+        instances_next_id:
+          type: string
+          description: The next instance ID for this provider.
+        instances_count:
+          type: integer
+          format: uint64
+          description: The number of instances.
+        created_at:
+          type: string
+          format: date-time
+          description: The date and time when the provider was created.
+          example: *iso_timestamp_1
+        updated_at:
+          type: string
+          format: date-time
+          description: The date and time when the provider was last updated.
+          example: *iso_timestamp_1
+        removed:
+          type: boolean
+          description: Whether the provider has been removed.
+
+    RoflMarketProviderList:
+      allOf:
+        - $ref: '#/components/schemas/List'
+        - type: object
+          required: [providers]
+          properties:
+            providers:
+              type: array
+              items:
+                allOf: [$ref: '#/components/schemas/RoflMarketProvider']
+
+    RoflMarketOffer:
+      type: object
+      required: [id, provider, resources, payment, capacity, metadata, removed]
+      properties:
+        id:
+          type: string
+          description: Unique offer identifier.
+        provider:
+          type: string
+          description: The address of the ROFL market provider that created this offer.
+        resources:
+          type: object
+          description: The offered resources by this offer.
+        payment:
+          type: object
+          description: The payment configuration for this offer.
+        capacity:
+          type: integer
+          format: uint64
+          description: Amount of available instances for this offer.
+        metadata:
+          type: object
+          description: Arbitrary metadata key-value pairs assigned by the provider.
+        removed:
+          type: boolean
+          description: Whether the offer has been removed.
+
+    RoflMarketOfferList:
+      allOf:
+        - $ref: '#/components/schemas/List'
+        - type: object
+          required: [offers]
+          properties:
+            offers:
+              type: array
+              items:
+                allOf: [$ref: '#/components/schemas/RoflMarketOffer']
+
+    RoflMarketInstance:
+      type: object
+      required: [id, provider, offer_id, status, creator, admin, node_id, metadata, resources, deployment, created_at, updated_at, paid_from, paid_until, payment, payment_address, refund_data, cmd_next_id, cmd_count, removed]
+      properties:
+        id:
+          type: string
+          description: Unique instance identifier.
+        provider:
+          type: string
+          description: The address of the ROFL market provider that created this instance.
+        offer_id:
+          type: string
+          description: The identifier of the offer that this instance belongs to.
+        status:
+          type: integer
+          format: uint8
+          description: The status of the instance.
+        creator:
+          # allOf: [$ref: '#/components/schemas/StakingAddress']
+          type: string
+          description: The address of the creator of the instance.
+        admin:
+          # allOf: [$ref: '#/components/schemas/StakingAddress']
+          type: string
+          description: The address of the administrator of the instance.
+        node_id:
+          type: string
+          description: The identifier of the node that this instance is deployed on.
+        metadata:
+          type: object
+          description: Arbitrary metadata key-value pairs assigned by the provider.
+        resources:
+          type: object
+          description: The resources allocated to this instance.
+        deployment:
+          type: object
+          description: The deployment configuration for this instance.
+        created_at:
+          type: string
+          format: date-time
+          description: The date and time when the instance was created.
+          example: *iso_timestamp_1
+        updated_at:
+          type: string
+          format: date-time
+          description: The date and time when the instance was last updated.
+          example: *iso_timestamp_1
+        paid_from:
+          type: string
+          format: date-time
+          description: The date and time from which the instance has been paid for and not yet claimed by the provider.
+          example: *iso_timestamp_1
+        paid_until:
+          type: string
+          format: date-time
+          description: The date and time until which the instance has been paid for.
+          example: *iso_timestamp_1
+        payment:
+          type: object
+          description: The payment information for this instance.
+        payment_address:
+          type: string
+          description: The payment address for this instance.
+        refund_data:
+          type: string
+          description: The method-specific refund information.
+        cmd_next_id:
+          type: string
+          description: The next command ID for this instance.
+        cmd_count:
+          type: integer
+          format: uint64
+          description: The number of commands for this instance.
+        cmds:
+          type: array
+          items:
+            type: object
+            description: The commands for this instance.
+        removed:
+          type: boolean
+          description: Whether the instance has been removed.
+
+    RoflMarketInstanceList:
+      allOf:
+        - $ref: '#/components/schemas/List'
+        - type: object
+          required: [instances]
+          properties:
+            instances:
+              type: array
+              items:
+                allOf: [$ref: '#/components/schemas/RoflMarketInstance']
 
   responses:
     HumanReadableError:

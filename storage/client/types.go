@@ -175,3 +175,15 @@ type RoflApp = api.RoflApp
 
 // RoflAppInstanceList is the storage response for GetRuntimeRoflAppsIdInstances.
 type RoflAppInstanceList = api.RoflAppInstanceList
+
+// RoflMarketProviderList is the storage response for GetRuntimeRoflmarketProviders.
+type RoflMarketProviderList = api.RoflMarketProviderList
+
+// RoflMarketProvider is the storage response for GetRuntimeRoflmarketProvidersAddress.
+type RoflMarketProvider = api.RoflMarketProvider
+
+// RoflMarketOfferList is the storage response for GetRuntimeRoflmarketProvidersAddressOffers.
+type RoflMarketOfferList = api.RoflMarketOfferList
+
+// RoflMarketInstanceList is the storage response for GetRuntimeRoflmarketProvidersAddressInstances.
+type RoflMarketInstanceList = api.RoflMarketInstanceList

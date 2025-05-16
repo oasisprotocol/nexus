@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"math/big"
@@ -2635,6 +2636,158 @@ func (c *StorageClient) RuntimeRoflAppInstanceTransactions(ctx context.Context, 
 	}
 
 	return &ts, nil
+}
+
+// RuntimeRoflmarketProviders returns a list of ROFL market providers.
+func (c *StorageClient) RuntimeRoflmarketProviders(ctx context.Context, runtime common.Runtime, params apiTypes.GetRuntimeRoflmarketProvidersParams, address *staking.Address) (*RoflMarketProviderList, error) {
+	res, err := c.withTotalCount(
+		ctx,
+		queries.RuntimeRoflmarketProviders,
+		runtime,
+		address,
+		params.Limit,
+		params.Offset,
+	)
+	if err != nil {
+		return nil, wrapError(err)
+	}
+	defer res.rows.Close()
+
+	providers := RoflMarketProviderList{
+		Providers:           []apiTypes.RoflMarketProvider{},
+		TotalCount:          res.totalCount,
+		IsTotalCountClipped: res.isTotalCountClipped,
+	}
+	for res.rows.Next() {
+		var provider apiTypes.RoflMarketProvider
+
+		var offersNextId []byte
+		var instancesNextId []byte
+		if err := res.rows.Scan(
+			&provider.Address,
+			&provider.Nodes,
+			&provider.Scheduler,
+			&provider.PaymentAddress,
+			&provider.Metadata,
+			&provider.Stake,
+			&offersNextId,
+			&provider.OffersCount,
+			&instancesNextId,
+			&provider.InstancesCount,
+			&provider.CreatedAt,
+			&provider.UpdatedAt,
+			&provider.Removed,
+		); err != nil {
+			return nil, wrapError(err)
+		}
+		provider.OffersNextId = hex.EncodeToString(offersNextId)
+		provider.InstancesNextId = hex.EncodeToString(instancesNextId)
+		providers.Providers = append(providers.Providers, provider)
+	}
+
+	return &providers, nil
+}
+
+func (c *StorageClient) RuntimeRoflmarketOffers(ctx context.Context, runtime common.Runtime, params apiTypes.GetRuntimeRoflmarketProvidersAddressOffersParams, address *staking.Address) (*RoflMarketOfferList, error) {
+	res, err := c.withTotalCount(
+		ctx,
+		queries.RuntimeRoflmarketProviderOffers,
+		runtime,
+		address,
+		params.Limit,
+		params.Offset,
+	)
+	if err != nil {
+		return nil, wrapError(err)
+	}
+	defer res.rows.Close()
+
+	offers := RoflMarketOfferList{
+		Offers:              []apiTypes.RoflMarketOffer{},
+		TotalCount:          res.totalCount,
+		IsTotalCountClipped: res.isTotalCountClipped,
+	}
+	for res.rows.Next() {
+		var offer apiTypes.RoflMarketOffer
+		var offerID []byte
+		if err := res.rows.Scan(
+			&offerID,
+			&offer.Provider,
+			&offer.Resources,
+			&offer.Payment,
+			&offer.Capacity,
+			&offer.Metadata,
+			&offer.Removed,
+		); err != nil {
+			return nil, wrapError(err)
+		}
+		offer.Id = hex.EncodeToString(offerID)
+		offers.Offers = append(offers.Offers, offer)
+	}
+
+	return &offers, nil
+}
+
+func (c *StorageClient) RuntimeRoflmarketInstances(ctx context.Context, runtime common.Runtime, params apiTypes.GetRuntimeRoflmarketProvidersAddressInstancesParams, address *staking.Address) (*RoflMarketInstanceList, error) {
+	res, err := c.withTotalCount(
+		ctx,
+		queries.RuntimeRoflmarketProviderInstances,
+		runtime,
+		address,
+		params.Limit,
+		params.Offset,
+	)
+	if err != nil {
+		return nil, wrapError(err)
+	}
+	defer res.rows.Close()
+
+	instances := RoflMarketInstanceList{
+		Instances:           []apiTypes.RoflMarketInstance{},
+		TotalCount:          res.totalCount,
+		IsTotalCountClipped: res.isTotalCountClipped,
+	}
+	for res.rows.Next() {
+		var instance apiTypes.RoflMarketInstance
+		var instanceID []byte
+		var offerID []byte
+		var paymentAddress []byte
+		var refundData []byte
+		var cmdNextId []byte
+		if err := res.rows.Scan(
+			&instanceID,
+			&instance.Provider,
+			&offerID,
+			&instance.Status,
+			&instance.Creator,
+			&instance.Admin,
+			&instance.NodeId,
+			&instance.Metadata,
+			&instance.Resources,
+			&instance.Deployment,
+			&instance.CreatedAt,
+			&instance.UpdatedAt,
+			&instance.PaidFrom,
+			&instance.PaidUntil,
+			&instance.Payment,
+			&paymentAddress,
+			&refundData,
+			&cmdNextId,
+			&instance.CmdCount,
+			&instance.Cmds,
+			&instance.Removed,
+		); err != nil {
+			return nil, wrapError(err)
+		}
+		instance.Id = hex.EncodeToString(instanceID)
+		instance.OfferId = hex.EncodeToString(offerID)
+		instance.PaymentAddress = hex.EncodeToString(paymentAddress)
+		instance.RefundData = hex.EncodeToString(refundData)
+		instance.CmdNextId = hex.EncodeToString(cmdNextId)
+		instances.Instances = append(instances.Instances, instance)
+	}
+
+	return &instances, nil
 }
 
 // TxVolumes returns a list of transaction volumes per time window.

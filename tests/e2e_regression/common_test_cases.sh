@@ -20,7 +20,7 @@ commonTestCases=(
   ## Runtimes.
   'db__account_related_txs            select * from chain.runtime_related_transactions order by runtime, tx_round, tx_index, account_address'
   'db__runtime_accounts               select * from chain.runtime_accounts order by runtime, address'
-  'db__runtime_transfers              select * from chain.runtime_transfers order by runtime, round, sender, receiver'
+  'db__runtime_transfers              select * from chain.runtime_transfers order by runtime, round, sender, receiver, amount'
   'db__runtime_txs                    select runtime, round, tx_hash, "to", fee, gas_used, method, evm_fn_name, evm_fn_params, error_message, error_params from chain.runtime_transactions order by runtime, round, tx_index'
   'db__runtime_events                 select runtime, round, type, tx_hash, evm_log_name, evm_log_params, evm_log_signature from chain.runtime_events order by runtime, round, tx_index, type, body'
   'db__contract_gas_use               select c.runtime, contract_address, (SELECT gas_for_calling FROM chain.runtime_accounts ra WHERE (ra.runtime = c.runtime) AND (ra.address = c.contract_address)) AS gas_used, timestamp as created_at from chain.evm_contracts c left join chain.runtime_transactions rt on (c.creation_tx = rt.tx_hash) order by runtime, contract_address'
@@ -104,4 +104,5 @@ commonSapphireTestCases=(
   'sapphire_status                    /v1/sapphire/status'
   'sapphire_tx_volume                 /v1/sapphire/stats/tx_volume'
   'sapphire_rofl_apps                 /v1/sapphire/rofl_apps'
+  'sapphire_roflmarket_providers      /v1/sapphire/roflmarket_providers'
 )

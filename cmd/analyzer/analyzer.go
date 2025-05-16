@@ -35,6 +35,7 @@ import (
 	nodestats "github.com/oasisprotocol/nexus/analyzer/node_stats"
 	"github.com/oasisprotocol/nexus/analyzer/rofl"
 	roflinstance "github.com/oasisprotocol/nexus/analyzer/rofl/instance_transactions"
+	"github.com/oasisprotocol/nexus/analyzer/roflmarket"
 	"github.com/oasisprotocol/nexus/analyzer/runtime"
 	"github.com/oasisprotocol/nexus/analyzer/util"
 	"github.com/oasisprotocol/nexus/analyzer/validatorstakinghistory"
@@ -509,6 +510,15 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) { //nolint:gocyclo
 				return nil, err1
 			}
 			return roflinstance.NewAnalyzer(common.RuntimeSapphire, *cfg.Analyzers.SapphireRoflInstanceTransactions, sourceClient, dbClient, logger)
+		})
+	}
+	if cfg.Analyzers.SapphireRoflmarket != nil {
+		analyzers, err = addAnalyzer(analyzers, err, syncTagSapphire, func() (A, error) {
+			sourceClient, err1 := sources.Runtime(ctx, common.RuntimeSapphire)
+			if err1 != nil {
+				return nil, err1
+			}
+			return roflmarket.NewAnalyzer(common.RuntimeSapphire, *cfg.Analyzers.SapphireRoflmarket, sourceClient, dbClient, logger)
 		})
 	}
 	if cfg.Analyzers.PontusxTestEvmNfts != nil {

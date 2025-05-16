@@ -30,7 +30,7 @@ CREATE TABLE chain.rofl_instances
 (
   runtime  runtime NOT NULL,
   app_id rofl_app_id NOT NULL,
-  FOREIGN KEY (runtime, app_id) REFERENCES chain.rofl_apps(runtime, id),
+  FOREIGN KEY (runtime, app_id) REFERENCES chain.rofl_apps(runtime, id), -- DEFERRABLE INITIALLY DEFERRED, Added in 25_runtime_roflmarket.up.sql.
 
   rak TEXT NOT NULL,
   PRIMARY KEY (runtime, app_id, rak),
