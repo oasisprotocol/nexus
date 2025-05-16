@@ -37,6 +37,17 @@ x-query-params:
       maximum: 1000
     description: |
       The maximum numbers of items to return.
+  - &limit100
+    in: query
+    name: limit
+    schema:
+      type: integer
+      format: uint64
+      default: 100
+      minimum: 1
+      maximum: 100
+    description: |
+      The maximum numbers of items to return.
   - &height
     in: query
     name: height
@@ -1250,7 +1261,7 @@ paths:
     get:
       summary: Returns a list of ROFL apps on the runtime.
       parameters:
-        - *limit
+        - *limit100
         - *offset
         - *runtime
         - in: query
