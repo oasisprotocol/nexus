@@ -41,7 +41,7 @@ import (
 const (
 	blockCost = 1
 
-	maxTotalCount = 1000
+	defaultMaxTotalCount = 1000
 )
 
 // StorageClient is a wrapper around a storage.TargetStorage
@@ -231,7 +231,7 @@ func wrapError(err error) error {
 // with limit=infinity.
 // Assumes that the last two query parameters are limit and offset.
 // The total count is capped by an internal limit for performance reasons.
-func (c *StorageClient) withTotalCount(ctx context.Context, sql string, args ...interface{}) (*rowsWithCount, error) {
+func (c *StorageClient) withTotalCount(ctx context.Context, sql string, maxTotalCount uint64, args ...interface{}) (*rowsWithCount, error) {
 	var totalCount uint64
 	if len(args) < 2 {
 		return nil, fmt.Errorf("list queries must have at least two params (limit and offset)")
@@ -273,6 +273,11 @@ func (c *StorageClient) withTotalCount(ctx context.Context, sql string, args ...
 		totalCount:          totalCount,
 		isTotalCountClipped: clipped,
 	}, nil
+}
+
+// Calls `withTotalCount` with default maxTotalCount limit.
+func (c *StorageClient) withDefaultTotalCount(ctx context.Context, sql string, args ...interface{}) (*rowsWithCount, error) {
+	return c.withTotalCount(ctx, sql, defaultMaxTotalCount, args...)
 }
 
 // Status returns status information for Oasis Nexus.
@@ -435,7 +440,7 @@ func (c *StorageClient) Blocks(ctx context.Context, r apiTypes.GetConsensusBlock
 	if err != nil {
 		return nil, wrapError(err)
 	}
-	res, err := c.withTotalCount(
+	res, err := c.withDefaultTotalCount(
 		ctx,
 		queries.Blocks,
 		r.From,
@@ -531,7 +536,7 @@ func (c *StorageClient) Transactions(ctx context.Context, p apiTypes.GetConsensu
 		transactionsQuery = queries.TransactionsWithRelated
 		addr = p.Rel
 	}
-	res, err := c.withTotalCount(
+	res, err := c.withDefaultTotalCount(
 		ctx,
 		transactionsQuery,
 		txHash, // used for /consensus/transactions/{tx_hash}.
@@ -593,7 +598,7 @@ func (c *StorageClient) Transactions(ctx context.Context, p apiTypes.GetConsensu
 
 // Events returns a list of events.
 func (c *StorageClient) Events(ctx context.Context, p apiTypes.GetConsensusEventsParams) (*EventList, error) {
-	res, err := c.withTotalCount(
+	res, err := c.withDefaultTotalCount(
 		ctx,
 		queries.Events,
 		p.Block,
@@ -637,7 +642,7 @@ func (c *StorageClient) Events(ctx context.Context, p apiTypes.GetConsensusEvent
 }
 
 func (c *StorageClient) RoothashMessages(ctx context.Context, p apiTypes.GetConsensusRoothashMessagesParams) (*apiTypes.RoothashMessageList, error) {
-	res, err := c.withTotalCount(
+	res, err := c.withDefaultTotalCount(
 		ctx,
 		queries.RoothashMessages,
 		p.Runtime,
@@ -688,7 +693,7 @@ func (c *StorageClient) RoothashMessages(ctx context.Context, p apiTypes.GetCons
 
 // Entities returns a list of registered entities.
 func (c *StorageClient) Entities(ctx context.Context, p apiTypes.GetConsensusEntitiesParams) (*EntityList, error) {
-	res, err := c.withTotalCount(
+	res, err := c.withDefaultTotalCount(
 		ctx,
 		queries.Entities,
 		p.Limit,
@@ -751,7 +756,7 @@ func (c *StorageClient) Entity(ctx context.Context, address staking.Address) (*E
 
 // EntityNodes returns a list of nodes controlled by the provided entity.
 func (c *StorageClient) EntityNodes(ctx context.Context, address staking.Address, r apiTypes.GetConsensusEntitiesAddressNodesParams) (*NodeList, error) {
-	res, err := c.withTotalCount(
+	res, err := c.withDefaultTotalCount(
 		ctx,
 		queries.EntityNodes,
 		address.String(),
@@ -823,7 +828,7 @@ func (c *StorageClient) EntityNode(ctx context.Context, entityAddress staking.Ad
 
 // Accounts returns a list of consensus accounts.
 func (c *StorageClient) Accounts(ctx context.Context, r apiTypes.GetConsensusAccountsParams) (*AccountList, error) {
-	res, err := c.withTotalCount(
+	res, err := c.withDefaultTotalCount(
 		ctx,
 		queries.Accounts,
 		r.Limit,
@@ -942,7 +947,7 @@ func amountFromShares(shares common.BigInt, totalShares common.BigInt, totalBala
 
 // Delegations returns a list of delegations.
 func (c *StorageClient) Delegations(ctx context.Context, address staking.Address, p apiTypes.GetConsensusAccountsAddressDelegationsParams) (*DelegationList, error) {
-	res, err := c.withTotalCount(
+	res, err := c.withDefaultTotalCount(
 		ctx,
 		queries.Delegations,
 		address.String(),
@@ -993,7 +998,7 @@ func (c *StorageClient) Delegations(ctx context.Context, address staking.Address
 
 // DelegationsTo returns a list of delegations to an address.
 func (c *StorageClient) DelegationsTo(ctx context.Context, address staking.Address, p apiTypes.GetConsensusAccountsAddressDelegationsToParams) (*DelegationList, error) {
-	res, err := c.withTotalCount(
+	res, err := c.withDefaultTotalCount(
 		ctx,
 		queries.DelegationsTo,
 		address.String(),
@@ -1044,7 +1049,7 @@ func (c *StorageClient) DelegationsTo(ctx context.Context, address staking.Addre
 
 // DebondingDelegations returns a list of debonding delegations.
 func (c *StorageClient) DebondingDelegations(ctx context.Context, address staking.Address, p apiTypes.GetConsensusAccountsAddressDebondingDelegationsParams) (*DebondingDelegationList, error) {
-	res, err := c.withTotalCount(
+	res, err := c.withDefaultTotalCount(
 		ctx,
 		queries.DebondingDelegations,
 		address.String(),
@@ -1096,7 +1101,7 @@ func (c *StorageClient) DebondingDelegations(ctx context.Context, address stakin
 
 // DebondingDelegationsTo returns a list of debonding delegations to an address.
 func (c *StorageClient) DebondingDelegationsTo(ctx context.Context, address staking.Address, p apiTypes.GetConsensusAccountsAddressDebondingDelegationsToParams) (*DebondingDelegationList, error) {
-	res, err := c.withTotalCount(
+	res, err := c.withDefaultTotalCount(
 		ctx,
 		queries.DebondingDelegationsTo,
 		address.String(),
@@ -1148,7 +1153,7 @@ func (c *StorageClient) DebondingDelegationsTo(ctx context.Context, address stak
 
 // Epochs returns a list of consensus epochs.
 func (c *StorageClient) Epochs(ctx context.Context, p apiTypes.GetConsensusEpochsParams) (*EpochList, error) {
-	res, err := c.withTotalCount(
+	res, err := c.withDefaultTotalCount(
 		ctx,
 		queries.Epochs,
 		nil,
@@ -1194,7 +1199,7 @@ func (c *StorageClient) Epoch(ctx context.Context, epoch int64) (*Epoch, error) 
 
 // Proposals returns a list of governance proposals.
 func (c *StorageClient) Proposals(ctx context.Context, p apiTypes.GetConsensusProposalsParams) (*ProposalList, error) {
-	res, err := c.withTotalCount(
+	res, err := c.withDefaultTotalCount(
 		ctx,
 		queries.Proposals,
 		p.Submitter,
@@ -1292,7 +1297,7 @@ func (c *StorageClient) Proposal(ctx context.Context, proposalID uint64) (*Propo
 
 // ProposalVotes returns votes for a governance proposal.
 func (c *StorageClient) ProposalVotes(ctx context.Context, proposalID uint64, p apiTypes.GetConsensusProposalsProposalIdVotesParams) (*ProposalVotes, error) {
-	res, err := c.withTotalCount(
+	res, err := c.withDefaultTotalCount(
 		ctx,
 		queries.ProposalVotes,
 		proposalID,
@@ -1349,7 +1354,7 @@ func (c *StorageClient) Validators(ctx context.Context, p apiTypes.GetConsensusV
 		return nil, wrapError(err)
 	}
 
-	res, err := c.withTotalCount(
+	res, err := c.withDefaultTotalCount(
 		ctx,
 		queries.ValidatorsData,
 		address,
@@ -1452,7 +1457,7 @@ func (c *StorageClient) Validators(ctx context.Context, p apiTypes.GetConsensusV
 }
 
 func (c *StorageClient) ValidatorHistory(ctx context.Context, address staking.Address, p apiTypes.GetConsensusValidatorsAddressHistoryParams) (*ValidatorHistory, error) {
-	res, err := c.withTotalCount(
+	res, err := c.withDefaultTotalCount(
 		ctx,
 		queries.ValidatorHistory,
 		address.String(),
@@ -1495,7 +1500,7 @@ func (c *StorageClient) RuntimeBlocks(ctx context.Context, runtime common.Runtim
 	if err != nil {
 		return nil, wrapError(err)
 	}
-	res, err := c.withTotalCount(
+	res, err := c.withDefaultTotalCount(
 		ctx,
 		queries.RuntimeBlocks,
 		runtime,
@@ -1712,7 +1717,7 @@ func (c *StorageClient) RuntimeTransactions(ctx context.Context, runtime common.
 		query = queries.RuntimeTransactionsRelatedAddr
 	}
 
-	res, err := c.withTotalCount(
+	res, err := c.withDefaultTotalCount(
 		ctx,
 		query,
 		runtime,
@@ -1788,7 +1793,7 @@ func (c *StorageClient) RuntimeEvents(ctx context.Context, runtime common.Runtim
 		NFTIdB64 = common.Ptr(base64.StdEncoding.EncodeToString(erc721TransferTokenIdBuf))
 	}
 
-	res, err := c.withTotalCount(
+	res, err := c.withDefaultTotalCount(
 		ctx,
 		queries.RuntimeEvents,
 		runtime,
@@ -2180,7 +2185,7 @@ func (c *StorageClient) RuntimeTokens(ctx context.Context, runtime common.Runtim
 		}
 	}
 
-	res, err := c.withTotalCount(
+	res, err := c.withDefaultTotalCount(
 		ctx,
 		queries.EvmTokens,
 		runtime,
@@ -2274,7 +2279,7 @@ func (c *StorageClient) RuntimeTokens(ctx context.Context, runtime common.Runtim
 }
 
 func (c *StorageClient) RuntimeTokenHolders(ctx context.Context, runtime common.Runtime, p apiTypes.GetRuntimeEvmTokensAddressHoldersParams, address staking.Address) (*TokenHolderList, error) {
-	res, err := c.withTotalCount(
+	res, err := c.withDefaultTotalCount(
 		ctx,
 		queries.EvmTokenHolders,
 		runtime,
@@ -2310,7 +2315,7 @@ func (c *StorageClient) RuntimeTokenHolders(ctx context.Context, runtime common.
 }
 
 func (c *StorageClient) RuntimeEVMNFTs(ctx context.Context, runtime common.Runtime, limit *uint64, offset *uint64, tokenAddress *staking.Address, id *common.BigInt, ownerAddress *staking.Address) (*EvmNftList, error) {
-	res, err := c.withTotalCount(
+	res, err := c.withDefaultTotalCount(
 		ctx,
 		queries.EvmNfts,
 		runtime,
@@ -2448,10 +2453,15 @@ func (c *StorageClient) RuntimeStatus(ctx context.Context, runtime common.Runtim
 }
 
 // RuntimeRoflApps returns a list of ROFL apps.
-func (c *StorageClient) RuntimeRoflApps(ctx context.Context, runtime common.Runtime, params apiTypes.GetRuntimeRoflAppsParams, id *string) (*RoflAppList, error) {
+func (c *StorageClient) RuntimeRoflApps(ctx context.Context, runtime common.Runtime, params apiTypes.GetRuntimeRoflAppsParams, id *string) (*RoflAppList, error) { //nolint:gocyclo
+	// Runtime ROFL apps uses a max limit of 100 (other endpoints default to 1000).
+	if *params.Limit > 100 {
+		*params.Limit = 100
+	}
 	res, err := c.withTotalCount(
 		ctx,
 		queries.RuntimeRoflApps,
+		100,
 		runtime,
 		id,
 		params.Name,
@@ -2468,12 +2478,12 @@ func (c *StorageClient) RuntimeRoflApps(ctx context.Context, runtime common.Runt
 		TotalCount:          res.totalCount,
 		IsTotalCountClipped: res.isTotalCountClipped,
 	}
-	var lastActivityRound *uint64
-	var lastActivityTxIndex *uint64
-	var contractAddrContextIdentifier *string
-	var contractAddrContextVersion *int
-	var contractAddrData []byte
+	var appIds []string
+
 	for res.rows.Next() {
+		var contractAddrContextIdentifier *string
+		var contractAddrContextVersion *int
+		var contractAddrData []byte
 		var app RoflApp
 		if err := res.rows.Scan(
 			&app.Id,
@@ -2487,10 +2497,6 @@ func (c *StorageClient) RuntimeRoflApps(ctx context.Context, runtime common.Runt
 			&app.Metadata,
 			&app.Secrets,
 			&app.Removed,
-			&app.DateCreated,
-			&app.LastActivity,
-			&lastActivityRound,
-			&lastActivityTxIndex,
 			&app.NumActiveInstances,
 			&app.ActiveInstances,
 		); err != nil {
@@ -2500,6 +2506,62 @@ func (c *StorageClient) RuntimeRoflApps(ctx context.Context, runtime common.Runt
 			app.AdminEth = EthChecksumAddrFromPreimage(*contractAddrContextIdentifier, *contractAddrContextVersion, contractAddrData)
 		}
 		apps.RoflApps = append(apps.RoflApps, app)
+		appIds = append(appIds, app.Id)
+	}
+	res.rows.Close()
+
+	var lastActivityRound *uint64
+	var lastActivityTxIndex *uint64
+	fetchTxs := func(table string) error {
+		txs, err := c.db.Query(ctx, fmt.Sprintf(queries.RuntimeRoflAppTransactionsFirstLast, table), runtime, appIds)
+		if err != nil {
+			return wrapError(err)
+		}
+		defer txs.Close()
+
+		for txs.Next() {
+			var appId string
+			var firstTxRound *uint64
+			var firstTxIndex *uint64
+			var firstTxTime time.Time
+			var lastTxRound *uint64
+			var lastTxIndex *uint64
+			var lastTxTime time.Time
+			if err := txs.Scan(&appId, &firstTxRound, &firstTxIndex, &firstTxTime, &lastTxRound, &lastTxIndex, &lastTxTime); err != nil {
+				return wrapError(err)
+			}
+
+			for i, app := range apps.RoflApps {
+				if app.Id == appId {
+					// Update the date created if it's not yet set or if it's before the currently set date.
+					if !firstTxTime.IsZero() && (apps.RoflApps[i].DateCreated.IsZero() || apps.RoflApps[i].DateCreated.After(firstTxTime)) {
+						apps.RoflApps[i].DateCreated = firstTxTime
+					}
+
+					// Update the last activity if it's not yet set or if it's after the currently set date.
+					if !lastTxTime.IsZero() && (apps.RoflApps[i].LastActivity.IsZero() || apps.RoflApps[i].LastActivity.Before(lastTxTime)) {
+						apps.RoflApps[i].LastActivity = lastTxTime
+					}
+
+					// When querying a single ROFL app, we also fetch the latest activity transaction.
+					if id != nil && len(apps.RoflApps) == 1 && lastTxRound != nil && (lastActivityRound == nil || *lastActivityRound < *lastTxRound) {
+						lastActivityRound = lastTxRound
+						lastActivityTxIndex = lastTxIndex
+					}
+				}
+			}
+		}
+
+		return nil
+	}
+
+	// Fetch first and last instance transactions for the apps.
+	if err := fetchTxs("chain.rofl_instance_transactions"); err != nil {
+		return nil, wrapError(err)
+	}
+	// Fetch first and last rofl related transactions for the apps.
+	if err := fetchTxs("chain.rofl_related_transactions"); err != nil {
+		return nil, wrapError(err)
 	}
 
 	// When querying a single ROFL app, also fetch the latest activity transaction.
@@ -2530,7 +2592,7 @@ func (c *StorageClient) RuntimeRoflApps(ctx context.Context, runtime common.Runt
 
 // RuntimeRoflAppInstances returns a list of ROFL app instances.
 func (c *StorageClient) RuntimeRoflAppInstances(ctx context.Context, runtime common.Runtime, params apiTypes.GetRuntimeRoflAppsIdInstancesParams, id string, rak *string) (*RoflAppInstanceList, error) {
-	res, err := c.withTotalCount(
+	res, err := c.withDefaultTotalCount(
 		ctx,
 		queries.RuntimeRoflAppInstances,
 		runtime,
@@ -2568,7 +2630,7 @@ func (c *StorageClient) RuntimeRoflAppInstances(ctx context.Context, runtime com
 
 // RuntimeRoflAppTransactions returns a list of ROFL app transactions.
 func (c *StorageClient) RuntimeRoflAppTransactions(ctx context.Context, runtime common.Runtime, params apiTypes.GetRuntimeRoflAppsIdTransactionsParams, id string) (*RuntimeTransactionList, error) {
-	res, err := c.withTotalCount(
+	res, err := c.withDefaultTotalCount(
 		ctx,
 		queries.RuntimeTransactionsRelatedRofl,
 		runtime,
@@ -2607,7 +2669,7 @@ func (c *StorageClient) RuntimeRoflAppTransactions(ctx context.Context, runtime 
 
 // RuntimeRoflAppInstanceTransactions returns a list of ROFL app instance transactions.
 func (c *StorageClient) RuntimeRoflAppInstanceTransactions(ctx context.Context, runtime common.Runtime, method *string, limit *uint64, offset *uint64, appId string, rak *string) (*RuntimeTransactionList, error) {
-	res, err := c.withTotalCount(
+	res, err := c.withDefaultTotalCount(
 		ctx,
 		queries.RuntimeRoflAppInstanceTransactions,
 		runtime,
@@ -2641,7 +2703,7 @@ func (c *StorageClient) RuntimeRoflAppInstanceTransactions(ctx context.Context, 
 
 // RuntimeRoflmarketProviders returns a list of ROFL market providers.
 func (c *StorageClient) RuntimeRoflmarketProviders(ctx context.Context, runtime common.Runtime, params apiTypes.GetRuntimeRoflmarketProvidersParams, address *staking.Address) (*RoflMarketProviderList, error) {
-	res, err := c.withTotalCount(
+	res, err := c.withDefaultTotalCount(
 		ctx,
 		queries.RuntimeRoflmarketProviders,
 		runtime,
@@ -2690,7 +2752,7 @@ func (c *StorageClient) RuntimeRoflmarketProviders(ctx context.Context, runtime 
 }
 
 func (c *StorageClient) RuntimeRoflmarketOffers(ctx context.Context, runtime common.Runtime, params apiTypes.GetRuntimeRoflmarketProvidersAddressOffersParams, address *staking.Address) (*RoflMarketOfferList, error) {
-	res, err := c.withTotalCount(
+	res, err := c.withDefaultTotalCount(
 		ctx,
 		queries.RuntimeRoflmarketProviderOffers,
 		runtime,
@@ -2730,7 +2792,7 @@ func (c *StorageClient) RuntimeRoflmarketOffers(ctx context.Context, runtime com
 }
 
 func (c *StorageClient) RuntimeRoflmarketInstances(ctx context.Context, runtime common.Runtime, params apiTypes.GetRuntimeRoflmarketProvidersAddressInstancesParams, address *staking.Address) (*RoflMarketInstanceList, error) {
-	res, err := c.withTotalCount(
+	res, err := c.withDefaultTotalCount(
 		ctx,
 		queries.RuntimeRoflmarketProviderInstances,
 		runtime,

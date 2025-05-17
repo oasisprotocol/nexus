@@ -15,6 +15,7 @@ import (
 
 	"github.com/oasisprotocol/nexus/analyzer"
 	"github.com/oasisprotocol/nexus/analyzer/item"
+	"github.com/oasisprotocol/nexus/analyzer/queries"
 	"github.com/oasisprotocol/nexus/common"
 	"github.com/oasisprotocol/nexus/config"
 	"github.com/oasisprotocol/nexus/log"
@@ -172,6 +173,11 @@ func (p *processor) ProcessItem(ctx context.Context, batch *storage.QueryBatch, 
 			txIndex,
 			method,
 			isNativeTransfer,
+		)
+		batch.Queue(
+			queries.RuntimeRoflNumTransactionsIncrement,
+			p.runtime,
+			item.AppID,
 		)
 	}
 

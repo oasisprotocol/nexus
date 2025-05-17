@@ -1026,35 +1026,6 @@ const (
 				SELECT id FROM chain.epochs ORDER BY id DESC LIMIT 1
 			),
 
-			-- Fetch instance and related transactions.
-			 tx_ranked AS (
-				SELECT
-					app_id,
-					tx_round,
-					tx_index,
-					ROW_NUMBER() OVER (PARTITION BY app_id ORDER BY tx_round ASC, tx_index ASC) AS rn_first,
-					ROW_NUMBER() OVER (PARTITION BY app_id ORDER BY tx_round DESC, tx_index DESC) AS rn_last,
-					COUNT(*) OVER (PARTITION BY app_id) AS num_app_transactions
-				FROM (
-					SELECT app_id, tx_round, tx_index FROM chain.rofl_instance_transactions WHERE runtime = $1::runtime
-					UNION ALL
-					SELECT app_id, tx_round, tx_index FROM chain.rofl_related_transactions WHERE runtime = $1::runtime
-				) all_tx
-			),
-
-			-- Aggregate first, last and total transactions per app.
-			tx_stats AS (
-				SELECT
-					app_id,
-					MAX(CASE WHEN rn_first = 1 THEN tx_round END) AS first_tx_round,
-					MAX(CASE WHEN rn_first = 1 THEN tx_index END) AS first_tx_index,
-					MAX(CASE WHEN rn_last = 1 THEN tx_round END) AS last_tx_round,
-					MAX(CASE WHEN rn_last = 1 THEN tx_index END) AS last_tx_index,
-					MAX(num_app_transactions) AS num_app_transactions
-				FROM tx_ranked
-				GROUP BY app_id
-			),
-
 			-- Aggregate active instance data per app.
 			active_instances AS (
 				SELECT
@@ -1088,10 +1059,6 @@ const (
 			ra.metadata,
 			ra.secrets,
 			ra.removed,
-			first_blk.timestamp AS date_created,
-			latest_blk.timestamp AS last_activity,
-			tx_stats.last_tx_round,
-			tx_stats.last_tx_index,
 			COALESCE(ai.num_active_instances, 0) as num_active_instances,
 			COALESCE(ai.instance_json, '[]'::jsonb) AS active_instances
 		FROM chain.rofl_apps AS ra
@@ -1109,17 +1076,6 @@ const (
 		-- Join aggregated active instance data.
 		LEFT JOIN active_instances ai ON ai.app_id = ra.id
 
-		-- Join transaction stats.
-		LEFT JOIN tx_stats ON tx_stats.app_id = ra.id
-
-		-- Fetch the block of the first transaction.
-		LEFT JOIN chain.runtime_blocks AS first_blk
-		ON first_blk.runtime = ra.runtime AND first_blk.round = tx_stats.first_tx_round
-
-		-- Fetch the block of the latest transaction.
-		LEFT JOIN chain.runtime_blocks AS latest_blk
-		ON latest_blk.runtime = ra.runtime AND latest_blk.round = tx_stats.last_tx_round
-
 		LEFT JOIN chain.accounts AS a ON a.address = ra.admin
 
 		WHERE
@@ -1129,9 +1085,63 @@ const (
 			-- Exclude not yet processed apps.
 			ra.last_processed_round IS NOT NULL
 
-		ORDER BY num_active_instances DESC, tx_stats.num_app_transactions DESC, ra.id DESC
+		ORDER BY num_active_instances DESC, ra.num_transactions DESC, ra.id DESC
 		LIMIT $4::bigint
 		OFFSET $5::bigint`
+
+	RuntimeRoflAppTransactionsFirstLast = `
+		WITH
+			app_ids AS (
+				SELECT UNNEST($2::text[]) AS app_id
+			),
+
+			-- Get the first tx_round for each app_id.
+			firsts AS (
+				SELECT
+					a.app_id,
+					tx.tx_round AS first_tx_round,
+					tx.tx_index AS first_tx_index
+				FROM app_ids a
+				JOIN LATERAL (
+					SELECT tx_round, tx_index
+					FROM %[1]s tx
+					WHERE tx.runtime = $1::runtime AND tx.app_id = a.app_id
+					ORDER BY tx.tx_round ASC, tx.tx_index ASC
+					LIMIT 1
+				) tx ON true
+			),
+
+			-- Get the last tx_round for each app_id.
+			lasts AS (
+				SELECT
+					a.app_id,
+					tx.tx_round AS last_tx_round,
+					tx.tx_index AS last_tx_index
+				FROM app_ids a
+				JOIN LATERAL (
+					SELECT tx_round, tx_index
+					FROM %[1]s tx
+					WHERE tx.runtime = $1::runtime AND tx.app_id = a.app_id
+					ORDER BY tx.tx_round DESC, tx.tx_index DESC
+					LIMIT 1
+				) tx ON true
+			)
+
+		SELECT
+			f.app_id,
+			f.first_tx_round,
+			f.first_tx_index,
+			first_blk.timestamp AS first_tx_time,
+			l.last_tx_round,
+			l.last_tx_index,
+			last_blk.timestamp AS last_tx_time
+		FROM
+			firsts f
+			JOIN lasts l USING (app_id)
+			LEFT JOIN chain.runtime_blocks AS first_blk
+				ON first_blk.runtime = $1::runtime AND first_blk.round = f.first_tx_round
+			LEFT JOIN chain.runtime_blocks AS last_blk
+				ON last_blk.runtime = $1::runtime AND last_blk.round = l.last_tx_round`
 
 	RuntimeRoflAppInstances = `
 		SELECT

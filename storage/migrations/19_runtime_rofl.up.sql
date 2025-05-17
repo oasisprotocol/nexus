@@ -17,6 +17,8 @@ CREATE TABLE chain.rofl_apps
   -- metadata_name TEXT, -- Name, extracted from metadata key `net.oasis.rofl.name`. -- Added in 26_runtime_rofl_metadata_name.up.sql.
   secrets JSONB, -- arbitrary key/value pairs.
 
+  -- num_transactions UINT63 NOT NULL, -- Added in 27_runtime_rofl_num_transactions.up.sql.
+
   removed BOOLEAN NOT NULL DEFAULT FALSE,
 
   -- Fields for analyzer tracking.
