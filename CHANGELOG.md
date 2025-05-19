@@ -12,6 +12,42 @@ The format is inspired by [Keep a Changelog].
 
 <!-- TOWNCRIER -->
 
+## 0.6.13 (2025-05-19)
+
+### Features
+
+- Add icons and origins of some sapphire tokens
+  ([#985](https://github.com/oasisprotocol/nexus/issues/985),
+   [#988](https://github.com/oasisprotocol/nexus/issues/988))
+
+- analyzer/runtime: Support providing additional EVM token addresses
+  ([#986](https://github.com/oasisprotocol/nexus/issues/986))
+
+- analyzer/roflmarket: Implement roflmarket analyzer
+  ([#987](https://github.com/oasisprotocol/nexus/issues/987))
+
+- Add dApp URLs to named-addresses
+  ([#991](https://github.com/oasisprotocol/nexus/issues/991))
+
+- analyzer/aggregate: Increase pg_statistic sample size for related txs
+  ([#994](https://github.com/oasisprotocol/nexus/issues/994))
+
+- api/rofl_apps: Support filtering by name
+  ([#997](https://github.com/oasisprotocol/nexus/issues/997))
+
+### Bug Fixes and Improvements
+
+- api/runtime: Validate runtime parameter
+  ([#992](https://github.com/oasisprotocol/nexus/issues/992))
+
+  In some API endpoints the runtime parameter was not validated.
+
+- api/rofl_apps: Optimize rofl apps query
+  ([#998](https://github.com/oasisprotocol/nexus/issues/998))
+
+  Additionally, the api/rofl_apps is now limited to returning at most 100
+  responses, down from 1000.
+
 ## 0.6.12 (2025-04-15)
 
 ### Features
