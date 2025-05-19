@@ -173,10 +173,6 @@ CREATE TABLE chain.entities
   logo_url TEXT,
   start_block UINT63
 );
--- This would ideally not be needed, and address preimages table would be used instead,
--- but it looks like the address preimages table was not populated for consensus data.
--- https://github.com/oasisprotocol/nexus/issues/907
--- CREATE INDEX ix_entities_address ON chain.entities USING hash (address); -- Added in 16_entities_address_idx.up.sql
 
 CREATE TABLE chain.nodes
 (

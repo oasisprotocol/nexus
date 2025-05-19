@@ -62,6 +62,7 @@ func (mg *GenesisProcessor) addRegistryBackendMigrations(batch *storage.QueryBat
 			staking.NewAddress(entity.ID).String(),
 			document.Height,
 		)
+		RegisterConsensusAddress(batch, staking.NewAddress(entity.ID), entity.ID[:])
 	}
 
 	// Populate runtimes.
@@ -125,6 +126,7 @@ func (mg *GenesisProcessor) addRegistryBackendMigrations(batch *storage.QueryBat
 			nil,
 			nil,
 		)
+		RegisterConsensusAddress(batch, staking.NewAddress(node.ID), node.ID[:])
 
 		for _, runtime := range node.Runtimes {
 			batch.Queue(queries.ConsensusRuntimeNodesUpsert,

@@ -472,11 +472,9 @@ const (
 		OFFSET $4::bigint`
 
 	ValidatorHistory = `
-		-- This would ideally use the address preimages table, but it looks like the address preimages table was not populated for consensus data.
-		-- https://github.com/oasisprotocol/nexus/issues/907
 		WITH entity AS (
-			SELECT id
-			FROM chain.entities
+			SELECT address_data
+			FROM chain.address_preimages
 			WHERE address = $1::text
 		)
 		SELECT
@@ -487,7 +485,7 @@ const (
 			escrow_total_shares_debonding,
 			num_delegators
 		FROM history.validators
-		WHERE id = (SELECT id FROM entity) AND
+		WHERE id = (SELECT encode(address_data, 'base64') FROM entity) AND
 			($2::bigint IS NULL OR epoch >= $2::bigint) AND
 			($3::bigint IS NULL OR epoch <= $3::bigint)
 		ORDER BY epoch DESC

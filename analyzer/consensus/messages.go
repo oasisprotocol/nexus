@@ -3,6 +3,8 @@ package consensus
 import (
 	"encoding/json"
 
+	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
+
 	"github.com/oasisprotocol/nexus/analyzer/util/addresses"
 	apiTypes "github.com/oasisprotocol/nexus/api/v1/types"
 	"github.com/oasisprotocol/nexus/coreapi/v22.2.11/roothash/api/message"
@@ -43,6 +45,11 @@ func extractMessageData(logger *log.Logger, m message.Message) MessageData {
 				)
 			}
 			messageData.relatedAddresses[to] = struct{}{}
+			messageData.addressPreimages[to] = &addresses.PreimageData{
+				ContextIdentifier: sdkTypes.AddressV0Ed25519Context.Identifier,
+				ContextVersion:    int(sdkTypes.AddressV0Ed25519Context.Version),
+				Data:              m.Staking.Transfer.To[:],
+			}
 		case m.Staking.Withdraw != nil:
 			messageData.messageType = apiTypes.RoothashMessageTypeStakingWithdraw
 			body, err := json.Marshal(m.Staking.Withdraw)
@@ -62,6 +69,11 @@ func extractMessageData(logger *log.Logger, m message.Message) MessageData {
 				)
 			}
 			messageData.relatedAddresses[from] = struct{}{}
+			messageData.addressPreimages[from] = &addresses.PreimageData{
+				ContextIdentifier: sdkTypes.AddressV0Ed25519Context.Identifier,
+				ContextVersion:    int(sdkTypes.AddressV0Ed25519Context.Version),
+				Data:              m.Staking.Withdraw.From[:],
+			}
 		case m.Staking.AddEscrow != nil:
 			messageData.messageType = apiTypes.RoothashMessageTypeStakingAddEscrow
 			body, err := json.Marshal(m.Staking.AddEscrow)
@@ -81,6 +93,11 @@ func extractMessageData(logger *log.Logger, m message.Message) MessageData {
 				)
 			}
 			messageData.relatedAddresses[account] = struct{}{}
+			messageData.addressPreimages[account] = &addresses.PreimageData{
+				ContextIdentifier: sdkTypes.AddressV0Ed25519Context.Identifier,
+				ContextVersion:    int(sdkTypes.AddressV0Ed25519Context.Version),
+				Data:              m.Staking.AddEscrow.Account[:],
+			}
 		case m.Staking.ReclaimEscrow != nil:
 			messageData.messageType = apiTypes.RoothashMessageTypeStakingReclaimEscrow
 			body, err := json.Marshal(m.Staking.ReclaimEscrow)
@@ -100,6 +117,11 @@ func extractMessageData(logger *log.Logger, m message.Message) MessageData {
 				)
 			}
 			messageData.relatedAddresses[account] = struct{}{}
+			messageData.addressPreimages[account] = &addresses.PreimageData{
+				ContextIdentifier: sdkTypes.AddressV0Ed25519Context.Identifier,
+				ContextVersion:    int(sdkTypes.AddressV0Ed25519Context.Version),
+				Data:              m.Staking.ReclaimEscrow.Account[:],
+			}
 		default:
 			logger.Info("unhandled staking message",
 				"staking_message", m.Staking,

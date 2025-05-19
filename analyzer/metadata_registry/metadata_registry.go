@@ -13,6 +13,7 @@ import (
 	staking "github.com/oasisprotocol/nexus/coreapi/v22.2.11/staking/api"
 
 	"github.com/oasisprotocol/nexus/analyzer"
+	"github.com/oasisprotocol/nexus/analyzer/consensus"
 	"github.com/oasisprotocol/nexus/analyzer/httpmisc"
 	"github.com/oasisprotocol/nexus/analyzer/item"
 	"github.com/oasisprotocol/nexus/analyzer/pubclient"
@@ -107,6 +108,7 @@ func (p *processor) ProcessItem(ctx context.Context, batch *storage.QueryBatch, 
 			meta,
 			logoUrl,
 		)
+		consensus.RegisterConsensusAddress(batch, staking.NewAddress(id), id[:])
 	}
 
 	return nil
