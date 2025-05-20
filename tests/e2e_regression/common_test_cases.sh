@@ -29,6 +29,8 @@ commonTestCases=(
   'db__evm_balances                   select * from chain.evm_token_balances where balance != 0 order by runtime, token_address, account_address'
   'db__evm_tokens                     select runtime, token_address, token_type, token_name, symbol, decimals, total_supply, num_transfers from chain.evm_tokens order by token_address'
   'db__evm_contracts                  select runtime, contract_address, creation_tx, md5(abi::text) as abi_md5 from chain.evm_contracts order by runtime, contract_address'
+  # address preimages:
+  'db__address_preimages              select * from chain.address_preimages order by address'
 
   'status                             /v1/'
   'spec                               /v1/spec/v1.yaml'
