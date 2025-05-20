@@ -18,6 +18,7 @@ import (
 	cometbft "github.com/oasisprotocol/oasis-core/go/consensus/cometbft/api"
 	"github.com/oasisprotocol/oasis-core/go/consensus/cometbft/crypto"
 	sdkConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
+	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 
 	"github.com/oasisprotocol/nexus/analyzer/consensus/static"
 	"github.com/oasisprotocol/nexus/analyzer/util/addresses"
@@ -129,6 +130,44 @@ func (m *processor) PreWork(ctx context.Context) error {
 	}
 	m.logger.Info("inserted static account first active timestamps")
 
+	// XXX: Remove in future, after this was run on all deployments.
+	// Recompute address preimages for all entities and nodes.
+	batch = &storage.QueryBatch{}
+	if err := m.recomputePreimagesForIDs(ctx, batch, "chain.nodes"); err != nil {
+		return fmt.Errorf("recomputing node preimages: %w", err)
+	}
+	if err := m.target.SendBatch(ctx, batch); err != nil {
+		return err
+	}
+	batch = &storage.QueryBatch{}
+	if err := m.recomputePreimagesForIDs(ctx, batch, "chain.entities"); err != nil {
+		return fmt.Errorf("recomputing entity preimages: %w", err)
+	}
+	if err := m.target.SendBatch(ctx, batch); err != nil {
+		return err
+	}
+	m.logger.Info("recomputed node and entity preimages")
+
+	return nil
+}
+
+func (m *processor) recomputePreimagesForIDs(ctx context.Context, batch *storage.QueryBatch, tableName string) error {
+	rows, err := m.target.Query(ctx, fmt.Sprintf("SELECT id FROM %s", tableName))
+	if err != nil {
+		return fmt.Errorf("querying %s: %w", tableName, err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var dbID string
+		if err := rows.Scan(&dbID); err != nil {
+			return fmt.Errorf("scanning %s: %w", tableName, err)
+		}
+		var id signature.PublicKey
+		if err := id.UnmarshalText([]byte(dbID)); err != nil {
+			return fmt.Errorf("unmarshalling %s id: %w", dbID, err)
+		}
+		RegisterConsensusAddress(batch, staking.NewAddress(id), id[:])
+	}
 	return nil
 }
 
@@ -742,6 +781,16 @@ func (m *processor) queueRuntimeRegistrations(batch *storage.QueryBatch, data *r
 	return nil
 }
 
+// RegisterConsensusAddress inserts the address preimage of the given consensus address and ID.
+func RegisterConsensusAddress(batch *storage.QueryBatch, address staking.Address, id []byte) {
+	batch.Queue(queries.AddressPreimageInsert,
+		address,
+		sdkTypes.AddressV0Ed25519Context.Identifier,
+		sdkTypes.AddressV0Ed25519Context.Version,
+		id,
+	)
+}
+
 func (m *processor) queueEntityEvents(batch *storage.QueryBatch, data *registryData) error {
 	for _, entityEvent := range data.EntityEvents {
 		entityID := entityEvent.Entity.ID.String()
@@ -752,11 +801,14 @@ func (m *processor) queueEntityEvents(batch *storage.QueryBatch, data *registryD
 				node.String(),
 			)
 		}
+
+		entityAddress := staking.NewAddress(entityEvent.Entity.ID)
 		batch.Queue(queries.ConsensusEntityUpsert,
 			entityID,
-			staking.NewAddress(entityEvent.Entity.ID).String(),
+			entityAddress.String(),
 			data.Height,
 		)
+		RegisterConsensusAddress(batch, entityAddress, entityEvent.Entity.ID[:])
 	}
 
 	return nil
@@ -790,6 +842,7 @@ func (m *processor) queueNodeEvents(batch *storage.QueryBatch, data *registryDat
 				nodeEvent.SoftwareVersion,
 				0,
 			)
+			RegisterConsensusAddress(batch, staking.NewAddress(nodeEvent.NodeID), nodeEvent.NodeID[:])
 
 			// Update the node's runtime associations by deleting
 			// previous node records and inserting new ones.
