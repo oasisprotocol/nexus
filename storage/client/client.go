@@ -928,6 +928,36 @@ func (c *StorageClient) Account(ctx context.Context, address staking.Address) (*
 		a.Allowances = append(a.Allowances, al)
 	}
 
+	// Check if the account is a validator entity or a validator node.
+	var validatorNodeForID, validatorEntityID *string
+	err = c.db.QueryRow(
+		ctx,
+		queries.AccountIsValidator,
+		address.String(),
+	).Scan(&validatorNodeForID, &validatorEntityID)
+	switch err {
+	case nil:
+		// Is a validator.
+	case pgx.ErrNoRows:
+		// Not a validator.
+	default:
+		return nil, wrapError(err)
+	}
+	if validatorNodeForID != nil {
+		var nodeID signature.PublicKey
+		if err := nodeID.UnmarshalText([]byte(*validatorNodeForID)); err != nil {
+			return nil, wrapError(err)
+		}
+		a.ValidatorNodeFor = common.Ptr(staking.NewAddress(nodeID).String())
+	}
+	if validatorEntityID != nil {
+		var entityID signature.PublicKey
+		if err := entityID.UnmarshalText([]byte(*validatorEntityID)); err != nil {
+			return nil, wrapError(err)
+		}
+		a.ValidatorEntity = common.Ptr(staking.NewAddress(entityID).String())
+	}
+
 	return &a, nil
 }
 

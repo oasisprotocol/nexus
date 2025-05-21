@@ -1,0 +1,15 @@
+{
+  "address": "oasis1qzs0a640ax6qplzt5zg9tvw94qwr7670rvs6xyld",
+  "allowances": [],
+  "available": "0",
+  "debonding": "0",
+  "debonding_delegations_balance": "0",
+  "delegations_balance": "0",
+  "escrow": "0",
+  "first_activity": "NONDETERMINISTIC",
+  "nonce": 69597,
+  "stats": {
+    "num_txns": 6
+  },
+  "validator_node_for": "oasis1qzlzczsdme4scprjjh4h4vtljnmx3ag4vgpdnqln"
+}
