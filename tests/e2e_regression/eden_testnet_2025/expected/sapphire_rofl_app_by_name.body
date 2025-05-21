@@ -4,6 +4,63 @@
     {
       "active_instances": [
         {
+          "endorsing_node_id": "bOlqho9R3JHP64kJk+SfMxZt5fNkYWf6gdhErWlY60E=",
+          "expiration_epoch": 44111,
+          "extra_keys": [
+            "{\"secp256k1\":\"A284YJmdWYpwL/kecGeH2+9Hnnf+AICofeJaY/oit+0P\"}"
+          ],
+          "rak": "+aNLrLHYgRlBq7XyooiuVaqnyPqb2e7G8EtmcAl03NU=",
+          "rek": "z3uxtGafB/E3L0xcv47H/fRTnvaDLSGtpRxhh27123Y="
+        },
+        {
+          "endorsing_node_id": "bOlqho9R3JHP64kJk+SfMxZt5fNkYWf6gdhErWlY60E=",
+          "expiration_epoch": 44111,
+          "extra_keys": [
+            "{\"secp256k1\":\"A9HZmnVpKYvdWAYOZQERYkearepHoocGXslP+Hon7jmB\"}"
+          ],
+          "rak": "InHBiLUcFjdTrDnDhd9pawO8ciQ60qaE4IYET3XX/mo=",
+          "rek": "EMdxhacdLuItFFwE2F7CdecaNPjo5kVksEcBxJiHVRM="
+        }
+      ],
+      "admin": "oasis1qpspm8q6pk0lndcjf28ene5sgjgzex4aqcqh2kdh",
+      "date_created": "2025-05-06T15:57:52Z",
+      "id": "rofl1qqtnmq89xgyychrtj26wjmuugmusk2l4vynvymgm",
+      "last_activity": "2025-05-06T16:09:46Z",
+      "metadata": {
+        "net.oasis.rofl.name": "demo-rofl-tgbot",
+        "net.oasis.rofl.version": "0.1.0"
+      },
+      "num_active_instances": 2,
+      "policy": {
+        "enclaves": [
+          "A0idAIRQ1vpg99EKFjqPiGN9h4qjzU+YXvyOCSG1rW4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+          "IN09a8P1ysW06bpiRXLOtPfFWavvlU3M8520z3tAgdsAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=="
+        ],
+        "endorsements": [
+          {
+            "any": {}
+          }
+        ],
+        "fees": 2,
+        "max_expiration": 3,
+        "quotes": {
+          "pcs": {
+            "min_tcb_evaluation_data_number": 18,
+            "tcb_validity_period": 30,
+            "tdx": {}
+          }
+        }
+      },
+      "removed": false,
+      "secrets": {
+        "TOKEN": "pGJwa1ggI0eS2bepeDtO2VGtt17Vch+2UP2OPNwwp438EH0KvUZkbmFtZVWiG0QF7m3X36jrvx19jsA7lnI45CRlbm9uY2VPYCqNGoCTbFjDWb+snRQmZXZhbHVlWD7xyqZOcNUprX/L8ywUmJmuI4yzawbDMcheoRzBBVfESCTvuzrEgxU+dmFznA2Fkic0Njr2Jak5UjtINPBS7w=="
+      },
+      "sek": "VgyDU/8pmHirzDNb/vUkdzWNRy3BFKjd8QTr4SunCRw=",
+      "stake": "100000000000000000000"
+    },
+    {
+      "active_instances": [
+        {
           "endorsing_node_id": "7zI/cYuiUTPz61PL9M7f1Q/7b43nG0xk1w6yGde+msQ=",
           "expiration_epoch": 44111,
           "extra_keys": [
@@ -49,7 +106,146 @@
       "secrets": null,
       "sek": "438B4/HJ6nmyzg0v50UxvRiBLn9ZJRa8uzDjpsD18Dw=",
       "stake": "10000000000000000000000"
+    },
+    {
+      "active_instances": [
+        {
+          "endorsing_entity_id": "hp8sjG2cJPncrEYWZKqisUNiMYzUC/QomhrJwoLQVjc=",
+          "endorsing_node_id": "5MsgQwijUlpH9+0Hbyors5jwmx7tTmKMA4c9leV3prI=",
+          "expiration_epoch": 44111,
+          "extra_keys": [
+            "{\"secp256k1\":\"Ax7ww8ukRTiqn8X2gSQTwcDM9oW2kWF3RByqfdpiT7gf\"}"
+          ],
+          "rak": "tnvWUYb/SGtHSlDxoGENW0BzSD8t+VEJU4umH9RzVFw=",
+          "rek": "cpw+0KhZudVM9YtdgPeOUTyI/pyp564hDzWsnqiZd0c="
+        }
+      ],
+      "admin": "oasis1qpupfu7e2n6pkezeaw0yhj8mcem8anj64ytrayne",
+      "date_created": "2025-05-06T15:54:15Z",
+      "id": "rofl1qrtetspnld9efpeasxmryl6nw9mgllr0euls3dwn",
+      "last_activity": "2025-05-06T15:54:15Z",
+      "metadata": {
+        "net.oasis.rofl.author": "Matevž Jekovec <matevz@oasisprotocol.org>",
+        "net.oasis.rofl.license": "Apache-2.0",
+        "net.oasis.rofl.name": "demo-rofl-chatbot",
+        "net.oasis.rofl.repository": "https://github.com/oasisprotocol/demo-rofl-chatbot",
+        "net.oasis.rofl.version": "0.1.0"
+      },
+      "num_active_instances": 1,
+      "policy": {
+        "enclaves": [
+          "YjeeznQx9i/UQKVoPcOVT3P5oxOHGJ6r1VwMBetuSREAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+          "IyVddKd5AtSGmo7FHnZrj0vIzfIOp3DMBFHwUbb0qVQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=="
+        ],
+        "endorsements": [
+          {
+            "any": {}
+          }
+        ],
+        "fees": 2,
+        "max_expiration": 3,
+        "quotes": {
+          "pcs": {
+            "min_tcb_evaluation_data_number": 17,
+            "tcb_validity_period": 30,
+            "tdx": {}
+          }
+        }
+      },
+      "removed": false,
+      "secrets": null,
+      "sek": "2L9Jcwa+cfGbhfv24x3TWEn6UekjfKlvEL6qY3PLnwo=",
+      "stake": "10000000000000000000000"
+    },
+    {
+      "active_instances": [
+        {
+          "endorsing_entity_id": "hp8sjG2cJPncrEYWZKqisUNiMYzUC/QomhrJwoLQVjc=",
+          "endorsing_node_id": "5MsgQwijUlpH9+0Hbyors5jwmx7tTmKMA4c9leV3prI=",
+          "expiration_epoch": 44111,
+          "extra_keys": [
+            "{\"secp256k1\":\"A8n+/j3BDDeSprdLbnjj/mATVg4mMXY4wlaphPMeZGCQ\"}"
+          ],
+          "rak": "6qE7Fu26KTZrZ4hDMc/h5kEF+nlEJ8RDJX+cfP8WvUE=",
+          "rek": "Yn1gO/wcFpjKsBZt4sWceUawl1cUe4cA2UYoigSrMUA="
+        }
+      ],
+      "admin": "oasis1qrk58a6j2qn065m6p06jgjyt032f7qucy5wqeqpt",
+      "date_created": "2025-05-06T15:54:15Z",
+      "id": "rofl1qrqt8jhk2s9f60yshmgr7g4h9p6fmezkavedwxkz",
+      "last_activity": "2025-05-06T15:54:15Z",
+      "metadata": {
+        "net.oasis.rofl.author": "Matevž Jekovec <matevz@oasisprotocol.org>",
+        "net.oasis.rofl.description": "Test ROFL that opens incoming HTTP port externally",
+        "net.oasis.rofl.license": "Apache-2.0",
+        "net.oasis.rofl.name": "demo-rofl-www",
+        "net.oasis.rofl.repository": "https://github.com/matevz/demo-rofl-www",
+        "net.oasis.rofl.version": "0.1.0"
+      },
+      "num_active_instances": 1,
+      "policy": {
+        "enclaves": [
+          "6ZsONNnL54vM3t44vbFgJwjkL0/kTvxSYYg2+xYvrFcAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+          "GjPJesdOPuD57KWlRzOXgmnyExYaRKH8/QF1g18mZZQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=="
+        ],
+        "endorsements": [
+          {
+            "any": {}
+          }
+        ],
+        "fees": 2,
+        "max_expiration": 3,
+        "quotes": {
+          "pcs": {
+            "min_tcb_evaluation_data_number": 18,
+            "tcb_validity_period": 30,
+            "tdx": {}
+          }
+        }
+      },
+      "removed": false,
+      "secrets": null,
+      "sek": "n69X+/cCL4/aOep5lrGbORsZiOWB7DXZQBk58aK3vAI=",
+      "stake": "100000000000000000000"
+    },
+    {
+      "active_instances": [],
+      "admin": "oasis1qr2sk7vapuua33faea5uwk5x8m7rzeaavyprkkww",
+      "date_created": "2025-05-06T13:29:39Z",
+      "id": "rofl1qr4a7um9hr6axg9xukw2rcjr682z7g98mqc0u2vv",
+      "last_activity": "2025-05-06T13:34:08Z",
+      "metadata": {
+        "net.oasis.rofl.name": "demo-rofl-tgbot",
+        "net.oasis.rofl.version": "0.1.0"
+      },
+      "num_active_instances": 0,
+      "policy": {
+        "enclaves": [
+          "FevW+UVkKQTYqu3t4/auRraanFgswJs72JP9iWiRNOUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+          "0eo7w0Ti35cR2QqfWfbt9kWLPFBtD5IXSdB2TBtsyqkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=="
+        ],
+        "endorsements": [
+          {
+            "any": {}
+          }
+        ],
+        "fees": 2,
+        "max_expiration": 3,
+        "quotes": {
+          "pcs": {
+            "min_tcb_evaluation_data_number": 18,
+            "tcb_validity_period": 30,
+            "tdx": {}
+          }
+        }
+      },
+      "removed": false,
+      "secrets": {
+        "TOKEN": "pGJwa1ggLxUp7yByGpOcZoFYq59s/VUGLY39Uzr7exYTzp7wmWZkbmFtZVWn0O0ygnE3in0SnCMeelOEK6JjWpNlbm9uY2VPGInrqw6aw3p237BSPNmMZXZhbHVlWD7nXxHbtLiLGZRGE9sAti3AzPOsJwACnZzVZiv6VHPVyDjC6OavL9qdpyp81vD23cdevRUcPQ5ao1sAYuhbNA=="
+      },
+      "sek": "Vlb42078fuszUfYe6AL/7OoChVBM0ubJevlGKN3WKVM=",
+      "stake": "100000000000000000000"
     }
   ],
-  "total_count": 1
+  "total_count": 5
 }
