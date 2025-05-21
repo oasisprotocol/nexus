@@ -929,12 +929,12 @@ func (c *StorageClient) Account(ctx context.Context, address staking.Address) (*
 	}
 
 	// Check if the account is a validator entity or a validator node.
-	var validatorNodeForID, validatorEntityID *string
+	var entityNodeForID, entityID *string
 	err = c.db.QueryRow(
 		ctx,
-		queries.AccountIsValidator,
+		queries.AccountIsEntity,
 		address.String(),
-	).Scan(&validatorNodeForID, &validatorEntityID)
+	).Scan(&entityNodeForID, &entityID)
 	switch err {
 	case nil:
 		// Is a validator.
@@ -943,19 +943,19 @@ func (c *StorageClient) Account(ctx context.Context, address staking.Address) (*
 	default:
 		return nil, wrapError(err)
 	}
-	if validatorNodeForID != nil {
+	if entityNodeForID != nil {
 		var nodeID signature.PublicKey
-		if err := nodeID.UnmarshalText([]byte(*validatorNodeForID)); err != nil {
+		if err := nodeID.UnmarshalText([]byte(*entityNodeForID)); err != nil {
 			return nil, wrapError(err)
 		}
-		a.ValidatorNodeFor = common.Ptr(staking.NewAddress(nodeID).String())
+		a.EntityNodeFor = common.Ptr(staking.NewAddress(nodeID).String())
 	}
-	if validatorEntityID != nil {
-		var entityID signature.PublicKey
-		if err := entityID.UnmarshalText([]byte(*validatorEntityID)); err != nil {
+	if entityID != nil {
+		var id signature.PublicKey
+		if err := id.UnmarshalText([]byte(*entityID)); err != nil {
 			return nil, wrapError(err)
 		}
-		a.ValidatorEntity = common.Ptr(staking.NewAddress(entityID).String())
+		a.Entity = common.Ptr(staking.NewAddress(id).String())
 	}
 
 	return &a, nil

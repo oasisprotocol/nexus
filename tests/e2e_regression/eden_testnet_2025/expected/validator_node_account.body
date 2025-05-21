@@ -5,11 +5,11 @@
   "debonding": "0",
   "debonding_delegations_balance": "0",
   "delegations_balance": "0",
+  "entity_node_for": "oasis1qzlzczsdme4scprjjh4h4vtljnmx3ag4vgpdnqln",
   "escrow": "0",
   "first_activity": "NONDETERMINISTIC",
   "nonce": 69597,
   "stats": {
     "num_txns": 6
-  },
-  "validator_node_for": "oasis1qzlzczsdme4scprjjh4h4vtljnmx3ag4vgpdnqln"
+  }
 }
