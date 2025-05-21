@@ -271,10 +271,10 @@ const (
 			FROM chain.allowances
 			WHERE owner = $1::text`
 
-	AccountIsValidator = `
+	AccountIsEntity = `
 		SELECT
-			n.entity_id AS validator_node_for,
-			e.id AS validator_entity
+			n.entity_id AS entity_node_for,
+			e.id AS entity
 		FROM
 			chain.address_preimages ap
 		LEFT JOIN chain.nodes n ON n.id = encode(ap.address_data, 'base64')
