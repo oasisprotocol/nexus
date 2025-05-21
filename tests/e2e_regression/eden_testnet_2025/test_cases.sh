@@ -22,6 +22,7 @@ testCases=(
   'tx_failed                                           /v1/consensus/transactions/30400ff54d30f35983b149a7c95d577c95f89080b78c9cba54d21e5b0ec2b8c1'
   'validator                                           /v1/consensus/validators/oasis1qqv25adrld8jjquzxzg769689lgf9jxvwgjs8tha'
   'validator_history                                   /v1/consensus/validators/oasis1qqv25adrld8jjquzxzg769689lgf9jxvwgjs8tha/history'
+  'validator_node_account                              /v1/consensus/accounts/oasis1qzs0a640ax6qplzt5zg9tvw94qwr7670rvs6xyld'
   'sapphire_tx                                         /v1/sapphire/transactions/0xd82792e933ef7e843324db7bebe1f0930370e673656f541a2aebc791ead184ec'
   'sapphire_failed_tx                                  /v1/sapphire/transactions/0x8368ebf06e2498d5a927a5de81b7b89272693491b0f815a819d2491fc0230198'
   'sapphire_txs_by_related_account                     /v1/sapphire/transactions?rel=oasis1qp0j04msfhsdjrf5jpzr08v8yw9690ts9ycqv4j9'

@@ -10,5 +10,6 @@
   "nonce": 22,
   "stats": {
     "num_txns": 3
-  }
+  },
+  "validator_entity": "oasis1qpn83e8hm3gdhvpfv66xj3qsetkj3ulmkugmmxn3"
 }

@@ -2704,6 +2704,14 @@ components:
             This field is omitted when listing multiple accounts.
         stats:
           allOf: [$ref: '#/components/schemas/AccountStats']
+        validator_node_for:
+          type: string
+          description: The validator address, if this account is a validator node belonging to a validator. Only present when querying a single account.
+          example: *staking_address_2
+        validator_entity:
+          type: string
+          description: The validator address, if this account *is* a validator entity. Only present when querying a single account.
+          example: *staking_address_2
       description: |
         A consensus layer account.
 

@@ -271,6 +271,16 @@ const (
 			FROM chain.allowances
 			WHERE owner = $1::text`
 
+	AccountIsValidator = `
+		SELECT
+			n.entity_id AS validator_node_for,
+			e.id AS validator_entity
+		FROM
+			chain.address_preimages ap
+		LEFT JOIN chain.nodes n ON n.id = encode(ap.address_data, 'base64')
+		LEFT JOIN chain.entities e ON e.id = encode(ap.address_data, 'base64')
+		WHERE ap.address = $1`
+
 	Delegations = `
 		SELECT delegatee, shares, escrow_balance_active, escrow_total_shares_active
 			FROM chain.delegations
