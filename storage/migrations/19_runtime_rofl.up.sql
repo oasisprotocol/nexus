@@ -28,7 +28,7 @@ CREATE TABLE chain.rofl_apps
 CREATE INDEX ix_rofl_apps_stale ON chain.rofl_apps (runtime, id) WHERE last_processed_round IS NULL OR last_queued_round > last_processed_round;
 -- On the API endpoint we only ever return apps that have been processed.
 CREATE INDEX ix_rofl_apps_processed ON chain.rofl_apps (runtime, id) WHERE last_processed_round IS NOT NULL;
--- CREATE INDEX ix_rofl_apps_metadata_name ON chain.rofl_apps (runtime, metadata_name); -- Added in 26_runtime_rofl_metadata_name.up.sql.
+-- CREATE INDEX ix_rofl_apps_metadata_name ON chain.rofl_apps USING GIN (metadata_name gin_trgm_ops); -- Added in 29_runtime_rofl_metadata_name_partial.up.sql.
 
 CREATE TABLE chain.rofl_instances
 (

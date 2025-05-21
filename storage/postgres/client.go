@@ -228,7 +228,7 @@ func (c *Client) listNexusTables(ctx context.Context) ([]string, error) {
 	}
 
 	tables := []string{}
-	defer rows.Close() // Ensure rows is closed even if we return early.
+	defer rows.Close()
 	for rows.Next() {
 		var schema, table string
 		if err = rows.Scan(&schema, &table); err != nil {
@@ -237,6 +237,26 @@ func (c *Client) listNexusTables(ctx context.Context) ([]string, error) {
 		tables = append(tables, fmt.Sprintf("%s.%s", schema, table))
 	}
 	return tables, nil
+}
+
+func (c *Client) listNexusExtensions(ctx context.Context) ([]string, error) {
+	rows, err := c.Query(ctx, `
+		SELECT extname FROM pg_extension WHERE extname NOT IN ('plpgsql');
+	`)
+	if err != nil {
+		return nil, fmt.Errorf("list extensions: %w", err)
+	}
+
+	extensions := []string{}
+	defer rows.Close()
+	for rows.Next() {
+		var ext string
+		if err = rows.Scan(&ext); err != nil {
+			return nil, err
+		}
+		extensions = append(extensions, ext)
+	}
+	return extensions, nil
 }
 
 func (c *Client) listNexusTypes(ctx context.Context) ([]string, error) {
@@ -253,7 +273,7 @@ func (c *Client) listNexusTypes(ctx context.Context) ([]string, error) {
 	}
 
 	types := []string{}
-	defer rows.Close() // Ensure rows is closed even if we return early.
+	defer rows.Close()
 	for rows.Next() {
 		var schema, typ string
 		if err = rows.Scan(&schema, &typ); err != nil {
@@ -276,7 +296,7 @@ func (c *Client) listNexusFunctions(ctx context.Context) ([]string, error) {
 	}
 
 	functions := []string{}
-	defer rows.Close() // Ensure rows is closed even if we return early.
+	defer rows.Close()
 	for rows.Next() {
 		var schema, fn string
 		if err = rows.Scan(&schema, &fn); err != nil {
@@ -298,7 +318,7 @@ func (c *Client) listNexusMaterializedViews(ctx context.Context) ([]string, erro
 	}
 
 	materializedViews := []string{}
-	defer rows.Close() // Ensure rows is closed even if we return early.
+	defer rows.Close()
 	for rows.Next() {
 		var schema, view string
 		if err = rows.Scan(&schema, &view); err != nil {
@@ -318,6 +338,18 @@ func (c *Client) Wipe(ctx context.Context) error {
 	for _, table := range tables {
 		c.logger.Info("dropping table", "table", table)
 		if _, err = c.pool.Exec(ctx, fmt.Sprintf("DROP TABLE %s CASCADE;", table)); err != nil {
+			return err
+		}
+	}
+
+	// Drop extensions.
+	extensions, err := c.listNexusExtensions(ctx)
+	if err != nil {
+		return err
+	}
+	for _, extension := range extensions {
+		c.logger.Info("dropping extension", "extension", extension)
+		if _, err = c.pool.Exec(ctx, fmt.Sprintf("DROP EXTENSION IF EXISTS %s CASCADE;", extension)); err != nil {
 			return err
 		}
 	}
