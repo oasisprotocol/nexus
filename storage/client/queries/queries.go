@@ -139,7 +139,8 @@ const (
 			($1::text IS NULL OR TRUE) AND
 			-- No filtering on timestamps.
 			($5::timestamptz IS NULL OR TRUE) AND
-			($6::timestamptz IS NULL OR TRUE)`
+			($6::timestamptz IS NULL OR TRUE)
+		ORDER BY art.tx_block DESC, art.tx_index`
 
 	Events = `
 		SELECT
@@ -668,7 +669,8 @@ const (
 			($6::text IS NULL OR true) AND
 			-- No filtering on timestamps.
 			($8::timestamptz IS NULL OR TRUE) AND
-			($9::timestamptz IS NULL OR TRUE)`
+			($9::timestamptz IS NULL OR TRUE)
+		ORDER BY rel.tx_round DESC, rel.tx_index DESC`
 
 	RuntimeTransactionsRelatedRofl = `
 		WITH filtered AS (
@@ -711,7 +713,8 @@ const (
 			($5::text IS NULL OR true) AND
 			-- No filtering on timestamps.
 			($8::timestamptz IS NULL OR TRUE) AND
-			($9::timestamptz IS NULL OR TRUE)`
+			($9::timestamptz IS NULL OR TRUE)
+		ORDER BY rel.tx_round DESC, rel.tx_index DESC`
 
 	RuntimeEvents = `
 		SELECT
@@ -1200,7 +1203,8 @@ const (
 			txs.runtime = rel.runtime AND
 			txs.round = rel.tx_round AND
 			txs.tx_index = rel.tx_index` +
-		runtimeTxCommonJoins
+		runtimeTxCommonJoins + `
+		ORDER BY rel.tx_round DESC, rel.tx_index DESC`
 
 	RuntimeRoflmarketProviders = `
 		SELECT
