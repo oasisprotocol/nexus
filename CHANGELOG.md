@@ -12,6 +12,29 @@ The format is inspired by [Keep a Changelog].
 
 <!-- TOWNCRIER -->
 
+## 0.6.14 (2025-05-22)
+
+### Features
+
+- api/accounts: Mark accounts belonging to validators
+  ([#1003](https://github.com/oasisprotocol/nexus/issues/1003))
+
+  Two fields added to `/v1/consensus/accounts/{addr}` response:
+
+  - `entity_node_for`: The entity address, if this account is a
+  node belonging to an entity.
+
+  - `entity`: The entity address, if this account *is* an entity. If present,
+  this address should match the queried address `{addr}`.
+
+- api/rofl_apps: Support filtering by metadata name fragment
+  ([#1007](https://github.com/oasisprotocol/nexus/issues/1007))
+
+### Bug Fixes and Improvements
+
+- analyzer/consensus: Ensure Node and Entity address preimages are stored
+  ([#1001](https://github.com/oasisprotocol/nexus/issues/1001))
+
 ## 0.6.13 (2025-05-19)
 
 ### Features
