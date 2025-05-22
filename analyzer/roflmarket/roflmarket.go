@@ -4,6 +4,7 @@ package roflmarket
 
 import (
 	"context"
+	"encoding/hex"
 	"fmt"
 	"slices"
 	"time"
@@ -169,11 +170,11 @@ func (p *processor) queueRoflmarketOffersRefresh(ctx context.Context, batch *sto
 	defer rows.Close()
 	var existingOffers []string
 	for rows.Next() {
-		var offerID string
+		var offerID []byte
 		if err := rows.Scan(&offerID); err != nil {
 			return fmt.Errorf("scanning rofl market provider offer: %w", err)
 		}
-		existingOffers = append(existingOffers, offerID)
+		existingOffers = append(existingOffers, hex.EncodeToString(offerID))
 	}
 
 	// Fetch offers from the node.
@@ -221,11 +222,11 @@ func (p *processor) queueRoflmarketInstancesRefresh(ctx context.Context, batch *
 	defer rows.Close()
 	var existingInstances []string
 	for rows.Next() {
-		var instanceID string
+		var instanceID []byte
 		if err := rows.Scan(&instanceID); err != nil {
 			return fmt.Errorf("scanning rofl market provider instance: %w", err)
 		}
-		existingInstances = append(existingInstances, instanceID)
+		existingInstances = append(existingInstances, hex.EncodeToString(instanceID))
 	}
 
 	// Fetch instances from the node.
