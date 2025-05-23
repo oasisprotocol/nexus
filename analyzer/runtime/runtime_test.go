@@ -111,6 +111,21 @@ func (*mockNode) GetBalances(ctx context.Context, round uint64, addr api.Address
 	panic("unimplemented") // not needed for testing the block analyzer
 }
 
+// GetDelegation implements nodeapi.RuntimeApiLite.
+func (*mockNode) GetDelegation(ctx context.Context, round uint64, from api.Address, to api.Address) (*nodeapi.DelegationInfo, error) {
+	panic("unimplemented") // not needed for testing the block analyzer
+}
+
+// GetAllDelegations implements nodeapi.RuntimeApiLite.
+func (*mockNode) GetAllDelegations(ctx context.Context, round uint64) ([]*nodeapi.CompleteDelegationInfo, error) {
+	panic("unimplemented") // not needed for testing the block analyzer
+}
+
+// GetAllUndelegations implements nodeapi.RuntimeApiLite.
+func (*mockNode) GetAllUndelegations(ctx context.Context, round uint64) ([]*nodeapi.CompleteUndelegationInfo, error) {
+	panic("unimplemented") // not needed for testing the block analyzer
+}
+
 // GetRoflApps implements nodeapi.RuntimeApiLite.
 func (*mockNode) RoflApps(ctx context.Context, round uint64) ([]*nodeapi.AppConfig, error) {
 	panic("unimplemented") // not needed for testing the block analyzer
