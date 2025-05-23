@@ -139,6 +139,30 @@ func (rc *HistoryRuntimeApiLite) GetMinGasPrice(ctx context.Context, round uint6
 	return minGasPrice, nil
 }
 
+func (rc *HistoryRuntimeApiLite) GetDelegation(ctx context.Context, round uint64, from nodeapi.Address, to nodeapi.Address) (*nodeapi.DelegationInfo, error) {
+	api, err := rc.APIForRound(round)
+	if err != nil {
+		return nil, fmt.Errorf("getting api for runtime %s round %d: %w", rc.Runtime, round, err)
+	}
+	return api.GetDelegation(ctx, round, from, to)
+}
+
+func (rc *HistoryRuntimeApiLite) GetAllDelegations(ctx context.Context, round uint64) ([]*nodeapi.CompleteDelegationInfo, error) {
+	api, err := rc.APIForRound(round)
+	if err != nil {
+		return nil, fmt.Errorf("getting api for runtime %s round %d: %w", rc.Runtime, round, err)
+	}
+	return api.GetAllDelegations(ctx, round)
+}
+
+func (rc *HistoryRuntimeApiLite) GetAllUndelegations(ctx context.Context, round uint64) ([]*nodeapi.CompleteUndelegationInfo, error) {
+	api, err := rc.APIForRound(round)
+	if err != nil {
+		return nil, fmt.Errorf("getting api for runtime %s round %d: %w", rc.Runtime, round, err)
+	}
+	return api.GetAllUndelegations(ctx, round)
+}
+
 func (rc *HistoryRuntimeApiLite) GetTransactionsWithResults(ctx context.Context, round uint64) ([]nodeapi.RuntimeTransactionWithResults, error) {
 	api, err := rc.APIForRound(round)
 	if err != nil {

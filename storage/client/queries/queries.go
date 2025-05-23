@@ -315,7 +315,7 @@ const (
 			FROM chain.debonding_delegations
 			JOIN chain.accounts ON chain.debonding_delegations.delegatee = chain.accounts.address
 			WHERE delegator = $1::text
-		ORDER BY debond_end, shares DESC, delegator
+		ORDER BY debond_end, shares DESC, delegatee
 		LIMIT $2::bigint
 		OFFSET $3::bigint`
 
@@ -832,6 +832,28 @@ const (
 		WHERE
 			(runtime = $1) AND
 			(address = $2::text)`
+
+	RuntimeDelegations = `
+		SELECT delegatee, shares, escrow_balance_active, escrow_total_shares_active
+			FROM chain.runtime_accounts_delegations
+			JOIN chain.accounts ON chain.runtime_accounts_delegations.delegatee = chain.accounts.address
+			WHERE
+				(runtime = $1::runtime) AND
+				(delegator = $2::text)
+		ORDER BY shares DESC, delegatee
+		LIMIT $3::bigint
+		OFFSET $4::bigint`
+
+	RuntimeDebondingDelegations = `
+		SELECT delegatee, shares, debond_end, escrow_balance_debonding, escrow_total_shares_debonding
+			FROM chain.runtime_accounts_debonding_delegations
+			JOIN chain.accounts ON chain.runtime_accounts_debonding_delegations.delegatee = chain.accounts.address
+			WHERE
+				(runtime = $1::runtime) AND
+				(delegator = $2::text)
+		ORDER BY debond_end, shares DESC, delegatee
+		LIMIT $3::bigint
+		OFFSET $4::bigint`
 
 	//nolint:gosec // Linter suspects a hardcoded credentials token.
 	EvmTokenHolders = `

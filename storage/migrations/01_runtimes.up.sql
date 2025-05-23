@@ -271,6 +271,42 @@ CREATE TABLE chain.runtime_accounts
     total_received UINT_NUMERIC NOT NULL DEFAULT 0
 );
 
+-- Added in 51_runtime_delegations.up.sql.
+-- -- Runtime delegations are layered on top of consensus-layer delegations.
+-- -- From the perspective of the consensus layer, a single "runtime address" delegates to a consensus account.
+-- -- However, within the runtime, this delegation is further subdivided and tracked per individual runtime address.
+-- -- This allows the runtime to maintain its own delegation accounting, independent of how the consensus views the delegation.
+-- -- This table tracks the runtime-level delegation accounting.
+-- -- The denomination of the shares is also the consensus denomination, so we don't store it here.
+-- CREATE TABLE chain.runtime_accounts_delegations
+-- (
+--     runtime runtime NOT NULL,
+
+--     -- Delegator is the runtime account that is delegating.
+--     delegator oasis_addr NOT NULL,
+--     -- Delegatee is a consensus account delegated to.
+--     delegatee oasis_addr NOT NULL, -- This could be FK chain.accounts(address), but we don't want runtime-consensus references at the moment (cannot test runtime analyzer without consensus).
+--     shares    UINT_NUMERIC NOT NULL,
+
+--     PRIMARY KEY (runtime, delegator, delegatee),
+--     FOREIGN KEY (runtime, delegator) REFERENCES chain.runtime_accounts(runtime, address) DEFERRABLE INITIALLY DEFERRED
+-- );
+
+-- CREATE TABLE chain.runtime_accounts_debonding_delegations
+-- (
+--     runtime runtime NOT NULL,
+
+--     -- Delegator is the runtime account that is delegating.
+--     delegator oasis_addr NOT NULL,
+--     -- Delegatee is a consensus account delegated to.
+--     delegatee oasis_addr NOT NULL,  -- This could be FK chain.accounts(address), but we don't want runtime-consensus references at the moment (cannot test runtime analyzer without consensus).
+--     shares    UINT_NUMERIC NOT NULL,
+--     debond_end UINT63 NOT NULL,
+
+--     PRIMARY KEY (runtime, delegator, delegatee, debond_end),
+--     FOREIGN KEY (runtime, delegator) REFERENCES chain.runtime_accounts(runtime, address) DEFERRABLE INITIALLY DEFERRED
+-- );
+
 -- Oasis addresses are derived from a derivation "context" and a piece of
 -- data, such as an ed25519 public key or an Ethereum address. The derivation
 -- is one-way, so you'd have to look up the address in this table and see if

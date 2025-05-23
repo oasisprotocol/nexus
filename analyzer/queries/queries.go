@@ -633,6 +633,11 @@ var (
         created_at_round = LEAST(created_at_round, $3::bigint)
       WHERE runtime = $1::runtime AND id = $2`
 
+	RuntimeAccountUpsert = `
+    INSERT INTO chain.runtime_accounts (runtime, address)
+      VALUES ($1, $2)
+    ON CONFLICT (runtime, address) DO NOTHING`
+
 	RuntimeAccountNumTxsUpsert = `
     INSERT INTO chain.runtime_accounts as accounts (runtime, address, num_txs)
       VALUES ($1, $2, $3)
@@ -751,6 +756,30 @@ var (
       VALUES ($1, $2, $3, $4)
     ON CONFLICT (runtime, account_address, symbol) DO
     UPDATE SET balance = $4`
+
+	RuntimeConsensusAccountDelegationOverride = `
+    INSERT INTO chain.runtime_accounts_delegations (runtime, delegator, delegatee, shares)
+      VALUES ($1, $2, $3, $4)
+    ON CONFLICT (runtime, delegator, delegatee) DO UPDATE
+      SET shares = $4`
+
+	RuntimeConsensusAccountDelegationUpsert = `
+    INSERT INTO chain.runtime_accounts_delegations AS old (runtime, delegator, delegatee, shares)
+      VALUES ($1, $2, $3, $4)
+    ON CONFLICT (runtime, delegator, delegatee) DO UPDATE
+      SET shares = old.shares + $4`
+
+	RuntimeConsensusAccountDebondingDelegationUpsert = `
+    INSERT INTO chain.runtime_accounts_debonding_delegations AS old (runtime, delegator, delegatee, debond_end, shares)
+      VALUES ($1, $2, $3, $4, $5)
+    ON CONFLICT (runtime, delegator, delegatee, debond_end) DO UPDATE
+      SET shares = old.shares + $5`
+
+	// The NULL check `debond_end IS NULL` is included to handle pre-v0.15.0 events,
+	// where debond_end may be NULL. This ensures backward compatibility with older data.
+	RuntimeConsensusAccountDebondingDelegationRemove = `
+    DELETE FROM chain.runtime_accounts_debonding_delegations
+    WHERE runtime = $1 AND delegator = $2 AND delegatee = $3 AND (debond_end IS NULL OR debond_end = $4)`
 
 	AddressPreimageInsert = `
     INSERT INTO chain.address_preimages (address, context_identifier, context_version, address_data)
