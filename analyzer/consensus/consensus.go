@@ -130,44 +130,6 @@ func (m *processor) PreWork(ctx context.Context) error {
 	}
 	m.logger.Info("inserted static account first active timestamps")
 
-	// XXX: Remove in future, after this was run on all deployments.
-	// Recompute address preimages for all entities and nodes.
-	batch = &storage.QueryBatch{}
-	if err := m.recomputePreimagesForIDs(ctx, batch, "chain.nodes"); err != nil {
-		return fmt.Errorf("recomputing node preimages: %w", err)
-	}
-	if err := m.target.SendBatch(ctx, batch); err != nil {
-		return err
-	}
-	batch = &storage.QueryBatch{}
-	if err := m.recomputePreimagesForIDs(ctx, batch, "chain.entities"); err != nil {
-		return fmt.Errorf("recomputing entity preimages: %w", err)
-	}
-	if err := m.target.SendBatch(ctx, batch); err != nil {
-		return err
-	}
-	m.logger.Info("recomputed node and entity preimages")
-
-	return nil
-}
-
-func (m *processor) recomputePreimagesForIDs(ctx context.Context, batch *storage.QueryBatch, tableName string) error {
-	rows, err := m.target.Query(ctx, fmt.Sprintf("SELECT id FROM %s", tableName))
-	if err != nil {
-		return fmt.Errorf("querying %s: %w", tableName, err)
-	}
-	defer rows.Close()
-	for rows.Next() {
-		var dbID string
-		if err := rows.Scan(&dbID); err != nil {
-			return fmt.Errorf("scanning %s: %w", tableName, err)
-		}
-		var id signature.PublicKey
-		if err := id.UnmarshalText([]byte(dbID)); err != nil {
-			return fmt.Errorf("unmarshalling %s id: %w", dbID, err)
-		}
-		RegisterConsensusAddress(batch, staking.NewAddress(id), id[:])
-	}
 	return nil
 }
 
