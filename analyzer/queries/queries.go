@@ -1100,19 +1100,6 @@ var (
       reserve1 = excluded.reserve1,
       last_sync_round = excluded.last_sync_round`
 
-	RuntimeEVMUnverfiedContracts = `
-    SELECT contracts.contract_address,
-      address_preimages.context_identifier,
-      address_preimages.context_version,
-      address_preimages.address_data
-    FROM chain.evm_contracts AS contracts
-    LEFT JOIN chain.address_preimages AS address_preimages ON
-      address_preimages.address = contracts.contract_address AND
-      address_preimages.context_identifier = 'oasis-runtime-sdk/address: secp256k1eth' AND
-      address_preimages.context_version = 0
-    WHERE
-      runtime = $1 AND verification_info_downloaded_at IS NULL`
-
 	RuntimeEVMVerifiedContracts = `
     SELECT
       contracts.contract_address,
@@ -1133,35 +1120,45 @@ var (
       verification_level = EXCLUDED.verification_level`
 
 	RuntimeEvmVerifiedContractTxs = `
-    WITH abi_contracts AS (
+    SELECT
+      c.addr,
+      c.abi,
+      tx.tx_hash,
+      decode(tx.body->>'data', 'base64'),
+      tx.error_message_raw
+    FROM (
       SELECT
         runtime,
         contract_address AS addr,
         abi,
         verification_info_downloaded_at
       FROM chain.evm_contracts
+      WHERE runtime = $1 AND abi IS NOT NULL
+    ) c
+    JOIN LATERAL (
+      SELECT round, tx_hash, body, error_message_raw
+      FROM chain.runtime_transactions tx
       WHERE
-        runtime = $1 AND abi IS NOT NULL
-    )
-    SELECT
-      abi_contracts.addr,
-      abi_contracts.abi,
-      txs.tx_hash,
-      decode(txs.body->>'data', 'base64'),
-      txs.error_message_raw
-    FROM abi_contracts
-    JOIN chain.runtime_transactions as txs ON
-      txs.runtime = abi_contracts.runtime AND
-      txs.to = abi_contracts.addr AND
-      txs.method = 'evm.Call' -- note: does not include evm.Create txs; their payload is never encrypted.
-    WHERE
-      txs.body IS NOT NULL AND
-      (txs.abi_parsed_at IS NULL OR txs.abi_parsed_at < abi_contracts.verification_info_downloaded_at)
-    ORDER BY addr
+        tx.runtime = c.runtime AND
+        tx.to = c.addr AND
+        tx.method = 'evm.Call' AND
+        tx.body IS NOT NULL AND
+        tx.abi_parsed_at < c.verification_info_downloaded_at
+      ORDER BY tx.round DESC
+      LIMIT $2
+    ) tx ON true
+    ORDER BY tx.round DESC
     LIMIT $2`
 
 	RuntimeEvmVerifiedContractEvents = `
-    WITH abi_contracts AS (
+    SELECT
+      c.addr,
+      c.abi,
+      evs.runtime,
+      evs.round,
+      evs.event_index,
+      evs.body
+    FROM (
       SELECT
         runtime,
         contract_address AS addr,
@@ -1171,23 +1168,24 @@ var (
       WHERE
         runtime = $1 AND
         abi IS NOT NULL
-    )
-    SELECT
-      abi_contracts.addr,
-      abi_contracts.abi,
-      evs.runtime,
-      evs.round,
-      evs.event_index,
-      evs.body
-    FROM abi_contracts
-    JOIN chain.address_preimages as preimages ON
-      abi_contracts.addr = preimages.address
-    JOIN chain.runtime_events as evs ON
-      evs.type = 'evm.log' AND
-      evs.runtime = abi_contracts.runtime AND
-      body->>'address' = encode(preimages.address_data, 'base64')
-    WHERE
-      (evs.abi_parsed_at IS NULL OR evs.abi_parsed_at < abi_contracts.verification_info_downloaded_at)
+    ) c
+    JOIN chain.address_preimages p ON c.addr = p.address
+    JOIN LATERAL (
+      SELECT
+        e.runtime,
+        e.round,
+        e.event_index,
+        e.body
+      FROM chain.runtime_events e
+      WHERE
+        e.runtime = c.runtime AND
+        e.type = 'evm.log' AND
+        e.body->>'address' = encode(p.address_data, 'base64') AND
+        e.abi_parsed_at < c.verification_info_downloaded_at
+      ORDER BY e.round DESC
+      LIMIT $2
+    ) evs ON true
+    ORDER BY evs.round DESC
     LIMIT $2`
 
 	RuntimeConsensusAccountTransactionStatusUpdate = `
