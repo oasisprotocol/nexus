@@ -78,9 +78,9 @@ jobs:
         # Always run this step so that all linting errors can be seen at once.
         if: always()
       - name: Set up Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v5
         with:
-          go-version: 1.21
+          go-version: "1.24.x"
         # Always run this step so that all linting errors can be seen at once.
         if: always()
       - name: Autogenerate Go code
@@ -94,6 +94,6 @@ jobs:
         uses: golangci/golangci-lint-action@v3
         with:
           # Update README.md instructions when bumping this.
-          version: v1.62.2
+          version: v1.64.8
         # Always run this step so that all linting errors can be seen at once.
         if: always()

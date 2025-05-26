@@ -75,8 +75,8 @@ func TestConsensusTransfer(t *testing.T) {
 	require.NoError(t, err)
 
 	ctx := context.Background()
-	cnsc := consensus.NewConsensusClient(conn)
-	doc, err := cnsc.GetGenesisDocument(ctx)
+	cnsc := consensus.NewServicesClient(conn)
+	doc, err := cnsc.Core().GetGenesisDocument(ctx)
 	require.NoError(t, err)
 	doc.SetChainContext()
 
@@ -107,7 +107,7 @@ func TestConsensusTransfer(t *testing.T) {
 
 	pd, err := NewStaticPriceDiscovery(uint64(0))
 	require.NoError(t, err)
-	sm := consensus.NewSubmissionManager(cnsc, pd, 0)
+	sm := consensus.NewSubmissionManager(cnsc.Core(), pd, 0)
 
 	_, testEntitySigner, err := entity.TestEntity()
 	require.NoError(t, err)

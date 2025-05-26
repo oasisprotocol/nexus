@@ -49,7 +49,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: 1.23.x
+          go-version: "1.24.x"
       - name: Install Go tools
         run: go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@v2.4.1
       - name: Build Go
@@ -60,7 +60,7 @@ jobs:
         # NOTE: This should run _after_ the build step, so that oapi-codegen has already run
         #       and generated the Go code that points to some of the dependencies.
         run: |
-          go mod tidy -v -x -compat=1.23  # goreleaser does the same; can find lingering issues
+          go mod tidy -v -x -compat=1.24  # goreleaser does the same; can find lingering issues
           echo TIDY RESULTS START; git diff || true; echo TIDY RESULTS END
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v3.1.0
@@ -105,7 +105,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: 1.23.x
+          go-version: "1.24.x"
       - name: Autogenerate Go code
         run: |
           go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@v2.4.1
@@ -159,7 +159,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: 1.23.x
+          go-version: "1.24.x"
 
       - name: Autogenerate Go code
         run: |

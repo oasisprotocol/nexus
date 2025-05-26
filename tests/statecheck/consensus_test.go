@@ -163,7 +163,7 @@ func TestGenesisFull(t *testing.T) {
 		}
 	} else {
 		t.Log("Fetching state dump at height", height, "from node")
-		genesis, err = oasisClient.StateToGenesis(ctx, height)
+		genesis, err = oasisClient.Core().StateToGenesis(ctx, height)
 		require.NoError(t, err)
 	}
 	registryGenesis := &genesis.Registry
@@ -176,7 +176,7 @@ func TestGenesisFull(t *testing.T) {
 	validateGovernanceBackend(t, governanceGenesis, postgresClient)
 }
 
-func validateRegistryBackend(t *testing.T, genesis *registryAPI.Genesis, source consensusAPI.ClientBackend, target *postgres.Client, height int64) {
+func validateRegistryBackend(t *testing.T, genesis *registryAPI.Genesis, source consensusAPI.Services, target *postgres.Client, height int64) {
 	t.Log("=== Validating registry backend ===")
 
 	validateEntities(t, genesis, target)
@@ -292,7 +292,7 @@ func validateEntities(t *testing.T, genesis *registryAPI.Genesis, target *postgr
 	}
 }
 
-func validateNodes(t *testing.T, genesis *registryAPI.Genesis, source consensusAPI.ClientBackend, target *postgres.Client, height int64) {
+func validateNodes(t *testing.T, genesis *registryAPI.Genesis, source consensusAPI.Services, target *postgres.Client, height int64) {
 	t.Log("Validating nodes...")
 	ctx := context.Background()
 
