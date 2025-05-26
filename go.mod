@@ -1,6 +1,6 @@
 module github.com/oasisprotocol/nexus
 
-go 1.23.4
+go 1.24.0
 
 replace (
 	github.com/cometbft/cometbft => github.com/oasisprotocol/cometbft v0.37.2-oasis1
