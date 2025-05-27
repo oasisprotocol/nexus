@@ -65,6 +65,13 @@ func Init(cfg *config.Config) error {
 		}
 		promServer.StartInstrumentation()
 	}
+
+	// Initialize pprof endpoint if configured.
+	if cfg.Metrics != nil && cfg.Metrics.PprofEndpoint != nil {
+		rootLogger.Info("starting pprof server", "endpoint", *cfg.Metrics.PprofEndpoint)
+		startPprof(*cfg.Metrics.PprofEndpoint)
+	}
+
 	return nil
 }
 

@@ -759,6 +759,10 @@ func (cfg *LogConfig) Validate() error {
 // MetricsConfig contains the metrics configuration.
 type MetricsConfig struct {
 	PullEndpoint string `koanf:"pull_endpoint"`
+
+	// PprofEndpoint is the address to serve pprof endpoints on.
+	// If unset, pprof endpoints are not served.
+	PprofEndpoint *string `koanf:"pprof_endpoint"`
 }
 
 // Validate validates the metrics configuration.
