@@ -8,6 +8,7 @@ import (
 	"fmt"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jackc/pgx/v5/tracelog"
 
@@ -198,6 +199,11 @@ func (c *Client) Query(ctx context.Context, sql string, args ...interface{}) (pg
 // QueryRow submits a new read query for a single row to PostgreSQL.
 func (c *Client) QueryRow(ctx context.Context, sql string, args ...interface{}) pgx.Row {
 	return c.pool.QueryRow(ctx, sql, args...)
+}
+
+// Exec executes a query without returning any rows.
+func (c *Client) Exec(ctx context.Context, sql string, args ...interface{}) (pgconn.CommandTag, error) {
+	return c.pool.Exec(ctx, sql, args...)
 }
 
 // Begin implements the storage.TargetStorage interface for Client.
