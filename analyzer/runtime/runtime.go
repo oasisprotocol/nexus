@@ -485,6 +485,14 @@ func (m *processor) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 			eventData.Type,
 			addresses.SliceFromSet(eventData.RelatedAddresses),
 		)
+
+		if eventData.ContractCandidate != nil {
+			batch.Queue(
+				queries.RuntimeEVMContractCodeAnalysisInsert,
+				m.runtime,
+				eventData.ContractCandidate,
+			)
+		}
 	}
 
 	// Insert address preimages.

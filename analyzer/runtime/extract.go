@@ -105,6 +105,13 @@ type EventData struct {
 	EvmLogSignature  *ethCommon.Hash
 	EvmLogParams     []*apiTypes.EvmAbiParam
 	RelatedAddresses map[apiTypes.Address]struct{}
+	// EVM logs are emitted by contracts. We usually detect contracts via transactions,
+	// but in some edge cases, we can only detect them via emitted events.
+	// This happens when a contract is created via an internal call and only interacted with
+	// through internal calls — meaning we never see a top-level transaction involving the contract,
+	// and thus don't mark the address as a contract candidate. In such cases,
+	// observing the address in events helps us detect the contract.
+	ContractCandidate *apiTypes.Address
 }
 
 // ScopedSdkEvent is a one-of container for SDK events.
@@ -1016,13 +1023,15 @@ func extractEvents(blockData *BlockData, eventsRaw []nodeapi.RuntimeEvent) ([]*E
 			if err1 != nil {
 				return fmt.Errorf("event address: %w", err1)
 			}
+
 			eventData := EventData{
-				EventIdx:         eventIdx,
-				TxHash:           eventTxHash,
-				Type:             apiTypes.RuntimeEventTypeEvmLog,
-				Body:             event,
-				WithScope:        ScopedSdkEvent{EVM: event},
-				RelatedAddresses: map[apiTypes.Address]struct{}{eventAddr: {}},
+				EventIdx:          eventIdx,
+				TxHash:            eventTxHash,
+				Type:              apiTypes.RuntimeEventTypeEvmLog,
+				Body:              event,
+				WithScope:         ScopedSdkEvent{EVM: event},
+				RelatedAddresses:  map[apiTypes.Address]struct{}{eventAddr: {}},
+				ContractCandidate: &eventAddr,
 			}
 			if err1 = VisitEVMEvent(event, &EVMEventHandler{
 				ERC20Transfer: func(fromECAddr ethCommon.Address, toECAddr ethCommon.Address, value *big.Int) error {
