@@ -39,7 +39,7 @@ The format is inspired by [Keep a Changelog].
   ([#1019](https://github.com/oasisprotocol/nexus/issues/1019))
 
 - Add support for enabling pprof server
-  ([#1020](https://github.com/oasisprotocol/nexus/issues/1020))
+  ([#1021](https://github.com/oasisprotocol/nexus/issues/1021))
 
 ## 0.6.14 (2025-05-22)
 
