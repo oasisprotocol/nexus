@@ -1,0 +1,25 @@
+{
+  "evm_tokens": [
+    {
+      "contract_addr": "oasis1qr43dvghx4a75vndjcsg2r9ct2xqftwrgcnt5tge",
+      "decimals": 18,
+      "eth_contract_addr": "0x39d22B78A7651A76Ffbde2aaAB5FD92666Aca520",
+      "is_verified": true,
+      "name": "Ocean Token",
+      "num_holders": 52,
+      "num_transfers": 5948,
+      "ref_token": {
+        "decimals": 18,
+        "name": "Wrapped ROSE",
+        "symbol": "wROSE",
+        "type": "ERC20"
+      },
+      "symbol": "OCEAN",
+      "total_supply": "1418576715298904178394593",
+      "type": "ERC20",
+      "verification_level": "full"
+    }
+  ],
+  "is_total_count_clipped": false,
+  "total_count": 1
+}

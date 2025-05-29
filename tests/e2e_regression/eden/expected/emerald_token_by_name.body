@@ -1,0 +1,56 @@
+{
+  "evm_tokens": [
+    {
+      "contract_addr": "oasis1qzel2watfs6g3cm765dwlukymjs5k3rnhvua4z78",
+      "decimals": 18,
+      "eth_contract_addr": "0x3223f17957Ba502cbe71401D55A0DB26E5F7c68F",
+      "is_verified": false,
+      "name": "Wrapped Ether",
+      "num_holders": 2,
+      "num_transfers": 2,
+      "symbol": "WETH",
+      "total_supply": "153212215450000000000",
+      "type": "ERC20"
+    },
+    {
+      "contract_addr": "oasis1qzpxtzc3xphccjq94wxffchfc5sua5t24vc6gvt6",
+      "decimals": 18,
+      "eth_contract_addr": "0x5C78A65AD6D0eC6618788b6E8e211F31729111Ca",
+      "is_verified": true,
+      "name": "Wrapped ROSE",
+      "num_holders": 1,
+      "num_transfers": 1,
+      "symbol": "WROSE",
+      "total_supply": "370854109276538025377920",
+      "type": "ERC20",
+      "verification_level": "partial"
+    },
+    {
+      "contract_addr": "oasis1qpgcp5jzlgk4hcenaj2x82rqk8rrve2keyuc8aaf",
+      "decimals": 18,
+      "eth_contract_addr": "0x21C718C22D52d0F3a789b752D4c2fD5908a8A733",
+      "is_verified": true,
+      "name": "Wrapped ROSE",
+      "num_holders": 14,
+      "num_transfers": 48,
+      "symbol": "wROSE",
+      "total_supply": "11110528749907675559457292",
+      "type": "ERC20",
+      "verification_level": "partial"
+    },
+    {
+      "contract_addr": "oasis1qrsl7tgujttvscfe2k268s7q2s7kdu9tyv9qv2tx",
+      "decimals": 8,
+      "eth_contract_addr": "0x5D9ab5522c64E1F6ef5e3627ECCc093f56167818",
+      "is_verified": false,
+      "name": "Wrapped BTC",
+      "num_holders": 1,
+      "num_transfers": 2,
+      "symbol": "WBTC",
+      "total_supply": "175579512",
+      "type": "ERC20"
+    }
+  ],
+  "is_total_count_clipped": false,
+  "total_count": 4
+}

@@ -44,6 +44,10 @@ const (
 	blockCost = 1
 
 	defaultMaxTotalCount = 1000
+
+	// The maximum number of items that can be provided for name filters.
+	// Keep this in sync with the maxItems in the API spec.
+	maxFilterNameFragments = 6
 )
 
 // StorageClient is a wrapper around a storage.TargetStorage
@@ -2199,6 +2203,10 @@ func fillInPrice(t *EvmToken, refSwapTokenAddr *apiTypes.Address) {
 // If `address` is non-nil, it is used to filter the results to at most 1 token: the one
 // with the correcponding contract address.
 func (c *StorageClient) RuntimeTokens(ctx context.Context, runtime common.Runtime, p apiTypes.GetRuntimeEvmTokensParams, address *staking.Address) (*EvmTokenList, error) {
+	if p.Name != nil && len(*p.Name) > maxFilterNameFragments {
+		return nil, fmt.Errorf("too many names in the name filter: %w", apiCommon.ErrBadRequest)
+	}
+
 	var refSwapFactoryAddr *apiTypes.Address
 	var refSwapTokenAddr *apiTypes.Address
 	if rs, ok := c.referenceSwaps[runtime]; ok {
@@ -2217,20 +2225,14 @@ func (c *StorageClient) RuntimeTokens(ctx context.Context, runtime common.Runtim
 		}
 	}
 
+	args := []interface{}{runtime, address, tokenType, refSwapFactoryAddr, refSwapTokenAddr, p.SortBy, c.evmTokensCustomOrderAddresses[runtime], c.evmTokensCustomOrderGroups[runtime]}
+	query := queries.EVMTokens(p.Name, &args)
+	args = append(args, p.Limit, p.Offset)
+
 	res, err := c.withDefaultTotalCount(
 		ctx,
-		queries.EvmTokens,
-		runtime,
-		address,
-		p.Name,
-		tokenType,
-		refSwapFactoryAddr,
-		refSwapTokenAddr,
-		p.SortBy,
-		c.evmTokensCustomOrderAddresses[runtime],
-		c.evmTokensCustomOrderGroups[runtime],
-		p.Limit,
-		p.Offset,
+		query,
+		args...,
 	)
 	if err != nil {
 		return nil, wrapError(err)
@@ -2486,19 +2488,23 @@ func (c *StorageClient) RuntimeStatus(ctx context.Context, runtime common.Runtim
 
 // RuntimeRoflApps returns a list of ROFL apps.
 func (c *StorageClient) RuntimeRoflApps(ctx context.Context, runtime common.Runtime, params apiTypes.GetRuntimeRoflAppsParams, id *string) (*RoflAppList, error) { //nolint:gocyclo
+	if params.Name != nil && len(*params.Name) > maxFilterNameFragments {
+		return nil, fmt.Errorf("too many names in the name filter: %w", apiCommon.ErrBadRequest)
+	}
 	// Runtime ROFL apps uses a max limit of 100 (other endpoints default to 1000).
 	if *params.Limit > 100 {
 		*params.Limit = 100
 	}
+
+	args := []interface{}{runtime, id}
+	query := queries.RuntimeRoflApps(params.Name, &args)
+	args = append(args, params.Limit, params.Offset)
+
 	res, err := c.withTotalCount(
 		ctx,
-		queries.RuntimeRoflApps,
+		query,
 		100,
-		runtime,
-		id,
-		params.Name,
-		params.Limit,
-		params.Offset,
+		args...,
 	)
 	if err != nil {
 		return nil, wrapError(err)
