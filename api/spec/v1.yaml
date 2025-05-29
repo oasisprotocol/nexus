@@ -1075,9 +1075,14 @@ paths:
         - *runtime
         - in: query
           name: name
+          style: form
+          explode: false
           schema:
-            type: string
-          description: A filter on the name, the name or symbol must contain this value as a substring.
+            type: array
+            items:
+              type: string
+            maxItems: 6
+          description: A filter on the name, the name or symbol must contain this value as a substring. If multiple names are provided, the token must match all of them.
         - in: query
           name: sort_by
           schema:
@@ -1266,9 +1271,14 @@ paths:
         - *runtime
         - in: query
           name: name
+          style: form
+          explode: false
           schema:
-            type: string
-          description: A filter on the name of the ROFL app.
+            type: array
+            items:
+              type: string
+            maxItems: 6
+          description: A filter on the name of the ROFL app. If multiple names are provided, the ROFL App must match all of them.
       responses:
         '200':
           description: A JSON object containing a list of ROFL apps.

@@ -30,6 +30,8 @@ testCases=(
   'sapphire_transfer_events_of_token           /v1/sapphire/events?evm_log_signature=ddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef&contract_address=0x39d22B78A7651A76Ffbde2aaAB5FD92666Aca520'
   'sapphire_token                              /v1/sapphire/evm_tokens/0x39d22B78A7651A76Ffbde2aaAB5FD92666Aca520'
   'sapphire_token_holders                      /v1/sapphire/evm_tokens/0x39d22B78A7651A76Ffbde2aaAB5FD92666Aca520/holders'
+  'sapphire_token_by_name                      /v1/sapphire/evm_tokens?name=USD'
+  'sapphire_token_by_multiple_names            /v1/sapphire/evm_tokens?name=Token,Ocean'
   'sapphire_account_with_rose                  /v1/sapphire/accounts/0xCCD706B1c30d1c6F46F74885C3B13e3Ea28ce8AF'
   'sapphire_account_with_evm_token             /v1/sapphire/accounts/0x6Cc4Fe9Ba145AbBc43227b3D4860FA31AFD225CB'
   'sapphire_token_configured_addresses         /v1/sapphire/evm_tokens/0xA14167756d9F86Aed12b472C29B257BBdD9974C2'

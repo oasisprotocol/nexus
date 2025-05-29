@@ -1,0 +1,56 @@
+{
+  "is_total_count_clipped": false,
+  "rofl_apps": [
+    {
+      "active_instances": [
+        {
+          "endorsing_entity_id": "hp8sjG2cJPncrEYWZKqisUNiMYzUC/QomhrJwoLQVjc=",
+          "endorsing_node_id": "5MsgQwijUlpH9+0Hbyors5jwmx7tTmKMA4c9leV3prI=",
+          "expiration_epoch": 44111,
+          "extra_keys": [
+            "{\"secp256k1\":\"Ax7ww8ukRTiqn8X2gSQTwcDM9oW2kWF3RByqfdpiT7gf\"}"
+          ],
+          "rak": "tnvWUYb/SGtHSlDxoGENW0BzSD8t+VEJU4umH9RzVFw=",
+          "rek": "cpw+0KhZudVM9YtdgPeOUTyI/pyp564hDzWsnqiZd0c="
+        }
+      ],
+      "admin": "oasis1qpupfu7e2n6pkezeaw0yhj8mcem8anj64ytrayne",
+      "date_created": "2025-05-06T15:54:15Z",
+      "id": "rofl1qrtetspnld9efpeasxmryl6nw9mgllr0euls3dwn",
+      "last_activity": "2025-05-06T15:54:15Z",
+      "metadata": {
+        "net.oasis.rofl.author": "Matevž Jekovec <matevz@oasisprotocol.org>",
+        "net.oasis.rofl.license": "Apache-2.0",
+        "net.oasis.rofl.name": "demo-rofl-chatbot",
+        "net.oasis.rofl.repository": "https://github.com/oasisprotocol/demo-rofl-chatbot",
+        "net.oasis.rofl.version": "0.1.0"
+      },
+      "num_active_instances": 1,
+      "policy": {
+        "enclaves": [
+          "YjeeznQx9i/UQKVoPcOVT3P5oxOHGJ6r1VwMBetuSREAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+          "IyVddKd5AtSGmo7FHnZrj0vIzfIOp3DMBFHwUbb0qVQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=="
+        ],
+        "endorsements": [
+          {
+            "any": {}
+          }
+        ],
+        "fees": 2,
+        "max_expiration": 3,
+        "quotes": {
+          "pcs": {
+            "min_tcb_evaluation_data_number": 17,
+            "tcb_validity_period": 30,
+            "tdx": {}
+          }
+        }
+      },
+      "removed": false,
+      "secrets": null,
+      "sek": "2L9Jcwa+cfGbhfv24x3TWEn6UekjfKlvEL6qY3PLnwo=",
+      "stake": "10000000000000000000000"
+    }
+  ],
+  "total_count": 1
+}

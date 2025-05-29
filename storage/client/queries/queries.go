@@ -2,6 +2,7 @@ package queries
 
 import (
 	"fmt"
+	"strings"
 )
 
 func TotalCountQuery(inner string) string {
@@ -821,111 +822,6 @@ const (
 			(runtime = $1) AND
 			(address = $2::text)`
 
-	//nolint:gosec // Linter suspects a hardcoded access token.
-	EvmTokens = `
-		WITH
-		-- We use custom ordering groups to prioritize some well known tokens at the top of the list.
-		-- Tokens within the same group are ordered by the default logic.
-		custom_order AS (
-			SELECT token_addr, group_order
-			FROM unnest($8::text[], $9::int[]) AS u(token_addr, group_order)
-		),
-		holders AS (
-			SELECT token_address, COUNT(*) AS cnt
-			FROM chain.evm_token_balances
-			WHERE (runtime = $1) AND (balance != 0)
-			GROUP BY token_address
-		)
-		SELECT
-			tokens.token_address AS contract_addr,
-			preimages.address_data as eth_contract_addr,
-			tokens.token_name AS name,
-			tokens.symbol,
-			tokens.decimals,
-			tokens.total_supply,
-			tokens.num_transfers,
-			tokens.token_type AS type,
-			COALESCE(holders.cnt, 0) AS num_holders,
-			ref_swap_pair_creations.pair_address AS ref_swap_pair_address,
-			eth_preimage(ref_swap_pair_creations.pair_address) AS ref_swap_pair_address_eth,
-			ref_swap_pair_creations.factory_address AS ref_swap_factory_address,
-			eth_preimage(ref_swap_pair_creations.factory_address) AS ref_swap_factory_address_eth,
-			ref_swap_pair_creations.token0_address AS ref_swap_token0_address,
-			eth_preimage(ref_swap_pair_creations.token0_address) AS ref_swap_token0_address_eth,
-			ref_swap_pair_creations.token1_address AS ref_swap_token1_address,
-			eth_preimage(ref_swap_pair_creations.token1_address) AS ref_swap_token1_address_eth,
-			ref_swap_pair_creations.create_round AS ref_swap_create_round,
-			ref_swap_pairs.reserve0 AS ref_swap_reserve0,
-			ref_swap_pairs.reserve1 AS ref_swap_reserve1,
-			ref_swap_pairs.last_sync_round AS ref_swap_last_sync_round,
-			ref_tokens.token_type AS ref_token_type,
-			ref_tokens.token_name AS ref_token_name,
-			ref_tokens.symbol AS ref_token_symbol,
-			ref_tokens.decimals AS ref_token_decimals,
-			contracts.verification_level,
-			COALESCE(custom_order.group_order, 9999) AS custom_sort_order
-		FROM chain.evm_tokens AS tokens
-		LEFT JOIN custom_order ON (tokens.token_address = custom_order.token_addr)
-		JOIN chain.address_preimages AS preimages ON (token_address = preimages.address AND preimages.context_identifier = 'oasis-runtime-sdk/address: secp256k1eth' AND preimages.context_version = 0)
-		LEFT JOIN holders USING (token_address)
-		LEFT JOIN chain.evm_swap_pair_creations AS ref_swap_pair_creations ON
-			ref_swap_pair_creations.runtime = tokens.runtime AND
-			ref_swap_pair_creations.factory_address = $5 AND
-			(
-				(ref_swap_pair_creations.token0_address = tokens.token_address AND ref_swap_pair_creations.token1_address = $6) OR
-				(ref_swap_pair_creations.token0_address = $6 AND ref_swap_pair_creations.token1_address = tokens.token_address)
-			)
-		LEFT JOIN chain.evm_swap_pairs AS ref_swap_pairs ON
-			ref_swap_pairs.runtime = tokens.runtime AND
-			ref_swap_pairs.pair_address = ref_swap_pair_creations.pair_address
-		LEFT JOIN chain.evm_tokens AS ref_tokens ON
-			ref_tokens.runtime = tokens.runtime AND
-			ref_tokens.token_address = $6
-		LEFT JOIN chain.evm_contracts as contracts ON (tokens.runtime = contracts.runtime AND tokens.token_address = contracts.contract_address)
-		WHERE
-			(tokens.runtime = $1) AND
-			($2::oasis_addr IS NULL OR tokens.token_address = $2::oasis_addr) AND
-			($3::text IS NULL OR tokens.token_name ILIKE '%' || $3 || '%' OR tokens.symbol ILIKE '%' || $3 || '%') AND
-			($4::int IS NULL OR tokens.token_type = $4::int) AND
-			tokens.token_type IS NOT NULL AND -- exclude token _candidates_ that we haven't inspected yet
-			tokens.token_type != 0 -- exclude unknown-type tokens; they're often just contracts that emitted Transfer events but don't expose the token ticker, name, balance etc.
-		ORDER BY
-			custom_sort_order,
-			CASE
-				-- If sort_by is not "market_cap" then we sort by num_holders (below).
-				WHEN $7::text IS NULL OR $7::text != 'market_cap' THEN NULL
-				ELSE
-				-- Otherwise, sort by market cap.
-				(
-					CASE
-						-- For the reference token itself, it is 1:1 in value with, you know, itself.
-						WHEN tokens.token_address = $6 THEN 1.0
-						-- The pool keeps a proportion of reserves so that reserve0 of token0 is worth about as much as reserve1 of token1.
-						-- When token0 is the reference token, more reserve0 means token1 is worth more than the reference token.
-						WHEN
-							ref_swap_pair_creations.token0_address = $6 AND
-							ref_swap_pairs.reserve0 IS NOT NULL AND
-							ref_swap_pairs.reserve0 > 0 AND
-							ref_swap_pairs.reserve1 IS NOT NULL AND
-							ref_swap_pairs.reserve1 > 0
-						THEN ref_swap_pairs.reserve0::REAL / ref_swap_pairs.reserve1::REAL
-						-- When token1 is the reference token, more reserve1 means token0 is worth more than the reference token.
-						WHEN
-							ref_swap_pair_creations.token1_address = $6 AND
-							ref_swap_pairs.reserve0 IS NOT NULL AND
-							ref_swap_pairs.reserve0 > 0 AND
-							ref_swap_pairs.reserve1 IS NOT NULL AND
-							ref_swap_pairs.reserve1 > 0
-						THEN ref_swap_pairs.reserve1::REAL / ref_swap_pairs.reserve0::REAL
-						ELSE 0.0
-					END * COALESCE(tokens.total_supply, 0)
-				)
-			END DESC,
-			num_holders DESC,
-			contract_addr
-		LIMIT $10::bigint
-		OFFSET $11::bigint`
-
 	//nolint:gosec // Linter suspects a hardcoded credentials token.
 	EvmTokenHolders = `
 		SELECT
@@ -1029,76 +925,6 @@ const (
 		SELECT COUNT(*) AS active_nodes
 		FROM chain.runtime_nodes
 		WHERE runtime_id = $1::text`
-
-	RuntimeRoflApps = `
-		WITH
-			-- Latest epoch, to identify active instances.
-			max_epoch AS (
-				SELECT id FROM chain.epochs ORDER BY id DESC LIMIT 1
-			),
-
-			-- Aggregate active instance data per app.
-			active_instances AS (
-				SELECT
-					ri.app_id,
-					COUNT(*) AS num_active_instances,
-					jsonb_agg(
-						jsonb_build_object(
-						'rak', ri.rak,
-						'endorsing_node_id', ri.endorsing_node_id,
-						'endorsing_entity_id', ri.endorsing_entity_id,
-						'rek', ri.rek,
-						'expiration_epoch', ri.expiration_epoch,
-						'extra_keys', ri.extra_keys
-						) ORDER BY ri.expiration_epoch DESC
-					) AS instance_json
-				FROM chain.rofl_instances ri
-				JOIN max_epoch ON true
-				WHERE ri.expiration_epoch > max_epoch.id
-				GROUP BY ri.app_id
-			)
-
-		SELECT
-			ra.id,
-			ra.admin,
-			preimages.context_identifier,
-			preimages.context_version,
-			preimages.address_data,
-			ra.stake,
-			ra.policy,
-			ra.sek,
-			ra.metadata,
-			ra.secrets,
-			ra.removed,
-			COALESCE(ai.num_active_instances, 0) as num_active_instances,
-			COALESCE(ai.instance_json, '[]'::jsonb) AS active_instances
-		FROM chain.rofl_apps AS ra
-
-		-- Resolve admin address preimage.
-		LEFT JOIN chain.address_preimages AS preimages ON (
-			preimages.address = ra.admin AND
-			-- For now, the only user is the explorer, where we only care
-			-- about Ethereum-compatible addresses, so only get those. Can
-			-- easily enable for other address types though.
-			preimages.context_identifier = 'oasis-runtime-sdk/address: secp256k1eth' AND
-			preimages.context_version = 0
-		)
-
-		-- Join aggregated active instance data.
-		LEFT JOIN active_instances ai ON ai.app_id = ra.id
-
-		LEFT JOIN chain.accounts AS a ON a.address = ra.admin
-
-		WHERE
-			ra.runtime = $1::runtime AND
-			($2::text IS NULL OR ra.id = $2::text) AND
-			($3::text IS NULL OR ra.metadata_name ILIKE '%' || $3::text || '%') AND
-			-- Exclude not yet processed apps.
-			ra.last_processed_round IS NOT NULL
-
-		ORDER BY num_active_instances DESC, ra.num_transactions DESC, ra.id DESC
-		LIMIT $4::bigint
-		OFFSET $5::bigint`
 
 	RuntimeRoflAppTransactionsFirstLast = `
 		WITH
@@ -1329,3 +1155,241 @@ const (
 		LIMIT $2::bigint
 		OFFSET $3::bigint`
 )
+
+func escapeLike(s string) string {
+	escaped := strings.ReplaceAll(s, `\`, `\\`)
+	escaped = strings.ReplaceAll(escaped, `%`, `\%`)
+	escaped = strings.ReplaceAll(escaped, `_`, `\_`)
+	return escaped
+}
+
+// EVMTokens returns a SQL query  for selecting EVM tokens, optionally filtered
+// by a list of token name substrings. Filtering arguments are added to the
+// provided argument list.
+//
+// The query is dynamically constructed to support efficient AND-based substring
+// filtering using ILIKE '%term%' per name fragment.
+//
+// Dynamic query generation is necessary here to allow PostgreSQL to utilize the
+// pg_trgm GIN index on `token_name` — index usage is only possible when each
+// ILIKE condition is written explicitly.
+func EVMTokens(rawNames *[]string, args *[]interface{}) string {
+	var clauses []string
+	argOffset := len(*args) + 1
+
+	if rawNames != nil {
+		for i, name := range *rawNames {
+			clauses = append(clauses, fmt.Sprintf("(tokens.token_name ILIKE $%d::text ESCAPE '\\' OR tokens.symbol ILIKE $%d::text ESCAPE '\\')", argOffset+i, argOffset+i))
+			*args = append(*args, "%"+escapeLike(name)+"%")
+		}
+	}
+
+	condition := "TRUE"
+	if len(clauses) > 0 {
+		condition = "(" + strings.Join(clauses, " AND ") + ")"
+	}
+
+	query := fmt.Sprintf(`
+		WITH
+		-- We use custom ordering groups to prioritize some well known tokens at the top of the list.
+		-- Tokens within the same group are ordered by the default logic.
+		custom_order AS (
+			SELECT token_addr, group_order
+			FROM unnest($7::text[], $8::int[]) AS u(token_addr, group_order)
+		),
+		holders AS (
+			SELECT token_address, COUNT(*) AS cnt
+			FROM chain.evm_token_balances
+			WHERE (runtime = $1) AND (balance != 0)
+			GROUP BY token_address
+		)
+		SELECT
+			tokens.token_address AS contract_addr,
+			preimages.address_data as eth_contract_addr,
+			tokens.token_name AS name,
+			tokens.symbol,
+			tokens.decimals,
+			tokens.total_supply,
+			tokens.num_transfers,
+			tokens.token_type AS type,
+			COALESCE(holders.cnt, 0) AS num_holders,
+			ref_swap_pair_creations.pair_address AS ref_swap_pair_address,
+			eth_preimage(ref_swap_pair_creations.pair_address) AS ref_swap_pair_address_eth,
+			ref_swap_pair_creations.factory_address AS ref_swap_factory_address,
+			eth_preimage(ref_swap_pair_creations.factory_address) AS ref_swap_factory_address_eth,
+			ref_swap_pair_creations.token0_address AS ref_swap_token0_address,
+			eth_preimage(ref_swap_pair_creations.token0_address) AS ref_swap_token0_address_eth,
+			ref_swap_pair_creations.token1_address AS ref_swap_token1_address,
+			eth_preimage(ref_swap_pair_creations.token1_address) AS ref_swap_token1_address_eth,
+			ref_swap_pair_creations.create_round AS ref_swap_create_round,
+			ref_swap_pairs.reserve0 AS ref_swap_reserve0,
+			ref_swap_pairs.reserve1 AS ref_swap_reserve1,
+			ref_swap_pairs.last_sync_round AS ref_swap_last_sync_round,
+			ref_tokens.token_type AS ref_token_type,
+			ref_tokens.token_name AS ref_token_name,
+			ref_tokens.symbol AS ref_token_symbol,
+			ref_tokens.decimals AS ref_token_decimals,
+			contracts.verification_level,
+			COALESCE(custom_order.group_order, 9999) AS custom_sort_order
+		FROM chain.evm_tokens AS tokens
+		LEFT JOIN custom_order ON (tokens.token_address = custom_order.token_addr)
+		JOIN chain.address_preimages AS preimages ON (token_address = preimages.address AND preimages.context_identifier = 'oasis-runtime-sdk/address: secp256k1eth' AND preimages.context_version = 0)
+		LEFT JOIN holders USING (token_address)
+		LEFT JOIN chain.evm_swap_pair_creations AS ref_swap_pair_creations ON
+			ref_swap_pair_creations.runtime = tokens.runtime AND
+			ref_swap_pair_creations.factory_address = $4 AND
+			(
+				(ref_swap_pair_creations.token0_address = tokens.token_address AND ref_swap_pair_creations.token1_address = $5) OR
+				(ref_swap_pair_creations.token0_address = $5 AND ref_swap_pair_creations.token1_address = tokens.token_address)
+			)
+		LEFT JOIN chain.evm_swap_pairs AS ref_swap_pairs ON
+			ref_swap_pairs.runtime = tokens.runtime AND
+			ref_swap_pairs.pair_address = ref_swap_pair_creations.pair_address
+		LEFT JOIN chain.evm_tokens AS ref_tokens ON
+			ref_tokens.runtime = tokens.runtime AND
+			ref_tokens.token_address = $5
+		LEFT JOIN chain.evm_contracts as contracts ON (tokens.runtime = contracts.runtime AND tokens.token_address = contracts.contract_address)
+		WHERE
+			(tokens.runtime = $1) AND
+			($2::oasis_addr IS NULL OR tokens.token_address = $2::oasis_addr) AND
+			%s AND
+			($3::int IS NULL OR tokens.token_type = $3::int) AND
+			tokens.token_type IS NOT NULL AND -- exclude token _candidates_ that we haven't inspected yet
+			tokens.token_type != 0 -- exclude unknown-type tokens; they're often just contracts that emitted Transfer events but don't expose the token ticker, name, balance etc.
+		ORDER BY
+			custom_sort_order,
+			CASE
+				-- If sort_by is not "market_cap" then we sort by num_holders (below).
+				WHEN $6::text IS NULL OR $6::text != 'market_cap' THEN NULL
+				ELSE
+				-- Otherwise, sort by market cap.
+				(
+					CASE
+						-- For the reference token itself, it is 1:1 in value with, you know, itself.
+						WHEN tokens.token_address = $5 THEN 1.0
+						-- The pool keeps a proportion of reserves so that reserve0 of token0 is worth about as much as reserve1 of token1.
+						-- When token0 is the reference token, more reserve0 means token1 is worth more than the reference token.
+						WHEN
+							ref_swap_pair_creations.token0_address = $5 AND
+							ref_swap_pairs.reserve0 IS NOT NULL AND
+							ref_swap_pairs.reserve0 > 0 AND
+							ref_swap_pairs.reserve1 IS NOT NULL AND
+							ref_swap_pairs.reserve1 > 0
+						THEN ref_swap_pairs.reserve0::REAL / ref_swap_pairs.reserve1::REAL
+						-- When token1 is the reference token, more reserve1 means token0 is worth more than the reference token.
+						WHEN
+							ref_swap_pair_creations.token1_address = $5 AND
+							ref_swap_pairs.reserve0 IS NOT NULL AND
+							ref_swap_pairs.reserve0 > 0 AND
+							ref_swap_pairs.reserve1 IS NOT NULL AND
+							ref_swap_pairs.reserve1 > 0
+						THEN ref_swap_pairs.reserve1::REAL / ref_swap_pairs.reserve0::REAL
+						ELSE 0.0
+					END * COALESCE(tokens.total_supply, 0)
+				)
+			END DESC,
+			num_holders DESC,
+			contract_addr
+		LIMIT $%d::bigint
+		OFFSET $%d::bigint`, condition, argOffset+len(clauses), argOffset+len(clauses)+1)
+
+	return query
+}
+
+// RuntimeRoflApps returns a SQL query for selecting ROFL apps, optionally
+// filtered by a list of metadata name substrings. Filtering arguments are added
+// to the provided argument list.
+//
+// The query is dynamically constructed to support efficient AND-based substring
+// filtering using ILIKE '%term%' per name fragment.
+//
+// Dynamic query generation is necessary here to allow PostgreSQL to utilize the
+// pg_trgm GIN index on `metadata_name` — index usage is only possible when each
+// ILIKE condition is written explicitly.
+func RuntimeRoflApps(rawNames *[]string, args *[]interface{}) string {
+	var clauses []string
+	argOffset := len(*args) + 1
+
+	if rawNames != nil {
+		for i, name := range *rawNames {
+			clauses = append(clauses, fmt.Sprintf("ra.metadata_name ILIKE $%d::text ESCAPE '\\'", argOffset+i))
+			*args = append(*args, "%"+escapeLike(name)+"%")
+		}
+	}
+
+	nameCondition := "TRUE"
+	if len(clauses) > 0 {
+		nameCondition = "(" + strings.Join(clauses, " AND ") + ")"
+	}
+	query := fmt.Sprintf(`
+		WITH
+			-- Latest epoch, to identify active instances.
+			max_epoch AS (
+				SELECT id FROM chain.epochs ORDER BY id DESC LIMIT 1
+			),
+
+			-- Aggregate active instance data per app.
+			active_instances AS (
+				SELECT
+					ri.app_id,
+					COUNT(*) AS num_active_instances,
+					jsonb_agg(
+						jsonb_build_object(
+						'rak', ri.rak,
+						'endorsing_node_id', ri.endorsing_node_id,
+						'endorsing_entity_id', ri.endorsing_entity_id,
+						'rek', ri.rek,
+						'expiration_epoch', ri.expiration_epoch,
+						'extra_keys', ri.extra_keys
+						) ORDER BY ri.expiration_epoch DESC
+					) AS instance_json
+				FROM chain.rofl_instances ri
+				JOIN max_epoch ON true
+				WHERE ri.expiration_epoch > max_epoch.id
+				GROUP BY ri.app_id
+			)
+
+		SELECT
+			ra.id,
+			ra.admin,
+			preimages.context_identifier,
+			preimages.context_version,
+			preimages.address_data,
+			ra.stake,
+			ra.policy,
+			ra.sek,
+			ra.metadata,
+			ra.secrets,
+			ra.removed,
+			COALESCE(ai.num_active_instances, 0) as num_active_instances,
+			COALESCE(ai.instance_json, '[]'::jsonb) AS active_instances
+		FROM chain.rofl_apps AS ra
+
+		-- Resolve admin address preimage.
+		LEFT JOIN chain.address_preimages AS preimages ON (
+			preimages.address = ra.admin AND
+			-- For now, the only user is the explorer, where we only care
+			-- about Ethereum-compatible addresses, so only get those. Can
+			-- easily enable for other address types though.
+			preimages.context_identifier = 'oasis-runtime-sdk/address: secp256k1eth' AND
+			preimages.context_version = 0
+		)
+
+		-- Join aggregated active instance data.
+		LEFT JOIN active_instances ai ON ai.app_id = ra.id
+
+		LEFT JOIN chain.accounts AS a ON a.address = ra.admin
+
+		WHERE
+			ra.runtime = $1::runtime AND
+			($2::text IS NULL OR ra.id = $2::text) AND
+			%s AND
+			-- Exclude not yet processed apps.
+			ra.last_processed_round IS NOT NULL
+
+		ORDER BY num_active_instances DESC, ra.num_transactions DESC, ra.id DESC
+		LIMIT $%d::bigint
+		OFFSET $%d::bigint`, nameCondition, argOffset+len(clauses), argOffset+len(clauses)+1)
+
+	return query
+}

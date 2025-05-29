@@ -32,6 +32,8 @@ testCases=(
   'emerald_token_nfts                         /v1/emerald/evm_tokens/oasis1qz29t7nxkwfqgfk36uqqs9pzuzdt8zmrjud5mehx/nfts'
   'emerald_token_nfts_eth                     /v1/emerald/evm_tokens/0x1108A83b867c8b720fEa7261AE7A64DAB17B4159/nfts'
   'emerald_token_nft                          /v1/emerald/evm_tokens/oasis1qz29t7nxkwfqgfk36uqqs9pzuzdt8zmrjud5mehx/nfts/2'
+  'emerald_token_by_name                      /v1/emerald/evm_tokens?name=Wrapped'
+  'emerald_token_by_multiple_names            /v1/emerald/evm_tokens?name=WROSE,Wrapped'
   'emerald_account_with_rose                  /v1/emerald/accounts/oasis1qrt0sv2s2x2lkt9e7kmr2mzxgme8m0pzauwztprl'
   'emerald_account_with_evm_token             /v1/emerald/accounts/oasis1qpl38f2a8m55ylha8ysdn03ya0mgrftkasmy8wyv'
   'emerald_account_with_evm_token_eth         /v1/emerald/accounts/0x8d82559A91929DD72682f5C6E2EEA3905B6c2A18'
