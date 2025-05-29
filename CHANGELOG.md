@@ -12,6 +12,35 @@ The format is inspired by [Keep a Changelog].
 
 <!-- TOWNCRIER -->
 
+## 0.6.15 (2025-05-29)
+
+### Features
+
+- storage: add chain.evm_tokens name and symbol indices
+  ([#466](https://github.com/oasisprotocol/nexus/issues/466))
+
+- api/evm_tokens: Support filtering by multiple name fragments
+  ([#1026](https://github.com/oasisprotocol/nexus/issues/1026))
+
+- api/rofl_apps: Support filtering by multiple name fragments
+  ([#1026](https://github.com/oasisprotocol/nexus/issues/1026))
+
+### Bug Fixes and Improvements
+
+- api/transactions: Ensure ordering for txs filtered by related address
+  ([#1012](https://github.com/oasisprotocol/nexus/issues/1012))
+
+- analyzer/runtime: Detect contract candidates via log-emitting addresses
+  ([#1027](https://github.com/oasisprotocol/nexus/issues/1027))
+
+### Internal Changes
+
+- deps: Bump pgx to 5.7.5
+  ([#1019](https://github.com/oasisprotocol/nexus/issues/1019))
+
+- Add support for enabling pprof server
+  ([#1020](https://github.com/oasisprotocol/nexus/issues/1020))
+
 ## 0.6.14 (2025-05-22)
 
 ### Features
