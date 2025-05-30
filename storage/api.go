@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 
 	"github.com/oasisprotocol/nexus/common"
 )
@@ -98,6 +99,9 @@ type TargetStorage interface {
 
 	// QueryRow submits a query to fetch a single row of data from target storage.
 	QueryRow(ctx context.Context, sql string, args ...interface{}) QueryResult
+
+	// Exec executes a query without returning any rows.
+	Exec(ctx context.Context, sql string, args ...interface{}) (pgconn.CommandTag, error)
 
 	// Begin starts a new transaction.
 	// XXX: Not the nicest that this exposes the underlying pgx.Tx interface. Could instead

@@ -17,13 +17,18 @@ const (
 
 	defaultInterval = 2 * time.Minute
 
+	vacuumInterval = 2 * time.Hour
+
 	accountListViewRefreshQuery = `REFRESH MATERIALIZED VIEW CONCURRENTLY views.accounts_list`
+	accountsListVacuumQuery     = `VACUUM ANALYZE views.accounts_list`
 )
 
 type processor struct {
 	source nodeapi.ConsensusApiLite
 	target storage.TargetStorage
 	logger *log.Logger
+
+	lastVacuum time.Time
 }
 
 var _ item.ItemProcessor[struct{}] = (*processor)(nil)
@@ -39,9 +44,10 @@ func NewAnalyzer(
 	}
 	logger = logger.With("analyzer", analyzerName)
 	p := &processor{
-		source: client,
-		target: target,
-		logger: logger,
+		source:     client,
+		target:     target,
+		logger:     logger,
+		lastVacuum: time.Time{}, // This will ensure that the view is vacuumed on the first run.
 	}
 
 	return item.NewAnalyzer(
@@ -59,6 +65,16 @@ func (p *processor) GetItems(ctx context.Context, limit uint64) ([]struct{}, err
 
 func (p *processor) ProcessItem(ctx context.Context, batch *storage.QueryBatch, item struct{}) error {
 	batch.Queue(accountListViewRefreshQuery)
+
+	if time.Since(p.lastVacuum) > vacuumInterval {
+		_, err := p.target.Exec(ctx, accountsListVacuumQuery)
+		if err != nil {
+			p.logger.Error("failed to vacuum accounts list view", "error", err)
+			return nil
+		}
+		p.lastVacuum = time.Now()
+	}
+
 	return nil
 }
 
