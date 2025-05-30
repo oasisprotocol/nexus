@@ -251,11 +251,17 @@ func (m *processor) ProcessBlock(ctx context.Context, round uint64) error {
 	if err != nil {
 		return err
 	}
+	// MinGasPrice is used to calculate the base fee of the block.
+	minGasPrice, err := m.source.GetMinGasPrice(ctx, round)
+	if err != nil {
+		return err
+	}
+
 	fetchTimer.ObserveDuration() // We make no observation in case of a data fetch error; those timings are misleading.
 
 	// Preprocess data.
 	analysisTimer := m.metrics.BlockAnalysisLatencies()
-	blockData, err := ExtractRound(*blockHeader, transactionsWithResults, rawEvents, m.sdkPT, m.logger)
+	blockData, err := ExtractRound(*blockHeader, transactionsWithResults, rawEvents, minGasPrice[sdkTypes.NativeDenomination], m.sdkPT, m.logger)
 	if err != nil {
 		return err
 	}
@@ -396,6 +402,7 @@ func (m *processor) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 		data.NumTransactions,
 		fmt.Sprintf("%d", data.GasUsed),
 		data.Size,
+		data.MinGasPrice.String(),
 	)
 
 	// Insert transactions and associated data (without events).

@@ -5,17 +5,19 @@ import (
 
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
+
+	"github.com/oasisprotocol/nexus/common"
 )
 
 // OpenUtxNoVerify decodes the transaction inside an UnverifiedTransaction
 // without verifying the authentication. And that's okay for our use case,
 // where we obtain transactions that are known to be properly authenticated
 // from a trusted node.
-func OpenUtxNoVerify(utx *sdkTypes.UnverifiedTransaction) (*sdkTypes.Transaction, error) {
+func OpenUtxNoVerify(utx *sdkTypes.UnverifiedTransaction, minGasPrice common.BigInt) (*sdkTypes.Transaction, error) {
 	if len(utx.AuthProofs) == 1 && utx.AuthProofs[0].Module != "" {
 		switch utx.AuthProofs[0].Module {
 		case "evm.ethereum.v0":
-			tx, err := decodeEthRawTx(utx.Body)
+			tx, err := decodeEthRawTx(utx.Body, minGasPrice)
 			if err != nil {
 				return nil, err
 			}

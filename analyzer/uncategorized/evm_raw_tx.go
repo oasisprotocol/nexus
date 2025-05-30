@@ -2,6 +2,7 @@ package common
 
 import (
 	"fmt"
+	"math/big"
 
 	ethTypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/oasisprotocol/oasis-core/go/common/quantity"
@@ -9,9 +10,11 @@ import (
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/crypto/signature/secp256k1"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/evm"
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
+
+	"github.com/oasisprotocol/nexus/common"
 )
 
-func decodeEthRawTx(body []byte) (*sdkTypes.Transaction, error) {
+func decodeEthRawTx(body []byte, minGasPrice common.BigInt) (*sdkTypes.Transaction, error) {
 	var ethTx ethTypes.Transaction
 	if err := ethTx.UnmarshalBinary(body); err != nil {
 		return nil, fmt.Errorf("rlp decode bytes: %w", err)
@@ -33,13 +36,21 @@ func decodeEthRawTx(body []byte) (*sdkTypes.Transaction, error) {
 	if err = sender.UnmarshalBinary(pubUncompressed); err != nil {
 		return nil, fmt.Errorf("sdk secp256k1 public key unmarshal binary: %w", err)
 	}
-	// Base fee is zero. Allocate only priority fee.
-	gasPrice := ethTx.GasTipCap()
-	if ethTx.GasFeeCapIntCmp(gasPrice) < 0 {
-		gasPrice = ethTx.GasFeeCap()
+
+	var effectiveGasPrice *big.Int
+	switch ethTx.Type() {
+	case ethTypes.DynamicFeeTxType:
+		effectiveGasPrice, err = ethTx.EffectiveGasTip(common.Ptr(minGasPrice.Int))
+		if err != nil {
+			return nil, fmt.Errorf("computing effective gas price: %w", err)
+		}
+		effectiveGasPrice.Add(effectiveGasPrice, common.Ptr(minGasPrice.Int))
+	default:
+		effectiveGasPrice = ethTx.GasPrice()
 	}
+
 	var resolvedFeeAmount quantity.Quantity
-	if err = resolvedFeeAmount.FromBigInt(gasPrice); err != nil {
+	if err = resolvedFeeAmount.FromBigInt(effectiveGasPrice); err != nil {
 		return nil, fmt.Errorf("converting gas price: %w", err)
 	}
 	if err = resolvedFeeAmount.Mul(quantity.NewFromUint64(ethTx.Gas())); err != nil {

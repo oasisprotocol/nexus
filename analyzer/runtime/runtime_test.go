@@ -111,6 +111,13 @@ func (*mockNode) GetBalances(ctx context.Context, round uint64, addr api.Address
 	panic("unimplemented") // not needed for testing the block analyzer
 }
 
+// GetMinGasPrice implements nodeapi.RuntimeApiLite.
+func (*mockNode) GetMinGasPrice(ctx context.Context, round uint64) (map[sdkTypes.Denomination]common.BigInt, error) {
+	return map[sdkTypes.Denomination]common.BigInt{
+		sdkTypes.NativeDenomination: common.NewBigInt(10_000),
+	}, nil
+}
+
 // GetRoflApps implements nodeapi.RuntimeApiLite.
 func (*mockNode) RoflApps(ctx context.Context, round uint64) ([]*nodeapi.AppConfig, error) {
 	panic("unimplemented") // not needed for testing the block analyzer

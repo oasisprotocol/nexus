@@ -121,7 +121,7 @@ func TestExtractSuccessfulEncryptedTx(t *testing.T) {
 		Success: common.Ptr(true),
 		Error:   nil,
 	}
-	blockData, err := ExtractRound(nodeapi.RuntimeBlockHeader{}, txrs, []nodeapi.RuntimeEvent{}, sapphireParatime, log.NewDefaultLogger("testing"))
+	blockData, err := ExtractRound(nodeapi.RuntimeBlockHeader{}, txrs, []nodeapi.RuntimeEvent{}, common.NewBigInt(10_000), sapphireParatime, log.NewDefaultLogger("testing"))
 	require.NoError(t, err)
 
 	verifyTxData(t, &expected, blockData.TransactionData[0])
@@ -169,7 +169,7 @@ func TestExtractFailedEncryptedTx(t *testing.T) {
 			Message:    common.Ptr("reverted: too late to submit"),
 		},
 	}
-	blockData, err := ExtractRound(nodeapi.RuntimeBlockHeader{}, txrs, []nodeapi.RuntimeEvent{}, sapphireParatime, log.NewDefaultLogger("testing"))
+	blockData, err := ExtractRound(nodeapi.RuntimeBlockHeader{}, txrs, []nodeapi.RuntimeEvent{}, common.NewBigInt(10_000), sapphireParatime, log.NewDefaultLogger("testing"))
 	require.NoError(t, err)
 
 	verifyTxData(t, &expected, blockData.TransactionData[0])
@@ -202,7 +202,7 @@ func TestExtractSuccessfulUnecryptedTx(t *testing.T) {
 		Success:      common.Ptr(true),
 		Error:        nil,
 	}
-	blockData, err := ExtractRound(nodeapi.RuntimeBlockHeader{}, txrs, []nodeapi.RuntimeEvent{}, sapphireParatime, log.NewDefaultLogger("testing"))
+	blockData, err := ExtractRound(nodeapi.RuntimeBlockHeader{}, txrs, []nodeapi.RuntimeEvent{}, common.NewBigInt(10_000), sapphireParatime, log.NewDefaultLogger("testing"))
 	require.NoError(t, err)
 
 	verifyTxData(t, &expected, blockData.TransactionData[0])
@@ -243,7 +243,7 @@ func TestExtractFailedUnecryptedTx(t *testing.T) {
 			Message:    common.Ptr("execution failed: out of gas"),
 		},
 	}
-	blockData, err := ExtractRound(nodeapi.RuntimeBlockHeader{}, txrs, []nodeapi.RuntimeEvent{}, sapphireParatime, log.NewDefaultLogger("testing"))
+	blockData, err := ExtractRound(nodeapi.RuntimeBlockHeader{}, txrs, []nodeapi.RuntimeEvent{}, common.NewBigInt(10_000), sapphireParatime, log.NewDefaultLogger("testing"))
 	require.NoError(t, err)
 
 	verifyTxData(t, &expected, blockData.TransactionData[0])

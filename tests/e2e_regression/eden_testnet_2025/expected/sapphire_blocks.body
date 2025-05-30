@@ -3,6 +3,7 @@
     {
       "gas_used": 160861,
       "hash": "dc738b026f7a6502795c5d25216d836e3f7f95934cc9f4c1b956103a838ccb40",
+      "min_gas_price": "100000000000",
       "num_transactions": 2,
       "round": 11567500,
       "size": 11624,
@@ -11,6 +12,7 @@
     {
       "gas_used": 70543,
       "hash": "05489e958e9d987fe861d56df21dfc07e7765e6b6ea941fc3ad0d22a36504e6f",
+      "min_gas_price": "100000000000",
       "num_transactions": 2,
       "round": 11567499,
       "size": 606,
@@ -19,6 +21,7 @@
     {
       "gas_used": 113419,
       "hash": "2b437a772c4c84e2a2773ce3f587d5af8abafdfd3f0f62b5d33c47c0a84968be",
+      "min_gas_price": "100000000000",
       "num_transactions": 1,
       "round": 11567498,
       "size": 11419,
@@ -27,6 +30,7 @@
     {
       "gas_used": 78583,
       "hash": "326007765e550f85cefc19bd527e8933bd84b9923c9feed7ebf296fc20e57593",
+      "min_gas_price": "100000000000",
       "num_transactions": 2,
       "round": 11567497,
       "size": 557,
@@ -35,6 +39,7 @@
     {
       "gas_used": 135562,
       "hash": "d96a3119309c89bebaa5b832a7bed9866a69a1484c0c631d92fe1ce3770544ae",
+      "min_gas_price": "100000000000",
       "num_transactions": 2,
       "round": 11567496,
       "size": 11562,
@@ -43,6 +48,7 @@
     {
       "gas_used": 30017,
       "hash": "c4a53e7fffe5cffe8a4ffa739c0170a63804d28d6ece8aa983d075f96cc37983",
+      "min_gas_price": "100000000000",
       "num_transactions": 1,
       "round": 11567495,
       "size": 880,
@@ -51,6 +57,7 @@
     {
       "gas_used": 113419,
       "hash": "95fedcb2053a0a37a3b0502edb56ae1665285f40d075499d78163f30a12be87d",
+      "min_gas_price": "100000000000",
       "num_transactions": 1,
       "round": 11567494,
       "size": 11419,
@@ -59,6 +66,7 @@
     {
       "gas_used": 183003,
       "hash": "0c2892014f238a04bcad41af0d4357aebe18771eccdd8d2cac1a05982b672bcb",
+      "min_gas_price": "100000000000",
       "num_transactions": 3,
       "round": 11567493,
       "size": 11766,
@@ -67,6 +75,7 @@
     {
       "gas_used": 189453,
       "hash": "aa62a7fac36948f0805a89147e454badb5d99c6143dbc574655234482ea01bca",
+      "min_gas_price": "100000000000",
       "num_transactions": 3,
       "round": 11567492,
       "size": 1269,
@@ -75,6 +84,7 @@
     {
       "gas_used": 113420,
       "hash": "9141849cebdd8d2c7992ef5e22af443f2621bee339aa79068c5cd47fecce7c41",
+      "min_gas_price": "100000000000",
       "num_transactions": 1,
       "round": 11567491,
       "size": 11420,
@@ -83,6 +93,7 @@
     {
       "gas_used": 22143,
       "hash": "997586a1c1a322d8d1075206ad7a5d7742d8aa2351a4d419a55820628e82e98b",
+      "min_gas_price": "100000000000",
       "num_transactions": 1,
       "round": 11567490,
       "size": 143,
@@ -91,6 +102,7 @@
     {
       "gas_used": 113419,
       "hash": "f79ac3cf4e6d870c4011b0b66a9002898dd02e932c56f4e6a5b619589208e97f",
+      "min_gas_price": "100000000000",
       "num_transactions": 1,
       "round": 11567489,
       "size": 11419,
@@ -99,6 +111,7 @@
     {
       "gas_used": 113419,
       "hash": "99d30c5b8a4befcdfcf4d5530ad73e6f3eb042724caa3278848426adf704741a",
+      "min_gas_price": "100000000000",
       "num_transactions": 1,
       "round": 11567488,
       "size": 11419,
@@ -107,6 +120,7 @@
     {
       "gas_used": 135562,
       "hash": "351b8b7a1557bcd6f6d58280d06f8885a2f55c99f7c8169a7e0dc5238a4a1c7a",
+      "min_gas_price": "100000000000",
       "num_transactions": 2,
       "round": 11567487,
       "size": 11562,
@@ -115,6 +129,7 @@
     {
       "gas_used": 47429,
       "hash": "35d839a8e5f5d101fe521da5a667a4ffd05a0d2120f8e682562a9484dd0b8da4",
+      "min_gas_price": "100000000000",
       "num_transactions": 1,
       "round": 11567486,
       "size": 204,
@@ -123,6 +138,7 @@
     {
       "gas_used": 143436,
       "hash": "4af4fb5e2da374fa116eaf813c6727ff484ba20bdb9c22f8497cd46e42b65a7f",
+      "min_gas_price": "100000000000",
       "num_transactions": 2,
       "round": 11567485,
       "size": 12299,
@@ -131,6 +147,7 @@
     {
       "gas_used": 22143,
       "hash": "798187d19f842b12d9588f17cf5dc7e0cb439ee2cb1056e17142cb23d7e212a2",
+      "min_gas_price": "100000000000",
       "num_transactions": 1,
       "round": 11567484,
       "size": 143,
@@ -139,6 +156,7 @@
     {
       "gas_used": 113420,
       "hash": "2cd4c13f329d75b1ac6c83f7debcf35f6b83a08439f0af6031c2e482b4703950",
+      "min_gas_price": "100000000000",
       "num_transactions": 1,
       "round": 11567483,
       "size": 11420,
@@ -147,6 +165,7 @@
     {
       "gas_used": 47441,
       "hash": "47facf5bded9b081389aa04cf45e36610276bcb52f32c345f8b0b6571a3ae8a9",
+      "min_gas_price": "100000000000",
       "num_transactions": 1,
       "round": 11567482,
       "size": 204,
@@ -155,6 +174,7 @@
     {
       "gas_used": 166704,
       "hash": "9458d260635e1bdc4a44ed576e959331fb82de081230234499d316daca1b20e9",
+      "min_gas_price": "100000000000",
       "num_transactions": 3,
       "round": 11567481,
       "size": 11915,
@@ -163,6 +183,7 @@
     {
       "gas_used": 198555,
       "hash": "9b7b130b8c2b4f168b61db8b97429eb15fdf9c147c6e6e3757eda49aa8932e59",
+      "min_gas_price": "100000000000",
       "num_transactions": 3,
       "round": 11567480,
       "size": 1926,
@@ -171,6 +192,7 @@
     {
       "gas_used": 174734,
       "hash": "72553d7f6a53a52a32311c46fad37eb07d66e0c930ff7fbdfb35cfa91f0b788c",
+      "min_gas_price": "100000000000",
       "num_transactions": 2,
       "round": 11567479,
       "size": 11734,
@@ -179,6 +201,7 @@
     {
       "gas_used": 69584,
       "hash": "c8bb046a59bcf13db880e21bee7a90e872b3d8491fc1aa011055b9bbf98b64f0",
+      "min_gas_price": "100000000000",
       "num_transactions": 2,
       "round": 11567478,
       "size": 347,
@@ -187,6 +210,7 @@
     {
       "gas_used": 113419,
       "hash": "31208f1a254c83d969cf3c2e97c5ad5465b5d92b8101ad2eb5cb78c1a9ceaf35",
+      "min_gas_price": "100000000000",
       "num_transactions": 1,
       "round": 11567477,
       "size": 11419,
@@ -195,6 +219,7 @@
     {
       "gas_used": 160861,
       "hash": "b86b34c3c2d7cfa143c79e9406434463b1f20ad2999682e8dea202266d8d8c81",
+      "min_gas_price": "100000000000",
       "num_transactions": 2,
       "round": 11567476,
       "size": 11624,
@@ -203,6 +228,7 @@
     {
       "gas_used": 52160,
       "hash": "fb89de56780ce2f52555623b2180061e4d3df79341929d6454f0862fee283b88",
+      "min_gas_price": "100000000000",
       "num_transactions": 2,
       "round": 11567475,
       "size": 1023,
@@ -211,6 +237,7 @@
     {
       "gas_used": 113420,
       "hash": "da7c3034dc5d4fdc76e26235265ca0106cf8890319b9c737426192842f382850",
+      "min_gas_price": "100000000000",
       "num_transactions": 1,
       "round": 11567474,
       "size": 11420,
@@ -219,6 +246,7 @@
     {
       "gas_used": 113420,
       "hash": "52e3c554cb1f832fa6e52c32493ed911bdffa717e160013712360746902778a3",
+      "min_gas_price": "100000000000",
       "num_transactions": 1,
       "round": 11567473,
       "size": 11420,
@@ -227,6 +255,7 @@
     {
       "gas_used": 69572,
       "hash": "1cfd362f738bf9a922d5a312eede4da1871e5086dab1241d202d1e45bd590558",
+      "min_gas_price": "100000000000",
       "num_transactions": 2,
       "round": 11567472,
       "size": 347,
@@ -235,6 +264,7 @@
     {
       "gas_used": 113419,
       "hash": "417b5b52512bcef35282a27a12c0552f7bb43c9ecdb98b460c68c2903fc61de5",
+      "min_gas_price": "100000000000",
       "num_transactions": 1,
       "round": 11567471,
       "size": 11419,
@@ -243,6 +273,7 @@
     {
       "gas_used": 47441,
       "hash": "3b5d0ecf1b209179a6f1fbc3ddff14f23727c1df30a7ce73b63942ffe8d92144",
+      "min_gas_price": "100000000000",
       "num_transactions": 1,
       "round": 11567470,
       "size": 204,
@@ -251,6 +282,7 @@
     {
       "gas_used": 183963,
       "hash": "d74689ff8fcc1c1292472321b6746c2d9e15ee56b06287a63e4dff8a4af23af2",
+      "min_gas_price": "100000000000",
       "num_transactions": 3,
       "round": 11567469,
       "size": 12026,
@@ -259,6 +291,7 @@
     {
       "gas_used": 79758,
       "hash": "6b936194bc66243d97f2cf576f9dc4b138ce80a18502802592ec659d7d30b81b",
+      "min_gas_price": "100000000000",
       "num_transactions": 1,
       "round": 11567468,
       "size": 511,
@@ -267,6 +300,7 @@
     {
       "gas_used": 113420,
       "hash": "eca9308c85e1f0c787c6fb12df5f0ed2fa92a52b049f23046661b7458e0253a0",
+      "min_gas_price": "100000000000",
       "num_transactions": 1,
       "round": 11567467,
       "size": 11420,
@@ -275,6 +309,7 @@
     {
       "gas_used": 114579,
       "hash": "3ce43814b7a0a54d3766a70903bbf544ef04f5ad18fdb6ada74a2078e09cacee",
+      "min_gas_price": "100000000000",
       "num_transactions": 3,
       "round": 11567466,
       "size": 790,
@@ -283,6 +318,7 @@
     {
       "gas_used": 113419,
       "hash": "a3cc1760a61b1ca3cff2e0c9a3a27e85eaaf7a1475e48524c3c568df4982f04a",
+      "min_gas_price": "100000000000",
       "num_transactions": 1,
       "round": 11567465,
       "size": 11419,
@@ -291,6 +327,7 @@
     {
       "gas_used": 77446,
       "hash": "fe3e9927617b6aa2796482a6bc9e2dcf6bc2ad749c10c31959664140375ba1ca",
+      "min_gas_price": "100000000000",
       "num_transactions": 2,
       "round": 11567464,
       "size": 1084,
@@ -299,6 +336,7 @@
     {
       "gas_used": 135562,
       "hash": "2ecebb1ae3fbae2e795562bc36da0e1066d5e6a9c81b50f3afcc84a84b6e6530",
+      "min_gas_price": "100000000000",
       "num_transactions": 2,
       "round": 11567463,
       "size": 11562,
@@ -307,6 +345,7 @@
     {
       "gas_used": 47441,
       "hash": "5a620e7e0f74a39c35d1ab8c0e893dc159039f2ba24af3e7431fe145468056b0",
+      "min_gas_price": "100000000000",
       "num_transactions": 1,
       "round": 11567462,
       "size": 204,
@@ -315,6 +354,7 @@
     {
       "gas_used": 113420,
       "hash": "e475ee0c6f9ab4f318fc46637f99106cbc2089a5f7d855d30b286142116d7af5",
+      "min_gas_price": "100000000000",
       "num_transactions": 1,
       "round": 11567461,
       "size": 11420,
@@ -323,6 +363,7 @@
     {
       "gas_used": 135562,
       "hash": "b788831942dc82e9d122d01faf022d79c3b4d091a3fb64b6783d325a0a021493",
+      "min_gas_price": "100000000000",
       "num_transactions": 2,
       "round": 11567460,
       "size": 11562,
@@ -331,6 +372,7 @@
     {
       "gas_used": 47429,
       "hash": "47080ef0f228b371b18323f8686964c26b74b70392e7addbe86d2d7d70017be2",
+      "min_gas_price": "100000000000",
       "num_transactions": 1,
       "round": 11567459,
       "size": 204,
@@ -339,6 +381,7 @@
     {
       "gas_used": 113420,
       "hash": "1b41912f4608d349d080c3a46f1ac4be74faf4a9c8bb09bf8a9f11d615871719",
+      "min_gas_price": "100000000000",
       "num_transactions": 1,
       "round": 11567458,
       "size": 11420,
@@ -347,6 +390,7 @@
     {
       "gas_used": 182991,
       "hash": "240e9d72808cd0bfe3b00c5c0df1bc6ffeb2afe21bb56f63ad0d586662867f93",
+      "min_gas_price": "100000000000",
       "num_transactions": 3,
       "round": 11567457,
       "size": 11766,
@@ -355,6 +399,7 @@
     {
       "gas_used": 79758,
       "hash": "65b76affe31e0589a2ace91fc4b7f9e74dcdb9dff948bb39e782bc66102fdc7b",
+      "min_gas_price": "100000000000",
       "num_transactions": 1,
       "round": 11567456,
       "size": 511,
@@ -363,6 +408,7 @@
     {
       "gas_used": 113420,
       "hash": "e085f3496843e32eadf295c19d220e07a19fc0e2ffd3c0d15af4cd9e7ddc6187",
+      "min_gas_price": "100000000000",
       "num_transactions": 1,
       "round": 11567455,
       "size": 11420,
@@ -371,6 +417,7 @@
     {
       "gas_used": 165580,
       "hash": "3dc6d7bea8fca9a8e5a46f76e6781e306b0ddce0354921e16de3eded16d6eb32",
+      "min_gas_price": "100000000000",
       "num_transactions": 3,
       "round": 11567454,
       "size": 12443,
@@ -379,6 +426,7 @@
     {
       "gas_used": 61315,
       "hash": "b6eb2b8a73bd1cac9f1f951b11a298915dfa31563e68fc3838474b0ebfe774e3",
+      "min_gas_price": "100000000000",
       "num_transactions": 1,
       "round": 11567453,
       "size": 315,
@@ -387,6 +435,7 @@
     {
       "gas_used": 113420,
       "hash": "f182cbd463b221ea941805bdcab33cbeae3e6307921cdcdb1f1507bc2fe46bb2",
+      "min_gas_price": "100000000000",
       "num_transactions": 1,
       "round": 11567452,
       "size": 11420,
@@ -395,6 +444,7 @@
     {
       "gas_used": 69584,
       "hash": "b67fb26ef034cdd538a07d8be5f6137ebc60ef86fa5a286c8a49b6920650cd04",
+      "min_gas_price": "100000000000",
       "num_transactions": 2,
       "round": 11567451,
       "size": 347,
@@ -403,6 +453,7 @@
     {
       "gas_used": 144561,
       "hash": "8b75107ce2c9e1f5122c0844af96aaa57db3454978c72960f509a6bd070c6c0a",
+      "min_gas_price": "100000000000",
       "num_transactions": 2,
       "round": 11567450,
       "size": 11772,
@@ -411,6 +462,7 @@
     {
       "gas_used": 47429,
       "hash": "005d6e3fd391be4b30b44297c1bd0f9285ca32299463f492e51c47839a503121",
+      "min_gas_price": "100000000000",
       "num_transactions": 1,
       "round": 11567449,
       "size": 204,
@@ -419,6 +471,7 @@
     {
       "gas_used": 135563,
       "hash": "86f21d60ad45f401b35028bc46d62e9c6e14a1bfecfe7e876527dfd02da639c6",
+      "min_gas_price": "100000000000",
       "num_transactions": 2,
       "round": 11567448,
       "size": 11563,
@@ -427,6 +480,7 @@
     {
       "gas_used": 47441,
       "hash": "0dde3b5a496db8e8207c64578f92e3b405fabcf9000710491fa4f1921767b086",
+      "min_gas_price": "100000000000",
       "num_transactions": 1,
       "round": 11567447,
       "size": 204,
@@ -435,6 +489,7 @@
     {
       "gas_used": 113420,
       "hash": "cf6125225adf9c6fc04798bbd1b949c12102d56c0d2ec457fa27befc447e77e5",
+      "min_gas_price": "100000000000",
       "num_transactions": 1,
       "round": 11567446,
       "size": 11420,
@@ -443,6 +498,7 @@
     {
       "gas_used": 183004,
       "hash": "2df0c3229c8dca820af71b8def007855a56ff7f65af281058a3e96210b41410f",
+      "min_gas_price": "100000000000",
       "num_transactions": 3,
       "round": 11567445,
       "size": 11767,
@@ -451,6 +507,7 @@
     {
       "gas_used": 79758,
       "hash": "ef64e9731fcc5fb70419012b1bba111d63ae1c2f255972bfae44243d196893fb",
+      "min_gas_price": "100000000000",
       "num_transactions": 1,
       "round": 11567444,
       "size": 511,
@@ -459,6 +516,7 @@
     {
       "gas_used": 143436,
       "hash": "80bd6dc6ed2dc93298e2a54899916e1269686d05b9d3838c83e833c53c7dea61",
+      "min_gas_price": "100000000000",
       "num_transactions": 2,
       "round": 11567443,
       "size": 12299,
@@ -467,6 +525,7 @@
     {
       "gas_used": 69584,
       "hash": "c5d2d2e6bb5a9315b5966426dca999982487d39418a9ce86edbc4e02263cb1a8",
+      "min_gas_price": "100000000000",
       "num_transactions": 2,
       "round": 11567442,
       "size": 347,
@@ -475,6 +534,7 @@
     {
       "gas_used": 113420,
       "hash": "23d13e513f783b35e3dab930d7a77178050c9c5a5179836e0ff1cacbf27751c0",
+      "min_gas_price": "100000000000",
       "num_transactions": 1,
       "round": 11567441,
       "size": 11420,
@@ -483,6 +543,7 @@
     {
       "gas_used": 108735,
       "hash": "26dc594ee1dc32c8fbff6c8f62059b6235972f787209b573c6e785a2c9e1d9ce",
+      "min_gas_price": "100000000000",
       "num_transactions": 2,
       "round": 11567440,
       "size": 498,
@@ -491,6 +552,7 @@
     {
       "gas_used": 135562,
       "hash": "23a4f735298a393523ae1192b67068e17bec5d8ca07ca46312694d71d2e288ce",
+      "min_gas_price": "100000000000",
       "num_transactions": 2,
       "round": 11567439,
       "size": 11562,
@@ -499,6 +561,7 @@
     {
       "gas_used": 47441,
       "hash": "ded76c66768cc63723e6ac31b928d92b8d0ef512f6747fbd5f240110281d0d68",
+      "min_gas_price": "100000000000",
       "num_transactions": 1,
       "round": 11567438,
       "size": 204,
@@ -507,6 +570,7 @@
     {
       "gas_used": 113420,
       "hash": "767484e51b2bbe51a5eb821d0eafb0788e611229c17b387068fb62a2108bdfc8",
+      "min_gas_price": "100000000000",
       "num_transactions": 1,
       "round": 11567437,
       "size": 11420,
@@ -515,6 +579,7 @@
     {
       "gas_used": 69584,
       "hash": "49319347a06a04ba6e8ffb781163303c362bca43b22765cb8210c4c70966e21c",
+      "min_gas_price": "100000000000",
       "num_transactions": 2,
       "round": 11567436,
       "size": 347,
@@ -523,6 +588,7 @@
     {
       "gas_used": 113420,
       "hash": "7b708cff492fd2e22dc478cea87f0de3cb149d2fcfd236dfacf83f414286d5b4",
+      "min_gas_price": "100000000000",
       "num_transactions": 1,
       "round": 11567435,
       "size": 11420,
@@ -531,6 +597,7 @@
     {
       "gas_used": 31142,
       "hash": "69bcf53a281573604434a94c59df14249fac6eb8515e609abec5b1562d82dc43",
+      "min_gas_price": "100000000000",
       "num_transactions": 1,
       "round": 11567434,
       "size": 353,
@@ -539,6 +606,7 @@
     {
       "gas_used": 165578,
       "hash": "bbfec1803e8048cd3b85f46f0961b3e6750e5b413550a84f48609ac58b9dc122",
+      "min_gas_price": "100000000000",
       "num_transactions": 3,
       "round": 11567433,
       "size": 12441,
@@ -547,6 +615,7 @@
     {
       "gas_used": 79758,
       "hash": "df67d3187dbce7e53a805bb72e479c2f1093a824c2979c2d0bcfe414ae153aa1",
+      "min_gas_price": "100000000000",
       "num_transactions": 1,
       "round": 11567432,
       "size": 511,
@@ -555,6 +624,7 @@
     {
       "gas_used": 113420,
       "hash": "ce1231964ce2d9d9ecf588226ee1e0c8a67be732a0048c078d78c8787f2960bf",
+      "min_gas_price": "100000000000",
       "num_transactions": 1,
       "round": 11567431,
       "size": 11420,
@@ -563,6 +633,7 @@
     {
       "gas_used": 22143,
       "hash": "dc11d49f4a3e34560581238e6abd7f89c9c9bea3ecdaba463b40d06571a865be",
+      "min_gas_price": "100000000000",
       "num_transactions": 1,
       "round": 11567430,
       "size": 143,
@@ -571,6 +642,7 @@
     {
       "gas_used": 113419,
       "hash": "21798563dd537f2cbdde1dd8b32500b0412ef4f270f294bc12e2189bf960cdbd",
+      "min_gas_price": "100000000000",
       "num_transactions": 1,
       "round": 11567429,
       "size": 11419,
@@ -579,6 +651,7 @@
     {
       "gas_used": 0,
       "hash": "a5be1fdbcd6e93aa80a3747dbf3a52b94de6bbd34a98657424ee13ca8e936528",
+      "min_gas_price": "100000000000",
       "num_transactions": 0,
       "round": 11567428,
       "size": 0,
@@ -587,6 +660,7 @@
     {
       "gas_used": 196876,
       "hash": "12a338adcd91edfe01d0bb08760efc58edfb9f0b8e58c5b7fa382794ebe2d6dc",
+      "min_gas_price": "100000000000",
       "num_transactions": 3,
       "round": 11567427,
       "size": 11876,
@@ -595,6 +669,7 @@
     {
       "gas_used": 47441,
       "hash": "a67d8a71e73bdcaef3b7e9bd27400826f7e2b0b9f369b70f9c42e261dc97c649",
+      "min_gas_price": "100000000000",
       "num_transactions": 1,
       "round": 11567426,
       "size": 204,
@@ -603,6 +678,7 @@
     {
       "gas_used": 113420,
       "hash": "50b0b727c0fe3e97b0bbeccda744e81e4384709336ced5ece72e3d21955cf7a0",
+      "min_gas_price": "100000000000",
       "num_transactions": 1,
       "round": 11567425,
       "size": 11420,
@@ -611,6 +687,7 @@
     {
       "gas_used": 183963,
       "hash": "b18eeccfbbfd19e9697af54cff6a53e3251ca03f7eac5168562eb7c694f0b7e8",
+      "min_gas_price": "100000000000",
       "num_transactions": 3,
       "round": 11567424,
       "size": 12026,
@@ -619,6 +696,7 @@
     {
       "gas_used": 30017,
       "hash": "c6174493132630e75e54ecd33daf2985c99bd6ac4c3db80d5735d2462daf0897",
+      "min_gas_price": "100000000000",
       "num_transactions": 1,
       "round": 11567423,
       "size": 880,
@@ -627,6 +705,7 @@
     {
       "gas_used": 113420,
       "hash": "efbe8a4a6d38c837f8ba004f5a518baa17bee3c2419717982ff2a96042deb4e7",
+      "min_gas_price": "100000000000",
       "num_transactions": 1,
       "round": 11567422,
       "size": 11420,
@@ -635,6 +714,7 @@
     {
       "gas_used": 135562,
       "hash": "42fec471fe867bfad58fa123cf610c5d2006614e7ede43f7d75afa4d694dd08b",
+      "min_gas_price": "100000000000",
       "num_transactions": 2,
       "round": 11567421,
       "size": 11562,
@@ -643,6 +723,7 @@
     {
       "gas_used": 127188,
       "hash": "8fef061dee72649e5ba6a37d35b4e8199217e7bde05e72710663d46f150eacd7",
+      "min_gas_price": "100000000000",
       "num_transactions": 2,
       "round": 11567420,
       "size": 716,
@@ -651,6 +732,7 @@
     {
       "gas_used": 144562,
       "hash": "55f457ce233a1b2e011438d99b21ffde8e645620db5c0365c1841d05b04c6301",
+      "min_gas_price": "100000000000",
       "num_transactions": 2,
       "round": 11567419,
       "size": 11773,
@@ -659,6 +741,7 @@
     {
       "gas_used": 69584,
       "hash": "6cb302aa5f3597ade2fe4c9c61a931321c750890acc90c791dd32016fc91420c",
+      "min_gas_price": "100000000000",
       "num_transactions": 2,
       "round": 11567418,
       "size": 347,
@@ -667,6 +750,7 @@
     {
       "gas_used": 113420,
       "hash": "48154c5c07498dc492fac10dc9e97758a38b2d870f04201f890bd67966f44a58",
+      "min_gas_price": "100000000000",
       "num_transactions": 1,
       "round": 11567417,
       "size": 11420,
@@ -675,6 +759,7 @@
     {
       "gas_used": 47441,
       "hash": "575d5fd641f25395688c4ea546666f759919a11500a0fdbff2b91a307ad8a2c0",
+      "min_gas_price": "100000000000",
       "num_transactions": 1,
       "round": 11567416,
       "size": 204,
@@ -683,6 +768,7 @@
     {
       "gas_used": 135562,
       "hash": "e14828d44468d9865b69a7beb6e87e61b8f8f4603ec16e7de2296839ad7cc110",
+      "min_gas_price": "100000000000",
       "num_transactions": 2,
       "round": 11567415,
       "size": 11562,
@@ -691,6 +777,7 @@
     {
       "gas_used": 61294,
       "hash": "d376231f35a5688a3edb618a50a455e0e9aebed48a18801a7313624e5f8c6cad",
+      "min_gas_price": "100000000000",
       "num_transactions": 1,
       "round": 11567414,
       "size": 294,
@@ -699,6 +786,7 @@
     {
       "gas_used": 113420,
       "hash": "0f6bcf5ba472e6674dcd9ce4ebe9546a691015667e32a790b58b464de73e0182",
+      "min_gas_price": "100000000000",
       "num_transactions": 1,
       "round": 11567413,
       "size": 11420,
@@ -707,6 +795,7 @@
     {
       "gas_used": 52160,
       "hash": "4e2530724ea2a15e7c230e3a1681b985d1cf470dc2a43560b6fa01f9de0f2e28",
+      "min_gas_price": "100000000000",
       "num_transactions": 2,
       "round": 11567412,
       "size": 1023,
@@ -715,6 +804,7 @@
     {
       "gas_used": 113420,
       "hash": "bc123753f446b7e3ee23d14604e2c289232e926ad4d415c0fc01acc540c00082",
+      "min_gas_price": "100000000000",
       "num_transactions": 1,
       "round": 11567411,
       "size": 11420,
@@ -723,6 +813,7 @@
     {
       "gas_used": 113420,
       "hash": "05319d50059ce7c260f09cd393d6d23d03efb2c96be4af985e2053ec7570f0b1",
+      "min_gas_price": "100000000000",
       "num_transactions": 1,
       "round": 11567410,
       "size": 11420,
@@ -731,6 +822,7 @@
     {
       "gas_used": 69584,
       "hash": "3fe1264071b6f9396f9160b59abd821b11fdd7553e71c49c04bf62b2db4816c3",
+      "min_gas_price": "100000000000",
       "num_transactions": 2,
       "round": 11567409,
       "size": 347,
@@ -739,6 +831,7 @@
     {
       "gas_used": 193177,
       "hash": "46b5da82d846a9af2208e337abe93c55f8f84f25b538852b7daa52950fb90eb2",
+      "min_gas_price": "100000000000",
       "num_transactions": 2,
       "round": 11567408,
       "size": 11930,
@@ -747,6 +840,7 @@
     {
       "gas_used": 47441,
       "hash": "7e675efd8ffa7dbc3391137deb10aa93a59fdf1a0c0d1ffded3719d2b3b1cfb8",
+      "min_gas_price": "100000000000",
       "num_transactions": 1,
       "round": 11567407,
       "size": 204,
@@ -755,6 +849,7 @@
     {
       "gas_used": 135563,
       "hash": "d3b6267b0ccce12cd01b00765dad53bf675cfb9909abe0e4a12dd59c2804ee1e",
+      "min_gas_price": "100000000000",
       "num_transactions": 2,
       "round": 11567406,
       "size": 11563,
@@ -763,6 +858,7 @@
     {
       "gas_used": 47441,
       "hash": "1170505497ebbf57f205e6a6a13db3e67e8291c439b3ac219ba2d92e38bc7ce9",
+      "min_gas_price": "100000000000",
       "num_transactions": 1,
       "round": 11567405,
       "size": 204,
@@ -771,6 +867,7 @@
     {
       "gas_used": 161820,
       "hash": "2bccd6f7032bbd2a62c8e23c97cf3eb471ef36fe621a4b8b34f0feff0997b27c",
+      "min_gas_price": "100000000000",
       "num_transactions": 2,
       "round": 11567404,
       "size": 11883,
@@ -779,6 +876,7 @@
     {
       "gas_used": 149126,
       "hash": "436dda03392849b8ab349a9187d1437b75dc654113be8cc489303bf8729f0ee9",
+      "min_gas_price": "100000000000",
       "num_transactions": 4,
       "round": 11567403,
       "size": 1163,
@@ -787,6 +885,7 @@
     {
       "gas_used": 143436,
       "hash": "c89f047eafd5d7d74d39641cbc8939f614d8aeba414533bc06bfe7c51e52c4d8",
+      "min_gas_price": "100000000000",
       "num_transactions": 2,
       "round": 11567402,
       "size": 12299,
@@ -795,6 +894,7 @@
     {
       "gas_used": 108756,
       "hash": "eb78a974249a7461e3edfa470dac2e8d6ee3a6d82ce1d942c9047794f3dfdbdd",
+      "min_gas_price": "100000000000",
       "num_transactions": 2,
       "round": 11567401,
       "size": 519,

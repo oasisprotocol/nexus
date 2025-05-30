@@ -88,6 +88,16 @@ func (r *FileRuntimeApiLite) GetBalances(ctx context.Context, round uint64, addr
 	)
 }
 
+func (r *FileRuntimeApiLite) GetMinGasPrice(ctx context.Context, round uint64) (map[sdkTypes.Denomination]common.BigInt, error) {
+	return kvstore.GetMapFromCacheOrCall[sdkTypes.Denomination, common.BigInt](
+		r.db, round == roothash.RoundLatest,
+		kvstore.GenerateCacheKey("GetMinGasPrice", r.runtime, round),
+		func() (map[sdkTypes.Denomination]common.BigInt, error) {
+			return r.runtimeApi.GetMinGasPrice(ctx, round)
+		},
+	)
+}
+
 func (r *FileRuntimeApiLite) EVMSimulateCall(ctx context.Context, round uint64, gasPrice []byte, gasLimit uint64, caller []byte, address []byte, value []byte, data []byte) (*nodeapi.FallibleResponse, error) {
 	return kvstore.GetFromCacheOrCall(
 		r.db, round == roothash.RoundLatest,
