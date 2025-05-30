@@ -166,6 +166,7 @@ type PossibleSwapSync struct {
 
 type BlockData struct {
 	Header              nodeapi.RuntimeBlockHeader
+	MinGasPrice         common.BigInt
 	NumTransactions     int // Might be different from len(TransactionData) if some transactions are malformed.
 	GasUsed             uint64
 	Size                int
@@ -247,9 +248,10 @@ func registerPaymentAddress(paymentAddress *roflmarket.PaymentAddress, blockTran
 	return nil
 }
 
-func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.RuntimeTransactionWithResults, rawEvents []nodeapi.RuntimeEvent, sdkPT *sdkConfig.ParaTime, logger *log.Logger) (*BlockData, error) { //nolint:gocyclo
+func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.RuntimeTransactionWithResults, rawEvents []nodeapi.RuntimeEvent, minGasPrice common.BigInt, sdkPT *sdkConfig.ParaTime, logger *log.Logger) (*BlockData, error) { //nolint:gocyclo
 	blockData := BlockData{
 		Header:              blockHeader,
+		MinGasPrice:         minGasPrice,
 		NumTransactions:     len(txrs),
 		TransactionData:     make([]*BlockTransactionData, 0, len(txrs)),
 		EventData:           []*EventData{},
@@ -287,7 +289,7 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 		blockTransactionData.RelatedAccountAddresses = map[apiTypes.Address]struct{}{}
 		blockTransactionData.RelatedRoflAddresses = map[nodeapi.AppID]struct{}{}
 		var isRoflCreate bool
-		tx, err := uncategorized.OpenUtxNoVerify(&txr.Tx)
+		tx, err := uncategorized.OpenUtxNoVerify(&txr.Tx, minGasPrice)
 		if err != nil {
 			logger.Error("error decoding tx, skipping tx-specific analysis",
 				"round", blockHeader.Round,

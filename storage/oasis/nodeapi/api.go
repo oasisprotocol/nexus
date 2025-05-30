@@ -285,6 +285,7 @@ type RuntimeApiLite interface {
 	GetBlockHeader(ctx context.Context, round uint64) (*RuntimeBlockHeader, error)
 	GetTransactionsWithResults(ctx context.Context, round uint64) ([]RuntimeTransactionWithResults, error)
 	GetBalances(ctx context.Context, round uint64, addr Address) (map[sdkTypes.Denomination]common.BigInt, error)
+	GetMinGasPrice(ctx context.Context, round uint64) (map[sdkTypes.Denomination]common.BigInt, error)
 
 	RoflApp(ctx context.Context, round uint64, id AppID) (*AppConfig, error)
 	RoflApps(ctx context.Context, round uint64) ([]*AppConfig, error)

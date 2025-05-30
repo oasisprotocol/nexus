@@ -1560,7 +1560,7 @@ func (c *StorageClient) RuntimeBlocks(ctx context.Context, runtime common.Runtim
 	}
 	for res.rows.Next() {
 		var b RuntimeBlock
-		if err := res.rows.Scan(&b.Round, &b.Hash, &b.Timestamp, &b.NumTransactions, &b.Size, &b.GasUsed); err != nil {
+		if err := res.rows.Scan(&b.Round, &b.Hash, &b.Timestamp, &b.NumTransactions, &b.Size, &b.GasUsed, &b.MinGasPrice); err != nil {
 			return nil, wrapError(err)
 		}
 		b.Timestamp = b.Timestamp.UTC()

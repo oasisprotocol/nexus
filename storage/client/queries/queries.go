@@ -505,7 +505,7 @@ const (
 		OFFSET $5::bigint`
 
 	RuntimeBlocks = `
-		SELECT round, block_hash, timestamp, num_transactions, size, gas_used
+		SELECT round, block_hash, timestamp, num_transactions, size, gas_used, min_gas_price
 			FROM chain.runtime_blocks
 			WHERE (runtime = $1) AND
 						($2::bigint IS NULL OR round >= $2::bigint) AND

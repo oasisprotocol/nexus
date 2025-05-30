@@ -2965,6 +2965,9 @@ components:
           format: int64
           description: The total gas used by all transactions in the block.
           example: 118597
+        min_gas_price:
+          allOf: [$ref: '#/components/schemas/TextBigInt']
+          description: The minimum gas price for the block, in base units.
       description: |
         A ParaTime block.
 

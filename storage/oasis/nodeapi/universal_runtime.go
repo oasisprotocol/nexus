@@ -178,6 +178,19 @@ func (rc *UniversalRuntimeApiLite) GetBalances(ctx context.Context, round uint64
 	return balances, nil
 }
 
+func (rc *UniversalRuntimeApiLite) GetMinGasPrice(ctx context.Context, round uint64) (map[sdkTypes.Denomination]common.BigInt, error) {
+	minGasPrice, err := rc.sdkClient.Core.MinGasPrice(ctx, round)
+	if err != nil {
+		return nil, err
+	}
+	mgps := make(map[sdkTypes.Denomination]common.BigInt)
+	for denom, amount := range minGasPrice {
+		mgps[denom] = common.BigIntFromQuantity(amount)
+	}
+
+	return mgps, nil
+}
+
 func (rc *UniversalRuntimeApiLite) RoflApp(ctx context.Context, round uint64, id AppID) (*AppConfig, error) {
 	app, err := rc.sdkClient.ROFL.App(ctx, round, id)
 	if err != nil {

@@ -23,6 +23,8 @@ CREATE TABLE chain.runtime_blocks
   num_transactions UINT31 NOT NULL,
   gas_used         UINT63 NOT NULL,
   size             UINT31 NOT NULL  -- Total byte size of all transactions in the block.
+
+  -- min_gas_price    UINT_NUMERIC, -- Added in 32_runtime_blocks_min_gas_price.up.sql
 );
 CREATE INDEX ix_runtime_blocks_block_hash ON chain.runtime_blocks USING hash (block_hash);  -- Hash indexes cannot span two colmns (runtime, block_hash). Not a problem for efficiency because block_hash is globally uniqueish.
 CREATE INDEX ix_runtime_blocks_timestamp ON chain.runtime_blocks (runtime, timestamp);

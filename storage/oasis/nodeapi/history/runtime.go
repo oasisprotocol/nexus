@@ -6,6 +6,8 @@ import (
 
 	sdkConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"github.com/oasisprotocol/nexus/common"
 	"github.com/oasisprotocol/nexus/config"
@@ -112,6 +114,28 @@ func (rc *HistoryRuntimeApiLite) GetBalances(ctx context.Context, round uint64, 
 		return nil, fmt.Errorf("getting api for runtime %s round %d: %w", rc.Runtime, round, err)
 	}
 	return api.GetBalances(ctx, round, addr)
+}
+
+func (rc *HistoryRuntimeApiLite) GetMinGasPrice(ctx context.Context, round uint64) (map[sdkTypes.Denomination]common.BigInt, error) {
+	api, err := rc.APIForRound(round)
+	if err != nil {
+		return nil, fmt.Errorf("getting api for runtime %s round %d: %w", rc.Runtime, round, err)
+	}
+	minGasPrice, err := api.GetMinGasPrice(ctx, round)
+	switch {
+	case status.Code(err) == codes.Unimplemented:
+		// Some early emerald blocks did not yet have the min-gas price query, ignore possible errors here.
+		if rc.Runtime == common.RuntimeEmerald {
+			return map[sdkTypes.Denomination]common.BigInt{
+				sdkTypes.NativeDenomination: common.NewBigInt(0),
+			}, nil
+		}
+		fallthrough
+	case err != nil:
+		return nil, err
+	default:
+	}
+	return minGasPrice, nil
 }
 
 func (rc *HistoryRuntimeApiLite) GetTransactionsWithResults(ctx context.Context, round uint64) ([]nodeapi.RuntimeTransactionWithResults, error) {
