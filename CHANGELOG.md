@@ -12,6 +12,27 @@ The format is inspired by [Keep a Changelog].
 
 <!-- TOWNCRIER -->
 
+## 0.6.16 (2025-06-02)
+
+### Features
+
+- analyzer/runtime: Support runtime EIP-1559 transactions
+  ([#1023](https://github.com/oasisprotocol/nexus/issues/1023))
+
+- api/{runtime}/blocks: 'min_gas_price' field added to runtime blocks
+  ([#1023](https://github.com/oasisprotocol/nexus/issues/1023))
+
+### Bug Fixes and Improvements
+
+- Fix potential invalid address preimage records
+  ([#1023](https://github.com/oasisprotocol/nexus/issues/1023))
+
+  Addresses extracted from runtime messages were mistakenly recorded as
+  address preimages.
+
+- Add periodic VACUUM ANALYZE for accounts_list materialized view
+  ([#1029](https://github.com/oasisprotocol/nexus/issues/1029))
+
 ## 0.6.15 (2025-05-29)
 
 ### Features
