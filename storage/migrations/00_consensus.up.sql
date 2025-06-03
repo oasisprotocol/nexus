@@ -399,6 +399,8 @@ CREATE TABLE history.validators
     num_delegators UINT63,
     staking_rewards UINT_NUMERIC -- Note: staking rewards are granted in the first block of the subsequent epoch
 );
+-- Index for efficient query of validators by epoch.
+-- CREATE INDEX ix_validators_epoch ON history.validators (epoch); -- Added in 35_history_validators_epoch_idx.up.sql.
 
 CREATE TABLE history.escrow_events
 (
