@@ -12,6 +12,24 @@ The format is inspired by [Keep a Changelog].
 
 <!-- TOWNCRIER -->
 
+## 0.7.0 (2025-06-04)
+
+### Deployment Notes
+
+This release contains a long-running database migration that is
+automatically applied during deployment. The migration will cause
+significant downtime unless proactive measures are taken.
+
+### Features
+
+- Add epoch index for history.validators
+  ([#1032](https://github.com/oasisprotocol/nexus/issues/1032))
+
+### Bug Fixes and Improvements
+
+- evmabi-backfill: Optimize db queries
+  ([#935](https://github.com/oasisprotocol/nexus/issues/935))
+
 ## 0.6.16 (2025-06-02)
 
 ### Features
