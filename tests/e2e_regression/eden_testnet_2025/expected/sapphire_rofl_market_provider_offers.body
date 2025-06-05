@@ -3,7 +3,7 @@
   "offers": [
     {
       "capacity": 49,
-      "id": "30303030303030303030303030303031",
+      "id": "0000000000000001",
       "metadata": {
         "net.oasis.scheduler.offer": "playground_short"
       },
