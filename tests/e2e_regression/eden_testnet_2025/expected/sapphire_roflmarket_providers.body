@@ -5,14 +5,14 @@
       "address": "oasis1qp2ens0hsp7gh23wajxa4hpetkdek3swyyulyrmz",
       "created_at": "2025-04-23T10:57:11Z",
       "instances_count": 2,
-      "instances_next_id": "30303030303030303030303030303038",
+      "instances_next_id": "0000000000000008",
       "metadata": {},
       "nodes": [
         "bOlqho9R3JHP64kJk+SfMxZt5fNkYWf6gdhErWlY60E=",
         "1owPK3eT21k0ajRG7VfHRgp4JPXobCQtzuglz6ZSJis="
       ],
       "offers_count": 1,
-      "offers_next_id": "30303030303030303030303030303032",
+      "offers_next_id": "0000000000000002",
       "payment_address": {
         "native": "oasis1qp2ens0hsp7gh23wajxa4hpetkdek3swyyulyrmz"
       },
