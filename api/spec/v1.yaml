@@ -4060,7 +4060,7 @@ components:
 
     RoflMarketInstance:
       type: object
-      required: [id, provider, offer_id, status, creator, admin, node_id, metadata, resources, deployment, created_at, updated_at, paid_from, paid_until, payment, payment_address, refund_data, cmd_next_id, cmd_count, removed]
+      required: [id, provider, offer_id, status, creator, admin, metadata, resources, deployment, created_at, updated_at, paid_from, paid_until, payment, payment_address, refund_data, cmd_next_id, cmd_count, removed]
       properties:
         id:
           type: string
@@ -4085,7 +4085,7 @@ components:
           description: The address of the administrator of the instance.
         node_id:
           type: string
-          description: The identifier of the node that this instance is deployed on.
+          description: the optional identifier of the node where the instance has been provisioned.
         metadata:
           type: object
           description: Arbitrary metadata key-value pairs assigned by the provider.
