@@ -12,6 +12,16 @@ The format is inspired by [Keep a Changelog].
 
 <!-- TOWNCRIER -->
 
+## 0.7.1 (2025-06-11)
+
+### Bug Fixes and Improvements
+
+- storage/roflmarket: Fix double hex-encoded fields
+  ([#1040](https://github.com/oasisprotocol/nexus/issues/1040))
+
+- api/roflmarket_instances: Node id is optional
+  ([#1043](https://github.com/oasisprotocol/nexus/issues/1043))
+
 ## 0.7.0 (2025-06-04)
 
 ### Deployment Notes
