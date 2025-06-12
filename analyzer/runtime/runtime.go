@@ -39,6 +39,8 @@ type processor struct {
 	metrics metrics.AnalysisMetrics
 
 	additionalEVMTokenAddresses []ethCommon.Address
+
+	cfg *config.RuntimeAnalyzerConfig
 }
 
 var _ block.BlockProcessor = (*processor)(nil)
@@ -65,6 +67,7 @@ func NewRuntimeAnalyzer(
 		target:  target,
 		logger:  logger.With("analyzer", runtime),
 		metrics: metrics.NewDefaultAnalysisMetrics(string(runtime)),
+		cfg:     cfg,
 	}
 	for _, addr := range cfg.AdditionalEVMTokenAddresses {
 		processor.additionalEVMTokenAddresses = append(processor.additionalEVMTokenAddresses, ethCommon.HexToAddress(addr))
@@ -152,10 +155,62 @@ func (m *processor) PreWork(ctx context.Context) error {
 		}
 	}
 
+	if m.cfg.ReconcileDelegations {
+		// XXX: This requires runtime-sdk v0.15.0 or later.
+		if err := m.reconcileDelegations(ctx, batch); err != nil {
+			return fmt.Errorf("failed to reconcile delegations: %w", err)
+		}
+	}
+
 	if err := m.target.SendBatch(ctx, batch); err != nil {
 		return err
 	}
 	m.logger.Info("finished pre-work")
+
+	return nil
+}
+
+func (m *processor) reconcileDelegations(ctx context.Context, batch *storage.QueryBatch) error {
+	// Fetch current round.
+	var round uint64
+	if err := m.target.QueryRow(ctx, "SELECT round FROM chain.runtime_blocks WHERE runtime = $1 ORDER BY round DESC LIMIT 1", m.runtime).Scan(&round); err != nil {
+		return fmt.Errorf("failed to get current round: %w", err)
+	}
+
+	// Drop existing delegations and undelegations state.
+	batch.Queue("DELETE FROM chain.runtime_accounts_delegations WHERE runtime = $1", m.runtime)
+	batch.Queue("DELETE FROM chain.runtime_accounts_debonding_delegations WHERE runtime = $1", m.runtime)
+
+	// Fetch all delegations.
+	delegations, err := m.source.GetAllDelegations(ctx, round)
+	if err != nil {
+		return fmt.Errorf("failed to get delegations: %w", err)
+	}
+	for _, delegation := range delegations {
+		batch.Queue(
+			queries.RuntimeConsensusAccountDelegationOverride,
+			m.runtime,
+			delegation.From,
+			delegation.To,
+			delegation.Shares,
+		)
+	}
+
+	// Fetch all undelegations.
+	undelegations, err := m.source.GetAllUndelegations(ctx, round)
+	if err != nil {
+		return fmt.Errorf("failed to get undelegations: %w", err)
+	}
+	for _, undelegation := range undelegations {
+		batch.Queue(
+			queries.RuntimeConsensusAccountDebondingDelegationUpsert,
+			m.runtime,
+			undelegation.To,
+			undelegation.From,
+			undelegation.Epoch,
+			undelegation.Shares,
+		)
+	}
 
 	return nil
 }
@@ -270,7 +325,7 @@ func (m *processor) ProcessBlock(ctx context.Context, round uint64) error {
 	batch := &storage.QueryBatch{}
 	m.queueDbUpdates(batch, blockData)
 	m.queueAccountsEvents(batch, blockData)
-	m.queueConsensusAccountsEvents(batch, blockData)
+	m.queueConsensusAccountsEvents(ctx, batch, blockData)
 	m.queueRoflStaleApps(batch, blockData)
 	m.queueRoflmarketStale(batch, blockData)
 	analysisTimer.ObserveDuration()
