@@ -25,6 +25,16 @@
         "Description": "Delegation from the ParaTime is performed in two steps. This account holds the tokens that are still waiting for the consensus transaction to be confirmed."
     },
     {
+        "Name": "ROFL Apps Stake Pool",
+        "Address": "oasis1qza6sddnalgzexk3ct30gqfvntgth5m4hsyywmff",
+        "Description": "Holds tokens from when ROFL app is created until ROFL app is removed."
+    },
+    {
+        "Name": "ROFL Provider Stake Pool",
+        "Address": "oasis1qzta0kk6vy0yrwgllual4ntnjay68lp7vq5fs8jy",
+        "Description": "Holds tokens from when ROFL market provider is created until ROFL market provider is removed."
+    },
+    {
         "Name": "Zero Address",
         "Address": "oasis1qq2v39p9fqk997vk6742axrzqyu9v2ncyuqt8uek",
         "Description": "This address is the oasis-standard derivation/counterpart of the Ethereum address 0x0. Sometimes used in internal data representations to indicate the absence of an account. For example, token mints are encoded as transfers from this address, and token burns as transfers to this address.",
