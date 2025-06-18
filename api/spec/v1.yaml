@@ -1270,6 +1270,11 @@ paths:
         - *offset
         - *runtime
         - in: query
+          name: admin
+          schema: { allOf: [$ref: '#/components/schemas/EthOrOasisAddress'] }
+          examples: { eth: { $ref: '#/components/examples/EthAddress' }, oasis: { $ref: '#/components/examples/StakingAddress' } }
+          description: A filter on the admin of the ROFL app.
+        - in: query
           name: name
           style: form
           explode: false

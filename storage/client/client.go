@@ -2488,6 +2488,10 @@ func (c *StorageClient) RuntimeStatus(ctx context.Context, runtime common.Runtim
 
 // RuntimeRoflApps returns a list of ROFL apps.
 func (c *StorageClient) RuntimeRoflApps(ctx context.Context, runtime common.Runtime, params apiTypes.GetRuntimeRoflAppsParams, id *string) (*RoflAppList, error) { //nolint:gocyclo
+	ocAddrAdmin, err := apiTypes.UnmarshalToOcAddress(params.Admin)
+	if err != nil {
+		return nil, err
+	}
 	if params.Name != nil && len(*params.Name) > maxFilterNameFragments {
 		return nil, fmt.Errorf("too many names in the name filter: %w", apiCommon.ErrBadRequest)
 	}
@@ -2496,7 +2500,7 @@ func (c *StorageClient) RuntimeRoflApps(ctx context.Context, runtime common.Runt
 		*params.Limit = 100
 	}
 
-	args := []interface{}{runtime, id}
+	args := []interface{}{runtime, id, ocAddrAdmin}
 	query := queries.RuntimeRoflApps(params.Name, &args)
 	args = append(args, params.Limit, params.Offset)
 
