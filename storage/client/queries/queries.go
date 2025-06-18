@@ -1383,6 +1383,7 @@ func RuntimeRoflApps(rawNames *[]string, args *[]interface{}) string {
 		WHERE
 			ra.runtime = $1::runtime AND
 			($2::text IS NULL OR ra.id = $2::text) AND
+			($3::oasis_addr IS NULL OR ra.admin = $3::oasis_addr) AND
 			%s AND
 			-- Exclude not yet processed apps.
 			ra.last_processed_round IS NOT NULL
