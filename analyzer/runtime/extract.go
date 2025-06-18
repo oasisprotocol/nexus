@@ -94,17 +94,18 @@ type TxError struct {
 type EventBody interface{}
 
 type EventData struct {
-	TxIndex          *int    // nil for non-tx events
-	TxHash           *string // nil for non-tx events
-	TxEthHash        *string // nil for non-evm-tx events
-	EventIdx         int     // Unique event index within the block.
-	Type             apiTypes.RuntimeEventType
-	Body             EventBody
-	WithScope        ScopedSdkEvent
-	EvmLogName       *string
-	EvmLogSignature  *ethCommon.Hash
-	EvmLogParams     []*apiTypes.EvmAbiParam
-	RelatedAddresses map[apiTypes.Address]struct{}
+	TxIndex              *int    // nil for non-tx events
+	TxHash               *string // nil for non-tx events
+	TxEthHash            *string // nil for non-evm-tx events
+	EventIdx             int     // Unique event index within the block.
+	Type                 apiTypes.RuntimeEventType
+	Body                 EventBody
+	WithScope            ScopedSdkEvent
+	EvmLogName           *string
+	EvmLogSignature      *ethCommon.Hash
+	EvmLogParams         []*apiTypes.EvmAbiParam
+	RelatedAddresses     map[apiTypes.Address]struct{}
+	RelatedRoflAddresses map[nodeapi.AppID]struct{}
 	// EVM logs are emitted by contracts. We usually detect contracts via transactions,
 	// but in some edge cases, we can only detect them via emitted events.
 	// This happens when a contract is created via an internal call and only interacted with
@@ -288,7 +289,6 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 		blockTransactionData.RawResult = cbor.Marshal(txr.Result)
 		blockTransactionData.RelatedAccountAddresses = map[apiTypes.Address]struct{}{}
 		blockTransactionData.RelatedRoflAddresses = map[nodeapi.AppID]struct{}{}
-		var isRoflCreate bool
 		tx, err := uncategorized.OpenUtxNoVerify(&txr.Tx, minGasPrice)
 		if err != nil {
 			logger.Error("error decoding tx, skipping tx-specific analysis",
@@ -568,13 +568,10 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 				},
 				RoflCreate: func(body *rofl.Create) error {
 					blockTransactionData.Body = body
-					// blockTransactionData.RelatedRoflAddresses[] = struct{}{} // We don't have the ID yet here, we need to get it from the event.
-					isRoflCreate = true
 					return nil
 				},
 				RoflUpdate: func(body *rofl.Update) error {
 					blockTransactionData.Body = body
-					blockTransactionData.RelatedRoflAddresses[body.ID] = struct{}{}
 					admin, err := addresses.FromSdkAddress(body.Admin)
 					if err != nil {
 						logger.Warn("failed to convert admin address to native address", "err", err)
@@ -585,14 +582,10 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 				},
 				RoflRemove: func(body *rofl.Remove) error {
 					blockTransactionData.Body = body
-					blockTransactionData.RelatedRoflAddresses[body.ID] = struct{}{}
 					return nil
 				},
 				RoflRegister: func(body *rofl.Register) error {
 					blockTransactionData.Body = body
-					// RoflRegister transactions are not tracked as "related" to any ROFL address,
-					// since these will already be tracked as the "instance transactions" of the ROFL instance
-					// which is registering.
 					return nil
 				},
 				RoflMarketProviderCreate: func(body *roflmarket.ProviderCreate) error {
@@ -701,14 +694,11 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 					blockTransactionData.RelatedAccountAddresses[addr] = struct{}{}
 				}
 
-				// For rofl.Create we need to get the App ID from the event so that we
-				// can mark the transaction related ROFL address.
-				if isRoflCreate {
-					for _, event := range extractedEvents {
-						if event.WithScope.Rofl != nil && event.WithScope.Rofl.AppCreated != nil {
-							blockTransactionData.RelatedRoflAddresses[event.WithScope.Rofl.AppCreated.ID] = struct{}{}
-						}
-					}
+				// Register related ROFL addresses found in the events for the transaction as well.
+				// We only track these addresses via events, (not via VisitCall) because this is more
+				// general as it also tracks subcalls.
+				for appID := range event.RelatedRoflAddresses {
+					blockTransactionData.RelatedRoflAddresses[appID] = struct{}{}
 				}
 			}
 		}
@@ -1577,6 +1567,9 @@ func extractEvents(blockData *BlockData, eventsRaw []nodeapi.RuntimeEvent) ([]*E
 					Type:      apiTypes.RuntimeEventTypeRoflAppCreated,
 					Body:      event.AppCreated,
 					WithScope: ScopedSdkEvent{Rofl: event},
+					RelatedRoflAddresses: map[nodeapi.AppID]struct{}{
+						event.AppCreated.ID: {},
+					},
 				}
 				extractedEvents = append(extractedEvents, &eventData)
 			}
@@ -1587,6 +1580,9 @@ func extractEvents(blockData *BlockData, eventsRaw []nodeapi.RuntimeEvent) ([]*E
 					Type:      apiTypes.RuntimeEventTypeRoflAppRemoved,
 					Body:      event.AppRemoved,
 					WithScope: ScopedSdkEvent{Rofl: event},
+					RelatedRoflAddresses: map[nodeapi.AppID]struct{}{
+						event.AppRemoved.ID: {},
+					},
 				}
 				extractedEvents = append(extractedEvents, &eventData)
 			}
@@ -1597,6 +1593,9 @@ func extractEvents(blockData *BlockData, eventsRaw []nodeapi.RuntimeEvent) ([]*E
 					Type:      apiTypes.RuntimeEventTypeRoflAppUpdated,
 					Body:      event.AppUpdated,
 					WithScope: ScopedSdkEvent{Rofl: event},
+					RelatedRoflAddresses: map[nodeapi.AppID]struct{}{
+						event.AppUpdated.ID: {},
+					},
 				}
 				extractedEvents = append(extractedEvents, &eventData)
 			}
@@ -1607,6 +1606,12 @@ func extractEvents(blockData *BlockData, eventsRaw []nodeapi.RuntimeEvent) ([]*E
 					Type:      apiTypes.RuntimeEventTypeRoflInstanceRegistered,
 					Body:      event.InstanceRegistered,
 					WithScope: ScopedSdkEvent{Rofl: event},
+					// RoflRegister transactions are not tracked as "related" to any ROFL address,
+					// since these will already be tracked as the "instance transactions" of the ROFL instance
+					// which is registering.
+					// RelatedRoflAddresses: map[nodeapi.AppID]struct{}{
+					// 	event.InstanceRegistered.AppID: {},
+					// },
 				}
 				extractedEvents = append(extractedEvents, &eventData)
 			}
