@@ -1496,19 +1496,23 @@ paths:
                 $ref: '#/components/schemas/RoflMarketOfferList'
         <<: *common_error_responses
 
-  /{runtime}/roflmarket_providers/{address}/instances:
+  /{runtime}/roflmarket_instances:
     get:
-      summary: Returns a list of ROFL market instances for a specific provider.
+      summary: Returns a list of ROFL market instances.
       parameters:
         - *limit
         - *offset
         - *runtime
-        - in: path
-          name: address
-          required: true
+        - in: query
+          name: provider
           schema:
             allOf: [$ref: '#/components/schemas/StakingAddress']
-          description: The address of the ROFL market provider to return instances for.
+          description: A filter on the provider of the ROFL market instance.
+        - in: query
+          name: admin
+          schema:
+            allOf: [$ref: '#/components/schemas/EthOrOasisAddress']
+          description: A filter on the admin of the ROFL market instance.
       responses:
         '200':
           description: A JSON object containing a list of ROFL market instances.
