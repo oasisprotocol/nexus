@@ -89,6 +89,7 @@ CREATE TABLE chain.roflmarket_instances (
   removed BOOLEAN NOT NULL DEFAULT FALSE
 );
 CREATE INDEX ix_roflmarket_instances_provider ON chain.roflmarket_instances (runtime, provider);
+-- CREATE INDEX ix_roflmarket_instances_admin ON chain.roflmarket_instances (runtime, admin); -- Added in 38_runtime_roflmarket_instances_admin.up.sql.
 
 -- Grant others read-only use.
 -- (We granted already in 00_consensus.up.sql, but the grant does not apply to new tables.)

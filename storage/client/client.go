@@ -2835,12 +2835,18 @@ func (c *StorageClient) RuntimeRoflmarketOffers(ctx context.Context, runtime com
 	return &offers, nil
 }
 
-func (c *StorageClient) RuntimeRoflmarketInstances(ctx context.Context, runtime common.Runtime, params apiTypes.GetRuntimeRoflmarketProvidersAddressInstancesParams, address *staking.Address) (*RoflMarketInstanceList, error) {
+func (c *StorageClient) RuntimeRoflmarketInstances(ctx context.Context, runtime common.Runtime, params apiTypes.GetRuntimeRoflmarketInstancesParams) (*RoflMarketInstanceList, error) {
+	ocAddrAdmin, err := apiTypes.UnmarshalToOcAddress(params.Admin)
+	if err != nil {
+		return nil, wrapError(err)
+	}
+
 	res, err := c.withDefaultTotalCount(
 		ctx,
 		queries.RuntimeRoflmarketProviderInstances,
 		runtime,
-		address,
+		params.Provider,
+		ocAddrAdmin,
 		params.Limit,
 		params.Offset,
 	)

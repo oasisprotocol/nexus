@@ -43,6 +43,7 @@ testCases=(
   'sapphire_rofl_app_instance_transactions_method      /v1/sapphire/rofl_apps/rofl1qp55evqls4qg6cjw5fnlv4al9ptc0fsakvxvd9uw/instance_transactions?method=rofl.Register'
   'sapphire_rofl_app_per_instance_transactions         /v1/sapphire/rofl_apps/rofl1qp55evqls4qg6cjw5fnlv4al9ptc0fsakvxvd9uw/instances/8EUGnz+hAqblEMWh+ZHKyZU7CSItm1wrJqK15dAjlfI=/transactions'
   'sapphire_rofl_app_per_instance_transactions_method  /v1/sapphire/rofl_apps/rofl1qp55evqls4qg6cjw5fnlv4al9ptc0fsakvxvd9uw/instances/8EUGnz+hAqblEMWh+ZHKyZU7CSItm1wrJqK15dAjlfI=/transactions?method=rofl.Register'
-  'sapphire_rofl_market_provider_offers                /v1/sapphire/roflmarket_providers/oasis1qp2ens0hsp7gh23wajxa4hpetkdek3swyyulyrmz/offers'
-  'sapphire_rofl_market_provider_instances             /v1/sapphire/roflmarket_providers/oasis1qp2ens0hsp7gh23wajxa4hpetkdek3swyyulyrmz/instances'
+  'sapphire_roflmarket_provider_offers                 /v1/sapphire/roflmarket_providers/oasis1qp2ens0hsp7gh23wajxa4hpetkdek3swyyulyrmz/offers'
+  'sapphire_roflmarket_instances_by_provider           /v1/sapphire/roflmarket_instances?provider=oasis1qp2ens0hsp7gh23wajxa4hpetkdek3swyyulyrmz'
+  'sapphire_roflmarket_instances_by_admin              /v1/sapphire/roflmarket_instances?admin=oasis1qpspm8q6pk0lndcjf28ene5sgjgzex4aqcqh2kdh'
 )

@@ -617,14 +617,14 @@ func (srv *StrictServerImpl) GetRuntimeRoflmarketProvidersAddressOffers(ctx cont
 	return apiTypes.GetRuntimeRoflmarketProvidersAddressOffers200JSONResponse(*offers), nil
 }
 
-func (srv *StrictServerImpl) GetRuntimeRoflmarketProvidersAddressInstances(ctx context.Context, request apiTypes.GetRuntimeRoflmarketProvidersAddressInstancesRequestObject) (apiTypes.GetRuntimeRoflmarketProvidersAddressInstancesResponseObject, error) {
+func (srv *StrictServerImpl) GetRuntimeRoflmarketInstances(ctx context.Context, request apiTypes.GetRuntimeRoflmarketInstancesRequestObject) (apiTypes.GetRuntimeRoflmarketInstancesResponseObject, error) {
 	runtime, err := request.Runtime.Validate()
 	if err != nil {
 		return nil, err
 	}
-	instances, err := srv.dbClient.RuntimeRoflmarketInstances(ctx, runtime, request.Params, &request.Address)
+	instances, err := srv.dbClient.RuntimeRoflmarketInstances(ctx, runtime, request.Params)
 	if err != nil {
 		return nil, err
 	}
-	return apiTypes.GetRuntimeRoflmarketProvidersAddressInstances200JSONResponse(*instances), nil
+	return apiTypes.GetRuntimeRoflmarketInstances200JSONResponse(*instances), nil
 }
