@@ -2795,12 +2795,13 @@ func (c *StorageClient) RuntimeRoflmarketProviders(ctx context.Context, runtime 
 	return &providers, nil
 }
 
-func (c *StorageClient) RuntimeRoflmarketOffers(ctx context.Context, runtime common.Runtime, params apiTypes.GetRuntimeRoflmarketProvidersAddressOffersParams, address *staking.Address) (*RoflMarketOfferList, error) {
+func (c *StorageClient) RuntimeRoflmarketOffers(ctx context.Context, runtime common.Runtime, params apiTypes.GetRuntimeRoflmarketProvidersAddressOffersParams, address *staking.Address, id []byte) (*RoflMarketOfferList, error) {
 	res, err := c.withDefaultTotalCount(
 		ctx,
 		queries.RuntimeRoflmarketProviderOffers,
 		runtime,
 		address,
+		id,
 		params.Limit,
 		params.Offset,
 	)
@@ -2835,7 +2836,7 @@ func (c *StorageClient) RuntimeRoflmarketOffers(ctx context.Context, runtime com
 	return &offers, nil
 }
 
-func (c *StorageClient) RuntimeRoflmarketInstances(ctx context.Context, runtime common.Runtime, params apiTypes.GetRuntimeRoflmarketInstancesParams) (*RoflMarketInstanceList, error) {
+func (c *StorageClient) RuntimeRoflmarketInstances(ctx context.Context, runtime common.Runtime, params apiTypes.GetRuntimeRoflmarketInstancesParams, id []byte) (*RoflMarketInstanceList, error) {
 	ocAddrAdmin, err := apiTypes.UnmarshalToOcAddress(params.Admin)
 	if err != nil {
 		return nil, wrapError(err)
@@ -2846,6 +2847,7 @@ func (c *StorageClient) RuntimeRoflmarketInstances(ctx context.Context, runtime 
 		queries.RuntimeRoflmarketProviderInstances,
 		runtime,
 		params.Provider,
+		id,
 		ocAddrAdmin,
 		params.Limit,
 		params.Offset,

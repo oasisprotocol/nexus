@@ -1496,6 +1496,58 @@ paths:
                 $ref: '#/components/schemas/RoflMarketOfferList'
         <<: *common_error_responses
 
+  /{runtime}/roflmarket_providers/{address}/offers/{id}:
+    get:
+      summary: Returns a specific ROFL market offer.
+      parameters:
+        - *runtime
+        - in: path
+          name: address
+          required: true
+          schema:
+            allOf: [$ref: '#/components/schemas/StakingAddress']
+          description: The address of the ROFL market provider to return offers for.
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: The ID of the ROFL market offer to return.
+      responses:
+        '200':
+          description: A JSON object containing a ROFL market offer.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoflMarketOffer'
+        <<: *common_error_responses
+
+  /{runtime}/roflmarket_providers/{address}/instances/{id}:
+    get:
+      summary: Returns a specific ROFL market instance.
+      parameters:
+        - *runtime
+        - in: path
+          name: address
+          required: true
+          schema:
+            allOf: [$ref: '#/components/schemas/StakingAddress']
+          description: The address of the ROFL market provider to return an instance for.
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: The ID of the ROFL market instance to return.
+      responses:
+        '200':
+          description: A JSON object containing a list of ROFL market offers.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoflMarketInstance'
+        <<: *common_error_responses
+
   /{runtime}/roflmarket_instances:
     get:
       summary: Returns a list of ROFL market instances.
