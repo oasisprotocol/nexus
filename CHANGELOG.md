@@ -12,6 +12,16 @@ The format is inspired by [Keep a Changelog].
 
 <!-- TOWNCRIER -->
 
+## 0.7.3 (2025-06-20)
+
+### Features
+
+- api/roflmarket: Add endpoints to fetch specific instance/offer
+  ([#1056](https://github.com/oasisprotocol/nexus/issues/1056))
+
+  Added `/{runtime}/roflmarket_providers/{address}/instances/{id}` and
+  `/{runtime}/roflmarket_providers/{address}/offers/{id}` api endpoints.
+
 ## 0.7.2 (2025-06-20)
 
 ### Features
