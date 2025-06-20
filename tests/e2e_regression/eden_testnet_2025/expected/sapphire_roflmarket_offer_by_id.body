@@ -1,0 +1,23 @@
+{
+  "capacity": 49,
+  "id": "0000000000000001",
+  "metadata": {
+    "net.oasis.scheduler.offer": "playground_short"
+  },
+  "payment": {
+    "native": {
+      "denomination": "",
+      "terms": {
+        "1": "10000000000000000000"
+      }
+    }
+  },
+  "provider": "oasis1qp2ens0hsp7gh23wajxa4hpetkdek3swyyulyrmz",
+  "removed": false,
+  "resources": {
+    "cpus": 1,
+    "memory": 2048,
+    "storage": 10000,
+    "tee": 2
+  }
+}

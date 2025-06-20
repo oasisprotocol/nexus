@@ -2,6 +2,7 @@ package v1
 
 import (
 	"context"
+	"encoding/hex"
 	"fmt"
 
 	apiTypes "github.com/oasisprotocol/nexus/api/v1/types"
@@ -610,11 +611,49 @@ func (srv *StrictServerImpl) GetRuntimeRoflmarketProvidersAddressOffers(ctx cont
 	if err != nil {
 		return nil, err
 	}
-	offers, err := srv.dbClient.RuntimeRoflmarketOffers(ctx, runtime, request.Params, &request.Address)
+	offers, err := srv.dbClient.RuntimeRoflmarketOffers(ctx, runtime, request.Params, &request.Address, nil)
 	if err != nil {
 		return nil, err
 	}
 	return apiTypes.GetRuntimeRoflmarketProvidersAddressOffers200JSONResponse(*offers), nil
+}
+
+func (srv *StrictServerImpl) GetRuntimeRoflmarketProvidersAddressOffersId(ctx context.Context, request apiTypes.GetRuntimeRoflmarketProvidersAddressOffersIdRequestObject) (apiTypes.GetRuntimeRoflmarketProvidersAddressOffersIdResponseObject, error) {
+	runtime, err := request.Runtime.Validate()
+	if err != nil {
+		return nil, err
+	}
+	offerID, err := hex.DecodeString(request.Id)
+	if err != nil {
+		return nil, err
+	}
+	offers, err := srv.dbClient.RuntimeRoflmarketOffers(ctx, runtime, apiTypes.GetRuntimeRoflmarketProvidersAddressOffersParams{Limit: common.Ptr(uint64(1)), Offset: common.Ptr(uint64(0))}, &request.Address, offerID)
+	if err != nil {
+		return nil, err
+	}
+	if len(offers.Offers) != 1 {
+		return apiTypes.GetRuntimeRoflmarketProvidersAddressOffersId404JSONResponse{}, nil
+	}
+	return apiTypes.GetRuntimeRoflmarketProvidersAddressOffersId200JSONResponse(offers.Offers[0]), nil
+}
+
+func (srv *StrictServerImpl) GetRuntimeRoflmarketProvidersAddressInstancesId(ctx context.Context, request apiTypes.GetRuntimeRoflmarketProvidersAddressInstancesIdRequestObject) (apiTypes.GetRuntimeRoflmarketProvidersAddressInstancesIdResponseObject, error) {
+	runtime, err := request.Runtime.Validate()
+	if err != nil {
+		return nil, err
+	}
+	instanceID, err := hex.DecodeString(request.Id)
+	if err != nil {
+		return nil, err
+	}
+	instances, err := srv.dbClient.RuntimeRoflmarketInstances(ctx, runtime, apiTypes.GetRuntimeRoflmarketInstancesParams{Limit: common.Ptr(uint64(1)), Offset: common.Ptr(uint64(0)), Provider: &request.Address}, instanceID)
+	if err != nil {
+		return nil, err
+	}
+	if len(instances.Instances) != 1 {
+		return apiTypes.GetRuntimeRoflmarketProvidersAddressInstancesId404JSONResponse{}, nil
+	}
+	return apiTypes.GetRuntimeRoflmarketProvidersAddressInstancesId200JSONResponse(instances.Instances[0]), nil
 }
 
 func (srv *StrictServerImpl) GetRuntimeRoflmarketInstances(ctx context.Context, request apiTypes.GetRuntimeRoflmarketInstancesRequestObject) (apiTypes.GetRuntimeRoflmarketInstancesResponseObject, error) {
@@ -622,7 +661,7 @@ func (srv *StrictServerImpl) GetRuntimeRoflmarketInstances(ctx context.Context, 
 	if err != nil {
 		return nil, err
 	}
-	instances, err := srv.dbClient.RuntimeRoflmarketInstances(ctx, runtime, request.Params)
+	instances, err := srv.dbClient.RuntimeRoflmarketInstances(ctx, runtime, request.Params, nil)
 	if err != nil {
 		return nil, err
 	}
