@@ -12,6 +12,25 @@ The format is inspired by [Keep a Changelog].
 
 <!-- TOWNCRIER -->
 
+## 0.7.2 (2025-06-20)
+
+### Features
+
+- api/rofl_apps: Support filtering by admin
+  ([#1048](https://github.com/oasisprotocol/nexus/issues/1048))
+
+- analyzer/runtime: Use events to detect rofl related txs
+  ([#1053](https://github.com/oasisprotocol/nexus/issues/1053))
+
+- api/roflmarket_instances: Support filtering by admin address
+  ([#1054](https://github.com/oasisprotocol/nexus/issues/1054))
+
+  - The old endpoint `/{runtime}/roflmarket_providers/{address}/instances` has
+  been removed.
+
+  - Clients should now use: `/{runtime}/roflmarket_instances?provider={address}`
+  to filter instances by provider address.
+
 ## 0.7.1 (2025-06-11)
 
 ### Bug Fixes and Improvements
