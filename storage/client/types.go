@@ -63,6 +63,11 @@ type DelegationList = api.DelegationList
 // Delegation is the storage response for GetDelegation.
 type Delegation = api.Delegation
 
+type StakingReward = api.StakingReward
+
+// StakingRewardList is the storage response for StakingRewards.
+type StakingRewardList = api.StakingRewardList
+
 type Allowance = api.Allowance
 
 // Epoch is the storage response for ListEpochs.
