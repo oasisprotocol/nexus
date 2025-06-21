@@ -118,6 +118,32 @@ func (r *FileRuntimeApiLite) EVMGetCode(ctx context.Context, round uint64, addre
 	)
 }
 
+func (r *FileRuntimeApiLite) GetDelegation(ctx context.Context, round uint64, from nodeapi.Address, to nodeapi.Address) (*nodeapi.DelegationInfo, error) {
+	return kvstore.GetFromCacheOrCall(
+		r.db, round == roothash.RoundLatest,
+		kvstore.GenerateCacheKey("GetDelegation", r.runtime, round, from, to),
+		func() (*nodeapi.DelegationInfo, error) { return r.runtimeApi.GetDelegation(ctx, round, from, to) },
+	)
+}
+
+func (r *FileRuntimeApiLite) GetAllDelegations(ctx context.Context, round uint64) ([]*nodeapi.CompleteDelegationInfo, error) {
+	return kvstore.GetSliceFromCacheOrCall(
+		r.db, round == roothash.RoundLatest,
+		kvstore.GenerateCacheKey("GetAllDelegations", r.runtime, round),
+		func() ([]*nodeapi.CompleteDelegationInfo, error) { return r.runtimeApi.GetAllDelegations(ctx, round) },
+	)
+}
+
+func (r *FileRuntimeApiLite) GetAllUndelegations(ctx context.Context, round uint64) ([]*nodeapi.CompleteUndelegationInfo, error) {
+	return kvstore.GetSliceFromCacheOrCall(
+		r.db, round == roothash.RoundLatest,
+		kvstore.GenerateCacheKey("GetAllUndelegations", r.runtime, round),
+		func() ([]*nodeapi.CompleteUndelegationInfo, error) {
+			return r.runtimeApi.GetAllUndelegations(ctx, round)
+		},
+	)
+}
+
 func (r *FileRuntimeApiLite) RoflApps(ctx context.Context, round uint64) ([]*nodeapi.AppConfig, error) {
 	return kvstore.GetSliceFromCacheOrCall(
 		r.db, round == roothash.RoundLatest,
