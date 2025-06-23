@@ -12,6 +12,13 @@ The format is inspired by [Keep a Changelog].
 
 <!-- TOWNCRIER -->
 
+## 0.7.4 (2025-06-23)
+
+### Features
+
+- api/roflmarket_instances: Support filtering by deployed app id
+  ([#1060](https://github.com/oasisprotocol/nexus/issues/1060))
+
 ## 0.7.3 (2025-06-20)
 
 ### Features
