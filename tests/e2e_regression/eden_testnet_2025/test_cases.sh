@@ -46,6 +46,7 @@ testCases=(
   'sapphire_roflmarket_provider_offers                 /v1/sapphire/roflmarket_providers/oasis1qp2ens0hsp7gh23wajxa4hpetkdek3swyyulyrmz/offers'
   'sapphire_roflmarket_instances_by_provider           /v1/sapphire/roflmarket_instances?provider=oasis1qp2ens0hsp7gh23wajxa4hpetkdek3swyyulyrmz'
   'sapphire_roflmarket_instances_by_admin              /v1/sapphire/roflmarket_instances?admin=oasis1qpspm8q6pk0lndcjf28ene5sgjgzex4aqcqh2kdh'
+  'sapphire_roflmarket_instances_by_deployed_app_id    /v1/sapphire/roflmarket_instances?deployed_app_id=rofl1qqtnmq89xgyychrtj26wjmuugmusk2l4vynvymgm'
   'sapphire_roflmarket_instance_by_id                  /v1/sapphire/roflmarket_providers/oasis1qp2ens0hsp7gh23wajxa4hpetkdek3swyyulyrmz/instances/0000000000000007'
   'sapphire_roflmarket_offer_by_id                     /v1/sapphire/roflmarket_providers/oasis1qp2ens0hsp7gh23wajxa4hpetkdek3swyyulyrmz/offers/0000000000000001'
 )

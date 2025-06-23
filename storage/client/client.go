@@ -2495,19 +2495,14 @@ func (c *StorageClient) RuntimeRoflApps(ctx context.Context, runtime common.Runt
 	if params.Name != nil && len(*params.Name) > maxFilterNameFragments {
 		return nil, fmt.Errorf("too many names in the name filter: %w", apiCommon.ErrBadRequest)
 	}
-	// Runtime ROFL apps uses a max limit of 100 (other endpoints default to 1000).
-	if *params.Limit > 100 {
-		*params.Limit = 100
-	}
 
 	args := []interface{}{runtime, id, ocAddrAdmin}
 	query := queries.RuntimeRoflApps(params.Name, &args)
 	args = append(args, params.Limit, params.Offset)
 
-	res, err := c.withTotalCount(
+	res, err := c.withDefaultTotalCount(
 		ctx,
 		query,
-		100,
 		args...,
 	)
 	if err != nil {
@@ -2846,9 +2841,10 @@ func (c *StorageClient) RuntimeRoflmarketInstances(ctx context.Context, runtime 
 		ctx,
 		queries.RuntimeRoflmarketProviderInstances,
 		runtime,
-		params.Provider,
 		id,
+		params.Provider,
 		ocAddrAdmin,
+		params.DeployedAppId,
 		params.Limit,
 		params.Offset,
 	)
