@@ -1100,13 +1100,14 @@ const (
 			removed
 		FROM chain.roflmarket_instances
 		WHERE runtime = $1::runtime AND
-			($2::oasis_addr IS NULL OR provider = $2::oasis_addr) AND
-			($3::bytea IS NULL OR id = $3::bytea) AND
-			($4::oasis_addr IS NULL OR admin = $4::oasis_addr)
+			($2::bytea IS NULL OR id = $2::bytea) AND
+			($3::oasis_addr IS NULL OR provider = $3::oasis_addr) AND
+			($4::oasis_addr IS NULL OR admin = $4::oasis_addr) AND
+			($5::text IS NULL OR deployment->>'app_id' = $5::text)
 		-- TODO: Should probably sort by something else.
 		ORDER BY id DESC
-		LIMIT $5::bigint
-		OFFSET $6::bigint`
+		LIMIT $6::bigint
+		OFFSET $7::bigint`
 
 	// FineTxVolumes returns the fine-grained query for 5-minute sampled tx volume windows.
 	FineTxVolumes = `

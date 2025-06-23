@@ -1565,6 +1565,11 @@ paths:
           schema:
             allOf: [$ref: '#/components/schemas/EthOrOasisAddress']
           description: A filter on the admin of the ROFL market instance.
+        - in: query
+          name: deployed_app_id
+          schema:
+            type: string
+          description: A filter on the deployed app ID of the ROFL market instance.
       responses:
         '200':
           description: A JSON object containing a list of ROFL market instances.
