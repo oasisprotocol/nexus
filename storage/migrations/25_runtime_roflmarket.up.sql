@@ -40,7 +40,8 @@ CREATE TABLE chain.roflmarket_providers (
 CREATE TABLE chain.roflmarket_offers (
   runtime runtime NOT NULL,
   id BYTEA NOT NULL,
-  PRIMARY KEY (runtime, id),
+  PRIMARY KEY (runtime, id), -- Removed in 40_runtime_roflmarket_constraints_fix.up.sql.
+  -- PRIMARY KEY (runtime, provider, id), -- Added in 40_runtime_roflmarket_constraints_fix.up.sql.
 
   provider oasis_addr NOT NULL,
   FOREIGN KEY (runtime, provider) REFERENCES chain.roflmarket_providers(runtime, address) DEFERRABLE INITIALLY DEFERRED,
@@ -52,18 +53,20 @@ CREATE TABLE chain.roflmarket_offers (
 
   removed BOOLEAN NOT NULL DEFAULT FALSE
 );
-CREATE INDEX ix_roflmarket_offers_provider ON chain.roflmarket_offers (runtime, provider);
+CREATE INDEX ix_roflmarket_offers_provider ON chain.roflmarket_offers (runtime, provider); -- Removed in 40_runtime_roflmarket_constraints_fix.up.sql.
 
 CREATE TABLE chain.roflmarket_instances (
   runtime runtime NOT NULL,
   id BYTEA NOT NULL,
-  PRIMARY KEY (runtime, id),
+  PRIMARY KEY (runtime, id), -- Removed in 40_runtime_roflmarket_constraints_fix.up.sql.
+  -- PRIMARY KEY (runtime, provider, id), -- Added in 40_runtime_roflmarket_constraints_fix.up.sql.
 
   provider oasis_addr NOT NULL,
   FOREIGN KEY (runtime, provider) REFERENCES chain.roflmarket_providers(runtime, address) DEFERRABLE INITIALLY DEFERRED,
 
   offer_id BYTEA NOT NULL,
-  FOREIGN KEY (runtime, offer_id) REFERENCES chain.roflmarket_offers(runtime, id) DEFERRABLE INITIALLY DEFERRED,
+  FOREIGN KEY (runtime, offer_id) REFERENCES chain.roflmarket_offers(runtime, id) DEFERRABLE INITIALLY DEFERRED, -- Removed in 40_runtime_roflmarket_constraints_fix.up.sql.
+  -- FOREIGN KEY (runtime, provider, offer_id) REFERENCES chain.roflmarket_offers(runtime, provider, id) DEFERRABLE INITIALLY DEFERRED, -- Added in 40_runtime_roflmarket_constraints_fix.up.sql.
 
   status SMALLINT CHECK  (status >= 0 AND status <= 255),
   creator oasis_addr,
@@ -88,7 +91,7 @@ CREATE TABLE chain.roflmarket_instances (
 
   removed BOOLEAN NOT NULL DEFAULT FALSE
 );
-CREATE INDEX ix_roflmarket_instances_provider ON chain.roflmarket_instances (runtime, provider);
+CREATE INDEX ix_roflmarket_instances_provider ON chain.roflmarket_instances (runtime, provider); -- Removed in 40_runtime_roflmarket_constraints_fix.up.sql.
 -- CREATE INDEX ix_roflmarket_instances_admin ON chain.roflmarket_instances (runtime, admin); -- Added in 38_runtime_roflmarket_instances_admin.up.sql.
 
 -- Grant others read-only use.
