@@ -206,6 +206,7 @@ func (p *processor) queueRoflmarketOffersRefresh(ctx context.Context, batch *sto
 		batch.Queue(
 			queries.RuntimeRoflmarketOfferRemoved,
 			p.runtime,
+			providerAddress.String(),
 			offerID,
 		)
 	}
@@ -287,6 +288,7 @@ func (p *processor) queueRoflmarketInstancesRefresh(ctx context.Context, batch *
 		batch.Queue(
 			queries.RuntimeRoflmarketInstanceRemoved,
 			p.runtime,
+			providerAddress.String(),
 			instanceID,
 		)
 	}

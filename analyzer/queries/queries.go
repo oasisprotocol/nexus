@@ -1451,9 +1451,8 @@ var (
 	RuntimeRoflmarketOfferUpsert = `
     INSERT INTO chain.roflmarket_offers (runtime, id, provider, resources, payment, capacity, metadata)
     VALUES ($1, $2, $3, $4, $5, $6, $7)
-    ON CONFLICT (runtime, id) DO UPDATE
+    ON CONFLICT (runtime, provider, id) DO UPDATE
     SET
-      provider = excluded.provider,
       resources = excluded.resources,
       payment = excluded.payment,
       capacity = excluded.capacity,
@@ -1462,9 +1461,8 @@ var (
 	RuntimeRoflmarketInstanceUpsert = `
     INSERT INTO chain.roflmarket_instances (runtime, id, provider, offer_id, status, creator, admin, node_id, metadata, resources, deployment, created_at, updated_at, paid_from, paid_until, payment, payment_address, refund_data, cmd_next_id, cmd_count, cmds)
     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
-    ON CONFLICT (runtime, id) DO UPDATE
+    ON CONFLICT (runtime, provider, id) DO UPDATE
     SET
-      provider = excluded.provider,
       offer_id = excluded.offer_id,
       status = excluded.status,
       creator = excluded.creator,
@@ -1513,7 +1511,8 @@ var (
       removed = TRUE
     WHERE
       runtime = $1 AND
-      id = $2`
+      provider = $2 AND
+      id = $3`
 
 	RuntimeRoflmarketInstanceRemoved = `
     UPDATE chain.roflmarket_instances
@@ -1521,5 +1520,6 @@ var (
       removed = TRUE
     WHERE
       runtime = $1 AND
-      id = $2`
+      provider = $2 AND
+      id = $3`
 )
