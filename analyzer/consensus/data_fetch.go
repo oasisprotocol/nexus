@@ -3,6 +3,8 @@ package consensus
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"golang.org/x/sync/errgroup"
 
@@ -10,6 +12,7 @@ import (
 	"github.com/oasisprotocol/oasis-core/go/common/quantity"
 	sdkConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 
+	"github.com/oasisprotocol/nexus/analyzer"
 	beacon "github.com/oasisprotocol/nexus/coreapi/v22.2.11/beacon/api"
 	consensus "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api"
 	roothash "github.com/oasisprotocol/nexus/coreapi/v22.2.11/roothash/api"
@@ -27,15 +30,12 @@ func fetchAllData(ctx context.Context, cc nodeapi.ConsensusApiLite, network sdkC
 			return err
 		}
 		data.BlockData = blockData
-		return nil
-	})
 
-	eg.Go(func() error {
-		beaconData, err := fetchBeaconData(fetchCtx, cc, height)
-		if err != nil {
-			return err
+		data.BeaconData = &beaconData{
+			Height: height,
+			Epoch:  blockData.Epoch,
+			Beacon: nil, // This was not used in past, add back in future if needed.
 		}
-		data.BeaconData = beaconData
 		return nil
 	})
 
@@ -98,12 +98,12 @@ func fetchAllData(ctx context.Context, cc nodeapi.ConsensusApiLite, network sdkC
 
 // fetchBlockData retrieves data about a consensus block at the provided block height.
 func fetchBlockData(ctx context.Context, cc nodeapi.ConsensusApiLite, height int64) (*consensusBlockData, error) {
-	nodes, err := cc.GetNodes(ctx, height)
+	block, err := cc.GetBlock(ctx, height)
 	if err != nil {
-		return nil, err
+		return nil, wrapOutOfRangeError(err)
 	}
 
-	block, err := cc.GetBlock(ctx, height)
+	nodes, err := cc.GetNodes(ctx, height)
 	if err != nil {
 		return nil, err
 	}
@@ -134,32 +134,11 @@ func fetchBlockData(ctx context.Context, cc nodeapi.ConsensusApiLite, height int
 	}, nil
 }
 
-// fetchBeaconData retrieves the beacon for the provided block height.
-func fetchBeaconData(ctx context.Context, cc nodeapi.ConsensusApiLite, height int64) (*beaconData, error) {
-	// NOTE: The random beacon endpoint is in flux.
-	// GetBeacon() consistently errors out (at least for heights soon after Damask genesis) with "beacon: random beacon not available".
-	// beacon, err := cc.client.Beacon().GetBeacon(ctx, height)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	epoch, err := cc.GetEpoch(ctx, height)
-	if err != nil {
-		return nil, err
-	}
-
-	return &beaconData{
-		Height: height,
-		Epoch:  epoch,
-		Beacon: nil,
-	}, nil
-}
-
 // fetchRegistryData retrieves registry events at the provided block height.
 func fetchRegistryData(ctx context.Context, cc nodeapi.ConsensusApiLite, height int64) (*registryData, error) {
 	events, err := cc.RegistryEvents(ctx, height)
 	if err != nil {
-		return nil, err
+		return nil, wrapOutOfRangeError(err)
 	}
 	// XXX: We do this here, so that we don't need to invalidate the caches.
 	for i := range events {
@@ -202,16 +181,11 @@ func fetchRegistryData(ctx context.Context, cc nodeapi.ConsensusApiLite, height 
 func fetchStakingData(ctx context.Context, cc nodeapi.ConsensusApiLite, height int64) (*stakingData, error) {
 	events, err := cc.StakingEvents(ctx, height)
 	if err != nil {
-		return nil, err
+		return nil, wrapOutOfRangeError(err)
 	}
 	// XXX: We do this here, so that we don't need to invalidate the caches.
 	for i := range events {
 		events[i].EventIdx = i
-	}
-
-	epoch, err := cc.GetEpoch(ctx, height)
-	if err != nil {
-		return nil, err
 	}
 
 	totalSupply, err := cc.StakingTotalSupply(ctx, height)
@@ -248,7 +222,6 @@ func fetchStakingData(ctx context.Context, cc nodeapi.ConsensusApiLite, height i
 
 	return &stakingData{
 		Height:                height,
-		Epoch:                 epoch,
 		TotalSupply:           totalSupply,
 		Events:                events,
 		Transfers:             transfers,
@@ -265,7 +238,7 @@ func fetchStakingData(ctx context.Context, cc nodeapi.ConsensusApiLite, height i
 func fetchSchedulerData(ctx context.Context, cc nodeapi.ConsensusApiLite, network sdkConfig.Network, height int64) (*schedulerData, error) {
 	validators, err := cc.GetValidators(ctx, height)
 	if err != nil {
-		return nil, err
+		return nil, wrapOutOfRangeError(err)
 	}
 
 	committees := make(map[coreCommon.Namespace][]nodeapi.Committee, len(network.ParaTimes.All))
@@ -294,7 +267,7 @@ func fetchSchedulerData(ctx context.Context, cc nodeapi.ConsensusApiLite, networ
 func fetchGovernanceData(ctx context.Context, cc nodeapi.ConsensusApiLite, height int64) (*governanceData, error) {
 	events, err := cc.GovernanceEvents(ctx, height)
 	if err != nil {
-		return nil, err
+		return nil, wrapOutOfRangeError(err)
 	}
 	// XXX: We do this here, so that we don't need to invalidate the caches.
 	for i := range events {
@@ -341,7 +314,7 @@ func fetchGovernanceData(ctx context.Context, cc nodeapi.ConsensusApiLite, heigh
 func fetchRootHashData(ctx context.Context, cc nodeapi.ConsensusApiLite, network sdkConfig.Network, height int64) (*rootHashData, error) {
 	events, err := cc.RoothashEvents(ctx, height)
 	if err != nil {
-		return nil, err
+		return nil, wrapOutOfRangeError(err)
 	}
 	// XXX: We do this here, so that we don't need to invalidate the caches.
 	for i := range events {
@@ -368,6 +341,21 @@ func fetchRootHashData(ctx context.Context, cc nodeapi.ConsensusApiLite, network
 		Events:           events,
 		LastRoundResults: lastRoundResults,
 	}, nil
+}
+
+func wrapOutOfRangeError(err error) error {
+	// Some queries, such as GetBlock, fail with:
+	// consensus: version not found
+	if strings.Contains(err.Error(), "consensus: version not found") {
+		return fmt.Errorf("%w: %v", analyzer.ErrOutOfRange, err)
+	}
+
+	// Some queries, such as GetEvents, fail with:
+	// "rpc error: code = Unknown desc = cometbft: block results query failed: height 27220092 must be less than or equal to the current blockchain height 27220091".
+	if strings.Contains(err.Error(), "must be less than or equal to the current blockchain height") {
+		return fmt.Errorf("%w: %v", analyzer.ErrOutOfRange, err)
+	}
+	return err
 }
 
 type allData struct {
@@ -418,7 +406,6 @@ type registryData struct {
 // stakingData represents data for accounts at a given height.
 type stakingData struct {
 	Height      int64
-	Epoch       beacon.EpochTime
 	TotalSupply *quantity.Quantity
 
 	Events []nodeapi.Event

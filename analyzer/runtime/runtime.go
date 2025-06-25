@@ -239,7 +239,7 @@ func (m *processor) ProcessBlock(ctx context.Context, round uint64) error {
 	blockHeader, err := m.source.GetBlockHeader(ctx, round)
 	if err != nil {
 		if strings.Contains(err.Error(), "roothash: block not found") {
-			return analyzer.ErrOutOfRange
+			return fmt.Errorf("%w: %v", analyzer.ErrOutOfRange, err)
 		}
 		return err
 	}

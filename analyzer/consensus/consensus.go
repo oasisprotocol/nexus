@@ -22,6 +22,7 @@ import (
 
 	"github.com/oasisprotocol/nexus/analyzer/consensus/static"
 	"github.com/oasisprotocol/nexus/analyzer/util/addresses"
+	beacon "github.com/oasisprotocol/nexus/coreapi/v22.2.11/beacon/api"
 	"github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api/transaction"
 	staking "github.com/oasisprotocol/nexus/coreapi/v22.2.11/staking/api"
 
@@ -289,7 +290,7 @@ func (m *processor) queueDbUpdates(batch *storage.QueryBatch, data allData) erro
 		return err
 	}
 
-	for _, f := range []func(*storage.QueryBatch, *stakingData) error{
+	for _, f := range []func(*storage.QueryBatch, *stakingData, beacon.EpochTime) error{
 		m.queueRegularTransfers,
 		m.queueBurns,
 		m.queueEscrows,
@@ -297,7 +298,7 @@ func (m *processor) queueDbUpdates(batch *storage.QueryBatch, data allData) erro
 		m.queueStakingEventInserts,
 		m.queueDisbursementTransfers,
 	} {
-		if err := f(batch, data.StakingData); err != nil {
+		if err := f(batch, data.StakingData, data.BeaconData.Epoch); err != nil {
 			return err
 		}
 	}
@@ -349,9 +350,6 @@ func (m *processor) ProcessBlock(ctx context.Context, uheight uint64) error {
 		data, err := fetchAllData(ctx, m.source, m.network, height, m.mode == analyzer.FastSyncMode)
 		fetchTimer.ObserveDuration()
 		if err != nil {
-			if strings.Contains(err.Error(), fmt.Sprintf("%d must be less than or equal to the current blockchain height", height)) {
-				return analyzer.ErrOutOfRange
-			}
 			return err
 		}
 
@@ -989,11 +987,11 @@ const (
 	TransferTypeOther                   TransferType = "Other"
 )
 
-func (m *processor) queueRegularTransfers(batch *storage.QueryBatch, data *stakingData) error {
+func (m *processor) queueRegularTransfers(batch *storage.QueryBatch, data *stakingData, _ beacon.EpochTime) error {
 	return m.queueTransfers(batch, data, TransferTypeOther)
 }
 
-func (m *processor) queueDisbursementTransfers(batch *storage.QueryBatch, data *stakingData) error {
+func (m *processor) queueDisbursementTransfers(batch *storage.QueryBatch, data *stakingData, _ beacon.EpochTime) error {
 	return m.queueTransfers(batch, data, TransferTypeAccumulatorDisbursement)
 }
 
@@ -1026,7 +1024,7 @@ func (m *processor) queueTransfers(batch *storage.QueryBatch, data *stakingData,
 	return nil
 }
 
-func (m *processor) queueBurns(batch *storage.QueryBatch, data *stakingData) error {
+func (m *processor) queueBurns(batch *storage.QueryBatch, data *stakingData, _ beacon.EpochTime) error {
 	if m.mode == analyzer.FastSyncMode {
 		// Skip dead reckoning of balances during fast sync. Genesis contains consensus balances.
 		return nil
@@ -1042,7 +1040,7 @@ func (m *processor) queueBurns(batch *storage.QueryBatch, data *stakingData) err
 	return nil
 }
 
-func (m *processor) queueEscrows(batch *storage.QueryBatch, data *stakingData) error {
+func (m *processor) queueEscrows(batch *storage.QueryBatch, data *stakingData, epoch beacon.EpochTime) error {
 	for _, e := range data.AddEscrows {
 		owner := e.Owner.String()
 		escrower := e.Escrow.String()
@@ -1058,7 +1056,7 @@ func (m *processor) queueEscrows(batch *storage.QueryBatch, data *stakingData) e
 		}
 		batch.Queue(queries.ConsensusEscrowEventInsert,
 			data.Height,
-			data.Epoch,
+			epoch,
 			apiTypes.ConsensusEventTypeStakingEscrowAdd,
 			escrower,
 			owner,
@@ -1097,7 +1095,7 @@ func (m *processor) queueEscrows(batch *storage.QueryBatch, data *stakingData) e
 		}
 		batch.Queue(queries.ConsensusEscrowEventInsert,
 			data.Height,
-			data.Epoch,
+			epoch,
 			apiTypes.ConsensusEventTypeStakingEscrowTake,
 			e.Owner.String(),
 			nil, // delegator
@@ -1132,7 +1130,7 @@ func (m *processor) queueEscrows(batch *storage.QueryBatch, data *stakingData) e
 	for _, e := range data.DebondingStartEscrows {
 		batch.Queue(queries.ConsensusEscrowEventInsert,
 			data.Height,
-			data.Epoch,
+			epoch,
 			apiTypes.ConsensusEventTypeStakingEscrowDebondingStart,
 			e.Escrow.String(),
 			e.Owner.String(),
@@ -1204,7 +1202,7 @@ func (m *processor) queueEscrows(batch *storage.QueryBatch, data *stakingData) e
 				e.Owner.String(),
 				e.Escrow.String(),
 				e.Shares.String(),
-				data.Epoch,
+				epoch,
 			)
 		}
 	}
@@ -1212,7 +1210,7 @@ func (m *processor) queueEscrows(batch *storage.QueryBatch, data *stakingData) e
 	return nil
 }
 
-func (m *processor) queueAllowanceChanges(batch *storage.QueryBatch, data *stakingData) error {
+func (m *processor) queueAllowanceChanges(batch *storage.QueryBatch, data *stakingData, _ beacon.EpochTime) error {
 	if m.mode == analyzer.FastSyncMode {
 		// Skip tracking of allowances during fast sync.
 		// Genesis contains all info on current allowances, and we don't track the history of allowances.
@@ -1240,7 +1238,7 @@ func (m *processor) queueAllowanceChanges(batch *storage.QueryBatch, data *staki
 	return nil
 }
 
-func (m *processor) queueStakingEventInserts(batch *storage.QueryBatch, data *stakingData) error {
+func (m *processor) queueStakingEventInserts(batch *storage.QueryBatch, data *stakingData, _ beacon.EpochTime) error {
 	for _, event := range data.Events {
 		hash := util.SanitizeTxHash(event.TxHash.Hex())
 		if hash != nil {
