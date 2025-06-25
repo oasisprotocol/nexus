@@ -65,8 +65,7 @@ CREATE TABLE chain.roflmarket_instances (
   FOREIGN KEY (runtime, provider) REFERENCES chain.roflmarket_providers(runtime, address) DEFERRABLE INITIALLY DEFERRED,
 
   offer_id BYTEA NOT NULL,
-  FOREIGN KEY (runtime, offer_id) REFERENCES chain.roflmarket_offers(runtime, id) DEFERRABLE INITIALLY DEFERRED, -- Removed in 40_runtime_roflmarket_constraints_fix.up.sql.
-  -- FOREIGN KEY (runtime, provider, offer_id) REFERENCES chain.roflmarket_offers(runtime, provider, id) DEFERRABLE INITIALLY DEFERRED, -- Added in 40_runtime_roflmarket_constraints_fix.up.sql.
+  FOREIGN KEY (runtime, offer_id) REFERENCES chain.roflmarket_offers(runtime, id) DEFERRABLE INITIALLY DEFERRED, -- Removed in 40_runtime_roflmarket_constraints_fix.up.sql. Offer can be removed, but instance still exists.
 
   status SMALLINT CHECK  (status >= 0 AND status <= 255),
   creator oasis_addr,
