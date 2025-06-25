@@ -22,4 +22,8 @@ ALTER TABLE chain.roflmarket_instances
 DROP INDEX IF EXISTS chain.ix_roflmarket_offers_provider;
 DROP INDEX IF EXISTS chain.ix_roflmarket_instances_provider;
 
+-- Ensure refresh of providers.
+UPDATE chain.roflmarket_providers
+  SET last_processed_round = NULL;
+
 COMMIT;
