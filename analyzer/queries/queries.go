@@ -1383,22 +1383,51 @@ var (
       last_queued_round = GREATEST(excluded.last_queued_round, chain.rofl_apps.last_queued_round)`
 
 	RuntimeRoflmarketStaleProviders = `
+    WITH latest_block AS (
+      SELECT round AS latest_round
+      FROM chain.runtime_blocks
+      WHERE runtime = $1
+      ORDER BY round DESC
+      LIMIT 1
+    )
     SELECT
-      address,
-      last_queued_round
-    FROM chain.roflmarket_providers
+      p.address,
+      p.last_queued_round
+    FROM chain.roflmarket_providers p, latest_block lb
     WHERE
-      runtime = $1 AND
-      (last_processed_round IS NULL OR last_queued_round > last_processed_round)
-    ORDER BY last_queued_round
+      p.runtime = $1 AND
+      (
+        p.last_processed_round IS NULL OR
+        (
+          p.last_queued_round > lb.latest_round OR
+          -- If the latest block is more than 10 rounds ahead of the last processed round,
+          -- refresh the provider. This is a workaround needed until runtimes with
+          -- https://github.com/oasisprotocol/oasis-sdk/pull/2218 are deployed.
+          lb.latest_round > p.last_processed_round + 10
+        )
+      )
+    ORDER BY p.last_queued_round
     LIMIT $2`
 
 	RuntimeRoflmarketStaleProvidersCount = `
+    WITH latest_block AS (
+      SELECT round AS latest_round
+      FROM chain.runtime_blocks
+      WHERE runtime = $1
+      ORDER BY round DESC
+      LIMIT 1
+    )
     SELECT COUNT(*) AS cnt
-    FROM chain.roflmarket_providers
+    FROM chain.roflmarket_providers p, latest_block lb
     WHERE
       runtime = $1 AND
-      (last_processed_round IS NULL OR last_queued_round > last_processed_round)`
+      (
+        p.last_processed_round IS NULL OR
+        (
+          p.last_queued_round > lb.latest_round OR
+          lb.latest_round > p.last_processed_round + 10
+        )
+      )`
 
 	RuntimeRoflmarketProviderUpdate = `
     UPDATE chain.roflmarket_providers
