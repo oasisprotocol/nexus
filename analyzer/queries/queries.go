@@ -1494,32 +1494,32 @@ var (
       id
     FROM chain.roflmarket_offers
     WHERE
-      runtime = $1 AND
-      provider = $2`
+      runtime = $1::runtime AND
+      provider = $2::oasis_addr`
 
 	RuntimeRoflMarketProviderInstanceIds = `
     SELECT
       id
     FROM chain.roflmarket_instances
     WHERE
-      runtime = $1 AND
-      provider = $2`
+      runtime = $1::runtime AND
+      provider = $2::oasis_addr`
 
 	RuntimeRoflmarketOfferRemoved = `
     UPDATE chain.roflmarket_offers
     SET
       removed = TRUE
     WHERE
-      runtime = $1 AND
-      provider = $2 AND
-      id = $3`
+      runtime = $1::runtime AND
+      provider = $2::oasis_addr AND
+      id = $3::bytea`
 
 	RuntimeRoflmarketInstanceRemoved = `
     UPDATE chain.roflmarket_instances
     SET
       removed = TRUE
     WHERE
-      runtime = $1 AND
-      provider = $2 AND
-      id = $3`
+      runtime = $1::runtime AND
+      provider = $2::oasis_addr AND
+      id = $3::bytea`
 )

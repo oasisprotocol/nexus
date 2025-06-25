@@ -3,8 +3,8 @@
 package roflmarket
 
 import (
+	"bytes"
 	"context"
-	"encoding/hex"
 	"fmt"
 	"slices"
 	"time"
@@ -168,13 +168,13 @@ func (p *processor) queueRoflmarketOffersRefresh(ctx context.Context, batch *sto
 		return fmt.Errorf("querying rofl market provider offers: %w", err)
 	}
 	defer rows.Close()
-	var existingOffers []string
+	var existingOffers [][]byte
 	for rows.Next() {
 		var offerID []byte
 		if err := rows.Scan(&offerID); err != nil {
 			return fmt.Errorf("scanning rofl market provider offer: %w", err)
 		}
-		existingOffers = append(existingOffers, hex.EncodeToString(offerID))
+		existingOffers = append(existingOffers, offerID)
 	}
 
 	// Fetch offers from the node.
@@ -185,8 +185,8 @@ func (p *processor) queueRoflmarketOffersRefresh(ctx context.Context, batch *sto
 
 	// Update offers.
 	for _, offer := range offers {
-		existingOffers = slices.DeleteFunc(existingOffers, func(id string) bool {
-			return id == offer.ID.String()
+		existingOffers = slices.DeleteFunc(existingOffers, func(id []byte) bool {
+			return bytes.Equal(id, offer.ID[:])
 		})
 
 		batch.Queue(
@@ -221,13 +221,13 @@ func (p *processor) queueRoflmarketInstancesRefresh(ctx context.Context, batch *
 		return fmt.Errorf("querying rofl market provider instances: %w", err)
 	}
 	defer rows.Close()
-	var existingInstances []string
+	var existingInstances [][]byte
 	for rows.Next() {
 		var instanceID []byte
 		if err := rows.Scan(&instanceID); err != nil {
 			return fmt.Errorf("scanning rofl market provider instance: %w", err)
 		}
-		existingInstances = append(existingInstances, hex.EncodeToString(instanceID))
+		existingInstances = append(existingInstances, instanceID)
 	}
 
 	// Fetch instances from the node.
@@ -238,8 +238,8 @@ func (p *processor) queueRoflmarketInstancesRefresh(ctx context.Context, batch *
 
 	// Update instances.
 	for _, instance := range instances {
-		existingInstances = slices.DeleteFunc(existingInstances, func(id string) bool {
-			return id == instance.ID.String()
+		existingInstances = slices.DeleteFunc(existingInstances, func(id []byte) bool {
+			return bytes.Equal(id, instance.ID[:])
 		})
 
 		// Query instance commands.
