@@ -12,6 +12,13 @@ The format is inspired by [Keep a Changelog].
 
 <!-- TOWNCRIER -->
 
+## 0.7.5 (2025-06-25)
+
+### Bug Fixes and Improvements
+
+- storage/roflmarket: Fix roflmarket tables constrains
+  ([#1063](https://github.com/oasisprotocol/nexus/issues/1063))
+
 ## 0.7.4 (2025-06-23)
 
 ### Features
