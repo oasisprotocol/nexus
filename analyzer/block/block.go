@@ -6,6 +6,7 @@ package block
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"math"
 	"time"
@@ -30,9 +31,15 @@ const (
 	// this time can be picked again. Keep strictly > 1; the analyzer stops processing
 	// blocks before the lock expires, by a safety margin of 1 minute.
 	lockExpiryMinutes = 5
-	// The expected time between blocks being newly created on the blockchain.
-	// The analyzer will check for new blocks at least this often.
-	blockGenerationInterval = 6 * time.Second
+	// backoffMaxTimeout is the maximum timeout for the backoff policy in case of errors.
+	backoffMaxTimeout = 30 * time.Second
+	// headPollingInterval is the interval at which the analyzer will poll for new blocks
+	// when at the head of the chain.
+	headPollingInterval = 1 * time.Second
+
+	// If last successfully processed block was more than 12 seconds ago, the error is likely
+	// NOT due to being at the head of the chain.
+	headPollingThreshold = 12 * time.Second
 )
 
 // BlockProcessor is the interface that block-based processors should implement to use them with the
@@ -71,6 +78,8 @@ type blockBasedAnalyzer struct {
 	logger  *log.Logger
 	metrics metrics.AnalysisMetrics
 
+	lastProcessedBlock time.Time
+
 	slowSync bool
 }
 
@@ -87,6 +96,10 @@ func (b *blockBasedAnalyzer) firstUnprocessedBlock(ctx context.Context) (first u
 
 // unlockBlocks unlocks the given blocks.
 func (b *blockBasedAnalyzer) unlockBlocks(ctx context.Context, heights []uint64) {
+	if b.slowSync {
+		// In slow-sync mode, locks are ignored, as this should be the only analyzer running.
+		return
+	}
 	rows, err := b.target.Query(
 		ctx,
 		queries.UnlockBlocksForProcessing,
@@ -294,6 +307,10 @@ func (b *blockBasedAnalyzer) nodeHeight(ctx context.Context) (int, error) {
 
 // Returns true if `ctx` is about to expire within `margin`, or has already expired.
 func expiresWithin(ctx context.Context, margin time.Duration) bool {
+	if ctx.Err() != nil {
+		// The context has expired.
+		return true
+	}
 	deadline, hasDeadline := ctx.Deadline()
 	if !hasDeadline {
 		return false
@@ -336,7 +353,7 @@ func (b *blockBasedAnalyzer) Start(ctx context.Context) {
 	// Start processing blocks.
 	backoff, err := util.NewBackoff(
 		100*time.Millisecond,
-		blockGenerationInterval, // cap the timeout at the expected consensus block time
+		backoffMaxTimeout,
 	)
 	if err != nil {
 		b.logger.Error("error configuring backoff policy",
@@ -345,25 +362,29 @@ func (b *blockBasedAnalyzer) Start(ctx context.Context) {
 		return
 	}
 
-	var (
-		batchCtx       context.Context
-		batchCtxCancel context.CancelFunc = func() {}
-	)
+	// timeout returns the timeout for the next batch of blocks.
+	nextBatchTimeout := func(err error) time.Duration {
+		// If we reached out of range and have recently processed a block, poll again soon.
+		if b.isRecentOutOfRangeError(err) {
+			return headPollingInterval
+		}
+		// Otherwise, use the backoff policy.
+		return backoff.Timeout()
+	}
+
+	var batchErr error
 	for {
-		batchCtxCancel()
+		timeout := nextBatchTimeout(batchErr)
 		select {
-		case <-time.After(backoff.Timeout()):
+		case <-time.After(timeout):
 			// Process another batch of blocks.
 		case <-ctx.Done():
 			b.logger.Warn("shutting down block analyzer", "reason", ctx.Err())
 			return
 		}
-		// The context for processing the batch of blocks is shorter than the lock expiry.
-		// This is to ensure that the batch is processed before the locks expire.
-		batchCtx, batchCtxCancel = context.WithTimeout(ctx, (lockExpiryMinutes-1)*time.Minute)
 
 		// Pick a batch of blocks to process.
-		b.logger.Info("picking a batch of blocks to process", "from", b.blockRange.From, "to", to, "is_fast_sync", !b.slowSync)
+		b.logger.Info("picking a batch of blocks to process", "from", b.blockRange.From, "to", to, "is_fast_sync", !b.slowSync, "timeout", timeout)
 		heights, err := b.fetchBatchForProcessing(ctx, b.blockRange.From, to)
 		if err != nil {
 			b.logger.Error("failed to pick blocks for processing",
@@ -372,90 +393,31 @@ func (b *blockBasedAnalyzer) Start(ctx context.Context) {
 			backoff.Failure()
 			continue
 		}
-		nodeHeight, err := b.nodeHeight(ctx)
-		if err != nil {
-			b.logger.Warn("error fetching current node height: %w", err)
-		}
-
-		// Process blocks.
 		b.logger.Debug("picked blocks for processing", "heights", heights)
-		for _, height := range heights {
-			// If running in slow-sync, we are likely at the tip of the chain and are picking up
-			// blocks that are not yet available. In this case, wait before processing every block,
-			// so that the backoff mechanism can tweak the per-block wait time as needed.
-			//
-			// Note: If the batch size is too large, the time required to process the blocks
-			// in the batch will exceed the current lock expiry of 5min. The analyzer will terminate
-			// the batch early and attempt to refresh the locks for a new batch.
-			if b.slowSync {
-				// In slow-sync mode, we update the node-height at each block for a more
-				// precise measurement.
-				nodeHeight, err = b.nodeHeight(ctx)
-				if err != nil {
-					b.logger.Warn("error fetching current node height: %w", err)
-				}
-				select {
-				case <-time.After(backoff.Timeout()):
-					// Process the next block
-				case <-batchCtx.Done():
-					b.logger.Info("batch locks expiring; refreshing batch")
-					b.unlockBlocks(ctx, heights) // Locks are _about_ to expire, but are not expired yet. Unlock explicitly so blocks can be grabbed sooner.
-					break
-				case <-ctx.Done():
-					batchCtxCancel()
-					b.logger.Warn("shutting down block analyzer", "reason", ctx.Err())
-					b.unlockBlocks(ctx, heights) // Give others a chance to process our blocks even before their locks implicitly expire
-					b.logger.Info("unlocked db rows", "heights", heights)
-					return
-				}
-			}
-			b.logger.Info("processing block", "height", height)
 
-			bCtx, cancel := context.WithTimeout(batchCtx, processBlockTimeout)
-			if err := b.processor.ProcessBlock(bCtx, height); err != nil {
-				cancel()
-				backoff.Failure()
-
-				if err == analyzer.ErrOutOfRange {
-					b.logger.Info("no data available; will retry",
-						"height", height,
-						"retry_interval_ms", backoff.Timeout().Milliseconds(),
-					)
-				} else {
-					b.logger.Error("error processing block", "height", height, "err", err)
-				}
-
-				// If running in slow-sync, stop processing the batch on error so that
-				// the blocks are always processed in order.
-				// Also stop processing the batch if the batch context is done (= "expired").
-				if b.slowSync || batchCtx.Err() != nil {
-					break
-				}
-
-				// Unlock a failed block, so it can be retried sooner.
-				b.unlockBlocks(ctx, []uint64{height})
-				continue
-			}
-
-			// If we successfully fetched the node height earlier, update the estimated queue length.
-			if nodeHeight != -1 {
-				b.sendQueueLengthMetric(uint64(nodeHeight) - height)
-			}
-
-			cancel()
-			backoff.Success()
-			b.logger.Info("processed block", "height", height)
-
-			// If the batch context is close to expiring, do not attempt more blocks.
-			if expiresWithin(batchCtx, processBlockTimeout) {
-				b.unlockBlocks(ctx, heights)
-				break
-			}
+		// The context for processing the batch of blocks is shorter than the lock expiry.
+		// This is to ensure that the batch is processed before the locks expire.
+		batchCtx, batchCtxCancel := context.WithTimeout(ctx, (lockExpiryMinutes-1)*time.Minute)
+		var numProcessed int
+		numProcessed, batchErr = b.processBatch(batchCtx, heights)
+		if batchErr != nil {
+			b.unlockBlocks(ctx, heights) // Unlock the blocks so they can be picked up sooner.
 		}
+		batchCtxCancel()
 
-		if len(heights) == 0 {
+		// Backoff update.
+		// TODO: Think about success if some blocks were processed.
+		switch {
+		case len(heights) == 0:
+			// No blocks processed, increase the backoff timeout a bit.
 			b.logger.Info("no blocks to process")
-			backoff.Failure() // No blocks processed, increase the backoff timeout a bit.
+			backoff.Failure()
+		case batchErr != nil && !b.isRecentOutOfRangeError(batchErr) && numProcessed == 0:
+			// Not likely an error due being at the head of the chain, increase the backoff timeout.
+			// If some blocks were processed, do not increase the backoff timer.
+			backoff.Failure()
+		default:
+			backoff.Success()
 		}
 
 		// Stop processing if end height is set and was reached.
@@ -465,12 +427,73 @@ func (b *blockBasedAnalyzer) Start(ctx context.Context) {
 			}
 		}
 	}
-	batchCtxCancel()
 
 	b.logger.Info(
 		"finished processing all blocks in the configured range",
 		"from", b.blockRange.From, "to", b.blockRange.To,
 	)
+}
+
+func (b *blockBasedAnalyzer) processBatch(ctx context.Context, heights []uint64) (int, error) {
+	processed := 0
+	nodeHeight := -1
+	for _, height := range heights {
+		// If the context is close to expiring, do not attempt more blocks and unlock the blocks.
+		if expiresWithin(ctx, processBlockTimeout) {
+			b.unlockBlocks(ctx, heights)
+			return processed, nil
+		}
+
+		if b.slowSync || nodeHeight == -1 {
+			// In slow-sync mode, we update the node-height at each block for a more
+			// precise measurement.
+			var err error
+			nodeHeight, err = b.nodeHeight(ctx)
+			if err != nil {
+				b.logger.Warn("error fetching current node height: %w", err)
+			}
+		}
+
+		b.logger.Info("processing block", "height", height)
+		bCtx, cancel := context.WithTimeout(ctx, processBlockTimeout)
+		if err := b.processor.ProcessBlock(bCtx, height); err != nil {
+			cancel()
+
+			// Unlock the failed block, so it can be retried sooner.
+			b.unlockBlocks(ctx, []uint64{height})
+
+			// Log the error only if it is not an out of range error.
+			if errors.Is(err, analyzer.ErrOutOfRange) {
+				b.logger.Info("no data available", "err", err, "height", height)
+			} else {
+				b.logger.Error("failed to process block", "err", err, "height", height)
+			}
+
+			// If running in slow-sync, stop processing the batch on first error
+			// so that the blocks are always processed in order.
+			if b.slowSync {
+				return processed, err
+			}
+			continue
+		}
+		cancel()
+
+		b.logger.Info("processed block", "height", height)
+		processed++
+		b.lastProcessedBlock = time.Now()
+		// If we successfully fetched the node height earlier, update the estimated queue length.
+		if nodeHeight != -1 {
+			b.sendQueueLengthMetric(uint64(nodeHeight) - height)
+		}
+	}
+
+	return processed, nil
+}
+
+// isRecentOutOfRangeError returns true if the error is an out of range error and
+// the last processed block was recent, therfore we're likely just at the head of the chain.
+func (b *blockBasedAnalyzer) isRecentOutOfRangeError(err error) bool {
+	return errors.Is(err, analyzer.ErrOutOfRange) && time.Since(b.lastProcessedBlock) < headPollingThreshold
 }
 
 // Name returns the name of the analyzer.
@@ -495,14 +518,15 @@ func NewAnalyzer(
 		batchSize = defaultBatchSize
 	}
 	a := &blockBasedAnalyzer{
-		blockRange:   blockRange,
-		batchSize:    batchSize,
-		analyzerName: name,
-		processor:    processor,
-		target:       target,
-		logger:       logger.With("analyzer", name, "mode", mode),
-		metrics:      metrics.NewDefaultAnalysisMetrics(name),
-		slowSync:     mode == analyzer.SlowSyncMode,
+		blockRange:         blockRange,
+		batchSize:          batchSize,
+		analyzerName:       name,
+		processor:          processor,
+		target:             target,
+		logger:             logger.With("analyzer", name, "mode", mode),
+		metrics:            metrics.NewDefaultAnalysisMetrics(name),
+		lastProcessedBlock: time.Now(),
+		slowSync:           mode == analyzer.SlowSyncMode,
 	}
 
 	return a, nil
