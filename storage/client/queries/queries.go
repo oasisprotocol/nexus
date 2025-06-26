@@ -1392,7 +1392,7 @@ func RuntimeRoflApps(rawNames *[]string, args *[]interface{}) string {
 			-- Exclude not yet processed apps.
 			ra.last_processed_round IS NOT NULL
 
-		ORDER BY num_active_instances DESC, ra.num_transactions DESC, ra.id DESC
+		ORDER BY num_active_instances DESC, ra.removed ASC, ra.num_transactions DESC, ra.id DESC
 		LIMIT $%d::bigint
 		OFFSET $%d::bigint`, nameCondition, argOffset+len(clauses), argOffset+len(clauses)+1)
 
