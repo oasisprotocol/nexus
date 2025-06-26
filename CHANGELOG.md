@@ -12,6 +12,18 @@ The format is inspired by [Keep a Changelog].
 
 <!-- TOWNCRIER -->
 
+## 0.7.6 (2025-06-26)
+
+### Features
+
+- analyer/block: Simplify and improve batch processing
+  ([#1068](https://github.com/oasisprotocol/nexus/issues/1068))
+
+### Bug Fixes and Improvements
+
+- roflmarket: Properly mark removed instances/offers
+  ([#1067](https://github.com/oasisprotocol/nexus/issues/1067))
+
 ## 0.7.5 (2025-06-25)
 
 ### Bug Fixes and Improvements
