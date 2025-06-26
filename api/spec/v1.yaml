@@ -4005,6 +4005,9 @@ components:
           type: integer
           format: uint64
           description: The epoch at which the instance expires.
+        metadata:
+          type: object
+          description: Arbitrary metadata key-value pairs, assigned by the application.
         extra_keys:
           type: array
           items:

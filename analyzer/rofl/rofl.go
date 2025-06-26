@@ -172,6 +172,7 @@ func (p *processor) queueRoflAppInstancesRefresh(ctx context.Context, batch *sto
 			entityID,
 			rek,
 			instance.Expiration,
+			instance.Metadata,
 			extraKeys,
 			// In case the ROFL analyzer would be lagging behind, this round is not necessary the registration round,
 			// since there could have been more events in the meantime. This means we might miss some early instance

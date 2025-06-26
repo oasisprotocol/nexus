@@ -987,6 +987,7 @@ const (
 			endorsing_entity_id,
 			rek,
 			expiration_epoch,
+			metadata,
 			extra_keys
 		FROM chain.rofl_instances
 		WHERE
