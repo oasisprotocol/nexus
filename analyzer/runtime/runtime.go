@@ -256,8 +256,8 @@ func (m *processor) ProcessBlock(ctx context.Context, round uint64) error {
 	if err != nil {
 		return err
 	}
-
-	fetchTimer.ObserveDuration() // We make no observation in case of a data fetch error; those timings are misleading.
+	// We make no observation in case of a data fetch error; those timings are misleading.
+	fetchTimer.ObserveDuration()
 
 	// Preprocess data.
 	analysisTimer := m.metrics.BlockAnalysisLatencies()
