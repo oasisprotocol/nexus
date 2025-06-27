@@ -12,6 +12,21 @@ The format is inspired by [Keep a Changelog].
 
 <!-- TOWNCRIER -->
 
+## 0.7.7 (2025-06-27)
+
+### Features
+
+- api/rofl_apps: Prioritize non-removed apps in ordering
+  ([#1070](https://github.com/oasisprotocol/nexus/issues/1070))
+
+- rofl_instances: Support ROFL instance metadata
+  ([#1071](https://github.com/oasisprotocol/nexus/issues/1071))
+
+### Bug Fixes and Improvements
+
+- analyzer/consensus: Record timing only for successful requests
+  ([#1073](https://github.com/oasisprotocol/nexus/issues/1073))
+
 ## 0.7.6 (2025-06-26)
 
 ### Features
