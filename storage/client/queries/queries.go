@@ -1345,6 +1345,7 @@ func RuntimeRoflApps(rawNames *[]string, args *[]interface{}) string {
 						'endorsing_entity_id', ri.endorsing_entity_id,
 						'rek', ri.rek,
 						'expiration_epoch', ri.expiration_epoch,
+						'metadata', ri.metadata,
 						'extra_keys', ri.extra_keys
 						) ORDER BY ri.expiration_epoch DESC
 					) AS instance_json
