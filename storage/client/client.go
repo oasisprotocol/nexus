@@ -2658,6 +2658,7 @@ func (c *StorageClient) RuntimeRoflAppInstances(ctx context.Context, runtime com
 			&instance.EndorsingEntityId,
 			&instance.Rek,
 			&instance.ExpirationEpoch,
+			&instance.Metadata,
 			&instance.ExtraKeys,
 		); err != nil {
 			return nil, wrapError(err)

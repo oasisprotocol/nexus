@@ -1360,9 +1360,9 @@ var (
         WHERE runtime = $1::runtime AND id = $2
       )
 
-    INSERT INTO chain.rofl_instances (runtime, app_id, rak, endorsing_node_id, endorsing_entity_id, rek, expiration_epoch, extra_keys, registration_round, last_processed_round)
+    INSERT INTO chain.rofl_instances (runtime, app_id, rak, endorsing_node_id, endorsing_entity_id, rek, expiration_epoch, metadata, extra_keys, registration_round, last_processed_round)
     SELECT
-      $1, $2, $3, $4, $5, $6, $7, $8, $9, $10
+      $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11
     FROM
       check_app
     ON CONFLICT (runtime, app_id, rak) DO UPDATE
@@ -1371,6 +1371,7 @@ var (
       endorsing_entity_id = excluded.endorsing_entity_id,
       rek = excluded.rek,
       expiration_epoch = excluded.expiration_epoch,
+      metadata = excluded.metadata,
       extra_keys = excluded.extra_keys,
       registration_round = LEAST(excluded.registration_round, chain.rofl_instances.registration_round),
       last_processed_round = COALESCE(chain.rofl_instances.last_processed_round, excluded.last_processed_round)`

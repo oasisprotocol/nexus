@@ -46,6 +46,8 @@ CREATE TABLE chain.rofl_instances
   expiration_epoch UINT63 NOT NULL,
   extra_keys TEXT[],
 
+  -- metadata JSONB, -- Added in 42_runtime_rofl_instances_metadata.up.sql.
+
   -- Fields for rofl instance transactions analyzer progress tracking.
   registration_round UINT63 NOT NULL,
   last_processed_round UINT63 NOT NULL
