@@ -1311,7 +1311,19 @@ func EVMTokens(rawNames *[]string, args *[]interface{}) string {
 // Dynamic query generation is necessary here to allow PostgreSQL to utilize the
 // pg_trgm GIN index on `metadata_name` — index usage is only possible when each
 // ILIKE condition is written explicitly.
-func RuntimeRoflApps(rawNames *[]string, args *[]interface{}) string {
+func RuntimeRoflApps(rawNames *[]string, orderBy *string, args *[]interface{}) string {
+	orderByClause := "num_active_instances DESC, ra.removed ASC, ra.num_transactions DESC, ra.id DESC"
+	if orderBy != nil {
+		switch *orderBy {
+		case "created_at":
+			orderByClause = "ra.created_at_round ASC, ra.id DESC"
+		case "created_at_desc":
+			orderByClause = "ra.created_at_round DESC, ra.id DESC"
+		default:
+			// Shouldn't happen.
+		}
+	}
+
 	var clauses []string
 	argOffset := len(*args) + 1
 
@@ -1396,9 +1408,9 @@ func RuntimeRoflApps(rawNames *[]string, args *[]interface{}) string {
 			-- Exclude not yet processed apps.
 			ra.last_processed_round IS NOT NULL
 
-		ORDER BY num_active_instances DESC, ra.removed ASC, ra.num_transactions DESC, ra.id DESC
+		ORDER BY %s
 		LIMIT $%d::bigint
-		OFFSET $%d::bigint`, nameCondition, argOffset+len(clauses), argOffset+len(clauses)+1)
+		OFFSET $%d::bigint`, nameCondition, orderByClause, argOffset+len(clauses), argOffset+len(clauses)+1)
 
 	return query
 }

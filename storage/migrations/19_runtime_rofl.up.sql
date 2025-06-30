@@ -18,6 +18,7 @@ CREATE TABLE chain.rofl_apps
   secrets JSONB, -- arbitrary key/value pairs.
 
   -- num_transactions UINT63 NOT NULL, -- Added in 27_runtime_rofl_num_transactions.up.sql.
+  -- created_at_round UINT63 NOT NULL, -- Added in 43_runtime_rofl_app_created_at.up.sql.
 
   removed BOOLEAN NOT NULL DEFAULT FALSE,
 

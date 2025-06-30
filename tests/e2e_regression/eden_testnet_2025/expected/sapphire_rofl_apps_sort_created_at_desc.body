@@ -1,0 +1,577 @@
+{
+  "is_total_count_clipped": false,
+  "rofl_apps": [
+    {
+      "active_instances": [
+        {
+          "endorsing_node_id": "bOlqho9R3JHP64kJk+SfMxZt5fNkYWf6gdhErWlY60E=",
+          "expiration_epoch": 44111,
+          "extra_keys": [
+            "{\"secp256k1\":\"A284YJmdWYpwL/kecGeH2+9Hnnf+AICofeJaY/oit+0P\"}"
+          ],
+          "rak": "+aNLrLHYgRlBq7XyooiuVaqnyPqb2e7G8EtmcAl03NU=",
+          "rek": "z3uxtGafB/E3L0xcv47H/fRTnvaDLSGtpRxhh27123Y="
+        },
+        {
+          "endorsing_node_id": "bOlqho9R3JHP64kJk+SfMxZt5fNkYWf6gdhErWlY60E=",
+          "expiration_epoch": 44111,
+          "extra_keys": [
+            "{\"secp256k1\":\"A9HZmnVpKYvdWAYOZQERYkearepHoocGXslP+Hon7jmB\"}"
+          ],
+          "rak": "InHBiLUcFjdTrDnDhd9pawO8ciQ60qaE4IYET3XX/mo=",
+          "rek": "EMdxhacdLuItFFwE2F7CdecaNPjo5kVksEcBxJiHVRM="
+        }
+      ],
+      "admin": "oasis1qpspm8q6pk0lndcjf28ene5sgjgzex4aqcqh2kdh",
+      "date_created": "2025-05-06T15:57:52Z",
+      "id": "rofl1qqtnmq89xgyychrtj26wjmuugmusk2l4vynvymgm",
+      "last_activity": "2025-05-06T16:09:46Z",
+      "metadata": {
+        "net.oasis.rofl.name": "demo-rofl-tgbot",
+        "net.oasis.rofl.version": "0.1.0"
+      },
+      "num_active_instances": 2,
+      "policy": {
+        "enclaves": [
+          "A0idAIRQ1vpg99EKFjqPiGN9h4qjzU+YXvyOCSG1rW4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+          "IN09a8P1ysW06bpiRXLOtPfFWavvlU3M8520z3tAgdsAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=="
+        ],
+        "endorsements": [
+          {
+            "any": {}
+          }
+        ],
+        "fees": 2,
+        "max_expiration": 3,
+        "quotes": {
+          "pcs": {
+            "min_tcb_evaluation_data_number": 18,
+            "tcb_validity_period": 30,
+            "tdx": {}
+          }
+        }
+      },
+      "removed": false,
+      "secrets": {
+        "TOKEN": "pGJwa1ggI0eS2bepeDtO2VGtt17Vch+2UP2OPNwwp438EH0KvUZkbmFtZVWiG0QF7m3X36jrvx19jsA7lnI45CRlbm9uY2VPYCqNGoCTbFjDWb+snRQmZXZhbHVlWD7xyqZOcNUprX/L8ywUmJmuI4yzawbDMcheoRzBBVfESCTvuzrEgxU+dmFznA2Fkic0Njr2Jak5UjtINPBS7w=="
+      },
+      "sek": "VgyDU/8pmHirzDNb/vUkdzWNRy3BFKjd8QTr4SunCRw=",
+      "stake": "100000000000000000000"
+    },
+    {
+      "active_instances": [],
+      "admin": "oasis1qryq3zag4v6cem8t3v8ahjd3wa3ugdtwcgrpp9nr",
+      "date_created": "2025-05-06T15:35:41Z",
+      "id": "rofl1qpkplp3uq5yage4kunt0ylmulett0arzwcdjvc8u",
+      "last_activity": "2025-05-06T15:35:41Z",
+      "metadata": {
+        "net.oasis.rofl.name": "realityspiral",
+        "net.oasis.rofl.version": "0.11.1"
+      },
+      "num_active_instances": 0,
+      "policy": {
+        "enclaves": [
+          "c49pbTGPU+dqHj++hQaYqUgBdw0+MXJ97qs1ez1hUvMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+          "9cYzmEQlfHN0h4LHLWDkZ00j7YEOf6lSHyJq/cWZkigAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=="
+        ],
+        "endorsements": [
+          {
+            "any": {}
+          }
+        ],
+        "fees": 2,
+        "max_expiration": 3,
+        "quotes": {
+          "pcs": {
+            "min_tcb_evaluation_data_number": 18,
+            "tcb_validity_period": 30,
+            "tdx": {}
+          }
+        }
+      },
+      "removed": false,
+      "secrets": {
+        "ACCUMULATED_FINANCE_ENABLED": "pGJwa1gg7LbAC3ES0wlKw45CdFwGLJtr+umlYW3EH8KhHzlJXVtkbmFtZVgrvq2/muMAQbkJfN1yWImlkgSeTHp8ptFNuU1QpzzN36k+NfaVT89ktpYVrWVub25jZU8CZc+0zdKBcM4b8C5BoulldmFsdWVVV+YSBxFcbnXrLUMZrxUWUizWzCa9",
+        "BITPROTOCOL_ENABLED": "pGJwa1ggdySmB/Bu50gPgaCLzjLqRjNcmzsIthHgEaJ2YmR81QBkbmFtZVgjCNkGu0ZoHgmvHaBNMlzhYgZxoIM+fWtlPiWOiSuOyZD9dMVlbm9uY2VPHxD7+Up9cGEb3ZDghlYyZXZhbHVlVeYoOOoCN9JQUlAYRIaCsyiymSROmg==",
+        "CHARACTERS": "pGJwa1ggfj0NBRwrlKOtUEUiQSVeJakTJUXfstZ8+8ulZJnDn0VkbmFtZVgav6agaw0PtiRbkDkl8+mLBsto83NpVnwhw5Flbm9uY2VPKymKWhD3ilH7IFOkdlhjZXZhbHVlWDhCP2XqHBAmZA8eP4AjcAyNXNzhD/xCsTG3mbBQvaqqY5JF1Z66IlaqHN9s3nYLv7d9FJxvvKUIMA==",
+        "COINBASE_API_KEY": "pGJwa1ggBgT/1qPHggUqyB8TOkymphL12j6drH51xEuI9j+q8DJkbmFtZVggp29MQJBtPIDYjqkiAqyYEq3ObfPRWMIAN/35rtIzix1lbm9uY2VPCp2cZV3hDCYIjeC9OeLAZXZhbHVlWG/Rbe7ua5xQuo6XKyj61207L5sJDnx2G29kyGMB0BiPx32FEvkU5J27C5wdnEjxd/5w04uxTFF0NzvZwnifWWzgnY/5M1TexXe7z2ZPVRHcLKWmUznvq3vRDSEw01iZUjHHRQenK5+98TXiMvrZRwg=",
+        "COINBASE_PRIVATE_KEY": "pGJwa1gg4MFMRvx7/2A5nURQqBjnreFeS8kpTg/mOxqUhFRVDCNkbmFtZVgkBRqp1uQSUhKB/yJDbVUbnHxWRB8UARnc85NJ+14yrJF35TtJZW5vbmNlT78Fv1OZyTLVdnX2TReIAmV2YWx1ZVjzhYm/7jRZZ9rcf+EsjVXbisjmerY6jNJZGLOmi9DwuyQbKFhZBlfSEZ2UTnENZMBg5ubwnldN4iuYhCz3v4Efxugwy8AjP6vpNwxc20FR4/0Cz1Wef/VhYUGOm7FHO8assyxspdCalSZvVyY9B5yyheBeIidFX0msS0ahfADHZCTXtUivpTYvduWooVSvatuLIVH68EKXJOquEp7sBOvSe7Tjy5Wg79XUcN+QEt31Teh7dm3pgAuL3ShGgWMgo+v8RMZ9DsiwMxkHIq4nm81XjwYFMw12ajEvbocamF8ZAfcOSJZCPr9LNSb/O3+J74dxWJ2t",
+        "DEFAULT_LOG_LEVEL": "pGJwa1ggIfqaxbzUTPiN4RAIbyAltLohs8OUk3GEO2u8egp6kR9kbmFtZVghl+1OxnjIvq5yD4eYeeOMT4B1C6pYwqiMJafu2JetxvAkZW5vbmNlT+fh5u+3eNt8b8vWsVxZk2V2YWx1ZVOMkjfQovbKSEC9EThgarNOZVvI",
+        "GITHUB_API_TOKEN": "pGJwa1gg3WigZOxdxDBM3iuMqXc+qu2pxXoUtWhe370oGO7qHC5kbmFtZVggKuc5oDDu/HJpf0doKYjvfmoLPxrlMm0y8vx0gMhZJ4hlbm9uY2VPPxa3lbYVg4g2yDvk+Q4CZXZhbHVlWBglhPPkhYG7OdW8Qe009lrMpvbYUa9FP7g=",
+        "GITHUB_CLIENT_DISABLED": "pGJwa1ggvoWb0qkxuUaVSP7dwOmzXhOi6MGV1uLNosy6k3hBVBdkbmFtZVgmAcy6jPTWLVpVdebGrQLPM2of/7W52pPyOziLdkAMHxfKS3hZ7I9lbm9uY2VPbY/38VP3t/RdzsusHM9rZXZhbHVlVKSc52f+C4wsBUKPZY/9ag2Yi0K7",
+        "GITHUB_INFO_DISCOVERY_INTERVAL_MS": "pGJwa1ggY1WrkkymP2siZki0j/DE6lMeV5AEuDUXI//8FBPrh19kbmFtZVgxaeefbro1/geo9uJyIW8Ig+IcsV3HfkPAy2HSCmP6VEPZd2JnQb5IVOGIMQGDolF2I2Vub25jZU+F3FLDEnpuCsznk/X+nKBldmFsdWVUxSF99f66BuDa2RU4dYvHdOXr/ys=",
+        "GITHUB_ISSUES_LIMIT": "pGJwa1ggZx4nCq6MrK/BIZdzBZY2QT2tjHOB9GkyUo4IPNPHdmFkbmFtZVgj7pXH+bTmRBq0kod1qebWbXvKHzw+Og94KTrk0eZUSnyb6V9lbm9uY2VPsvtezK3DQMRa2wTREfwTZXZhbHVlUvVEkn1akID5faZuCozkuOcLVg==",
+        "GITHUB_OODA_INTERVAL_MS": "pGJwa1ggG5o1UJT34vAZDwcDpQsiqf8iQZJr7jQk9FN0O/XSIWhkbmFtZVgnZpUiMEQy7Caj97tT6GMfUM8Ea2Kjx5hFroZGxBZJOwwkXyxTuc9hZW5vbmNlT+hsiJiU3OqAYqnyA9tEGWV2YWx1ZVXe4KLULQ5FtTpktU3yjfzfiSGiXNk=",
+        "GITHUB_PLUGIN_ENABLED": "pGJwa1ggasIB2V0Pw7ETSJIo2n17U/sI6cuq/dmT3EDJcnd/MXlkbmFtZVgl3zRg6CFWp/x+Mny5OM0279DC9UHNjqn/mtI5TYpnXGifl2laiWVub25jZU/y7DlvcDRCQVln1Yl5gZFldmFsdWVUZEGr6mR/hCGvJyEbl6mgx8dDor8=",
+        "GITHUB_PULL_REQUESTS_LIMIT": "pGJwa1ggEqeznlq0UnAHFj4lBoH29STnjVi9+Ay/QRs7Cp2VlhZkbmFtZVgq5vkaaCR0K+2ZI2QyVMX3ooBBHeiRkQOhPOZWTNdZ/GfYNGcpMTvRDSjnZW5vbmNlT/Spea29w+GbZgFEySA5D2V2YWx1ZVKjuGNWgy88ImiKSPmRUiK54R4=",
+        "GITHUB_USER_CHECK_INTERVAL_MS": "pGJwa1ggmTaC7nJXkusBMAQ82YjtTTWHrRBgW5k6daiHyuN5nHVkbmFtZVgt2lPQHpNxOWTeN4yI+4+O+Ws5hA3losQzcSbEH69MwEuo5UyqbnTewhoXm9gGZW5vbmNlT51vL8Ox7e46uwGNyqofY2V2YWx1ZVSXKmubvliIul3BOYYIniqK43OUxQ==",
+        "INSTRUMENTATION_ENABLED": "pGJwa1ggWttGZ6p0cZpaeZvYGwW5tGT06bARz3MeGDudEcxwPGhkbmFtZVgnSAw76Fn5WPdi1tdcieBkvZvMDw11p0otfPOwXGM7exwNtLt/PMHdZW5vbmNlT3nK97bne7a34VlUfp9njmV2YWx1ZVUizq+wXhNknY4EJNPYOJoyQ1BhcgI=",
+        "LOG_JSON_FORMAT": "pGJwa1ggVuyREB9md4DRuBDTfOtxG/6UDuEOHENWcfgi0To7uXFkbmFtZVgf6gy8VjvlUu2kG2jIwoy3+fwo1YhE3p9jmEiA57wJu2Vub25jZU/TVVKaI8CElpIKE0I7FnpldmFsdWVVuNCDQyJFOAHy9+cFSg5OgPV8n3fx",
+        "NEBY_ENABLED": "pGJwa1ggl8Iy4WcLlwCfQZtG/d/jjKCtj0vGHTKn+kvHw/Crr05kbmFtZVgcgQhIjubV3GciCAC2cnXl+GpOdkiSCKR609Q2gmVub25jZU8Rxhx9tuHXNU/ff86RPtZldmFsdWVVElB3s/D8vNRD4ZzKKMPorHkO0u8I",
+        "OPENAI_API_KEY": "pGJwa1gg1rJLIGM27ox4lr5rbAVlJy8ycXDDxGRtW7TNLsEbPnJkbmFtZVgeyY7+qt3Eynj/T3YdDgh06L4myQJa6Lp0y8MSgqmNZW5vbmNlT1pzFtfJ66yYrdw1Ir/W0WV2YWx1ZVi0ih2P4HhUdnkrFqgDe6FSwOaAbE+5zYS7E5fJ/A/Nf+DbN/O8iHXfDnoFk/y3lkD1BG+WDcWO+l/kkkuPPumVCQA8Ei64QjSPRFsPKeGoHfh9MI+eAvKQ4gvp9X3gDK44+e7zWPaojQb0nt3a6jhoRy55tdnw2RX5mX0ybMYBw+se1a74qW2LFqpweQASZdcV5PZPRFTMpEWvT3IVXej1Awl7+TXvwTw908eV6oHwUBZoxqU4",
+        "POSTGRES_URL": "pGJwa1ggtBdTWcv9SWlQW3FYOIxHP2hc6Z4QDrQ9AOxmbCHJ+ThkbmFtZVgco3IUu6FDSOxBoHGEuONfAhKQn+KWvcIm2fFK1WVub25jZU+1ITKyUk1dTj2sEMLxpc9ldmFsdWVYR5pnoOu8GXHRFr40l3a6JaM28/bFxcpwPAijWfH+8qsWo5SULeBtoq4kUcVjs2qi6J82hEQ/eVwuR91ZmvIxa90RNoo07Mm0",
+        "ROFL_PLUGIN_ENABLED": "pGJwa1ggkx2/Dj3W0igNyy/xc73AJznuYV1gbPUcXI+QRvAsBgFkbmFtZVgjOQZ27Kwow89Yeg5kILZtVG+rsQgNxOQ3MJ09Zdu5SJaNYnBlbm9uY2VPSKyAwp6Haig7Pk5V+JyPZXZhbHVlVKSAwApqupdmrcE0LiXbYZ4qNwN0",
+        "SERVER_PORT": "pGJwa1ggkHPbc5A8TdFfXibeKMpNhpvtErxCufyZS5H16R7ObFFkbmFtZVgb/vT+PeNqA5/zaWDclgaq8aaZHTVWigFWBDCBZW5vbmNlT2m21PUpEzs18n1bz4vN5mV2YWx1ZVR7sv6bPMgZxPG/UDYb6NuPU/3LSA==",
+        "THORN_ENABLED": "pGJwa1ggyKXyzWb0Hyg+MjNhaK7HN6clSmx7Uq0PFx7gARyowFpkbmFtZVgdpQu8CKXcivNvMi2FIU5npmyJPF835DJHLjJoks1lbm9uY2VPW7OBvuCrYBiMPT8Q/nZvZXZhbHVlVSKGjk7btVKNYQ1VVe/SAf3XSnOAQw==",
+        "UI_PORT": "pGJwa1gglQLsycuw+HaqFB2JAOQAm0A4nUO7FsWXKqCJNJNRInFkbmFtZVc3uCVtSUQ45M6SMcDI+fDn9hJtYUIcFGVub25jZU+lz1Jmi/qsk4jfGPnRzI9ldmFsdWVUMkwxb0MHGDf/TB3nhUCtfMRmsRo=",
+        "UI_SERVER_URL": "pGJwa1ggiy2WZVFv05dQA+D/ziRSFXci6+NuASbDnoE9WhV7BmZkbmFtZVgdSM+XlzEPBSXGUGYCqhiDz7BYRNcDuBoZ0w0r+y5lbm9uY2VPs+Db03TF4uKtemosqo3VZXZhbHVlWDnq9eXjKC3VRk/lrjhYNd+p0KYeikgjhi6uY+2xQvS6gvu35AZTz1PzRG4kg+6T+SfUqXkJZ1hzjV4=",
+        "USE_CHARACTER_STORAGE": "pGJwa1ggLZ5g3mAHycFbGztK4IWPBT1AGbBcuHCLdTa6xftWgQFkbmFtZVgl2SEE6Pr31Cw3uFn1m44/fWd5qDwr3EFP8qO2d2bHtI1wxyeqIGVub25jZU90KgQbUELLEwbveCRclJJldmFsdWVV0K+mKmp0aIWk1h3kQtIidGWZ6b4G",
+        "USE_OPENAI_EMBEDDING": "pGJwa1ggZEc2Ya+3oz22yrNqgAlHGEvifvcGbPhcdrJCto+FRF5kbmFtZVgkUyHA5KqpZQ2k3H3T3yX9J2MARJkeldS26wEy56Vz9KmComJ7ZW5vbmNlT36fN2fYxSn+hsr0KFfStGV2YWx1ZVVrbDf1RaPFpeySS4V/4NVBq0Bz0mo=",
+        "WALLET_PRIVATE_KEY": "pGJwa1ggy/3sW1BrjDexi2gTQQD3ksTfrjXkQcwYW7PtyIfIdBJkbmFtZVgitrjbp5DCoFSIWC+zowWPGDJI1PmR0IijMr9Xz9zxdiESHGVub25jZU/Y44Jpm5xwHuKF19G0MMhldmFsdWVYUEUb8QhTyrLwECyqubqKxXZNuObByVzIx8K/l8IsX7jd4p8XRiD77hIp/cPqO2aAlACSG8/wtssthMSaPW3XvoTaiksY8FUBxa5YlEv2pOAn",
+        "WALLET_PUBLIC_KEY": "pGJwa1ggc9cGXSDYL02KW0wYBcEyqmKeotCJjyeR30hFqsQc0VRkbmFtZVghG4a2TIXqmwtjdKqLL8rPFAQEXYA492Pz7WB0UEWXnIp4ZW5vbmNlT0SEcKac3FTN75Aa++v53GV2YWx1ZVg6rg1g2q+VQE1DYrgsqCBeXvwJZ4K1MXUo1yLDzUbsu9o84vaxpXzWsFCPjQvVry2WRo7X1vbfEnNohQ=="
+      },
+      "sek": "8BMbpMNyHCWl4YpS4a/LJ4GB3bdlqVgDn5vUo/UuWg8=",
+      "stake": "100000000000000000000"
+    },
+    {
+      "active_instances": [
+        {
+          "endorsing_node_id": "V2yFicmetn26aF0DyFZFBcmxa+vgXkkoqRSx1zbABwI=",
+          "expiration_epoch": 44111,
+          "extra_keys": [
+            "{\"secp256k1\":\"Asj+KkVT5um8Sbi2b4zVeXTBUCWR/n83utIHF+O6c+MV\"}"
+          ],
+          "rak": "HbaSPfT8ntkMx8IvcZu2qm/DeL87FhKnAof+9dXDX2w=",
+          "rek": "ZRHkkeSE92v0vc/8sh7TogoAp/lhFxfa3lluCFVibCs="
+        }
+      ],
+      "admin": "oasis1qqqzxwlmvl2qedyltuagllwk980d8c359umyrn5v",
+      "date_created": "2025-05-06T15:54:21Z",
+      "id": "rofl1qphgw0dxlu9mfte6jtemntn9d9k9zm4jggmp8c0p",
+      "last_activity": "2025-05-06T15:54:21Z",
+      "metadata": {
+        "net.oasis.rofl.name": "src",
+        "net.oasis.rofl.version": "0.1.0"
+      },
+      "num_active_instances": 1,
+      "policy": {
+        "enclaves": [
+          "uyWYclcZQtiLBfKQhD25Xi8xrx1l/uhEnsNDwhoa31AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+          "eWM/yQ2yi7nmDiT+Hh17epToyyRvaKGy6goPnRC/aRoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=="
+        ],
+        "endorsements": [
+          {
+            "any": {}
+          }
+        ],
+        "fees": 2,
+        "max_expiration": 3,
+        "quotes": {
+          "pcs": {
+            "min_tcb_evaluation_data_number": 18,
+            "tcb_validity_period": 30,
+            "tdx": {}
+          }
+        }
+      },
+      "removed": false,
+      "secrets": null,
+      "sek": "qNhHNRUE7Mbglugzjp8eqhwjFJbdnEmhUPvl3qevhDc=",
+      "stake": "100000000000000000000"
+    },
+    {
+      "active_instances": [
+        {
+          "endorsing_entity_id": "hp8sjG2cJPncrEYWZKqisUNiMYzUC/QomhrJwoLQVjc=",
+          "endorsing_node_id": "5MsgQwijUlpH9+0Hbyors5jwmx7tTmKMA4c9leV3prI=",
+          "expiration_epoch": 44111,
+          "extra_keys": [
+            "{\"secp256k1\":\"A8n+/j3BDDeSprdLbnjj/mATVg4mMXY4wlaphPMeZGCQ\"}"
+          ],
+          "rak": "6qE7Fu26KTZrZ4hDMc/h5kEF+nlEJ8RDJX+cfP8WvUE=",
+          "rek": "Yn1gO/wcFpjKsBZt4sWceUawl1cUe4cA2UYoigSrMUA="
+        }
+      ],
+      "admin": "oasis1qrk58a6j2qn065m6p06jgjyt032f7qucy5wqeqpt",
+      "date_created": "2025-05-06T15:54:15Z",
+      "id": "rofl1qrqt8jhk2s9f60yshmgr7g4h9p6fmezkavedwxkz",
+      "last_activity": "2025-05-06T15:54:15Z",
+      "metadata": {
+        "net.oasis.rofl.author": "Matevž Jekovec <matevz@oasisprotocol.org>",
+        "net.oasis.rofl.description": "Test ROFL that opens incoming HTTP port externally",
+        "net.oasis.rofl.license": "Apache-2.0",
+        "net.oasis.rofl.name": "demo-rofl-www",
+        "net.oasis.rofl.repository": "https://github.com/matevz/demo-rofl-www",
+        "net.oasis.rofl.version": "0.1.0"
+      },
+      "num_active_instances": 1,
+      "policy": {
+        "enclaves": [
+          "6ZsONNnL54vM3t44vbFgJwjkL0/kTvxSYYg2+xYvrFcAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+          "GjPJesdOPuD57KWlRzOXgmnyExYaRKH8/QF1g18mZZQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=="
+        ],
+        "endorsements": [
+          {
+            "any": {}
+          }
+        ],
+        "fees": 2,
+        "max_expiration": 3,
+        "quotes": {
+          "pcs": {
+            "min_tcb_evaluation_data_number": 18,
+            "tcb_validity_period": 30,
+            "tdx": {}
+          }
+        }
+      },
+      "removed": false,
+      "secrets": null,
+      "sek": "n69X+/cCL4/aOep5lrGbORsZiOWB7DXZQBk58aK3vAI=",
+      "stake": "100000000000000000000"
+    },
+    {
+      "active_instances": [
+        {
+          "endorsing_entity_id": "hp8sjG2cJPncrEYWZKqisUNiMYzUC/QomhrJwoLQVjc=",
+          "endorsing_node_id": "5MsgQwijUlpH9+0Hbyors5jwmx7tTmKMA4c9leV3prI=",
+          "expiration_epoch": 44111,
+          "extra_keys": [
+            "{\"secp256k1\":\"A89+p4c3O+493GNVYO7SigKtgJMjY1k1U08501TGpSSR\"}"
+          ],
+          "rak": "y4J8QHiTdwgXpWay2LghS4tlyD/i+x+aXZDJr+wdT5g=",
+          "rek": "3oQ8gPVYapg7VKsa5S8Y9GxD8LBTv9s3AL16UNawSWw="
+        }
+      ],
+      "admin": "oasis1qpupfu7e2n6pkezeaw0yhj8mcem8anj64ytrayne",
+      "date_created": "2025-05-06T15:54:15Z",
+      "id": "rofl1qr3fz5clmhx4wv62kl2egy0tj32c4shmfscxxzcp",
+      "last_activity": "2025-05-06T15:54:15Z",
+      "metadata": {
+        "net.oasis.rofl.name": "rofl-ollama-benchmark",
+        "net.oasis.rofl.version": "0.1.0"
+      },
+      "num_active_instances": 1,
+      "policy": {
+        "enclaves": [
+          "vw9gjKw7SPyqrDOAA6LUmZwc54KyfmbvQS7TbLnfYMYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+          "A3u3QjoXB7iHKADIi6qZueR44skpSDPjaTc92qkXNjEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=="
+        ],
+        "endorsements": [
+          {
+            "any": {}
+          }
+        ],
+        "fees": 2,
+        "max_expiration": 3,
+        "quotes": {
+          "pcs": {
+            "min_tcb_evaluation_data_number": 18,
+            "tcb_validity_period": 30,
+            "tdx": {}
+          }
+        }
+      },
+      "removed": false,
+      "secrets": null,
+      "sek": "bE/IBX96SVQfV8KZytD86PcUiOSj1LWTr1qwr90/aHg=",
+      "stake": "100000000000000000000"
+    },
+    {
+      "active_instances": [
+        {
+          "endorsing_entity_id": "hp8sjG2cJPncrEYWZKqisUNiMYzUC/QomhrJwoLQVjc=",
+          "endorsing_node_id": "5MsgQwijUlpH9+0Hbyors5jwmx7tTmKMA4c9leV3prI=",
+          "expiration_epoch": 44111,
+          "extra_keys": [
+            "{\"secp256k1\":\"A2DDtpbzybOHlyEVGfHXz5LOd//t7xvbN8gEtsyF8STO\"}"
+          ],
+          "rak": "7+/CxEyMjJF0H6UcOJIFcsk2hJyGLBlPEZE5nw8DbS4=",
+          "rek": "MSpus35VbweWQBbj9YLbI2ZQyJtNTSRuVz8Q2uYhGXY="
+        }
+      ],
+      "admin": "oasis1qqc8jljn9nwzq0aka96lp7ykfrpey26umuhjdkks",
+      "date_created": "2025-05-06T15:54:15Z",
+      "id": "rofl1qpuqlq8uyqp33q6y4n2nzy0rfjpg0l9pqsq4uxpg",
+      "last_activity": "2025-05-06T15:54:15Z",
+      "metadata": {
+        "net.oasis.rofl.name": "testbot",
+        "net.oasis.rofl.version": "0.1.0"
+      },
+      "num_active_instances": 1,
+      "policy": {
+        "enclaves": [
+          "c/uxosQC9MnTBsHxhkThR6eMR0SSMP30LzVMdvNQs1IAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+          "5BdQ11WP2sqNsl+zSzLLGY5Mp5XhZm4RtSVQ36nj+DYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=="
+        ],
+        "endorsements": [
+          {
+            "any": {}
+          }
+        ],
+        "fees": 2,
+        "max_expiration": 3,
+        "quotes": {
+          "pcs": {
+            "min_tcb_evaluation_data_number": 18,
+            "tcb_validity_period": 30,
+            "tdx": {}
+          }
+        }
+      },
+      "removed": false,
+      "secrets": {
+        "BOT_TOKEN": "pGJwa1ggjnEx1kzoUVRdtj2vsetH8BWN/EwZBxKdIh4tiOJx1jtkbmFtZVgZAW2dUcFBDhbnpJLN3GE4iz3YUV3osj3OqWVub25jZU/AuOFdKGnD1D9QN8O0bO5ldmFsdWVYWB7HpZEGRQnUJpazLATpd2dOvOgn2CW5yIbOoiRc26vRXuozq+SLzORcL0YFxMgrf5EN3+qMpZpn8hd5G0bodVIpHnTLomT5i9jocjLDAF+KckZlSxoO/hc="
+      },
+      "sek": "J0uI+g6aZIB1knAogV0stZpl9Euwc6RqjjPxtvu1lHY=",
+      "stake": "100000000000000000000"
+    },
+    {
+      "active_instances": [
+        {
+          "endorsing_entity_id": "hp8sjG2cJPncrEYWZKqisUNiMYzUC/QomhrJwoLQVjc=",
+          "endorsing_node_id": "5MsgQwijUlpH9+0Hbyors5jwmx7tTmKMA4c9leV3prI=",
+          "expiration_epoch": 44111,
+          "extra_keys": [
+            "{\"secp256k1\":\"AjU/CoU8MAcBUVp4A8lkFp0xLKuccxq2kxiwvEKVkWE3\"}"
+          ],
+          "rak": "pcmbT2yILCH6OI0Hxp/r2EymHaAP6bkjKIYwgiUaRmg=",
+          "rek": "rgBM8KmaziAAru1lXfzj+qtsTf3LxElNpipPi1UuSwQ="
+        }
+      ],
+      "admin": "oasis1qpupfu7e2n6pkezeaw0yhj8mcem8anj64ytrayne",
+      "date_created": "2025-05-06T15:54:15Z",
+      "id": "rofl1qpcdng896sxcvuqeddykxdfvdrvuld9j8y3ucxc4",
+      "last_activity": "2025-05-06T15:54:15Z",
+      "metadata": {
+        "net.oasis.rofl.name": "game-starter",
+        "net.oasis.rofl.version": "0.1.0"
+      },
+      "num_active_instances": 1,
+      "policy": {
+        "enclaves": [
+          "Veo8f0eU9nY5SUmpo79HsTb14C0rb2kIu0Li3sUkdqsAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+          "SyE6VyVUaQzxBwhCruC10T2vS+z3at/a4Zg5tMreNUcAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=="
+        ],
+        "endorsements": [
+          {
+            "any": {}
+          }
+        ],
+        "fees": 2,
+        "max_expiration": 3,
+        "quotes": {
+          "pcs": {
+            "min_tcb_evaluation_data_number": 18,
+            "tcb_validity_period": 30,
+            "tdx": {}
+          }
+        }
+      },
+      "removed": false,
+      "secrets": {
+        "API_KEY": "pGJwa1ggJz0hXvO6XvCWNJYlnOVr7clT7QybJQPZDRR+U7/QAV5kbmFtZVeb51IXX947ZN7Pn/40KAiNNLKUhIT6YGVub25jZU+3mATnO3jBdYAq1UcxFbxldmFsdWVYGCPQg8++XjBb8ayh8EZ/zwlPZz9hISQOKQ==",
+        "OPENAI_API_KEY": "pGJwa1ggHnawMcltkpS+Iku1tXSVYgO4na6WrUqYuW2el/OMy3VkbmFtZVge3A4eB5jJ1yyS3/rhPnQX9oY/S6O6HLTBIn41oQkUZW5vbmNlT/wBKzFmHV3ePDqU1JiJdGV2YWx1ZVgcplbaVAwQPjBap7a9Npx+ZMduOHe5C7aR3q2JpQ==",
+        "WEATHER_API_KEY": "pGJwa1ggHngW9fSyWO3nK1NVkqCBrasAMVaefoMl1UFtOpPoLxlkbmFtZVgfgyqx2oFz1gJSmv6GsC3w6JjQak3xJYcwMpZ7HO43L2Vub25jZU+XcjvF+VIS5vdz7enBbsBldmFsdWVYMDdNdr/QHjvodzE7iMBD1yoO+wuyy9nojKkyLgA0NPMJez7UWOJca4mqkvgHYs9nmA=="
+      },
+      "sek": "eSWsc45zNpsXEhMqBbNVll6Cp6PD5CVvwO91JfoSViA=",
+      "stake": "100000000000000000000"
+    },
+    {
+      "active_instances": [
+        {
+          "endorsing_node_id": "7zI/cYuiUTPz61PL9M7f1Q/7b43nG0xk1w6yGde+msQ=",
+          "expiration_epoch": 44111,
+          "extra_keys": [
+            "{\"secp256k1\":\"Ao3qmFS3aE6iQ122cYON8m1kF0tL6HIUijgeUCGu1GZN\"}"
+          ],
+          "rak": "2ykEN3K2N0hgC5EFkdNiqDX4TLi+Aul3PYHUJX041SE=",
+          "rek": "Z5nJSrh270+0CqUUcjBiSUqEEoGJP2BsyfCzxDCAMWE="
+        }
+      ],
+      "admin": "oasis1qpwaggvmhwq5uk40clase3knt655nn2tdy39nz2f",
+      "date_created": "2025-05-06T15:54:21Z",
+      "id": "rofl1qp55evqls4qg6cjw5fnlv4al9ptc0fsakvxvd9uw",
+      "last_activity": "2025-05-06T16:21:51Z",
+      "metadata": {
+        "net.oasis.rofl.author": "Jernej Kos <jernej@kos.mx>",
+        "net.oasis.rofl.license": "Apache-2.0",
+        "net.oasis.rofl.name": "demo-rofl",
+        "net.oasis.rofl.repository": "https://github.com/oasisprotocol/demo-rofl",
+        "net.oasis.rofl.version": "0.1.1"
+      },
+      "num_active_instances": 1,
+      "policy": {
+        "enclaves": [
+          "qc98ULKN37r8sZNJlSvM2klZBBAH1sCu09w07HNagH4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+          "HQADK7bsA9jKv+V7eS9OB+smnN6Vf6Wp/zUeIlyZW18AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=="
+        ],
+        "endorsements": [
+          {
+            "any": {}
+          }
+        ],
+        "fees": 2,
+        "max_expiration": 3,
+        "quotes": {
+          "pcs": {
+            "min_tcb_evaluation_data_number": 17,
+            "tcb_validity_period": 30,
+            "tdx": {}
+          }
+        }
+      },
+      "removed": false,
+      "secrets": null,
+      "sek": "438B4/HJ6nmyzg0v50UxvRiBLn9ZJRa8uzDjpsD18Dw=",
+      "stake": "10000000000000000000000"
+    },
+    {
+      "active_instances": [
+        {
+          "endorsing_entity_id": "hp8sjG2cJPncrEYWZKqisUNiMYzUC/QomhrJwoLQVjc=",
+          "endorsing_node_id": "5MsgQwijUlpH9+0Hbyors5jwmx7tTmKMA4c9leV3prI=",
+          "expiration_epoch": 44111,
+          "extra_keys": [
+            "{\"secp256k1\":\"Ax7ww8ukRTiqn8X2gSQTwcDM9oW2kWF3RByqfdpiT7gf\"}"
+          ],
+          "rak": "tnvWUYb/SGtHSlDxoGENW0BzSD8t+VEJU4umH9RzVFw=",
+          "rek": "cpw+0KhZudVM9YtdgPeOUTyI/pyp564hDzWsnqiZd0c="
+        }
+      ],
+      "admin": "oasis1qpupfu7e2n6pkezeaw0yhj8mcem8anj64ytrayne",
+      "date_created": "2025-05-06T15:54:15Z",
+      "id": "rofl1qrtetspnld9efpeasxmryl6nw9mgllr0euls3dwn",
+      "last_activity": "2025-05-06T15:54:15Z",
+      "metadata": {
+        "net.oasis.rofl.author": "Matevž Jekovec <matevz@oasisprotocol.org>",
+        "net.oasis.rofl.license": "Apache-2.0",
+        "net.oasis.rofl.name": "demo-rofl-chatbot",
+        "net.oasis.rofl.repository": "https://github.com/oasisprotocol/demo-rofl-chatbot",
+        "net.oasis.rofl.version": "0.1.0"
+      },
+      "num_active_instances": 1,
+      "policy": {
+        "enclaves": [
+          "YjeeznQx9i/UQKVoPcOVT3P5oxOHGJ6r1VwMBetuSREAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+          "IyVddKd5AtSGmo7FHnZrj0vIzfIOp3DMBFHwUbb0qVQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=="
+        ],
+        "endorsements": [
+          {
+            "any": {}
+          }
+        ],
+        "fees": 2,
+        "max_expiration": 3,
+        "quotes": {
+          "pcs": {
+            "min_tcb_evaluation_data_number": 17,
+            "tcb_validity_period": 30,
+            "tdx": {}
+          }
+        }
+      },
+      "removed": false,
+      "secrets": null,
+      "sek": "2L9Jcwa+cfGbhfv24x3TWEn6UekjfKlvEL6qY3PLnwo=",
+      "stake": "10000000000000000000000"
+    },
+    {
+      "active_instances": [
+        {
+          "endorsing_node_id": "7zI/cYuiUTPz61PL9M7f1Q/7b43nG0xk1w6yGde+msQ=",
+          "expiration_epoch": 44111,
+          "extra_keys": [
+            "{\"secp256k1\":\"A6wV1gI3WXkpacOV5gfYYj1ingodg7KWfLFXLDnl8+dk\"}"
+          ],
+          "rak": "JI4ZKGmq2AEguG2/54i+8X+K21Qlzpi8CNwzSteN4ZA=",
+          "rek": "9Ky0XhpqXHePykbQHfZmgMQwIxSUdfrx7HjjpyvYKyo="
+        },
+        {
+          "endorsing_node_id": "bOlqho9R3JHP64kJk+SfMxZt5fNkYWf6gdhErWlY60E=",
+          "expiration_epoch": 44111,
+          "extra_keys": [
+            "{\"secp256k1\":\"A/8hOM8jscOcpZLC5u+tBC8gsFEipPj9/bHCzhJPB9ZW\"}"
+          ],
+          "rak": "UPnsG77rGgUjFXn/uzM0SlVKucVDwSTS5YR8dwfresQ=",
+          "rek": "qPzW85Lz5+Vyb7Dp0NgX47LSrqfunOgHISxb/PKcaGo="
+        },
+        {
+          "endorsing_entity_id": "hp8sjG2cJPncrEYWZKqisUNiMYzUC/QomhrJwoLQVjc=",
+          "endorsing_node_id": "5MsgQwijUlpH9+0Hbyors5jwmx7tTmKMA4c9leV3prI=",
+          "expiration_epoch": 44111,
+          "extra_keys": [
+            "{\"secp256k1\":\"ApfMZa/cDYWCOjnktY05z7aYogI7n80b0tsC+PbDltnc\"}"
+          ],
+          "rak": "TycKYTka2ppTlqp2aUI8bI0Eu+sir3jCh+mY0GGn2tg=",
+          "rek": "xm87elvMdu1+dYlZBLE4Tw4qiwODnT5ZOKmECYH8WHg="
+        }
+      ],
+      "admin": "oasis1qpwaggvmhwq5uk40clase3knt655nn2tdy39nz2f",
+      "date_created": "2025-05-06T15:54:15Z",
+      "id": "rofl1qrqw99h0f7az3hwt2cl7yeew3wtz0fxunu7luyfg",
+      "last_activity": "2025-05-06T16:09:22Z",
+      "metadata": {
+        "net.oasis.rofl.name": "rofl-scheduler",
+        "net.oasis.rofl.repository": "https://github.com/oasisprotocol/oasis-sdk",
+        "net.oasis.rofl.version": "0.1.0"
+      },
+      "num_active_instances": 3,
+      "policy": {
+        "enclaves": [
+          "2OKs276ykwRIRetgtYGQJMOyfI5FyZ861qMvZGgHVikAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+          "gjsdGO/HZda3cpvIVp7se/EAUHf80TCKb60IEJ+ba4EAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+          "PE2TSgy9aMfAmxGIDgMpbjr9ejk2evb2wdzaBEkA4TMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+          "+3Sv/xqzc171KyieVot07v8H7lCGpSqIuaDelVmTE8IAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=="
+        ],
+        "endorsements": [
+          {
+            "any": {}
+          }
+        ],
+        "fees": 2,
+        "max_expiration": 3,
+        "quotes": {
+          "pcs": {
+            "min_tcb_evaluation_data_number": 18,
+            "tcb_validity_period": 30,
+            "tdx": {}
+          }
+        }
+      },
+      "removed": false,
+      "secrets": null,
+      "sek": "2EqhwE5KMLSB3Spx3wzrl3Kud0U4Gu4Jty5bWb90/mk=",
+      "stake": "100000000000000000000"
+    },
+    {
+      "active_instances": [],
+      "admin": "oasis1qr2sk7vapuua33faea5uwk5x8m7rzeaavyprkkww",
+      "date_created": "2025-05-06T13:29:39Z",
+      "id": "rofl1qr4a7um9hr6axg9xukw2rcjr682z7g98mqc0u2vv",
+      "last_activity": "2025-05-06T13:34:08Z",
+      "metadata": {
+        "net.oasis.rofl.name": "demo-rofl-tgbot",
+        "net.oasis.rofl.version": "0.1.0"
+      },
+      "num_active_instances": 0,
+      "policy": {
+        "enclaves": [
+          "FevW+UVkKQTYqu3t4/auRraanFgswJs72JP9iWiRNOUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+          "0eo7w0Ti35cR2QqfWfbt9kWLPFBtD5IXSdB2TBtsyqkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=="
+        ],
+        "endorsements": [
+          {
+            "any": {}
+          }
+        ],
+        "fees": 2,
+        "max_expiration": 3,
+        "quotes": {
+          "pcs": {
+            "min_tcb_evaluation_data_number": 18,
+            "tcb_validity_period": 30,
+            "tdx": {}
+          }
+        }
+      },
+      "removed": false,
+      "secrets": {
+        "TOKEN": "pGJwa1ggLxUp7yByGpOcZoFYq59s/VUGLY39Uzr7exYTzp7wmWZkbmFtZVWn0O0ygnE3in0SnCMeelOEK6JjWpNlbm9uY2VPGInrqw6aw3p237BSPNmMZXZhbHVlWD7nXxHbtLiLGZRGE9sAti3AzPOsJwACnZzVZiv6VHPVyDjC6OavL9qdpyp81vD23cdevRUcPQ5ao1sAYuhbNA=="
+      },
+      "sek": "Vlb42078fuszUfYe6AL/7OoChVBM0ubJevlGKN3WKVM=",
+      "stake": "100000000000000000000"
+    }
+  ],
+  "total_count": 11
+}
