@@ -175,9 +175,10 @@ func (p *processor) ProcessItem(ctx context.Context, batch *storage.QueryBatch, 
 			isNativeTransfer,
 		)
 		batch.Queue(
-			queries.RuntimeRoflNumTransactionsIncrement,
+			queries.RuntimeRoflUpdateStatsOnTransaction,
 			p.runtime,
 			item.AppID,
+			round,
 		)
 	}
 

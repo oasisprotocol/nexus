@@ -2495,9 +2495,20 @@ func (c *StorageClient) RuntimeRoflApps(ctx context.Context, runtime common.Runt
 	if params.Name != nil && len(*params.Name) > maxFilterNameFragments {
 		return nil, fmt.Errorf("too many names in the name filter: %w", apiCommon.ErrBadRequest)
 	}
+	var orderBy *string
+	if params.SortBy != nil {
+		switch *params.SortBy {
+		case "created_at":
+			orderBy = common.Ptr("created_at")
+		case "created_at_desc":
+			orderBy = common.Ptr("created_at_desc")
+		default:
+			return nil, fmt.Errorf("invalid sort_by value: %s", *params.SortBy)
+		}
+	}
 
 	args := []interface{}{runtime, id, ocAddrAdmin}
-	query := queries.RuntimeRoflApps(params.Name, &args)
+	query := queries.RuntimeRoflApps(params.Name, orderBy, &args)
 	args = append(args, params.Limit, params.Offset)
 
 	res, err := c.withDefaultTotalCount(

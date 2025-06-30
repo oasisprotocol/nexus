@@ -1284,6 +1284,15 @@ paths:
               type: string
             maxItems: 6
           description: A filter on the name of the ROFL app. If multiple names are provided, the ROFL App must match all of them.
+        - in: query
+          name: sort_by
+          schema:
+            type: string
+            enum: [created_at, created_at_desc]
+          description: |
+            The field to sort the ROFL apps by.
+            If unset, the ROFL apps will be sorted by activity (num_active_instances, num_transactions) in descending order.
+            To sort by creation time, set this to `created_at` (or `created_at_desc`).
       responses:
         '200':
           description: A JSON object containing a list of ROFL apps.

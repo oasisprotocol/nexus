@@ -431,7 +431,7 @@ func (m *processor) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 		m.queueTransactionInsert(batch, data.Header.Round, data.Header.Timestamp, transactionData)
 		for appID := range transactionData.RelatedRoflAddresses {
 			batch.Queue(queries.RuntimeRoflRelatedTransactionInsert, m.runtime, appID, data.Header.Round, transactionData.Index, transactionData.Method, transactionData.IsLikelyTokenTransfer)
-			batch.Queue(queries.RuntimeRoflNumTransactionsIncrement, m.runtime, appID)
+			batch.Queue(queries.RuntimeRoflUpdateStatsOnTransaction, m.runtime, appID, data.Header.Round)
 		}
 
 		if transactionData.ContractCandidate != nil {

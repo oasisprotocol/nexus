@@ -594,9 +594,11 @@ var (
     INSERT INTO chain.rofl_related_transactions (runtime, app_id, tx_round, tx_index, method, likely_native_transfer)
       VALUES ($1, $2, $3, $4, $5, $6)`
 
-	RuntimeRoflNumTransactionsIncrement = `
+	RuntimeRoflUpdateStatsOnTransaction = `
     UPDATE chain.rofl_apps
-      SET num_transactions = num_transactions + 1
+      SET
+        num_transactions = num_transactions + 1,
+        created_at_round = LEAST(created_at_round, $3::bigint)
       WHERE runtime = $1::runtime AND id = $2`
 
 	RuntimeAccountNumTxsUpsert = `
@@ -1377,10 +1379,11 @@ var (
       last_processed_round = COALESCE(chain.rofl_instances.last_processed_round, excluded.last_processed_round)`
 
 	RuntimeRoflAppQueueRefresh = `
-    INSERT INTO chain.rofl_apps (runtime, id, last_queued_round)
-    VALUES ($1, $2, $3)
+    INSERT INTO chain.rofl_apps (runtime, id, created_at_round, last_queued_round)
+    VALUES ($1, $2, $3, $3)
     ON CONFLICT (runtime, id) DO UPDATE
     SET
+      created_at_round = LEAST(excluded.created_at_round, chain.rofl_apps.created_at_round),
       last_queued_round = GREATEST(excluded.last_queued_round, chain.rofl_apps.last_queued_round)`
 
 	RuntimeRoflmarketStaleProviders = `
