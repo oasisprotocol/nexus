@@ -1351,6 +1351,8 @@ func RuntimeRoflApps(rawNames *[]string, args *[]interface{}) string {
 					) AS instance_json
 				FROM chain.rofl_instances ri
 				JOIN max_epoch ON true
+				-- Only include apps that are not removed.
+				JOIN chain.rofl_apps ra ON ra.id = ri.app_id AND ra.removed = false
 				WHERE ri.expiration_epoch > max_epoch.id
 				GROUP BY ri.app_id
 			)
