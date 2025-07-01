@@ -12,6 +12,27 @@ The format is inspired by [Keep a Changelog].
 
 <!-- TOWNCRIER -->
 
+## 0.7.8 (2025-07-01)
+
+### Features
+
+- api/rofl_apps: Add support for sorting by creation time
+  ([#1077](https://github.com/oasisprotocol/nexus/issues/1077))
+
+  Supports the `sort_by` query parameter:  
+
+  - `sort_by=created_at`  
+
+  - `sort_by=created_at_desc`  
+
+  Example:  
+  `GET v1/{runtime}/rofl_apps?sort_by=created_at`
+
+### Bug Fixes and Improvements
+
+- api/rofl_apps: No active instances for removed apps
+  ([#1076](https://github.com/oasisprotocol/nexus/issues/1076))
+
 ## 0.7.7 (2025-06-27)
 
 ### Features
