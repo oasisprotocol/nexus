@@ -12,6 +12,13 @@ The format is inspired by [Keep a Changelog].
 
 <!-- TOWNCRIER -->
 
+## 0.7.9 (2025-07-02)
+
+### Bug Fixes and Improvements
+
+- analyzer/runtime: Refresh provider on instance canceled event
+  ([#1080](https://github.com/oasisprotocol/nexus/issues/1080))
+
 ## 0.7.8 (2025-07-01)
 
 ### Features
