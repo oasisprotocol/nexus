@@ -729,6 +729,17 @@ func (m *processor) queueRoflmarketStale(batch *storage.QueryBatch, blockData *B
 			)
 		}
 
+		if e := event.WithScope.RoflMarket.InstanceCancelled; e != nil {
+			// Queue a refresh of the provider.
+			// XXX: This could be optimized to only refresh the instance, not the whole provider.
+			batch.Queue(
+				queries.RuntimeRoflmarketProviderQueueRefresh,
+				m.runtime,
+				e.Provider,
+				blockData.Header.Round,
+			)
+		}
+
 		if e := event.WithScope.RoflMarket.InstanceRemoved; e != nil {
 			// Queue a refresh of the provider.
 			// XXX: This could be optimized to only refresh the instance, not the whole provider.
