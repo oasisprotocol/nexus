@@ -15,7 +15,6 @@ import (
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
 	"github.com/oasisprotocol/oasis-core/go/common/quantity"
-	cometbft "github.com/oasisprotocol/oasis-core/go/consensus/cometbft/api"
 	"github.com/oasisprotocol/oasis-core/go/consensus/cometbft/crypto"
 	sdkConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
@@ -25,6 +24,7 @@ import (
 	beacon "github.com/oasisprotocol/nexus/coreapi/v22.2.11/beacon/api"
 	"github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api/transaction"
 	staking "github.com/oasisprotocol/nexus/coreapi/v22.2.11/staking/api"
+	cometbft "github.com/oasisprotocol/nexus/coreapi/v24.0/consensus/cometbft/api"
 
 	"github.com/oasisprotocol/nexus/analyzer"
 	"github.com/oasisprotocol/nexus/analyzer/block"
@@ -402,15 +402,13 @@ func (m *processor) queueBlockInserts(batch *storage.QueryBatch, data *consensus
 	}
 
 	var cmtMeta cometbft.BlockMeta
-	if err := cbor.Unmarshal(data.BlockHeader.Meta, &cmtMeta); err != nil {
+	if err := cmtMeta.TryUnmarshal(data.BlockHeader.Meta); err != nil {
 		m.logger.Warn("could not unmarshal block meta, may be incompatible version",
 			"height", data.BlockHeader.Height,
 			"err", err,
 		)
-		// We only try to unmarshal into the current version of the metadata
-		// structure (oasis-core Eden + CometBFT at time of writing). This may
-		// fail on blocks from an incompatible earlier version. Skip indexing
-		// the block metadata in that case.
+		// We just skip indexing the block metadata if we cannot unmarshal it
+		// and don't stop indexing the rest of the block.
 	}
 
 	var proposerAddr *string
