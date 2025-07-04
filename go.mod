@@ -59,6 +59,7 @@ require (
 	github.com/ethereum/c-kzg-4844 v1.0.0 // indirect
 	github.com/fatih/color v1.14.1 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
+	github.com/fxamacker/cbor/v2 v2.4.0 // indirect
 	github.com/getkin/kin-openapi v0.127.0 // indirect
 	github.com/go-git/gcfg v1.5.1-0.20230307220236-3a3c6141e376 // indirect
 	github.com/go-git/go-billy/v5 v5.5.0 // indirect
@@ -154,6 +155,7 @@ require (
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect
+	golang.org/x/exp v0.0.0-20250128182459-e0ece0dbea4c // indirect
 	golang.org/x/mod v0.23.0 // indirect
 	golang.org/x/net v0.38.0 // indirect
 	golang.org/x/oauth2 v0.24.0 // indirect
@@ -173,7 +175,6 @@ require (
 require (
 	github.com/akrylysov/pogreb v0.10.2
 	github.com/dgraph-io/ristretto v1.0.0
-	github.com/fxamacker/cbor/v2 v2.4.0
 	github.com/oapi-codegen/oapi-codegen/v2 v2.4.1
 	github.com/oapi-codegen/runtime v1.1.1
 	github.com/oasisprotocol/curve25519-voi v0.0.0-20230904125328-1f23a7beb09a
@@ -183,5 +184,4 @@ require (
 	github.com/rs/cors v1.11.1
 	go.dedis.ch/kyber/v3 v3.1.0
 	golang.org/x/crypto v0.37.0
-	golang.org/x/exp v0.0.0-20250128182459-e0ece0dbea4c
 )
