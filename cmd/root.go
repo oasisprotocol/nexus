@@ -2,13 +2,13 @@
 package cmd
 
 import (
-	"bytes"
+	"context"
 	"fmt"
 	"os"
 	"os/signal"
-	"runtime/pprof"
 	"sync"
 	"syscall"
+	"time"
 
 	"github.com/spf13/cobra"
 
@@ -17,6 +17,17 @@ import (
 	"github.com/oasisprotocol/nexus/cmd/common"
 	"github.com/oasisprotocol/nexus/config"
 	"github.com/oasisprotocol/nexus/log"
+	"github.com/oasisprotocol/nexus/metrics"
+)
+
+const (
+	analyzeCmdName = "analyze"
+	serveCmdName   = "serve"
+
+	// Very long shutdown timeout because consensus pogreb datastore sometimes takes a long time to
+	// close. Reduce this in future.
+	// https://github.com/oasisprotocol/nexus/issues/1034
+	shutdownTimeout = 30 * time.Minute
 )
 
 var (
@@ -28,15 +39,29 @@ var (
 		Short: "Oasis Nexus",
 		Run:   rootMain,
 	}
+
+	analyzerCmd = &cobra.Command{
+		Use:   analyzeCmdName,
+		Short: "Run Nexus in analyzer-only mode",
+		Run:   rootMain,
+	}
+
+	apiCmd = &cobra.Command{
+		Use:   serveCmdName,
+		Short: "Run Nexus in API-only mode",
+		Run:   rootMain,
+	}
 )
 
 // Service is a service run by Nexus.
 type Service interface {
-	// Start starts the service.
-	Start()
+	// Run runs the service.
+	Run(ctx context.Context) error
 }
 
 func rootMain(cmd *cobra.Command, args []string) {
+	ctx, cancel := context.WithCancel(context.Background())
+
 	// Initialize config.
 	cfg, err := config.InitConfig(configFile)
 	if err != nil {
@@ -55,42 +80,122 @@ func rootMain(cmd *cobra.Command, args []string) {
 	}
 	logger := common.RootLogger()
 
-	// Initialize services.
-	var wg sync.WaitGroup
-	runInWG := func(s Service) {
-		wg.Add(1)
-		go func(s Service) {
-			defer wg.Done()
-			s.Start()
-		}(s)
+	switch cmd.Name() {
+	case analyzeCmdName:
+		// For backward compatibility: ignore server config even if present.
+		// In the future, this should be unified under a single command where
+		// the config file defines which services to run.
+		cfg.Server = nil
+	case serveCmdName:
+		// For backward compatibility: ignore analysis config even if present.
+		// In the future, this should be unified under a single command where
+		// the config file defines which services to run.
+		cfg.Analysis = nil
+	default:
 	}
 
+	// Initialize services.
+	errCh := make(chan error, 4)
+	var wg sync.WaitGroup
+
 	if cfg.Analysis != nil {
-		analysisService, err := analyzer.Init(cfg.Analysis)
+		analysisService, err := analyzer.Init(ctx, cfg.Analysis, logger)
 		if err != nil {
 			logger.Error("failed to initialize analysis service", "err", err)
 			os.Exit(1)
 		}
-		runInWG(analysisService)
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			// If no server is running, stop the process when the analyzer finishes.
+			if cfg.Server == nil {
+				defer cancel()
+			}
+
+			if err := analysisService.Run(ctx); err != nil {
+				errCh <- fmt.Errorf("analysis: %w", err)
+			}
+		}()
 	}
+
 	if cfg.Server != nil {
-		apiService, err := api.Init(cfg.Server)
+		apiService, err := api.Init(ctx, cfg.Server, logger)
 		if err != nil {
 			logger.Error("failed to initialize api service", "err", err)
 			os.Exit(1)
 		}
-		runInWG(apiService)
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			if err := apiService.Run(ctx); err != nil {
+				errCh <- fmt.Errorf("api: %w", err)
+			}
+		}()
+	}
+
+	if cfg.Metrics != nil {
+		// Initialize Prometheus service.
+		promServer, err := metrics.NewPullService(cfg.Metrics.PullEndpoint, logger)
+		if err != nil {
+			logger.Error("failed to initialize metrics", "err", err)
+			os.Exit(1)
+		}
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			if err := promServer.Run(ctx); err != nil {
+				errCh <- fmt.Errorf("metrics: %w", err)
+			}
+		}()
+	}
+
+	if cfg.Metrics != nil && cfg.Metrics.PprofEndpoint != nil {
+		// Initialize pprof endpoint.
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			if err := common.PprofRun(ctx, *cfg.Metrics.PprofEndpoint, logger); err != nil {
+				errCh <- fmt.Errorf("pprof: %w", err)
+			}
+		}()
 	}
 
 	logger.Info("started all services")
-	wg.Wait()
+
+	// Ensure clean shutdown.
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
+	defer signal.Stop(stop)
+	select {
+	case err := <-errCh:
+		logger.Error("service stopped", "err", err)
+	case <-stop:
+		logger.Info("received signal to stop")
+	case <-ctx.Done():
+		logger.Info("context done")
+	}
+	cancel()
+
+	logger.Info("waiting for services to shutdown")
+
+	// Wait for services to shutdown.
+	done := make(chan struct{})
+	go func() {
+		wg.Wait()
+		close(done)
+	}()
+
+	select {
+	case <-done:
+		logger.Info("services shut down")
+	case <-time.After(shutdownTimeout):
+		logger.Error("services did not shutdown in time, forcing exit")
+		os.Exit(1)
+	}
 }
 
 // Execute spawns the main entry point after handing the config file.
 func Execute() {
-	// Debug hook. If we receive SIGUSR1, dump all goroutines.
-	go dumpGoroutinesOnSignal(syscall.SIGUSR1)
-
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
@@ -98,34 +203,8 @@ func Execute() {
 }
 
 func init() {
-	rootCmd.Flags().StringVar(&configFile, "config", "./conf/server.yml", "path to the config.yml file")
+	rootCmd.PersistentFlags().StringVar(&configFile, "config", "./conf/server.yml", "path to the config.yml file")
 
-	for _, f := range []func(*cobra.Command){
-		analyzer.Register,
-		api.Register,
-	} {
-		f(rootCmd)
-	}
-}
-
-// Starts listening for the specified signals, and logs a dump of all
-// goroutines when the process receives one of those signals.
-func dumpGoroutinesOnSignal(signals ...os.Signal) {
-	logger := log.NewDefaultLogger("toplevel")
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, signals...)
-	logger.Info("listening for signals", "signals", signals)
-	for range c {
-		b := bytes.NewBufferString("")
-		_ = pprof.Lookup("goroutine").WriteTo(b, 1)
-		logger.Warn("USER-REQUESTED DUMP: all goroutines", "goroutines_all", b.String())
-
-		b = bytes.NewBufferString("")
-		_ = pprof.Lookup("block").WriteTo(b, 1)
-		logger.Warn("USER-REQUESTED DUMP: stack traces that led to blocking on synchronization primitives", "goroutines_block", b.String())
-
-		b = bytes.NewBufferString("")
-		_ = pprof.Lookup("mutex").WriteTo(b, 1)
-		logger.Warn("USER-REQUESTED DUMP: stack traces of holders of contended mutexes", "goroutines_mutex", b.String())
-	}
+	rootCmd.AddCommand(analyzerCmd)
+	rootCmd.AddCommand(apiCmd)
 }

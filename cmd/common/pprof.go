@@ -1,18 +1,18 @@
 package common
 
 import (
-	"net"
+	"context"
 	"net/http"
 	"net/http/pprof"
 	"time"
+
+	"github.com/oasisprotocol/nexus/log"
 )
 
-func startPprof(endpoint string) {
-	listener, err := net.Listen("tcp", endpoint)
-	if err != nil {
-		rootLogger.Error("failed to create pprof listener", "err", err)
-		return
-	}
+// PprofRun runs the pprof server.
+func PprofRun(ctx context.Context, endpoint string, logger *log.Logger) error {
+	logger = logger.WithModule("pprof")
+	logger.Info("starting pprof server", "endpoint", endpoint)
 
 	// Create a new mux just for the pprof endpoints to avoid using the
 	// global multiplexer where pprof's init function registers by default.
@@ -27,11 +27,8 @@ func startPprof(endpoint string) {
 		Addr:         endpoint,
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 5 * time.Second,
+		Handler:      mux,
 	}
 
-	go func() {
-		if err := server.Serve(listener); err != nil && err != http.ErrServerClosed {
-			rootLogger.Error("pprof server stopped", "err", err)
-		}
-	}()
+	return RunServer(ctx, server, logger)
 }

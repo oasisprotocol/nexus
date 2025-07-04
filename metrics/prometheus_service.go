@@ -2,11 +2,13 @@
 package metrics
 
 import (
+	"context"
 	"net/http"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
+	cmdCommon "github.com/oasisprotocol/nexus/cmd/common"
 	"github.com/oasisprotocol/nexus/log"
 )
 
@@ -21,12 +23,7 @@ type PullService struct {
 }
 
 // StartInstrumentation starts the pull metrics service.
-func (s *PullService) StartInstrumentation() {
-	s.logger.Info("initializing pull metrics service")
-	go s.startHandler()
-}
-
-func (s *PullService) startHandler() {
+func (s *PullService) Run(ctx context.Context) error {
 	http.Handle("/metrics", promhttp.Handler())
 
 	server := &http.Server{
@@ -35,20 +32,14 @@ func (s *PullService) startHandler() {
 		WriteTimeout:   10 * time.Second,
 		MaxHeaderBytes: 1 << 20,
 	}
-	if err := server.ListenAndServe(); err != nil {
-		s.logger.Error("unable to initialize prometheus pull service",
-			"endpoint", s.pullEndpoint,
-			"error", err,
-		)
-	}
+
+	return cmdCommon.RunServer(ctx, server, s.logger)
 }
 
 // Creates a new Prometheus pull service.
-func NewPullService(pullEndpoint string, rootLogger *log.Logger) (*PullService, error) {
-	logger := rootLogger.WithModule(moduleName)
-
+func NewPullService(pullEndpoint string, logger *log.Logger) (*PullService, error) {
 	return &PullService{
 		pullEndpoint: pullEndpoint,
-		logger:       logger,
+		logger:       logger.WithModule(moduleName),
 	}, nil
 }

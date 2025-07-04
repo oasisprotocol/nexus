@@ -11,7 +11,6 @@ import (
 	"unicode/utf8"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/spf13/cobra"
 
 	sdkConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 
@@ -34,17 +33,6 @@ const (
 	v1BaseURL = "/v1"
 
 	defaultRequestHandleTimeout = 20 * time.Second
-)
-
-var (
-	// Path to the configuration file.
-	configFile string
-
-	apiCmd = &cobra.Command{
-		Use:   "serve",
-		Short: "Serve Oasis Nexus API",
-		Run:   runServer,
-	}
 )
 
 // safeFileSystem is a wrapper around `http.FileServer` that only serves
@@ -101,43 +89,10 @@ func (srv specFileServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	http.FileServer(safeFileSystem{fs: http.Dir(srv.rootDir)}).ServeHTTP(w, r)
 }
 
-func runServer(cmd *cobra.Command, args []string) {
-	// Initialize config.
-	cfg, err := config.InitConfig(configFile)
-	if err != nil {
-		log.NewDefaultLogger("init").Error("init failed",
-			"error", err,
-		)
-		os.Exit(1)
-	}
-
-	// Initialize common environment.
-	if err = cmdCommon.Init(cfg); err != nil {
-		log.NewDefaultLogger("init").Error("init failed",
-			"error", err,
-		)
-		os.Exit(1)
-	}
-	logger := cmdCommon.RootLogger()
-
-	if cfg.Server == nil {
-		logger.Error("server config not provided")
-		os.Exit(1)
-	}
-
-	service, err := Init(cfg.Server)
-	if err != nil {
-		os.Exit(1)
-	}
-
-	service.Start()
-}
-
 // Init initializes the API service.
-func Init(cfg *config.ServerConfig) (*Service, error) {
-	logger := cmdCommon.RootLogger()
-
-	service, err := NewService(cfg)
+func Init(ctx context.Context, cfg *config.ServerConfig, logger *log.Logger) (*Service, error) {
+	logger = logger.WithModule(moduleName)
+	service, err := NewService(ctx, cfg, logger)
 	if err != nil {
 		logger.Error("service failed to start",
 			"error", err,
@@ -157,10 +112,7 @@ type Service struct {
 }
 
 // NewService creates a new API service.
-func NewService(cfg *config.ServerConfig) (*Service, error) {
-	ctx := context.Background()
-	logger := cmdCommon.RootLogger().WithModule(moduleName)
-
+func NewService(ctx context.Context, cfg *config.ServerConfig, logger *log.Logger) (*Service, error) {
 	// Initialize target storage.
 	backing, err := cmdCommon.NewClient(cfg.Storage, logger)
 	if err != nil {
@@ -207,7 +159,7 @@ func NewService(cfg *config.ServerConfig) (*Service, error) {
 }
 
 // Start starts the API service.
-func (s *Service) Start() {
+func (s *Service) Run(ctx context.Context) error {
 	defer s.cleanup()
 	s.logger.Info("starting api service at " + s.address)
 
@@ -263,21 +215,13 @@ func (s *Service) Start() {
 		Handler:        handler,
 		ReadTimeout:    5 * time.Second,
 		WriteTimeout:   s.requestTimeout + 5*time.Second, // Should be longer than the request handling timeout.
-		MaxHeaderBytes: 1 << 20,
+		MaxHeaderBytes: 1 << 20,                          // 1MB.
 	}
 
-	s.logger.Error("shutting down",
-		"error", server.ListenAndServe(),
-	)
+	return cmdCommon.RunServer(ctx, server, s.logger)
 }
 
 // cleanup gracefully shuts down the service.
 func (s *Service) cleanup() {
 	s.target.Shutdown()
-}
-
-// Register registers the process sub-command.
-func Register(parentCmd *cobra.Command) {
-	apiCmd.Flags().StringVar(&configFile, "config", "./config/local.yml", "path to the config.yml file")
-	parentCmd.AddCommand(apiCmd)
 }

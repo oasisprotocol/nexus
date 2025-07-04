@@ -5,11 +5,8 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"os"
-	"os/signal"
 	"strings"
 	"sync"
-	"syscall"
 	"time"
 
 	migrate "github.com/golang-migrate/migrate/v4"
@@ -18,7 +15,6 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/github"            // support github scheme for golang_migrate
 	"github.com/jackc/pgx/v5/pgxpool"
 	pgxstd "github.com/jackc/pgx/v5/stdlib"
-	"github.com/spf13/cobra"
 
 	"github.com/oasisprotocol/nexus/analyzer"
 	"github.com/oasisprotocol/nexus/analyzer/aggregate_stats"
@@ -53,48 +49,6 @@ const (
 	moduleName = "analysis_service"
 )
 
-var (
-	// Path to the configuration file.
-	configFile string
-
-	analyzeCmd = &cobra.Command{
-		Use:   "analyze",
-		Short: "Analyze blocks",
-		Run:   runAnalyzer,
-	}
-)
-
-func runAnalyzer(cmd *cobra.Command, args []string) {
-	// Initialize config.
-	cfg, err := config.InitConfig(configFile)
-	if err != nil {
-		log.NewDefaultLogger("init").Error("config init failed",
-			"error", err,
-		)
-		os.Exit(1)
-	}
-
-	// Initialize common environment.
-	if err = cmdCommon.Init(cfg); err != nil {
-		log.NewDefaultLogger("init").Error("init failed",
-			"error", err,
-		)
-		os.Exit(1)
-	}
-	logger := cmdCommon.RootLogger()
-
-	if cfg.Analysis == nil {
-		logger.Error("analysis config not provided")
-		os.Exit(1)
-	}
-
-	service, err := Init(cfg.Analysis)
-	if err != nil {
-		os.Exit(1)
-	}
-	service.Start()
-}
-
 // RunMigrations runs migrations defined in sourceURL against databaseURL.
 func RunMigrations(sourceURL string, databaseURL string) error {
 	// Go-migrate supports only basic database URL parameters.
@@ -126,8 +80,8 @@ func RunMigrations(sourceURL string, databaseURL string) error {
 }
 
 // Init initializes the analysis service.
-func Init(cfg *config.AnalysisConfig) (*Service, error) {
-	logger := cmdCommon.RootLogger()
+func Init(ctx context.Context, cfg *config.AnalysisConfig, logger *log.Logger) (*Service, error) {
+	logger = logger.WithModule(moduleName)
 
 	logger.Info("initializing analysis service", "config", cfg)
 	if cfg.Storage.WipeStorage {
@@ -151,7 +105,7 @@ func Init(cfg *config.AnalysisConfig) (*Service, error) {
 		logger.Info("migrations completed")
 	}
 
-	service, err := NewService(cfg)
+	service, err := NewService(ctx, cfg, logger)
 	if err != nil {
 		logger.Error("service failed to start",
 			"error", err,
@@ -206,17 +160,21 @@ func newSourceFactory(cfg config.SourceConfig) *sourceFactory {
 
 func (s *sourceFactory) Close() error {
 	var firstErr error
-	if s.consensus != nil {
-		if err := s.consensus.Close(); err != nil {
-			firstErr = err
-		}
-	}
+
+	// Close runtime clients first. They typically shut down quickly, while
+	// consensus can block for a long time. To avoid delaying others, close
+	// consensus last.
+	// https://github.com/oasisprotocol/nexus/issues/1034
 	for _, runtimeClient := range s.runtimes {
 		if err := runtimeClient.Close(); err != nil && firstErr == nil {
 			firstErr = err
 		}
 	}
-
+	if s.consensus != nil {
+		if err := s.consensus.Close(); err != nil {
+			firstErr = err
+		}
+	}
 	return firstErr
 }
 
@@ -298,9 +256,7 @@ var (
 )
 
 // NewService creates new Service.
-func NewService(cfg *config.AnalysisConfig) (*Service, error) { //nolint:gocyclo
-	ctx := context.Background()
-	logger := cmdCommon.RootLogger().WithModule(moduleName)
+func NewService(ctx context.Context, cfg *config.AnalysisConfig, logger *log.Logger) (*Service, error) { //nolint:gocyclo
 	logger.Info("initializing analysis service", "config", cfg)
 
 	// Initialize source storage.
@@ -727,19 +683,18 @@ func NewService(cfg *config.AnalysisConfig) (*Service, error) { //nolint:gocyclo
 }
 
 // Start starts the analysis service.
-func (a *Service) Start() {
+func (a *Service) Run(ctx context.Context) error {
 	defer a.cleanup()
 	a.logger.Info("starting analysis service")
-
-	ctx, cancelAnalyzers := context.WithCancel(context.Background())
-	defer cancelAnalyzers() // Start() only returns when analyzers are done, so this should be a no-op, but it makes the compiler happier.
 
 	// Start caching proxies.
 	for _, proxy := range a.cachingProxies {
 		go func() {
-			if err := proxy.ListenAndServe(); err != nil {
+			if err := proxy.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 				a.logger.Error("caching proxy server failed", "server_addr", proxy.Addr, "error", err.Error())
+				return
 			}
+			a.logger.Info("caching proxy server closed")
 		}()
 	}
 
@@ -764,7 +719,7 @@ func (a *Service) Start() {
 			if runPreWork {
 				a.logger.Info("running pre-work for analyzer", "analyzer", an.Analyzer.Name())
 				if err := an.Analyzer.PreWork(ctx); err != nil {
-					a.logger.Error("fast-sync analyzer failed pre-work", "analyzer", an.Analyzer.Name(), "error", err.Error())
+					a.logger.Error("fast-sync analyzer failed pre-work", "analyzer", an.Analyzer.Name(), "error", err)
 					return
 				}
 			}
@@ -795,7 +750,7 @@ func (a *Service) Start() {
 				return
 			case <-util.ClosingChannel(prereqWg):
 				if err := an.Analyzer.PreWork(ctx); err != nil {
-					a.logger.Error("slow-sync analyzer failed pre-work", "analyzer", an.Analyzer.Name(), "error", err.Error())
+					a.logger.Error("slow-sync analyzer failed pre-work", "analyzer", an.Analyzer.Name(), "error", err)
 					return
 				}
 				an.Analyzer.Start(ctx)
@@ -804,24 +759,16 @@ func (a *Service) Start() {
 	}
 	analyzersDone := util.ClosingChannel(&slowSyncWg)
 
-	// Trap Ctrl+C and SIGTERM; the latter is issued by Kubernetes to request a shutdown.
-	signalChan := make(chan os.Signal, 1)
-	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
-	defer signal.Stop(signalChan) // Stop catching Ctrl+C signals.
-
-	// Wait for analyzers to finish.
 	select {
 	case <-analyzersDone:
 		a.logger.Info("all analyzers have completed")
-		return
-	case <-signalChan:
-		a.logger.Info("received interrupt, shutting down")
-		// Let the default handler handle ctrl+C so people can kill the process in a hurry.
-		signal.Stop(signalChan)
+		return nil
+	case <-ctx.Done():
+		a.logger.Info("shutting down analysis service")
 		// Shutdown the caching proxies.
 		a.shutdownCachingProxies(1 * time.Second)
+
 		// Cancel the analyzers' context and wait for them (but not forever) to exit cleanly.
-		cancelAnalyzers()
 		select {
 		case <-analyzersDone:
 			a.logger.Info("all analyzers have exited cleanly")
@@ -831,8 +778,7 @@ func (a *Service) Start() {
 			// if it doesn't get closed cleanly, KVStore requires a lenghty recovery process on next startup.
 			a.logger.Warn("timed out waiting for analyzers to exit cleanly; now forcing IO resource cleanup")
 		}
-		// We'll call a.cleanup() via a defer.
-		return
+		return ctx.Err()
 	}
 }
 
@@ -869,10 +815,4 @@ func (a *Service) cleanup() {
 		a.target.Close()
 		a.logger.Info("target db connection closed cleanly")
 	}
-}
-
-// Register registers the process sub-command.
-func Register(parentCmd *cobra.Command) {
-	analyzeCmd.Flags().StringVar(&configFile, "config", "./config/local.yml", "path to the config.yml file")
-	parentCmd.AddCommand(analyzeCmd)
 }

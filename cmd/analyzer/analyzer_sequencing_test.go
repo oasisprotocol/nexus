@@ -68,7 +68,7 @@ func TestSequencing(t *testing.T) {
 		logger:            log.NewDefaultLogger("analyzer"),
 	}
 
-	s.Start()
+	require.NoError(t, s.Run(context.Background()))
 	require.Equal(t, []string{
 		"slowX",  // finishes immediately, at t=0s, because it depends on no fast analyzers
 		"fastB1", // finishes at t=0.5s

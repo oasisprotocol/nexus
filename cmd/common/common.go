@@ -2,20 +2,25 @@
 package common
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"io"
 	stdLog "log"
+	"net/http"
 	"os"
+	"time"
 
 	"github.com/akrylysov/pogreb"
 	coreLogging "github.com/oasisprotocol/oasis-core/go/common/logging"
 
 	"github.com/oasisprotocol/nexus/config"
 	"github.com/oasisprotocol/nexus/log"
-	"github.com/oasisprotocol/nexus/metrics"
 	"github.com/oasisprotocol/nexus/storage"
 	"github.com/oasisprotocol/nexus/storage/postgres"
 )
+
+const serverShutdownTimeout = 10 * time.Second
 
 var rootLogger = log.NewDefaultLogger("nexus")
 
@@ -56,22 +61,6 @@ func Init(cfg *config.Config) error {
 	pogrebLogger := RootLogger().WithModule("pogreb").WithCallerUnwind(7)
 	pogreb.SetLogger(stdLog.New(log.WriterIntoLogger(*pogrebLogger), "", 0))
 
-	// Initialize Prometheus service.
-	if cfg.Metrics != nil {
-		promServer, err := metrics.NewPullService(cfg.Metrics.PullEndpoint, rootLogger)
-		if err != nil {
-			rootLogger.Error("failed to initialize metrics", "err", err)
-			os.Exit(1)
-		}
-		promServer.StartInstrumentation()
-	}
-
-	// Initialize pprof endpoint if configured.
-	if cfg.Metrics != nil && cfg.Metrics.PprofEndpoint != nil {
-		rootLogger.Info("starting pprof server", "endpoint", *cfg.Metrics.PprofEndpoint)
-		startPprof(*cfg.Metrics.PprofEndpoint)
-	}
-
 	return nil
 }
 
@@ -111,4 +100,25 @@ func NewClient(cfg *config.StorageConfig, logger *log.Logger) (storage.TargetSto
 	}
 
 	return client, nil
+}
+
+// RunServer is a context-aware wrapper around http.Server.ListenAndServe.
+func RunServer(ctx context.Context, server *http.Server, logger *log.Logger) error {
+	errCh := make(chan error, 1)
+	go func() {
+		logger.Info("starting server", "address", server.Addr)
+		if err := server.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
+			errCh <- fmt.Errorf("server error: %w", err)
+		}
+	}()
+
+	select {
+	case err := <-errCh:
+		return err
+	case <-ctx.Done():
+		logger.Info("shutting down server", "timeout", serverShutdownTimeout)
+		ctx, cancel := context.WithTimeout(context.Background(), serverShutdownTimeout)
+		defer cancel()
+		return server.Shutdown(ctx)
+	}
 }
