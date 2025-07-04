@@ -1,3 +1,4 @@
+// Package evmverifier implements the EVM contract verifier analyzer.
 package evmverifier
 
 import (

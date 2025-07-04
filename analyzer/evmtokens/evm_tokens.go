@@ -1,3 +1,4 @@
+// Package evmtokens implements the analyzer for the evm_tokens module.
 package evmtokens
 
 import (

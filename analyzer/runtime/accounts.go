@@ -1,12 +1,13 @@
+// Package runtime implements the analyzer for the accounts module.
 package runtime
 
 import (
 	"math/big"
+	"slices"
 
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/accounts"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/consensusaccounts"
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
-	"golang.org/x/exp/slices"
 
 	"github.com/oasisprotocol/nexus/analyzer"
 	"github.com/oasisprotocol/nexus/analyzer/queries"

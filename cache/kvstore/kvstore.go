@@ -1,3 +1,4 @@
+// Package kvstore implements a key-value store.
 package kvstore
 
 import (

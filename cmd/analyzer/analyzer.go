@@ -736,7 +736,6 @@ func (a *Service) Start() {
 
 	// Start caching proxies.
 	for _, proxy := range a.cachingProxies {
-		proxy := proxy
 		go func() {
 			if err := proxy.ListenAndServe(); err != nil {
 				a.logger.Error("caching proxy server failed", "server_addr", proxy.Addr, "error", err.Error())

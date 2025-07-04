@@ -1,3 +1,4 @@
+// Package evmabibackfill implements the EVM ABI backfill analyzer.
 package evmabibackfill
 
 import (

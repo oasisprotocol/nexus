@@ -1,3 +1,4 @@
+// Package common defines common types for the Nexus project.
 package common
 
 import (
@@ -69,7 +70,7 @@ func (b *BigInt) UnmarshalText(text []byte) error {
 // Used by the `cbor` library.
 func (b BigInt) MarshalBinary() ([]byte, error) {
 	var sign byte = 1
-	if b.Int.Sign() == -1 {
+	if b.Sign() == -1 {
 		sign = 255
 	}
 	return append([]byte{sign}, b.Bytes()...), nil // big.Int only supports serializing the abs value

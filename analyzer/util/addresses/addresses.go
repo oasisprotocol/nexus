@@ -1,3 +1,4 @@
+// Package addresses implements utilities for working with addresses.
 package addresses
 
 import (

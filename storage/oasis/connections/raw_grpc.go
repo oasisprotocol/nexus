@@ -1,3 +1,4 @@
+// Package connections implements a gRPC connection wrapper.
 package connections
 
 import (

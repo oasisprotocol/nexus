@@ -1,3 +1,4 @@
+// Package evmnfts implements the EVM NFTs analyzer.
 package evmnfts
 
 import (

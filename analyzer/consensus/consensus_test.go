@@ -6,8 +6,9 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/fxamacker/cbor/v2"
 	"github.com/stretchr/testify/require"
+
+	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 
 	roothashCobalt "github.com/oasisprotocol/nexus/coreapi/v21.1.1/roothash/api"
 	"github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api/transaction"

@@ -1,3 +1,4 @@
+// Package eden implements the Eden consensus API.
 package eden
 
 import (

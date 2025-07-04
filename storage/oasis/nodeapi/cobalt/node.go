@@ -1,3 +1,4 @@
+// Package cobalt implements the Cobalt consensus API.
 package cobalt
 
 import (

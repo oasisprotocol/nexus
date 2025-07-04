@@ -1,3 +1,4 @@
+// Package aggregate_stats implements the aggregate stats analyzer.
 package aggregate_stats
 
 import (
@@ -133,7 +134,6 @@ func (a *aggregateStatsAnalyzer) aggregateStatsWorker(ctx context.Context) {
 	// Compute daily tx volume stats every 5 minutes for all layers.
 	// Uses the stats.min5_tx_volume results so that it is efficient.
 	for _, layer := range statsLayers {
-		layer := layer
 		sc := &statsComputation{
 			target:       a.target,
 			name:         "daily_tx_volume_" + layer,

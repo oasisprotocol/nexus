@@ -1,3 +1,4 @@
+// Package encryption defines the types for encryption envelopes.
 package encryption
 
 import (

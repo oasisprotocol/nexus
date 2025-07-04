@@ -31,7 +31,7 @@ func TestSpecFileServer(t *testing.T) {
 
 	// Create a subdirectory.
 	subDir := filepath.Join(tmpDir, "subdir")
-	err = os.Mkdir(subDir, 0o755)
+	err = os.Mkdir(subDir, 0o750)
 	require.NoError(t, err)
 
 	// Create a symlink to the YAML file.

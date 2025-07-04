@@ -1,3 +1,4 @@
+// Package api defines the server API types.
 package api
 
 import (

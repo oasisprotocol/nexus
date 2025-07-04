@@ -1,3 +1,4 @@
+// Package multiproto implements a multi-protocol file fetcher.
 package multiproto
 
 import (

@@ -1,3 +1,4 @@
+// Package evmabi implements the common EVM ABI specs.
 package evmabi
 
 import (

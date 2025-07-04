@@ -1,3 +1,4 @@
+// Package nodestats implements the node stats analyzer.
 package nodestats
 
 import (

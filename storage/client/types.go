@@ -1,4 +1,4 @@
-// Types for storage client responses.
+// Package client defines the types for storage client responses.
 package client
 
 import (

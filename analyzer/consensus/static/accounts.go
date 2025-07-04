@@ -1,3 +1,4 @@
+// Package static contains static data for the consensus analyzer.
 package static
 
 import (

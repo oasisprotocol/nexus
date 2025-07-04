@@ -1,3 +1,4 @@
+// Package static contains static data for the analyzer.
 package static
 
 import (

@@ -1,3 +1,4 @@
+// Package damask implements a Damask consensus API.
 package damask
 
 import (
