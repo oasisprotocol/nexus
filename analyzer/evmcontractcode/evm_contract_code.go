@@ -1,3 +1,4 @@
+// Package evmcontractcode implements the EVM contract code analyzer.
 package evmcontractcode
 
 import (

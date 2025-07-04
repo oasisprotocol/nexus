@@ -1,3 +1,4 @@
+// Package httpproxy implements a simple HTTP proxy that caches responses.
 package httpproxy
 
 import (

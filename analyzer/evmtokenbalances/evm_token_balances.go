@@ -1,3 +1,4 @@
+// Package evmtokenbalances implements the EVM token balances analyzer.
 package evmtokenbalances
 
 import (

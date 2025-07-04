@@ -1,3 +1,4 @@
+// Package history implements a consensus API for historical data.
 package history
 
 import (

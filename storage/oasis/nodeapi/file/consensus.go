@@ -1,3 +1,4 @@
+// Package file implements a file-backed consensus API.
 package file
 
 import (

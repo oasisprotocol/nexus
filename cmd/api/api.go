@@ -64,11 +64,11 @@ func (sfs safeFileSystem) Open(path string) (http.File, error) {
 	// Use `os.Lstat` since it doesn't follow symlinks.
 	info, err := os.Lstat(filepath.Join(string(sfs.fs), path))
 	if err != nil {
-		f.Close()
+		_ = f.Close()
 		return nil, err
 	}
 	if !info.Mode().IsRegular() {
-		f.Close()
+		_ = f.Close()
 		return nil, os.ErrPermission
 	}
 

@@ -1,3 +1,4 @@
+// Package validatorstakinghistory implements the validator staking history analyzer.
 package validatorstakinghistory
 
 import (

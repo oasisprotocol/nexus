@@ -303,7 +303,6 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 		if tx != nil { //nolint:nestif
 			blockTransactionData.SignerData = make([]*BlockTransactionSignerData, 0, len(tx.AuthInfo.SignerInfo))
 			for j, si := range tx.AuthInfo.SignerInfo {
-				si := si // we have no dangerous uses of &si, but capture the variable just in case (and to make the linter happy)
 				var blockTransactionSignerData BlockTransactionSignerData
 				blockTransactionSignerData.Index = j
 				addr, err1 := addresses.RegisterAddressSpec(blockData.AddressPreimages, &si.AddressSpec)

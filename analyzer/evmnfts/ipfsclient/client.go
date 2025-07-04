@@ -1,3 +1,4 @@
+// Package ipfsclient implements a simple IPFS client.
 package ipfsclient
 
 import (

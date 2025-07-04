@@ -1,3 +1,4 @@
+// Package queries defines the SQL queries used by the analyzer.
 package queries
 
 import (

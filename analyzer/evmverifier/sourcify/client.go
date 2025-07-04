@@ -1,3 +1,4 @@
+// Package sourcify implements a client for the Sourcify Server API.
 package sourcify
 
 import (

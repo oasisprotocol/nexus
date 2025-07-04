@@ -1,3 +1,4 @@
+// Package v1 implements the Nexus API v1.
 package v1
 
 import (

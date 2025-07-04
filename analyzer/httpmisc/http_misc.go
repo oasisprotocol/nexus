@@ -1,3 +1,4 @@
+// Package httpmisc contains options that are common to a few places that use HTTP.
 package httpmisc
 
 import (
@@ -6,9 +7,6 @@ import (
 	"net/http"
 	"time"
 )
-
-// httpmisc is a bunch of opinions that are common to a few places that use
-// HTTP.
 
 const ClientTimeout = 30 * time.Second
 

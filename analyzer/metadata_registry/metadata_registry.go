@@ -1,3 +1,4 @@
+// Package metadata_registry implements the metadata registry analyzer.
 package metadata_registry
 
 import (

@@ -1,3 +1,4 @@
+// Package types defines the types for the API.
 package types
 
 import (

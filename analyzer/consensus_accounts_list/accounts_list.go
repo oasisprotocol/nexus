@@ -1,3 +1,4 @@
+// Package consensus_accounts_list implements the consensus accounts list analyzer.
 package consensus_accounts_list
 
 import (

@@ -1,3 +1,4 @@
+// Package analyzer defines the analyzer API.
 package analyzer
 
 import (

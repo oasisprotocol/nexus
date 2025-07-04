@@ -1,3 +1,4 @@
+// Package evm implements the EVM client.
 package evm
 
 import (

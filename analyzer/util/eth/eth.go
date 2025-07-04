@@ -1,3 +1,4 @@
+// Package eth contains utilities for EVM.
 package eth
 
 import (

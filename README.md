@@ -122,7 +122,7 @@ create a PR, but without them, you're at the mercy of CI.
 
   ```sh
   curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh \
-  | sh -s -- -b $(go env GOPATH)/bin v1.62.2
+  | sh -s -- -b $(go env GOPATH)/bin v2.2.1
   ```
 
   - **gofumpt**: `go install mvdan.cc/gofumpt@latest`

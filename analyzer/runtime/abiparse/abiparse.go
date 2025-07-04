@@ -1,3 +1,4 @@
+// Package abiparse implements a parser for Ethereum ABI.
 package abiparse
 
 import (

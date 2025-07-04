@@ -1,3 +1,6 @@
+// Package nodeapi defines the types used by Nexus to represent the data
+// returned by the node API.
+//
 // Due to the (sometimes breaking) changes in the types used by different
 // evolutions of oasis-core over the Cobalt, Damask, and Eden upgrades,
 // Nexus defines its own set of internal types here.

@@ -1,3 +1,4 @@
+// Package testutil provides utilities for testing the postgres client.
 package testutil
 
 import (
