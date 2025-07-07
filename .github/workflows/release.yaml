@@ -17,10 +17,12 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
+
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
           go-version: "1.24.x"
+
       - name: Install Go tools
         run: go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@v2.4.1
 
@@ -31,6 +33,7 @@ jobs:
           install-only: true
           distribution: goreleaser
           version: 1.2.5
+
       - name: Build and publish the next release
         run: |
           make release-build
@@ -46,29 +49,10 @@ jobs:
       - name: Set release tag
         run: |
           echo "TAG=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
-      - name: Login to DockerHub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_ACCESS_TOKEN }}
-      - name: Build and push docker
-        uses: docker/build-push-action@v3
-        with:
-          build-args: |
-            TAG=${{ env.TAG }}
-          context: .
-          file: docker/nexus/Dockerfile
-          tags: |
-            oasislabs/oasis-indexer:${{ env.TAG }}
-          push: true
-          labels: |
-            org.opencontainers.image.source=${{ github.event.repository.html_url }}
-            org.opencontainers.image.revision=${{ github.sha }}
 
-      # Also push the image to ghcr.io/oasisprotocol/nexus.
-      # XXX: In future, we will remove the Dockerhub repository and only push to ghcr.io.
       - name: Login to ghcr.io
         uses: docker/login-action@v2
         with:
