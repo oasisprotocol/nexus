@@ -26,7 +26,13 @@ func decodeEthRawTx(body []byte, minGasPrice common.BigInt) (*sdkTypes.Transacti
 	} else {
 		tb = evmV1.Create(ethTx.Value().Bytes(), ethTx.Data())
 	}
+
 	chainIDBI := ethTx.ChainId()
+	if chainIDBI == nil || chainIDBI.Cmp(big.NewInt(0)) == 0 {
+		// Legacy transactions don't have a chain ID, use 1 in that case as a default.
+		// https://github.com/ethereum/go-ethereum/issues/31653
+		chainIDBI = big.NewInt(1)
+	}
 	signer := ethTypes.LatestSignerForChainID(chainIDBI)
 	pubUncompressed, err := CancunSenderPub(signer, &ethTx)
 	if err != nil {
