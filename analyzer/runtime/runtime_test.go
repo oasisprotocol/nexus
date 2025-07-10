@@ -9,12 +9,12 @@ package runtime_test
 import (
 	"context"
 	"fmt"
+	"math"
 	"os"
 	"sync"
 	"testing"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common/math"
 	"github.com/stretchr/testify/require"
 
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
