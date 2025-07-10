@@ -59,12 +59,13 @@ func HttpCodeForError(err error) int {
 		return http.StatusServiceUnavailable
 	case errType == reflect.TypeOf(ErrStorageError{}):
 		return http.StatusInternalServerError
-	case (errType == reflect.TypeOf(apiTypes.InvalidParamFormatError{}) ||
+	case errType == reflect.TypeOf(apiTypes.InvalidParamFormatError{}) ||
 		errType == reflect.TypeOf(apiTypes.RequiredHeaderError{}) ||
 		errType == reflect.TypeOf(apiTypes.RequiredParamError{}) ||
 		errType == reflect.TypeOf(apiTypes.UnescapedCookieParamError{}) ||
 		errType == reflect.TypeOf(apiTypes.UnmarshalingParamError{}) ||
-		errType == reflect.TypeOf(apiTypes.TooManyValuesForParamError{})):
+		errType == reflect.TypeOf(apiTypes.TooManyValuesForParamError{}) ||
+		errors.Is(err, apiTypes.ErrMalformedInputAddress):
 		return http.StatusBadRequest
 	default:
 		return http.StatusInternalServerError

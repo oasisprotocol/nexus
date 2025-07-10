@@ -2848,7 +2848,7 @@ func (c *StorageClient) RuntimeRoflmarketOffers(ctx context.Context, runtime com
 func (c *StorageClient) RuntimeRoflmarketInstances(ctx context.Context, runtime common.Runtime, params apiTypes.GetRuntimeRoflmarketInstancesParams, id []byte) (*RoflMarketInstanceList, error) {
 	ocAddrAdmin, err := apiTypes.UnmarshalToOcAddress(params.Admin)
 	if err != nil {
-		return nil, wrapError(err)
+		return nil, err
 	}
 
 	res, err := c.withDefaultTotalCount(
