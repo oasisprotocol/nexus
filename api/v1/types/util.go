@@ -18,6 +18,9 @@ const (
 	Erc20Approval = "Approval"
 )
 
+// ErrMalformedInputAddress is returned when the input address is malformed.
+var ErrMalformedInputAddress = fmt.Errorf("malformed input address")
+
 func (c ConsensusEventType) IsValid() bool {
 	switch c {
 	case ConsensusEventTypeStakingTransfer,
@@ -114,7 +117,7 @@ func UnmarshalToOcAddress(text *string) (*StakingAddress, error) {
 	}
 	var a StakingAddress
 	if err := a.UnmarshalText([]byte(*text)); err != nil {
-		return nil, fmt.Errorf("malformed input address")
+		return nil, ErrMalformedInputAddress
 	}
 	return &a, nil
 }
