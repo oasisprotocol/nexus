@@ -12,6 +12,30 @@ The format is inspired by [Keep a Changelog].
 
 <!-- TOWNCRIER -->
 
+## 0.7.10 (2025-07-14)
+
+### Features
+
+- analyer/consensus: Support new BlockMeta version
+  ([#1082](https://github.com/oasisprotocol/nexus/issues/1082))
+
+- Cleanup services lifecycle and graceful shutdown
+  ([#1084](https://github.com/oasisprotocol/nexus/issues/1084))
+
+- Bump Go dependencies
+  ([#1088](https://github.com/oasisprotocol/nexus/issues/1088))
+
+- runtime: Support roflmarket.InstanceChangeAdmin tx
+  ([#1096](https://github.com/oasisprotocol/nexus/issues/1096))
+
+- oasis-sdk/client-sdk: Update to v0.16.0
+  ([#1097](https://github.com/oasisprotocol/nexus/issues/1097))
+
+### Bug Fixes and Improvements
+
+- api: Return 400 on malformed input address
+  ([#1078](https://github.com/oasisprotocol/nexus/issues/1078))
+
 ## 0.7.9 (2025-07-02)
 
 ### Bug Fixes and Improvements
