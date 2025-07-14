@@ -43,6 +43,7 @@ type CallHandler struct {
 	RoflMarketInstanceTopUp        func(body *roflmarket.InstanceTopUp) error
 	RoflMarketInstanceCancel       func(body *roflmarket.InstanceCancel) error
 	RoflMarketInstanceExecuteCmds  func(body *roflmarket.InstanceExecuteCmds) error
+	RoflMarketInstanceChangeAdmin  func(body *roflmarket.InstanceChangeAdmin) error
 	UnknownMethod                  func(methodName string) error // Invoked for a tx call that doesn't map to any of the above method names.
 }
 
@@ -255,6 +256,16 @@ func VisitCall(call *sdkTypes.Call, result *sdkTypes.CallResult, handler *CallHa
 			}
 			if err := handler.RoflMarketInstanceExecuteCmds(&body); err != nil {
 				return fmt.Errorf("rofl market instance execute cmds: %w", err)
+			}
+		}
+	case "roflmarket.InstanceChangeAdmin":
+		if handler.RoflMarketInstanceChangeAdmin != nil {
+			var body roflmarket.InstanceChangeAdmin
+			if err := cbor.Unmarshal(call.Body, &body); err != nil {
+				return fmt.Errorf("unmarshal rofl market instance change admin: %w", err)
+			}
+			if err := handler.RoflMarketInstanceChangeAdmin(&body); err != nil {
+				return fmt.Errorf("rofl market instance change admin: %w", err)
 			}
 		}
 	default:

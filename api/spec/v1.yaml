@@ -3400,6 +3400,7 @@ components:
               - "roflmarket.InstanceTopUp"
               - "roflmarket.InstanceCancel"
               - "roflmarket.InstanceExecuteCmds"
+              - "roflmarket.InstanceChangeAdmin"
             May be null if the transaction was malformed or encrypted.
           example: "evm.Call"
         body:

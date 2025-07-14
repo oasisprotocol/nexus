@@ -670,6 +670,22 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 					blockTransactionData.RelatedAccountAddresses[provider] = struct{}{}
 					return nil
 				},
+				RoflMarketInstanceChangeAdmin: func(body *roflmarket.InstanceChangeAdmin) error {
+					blockTransactionData.Body = body
+					provider, err := addresses.FromSdkAddress(&body.Provider)
+					if err != nil {
+						logger.Warn("failed to convert provider address to native address", "err", err)
+					}
+					blockTransactionData.RelatedAccountAddresses[provider] = struct{}{}
+
+					admin, err := addresses.FromSdkAddress(&body.Admin)
+					if err != nil {
+						logger.Warn("failed to convert admin address to native address", "err", err)
+						return nil
+					}
+					blockTransactionData.RelatedAccountAddresses[admin] = struct{}{}
+					return nil
+				},
 				UnknownMethod: func(methodName string) error {
 					logger.Warn("unknown tx method, skipping tx-specific analysis", "tx_method", methodName)
 					return nil
