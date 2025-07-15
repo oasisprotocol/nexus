@@ -560,6 +560,23 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 						for _, signer := range blockTransactionData.SignerData {
 							registerTokenDecrease(blockData.TokenBalanceChanges, evm.NativeRuntimeTokenAddress, signer.Address, reckonedAmount)
 						}
+
+					}
+
+					// Subcall precompile.
+					if evm.IsSubcallPrecompile(to) && txr.Result.Ok != nil {
+						// Try parsing precompile results.
+						statusCode, module, err := evm.EVMMaybeUnmarshalPrecompileResult(txr.Result.Ok)
+						if err != nil {
+							logger.Error("error unmarshalling precompile result", "err", err)
+						}
+						if statusCode != 0 {
+							blockTransactionData.Success = common.Ptr(false)
+							blockTransactionData.Error = &TxError{
+								Code:   statusCode,
+								Module: module,
+							}
+						}
 					}
 
 					// TODO: maybe parse known token methods (ERC-20 etc)

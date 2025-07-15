@@ -70,3 +70,10 @@ func SliceFromSet(accounts map[apiTypes.Address]struct{}) []apiTypes.Address {
 	}
 	return addrs
 }
+
+func FromBech32(bech32 string) apiTypes.Address {
+	address := sdkTypes.NewAddressFromBech32(bech32)
+	// Address is valid, otherwise the above call panics.
+	addr, _ := FromSdkAddress(&address)
+	return addr
+}
