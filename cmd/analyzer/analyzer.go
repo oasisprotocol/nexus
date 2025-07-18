@@ -28,6 +28,7 @@ import (
 	"github.com/oasisprotocol/nexus/analyzer/evmtokens"
 	"github.com/oasisprotocol/nexus/analyzer/evmverifier"
 	"github.com/oasisprotocol/nexus/analyzer/metadata_registry"
+	nebyprices "github.com/oasisprotocol/nexus/analyzer/neby_prices"
 	nodestats "github.com/oasisprotocol/nexus/analyzer/node_stats"
 	"github.com/oasisprotocol/nexus/analyzer/rofl"
 	roflinstance "github.com/oasisprotocol/nexus/analyzer/rofl/instance_transactions"
@@ -617,6 +618,11 @@ func NewService(ctx context.Context, cfg *config.AnalysisConfig, logger *log.Log
 	if cfg.Analyzers.PontusxDevAbi != nil {
 		analyzers, err = addAnalyzer(analyzers, err, syncTagPontusxDev, func() (A, error) {
 			return evmabibackfill.NewAnalyzer(common.RuntimePontusxDev, cfg.Analyzers.PontusxDevAbi.ItemBasedAnalyzerConfig, dbClient, logger)
+		})
+	}
+	if cfg.Analyzers.SapphireNebyPrices != nil {
+		analyzers, err = addAnalyzer(analyzers, err, syncTagSapphire, func() (A, error) {
+			return nebyprices.NewAnalyzer(common.RuntimeSapphire, cfg.Analyzers.SapphireNebyPrices, dbClient, logger)
 		})
 	}
 	if cfg.Analyzers.MetadataRegistry != nil {

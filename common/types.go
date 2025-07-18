@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"math/big"
 
+	"github.com/cockroachdb/apd"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/oasisprotocol/oasis-core/go/common/quantity"
 	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
@@ -170,6 +171,71 @@ func NumericToBigInt(n pgtype.Numeric) (BigInt, error) {
 		return BigInt{Int: *big0}, fmt.Errorf("cannot convert %v to integer", n)
 	}
 	return BigInt{Int: *big0}, nil
+}
+
+// Decimal is a wrapper around apd.Decimal to allow for custom JSON marshaling.
+type BigDecimal struct {
+	apd.Decimal
+}
+
+func NewBigDecimal(v string) (BigDecimal, error) {
+	var d apd.Decimal
+	if err := d.UnmarshalText([]byte(v)); err != nil {
+		return BigDecimal{}, fmt.Errorf("invalid decimal string %q: %w", v, err)
+	}
+	return BigDecimal{d}, nil
+}
+
+func (b BigDecimal) MarshalJSON() ([]byte, error) {
+	t, err := b.MarshalText()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(string(t))
+}
+
+func (b *BigDecimal) UnmarshalJSON(text []byte) error {
+	var s string
+	err := json.Unmarshal(text, &s)
+	if err != nil {
+		return err
+	}
+	return b.UnmarshalText([]byte(s))
+}
+
+func (b BigDecimal) String() string {
+	return b.Decimal.String()
+}
+
+// Implement NumericValuer interface for BigInt.
+func (b BigDecimal) NumericValue() (pgtype.Numeric, error) {
+	if b.Sign() == -1 {
+		return pgtype.Numeric{}, fmt.Errorf("cannot convert negative decimal %s to Numeric", b.String())
+	}
+	return pgtype.Numeric{Int: &b.Coeff, Exp: b.Exponent, NaN: false, Valid: true, InfinityModifier: pgtype.Finite}, nil
+}
+
+// Implement NumericDecoder interface for BigInt.
+func (b *BigDecimal) ScanNumeric(n pgtype.Numeric) error {
+	if !n.Valid {
+		return fmt.Errorf("NULL values can't be decoded. Scan into a **BigDecimal to handle NULLs")
+	}
+	if n.NaN {
+		return fmt.Errorf("cannot scan NaN into *decimal.Decimal")
+	}
+
+	if n.InfinityModifier != pgtype.Finite {
+		return fmt.Errorf("cannot scan %v into *decimal.Decimal", n.InfinityModifier)
+	}
+
+	b.Decimal = apd.Decimal{
+		Coeff:    *n.Int,
+		Exponent: n.Exp,
+		Negative: false,
+		Form:     apd.Finite,
+	}
+
+	return nil
 }
 
 func Ptr[T any](v T) *T {
