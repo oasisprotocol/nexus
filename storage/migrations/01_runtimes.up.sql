@@ -331,6 +331,8 @@ CREATE TABLE chain.evm_tokens
   -- causing a negative dead-reckoned total_supply.
   total_supply NUMERIC(1000,0),
 
+  -- neby_derived_price NUMERIC(38, 18), -- Added in 44_runtime_evm_tokens_neby.up.sql.
+
   num_transfers UINT63 NOT NULL DEFAULT 0,
 
   -- Block analyzer bumps this when it sees the mutable fields of the token
