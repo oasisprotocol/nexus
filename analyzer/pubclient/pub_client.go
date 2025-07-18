@@ -1,6 +1,7 @@
 package pubclient
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"net"
@@ -90,4 +91,13 @@ var client = &http.Client{
 
 func GetWithContext(ctx context.Context, url string) (*http.Response, error) {
 	return httpmisc.GetWithContextWithClient(ctx, client, url)
+}
+
+func PostWithContext(ctx context.Context, url string, bodyType string, body []byte) (*http.Response, error) {
+	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewReader(body))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", bodyType)
+	return client.Do(req)
 }
