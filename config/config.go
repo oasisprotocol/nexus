@@ -102,6 +102,11 @@ func (cfg *AnalysisConfig) Validate() error {
 			return err
 		}
 	}
+	if cfg.Analyzers.SapphireNebyPrices != nil {
+		if err := cfg.Analyzers.SapphireNebyPrices.Validate(); err != nil {
+			return err
+		}
+	}
 	if cfg.Analyzers.MetadataRegistry != nil {
 		if err := cfg.Analyzers.MetadataRegistry.Validate(); err != nil {
 			return err
@@ -168,6 +173,7 @@ type AnalyzersList struct {
 	SapphireAbi                      *EvmAbiAnalyzerConfig          `koanf:"evm_abi_sapphire"`
 	PontusxTestAbi                   *EvmAbiAnalyzerConfig          `koanf:"evm_abi_pontusx_test"`
 	PontusxDevAbi                    *EvmAbiAnalyzerConfig          `koanf:"evm_abi_pontusx_dev"`
+	SapphireNebyPrices               *NebyPricesConfig              `koanf:"neby_prices_sapphire"`
 
 	MetadataRegistry        *MetadataRegistryConfig        `koanf:"metadata_registry"`
 	ValidatorStakingHistory *ValidatorStakingHistoryConfig `koanf:"validator_staking_history"`
@@ -553,6 +559,18 @@ type MetadataRegistryConfig struct {
 
 // Validate validates the configuration.
 func (cfg *MetadataRegistryConfig) Validate() error {
+	return nil
+}
+
+// NebyPricesConfig is the configuration for the Neby prices analyzer.
+type NebyPricesConfig struct {
+	ItemBasedAnalyzerConfig `koanf:",squash"`
+
+	Endpoint string `koanf:"endpoint"`
+}
+
+// Validate validates the configuration.
+func (cfg *NebyPricesConfig) Validate() error {
 	return nil
 }
 

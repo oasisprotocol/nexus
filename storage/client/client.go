@@ -2267,6 +2267,7 @@ func (c *StorageClient) RuntimeTokens(ctx context.Context, runtime common.Runtim
 			&t.TotalSupply,
 			&t.NumTransfers,
 			&tokenType,
+			&t.NebyDerivedPrice,
 			&t.NumHolders,
 			&refSwapPairAddr,
 			&refSwapPairEthAddr,

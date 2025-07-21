@@ -1218,6 +1218,7 @@ func EVMTokens(rawNames *[]string, args *[]interface{}) string {
 			tokens.total_supply,
 			tokens.num_transfers,
 			tokens.token_type AS type,
+			tokens.neby_derived_price,
 			COALESCE(holders.cnt, 0) AS num_holders,
 			ref_swap_pair_creations.pair_address AS ref_swap_pair_address,
 			eth_preimage(ref_swap_pair_creations.pair_address) AS ref_swap_pair_address_eth,
@@ -1264,6 +1265,8 @@ func EVMTokens(rawNames *[]string, args *[]interface{}) string {
 			tokens.token_type != 0 -- exclude unknown-type tokens; they're often just contracts that emitted Transfer events but don't expose the token ticker, name, balance etc.
 		ORDER BY
 			custom_sort_order,
+			-- Neby derived market cap.
+			tokens.neby_derived_price * tokens.total_supply DESC NULLS LAST,
 			CASE
 				-- If sort_by is not "market_cap" then we sort by num_holders (below).
 				WHEN $6::text IS NULL OR $6::text != 'market_cap' THEN NULL

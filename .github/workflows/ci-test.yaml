@@ -135,7 +135,7 @@ jobs:
 
   test-e2e-regression:
     env:
-      E2E_REGRESSION_ARTIFACTS_VERSION: 2025-05-30
+      E2E_REGRESSION_ARTIFACTS_VERSION: 2025-07-21-2
     strategy:
       matrix:
         suite:
@@ -174,12 +174,13 @@ jobs:
         run: |
           make postgres
 
-      - name: Block access to Sourcify
-        # Sourcify should not need to be available in CI; we run everything from caches.
+      - name: Block access to Sourcify and Neby Graph API
+        # These services should not be available in CI; we run everything from caches.
         # Enforce unavailability to keep tests confidently reproducible, and to catch
-        # any bugs that might cause CI to accidentally use Sourcify.
+        # any bugs that might cause CI to accidentally use live external services.
         run: |
           sudo bash -c 'echo 0.0.0.0 sourcify.dev | tee -a /etc/hosts'
+          sudo bash -c 'echo 0.0.0.0 graph.api.neby.exchange | tee -a /etc/hosts'
 
       - name: Run e2e regression tests
         run : |

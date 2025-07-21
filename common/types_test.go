@@ -78,3 +78,47 @@ func TestBigIntCBOR(t *testing.T) {
 		require.Equal(t, b.String(), roundtripped.String(), "CBOR serialization should round-trip")
 	}
 }
+
+func TestBigDecimalJSON(t *testing.T) {
+	var v BigDecimal
+
+	jsonRef := []byte("\"12345.678901234567890123\"")
+	err := json.Unmarshal(jsonRef, &v)
+	require.NoError(t, err)
+	jsonRoundTrip, err := json.Marshal(v)
+	require.NoError(t, err)
+	require.Equal(t, jsonRef, jsonRoundTrip)
+
+	stringRef := "12345.678901234567890123"
+	err = v.Decimal.UnmarshalText([]byte(stringRef))
+	require.NoError(t, err)
+	stringRoundTrip := v.String()
+	require.Equal(t, stringRef, stringRoundTrip)
+}
+
+func TestBigDecimalNumeric(t *testing.T) {
+	for _, tc := range []struct {
+		value string
+	}{
+		{value: "12.345"},
+		{value: "678.90"},
+		{value: "12345.678901234567890123"},
+		{value: "0.00000123456789"},
+		{value: "0"},
+		{value: "123456"},
+		{value: "0.0000000000000000000043024235"},
+	} {
+		dec, err := NewBigDecimal(tc.value)
+		require.NoError(t, err, "failed to create BigDecimal from string %s", tc.value)
+
+		val, err := dec.NumericValue()
+		require.NoError(t, err, "failed to convert BigDecimal to Numeric for value %s", tc.value)
+
+		var roundTripped BigDecimal
+		err = roundTripped.ScanNumeric(val)
+		require.NoError(t, err, "failed to scan Numeric into BigDecimal for value %s", tc.value)
+
+		require.Equal(t, dec.String(), roundTripped.String(), "BigDecimal should match after Numeric conversion for value %s", tc.value)
+		require.EqualValues(t, dec, roundTripped, "BigDecimal should match after Numeric conversion for value %s", tc.value)
+	}
+}

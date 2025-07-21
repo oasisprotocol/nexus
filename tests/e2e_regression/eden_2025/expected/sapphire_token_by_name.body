@@ -6,6 +6,7 @@
       "eth_contract_addr": "0xA14167756d9F86Aed12b472C29B257BBdD9974C2",
       "is_verified": true,
       "name": "BitUSDs",
+      "neby_derived_price": "30.025448675228444259",
       "num_holders": 0,
       "num_transfers": 0,
       "ref_token": {

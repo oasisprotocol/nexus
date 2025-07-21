@@ -1669,6 +1669,15 @@ components:
       example: "1234567890123456789012"
       x-go-type: common.BigInt
       x-go-type-import: { name: common, path: "github.com/oasisprotocol/nexus/common" }
+    TextBigDecimal:
+      type: string
+      pattern: '^-?[0-9]+(\.[0-9]+)?$'
+      format: decimal  # Informative only; not used by Go codegen
+      example: "12345.678901234567890123"
+      x-go-type: common.BigDecimal
+      x-go-type-import:
+        name: common
+        path: github.com/oasisprotocol/nexus/common
     Address:
       type: string
       pattern: '^oasis1[a-z0-9]{40}$'
@@ -3646,6 +3655,15 @@ components:
         total_supply:
           allOf: [$ref: '#/components/schemas/TextBigInt']
           description: The total number of base units available.
+        neby_derived_price:
+          allOf: [$ref: '#/components/schemas/TextBigDecimal']
+          description: |
+            The estimated price of one base unit of this token, expressed in the native denomination of the runtime.
+
+            This value is sourced from the Neby GraphQL API and reflects the token's `derivedETH` price as computed by the subgraph indexing the Neby DEX.
+            It is available only for tokens listed and tradable on the Neby exchange.
+
+            May be zero if the subgraph could not determine a valid price route to the native token unit.
         num_transfers:
           type: integer
           format: int64
