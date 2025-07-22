@@ -41,7 +41,6 @@ require (
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/cloudflare/circl v1.3.7 // indirect
-	github.com/cockroachdb/apd v1.1.0 // indirect
 	github.com/consensys/gnark-crypto v0.18.0 // indirect
 	github.com/cosmos/gogoproto v1.7.0 // indirect
 	github.com/crate-crypto/go-eth-kzg v1.3.0 // indirect
@@ -175,6 +174,7 @@ require (
 
 require (
 	github.com/akrylysov/pogreb v0.10.2
+	github.com/cockroachdb/apd v1.1.0
 	github.com/cometbft/cometbft v0.37.15
 	github.com/dgraph-io/ristretto v1.0.0
 	github.com/oapi-codegen/oapi-codegen/v2 v2.4.1
