@@ -3281,7 +3281,7 @@ components:
     RuntimeTransaction:
       type: object
       # NOTE: Not guaranteed to be present: eth_hash, to, amount.
-      required: [round, index, timestamp, hash, signers, sender_0, nonce_0, fee, fee_symbol, charged_fee, gas_limit, gas_used, size, is_likely_native_token_transfer]
+      required: [round, index, timestamp, hash, signers, sender_0, nonce_0, fee, fee_symbol, charged_fee, gas_limit, gas_used, size, raw_result, is_likely_native_token_transfer]
       properties:
         round:
           type: integer
@@ -3379,6 +3379,12 @@ components:
           type: integer
           format: int32
           description: The total byte size of the transaction.
+        raw_result:
+          type: string
+          format: byte
+          description: |
+            The raw result of the transaction execution, as returned by the runtime.
+            This is a base64-encoded byte array. The meaning of this field depends on the transaction type.
         oasis_encryption_envelope:
           allOf: [$ref: '#/components/schemas/RuntimeTransactionEncryptionEnvelope']
           description: |

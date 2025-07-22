@@ -24,6 +24,7 @@
         "result": "SHgX5RExoSI7Mf6kYjulrBsP/3R2",
         "result_nonce": "AAAAAACwgYMAAAABAAAA"
       },
+      "raw_result": "oWd1bmtub3duomRkYXRhVUh4F+URMaEiOzH+pGI7pawbD/90dmVub25jZU8AAAAAALCBgwAAAAEAAAA=",
       "round": 11567492,
       "sender_0": "oasis1qqj0g6gkenex03my3p2vg4s3k33d3qll8unugszn",
       "sender_0_eth": "0x595d40F268b89Cf385d00E75788b51ABea1b99D0",
@@ -59,6 +60,7 @@
         "result": "PMBeIUd9ddvgnxTLuP9l+3BeIc3A",
         "result_nonce": "AAAAAACwgXcAAAABAAAA"
       },
+      "raw_result": "oWd1bmtub3duomRkYXRhVTzAXiFHfXXb4J8Uy7j/ZftwXiHNwGVub25jZU8AAAAAALCBdwAAAAEAAAA=",
       "round": 11567480,
       "sender_0": "oasis1qqj0g6gkenex03my3p2vg4s3k33d3qll8unugszn",
       "sender_0_eth": "0x595d40F268b89Cf385d00E75788b51ABea1b99D0",
@@ -94,6 +96,7 @@
         "result": "yuoOi6s6Pe2NtrzGxXA3s8eLLamb",
         "result_nonce": "AAAAAACwgWsAAAAAAAAA"
       },
+      "raw_result": "oWd1bmtub3duomRkYXRhVcrqDourOj3tjba8xsVwN7PHiy2pm2Vub25jZU8AAAAAALCBawAAAAAAAAA=",
       "round": 11567468,
       "sender_0": "oasis1qqj0g6gkenex03my3p2vg4s3k33d3qll8unugszn",
       "sender_0_eth": "0x595d40F268b89Cf385d00E75788b51ABea1b99D0",
@@ -129,6 +132,7 @@
         "result": "YTTWvOghUqJ7z7PFZNtkxOZFCPmi",
         "result_nonce": "AAAAAACwgV8AAAAAAAAA"
       },
+      "raw_result": "oWd1bmtub3duomRkYXRhVWE01rzoIVKie8+zxWTbZMTmRQj5omVub25jZU8AAAAAALCBXwAAAAAAAAA=",
       "round": 11567456,
       "sender_0": "oasis1qqj0g6gkenex03my3p2vg4s3k33d3qll8unugszn",
       "sender_0_eth": "0x595d40F268b89Cf385d00E75788b51ABea1b99D0",
@@ -164,6 +168,7 @@
         "result": "Mus71o4BQ25EOKv4GBEnJ/DTXGmh",
         "result_nonce": "AAAAAACwgVMAAAAAAAAA"
       },
+      "raw_result": "oWd1bmtub3duomRkYXRhVTLrO9aOAUNuRDir+BgRJyfw01xpoWVub25jZU8AAAAAALCBUwAAAAAAAAA=",
       "round": 11567444,
       "sender_0": "oasis1qqj0g6gkenex03my3p2vg4s3k33d3qll8unugszn",
       "sender_0_eth": "0x595d40F268b89Cf385d00E75788b51ABea1b99D0",
@@ -199,6 +204,7 @@
         "result": "G1mirYI43xnvO4sork0u+7aKOQ3g",
         "result_nonce": "AAAAAACwgUcAAAAAAAAA"
       },
+      "raw_result": "oWd1bmtub3duomRkYXRhVRtZoq2CON8Z7zuLKK5NLvu2ijkN4GVub25jZU8AAAAAALCBRwAAAAAAAAA=",
       "round": 11567432,
       "sender_0": "oasis1qqj0g6gkenex03my3p2vg4s3k33d3qll8unugszn",
       "sender_0_eth": "0x595d40F268b89Cf385d00E75788b51ABea1b99D0",
@@ -234,6 +240,7 @@
         "result": "8p+DFTYeWWHyTFh60wLRiB3m5jeX",
         "result_nonce": "AAAAAACwgTsAAAAAAAAA"
       },
+      "raw_result": "oWd1bmtub3duomRkYXRhVfKfgxU2Hllh8kxYetMC0Ygd5uY3l2Vub25jZU8AAAAAALCBOwAAAAAAAAA=",
       "round": 11567420,
       "sender_0": "oasis1qqj0g6gkenex03my3p2vg4s3k33d3qll8unugszn",
       "sender_0_eth": "0x595d40F268b89Cf385d00E75788b51ABea1b99D0",
@@ -269,6 +276,7 @@
         "result": "N6+a+1ipKHLqQAodGlGUxqikPaga",
         "result_nonce": "AAAAAACwgS8AAAABAAAA"
       },
+      "raw_result": "oWd1bmtub3duomRkYXRhVTevmvtYqShy6kAKHRpRlMaopD2oGmVub25jZU8AAAAAALCBLwAAAAEAAAA=",
       "round": 11567408,
       "sender_0": "oasis1qqj0g6gkenex03my3p2vg4s3k33d3qll8unugszn",
       "sender_0_eth": "0x595d40F268b89Cf385d00E75788b51ABea1b99D0",
@@ -304,6 +312,7 @@
         "result": "vK9GAExbTeHC6Z7MZgTNdb1I5qSC",
         "result_nonce": "AAAAAACwgSMAAAABAAAA"
       },
+      "raw_result": "oWd1bmtub3duomRkYXRhVbyvRgBMW03hwumezGYEzXW9SOakgmVub25jZU8AAAAAALCBIwAAAAEAAAA=",
       "round": 11567396,
       "sender_0": "oasis1qqj0g6gkenex03my3p2vg4s3k33d3qll8unugszn",
       "sender_0_eth": "0x595d40F268b89Cf385d00E75788b51ABea1b99D0",
@@ -339,6 +348,7 @@
         "result": "hIB4nZGjujMxXHqlNL0fbLmWFSVL",
         "result_nonce": "AAAAAACwgRcAAAAAAAAA"
       },
+      "raw_result": "oWd1bmtub3duomRkYXRhVYSAeJ2Ro7ozMVx6pTS9H2y5lhUlS2Vub25jZU8AAAAAALCBFwAAAAAAAAA=",
       "round": 11567384,
       "sender_0": "oasis1qqj0g6gkenex03my3p2vg4s3k33d3qll8unugszn",
       "sender_0_eth": "0x595d40F268b89Cf385d00E75788b51ABea1b99D0",
@@ -374,6 +384,7 @@
         "result": "eh6829oMYEJk4QLx9+8IBpJtPszX",
         "result_nonce": "AAAAAACwgQsAAAABAAAA"
       },
+      "raw_result": "oWd1bmtub3duomRkYXRhVXoevNvaDGBCZOEC8ffvCAaSbT7M12Vub25jZU8AAAAAALCBCwAAAAEAAAA=",
       "round": 11567372,
       "sender_0": "oasis1qqj0g6gkenex03my3p2vg4s3k33d3qll8unugszn",
       "sender_0_eth": "0x595d40F268b89Cf385d00E75788b51ABea1b99D0",
@@ -409,6 +420,7 @@
         "result": "qpsYg+hG2OZ3JesqPvnj28PRb2r7",
         "result_nonce": "AAAAAACwgP8AAAACAAAA"
       },
+      "raw_result": "oWd1bmtub3duomRkYXRhVaqbGIPoRtjmdyXrKj7549vD0W9q+2Vub25jZU8AAAAAALCA/wAAAAIAAAA=",
       "round": 11567360,
       "sender_0": "oasis1qqj0g6gkenex03my3p2vg4s3k33d3qll8unugszn",
       "sender_0_eth": "0x595d40F268b89Cf385d00E75788b51ABea1b99D0",
@@ -444,6 +456,7 @@
         "result": "FAGfOKEKxXOWdOzVxZYkq1t+bZcZ",
         "result_nonce": "AAAAAACwgPMAAAABAAAA"
       },
+      "raw_result": "oWd1bmtub3duomRkYXRhVRQBnzihCsVzlnTs1cWWJKtbfm2XGWVub25jZU8AAAAAALCA8wAAAAEAAAA=",
       "round": 11567348,
       "sender_0": "oasis1qqj0g6gkenex03my3p2vg4s3k33d3qll8unugszn",
       "sender_0_eth": "0x595d40F268b89Cf385d00E75788b51ABea1b99D0",
@@ -479,6 +492,7 @@
         "result": "qRO5ym3vVI6xeIScIB2NTGatG+Wq",
         "result_nonce": "AAAAAACwgOcAAAABAAAA"
       },
+      "raw_result": "oWd1bmtub3duomRkYXRhVakTucpt71SOsXiEnCAdjUxmrRvlqmVub25jZU8AAAAAALCA5wAAAAEAAAA=",
       "round": 11567336,
       "sender_0": "oasis1qqj0g6gkenex03my3p2vg4s3k33d3qll8unugszn",
       "sender_0_eth": "0x595d40F268b89Cf385d00E75788b51ABea1b99D0",
@@ -514,6 +528,7 @@
         "result": "ebRzdLlW1uvGdDAgCKerYemWW9hn",
         "result_nonce": "AAAAAACwgNwAAAAAAAAA"
       },
+      "raw_result": "oWd1bmtub3duomRkYXRhVXm0c3S5VtbrxnQwIAinq2HpllvYZ2Vub25jZU8AAAAAALCA3AAAAAAAAAA=",
       "round": 11567325,
       "sender_0": "oasis1qqj0g6gkenex03my3p2vg4s3k33d3qll8unugszn",
       "sender_0_eth": "0x595d40F268b89Cf385d00E75788b51ABea1b99D0",
@@ -549,6 +564,7 @@
         "result": "/MNjPo7E/XKD5lNasQePxk76PVi1",
         "result_nonce": "AAAAAACwgNAAAAAAAAAA"
       },
+      "raw_result": "oWd1bmtub3duomRkYXRhVfzDYz6OxP1yg+ZTWrEHj8ZO+j1YtWVub25jZU8AAAAAALCA0AAAAAAAAAA=",
       "round": 11567313,
       "sender_0": "oasis1qqj0g6gkenex03my3p2vg4s3k33d3qll8unugszn",
       "sender_0_eth": "0x595d40F268b89Cf385d00E75788b51ABea1b99D0",
@@ -584,6 +600,7 @@
         "result": "jQpInMjLwXo3/NNpyPHvFrxjUwhv",
         "result_nonce": "AAAAAACwgMQAAAAAAAAA"
       },
+      "raw_result": "oWd1bmtub3duomRkYXRhVY0KSJzIy8F6N/zTacjx7xa8Y1MIb2Vub25jZU8AAAAAALCAxAAAAAAAAAA=",
       "round": 11567301,
       "sender_0": "oasis1qqj0g6gkenex03my3p2vg4s3k33d3qll8unugszn",
       "sender_0_eth": "0x595d40F268b89Cf385d00E75788b51ABea1b99D0",
@@ -619,6 +636,7 @@
         "result": "OiHZG6v3w9yt995q6Fb/zGmBAMfK",
         "result_nonce": "AAAAAACwgLgAAAAAAAAA"
       },
+      "raw_result": "oWd1bmtub3duomRkYXRhVToh2Rur98PcrffeauhW/8xpgQDHymVub25jZU8AAAAAALCAuAAAAAAAAAA=",
       "round": 11567289,
       "sender_0": "oasis1qqj0g6gkenex03my3p2vg4s3k33d3qll8unugszn",
       "sender_0_eth": "0x595d40F268b89Cf385d00E75788b51ABea1b99D0",
@@ -654,6 +672,7 @@
         "result": "2joE5XPhKKJk2Onj4QXGRf+7LT17",
         "result_nonce": "AAAAAACwgKwAAAABAAAA"
       },
+      "raw_result": "oWd1bmtub3duomRkYXRhVdo6BOVz4SiiZNjp4+EFxkX/uy09e2Vub25jZU8AAAAAALCArAAAAAEAAAA=",
       "round": 11567277,
       "sender_0": "oasis1qqj0g6gkenex03my3p2vg4s3k33d3qll8unugszn",
       "sender_0_eth": "0x595d40F268b89Cf385d00E75788b51ABea1b99D0",
@@ -689,6 +708,7 @@
         "result": "ETSC6/BA4MkGf3xeaoDLZPeAPcjS",
         "result_nonce": "AAAAAACwgKAAAAABAAAA"
       },
+      "raw_result": "oWd1bmtub3duomRkYXRhVRE0guvwQODJBn98XmqAy2T3gD3I0mVub25jZU8AAAAAALCAoAAAAAEAAAA=",
       "round": 11567265,
       "sender_0": "oasis1qqj0g6gkenex03my3p2vg4s3k33d3qll8unugszn",
       "sender_0_eth": "0x595d40F268b89Cf385d00E75788b51ABea1b99D0",
@@ -724,6 +744,7 @@
         "result": "mjlrJErgavatpF39e9mFyqRGchcu",
         "result_nonce": "AAAAAACwgJQAAAAAAAAA"
       },
+      "raw_result": "oWd1bmtub3duomRkYXRhVZo5ayRK4Gr2raRd/XvZhcqkRnIXLmVub25jZU8AAAAAALCAlAAAAAAAAAA=",
       "round": 11567253,
       "sender_0": "oasis1qqj0g6gkenex03my3p2vg4s3k33d3qll8unugszn",
       "sender_0_eth": "0x595d40F268b89Cf385d00E75788b51ABea1b99D0",
@@ -759,6 +780,7 @@
         "result": "+RYz0gl/HcieSPYeRZUnpeqZ+feM",
         "result_nonce": "AAAAAACwgIgAAAABAAAA"
       },
+      "raw_result": "oWd1bmtub3duomRkYXRhVfkWM9IJfx3Inkj2HkWVJ6Xqmfn3jGVub25jZU8AAAAAALCAiAAAAAEAAAA=",
       "round": 11567241,
       "sender_0": "oasis1qqj0g6gkenex03my3p2vg4s3k33d3qll8unugszn",
       "sender_0_eth": "0x595d40F268b89Cf385d00E75788b51ABea1b99D0",
@@ -794,6 +816,7 @@
         "result": "wH50DrNQCZvp/hR/w4Bqm+qKDfXN",
         "result_nonce": "AAAAAACwgHwAAAAAAAAA"
       },
+      "raw_result": "oWd1bmtub3duomRkYXRhVcB+dA6zUAmb6f4Uf8OAapvqig31zWVub25jZU8AAAAAALCAfAAAAAAAAAA=",
       "round": 11567229,
       "sender_0": "oasis1qqj0g6gkenex03my3p2vg4s3k33d3qll8unugszn",
       "sender_0_eth": "0x595d40F268b89Cf385d00E75788b51ABea1b99D0",
@@ -829,6 +852,7 @@
         "result": "+eyzcJLa4alFD8waUmDZMzbMaBir",
         "result_nonce": "AAAAAACwgHAAAAABAAAA"
       },
+      "raw_result": "oWd1bmtub3duomRkYXRhVfnss3CS2uGpRQ/MGlJg2TM2zGgYq2Vub25jZU8AAAAAALCAcAAAAAEAAAA=",
       "round": 11567217,
       "sender_0": "oasis1qqj0g6gkenex03my3p2vg4s3k33d3qll8unugszn",
       "sender_0_eth": "0x595d40F268b89Cf385d00E75788b51ABea1b99D0",
@@ -1245,6 +1269,7 @@
       "is_likely_native_token_transfer": false,
       "method": "rofl.Register",
       "nonce_0": 7,
+      "raw_result": "oWJva/Y=",
       "round": 11567208,
       "sender_0": "oasis1qz5mdxjspvfnr6epe6ey602fxmjz4trkggxa2ayf",
       "signers": [

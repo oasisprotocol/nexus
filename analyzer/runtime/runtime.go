@@ -357,6 +357,7 @@ func (m *processor) queueTransactionInsert(batch *storage.QueryBatch, round uint
 		transactionData.GasLimit,
 		transactionData.GasUsed,
 		transactionData.Size,
+		transactionData.RawResult,
 		timestamp,
 		oasisEncryptedFormat,
 		oasisEncryptedPublicKey,
