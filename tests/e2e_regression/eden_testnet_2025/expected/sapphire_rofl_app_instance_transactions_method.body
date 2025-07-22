@@ -405,6 +405,7 @@
       "is_likely_native_token_transfer": false,
       "method": "rofl.Register",
       "nonce_0": 7,
+      "raw_result": "oWJva/Y=",
       "round": 11567208,
       "sender_0": "oasis1qz5mdxjspvfnr6epe6ey602fxmjz4trkggxa2ayf",
       "signers": [

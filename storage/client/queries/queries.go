@@ -546,6 +546,7 @@ const (
 				ELSE COALESCE(FLOOR(txs.fee / NULLIF(txs.gas_limit, 0)) * txs.gas_used, 0)
 			END AS charged_fee,
 			txs.size,
+			txs.raw_result,
 			txs.oasis_encrypted_format,
 			txs.oasis_encrypted_public_key,
 			txs.oasis_encrypted_data_nonce,

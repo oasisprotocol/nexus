@@ -1650,6 +1650,7 @@ func runtimeTransactionFromRow(rows pgx.Rows, logger *log.Logger) (*RuntimeTrans
 		&t.GasUsed,
 		&t.ChargedFee,
 		&t.Size,
+		&t.RawResult,
 		&oasisEncryptionEnvelopeFormat,
 		&oasisEncryptionEnvelope.PublicKey,
 		&oasisEncryptionEnvelope.DataNonce,

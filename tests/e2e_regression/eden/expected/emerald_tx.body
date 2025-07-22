@@ -20,6 +20,7 @@
       "is_likely_native_token_transfer": true,
       "method": "evm.Call",
       "nonce_0": 3063641,
+      "raw_result": "oWJva0A=",
       "round": 8060338,
       "sender_0": "oasis1qzchk9eh0n4p2raym2e6cyvegrjumxl3lqkfhztr",
       "sender_0_eth": "0xCB2412a993f406eFf10a74011410a4F35e3549E3",

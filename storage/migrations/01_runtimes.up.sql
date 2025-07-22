@@ -101,6 +101,8 @@ CREATE TABLE chain.runtime_transactions
   abi_parsed_at TIMESTAMP WITH TIME ZONE -- Updated in 34_runtime_abi_parsed_at.up.sql: NOT NULL DEFAULT '0001-01-01'
 
   -- likely_native_transfer BOOLEAN NOT NULL DEFAULT FALSE -- Added in 18_related_runtime_transactions_method_denorm.up.sql.
+
+  -- raw_result BYTEA -- Added in 45_runtime_transactions_raw_result.up.sql.
 );
 CREATE INDEX ix_runtime_transactions_tx_hash ON chain.runtime_transactions USING hash (tx_hash);
 CREATE INDEX ix_runtime_transactions_tx_eth_hash ON chain.runtime_transactions USING hash (tx_eth_hash);
