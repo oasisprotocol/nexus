@@ -337,6 +337,10 @@ CREATE TABLE chain.evm_tokens
 
   num_transfers UINT63 NOT NULL DEFAULT 0,
 
+  -- Tokens that likely emit no events and were only added via `additional_evm_token_addresses` will have this set to TRUE.
+  -- This signals that num_transfers/num_holders values cannot be obtained.
+  -- likely_no_events BOOLEAN NOT NULL DEFAULT FALSE, -- Added in 46_runtime_evm_tokens_no_events.up.sql.
+
   -- Block analyzer bumps this when it sees the mutable fields of the token
   -- change (e.g. total supply) based on dead reckoning.
   last_mutate_round UINT63 NOT NULL DEFAULT 0,

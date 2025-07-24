@@ -1,0 +1,7 @@
+BEGIN;
+
+ALTER TABLE chain.evm_tokens ADD COLUMN IF NOT EXISTS likely_no_events BOOLEAN NOT NULL DEFAULT FALSE;
+
+ALTER TABLE todo_updates.evm_tokens ADD COLUMN IF NOT EXISTS likely_no_events BOOLEAN NOT NULL DEFAULT FALSE;
+
+COMMIT;

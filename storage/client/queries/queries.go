@@ -1221,6 +1221,7 @@ func EVMTokens(rawNames *[]string, args *[]interface{}) string {
 			tokens.token_type AS type,
 			tokens.neby_derived_price,
 			COALESCE(holders.cnt, 0) AS num_holders,
+			tokens.likely_no_events,
 			ref_swap_pair_creations.pair_address AS ref_swap_pair_address,
 			eth_preimage(ref_swap_pair_creations.pair_address) AS ref_swap_pair_address_eth,
 			ref_swap_pair_creations.factory_address AS ref_swap_factory_address,

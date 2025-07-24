@@ -127,6 +127,7 @@ func registerEVMTokenAddress(batch *storage.QueryBatch, runtime common.Runtime, 
 		addr,
 		0,
 		0,
+		true,
 		0,
 	)
 
@@ -525,13 +526,13 @@ func (m *processor) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 			// In slow-sync mode, directly update or dead-reckon values.
 			batch.Queue(
 				queries.RuntimeEVMTokenDeltaUpsert,
-				m.runtime, addr, totalSupplyChange, numTransfersChange, lastMutateRound,
+				m.runtime, addr, totalSupplyChange, numTransfersChange, false, lastMutateRound,
 			)
 		} else {
 			// In fast-sync mode, just record the intent to update the values.
 			batch.Queue(
 				queries.RuntimeFastSyncEVMTokenDeltaInsert,
-				m.runtime, addr, totalSupplyChange, numTransfersChange, lastMutateRound,
+				m.runtime, addr, totalSupplyChange, numTransfersChange, false, lastMutateRound,
 			)
 		}
 	}

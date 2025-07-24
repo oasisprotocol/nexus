@@ -26,6 +26,9 @@ CREATE TABLE todo_updates.evm_tokens( -- Tracks updates to chain.evm_tokens(last
   token_address oasis_addr NOT NULL,
   total_supply NUMERIC(1000,0) NOT NULL DEFAULT 0,
   num_transfers UINT63 NOT NULL DEFAULT 0,
+  -- Tokens that likely emit no events and were only added via `additional_evm_token_addresses` will have this set to TRUE.
+  -- This signals that num_transfers/num_holders values cannot be obtained.
+  -- likely_no_events BOOLEAN NOT NULL DEFAULT FALSE, -- Added in 46_runtime_evm_tokens_no_events.up.sql.
   last_mutate_round UINT63 NOT NULL
 );
 -- Added in 09_fast_sync_temp_transaction_status_updates.up.sql.
