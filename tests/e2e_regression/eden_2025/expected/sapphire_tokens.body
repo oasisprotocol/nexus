@@ -7,8 +7,6 @@
       "is_verified": true,
       "name": "BitUSDs",
       "neby_derived_price": "30.025448675228444259",
-      "num_holders": 0,
-      "num_transfers": 0,
       "ref_token": {
         "decimals": 18,
         "name": "Wrapped ROSE",

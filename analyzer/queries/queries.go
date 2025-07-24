@@ -866,21 +866,22 @@ var (
 	// NOTE: Passing a 0 for last_mutate round causes that field to not be updated, effectively signalling
 	//       "this upsert does not create a need for a subsequent download of info from the EVM runtime".
 	RuntimeEVMTokenDeltaUpsert = `
-    INSERT INTO chain.evm_tokens AS old (runtime, token_address, total_supply, num_transfers, last_mutate_round)
-      VALUES ($1, $2, $3, $4, $5)
+    INSERT INTO chain.evm_tokens AS old (runtime, token_address, total_supply, num_transfers, likely_no_events, last_mutate_round)
+      VALUES ($1, $2, $3, $4, $5, $6)
     ON CONFLICT (runtime, token_address) DO UPDATE SET
       total_supply = old.total_supply + $3,
       num_transfers = old.num_transfers + $4,
-      last_mutate_round = GREATEST(old.last_mutate_round, $5)`
+      likely_no_events = excluded.likely_no_events AND old.likely_no_events,
+      last_mutate_round = GREATEST(old.last_mutate_round, $6)`
 
 	RuntimeFastSyncEVMTokenDeltaInsert = `
-    INSERT INTO todo_updates.evm_tokens AS old (runtime, token_address, total_supply, num_transfers, last_mutate_round)
-      VALUES ($1, $2, $3, $4, $5)`
+    INSERT INTO todo_updates.evm_tokens AS old (runtime, token_address, total_supply, num_transfers, likely_no_events, last_mutate_round)
+      VALUES ($1, $2, $3, $4, $5, $6)`
 
 	RuntimeEVMTokenRecompute = `
-    INSERT INTO chain.evm_tokens AS old (runtime, token_address, total_supply, num_transfers, last_mutate_round)
+    INSERT INTO chain.evm_tokens AS old (runtime, token_address, total_supply, num_transfers, likely_no_events, last_mutate_round)
     (
-      SELECT runtime, token_address, SUM(total_supply) AS total_supply, SUM(num_transfers) AS num_transfers, MAX(last_mutate_round) AS last_mutate_round
+      SELECT runtime, token_address, SUM(total_supply) AS total_supply, SUM(num_transfers) AS num_transfers, BOOL_AND(likely_no_events) AS likely_no_events, MAX(last_mutate_round) AS last_mutate_round
       FROM todo_updates.evm_tokens
       WHERE runtime = $1
       GROUP BY runtime, token_address
@@ -888,6 +889,7 @@ var (
     ON CONFLICT (runtime, token_address) DO UPDATE SET
       total_supply = old.total_supply + excluded.total_supply,
       num_transfers = old.num_transfers + excluded.num_transfers,
+      likely_no_events = old.likely_no_events AND excluded.likely_no_events,
       last_mutate_round = GREATEST(old.last_mutate_round, excluded.last_mutate_round)`
 
 	// Upserts a new EVM token with information that was downloaded from the EVM runtime (as opposed to dead-reckoned).

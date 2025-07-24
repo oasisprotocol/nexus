@@ -2251,6 +2251,7 @@ func (c *StorageClient) RuntimeTokens(ctx context.Context, runtime common.Runtim
 		var t EvmToken
 		var addrPreimage []byte
 		var tokenType common.TokenType
+		var likelyNoEvents bool
 		var refSwapPairAddr *string
 		var refSwap apiTypes.EvmTokenSwap
 		var refSwapPairEthAddr []byte
@@ -2270,6 +2271,7 @@ func (c *StorageClient) RuntimeTokens(ctx context.Context, runtime common.Runtim
 			&tokenType,
 			&t.NebyDerivedPrice,
 			&t.NumHolders,
+			&likelyNoEvents,
 			&refSwapPairAddr,
 			&refSwapPairEthAddr,
 			&refSwap.FactoryAddress,
@@ -2290,6 +2292,12 @@ func (c *StorageClient) RuntimeTokens(ctx context.Context, runtime common.Runtim
 			nil, // custom_sort_order
 		); err2 != nil {
 			return nil, wrapError(err2)
+		}
+		// If token emits no events (e.g. was added via `additional_evm_token_addresses` and doesn't emit events),
+		// we cannot know the number of holders or transfers, so emit those fields.
+		if likelyNoEvents {
+			t.NumHolders = nil
+			t.NumTransfers = nil
 		}
 
 		t.IsVerified = (t.VerificationLevel != nil)
