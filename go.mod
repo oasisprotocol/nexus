@@ -176,7 +176,6 @@ require (
 	github.com/akrylysov/pogreb v0.10.2
 	github.com/cockroachdb/apd v1.1.0
 	github.com/cometbft/cometbft v0.37.15
-	github.com/dgraph-io/ristretto v1.0.0
 	github.com/oapi-codegen/oapi-codegen/v2 v2.4.1
 	github.com/oapi-codegen/runtime v1.1.1
 	github.com/oasisprotocol/curve25519-voi v0.0.0-20230904125328-1f23a7beb09a

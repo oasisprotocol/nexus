@@ -14,7 +14,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dgraph-io/ristretto"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	ethCommon "github.com/ethereum/go-ethereum/common"
 	"github.com/jackc/pgx/v5"
@@ -42,8 +41,6 @@ import (
 )
 
 const (
-	blockCost = 1
-
 	defaultMaxTotalCount = 1000
 
 	// The maximum number of items that can be provided for name filters.
@@ -65,8 +62,6 @@ type StorageClient struct {
 
 	disableCirculatingSupply    bool
 	circulatingSupplyExclusions []apiTypes.Address
-
-	blockCache *ristretto.Cache[int64, *Block]
 
 	logger *log.Logger
 }
@@ -118,21 +113,6 @@ func NewStorageClient(
 	networkConfig *oasisConfig.Network,
 	l *log.Logger,
 ) (*StorageClient, error) {
-	// The API currently uses an in-memory block cache for a specific endpoint and no other cases.
-	// This somewhat arbitrary choice seems to have been made historically.
-	// Instead, we should review common queries and responses to implement a more consistent and general caching strategy.
-	// https://github.com/oasisprotocol/nexus/issues/887
-	blockCache, err := ristretto.NewCache(&ristretto.Config[int64, *Block]{
-		NumCounters:        1024 * 10,
-		MaxCost:            1024,
-		BufferItems:        64,
-		IgnoreInternalCost: true,
-	})
-	if err != nil {
-		l.Error("api client: failed to create block cache: %w", err)
-		return nil, err
-	}
-
 	// Parse the provided custom EVM token ordering config into a suitable format for the EVM token query.
 	// Per runtime list of token addresses.
 	evmTokensCustomOrderAddresses := make(map[common.Runtime][]*apiTypes.StakingAddress)
@@ -179,7 +159,6 @@ func NewStorageClient(
 		evmTokensCustomOrderGroups,
 		cfg.DisableCirculatingSupplyEndpoint,
 		circulatingSupplyExclusions,
-		blockCache,
 		l,
 	}, nil
 }
@@ -426,17 +405,7 @@ func entityInfoFromRow(r entityInfoRow) apiTypes.EntityInfo {
 // Blocks returns a list of consensus blocks.
 func (c *StorageClient) Blocks(ctx context.Context, r apiTypes.GetConsensusBlocksParams, height *int64) (*BlockList, error) {
 	if height != nil {
-		// Querying a single block by height, check cache.
-		// XXX: This cache is somewhat arbitrary and likely not very useful in practice.
-		// It has been kept for now to avoid regressions: https://github.com/oasisprotocol/nexus/issues/887
-		block, ok := c.blockCache.Get(*height)
-		if ok {
-			return &BlockList{
-				Blocks: []Block{*block},
-			}, nil
-		}
-
-		// Otherwise continue with the query below.
+		// Querying a single block by height, configure query parameters.
 		r.From = height
 		r.To = height
 		r.Limit = common.Ptr(uint64(1))
@@ -498,11 +467,6 @@ func (c *StorageClient) Blocks(ctx context.Context, r apiTypes.GetConsensusBlock
 		b.Signers = &signers
 
 		bs.Blocks = append(bs.Blocks, b)
-	}
-
-	// Cache the block if we queried a single block.
-	if height != nil && len(bs.Blocks) > 0 {
-		c.blockCache.Set(*height, &bs.Blocks[0], blockCost)
 	}
 
 	return &bs, nil

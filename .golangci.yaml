@@ -32,7 +32,6 @@ linters:
             - github.com/oasisprotocol/metadata-registry-tools
             - github.com/akrylysov/pogreb
             - github.com/cockroachdb/apd
-            - github.com/dgraph-io/ristretto
             - github.com/ethereum/go-ethereum
             - github.com/go-chi/chi/v5
             - github.com/go-kit/log
