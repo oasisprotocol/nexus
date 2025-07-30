@@ -12,6 +12,25 @@ The format is inspired by [Keep a Changelog].
 
 <!-- TOWNCRIER -->
 
+## 0.7.11 (2025-07-30)
+
+### Features
+
+- analyzer/runtime: Parse precompile results
+  ([#1093](https://github.com/oasisprotocol/nexus/issues/1093))
+
+- runtime/evm_tokens: Fetch Neby price for tokens
+  ([#1102](https://github.com/oasisprotocol/nexus/issues/1102))
+
+- api/runtime: Expose runtime transaction raw results
+  ([#1103](https://github.com/oasisprotocol/nexus/issues/1103))
+
+- api/runtime/tokens: Omit num_holders and num_transfers if unknown
+  ([#1105](https://github.com/oasisprotocol/nexus/issues/1105))
+
+  Tokens that emit no events (like BitUSD) will omit num_holders and
+  num_transfers instead of returning zeroes.
+
 ## 0.7.10 (2025-07-14)
 
 ### Features
