@@ -189,6 +189,22 @@ var (
       SET signer_entity_ids = $2
       WHERE height = $1`
 
+	ConsensusBlockAddSignersFastSync = `
+    INSERT INTO todo_updates.block_signers (block_height, entity_ids)
+      VALUES ($1, $2)`
+
+	ConsensusBlockSignersFinalize = `
+    -- Use a CTE to ensure we scan over todo_updates.block_signers, which doesn't have
+    -- any indexes setup.
+    WITH updated AS (
+      SELECT s.block_height, s.entity_ids
+      FROM todo_updates.block_signers s
+    )
+    UPDATE chain.blocks b
+      SET signer_entity_ids = u.entity_ids
+      FROM updated u
+      WHERE b.height = u.block_height`
+
 	ConsensusEpochUpsert = `
     INSERT INTO chain.epochs AS old (id, start_height, end_height)
       VALUES ($1, $2, $2)

@@ -45,4 +45,10 @@ CREATE TABLE todo_updates.evm_tokens( -- Tracks updates to chain.evm_tokens(last
 --   error_message TEXT
 -- );
 
+-- Added in 47_fast_sync_temp_block_signers.up.sql.
+-- CREATE TABLE todo_updates.block_signers( -- Tracks signers for blocks processed during fast-sync.
+--   block_height UINT63 NOT NULL,
+--   entity_ids TEXT[] NOT NULL
+-- );
+
 COMMIT;
