@@ -13,7 +13,7 @@ testCases=(
   "${commonMainnetTestCases[@]}"
   "${commonEmeraldTestCases[@]}"
   'block                                      /v1/consensus/blocks/8049500'
-  # 'blocks_proposed_by                       /v1/consensus/blocks?proposed_by=oasis1qq0xmq7r0z9sdv02t5j9zs7en3n6574gtg8v9fyt' // Enable once https://github.com/oasisprotocol/nexus/issues/795 is fixed.
+  'blocks_proposed_by                         /v1/consensus/blocks?proposed_by=oasis1qz0ea28d8p4xk8xztems60wq22f9pm2yyyd82tmt'
   'entity                                     /v1/consensus/entities/oasis1qz0ea28d8p4xk8xztems60wq22f9pm2yyyd82tmt'
   'entity_nodes                               /v1/consensus/entities/oasis1qz0ea28d8p4xk8xztems60wq22f9pm2yyyd82tmt/nodes'
   'node                                       /v1/consensus/entities/oasis1qz0ea28d8p4xk8xztems60wq22f9pm2yyyd82tmt/nodes/LuIdtuiEPLBJefXVieVruy4kf04jjp5CBJFWVes0ZuE='

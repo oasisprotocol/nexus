@@ -200,6 +200,8 @@ func (m *processor) aggregateFastSyncTables(ctx context.Context) error {
 	m.logger.Info("computing epoch boundaries for epochs scanned during fast-sync")
 	batch.Queue(queries.ConsensusEpochsRecompute)
 	batch.Queue("DELETE FROM todo_updates.epochs")
+	batch.Queue(queries.ConsensusBlockSignersFinalize)
+	batch.Queue("DELETE FROM todo_updates.block_signers")
 
 	if err := m.target.SendBatch(ctx, batch); err != nil {
 		return err
@@ -455,11 +457,24 @@ func (m *processor) queueBlockInserts(batch *storage.QueryBatch, data *consensus
 			}
 			prevSigners = append(prevSigners, entity.String())
 		}
-		batch.Queue(
-			queries.ConsensusBlockAddSigners,
-			cmtMeta.LastCommit.Height,
-			prevSigners,
-		)
+		switch m.mode {
+		case analyzer.FastSyncMode:
+			// During fast-sync, blocks are processed out of order, meaning the parent block may not yet be available.
+			// To avoid missing dependencies, signers are stored in a temporary table.
+			// These entries will be finalized during the fast-sync completion phase.
+			batch.Queue(
+				queries.ConsensusBlockAddSignersFastSync,
+				cmtMeta.LastCommit.Height,
+				prevSigners,
+			)
+
+		case analyzer.SlowSyncMode:
+			batch.Queue(
+				queries.ConsensusBlockAddSigners,
+				cmtMeta.LastCommit.Height,
+				prevSigners,
+			)
+		}
 	}
 
 	return nil

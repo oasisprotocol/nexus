@@ -12,7 +12,7 @@ testCases=(
   "${commonTestCases[@]}"
   "${commonSapphireTestCases[@]}"
   'block                                               /v1/consensus/blocks/25640984'
-  # 'blocks_proposed_by                                /v1/consensus/blocks?proposed_by=oasis1qqekv2ymgzmd8j2s2u7g0hhc7e77e654kvwqtjwm' # Enable once https://github.com/oasisprotocol/nexus/issues/795 is fixed.
+  'blocks_proposed_by                                  /v1/consensus/blocks?proposed_by=oasis1qqv25adrld8jjquzxzg769689lgf9jxvwgjs8tha'
   'entity                                              /v1/consensus/entities/oasis1qqv25adrld8jjquzxzg769689lgf9jxvwgjs8tha'
   'entity_nodes                                        /v1/consensus/entities/oasis1qqv25adrld8jjquzxzg769689lgf9jxvwgjs8tha/nodes'
   'node                                                /v1/consensus/entities/oasis1qqv25adrld8jjquzxzg769689lgf9jxvwgjs8tha/nodes/qQEtJm4Dyd3k02BFU9V8n6kNnCPAzTvcbxWiPM3t7Xw='
