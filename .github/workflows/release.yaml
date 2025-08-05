@@ -61,7 +61,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push Docker to ghcr.io
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v6
         with:
           build-args: |
             TAG=${{ env.TAG }}
@@ -70,6 +70,7 @@ jobs:
           tags: |
             ghcr.io/oasisprotocol/nexus:${{ env.TAG }}
           push: true
+          provenance: false
           labels: |
             org.opencontainers.image.source=${{ github.event.repository.html_url }}
             org.opencontainers.image.revision=${{ github.sha }}
