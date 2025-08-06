@@ -171,6 +171,19 @@
         "// comment": "0xB6dc6C8b71e88642cEAD3be1025565A9eE74d1C6"
     },
     {
+        "Name": "Router Protocol Recovery",
+        "Address": "oasis1qpgya8lt5f8r09qpc6lgf6adtfte7jxktga09akx",
+        "Description": "Router Protocol Incident: burn address to recover eligible assets",
+        "Origin": "Router",
+        "Icon": "https://assets.oasis.io/explorer-tokens/router.svg",
+        "Dapp": {
+            "Button": "Open",
+            "Description": "Router Protocol Incident: User Support",
+            "Url": "https://oasisrose.garden/router-protocol-incident-user-support/"
+        },
+        "// comment": "0xB1b64005B11350a94c4D069eff4215592d98F2E2"
+    },
+    {
         "Name": "RAKESH VILLAGE",
         "Address": "oasis1qqx805qqxneftz67ywqjs47u23cd8lcjusl3wcrs",
         "Description": "ERC20",
