@@ -1380,6 +1380,9 @@ func (c *StorageClient) Validators(ctx context.Context, p apiTypes.GetConsensusV
 		}
 		var schedule staking.CommissionSchedule
 		var logoUrl *string
+
+		var uptimeWindowLength, uptimeSegmentLength, windowUptime *uint64
+		var segmentUptimes []uint64
 		if err = res.rows.Scan(
 			&v.EntityID,
 			&v.EntityAddress,
@@ -1401,6 +1404,10 @@ func (c *StorageClient) Validators(ctx context.Context, p apiTypes.GetConsensusV
 			&v.InValidatorSet,
 			&v.Media,
 			&logoUrl,
+			&uptimeWindowLength,
+			&uptimeSegmentLength,
+			&windowUptime,
+			&segmentUptimes,
 		); err != nil {
 			return nil, wrapError(err)
 		}
@@ -1411,6 +1418,17 @@ func (c *StorageClient) Validators(ctx context.Context, p apiTypes.GetConsensusV
 			}
 			v.Media.LogoUrl = logoUrl
 		}
+		if uptimeWindowLength != nil && uptimeSegmentLength != nil && windowUptime != nil {
+			v.Uptime = &apiTypes.ValidatorUptime{
+				WindowLength:   *uptimeWindowLength,
+				SegmentLength:  *uptimeSegmentLength,
+				WindowUptime:   *windowUptime,
+				SegmentUptimes: segmentUptimes,
+			}
+		} else {
+			v.Uptime = nil
+		}
+
 		currentRate := schedule.CurrentRate(beacon.EpochTime(epoch.ID))
 		if currentRate != nil {
 			v.CurrentRate = currentRate.ToBigInt().Uint64()

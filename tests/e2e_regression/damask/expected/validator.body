@@ -441,6 +441,25 @@
         }
       ],
       "start_date": "2022-04-11T09:30:00Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          884,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 884
+      },
       "voting_power": 34834350461211,
       "voting_power_cumulative": 34834350461211
     }

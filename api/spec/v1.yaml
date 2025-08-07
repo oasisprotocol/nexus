@@ -2456,8 +2456,41 @@ components:
           description: An array containing details of the last 100 consensus blocks, indicating whether each block was signed by the validator. Only available when querying a single validator.
           items:
             allOf: [$ref: '#/components/schemas/ValidatorSignedBlock']
+        uptime:
+          allOf: [$ref: '#/components/schemas/ValidatorUptime']
+          description: The validator's uptime statistics for a period of time up to now.
       description: |
-        An validator registered at the consensus layer.
+        A validator registered at the consensus layer.
+
+    ValidatorUptime:
+      type: object
+      required: [window_length, segment_length, window_uptime, segment_uptimes]
+      properties:
+        window_length:
+          type: integer
+          format: uint64
+          description: |
+            The length of the historical window for which this object provides uptime information, in blocks.
+            Currently always 14400 blocks, or approximately 24 hours.
+        segment_length:
+          type: integer
+          format: uint64
+          description: |
+            The length of the window segment, in blocks. We subdivide the window into segments of equal length
+            and aggregate the uptime of each segment into `segment_uptimes`.
+            Currently always 1200 blocks, which is approximately 2 hours.
+        window_uptime:
+          type: integer
+          format: uint64
+          description: The number of blocks signed by the validator out of the last window_length blocks.
+        segment_uptimes:
+          type: array
+          description: |
+            An array showing the signed block counts for each sub-segment within window_length.
+            The segments are in reverse-chronological order; ie the first element represents the most recent segment of blocks.
+          items:
+            type: integer
+            format: uint64
 
     ValidatorSignedBlock:
       type: object

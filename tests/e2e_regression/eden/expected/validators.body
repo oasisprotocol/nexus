@@ -36,6 +36,25 @@
       "node_id": "6wbL5/OxvFGxi55o7AxcwKmfjXbXGC1hw4lfnEZxBXA=",
       "rank": 1,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          999,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 999
+      },
       "voting_power": 31903165146578016,
       "voting_power_cumulative": 31903165146578016
     },
@@ -71,6 +90,25 @@
       "node_id": "ked2iuR80WQdb4g7l+PqbQKGJAvD4+KVPFwuDc5nU6M=",
       "rank": 2,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          999,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 999
+      },
       "voting_power": 23508310046553456,
       "voting_power_cumulative": 55411475193131470
     },
@@ -106,6 +144,25 @@
       "node_id": "SCA1zoR15jpC2eugP1P/CZBQhMjHEtmJ7+hWemgTdWo=",
       "rank": 3,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          999,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 999
+      },
       "voting_power": 17597413222050748,
       "voting_power_cumulative": 73008888415182220
     },
@@ -140,6 +197,25 @@
       "node_id": "PsfFUQrXqGoFtowWZcoc8ilh8xHP94LvNYHvqQHpw1E=",
       "rank": 4,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          902,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 902
+      },
       "voting_power": 14409541602963356,
       "voting_power_cumulative": 87418430018145580
     },
@@ -175,6 +251,25 @@
       "node_id": "qnRAoObwndP/P9otTzQ/9Z2+vmSQ1Pch7G4tGBSTxCo=",
       "rank": 5,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          936,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 936
+      },
       "voting_power": 11813946657692260,
       "voting_power_cumulative": 99232376675837840
     },
@@ -210,6 +305,25 @@
       "node_id": "xHvUU4I+dQ4oKvlfe4IXoKi8OT8vdAgfszQ5ciPL6HI=",
       "rank": 6,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          992,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 992
+      },
       "voting_power": 6898806920230617,
       "voting_power_cumulative": 106131183596068450
     },
@@ -244,6 +358,25 @@
       "node_id": "DudLYGDVKMgh/OZ0rOsoxeCNzSxalm4bvQsrsE/H9XA=",
       "rank": 7,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          557,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 557
+      },
       "voting_power": 6006105120821732,
       "voting_power_cumulative": 112137288716890190
     },
@@ -271,6 +404,25 @@
       "node_id": "GbyaSlSmHP7INTdznI0NzlN0VWGrPJX5ZQqTNZqNC7o=",
       "rank": 8,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          999,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 999
+      },
       "voting_power": 4922201735007926,
       "voting_power_cumulative": 117059490451898110
     },
@@ -304,6 +456,25 @@
       "node_id": "HtMg7C5OOSLdjm6fCYBoLJ6lrmkthM2fVQPykOq3S9k=",
       "rank": 9,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          999,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 999
+      },
       "voting_power": 4822438253997837,
       "voting_power_cumulative": 121881928705895950
     },
@@ -339,6 +510,25 @@
       "node_id": "4bv9f6NqLf4+6+QII+p48KgpagFXk9PgIdefbuo2spA=",
       "rank": 10,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          761,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 761
+      },
       "voting_power": 4546237779496083,
       "voting_power_cumulative": 126428166485392030
     },
@@ -374,6 +564,25 @@
       "node_id": "apKOntFDXWhpOfYAn1r84IWDG2KGBBAox4usIDhZcns=",
       "rank": 11,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          999,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 999
+      },
       "voting_power": 4355334345360668,
       "voting_power_cumulative": 130783500830752700
     },
@@ -408,6 +617,25 @@
       "node_id": "6drUHh4qocfbBsA12qM8pTerEcbqhdaHt+v33sEr5kk=",
       "rank": 12,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          996,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 996
+      },
       "voting_power": 3878679245689438,
       "voting_power_cumulative": 134662180076442140
     },
@@ -443,6 +671,25 @@
       "node_id": "jVPUq8aUDKe9jawIs7wPB4NBml27ft5kICIY7SBh/yQ=",
       "rank": 13,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          883,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 883
+      },
       "voting_power": 3776172592266215,
       "voting_power_cumulative": 138438352668708350
     },
@@ -477,6 +724,25 @@
       "node_id": "YyvKEbFTA9HS2WL763OQ+8HMe2AWdGt3D1j0h6I0x6c=",
       "rank": 14,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          859,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 859
+      },
       "voting_power": 3721465390830823,
       "voting_power_cumulative": 142159818059539170
     },
@@ -510,6 +776,25 @@
       "node_id": "XCiPWblWT3n1aN2NI0vslmlfV9GOkxE2Ih2SI66ZR38=",
       "rank": 15,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          771,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 771
+      },
       "voting_power": 3640942372791089,
       "voting_power_cumulative": 145800760432330270
     },
@@ -545,6 +830,25 @@
       "node_id": "AFg3reZ2n4Xmz1io3+oLQz9ZkfNRkLopO1DkWZuzUCQ=",
       "rank": 16,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          993,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 993
+      },
       "voting_power": 3620475693605702,
       "voting_power_cumulative": 149421236125935970
     },
@@ -580,6 +884,25 @@
       "node_id": "IEkIQb2o8l0xlFIpN47FmOYcBmFch9DsZGs8OuZqQ6g=",
       "rank": 17,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          999,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 999
+      },
       "voting_power": 3513558186372270,
       "voting_power_cumulative": 152934794312308220
     },
@@ -615,6 +938,25 @@
       "node_id": "BZvhmvc1YZpXteI2nPhBDyC2jxi04MHEbKXB1DpTM1w=",
       "rank": 18,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          830,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 830
+      },
       "voting_power": 3403624079219081,
       "voting_power_cumulative": 156338418391527330
     },
@@ -648,6 +990,25 @@
       "node_id": "Y/wwhwec6KZFgmM25vKNCTw1FS71/9iv5Q2lWtFX2PA=",
       "rank": 19,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          771,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 771
+      },
       "voting_power": 3399658712683794,
       "voting_power_cumulative": 159738077104211100
     },
@@ -682,6 +1043,25 @@
       "node_id": "4rUqFOE27urnaltMm2XqyuxcghXs4xRep3AV3mXSTt4=",
       "rank": 20,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          976,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 976
+      },
       "voting_power": 3344314661918167,
       "voting_power_cumulative": 163082391766129280
     },
@@ -715,6 +1095,25 @@
       "node_id": "Fg9vlXWjuP7OZHhLMliDzfTOenuxtYo93VxQquFDUxw=",
       "rank": 21,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          999,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 999
+      },
       "voting_power": 3264453677776889,
       "voting_power_cumulative": 166346845443906180
     },
@@ -748,6 +1147,25 @@
       "node_id": "ao6m4qMGefemuUiwr6GoqxaeWoX14uQ7YTxTajKADQg=",
       "rank": 22,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          991,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 991
+      },
       "voting_power": 3260268332230039,
       "voting_power_cumulative": 169607113776136200
     },
@@ -782,6 +1200,25 @@
       "node_id": "b+6HsJ3SRI9f3eecG0bSZG/7UQzEBcJsIi4z07ytmEA=",
       "rank": 23,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          999,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 999
+      },
       "voting_power": 3250599628987143,
       "voting_power_cumulative": 172857713405123360
     },
@@ -815,6 +1252,25 @@
       "node_id": "napBTcD5bfZJuheWQLWrfMnvr0mgdjrd93cTJzpJD1I=",
       "rank": 24,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          999,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 999
+      },
       "voting_power": 3136898082433037,
       "voting_power_cumulative": 175994611487556380
     },
@@ -850,6 +1306,25 @@
       "node_id": "GYJsEu4Yp+CGEQVjy4owQAG6l6xEvGzcNM1xBHaEv6U=",
       "rank": 25,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          999,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 999
+      },
       "voting_power": 3086274751464075,
       "voting_power_cumulative": 179080886239020450
     },
@@ -883,6 +1358,25 @@
       "node_id": "orWbpXiShG+xIy/BxDtokUdZwNCg3A4oNSbqkpjbvZQ=",
       "rank": 26,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          979,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 979
+      },
       "voting_power": 3037726616151457,
       "voting_power_cumulative": 182118612855171900
     },
@@ -915,6 +1409,25 @@
       "node_id": "y6LXNa3NMtZzeXnz9GNBj9MZuSCwBvfBLkZu2YG2fU4=",
       "rank": 27,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          997,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 997
+      },
       "voting_power": 2883968483941044,
       "voting_power_cumulative": 185002581339112960
     },
@@ -950,6 +1463,25 @@
       "node_id": "oFa261SRphbFBQ+QW6xcd9SZBMJrzsmDrYecSblNHv0=",
       "rank": 28,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          938,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 938
+      },
       "voting_power": 2862981564313518,
       "voting_power_cumulative": 187865562903426500
     },
@@ -983,6 +1515,25 @@
       "node_id": "CPLy/FYKtIVK7JOspFi3G1Afkurqmh2tAtiDq4rnSfI=",
       "rank": 29,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          988,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 988
+      },
       "voting_power": 2837637937700289,
       "voting_power_cumulative": 190703200841126800
     },
@@ -1015,6 +1566,25 @@
       "node_id": "5GNoYx8mSk4PjcXLyi2I50Bw7n1ATsqAtttVjRzTuEY=",
       "rank": 30,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          998,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 998
+      },
       "voting_power": 2810333352344620,
       "voting_power_cumulative": 193513534193471400
     },
@@ -1050,6 +1620,25 @@
       "node_id": "dMaOtmpPbdB7ukYfXdo+ssTTCjX2Qspmi1YJIg5Hcr0=",
       "rank": 31,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          999,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 999
+      },
       "voting_power": 2736624707230437,
       "voting_power_cumulative": 196250158900701820
     },
@@ -1083,6 +1672,25 @@
       "node_id": "aJFHeID4Q7qUfMa42dRwaa9PQrZ/cVDiE3WNt4bQjo0=",
       "rank": 32,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          904,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 904
+      },
       "voting_power": 2431770222442441,
       "voting_power_cumulative": 198681929123144260
     },
@@ -1118,6 +1726,25 @@
       "node_id": "g4GC/b200mEkFXNhsOJxQKdo39DAHayAxrO+c1AhfhI=",
       "rank": 33,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          451,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 451
+      },
       "voting_power": 2361594168466702,
       "voting_power_cumulative": 201043523291610980
     },
@@ -1152,6 +1779,25 @@
       "node_id": "ITrwEekdZNqXrEzvw3GT6Q3AtHDd51f19nD2nVU/f0c=",
       "rank": 34,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          996,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 996
+      },
       "voting_power": 2349296265173979,
       "voting_power_cumulative": 203392819556784960
     },
@@ -1187,6 +1833,25 @@
       "node_id": "AZJhDCByjr/YdTvA7uFnIeYcg7iuHPGiDrJRKaEOYHA=",
       "rank": 35,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          571,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 571
+      },
       "voting_power": 2294935242424635,
       "voting_power_cumulative": 205687754799209600
     },
@@ -1220,6 +1885,25 @@
       "node_id": "6XcILTcGhjvVaWI/tRvZfUTp4huxgg6OBvFQrNmx9DY=",
       "rank": 36,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          982,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 982
+      },
       "voting_power": 2155088774823581,
       "voting_power_cumulative": 207842843574033150
     },
@@ -1255,6 +1939,25 @@
       "node_id": "3xkzy9g5wL1sqGY8cnd6A7kFuwFM4yuUt0nEJrdHNJ0=",
       "rank": 37,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          999,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 999
+      },
       "voting_power": 1850649400116537,
       "voting_power_cumulative": 209693492974149700
     },
@@ -1288,6 +1991,25 @@
       "node_id": "AVQbWvlbKOHi3z8uibbOVl3xsCJsw2YtWG5XXdbhhpI=",
       "rank": 38,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          999,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 999
+      },
       "voting_power": 1843773648812438,
       "voting_power_cumulative": 211537266622962140
     },
@@ -1321,6 +2043,25 @@
       "node_id": "XanOOptLq+tmEky6Olf3dVO6HZcUJs8f6ESxIvMmO0E=",
       "rank": 39,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          999,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 999
+      },
       "voting_power": 1824442496831759,
       "voting_power_cumulative": 213361709119793900
     },
@@ -1356,6 +2097,25 @@
       "node_id": "IdElhqKVZCHY9Lo6222te1wSdhPPAz/OCsoSRkWrXXw=",
       "rank": 40,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          999,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 999
+      },
       "voting_power": 1810418806792831,
       "voting_power_cumulative": 215172127926586720
     },
@@ -1389,6 +2149,25 @@
       "node_id": "ioLADiyiFmIms+8fib3N36/TX5XEnHrs2vWcH5LxHGo=",
       "rank": 41,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          999,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 999
+      },
       "voting_power": 1807883950508396,
       "voting_power_cumulative": 216980011877095140
     },
@@ -1423,6 +2202,25 @@
       "node_id": "JThJEQbC1iFVbdy6nFz6mSwChY5xgnOwbWAV3igG6mE=",
       "rank": 42,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          999,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 999
+      },
       "voting_power": 1802583845053905,
       "voting_power_cumulative": 218782595722149020
     },
@@ -1457,6 +2255,25 @@
       "node_id": "jZ2/EOnpmPCxCfd5wrrLINNdZSPWyhIx9UqJgZ8sHYk=",
       "rank": 43,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          966,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 966
+      },
       "voting_power": 1799447815926711,
       "voting_power_cumulative": 220582043538075740
     },
@@ -1489,6 +2306,25 @@
       "node_id": "e5ebJbZikm11u56wEOM9Ka1uVUS1Pckgc8RGmahs8Ss=",
       "rank": 44,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          999,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 999
+      },
       "voting_power": 1795969207510365,
       "voting_power_cumulative": 222378012745586100
     },
@@ -1522,6 +2358,25 @@
       "node_id": "0NRs2/1SB/Zbr2Kd5RjM0+KHBrx9mbOLad8qwyQaNvQ=",
       "rank": 45,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          994,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 994
+      },
       "voting_power": 1784309021042877,
       "voting_power_cumulative": 224162321766629000
     },
@@ -1556,6 +2411,25 @@
       "node_id": "MnmXWIpf1hEok0rIcynmHfYR6kvWuyH6VdCJARVN5oY=",
       "rank": 46,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          954,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 954
+      },
       "voting_power": 1753386695184028,
       "voting_power_cumulative": 225915708461813020
     },
@@ -1589,6 +2463,25 @@
       "node_id": "ejPrx9xTpKV3GTZgthFQWf3UPMFFBseRtc0A17ak1TU=",
       "rank": 47,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          999,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 999
+      },
       "voting_power": 1753082273426040,
       "voting_power_cumulative": 227668790735239040
     },
@@ -1622,6 +2515,25 @@
       "node_id": "I/Vnwyi7FJdROFe64fbaqE3t55OLcUBY8hVK64VNrqc=",
       "rank": 48,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          998,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 998
+      },
       "voting_power": 1752370798014738,
       "voting_power_cumulative": 229421161533253800
     },
@@ -1656,6 +2568,25 @@
       "node_id": "igLfuIxxqZATg0snKVTFoeRaqrlNq5r69ofncwlUA8I=",
       "rank": 49,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          999,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 999
+      },
       "voting_power": 1740025122401581,
       "voting_power_cumulative": 231161186655655360
     },
@@ -1689,6 +2620,25 @@
       "node_id": "GY1goAIuGGSeVrhjhgVAp4JB0y6l3P5+TnozeBxu/kw=",
       "rank": 50,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          999,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 999
+      },
       "voting_power": 1736509831768607,
       "voting_power_cumulative": 232897696487423970
     },
@@ -1724,6 +2674,25 @@
       "node_id": "REB7DjPPyYCknxakN3MyAOS746YWJtgE41g9ac+oZXU=",
       "rank": 51,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          771,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 771
+      },
       "voting_power": 1692078679396111,
       "voting_power_cumulative": 234589775166820100
     },
@@ -1758,6 +2727,25 @@
       "node_id": "VHs9SQr/IC3ElqF1rNxFuCrkx/pWbhy46So19MQlZLE=",
       "rank": 52,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          395,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 395
+      },
       "voting_power": 1657528755833713,
       "voting_power_cumulative": 236247303922653800
     },
@@ -1791,6 +2779,25 @@
       "node_id": "9R8sWVuwyIoE64JXu2sdDWR6vdqFr/X9aEWvPE8G824=",
       "rank": 53,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          803,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 803
+      },
       "voting_power": 1652774216592556,
       "voting_power_cumulative": 237900078139246370
     },
@@ -1826,6 +2833,25 @@
       "node_id": "HZGW8QfuMUv/JEa1HqT19HrGTdJY3mWH4nogaWrWK+0=",
       "rank": 54,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          999,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 999
+      },
       "voting_power": 1641011959901689,
       "voting_power_cumulative": 239541090099148030
     },
@@ -1853,6 +2879,25 @@
       "node_id": "/LlzNoccjtMUbW6fXa/3KKVa6JN+qwnGQrB4u631nR8=",
       "rank": 55,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          771,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 771
+      },
       "voting_power": 1222867035810912,
       "voting_power_cumulative": 240763957134958940
     },
@@ -1888,6 +2933,25 @@
       "node_id": "o5GsCptt8lelHPe2vSoEEBvSosOczh+cRom2+Gouhlo=",
       "rank": 56,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          999,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 999
+      },
       "voting_power": 1202125910888756,
       "voting_power_cumulative": 241966083045847700
     },
@@ -1923,6 +2987,25 @@
       "node_id": "+zVbgQqOdY90Z2NQKXFByNT0OwLxj/Ho4j4qT5u2yKM=",
       "rank": 57,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          902,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 902
+      },
       "voting_power": 1124823081342055,
       "voting_power_cumulative": 243090906127189760
     },
@@ -1957,6 +3040,25 @@
       "node_id": "QFAWexckwRHNxkIty67NCpY8LHwlrcGp/v0ziDSlgFs=",
       "rank": 58,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          771,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 771
+      },
       "voting_power": 1112337555150224,
       "voting_power_cumulative": 244203243682340000
     },
@@ -1984,6 +3086,25 @@
       "node_id": "lCQsP7Rhw/EdcM2sVDXOzWcUDHx47wGJDBah4xw6c90=",
       "rank": 59,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          771,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 771
+      },
       "voting_power": 1015721246857602,
       "voting_power_cumulative": 245218964929197600
     },
@@ -2011,6 +3132,25 @@
       "node_id": "p7pJUBSdgF4PfgKrn8JJl4xhVZXMu9h1TfNlAU5VjBU=",
       "rank": 60,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          771,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 771
+      },
       "voting_power": 999968851435876,
       "voting_power_cumulative": 246218933780633470
     },
@@ -2038,6 +3178,25 @@
       "node_id": "y4LZvdQ/k9RBiPLSvBHt/8GhbOVEHY/LfIdgk0iXUho=",
       "rank": 61,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          999,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 999
+      },
       "voting_power": 986014248909462,
       "voting_power_cumulative": 247204948029542940
     },
@@ -2073,6 +3232,25 @@
       "node_id": "RClDxygiGYEFeO90jnfHAIXm2QrP5TNQ5F50N77zKY4=",
       "rank": 62,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          926,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 926
+      },
       "voting_power": 964873416897829,
       "voting_power_cumulative": 248169821446440770
     },
@@ -2107,6 +3285,25 @@
       "node_id": "vMQ22VnjLoqniEhCIaIIMvmIBykplV4rqawcGdvFAqY=",
       "rank": 63,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          771,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 771
+      },
       "voting_power": 959530870979876,
       "voting_power_cumulative": 249129352317420640
     },
@@ -2134,6 +3331,25 @@
       "node_id": "lTC9wxlqYTUvXSV2bJxj0w2JWGdlY6pZFIx68V/qYB4=",
       "rank": 64,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          771,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 771
+      },
       "voting_power": 830842870629706,
       "voting_power_cumulative": 249960195188050340
     },
@@ -2169,6 +3385,25 @@
       "node_id": "GrfIMoanLXIPuS91RhqdikNLcebWN26tMM2/iIA8cAE=",
       "rank": 65,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          550,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 550
+      },
       "voting_power": 824083460214930,
       "voting_power_cumulative": 250784278648265280
     },
@@ -2202,6 +3437,25 @@
       "node_id": "MDvOFuiehs/VbW/s0e6DTn5b4fnsteQhCVd9E7T80Hs=",
       "rank": 66,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          999,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 999
+      },
       "voting_power": 814960569189426,
       "voting_power_cumulative": 251599239217454700
     },
@@ -2229,6 +3483,25 @@
       "node_id": "ROe9AtvfOFX6bu+5vhRCR87qYXSzp5NfELBqB3Hdgrw=",
       "rank": 67,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          771,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 771
+      },
       "voting_power": 807504981753224,
       "voting_power_cumulative": 252406744199207940
     },
@@ -2264,6 +3537,25 @@
       "node_id": "2cCzBxxmU/xnZwBf7aEoPiKXx5JWURZrkfHHXML8bmk=",
       "rank": 68,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          995,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 995
+      },
       "voting_power": 793090356990377,
       "voting_power_cumulative": 253199834556198300
     },
@@ -2299,6 +3591,25 @@
       "node_id": "jezrY6n61D/wD39nZKC+LpYfOZt5AN8gZ5SWu9vypD8=",
       "rank": 69,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          999,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 999
+      },
       "voting_power": 784409460326357,
       "voting_power_cumulative": 253984244016524670
     },
@@ -2326,6 +3637,25 @@
       "node_id": "+Y5BKnMuB33ekK6AL+xbBLe1c4JECQwzIg7eAmSyrKE=",
       "rank": 70,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          764,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 764
+      },
       "voting_power": 772537671934977,
       "voting_power_cumulative": 254756781688459650
     },
@@ -2360,6 +3690,25 @@
       "node_id": "eudq22Uwt0ciC7/BYN3TsUy+MCataTkQjwS/BBlgvJE=",
       "rank": 71,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          759,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 759
+      },
       "voting_power": 683756002977988,
       "voting_power_cumulative": 255440537691437630
     },
@@ -2395,6 +3744,25 @@
       "node_id": "1Eh9S7bnBnYzhdMuRc8W1DtGsjgMptbRktoE7tw/HiA=",
       "rank": 72,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          999,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 999
+      },
       "voting_power": 622152519404739,
       "voting_power_cumulative": 256062690210842370
     },
@@ -2429,6 +3797,25 @@
       "node_id": "LHA2Gbme/AReIFXmxwD9m/Ae8sZ1d2U/DFRfecT72YM=",
       "rank": 73,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          911,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 911
+      },
       "voting_power": 620446711414784,
       "voting_power_cumulative": 256683136922257150
     },
@@ -2464,6 +3851,25 @@
       "node_id": "mRRMUc8eU8zbqUWAiHDiBeRo6wqVImqQs91TxkGjuuU=",
       "rank": 74,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          696,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 696
+      },
       "voting_power": 609312901985023,
       "voting_power_cumulative": 257292449824242180
     },
@@ -2499,6 +3905,25 @@
       "node_id": "U7xmDzxndm9uL4qfFWau6d1dadgeH2yEP6q1L332lTE=",
       "rank": 75,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          912,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 912
+      },
       "voting_power": 499328776195670,
       "voting_power_cumulative": 257791778600437820
     },
@@ -2534,6 +3959,25 @@
       "node_id": "jKA6PqWwftnglxywnQQPoIcb7j2HQVu7anf2i7LWU2c=",
       "rank": 76,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          696,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 696
+      },
       "voting_power": 439169349831084,
       "voting_power_cumulative": 258230947950268930
     },
@@ -2561,6 +4005,25 @@
       "node_id": "hDQp4FhwWREN09nSGMPJAEYKeCmxG/joQivxfY3vyi8=",
       "rank": 77,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          771,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 771
+      },
       "voting_power": 429252784854745,
       "voting_power_cumulative": 258660200735123680
     },
@@ -2588,6 +4051,25 @@
       "node_id": "kilLHKVgCJC5T62styokgO0IHWmLClT85XzFDSBCjok=",
       "rank": 78,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          705,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 705
+      },
       "voting_power": 356496938671611,
       "voting_power_cumulative": 259016697673795260
     },
@@ -2622,6 +4104,25 @@
       "node_id": "P5PjvHDpeiFQGxh4OTaO6qXwRC0AJfhlTfwPj0ZYEzA=",
       "rank": 79,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          844,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 844
+      },
       "voting_power": 343968025755934,
       "voting_power_cumulative": 259360665699551200
     },
@@ -2657,6 +4158,25 @@
       "node_id": "YOg6j3mfRIscs0oW+IzeiheXd8zS+6QVXZS/fPr8go4=",
       "rank": 80,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          558,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 558
+      },
       "voting_power": 292630573267426,
       "voting_power_cumulative": 259653296272818620
     },
@@ -2689,6 +4209,25 @@
       "node_id": "ONNtkoEg0gKzrYd+ERdUz5Xq/D7S72IyCGbc6lJQcZk=",
       "rank": 81,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          771,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 771
+      },
       "voting_power": 271147567658254,
       "voting_power_cumulative": 259924443840476900
     },
@@ -2724,6 +4263,25 @@
       "node_id": "SWzqmOU0EDxeQvko0tvQStepEdSjTdqhMQNEfoRonvI=",
       "rank": 82,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          999,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 999
+      },
       "voting_power": 254393212178928,
       "voting_power_cumulative": 260178837052655800
     },
@@ -2758,6 +4316,25 @@
       "node_id": "GWBXv2OxowCLsRGyT/cND2TKEs9kpo4xtvr1JTsB8R0=",
       "rank": 83,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          752,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 752
+      },
       "voting_power": 237773260828267,
       "voting_power_cumulative": 260416610313484100
     },
@@ -2793,6 +4370,25 @@
       "node_id": "5sCeNfer0j+/7H1VUAeCWphA3CDfZ2MxFA1zFVzPgPU=",
       "rank": 84,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          936,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 936
+      },
       "voting_power": 226540486510645,
       "voting_power_cumulative": 260643150799994720
     },
@@ -2826,6 +4422,25 @@
       "node_id": "cAv9RnPhVePF291QmZNF2Jex0EFcm2Br942ve3Ifxns=",
       "rank": 85,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          999,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 999
+      },
       "voting_power": 178128090301763,
       "voting_power_cumulative": 260821278890296500
     },
@@ -2853,6 +4468,25 @@
       "node_id": "AiYyIwAJcdc9yGoBHnP4ycPtd/N2DOR0kqVrQWlS46Y=",
       "rank": 86,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          799,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 799
+      },
       "voting_power": 162158568238512,
       "voting_power_cumulative": 260983437458535000
     },
@@ -2887,6 +4521,25 @@
       "node_id": "0/0TJw2+i1XVYn3Z7igQSpdGoZ0cFdyI4GVcopmH2hI=",
       "rank": 87,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          995,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 995
+      },
       "voting_power": 118644618714317,
       "voting_power_cumulative": 261102082077249300
     },
@@ -2921,6 +4574,25 @@
       "node_id": "g1N1PdE7dBT5yYyhCbVa44637hhsIpIH8EF8gFlmiIQ=",
       "rank": 88,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          771,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 771
+      },
       "voting_power": 51283682191636,
       "voting_power_cumulative": 261153365759440960
     },
@@ -2954,6 +4626,25 @@
       "node_id": "u0ljAJgP5+HyEykOsa+tEqXdKJD41/5bxJ5tAA9eIxg=",
       "rank": 89,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          806,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 806
+      },
       "voting_power": 44819411114507,
       "voting_power_cumulative": 261198185170555460
     },
@@ -2989,6 +4680,25 @@
       "node_id": "6iVX2oi9FANusFaQPmIDSWu3qLNE2YKMPhQeO1EhUNQ=",
       "rank": 90,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          892,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 892
+      },
       "voting_power": 36368794300776,
       "voting_power_cumulative": 261234553964856260
     },
@@ -3121,6 +4831,25 @@
       "node_id": "lbxs4hlud9XNloIOdhJPaCahd7HtiY8QATCgGnFfCM0=",
       "rank": 94,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          217,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 217
+      },
       "voting_power": 0,
       "voting_power_cumulative": 261234553964856260
     },
@@ -3155,6 +4884,25 @@
       "node_id": "RyR58ibjevY8DqFHaqDfJhe1zm0XeY83hPk78qtcUic=",
       "rank": 95,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          228,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 228
+      },
       "voting_power": 0,
       "voting_power_cumulative": 261234553964856260
     },
@@ -3522,6 +5270,25 @@
       "node_id": "POpjxTxuw2cJsgtgzgfhrkPD3hVh2oYkHmELHonPgpQ=",
       "rank": 106,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          5,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 5
+      },
       "voting_power": 0,
       "voting_power_cumulative": 261234553964856260
     },
@@ -3662,6 +5429,25 @@
       "node_id": "lt3KIEsVunHEMDfgnekDbFFr7Y5aqXmNgbfJMzJzYDM=",
       "rank": 110,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          228,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 228
+      },
       "voting_power": 0,
       "voting_power_cumulative": 261234553964856260
     },
@@ -3731,6 +5517,25 @@
       "node_id": "TK0FcEOwv/hU5TI8PqWrhQiOy8VfP0vc8m7QViD4VMo=",
       "rank": 112,
       "start_date": "2023-11-29T10:02:19Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          20,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 20
+      },
       "voting_power": 0,
       "voting_power_cumulative": 261234553964856260
     },
