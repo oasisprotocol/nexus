@@ -12,6 +12,30 @@ The format is inspired by [Keep a Changelog].
 
 <!-- TOWNCRIER -->
 
+## 0.7.12 (2025-08-08)
+
+### Features
+
+- Track liveness of consensus validator nodes
+  ([#800](https://github.com/oasisprotocol/nexus/issues/800))
+
+  Consensus validator API now includes uptime statistics for the last
+  24 hours.
+
+### Bug Fixes and Improvements
+
+- analyzer/consensus: Fix block signers during fast-sync
+  ([#1110](https://github.com/oasisprotocol/nexus/issues/1110))
+
+### Internal Changes
+
+- storage/client: Remove consensus block cache
+  ([#1107](https://github.com/oasisprotocol/nexus/issues/1107))
+
+  The API currently uses an in-memory cache for a single endpoint,
+  while no caching is applied to other cases. This somewhat arbitrary
+  choice stems from historical decisions without clear justification.
+
 ## 0.7.11 (2025-07-30)
 
 ### Features
