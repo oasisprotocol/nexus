@@ -63,7 +63,7 @@ jobs:
           go mod tidy -v -x -compat=1.24  # goreleaser does the same; can find lingering issues
           echo TIDY RESULTS START; git diff || true; echo TIDY RESULTS END
       - name: Upload to codecov.io
-        uses: codecov/codecov-action@v3.1.0
+        uses: codecov/codecov-action@v5.4.3
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           file: ./coverage.txt
