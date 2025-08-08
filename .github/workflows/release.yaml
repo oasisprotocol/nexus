@@ -28,11 +28,11 @@ jobs:
 
       # Prepare the GitHub release.
       - name: Install GoReleaser
-        uses: goreleaser/goreleaser-action@v3
+        uses: goreleaser/goreleaser-action@v6
         with:
           install-only: true
           distribution: goreleaser
-          version: 1.2.5
+          version: 2.11.0
 
       - name: Build and publish the next release
         run: |
