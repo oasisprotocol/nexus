@@ -177,7 +177,7 @@ require (
 	github.com/cockroachdb/apd v1.1.0
 	github.com/cometbft/cometbft v0.37.15
 	github.com/oapi-codegen/oapi-codegen/v2 v2.4.1
-	github.com/oapi-codegen/runtime v1.1.1
+	github.com/oapi-codegen/runtime v1.1.2
 	github.com/oasisprotocol/curve25519-voi v0.0.0-20230904125328-1f23a7beb09a
 	github.com/oasisprotocol/metadata-registry-tools v0.0.0-20240304080528-3218befba9ca
 	github.com/oasisprotocol/oasis-core/go v0.2504.0
