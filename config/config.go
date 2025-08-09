@@ -373,6 +373,14 @@ type RuntimeAnalyzerConfig struct {
 	// part of the spec (decimals, symbol, etc.) but do not emit ERC20 events - therefore are not
 	// ever picked up by the analyzer.
 	AdditionalEVMTokenAddresses []string `koanf:"additional_evm_token_addresses"`
+
+	// ReconcileDelegations is a flag to reconcile delegations and undelegations.
+	// If set to true, the analyzer will reconcile delegations and undelegations
+	// at the start of the analyzer.
+	//
+	// This is useful to ensure that the analyzer has the correct state of delegations
+	// and undelegations at the start of the analyzer.
+	ReconcileDelegations bool `koanf:"reconcile_delegations"`
 }
 
 type BlockBasedAnalyzerConfig struct {

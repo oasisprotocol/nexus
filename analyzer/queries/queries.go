@@ -737,6 +737,28 @@ var (
     ON CONFLICT (runtime, account_address, symbol) DO
     UPDATE SET balance = $4`
 
+	RuntimeConsensusAccountDelegationOverride = `
+    INSERT INTO chain.runtime_accounts_delegations (runtime, delegator, delegatee, shares)
+      VALUES ($1, $2, $3, $4)
+    ON CONFLICT (runtime, delegator, delegatee) DO UPDATE
+      SET shares = $4`
+
+	RuntimeConsensusAccountDelegationUpsert = `
+    INSERT INTO chain.runtime_accounts_delegations AS old (runtime, delegator, delegatee, shares)
+      VALUES ($1, $2, $3, $4)
+    ON CONFLICT (runtime, delegator, delegatee) DO UPDATE
+      SET shares = old.shares + $4`
+
+	RuntimeConsensusAccountDebondingDelegationUpsert = `
+    INSERT INTO chain.runtime_accounts_debonding_delegations AS old (runtime, delegator, delegatee, debond_end, shares)
+      VALUES ($1, $2, $3, $4, $5)
+    ON CONFLICT (runtime, delegator, delegatee, debond_end) DO UPDATE
+      SET shares = old.shares + $5`
+
+	RuntimeConsensusAccountDebondingDelegationRemove = `
+    DELETE FROM chain.runtime_accounts_debonding_delegations
+    WHERE runtime = $1 AND delegator = $2 AND delegatee = $3 AND (debond_end IS NULL OR debond_end = $4)`
+
 	AddressPreimageInsert = `
     INSERT INTO chain.address_preimages (address, context_identifier, context_version, address_data)
       VALUES ($1, $2, $3, $4)

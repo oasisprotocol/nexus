@@ -10,6 +10,7 @@ import (
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/hash"
 	"github.com/oasisprotocol/oasis-core/go/common/errors"
 	connection "github.com/oasisprotocol/oasis-sdk/client-sdk/go/connection"
+	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/consensusaccounts"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/rofl"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/roflmarket"
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
@@ -189,6 +190,27 @@ func (rc *UniversalRuntimeApiLite) GetMinGasPrice(ctx context.Context, round uin
 	}
 
 	return mgps, nil
+}
+
+func (rc *UniversalRuntimeApiLite) GetDelegation(ctx context.Context, round uint64, from Address, to Address) (*DelegationInfo, error) {
+	delegation, err := rc.sdkClient.ConsensusAccounts.Delegation(ctx, round, &consensusaccounts.DelegationQuery{
+		From: sdkTypes.Address(from),
+		To:   sdkTypes.Address(to),
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &DelegationInfo{
+		Shares: delegation.Shares,
+	}, nil
+}
+
+func (rc *UniversalRuntimeApiLite) GetAllDelegations(ctx context.Context, round uint64) ([]*CompleteDelegationInfo, error) {
+	return rc.sdkClient.ConsensusAccounts.AllDelegations(ctx, round)
+}
+
+func (rc *UniversalRuntimeApiLite) GetAllUndelegations(ctx context.Context, round uint64) ([]*CompleteUndelegationInfo, error) {
+	return rc.sdkClient.ConsensusAccounts.AllUndelegations(ctx, round)
 }
 
 func (rc *UniversalRuntimeApiLite) RoflApp(ctx context.Context, round uint64, id AppID) (*AppConfig, error) {
