@@ -51,7 +51,7 @@ jobs:
         with:
           go-version: "1.24.x"
       - name: Install Go tools
-        run: go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@v2.4.1
+        run: go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@v2.5.0
       - name: Build Go
         run: |
           make nexus
@@ -108,7 +108,7 @@ jobs:
           go-version: "1.24.x"
       - name: Autogenerate Go code
         run: |
-          go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@v2.4.1
+          go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@v2.5.0
           make codegen-go
       - name: Build docker
         run: make docker
@@ -163,7 +163,7 @@ jobs:
 
       - name: Autogenerate Go code
         run: |
-          go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@v2.4.1
+          go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@v2.5.0
           make codegen-go
 
       - name: Build Go

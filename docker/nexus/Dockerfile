@@ -5,7 +5,7 @@ WORKDIR /code/go
 COPY . ./
 
 RUN \
-  go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@v2.4.1 && \
+  go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@v2.5.0 && \
   make codegen-go && \
   go mod download && \
   go build
