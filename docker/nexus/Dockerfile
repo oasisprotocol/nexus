@@ -28,7 +28,6 @@ RUN apt-get update -q -q && \
   apt-get install --yes apt-transport-https ca-certificates
 
 COPY --from=nexus-builder /code/go/nexus /usr/local/bin/nexus
-COPY --from=nexus-builder /code/go/storage/migrations /storage/migrations/
 COPY --from=nexus-builder /code/go/ /nexus
 COPY --from=openapi-builder /api/spec/v1.html api/spec/v1.html
 

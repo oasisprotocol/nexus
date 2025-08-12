@@ -13,6 +13,7 @@ import (
 	migratePgx "github.com/golang-migrate/migrate/v4/database/pgx/v5" // postgres pgx driver for golang_migrate
 	_ "github.com/golang-migrate/migrate/v4/source/file"              // support file scheme for golang_migrate
 	_ "github.com/golang-migrate/migrate/v4/source/github"            // support github scheme for golang_migrate
+	"github.com/golang-migrate/migrate/v4/source/iofs"
 	"github.com/jackc/pgx/v5/pgxpool"
 	pgxstd "github.com/jackc/pgx/v5/stdlib"
 
@@ -42,6 +43,7 @@ import (
 	"github.com/oasisprotocol/nexus/config"
 	"github.com/oasisprotocol/nexus/log"
 	"github.com/oasisprotocol/nexus/storage"
+	"github.com/oasisprotocol/nexus/storage/migrations"
 	source "github.com/oasisprotocol/nexus/storage/oasis"
 	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
 )
@@ -50,8 +52,8 @@ const (
 	moduleName = "analysis_service"
 )
 
-// RunMigrations runs migrations defined in sourceURL against databaseURL.
-func RunMigrations(sourceURL string, databaseURL string) error {
+// RunMigrations runs embedded migrations against databaseURL.
+func RunMigrations(databaseURL string) error {
 	// Go-migrate supports only basic database URL parameters.
 	// We use pgx to parse the database URL the same way as we do in the indexer
 	// client. That way the config options for migrations and clients are compatible.
@@ -73,10 +75,16 @@ func RunMigrations(sourceURL string, databaseURL string) error {
 	}
 	defer driver.Close()
 
-	m, err := migrate.NewWithDatabaseInstance(sourceURL, config.ConnConfig.Database, driver)
+	sourceDriver, err := iofs.New(migrations.FS, ".")
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to create embedded migration source: %w", err)
 	}
+
+	m, err := migrate.NewWithInstance("iofs", sourceDriver, config.ConnConfig.Database, driver)
+	if err != nil {
+		return fmt.Errorf("failed to create migration instance: %w", err)
+	}
+
 	return m.Up()
 }
 
@@ -94,7 +102,7 @@ func Init(ctx context.Context, cfg *config.AnalysisConfig, logger *log.Logger) (
 	}
 
 	logger.Info("checking if migrations need to be applied...")
-	switch err := RunMigrations(cfg.Storage.Migrations, cfg.Storage.Endpoint); {
+	switch err := RunMigrations(cfg.Storage.Endpoint); {
 	case err == migrate.ErrNoChange:
 		logger.Info("no migrations needed to be applied")
 	case err != nil:

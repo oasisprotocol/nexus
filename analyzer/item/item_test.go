@@ -21,10 +21,6 @@ import (
 	pgTestUtil "github.com/oasisprotocol/nexus/storage/postgres/testutil"
 )
 
-// Relative path to the migrations directory when running tests in this file.
-// When running go tests, the working directory is always set to the package directory of the test being run.
-const migrationsPath = "file://../../storage/migrations"
-
 const testsTimeout = 10 * time.Second
 
 const (
@@ -113,7 +109,7 @@ func setupDB(t *testing.T) *postgres.Client {
 	// Ensure the test database is empty.
 	require.NoError(t, testDB.Wipe(ctx), "testDb.Wipe")
 	// Run DB migrations.
-	require.NoError(t, analyzerCmd.RunMigrations(migrationsPath, os.Getenv("CI_TEST_CONN_STRING")), "failed to run migrations")
+	require.NoError(t, analyzerCmd.RunMigrations(os.Getenv("CI_TEST_CONN_STRING")), "failed to run migrations")
 	// Initialize test table.
 	batch := &storage.QueryBatch{}
 	batch.Queue(testTableCreate)

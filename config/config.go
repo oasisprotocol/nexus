@@ -133,7 +133,7 @@ func (cfg *AnalysisConfig) Validate() error {
 		}
 	}
 
-	return cfg.Storage.Validate(true /* requireMigrations */)
+	return cfg.Storage.Validate()
 }
 
 type AnalyzersList struct {
@@ -679,7 +679,7 @@ func (cfg *ServerConfig) Validate() error {
 		}
 	}
 
-	return cfg.Storage.Validate(false /* requireMigrations */)
+	return cfg.Storage.Validate()
 }
 
 // StorageBackend is a storage backend.
@@ -737,21 +737,15 @@ type StorageConfig struct {
 	// Backend is the storage backend to select.
 	Backend string `koanf:"backend"`
 
-	// Migrations is the directory containing schema migrations.
-	Migrations string `koanf:"migrations"`
-
 	// If true, we'll first delete all tables in the DB to
 	// force a full re-index of the blockchain.
 	WipeStorage bool `koanf:"DANGER__WIPE_STORAGE_ON_STARTUP"`
 }
 
 // Validate validates the storage configuration.
-func (cfg *StorageConfig) Validate(requireMigrations bool) error {
+func (cfg *StorageConfig) Validate() error {
 	if cfg.Endpoint == "" {
 		return fmt.Errorf("malformed storage endpoint '%s'", cfg.Endpoint)
-	}
-	if cfg.Migrations == "" && requireMigrations {
-		return fmt.Errorf("invalid path to migrations '%s'", cfg.Migrations)
 	}
 	var sb StorageBackend
 	return sb.Set(cfg.Backend)
