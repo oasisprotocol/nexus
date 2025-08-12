@@ -16,9 +16,8 @@ func TestServerConfigJSON(t *testing.T) {
 	cfg := ServerConfig{
 		Endpoint: "localhost:8080",
 		Storage: &StorageConfig{
-			Endpoint:   "postgresql://user:pass@localhost:5432/db",
-			Backend:    "postgres",
-			Migrations: "/path/to/migrations",
+			Endpoint: "postgresql://user:pass@localhost:5432/db",
+			Backend:  "postgres",
 		},
 		Source: &SourceConfig{
 			ChainName: "mainnet",
@@ -46,7 +45,6 @@ server:
   storage:
     endpoint: postgresql://user:pass@localhost:5432/db
     backend: postgres
-    migrations: /path/to/migrations
     DANGER__WIPE_STORAGE_ON_STARTUP: false
   source:
     chain_name: mainnet
