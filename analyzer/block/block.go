@@ -319,24 +319,48 @@ func expiresWithin(ctx context.Context, margin time.Duration) bool {
 }
 
 func (b *blockBasedAnalyzer) PreWork(ctx context.Context) error {
-	// Run processor-specific pre-work first.
-	err := b.processor.PreWork(ctx)
+	backoff, err := util.NewBackoff(
+		100*time.Millisecond,
+		backoffMaxTimeout,
+	)
 	if err != nil {
-		return fmt.Errorf("processor pre-work failed: %w", err)
+		return fmt.Errorf("error configuring backoff policy: %w", err)
 	}
 
-	// Run general block-based analyzer pre-work.
-	if b.slowSync && !b.ensureSlowSyncPrerequisites(ctx) {
-		// We cannot continue or recover automatically. Logging happens inside the validate function.
-		return fmt.Errorf("failed to validate prerequisites for slow-sync mode")
-	}
+	for {
+		timeout := backoff.Timeout()
+		select {
+		case <-time.After(timeout):
+			// Try doing the pre-work.
+		case <-ctx.Done():
+			b.logger.Warn("shutting block analyzer pre-work", "reason", ctx.Err())
+			return ctx.Err()
+		}
 
-	if !b.slowSync && b.softEnqueueGapsInProcessedBlocks(ctx) != nil {
-		// We cannot continue or recover automatically. Logging happens inside the validate function.
-		return fmt.Errorf("failed to soft-enqueue gaps in already-processed blocks")
-	}
+		// Run processor-specific pre-work first.
+		err := b.processor.PreWork(ctx)
+		if err != nil {
+			b.logger.Error("processor pre-work failed",
+				"err", err,
+			)
+			backoff.Failure()
+			continue
+		}
 
-	return nil
+		// Run general block-based analyzer pre-work.
+		if b.slowSync && !b.ensureSlowSyncPrerequisites(ctx) {
+			// Logging happens in ensureSlowSyncPrerequisites.
+			backoff.Failure()
+			continue
+		}
+
+		if !b.slowSync && b.softEnqueueGapsInProcessedBlocks(ctx) != nil {
+			// Logging happens in softEnqueueGapsInProcessedBlocks.
+			backoff.Failure()
+			continue
+		}
+		return nil
+	}
 }
 
 // Start starts the block analyzer.

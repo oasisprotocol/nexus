@@ -1,12 +1,6 @@
 {
   "address": "oasis1qz2rynvcmrkwd57v00298uc2vtzgatde3cjpy72f",
-  "balances": [
-    {
-      "balance": "0",
-      "token_decimals": 18,
-      "token_symbol": "ROSE"
-    }
-  ],
+  "balances": [],
   "evm_balances": [],
   "evm_contract": {
     "gas_used": 0,

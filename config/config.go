@@ -212,11 +212,6 @@ type SourceConfig struct {
 
 	// IPFS holds the configuration for accessing IPFS.
 	IPFS *IPFSConfig `koanf:"ipfs"`
-
-	// If set, the analyzer will skip some initial checks, e.g. that
-	// `rpc` really serves the chain with the chain context we expect.
-	// NOT RECOMMENDED in production; intended for faster testing.
-	FastStartup bool `koanf:"fast_startup"`
 }
 
 func (sc *SourceConfig) Validate() error {

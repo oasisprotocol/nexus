@@ -4,10 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	sdkConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
-	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	sdkConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
+	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 
 	"github.com/oasisprotocol/nexus/common"
 	"github.com/oasisprotocol/nexus/config"
@@ -23,7 +24,7 @@ type HistoryRuntimeApiLite struct {
 	APIs    map[string]nodeapi.RuntimeApiLite
 }
 
-func NewHistoryRuntimeApiLite(ctx context.Context, history *config.History, sdkPT *sdkConfig.ParaTime, nodes map[string]*config.ArchiveConfig, fastStartup bool, runtime common.Runtime) (*HistoryRuntimeApiLite, error) {
+func NewHistoryRuntimeApiLite(ctx context.Context, history *config.History, sdkPT *sdkConfig.ParaTime, nodes map[string]*config.ArchiveConfig, runtime common.Runtime) (*HistoryRuntimeApiLite, error) {
 	if history == nil {
 		return nil, fmt.Errorf("history config not provided")
 	}
@@ -34,7 +35,7 @@ func NewHistoryRuntimeApiLite(ctx context.Context, history *config.History, sdkP
 			if sdkPT == nil {
 				return nil, fmt.Errorf("no paratime specified")
 			}
-			sdkConn, err := connections.SDKConnect(ctx, record.ChainContext, archiveConfig.ResolvedRuntimeNode(runtime), fastStartup)
+			sdkConn, err := connections.SDKConnect(ctx, record.ChainContext, archiveConfig.ResolvedRuntimeNode(runtime))
 			if err != nil {
 				return nil, err
 			}
