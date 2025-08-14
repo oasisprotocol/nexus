@@ -12,6 +12,30 @@ The format is inspired by [Keep a Changelog].
 
 <!-- TOWNCRIER -->
 
+## 0.7.13 (2025-08-14)
+
+### Features
+
+- Embed migrations in the Nexus binary
+  ([#799](https://github.com/oasisprotocol/nexus/issues/799))
+
+  Migrations are now embedded directly in the Nexus binary, simplifying
+  deployment by eliminating the need to distribute migration files separately.
+
+- Bump oapi-codegen to 2.5.0
+  ([#1129](https://github.com/oasisprotocol/nexus/issues/1129))
+
+- runtime/grpc: Connect lazily to runtime nodes
+  ([#1132](https://github.com/oasisprotocol/nexus/issues/1132))
+
+  This should prevent Nexus failing to start when any of the configured
+  nodes are not available.
+
+### Bug Fixes and Improvements
+
+- analyzer/rofl: Mark rofl app as not removed when updating
+  ([#1134](https://github.com/oasisprotocol/nexus/issues/1134))
+
 ## 0.7.12 (2025-08-08)
 
 ### Features
