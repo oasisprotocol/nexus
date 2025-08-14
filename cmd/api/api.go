@@ -18,13 +18,10 @@ import (
 	v1 "github.com/oasisprotocol/nexus/api/v1"
 	apiTypes "github.com/oasisprotocol/nexus/api/v1/types"
 	cmdCommon "github.com/oasisprotocol/nexus/cmd/common"
-	"github.com/oasisprotocol/nexus/common"
 	"github.com/oasisprotocol/nexus/config"
 	"github.com/oasisprotocol/nexus/log"
 	"github.com/oasisprotocol/nexus/metrics"
 	storage "github.com/oasisprotocol/nexus/storage/client"
-	source "github.com/oasisprotocol/nexus/storage/oasis"
-	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
 )
 
 const (
@@ -119,25 +116,14 @@ func NewService(ctx context.Context, cfg *config.ServerConfig, logger *log.Logge
 		return nil, err
 	}
 
-	// Runtime clients.
-	runtimeClients := make(map[common.Runtime]nodeapi.RuntimeApiLite)
 	var networkConfig *sdkConfig.Network
 	referenceSwaps := cfg.Source.ReferenceSwaps()
 	networkConfig = cfg.Source.SDKNetwork()
-	apiRuntimes := []common.Runtime{common.RuntimeEmerald, common.RuntimeSapphire, common.RuntimePontusxTest, common.RuntimePontusxDev}
-	for _, runtime := range apiRuntimes {
-		client, err2 := source.NewRuntimeClient(ctx, cfg.Source, runtime)
-		if err2 != nil {
-			logger.Warn("unable to instantiate runtime client for api server", "runtime", runtime, "err", err2)
-		}
-		runtimeClients[runtime] = client
-	}
 
 	client, err := storage.NewStorageClient(
 		cfg,
 		backing,
 		referenceSwaps,
-		runtimeClients,
 		networkConfig,
 		logger,
 	)

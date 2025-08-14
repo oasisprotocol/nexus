@@ -18,7 +18,7 @@ import (
 func NewConsensusClient(ctx context.Context, sourceConfig *config.SourceConfig) (nodeapi.ConsensusApiLite, error) {
 	// Create an API that connects to the real node, then wrap it in a caching layer.
 	var nodeApi nodeapi.ConsensusApiLite
-	nodeApi, err := history.NewHistoryConsensusApiLite(ctx, sourceConfig.History(), sourceConfig.Nodes, sourceConfig.FastStartup)
+	nodeApi, err := history.NewHistoryConsensusApiLite(ctx, sourceConfig.History(), sourceConfig.Nodes)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating history consensus API lite: %w", err)
 	}
@@ -35,7 +35,7 @@ func NewConsensusClient(ctx context.Context, sourceConfig *config.SourceConfig) 
 // NewRuntimeClient creates a new RuntimeClient.
 func NewRuntimeClient(ctx context.Context, sourceConfig *config.SourceConfig, runtime common.Runtime) (nodeapi.RuntimeApiLite, error) {
 	var nodeApi nodeapi.RuntimeApiLite
-	nodeApi, err := history.NewHistoryRuntimeApiLite(ctx, sourceConfig.History(), sourceConfig.SDKParaTime(runtime), sourceConfig.Nodes, sourceConfig.FastStartup, runtime)
+	nodeApi, err := history.NewHistoryRuntimeApiLite(ctx, sourceConfig.History(), sourceConfig.SDKParaTime(runtime), sourceConfig.Nodes, runtime)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating history runtime API lite: %w", err)
 	}

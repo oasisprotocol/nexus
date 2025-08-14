@@ -138,7 +138,7 @@ func initBackends(ctx context.Context) (*history.HistoryConsensusApiLite, *postg
 		os.Exit(1)
 	}
 
-	nodeApi, err := history.NewHistoryConsensusApiLite(ctx, cfg.Analysis.Source.History(), cfg.Analysis.Source.Nodes, true /*fastStartup*/)
+	nodeApi, err := history.NewHistoryConsensusApiLite(ctx, cfg.Analysis.Source.History(), cfg.Analysis.Source.Nodes)
 	if err != nil {
 		logger.Error("cannot instantiate consensus API", "error", err)
 		os.Exit(1)

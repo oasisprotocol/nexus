@@ -515,7 +515,10 @@ func TestRefuseSlowSyncOnDirtyRange(t *testing.T) {
 
 	p = &mockProcessor{name: "consensus", storage: db}
 	a := setupAnalyzer(t, db, p, &config.BlockBasedAnalyzerConfig{From: 1, To: 15}, analyzer.SlowSyncMode)
-	require.Error(t, a.PreWork(ctx), "slow-sync analyzer should refuse to process anything because the already-analyzed range is non-contiguous")
+	pCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+	require.Error(t, a.PreWork(pCtx), "slow-sync analyzer should refuse to process anything because the already-analyzed range is non-contiguous")
+	cancel()
 
 	// Patch up the holes with a fast-sync analyzer.
 	fp := &mockProcessor{name: "consensus", storage: db}
@@ -524,7 +527,9 @@ func TestRefuseSlowSyncOnDirtyRange(t *testing.T) {
 		"fast-sync analyzer should have processed the missing blocks")
 
 	// Try a slow-sync analyzer again
-	require.NoError(t, a.PreWork(ctx), "slow-sync analyzer should be able to process the missing blocks")
+	pCtx, cancel = context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+	require.NoError(t, a.PreWork(pCtx), "slow-sync analyzer should be able to process the missing blocks")
 	a.Start(ctx)
 	require.Equal(t, p.processedBlocks, map[uint64]struct{}{11: {}, 12: {}, 13: {}, 14: {}, 15: {}},
 		"slow-sync analyzer should have processed the missing blocks")

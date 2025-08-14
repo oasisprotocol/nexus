@@ -9,8 +9,9 @@ import (
 	"testing"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
-	sdkConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 	"github.com/stretchr/testify/require"
+
+	sdkConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
 
 	runtimeClient "github.com/oasisprotocol/nexus/coreapi/v22.2.11/runtime/client/api"
 
@@ -34,7 +35,6 @@ var (
 				},
 			},
 		},
-		FastStartup: false,
 	}
 )
 
