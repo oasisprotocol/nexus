@@ -1344,7 +1344,8 @@ var (
         metadata = $7,
         metadata_name = $8,
         secrets = $9,
-        last_processed_round = $10
+        last_processed_round = $10,
+        removed = FALSE -- A previously removed app could be re-created.
     WHERE
         runtime = $1 AND
         id = $2`
