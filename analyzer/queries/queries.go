@@ -557,6 +557,19 @@ var (
       vote = excluded.vote,
       height = excluded.height;`
 
+	// GetEpochByHeight returns the epoch ID for the given block height.
+	//
+	// This query currently runs without an index on start_height, which is acceptable
+	// for current data sizes and usage patterns. If usage increases or performance
+	// becomes an issue, adding an index on chain.epochs.start_height would make
+	// this lookup more efficient.
+	GetEpochByHeight = `
+    SELECT id
+      FROM chain.epochs
+    WHERE start_height <= $1
+    ORDER BY id DESC
+    LIMIT 1`
+
 	ValidatorStakingHistoryUnprocessedEpochs = `
     SELECT epochs.id, epochs.start_height, prev_epoch.validators
     FROM chain.epochs as epochs
