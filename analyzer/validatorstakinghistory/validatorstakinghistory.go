@@ -3,6 +3,7 @@ package validatorstakinghistory
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"math"
 	"time"
@@ -66,14 +67,28 @@ func NewAnalyzer(
 	if startHeight > math.MaxInt64 {
 		return nil, fmt.Errorf("startHeight %d is too large", startHeight)
 	}
-	epoch, err := sourceClient.GetEpoch(initCtx, int64(startHeight))
-	if err != nil {
-		return nil, fmt.Errorf("failed to fetch epoch for startHeight %d: %w", startHeight, err)
+
+	// Check local storage first.
+	var startEpoch uint64
+	err := target.QueryRow(initCtx, queries.GetEpochByHeight, int64(startHeight)).Scan(&startEpoch)
+	switch {
+	case err == nil:
+		// Continue with the found epoch.
+	case errors.Is(err, pgx.ErrNoRows):
+		// No epoch found, query epoch from the node.
+		epoch, err := sourceClient.GetEpoch(initCtx, int64(startHeight))
+		if err != nil {
+			return nil, fmt.Errorf("failed to fetch epoch for startHeight %d: %w", startHeight, err)
+		}
+		startEpoch = uint64(epoch)
+	default:
+		return nil, fmt.Errorf("querying epoch for startHeight %d: %w", startHeight, err)
 	}
+
 	p := &processor{
 		source:     sourceClient,
 		target:     target,
-		startEpoch: uint64(epoch),
+		startEpoch: startEpoch,
 		logger:     logger,
 	}
 
