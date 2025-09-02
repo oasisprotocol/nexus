@@ -13,7 +13,6 @@ import (
 
 	// nexus-internal data types.
 	beacon "github.com/oasisprotocol/nexus/coreapi/v22.2.11/beacon/api"
-	consensus "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api"
 	consensusTx "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api/transaction"
 	roothash "github.com/oasisprotocol/nexus/coreapi/v22.2.11/roothash/api"
 
@@ -80,12 +79,12 @@ func (c *ConsensusApiLite) GetConsensusParameters(ctx context.Context, height in
 	}, nil
 }
 
-func (c *ConsensusApiLite) GetBlock(ctx context.Context, height int64) (*consensus.Block, error) {
+func (c *ConsensusApiLite) GetBlock(ctx context.Context, height int64) (*consensusEden.Block, error) {
 	var rsp consensusEden.Block
 	if err := c.grpcConn.Invoke(ctx, "/oasis-core.Consensus/GetBlock", height, &rsp); err != nil {
 		return nil, fmt.Errorf("GetBlock(%d): %w", height, err)
 	}
-	return (*consensus.Block)(&rsp), nil
+	return &rsp, nil
 }
 
 func (c *ConsensusApiLite) GetTransactionsWithResults(ctx context.Context, height int64) ([]nodeapi.TransactionWithResults, error) {

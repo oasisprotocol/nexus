@@ -44,7 +44,9 @@ const (
 			time,
 			num_txs,
 			gas_limit,
+			gas_used,
 			size_limit,
+			size,
 			epoch,
 			state_root,
 			ROW(
@@ -91,6 +93,7 @@ const (
 				t.nonce as nonce,
 				t.fee_amount as fee_amount,
 				t.max_gas as gas_limit,
+				t.gas_used as gas_used,
 				t.method as method,
 				t.body as body,
 				t.code as code,

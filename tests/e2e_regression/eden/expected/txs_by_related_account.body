@@ -30,7 +30,8 @@
         "untrusted_raw_value": "q2F2A2JpZFggSCA1zoR15jpC2eugP1P/CZBQhMjHEtmJ7+hWemgTdWpjcDJwomJpZFggfr+nhykQjIs/ylB9tXG9TPEnn9LWiSJLSgOFhEEY5yhpYWRkcmVzc2VzgaNiSVBQAAAAAAAAAAAAAP//w71hD2RQb3J0GSPwZFpvbmVgY3Rsc6FncHViX2tleVggP1Hxpy91X4wsE1o3aHO2+JFdtlQ9uAV0IyHK1enIY0NjdnJmoWJpZFgg98e5ycm6e6tz5xXDZgWR9J58zesvWiuyWTn7T/JZBIZlcm9sZXMIaHJ1bnRpbWVz9mljb25zZW5zdXOiYmlkWCBk7cfQHIxayh0UhkcLvkRMNaQhgHTRkCJqicM4103fn2lhZGRyZXNzZXOBomJpZFggfr+nhykQjIs/ylB9tXG9TPEnn9LWiSJLSgOFhEEY5yhnYWRkcmVzc6NiSVBQAAAAAAAAAAAAAP//w71hD2RQb3J0GaagZFpvbmVgaWVudGl0eV9pZFgg9D+kziTxFhg77+cyt+Fwd6eXREkZ1wHw7WX7VG57MeBqZXhwaXJhdGlvbhltdHBzb2Z0d2FyZV92ZXJzaW9uaTAuMC11bnNldA=="
       },
       "fee": "0",
-      "gas_limit": "1340",
+      "gas_limit": 1340,
+      "gas_used": 0,
       "hash": "b6c552cd72e5f9b1ee1c994565e4250d06cf180f0a2fdd90ed5a5cf4879ff060",
       "index": 0,
       "method": "registry.RegisterNode",
@@ -67,7 +68,8 @@
         "untrusted_raw_value": "q2F2A2JpZFggSCA1zoR15jpC2eugP1P/CZBQhMjHEtmJ7+hWemgTdWpjcDJwomJpZFggfr+nhykQjIs/ylB9tXG9TPEnn9LWiSJLSgOFhEEY5yhpYWRkcmVzc2VzgaNiSVBQAAAAAAAAAAAAAP//w71hD2RQb3J0GSPwZFpvbmVgY3Rsc6FncHViX2tleVggP1Hxpy91X4wsE1o3aHO2+JFdtlQ9uAV0IyHK1enIY0NjdnJmoWJpZFgg98e5ycm6e6tz5xXDZgWR9J58zesvWiuyWTn7T/JZBIZlcm9sZXMIaHJ1bnRpbWVz9mljb25zZW5zdXOiYmlkWCBk7cfQHIxayh0UhkcLvkRMNaQhgHTRkCJqicM4103fn2lhZGRyZXNzZXOBomJpZFggfr+nhykQjIs/ylB9tXG9TPEnn9LWiSJLSgOFhEEY5yhnYWRkcmVzc6NiSVBQAAAAAAAAAAAAAP//w71hD2RQb3J0GaagZFpvbmVgaWVudGl0eV9pZFgg9D+kziTxFhg77+cyt+Fwd6eXREkZ1wHw7WX7VG57MeBqZXhwaXJhdGlvbhltc3Bzb2Z0d2FyZV92ZXJzaW9uaTAuMC11bnNldA=="
       },
       "fee": "0",
-      "gas_limit": "1340",
+      "gas_limit": 1340,
+      "gas_used": 0,
       "hash": "2b30c130d17b5dd6bf42ccc3c2aa132778bae259aee6eb6ecbffe9c7da39cee5",
       "index": 17,
       "method": "registry.RegisterNode",
@@ -104,7 +106,8 @@
         "untrusted_raw_value": "q2F2A2JpZFggSCA1zoR15jpC2eugP1P/CZBQhMjHEtmJ7+hWemgTdWpjcDJwomJpZFggfr+nhykQjIs/ylB9tXG9TPEnn9LWiSJLSgOFhEEY5yhpYWRkcmVzc2VzgaNiSVBQAAAAAAAAAAAAAP//w71hD2RQb3J0GSPwZFpvbmVgY3Rsc6FncHViX2tleVggP1Hxpy91X4wsE1o3aHO2+JFdtlQ9uAV0IyHK1enIY0NjdnJmoWJpZFgg98e5ycm6e6tz5xXDZgWR9J58zesvWiuyWTn7T/JZBIZlcm9sZXMIaHJ1bnRpbWVz9mljb25zZW5zdXOiYmlkWCBk7cfQHIxayh0UhkcLvkRMNaQhgHTRkCJqicM4103fn2lhZGRyZXNzZXOBomJpZFggfr+nhykQjIs/ylB9tXG9TPEnn9LWiSJLSgOFhEEY5yhnYWRkcmVzc6NiSVBQAAAAAAAAAAAAAP//w71hD2RQb3J0GaagZFpvbmVgaWVudGl0eV9pZFgg9D+kziTxFhg77+cyt+Fwd6eXREkZ1wHw7WX7VG57MeBqZXhwaXJhdGlvbhltc3Bzb2Z0d2FyZV92ZXJzaW9uaTAuMC11bnNldA=="
       },
       "fee": "0",
-      "gas_limit": "1340",
+      "gas_limit": 1340,
+      "gas_used": 0,
       "hash": "8f78e841245008b29611b8a64a7b31e2c416729e22712a70e7086c0ed9f10f4e",
       "index": 3,
       "method": "registry.RegisterNode",

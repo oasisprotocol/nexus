@@ -36,7 +36,9 @@ CREATE TABLE chain.blocks
   time       TIMESTAMP WITH TIME ZONE NOT NULL,
   num_txs    UINT31 NOT NULL,
   gas_limit  UINT_NUMERIC NOT NULL DEFAULT 0, -- uint64 in go; because the value might conceivably be >2^63, we use UINT_NUMERIC over UINT63 here.
+  -- gas_used UINT_NUMERIC, -- Added in 49_consensus_tx_new_fields.up.sql
   size_limit UINT_NUMERIC NOT NULL DEFAULT 0, -- uint64 in go; because the value might conceivably be >2^63, we use UINT_NUMERIC over UINT63 here.
+  --size      UINT_NUMERIC, -- Added in 49_consensus_tx_new_fields.up.sql
   epoch      UINT63 NOT NULL DEFAULT 0,
 
   -- State Root Info
@@ -64,6 +66,7 @@ CREATE TABLE chain.transactions
   nonce      UINT63 NOT NULL,
   fee_amount UINT_NUMERIC,
   max_gas    UINT_NUMERIC, -- uint64 in go; because the value might conceivably be >2^63, we use UINT_NUMERIC over UINT63 here.
+  --gas_used UINT_NUMERIC, -- Added in 49_consensus_tx_new_fields.up.sql
   method     TEXT NOT NULL,
   sender     oasis_addr NOT NULL,
   body       JSONB,

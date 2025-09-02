@@ -302,8 +302,9 @@ func convertTxResult(r txResultsDamask.Result) nodeapi.TxResult {
 	}
 
 	return nodeapi.TxResult{
-		Error:  nodeapi.TxError(r.Error),
-		Events: events,
+		Error:   nodeapi.TxError(r.Error),
+		Events:  events,
+		GasUsed: 0, // Not present in Damask.
 	}
 }
 

@@ -9,7 +9,8 @@
         "to": "oasis1qz068qtggv6kdstymnvqm46rpv6p6tk6pueffdqu"
       },
       "fee": "100",
-      "gas_limit": "1263",
+      "gas_limit": 1263,
+      "gas_used": 0,
       "hash": "4defe2afa3abbd4668958e360e184c73381e8b99ebb8082b911f6b28c811da97",
       "index": 0,
       "method": "staking.Transfer",
@@ -25,7 +26,8 @@
         "to": "oasis1qz068qtggv6kdstymnvqm46rpv6p6tk6pueffdqu"
       },
       "fee": "0",
-      "gas_limit": "1263",
+      "gas_limit": 1263,
+      "gas_used": 0,
       "hash": "b40bd05e4f7f0f9700b9934449019ecc340a8af8f505cdebc5adcf3d265c2660",
       "index": 0,
       "method": "staking.Transfer",
@@ -41,7 +43,8 @@
         "to": "oasis1qrqnh093w0pv8asfmc37pyal6yn2h4cnwvdqtzm0"
       },
       "fee": "0",
-      "gas_limit": "1264",
+      "gas_limit": 1264,
+      "gas_used": 0,
       "hash": "a116e6343d076569695f0a7a539e38990dcd1c553e94ce3149821673e7f6a07c",
       "index": 0,
       "method": "staking.Transfer",
@@ -62,7 +65,8 @@
         "module": "staking"
       },
       "fee": "0",
-      "gas_limit": "1263",
+      "gas_limit": 1263,
+      "gas_used": 0,
       "hash": "75a09c999ae3535a661be4f7def83d6165a9555ec7af74cf3963c41f1e657f88",
       "index": 0,
       "method": "staking.Transfer",
@@ -83,7 +87,8 @@
         "module": "staking"
       },
       "fee": "0",
-      "gas_limit": "1263",
+      "gas_limit": 1263,
+      "gas_used": 0,
       "hash": "f7a03e0912d355901ee794e5fec79a6b4c91363fc27d953596ee6de5c1492798",
       "index": 0,
       "method": "staking.Transfer",
@@ -104,7 +109,8 @@
         "module": "staking"
       },
       "fee": "0",
-      "gas_limit": "1264",
+      "gas_limit": 1264,
+      "gas_used": 0,
       "hash": "7fe023700667850e13b1f416b07e45ff95cf36f2e05221a7d6ef8bfc484b0614",
       "index": 0,
       "method": "staking.Transfer",
@@ -125,7 +131,8 @@
         "module": "staking"
       },
       "fee": "0",
-      "gas_limit": "1264",
+      "gas_limit": 1264,
+      "gas_used": 0,
       "hash": "20e0bb3ca2c4f46577faeabd47b25ca6eb8815acafc77df2a4969d249636447c",
       "index": 0,
       "method": "staking.Transfer",
@@ -146,7 +153,8 @@
         "module": "staking"
       },
       "fee": "0",
-      "gas_limit": "1264",
+      "gas_limit": 1264,
+      "gas_used": 0,
       "hash": "ad659789abf19ef8430a0a07606789b94fd85659880c399df1c9cf1b6c8c9ae6",
       "index": 0,
       "method": "staking.Transfer",

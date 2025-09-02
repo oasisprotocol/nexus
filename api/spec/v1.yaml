@@ -1757,7 +1757,7 @@ components:
 
     Block:
       type: object
-      required: [height, hash, timestamp, num_transactions, gas_limit, epoch, state_root, proposer] # TODO: size, gas_used
+      required: [height, hash, timestamp, num_transactions, gas_limit, epoch, state_root, proposer]
       properties:
         height:
           type: integer
@@ -1779,13 +1779,16 @@ components:
           description: Number of transactions in the block.
           example: 17
         gas_limit:
-          allOf: [$ref: '#/components/schemas/TextBigInt']
+          type: integer
+          format: uint64
           description: |
             The gas limit for the block. A gas limit 0 means that the max block gas was unlimited.
             Blocks from Cobalt, Damask, and early Eden had no gas limit as their sizes were only
             restricted by byte size until an upgrade during Eden introduced a gas limit.
+          example: 30000
         size_limit:
-          allOf: [$ref: '#/components/schemas/TextBigInt']
+          type: integer
+          format: uint64
           description: |
             The size limit for the block in bytes.
         epoch:
@@ -1805,17 +1808,19 @@ components:
           items:
             allOf: [$ref: '#/components/schemas/EntityInfo']
           description: A list of the entities that signed the block.
-        # TODO: Not available on backend
-        # size:
-        #   type: integer
-        #   format: int64
-        #   description: Size of the block, in bytes. TODO: Be more exact. Should this include results? By far the easiest is to give the total bytesize of txs here.
-        #   example: 123456
-        # gas_used:
-        #   type: integer
-        #   format: int64
-        #   description: Total gas used by the transactions in the block.
-        #   example: 123456
+        size:
+          type: integer
+          format: uint64
+          description: |
+            The size of the block in bytes.
+            This field is missing for blocks pre Oasis-Core 24.3.
+        gas_used:
+          type: integer
+          format: int64
+          description: |
+            Total gas used by the transactions in the block.
+            This field is missing for blocks pre Oasis-Core 24.3.
+          example: 123456
       description: |
         A consensus block.
 
@@ -2022,9 +2027,18 @@ components:
             to pay to execute it.
           example: 1000
         gas_limit:
-          allOf: [$ref: '#/components/schemas/TextBigInt']
+          type: integer
+          format: uint64
           description: |
             The maximum gas that a transaction can use.
+          example: 30000
+        gas_used:
+          type: integer
+          format: uint64
+          description: |
+            The gas used by the transaction.
+            This field is missing for transactions pre Oasis-Core 24.3.
+          example: 30000
         method:
           allOf: [$ref: '#/components/schemas/ConsensusTxMethod']
           description: The method that was called.

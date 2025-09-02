@@ -1,0 +1,8 @@
+BEGIN;
+
+ALTER TABLE chain.transactions ADD COLUMN gas_used UINT_NUMERIC;
+ALTER TABLE chain.blocks
+	ADD COLUMN size UINT_NUMERIC,
+	ADD COLUMN gas_used UINT_NUMERIC;
+
+COMMIT;

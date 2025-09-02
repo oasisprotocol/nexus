@@ -25,8 +25,9 @@ type Error struct {
 
 // Result is a transaction execution result.
 type Result struct {
-	Error  Error    `json:"error"`
-	Events []*Event `json:"events"`
+	Error   Error    `json:"error"`
+	Events  []*Event `json:"events"`
+	GasUsed uint64   `json:"gas_used,omitempty"` // Added in 24.3.
 }
 
 // IsSuccess returns true if transaction execution was successful.

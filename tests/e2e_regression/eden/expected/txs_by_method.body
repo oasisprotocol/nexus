@@ -9,7 +9,8 @@
         "to": "oasis1qqv9tknl8afkxkzszwl80g3wz80f2w8u0g502ewc"
       },
       "fee": "0",
-      "gas_limit": "1259",
+      "gas_limit": 1259,
+      "gas_used": 0,
       "hash": "142d43e5194b738ab2223f8d0b42326fab06edd714a8cefc59a078b89b5de057",
       "index": 0,
       "method": "staking.Transfer",
@@ -25,7 +26,8 @@
         "to": "oasis1qr85nf4hnsw6crrf9l9ppzq5ucyynnzqqy300cyv"
       },
       "fee": "0",
-      "gas_limit": "1300",
+      "gas_limit": 1300,
+      "gas_used": 0,
       "hash": "f5ebd2503d74e5f1b885805b115f97692002d71abc2abd5781cbf43fabf06039",
       "index": 1,
       "method": "staking.Transfer",
@@ -41,7 +43,8 @@
         "to": "oasis1qq0fe6n4nhykr8w9psgerfcrqvy4atq425jrfnyt"
       },
       "fee": "0",
-      "gas_limit": "1267",
+      "gas_limit": 1267,
+      "gas_used": 0,
       "hash": "1aaab13919b6340510d2fc74d0761f288673074c794b02b71afaa5b79451e931",
       "index": 1,
       "method": "staking.Transfer",
@@ -57,7 +60,8 @@
         "to": "oasis1qzyf6wvfjv9aa97zg4r505cpemmjgjnlgs8zpcm0"
       },
       "fee": "0",
-      "gas_limit": "1267",
+      "gas_limit": 1267,
+      "gas_used": 0,
       "hash": "96566db06b13df71d8104a7207a3da695f78325903affed58b422c9a6d497cae",
       "index": 0,
       "method": "staking.Transfer",
@@ -73,7 +77,8 @@
         "to": "oasis1qrd2fcg229qtzpztpgp78z03hjcjuanr5y8dr8pq"
       },
       "fee": "0",
-      "gas_limit": "1265",
+      "gas_limit": 1265,
+      "gas_used": 0,
       "hash": "3c27aa650edbb1550743ffeb722c6bf845850ac935b10111a88911d3bf842b44",
       "index": 0,
       "method": "staking.Transfer",
@@ -89,7 +94,8 @@
         "to": "oasis1qzyf6wvfjv9aa97zg4r505cpemmjgjnlgs8zpcm0"
       },
       "fee": "0",
-      "gas_limit": "1266",
+      "gas_limit": 1266,
+      "gas_used": 0,
       "hash": "bb64a82ac38425c0ad6fabc964a46e92ab1950ff386929193983b0e8204b2a60",
       "index": 0,
       "method": "staking.Transfer",
@@ -105,7 +111,8 @@
         "to": "oasis1qqv9tknl8afkxkzszwl80g3wz80f2w8u0g502ewc"
       },
       "fee": "0",
-      "gas_limit": "1259",
+      "gas_limit": 1259,
+      "gas_used": 0,
       "hash": "57f2a498e91dd594b011a7ab1ed1578abb1b32d0925d3f917b5ae85f552c76ce",
       "index": 0,
       "method": "staking.Transfer",
@@ -121,7 +128,8 @@
         "to": "oasis1qzrycs7qhh455dj0nwzfd3y5um4m7f2p75yksjvh"
       },
       "fee": "0",
-      "gas_limit": "1259",
+      "gas_limit": 1259,
+      "gas_used": 0,
       "hash": "4013e7930e90d0ec0ec7311e97946fd8572000c7c9d4bf82db4787fc0020094a",
       "index": 1,
       "method": "staking.Transfer",
@@ -137,7 +145,8 @@
         "to": "oasis1qpvwrl0l4zndtq652n4mh9n6h05mfpfrdse7nxjm"
       },
       "fee": "0",
-      "gas_limit": "1258",
+      "gas_limit": 1258,
+      "gas_used": 0,
       "hash": "d28c90d1d17508af035d9eb05ade6da6cb95d6c99e1fb90891506da363e6b913",
       "index": 0,
       "method": "staking.Transfer",
@@ -153,7 +162,8 @@
         "to": "oasis1qqwllxt8tvqxt8sryeg3r8ts0yulyu8frqr2kzg5"
       },
       "fee": "0",
-      "gas_limit": "1300",
+      "gas_limit": 1300,
+      "gas_used": 0,
       "hash": "28439354075cac2020962fde405af1b849ac649ea06ae20d6f92afe3f4dce55d",
       "index": 3,
       "method": "staking.Transfer",
@@ -169,7 +179,8 @@
         "to": "oasis1qre68d9qmzkq76w68xj5ycum6j4qvvy605q7nfr8"
       },
       "fee": "0",
-      "gas_limit": "1257",
+      "gas_limit": 1257,
+      "gas_used": 0,
       "hash": "26dd3c4aaec507b0885598cb67c0a78fd4c75ed711c9baecec766b511bb00ad0",
       "index": 0,
       "method": "staking.Transfer",
@@ -185,7 +196,8 @@
         "to": "oasis1qqggkezvy72v0a36rr9ujgqqp96rxpk8avylta57"
       },
       "fee": "0",
-      "gas_limit": "1264",
+      "gas_limit": 1264,
+      "gas_used": 0,
       "hash": "a4438cd37fba180dcb340afa5379f667f4aec5898e82ccbc097333741d8c6851",
       "index": 0,
       "method": "staking.Transfer",
@@ -201,7 +213,8 @@
         "to": "oasis1qpx9gyqe2uvs0pjmulqu7cwehfjtl3wuj5kl82r8"
       },
       "fee": "0",
-      "gas_limit": "1266",
+      "gas_limit": 1266,
+      "gas_used": 0,
       "hash": "702f6432f6f63f6f513d9d736690a49a8af27d0f31b19c96585ffb4024c8931e",
       "index": 1,
       "method": "staking.Transfer",
@@ -217,7 +230,8 @@
         "to": "oasis1qq7hu20c7cl5keag0vahexqguvq5laex5ywnjsqq"
       },
       "fee": "0",
-      "gas_limit": "1257",
+      "gas_limit": 1257,
+      "gas_used": 0,
       "hash": "6410ac73c44ec43b616eebd8bcd591043bf9c22db47818370ec95676934909b1",
       "index": 0,
       "method": "staking.Transfer",
@@ -238,7 +252,8 @@
         "module": "staking"
       },
       "fee": "0",
-      "gas_limit": "1255",
+      "gas_limit": 1255,
+      "gas_used": 0,
       "hash": "064767ffbf32a1142c99bdb99d69a9e3a2ce06c3c877580d9d22b2a99092f528",
       "index": 1,
       "method": "staking.Transfer",
@@ -254,7 +269,8 @@
         "to": "oasis1qzwfdgpt3p6dd2mk6207qhf9qrxuvfn9eunurdgu"
       },
       "fee": "0",
-      "gas_limit": "1300",
+      "gas_limit": 1300,
+      "gas_used": 0,
       "hash": "7399e4895b84ddf6a06f347ed4abd1a25953f5840f3df22c4d14dc69710298d7",
       "index": 0,
       "method": "staking.Transfer",
@@ -275,7 +291,8 @@
         "module": "staking"
       },
       "fee": "0",
-      "gas_limit": "1256",
+      "gas_limit": 1256,
+      "gas_used": 0,
       "hash": "46cf251904a2216f3475ac25d51dc3b96171cbd6240afe229375d2342390eae3",
       "index": 1,
       "method": "staking.Transfer",
@@ -291,7 +308,8 @@
         "to": "oasis1qqwllxt8tvqxt8sryeg3r8ts0yulyu8frqr2kzg5"
       },
       "fee": "0",
-      "gas_limit": "1300",
+      "gas_limit": 1300,
+      "gas_used": 0,
       "hash": "f8392d609c4c304f37b7ca75ae03bd98e431fc4fe42b18704788b0fa150c9d7a",
       "index": 2,
       "method": "staking.Transfer",

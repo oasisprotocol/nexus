@@ -29,7 +29,6 @@ import (
 
 	beacon "github.com/oasisprotocol/nexus/coreapi/v22.2.11/beacon/api"
 	node "github.com/oasisprotocol/nexus/coreapi/v22.2.11/common/node"
-	consensus "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api"
 	consensusTransaction "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api/transaction"
 	consensusResults "github.com/oasisprotocol/nexus/coreapi/v22.2.11/consensus/api/transaction/results"
 	registry "github.com/oasisprotocol/nexus/coreapi/v22.2.11/registry/api"
@@ -37,6 +36,7 @@ import (
 	"github.com/oasisprotocol/nexus/coreapi/v22.2.11/roothash/api/message"
 	scheduler "github.com/oasisprotocol/nexus/coreapi/v22.2.11/scheduler/api"
 	staking "github.com/oasisprotocol/nexus/coreapi/v22.2.11/staking/api"
+	consensus "github.com/oasisprotocol/nexus/coreapi/v24.0/consensus/api"
 	governance "github.com/oasisprotocol/nexus/coreapi/v24.0/governance/api"
 	"github.com/oasisprotocol/nexus/storage/oasis/connections"
 
@@ -104,8 +104,9 @@ type TransactionWithResults struct {
 }
 
 type TxResult struct {
-	Error  TxError
-	Events []Event
+	Error   TxError
+	Events  []Event
+	GasUsed uint64 `json:"gas_used,omitempty"` // Added in 24.3.
 }
 
 // IsSuccess returns true if transaction execution was successful.

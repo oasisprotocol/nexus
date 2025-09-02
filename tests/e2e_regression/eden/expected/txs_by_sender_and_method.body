@@ -9,7 +9,8 @@
         "to": "oasis1qqwllxt8tvqxt8sryeg3r8ts0yulyu8frqr2kzg5"
       },
       "fee": "0",
-      "gas_limit": "1300",
+      "gas_limit": 1300,
+      "gas_used": 0,
       "hash": "28439354075cac2020962fde405af1b849ac649ea06ae20d6f92afe3f4dce55d",
       "index": 3,
       "method": "staking.Transfer",
@@ -25,7 +26,8 @@
         "to": "oasis1qqwllxt8tvqxt8sryeg3r8ts0yulyu8frqr2kzg5"
       },
       "fee": "0",
-      "gas_limit": "1300",
+      "gas_limit": 1300,
+      "gas_used": 0,
       "hash": "f8392d609c4c304f37b7ca75ae03bd98e431fc4fe42b18704788b0fa150c9d7a",
       "index": 2,
       "method": "staking.Transfer",
