@@ -15,7 +15,7 @@ require (
 	github.com/ethereum/go-ethereum v1.16.2
 	github.com/go-chi/chi/v5 v5.2.3
 	github.com/go-kit/log v0.2.1
-	github.com/golang-migrate/migrate/v4 v4.18.3
+	github.com/golang-migrate/migrate/v4 v4.19.0
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.7.5
 	github.com/knadh/koanf v1.5.0
@@ -155,7 +155,6 @@ require (
 	github.com/zeebo/errs v1.4.0 // indirect
 	go.dedis.ch/fixbuf v1.0.3 // indirect
 	go.opencensus.io v0.24.0 // indirect
-	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect
 	golang.org/x/exp v0.0.0-20250128182459-e0ece0dbea4c // indirect
