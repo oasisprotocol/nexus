@@ -37,7 +37,7 @@ jobs:
           # Fetch all history so gitlint can check the relevant commits.
           fetch-depth: '0'
       - name: Set up Python 3
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.x'
         # Needed for Towncrier fork to work with 3.12 and above
