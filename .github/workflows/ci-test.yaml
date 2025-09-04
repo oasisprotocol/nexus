@@ -47,7 +47,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v5
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: "1.24.x"
       - name: Install Go tools
@@ -103,7 +103,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v5
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: "1.24.x"
       - name: Autogenerate Go code
@@ -157,7 +157,7 @@ jobs:
             tests/e2e_regression/${{ matrix.suite }}/rpc-cache
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: "1.24.x"
 

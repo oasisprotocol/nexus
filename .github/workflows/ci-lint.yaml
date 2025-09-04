@@ -78,7 +78,7 @@ jobs:
         # Always run this step so that all linting errors can be seen at once.
         if: always()
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: "1.24.x"
         # Always run this step so that all linting errors can be seen at once.
