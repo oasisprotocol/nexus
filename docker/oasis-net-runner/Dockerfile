@@ -1,4 +1,4 @@
-FROM golang:1.24-bookworm AS oasis-core
+FROM golang:1.25-trixie AS oasis-core
 
 ARG OASIS_CORE_VERSION=25.3
 
