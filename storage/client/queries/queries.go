@@ -362,10 +362,11 @@ const (
 		SELECT votes.voter, votes.vote, votes.height, blocks.time
 			FROM chain.votes as votes
 			LEFT JOIN chain.blocks as blocks ON votes.height = blocks.height
-			WHERE proposal = $1::bigint
+			WHERE proposal = $1::bigint AND
+				($2::text IS NULL OR votes.vote = $2::text)
 		ORDER BY height DESC, voter ASC
-		LIMIT $2::bigint
-		OFFSET $3::bigint`
+		LIMIT $3::bigint
+		OFFSET $4::bigint`
 
 	LatestEpochStart = `
 		SELECT id, start_height
