@@ -50,6 +50,8 @@ commonTestCases=(
   'proposals                          /v1/consensus/proposals'
   'proposal                           /v1/consensus/proposals/2'
   'votes                              /v1/consensus/proposals/2/votes'
+  'votes_yes                          /v1/consensus/proposals/2/votes?vote=yes'
+  'votes_no                           /v1/consensus/proposals/2/votes?vote=no'
   'tx_volume                          /v1/consensus/stats/tx_volume'
   'window_size                        /v1/consensus/stats/tx_volume?window_size_seconds=300&window_step_seconds=300'
   'nonstandard_window_size            /v1/consensus/stats/tx_volume?window_size_seconds=301&window_step_seconds=300'

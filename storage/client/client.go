@@ -1276,6 +1276,7 @@ func (c *StorageClient) ProposalVotes(ctx context.Context, proposalID uint64, p 
 		ctx,
 		queries.ProposalVotes,
 		proposalID,
+		p.Vote,
 		p.Limit,
 		p.Offset,
 	)

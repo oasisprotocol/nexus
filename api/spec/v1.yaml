@@ -838,6 +838,12 @@ paths:
           description: |
             The unique identifier of the proposal for which votes are returned.
           example: *proposal_id_1
+        - in: query
+          name: vote
+          schema:
+            type: string
+          description: A filter on the vote value.
+          example: 'yes'
       responses:
         '200':
           description: |
