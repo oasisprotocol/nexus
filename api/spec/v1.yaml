@@ -1226,6 +1226,50 @@ paths:
                 $ref: '#/components/schemas/RuntimeAccount'
         <<: *common_error_responses
 
+  /{runtime}/accounts/{address}/delegations:
+    get:
+      summary: Returns a runtime account's delegations.
+      parameters:
+        - *limit
+        - *offset
+        - *runtime
+        - in: path
+          name: address
+          required: true
+          schema:
+            allOf: [$ref: '#/components/schemas/EthOrOasisAddress']
+          description: The address of the account that delegated.
+      responses:
+        '200':
+          description: A JSON object containing a list of delegations.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DelegationList'
+        <<: *common_error_responses
+
+  /{runtime}/accounts/{address}/debonding_delegations:
+    get:
+      summary: Returns a runtime account's debonding delegations.
+      parameters:
+        - *limit
+        - *offset
+        - *runtime
+        - in: path
+          name: address
+          required: true
+          schema:
+            allOf: [$ref: '#/components/schemas/EthOrOasisAddress']
+          description: The address of the account that debonded.
+      responses:
+        '200':
+          description: A JSON object containing a list of debonding delegations.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DebondingDelegationList'
+        <<: *common_error_responses
+
   /{runtime}/accounts/{address}/nfts:
     get:
       summary: |

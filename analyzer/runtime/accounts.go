@@ -2,6 +2,7 @@
 package runtime
 
 import (
+	"context"
 	"math/big"
 	"slices"
 
@@ -13,6 +14,7 @@ import (
 	"github.com/oasisprotocol/nexus/analyzer/queries"
 	"github.com/oasisprotocol/nexus/common"
 	"github.com/oasisprotocol/nexus/storage"
+	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
 )
 
 // queueAccountsEvents expands `batch` with DB queries that record the "effects"
@@ -150,7 +152,7 @@ func (m *processor) queueTransfer(batch *storage.QueryBatch, round uint64, e acc
 	}
 }
 
-func (m *processor) queueConsensusAccountsEvents(batch *storage.QueryBatch, blockData *BlockData) {
+func (m *processor) queueConsensusAccountsEvents(ctx context.Context, batch *storage.QueryBatch, blockData *BlockData) {
 	for _, event := range blockData.EventData {
 		if event.WithScope.ConsensusAccounts == nil {
 			continue
@@ -163,12 +165,73 @@ func (m *processor) queueConsensusAccountsEvents(batch *storage.QueryBatch, bloc
 		}
 		if e := event.WithScope.ConsensusAccounts.Delegate; e != nil {
 			m.queueTransactionStatusUpdate(batch, blockData.Header.Round, "consensus.Delegate", e.From, e.Nonce, e.Error)
+			if e.Error != nil {
+				continue
+			}
+
+			// Record the delegation.
+			switch e.Shares {
+			case nil:
+				// Pre runtime-sdk v0.15.0 the shares were not included in the event.
+				delegation, err := m.source.GetDelegation(ctx, blockData.Header.Round, nodeapi.Address(e.From), nodeapi.Address(e.To))
+				if err != nil {
+					m.logger.Error("failed to get delegation", "round", blockData.Header.Round, "from", e.From, "to", e.To, "error", err)
+					continue
+				}
+				batch.Queue(
+					queries.RuntimeConsensusAccountDelegationOverride,
+					m.runtime,
+					e.From,
+					e.To,
+					delegation.Shares,
+				)
+			default:
+				batch.Queue(
+					queries.RuntimeConsensusAccountDelegationUpsert,
+					m.runtime,
+					e.From,
+					e.To,
+					e.Shares,
+				)
+			}
+			// XXX: The transfer of tokens is already handled, since a Transfer event is emitted.
 		}
 		if e := event.WithScope.ConsensusAccounts.UndelegateStart; e != nil {
 			// To contains the signer address.
 			m.queueTransactionStatusUpdate(batch, blockData.Header.Round, "consensus.Undelegate", e.To, e.Nonce, e.Error)
+			if e.Error != nil {
+				continue
+			}
+
+			// Record the undelegation.
+			batch.Queue(
+				queries.RuntimeConsensusAccountDebondingDelegationUpsert,
+				m.runtime,
+				e.To,
+				e.From,
+				e.DebondEndTime,
+				e.Shares,
+			)
+			// Reduce the delegation.
+			batch.Queue(
+				queries.RuntimeConsensusAccountDelegationUpsert,
+				m.runtime,
+				e.To,
+				e.From,
+				(&big.Int{}).Neg(e.Shares.ToBigInt()).String(),
+			)
 		}
-		// Nothing to do for 'UndelegateEnd'.
+		if e := event.WithScope.ConsensusAccounts.UndelegateDone; e != nil {
+			// Remove the undelegation.
+			batch.Queue(
+				queries.RuntimeConsensusAccountDebondingDelegationRemove,
+				m.runtime,
+				e.To,
+				e.From,
+				e.Epoch, // Could be nil for events pre runtime-sdk v0.15.0.
+			)
+			// XXX: The minting of received tokens is already handled, since a Mint event is emitted.
+		}
 	}
 }
 

@@ -458,6 +458,38 @@ func (srv *StrictServerImpl) GetRuntimeAccountsAddress(ctx context.Context, requ
 	return apiTypes.GetRuntimeAccountsAddress200JSONResponse(*account), nil
 }
 
+func (srv *StrictServerImpl) GetRuntimeAccountsAddressDelegations(ctx context.Context, request apiTypes.GetRuntimeAccountsAddressDelegationsRequestObject) (apiTypes.GetRuntimeAccountsAddressDelegationsResponseObject, error) {
+	ocAddr, err := apiTypes.UnmarshalToOcAddress(&request.Address)
+	if err != nil {
+		return nil, err
+	}
+	runtime, err := request.Runtime.Validate()
+	if err != nil {
+		return nil, err
+	}
+	delegations, err := srv.dbClient.RuntimeDelegations(ctx, runtime, *ocAddr, request.Params)
+	if err != nil {
+		return nil, err
+	}
+	return apiTypes.GetRuntimeAccountsAddressDelegations200JSONResponse(*delegations), nil
+}
+
+func (srv *StrictServerImpl) GetRuntimeAccountsAddressDebondingDelegations(ctx context.Context, request apiTypes.GetRuntimeAccountsAddressDebondingDelegationsRequestObject) (apiTypes.GetRuntimeAccountsAddressDebondingDelegationsResponseObject, error) {
+	ocAddr, err := apiTypes.UnmarshalToOcAddress(&request.Address)
+	if err != nil {
+		return nil, err
+	}
+	runtime, err := request.Runtime.Validate()
+	if err != nil {
+		return nil, err
+	}
+	delegations, err := srv.dbClient.RuntimeDebondingDelegations(ctx, runtime, *ocAddr, request.Params)
+	if err != nil {
+		return nil, err
+	}
+	return apiTypes.GetRuntimeAccountsAddressDebondingDelegations200JSONResponse(*delegations), nil
+}
+
 func (srv *StrictServerImpl) GetRuntimeAccountsAddressNfts(ctx context.Context, request apiTypes.GetRuntimeAccountsAddressNftsRequestObject) (apiTypes.GetRuntimeAccountsAddressNftsResponseObject, error) {
 	ocAddrOwner, err := apiTypes.UnmarshalToOcAddress(&request.Address)
 	if err != nil {
