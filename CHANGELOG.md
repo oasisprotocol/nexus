@@ -12,6 +12,23 @@ The format is inspired by [Keep a Changelog].
 
 <!-- TOWNCRIER -->
 
+## 0.7.14 (2025-09-23)
+
+### Features
+
+- consensus: Add Gas Used and Block Sze fields
+  ([#891](https://github.com/oasisprotocol/nexus/issues/891))
+
+- analyzer/staking-history: Fetch start epoch from DB before source node
+  ([#1137](https://github.com/oasisprotocol/nexus/issues/1137))
+
+  Ensures the analyzer can start even if the start height is missing
+  from the source node, provided the starting epoch is already indexed
+  in the database.
+
+- api/consensus/proposals: Add filter by vote type
+  ([#1157](https://github.com/oasisprotocol/nexus/issues/1157))
+
 ## 0.7.13 (2025-08-14)
 
 ### Features
