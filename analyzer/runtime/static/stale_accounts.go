@@ -3,6 +3,7 @@ package static
 
 import (
 	"embed"
+	"io/fs"
 	"os"
 	"path"
 	"path/filepath"
@@ -16,9 +17,11 @@ import (
 	"github.com/oasisprotocol/nexus/storage"
 )
 
-//go:embed pre_eden
-var preEdenStaleAcctsFS embed.FS
-var preEdenStaleAccts = make(map[staleAcctsKey][]string) // Parsed version of embed.FS
+var (
+	//go:embed accounts
+	staleAccountsFS embed.FS
+	staleAccounts   = make(map[staleAcctsKey][]string) // Parsed version of embed.FS
+)
 
 type staleAcctsKey struct {
 	chain   common.ChainName
@@ -29,7 +32,7 @@ type staleAcctsKey struct {
 // Parses a file with a list of stale accounts. The accounts are parsed from the file (one per line);
 // the metadata is parsed from the filename, which should be of the form "<chainName>_<runtime>_<height>_*".
 func mustReadStaleAccts(path string) (chain common.ChainName, runtime common.Runtime, height uint64, accts []string) {
-	content, err := preEdenStaleAcctsFS.ReadFile(path)
+	content, err := staleAccountsFS.ReadFile(path)
 	if err != nil {
 		panic(err)
 	}
@@ -46,25 +49,34 @@ func mustReadStaleAccts(path string) (chain common.ChainName, runtime common.Run
 }
 
 func init() {
-	root := "pre_eden"
-	files, err := preEdenStaleAcctsFS.ReadDir(root)
+	readAccounts := func(files []fs.DirEntry, basePath string) {
+		for _, file := range files {
+			chainName, runtime, height, accts := mustReadStaleAccts(path.Join(basePath, file.Name()))
+			staleAccounts[staleAcctsKey{chainName, runtime, height}] = accts
+		}
+	}
+
+	preEden, err := staleAccountsFS.ReadDir("accounts/pre_eden")
 	if err != nil {
 		panic(err)
 	}
-	for _, file := range files {
-		chainName, runtime, height, accts := mustReadStaleAccts(path.Join(root, file.Name()))
-		preEdenStaleAccts[staleAcctsKey{chainName, runtime, height}] = accts
+	readAccounts(preEden, "accounts/pre_eden")
+
+	eden, err := staleAccountsFS.ReadDir("accounts/eden")
+	if err != nil {
+		panic(err)
 	}
+	readAccounts(eden, "accounts/eden")
 }
 
 // Returns the list of known stale accounts for a given chain and runtime,
 // and assumes there's only one such list. Returns such a list only once.
 // TODO: Remove this function; see callsite for more info.
 func knownStaleAccountsRegardlessOfHeight(chainName common.ChainName, runtime common.Runtime) []string {
-	for key, accounts := range preEdenStaleAccts {
+	for key, accounts := range staleAccounts {
 		if key.chain == chainName && key.runtime == runtime {
 			accountsCopy := accounts
-			delete(preEdenStaleAccts, key) // to avoid re-applying on next rounds
+			delete(staleAccounts, key) // to avoid re-applying on next rounds
 			return accountsCopy
 		}
 	}
@@ -87,7 +99,7 @@ func knownStaleAccountsRegardlessOfHeight(chainName common.ChainName, runtime co
 // This is an ongoing issue where Nexus cannot known about the existence of these accounts as Nexus is unable to simulate EVM transactions.
 // With these lists we at least know about all such accounts at Eden genesis time.
 func QueueEVMKnownStaleAccounts(batch *storage.QueryBatch, chainName common.ChainName, runtime common.Runtime, round uint64, logger *log.Logger) error {
-	accounts, ok := preEdenStaleAccts[staleAcctsKey{chainName, runtime, round}]
+	accounts, ok := staleAccounts[staleAcctsKey{chainName, runtime, round}]
 	if !ok {
 		// XXX: The whole "then" branch of this `if` is a temporary hack that allows us to
 		//      mark known stale accounts in the DB even though we already passed the height at which
