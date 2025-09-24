@@ -28,6 +28,7 @@ analysis:
       to: 8_514_134    # ~2000 blocks; compromise between fast and comprehensive
       additional_evm_token_addresses:
         - "0xA14167756d9F86Aed12b472C29B257BBdD9974C2" # BitUSD
+      # force_mark_stale_accounts: true # TODO: Uncomment once the eden archive node is fixed: https://github.com/oasisprotocol/nexus/pull/1017
   storage:
     backend: postgres
     endpoint: postgresql://rwuser:password@localhost:5432/indexer?sslmode=disable&pool_max_conns=10

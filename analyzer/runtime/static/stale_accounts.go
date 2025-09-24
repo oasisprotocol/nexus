@@ -4,7 +4,6 @@ package static
 import (
 	"embed"
 	"io/fs"
-	"os"
 	"path"
 	"path/filepath"
 	"strconv"
@@ -70,17 +69,24 @@ func init() {
 }
 
 // Returns the list of known stale accounts for a given chain and runtime,
-// and assumes there's only one such list. Returns such a list only once.
-// TODO: Remove this function; see callsite for more info.
+// merging all matching entries regardless of height. Returns such lists only once.
 func knownStaleAccountsRegardlessOfHeight(chainName common.ChainName, runtime common.Runtime) []string {
+	var allAccounts []string
+	var keysToDelete []staleAcctsKey
+
 	for key, accounts := range staleAccounts {
 		if key.chain == chainName && key.runtime == runtime {
-			accountsCopy := accounts
-			delete(staleAccounts, key) // to avoid re-applying on next rounds
-			return accountsCopy
+			allAccounts = append(allAccounts, accounts...)
+			keysToDelete = append(keysToDelete, key)
 		}
 	}
-	return nil
+
+	// Remove the keys to avoid re-applying on next rounds.
+	for _, key := range keysToDelete {
+		delete(staleAccounts, key)
+	}
+
+	return allAccounts
 }
 
 // QueueEVMKnownStaleAccounts queues (known-to-be stale) account lists at specific heights for native token balance update.
@@ -98,14 +104,10 @@ func knownStaleAccountsRegardlessOfHeight(chainName common.ChainName, runtime co
 // This list also helps partially mitigating the issue of accounts that have only ever interacted within internal EVM transactions (e.g. transfers within evm.Call).
 // This is an ongoing issue where Nexus cannot known about the existence of these accounts as Nexus is unable to simulate EVM transactions.
 // With these lists we at least know about all such accounts at Eden genesis time.
-func QueueEVMKnownStaleAccounts(batch *storage.QueryBatch, chainName common.ChainName, runtime common.Runtime, round uint64, logger *log.Logger) error {
+func QueueEVMKnownStaleAccounts(batch *storage.QueryBatch, chainName common.ChainName, runtime common.Runtime, round uint64, forceMarkStaleAccounts bool, logger *log.Logger) error {
 	accounts, ok := staleAccounts[staleAcctsKey{chainName, runtime, round}]
 	if !ok {
-		// XXX: The whole "then" branch of this `if` is a temporary hack that allows us to
-		//      mark known stale accounts in the DB even though we already passed the height at which
-		//      we'd normally do this. This lets us avoid a reindex.
-		// TODO: Remove the hack once stale accounts have been marked in all internal deploys.
-		if os.Getenv("NEXUS_FORCE_MARK_STALE_ACCOUNTS") == "1" {
+		if forceMarkStaleAccounts {
 			accounts = knownStaleAccountsRegardlessOfHeight(chainName, runtime)
 		} else {
 			return nil
@@ -115,7 +117,7 @@ func QueueEVMKnownStaleAccounts(batch *storage.QueryBatch, chainName common.Chai
 		return nil
 	}
 
-	logger.Info("Enqueueing known pre-Eden stale accounts for EVM native token balance update", "height", round, "n_accounts", len(accounts))
+	logger.Info("Enqueueing known stale accounts for native token balance update", "height", round, "n_accounts", len(accounts))
 	for _, account := range accounts {
 		// The (non-binding) assumption is that the block analyzer has already indexed past the height of these accounts. But:
 		//   - If the block analyzer already scanned past the height and mutated the accounts more recently, the below will be a no-op.
