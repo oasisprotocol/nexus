@@ -32,6 +32,8 @@ testCases=(
   'sapphire_token_holders                              /v1/sapphire/evm_tokens/0xbAE528E422853AeBD630E8606e312aeA954FA5eB/holders'
   'sapphire_account_with_rose                          /v1/sapphire/accounts/0xeDA395666E56dd9E2Ef3Bdc76eee373b738640DD'
   'sapphire_account_with_evm_token                     /v1/sapphire/accounts/0xeDA395666E56dd9E2Ef3Bdc76eee373b738640DD'
+  'sapphire_runtime_account_delegations                /v1/sapphire/accounts/oasis1qzgdygrjvxzgk0gngz9054teg0pmp5xmgyx27r3u/delegations'
+  'sapphire_runtime_account_debonding_delegations      /v1/sapphire/accounts/oasis1qzgdygrjvxzgk0gngz9054teg0pmp5xmgyx27r3u/debonding_delegations'
   'sapphire_rofl_app                                   /v1/sapphire/rofl_apps/rofl1qp55evqls4qg6cjw5fnlv4al9ptc0fsakvxvd9uw'
   'sapphire_rofl_app_by_admin                          /v1/sapphire/rofl_apps?admin=oasis1qpwaggvmhwq5uk40clase3knt655nn2tdy39nz2f'
   'sapphire_rofl_app_by_name                           /v1/sapphire/rofl_apps?name=demo-rofl'
