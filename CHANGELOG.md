@@ -12,6 +12,13 @@ The format is inspired by [Keep a Changelog].
 
 <!-- TOWNCRIER -->
 
+## 0.7.16 (2025-09-24)
+
+### Bug Fixes and Improvements
+
+- Fix stale accounts handling with multiple lists per chain
+  ([#1164](https://github.com/oasisprotocol/nexus/issues/1164))
+
 ## 0.7.15 (2025-09-24)
 
 ### Features
