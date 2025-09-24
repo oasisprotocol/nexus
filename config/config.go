@@ -368,6 +368,11 @@ type RuntimeAnalyzerConfig struct {
 	// part of the spec (decimals, symbol, etc.) but do not emit ERC20 events - therefore are not
 	// ever picked up by the analyzer.
 	AdditionalEVMTokenAddresses []string `koanf:"additional_evm_token_addresses"`
+
+	// ForceMarkStaleAccounts forces marking of known stale accounts in the DB even when
+	// the analyzer has already passed the height at which they would normally be processed.
+	// This allows avoiding a reindex.
+	ForceMarkStaleAccounts bool `koanf:"force_mark_stale_accounts"`
 }
 
 type BlockBasedAnalyzerConfig struct {

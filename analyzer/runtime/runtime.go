@@ -37,6 +37,7 @@ type processor struct {
 	target  storage.TargetStorage
 	logger  *log.Logger
 	metrics metrics.AnalysisMetrics
+	cfg     *config.RuntimeAnalyzerConfig
 
 	additionalEVMTokenAddresses []ethCommon.Address
 }
@@ -65,6 +66,7 @@ func NewRuntimeAnalyzer(
 		target:  target,
 		logger:  logger.With("analyzer", runtime),
 		metrics: metrics.NewDefaultAnalysisMetrics(string(runtime)),
+		cfg:     cfg,
 	}
 	for _, addr := range cfg.AdditionalEVMTokenAddresses {
 		processor.additionalEVMTokenAddresses = append(processor.additionalEVMTokenAddresses, ethCommon.HexToAddress(addr))
@@ -285,8 +287,8 @@ func (m *processor) ProcessBlock(ctx context.Context, round uint64) error {
 	)
 
 	// Perform one-off fixes: Refetch native balances that are known to be stale at a fixed height.
-	if err := static.QueueEVMKnownStaleAccounts(batch, m.chain, m.runtime, round, m.logger); err != nil {
-		return fmt.Errorf("queue eden accounts: %w", err)
+	if err := static.QueueEVMKnownStaleAccounts(batch, m.chain, m.runtime, round, m.cfg.ForceMarkStaleAccounts, m.logger); err != nil {
+		return fmt.Errorf("queue stale accounts: %w", err)
 	}
 
 	opName := fmt.Sprintf("process_block_%s", m.runtime)
