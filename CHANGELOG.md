@@ -12,6 +12,13 @@ The format is inspired by [Keep a Changelog].
 
 <!-- TOWNCRIER -->
 
+## 0.7.15 (2025-09-24)
+
+### Features
+
+- Add eden runtime stale accounts
+  ([#1159](https://github.com/oasisprotocol/nexus/issues/1159))
+
 ## 0.7.14 (2025-09-23)
 
 ### Features
