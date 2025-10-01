@@ -27,6 +27,9 @@ type AnalysisMetrics struct {
 	// Latencies of fetching a block's data from the node.
 	blockFetchLatencies *prometheus.HistogramVec
 
+	// Count of block fetche statuses, either successful or failed.
+	blockFetches *prometheus.CounterVec
+
 	// Queue length of analyzer.
 	queueLengths *prometheus.GaugeVec
 }
@@ -38,6 +41,13 @@ const (
 	CacheReadStatusMiss     CacheReadStatus = "miss"
 	CacheReadStatusBadValue CacheReadStatus = "bad_value" // Value in cache was not valid (likely because of mismatched types / CBOR encoding).
 	CacheReadStatusError    CacheReadStatus = "error"     // Other internal error reading from cache.
+)
+
+type BlockFetchStatus string
+
+const (
+	BlockFetchStatusSuccess BlockFetchStatus = "success"
+	BlockFetchStatusError   BlockFetchStatus = "error"
 )
 
 // defaultTimeBuckets returns a set of buckets for use in a timing histogram.
@@ -101,6 +111,13 @@ func NewDefaultAnalysisMetrics(runtime string) AnalysisMetrics {
 			},
 			[]string{"layer"}, // Labels.
 		),
+		blockFetches: prometheus.NewCounterVec(
+			prometheus.CounterOpts{
+				Name: "block_fetches",
+				Help: "Block fetch counter, by request status (success, error).",
+			},
+			[]string{"layer", "status"}, // Labels.
+		),
 		queueLengths: prometheus.NewGaugeVec(
 			prometheus.GaugeOpts{
 				Name: fmt.Sprintf("%s_queue_length", runtime),
@@ -114,6 +131,7 @@ func NewDefaultAnalysisMetrics(runtime string) AnalysisMetrics {
 	metrics.localCacheReads = registerOnce(metrics.localCacheReads).(*prometheus.CounterVec)
 	metrics.blockAnalysisLatencies = registerOnce(metrics.blockAnalysisLatencies).(*prometheus.HistogramVec)
 	metrics.blockFetchLatencies = registerOnce(metrics.blockFetchLatencies).(*prometheus.HistogramVec)
+	metrics.blockFetches = registerOnce(metrics.blockFetches).(*prometheus.CounterVec)
 	metrics.queueLengths = registerOnce(metrics.queueLengths).(*prometheus.GaugeVec)
 	return metrics
 }
@@ -143,6 +161,10 @@ func (m *AnalysisMetrics) BlockAnalysisLatencies() *prometheus.Timer {
 
 func (m *AnalysisMetrics) BlockFetchLatencies() *prometheus.Timer {
 	return prometheus.NewTimer(m.blockFetchLatencies.WithLabelValues(m.runtime))
+}
+
+func (m *AnalysisMetrics) BlockFetches(status BlockFetchStatus) prometheus.Counter {
+	return m.blockFetches.WithLabelValues(m.runtime, string(status))
 }
 
 func (m *AnalysisMetrics) QueueLength(analyzer string) prometheus.Gauge {

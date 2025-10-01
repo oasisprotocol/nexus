@@ -351,10 +351,12 @@ func (m *processor) ProcessBlock(ctx context.Context, uheight uint64) error {
 		fetchTimer := m.metrics.BlockFetchLatencies()
 		data, err := fetchAllData(ctx, m.source, m.network, height, m.mode == analyzer.FastSyncMode)
 		if err != nil {
+			m.metrics.BlockFetches(metrics.BlockFetchStatusError).Inc()
 			return err
 		}
 		// We make no observation in case of a data fetch error; those timings are misleading.
 		fetchTimer.ObserveDuration()
+		m.metrics.BlockFetches(metrics.BlockFetchStatusSuccess).Inc()
 
 		// Process data, prepare updates.
 		analysisTimer := m.metrics.BlockAnalysisLatencies()

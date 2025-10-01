@@ -237,6 +237,15 @@ func (m *processor) FinalizeFastSync(ctx context.Context, lastFastSyncHeight int
 
 // Implements BlockProcessor interface.
 func (m *processor) ProcessBlock(ctx context.Context, round uint64) error {
+	// A "block fetch" is a few steps and errors in all count towards the
+	// failed fetch metric.
+	blockFetchDone := false
+	defer func() {
+		if !blockFetchDone {
+			m.metrics.BlockFetches(metrics.BlockFetchStatusError).Inc()
+		}
+	}()
+
 	// Fetch all data.
 	fetchTimer := m.metrics.BlockFetchLatencies()
 	blockHeader, err := m.source.GetBlockHeader(ctx, round)
@@ -260,6 +269,8 @@ func (m *processor) ProcessBlock(ctx context.Context, round uint64) error {
 		return err
 	}
 	// We make no observation in case of a data fetch error; those timings are misleading.
+	blockFetchDone = true
+	m.metrics.BlockFetches(metrics.BlockFetchStatusSuccess).Inc()
 	fetchTimer.ObserveDuration()
 
 	// Preprocess data.
