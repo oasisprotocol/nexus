@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"sync"
 
 	"golang.org/x/sync/errgroup"
 
@@ -98,28 +99,48 @@ func fetchAllData(ctx context.Context, cc nodeapi.ConsensusApiLite, network sdkC
 
 // fetchBlockData retrieves data about a consensus block at the provided block height.
 func fetchBlockData(ctx context.Context, cc nodeapi.ConsensusApiLite, height int64) (*consensusBlockData, error) {
-	block, err := cc.GetBlock(ctx, height)
-	if err != nil {
-		return nil, wrapOutOfRangeError(err)
-	}
+	eg, fetchCtx := errgroup.WithContext(ctx)
 
-	nodes, err := cc.GetNodes(ctx, height)
-	if err != nil {
-		return nil, err
-	}
+	var block *consensus.Block
+	var nodes []nodeapi.Node
+	var epoch beacon.EpochTime
+	var params *nodeapi.ConsensusParameters
+	var transactionsWithResults []nodeapi.TransactionWithResults
 
-	epoch, err := cc.GetEpoch(ctx, height)
-	if err != nil {
-		return nil, err
-	}
+	eg.Go(func() error {
+		var err error
+		block, err = cc.GetBlock(fetchCtx, height)
+		if err != nil {
+			return wrapOutOfRangeError(err)
+		}
+		return nil
+	})
 
-	params, err := cc.GetConsensusParameters(ctx, height)
-	if err != nil {
-		return nil, err
-	}
+	eg.Go(func() error {
+		var err error
+		nodes, err = cc.GetNodes(fetchCtx, height)
+		return err
+	})
 
-	transactionsWithResults, err := cc.GetTransactionsWithResults(ctx, height)
-	if err != nil {
+	eg.Go(func() error {
+		var err error
+		epoch, err = cc.GetEpoch(fetchCtx, height)
+		return err
+	})
+
+	eg.Go(func() error {
+		var err error
+		params, err = cc.GetConsensusParameters(fetchCtx, height)
+		return err
+	})
+
+	eg.Go(func() error {
+		var err error
+		transactionsWithResults, err = cc.GetTransactionsWithResults(fetchCtx, height)
+		return err
+	})
+
+	if err := eg.Wait(); err != nil {
 		return nil, err
 	}
 
@@ -236,24 +257,43 @@ func fetchStakingData(ctx context.Context, cc nodeapi.ConsensusApiLite, height i
 
 // fetchSchedulerData retrieves validators and runtime committees at the provided block height.
 func fetchSchedulerData(ctx context.Context, cc nodeapi.ConsensusApiLite, network sdkConfig.Network, height int64) (*schedulerData, error) {
-	validators, err := cc.GetValidators(ctx, height)
-	if err != nil {
-		return nil, wrapOutOfRangeError(err)
-	}
+	eg, fetchCtx := errgroup.WithContext(ctx)
 
+	var validators []nodeapi.Validator
 	committees := make(map[coreCommon.Namespace][]nodeapi.Committee, len(network.ParaTimes.All))
 
-	for name := range network.ParaTimes.All {
-		var runtimeID coreCommon.Namespace
-		if err := runtimeID.UnmarshalHex(network.ParaTimes.All[name].ID); err != nil {
-			return nil, err
-		}
-
-		consensusCommittees, err := cc.GetCommittees(ctx, height, runtimeID)
+	eg.Go(func() error {
+		var err error
+		validators, err = cc.GetValidators(fetchCtx, height)
 		if err != nil {
-			return nil, err
+			return wrapOutOfRangeError(err)
 		}
-		committees[runtimeID] = consensusCommittees
+		return nil
+	})
+
+	var mu sync.Mutex
+	for name := range network.ParaTimes.All {
+		eg.Go(func() error {
+			var runtimeID coreCommon.Namespace
+			if err := runtimeID.UnmarshalHex(network.ParaTimes.All[name].ID); err != nil {
+				return err
+			}
+
+			consensusCommittees, err := cc.GetCommittees(fetchCtx, height, runtimeID)
+			if err != nil {
+				return err
+			}
+
+			mu.Lock()
+			committees[runtimeID] = consensusCommittees
+			mu.Unlock()
+
+			return nil
+		})
+	}
+
+	if err := eg.Wait(); err != nil {
+		return nil, err
 	}
 
 	return &schedulerData{
@@ -312,28 +352,47 @@ func fetchGovernanceData(ctx context.Context, cc nodeapi.ConsensusApiLite, heigh
 // fetchRootHashData retrieves roothash events and last round results at the
 // provided block height.
 func fetchRootHashData(ctx context.Context, cc nodeapi.ConsensusApiLite, network sdkConfig.Network, height int64) (*rootHashData, error) {
-	events, err := cc.RoothashEvents(ctx, height)
-	if err != nil {
-		return nil, wrapOutOfRangeError(err)
-	}
-	// XXX: We do this here, so that we don't need to invalidate the caches.
-	for i := range events {
-		events[i].EventIdx = i
-	}
+	eg, fetchCtx := errgroup.WithContext(ctx)
 
+	var events []nodeapi.Event
 	lastRoundResults := make(map[coreCommon.Namespace]*roothash.RoundResults, len(network.ParaTimes.All))
 
-	for name := range network.ParaTimes.All {
-		var runtimeID coreCommon.Namespace
-		if err1 := runtimeID.UnmarshalHex(network.ParaTimes.All[name].ID); err1 != nil {
-			return nil, err1
+	eg.Go(func() error {
+		var err error
+		events, err = cc.RoothashEvents(fetchCtx, height)
+		if err != nil {
+			return wrapOutOfRangeError(err)
 		}
+		// XXX: We do this here, so that we don't need to invalidate the caches.
+		for i := range events {
+			events[i].EventIdx = i
+		}
+		return nil
+	})
 
-		res, err1 := cc.RoothashLastRoundResults(ctx, height, runtimeID)
-		if err1 != nil {
-			return nil, err1
-		}
-		lastRoundResults[runtimeID] = res
+	var mu sync.Mutex
+	for name := range network.ParaTimes.All {
+		eg.Go(func() error {
+			var runtimeID coreCommon.Namespace
+			if err := runtimeID.UnmarshalHex(network.ParaTimes.All[name].ID); err != nil {
+				return err
+			}
+
+			res, err := cc.RoothashLastRoundResults(fetchCtx, height, runtimeID)
+			if err != nil {
+				return err
+			}
+
+			mu.Lock()
+			lastRoundResults[runtimeID] = res
+			mu.Unlock()
+
+			return nil
+		})
+	}
+
+	if err := eg.Wait(); err != nil {
+		return nil, err
 	}
 
 	return &rootHashData{
