@@ -1,0 +1,8 @@
+BEGIN;
+
+ALTER TABLE chain.runtime_nodes
+  ADD COLUMN IF NOT EXISTS version TEXT,
+  ADD COLUMN IF NOT EXISTS capabilities BYTEA,
+  ADD COLUMN IF NOT EXISTS extra_info BYTEA;
+
+COMMIT;

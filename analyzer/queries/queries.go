@@ -400,8 +400,12 @@ var (
       voting_power = excluded.voting_power`
 
 	ConsensusRuntimeNodesUpsert = `
-    INSERT INTO chain.runtime_nodes (runtime_id, node_id) VALUES ($1, $2)
-      ON CONFLICT (runtime_id, node_id) DO NOTHING`
+    INSERT INTO chain.runtime_nodes (runtime_id, node_id, version, capabilities, extra_info) VALUES ($1, $2, $3, $4, $5)
+      ON CONFLICT (runtime_id, node_id) DO UPDATE
+      SET
+        version = excluded.version,
+        capabilities = excluded.capabilities,
+        extra_info = excluded.extra_info`
 
 	ConsensusRuntimeNodesDelete = `
     DELETE FROM chain.runtime_nodes WHERE node_id = $1`
