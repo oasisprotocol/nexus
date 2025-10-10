@@ -488,7 +488,7 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 						// Mark sender and contract accounts as having potentially stale balances.
 						// EVMCreate can transfer funds from the sender to the contract.
 						if to != "" {
-							registerTokenIncrease(blockData.TokenBalanceChanges, evm.NativeRuntimeTokenAddress, to, big.NewInt(0))
+							registerTokenIncrease(blockData.TokenBalanceChanges, evm.NativeRuntimeTokenAddress, to, big.NewInt(0)) // XXX: But don't transfer events handle this?
 						}
 						for _, signer := range blockTransactionData.SignerData {
 							registerTokenDecrease(blockData.TokenBalanceChanges, evm.NativeRuntimeTokenAddress, signer.Address, big.NewInt(0))
@@ -560,7 +560,6 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 						for _, signer := range blockTransactionData.SignerData {
 							registerTokenDecrease(blockData.TokenBalanceChanges, evm.NativeRuntimeTokenAddress, signer.Address, reckonedAmount)
 						}
-
 					}
 
 					// Subcall precompile.
@@ -1513,8 +1512,8 @@ func extractEvents(blockData *BlockData, eventsRaw []nodeapi.RuntimeEvent) ([]*E
 					}
 					eventData.RelatedAddresses[ownerAddr] = struct{}{}
 					registerTokenIncrease(blockData.TokenBalanceChanges, wrapperAddr, ownerAddr, amount)
-					registerTokenIncrease(blockData.TokenBalanceChanges, evm.NativeRuntimeTokenAddress, wrapperAddr, amount)
-					registerTokenDecrease(blockData.TokenBalanceChanges, evm.NativeRuntimeTokenAddress, ownerAddr, amount)
+					registerTokenIncrease(blockData.TokenBalanceChanges, evm.NativeRuntimeTokenAddress, wrapperAddr, amount) // TODO: but transfer event handles this?
+					registerTokenDecrease(blockData.TokenBalanceChanges, evm.NativeRuntimeTokenAddress, ownerAddr, amount)   // TODO: but transfer event handles this?
 
 					// ^ The above includes dead-reckoning for the native token because no events are emitted for native token transfers.
 					//

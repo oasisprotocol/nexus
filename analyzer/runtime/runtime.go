@@ -555,7 +555,8 @@ func (m *processor) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 		// Update (dead-reckon) the DB balance only if it's actually changed.
 		if change != big.NewInt(0) && m.mode != analyzer.FastSyncMode {
 			if key.TokenAddress == evm.NativeRuntimeTokenAddress {
-				batch.Queue(queries.RuntimeNativeBalanceUpsert, m.runtime, key.AccountAddress, nativeTokenSymbol(m.sdkPT), change.String())
+				// For native balance updates, just mark the balance as dirty. The actual balance update should be handled by the accounts.Transfer event.
+				// batch.Queue(queries.RuntimeNativeBalanceUpsert, m.runtime, key.AccountAddress, nativeTokenSymbol(m.sdkPT), change.String())
 			} else {
 				batch.Queue(queries.RuntimeEVMTokenBalanceUpdate, m.runtime, key.TokenAddress, key.AccountAddress, change.String())
 			}
