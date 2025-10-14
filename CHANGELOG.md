@@ -12,6 +12,24 @@ The format is inspired by [Keep a Changelog].
 
 <!-- TOWNCRIER -->
 
+## 0.7.17 (2025-10-14)
+
+### Features
+
+- Optimize consensus block fetching
+  ([#1038](https://github.com/oasisprotocol/nexus/issues/1038))
+
+- Pontus-X native symbol rename
+  ([#1177](https://github.com/oasisprotocol/nexus/issues/1177))
+
+### Internal Changes
+
+- Add consensus analyzer Prometheus metrics for block fetch statuses
+  ([#1074](https://github.com/oasisprotocol/nexus/issues/1074))
+
+- Update Go to 1.25 and docker images to Debian trixie
+  ([#1143](https://github.com/oasisprotocol/nexus/issues/1143))
+
 ## 0.7.16 (2025-09-24)
 
 ### Bug Fixes and Improvements
