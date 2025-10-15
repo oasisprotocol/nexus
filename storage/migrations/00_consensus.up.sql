@@ -28,6 +28,9 @@ CREATE TYPE public.runtime AS ENUM ('emerald', 'sapphire', 'cipher', 'pontusx_de
 CREATE TYPE public.call_format AS ENUM ('encrypted/x25519-deoxysii');
 CREATE TYPE public.sourcify_level AS ENUM ('partial', 'full');
 
+-- Added in 51_node_roles.up.sql.
+-- CREATE TYPE public.node_role AS ENUM ('compute', 'observer', 'key-manager', 'validator', 'consensus-rpc', 'storage-rpc');
+
 -- Block Data
 CREATE TABLE chain.blocks
 (
@@ -207,6 +210,8 @@ CREATE TABLE chain.nodes
   vrf_pubkey TEXT,
 
   roles            TEXT,
+  -- roles node_role[] NOT NULL DEFAULT '{}'::node_role[]; -- Added in 51_node_roles.up.sql.
+
   software_version TEXT,
 
   -- Voting power should only be nonzero for consensus validator nodes.
