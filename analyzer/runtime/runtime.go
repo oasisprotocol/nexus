@@ -163,6 +163,62 @@ func (m *processor) PreWork(ctx context.Context) error {
 	return nil
 }
 
+func (m *processor) reconcileDelegations(ctx context.Context, round uint64, batch *storage.QueryBatch) error {
+	// Drop existing delegations and undelegations state.
+	batch.Queue("DELETE FROM chain.runtime_accounts_delegations WHERE runtime = $1", m.runtime)
+	batch.Queue("DELETE FROM chain.runtime_accounts_debonding_delegations WHERE runtime = $1", m.runtime)
+
+	// Fetch all delegations.
+	delegations, err := m.source.GetAllDelegations(ctx, round)
+	if err != nil {
+		return fmt.Errorf("failed to get delegations: %w", err)
+	}
+	for _, delegation := range delegations {
+		// Ensure the delegator's runtime account exists before inserting the delegation.
+		// This is required due to the foreign key constraint and can occur if we started
+		// indexing mid-chain and the account record was never created.
+		batch.Queue(
+			queries.RuntimeAccountUpsert,
+			m.runtime,
+			delegation.From,
+		)
+
+		batch.Queue(
+			queries.RuntimeConsensusAccountDelegationOverride,
+			m.runtime,
+			delegation.From,
+			delegation.To,
+			delegation.Shares,
+		)
+	}
+
+	// Fetch all undelegations.
+	undelegations, err := m.source.GetAllUndelegations(ctx, round)
+	if err != nil {
+		return fmt.Errorf("failed to get undelegations: %w", err)
+	}
+	for _, undelegation := range undelegations {
+		// Ensure the delegator's runtime account exists before inserting the delegation.
+		// This is required due to the foreign key constraint and can occur if we started
+		// indexing mid-chain and the account record was never created.
+		batch.Queue(
+			queries.RuntimeAccountUpsert,
+			m.runtime,
+			undelegation.To,
+		)
+		batch.Queue(
+			queries.RuntimeConsensusAccountDebondingDelegationUpsert,
+			m.runtime,
+			undelegation.To,
+			undelegation.From,
+			undelegation.Epoch,
+			undelegation.Shares,
+		)
+	}
+
+	return nil
+}
+
 func (m *processor) UpdateHighTrafficAccounts(ctx context.Context, batch *storage.QueryBatch, height int64) error {
 	if height < 0 {
 		panic(fmt.Sprintf("negative height: %d", height))
@@ -284,7 +340,7 @@ func (m *processor) ProcessBlock(ctx context.Context, round uint64) error {
 	batch := &storage.QueryBatch{}
 	m.queueDbUpdates(batch, blockData)
 	m.queueAccountsEvents(batch, blockData)
-	m.queueConsensusAccountsEvents(batch, blockData)
+	m.queueConsensusAccountsEvents(ctx, batch, blockData)
 	m.queueRoflStaleApps(batch, blockData)
 	m.queueRoflmarketStale(batch, blockData)
 	analysisTimer.ObserveDuration()
@@ -300,6 +356,14 @@ func (m *processor) ProcessBlock(ctx context.Context, round uint64) error {
 	// Perform one-off fixes: Refetch native balances that are known to be stale at a fixed height.
 	if err := static.QueueEVMKnownStaleAccounts(batch, m.chain, m.runtime, round, m.cfg.ForceMarkStaleAccounts, m.logger); err != nil {
 		return fmt.Errorf("queue stale accounts: %w", err)
+	}
+
+	// Reconcile delegations if configured.
+	if m.cfg.ReconcileDelegationsAt == round && round > 0 {
+		// XXX: This requires runtime-sdk v0.15.0 or later.
+		if err := m.reconcileDelegations(ctx, round, batch); err != nil {
+			return fmt.Errorf("failed to reconcile delegations: %w", err)
+		}
 	}
 
 	opName := fmt.Sprintf("process_block_%s", m.runtime)

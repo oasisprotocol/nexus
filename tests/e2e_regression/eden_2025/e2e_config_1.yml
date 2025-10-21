@@ -15,7 +15,7 @@ analysis:
     nodes:
       # Node will be accessed only when the filling up the cache.
       # In CI, the cache is expected to have all the node responses as the node is not reachable.
-      eden: { default: { rpc: internal-direct.grpc.opf.oasis.io:443 } } # grpc.oasis.io:443 } }
+      eden: { default: { rpc: internal-mainnet-20231129-latest.grpc.oasis.io:443 } } # grpc.oasis.io:443 } }
     ipfs:
       gateway: https://ipfs.io
     fast_startup: true
@@ -26,6 +26,7 @@ analysis:
     sapphire:
       from: 8_512_135  #  April 19, 2025.
       to: 8_514_134    # ~2000 blocks; compromise between fast and comprehensive
+      reconcile_delegations_at: 8_512_200
       additional_evm_token_addresses:
         - "0xA14167756d9F86Aed12b472C29B257BBdD9974C2" # BitUSD
       # force_mark_stale_accounts: true # TODO: Uncomment once the eden archive node is fixed: https://github.com/oasisprotocol/nexus/pull/1017

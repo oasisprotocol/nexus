@@ -26,6 +26,7 @@ analysis:
     sapphire:
       from: 11_565_500  #  May 6, 2025. Roflmarket was active in this period.
       to: 11_567_500    # ~2000 blocks; compromise between fast and comprehensive
+      reconcile_delegations_at: 11_565_550
   storage:
     backend: postgres
     endpoint: postgresql://rwuser:password@localhost:5432/indexer?sslmode=disable&pool_max_conns=10

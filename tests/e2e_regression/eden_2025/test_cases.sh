@@ -35,4 +35,6 @@ testCases=(
   'sapphire_account_with_rose                  /v1/sapphire/accounts/0xCCD706B1c30d1c6F46F74885C3B13e3Ea28ce8AF'
   'sapphire_account_with_evm_token             /v1/sapphire/accounts/0x6Cc4Fe9Ba145AbBc43227b3D4860FA31AFD225CB'
   'sapphire_token_configured_addresses         /v1/sapphire/evm_tokens/0xA14167756d9F86Aed12b472C29B257BBdD9974C2'
+  'sapphire_account_delegations                /v1/sapphire/accounts/oasis1qz83nq7a9cudtxnmmxxteqkeansfcsldjy3kcgqk/delegations'
+  'sapphire_account_debonding_delegations      /v1/sapphire/accounts/oasis1qz83nq7a9cudtxnmmxxteqkeansfcsldjy3kcgqk/debonding_delegations'
 )

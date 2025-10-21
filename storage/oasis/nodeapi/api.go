@@ -41,6 +41,7 @@ import (
 	"github.com/oasisprotocol/nexus/storage/oasis/connections"
 
 	sdkClient "github.com/oasisprotocol/oasis-sdk/client-sdk/go/client"
+	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/consensusaccounts"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/rofl"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/roflmarket"
 	sdkTypes "github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
@@ -291,6 +292,10 @@ type RuntimeApiLite interface {
 	GetBalances(ctx context.Context, round uint64, addr Address) (map[sdkTypes.Denomination]common.BigInt, error)
 	GetMinGasPrice(ctx context.Context, round uint64) (map[sdkTypes.Denomination]common.BigInt, error)
 
+	GetDelegation(ctx context.Context, round uint64, from Address, to Address) (*DelegationInfo, error)
+	GetAllDelegations(ctx context.Context, round uint64) ([]*CompleteDelegationInfo, error)
+	GetAllUndelegations(ctx context.Context, round uint64) ([]*CompleteUndelegationInfo, error)
+
 	RoflApp(ctx context.Context, round uint64, id AppID) (*AppConfig, error)
 	RoflApps(ctx context.Context, round uint64) ([]*AppConfig, error)
 	RoflAppInstance(ctx context.Context, round uint64, id AppID, rak PublicKey) (*Registration, error)
@@ -315,6 +320,10 @@ type (
 	AppConfig    = rofl.AppConfig
 	Registration = rofl.Registration
 	PublicKey    = sdkTypes.PublicKey
+
+	DelegationInfo           = consensusaccounts.DelegationInfo
+	CompleteDelegationInfo   = consensusaccounts.CompleteDelegationInfo
+	CompleteUndelegationInfo = consensusaccounts.CompleteUndelegationInfo
 
 	QueuedCommand = roflmarket.QueuedCommand
 	InstanceID    = roflmarket.InstanceID

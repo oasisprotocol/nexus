@@ -2029,6 +2029,109 @@ func (c *StorageClient) RuntimeAccount(ctx context.Context, runtime common.Runti
 	return &a, nil
 }
 
+func (c *StorageClient) RuntimeDelegations(ctx context.Context, runtime common.Runtime, address staking.Address, params apiTypes.GetRuntimeAccountsAddressDelegationsParams) (*apiTypes.DelegationList, error) {
+	res, err := c.withDefaultTotalCount(
+		ctx,
+		queries.RuntimeDelegations,
+		runtime,
+		address.String(),
+		params.Limit,
+		params.Offset,
+	)
+	if err != nil {
+		return nil, wrapError(err)
+	}
+	defer res.rows.Close()
+
+	ds := DelegationList{
+		Delegations:         []Delegation{},
+		TotalCount:          res.totalCount,
+		IsTotalCountClipped: res.isTotalCountClipped,
+	}
+	for res.rows.Next() {
+		d := Delegation{
+			Delegator: address.String(),
+		}
+		var shares, escrowBalanceActive, escrowTotalSharesActive common.BigInt
+		if err = res.rows.Scan(
+			&d.Validator,
+			&shares,
+			&escrowBalanceActive,
+			&escrowTotalSharesActive,
+		); err != nil {
+			return nil, wrapError(err)
+		}
+		d.Amount, err = amountFromShares(shares, escrowTotalSharesActive, escrowBalanceActive)
+		if err != nil {
+			c.logger.Error("failed to compute delegated amount from shares (inconsistent DB state?)",
+				"delegator", address.String(),
+				"delegatee", d.Validator,
+				"shares", shares,
+				"total_shares", escrowTotalSharesActive,
+				"total_balance", escrowBalanceActive,
+				"err", err,
+			)
+		}
+		d.Shares = shares
+
+		ds.Delegations = append(ds.Delegations, d)
+	}
+
+	return &ds, nil
+}
+
+func (c *StorageClient) RuntimeDebondingDelegations(ctx context.Context, runtime common.Runtime, address staking.Address, params apiTypes.GetRuntimeAccountsAddressDebondingDelegationsParams) (*apiTypes.DebondingDelegationList, error) {
+	res, err := c.withDefaultTotalCount(
+		ctx,
+		queries.RuntimeDebondingDelegations,
+		runtime,
+		address.String(),
+		params.Limit,
+		params.Offset,
+	)
+	if err != nil {
+		return nil, wrapError(err)
+	}
+	defer res.rows.Close()
+
+	ds := DebondingDelegationList{
+		DebondingDelegations: []DebondingDelegation{},
+		TotalCount:           res.totalCount,
+		IsTotalCountClipped:  res.isTotalCountClipped,
+	}
+	for res.rows.Next() {
+		d := DebondingDelegation{
+			Delegator: address.String(),
+		}
+		var shares, escrowBalanceDebonding, escrowTotalSharesDebonding common.BigInt
+		if err = res.rows.Scan(
+			&d.Validator,
+			&shares,
+			&d.DebondEnd,
+			&escrowBalanceDebonding,
+			&escrowTotalSharesDebonding,
+		); err != nil {
+			return nil, wrapError(err)
+		}
+		d.Amount, err = amountFromShares(shares, escrowTotalSharesDebonding, escrowBalanceDebonding)
+		if err != nil {
+			c.logger.Error("failed to compute debonding delegated amount from shares (inconsistent DB state?)",
+				"delegator", address.String(),
+				"delegatee", d.Validator,
+				"shares", shares,
+				"total_shares", escrowTotalSharesDebonding,
+				"total_balance", escrowBalanceDebonding,
+				"err", err,
+			)
+		}
+		d.Shares = shares
+
+		ds.DebondingDelegations = append(ds.DebondingDelegations, d)
+	}
+
+	return &ds, nil
+}
+
 func fillInPriceFromReserves(t *EvmToken) {
 	reserve0f, _ := t.RefSwap.Reserve0.Float64()
 	reserve1f, _ := t.RefSwap.Reserve1.Float64()
