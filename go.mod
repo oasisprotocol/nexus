@@ -12,7 +12,7 @@ replace (
 )
 
 require (
-	github.com/ethereum/go-ethereum v1.16.4
+	github.com/ethereum/go-ethereum v1.16.5
 	github.com/go-chi/chi/v5 v5.2.3
 	github.com/go-kit/log v0.2.1
 	github.com/golang-migrate/migrate/v4 v4.19.0
@@ -70,7 +70,7 @@ require (
 	github.com/go-openapi/swag v0.23.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
-	github.com/golang/snappy v0.0.5-0.20220116011046-fa5810519dcb // indirect
+	github.com/golang/snappy v1.0.0 // indirect
 	github.com/google/flatbuffers v24.12.23+incompatible // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/go-github/v39 v39.2.0 // indirect
