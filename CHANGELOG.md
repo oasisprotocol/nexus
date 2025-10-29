@@ -12,6 +12,13 @@ The format is inspired by [Keep a Changelog].
 
 <!-- TOWNCRIER -->
 
+## 0.7.18 (2025-10-29)
+
+### Features
+
+- analyzer/runtime: Index staking done via runtime
+  ([#1017](https://github.com/oasisprotocol/nexus/issues/1017))
+
 ## 0.7.17 (2025-10-14)
 
 ### Features
