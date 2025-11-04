@@ -764,16 +764,30 @@ var (
       SET shares = $4`
 
 	RuntimeConsensusAccountDelegationUpsert = `
-    INSERT INTO chain.runtime_accounts_delegations AS old (runtime, delegator, delegatee, shares)
-      VALUES ($1, $2, $3, $4)
-    ON CONFLICT (runtime, delegator, delegatee) DO UPDATE
-      SET shares = old.shares + $4`
+    -- Update-first pattern to avoid uint_numeric check failure on negative deltas in shares.
+    -- Regular UPSERT casts shares from VALUES() before conflict check, causing premature failure.
+    WITH up AS (
+      UPDATE chain.runtime_accounts_delegations
+      SET shares = shares + $4::numeric
+      WHERE runtime = $1 AND delegator = $2 AND delegatee = $3
+      RETURNING 1
+    )
+    INSERT INTO chain.runtime_accounts_delegations (runtime, delegator, delegatee, shares)
+    SELECT $1, $2, $3, ($4)::uint_numeric
+    WHERE NOT EXISTS (SELECT 1 FROM up)`
 
 	RuntimeConsensusAccountDebondingDelegationUpsert = `
-    INSERT INTO chain.runtime_accounts_debonding_delegations AS old (runtime, delegator, delegatee, debond_end, shares)
-      VALUES ($1, $2, $3, $4, $5)
-    ON CONFLICT (runtime, delegator, delegatee, debond_end) DO UPDATE
-      SET shares = old.shares + $5`
+    -- Update-first pattern to avoid uint_numeric check failure on negative deltas in shares.
+    -- Regular UPSERT casts shares from VALUES() before conflict check, causing premature failure.
+    WITH up AS (
+      UPDATE chain.runtime_accounts_debonding_delegations
+      SET shares = shares + $5::numeric
+      WHERE runtime = $1 AND delegator = $2 AND delegatee = $3 AND debond_end = $4
+      RETURNING 1
+    )
+    INSERT INTO chain.runtime_accounts_debonding_delegations (runtime, delegator, delegatee, debond_end, shares)
+    SELECT $1, $2, $3, $4, ($5)::uint_numeric
+    WHERE NOT EXISTS (SELECT 1 FROM up)`
 
 	// The NULL check `debond_end IS NULL` is included to handle pre-v0.15.0 events,
 	// where debond_end may be NULL. This ensures backward compatibility with older data.
