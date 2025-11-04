@@ -12,6 +12,13 @@ The format is inspired by [Keep a Changelog].
 
 <!-- TOWNCRIER -->
 
+## 0.7.19 (2025-11-04)
+
+### Bug Fixes and Improvements
+
+- analyzer/queries: avoid uint_numeric check failure on negative shares
+  ([#1189](https://github.com/oasisprotocol/nexus/issues/1189))
+
 ## 0.7.18 (2025-10-29)
 
 ### Features
