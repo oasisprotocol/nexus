@@ -37,6 +37,55 @@ const (
 			FROM views.accounts_list
 			WHERE address = ANY($1)`
 
+	RecentBlocksAllLayers = `
+		WITH consensus_top AS (
+			SELECT
+				'consensus'::text AS layer,
+				height::bigint     AS height,
+				block_hash         AS hash,
+				time               AS timestamp,
+				num_txs            AS num_transactions
+			FROM chain.blocks
+			ORDER BY height DESC
+			LIMIT $1::bigint
+		),
+		runtime_top AS (
+			-- take last $1 by round per runtime using the (runtime, round) index
+			SELECT t.*
+			FROM (
+				VALUES
+					('emerald'::public.runtime),
+					('sapphire'::public.runtime),
+					('cipher'::public.runtime),
+					('pontusx_dev'::public.runtime),
+					('pontusx_test'::public.runtime)
+			) AS rt(runtime)
+			CROSS JOIN LATERAL (
+				SELECT
+					CASE
+						WHEN rb.runtime::text = 'pontusx_test' THEN 'pontusxtest'
+						WHEN rb.runtime::text = 'pontusx_dev' THEN 'pontusxdev'
+						ELSE rb.runtime::text
+					END AS layer,
+					rb.round::bigint   AS height,
+					rb.block_hash      AS hash,
+					rb.timestamp       AS timestamp,
+					rb.num_transactions
+				FROM chain.runtime_blocks rb
+				WHERE rb.runtime = rt.runtime
+				ORDER BY rb.round DESC
+				LIMIT $1::bigint
+			) AS t
+		)
+		SELECT layer, height, hash, timestamp, num_transactions
+		FROM (
+			SELECT * FROM consensus_top
+			UNION ALL
+			SELECT * FROM runtime_top
+		) all_blocks
+		ORDER BY timestamp DESC, height DESC, hash DESC
+		LIMIT $1::bigint`
+
 	Blocks = `
 		SELECT
 			height,

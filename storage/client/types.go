@@ -11,6 +11,9 @@ type BigInt = common.BigInt
 // Status is the storage response for GetStatus.
 type Status = api.Status
 
+// RecentBlockList is the storage response for RecentBlocks.
+type RecentBlockList = api.RecentBlockList
+
 // BlockList is the storage response for ListBlocks.
 type BlockList = api.BlockList
 

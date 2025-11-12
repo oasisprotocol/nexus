@@ -373,6 +373,37 @@ func entityInfoFromRow(r entityInfoRow) apiTypes.EntityInfo {
 	}
 }
 
+func (c *StorageClient) RecentBlocks(ctx context.Context) (*RecentBlockList, error) {
+	// Query the most recent blocks across all layers.
+	res, err := c.db.Query(ctx, queries.RecentBlocksAllLayers, 10)
+	if err != nil {
+		return nil, wrapError(err)
+	}
+	defer res.Close()
+
+	rbs := RecentBlockList{
+		Blocks:              []apiTypes.RecentBlock{},
+		IsTotalCountClipped: true,
+	}
+	for res.Next() {
+		var rb apiTypes.RecentBlock
+		if err := res.Scan(
+			&rb.Layer,
+			&rb.Height,
+			&rb.Hash,
+			&rb.Timestamp,
+			&rb.NumTransactions,
+		); err != nil {
+			return nil, wrapError(err)
+		}
+		rb.Timestamp = rb.Timestamp.UTC()
+		rbs.Blocks = append(rbs.Blocks, rb)
+	}
+	rbs.TotalCount = uint64(len(rbs.Blocks))
+
+	return &rbs, nil
+}
+
 // Blocks returns a list of consensus blocks.
 func (c *StorageClient) Blocks(ctx context.Context, r apiTypes.GetConsensusBlocksParams, height *int64) (*BlockList, error) {
 	if height != nil {
