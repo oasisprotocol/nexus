@@ -105,6 +105,14 @@ func (srv *StrictServerImpl) GetConsensusAccountsAddressDelegationsTo(ctx contex
 	return apiTypes.GetConsensusAccountsAddressDelegationsTo200JSONResponse(*delegations), nil
 }
 
+func (srv *StrictServerImpl) GetRecentBlocks(ctx context.Context, request apiTypes.GetRecentBlocksRequestObject) (apiTypes.GetRecentBlocksResponseObject, error) {
+	blocks, err := srv.dbClient.RecentBlocks(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return apiTypes.GetRecentBlocks200JSONResponse(*blocks), nil
+}
+
 func (srv *StrictServerImpl) GetConsensusBlocks(ctx context.Context, request apiTypes.GetConsensusBlocksRequestObject) (apiTypes.GetConsensusBlocksResponseObject, error) {
 	blocks, err := srv.dbClient.Blocks(ctx, request.Params, nil)
 	if err != nil {

@@ -39,6 +39,9 @@ commonTestCases=(
   'trailing_slash                     /v1/consensus/accounts/?limit=1'
   'accounts                           /v1/consensus/accounts'
   'accounts_extraneous_key            /v1/consensus/accounts?foo=bar'
+
+  'recent_blocks                      /v1/recent_blocks'
+
   'blocks                             /v1/consensus/blocks'
   'bad_account                        /v1/consensus/accounts/oasis1aaaaaaa'
   # NOTE: entity-related tests are not stable long-term because their output is a combination of
