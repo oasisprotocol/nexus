@@ -1194,9 +1194,15 @@ const (
 
 	// FineTxVolumes returns the fine-grained query for 5-minute sampled tx volume windows.
 	FineTxVolumes = `
-		SELECT window_end, tx_volume
-		FROM stats.min5_tx_volume
-		WHERE layer = $1::text
+		SELECT
+			window_end,
+			SUM(tx_volume) AS tx_volume
+		FROM
+			stats.min5_tx_volume
+		WHERE
+			($1::text IS NULL OR layer = $1::text)
+		GROUP BY
+			window_end
 		ORDER BY
 			window_end DESC
 		LIMIT $2::bigint
@@ -1204,9 +1210,15 @@ const (
 
 	// FineDailyTxVolumes returns the query for daily tx volume windows.
 	FineDailyTxVolumes = `
-		SELECT window_end, tx_volume
-		FROM stats.daily_tx_volume
-		WHERE layer = $1::text
+		SELECT
+			window_end,
+			SUM(tx_volume) AS tx_volume
+		FROM
+			stats.daily_tx_volume
+		WHERE
+			($1::text IS NULL OR layer = $1::text)
+		GROUP BY
+			window_end
 		ORDER BY
 			window_end DESC
 		LIMIT $2::bigint
@@ -1214,9 +1226,15 @@ const (
 
 	// DailyTxVolumes returns the query for daily sampled daily tx volume windows.
 	DailyTxVolumes = `
-		SELECT window_end, tx_volume
-		FROM stats.daily_tx_volume
-		WHERE (layer = $1::text AND (window_end AT TIME ZONE 'UTC')::time = '00:00:00')
+		SELECT
+			window_end,
+			SUM(tx_volume) AS tx_volume
+		FROM
+			stats.daily_tx_volume
+		WHERE
+			($1::text IS NULL OR layer = $1::text) AND (window_end AT TIME ZONE 'UTC')::time = '00:00:00'
+		GROUP BY
+			window_end
 		ORDER BY
 			window_end DESC
 		LIMIT $2::bigint

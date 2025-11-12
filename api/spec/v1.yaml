@@ -1650,6 +1650,26 @@ paths:
                 $ref: '#/components/schemas/RoflMarketInstanceList'
         <<: *common_error_responses
 
+  /stats/tx_volume:
+    get:
+      summary: |
+        Returns a timeline of the transaction volume at the chosen granularity
+        combined for all layers.
+      parameters:
+        - *limit
+        - *offset
+        - *window_size_seconds
+        - *window_step_seconds
+      responses:
+        '200':
+          description: |
+            A JSON object containing a list of TPS values for each interval.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TxVolumeList'
+        <<: *common_error_responses
+
   /{layer}/stats/tx_volume:
     get:
       summary: |

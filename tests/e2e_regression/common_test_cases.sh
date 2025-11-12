@@ -41,6 +41,7 @@ commonTestCases=(
   'accounts_extraneous_key            /v1/consensus/accounts?foo=bar'
 
   'recent_blocks                      /v1/recent_blocks'
+  'tx_volume_all_layers               /v1/stats/tx_volume'
 
   'blocks                             /v1/consensus/blocks'
   'bad_account                        /v1/consensus/accounts/oasis1aaaaaaa'
