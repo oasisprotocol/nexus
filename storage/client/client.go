@@ -2913,7 +2913,7 @@ func (c *StorageClient) RuntimeRoflmarketInstances(ctx context.Context, runtime 
 }
 
 // TxVolumes returns a list of transaction volumes per time window.
-func (c *StorageClient) TxVolumes(ctx context.Context, layer apiTypes.Layer, p apiTypes.GetLayerStatsTxVolumeParams) (*TxVolumeList, error) {
+func (c *StorageClient) TxVolumes(ctx context.Context, layer *apiTypes.Layer, p apiTypes.GetLayerStatsTxVolumeParams) (*TxVolumeList, error) {
 	var query string
 
 	switch {
@@ -2931,10 +2931,14 @@ func (c *StorageClient) TxVolumes(ctx context.Context, layer apiTypes.Layer, p a
 		return nil, fmt.Errorf("invalid window size parameters: %w", apiCommon.ErrBadRequest)
 	}
 
+	var l *common.Layer
+	if layer != nil {
+		l = common.Ptr(translateLayer(*layer))
+	}
 	rows, err := c.db.Query(
 		ctx,
 		query,
-		translateLayer(layer),
+		l,
 		p.Limit,
 		p.Offset,
 	)

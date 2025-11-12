@@ -228,13 +228,27 @@ func (srv *StrictServerImpl) GetConsensusProposalsProposalIdVotes(ctx context.Co
 	return apiTypes.GetConsensusProposalsProposalIdVotes200JSONResponse(*votes), nil
 }
 
+func (srv *StrictServerImpl) GetStatsTxVolume(ctx context.Context, request apiTypes.GetStatsTxVolumeRequestObject) (apiTypes.GetStatsTxVolumeResponseObject, error) {
+	params := apiTypes.GetLayerStatsTxVolumeParams{
+		WindowStepSeconds: request.Params.WindowStepSeconds,
+		WindowSizeSeconds: request.Params.WindowSizeSeconds,
+		Limit:             request.Params.Limit,
+		Offset:            request.Params.Offset,
+	}
+	volumeList, err := srv.dbClient.TxVolumes(ctx, nil, params)
+	if err != nil {
+		return nil, err
+	}
+	return apiTypes.GetStatsTxVolume200JSONResponse(*volumeList), nil
+}
+
 func (srv *StrictServerImpl) GetLayerStatsTxVolume(ctx context.Context, request apiTypes.GetLayerStatsTxVolumeRequestObject) (apiTypes.GetLayerStatsTxVolumeResponseObject, error) {
 	// Additional param validation.
 	if !request.Layer.IsValid() {
 		return nil, &apiTypes.InvalidParamFormatError{ParamName: "layer", Err: fmt.Errorf("not a valid enum value: %s", request.Layer)}
 	}
 
-	volumeList, err := srv.dbClient.TxVolumes(ctx, request.Layer, request.Params)
+	volumeList, err := srv.dbClient.TxVolumes(ctx, &request.Layer, request.Params)
 	if err != nil {
 		return nil, err
 	}
