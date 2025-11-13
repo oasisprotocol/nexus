@@ -12,6 +12,16 @@ The format is inspired by [Keep a Changelog].
 
 <!-- TOWNCRIER -->
 
+## 0.7.20 (2025-11-13)
+
+### Features
+
+- `/v1/recent_blocks` Endpoint to return recent blocks across all layers
+  ([#1198](https://github.com/oasisprotocol/nexus/issues/1198))
+
+- `/v1/stats/tx_volume` Endpoint returns tx_volume for all layers
+  ([#1199](https://github.com/oasisprotocol/nexus/issues/1199))
+
 ## 0.7.19 (2025-11-04)
 
 ### Bug Fixes and Improvements
