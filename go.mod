@@ -162,7 +162,7 @@ require (
 	go.yaml.in/yaml/v2 v2.4.2 // indirect
 	golang.org/x/exp v0.0.0-20250128182459-e0ece0dbea4c // indirect
 	golang.org/x/mod v0.29.0 // indirect
-	golang.org/x/net v0.46.0 // indirect
+	golang.org/x/net v0.47.0 // indirect
 	golang.org/x/oauth2 v0.30.0 // indirect
 	golang.org/x/sys v0.38.0 // indirect
 	golang.org/x/text v0.31.0 // indirect
@@ -188,5 +188,5 @@ require (
 	github.com/oasisprotocol/oasis-sdk/client-sdk/go v0.16.1-0.20251014092014-fb69325c5e3c
 	github.com/rs/cors v1.11.1
 	go.dedis.ch/kyber/v3 v3.1.0
-	golang.org/x/crypto v0.44.0
+	golang.org/x/crypto v0.45.0
 )
