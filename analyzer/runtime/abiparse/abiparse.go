@@ -30,9 +30,26 @@ func EvmPreMarshal(v interface{}, t abi.Type) interface{} {
 	case abi.TupleTy:
 		rv := reflect.ValueOf(v)
 		m := map[string]interface{}{}
-		for i, fieldName := range t.TupleRawNames {
-			m[fieldName] = EvmPreMarshal(rv.Field(i).Interface(), *t.TupleElems[i])
+		// Handle both struct and map representations of tuples.
+		switch rv.Kind() {
+		case reflect.Struct:
+			// Tuple represented as a struct.
+			for i, fieldName := range t.TupleRawNames {
+				m[fieldName] = EvmPreMarshal(rv.Field(i).Interface(), *t.TupleElems[i])
+			}
+		case reflect.Map:
+			// Tuple represented as a map.
+			for i, fieldName := range t.TupleRawNames {
+				mapValue := rv.MapIndex(reflect.ValueOf(fieldName))
+				if mapValue.IsValid() {
+					m[fieldName] = EvmPreMarshal(mapValue.Interface(), *t.TupleElems[i])
+				}
+			}
+		default:
+			// Fallback: return the value as-is if it's neither struct nor map.
+			return v
 		}
+		return m
 	case abi.FixedBytesTy, abi.FunctionTy:
 		c := reflect.New(t.GetType()).Elem()
 		c.Set(reflect.ValueOf(v))

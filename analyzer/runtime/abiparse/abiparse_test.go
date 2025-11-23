@@ -7,6 +7,7 @@ import (
 	"math/big"
 	"testing"
 
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	ethCommon "github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
 
@@ -154,4 +155,27 @@ func TestParseError(t *testing.T) {
 		uint16(1),
 		"a",
 	}, args)
+}
+
+func TestEvmPreMarshalMapTuple(t *testing.T) {
+	tupleType := abi.Type{
+		T:             abi.TupleTy,
+		TupleRawNames: []string{"n", "s"},
+		TupleElems: []*abi.Type{
+			{T: abi.UintTy, Size: 256},
+			{T: abi.StringTy},
+		},
+	}
+	mapTuple := map[string]interface{}{
+		"n": big.NewInt(42),
+		"s": "test",
+	}
+	result := EvmPreMarshal(mapTuple, tupleType)
+	require.NotNil(t, result)
+	resultMap, ok := result.(map[string]interface{})
+	require.True(t, ok, "result should be a map")
+	require.Contains(t, resultMap, "n")
+	require.Contains(t, resultMap, "s")
+	require.Equal(t, "42", resultMap["n"])   // uint256
+	require.Equal(t, "test", resultMap["s"]) // string
 }
