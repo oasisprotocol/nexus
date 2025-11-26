@@ -12,6 +12,16 @@ The format is inspired by [Keep a Changelog].
 
 <!-- TOWNCRIER -->
 
+## 0.7.21 (2025-11-26)
+
+### Bug Fixes and Improvements
+
+- analyzer/runtime/abiparse: Fix panic during parsing tuples
+  ([#1208](https://github.com/oasisprotocol/nexus/issues/1208))
+
+- Update sapphire stale accounts
+  ([#1209](https://github.com/oasisprotocol/nexus/issues/1209))
+
 ## 0.7.20 (2025-11-13)
 
 ### Features
