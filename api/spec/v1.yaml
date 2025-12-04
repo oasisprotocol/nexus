@@ -176,7 +176,8 @@ paths:
 
   /recent_blocks:
     get:
-      summary: Returns a list of recent blocks across all layers, sorted from most to least recent. Limited to 10 blocks.
+      summary: Returns a list of recent blocks across all layers
+      description: Sorted from most to least recent. Limited to 10 blocks.
       responses:
         '200':
           description: A JSON object containing a list of recent blocks.
@@ -548,7 +549,8 @@ paths:
 
   /consensus/validators:
     get:
-      summary: Returns a list of validators registered at the consensus layer (the list includes all registered entities, even those without a currently active validator node).
+      summary: Returns a list of validators registered at the consensus layer
+      description: The list includes all registered entities, even those without a currently active validator node.
       parameters:
         - *limit
         - *offset
@@ -633,6 +635,7 @@ paths:
     get:
       summary: |
         Returns a list of consensus layer accounts.
+      description: |
         Note that for performance reasons, the info returned by this endpoint
         may be slightly stale (<2 minutes). For the most up-to-date account state,
         query the single-account endpoint.
@@ -1147,6 +1150,7 @@ paths:
     get:
       summary: |
         Returns the list of holders of an EVM (ERC-20, ...) token.
+      description: |
         This endpoint does not verify that `address` is actually an EVM token; if it is not, it will simply return an empty list.
       parameters:
         - *limit
@@ -1171,6 +1175,7 @@ paths:
     get:
       summary: |
         Returns the list of non-fungible token (NFT) instances of an EVM (ERC-721, ...) token.
+      description: |
         This endpoint does not verify that `address` is actually an EVM token; if it is not, it will simply return an empty list.
       parameters:
         - *limit
@@ -1388,6 +1393,7 @@ paths:
     get:
       summary: |
         Returns a list of "managing" transactions of the ROFL app.
+      description: |
         This does not return transaction submitted by ROFL app instances, for that see
         the `/rofl_apps/{id}/instance_transactions` endpoint.
       parameters:
