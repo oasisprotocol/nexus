@@ -12,14 +12,6 @@ RUN \
 
 ############
 
-FROM node:18-slim AS openapi-builder
-
-COPY api/spec /api/spec
-WORKDIR /
-RUN npx redoc-cli build api/spec/v1.yaml -o api/spec/v1.html
-
-############
-
 FROM golang:1.25-trixie AS nexus
 
 WORKDIR /nexus
@@ -29,6 +21,5 @@ RUN apt-get update -q -q && \
 
 COPY --from=nexus-builder /code/go/nexus /usr/local/bin/nexus
 COPY --from=nexus-builder /code/go/ /nexus
-COPY --from=openapi-builder /api/spec/v1.html api/spec/v1.html
 
 ENTRYPOINT ["nexus"]

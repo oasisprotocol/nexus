@@ -20,8 +20,6 @@ tests/e2e_regression/**/rpc-cache/
 /logs
 
 # API files.
-index.html
-api/spec/v1.html
 api/spec/v1.json
 
 # Coverage reports.
