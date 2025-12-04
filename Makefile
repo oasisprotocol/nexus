@@ -141,6 +141,10 @@ lint-go-mod-tidy:
 
 lint: $(lint-targets)
 
+# Documentation preview
+docs-api:
+	@npx serve ./api/spec/
+
 start-docker:
 	@docker compose up --remove-orphans
 
