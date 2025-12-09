@@ -559,6 +559,13 @@ paths:
           description: |
             A filter on the validator name. Every returned validator will have
             a name that is a superstring of the input param.
+        - in: query
+          name: id
+          schema:
+            type: string
+          description: |
+            A filter on the entity or node ID (base64-encoded ed25519 public key).
+            Returns the validator with the matching entity ID or a node matching the given node ID if it exists.
       responses:
         '200':
           description: |
