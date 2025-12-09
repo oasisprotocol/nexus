@@ -59,7 +59,7 @@ hostname="http://localhost:8008"
 
 # The command to invoke psql (complete with connection params)
 # HACK: Assuming `make` returns a docker command, sed removes -i and -t flags because we'll be running without a TTY.
-psql="$(make --dry-run --no-print-directory psql | sed -E 's/\s-i?ti?\s/ /')"
+psql="$(make --dry-run --no-print-directory psql | sed -E 's/ -(it|ti|i|t) / /g')"
 
 # The directory to store the actual responses in
 outDir="$TEST_DIR/actual"
@@ -123,7 +123,8 @@ for ((i = 0; i < nCases; i++)); do
     fi
 
     # Sanitize the current timestamp out of the response header so that diffs are stable
-    sed -i -E 's/^(Date|Content-Length|Last-Modified): .*/\1: UNINTERESTING/g' "$outDir/$name.headers"
+    # Use a temp file for compatibility with both macOS and Linux sed
+    sed -E 's/^(Date|Content-Length|Last-Modified): .*/\1: UNINTERESTING/g' "$outDir/$name.headers" > "$outDir/$name.headers.tmp" && mv "$outDir/$name.headers.tmp" "$outDir/$name.headers"
   else
     # $param is a SQL query; fetch the DB response
     $psql -A -o /dev/stdout -c "COPY ($param) TO STDOUT CSV HEADER" | sed $'s/\r$//' >"$outDir/$name.csv" \
@@ -138,7 +139,8 @@ diff --recursive "$TEST_DIR/expected" "$outDir" >/dev/null || {
   # Create a copy of the `expected` dir with the symlink contents materialized; we'll diff against that.
   expectedDerefDir="/tmp/nexus-e2e-expected-$suite"
   rm -rf "$expectedDerefDir"
-  cp -r --dereference "$TEST_DIR/expected" "$expectedDerefDir"
+  # Use -L for macOS compatibility (equivalent to --dereference on Linux)
+  cp -rL "$TEST_DIR/expected" "$expectedDerefDir"
   if [[ -t 1 ]]; then # Running in a terminal
     echo "Press enter see the diff, or Ctrl-C to abort."
     read -r

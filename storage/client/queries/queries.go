@@ -426,7 +426,7 @@ const (
 	ValidatorsAggStats = `
 		SELECT
 			COALESCE (
-				(SELECT SUM(voting_power)
+				(SELECT SUM(voting_power)::NUMERIC
 				FROM chain.nodes)
 			, 0) AS total_voting_power,
 			COALESCE (
@@ -504,9 +504,9 @@ const (
 				delegators_count.count
 			, 0) AS num_delegators,
 			COALESCE (
-				validator_nodes.voting_power
+				validator_nodes.voting_power::NUMERIC
 			, 0) AS voting_power,
-			SUM(validator_nodes.voting_power)
+			SUM(validator_nodes.voting_power::NUMERIC)
 				OVER (ORDER BY validator_rank.rank) AS voting_power_cumulative,
 			COALESCE(chain.commissions.schedule, '{}'::JSONB) AS commissions_schedule,
 			chain.blocks.time AS start_date,
@@ -537,10 +537,11 @@ const (
 			AND chain.nodes.roles LIKE '%validator%'
 			AND chain.nodes.voting_power = validator_nodes.voting_power
 		WHERE ($1::text IS NULL OR chain.entities.address = $1::text) AND
-				($2::text IS NULL OR chain.entities.meta->>'name' LIKE '%' || $2::text || '%')
+				($2::text IS NULL OR chain.entities.meta->>'name' LIKE '%' || $2::text || '%') AND
+				($3::text IS NULL OR chain.entities.id = $3::text OR chain.nodes.id = $3::text)
 		ORDER BY rank
-		LIMIT $3::bigint
-		OFFSET $4::bigint`
+		LIMIT $4::bigint
+		OFFSET $5::bigint`
 
 	ValidatorHistory = `
 		WITH entity AS (

@@ -3,7 +3,7 @@
   "stats": {
     "total_delegators": 60793,
     "total_staked_balance": "4755447485999193387",
-    "total_voting_power": 261234553964856260
+    "total_voting_power": "261234553964856245"
   },
   "total_count": 206,
   "validators": [
@@ -55,8 +55,8 @@
         "window_length": 14400,
         "window_uptime": 999
       },
-      "voting_power": 31903165146578016,
-      "voting_power_cumulative": 31903165146578016
+      "voting_power": "31903165146578018",
+      "voting_power_cumulative": "31903165146578018"
     },
     {
       "active": true,
@@ -109,8 +109,8 @@
         "window_length": 14400,
         "window_uptime": 999
       },
-      "voting_power": 23508310046553456,
-      "voting_power_cumulative": 55411475193131470
+      "voting_power": "23508310046553456",
+      "voting_power_cumulative": "55411475193131474"
     },
     {
       "active": true,
@@ -163,8 +163,8 @@
         "window_length": 14400,
         "window_uptime": 999
       },
-      "voting_power": 17597413222050748,
-      "voting_power_cumulative": 73008888415182220
+      "voting_power": "17597413222050747",
+      "voting_power_cumulative": "73008888415182221"
     },
     {
       "active": true,
@@ -216,8 +216,8 @@
         "window_length": 14400,
         "window_uptime": 902
       },
-      "voting_power": 14409541602963356,
-      "voting_power_cumulative": 87418430018145580
+      "voting_power": "14409541602963357",
+      "voting_power_cumulative": "87418430018145578"
     },
     {
       "active": true,
@@ -270,8 +270,8 @@
         "window_length": 14400,
         "window_uptime": 936
       },
-      "voting_power": 11813946657692260,
-      "voting_power_cumulative": 99232376675837840
+      "voting_power": "11813946657692259",
+      "voting_power_cumulative": "99232376675837837"
     },
     {
       "active": true,
@@ -324,8 +324,8 @@
         "window_length": 14400,
         "window_uptime": 992
       },
-      "voting_power": 6898806920230617,
-      "voting_power_cumulative": 106131183596068450
+      "voting_power": "6898806920230617",
+      "voting_power_cumulative": "106131183596068454"
     },
     {
       "active": true,
@@ -377,8 +377,8 @@
         "window_length": 14400,
         "window_uptime": 557
       },
-      "voting_power": 6006105120821732,
-      "voting_power_cumulative": 112137288716890190
+      "voting_power": "6006105120821732",
+      "voting_power_cumulative": "112137288716890186"
     },
     {
       "active": true,
@@ -423,8 +423,8 @@
         "window_length": 14400,
         "window_uptime": 999
       },
-      "voting_power": 4922201735007926,
-      "voting_power_cumulative": 117059490451898110
+      "voting_power": "4922201735007926",
+      "voting_power_cumulative": "117059490451898112"
     },
     {
       "active": true,
@@ -475,8 +475,8 @@
         "window_length": 14400,
         "window_uptime": 999
       },
-      "voting_power": 4822438253997837,
-      "voting_power_cumulative": 121881928705895950
+      "voting_power": "4822438253997837",
+      "voting_power_cumulative": "121881928705895949"
     },
     {
       "active": true,
@@ -529,8 +529,8 @@
         "window_length": 14400,
         "window_uptime": 761
       },
-      "voting_power": 4546237779496083,
-      "voting_power_cumulative": 126428166485392030
+      "voting_power": "4546237779496083",
+      "voting_power_cumulative": "126428166485392032"
     },
     {
       "active": true,
@@ -583,8 +583,8 @@
         "window_length": 14400,
         "window_uptime": 999
       },
-      "voting_power": 4355334345360668,
-      "voting_power_cumulative": 130783500830752700
+      "voting_power": "4355334345360668",
+      "voting_power_cumulative": "130783500830752700"
     },
     {
       "active": true,
@@ -636,8 +636,8 @@
         "window_length": 14400,
         "window_uptime": 996
       },
-      "voting_power": 3878679245689438,
-      "voting_power_cumulative": 134662180076442140
+      "voting_power": "3878679245689438",
+      "voting_power_cumulative": "134662180076442138"
     },
     {
       "active": true,
@@ -690,8 +690,8 @@
         "window_length": 14400,
         "window_uptime": 883
       },
-      "voting_power": 3776172592266215,
-      "voting_power_cumulative": 138438352668708350
+      "voting_power": "3776172592266215",
+      "voting_power_cumulative": "138438352668708353"
     },
     {
       "active": true,
@@ -743,8 +743,8 @@
         "window_length": 14400,
         "window_uptime": 859
       },
-      "voting_power": 3721465390830823,
-      "voting_power_cumulative": 142159818059539170
+      "voting_power": "3721465390830823",
+      "voting_power_cumulative": "142159818059539176"
     },
     {
       "active": true,
@@ -795,8 +795,8 @@
         "window_length": 14400,
         "window_uptime": 771
       },
-      "voting_power": 3640942372791089,
-      "voting_power_cumulative": 145800760432330270
+      "voting_power": "3640942372791089",
+      "voting_power_cumulative": "145800760432330265"
     },
     {
       "active": true,
@@ -849,8 +849,8 @@
         "window_length": 14400,
         "window_uptime": 993
       },
-      "voting_power": 3620475693605702,
-      "voting_power_cumulative": 149421236125935970
+      "voting_power": "3620475693605702",
+      "voting_power_cumulative": "149421236125935967"
     },
     {
       "active": true,
@@ -903,8 +903,8 @@
         "window_length": 14400,
         "window_uptime": 999
       },
-      "voting_power": 3513558186372270,
-      "voting_power_cumulative": 152934794312308220
+      "voting_power": "3513558186372270",
+      "voting_power_cumulative": "152934794312308237"
     },
     {
       "active": true,
@@ -957,8 +957,8 @@
         "window_length": 14400,
         "window_uptime": 830
       },
-      "voting_power": 3403624079219081,
-      "voting_power_cumulative": 156338418391527330
+      "voting_power": "3403624079219081",
+      "voting_power_cumulative": "156338418391527318"
     },
     {
       "active": true,
@@ -1009,8 +1009,8 @@
         "window_length": 14400,
         "window_uptime": 771
       },
-      "voting_power": 3399658712683794,
-      "voting_power_cumulative": 159738077104211100
+      "voting_power": "3399658712683794",
+      "voting_power_cumulative": "159738077104211112"
     },
     {
       "active": true,
@@ -1062,8 +1062,8 @@
         "window_length": 14400,
         "window_uptime": 976
       },
-      "voting_power": 3344314661918167,
-      "voting_power_cumulative": 163082391766129280
+      "voting_power": "3344314661918167",
+      "voting_power_cumulative": "163082391766129279"
     },
     {
       "active": true,
@@ -1114,8 +1114,8 @@
         "window_length": 14400,
         "window_uptime": 999
       },
-      "voting_power": 3264453677776889,
-      "voting_power_cumulative": 166346845443906180
+      "voting_power": "3264453677776889",
+      "voting_power_cumulative": "166346845443906168"
     },
     {
       "active": true,
@@ -1166,8 +1166,8 @@
         "window_length": 14400,
         "window_uptime": 991
       },
-      "voting_power": 3260268332230039,
-      "voting_power_cumulative": 169607113776136200
+      "voting_power": "3260268332230039",
+      "voting_power_cumulative": "169607113776136207"
     },
     {
       "active": true,
@@ -1219,8 +1219,8 @@
         "window_length": 14400,
         "window_uptime": 999
       },
-      "voting_power": 3250599628987143,
-      "voting_power_cumulative": 172857713405123360
+      "voting_power": "3250599628987143",
+      "voting_power_cumulative": "172857713405123350"
     },
     {
       "active": true,
@@ -1271,8 +1271,8 @@
         "window_length": 14400,
         "window_uptime": 999
       },
-      "voting_power": 3136898082433037,
-      "voting_power_cumulative": 175994611487556380
+      "voting_power": "3136898082433037",
+      "voting_power_cumulative": "175994611487556387"
     },
     {
       "active": true,
@@ -1325,8 +1325,8 @@
         "window_length": 14400,
         "window_uptime": 999
       },
-      "voting_power": 3086274751464075,
-      "voting_power_cumulative": 179080886239020450
+      "voting_power": "3086274751464075",
+      "voting_power_cumulative": "179080886239020462"
     },
     {
       "active": true,
@@ -1377,8 +1377,8 @@
         "window_length": 14400,
         "window_uptime": 979
       },
-      "voting_power": 3037726616151457,
-      "voting_power_cumulative": 182118612855171900
+      "voting_power": "3037726616151457",
+      "voting_power_cumulative": "182118612855171919"
     },
     {
       "active": true,
@@ -1428,8 +1428,8 @@
         "window_length": 14400,
         "window_uptime": 997
       },
-      "voting_power": 2883968483941044,
-      "voting_power_cumulative": 185002581339112960
+      "voting_power": "2883968483941044",
+      "voting_power_cumulative": "185002581339112963"
     },
     {
       "active": true,
@@ -1482,8 +1482,8 @@
         "window_length": 14400,
         "window_uptime": 938
       },
-      "voting_power": 2862981564313518,
-      "voting_power_cumulative": 187865562903426500
+      "voting_power": "2862981564313518",
+      "voting_power_cumulative": "187865562903426481"
     },
     {
       "active": true,
@@ -1534,8 +1534,8 @@
         "window_length": 14400,
         "window_uptime": 988
       },
-      "voting_power": 2837637937700289,
-      "voting_power_cumulative": 190703200841126800
+      "voting_power": "2837637937700289",
+      "voting_power_cumulative": "190703200841126770"
     },
     {
       "active": true,
@@ -1585,8 +1585,8 @@
         "window_length": 14400,
         "window_uptime": 998
       },
-      "voting_power": 2810333352344620,
-      "voting_power_cumulative": 193513534193471400
+      "voting_power": "2810333352344620",
+      "voting_power_cumulative": "193513534193471390"
     },
     {
       "active": true,
@@ -1639,8 +1639,8 @@
         "window_length": 14400,
         "window_uptime": 999
       },
-      "voting_power": 2736624707230437,
-      "voting_power_cumulative": 196250158900701820
+      "voting_power": "2736624707230437",
+      "voting_power_cumulative": "196250158900701827"
     },
     {
       "active": true,
@@ -1691,8 +1691,8 @@
         "window_length": 14400,
         "window_uptime": 904
       },
-      "voting_power": 2431770222442441,
-      "voting_power_cumulative": 198681929123144260
+      "voting_power": "2431770222442441",
+      "voting_power_cumulative": "198681929123144268"
     },
     {
       "active": true,
@@ -1745,8 +1745,8 @@
         "window_length": 14400,
         "window_uptime": 451
       },
-      "voting_power": 2361594168466702,
-      "voting_power_cumulative": 201043523291610980
+      "voting_power": "2361594168466702",
+      "voting_power_cumulative": "201043523291610970"
     },
     {
       "active": true,
@@ -1798,8 +1798,8 @@
         "window_length": 14400,
         "window_uptime": 996
       },
-      "voting_power": 2349296265173979,
-      "voting_power_cumulative": 203392819556784960
+      "voting_power": "2349296265173979",
+      "voting_power_cumulative": "203392819556784949"
     },
     {
       "active": true,
@@ -1852,8 +1852,8 @@
         "window_length": 14400,
         "window_uptime": 571
       },
-      "voting_power": 2294935242424635,
-      "voting_power_cumulative": 205687754799209600
+      "voting_power": "2294935242424635",
+      "voting_power_cumulative": "205687754799209584"
     },
     {
       "active": true,
@@ -1904,8 +1904,8 @@
         "window_length": 14400,
         "window_uptime": 982
       },
-      "voting_power": 2155088774823581,
-      "voting_power_cumulative": 207842843574033150
+      "voting_power": "2155088774823581",
+      "voting_power_cumulative": "207842843574033165"
     },
     {
       "active": true,
@@ -1958,8 +1958,8 @@
         "window_length": 14400,
         "window_uptime": 999
       },
-      "voting_power": 1850649400116537,
-      "voting_power_cumulative": 209693492974149700
+      "voting_power": "1850649400116537",
+      "voting_power_cumulative": "209693492974149702"
     },
     {
       "active": true,
@@ -2010,8 +2010,8 @@
         "window_length": 14400,
         "window_uptime": 999
       },
-      "voting_power": 1843773648812438,
-      "voting_power_cumulative": 211537266622962140
+      "voting_power": "1843773648812438",
+      "voting_power_cumulative": "211537266622962140"
     },
     {
       "active": true,
@@ -2062,8 +2062,8 @@
         "window_length": 14400,
         "window_uptime": 999
       },
-      "voting_power": 1824442496831759,
-      "voting_power_cumulative": 213361709119793900
+      "voting_power": "1824442496831759",
+      "voting_power_cumulative": "213361709119793899"
     },
     {
       "active": true,
@@ -2116,8 +2116,8 @@
         "window_length": 14400,
         "window_uptime": 999
       },
-      "voting_power": 1810418806792831,
-      "voting_power_cumulative": 215172127926586720
+      "voting_power": "1810418806792831",
+      "voting_power_cumulative": "215172127926586730"
     },
     {
       "active": true,
@@ -2168,8 +2168,8 @@
         "window_length": 14400,
         "window_uptime": 999
       },
-      "voting_power": 1807883950508396,
-      "voting_power_cumulative": 216980011877095140
+      "voting_power": "1807883950508396",
+      "voting_power_cumulative": "216980011877095126"
     },
     {
       "active": true,
@@ -2221,8 +2221,8 @@
         "window_length": 14400,
         "window_uptime": 999
       },
-      "voting_power": 1802583845053905,
-      "voting_power_cumulative": 218782595722149020
+      "voting_power": "1802583845053905",
+      "voting_power_cumulative": "218782595722149031"
     },
     {
       "active": true,
@@ -2274,8 +2274,8 @@
         "window_length": 14400,
         "window_uptime": 966
       },
-      "voting_power": 1799447815926711,
-      "voting_power_cumulative": 220582043538075740
+      "voting_power": "1799447815926711",
+      "voting_power_cumulative": "220582043538075742"
     },
     {
       "active": true,
@@ -2325,8 +2325,8 @@
         "window_length": 14400,
         "window_uptime": 999
       },
-      "voting_power": 1795969207510365,
-      "voting_power_cumulative": 222378012745586100
+      "voting_power": "1795969207510365",
+      "voting_power_cumulative": "222378012745586107"
     },
     {
       "active": true,
@@ -2377,8 +2377,8 @@
         "window_length": 14400,
         "window_uptime": 994
       },
-      "voting_power": 1784309021042877,
-      "voting_power_cumulative": 224162321766629000
+      "voting_power": "1784309021042877",
+      "voting_power_cumulative": "224162321766628984"
     },
     {
       "active": true,
@@ -2430,8 +2430,8 @@
         "window_length": 14400,
         "window_uptime": 954
       },
-      "voting_power": 1753386695184028,
-      "voting_power_cumulative": 225915708461813020
+      "voting_power": "1753386695184028",
+      "voting_power_cumulative": "225915708461813012"
     },
     {
       "active": true,
@@ -2482,8 +2482,8 @@
         "window_length": 14400,
         "window_uptime": 999
       },
-      "voting_power": 1753082273426040,
-      "voting_power_cumulative": 227668790735239040
+      "voting_power": "1753082273426040",
+      "voting_power_cumulative": "227668790735239052"
     },
     {
       "active": true,
@@ -2534,8 +2534,8 @@
         "window_length": 14400,
         "window_uptime": 998
       },
-      "voting_power": 1752370798014738,
-      "voting_power_cumulative": 229421161533253800
+      "voting_power": "1752370798014738",
+      "voting_power_cumulative": "229421161533253790"
     },
     {
       "active": true,
@@ -2587,8 +2587,8 @@
         "window_length": 14400,
         "window_uptime": 999
       },
-      "voting_power": 1740025122401581,
-      "voting_power_cumulative": 231161186655655360
+      "voting_power": "1740025122401581",
+      "voting_power_cumulative": "231161186655655371"
     },
     {
       "active": true,
@@ -2639,8 +2639,8 @@
         "window_length": 14400,
         "window_uptime": 999
       },
-      "voting_power": 1736509831768607,
-      "voting_power_cumulative": 232897696487423970
+      "voting_power": "1736509831768607",
+      "voting_power_cumulative": "232897696487423978"
     },
     {
       "active": true,
@@ -2693,8 +2693,8 @@
         "window_length": 14400,
         "window_uptime": 771
       },
-      "voting_power": 1692078679396111,
-      "voting_power_cumulative": 234589775166820100
+      "voting_power": "1692078679396111",
+      "voting_power_cumulative": "234589775166820089"
     },
     {
       "active": true,
@@ -2746,8 +2746,8 @@
         "window_length": 14400,
         "window_uptime": 395
       },
-      "voting_power": 1657528755833713,
-      "voting_power_cumulative": 236247303922653800
+      "voting_power": "1657528755833713",
+      "voting_power_cumulative": "236247303922653802"
     },
     {
       "active": true,
@@ -2798,8 +2798,8 @@
         "window_length": 14400,
         "window_uptime": 803
       },
-      "voting_power": 1652774216592556,
-      "voting_power_cumulative": 237900078139246370
+      "voting_power": "1652774216592556",
+      "voting_power_cumulative": "237900078139246358"
     },
     {
       "active": true,
@@ -2852,8 +2852,8 @@
         "window_length": 14400,
         "window_uptime": 999
       },
-      "voting_power": 1641011959901689,
-      "voting_power_cumulative": 239541090099148030
+      "voting_power": "1641011959901689",
+      "voting_power_cumulative": "239541090099148047"
     },
     {
       "active": true,
@@ -2898,8 +2898,8 @@
         "window_length": 14400,
         "window_uptime": 771
       },
-      "voting_power": 1222867035810912,
-      "voting_power_cumulative": 240763957134958940
+      "voting_power": "1222867035810912",
+      "voting_power_cumulative": "240763957134958959"
     },
     {
       "active": true,
@@ -2952,8 +2952,8 @@
         "window_length": 14400,
         "window_uptime": 999
       },
-      "voting_power": 1202125910888756,
-      "voting_power_cumulative": 241966083045847700
+      "voting_power": "1202125910888756",
+      "voting_power_cumulative": "241966083045847715"
     },
     {
       "active": true,
@@ -3006,8 +3006,8 @@
         "window_length": 14400,
         "window_uptime": 902
       },
-      "voting_power": 1124823081342055,
-      "voting_power_cumulative": 243090906127189760
+      "voting_power": "1124823081342055",
+      "voting_power_cumulative": "243090906127189770"
     },
     {
       "active": true,
@@ -3059,8 +3059,8 @@
         "window_length": 14400,
         "window_uptime": 771
       },
-      "voting_power": 1112337555150224,
-      "voting_power_cumulative": 244203243682340000
+      "voting_power": "1112337555150224",
+      "voting_power_cumulative": "244203243682339994"
     },
     {
       "active": true,
@@ -3105,8 +3105,8 @@
         "window_length": 14400,
         "window_uptime": 771
       },
-      "voting_power": 1015721246857602,
-      "voting_power_cumulative": 245218964929197600
+      "voting_power": "1015721246857602",
+      "voting_power_cumulative": "245218964929197596"
     },
     {
       "active": true,
@@ -3151,8 +3151,8 @@
         "window_length": 14400,
         "window_uptime": 771
       },
-      "voting_power": 999968851435876,
-      "voting_power_cumulative": 246218933780633470
+      "voting_power": "999968851435876",
+      "voting_power_cumulative": "246218933780633472"
     },
     {
       "active": true,
@@ -3197,8 +3197,8 @@
         "window_length": 14400,
         "window_uptime": 999
       },
-      "voting_power": 986014248909462,
-      "voting_power_cumulative": 247204948029542940
+      "voting_power": "986014248909462",
+      "voting_power_cumulative": "247204948029542934"
     },
     {
       "active": true,
@@ -3251,8 +3251,8 @@
         "window_length": 14400,
         "window_uptime": 926
       },
-      "voting_power": 964873416897829,
-      "voting_power_cumulative": 248169821446440770
+      "voting_power": "964873416897829",
+      "voting_power_cumulative": "248169821446440763"
     },
     {
       "active": true,
@@ -3304,8 +3304,8 @@
         "window_length": 14400,
         "window_uptime": 771
       },
-      "voting_power": 959530870979876,
-      "voting_power_cumulative": 249129352317420640
+      "voting_power": "959530870979876",
+      "voting_power_cumulative": "249129352317420639"
     },
     {
       "active": true,
@@ -3350,8 +3350,8 @@
         "window_length": 14400,
         "window_uptime": 771
       },
-      "voting_power": 830842870629706,
-      "voting_power_cumulative": 249960195188050340
+      "voting_power": "830842870629706",
+      "voting_power_cumulative": "249960195188050345"
     },
     {
       "active": true,
@@ -3404,8 +3404,8 @@
         "window_length": 14400,
         "window_uptime": 550
       },
-      "voting_power": 824083460214930,
-      "voting_power_cumulative": 250784278648265280
+      "voting_power": "824083460214930",
+      "voting_power_cumulative": "250784278648265275"
     },
     {
       "active": true,
@@ -3456,8 +3456,8 @@
         "window_length": 14400,
         "window_uptime": 999
       },
-      "voting_power": 814960569189426,
-      "voting_power_cumulative": 251599239217454700
+      "voting_power": "814960569189426",
+      "voting_power_cumulative": "251599239217454701"
     },
     {
       "active": true,
@@ -3502,8 +3502,8 @@
         "window_length": 14400,
         "window_uptime": 771
       },
-      "voting_power": 807504981753224,
-      "voting_power_cumulative": 252406744199207940
+      "voting_power": "807504981753224",
+      "voting_power_cumulative": "252406744199207925"
     },
     {
       "active": true,
@@ -3556,8 +3556,8 @@
         "window_length": 14400,
         "window_uptime": 995
       },
-      "voting_power": 793090356990377,
-      "voting_power_cumulative": 253199834556198300
+      "voting_power": "793090356990377",
+      "voting_power_cumulative": "253199834556198302"
     },
     {
       "active": true,
@@ -3610,8 +3610,8 @@
         "window_length": 14400,
         "window_uptime": 999
       },
-      "voting_power": 784409460326357,
-      "voting_power_cumulative": 253984244016524670
+      "voting_power": "784409460326357",
+      "voting_power_cumulative": "253984244016524659"
     },
     {
       "active": true,
@@ -3656,8 +3656,8 @@
         "window_length": 14400,
         "window_uptime": 764
       },
-      "voting_power": 772537671934977,
-      "voting_power_cumulative": 254756781688459650
+      "voting_power": "772537671934977",
+      "voting_power_cumulative": "254756781688459636"
     },
     {
       "active": true,
@@ -3709,8 +3709,8 @@
         "window_length": 14400,
         "window_uptime": 759
       },
-      "voting_power": 683756002977988,
-      "voting_power_cumulative": 255440537691437630
+      "voting_power": "683756002977988",
+      "voting_power_cumulative": "255440537691437624"
     },
     {
       "active": true,
@@ -3763,8 +3763,8 @@
         "window_length": 14400,
         "window_uptime": 999
       },
-      "voting_power": 622152519404739,
-      "voting_power_cumulative": 256062690210842370
+      "voting_power": "622152519404739",
+      "voting_power_cumulative": "256062690210842363"
     },
     {
       "active": true,
@@ -3816,8 +3816,8 @@
         "window_length": 14400,
         "window_uptime": 911
       },
-      "voting_power": 620446711414784,
-      "voting_power_cumulative": 256683136922257150
+      "voting_power": "620446711414784",
+      "voting_power_cumulative": "256683136922257147"
     },
     {
       "active": true,
@@ -3870,8 +3870,8 @@
         "window_length": 14400,
         "window_uptime": 696
       },
-      "voting_power": 609312901985023,
-      "voting_power_cumulative": 257292449824242180
+      "voting_power": "609312901985023",
+      "voting_power_cumulative": "257292449824242170"
     },
     {
       "active": true,
@@ -3924,8 +3924,8 @@
         "window_length": 14400,
         "window_uptime": 912
       },
-      "voting_power": 499328776195670,
-      "voting_power_cumulative": 257791778600437820
+      "voting_power": "499328776195670",
+      "voting_power_cumulative": "257791778600437840"
     },
     {
       "active": true,
@@ -3978,8 +3978,8 @@
         "window_length": 14400,
         "window_uptime": 696
       },
-      "voting_power": 439169349831084,
-      "voting_power_cumulative": 258230947950268930
+      "voting_power": "439169349831084",
+      "voting_power_cumulative": "258230947950268924"
     },
     {
       "active": true,
@@ -4024,8 +4024,8 @@
         "window_length": 14400,
         "window_uptime": 771
       },
-      "voting_power": 429252784854745,
-      "voting_power_cumulative": 258660200735123680
+      "voting_power": "429252784854745",
+      "voting_power_cumulative": "258660200735123669"
     },
     {
       "active": true,
@@ -4070,8 +4070,8 @@
         "window_length": 14400,
         "window_uptime": 705
       },
-      "voting_power": 356496938671611,
-      "voting_power_cumulative": 259016697673795260
+      "voting_power": "356496938671611",
+      "voting_power_cumulative": "259016697673795280"
     },
     {
       "active": true,
@@ -4123,8 +4123,8 @@
         "window_length": 14400,
         "window_uptime": 844
       },
-      "voting_power": 343968025755934,
-      "voting_power_cumulative": 259360665699551200
+      "voting_power": "343968025755934",
+      "voting_power_cumulative": "259360665699551214"
     },
     {
       "active": true,
@@ -4177,8 +4177,8 @@
         "window_length": 14400,
         "window_uptime": 558
       },
-      "voting_power": 292630573267426,
-      "voting_power_cumulative": 259653296272818620
+      "voting_power": "292630573267426",
+      "voting_power_cumulative": "259653296272818640"
     },
     {
       "active": true,
@@ -4228,8 +4228,8 @@
         "window_length": 14400,
         "window_uptime": 771
       },
-      "voting_power": 271147567658254,
-      "voting_power_cumulative": 259924443840476900
+      "voting_power": "271147567658254",
+      "voting_power_cumulative": "259924443840476894"
     },
     {
       "active": true,
@@ -4282,8 +4282,8 @@
         "window_length": 14400,
         "window_uptime": 999
       },
-      "voting_power": 254393212178928,
-      "voting_power_cumulative": 260178837052655800
+      "voting_power": "254393212178928",
+      "voting_power_cumulative": "260178837052655822"
     },
     {
       "active": true,
@@ -4335,8 +4335,8 @@
         "window_length": 14400,
         "window_uptime": 752
       },
-      "voting_power": 237773260828267,
-      "voting_power_cumulative": 260416610313484100
+      "voting_power": "237773260828267",
+      "voting_power_cumulative": "260416610313484089"
     },
     {
       "active": true,
@@ -4389,8 +4389,8 @@
         "window_length": 14400,
         "window_uptime": 936
       },
-      "voting_power": 226540486510645,
-      "voting_power_cumulative": 260643150799994720
+      "voting_power": "226540486510645",
+      "voting_power_cumulative": "260643150799994734"
     },
     {
       "active": true,
@@ -4441,8 +4441,8 @@
         "window_length": 14400,
         "window_uptime": 999
       },
-      "voting_power": 178128090301763,
-      "voting_power_cumulative": 260821278890296500
+      "voting_power": "178128090301763",
+      "voting_power_cumulative": "260821278890296497"
     },
     {
       "active": true,
@@ -4487,8 +4487,8 @@
         "window_length": 14400,
         "window_uptime": 799
       },
-      "voting_power": 162158568238512,
-      "voting_power_cumulative": 260983437458535000
+      "voting_power": "162158568238512",
+      "voting_power_cumulative": "260983437458535009"
     },
     {
       "active": true,
@@ -4540,8 +4540,8 @@
         "window_length": 14400,
         "window_uptime": 995
       },
-      "voting_power": 118644618714317,
-      "voting_power_cumulative": 261102082077249300
+      "voting_power": "118644618714317",
+      "voting_power_cumulative": "261102082077249326"
     },
     {
       "active": true,
@@ -4593,8 +4593,8 @@
         "window_length": 14400,
         "window_uptime": 771
       },
-      "voting_power": 51283682191636,
-      "voting_power_cumulative": 261153365759440960
+      "voting_power": "51283682191636",
+      "voting_power_cumulative": "261153365759440962"
     },
     {
       "active": true,
@@ -4645,8 +4645,8 @@
         "window_length": 14400,
         "window_uptime": 806
       },
-      "voting_power": 44819411114507,
-      "voting_power_cumulative": 261198185170555460
+      "voting_power": "44819411114507",
+      "voting_power_cumulative": "261198185170555469"
     },
     {
       "active": true,
@@ -4699,8 +4699,8 @@
         "window_length": 14400,
         "window_uptime": 892
       },
-      "voting_power": 36368794300776,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "36368794300776",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": true,
@@ -4734,8 +4734,8 @@
       "node_id": "pjWGVgRla8SJGvBWIP5gPPHgxsr1c2EOsUP5KJvQjgk=",
       "rank": 91,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": true,
@@ -4769,8 +4769,8 @@
       "node_id": "wdxW8Bk1hZvQANQHRCO8MzbgRsdC5c7mpLjsNYLM82I=",
       "rank": 92,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": true,
@@ -4796,8 +4796,8 @@
       "node_id": "c7ycVhiEqHbQfOdeeaj965nuxN8Hsb4BxMPbaPIipRw=",
       "rank": 93,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": true,
@@ -4850,8 +4850,8 @@
         "window_length": 14400,
         "window_uptime": 217
       },
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": true,
@@ -4903,8 +4903,8 @@
         "window_length": 14400,
         "window_uptime": 228
       },
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": true,
@@ -4938,8 +4938,8 @@
       "node_id": "vBGuFf/8tdEMQPiiPggnLlWT9aCbIQgNcRM+EKh2kX0=",
       "rank": 96,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": true,
@@ -4973,8 +4973,8 @@
       "node_id": "HnLtoQyiKOkr2NMcQsQ4UH0HW8qkLRGWn4mgkDLNoEo=",
       "rank": 97,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": true,
@@ -5008,8 +5008,8 @@
       "node_id": "Kv7anzrQTWYDQRLCo1/pkMRV65HpvJCvSEjO/R8wHkc=",
       "rank": 98,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": true,
@@ -5042,8 +5042,8 @@
       "node_id": "4Tz2fSohCN3mm3I9sA6hAQMv/8nmj4ssIXKoOBnxBek=",
       "rank": 99,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": true,
@@ -5069,8 +5069,8 @@
       "node_id": "e25jqMK9FwlwuV1VPS/dkriJlYh7zKp+1H9B8xAu2LI=",
       "rank": 100,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": true,
@@ -5103,8 +5103,8 @@
       "node_id": "K5roq8kvag0dzkdauemq4PLfQG/rA4ZeItZ/op2PfGo=",
       "rank": 101,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": true,
@@ -5138,8 +5138,8 @@
       "node_id": "DGntJaRFwLUKi879qSLbt1uP3w5cE5vMAlYMispiaFE=",
       "rank": 102,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": true,
@@ -5173,8 +5173,8 @@
       "node_id": "MJc6tzSAEQOxgduime6zcs8bhlfb79AaICG1Xi7fCFA=",
       "rank": 103,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": true,
@@ -5208,8 +5208,8 @@
       "node_id": "skPNqlh8lnR83RyK2clbAscktu5jY/fWq5OzcSZL6Iw=",
       "rank": 104,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": true,
@@ -5235,8 +5235,8 @@
       "node_id": "nvzaqYTHiG3xo5C5TlfmfyvQgb5aQolfKzsVqT3T/RU=",
       "rank": 105,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": true,
@@ -5289,8 +5289,8 @@
         "window_length": 14400,
         "window_uptime": 5
       },
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": true,
@@ -5324,8 +5324,8 @@
       "node_id": "Kb6opWKGbJHL0LK2Lto+m5ROIAXLhIr1lxQz0/kAOUM=",
       "rank": 107,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": true,
@@ -5359,8 +5359,8 @@
       "node_id": "+7Jku1SXiunTIHYxYNu4WGNo2g3uSQh2bXych4f1fDc=",
       "rank": 108,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": true,
@@ -5394,8 +5394,8 @@
       "node_id": "5RIMVgnsN1D/HdvNxXCpE+lWH5U/SGYUrYsvhsTMbyA=",
       "rank": 109,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": true,
@@ -5448,8 +5448,8 @@
         "window_length": 14400,
         "window_uptime": 228
       },
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": true,
@@ -5483,8 +5483,8 @@
       "node_id": "Vql2WfvlHnF0delOCNiV34Gizw05hCpZfsekGav7F9I=",
       "rank": 111,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": true,
@@ -5536,8 +5536,8 @@
         "window_length": 14400,
         "window_uptime": 20
       },
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": true,
@@ -5571,8 +5571,8 @@
       "node_id": "r4AL9Xu6vOR+ktf4p7q1zo8Fsei9meit9J3orlyhpak=",
       "rank": 113,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": true,
@@ -5606,8 +5606,8 @@
       "node_id": "SnJS6IlyTGeQRNuk8dFv5w0aQbyz0Cwig+QRbLOh5yk=",
       "rank": 114,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": true,
@@ -5641,8 +5641,8 @@
       "node_id": "bbkPZRl8KA//0joD1R9HPnucJ4GklCoAtUoJrincsoo=",
       "rank": 115,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": true,
@@ -5676,8 +5676,8 @@
       "node_id": "LupNjD/E7Mgn0TKmUZeQRUpNwDadUyKinseDz28px5A=",
       "rank": 116,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": true,
@@ -5710,8 +5710,8 @@
       "node_id": "vVcKIFmjqLRSp/sjKeX3yPQ3R/jf3lU2hAzXYd+4wnk=",
       "rank": 117,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": true,
@@ -5741,8 +5741,8 @@
       "node_id": "J2vFhYaht7l1B++dBUTzqubT72WfOeeBkI8rOamrgGc=",
       "rank": 118,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": true,
@@ -5776,8 +5776,8 @@
       "node_id": "MLczDReN6Kco4BF8GCI0+h1CALWxu37ZtWQNx+j3d8U=",
       "rank": 119,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -5810,8 +5810,8 @@
       },
       "rank": 120,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -5844,8 +5844,8 @@
       },
       "rank": 121,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -5878,8 +5878,8 @@
       },
       "rank": 122,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -5904,8 +5904,8 @@
       "in_validator_set": false,
       "rank": 123,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -5934,8 +5934,8 @@
       },
       "rank": 124,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -5960,8 +5960,8 @@
       "in_validator_set": false,
       "rank": 125,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -5993,8 +5993,8 @@
       },
       "rank": 126,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -6019,8 +6019,8 @@
       "in_validator_set": false,
       "rank": 127,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -6045,8 +6045,8 @@
       "in_validator_set": false,
       "rank": 128,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -6078,8 +6078,8 @@
       },
       "rank": 129,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -6104,8 +6104,8 @@
       "in_validator_set": false,
       "rank": 130,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -6130,8 +6130,8 @@
       "in_validator_set": false,
       "rank": 131,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -6163,8 +6163,8 @@
       },
       "rank": 132,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -6189,8 +6189,8 @@
       "in_validator_set": false,
       "rank": 133,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -6223,8 +6223,8 @@
       },
       "rank": 134,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -6255,8 +6255,8 @@
       },
       "rank": 135,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -6287,8 +6287,8 @@
       },
       "rank": 136,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -6320,8 +6320,8 @@
       },
       "rank": 137,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -6346,8 +6346,8 @@
       "in_validator_set": false,
       "rank": 138,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -6380,8 +6380,8 @@
       },
       "rank": 139,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -6414,8 +6414,8 @@
       },
       "rank": 140,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -6448,8 +6448,8 @@
       },
       "rank": 141,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -6482,8 +6482,8 @@
       },
       "rank": 142,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -6514,8 +6514,8 @@
       },
       "rank": 143,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -6547,8 +6547,8 @@
       },
       "rank": 144,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -6573,8 +6573,8 @@
       "in_validator_set": false,
       "rank": 145,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -6607,8 +6607,8 @@
       },
       "rank": 146,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -6638,8 +6638,8 @@
       },
       "rank": 147,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -6672,8 +6672,8 @@
       },
       "rank": 148,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -6705,8 +6705,8 @@
       },
       "rank": 149,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -6738,8 +6738,8 @@
       },
       "rank": 150,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -6764,8 +6764,8 @@
       "in_validator_set": false,
       "rank": 151,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -6798,8 +6798,8 @@
       },
       "rank": 152,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -6832,8 +6832,8 @@
       },
       "rank": 153,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -6858,8 +6858,8 @@
       "in_validator_set": false,
       "rank": 154,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -6884,8 +6884,8 @@
       "in_validator_set": false,
       "rank": 155,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -6910,8 +6910,8 @@
       "in_validator_set": false,
       "rank": 156,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -6936,8 +6936,8 @@
       "in_validator_set": false,
       "rank": 157,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -6962,8 +6962,8 @@
       "in_validator_set": false,
       "rank": 158,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -6988,8 +6988,8 @@
       "in_validator_set": false,
       "rank": 159,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -7014,8 +7014,8 @@
       "in_validator_set": false,
       "rank": 160,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -7040,8 +7040,8 @@
       "in_validator_set": false,
       "rank": 161,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -7066,8 +7066,8 @@
       "in_validator_set": false,
       "rank": 162,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -7092,8 +7092,8 @@
       "in_validator_set": false,
       "rank": 163,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -7122,8 +7122,8 @@
       },
       "rank": 164,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -7148,8 +7148,8 @@
       "in_validator_set": false,
       "rank": 165,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -7174,8 +7174,8 @@
       "in_validator_set": false,
       "rank": 166,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -7204,8 +7204,8 @@
       },
       "rank": 167,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -7230,8 +7230,8 @@
       "in_validator_set": false,
       "rank": 168,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -7256,8 +7256,8 @@
       "in_validator_set": false,
       "rank": 169,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -7282,8 +7282,8 @@
       "in_validator_set": false,
       "rank": 170,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -7308,8 +7308,8 @@
       "in_validator_set": false,
       "rank": 171,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -7342,8 +7342,8 @@
       },
       "rank": 172,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -7368,8 +7368,8 @@
       "in_validator_set": false,
       "rank": 173,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -7400,8 +7400,8 @@
       },
       "rank": 174,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -7426,8 +7426,8 @@
       "in_validator_set": false,
       "rank": 175,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -7452,8 +7452,8 @@
       "in_validator_set": false,
       "rank": 176,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -7484,8 +7484,8 @@
       },
       "rank": 177,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -7510,8 +7510,8 @@
       "in_validator_set": false,
       "rank": 178,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -7540,8 +7540,8 @@
       },
       "rank": 179,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -7566,8 +7566,8 @@
       "in_validator_set": false,
       "rank": 180,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -7592,8 +7592,8 @@
       "in_validator_set": false,
       "rank": 181,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -7618,8 +7618,8 @@
       "in_validator_set": false,
       "rank": 182,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -7644,8 +7644,8 @@
       "in_validator_set": false,
       "rank": 183,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -7670,8 +7670,8 @@
       "in_validator_set": false,
       "rank": 184,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -7704,8 +7704,8 @@
       },
       "rank": 185,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -7730,8 +7730,8 @@
       "in_validator_set": false,
       "rank": 186,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -7762,8 +7762,8 @@
       },
       "rank": 187,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -7788,8 +7788,8 @@
       "in_validator_set": false,
       "rank": 188,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -7814,8 +7814,8 @@
       "in_validator_set": false,
       "rank": 189,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -7848,8 +7848,8 @@
       },
       "rank": 190,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -7874,8 +7874,8 @@
       "in_validator_set": false,
       "rank": 191,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -7900,8 +7900,8 @@
       "in_validator_set": false,
       "rank": 192,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -7932,8 +7932,8 @@
       },
       "rank": 193,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -7958,8 +7958,8 @@
       "in_validator_set": false,
       "rank": 194,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -7984,8 +7984,8 @@
       "in_validator_set": false,
       "rank": 195,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -8010,8 +8010,8 @@
       "in_validator_set": false,
       "rank": 196,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -8044,8 +8044,8 @@
       },
       "rank": 197,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -8070,8 +8070,8 @@
       "in_validator_set": false,
       "rank": 198,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -8096,8 +8096,8 @@
       "in_validator_set": false,
       "rank": 199,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     },
     {
       "active": false,
@@ -8122,8 +8122,8 @@
       "in_validator_set": false,
       "rank": 200,
       "start_date": "2023-11-29T10:02:19Z",
-      "voting_power": 0,
-      "voting_power_cumulative": 261234553964856260
+      "voting_power": "0",
+      "voting_power_cumulative": "261234553964856245"
     }
   ]
 }

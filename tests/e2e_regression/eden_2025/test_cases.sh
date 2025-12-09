@@ -22,6 +22,8 @@ testCases=(
   'tx                                          /v1/consensus/transactions/b3bac3243ad44adcb8829ed17599efd05d9c6dff3477a085d2eaa4032ab73be3'
   'tx_failed                                   /v1/consensus/transactions/ad590f1452e19b3976fcf23fc050da6ed347abe476491256a56aed766e43e232'
   'validator                                   /v1/consensus/validators/oasis1qqekv2ymgzmd8j2s2u7g0hhc7e77e654kvwqtjwm'
+  'validator_by_entity_id                      /v1/consensus/validators?id=9sAhd%2BWi6tG5nAr3LwXD0y9mUKLYqfAbS2%2B7SZdNHB4%3D'
+  'validator_by_node_id                        /v1/consensus/validators?id=6wbL5%2FOxvFGxi55o7AxcwKmfjXbXGC1hw4lfnEZxBXA%3D'
   'validator_history                           /v1/consensus/validators/oasis1qqekv2ymgzmd8j2s2u7g0hhc7e77e654kvwqtjwm/history'
   'sapphire_tx                                 /v1/sapphire/transactions/0x8075ce0d4ee6362ea127e20a10411662b173388cb792d4f22a04b594de03da80'
   'sapphire_failed_tx                          /v1/sapphire/transactions/0x4ea7e5688c0577a46efd3e193393bfb2968b589f1495b4350b006eae1e54e8ba'
