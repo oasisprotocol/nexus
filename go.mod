@@ -20,7 +20,7 @@ require (
 	github.com/jackc/pgx/v5 v5.7.6
 	github.com/knadh/koanf v1.5.0
 	github.com/prometheus/client_golang v1.23.2
-	github.com/spf13/cobra v1.10.1
+	github.com/spf13/cobra v1.10.2
 	github.com/stretchr/testify v1.11.1
 	golang.org/x/sync v0.19.0
 	google.golang.org/grpc v1.77.0
