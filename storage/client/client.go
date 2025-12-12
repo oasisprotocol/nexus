@@ -1366,6 +1366,7 @@ func (c *StorageClient) Validators(ctx context.Context, p apiTypes.GetConsensusV
 		queries.ValidatorsData,
 		address,
 		p.Name,
+		p.Id,
 		p.Limit,
 		p.Offset,
 	)

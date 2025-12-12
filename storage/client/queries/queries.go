@@ -537,10 +537,11 @@ const (
 			AND chain.nodes.roles LIKE '%validator%'
 			AND chain.nodes.voting_power = validator_nodes.voting_power
 		WHERE ($1::text IS NULL OR chain.entities.address = $1::text) AND
-				($2::text IS NULL OR chain.entities.meta->>'name' LIKE '%' || $2::text || '%')
+				($2::text IS NULL OR chain.entities.meta->>'name' LIKE '%' || $2::text || '%') AND
+				($3::text IS NULL OR chain.entities.id = $3::text OR chain.nodes.id = $3::text)
 		ORDER BY rank
-		LIMIT $3::bigint
-		OFFSET $4::bigint`
+		LIMIT $4::bigint
+		OFFSET $5::bigint`
 
 	ValidatorHistory = `
 		WITH entity AS (
