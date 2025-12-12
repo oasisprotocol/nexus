@@ -150,7 +150,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Cache Test Artifacts
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           key: ${{ env.E2E_REGRESSION_ARTIFACTS_VERSION }}-${{ matrix.suite }}-rpc-cache
           path: |
