@@ -3726,12 +3726,17 @@ components:
 
     RuntimeAccount:
       type: object
-      required: [address, balances, evm_balances, stats]
+      required: [address, nonce, balances, evm_balances, stats]
       properties:
         address:
           type: string
           description: The staking address for this account.
           example: *staking_address_1
+        nonce:
+          type: integer
+          format: int64
+          description: The expected nonce for the next transaction (= last used nonce + 1)
+          example: 0
         address_preimage:
           allOf: [$ref: '#/components/schemas/AddressPreimage']
         balances:

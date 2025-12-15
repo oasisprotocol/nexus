@@ -883,6 +883,13 @@ const (
 			(runtime = $1) AND
 			(address = $2::text)`
 
+	RuntimeAccountNonce = `
+		SELECT COALESCE(MAX(nonce) + 1, 0)
+		FROM chain.runtime_transaction_signers
+		WHERE
+			(runtime = $1) AND
+			(signer_address = $2::text)`
+
 	RuntimeDelegations = `
 		SELECT delegatee, shares, escrow_balance_active, escrow_total_shares_active
 			FROM chain.runtime_accounts_delegations

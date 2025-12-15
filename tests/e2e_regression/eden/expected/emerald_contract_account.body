@@ -821,6 +821,7 @@
       "verification_level": "partial"
     }
   },
+  "nonce": 0,
   "stats": {
     "num_txns": 0,
     "total_received": "0",

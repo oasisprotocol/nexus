@@ -2058,6 +2058,17 @@ func (c *StorageClient) RuntimeAccount(ctx context.Context, runtime common.Runti
 		return nil, wrapError(err)
 	}
 
+	// Get the next expected nonce for this account.
+	err = c.db.QueryRow(
+		ctx,
+		queries.RuntimeAccountNonce,
+		runtime,
+		address.String(),
+	).Scan(&a.Nonce)
+	if err != nil {
+		return nil, wrapError(err)
+	}
+
 	return &a, nil
 }
 

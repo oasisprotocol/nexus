@@ -13,6 +13,7 @@
     }
   ],
   "evm_balances": [],
+  "nonce": 465331,
   "stats": {
     "num_txns": 161,
     "total_received": "8000000139606124778",
