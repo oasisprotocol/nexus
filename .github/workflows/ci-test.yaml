@@ -125,7 +125,7 @@ jobs:
           docker logs oasis-net-runner | tee /tmp/oasis-net-runner.log;
           docker exec nexus-postgres pg_dump -U indexer --create | tee /tmp/nexus_db.sql;
         if: success() || failure()  # but not if job is manually cancelled
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v6
         with:
           name: nexus_db.sql
           path: |
@@ -186,7 +186,7 @@ jobs:
         run : |
           make E2E_REGRESSION_SUITES=${{ matrix.suite }} test-e2e-regression
 
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v6
         with:
           name: Actual nexus api responses
           path: |
