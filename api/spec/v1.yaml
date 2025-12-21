@@ -561,6 +561,13 @@ paths:
           description: |
             A filter on the validator name. Every returned validator will have
             a name that is a superstring of the input param.
+        - in: query
+          name: id
+          schema:
+            type: string
+          description: |
+            A filter on the entity or node ID (base64-encoded ed25519 public key).
+            Returns the validator whose entity_id matches the provided value, or whose node's node_id matches the provided value.
       responses:
         '200':
           description: |
@@ -2490,8 +2497,7 @@ components:
       required: [total_voting_power, total_delegators, total_staked_balance]
       properties:
         total_voting_power:
-          type: integer
-          format: int64
+          allOf: [$ref: '#/components/schemas/TextBigInt']
           description: The total voting power across all validators.
         total_delegators:
           type: integer
@@ -2564,12 +2570,10 @@ components:
           allOf: [$ref: '#/components/schemas/Escrow']
           description: The escrow account data for this validator.
         voting_power:
-          type: integer
-          format: int64
+          allOf: [$ref: '#/components/schemas/TextBigInt']
           description: The voting power of this validator.
         voting_power_cumulative:
-          type: integer
-          format: int64
+          allOf: [$ref: '#/components/schemas/TextBigInt']
           description: The cumulative voting power of this validator and all other validators ranked higher than itself.
         active:
           type: boolean

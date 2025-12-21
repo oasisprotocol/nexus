@@ -1,0 +1,65 @@
+{
+  "is_total_count_clipped": false,
+  "stats": {
+    "total_delegators": 35414,
+    "total_staked_balance": "5708092745980859133",
+    "total_voting_power": "307554773957760057"
+  },
+  "total_count": 1,
+  "validators": [
+    {
+      "active": true,
+      "current_commission_bound": {
+        "epoch_end": 0,
+        "epoch_start": 2310,
+        "lower": 0,
+        "upper": 25000
+      },
+      "current_rate": 20000,
+      "entity_address": "oasis1qr3w66akc8ud9a4zsgyjw2muvcfjgfszn5ycgc0a",
+      "entity_id": "HPeLbzc88IoYEP0TC4nqSxfxdPCPjduLeJqFvmxFye8=",
+      "escrow": {
+        "active_balance": "557356819483297",
+        "active_shares": "506789203787843",
+        "debonding_balance": "0",
+        "debonding_shares": "0",
+        "num_delegators": 13,
+        "self_delegation_balance": "9263128275881",
+        "self_delegation_shares": "8422707392134"
+      },
+      "in_validator_set": true,
+      "media": {
+        "email": "Michael.fairbairn@rmit.edu.au",
+        "keybase": "mikefairbairn",
+        "logoUrl": "http:://e2e-tests-mock-static-logo-url",
+        "name": "RMIT Blockchain Innovation Hub",
+        "twitter": "BlockchainRMIT",
+        "url": "https://rmitblockchain.io"
+      },
+      "node_id": "wqd9Yy3n7TWKfYRn2bI9Hd6/623CfC7NCUoRbQ5UkR8=",
+      "rank": 92,
+      "start_date": "2022-04-11T09:30:00Z",
+      "uptime": {
+        "segment_length": 1200,
+        "segment_uptimes": [
+          884,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window_length": 14400,
+        "window_uptime": 884
+      },
+      "voting_power": "34834350461211",
+      "voting_power_cumulative": "34834350461211"
+    }
+  ]
+}

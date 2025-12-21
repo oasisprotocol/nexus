@@ -21,6 +21,8 @@ testCases=(
   'epoch                                      /v1/consensus/epochs/13403'
   'tx                                         /v1/consensus/transactions/f7a03e0912d355901ee794e5fec79a6b4c91363fc27d953596ee6de5c1492798'
   'validator                                  /v1/consensus/validators/oasis1qr3w66akc8ud9a4zsgyjw2muvcfjgfszn5ycgc0a'
+  'validator_by_entity_id                     /v1/consensus/validators?id=HPeLbzc88IoYEP0TC4nqSxfxdPCPjduLeJqFvmxFye8%3D'
+  'validator_by_node_id                       /v1/consensus/validators?id=wqd9Yy3n7TWKfYRn2bI9Hd6%2F623CfC7NCUoRbQ5UkR8%3D'
   'validator_history                          /v1/consensus/validators/oasis1qq0xmq7r0z9sdv02t5j9zs7en3n6574gtg8v9fyt/history'
   'emerald_tx                                 /v1/emerald/transactions/a6471a9c6f3307087586da9156f3c9876fbbaf4b23910cd9a2ac524a54d0aefe'
   'emerald_failed_tx                          /v1/emerald/transactions/a7e76442c52a3cb81f719bde26c9a6179bd3415f96740d91a93ee8f205b45150'

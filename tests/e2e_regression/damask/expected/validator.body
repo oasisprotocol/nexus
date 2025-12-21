@@ -3,7 +3,7 @@
   "stats": {
     "total_delegators": 35414,
     "total_staked_balance": "5708092745980859133",
-    "total_voting_power": 307554773957760060
+    "total_voting_power": "307554773957760057"
   },
   "total_count": 1,
   "validators": [
@@ -460,8 +460,8 @@
         "window_length": 14400,
         "window_uptime": 884
       },
-      "voting_power": 34834350461211,
-      "voting_power_cumulative": 34834350461211
+      "voting_power": "34834350461211",
+      "voting_power_cumulative": "34834350461211"
     }
   ]
 }
