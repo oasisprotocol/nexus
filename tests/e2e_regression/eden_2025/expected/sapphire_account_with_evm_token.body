@@ -23,6 +23,7 @@
       "token_type": "ERC20"
     }
   ],
+  "nonce": 37743,
   "stats": {
     "num_txns": 513,
     "total_received": "0",
