@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
+	"math/big"
 	"testing"
 
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 	"github.com/stretchr/testify/require"
 )
@@ -120,5 +122,55 @@ func TestBigDecimalNumeric(t *testing.T) {
 
 		require.Equal(t, dec.String(), roundTripped.String(), "BigDecimal should match after Numeric conversion for value %s", tc.value)
 		require.EqualValues(t, dec, roundTripped, "BigDecimal should match after Numeric conversion for value %s", tc.value)
+	}
+}
+
+func TestNumericToBigInt(t *testing.T) {
+	for _, tc := range []struct {
+		name     string
+		numeric  pgtype.Numeric
+		expected int64
+		hasError bool
+	}{
+		{
+			name:     "zero exponent",
+			numeric:  pgtype.Numeric{Int: big.NewInt(12345), Exp: 0, Valid: true},
+			expected: 12345,
+		},
+		{
+			name:     "positive exponent",
+			numeric:  pgtype.Numeric{Int: big.NewInt(123), Exp: 2, Valid: true},
+			expected: 12300,
+		},
+		{
+			name:     "negative exponent exact division",
+			numeric:  pgtype.Numeric{Int: big.NewInt(12300), Exp: -2, Valid: true},
+			expected: 123,
+		},
+		{
+			name:     "negative exponent with remainder",
+			numeric:  pgtype.Numeric{Int: big.NewInt(12345), Exp: -2, Valid: true},
+			hasError: true,
+		},
+		{
+			name:     "zero value",
+			numeric:  pgtype.Numeric{Int: big.NewInt(0), Exp: 0, Valid: true},
+			expected: 0,
+		},
+		{
+			name:     "negative value",
+			numeric:  pgtype.Numeric{Int: big.NewInt(-500), Exp: 1, Valid: true},
+			expected: -5000,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			result, err := NumericToBigInt(tc.numeric)
+			if tc.hasError {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+				require.Equal(t, tc.expected, result.Int64())
+			}
+		})
 	}
 }
