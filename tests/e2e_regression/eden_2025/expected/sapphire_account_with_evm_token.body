@@ -23,6 +23,7 @@
       "token_type": "ERC20"
     }
   ],
+  "first_activity": "NONDETERMINISTIC",
   "nonce": 37743,
   "stats": {
     "num_txns": 513,
