@@ -877,7 +877,7 @@ const (
 
 	RuntimeAccountStats = `
 		SELECT
-			total_sent, total_received, num_txs
+			total_sent, total_received, num_txs, first_activity
 		FROM chain.runtime_accounts
 		WHERE
 			(runtime = $1) AND

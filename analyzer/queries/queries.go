@@ -658,6 +658,103 @@ var (
     ON CONFLICT (runtime, address) DO UPDATE
       SET num_txs = EXCLUDED.num_txs`
 
+	RuntimeAccountFirstActivityUpsert = `
+    INSERT INTO chain.runtime_accounts AS accounts (runtime, address, first_activity)
+      VALUES ($1, $2, $3)
+    ON CONFLICT (runtime, address) DO UPDATE
+      SET first_activity = LEAST(COALESCE(accounts.first_activity, excluded.first_activity), excluded.first_activity)`
+
+	// Recomputes first_activity for all runtime accounts in runtime $1 up to height $2.
+	// Intended for use after fast-sync.
+	RuntimeAccountFirstActivityRecompute = `
+    WITH first_rounds AS (
+      SELECT runtime, account_address, MIN(tx_round) AS first_round
+      FROM chain.runtime_related_transactions
+      WHERE runtime = $1::runtime AND tx_round <= $2::bigint
+      GROUP BY runtime, account_address
+    )
+    INSERT INTO chain.runtime_accounts AS accts (runtime, address, first_activity)
+    SELECT DISTINCT ON (fr.runtime, fr.account_address) fr.runtime, fr.account_address, rt.timestamp
+    FROM first_rounds fr
+    JOIN chain.runtime_transactions rt ON rt.runtime = fr.runtime AND rt.round = fr.first_round
+    ON CONFLICT (runtime, address) DO UPDATE
+      SET first_activity = LEAST(COALESCE(accts.first_activity, EXCLUDED.first_activity), EXCLUDED.first_activity)`
+
+	// Fetches the current backfill cursor position.
+	RuntimeAccountFirstActivityBackfillGetCursor = `
+    SELECT last_runtime, last_address
+    FROM analysis.runtime_accounts_first_activity_backfill_state
+    WHERE id = 1`
+
+	// Fetches the first batch of accounts with their first activity timestamps (when cursor is NULL).
+	// Batches the timestamp lookup for efficiency.
+	RuntimeAccountFirstActivityBackfillAccountsStart = `
+    WITH accounts AS (
+        SELECT runtime, address, first_activity
+        FROM chain.runtime_accounts
+        ORDER BY runtime, address
+        LIMIT $1
+    ),
+    first_rounds AS (
+        SELECT rrt.runtime, rrt.account_address, MIN(rrt.tx_round) AS first_round
+        FROM chain.runtime_related_transactions rrt
+        JOIN accounts a ON a.runtime = rrt.runtime AND a.address = rrt.account_address
+        GROUP BY rrt.runtime, rrt.account_address
+    )
+    SELECT a.runtime, a.address, a.first_activity, rt.timestamp AS computed_first_activity
+    FROM accounts a
+    LEFT JOIN first_rounds fr ON fr.runtime = a.runtime AND fr.account_address = a.address
+    LEFT JOIN chain.runtime_transactions rt ON rt.runtime = fr.runtime AND rt.round = fr.first_round
+    ORDER BY a.runtime, a.address`
+
+	// Fetches the next batch of accounts with their first activity timestamps, starting after the cursor.
+	// Batches the timestamp lookup for efficiency.
+	RuntimeAccountFirstActivityBackfillAccountsNext = `
+    WITH accounts AS (
+        SELECT runtime, address, first_activity
+        FROM chain.runtime_accounts
+        WHERE (runtime, address) > ($1, $2)
+        ORDER BY runtime, address
+        LIMIT $3
+    ),
+    first_rounds AS (
+        SELECT rrt.runtime, rrt.account_address, MIN(rrt.tx_round) AS first_round
+        FROM chain.runtime_related_transactions rrt
+        JOIN accounts a ON a.runtime = rrt.runtime AND a.address = rrt.account_address
+        GROUP BY rrt.runtime, rrt.account_address
+    )
+    SELECT a.runtime, a.address, a.first_activity, rt.timestamp AS computed_first_activity
+    FROM accounts a
+    LEFT JOIN first_rounds fr ON fr.runtime = a.runtime AND fr.account_address = a.address
+    LEFT JOIN chain.runtime_transactions rt ON rt.runtime = fr.runtime AND rt.round = fr.first_round
+    ORDER BY a.runtime, a.address`
+
+	// Updates first_activity for a specific account.
+	RuntimeAccountFirstActivityBackfillUpdate = `
+    UPDATE chain.runtime_accounts
+    SET first_activity = LEAST(COALESCE(first_activity, $3), $3)
+    WHERE runtime = $1 AND address = $2`
+
+	// Updates the backfill cursor position.
+	RuntimeAccountFirstActivityBackfillUpdateCursor = `
+    UPDATE analysis.runtime_accounts_first_activity_backfill_state
+    SET last_runtime = $1, last_address = $2
+    WHERE id = 1`
+
+	// Checks if there are more accounts to process (when cursor is NULL).
+	RuntimeAccountFirstActivityBackfillHasMoreStart = `
+    SELECT CASE WHEN EXISTS (
+        SELECT 1 FROM chain.runtime_accounts LIMIT 1
+    ) THEN 1 ELSE 0 END`
+
+	// Checks if there are more accounts to process after the current cursor.
+	RuntimeAccountFirstActivityBackfillHasMoreNext = `
+    SELECT CASE WHEN EXISTS (
+        SELECT 1 FROM chain.runtime_accounts
+        WHERE (runtime, address) > ($1, $2)
+        LIMIT 1
+    ) THEN 1 ELSE 0 END`
+
 	RuntimeAccountTotalSentUpsert = `
     INSERT INTO chain.runtime_accounts as accounts (runtime, address, total_sent)
       VALUES ($1, $2, $3)

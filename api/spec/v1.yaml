@@ -3762,6 +3762,11 @@ components:
             allOf: [$ref: '#/components/schemas/RuntimeEvmBalance']
         stats:
           allOf: [$ref: '#/components/schemas/AccountStats']
+        first_activity:
+          type: string
+          format: date-time
+          description: The timestamp of the first transaction involving this account.
+          example: *iso_timestamp_1
 
     RuntimeStatus:
       type: object
