@@ -617,7 +617,7 @@ func (m *processor) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 	// Update EVM token balances (dead reckoning).
 	for key, change := range data.TokenBalanceChanges {
 		// Update (dead-reckon) the DB balance only if it's actually changed.
-		if change != big.NewInt(0) && m.mode != analyzer.FastSyncMode {
+		if change.Sign() != 0 && m.mode != analyzer.FastSyncMode {
 			if key.TokenAddress == evm.NativeRuntimeTokenAddress {
 				batch.Queue(queries.RuntimeNativeBalanceUpsert, m.runtime, key.AccountAddress, nativeTokenSymbol(m.sdkPT), change.String())
 			} else {

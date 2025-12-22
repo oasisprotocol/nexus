@@ -168,9 +168,9 @@ func NumericToBigInt(n pgtype.Numeric) (BigInt, error) {
 	remainder := &big.Int{}
 	bi.DivMod(bi, div, remainder)
 	if remainder.Cmp(big0) != 0 {
-		return BigInt{Int: *big0}, fmt.Errorf("cannot convert %v to integer", n)
+		return BigInt{}, fmt.Errorf("cannot convert %v to integer", n)
 	}
-	return BigInt{Int: *big0}, nil
+	return BigInt{Int: *bi}, nil
 }
 
 // Decimal is a wrapper around apd.Decimal to allow for custom JSON marshaling.
