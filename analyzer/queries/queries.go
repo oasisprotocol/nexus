@@ -847,18 +847,25 @@ var (
     WHERE runtime = $1 AND contract_candidate = $2`
 
 	RuntimeEVMContractCodeAnalysisStale = `
+    WITH download_round AS (
+      SELECT MAX(height) AS height
+      FROM analysis.processed_blocks
+      WHERE analyzer = $1::runtime::text AND processed_time IS NOT NULL
+    )
     SELECT
       code_analysis.contract_candidate,
       pre.address_data AS eth_contract_candidate,
-      (SELECT MAX(height) FROM analysis.processed_blocks WHERE analyzer = $1::runtime::text AND processed_time IS NOT NULL) AS download_round
+      download_round.height AS download_round
     FROM analysis.evm_contract_code AS code_analysis
     JOIN chain.address_preimages AS pre ON
       pre.address = code_analysis.contract_candidate AND
       pre.context_identifier = 'oasis-runtime-sdk/address: secp256k1eth' AND
       pre.context_version = 0
+    CROSS JOIN download_round
     WHERE
       code_analysis.runtime = $1::runtime AND
-      code_analysis.is_contract IS NULL
+      code_analysis.is_contract IS NULL AND
+      download_round.height IS NOT NULL
     LIMIT $2`
 
 	RuntimeEVMContractCodeAnalysisStaleCount = `
@@ -1186,6 +1193,20 @@ var (
     FROM chain.evm_contracts AS contracts
     WHERE
       runtime = $1 AND verification_level IS NOT NULL`
+
+	// RuntimeEVMVerifiedContractsMissingPreimage returns verified contracts that
+	// are missing their address preimage (ETH address mapping). These need to be
+	// reprocessed by the verifier to insert the preimage.
+	RuntimeEVMVerifiedContractsMissingPreimage = `
+    SELECT contracts.contract_address
+    FROM chain.evm_contracts AS contracts
+    LEFT JOIN chain.address_preimages AS preimages
+      ON contracts.contract_address = preimages.address
+      AND preimages.context_identifier = 'oasis-runtime-sdk/address: secp256k1eth'
+    WHERE
+      contracts.runtime = $1
+      AND contracts.verification_level IS NOT NULL
+      AND preimages.address IS NULL`
 
 	RuntimeEVMVerifyContractUpsert = `
     INSERT INTO chain.evm_contracts (runtime, contract_address, verification_info_downloaded_at, abi, compilation_metadata, source_files, verification_level)

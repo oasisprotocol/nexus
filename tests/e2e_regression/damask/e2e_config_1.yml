@@ -12,7 +12,7 @@ analysis:
     nodes:
       # Node will be accessed only when the filling up the cache.
       # In CI, the cache is expected to have all the node responses as the node is not reachable.
-      damask: { default: { rpc: unix:/tmp/node.sock } }
+      damask: { default: { rpc: internal-mainnet-20220411-20231129:443 } } #{ rpc: unix:/tmp/node.sock } }
     ipfs:
       gateway: https://ipfs.io
     fast_startup: true

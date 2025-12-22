@@ -121,11 +121,41 @@ func (p *processor) getNexusVerifiedContracts(ctx context.Context) (map[oasisAdd
 	return nexusVerifiedContracts, nil
 }
 
+// getContractsMissingPreimage returns the set of verified contract addresses
+// that are missing their address preimage (ETH address mapping).
+func (p *processor) getContractsMissingPreimage(ctx context.Context) (map[oasisAddress]struct{}, error) {
+	rows, err := p.target.Query(ctx, queries.RuntimeEVMVerifiedContractsMissingPreimage, p.runtime)
+	if err != nil {
+		return nil, fmt.Errorf("querying contracts missing preimage: %w", err)
+	}
+	defer rows.Close()
+
+	missing := map[oasisAddress]struct{}{}
+	for rows.Next() {
+		var addr oasisAddress
+		if err = rows.Scan(&addr); err != nil {
+			return nil, fmt.Errorf("scanning contract missing preimage: %w", err)
+		}
+		missing[addr] = struct{}{}
+	}
+	return missing, nil
+}
+
 func (p *processor) GetItems(ctx context.Context, limit uint64) ([]contract, error) {
 	// Load all nexus-verified contracts from the DB.
 	nexusLevels, err := p.getNexusVerifiedContracts(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get nexus verified contracts: %w", err)
+	}
+
+	// Load contracts that are missing their address preimage.
+	// These need to be reprocessed to insert the preimage.
+	missingPreimage, err := p.getContractsMissingPreimage(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get contracts missing preimage: %w", err)
+	}
+	if len(missingPreimage) > 0 {
+		p.logger.Info("found verified contracts missing preimage", "count", len(missingPreimage))
 	}
 
 	// Query Sourcify for list of all verified contracts.
@@ -135,7 +165,10 @@ func (p *processor) GetItems(ctx context.Context, limit uint64) ([]contract, err
 	}
 	p.logger.Debug("got verified contract addresses", "addresses", sourcifyLevels)
 
-	// Find contracts that are verified in Sourcify and not yet verified in Nexus.
+	// Find contracts that need processing:
+	// 1. Verified in Sourcify but not yet verified in Nexus
+	// 2. Upgrading from partial to full verification
+	// 3. Missing their address preimage (need to reprocess to insert it)
 	var items []contract
 	for ethAddr, sourcifyLevel := range sourcifyLevels {
 		oasisAddr, err := addresses.FromEthAddress(ethAddr.Bytes())
@@ -145,7 +178,13 @@ func (p *processor) GetItems(ctx context.Context, limit uint64) ([]contract, err
 		}
 
 		nexusLevel, isKnownToNexus := nexusLevels[oasisAddress(oasisAddr)]
-		if !isKnownToNexus || (nexusLevel == sourcify.VerificationLevelPartial && sourcifyLevel == sourcify.VerificationLevelFull) {
+		_, isMissingPreimage := missingPreimage[oasisAddress(oasisAddr)]
+
+		needsProcessing := !isKnownToNexus ||
+			(nexusLevel == sourcify.VerificationLevelPartial && sourcifyLevel == sourcify.VerificationLevelFull) ||
+			isMissingPreimage
+
+		if needsProcessing {
 			items = append(items, contract{
 				Addr:              oasisAddress(oasisAddr),
 				EthAddr:           ethAddr,
@@ -207,6 +246,29 @@ func (p *processor) ProcessItem(ctx context.Context, batch *storage.QueryBatch, 
 		metadata,
 		sourceFilesJSON,
 		item.VerificationLevel,
+	)
+
+	// Insert the address preimage (ETH address -> Oasis address mapping).
+	// This is needed for the evm_contract_code analyzer to fetch bytecode.
+	// For contracts that were never seen by the block analyzer (e.g., created
+	// via encrypted transactions on Sapphire), this is the only way the
+	// preimage gets inserted.
+	batch.Queue(
+		queries.AddressPreimageInsert,
+		item.Addr,
+		"oasis-runtime-sdk/address: secp256k1eth",
+		0, // context_version
+		item.EthAddr.Bytes(),
+	)
+
+	// Queue the contract for bytecode analysis. This ensures contracts discovered
+	// via Sourcify verification get their bytecode fetched, even if the block analyzer
+	// never saw the contract (e.g., contracts only called internally by other contracts,
+	// or contracts created via encrypted transactions on Sapphire).
+	batch.Queue(
+		queries.RuntimeEVMContractCodeAnalysisInsert,
+		p.runtime,
+		item.Addr,
 	)
 
 	return nil
