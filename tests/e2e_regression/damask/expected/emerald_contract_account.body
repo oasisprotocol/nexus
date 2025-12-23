@@ -1,5 +1,10 @@
 {
   "address": "oasis1qz2rynvcmrkwd57v00298uc2vtzgatde3cjpy72f",
+  "address_preimage": {
+    "address_data": "puhkJmtnB6bqlSnYPY4EmeZg9WY=",
+    "context": "oasis-runtime-sdk/address: secp256k1eth",
+    "context_version": 0
+  },
   "balances": [],
   "evm_balances": [],
   "evm_contract": {
