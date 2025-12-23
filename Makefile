@@ -141,13 +141,9 @@ lint-go-mod-tidy:
 
 lint: $(lint-targets)
 
-# Documentation
-docs-targets := docs-api
-
+# Documentation preview
 docs-api:
-	@npx redoc-cli build api/spec/v1.yaml -o api/spec/v1.html
-
-docs: $(docs-targets)
+	@npx serve ./api/spec/
 
 start-docker:
 	@docker compose up --remove-orphans
@@ -241,5 +237,4 @@ release-build: codegen-go
 	fetch-git \
 	release-tag \
 	$(lint-targets) lint \
-	$(docs-targets) docs \
 	run
