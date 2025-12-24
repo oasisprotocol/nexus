@@ -13,6 +13,7 @@
     }
   ],
   "evm_balances": [],
+  "first_activity": "NONDETERMINISTIC",
   "nonce": 2612549,
   "stats": {
     "num_txns": 669,

@@ -35,6 +35,7 @@ import (
 	roflinstance "github.com/oasisprotocol/nexus/analyzer/rofl/instance_transactions"
 	"github.com/oasisprotocol/nexus/analyzer/roflmarket"
 	"github.com/oasisprotocol/nexus/analyzer/runtime"
+	"github.com/oasisprotocol/nexus/analyzer/runtime/firstactivitybackfill"
 	"github.com/oasisprotocol/nexus/analyzer/util"
 	"github.com/oasisprotocol/nexus/analyzer/validatorstakinghistory"
 	"github.com/oasisprotocol/nexus/cache/httpproxy"
@@ -631,6 +632,11 @@ func NewService(ctx context.Context, cfg *config.AnalysisConfig, logger *log.Log
 	if cfg.Analyzers.SapphireNebyPrices != nil {
 		analyzers, err = addAnalyzer(analyzers, err, syncTagSapphire, func() (A, error) {
 			return nebyprices.NewAnalyzer(common.RuntimeSapphire, cfg.Analyzers.SapphireNebyPrices, dbClient, logger)
+		})
+	}
+	if cfg.Analyzers.FirstActivityBackfill != nil {
+		analyzers, err = addAnalyzer(analyzers, err, "" /*syncTag*/, func() (A, error) {
+			return firstactivitybackfill.NewAnalyzer(*cfg.Analyzers.FirstActivityBackfill, dbClient, logger)
 		})
 	}
 	if cfg.Analyzers.MetadataRegistry != nil {

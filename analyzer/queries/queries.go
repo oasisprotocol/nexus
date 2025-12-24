@@ -658,6 +658,71 @@ var (
     ON CONFLICT (runtime, address) DO UPDATE
       SET num_txs = EXCLUDED.num_txs`
 
+	RuntimeAccountFirstActivityUpsert = `
+    INSERT INTO chain.runtime_accounts AS accounts (runtime, address, first_activity)
+      VALUES ($1, $2, $3)
+    ON CONFLICT (runtime, address) DO UPDATE
+      SET first_activity = LEAST(COALESCE(accounts.first_activity, excluded.first_activity), excluded.first_activity)`
+
+	// Recomputes first_activity for all runtime accounts in runtime $1 up to height $2.
+	// Intended for use after fast-sync.
+	RuntimeAccountFirstActivityRecompute = `
+    WITH first_rounds AS (
+      SELECT runtime, account_address, MIN(tx_round) AS first_round
+      FROM chain.runtime_related_transactions
+      WHERE runtime = $1::runtime AND tx_round <= $2::bigint
+      GROUP BY runtime, account_address
+    )
+    INSERT INTO chain.runtime_accounts AS accts (runtime, address, first_activity)
+    SELECT DISTINCT ON (fr.runtime, fr.account_address) fr.runtime, fr.account_address, rt.timestamp
+    FROM first_rounds fr
+    JOIN chain.runtime_transactions rt ON rt.runtime = fr.runtime AND rt.round = fr.first_round
+    ON CONFLICT (runtime, address) DO UPDATE
+      SET first_activity = LEAST(COALESCE(accts.first_activity, EXCLUDED.first_activity), EXCLUDED.first_activity)`
+
+	// Fetches accounts that need first_activity backfilling.
+	RuntimeAccountFirstActivityBackfillAccounts = `
+    SELECT runtime, address
+    FROM chain.runtime_accounts
+    WHERE NOT first_activity_backfilled
+      AND EXISTS (
+        SELECT 1 FROM chain.runtime_related_transactions rrt
+        WHERE rrt.runtime = runtime AND rrt.account_address = address
+      )
+    LIMIT $1`
+
+	// Fetches the first activity timestamp for a specific account.
+	RuntimeAccountFirstActivityBackfillTimestamp = `
+    SELECT rt.timestamp
+    FROM chain.runtime_related_transactions rrt
+    JOIN chain.runtime_transactions rt ON rt.runtime = rrt.runtime AND rt.round = rrt.tx_round
+    WHERE rrt.runtime = $1 AND rrt.account_address = $2
+    ORDER BY rrt.tx_round
+    LIMIT 1`
+
+	// Updates first_activity for a specific account and marks it as backfilled.
+	RuntimeAccountFirstActivityBackfillUpdate = `
+    UPDATE chain.runtime_accounts
+    SET first_activity = LEAST(COALESCE(first_activity, $3), $3),
+        first_activity_backfilled = true
+    WHERE runtime = $1 AND address = $2`
+
+	// Marks an account as backfilled without updating first_activity (for data skew cases).
+	RuntimeAccountFirstActivityBackfillMarkDone = `
+    UPDATE chain.runtime_accounts
+    SET first_activity_backfilled = true
+    WHERE runtime = $1 AND address = $2`
+
+	// Counts accounts that need first_activity backfilling.
+	RuntimeAccountFirstActivityBackfillQueueLength = `
+    SELECT COUNT(*)
+    FROM chain.runtime_accounts
+    WHERE NOT first_activity_backfilled
+      AND EXISTS (
+        SELECT 1 FROM chain.runtime_related_transactions rrt
+        WHERE rrt.runtime = runtime AND rrt.account_address = address
+      )`
+
 	RuntimeAccountTotalSentUpsert = `
     INSERT INTO chain.runtime_accounts as accounts (runtime, address, total_sent)
       VALUES ($1, $2, $3)
