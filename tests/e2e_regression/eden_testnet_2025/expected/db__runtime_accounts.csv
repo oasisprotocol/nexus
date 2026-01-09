@@ -1,219 +1,219 @@
-runtime,address,num_txs,gas_for_calling,total_sent,total_received
-sapphire,oasis1qp0j04msfhsdjrf5jpzr08v8yw9690ts9ycqv4j9,156,0,0,0
-sapphire,oasis1qp0wqg02g9n7kmq6vy04rll568uqk4fjfvf66wfp,1,176663,0,0
-sapphire,oasis1qp2cr7qj6vq76fkmfqxevutyxpkdswrvcg2zhpf5,21,0,0,0
-sapphire,oasis1qp2ens0hsp7gh23wajxa4hpetkdek3swyyulyrmz,11,0,12177000000000000,10000000000000000000
-sapphire,oasis1qp2p9f2e888dzlr7syzeczpn0sdwrp9r6q7g7gms,2,0,11618268073521382800,0
-sapphire,oasis1qp3c7s3txd8gpn08xmn4aqfe2l5z3472ys4h0x5z,1,480577,0,0
-sapphire,oasis1qp3r8hgsnphajmfzfuaa8fhjag7e0yt35cjxq0u4,3919,0,35668280360000000000,35665166160000000000
-sapphire,oasis1qp3wncf6p4t839jx6ar35p9xpptetz4n0gx5j5zw,1,498854,0,0
-sapphire,oasis1qp3xmdv4apz0se42dm87cwkkaqewfwxlxc7nwe5f,330,15837018,0,0
-sapphire,oasis1qp426alesj8u7qmejmvsj37qh20c8krft54gjmmu,4,0,0,0
-sapphire,oasis1qp4mdj80jepwucc2u9qp5nxn3d7hya3ztcwxvew9,1081,0,0,0
-sapphire,oasis1qp4t26y6u676xeelu6dsnpv5xva24thjmgtwf8d2,0,0,0,0
-sapphire,oasis1qp66p53y9tzx9vvpdmywfh0p6caya6g4tcg67zly,11,3480159,0,100000000000005
-sapphire,oasis1qp6gcstjl82y0vdr8x64sey0mudkucjgdgytxzj0,1,3079234,0,0
-sapphire,oasis1qp7aauujllfjuykm7rhed3lfhwd9p8326vg2jxrc,558,0,5384670500000000010,0
-sapphire,oasis1qpajcw8jgcu57244kgef4krz6hg7ys30gv7x9uq7,2,0,45002214200000000000,150000000000000000000
-sapphire,oasis1qpavryuazcpamvdraf8uudj6n8jly89kgytyyz5a,0,0,0,0
-sapphire,oasis1qpddnv29en94edvgzg9k6rpl7xuppgda2yx0827h,4,0,0,0
-sapphire,oasis1qpdh068sduxvl3dc53jcyflttx228qwrgvx0v3zt,20,0,652736700000000000,150028903200000000000
-sapphire,oasis1qpdtl6qkvzf4a299rqvnlfy3xa6f55yg6sygatvz,0,0,0,0
-sapphire,oasis1qpe3thkjmxgeqrhd7ptvfa86c8e6mha5jc9qcl3s,1,1031322,0,0
-sapphire,oasis1qpeayw2q9w3p6e303qrug3uqhkuaah5v2qg5yyfx,2,0,0,0
-sapphire,oasis1qpeva5w20qq6udjy3fenfe3uaslx2qx8vsskt8qc,1,0,7135500000000000,0
-sapphire,oasis1qpf949sxewdm8mhrq76ued5aas6tzun2aqqmhnhv,1,1963135,0,0
-sapphire,oasis1qpfgy30479xjmqa9vz6fmryd29nw09397u9gfclk,4,0,0,0
-sapphire,oasis1qpfrurzxf78c38aekk4ay3hcdk47my6jxuctvjtr,3,0,28345921230142967000,300000000000000000000
-sapphire,oasis1qpg57qtxrhzth6s2mdskmy63v2jfulngeqyz4ylm,0,0,0,0
-sapphire,oasis1qphhz4u08xgt4wk85x4t8xv6g3nxy8fq5ue4htxr,0,0,0,3405533558333332791
-sapphire,oasis1qpkwc89rwws8s8vnt9l4a8kuld7w83py4uh2urj4,1,1204050,0,0
-sapphire,oasis1qpkzjlre6gyl7cffmn3dweez95qxkyaf2cg6swjx,1,22140,0,247785900000000000
-sapphire,oasis1qplajr0ntylm4mz9af5e9xs4g0dpv4nceudqflu3,1,42347,0,0
-sapphire,oasis1qpmqg77j5zwfg8806mhwe8vn7vk5r4xx6qf4p4fj,1,0,10002214100000000000,0
-sapphire,oasis1qpmtrm8j0gm8kthmrxkqmg49ssyttqy5mcjjehk4,2,0,0,0
-sapphire,oasis1qppggrupgn835ty2jsr7nsk9vycuatar3s50wtr2,2,0,0,0
-sapphire,oasis1qppumsualpw8ayl6stj3ygcndlel3a0vvvmvvg0c,1,54121,0,2200000000000000
-sapphire,oasis1qpqenc34hucadn29f2hchra0596mv7lrlvppaepe,1,0,4234700000000000,0
-sapphire,oasis1qpqrsqgshedmnr8ul2aa9nzc00gjcw72g5rzx2wx,1,22141,0,27500000000000000000
-sapphire,oasis1qpspm8q6pk0lndcjf28ene5sgjgzex4aqcqh2kdh,5,0,110039158500000000000,150000000000000000000
-sapphire,oasis1qpuq79qq8gdr86l633fjhlft09pux6wvpykcneyh,1,54121,0,2100000000000000
-sapphire,oasis1qpvkacpyvwruhu2vd9xlqgxrh9zg3y2pvsxjyfgx,1,0,0,10000000000000000000
-sapphire,oasis1qpvtw7ddetel4ljdksvg2yug2f6uxx2ss5yrc4cu,4,303771,0,5
-sapphire,oasis1qpvvw5lc5aj4lf65sy22hs6p7pkhez0wwsdtuxgc,1,0,76202366600304800000,0
-sapphire,oasis1qpvxm963lkz0j0yhmnw7enq9783ap9wsl5wymsst,6,3809260,0,200000000000000000
-sapphire,oasis1qpvxtnmwx43dh5hu5x5vqpfwkhqzsxavug0w0snf,0,0,0,0
-sapphire,oasis1qpvz6t02tcrxvzesn8490j29aflur0ve7sapw0jp,693,22142,3301015500000000000,10000000000000000000
-sapphire,oasis1qpwaggvmhwq5uk40clase3knt655nn2tdy39nz2f,0,0,0,0
-sapphire,oasis1qpwxrykp4qv8twz5hdlhq3p990ylu55gjyugd3en,1,764974,0,0
-sapphire,oasis1qpwzz4r8t5r2lhf2fdvt9p4c48tn6a8lwcp2ge7r,27,0,354812500000000000,0
-sapphire,oasis1qpyly28tel6szfws7x26qtqcsjugpdsyp5nme3zg,2,0,0,0
-sapphire,oasis1qpzlcrru9teqp74yk5e22phntpugccff2q28aqwg,25,22140,3072309800000000000,5000000000000000000
-sapphire,oasis1qq09zc653z8wgxhq8frkd63t9ffa0sv475rekxrl,2,0,0,0
-sapphire,oasis1qq235lqj77855qcemcr5w2qm372s4amqcc4v3ztc,0,0,0,0
-sapphire,oasis1qq262lulrf7davjyzk7gg8cxhpkfmm3ljuta5msu,2,0,0,0
-sapphire,oasis1qq2xn08aa4vj7enk4w3k898st6rj95m0zgqjn74m,1,3185387,0,0
-sapphire,oasis1qq3fxsm2zqhf9wdlaua909c2qjvadasq7sphzjd9,1,897939,0,0
-sapphire,oasis1qq3pwhlqgwpqkktr5g7lt6jr5vul30mzdsh9503h,4,0,0,0
-sapphire,oasis1qq3qvdclhex7ue6248jlrhvrhpuc5e3p9505cu2h,63,0,0,0
-sapphire,oasis1qq45am6gzaur2rxhk26av9qf7ryhgca6ecg28clu,0,0,0,3154238751666666328
-sapphire,oasis1qq4ylc08h4zxsqd64urh86ejacswdcgh3cc3qf8e,1,480577,0,0
-sapphire,oasis1qq4zcmntnsh0armcuvlnx5urqyess7kn8vdkxkyt,4,0,0,600000000000000000000
-sapphire,oasis1qq54paq064lzgehkzmgfqmv3uwdvtjxxnyhpwxzd,1,398425,0,0
-sapphire,oasis1qq5cntlrssjdjadf3h9js5lrav357ln0psrewd9w,1,0,7135500000000000,0
-sapphire,oasis1qq5ekv67ww8dptac4w0ya83ndhx0xmq4hgp7jk3x,0,0,0,0
-sapphire,oasis1qq5kwr0fkg0f43a7yclz8k48uh22maq5jy4qamrd,2,0,0,0
-sapphire,oasis1qq5mu4d0f59gz9f4nr7jum5t76jlmux79g5gkwut,4,0,0,0
-sapphire,oasis1qq5rm2rhfykc6vw7a8e3287jr3wa6tpl4qv49gzh,669,7417900,34139576283345269800,33500000585091812521
-sapphire,oasis1qq5tmh863g4zyr69l7w3kfzjt2l5jxu4wcvjdvcf,3,44282,3236017177857509000,45251634438417060300
-sapphire,oasis1qq60zmsfca0gvmm3v8906pn5zqtt4ee2ssexramg,0,0,0,5944483346666665897
-sapphire,oasis1qq6390ykndktephlrkwac7dt6u0u7zz44gvqaaag,1,0,0,0
-sapphire,oasis1qq6k7q4uukpucz322m8dhy0pt0gvfdgrvcvrx2rm,0,0,0,596880943333333222
-sapphire,oasis1qq76ksuztpq9ynjlmsh8vdd28d02n5ngls9hazqs,2,44280,0,11613840073521382800
-sapphire,oasis1qq7tnjz45v464yc60cjsj2xa0u0ce8swmgzqadhp,1,67154,0,0
-sapphire,oasis1qq87z733lxx87zyuutee5xpxcksqk3mj9uq3xvaq,0,0,0,1499697813333333129
-sapphire,oasis1qq9wcdmws0s2966peufdfzn77a67xhgga5e85nmm,21,0,0,0
-sapphire,oasis1qq9zx485xcrtfk9vtshcp9pkvlvwmdgmfste99l8,1,22140,0,320000000000000000
-sapphire,oasis1qqa7ac69c42930g9n3vazesxhr6q5v23tv3426r6,7,0,0,0
-sapphire,oasis1qqagtvls2w5ln8t56sdecmrx4wdhqvuh5sj52c3f,4,0,0,0
-sapphire,oasis1qqarzj0m8583lu8jg78prg8usxx69k292qx8wdjk,4,0,0,0
-sapphire,oasis1qqdxatgwpjkw0n53rgwwzq03fr3342aj3cgys3j0,1,994354,0,0
-sapphire,oasis1qqe4ea7jzw97rx63g7wxfv7g3nmzkcejpcffvfgs,0,0,0,0
-sapphire,oasis1qqe6my5sntcetl97gqn3v0x76j6fpp9rwygzrdcd,4,0,0,0
-sapphire,oasis1qqes5xrge329eyv9p85j7gmglnp29ajfrsdqy3nv,5,1660500,0,0
-sapphire,oasis1qqffyg24rwj4xl06gquk2r7sq0atfqe48qa773f0,63,0,0,0
-sapphire,oasis1qqgndq6g6rfzy80q9nnduk4dnxlpl3lc6v7s0yup,6,0,0,0
-sapphire,oasis1qqgtypr83huyccvj360aaqfhevtplvx92gheae9w,1,498854,0,0
-sapphire,oasis1qqh8n39hvzqs8hhjxy0l730u6ge9c427f58fm032,107,5258075,0,0
-sapphire,oasis1qqhc6pecs5payyj6jk34q57axegyy3a225228prt,1,0,10002213900000000000,0
-sapphire,oasis1qqj0g6gkenex03my3p2vg4s3k33d3qll8unugszn,172,0,0,0
-sapphire,oasis1qqktfuwcwemk66llayhtw6prhzap35m6agcq32h3,1,0,5002214000000000000,0
-sapphire,oasis1qqkwtke3tjuflqef7l2357mn0z7xpl7rvqh4m3ru,2,0,0,0
-sapphire,oasis1qqlq4ywj5l3jvf7hl8dh446ajlgtu7g035azmtqc,1,942954,0,0
-sapphire,oasis1qqp6utpu8uumw2n8ctqpap2vx779w0xqxvg6xfdh,1,54121,0,2500000000000000
-sapphire,oasis1qqq4mky60f8g5tg8ujym4jhnwc3javvg2chzmwee,2,0,10000000000000000000,10000000000000000000
-sapphire,oasis1qqrpd903jxzvrvnsmegxq7at0wsyc0drvulct6j5,1,22140,0,3233803177857509000
-sapphire,oasis1qqs7xstyf7938rwh256zmnkhtkjcp8ym4vzyg0ft,251,11907377,0,0
-sapphire,oasis1qqt7ulkhrtjfxyj0u7tz74r9ylcs7um3fuglueur,1081,0,0,0
-sapphire,oasis1qqurrn3stxmwpdznxjnl06ajsv4mhs767sjlm4jr,1,2323127,0,0
-sapphire,oasis1qqwcjwqzcev44shx55d5yzqj3vcjckrtz50qmmeq,1,0,9490124676500000000,0
-sapphire,oasis1qqx25tfps595lss9t58wzf5mjm37z99duggnwgcm,7,3886636,0,300000000000000000
-sapphire,oasis1qqx4pljalhfgdn4ns2fkmzc7ejdsl5q2vvu83np2,1,0,0,150000000000000000000
-sapphire,oasis1qqy4wzcq4vukuflk8za4895jmn93y3ra5urr2649,1,764974,0,0
-sapphire,oasis1qqysr60tmvqmahasdxdmpdld5upl3yqlp56ttk9g,1,0,249999900000000000,0
-sapphire,oasis1qr0alp5v6xf3xk7f2lvhwg33fj864r5mdqptv6pc,0,0,0,0
-sapphire,oasis1qr0csntmjg80jtjct4pq9sjr5hpglzacgge7vx39,1,237805,0,0
-sapphire,oasis1qr2jxg57ch6p3787t2a8973v8zn8g82nxuex0773,0,0,0,2116509036666666351
-sapphire,oasis1qr2sk7vapuua33faea5uwk5x8m7rzeaavyprkkww,7,0,110052957000000000000,150000000000000000000
-sapphire,oasis1qr3e70lr3fa8j5546gm0y9zywyhy5jjlxgjhehdz,5,4085878,0,0
-sapphire,oasis1qr3jy2mhgdc05wycg292xkafknm9wx9a5ccykhnc,4,3448141,0,0
-sapphire,oasis1qr450efq7w0qntjx4d0rx6l5q0h65rwf2yek6nqm,0,0,0,0
-sapphire,oasis1qr5hwp7h38satrpp0dlg6rd9f5tfkyxrevp89kh6,1,0,0,150000000000000000000
-sapphire,oasis1qr5uvzke6hfxz79vrn4k86aus4uwmaghjckrjlyy,11,0,0,0
-sapphire,oasis1qr60028ewauacqutx535csfvy302scetcywa7vvw,20,110705,91512000000000000,9600000000000000
-sapphire,oasis1qr677rv0dcnh7ys4yanlynysvnjtk9gnsyhvm6ln,77,0,7700000000000000000,7700000000000000000
-sapphire,oasis1qr6mr9xyjwnvs7yuz85vhlrmn20um6p3muhh8v5s,0,0,0,0
-sapphire,oasis1qr6yvglln6243gq6zz2quxwn3nxpdr0h7sxmmr8n,1,562748,0,0
-sapphire,oasis1qr7rxs4jvfhk3629tv665errhksg8ctfdcearhv6,2,149736,0,0
-sapphire,oasis1qr7vete3fpd5xhd7xlg0mfmfxnnqfhxduykqxz33,1,764824,0,0
-sapphire,oasis1qr82hw9aaudv2qcqg05jmurf2z7fgqw96qhnmura,1,2590563,0,0
-sapphire,oasis1qr8k8l08e2ryeg7u58qvvyxjfpmkguretul052w5,129,4017318,0,0
-sapphire,oasis1qr9fd64ytekxjeykvsvdjfwpuutygxhyds58epte,1,1031322,0,0
-sapphire,oasis1qr9fevezhls8r2e4k5aplhfju4hfjt3umq7zkmrj,1,72539,0,100000000000000000
-sapphire,oasis1qrac63k0w39a4xnv7amspv5rafwnx69xkgjddq60,4,0,0,0
-sapphire,oasis1qraxs74gdzsnwpgrfqh20cwjxctqwdv64cvgc8q5,1,2320449,0,0
-sapphire,oasis1qrd0nthd3zvq5uqnrll3e246a0gnnhp0p5a9yam6,2,0,0,0
-sapphire,oasis1qrd6uldhptm2hjw8zg4jzecws45jhvwtasqxrrvs,1,0,132798000000000000,0
-sapphire,oasis1qrduekh3vfg9ff5qtjz63l3zr0epzyugnugh8whs,195,0,585331200000000000,0
-sapphire,oasis1qrf5sdmugsjumzgck7thgtw7hcdjul029sc578xv,1,1326118,0,0
-sapphire,oasis1qrfjnxeuunremf4ry5z75urudvpuy3726gf8azf7,1,22142,0,45000000000000000000
-sapphire,oasis1qrfvkkvvtt0sh46r478hd6dyuerqv02uau52m330,6,0,0,0
-sapphire,oasis1qrgnw7v9z6g5nm9fajudwm3rdxrxlr4vlvsmva5y,1,0,116638076500000000,0
-sapphire,oasis1qrhfqu8lm3re0jutj0j5e7p4q2cfavrtlsstej7r,1,22142,0,76200152400304800000
-sapphire,oasis1qrhpuazf0a7nvvytuqkyvpgmdpdplz9t9vdsnjua,2,0,0,0
-sapphire,oasis1qrjjl6fmxf73gsv4upas8j470dle7gwe0uw4w39q,4,0,0,0
-sapphire,oasis1qrk58a6j2qn065m6p06jgjyt032f7qucy5wqeqpt,0,0,0,0
-sapphire,oasis1qrkf98prkpf05kd6he7wcvpzr9sd6gs2jvrn5keh,0,0,0,1298787061666666440
-sapphire,oasis1qrkfqnmxxhaxy33ht4r6z20zsfrakfh2tuufjdev,2,0,0,300000000000000000000
-sapphire,oasis1qrkhp2t475yw09qp87gyrkzcywwztwtx4qr9y8tp,0,0,0,0
-sapphire,oasis1qrky6nkk7v7ptfe9udtvhhmmglwknfh90cmu69mf,0,0,0,0
-sapphire,oasis1qrm690uye6stxjz9f4cg68x9qdu3xggvfvxw8cqe,441,21102778,0,0
-sapphire,oasis1qrpgejhev60vhewcw2jjrshu444kdu4jygasgw84,1,0,9491607246500000000,0
-sapphire,oasis1qrq6jqne99mpcanwq9x323f8h059nahz8yxnu5gy,1,0,0,0
-sapphire,oasis1qrqwhg7makysqht76dm4vumn3qzhp4nmm57966mc,1,22141,0,10000000000000000000
-sapphire,oasis1qrqykactk9s48xkcrjgx4llzrgjpn3p3gq3qe5m4,10,0,435894000000000000,0
-sapphire,oasis1qrrmhljmk9dwslmmvv3hm5w9v5cyxclrzq3qddyd,85,4032412,0,0
-sapphire,oasis1qrruwg0y4au55efu0pcgl0nanaq6p3sdwv0jhzv5,0,0,0,1507483233333333129
-sapphire,oasis1qrrwfgshhk7etyut8mphstpj073flfv8dvj7nahv,4,0,0,0
-sapphire,oasis1qrs2u96uf63m4g8gmd3edp7f06flnr9y7ustyswp,1,883417,0,0
-sapphire,oasis1qrtesgqdl0pzrt3dcms8mk7mrdafrd8ljvwk044g,1,674503,0,0
-sapphire,oasis1qrtrjz5et23zww5869cv5ware8nt6gaanclrrx8a,1,54121,0,2700000000000000
-sapphire,oasis1qru6lqlq6pj3gee0p2zxzfss98sj2vet3s3h0vu5,0,0,0,0
-sapphire,oasis1qrv3zwhkmcuexmc9ggs3vrn2y7rx2mrjx59j8nm5,1,533110,0,0
-sapphire,oasis1qrvjtfdx52t8t7amm7w2ag093wlhykqgfy8lnywj,21,4737746,0,1300000000000005
-sapphire,oasis1qrxfl2ty845sjm8u0gfm0hsmfm0fa7k3qq34eemn,1,764974,0,0
-sapphire,oasis1qrxnx3x206lla6qdfuvqd8h8ptd82dtwrclmpkeh,1,1031322,0,0
-sapphire,oasis1qry7ug8gr0q9hvtz0dy2fqdy42t6ekf54c0aqa27,95,0,1225770500000000000,0
-sapphire,oasis1qryq3zag4v6cem8t3v8ahjd3wa3ugdtwcgrpp9nr,1,0,10662100000000000,0
-sapphire,oasis1qrzndwe4pq6pf549ugy0gvfn8nmflzsqcskzt3je,4,88561,0,29089164499500000000
-sapphire,oasis1qz0ve6250whrhf4vsvg6ugnjdsal6653lyftr7ax,1,22141,0,28343707130142967000
-sapphire,oasis1qz2cfxsqjvm9catrjs50szg2svj7u2df4cua27sq,195,5853312,0,0
-sapphire,oasis1qz2twlmswajmx8zvnxpefypf0qthuyc0qgffrus9,26,0,189015300000000000,150000000000000000000
-sapphire,oasis1qz3hj33txrjr74p43rpmpxlynqu9q3rfdv73wwmr,1,605714,0,0
-sapphire,oasis1qz4532s3lhkpju7fd3mxqfvaw98pjq5htss4g4w0,0,0,0,2545212948333333106
-sapphire,oasis1qz4crd76uajrxaz3juuqm9rp6puyqy29ayt0nqwx,1,237805,0,0
-sapphire,oasis1qz4r2a9pvz40e05zq978surw5jwd5jmr4s2jy7lx,4,0,0,0
-sapphire,oasis1qz5fvuksf65k4r8akm8kmw9yuu5kwcse5s0k2p0j,19,919600,0,0
-sapphire,oasis1qz5mdxjspvfnr6epe6ey602fxmjz4trkggxa2ayf,4,0,0,0
-sapphire,oasis1qz5we9hzmgvdzagqdu7j2xwnh2n89w0jgy6lsmat,1,2639901,0,0
-sapphire,oasis1qz78phkdan64g040cvqvqpwkplfqf6tj6uwcsh30,0,0,0,4618
-sapphire,oasis1qz7ugnj7htylhtsf37r54eyhwq8kcxyydgy035v2,2,22139,9999982700000000000,10000000000000000000
-sapphire,oasis1qz82skaxdny2km2hlk8mxp06tj50xnz5rs9dhnqc,1,2323127,0,0
-sapphire,oasis1qz8w4erh0kkwpmdtwd3dt9ueaz9hmzfpecjhd7t4,0,0,0,3827384769999999546
-sapphire,oasis1qz99l99vfa67qmkkwfwe2w5s2guyckm8dv2ug73t,12,3503308,0,100000000000005
-sapphire,oasis1qz9x0zpja6n25hc5242k2e60l6a7ke2zsq9cqrqz,0,0,0,5957786586666665897
-sapphire,oasis1qza6sddnalgzexk3ct30gqfvntgth5m4hsyywmff,2,0,0,200000000000000000000
-sapphire,oasis1qzaxvc4sfdcw2mv27tsdmq7gqp6rrkjux55j09fh,10,319810,0,0
-sapphire,oasis1qzcxhlz746khcwa9v5at653fez9ujc5ulgmzhdyr,1,237805,0,0
-sapphire,oasis1qzcyqspd7cxxdhyrrrxl3lmn70susq944uqwxktm,18,886358,0,0
-sapphire,oasis1qzd8lfm0fhyfngzx0u0c838cgy0wc3hlhgsnvxut,1,1444494,0,0
-sapphire,oasis1qzdgpql2kmmqg9zr5purgrq7vgwmu3srdchlnu6w,1,0,27502435510000000000,0
-sapphire,oasis1qzdl5cfmux9k6le7rc6r2sw5yrqgq4924gs40d7s,1,0,7135500000000000,0
-sapphire,oasis1qzec76d6f62y3f9m7va7ffcw8x7vrfyhr5traxw4,4,3448100,0,0
-sapphire,oasis1qzeg5jfa83u7f0ge6jetyfxf5vg899ek0c7prn9f,1,54121,0,2300000000000000
-sapphire,oasis1qzeq4s8drfrnw7wak9e5su37cqgmshj48uwtjtg3,1,0,5002214000000000000,0
-sapphire,oasis1qzf7w5f239n3n4qtx3hm4tqzdv39w8g34uy95uyr,156,0,8172171700000000000,7900000000000000000
-sapphire,oasis1qzfhn0numuffujngaqke40zkalgfljkthy9neaqz,1,22140,0,5000000000000000000
-sapphire,oasis1qzgc7dvlls36q47z5y6dvu6ylaa78rkrduqtxgdr,0,0,0,0
-sapphire,oasis1qzgdygrjvxzgk0gngz9054teg0pmp5xmgyx27r3u,0,0,0,0
-sapphire,oasis1qzgmneag22pck2x3rme072yuump05x3hlsjsvcau,27,0,11592535300000000010,0
-sapphire,oasis1qzgtprp8mcy4dn0ep8xcwfq5xxdetzj28gj4g95r,1,0,0,0
-sapphire,oasis1qzhg6r0cxtm0mv7w2udcyq8fcfcsz7vvrcktr98e,4,285420,0,0
-sapphire,oasis1qzhhfyftwdyj6x2sgysjfz9y58cvz7shkql6x8rg,1,1246625,0,0
-sapphire,oasis1qzhj7pqsgeytm8ts0ep339vg2ksmsmyuugezvq88,2,0,0,0
-sapphire,oasis1qzm773ndavepgg69gwpqdxxljn7ms6z7avg6zvap,2,0,0,0
-sapphire,oasis1qzmqhh4r8g2u49aja0qsvzu68jxxk8jrw5pfc9ul,0,0,0,0
-sapphire,oasis1qzna6nq9kuktjmxx2s84z38eysqyts84jc9lgdg2,16,0,0,0
-sapphire,oasis1qzpkktxe8vjmu6y5j225x6x4dm0aukgykgjftc5q,19,0,91960000000000000,0
-sapphire,oasis1qzpnwts33w3cm0zfy96dg6gdzsm6t943vgam3lnj,17,0,746728700000000000,150057806400000000000
-sapphire,oasis1qzq0ym4hvq9vpvxry995ry7pxfcly8xgtqyvs0z4,2,0,0,0
-sapphire,oasis1qzq4q683dm4ec59apnr3ecgjnw5e34a2wqxxa6mq,1,2323127,0,0
-sapphire,oasis1qzqazghme7dhfphq5nfvf3xctvkyt4a5qgvex06f,4,0,0,0
-sapphire,oasis1qzqgx240uhyanu448aqgg7k4gkedy34zsgn75mef,1,22140,0,130584000000000000
-sapphire,oasis1qzqts5r0j5fgg672r4ntchupwrchmld60cjkmxra,1,0,322214000000000000,0
-sapphire,oasis1qzqvxjnnw5qlqsy72uraudua4grgqrcs9qd9qqs7,1,498854,0,0
-sapphire,oasis1qzrqr69570z4ek2xeufz5cfgye7507mq7v222gd3,1,0,0,0
-sapphire,oasis1qzs758mqmxtcf3r8fyet3kgj6u0hz3847v465z9g,0,0,0,0
-sapphire,oasis1qzt9q2dns937tecrjc2xswzejrtn0jlfas40j7sz,129,0,401731800000000000,0
-sapphire,oasis1qztgcwmzw3p5ltnq4ff32gg7mmv3v566quzkwzu4,1,685361,0,0
-sapphire,oasis1qzuj9qtq30t63rfn0u8vude9w0la0r00lslqg9cl,1257,0,16157685700000000000,0
-sapphire,oasis1qzupzfyfr3ynq65ygzkvfcdendzenljydshcw629,2,0,45256062638417060300,0
-sapphire,oasis1qzuyktxqnakplhr6c8fkg6249wuztxkfwq7ex80y,5,0,166050000000000000,0
-sapphire,oasis1qzuz564r4gxes8x8syhta97eudgrcpaacgtqduuc,1,1535976,0,0
-sapphire,oasis1qzwcg06ntlep8hvdc8pu3lhewv8wg97xvsvxg7m6,4,0,0,0
-sapphire,oasis1qzwe6xywazp29tp20974wgxhdcpdf6yxfcn2jxvv,0,0,0,3814282309999999546
-sapphire,oasis1qzwrm39z3kn2a3ra3h26tq2rkzx8ruzzdy3khyds,1,0,10703250000000000,0
-sapphire,oasis1qzxg9z7gufqg8f47salv3933xaq6rykusslsq4k7,669,7395757,34241790585091812521,33400000583345269800
-sapphire,oasis1qzygsmcpccl9lpt6cw8m0kcyaf3pus7qvsseq8n3,12,6025754,86709600000000000,400000000000000000
-sapphire,oasis1qzysdz3hyl4r66a6ae2ppt725em7x4p0ngs24yfs,18,0,88635800000000000,0
-sapphire,oasis1qzzwgvmug0s2dc2jtyu7ptggermt65mcmu02u66k,1,480577,0,0
+runtime,address,num_txs,gas_for_calling,total_sent,total_received,first_activity
+sapphire,oasis1qp0j04msfhsdjrf5jpzr08v8yw9690ts9ycqv4j9,156,0,0,0,2025-05-06 13:08:14+00
+sapphire,oasis1qp0wqg02g9n7kmq6vy04rll568uqk4fjfvf66wfp,1,176663,0,0,2025-05-06 14:08:57+00
+sapphire,oasis1qp2cr7qj6vq76fkmfqxevutyxpkdswrvcg2zhpf5,21,0,0,0,2025-05-06 14:00:06+00
+sapphire,oasis1qp2ens0hsp7gh23wajxa4hpetkdek3swyyulyrmz,11,0,12177000000000000,10000000000000000000,2025-05-06 13:31:51+00
+sapphire,oasis1qp2p9f2e888dzlr7syzeczpn0sdwrp9r6q7g7gms,2,0,11618268073521382800,0,2025-05-06 13:11:41+00
+sapphire,oasis1qp3c7s3txd8gpn08xmn4aqfe2l5z3472ys4h0x5z,1,480577,0,0,2025-05-06 14:19:40+00
+sapphire,oasis1qp3r8hgsnphajmfzfuaa8fhjag7e0yt35cjxq0u4,3919,0,35668280360000000000,35665166160000000000,2025-05-06 13:08:02+00
+sapphire,oasis1qp3wncf6p4t839jx6ar35p9xpptetz4n0gx5j5zw,1,498854,0,0,2025-05-06 14:12:14+00
+sapphire,oasis1qp3xmdv4apz0se42dm87cwkkaqewfwxlxc7nwe5f,330,15837018,0,0,2025-05-06 14:10:30+00
+sapphire,oasis1qp426alesj8u7qmejmvsj37qh20c8krft54gjmmu,4,0,0,0,2025-05-06 14:31:51+00
+sapphire,oasis1qp4mdj80jepwucc2u9qp5nxn3d7hya3ztcwxvew9,1081,0,0,0,2025-05-06 13:08:14+00
+sapphire,oasis1qp4t26y6u676xeelu6dsnpv5xva24thjmgtwf8d2,0,0,0,0,
+sapphire,oasis1qp66p53y9tzx9vvpdmywfh0p6caya6g4tcg67zly,11,3480159,0,100000000000005,2025-05-06 13:38:33+00
+sapphire,oasis1qp6gcstjl82y0vdr8x64sey0mudkucjgdgytxzj0,1,3079234,0,0,2025-05-06 14:18:54+00
+sapphire,oasis1qp7aauujllfjuykm7rhed3lfhwd9p8326vg2jxrc,558,0,5384670500000000010,0,2025-05-06 13:08:14+00
+sapphire,oasis1qpajcw8jgcu57244kgef4krz6hg7ys30gv7x9uq7,2,0,45002214200000000000,150000000000000000000,2025-05-06 14:29:31+00
+sapphire,oasis1qpavryuazcpamvdraf8uudj6n8jly89kgytyyz5a,0,0,0,0,
+sapphire,oasis1qpddnv29en94edvgzg9k6rpl7xuppgda2yx0827h,4,0,0,0,2025-05-06 13:58:12+00
+sapphire,oasis1qpdh068sduxvl3dc53jcyflttx228qwrgvx0v3zt,20,0,652736700000000000,150028903200000000000,2025-05-06 13:33:17+00
+sapphire,oasis1qpdtl6qkvzf4a299rqvnlfy3xa6f55yg6sygatvz,0,0,0,0,
+sapphire,oasis1qpe3thkjmxgeqrhd7ptvfa86c8e6mha5jc9qcl3s,1,1031322,0,0,2025-05-06 13:37:12+00
+sapphire,oasis1qpeayw2q9w3p6e303qrug3uqhkuaah5v2qg5yyfx,2,0,0,0,2025-05-06 13:32:25+00
+sapphire,oasis1qpeva5w20qq6udjy3fenfe3uaslx2qx8vsskt8qc,1,0,7135500000000000,0,2025-05-06 13:20:42+00
+sapphire,oasis1qpf949sxewdm8mhrq76ued5aas6tzun2aqqmhnhv,1,1963135,0,0,2025-05-06 14:20:03+00
+sapphire,oasis1qpfgy30479xjmqa9vz6fmryd29nw09397u9gfclk,4,0,0,0,2025-05-06 13:58:12+00
+sapphire,oasis1qpfrurzxf78c38aekk4ay3hcdk47my6jxuctvjtr,3,0,28345921230142967000,300000000000000000000,2025-05-06 13:30:13+00
+sapphire,oasis1qpg57qtxrhzth6s2mdskmy63v2jfulngeqyz4ylm,0,0,0,0,
+sapphire,oasis1qphhz4u08xgt4wk85x4t8xv6g3nxy8fq5ue4htxr,0,0,0,3405533558333332791,
+sapphire,oasis1qpkwc89rwws8s8vnt9l4a8kuld7w83py4uh2urj4,1,1204050,0,0,2025-05-06 14:11:10+00
+sapphire,oasis1qpkzjlre6gyl7cffmn3dweez95qxkyaf2cg6swjx,1,22140,0,247785900000000000,2025-05-06 15:05:28+00
+sapphire,oasis1qplajr0ntylm4mz9af5e9xs4g0dpv4nceudqflu3,1,42347,0,0,2025-05-06 13:08:31+00
+sapphire,oasis1qpmqg77j5zwfg8806mhwe8vn7vk5r4xx6qf4p4fj,1,0,10002214100000000000,0,2025-05-06 14:04:35+00
+sapphire,oasis1qpmtrm8j0gm8kthmrxkqmg49ssyttqy5mcjjehk4,2,0,0,0,2025-05-06 13:33:57+00
+sapphire,oasis1qppggrupgn835ty2jsr7nsk9vycuatar3s50wtr2,2,0,0,0,2025-05-06 14:20:03+00
+sapphire,oasis1qppumsualpw8ayl6stj3ygcndlel3a0vvvmvvg0c,1,54121,0,2200000000000000,2025-05-06 16:06:41+00
+sapphire,oasis1qpqenc34hucadn29f2hchra0596mv7lrlvppaepe,1,0,4234700000000000,0,2025-05-06 13:08:31+00
+sapphire,oasis1qpqrsqgshedmnr8ul2aa9nzc00gjcw72g5rzx2wx,1,22141,0,27500000000000000000,2025-05-06 15:44:50+00
+sapphire,oasis1qpspm8q6pk0lndcjf28ene5sgjgzex4aqcqh2kdh,5,0,110039158500000000000,150000000000000000000,2025-05-06 15:42:26+00
+sapphire,oasis1qpuq79qq8gdr86l633fjhlft09pux6wvpykcneyh,1,54121,0,2100000000000000,2025-05-06 16:06:59+00
+sapphire,oasis1qpvkacpyvwruhu2vd9xlqgxrh9zg3y2pvsxjyfgx,1,0,0,10000000000000000000,2025-05-06 16:05:55+00
+sapphire,oasis1qpvtw7ddetel4ljdksvg2yug2f6uxx2ss5yrc4cu,4,303771,0,5,2025-05-06 13:08:19+00
+sapphire,oasis1qpvvw5lc5aj4lf65sy22hs6p7pkhez0wwsdtuxgc,1,0,76202366600304800000,0,2025-05-06 15:58:32+00
+sapphire,oasis1qpvxm963lkz0j0yhmnw7enq9783ap9wsl5wymsst,6,3809260,0,200000000000000000,2025-05-06 14:20:38+00
+sapphire,oasis1qpvxtnmwx43dh5hu5x5vqpfwkhqzsxavug0w0snf,0,0,0,0,
+sapphire,oasis1qpvz6t02tcrxvzesn8490j29aflur0ve7sapw0jp,693,22142,3301015500000000000,10000000000000000000,2025-05-06 13:09:16+00
+sapphire,oasis1qpwaggvmhwq5uk40clase3knt655nn2tdy39nz2f,0,0,0,0,
+sapphire,oasis1qpwxrykp4qv8twz5hdlhq3p990ylu55gjyugd3en,1,764974,0,0,2025-05-06 14:10:53+00
+sapphire,oasis1qpwzz4r8t5r2lhf2fdvt9p4c48tn6a8lwcp2ge7r,27,0,354812500000000000,0,2025-05-06 13:50:39+00
+sapphire,oasis1qpyly28tel6szfws7x26qtqcsjugpdsyp5nme3zg,2,0,0,0,2025-05-06 14:05:39+00
+sapphire,oasis1qpzlcrru9teqp74yk5e22phntpugccff2q28aqwg,25,22140,3072309800000000000,5000000000000000000,2025-05-06 14:08:10+00
+sapphire,oasis1qq09zc653z8wgxhq8frkd63t9ffa0sv475rekxrl,2,0,0,0,2025-05-06 14:05:39+00
+sapphire,oasis1qq235lqj77855qcemcr5w2qm372s4amqcc4v3ztc,0,0,0,0,
+sapphire,oasis1qq262lulrf7davjyzk7gg8cxhpkfmm3ljuta5msu,2,0,0,0,2025-05-06 14:20:03+00
+sapphire,oasis1qq2xn08aa4vj7enk4w3k898st6rj95m0zgqjn74m,1,3185387,0,0,2025-05-06 14:18:31+00
+sapphire,oasis1qq3fxsm2zqhf9wdlaua909c2qjvadasq7sphzjd9,1,897939,0,0,2025-05-06 14:10:12+00
+sapphire,oasis1qq3pwhlqgwpqkktr5g7lt6jr5vul30mzdsh9503h,4,0,0,0,2025-05-06 13:58:12+00
+sapphire,oasis1qq3qvdclhex7ue6248jlrhvrhpuc5e3p9505cu2h,63,0,0,0,2025-05-06 13:08:19+00
+sapphire,oasis1qq45am6gzaur2rxhk26av9qf7ryhgca6ecg28clu,0,0,0,3154238751666666328,
+sapphire,oasis1qq4ylc08h4zxsqd64urh86ejacswdcgh3cc3qf8e,1,480577,0,0,2025-05-06 14:10:06+00
+sapphire,oasis1qq4zcmntnsh0armcuvlnx5urqyess7kn8vdkxkyt,4,0,0,600000000000000000000,2025-05-06 14:12:31+00
+sapphire,oasis1qq54paq064lzgehkzmgfqmv3uwdvtjxxnyhpwxzd,1,398425,0,0,2025-05-06 14:10:35+00
+sapphire,oasis1qq5cntlrssjdjadf3h9js5lrav357ln0psrewd9w,1,0,7135500000000000,0,2025-05-06 16:20:42+00
+sapphire,oasis1qq5ekv67ww8dptac4w0ya83ndhx0xmq4hgp7jk3x,0,0,0,0,
+sapphire,oasis1qq5kwr0fkg0f43a7yclz8k48uh22maq5jy4qamrd,2,0,0,0,2025-05-06 13:33:57+00
+sapphire,oasis1qq5mu4d0f59gz9f4nr7jum5t76jlmux79g5gkwut,4,0,0,0,2025-05-06 13:58:12+00
+sapphire,oasis1qq5rm2rhfykc6vw7a8e3287jr3wa6tpl4qv49gzh,669,7417900,34139576283345269800,33500000585091812521,2025-05-06 13:08:14+00
+sapphire,oasis1qq5tmh863g4zyr69l7w3kfzjt2l5jxu4wcvjdvcf,3,44282,3236017177857509000,45251634438417060300,2025-05-06 13:27:03+00
+sapphire,oasis1qq60zmsfca0gvmm3v8906pn5zqtt4ee2ssexramg,0,0,0,5944483346666665897,
+sapphire,oasis1qq6390ykndktephlrkwac7dt6u0u7zz44gvqaaag,1,0,0,0,2025-05-06 14:42:18+00
+sapphire,oasis1qq6k7q4uukpucz322m8dhy0pt0gvfdgrvcvrx2rm,0,0,0,596880943333333222,
+sapphire,oasis1qq76ksuztpq9ynjlmsh8vdd28d02n5ngls9hazqs,2,44280,0,11613840073521382800,2025-05-06 13:11:41+00
+sapphire,oasis1qq7tnjz45v464yc60cjsj2xa0u0ce8swmgzqadhp,1,67154,0,0,2025-05-06 14:08:34+00
+sapphire,oasis1qq87z733lxx87zyuutee5xpxcksqk3mj9uq3xvaq,0,0,0,1499697813333333129,
+sapphire,oasis1qq9wcdmws0s2966peufdfzn77a67xhgga5e85nmm,21,0,0,0,2025-05-06 14:00:06+00
+sapphire,oasis1qq9zx485xcrtfk9vtshcp9pkvlvwmdgmfste99l8,1,22140,0,320000000000000000,2025-05-06 13:45:16+00
+sapphire,oasis1qqa7ac69c42930g9n3vazesxhr6q5v23tv3426r6,7,0,0,0,2025-05-06 13:43:32+00
+sapphire,oasis1qqagtvls2w5ln8t56sdecmrx4wdhqvuh5sj52c3f,4,0,0,0,2025-05-06 13:58:12+00
+sapphire,oasis1qqarzj0m8583lu8jg78prg8usxx69k292qx8wdjk,4,0,0,0,2025-05-06 13:58:12+00
+sapphire,oasis1qqdxatgwpjkw0n53rgwwzq03fr3342aj3cgys3j0,1,994354,0,0,2025-05-06 14:08:22+00
+sapphire,oasis1qqe4ea7jzw97rx63g7wxfv7g3nmzkcejpcffvfgs,0,0,0,0,
+sapphire,oasis1qqe6my5sntcetl97gqn3v0x76j6fpp9rwygzrdcd,4,0,0,0,2025-05-06 13:58:12+00
+sapphire,oasis1qqes5xrge329eyv9p85j7gmglnp29ajfrsdqy3nv,5,1660500,0,0,2025-05-06 13:14:22+00
+sapphire,oasis1qqffyg24rwj4xl06gquk2r7sq0atfqe48qa773f0,63,0,0,0,2025-05-06 13:08:19+00
+sapphire,oasis1qqgndq6g6rfzy80q9nnduk4dnxlpl3lc6v7s0yup,6,0,0,0,2025-05-06 13:50:39+00
+sapphire,oasis1qqgtypr83huyccvj360aaqfhevtplvx92gheae9w,1,498854,0,0,2025-05-06 13:38:56+00
+sapphire,oasis1qqh8n39hvzqs8hhjxy0l730u6ge9c427f58fm032,107,5258075,0,0,2025-05-06 13:37:01+00
+sapphire,oasis1qqhc6pecs5payyj6jk34q57axegyy3a225228prt,1,0,10002213900000000000,0,2025-05-06 13:13:59+00
+sapphire,oasis1qqj0g6gkenex03my3p2vg4s3k33d3qll8unugszn,172,0,0,0,2025-05-06 13:08:19+00
+sapphire,oasis1qqktfuwcwemk66llayhtw6prhzap35m6agcq32h3,1,0,5002214000000000000,0,2025-05-06 13:44:41+00
+sapphire,oasis1qqkwtke3tjuflqef7l2357mn0z7xpl7rvqh4m3ru,2,0,0,0,2025-05-06 13:32:02+00
+sapphire,oasis1qqlq4ywj5l3jvf7hl8dh446ajlgtu7g035azmtqc,1,942954,0,0,2025-05-06 14:10:24+00
+sapphire,oasis1qqp6utpu8uumw2n8ctqpap2vx779w0xqxvg6xfdh,1,54121,0,2500000000000000,2025-05-06 16:07:33+00
+sapphire,oasis1qqq4mky60f8g5tg8ujym4jhnwc3javvg2chzmwee,2,0,10000000000000000000,10000000000000000000,2025-05-06 13:31:51+00
+sapphire,oasis1qqrpd903jxzvrvnsmegxq7at0wsyc0drvulct6j5,1,22140,0,3233803177857509000,2025-05-06 13:56:33+00
+sapphire,oasis1qqs7xstyf7938rwh256zmnkhtkjcp8ym4vzyg0ft,251,11907377,0,0,2025-05-06 13:09:16+00
+sapphire,oasis1qqt7ulkhrtjfxyj0u7tz74r9ylcs7um3fuglueur,1081,0,0,0,2025-05-06 13:08:14+00
+sapphire,oasis1qqurrn3stxmwpdznxjnl06ajsv4mhs767sjlm4jr,1,2323127,0,0,2025-05-06 14:19:52+00
+sapphire,oasis1qqwcjwqzcev44shx55d5yzqj3vcjckrtz50qmmeq,1,0,9490124676500000000,0,2025-05-06 14:38:44+00
+sapphire,oasis1qqx25tfps595lss9t58wzf5mjm37z99duggnwgcm,7,3886636,0,300000000000000000,2025-05-06 13:37:35+00
+sapphire,oasis1qqx4pljalhfgdn4ns2fkmzc7ejdsl5q2vvu83np2,1,0,0,150000000000000000000,2025-05-06 15:42:38+00
+sapphire,oasis1qqy4wzcq4vukuflk8za4895jmn93y3ra5urr2649,1,764974,0,0,2025-05-06 13:37:24+00
+sapphire,oasis1qqysr60tmvqmahasdxdmpdld5upl3yqlp56ttk9g,1,0,249999900000000000,0,2025-05-06 15:05:28+00
+sapphire,oasis1qr0alp5v6xf3xk7f2lvhwg33fj864r5mdqptv6pc,0,0,0,0,
+sapphire,oasis1qr0csntmjg80jtjct4pq9sjr5hpglzacgge7vx39,1,237805,0,0,2025-05-06 14:21:02+00
+sapphire,oasis1qr2jxg57ch6p3787t2a8973v8zn8g82nxuex0773,0,0,0,2116509036666666351,
+sapphire,oasis1qr2sk7vapuua33faea5uwk5x8m7rzeaavyprkkww,7,0,110052957000000000000,150000000000000000000,2025-05-06 13:28:24+00
+sapphire,oasis1qr3e70lr3fa8j5546gm0y9zywyhy5jjlxgjhehdz,5,4085878,0,0,2025-05-06 14:21:25+00
+sapphire,oasis1qr3jy2mhgdc05wycg292xkafknm9wx9a5ccykhnc,4,3448141,0,0,2025-05-06 13:39:07+00
+sapphire,oasis1qr450efq7w0qntjx4d0rx6l5q0h65rwf2yek6nqm,0,0,0,0,
+sapphire,oasis1qr5hwp7h38satrpp0dlg6rd9f5tfkyxrevp89kh6,1,0,0,150000000000000000000,2025-05-06 14:14:04+00
+sapphire,oasis1qr5uvzke6hfxz79vrn4k86aus4uwmaghjckrjlyy,11,0,0,0,2025-05-06 13:43:32+00
+sapphire,oasis1qr60028ewauacqutx535csfvy302scetcywa7vvw,20,110705,91512000000000000,9600000000000000,2025-05-06 16:04:46+00
+sapphire,oasis1qr677rv0dcnh7ys4yanlynysvnjtk9gnsyhvm6ln,77,0,7700000000000000000,7700000000000000000,2025-05-06 13:08:14+00
+sapphire,oasis1qr6mr9xyjwnvs7yuz85vhlrmn20um6p3muhh8v5s,0,0,0,0,
+sapphire,oasis1qr6yvglln6243gq6zz2quxwn3nxpdr0h7sxmmr8n,1,562748,0,0,2025-05-06 14:08:10+00
+sapphire,oasis1qr7rxs4jvfhk3629tv665errhksg8ctfdcearhv6,2,149736,0,0,2025-05-06 14:01:06+00
+sapphire,oasis1qr7vete3fpd5xhd7xlg0mfmfxnnqfhxduykqxz33,1,764824,0,0,2025-05-06 14:10:47+00
+sapphire,oasis1qr82hw9aaudv2qcqg05jmurf2z7fgqw96qhnmura,1,2590563,0,0,2025-05-06 14:19:52+00
+sapphire,oasis1qr8k8l08e2ryeg7u58qvvyxjfpmkguretul052w5,129,4017318,0,0,2025-05-06 13:09:28+00
+sapphire,oasis1qr9fd64ytekxjeykvsvdjfwpuutygxhyds58epte,1,1031322,0,0,2025-05-06 14:20:15+00
+sapphire,oasis1qr9fevezhls8r2e4k5aplhfju4hfjt3umq7zkmrj,1,72539,0,100000000000000000,2025-05-06 13:08:02+00
+sapphire,oasis1qrac63k0w39a4xnv7amspv5rafwnx69xkgjddq60,4,0,0,0,2025-05-06 13:58:12+00
+sapphire,oasis1qraxs74gdzsnwpgrfqh20cwjxctqwdv64cvgc8q5,1,2320449,0,0,2025-05-06 14:10:59+00
+sapphire,oasis1qrd0nthd3zvq5uqnrll3e246a0gnnhp0p5a9yam6,2,0,0,0,2025-05-06 16:06:30+00
+sapphire,oasis1qrd6uldhptm2hjw8zg4jzecws45jhvwtasqxrrvs,1,0,132798000000000000,0,2025-05-06 14:19:11+00
+sapphire,oasis1qrduekh3vfg9ff5qtjz63l3zr0epzyugnugh8whs,195,0,585331200000000000,0,2025-05-06 13:08:19+00
+sapphire,oasis1qrf5sdmugsjumzgck7thgtw7hcdjul029sc578xv,1,1326118,0,0,2025-05-06 14:19:06+00
+sapphire,oasis1qrfjnxeuunremf4ry5z75urudvpuy3726gf8azf7,1,22142,0,45000000000000000000,2025-05-06 14:29:31+00
+sapphire,oasis1qrfvkkvvtt0sh46r478hd6dyuerqv02uau52m330,6,0,0,0,2025-05-06 13:50:39+00
+sapphire,oasis1qrgnw7v9z6g5nm9fajudwm3rdxrxlr4vlvsmva5y,1,0,116638076500000000,0,2025-05-06 14:22:00+00
+sapphire,oasis1qrhfqu8lm3re0jutj0j5e7p4q2cfavrtlsstej7r,1,22142,0,76200152400304800000,2025-05-06 15:58:32+00
+sapphire,oasis1qrhpuazf0a7nvvytuqkyvpgmdpdplz9t9vdsnjua,2,0,0,0,2025-05-06 13:32:25+00
+sapphire,oasis1qrjjl6fmxf73gsv4upas8j470dle7gwe0uw4w39q,4,0,0,0,2025-05-06 13:58:12+00
+sapphire,oasis1qrk58a6j2qn065m6p06jgjyt032f7qucy5wqeqpt,0,0,0,0,
+sapphire,oasis1qrkf98prkpf05kd6he7wcvpzr9sd6gs2jvrn5keh,0,0,0,1298787061666666440,
+sapphire,oasis1qrkfqnmxxhaxy33ht4r6z20zsfrakfh2tuufjdev,2,0,0,300000000000000000000,2025-05-06 15:43:12+00
+sapphire,oasis1qrkhp2t475yw09qp87gyrkzcywwztwtx4qr9y8tp,0,0,0,0,
+sapphire,oasis1qrky6nkk7v7ptfe9udtvhhmmglwknfh90cmu69mf,0,0,0,0,
+sapphire,oasis1qrm690uye6stxjz9f4cg68x9qdu3xggvfvxw8cqe,441,21102778,0,0,2025-05-06 14:20:03+00
+sapphire,oasis1qrpgejhev60vhewcw2jjrshu444kdu4jygasgw84,1,0,9491607246500000000,0,2025-05-06 15:27:34+00
+sapphire,oasis1qrq6jqne99mpcanwq9x323f8h059nahz8yxnu5gy,1,0,0,0,2025-05-06 13:18:18+00
+sapphire,oasis1qrqwhg7makysqht76dm4vumn3qzhp4nmm57966mc,1,22141,0,10000000000000000000,2025-05-06 14:04:35+00
+sapphire,oasis1qrqykactk9s48xkcrjgx4llzrgjpn3p3gq3qe5m4,10,0,435894000000000000,0,2025-05-06 14:24:36+00
+sapphire,oasis1qrrmhljmk9dwslmmvv3hm5w9v5cyxclrzq3qddyd,85,4032412,0,0,2025-05-06 13:08:14+00
+sapphire,oasis1qrruwg0y4au55efu0pcgl0nanaq6p3sdwv0jhzv5,0,0,0,1507483233333333129,
+sapphire,oasis1qrrwfgshhk7etyut8mphstpj073flfv8dvj7nahv,4,0,0,0,2025-05-06 13:58:12+00
+sapphire,oasis1qrs2u96uf63m4g8gmd3edp7f06flnr9y7ustyswp,1,883417,0,0,2025-05-06 14:09:31+00
+sapphire,oasis1qrtesgqdl0pzrt3dcms8mk7mrdafrd8ljvwk044g,1,674503,0,0,2025-05-06 14:20:15+00
+sapphire,oasis1qrtrjz5et23zww5869cv5ware8nt6gaanclrrx8a,1,54121,0,2700000000000000,2025-05-06 16:07:16+00
+sapphire,oasis1qru6lqlq6pj3gee0p2zxzfss98sj2vet3s3h0vu5,0,0,0,0,
+sapphire,oasis1qrv3zwhkmcuexmc9ggs3vrn2y7rx2mrjx59j8nm5,1,533110,0,0,2025-05-06 14:11:22+00
+sapphire,oasis1qrvjtfdx52t8t7amm7w2ag093wlhykqgfy8lnywj,21,4737746,0,1300000000000005,2025-05-06 14:11:51+00
+sapphire,oasis1qrxfl2ty845sjm8u0gfm0hsmfm0fa7k3qq34eemn,1,764974,0,0,2025-05-06 14:20:27+00
+sapphire,oasis1qrxnx3x206lla6qdfuvqd8h8ptd82dtwrclmpkeh,1,1031322,0,0,2025-05-06 14:10:41+00
+sapphire,oasis1qry7ug8gr0q9hvtz0dy2fqdy42t6ekf54c0aqa27,95,0,1225770500000000000,0,2025-05-06 13:08:19+00
+sapphire,oasis1qryq3zag4v6cem8t3v8ahjd3wa3ugdtwcgrpp9nr,1,0,10662100000000000,0,2025-05-06 15:35:41+00
+sapphire,oasis1qrzndwe4pq6pf549ugy0gvfn8nmflzsqcskzt3je,4,88561,0,29089164499500000000,2025-05-06 13:14:10+00
+sapphire,oasis1qz0ve6250whrhf4vsvg6ugnjdsal6653lyftr7ax,1,22141,0,28343707130142967000,2025-05-06 13:54:31+00
+sapphire,oasis1qz2cfxsqjvm9catrjs50szg2svj7u2df4cua27sq,195,5853312,0,0,2025-05-06 13:08:19+00
+sapphire,oasis1qz2twlmswajmx8zvnxpefypf0qthuyc0qgffrus9,26,0,189015300000000000,150000000000000000000,2025-05-06 13:32:02+00
+sapphire,oasis1qz3hj33txrjr74p43rpmpxlynqu9q3rfdv73wwmr,1,605714,0,0,2025-05-06 14:09:08+00
+sapphire,oasis1qz4532s3lhkpju7fd3mxqfvaw98pjq5htss4g4w0,0,0,0,2545212948333333106,
+sapphire,oasis1qz4crd76uajrxaz3juuqm9rp6puyqy29ayt0nqwx,1,237805,0,0,2025-05-06 14:12:02+00
+sapphire,oasis1qz4r2a9pvz40e05zq978surw5jwd5jmr4s2jy7lx,4,0,0,0,2025-05-06 13:58:12+00
+sapphire,oasis1qz5fvuksf65k4r8akm8kmw9yuu5kwcse5s0k2p0j,19,919600,0,0,2025-05-06 13:10:26+00
+sapphire,oasis1qz5mdxjspvfnr6epe6ey602fxmjz4trkggxa2ayf,4,0,0,0,2025-05-06 13:58:12+00
+sapphire,oasis1qz5we9hzmgvdzagqdu7j2xwnh2n89w0jgy6lsmat,1,2639901,0,0,2025-05-06 14:18:43+00
+sapphire,oasis1qz78phkdan64g040cvqvqpwkplfqf6tj6uwcsh30,0,0,0,4618,
+sapphire,oasis1qz7ugnj7htylhtsf37r54eyhwq8kcxyydgy035v2,2,22139,9999982700000000000,10000000000000000000,2025-05-06 13:13:59+00
+sapphire,oasis1qz82skaxdny2km2hlk8mxp06tj50xnz5rs9dhnqc,1,2323127,0,0,2025-05-06 14:10:18+00
+sapphire,oasis1qz8w4erh0kkwpmdtwd3dt9ueaz9hmzfpecjhd7t4,0,0,0,3827384769999999546,
+sapphire,oasis1qz99l99vfa67qmkkwfwe2w5s2guyckm8dv2ug73t,12,3503308,0,100000000000005,2025-05-06 14:20:50+00
+sapphire,oasis1qz9x0zpja6n25hc5242k2e60l6a7ke2zsq9cqrqz,0,0,0,5957786586666665897,
+sapphire,oasis1qza6sddnalgzexk3ct30gqfvntgth5m4hsyywmff,2,0,0,200000000000000000000,2025-05-06 13:29:39+00
+sapphire,oasis1qzaxvc4sfdcw2mv27tsdmq7gqp6rrkjux55j09fh,10,319810,0,0,2025-05-06 16:07:50+00
+sapphire,oasis1qzcxhlz746khcwa9v5at653fez9ujc5ulgmzhdyr,1,237805,0,0,2025-05-06 13:38:44+00
+sapphire,oasis1qzcyqspd7cxxdhyrrrxl3lmn70susq944uqwxktm,18,886358,0,0,2025-05-06 13:18:07+00
+sapphire,oasis1qzd8lfm0fhyfngzx0u0c838cgy0wc3hlhgsnvxut,1,1444494,0,0,2025-05-06 14:20:27+00
+sapphire,oasis1qzdgpql2kmmqg9zr5purgrq7vgwmu3srdchlnu6w,1,0,27502435510000000000,0,2025-05-06 15:44:50+00
+sapphire,oasis1qzdl5cfmux9k6le7rc6r2sw5yrqgq4924gs40d7s,1,0,7135500000000000,0,2025-05-06 15:20:44+00
+sapphire,oasis1qzec76d6f62y3f9m7va7ffcw8x7vrfyhr5traxw4,4,3448100,0,0,2025-05-06 14:12:25+00
+sapphire,oasis1qzeg5jfa83u7f0ge6jetyfxf5vg899ek0c7prn9f,1,54121,0,2300000000000000,2025-05-06 16:06:24+00
+sapphire,oasis1qzeq4s8drfrnw7wak9e5su37cqgmshj48uwtjtg3,1,0,5002214000000000000,0,2025-05-06 14:15:43+00
+sapphire,oasis1qzf7w5f239n3n4qtx3hm4tqzdv39w8g34uy95uyr,156,0,8172171700000000000,7900000000000000000,2025-05-06 13:08:14+00
+sapphire,oasis1qzfhn0numuffujngaqke40zkalgfljkthy9neaqz,1,22140,0,5000000000000000000,2025-05-06 13:44:41+00
+sapphire,oasis1qzgc7dvlls36q47z5y6dvu6ylaa78rkrduqtxgdr,0,0,0,0,
+sapphire,oasis1qzgdygrjvxzgk0gngz9054teg0pmp5xmgyx27r3u,0,0,0,0,
+sapphire,oasis1qzgmneag22pck2x3rme072yuump05x3hlsjsvcau,27,0,11592535300000000010,0,2025-05-06 13:08:02+00
+sapphire,oasis1qzgtprp8mcy4dn0ep8xcwfq5xxdetzj28gj4g95r,1,0,0,0,2025-05-06 14:33:12+00
+sapphire,oasis1qzhg6r0cxtm0mv7w2udcyq8fcfcsz7vvrcktr98e,4,285420,0,0,2025-05-06 13:20:42+00
+sapphire,oasis1qzhhfyftwdyj6x2sgysjfz9y58cvz7shkql6x8rg,1,1246625,0,0,2025-05-06 14:19:40+00
+sapphire,oasis1qzhj7pqsgeytm8ts0ep339vg2ksmsmyuugezvq88,2,0,0,0,2025-05-06 16:06:30+00
+sapphire,oasis1qzm773ndavepgg69gwpqdxxljn7ms6z7avg6zvap,2,0,0,0,2025-05-06 16:09:34+00
+sapphire,oasis1qzmqhh4r8g2u49aja0qsvzu68jxxk8jrw5pfc9ul,0,0,0,0,
+sapphire,oasis1qzna6nq9kuktjmxx2s84z38eysqyts84jc9lgdg2,16,0,0,0,2025-05-06 13:28:24+00
+sapphire,oasis1qzpkktxe8vjmu6y5j225x6x4dm0aukgykgjftc5q,19,0,91960000000000000,0,2025-05-06 13:10:26+00
+sapphire,oasis1qzpnwts33w3cm0zfy96dg6gdzsm6t943vgam3lnj,17,0,746728700000000000,150057806400000000000,2025-05-06 13:32:42+00
+sapphire,oasis1qzq0ym4hvq9vpvxry995ry7pxfcly8xgtqyvs0z4,2,0,0,0,2025-05-06 16:09:34+00
+sapphire,oasis1qzq4q683dm4ec59apnr3ecgjnw5e34a2wqxxa6mq,1,2323127,0,0,2025-05-06 13:36:49+00
+sapphire,oasis1qzqazghme7dhfphq5nfvf3xctvkyt4a5qgvex06f,4,0,0,0,2025-05-06 13:58:12+00
+sapphire,oasis1qzqgx240uhyanu448aqgg7k4gkedy34zsgn75mef,1,22140,0,130584000000000000,2025-05-06 14:19:11+00
+sapphire,oasis1qzqts5r0j5fgg672r4ntchupwrchmld60cjkmxra,1,0,322214000000000000,0,2025-05-06 13:45:16+00
+sapphire,oasis1qzqvxjnnw5qlqsy72uraudua4grgqrcs9qd9qqs7,1,498854,0,0,2025-05-06 14:21:13+00
+sapphire,oasis1qzrqr69570z4ek2xeufz5cfgye7507mq7v222gd3,1,0,0,0,2025-05-06 14:38:44+00
+sapphire,oasis1qzs758mqmxtcf3r8fyet3kgj6u0hz3847v465z9g,0,0,0,0,
+sapphire,oasis1qzt9q2dns937tecrjc2xswzejrtn0jlfas40j7sz,129,0,401731800000000000,0,2025-05-06 13:09:28+00
+sapphire,oasis1qztgcwmzw3p5ltnq4ff32gg7mmv3v566quzkwzu4,1,685361,0,0,2025-05-06 14:09:20+00
+sapphire,oasis1qzuj9qtq30t63rfn0u8vude9w0la0r00lslqg9cl,1257,0,16157685700000000000,0,2025-05-06 13:08:14+00
+sapphire,oasis1qzupzfyfr3ynq65ygzkvfcdendzenljydshcw629,2,0,45256062638417060300,0,2025-05-06 13:27:03+00
+sapphire,oasis1qzuyktxqnakplhr6c8fkg6249wuztxkfwq7ex80y,5,0,166050000000000000,0,2025-05-06 13:14:22+00
+sapphire,oasis1qzuz564r4gxes8x8syhta97eudgrcpaacgtqduuc,1,1535976,0,0,2025-05-06 14:08:45+00
+sapphire,oasis1qzwcg06ntlep8hvdc8pu3lhewv8wg97xvsvxg7m6,4,0,0,0,2025-05-06 14:31:51+00
+sapphire,oasis1qzwe6xywazp29tp20974wgxhdcpdf6yxfcn2jxvv,0,0,0,3814282309999999546,
+sapphire,oasis1qzwrm39z3kn2a3ra3h26tq2rkzx8ruzzdy3khyds,1,0,10703250000000000,0,2025-05-06 14:20:44+00
+sapphire,oasis1qzxg9z7gufqg8f47salv3933xaq6rykusslsq4k7,669,7395757,34241790585091812521,33400000583345269800,2025-05-06 13:08:14+00
+sapphire,oasis1qzygsmcpccl9lpt6cw8m0kcyaf3pus7qvsseq8n3,12,6025754,86709600000000000,400000000000000000,2025-05-06 14:11:04+00
+sapphire,oasis1qzysdz3hyl4r66a6ae2ppt725em7x4p0ngs24yfs,18,0,88635800000000000,0,2025-05-06 13:18:07+00
+sapphire,oasis1qzzwgvmug0s2dc2jtyu7ptggermt65mcmu02u66k,1,480577,0,0,2025-05-06 13:36:38+00

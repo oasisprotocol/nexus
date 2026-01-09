@@ -262,6 +262,9 @@ func (m *processor) FinalizeFastSync(ctx context.Context, lastFastSyncHeight int
 	m.logger.Info("recomputing total_received for every account")
 	batch.Queue(queries.RuntimeAccountTotalReceivedRecompute, m.runtime, lastFastSyncHeight, nativeTokenSymbol(m.sdkPT))
 
+	m.logger.Info("recomputing first_activity for every account")
+	batch.Queue(queries.RuntimeAccountFirstActivityRecompute, m.runtime, lastFastSyncHeight)
+
 	m.logger.Info("recomputing gas_for_calling for every contract")
 	batch.Queue(queries.RuntimeAccountGasForCallingRecompute, m.runtime, lastFastSyncHeight)
 
@@ -505,6 +508,7 @@ func (m *processor) queueDbUpdates(batch *storage.QueryBatch, data *BlockData) {
 				// DB deadlocks with as few as 2 parallel analyzers.
 				// We recalculate the number of transactions for all accounts at the end of fast-sync, by aggregating the tx data.
 				batch.Queue(queries.RuntimeAccountNumTxsUpsert, m.runtime, addr, 1)
+				batch.Queue(queries.RuntimeAccountFirstActivityUpsert, m.runtime, addr, data.Header.Timestamp)
 			}
 		}
 		m.queueTransactionInsert(batch, data.Header.Round, data.Header.Timestamp, transactionData)

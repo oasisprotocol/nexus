@@ -2045,6 +2045,7 @@ func (c *StorageClient) RuntimeAccount(ctx context.Context, runtime common.Runti
 		&a.Stats.TotalSent,
 		&a.Stats.TotalReceived,
 		&a.Stats.NumTxns,
+		&a.FirstActivity,
 	)
 
 	switch err {

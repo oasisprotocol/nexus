@@ -175,6 +175,8 @@ type AnalyzersList struct {
 	PontusxDevAbi                    *EvmAbiAnalyzerConfig          `koanf:"evm_abi_pontusx_dev"`
 	SapphireNebyPrices               *NebyPricesConfig              `koanf:"neby_prices_sapphire"`
 
+	FirstActivityBackfill *ItemBasedAnalyzerConfig `koanf:"first_activity_backfill"`
+
 	MetadataRegistry        *MetadataRegistryConfig        `koanf:"metadata_registry"`
 	ValidatorStakingHistory *ValidatorStakingHistoryConfig `koanf:"validator_staking_history"`
 	NodeStats               *NodeStatsConfig               `koanf:"node_stats"`
