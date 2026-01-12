@@ -211,6 +211,7 @@ const (
 			LEFT JOIN chain.blocks b ON tx_block = b.height
 			LEFT JOIN chain.events_related_accounts rel ON
 				chain.events.tx_block = rel.tx_block AND
+				chain.events.type = rel.type AND
 				chain.events.event_index = rel.event_index AND
 				-- When related_address ($5) is NULL and hence we do no filtering on it, avoid the join altogether.
 				($5::text IS NOT NULL)
@@ -601,8 +602,9 @@ const (
 			txs.gas_limit,
 			txs.gas_used,
 			CASE
-				WHEN txs.tx_eth_hash IS NULL THEN txs.fee
-				ELSE COALESCE(FLOOR(txs.fee / NULLIF(txs.gas_limit, 0)) * txs.gas_used, 0)
+				WHEN txs.method IN ('evm.Call', 'evm.Create') OR txs.tx_eth_hash IS NOT NULL
+					THEN COALESCE(FLOOR(txs.fee / NULLIF(txs.gas_limit, 0)) * txs.gas_used, 0)
+				ELSE txs.fee
 			END AS charged_fee,
 			txs.size,
 			txs.raw_result,
