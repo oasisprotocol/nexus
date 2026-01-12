@@ -38,7 +38,7 @@ ECHO := $(ECHO_CMD) 1>&2
 ASSUME_YES ?= 0
 
 # Helper that asks the user to confirm the action.
-define CONFIRM_ACTION =
+define CONFIRM_ACTION
 	if [[ $(ASSUME_YES) != 1 ]]; then \
 		$(ECHO) -n "Are you sure? [y/N] " && read ans && [ $${ans:-N} = y ]; \
 	fi
@@ -99,7 +99,7 @@ VERSION := $(or \
 )
 
 # Helper that bumps project's version with the Punch tool.
-define PUNCH_BUMP_VERSION =
+define PUNCH_BUMP_VERSION
 	PART=patch; \
 	if [[ "$(RELEASE_BRANCH)" == main ]]; then \
 		if [[ -n "$(CHANGELOG_FRAGMENTS_BREAKING)" ]]; then \
@@ -127,7 +127,7 @@ endef
 
 # Helper that ensures project's version determined from git equals project's
 # version as tracked by the Punch tool.
-define ENSURE_GIT_VERSION_EQUALS_PUNCH_VERSION =
+define ENSURE_GIT_VERSION_EQUALS_PUNCH_VERSION
 	if [[ "$(GIT_VERSION)" != "$(PUNCH_VERSION)" ]]; then \
 		$(ECHO) "$(RED)Error: Project's version for $(GIT_ORIGIN_REMOTE)/$(RELEASE_BRANCH) \
 			determined from git ($(GIT_VERSION)) doesn't equal project's version in \
@@ -143,7 +143,7 @@ export GOLDFLAGS_VERSION := -X github.com/oasisprotocol/nexus/version.Software=$
 export GOLDFLAGS ?= "$(GOLDFLAGS_VERSION)"
 
 # Helper that ensures the git workspace is clean.
-define ENSURE_GIT_CLEAN =
+define ENSURE_GIT_CLEAN
 	if [[ ! -z `git status --porcelain` ]]; then \
 		$(ECHO) "$(RED)Error: Git workspace is dirty.$(OFF)"; \
 		exit 1; \
@@ -153,7 +153,7 @@ endef
 # Helper that checks if the go mod tidy command was run.
 # NOTE: go mod tidy doesn't implement a check mode yet.
 # For more details, see: https://github.com/golang/go/issues/27005.
-define CHECK_GO_MOD_TIDY =
+define CHECK_GO_MOD_TIDY
     $(GO) mod tidy; \
     if [[ ! -z `git status --porcelain go.mod go.sum` ]]; then \
         $(ECHO) "$(RED)Error: The following changes detected after running 'go mod tidy':$(OFF)"; \
@@ -166,7 +166,7 @@ endef
 # NOTE: gitlint internally uses git rev-list, where A..B is asymmetric
 # difference, which is kind of the opposite of how git diff interprets
 # A..B vs A...B.
-define CHECK_GITLINT =
+define CHECK_GITLINT
 	BRANCH=$(GIT_ORIGIN_REMOTE)/$(RELEASE_BRANCH); \
 	COMMIT_SHA=`git rev-parse $$BRANCH` && \
 	$(ECHO) "$(CYAN)*** Running gitlint for commits from $$BRANCH ($${COMMIT_SHA:0:7})... $(OFF)"; \
@@ -185,7 +185,7 @@ CHANGELOG_FRAGMENTS_BREAKING := $(wildcard .changelog/*breaking*.md)
 # Helper that checks Change Log fragments with markdownlint-cli.
 # NOTE: Non-zero exit status is recorded but only set at the end so that all
 # markdownlint errors can be seen at once.
-define CHECK_CHANGELOG_FRAGMENTS =
+define CHECK_CHANGELOG_FRAGMENTS
 	exit_status=0; \
 	$(ECHO) "$(CYAN)*** Running markdownlint-cli for Change Log fragments... $(OFF)"; \
 	[[ "$$(markdownlint --version || true)" == $(MARKDOWNLINT_CLI_VERSION) ]] && \
@@ -201,7 +201,7 @@ define CHECK_CHANGELOG_FRAGMENTS =
 endef
 
 # Helper that builds the Change Log.
-define BUILD_CHANGELOG =
+define BUILD_CHANGELOG
 	if [[ $(ASSUME_YES) != 1 ]]; then \
 		towncrier build --version $(PUNCH_VERSION); \
 	else \
@@ -211,7 +211,7 @@ endef
 
 # Helper that prints a warning when breaking changes are indicated by Change Log
 # fragments.
-define WARN_BREAKING_CHANGES =
+define WARN_BREAKING_CHANGES
 	if [[ -n "$(CHANGELOG_FRAGMENTS_BREAKING)" ]]; then \
 		$(ECHO) "$(RED)Warning: This release contains breaking changes.$(OFF)"; \
 		$(ECHO) "$(RED)         Make sure the version is bumped appropriately.$(OFF)"; \
@@ -220,7 +220,7 @@ endef
 
 # Helper that ensures the origin's release branch's HEAD doesn't contain any
 # Change Log fragments.
-define ENSURE_NO_CHANGELOG_FRAGMENTS =
+define ENSURE_NO_CHANGELOG_FRAGMENTS
 	if ! CHANGELOG_FILES=`git ls-tree -r --name-only $(GIT_ORIGIN_REMOTE)/$(RELEASE_BRANCH) .changelog`; then \
 		$(ECHO) "$(RED)Error: Could not obtain Change Log fragments for $(GIT_ORIGIN_REMOTE)/$(RELEASE_BRANCH) branch.$(OFF)"; \
 		exit 1; \
@@ -234,7 +234,7 @@ endef
 
 # Helper that ensures the origin's release branch's HEAD contains a Change Log
 # section for the next release.
-define ENSURE_NEXT_RELEASE_IN_CHANGELOG =
+define ENSURE_NEXT_RELEASE_IN_CHANGELOG
 	if ! ( git show $(GIT_ORIGIN_REMOTE)/$(RELEASE_BRANCH):CHANGELOG.md | \
 			grep --quiet '^## $(PUNCH_VERSION) (.*)' ); then \
 		$(ECHO) "$(RED)Error: Could not locate Change Log section for release $(PUNCH_VERSION) on $(GIT_ORIGIN_REMOTE)/$(RELEASE_BRANCH) branch.$(OFF)"; \
@@ -247,7 +247,7 @@ RELEASE_TAG := v$(PUNCH_VERSION)
 
 # Helper that ensures the new release's tag doesn't already exist on the origin
 # remote.
-define ENSURE_RELEASE_TAG_EXISTS =
+define ENSURE_RELEASE_TAG_EXISTS
 	if ! git ls-remote --exit-code --tags $(GIT_ORIGIN_REMOTE) $(RELEASE_TAG) 1>/dev/null; then \
 		$(ECHO) "$(RED)Error: Tag '$(RELEASE_TAG)' doesn't exist on $(GIT_ORIGIN_REMOTE) remote.$(OFF)"; \
 		exit 1; \
@@ -256,7 +256,7 @@ endef
 
 # Helper that ensures the new release's tag doesn't already exist on the origin
 # remote.
-define ENSURE_RELEASE_TAG_DOES_NOT_EXIST =
+define ENSURE_RELEASE_TAG_DOES_NOT_EXIST
 	if git ls-remote --exit-code --tags $(GIT_ORIGIN_REMOTE) $(RELEASE_TAG) 1>/dev/null; then \
 		$(ECHO) "$(RED)Error: Tag '$(RELEASE_TAG)' already exists on $(GIT_ORIGIN_REMOTE) remote.$(OFF)"; \
 		exit 1; \
@@ -269,7 +269,7 @@ endef
 
 # Helper that ensures $(RELEASE_BRANCH) variable contains a valid release branch
 # name.
-define ENSURE_VALID_RELEASE_BRANCH_NAME =
+define ENSURE_VALID_RELEASE_BRANCH_NAME
 	if [[ ! $(RELEASE_BRANCH) =~ ^(main|(stable/[0-9]+\.[0-9]+\.x$$)) ]]; then \
 		$(ECHO) "$(RED)Error: Invalid release branch name: '$(RELEASE_BRANCH)'."; \
 		exit 1; \
@@ -282,7 +282,7 @@ define newline
 endef
 
 # GitHub release text in Markdown format.
-define RELEASE_TEXT =
+define RELEASE_TEXT
 For a list of changes in this release, see the [Change Log].
 
 *NOTE: If you are upgrading from an earlier release, please **carefully review**

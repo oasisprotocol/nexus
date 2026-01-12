@@ -12,6 +12,65 @@ The format is inspired by [Keep a Changelog].
 
 <!-- TOWNCRIER -->
 
+## 0.7.22 (2026-01-12)
+
+### Features
+
+- Support searching validators by node-id/entity-id
+  ([#1222](https://github.com/oasisprotocol/nexus/issues/1222))
+
+- runtime/accounts: Include nonce in API response
+  ([#1225](https://github.com/oasisprotocol/nexus/issues/1225))
+
+- runtime/accounts: Include first-activity in API response
+  ([#1229](https://github.com/oasisprotocol/nexus/issues/1229))
+
+  Adds a `first_activity` field to runtime accounts showing when the account
+  was first seen in a transaction. To backfill historical data, enable the
+  `first_activity_backfill` analyzer:
+
+  ```yaml
+  analyzers:
+    first_activity_backfill: {}
+  ```
+
+### Bug Fixes and Improvements
+
+- analyzer/evmverifier: Fix missing bytecode for verified contracts
+  ([#1228](https://github.com/oasisprotocol/nexus/issues/1228))
+
+  Insert address preimages and queue verified contracts for bytecode analysis.
+  Reprocess contracts missing preimages to backfill historical data from
+  Sourcify.
+
+- analyzer/runtime: Fix pointer comparison in balance update check
+  ([#1230](https://github.com/oasisprotocol/nexus/issues/1230))
+
+  The condition `change != big.NewInt(0)` was comparing pointers instead
+  of values, causing it to always be true. Changed to `change.Sign() != 0`
+  for proper value comparison.
+
+- common: Fix NumericToBigInt returning zero for negative exponents
+  ([#1230](https://github.com/oasisprotocol/nexus/issues/1230))
+
+  The function was returning `*big0` instead of `*bi` for negative
+  exponents, causing it to always return zero. Added tests for the
+  function.
+
+- Fix consensus related events edgecase
+  ([#1234](https://github.com/oasisprotocol/nexus/issues/1234))
+
+  The query did not include the event type in the join, which could result
+  in wrong events showing up as related events.
+
+- api: Fix charged fee for oasis encoded eth txs
+  ([#1234](https://github.com/oasisprotocol/nexus/issues/1234))
+
+### Documentation Improvements
+
+- Generate docs using @scalar/api-reference instead of redoc-cli
+  ([#1217](https://github.com/oasisprotocol/nexus/issues/1217))
+
 ## 0.7.21 (2025-11-26)
 
 ### Bug Fixes and Improvements
