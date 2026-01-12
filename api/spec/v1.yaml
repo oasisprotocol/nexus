@@ -1736,6 +1736,31 @@ paths:
                 $ref: '#/components/schemas/ActiveAccountsList'
         <<: *common_error_responses
 
+  /{layer}/stats/total_accounts:
+    get:
+      summary: |
+        Returns the total number of accounts for either consensus or one of the paratimes.
+        This is a daily snapshot of the total account count, updated once per day.
+      parameters:
+        - *limit
+        - *offset
+        - in: path
+          name: layer
+          required: true
+          schema:
+            allOf: [$ref: '#/components/schemas/Layer']
+          description: |
+            The layer for which to return the total accounts.
+      responses:
+        '200':
+          description: |
+            A JSON object containing a list of total account snapshots.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TotalAccountsList'
+        <<: *common_error_responses
+
 components:
   schemas:
     Layer:
@@ -4140,6 +4165,33 @@ components:
           format: uint64
           description: The number of active accounts for the 24hour window ending at window_end.
           example: 420
+
+    TotalAccountsList:
+      type: object
+      required: [snapshots]
+      properties:
+        snapshots:
+          type: array
+          items:
+            allOf: [$ref: '#/components/schemas/TotalAccountsSnapshot']
+          description: The list of total account snapshots, ordered by date descending.
+      description: |
+        A list of daily total account snapshots showing account growth over time.
+
+    TotalAccountsSnapshot:
+      type: object
+      required: [date, total_accounts]
+      properties:
+        date:
+          type: string
+          format: date-time
+          description: The date of the snapshot.
+          example: *iso_timestamp_1
+        total_accounts:
+          type: integer
+          format: uint64
+          description: The total number of accounts as of this date.
+          example: 42000
 
     RoflAppList:
       allOf:

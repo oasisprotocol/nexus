@@ -3019,3 +3019,35 @@ func (c *StorageClient) DailyActiveAccounts(ctx context.Context, layer apiTypes.
 
 	return &ts, nil
 }
+
+// TotalAccounts returns a list of total account snapshots.
+func (c *StorageClient) TotalAccounts(ctx context.Context, layer apiTypes.Layer, p apiTypes.GetLayerStatsTotalAccountsParams) (*TotalAccountsList, error) {
+	rows, err := c.db.Query(
+		ctx,
+		queries.TotalAccounts,
+		translateLayer(layer),
+		p.Limit,
+		p.Offset,
+	)
+	if err != nil {
+		return nil, wrapError(err)
+	}
+	defer rows.Close()
+
+	ts := TotalAccountsList{
+		Snapshots: []apiTypes.TotalAccountsSnapshot{},
+	}
+	for rows.Next() {
+		var t apiTypes.TotalAccountsSnapshot
+		if err := rows.Scan(
+			&t.Date,
+			&t.TotalAccounts,
+		); err != nil {
+			return nil, wrapError(err)
+		}
+		t.Date = t.Date.UTC() // Ensure UTC timestamp in response.
+		ts.Snapshots = append(ts.Snapshots, t)
+	}
+
+	return &ts, nil
+}
