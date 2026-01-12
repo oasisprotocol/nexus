@@ -117,4 +117,23 @@ const (
 		ORDER BY window_end DESC
 		LIMIT 1
 	`
+
+	// QueryConsensusTotalAccounts is the query to get the total number of accounts
+	// in the consensus layer.
+	// Note: The query uses standard parameters for consistency with other stats queries,
+	// but only counts total accounts regardless of time window.
+	QueryConsensusTotalAccounts = `
+		WITH dummy AS (SELECT $1::text, $2::timestamptz, $3::timestamptz) -- Dummy select for parameter compatibility.
+		SELECT COUNT(*)
+		FROM chain.accounts
+	`
+
+	// QueryRuntimeTotalAccounts is the query to get the total number of accounts
+	// in a runtime layer.
+	QueryRuntimeTotalAccounts = `
+		WITH dummy AS (SELECT $2::timestamptz, $3::timestamptz) -- Dummy select for parameter compatibility.
+		SELECT COUNT(*)
+		FROM chain.runtime_accounts
+		WHERE runtime = $1
+	`
 )
