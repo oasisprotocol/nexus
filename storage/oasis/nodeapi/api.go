@@ -194,15 +194,24 @@ type RuntimeStartedEvent struct {
 type RuntimeSuspendedEvent struct {
 	RuntimeID coreCommon.Namespace
 }
+
+type NodeRuntime struct {
+	ID              coreCommon.Namespace
+	Version         string
+	RawCapabilities []byte // CBOR-encoded capabilities struct.
+	ExtraInfo       []byte
+}
+
 type (
-	Node              node.Node
+	Node node.Node
+
 	NodeUnfrozenEvent registry.NodeUnfrozenEvent
 	EntityEvent       registry.EntityEvent
 	NodeEvent         struct {
 		NodeID             signature.PublicKey
 		EntityID           signature.PublicKey
 		Expiration         uint64 // Epoch in which the node expires.
-		RuntimeIDs         []coreCommon.Namespace
+		Runtimes           []*NodeRuntime
 		VRFPubKey          *signature.PublicKey
 		TLSAddresses       []string // TCP addresses of the node's TLS-enabled gRPC endpoint.
 		TLSPubKey          signature.PublicKey

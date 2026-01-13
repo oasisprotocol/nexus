@@ -5,6 +5,7 @@ package consensus
 import (
 	"encoding/json"
 	"sort"
+	"strings"
 
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 	"github.com/oasisprotocol/oasis-core/go/common/entity"
@@ -122,7 +123,7 @@ func (mg *GenesisProcessor) addRegistryBackendMigrations(batch *storage.QueryBat
 			node.Consensus.ID.String(),
 			nil,
 			nil,
-			node.Roles.String(),
+			strings.Split(node.Roles.String(), ","),
 			nil,
 			nil,
 		)
@@ -132,6 +133,9 @@ func (mg *GenesisProcessor) addRegistryBackendMigrations(batch *storage.QueryBat
 			batch.Queue(queries.ConsensusRuntimeNodesUpsert,
 				runtime.ID.String(),
 				node.ID.String(),
+				runtime.Version.String(),
+				cbor.Marshal(runtime.Capabilities),
+				runtime.ExtraInfo,
 			)
 		}
 	}
