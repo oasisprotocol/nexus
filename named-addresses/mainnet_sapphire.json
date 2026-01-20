@@ -203,4 +203,150 @@
         "Icon": "https://assets.oasis.io/explorer-tokens/mtBILL.svg"
     },
 
+
+    {
+        "Name": "ILP pbscBNB/pwROSE",
+        "Address": "0x0053BB00B2359069661E0A2536448D39F5215739",
+        "Origin": "illumineX",
+        "Icon": "https://assets.oasis.io/explorer-tokens/illuminex.svg",
+        "// comment": "From https://legacy.illuminex.xyz/api/pairs?limit=100&offset=0&onlyFarms=true"
+    },
+    {
+        "Name": "ILP pethETH/pethUSDT",
+        "Address": "0x293f4a5d2e0Cd6dD4247cC0cC1F8257436c7364a",
+        "Origin": "illumineX",
+        "Icon": "https://assets.oasis.io/explorer-tokens/illuminex.svg"
+    },
+    {
+        "Name": "ILP pethETH/pwROSE",
+        "Address": "0x2C425f38464C42Ce2AB7105129e548222f2c7586",
+        "Origin": "illumineX",
+        "Icon": "https://assets.oasis.io/explorer-tokens/illuminex.svg"
+    },
+    {
+        "Name": "ILP pbscBNB/pethUSDT",
+        "Address": "0x5C48b49435F19562cB1472e93EF67bC5838bA7b8",
+        "Origin": "illumineX",
+        "Icon": "https://assets.oasis.io/explorer-tokens/illuminex.svg"
+    },
+    {
+        "Name": "ILP pbscUSDT/pethUSDT",
+        "Address": "0x95833c537e85B810A9ff7ac71bdC60887742e594",
+        "Origin": "illumineX",
+        "Icon": "https://assets.oasis.io/explorer-tokens/illuminex.svg"
+    },
+    {
+        "Name": "ILP pwROSE/pethUSDT",
+        "Address": "0xbf57d3eFB74262eb8e7e44c375d7f9042836aDB0",
+        "Origin": "illumineX",
+        "Icon": "https://assets.oasis.io/explorer-tokens/illuminex.svg"
+    },
+    {
+        "Name": "ILP pethUSDC/pwROSE",
+        "Address": "0xcb5A6eCF662f532dc17A00F8f022358B58A57D24",
+        "Origin": "illumineX",
+        "Icon": "https://assets.oasis.io/explorer-tokens/illuminex.svg"
+    },
+    {
+        "Name": "ILP parbETH/pethUSDT",
+        "Address": "0xD6B9F83d55c889eEBfD6c2DCf630DA092293a17e",
+        "Origin": "illumineX",
+        "Icon": "https://assets.oasis.io/explorer-tokens/illuminex.svg"
+    },
+    {
+        "Name": "ILP ppolygonMATIC/pethUSDT",
+        "Address": "0xE32e1f619097152B42DA753e106A24dd81BFa35a",
+        "Origin": "illumineX",
+        "Icon": "https://assets.oasis.io/explorer-tokens/illuminex.svg"
+    },
+    {
+        "Name": "ILP pethUSDC/pethUSDT",
+        "Address": "0xf179D77C2B57D031409083A6b7E98f5bD460A485",
+        "Origin": "illumineX",
+        "Icon": "https://assets.oasis.io/explorer-tokens/illuminex.svg"
+    },
+    {
+        "Name": "pethUSDC",
+        "Address": "0x013E54bee29813bd786b24F9CB08f47c4b75955C",
+        "Origin": "illumineX",
+        "Icon": "https://assets.oasis.io/explorer-tokens/illuminex.svg"
+    },
+    {
+        "Name": "bscUSDT",
+        "Address": "0x089e409616246f9f731579A684502cc8784c173b",
+        "Origin": "illumineX",
+        "Icon": "https://assets.oasis.io/explorer-tokens/illuminex.svg"
+    },
+    {
+        "Name": "ppolygonMATIC",
+        "Address": "0x1c4d39340e4c16f1F6E18891B927332604894231",
+        "Origin": "illumineX",
+        "Icon": "https://assets.oasis.io/explorer-tokens/illuminex.svg"
+    },
+    {
+        "Name": "arbETH",
+        "Address": "0x391a18914313D4aD51e50dd994CF82c79ec4904f",
+        "Origin": "illumineX",
+        "Icon": "https://assets.oasis.io/explorer-tokens/illuminex.svg"
+    },
+    {
+        "Name": "pbscUSDT",
+        "Address": "0x3e4079aD76c83760e22B5c0105670eBAB88B8d0e",
+        "Origin": "illumineX",
+        "Icon": "https://assets.oasis.io/explorer-tokens/illuminex.svg"
+    },
+    {
+        "Name": "pethETH",
+        "Address": "0x4C788dbcDf233744fDFcD1Fbf1e8B37E2FE8B102",
+        "Origin": "illumineX",
+        "Icon": "https://assets.oasis.io/explorer-tokens/illuminex.svg"
+    },
+    {
+        "Name": "bscBNB",
+        "Address": "0x4CCc8Da0AFbD7195287bc7c553f299c5aB74a013",
+        "Origin": "illumineX",
+        "Icon": "https://assets.oasis.io/explorer-tokens/illuminex.svg"
+    },
+    {
+        "Name": "ethETH",
+        "Address": "0x865483BAFEd87b23cBF0fE721d4533B4Cda927B6",
+        "Origin": "illumineX",
+        "Icon": "https://assets.oasis.io/explorer-tokens/illuminex.svg"
+    },
+    {
+        "Name": "pethUSDT",
+        "Address": "0x9Ca066f00e55b90623eFe323feB2A649686538b6",
+        "Origin": "illumineX",
+        "Icon": "https://assets.oasis.io/explorer-tokens/illuminex.svg"
+    },
+    {
+        "Name": "parbETH",
+        "Address": "0xab212f17594014E5adE87efF0f977cC6d478FB18",
+        "Origin": "illumineX",
+        "Icon": "https://assets.oasis.io/explorer-tokens/illuminex.svg"
+    },
+    {
+        "Name": "pbscBNB",
+        "Address": "0xbf95fc128023b4Db26bbE314A159c14467513f64",
+        "Origin": "illumineX",
+        "Icon": "https://assets.oasis.io/explorer-tokens/illuminex.svg"
+    },
+    {
+        "Name": "polygonMATIC",
+        "Address": "0xE9E3a177b1439A3a350463f6CE6Cb3c2435AF3ee",
+        "Origin": "illumineX",
+        "Icon": "https://assets.oasis.io/explorer-tokens/illuminex.svg"
+    },
+    {
+        "Name": "ethUSDT",
+        "Address": "0xeC240a739D04188D83E9125CECC2ea88fABd9B08",
+        "Origin": "illumineX",
+        "Icon": "https://assets.oasis.io/explorer-tokens/illuminex.svg"
+    },
+    {
+        "Name": "ethUSDC",
+        "Address": "0xf170d8b2e7280A495aF181aDE4c18f67bEfD9941",
+        "Origin": "illumineX",
+        "Icon": "https://assets.oasis.io/explorer-tokens/illuminex.svg"
+    }
 ]
