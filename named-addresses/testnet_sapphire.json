@@ -36,15 +36,13 @@
     },
     {
         "Name": "Zero Address",
-        "Address": "oasis1qq2v39p9fqk997vk6742axrzqyu9v2ncyuqt8uek",
-        "Description": "This address is the oasis-standard derivation/counterpart of the Ethereum address 0x0. Sometimes used in internal data representations to indicate the absence of an account. For example, token mints are encoded as transfers from this address, and token burns as transfers to this address.",
-        "// comment": "0x0000000000000000000000000000000000000000"
+        "Address": "0x0000000000000000000000000000000000000000",
+        "Description": "This address is the oasis-standard derivation/counterpart of the Ethereum address 0x0. Sometimes used in internal data representations to indicate the absence of an account. For example, token mints are encoded as transfers from this address, and token burns as transfers to this address."
     },
     {
         "Name": "Subcall Precompile",
-        "Address": "oasis1qzr543mmela3xwflqtz3e0l8jzp8tupf3v59r6qn",
-        "Description": "Interacts with Oasis Runtime SDK modules. Some transactions are performed in two steps and emit event in the next block.",
-        "// comment": "0x0100000000000000000000000000000000000103"
+        "Address": "0x0100000000000000000000000000000000000103",
+        "Description": "Interacts with Oasis Runtime SDK modules. Some transactions are performed in two steps and emit event in the next block."
     },
     {
         "Name": "Faucet",
@@ -53,14 +51,13 @@
     },
     {
         "Name": "Wrapped ROSE",
-        "Address": "oasis1qpwrg6784q4y8awyzlhgexm9fsmk72l9xv4z4gxj",
+        "Address": "0xB759a0fbc1dA517aF257D5Cf039aB4D86dFB3b94",
         "Description": "ERC20",
         "Icon": "https://assets.oasis.io/explorer-tokens/rose.svg",
         "Dapp": {
             "Button": "Use our ROSE (un)wrapper",
             "Description": "Looking to wrap or unwrap your wROSE?",
             "Url": "https://rose.oasis.io/wrap"
-        },
-        "// comment": "0xB759a0fbc1dA517aF257D5Cf039aB4D86dFB3b94"
+        }
     }
 ]

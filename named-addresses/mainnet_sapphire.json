@@ -36,143 +36,125 @@
     },
     {
         "Name": "Zero Address",
-        "Address": "oasis1qq2v39p9fqk997vk6742axrzqyu9v2ncyuqt8uek",
-        "Description": "This address is the oasis-standard derivation/counterpart of the Ethereum address 0x0. Sometimes used in internal data representations to indicate the absence of an account. For example, token mints are encoded as transfers from this address, and token burns as transfers to this address.",
-        "// comment": "0x0000000000000000000000000000000000000000"
+        "Address": "0x0000000000000000000000000000000000000000",
+        "Description": "This address is the oasis-standard derivation/counterpart of the Ethereum address 0x0. Sometimes used in internal data representations to indicate the absence of an account. For example, token mints are encoded as transfers from this address, and token burns as transfers to this address."
     },
     {
         "Name": "Subcall Precompile",
-        "Address": "oasis1qzr543mmela3xwflqtz3e0l8jzp8tupf3v59r6qn",
-        "Description": "Interacts with Oasis Runtime SDK modules. Some transactions are performed in two steps and emit event in the next block.",
-        "// comment": "0x0100000000000000000000000000000000000103"
+        "Address": "0x0100000000000000000000000000000000000103",
+        "Description": "Interacts with Oasis Runtime SDK modules. Some transactions are performed in two steps and emit event in the next block."
     },
     {
         "Name": "Rosy",
-        "Address": "oasis1qrysq46guu3lug3mge6vgg7mrtthfuqnucq7rnp0",
+        "Address": "0x6665a6Cae3F52959f0f653E3D04270D54e6f13d8",
         "Description": "ERC20",
-        "Icon": "https://assets.oasis.io/explorer-tokens/rosy.svg",
-        "// comment": "0x6665a6Cae3F52959f0f653E3D04270D54e6f13d8"
+        "Icon": "https://assets.oasis.io/explorer-tokens/rosy.svg"
     },
     {
         "Name": "illumineX Token",
-        "Address": "oasis1qzhxwvks20f6fng566rzcs98t65qjnp4pgd5mnvl",
+        "Address": "0x08Fe02Da45720f754e6FCA338eC1286e860d2d2f",
         "Description": "ERC20",
-        "Icon": "https://assets.oasis.io/explorer-tokens/illuminex.svg",
-        "// comment": "0x08Fe02Da45720f754e6FCA338eC1286e860d2d2f"
+        "Icon": "https://assets.oasis.io/explorer-tokens/illuminex.svg"
     },
     {
         "Name": "RA1L",
-        "Address": "oasis1qzvys6j3vpe8sq7az60z3p24xtcxdxyaccjndpdt",
-        "Description": "ERC721",
-        "// comment": "0xc90a97BbeE6ea51CBddfb0AFC86486b1940BBF6b"
+        "Address": "0xc90a97BbeE6ea51CBddfb0AFC86486b1940BBF6b",
+        "Description": "ERC721"
     },
     {
         "Name": "NFTrout",
-        "Address": "oasis1qpwe6h0hw6s0x4skujhznld065300p83wgxnvu0n",
+        "Address": "0x998633BDF6eE32A9CcA6c9A247F428596e8e65d8",
         "Description": "ERC721",
-        "Icon": "https://assets.oasis.io/explorer-tokens/NFTrout.svg",
-        "// comment": "0x998633BDF6eE32A9CcA6c9A247F428596e8e65d8"
+        "Icon": "https://assets.oasis.io/explorer-tokens/NFTrout.svg"
     },
     {
         "Name": "Ocean Token",
-        "Address": "oasis1qr43dvghx4a75vndjcsg2r9ct2xqftwrgcnt5tge",
+        "Address": "0x39d22B78A7651A76Ffbde2aaAB5FD92666Aca520",
         "Description": "ERC20",
         "Origin": "cBridge",
-        "Icon": "https://assets.oasis.io/explorer-tokens/ocean-cbridge.svg",
-        "// comment": "0x39d22B78A7651A76Ffbde2aaAB5FD92666Aca520"
+        "Icon": "https://assets.oasis.io/explorer-tokens/ocean-cbridge.svg"
     },
     {
         "Name": "Ocean Token",
-        "Address": "oasis1qph82mycj6glhwynqn73kkhtg54ykm3spgpz3gr0",
+        "Address": "0x2F301d3b045544A9D7Ec3FA090CD78986F11f2E7",
         "Description": "ERC20",
         "Origin": "Router",
-        "Icon": "https://assets.oasis.io/explorer-tokens/ocean-router.svg",
-        "// comment": "0x2F301d3b045544A9D7Ec3FA090CD78986F11f2E7"
+        "Icon": "https://assets.oasis.io/explorer-tokens/ocean-router.svg"
     },
     {
         "Name": "Wrapped Ether",
-        "Address": "oasis1qre2cpkl604jkz6c69x6wcu77n2rgwfpmgjkz7hr",
+        "Address": "0xfc6b18d694F2D137dB762B152736Ba098F9808d9",
         "Description": "ERC20",
         "Origin": "cBridge",
-        "Icon": "https://assets.oasis.io/explorer-tokens/eth-cbridge.svg",
-        "// comment": "0xfc6b18d694F2D137dB762B152736Ba098F9808d9"
+        "Icon": "https://assets.oasis.io/explorer-tokens/eth-cbridge.svg"
     },
     {
         "Name": "USD Coin",
-        "Address": "oasis1qpac5ezy9999w566vcr9evvsuaaup7lweq90jm32",
+        "Address": "0x2c2E3812742Ab2DA53a728A09F5DE670Aba584b6",
         "Description": "ERC20",
         "Origin": "cBridge",
-        "Icon": "https://assets.oasis.io/explorer-tokens/usdc-cbridge.svg",
-        "// comment": "0x2c2E3812742Ab2DA53a728A09F5DE670Aba584b6"
+        "Icon": "https://assets.oasis.io/explorer-tokens/usdc-cbridge.svg"
     },
     {
         "Name": "Tether USD",
-        "Address": "oasis1qqtkwl9zp5c9wsyskd7txu8dn4n03enjgympam29",
+        "Address": "0xE48151964556381B33f93E05E36381Fd53Ec053E",
         "Description": "ERC20",
         "Origin": "cBridge",
-        "Icon": "https://assets.oasis.io/explorer-tokens/usdt-cbridge.svg",
-        "// comment": "0xE48151964556381B33f93E05E36381Fd53Ec053E"
+        "Icon": "https://assets.oasis.io/explorer-tokens/usdt-cbridge.svg"
     },
     {
         "Name": "Wrapped ROSE",
-        "Address": "oasis1qpdgv5nv2dhxp4q897cgag6kgnm9qs0dccwnckuu",
+        "Address": "0x8Bc2B030b299964eEfb5e1e0b36991352E56D2D3",
         "Description": "ERC20",
         "Icon": "https://assets.oasis.io/explorer-tokens/rose.svg",
         "Dapp": {
             "Button": "Use our ROSE (un)wrapper",
             "Description": "Looking to wrap or unwrap your wROSE?",
             "Url": "https://rose.oasis.io/wrap"
-        },
-        "// comment": "0x8Bc2B030b299964eEfb5e1e0b36991352E56D2D3"
+        }
     },
     {
         "Name": "wstROSE",
-        "Address": "oasis1qr2ta7ussnps40fnmp58p04cwn7yvr56eqepa7xh",
+        "Address": "0x3cAbbe76Ea8B4e7a2c0a69812CBe671800379eC8",
         "Description": "ERC20",
-        "Icon": "https://assets.oasis.io/explorer-tokens/wstROSE.svg",
-        "// comment": "0x3cAbbe76Ea8B4e7a2c0a69812CBe671800379eC8"
+        "Icon": "https://assets.oasis.io/explorer-tokens/wstROSE.svg"
     },
     {
         "Name": "stROSE",
-        "Address": "oasis1qplsw278vcrs6kcam9ffu43dp5wqvdelqvw9gf68",
+        "Address": "0xEd57966f1566dE1a90042d07403021Ea52ad4724",
         "Description": "ERC20",
-        "Icon": "https://assets.oasis.io/explorer-tokens/stROSE.svg",
-        "// comment": "0xEd57966f1566dE1a90042d07403021Ea52ad4724"
+        "Icon": "https://assets.oasis.io/explorer-tokens/stROSE.svg"
     },
     {
         "Name": "The 4th Pillar Token",
-        "Address": "oasis1qrtw0g3ufn29tk3t9s8rxx6mvsep33qd9szzgmct",
+        "Address": "0x9c1da2B647d25B9e71d8aBB83E4DDe236dcb672B",
         "Description": "ERC20",
-        "Icon": "https://assets.oasis.io/explorer-tokens/4th-pillar.svg",
-        "// comment": "0x9c1da2B647d25B9e71d8aBB83E4DDe236dcb672B"
+        "Icon": "https://assets.oasis.io/explorer-tokens/4th-pillar.svg"
     },
     {
         "Name": "Bridged USDC",
-        "Address": "oasis1qr7y034j2srpxq90w20al600a52es8g3xylhvrl6",
+        "Address": "0x97eec1c29f745dC7c267F90292AA663d997a601D",
         "Description": "ERC20",
         "Origin": "Router",
-        "Icon": "https://assets.oasis.io/explorer-tokens/usdc-router.svg",
-        "// comment": "0x97eec1c29f745dC7c267F90292AA663d997a601D"
+        "Icon": "https://assets.oasis.io/explorer-tokens/usdc-router.svg"
     },
     {
         "Name": "Tether USD",
-        "Address": "oasis1qzjaywxsctukphu8u2clyad9709lncpjhqu4mc2n",
+        "Address": "0x8C4aCd74Ff4385f3B7911432FA6787Aa14406f8B",
         "Description": "ERC20",
         "Origin": "Router",
-        "Icon": "https://assets.oasis.io/explorer-tokens/usdt-router.svg",
-        "// comment": "0x8C4aCd74Ff4385f3B7911432FA6787Aa14406f8B"
+        "Icon": "https://assets.oasis.io/explorer-tokens/usdt-router.svg"
     },
     {
         "Name": "Wrapped Ether",
-        "Address": "oasis1qr6p7q38p5nrhl4e352ksmgzlvqlv80qwvuxpvll",
+        "Address": "0xB6dc6C8b71e88642cEAD3be1025565A9eE74d1C6",
         "Description": "ERC20",
         "Origin": "Router",
-        "Icon": "https://assets.oasis.io/explorer-tokens/eth-router.svg",
-        "// comment": "0xB6dc6C8b71e88642cEAD3be1025565A9eE74d1C6"
+        "Icon": "https://assets.oasis.io/explorer-tokens/eth-router.svg"
     },
     {
         "Name": "Router Protocol Recovery",
-        "Address": "oasis1qpgya8lt5f8r09qpc6lgf6adtfte7jxktga09akx",
+        "Address": "0xB1b64005B11350a94c4D069eff4215592d98F2E2",
         "Description": "Router Protocol Incident: burn address to recover eligible assets",
         "Origin": "Router",
         "Icon": "https://assets.oasis.io/explorer-tokens/router.svg",
@@ -180,52 +162,45 @@
             "Button": "Open",
             "Description": "Router Protocol Incident: User Support",
             "Url": "https://oasisrose.garden/router-protocol-incident-user-support/"
-        },
-        "// comment": "0xB1b64005B11350a94c4D069eff4215592d98F2E2"
+        }
     },
     {
         "Name": "RAKESH VILLAGE",
-        "Address": "oasis1qqx805qqxneftz67ywqjs47u23cd8lcjusl3wcrs",
+        "Address": "0xE4eA254e07C3403FC67eCe108FB5eB039a246231",
         "Description": "ERC20",
-        "Icon": "https://assets.oasis.io/explorer-tokens/rakesh.svg",
-        "// comment": "0xE4eA254e07C3403FC67eCe108FB5eB039a246231"
+        "Icon": "https://assets.oasis.io/explorer-tokens/rakesh.svg"
     },
     {
         "Name": "NEBY",
-        "Address": "oasis1qr5mh6qpl9ql3d202jgk5845eyaggjhjevv9x90k",
+        "Address": "0x932Dd32885eeE8dCCDB8E0475Cf2e9bfc8527f9D",
         "Description": "ERC20",
-        "Icon": "https://assets.oasis.io/explorer-tokens/neby.svg",
-        "// comment": "0x932Dd32885eeE8dCCDB8E0475Cf2e9bfc8527f9D"
+        "Icon": "https://assets.oasis.io/explorer-tokens/neby.svg"
     },
     {
         "Name": "pwROSE",
-        "Address": "oasis1qqegq8cwag5c26uzt5qgwfneruu3n340wcfn00cj",
+        "Address": "0x1Ffd8A218FDc5B38210D64CBB45F40DC55A4e019",
         "Description": "Confidential ERC20",
         "Icon": "https://assets.oasis.io/explorer-tokens/rose-illuminex.svg",
-        "Origin": "illumineX",
-        "// comment": "0x1Ffd8A218FDc5B38210D64CBB45F40DC55A4e019"
+        "Origin": "illumineX"
     },
     {
         "Name": "pRosy",
-        "Address": "oasis1qq0khhwazx0h8vh3tkjlelmuvc0ydegt5um4vz32",
+        "Address": "0x0AA63018433C69AB4DD46565Ed2bbE0445D0ad2a",
         "Description": "Confidential ERC20",
         "Icon": "https://assets.oasis.io/explorer-tokens/rosy-illuminex.svg",
-        "Origin": "illumineX",
-        "// comment": "0x0AA63018433C69AB4DD46565Ed2bbE0445D0ad2a"
+        "Origin": "illumineX"
     },
     {
         "Name": "bitUSD",
-        "Address": "oasis1qq309j5u6ut8da3fh9ra5k8ky77sqhhr8cmdqzpw",
+        "Address": "0xA14167756d9F86Aed12b472C29B257BBdD9974C2",
         "Description": "Optionally-confidential ERC20 with secrecy toggled off, but still not emitting events",
-        "Icon": "https://assets.oasis.io/explorer-tokens/bitUSD.svg",
-        "// comment": "0xA14167756d9F86Aed12b472C29B257BBdD9974C2"
+        "Icon": "https://assets.oasis.io/explorer-tokens/bitUSD.svg"
     },
     {
         "Name": "Midas US Treasury Bill Token",
-        "Address": "oasis1qpktxmu3qz97qm3g6kn4l4aetnfwr2trfv203003",
+        "Address": "0xDD629E5241CbC5919847783e6C96B2De4754e438",
         "Description": "",
-        "Icon": "https://assets.oasis.io/explorer-tokens/mtBILL.svg",
-        "// comment": "0xDD629E5241CbC5919847783e6C96B2De4754e438"
-    }
+        "Icon": "https://assets.oasis.io/explorer-tokens/mtBILL.svg"
+    },
 
 ]
