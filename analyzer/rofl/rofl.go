@@ -125,12 +125,17 @@ func (p *processor) queueRoflAppRefresh(ctx context.Context, batch *storage.Quer
 			metadataName = &name
 		}
 	}
+	// Admin is optional; an app without an admin is immutable.
+	var admin *string
+	if app.Admin != nil {
+		admin = common.Ptr(app.Admin.String())
+	}
 	sek := base64.StdEncoding.EncodeToString(app.SEK[:]) // x25519.PublicKey doesn't implement String() method, this matches other public keys string marshalling.
 	batch.Queue(
 		queries.RuntimeRoflAppUpdate,
 		p.runtime,
 		app.ID.String(),
-		app.Admin.String(),
+		admin,
 		app.Stake.Amount,
 		app.Policy,
 		sek,
