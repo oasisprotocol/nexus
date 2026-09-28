@@ -22,6 +22,9 @@ import (
 // addrTextBytes -> bech32 []byte oasis address
 
 func FromSdkAddress(sdkAddr *sdkTypes.Address) (apiTypes.Address, error) {
+	if sdkAddr == nil {
+		return "", fmt.Errorf("nil address")
+	}
 	addrTextBytes, err := sdkAddr.MarshalText()
 	if err != nil {
 		return "", fmt.Errorf("address marshal text: %w", err)
