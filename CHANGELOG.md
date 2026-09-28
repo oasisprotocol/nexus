@@ -12,6 +12,13 @@ The format is inspired by [Keep a Changelog].
 
 <!-- TOWNCRIER -->
 
+## 0.7.24 (2026-09-28)
+
+### Bug Fixes and Improvements
+
+- analyzer/rofl: Fix panic on ROFL app without admin
+  ([#1253](https://github.com/oasisprotocol/nexus/issues/1253))
+
 ## 0.7.23 (2026-09-28)
 
 ### Bug Fixes and Improvements
