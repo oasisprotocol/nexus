@@ -588,12 +588,15 @@ func ExtractRound(blockHeader nodeapi.RuntimeBlockHeader, txrs []nodeapi.Runtime
 				},
 				RoflUpdate: func(body *rofl.Update) error {
 					blockTransactionData.Body = body
-					admin, err := addresses.FromSdkAddress(body.Admin)
-					if err != nil {
-						logger.Warn("failed to convert admin address to native address", "err", err)
-						return nil
+					// Admin is optional; an update without an admin makes the app immutable.
+					if body.Admin != nil {
+						admin, err := addresses.FromSdkAddress(body.Admin)
+						if err != nil {
+							logger.Warn("failed to convert admin address to native address", "err", err)
+							return nil
+						}
+						blockTransactionData.RelatedAccountAddresses[admin] = struct{}{}
 					}
-					blockTransactionData.RelatedAccountAddresses[admin] = struct{}{}
 					return nil
 				},
 				RoflRemove: func(body *rofl.Remove) error {

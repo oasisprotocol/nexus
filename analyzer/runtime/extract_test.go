@@ -6,9 +6,12 @@ import (
 
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 	sdkConfig "github.com/oasisprotocol/oasis-sdk/client-sdk/go/config"
+	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/modules/rofl"
+	sdkTesting "github.com/oasisprotocol/oasis-sdk/client-sdk/go/testing"
 	"github.com/oasisprotocol/oasis-sdk/client-sdk/go/types"
 	"github.com/stretchr/testify/require"
 
+	"github.com/oasisprotocol/nexus/analyzer/util/addresses"
 	"github.com/oasisprotocol/nexus/common"
 	"github.com/oasisprotocol/nexus/log"
 	"github.com/oasisprotocol/nexus/storage/oasis/nodeapi"
@@ -247,6 +250,48 @@ func TestExtractFailedUnecryptedTx(t *testing.T) {
 	require.NoError(t, err)
 
 	verifyTxData(t, &expected, blockData.TransactionData[0])
+}
+
+func TestExtractRoflUpdate(t *testing.T) {
+	appID := rofl.NewAppIDGlobalName("test")
+	for _, tc := range []struct {
+		name  string
+		admin *types.Address
+	}{
+		// An update without an admin makes the app immutable.
+		{"without admin", nil},
+		{"with admin", &sdkTesting.Bob.Address},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			tx := types.NewTransaction(nil, "rofl.Update", rofl.Update{
+				ID:    appID,
+				Admin: tc.admin,
+			})
+			tx.AppendAuthSignature(sdkTesting.Alice.SigSpec, 0)
+			txrs := []nodeapi.RuntimeTransactionWithResults{
+				{
+					Tx:     types.UnverifiedTransaction{Body: cbor.Marshal(tx)},
+					Result: types.CallResult{Ok: cbor.Marshal(nil)},
+				},
+			}
+			blockData, err := ExtractRound(nodeapi.RuntimeBlockHeader{}, txrs, []nodeapi.RuntimeEvent{}, common.NewBigInt(10_000), sapphireParatime, log.NewDefaultLogger("testing"))
+			require.NoError(t, err)
+			require.Len(t, blockData.TransactionData, 1)
+
+			txData := blockData.TransactionData[0]
+			require.Equal(t, "rofl.Update", txData.Method)
+			signer, err := addresses.FromSdkAddress(&sdkTesting.Alice.Address)
+			require.NoError(t, err)
+			admin, err := addresses.FromSdkAddress(&sdkTesting.Bob.Address)
+			require.NoError(t, err)
+			require.Contains(t, txData.RelatedAccountAddresses, signer)
+			if tc.admin != nil {
+				require.Contains(t, txData.RelatedAccountAddresses, admin)
+			} else {
+				require.NotContains(t, txData.RelatedAccountAddresses, admin)
+			}
+		})
+	}
 }
 
 func verifyTxData(t *testing.T, expected *mockTxData, actual *BlockTransactionData) {
