@@ -4,7 +4,7 @@ import (
 	"strings"
 
 	// nexus-internal data types.
-	coreCommon "github.com/oasisprotocol/oasis-core/go/common"
+	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
 	"github.com/oasisprotocol/oasis-core/go/common/quantity"
 
@@ -144,10 +144,6 @@ func convertRegistryEvent(e registryDamask.Event) nodeapi.Event {
 		if e.NodeEvent.Node.VRF != nil {
 			vrfID = &e.NodeEvent.Node.VRF.ID
 		}
-		runtimeIDs := make([]coreCommon.Namespace, len(e.NodeEvent.Node.Runtimes))
-		for i, r := range e.NodeEvent.Node.Runtimes {
-			runtimeIDs[i] = r.ID
-		}
 		tlsAddresses := make([]string, len(e.NodeEvent.Node.TLS.Addresses))
 		for i, a := range e.NodeEvent.Node.TLS.Addresses {
 			tlsAddresses[i] = a.String()
@@ -155,6 +151,16 @@ func convertRegistryEvent(e registryDamask.Event) nodeapi.Event {
 		p2pAddresses := make([]string, len(e.NodeEvent.Node.P2P.Addresses))
 		for i, a := range e.NodeEvent.Node.P2P.Addresses {
 			p2pAddresses[i] = a.String()
+		}
+		runtimes := make([]*nodeapi.NodeRuntime, len(e.NodeEvent.Node.Runtimes))
+		for i, r := range e.NodeEvent.Node.Runtimes {
+			capabilities := cbor.Marshal(r.Capabilities)
+			runtimes[i] = &nodeapi.NodeRuntime{
+				ID:              r.ID,
+				Version:         r.Version.String(),
+				RawCapabilities: capabilities,
+				ExtraInfo:       r.ExtraInfo,
+			}
 		}
 		consensusAddresses := make([]string, len(e.NodeEvent.Node.Consensus.Addresses))
 		for i, a := range e.NodeEvent.Node.Consensus.Addresses {
@@ -171,7 +177,7 @@ func convertRegistryEvent(e registryDamask.Event) nodeapi.Event {
 				TLSNextPubKey:      e.NodeEvent.Node.TLS.NextPubKey,
 				P2PID:              e.NodeEvent.Node.P2P.ID,
 				P2PAddresses:       p2pAddresses,
-				RuntimeIDs:         runtimeIDs,
+				Runtimes:           runtimes,
 				ConsensusID:        e.NodeEvent.Node.Consensus.ID,
 				ConsensusAddresses: consensusAddresses,
 				IsRegistration:     e.NodeEvent.IsRegistration,

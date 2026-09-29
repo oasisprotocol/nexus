@@ -823,7 +823,7 @@ func (m *processor) queueNodeEvents(batch *storage.QueryBatch, data *registryDat
 				nodeEvent.ConsensusID.String(),
 				strings.Join(nodeEvent.ConsensusAddresses, ","), // TODO: store as array
 				nodeEvent.VRFPubKey,
-				strings.Join(nodeEvent.Roles, ","), // TODO: store as array
+				nodeEvent.Roles,
 				nodeEvent.SoftwareVersion,
 				0,
 			)
@@ -832,9 +832,8 @@ func (m *processor) queueNodeEvents(batch *storage.QueryBatch, data *registryDat
 			// Update the node's runtime associations by deleting
 			// previous node records and inserting new ones.
 			batch.Queue(queries.ConsensusRuntimeNodesDelete, nodeEvent.NodeID.String())
-			for _, runtimeID := range nodeEvent.RuntimeIDs {
-				// XXX: Include other fields here if needed in the future.
-				batch.Queue(queries.ConsensusRuntimeNodesUpsert, runtimeID.String(), nodeEvent.NodeID.String())
+			for _, rt := range nodeEvent.Runtimes {
+				batch.Queue(queries.ConsensusRuntimeNodesUpsert, rt.ID.String(), nodeEvent.NodeID.String(), rt.Version, rt.RawCapabilities, rt.ExtraInfo)
 			}
 		} else {
 			// An existing node is expired.
