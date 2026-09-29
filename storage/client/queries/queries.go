@@ -1269,6 +1269,24 @@ const (
 			window_end DESC
 		LIMIT $2::bigint
 		OFFSET $3::bigint`
+
+	// TotalAccounts returns the query for total account snapshots per layer.
+	TotalAccounts = `
+		SELECT window_end, total_accounts
+		FROM stats.total_accounts
+		WHERE layer = $1::text
+		ORDER BY
+			window_end DESC
+		LIMIT $2::bigint
+		OFFSET $3::bigint`
+
+	// LatestTotalAccounts returns the most recent total account count for a layer.
+	LatestTotalAccounts = `
+		SELECT window_end, total_accounts
+		FROM stats.total_accounts
+		WHERE layer = $1::text
+		ORDER BY window_end DESC
+		LIMIT 1`
 )
 
 func escapeLike(s string) string {

@@ -181,6 +181,36 @@ func (a *aggregateStatsAnalyzer) aggregateStatsWorker(ctx context.Context) {
 		statsComputations = append(statsComputations, sc)
 	}
 
+	// Compute daily total accounts for all layers.
+	// This is a simple count of all accounts in the layer, updated once per day.
+	for _, layer := range statsLayers {
+		sc := &statsComputation{
+			target:       a.target,
+			name:         "total_accounts" + "_" + layer,
+			layer:        layer,
+			outputTable:  "stats.total_accounts",
+			outputColumn: "total_accounts",
+			windowSize:   24 * time.Hour,
+			windowStep:   24 * time.Hour,
+		}
+		if layer == layerConsensus {
+			// Consensus layer queries.
+			sc.statsQuery = QueryConsensusTotalAccounts
+			sc.latestAvailableDataTs = func(ctx context.Context, target storage.TargetStorage) (*time.Time, error) {
+				var latestBlockTs *time.Time
+				return latestBlockTs, target.QueryRow(ctx, QueryLatestConsensusBlockTime).Scan(&latestBlockTs)
+			}
+		} else {
+			// Runtime layer queries.
+			sc.statsQuery = QueryRuntimeTotalAccounts
+			sc.latestAvailableDataTs = func(ctx context.Context, target storage.TargetStorage) (*time.Time, error) {
+				var latestBlockTs *time.Time
+				return latestBlockTs, target.QueryRow(ctx, QueryLatestRuntimeBlockTime, sc.layer).Scan(&latestBlockTs)
+			}
+		}
+		statsComputations = append(statsComputations, sc)
+	}
+
 	for {
 		// If batch limit was reached, or the batch timeout was reached, start the next iteration sooner.
 		var useCatchupTimeout bool

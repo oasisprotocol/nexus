@@ -271,6 +271,19 @@ func (srv *StrictServerImpl) GetLayerStatsActiveAccounts(ctx context.Context, re
 	return apiTypes.GetLayerStatsActiveAccounts200JSONResponse(*activeAccountsList), nil
 }
 
+func (srv *StrictServerImpl) GetLayerStatsTotalAccounts(ctx context.Context, request apiTypes.GetLayerStatsTotalAccountsRequestObject) (apiTypes.GetLayerStatsTotalAccountsResponseObject, error) {
+	// Additional param validation.
+	if !request.Layer.IsValid() {
+		return nil, &apiTypes.InvalidParamFormatError{ParamName: "layer", Err: fmt.Errorf("not a valid enum value: %s", request.Layer)}
+	}
+
+	totalAccountsList, err := srv.dbClient.TotalAccounts(ctx, request.Layer, request.Params)
+	if err != nil {
+		return nil, err
+	}
+	return apiTypes.GetLayerStatsTotalAccounts200JSONResponse(*totalAccountsList), nil
+}
+
 func (srv *StrictServerImpl) GetConsensusTransactions(ctx context.Context, request apiTypes.GetConsensusTransactionsRequestObject) (apiTypes.GetConsensusTransactionsResponseObject, error) {
 	txs, err := srv.dbClient.Transactions(ctx, request.Params, nil)
 	if err != nil {
